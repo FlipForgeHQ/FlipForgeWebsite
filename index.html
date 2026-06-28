@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>FlipForge | Sports Card Market Intelligence</title>
+
+<meta
+ name="description"
+ content="FlipForge is a pre-launch sports-card market intelligence platform built to help collectors, investors, dealers, and traders make evidence-based decisions."
+/>
+
+  <style>
+    :root {
+      --bg: #020914;
+      --bg-2: #061120;
+      --panel: rgba(255, 255, 255, 0.045);
+      --panel-strong: rgba(255, 255, 255, 0.075);
+      --line: rgba(242, 242, 242, 0.14);
+      --line-strong: rgba(212, 175, 55, 0.38);
+      --text: #f2f2f2;
+      --muted: #88928f;
+      --gold: #d4af37;
+      --gold-bright: #f0bf32;
+      --black: #020914;
+      --radius: 26px;
+      --max: 1180px;
+      --shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Sohne", "Inter", "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(212, 175, 55, 0.13), transparent 28%),
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 28%),
+        linear-gradient(180deg, #020914 0%, #050b16 50%, #020914 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 44px));
+      margin: 0 auto;
+    }
+
+    .page-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.18;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(circle at top, black, transparent 75%);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(2, 9, 20, 0.78);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .wordmark {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+
+    .mini-mark {
+      width: 36px;
+      height: 36px;
+    }
+
+    nav {
+      display: flex;
+      gap: 26px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    nav a:hover {
+      color: var(--text);
+    }
+
+    .nav-cta {
+      color: var(--gold);
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      padding: 10px 16px;
+    }
+
+    .hero {
+      padding: 88px 0 72px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 58px;
+      align-items: center;
+    }
+
+    .hero-brand-block {
+      min-height: 580px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 42px;
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.12), transparent 25%),
+        rgba(255, 255, 255, 0.035);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-logo {
+      width: min(340px, 100%);
+      margin-bottom: 42px;
+    }
+
+    .hero-wordmark {
+      font-size: clamp(38px, 5vw, 62px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .tagline {
+      color: var(--gold-bright);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.48em;
+      text-transform: uppercase;
+    }
+
+    .hero-copy {
+      border-left: 1px solid rgba(242, 242, 242, 0.32);
+      padding-left: 42px;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: clamp(44px, 7vw, 82px);
+      line-height: 0.96;
+      letter-spacing: -0.06em;
+      max-width: 760px;
+      margin-bottom: 24px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 19px;
+      max-width: 660px;
+      margin-bottom: 30px;
+    }
+
+    .lead strong {
+      color: var(--text);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      border: 1px solid var(--line);
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--line-strong);
+    }
+
+    .btn-primary {
+      color: #050505;
+      background: linear-gradient(135deg, var(--gold), #f5d36b);
+      border-color: rgba(212, 175, 55, 0.75);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .micro {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .meaning {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin-top: 42px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .meaning-step {
+      padding: 24px 22px;
+      border-right: 1px solid var(--line);
+      min-height: 190px;
+    }
+
+    .meaning-step:last-child {
+      border-right: none;
+    }
+
+    .meaning-step h3 {
+      color: var(--gold);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin: 18px 0 8px;
+    }
+
+    .meaning-step p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    section {
+      padding: 76px 0;
+      border-top: 1px solid rgba(242, 242, 242, 0.08);
+    }
+
+    .section-head {
+      max-width: 820px;
+      margin-bottom: 34px;
+    }
+
+    .section-label {
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: clamp(34px, 4.5vw, 58px);
+      line-height: 1.03;
+      letter-spacing: -0.045em;
+      margin-bottom: 14px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      min-height: 240px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.065), rgba(255,255,255,0.022)),
+        rgba(255,255,255,0.028);
+    }
+
+    .card-icon {
+      color: var(--gold);
+      font-size: 32px;
+      margin-bottom: 18px;
+    }
+
+    .card h3 {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: rgba(255,255,255,0.045);
+      padding: 30px;
+    }
+
+    .flow-list {
+      display: grid;
+      gap: 20px;
+    }
+
+    .flow-item {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .flow-number {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line-strong);
+      color: var(--gold);
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .flow-item h3 {
+      margin-bottom: 4px;
+      font-size: 20px;
+    }
+
+    .flow-item p {
+      color: var(--muted);
+    }
+
+    .data-panel {
+      border-color: rgba(212, 175, 55, 0.26);
+      background:
+        radial-gradient(circle at top right, rgba(212, 175, 55, 0.13), transparent 40%),
+        rgba(255,255,255,0.04);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .small-box {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      background: rgba(2,9,20,0.42);
+    }
+
+    .small-box h3 {
+      color: var(--gold);
+      font-size: 14px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .small-box p,
+    .small-box li {
+      color: var(--muted);
+    }
+
+    ul {
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    li::before {
+      content: "•";
+      color: var(--gold);
+      margin-right: 8px;
+    }
+
+    .waitlist {
+      display: grid;
+      grid-template-columns: 1fr 0.95fr;
+      gap: 30px;
+      align-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 34px;
+      padding: 40px;
+      background:
+        linear-gradient(135deg, rgba(212,175,55,0.14), rgba(255,255,255,0.035)),
+        rgba(255,255,255,0.04);
+      box-shadow: var(--shadow);
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 15px 15px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(2, 9, 20, 0.8);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--line-strong);
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    footer {
+      padding: 34px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer-grid {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .ff-mark {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .ff-white {
+      fill: #f2f2f2;
+      filter: drop-shadow(0 4px 8px rgba(255,255,255,0.08));
+    }
+
+    .ff-gold {
+      fill: var(--gold);
+      filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.45));
+    }
+
+    .ff-grid {
+      stroke: rgba(242,242,242,0.16);
+      stroke-width: 1;
+      fill: none;
+    }
+
+    @media (max-width: 960px) {
+      nav {
+        display: none;
+      }
+
+      .hero-grid,
+      .workflow,
+      .waitlist,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy {
+        border-left: none;
+        padding-left: 0;
+      }
+
+      .hero-brand-block {
+        min-height: auto;
+        align-items: center;
+        text-align: center;
+      }
+
+      .meaning,
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .meaning-step {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .meaning-step:last-child {
+        border-bottom: none;
+      }
+
+      .hero-wordmark {
+        letter-spacing: 0.14em;
+      }
+
+      .tagline {
+        letter-spacing: 0.22em;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="page-grid"></div>
+
+  <header>
+    <div class="container nav">
+      <a href="#" class="brand" aria-label="FlipForge home">
+        <span class="mini-mark">
+          <svg class="ff-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <rect class="ff-white" x="10" y="10" width="24" height="12" />
+            <rect class="ff-white" x="10" y="10" width="12" height="24" />
+            <rect class="ff-white" x="66" y="10" width="24" height="12" />
+            <rect class="ff-white" x="78" y="10" width="12" height="24" />
+            <rect class="ff-white" x="10" y="78" width="24" height="12" />
+            <rect class="ff-white" x="10" y="66" width="12" height="24" />
+            <rect class="ff-white" x="66" y="78" width="24" height="12" />
+            <rect class="ff-white" x="78" y="66" width="12" height="24" />
+            <rect class="ff-gold" x="42" y="42" width="16" height="16" />
+          </svg>
+        </span>
+        <span class="wordmark">FlipForge</span>
+      </a>
+
+```
+  <nav>
+    <a href="#meaning">Meaning</a>
+    <a href="#platform">Platform</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#data">Data Use</a>
+    <a href="#access" class="nav-cta">Early Access</a>
+  </nav>
+</div>
+```
+
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-brand-block">
+          <div class="hero-logo">
+            <svg class="ff-mark" viewBox="0 0 100 100" aria-label="FlipForge hidden FF mark">
+              <path class="ff-grid" d="M50 5v90M5 50h90M20 20h60v60H20z" />
+              <path class="ff-grid" d="M30 10v80M70 10v80M10 30h80M10 70h80" />
+              <rect class="ff-white" x="10" y="10" width="28" height="13" />
+              <rect class="ff-white" x="10" y="10" width="13" height="28" />
+              <rect class="ff-white" x="62" y="10" width="28" height="13" />
+              <rect class="ff-white" x="77" y="10" width="13" height="28" />
+              <rect class="ff-white" x="10" y="77" width="28" height="13" />
+              <rect class="ff-white" x="10" y="62" width="13" height="28" />
+              <rect class="ff-white" x="62" y="77" width="28" height="13" />
+              <rect class="ff-white" x="77" y="62" width="13" height="28" />
+              <rect class="ff-gold" x="41" y="41" width="18" height="18" />
+            </svg>
+          </div>
+
+```
+      <div class="hero-wordmark">FlipForge</div>
+      <div class="tagline">Signal. Confidence. Advantage.</div>
+    </div>
+
+    <div class="hero-copy">
+      <div class="eyebrow">Sports Card Market Intelligence</div>
+      <h1>Cut through the noise. Validate with evidence.</h1>
+      <p class="lead">
+        FlipForge is a pre-launch sports-card intelligence platform built for collectors,
+        investors, dealers, and traders who want <strong>evidence-backed pricing confidence</strong>
+        instead of guesswork.
+      </p>
+
+      <div class="button-row">
+        <a class="btn btn-primary" href="#access">Request Early Access</a>
+        <a class="btn btn-secondary" href="#data">View Data Use</a>
+      </div>
+
+      <p class="micro">
+        Pre-launch platform. Built for research, validation, confidence scoring, and decision support.
+      </p>
+
+      <div id="meaning" class="meaning">
+        <div class="meaning-step">
+          <svg class="mini-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="25" cy="25" r="7" fill="#88928f" />
+            <circle cx="50" cy="25" r="7" fill="#88928f" />
+            <circle cx="75" cy="25" r="7" fill="#88928f" />
+            <circle cx="25" cy="50" r="7" fill="#88928f" />
+            <circle cx="50" cy="50" r="7" fill="#88928f" />
+            <circle cx="75" cy="50" r="7" fill="#88928f" />
+            <circle cx="25" cy="75" r="7" fill="#88928f" />
+            <circle cx="50" cy="75" r="7" fill="#88928f" />
+            <circle cx="75" cy="75" r="7" fill="#88928f" />
+          </svg>
+          <h3>1. Noise</h3>
+          <p>The market is full of noise.</p>
+        </div>
+
+        <div class="meaning-step">
+          <svg class="mini-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <rect class="ff-white" x="15" y="15" width="20" height="10" />
+            <rect class="ff-white" x="15" y="15" width="10" height="20" />
+            <rect class="ff-white" x="65" y="15" width="20" height="10" />
+            <rect class="ff-white" x="75" y="15" width="10" height="20" />
+            <rect class="ff-white" x="15" y="75" width="20" height="10" />
+            <rect class="ff-white" x="15" y="65" width="10" height="20" />
+            <rect class="ff-white" x="65" y="75" width="20" height="10" />
+            <rect class="ff-white" x="75" y="65" width="10" height="20" />
+          </svg>
+          <h3>2. Discovery</h3>
+          <p>We isolate what matters.</p>
+        </div>
+
+        <div class="meaning-step">
+          <svg class="mini-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <rect class="ff-white" x="15" y="15" width="20" height="10" />
+            <rect class="ff-white" x="15" y="15" width="10" height="20" />
+            <rect class="ff-white" x="65" y="15" width="20" height="10" />
+            <rect class="ff-white" x="75" y="15" width="10" height="20" />
+            <rect class="ff-white" x="15" y="75" width="20" height="10" />
+            <rect class="ff-white" x="15" y="65" width="10" height="20" />
+            <rect class="ff-white" x="65" y="75" width="20" height="10" />
+            <rect class="ff-white" x="75" y="65" width="10" height="20" />
+          </svg>
+          <h3>3. Validation</h3>
+          <p>We validate with evidence.</p>
+        </div>
+
+        <div class="meaning-step">
+          <svg class="mini-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <rect class="ff-gold" x="42" y="42" width="16" height="16" />
+          </svg>
+          <h3>4. Advantage</h3>
+          <p>You act with confidence.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="platform">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-label">Platform</div>
+      <h2>The decision layer for serious card evaluation.</h2>
+      <p>
+        FlipForge is not a marketplace and not a buying bot. It is a market-intelligence layer
+        designed to help users evaluate opportunity, risk, liquidity, and evidence quality.
+      </p>
+    </div>
+
+    <div class="cards">
+      <article class="card">
+        <div class="card-icon">◎</div>
+        <h3>Signal Discovery</h3>
+        <p>
+          Identify active market opportunities, current asking prices, and listing patterns while keeping
+          active listings separate from true value validation.
+        </p>
+      </article>
+
+      <article class="card">
+        <div class="card-icon">▣</div>
+        <h3>Evidence Validation</h3>
+        <p>
+          Completed-sales evidence is used to support median sold price, sold-comp count,
+          confidence scoring, evidence status, and risk review.
+        </p>
+      </article>
+
+      <article class="card">
+        <div class="card-icon">↗</div>
+        <h3>Decision Advantage</h3>
+        <p>
+          FlipForge converts noisy marketplace data into derived intelligence so users can make cleaner,
+          more disciplined card decisions.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="workflow">
+  <div class="container workflow">
+    <div class="section-head">
+      <div class="section-label">Workflow</div>
+      <h2>From search query to evidence-backed confidence.</h2>
+      <p>
+        The platform standardizes card identity, separates active discovery from completed-sale validation,
+        and tracks the evidence behind each decision.
+      </p>
+    </div>
+
+    <div class="panel">
+      <div class="flow-list">
+        <div class="flow-item">
+          <div class="flow-number">1</div>
+          <div>
+            <h3>Search Query Intake</h3>
+            <p>Users enter or import a sports-card target such as year, player, set, card number, grade, and parallel.</p>
+          </div>
+        </div>
+
+        <div class="flow-item">
+          <div class="flow-number">2</div>
+          <div>
+            <h3>Standardized Card ID</h3>
+            <p>FlipForge normalizes messy marketplace searches into a consistent internal identity.</p>
+          </div>
+        </div>
+
+        <div class="flow-item">
+          <div class="flow-number">3</div>
+          <div>
+            <h3>Discovery vs. Validation</h3>
+            <p>Active listings are discovery signals. Completed sales are validation evidence.</p>
+          </div>
+        </div>
+
+        <div class="flow-item">
+          <div class="flow-number">4</div>
+          <div>
+            <h3>Derived Intelligence</h3>
+            <p>Outputs include median sold price, comp count, confidence score, evidence status, and risk flags.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="data">
+  <div class="container">
+    <div class="panel data-panel">
+      <div class="section-head">
+        <div class="section-label">Data Use</div>
+        <h2>Built around evidence, compliance, and derived analytics.</h2>
+        <p>
+          FlipForge is designed to generate market intelligence, not resell raw marketplace data.
+          The product is focused on research, confidence, and decision support.
+        </p>
+      </div>
+
+      <div class="split">
+        <div class="small-box">
+          <h3>Requested Data Use</h3>
+          <ul>
+            <li>Active listing discovery</li>
+            <li>Completed-sale validation</li>
+            <li>Median sold price calculation</li>
+            <li>Sold-comp count and evidence status</li>
+            <li>Pricing confidence and risk indicators</li>
+          </ul>
+        </div>
+
+        <div class="small-box">
+          <h3>Not Requested</h3>
+          <ul>
+            <li>No raw eBay data resale</li>
+            <li>No raw sold-listing export</li>
+            <li>No buyer, payment, or order data</li>
+            <li>No private seller data</li>
+            <li>No automated purchasing, bidding, or checkout</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="access">
+  <div class="container">
+    <div class="waitlist">
+      <div>
+        <div class="section-label">Private Access</div>
+        <h2>Request early access to FlipForge.</h2>
+        <p class="lead">
+          FlipForge is currently in pre-launch development. Join the early access list for product updates,
+          private beta opportunities, and launch availability.
+        </p>
+      </div>
+
+      <form id="accessForm">
+        <input type="text" name="name" placeholder="Name" required />
+        <input type="email" name="email" placeholder="Email" required />
+
+        <select name="role" required>
+          <option value="">I am a...</option>
+          <option>Collector</option>
+          <option>Investor</option>
+          <option>Dealer</option>
+          <option>Card flipper</option>
+          <option>Shop owner</option>
+          <option>Breaker</option>
+          <option>Other</option>
+        </select>
+
+        <textarea name="message" rows="4" placeholder="What would you want FlipForge to help you evaluate?"></textarea>
+
+        <button class="btn btn-primary" type="submit">Join Early Access List</button>
+        <small id="formStatus" class="micro"></small>
+      </form>
+    </div>
+  </div>
+</section>
+```
+
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>© <span id="year"></span> FlipForge. All rights reserved.</div>
+
+```
+  <div class="footer-links">
+    <a href="mailto:tholbein@gmail.com">Contact</a>
+    <a href="#data">Data Use</a>
+    <a href="#access">Early Access</a>
+  </div>
+</div>
+```
+
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    document.getElementById("accessForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+      const data = new FormData(form);
+
+      const subject = encodeURIComponent("FlipForge Early Access Request");
+      const body = encodeURIComponent(
+        "Name: " + data.get("name") + "\n" +
+        "Email: " + data.get("email") + "\n" +
+        "Role: " + data.get("role") + "\n" +
+        "Message: " + (data.get("message") || "")
+      );
+
+      window.location.href = "mailto:tholbein@gmail.com?subject=" + subject + "&body=" + body;
+
+      document.getElementById("formStatus").textContent =
+        "Opening your email app. Send the message to complete your request.";
+    });
+  </script>
+
+</body>
+</html>
