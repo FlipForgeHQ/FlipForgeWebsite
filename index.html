@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlipForge™ | Sports Card Market Intelligence</title>
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%2305070c"/><rect x="15" y="15" width="12" height="8" fill="%23f2f2f2"/><rect x="15" y="15" width="8" height="12" fill="%23f2f2f2"/><rect x="37" y="15" width="12" height="8" fill="%23f2f2f2"/><rect x="41" y="15" width="8" height="12" fill="%23f2f2f2"/><rect x="15" y="41" width="12" height="8" fill="%23f2f2f2"/><rect x="15" y="37" width="8" height="12" fill="%23f2f2f2"/><rect x="37" y="41" width="12" height="8" fill="%23f2f2f2"/><rect x="41" y="37" width="8" height="12" fill="%23f2f2f2"/><rect x="28" y="28" width="8" height="8" fill="%23d4af37"/></svg>' />
 
   <style>
     :root {
@@ -13,8 +14,11 @@
       --text: #f4f6fb;
       --muted: #aab2c5;
       --line: rgba(255, 255, 255, 0.12);
-      --gold: #c9a45c;
+      --gold: #d4af37;
+      --gold-soft: rgba(212, 175, 55, 0.12);
+      --gold-line: rgba(212, 175, 55, 0.35);
       --silver: #d8dde8;
+      --slate: #8b928f;
     }
 
     * {
@@ -47,17 +51,25 @@
     .nav {
       max-width: 1180px;
       margin: auto;
-      padding: 16px 22px;
+      padding: 14px 22px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 18px;
     }
 
-    .brand {
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: max-content;
+    }
+
+    .brand-word {
       font-size: 20px;
       font-weight: 800;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.18em;
+      line-height: 1;
     }
 
     .tm {
@@ -65,6 +77,39 @@
       vertical-align: super;
       margin-left: 1px;
       letter-spacing: 0;
+    }
+
+    .logo-mark {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,0.35));
+    }
+
+    .hero-logo-mark {
+      width: min(190px, 46vw);
+      height: auto;
+      margin: 0 auto 20px;
+      filter: drop-shadow(0 22px 42px rgba(0,0,0,0.4));
+    }
+
+    .brand-card-word {
+      font-size: clamp(34px, 5vw, 56px);
+      font-weight: 800;
+      letter-spacing: 0.24em;
+      line-height: 1;
+      text-align: center;
+      color: var(--text);
+    }
+
+    .brand-tagline {
+      margin-top: 16px;
+      text-align: center;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
     }
 
     nav {
@@ -84,7 +129,7 @@
       margin: auto;
       padding: 92px 22px 70px;
       display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
+      grid-template-columns: 1.1fr 0.9fr;
       gap: 44px;
       align-items: center;
     }
@@ -138,11 +183,49 @@
     }
 
     .hero-card {
-      background: linear-gradient(180deg, var(--panel-soft), var(--panel));
+      background: linear-gradient(180deg, rgba(18, 24, 38, 0.96), rgba(13, 17, 26, 0.96));
       border: 1px solid var(--line);
-      border-radius: 26px;
-      padding: 26px;
+      border-radius: 28px;
+      padding: 30px;
       box-shadow: 0 20px 80px rgba(0,0,0,0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 18px 18px;
+      mask-image: radial-gradient(circle at center, black 0%, transparent 68%);
+      pointer-events: none;
+    }
+
+    .hero-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-proof {
+      margin-top: 26px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .brand-proof strong {
+      display: block;
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
     }
 
     .metric {
@@ -230,8 +313,8 @@
     }
 
     .legal-box {
-      background: rgba(201, 164, 92, 0.08);
-      border: 1px solid rgba(201, 164, 92, 0.28);
+      background: var(--gold-soft);
+      border: 1px solid var(--gold-line);
       border-radius: 22px;
       padding: 24px;
       color: var(--muted);
@@ -314,6 +397,20 @@
       .section-title {
         font-size: 30px;
       }
+
+      .brand-word {
+        font-size: 17px;
+        letter-spacing: 0.12em;
+      }
+
+      .logo-mark {
+        width: 36px;
+        height: 36px;
+      }
+
+      .brand-proof {
+        grid-template-columns: 1fr 1fr;
+      }
     }
   </style>
 </head>
@@ -322,7 +419,21 @@
 
   <header>
     <div class="nav">
-      <div class="brand">FLIPFORGE<span class="tm">™</span></div>
+      <a class="brand-lockup" href="#top" aria-label="FlipForge home">
+        <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="1" y="1" width="62" height="62" rx="10" fill="#05070c" stroke="rgba(212,175,55,0.35)" />
+          <rect x="15" y="15" width="14" height="8" fill="#f2f2f2" />
+          <rect x="15" y="15" width="8" height="14" fill="#f2f2f2" />
+          <rect x="35" y="15" width="14" height="8" fill="#f2f2f2" />
+          <rect x="41" y="15" width="8" height="14" fill="#f2f2f2" />
+          <rect x="15" y="41" width="14" height="8" fill="#f2f2f2" />
+          <rect x="15" y="35" width="8" height="14" fill="#f2f2f2" />
+          <rect x="35" y="41" width="14" height="8" fill="#f2f2f2" />
+          <rect x="41" y="35" width="8" height="14" fill="#f2f2f2" />
+          <rect x="28" y="28" width="8" height="8" fill="#d4af37" />
+        </svg>
+        <span class="brand-word">FLIPFORGE<span class="tm">™</span></span>
+      </a>
       <nav>
         <a href="#meaning">Meaning</a>
         <a href="#platform">Platform</a>
@@ -334,7 +445,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="top">
 
     <section class="hero">
       <div>
@@ -353,22 +464,23 @@
         </div>
       </div>
 
-      <div class="hero-card">
-        <div class="metric">
-          <span>Discovery Layer</span>
-          <strong>ForgeSignal<span class="tm">™</span></strong>
-        </div>
-        <div class="metric">
-          <span>Confidence Layer</span>
-          <strong>ForgeScore<span class="tm">™</span></strong>
-        </div>
-        <div class="metric">
-          <span>Validation Layer</span>
-          <strong>Evidence Chain<span class="tm">™</span></strong>
-        </div>
-        <div class="metric">
-          <span>Explainability Layer</span>
-          <strong>Decision Traceback<span class="tm">™</span></strong>
+      <div class="hero-card" aria-label="FlipForge visual identity and decision layers">
+        <svg class="hero-logo-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="1" y="1" width="62" height="62" rx="8" fill="#05070c" stroke="rgba(212,175,55,0.38)" />
+          <path d="M15 15H30V23H23V30H15V15Z" fill="#f2f2f2" />
+          <path d="M34 15H49V30H41V23H34V15Z" fill="#f2f2f2" />
+          <path d="M15 34H23V41H30V49H15V34Z" fill="#f2f2f2" />
+          <path d="M41 34H49V49H34V41H41V34Z" fill="#f2f2f2" />
+          <rect x="28" y="28" width="8" height="8" fill="#d4af37" />
+        </svg>
+        <div class="brand-card-word">FLIPFORGE<span class="tm">™</span></div>
+        <div class="brand-tagline">Signal. Confidence. Advantage.</div>
+
+        <div class="brand-proof">
+          <div><strong>Noise</strong>Cut through noise</div>
+          <div><strong>Discovery</strong>Find signals</div>
+          <div><strong>Validation</strong>Review evidence</div>
+          <div><strong>Advantage</strong>Act with confidence</div>
         </div>
       </div>
     </section>
