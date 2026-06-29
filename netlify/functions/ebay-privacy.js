@@ -1,9 +1,5 @@
 const crypto = require("crypto");
 
-const DEFAULT_ENDPOINT =
-  process.env.EBAY_ACCOUNT_DELETION_ENDPOINT_URL ||
-  "https://goflipforge.com/api/ebay/privacy";
-
 function response(statusCode, body) {
   return {
     statusCode,
@@ -30,7 +26,7 @@ function hashIdentifier(value) {
 
 exports.handler = async function handler(event) {
   const verificationToken = process.env.EBAY_ACCOUNT_DELETION_VERIFICATION_TOKEN;
-  const endpoint = process.env.EBAY_ACCOUNT_DELETION_ENDPOINT_URL || DEFAULT_ENDPOINT;
+  const endpoint = process.env.EBAY_ACCOUNT_DELETION_ENDPOINT_URL;
 
   if (event.httpMethod === "GET") {
     const challengeCode =
@@ -45,6 +41,12 @@ exports.handler = async function handler(event) {
     if (!verificationToken) {
       return response(500, {
         error: "Server missing EBAY_ACCOUNT_DELETION_VERIFICATION_TOKEN."
+      });
+    }
+
+    if (!endpoint) {
+      return response(500, {
+        error: "Server missing EBAY_ACCOUNT_DELETION_ENDPOINT_URL."
       });
     }
 
