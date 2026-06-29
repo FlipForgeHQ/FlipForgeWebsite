@@ -238,6 +238,26 @@
       font-size: 14px;
     }
 
+    .legal-box p {
+      margin-bottom: 14px;
+    }
+
+    .legal-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-list {
+      margin: 10px 0 18px 20px;
+      color: var(--muted);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 22px;
+    }
+
+    .control-list li {
+      padding-left: 2px;
+    }
+
     footer {
       border-top: 1px solid var(--line);
       background: #03050a;
@@ -274,6 +294,10 @@
       }
 
       .wide {
+        grid-template-columns: 1fr;
+      }
+
+      .control-list {
         grid-template-columns: 1fr;
       }
 
@@ -319,7 +343,7 @@
         <p>
           FlipForge<span class="tm">™</span>, operated by FlipForge LLC, helps collectors,
           investors, dealers, and card flippers evaluate sports-card opportunities using
-          listing discovery, completed-sale validation, standardized card identity,
+          listing discovery, completed-sale validation where authorized, standardized card identity,
           confidence scoring, and evidence-backed decision support.
         </p>
 
@@ -353,8 +377,8 @@
       <h2 class="section-title">The decision layer for serious card evaluation.</h2>
       <p class="section-copy">
         FlipForge<span class="tm">™</span> is not a marketplace, buying bot, checkout tool,
-        listing automation tool, or raw scraping utility. It is a market intelligence
-        platform built to help users review opportunities before acting.
+        bidding tool, seller messaging tool, listing automation system, or raw data resale product.
+        It is a market intelligence platform built to help users review opportunities before acting.
       </p>
 
       <div class="grid">
@@ -377,8 +401,9 @@
         <div class="card">
           <h3>3. Validation</h3>
           <p>
-            Evidence Chain<span class="tm">™</span> compares completed sales, available
-            comps, and evidence quality before confidence is assigned.
+            Evidence Chain<span class="tm">™</span> compares active listing signals,
+            available comps, evidence quality, and completed-sale evidence where authorized
+            before confidence is assigned.
           </p>
         </div>
 
@@ -395,8 +420,8 @@
     <section id="platform">
       <h2 class="section-title">Platform</h2>
       <p class="section-copy">
-        FlipForge<span class="tm">™</span> is designed for controlled user testing,
-        API validation, confidence scoring, and decision support.
+        FlipForge<span class="tm">™</span> is designed for controlled limited-access production use,
+        API validation, confidence scoring, evidence review, and decision support.
       </p>
 
       <div class="wide">
@@ -404,7 +429,7 @@
           <h3>Market Intelligence</h3>
           <p>
             FlipForge<span class="tm">™</span> reviews active listing signals, historical
-            evidence, card identity, liquidity context, and risk indicators to help users
+            evidence where authorized, card identity, liquidity context, and risk indicators to help users
             evaluate whether a card deserves deeper attention.
           </p>
         </div>
@@ -448,7 +473,8 @@
         <div class="card">
           <h3>Validate</h3>
           <p>
-            Compare evidence against completed sales, comp quality, and market liquidity.
+            Compare evidence against active listing signals, available comps, completed-sale
+            evidence where authorized, and market liquidity.
           </p>
         </div>
 
@@ -465,24 +491,46 @@
     <section id="data">
       <h2 class="section-title">Data Use</h2>
       <p class="section-copy">
-        FlipForge<span class="tm">™</span> uses marketplace data only to support user-facing
-        research, validation, and decision support.
+        FlipForge<span class="tm">™</span> uses marketplace data to support decision-making.
+        Data is transformed into user-facing intelligence signals such as evidence quality,
+        comp support, confidence score, liquidity signal, pricing context, and risk warnings.
       </p>
 
       <div class="wide">
         <div class="card">
-          <h3>Evidence-Based Review</h3>
+          <h3>Active Listing Discovery</h3>
           <p>
-            Active listings, completed sales, user-entered tracking data, and validation notes
-            may be used to support confidence scoring and product testing.
+            FlipForge<span class="tm">™</span> may review active marketplace listing signals
+            to help users identify candidate opportunities. Active asking prices are treated
+            as market signals, not proven market value.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Completed-Sale Validation</h3>
+          <p>
+            Where authorized marketplace access is available, FlipForge<span class="tm">™</span>
+            may use completed-sale evidence to validate whether active listing opportunities
+            are supported by historical market outcomes.
+          </p>
+        </div>
+      </div>
+
+      <div class="wide" style="margin-top: 18px;">
+        <div class="card">
+          <h3>Decision Support</h3>
+          <p>
+            Completed-sale evidence is used for validation, confidence scoring, liquidity review,
+            and risk analysis. FlipForge<span class="tm">™</span> does not sell raw completed-sale
+            data as a standalone data feed.
           </p>
         </div>
 
         <div class="card">
           <h3>Controlled Access</h3>
           <p>
-            Early access may be limited to invited testers while FlipForge LLC validates
-            platform behavior, API compliance, and data-quality standards.
+            FlipForge<span class="tm">™</span> is designed for controlled limited-access production
+            use while FlipForge LLC validates platform behavior, API compliance, and data-quality standards.
           </p>
         </div>
       </div>
@@ -498,6 +546,34 @@
 
       <div class="legal-box">
         <p>
+          FlipForge<span class="tm">™</span> uses responsible marketplace data controls designed
+          for review, validation, audit, and decision-support workflows.
+        </p>
+
+        <ul class="control-list">
+          <li>Rate limiting</li>
+          <li>Duplicate request prevention</li>
+          <li>Caching where permitted</li>
+          <li>Endpoint-level API usage logging</li>
+          <li>User/watchlist-level scan logging</li>
+          <li>Error monitoring</li>
+          <li>Controlled data retention</li>
+          <li>Manual review fallback</li>
+        </ul>
+
+        <p>
+          FlipForge<span class="tm">™</span> stores only the data needed for evidence review,
+          scoring, audit, user decision support, product improvement, and compliance. Marketplace
+          data is retained based on operational need and applicable marketplace requirements.
+        </p>
+
+        <p>
+          FlipForge<span class="tm">™</span> does not automate purchases, bidding, checkout,
+          seller messaging, or listing manipulation. The platform is built to support better
+          review, not automated marketplace action.
+        </p>
+
+        <p>
           FlipForge<span class="tm">™</span> is an independent market intelligence platform.
           References to third-party brands, marketplaces, grading companies, manufacturers,
           leagues, teams, players, or card products are for identification, research, comparison,
@@ -509,9 +585,9 @@
     <section id="access">
       <h2 class="section-title">Request Access</h2>
       <p class="section-copy">
-        FlipForge<span class="tm">™</span> is currently preparing for controlled user testing.
-        Interested collectors, investors, dealers, and flippers may request access for early
-        platform review and feedback.
+        FlipForge<span class="tm">™</span> is currently available through controlled limited-access
+        production review. Interested collectors, investors, dealers, and flippers may request
+        access for platform review and feedback.
       </p>
 
       <div class="buttons">
