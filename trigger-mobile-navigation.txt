@@ -1,1 +1,2 @@
-Trigger responsive mobile navigation patch on main.
+Trigger responsive mobile navigation patch from pull request.
+Screenshot confirmed the live mobile header still lacks the menu button.
