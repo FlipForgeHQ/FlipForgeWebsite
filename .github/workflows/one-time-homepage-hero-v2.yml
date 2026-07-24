@@ -1,0 +1,372 @@
+name: One-time deploy approved FlipForge homepage hero
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-hero:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out website
+        uses: actions/checkout@v4
+
+      - name: Install responsive approved-brand hero
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path("index.html")
+          text = path.read_text(encoding="utf-8")
+
+          css_marker = "/* FLIPFORGE_HOME_HERO_V2 */"
+          css = r'''
+    /* FLIPFORGE_HOME_HERO_V2 */
+    .hero.hero-v2{
+      min-height:690px;
+      grid-template-columns:minmax(0,.92fr) minmax(560px,1.08fr);
+      gap:46px;
+      padding-top:64px;
+      padding-bottom:58px;
+    }
+    .hero-v2 .hero-copy{min-width:0}
+    .hero-v2 .kicker{margin-bottom:17px}
+    .hero-v2 h1{
+      max-width:650px;
+      font-size:clamp(44px,5.3vw,70px);
+      line-height:1.03;
+      letter-spacing:-.035em;
+      text-transform:none;
+      margin-bottom:24px;
+    }
+    .hero-period{color:var(--gold)}
+    .hero-v2 .hero-lead{max-width:650px;font-size:18px;line-height:1.72}
+    .hero-v2 .buttons{margin-top:28px}
+    .hero-v2 .btn{border-radius:8px;min-height:48px;padding:13px 21px}
+    .hero-v2 .btn.primary{background:linear-gradient(135deg,var(--gold2),var(--gold))}
+
+    .hero-journey{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+      margin-top:34px;
+      padding-top:25px;
+      border-top:1px solid rgba(212,175,55,.28);
+    }
+    .journey-step{position:relative;min-width:0;padding-right:8px}
+    .journey-step:not(:last-child):after{
+      content:"›";
+      position:absolute;
+      top:10px;
+      right:-2px;
+      color:var(--gold);
+      font-size:24px;
+      font-weight:300;
+    }
+    .journey-mark{
+      width:37px;
+      height:37px;
+      display:grid;
+      place-items:center;
+      margin-bottom:10px;
+      border:1px solid rgba(212,175,55,.38);
+      background:rgba(3,8,18,.72);
+      color:var(--gold2);
+      font-size:15px;
+      font-weight:900;
+    }
+    .journey-step strong{
+      display:block;
+      color:var(--gold2);
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      margin-bottom:4px;
+    }
+    .journey-step span{display:block;color:var(--muted);font-size:11px;line-height:1.45}
+
+    .hero-product{
+      position:relative;
+      min-width:0;
+      padding:20px;
+      border:1px solid rgba(212,175,55,.34);
+      background:
+        linear-gradient(rgba(212,175,55,.045) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(212,175,55,.045) 1px,transparent 1px),
+        linear-gradient(180deg,rgba(10,21,36,.98),rgba(3,8,18,.98));
+      background-size:28px 28px,28px 28px,auto;
+      box-shadow:0 28px 90px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+    .hero-product:before,.hero-product:after{
+      content:"";
+      position:absolute;
+      width:34px;
+      height:34px;
+      border-color:rgba(245,246,247,.55);
+      pointer-events:none;
+    }
+    .hero-product:before{left:10px;top:10px;border-left:2px solid;border-top:2px solid}
+    .hero-product:after{right:10px;bottom:10px;border-right:2px solid;border-bottom:2px solid}
+    .hero-product-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:.92fr 1.12fr .92fr;
+      gap:10px;
+      align-items:stretch;
+    }
+    .product-panel{
+      min-width:0;
+      padding:16px;
+      border:1px solid rgba(255,255,255,.16);
+      background:linear-gradient(180deg,rgba(15,28,46,.97),rgba(5,11,20,.97));
+    }
+    .panel-heading{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-height:28px;
+      margin-bottom:14px;
+      color:var(--text);
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+    .panel-icon{
+      width:20px;
+      height:20px;
+      flex:0 0 auto;
+      display:grid;
+      place-items:center;
+      border:1px solid rgba(212,175,55,.44);
+      color:var(--gold2);
+      font-size:10px;
+    }
+    .identity-slab{
+      padding:10px;
+      border:1px solid rgba(245,246,247,.28);
+      background:#050a12;
+      margin-bottom:13px;
+    }
+    .slab-label{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:8px;
+      padding:8px;
+      border:1px solid rgba(212,175,55,.35);
+      background:#f2f2f2;
+      color:#09101a;
+      font-size:8px;
+      font-weight:900;
+      line-height:1.3;
+      text-transform:uppercase;
+    }
+    .slab-face{
+      min-height:150px;
+      margin-top:9px;
+      display:grid;
+      place-items:center;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(circle at 50% 40%,rgba(212,175,55,.18),transparent 38%),
+        linear-gradient(135deg,#111f32,#040913);
+    }
+    .approved-symbol{width:72px;height:72px}
+    .identity-lines{display:grid;gap:7px}
+    .identity-line,.metric-row,.summary-row{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      border-bottom:1px solid rgba(255,255,255,.09);
+      padding-bottom:7px;
+      color:var(--muted);
+      font-size:9px;
+      line-height:1.4;
+    }
+    .identity-line strong,.metric-row strong,.summary-row strong{color:var(--copy);font-weight:700;text-align:right}
+    .verified{color:var(--green)!important}
+    .context{color:var(--gold2)!important}
+
+    .metric-stack{display:grid;gap:10px}
+    .metric-card{
+      padding:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(3,8,18,.54);
+    }
+    .metric-title{display:flex;justify-content:space-between;gap:8px;font-size:9px;color:var(--copy);margin-bottom:6px}
+    .metric-title strong{font-size:9px;color:var(--green)}
+    .sparkline{height:22px;display:flex;align-items:flex-end;gap:3px}
+    .sparkline i{display:block;flex:1;background:var(--green);opacity:.8}
+    .sparkline.gold i{background:var(--gold)}
+    .confidence-box{
+      display:grid;
+      grid-template-columns:1fr auto;
+      align-items:center;
+      gap:12px;
+      margin-top:11px;
+      padding:11px;
+      border:1px solid rgba(255,255,255,.13);
+      background:rgba(3,8,18,.55);
+    }
+    .confidence-box small{display:block;color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.08em}
+    .confidence-box strong{display:block;color:var(--green);font-size:25px;line-height:1}
+    .confidence-ring{
+      width:45px;
+      height:45px;
+      border-radius:50%;
+      border:7px solid rgba(79,210,139,.18);
+      border-top-color:var(--green);
+      border-right-color:var(--green);
+    }
+
+    .outcome-stack{display:grid;gap:9px}
+    .outcome-option{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      min-height:54px;
+      padding:10px 11px;
+      border:1px solid rgba(255,255,255,.18);
+      color:var(--copy);
+      background:rgba(3,8,18,.48);
+    }
+    .outcome-option strong{display:block;font-size:15px;letter-spacing:.08em}
+    .outcome-option span{display:block;color:var(--muted);font-size:8px;line-height:1.35;margin-top:2px}
+    .outcome-option.buy{border-color:rgba(79,210,139,.65)}
+    .outcome-option.buy strong{color:var(--green)}
+    .outcome-option.watch{border-color:rgba(212,175,55,.66)}
+    .outcome-option.watch strong{color:var(--gold2)}
+    .outcome-summary{display:grid;gap:7px;margin-top:13px;padding:10px;border:1px solid rgba(255,255,255,.12)}
+    .hero-product-caption{
+      position:relative;
+      z-index:1;
+      margin-top:13px;
+      color:var(--muted);
+      font-size:9px;
+      letter-spacing:.05em;
+      text-align:center;
+    }
+
+    @media(max-width:1080px){
+      .hero.hero-v2{grid-template-columns:1fr;min-height:auto;padding-top:54px;gap:38px}
+      .hero-product{max-width:760px;width:100%;margin:auto}
+    }
+    @media(max-width:720px){
+      .hero-product-grid{grid-template-columns:1fr}
+      .slab-face{min-height:130px}
+    }
+    @media(max-width:600px){
+      .hero-v2 h1{font-size:clamp(39px,12vw,54px);line-height:1.02}
+      .hero-v2 .hero-lead{font-size:16px}
+      .hero-journey{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}
+      .journey-step:nth-child(2):after{display:none}
+      .hero-product{padding:14px;margin-left:0;margin-right:0}
+      .product-panel{padding:14px}
+    }
+'''
+
+          if css_marker not in text:
+              anchor = "    @media(max-width:1080px){"
+              if anchor not in text:
+                  raise SystemExit("Responsive CSS anchor not found")
+              text = text.replace(anchor, css + "\n" + anchor, 1)
+
+          hero = r'''
+  <section class="hero hero-v2" aria-labelledby="hero-heading">
+    <div class="hero-copy">
+      <div class="kicker">Sports Card Decision Intelligence</div>
+      <h1 id="hero-heading">Turn market noise into smarter collecting decisions<span class="hero-period">.</span></h1>
+      <p class="hero-lead">FlipForge<span class="tm">™</span> helps collectors discover opportunities, validate evidence, and act with confidence—without hiding uncertainty behind a single price estimate.</p>
+      <div class="buttons">
+        <a class="btn primary" href="#workflow">See How It Works</a>
+        <a class="btn" href="#platform">Explore the Platform</a>
+        <a class="btn" href="#access">Request Private-Beta Access</a>
+      </div>
+
+      <div class="hero-journey" aria-label="FlipForge decision workflow">
+        <div class="journey-step"><div class="journey-mark">01</div><strong>Discovery</strong><span>Surface what matters.</span></div>
+        <div class="journey-step"><div class="journey-mark">02</div><strong>Evidence</strong><span>Organize trusted data.</span></div>
+        <div class="journey-step"><div class="journey-mark">03</div><strong>Validation</strong><span>Confirm what is real.</span></div>
+        <div class="journey-step"><div class="journey-mark">04</div><strong>Outcomes</strong><span>Make a clearer decision.</span></div>
+      </div>
+    </div>
+
+    <div class="hero-product" aria-label="Illustration of the FlipForge identity, evidence, and decision workflow">
+      <div class="hero-product-grid">
+        <article class="product-panel">
+          <div class="panel-heading"><span class="panel-icon">◆</span>Exact Identity</div>
+          <div class="identity-slab">
+            <div class="slab-label"><span>Identity locked</span><span>Exact match</span></div>
+            <div class="slab-face">
+              <svg class="approved-symbol" viewBox="0 0 64 64" aria-hidden="true">
+                <path d="M14 14H30V23H23V30H14V14Z" fill="#f5f6f7"/>
+                <path d="M34 14H50V30H41V23H34V14Z" fill="#f5f6f7"/>
+                <path d="M14 34H23V41H30V50H14V34Z" fill="#f5f6f7"/>
+                <path d="M41 34H50V50H34V41H41V34Z" fill="#f5f6f7"/>
+                <rect x="28" y="28" width="8" height="8" fill="#d4af37"/>
+              </svg>
+            </div>
+          </div>
+          <div class="identity-lines">
+            <div class="identity-line"><span>Year + Set</span><strong class="verified">Verified</strong></div>
+            <div class="identity-line"><span>Player + Number</span><strong class="verified">Matched</strong></div>
+            <div class="identity-line"><span>Parallel + Grade</span><strong class="verified">Confirmed</strong></div>
+          </div>
+        </article>
+
+        <article class="product-panel">
+          <div class="panel-heading"><span class="panel-icon">•••</span>Evidence + Validation</div>
+          <div class="metric-stack">
+            <div class="metric-card"><div class="metric-title"><span>Completed Sales</span><strong>Separated</strong></div><div class="sparkline"><i style="height:25%"></i><i style="height:42%"></i><i style="height:36%"></i><i style="height:60%"></i><i style="height:72%"></i><i style="height:88%"></i></div></div>
+            <div class="metric-card"><div class="metric-title"><span>Asking Prices</span><strong class="context">Context Only</strong></div><div class="sparkline gold"><i style="height:68%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:55%"></i><i style="height:38%"></i><i style="height:62%"></i></div></div>
+            <div class="metric-row"><span>Mismatch Screening</span><strong class="verified">Active</strong></div>
+            <div class="metric-row"><span>Evidence Quality</span><strong class="verified">Traceable</strong></div>
+            <div class="metric-row"><span>Risk Signals</span><strong class="context">Visible</strong></div>
+          </div>
+          <div class="confidence-box"><div><small>Decision confidence</small><strong>Supported</strong></div><div class="confidence-ring" aria-hidden="true"></div></div>
+        </article>
+
+        <article class="product-panel">
+          <div class="panel-heading"><span class="panel-icon">■</span>Decision Outcomes</div>
+          <div class="outcome-stack">
+            <div class="outcome-option buy"><div><strong>BUY</strong><span>Evidence supports opportunity.</span></div><b>›</b></div>
+            <div class="outcome-option watch"><div><strong>WATCH</strong><span>Monitor price or evidence.</span></div><b>›</b></div>
+            <div class="outcome-option"><div><strong>PASS</strong><span>Risk outweighs potential.</span></div><b>›</b></div>
+            <div class="outcome-option"><div><strong>GRADE</strong><span>Review grading upside.</span></div><b>›</b></div>
+          </div>
+          <div class="outcome-summary">
+            <div class="summary-row"><span>Confidence</span><strong>Visible</strong></div>
+            <div class="summary-row"><span>Risk</span><strong>Explained</strong></div>
+            <div class="summary-row"><span>Value Support</span><strong>Evidence-based</strong></div>
+          </div>
+        </article>
+      </div>
+      <div class="hero-product-caption">Illustrative decision workflow. FlipForge does not automatically bid, buy, or complete transactions.</div>
+    </div>
+  </section>'''
+
+          pattern = re.compile(r'  <section class="hero">.*?\n  </section>', re.S)
+          updated, count = pattern.subn(hero, text, count=1)
+          if count != 1:
+              if 'class="hero hero-v2"' not in text:
+                  raise SystemExit(f"Expected one existing hero section, replaced {count}")
+              updated = text
+
+          path.write_text(updated, encoding="utf-8")
+
+      - name: Remove one-time workflow
+        run: rm -f .github/workflows/one-time-homepage-hero-v2.yml
+
+      - name: Commit homepage hero deployment
+        run: |
+          git config user.name "FlipForge Website Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html .github/workflows/one-time-homepage-hero-v2.yml
+          git commit -m "Deploy approved responsive FlipForge homepage hero"
+          git push
