@@ -17,7 +17,6 @@
       --panel2:#0e1b2d;
       --text:#f2f2f2;
       --copy:#d6dbe0;
-      --silver:#8b928f;
       --muted:#8d98a7;
       --line:rgba(255,255,255,.12);
       --gold:#d4af37;
@@ -58,6 +57,7 @@
     .kicker{color:var(--gold2);font-size:12px;font-weight:900;letter-spacing:.23em;text-transform:uppercase;margin-bottom:18px}
     h1{font-size:clamp(44px,5.2vw,72px);line-height:1.03;letter-spacing:-.038em;margin-bottom:24px}
     h2{font-size:clamp(30px,4vw,44px);line-height:1.12;letter-spacing:.035em;text-transform:uppercase;margin-bottom:16px}
+    h3{font-size:14px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:12px}
     .section-copy,.hero-lead{color:var(--copy);font-size:17px;line-height:1.78;max-width:790px}
     .buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:29px}
     .btn{display:inline-flex;align-items:center;justify-content:center;min-height:47px;padding:12px 20px;border-radius:8px;border:1px solid var(--line);font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;transition:.2s}
@@ -73,7 +73,6 @@
     .hero-flow b{display:grid;place-items:center;width:35px;height:35px;margin-bottom:9px;border:1px solid rgba(212,175,55,.42);color:var(--gold2);font-size:12px}
     .hero-flow strong{display:block;color:var(--gold2);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
     .hero-flow span{display:block;color:var(--muted);font-size:10px;line-height:1.4;margin-top:3px}
-
     .hero-console{position:relative;padding:19px;border:1px solid rgba(212,175,55,.36);background:linear-gradient(rgba(212,175,55,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,.04) 1px,transparent 1px),linear-gradient(180deg,#0b1728,#030812);background-size:27px 27px,27px 27px,auto;box-shadow:0 28px 85px rgba(0,0,0,.45)}
     .hero-console:before,.hero-console:after{content:'';position:absolute;width:28px;height:28px;border-color:rgba(245,246,247,.58)}
     .hero-console:before{left:9px;top:9px;border-left:2px solid;border-top:2px solid}
@@ -102,25 +101,44 @@
     .trust-strip{max-width:var(--max);margin:-18px auto 0;padding:0 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .trust-item{padding:16px 18px;border:1px solid var(--line);background:rgba(3,8,18,.82);border-radius:14px}
     .trust-item strong{display:block;color:var(--gold);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}.trust-item span{color:var(--copy);font-size:13px;line-height:1.55}
-    .statement,.card,.story,.legal,.roadmap-card,.founder-card{background:linear-gradient(180deg,rgba(13,25,42,.95),rgba(5,11,20,.97));border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.28)}
+    .statement,.card,.story,.legal,.roadmap-card,.founder-card,.mission-card{background:linear-gradient(180deg,rgba(13,25,42,.95),rgba(5,11,20,.97));border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.28)}
     .statement{margin-top:28px;padding:30px;border-color:rgba(212,175,55,.36)}.statement strong{display:block;color:var(--gold2);font-size:21px;line-height:1.45;margin-bottom:10px}.statement p{color:var(--copy);font-size:16px;line-height:1.75}
     .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:30px}.grid.two{grid-template-columns:repeat(2,1fr)}.grid.three{grid-template-columns:repeat(3,1fr)}
-    .card{padding:25px;min-height:190px}.card h3,.roadmap-card h3{font-size:14px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:12px}.card p,.story p,.legal p,.roadmap-card p,.founder-card p{color:var(--copy);font-size:15px;line-height:1.7}.card ul,.roadmap-card ul{padding-left:18px;margin-top:12px;color:var(--copy);font-size:14px;line-height:1.7}.card.current{border-color:rgba(79,210,139,.32)}.card.current h3{color:var(--green)}.card.boundary{border-color:rgba(212,175,55,.34)}.card.boundary h3{color:var(--gold2)}
+    .card{padding:25px;min-height:190px}.card p,.story p,.legal p,.roadmap-card p,.founder-card p,.mission-card p{color:var(--copy);font-size:15px;line-height:1.7}.card ul,.roadmap-card ul{padding-left:18px;margin-top:12px;color:var(--copy);font-size:14px;line-height:1.7}.card.current{border-color:rgba(79,210,139,.32)}.card.current h3{color:var(--green)}.card.boundary{border-color:rgba(212,175,55,.34)}.card.boundary h3{color:var(--gold2)}
     .feature-label{display:inline-block;margin-bottom:12px;padding:5px 9px;border-radius:999px;background:rgba(79,210,139,.11);color:var(--green);font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.roadmap-label{background:rgba(107,168,255,.11);color:var(--blue)}
     .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}.step{padding:22px;border-left:2px solid var(--gold);background:rgba(255,255,255,.025)}.step strong{display:block;color:var(--gold);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}.step span{color:var(--copy);font-size:14px;line-height:1.65}
     .model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}.model-item{padding:21px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025)}.model-item strong{display:block;color:var(--gold);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px}.model-item span{color:var(--copy);font-size:14px;line-height:1.6}
     .story,.legal{margin-top:28px;padding:30px}.story p+p,.legal p+p{margin-top:16px}.legal strong{color:var(--text)}
     .provider-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;margin-top:28px}.provider-points{display:grid;gap:12px}.provider-point{padding:17px 18px;border:1px solid var(--line);border-radius:16px;background:rgba(3,8,18,.48)}.provider-point strong{display:block;color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}.provider-point span{color:var(--copy);font-size:14px;line-height:1.55}
     .roadmap{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:30px}.roadmap-card{padding:25px}.roadmap-card h3{color:var(--blue)}
-    .about-layout{display:grid;grid-template-columns:1.18fr .82fr;gap:24px;align-items:stretch;margin-top:28px}.about-story{padding:30px}.about-story p{font-size:17px;line-height:1.78}.about-story p+p{margin-top:18px}.question-line{border-left:3px solid var(--gold);padding:14px 0 14px 18px;margin:22px 0!important;color:var(--text)!important;font-weight:700;font-size:20px!important}
-    .founder-card{padding:30px;border-color:rgba(212,175,55,.42);background:linear-gradient(180deg,rgba(212,175,55,.13),rgba(5,11,20,.97))}.founder-avatar{width:82px;height:82px;border-radius:20px;border:1px solid rgba(212,175,55,.45);display:grid;place-items:center;margin-bottom:22px;background:#050b14;color:var(--gold);font-size:26px;font-weight:900}.founder-name{font-size:22px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}.founder-title{color:var(--gold);font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px}.stats{display:grid;gap:10px;margin-top:20px}.stat{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(3,8,18,.55)}.stat strong{display:block;color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}.stat span{color:var(--copy);font-size:14px;line-height:1.55}
+
+    .about-intro{max-width:900px}
+    .about-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;margin-top:30px}
+    .mission-card{padding:30px;border-color:rgba(212,175,55,.34)}
+    .mission-card h3{color:var(--gold2)}
+    .mission-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
+    .mission-pillar{padding:15px;border:1px solid var(--line);background:rgba(3,8,18,.52)}
+    .mission-pillar strong{display:block;color:var(--gold);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+    .mission-pillar span{color:var(--copy);font-size:13px;line-height:1.55}
+    .founder-card{padding:30px;border-color:rgba(212,175,55,.42);background:linear-gradient(180deg,rgba(212,175,55,.13),rgba(5,11,20,.97))}
+    .founder-header{display:flex;align-items:center;gap:17px;margin-bottom:22px}
+    .founder-avatar{width:76px;height:76px;border-radius:18px;border:1px solid rgba(212,175,55,.45);display:grid;place-items:center;background:#050b14;color:var(--gold);font-size:25px;font-weight:900;flex:0 0 auto}
+    .founder-name{font-size:21px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+    .founder-title{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;margin-top:5px}
+    .founder-card p+p{margin-top:15px}
+    .question-line{border-left:3px solid var(--gold);padding:14px 0 14px 18px;margin:22px 0!important;color:var(--text)!important;font-weight:700;font-size:19px!important}
+    .about-values{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+    .about-value{padding:17px;border:1px solid var(--line);border-radius:15px;background:rgba(3,8,18,.5)}
+    .about-value strong{display:block;color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+    .about-value span{color:var(--copy);font-size:13px;line-height:1.55}
+
     .access{display:grid;grid-template-columns:1fr auto;align-items:center;gap:24px;padding:32px;border:1px solid rgba(212,175,55,.4);border-radius:20px;background:linear-gradient(135deg,rgba(212,175,55,.13),rgba(5,11,20,.97))}.access .kicker{margin-bottom:10px}
     .footer{max-width:var(--max);margin:auto;padding:30px 22px 42px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
 
     @media(max-width:1080px){.desktop-nav{gap:11px}.desktop-nav a{font-size:9px}.hero{grid-template-columns:1fr;min-height:auto;padding-top:54px;gap:38px}.hero-console{max-width:760px;width:100%;margin:auto}}
-    @media(max-width:960px){.desktop-nav{display:none}.menu-toggle{display:block}.grid,.grid.three,.model-grid{grid-template-columns:repeat(2,1fr)}.provider-layout,.about-layout,.access{grid-template-columns:1fr}.nav{min-height:72px}}
-    @media(max-width:720px){.console-grid{grid-template-columns:1fr}.identity-face{min-height:120px}.trust-strip,.flow,.roadmap,.grid.two{grid-template-columns:1fr}}
-    @media(max-width:600px){.nav{padding:10px 18px;min-height:68px}.logo{width:42px;height:42px}.wordmark{font-size:16px;letter-spacing:.22em}.brand-tagline{font-size:6px}.hero,section{padding:48px 22px}.hero{padding-top:52px}.kicker{font-size:11px;line-height:1.55;margin-bottom:16px}h1{font-size:clamp(39px,12vw,54px)}.hero-lead,.section-copy{font-size:16px;line-height:1.68}.buttons{display:grid;grid-template-columns:1fr;margin-top:26px}.btn{width:100%}.hero-flow{grid-template-columns:repeat(2,1fr);gap:17px 11px}.hero-flow div:nth-child(2):after{display:none}.hero-console{padding:13px}.grid,.grid.three,.grid.two,.model-grid{grid-template-columns:1fr}.card{min-height:0}.story,.legal,.about-story,.founder-card,.statement,.access{padding:22px}h2{font-size:31px}.mobile-nav{width:86vw}.trust-strip{margin-top:0}}
+    @media(max-width:960px){.desktop-nav{display:none}.menu-toggle{display:block}.grid,.grid.three,.model-grid{grid-template-columns:repeat(2,1fr)}.provider-layout,.about-grid,.access{grid-template-columns:1fr}.nav{min-height:72px}}
+    @media(max-width:720px){.console-grid{grid-template-columns:1fr}.identity-face{min-height:120px}.trust-strip,.flow,.roadmap,.grid.two,.mission-pillars,.about-values{grid-template-columns:1fr}}
+    @media(max-width:600px){.nav{padding:10px 18px;min-height:68px}.logo{width:42px;height:42px}.wordmark{font-size:16px;letter-spacing:.22em}.brand-tagline{font-size:6px}.hero,section{padding:48px 22px}.hero{padding-top:52px}.kicker{font-size:11px;line-height:1.55;margin-bottom:16px}h1{font-size:clamp(39px,12vw,54px)}.hero-lead,.section-copy{font-size:16px;line-height:1.68}.buttons{display:grid;grid-template-columns:1fr;margin-top:26px}.btn{width:100%}.hero-flow{grid-template-columns:repeat(2,1fr);gap:17px 11px}.hero-flow div:nth-child(2):after{display:none}.hero-console{padding:13px}.grid,.grid.three,.grid.two,.model-grid{grid-template-columns:1fr}.card{min-height:0}.story,.legal,.founder-card,.mission-card,.statement,.access{padding:22px}h2{font-size:31px}.mobile-nav{width:86vw}.trust-strip{margin-top:0}.founder-header{align-items:flex-start}}
   </style>
 </head>
 <body>
@@ -134,13 +152,13 @@
       <span class="brand-copy"><span class="wordmark">FLIPFORGE<span class="tm">™</span></span><span class="brand-tagline">Signal. Confidence. Advantage.</span></span>
     </a>
     <nav class="desktop-nav" aria-label="Primary navigation">
-      <a href="#platform">Platform</a><a href="#workflow">How It Works</a><a href="#capabilities">Capabilities</a><a href="#data">Data Use</a><a href="#roadmap">Roadmap</a><a href="#about">About</a><a class="nav-cta" href="#access">Private Beta</a>
+      <a href="#platform">Platform</a><a href="#workflow">How It Works</a><a href="#capabilities">Capabilities</a><a href="#data">Data Use</a><a href="#about">About Us</a><a href="#roadmap">Roadmap</a><a class="nav-cta" href="#access">Private Beta</a>
     </nav>
     <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-navigation"><span></span></button>
   </div>
 </header>
 <nav class="mobile-nav" id="mobile-navigation" aria-label="Mobile navigation">
-  <a href="#platform">Platform</a><a href="#workflow">How It Works</a><a href="#capabilities">Capabilities</a><a href="#data">Data Use</a><a href="#roadmap">Roadmap</a><a href="#about">About</a><a href="#access">Private Beta</a>
+  <a href="#platform">Platform</a><a href="#workflow">How It Works</a><a href="#capabilities">Capabilities</a><a href="#data">Data Use</a><a href="#about">About Us</a><a href="#roadmap">Roadmap</a><a href="#access">Private Beta</a>
 </nav>
 <div class="backdrop" aria-hidden="true"></div>
 
@@ -155,7 +173,6 @@
         <div><b>01</b><strong>Discovery</strong><span>Surface what matters.</span></div><div><b>02</b><strong>Evidence</strong><span>Organize trusted data.</span></div><div><b>03</b><strong>Validation</strong><span>Confirm what is real.</span></div><div><b>04</b><strong>Outcomes</strong><span>Make a clearer decision.</span></div>
       </div>
     </div>
-
     <div class="hero-console" aria-label="Illustrative FlipForge decision workflow">
       <div class="console-grid">
         <article class="console-panel">
@@ -194,15 +211,11 @@
     <div class="kicker">Current Private-Beta Capabilities</div><h2>Built for evidence-aware card evaluation.</h2><p class="section-copy">The current Windows private beta combines card search, exact-identity controls, connected-source discovery, evidence validation, confidence analysis, risk review, and decision traceback.</p>
     <div class="grid two">
       <div class="card current"><span class="feature-label">Built</span><h3>Natural-Language Card Search</h3><p>Search using collector-style wording instead of a rigid database order. FlipForge recognizes common grading formats, rookie terminology, manufacturers, products, and card-market language.</p></div>
-      <div class="card current"><span class="feature-label">Built</span><h3>Conservative Typo Assistance</h3><p>Trusted player names and card terms can surface ranked “Did you mean?” suggestions. The original search is never silently rewritten.</p></div>
-      <div class="card current"><span class="feature-label">Built</span><h3>Connected-Source Discovery</h3><p>Search authorized active-listing sources and compare candidates using normalized all-in cost. Other listings can be entered manually when no approved connector is available.</p></div>
       <div class="card current"><span class="feature-label">Built</span><h3>Exact Card Identity Review</h3><p>Different years, products, card numbers, grades, and parallels remain separate. Missing identity information stays unresolved until confirmed.</p></div>
       <div class="card current"><span class="feature-label">Built</span><h3>Evidence-Aware Ranking</h3><p>Candidates are evaluated using exact-match quality, all-in price, listing freshness, seller context, trusted evidence support, confidence, and risk.</p></div>
       <div class="card current"><span class="feature-label">Built</span><h3>Sold-Evidence Workflow</h3><p>Users can enter trusted completed sales, review approved imports, and preserve source provenance. Active asking prices never become sold evidence automatically.</p></div>
       <div class="card current"><span class="feature-label">Built</span><h3>Decision Support</h3><p>FlipForge calculates and explains supported market value, acquisition cost, break-even, maximum buy, potential return, confidence, risk, and next action.</p></div>
       <div class="card current"><span class="feature-label">Built</span><h3>Traceable Recommendations</h3><p>Identity decisions, evidence quality, exclusions, confidence adjustments, risks, and recommendation reasoning are retained for audit and calibration.</p></div>
-      <div class="card current"><span class="feature-label">Built</span><h3>Local-First Records</h3><p>SQLite is the source of truth for application records. CSV is used for controlled import and export—not as the primary application database.</p></div>
-      <div class="card current"><span class="feature-label">Built</span><h3>Accessible Interface</h3><p>Light, Dark, and System modes; persistent text scaling; keyboard shortcuts; and separate customer-facing Beta and owner-facing DEV workspaces.</p></div>
     </div>
   </section>
 
@@ -210,9 +223,37 @@
 
   <section id="data"><div class="kicker">Data Use</div><h2>Authorized data. User-provided evidence. No scraping shortcuts.</h2><div class="provider-layout"><div class="legal"><p>FlipForge uses a controlled combination of <strong>authorized APIs, licensed or approved data feeds, user-entered evidence, approved CSV imports, internal application records, and manual identity and evidence validation.</strong></p><p>Active listings are used for discovery and asking-price context. Completed-sale evidence is used only when it is legally and technically available through an authorized source or supplied and validated by the user.</p><p>Reference pricing, predictive estimates, asking prices, and verified completed sales remain conceptually separate.</p></div><div class="provider-points"><div class="provider-point"><strong>Provider-Independent Core</strong><span>External providers support the engine. They do not own the final decision logic.</span></div><div class="provider-point"><strong>FlipForge Owns the Decision Layer</strong><span>Identity controls, evidence validation, confidence, risk, supported value, recommendations, traceback, and outcomes remain inside FlipForge.</span></div><div class="provider-point"><strong>Clear Uncertainty</strong><span>When data is unavailable, incomplete, stale, or unsupported, the product says so directly.</span></div></div></div></section>
 
-  <section id="roadmap"><div class="kicker">In Development</div><h2>The next intelligence layers.</h2><p class="section-copy">These capabilities remain on the development roadmap and are not presented as completed customer-facing private-beta features.</p><div class="roadmap"><div class="roadmap-card"><span class="feature-label roadmap-label">Roadmap</span><h3>Authorized Source API Expansion</h3><p>Expand secure integrations with authorized card-data, listing, pricing, identity, grading, and completed-sale APIs while keeping each provider optional and replaceable.</p></div><div class="roadmap-card"><span class="feature-label roadmap-label">Roadmap</span><h3>Automated Licensed Sold Data</h3><p>Additional licensed completed-sale integrations to reduce manual evidence entry while preserving source quality, provenance, and restrictions.</p></div><div class="roadmap-card"><span class="feature-label roadmap-label">Roadmap</span><h3>Advanced PSA Intelligence</h3><p>Authorized population-by-grade context, grade spreads, movement, scarcity, grading costs, and probability-adjusted decisions.</p></div><div class="roadmap-card"><span class="feature-label roadmap-label">Roadmap</span><h3>Outcome Calibration</h3><p>Compare projected results with actual purchases, grades, sales, fees, and returns to improve recommendation accuracy over time.</p></div></div></section>
+  <section id="about">
+    <div class="kicker">About Us</div>
+    <h2>Built by a collector to solve the problem behind the price.</h2>
+    <p class="section-copy about-intro">FlipForge LLC is building a sports-card decision-intelligence platform for collectors who need more than another number. Our purpose is to make the logic behind a card decision visible: confirm the exact card, validate the evidence, explain uncertainty, and help the collector decide what to do next.</p>
+    <div class="about-grid">
+      <article class="mission-card">
+        <h3>Our Mission</h3>
+        <p>Modern collectors can find endless listings, estimates, charts, and opinions. The harder problem is knowing which information deserves to influence a decision. FlipForge was created to turn fragmented data into a disciplined, traceable process.</p>
+        <p class="question-line">The challenge is not finding more information. It is determining which information deserves to be trusted.</p>
+        <p>We are building FlipForge around four permanent principles: surface the right opportunity, preserve evidence, validate identity and quality, and produce an outcome the collector can understand.</p>
+        <div class="mission-pillars">
+          <div class="mission-pillar"><strong>Signal</strong><span>Cut through noise and isolate what matters.</span></div>
+          <div class="mission-pillar"><strong>Confidence</strong><span>Support conclusions with visible evidence and logic.</span></div>
+          <div class="mission-pillar"><strong>Advantage</strong><span>Help collectors act with greater clarity and discipline.</span></div>
+        </div>
+      </article>
+      <aside class="founder-card">
+        <div class="founder-header"><div class="founder-avatar">TH</div><div><div class="founder-name">Todd Holbein</div><div class="founder-title">Founder · Educator · Builder</div></div></div>
+        <p>Todd grew up collecting sports cards throughout the 1990s. When he returned to the hobby in 2023, he found a market filled with online marketplaces, grading companies, parallels, auction platforms, pricing tools, and disconnected data sources.</p>
+        <p>Researching one card often required several websites. Similar cards appeared under inconsistent names. Asking prices were frequently shown beside completed sales without clearly explaining the difference.</p>
+        <p>Drawing from his background in education, technology, programming, and systems development, Todd created FlipForge<span class="tm">™</span> to make complex card-market information understandable, evidence-aware, and actionable.</p>
+      </aside>
+    </div>
+    <div class="about-values">
+      <div class="about-value"><strong>Collector First</strong><span>Build around the real questions collectors ask before they spend, sell, or grade.</span></div>
+      <div class="about-value"><strong>Evidence Before Action</strong><span>Never hide weak support behind a confident-looking number.</span></div>
+      <div class="about-value"><strong>Explain the Decision</strong><span>Show what supports the outcome, what weakens it, and what still needs review.</span></div>
+    </div>
+  </section>
 
-  <section id="about"><div class="kicker">About the Founder</div><h2>Why FlipForge exists.</h2><p class="section-copy">FlipForge was built from the same confusion modern collectors face: too many sources, too many conflicting numbers, and no clear way to separate signal from noise.</p><div class="about-layout"><div class="story about-story"><p>Like many collectors, <strong>Todd Holbein</strong> grew up collecting sports cards throughout the 1990s. When he returned to the hobby in 2023, he quickly realized how much had changed.</p><p>Researching one card often required several websites. Similar cards appeared under inconsistent names. Asking prices were frequently shown beside completed sales without clearly explaining the difference.</p><p class="question-line">The challenge was not finding more information. It was determining which information deserved to be trusted.</p><p>Drawing from his background in education, technology, programming, and systems development, Todd created FlipForge<span class="tm">™</span> to turn fragmented sports-card information into a clearer, evidence-aware decision process.</p></div><aside class="founder-card"><div class="founder-avatar">TH</div><div class="founder-name">Todd Holbein</div><div class="founder-title">Founder · Educator · Builder</div><p>Built by a collector who experienced the confusion firsthand and decided to create a more disciplined way to evaluate sports-card opportunities.</p><div class="stats"><div class="stat"><strong>Teaching Lens</strong><span>Complex information should be explained clearly—not merely displayed.</span></div><div class="stat"><strong>Systems Approach</strong><span>Identity, evidence, confidence, risk, and outcomes should work together.</span></div><div class="stat"><strong>Core Principle</strong><span>Trust first. Better decisions begin with better evidence.</span></div></div></aside></div></section>
+  <section id="roadmap"><div class="kicker">In Development</div><h2>The next intelligence layers.</h2><p class="section-copy">These capabilities remain on the development roadmap and are not presented as completed customer-facing private-beta features.</p><div class="roadmap"><div class="roadmap-card"><span class="feature-label roadmap-label">Roadmap</span><h3>Authorized Source API Expansion</h3><p>Expand secure integrations with authorized card-data, listing, pricing, identity, grading, and completed-sale APIs while keeping each provider optional and replaceable.</p></div><div class="roadmap-card"><span class="feature-label roadmap-label">Roadmap</span><h3>Automated Licensed Sold Data</h3><p>Additional licensed completed-sale integrations to reduce manual evidence entry while preserving source quality, provenance, and restrictions.</p></div><div class="roadmap-card"><span class="feature-label roadmap-label">Roadmap</span><h3>Advanced PSA Intelligence</h3><p>Authorized population-by-grade context, grade spreads, movement, scarcity, grading costs, and probability-adjusted decisions.</p></div><div class="roadmap-card"><span class="feature-label roadmap-label">Roadmap</span><h3>Outcome Calibration</h3><p>Compare projected results with actual purchases, grades, sales, fees, and returns to improve recommendation accuracy over time.</p></div></div></section>
 
   <section id="compliance"><div class="kicker">Compliance</div><h2>Decision support—not financial advice or a promise of profit.</h2><div class="legal"><p>FlipForge does not guarantee financial returns, predict future prices with certainty, purchase cards automatically, or replace independent judgment.</p><p>Users remain responsible for confirming identity, condition, authenticity, seller reputation, transaction costs, grading risk, availability, and current market conditions.</p><p>A FlipForge recommendation is decision support—not transaction authorization.</p></div></section>
 
