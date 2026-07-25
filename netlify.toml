@@ -1,5 +1,6 @@
 [build]
+  command = "node scripts/build-assets.js"
   publish = "."
 
-# FlipForge is a static website. Netlify should publish the repository root
-# directly from the production branch without a build command.
+# FlipForge remains a static website. Netlify builds optimized visual assets,
+# then publishes the repository root directly from the production branch.
