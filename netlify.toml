@@ -1,0 +1,5 @@
+[build]
+  publish = "."
+
+# FlipForge is a static website. Netlify should publish the repository root
+# directly from the production branch without a build command.
