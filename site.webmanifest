@@ -1,0 +1,17 @@
+{
+  "name": "FlipForge",
+  "short_name": "FlipForge",
+  "description": "Sports-card decision intelligence.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030812",
+  "theme_color": "#030812",
+  "icons": [
+    {
+      "src": "/assets/brand/flipforge-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
