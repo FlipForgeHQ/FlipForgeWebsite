@@ -1,55 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
-<title id="title">FlipForge sports card decision intelligence dashboard</title>
-<desc id="desc">A premium dashboard showing card identity, market evidence, confidence, grading economics, risk, and a buy candidate outcome.</desc>
-<defs>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07111f"/><stop offset="1" stop-color="#02060d"/></linearGradient>
-  <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#101c2d"/><stop offset="1" stop-color="#07101b"/></linearGradient>
-  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f0cf68"/><stop offset="1" stop-color="#bd8f1f"/></linearGradient>
-  <filter id="shadow"><feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000" flood-opacity=".45"/></filter>
-  <style>
-    .t{font-family:Arial,Helvetica,sans-serif;fill:#f5f7fa}.m{fill:#92a0b2}.g{fill:#e9c45a}.s{font-size:15px;font-weight:700;letter-spacing:2px}.xs{font-size:12px}.sm{font-size:14px}.md{font-size:20px;font-weight:700}.lg{font-size:30px;font-weight:800}.line{stroke:#25364b;stroke-width:1}.box{fill:url(#panel);stroke:#263950;stroke-width:1.5}.chip{fill:#122337;stroke:#34506d}.good{fill:#61d798}.warn{fill:#e7b44a}.bad{fill:#ef776e}
-  </style>
-</defs>
-<rect width="1280" height="720" rx="28" fill="url(#bg)"/>
-<rect x="22" y="22" width="1236" height="676" rx="24" fill="#08111e" stroke="#b98a23" stroke-opacity=".45" filter="url(#shadow)"/>
-<g transform="translate(50 48)">
-  <path d="M0 20h26l10-18h28l10 18h26l-16 18 6 26-26-12-26 12 6-26z" fill="none" stroke="#d8ad3d" stroke-width="3"/>
-  <text x="115" y="30" class="t lg" letter-spacing="5">FLIPFORGE</text><text x="116" y="52" class="g xs" letter-spacing="3">SPORTS CARD DECISION INTELLIGENCE</text>
-</g>
-<g transform="translate(520 50)">
-  <line x1="0" y1="24" x2="660" y2="24" stroke="#263950" stroke-width="4"/>
-  <g class="t xs" text-anchor="middle"><circle cx="0" cy="24" r="16" fill="url(#gold)"/><text x="0" y="29" fill="#07101b" font-weight="700">1</text><text x="0" y="56">IDENTITY</text><circle cx="220" cy="24" r="16" fill="#15283d" stroke="#d3aa42"/><text x="220" y="29">2</text><text x="220" y="56">EVIDENCE</text><circle cx="440" cy="24" r="16" fill="#15283d" stroke="#d3aa42"/><text x="440" y="29">3</text><text x="440" y="56">ANALYZE</text><circle cx="660" cy="24" r="16" fill="#15283d" stroke="#d3aa42"/><text x="660" y="29">4</text><text x="660" y="56">DECIDE</text></g>
-</g>
-<g transform="translate(48 122)">
-  <rect class="box" width="286" height="530" rx="18"/><text x="24" y="34" class="g s">IDENTITY</text>
-  <rect x="38" y="58" width="210" height="294" rx="12" fill="#eef1f5" stroke="#6f7d8f"/>
-  <rect x="50" y="70" width="186" height="38" rx="5" fill="#f5f6f8"/><text x="62" y="89" fill="#101820" font-family="Arial" font-size="11" font-weight="700">2024 ROOKIE CARD</text><text x="190" y="94" fill="#b41f2f" font-family="Arial" font-size="20" font-weight="800">9</text>
-  <rect x="61" y="120" width="164" height="208" rx="8" fill="#122239"/><circle cx="143" cy="194" r="48" fill="#253b58"/><path d="M123 222c15-18 26-30 39-40 9 21 14 39 18 62h-70c2-8 6-15 13-22z" fill="#d4af37" opacity=".85"/><circle cx="149" cy="167" r="18" fill="#e5c9ad"/><text x="143" y="290" text-anchor="middle" class="t xs" font-weight="700">GENERIC ATHLETE</text>
-  <text x="24" y="386" class="t md">2024 ROOKIE #101</text><text x="24" y="408" class="m sm">Gold Parallel • PSA 9</text>
-  <g class="sm"><text x="24" y="446" class="m">Player</text><text x="262" y="446" text-anchor="end" class="t">Verified</text><line x1="24" y1="456" x2="262" y2="456" class="line"/><text x="24" y="480" class="m">Parallel</text><text x="262" y="480" text-anchor="end" class="t">Gold / 50</text><line x1="24" y1="490" x2="262" y2="490" class="line"/><text x="24" y="514" class="m">Grade</text><text x="262" y="514" text-anchor="end" class="t">PSA 9</text></g>
-  <rect x="24" y="538" width="238" height="46" rx="10" fill="#163729" stroke="#4fd28b"/><text x="143" y="567" text-anchor="middle" class="good s">IDENTITY VERIFIED</text>
-</g>
-<g transform="translate(354 122)">
-  <rect class="box" width="546" height="292" rx="18"/><text x="24" y="34" class="g s">EVIDENCE &amp; COMPS</text>
-  <rect x="24" y="56" width="498" height="126" rx="10" fill="#091522" stroke="#263950"/>
-  <g class="xs"><text x="42" y="82" class="m">SALE DATE</text><text x="210" y="82" class="m">GRADE</text><text x="324" y="82" class="m">PRICE</text><text x="442" y="82" class="m">SOURCE</text>
-  <g class="t"><text x="42" y="112">Jun 18</text><text x="210" y="112">PSA 9</text><text x="324" y="112">$1,240</text><text x="442" y="112">Marketplace</text><text x="42" y="140">Jun 03</text><text x="210" y="140">PSA 9</text><text x="324" y="140">$1,180</text><text x="442" y="140">Auction</text><text x="42" y="168">May 21</text><text x="210" y="168">PSA 9</text><text x="324" y="168">$1,205</text><text x="442" y="168">Marketplace</text></g></g>
-  <polyline points="38,252 112,238 184,245 258,214 332,224 404,198 488,184" fill="none" stroke="#d6ae42" stroke-width="4"/><line x1="38" y1="270" x2="500" y2="270" class="line"/><text x="38" y="224" class="m xs">90-DAY PRICE TREND</text><rect x="380" y="208" width="118" height="44" rx="9" fill="#15293e"/><text x="439" y="225" text-anchor="middle" class="m xs">MARKET MEDIAN</text><text x="439" y="244" text-anchor="middle" class="g md">$1,205</text>
-</g>
-<g transform="translate(354 434)">
-  <rect class="box" width="546" height="218" rx="18"/><text x="24" y="34" class="g s">GRADING ECONOMICS</text>
-  <g class="sm"><text x="24" y="76" class="t">PSA 10 probability</text><rect x="190" y="63" width="250" height="14" rx="7" fill="#15283d"/><rect x="190" y="63" width="88" height="14" rx="7" fill="#d6ae42"/><text x="506" y="76" text-anchor="end" class="t">35%</text><text x="24" y="112" class="t">Expected graded value</text><rect x="190" y="99" width="250" height="14" rx="7" fill="#15283d"/><rect x="190" y="99" width="172" height="14" rx="7" fill="#d6ae42"/><text x="506" y="112" text-anchor="end" class="t">$1,460</text><text x="24" y="148" class="t">Estimated all-in cost</text><rect x="190" y="135" width="250" height="14" rx="7" fill="#15283d"/><rect x="190" y="135" width="136" height="14" rx="7" fill="#6c87a4"/><text x="506" y="148" text-anchor="end" class="t">$1,085</text></g>
-  <rect x="24" y="170" width="498" height="30" rx="8" fill="#102033"/><text x="42" y="191" class="m xs">Probability-weighted margin</text><text x="504" y="191" text-anchor="end" class="good md">+$375</text>
-</g>
-<g transform="translate(920 122)">
-  <rect class="box" width="312" height="250" rx="18"/><text x="24" y="34" class="g s">CONFIDENCE</text>
-  <circle cx="92" cy="126" r="58" fill="none" stroke="#183047" stroke-width="14"/><path d="M92 68a58 58 0 1 1-48 90" fill="none" stroke="#d6ae42" stroke-width="14" stroke-linecap="round"/><text x="92" y="128" text-anchor="middle" class="t lg">92</text><text x="92" y="150" text-anchor="middle" class="good xs">HIGH</text>
-  <g class="sm"><text x="178" y="86" class="m">Identity match</text><text x="286" y="86" text-anchor="end" class="t">98%</text><text x="178" y="122" class="m">Comp quality</text><text x="286" y="122" text-anchor="end" class="t">91%</text><text x="178" y="158" class="m">Liquidity</text><text x="286" y="158" text-anchor="end" class="t">86%</text><text x="178" y="194" class="m">Risk control</text><text x="286" y="194" text-anchor="end" class="t">90%</text></g>
-</g>
-<g transform="translate(920 392)">
-  <rect class="box" width="312" height="260" rx="18"/><text x="24" y="34" class="g s">DECISION</text>
-  <circle cx="156" cy="92" r="42" fill="#122b22" stroke="#4fd28b" stroke-width="2"/><path d="M137 95l14 14 29-34" fill="none" stroke="#61d798" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="156" y="158" text-anchor="middle" class="good lg">BUY CANDIDATE</text><text x="156" y="184" text-anchor="middle" class="m sm">Strong evidence. Controlled risk.</text>
-  <rect x="24" y="207" width="126" height="36" rx="8" fill="#102033"/><text x="87" y="222" text-anchor="middle" class="m xs">FAIR VALUE</text><text x="87" y="238" text-anchor="middle" class="t sm">$1,150–$1,290</text><rect x="162" y="207" width="126" height="36" rx="8" fill="#102033"/><text x="225" y="222" text-anchor="middle" class="m xs">RISK LEVEL</text><text x="225" y="238" text-anchor="middle" class="good sm">LOW</text>
-</g>
+  <title id="title">How FlipForge works</title>
+  <desc id="desc">Approved FlipForge decision-intelligence visual using the official inward-corner FF mark and gold center square.</desc>
+  <image href="how-flipforge-works.webp" x="0" y="0" width="1280" height="720" preserveAspectRatio="xMidYMid meet"/>
 </svg>
