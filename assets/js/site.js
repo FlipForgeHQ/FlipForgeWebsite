@@ -55,51 +55,51 @@
 
   const demoSteps=[
     {
-      label:'Question 1 of 4 · Exact identity',
+      label:'Step 1 of 4 · Enter the card',
       title:'A title claim is not enough.',
-      copy:'FlipForge separates the seller’s wording from the verified card attributes before comparing any price or completed sale.',
+      copy:'FlipForge separates the seller’s wording from the verified card attributes before comparing any price or sale.',
       state:'CHECK IDENTITY',
       stateClass:'amber',
       checks:[
-        ['good','✓','Year, set, player and card number align','The base identity is consistent.'],
-        ['bad','!','Parallel remains unresolved','Refractor cannot be assumed from the title alone.'],
-        ['neutral','→','Next step','Compare the slab and card photos with authoritative identity evidence.']
+        ['good','✓','Base identity aligns','Year, set, player, and card number are consistent.'],
+        ['bad','!','Parallel unresolved','Refractor cannot be assumed from the title.'],
+        ['neutral','→','Next check','Review slab and card images against identity evidence.']
       ]
     },
     {
-      label:'Question 2 of 4 · Market evidence',
+      label:'Step 2 of 4 · FlipForge checks it',
       title:'Only true matches should influence value.',
-      copy:'The returned record is labeled Base / Unstated. Because the target is a Refractor, FlipForge excludes it instead of blending two different markets.',
+      copy:'The returned record is Base / Unstated. Because the target is a Refractor, FlipForge excludes it instead of blending two markets.',
       state:'EVIDENCE BLOCKED',
       stateClass:'red',
       checks:[
-        ['good','✓','Completed-sale status reviewed','Sale status alone does not make the record comparable.'],
+        ['good','✓','Sale status reviewed','A completed sale still must match the target card.'],
         ['bad','!','Parallel mismatch found','Base and Refractor values cannot be combined.'],
-        ['neutral','→','Evidence effect','The record remains visible in traceback but stays out of supported value.']
+        ['neutral','→','Evidence effect','The record stays visible in traceback but out of supported value.']
       ]
     },
     {
-      label:'Question 3 of 4 · Decision economics',
+      label:'Step 3 of 4 · Review economics',
       title:'Unsupported identity means unsupported economics.',
-      copy:'FlipForge will not calculate a confident purchase or grading thesis from a comp set containing an unresolved parallel mismatch.',
+      copy:'FlipForge will not create a confident purchase or grading thesis from a comp set containing an unresolved mismatch.',
       state:'VALUE UNSUPPORTED',
       stateClass:'red',
       checks:[
-        ['bad','!','Fair-value support withheld','The evidence set does not yet prove the target card.'],
-        ['bad','!','ROI conclusion withheld','A precise percentage would create false confidence.'],
-        ['good','✓','Uncertainty preserved','The system keeps the missing proof visible instead of inventing an answer.']
+        ['bad','!','Fair value withheld','The evidence set does not prove the target card.'],
+        ['bad','!','ROI withheld','A precise percentage would create false confidence.'],
+        ['good','✓','Uncertainty preserved','The missing proof stays visible instead of being guessed.']
       ]
     },
     {
-      label:'Question 4 of 4 · Guidance',
+      label:'Step 4 of 4 · Get guidance',
       title:'Verify before the card influences a decision.',
-      copy:'The appropriate outcome is not BUY or PASS. It is VERIFY: confirm the parallel, replace the mismatched record, and rerun the evidence review.',
+      copy:'The correct outcome is VERIFY: confirm the parallel, replace the mismatched record, and rerun evidence review.',
       state:'VERIFY',
       stateClass:'blue',
       checks:[
         ['good','✓','Clear action state','The result explains what is wrong and what to do next.'],
-        ['neutral','→','Required proof','Use slab photos, card images, item specifics, and an authoritative identity source.'],
-        ['good','✓','Decision protected','No purchase authorization is produced from weak evidence.']
+        ['neutral','→','Required proof','Use slab photos, item specifics, and authoritative identity evidence.'],
+        ['good','✓','Decision protected','No purchase authorization comes from weak evidence.']
       ]
     }
   ];
@@ -140,30 +140,9 @@
   demoButtons.forEach(button=>button.addEventListener('click',()=>renderDemo(Number(button.dataset.demoStep))));
 
   const identityStates={
-    exact:{
-      record:'2018 Topps Chrome #150 Refractor · PSA 10',
-      code:'ACCEPT_EXACT_IDENTITY',
-      title:'Identity can enter evidence review.',
-      copy:'Year, set, card number, parallel, grader, and grade match the target. The record may proceed to source, sale-status, date, and quality checks.',
-      symbol:'✓',
-      className:'exact'
-    },
-    parallel:{
-      record:'2018 Topps Chrome #150 Base / Unstated · PSA 10',
-      code:'REJECT_PARALLEL_MISMATCH',
-      title:'The record is a different card market.',
-      copy:'The target is a Refractor, but the evidence record is Base or does not prove a parallel. FlipForge blocks it before valuation.',
-      symbol:'!',
-      className:'parallel'
-    },
-    grade:{
-      record:'2018 Topps Chrome #150 Refractor · PSA 9',
-      code:'REJECT_GRADE_MISMATCH',
-      title:'The grade lane does not match.',
-      copy:'A PSA 9 sale cannot be treated as an exact PSA 10 comp. It may provide broader context, but it does not automatically support the target value.',
-      symbol:'!',
-      className:'grade'
-    }
+    exact:{record:'2018 Topps Chrome #150 Refractor · PSA 10',code:'ACCEPT_EXACT_IDENTITY',title:'Identity can enter evidence review.',copy:'Year, set, card number, parallel, grader, and grade match the target.',symbol:'✓',className:'exact'},
+    parallel:{record:'2018 Topps Chrome #150 Base / Unstated · PSA 10',code:'REJECT_PARALLEL_MISMATCH',title:'The record is a different card market.',copy:'The target is a Refractor, but the evidence does not prove that parallel. FlipForge blocks it before valuation.',symbol:'!',className:'parallel'},
+    grade:{record:'2018 Topps Chrome #150 Refractor · PSA 9',code:'REJECT_GRADE_MISMATCH',title:'The grade lane does not match.',copy:'A PSA 9 sale cannot be treated as an exact PSA 10 comp. It can provide context, not automatic support.',symbol:'!',className:'grade'}
   };
   const identityButtons=[...document.querySelectorAll('[data-identity-state]')];
   const identityRecord=document.getElementById('identity-record');
@@ -206,6 +185,54 @@
     galleryCopy.textContent=button.dataset.galleryCopy||'';
   };
   galleryButtons.forEach(button=>button.addEventListener('click',()=>renderGallery(button)));
+
+  const toolButtons=[...document.querySelectorAll('[data-tool-target]')];
+  toolButtons.forEach(button=>button.addEventListener('click',()=>{
+    const target=document.getElementById(button.dataset.toolTarget);
+    if(!target)return;
+    toolButtons.forEach(item=>{
+      const active=item===button;
+      item.classList.toggle('active',active);
+      item.setAttribute('aria-selected',String(active));
+    });
+    document.querySelectorAll('.tool-panel').forEach(panel=>{
+      const active=panel===target;
+      panel.classList.toggle('active',active);
+      panel.hidden=!active;
+    });
+  }));
+
+  const outcomes={
+    buy:{badge:'BUY CANDIDATE',badgeClass:'green',title:'Supported opportunity, not an automatic purchase.',cause:'Validated evidence supports a favorable relationship between asking price and supported value.',support:'Exact identity, usable completed sales, acceptable liquidity, and visible risk.',change:'A different parallel, weak listing condition, fees, or new market evidence.',next:'Confirm the exact listing, condition, seller details, and total acquisition cost.'},
+    watch:{badge:'WATCH',badgeClass:'amber',title:'Interesting, but not ready for action.',cause:'The card or market is worth tracking, but the current price or evidence is not strong enough.',support:'Usable identity and some market support without a decisive margin.',change:'A better entry price, stronger completed sales, or improved liquidity.',next:'Track price movement and wait for better evidence or a better setup.'},
+    verify:{badge:'VERIFY',badgeClass:'blue',title:'The decision depends on missing proof.',cause:'Identity, evidence quality, sale status, or listing details remain unresolved.',support:'Some information aligns, but the uncertainty is decision-critical.',change:'Authoritative identity proof, better photos, or a corrected evidence record.',next:'Resolve the named uncertainty before using the card or comp in a decision.'},
+    pass:{badge:'PASS',badgeClass:'red',title:'The current setup does not justify the risk.',cause:'Price, evidence quality, liquidity, downside, or uncertainty outweighs the supported opportunity.',support:'The evidence explains why the card is not attractive at the current terms.',change:'A meaningfully lower price or a stronger market/evidence profile.',next:'Avoid forcing the purchase; preserve the reason and revisit only if conditions change.'},
+    grade:{badge:'GRADE',badgeClass:'green',title:'Probability-weighted grading economics are favorable.',cause:'Realistic grade outcomes support enough expected upside after grading cost and raw value.',support:'Condition assumptions, grade probabilities, costs, and downside are all visible.',change:'Lower grade odds, higher fees, longer turnaround, or weaker resale values.',next:'Inspect condition carefully and confirm all-in submission and selling costs.'}
+  };
+  const outcomeButtons=[...document.querySelectorAll('[data-outcome]')];
+  const outcomeBadge=document.getElementById('outcome-badge');
+  const outcomeTitle=document.getElementById('outcome-title');
+  const outcomeCause=document.getElementById('outcome-cause');
+  const outcomeSupport=document.getElementById('outcome-support');
+  const outcomeChange=document.getElementById('outcome-change');
+  const outcomeNext=document.getElementById('outcome-next');
+  const renderOutcome=key=>{
+    const outcome=outcomes[key];
+    if(!outcome||!outcomeBadge||!outcomeTitle||!outcomeCause||!outcomeSupport||!outcomeChange||!outcomeNext)return;
+    outcomeButtons.forEach(button=>{
+      const active=button.dataset.outcome===key;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-selected',String(active));
+    });
+    outcomeBadge.textContent=outcome.badge;
+    outcomeBadge.className=`badge ${outcome.badgeClass}`;
+    outcomeTitle.textContent=outcome.title;
+    outcomeCause.textContent=outcome.cause;
+    outcomeSupport.textContent=outcome.support;
+    outcomeChange.textContent=outcome.change;
+    outcomeNext.textContent=outcome.next;
+  };
+  outcomeButtons.forEach(button=>button.addEventListener('click',()=>renderOutcome(button.dataset.outcome)));
 
   const gradeForm=document.getElementById('grade-form');
   if(gradeForm){
