@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">FlipForge decision traceback and final guidance</title>
+  <desc id="desc">A branded FlipForge interface showing the path from identity and evidence review to an explainable VERIFY outcome.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#11151d"/><stop offset="1" stop-color="#08090b"/></linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#181d25"/><stop offset="1" stop-color="#0d1117"/></linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f2f2f2"/><stop offset=".55" stop-color="#c0c3ca"/><stop offset="1" stop-color="#8b928f"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#fff" stroke-opacity=".025"/></pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000" flood-opacity=".42"/></filter>
+    <style>.f{font-family:Inter,Arial,Helvetica,sans-serif}.w{fill:#f2f2f2}.s{fill:#c0c3ca}.m{fill:#8b928f}.g{fill:#d4af37}.green{fill:#58d697}.red{fill:#ef7b72}.blue{fill:#83b5ff}.panel{fill:url(#panel);stroke:#343a45;stroke-width:1.4}.rule{stroke:#343a45}.label{font-size:12px;font-weight:900;letter-spacing:2px}.small{font-size:12px}.body{font-size:14px}.head{font-size:28px;font-weight:900}.title{font-size:20px;font-weight:800}</style>
+  </defs>
+  <rect width="1280" height="720" rx="26" fill="url(#bg)"/><rect width="1280" height="720" rx="26" fill="url(#grid)"/><rect x="24" y="24" width="1232" height="672" rx="24" fill="none" stroke="#d4af37" stroke-opacity=".42"/>
+
+  <g transform="translate(54 38)">
+    <g transform="scale(1.05)"><path d="M0 0H22V11H11V22H0Z" fill="url(#silver)"/><path d="M34 0H56V22H45V11H34Z" fill="url(#silver)"/><path d="M0 34H11V45H22V56H0Z" fill="url(#silver)"/><path d="M45 34H56V56H34V45H45Z" fill="url(#silver)"/><rect x="24" y="24" width="8" height="8" rx="1" fill="#d4af37"/></g>
+    <text x="76" y="30" class="f w" font-size="27" font-weight="900" letter-spacing="5">FLIPFORGE</text><text x="78" y="50" class="f g" font-size="9" font-weight="900" letter-spacing="2.6">SIGNAL. CONFIDENCE. ADVANTAGE.</text>
+  </g>
+  <g class="f"><text x="54" y="135" class="head w">DECISION TRACEBACK</text><text x="54" y="165" class="body s">See what entered the decision, what was rejected, what remains uncertain, and why the outcome changed.</text></g>
+
+  <g transform="translate(54 205)" class="f" filter="url(#shadow)">
+    <rect width="742" height="430" rx="18" class="panel"/>
+    <text x="24" y="36" class="label g">TRACEBACK · OHTANI #150 PSA 10</text>
+    <line x1="24" y1="55" x2="718" y2="55" class="rule"/>
+
+    <g transform="translate(28 82)">
+      <circle cx="24" cy="24" r="22" fill="#10241a" stroke="#58d697"/><text x="24" y="30" text-anchor="middle" class="f green" font-size="18" font-weight="900">1</text>
+      <text x="65" y="18" class="label s">IDENTITY</text><text x="65" y="41" class="title w">Target card standardized</text><text x="65" y="63" class="small m">2018 Topps Chrome #150 · Claimed Refractor · PSA 10</text>
+      <line x1="24" y1="49" x2="24" y2="105" stroke="#3f4650" stroke-width="2"/>
+    </g>
+    <g transform="translate(28 185)">
+      <circle cx="24" cy="24" r="22" fill="#261617" stroke="#ef7b72"/><text x="24" y="30" text-anchor="middle" class="f red" font-size="18" font-weight="900">2</text>
+      <text x="65" y="18" class="label s">EVIDENCE REVIEW</text><text x="65" y="41" class="title w">Returned record rejected</text><text x="65" y="63" class="small m">Base / Unstated evidence cannot support a Refractor target.</text>
+      <rect x="515" y="7" width="150" height="34" rx="8" fill="#261617" stroke="#ef7b72"/><text x="590" y="29" text-anchor="middle" class="label red">PARALLEL MISMATCH</text>
+      <line x1="24" y1="49" x2="24" y2="105" stroke="#3f4650" stroke-width="2"/>
+    </g>
+    <g transform="translate(28 288)">
+      <circle cx="24" cy="24" r="22" fill="#171d27" stroke="#83b5ff"/><text x="24" y="30" text-anchor="middle" class="f blue" font-size="18" font-weight="900">3</text>
+      <text x="65" y="18" class="label s">ECONOMICS</text><text x="65" y="41" class="title w">Value and ROI withheld</text><text x="65" y="63" class="small m">Unsupported identity prevents false precision from reaching the recommendation.</text>
+      <line x1="24" y1="49" x2="24" y2="105" stroke="#3f4650" stroke-width="2"/>
+    </g>
+    <g transform="translate(28 391)">
+      <circle cx="24" cy="24" r="22" fill="#241f10" stroke="#d4af37"/><text x="24" y="30" text-anchor="middle" class="f g" font-size="18" font-weight="900">4</text>
+      <text x="65" y="18" class="label s">FINAL GUIDANCE</text><text x="65" y="41" class="title w">Verify before acting</text>
+    </g>
+  </g>
+
+  <g transform="translate(822 205)" class="f" filter="url(#shadow)">
+    <rect width="404" height="430" rx="18" class="panel"/>
+    <text x="24" y="36" class="label g">FINAL GUIDANCE</text><line x1="24" y1="55" x2="380" y2="55" class="rule"/>
+    <rect x="24" y="82" width="356" height="82" rx="14" fill="#241f10" stroke="#d4af37" stroke-opacity=".75"/>
+    <text x="202" y="117" text-anchor="middle" class="g" font-size="30" font-weight="900">VERIFY</text><text x="202" y="143" text-anchor="middle" class="small s">Do not use the mismatched record as evidence.</text>
+
+    <text x="24" y="206" class="label s">WHAT CAUSED IT</text><text x="24" y="231" class="body w">Parallel identity could not be proven.</text>
+    <text x="24" y="278" class="label s">WHAT SUPPORTS IT</text><text x="24" y="303" class="body w">Year, set, player, number, and grade align.</text>
+    <text x="24" y="350" class="label s">VERIFY NEXT</text><text x="24" y="375" class="body w">Inspect slab photos, item specifics, and an</text><text x="24" y="397" class="body w">authoritative identity source.</text>
+  </g>
+
+  <g class="f"><text x="54" y="674" class="label w">BEFORE YOU BUY, KNOW WHY.</text><text x="1226" y="674" text-anchor="end" class="small g">Every outcome preserves the reasoning behind it.</text></g>
+</svg>
