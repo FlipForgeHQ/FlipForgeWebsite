@@ -1,5 +1,136 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
-  <title id="title">How FlipForge works</title>
-  <desc id="desc">Approved FlipForge decision-intelligence visual using the official inward-corner FF mark and gold center square.</desc>
-  <image href="how-flipforge-works.webp" x="0" y="0" width="1280" height="720" preserveAspectRatio="xMidYMid meet"/>
+  <title id="title">FlipForge decision intelligence workflow</title>
+  <desc id="desc">A branded FlipForge workflow showing identity verification, evidence control, grading and purchase economics, and an explainable decision.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11151d"/>
+      <stop offset="1" stop-color="#08090b"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#171c25"/>
+      <stop offset="1" stop-color="#0e1218"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2f2f2"/>
+      <stop offset="0.5" stop-color="#c0c3ca"/>
+      <stop offset="1" stop-color="#8b928f"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity=".025"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000" flood-opacity=".4"/>
+    </filter>
+    <style>
+      .font{font-family:Inter,Arial,Helvetica,sans-serif}.silver{fill:#c0c3ca}.white{fill:#f2f2f2}.muted{fill:#8b928f}.gold{fill:#d4af37}.green{fill:#58d697}.label{font-size:13px;font-weight:800;letter-spacing:2.3px}.body{font-size:14px}.small{font-size:12px}.headline{font-size:34px;font-weight:900;letter-spacing:-.7px}.question{font-size:23px;font-weight:800;letter-spacing:-.35px}.wordmark{font-size:29px;font-weight:900;letter-spacing:5px}.tag{font-size:10px;font-weight:800;letter-spacing:2.8px}.panel{fill:url(#panel);stroke:#343a45;stroke-width:1.4}.rule{stroke:#333944;stroke-width:1}.flow{stroke:#4b515b;stroke-width:3}.flowGold{stroke:#d4af37;stroke-width:3}.chip{fill:#151a22;stroke:#414752}.chipGold{fill:#241f10;stroke:#d4af37;stroke-opacity:.7}.chipGreen{fill:#10241a;stroke:#58d697;stroke-opacity:.75}
+    </style>
+  </defs>
+
+  <rect width="1280" height="720" rx="26" fill="url(#bg)"/>
+  <rect width="1280" height="720" rx="26" fill="url(#grid)"/>
+  <rect x="25" y="25" width="1230" height="670" rx="24" fill="none" stroke="#d4af37" stroke-opacity=".42" stroke-width="1.5"/>
+
+  <!-- Approved FlipForge identity: four inward-facing corner blocks with gold center square -->
+  <g transform="translate(60 45)">
+    <g transform="scale(1.22)">
+      <path d="M0 0H22V11H11V22H0Z" fill="url(#silver)"/>
+      <path d="M34 0H56V22H45V11H34Z" fill="url(#silver)"/>
+      <path d="M0 34H11V45H22V56H0Z" fill="url(#silver)"/>
+      <path d="M45 34H56V56H34V45H45Z" fill="url(#silver)"/>
+      <rect x="24" y="24" width="8" height="8" rx="1" fill="#d4af37"/>
+    </g>
+    <text x="88" y="34" class="font wordmark white">FLIPFORGE</text>
+    <text x="90" y="55" class="font tag gold">SIGNAL. CONFIDENCE. ADVANTAGE.</text>
+  </g>
+
+  <g class="font">
+    <text x="60" y="150" class="headline white">A DECISION, NOT JUST A PRICE.</text>
+    <text x="60" y="180" class="body silver">FlipForge challenges the card, the evidence, and the economics before it explains the next move.</text>
+  </g>
+
+  <!-- Process rail -->
+  <line x1="100" y1="225" x2="1180" y2="225" class="flow"/>
+  <line x1="100" y1="225" x2="460" y2="225" class="flowGold"/>
+  <g class="font" text-anchor="middle">
+    <g><circle cx="100" cy="225" r="18" fill="#d4af37"/><text x="100" y="230" font-size="13" font-weight="900" fill="#08090b">1</text></g>
+    <g><circle cx="460" cy="225" r="18" fill="#161b22" stroke="#d4af37"/><text x="460" y="230" font-size="13" font-weight="900" class="white">2</text></g>
+    <g><circle cx="820" cy="225" r="18" fill="#161b22" stroke="#d4af37"/><text x="820" y="230" font-size="13" font-weight="900" class="white">3</text></g>
+    <g><circle cx="1180" cy="225" r="18" fill="#161b22" stroke="#d4af37"/><text x="1180" y="230" font-size="13" font-weight="900" class="white">4</text></g>
+  </g>
+
+  <!-- Panel 1 -->
+  <g transform="translate(60 270)" filter="url(#shadow)" class="font">
+    <rect width="272" height="330" rx="18" class="panel"/>
+    <text x="22" y="35" class="label gold">01 · IDENTITY</text>
+    <text x="22" y="76" class="question white">Is this the exact</text>
+    <text x="22" y="103" class="question white">card?</text>
+    <line x1="22" y1="125" x2="250" y2="125" class="rule"/>
+    <g class="body">
+      <text x="22" y="158" class="muted">Year + set</text><text x="250" y="158" text-anchor="end" class="white">Verified</text>
+      <text x="22" y="191" class="muted">Card number</text><text x="250" y="191" text-anchor="end" class="white">Matched</text>
+      <text x="22" y="224" class="muted">Parallel / insert</text><text x="250" y="224" text-anchor="end" class="white">Required</text>
+      <text x="22" y="257" class="muted">Grader + grade</text><text x="250" y="257" text-anchor="end" class="white">Exact lane</text>
+    </g>
+    <rect x="22" y="283" width="228" height="29" rx="8" class="chipGreen"/>
+    <text x="136" y="303" text-anchor="middle" class="label green">IDENTITY CONTROLLED</text>
+  </g>
+
+  <!-- Panel 2 -->
+  <g transform="translate(356 270)" filter="url(#shadow)" class="font">
+    <rect width="272" height="330" rx="18" class="panel"/>
+    <text x="22" y="35" class="label gold">02 · EVIDENCE</text>
+    <text x="22" y="76" class="question white">Can these sales</text>
+    <text x="22" y="103" class="question white">be trusted?</text>
+    <line x1="22" y1="125" x2="250" y2="125" class="rule"/>
+    <g class="body">
+      <text x="22" y="158" class="muted">Exact completed sales</text><text x="250" y="158" text-anchor="end" class="white">Accepted</text>
+      <text x="22" y="191" class="muted">Wrong variants</text><text x="250" y="191" text-anchor="end" fill="#ef7b72">Rejected</text>
+      <text x="22" y="224" class="muted">Outliers / lots</text><text x="250" y="224" text-anchor="end" fill="#ef7b72">Blocked</text>
+      <text x="22" y="257" class="muted">Source + date</text><text x="250" y="257" text-anchor="end" class="white">Visible</text>
+    </g>
+    <rect x="22" y="283" width="228" height="29" rx="8" class="chipGold"/>
+    <text x="136" y="303" text-anchor="middle" class="label gold">EVIDENCE CHALLENGED</text>
+  </g>
+
+  <!-- Panel 3 -->
+  <g transform="translate(652 270)" filter="url(#shadow)" class="font">
+    <rect width="272" height="330" rx="18" class="panel"/>
+    <text x="22" y="35" class="label gold">03 · ECONOMICS</text>
+    <text x="22" y="76" class="question white">Does the deal</text>
+    <text x="22" y="103" class="question white">still work?</text>
+    <line x1="22" y1="125" x2="250" y2="125" class="rule"/>
+    <g class="body">
+      <text x="22" y="158" class="muted">All-in acquisition cost</text><text x="250" y="158" text-anchor="end" class="white">Included</text>
+      <text x="22" y="191" class="muted">Fair-value range</text><text x="250" y="191" text-anchor="end" class="white">Modeled</text>
+      <text x="22" y="224" class="muted">Grading outcomes</text><text x="250" y="224" text-anchor="end" class="white">Weighted</text>
+      <text x="22" y="257" class="muted">Downside risk</text><text x="250" y="257" text-anchor="end" class="white">Exposed</text>
+    </g>
+    <rect x="22" y="283" width="228" height="29" rx="8" class="chipGold"/>
+    <text x="136" y="303" text-anchor="middle" class="label gold">SCENARIO TESTED</text>
+  </g>
+
+  <!-- Panel 4 -->
+  <g transform="translate(948 270)" filter="url(#shadow)" class="font">
+    <rect width="272" height="330" rx="18" class="panel"/>
+    <text x="22" y="35" class="label gold">04 · DECISION</text>
+    <text x="22" y="76" class="question white">What should I</text>
+    <text x="22" y="103" class="question white">do next?</text>
+    <line x1="22" y1="125" x2="250" y2="125" class="rule"/>
+    <g transform="translate(22 145)">
+      <rect width="108" height="40" rx="9" class="chipGreen"/><text x="54" y="26" text-anchor="middle" font-size="13" font-weight="900" class="green">BUY CANDIDATE</text>
+      <rect x="120" width="108" height="40" rx="9" class="chip"/><text x="174" y="26" text-anchor="middle" font-size="13" font-weight="900" class="white">WATCH</text>
+      <rect y="51" width="108" height="40" rx="9" class="chipGold"/><text x="54" y="77" text-anchor="middle" font-size="13" font-weight="900" class="gold">VERIFY</text>
+      <rect x="120" y="51" width="108" height="40" rx="9" class="chip"/><text x="174" y="77" text-anchor="middle" font-size="13" font-weight="900" class="silver">PASS</text>
+    </g>
+    <text x="22" y="267" class="small muted">Every outcome shows why, confidence,</text>
+    <text x="22" y="284" class="small muted">risk, and what must be checked next.</text>
+    <rect x="22" y="296" width="228" height="20" rx="7" class="chipGreen"/>
+    <text x="136" y="311" text-anchor="middle" font-size="11" font-weight="900" letter-spacing="1.8" class="green">EXPLAINABLE GUIDANCE</text>
+  </g>
+
+  <g class="font">
+    <line x1="60" y1="635" x2="1220" y2="635" class="rule"/>
+    <text x="60" y="672" font-size="18" font-weight="900" letter-spacing="1.2" class="white">BEFORE YOU BUY, KNOW WHY.</text>
+    <text x="1220" y="672" text-anchor="end" class="body gold">Discovery → Evidence → Validation → Decision → Outcome</text>
+  </g>
 </svg>
