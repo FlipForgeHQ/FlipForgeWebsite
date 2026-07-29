@@ -8,6 +8,7 @@ body {
   max-width: 100%;
   /* `hidden` creates a scroll container in Chrome and breaks sticky UI. */
   overflow-x: clip;
+  overscroll-behavior-x: none;
 }
 
 .app-shell,
@@ -19,10 +20,12 @@ body {
 }
 
 .app-shell {
+  width: 100%;
   overflow-x: clip;
 }
 
 .sidebar {
+  left: 0;
   align-self: start;
   overflow-x: hidden;
 }
