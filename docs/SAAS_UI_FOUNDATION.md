@@ -131,7 +131,8 @@ Browser code contains no:
 - grade prediction
 - scraping
 - fabricated sold comps
-- auto-buy, bidding, checkout, listing, payment collection, or purchase authorization
+- auto-buy, bidding, checkout, or purchase authorization
+- marketplace listing or payment collection
 - password or payment field
 - secrets in local storage, session storage, or IndexedDB
 - direct `fetch`, XMLHttpRequest, or WebSocket provider call
@@ -148,4 +149,4 @@ PR #12 runs:
 
 ## Release rule
 
-The prototype is not production and is not wired to customer accounts. It must not replace the public homepage, merge to production, or migrate customers without separate explicit owner approval after visual acceptance.
+The prototype is not production and is not wired to customer accounts. It must not replace the public homepage or deploy without a separate explicit approval. It must not merge to production or migrate customers without separate explicit owner approval after visual acceptance.
