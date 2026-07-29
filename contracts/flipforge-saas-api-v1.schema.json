@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goflipforge.com/contracts/flipforge-saas-api-v1.schema.json",
+  "title": "FlipForge SaaS API v1 response envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "data"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "contractVersion",
+        "engineVersion",
+        "authority",
+        "gradingAuthority",
+        "generatedAt",
+        "correlationId"
+      ],
+      "properties": {
+        "contractVersion": {
+          "const": "1.0"
+        },
+        "engineVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority": {
+          "const": "Smart Opportunity"
+        },
+        "gradingAuthority": {
+          "const": "Existing PSA intelligence"
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceFreshness": {
+          "type": ["string", "null"]
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "data": {}
+  }
+}
