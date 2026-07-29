@@ -16,6 +16,7 @@ const files = {
   guard: read("saas-prototype/route-guard.js"),
   styles: read("saas-prototype/styles.css"),
   brand: read("saas-prototype/brand.css"),
+  shell: read("saas-prototype/shell-fixes.css"),
   foundation: read("docs/SAAS_UI_FOUNDATION.md")
 };
 
@@ -110,6 +111,11 @@ check("067 Card Value Intelligence is the visible identity line", files.index.in
 check("068 deprecated Signal Confidence Advantage tagline is absent", !/SIGNAL\s*[.·-]\s*CONFIDENCE\s*[.·-]\s*ADVANTAGE/i.test(browserCode));
 check("069 Söhne typography stack is declared", /font-family:\s*"Söhne",\s*"Sohne"/i.test(files.brand));
 check("070 approved silver charcoal gold palette is declared", ["#f2f2f2", "#8b928f", "#d4af37"].every(value => files.brand.toLowerCase().includes(value)));
+
+check("071 shell fixes load after approved brand layer", files.index.indexOf('href="shell-fixes.css"') > files.index.indexOf('href="brand.css"'));
+check("072 desktop shell prevents horizontal body overflow", files.shell.includes("overflow-x: hidden"));
+check("073 topbar uses shrink-safe grid columns", files.shell.includes("grid-template-columns: minmax(0, 1fr) auto"));
+check("074 narrow desktop profile collapses before clipping", files.shell.includes("@media (max-width: 1320px)") && files.shell.includes(".profile-copy"));
 
 const failures = results.filter(result => !result.passed);
 
