@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Non-production FlipForge SaaS customer intelligence prototype.">
+  <title>FlipForge SaaS Prototype</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <div class="prototype-banner" role="status">
+    <strong>NON-PRODUCTION PROTOTYPE</strong>
+    <span>Mock responses only · No live provider calls · No purchase authority</span>
+  </div>
+
+  <div class="app-shell" data-nav-open="false">
+    <div class="mobile-scrim" data-nav-close aria-hidden="true"></div>
+
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand-block">
+        <a class="brand" href="#/dashboard" aria-label="FlipForge dashboard">
+          <span class="brand-name">FLIPFORGE</span>
+          <span class="brand-subtitle">CARD VALUE INTELLIGENCE</span>
+        </a>
+        <span class="prototype-chip">SAAS PROTOTYPE</span>
+      </div>
+
+      <nav class="primary-nav" aria-label="SaaS sections">
+        <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">▦</span>Dashboard</a>
+        <a href="#/discover" data-route="discover"><span aria-hidden="true">⌕</span>Discover</a>
+        <a href="#/evaluate" data-route="evaluate"><span aria-hidden="true">◇</span>Evaluate</a>
+        <a href="#/opportunities" data-route="opportunities"><span aria-hidden="true">↗</span>Opportunities</a>
+        <a href="#/compare" data-route="compare"><span aria-hidden="true">⇄</span>Compare</a>
+        <a href="#/psa-advisor" data-route="psa-advisor"><span aria-hidden="true">A+</span>PSA Advisor</a>
+        <a href="#/evidence" data-route="evidence"><span aria-hidden="true">◎</span>Evidence</a>
+        <a href="#/portfolio" data-route="portfolio"><span aria-hidden="true">◫</span>Portfolio</a>
+        <a href="#/sell" data-route="sell"><span aria-hidden="true">$</span>Sell</a>
+        <a href="#/alerts" data-route="alerts"><span aria-hidden="true">!</span>Alerts</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="plan-card">
+          <span class="eyebrow">Prototype plan</span>
+          <strong>Collector Intelligence</strong>
+          <div class="usage-row"><span>Evaluations</span><span>12 / 50</span></div>
+          <div class="usage-track" aria-label="24 percent of prototype evaluation allowance used"><span style="width:24%"></span></div>
+          <small>Display only. Server entitlements are not implemented.</small>
+        </div>
+        <a class="account-link" href="#/account" data-route="account">
+          <span class="avatar" aria-hidden="true">TH</span>
+          <span><strong>Prototype Account</strong><small>Owner preview</small></span>
+          <span aria-hidden="true">›</span>
+        </a>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <button class="icon-button menu-button" type="button" data-nav-toggle aria-label="Open navigation" aria-expanded="false">☰</button>
+        <form class="global-search" role="search" id="global-search-form">
+          <label class="sr-only" for="global-search">Search cards, players, sets, or listings</label>
+          <span aria-hidden="true">⌕</span>
+          <input id="global-search" type="search" placeholder="Search cards, players, sets, or listings…" autocomplete="off">
+          <kbd>⌘ K</kbd>
+        </form>
+        <div class="topbar-actions">
+          <button class="date-button" type="button"><span aria-hidden="true">◷</span> Jul 21–28, 2026</button>
+          <a class="icon-button notification-button" href="#/alerts" aria-label="Alerts, 3 unread"><span aria-hidden="true">♢</span><span class="notification-dot">3</span></a>
+          <a class="profile-button" href="#/account" aria-label="Open account">
+            <span class="avatar" aria-hidden="true">TH</span>
+            <span class="profile-copy"><strong>Todd</strong><small>Prototype</small></span>
+          </a>
+        </div>
+      </header>
+
+      <main id="main-content" tabindex="-1" aria-live="polite"></main>
+    </section>
+  </div>
+
+  <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="mock-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
