@@ -62,3 +62,44 @@ if (fs.existsSync(indexPath)) {
     console.log('Updated homepage gallery to use flipforge-traceback-guidance.svg');
   }
 }
+
+// Keep the public website and the browser app connected without replacing the
+// marketing homepage. Netlify exposes the isolated prototype at /app/ through
+// _redirects; the build adds a consistent entry point across website pages.
+const htmlFiles = fs.readdirSync(root)
+  .filter((name) => name.endsWith('.html'))
+  .map((name) => path.join(root, name));
+
+for (const htmlPath of htmlFiles) {
+  const original = fs.readFileSync(htmlPath, 'utf8');
+  let updated = original.replaceAll(
+    'Signal. Confidence. Advantage.',
+    'Card Value Intelligence',
+  );
+
+  if (!updated.includes('data-app-preview="desktop"')) {
+    updated = updated.replace(
+      '<a class="nav-cta" href="beta-application.html">Request Access</a>',
+      '<a data-app-preview="desktop" href="/app/#/dashboard">App Preview</a><a class="nav-cta" href="beta-application.html">Request Access</a>',
+    );
+  }
+
+  if (!updated.includes('data-app-preview="mobile"')) {
+    updated = updated.replace(
+      '<a href="beta-application.html">Request Beta Access</a>',
+      '<a data-app-preview="mobile" href="/app/#/dashboard">App Preview</a><a href="beta-application.html">Request Beta Access</a>',
+    );
+  }
+
+  if (!updated.includes('data-app-preview="footer"')) {
+    updated = updated.replace(
+      '<a href="beta-application.html">Private Beta</a>',
+      '<a data-app-preview="footer" href="/app/#/dashboard">App Preview</a><a href="beta-application.html">Private Beta</a>',
+    );
+  }
+
+  if (updated !== original) {
+    fs.writeFileSync(htmlPath, updated, 'utf8');
+    console.log(`Updated website app entry points and brand line in ${path.basename(htmlPath)}`);
+  }
+}
