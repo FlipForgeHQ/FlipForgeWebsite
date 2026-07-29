@@ -15,13 +15,36 @@ body {
 .workspace,
 .topbar,
 .global-search,
-.topbar-actions {
+.topbar-actions,
+#main-content,
+.page,
+.panel,
+.panel-body,
+.detail-grid,
+.dashboard-grid,
+.stack,
+.comparison-table,
+.comparison-row,
+.comparison-row > * {
   min-width: 0;
 }
 
 .app-shell {
   width: 100%;
+  max-width: 100vw;
   overflow-x: clip;
+}
+
+.workspace {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+#main-content,
+.page {
+  width: 100%;
+  max-width: 100%;
 }
 
 .sidebar {
@@ -93,6 +116,26 @@ body {
   flex: 0 0 auto;
 }
 
+/*
+ * Wide comparison content must scroll inside its own panel. It must never
+ * enlarge the document or move the customer shell off the left edge.
+ */
+.comparison-table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+}
+
+.comparison-row {
+  width: 100%;
+}
+
+.comparison-row > * {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1320px) {
   .profile-copy {
     display: none;
@@ -144,5 +187,9 @@ body {
   .prototype-chip {
     margin-left: 52px;
     max-width: calc(100% - 52px);
+  }
+
+  .comparison-row {
+    min-width: 680px;
   }
 }
