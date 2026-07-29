@@ -63,6 +63,42 @@ if (fs.existsSync(indexPath)) {
   }
 }
 
+function ensureDesktopAppLink(html) {
+  if (html.includes('data-app-preview="desktop"')) return html;
+
+  return html.replace(
+    /(<nav\b[^>]*class="[^"]*\bdesktop-nav\b[^"]*"[^>]*>)([\s\S]*?)(<\/nav>)/i,
+    (match, open, inner, close) => {
+      const link = '<a data-app-preview="desktop" href="/app/#/dashboard">App Preview</a>';
+      const cta = /(<a\b[^>]*class="[^"]*\bnav-cta\b[^"]*"[^>]*>)/i;
+      const updatedInner = cta.test(inner)
+        ? inner.replace(cta, `${link}$1`)
+        : `${inner}${link}`;
+      return `${open}${updatedInner}${close}`;
+    },
+  );
+}
+
+function ensureMobileAppLink(html) {
+  if (html.includes('data-app-preview="mobile"')) return html;
+
+  return html.replace(
+    /(<nav\b[^>]*id="mobile-navigation"[^>]*>)([\s\S]*?)(<\/nav>)/i,
+    (match, open, inner, close) =>
+      `${open}${inner}<a data-app-preview="mobile" href="/app/#/dashboard">App Preview</a>${close}`,
+  );
+}
+
+function ensureFooterAppLink(html) {
+  if (html.includes('data-app-preview="footer"')) return html;
+
+  return html.replace(
+    /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>\s*<strong>Explore<\/strong>)([\s\S]*?)(<\/div>)/i,
+    (match, open, inner, close) =>
+      `${open}${inner}<a data-app-preview="footer" href="/app/#/dashboard">App Preview</a>${close}`,
+  );
+}
+
 // Keep the public website and the browser app connected without replacing the
 // marketing homepage. Netlify exposes the isolated prototype at /app/ through
 // _redirects; the build adds a consistent entry point across website pages.
@@ -77,26 +113,9 @@ for (const htmlPath of htmlFiles) {
     'Card Value Intelligence',
   );
 
-  if (!updated.includes('data-app-preview="desktop"')) {
-    updated = updated.replace(
-      '<a class="nav-cta" href="beta-application.html">Request Access</a>',
-      '<a data-app-preview="desktop" href="/app/#/dashboard">App Preview</a><a class="nav-cta" href="beta-application.html">Request Access</a>',
-    );
-  }
-
-  if (!updated.includes('data-app-preview="mobile"')) {
-    updated = updated.replace(
-      '<a href="beta-application.html">Request Beta Access</a>',
-      '<a data-app-preview="mobile" href="/app/#/dashboard">App Preview</a><a href="beta-application.html">Request Beta Access</a>',
-    );
-  }
-
-  if (!updated.includes('data-app-preview="footer"')) {
-    updated = updated.replace(
-      '<a href="beta-application.html">Private Beta</a>',
-      '<a data-app-preview="footer" href="/app/#/dashboard">App Preview</a><a href="beta-application.html">Private Beta</a>',
-    );
-  }
+  updated = ensureDesktopAppLink(updated);
+  updated = ensureMobileAppLink(updated);
+  updated = ensureFooterAppLink(updated);
 
   if (updated !== original) {
     fs.writeFileSync(htmlPath, updated, 'utf8');
