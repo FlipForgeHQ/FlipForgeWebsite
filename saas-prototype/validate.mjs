@@ -15,6 +15,7 @@ const files = {
   data: read("saas-prototype/mock-data.js"),
   guard: read("saas-prototype/route-guard.js"),
   styles: read("saas-prototype/styles.css"),
+  brand: read("saas-prototype/brand.css"),
   foundation: read("docs/SAAS_UI_FOUNDATION.md")
 };
 
@@ -101,6 +102,14 @@ check("060 foundation requires server-side credentials", files.foundation.includ
 check("061 foundation blocks recommendation recalculation", files.foundation.includes("recommendation recalculation"));
 check("062 foundation blocks transaction authority", files.foundation.includes("auto-buy, bidding, checkout, or purchase authorization"));
 check("063 foundation forbids unapproved deployment", files.foundation.includes("must not replace the public homepage or deploy without a separate explicit approval"));
+
+check("064 approved brand stylesheet loads after base styles", files.index.indexOf('href="brand.css"') > files.index.indexOf('href="styles.css"'));
+check("065 approved four-corner mark is present", ["brand-corner-tl", "brand-corner-tr", "brand-corner-bl", "brand-corner-br"].every(value => files.index.includes(value)));
+check("066 approved gold center is present", files.index.includes('class="brand-center"'));
+check("067 Card Value Intelligence is the visible identity line", files.index.includes('<span class="brand-subtitle">CARD VALUE INTELLIGENCE</span>'));
+check("068 deprecated Signal Confidence Advantage tagline is absent", !/SIGNAL\s*[.·-]\s*CONFIDENCE\s*[.·-]\s*ADVANTAGE/i.test(browserCode));
+check("069 Söhne typography stack is declared", /font-family:\s*"Söhne",\s*"Sohne"/i.test(files.brand));
+check("070 approved silver charcoal gold palette is declared", ["#f2f2f2", "#8b928f", "#d4af37"].every(value => files.brand.toLowerCase().includes(value)));
 
 const failures = results.filter(result => !result.passed);
 
