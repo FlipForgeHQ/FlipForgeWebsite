@@ -111,6 +111,25 @@ body {
 }
 
 @media (max-width: 900px) {
+  /*
+   * This file loads after styles.css. Reassert the off-canvas mobile position
+   * here so the desktop sticky rule above cannot leave a translated sidebar
+   * in normal grid flow and push the workspace below the first viewport.
+   */
+  .sidebar {
+    position: fixed;
+    top: 32px;
+    right: auto;
+    bottom: 0;
+    left: 0;
+    align-self: auto;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+  }
+
   .brand-block {
     padding-left: 20px;
   }
