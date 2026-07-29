@@ -5,6 +5,9 @@ on:
     paths:
       - "saas-prototype/**"
       - "docs/SAAS_UI_FOUNDATION.md"
+      - "scripts/build-assets.js"
+      - "_redirects"
+      - "*.html"
       - ".github/workflows/saas-prototype-validation.yml"
   workflow_dispatch:
 
@@ -26,5 +29,25 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Parse browser JavaScript
+        run: |
+          node --check saas-prototype/mock-data.js
+          node --check saas-prototype/feature-data.js
+          node --check saas-prototype/app.js
+          node --check saas-prototype/feature-pages.js
+          node --check saas-prototype/route-guard.js
+          node --check saas-prototype/serve.mjs
+
+      - name: Build website integration
+        run: node scripts/build-assets.js
+
       - name: Run deterministic prototype checks
         run: node saas-prototype/validate.mjs
+
+      - name: Verify generated website entry points
+        run: |
+          grep -q 'Card Value Intelligence' index.html
+          grep -q 'data-app-preview="desktop"' index.html
+          grep -q 'data-app-preview="mobile"' index.html
+          grep -q 'data-app-preview="footer"' index.html
+          grep -q '/app/ /saas-prototype/index.html 200' _redirects
