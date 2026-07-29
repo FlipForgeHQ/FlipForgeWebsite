@@ -174,6 +174,11 @@ check("118 feature layouts include compact breakpoint", files.featureStyles.incl
 check("119 feature layouts include narrow mobile breakpoint", files.featureStyles.includes("@media (max-width: 480px)"));
 check("120 feature tables and cards use responsive grids", files.featureStyles.includes(".feature-grid") && files.featureStyles.includes(".listing-grid") && files.featureStyles.includes(".account-grid"));
 
+const mobileShellStart = files.shell.indexOf("@media (max-width: 900px)");
+const mobileShellRules = mobileShellStart >= 0 ? files.shell.slice(mobileShellStart) : "";
+check("121 final mobile cascade restores fixed off-canvas sidebar", mobileShellRules.includes(".sidebar") && mobileShellRules.includes("position: fixed") && mobileShellRules.includes("top: 32px"));
+check("122 mobile sidebar is removed from normal grid flow", mobileShellRules.includes("align-self: auto") && files.styles.includes(".app-shell { grid-template-columns: 1fr; }"));
+
 const failures = results.filter(result => !result.passed);
 
 console.log("SaaSPrototypeValidation");
