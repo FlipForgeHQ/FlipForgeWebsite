@@ -16,6 +16,7 @@ const files = {
   featureData: read("saas-prototype/feature-data.js"),
   featurePages: read("saas-prototype/feature-pages.js"),
   guard: read("saas-prototype/route-guard.js"),
+  scrollReset: read("saas-prototype/scroll-reset.js"),
   styles: read("saas-prototype/styles.css"),
   brand: read("saas-prototype/brand.css"),
   shell: read("saas-prototype/shell-fixes.css"),
@@ -93,7 +94,7 @@ check("048 reduced-motion support exists", files.styles.includes("@media (prefer
 check("049 visible keyboard focus is defined", files.styles.includes(":focus-visible"));
 check("050 tables can scroll horizontally", files.styles.includes(".table-wrap { overflow-x: auto; }"));
 
-const browserCode = `${files.index}\n${files.app}\n${files.data}\n${files.featureData}\n${files.featurePages}\n${files.guard}`;
+const browserCode = `${files.index}\n${files.app}\n${files.data}\n${files.featureData}\n${files.featurePages}\n${files.guard}\n${files.scrollReset}`;
 check("051 no password field exists", !/<input[^>]+type=["']password["']/i.test(browserCode));
 check("052 no direct network fetch exists", !/\bfetch\s*\(/.test(browserCode));
 check("053 no XMLHttpRequest exists", !/XMLHttpRequest/.test(browserCode));
@@ -178,6 +179,9 @@ const mobileShellStart = files.shell.indexOf("@media (max-width: 900px)");
 const mobileShellRules = mobileShellStart >= 0 ? files.shell.slice(mobileShellStart) : "";
 check("121 final mobile cascade restores fixed off-canvas sidebar", mobileShellRules.includes(".sidebar") && mobileShellRules.includes("position: fixed") && mobileShellRules.includes("top: 32px"));
 check("122 mobile sidebar is removed from normal grid flow", mobileShellRules.includes("align-self: auto") && files.styles.includes(".app-shell { grid-template-columns: 1fr; }"));
+check("123 horizontal scroll reset loads after route guards", files.index.indexOf('src="scroll-reset.js"') > files.index.indexOf('src="route-guard.js"'));
+check("124 horizontal scroll reset forces left zero", files.scrollReset.includes("left: 0") && files.scrollReset.includes("document.documentElement.scrollLeft = 0") && files.scrollReset.includes("document.body.scrollLeft = 0"));
+check("125 horizontal scroll reset runs on route and page restoration", files.scrollReset.includes('addEventListener("hashchange"') && files.scrollReset.includes('addEventListener("pageshow"'));
 
 const failures = results.filter(result => !result.passed);
 
