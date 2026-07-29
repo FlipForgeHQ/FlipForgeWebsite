@@ -1,0 +1,108 @@
+/*
+ * Desktop shell containment fixes discovered during owner visual smoke.
+ * Loaded after the approved brand layer.
+ */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.app-shell,
+.workspace,
+.topbar,
+.global-search,
+.topbar-actions {
+  min-width: 0;
+}
+
+.sidebar {
+  overflow-x: hidden;
+}
+
+.brand-block {
+  padding-left: 24px;
+  padding-right: 16px;
+  overflow: hidden;
+}
+
+.brand {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+}
+
+.brand-name {
+  font-size: 18px;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.brand-subtitle {
+  font-size: 7px;
+  letter-spacing: .14em;
+  white-space: nowrap;
+}
+
+.prototype-chip {
+  margin-left: 54px;
+  max-width: calc(100% - 54px);
+}
+
+.topbar {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.global-search {
+  width: 100%;
+}
+
+.topbar-actions {
+  flex: 0 0 auto;
+}
+
+.profile-button,
+.date-button,
+.notification-button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1320px) {
+  .profile-copy {
+    display: none;
+  }
+
+  .profile-button {
+    padding-right: 5px;
+  }
+
+  .date-button {
+    padding-inline: 10px;
+  }
+}
+
+@media (max-width: 1060px) {
+  .date-button {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .brand-block {
+    padding-left: 20px;
+  }
+
+  .brand {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .prototype-chip {
+    margin-left: 52px;
+    max-width: calc(100% - 52px);
+  }
+}
