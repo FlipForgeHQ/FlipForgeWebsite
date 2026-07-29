@@ -115,7 +115,7 @@ check("069 Söhne typography stack is declared", /font-family:\s*"Söhne",\s*"So
 check("070 approved silver charcoal gold palette is declared", ["#f2f2f2", "#8b928f", "#d4af37"].every(value => files.brand.toLowerCase().includes(value)));
 
 check("071 shell fixes load after approved brand layer", files.index.indexOf('href="shell-fixes.css"') > files.index.indexOf('href="brand.css"'));
-check("072 desktop shell prevents horizontal body overflow", files.shell.includes("overflow-x: hidden"));
+check("072 desktop shell clips horizontal overflow without creating a scroll container", files.shell.includes("overflow-x: clip") && !files.shell.includes("html,\nbody {\n  max-width: 100%;\n  overflow-x: hidden"));
 check("073 topbar uses shrink-safe grid columns", files.shell.includes("grid-template-columns: minmax(0, 1fr) auto"));
 check("074 narrow desktop profile collapses before clipping", files.shell.includes("@media (max-width: 1320px)") && files.shell.includes(".profile-copy"));
 
@@ -125,6 +125,8 @@ check("077 Netlify rewrites app assets to the isolated prototype", files.redirec
 check("078 website build replaces the deprecated tagline", files.websiteBuild.includes("'Signal. Confidence. Advantage.'") && files.websiteBuild.includes("'Card Value Intelligence'"));
 check("079 website build adds desktop and mobile App Preview links", files.websiteBuild.includes('data-app-preview=\"desktop\"') && files.websiteBuild.includes('data-app-preview=\"mobile\"'));
 check("080 website build adds a footer App Preview link", files.websiteBuild.includes('data-app-preview=\"footer\"'));
+check("081 sidebar remains sticky during long dashboard pages", files.shell.includes(".sidebar,\n.topbar") && files.shell.includes("position: sticky") && files.shell.includes("align-self: start"));
+check("082 sidebar navigation retains its own vertical scroll area", files.shell.includes(".primary-nav") && files.shell.includes("flex: 1 1 auto") && files.shell.includes("min-height: 0"));
 
 const failures = results.filter(result => !result.passed);
 
