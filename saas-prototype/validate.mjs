@@ -13,10 +13,13 @@ const files = {
   index: read("saas-prototype/index.html"),
   app: read("saas-prototype/app.js"),
   data: read("saas-prototype/mock-data.js"),
+  featureData: read("saas-prototype/feature-data.js"),
+  featurePages: read("saas-prototype/feature-pages.js"),
   guard: read("saas-prototype/route-guard.js"),
   styles: read("saas-prototype/styles.css"),
   brand: read("saas-prototype/brand.css"),
   shell: read("saas-prototype/shell-fixes.css"),
+  featureStyles: read("saas-prototype/feature-pages.css"),
   foundation: read("docs/SAAS_UI_FOUNDATION.md"),
   redirects: read("_redirects"),
   websiteBuild: read("scripts/build-assets.js")
@@ -90,8 +93,8 @@ check("048 reduced-motion support exists", files.styles.includes("@media (prefer
 check("049 visible keyboard focus is defined", files.styles.includes(":focus-visible"));
 check("050 tables can scroll horizontally", files.styles.includes(".table-wrap { overflow-x: auto; }"));
 
-const browserCode = `${files.index}\n${files.app}\n${files.data}\n${files.guard}`;
-check("051 no password field exists", !/<input[^>]+type=["']password["']/i.test(files.index));
+const browserCode = `${files.index}\n${files.app}\n${files.data}\n${files.featureData}\n${files.featurePages}\n${files.guard}`;
+check("051 no password field exists", !/<input[^>]+type=["']password["']/i.test(browserCode));
 check("052 no direct network fetch exists", !/\bfetch\s*\(/.test(browserCode));
 check("053 no XMLHttpRequest exists", !/XMLHttpRequest/.test(browserCode));
 check("054 no WebSocket exists", !/\bWebSocket\b/.test(browserCode));
@@ -127,6 +130,49 @@ check("079 website build adds desktop and mobile App Preview links", files.websi
 check("080 website build adds a footer App Preview link", files.websiteBuild.includes('data-app-preview=\"footer\"'));
 check("081 sidebar remains sticky during long dashboard pages", files.shell.includes(".sidebar,\n.topbar") && files.shell.includes("position: sticky") && files.shell.includes("align-self: start"));
 check("082 sidebar navigation retains its own vertical scroll area", files.shell.includes(".primary-nav") && files.shell.includes("flex: 1 1 auto") && files.shell.includes("min-height: 0"));
+
+check("083 feature stylesheet loads after shell fixes", files.index.indexOf('href="feature-pages.css"') > files.index.indexOf('href="shell-fixes.css"'));
+check("084 feature data loads after core mock data", files.index.indexOf('src="feature-data.js"') > files.index.indexOf('src="mock-data.js"'));
+check("085 feature data loads before the base router", files.index.indexOf('src="feature-data.js"') < files.index.indexOf('src="app.js"'));
+check("086 feature route renderer loads after the base router", files.index.indexOf('src="feature-pages.js"') > files.index.indexOf('src="app.js"'));
+check("087 compare guard remains last", files.index.indexOf('src="route-guard.js"') > files.index.indexOf('src="feature-pages.js"'));
+
+check("088 feature data declares non-production mode", files.featureData.includes('mode: "NON_PRODUCTION_PROTOTYPE"'));
+check("089 feature data declares in-memory persistence", files.featureData.includes('persistence: "IN_MEMORY_ONLY"'));
+check("090 discovery market trend is modeled", files.featureData.includes("marketTrend:"));
+check("091 discovery saved searches are modeled", files.featureData.includes("savedSearches:"));
+check("092 discovery listings are modeled", files.featureData.includes("listings:"));
+check("093 portfolio allocation is modeled", files.featureData.includes("allocation:"));
+check("094 portfolio performance history is modeled", files.featureData.includes("history:"));
+check("095 sell assumptions and candidates are modeled", files.featureData.includes("assumptions:") && files.featureData.includes("candidates:"));
+check("096 alert rules and recent events are modeled", files.featureData.includes("rules:") && files.featureData.includes("recent:"));
+check("097 account usage, entitlements and security are modeled", ["usage:", "entitlements:", "security:"].every(value => files.featureData.includes(value)));
+
+check("098 complete Discover renderer exists", files.featurePages.includes("function renderDiscoverFull()"));
+check("099 complete Portfolio renderer exists", files.featurePages.includes("function renderPortfolio()"));
+check("100 complete Sell renderer exists", files.featurePages.includes("function renderSell()"));
+check("101 complete Alerts renderer exists", files.featurePages.includes("function renderAlerts()"));
+check("102 complete Account renderer exists", files.featurePages.includes("function renderAccount()"));
+check("103 feature router covers all formerly placeholder routes", ["discover", "portfolio", "sell", "alerts", "account"].every(route => files.featurePages.includes(`case "${route}"`)));
+check("104 market demand and liquidity chart exists", files.featurePages.includes("function renderMarketTrendChart()"));
+check("105 portfolio value chart exists", files.featurePages.includes("function renderPortfolioChart()"));
+check("106 discovery filters have programmatic labels", ["discover-query", "discover-sport", "discover-status"].every(id => files.featurePages.includes(`for=\"${id}\"`)));
+check("107 sell controls have programmatic labels", ["sell-card", "sell-fee", "sell-shipping", "sell-insurance"].every(id => files.featurePages.includes(`for=\"${id}\"`)));
+check("108 alert toggles expose pressed state", files.featurePages.includes('aria-pressed=\"${active}\"'));
+check("109 feature routes restore focus and scroll position", files.featurePages.includes("main.focus({ preventScroll: true })") && files.featurePages.includes("window.scrollTo"));
+
+check("110 feature pages make no direct network calls", !/\bfetch\s*\(|XMLHttpRequest|\bWebSocket\b/.test(files.featurePages));
+check("111 feature pages persist nothing in browser storage", !/localStorage|sessionStorage|indexedDB/i.test(`${files.featurePages}\n${files.featureData}`));
+check("112 feature pages contain no secret or authorization field", !/API_KEY|Authorization\s*:|type=["']password["']/i.test(`${files.featurePages}\n${files.featureData}`));
+check("113 Discover explicitly preserves active-ask separation", files.featurePages.includes("active asks as sold evidence") && files.featurePages.includes("no scraping"));
+check("114 Portfolio explicitly rejects guaranteed liquidation value", files.featurePages.includes("guaranteed liquidation value") && files.featurePages.includes("cannot guarantee sale proceeds"));
+check("115 Sell explicitly excludes transaction authority", files.featurePages.includes("cannot list, sell, accept an offer, collect payment or authorize any transaction"));
+check("116 Account explicitly excludes credentials and payment storage", files.featurePages.includes("No password, payment method, secret or production account is stored"));
+
+check("117 feature layouts include tablet breakpoint", files.featureStyles.includes("@media (max-width: 1180px)"));
+check("118 feature layouts include compact breakpoint", files.featureStyles.includes("@media (max-width: 760px)"));
+check("119 feature layouts include narrow mobile breakpoint", files.featureStyles.includes("@media (max-width: 480px)"));
+check("120 feature tables and cards use responsive grids", files.featureStyles.includes(".feature-grid") && files.featureStyles.includes(".listing-grid") && files.featureStyles.includes(".account-grid"));
 
 const failures = results.filter(result => !result.passed);
 
