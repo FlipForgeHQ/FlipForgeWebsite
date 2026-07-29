@@ -1,0 +1,68 @@
+name: SaaS API Cross-Repository Contract
+
+on:
+  pull_request:
+    paths:
+      - "netlify/functions/flipforge-api.js"
+      - "contracts/**"
+      - "scripts/validate-saas-api-bridge.mjs"
+      - ".github/workflows/saas-api-cross-repo-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate gateway against authoritative Java projection
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out gateway branch
+        uses: actions/checkout@v4
+        with:
+          path: website
+
+      - name: Check out authoritative projection branch
+        uses: actions/checkout@v4
+        with:
+          repository: toddholbein/FlipForge2
+          ref: feature/saas-authority-api-contract
+          path: flipforge2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: flipforge2/pom.xml
+
+      - name: Validate server-side gateway contract
+        working-directory: website
+        run: node scripts/validate-saas-api-bridge.mjs
+
+      - name: Compile authoritative FlipForge projection
+        working-directory: flipforge2
+        run: |
+          chmod +x mvnw
+          ./mvnw -B clean package
+
+      - name: Validate authoritative projection and authority preservation
+        working-directory: flipforge2
+        run: ./mvnw -B -Dexec.mainClass=com.flipforge2.saas.SaaSApiProjectionValidationRunner -Dexec.classpathScope=runtime org.codehaus.mojo:exec-maven-plugin:3.5.0:java
+
+      - name: Verify gateway and Java authority constants agree
+        run: |
+          grep -q '"const": "1.0"' website/contracts/flipforge-saas-api-v1.schema.json
+          grep -q '"const": "Smart Opportunity"' website/contracts/flipforge-saas-api-v1.schema.json
+          grep -q '"const": "Existing PSA intelligence"' website/contracts/flipforge-saas-api-v1.schema.json
+          grep -q 'CONTRACT_VERSION = "1.0"' flipforge2/src/main/java/com/flipforge2/saas/SaaSApiContract.java
+          grep -q 'RECOMMENDATION_AUTHORITY = "Smart Opportunity"' flipforge2/src/main/java/com/flipforge2/saas/SaaSApiContract.java
+          grep -q 'GRADING_AUTHORITY = "Existing PSA intelligence"' flipforge2/src/main/java/com/flipforge2/saas/SaaSApiContract.java
