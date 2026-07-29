@@ -1,0 +1,195 @@
+/*
+ * Desktop shell containment fixes discovered during owner visual smoke.
+ * Loaded after the approved brand layer.
+ */
+
+html,
+body {
+  max-width: 100%;
+  /* `hidden` creates a scroll container in Chrome and breaks sticky UI. */
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
+.app-shell,
+.workspace,
+.topbar,
+.global-search,
+.topbar-actions,
+#main-content,
+.page,
+.panel,
+.panel-body,
+.detail-grid,
+.dashboard-grid,
+.stack,
+.comparison-table,
+.comparison-row,
+.comparison-row > * {
+  min-width: 0;
+}
+
+.app-shell {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+.workspace {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+#main-content,
+.page {
+  width: 100%;
+  max-width: 100%;
+}
+
+.sidebar {
+  left: 0;
+  align-self: start;
+  overflow-x: hidden;
+}
+
+/* Keep the customer navigation and workspace header available during long pages. */
+.sidebar,
+.topbar {
+  position: sticky;
+  top: 0;
+}
+
+.primary-nav {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.brand-block {
+  padding-left: 24px;
+  padding-right: 16px;
+  overflow: hidden;
+}
+
+.brand {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+}
+
+.brand-name {
+  font-size: 18px;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.brand-subtitle {
+  font-size: 7px;
+  letter-spacing: .14em;
+  white-space: nowrap;
+}
+
+.prototype-chip {
+  margin-left: 54px;
+  max-width: calc(100% - 54px);
+}
+
+.topbar {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.global-search {
+  width: 100%;
+}
+
+.topbar-actions {
+  flex: 0 0 auto;
+}
+
+.profile-button,
+.date-button,
+.notification-button {
+  flex: 0 0 auto;
+}
+
+/*
+ * Wide comparison content must scroll inside its own panel. It must never
+ * enlarge the document or move the customer shell off the left edge.
+ */
+.comparison-table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+}
+
+.comparison-row {
+  width: 100%;
+}
+
+.comparison-row > * {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1320px) {
+  .profile-copy {
+    display: none;
+  }
+
+  .profile-button {
+    padding-right: 5px;
+  }
+
+  .date-button {
+    padding-inline: 10px;
+  }
+}
+
+@media (max-width: 1060px) {
+  .date-button {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  /*
+   * This file loads after styles.css. Reassert the off-canvas mobile position
+   * here so the desktop sticky rule above cannot leave a translated sidebar
+   * in normal grid flow and push the workspace below the first viewport.
+   */
+  .sidebar {
+    position: fixed;
+    top: 32px;
+    right: auto;
+    bottom: 0;
+    left: 0;
+    align-self: auto;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+  }
+
+  .brand-block {
+    padding-left: 20px;
+  }
+
+  .brand {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .prototype-chip {
+    margin-left: 52px;
+    max-width: calc(100% - 52px);
+  }
+
+  .comparison-row {
+    min-width: 680px;
+  }
+}

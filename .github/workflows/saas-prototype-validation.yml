@@ -1,0 +1,86 @@
+name: SaaS Prototype Validation
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "docs/SAAS_UI_FOUNDATION.md"
+      - "scripts/build-assets.js"
+      - "_redirects"
+      - "*.html"
+      - ".github/workflows/saas-prototype-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate isolated SaaS prototype
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Parse browser JavaScript
+        run: |
+          node --check saas-prototype/mock-data.js
+          node --check saas-prototype/feature-data.js
+          node --check saas-prototype/app.js
+          node --check saas-prototype/feature-pages.js
+          node --check saas-prototype/route-guard.js
+          node --check saas-prototype/serve.mjs
+
+      - name: Build website integration
+        run: node scripts/build-assets.js
+
+      - name: Run deterministic prototype checks
+        run: node saas-prototype/validate.mjs
+
+      - name: Verify generated website entry points
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const htmlFiles = fs.readdirSync('.').filter(name => name.endsWith('.html'));
+          const failures = [];
+
+          for (const name of htmlFiles) {
+            const html = fs.readFileSync(name, 'utf8');
+            const hasHeader = html.includes('class="site-header"');
+            const hasMobileNavigation = html.includes('id="mobile-navigation"');
+            const hasFooterLinks = html.includes('class="footer-links"');
+
+            if (html.includes('Signal. Confidence. Advantage.')) {
+              failures.push(`${name}: deprecated brand line remains`);
+            }
+            if (hasHeader && !html.includes('Card Value Intelligence')) {
+              failures.push(`${name}: Card Value Intelligence is missing`);
+            }
+            if (hasHeader && !html.includes('data-app-preview="desktop"')) {
+              failures.push(`${name}: desktop App Preview link is missing`);
+            }
+            if (hasMobileNavigation && !html.includes('data-app-preview="mobile"')) {
+              failures.push(`${name}: mobile App Preview link is missing`);
+            }
+            if (hasFooterLinks && !html.includes('data-app-preview="footer"')) {
+              failures.push(`${name}: footer App Preview link is missing`);
+            }
+          }
+
+          if (failures.length) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+
+          console.log(`Verified App Preview and Card Value Intelligence across ${htmlFiles.length} website pages.`);
+          NODE
+          grep -q '/app /saas-prototype/index.html 200' _redirects
+          grep -q '/app/ /saas-prototype/index.html 200' _redirects
+          grep -q '/app/\* /saas-prototype/:splat 200' _redirects

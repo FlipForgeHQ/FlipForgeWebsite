@@ -62,3 +62,71 @@ if (fs.existsSync(indexPath)) {
     console.log('Updated homepage gallery to use flipforge-traceback-guidance.svg');
   }
 }
+
+function ensureDesktopAppLink(html) {
+  if (html.includes('data-app-preview="desktop"')) return html;
+
+  return html.replace(
+    /(<nav\b[^>]*class="[^"]*\bdesktop-nav\b[^"]*"[^>]*>)([\s\S]*?)(<\/nav>)/i,
+    (match, open, inner, close) => {
+      const link = '<a data-app-preview="desktop" href="/app/#/dashboard">App Preview</a>';
+      const cta = /(<a\b[^>]*class="[^"]*\bnav-cta\b[^"]*"[^>]*>)/i;
+      const updatedInner = cta.test(inner)
+        ? inner.replace(cta, `${link}$1`)
+        : `${inner}${link}`;
+      return `${open}${updatedInner}${close}`;
+    },
+  );
+}
+
+function ensureMobileAppLink(html) {
+  if (html.includes('data-app-preview="mobile"')) return html;
+
+  return html.replace(
+    /(<nav\b[^>]*id="mobile-navigation"[^>]*>)([\s\S]*?)(<\/nav>)/i,
+    (match, open, inner, close) =>
+      `${open}${inner}<a data-app-preview="mobile" href="/app/#/dashboard">App Preview</a>${close}`,
+  );
+}
+
+function ensureFooterAppLink(html) {
+  if (html.includes('data-app-preview="footer"')) return html;
+
+  const link = '<a data-app-preview="footer" href="/app/#/dashboard">App Preview</a>';
+  const exploreGroup = /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>\s*<strong>Explore<\/strong>)([\s\S]*?)(<\/div>)/i;
+  const withExploreLink = html.replace(
+    exploreGroup,
+    (match, open, inner, close) => `${open}${inner}${link}${close}`,
+  );
+
+  if (withExploreLink !== html) return withExploreLink;
+
+  return html.replace(
+    /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>)([\s\S]*?)(<\/div>)/i,
+    (match, open, inner, close) => `${open}${inner}${link}${close}`,
+  );
+}
+
+// Keep the public website and the browser app connected without replacing the
+// marketing homepage. Netlify exposes the isolated prototype at /app/ through
+// _redirects; the build adds a consistent entry point across website pages.
+const htmlFiles = fs.readdirSync(root)
+  .filter((name) => name.endsWith('.html'))
+  .map((name) => path.join(root, name));
+
+for (const htmlPath of htmlFiles) {
+  const original = fs.readFileSync(htmlPath, 'utf8');
+  let updated = original.replaceAll(
+    'Signal. Confidence. Advantage.',
+    'Card Value Intelligence',
+  );
+
+  updated = ensureDesktopAppLink(updated);
+  updated = ensureMobileAppLink(updated);
+  updated = ensureFooterAppLink(updated);
+
+  if (updated !== original) {
+    fs.writeFileSync(htmlPath, updated, 'utf8');
+    console.log(`Updated website app entry points and brand line in ${path.basename(htmlPath)}`);
+  }
+}
