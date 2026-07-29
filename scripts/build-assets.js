@@ -92,10 +92,18 @@ function ensureMobileAppLink(html) {
 function ensureFooterAppLink(html) {
   if (html.includes('data-app-preview="footer"')) return html;
 
+  const link = '<a data-app-preview="footer" href="/app/#/dashboard">App Preview</a>';
+  const exploreGroup = /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>\s*<strong>Explore<\/strong>)([\s\S]*?)(<\/div>)/i;
+  const withExploreLink = html.replace(
+    exploreGroup,
+    (match, open, inner, close) => `${open}${inner}${link}${close}`,
+  );
+
+  if (withExploreLink !== html) return withExploreLink;
+
   return html.replace(
-    /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>\s*<strong>Explore<\/strong>)([\s\S]*?)(<\/div>)/i,
-    (match, open, inner, close) =>
-      `${open}${inner}<a data-app-preview="footer" href="/app/#/dashboard">App Preview</a>${close}`,
+    /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>)([\s\S]*?)(<\/div>)/i,
+    (match, open, inner, close) => `${open}${inner}${link}${close}`,
   );
 }
 
