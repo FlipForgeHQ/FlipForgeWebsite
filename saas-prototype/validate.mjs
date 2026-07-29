@@ -17,7 +17,9 @@ const files = {
   styles: read("saas-prototype/styles.css"),
   brand: read("saas-prototype/brand.css"),
   shell: read("saas-prototype/shell-fixes.css"),
-  foundation: read("docs/SAAS_UI_FOUNDATION.md")
+  foundation: read("docs/SAAS_UI_FOUNDATION.md"),
+  redirects: read("_redirects"),
+  websiteBuild: read("scripts/build-assets.js")
 };
 
 const results = [];
@@ -116,6 +118,13 @@ check("071 shell fixes load after approved brand layer", files.index.indexOf('hr
 check("072 desktop shell prevents horizontal body overflow", files.shell.includes("overflow-x: hidden"));
 check("073 topbar uses shrink-safe grid columns", files.shell.includes("grid-template-columns: minmax(0, 1fr) auto"));
 check("074 narrow desktop profile collapses before clipping", files.shell.includes("@media (max-width: 1320px)") && files.shell.includes(".profile-copy"));
+
+check("075 Netlify exposes the app root", files.redirects.includes("/app /saas-prototype/index.html 200"));
+check("076 Netlify exposes the trailing-slash app root", files.redirects.includes("/app/ /saas-prototype/index.html 200"));
+check("077 Netlify rewrites app assets to the isolated prototype", files.redirects.includes("/app/* /saas-prototype/:splat 200"));
+check("078 website build replaces the deprecated tagline", files.websiteBuild.includes("'Signal. Confidence. Advantage.'") && files.websiteBuild.includes("'Card Value Intelligence'"));
+check("079 website build adds desktop and mobile App Preview links", files.websiteBuild.includes('data-app-preview=\"desktop\"') && files.websiteBuild.includes('data-app-preview=\"mobile\"'));
+check("080 website build adds a footer App Preview link", files.websiteBuild.includes('data-app-preview=\"footer\"'));
 
 const failures = results.filter(result => !result.passed);
 
