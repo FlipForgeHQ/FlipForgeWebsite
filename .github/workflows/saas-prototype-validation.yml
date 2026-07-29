@@ -1,0 +1,30 @@
+name: SaaS Prototype Validation
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "docs/SAAS_UI_FOUNDATION.md"
+      - ".github/workflows/saas-prototype-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate isolated SaaS prototype
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run deterministic prototype checks
+        run: node saas-prototype/validate.mjs
