@@ -19,7 +19,7 @@
   <div class="app-shell" data-nav-open="false">
     <div class="mobile-scrim" data-nav-close aria-hidden="true"></div>
 
-    <aside class="sidebar" aria-label="Primary navigation">
+    <aside class="sidebar" id="primary-navigation" aria-label="Primary navigation">
       <div class="brand-block">
         <a class="brand" href="#/dashboard" aria-label="FlipForge dashboard">
           <span class="brand-name">FLIPFORGE</span>
@@ -59,7 +59,7 @@
 
     <section class="workspace">
       <header class="topbar">
-        <button class="icon-button menu-button" type="button" data-nav-toggle aria-label="Open navigation" aria-expanded="false">☰</button>
+        <button class="icon-button menu-button" type="button" data-nav-toggle aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded="false">☰</button>
         <form class="global-search" role="search" id="global-search-form">
           <label class="sr-only" for="global-search">Search cards, players, sets, or listings</label>
           <span aria-hidden="true">⌕</span>
@@ -84,5 +84,6 @@
 
   <script src="mock-data.js"></script>
   <script src="app.js"></script>
+  <script src="route-guard.js"></script>
 </body>
 </html>
