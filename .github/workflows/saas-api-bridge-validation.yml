@@ -1,0 +1,44 @@
+name: SaaS API Bridge Validation
+
+on:
+  pull_request:
+    paths:
+      - "netlify/functions/flipforge-api.js"
+      - "contracts/**"
+      - "docs/SAAS_API_BRIDGE.md"
+      - "scripts/validate-saas-api-bridge.mjs"
+      - "_redirects"
+      - ".github/workflows/saas-api-bridge-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate fail-closed API bridge
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Parse gateway and validation JavaScript
+        run: |
+          node --check netlify/functions/flipforge-api.js
+          node --check scripts/validate-saas-api-bridge.mjs
+
+      - name: Validate API bridge security and contracts
+        run: node scripts/validate-saas-api-bridge.mjs
+
+      - name: Run retained SaaS prototype validation
+        run: node saas-prototype/validate.mjs
+
+      - name: Build retained website integration
+        run: node scripts/build-assets.js
