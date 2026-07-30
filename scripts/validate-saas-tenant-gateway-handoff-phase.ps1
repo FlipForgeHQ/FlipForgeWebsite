@@ -25,25 +25,24 @@ $maven = if ($isWindowsHost) {
 if (-not (Test-Path $maven)) {
     throw "FlipForge2 Maven wrapper was not found at $maven"
 }
-
-$nodeCommand = Get-Command node -ErrorAction SilentlyContinue
-if ($null -eq $nodeCommand) {
+if ($null -eq (Get-Command node -ErrorAction SilentlyContinue)) {
     throw "Node.js is required to validate the FlipForge website gateway."
 }
 
-function Invoke-MavenStep {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-        [Parameter(Mandatory = $true)]
-        [string[]]$Arguments
-    )
-
+function Write-StepHeader {
+    param([Parameter(Mandatory = $true)][string]$Name)
     Write-Host ""
     Write-Host "========================================"
     Write-Host "RUNNING: $Name"
     Write-Host "========================================"
+}
 
+function Invoke-MavenStep {
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string[]]$Arguments
+    )
+    Write-StepHeader -Name $Name
     Push-Location $backendRoot
     try {
         & $maven @Arguments
@@ -55,19 +54,30 @@ function Invoke-MavenStep {
     }
 }
 
+function Invoke-MavenRunner {
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string]$MainClass,
+        [bool]$DisableDaemonCleanup = $false
+    )
+    $arguments = @(
+        "-B",
+        "-Dexec.mainClass=$MainClass",
+        "-Dexec.classpathScope=runtime"
+    )
+    if ($DisableDaemonCleanup) {
+        $arguments += "-Dexec.cleanupDaemonThreads=false"
+    }
+    $arguments += "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
+    Invoke-MavenStep -Name $Name -Arguments $arguments
+}
+
 function Invoke-NodeStep {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-        [Parameter(Mandatory = $true)]
-        [string[]]$Arguments
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string[]]$Arguments
     )
-
-    Write-Host ""
-    Write-Host "========================================"
-    Write-Host "RUNNING: $Name"
-    Write-Host "========================================"
-
+    Write-StepHeader -Name $Name
     Push-Location $websiteRoot
     try {
         & node @Arguments
@@ -79,24 +89,40 @@ function Invoke-NodeStep {
     }
 }
 
+function Require-Markers {
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string]$Text,
+        [Parameter(Mandatory = $true)][string[]]$Markers
+    )
+    foreach ($marker in $Markers) {
+        if (-not $Text.Contains($marker)) {
+            throw "Required $Name marker is missing: $marker"
+        }
+    }
+}
+
 function Assert-GatewayHandoffArchitecture {
     $tenantContextFile = Join-Path $backendRoot "src/main/java/com/flipforge2/saas/SaaSTenantContext.java"
     $tenantProjectionFile = Join-Path $backendRoot "src/main/java/com/flipforge2/saas/SaaSTenantScopedProjectionService.java"
     $tenantEvaluationFile = Join-Path $backendRoot "src/main/java/com/flipforge2/saas/SaaSTenantAuthoritativeEvaluationService.java"
+    $baseEvaluationFile = Join-Path $backendRoot "src/main/java/com/flipforge2/saas/SaaSAuthoritativeEvaluationService.java"
     $serverFile = Join-Path $backendRoot "src/main/java/com/flipforge2/saas/SaaSPrivateHttpServer.java"
     $gatewayFile = Join-Path $websiteRoot "netlify/functions/flipforge-api.js"
     $validatorFile = Join-Path $websiteRoot "scripts/validate-saas-api-bridge.mjs"
     $docsFile = Join-Path $websiteRoot "docs/SAAS_API_BRIDGE.md"
 
-    foreach ($file in @(
+    $requiredFiles = @(
         $tenantContextFile,
         $tenantProjectionFile,
         $tenantEvaluationFile,
+        $baseEvaluationFile,
         $serverFile,
         $gatewayFile,
         $validatorFile,
         $docsFile
-    )) {
+    )
+    foreach ($file in $requiredFiles) {
         if (-not (Test-Path $file)) {
             throw "Required gateway-handoff file is missing: $file"
         }
@@ -105,58 +131,47 @@ function Assert-GatewayHandoffArchitecture {
     $tenantContextText = Get-Content $tenantContextFile -Raw
     $tenantProjectionText = Get-Content $tenantProjectionFile -Raw
     $tenantEvaluationText = Get-Content $tenantEvaluationFile -Raw
+    $baseEvaluationText = Get-Content $baseEvaluationFile -Raw
     $serverText = Get-Content $serverFile -Raw
     $gatewayText = Get-Content $gatewayFile -Raw
 
-    foreach ($marker in @(
+    Require-Markers -Name "merged tenant context" -Text $tenantContextText -Markers @(
         'TRUSTED_HEADER = "X-FlipForge-Tenant-Id"',
-        "MessageDigest.getInstance(\"SHA-256\")",
+        'MessageDigest.getInstance("SHA-256")',
         "SAFE_ID",
         "auditKey()"
-    )) {
-        if (-not $tenantContextText.Contains($marker)) {
-            throw "Required merged tenant-context marker is missing: $marker"
-        }
-    }
+    )
 
-    foreach ($marker in @(
+    Require-Markers -Name "merged tenant read" -Text $tenantProjectionText -Markers @(
         'put("tenantIsolation", new JSONObject()',
         'put("enforced", true)',
         'put("defaultAccess", "DENY")',
         "isOpportunityAllowed",
         "SaaSResourceNotFoundException"
-    )) {
-        if (-not $tenantProjectionText.Contains($marker)) {
-            throw "Required merged tenant-read marker is missing: $marker"
-        }
-    }
+    )
 
-    foreach ($marker in @(
+    Require-Markers -Name "merged tenant evaluation" -Text $tenantEvaluationText -Markers @(
         'put("tenantOwned", true)',
         'put("idempotencyScope", "TENANT")',
         'put("opportunityOwnership", "GRANTED_ON_COMPLETION")',
-        "completeAndGrant",
-        'put("transactionAuthorized", false)'
-    )) {
-        if (-not $tenantEvaluationText.Contains($marker)) {
-            throw "Required merged tenant-evaluation marker is missing: $marker"
-        }
-    }
+        "completeAndGrant"
+    )
+    Require-Markers -Name "retained transaction boundary" -Text $baseEvaluationText -Markers @(
+        'put("transactionAuthorized", false)',
+        "SimpleOpportunityEvaluationService",
+        "evaluateAndSave"
+    )
 
-    foreach ($marker in @(
+    Require-Markers -Name "authoritative HTTP tenant boundary" -Text $serverText -Markers @(
         "SaaSTenantContext.TRUSTED_HEADER",
         "TENANT_CONTEXT_REQUIRED",
         "INVALID_TENANT_CONTEXT",
         "tenantContext(exchange)",
         "MessageDigest.isEqual",
         "forwardedHttps(exchange)"
-    )) {
-        if (-not $serverText.Contains($marker)) {
-            throw "Required authoritative HTTP tenant marker is missing: $marker"
-        }
-    }
+    )
 
-    foreach ($marker in @(
+    Require-Markers -Name "website gateway compatibility" -Text $gatewayText -Markers @(
         'TRUSTED_TENANT_HEADER = "X-FlipForge-Tenant-Id"',
         "validTrustedTenantId",
         "[TRUSTED_TENANT_HEADER]: tenantId",
@@ -168,132 +183,63 @@ function Assert-GatewayHandoffArchitecture {
         'idempotencyScope === "TENANT"',
         'opportunityOwnership === "GRANTED_ON_COMPLETION"',
         "payload.data.transactionAuthorized === false"
-    )) {
-        if (-not $gatewayText.Contains($marker)) {
-            throw "Required website gateway compatibility marker is missing: $marker"
-        }
-    }
-
-    $forbiddenGatewayRules = @(
-        @{ Name = "obsolete tenant header"; Pattern = "X-FlipForge-User-Id" },
-        @{ Name = "browser tenant-header trust"; Pattern = 'header\(event,\s*["'']x-flipforge-tenant-id["'']\)' },
-        @{ Name = "service token in browser response"; Pattern = 'FLIPFORGE_API_SERVICE_TOKEN[^\r\n]{0,160}(body|jsonResponse|errorEnvelope)' },
-        @{ Name = "enabled transaction authority"; Pattern = 'transactionAuthorit(?:y|zed)["'']?\s*[:,]\s*true' }
     )
-    foreach ($rule in $forbiddenGatewayRules) {
-        $found = Select-String -Path $gatewayFile -Pattern $rule.Pattern -CaseSensitive:$false
-        if ($found) {
-            $locations = ($found | ForEach-Object { "$($_.Path):$($_.LineNumber)" }) -join ", "
-            throw "Forbidden $($rule.Name) marker found at $locations"
-        }
+
+    if ($gatewayText.Contains("X-FlipForge-User-Id")) {
+        throw "Forbidden obsolete X-FlipForge-User-Id header remains in the gateway."
+    }
+    if ($gatewayText.Contains('header(event, "x-flipforge-tenant-id")')) {
+        throw "The gateway must not trust a browser-supplied tenant header."
     }
 
-    $authorityCallCount = ((Select-String -Path $backendRoot/src/main/java/com/flipforge2/saas/SaaSAuthoritativeEvaluationService.java -Pattern "evaluateAndSave" -AllMatches).Matches | Measure-Object).Count
+    $secretLeak = Select-String -Path $gatewayFile -Pattern 'FLIPFORGE_API_SERVICE_TOKEN[^\r\n]{0,160}(body|jsonResponse|errorEnvelope)' -CaseSensitive:$false
+    if ($secretLeak) {
+        throw "The server-only service token appears in a browser-response path."
+    }
+    $transactionEnable = Select-String -Path $gatewayFile -Pattern 'transactionAuthorit(?:y|zed)\s*[:,]\s*true' -CaseSensitive:$false
+    if ($transactionEnable) {
+        throw "Forbidden enabled transaction authority marker found in the gateway."
+    }
+
+    $authorityCallCount = ((Select-String -Path $baseEvaluationFile -Pattern "evaluateAndSave" -AllMatches).Matches | Measure-Object).Count
     if ($authorityCallCount -ne 1) {
         throw "The retained authoritative adapter must contain exactly one evaluateAndSave delegation; found $authorityCallCount."
     }
 }
 
 try {
-    Invoke-MavenStep -Name "Current FlipForge2 full Maven package" -Arguments @(
-        "-B",
-        "clean",
-        "package"
-    )
+    Invoke-MavenStep -Name "Current FlipForge2 full Maven package" -Arguments @("-B", "clean", "package")
 
-    Invoke-MavenStep -Name "Merged tenant identity and access foundation" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.saas.SaaSTenantIsolationValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
+    Invoke-MavenRunner -Name "Merged tenant identity and access foundation" `
+        -MainClass "com.flipforge2.saas.SaaSTenantIsolationValidationRunner"
+    Invoke-MavenRunner -Name "Merged tenant-scoped projection" `
+        -MainClass "com.flipforge2.saas.SaaSTenantScopedProjectionValidationRunner"
+    Invoke-MavenRunner -Name "Merged tenant private HTTP read wiring" `
+        -MainClass "com.flipforge2.saas.SaaSTenantHttpReadWiringValidationRunner" `
+        -DisableDaemonCleanup $true
+    Invoke-MavenRunner -Name "Merged tenant evaluation writes and idempotency" `
+        -MainClass "com.flipforge2.saas.SaaSTenantEvaluationWriteValidationRunner" `
+        -DisableDaemonCleanup $true
+    Invoke-MavenRunner -Name "Retained hosted runtime readiness" `
+        -MainClass "com.flipforge2.saas.SaaSHostedRuntimeValidationRunner" `
+        -DisableDaemonCleanup $true
+    Invoke-MavenRunner -Name "Retained complete read API coverage" `
+        -MainClass "com.flipforge2.saas.SaaSReadApiCoverageValidationRunner"
+    Invoke-MavenRunner -Name "Retained private HTTP transport" `
+        -MainClass "com.flipforge2.saas.SaaSPrivateHttpServerValidationRunner" `
+        -DisableDaemonCleanup $true
+    Invoke-MavenRunner -Name "Retained authoritative read projection" `
+        -MainClass "com.flipforge2.saas.SaaSApiProjectionValidationRunner"
+    Invoke-MavenRunner -Name "Retained customer exposure boundary" `
+        -MainClass "com.flipforge2.ui.CardSightBetaExposureValidationRunner"
 
-    Invoke-MavenStep -Name "Merged tenant-scoped projection" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.saas.SaaSTenantScopedProjectionValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
+    Invoke-NodeStep -Name "Gateway JavaScript syntax" -Arguments @("--check", "netlify/functions/flipforge-api.js")
+    Invoke-NodeStep -Name "Gateway validation JavaScript syntax" -Arguments @("--check", "scripts/validate-saas-api-bridge.mjs")
+    Invoke-NodeStep -Name "Trusted tenant gateway contracts and security" -Arguments @("scripts/validate-saas-api-bridge.mjs")
+    Invoke-NodeStep -Name "Retained SaaS prototype validation" -Arguments @("saas-prototype/validate.mjs")
+    Invoke-NodeStep -Name "Retained website integration build" -Arguments @("scripts/build-assets.js")
 
-    Invoke-MavenStep -Name "Merged tenant private HTTP read wiring" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.saas.SaaSTenantHttpReadWiringValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "-Dexec.cleanupDaemonThreads=false",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
-
-    Invoke-MavenStep -Name "Merged tenant evaluation writes and idempotency" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.saas.SaaSTenantEvaluationWriteValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "-Dexec.cleanupDaemonThreads=false",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
-
-    Invoke-MavenStep -Name "Retained hosted runtime readiness" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.saas.SaaSHostedRuntimeValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "-Dexec.cleanupDaemonThreads=false",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
-
-    Invoke-MavenStep -Name "Retained complete read API coverage" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.saas.SaaSReadApiCoverageValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
-
-    Invoke-MavenStep -Name "Retained private HTTP transport" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.saas.SaaSPrivateHttpServerValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "-Dexec.cleanupDaemonThreads=false",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
-
-    Invoke-MavenStep -Name "Retained authoritative read projection" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.saas.SaaSApiProjectionValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
-
-    Invoke-MavenStep -Name "Retained customer exposure boundary" -Arguments @(
-        "-B",
-        "-Dexec.mainClass=com.flipforge2.ui.CardSightBetaExposureValidationRunner",
-        "-Dexec.classpathScope=runtime",
-        "org.codehaus.mojo:exec-maven-plugin:3.5.0:java"
-    )
-
-    Invoke-NodeStep -Name "Gateway JavaScript syntax" -Arguments @(
-        "--check",
-        "netlify/functions/flipforge-api.js"
-    )
-
-    Invoke-NodeStep -Name "Gateway validation JavaScript syntax" -Arguments @(
-        "--check",
-        "scripts/validate-saas-api-bridge.mjs"
-    )
-
-    Invoke-NodeStep -Name "Trusted tenant gateway contracts and security" -Arguments @(
-        "scripts/validate-saas-api-bridge.mjs"
-    )
-
-    Invoke-NodeStep -Name "Retained SaaS prototype validation" -Arguments @(
-        "saas-prototype/validate.mjs"
-    )
-
-    Invoke-NodeStep -Name "Retained website integration build" -Arguments @(
-        "scripts/build-assets.js"
-    )
-
-    Write-Host ""
-    Write-Host "========================================"
-    Write-Host "RUNNING: Cross-repository tenant gateway architecture scan"
-    Write-Host "========================================"
+    Write-StepHeader -Name "Cross-repository tenant gateway architecture scan"
     Assert-GatewayHandoffArchitecture
     Write-Host "Cross-repository tenant gateway architecture scan: PASS"
 
