@@ -13,7 +13,7 @@ The gateway is not the recommendation engine. It forwards authenticated and tena
 - Smart Opportunity remains the sole `BUY/WATCH/VERIFY/PASS` authority.
 - Existing PSA intelligence remains the sole grading-guidance authority.
 - The authoritative FlipForge SQLite database remains the source of truth.
-- The website cannot and must not open a desktop or hosted SQLite file directly.
+- The website must not open a desktop SQLite file directly. It also must not open hosted SQLite directly.
 
 ## Default behavior
 
