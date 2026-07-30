@@ -1,0 +1,75 @@
+name: SaaS Staging Evaluation Submit
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/staging-evaluation.js"
+      - "saas-prototype/staging-evaluation.css"
+      - "saas-prototype/staging-route-hook.js"
+      - "saas-prototype/index.html"
+      - "netlify/functions/flipforge-api.js"
+      - "scripts/validate-saas-staging-evaluation-submit.mjs"
+      - "scripts/validate-saas-staging-evaluation-submit-phase.ps1"
+      - "scripts/validate-saas-staging-browser-read-adapter.mjs"
+      - "scripts/validate-saas-api-bridge.mjs"
+      - "scripts/validate-saas-gateway-tenant-membership.mjs"
+      - "saas-prototype/validate.mjs"
+      - "docs/SAAS_STAGING_EVALUATION_SUBMIT.md"
+      - ".github/workflows/saas-staging-evaluation-submit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate tenant-scoped staging evaluation submission
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Parse evaluation browser JavaScript
+        run: |
+          node --check saas-prototype/staging-evaluation.js
+          node --check saas-prototype/staging-route-hook.js
+          node --check scripts/validate-saas-staging-evaluation-submit.mjs
+
+      - name: Validate staging evaluation submission
+        run: node scripts/validate-saas-staging-evaluation-submit.mjs
+
+      - name: Validate retained staging browser reads
+        run: node scripts/validate-saas-staging-browser-read-adapter.mjs
+
+      - name: Validate retained API bridge
+        run: node scripts/validate-saas-api-bridge.mjs
+
+      - name: Validate retained signed tenant gateway
+        run: node scripts/validate-saas-gateway-tenant-membership.mjs
+
+      - name: Validate retained SaaS prototype
+        run: node saas-prototype/validate.mjs
+
+      - name: Build retained website integration
+        run: node scripts/build-assets.js
+
+      - name: Enforce staging evaluation boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -Eiq 'X-FlipForge-Tenant-Id|X-FlipForge-User-Id|FLIPFORGE_API_SERVICE_TOKEN' saas-prototype/staging-evaluation.js
+          ! grep -Eiq 'localStorage|sessionStorage|document\.cookie' saas-prototype/staging-evaluation.js
+          grep -Fq 'const EVALUATION_PATH = "/api/v1/evaluations"' saas-prototype/staging-evaluation.js
+          grep -Fq 'method: "POST"' saas-prototype/staging-evaluation.js
+          grep -Fq '"Idempotency-Key": idempotencyKey' saas-prototype/staging-evaluation.js
+          grep -Fq 'data.transactionAuthorized === false' saas-prototype/staging-evaluation.js
+          grep -Fq 'data.tenantOwned === true' saas-prototype/staging-evaluation.js
+          grep -Fq 'route !== "staging-evaluate"' saas-prototype/staging-route-hook.js
+          grep -Eq 'data-route="staging-evaluate"[^>]*hidden' saas-prototype/index.html

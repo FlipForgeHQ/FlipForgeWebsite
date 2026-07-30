@@ -2,6 +2,7 @@
   "use strict";
 
   const adapter = window.FlipForgeStagingReadAdapter;
+  const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
   const bannerTitle = banner ? banner.querySelector("strong") : null;
@@ -24,21 +25,45 @@
     if (bannerCopy) bannerCopy.textContent = "Authenticated tenant-scoped saved data only · No mock fallback · No production activation";
   }
 
+  function showEvaluationBanner() {
+    if (bannerTitle) bannerTitle.textContent = "STAGING EVALUATION";
+    if (bannerCopy) bannerCopy.textContent = "Tenant-scoped Smart Opportunity submission only · No evidence verification · No transaction authority";
+  }
+
+  function focusMain() {
+    main.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
   function applyRoute() {
     const [route, id = ""] = routeParts();
     if (route !== "staging") {
-      restoreBanner();
+      if (route !== "staging-evaluate") {
+        restoreBanner();
+        return;
+      }
+    }
+
+    if (route === "staging") {
+      showStagingBanner();
+      if (!adapter || typeof adapter.render !== "function") {
+        main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Data</h1><p>The deploy-preview read adapter did not load.</p></div></header></div>`;
+        focusMain();
+        return;
+      }
+      adapter.render(main, id);
+      focusMain();
       return;
     }
 
-    showStagingBanner();
-    if (!adapter || typeof adapter.render !== "function") {
-      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Data</h1><p>The deploy-preview read adapter did not load.</p></div></header></div>`;
+    showEvaluationBanner();
+    if (!evaluationAdapter || typeof evaluationAdapter.render !== "function") {
+      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Evaluation</h1><p>The deploy-preview evaluation adapter did not load.</p></div></header></div>`;
+      focusMain();
       return;
     }
-    adapter.render(main, id);
-    main.focus({ preventScroll: true });
-    window.scrollTo({ top: 0, behavior: "instant" });
+    evaluationAdapter.render(main);
+    focusMain();
   }
 
   window.addEventListener("hashchange", applyRoute);
