@@ -131,6 +131,26 @@ function authenticatedUser(context) {
     : null;
 }
 
+function validSubject(value) {
+  const subject = typeof value === "string" ? value.trim() : "";
+  if (!subject || subject.length > 500 || /[\u0000-\u001f\u007f]/.test(subject)) return null;
+  return subject;
+}
+
+function authenticatedSubject(user) {
+  return validSubject(user && user.sub);
+}
+
+function previewSubject() {
+  if (!previewBypassAllowed()) return null;
+  return validSubject(process.env.FLIPFORGE_API_PREVIEW_USER_ID);
+}
+
+function validIdempotencyKey(value) {
+  const key = typeof value === "string" ? value.trim() : "";
+  return /^[A-Za-z0-9._-]{8,100}$/.test(key) ? key : null;
+}
+
 function queryString(event) {
   if (event && typeof event.rawQuery === "string" && event.rawQuery) {
     return event.rawQuery;
@@ -142,22 +162,30 @@ function queryString(event) {
   ).toString();
 }
 
-function validUpstreamEnvelope(payload, correlationId) {
+function validUpstreamEnvelope(payload, correlationId, method, path) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
   if (!payload.meta || typeof payload.meta !== "object") return false;
 
   const meta = payload.meta;
-  return (
-    meta.contractVersion === CONTRACT_VERSION &&
-    typeof meta.engineVersion === "string" &&
-    meta.engineVersion.length > 0 &&
-    meta.authority === "Smart Opportunity" &&
-    meta.gradingAuthority === "Existing PSA intelligence" &&
-    typeof meta.generatedAt === "string" &&
-    meta.generatedAt.length > 0 &&
-    meta.correlationId === correlationId &&
-    Object.prototype.hasOwnProperty.call(payload, "data")
-  );
+  if (
+    meta.contractVersion !== CONTRACT_VERSION ||
+    typeof meta.engineVersion !== "string" ||
+    meta.engineVersion.length === 0 ||
+    meta.authority !== "Smart Opportunity" ||
+    meta.gradingAuthority !== "Existing PSA intelligence" ||
+    typeof meta.generatedAt !== "string" ||
+    meta.generatedAt.length === 0 ||
+    meta.correlationId !== correlationId ||
+    !Object.prototype.hasOwnProperty.call(payload, "data")
+  ) {
+    return false;
+  }
+
+  if (!payload.data || typeof payload.data !== "object" || Array.isArray(payload.data)) return false;
+  if (method === "POST" && path === "/api/v1/evaluations") {
+    return payload.data.tenantScoped === true;
+  }
+  return payload.data.tenantIsolationEnforced === true;
 }
 
 async function readLimitedJson(response, maxBytes) {
@@ -197,7 +225,9 @@ function healthPayload(correlationId) {
       status: bridgeEnabled() && upstreamConfigured() ? "configured" : "disabled",
       bridgeEnabled: bridgeEnabled(),
       upstreamConfigured: upstreamConfigured(),
-      authenticationRequired: !previewBypassAllowed(),
+      authenticationRequired: true,
+      tenantIdentityForwardedServerSide: true,
+      serviceTokenBrowserExposed: false,
       productionPreviewBypassAllowed: false
     }
   };
@@ -225,7 +255,7 @@ exports.handler = async function handler(event, context) {
       headers: {
         ...securityHeaders(event, correlationId),
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Correlation-Id",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type, Idempotency-Key, X-Correlation-Id",
         "Access-Control-Max-Age": "600"
       },
       body: ""
@@ -256,7 +286,8 @@ exports.handler = async function handler(event, context) {
   }
 
   const user = authenticatedUser(context);
-  if (!user && !previewBypassAllowed()) {
+  const subject = authenticatedSubject(user) || previewSubject();
+  if (!subject) {
     return jsonResponse(
       event,
       401,
@@ -280,6 +311,16 @@ exports.handler = async function handler(event, context) {
       event,
       503,
       errorEnvelope("UPSTREAM_NOT_CONFIGURED", "The authoritative FlipForge service is not configured.", correlationId),
+      correlationId
+    );
+  }
+
+  const idempotencyKey = method === "POST" ? validIdempotencyKey(header(event, "idempotency-key")) : null;
+  if (method === "POST" && !idempotencyKey) {
+    return jsonResponse(
+      event,
+      400,
+      errorEnvelope("IDEMPOTENCY_KEY_REQUIRED", "A valid Idempotency-Key is required for evaluations.", correlationId),
       correlationId
     );
   }
@@ -320,7 +361,9 @@ exports.handler = async function handler(event, context) {
         Authorization: `Bearer ${process.env.FLIPFORGE_API_SERVICE_TOKEN}`,
         "X-Correlation-Id": correlationId,
         "X-FlipForge-Contract-Version": CONTRACT_VERSION,
-        ...(user && user.sub ? { "X-FlipForge-User-Id": String(user.sub) } : {})
+        "X-FlipForge-User-Id": subject,
+        "X-Forwarded-Proto": "https",
+        ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {})
       },
       body: method === "POST" ? body : undefined,
       signal: controller.signal,
@@ -349,11 +392,11 @@ exports.handler = async function handler(event, context) {
       );
     }
 
-    if (!validUpstreamEnvelope(payload, correlationId)) {
+    if (!validUpstreamEnvelope(payload, correlationId, method, path)) {
       return jsonResponse(
         event,
         502,
-        errorEnvelope("UPSTREAM_CONTRACT_INVALID", "The authoritative response did not satisfy the FlipForge contract.", correlationId),
+        errorEnvelope("UPSTREAM_CONTRACT_INVALID", "The authoritative response did not satisfy the FlipForge tenant contract.", correlationId),
         correlationId
       );
     }
