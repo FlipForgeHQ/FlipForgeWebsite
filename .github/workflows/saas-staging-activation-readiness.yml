@@ -1,0 +1,87 @@
+name: SaaS Staging Activation Readiness
+
+on:
+  pull_request:
+    paths:
+      - "netlify/functions/flipforge-api.js"
+      - "netlify.toml"
+      - "scripts/lib/saas-staging-readiness.mjs"
+      - "scripts/check-saas-staging-readiness.mjs"
+      - "scripts/validate-saas-staging-activation-readiness.mjs"
+      - "scripts/validate-saas-staging-activation-readiness-phase.ps1"
+      - "scripts/validate-saas-staging-evaluation-submit.mjs"
+      - "scripts/validate-saas-staging-browser-read-adapter.mjs"
+      - "scripts/validate-saas-api-bridge.mjs"
+      - "scripts/validate-saas-gateway-tenant-membership.mjs"
+      - "saas-prototype/staging-browser.js"
+      - "saas-prototype/staging-evaluation.js"
+      - "saas-prototype/validate.mjs"
+      - "docs/SAAS_STAGING_ACTIVATION_READINESS.md"
+      - "docs/SAAS_STAGING_DEPLOYMENT_AND_ROLLBACK.md"
+      - "docs/examples/saas-tenant-membership.example.json"
+      - "docs/examples/saas-staging-environment.example.txt"
+      - ".github/workflows/saas-staging-activation-readiness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate staging activation readiness and rollback
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Parse readiness JavaScript
+        run: |
+          node --check scripts/lib/saas-staging-readiness.mjs
+          node --check scripts/check-saas-staging-readiness.mjs
+          node --check scripts/validate-saas-staging-activation-readiness.mjs
+
+      - name: Validate staging activation readiness
+        run: node scripts/validate-saas-staging-activation-readiness.mjs
+
+      - name: Validate documented tenant membership example
+        run: node scripts/check-saas-staging-readiness.mjs --membership docs/examples/saas-tenant-membership.example.json --json
+
+      - name: Validate retained staging evaluation submission
+        run: node scripts/validate-saas-staging-evaluation-submit.mjs
+
+      - name: Validate retained staging browser reads
+        run: node scripts/validate-saas-staging-browser-read-adapter.mjs
+
+      - name: Validate retained API bridge
+        run: node scripts/validate-saas-api-bridge.mjs
+
+      - name: Validate retained signed tenant gateway
+        run: node scripts/validate-saas-gateway-tenant-membership.mjs
+
+      - name: Validate retained SaaS prototype
+        run: node saas-prototype/validate.mjs
+
+      - name: Build retained website integration
+        run: node scripts/build-assets.js
+
+      - name: Enforce disabled and redacted repository state
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'FlipForge remains a static website' netlify.toml
+          ! grep -Eiq "FLIPFORGE_API_BRIDGE_ENABLED[[:space:]]*=[[:space:]]*['\"]?true" netlify.toml
+          ! grep -Eiq 'FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_API_BASE_URL' netlify.toml
+          grep -Fq 'context !== "production"' netlify/functions/flipforge-api.js
+          grep -Fq 'productionPreviewBypassAllowed: false' netlify/functions/flipforge-api.js
+          grep -Fq 'PRODUCTION_BRIDGE_ENABLED' scripts/lib/saas-staging-readiness.mjs
+          grep -Fq 'PRODUCTION_PREVIEW_BYPASS' scripts/lib/saas-staging-readiness.mjs
+          ! grep -Fq 'console.log(process.env.FLIPFORGE_API_SERVICE_TOKEN' scripts/check-saas-staging-readiness.mjs
+          grep -Fq 'FLIPFORGE_API_BRIDGE_ENABLED=false' docs/examples/saas-staging-environment.example.txt
+          grep -Fq '<set-in-secret-manager-only>' docs/examples/saas-staging-environment.example.txt
