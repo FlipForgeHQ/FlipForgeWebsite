@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 
 const CONTRACT_VERSION = "1.0";
+const TRUSTED_TENANT_HEADER = "X-FlipForge-Tenant-Id";
 const DEFAULT_TIMEOUT_MS = 5000;
 const MAX_TIMEOUT_MS = 10000;
 const DEFAULT_MAX_RESPONSE_BYTES = 1_000_000;
@@ -10,10 +11,10 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/health$/ },
   { method: "GET", pattern: /^\/api\/v1\/dashboard$/ },
   { method: "GET", pattern: /^\/api\/v1\/opportunities$/ },
-  { method: "GET", pattern: /^\/api\/v1\/opportunities\/[A-Za-z0-9_-]+$/ },
+  { method: "GET", pattern: /^\/api\/v1\/opportunities\/[A-Za-z0-9._:-]+$/ },
   { method: "GET", pattern: /^\/api\/v1\/compare$/ },
-  { method: "GET", pattern: /^\/api\/v1\/psa-advisor\/[A-Za-z0-9_-]+$/ },
-  { method: "GET", pattern: /^\/api\/v1\/evidence\/[A-Za-z0-9_-]+$/ },
+  { method: "GET", pattern: /^\/api\/v1\/psa-advisor\/[A-Za-z0-9._:-]+$/ },
+  { method: "GET", pattern: /^\/api\/v1\/evidence\/[A-Za-z0-9._:-]+$/ },
   { method: "GET", pattern: /^\/api\/v1\/portfolio$/ },
   { method: "GET", pattern: /^\/api\/v1\/alerts$/ },
   { method: "GET", pattern: /^\/api\/v1\/account$/ },
@@ -131,19 +132,18 @@ function authenticatedUser(context) {
     : null;
 }
 
-function validSubject(value) {
-  const subject = typeof value === "string" ? value.trim() : "";
-  if (!subject || subject.length > 500 || /[\u0000-\u001f\u007f]/.test(subject)) return null;
-  return subject;
+function validTrustedTenantId(value) {
+  const tenantId = typeof value === "string" ? value.trim() : "";
+  return /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/.test(tenantId) ? tenantId : null;
 }
 
-function authenticatedSubject(user) {
-  return validSubject(user && user.sub);
+function authenticatedTenantId(user) {
+  return validTrustedTenantId(user && user.sub);
 }
 
-function previewSubject() {
+function previewTenantId() {
   if (!previewBypassAllowed()) return null;
-  return validSubject(process.env.FLIPFORGE_API_PREVIEW_USER_ID);
+  return validTrustedTenantId(process.env.FLIPFORGE_API_PREVIEW_TENANT_ID);
 }
 
 function validIdempotencyKey(value) {
@@ -162,6 +162,20 @@ function queryString(event) {
   ).toString();
 }
 
+function validTenantIsolation(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return false;
+  const isolation = data.tenantIsolation;
+  return Boolean(
+    isolation &&
+      typeof isolation === "object" &&
+      !Array.isArray(isolation) &&
+      isolation.enforced === true &&
+      isolation.defaultAccess === "DENY" &&
+      typeof isolation.tenantAuditKey === "string" &&
+      /^[a-f0-9]{12}$/.test(isolation.tenantAuditKey)
+  );
+}
+
 function validUpstreamEnvelope(payload, correlationId, method, path) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
   if (!payload.meta || typeof payload.meta !== "object") return false;
@@ -176,16 +190,21 @@ function validUpstreamEnvelope(payload, correlationId, method, path) {
     typeof meta.generatedAt !== "string" ||
     meta.generatedAt.length === 0 ||
     meta.correlationId !== correlationId ||
-    !Object.prototype.hasOwnProperty.call(payload, "data")
+    !Object.prototype.hasOwnProperty.call(payload, "data") ||
+    !validTenantIsolation(payload.data)
   ) {
     return false;
   }
 
-  if (!payload.data || typeof payload.data !== "object" || Array.isArray(payload.data)) return false;
   if (method === "POST" && path === "/api/v1/evaluations") {
-    return payload.data.tenantScoped === true;
+    return Boolean(
+      payload.data.tenantOwned === true &&
+        payload.data.tenantIsolation.idempotencyScope === "TENANT" &&
+        payload.data.tenantIsolation.opportunityOwnership === "GRANTED_ON_COMPLETION" &&
+        payload.data.transactionAuthorized === false
+    );
   }
-  return payload.data.tenantIsolationEnforced === true;
+  return true;
 }
 
 async function readLimitedJson(response, maxBytes) {
@@ -226,7 +245,8 @@ function healthPayload(correlationId) {
       bridgeEnabled: bridgeEnabled(),
       upstreamConfigured: upstreamConfigured(),
       authenticationRequired: true,
-      tenantIdentityForwardedServerSide: true,
+      trustedTenantContextForwardedServerSide: true,
+      trustedTenantHeader: TRUSTED_TENANT_HEADER,
       serviceTokenBrowserExposed: false,
       productionPreviewBypassAllowed: false
     }
@@ -286,12 +306,12 @@ exports.handler = async function handler(event, context) {
   }
 
   const user = authenticatedUser(context);
-  const subject = authenticatedSubject(user) || previewSubject();
-  if (!subject) {
+  const tenantId = authenticatedTenantId(user) || previewTenantId();
+  if (!tenantId) {
     return jsonResponse(
       event,
       401,
-      errorEnvelope("AUTHENTICATION_REQUIRED", "Authentication is required for FlipForge data routes.", correlationId),
+      errorEnvelope("AUTHENTICATION_REQUIRED", "A valid authenticated FlipForge identity is required for data routes.", correlationId),
       correlationId,
       { "WWW-Authenticate": "Bearer realm=\"FlipForge\"" }
     );
@@ -361,7 +381,7 @@ exports.handler = async function handler(event, context) {
         Authorization: `Bearer ${process.env.FLIPFORGE_API_SERVICE_TOKEN}`,
         "X-Correlation-Id": correlationId,
         "X-FlipForge-Contract-Version": CONTRACT_VERSION,
-        "X-FlipForge-User-Id": subject,
+        [TRUSTED_TENANT_HEADER]: tenantId,
         "X-Forwarded-Proto": "https",
         ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {})
       },
@@ -431,7 +451,12 @@ exports.handler = async function handler(event, context) {
       })
     );
 
-    return jsonResponse(event, code === "UPSTREAM_RESPONSE_TOO_LARGE" ? 502 : 503, errorEnvelope(code, message, correlationId), correlationId);
+    return jsonResponse(
+      event,
+      code === "UPSTREAM_RESPONSE_TOO_LARGE" ? 502 : 503,
+      errorEnvelope(code, message, correlationId),
+      correlationId
+    );
   } finally {
     clearTimeout(timeout);
   }
