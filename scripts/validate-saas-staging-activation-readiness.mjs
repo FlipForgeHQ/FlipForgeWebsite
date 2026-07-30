@@ -127,7 +127,7 @@ check("019 production preview bypass remains forbidden", sources.gateway.include
 check("020 browser staging reads remain isolated", sources.stagingRead.includes("ALLOWED_HOST"));
 check("021 browser staging evaluation remains isolated", sources.stagingEvaluation.includes("ALLOWED_HOST"));
 check("022 browser cannot inject the tenant header", !sources.stagingEvaluation.includes('"X-FlipForge-Tenant-Id"'));
-check("023 browser requires transaction authority false", sources.stagingEvaluation.includes("transactionAuthorized !== false"));
+check("023 browser requires transaction authority false", sources.stagingEvaluation.includes("data.transactionAuthorized === false"));
 
 const validMembership = validateSignedMembership(JSON.parse(sources.membershipExample));
 check("024 documented membership example validates", validMembership.ok);
