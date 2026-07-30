@@ -81,6 +81,7 @@ const environmentNames = [
   "FLIPFORGE_API_MAX_RESPONSE_BYTES",
   "FLIPFORGE_API_MAX_REQUEST_BYTES",
   "FLIPFORGE_API_ALLOW_UNAUTHENTICATED_PREVIEW",
+  "FLIPFORGE_API_PREVIEW_TENANT_ID",
   "CONTEXT"
 ];
 
@@ -141,6 +142,7 @@ try {
   check("044 production ignores unauthenticated preview bypass", productionBypass.statusCode === 401);
 
   process.env.CONTEXT = "deploy-preview";
+  process.env.FLIPFORGE_API_PREVIEW_TENANT_ID = "preview_sandbox_001";
   const previewDisabled = await handler(event("GET", "/api/v1/dashboard"), {});
   check("045 preview bypass still respects bridge-disabled state", previewDisabled.statusCode === 503 && jsonBody(previewDisabled).error?.code === "BRIDGE_DISABLED");
 
@@ -151,7 +153,10 @@ try {
   process.env.FLIPFORGE_API_BASE_URL = "https://authoritative.example.invalid";
   process.env.FLIPFORGE_API_SERVICE_TOKEN = "server-only-test-token";
   process.env.FLIPFORGE_API_MAX_REQUEST_BYTES = "16";
-  const oversized = await handler(event("POST", "/api/v1/evaluations", { body: JSON.stringify({ value: "12345678901234567890" }) }), {});
+  const oversized = await handler(event("POST", "/api/v1/evaluations", {
+    headers: { "idempotency-key": "bridge-request-0001" },
+    body: JSON.stringify({ value: "12345678901234567890" })
+  }), {});
   check("047 oversized evaluation request is rejected before upstream access", oversized.statusCode === 413 && jsonBody(oversized).error?.code === "REQUEST_TOO_LARGE");
 
   process.env.FLIPFORGE_API_MAX_REQUEST_BYTES = "65536";
