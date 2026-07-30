@@ -1,0 +1,62 @@
+name: SaaS Staging Browser Read Adapter
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/staging-browser.js"
+      - "saas-prototype/staging-route-hook.js"
+      - "saas-prototype/staging-browser.css"
+      - "saas-prototype/index.html"
+      - "scripts/validate-saas-staging-browser-read-adapter.mjs"
+      - "scripts/validate-saas-staging-browser-read-adapter-phase.ps1"
+      - "docs/SAAS_STAGING_BROWSER_READ_ADAPTER.md"
+      - ".github/workflows/saas-staging-browser-read-adapter.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate deploy-preview staging browser reads
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Parse staging browser JavaScript
+        run: |
+          node --check saas-prototype/staging-browser.js
+          node --check saas-prototype/staging-route-hook.js
+          node --check scripts/validate-saas-staging-browser-read-adapter.mjs
+
+      - name: Validate staging browser read adapter
+        run: node scripts/validate-saas-staging-browser-read-adapter.mjs
+
+      - name: Validate retained API bridge
+        run: node scripts/validate-saas-api-bridge.mjs
+
+      - name: Validate retained signed tenant gateway
+        run: node scripts/validate-saas-gateway-tenant-membership.mjs
+
+      - name: Validate retained SaaS prototype
+        run: node saas-prototype/validate.mjs
+
+      - name: Build retained website integration
+        run: node scripts/build-assets.js
+
+      - name: Enforce browser staging boundaries
+        shell: bash
+        run: |
+          ! grep -R -n -E 'FLIPFORGE_API_SERVICE_TOKEN|X-FlipForge-Tenant-Id|X-FlipForge-User-Id|localStorage|sessionStorage|document\.cookie' saas-prototype/staging-browser.js saas-prototype/staging-route-hook.js
+          ! grep -R -n -E 'method:[[:space:]]*"POST"|/api/v1/evaluations|auto-buy|checkout|payment|provider-admin' saas-prototype/staging-browser.js saas-prototype/staging-route-hook.js
+          grep -q 'meta.authority === "Smart Opportunity"' saas-prototype/staging-browser.js
+          grep -q 'meta.gradingAuthority === "Existing PSA intelligence"' saas-prototype/staging-browser.js
+          grep -q 'deploy-preview-' saas-prototype/staging-browser.js

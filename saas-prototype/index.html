@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="cockpit-polish.css">
   <link rel="stylesheet" href="cockpit-final-ux.css">
   <link rel="stylesheet" href="sidebar-edge-fix.css">
+  <link rel="stylesheet" href="staging-browser.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -57,6 +58,7 @@
         <a href="#/portfolio" data-route="portfolio"><span aria-hidden="true">◫</span>Portfolio</a>
         <a href="#/sell" data-route="sell"><span aria-hidden="true">$</span>Sell</a>
         <a href="#/alerts" data-route="alerts"><span aria-hidden="true">!</span>Alerts</a>
+        <a href="#/staging" data-route="staging" class="staging-only-nav" hidden><span aria-hidden="true">↯</span>Staging Data</a>
       </nav>
 
       <div class="sidebar-footer">
@@ -112,5 +114,7 @@
   <script src="route-guard.js"></script>
   <script src="scroll-reset.js"></script>
   <script src="sidebar-edge-fix.js"></script>
+  <script src="staging-browser.js"></script>
+  <script src="staging-route-hook.js"></script>
 </body>
 </html>
