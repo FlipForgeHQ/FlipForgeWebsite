@@ -8,6 +8,8 @@ const read = name => fs.readFileSync(path.join(root, name), "utf8");
 const index = read("index.html");
 const script = read("cockpit-expansion.js");
 const styles = read("cockpit-expansion.css");
+const layoutScript = read("cockpit-layout-fix.js");
+const layoutStyles = read("cockpit-layout-fix.css");
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
@@ -36,15 +38,25 @@ check("022 top opportunities exist", script.includes("Top opportunities") && scr
 check("023 market activity exists", script.includes("Market activity"));
 check("024 recent alerts exist", script.includes("Recent alerts"));
 check("025 no second recommendation score is introduced", !/ForgeScore|new recommendation engine/i.test(script));
-check("026 no direct network access exists", !/\bfetch\s*\(|XMLHttpRequest|\bWebSocket\b/.test(script));
-check("027 no browser persistence exists", !/localStorage|sessionStorage|indexedDB/.test(script));
-check("028 no credentials exist", !/API_KEY|Authorization\s*:|Bearer\s+/i.test(script));
+check("026 no direct network access exists", !/\bfetch\s*\(|XMLHttpRequest|\bWebSocket\b/.test(`${script}\n${layoutScript}`));
+check("027 no browser persistence exists", !/localStorage|sessionStorage|indexedDB/.test(`${script}\n${layoutScript}`));
+check("028 no credentials exist", !/API_KEY|Authorization\s*:|Bearer\s+/i.test(`${script}\n${layoutScript}`));
 check("029 desktop module grid exists", styles.includes("grid-template-columns: repeat(3"));
 check("030 tablet breakpoint exists", styles.includes("@media (max-width: 1180px)"));
 check("031 mobile breakpoint exists", styles.includes("@media (max-width: 700px)"));
 check("032 narrow mobile breakpoint exists", styles.includes("@media (max-width: 480px)"));
 check("033 reduced motion support exists", styles.includes("@media (prefers-reduced-motion: reduce)"));
 check("034 chart meaning has accessible labels", script.includes('role="img"') && script.includes("aria-label"));
+check("035 cockpit hierarchy stylesheet is loaded", index.includes('href="cockpit-layout-fix.css"'));
+check("036 cockpit hierarchy script is loaded", index.includes('src="cockpit-layout-fix.js"'));
+check("037 hierarchy fix loads after cockpit expansion", index.indexOf('src="cockpit-layout-fix.js"') > index.indexOf('src="cockpit-expansion.js"'));
+check("038 cockpit becomes the primary dashboard", layoutScript.includes("heading.after(cockpit)"));
+check("039 deep analysis follows the cockpit", layoutScript.includes("deepAnalysisHeading.after(visualLayer)"));
+check("040 duplicate legacy dashboard blocks are hidden only after replacement exists", layoutScript.includes("cockpit-legacy-dashboard-block") && layoutScript.includes("if (!page || !heading || !cockpit || !visualLayer) return"));
+check("041 dashboard navigation resets to the top", layoutScript.includes("primaryNav.scrollTop = 0"));
+check("042 hidden legacy blocks are removed visually", layoutStyles.includes(".cockpit-legacy-dashboard-block") && layoutStyles.includes("display: none !important"));
+check("043 selected analysis section remains visible", layoutScript.includes("Why this card deserves attention"));
+check("044 hierarchy fix includes responsive layout", layoutStyles.includes("@media (max-width: 1180px)") && layoutStyles.includes("@media (max-width: 760px)"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSCockpitExpansionValidation");
