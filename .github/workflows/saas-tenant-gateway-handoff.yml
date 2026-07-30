@@ -1,0 +1,44 @@
+name: SaaS Tenant Gateway Handoff
+
+on:
+  pull_request:
+    paths:
+      - "netlify/functions/flipforge-api.js"
+      - "scripts/validate-saas-api-bridge.mjs"
+      - "scripts/validate-saas-tenant-gateway-handoff-phase.ps1"
+      - "docs/SAAS_API_BRIDGE.md"
+      - ".github/workflows/saas-tenant-gateway-handoff.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  website-gateway:
+    name: Validate trusted tenant gateway contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out website branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check gateway syntax
+        run: node --check netlify/functions/flipforge-api.js
+
+      - name: Check validator syntax
+        run: node --check scripts/validate-saas-api-bridge.mjs
+
+      - name: Run trusted tenant gateway validation
+        run: node scripts/validate-saas-api-bridge.mjs
+
+      - name: Run retained SaaS prototype validation
+        run: node saas-prototype/validate.mjs
+
+      - name: Run retained website integration build
+        run: node scripts/build-assets.js
