@@ -6,12 +6,13 @@
   function resetShellHorizontalPosition() {
     const scrollingElement = document.scrollingElement || document.documentElement;
     const top = scrollingElement?.scrollTop ?? window.scrollY ?? 0;
+    const sidebar = document.querySelector(".sidebar");
     const nodes = [
       scrollingElement,
       document.documentElement,
       document.body,
       document.querySelector(".app-shell"),
-      document.querySelector(".sidebar"),
+      sidebar,
       document.querySelector(".primary-nav"),
       document.querySelector(".workspace"),
       document.querySelector("#main-content")
@@ -21,12 +22,15 @@
       if (node && "scrollLeft" in node) node.scrollLeft = 0;
     }
 
-    if (desktop.matches) {
-      const sidebar = document.querySelector(".sidebar");
-      if (sidebar) {
+    if (sidebar) {
+      if (desktop.matches) {
         sidebar.style.left = "0px";
         sidebar.style.marginLeft = "0px";
         sidebar.style.transform = "translateX(0px)";
+      } else {
+        sidebar.style.removeProperty("left");
+        sidebar.style.removeProperty("margin-left");
+        sidebar.style.removeProperty("transform");
       }
     }
 
