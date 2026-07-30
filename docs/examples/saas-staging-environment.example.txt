@@ -1,0 +1,13 @@
+# Documentation example only. Do not commit real values.
+# Configure these in the staging host / Netlify environment, not in a tracked .env file.
+
+CONTEXT=deploy-preview
+FLIPFORGE_API_BRIDGE_ENABLED=false
+FLIPFORGE_API_BASE_URL=https://private-staging-api.example.invalid
+FLIPFORGE_API_SERVICE_TOKEN=<set-in-secret-manager-only>
+FLIPFORGE_API_ALLOWED_ORIGINS=https://deploy-preview-000--goflipforge.netlify.app
+FLIPFORGE_API_TIMEOUT_MS=5000
+FLIPFORGE_API_MAX_RESPONSE_BYTES=1000000
+FLIPFORGE_API_MAX_REQUEST_BYTES=65536
+FLIPFORGE_API_ALLOW_UNAUTHENTICATED_PREVIEW=false
+# Leave FLIPFORGE_API_PREVIEW_TENANT_ID unset when signed authentication is used.
