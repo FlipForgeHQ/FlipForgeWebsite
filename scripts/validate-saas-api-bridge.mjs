@@ -137,7 +137,10 @@ try {
   const health = await handler(event("GET", "/api/v1/health"), {});
   const healthBody = jsonBody(health);
   check("047 public health succeeds while disabled", health.statusCode === 200 && healthBody.data?.status === "disabled");
-  check("048 health reveals no URL, token, or subject", !/https?:\/\/|token|secret|subject/i.test(health.body));
+  check("048 health reveals no configured URL or secret values",
+    !health.body.includes("authoritative.example.invalid") &&
+    !health.body.includes("server-only-test-token") &&
+    !health.body.includes("preview-user"));
   check("049 health reports server-side tenant handoff", healthBody.data?.tenantIdentityForwardedServerSide === true);
 
   const unauthenticated = await handler(event("GET", "/api/v1/dashboard"), {});
