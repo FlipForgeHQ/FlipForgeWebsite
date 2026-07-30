@@ -1,0 +1,262 @@
+/* Final dashboard UX cleanup: concise overview, readable charts, and optional deep analysis. */
+
+.dashboard-cockpit-primary.cockpit-final-ux > .page-heading {
+  margin-bottom: 10px;
+}
+
+.dashboard-cockpit-primary.cockpit-final-ux > .page-heading h1 {
+  font-size: clamp(26px, 2.7vw, 36px);
+}
+
+.dashboard-cockpit-primary.cockpit-final-ux > .page-heading p {
+  max-width: 850px;
+  font-size: 12px;
+}
+
+.dashboard-cockpit-primary.cockpit-final-ux .cockpit-section-heading {
+  padding: 12px 14px;
+}
+
+.dashboard-cockpit-primary.cockpit-final-ux .cockpit-section-heading h2 {
+  font-size: clamp(21px, 2vw, 28px);
+}
+
+.dashboard-cockpit-primary.cockpit-final-ux .cockpit-module-card {
+  min-height: 82px;
+}
+
+.sidebar,
+.primary-nav {
+  scroll-behavior: auto !important;
+}
+
+.cockpit-analysis-details {
+  margin: 24px 0 0;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(18, 28, 46, .98), rgba(8, 14, 24, .98));
+  border: 1px solid rgba(212, 175, 55, .26);
+  border-radius: 14px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .22);
+}
+
+.cockpit-analysis-details > summary {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cockpit-analysis-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cockpit-analysis-details > summary:hover {
+  background: rgba(212, 175, 55, .045);
+}
+
+.cockpit-analysis-details > summary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
+.cockpit-analysis-summary-copy,
+.cockpit-analysis-summary-copy small,
+.cockpit-analysis-summary-copy strong,
+.cockpit-analysis-summary-copy em {
+  display: block;
+}
+
+.cockpit-analysis-summary-copy {
+  min-width: 0;
+}
+
+.cockpit-analysis-summary-copy small {
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.cockpit-analysis-summary-copy strong {
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.cockpit-analysis-summary-copy em {
+  margin-top: 5px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-analysis-summary-action {
+  flex: 0 0 auto;
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.cockpit-analysis-summary-action span {
+  display: inline-block;
+  margin-left: 5px;
+  transition: transform .18s ease;
+}
+
+.cockpit-analysis-details[open] .cockpit-analysis-summary-action span {
+  transform: rotate(180deg);
+}
+
+.cockpit-analysis-details > .visual-intelligence-layer {
+  padding: 0 14px 14px;
+}
+
+.cockpit-analysis-details .vi-authority-strip {
+  margin-bottom: 0;
+}
+
+.cockpit-market-axis-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 4px 2px 0;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.cockpit-market-chart .demand-dot {
+  fill: var(--gold);
+  stroke: #08101c;
+  stroke-width: 1.5;
+}
+
+.cockpit-market-chart .liquidity-dot {
+  fill: var(--green);
+  stroke: #08101c;
+  stroke-width: 1.5;
+}
+
+.cockpit-market-legend {
+  margin-top: 7px;
+}
+
+.cockpit-market-legend span:first-child::before,
+.cockpit-market-legend span:last-child::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  margin-right: 5px;
+  border-radius: 50%;
+}
+
+.cockpit-market-legend span:first-child::before {
+  background: var(--gold);
+}
+
+.cockpit-market-legend span:last-child::before {
+  background: var(--green);
+}
+
+.cockpit-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 13px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.cockpit-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 800;
+}
+
+.cockpit-map-legend i {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.cockpit-map-legend i.status-buy { background: var(--green); }
+.cockpit-map-legend i.status-watch { background: var(--blue); }
+.cockpit-map-legend i.status-verify { background: var(--orange); }
+.cockpit-map-legend i.status-pass { background: var(--red); }
+
+.cockpit-map-legend em {
+  margin-left: auto;
+  font-style: normal;
+}
+
+.cockpit-grade-lane {
+  grid-template-columns: 58px minmax(0, 1fr) 58px;
+}
+
+.cockpit-grade-delta {
+  grid-column: 2 / 4;
+  margin-top: -5px;
+  color: var(--text-soft);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.cockpit-grade-lane > small {
+  margin-top: 1px;
+}
+
+.cockpit-grading-method-note {
+  margin: 10px 0 0;
+  padding-top: 9px;
+  color: var(--muted);
+  border-top: 1px solid var(--border-soft);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .cockpit-analysis-details > summary {
+    align-items: flex-start;
+  }
+
+  .cockpit-map-legend em {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .cockpit-analysis-details > summary {
+    display: block;
+  }
+
+  .cockpit-analysis-summary-copy em {
+    white-space: normal;
+  }
+
+  .cockpit-analysis-summary-action {
+    display: inline-block;
+    margin-top: 10px;
+  }
+
+  .cockpit-analysis-details > .visual-intelligence-layer {
+    padding: 0 9px 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cockpit-analysis-summary-action span {
+    transition: none;
+  }
+}
