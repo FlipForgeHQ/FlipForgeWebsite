@@ -36,6 +36,7 @@ jobs:
           node --check saas-prototype/app.js
           node --check saas-prototype/feature-pages.js
           node --check saas-prototype/visual-intelligence.js
+          node --check saas-prototype/cockpit-expansion.js
           node --check saas-prototype/route-guard.js
           node --check saas-prototype/serve.mjs
 
@@ -46,6 +47,7 @@ jobs:
         run: |
           node saas-prototype/validate.mjs
           node saas-prototype/validate-visual-intelligence.mjs
+          node saas-prototype/validate-cockpit-expansion.mjs
 
       - name: Verify generated website entry points
         run: |
