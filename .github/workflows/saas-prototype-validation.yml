@@ -39,6 +39,7 @@ jobs:
           node --check saas-prototype/cockpit-expansion.js
           node --check saas-prototype/cockpit-layout-fix.js
           node --check saas-prototype/cockpit-polish.js
+          node --check saas-prototype/cockpit-final-ux.js
           node --check saas-prototype/route-guard.js
           node --check saas-prototype/serve.mjs
 
@@ -51,6 +52,7 @@ jobs:
           node saas-prototype/validate-visual-intelligence.mjs
           node saas-prototype/validate-cockpit-expansion.mjs
           node saas-prototype/validate-cockpit-polish.mjs
+          node saas-prototype/validate-cockpit-final-ux.mjs
 
       - name: Verify generated website entry points
         run: |
