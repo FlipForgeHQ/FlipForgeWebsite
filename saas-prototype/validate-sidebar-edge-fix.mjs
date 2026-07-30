@@ -21,8 +21,9 @@ check("007 sidebar width remains governed by token", styles.includes("width: var
 check("008 customer shell children are width-contained", styles.includes(".brand-block") && styles.includes(".primary-nav") && styles.includes(".sidebar-footer"));
 check("009 runtime resets document and shell scrollLeft", script.includes("document.scrollingElement") && script.includes("scrollLeft = 0") && script.includes('document.querySelector(".sidebar")'));
 check("010 runtime transform correction is desktop guarded", script.includes('matchMedia("(min-width: 901px)")') && script.includes("if (desktop.matches)"));
-check("011 runtime preserves vertical scroll", script.includes("const top =") && script.includes("window.scrollTo({ left: 0, top"));
-check("012 no network or browser persistence is introduced", !/\bfetch\s*\(|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB/.test(script));
+check("011 mobile sidebar inline overrides are removed", script.includes('removeProperty("left")') && script.includes('removeProperty("margin-left")') && script.includes('removeProperty("transform")'));
+check("012 runtime preserves vertical scroll", script.includes("const top =") && script.includes("window.scrollTo({ left: 0, top"));
+check("013 no network or browser persistence is introduced", !/\bfetch\s*\(|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB/.test(script));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSSidebarEdgeValidation");
