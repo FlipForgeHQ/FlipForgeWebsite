@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           grep -Fq 'FlipForge remains a static website' netlify.toml
-          ! grep -Eiq 'FLIPFORGE_API_BRIDGE_ENABLED[[:space:]]*=[[:space:]]*["'"']?true' netlify.toml
+          ! grep -Eiq "FLIPFORGE_API_BRIDGE_ENABLED[[:space:]]*=[[:space:]]*['\"]?true" netlify.toml
           ! grep -Eiq 'FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_API_BASE_URL' netlify.toml
           grep -Fq 'context !== "production"' netlify/functions/flipforge-api.js
           grep -Fq 'productionPreviewBypassAllowed: false' netlify/functions/flipforge-api.js
