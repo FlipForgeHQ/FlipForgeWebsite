@@ -17,18 +17,6 @@ const assets = [
         .join('');
     },
   },
-  {
-    output: 'grading-scenario-analysis.webp',
-    readBase64() {
-      return fs.readFileSync(path.join(sourceRoot, 'grading-scenario-analysis.b64'), 'utf8').trim();
-    },
-  },
-  {
-    output: 'recommendation-explorer.webp',
-    readBase64() {
-      return fs.readFileSync(path.join(sourceRoot, 'recommendation-explorer.b64'), 'utf8').trim();
-    },
-  },
 ];
 
 fs.mkdirSync(outputRoot, { recursive: true });
@@ -47,19 +35,47 @@ for (const asset of assets) {
   console.log(`Built ${asset.output} (${buffer.length} bytes)`);
 }
 
-// The earlier Recommendation Explorer WebP can fail to render in some manual
-// Netlify deployments. Use the native branded SVG for the gallery instead.
+const requiredBrandAssets = [
+  path.join(root, 'assets', 'brand', 'flipforge-mark.svg'),
+  path.join(root, 'assets', 'brand', 'flipforge-app-icon-dark.svg'),
+  path.join(root, 'assets', 'css', 'brand-v2.css'),
+  path.join(root, 'assets', 'js', 'section-navigation.js'),
+  path.join(root, 'assets', 'images', 'flipforge-grading-scenario.svg'),
+  path.join(root, 'assets', 'images', 'flipforge-traceback-guidance.svg'),
+];
+
+for (const brandAsset of requiredBrandAssets) {
+  if (!fs.existsSync(brandAsset)) {
+    throw new Error(`Required perfected brand asset is missing: ${path.relative(root, brandAsset)}`);
+  }
+}
+
+// Earlier generated WebP visuals can decode successfully but still fail to paint
+// in some browser/Netlify combinations. Use native branded SVGs for the grading
+// and traceback panels so these core product visuals render deterministically.
+// Also install deterministic fragment navigation so direct #section URLs and
+// homepage section links align beneath the sticky header after layout completes.
 const indexPath = path.join(root, 'index.html');
 if (fs.existsSync(indexPath)) {
   const original = fs.readFileSync(indexPath, 'utf8');
-  const corrected = original.replaceAll(
-    'assets/images/recommendation-explorer.webp',
-    'assets/images/flipforge-traceback-guidance.svg',
-  );
+  const navigationScript = '<script src="assets/js/section-navigation.js" defer></script>';
+  let corrected = original
+    .replaceAll(
+      'assets/images/grading-scenario-analysis.webp',
+      'assets/images/flipforge-grading-scenario.svg',
+    )
+    .replaceAll(
+      'assets/images/recommendation-explorer.webp',
+      'assets/images/flipforge-traceback-guidance.svg',
+    );
+
+  if (!corrected.includes('assets/js/section-navigation.js')) {
+    corrected = corrected.replace(/<\/body>/i, `${navigationScript}\n</body>`);
+  }
 
   if (corrected !== original) {
     fs.writeFileSync(indexPath, corrected, 'utf8');
-    console.log('Updated homepage gallery to use flipforge-traceback-guidance.svg');
+    console.log('Updated homepage decision visuals and deterministic section navigation');
   }
 }
 
@@ -107,26 +123,78 @@ function ensureFooterAppLink(html) {
   );
 }
 
+function ensurePerfectedBrandStylesheet(html) {
+  if (html.includes('assets/css/brand-v2.css')) return html;
+
+  return html.replace(
+    /(<link\b[^>]*href="assets\/css\/site\.css"[^>]*>)/i,
+    '$1\n<link rel="stylesheet" href="assets/css/brand-v2.css">',
+  );
+}
+
+function ensurePerfectedBrandFavicon(html) {
+  const favicon = '<link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">';
+  if (html.includes('href="assets/brand/flipforge-app-icon-dark.svg"')) return html;
+
+  if (/<link\b[^>]*rel="icon"[^>]*>/i.test(html)) {
+    return html.replace(/<link\b[^>]*rel="icon"[^>]*>/i, favicon);
+  }
+
+  return html.replace(/<\/head>/i, `${favicon}\n</head>`);
+}
+
+function ensurePerfectedBrandIdentity(html) {
+  return html
+    .replaceAll('Signal. Confidence. Advantage.', 'Card Value Intelligence')
+    .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD VALUE INTELLIGENCE');
+}
+
 // Keep the public website and the browser app connected without replacing the
 // marketing homepage. Netlify exposes the isolated prototype at /app/ through
-// _redirects; the build adds a consistent entry point across website pages.
+// _redirects; the build adds a consistent entry point and approved brand layer
+// across every root website page.
 const htmlFiles = fs.readdirSync(root)
   .filter((name) => name.endsWith('.html'))
   .map((name) => path.join(root, name));
 
 for (const htmlPath of htmlFiles) {
   const original = fs.readFileSync(htmlPath, 'utf8');
-  let updated = original.replaceAll(
-    'Signal. Confidence. Advantage.',
-    'Card Value Intelligence',
-  );
+  let updated = ensurePerfectedBrandIdentity(original);
 
+  updated = ensurePerfectedBrandStylesheet(updated);
+  updated = ensurePerfectedBrandFavicon(updated);
   updated = ensureDesktopAppLink(updated);
   updated = ensureMobileAppLink(updated);
   updated = ensureFooterAppLink(updated);
 
   if (updated !== original) {
     fs.writeFileSync(htmlPath, updated, 'utf8');
-    console.log(`Updated website app entry points and brand line in ${path.basename(htmlPath)}`);
+    console.log(`Updated website app entry points and perfected brand layer in ${path.basename(htmlPath)}`);
   }
 }
+
+for (const htmlPath of htmlFiles) {
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  const hasHeader = html.includes('class="site-header"');
+
+  if (!hasHeader) continue;
+
+  const failures = [];
+  if (!html.includes('assets/brand/flipforge-mark.svg')) failures.push('approved header mark');
+  if (!html.includes('Card Value Intelligence')) failures.push('Card Value Intelligence identity line');
+  if (!html.includes('assets/css/brand-v2.css')) failures.push('perfected brand stylesheet');
+  if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
+  if (html.includes('Signal. Confidence. Advantage.')) failures.push('deprecated tagline removal');
+
+  if (path.basename(htmlPath) === 'index.html') {
+    if (!html.includes('assets/images/flipforge-grading-scenario.svg')) failures.push('native grading scenario visual');
+    if (!html.includes('assets/images/flipforge-traceback-guidance.svg')) failures.push('native traceback visual');
+    if (!html.includes('assets/js/section-navigation.js')) failures.push('deterministic section navigation');
+  }
+
+  if (failures.length) {
+    throw new Error(`${path.basename(htmlPath)} failed perfected brand validation: ${failures.join(', ')}`);
+  }
+}
+
+console.log(`Verified perfected FlipForge brand integration across ${htmlFiles.length} website pages.`);

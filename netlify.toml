@@ -1,6 +1,6 @@
 [build]
-  command = "node scripts/build-assets.js"
+  command = "node scripts/build-assets.js && node scripts/validate-brand-assets.js"
   publish = "."
 
 # FlipForge remains a static website. Netlify builds optimized visual assets,
-# then publishes the repository root directly from the production branch.
+# validates the approved brand system, then publishes the repository root.
