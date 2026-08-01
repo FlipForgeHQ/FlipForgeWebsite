@@ -56,6 +56,9 @@ check("033 staging app receives Identity client", appIndex.includes('/assets/js/
 check("034 staging Identity client loads before staging data adapter", appIndex.indexOf('/assets/js/flipforge-identity.js') < appIndex.indexOf('staging-browser.js'));
 check("035 generated bundle contains no FlipForge service-token identifier", !/FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_SAAS_SERVICE_TOKEN/.test(bundle));
 check("036 eBay privacy function exists in deployed functions directory", exists("netlify/modern-functions/ebay-privacy.js"));
+check("037 duplicate auth snapshots are fingerprinted before UI updates", identitySource.includes("function identityFingerprint(user)") && identitySource.includes("identityFingerprint(state.user) === identityFingerprint(normalized)"));
+check("038 auth-change subscription updates through the deduplicating setter", identitySource.includes("onAuthChange((_event, user) =>") && identitySource.includes("setAuthenticatedUser(user || null)"));
+check("039 login uses stable user setter without exposing credentials", identitySource.includes("setAuthenticatedUser(await login(email, password), { renderIfChanged: false })"));
 
 const failures = checks.filter(item => !item.passed);
 console.log("NetlifyIdentityModernizationValidation");
