@@ -5,23 +5,30 @@ import { build } from "esbuild";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDirectory, "..");
-const source = path.join(root, "scripts", "lib", "flipforge-identity-client.mjs");
-const output = path.join(root, "assets", "js", "flipforge-identity.js");
+const identitySource = path.join(root, "scripts", "lib", "flipforge-identity-client.mjs");
+const identityOutput = path.join(root, "assets", "js", "flipforge-identity.js");
+const probeSource = path.join(root, "scripts", "lib", "flipforge-staging-auth-probe.mjs");
+const probeOutput = path.join(root, "assets", "js", "flipforge-staging-auth-probe.js");
 const scriptTag = '<script src="/assets/js/flipforge-identity.js"></script>';
 
-fs.mkdirSync(path.dirname(output), { recursive: true });
+fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
 
-await build({
-  entryPoints: [source],
-  outfile: output,
-  bundle: true,
-  format: "iife",
-  platform: "browser",
-  target: ["es2020"],
-  minify: true,
-  sourcemap: false,
-  legalComments: "none"
-});
+async function bundle(source, output) {
+  await build({
+    entryPoints: [source],
+    outfile: output,
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    target: ["es2020"],
+    minify: true,
+    sourcemap: false,
+    legalComments: "none"
+  });
+}
+
+await bundle(identitySource, identityOutput);
+await bundle(probeSource, probeOutput);
 
 function injectBefore(htmlPath, marker) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Identity target missing: ${path.relative(root, htmlPath)}`);
@@ -42,5 +49,7 @@ injectBefore(path.join(root, "index.html"), "</body>");
 // based; the shim never exposes a raw JWT to browser code.
 injectBefore(path.join(root, "saas-prototype", "index.html"), '<script src="staging-browser.js"></script>');
 
-const bytes = fs.statSync(output).size;
-console.log(`Built FlipForge Netlify Identity client (${bytes} bytes).`);
+const identityBytes = fs.statSync(identityOutput).size;
+const probeBytes = fs.statSync(probeOutput).size;
+console.log(`Built FlipForge Netlify Identity client (${identityBytes} bytes).`);
+console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
