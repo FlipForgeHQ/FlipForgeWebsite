@@ -32,8 +32,8 @@ function safeOrigin(raw) {
   if (url.username || url.password || url.search || url.hash) {
     throw new Error("FLIPFORGE_STAGING_ORIGIN must not contain credentials, query, or fragment data.");
   }
-  url.pathname = url.pathname.replace(/\/+$/, "");
-  return url.origin + url.pathname;
+  const normalizedPath = url.pathname.replace(/\/+$/, "");
+  return url.origin + normalizedPath;
 }
 
 function readEvaluationPayload(filePath) {
