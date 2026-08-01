@@ -2,6 +2,9 @@ import { getUser } from "@netlify/identity";
 import legacyGateway from "../functions/flipforge-api.js";
 
 const legacyHandler = legacyGateway && legacyGateway.handler;
+const TENANT_ROLE_PREFIX = "flipforge-tenant--";
+const ACTIVE_ROLE = "flipforge-active";
+const SAFE_TENANT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/;
 
 if (typeof legacyHandler !== "function") {
   throw new Error("FlipForge authoritative gateway core is unavailable.");
@@ -34,12 +37,33 @@ async function legacyEvent(request) {
   };
 }
 
+function signedRoles(user, sourceMetadata) {
+  const direct = Array.isArray(user?.roles) ? user.roles : [];
+  const metadataRoles = Array.isArray(sourceMetadata?.roles) ? sourceMetadata.roles : [];
+  return [...new Set([...direct, ...metadataRoles].map(value => String(value || "").trim()).filter(Boolean))];
+}
+
+function membershipFromRoles(roles) {
+  if (!roles.includes(ACTIVE_ROLE)) return null;
+  const tenantRoles = roles.filter(role => role.startsWith(TENANT_ROLE_PREFIX));
+  if (tenantRoles.length !== 1) return null;
+  const tenantId = tenantRoles[0].slice(TENANT_ROLE_PREFIX.length);
+  if (!SAFE_TENANT_ID.test(tenantId)) return null;
+  return { tenantId, access: "active" };
+}
+
 function legacyUser(user) {
   if (!user) return null;
   const sourceMetadata = user.appMetadata || user.app_metadata || {};
+  const roles = signedRoles(user, sourceMetadata);
+  const existingMembership = sourceMetadata && typeof sourceMetadata === "object"
+    ? sourceMetadata.flipforge
+    : null;
+  const roleMembership = membershipFromRoles(roles);
   const appMetadata = {
     ...(sourceMetadata && typeof sourceMetadata === "object" ? sourceMetadata : {}),
-    ...(!sourceMetadata?.roles && Array.isArray(user.roles) ? { roles: user.roles } : {})
+    ...(roles.length ? { roles } : {}),
+    ...(!existingMembership && roleMembership ? { flipforge: roleMembership } : {})
   };
   return {
     id: user.id,
@@ -60,8 +84,9 @@ function normalizeHealth(result, event) {
   try {
     const payload = JSON.parse(result.body || "{}");
     if (payload?.data) {
-      payload.data.membershipSource = "netlify-identity-cookie-app-metadata";
+      payload.data.membershipSource = "netlify-identity-signed-roles";
       payload.data.authenticationTransport = "secure-same-origin-cookie";
+      payload.data.membershipRolePattern = "flipforge-active + flipforge-tenant--<tenantId>";
       result.body = JSON.stringify(payload);
     }
   } catch (_) {
@@ -86,8 +111,8 @@ export default async function flipForgeApi(request) {
 
   // Current Netlify Identity stores the signed session in secure nf_jwt /
   // nf_refresh cookies. getUser() verifies that session inside the modern
-  // Netlify runtime. The browser never selects a tenant and never sends the
-  // trusted FlipForge tenant/user headers.
+  // Netlify runtime. Tenant membership is derived only from owner-managed,
+  // Netlify-signed roles; the browser cannot choose a tenant or mark itself active.
   const user = publicHealth ? null : await getUser();
   const result = await legacyHandler(event, legacyContext(user));
   return modernResponse(normalizeHealth(result, event));
