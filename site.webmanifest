@@ -8,7 +8,7 @@
   "theme_color": "#030812",
   "icons": [
     {
-      "src": "/assets/brand/flipforge-mark.svg",
+      "src": "/assets/brand/flipforge-app-icon-dark.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
