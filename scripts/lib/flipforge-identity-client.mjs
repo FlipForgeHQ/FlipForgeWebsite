@@ -42,6 +42,31 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+function identityFingerprint(user) {
+  if (!user) return "anonymous";
+  const metadata = user.appMetadata || user.app_metadata || {};
+  const roles = [
+    ...(Array.isArray(user.roles) ? user.roles : []),
+    ...(Array.isArray(metadata.roles) ? metadata.roles : [])
+  ]
+    .map(value => String(value || "").trim())
+    .filter(Boolean)
+    .sort();
+  return JSON.stringify([
+    String(user.id || user.sub || ""),
+    String(user.email || ""),
+    [...new Set(roles)]
+  ]);
+}
+
+function setAuthenticatedUser(nextUser, { renderIfChanged = true } = {}) {
+  const normalized = nextUser || null;
+  if (identityFingerprint(state.user) === identityFingerprint(normalized)) return false;
+  state.user = normalized;
+  if (renderIfChanged) render();
+  return true;
+}
+
 function compatibilityUser() {
   if (!state.user) return null;
   // The pre-modern staging adapters only use jwt() to optionally construct an
@@ -61,8 +86,8 @@ window.netlifyIdentity = Object.freeze({
 window.FlipForgeIdentity = Object.freeze({
   getUser: () => state.user,
   refresh: async () => {
-    state.user = await getUser();
-    render();
+    const nextUser = await getUser();
+    setAuthenticatedUser(nextUser);
     return state.user;
   },
   open: () => {
@@ -138,7 +163,7 @@ function renderInvite(element) {
     try {
       await acceptInvite(state.inviteToken, password);
       state.inviteToken = "";
-      state.user = await getUser();
+      setAuthenticatedUser(await getUser(), { renderIfChanged: false });
       state.message = previewHost()
         ? "Account activated and signed in for this deploy preview."
         : "Account activated. Open the approved FlipForge deploy preview and sign in there.";
@@ -199,7 +224,7 @@ function renderPreview(element) {
     state.message = "";
     render();
     try {
-      state.user = await login(email, password);
+      setAuthenticatedUser(await login(email, password), { renderIfChanged: false });
       state.message = "Signed in. Refresh Staging Data to load the authenticated tenant view.";
       window.FlipForgeStagingReadAdapter?.refresh?.();
     } catch (error) {
@@ -216,7 +241,7 @@ function renderPreview(element) {
     render();
     try {
       await logout();
-      state.user = null;
+      setAuthenticatedUser(null, { renderIfChanged: false });
       state.message = "";
       state.panelOpen = false;
     } catch (error) {
@@ -252,22 +277,28 @@ async function initialize() {
         state.inviteToken = callback.token;
         clearCallbackHash();
       } else if (callback) {
-        state.user = callback.user || await getUser();
+        setAuthenticatedUser(callback.user || await getUser(), { renderIfChanged: false });
         state.message = callback.type === "recovery"
           ? "Password recovery was authenticated. Use Netlify Identity account recovery controls to complete the password change."
           : "Identity confirmation completed.";
         clearCallbackHash();
       }
     }
-    if (!state.user && !state.inviteToken) state.user = await getUser();
+    if (!state.user && !state.inviteToken) {
+      setAuthenticatedUser(await getUser(), { renderIfChanged: false });
+    }
   } catch (error) {
     state.error = error instanceof Error ? error.message : "Identity initialization failed.";
   }
 
   try {
     onAuthChange((_event, user) => {
-      state.user = user || null;
-      render();
+      // Netlify may publish repeated auth snapshots while refreshing secure
+      // session cookies. Re-rendering an unchanged anonymous/user snapshot
+      // destroys focused form controls and makes the login fields impossible
+      // to type into. Only rebuild the UI when the signed identity or roles
+      // actually change.
+      setAuthenticatedUser(user || null);
     });
   } catch (_) {
     // Initial login/logout calls still refresh state even if subscriptions are unavailable.
