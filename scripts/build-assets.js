@@ -17,18 +17,6 @@ const assets = [
         .join('');
     },
   },
-  {
-    output: 'grading-scenario-analysis.webp',
-    readBase64() {
-      return fs.readFileSync(path.join(sourceRoot, 'grading-scenario-analysis.b64'), 'utf8').trim();
-    },
-  },
-  {
-    output: 'recommendation-explorer.webp',
-    readBase64() {
-      return fs.readFileSync(path.join(sourceRoot, 'recommendation-explorer.b64'), 'utf8').trim();
-    },
-  },
 ];
 
 fs.mkdirSync(outputRoot, { recursive: true });
@@ -51,6 +39,8 @@ const requiredBrandAssets = [
   path.join(root, 'assets', 'brand', 'flipforge-mark.svg'),
   path.join(root, 'assets', 'brand', 'flipforge-app-icon-dark.svg'),
   path.join(root, 'assets', 'css', 'brand-v2.css'),
+  path.join(root, 'assets', 'images', 'flipforge-grading-scenario.svg'),
+  path.join(root, 'assets', 'images', 'flipforge-traceback-guidance.svg'),
 ];
 
 for (const brandAsset of requiredBrandAssets) {
@@ -59,19 +49,25 @@ for (const brandAsset of requiredBrandAssets) {
   }
 }
 
-// The earlier Recommendation Explorer WebP can fail to render in some manual
-// Netlify deployments. Use the native branded SVG for the gallery instead.
+// Earlier generated WebP visuals can decode successfully but still fail to paint
+// in some browser/Netlify combinations. Use native branded SVGs for the grading
+// and traceback panels so these core product visuals render deterministically.
 const indexPath = path.join(root, 'index.html');
 if (fs.existsSync(indexPath)) {
   const original = fs.readFileSync(indexPath, 'utf8');
-  const corrected = original.replaceAll(
-    'assets/images/recommendation-explorer.webp',
-    'assets/images/flipforge-traceback-guidance.svg',
-  );
+  const corrected = original
+    .replaceAll(
+      'assets/images/grading-scenario-analysis.webp',
+      'assets/images/flipforge-grading-scenario.svg',
+    )
+    .replaceAll(
+      'assets/images/recommendation-explorer.webp',
+      'assets/images/flipforge-traceback-guidance.svg',
+    );
 
   if (corrected !== original) {
     fs.writeFileSync(indexPath, corrected, 'utf8');
-    console.log('Updated homepage gallery to use flipforge-traceback-guidance.svg');
+    console.log('Updated homepage decision visuals to use native FlipForge SVG assets');
   }
 }
 
@@ -181,6 +177,11 @@ for (const htmlPath of htmlFiles) {
   if (!html.includes('assets/css/brand-v2.css')) failures.push('perfected brand stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
   if (html.includes('Signal. Confidence. Advantage.')) failures.push('deprecated tagline removal');
+
+  if (path.basename(htmlPath) === 'index.html') {
+    if (!html.includes('assets/images/flipforge-grading-scenario.svg')) failures.push('native grading scenario visual');
+    if (!html.includes('assets/images/flipforge-traceback-guidance.svg')) failures.push('native traceback visual');
+  }
 
   if (failures.length) {
     throw new Error(`${path.basename(htmlPath)} failed perfected brand validation: ${failures.join(', ')}`);
