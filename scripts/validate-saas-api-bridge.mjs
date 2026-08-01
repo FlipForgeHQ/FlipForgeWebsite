@@ -13,6 +13,8 @@ function read(relativePath) {
 
 const files = {
   gateway: read("netlify/functions/flipforge-api.js"),
+  modernGateway: read("netlify/modern-functions/flipforge-api.mjs"),
+  netlify: read("netlify.toml"),
   redirects: read("_redirects"),
   contract: read("contracts/flipforge-saas-api-v1.schema.json"),
   docs: read("docs/SAAS_API_BRIDGE.md"),
@@ -31,13 +33,13 @@ function jsonBody(response) {
   return JSON.parse(response.body || "{}");
 }
 
-check("001 API redirect targets the server-side function", files.redirects.includes("/api/v1/* /.netlify/functions/flipforge-api 200"));
+check("001 API v1 is owned by the single modern server-side function", files.modernGateway.includes('path: "/api/v1/*"') && files.modernGateway.includes('import { getUser } from "@netlify/identity"') && !files.redirects.includes("/api/v1/* /.netlify/functions/flipforge-api 200") && files.netlify.includes('directory = "netlify/modern-functions"'));
 check("002 gateway is disabled unless explicitly enabled", files.gateway.includes('FLIPFORGE_API_BRIDGE_ENABLED || ""') && files.gateway.includes('=== "true"'));
 check("003 upstream base URL comes from server environment", files.gateway.includes("process.env.FLIPFORGE_API_BASE_URL"));
 check("004 service token comes from server environment", files.gateway.includes("process.env.FLIPFORGE_API_SERVICE_TOKEN"));
 check("005 service token is used only in an upstream Authorization header", /Authorization:\s*`Bearer \$\{process\.env\.FLIPFORGE_API_SERVICE_TOKEN\}`/.test(files.gateway));
 check("006 health route reports booleans instead of secret values", files.gateway.includes("upstreamConfigured: upstreamConfigured()") && !files.gateway.includes("serviceToken:"));
-check("007 data routes require an authenticated function-context user", files.gateway.includes("context.clientContext.user") && files.gateway.includes("AUTHENTICATION_REQUIRED"));
+check("007 data routes require a signed server-resolved Identity user", files.modernGateway.includes("await getUser()") && files.gateway.includes("context.clientContext.user") && files.gateway.includes("AUTHENTICATION_REQUIRED"));
 check("008 unauthenticated preview bypass is blocked in production", files.gateway.includes('context !== "production"') && files.gateway.includes("FLIPFORGE_API_ALLOW_UNAUTHENTICATED_PREVIEW"));
 check("009 route access is controlled by an explicit allowlist", files.gateway.includes("const ROUTES = [") && files.gateway.includes("routeAllowed(method, path)"));
 check("010 gateway exposes no provider-administration route", !/provider-admin|credential-entry|accept-evidence|auto-buy|checkout/i.test(files.gateway));
@@ -107,6 +109,9 @@ function event(method, pathName, overrides = {}) {
 
 try {
   clearBridgeEnvironment();
+  // The retained core is tested directly with deterministic function-context
+  // fixtures. The modern adapter is separately validated for getUser(), cookie
+  // transport, custom routing, and legacy-contract mapping.
   const gatewayPath = path.join(repositoryRoot, "netlify/functions/flipforge-api.js");
   delete require.cache[require.resolve(gatewayPath)];
   const { handler } = require(gatewayPath);
