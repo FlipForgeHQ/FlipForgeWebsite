@@ -1,5 +1,4 @@
 /api/ebay/privacy /.netlify/functions/ebay-privacy 200
-/api/v1/* /.netlify/functions/flipforge-api 200
 /app /saas-prototype/index.html 200
 /app/ /saas-prototype/index.html 200
 /app/* /saas-prototype/:splat 200

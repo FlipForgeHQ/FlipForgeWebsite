@@ -1,0 +1,16 @@
+{
+  "name": "flipforge-website",
+  "private": true,
+  "version": "0.0.0",
+  "description": "FlipForge website and non-production SaaS staging surface.",
+  "scripts": {
+    "build:identity": "node scripts/build-identity-client.mjs",
+    "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs"
+  },
+  "dependencies": {
+    "@netlify/identity": "1.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  }
+}

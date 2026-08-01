@@ -1,0 +1,65 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
+const exists = relative => fs.existsSync(path.join(root, relative));
+
+const packageJson = JSON.parse(read("package.json"));
+const netlify = read("netlify.toml");
+const redirects = read("_redirects");
+const identitySource = read("scripts/lib/flipforge-identity-client.mjs");
+const buildIdentity = read("scripts/build-identity-client.mjs");
+const modernGateway = read("netlify/modern-functions/flipforge-api.mjs");
+const retainedGateway = read("netlify/functions/flipforge-api.js");
+const index = read("index.html");
+const appIndex = read("saas-prototype/index.html");
+const bundle = exists("assets/js/flipforge-identity.js") ? read("assets/js/flipforge-identity.js") : "";
+
+const checks = [];
+const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
+
+check("001 current Netlify Identity dependency is pinned", packageJson.dependencies?.["@netlify/identity"] === "1.2.0");
+check("002 browser bundler is pinned", packageJson.devDependencies?.esbuild === "0.28.1");
+check("003 build runs Identity bundle before validation", netlify.includes("npm run build:identity && npm run validate:identity"));
+check("004 only modern functions directory is deployed", netlify.includes('directory = "netlify/modern-functions"'));
+check("005 modern functions use esbuild", netlify.includes('node_bundler = "esbuild"'));
+check("006 tracked config does not activate SaaS bridge", !/FLIPFORGE_API_BRIDGE_ENABLED\s*=\s*["']?true/i.test(netlify));
+check("007 old redirect no longer invokes legacy SaaS function", !redirects.includes("/api/v1/* /.netlify/functions/flipforge-api"));
+check("008 eBay privacy route remains retained", redirects.includes("/api/ebay/privacy /.netlify/functions/ebay-privacy 200"));
+check("009 modern gateway imports current Identity verifier", modernGateway.includes('import { getUser } from "@netlify/identity"'));
+check("010 modern gateway retains existing authoritative gateway core", modernGateway.includes('import legacyGateway from "../functions/flipforge-api.js"'));
+check("011 modern gateway owns only API v1 custom path", modernGateway.includes('path: "/api/v1/*"'));
+check("012 modern gateway maps verified Identity user to retained contract", modernGateway.includes("app_metadata: appMetadata"));
+check("013 modern health reports cookie authentication transport", modernGateway.includes('authenticationTransport = "secure-same-origin-cookie"'));
+check("014 tenant membership comes from Netlify-signed roles", modernGateway.includes('TENANT_ROLE_PREFIX = "flipforge-tenant--"') && modernGateway.includes('ACTIVE_ROLE = "flipforge-active"'));
+check("015 tenant role requires exactly one tenant assignment", modernGateway.includes("tenantRoles.length !== 1"));
+check("016 tenant role suffix is validated with backend-compatible safe ID rules", modernGateway.includes("SAFE_TENANT_ID.test(tenantId)"));
+check("017 signed role membership cannot mark inactive users active", modernGateway.includes("if (!roles.includes(ACTIVE_ROLE)) return null"));
+check("018 health identifies signed roles as membership source", modernGateway.includes('membershipSource = "netlify-identity-signed-roles"'));
+check("019 retained core still injects tenant only server-side", retainedGateway.includes("[TENANT_HEADER]: tenant.tenantId"));
+check("020 retained core still forbids browser identity headers", retainedGateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN"));
+check("021 retained core still requires Smart Opportunity authority", retainedGateway.includes('meta.authority === "Smart Opportunity"'));
+check("022 retained core still requires existing PSA authority", retainedGateway.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
+check("023 Identity UI provides login but no public signup", identitySource.includes("await login(email, password)") && !identitySource.includes("signup("));
+check("024 Identity UI processes callbacks", identitySource.includes("handleAuthCallback"));
+check("025 Identity UI supports controlled invitation acceptance", identitySource.includes("acceptInvite(state.inviteToken, password)"));
+check("026 compatibility shim never exposes raw JWT", identitySource.includes("jwt: async () => null"));
+check("027 Identity UI does not use browser token storage", !/localStorage|sessionStorage|document\.cookie/.test(identitySource));
+check("028 Identity UI contains no server service token", !/FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_SAAS_SERVICE_TOKEN/.test(identitySource));
+check("029 Identity UI cannot inject trusted tenant or user headers", !/X-FlipForge-Tenant-Id|X-FlipForge-User-Id/.test(identitySource));
+check("030 Identity bundle build targets browser IIFE", buildIdentity.includes('format: "iife"') && buildIdentity.includes('platform: "browser"'));
+check("031 generated Identity bundle exists", bundle.length > 0);
+check("032 public root receives callback-capable Identity client", index.includes('/assets/js/flipforge-identity.js'));
+check("033 staging app receives Identity client", appIndex.includes('/assets/js/flipforge-identity.js'));
+check("034 staging Identity client loads before staging data adapter", appIndex.indexOf('/assets/js/flipforge-identity.js') < appIndex.indexOf('staging-browser.js'));
+check("035 generated bundle contains no FlipForge service-token identifier", !/FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_SAAS_SERVICE_TOKEN/.test(bundle));
+check("036 eBay privacy function exists in deployed functions directory", exists("netlify/modern-functions/ebay-privacy.js"));
+
+const failures = checks.filter(item => !item.passed);
+console.log("NetlifyIdentityModernizationValidation");
+console.log(`PASSED: ${checks.length - failures.length}`);
+console.log(`FAILED: ${failures.length}`);
+for (const failure of failures) console.error(`FAIL | ${failure.name}`);
+if (failures.length) process.exitCode = 1;
