@@ -42,12 +42,15 @@ async function withTimeout(promise, milliseconds = 8000) {
   }
 }
 
-if (!hostAllowed) {
-  form.hidden = true;
-  testButton.hidden = true;
-  signOutButton.hidden = true;
-  setStatus("This staging authentication probe is available only on approved deploy previews.", "error");
-} else {
+async function initialize() {
+  if (!hostAllowed) {
+    form.hidden = true;
+    testButton.hidden = true;
+    signOutButton.hidden = true;
+    setStatus("This staging authentication probe is available only on approved deploy previews.", "error");
+    return;
+  }
+
   try {
     setSignedIn(await withTimeout(getUser()));
   } catch (error) {
@@ -119,3 +122,5 @@ testButton?.addEventListener("click", async () => {
     testButton.disabled = !currentUser;
   }
 });
+
+initialize();
