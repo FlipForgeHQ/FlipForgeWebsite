@@ -39,6 +39,7 @@ const requiredBrandAssets = [
   path.join(root, 'assets', 'brand', 'flipforge-mark.svg'),
   path.join(root, 'assets', 'brand', 'flipforge-app-icon-dark.svg'),
   path.join(root, 'assets', 'css', 'brand-v2.css'),
+  path.join(root, 'assets', 'js', 'section-navigation.js'),
   path.join(root, 'assets', 'images', 'flipforge-grading-scenario.svg'),
   path.join(root, 'assets', 'images', 'flipforge-traceback-guidance.svg'),
 ];
@@ -52,10 +53,13 @@ for (const brandAsset of requiredBrandAssets) {
 // Earlier generated WebP visuals can decode successfully but still fail to paint
 // in some browser/Netlify combinations. Use native branded SVGs for the grading
 // and traceback panels so these core product visuals render deterministically.
+// Also install deterministic fragment navigation so direct #section URLs and
+// homepage section links align beneath the sticky header after layout completes.
 const indexPath = path.join(root, 'index.html');
 if (fs.existsSync(indexPath)) {
   const original = fs.readFileSync(indexPath, 'utf8');
-  const corrected = original
+  const navigationScript = '<script src="assets/js/section-navigation.js" defer></script>';
+  let corrected = original
     .replaceAll(
       'assets/images/grading-scenario-analysis.webp',
       'assets/images/flipforge-grading-scenario.svg',
@@ -65,9 +69,13 @@ if (fs.existsSync(indexPath)) {
       'assets/images/flipforge-traceback-guidance.svg',
     );
 
+  if (!corrected.includes('assets/js/section-navigation.js')) {
+    corrected = corrected.replace(/<\/body>/i, `${navigationScript}\n</body>`);
+  }
+
   if (corrected !== original) {
     fs.writeFileSync(indexPath, corrected, 'utf8');
-    console.log('Updated homepage decision visuals to use native FlipForge SVG assets');
+    console.log('Updated homepage decision visuals and deterministic section navigation');
   }
 }
 
@@ -181,6 +189,7 @@ for (const htmlPath of htmlFiles) {
   if (path.basename(htmlPath) === 'index.html') {
     if (!html.includes('assets/images/flipforge-grading-scenario.svg')) failures.push('native grading scenario visual');
     if (!html.includes('assets/images/flipforge-traceback-guidance.svg')) failures.push('native traceback visual');
+    if (!html.includes('assets/js/section-navigation.js')) failures.push('deterministic section navigation');
   }
 
   if (failures.length) {
