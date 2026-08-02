@@ -46,7 +46,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["022 grading authority contract is exact", files.adapter.includes('meta.gradingAuthority === "Existing PSA intelligence"')],
   ["023 correlation ID is validated", files.adapter.includes("meta.correlationId === expectedCorrelationId")],
   ["024 response size is bounded", files.adapter.includes("MAX_RESPONSE_CHARACTERS") && files.adapter.includes("EXPORT_RESPONSE_TOO_LARGE")],
-  ["025 opportunity kind and ID are matched", files.adapter.includes('kind !== "opportunity"') && files.adapter.includes("EXPORT_OPPORTUNITY_INVALID")],
+  ["025 opportunity detail kind and ID are matched", files.adapter.includes('kind !== "opportunity-detail"') && files.adapter.includes("EXPORT_OPPORTUNITY_INVALID")],
   ["026 evidence kind and ID are matched", files.adapter.includes('kind !== "evidence"') && files.adapter.includes("EXPORT_EVIDENCE_INVALID")],
   ["027 PSA is saved not recalculated", files.adapter.includes('kind !== "psa-advisor"') && files.adapter.includes("psa?.recalculated !== false")],
   ["028 lifecycle includes history", files.adapter.includes('kind !== "lifecycle-detail"') && files.adapter.includes("!Array.isArray(lifecycle?.history)")],
@@ -183,7 +183,7 @@ function runtime({ hostname = "deploy-preview-37--goflipforge.netlify.app", heal
     const correlationId = options.headers["X-Correlation-Id"];
     if (url === "/api/v1/health") return response({ meta: { contractVersion: "1.0", correlationId }, data: { status: healthStatus, bridgeEnabled: healthStatus === "configured" } });
     if (url === "/api/v1/opportunities") return response(envelope(correlationId, { kind: "opportunities", count: 1, items: [item] }, authority));
-    if (url === "/api/v1/opportunities/opp-1") return response(envelope(correlationId, { kind: "opportunity", opportunity: requestedMismatch ? { ...item, id: "other" } : item }, authority));
+    if (url === "/api/v1/opportunities/opp-1") return response(envelope(correlationId, { kind: "opportunity-detail", opportunity: requestedMismatch ? { ...item, id: "other" } : item }, authority));
     if (url === "/api/v1/evidence/opp-1") return response(envelope(correlationId, evidence, authority));
     if (url === "/api/v1/psa-advisor/opp-1") return response(envelope(correlationId, psa, authority));
     if (url === "/api/v1/lifecycle/opp-1") return response(envelope(correlationId, lifecycle, authority));
