@@ -34,6 +34,7 @@ $proofEngine = Get-Content .\scripts\lib\saas-staging-live-proof.mjs -Raw
 $runner = Get-Content .\scripts\run-saas-staging-live-proof.mjs -Raw
 $netlify = Get-Content .\netlify.toml -Raw
 $gateway = Get-Content .\netlify\functions\flipforge-api.js -Raw
+$modernGateway = Get-Content .\netlify\modern-functions\flipforge-api.mjs -Raw
 
 if ($netlify -match 'FLIPFORGE_API_BRIDGE_ENABLED\s*=\s*["'']?true') {
     throw "Tracked Netlify configuration must not activate the staging bridge."
@@ -47,6 +48,9 @@ if ($proofEngine -notmatch 'RUN_STAGING_WRITE_PROOF') {
 if ($proofEngine -notmatch 'Production FlipForge hosts are forbidden') {
     throw "Live proof must explicitly reject production hosts."
 }
+if ($proofEngine -notmatch 'deploy-preview-' -or $proofEngine -notmatch 'APPROVED_STAGING_HOST') {
+    throw "Live proof must restrict credential use to approved FlipForge deploy-preview hosts."
+}
 if ($proofEngine -match 'X-FlipForge-Tenant-Id\s*["'']?\s*:') {
     throw "Live proof client must never inject the trusted tenant header."
 }
@@ -59,8 +63,17 @@ if ($proofEngine -notmatch 'transactionAuthorized !== false') {
 if ($proofEngine -notmatch 'Smart Opportunity' -or $proofEngine -notmatch 'Existing PSA intelligence') {
     throw "Live proof must retain recommendation and grading authority checks."
 }
-if ($runner -match 'FLIPFORGE_STAGING_USER_A_JWT\s*=|FLIPFORGE_STAGING_USER_B_JWT\s*=') {
-    throw "Live proof runner must not contain embedded JWT values."
+if ($proofEngine -match 'FLIPFORGE_STAGING_USER_[AB]_JWT|headers\.Authorization\s*=') {
+    throw "Live proof must not use browser Identity JWT or Bearer-header transport."
+}
+if ($proofEngine -notmatch '/\.netlify/identity/token' -or $proofEngine -notmatch 'headers\.Cookie\s*=\s*session') {
+    throw "Live proof must establish and carry secure same-origin Identity cookie sessions."
+}
+if ($modernGateway -notmatch 'getUser\(\)' -or $modernGateway -notmatch 'secure-same-origin-cookie') {
+    throw "Modern gateway must retain verified cookie-session authentication."
+}
+if ($runner -match 'FLIPFORGE_STAGING_USER_A_PASSWORD\s*=|FLIPFORGE_STAGING_USER_B_PASSWORD\s*=') {
+    throw "Live proof runner must not contain embedded Identity passwords."
 }
 if ($gateway -notmatch 'productionPreviewBypassAllowed: false') {
     throw "Gateway must continue to forbid production preview bypass."

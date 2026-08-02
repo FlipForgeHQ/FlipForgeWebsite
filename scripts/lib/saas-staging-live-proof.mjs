@@ -5,11 +5,18 @@ import path from "node:path";
 const CONTRACT_VERSION = "1.0";
 const SAFE_ID = /^[A-Za-z0-9._:-]+$/;
 const SAFE_IDEMPOTENCY_KEY = /^[A-Za-z0-9._-]{8,100}$/;
+const APPROVED_STAGING_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
 const WRITE_ACK = "RUN_STAGING_WRITE_PROOF";
 const MAX_RESPONSE_BYTES = 1_000_000;
 
 function required(env, name) {
   const value = String(env[name] || "").trim();
+  if (!value) throw new Error(`${name} is required.`);
+  return value;
+}
+
+function requiredSecret(env, name) {
+  const value = String(env[name] || "");
   if (!value) throw new Error(`${name} is required.`);
   return value;
 }
@@ -24,6 +31,9 @@ function safeOrigin(raw) {
   const hostname = url.hostname.toLowerCase();
   if (["goflipforge.com", "www.goflipforge.com"].includes(hostname)) {
     throw new Error("Production FlipForge hosts are forbidden for staging live proof.");
+  }
+  if (!APPROVED_STAGING_HOST.test(hostname)) {
+    throw new Error("Staging live proof is restricted to approved FlipForge deploy-preview hosts or localhost.");
   }
   const local = hostname === "localhost" || hostname === "127.0.0.1";
   if (!local && url.protocol !== "https:") {
@@ -87,6 +97,46 @@ async function readJsonLimited(response) {
   }
 }
 
+async function identitySession(fetchImpl, origin, label, email, password) {
+  let response;
+  try {
+    response = await fetchImpl(`${origin}/.netlify/identity/token`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+      },
+      body: new URLSearchParams({
+        grant_type: "password",
+        username: email,
+        password
+      }).toString(),
+      redirect: "error",
+      cache: "no-store"
+    });
+  } catch {
+    throw new Error(`Netlify Identity sign-in was unavailable for ${label}.`);
+  }
+
+  let payload;
+  try {
+    payload = await readJsonLimited(response);
+  } catch {
+    throw new Error(`Netlify Identity returned an invalid sign-in response for ${label}.`);
+  }
+  if (!response.ok) {
+    throw new Error(`Netlify Identity sign-in failed for ${label} (HTTP ${response.status}).`);
+  }
+
+  const accessToken = typeof payload.access_token === "string" ? payload.access_token : "";
+  const refreshToken = typeof payload.refresh_token === "string" ? payload.refresh_token : "";
+  if (!accessToken || !refreshToken) {
+    throw new Error(`Netlify Identity did not establish a complete cookie session for ${label}.`);
+  }
+
+  return `nf_jwt=${encodeURIComponent(accessToken)}; nf_refresh=${encodeURIComponent(refreshToken)}`;
+}
+
 function assertEnvelope(payload, expectedCorrelationId) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new Error("Missing JSON envelope.");
   if (!payload.meta || typeof payload.meta !== "object") throw new Error("Missing response meta.");
@@ -108,13 +158,13 @@ function assertTenantIsolation(data) {
   }
 }
 
-async function call(fetchImpl, origin, route, { token = null, method = "GET", body = null, idempotencyKey = null, expect = [200], uuid = crypto.randomUUID } = {}) {
+async function call(fetchImpl, origin, route, { session = null, method = "GET", body = null, idempotencyKey = null, expect = [200], uuid = crypto.randomUUID } = {}) {
   const corr = correlationId(uuid);
   const headers = {
     Accept: "application/json",
     "X-Correlation-Id": corr
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (session) headers.Cookie = session;
   if (body !== null) headers["Content-Type"] = "application/json; charset=utf-8";
   if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
 
@@ -139,13 +189,20 @@ function record(proof, name, result, extra = {}) {
 
 export async function runStagingLiveProof({ env = process.env, fetchImpl = fetch, uuid = crypto.randomUUID, clock = () => new Date() } = {}) {
   const origin = safeOrigin(required(env, "FLIPFORGE_STAGING_ORIGIN"));
-  const tokenA = required(env, "FLIPFORGE_STAGING_USER_A_JWT");
-  const tokenB = required(env, "FLIPFORGE_STAGING_USER_B_JWT");
-  const unprovisioned = String(env.FLIPFORGE_STAGING_UNPROVISIONED_JWT || "").trim();
   if (required(env, "FLIPFORGE_STAGING_LIVE_PROOF_ACK") !== WRITE_ACK) {
     throw new Error(`FLIPFORGE_STAGING_LIVE_PROOF_ACK must equal ${WRITE_ACK}.`);
   }
   const payload = readEvaluationPayload(required(env, "FLIPFORGE_STAGING_EVALUATION_PAYLOAD_FILE"));
+  const userAEmail = required(env, "FLIPFORGE_STAGING_USER_A_EMAIL");
+  const userAPassword = requiredSecret(env, "FLIPFORGE_STAGING_USER_A_PASSWORD");
+  const userBEmail = required(env, "FLIPFORGE_STAGING_USER_B_EMAIL");
+  const userBPassword = requiredSecret(env, "FLIPFORGE_STAGING_USER_B_PASSWORD");
+  const unprovisionedEmail = String(env.FLIPFORGE_STAGING_UNPROVISIONED_EMAIL || "").trim();
+  const unprovisionedPassword = String(env.FLIPFORGE_STAGING_UNPROVISIONED_PASSWORD || "");
+  if (Boolean(unprovisionedEmail) !== Boolean(unprovisionedPassword)) {
+    throw new Error("Optional unprovisioned Identity email and password must be supplied together.");
+  }
+
   const idempotencyKey = `proof-${uuid()}`.replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 100);
   if (!SAFE_IDEMPOTENCY_KEY.test(idempotencyKey)) throw new Error("Generated idempotency key is unsafe.");
 
@@ -170,32 +227,41 @@ export async function runStagingLiveProof({ env = process.env, fetchImpl = fetch
   if (healthData.authenticationRequired !== true || healthData.tenantMembershipRequired !== true || healthData.clientIdentityHeadersAccepted !== false || healthData.productionPreviewBypassAllowed !== false) {
     throw new Error("Gateway health weakened authentication or identity boundaries.");
   }
+  if (healthData.authenticationTransport !== "secure-same-origin-cookie" || healthData.membershipSource !== "netlify-identity-signed-roles") {
+    throw new Error("Gateway health does not report the approved cookie-authenticated signed-role boundary.");
+  }
   record(proof, "gateway-health", "PASS", { correlationId: health.correlationId, status: health.response.status });
 
   const unauth = await call(fetchImpl, origin, "/api/v1/dashboard", { expect: [401], uuid });
   if (!unauth.payload.error || unauth.payload.error.code !== "AUTHENTICATION_REQUIRED") throw new Error("Unauthenticated boundary did not return AUTHENTICATION_REQUIRED.");
   record(proof, "unauthenticated-deny", "PASS", { correlationId: unauth.correlationId, status: unauth.response.status });
 
-  if (unprovisioned) {
-    const unprov = await call(fetchImpl, origin, "/api/v1/dashboard", { token: unprovisioned, expect: [403], uuid });
+  const sessionA = await identitySession(fetchImpl, origin, "User A", userAEmail, userAPassword);
+  const sessionB = await identitySession(fetchImpl, origin, "User B", userBEmail, userBPassword);
+  const unprovisionedSession = unprovisionedEmail
+    ? await identitySession(fetchImpl, origin, "the unprovisioned user", unprovisionedEmail, unprovisionedPassword)
+    : null;
+
+  if (unprovisionedSession) {
+    const unprov = await call(fetchImpl, origin, "/api/v1/dashboard", { session: unprovisionedSession, expect: [403], uuid });
     if (!unprov.payload.error || !String(unprov.payload.error.code || "").startsWith("TENANT_MEMBERSHIP_")) {
       throw new Error("Unprovisioned identity did not fail with tenant-membership denial.");
     }
     record(proof, "unprovisioned-deny", "PASS", { correlationId: unprov.correlationId, status: unprov.response.status });
   }
 
-  const dashboard = await call(fetchImpl, origin, "/api/v1/dashboard", { token: tokenA, uuid });
+  const dashboard = await call(fetchImpl, origin, "/api/v1/dashboard", { session: sessionA, uuid });
   const dashboardData = assertEnvelope(dashboard.payload, dashboard.correlationId);
   assertTenantIsolation(dashboardData);
   record(proof, "tenant-a-dashboard", "PASS", { correlationId: dashboard.correlationId, status: dashboard.response.status });
 
-  const opportunities = await call(fetchImpl, origin, "/api/v1/opportunities", { token: tokenA, uuid });
+  const opportunities = await call(fetchImpl, origin, "/api/v1/opportunities", { session: sessionA, uuid });
   const opportunitiesData = assertEnvelope(opportunities.payload, opportunities.correlationId);
   assertTenantIsolation(opportunitiesData);
   record(proof, "tenant-a-opportunities", "PASS", { correlationId: opportunities.correlationId, status: opportunities.response.status });
 
   const evaluation = await call(fetchImpl, origin, "/api/v1/evaluations", {
-    token: tokenA,
+    session: sessionA,
     method: "POST",
     body: payload,
     idempotencyKey,
@@ -212,7 +278,7 @@ export async function runStagingLiveProof({ env = process.env, fetchImpl = fetch
   record(proof, "tenant-a-evaluation", "PASS", { correlationId: evaluation.correlationId, status: evaluation.response.status, opportunityId });
 
   const replay = await call(fetchImpl, origin, "/api/v1/evaluations", {
-    token: tokenA,
+    session: sessionA,
     method: "POST",
     body: payload,
     idempotencyKey,
@@ -223,22 +289,22 @@ export async function runStagingLiveProof({ env = process.env, fetchImpl = fetch
   if (replayData.opportunityId !== opportunityId || replayData.idempotentReplay !== true) throw new Error("Evaluation idempotent replay proof failed.");
   record(proof, "tenant-a-idempotent-replay", "PASS", { correlationId: replay.correlationId, status: replay.response.status, opportunityId });
 
-  const detail = await call(fetchImpl, origin, `/api/v1/opportunities/${encodeURIComponent(opportunityId)}`, { token: tokenA, uuid });
+  const detail = await call(fetchImpl, origin, `/api/v1/opportunities/${encodeURIComponent(opportunityId)}`, { session: sessionA, uuid });
   const detailData = assertEnvelope(detail.payload, detail.correlationId);
   assertTenantIsolation(detailData);
   record(proof, "tenant-a-saved-detail", "PASS", { correlationId: detail.correlationId, status: detail.response.status, opportunityId });
 
-  const evidence = await call(fetchImpl, origin, `/api/v1/evidence/${encodeURIComponent(opportunityId)}`, { token: tokenA, uuid });
+  const evidence = await call(fetchImpl, origin, `/api/v1/evidence/${encodeURIComponent(opportunityId)}`, { session: sessionA, uuid });
   const evidenceData = assertEnvelope(evidence.payload, evidence.correlationId);
   assertTenantIsolation(evidenceData);
   record(proof, "tenant-a-evidence", "PASS", { correlationId: evidence.correlationId, status: evidence.response.status, opportunityId });
 
-  const psa = await call(fetchImpl, origin, `/api/v1/psa-advisor/${encodeURIComponent(opportunityId)}`, { token: tokenA, uuid });
+  const psa = await call(fetchImpl, origin, `/api/v1/psa-advisor/${encodeURIComponent(opportunityId)}`, { session: sessionA, uuid });
   const psaData = assertEnvelope(psa.payload, psa.correlationId);
   assertTenantIsolation(psaData);
   record(proof, "tenant-a-psa", "PASS", { correlationId: psa.correlationId, status: psa.response.status, opportunityId });
 
-  const crossTenant = await call(fetchImpl, origin, `/api/v1/opportunities/${encodeURIComponent(opportunityId)}`, { token: tokenB, expect: [404], uuid });
+  const crossTenant = await call(fetchImpl, origin, `/api/v1/opportunities/${encodeURIComponent(opportunityId)}`, { session: sessionB, expect: [404], uuid });
   if (!crossTenant.payload.error || crossTenant.payload.error.code !== "RESOURCE_NOT_FOUND") throw new Error("Cross-tenant probe did not fail with non-disclosing RESOURCE_NOT_FOUND.");
   record(proof, "tenant-b-cross-tenant-deny", "PASS", { correlationId: crossTenant.correlationId, status: crossTenant.response.status, opportunityId });
 

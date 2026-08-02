@@ -23,16 +23,17 @@ The live harness verifies the complete staging customer path:
 11. no browser/client request injects `X-FlipForge-Tenant-Id` or `X-FlipForge-User-Id`;
 12. no transaction authority, evidence acceptance, or PSA recalculation is introduced by the request.
 
-The output is a redacted proof containing status codes, correlation IDs, the saved staging opportunity ID, and pass/fail state. It does not contain JWTs, service tokens, raw tenant IDs, or provider credentials.
+The output is a redacted proof containing status codes, correlation IDs, the saved staging opportunity ID, and pass/fail state. It does not contain passwords, session cookies, JWTs, service tokens, raw tenant IDs, or provider credentials.
 
 ## Safety gates
 
 The harness refuses to run when:
 
 - `FLIPFORGE_STAGING_ORIGIN` is `goflipforge.com` or `www.goflipforge.com`;
+- the origin is not an exact `deploy-preview-<number>--goflipforge.netlify.app`, `localhost`, or `127.0.0.1` host;
 - a non-local origin is not HTTPS;
 - the exact write acknowledgment is missing;
-- either controlled staging JWT is missing;
+- either controlled staging account credential pair is missing;
 - the evaluation payload contains recommendation, confidence, supported value, verification, tenant, transaction, evidence-acceptance, PSA-recalculation, or authority override fields;
 - the returned response weakens Smart Opportunity, PSA, tenant-isolation, idempotency, persistence, or transaction-denial boundaries.
 
@@ -42,8 +43,10 @@ Supply these values only in the operator shell or secret manager. Do not add the
 
 ```text
 FLIPFORGE_STAGING_ORIGIN=https://<approved-netlify-deploy-preview-host>
-FLIPFORGE_STAGING_USER_A_JWT=<signed-user-a-jwt>
-FLIPFORGE_STAGING_USER_B_JWT=<signed-user-b-jwt>
+FLIPFORGE_STAGING_USER_A_EMAIL=<controlled-user-a-email>
+FLIPFORGE_STAGING_USER_A_PASSWORD=<controlled-user-a-password>
+FLIPFORGE_STAGING_USER_B_EMAIL=<controlled-user-b-email>
+FLIPFORGE_STAGING_USER_B_PASSWORD=<controlled-user-b-password>
 FLIPFORGE_STAGING_LIVE_PROOF_ACK=RUN_STAGING_WRITE_PROOF
 FLIPFORGE_STAGING_EVALUATION_PAYLOAD_FILE=<absolute-or-relative-path-to-controlled-json>
 ```
@@ -51,10 +54,11 @@ FLIPFORGE_STAGING_EVALUATION_PAYLOAD_FILE=<absolute-or-relative-path-to-controll
 Optional:
 
 ```text
-FLIPFORGE_STAGING_UNPROVISIONED_JWT=<signed-unprovisioned-user-jwt>
+FLIPFORGE_STAGING_UNPROVISIONED_EMAIL=<controlled-unprovisioned-email>
+FLIPFORGE_STAGING_UNPROVISIONED_PASSWORD=<controlled-unprovisioned-password>
 ```
 
-The JWTs are read only from process memory and are never written to the proof artifact.
+The runner submits each credential pair only to the approved preview's Netlify Identity token endpoint, keeps the returned `nf_jwt`/`nf_refresh` session in process memory, and sends it to same-origin gateway routes as a cookie. It never sends a user Bearer header and never writes credentials, cookies, or tokens to the proof artifact. Supply credentials only through the operator shell or secret manager; never commit them or paste them into logs, screenshots, or chat.
 
 ## Controlled evaluation payload
 

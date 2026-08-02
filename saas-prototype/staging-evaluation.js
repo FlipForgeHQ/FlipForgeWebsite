@@ -92,15 +92,6 @@
     return key;
   }
 
-  async function identityAuthorization() {
-    const identity = window.netlifyIdentity;
-    if (!identity || typeof identity.currentUser !== "function") return null;
-    const user = identity.currentUser();
-    if (!user || typeof user.jwt !== "function") return null;
-    const token = await user.jwt();
-    return typeof token === "string" && token.trim() ? `Bearer ${token.trim()}` : null;
-  }
-
   function validationError(code, message) {
     const error = new Error(message);
     error.code = code;
@@ -231,14 +222,12 @@
     if (!SAFE_REQUEST_ID.test(idempotencyKey)) throw validationError("IDEMPOTENCY_KEY_INVALID", "The staging idempotency key is invalid.");
 
     const requestCorrelationId = correlationId();
-    const authorization = await identityAuthorization();
     const headers = {
       Accept: "application/json",
       "Content-Type": "application/json; charset=utf-8",
       "X-Correlation-Id": requestCorrelationId,
       "Idempotency-Key": idempotencyKey
     };
-    if (authorization) headers.Authorization = authorization;
 
     const response = await fetch(EVALUATION_PATH, {
       method: "POST",

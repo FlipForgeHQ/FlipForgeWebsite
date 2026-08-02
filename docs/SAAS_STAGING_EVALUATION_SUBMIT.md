@@ -28,10 +28,11 @@ POST /api/v1/evaluations
 
 Headers:
 
-- `Authorization: Bearer <signed Netlify Identity JWT>` when an authenticated preview user exists
 - `X-Correlation-Id: <browser-generated correlation ID>`
 - `Idempotency-Key: <browser-generated safe key>`
 - `Content-Type: application/json; charset=utf-8`
+
+The browser sends the verified Netlify Identity session only through `credentials: "same-origin"`, which carries the secure `nf_jwt`/`nf_refresh` cookies. It never reads a raw JWT or constructs a user `Authorization` header.
 
 The browser never sends:
 

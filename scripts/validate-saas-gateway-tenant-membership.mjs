@@ -267,7 +267,7 @@ try {
   );
   const allowedHeaders = preflight.headers["Access-Control-Allow-Headers"] || "";
   check("046 preflight permits idempotency header", preflight.statusCode === 204 && allowedHeaders.includes("Idempotency-Key"));
-  check("047 preflight does not permit browser tenant header", !allowedHeaders.includes("X-FlipForge-Tenant-Id"));
+  check("047 preflight permits neither browser identity nor user bearer headers", !allowedHeaders.includes("X-FlipForge-Tenant-Id") && !allowedHeaders.includes("Authorization"));
 
   process.env.FLIPFORGE_API_ALLOW_UNAUTHENTICATED_PREVIEW = "false";
   globalThis.fetch = async (_url, options) => new Response(

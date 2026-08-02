@@ -44,9 +44,9 @@ function injectBefore(htmlPath, marker) {
 // visually dormant there unless a callback is present.
 injectBefore(path.join(root, "index.html"), "</body>");
 
-// The staging application needs the compatibility surface established before
-// its read/evaluation adapters execute. Authentication itself remains cookie-
-// based; the shim never exposes a raw JWT to browser code.
+// The staging application initializes the current Identity UI before its
+// read/evaluation adapters execute. Customer API authentication remains
+// cookie-based; the adapters never read or forward a raw JWT.
 injectBefore(path.join(root, "saas-prototype", "index.html"), '<script src="staging-browser.js"></script>');
 
 const identityBytes = fs.statSync(identityOutput).size;

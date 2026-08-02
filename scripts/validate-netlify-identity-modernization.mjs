@@ -45,7 +45,7 @@ check("022 retained core still requires existing PSA authority", retainedGateway
 check("023 Identity UI provides login but no public signup", identitySource.includes("await login(email, password)") && !identitySource.includes("signup("));
 check("024 Identity UI processes callbacks", identitySource.includes("handleAuthCallback"));
 check("025 Identity UI supports controlled invitation acceptance", identitySource.includes("acceptInvite(state.inviteToken, password)"));
-check("026 compatibility shim never exposes raw JWT", identitySource.includes("jwt: async () => null"));
+check("026 Identity client exposes no legacy JWT compatibility surface", !/window\.netlifyIdentity|jwt:\s*async/.test(identitySource));
 check("027 Identity UI does not use browser token storage", !/localStorage|sessionStorage|document\.cookie/.test(identitySource));
 check("028 Identity UI contains no server service token", !/FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_SAAS_SERVICE_TOKEN/.test(identitySource));
 check("029 Identity UI cannot inject trusted tenant or user headers", !/X-FlipForge-Tenant-Id|X-FlipForge-User-Id/.test(identitySource));

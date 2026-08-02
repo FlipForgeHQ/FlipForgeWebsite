@@ -59,8 +59,30 @@ const fetchImpl = async (url, options = {}) => {
   const route = parsed.pathname;
   const headers = options.headers || {};
   const corr = headers["X-Correlation-Id"];
-  const auth = headers.Authorization || "";
-  observed.push({ route, method: options.method || "GET", hasAuth: Boolean(auth), hasTenantHeader: "X-FlipForge-Tenant-Id" in headers, hasUserHeader: "X-FlipForge-User-Id" in headers });
+  const authorization = headers.Authorization || "";
+  const cookie = headers.Cookie || "";
+
+  if (route === "/.netlify/identity/token") {
+    const credentials = new URLSearchParams(String(options.body || ""));
+    const username = credentials.get("username");
+    const session = username === "user-a@example.invalid"
+      ? "tenant-a"
+      : username === "user-b@example.invalid"
+        ? "tenant-b"
+        : "unknown";
+    observed.push({ kind: "identity", route, method: options.method || "GET", hasAuth: Boolean(authorization), hasCookie: Boolean(cookie) });
+    if (session === "unknown" || credentials.get("password") !== `${session}-password`) {
+      return response({ msg: "invalid login" }, 401);
+    }
+    return response({
+      access_token: `${session}-access`,
+      refresh_token: `${session}-refresh`,
+      token_type: "bearer",
+      expires_in: 3600
+    });
+  }
+
+  observed.push({ kind: "api", route, method: options.method || "GET", hasAuth: Boolean(authorization), hasCookie: Boolean(cookie), hasTenantHeader: "X-FlipForge-Tenant-Id" in headers, hasUserHeader: "X-FlipForge-User-Id" in headers });
 
   if (route === "/api/v1/health") return response({ meta: { contractVersion: "1.0", correlationId: corr }, data: {
     status: "configured",
@@ -69,11 +91,13 @@ const fetchImpl = async (url, options = {}) => {
     authenticationRequired: true,
     tenantMembershipRequired: true,
     clientIdentityHeadersAccepted: false,
-    productionPreviewBypassAllowed: false
+    productionPreviewBypassAllowed: false,
+    authenticationTransport: "secure-same-origin-cookie",
+    membershipSource: "netlify-identity-signed-roles"
   } });
 
-  if (!auth) return response({ error: { code: "AUTHENTICATION_REQUIRED", correlationId: corr } }, 401);
-  const token = auth.replace(/^Bearer\s+/i, "");
+  if (!cookie) return response({ error: { code: "AUTHENTICATION_REQUIRED", correlationId: corr } }, 401);
+  const tenantB = cookie.includes("nf_jwt=tenant-b-access");
 
   if (route === "/api/v1/dashboard") return response(envelope(corr, { kind: "dashboard", tenantIsolation }));
   if (route === "/api/v1/opportunities") return response(envelope(corr, { kind: "opportunities", items: [], tenantIsolation }));
@@ -98,7 +122,7 @@ const fetchImpl = async (url, options = {}) => {
   }
 
   if (route === "/api/v1/opportunities/EBAY-staging-proof-001") {
-    if (token === "tenant-b-jwt") return response({ error: { code: "RESOURCE_NOT_FOUND", correlationId: corr } }, 404);
+    if (tenantB) return response({ error: { code: "RESOURCE_NOT_FOUND", correlationId: corr } }, 404);
     return response(envelope(corr, { kind: "opportunity-detail", tenantIsolation }));
   }
   if (route === "/api/v1/evidence/EBAY-staging-proof-001") return response(envelope(corr, { kind: "evidence", tenantIsolation }));
@@ -108,8 +132,10 @@ const fetchImpl = async (url, options = {}) => {
 
 const env = {
   FLIPFORGE_STAGING_ORIGIN: "https://deploy-preview-99--goflipforge.netlify.app",
-  FLIPFORGE_STAGING_USER_A_JWT: "tenant-a-jwt",
-  FLIPFORGE_STAGING_USER_B_JWT: "tenant-b-jwt",
+  FLIPFORGE_STAGING_USER_A_EMAIL: "user-a@example.invalid",
+  FLIPFORGE_STAGING_USER_A_PASSWORD: "tenant-a-password",
+  FLIPFORGE_STAGING_USER_B_EMAIL: "user-b@example.invalid",
+  FLIPFORGE_STAGING_USER_B_PASSWORD: "tenant-b-password",
   FLIPFORGE_STAGING_LIVE_PROOF_ACK: "RUN_STAGING_WRITE_PROOF",
   FLIPFORGE_STAGING_EVALUATION_PAYLOAD_FILE: payloadPath
 };
@@ -126,10 +152,16 @@ try {
   check("008 proof verifies idempotency", proof.summary.idempotencyProved === true);
   check("009 proof does not claim production activation", proof.summary.productionActivated === false);
   check("010 same evaluation is sent twice", evaluationCalls === 2);
-  check("011 client never sends tenant header", observed.every(call => call.hasTenantHeader === false));
-  check("012 client never sends user header", observed.every(call => call.hasUserHeader === false));
-  check("013 health is requested without auth", observed[0].route === "/api/v1/health" && observed[0].hasAuth === false);
-  check("014 customer routes use auth", observed.filter(call => !["/api/v1/health", "/api/v1/dashboard"].includes(call.route) || call.hasAuth).length > 0);
+  check("011 client never sends tenant header", observed.every(call => call.hasTenantHeader !== true));
+  check("012 client never sends user header", observed.every(call => call.hasUserHeader !== true));
+  const identityCalls = observed.filter(call => call.kind === "identity");
+  const apiCalls = observed.filter(call => call.kind === "api");
+  check("013 controlled users establish two isolated Identity sessions", identityCalls.length === 2);
+  check("014 Identity sign-in receives no prior auth material", identityCalls.every(call => call.method === "POST" && !call.hasAuth && !call.hasCookie));
+  check("015 health is requested without auth", apiCalls[0].route === "/api/v1/health" && !apiCalls[0].hasAuth && !apiCalls[0].hasCookie);
+  check("016 unauthenticated boundary has no cookie", apiCalls[1].route === "/api/v1/dashboard" && !apiCalls[1].hasCookie);
+  check("017 authenticated customer routes use cookie sessions", apiCalls.slice(2).every(call => call.hasCookie));
+  check("018 customer identity is never sent as Bearer authorization", apiCalls.every(call => !call.hasAuth));
 } catch (error) {
   console.error(error);
   check("001 proof passes simulated end-to-end path", false);
@@ -141,15 +173,23 @@ try {
 } catch {
   productionRejected = true;
 }
-check("015 production hostname is rejected", productionRejected);
+check("019 production hostname is rejected", productionRejected);
 
 let insecureRejected = false;
 try {
-  validateStagingProofOrigin("http://preview.example.com");
+  validateStagingProofOrigin("http://deploy-preview-99--goflipforge.netlify.app");
 } catch {
   insecureRejected = true;
 }
-check("016 non-local HTTP origin is rejected", insecureRejected);
+check("020 non-local HTTP origin is rejected", insecureRejected);
+
+let unapprovedHostRejected = false;
+try {
+  validateStagingProofOrigin("https://preview.example.com");
+} catch {
+  unapprovedHostRejected = true;
+}
+check("021 unapproved HTTPS host is rejected before credentials", unapprovedHostRejected);
 
 let missingAckRejected = false;
 try {
@@ -157,7 +197,7 @@ try {
 } catch {
   missingAckRejected = true;
 }
-check("017 missing exact write acknowledgment is rejected", missingAckRejected);
+check("022 missing exact write acknowledgment is rejected", missingAckRejected);
 
 const unsafePath = path.join(temp, "unsafe.json");
 fs.writeFileSync(unsafePath, JSON.stringify({
@@ -178,7 +218,32 @@ try {
 } catch {
   overrideRejected = true;
 }
-check("018 authority override payload is rejected", overrideRejected);
+check("023 authority override payload is rejected", overrideRejected);
+
+let credentialFailureRedacted = false;
+try {
+  await runStagingLiveProof({
+    env: { ...env, FLIPFORGE_STAGING_USER_A_PASSWORD: "wrong-secret-password" },
+    fetchImpl,
+    uuid
+  });
+} catch (error) {
+  const message = String(error && error.message ? error.message : error);
+  credentialFailureRedacted = !message.includes("wrong-secret-password") && !message.includes("user-a@example.invalid");
+}
+check("024 Identity failure does not echo credentials", credentialFailureRedacted);
+
+let partialOptionalCredentialsRejected = false;
+try {
+  await runStagingLiveProof({
+    env: { ...env, FLIPFORGE_STAGING_UNPROVISIONED_EMAIL: "unprovisioned@example.invalid" },
+    fetchImpl,
+    uuid
+  });
+} catch (error) {
+  partialOptionalCredentialsRejected = String(error && error.message ? error.message : error).includes("must be supplied together");
+}
+check("025 partial optional Identity credentials fail closed", partialOptionalCredentialsRejected);
 
 fs.rmSync(temp, { recursive: true, force: true });
 const failures = results.filter(result => !result.passed);

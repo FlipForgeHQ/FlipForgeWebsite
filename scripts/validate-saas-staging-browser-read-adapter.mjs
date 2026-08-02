@@ -43,7 +43,7 @@ const staticChecks = [
   ["024 adapter never stores tokens in local storage", !/localStorage/.test(files.adapter)],
   ["025 adapter never stores tokens in session storage", !/sessionStorage/.test(files.adapter)],
   ["026 adapter never writes cookies", !/document\.cookie/.test(files.adapter)],
-  ["027 adapter obtains optional signed identity token in memory", files.adapter.includes("window.netlifyIdentity") && files.adapter.includes("user.jwt()")],
+  ["027 adapter relies only on same-origin cookie authentication", !/window\.netlifyIdentity|user\.jwt\(\)|Authorization/.test(files.adapter)],
   ["028 adapter validates saved resource identifiers", files.adapter.includes("SAFE_ID") && files.adapter.includes("INVALID_OPPORTUNITY_ID")],
   ["029 adapter uses an explicit read-path allowlist", files.adapter.includes("READ_PATHS") && files.adapter.includes("requireAllowedPath")],
   ["030 adapter does not expose evaluation POST", !/evaluations/.test(files.adapter)],
@@ -97,12 +97,11 @@ function response(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 }
 
-function runtime({ hostname, fetchImpl, identity = null }) {
+function runtime({ hostname, fetchImpl }) {
   const nav = { hidden: true };
   const window = {
     location: { hostname, hash: "#/staging" },
-    crypto: { randomUUID: (() => { let n = 0; return () => `corr-${++n}`; })() },
-    netlifyIdentity: identity
+    crypto: { randomUUID: (() => { let n = 0; return () => `corr-${++n}`; })() }
   };
   const context = vm.createContext({
     window,
@@ -135,7 +134,6 @@ const settle = () => new Promise(resolve => setTimeout(resolve, 20));
 const calls = [];
 const configured = runtime({
   hostname: "deploy-preview-20--goflipforge.netlify.app",
-  identity: { currentUser: () => ({ jwt: async () => "signed-preview-token" }) },
   fetchImpl: async (url, options) => {
     calls.push({ url, options });
     const correlation = options.headers["X-Correlation-Id"];
@@ -172,7 +170,7 @@ const baseMain = makeMain();
 configured.window.FlipForgeStagingReadAdapter.render(baseMain, "");
 await settle();
 check("048 configured base route calls health dashboard and opportunities", calls.slice(0, 3).map(call => call.url).join(",") === "/api/v1/health,/api/v1/dashboard,/api/v1/opportunities");
-check("049 signed identity token is forwarded only as Authorization", calls.slice(0, 3).every(call => call.options.headers.Authorization === "Bearer signed-preview-token"));
+check("049 browser never constructs a user Authorization header", calls.slice(0, 3).every(call => !("Authorization" in call.options.headers)));
 check("050 no browser tenant header is sent at runtime", calls.slice(0, 3).every(call => !("X-FlipForge-Tenant-Id" in call.options.headers)));
 check("051 runtime requests use same-origin safety options", calls.slice(0, 3).every(call => call.options.method === "GET" && call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
 check("052 authoritative metrics render", baseMain.innerHTML.includes("Tracked opportunities") && baseMain.innerHTML.includes(">1<"));
