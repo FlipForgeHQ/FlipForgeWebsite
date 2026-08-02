@@ -46,9 +46,11 @@ The invited account email is included only when the tester checks the explicit f
 - Deploy previews only; no production customer activation.
 - The API bridge may be disabled between controlled sessions.
 - Manual Evaluate is the real customer entry path; provider-backed Discover is not yet active.
-- Dashboard, Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, Evidence Center, saved PSA guidance, and Exit Review use the existing tenant-scoped staging API when enabled.
+- Dashboard, Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, Evidence Center, saved PSA guidance, Exit Review, Tracking, Portfolio, and Alerts use the existing tenant-scoped staging API when enabled.
 - Provider-backed Discover remains a prototype/sample surface.
-- Portfolio and Alerts read authoritative capability status and honestly report `configured=false`; no mock holdings, gains, rules, unread counts, or delivery are substituted.
+- Tracking persists watch status, review timing, acquisition/pass/sale outcomes, cost basis, and in-app reminder settings through tenant-owned SQLite lifecycle records with optimistic version checks and append-only history.
+- Portfolio projects current holdings and customer-entered cost basis only. Current value, gain/loss, fees, taxes, and liquidation value remain unavailable rather than being inferred.
+- Alerts project persisted in-app review rules. Email, SMS, push, marketplace actions, and any transaction delivery remain unconfigured.
 - Persistent customer review schedules, custom alert rules, alert delivery, holdings, and outcomes still require new backend contracts.
 - No billing provider, paid plan, usage enforcement, or entitlement override is active.
 - No evidence acceptance, identity approval, PSA recalculation, grade prediction, bid, checkout, payment, purchase, listing, or resale authority exists in the customer browser.

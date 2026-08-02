@@ -199,6 +199,7 @@
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Dashboard → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>The Dashboard, tenant-scoped reads, writes, and comparison use the proven same-origin staging gateway when enabled.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence and saved PSA context</strong><small>Returned authority state is displayed without browser-side acceptance, rescoring, or grade prediction.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence Center → PSA Advisor → Exit Review</strong><small>Saved evidence history, PSA requirements, and exit-planning inputs use tenant-scoped reads with no mock fallback.</small></span></div>
+              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tracking → Portfolio → Alerts</strong><small>Watch state, review timing, acquisition or pass outcomes, cost basis, and in-app reminders persist through tenant-scoped SQLite lifecycle records.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tenant isolation</strong><small>Membership comes only from signed server roles; the browser cannot choose a tenant.</small></span></div>
             </div>
           </section>
@@ -208,8 +209,8 @@
             <div class="panel-body private-beta-limit-list">
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Manual entry first</strong><small>Provider-backed Discover is not yet active; Evaluate is the real customer entry path.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Discovery remains a sample</strong><small>Provider-backed Discover is not yet connected to an approved customer data source.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Portfolio and Alerts are status-only</strong><small>The server honestly reports configured=false; no mock holdings, gains, rules, unread counts, or delivery are substituted.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Customer writes still limited</strong><small>Custom alerts, review schedules, holdings, and outcomes require new authoritative backend persistence.</small></span></div>
+              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Current value and performance remain unavailable</strong><small>Portfolio stores customer cost basis only; it does not invent current value, gain, loss, fees, taxes, or liquidation proceeds.</small></span></div>
+              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>External alert delivery is not connected</strong><small>Review reminders are in-app only. Email, SMS, push, and marketplace actions remain disabled.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Bridge may be offline</strong><small>The customer API stays disabled between approved testing sessions.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>No billing or transactions</strong><small>No paid limits, checkout, payment, purchase, listing, sale, or marketplace action is active.</small></span></div>
             </div>

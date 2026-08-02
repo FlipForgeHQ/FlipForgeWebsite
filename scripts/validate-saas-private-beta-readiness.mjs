@@ -55,7 +55,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["035 billing remains unavailable", beta.includes("No billing") && beta.includes("No paid limits")],
   ["036 transaction execution remains unavailable", beta.includes("checkout, payment, purchase, listing, sale")],
   ["037 manual Evaluate is identified as the real entry path", beta.includes("Provider-backed Discover is not yet active") && beta.includes("Evaluate is the real customer entry path")],
-  ["038 remaining route limits are disclosed", beta.includes("Discovery remains a sample") && beta.includes("Portfolio and Alerts are status-only") && beta.includes("Custom alerts, review schedules, holdings, and outcomes") && beta.includes("Dashboard → Evaluate")],
+  ["038 remaining route limits are disclosed", beta.includes("Discovery remains a sample") && beta.includes("Current value and performance remain unavailable") && beta.includes("External alert delivery is not connected") && beta.includes("Dashboard → Evaluate")],
   ["039 tester walkthrough covers full customer loop", ["Evaluate one exact card", "Open Card Intelligence", "Challenge the Decision Traceback", "Compare two saved decisions", "Send focused feedback"].every(value => beta.includes(value))],
   ["039a feedback shortcut preserves the SPA route", beta.includes("data-private-beta-feedback-link") && beta.includes('querySelector("#beta-feedback")?.scrollIntoView') && !beta.includes('href="#beta-feedback"')],
   ["040 feedback is restricted to active invited testers", beta.includes("!session.authenticated || !session.membershipActive")],
@@ -79,7 +79,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["057 docs retain deploy-preview gateway control", docs.includes("gateway disabled unless a separately approved deploy-preview")],
   ["058 docs enumerate feedback exclusions", docs.includes("password, raw JWT, refresh token, tenant ID, provider credential, service token")],
   ["058a docs make contact email opt-in", docs.includes("included only when the tester checks the explicit follow-up permission")],
-  ["059 docs identify real customer management and incomplete routes", docs.includes("Dashboard, Evaluate, Opportunities") && docs.includes("Evidence Center, saved PSA guidance, and Exit Review") && docs.includes("Provider-backed Discover") && docs.includes("Portfolio and Alerts read authoritative capability status")],
+  ["059 docs identify real customer management and incomplete routes", docs.includes("Dashboard, Evaluate, Opportunities") && docs.includes("Evidence Center, saved PSA guidance, Exit Review, Tracking, Portfolio, and Alerts") && docs.includes("Provider-backed Discover") && docs.includes("Current value, gain/loss, fees, taxes, and liquidation value remain unavailable")],
   ["060 docs retain zero transaction authority", docs.includes("No evidence acceptance") && docs.includes("resale authority")]
 ].forEach(([name, condition]) => check(name, condition));
 

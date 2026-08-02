@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js"
+  command = "npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-lifecycle && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js"
   publish = "."
 
 [functions]
