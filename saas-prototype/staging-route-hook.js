@@ -30,6 +30,11 @@
     if (bannerCopy) bannerCopy.textContent = "Tenant-scoped Smart Opportunity submission only · No evidence verification · No transaction authority";
   }
 
+  function showCustomerIntelligenceBanner() {
+    if (bannerTitle) bannerTitle.textContent = "PRIVATE BETA INTELLIGENCE";
+    if (bannerCopy) bannerCopy.textContent = "Authenticated tenant-scoped decisions · SQLite saved · No transaction authority";
+  }
+
   function focusMain() {
     main.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -39,6 +44,24 @@
     const [route, id = ""] = routeParts();
     if (route !== "staging") {
       if (route !== "staging-evaluate") {
+        if (route === "evaluate"
+            && evaluationAdapter
+            && typeof evaluationAdapter.renderCustomer === "function"
+            && evaluationAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          evaluationAdapter.renderCustomer(main);
+          focusMain();
+          return;
+        }
+        if (route === "opportunities"
+            && adapter
+            && typeof adapter.renderCustomer === "function"
+            && adapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          adapter.renderCustomer(main, id);
+          focusMain();
+          return;
+        }
         restoreBanner();
         return;
       }

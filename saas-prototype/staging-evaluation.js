@@ -32,6 +32,20 @@
   };
 
   let currentMain = null;
+  let currentSurface = "staging";
+
+  function customerSurface() {
+    return currentSurface === "customer";
+  }
+
+  function savedListRoute() {
+    return customerSurface() ? "#/opportunities" : "#/staging";
+  }
+
+  function savedDetailRoute(id) {
+    const prefix = customerSurface() ? "#/opportunities/" : "#/staging/";
+    return `${prefix}${encodeURIComponent(id)}`;
+  }
 
   function defaultDraft() {
     return {
@@ -328,7 +342,16 @@
 
   function evaluationForm() {
     const marketplaceOptions = MARKETPLACES.map(value => `<option value="${value}"${state.draft.marketplace === value ? " selected" : ""}>${value.replaceAll("_", " ")}</option>`).join("");
-    return `<section class="panel staging-evaluation-panel"><header class="panel-header"><div><h2>Submit a staging evaluation</h2><p>Creates one tenant-owned saved evaluation through the existing Smart Opportunity service.</p></div><span class="staging-status staging-status-verify">Write boundary</span></header><form class="panel-body staging-evaluation-form" data-staging-evaluation-form novalidate><div class="staging-form-grid">${field("externalListingId", "External listing ID", { required: true, maxLength: 180, placeholder: "e.g. 123456789012" })}<label class="staging-field"><span>Marketplace *</span><select name="marketplace" required>${marketplaceOptions}</select><small>Used to form the tenant-owned saved opportunity ID.</small></label><label class="staging-field staging-field-wide"><span>Exact card identity *</span><textarea name="cardIdentity" required maxlength="500" rows="3" placeholder="Year, set, player, card number, parallel, grade/condition">${escapeHtml(state.draft.cardIdentity)}</textarea><small>Identity remains NEEDS_VERIFICATION; this request cannot verify it.</small></label>${field("listingUrl", "Listing URL", { required: true, type: "url", maxLength: 2048, placeholder: "https://..." })}${field("seller", "Seller", { maxLength: 300, placeholder: "Optional" })}${field("itemPrice", "Item price", { required: true, inputMode: "decimal", placeholder: "0.00" })}${field("shipping", "Shipping", { inputMode: "decimal", placeholder: "0.00" })}${field("buyerPremium", "Buyer premium", { inputMode: "decimal", placeholder: "0.00" })}${field("tax", "Tax", { inputMode: "decimal", placeholder: "0.00" })}${field("listingFormat", "Listing format", { maxLength: 100, placeholder: "Fixed price, auction, offer..." })}${field("endsAt", "Ends at", { maxLength: 100, placeholder: "Optional ISO timestamp" })}</div><label class="staging-boundary-check"><input type="checkbox" name="acknowledgeBoundary" value="yes"${state.draft.acknowledgeBoundary ? " checked" : ""}><span>I understand this is staging decision support. It does not verify evidence or identity, predict a grade, authorize a bid or purchase, or call a marketplace provider.</span></label><div class="staging-form-actions"><a class="button button-secondary" href="#/staging">View saved staging data</a><button class="button button-primary" type="submit"${state.submitting ? " disabled" : ""}>${state.submitting ? "Submitting…" : "Submit staging evaluation"}</button></div><small class="staging-form-note">An idempotency key is generated and held only in memory. Retrying an unchanged form reuses that key; changing the payload generates a new key.</small></form></section>`;
+    const heading = customerSurface() ? "Evaluate and track a card" : "Submit a staging evaluation";
+    const description = customerSurface()
+      ? "Enter the listing, exact card identity, and complete acquisition cost. The existing Smart Opportunity service returns and saves the decision."
+      : "Creates one tenant-owned saved evaluation through the existing Smart Opportunity service.";
+    const submitLabel = customerSurface() ? "Evaluate and save" : "Submit staging evaluation";
+    const listLabel = customerSurface() ? "View tracked cards" : "View saved staging data";
+    const boundaryCopy = customerSurface()
+      ? "I understand FlipForge provides decision support. This request does not verify evidence or identity, predict a grade, authorize a bid or purchase, or call a marketplace provider."
+      : "I understand this is staging decision support. It does not verify evidence or identity, predict a grade, authorize a bid or purchase, or call a marketplace provider.";
+    return `<section class="panel staging-evaluation-panel"><header class="panel-header"><div><h2>${heading}</h2><p>${description}</p></div><span class="staging-status staging-status-verify">Write boundary</span></header><form class="panel-body staging-evaluation-form" data-staging-evaluation-form novalidate><div class="customer-intake-step"><span>1</span><div><strong>Listing and exact card identity</strong><small>Describe the specific card and the listing you are considering.</small></div></div><div class="staging-form-grid">${field("externalListingId", "External listing ID", { required: true, maxLength: 180, placeholder: "e.g. 123456789012" })}<label class="staging-field"><span>Marketplace *</span><select name="marketplace" required>${marketplaceOptions}</select><small>Used to form the tenant-owned saved opportunity ID.</small></label><label class="staging-field staging-field-wide"><span>Exact card identity *</span><textarea name="cardIdentity" required maxlength="500" rows="3" placeholder="Year, set, player, card number, parallel, grade/condition">${escapeHtml(state.draft.cardIdentity)}</textarea><small>Identity remains NEEDS_VERIFICATION; this request cannot verify it.</small></label>${field("listingUrl", "Listing URL", { required: true, type: "url", maxLength: 2048, placeholder: "https://..." })}${field("seller", "Seller", { maxLength: 300, placeholder: "Optional" })}</div><div class="customer-intake-step"><span>2</span><div><strong>Complete acquisition cost</strong><small>Include every known cost so the authoritative service receives the real all-in ask.</small></div></div><div class="staging-form-grid">${field("itemPrice", "Item price", { required: true, inputMode: "decimal", placeholder: "0.00" })}${field("shipping", "Shipping", { inputMode: "decimal", placeholder: "0.00" })}${field("buyerPremium", "Buyer premium", { inputMode: "decimal", placeholder: "0.00" })}${field("tax", "Tax", { inputMode: "decimal", placeholder: "0.00" })}${field("listingFormat", "Listing format", { maxLength: 100, placeholder: "Fixed price, auction, offer..." })}${field("endsAt", "Ends at", { maxLength: 100, placeholder: "Optional ISO timestamp" })}</div><div class="customer-intake-step"><span>3</span><div><strong>Confirm the authority boundary</strong><small>The browser submits facts; it never chooses the recommendation.</small></div></div><label class="staging-boundary-check"><input type="checkbox" name="acknowledgeBoundary" value="yes"${state.draft.acknowledgeBoundary ? " checked" : ""}><span>${boundaryCopy}</span></label><div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${listLabel}</a><button class="button button-primary" type="submit"${state.submitting ? " disabled" : ""}>${state.submitting ? "Evaluating…" : submitLabel}</button></div><small class="staging-form-note">An idempotency key is generated and held only in memory. Retrying an unchanged form reuses that key; changing the payload generates a new key.</small></form></section>`;
   }
 
   function resultPanel() {
@@ -342,17 +365,30 @@
       ["Confidence", `${safeNumber(decision.confidence)}/100`],
       ["Risk", `${safeNumber(decision.risk)}/100`],
       ["Workflow status", decision.workflowStatus || "UNKNOWN"],
+      ["All-in acquisition", moneyFromCents(data.normalizedRequest?.allInAskCents)],
       ["Tenant owned", data.tenantOwned === true ? "Yes" : "No"],
       ["Idempotent replay", data.idempotentReplay === true ? "Yes" : "No"]
     ];
     const opportunityId = String(data.opportunityId || "");
     const canOpen = SAFE_OPPORTUNITY_ID.test(opportunityId);
-    return `<section class="panel staging-evaluation-result" aria-live="polite"><header class="panel-header"><div><h2>Authoritative staging result</h2><p>Saved exactly through the existing Smart Opportunity and tenant ownership boundary.</p></div><span class="staging-status staging-status-${escapeHtml(String(decision.recommendation || "unknown").toLowerCase())}">${escapeHtml(decision.recommendation || "UNKNOWN")}</span></header><div class="panel-body"><div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div><div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(decision.reason || "No reason returned.")}</p><p><strong>Missing requirement:</strong> ${escapeHtml(decision.missingRequirement || "None returned.")}</p><p><strong>Next action:</strong> ${escapeHtml(decision.nextAction || "No next action returned.")}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This response persisted to SQLite and granted tenant ownership. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>${canOpen ? `<div class="staging-form-actions"><a class="button button-secondary" href="#/staging">Return to staging list</a><a class="button button-primary" href="#/staging/${encodeURIComponent(opportunityId)}">Open saved record</a></div>` : ""}</div></section>`;
+    const resultTitle = customerSurface() ? "Authoritative decision saved" : "Authoritative staging result";
+    const resultDescription = customerSurface()
+      ? "The result is now a tenant-owned tracked record with its evidence and PSA context available in Card Intelligence."
+      : "Saved exactly through the existing Smart Opportunity and tenant ownership boundary.";
+    const openLabel = customerSurface() ? "Open Card Intelligence" : "Open saved record";
+    const returnLabel = customerSurface() ? "Tracked cards" : "Return to staging list";
+    return `<section class="panel staging-evaluation-result" aria-live="polite"><header class="panel-header"><div><h2>${resultTitle}</h2><p>${resultDescription}</p></div><span class="staging-status staging-status-${escapeHtml(String(decision.recommendation || "unknown").toLowerCase())}">${escapeHtml(decision.recommendation || "UNKNOWN")}</span></header><div class="panel-body"><div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div><div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(decision.reason || "No reason returned.")}</p><p><strong>Missing requirement:</strong> ${escapeHtml(decision.missingRequirement || "None returned.")}</p><p><strong>Next action:</strong> ${escapeHtml(decision.nextAction || "No next action returned.")}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This response persisted to SQLite and granted tenant ownership. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>${canOpen ? `<div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${returnLabel}</a><a class="button button-primary" href="${savedDetailRoute(opportunityId)}">${openLabel}</a></div>` : ""}</div></section>`;
   }
 
   function renderCurrent() {
     if (!currentMain) return;
-    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page"><header class="page-heading"><div><span class="eyebrow">Controlled deploy-preview write integration</span><h1>Staging Evaluation</h1><p>Submit one authenticated, tenant-scoped manual opportunity to the authoritative FlipForge evaluation endpoint.</p></div><div class="page-actions"><a class="button button-secondary" href="#/staging">Staging data</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${errorPanel(state.error)}${evaluationForm()}${resultPanel()}</div>`;
+    const eyebrow = customerSurface() ? "Guided customer intake" : "Controlled deploy-preview write integration";
+    const title = customerSurface() ? "Evaluate a Card" : "Staging Evaluation";
+    const description = customerSurface()
+      ? "Give FlipForge the listing facts and complete acquisition cost. The existing backend returns, saves, and tracks the governed decision."
+      : "Submit one authenticated, tenant-scoped manual opportunity to the authoritative FlipForge evaluation endpoint.";
+    const action = customerSurface() ? "Tracked opportunities" : "Staging data";
+    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${errorPanel(state.error)}${evaluationForm()}${resultPanel()}</div>`;
     bindActions();
   }
 
@@ -367,12 +403,21 @@
   }
 
   function render(main) {
+    currentSurface = "staging";
     currentMain = main;
     if (!eligibleHost()) {
       main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Unavailable route</span><h1>Staging Evaluation</h1><p>This write route is restricted to deploy previews and local development.</p></div></header><div class="boundary-note">The production website cannot submit evaluations through this staging adapter.</div></div>`;
       return;
     }
     renderCurrent();
+  }
+
+  function renderCustomer(main) {
+    currentSurface = "customer";
+    currentMain = main;
+    if (!eligibleHost()) return false;
+    renderCurrent();
+    return true;
   }
 
   function reset() {
@@ -391,6 +436,7 @@
   window.FlipForgeStagingEvaluationAdapter = Object.freeze({
     isEligible: eligibleHost,
     render,
+    renderCustomer,
     reset
   });
 })();
