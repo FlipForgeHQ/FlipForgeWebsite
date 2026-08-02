@@ -10,6 +10,8 @@ on:
       - "scripts/build-assets.js"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-private-beta-readiness.mjs"
+      - "netlify.toml"
+      - "package.json"
       - "_redirects"
       - "*.html"
       - ".github/workflows/saas-prototype-validation.yml"
@@ -22,7 +24,7 @@ jobs:
   validate:
     name: Validate isolated SaaS prototype
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
 
     steps:
       - name: Check out repository
@@ -32,6 +34,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      - name: Install website build dependencies
+        run: npm install --no-audit --no-fund
 
       - name: Parse browser JavaScript
         run: |
@@ -50,8 +55,8 @@ jobs:
           node --check saas-prototype/private-beta.js
           node --check saas-prototype/serve.mjs
 
-      - name: Build website integration
-        run: node scripts/build-assets.js
+      - name: Run exact Netlify build command
+        run: npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
 
       - name: Run deterministic prototype checks
         run: |
@@ -61,8 +66,6 @@ jobs:
           node saas-prototype/validate-cockpit-polish.mjs
           node saas-prototype/validate-cockpit-final-ux.mjs
           node saas-prototype/validate-sidebar-edge-fix.mjs
-          node scripts/validate-saas-customer-discovery.mjs
-          node scripts/validate-saas-private-beta-readiness.mjs
 
       - name: Verify generated website entry points
         run: |
