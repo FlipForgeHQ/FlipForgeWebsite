@@ -192,6 +192,10 @@
   function renderFeatureRoute() {
     const route = currentRoute();
     if (!featureRoutes.has(route)) return;
+    if (window.FlipForgeCustomerManagement
+        && typeof window.FlipForgeCustomerManagement.handles === "function"
+        && window.FlipForgeCustomerManagement.handles(route)
+        && window.FlipForgeCustomerManagement.isEligible()) return;
 
     switch (route) {
       case "discover": renderDiscoverFull(); break;

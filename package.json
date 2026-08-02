@@ -10,7 +10,8 @@
     "validate:customer-intelligence": "node scripts/validate-saas-customer-intelligence-loop.mjs",
     "validate:customer-dashboard": "node scripts/validate-saas-customer-dashboard.mjs",
     "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs",
-    "validate:customer-compare": "node scripts/validate-saas-customer-compare.mjs"
+    "validate:customer-compare": "node scripts/validate-saas-customer-compare.mjs",
+    "validate:customer-management": "node scripts/validate-saas-customer-management.mjs"
   },
   "dependencies": {
     "@netlify/identity": "1.2.0"

@@ -4,6 +4,7 @@
   const adapter = window.FlipForgeStagingReadAdapter;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
   const compareAdapter = window.FlipForgeCustomerCompare;
+  const managementAdapter = window.FlipForgeCustomerManagement;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
   const bannerTitle = banner ? banner.querySelector("strong") : null;
@@ -82,6 +83,16 @@
             : "";
           showCustomerIntelligenceBanner();
           compareAdapter.render(main, preferredLeftId || "");
+          focusMain();
+          return;
+        }
+        if (managementAdapter
+            && typeof managementAdapter.handles === "function"
+            && managementAdapter.handles(route)
+            && typeof managementAdapter.render === "function"
+            && managementAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          managementAdapter.render(main, route, id);
           focusMain();
           return;
         }

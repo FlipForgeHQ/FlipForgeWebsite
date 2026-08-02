@@ -421,6 +421,20 @@
         compare.dataset.compareCurrent = "true";
         actions.insertBefore(compare, actions.querySelector("[data-staging-refresh]"));
       }
+      const managementLinks = [
+        ["evidence", "Evidence"],
+        ["psa-advisor", "PSA guidance"],
+        ["sell", "Exit review"]
+      ];
+      managementLinks.forEach(([route, label]) => {
+        if (actions.querySelector(`[data-customer-management-link="${route}"]`)) return;
+        const link = document.createElement("a");
+        link.className = "button button-secondary";
+        link.href = `#/${route}/${encodeURIComponent(currentId)}`;
+        link.textContent = label;
+        link.dataset.customerManagementLink = route;
+        actions.insertBefore(link, actions.querySelector("[data-staging-refresh]"));
+      });
     }
     currentMain.querySelectorAll("[data-staging-refresh]").forEach(button => button.addEventListener("click", () => currentId ? loadDetail(currentId) : loadBase()));
     currentMain.querySelectorAll("[data-staging-opportunity]").forEach(row => {

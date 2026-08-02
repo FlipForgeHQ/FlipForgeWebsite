@@ -10,7 +10,8 @@ The customer path remains:
 2. evaluate one exact card and complete acquisition cost;
 3. review the saved Card Intelligence and Decision Traceback;
 4. return to the tracked SQLite record;
-5. submit structured beta feedback.
+5. inspect saved Evidence, PSA guidance, or Exit Review context;
+6. submit structured beta feedback.
 
 Smart Opportunity remains the sole `BUY / WATCH / VERIFY / PASS` authority. Existing PSA intelligence remains the sole grading-guidance authority. SQLite remains the source of truth for saved evaluations and tenant-owned opportunities.
 
@@ -45,8 +46,10 @@ The invited account email is included only when the tester checks the explicit f
 - Deploy previews only; no production customer activation.
 - The API bridge may be disabled between controlled sessions.
 - Manual Evaluate is the real customer entry path; provider-backed Discover is not yet active.
-- Dashboard, Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, evidence, and saved PSA context use the existing tenant-scoped staging API when enabled.
-- Discover, Portfolio, Sell, and Alerts still contain prototype/sample surfaces until separately connected.
+- Dashboard, Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, Evidence Center, saved PSA guidance, and Exit Review use the existing tenant-scoped staging API when enabled.
+- Provider-backed Discover remains a prototype/sample surface.
+- Portfolio and Alerts read authoritative capability status and honestly report `configured=false`; no mock holdings, gains, rules, unread counts, or delivery are substituted.
+- Persistent customer review schedules, custom alert rules, alert delivery, holdings, and outcomes still require new backend contracts.
 - No billing provider, paid plan, usage enforcement, or entitlement override is active.
 - No evidence acceptance, identity approval, PSA recalculation, grade prediction, bid, checkout, payment, purchase, listing, or resale authority exists in the customer browser.
 
