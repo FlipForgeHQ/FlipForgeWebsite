@@ -31,6 +31,7 @@ The gateway fails closed by default.
 | Bridge disabled | `503 BRIDGE_DISABLED` |
 | Upstream URL or service token missing | `503 UPSTREAM_NOT_CONFIGURED` |
 | Route or method not allowlisted | `404 ROUTE_NOT_ALLOWED` |
+| Authoritative saved resource is missing or outside the resolved tenant | `404 RESOURCE_NOT_FOUND` with a gateway-generated non-disclosing message |
 | Upstream timeout or network failure | `503` with a non-sensitive error envelope |
 | Upstream response violates the contract | `502 UPSTREAM_CONTRACT_INVALID` |
 
