@@ -26,6 +26,7 @@ const ROUTES = [
   { method: "PUT", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
   { method: "GET", pattern: /^\/api\/v1\/account$/ },
   { method: "GET", pattern: /^\/api\/v1\/entitlements$/ },
+  { method: "POST", pattern: /^\/api\/v1\/discover$/ },
   { method: "POST", pattern: /^\/api\/v1\/evaluations$/ }
 ];
 
@@ -327,6 +328,7 @@ function healthPayload(correlationId) {
       membershipSource: "signed-function-context-app-metadata",
       previewTenantConfigured: Boolean(previewTenant()),
       clientIdentityHeadersAccepted: false,
+      discoverySearchPersistence: false,
       evaluationIdempotencyRequired: true,
       productionPreviewBypassAllowed: false
     }
