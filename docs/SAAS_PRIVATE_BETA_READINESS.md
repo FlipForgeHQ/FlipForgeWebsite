@@ -4,14 +4,15 @@
 
 This phase wraps the existing customer intelligence loop in a controlled private-beta experience. It does not create another application, recommendation engine, grading authority, database, or billing system.
 
-The customer path remains:
+The customer path is now:
 
 1. accept an invitation and sign in;
-2. evaluate one exact card and complete acquisition cost;
-3. review the saved Card Intelligence and Decision Traceback;
-4. return to the tracked SQLite record;
-5. inspect saved Evidence, PSA guidance, or Exit Review context;
-6. submit structured beta feedback.
+2. either search approved connected active-listing sources in Discover or enter one exact listing manually in Evaluate;
+3. explicitly submit the chosen listing to the existing authoritative Smart Opportunity evaluation endpoint;
+4. review the saved Card Intelligence and Decision Traceback;
+5. return to the tracked SQLite record;
+6. inspect saved Evidence, PSA guidance, Exit Review, lifecycle, or Decision Dossier context;
+7. submit structured beta feedback.
 
 Smart Opportunity remains the sole `BUY / WATCH / VERIFY / PASS` authority. Existing PSA intelligence remains the sole grading-guidance authority. SQLite remains the source of truth for saved evaluations and tenant-owned opportunities.
 
@@ -45,10 +46,14 @@ The invited account email is included only when the tester checks the explicit f
 - Invitation-only access; no public signup.
 - Deploy previews only; no production customer activation.
 - The API bridge may be disabled between controlled sessions.
-- Manual Evaluate is the real customer entry path; provider-backed Discover is not yet active.
-- Dashboard, Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, Evidence Center, saved PSA guidance, Exit Review, Tracking, Portfolio, and Alerts use the existing tenant-scoped staging API when enabled.
-- Decision Dossier export composes those existing tenant-scoped reads into one complete audit package when enabled.
-- Provider-backed Discover remains a prototype/sample surface.
+- Provider-backed Discover is a real customer path when both the private-beta bridge and the approved server-side active-listing provider are configured.
+- Discover currently searches approved connected active-listing sources only; it does not claim complete-market coverage.
+- Discover search results are ephemeral and do not create tenant-owned saved opportunities. Ownership begins only after the customer explicitly requests authoritative evaluation.
+- If the provider is unavailable, Discover returns an honest empty/unavailable state and does not substitute mock candidates or expose provider setup/credential details.
+- Discover ranking is active-listing prioritization only. It is not `BUY / WATCH / VERIFY / PASS` and active asks never become completed-sale evidence.
+- Manual Evaluate remains available as a direct customer entry path.
+- Dashboard, Discover, Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, Evidence Center, saved PSA guidance, Exit Review, Tracking, Portfolio, Alerts, and Decision Dossier use the existing tenant-scoped staging API when enabled.
+- Decision Dossier export composes existing tenant-scoped reads into one complete audit package when enabled.
 - Tracking persists watch status, review timing, acquisition/pass/sale outcomes, cost basis, and in-app reminder settings through tenant-owned SQLite lifecycle records with optimistic version checks and append-only history.
 - Portfolio projects current holdings and customer-entered cost basis only. Current value, gain/loss, fees, taxes, and liquidation value remain unavailable rather than being inferred.
 - Alerts project persisted in-app review rules. Email, SMS, push, marketplace actions, and any transaction delivery remain unconfigured.
@@ -62,7 +67,8 @@ The invited account email is included only when the tester checks the explicit f
 Run:
 
 ```bash
+npm run validate:customer-discovery
 npm run validate:private-beta
 ```
 
-The retained Identity, account lifecycle, customer intelligence, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof harness, activation-readiness, prototype, and visual suites must remain green.
+The retained Identity, account lifecycle, customer intelligence, provider-backed Discover, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof harness, activation-readiness, prototype, Decision Dossier, and visual suites must remain green.
