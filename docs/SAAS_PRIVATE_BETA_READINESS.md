@@ -45,8 +45,8 @@ The invited account email is included only when the tester checks the explicit f
 - Deploy previews only; no production customer activation.
 - The API bridge may be disabled between controlled sessions.
 - Manual Evaluate is the real customer entry path; provider-backed Discover is not yet active.
-- Evaluate, Opportunities, Card Intelligence, Decision Traceback, evidence, and saved PSA context use the existing tenant-scoped staging API when enabled.
-- Dashboard, Discover, Compare, Portfolio, Sell, and Alerts still contain prototype/sample surfaces until separately connected.
+- Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, evidence, and saved PSA context use the existing tenant-scoped staging API when enabled.
+- Dashboard, Discover, Portfolio, Sell, and Alerts still contain prototype/sample surfaces until separately connected.
 - No billing provider, paid plan, usage enforcement, or entitlement override is active.
 - No evidence acceptance, identity approval, PSA recalculation, grade prediction, bid, checkout, payment, purchase, listing, or resale authority exists in the customer browser.
 

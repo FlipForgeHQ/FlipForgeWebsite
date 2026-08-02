@@ -55,8 +55,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["035 billing remains unavailable", beta.includes("No billing") && beta.includes("No paid limits")],
   ["036 transaction execution remains unavailable", beta.includes("checkout, payment, purchase, listing, sale")],
   ["037 manual Evaluate is identified as the real entry path", beta.includes("Provider-backed Discover is not yet active") && beta.includes("Evaluate is the real customer entry path")],
-  ["038 sample routes are disclosed", ["Dashboard", "Discover", "Compare", "Portfolio", "Sell", "Alerts"].every(value => beta.includes(value))],
-  ["039 tester walkthrough covers full customer loop", ["Evaluate one exact card", "Open Card Intelligence", "Challenge the Decision Traceback", "Send focused feedback"].every(value => beta.includes(value))],
+  ["038 remaining sample routes are disclosed", ["Dashboard", "Discover", "Portfolio", "Sell", "Alerts"].every(value => beta.includes(value)) && !beta.includes("Dashboard, Discover, Compare, Portfolio")],
+  ["039 tester walkthrough covers full customer loop", ["Evaluate one exact card", "Open Card Intelligence", "Challenge the Decision Traceback", "Compare two saved decisions", "Send focused feedback"].every(value => beta.includes(value))],
   ["039a feedback shortcut preserves the SPA route", beta.includes("data-private-beta-feedback-link") && beta.includes('querySelector("#beta-feedback")?.scrollIntoView') && !beta.includes('href="#beta-feedback"')],
   ["040 feedback is restricted to active invited testers", beta.includes("!session.authenticated || !session.membershipActive")],
   ["041 feedback summary is required and bounded", beta.includes('maxlength="2000"') && beta.includes("summary.length > 2000")],
@@ -79,7 +79,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["057 docs retain deploy-preview gateway control", docs.includes("gateway disabled unless a separately approved deploy-preview")],
   ["058 docs enumerate feedback exclusions", docs.includes("password, raw JWT, refresh token, tenant ID, provider credential, service token")],
   ["058a docs make contact email opt-in", docs.includes("included only when the tester checks the explicit follow-up permission")],
-  ["059 docs identify incomplete sample routes", docs.includes("Dashboard, Discover, Compare, Portfolio, Sell, and Alerts")],
+  ["059 docs identify incomplete sample routes", docs.includes("Dashboard, Discover, Portfolio, Sell, and Alerts") && docs.includes("Decision Traceback, Compare, evidence")],
   ["060 docs retain zero transaction authority", docs.includes("No evidence acceptance") && docs.includes("resale authority")]
 ].forEach(([name, condition]) => check(name, condition));
 

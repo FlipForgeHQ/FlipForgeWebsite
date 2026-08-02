@@ -3,6 +3,14 @@
 
   let pendingLeftId = null;
 
+  window.FlipForgeCompareRouteState = Object.freeze({
+    consumePendingLeftId() {
+      const value = pendingLeftId;
+      pendingLeftId = null;
+      return value;
+    }
+  });
+
   function compareQuery(hashValue) {
     const hash = String(hashValue || "");
     const queryIndex = hash.indexOf("?");

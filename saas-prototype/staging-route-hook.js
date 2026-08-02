@@ -3,6 +3,7 @@
 
   const adapter = window.FlipForgeStagingReadAdapter;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
+  const compareAdapter = window.FlipForgeCustomerCompare;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
   const bannerTitle = banner ? banner.querySelector("strong") : null;
@@ -12,7 +13,7 @@
 
   function routeParts() {
     const raw = window.location.hash.replace(/^#\/?/, "") || "dashboard";
-    return raw.split("/").filter(Boolean);
+    return raw.split(/[/?]/).filter(Boolean);
   }
 
   function restoreBanner() {
@@ -59,6 +60,19 @@
             && adapter.isEligible()) {
           showCustomerIntelligenceBanner();
           adapter.renderCustomer(main, id);
+          focusMain();
+          return;
+        }
+        if (route === "compare"
+            && compareAdapter
+            && typeof compareAdapter.render === "function"
+            && compareAdapter.isEligible()) {
+          const preferredLeftId = window.FlipForgeCompareRouteState
+            && typeof window.FlipForgeCompareRouteState.consumePendingLeftId === "function"
+            ? window.FlipForgeCompareRouteState.consumePendingLeftId()
+            : "";
+          showCustomerIntelligenceBanner();
+          compareAdapter.render(main, preferredLeftId || "");
           focusMain();
           return;
         }

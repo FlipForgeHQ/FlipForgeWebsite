@@ -1,0 +1,181 @@
+.customer-compare-page {
+  --compare-accent: var(--gold);
+}
+
+.customer-compare-identity .panel-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.customer-compare-identity h2,
+.customer-compare-identity p,
+.customer-compare-card h2,
+.customer-compare-card p,
+.customer-compare-boundary h2,
+.customer-compare-boundary p {
+  margin: 0;
+}
+
+.customer-compare-identity h2,
+.customer-compare-boundary h2 {
+  margin-bottom: 7px;
+}
+
+.customer-compare-identity p,
+.customer-compare-card p,
+.customer-compare-boundary p {
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.customer-compare-identity.same {
+  border-color: rgba(39, 209, 127, 0.34);
+  background: rgba(39, 209, 127, 0.045);
+}
+
+.customer-compare-identity.different {
+  border-color: rgba(246, 169, 22, 0.36);
+  background: rgba(246, 169, 22, 0.045);
+}
+
+.customer-compare-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.customer-compare-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(226, 189, 66, 0.26);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 95% 0%, rgba(226, 189, 66, 0.09), transparent 35%),
+    var(--surface);
+}
+
+.customer-compare-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.customer-compare-card header > span:first-child,
+.customer-compare-card-metrics span,
+.customer-compare-contract span {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.customer-compare-card h2 {
+  overflow-wrap: anywhere;
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+}
+
+.customer-compare-card .button {
+  width: fit-content;
+}
+
+.customer-compare-card-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.customer-compare-card-metrics > div,
+.customer-compare-contract > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.customer-compare-card-metrics strong {
+  font-size: 1.3rem;
+}
+
+.customer-compare-table th,
+.customer-compare-table td {
+  vertical-align: middle;
+}
+
+.customer-compare-table tbody th {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  text-align: left;
+}
+
+.customer-compare-table td {
+  color: var(--text-primary);
+  font-weight: 780;
+}
+
+.customer-compare-boundary {
+  border-color: rgba(226, 189, 66, 0.34);
+  background: linear-gradient(145deg, rgba(226, 189, 66, 0.075), rgba(255, 255, 255, 0.012));
+}
+
+.customer-compare-contract {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.customer-compare-contract strong {
+  overflow-wrap: anywhere;
+}
+
+.customer-compare-boundary details {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--panel-border);
+  color: var(--text-secondary);
+}
+
+.customer-compare-boundary summary {
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.customer-compare-boundary li {
+  margin: 7px 0;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .customer-compare-contract {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .customer-compare-cards,
+  .customer-compare-contract,
+  .customer-compare-card-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-compare-card .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-compare-page * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

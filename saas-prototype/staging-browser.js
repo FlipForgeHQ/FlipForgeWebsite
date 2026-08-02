@@ -377,6 +377,17 @@
 
   function bindActions() {
     if (!currentMain) return;
+    if (customerSurface() && currentId && typeof currentMain.querySelector === "function") {
+      const actions = currentMain.querySelector(".page-heading .page-actions");
+      if (actions && !actions.querySelector("[data-compare-current]")) {
+        const compare = document.createElement("a");
+        compare.className = "button button-secondary";
+        compare.href = `#/compare?left=${encodeURIComponent(currentId)}`;
+        compare.textContent = "Compare";
+        compare.dataset.compareCurrent = "true";
+        actions.insertBefore(compare, actions.querySelector("[data-staging-refresh]"));
+      }
+    }
     currentMain.querySelectorAll("[data-staging-refresh]").forEach(button => button.addEventListener("click", () => currentId ? loadDetail(currentId) : loadBase()));
     currentMain.querySelectorAll("[data-staging-opportunity]").forEach(row => {
       const open = () => { window.location.hash = detailRoute(row.dataset.stagingOpportunity); };
