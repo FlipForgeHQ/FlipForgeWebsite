@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="staging-evaluation.css">
   <link rel="stylesheet" href="account-lifecycle.css">
   <link rel="stylesheet" href="customer-intelligence.css">
+  <link rel="stylesheet" href="private-beta.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -51,6 +52,7 @@
       </div>
 
       <nav class="primary-nav" aria-label="SaaS sections">
+        <a href="#/beta-start" data-route="beta-start"><span aria-hidden="true">✓</span>Beta Guide</a>
         <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">▦</span>Dashboard</a>
         <a href="#/discover" data-route="discover"><span aria-hidden="true">⌕</span>Discover</a>
         <a href="#/evaluate" data-route="evaluate"><span aria-hidden="true">◇</span>Evaluate</a>
@@ -67,11 +69,11 @@
 
       <div class="sidebar-footer">
         <div class="plan-card">
-          <span class="eyebrow">Prototype plan</span>
-          <strong>Collector Intelligence</strong>
-          <div class="usage-row"><span>Evaluations</span><span>12 / 50</span></div>
-          <div class="usage-track" aria-label="24 percent of prototype evaluation allowance used"><span style="width:24%"></span></div>
-          <small>Display only. Server entitlements are not implemented.</small>
+          <span class="eyebrow">Private beta</span>
+          <strong>Invitation only</strong>
+          <div class="usage-row"><span>Usage meter</span><span>Not active</span></div>
+          <div class="usage-track" aria-label="Paid usage limits are not active"><span style="width:0%"></span></div>
+          <small>No billing or server-enforced paid allowance is connected.</small>
         </div>
         <a class="account-link" href="#/account" data-route="account">
           <span class="avatar" aria-hidden="true">TH</span>
@@ -106,6 +108,18 @@
 
   <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
+  <form name="flipforge-private-beta-feedback" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden aria-hidden="true">
+    <input type="hidden" name="form-name" value="flipforge-private-beta-feedback">
+    <input name="bot-field">
+    <input name="category">
+    <input name="rating">
+    <textarea name="summary"></textarea>
+    <textarea name="expected"></textarea>
+    <input name="contactAllowed">
+    <input name="testerEmail">
+    <input name="route">
+  </form>
+
   <script src="mock-data.js"></script>
   <script src="feature-data.js"></script>
   <script src="app.js"></script>
@@ -123,5 +137,6 @@
   <script src="staging-evaluation.js"></script>
   <script src="staging-route-hook.js"></script>
   <script src="account-lifecycle.js"></script>
+  <script src="private-beta.js"></script>
 </body>
 </html>
