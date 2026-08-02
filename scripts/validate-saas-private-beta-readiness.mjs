@@ -51,7 +51,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["031 Smart Opportunity remains sole authority", beta.includes("Smart Opportunity remains the sole recommendation authority")],
   ["032 existing PSA authority remains explicit", beta.includes("Existing PSA intelligence remains the sole grading-guidance authority")],
   ["033 SQLite remains source of truth", beta.includes("SQLite remains the source of truth")],
-  ["034 public signup remains unavailable", beta.includes("No public signup") && !beta.includes("signup(")],
+  ["034 public signup remains unavailable", beta.includes("no public signup") && !beta.includes("signup(")],
   ["035 billing remains unavailable", beta.includes("No billing") && beta.includes("No paid limits")],
   ["036 transaction execution remains unavailable", beta.includes("checkout, payment, purchase, listing, sale")],
   ["037 provider-backed Discover is identified as real when configured", beta.includes("Start with Discover") && beta.includes("Discover → Evaluate → Intelligence")],
