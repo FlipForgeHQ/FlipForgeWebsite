@@ -21,6 +21,7 @@
     evaluatingIndex: -1,
     error: null,
     notice: "",
+    evaluationKeys: new Map(),
     draft: { exactCardQuery: "", targetMaxBuy: "", limit: "25" }
   };
 
@@ -214,6 +215,16 @@
     };
   }
 
+  function idempotencyKeyFor(payload) {
+    const fingerprint = JSON.stringify(payload);
+    let requestId = state.evaluationKeys.get(fingerprint);
+    if (!requestId) {
+      requestId = newIdempotencyKey();
+      state.evaluationKeys.set(fingerprint, requestId);
+    }
+    return requestId;
+  }
+
   async function loadHealth() {
     const result = await request("/api/v1/health");
     const meta = result.payload?.meta;
@@ -268,7 +279,7 @@
     renderCurrent();
     try {
       const payload = safeEvaluationRequest(item);
-      const requestId = newIdempotencyKey();
+      const requestId = idempotencyKeyFor(payload);
       const result = await request(EVALUATION_PATH, { method: "POST", body: payload, idempotencyKey: requestId });
       if (!validateEvaluation(result.payload, result.correlationId, requestId)) throw makeError("DISCOVER_EVALUATION_CONTRACT_INVALID", "The authoritative evaluation response failed the tenant-owned Smart Opportunity contract.");
       window.location.hash = `#/opportunities/${encodeURIComponent(result.payload.data.opportunityId)}`;
