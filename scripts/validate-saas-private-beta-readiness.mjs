@@ -51,12 +51,14 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["031 Smart Opportunity remains sole authority", beta.includes("Smart Opportunity remains the sole recommendation authority")],
   ["032 existing PSA authority remains explicit", beta.includes("Existing PSA intelligence remains the sole grading-guidance authority")],
   ["033 SQLite remains source of truth", beta.includes("SQLite remains the source of truth")],
-  ["034 public signup remains unavailable", beta.includes("No public signup") && !beta.includes("signup(")],
+  ["034 public signup remains unavailable", beta.includes("no public signup") && !beta.includes("signup(")],
   ["035 billing remains unavailable", beta.includes("No billing") && beta.includes("No paid limits")],
   ["036 transaction execution remains unavailable", beta.includes("checkout, payment, purchase, listing, sale")],
-  ["037 manual Evaluate is identified as the real entry path", beta.includes("Provider-backed Discover is not yet active") && beta.includes("Evaluate is the real customer entry path")],
-  ["038 remaining route limits are disclosed", beta.includes("Discovery remains a sample") && beta.includes("Current value and performance remain unavailable") && beta.includes("External alert delivery is not connected") && beta.includes("Dashboard → Evaluate")],
-  ["039 tester walkthrough covers full customer loop", ["Evaluate one exact card", "Open Card Intelligence", "Challenge the Decision Traceback", "Compare two saved decisions", "Send focused feedback"].every(value => beta.includes(value))],
+  ["037 provider-backed Discover is identified as real when configured", beta.includes("Start with Discover") && beta.includes("Discover → Evaluate → Intelligence")],
+  ["038 Discover scope and unavailable-provider limits are disclosed", beta.includes("Connected-source scope") && beta.includes("Provider may be unavailable") && beta.includes("no sample fallback")],
+  ["038a Discover rank is separated from recommendation authority", beta.includes("Discovery score") && beta.includes("not BUY/WATCH/VERIFY/PASS")],
+  ["038b Discover search persistence is denied", beta.includes("searches are not saved")],
+  ["039 tester walkthrough covers full customer loop", ["Search one exact card", "Submit one listing to Smart Opportunity", "Open Card Intelligence", "Challenge the Decision Traceback", "Compare two saved decisions", "Create a Decision Dossier", "Send focused feedback"].every(value => beta.includes(value))],
   ["039a feedback shortcut preserves the SPA route", beta.includes("data-private-beta-feedback-link") && beta.includes('querySelector("#beta-feedback")?.scrollIntoView') && !beta.includes('href="#beta-feedback"')],
   ["040 feedback is restricted to active invited testers", beta.includes("!session.authenticated || !session.membershipActive")],
   ["041 feedback summary is required and bounded", beta.includes('maxlength="2000"') && beta.includes("summary.length > 2000")],
@@ -79,7 +81,9 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["057 docs retain deploy-preview gateway control", docs.includes("gateway disabled unless a separately approved deploy-preview")],
   ["058 docs enumerate feedback exclusions", docs.includes("password, raw JWT, refresh token, tenant ID, provider credential, service token")],
   ["058a docs make contact email opt-in", docs.includes("included only when the tester checks the explicit follow-up permission")],
-  ["059 docs identify real customer management and incomplete routes", docs.includes("Dashboard, Evaluate, Opportunities") && docs.includes("Evidence Center, saved PSA guidance, Exit Review, Tracking, Portfolio, and Alerts") && docs.includes("Provider-backed Discover") && docs.includes("Current value, gain/loss, fees, taxes, and liquidation value remain unavailable")],
+  ["059 docs identify Discover as real but scoped", docs.includes("Provider-backed Discover is a real customer path") && docs.includes("does not claim complete-market coverage") && docs.includes("search results are ephemeral")],
+  ["059a docs retain manual Evaluate fallback", docs.includes("Manual Evaluate remains available")],
+  ["059b docs retain current-value limits", docs.includes("Current value, gain/loss, fees, taxes, and liquidation value remain unavailable")],
   ["060 docs retain zero transaction authority", docs.includes("No evidence acceptance") && docs.includes("resale authority")]
 ].forEach(([name, condition]) => check(name, condition));
 
@@ -146,6 +150,8 @@ check("067 active session renders active tester state", betaRoute.main.innerHTML
 check("068 configured health renders available API", betaRoute.main.innerHTML.includes("Customer API") && betaRoute.main.innerHTML.includes("Available"));
 check("069 Beta Guide banner replaces prototype wording", betaRoute.bannerTitle.textContent === "PRIVATE BETA GUIDE" && betaRoute.bannerCopy.textContent.includes("Invitation only"));
 check("070 rendered guide contains no invited account email", !betaRoute.main.innerHTML.includes("tester@example.com"));
+check("071 rendered guide offers provider-backed Discover", betaRoute.main.innerHTML.includes("Start with Discover") && betaRoute.main.innerHTML.includes("Search one exact card"));
+check("072 rendered guide discloses connected-source scope", betaRoute.main.innerHTML.includes("Connected-source scope"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSPrivateBetaReadinessValidation");

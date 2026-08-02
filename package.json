@@ -13,7 +13,8 @@
     "validate:customer-compare": "node scripts/validate-saas-customer-compare.mjs",
     "validate:customer-management": "node scripts/validate-saas-customer-management.mjs",
     "validate:customer-lifecycle": "node scripts/validate-saas-customer-lifecycle.mjs",
-    "validate:customer-export": "node scripts/validate-saas-customer-export.mjs"
+    "validate:customer-export": "node scripts/validate-saas-customer-export.mjs",
+    "validate:customer-discovery": "node scripts/validate-saas-customer-discovery.mjs"
   },
   "dependencies": {
     "@netlify/identity": "1.2.0"
