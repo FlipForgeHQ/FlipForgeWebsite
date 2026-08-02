@@ -104,6 +104,26 @@ function errorEnvelope(code, message, correlationId, details = null) {
   };
 }
 
+function upstreamRejectionEnvelope(status, payload, correlationId) {
+  const upstreamCode = payload && payload.error && typeof payload.error.code === "string"
+    ? payload.error.code
+    : "";
+
+  if (status === 404 && upstreamCode === "RESOURCE_NOT_FOUND") {
+    return errorEnvelope(
+      "RESOURCE_NOT_FOUND",
+      "The requested saved resource was not found.",
+      correlationId
+    );
+  }
+
+  return errorEnvelope(
+    "UPSTREAM_REJECTED",
+    "The authoritative FlipForge service rejected the request.",
+    correlationId
+  );
+}
+
 function originAllowed(event, origin) {
   try {
     const parsed = new URL(origin);
@@ -504,7 +524,7 @@ exports.handler = async function handler(event, context) {
       return jsonResponse(
         event,
         upstreamResponse.status >= 400 && upstreamResponse.status < 500 ? upstreamResponse.status : 502,
-        errorEnvelope("UPSTREAM_REJECTED", "The authoritative FlipForge service rejected the request.", correlationId),
+        upstreamRejectionEnvelope(upstreamResponse.status, payload, correlationId),
         correlationId
       );
     }
