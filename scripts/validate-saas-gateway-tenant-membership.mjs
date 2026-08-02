@@ -296,8 +296,24 @@ try {
   );
   check("049 upstream client conflict remains a client status", upstreamConflict.statusCode === 409 && errorCode(upstreamConflict) === "UPSTREAM_REJECTED");
 
-  check("050 logs contain no raw tenant identifier", logs.every(line => !line.includes("tenant_alpha_001") && !line.includes("tenant_beta_002") && !line.includes("preview_sandbox_001")));
-  check("051 logs contain no raw authenticated subject", logs.every(line => !line.includes("verified-user-001") && !line.includes("verified-user-002")));
+  globalThis.fetch = async () => new Response(
+    JSON.stringify({
+      error: {
+        code: "RESOURCE_NOT_FOUND",
+        message: "upstream-only-sensitive-detail"
+      }
+    }),
+    { status: 404, headers: { "content-type": "application/json" } }
+  );
+  const missingResource = await handler(
+    event("GET", "/api/v1/opportunities/EBAY-tenant-alpha-only"),
+    userContext("tenant_beta_002", "active", { sub: "verified-user-002" })
+  );
+  check("050 non-disclosing resource denial preserves the canonical code", missingResource.statusCode === 404 && errorCode(missingResource) === "RESOURCE_NOT_FOUND");
+  check("051 resource denial does not forward upstream error details", !missingResource.body.includes("upstream-only-sensitive-detail"));
+
+  check("052 logs contain no raw tenant identifier", logs.every(line => !line.includes("tenant_alpha_001") && !line.includes("tenant_beta_002") && !line.includes("preview_sandbox_001")));
+  check("053 logs contain no raw authenticated subject", logs.every(line => !line.includes("verified-user-001") && !line.includes("verified-user-002")));
 } finally {
   globalThis.fetch = originalFetch;
   console.info = originalConsole.info;
