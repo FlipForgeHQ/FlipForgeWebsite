@@ -33,7 +33,7 @@ No browser storage, cookie mutation, service token, tenant header, user header, 
 
 ## Authentication and tenant boundary
 
-The browser may obtain a short-lived signed JWT from an already-configured `window.netlifyIdentity` user and send it only in the same-origin `Authorization` header.
+The current Netlify Identity client authenticates browser requests with the secure `nf_jwt`/`nf_refresh` same-origin cookie session. The adapter uses `credentials: "same-origin"` and never reads a raw JWT or constructs a user `Authorization` header.
 
 The browser never selects, derives, or sends `X-FlipForge-Tenant-Id`.
 

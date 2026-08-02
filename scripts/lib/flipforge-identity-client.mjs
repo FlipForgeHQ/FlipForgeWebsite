@@ -67,22 +67,6 @@ function setAuthenticatedUser(nextUser, { renderIfChanged = true } = {}) {
   return true;
 }
 
-function compatibilityUser() {
-  if (!state.user) return null;
-  // The pre-modern staging adapters only use jwt() to optionally construct an
-  // Authorization header. Current Netlify Identity authenticates same-origin
-  // requests with secure nf_jwt/nf_refresh cookies, so never expose a raw JWT
-  // to browser code. Returning null keeps the compatibility surface fail-closed.
-  return Object.freeze({
-    ...state.user,
-    jwt: async () => null
-  });
-}
-
-window.netlifyIdentity = Object.freeze({
-  currentUser: () => compatibilityUser()
-});
-
 window.FlipForgeIdentity = Object.freeze({
   getUser: () => state.user,
   refresh: async () => {

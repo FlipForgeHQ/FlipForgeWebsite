@@ -359,7 +359,7 @@ exports.handler = async function handler(event, context) {
       headers: {
         ...securityHeaders(event, correlationId),
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Correlation-Id, Idempotency-Key",
+        "Access-Control-Allow-Headers": "Content-Type, X-Correlation-Id, Idempotency-Key",
         "Access-Control-Max-Age": "600"
       },
       body: ""

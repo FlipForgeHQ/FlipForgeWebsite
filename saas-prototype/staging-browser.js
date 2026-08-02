@@ -60,15 +60,6 @@
     return `staging-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
-  async function identityAuthorization() {
-    const identity = window.netlifyIdentity;
-    if (!identity || typeof identity.currentUser !== "function") return null;
-    const user = identity.currentUser();
-    if (!user || typeof user.jwt !== "function") return null;
-    const token = await user.jwt();
-    return typeof token === "string" && token.trim() ? `Bearer ${token.trim()}` : null;
-  }
-
   function requireAllowedPath(path) {
     const value = String(path || "");
     if (Object.values(READ_PATHS).includes(value)) return value;
@@ -122,9 +113,7 @@
   async function request(path) {
     const safePath = requireAllowedPath(path);
     const requestCorrelationId = correlationId();
-    const authorization = await identityAuthorization();
     const headers = { Accept: "application/json", "X-Correlation-Id": requestCorrelationId };
-    if (authorization) headers.Authorization = authorization;
 
     const response = await fetch(safePath, {
       method: "GET",

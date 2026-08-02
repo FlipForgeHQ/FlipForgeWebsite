@@ -40,7 +40,7 @@ check("018 idempotency key is sent", files.adapter.includes('"Idempotency-Key": 
 check("019 idempotency key is generated internally", files.adapter.includes("function newIdempotencyKey()") && files.adapter.includes("eval-${suffix}"));
 check("020 unchanged payload retains key", files.adapter.includes("state.payloadFingerprint !== fingerprint"));
 check("021 idempotency state is memory only", !/localStorage|sessionStorage|document\.cookie/.test(files.adapter));
-check("022 optional identity JWT remains memory only", files.adapter.includes("window.netlifyIdentity") && files.adapter.includes("user.jwt()"));
+check("022 evaluation relies only on same-origin cookie authentication", !/window\.netlifyIdentity|user\.jwt\(\)|Authorization/.test(files.adapter));
 check("023 browser never sends trusted tenant header", !/X-FlipForge-Tenant-Id/i.test(files.adapter));
 check("024 browser never sends raw user header", !/X-FlipForge-User-Id/i.test(files.adapter));
 check("025 browser never references service token", !/FLIPFORGE_API_SERVICE_TOKEN/.test(files.adapter));
@@ -201,17 +201,14 @@ function jsonResponse(body, status = 200) {
   });
 }
 
-function createRuntime({ hostname = "deploy-preview-22--goflipforge.netlify.app", values = validValues(), fetchImpl, identity = true }) {
+function createRuntime({ hostname = "deploy-preview-22--goflipforge.netlify.app", values = validValues(), fetchImpl }) {
   const nav = { hidden: true };
   const form = makeForm(values);
   const main = makeMain(form);
   let uuidCounter = 0;
   const window = {
     location: { hostname, hash: "#/staging-evaluate" },
-    crypto: { randomUUID: () => `00000000-0000-4000-8000-${String(++uuidCounter).padStart(12, "0")}` },
-    netlifyIdentity: identity ? {
-      currentUser: () => ({ jwt: async () => "signed-preview-token" })
-    } : null
+    crypto: { randomUUID: () => `00000000-0000-4000-8000-${String(++uuidCounter).padStart(12, "0")}` }
   };
   const document = {
     querySelector(selector) {
@@ -276,7 +273,7 @@ await settle();
 check("070 valid submission performs exactly one request", calls.length === 1);
 check("071 valid submission uses fixed evaluation path", calls[0].url === "/api/v1/evaluations");
 check("072 valid submission uses POST and same-origin controls", calls[0].options.method === "POST" && calls[0].options.credentials === "same-origin" && calls[0].options.cache === "no-store" && calls[0].options.redirect === "error");
-check("073 signed token is forwarded only as Authorization", calls[0].options.headers.Authorization === "Bearer signed-preview-token");
+check("073 browser never constructs a user Authorization header", !("Authorization" in calls[0].options.headers));
 check("074 runtime sends no tenant or user header", !("X-FlipForge-Tenant-Id" in calls[0].options.headers) && !("X-FlipForge-User-Id" in calls[0].options.headers));
 check("075 runtime idempotency key is safe", SAFE_TEST(calls[0].options.headers["Idempotency-Key"]));
 const firstKey = calls[0].options.headers["Idempotency-Key"];
@@ -331,7 +328,6 @@ check("091 unsafe listing ID is rejected before fetch", unsafeIdCalls.length ===
 
 const unauthorizedCalls = [];
 const unauthorized = createRuntime({
-  identity: false,
   fetchImpl: async (url, options) => {
     unauthorizedCalls.push({ url, options });
     return jsonResponse({ error: { code: "AUTHENTICATION_REQUIRED", message: "Authentication is required.", correlationId: options.headers["X-Correlation-Id"] } }, 401);
