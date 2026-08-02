@@ -195,7 +195,7 @@
             <header class="panel-header"><div><h2>What is real now</h2><p>Current deploy-preview customer capabilities.</p></div></header>
             <div class="panel-body private-beta-limit-list">
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Invitation and recovery</strong><small>Secure sign-in, activation, password recovery, session state, and profile updates.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Tenant-scoped reads, writes, and comparison use the proven same-origin staging gateway when enabled.</small></span></div>
+              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Dashboard → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>The Dashboard, tenant-scoped reads, writes, and comparison use the proven same-origin staging gateway when enabled.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence and saved PSA context</strong><small>Returned authority state is displayed without browser-side acceptance, rescoring, or grade prediction.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tenant isolation</strong><small>Membership comes only from signed server roles; the browser cannot choose a tenant.</small></span></div>
             </div>
@@ -205,7 +205,7 @@
             <header class="panel-header"><div><h2>Known beta limits</h2><p>These are not hidden behind mock plan language.</p></div></header>
             <div class="panel-body private-beta-limit-list">
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Manual entry first</strong><small>Provider-backed Discover is not yet active; Evaluate is the real customer entry path.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Some routes remain samples</strong><small>Dashboard, Discover, Portfolio, Sell, and Alerts are not yet fully server-backed.</small></span></div>
+              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Some routes remain samples</strong><small>Discover, Portfolio, Sell, and Alerts are not yet fully server-backed.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Bridge may be offline</strong><small>The customer API stays disabled between approved testing sessions.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>No billing or transactions</strong><small>No paid limits, checkout, payment, purchase, listing, sale, or marketplace action is active.</small></span></div>
             </div>

@@ -1,0 +1,208 @@
+.customer-dashboard-page {
+  --dashboard-accent: var(--gold);
+}
+
+.customer-dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.customer-dashboard-metrics article {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(226, 189, 66, 0.08), transparent 42%),
+    var(--surface);
+}
+
+.customer-dashboard-metrics article[data-tone="attention"] {
+  border-color: rgba(246, 169, 22, 0.4);
+}
+
+.customer-dashboard-metrics article[data-tone="ready"] {
+  border-color: rgba(39, 209, 127, 0.32);
+}
+
+.customer-dashboard-metrics span,
+.customer-dashboard-opportunity-head span,
+.customer-dashboard-opportunity-metrics span,
+.customer-dashboard-contract span {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 820;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.customer-dashboard-metrics strong {
+  font-size: clamp(1.65rem, 3vw, 2.4rem);
+}
+
+.customer-dashboard-metrics small,
+.customer-dashboard-opportunity > small,
+.customer-dashboard-next small {
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.customer-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.8fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.customer-dashboard-saved footer {
+  padding: 0 20px 20px;
+}
+
+.customer-dashboard-opportunities {
+  display: grid;
+  gap: 12px;
+}
+
+.customer-dashboard-opportunity {
+  display: grid;
+  gap: 11px;
+  padding: 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.customer-dashboard-opportunity[data-staging-opportunity] {
+  cursor: pointer;
+}
+
+.customer-dashboard-opportunity[data-staging-opportunity]:hover,
+.customer-dashboard-opportunity[data-staging-opportunity]:focus-visible {
+  border-color: rgba(226, 189, 66, 0.52);
+  background: rgba(226, 189, 66, 0.055);
+  outline: none;
+}
+
+.customer-dashboard-opportunity-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+}
+
+.customer-dashboard-opportunity h3,
+.customer-dashboard-opportunity p {
+  margin: 0;
+}
+
+.customer-dashboard-opportunity h3 {
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+
+.customer-dashboard-opportunity p {
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.customer-dashboard-opportunity-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.customer-dashboard-opportunity-metrics > div,
+.customer-dashboard-contract .panel-body > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.customer-dashboard-opportunity-metrics strong,
+.customer-dashboard-contract strong {
+  overflow-wrap: anywhere;
+}
+
+.customer-dashboard-next .panel-body {
+  display: grid;
+  gap: 10px;
+}
+
+.customer-dashboard-next .panel-body > a {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 11px;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.customer-dashboard-next .panel-body > a:hover,
+.customer-dashboard-next .panel-body > a:focus-visible {
+  border-color: rgba(226, 189, 66, 0.52);
+  background: rgba(226, 189, 66, 0.055);
+  outline: none;
+}
+
+.customer-dashboard-next .panel-body > a > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(226, 189, 66, 0.42);
+  border-radius: 50%;
+  color: var(--gold);
+  font-weight: 850;
+}
+
+.customer-dashboard-next .panel-body > a > span:last-child {
+  display: grid;
+  gap: 4px;
+}
+
+.customer-dashboard-contract .panel-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 1050px) {
+  .customer-dashboard-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .customer-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .customer-dashboard-metrics,
+  .customer-dashboard-opportunity-metrics,
+  .customer-dashboard-contract .panel-body {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-dashboard-opportunity-head {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-dashboard-page * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
