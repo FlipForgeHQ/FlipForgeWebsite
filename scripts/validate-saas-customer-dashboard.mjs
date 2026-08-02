@@ -62,11 +62,11 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["039 Dashboard CSS has mobile layout", files.css.includes("@media (max-width: 680px)")],
   ["040 Dashboard CSS has keyboard focus treatment", files.css.includes(":focus-visible")],
   ["041 Dashboard CSS respects reduced motion", files.css.includes("prefers-reduced-motion")],
-  ["042 Beta Guide now lists Dashboard as real", files.beta.includes("Dashboard → Evaluate → Intelligence")],
+  ["042 Beta Guide now lists the real customer intelligence loop", files.beta.includes("Discover → Evaluate → Intelligence → Traceback → Compare → Track")],
   ["043 Beta Guide no longer lists Dashboard as a sample", !files.beta.includes("Dashboard, Discover, Portfolio, Sell, and Alerts")],
   ["044 docs prohibit a second engine or ranking layer", files.docs.includes("does not create a dashboard database, recommendation engine, review engine, ranking layer")],
   ["045 docs retain production-disabled boundary", files.docs.includes("Production keeps the existing static prototype behavior")],
-  ["046 docs disclose the remaining incomplete routes", files.docs.includes("Discover, Portfolio, Sell, and Alerts")]
+  ["046 docs disclose the current incomplete capabilities", files.docs.includes("current value") && files.docs.includes("email, SMS, or push") && files.docs.includes("Billing, paid-plan entitlements") && files.docs.includes("No customer surface has transaction authority")]
 ].forEach(([name, condition]) => check(name, condition));
 
 function envelope(correlationId, data, authority = "Smart Opportunity") {
