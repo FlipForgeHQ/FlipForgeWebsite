@@ -54,6 +54,15 @@
           focusMain();
           return;
         }
+        if (route === "dashboard"
+            && adapter
+            && typeof adapter.renderCustomerDashboard === "function"
+            && adapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          adapter.renderCustomerDashboard(main);
+          focusMain();
+          return;
+        }
         if (route === "opportunities"
             && adapter
             && typeof adapter.renderCustomer === "function"

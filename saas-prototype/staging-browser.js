@@ -55,7 +55,7 @@
   }
 
   function customerSurface() {
-    return currentSurface === "customer";
+    return currentSurface === "customer" || currentSurface === "customer-dashboard";
   }
 
   function listRoute() {
@@ -243,8 +243,11 @@
       : error.status === 403
         ? "The signed-in preview user does not have an active tenant membership."
         : "No mock data has been substituted for this staging response.";
+    const returnTo = currentSurface === "customer-dashboard"
+      ? "%2Fsaas-prototype%2F%23%2Fdashboard"
+      : "%2Fsaas-prototype%2F%23%2Fopportunities";
     const signIn = customerSurface() && error.status === 401
-      ? `<div class="customer-intelligence-actions"><a class="button button-primary" href="/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fopportunities">Sign in securely</a></div>`
+      ? `<div class="customer-intelligence-actions"><a class="button button-primary" href="/staging-auth.html?returnTo=${returnTo}">Sign in securely</a></div>`
       : "";
     return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error.code || "STAGING_UNAVAILABLE")}</strong><p>${escapeHtml(error.message)}</p><small>${escapeHtml(guidance)}</small>${signIn}</div></section>`;
   }
@@ -289,6 +292,7 @@
   }
 
   function baseView() {
+    if (currentSurface === "customer-dashboard") return customerDashboardView();
     if (customerSurface()) return customerBaseView();
     const configured = state.health?.data?.status === "configured";
     return `<div class="page staging-page"><header class="page-heading"><div><span class="eyebrow">Controlled deploy-preview integration</span><h1>Staging Data</h1><p>Authenticated, tenant-scoped saved intelligence from the authoritative FlipForge API. This route never falls back to mock records.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-staging-refresh>Refresh connection</button></div></header><div class="boundary-note"><strong>Staging boundary:</strong> Read-only browser integration. Smart Opportunity and existing PSA intelligence remain authoritative. No provider call, evidence acceptance, billing, purchase, or production activation is performed here.</div>${state.loading ? `<div class="staging-loading" role="status">Loading staging connection…</div>` : ""}${errorPanel(state.error)}${healthPanel()}${configured && !state.error ? `${metricCards()}${state.opportunities ? `<section class="panel"><header class="panel-header"><div><h2>Tenant-owned opportunities</h2><p>Saved recommendations displayed exactly as returned by the authoritative API.</p></div></header><div class="panel-body">${opportunityTable()}</div></section>` : ""}` : ""}${!configured && state.health ? `<section class="panel"><div class="panel-body staging-empty"><strong>Staging gateway is not active.</strong><p>No customer data request was attempted, and the prototype cockpit remains mock-backed.</p></div></section>` : ""}</div>`;
@@ -299,6 +303,36 @@
     const meta = state.opportunities?.meta || state.dashboard?.meta || {};
     const limitations = safeArray(meta.limitations);
     return `<div class="page staging-page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Saved customer intelligence</span><h1>Tracked Opportunities</h1><p>Every card here is a tenant-owned record saved in SQLite and governed by FlipForge's existing decision authority.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-staging-refresh>Refresh</button><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></header><div class="boundary-note"><strong>Customer boundary:</strong> This workspace reads saved Smart Opportunity, evidence, and PSA output. It never substitutes mock records, recalculates a decision, or authorizes a transaction.</div>${state.loading ? `<div class="staging-loading" role="status">Loading your saved intelligence…</div>` : ""}${errorPanel(state.error)}${configured && !state.error ? `${metricCards()}<section class="panel customer-intelligence-list"><header class="panel-header"><div><h2>Your tracked decision records</h2><p>Evaluations are tracked automatically after the authoritative service saves them and grants tenant ownership.</p></div><span class="staging-status staging-status-ok">SQLite saved</span></header><div class="panel-body">${opportunityTable()}</div></section><section class="panel customer-contract-panel"><div class="panel-body"><div><span>Engine</span><strong>${escapeHtml(meta.engineVersion || "Authoritative service")}</strong></div><div><span>Evidence freshness</span><strong>${escapeHtml(meta.evidenceFreshness || "Unavailable")}</strong></div><div><span>Customer controls</span><strong>Read, evaluate, understand, track</strong></div><div><span>Execution authority</span><strong>None</strong></div></div>${limitations.length ? `<details><summary>Known limitations</summary><ul>${limitations.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>` : ""}</section>` : ""}${!configured && state.health ? `<section class="panel"><div class="panel-body staging-empty"><strong>Customer intelligence is safely offline.</strong><p>The preview gateway is disabled, so no tenant data request was attempted and no mock data was substituted.</p></div></section>` : ""}</div>`;
+  }
+
+  function dashboardOpportunityCards() {
+    const items = safeArray(state.opportunities?.data?.items);
+    if (!items.length) {
+      return `<div class="staging-empty"><strong>No saved decisions yet.</strong><p>Evaluate one exact card to create the first tenant-owned SQLite record.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div>`;
+    }
+    return items.slice(0, 4).map(item => {
+      const id = String(item.id ?? "");
+      const canOpen = SAFE_ID.test(id);
+      const title = item.title || item.cardIdentity || id;
+      const evidenceCount = safeNumber(item.evidence?.acceptedSales);
+      return `<article class="customer-dashboard-opportunity" ${canOpen ? `data-staging-opportunity="${escapeHtml(id)}" tabindex="0"` : ""}><div class="customer-dashboard-opportunity-head"><div><span>${escapeHtml(item.platform || "Saved record")}</span><h3>${escapeHtml(title)}</h3></div>${badge(item.recommendation || "UNKNOWN", String(item.recommendation || "unknown").toLowerCase())}</div><p>${escapeHtml(item.cardIdentity || "Saved exact-card identity")}</p><div class="customer-dashboard-opportunity-metrics"><div><span>Ask</span><strong>${money(item.ask)}</strong></div><div><span>Supported</span><strong>${money(item.supportedValue)}</strong></div><div><span>Confidence</span><strong>${safeNumber(item.confidence)}/100</strong></div><div><span>Exact sales</span><strong>${evidenceCount}</strong></div></div><small>${escapeHtml(item.mappingState || "UNKNOWN")} mapping · Saved output shown unchanged</small></article>`;
+    }).join("");
+  }
+
+  function customerDashboardView() {
+    const configured = state.health?.data?.status === "configured";
+    const metrics = state.dashboard?.data?.metrics || {};
+    const meta = state.dashboard?.meta || state.opportunities?.meta || {};
+    const items = safeArray(state.opportunities?.data?.items);
+    const tracked = safeNumber(metrics.trackedOpportunities);
+    const reviewCount = safeNumber(metrics.needsVerification);
+    const evidenceReady = safeNumber(metrics.evidenceReady);
+    const populationReady = safeNumber(metrics.populationContextAvailable);
+    const activityCopy = tracked
+      ? `${tracked} tenant-owned saved decision${tracked === 1 ? "" : "s"} returned by the authoritative service.`
+      : "No tenant-owned saved decision has been returned yet.";
+
+    return `<div class="page staging-page customer-dashboard-page"><header class="page-heading"><div><span class="eyebrow">Private beta command center</span><h1>Customer Dashboard</h1><p>Your saved FlipForge intelligence in one tenant-scoped view—without sample metrics, browser scoring, or transaction actions.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-staging-refresh>Refresh</button><a class="button button-secondary" href="#/opportunities">Tracked cards</a><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></header><div class="boundary-note"><strong>Dashboard boundary:</strong> Metrics and saved decisions come from the existing Smart Opportunity projection and SQLite source of truth. The browser does not rerank, rescore, accept evidence, predict a grade, or authorize a transaction.</div>${state.loading ? `<div class="staging-loading" role="status">Loading your customer dashboard…</div>` : ""}${errorPanel(state.error)}${configured && !state.error ? `<section class="customer-dashboard-metrics" aria-label="Authoritative customer metrics"><article><span>Tracked decisions</span><strong>${tracked}</strong><small>Tenant-owned SQLite records</small></article><article><span>Evidence ready</span><strong>${evidenceReady}</strong><small>Confirmed mapping with accepted sales</small></article><article><span>Population context</span><strong>${populationReady}</strong><small>Saved display context available</small></article><article data-tone="${reviewCount > 0 ? "attention" : "ready"}"><span>Needs verification</span><strong>${reviewCount}</strong><small>Server-reported review count</small></article></section><div class="customer-dashboard-grid"><section class="panel customer-dashboard-saved"><header class="panel-header"><div><h2>Saved decision activity</h2><p>${escapeHtml(activityCopy)} Records remain in the order returned by the server.</p></div><span class="staging-status staging-status-ok">SQLite saved</span></header><div class="panel-body customer-dashboard-opportunities">${dashboardOpportunityCards()}</div>${items.length > 4 ? `<footer><a class="panel-link" href="#/opportunities">View all ${tracked} tracked decisions →</a></footer>` : ""}</section><div class="stack"><section class="panel customer-dashboard-next"><header class="panel-header"><div><h2>Continue the workflow</h2><p>Move through one governed customer loop.</p></div></header><div class="panel-body"><a href="#/evaluate"><span>1</span><span><strong>Evaluate</strong><small>Save an exact-card decision with complete acquisition cost.</small></span></a><a href="#/opportunities"><span>2</span><span><strong>Understand and track</strong><small>Open Card Intelligence, evidence, PSA context, and Traceback.</small></span></a><a href="#/compare"><span>3</span><span><strong>Compare saved decisions</strong><small>View two returned records side by side without an invented winner.</small></span></a></div></section><section class="panel customer-dashboard-contract"><header class="panel-header"><div><h2>Current authority state</h2><p>What this dashboard is allowed to say.</p></div></header><div class="panel-body"><div><span>Engine</span><strong>${escapeHtml(meta.engineVersion || "Authoritative service")}</strong></div><div><span>Evidence freshness</span><strong>${escapeHtml(meta.evidenceFreshness || "Unavailable")}</strong></div><div><span>Recommendation authority</span><strong>Smart Opportunity</strong></div><div><span>Transaction authority</span><strong>None</strong></div></div></section></div></div>` : ""}${!configured && state.health ? `<section class="panel"><div class="panel-body staging-empty"><strong>Customer Dashboard is safely offline.</strong><p>The preview bridge is disabled, so no tenant data request was attempted and no sample dashboard was substituted.</p></div></section>` : ""}</div>`;
   }
 
   function detailView() {
@@ -437,6 +471,15 @@
     return true;
   }
 
+  function renderCustomerDashboard(main) {
+    currentSurface = "customer-dashboard";
+    currentMain = main;
+    currentId = "";
+    if (!eligibleHost()) return false;
+    loadBase();
+    return true;
+  }
+
   const navLink = document.querySelector("[data-route='staging']");
   if (navLink && eligibleHost()) navLink.hidden = false;
 
@@ -444,6 +487,7 @@
     isEligible: eligibleHost,
     render,
     renderCustomer,
+    renderCustomerDashboard,
     refresh: () => currentId ? loadDetail(currentId) : loadBase()
   });
 })();
