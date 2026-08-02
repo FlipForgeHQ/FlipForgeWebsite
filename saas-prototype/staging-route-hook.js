@@ -7,6 +7,7 @@
   const lifecycleAdapter = window.FlipForgeCustomerLifecycle;
   const managementAdapter = window.FlipForgeCustomerManagement;
   const exportAdapter = window.FlipForgeCustomerExport;
+  const discoveryAdapter = window.FlipForgeCustomerDiscovery;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
   const bannerTitle = banner ? banner.querySelector("strong") : null;
@@ -39,6 +40,11 @@
     if (bannerCopy) bannerCopy.textContent = "Authenticated tenant-scoped decisions · SQLite saved · No transaction authority";
   }
 
+  function showDiscoveryBanner() {
+    if (bannerTitle) bannerTitle.textContent = "PRIVATE BETA DISCOVERY";
+    if (bannerCopy) bannerCopy.textContent = "Authorized active listings · Evidence-aware context · Explicit Smart Opportunity evaluation required";
+  }
+
   function focusMain() {
     main.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -48,6 +54,15 @@
     const [route, id = ""] = routeParts();
     if (route !== "staging") {
       if (route !== "staging-evaluate") {
+        if (route === "discover"
+            && discoveryAdapter
+            && typeof discoveryAdapter.render === "function"
+            && discoveryAdapter.isEligible()) {
+          showDiscoveryBanner();
+          discoveryAdapter.render(main);
+          focusMain();
+          return;
+        }
         if (route === "evaluate"
             && evaluationAdapter
             && typeof evaluationAdapter.renderCustomer === "function"
