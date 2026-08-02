@@ -6,6 +6,7 @@
   const compareAdapter = window.FlipForgeCustomerCompare;
   const lifecycleAdapter = window.FlipForgeCustomerLifecycle;
   const managementAdapter = window.FlipForgeCustomerManagement;
+  const exportAdapter = window.FlipForgeCustomerExport;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
   const bannerTitle = banner ? banner.querySelector("strong") : null;
@@ -104,6 +105,16 @@
             && managementAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
           managementAdapter.render(main, route, id);
+          focusMain();
+          return;
+        }
+        if (exportAdapter
+            && typeof exportAdapter.handles === "function"
+            && exportAdapter.handles(route)
+            && typeof exportAdapter.render === "function"
+            && exportAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          exportAdapter.render(main, id);
           focusMain();
           return;
         }

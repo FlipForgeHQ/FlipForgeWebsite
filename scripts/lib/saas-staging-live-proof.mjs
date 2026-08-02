@@ -304,6 +304,77 @@ export async function runStagingLiveProof({ env = process.env, fetchImpl = fetch
   assertTenantIsolation(psaData);
   record(proof, "tenant-a-psa", "PASS", { correlationId: psa.correlationId, status: psa.response.status, opportunityId });
 
+  const lifecycleStart = await call(fetchImpl, origin, `/api/v1/lifecycle/${encodeURIComponent(opportunityId)}`, { session: sessionA, uuid });
+  const lifecycleStartData = assertEnvelope(lifecycleStart.payload, lifecycleStart.correlationId);
+  assertTenantIsolation(lifecycleStartData);
+  const initialLifecycle = lifecycleStartData && lifecycleStartData.lifecycle;
+  if (lifecycleStartData.kind !== "lifecycle-detail" || lifecycleStartData.opportunityId !== opportunityId
+      || lifecycleStartData.sourceOfTruth !== "SQLite" || lifecycleStartData.transactionAuthority !== false
+      || !initialLifecycle || !Number.isInteger(initialLifecycle.version) || !Array.isArray(lifecycleStartData.history)) {
+    throw new Error("Initial customer lifecycle proof is incomplete.");
+  }
+  record(proof, "tenant-a-lifecycle-initial", "PASS", { correlationId: lifecycleStart.correlationId, status: lifecycleStart.response.status, opportunityId, recordVersion: initialLifecycle.version });
+
+  const reviewAt = new Date(clock().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const lifecycleBody = {
+    trackingStatus: "REVIEW",
+    reviewAt,
+    outcomeStatus: "NONE",
+    acquisitionCostCents: null,
+    acquiredAt: null,
+    dispositionProceedsCents: null,
+    disposedAt: null,
+    alertEnabled: true,
+    expectedVersion: initialLifecycle.version
+  };
+  const lifecycleUpdate = await call(fetchImpl, origin, `/api/v1/lifecycle/${encodeURIComponent(opportunityId)}`, {
+    session: sessionA,
+    method: "PUT",
+    body: lifecycleBody,
+    expect: [200],
+    uuid
+  });
+  const lifecycleUpdateData = assertEnvelope(lifecycleUpdate.payload, lifecycleUpdate.correlationId);
+  assertTenantIsolation(lifecycleUpdateData);
+  const updatedLifecycle = lifecycleUpdateData && lifecycleUpdateData.lifecycle;
+  if (lifecycleUpdateData.kind !== "lifecycle-detail" || lifecycleUpdateData.opportunityId !== opportunityId
+      || !updatedLifecycle || updatedLifecycle.version !== initialLifecycle.version + 1
+      || updatedLifecycle.trackingStatus !== "REVIEW" || updatedLifecycle.outcomeStatus !== "NONE"
+      || updatedLifecycle.reviewAt !== reviewAt || updatedLifecycle.alertEnabled !== true
+      || !Array.isArray(lifecycleUpdateData.history) || lifecycleUpdateData.history.length < 1) {
+    throw new Error("Customer lifecycle persistence/history proof failed.");
+  }
+  record(proof, "tenant-a-lifecycle-update", "PASS", { correlationId: lifecycleUpdate.correlationId, status: lifecycleUpdate.response.status, opportunityId, recordVersion: updatedLifecycle.version });
+
+  const staleLifecycle = await call(fetchImpl, origin, `/api/v1/lifecycle/${encodeURIComponent(opportunityId)}`, {
+    session: sessionA,
+    method: "PUT",
+    body: lifecycleBody,
+    expect: [409],
+    uuid
+  });
+  if (!staleLifecycle.payload.error || staleLifecycle.payload.error.code !== "LIFECYCLE_VERSION_CONFLICT") {
+    throw new Error("Stale lifecycle write did not fail with LIFECYCLE_VERSION_CONFLICT.");
+  }
+  record(proof, "tenant-a-lifecycle-stale-write-deny", "PASS", { correlationId: staleLifecycle.correlationId, status: staleLifecycle.response.status, opportunityId });
+
+  const alerts = await call(fetchImpl, origin, "/api/v1/alerts", { session: sessionA, uuid });
+  const alertsData = assertEnvelope(alerts.payload, alerts.correlationId);
+  assertTenantIsolation(alertsData);
+  const alertItems = Array.isArray(alertsData.items) ? alertsData.items : [];
+  if (alertsData.kind !== "alerts" || alertsData.configured !== true
+      || alertsData.notificationDeliveryConfigured !== false || alertsData.transactionAuthority !== false
+      || !alertItems.some(item => item.opportunityId === opportunityId && item.enabled === true && item.reviewAt === reviewAt)) {
+    throw new Error("In-app lifecycle alert projection proof failed.");
+  }
+  record(proof, "tenant-a-lifecycle-alert", "PASS", { correlationId: alerts.correlationId, status: alerts.response.status, opportunityId });
+
+  const crossTenantLifecycle = await call(fetchImpl, origin, `/api/v1/lifecycle/${encodeURIComponent(opportunityId)}`, { session: sessionB, expect: [404], uuid });
+  if (!crossTenantLifecycle.payload.error || crossTenantLifecycle.payload.error.code !== "RESOURCE_NOT_FOUND") {
+    throw new Error("Cross-tenant lifecycle probe did not fail with non-disclosing RESOURCE_NOT_FOUND.");
+  }
+  record(proof, "tenant-b-cross-tenant-lifecycle-deny", "PASS", { correlationId: crossTenantLifecycle.correlationId, status: crossTenantLifecycle.response.status, opportunityId });
+
   const crossTenant = await call(fetchImpl, origin, `/api/v1/opportunities/${encodeURIComponent(opportunityId)}`, { session: sessionB, expect: [404], uuid });
   if (!crossTenant.payload.error || crossTenant.payload.error.code !== "RESOURCE_NOT_FOUND") throw new Error("Cross-tenant probe did not fail with non-disclosing RESOURCE_NOT_FOUND.");
   record(proof, "tenant-b-cross-tenant-deny", "PASS", { correlationId: crossTenant.correlationId, status: crossTenant.response.status, opportunityId });
@@ -318,6 +389,11 @@ export async function runStagingLiveProof({ env = process.env, fetchImpl = fetch
     sqlitePersistenceProved: true,
     tenantIsolationProved: true,
     idempotencyProved: true,
+    lifecyclePersistenceProved: true,
+    lifecycleHistoryProved: true,
+    optimisticConflictProved: true,
+    inAppAlertProjectionProved: true,
+    decisionDossierSourceSetProved: true,
     productionActivated: false
   };
   return proof;
