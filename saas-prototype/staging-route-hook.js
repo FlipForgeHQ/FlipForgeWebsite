@@ -4,6 +4,7 @@
   const adapter = window.FlipForgeStagingReadAdapter;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
   const compareAdapter = window.FlipForgeCustomerCompare;
+  const lifecycleAdapter = window.FlipForgeCustomerLifecycle;
   const managementAdapter = window.FlipForgeCustomerManagement;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
@@ -83,6 +84,16 @@
             : "";
           showCustomerIntelligenceBanner();
           compareAdapter.render(main, preferredLeftId || "");
+          focusMain();
+          return;
+        }
+        if (lifecycleAdapter
+            && typeof lifecycleAdapter.handles === "function"
+            && lifecycleAdapter.handles(route)
+            && typeof lifecycleAdapter.render === "function"
+            && lifecycleAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          lifecycleAdapter.render(main, route, id);
           focusMain();
           return;
         }

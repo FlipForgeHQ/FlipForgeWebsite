@@ -21,6 +21,9 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/evidence\/[A-Za-z0-9._:-]+$/ },
   { method: "GET", pattern: /^\/api\/v1\/portfolio$/ },
   { method: "GET", pattern: /^\/api\/v1\/alerts$/ },
+  { method: "GET", pattern: /^\/api\/v1\/lifecycle$/ },
+  { method: "GET", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
+  { method: "PUT", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
   { method: "GET", pattern: /^\/api\/v1\/account$/ },
   { method: "GET", pattern: /^\/api\/v1\/entitlements$/ },
   { method: "POST", pattern: /^\/api\/v1\/evaluations$/ }
@@ -113,6 +116,14 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
     return errorEnvelope(
       "RESOURCE_NOT_FOUND",
       "The requested saved resource was not found.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "LIFECYCLE_VERSION_CONFLICT") {
+    return errorEnvelope(
+      "LIFECYCLE_VERSION_CONFLICT",
+      "The saved lifecycle record changed. Refresh before submitting another update.",
       correlationId
     );
   }
@@ -378,7 +389,7 @@ exports.handler = async function handler(event, context) {
       statusCode: 204,
       headers: {
         ...securityHeaders(event, correlationId),
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, X-Correlation-Id, Idempotency-Key",
         "Access-Control-Max-Age": "600"
       },
@@ -502,7 +513,7 @@ exports.handler = async function handler(event, context) {
     const upstreamResponse = await fetch(upstreamUrl, {
       method,
       headers: upstreamHeaders,
-      body: method === "POST" ? body : undefined,
+      body: method === "POST" || method === "PUT" ? body : undefined,
       signal: controller.signal,
       redirect: "error"
     });
