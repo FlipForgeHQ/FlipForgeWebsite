@@ -31,7 +31,7 @@ No sample dashboard metric or mock opportunity is substituted after a disabled g
 - The browser does not rerank, rescore, calculate a new priority, accept evidence, predict a grade, or persist dashboard state.
 - The needs-verification number is displayed exactly as returned by the dashboard projection.
 - Saved opportunity cards remain in the order returned by the API.
-- No provider call, provider credential, billing, bid, checkout, payment, purchase, listing, sale, or production activation is added.
+- No provider credential, billing, bid, checkout, payment, purchase, listing, sale, or production activation is added by the Dashboard.
 
 ## Host and identity boundaries
 
@@ -41,9 +41,17 @@ No sample dashboard metric or mock opportunity is substituted after a disabled g
 - Signed tenant membership remains a server-owned gateway responsibility.
 - Production keeps the existing static prototype behavior until a separately approved production phase.
 
-## Honest incomplete surfaces
+## Current customer capability boundary
 
-Provider-backed Discover, Portfolio, Sell, and Alerts remain sample or unavailable customer surfaces. The backend currently returns honest `configured=false` states for Portfolio and Alerts, so this phase does not present them as working customer features.
+The private-beta application now includes real tenant-scoped Dashboard, provider-backed Discover when an approved source is configured, Evaluate, saved Opportunities/Card Intelligence, Compare, Evidence, saved PSA guidance, Exit Review, Tracking, Portfolio cost basis, in-app review Alerts, and Decision Dossier export.
+
+Important limitations remain explicit:
+
+- Portfolio does not calculate provider-backed current value, gain/loss, fees, taxes, or liquidation value.
+- Alerts do not deliver email, SMS, or push notifications.
+- Billing, paid-plan entitlements, and usage enforcement are not active.
+- Discover ranks only currently connected approved active-listing sources and does not claim complete-market coverage.
+- No customer surface has transaction authority.
 
 ## Validation
 
@@ -53,4 +61,4 @@ Run:
 npm run validate:customer-dashboard
 ```
 
-The retained Identity, account lifecycle, customer intelligence, comparison, private-beta, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof, activation-readiness, prototype, and visual suites must remain green.
+The retained Identity, account lifecycle, customer intelligence, provider-backed Discover, comparison, lifecycle, Decision Dossier, private-beta, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof, activation-readiness, prototype, and visual suites must remain green.
