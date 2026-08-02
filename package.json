@@ -7,7 +7,8 @@
     "build:identity": "node scripts/build-identity-client.mjs",
     "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs",
     "validate:account-lifecycle": "node scripts/validate-saas-customer-account-lifecycle.mjs",
-    "validate:customer-intelligence": "node scripts/validate-saas-customer-intelligence-loop.mjs"
+    "validate:customer-intelligence": "node scripts/validate-saas-customer-intelligence-loop.mjs",
+    "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs"
   },
   "dependencies": {
     "@netlify/identity": "1.2.0"
