@@ -179,7 +179,8 @@
               <div class="private-beta-step"><span class="private-beta-step-number">1</span><span class="private-beta-step-copy"><span>Input</span><strong>Evaluate one exact card</strong><small>Enter the listing facts, exact identity, and complete acquisition cost. The browser does not calculate the recommendation.</small></span><a class="button button-secondary" href="#/evaluate">Evaluate</a></div>
               <div class="private-beta-step"><span class="private-beta-step-number">2</span><span class="private-beta-step-copy"><span>Understand</span><strong>Open Card Intelligence</strong><small>Review the saved value gap, confidence, liquidity, risk, rank, evidence eligibility, and PSA context.</small></span><a class="button button-secondary" href="#/opportunities">Tracked cards</a></div>
               <div class="private-beta-step"><span class="private-beta-step-number">3</span><span class="private-beta-step-copy"><span>Trace</span><strong>Challenge the Decision Traceback</strong><small>Confirm that identity, completed-sale evidence, market factors, and the final authority output tell one coherent story.</small></span><a class="button button-secondary" href="#/opportunities">Review</a></div>
-              <div class="private-beta-step"><span class="private-beta-step-number">4</span><span class="private-beta-step-copy"><span>Report</span><strong>Send focused feedback</strong><small>Tell us what was clear, what was missing, and what would have changed your decision.</small></span><button class="button button-secondary" type="button" data-private-beta-feedback-link>Feedback</button></div>
+              <div class="private-beta-step"><span class="private-beta-step-number">4</span><span class="private-beta-step-copy"><span>Compare</span><strong>Compare two saved decisions</strong><small>Review returned factors side by side without asking the browser to rerank, rescore, or choose a winner.</small></span><a class="button button-secondary" href="#/compare">Compare</a></div>
+              <div class="private-beta-step"><span class="private-beta-step-number">5</span><span class="private-beta-step-copy"><span>Report</span><strong>Send focused feedback</strong><small>Tell us what was clear, what was missing, and what would have changed your decision.</small></span><button class="button button-secondary" type="button" data-private-beta-feedback-link>Feedback</button></div>
             </div>
           </section>
 
@@ -194,7 +195,7 @@
             <header class="panel-header"><div><h2>What is real now</h2><p>Current deploy-preview customer capabilities.</p></div></header>
             <div class="panel-body private-beta-limit-list">
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Invitation and recovery</strong><small>Secure sign-in, activation, password recovery, session state, and profile updates.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evaluate → Intelligence → Traceback → Track</strong><small>Tenant-scoped reads and writes use the proven same-origin staging gateway when enabled.</small></span></div>
+              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Tenant-scoped reads, writes, and comparison use the proven same-origin staging gateway when enabled.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence and saved PSA context</strong><small>Returned authority state is displayed without browser-side acceptance, rescoring, or grade prediction.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tenant isolation</strong><small>Membership comes only from signed server roles; the browser cannot choose a tenant.</small></span></div>
             </div>
@@ -204,7 +205,7 @@
             <header class="panel-header"><div><h2>Known beta limits</h2><p>These are not hidden behind mock plan language.</p></div></header>
             <div class="panel-body private-beta-limit-list">
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Manual entry first</strong><small>Provider-backed Discover is not yet active; Evaluate is the real customer entry path.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Some routes remain samples</strong><small>Dashboard, Discover, Compare, Portfolio, Sell, and Alerts are not yet fully server-backed.</small></span></div>
+              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Some routes remain samples</strong><small>Dashboard, Discover, Portfolio, Sell, and Alerts are not yet fully server-backed.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Bridge may be offline</strong><small>The customer API stays disabled between approved testing sessions.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>No billing or transactions</strong><small>No paid limits, checkout, payment, purchase, listing, sale, or marketplace action is active.</small></span></div>
             </div>
