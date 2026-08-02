@@ -1,4 +1,4 @@
-import { getUser, login, logout } from "@netlify/identity";
+import { getUser, login, logout, requestPasswordRecovery } from "@netlify/identity";
 
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
 const hostAllowed = PREVIEW_HOST.test(String(window.location.hostname || ""));
@@ -8,11 +8,27 @@ const emailInput = document.querySelector("[data-staging-auth-email]");
 const passwordInput = document.querySelector("[data-staging-auth-password]");
 const signInButton = document.querySelector("[data-staging-auth-submit]");
 const signOutButton = document.querySelector("[data-staging-auth-signout]");
+const recoveryButton = document.querySelector("[data-staging-auth-recovery]");
 const testButton = document.querySelector("[data-staging-auth-test]");
+const returnLink = document.querySelector("[data-staging-auth-return]");
 const status = document.querySelector("[data-staging-auth-status]");
 const result = document.querySelector("[data-staging-auth-result]");
 
 let currentUser = null;
+
+function safeReturnPath() {
+  const requested = new URLSearchParams(window.location.search).get("return");
+  if (!requested || requested.startsWith("//")) return "/saas-prototype/#/account";
+  try {
+    const resolved = new URL(requested, window.location.origin);
+    if (resolved.origin !== window.location.origin || resolved.pathname !== "/saas-prototype/") {
+      return "/saas-prototype/#/account";
+    }
+    return `${resolved.pathname}${resolved.search}${resolved.hash || "#/account"}`;
+  } catch (_) {
+    return "/saas-prototype/#/account";
+  }
+}
 
 function setStatus(message, tone = "neutral") {
   status.textContent = message;
@@ -23,6 +39,8 @@ function setSignedIn(user) {
   currentUser = user || null;
   testButton.disabled = !currentUser;
   signOutButton.hidden = !currentUser;
+  returnLink.hidden = !currentUser;
+  returnLink.href = safeReturnPath();
   if (currentUser) {
     setStatus(`Signed in as ${currentUser.email || "staging user"}.`, "ok");
   } else {
@@ -77,6 +95,28 @@ form?.addEventListener("submit", async event => {
     setStatus(error instanceof Error ? error.message : "Sign in failed.", "error");
   } finally {
     signInButton.disabled = false;
+  }
+});
+
+recoveryButton?.addEventListener("click", async () => {
+  if (!hostAllowed || recoveryButton.disabled) return;
+  const email = String(emailInput.value || "").trim();
+  if (!email) {
+    setStatus("Enter the invited account email first.", "error");
+    emailInput.focus();
+    return;
+  }
+
+  recoveryButton.disabled = true;
+  setStatus("Requesting password recovery…", "neutral");
+  result.textContent = "";
+  try {
+    await withTimeout(requestPasswordRecovery(email));
+  } catch (_) {
+    // Keep the response generic so the page never confirms whether an account exists.
+  } finally {
+    setStatus("If that invited account exists, a password-recovery email has been sent.", "ok");
+    recoveryButton.disabled = false;
   }
 });
 

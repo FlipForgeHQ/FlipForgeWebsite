@@ -4,7 +4,9 @@ import {
   handleAuthCallback,
   login,
   logout,
-  onAuthChange
+  onAuthChange,
+  requestPasswordRecovery,
+  updateUser
 } from "@netlify/identity";
 
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
@@ -18,6 +20,8 @@ const state = {
   message: "",
   error: "",
   inviteToken: "",
+  recoveryMode: false,
+  recoveryRequestOpen: false,
   panelOpen: false
 };
 
@@ -55,28 +59,88 @@ function identityFingerprint(user) {
   return JSON.stringify([
     String(user.id || user.sub || ""),
     String(user.email || ""),
+    String(user.userMetadata?.full_name || user.user_metadata?.full_name || ""),
     [...new Set(roles)]
   ]);
+}
+
+function identitySnapshot(user = state.user) {
+  if (!user) {
+    return Object.freeze({
+      authenticated: false,
+      email: "",
+      fullName: "",
+      membershipActive: false,
+      membershipConfigured: false
+    });
+  }
+
+  const metadata = user.appMetadata || user.app_metadata || {};
+  const userMetadata = user.userMetadata || user.user_metadata || {};
+  const roles = [
+    ...(Array.isArray(user.roles) ? user.roles : []),
+    ...(Array.isArray(metadata.roles) ? metadata.roles : [])
+  ].map(value => clean(value)).filter(Boolean);
+  const tenantRoles = [...new Set(roles.filter(role => role.startsWith("flipforge-tenant--")))];
+  const membershipConfigured = tenantRoles.length === 1;
+
+  return Object.freeze({
+    authenticated: true,
+    email: clean(user.email),
+    fullName: clean(userMetadata.full_name),
+    membershipActive: roles.includes("flipforge-active") && membershipConfigured,
+    membershipConfigured
+  });
+}
+
+function publishIdentityChange() {
+  window.dispatchEvent(new CustomEvent("flipforge:identity-change", {
+    detail: identitySnapshot()
+  }));
 }
 
 function setAuthenticatedUser(nextUser, { renderIfChanged = true } = {}) {
   const normalized = nextUser || null;
   if (identityFingerprint(state.user) === identityFingerprint(normalized)) return false;
   state.user = normalized;
+  publishIdentityChange();
   if (renderIfChanged) render();
   return true;
 }
 
 window.FlipForgeIdentity = Object.freeze({
   getUser: () => state.user,
+  getSnapshot: () => identitySnapshot(),
   refresh: async () => {
     const nextUser = await getUser();
     setAuthenticatedUser(nextUser);
-    return state.user;
+    return identitySnapshot();
   },
   open: () => {
     state.panelOpen = true;
+    state.recoveryRequestOpen = false;
     render();
+  },
+  requestRecovery: async email => {
+    const normalizedEmail = clean(email);
+    if (!normalizedEmail) throw new Error("Enter the account email first.");
+    await requestPasswordRecovery(normalizedEmail);
+    return "If that invited account exists, a password-recovery email has been sent.";
+  },
+  updateProfile: async fullName => {
+    if (!state.user) throw new Error("Sign in before editing the account profile.");
+    const normalizedName = clean(fullName);
+    if (!normalizedName || normalizedName.length > 120) {
+      throw new Error("Enter a profile name between 1 and 120 characters.");
+    }
+    const nextUser = await updateUser({ data: { full_name: normalizedName } });
+    setAuthenticatedUser(nextUser);
+    return identitySnapshot();
+  },
+  signOut: async () => {
+    await logout();
+    setAuthenticatedUser(null);
+    return identitySnapshot();
   }
 });
 
@@ -96,9 +160,16 @@ function ensureStyles() {
 .ff-id-button:hover,.ff-id-button:focus-visible{border-color:#f0ca58;outline:none}
 .ff-id-panel{width:min(360px,calc(100vw - 32px));margin-bottom:10px;border:1px solid rgba(139,146,143,.5);border-radius:14px;background:#07111f;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .ff-id-panel h2{margin:0 0 6px;font-size:18px}.ff-id-panel p{margin:0 0 14px;color:#b8c1cb;font-size:13px;line-height:1.5}.ff-id-panel form{display:grid;gap:10px}.ff-id-panel label{display:grid;gap:5px;font-size:12px;font-weight:800}.ff-id-panel input{width:100%;border:1px solid #364252;border-radius:9px;background:#030812;color:#f2f2f2;padding:10px 11px;font:inherit}.ff-id-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}.ff-id-primary{background:#d4af37;color:#030812;border-color:#d4af37}.ff-id-secondary{border-color:#465365}.ff-id-status{margin-top:10px!important;color:#d4af37!important}.ff-id-error{margin-top:10px!important;color:#ff9aa5!important}.ff-id-user{display:grid;gap:8px}.ff-id-user strong{overflow-wrap:anywhere}.ff-id-note{font-size:11px!important;color:#8794a5!important}
+.ff-id-link{border:0;background:transparent;color:#d4af37;padding:2px 0;font:inherit;font-size:12px;font-weight:800;cursor:pointer;text-align:left}.ff-id-membership{display:inline-flex;width:max-content;border:1px solid #394657;border-radius:999px;padding:5px 9px;color:#b8c1cb;font-size:11px;font-weight:800}.ff-id-membership[data-active="true"]{border-color:#2e8b66;color:#9de4c5}
 @media(max-width:520px){#${ROOT_ID}{right:10px;bottom:10px}.ff-id-panel{width:calc(100vw - 20px)}}
 `;
   document.head.appendChild(style);
+}
+
+function validateNewPassword(password, confirmation) {
+  if (password.length < 10) return "Use a password with at least 10 characters.";
+  if (password !== confirmation) return "The passwords do not match.";
+  return "";
 }
 
 function root() {
@@ -131,13 +202,9 @@ function renderInvite(element) {
     const form = new FormData(event.currentTarget);
     const password = clean(form.get("password"));
     const confirmPassword = clean(form.get("confirmPassword"));
-    if (password.length < 10) {
-      state.error = "Use a password with at least 10 characters.";
-      render();
-      return;
-    }
-    if (password !== confirmPassword) {
-      state.error = "The passwords do not match.";
+    const passwordError = validateNewPassword(password, confirmPassword);
+    if (passwordError) {
+      state.error = passwordError;
       render();
       return;
     }
@@ -161,12 +228,74 @@ function renderInvite(element) {
   });
 }
 
+function renderRecoveryPassword(element) {
+  element.innerHTML = `
+    <section class="ff-id-panel" role="dialog" aria-modal="true" aria-labelledby="ff-id-recovery-title">
+      <h2 id="ff-id-recovery-title">Choose a new password</h2>
+      <p>Your recovery link created a temporary secure Identity session. Set the new password now.</p>
+      <form data-ff-identity-recovery-password>
+        <label>New password<input name="password" type="password" minlength="10" autocomplete="new-password" required></label>
+        <label>Confirm password<input name="confirmPassword" type="password" minlength="10" autocomplete="new-password" required></label>
+        <div class="ff-id-actions"><button class="ff-id-button ff-id-primary" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "Updating…" : "Update password"}</button></div>
+      </form>
+      ${state.error ? `<p class="ff-id-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
+      <p class="ff-id-note">The recovery token has already been removed from the address bar and is never stored by FlipForge.</p>
+    </section>`;
+
+  element.querySelector("[data-ff-identity-recovery-password]")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (state.busy) return;
+    const form = new FormData(event.currentTarget);
+    const password = clean(form.get("password"));
+    const confirmation = clean(form.get("confirmPassword"));
+    const passwordError = validateNewPassword(password, confirmation);
+    if (passwordError) {
+      state.error = passwordError;
+      render();
+      return;
+    }
+    state.busy = true;
+    state.error = "";
+    render();
+    try {
+      const nextUser = await updateUser({ password });
+      setAuthenticatedUser(nextUser || await getUser(), { renderIfChanged: false });
+      state.recoveryMode = false;
+      state.panelOpen = previewHost();
+      state.message = previewHost()
+        ? "Password updated. Your secure staging session is active."
+        : "Password updated. Open the approved FlipForge deploy preview to continue.";
+    } catch (error) {
+      state.error = error instanceof Error ? error.message : "The password could not be updated.";
+    } finally {
+      state.busy = false;
+      render();
+    }
+  });
+}
+
+function recoveryRequestMarkup() {
+  return `<section class="ff-id-panel" role="dialog" aria-label="FlipForge password recovery">
+    <h2>Reset password</h2>
+    <p>Enter the email for an invited FlipForge account. The response stays generic to protect account privacy.</p>
+    <form data-ff-identity-recovery-request>
+      <label>Email<input name="email" type="email" autocomplete="username" required></label>
+      <div class="ff-id-actions"><button class="ff-id-button ff-id-secondary" type="button" data-ff-identity-recovery-cancel>Cancel</button><button class="ff-id-button ff-id-primary" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "Sending…" : "Send recovery email"}</button></div>
+    </form>
+    ${state.message ? `<p class="ff-id-status" role="status">${escapeHtml(state.message)}</p>` : ""}
+    ${state.error ? `<p class="ff-id-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
+  </section>`;
+}
+
 function renderPreview(element) {
-  const panel = state.panelOpen
+  const panel = state.recoveryRequestOpen
+    ? recoveryRequestMarkup()
+    : state.panelOpen
     ? state.user
       ? `<section class="ff-id-panel ff-id-user" role="dialog" aria-label="FlipForge staging identity">
           <h2>Staging identity</h2>
           <p>Signed in as <strong>${escapeHtml(state.user.email || "Identity user")}</strong>.</p>
+          <span class="ff-id-membership" data-active="${identitySnapshot().membershipActive}">${identitySnapshot().membershipActive ? "Active staging membership" : "Membership not active"}</span>
           <p class="ff-id-note">Tenant membership is resolved server-side from signed application metadata. Browser code cannot choose a tenant.</p>
           <div class="ff-id-actions"><button class="ff-id-button ff-id-secondary" type="button" data-ff-identity-close>Close</button><button class="ff-id-button" type="button" data-ff-identity-logout ${state.busy ? "disabled" : ""}>Sign out</button></div>
           ${state.message ? `<p class="ff-id-status">${escapeHtml(state.message)}</p>` : ""}
@@ -178,6 +307,7 @@ function renderPreview(element) {
           <form data-ff-identity-login>
             <label>Email<input name="email" type="email" autocomplete="username" required></label>
             <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+            <button class="ff-id-link" type="button" data-ff-identity-recovery-open>Forgot password?</button>
             <div class="ff-id-actions"><button class="ff-id-button ff-id-secondary" type="button" data-ff-identity-close>Cancel</button><button class="ff-id-button ff-id-primary" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "Signing in…" : "Sign in"}</button></div>
           </form>
           ${state.error ? `<p class="ff-id-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
@@ -196,6 +326,37 @@ function renderPreview(element) {
     state.panelOpen = false;
     state.error = "";
     render();
+  });
+  element.querySelector("[data-ff-identity-recovery-open]")?.addEventListener("click", () => {
+    state.recoveryRequestOpen = true;
+    state.message = "";
+    state.error = "";
+    render();
+  });
+  element.querySelector("[data-ff-identity-recovery-cancel]")?.addEventListener("click", () => {
+    state.recoveryRequestOpen = false;
+    state.panelOpen = true;
+    state.message = "";
+    state.error = "";
+    render();
+  });
+  element.querySelector("[data-ff-identity-recovery-request]")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (state.busy) return;
+    const email = clean(new FormData(event.currentTarget).get("email"));
+    state.busy = true;
+    state.message = "";
+    state.error = "";
+    render();
+    try {
+      await requestPasswordRecovery(email);
+      state.message = "If that invited account exists, a password-recovery email has been sent.";
+    } catch (_) {
+      state.message = "If that invited account exists, a password-recovery email has been sent.";
+    } finally {
+      state.busy = false;
+      render();
+    }
   });
   element.querySelector("[data-ff-identity-login]")?.addEventListener("submit", async event => {
     event.preventDefault();
@@ -239,13 +400,14 @@ function renderPreview(element) {
 
 function render() {
   const needsCallbackUi = Boolean(state.inviteToken);
-  if (!previewHost() && !needsCallbackUi && !state.message && !state.error) {
+  if (!previewHost() && !needsCallbackUi && !state.recoveryMode && !state.message && !state.error) {
     document.getElementById(ROOT_ID)?.remove();
     return;
   }
   ensureStyles();
   const element = root();
   if (needsCallbackUi) renderInvite(element);
+  else if (state.recoveryMode) renderRecoveryPassword(element);
   else if (previewHost()) renderPreview(element);
   else {
     element.innerHTML = `<section class="ff-id-panel"><h2>FlipForge Identity</h2><p>${escapeHtml(state.message || state.error || "Authentication callback completed.")}</p></section>`;
@@ -260,11 +422,14 @@ async function initialize() {
       if (callback?.type === "invite" && callback.token) {
         state.inviteToken = callback.token;
         clearCallbackHash();
+      } else if (callback?.type === "recovery") {
+        setAuthenticatedUser(callback.user || await getUser(), { renderIfChanged: false });
+        state.recoveryMode = true;
+        state.panelOpen = true;
+        clearCallbackHash();
       } else if (callback) {
         setAuthenticatedUser(callback.user || await getUser(), { renderIfChanged: false });
-        state.message = callback.type === "recovery"
-          ? "Password recovery was authenticated. Use Netlify Identity account recovery controls to complete the password change."
-          : "Identity confirmation completed.";
+        state.message = "Identity confirmation completed.";
         clearCallbackHash();
       }
     }
@@ -287,6 +452,7 @@ async function initialize() {
   } catch (_) {
     // Initial login/logout calls still refresh state even if subscriptions are unavailable.
   }
+  publishIdentityChange();
   render();
 }
 
