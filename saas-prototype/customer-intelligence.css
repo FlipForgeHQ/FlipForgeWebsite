@@ -1,0 +1,298 @@
+.customer-intelligence-page,
+.customer-evaluation-page {
+  --customer-accent: var(--gold);
+}
+
+.customer-intelligence-actions {
+  margin-top: 14px;
+}
+
+.customer-intelligence-list .panel-body {
+  padding-top: 0;
+}
+
+.customer-contract-panel .panel-body {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.customer-contract-panel .panel-body > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.customer-contract-panel span,
+.customer-intelligence-metrics span,
+.customer-value-summary > span,
+.customer-trace-step > div > span {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.customer-contract-panel strong {
+  overflow-wrap: anywhere;
+}
+
+.customer-contract-panel details {
+  margin: 0 18px 18px;
+  border-top: 1px solid var(--panel-border);
+  padding-top: 14px;
+  color: var(--text-secondary);
+}
+
+.customer-contract-panel summary {
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.customer-contract-panel li {
+  margin: 7px 0;
+  line-height: 1.45;
+}
+
+.customer-intelligence-hero {
+  overflow: hidden;
+  border-color: rgba(226, 189, 66, 0.34);
+  background:
+    radial-gradient(circle at 92% 5%, rgba(226, 189, 66, 0.12), transparent 34%),
+    var(--surface);
+}
+
+.customer-intelligence-hero .panel-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.34fr);
+  gap: 28px;
+  align-items: center;
+  padding: clamp(20px, 3vw, 34px);
+}
+
+.customer-hero-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.customer-hero-copy p,
+.customer-trace-step p,
+.customer-decision-boundary p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.customer-hero-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.customer-hero-title h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.35rem);
+  line-height: 1.08;
+}
+
+.customer-tracked-state {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border: 1px solid rgba(39, 209, 127, 0.3);
+  border-radius: 10px;
+  background: rgba(39, 209, 127, 0.07);
+}
+
+.customer-tracked-state strong,
+.customer-tracked-state small {
+  display: block;
+}
+
+.customer-tracked-state small {
+  margin-top: 2px;
+  color: var(--text-secondary);
+}
+
+.customer-value-summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px 14px;
+  align-items: baseline;
+  padding: 18px;
+  border: 1px solid rgba(226, 189, 66, 0.24);
+  border-radius: 14px;
+  background: rgba(5, 10, 17, 0.42);
+}
+
+.customer-value-summary strong {
+  font-size: clamp(1.15rem, 2.4vw, 1.75rem);
+  text-align: right;
+}
+
+.customer-value-summary small {
+  grid-column: 1 / -1;
+  margin-top: 5px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.customer-intelligence-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.customer-intelligence-metrics article {
+  display: grid;
+  gap: 7px;
+  padding: 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 13px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.01));
+}
+
+.customer-intelligence-metrics strong {
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+}
+
+.customer-intelligence-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.8fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.customer-traceback {
+  display: grid;
+  gap: 0;
+}
+
+.customer-trace-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding: 5px 0 20px;
+}
+
+.customer-trace-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 31px;
+  bottom: 0;
+  left: 13px;
+  width: 1px;
+  background: var(--panel-border);
+}
+
+.customer-trace-step strong {
+  display: block;
+  margin: 4px 0 5px;
+  color: var(--text-primary);
+}
+
+.customer-trace-step .check-mark.neutral {
+  color: var(--blue);
+  border-color: rgba(97, 168, 255, 0.35);
+  background: rgba(97, 168, 255, 0.1);
+}
+
+.customer-decision-boundary {
+  border-color: rgba(226, 189, 66, 0.34);
+  background: linear-gradient(145deg, rgba(226, 189, 66, 0.09), rgba(255, 255, 255, 0.015));
+}
+
+.customer-decision-boundary h2 {
+  margin: 7px 0 8px;
+}
+
+.customer-decision-boundary small {
+  display: block;
+  margin-top: 10px;
+  color: var(--text-secondary);
+}
+
+.customer-intake-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.customer-intake-step > span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #07111f;
+  background: var(--gold);
+  border-radius: 50%;
+  font-weight: 900;
+}
+
+.customer-intake-step strong,
+.customer-intake-step small {
+  display: block;
+}
+
+.customer-intake-step small {
+  margin-top: 3px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+@media (max-width: 1050px) {
+  .customer-intelligence-grid,
+  .customer-intelligence-hero .panel-body {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-contract-panel .panel-body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .customer-contract-panel .panel-body,
+  .customer-intelligence-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .customer-value-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-value-summary strong,
+  .customer-value-summary small {
+    text-align: left;
+  }
+}
+
+@media (max-width: 430px) {
+  .customer-contract-panel .panel-body,
+  .customer-intelligence-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-intelligence-page *,
+  .customer-evaluation-page * {
+    transition: none !important;
+  }
+}
