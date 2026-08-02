@@ -5,7 +5,11 @@ on:
     paths:
       - "saas-prototype/**"
       - "docs/SAAS_UI_FOUNDATION.md"
+      - "docs/SAAS_CUSTOMER_DISCOVERY.md"
+      - "docs/SAAS_PRIVATE_BETA_READINESS.md"
       - "scripts/build-assets.js"
+      - "scripts/validate-saas-customer-discovery.mjs"
+      - "scripts/validate-saas-private-beta-readiness.mjs"
       - "_redirects"
       - "*.html"
       - ".github/workflows/saas-prototype-validation.yml"
@@ -42,6 +46,8 @@ jobs:
           node --check saas-prototype/cockpit-final-ux.js
           node --check saas-prototype/sidebar-edge-fix.js
           node --check saas-prototype/route-guard.js
+          node --check saas-prototype/customer-discovery.js
+          node --check saas-prototype/private-beta.js
           node --check saas-prototype/serve.mjs
 
       - name: Build website integration
@@ -55,6 +61,8 @@ jobs:
           node saas-prototype/validate-cockpit-polish.mjs
           node saas-prototype/validate-cockpit-final-ux.mjs
           node saas-prototype/validate-sidebar-edge-fix.mjs
+          node scripts/validate-saas-customer-discovery.mjs
+          node scripts/validate-saas-private-beta-readiness.mjs
 
       - name: Verify generated website entry points
         run: |
