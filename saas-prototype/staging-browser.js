@@ -424,7 +424,8 @@
       const managementLinks = [
         ["evidence", "Evidence"],
         ["psa-advisor", "PSA guidance"],
-        ["sell", "Exit review"]
+        ["sell", "Exit review"],
+        ["export", "Audit export"]
       ];
       managementLinks.forEach(([route, label]) => {
         if (actions.querySelector(`[data-customer-management-link="${route}"]`)) return;

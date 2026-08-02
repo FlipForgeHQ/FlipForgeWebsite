@@ -52,6 +52,8 @@ fs.writeFileSync(payloadPath, JSON.stringify({
 let uuidCounter = 0;
 const uuid = () => `00000000-0000-4000-8000-${String(++uuidCounter).padStart(12, "0")}`;
 let evaluationCalls = 0;
+let lifecycleVersion = 0;
+let lifecycleHistory = [];
 const observed = [];
 
 const fetchImpl = async (url, options = {}) => {
@@ -127,6 +129,52 @@ const fetchImpl = async (url, options = {}) => {
   }
   if (route === "/api/v1/evidence/EBAY-staging-proof-001") return response(envelope(corr, { kind: "evidence", tenantIsolation }));
   if (route === "/api/v1/psa-advisor/EBAY-staging-proof-001") return response(envelope(corr, { kind: "psa-advisor", tenantIsolation }));
+  if (route === "/api/v1/lifecycle/EBAY-staging-proof-001") {
+    if (tenantB) return response({ error: { code: "RESOURCE_NOT_FOUND", correlationId: corr } }, 404);
+    if (options.method === "PUT") {
+      const body = JSON.parse(String(options.body || "{}"));
+      if (body.expectedVersion !== lifecycleVersion) {
+        return response({ error: { code: "LIFECYCLE_VERSION_CONFLICT", correlationId: corr } }, 409);
+      }
+      lifecycleVersion++;
+      lifecycleHistory = [{
+        eventId: 1,
+        eventType: "CREATED",
+        trackingStatus: body.trackingStatus,
+        reviewAt: body.reviewAt,
+        outcomeStatus: body.outcomeStatus,
+        alertEnabled: body.alertEnabled,
+        recordVersion: lifecycleVersion,
+        recordedAt: "2026-08-01T15:00:00Z"
+      }];
+      return response(envelope(corr, {
+        kind: "lifecycle-detail",
+        opportunityId: "EBAY-staging-proof-001",
+        sourceOfTruth: "SQLite",
+        transactionAuthority: false,
+        lifecycle: { opportunityId: "EBAY-staging-proof-001", ...body, version: lifecycleVersion },
+        history: lifecycleHistory,
+        tenantIsolation
+      }));
+    }
+    return response(envelope(corr, {
+      kind: "lifecycle-detail",
+      opportunityId: "EBAY-staging-proof-001",
+      sourceOfTruth: "SQLite",
+      transactionAuthority: false,
+      lifecycle: { opportunityId: "EBAY-staging-proof-001", trackingStatus: lifecycleVersion ? "REVIEW" : "WATCHING", reviewAt: lifecycleVersion ? "2026-08-08T15:00:00.000Z" : null, outcomeStatus: "NONE", alertEnabled: lifecycleVersion > 0, version: lifecycleVersion },
+      history: lifecycleHistory,
+      tenantIsolation
+    }));
+  }
+  if (route === "/api/v1/alerts") return response(envelope(corr, {
+    kind: "alerts",
+    configured: true,
+    notificationDeliveryConfigured: false,
+    transactionAuthority: false,
+    items: [{ opportunityId: "EBAY-staging-proof-001", enabled: true, reviewAt: "2026-08-08T15:00:00.000Z" }],
+    tenantIsolation
+  }));
   throw new Error(`Unexpected test route ${route}`);
 };
 
@@ -151,6 +199,11 @@ try {
   check("007 proof verifies tenant isolation", proof.summary.tenantIsolationProved === true);
   check("008 proof verifies idempotency", proof.summary.idempotencyProved === true);
   check("009 proof does not claim production activation", proof.summary.productionActivated === false);
+  check("009a proof verifies lifecycle persistence", proof.summary.lifecyclePersistenceProved === true);
+  check("009b proof verifies append-only lifecycle history", proof.summary.lifecycleHistoryProved === true);
+  check("009c proof verifies optimistic conflict denial", proof.summary.optimisticConflictProved === true);
+  check("009d proof verifies in-app alert projection", proof.summary.inAppAlertProjectionProved === true);
+  check("009e proof proves the Decision Dossier source set", proof.summary.decisionDossierSourceSetProved === true);
   check("010 same evaluation is sent twice", evaluationCalls === 2);
   check("011 client never sends tenant header", observed.every(call => call.hasTenantHeader !== true));
   check("012 client never sends user header", observed.every(call => call.hasUserHeader !== true));
@@ -162,6 +215,8 @@ try {
   check("016 unauthenticated boundary has no cookie", apiCalls[1].route === "/api/v1/dashboard" && !apiCalls[1].hasCookie);
   check("017 authenticated customer routes use cookie sessions", apiCalls.slice(2).every(call => call.hasCookie));
   check("018 customer identity is never sent as Bearer authorization", apiCalls.every(call => !call.hasAuth));
+  check("018a lifecycle proof performs two controlled writes", apiCalls.filter(call => call.route === "/api/v1/lifecycle/EBAY-staging-proof-001" && call.method === "PUT").length === 2);
+  check("018b lifecycle proof includes cross-tenant detail denial", apiCalls.some(call => call.route === "/api/v1/lifecycle/EBAY-staging-proof-001" && call.hasCookie && call.method === "GET"));
 } catch (error) {
   console.error(error);
   check("001 proof passes simulated end-to-end path", false);

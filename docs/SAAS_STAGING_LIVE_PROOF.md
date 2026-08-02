@@ -19,9 +19,13 @@ The live harness verifies the complete staging customer path:
 7. the evaluation is persisted to SQLite and tenant ownership is granted;
 8. repeating the exact request with the same idempotency key returns an idempotent replay;
 9. tenant A can read the saved opportunity, evidence, and PSA guidance;
-10. tenant B receives the same non-disclosing `404 RESOURCE_NOT_FOUND` used for a missing record;
-11. no browser/client request injects `X-FlipForge-Tenant-Id` or `X-FlipForge-User-Id`;
-12. no transaction authority, evidence acceptance, or PSA recalculation is introduced by the request.
+10. tenant A reads the initial SQLite lifecycle record, saves one review schedule, and receives append-only history;
+11. replaying the stale lifecycle version returns `409 LIFECYCLE_VERSION_CONFLICT` without overwriting the newer record;
+12. the saved review schedule appears in the real in-app Alerts projection while external notification delivery remains disabled;
+13. tenant B receives the same non-disclosing `404 RESOURCE_NOT_FOUND` for both the opportunity and lifecycle record;
+14. the complete Decision Dossier source set is proven for one tenant-owned ID;
+15. no browser/client request injects `X-FlipForge-Tenant-Id` or `X-FlipForge-User-Id`;
+16. no transaction authority, evidence acceptance, PSA recalculation, current-value calculation, or external notification delivery is introduced by the proof.
 
 The output is a redacted proof containing status codes, correlation IDs, the saved staging opportunity ID, and pass/fail state. It does not contain passwords, session cookies, JWTs, service tokens, raw tenant IDs, or provider credentials.
 
@@ -35,7 +39,7 @@ The harness refuses to run when:
 - the exact write acknowledgment is missing;
 - either controlled staging account credential pair is missing;
 - the evaluation payload contains recommendation, confidence, supported value, verification, tenant, transaction, evidence-acceptance, PSA-recalculation, or authority override fields;
-- the returned response weakens Smart Opportunity, PSA, tenant-isolation, idempotency, persistence, or transaction-denial boundaries.
+- the returned response weakens Smart Opportunity, PSA, tenant-isolation, idempotency, lifecycle versioning, append-only history, persistence, or transaction-denial boundaries.
 
 ## Required environment values
 
@@ -124,4 +128,4 @@ If any live check fails:
 
 ## Production boundary
 
-Passing this phase proves a controlled staging customer path only. It does not make billing, entitlements, customer lifecycle, production gateway activation, or production data migration complete.
+Passing this phase proves a controlled staging customer path and one lifecycle/Decision Dossier source-set session only. It does not make billing, external notification delivery, provider-backed current value, production gateway activation, or production data migration complete.
