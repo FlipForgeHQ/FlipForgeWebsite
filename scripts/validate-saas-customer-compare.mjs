@@ -71,7 +71,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["045 customer transaction authority remains absent", adapter.includes("Transaction authority") && adapter.includes(">None<")],
   ["046 gateway already allowlists Compare", gateway.includes('pattern: /^\\/api\\/v1\\/compare$/')],
   ["047 private Beta guide now includes Compare", beta.includes("Compare two saved decisions") && beta.includes("Traceback → Compare → Track")],
-  ["048 Compare remains a real route after management expansion", beta.includes("Dashboard → Evaluate") && beta.includes("Evidence Center → PSA Advisor → Exit Review") && beta.includes("Discovery remains a sample") && !beta.includes("Dashboard, Discover, Compare, Portfolio")],
+  ["048 Compare remains a real route in the current customer loop", beta.includes("Discover → Evaluate → Intelligence → Traceback → Compare → Track") && beta.includes("Evidence Center → PSA Advisor → Exit Review") && beta.includes("Provider may be unavailable") && !beta.includes("Dashboard, Discover, Compare, Portfolio")],
   ["049 private Beta docs mark Compare server-backed", betaDocs.includes("Decision Traceback, Compare, Evidence Center") && !betaDocs.includes("Dashboard, Discover, Compare, Portfolio")],
   ["050 Compare docs prohibit another engine", docs.includes("does not create another recommendation engine")],
   ["051 Compare docs retain SQLite authority", docs.includes("SQLite remains the source of truth")],
