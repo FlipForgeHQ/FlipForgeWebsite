@@ -148,7 +148,7 @@
     const evidence = sources.evidence?.data;
     const psa = sources.psa?.data;
     const lifecycle = sources.lifecycle?.data;
-    if (opportunity?.kind !== "opportunity" || String(opportunity?.opportunity?.id || "") !== opportunityId) {
+    if (opportunity?.kind !== "opportunity-detail" || String(opportunity?.opportunity?.id || "") !== opportunityId) {
       throw Object.assign(new Error("The saved opportunity did not match the selected export record."), { code: "EXPORT_OPPORTUNITY_INVALID" });
     }
     if (evidence?.kind !== "evidence" || String(evidence?.opportunityId || "") !== opportunityId) {
