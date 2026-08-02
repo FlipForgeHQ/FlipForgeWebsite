@@ -5,7 +5,8 @@
   "description": "FlipForge website and non-production SaaS staging surface.",
   "scripts": {
     "build:identity": "node scripts/build-identity-client.mjs",
-    "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs"
+    "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs",
+    "validate:account-lifecycle": "node scripts/validate-saas-customer-account-lifecycle.mjs"
   },
   "dependencies": {
     "@netlify/identity": "1.2.0"
