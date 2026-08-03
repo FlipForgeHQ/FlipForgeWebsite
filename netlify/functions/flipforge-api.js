@@ -10,6 +10,7 @@ const USER_HEADER = "X-FlipForge-User-Id";
 const IDEMPOTENCY_HEADER = "Idempotency-Key";
 const SAFE_TENANT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/;
 const SAFE_IDEMPOTENCY_KEY = /^[A-Za-z0-9._-]{8,100}$/;
+const CHECKOUT_PATH = "/api/v1/billing/paddle/checkout";
 
 const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/health$/ },
@@ -27,7 +28,8 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/account$/ },
   { method: "GET", pattern: /^\/api\/v1\/entitlements$/ },
   { method: "POST", pattern: /^\/api\/v1\/discover$/ },
-  { method: "POST", pattern: /^\/api\/v1\/evaluations$/ }
+  { method: "POST", pattern: /^\/api\/v1\/evaluations$/ },
+  { method: "POST", pattern: /^\/api\/v1\/billing\/paddle\/checkout$/ }
 ];
 
 function matchingKey(object, name) {
@@ -108,6 +110,21 @@ function errorEnvelope(code, message, correlationId, details = null) {
   };
 }
 
+function checkoutRejectionMessage(code) {
+  const messages = {
+    CHECKOUT_IDEMPOTENCY_KEY_REQUIRED: "An Idempotency-Key is required for checkout.",
+    INVALID_CHECKOUT_IDEMPOTENCY_KEY: "The checkout Idempotency-Key is invalid.",
+    CHECKOUT_IDEMPOTENCY_CONFLICT: "The checkout request key was already used for a different plan.",
+    CHECKOUT_IN_PROGRESS: "The checkout request is already being prepared.",
+    CHECKOUT_REQUIRES_NEW_REQUEST_ID: "A prior checkout attempt was rejected. Start checkout again to create a new request.",
+    CHECKOUT_OUTCOME_UNKNOWN: "The checkout outcome is uncertain. Do not submit another checkout until the current request is reconciled.",
+    SUBSCRIPTION_ALREADY_ACTIVE: "An active paid subscription already exists for this account.",
+    CHECKOUT_UNAVAILABLE: "Checkout is not enabled for this environment.",
+    CHECKOUT_PROVIDER_REJECTED: "The billing provider rejected checkout preparation."
+  };
+  return Object.prototype.hasOwnProperty.call(messages, code) ? messages[code] : null;
+}
+
 function upstreamRejectionEnvelope(status, payload, correlationId) {
   const upstreamCode = payload && payload.error && typeof payload.error.code === "string"
     ? payload.error.code
@@ -143,6 +160,11 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
       "Your current FlipForge access does not permit a new evaluation.",
       correlationId
     );
+  }
+
+  const checkoutMessage = checkoutRejectionMessage(upstreamCode);
+  if (checkoutMessage) {
+    return errorEnvelope(upstreamCode, checkoutMessage, correlationId);
   }
 
   return errorEnvelope(
@@ -346,6 +368,9 @@ function healthPayload(correlationId) {
       clientIdentityHeadersAccepted: false,
       discoverySearchPersistence: false,
       evaluationIdempotencyRequired: true,
+      checkoutIdempotencyRequired: true,
+      paddleCheckoutGatewayRouteAllowed: true,
+      paddleWebhookGatewayRouteAllowed: false,
       productionPreviewBypassAllowed: false
     }
   };
@@ -355,23 +380,28 @@ function clientIdentityHeaderPresent(event) {
   return headerValues(event, TENANT_HEADER).length > 0 || headerValues(event, USER_HEADER).length > 0;
 }
 
-function evaluationIdempotency(event, method, path) {
-  if (method !== "POST" || path !== "/api/v1/evaluations") return { ok: true, value: null };
+function requestIdempotency(event, method, path) {
+  const isEvaluation = method === "POST" && path === "/api/v1/evaluations";
+  const isCheckout = method === "POST" && path === CHECKOUT_PATH;
+  if (!isEvaluation && !isCheckout) return { ok: true, value: null };
+
   const values = headerValues(event, IDEMPOTENCY_HEADER);
   if (values.length === 0 || values.every(value => !value.trim())) {
     return {
       ok: false,
       statusCode: 400,
-      code: "IDEMPOTENCY_KEY_REQUIRED",
-      message: "An Idempotency-Key is required for evaluation requests."
+      code: isCheckout ? "CHECKOUT_IDEMPOTENCY_KEY_REQUIRED" : "IDEMPOTENCY_KEY_REQUIRED",
+      message: isCheckout
+        ? "An Idempotency-Key is required for checkout requests."
+        : "An Idempotency-Key is required for evaluation requests."
     };
   }
   if (values.length !== 1) {
     return {
       ok: false,
       statusCode: 400,
-      code: "INVALID_IDEMPOTENCY_KEY",
-      message: "The Idempotency-Key is invalid."
+      code: isCheckout ? "INVALID_CHECKOUT_IDEMPOTENCY_KEY" : "INVALID_IDEMPOTENCY_KEY",
+      message: isCheckout ? "The checkout Idempotency-Key is invalid." : "The Idempotency-Key is invalid."
     };
   }
   const value = values[0].trim();
@@ -379,8 +409,8 @@ function evaluationIdempotency(event, method, path) {
     return {
       ok: false,
       statusCode: 400,
-      code: "INVALID_IDEMPOTENCY_KEY",
-      message: "The Idempotency-Key is invalid."
+      code: isCheckout ? "INVALID_CHECKOUT_IDEMPOTENCY_KEY" : "INVALID_IDEMPOTENCY_KEY",
+      message: isCheckout ? "The checkout Idempotency-Key is invalid." : "The Idempotency-Key is invalid."
     };
   }
   return { ok: true, value };
@@ -480,7 +510,7 @@ exports.handler = async function handler(event, context) {
     );
   }
 
-  const idempotency = evaluationIdempotency(event, method, path);
+  const idempotency = requestIdempotency(event, method, path);
   if (!idempotency.ok) {
     return jsonResponse(
       event,
@@ -550,7 +580,7 @@ exports.handler = async function handler(event, context) {
         })
       );
 
-      const retryAfter = upstreamResponse.status === 429
+      const retryAfter = upstreamResponse.status === 429 || upstreamResponse.status === 409
         ? String(upstreamResponse.headers.get("retry-after") || "").trim()
         : "";
       const safeRetryAfter = /^\d{1,10}$/.test(retryAfter) ? retryAfter : "";
