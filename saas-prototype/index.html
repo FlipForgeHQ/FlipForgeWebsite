@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="customer-lifecycle.css">
   <link rel="stylesheet" href="customer-export.css">
   <link rel="stylesheet" href="customer-discovery.css">
+  <link rel="stylesheet" href="customer-entitlements.css">
   <link rel="stylesheet" href="private-beta.css">
 </head>
 <body>
@@ -80,13 +81,13 @@
         <div class="plan-card">
           <span class="eyebrow">Private beta</span>
           <strong>Invitation only</strong>
-          <div class="usage-row"><span>Usage meter</span><span>Not active</span></div>
-          <div class="usage-track" aria-label="Paid usage limits are not active"><span style="width:0%"></span></div>
-          <small>No billing or server-enforced paid allowance is connected.</small>
+          <div class="usage-row"><span>Usage meter</span><span>Server-owned</span></div>
+          <div class="usage-track" aria-label="Tenant evaluation usage loads from the server"><span style="width:0%"></span></div>
+          <small>Open Plan &amp; Usage for current tenant state. Billing is not connected.</small>
         </div>
         <a class="account-link" href="#/account" data-route="account">
           <span class="avatar" aria-hidden="true">TH</span>
-          <span><strong>Prototype Account</strong><small>Owner preview</small></span>
+          <span><strong>Prototype Account</strong><small>Plan &amp; Usage</small></span>
           <span aria-hidden="true">›</span>
         </a>
       </div>
@@ -106,7 +107,7 @@
           <a class="icon-button notification-button" href="#/alerts" aria-label="Alerts"><span aria-hidden="true">♢</span></a>
           <a class="profile-button" href="#/account" aria-label="Open account">
             <span class="avatar" aria-hidden="true">TH</span>
-            <span class="profile-copy"><strong>Todd</strong><small>Prototype</small></span>
+            <span class="profile-copy"><strong>Todd</strong><small>Plan &amp; Usage</small></span>
           </a>
         </div>
       </header>
@@ -151,6 +152,7 @@
   <script src="customer-portfolio.js"></script>
   <script src="customer-export.js"></script>
   <script src="customer-discovery.js"></script>
+  <script src="customer-entitlements.js"></script>
   <script src="staging-route-hook.js"></script>
   <script src="account-lifecycle.js"></script>
   <script src="private-beta.js"></script>
