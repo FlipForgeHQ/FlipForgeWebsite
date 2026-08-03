@@ -28,10 +28,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Parse boundary validator and gateway
+        run: |
+          node --check scripts/validate-saas-paddle-webhook-gateway-boundary.mjs
+          node --check netlify/functions/flipforge-api.js
 
       - name: Run dynamic Paddle webhook gateway boundary validation
         run: npm run validate:paddle-webhook-gateway-boundary
