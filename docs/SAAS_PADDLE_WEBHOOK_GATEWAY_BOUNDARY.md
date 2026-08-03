@@ -66,7 +66,7 @@ The provider webhook is not:
 - a customer billing portal;
 - a customer subscription-change endpoint.
 
-This phase does not create or expose checkout.
+FlipForge may separately expose the authenticated customer checkout endpoint at `POST /api/v1/billing/paddle/checkout`. That does not weaken this provider boundary: the checkout route uses customer authentication, trusted tenant membership, and a customer idempotency key, while the webhook remains direct provider-to-backend traffic authenticated only by `Paddle-Signature`.
 
 ## Validation
 
@@ -78,15 +78,15 @@ npm run validate:paddle-webhook-gateway-boundary
 
 The validator checks source and performs dynamic Netlify-function calls proving:
 
-1. the Paddle webhook is absent from the gateway allowlist;
+1. the exact Paddle webhook path is absent from the gateway allowlist;
 2. customer UI/navigation contains no provider webhook path;
-3. signed customer requests receive `ROUTE_NOT_ALLOWED`;
-4. anonymous provider-looking requests also receive `ROUTE_NOT_ALLOWED`;
+3. signed customer webhook requests receive `ROUTE_NOT_ALLOWED`;
+4. anonymous provider-looking webhook requests also receive `ROUTE_NOT_ALLOWED`;
 5. a supplied `Paddle-Signature` header does not change gateway behavior;
-6. no request reaches the configured private upstream;
+6. no webhook request reaches the configured private upstream;
 7. no service token or tenant ID is returned;
-8. sibling billing paths remain denied;
-9. no checkout/payment/transaction controls are exposed.
+8. webhook sibling paths remain denied;
+9. the separate authenticated checkout route does not proxy or authenticate the webhook.
 
 ## Activation boundary
 
