@@ -45,10 +45,10 @@ jobs:
           validator=scripts/validate-saas-paddle-webhook-gateway-boundary.mjs
           docs=docs/SAAS_PADDLE_WEBHOOK_GATEWAY_BOUNDARY.md
 
-          ! grep -Eq 'pattern: /\^\\/api\\/v1\\/billing' "$gateway"
-          ! grep -Fq '/api/v1/billing/paddle/webhook' "$gateway"
+          ! grep -q 'billing\\/paddle\\/webhook' "$gateway"
+          grep -q 'billing\\/paddle\\/checkout' "$gateway"
           grep -q 'ROUTE_NOT_ALLOWED' "$gateway"
           grep -q 'fetchCalls === 0' "$validator"
           grep -q 'Paddle-Signature' "$docs"
           grep -q 'never be added to the customer gateway allowlist' "$docs"
-          grep -q 'does not create or expose checkout' "$docs"
+          grep -q 'does not weaken this provider boundary' "$docs"

@@ -1,0 +1,60 @@
+name: SaaS Paddle Customer Checkout
+
+on:
+  pull_request:
+    paths:
+      - "netlify/functions/flipforge-api.js"
+      - "saas-prototype/customer-entitlements.js"
+      - "saas-prototype/customer-entitlements.css"
+      - "scripts/validate-saas-paddle-customer-checkout.mjs"
+      - "scripts/validate-saas-paddle-webhook-gateway-boundary.mjs"
+      - "docs/SAAS_PADDLE_CUSTOMER_CHECKOUT.md"
+      - "docs/SAAS_PADDLE_WEBHOOK_GATEWAY_BOUNDARY.md"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/saas-paddle-customer-checkout.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Paddle customer checkout
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate customer checkout gateway and UI
+        run: node scripts/validate-saas-paddle-customer-checkout.mjs
+
+      - name: Revalidate provider webhook separation
+        run: node scripts/validate-saas-paddle-webhook-gateway-boundary.mjs
+
+      - name: Enforce browser and gateway authority boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          gateway=netlify/functions/flipforge-api.js
+          ui=saas-prototype/customer-entitlements.js
+          docs=docs/SAAS_PADDLE_CUSTOMER_CHECKOUT.md
+
+          grep -q 'billing\\/paddle\\/checkout' "$gateway"
+          ! grep -q 'billing\\/paddle\\/webhook' "$gateway"
+          grep -q 'CHECKOUT_IDEMPOTENCY_KEY_REQUIRED' "$gateway"
+          grep -q 'paddleCheckoutGatewayRouteAllowed: true' "$gateway"
+          grep -q 'paddleWebhookGatewayRouteAllowed: false' "$gateway"
+          grep -q 'new Set(\["COLLECTOR", "PRO"\])' "$ui"
+          grep -q 'JSON.stringify({ planCode: plan })' "$ui"
+          grep -q 'paidAccessActivated === false' "$ui"
+          grep -q 'webhookRequiredForPaidActivation === true' "$ui"
+          grep -q 'transactionAuthority === false' "$ui"
+          grep -q 'Production billing' "$docs"
+
+          ! grep -Eiq 'FLIPFORGE_PADDLE_(API_KEY|WEBHOOK_SECRET|COLLECTOR_MONTHLY_PRICE_ID|PRO_MONTHLY_PRICE_ID)|price_id|flipforge_billing_ref|cardNumber|cvv|bankAccount|paymentToken' "$ui"
