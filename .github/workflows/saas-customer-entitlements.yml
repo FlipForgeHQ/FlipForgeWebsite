@@ -53,5 +53,5 @@ jobs:
           grep -q 'billing is not connected' "$docs"
           grep -q 'read-only' "$docs"
 
-          ! grep -Eiq 'method:[[:space:]]*["'"'](POST|PUT|PATCH|DELETE)["'"']' "$adapter"
+          ! grep -Eiq 'method:[[:space:]].*(POST|PUT|PATCH|DELETE)' "$adapter"
           ! grep -Eiq 'X-FlipForge-Tenant-Id|X-FlipForge-User-Id|cardNumber|cvv|paymentToken|clientSecret|Checkout now|Subscribe now|Upgrade now' "$adapter"
