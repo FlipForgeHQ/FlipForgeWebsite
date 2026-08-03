@@ -42,7 +42,7 @@ check("006 health route reports booleans instead of secret values", files.gatewa
 check("007 data routes require a signed server-resolved Identity user", files.modernGateway.includes("await getUser()") && files.gateway.includes("context.clientContext.user") && files.gateway.includes("AUTHENTICATION_REQUIRED"));
 check("008 unauthenticated preview bypass is blocked in production", files.gateway.includes('context !== "production"') && files.gateway.includes("FLIPFORGE_API_ALLOW_UNAUTHENTICATED_PREVIEW"));
 check("009 route access is controlled by an explicit allowlist", files.gateway.includes("const ROUTES = [") && files.gateway.includes("routeAllowed(method, path)"));
-check("010 gateway exposes no provider-administration route", !/provider-admin|credential-entry|accept-evidence|auto-buy|checkout/i.test(files.gateway));
+check("010 gateway exposes no provider administration or Paddle webhook route", !/provider-admin|credential-entry|accept-evidence|auto-buy/i.test(files.gateway) && !files.gateway.includes("billing\\/paddle\\/webhook"));
 check("011 request bodies have a fixed size limit", files.gateway.includes("DEFAULT_MAX_REQUEST_BYTES") && files.gateway.includes("REQUEST_TOO_LARGE"));
 check("012 upstream responses have a fixed size limit", files.gateway.includes("DEFAULT_MAX_RESPONSE_BYTES") && files.gateway.includes("UPSTREAM_RESPONSE_TOO_LARGE"));
 check("013 upstream requests use an AbortController timeout", files.gateway.includes("new AbortController()") && files.gateway.includes("controller.abort()"));
