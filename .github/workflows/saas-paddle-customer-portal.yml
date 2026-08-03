@@ -1,0 +1,50 @@
+name: SaaS Paddle Customer Portal
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/customer-billing-portal.js"
+      - "saas-prototype/customer-entitlements.js"
+      - "saas-prototype/index.html"
+      - "scripts/validate-saas-paddle-customer-portal.mjs"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/saas-paddle-customer-portal.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Paddle customer portal browser boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Validate customer portal handoff
+        run: node scripts/validate-saas-paddle-customer-portal.mjs
+
+      - name: Enforce browser authority boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          portal=saas-prototype/customer-billing-portal.js
+          index=saas-prototype/index.html
+
+          grep -q 'sandbox-customer-portal.paddle.com' "$portal"
+          grep -q 'customer-portal.paddle.com' "$portal"
+          grep -q 'PADDLE_MAGIC_LINK' "$portal"
+          grep -q 'portalSessionTokenIncluded !== false' "$portal"
+          grep -q 'portalLinksCachedByFlipForge !== false' "$portal"
+          grep -q 'billingChangesAppliedByFlipForge !== false' "$portal"
+          grep -q 'customerPlanChangeAllowed !== false' "$portal"
+          grep -q 'src="customer-billing-portal.js"' "$index"
+
+          ! grep -Eiq 'FLIPFORGE_PADDLE_(API_KEY|WEBHOOK_SECRET|CUSTOMER_PORTAL_URL)|X-FlipForge-(Tenant|User)-Id|cardNumber|cvv|bankAccount|paymentToken' "$portal"
