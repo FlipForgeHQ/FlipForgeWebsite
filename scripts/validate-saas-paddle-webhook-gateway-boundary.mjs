@@ -11,17 +11,18 @@ const routeHook = read("saas-prototype/staging-route-hook.js");
 const docs = read("docs/SAAS_PADDLE_WEBHOOK_GATEWAY_BOUNDARY.md");
 
 const PADDLE_WEBHOOK = "/api/v1/billing/paddle/webhook";
+const PADDLE_CHECKOUT = "/api/v1/billing/paddle/checkout";
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
 [
-  ["001 customer gateway source does not allowlist Paddle webhook", !gateway.includes("billing\\/paddle\\/webhook") && !gateway.includes('pattern: /^\\/api\\/v1\\/billing')],
-  ["002 customer app has no Paddle webhook navigation", !index.includes(PADDLE_WEBHOOK) && !index.includes("#/billing/paddle") && !index.includes("Paddle Webhook")],
-  ["003 customer route hook has no Paddle webhook route", !routeHook.includes(PADDLE_WEBHOOK) && !routeHook.includes("billing/paddle")],
+  ["001 customer gateway source does not allowlist exact Paddle webhook", !gateway.includes("billing\\/paddle\\/webhook")],
+  ["002 customer app has no Paddle webhook navigation", !index.includes(PADDLE_WEBHOOK) && !index.includes("#/billing/paddle/webhook") && !index.includes("Paddle Webhook")],
+  ["003 customer route hook has no Paddle webhook route", !routeHook.includes(PADDLE_WEBHOOK) && !routeHook.includes("billing/paddle/webhook")],
   ["004 docs require webhook to remain outside customer gateway", docs.includes("never be added to the customer gateway allowlist")],
   ["005 docs preserve provider authentication boundary", docs.includes("Paddle-Signature") && docs.includes("provider-to-backend traffic")],
   ["006 docs prohibit browser tenant identity for webhook", docs.includes("browser tenant identity") && docs.includes("cannot establish billing identity")],
-  ["007 docs retain checkout-disabled boundary", docs.includes("does not create or expose checkout")],
+  ["007 docs distinguish customer checkout from provider webhook", docs.includes(PADDLE_CHECKOUT) && docs.includes("does not weaken this provider boundary")],
   ["008 docs retain production inactive boundary", docs.includes("does not activate staging or production billing")]
 ].forEach(([name, condition]) => check(name, condition));
 
@@ -98,9 +99,9 @@ try {
   };
   const siblingResponse = await handler(siblingEvent, signedContext);
   const siblingBody = JSON.parse(siblingResponse.body);
-  check("020 sibling billing route is also denied", siblingResponse.statusCode === 404 && siblingBody?.error?.code === "ROUTE_NOT_ALLOWED");
-  check("021 sibling billing route never reaches upstream", fetchCalls === 0);
-  check("022 gateway response exposes no payment or transaction control", !/Checkout|Pay now|Create payment|Refund|Place bid|Buy now|Create listing/.test(signedResponse.body));
+  check("020 webhook sibling route is also denied", siblingResponse.statusCode === 404 && siblingBody?.error?.code === "ROUTE_NOT_ALLOWED");
+  check("021 webhook sibling route never reaches upstream", fetchCalls === 0);
+  check("022 webhook rejection exposes no payment or transaction control", !/Pay now|Create payment|Refund|Place bid|Buy now|Create listing/.test(signedResponse.body));
 } finally {
   globalThis.fetch = previousFetch;
   for (const key of Object.keys(process.env)) {
