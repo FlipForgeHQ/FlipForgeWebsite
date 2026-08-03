@@ -1,0 +1,57 @@
+name: SaaS Customer Entitlements
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/customer-entitlements.js"
+      - "saas-prototype/customer-entitlements.css"
+      - "saas-prototype/staging-route-hook.js"
+      - "saas-prototype/index.html"
+      - "scripts/validate-saas-customer-entitlements.mjs"
+      - "docs/SAAS_CUSTOMER_SUBSCRIPTION_ENTITLEMENTS.md"
+      - "netlify/functions/flipforge-api.js"
+      - "netlify.toml"
+      - "package.json"
+      - ".github/workflows/saas-customer-entitlements.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate customer Plan and Usage
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Parse customer entitlement scripts
+        run: |
+          node --check saas-prototype/customer-entitlements.js
+          node --check saas-prototype/staging-route-hook.js
+          node --check scripts/validate-saas-customer-entitlements.mjs
+
+      - name: Validate customer entitlement boundary
+        run: node scripts/validate-saas-customer-entitlements.mjs
+
+      - name: Enforce no browser billing authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          adapter=saas-prototype/customer-entitlements.js
+          router=saas-prototype/staging-route-hook.js
+          docs=docs/SAAS_CUSTOMER_SUBSCRIPTION_ENTITLEMENTS.md
+
+          grep -q '/api/v1/entitlements' "$adapter"
+          grep -q 'route === "account"' "$router"
+          grep -q 'billing is not connected' "$docs"
+          grep -q 'read-only' "$docs"
+
+          ! grep -Eiq 'method:[[:space:]]*["'"'](POST|PUT|PATCH|DELETE)["'"']' "$adapter"
+          ! grep -Eiq 'X-FlipForge-Tenant-Id|X-FlipForge-User-Id|cardNumber|cvv|paymentToken|clientSecret|Checkout now|Subscribe now|Upgrade now' "$adapter"
