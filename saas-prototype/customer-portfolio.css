@@ -1,0 +1,154 @@
+.customer-portfolio-page {
+  display: grid;
+  gap: 18px;
+}
+
+.customer-portfolio-loading {
+  min-height: 140px;
+}
+
+.customer-portfolio-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.customer-portfolio-metrics article {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface, #111419);
+}
+
+.customer-portfolio-metrics span,
+.customer-portfolio-key-grid span {
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.customer-portfolio-metrics strong {
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.customer-portfolio-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr);
+  gap: 16px;
+}
+
+.customer-portfolio-key-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.customer-portfolio-key-grid > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-raised, #15181d);
+}
+
+.customer-portfolio-key-grid strong {
+  overflow-wrap: anywhere;
+}
+
+.customer-portfolio-boundaries {
+  display: grid;
+  gap: 12px;
+}
+
+.customer-portfolio-boundaries > div {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.customer-portfolio-boundaries > div:last-child {
+  border-bottom: 0;
+}
+
+.customer-portfolio-boundaries > div > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.customer-portfolio-boundaries p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.customer-portfolio-boundaries small,
+.customer-portfolio-table small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.customer-portfolio-table td {
+  vertical-align: top;
+}
+
+.customer-portfolio-table td:first-child {
+  min-width: 230px;
+}
+
+.customer-portfolio-actions {
+  margin-top: 12px;
+}
+
+@media (max-width: 1050px) {
+  .customer-portfolio-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .customer-portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .customer-portfolio-metrics,
+  .customer-portfolio-key-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-portfolio-table {
+    min-width: 760px;
+  }
+}
+
+.customer-portfolio-page :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-portfolio-page *,
+  .customer-portfolio-page *::before,
+  .customer-portfolio-page *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

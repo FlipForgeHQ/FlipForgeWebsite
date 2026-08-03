@@ -6,6 +6,7 @@
   const compareAdapter = window.FlipForgeCustomerCompare;
   const lifecycleAdapter = window.FlipForgeCustomerLifecycle;
   const managementAdapter = window.FlipForgeCustomerManagement;
+  const portfolioAdapter = window.FlipForgeCustomerPortfolio;
   const exportAdapter = window.FlipForgeCustomerExport;
   const discoveryAdapter = window.FlipForgeCustomerDiscovery;
   const main = document.querySelector("#main-content");
@@ -100,6 +101,15 @@
             : "";
           showCustomerIntelligenceBanner();
           compareAdapter.render(main, preferredLeftId || "");
+          focusMain();
+          return;
+        }
+        if (route === "portfolio"
+            && portfolioAdapter
+            && typeof portfolioAdapter.render === "function"
+            && portfolioAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          portfolioAdapter.render(main);
           focusMain();
           return;
         }

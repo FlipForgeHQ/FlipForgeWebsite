@@ -6,9 +6,11 @@ on:
       - "saas-prototype/**"
       - "docs/SAAS_UI_FOUNDATION.md"
       - "docs/SAAS_CUSTOMER_DISCOVERY.md"
+      - "docs/SAAS_CUSTOMER_PORTFOLIO_REFERENCE_VALUE.md"
       - "docs/SAAS_PRIVATE_BETA_READINESS.md"
       - "scripts/build-assets.js"
       - "scripts/validate-saas-customer-discovery.mjs"
+      - "scripts/validate-saas-customer-portfolio.mjs"
       - "scripts/validate-saas-private-beta-readiness.mjs"
       - "netlify.toml"
       - "package.json"
@@ -52,11 +54,12 @@ jobs:
           node --check saas-prototype/sidebar-edge-fix.js
           node --check saas-prototype/route-guard.js
           node --check saas-prototype/customer-discovery.js
+          node --check saas-prototype/customer-portfolio.js
           node --check saas-prototype/private-beta.js
           node --check saas-prototype/serve.mjs
 
       - name: Run exact Netlify build command
-        run: npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
+        run: npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
 
       - name: Run deterministic prototype checks
         run: |
