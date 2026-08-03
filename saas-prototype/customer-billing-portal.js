@@ -5,10 +5,9 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const ENTITLEMENTS_PATH = "/api/v1/entitlements";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
-  const APPROVED_PORTAL_HOSTS = new Set([
-    "sandbox-customer-portal.paddle.com",
-    "customer-portal.paddle.com"
-  ]);
+  const SANDBOX_PORTAL_HOST = "sandbox-customer-portal.paddle.com";
+  const LIVE_PORTAL_HOST = "customer-portal.paddle.com";
+  const APPROVED_PORTAL_HOSTS = new Set([SANDBOX_PORTAL_HOST, LIVE_PORTAL_HOST]);
 
   let inFlight = false;
   let sequence = 0;
@@ -62,7 +61,13 @@
     const data = payload?.data || {};
     const portal = data.customerPortal || {};
     const url = validatedPortalUrl(portal.url);
-    if (data.customerBillingManagementAllowed !== true
+    if (!url) return null;
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    const expectedEnvironment = host === SANDBOX_PORTAL_HOST ? "SANDBOX" : host === LIVE_PORTAL_HOST ? "LIVE" : null;
+    if (!expectedEnvironment
+        || portal.environment !== expectedEnvironment
+        || data.customerBillingManagementAllowed !== true
         || data.providerHostedSubscriptionManagementAvailable !== true
         || data.customerPlanChangeAllowed !== false
         || portal.available !== true
@@ -73,14 +78,10 @@
         || portal.portalLinksCachedByFlipForge !== false
         || portal.paymentCredentialsHandledByFlipForge !== false
         || portal.billingChangesAppliedByFlipForge !== false
-        || portal.transactionAuthority !== false
-        || !url) {
+        || portal.transactionAuthority !== false) {
       return null;
     }
-    return {
-      url,
-      environment: portal.environment === "SANDBOX" ? "SANDBOX" : portal.environment === "LIVE" ? "LIVE" : "UNKNOWN"
-    };
+    return { url, environment: expectedEnvironment };
   }
 
   async function fetchPortalHandoff() {
@@ -124,7 +125,7 @@
   async function enhance() {
     if (!eligible() || inFlight) return;
     const root = document.querySelector(".customer-entitlements-page");
-    if (!root || root.dataset.paddlePortalEnhancing === "true") return;
+    if (!root || root.dataset.paddlePortalEnhancing === "true" || root.dataset.paddlePortalEnhanced === "true") return;
     const currentSequence = ++sequence;
     root.dataset.paddlePortalEnhancing = "true";
     inFlight = true;
@@ -132,9 +133,11 @@
       const handoff = await fetchPortalHandoff();
       if (currentSequence !== sequence || !eligible() || !root.isConnected) return;
       renderPortal(root, handoff);
+      root.dataset.paddlePortalEnhanced = "true";
     } catch (_) {
       if (currentSequence === sequence && root.isConnected) {
         root.querySelector("[data-paddle-customer-portal]")?.remove();
+        root.dataset.paddlePortalEnhanced = "true";
       }
     } finally {
       delete root.dataset.paddlePortalEnhancing;
@@ -151,7 +154,7 @@
     schedule();
   });
   const observer = new MutationObserver(() => {
-    if (eligible() && document.querySelector(".customer-entitlements-page:not([data-paddle-portal-enhancing='true'])")) {
+    if (eligible() && document.querySelector(".customer-entitlements-page:not([data-paddle-portal-enhanced='true']):not([data-paddle-portal-enhancing='true'])")) {
       schedule();
     }
   });
