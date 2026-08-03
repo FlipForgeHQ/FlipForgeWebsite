@@ -319,13 +319,18 @@
 
   function errorPanel(error) {
     if (!error) return "";
+    const membershipError = ["TENANT_MEMBERSHIP_REQUIRED", "TENANT_MEMBERSHIP_INACTIVE", "TENANT_MEMBERSHIP_INVALID"].includes(String(error.code || ""));
     const guidance = error.status === 401
       ? "A configured authentication provider and signed-in preview user are required."
-      : error.status === 403
-        ? "The signed-in preview user does not have an active tenant membership."
-        : error.code === "IDEMPOTENCY_CONFLICT"
-          ? "Change the request fields or retry the unchanged request with its existing key."
-          : "No mock result or browser-generated recommendation has been substituted.";
+      : error.code === "EVALUATION_LIMIT_REACHED" || error.status === 429
+        ? "The server-owned monthly allowance is exhausted. Open Plan & Usage to review current usage. No browser override or mock evaluation is available."
+        : error.code === "ENTITLEMENT_ACCESS_DENIED" || (error.status === 403 && !membershipError)
+          ? "The server-owned plan/access state does not permit a new evaluation. Open Plan & Usage for the current entitlement state; billing and customer plan changes are not connected here."
+          : membershipError
+            ? "The signed-in preview user does not have an active FlipForge tenant membership."
+            : error.code === "IDEMPOTENCY_CONFLICT"
+              ? "Change the request fields or retry the unchanged request with its existing key."
+              : "No mock result or browser-generated recommendation has been substituted.";
     return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error.code || "STAGING_EVALUATION_UNAVAILABLE")}</strong><p>${escapeHtml(error.message)}</p><small>${escapeHtml(guidance)}</small></div></section>`;
   }
 
@@ -367,6 +372,7 @@
       ["Workflow status", decision.workflowStatus || "UNKNOWN"],
       ["All-in acquisition", moneyFromCents(data.normalizedRequest?.allInAskCents)],
       ["Tenant owned", data.tenantOwned === true ? "Yes" : "No"],
+      ["Quota enforced", data.quotaEnforced === true ? "Yes" : "Server contract pending"],
       ["Idempotent replay", data.idempotentReplay === true ? "Yes" : "No"]
     ];
     const opportunityId = String(data.opportunityId || "");

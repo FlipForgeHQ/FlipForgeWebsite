@@ -1,0 +1,59 @@
+name: SaaS Evaluation Quota Boundary
+
+on:
+  pull_request:
+    paths:
+      - "netlify/functions/flipforge-api.js"
+      - "saas-prototype/staging-evaluation.js"
+      - "saas-prototype/customer-entitlements.js"
+      - "scripts/validate-saas-evaluation-quota-boundary.mjs"
+      - "docs/SAAS_EVALUATION_QUOTA_BOUNDARY.md"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/saas-evaluation-quota-boundary.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate customer quota boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Parse quota boundary scripts
+        run: |
+          node --check netlify/functions/flipforge-api.js
+          node --check saas-prototype/staging-evaluation.js
+          node --check saas-prototype/customer-entitlements.js
+          node --check scripts/validate-saas-evaluation-quota-boundary.mjs
+
+      - name: Validate gateway and customer quota boundary
+        run: node scripts/validate-saas-evaluation-quota-boundary.mjs
+
+      - name: Enforce no browser quota or transaction authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          gateway=netlify/functions/flipforge-api.js
+          evaluation=saas-prototype/staging-evaluation.js
+          entitlements=saas-prototype/customer-entitlements.js
+          docs=docs/SAAS_EVALUATION_QUOTA_BOUNDARY.md
+
+          grep -q 'EVALUATION_LIMIT_REACHED' "$gateway"
+          grep -q 'ENTITLEMENT_ACCESS_DENIED' "$gateway"
+          grep -q 'Retry-After' "$gateway"
+          grep -q 'Open Plan & Usage to review current usage' "$evaluation"
+          grep -q 'inProgressReservations' "$entitlements"
+          grep -q 'admissionUsage' "$entitlements"
+          grep -q 'browser cannot override' "$docs"
+
+          ! grep -Eiq 'quotaOverride|forceEvaluation|allowEvaluation[[:space:]]*=[[:space:]]*true|Checkout now|Subscribe now|Upgrade now|cardNumber|cvv|paymentToken|clientSecret' "$evaluation" "$entitlements"

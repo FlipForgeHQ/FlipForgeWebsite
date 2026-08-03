@@ -129,6 +129,22 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
     );
   }
 
+  if (status === 429 && upstreamCode === "EVALUATION_LIMIT_REACHED") {
+    return errorEnvelope(
+      "EVALUATION_LIMIT_REACHED",
+      "Your monthly evaluation limit has been reached.",
+      correlationId
+    );
+  }
+
+  if (status === 403 && upstreamCode === "ENTITLEMENT_ACCESS_DENIED") {
+    return errorEnvelope(
+      "ENTITLEMENT_ACCESS_DENIED",
+      "Your current FlipForge access does not permit a new evaluation.",
+      correlationId
+    );
+  }
+
   return errorEnvelope(
     "UPSTREAM_REJECTED",
     "The authoritative FlipForge service rejected the request.",
@@ -534,11 +550,17 @@ exports.handler = async function handler(event, context) {
         })
       );
 
+      const retryAfter = upstreamResponse.status === 429
+        ? String(upstreamResponse.headers.get("retry-after") || "").trim()
+        : "";
+      const safeRetryAfter = /^\d{1,10}$/.test(retryAfter) ? retryAfter : "";
+
       return jsonResponse(
         event,
         upstreamResponse.status >= 400 && upstreamResponse.status < 500 ? upstreamResponse.status : 502,
         upstreamRejectionEnvelope(upstreamResponse.status, payload, correlationId),
-        correlationId
+        correlationId,
+        safeRetryAfter ? { "Retry-After": safeRetryAfter } : {}
       );
     }
 
