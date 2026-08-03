@@ -104,6 +104,15 @@
           focusMain();
           return;
         }
+        if (route === "portfolio"
+            && portfolioAdapter
+            && typeof portfolioAdapter.render === "function"
+            && portfolioAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          portfolioAdapter.render(main);
+          focusMain();
+          return;
+        }
         if (lifecycleAdapter
             && typeof lifecycleAdapter.handles === "function"
             && lifecycleAdapter.handles(route)
@@ -111,15 +120,6 @@
             && lifecycleAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
           lifecycleAdapter.render(main, route, id);
-          focusMain();
-          return;
-        }
-        if (route === "portfolio"
-            && portfolioAdapter
-            && typeof portfolioAdapter.render === "function"
-            && portfolioAdapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          portfolioAdapter.render(main);
           focusMain();
           return;
         }
