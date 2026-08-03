@@ -18,18 +18,20 @@ check("001 customer entitlement adapter is loaded", index.includes('src="custome
 check("002 customer entitlement stylesheet is loaded", index.includes('href="customer-entitlements.css"'));
 check("003 account route delegates to entitlement adapter", router.includes('route === "account"') && router.includes("entitlementsAdapter.render(main)"));
 check("004 adapter is preview-only", adapter.includes("deploy-preview-") && adapter.includes("localhost") && adapter.includes("127\\.0\\.0\\.1"));
-check("005 adapter allowlists health and entitlements only", adapter.includes('path !== "/api/v1/health" && path !== "/api/v1/entitlements"'));
-check("006 adapter uses GET only", adapter.includes('method: "GET"') && !/method:\s*["'](?:POST|PUT|PATCH|DELETE)["']/.test(adapter));
+check("005 adapter keeps health and entitlements as the only read paths", adapter.includes('path !== "/api/v1/health" && path !== "/api/v1/entitlements"'));
+check("006 entitlement reads remain GET while only exact checkout uses POST", adapter.includes('method: "GET"') && adapter.includes('const CHECKOUT_PATH = "/api/v1/billing/paddle/checkout"') && adapter.includes('method: "POST"') && !/method:\s*["'](?:PUT|PATCH|DELETE)["']/.test(adapter));
 check("007 adapter uses same-origin authenticated browser session", adapter.includes('credentials: "same-origin"'));
 check("008 adapter disables cache", adapter.includes('cache: "no-store"'));
 check("009 adapter validates Smart Opportunity authority", adapter.includes('meta.authority === "Smart Opportunity"'));
 check("010 adapter validates existing PSA authority", adapter.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
 check("011 adapter requires read-only entitlements", adapter.includes('payload.data.readOnly === true'));
-check("012 adapter requires zero transaction authority", adapter.includes('payload.data.transactionAuthority === false'));
-check("013 account copy states billing is not connected", index.includes("Billing is not connected") && adapter.includes("Billing is not connected"));
-check("014 adapter exposes no payment-control label", !/Pay now|Checkout now|Enter card|Card number|CVV|Upgrade now|Subscribe now/i.test(adapter));
+check("012 adapter requires zero transaction authority", adapter.includes('payload.data.transactionAuthority === false') && adapter.includes('data.transactionAuthority === false'));
+check("013 account copy preserves server-owned billing state", index.includes("Billing is not connected") && adapter.includes("Billing is not connected"));
+check("014 adapter exposes no payment credential collection", !/Pay now|Enter card|Card number|CVV|Bank account|Payment token/i.test(adapter));
 check("015 adapter does not construct tenant or user headers", !/X-FlipForge-Tenant-Id|X-FlipForge-User-Id/.test(adapter));
-check("016 gateway already allowlists entitlements read", /method:\s*"GET"[\s\S]{0,100}entitlements/.test(gatewaySource));
+check("016 gateway allowlists entitlements read and exact authenticated checkout only", /method:\s*"GET"[\s\S]{0,100}entitlements/.test(gatewaySource) && gatewaySource.includes('billing\\/paddle\\/checkout') && !gatewaySource.includes('billing\\/paddle\\/webhook'));
+check("017 checkout cannot activate paid access in browser", adapter.includes("data.paidAccessActivated === false") && adapter.includes("data.webhookRequiredForPaidActivation === true"));
+check("018 browser contains no Paddle price or secret field", !/price_id|priceId|flipforge_billing_ref|FLIPFORGE_PADDLE_API_KEY|FLIPFORGE_PADDLE_WEBHOOK_SECRET/.test(adapter));
 
 const previousEnv = { ...process.env };
 const previousFetch = globalThis.fetch;
@@ -53,7 +55,7 @@ try {
     const payload = {
       meta: {
         contractVersion: "1.0",
-        engineVersion: "SmartOpportunity+entitlement-v15.05",
+        engineVersion: "SmartOpportunity+entitlement-v15.11",
         authority: "Smart Opportunity",
         gradingAuthority: "Existing PSA intelligence",
         correlationId: requestCorrelation,
@@ -66,6 +68,11 @@ try {
         configured: true,
         billingProviderConnected: false,
         checkoutAvailable: false,
+        customerCheckoutAllowed: false,
+        checkoutProvider: "PADDLE",
+        checkoutEnvironment: null,
+        sandboxCheckout: false,
+        liveCheckoutEnabled: false,
         customerPlanChangeAllowed: false,
         current: {
           code: "PRIVATE_BETA",
@@ -105,8 +112,8 @@ try {
     httpMethod: "GET",
     path: "/.netlify/functions/flipforge-api/api/v1/entitlements",
     headers: {
-      host: "deploy-preview-41--goflipforge.netlify.app",
-      origin: "https://deploy-preview-41--goflipforge.netlify.app",
+      host: "deploy-preview-44--goflipforge.netlify.app",
+      origin: "https://deploy-preview-44--goflipforge.netlify.app",
       "x-correlation-id": correlationId
     },
     multiValueHeaders: {},
@@ -128,26 +135,26 @@ try {
 
   const response = await handler(event, context);
   const body = JSON.parse(response.body);
-  check("017 signed active tenant can read entitlements through existing gateway", response.statusCode === 200);
-  check("018 gateway makes exactly one upstream entitlement call", upstreamCalls.length === 1 && upstreamCalls[0].url.endsWith("/api/v1/entitlements"));
-  check("019 gateway sets tenant header server-side", upstreamCalls[0]?.options?.headers?.["X-FlipForge-Tenant-Id"] === rawTenant);
-  check("020 gateway sets service token server-side", upstreamCalls[0]?.options?.headers?.Authorization === `Bearer ${serviceToken}`);
-  check("021 browser response preserves private-beta truth", body?.data?.current?.code === "PRIVATE_BETA" && body?.data?.current?.paidPlanActive === false);
-  check("022 browser response preserves billing disconnected", body?.data?.billingProviderConnected === false && body?.data?.checkoutAvailable === false);
-  check("023 browser response preserves server-owned usage", body?.data?.usage?.completedEvaluations === 3);
-  check("024 browser response preserves planned 5/75/300 limits", body?.data?.plannedCommercialPlans?.map(plan => plan.monthlyEvaluationLimit).join(",") === "5,75,300");
-  check("025 browser response exposes no service token", !response.body.includes(serviceToken));
-  check("026 browser response exposes no raw tenant id", !response.body.includes(rawTenant));
-  check("027 browser response exposes no payment fields", !/cardNumber|cvv|paymentToken|clientSecret/i.test(response.body));
-  check("028 browser response remains no-store", String(response.headers?.["Cache-Control"] || "").includes("no-store"));
-  check("029 browser response has no transaction authority", body?.data?.transactionAuthority === false);
+  check("019 signed active tenant can read entitlements through existing gateway", response.statusCode === 200);
+  check("020 gateway makes exactly one upstream entitlement call", upstreamCalls.length === 1 && upstreamCalls[0].url.endsWith("/api/v1/entitlements"));
+  check("021 gateway sets tenant header server-side", upstreamCalls[0]?.options?.headers?.["X-FlipForge-Tenant-Id"] === rawTenant);
+  check("022 gateway sets service token server-side", upstreamCalls[0]?.options?.headers?.Authorization === `Bearer ${serviceToken}`);
+  check("023 browser response preserves private-beta truth", body?.data?.current?.code === "PRIVATE_BETA" && body?.data?.current?.paidPlanActive === false);
+  check("024 browser response preserves checkout disconnected", body?.data?.billingProviderConnected === false && body?.data?.checkoutAvailable === false && body?.data?.customerCheckoutAllowed === false);
+  check("025 browser response preserves server-owned usage", body?.data?.usage?.completedEvaluations === 3);
+  check("026 browser response preserves planned 5/75/300 limits", body?.data?.plannedCommercialPlans?.map(plan => plan.monthlyEvaluationLimit).join(",") === "5,75,300");
+  check("027 browser response exposes no service token", !response.body.includes(serviceToken));
+  check("028 browser response exposes no raw tenant id", !response.body.includes(rawTenant));
+  check("029 browser response exposes no payment fields", !/cardNumber|cvv|paymentToken|clientSecret/i.test(response.body));
+  check("030 browser response remains no-store", String(response.headers?.["Cache-Control"] || "").includes("no-store"));
+  check("031 browser response has no transaction authority", body?.data?.transactionAuthority === false);
 
   process.env.FLIPFORGE_API_BRIDGE_ENABLED = "false";
   upstreamCalls = [];
   const disabled = await handler({ ...event, headers: { ...event.headers, "x-correlation-id": "entitlements-disabled" } }, context);
   const disabledBody = JSON.parse(disabled.body);
-  check("030 disabled bridge returns stable safe state", disabled.statusCode === 503 && disabledBody?.error?.code === "BRIDGE_DISABLED");
-  check("031 disabled bridge makes zero upstream calls", upstreamCalls.length === 0);
+  check("032 disabled bridge returns stable safe state", disabled.statusCode === 503 && disabledBody?.error?.code === "BRIDGE_DISABLED");
+  check("033 disabled bridge makes zero upstream calls", upstreamCalls.length === 0);
 } finally {
   globalThis.fetch = previousFetch;
   for (const key of Object.keys(process.env)) {
