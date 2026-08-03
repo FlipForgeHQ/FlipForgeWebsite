@@ -1,0 +1,54 @@
+name: SaaS Paddle Webhook Gateway Boundary
+
+on:
+  pull_request:
+    paths:
+      - "netlify/functions/flipforge-api.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/staging-route-hook.js"
+      - "scripts/validate-saas-paddle-webhook-gateway-boundary.mjs"
+      - "docs/SAAS_PADDLE_WEBHOOK_GATEWAY_BOUNDARY.md"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/saas-paddle-webhook-gateway-boundary.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate customer gateway denies Paddle webhook
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Parse boundary validator and gateway
+        run: |
+          node --check scripts/validate-saas-paddle-webhook-gateway-boundary.mjs
+          node --check netlify/functions/flipforge-api.js
+
+      - name: Run dynamic Paddle webhook gateway boundary validation
+        run: npm run validate:paddle-webhook-gateway-boundary
+
+      - name: Enforce route and authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          gateway=netlify/functions/flipforge-api.js
+          validator=scripts/validate-saas-paddle-webhook-gateway-boundary.mjs
+          docs=docs/SAAS_PADDLE_WEBHOOK_GATEWAY_BOUNDARY.md
+
+          ! grep -Eq 'pattern: /\^\\/api\\/v1\\/billing' "$gateway"
+          ! grep -Fq '/api/v1/billing/paddle/webhook' "$gateway"
+          grep -q 'ROUTE_NOT_ALLOWED' "$gateway"
+          grep -q 'fetchCalls === 0' "$validator"
+          grep -q 'Paddle-Signature' "$docs"
+          grep -q 'never be added to the customer gateway allowlist' "$docs"
+          grep -q 'does not create or expose checkout' "$docs"
