@@ -16,6 +16,7 @@
     "validate:customer-lifecycle": "node scripts/validate-saas-customer-lifecycle.mjs",
     "validate:customer-export": "node scripts/validate-saas-customer-export.mjs",
     "validate:customer-discovery": "node scripts/validate-saas-customer-discovery.mjs",
+    "validate:customer-entitlements": "node scripts/validate-saas-customer-entitlements.mjs",
     "validate:private-beta-operations-boundary": "node scripts/validate-saas-private-beta-operations-boundary.mjs"
   },
   "dependencies": {

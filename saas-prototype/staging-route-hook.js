@@ -9,6 +9,7 @@
   const portfolioAdapter = window.FlipForgeCustomerPortfolio;
   const exportAdapter = window.FlipForgeCustomerExport;
   const discoveryAdapter = window.FlipForgeCustomerDiscovery;
+  const entitlementsAdapter = window.FlipForgeCustomerEntitlements;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
   const bannerTitle = banner ? banner.querySelector("strong") : null;
@@ -110,6 +111,15 @@
             && portfolioAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
           portfolioAdapter.render(main);
+          focusMain();
+          return;
+        }
+        if (route === "account"
+            && entitlementsAdapter
+            && typeof entitlementsAdapter.render === "function"
+            && entitlementsAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          entitlementsAdapter.render(main);
           focusMain();
           return;
         }
