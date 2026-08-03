@@ -19,6 +19,7 @@
     "validate:customer-entitlements": "node scripts/validate-saas-customer-entitlements.mjs",
     "validate:evaluation-quota-boundary": "node scripts/validate-saas-evaluation-quota-boundary.mjs",
     "validate:private-beta-operations-boundary": "node scripts/validate-saas-private-beta-operations-boundary.mjs",
+    "validate:paddle-customer-checkout": "node scripts/validate-saas-paddle-customer-checkout.mjs",
     "validate:paddle-webhook-gateway-boundary": "node scripts/validate-saas-paddle-webhook-gateway-boundary.mjs"
   },
   "dependencies": {
