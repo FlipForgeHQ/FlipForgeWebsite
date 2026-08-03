@@ -75,7 +75,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["055 UI identifies active listing as not sold comp", files.adapter.includes("This active listing is not a sold comp")],
   ["056 no auto-buy controls exist", !/Place bid|Buy now|Checkout|Pay now|Accept offer|Create listing/.test(files.adapter)],
   ["057 gateway allowlists Discover POST", files.gateway.includes('{ method: "POST", pattern: /^\\/api\\/v1\\/discover$/ }')],
-  ["058 gateway still requires idempotency only for evaluations", files.gateway.includes('path !== "/api/v1/evaluations"')],
+  ["058 gateway keeps Discover non-idempotent while evaluations and exact checkout require keys", files.gateway.includes('const isEvaluation = method === "POST" && path === "/api/v1/evaluations"') && files.gateway.includes('const isCheckout = method === "POST" && path === CHECKOUT_PATH') && files.gateway.includes('if (!isEvaluation && !isCheckout) return { ok: true, value: null }')],
   ["059 gateway forwards Discover body", files.gateway.includes('body: method === "POST" || method === "PUT" ? body : undefined')],
   ["060 gateway remains trusted tenant injector", files.gateway.includes("[TENANT_HEADER]: tenant.tenantId")],
   ["061 gateway forbids browser identity headers", files.gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN")],
