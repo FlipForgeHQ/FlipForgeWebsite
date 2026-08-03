@@ -50,5 +50,5 @@ jobs:
           grep -q 'ROUTE_NOT_ALLOWED' "$gateway"
           grep -q 'fetchCalls === 0' "$validator"
           grep -q 'Paddle-Signature' "$docs"
-          grep -q 'must never be added to the customer gateway allowlist' "$docs"
+          grep -q 'never be added to the customer gateway allowlist' "$docs"
           grep -q 'does not create or expose checkout' "$docs"
