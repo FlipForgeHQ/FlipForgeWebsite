@@ -18,8 +18,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["001 customer gateway source does not allowlist Paddle webhook", !gateway.includes("billing\\/paddle\\/webhook") && !gateway.includes('pattern: /^\\/api\\/v1\\/billing')],
   ["002 customer app has no Paddle webhook navigation", !index.includes(PADDLE_WEBHOOK) && !index.includes("#/billing/paddle") && !index.includes("Paddle Webhook")],
   ["003 customer route hook has no Paddle webhook route", !routeHook.includes(PADDLE_WEBHOOK) && !routeHook.includes("billing/paddle")],
-  ["004 docs require webhook to remain outside customer gateway", docs.includes("must never be added to the customer gateway allowlist")],
-  ["005 docs preserve provider authentication boundary", docs.includes("Paddle-Signature") && docs.includes("provider-facing endpoint")],
+  ["004 docs require webhook to remain outside customer gateway", docs.includes("never be added to the customer gateway allowlist")],
+  ["005 docs preserve provider authentication boundary", docs.includes("Paddle-Signature") && docs.includes("provider-to-backend traffic")],
   ["006 docs prohibit browser tenant identity for webhook", docs.includes("browser tenant identity") && docs.includes("cannot establish billing identity")],
   ["007 docs retain checkout-disabled boundary", docs.includes("does not create or expose checkout")],
   ["008 docs retain production inactive boundary", docs.includes("does not activate staging or production billing")]
