@@ -148,23 +148,33 @@
     return `<div class="customer-entitlement-plans">${safePlans.map(plan => `<article class="panel customer-entitlement-plan"><div class="panel-body"><div class="customer-entitlement-plan-head"><div><span class="eyebrow">Planned launch plan</span><h3>${escapeHtml(plan.name || plan.code || "Plan")}</h3></div>${badge("Not billing active", "neutral")}</div><ul>${planFeature("Monthly evaluations", plan.monthlyEvaluationLimit)}${planFeature("Tracked cards", plan.trackedCardLimitLabel || plan.trackedCardLimit)}${planFeature("Full evidence", plan.fullEvidenceReview)}${planFeature("Decision traceback", plan.decisionTraceback)}${planFeature("PSA intelligence", plan.psaIntelligence)}${planFeature("CSV exports", plan.csvExports)}${planFeature("Batch evaluation", plan.batchEvaluation)}</ul></div></article>`).join("")}</div>`;
   }
 
+  function usageAdmission(usage) {
+    const completed = Number(usage?.completedEvaluations ?? 0);
+    const reservations = Number(usage?.inProgressReservations ?? 0);
+    const returned = Number(usage?.admissionUsage);
+    return Number.isFinite(returned)
+      ? returned
+      : Math.max(0, Number.isFinite(completed) ? completed : 0) + Math.max(0, Number.isFinite(reservations) ? reservations : 0);
+  }
+
   function syncSidebar(data) {
     const card = document.querySelector(".plan-card");
     if (!card || !data) return;
     const current = data.current || {};
     const usage = data.usage || {};
+    const admissionUsage = usageAdmission(usage);
     const strong = card.querySelector("strong");
     const row = card.querySelectorAll(".usage-row span");
     const track = card.querySelector(".usage-track span");
     const small = card.querySelector("small");
     if (strong) strong.textContent = current.name || "Private Beta";
-    if (row[0]) row[0].textContent = "Evaluations this month";
+    if (row[0]) row[0].textContent = "Evaluation allowance";
     if (row[1]) row[1].textContent = usage.monthlyEvaluationLimit == null
       ? String(usage.completedEvaluations ?? 0)
-      : `${usage.completedEvaluations ?? 0} / ${usage.monthlyEvaluationLimit}`;
-    if (track) track.style.width = `${percent(usage.completedEvaluations, usage.monthlyEvaluationLimit)}%`;
+      : `${admissionUsage} / ${usage.monthlyEvaluationLimit}`;
+    if (track) track.style.width = `${percent(admissionUsage, usage.monthlyEvaluationLimit)}%`;
     if (small) small.textContent = data.billingProviderConnected === true
-      ? "Plan state is verified server-side."
+      ? "Plan state and quota are server-owned."
       : "Billing is not connected. Private-beta access is not a paid subscription.";
   }
 
@@ -172,18 +182,20 @@
     const data = payload?.data || {};
     const current = data.current || {};
     const usage = data.usage || {};
+    const admissionUsage = usageAdmission(usage);
+    const reservations = Math.max(0, Number(usage.inProgressReservations ?? 0) || 0);
     const activeLabel = current.paidPlanActive === true
       ? badge("Paid plan active", "ok")
       : current.code === "PRIVATE_BETA"
         ? badge("Private beta", "ok")
         : badge(current.accessState || "Not active", "warn");
     const limit = usage.monthlyEvaluationLimit;
-    const progress = percent(usage.completedEvaluations, limit);
+    const progress = percent(admissionUsage, limit);
     const billingCopy = data.billingProviderConnected === true
       ? "Billing provider connection is active on the server."
       : "Billing is not connected yet. FlipForge cannot charge, upgrade, downgrade, cancel, or claim a paid plan from this screen.";
 
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan & Usage</h1><p>Review the server-owned access state and monthly evaluation usage for this private-beta tenant.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-customer-entitlements-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Billing boundary:</strong> ${escapeHtml(billingCopy)}</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(current.name || current.code || "Unavailable")}</h2></div>${activeLabel}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(current.accessState || "Unavailable")}</dd></div><div><dt>Source</dt><dd>${escapeHtml(current.entitlementSource || "Unavailable")}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Checkout</dt><dd>${data.checkoutAvailable === true ? "Available" : "Not connected"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Idempotent replays and failed evaluations do not consume additional usage.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>Planned commercial plans</h2><p>These are governed launch-plan contracts, not active checkout offers.</p></div>${badge("Pricing subject to launch validation", "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>No payment controls are enabled.</strong><p>This workspace is read-only. It cannot process payment, change a plan, create an entitlement, accept evidence, recalculate PSA guidance, or authorize a transaction.</p></div></section></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan & Usage</h1><p>Review the server-owned access state and monthly evaluation usage for this private-beta tenant.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-customer-entitlements-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Billing boundary:</strong> ${escapeHtml(billingCopy)}</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(current.name || current.code || "Unavailable")}</h2></div>${activeLabel}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(current.accessState || "Unavailable")}</dd></div><div><dt>Source</dt><dd>${escapeHtml(current.entitlementSource || "Unavailable")}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Checkout</dt><dd>${data.checkoutAvailable === true ? "Available" : "Not connected"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Completed usage plus in-progress reservations governs new-request admission. Failed evaluations release their reservation, and idempotent replays do not consume another slot.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>Planned commercial plans</h2><p>These are governed launch-plan contracts, not active checkout offers.</p></div>${badge("Pricing subject to launch validation", "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>No payment controls are enabled.</strong><p>This workspace is read-only. It cannot process payment, change a plan, create an entitlement, accept evidence, recalculate PSA guidance, or authorize a transaction.</p></div></section></div>`;
   }
 
   function renderState() {
