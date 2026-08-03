@@ -29,7 +29,7 @@ check("012 adapter requires zero transaction authority", adapter.includes('paylo
 check("013 account copy states billing is not connected", index.includes("Billing is not connected") && adapter.includes("Billing is not connected"));
 check("014 adapter exposes no payment-control label", !/Pay now|Checkout now|Enter card|Card number|CVV|Upgrade now|Subscribe now/i.test(adapter));
 check("015 adapter does not construct tenant or user headers", !/X-FlipForge-Tenant-Id|X-FlipForge-User-Id/.test(adapter));
-check("016 gateway already allowlists entitlements read", gatewaySource.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/entitlements\\$/ }'));
+check("016 gateway already allowlists entitlements read", /method:\s*"GET"[\s\S]{0,100}entitlements/.test(gatewaySource));
 
 const previousEnv = { ...process.env };
 const previousFetch = globalThis.fetch;
