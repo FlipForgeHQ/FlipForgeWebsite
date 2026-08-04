@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CLIENT_SIDE_TOKEN = "test_2cea4fb2a903dc6616c35a9858cejf61s_zFkRzyZEkbjvSkZRnZJRYd_Awn";
+  const CLIENT_SIDE_TOKEN = "test_2cea4fb2a903dc6616c35a9858c";
   const TRANSACTION_PATTERN = /^txn_[a-z0-9]{26}$/;
   const status = document.querySelector("[data-paddle-sandbox-status]");
   const detail = document.querySelector("[data-paddle-sandbox-detail]");
