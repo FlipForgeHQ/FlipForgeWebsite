@@ -69,6 +69,14 @@ if (fs.existsSync(indexPath)) {
       'assets/images/flipforge-traceback-guidance.svg',
     );
 
+  if (!corrected.includes('assets/images/flipforge-traceback-guidance.svg')) {
+    const tracebackFigure = `  <figure class="product-visual traceback-visual" style="margin-top:24px"><div class="visual"><img src="assets/images/flipforge-traceback-guidance.svg" width="1280" height="720" loading="lazy" alt="FlipForge decision traceback showing the evidence, uncertainty, and verification steps behind explainable guidance"></div><figcaption class="caption">Trace the decision back to the evidence, uncertainty, and verification steps that produced the guidance.</figcaption></figure>\n`;
+    corrected = corrected.replace(
+      /(<div\b[^>]*class="[^"]*\bbrand-pillar-grid\b[^"]*"[^>]*>[\s\S]*?<\/div>)(\s*<\/section>\s*<section\b[^>]*id="grading")/i,
+      `$1\n${tracebackFigure}$2`,
+    );
+  }
+
   if (!corrected.includes('assets/js/section-navigation.js')) {
     corrected = corrected.replace(/<\/body>/i, `${navigationScript}\n</body>`);
   }
@@ -149,6 +157,18 @@ function ensurePerfectedBrandIdentity(html) {
     .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD VALUE INTELLIGENCE');
 }
 
+function ensurePerfectedBrandMark(html) {
+  return html
+    .replaceAll(
+      'brand/v2/master/FlipForge_Icon_Transparent_DarkBG.svg',
+      'assets/brand/flipforge-mark.svg',
+    )
+    .replaceAll(
+      'brand/v2/master/FlipForge_Icon_Transparent_LightBG.svg',
+      'assets/brand/flipforge-mark.svg',
+    );
+}
+
 // Keep the public website and the browser app connected without replacing the
 // marketing homepage. Netlify exposes the isolated prototype at /app/ through
 // _redirects; the build adds a consistent entry point and approved brand layer
@@ -161,6 +181,7 @@ for (const htmlPath of htmlFiles) {
   const original = fs.readFileSync(htmlPath, 'utf8');
   let updated = ensurePerfectedBrandIdentity(original);
 
+  updated = ensurePerfectedBrandMark(updated);
   updated = ensurePerfectedBrandStylesheet(updated);
   updated = ensurePerfectedBrandFavicon(updated);
   updated = ensureDesktopAppLink(updated);
