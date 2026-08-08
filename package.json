@@ -5,7 +5,9 @@
   "description": "FlipForge website and non-production SaaS staging surface.",
   "scripts": {
     "build:identity": "node scripts/build-identity-client.mjs",
+    "build:paddle-live": "node scripts/build-paddle-live-config.mjs",
     "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs",
+    "validate:paddle-live-payment-link": "node scripts/validate-paddle-live-payment-link.mjs",
     "validate:account-lifecycle": "node scripts/validate-saas-customer-account-lifecycle.mjs",
     "validate:customer-intelligence": "node scripts/validate-saas-customer-intelligence-loop.mjs",
     "validate:customer-dashboard": "node scripts/validate-saas-customer-dashboard.mjs",
