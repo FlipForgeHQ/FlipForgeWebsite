@@ -34,6 +34,8 @@ const requiredBrandAssets = [
   path.join(root, 'assets', 'brand', 'flipforge-mark.svg'),
   path.join(root, 'assets', 'brand', 'flipforge-app-icon-dark.svg'),
   path.join(root, 'assets', 'css', 'brand-v2.css'),
+  path.join(root, 'assets', 'css', 'product-intelligence.css'),
+  path.join(root, 'assets', 'css', 'trademark.css'),
   path.join(root, 'assets', 'js', 'section-navigation.js'),
   path.join(root, 'assets', 'images', 'flipforge-grading-scenario.svg'),
   path.join(root, 'assets', 'images', 'flipforge-traceback-guidance.svg'),
@@ -105,6 +107,16 @@ function ensurePerfectedBrandStylesheet(html) {
   );
 }
 
+function ensureTrademarkStylesheet(html) {
+  if (html.includes('assets/css/trademark.css')) return html;
+  return html.replace(/<\/head>/i, '<link rel="stylesheet" href="assets/css/trademark.css">\n</head>');
+}
+
+function ensureProductIntelligenceStylesheet(html) {
+  if (html.includes('assets/css/product-intelligence.css')) return html;
+  return html.replace(/<\/head>/i, '<link rel="stylesheet" href="assets/css/product-intelligence.css">\n</head>');
+}
+
 function ensurePerfectedBrandFavicon(html) {
   const favicon = '<link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">';
   if (html.includes('href="assets/brand/flipforge-app-icon-dark.svg"')) return html;
@@ -114,9 +126,18 @@ function ensurePerfectedBrandFavicon(html) {
 
 function ensurePerfectedBrandIdentity(html) {
   return html
-    .replaceAll('Signal. Confidence. Advantage.', 'Card Value Intelligence')
-    .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD VALUE INTELLIGENCE')
+    .replaceAll('Signal. Confidence. Advantage.', 'Card Value Intelligence™')
+    .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD VALUE INTELLIGENCE™')
+    .replace(/Card Value Intelligence(?!™)/g, 'Card Value Intelligence™')
+    .replace(/ForgeScore(?!™)/g, 'ForgeScore™')
+    .replace(/ForgeSignal(?!™)/g, 'ForgeSignal™')
     .replace(/<span class="wordmark">\s*FLIPFORGE™?\s*<\/span>/g, '<span class="wordmark"><span class="word-flip">FLIP</span><span class="word-forge">FORGE</span>™</span>');
+}
+
+function ensureTrademarkNotice(html) {
+  if (!html.includes('class="footer"') || html.includes('class="trademark-notice"')) return html;
+  const notice = '<div class="trademark-notice"><strong>Trademark notice:</strong> FlipForge™, ForgeScore™, ForgeSignal™, Card Value Intelligence™, and Before You Buy. Know Why.™ are claimed trademarks of FlipForge LLC. ™ denotes a claimed trademark; it does not indicate federal registration.</div>';
+  return html.replace(/<\/footer>/i, `${notice}</footer>`);
 }
 
 function ensurePerfectedBrandMark(html) {
@@ -139,17 +160,21 @@ const htmlFiles = fs.readdirSync(root)
 
 for (const htmlPath of htmlFiles) {
   const original = fs.readFileSync(htmlPath, 'utf8');
+  const page = path.basename(htmlPath);
   let updated = ensurePerfectedBrandIdentity(original);
   updated = ensurePerfectedBrandMark(updated);
   updated = ensureGeistTypography(updated);
   updated = ensurePerfectedBrandStylesheet(updated);
+  updated = ensureTrademarkStylesheet(updated);
+  if (page === 'product.html') updated = ensureProductIntelligenceStylesheet(updated);
   updated = ensurePerfectedBrandFavicon(updated);
   updated = ensureDesktopAppLink(updated);
   updated = ensureMobileAppLink(updated);
   updated = ensureFooterAppLink(updated);
+  updated = ensureTrademarkNotice(updated);
   if (updated !== original) {
     fs.writeFileSync(htmlPath, updated, 'utf8');
-    console.log(`Updated website app entry points and Brand v2 layer in ${path.basename(htmlPath)}`);
+    console.log(`Updated website app entry points and Brand v2 layer in ${page}`);
   }
 }
 
@@ -161,9 +186,11 @@ for (const htmlPath of htmlFiles) {
 
   const failures = [];
   if (!html.includes('assets/brand/flipforge-mark.svg')) failures.push('approved header mark');
-  if (!html.includes('Card Value Intelligence')) failures.push('Card Value Intelligence identity line');
+  if (!html.includes('Card Value Intelligence™')) failures.push('Card Value Intelligence trademark line');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('Brand v2 stylesheet');
+  if (!html.includes('assets/css/trademark.css')) failures.push('trademark stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
+  if (!html.includes('class="trademark-notice"')) failures.push('site-wide trademark notice');
   if (html.includes('Signal. Confidence. Advantage.')) failures.push('deprecated tagline removal');
 
   if (page === 'index.html') {
@@ -175,6 +202,10 @@ for (const htmlPath of htmlFiles) {
 
   if (page === 'product.html') {
     if (!html.includes('class="product-nav"')) failures.push('product section navigation');
+    if (!html.includes('id="intelligence"')) failures.push('defining intelligence showcase');
+    if (!html.includes('ForgeScore™')) failures.push('ForgeScore trademark feature');
+    if (!html.includes('ForgeSignal™')) failures.push('ForgeSignal trademark feature');
+    if (!html.includes('assets/css/product-intelligence.css')) failures.push('product intelligence stylesheet');
     if (!html.includes('id="how-it-works"')) failures.push('product workflow');
     if (!html.includes('id="deep-dive"')) failures.push('progressive product deep dive');
     if (!html.includes('assets/images/flipforge-grading-scenario.svg')) failures.push('native grading scenario visual');
