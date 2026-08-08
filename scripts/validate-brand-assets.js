@@ -67,9 +67,8 @@ if (!manifest.includes('/assets/brand/flipforge-app-icon-dark.svg')) {
   throw new Error('site.webmanifest does not use the approved FlipForge app icon');
 }
 
-const brandCss = fs.readFileSync(path.join(root, 'assets/css/brand-v2.css'), 'utf8');
-if (!brandCss.includes('flipforge-before-after-overlay.svg')) {
-  throw new Error('brand-v2.css is not wired to the Before/After correction overlay');
-}
+// The former Before/After correction overlay is retained as an archived brand asset,
+// but the streamlined Brand v2 homepage no longer renders that section. Do not require
+// brand-v2.css to wire an unused overlay back into the current information architecture.
 
 console.log(`Brand integrity validation passed across ${htmlFiles.length} website pages.`);
