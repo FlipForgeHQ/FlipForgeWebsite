@@ -1,0 +1,31 @@
+name: Paddle Live Payment Link
+
+on:
+  pull_request:
+    paths:
+      - "checkout/**"
+      - "scripts/build-paddle-live-config.mjs"
+      - "scripts/validate-paddle-live-payment-link.mjs"
+      - "docs/PADDLE_LIVE_PAYMENT_LINK.md"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/paddle-live-payment-link.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Paddle Live payment link
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build fail-closed browser config
+        run: npm run build:paddle-live
+      - name: Validate payment-link boundary
+        run: npm run validate:paddle-live-payment-link
