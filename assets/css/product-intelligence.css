@@ -1,0 +1,27 @@
+/* FlipForge Product Intelligence showcase */
+.feature-section{padding-top:72px}
+.feature-showcase{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:30px}
+.feature-card{position:relative;overflow:hidden;padding:26px;border:1px solid rgba(139,143,152,.24);border-radius:16px;background:linear-gradient(180deg,rgba(16,16,16,.98),rgba(5,5,5,.99));box-shadow:0 24px 70px rgba(0,0,0,.36)}
+.feature-card:before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.52),transparent)}
+.feature-card-primary{border-color:rgba(212,175,55,.48);background:radial-gradient(circle at 90% 0,rgba(212,175,55,.11),transparent 38%),linear-gradient(180deg,#111,#050505)}
+.feature-meta{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.feature-meta span{display:grid;place-items:center;width:31px;height:31px;border:1px solid rgba(212,175,55,.48);border-radius:8px;color:#f0ca58;font-size:10px;font-weight:700}
+.feature-meta small{color:#8b8f98;font-size:10px;font-weight:650;letter-spacing:.12em;text-transform:uppercase}
+.feature-card h3,.calibration-feature h3{margin:0 0 10px;font-size:clamp(23px,2.2vw,31px);color:#fff}
+.feature-card-primary h3{color:#f0ca58}
+.feature-card>strong,.calibration-feature strong{display:block;margin-bottom:10px;color:#fff;font-size:16px;line-height:1.45}
+.feature-card p{margin:0;color:#bfc1c5;line-height:1.68}
+.feature-benefit{margin-top:20px;padding-top:16px;border-top:1px solid rgba(139,143,152,.18);color:#d4af37;font-size:12px;font-weight:620;line-height:1.55;letter-spacing:.02em}
+.calibration-feature{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:34px;align-items:center;margin-top:16px;padding:26px;border:1px solid rgba(212,175,55,.34);border-radius:16px;background:linear-gradient(110deg,rgba(212,175,55,.085),#080808 45%,#030303)}
+.calibration-feature p{margin:0;color:#c6c8cc;line-height:1.72}
+.feature-dashboard{margin:30px 0 0}
+
+@media(max-width:900px){
+  .feature-showcase{grid-template-columns:1fr}
+  .calibration-feature{grid-template-columns:1fr;gap:12px}
+}
+@media(max-width:700px){
+  .feature-section{padding-top:58px}
+  .feature-card,.calibration-feature{padding:21px}
+  .feature-card h3,.calibration-feature h3{font-size:23px}
+}
