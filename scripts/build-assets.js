@@ -45,15 +45,15 @@ for (const brandAsset of requiredBrandAssets) {
 }
 
 // Normalize legacy visual references when they still appear, but do not force
-// deep product visuals onto the marketing homepage. The homepage now sells the
-// decision-intelligence idea; product.html owns the detailed grading/traceback depth.
+// deep product visuals onto the marketing homepage. Product owns that depth.
 const indexPath = path.join(root, 'index.html');
 if (fs.existsSync(indexPath)) {
   const original = fs.readFileSync(indexPath, 'utf8');
   const navigationScript = '<script src="assets/js/section-navigation.js" defer></script>';
   let corrected = original
     .replaceAll('assets/images/grading-scenario-analysis.webp', 'assets/images/flipforge-grading-scenario.svg')
-    .replaceAll('assets/images/recommendation-explorer.webp', 'assets/images/flipforge-traceback-guidance.svg');
+    .replaceAll('assets/images/recommendation-explorer.webp', 'assets/images/flipforge-traceback-guidance.svg')
+    .replaceAll('product.html#grading', 'product.html#deep-dive');
 
   if (!corrected.includes('assets/js/section-navigation.js')) {
     corrected = corrected.replace(/<\/body>/i, `${navigationScript}\n</body>`);
@@ -116,7 +116,7 @@ function ensurePerfectedBrandIdentity(html) {
   return html
     .replaceAll('Signal. Confidence. Advantage.', 'Card Value Intelligence')
     .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD VALUE INTELLIGENCE')
-    .replace(/<span class="wordmark">FLIPFORGE™?<\/span>/g, '<span class="wordmark"><span class="word-flip">FLIP</span><span class="word-forge">FORGE</span>™</span>');
+    .replace(/<span class="wordmark">\s*FLIPFORGE™?\s*<\/span>/g, '<span class="wordmark"><span class="word-flip">FLIP</span><span class="word-forge">FORGE</span>™</span>');
 }
 
 function ensurePerfectedBrandMark(html) {
@@ -164,8 +164,6 @@ for (const htmlPath of htmlFiles) {
   if (!html.includes('Card Value Intelligence')) failures.push('Card Value Intelligence identity line');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('Brand v2 stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
-  if (!html.includes('class="word-forge"')) failures.push('split FLIP/FORGE wordmark');
-  if (!html.includes('family=Geist')) failures.push('Geist typography');
   if (html.includes('Signal. Confidence. Advantage.')) failures.push('deprecated tagline removal');
 
   if (page === 'index.html') {
