@@ -1,0 +1,21 @@
+FLIPFORGE BRAND SPECIFICATION v2
+Updated 2026-08-08
+
+PRIMARY IDENTITY: Card Value Intelligence
+OFFICIAL LOCKUP: BEFORE YOU BUY. KNOW WHY.
+NORMAL PROSE: Before you buy, know why.
+TYPEFACE: Geist Sans (supporting typography; not bundled)
+
+COLORS
+Black      #000000
+White      #FFFFFF
+Silver     #8B8F98
+Gold       #D4AF37
+Deep Gold  #B8860B
+
+MARK RULES
+- Four open corners frame the centered 3D gold cube.
+- Preserve clear space at least equal to the cube height.
+- Do not distort proportions.
+- Do not use the old flat gold square mark.
+- Use the icon without the wordmark at small sizes.

@@ -1,0 +1,33 @@
+{
+  "brandVersion": "2.0",
+  "updated": "2026-08-08",
+  "status": "APPROVED",
+  "identity": {
+    "descriptor": "Card Value Intelligence",
+    "officialLockup": "BEFORE YOU BUY. KNOW WHY.",
+    "normalProse": "Before you buy, know why.",
+    "typeface": "Geist Sans",
+    "fontFilesBundled": false,
+    "colors": {
+      "black": "#000000",
+      "white": "#FFFFFF",
+      "silver": "#8B8F98",
+      "gold": "#D4AF37",
+      "deepGold": "#B8860B"
+    }
+  },
+  "packages": [
+    {
+      "filename": "FlipForge_Brand_Asset_Pack.zip",
+      "sha256": "07845801466201bfca9fb9b75096c9b3ab567aa266dbb3797afd51b7078a73d3",
+      "bytes": 6685301,
+      "files": 92
+    },
+    {
+      "filename": "FlipForge_True_Vector_Master.zip",
+      "sha256": "677910710cd3696fc8548ef5af5b22a1f5d094b4f7179dc094b13cf860b9f36f",
+      "bytes": 161344,
+      "files": 50
+    }
+  ]
+}
