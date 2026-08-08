@@ -37,6 +37,7 @@ const requiredBrandAssets = [
   path.join(root, 'assets', 'css', 'product-intelligence.css'),
   path.join(root, 'assets', 'css', 'trademark.css'),
   path.join(root, 'assets', 'js', 'section-navigation.js'),
+  path.join(root, 'assets', 'js', 'product-scenario-lab.js'),
   path.join(root, 'assets', 'images', 'flipforge-grading-scenario.svg'),
   path.join(root, 'assets', 'images', 'flipforge-traceback-guidance.svg'),
 ];
@@ -212,6 +213,12 @@ for (const htmlPath of htmlFiles) {
   if (page === 'product.html') {
     if (!html.includes('class="product-nav"')) failures.push('product section navigation');
     if (!html.includes('id="features"')) failures.push('compact feature showcase');
+    if (!html.includes('id="scenario-lab"')) failures.push('interactive scenario lab');
+    if (!html.includes('data-scenario-tab="decision"')) failures.push('deal decision scenario');
+    if (!html.includes('data-scenario-tab="forgescore"')) failures.push('ForgeScore scenario');
+    if (!html.includes('data-scenario-tab="forgesignal"')) failures.push('ForgeSignal scenario');
+    if (!html.includes('data-scenario-tab="grading"')) failures.push('grading scenario');
+    if (!html.includes('assets/js/product-scenario-lab.js')) failures.push('scenario lab script');
     if (!html.includes('ForgeScore™')) failures.push('ForgeScore trademark feature');
     if (!html.includes('ForgeSignal™')) failures.push('ForgeSignal trademark feature');
     if (!html.includes('intelligence.html#forgescore')) failures.push('ForgeScore intelligence link');
