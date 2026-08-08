@@ -1,7 +1,19 @@
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 
 function read(file) {
   return fs.readFileSync(file, "utf8");
+}
+
+function readCommitted(file) {
+  try {
+    return execFileSync("git", ["show", `HEAD:${file}`], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+  } catch {
+    throw new Error(`Unable to inspect committed ${file} for fail-closed validation.`);
+  }
 }
 
 function requireText(source, needle, message) {
@@ -10,11 +22,14 @@ function requireText(source, needle, message) {
 
 const page = read("checkout/index.html");
 const config = read("checkout/paddle-config.js");
+const committedConfig = readCommitted("checkout/paddle-config.js");
 const client = read("checkout/paddle-live.js");
 const builder = read("scripts/build-paddle-live-config.mjs");
 const packageJson = read("package.json");
 const netlify = read("netlify.toml");
 const combined = [page, config, client, builder].join("\n");
+const token = String(process.env.FLIPFORGE_PADDLE_CLIENT_TOKEN || "").trim();
+const emptyConfig = 'window.FLIPFORGE_PADDLE_CLIENT_TOKEN = "";';
 
 requireText(page, "https://goflipforge.com/checkout/", "Checkout page must pin the production canonical URL.");
 requireText(page, "https://cdn.paddle.com/paddle/v2/paddle.js", "Checkout page must load Paddle.js v2 from Paddle CDN.");
@@ -38,8 +53,20 @@ if (/pdl_(?:live|sdbx)_apikey_/.test(combined)) {
 if (/Paddle\.Checkout\.open\s*\(/.test(client)) {
   throw new Error("Default payment-link flow must let Paddle.js consume _ptxn rather than overriding it with Checkout.open().");
 }
-if (!config.includes('window.FLIPFORGE_PADDLE_CLIENT_TOKEN = "";')) {
+if (!committedConfig.includes(emptyConfig)) {
   throw new Error("Committed Paddle client config must remain fail-closed with no token value.");
+}
+
+if (token) {
+  if (!token.startsWith("live_") || /\s/.test(token) || token.length > 512) {
+    throw new Error("Build environment must provide a valid Paddle Live client-side token.");
+  }
+  const expectedGeneratedConfig = `window.FLIPFORGE_PADDLE_CLIENT_TOKEN = ${JSON.stringify(token)};`;
+  if (!config.includes(expectedGeneratedConfig)) {
+    throw new Error("Generated Paddle browser config does not match the build environment token.");
+  }
+} else if (!config.includes(emptyConfig)) {
+  throw new Error("Fail-closed build without a Paddle client token must keep the generated browser config empty.");
 }
 
 console.log("Paddle Live payment-link validation passed.");
