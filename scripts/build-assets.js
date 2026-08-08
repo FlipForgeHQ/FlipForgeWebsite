@@ -46,8 +46,8 @@ for (const brandAsset of requiredBrandAssets) {
   }
 }
 
-// Normalize legacy visual references when they still appear, but do not force
-// deep product visuals onto the marketing homepage. Product owns that depth.
+// Keep the marketing homepage concise. Its deeper feature links now route to
+// the dedicated Intelligence Center instead of forcing technical detail onto Product.
 const indexPath = path.join(root, 'index.html');
 if (fs.existsSync(indexPath)) {
   const original = fs.readFileSync(indexPath, 'utf8');
@@ -55,14 +55,18 @@ if (fs.existsSync(indexPath)) {
   let corrected = original
     .replaceAll('assets/images/grading-scenario-analysis.webp', 'assets/images/flipforge-grading-scenario.svg')
     .replaceAll('assets/images/recommendation-explorer.webp', 'assets/images/flipforge-traceback-guidance.svg')
-    .replaceAll('product.html#grading', 'product.html#deep-dive');
+    .replaceAll('href="product.html#grading"', 'href="intelligence.html#psa-intelligence"')
+    .replace(
+      'href="product.html"><img src="assets/images/flipforge-traceback-guidance.svg"',
+      'href="intelligence.html#decision-traceback"><img src="assets/images/flipforge-traceback-guidance.svg"',
+    );
 
   if (!corrected.includes('assets/js/section-navigation.js')) {
     corrected = corrected.replace(/<\/body>/i, `${navigationScript}\n</body>`);
   }
   if (corrected !== original) {
     fs.writeFileSync(indexPath, corrected, 'utf8');
-    console.log('Updated homepage visual references and deterministic section navigation');
+    console.log('Updated homepage intelligence links and deterministic section navigation');
   }
 }
 
@@ -91,7 +95,10 @@ function ensureFooterAppLink(html) {
   if (html.includes('data-app-preview="footer"')) return html;
   const link = '<a data-app-preview="footer" href="/app/#/dashboard">App Preview</a>';
   const exploreGroup = /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>\s*<strong>Explore<\/strong>)([\s\S]*?)(<\/div>)/i;
-  const withExploreLink = html.replace(exploreGroup, (match, open, inner, close) => `${open}${inner}${link}${close}`);
+  const withExploreLink = html.replace(
+    exploreGroup,
+    (match, open, inner, close) => `${open}${inner}${link}${close}`,
+  );
   if (withExploreLink !== html) return withExploreLink;
   return html.replace(
     /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>)([\s\S]*?)(<\/div>)/i,
@@ -166,7 +173,9 @@ for (const htmlPath of htmlFiles) {
   updated = ensureGeistTypography(updated);
   updated = ensurePerfectedBrandStylesheet(updated);
   updated = ensureTrademarkStylesheet(updated);
-  if (page === 'product.html') updated = ensureProductIntelligenceStylesheet(updated);
+  if (page === 'product.html' || page === 'intelligence.html') {
+    updated = ensureProductIntelligenceStylesheet(updated);
+  }
   updated = ensurePerfectedBrandFavicon(updated);
   updated = ensureDesktopAppLink(updated);
   updated = ensureMobileAppLink(updated);
@@ -202,12 +211,23 @@ for (const htmlPath of htmlFiles) {
 
   if (page === 'product.html') {
     if (!html.includes('class="product-nav"')) failures.push('product section navigation');
-    if (!html.includes('id="intelligence"')) failures.push('defining intelligence showcase');
+    if (!html.includes('id="features"')) failures.push('compact feature showcase');
     if (!html.includes('ForgeScore™')) failures.push('ForgeScore trademark feature');
     if (!html.includes('ForgeSignal™')) failures.push('ForgeSignal trademark feature');
+    if (!html.includes('intelligence.html#forgescore')) failures.push('ForgeScore intelligence link');
+    if (!html.includes('intelligence.html#decision-traceback')) failures.push('traceback intelligence link');
     if (!html.includes('assets/css/product-intelligence.css')) failures.push('product intelligence stylesheet');
     if (!html.includes('id="how-it-works"')) failures.push('product workflow');
-    if (!html.includes('id="deep-dive"')) failures.push('progressive product deep dive');
+    if (!html.includes('id="outcomes"')) failures.push('product outcome');
+  }
+
+  if (page === 'intelligence.html') {
+    for (const id of ['forgescore','forgesignal','identity','evidence-trust','psa-intelligence','decision-traceback','outcome-calibration']) {
+      if (!html.includes(`id="${id}"`)) failures.push(`intelligence section ${id}`);
+    }
+    if (!html.includes('ForgeScore™')) failures.push('ForgeScore intelligence detail');
+    if (!html.includes('ForgeSignal™')) failures.push('ForgeSignal intelligence detail');
+    if (!html.includes('assets/css/product-intelligence.css')) failures.push('intelligence stylesheet');
     if (!html.includes('assets/images/flipforge-grading-scenario.svg')) failures.push('native grading scenario visual');
     if (!html.includes('assets/images/flipforge-traceback-guidance.svg')) failures.push('native traceback visual');
   }
