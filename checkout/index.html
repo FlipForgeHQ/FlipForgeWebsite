@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Secure Checkout | FlipForge™</title>
+<meta name="description" content="Secure FlipForge subscription checkout powered by Paddle.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#030812">
+<link rel="canonical" href="https://goflipforge.com/checkout/">
+<link rel="icon" href="../assets/brand/flipforge-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="checkout.css">
+</head>
+<body class="checkout-page">
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="checkout-header">
+  <a class="checkout-brand" href="../index.html" aria-label="FlipForge home">
+    <img src="../assets/brand/flipforge-mark.svg" alt="">
+    <span><strong>FLIPFORGE™</strong><small>Card Value Intelligence</small></span>
+  </a>
+</header>
+<main id="main" class="checkout-main">
+  <section class="checkout-card" aria-labelledby="checkout-title">
+    <div class="checkout-kicker">Secure subscription checkout</div>
+    <h1 id="checkout-title">Complete your FlipForge plan with Paddle.</h1>
+    <p>Payment details are handled by Paddle. FlipForge does not receive or store your card or bank credentials.</p>
+    <div class="checkout-status" id="paddle-checkout-status" role="status" aria-live="polite">
+      Preparing secure checkout…
+    </div>
+    <div class="checkout-boundary">
+      <strong>What happens next</strong>
+      <p>Paddle opens the transaction attached to this secure link. Your FlipForge paid access is updated only after the verified Paddle webhook confirms the subscription state.</p>
+    </div>
+    <a class="checkout-return" href="../index.html">Return to FlipForge</a>
+  </section>
+</main>
+<footer class="checkout-footer">© 2026 FlipForge LLC · FlipForge™ · Before you buy, know why.</footer>
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script src="paddle-config.js"></script>
+<script src="paddle-live.js"></script>
+</body>
+</html>
