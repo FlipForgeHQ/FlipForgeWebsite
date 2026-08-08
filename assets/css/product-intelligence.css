@@ -20,7 +20,7 @@
 .compact-product-hero{padding-bottom:54px}
 .compact-feature-section{padding-top:58px;padding-bottom:58px}
 .feature-link-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:26px}
-.feature-link-card{display:block;min-height:190px;padding:20px;border:1px solid rgba(139,143,152,.23);border-radius:14px;background:linear-gradient(180deg,#0d0d0d,#050505);text-decoration:none;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.feature-link-card{display:flex;flex-direction:column;min-height:190px;padding:20px;border:1px solid rgba(139,143,152,.23);border-radius:14px;background:linear-gradient(180deg,#0d0d0d,#050505);text-decoration:none;transition:transform .18s ease,border-color .18s ease,background .18s ease}
 .feature-link-card:hover{transform:translateY(-2px);border-color:rgba(212,175,55,.58);background:linear-gradient(180deg,#111,#060606)}
 .feature-link-primary{border-color:rgba(212,175,55,.42);background:radial-gradient(circle at 95% 0,rgba(212,175,55,.10),transparent 40%),linear-gradient(180deg,#101010,#050505)}
 .feature-link-card .feature-meta{margin-bottom:13px}
@@ -33,6 +33,57 @@
 .feature-hub-cta strong{display:block;margin:5px 0 3px;color:#fff;font-size:18px}
 .feature-hub-cta p{margin:0;color:#aeb1b6;font-size:13px}
 .compact-workflow,.compact-outcome,.compact-beta-cta{padding-top:58px;padding-bottom:58px}
+
+/* Compact interactive Product Scenario Lab */
+.scenario-lab-section{padding-top:62px;padding-bottom:62px;scroll-margin-top:142px}
+.scenario-lab-shell{overflow:hidden;border:1px solid rgba(212,175,55,.34);border-radius:18px;background:linear-gradient(180deg,#0b0b0b,#030303);box-shadow:0 30px 90px rgba(0,0,0,.42)}
+.scenario-tabs{display:flex;gap:1px;overflow-x:auto;padding:0;border-bottom:1px solid rgba(139,143,152,.20);background:#050505;scrollbar-width:none}
+.scenario-tabs::-webkit-scrollbar{display:none}
+.scenario-tab{flex:1 0 130px;min-height:72px;padding:12px 14px;border:0;border-right:1px solid rgba(139,143,152,.15);background:#070707;color:#8b8f98;text-align:left;cursor:pointer;transition:background .16s ease,color .16s ease}
+.scenario-tab span{display:block;margin-bottom:3px;font-size:9px;font-weight:650;letter-spacing:.11em;text-transform:uppercase}
+.scenario-tab strong{display:block;color:#d3d4d7;font-size:12px}
+.scenario-tab:hover,.scenario-tab.active{background:linear-gradient(180deg,rgba(212,175,55,.12),#090909);color:#d4af37}
+.scenario-tab.active strong{color:#f0ca58}
+.scenario-stage{min-height:505px;padding:28px}
+.scenario-loading{display:grid;place-items:center;min-height:440px;color:#8b8f98}
+.scenario-stage-head{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:start;padding-bottom:22px;border-bottom:1px solid rgba(139,143,152,.17)}
+.scenario-stage-head span{display:block;margin-bottom:6px;color:#d4af37;font-size:10px;font-weight:650;letter-spacing:.12em;text-transform:uppercase}
+.scenario-stage-head h3{margin:0 0 7px;color:#fff;font-size:clamp(23px,3vw,32px);letter-spacing:-.02em;text-transform:none}
+.scenario-stage-head p{max-width:760px;margin:0;color:#b8bbc0;font-size:14px;line-height:1.65}
+.scenario-deep-link{padding-top:5px;color:#d4af37;font-size:11px;font-weight:650;white-space:nowrap}
+.scenario-demo-grid{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:18px;margin-top:20px}
+.scenario-controls,.scenario-result{min-height:300px;padding:20px;border:1px solid rgba(139,143,152,.20);border-radius:14px;background:linear-gradient(180deg,#0d0d0d,#060606)}
+.scenario-result{border-color:rgba(212,175,55,.25)}
+.scenario-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.scenario-field{display:grid;gap:6px}
+.scenario-field span{color:#8b8f98;font-size:9px;font-weight:650;letter-spacing:.09em;text-transform:uppercase}
+.scenario-field input,.scenario-field select{width:100%;min-height:43px;padding:9px 11px;border:1px solid rgba(139,143,152,.25);border-radius:8px;background:#030303;color:#fff;font:inherit}
+.scenario-field input:focus,.scenario-field select:focus{border-color:#d4af37;outline:none;box-shadow:0 0 0 2px rgba(212,175,55,.10)}
+.scenario-result-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:1px solid rgba(139,143,152,.17)}
+.scenario-result-top small{display:block;margin-bottom:4px;color:#8b8f98;font-size:9px;font-weight:650;letter-spacing:.1em;text-transform:uppercase}
+.scenario-big-status{font-size:clamp(35px,5vw,52px);font-weight:700;line-height:1;letter-spacing:-.03em}
+.scenario-big-status.buy{color:#65d59a}.scenario-big-status.watch{color:#f0c65b}.scenario-big-status.verify{color:#86b8ff}.scenario-big-status.pass{color:#ef7c73}.scenario-big-status.gold{color:#f0ca58}
+.scenario-chip{padding:7px 9px;border:1px solid rgba(139,143,152,.24);border-radius:999px;color:#c7c9cc;font-size:9px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+.scenario-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:15px}
+.scenario-metric{padding:13px;border:1px solid rgba(139,143,152,.17);border-radius:10px;background:#050505}
+.scenario-metric small{display:block;color:#8b8f98;font-size:8px;font-weight:650;letter-spacing:.08em;text-transform:uppercase}
+.scenario-metric strong{display:block;margin-top:3px;color:#fff;font-size:17px}
+.scenario-reason{margin-top:15px;padding:14px 15px;border-left:2px solid #d4af37;background:rgba(212,175,55,.055);color:#c5c7cb;font-size:13px;line-height:1.62}
+.scenario-note{margin:14px 2px 0;color:#777b83;font-size:10px;line-height:1.55}
+.scenario-grade-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:14px}
+.scenario-grade-grid>div{padding:12px;border:1px solid rgba(139,143,152,.17);border-radius:10px;background:#050505}
+.scenario-grade-grid>div>strong{display:block;margin-bottom:10px;color:#d4af37;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.scenario-grade-grid .scenario-field+.scenario-field{margin-top:9px}
+.scenario-presets{display:grid;gap:9px}
+.scenario-preset{width:100%;padding:14px 15px;border:1px solid rgba(139,143,152,.20);border-radius:11px;background:#050505;color:#fff;text-align:left;cursor:pointer}
+.scenario-preset strong{display:block;color:#fff;font-size:13px}.scenario-preset span{display:block;margin-top:4px;color:#8b8f98;font-size:11px;line-height:1.45}
+.scenario-preset:hover,.scenario-preset.active{border-color:rgba(212,175,55,.50);background:rgba(212,175,55,.065)}
+.scenario-preset.active strong{color:#f0ca58}
+.scenario-chain{display:grid;gap:7px;margin-top:14px}
+.scenario-chain>div{display:grid;grid-template-columns:29px 1fr;gap:10px;align-items:start;padding:9px 10px;border:1px solid rgba(139,143,152,.14);border-radius:9px;background:#050505}
+.scenario-chain span{display:grid;place-items:center;width:25px;height:25px;border:1px solid rgba(212,175,55,.34);border-radius:6px;color:#d4af37;font-size:8px;font-weight:700}
+.scenario-chain p{margin:2px 0 0;color:#bfc1c5;font-size:11px;line-height:1.45}
+.scenario-noscript{margin-top:12px;padding:14px;border:1px solid rgba(212,175,55,.25);border-radius:10px;color:#bfc1c5}.scenario-noscript a{color:#d4af37}
 
 /* Linked Intelligence Center */
 .intelligence-hero{padding-bottom:58px}
@@ -58,6 +109,8 @@
   .feature-link-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .intelligence-detail-grid{grid-template-columns:1fr;gap:24px}
   .intelligence-detail-grid.reverse>div:first-child,.intelligence-detail-grid.reverse>figure,.intelligence-detail-grid.reverse>.intelligence-signal-panel{order:initial}
+  .scenario-demo-grid{grid-template-columns:1fr}
+  .scenario-controls,.scenario-result{min-height:0}
 }
 @media(max-width:700px){
   .feature-section{padding-top:58px}
@@ -69,4 +122,11 @@
   .compact-feature-section,.compact-workflow,.compact-outcome,.compact-beta-cta{padding-top:48px;padding-bottom:48px}
   .intelligence-detail{padding-top:52px;padding-bottom:52px;scroll-margin-top:132px}
   .intelligence-detail h2{font-size:34px}
+  .scenario-lab-section{padding-top:50px;padding-bottom:50px;scroll-margin-top:130px}
+  .scenario-stage{min-height:0;padding:18px}
+  .scenario-stage-head{grid-template-columns:1fr;gap:8px}
+  .scenario-deep-link{white-space:normal}
+  .scenario-field-grid,.scenario-grade-grid,.scenario-metrics{grid-template-columns:1fr}
+  .scenario-result-top{flex-direction:column}
+  .scenario-tab{flex-basis:118px;min-height:65px;padding:10px}
 }
