@@ -5,9 +5,12 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const ENTITLEMENTS_PATH = "/api/v1/entitlements";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
+  const MAX_PORTAL_TOKEN_CHARACTERS = 4096;
   const SANDBOX_PORTAL_HOST = "sandbox-customer-portal.paddle.com";
   const LIVE_PORTAL_HOST = "customer-portal.paddle.com";
   const APPROVED_PORTAL_HOSTS = new Set([SANDBOX_PORTAL_HOST, LIVE_PORTAL_HOST]);
+  const LEGACY_AUTHENTICATION = "PADDLE_MAGIC_LINK";
+  const SESSION_AUTHENTICATION = "PADDLE_AUTHENTICATED_SESSION";
 
   let inFlight = false;
   let sequence = 0;
@@ -35,9 +38,20 @@
     try {
       const parsed = new URL(String(value || ""));
       if (parsed.protocol !== "https:") return null;
-      if (parsed.username || parsed.password || parsed.hash || parsed.search) return null;
+      if (parsed.username || parsed.password || parsed.hash) return null;
       if (!APPROVED_PORTAL_HOSTS.has(parsed.hostname.toLowerCase())) return null;
       if (parsed.port && parsed.port !== "443") return null;
+
+      // The previously shipped magic-link handoff has no authenticated query token.
+      if (!parsed.search) return parsed.href;
+
+      // Authenticated Paddle sessions are short-lived tokenized /cpl_... URLs.
+      if (!/^\/cpl_[a-z0-9]{26}$/.test(parsed.pathname)) return null;
+      if (parsed.searchParams.getAll("action").length !== 1
+          || parsed.searchParams.get("action") !== "overview") return null;
+      if (parsed.searchParams.getAll("token").length !== 1) return null;
+      const token = String(parsed.searchParams.get("token") || "");
+      if (!token || token.length > MAX_PORTAL_TOKEN_CHARACTERS || /\s/.test(token)) return null;
       return parsed.href;
     } catch (_) {
       return null;
@@ -65,6 +79,8 @@
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
     const expectedEnvironment = host === SANDBOX_PORTAL_HOST ? "SANDBOX" : host === LIVE_PORTAL_HOST ? "LIVE" : null;
+    const authenticatedSession = portal.authentication === SESSION_AUTHENTICATION;
+    const legacyMagicLink = portal.authentication === LEGACY_AUTHENTICATION;
     if (!expectedEnvironment
         || portal.environment !== expectedEnvironment
         || data.customerBillingManagementAllowed !== true
@@ -72,16 +88,32 @@
         || data.customerPlanChangeAllowed !== false
         || portal.available !== true
         || portal.provider !== "PADDLE"
-        || portal.authentication !== "PADDLE_MAGIC_LINK"
+        || (!authenticatedSession && !legacyMagicLink)
         || portal.providerHosted !== true
-        || portal.portalSessionTokenIncluded !== false
         || portal.portalLinksCachedByFlipForge !== false
         || portal.paymentCredentialsHandledByFlipForge !== false
         || portal.billingChangesAppliedByFlipForge !== false
         || portal.transactionAuthority !== false) {
       return null;
     }
-    return { url, environment: expectedEnvironment };
+
+    if (authenticatedSession) {
+      if (!parsed.search
+          || portal.temporaryAuthenticatedUrl !== true
+          || portal.portalSessionTokenIncluded !== true
+          || portal.portalSessionTokenIncludedAsSeparateField !== false
+          || portal.providerCustomerIdIncluded !== false
+          || portal.providerApiKeyIncluded !== false
+          || portal.verifiedWebhookRequiredForEntitlementChanges !== true) {
+        return null;
+      }
+    } else if (parsed.search
+        || portal.temporaryAuthenticatedUrl === true
+        || portal.portalSessionTokenIncluded !== false) {
+      return null;
+    }
+
+    return { url, environment: expectedEnvironment, authenticatedSession };
   }
 
   async function fetchPortalHandoff() {
@@ -115,7 +147,31 @@
     const panel = document.createElement("section");
     panel.className = "panel";
     panel.setAttribute("data-paddle-customer-portal", "true");
-    panel.innerHTML = `<header class="panel-header"><div><h2>Billing management</h2><p>Manage billing through Paddle's provider-hosted customer portal.</p></div><span class="staging-status staging-status-${handoff.environment === "SANDBOX" ? "warn" : "ok"}">${escapeHtml(handoff.environment === "SANDBOX" ? "Sandbox portal" : "Paddle portal")}</span></header><div class="panel-body"><div class="customer-entitlement-safety"><strong>Payment details stay outside FlipForge.</strong><p>${escapeHtml(environmentCopy)} Paddle handles portal authentication, billing history, payment-method updates, and subscription-management actions. FlipForge changes paid access only after a verified Paddle subscription webhook.</p><a class="button button-primary" href="${escapeHtml(handoff.url)}" data-paddle-portal-link>Manage billing with Paddle</a></div></div>`;
+    panel.innerHTML = `<header class="panel-header"><div><h2>Billing management</h2><p>Manage billing through Paddle's provider-hosted customer portal.</p></div><span class="staging-status staging-status-${handoff.environment === "SANDBOX" ? "warn" : "ok"}">${escapeHtml(handoff.environment === "SANDBOX" ? "Sandbox portal" : "Paddle portal")}</span></header><div class="panel-body"><div class="customer-entitlement-safety"><strong>Payment details stay outside FlipForge.</strong><p>${escapeHtml(environmentCopy)} Paddle handles portal authentication, billing history, payment-method updates, and subscription-management actions. FlipForge changes paid access only after a verified Paddle subscription webhook.</p><a class="button button-primary" href="#" data-paddle-portal-link>Manage billing with Paddle</a></div></div>`;
+
+    const link = panel.querySelector("[data-paddle-portal-link]");
+    link?.addEventListener("click", async event => {
+      event.preventDefault();
+      if (link.dataset.portalOpening === "true") return;
+      link.dataset.portalOpening = "true";
+      link.setAttribute("aria-busy", "true");
+      const originalText = link.textContent;
+      link.textContent = "Opening Paddle…";
+      try {
+        // Always request a fresh handoff immediately before navigation. The tokenized
+        // authenticated URL is never written into the DOM or local browser storage.
+        const fresh = await fetchPortalHandoff();
+        if (!fresh) throw new Error("PORTAL_HANDOFF_UNAVAILABLE");
+        window.location.assign(fresh.url);
+      } catch (_) {
+        link.textContent = "Try billing management again";
+        link.removeAttribute("aria-busy");
+        delete link.dataset.portalOpening;
+        window.setTimeout(() => {
+          if (link.isConnected && link.dataset.portalOpening !== "true") link.textContent = originalText;
+        }, 2500);
+      }
+    });
 
     const summary = root.querySelector(".customer-entitlement-summary");
     if (summary) summary.insertAdjacentElement("afterend", panel);
