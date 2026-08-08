@@ -1,0 +1,1 @@
+window.FLIPFORGE_PADDLE_CLIENT_TOKEN = "";
