@@ -24,6 +24,81 @@
     if (subtitle) subtitle.textContent = "CARD VALUE INTELLIGENCE";
   }
 
+  function safeExternalUrl(value) {
+    try {
+      const parsed = new URL(String(value || ""), window.location.href);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+      if (!parsed.hostname) return null;
+      return parsed;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function marketplaceLabel(card, parsedUrl) {
+    const eyebrow = card.querySelector(".panel-header .eyebrow");
+    const eyebrowText = String(eyebrow?.textContent || "").trim();
+    const providerPart = eyebrowText.includes("·")
+      ? eyebrowText.split("·").slice(1).join("·").trim()
+      : "";
+    if (providerPart && providerPart.length <= 60) return providerPart;
+
+    const host = String(parsedUrl?.hostname || "").replace(/^www\./i, "").toLowerCase();
+    if (/(^|\.)ebay\./.test(host)) return "eBay";
+    if (/(^|\.)comc\./.test(host)) return "COMC";
+    if (/(^|\.)myslabs\./.test(host)) return "MySlabs";
+    if (/(^|\.)goldin\./.test(host)) return "Goldin";
+    if (/(^|\.)ha\.com$/.test(host) || /heritage/.test(host)) return "Heritage";
+    if (/fanatics/.test(host)) return "Fanatics Collect";
+    return host || "marketplace";
+  }
+
+  function enhanceDiscoverySourceLinks(root = document) {
+    root.querySelectorAll?.(".customer-discovery-candidate").forEach(card => {
+      if (card.dataset.ffSourceLinkEnhanced === "true") return;
+
+      const actions = card.querySelector(".customer-discovery-actions");
+      const link = actions?.querySelector('a[href][target="_blank"]') || actions?.querySelector("a[href]");
+      if (!actions || !link) return;
+
+      const parsedUrl = safeExternalUrl(link.getAttribute("href"));
+      if (!parsedUrl || parsedUrl.origin === window.location.origin) return;
+
+      card.dataset.ffSourceLinkEnhanced = "true";
+      const marketplace = marketplaceLabel(card, parsedUrl);
+      const hostname = parsedUrl.hostname.replace(/^www\./i, "");
+
+      link.classList.add("ff-source-listing-button");
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = `View on ${marketplace} ↗`;
+      link.setAttribute("aria-label", `View this card on ${marketplace}; opens the original marketplace listing in a new tab`);
+      link.title = `Open the original listing on ${marketplace}`;
+
+      const strip = document.createElement("div");
+      strip.className = "ff-source-listing-strip";
+      strip.innerHTML = `
+        <span class="ff-source-listing-icon" aria-hidden="true">↗</span>
+        <span class="ff-source-listing-copy">
+          <small>Original marketplace listing</small>
+          <strong>${marketplace}</strong>
+          <span>${hostname} · Direct source link</span>
+        </span>
+        <span class="ff-source-listing-verified">SOURCE</span>`;
+      actions.before(strip);
+    });
+  }
+
+  function installDiscoveryObserver() {
+    const main = document.querySelector("#main-content");
+    if (!main || main.dataset.ffSourceObserver === "true") return;
+    main.dataset.ffSourceObserver = "true";
+
+    const observer = new MutationObserver(() => enhanceDiscoverySourceLinks(main));
+    observer.observe(main, { childList: true, subtree: true });
+    enhanceDiscoverySourceLinks(main);
+  }
+
   function syncEnvironmentLanguage() {
     if (!eligible()) return;
     document.body.classList.add("ff-commercial-shell");
@@ -61,6 +136,8 @@
 
     if (production()) document.title = "FlipForge | Card Value Intelligence";
     installApprovedBrandMark();
+    installDiscoveryObserver();
+    enhanceDiscoverySourceLinks(document);
   }
 
   document.addEventListener("DOMContentLoaded", syncEnvironmentLanguage, { once: true });
