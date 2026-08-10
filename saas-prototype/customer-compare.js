@@ -4,7 +4,9 @@
   const CONTRACT_VERSION = "1.0";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
-  const ALLOWED_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
+  const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const HEALTH_PATH = "/api/v1/health";
   const OPPORTUNITIES_PATH = "/api/v1/opportunities";
 
@@ -20,8 +22,14 @@
     error: null
   };
 
+  function productionHost() {
+    return PRODUCTION_HOST.test(String(window.location.hostname || ""));
+  }
+
   function eligibleHost() {
-    return ALLOWED_HOST.test(String(window.location.hostname || ""));
+    const host = String(window.location.hostname || "");
+    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
+      && APP_PATH.test(String(window.location.pathname || ""));
   }
 
   function compareRouteActive() {
@@ -165,7 +173,7 @@
         ? "The signed-in account does not have an active tenant membership."
         : "No mock comparison or browser-generated recommendation was substituted.";
     const signIn = error.status === 401
-      ? `<div class="customer-intelligence-actions"><a class="button button-primary" href="/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fcompare">Sign in securely</a></div>`
+      ? `<div class="customer-intelligence-actions"><a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fcompare" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fcompare"}">Sign in securely</a></div>`
       : "";
     return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error.code || "COMPARE_UNAVAILABLE")}</strong><p>${escapeHtml(error.message)}</p><small>${escapeHtml(guidance)}</small>${signIn}</div></section>`;
   }
@@ -223,7 +231,7 @@
   function pageMarkup() {
     const configured = state.health?.data?.status === "configured";
     const hasChoices = state.opportunities.length >= 2;
-    return `<div class="page staging-page customer-compare-page"><header class="page-heading"><div><span class="eyebrow">Tenant-owned saved intelligence</span><h1>Direct Comparison</h1><p>Compare governed records side by side while each saved Smart Opportunity decision remains independent and unchanged.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-compare-refresh>Refresh</button><a class="button button-primary" href="#/evaluate">Evaluate another card</a></div></header><div class="boundary-note"><strong>Customer boundary:</strong> Compare reads tenant-owned SQLite records through the same-origin gateway. It never uses mock records, accepts evidence, predicts a grade, reranks cards, or authorizes a transaction.</div>${state.loading ? `<div class="staging-loading" role="status">Loading your saved comparison records…</div>` : ""}${errorPanel(state.error)}${configured && !state.loading && hasChoices ? `<section class="panel"><header class="panel-header"><div><h2>Choose two tracked records</h2><p>The backend requires two distinct saved opportunity IDs owned by this tenant.</p></div></header><div class="panel-body"><div class="compare-selectors"><div class="field"><label for="compare-left">Card A</label><select id="compare-left">${optionMarkup(state.leftId)}</select></div><button class="swap-button" type="button" data-compare-swap aria-label="Swap comparison cards">⇄</button><div class="field"><label for="compare-right">Card B</label><select id="compare-right">${optionMarkup(state.rightId)}</select></div></div></div></section>${resultMarkup()}` : ""}${configured && !state.loading && !state.error && !hasChoices ? `<section class="panel"><div class="panel-body staging-empty"><strong>Two saved opportunities are required.</strong><p>Evaluate and track at least two cards before opening Direct Comparison.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></section>` : ""}${!configured && state.health && !state.loading ? `<section class="panel"><div class="panel-body staging-empty"><strong>Direct Comparison is safely offline.</strong><p>The preview gateway is disabled, so no tenant data request was attempted and no mock comparison was substituted.</p></div></section>` : ""}</div>`;
+    return `<div class="page staging-page customer-compare-page"><header class="page-heading"><div><span class="eyebrow">Tenant-owned saved intelligence</span><h1>Direct Comparison</h1><p>Compare governed records side by side while each saved Smart Opportunity decision remains independent and unchanged.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-compare-refresh>Refresh</button><a class="button button-primary" href="#/evaluate">Evaluate another card</a></div></header><div class="boundary-note"><strong>Customer boundary:</strong> Compare reads tenant-owned SQLite records through the same-origin gateway. It never uses mock records, accepts evidence, predicts a grade, reranks cards, or authorizes a transaction.</div>${state.loading ? `<div class="staging-loading" role="status">Loading your saved comparison records…</div>` : ""}${errorPanel(state.error)}${configured && !state.loading && hasChoices ? `<section class="panel"><header class="panel-header"><div><h2>Choose two tracked records</h2><p>The backend requires two distinct saved opportunity IDs owned by this tenant.</p></div><div class="panel-body"><div class="compare-selectors"><div class="field"><label for="compare-left">Card A</label><select id="compare-left">${optionMarkup(state.leftId)}</select></div><button class="swap-button" type="button" data-compare-swap aria-label="Swap comparison cards">⇄</button><div class="field"><label for="compare-right">Card B</label><select id="compare-right">${optionMarkup(state.rightId)}</select></div></div></div></section>${resultMarkup()}` : ""}${configured && !state.loading && !state.error && !hasChoices ? `<section class="panel"><div class="panel-body staging-empty"><strong>Two saved opportunities are required.</strong><p>Evaluate and track at least two cards before opening Direct Comparison.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></section>` : ""}${!configured && state.health && !state.loading ? `<section class="panel"><div class="panel-body staging-empty"><strong>Direct Comparison is safely offline.</strong><p>The customer gateway is disabled, so no tenant data request was attempted and no mock comparison was substituted.</p></div></section>` : ""}</div>`;
   }
 
   function renderCurrent() {
