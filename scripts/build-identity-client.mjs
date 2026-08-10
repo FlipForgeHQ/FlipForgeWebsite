@@ -9,6 +9,8 @@ const identitySource = path.join(root, "scripts", "lib", "flipforge-identity-cli
 const identityOutput = path.join(root, "assets", "js", "flipforge-identity.js");
 const productionSignInSource = path.join(root, "scripts", "lib", "flipforge-production-signin.mjs");
 const productionSignInOutput = path.join(root, "assets", "js", "flipforge-production-signin.js");
+const productionAuthProbeSource = path.join(root, "scripts", "lib", "flipforge-production-auth-probe.mjs");
+const productionAuthProbeOutput = path.join(root, "assets", "js", "flipforge-production-auth-probe.js");
 const probeSource = path.join(root, "scripts", "lib", "flipforge-staging-auth-probe.mjs");
 const probeOutput = path.join(root, "assets", "js", "flipforge-staging-auth-probe.js");
 const scriptTag = '<script src="/assets/js/flipforge-identity.js"></script>';
@@ -32,6 +34,7 @@ async function bundle(source, output) {
 
 await bundle(identitySource, identityOutput);
 await bundle(productionSignInSource, productionSignInOutput);
+await bundle(productionAuthProbeSource, productionAuthProbeOutput);
 await bundle(probeSource, probeOutput);
 
 function injectBefore(htmlPath, marker) {
@@ -65,7 +68,9 @@ injectProductionSignInBefore(path.join(root, "saas-prototype", "index.html"), '<
 
 const identityBytes = fs.statSync(identityOutput).size;
 const productionSignInBytes = fs.statSync(productionSignInOutput).size;
+const productionAuthProbeBytes = fs.statSync(productionAuthProbeOutput).size;
 const probeBytes = fs.statSync(probeOutput).size;
 console.log(`Built FlipForge Netlify Identity client (${identityBytes} bytes).`);
 console.log(`Built FlipForge production Identity sign-in (${productionSignInBytes} bytes).`);
+console.log(`Built FlipForge isolated production auth probe (${productionAuthProbeBytes} bytes).`);
 console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
