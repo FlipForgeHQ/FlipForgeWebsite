@@ -297,6 +297,89 @@
   outline-offset: 1px;
 }
 
+/* Discover source provenance: make the real marketplace card unmistakable. */
+.ff-commercial-shell .ff-source-listing-strip {
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) auto;
+  gap: 11px;
+  align-items: center;
+  margin: 14px 0 10px;
+  padding: 11px 12px;
+  border: 1px solid rgba(216,174,59,.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(216,174,59,.08), rgba(216,174,59,.02)),
+    rgba(0,0,0,.12);
+}
+
+.ff-commercial-shell .ff-source-listing-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(216,174,59,.38);
+  border-radius: 50%;
+  color: #efca63;
+  background: rgba(216,174,59,.07);
+  font-size: .9rem;
+  font-weight: 800;
+}
+
+.ff-commercial-shell .ff-source-listing-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ff-commercial-shell .ff-source-listing-copy small {
+  color: #8f9aa6;
+  font-size: .62rem;
+  font-weight: 760;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.ff-commercial-shell .ff-source-listing-copy strong {
+  color: #f3f5f6;
+  font-size: .86rem;
+}
+
+.ff-commercial-shell .ff-source-listing-copy span {
+  overflow: hidden;
+  color: #9ca7b2;
+  font-size: .7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ff-commercial-shell .ff-source-listing-verified {
+  padding: 4px 7px;
+  border: 1px solid rgba(66,204,104,.3);
+  border-radius: 999px;
+  color: #77db8f;
+  background: rgba(66,204,104,.06);
+  font-size: .58rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.ff-commercial-shell .customer-discovery-actions .ff-source-listing-button {
+  border-color: rgba(216,174,59,.65);
+  color: #f0ca62;
+  background: rgba(216,174,59,.08);
+  font-weight: 800;
+}
+
+.ff-commercial-shell .customer-discovery-actions .ff-source-listing-button:hover,
+.ff-commercial-shell .customer-discovery-actions .ff-source-listing-button:focus-visible {
+  border-color: #e7c458;
+  color: #fff0ad;
+  background: rgba(216,174,59,.14);
+  box-shadow: 0 0 0 2px rgba(216,174,59,.09);
+  outline: none;
+}
+
 @media (max-width: 900px) {
   .ff-commercial-shell .page:not(.ff-commercial-dashboard) {
     padding: 20px 18px 34px;
@@ -320,5 +403,12 @@
   }
   .ff-commercial-shell .page-heading h1 {
     font-size: 1.75rem;
+  }
+  .ff-commercial-shell .ff-source-listing-strip {
+    grid-template-columns: 32px minmax(0,1fr);
+  }
+  .ff-commercial-shell .ff-source-listing-verified {
+    grid-column: 2;
+    width: max-content;
   }
 }
