@@ -18,6 +18,8 @@ const productionSignInScriptTag = '<script src="/assets/js/flipforge-production-
 const productionEntitlementsScriptTag = '<script src="production-customer-entitlements.js"></script>';
 const commercialDashboardStylesheetTag = '<link rel="stylesheet" href="commercial-dashboard-v2.css">';
 const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"></script>';
+const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
+const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
 
 fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
 
@@ -81,6 +83,20 @@ function injectCommercialDashboard(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
+function injectCommercialAppPolish(htmlPath) {
+  if (!fs.existsSync(htmlPath)) throw new Error(`Commercial app polish target missing: ${path.relative(root, htmlPath)}`);
+  let html = fs.readFileSync(htmlPath, "utf8");
+  if (!html.includes('commercial-app-polish-v2.css')) {
+    if (!html.includes("</head>")) throw new Error(`Commercial app polish head marker missing in ${path.relative(root, htmlPath)}`);
+    html = html.replace("</head>", `  ${commercialAppPolishStylesheetTag}\n</head>`);
+  }
+  if (!html.includes('commercial-app-polish-v2.js')) {
+    if (!html.includes("</body>")) throw new Error(`Commercial app polish body marker missing in ${path.relative(root, htmlPath)}`);
+    html = html.replace("</body>", `  ${commercialAppPolishScriptTag}\n</body>`);
+  }
+  fs.writeFileSync(htmlPath, html, "utf8");
+}
+
 // Default Identity invite/recovery emails return to the project root, so the
 // public landing page must be able to process callback hashes. The client stays
 // visually dormant there unless a callback is present.
@@ -105,6 +121,11 @@ injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-port
 // ForgeScore in the browser.
 injectCommercialDashboard(appIndex);
 
+// Commercial app polish extends the premium visual system to existing customer
+// workspaces, keeps the production shell labeled as private beta on every route,
+// and replaces the hand-built sidebar mark with the repository-approved brand asset.
+injectCommercialAppPolish(appIndex);
+
 const identityBytes = fs.statSync(identityOutput).size;
 const productionSignInBytes = fs.statSync(productionSignInOutput).size;
 const productionAuthProbeBytes = fs.statSync(productionAuthProbeOutput).size;
@@ -114,3 +135,4 @@ console.log(`Built FlipForge production Identity sign-in (${productionSignInByte
 console.log(`Built FlipForge isolated production auth probe (${productionAuthProbeBytes} bytes).`);
 console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
 console.log("Injected FlipForge commercial dashboard v2 assets.");
+console.log("Injected FlipForge commercial app polish v2 assets.");
