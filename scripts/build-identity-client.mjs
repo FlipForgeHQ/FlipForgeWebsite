@@ -16,6 +16,8 @@ const probeOutput = path.join(root, "assets", "js", "flipforge-staging-auth-prob
 const scriptTag = '<script src="/assets/js/flipforge-identity.js"></script>';
 const productionSignInScriptTag = '<script src="/assets/js/flipforge-production-signin.js"></script>';
 const productionEntitlementsScriptTag = '<script src="production-customer-entitlements.js"></script>';
+const commercialDashboardStylesheetTag = '<link rel="stylesheet" href="commercial-dashboard-v2.css">';
+const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"></script>';
 
 fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
 
@@ -65,6 +67,20 @@ function injectProductionEntitlementsBefore(htmlPath, marker) {
   fs.writeFileSync(htmlPath, updated, "utf8");
 }
 
+function injectCommercialDashboard(htmlPath) {
+  if (!fs.existsSync(htmlPath)) throw new Error(`Commercial dashboard target missing: ${path.relative(root, htmlPath)}`);
+  let html = fs.readFileSync(htmlPath, "utf8");
+  if (!html.includes('commercial-dashboard-v2.css')) {
+    if (!html.includes("</head>")) throw new Error(`Commercial dashboard head marker missing in ${path.relative(root, htmlPath)}`);
+    html = html.replace("</head>", `  ${commercialDashboardStylesheetTag}\n</head>`);
+  }
+  if (!html.includes('commercial-dashboard-v2.js')) {
+    if (!html.includes("</body>")) throw new Error(`Commercial dashboard body marker missing in ${path.relative(root, htmlPath)}`);
+    html = html.replace("</body>", `  ${commercialDashboardScriptTag}\n</body>`);
+  }
+  fs.writeFileSync(htmlPath, html, "utf8");
+}
+
 // Default Identity invite/recovery emails return to the project root, so the
 // public landing page must be able to process callback hashes. The client stays
 // visually dormant there unless a callback is present.
@@ -83,6 +99,12 @@ injectProductionSignInBefore(appIndex, '<script src="staging-browser.js"></scrip
 // authentication has been established.
 injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-portal.js"></script>');
 
+// Commercial dashboard v2 is presentation-only over the existing authenticated
+// dashboard/opportunity contracts. It deliberately keeps Market Index blank until
+// a server-authoritative market-index engine exists and never creates a synthetic
+// ForgeScore in the browser.
+injectCommercialDashboard(appIndex);
+
 const identityBytes = fs.statSync(identityOutput).size;
 const productionSignInBytes = fs.statSync(productionSignInOutput).size;
 const productionAuthProbeBytes = fs.statSync(productionAuthProbeOutput).size;
@@ -91,3 +113,4 @@ console.log(`Built FlipForge Netlify Identity client (${identityBytes} bytes).`)
 console.log(`Built FlipForge production Identity sign-in (${productionSignInBytes} bytes).`);
 console.log(`Built FlipForge isolated production auth probe (${productionAuthProbeBytes} bytes).`);
 console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
+console.log("Injected FlipForge commercial dashboard v2 assets.");
