@@ -10,12 +10,14 @@ const packageJson = JSON.parse(read("package.json"));
 const netlify = read("netlify.toml");
 const redirects = read("_redirects");
 const identitySource = read("scripts/lib/flipforge-identity-client.mjs");
+const productionIdentitySource = read("scripts/lib/flipforge-production-signin.mjs");
 const buildIdentity = read("scripts/build-identity-client.mjs");
 const modernGateway = read("netlify/modern-functions/flipforge-api.mjs");
 const retainedGateway = read("netlify/functions/flipforge-api.js");
 const index = read("index.html");
 const appIndex = read("saas-prototype/index.html");
 const bundle = exists("assets/js/flipforge-identity.js") ? read("assets/js/flipforge-identity.js") : "";
+const productionBundle = exists("assets/js/flipforge-production-signin.js") ? read("assets/js/flipforge-production-signin.js") : "";
 
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
@@ -59,6 +61,15 @@ check("036 eBay privacy function exists in deployed functions directory", exists
 check("037 duplicate auth snapshots are fingerprinted before UI updates", identitySource.includes("function identityFingerprint(user)") && identitySource.includes("identityFingerprint(state.user) === identityFingerprint(normalized)"));
 check("038 auth-change subscription updates through the deduplicating setter", identitySource.includes("onAuthChange((_event, user) =>") && identitySource.includes("setAuthenticatedUser(user || null)"));
 check("039 login uses stable user setter without exposing credentials", identitySource.includes("setAuthenticatedUser(await login(email, password), { renderIfChanged: false })"));
+check("040 production sign-in is restricted to the production app host and route", productionIdentitySource.includes("const PRODUCTION_HOST =") && productionIdentitySource.includes("goflipforge\\.com") && productionIdentitySource.includes("const PRODUCTION_APP_PATH =") && productionIdentitySource.includes("function productionAppHost()"));
+check("041 production sign-in uses current Identity login with no public signup", productionIdentitySource.includes("await login(email, password)") && productionIdentitySource.includes("requestPasswordRecovery") && !productionIdentitySource.includes("signup("));
+check("042 production sign-in stores no raw auth or gateway secrets in browser code", !/localStorage|sessionStorage|document\.cookie|FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_SAAS_SERVICE_TOKEN|X-FlipForge-Tenant-Id|X-FlipForge-User-Id/.test(productionIdentitySource));
+check("043 build bundles and injects the production sign-in before app adapters", buildIdentity.includes("flipforge-production-signin.mjs") && buildIdentity.includes("flipforge-production-signin.js") && buildIdentity.includes("injectProductionSignInBefore"));
+check("044 generated production Identity bundle exists", productionBundle.length > 0);
+check("045 generated production Identity bundle contains no FlipForge service-token identifier", !/FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_SAAS_SERVICE_TOKEN/.test(productionBundle));
+check("046 production app receives production sign-in bundle", appIndex.includes('/assets/js/flipforge-production-signin.js'));
+check("047 production sign-in loads before staging data adapter", appIndex.indexOf('/assets/js/flipforge-production-signin.js') < appIndex.indexOf('staging-browser.js'));
+check("048 production login refreshes shared Identity and tenant adapters", productionIdentitySource.includes("window.FlipForgeIdentity?.refresh?.()") && productionIdentitySource.includes("window.FlipForgeStagingReadAdapter?.refresh?.()"));
 
 const failures = checks.filter(item => !item.passed);
 console.log("NetlifyIdentityModernizationValidation");
