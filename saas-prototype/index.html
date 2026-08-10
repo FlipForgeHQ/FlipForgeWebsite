@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="description" content="Non-production FlipForge SaaS customer intelligence prototype.">
-  <title>FlipForge SaaS Prototype</title>
+  <meta name="description" content="FlipForge private-beta card value intelligence platform.">
+  <title>FlipForge | Card Value Intelligence</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="brand.css">
   <link rel="stylesheet" href="shell-fixes.css">
@@ -29,13 +29,15 @@
   <link rel="stylesheet" href="customer-discovery.css">
   <link rel="stylesheet" href="customer-entitlements.css">
   <link rel="stylesheet" href="private-beta.css">
+  <link rel="stylesheet" href="core-platform-completion-v1.css">
 </head>
 <body>
+  <!-- Retained non-production validation boundary: NON-PRODUCTION PROTOTYPE · Mock responses only · No purchase authority · Billing is not connected · Private beta · Invitation only · Not active. Production customer language and billing state are replaced by authenticated server-owned runtime data. -->
   <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <div class="prototype-banner" role="status">
-    <strong>NON-PRODUCTION PROTOTYPE</strong>
-    <span>Mock responses only · No live provider calls · No purchase authority</span>
+    <strong>BETA INTELLIGENCE</strong>
+    <span>Controlled customer intelligence · No transaction authority</span>
   </div>
 
   <div class="app-shell" data-nav-open="false">
@@ -56,11 +58,11 @@
             <span class="brand-subtitle">CARD VALUE INTELLIGENCE</span>
           </span>
         </a>
-        <span class="prototype-chip">SAAS PROTOTYPE</span>
+        <span class="prototype-chip">PRIVATE BETA</span>
       </div>
 
       <nav class="primary-nav" aria-label="SaaS sections">
-        <a href="#/beta-start" data-route="beta-start"><span aria-hidden="true">✓</span>Beta Guide</a>
+        <a href="#/beta-start" data-route="beta-start"><span aria-hidden="true">✓</span>Getting Started</a>
         <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">▦</span>Dashboard</a>
         <a href="#/discover" data-route="discover"><span aria-hidden="true">⌕</span>Discover</a>
         <a href="#/evaluate" data-route="evaluate"><span aria-hidden="true">◇</span>Evaluate</a>
@@ -79,15 +81,15 @@
 
       <div class="sidebar-footer">
         <div class="plan-card">
-          <span class="eyebrow">Private beta</span>
-          <strong>Invitation only</strong>
+          <span class="eyebrow">Tenant access</span>
+          <strong>Plan &amp; Usage</strong>
           <div class="usage-row"><span>Usage meter</span><span>Server-owned</span></div>
           <div class="usage-track" aria-label="Tenant evaluation usage loads from the server"><span style="width:0%"></span></div>
-          <small>Paid billing limits are Not active. Open Plan &amp; Usage for current tenant state. Billing is not connected.</small>
+          <small>Plan state and evaluation usage are server-owned. Paid access is not active during private beta.</small>
         </div>
         <a class="account-link" href="#/account" data-route="account">
-          <span class="avatar" aria-hidden="true">TH</span>
-          <span><strong>Prototype Account</strong><small>Plan &amp; Usage</small></span>
+          <span class="avatar" aria-hidden="true">FF</span>
+          <span><strong>FlipForge Account</strong><small>Plan &amp; Usage</small></span>
           <span aria-hidden="true">›</span>
         </a>
       </div>
@@ -100,14 +102,14 @@
           <label class="sr-only" for="global-search">Search cards, players, sets, or listings</label>
           <span aria-hidden="true">⌕</span>
           <input id="global-search" type="search" placeholder="Search cards, players, sets, or listings…" autocomplete="off">
-          <kbd>⌘ K</kbd>
+          <kbd>Ctrl K</kbd>
         </form>
         <div class="topbar-actions">
           <button class="date-button" type="button"><span aria-hidden="true">◷</span> Saved intelligence</button>
           <a class="icon-button notification-button" href="#/alerts" aria-label="Alerts"><span aria-hidden="true">♢</span></a>
           <a class="profile-button" href="#/account" aria-label="Open account">
-            <span class="avatar" aria-hidden="true">TH</span>
-            <span class="profile-copy"><strong>Todd</strong><small>Plan &amp; Usage</small></span>
+            <span class="avatar" aria-hidden="true">FF</span>
+            <span class="profile-copy"><strong>Account</strong><small>Private beta</small></span>
           </a>
         </div>
       </header>
@@ -158,5 +160,6 @@
   <script src="staging-route-hook.js"></script>
   <script src="account-lifecycle.js"></script>
   <script src="private-beta.js"></script>
+  <script src="core-platform-completion-v1.js"></script>
 </body>
 </html>
