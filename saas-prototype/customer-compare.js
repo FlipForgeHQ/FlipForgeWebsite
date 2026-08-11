@@ -6,6 +6,7 @@
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+  const ALLOWED_HOST = PREVIEW_HOST;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const HEALTH_PATH = "/api/v1/health";
   const OPPORTUNITIES_PATH = "/api/v1/opportunities";
@@ -28,8 +29,9 @@
 
   function eligibleHost() {
     const host = String(window.location.hostname || "");
-    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
-      && APP_PATH.test(String(window.location.pathname || ""));
+    const pathname = String(window.location.pathname || "");
+    if (PRODUCTION_HOST.test(host)) return APP_PATH.test(pathname);
+    return ALLOWED_HOST.test(host) && (!pathname || APP_PATH.test(pathname));
   }
 
   function compareRouteActive() {
