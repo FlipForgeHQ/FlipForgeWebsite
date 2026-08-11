@@ -2,10 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
 
-const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173";
+const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app";
 const outputDir = path.resolve(process.cwd(), "qa-artifacts", "saas-layout");
 const stressId = "EBAY-ext-visual-qa";
-const stressTitle = "2018 Topps Chrome Shohei Ohtani #150 PSA 10 Refractor Extremely Long Visual QA Card Identity Variant";
+const stressTitle = "2018 Topps Chrome Shohei Ohtani %150 PSA 10 Refractor Extremely Long Visual QA Card Identity Variant";
 
 const viewports = [
   ["desktop", 1440, 1000],
@@ -47,6 +47,7 @@ function authorityMeta(correlationId) {
     authority: "Smart Opportunity",
     gradingAuthority: "Existing PSA intelligence",
     correlationId,
+    generatedAt: "2026-08-11T18:51:22.141693474Z",
     evidenceFreshness: "MIXED_DISPLAY_ONLY_PROVIDER_CONFIRMATION_PENDING_WITH_LONG_STATE",
     limitations: ["Synthetic browser-layout fixture only."]
   };
@@ -55,7 +56,18 @@ function authorityMeta(correlationId) {
 function apiFixture(request) {
   const pathname = new URL(request.url()).pathname;
   const correlationId = request.headers()["x-correlation-id"] || "visual-qa";
-  if (pathname === "/api/v1/health") return { meta: { contractVersion: "1.0", correlationId }, data: { status: "configured" } };
+  if (pathname === "/api/v1/health") {
+    return {
+      meta: { contractVersion: "1.0", correlationId },
+      data: {
+        status: "configured",
+        bridgeEnabled: true,
+        upstreamConfigured: true,
+        authenticationRequired: true,
+        tenantMembershipRequired: true
+      }
+    };
+  }
   if (pathname === "/api/v1/dashboard") return { meta: authorityMeta(correlationId), data: { metrics: { trackedOpportunities: 1, evidenceReady: 0, populationContextAvailable: 0, needsVerification: 1 } } };
   if (pathname === "/api/v1/opportunities") return { meta: authorityMeta(correlationId), data: { kind: "opportunities", items: [stressItem] } };
   if (pathname === `/api/v1/opportunities/${stressId}`) return { meta: authorityMeta(correlationId), data: { kind: "opportunity", opportunity: stressItem } };
@@ -78,7 +90,15 @@ async function stubIdentity(page) {
   await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
     status: 200,
     contentType: "text/javascript; charset=utf-8",
-    body: "window.FlipForgeIdentity = Object.freeze({ getUser: () => null });"
+    body: `window.FlipForgeIdentity = Object.freeze({
+      getUser: () => null,
+      getSnapshot: () => ({ authenticated: false, email: "", fullName: "", membershipActive: false, membershipConfigured: false })
+    });`
+  }));
+  await page.route("**/assets/js/flipforge-production-signin.js", route => route.fulfill({
+    status: 200,
+    contentType: "text/javascript; charset=utf-8",
+    body: "(() => {})();"
   }));
 }
 
@@ -90,7 +110,8 @@ async function measure(page) {
     const documentWidth = Math.max(document.documentElement.scrollWidth, document.body?.scrollWidth || 0);
     const ignored = [
       ".table-wrap", ".comparison-table", ".metric-card", ".chart-shell", ".line-chart",
-      ".signal-track", ".usage-track", ".readiness-ring", ".toast-region", ".sr-only", ".mobile-scrim"
+      ".signal-track", ".usage-track", ".readiness-ring", ".toast-region", ".sr-only", ".mobile-scrim",
+      ".ff-v2-table-wrap"
     ];
     const label = element => element.id ? `#${element.id}` : String(element.className || element.tagName).slice(0, 140);
 
@@ -111,7 +132,11 @@ async function measure(page) {
       }
 
       const rect = element.getBoundingClientRect();
-      if (rect.right > viewportWidth + 8 && !element.closest(".sidebar") && !element.closest(".table-wrap") && !element.closest(".comparison-table")) {
+      if (rect.right > viewportWidth + 8
+          && !element.closest(".sidebar")
+          && !element.closest(".table-wrap")
+          && !element.closest(".comparison-table")
+          && !element.closest(".ff-v2-table-wrap")) {
         warnings.push({ type: "element-outside-viewport", selector: label(element), detail: `right edge ${Math.round(rect.right)}px in ${viewportWidth}px viewport` });
       }
     }
@@ -128,12 +153,51 @@ async function measure(page) {
   });
 }
 
+async function dashboardSemantics(page) {
+  return page.evaluate(() => {
+    const failures = [];
+    const dashboard = document.querySelector("[data-commercial-dashboard-v2]");
+    if (!dashboard) {
+      failures.push({ type: "commercial-dashboard-not-rendered", detail: "Built commercial Dashboard did not replace the pre-build dashboard." });
+      return failures;
+    }
+
+    const identityBlock = dashboard.querySelector(".ff-decision-identity");
+    const title = String(identityBlock?.querySelector("h2")?.textContent || "").trim();
+    const identity = identityBlock?.querySelector(":scope > p");
+    const visibleIdentity = identity && !identity.hidden ? String(identity.textContent || "").trim() : "";
+    if (/%\d{1,4}(?:\s|$)/.test(title)) failures.push({ type: "card-number-display-artifact", detail: `Spotlight still contains malformed card number: ${title}` });
+    if (visibleIdentity && visibleIdentity.toLocaleLowerCase("en-US") === title.toLocaleLowerCase("en-US")) {
+      failures.push({ type: "duplicate-card-identity", detail: "Spotlight repeats the same title and card identity." });
+    }
+
+    const stats = [...(identityBlock?.querySelectorAll(".ff-decision-stats > div") || [])];
+    const valueFor = label => stats.find(node => String(node.querySelector("span")?.textContent || "").trim().toLowerCase() === label.toLowerCase())?.querySelector("strong")?.textContent?.trim() || "";
+    const exactSales = valueFor("Exact accepted sales");
+    if (exactSales === "0") {
+      if (valueFor("Supported value") !== "Unavailable") failures.push({ type: "unsupported-zero-valuation", detail: `Supported value is ${valueFor("Supported value")} with zero accepted sales.` });
+      if (valueFor("Value gap") !== "Unavailable") failures.push({ type: "unsupported-value-gap", detail: `Value gap is ${valueFor("Value gap")} with zero accepted sales.` });
+    }
+
+    dashboard.querySelectorAll(".ff-v2-table tbody tr").forEach((row, index) => {
+      const cells = row.querySelectorAll(":scope > td");
+      if (cells.length < 7) return;
+      const rowTitle = String(cells[0].querySelector("a")?.textContent || "").trim();
+      const rowIdentityNode = cells[0].querySelector("small");
+      const rowIdentity = rowIdentityNode && !rowIdentityNode.hidden ? String(rowIdentityNode.textContent || "").trim() : "";
+      if (/%\d{1,4}(?:\s|$)/.test(rowTitle)) failures.push({ type: "recent-card-number-display-artifact", detail: `Recent row ${index + 1} still contains % card number.` });
+      if (rowIdentity && rowIdentity.toLocaleLowerCase("en-US") === rowTitle.toLocaleLowerCase("en-US")) failures.push({ type: "recent-duplicate-card-identity", detail: `Recent row ${index + 1} repeats title and identity.` });
+      if (String(cells[5].textContent || "").trim() === "0" && String(cells[3].textContent || "").trim() !== "Unavailable") {
+        failures.push({ type: "recent-unsupported-zero-valuation", detail: `Recent row ${index + 1} presents ${String(cells[3].textContent || "").trim()} with zero accepted sales.` });
+      }
+    });
+
+    return failures;
+  });
+}
+
 async function waitForPage(page) {
   await page.waitForSelector("#main-content", { state: "attached", timeout: 5000 });
-  // The dashboard can be replaced asynchronously by customer route adapters.
-  // Layout QA only needs the shell and main surface to settle; requiring a
-  // specific text length made the test depend on route-render timing rather
-  // than geometry. Give synchronous renderers a short deterministic settle.
   await page.waitForTimeout(350);
 }
 
@@ -142,12 +206,18 @@ async function auditPrototype(browser, viewportName, width, height, route) {
   const page = await context.newPage();
   try {
     await stubIdentity(page);
+    await page.route("**/api/v1/**", routeHandler => routeHandler.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: JSON.stringify(apiFixture(routeHandler.request())) }));
     await page.route("**/staging-route-hook.js", request => request.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: "(() => {})();" }));
     await page.goto(`${baseUrl}/#/${route}`, { waitUntil: "domcontentloaded", timeout: 10_000 });
     await waitForPage(page);
+    if (route === "dashboard") {
+      await page.waitForSelector("[data-commercial-dashboard-v2]", { timeout: 5000 });
+      await page.waitForTimeout(120);
+    }
     const heading = (await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => ""))?.trim() || "";
     const measured = await measure(page);
-    return { mode: "prototype", route, viewport: viewportName, size: `${width}x${height}`, heading, ...measured };
+    const semanticFailures = route === "dashboard" ? await dashboardSemantics(page) : [];
+    return { mode: "prototype", route, viewport: viewportName, size: `${width}x${height}`, heading, failures: [...semanticFailures, ...measured.failures], warnings: measured.warnings };
   } finally {
     await context.close();
   }
@@ -212,6 +282,7 @@ const markdown = [
   "## Warnings",
   ...(warnings.length ? warnings.slice(0, 150).map(item => `- **${item.mode} · ${item.route} · ${item.viewport}** — ${item.type}: ${item.detail}${item.selector ? ` (${item.selector})` : ""}`) : ["- None."]),
   "",
+  "The audit runs the production-built /app mount, including the commercial Dashboard injected by build:identity.",
   "Intentional local scrolling surfaces and decorative metric-card glow are excluded from overflow findings.",
   "The customer stress fixture is synthetic browser-only data. It never writes SQLite or changes FlipForge authority.",
   ""
