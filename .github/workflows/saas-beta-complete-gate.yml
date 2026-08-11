@@ -63,6 +63,7 @@ jobs:
           npm run validate:customer-discovery
           npm run validate:customer-intelligence
           npm run validate:customer-dashboard
+          npm run validate:commercial-dashboard-live-qa
           npm run validate:customer-compare
           npm run validate:customer-management
 
