@@ -7,7 +7,9 @@
   const SAFE_REQUEST_ID = /^[A-Za-z0-9._-]{8,100}$/;
   const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/;
   const SAFE_OPPORTUNITY_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const ALLOWED_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const DECISIONS = new Set(["BUY", "WATCH", "VERIFY", "PASS"]);
   const MARKETPLACES = Object.freeze([
     "EBAY",
@@ -38,6 +40,16 @@
     return currentSurface === "customer";
   }
 
+  function diagnosticEligibleHost() {
+    return ALLOWED_HOST.test(String(window.location.hostname || ""));
+  }
+
+  function customerEligibleHost() {
+    const host = String(window.location.hostname || "");
+    if (PRODUCTION_HOST.test(host)) return APP_PATH.test(String(window.location.pathname || ""));
+    return diagnosticEligibleHost();
+  }
+
   function savedListRoute() {
     return customerSurface() ? "#/opportunities" : "#/staging";
   }
@@ -62,10 +74,6 @@
       endsAt: "",
       acknowledgeBoundary: false
     };
-  }
-
-  function eligibleHost() {
-    return ALLOWED_HOST.test(String(window.location.hostname || ""));
   }
 
   function escapeHtml(value) {
@@ -102,7 +110,7 @@
       ? window.crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const key = `eval-${suffix}`;
-    if (!SAFE_REQUEST_ID.test(key)) throw validationError("IDEMPOTENCY_KEY_INVALID", "A safe staging idempotency key could not be generated.");
+    if (!SAFE_REQUEST_ID.test(key)) throw validationError("IDEMPOTENCY_KEY_INVALID", "A safe evaluation idempotency key could not be generated.");
     return key;
   }
 
@@ -166,7 +174,7 @@
       throw validationError("EVALUATION_URL_INVALID", "Listing URL must be a valid HTTP or HTTPS URL.");
     }
     if (draft.acknowledgeBoundary !== true) {
-      throw validationError("EVALUATION_BOUNDARY_ACKNOWLEDGMENT_REQUIRED", "Confirm the staging authority boundary before submitting.");
+      throw validationError("EVALUATION_BOUNDARY_ACKNOWLEDGMENT_REQUIRED", "Confirm the authority boundary before submitting.");
     }
 
     return {
@@ -218,22 +226,30 @@
   async function parseResponse(response) {
     const text = await response.text();
     if (text.length > MAX_RESPONSE_CHARACTERS) {
-      const error = new Error("The staging response exceeded the browser safety limit.");
-      error.code = "STAGING_RESPONSE_TOO_LARGE";
+      const error = new Error("The evaluation response exceeded the browser safety limit.");
+      error.code = "EVALUATION_RESPONSE_TOO_LARGE";
       throw error;
     }
     try {
       return text ? JSON.parse(text) : {};
     } catch (_) {
-      const error = new Error("The staging gateway returned invalid JSON.");
-      error.code = "STAGING_INVALID_JSON";
+      const error = new Error("The evaluation gateway returned invalid JSON.");
+      error.code = "EVALUATION_INVALID_JSON";
       throw error;
     }
   }
 
   async function submitEvaluation(payload, idempotencyKey) {
-    if (!eligibleHost()) throw validationError("STAGING_HOST_NOT_ALLOWED", "Staging evaluation is restricted to deploy previews and local development.");
-    if (!SAFE_REQUEST_ID.test(idempotencyKey)) throw validationError("IDEMPOTENCY_KEY_INVALID", "The staging idempotency key is invalid.");
+    const allowed = customerSurface() ? customerEligibleHost() : diagnosticEligibleHost();
+    if (!allowed) {
+      throw validationError(
+        customerSurface() ? "CUSTOMER_EVALUATION_HOST_NOT_ALLOWED" : "STAGING_HOST_NOT_ALLOWED",
+        customerSurface()
+          ? "Customer evaluation is restricted to the authenticated FlipForge app and controlled previews."
+          : "Staging evaluation is restricted to deploy previews and local development."
+      );
+    }
+    if (!SAFE_REQUEST_ID.test(idempotencyKey)) throw validationError("IDEMPOTENCY_KEY_INVALID", "The evaluation idempotency key is invalid.");
 
     const requestCorrelationId = correlationId();
     const headers = {
@@ -254,15 +270,15 @@
     const responsePayload = await parseResponse(response);
     if (!response.ok) {
       const upstream = responsePayload && responsePayload.error ? responsePayload.error : {};
-      const error = new Error(upstream.message || `Staging evaluation failed with status ${response.status}.`);
-      error.code = upstream.code || "STAGING_EVALUATION_FAILED";
+      const error = new Error(upstream.message || `Evaluation failed with status ${response.status}.`);
+      error.code = upstream.code || "EVALUATION_FAILED";
       error.status = response.status;
       error.correlationId = upstream.correlationId || requestCorrelationId;
       throw error;
     }
     if (!validEnvelope(responsePayload, requestCorrelationId, idempotencyKey)) {
-      const error = new Error("The staging evaluation response failed the FlipForge authority and tenant-ownership contract.");
-      error.code = "STAGING_EVALUATION_CONTRACT_INVALID";
+      const error = new Error("The evaluation response failed the FlipForge authority and tenant-ownership contract.");
+      error.code = "EVALUATION_CONTRACT_INVALID";
       throw error;
     }
     return responsePayload;
@@ -321,17 +337,20 @@
     if (!error) return "";
     const membershipError = ["TENANT_MEMBERSHIP_REQUIRED", "TENANT_MEMBERSHIP_INACTIVE", "TENANT_MEMBERSHIP_INVALID"].includes(String(error.code || ""));
     const guidance = error.status === 401
-      ? "A configured authentication provider and signed-in preview user are required."
+      ? (customerSurface() ? "Sign in with an invited FlipForge private-beta account." : "A configured authentication provider and signed-in preview user are required.")
       : error.code === "EVALUATION_LIMIT_REACHED" || error.status === 429
         ? "The server-owned monthly allowance is exhausted. Open Plan & Usage to review current usage. No browser override or mock evaluation is available."
         : error.code === "ENTITLEMENT_ACCESS_DENIED" || (error.status === 403 && !membershipError)
           ? "The server-owned plan/access state does not permit a new evaluation. Open Plan & Usage for the current entitlement state; billing and customer plan changes are not connected here."
           : membershipError
-            ? "The signed-in preview user does not have an active FlipForge tenant membership."
+            ? "The signed-in account does not have an active FlipForge tenant membership."
             : error.code === "IDEMPOTENCY_CONFLICT"
               ? "Change the request fields or retry the unchanged request with its existing key."
               : "No mock result or browser-generated recommendation has been substituted.";
-    return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error.code || "STAGING_EVALUATION_UNAVAILABLE")}</strong><p>${escapeHtml(error.message)}</p><small>${escapeHtml(guidance)}</small></div></section>`;
+    const signIn = customerSurface() && error.status === 401
+      ? `<div class="customer-intelligence-actions"><a class="button button-primary" href="${PRODUCTION_HOST.test(String(window.location.hostname || "")) ? "/production-auth.html?return=%2Fapp%2F%23%2Fevaluate" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fevaluate"}">Sign in securely</a></div>`
+      : "";
+    return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error.code || "EVALUATION_UNAVAILABLE")}</strong><p>${escapeHtml(error.message)}</p><small>${escapeHtml(guidance)}</small>${signIn}</div></section>`;
   }
 
   function field(name, label, options = {}) {
@@ -411,8 +430,8 @@
   function render(main) {
     currentSurface = "staging";
     currentMain = main;
-    if (!eligibleHost()) {
-      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Unavailable route</span><h1>Staging Evaluation</h1><p>This write route is restricted to deploy previews and local development.</p></div></header><div class="boundary-note">The production website cannot submit evaluations through this staging adapter.</div></div>`;
+    if (!diagnosticEligibleHost()) {
+      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Unavailable route</span><h1>Staging Evaluation</h1><p>This write diagnostic is restricted to deploy previews and local development.</p></div></header><div class="boundary-note">Production customer evaluation is available only through the authenticated Evaluate route.</div></div>`;
       return;
     }
     renderCurrent();
@@ -421,7 +440,7 @@
   function renderCustomer(main) {
     currentSurface = "customer";
     currentMain = main;
-    if (!eligibleHost()) return false;
+    if (!customerEligibleHost()) return false;
     renderCurrent();
     return true;
   }
@@ -437,10 +456,11 @@
   }
 
   const navLink = document.querySelector("[data-route='staging-evaluate']");
-  if (navLink && eligibleHost()) navLink.hidden = false;
+  if (navLink && diagnosticEligibleHost()) navLink.hidden = false;
 
   window.FlipForgeStagingEvaluationAdapter = Object.freeze({
-    isEligible: eligibleHost,
+    isEligible: customerEligibleHost,
+    isDiagnosticEligible: diagnosticEligibleHost,
     render,
     renderCustomer,
     reset
