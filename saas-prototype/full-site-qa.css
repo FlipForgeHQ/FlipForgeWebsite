@@ -1,0 +1,181 @@
+/*
+ * FlipForge shared responsive hardening.
+ *
+ * This file intentionally fixes layout containment at the shared shell and
+ * component level so customer pages do not need one-off overflow patches.
+ * It changes presentation only; authority, evidence, tenant ownership and
+ * persisted data remain untouched.
+ */
+
+/* The logo/footer are fixed shell regions. Let navigation absorb height and scroll. */
+.brand-block,
+.sidebar-footer {
+  flex: 0 0 auto;
+}
+
+.primary-nav {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+/* Shared headings must be allowed to shrink before their actions force overflow. */
+.page-heading,
+.page-heading > div,
+.page-actions,
+.panel-header,
+.panel-header > div,
+.stack,
+.panel,
+.panel-body {
+  min-width: 0;
+}
+
+.page-heading > div,
+.panel-header > div {
+  max-width: 100%;
+}
+
+.page-heading h1,
+.page-heading p,
+.panel-header h2,
+.panel-header p {
+  overflow-wrap: anywhere;
+}
+
+.page-actions {
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.page-actions .button {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.panel-header {
+  flex-wrap: wrap;
+}
+
+.panel-header > div {
+  flex: 1 1 240px;
+}
+
+/* Shared grids and split rows must never keep their content's intrinsic width. */
+.key-value,
+.check-item > *,
+.activity-item > *,
+.hero-identity,
+.hero-title,
+.hero-price,
+.comparison-row > *,
+.evidence-step > *,
+.customer-trace-step > div,
+.customer-intake-step > *,
+.customer-dashboard-opportunity-head > *,
+.customer-compare-card header > *,
+.customer-entitlement-current-head > *,
+.customer-entitlement-plan-head > *,
+.customer-entitlement-plan li > *,
+.customer-lifecycle-alerts article > *,
+.customer-management-flag > *,
+.customer-exit-hero .panel-body > * {
+  min-width: 0;
+}
+
+.key-value strong,
+.check-item strong,
+.check-item small,
+.activity-item strong,
+.activity-item small,
+.comparison-row > *,
+.evidence-step strong,
+.evidence-step small,
+.customer-trace-step strong,
+.customer-trace-step p,
+.customer-dashboard-opportunity-head strong,
+.customer-dashboard-opportunity-head h3,
+.customer-compare-card header,
+.customer-entitlement-current-head,
+.customer-entitlement-plan-head,
+.customer-entitlement-plan li,
+.customer-lifecycle-alerts article,
+.customer-management-flag,
+.customer-exit-hero .panel-body {
+  overflow-wrap: anywhere;
+}
+
+.customer-trace-step {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.customer-dashboard-opportunity-head,
+.customer-compare-card header,
+.customer-entitlement-current-head,
+.customer-entitlement-plan-head,
+.customer-entitlement-plan li,
+.customer-lifecycle-alerts article,
+.customer-management-flag,
+.customer-exit-hero .panel-body {
+  flex-wrap: wrap;
+}
+
+/* Comparison is the one intentional wide-data surface: contain scrolling locally. */
+.comparison-table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.comparison-row > * {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .page-heading {
+    align-items: flex-start;
+  }
+
+  .page-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 8px;
+  }
+
+  .page-actions .button {
+    width: 100%;
+    min-height: 42px;
+    padding-inline: 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .panel-header > div {
+    flex-basis: 100%;
+  }
+
+  .customer-trace-step {
+    gap: 10px;
+  }
+
+  .customer-entitlement-current-head,
+  .customer-entitlement-plan-head,
+  .customer-lifecycle-alerts article,
+  .customer-exit-hero .panel-body {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 430px) {
+  .page-actions {
+    grid-template-columns: 1fr;
+  }
+}
