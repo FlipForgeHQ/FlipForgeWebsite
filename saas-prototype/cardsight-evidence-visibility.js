@@ -157,10 +157,26 @@
     return `<div class="cardsight-evidence-metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
   }
 
+  function panelSignature(summary, evidence) {
+    return [
+      summary?.status || "CURRENT_EVIDENCE",
+      summary?.attempted === true ? 1 : 0,
+      summary?.returnedRows ?? "x",
+      summary?.exactCandidateRows ?? "x",
+      summary?.qualifiedRows ?? "x",
+      summary?.newlyPersistedRows ?? "x",
+      summary?.reviewRows ?? "x",
+      summary?.rejectedRows ?? "x",
+      evidence?.cardSightRows ?? "x",
+      evidence?.acceptedCardSightRows ?? "x",
+      evidence?.acceptedExactCompletedSales ?? "x"
+    ].join("|");
+  }
+
   function buildPanel(opportunityId) {
     const summary = summaries.get(opportunityId) || null;
     const evidence = evidenceSnapshots.get(opportunityId) || null;
-    if (!summary && !evidence) return "";
+    if (!summary && !evidence) return null;
 
     const status = summary?.status || "CURRENT_EVIDENCE";
     const tone = statusTone(status);
@@ -182,8 +198,9 @@
           metric("All exact accepted sales", totalAccepted)
         ].join("");
 
+    const signature = panelSignature(summary, evidence);
     const providerMessage = summary?.message ? `<p class="cardsight-evidence-provider-message">${escapeHtml(summary.message)}</p>` : "";
-    return `<section class="panel cardsight-evidence-panel" data-cardsight-evidence-panel aria-label="CardSight sold evidence status">
+    const markup = `<section class="panel cardsight-evidence-panel" data-cardsight-evidence-panel data-cardsight-evidence-signature="${escapeHtml(signature)}" aria-label="CardSight sold evidence status">
       <header class="panel-header">
         <div>
           <span class="eyebrow">Historical sold evidence</span>
@@ -198,6 +215,7 @@
         <p class="cardsight-evidence-boundary"><strong>Evidence boundary:</strong> Fixed-price asks and active listings cannot support value. CardSight never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the sole decision authority.</p>
       </div>
     </section>`;
+    return { signature, markup };
   }
 
   function render() {
@@ -211,14 +229,15 @@
 
     const hero = document.querySelector("#main-content .customer-intelligence-hero");
     if (!hero) return;
-    const markup = buildPanel(opportunityId);
-    if (!markup) {
+    const built = buildPanel(opportunityId);
+    if (!built) {
       existing?.remove();
       return;
     }
+    if (existing?.dataset.cardsightEvidenceSignature === built.signature) return;
 
     const holder = document.createElement("div");
-    holder.innerHTML = markup;
+    holder.innerHTML = built.markup;
     const panel = holder.firstElementChild;
     if (!panel) return;
     if (existing) existing.replaceWith(panel);
