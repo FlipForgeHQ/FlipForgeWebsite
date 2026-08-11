@@ -1,0 +1,50 @@
+name: SaaS Production Account
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer-account.js"
+      - "saas-prototype/customer-account-bridge.js"
+      - "saas-prototype/customer-entitlements.js"
+      - "saas-prototype/staging-route-hook.js"
+      - "netlify/functions/flipforge-api.js"
+      - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
+      - "scripts/validate-saas-production-account.mjs"
+      - ".github/workflows/saas-production-account.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer-account.js"
+      - "saas-prototype/customer-account-bridge.js"
+      - "saas-prototype/customer-entitlements.js"
+      - "saas-prototype/staging-route-hook.js"
+      - "netlify/functions/flipforge-api.js"
+      - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
+      - "scripts/validate-saas-production-account.mjs"
+      - ".github/workflows/saas-production-account.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate read-only production account
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Parse production account browser JavaScript
+        run: |
+          node --check saas-prototype/customer-account.js
+          node --check saas-prototype/customer-account-bridge.js
+      - name: Validate production account boundary
+        run: node scripts/validate-saas-production-account.mjs
+      - name: Retain preview entitlements validation
+        run: node scripts/validate-saas-customer-entitlements.mjs
