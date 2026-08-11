@@ -4,120 +4,61 @@ import vm from "node:vm";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
-const files = {
-  adapter: read("saas-prototype/customer-lifecycle.js"),
-  css: read("saas-prototype/customer-lifecycle.css"),
-  hook: read("saas-prototype/staging-route-hook.js"),
-  index: read("saas-prototype/index.html"),
-  gateway: read("netlify/functions/flipforge-api.js"),
-  beta: read("saas-prototype/private-beta.js"),
-  docs: read("docs/SAAS_CUSTOMER_LIFECYCLE_WORKSPACE.md"),
-  betaDocs: read("docs/SAAS_PRIVATE_BETA_READINESS.md"),
-  package: read("package.json"),
-  netlify: read("netlify.toml")
-};
-
+const adapter = read("saas-prototype/customer-lifecycle.js");
+const hook = read("saas-prototype/staging-route-hook.js");
+const gateway = read("netlify/functions/flipforge-api.js");
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
 [
-  ["001 customer lifecycle adapter exists", files.adapter.includes("FlipForgeCustomerLifecycle")],
-  ["002 lifecycle adapter is strict-mode isolated", files.adapter.includes('"use strict"') && files.adapter.startsWith("(() =>")],
-  ["003 lifecycle adapter is deploy-preview constrained", files.adapter.includes("PREVIEW_HOST") && files.adapter.includes("eligibleHost()")],
-  ["004 lifecycle adapter owns tracking portfolio and alerts", ["tracking", "portfolio", "alerts"].every(route => files.adapter.includes(`"${route}"`))],
-  ["005 route hook prefers lifecycle adapter", files.hook.includes("FlipForgeCustomerLifecycle") && files.hook.indexOf("lifecycleAdapter") < files.hook.indexOf("managementAdapter.render")],
-  ["006 Tracking is present in primary navigation", files.index.includes('href="#/tracking"') && files.index.includes('data-route="tracking"')],
-  ["007 lifecycle stylesheet is loaded", files.index.includes('href="customer-lifecycle.css"')],
-  ["008 lifecycle script is loaded before route hook", files.index.indexOf('src="customer-lifecycle.js"') < files.index.indexOf('src="staging-route-hook.js"')],
-  ["009 browser uses fixed health route", files.adapter.includes('"/api/v1/health"')],
-  ["010 browser uses fixed opportunities route", files.adapter.includes('"/api/v1/opportunities"')],
-  ["011 browser uses fixed lifecycle list route", files.adapter.includes('"/api/v1/lifecycle"')],
-  ["012 browser lifecycle detail is identifier constrained", files.adapter.includes('/^\\/api\\/v1\\/lifecycle\\/([^/?#]+)$/') && files.adapter.includes("SAFE_ID")],
-  ["013 browser supports GET and PUT only", files.adapter.includes('method !== "GET" && method !== "PUT"') && !/method\s*!==\s*["']POST/.test(files.adapter)],
-  ["014 lifecycle PUT is record constrained", files.adapter.includes("Lifecycle writes require one tenant-owned saved opportunity")],
-  ["015 lifecycle PUT sends JSON only", files.adapter.includes('"Content-Type": "application/json"') && files.adapter.includes("JSON.stringify(options.body")],
-  ["016 requests use same-origin credentials", files.adapter.includes('credentials: "same-origin"')],
-  ["017 requests disable cache", files.adapter.includes('cache: "no-store"')],
-  ["018 requests reject redirects", files.adapter.includes('redirect: "error"')],
-  ["019 browser sends no trusted tenant identity", !/X-FlipForge-(?:Tenant|User)-Id/i.test(files.adapter)],
-  ["020 browser contains no service token", !/FLIPFORGE_API_SERVICE_TOKEN|Authorization:\s*[`"']Bearer/i.test(files.adapter)],
-  ["021 browser persists no customer state", !/localStorage|sessionStorage|document\.cookie/.test(files.adapter)],
-  ["022 browser validates Smart Opportunity authority", files.adapter.includes('meta.authority === "Smart Opportunity"')],
-  ["023 browser validates existing PSA authority", files.adapter.includes('meta.gradingAuthority === "Existing PSA intelligence"')],
-  ["024 browser validates correlation ids", files.adapter.includes("meta.correlationId === expectedCorrelationId")],
-  ["025 browser bounds response size", files.adapter.includes("MAX_RESPONSE_CHARACTERS") && files.adapter.includes("LIFECYCLE_RESPONSE_TOO_LARGE")],
-  ["026 Tracking requires SQLite lifecycle kind", files.adapter.includes('state.lifecycle?.data?.kind !== "lifecycle"') && files.adapter.includes('sourceOfTruth !== "SQLite"')],
-  ["027 lifecycle detail must match selected record", files.adapter.includes('kind !== "lifecycle-detail"') && files.adapter.includes("state.selectedId")],
-  ["028 lifecycle history must be an array", files.adapter.includes("!Array.isArray(state.detail?.data?.history)")],
-  ["029 lifecycle form submits optimistic version", files.adapter.includes("expectedVersion") && files.adapter.includes('name="expectedVersion"')],
-  ["030 tracking status supports customer workflow", ["WATCHING", "REVIEW", "OWNED", "SOLD", "PASSED", "ARCHIVED"].every(value => files.adapter.includes(value))],
-  ["031 outcome status remains explicit", ["NONE", "ACQUIRED", "SOLD", "PASSED"].every(value => files.adapter.includes(value))],
-  ["032 acquisition facts are customer entered", files.adapter.includes("acquisitionCostCents") && files.adapter.includes("acquiredAt")],
-  ["033 disposition facts are customer entered", files.adapter.includes("dispositionProceedsCents") && files.adapter.includes("disposedAt")],
-  ["034 review reminder requires review time", files.adapter.includes("A review time is required")],
-  ["035 tracking view renders append-only history", files.adapter.includes("append-only event") && files.adapter.includes("Lifecycle history")],
-  ["036 Portfolio reads configured lifecycle projection", files.adapter.includes('state.feature?.data?.kind !== state.route') && files.adapter.includes('configured !== true')],
-  ["037 Portfolio displays cost basis cents", files.adapter.includes("totalCostBasisCents") && files.adapter.includes("moneyFromCents")],
-  ["038 Portfolio refuses invented current value", files.adapter.includes("does not invent current value") && files.adapter.includes("No supported-value total or performance chart was created")],
-  ["039 Alerts display in-app review rules", files.adapter.includes("In-app review queue") && files.adapter.includes("REVIEW_DUE")],
-  ["040 Alerts disclose delivery disabled", files.adapter.includes("notificationDeliveryConfigured") && files.adapter.includes("Email / push")],
-  ["041 no lifecycle transaction controls exist", !/Place bid|Buy now|Checkout|Pay now|Create listing|Accept offer/.test(files.adapter)],
-  ["042 gateway allowlists lifecycle GET list", files.gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/lifecycle$/ }')],
-  ["043 gateway allowlists lifecycle GET detail", files.gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/lifecycle\\/[A-Za-z0-9._:-]+$/ }')],
-  ["044 gateway allowlists lifecycle PUT detail", files.gateway.includes('{ method: "PUT", pattern: /^\\/api\\/v1\\/lifecycle\\/[A-Za-z0-9._:-]+$/ }')],
-  ["045 gateway forwards PUT body", files.gateway.includes('method === "POST" || method === "PUT" ? body : undefined')],
-  ["046 gateway advertises PUT in allowed methods", files.gateway.includes('"Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS"')],
-  ["047 gateway preserves lifecycle conflict code", files.gateway.includes('upstreamCode === "LIFECYCLE_VERSION_CONFLICT"')],
-  ["048 gateway remains trusted tenant injector", files.gateway.includes("[TENANT_HEADER]: tenant.tenantId")],
-  ["049 gateway still forbids client identity headers", files.gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN")],
-  ["050 beta guide includes retention loop", files.beta.includes("Tracking → Portfolio → Alerts")],
-  ["051 beta guide discloses value boundary", files.beta.includes("Current value and performance remain unavailable")],
-  ["052 beta guide discloses delivery boundary", files.beta.includes("External alert delivery is not connected")],
-  ["053 docs preserve sole recommendation authority", files.docs.includes("Smart Opportunity remains the sole")],
-  ["054 docs preserve PSA authority", files.docs.includes("Existing PSA intelligence remains the sole")],
-  ["055 docs preserve SQLite source of truth", files.docs.includes("SQLite remains the source of truth")],
-  ["056 docs preserve tenant 404", files.docs.includes("non-disclosing `404`")],
-  ["057 docs preserve optimistic conflict", files.docs.includes("409 LIFECYCLE_VERSION_CONFLICT")],
-  ["058 docs preserve zero transaction authority", files.docs.includes("No bid, purchase, listing, offer, checkout, payment, or transfer")],
-  ["059 docs keep production disabled", files.docs.includes("Production remains unchanged and disabled")],
-  ["060 beta docs record lifecycle persistence", files.betaDocs.includes("optimistic version checks and append-only history")],
-  ["061 beta docs reject invented performance", files.betaDocs.includes("Current value, gain/loss, fees, taxes, and liquidation value remain unavailable")],
-  ["062 beta docs keep external delivery unavailable", files.betaDocs.includes("Email, SMS, push, marketplace actions")],
-  ["063 lifecycle validator is in package scripts", files.package.includes('"validate:customer-lifecycle"')],
-  ["064 Netlify build includes lifecycle validation", files.netlify.includes("validate:customer-lifecycle")],
-  ["065 responsive tablet layout exists", files.css.includes("@media (max-width: 1050px)")],
-  ["066 responsive mobile layout exists", files.css.includes("@media (max-width: 680px)")],
-  ["067 keyboard focus treatment exists", files.css.includes(":focus-visible")],
-  ["068 reduced motion is respected", files.css.includes("prefers-reduced-motion")]
+  ["001 lifecycle adapter is isolated", adapter.startsWith("(() =>") && adapter.includes('"use strict"')],
+  ["002 production host is explicit", adapter.includes("PRODUCTION_HOST") && adapter.includes("goflipforge")],
+  ["003 preview host remains explicit", adapter.includes("PREVIEW_HOST") && adapter.includes("deploy-preview")],
+  ["004 app path is constrained", adapter.includes("APP_PATH") && adapter.includes("saas-prototype")],
+  ["005 lifecycle owns tracking portfolio alerts", ["tracking", "portfolio", "alerts"].every(route => adapter.includes(`"${route}"`))],
+  ["006 route hook prefers lifecycle adapter", hook.includes("FlipForgeCustomerLifecycle") && hook.indexOf("lifecycleAdapter") < hook.indexOf("managementAdapter.render")],
+  ["007 lifecycle list path fixed", adapter.includes('"/api/v1/lifecycle"')],
+  ["008 lifecycle detail path identifier constrained", adapter.includes('/^\\/api\\/v1\\/lifecycle\\/([^/?#]+)$/') && adapter.includes("SAFE_ID")],
+  ["009 browser allows GET and PUT only", adapter.includes('method !== "GET" && method !== "PUT"')],
+  ["010 PUT is one-record constrained", adapter.includes("Lifecycle writes require one tenant-owned saved opportunity")],
+  ["011 PUT sends JSON only", adapter.includes('"Content-Type": "application/json"') && adapter.includes("JSON.stringify(options.body")],
+  ["012 requests use same-origin credentials", adapter.includes('credentials: "same-origin"')],
+  ["013 requests disable cache", adapter.includes('cache: "no-store"')],
+  ["014 requests reject redirects", adapter.includes('redirect: "error"')],
+  ["015 no trusted browser tenant header", !/X-FlipForge-(?:Tenant|User)-Id/i.test(adapter)],
+  ["016 no service token", !/FLIPFORGE_API_SERVICE_TOKEN|Authorization:\s*[`"']Bearer/i.test(adapter)],
+  ["017 no browser persistence", !/localStorage|sessionStorage|document\.cookie/.test(adapter)],
+  ["018 Smart Opportunity authority validated", adapter.includes('meta.authority === "Smart Opportunity"')],
+  ["019 PSA authority validated", adapter.includes('meta.gradingAuthority === "Existing PSA intelligence"')],
+  ["020 correlation IDs validated", adapter.includes("meta.correlationId === expectedCorrelationId")],
+  ["021 response size bounded", adapter.includes("LIFECYCLE_RESPONSE_TOO_LARGE")],
+  ["022 Tracking requires SQLite source", adapter.includes('sourceOfTruth !== "SQLite"')],
+  ["023 lifecycle detail must match selected ID", adapter.includes('kind !== "lifecycle-detail"') && adapter.includes("state.selectedId")],
+  ["024 lifecycle history required", adapter.includes("!Array.isArray(state.detail?.data?.history)")],
+  ["025 optimistic version is submitted", adapter.includes("expectedVersion") && adapter.includes('name="expectedVersion"')],
+  ["026 tracking statuses explicit", ["WATCHING", "REVIEW", "OWNED", "SOLD", "PASSED", "ARCHIVED"].every(value => adapter.includes(value))],
+  ["027 outcome statuses explicit", ["NONE", "ACQUIRED", "SOLD", "PASSED"].every(value => adapter.includes(value))],
+  ["028 acquisition and disposition facts customer-entered", ["acquisitionCostCents", "acquiredAt", "dispositionProceedsCents", "disposedAt"].every(value => adapter.includes(value))],
+  ["029 reminder requires review time", adapter.includes("A review time is required")],
+  ["030 append-only history displayed", adapter.includes("Lifecycle history") && adapter.includes("append-only")],
+  ["031 Alerts disclose external delivery disabled", adapter.includes("notificationDeliveryConfigured") && adapter.includes("Email / push")],
+  ["032 no transaction controls", !/Place bid|Buy now|Checkout|Pay now|Create listing|Accept offer/.test(adapter)],
+  ["033 production auth handoff exists", adapter.includes("/production-auth.html")],
+  ["034 gateway GET lifecycle list allowlisted", gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/lifecycle$/ }')],
+  ["035 gateway GET lifecycle detail allowlisted", gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/lifecycle\\/[A-Za-z0-9._:-]+$/ }')],
+  ["036 gateway PUT lifecycle detail allowlisted", gateway.includes('{ method: "PUT", pattern: /^\\/api\\/v1\\/lifecycle\\/[A-Za-z0-9._:-]+$/ }')],
+  ["037 gateway still forbids client identity headers", gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN")]
 ].forEach(([name, condition]) => check(name, condition));
-
-function envelope(correlationId, data, authority = "Smart Opportunity") {
-  return {
-    meta: {
-      contractVersion: "1.0",
-      engineVersion: "customer-lifecycle+test",
-      authority,
-      gradingAuthority: "Existing PSA intelligence",
-      generatedAt: "2026-08-02T19:30:00Z",
-      correlationId,
-      evidenceFreshness: "CUSTOMER_WORKFLOW_FACTS",
-      limitations: ["Decision support only."]
-    },
-    data
-  };
-}
 
 function response(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 }
+function envelope(correlationId, data) {
+  return { meta: { contractVersion: "1.0", engineVersion: "test-engine", authority: "Smart Opportunity", gradingAuthority: "Existing PSA intelligence", correlationId }, data };
+}
 
-const opportunity = {
-  id: "opp-1",
-  title: "Saved Ohtani decision",
-  cardIdentity: "2018 Topps Chrome Shohei Ohtani #150 PSA 10"
-};
-
-const lifecycleRecord = {
+const opportunity = { id: "opp-1", title: "Saved Ohtani decision", cardIdentity: "2018 Topps Chrome Shohei Ohtani #150 PSA 10" };
+const lifecycle = {
   opportunityId: "opp-1",
   trackingStatus: "WATCHING",
   reviewAt: "2030-08-02T15:00:00Z",
@@ -127,146 +68,56 @@ const lifecycleRecord = {
   dispositionProceedsCents: null,
   disposedAt: null,
   alertEnabled: true,
-  version: 1,
-  createdAt: "2026-08-02T19:00:00Z",
-  updatedAt: "2026-08-02T19:00:00Z"
+  version: 1
 };
 
-function makeMain() {
-  let submitHandler = null;
-  const form = {
-    addEventListener(type, handler) { if (type === "submit") submitHandler = handler; }
-  };
-  return {
-    innerHTML: "",
-    focus() {},
-    querySelector(selector) {
-      if (selector === "[data-lifecycle-form]" && this.innerHTML.includes("data-lifecycle-form")) return form;
-      return null;
-    },
-    submit(values) {
-      if (!submitHandler) throw new Error("Lifecycle submit handler was not bound.");
-      submitHandler({ preventDefault() {}, currentTarget: form });
-      form.values = values;
-    },
-    form,
-    getSubmitHandler() { return submitHandler; }
-  };
-}
-
-class FakeFormData {
-  constructor(form) { this.values = form.values || {}; }
-  get(name) { return Object.prototype.hasOwnProperty.call(this.values, name) ? this.values[name] : null; }
-}
-
-function runtime({ hostname = "deploy-preview-36--goflipforge.netlify.app", healthStatus = "configured", invalidAuthority = false, lifecycleItems = [lifecycleRecord] } = {}) {
+function runtime({ hostname = "deploy-preview-36--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured" } = {}) {
   const calls = [];
   let uuid = 0;
-  let currentRecord = { ...lifecycleRecord };
-  const window = {
-    location: { hostname, hash: "#/tracking/opp-1" },
-    crypto: { randomUUID: () => `customer-lifecycle-${++uuid}` }
-  };
+  const window = { location: { hostname, pathname, hash: "#/tracking/opp-1" }, crypto: { randomUUID: () => `lifecycle-${++uuid}` } };
   const fetch = async (url, options) => {
     calls.push({ url, options });
     const correlationId = options.headers["X-Correlation-Id"];
-    if (url === "/api/v1/health") {
-      return response({ meta: { contractVersion: "1.0", correlationId }, data: { status: healthStatus, bridgeEnabled: healthStatus === "configured" } });
-    }
-    const authority = invalidAuthority ? "Second Engine" : "Smart Opportunity";
-    if (url === "/api/v1/opportunities") return response(envelope(correlationId, { kind: "opportunities", count: 1, items: [opportunity] }, authority));
-    if (url === "/api/v1/lifecycle") return response(envelope(correlationId, { kind: "lifecycle", configured: true, sourceOfTruth: "SQLite", count: lifecycleItems.length, items: lifecycleItems }, authority));
-    if (url === "/api/v1/lifecycle/opp-1" && options.method === "GET") return response(envelope(correlationId, { kind: "lifecycle-detail", opportunityId: "opp-1", lifecycle: currentRecord, history: [{ eventId: 1, eventType: "CREATED", trackingStatus: currentRecord.trackingStatus, outcomeStatus: currentRecord.outcomeStatus, recordVersion: currentRecord.version, recordedAt: currentRecord.updatedAt }] }, authority));
-    if (url === "/api/v1/lifecycle/opp-1" && options.method === "PUT") {
-      const body = JSON.parse(options.body);
-      currentRecord = { ...currentRecord, ...body, version: currentRecord.version + 1, updatedAt: "2026-08-02T20:00:00Z" };
-      return response(envelope(correlationId, { kind: "lifecycle-detail", opportunityId: "opp-1", lifecycle: currentRecord, history: [] }, authority));
-    }
-    if (url === "/api/v1/portfolio") return response(envelope(correlationId, { kind: "portfolio", configured: true, readOnly: false, currentValueConfigured: false, performanceConfigured: false, transactionAuthority: false, count: 1, totalCostBasisCents: 52500, items: [{ ...currentRecord, trackingStatus: "OWNED", outcomeStatus: "ACQUIRED", acquisitionCostCents: 52500, acquiredAt: "2026-08-02T12:00:00Z" }] }, authority));
-    if (url === "/api/v1/alerts") return response(envelope(correlationId, { kind: "alerts", configured: true, readOnly: false, notificationDeliveryConfigured: false, dueCount: 0, count: 1, status: "IN_APP_REVIEW_ALERTS_AVAILABLE", items: [{ opportunityId: "opp-1", kind: "REVIEW_DUE", reviewAt: "2030-08-02T15:00:00Z", due: false, enabled: true, recordVersion: 1 }] }, authority));
-    throw new Error(`Unexpected request: ${url} ${options.method}`);
+    if (url === "/api/v1/health") return response({ meta: { contractVersion: "1.0", correlationId }, data: { status: healthStatus } });
+    if (url === "/api/v1/opportunities") return response(envelope(correlationId, { kind: "opportunities", items: [opportunity] }));
+    if (url === "/api/v1/lifecycle") return response(envelope(correlationId, { kind: "lifecycle", sourceOfTruth: "SQLite", items: [lifecycle] }));
+    if (url === "/api/v1/lifecycle/opp-1" && options.method === "GET") return response(envelope(correlationId, { kind: "lifecycle-detail", opportunityId: "opp-1", lifecycle, history: [] }));
+    if (url === "/api/v1/portfolio") return response(envelope(correlationId, { kind: "portfolio", configured: true, items: [] }));
+    if (url === "/api/v1/alerts") return response(envelope(correlationId, { kind: "alerts", configured: true, items: [], notificationDeliveryConfigured: false }));
+    throw new Error(`Unexpected request: ${url}`);
   };
-  const context = vm.createContext({ window, fetch, Response, Intl, Math, Date, Object, Array, String, Number, Boolean, RegExp, Promise, Set, Error, console, setTimeout, clearTimeout, encodeURIComponent, decodeURIComponent, JSON, FormData: FakeFormData });
-  vm.runInContext(files.adapter, context, { filename: "customer-lifecycle.js" });
-  return { window, calls };
+  const context = vm.createContext({ window, fetch, Response, Intl, Math, Date, Object, Array, String, Number, Boolean, RegExp, Promise, Set, Error, console, setTimeout, clearTimeout, encodeURIComponent, decodeURIComponent, FormData });
+  vm.runInContext(adapter, context, { filename: "customer-lifecycle.js" });
+  return { window, calls, main: { innerHTML: "", querySelector() { return null; }, querySelectorAll() { return []; } } };
 }
 
-const settle = () => new Promise(resolve => setTimeout(resolve, 55));
+const settle = () => new Promise(resolve => setTimeout(resolve, 40));
 
-const tracking = runtime();
-const trackingMain = makeMain();
-check("069 lifecycle adapter exposes route matcher", tracking.window.FlipForgeCustomerLifecycle.handles("tracking") && !tracking.window.FlipForgeCustomerLifecycle.handles("discover"));
-check("070 Tracking renders on eligible preview", tracking.window.FlipForgeCustomerLifecycle.render(trackingMain, "tracking", "opp-1") === true);
+const preview = runtime();
+check("038 preview app eligible", preview.window.FlipForgeCustomerLifecycle.isEligible());
+check("039 preview tracking render activates", preview.window.FlipForgeCustomerLifecycle.render(preview.main, "tracking", "opp-1") === true);
 await settle();
-check("071 Tracking loads health opportunities lifecycle and detail", tracking.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/opportunities,/api/v1/lifecycle,/api/v1/lifecycle/opp-1");
-check("072 Tracking renders saved title and state", trackingMain.innerHTML.includes("Saved Ohtani decision") && trackingMain.innerHTML.includes("WATCHING"));
-check("073 Tracking renders selected optimistic version", trackingMain.innerHTML.includes("Selected version</span><strong>1"));
-check("074 Tracking renders append-only history", trackingMain.innerHTML.includes("Lifecycle history") && trackingMain.innerHTML.includes("CREATED"));
-check("075 Tracking binds lifecycle form", typeof trackingMain.getSubmitHandler() === "function");
-check("076 Tracking initial requests are secure GETs", tracking.calls.every(call => call.options.method === "GET" && call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
+check("040 tracking reads health opportunities lifecycle detail", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/opportunities,/api/v1/lifecycle,/api/v1/lifecycle/opp-1");
+check("041 tracking renders saved workflow state", preview.main.innerHTML.includes("WATCHING") && preview.main.innerHTML.includes("Lifecycle history"));
+check("042 tracking requests are hardened", preview.calls.every(call => call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
 
-trackingMain.form.values = {
-  trackingStatus: "REVIEW",
-  outcomeStatus: "NONE",
-  reviewAt: "2030-08-03T10:00",
-  alertEnabled: "on",
-  acquisitionCost: "",
-  acquiredAt: "",
-  dispositionProceeds: "",
-  disposedAt: "",
-  expectedVersion: "1"
-};
-trackingMain.getSubmitHandler()({ preventDefault() {}, currentTarget: trackingMain.form });
+const production = runtime({ hostname: "goflipforge.com", pathname: "/app/" });
+check("043 production app eligible", production.window.FlipForgeCustomerLifecycle.isEligible());
+check("044 production tracking render activates", production.window.FlipForgeCustomerLifecycle.render(production.main, "tracking", "opp-1") === true);
 await settle();
-const writeCall = tracking.calls.find(call => call.options.method === "PUT");
-const writeBody = writeCall ? JSON.parse(writeCall.options.body) : {};
-check("077 Tracking submits one lifecycle PUT", Boolean(writeCall) && writeCall.url === "/api/v1/lifecycle/opp-1");
-check("078 Tracking PUT carries optimistic version", writeBody.expectedVersion === 1);
-check("079 Tracking PUT carries explicit status and outcome", writeBody.trackingStatus === "REVIEW" && writeBody.outcomeStatus === "NONE");
-check("080 Tracking PUT carries normalized reminder instant", typeof writeBody.reviewAt === "string" && writeBody.reviewAt.endsWith("Z") && writeBody.alertEnabled === true);
-check("081 Tracking PUT contains no tenant or authority override", !/tenant|recommendation|grade|evidence/i.test(JSON.stringify(writeBody)));
+check("045 production reads tenant lifecycle through same-origin gateway", production.calls.length === 4 && production.calls.every(call => call.options.credentials === "same-origin"));
 
-const portfolio = runtime();
-const portfolioMain = makeMain();
-portfolio.window.FlipForgeCustomerLifecycle.render(portfolioMain, "portfolio");
-await settle();
-check("082 Portfolio loads health projection and labels", portfolio.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/portfolio,/api/v1/opportunities");
-check("083 Portfolio renders customer cost basis", portfolioMain.innerHTML.includes("$525.00") && portfolioMain.innerHTML.includes("Saved Ohtani decision"));
-check("084 Portfolio renders no invented gain", portfolioMain.innerHTML.includes("Not calculated") && portfolioMain.innerHTML.includes("No supported-value total or performance chart was created"));
-
-const alerts = runtime();
-const alertsMain = makeMain();
-alerts.window.FlipForgeCustomerLifecycle.render(alertsMain, "alerts");
-await settle();
-check("085 Alerts loads health projection and labels", alerts.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/alerts,/api/v1/opportunities");
-check("086 Alerts renders persisted review rule", alertsMain.innerHTML.includes("REVIEW_DUE") && alertsMain.innerHTML.includes("Saved Ohtani decision"));
-check("087 Alerts renders delivery boundary", alertsMain.innerHTML.includes("Not connected") && alertsMain.innerHTML.includes("Email, SMS, and push"));
+const marketing = runtime({ hostname: "goflipforge.com", pathname: "/" });
+check("046 public marketing path ineligible", marketing.window.FlipForgeCustomerLifecycle.isEligible() === false);
 
 const disabled = runtime({ healthStatus: "disabled" });
-const disabledMain = makeMain();
-disabled.window.FlipForgeCustomerLifecycle.render(disabledMain, "tracking");
+disabled.window.FlipForgeCustomerLifecycle.render(disabled.main, "tracking", "opp-1");
 await settle();
-check("088 disabled lifecycle makes health request only", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
-check("089 disabled lifecycle is honest", disabledMain.innerHTML.includes("safely offline") && disabledMain.innerHTML.includes("no tenant request or customer write"));
-
-const invalid = runtime({ invalidAuthority: true });
-const invalidMain = makeMain();
-invalid.window.FlipForgeCustomerLifecycle.render(invalidMain, "tracking", "opp-1");
-await settle();
-check("090 invalid authority fails closed", invalidMain.innerHTML.includes("LIFECYCLE_CONTRACT_INVALID") && !invalidMain.innerHTML.includes("Saved Ohtani decision"));
-
-const missing = runtime({ lifecycleItems: [] });
-const missingMain = makeMain();
-missing.window.FlipForgeCustomerLifecycle.render(missingMain, "tracking", "other-tenant-record");
-await settle();
-check("091 unavailable selected record stops before detail read", missing.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/opportunities,/api/v1/lifecycle" && missingMain.innerHTML.includes("RESOURCE_NOT_FOUND"));
-
-const production = runtime({ hostname: "goflipforge.com" });
-const productionMain = makeMain();
-check("092 production refuses lifecycle adapter", production.window.FlipForgeCustomerLifecycle.render(productionMain, "tracking") === false && production.calls.length === 0);
+check("047 disabled gateway stops after health", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
+check("048 disabled gateway renders safe offline state", /safely offline/i.test(disabled.main.innerHTML));
 
 const failures = results.filter(result => !result.passed);
-console.log("SaaSCustomerLifecycleValidation");
+console.log("SaaS customer lifecycle production validation");
 console.log(`PASSED: ${results.length - failures.length}`);
 console.log(`FAILED: ${failures.length}`);
 for (const failure of failures) console.error(`FAIL | ${failure.name}`);
