@@ -1,0 +1,61 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
+
+const index = read("saas-prototype/index.html");
+const account = read("saas-prototype/customer-account.js");
+const bridge = read("saas-prototype/customer-account-bridge.js");
+const preview = read("saas-prototype/customer-entitlements.js");
+const routeHook = read("saas-prototype/staging-route-hook.js");
+const gateway = read("netlify/functions/flipforge-api.js");
+const plan = read("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md");
+
+const results = [];
+const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
+const before = (left, right) => index.indexOf(left) >= 0 && index.indexOf(left) < index.indexOf(right);
+
+check("001 production account adapter loads", index.includes('src="customer-account.js"'));
+check("002 production account bridge loads", index.includes('src="customer-account-bridge.js"'));
+check("003 preview entitlements loads before production bridge", before('src="customer-entitlements.js"', 'src="customer-account-bridge.js"'));
+check("004 production account loads before bridge", before('src="customer-account.js"', 'src="customer-account-bridge.js"'));
+check("005 account bridge loads before route hook", before('src="customer-account-bridge.js"', 'src="staging-route-hook.js"'));
+check("006 account route still delegates through entitlement adapter", routeHook.includes('route === "account"') && routeHook.includes("entitlementsAdapter.render(main)"));
+check("007 production account is production-host constrained", account.includes("PRODUCTION_HOST") && account.includes("goflipforge"));
+check("008 production account is app-path constrained", account.includes("APP_PATH") && account.includes("window.location.pathname"));
+check("009 production account reads only health and entitlements", account.includes('new Set(["/api/v1/health", "/api/v1/entitlements"])'));
+check("010 production account uses GET only", account.includes('method: "GET"') && !/method:\s*["'](?:POST|PUT|PATCH|DELETE)["']/.test(account));
+check("011 production account uses same-origin credentials", account.includes('credentials: "same-origin"'));
+check("012 production account disables cache", account.includes('cache: "no-store"'));
+check("013 production account rejects redirects", account.includes('redirect: "error"'));
+check("014 production account bounds response size", account.includes("MAX_RESPONSE_CHARACTERS") && account.includes("ACCOUNT_RESPONSE_TOO_LARGE"));
+check("015 production account fails closed on invalid JSON", account.includes("ACCOUNT_INVALID_JSON"));
+check("016 production account validates Smart Opportunity authority", account.includes('meta.authority === "Smart Opportunity"'));
+check("017 production account validates existing PSA authority", account.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
+check("018 production account requires read-only entitlements", account.includes("data.readOnly === true"));
+check("019 production account requires zero transaction authority", account.includes("data.transactionAuthority === false"));
+check("020 production 401 recovery uses production auth", account.includes("/production-auth.html?return="));
+check("021 production account exposes no browser tenant/user headers", !/X-FlipForge-(?:Tenant|User)-Id/i.test(account));
+check("022 production account exposes no service token", !/FLIPFORGE_API_SERVICE_TOKEN|Authorization\s*:/i.test(account));
+check("023 production account has no Paddle API or checkout path", !/PADDLE|billing\/paddle\/checkout|CHECKOUT_PATH/i.test(account));
+check("024 production account has no checkout action attribute", !/data-customer-checkout-plan|window\.location\.assign/i.test(account));
+check("025 production account visibly defers checkout", account.includes("Checkout deferred until Beta Complete") && account.includes("Paid checkout, plan changes, and customer portal controls are intentionally deferred"));
+check("026 production account says payment controls are absent", account.includes("Production payment controls are intentionally absent"));
+check("027 production account keeps server-owned usage", account.includes("Usage is returned by the authoritative service"));
+check("028 production sidebar states billing deferral", account.includes("Paid checkout is deferred until Core Platform Beta Complete"));
+check("029 bridge prefers production adapter when eligible", bridge.includes("if (productionAdapter.isEligible()) return productionAdapter.render(main)"));
+check("030 bridge retains preview adapter", bridge.includes("previewAdapter.render(main)") && bridge.includes("previewAdapter.isEligible"));
+check("031 preview adapter still retains checkout code", preview.includes('const CHECKOUT_PATH = "/api/v1/billing/paddle/checkout"'));
+check("032 preview adapter remains preview constrained", preview.includes("PREVIEW_HOST") && preview.includes("deploy-preview"));
+check("033 gateway still allowlists entitlement reads", gateway.includes("/api/v1/entitlements"));
+check("034 core plan still defers Paddle until Beta Complete", plan.includes("Paddle checkout") && plan.includes("deferred until"));
+check("035 production account introduces no transaction controls", !/Place bid|Buy now|Pay now|Accept offer|Create listing|Upgrade now/i.test(account));
+
+const failures = results.filter(result => !result.passed);
+console.log("SaaS production account validation");
+console.log(`PASSED: ${results.length - failures.length}`);
+console.log(`FAILED: ${failures.length}`);
+for (const failure of failures) console.error(`FAIL | ${failure.name}`);
+if (failures.length) process.exitCode = 1;
