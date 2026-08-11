@@ -88,7 +88,10 @@ async function measure(page) {
     const warnings = [];
     const viewportWidth = window.innerWidth;
     const documentWidth = Math.max(document.documentElement.scrollWidth, document.body?.scrollWidth || 0);
-    const ignored = [".table-wrap", ".chart-shell", ".line-chart", ".signal-track", ".usage-track", ".readiness-ring", ".toast-region", ".sr-only", ".mobile-scrim"];
+    const ignored = [
+      ".table-wrap", ".comparison-table", ".metric-card", ".chart-shell", ".line-chart",
+      ".signal-track", ".usage-track", ".readiness-ring", ".toast-region", ".sr-only", ".mobile-scrim"
+    ];
     const label = element => element.id ? `#${element.id}` : String(element.className || element.tagName).slice(0, 140);
 
     if (documentWidth > viewportWidth + 4) failures.push({ type: "document-horizontal-overflow", detail: `${documentWidth}px document in ${viewportWidth}px viewport` });
@@ -108,7 +111,7 @@ async function measure(page) {
       }
 
       const rect = element.getBoundingClientRect();
-      if (rect.right > viewportWidth + 8 && !element.closest(".sidebar") && !element.closest(".table-wrap")) {
+      if (rect.right > viewportWidth + 8 && !element.closest(".sidebar") && !element.closest(".table-wrap") && !element.closest(".comparison-table")) {
         warnings.push({ type: "element-outside-viewport", selector: label(element), detail: `right edge ${Math.round(rect.right)}px in ${viewportWidth}px viewport` });
       }
     }
@@ -127,7 +130,11 @@ async function measure(page) {
 
 async function waitForPage(page) {
   await page.waitForSelector("#main-content", { timeout: 5000 });
-  await page.waitForFunction(() => (document.querySelector("#main-content")?.textContent || "").trim().length > 20, { timeout: 5000 });
+  await page.waitForFunction(
+    () => (document.querySelector("#main-content")?.textContent || "").trim().length > 20,
+    undefined,
+    { timeout: 5000 }
+  );
   await page.waitForTimeout(120);
 }
 
@@ -206,6 +213,7 @@ const markdown = [
   "## Warnings",
   ...(warnings.length ? warnings.slice(0, 150).map(item => `- **${item.mode} · ${item.route} · ${item.viewport}** — ${item.type}: ${item.detail}${item.selector ? ` (${item.selector})` : ""}`) : ["- None."]),
   "",
+  "Intentional local scrolling surfaces and decorative metric-card glow are excluded from overflow findings.",
   "The customer stress fixture is synthetic browser-only data. It never writes SQLite or changes FlipForge authority.",
   ""
 ].join("\n");
