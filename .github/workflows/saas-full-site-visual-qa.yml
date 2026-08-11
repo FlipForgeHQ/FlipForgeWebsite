@@ -1,0 +1,71 @@
+name: SaaS Full-Site Visual QA
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-saas-layout.mjs"
+      - ".github/workflows/saas-full-site-visual-qa.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-saas-layout.mjs"
+      - ".github/workflows/saas-full-site-visual-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-layout-audit:
+    name: Audit SaaS routes at desktop tablet and mobile widths
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright for browser QA
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local SaaS preview
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-saas-layout-server.log 2>&1 &
+          echo $! > /tmp/flipforge-saas-layout-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-saas-layout-server.log
+          exit 1
+
+      - name: Run full-site layout audit
+        run: node scripts/audit-saas-layout.mjs
+
+      - name: Upload screenshots and audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flipforge-saas-full-site-layout-audit
+          path: qa-artifacts/saas-layout
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Show preview-server log on failure
+        if: failure()
+        run: cat /tmp/flipforge-saas-layout-server.log || true
