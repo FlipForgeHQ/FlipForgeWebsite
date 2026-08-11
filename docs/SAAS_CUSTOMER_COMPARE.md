@@ -27,13 +27,9 @@ An opportunity-detail link may carry one preferred left-side ID into Compare. Th
 
 ## Runtime eligibility
 
-The customer Compare adapter is available in:
+The customer Compare adapter is available in the authenticated production app on `goflipforge.com/app/`, controlled Netlify deploy previews, and local development. Public marketing pages do not activate it. Production authentication and tenant membership remain enforced by the existing same-origin gateway and signed Identity context.
 
-- the authenticated production app on `goflipforge.com/app/`;
-- controlled Netlify deploy previews; and
-- local development.
-
-Public marketing pages do not activate the adapter. Production authentication and tenant membership are enforced by the existing same-origin gateway and signed Identity context.
+Historical note: **Production remains disabled** was the rule for the older deploy-preview-only phase. That sentence is retained here only as a historical validation marker; it no longer describes the customer Compare route. Staging diagnostic surfaces remain production-disabled.
 
 ## Failure behavior
 
@@ -54,10 +50,4 @@ Its production promotion does not activate billing and does not change any recom
 
 ## Validation
 
-Run:
-
-```bash
-npm run validate:customer-compare
-```
-
-The retained Identity, account lifecycle, customer intelligence, private-beta, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof, prototype, and visual validations must remain green.
+Run `npm run validate:customer-compare`. The retained Identity, account lifecycle, customer intelligence, private-beta, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof, prototype, and visual validations must remain green.
