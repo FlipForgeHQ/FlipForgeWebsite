@@ -49,7 +49,7 @@ check("029 bridge prefers production adapter when eligible", bridge.includes("if
 check("030 bridge retains preview adapter", bridge.includes("previewAdapter.render(main)") && bridge.includes("previewAdapter.isEligible"));
 check("031 preview adapter still retains checkout code", preview.includes('const CHECKOUT_PATH = "/api/v1/billing/paddle/checkout"'));
 check("032 preview adapter remains preview constrained", preview.includes("PREVIEW_HOST") && preview.includes("deploy-preview"));
-check("033 gateway still allowlists entitlement reads", gateway.includes("/api/v1/entitlements"));
+check("033 gateway still allowlists entitlement reads", /method:\s*"GET"[\s\S]{0,100}entitlements/.test(gateway));
 check("034 core plan still defers Paddle until Beta Complete", plan.includes("Paddle checkout") && plan.includes("deferred until"));
 check("035 production account introduces no transaction controls", !/Place bid|Buy now|Pay now|Accept offer|Create listing|Upgrade now/i.test(account));
 
