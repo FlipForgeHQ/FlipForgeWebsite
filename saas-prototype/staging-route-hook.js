@@ -3,6 +3,7 @@
 
   const adapter = window.FlipForgeStagingReadAdapter;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
+  const opportunitiesAdapter = window.FlipForgeCustomerOpportunities;
   const compareAdapter = window.FlipForgeCustomerCompare;
   const lifecycleAdapter = window.FlipForgeCustomerLifecycle;
   const managementAdapter = window.FlipForgeCustomerManagement;
@@ -52,130 +53,145 @@
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
+  function diagnosticEligible(candidate) {
+    if (!candidate) return false;
+    if (typeof candidate.isDiagnosticEligible === "function") return candidate.isDiagnosticEligible();
+    return typeof candidate.isEligible === "function" && candidate.isEligible();
+  }
+
+  function renderDiagnosticUnavailable(title, copy) {
+    main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Unavailable route</span><h1>${title}</h1><p>${copy}</p></div></header><div class="boundary-note"><strong>Diagnostic boundary:</strong> Production customer routes remain available, but staging diagnostics stay restricted to deploy previews and local development.</div></div>`;
+    focusMain();
+  }
+
   function applyRoute() {
     const [route, id = ""] = routeParts();
-    if (route !== "staging") {
-      if (route !== "staging-evaluate") {
-        if (route === "discover"
-            && discoveryAdapter
-            && typeof discoveryAdapter.render === "function"
-            && discoveryAdapter.isEligible()) {
-          showDiscoveryBanner();
-          discoveryAdapter.render(main);
-          focusMain();
-          return;
-        }
-        if (route === "evaluate"
-            && evaluationAdapter
-            && typeof evaluationAdapter.renderCustomer === "function"
-            && evaluationAdapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          evaluationAdapter.renderCustomer(main);
-          focusMain();
-          return;
-        }
-        if (route === "dashboard"
-            && adapter
-            && typeof adapter.renderCustomerDashboard === "function"
-            && adapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          adapter.renderCustomerDashboard(main);
-          focusMain();
-          return;
-        }
-        if (route === "opportunities"
-            && adapter
-            && typeof adapter.renderCustomer === "function"
-            && adapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          adapter.renderCustomer(main, id);
-          focusMain();
-          return;
-        }
-        if (route === "compare"
-            && compareAdapter
-            && typeof compareAdapter.render === "function"
-            && compareAdapter.isEligible()) {
-          const preferredLeftId = window.FlipForgeCompareRouteState
-            && typeof window.FlipForgeCompareRouteState.consumePendingLeftId === "function"
-            ? window.FlipForgeCompareRouteState.consumePendingLeftId()
-            : "";
-          showCustomerIntelligenceBanner();
-          compareAdapter.render(main, preferredLeftId || "");
-          focusMain();
-          return;
-        }
-        if (route === "portfolio"
-            && portfolioAdapter
-            && typeof portfolioAdapter.render === "function"
-            && portfolioAdapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          portfolioAdapter.render(main);
-          focusMain();
-          return;
-        }
-        if (route === "account"
-            && entitlementsAdapter
-            && typeof entitlementsAdapter.render === "function"
-            && entitlementsAdapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          entitlementsAdapter.render(main);
-          focusMain();
-          return;
-        }
-        if (lifecycleAdapter
-            && typeof lifecycleAdapter.handles === "function"
-            && lifecycleAdapter.handles(route)
-            && typeof lifecycleAdapter.render === "function"
-            && lifecycleAdapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          lifecycleAdapter.render(main, route, id);
-          focusMain();
-          return;
-        }
-        if (managementAdapter
-            && typeof managementAdapter.handles === "function"
-            && managementAdapter.handles(route)
-            && typeof managementAdapter.render === "function"
-            && managementAdapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          managementAdapter.render(main, route, id);
-          focusMain();
-          return;
-        }
-        if (exportAdapter
-            && typeof exportAdapter.handles === "function"
-            && exportAdapter.handles(route)
-            && typeof exportAdapter.render === "function"
-            && exportAdapter.isEligible()) {
-          showCustomerIntelligenceBanner();
-          exportAdapter.render(main, id);
-          focusMain();
-          return;
-        }
-        restoreBanner();
-        return;
-      }
-    }
-
-    if (route === "staging") {
-      showStagingBanner();
-      if (!adapter || typeof adapter.render !== "function") {
-        main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Data</h1><p>The deploy-preview read adapter did not load.</p></div></header></div>`;
+    if (route !== "staging" && route !== "staging-evaluate") {
+      if (route === "discover"
+          && discoveryAdapter
+          && typeof discoveryAdapter.render === "function"
+          && discoveryAdapter.isEligible()) {
+        showDiscoveryBanner();
+        discoveryAdapter.render(main);
         focusMain();
         return;
       }
+      if (route === "evaluate"
+          && evaluationAdapter
+          && typeof evaluationAdapter.renderCustomer === "function"
+          && evaluationAdapter.isEligible()) {
+        showCustomerIntelligenceBanner();
+        evaluationAdapter.renderCustomer(main);
+        focusMain();
+        return;
+      }
+      if (route === "opportunities"
+          && opportunitiesAdapter
+          && typeof opportunitiesAdapter.render === "function"
+          && opportunitiesAdapter.isEligible()) {
+        showCustomerIntelligenceBanner();
+        opportunitiesAdapter.render(main, id);
+        focusMain();
+        return;
+      }
+      if (route === "dashboard"
+          && adapter
+          && typeof adapter.renderCustomerDashboard === "function"
+          && adapter.isEligible()) {
+        showCustomerIntelligenceBanner();
+        adapter.renderCustomerDashboard(main);
+        focusMain();
+        return;
+      }
+      if (route === "compare"
+          && compareAdapter
+          && typeof compareAdapter.render === "function"
+          && compareAdapter.isEligible()) {
+        const preferredLeftId = window.FlipForgeCompareRouteState
+          && typeof window.FlipForgeCompareRouteState.consumePendingLeftId === "function"
+          ? window.FlipForgeCompareRouteState.consumePendingLeftId()
+          : "";
+        showCustomerIntelligenceBanner();
+        compareAdapter.render(main, preferredLeftId || "");
+        focusMain();
+        return;
+      }
+      if (route === "portfolio"
+          && portfolioAdapter
+          && typeof portfolioAdapter.render === "function"
+          && portfolioAdapter.isEligible()) {
+        showCustomerIntelligenceBanner();
+        portfolioAdapter.render(main);
+        focusMain();
+        return;
+      }
+      if (route === "account"
+          && entitlementsAdapter
+          && typeof entitlementsAdapter.render === "function"
+          && entitlementsAdapter.isEligible()) {
+        showCustomerIntelligenceBanner();
+        entitlementsAdapter.render(main);
+        focusMain();
+        return;
+      }
+      if (lifecycleAdapter
+          && typeof lifecycleAdapter.handles === "function"
+          && lifecycleAdapter.handles(route)
+          && typeof lifecycleAdapter.render === "function"
+          && lifecycleAdapter.isEligible()) {
+        showCustomerIntelligenceBanner();
+        lifecycleAdapter.render(main, route, id);
+        focusMain();
+        return;
+      }
+      if (managementAdapter
+          && typeof managementAdapter.handles === "function"
+          && managementAdapter.handles(route)
+          && typeof managementAdapter.render === "function"
+          && managementAdapter.isEligible()) {
+        showCustomerIntelligenceBanner();
+        managementAdapter.render(main, route, id);
+        focusMain();
+        return;
+      }
+      if (exportAdapter
+          && typeof exportAdapter.handles === "function"
+          && exportAdapter.handles(route)
+          && typeof exportAdapter.render === "function"
+          && exportAdapter.isEligible()) {
+        showCustomerIntelligenceBanner();
+        exportAdapter.render(main, id);
+        focusMain();
+        return;
+      }
+      restoreBanner();
+      return;
+    }
+
+    if (route === "staging") {
+      if (!adapter || typeof adapter.render !== "function") {
+        renderDiagnosticUnavailable("Staging Data", "The deploy-preview read adapter did not load.");
+        return;
+      }
+      if (!diagnosticEligible(adapter)) {
+        renderDiagnosticUnavailable("Staging Data", "This read diagnostic is restricted to deploy previews and local development.");
+        return;
+      }
+      showStagingBanner();
       adapter.render(main, id);
       focusMain();
       return;
     }
 
-    showEvaluationBanner();
     if (!evaluationAdapter || typeof evaluationAdapter.render !== "function") {
-      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Evaluation</h1><p>The deploy-preview evaluation adapter did not load.</p></div></header></div>`;
-      focusMain();
+      renderDiagnosticUnavailable("Staging Evaluation", "The deploy-preview evaluation adapter did not load.");
       return;
     }
+    if (!diagnosticEligible(evaluationAdapter)) {
+      renderDiagnosticUnavailable("Staging Evaluation", "This write diagnostic is restricted to deploy previews and local development.");
+      return;
+    }
+    showEvaluationBanner();
     evaluationAdapter.render(main);
     focusMain();
   }
