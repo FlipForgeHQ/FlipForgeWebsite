@@ -117,27 +117,23 @@ function runtime({ hostname = "deploy-preview-40--goflipforge.netlify.app", path
   const main = { innerHTML: "", querySelector() { return null; }, querySelectorAll() { return []; } };
   return { window, calls, main };
 }
-const settle = () => new Promise(resolve => setTimeout(resolve, 35));
 
 const preview = runtime();
 check("047 preview app eligible", preview.window.FlipForgeCustomerDiscovery.isEligible());
-check("048 preview Discover render activates", preview.window.FlipForgeCustomerDiscovery.render(preview.main) === true);
-await settle();
+check("048 preview Discover render activates", await preview.window.FlipForgeCustomerDiscovery.render(preview.main) === true);
 check("049 initial Discover render reads health only", preview.calls.length === 1 && preview.calls[0].url === "/api/v1/health");
 check("050 preview uses hardened same-origin health read", preview.calls.every(call => call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
 
 const production = runtime({ hostname: "goflipforge.com", pathname: "/app/" });
 check("051 production app eligible", production.window.FlipForgeCustomerDiscovery.isEligible());
-check("052 production Discover render activates", production.window.FlipForgeCustomerDiscovery.render(production.main) === true);
-await settle();
+check("052 production Discover render activates", await production.window.FlipForgeCustomerDiscovery.render(production.main) === true);
 check("053 production reads health through same-origin gateway", production.calls.length === 1 && production.calls[0].url === "/api/v1/health");
 
 const marketing = runtime({ hostname: "goflipforge.com", pathname: "/" });
 check("054 public marketing path ineligible", marketing.window.FlipForgeCustomerDiscovery.isEligible() === false);
 
 const disabled = runtime({ healthStatus: "disabled" });
-disabled.window.FlipForgeCustomerDiscovery.render(disabled.main);
-await settle();
+await disabled.window.FlipForgeCustomerDiscovery.render(disabled.main);
 check("055 disabled gateway stays health-only", disabled.calls.length === 1);
 check("056 disabled gateway renders no fake candidates", /safely offline/i.test(disabled.main.innerHTML) && !disabled.main.innerHTML.includes(candidate.title));
 
