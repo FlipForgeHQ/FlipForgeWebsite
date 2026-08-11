@@ -1,0 +1,104 @@
+.customer-metric-help {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.customer-supported-value-note {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(226, 189, 66, 0.2);
+}
+
+.customer-supported-value-note strong,
+.customer-supported-value-note span {
+  text-align: left;
+}
+
+.customer-supported-value-note strong {
+  font-size: 0.82rem;
+}
+
+.customer-supported-value-note span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.customer-intelligence-explainer {
+  border-color: rgba(226, 189, 66, 0.26);
+  background:
+    linear-gradient(145deg, rgba(226, 189, 66, 0.06), rgba(255, 255, 255, 0.012)),
+    var(--surface);
+}
+
+.customer-intelligence-explainer .panel-header p {
+  max-width: 760px;
+}
+
+.customer-intelligence-explainer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.customer-intelligence-explainer-grid article {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.customer-intelligence-explainer-grid article > span {
+  color: var(--gold);
+  font-size: 0.71rem;
+  font-weight: 900;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.customer-intelligence-explainer-grid article > strong {
+  color: var(--text-primary);
+}
+
+.customer-intelligence-explainer-grid article > p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.customer-intelligence-explainer > footer {
+  padding: 0 18px 18px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .customer-intelligence-explainer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .customer-intelligence-explainer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-intelligence-explainer *,
+  .customer-metric-help,
+  .customer-supported-value-note {
+    transition: none !important;
+  }
+}
