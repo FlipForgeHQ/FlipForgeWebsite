@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "saas-prototype/**"
+      - "scripts/build-identity-client.mjs"
       - "scripts/audit-saas-layout-ci.mjs"
       - "scripts/audit-saas-layout.mjs"
       - "scripts/check-saas-layout-report.mjs"
@@ -13,6 +14,7 @@ on:
       - main
     paths:
       - "saas-prototype/**"
+      - "scripts/build-identity-client.mjs"
       - "scripts/audit-saas-layout-ci.mjs"
       - "scripts/audit-saas-layout.mjs"
       - "scripts/check-saas-layout-report.mjs"
@@ -24,7 +26,7 @@ permissions:
 
 jobs:
   visual-layout-audit:
-    name: Audit SaaS routes at desktop tablet and mobile widths
+    name: Audit built SaaS routes at desktop tablet and mobile widths
     runs-on: ubuntu-24.04
     timeout-minutes: 12
 
@@ -40,17 +42,20 @@ jobs:
       - name: Install website dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Build production app assets
+        run: npm run build:identity
+
       - name: Install Playwright for browser QA
         run: |
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Start local SaaS preview
+      - name: Start local SaaS preview at production app path
         run: |
           node saas-prototype/serve.mjs > /tmp/flipforge-saas-layout-server.log 2>&1 &
           echo $! > /tmp/flipforge-saas-layout-server.pid
           for attempt in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
               exit 0
             fi
             sleep 1
@@ -62,7 +67,7 @@ jobs:
         continue-on-error: true
         run: node scripts/audit-saas-layout-ci.mjs
 
-      - name: Gate actionable layout failures
+      - name: Gate actionable layout and Dashboard semantic failures
         run: node scripts/check-saas-layout-report.mjs
 
       - name: Upload layout audit report
