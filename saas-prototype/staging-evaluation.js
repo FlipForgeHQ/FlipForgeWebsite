@@ -227,14 +227,14 @@
     const text = await response.text();
     if (text.length > MAX_RESPONSE_CHARACTERS) {
       const error = new Error("The evaluation response exceeded the browser safety limit.");
-      error.code = "EVALUATION_RESPONSE_TOO_LARGE";
+      error.code = customerSurface() ? "EVALUATION_RESPONSE_TOO_LARGE" : "STAGING_RESPONSE_TOO_LARGE";
       throw error;
     }
     try {
       return text ? JSON.parse(text) : {};
     } catch (_) {
       const error = new Error("The evaluation gateway returned invalid JSON.");
-      error.code = "EVALUATION_INVALID_JSON";
+      error.code = customerSurface() ? "EVALUATION_INVALID_JSON" : "STAGING_INVALID_JSON";
       throw error;
     }
   }
@@ -278,7 +278,7 @@
     }
     if (!validEnvelope(responsePayload, requestCorrelationId, idempotencyKey)) {
       const error = new Error("The evaluation response failed the FlipForge authority and tenant-ownership contract.");
-      error.code = "EVALUATION_CONTRACT_INVALID";
+      error.code = customerSurface() ? "EVALUATION_CONTRACT_INVALID" : "STAGING_EVALUATION_CONTRACT_INVALID";
       throw error;
     }
     return responsePayload;
@@ -431,7 +431,7 @@
     currentSurface = "staging";
     currentMain = main;
     if (!diagnosticEligibleHost()) {
-      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Unavailable route</span><h1>Staging Evaluation</h1><p>This write diagnostic is restricted to deploy previews and local development.</p></div></header><div class="boundary-note">Production customer evaluation is available only through the authenticated Evaluate route.</div></div>`;
+      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Unavailable route</span><h1>Staging Evaluation</h1><p>This write diagnostic is restricted to deploy previews and local development and cannot submit evaluations on production.</p></div></header><div class="boundary-note">Production customer evaluation is available only through the authenticated Evaluate route.</div></div>`;
       return;
     }
     renderCurrent();
