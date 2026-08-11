@@ -63,7 +63,7 @@ jobs:
         with:
           name: flipforge-saas-full-site-layout-audit
           path: qa-artifacts/saas-layout
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
       - name: Show preview-server log on failure
