@@ -1,0 +1,35 @@
+/* Customer-readable lifecycle form validation. Server-side lifecycle rules remain authoritative. */
+.customer-lifecycle-validation {
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(238, 106, 117, .5);
+  border-left: 4px solid var(--red, #ee6a75);
+  border-radius: 4px;
+  background: rgba(238, 106, 117, .07);
+}
+
+.customer-lifecycle-validation strong {
+  display: block;
+  color: #ff8b96;
+  font-size: 1rem;
+  letter-spacing: .02em;
+}
+
+.customer-lifecycle-validation p {
+  margin: 7px 0 5px;
+  color: var(--text, #fff);
+  line-height: 1.5;
+}
+
+.customer-lifecycle-validation small {
+  color: var(--muted, #8b8f98);
+}
+
+.customer-lifecycle-form [aria-invalid="true"] {
+  border-color: var(--red, #ee6a75) !important;
+  box-shadow: 0 0 0 3px rgba(238, 106, 117, .12);
+}
+
+.customer-lifecycle-form [aria-invalid="true"]:focus {
+  outline-color: var(--red, #ee6a75);
+}
