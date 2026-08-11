@@ -31,7 +31,7 @@ const coreAdapters = [discovery, evaluation, opportunities, compare, lifecycle, 
 
 check("001 locked completion plan exists", exists("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md") && plan.includes("LOCKED PRODUCT PRIORITY"));
 check("002 live Beta Complete QA checklist exists", exists("docs/SAAS_BETA_COMPLETE_LIVE_QA.md") && liveQa.includes("LIVE PROOF REQUIRED"));
-check("003 live QA explicitly says CI alone is insufficient", liveQa.includes("does not by itself declare FlipForge Beta Complete"));
+check("003 live QA explicitly says CI alone is insufficient", liveQa.includes("green static/CI gate is a prerequisite") && liveQa.includes("Beta Complete requires one controlled"));
 check("004 live QA requires signed-in production session", liveQa.includes("signed-in production customer session") && liveQa.includes("goflipforge.com/app/"));
 check("005 live QA contains all ten numbered workflow steps", Array.from({ length: 10 }, (_, index) => `## ${index + 1}.`).every(marker => liveQa.includes(marker)));
 check("006 final decision requires exact main commit CI", liveQa.includes("exact `main` commit") && liveQa.includes("SaaS Beta Complete Gate"));
@@ -68,7 +68,7 @@ check("033 lifecycle requires disposition facts for sold state", lifecycle.inclu
 check("034 lifecycle keeps append-only history visible", lifecycle.includes("append-only") && lifecycle.includes("Lifecycle history"));
 check("035 alerts disclose external delivery boundary", lifecycle.includes("notificationDeliveryConfigured") && lifecycle.includes("Email / push"));
 check("036 portfolio refuses invented current value", lifecycle.includes("does not invent current value") || lifecycle.includes("Current value") && lifecycle.includes("Not calculated"));
-check("037 compare does not invent a winner", compare.includes("winner") ? /no invented winner|does not choose|without an invented winner/i.test(compare) : true);
+check("037 compare does not invent a winner", compare.includes("No browser-side score or winner is created") && compare.includes("does not rerank, rescore, or select a winner"));
 check("038 customer management retains evidence/PSA/sell boundaries", ["evidence", "psa-advisor", "sell"].every(route => management.includes(route)));
 check("039 Decision Dossier requires complete export", exportAdapter.includes("complete: true") && exportAdapter.includes("partialExport: false"));
 check("040 production Plan & Usage is read-only", account.includes("readOnly") && account.includes("Production payment controls are intentionally absent"));
