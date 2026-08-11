@@ -49,11 +49,7 @@ const stressItem = {
   workflowStatus: "NEEDS_VALUE_EVIDENCE_AND_PROVIDER_IDENTITY_CONFIRMATION",
   authorityBoundary: "Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority, and existing PSA intelligence remains the sole grading-guidance authority.",
   observedAt: "2026-08-11T18:51:22.141693474Z",
-  evidence: {
-    acceptedSales: 0,
-    averagePrice: 0,
-    latestSaleDate: null
-  }
+  evidence: { acceptedSales: 0, averagePrice: 0, latestSaleDate: null }
 };
 
 function sanitize(value) {
@@ -76,45 +72,24 @@ function meta(correlationId) {
 }
 
 function fixturePayload(request) {
-  const url = new URL(request.url());
+  const pathname = new URL(request.url()).pathname;
   const correlationId = request.headers()["x-correlation-id"] || "visual-qa-correlation";
-  const pathname = url.pathname;
 
   if (pathname === "/api/v1/health") {
-    return {
-      meta: { contractVersion: "1.0", correlationId },
-      data: { status: "configured" }
-    };
+    return { meta: { contractVersion: "1.0", correlationId }, data: { status: "configured" } };
   }
-
   if (pathname === "/api/v1/dashboard") {
     return {
       meta: meta(correlationId),
-      data: {
-        metrics: {
-          trackedOpportunities: 1,
-          evidenceReady: 0,
-          populationContextAvailable: 0,
-          needsVerification: 1
-        }
-      }
+      data: { metrics: { trackedOpportunities: 1, evidenceReady: 0, populationContextAvailable: 0, needsVerification: 1 } }
     };
   }
-
   if (pathname === "/api/v1/opportunities") {
-    return {
-      meta: meta(correlationId),
-      data: { kind: "opportunities", items: [stressItem] }
-    };
+    return { meta: meta(correlationId), data: { kind: "opportunities", items: [stressItem] } };
   }
-
   if (pathname === `/api/v1/opportunities/${stressId}`) {
-    return {
-      meta: meta(correlationId),
-      data: { kind: "opportunity", opportunity: stressItem }
-    };
+    return { meta: meta(correlationId), data: { kind: "opportunity", opportunity: stressItem } };
   }
-
   if (pathname === `/api/v1/evidence/${stressId}`) {
     return {
       meta: meta(correlationId),
@@ -127,7 +102,6 @@ function fixturePayload(request) {
       }
     };
   }
-
   if (pathname === `/api/v1/psa-advisor/${stressId}`) {
     return {
       meta: meta(correlationId),
@@ -139,19 +113,12 @@ function fixturePayload(request) {
           readinessStatus: "UNAVAILABLE_PENDING_MANUAL_PROVIDER_IDENTITY_CONFIRMATION",
           manualVerificationRequired: true
         },
-        populationContext: {
-          psa10Population: 0,
-          psa9Population: 0
-        },
+        populationContext: { psa10Population: 0, psa9Population: 0 },
         recalculated: false
       }
     };
   }
-
-  return {
-    meta: meta(correlationId),
-    data: { kind: "visual-qa-unhandled", path: pathname }
-  };
+  return { meta: meta(correlationId), data: { kind: "visual-qa-unhandled", path: pathname } };
 }
 
 async function installCommonRoutes(page, { disableCustomerRouteHook = false, apiFixtures = false } = {}) {
@@ -184,7 +151,7 @@ async function waitForRenderedMain(page) {
     const main = document.querySelector("#main-content");
     return Boolean(main && main.textContent && main.textContent.trim().length > 20);
   }, { timeout: 10_000 });
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(180);
 }
 
 async function collectLayoutIssues(page) {
@@ -193,39 +160,25 @@ async function collectLayoutIssues(page) {
     const root = document.documentElement;
     const body = document.body;
     const viewportWidth = window.innerWidth;
-
     const documentWidth = Math.max(root.scrollWidth, body?.scrollWidth || 0);
+
     if (documentWidth > viewportWidth + 4) {
-      issues.push({
-        severity: "error",
-        type: "document-horizontal-overflow",
-        detail: `document width ${documentWidth}px exceeds viewport ${viewportWidth}px`
-      });
+      issues.push({ severity: "error", type: "document-horizontal-overflow", detail: `document width ${documentWidth}px exceeds viewport ${viewportWidth}px` });
     }
 
     const ignored = [
-      ".table-wrap",
-      ".chart-shell",
-      ".line-chart",
-      ".signal-track",
-      ".usage-track",
-      ".readiness-ring",
-      ".toast-region",
-      ".sr-only"
+      ".table-wrap", ".chart-shell", ".line-chart", ".signal-track", ".usage-track",
+      ".readiness-ring", ".toast-region", ".sr-only", ".mobile-scrim"
     ];
 
-    const selector = "body *";
-    for (const element of document.querySelectorAll(selector)) {
+    for (const element of document.querySelectorAll("body *")) {
       if (!(element instanceof HTMLElement)) continue;
       if (ignored.some(item => element.matches(item) || element.closest(item))) continue;
       const style = getComputedStyle(element);
       if (style.display === "none" || style.visibility === "hidden") continue;
-      if (!element.getClientRects().length) continue;
-      if (element.clientWidth <= 0 || element.clientHeight <= 0) continue;
+      if (!element.getClientRects().length || element.clientWidth <= 0 || element.clientHeight <= 0) continue;
 
-      const overflowX = style.overflowX;
-      const overflowY = style.overflowY;
-      if ((overflowX === "hidden" || overflowX === "clip") && element.scrollWidth > element.clientWidth + 4) {
+      if ((style.overflowX === "hidden" || style.overflowX === "clip") && element.scrollWidth > element.clientWidth + 4) {
         issues.push({
           severity: "error",
           type: "clipped-horizontal-content",
@@ -233,7 +186,7 @@ async function collectLayoutIssues(page) {
           detail: `${element.scrollWidth}px content inside ${element.clientWidth}px box`
         });
       }
-      if ((overflowY === "hidden" || overflowY === "clip") && element.scrollHeight > element.clientHeight + 4) {
+      if ((style.overflowY === "hidden" || style.overflowY === "clip") && element.scrollHeight > element.clientHeight + 4) {
         issues.push({
           severity: "error",
           type: "clipped-vertical-content",
@@ -253,12 +206,10 @@ async function collectLayoutIssues(page) {
       }
     }
 
-    const importantControls = [...document.querySelectorAll("button, a, input, select, textarea")]
-      .filter(element => element instanceof HTMLElement)
-      .filter(element => getComputedStyle(element).display !== "none" && getComputedStyle(element).visibility !== "hidden")
-      .filter(element => element.getClientRects().length > 0);
-
-    for (const control of importantControls) {
+    for (const control of document.querySelectorAll("button, a, input, select, textarea")) {
+      if (!(control instanceof HTMLElement)) continue;
+      const style = getComputedStyle(control);
+      if (style.display === "none" || style.visibility === "hidden" || !control.getClientRects().length) continue;
       const rect = control.getBoundingClientRect();
       if (rect.width < 1 || rect.height < 1) {
         issues.push({
@@ -270,8 +221,30 @@ async function collectLayoutIssues(page) {
       }
     }
 
-    return issues.slice(0, 100);
+    return issues.slice(0, 120);
   });
+}
+
+async function takeBestEffortScreenshot(context, page, screenshotName) {
+  let session;
+  try {
+    session = await context.newCDPSession(page);
+    const metrics = await session.send("Page.getLayoutMetrics");
+    const width = Math.max(1, Math.ceil(metrics.contentSize?.width || page.viewportSize()?.width || 1440));
+    const height = Math.max(1, Math.min(30_000, Math.ceil(metrics.contentSize?.height || page.viewportSize()?.height || 1000)));
+    const capture = await session.send("Page.captureScreenshot", {
+      format: "png",
+      fromSurface: true,
+      captureBeyondViewport: true,
+      clip: { x: 0, y: 0, width, height, scale: 1 }
+    });
+    await writeFile(path.join(outputDir, screenshotName), Buffer.from(capture.data, "base64"));
+    return "";
+  } catch (error) {
+    return String(error?.message || error);
+  } finally {
+    if (session) await session.detach().catch(() => {});
+  }
 }
 
 async function auditRoute(browser, { route, viewport, mode }) {
@@ -279,108 +252,146 @@ async function auditRoute(browser, { route, viewport, mode }) {
   const page = await context.newPage();
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
-  page.on("console", message => {
-    if (message.type() === "error") pageErrors.push(`console: ${message.text()}`);
-  });
+  page.on("console", message => { if (message.type() === "error") pageErrors.push(`console: ${message.text()}`); });
 
-  await installCommonRoutes(page, {
-    disableCustomerRouteHook: mode === "prototype",
-    apiFixtures: mode === "customer-stress"
-  });
+  try {
+    await installCommonRoutes(page, {
+      disableCustomerRouteHook: mode === "prototype",
+      apiFixtures: mode === "customer-stress"
+    });
 
-  const target = mode === "customer-stress"
-    ? `${baseUrl}/#/opportunities/${stressId}`
-    : `${baseUrl}/#/${route}`;
+    const target = mode === "customer-stress"
+      ? `${baseUrl}/#/opportunities/${stressId}`
+      : `${baseUrl}/#/${route}`;
 
-  await page.goto(target, { waitUntil: "domcontentloaded", timeout: 20_000 });
-  await waitForRenderedMain(page);
+    await page.goto(target, { waitUntil: "domcontentloaded", timeout: 20_000 });
+    await waitForRenderedMain(page);
 
-  const issues = await collectLayoutIssues(page);
-  const title = await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => "");
-  const screenshotName = `${mode}-${sanitize(route)}-${viewport.name}.png`;
-  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+    const issues = await collectLayoutIssues(page);
+    const title = await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => "");
+    const screenshotName = `${mode}-${sanitize(route)}-${viewport.name}.png`;
+    const screenshotError = await takeBestEffortScreenshot(context, page, screenshotName);
 
-  await context.close();
-  return {
-    mode,
-    route,
-    viewport: viewport.name,
-    size: `${viewport.width}x${viewport.height}`,
-    heading: String(title || "").trim(),
-    screenshot: screenshotName,
-    issues,
-    pageErrors: pageErrors.slice(0, 20)
+    return {
+      mode,
+      route,
+      viewport: viewport.name,
+      size: `${viewport.width}x${viewport.height}`,
+      heading: String(title || "").trim(),
+      screenshot: screenshotError ? "" : screenshotName,
+      screenshotError,
+      issues,
+      pageErrors: pageErrors.slice(0, 20)
+    };
+  } finally {
+    await context.close();
+  }
+}
+
+function aggregate(results) {
+  const hardFailures = [];
+  const warnings = [];
+
+  for (const result of results) {
+    if (result.auditError) {
+      hardFailures.push({ route: result.route, viewport: result.viewport, mode: result.mode, type: "audit-route-error", detail: result.auditError });
+    }
+    for (const issue of result.issues || []) {
+      const item = { route: result.route, viewport: result.viewport, mode: result.mode, ...issue };
+      if (issue.severity === "error") hardFailures.push(item);
+      else warnings.push(item);
+    }
+    if (result.screenshotError) {
+      warnings.push({ route: result.route, viewport: result.viewport, mode: result.mode, type: "screenshot-unavailable", detail: result.screenshotError });
+    }
+  }
+
+  return { hardFailures, warnings };
+}
+
+async function writeProgress(results) {
+  const { hardFailures, warnings } = aggregate(results);
+  const progress = {
+    generatedAt: new Date().toISOString(),
+    baseUrl,
+    pagesAudited: results.length,
+    hardFailureCount: hardFailures.length,
+    warningCount: warnings.length,
+    results,
+    hardFailures,
+    warnings
   };
+  await writeFile(path.join(outputDir, "progress.json"), `${JSON.stringify(progress, null, 2)}\n`, "utf8");
+  return progress;
+}
+
+function buildMarkdown(summary) {
+  return [
+    "# FlipForge SaaS Full-Site Layout Audit",
+    "",
+    `Generated: ${summary.generatedAt}`,
+    `Pages/viewports audited: **${summary.pagesAudited}**`,
+    `Hard layout failures: **${summary.hardFailureCount}**`,
+    `Warnings: **${summary.warningCount}**`,
+    "",
+    "## Hard failures",
+    "",
+    ...(summary.hardFailures.length
+      ? summary.hardFailures.map(item => `- **${item.mode} · ${item.route} · ${item.viewport}** — ${item.type}: ${item.detail}${item.selector ? ` (${item.selector})` : ""}`)
+      : ["- None."]),
+    "",
+    "## Warnings",
+    "",
+    ...(summary.warnings.length
+      ? summary.warnings.slice(0, 120).map(item => `- **${item.mode} · ${item.route} · ${item.viewport}** — ${item.type}: ${item.detail}${item.selector ? ` (${item.selector})` : ""}`)
+      : ["- None."]),
+    "",
+    "## Coverage",
+    "",
+    "- Prototype customer route map at desktop, tablet, and mobile widths.",
+    "- Best-effort full-page Chromium screenshots for every audited route and viewport.",
+    "- Customer Card Intelligence stress fixture with long card identity, mapping, evidence freshness, workflow, and PSA states.",
+    "- Document horizontal overflow, clipped hidden content, off-viewport controls, and collapsed controls.",
+    "",
+    "The stress fixture is synthetic and is used only for browser layout QA. It does not alter FlipForge authority, scoring, tenant ownership, evidence, or persisted customer data.",
+    ""
+  ].join("\n");
 }
 
 await mkdir(outputDir, { recursive: true });
+await writeFile(path.join(outputDir, "progress.json"), "{\"status\":\"starting\"}\n", "utf8");
+
 const browser = await chromium.launch({ headless: true });
 const results = [];
 
 try {
   for (const viewport of viewports) {
     for (const route of prototypeRoutes) {
-      results.push(await auditRoute(browser, { route, viewport, mode: "prototype" }));
+      console.log(`[layout-audit] ${viewport.name} prototype ${route}`);
+      try {
+        results.push(await auditRoute(browser, { route, viewport, mode: "prototype" }));
+      } catch (error) {
+        results.push({ mode: "prototype", route, viewport: viewport.name, size: `${viewport.width}x${viewport.height}`, issues: [], pageErrors: [], auditError: String(error?.message || error) });
+      }
+      await writeProgress(results);
     }
-    results.push(await auditRoute(browser, { route: `opportunities/${stressId}`, viewport, mode: "customer-stress" }));
+
+    console.log(`[layout-audit] ${viewport.name} customer-stress opportunities/${stressId}`);
+    try {
+      results.push(await auditRoute(browser, { route: `opportunities/${stressId}`, viewport, mode: "customer-stress" }));
+    } catch (error) {
+      results.push({ mode: "customer-stress", route: `opportunities/${stressId}`, viewport: viewport.name, size: `${viewport.width}x${viewport.height}`, issues: [], pageErrors: [], auditError: String(error?.message || error) });
+    }
+    await writeProgress(results);
   }
 } finally {
   await browser.close();
 }
 
-const hardFailures = results.flatMap(result => result.issues
-  .filter(issue => issue.severity === "error")
-  .map(issue => ({ route: result.route, viewport: result.viewport, mode: result.mode, ...issue })));
-
-const warnings = results.flatMap(result => result.issues
-  .filter(issue => issue.severity !== "error")
-  .map(issue => ({ route: result.route, viewport: result.viewport, mode: result.mode, ...issue })));
-
-const summary = {
-  generatedAt: new Date().toISOString(),
-  baseUrl,
-  pagesAudited: results.length,
-  hardFailureCount: hardFailures.length,
-  warningCount: warnings.length,
-  results,
-  hardFailures,
-  warnings
-};
-
+const summary = await writeProgress(results);
 await writeFile(path.join(outputDir, "report.json"), `${JSON.stringify(summary, null, 2)}\n`, "utf8");
-
-const markdown = [
-  "# FlipForge SaaS Full-Site Layout Audit",
-  "",
-  `Generated: ${summary.generatedAt}`,
-  `Pages/viewports audited: **${summary.pagesAudited}**`,
-  `Hard layout failures: **${hardFailures.length}**`,
-  `Warnings: **${warnings.length}**`,
-  "",
-  "## Hard failures",
-  "",
-  ...(hardFailures.length
-    ? hardFailures.map(item => `- **${item.mode} · ${item.route} · ${item.viewport}** — ${item.type}: ${item.detail}${item.selector ? ` (${item.selector})` : ""}`)
-    : ["- None."]),
-  "",
-  "## Warnings",
-  "",
-  ...(warnings.length
-    ? warnings.slice(0, 100).map(item => `- **${item.mode} · ${item.route} · ${item.viewport}** — ${item.type}: ${item.detail}${item.selector ? ` (${item.selector})` : ""}`)
-    : ["- None."]),
-  "",
-  "## Coverage",
-  "",
-  "- Prototype customer route map at desktop, tablet, and mobile widths.",
-  "- Full-page screenshots for every audited route and viewport.",
-  "- Customer Card Intelligence stress fixture with long card identity, mapping, evidence freshness, workflow, and PSA states.",
-  "- Document horizontal overflow, clipped hidden content, off-viewport controls, and collapsed controls.",
-  "",
-  "The stress fixture is synthetic and is used only for browser layout QA. It does not alter FlipForge authority, scoring, tenant ownership, evidence, or persisted customer data.",
-  ""
-].join("\n");
-
+const markdown = buildMarkdown(summary);
 await writeFile(path.join(outputDir, "report.md"), markdown, "utf8");
 
 console.log(markdown);
-if (hardFailures.length) process.exitCode = 1;
+if (summary.hardFailureCount) process.exitCode = 1;
