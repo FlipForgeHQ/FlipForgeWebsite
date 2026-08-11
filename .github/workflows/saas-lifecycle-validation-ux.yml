@@ -1,0 +1,36 @@
+name: SaaS Lifecycle Validation UX
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/customer-lifecycle-validation.js"
+      - "saas-prototype/customer-lifecycle-validation.css"
+      - "saas-prototype/index.html"
+      - "scripts/validate-lifecycle-validation-ux.mjs"
+      - ".github/workflows/saas-lifecycle-validation-ux.yml"
+  push:
+    branches: [main]
+    paths:
+      - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/customer-lifecycle-validation.js"
+      - "saas-prototype/customer-lifecycle-validation.css"
+      - "saas-prototype/index.html"
+      - "scripts/validate-lifecycle-validation-ux.mjs"
+      - ".github/workflows/saas-lifecycle-validation-ux.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-lifecycle-guidance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate lifecycle guidance rules
+        run: node scripts/validate-lifecycle-validation-ux.mjs
