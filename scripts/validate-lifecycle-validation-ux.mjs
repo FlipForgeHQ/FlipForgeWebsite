@@ -3,8 +3,10 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const scriptPath = "saas-prototype/customer-lifecycle-validation.js";
+const displayPath = "saas-prototype/customer-lifecycle-display.js";
 const indexPath = "saas-prototype/index.html";
 const source = fs.readFileSync(scriptPath, "utf8");
+const displaySource = fs.readFileSync(displayPath, "utf8");
 const index = fs.readFileSync(indexPath, "utf8");
 
 const listeners = [];
@@ -83,7 +85,32 @@ assert.match(source, /event\.preventDefault\(\)/);
 assert.match(source, /event\.stopImmediatePropagation\(\)/);
 assert.match(source, /Nothing was saved/);
 assert.match(source, /aria-invalid/);
+
+const displayDocument = {
+  querySelector() { return null; },
+  getElementById() { return null; },
+  addEventListener() {}
+};
+const displayWindow = {};
+vm.runInNewContext(displaySource, {
+  document: displayDocument,
+  window: displayWindow,
+  MutationObserver: undefined,
+  String,
+  console
+});
+assert.ok(displayWindow.FlipForgeLifecycleDisplay, "lifecycle display normalizer should be available");
+assert.equal(
+  displayWindow.FlipForgeLifecycleDisplay.normalizeCardDisplay("2018 Topps Chrome Shohei Ohtani %150 PSA 10"),
+  "2018 Topps Chrome Shohei Ohtani #150 PSA 10"
+);
+assert.equal(
+  displayWindow.FlipForgeLifecycleDisplay.normalizeCardDisplay("2018 Topps Chrome Shohei Ohtani #150 PSA 10"),
+  "2018 Topps Chrome Shohei Ohtani #150 PSA 10"
+);
+
 assert.match(index, /customer-lifecycle-validation\.css/);
 assert.match(index, /customer-lifecycle\.js[\s\S]*customer-lifecycle-validation\.js/);
+assert.match(index, /customer-lifecycle-validation\.js[\s\S]*customer-lifecycle-display\.js/);
 
 console.log("Lifecycle validation UX PASS");
