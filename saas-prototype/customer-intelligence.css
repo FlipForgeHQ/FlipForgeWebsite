@@ -188,6 +188,37 @@
   align-items: start;
 }
 
+.customer-intelligence-grid .panel-header {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.customer-intelligence-grid .panel-header > div {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.customer-intelligence-grid .panel-header .staging-status {
+  flex: 0 1 auto;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
+.customer-intelligence-page .staging-key-grid > div {
+  min-width: 0;
+}
+
+.customer-intelligence-page .staging-key-grid strong {
+  min-width: 0;
+  font-size: clamp(0.92rem, 1.15vw, 1.08rem);
+  line-height: 1.28;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 .customer-traceback {
   display: grid;
   gap: 0;
@@ -278,6 +309,12 @@
 
   .customer-contract-panel .panel-body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .customer-intelligence-page .staging-key-grid {
+    grid-template-columns: 1fr;
   }
 }
 
