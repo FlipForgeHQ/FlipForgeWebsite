@@ -5,7 +5,9 @@
   const EXPORT_SCHEMA_VERSION = "1.0";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const FIXED_PATHS = new Set(["/api/v1/health", "/api/v1/opportunities"]);
 
   const state = {
@@ -22,8 +24,14 @@
     notice: ""
   };
 
+  function productionHost() {
+    return PRODUCTION_HOST.test(String(window.location.hostname || ""));
+  }
+
   function eligibleHost() {
-    return PREVIEW_HOST.test(String(window.location.hostname || ""));
+    const host = String(window.location.hostname || "");
+    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
+      && APP_PATH.test(String(window.location.pathname || ""));
   }
 
   function handles(route) {
@@ -315,7 +323,7 @@
   function errorPanel() {
     if (!state.error) return "";
     const signIn = state.error.status === 401
-      ? `<a class="button button-primary" href="/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fexport">Sign in securely</a>`
+      ? `<a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fexport" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fexport"}">Sign in securely</a>`
       : "";
     return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(state.error.code || "EXPORT_UNAVAILABLE")}</strong><p>${escapeHtml(state.error.message || "The decision dossier could not be prepared.")}</p><small>No partial export or browser-stored fallback was created.</small>${signIn}</div></section>`;
   }
@@ -342,7 +350,7 @@
       return `<div class="page customer-export-page"><header class="page-heading"><div><span class="eyebrow">Audit-safe customer export</span><h1>Decision Dossier</h1><p>Loading the complete tenant-owned source set without a mock fallback.</p></div></header><div class="staging-loading" role="status">Loading authoritative export sources…</div></div>`;
     }
     if (state.health?.data?.status !== "configured" && !state.error) {
-      return `<div class="page customer-export-page"><header class="page-heading"><div><span class="eyebrow">Audit-safe customer export</span><h1>Decision Dossier</h1><p>Prepared for a controlled tenant-scoped private-beta session.</p></div></header><section class="panel"><div class="panel-body staging-empty"><strong>Decision export is safely offline.</strong><p>The preview bridge is disabled, so no tenant data was read and no sample dossier was created.</p></div></section></div>`;
+      return `<div class="page customer-export-page"><header class="page-heading"><div><span class="eyebrow">Audit-safe customer export</span><h1>Decision Dossier</h1><p>Prepared for a controlled tenant-scoped private-beta session.</p></div></header><section class="panel"><div class="panel-body staging-empty"><strong>Decision export is safely offline.</strong><p>The customer gateway is disabled, so no tenant data was read and no sample dossier was created.</p></div></section></div>`;
     }
     if (state.error) {
       return `<div class="page customer-export-page"><header class="page-heading"><div><span class="eyebrow">Audit-safe customer export</span><h1>Decision Dossier unavailable</h1><p>The complete source contract failed, so no export controls are available.</p></div></header>${errorPanel()}</div>`;

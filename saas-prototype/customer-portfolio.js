@@ -3,7 +3,9 @@
 
   const CONTRACT_VERSION = "1.0";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
   const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities"]);
   const REFERENCE_METHOD = "AVERAGE_ACCEPTED_EXACT_COMPLETED_SALES";
@@ -17,8 +19,14 @@
     error: null
   };
 
+  function productionHost() {
+    return PRODUCTION_HOST.test(String(window.location.hostname || ""));
+  }
+
   function eligibleHost() {
-    return PREVIEW_HOST.test(String(window.location.hostname || ""));
+    const host = String(window.location.hostname || "");
+    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
+      && APP_PATH.test(String(window.location.pathname || ""));
   }
 
   function escapeHtml(value) {
@@ -235,13 +243,13 @@
 
   function errorPanel(error) {
     const signIn = error?.status === 401
-      ? `<div class="customer-portfolio-actions"><a class="button button-primary" href="/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fportfolio">Sign in securely</a></div>`
+      ? `<div class="customer-portfolio-actions"><a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fportfolio" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fportfolio"}">Sign in securely</a></div>`
       : "";
     return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "PORTFOLIO_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "Portfolio context is unavailable.")}</p><small>No browser-invented value or performance was substituted.</small>${signIn}</div></section>`;
   }
 
   function offlinePanel() {
-    return `<section class="panel"><div class="panel-body staging-empty"><strong>This private-beta Portfolio is safely offline.</strong><p>The preview bridge is disabled, so no tenant request was attempted and no sample holding or value was substituted.</p></div></section>`;
+    return `<section class="panel"><div class="panel-body staging-empty"><strong>This private-beta Portfolio is safely offline.</strong><p>The customer gateway is disabled, so no tenant request was attempted and no sample holding or value was substituted.</p></div></section>`;
   }
 
   function referenceStatus(reference) {

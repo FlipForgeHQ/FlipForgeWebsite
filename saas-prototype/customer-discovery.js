@@ -9,7 +9,9 @@
   const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/;
   const SAFE_OPPORTUNITY_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
   const SAFE_REQUEST_ID = /^[A-Za-z0-9._-]{8,100}$/;
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const MARKETPLACES = new Set(["EBAY", "COMC", "MYSLABS", "GOLDIN", "HERITAGE", "FANATICS_COLLECT", "DEALER", "CARD_SHOW", "FACEBOOK_GROUP", "OTHER"]);
   const DECISIONS = new Set(["BUY", "WATCH", "VERIFY", "PASS"]);
 
@@ -26,7 +28,9 @@
   };
 
   function eligibleHost() {
-    return PREVIEW_HOST.test(String(window.location.hostname || ""));
+    const host = String(window.location.hostname || "");
+    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
+      && APP_PATH.test(String(window.location.pathname || ""));
   }
 
   function escapeHtml(value) {
