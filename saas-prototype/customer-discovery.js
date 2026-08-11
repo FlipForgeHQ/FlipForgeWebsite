@@ -6,7 +6,7 @@
   const EVALUATION_PATH = "/api/v1/evaluations";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const MAX_COST_CENTS = 10_000_000_000;
-  const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/;
+  const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:|\-]{0,199}$/;
   const SAFE_OPPORTUNITY_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
   const SAFE_REQUEST_ID = /^[A-Za-z0-9._-]{8,100}$/;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
