@@ -1,0 +1,29 @@
+name: eBay Browse Discover evaluation ID
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/customer-discovery.js"
+      - "scripts/validate-ebay-browse-discover-evaluation-id.mjs"
+      - ".github/workflows/ebay-browse-discover-evaluation-id.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/customer-discovery.js"
+      - "scripts/validate-ebay-browse-discover-evaluation-id.mjs"
+      - ".github/workflows/ebay-browse-discover-evaluation-id.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate official eBay Browse item ID handoff
+        run: node scripts/validate-ebay-browse-discover-evaluation-id.mjs
