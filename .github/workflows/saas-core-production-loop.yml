@@ -1,0 +1,35 @@
+name: SaaS Core Production Loop
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/index.html"
+      - "saas-prototype/staging-evaluation.js"
+      - "saas-prototype/customer-opportunities.js"
+      - "saas-prototype/customer-opportunities-bridge.js"
+      - "saas-prototype/customer-discovery.js"
+      - "saas-prototype/customer-compare.js"
+      - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/customer-management.js"
+      - "saas-prototype/customer-portfolio.js"
+      - "saas-prototype/customer-export.js"
+      - "saas-prototype/staging-route-hook.js"
+      - "netlify/functions/flipforge-api.js"
+      - "scripts/validate-saas-core-production-loop.mjs"
+      - ".github/workflows/saas-core-production-loop.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-production-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate production customer loop
+        run: node scripts/validate-saas-core-production-loop.mjs
