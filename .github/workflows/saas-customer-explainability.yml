@@ -1,0 +1,40 @@
+name: SaaS Customer Explainability
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer-opportunities.js"
+      - "saas-prototype/customer-explainability.js"
+      - "saas-prototype/customer-explainability.css"
+      - "scripts/validate-saas-customer-explainability.mjs"
+      - ".github/workflows/saas-customer-explainability.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer-opportunities.js"
+      - "saas-prototype/customer-explainability.js"
+      - "saas-prototype/customer-explainability.css"
+      - "scripts/validate-saas-customer-explainability.mjs"
+      - ".github/workflows/saas-customer-explainability.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate customer intelligence explainability
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Parse explainability browser JavaScript
+        run: node --check saas-prototype/customer-explainability.js
+      - name: Validate customer intelligence explainability
+        run: node scripts/validate-saas-customer-explainability.mjs
