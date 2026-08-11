@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This phase connects the existing customer `#/compare` route to the authoritative tenant-scoped Compare API. It compares saved records already owned by the signed-in tenant; it does not create another recommendation engine, comparison database, watchlist, or scoring layer.
+This phase connects the customer `#/compare` route to the authoritative tenant-scoped Compare API. It compares saved records already owned by the signed-in tenant; it does not create another recommendation engine, comparison database, watchlist, or scoring layer.
 
 ## Customer flow
 
@@ -23,25 +23,34 @@ An opportunity-detail link may carry one preferred left-side ID into Compare. Th
 - The customer browser does not rerank, rescore, select a winner, accept evidence, or predict a grade.
 - A same-identity response is labeled explicitly. Different exact identities are disclosed as decision context, not interchangeable comp evidence.
 - Active asks remain discovery context and never become completed-sale evidence.
-- No provider call, provider credential, billing, bid, checkout, payment, purchase, listing, sale, or production activation is added.
+- No provider call, provider credential, billing, bid, checkout, payment, purchase, listing, sale, or transaction authority is added.
+
+## Runtime eligibility
+
+The customer Compare adapter is available in:
+
+- the authenticated production app on `goflipforge.com/app/`;
+- controlled Netlify deploy previews; and
+- local development.
+
+Public marketing pages do not activate the adapter. Production authentication and tenant membership are enforced by the existing same-origin gateway and signed Identity context.
 
 ## Failure behavior
 
-- The route is available only on eligible deploy previews and local development.
-- A disabled bridge produces a safely offline state and makes no tenant data request.
+- A disabled customer gateway produces a safely offline state and makes no tenant data request.
 - Authentication and membership failures remain explicit.
 - Invalid, duplicated, missing, or cross-tenant IDs fail closed.
 - The browser accepts only contract-valid, correlated authority envelopes.
 - A response that does not contain the two requested records in order is rejected.
 - No mock comparison is substituted after any failure.
 
-## Beta status
+## Core-platform status
 
-The real customer loop is now:
+Direct Comparison is part of the production private-beta customer loop:
 
-`Evaluate → Card Intelligence → Decision Traceback → Direct Comparison → Track`
+`Discover → Evaluate → Card Intelligence → Decision Traceback → Direct Comparison → Track`
 
-Dashboard, provider-backed Discover, Portfolio, Sell, and Alerts remain sample-backed until separate authoritative customer sources are connected. Production remains disabled.
+Its production promotion does not activate billing and does not change any recommendation, evidence, grading, or transaction authority.
 
 ## Validation
 
