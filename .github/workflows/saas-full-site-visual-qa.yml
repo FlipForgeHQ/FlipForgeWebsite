@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "saas-prototype/**"
+      - "scripts/audit-saas-layout-ci.mjs"
       - "scripts/audit-saas-layout.mjs"
       - ".github/workflows/saas-full-site-visual-qa.yml"
   push:
@@ -11,6 +12,7 @@ on:
       - main
     paths:
       - "saas-prototype/**"
+      - "scripts/audit-saas-layout-ci.mjs"
       - "scripts/audit-saas-layout.mjs"
       - ".github/workflows/saas-full-site-visual-qa.yml"
   workflow_dispatch:
@@ -55,9 +57,9 @@ jobs:
           exit 1
 
       - name: Run full-site layout audit
-        run: node scripts/audit-saas-layout.mjs
+        run: node scripts/audit-saas-layout-ci.mjs
 
-      - name: Upload screenshots and audit report
+      - name: Upload layout audit report
         if: always()
         uses: actions/upload-artifact@v4
         with:
