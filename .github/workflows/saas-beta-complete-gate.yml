@@ -61,6 +61,7 @@ jobs:
       - name: Validate primary customer intelligence routes
         run: |
           npm run validate:customer-discovery
+          npm run validate:cardsight-evidence-visibility
           npm run validate:customer-intelligence
           npm run validate:customer-dashboard
           npm run validate:commercial-dashboard-live-qa
