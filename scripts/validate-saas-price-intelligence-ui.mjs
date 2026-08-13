@@ -24,6 +24,12 @@ const checks = [
   ["failed safety contract is visible instead of silently rendered", js.includes("SAFETY_CONTRACT_NOT_SATISFIED") && js.includes("did not satisfy FlipForge's read-only safety contract")],
   ["unavailable state does not invent thresholds", js.includes("No WATCH or BUY threshold was invented")],
   ["no threshold fabrication is disclosed", js.includes("FlipForge does not invent a threshold")],
+  ["reconciliation metadata is consumed", js.includes("savedRecommendationReproduced") && js.includes("historicalSavedDecisionPreserved") && js.includes("currentEvidenceReconciled")],
+  ["historical mismatch requires explicit server evidence", js.includes("snapshot.historicalSavedDecisionPreserved === true") && js.includes("snapshot.savedRecommendationReproduced === false")],
+  ["saved and current decisions are labeled separately", js.includes("Saved historical decision") && js.includes("Current reproducible decision")],
+  ["historical decision is not silently rewritten", js.includes("FlipForge does not rewrite the saved record") && js.includes("Historical snapshot only")],
+  ["traceback is visibly marked historical when not reproducible", js.includes("Saved Decision Traceback") && js.includes("SAVED ${snapshot.savedRecommendation}")],
+  ["current decision-support boundary is updated", js.includes("Current reproducible decision: ${snapshot.currentRecommendation}") && js.includes("current decision-support state")],
   ["panel has an accessibility label", js.includes('aria-label="Counterfactual price intelligence"')],
   ["responsive price grid exists", css.includes("@media (max-width: 760px)") && css.includes("grid-template-columns: 1fr")]
 ];
