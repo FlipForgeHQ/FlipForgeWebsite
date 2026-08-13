@@ -1,0 +1,42 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const source = fs.readFileSync(path.join(root, "netlify/modern-functions/bulk-evaluate.js"), "utf8");
+const results = [];
+const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
+
+check("001 GET-only page endpoint", source.includes('event.httpMethod !== "GET"'));
+check("002 response is HTML", source.includes('"Content-Type": "text/html; charset=utf-8"'));
+check("003 response is no-store", source.includes('"Cache-Control": "no-store"'));
+check("004 batch limit is 25", source.includes("MAX_ROWS=25"));
+check("005 CSV upload is present", source.includes('type="file"') && source.includes('accept=".csv,text/csv"'));
+check("006 template download is present", source.includes("flipforge-bulk-evaluate-template.csv"));
+check("007 fixed authoritative endpoint", source.includes('ENDPOINT="/api/v1/evaluations"'));
+check("008 POST uses same-origin credentials", source.includes('method:"POST"') && source.includes('credentials:"same-origin"'));
+check("009 caching disabled for writes", source.includes('cache:"no-store"'));
+check("010 redirects refused", source.includes('redirect:"error"'));
+check("011 correlation header is sent", source.includes('"X-Correlation-Id":correlation'));
+check("012 idempotency header is sent", source.includes('"Idempotency-Key":requestId'));
+check("013 browser does not set Authorization", !source.includes('"Authorization"'));
+check("014 browser does not set tenant header", !/X-FlipForge-Tenant-Id/i.test(source));
+check("015 Smart Opportunity authority required", source.includes('meta.authority!=="Smart Opportunity"'));
+check("016 existing PSA authority required", source.includes('meta.gradingAuthority!=="Existing PSA intelligence"'));
+check("017 SQLite persistence required", source.includes("d.persistedToSqlite!==true"));
+check("018 tenant ownership required", source.includes("d.tenantOwned!==true"));
+check("019 no transaction authority required", source.includes("d.transactionAuthorized!==false"));
+check("020 isolation default deny required", source.includes('isolation.defaultAccess!=="DENY"'));
+check("021 decision states bounded", source.includes('new Set(["BUY","WATCH","VERIFY","PASS"])'));
+check("022 money converts to integer cents", source.includes("BigInt(p[0])*100n"));
+check("023 HTTP(S) URLs only", source.includes('["http:","https:"]'));
+check("024 required columns enforced", ["externalListingId", "cardIdentity", "listingUrl", "itemPrice"].every(key => source.includes(`\"${key}\"`)));
+check("025 sequential evaluation", source.includes("for(const r of rows)") && source.includes("await submit(r)"));
+check("026 completed batch cannot rerun", source.includes("running||completed") && source.includes("completed=!rows.some"));
+check("027 auth/quota stop statuses", source.includes("[401,403,429].includes(e.status)"));
+check("028 user acknowledgment required", source.includes("!ack.checked"));
+
+const failed = results.filter(result => !result.passed);
+for (const result of results) console.log(`${result.passed ? "PASS" : "FAIL"} ${result.name}`);
+console.log(`\nBulk Evaluate endpoint validation: ${results.length - failed.length}/${results.length} passed.`);
+if (failed.length) process.exitCode = 1;

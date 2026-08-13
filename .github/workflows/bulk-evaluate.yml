@@ -1,0 +1,27 @@
+name: Bulk Evaluate
+
+on:
+  pull_request:
+    paths:
+      - "netlify/modern-functions/bulk-evaluate.js"
+      - "scripts/validate-saas-bulk-evaluate-endpoint.mjs"
+      - ".github/workflows/bulk-evaluate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax check
+        run: node --check netlify/modern-functions/bulk-evaluate.js
+      - name: Validate Bulk Evaluate boundary
+        run: node scripts/validate-saas-bulk-evaluate-endpoint.mjs
