@@ -12,6 +12,11 @@
     return Number.isSafeInteger(number) && number >= 0 ? number : null;
   }
 
+  function safeDecision(value) {
+    const decision = String(value || "").trim().toUpperCase();
+    return SAFE_DECISION.test(decision) ? decision : "";
+  }
+
   function cleanText(value, max = 180) {
     return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, max);
   }
@@ -45,9 +50,9 @@
 
   function normalizeTransition(value) {
     if (!value || typeof value !== "object") return null;
-    const recommendation = String(value.recommendation || "").toUpperCase();
+    const recommendation = safeDecision(value.recommendation);
     const allInAskCents = safeInteger(value.allInAskCents);
-    if (!SAFE_DECISION.test(recommendation) || allInAskCents === null) return null;
+    if (!recommendation || allInAskCents === null) return null;
     if (value.derivedByReevaluation !== true) return null;
     return {
       recommendation,
@@ -60,9 +65,9 @@
     const opportunityId = cleanText(opportunity?.id, 200);
     if (!SAFE_ID.test(opportunityId) || !raw || typeof raw !== "object") return null;
 
-    const currentRecommendation = String(raw.currentRecommendation || opportunity?.recommendation || "").toUpperCase();
+    const currentRecommendation = safeDecision(raw.currentRecommendation || opportunity?.recommendation);
     const currentAllInAskCents = safeInteger(raw.currentAllInAskCents);
-    if (!SAFE_DECISION.test(currentRecommendation) || currentAllInAskCents === null) return null;
+    if (!currentRecommendation || currentAllInAskCents === null) return null;
     if (raw.readOnly !== true || raw.savedContextOnly !== true || raw.priceDimensionOnly !== true) return null;
     if (raw.canonicalWritesPerformed !== false || raw.evaluationQuotaConsumed !== false) return null;
     if (raw.outcomeLedgerMutation !== false || raw.customerLifecycleMutation !== false) return null;
@@ -75,6 +80,7 @@
     const thresholds = raw.thresholds && typeof raw.thresholds === "object" ? raw.thresholds : {};
     const watchAtOrBelowCents = safeInteger(thresholds.watchAtOrBelowCents ?? raw.watchAtOrBelowCents);
     const buyAtOrBelowCents = safeInteger(thresholds.buyAtOrBelowCents ?? raw.buyAtOrBelowCents);
+    const savedRecommendation = safeDecision(raw.savedRecommendation || opportunity?.recommendation);
 
     return {
       available: true,
@@ -82,6 +88,13 @@
       currentRecommendation,
       currentAllInAskCents,
       currentWorkflowStatus: cleanText(raw.currentWorkflowStatus || opportunity?.workflowStatus, 80),
+      savedRecommendation,
+      savedWorkflowStatus: cleanText(raw.savedWorkflowStatus || opportunity?.workflowStatus, 80),
+      savedRecommendationReproduced: raw.savedRecommendationReproduced !== false,
+      savedWorkflowReproduced: raw.savedWorkflowReproduced !== false,
+      historicalSavedDecisionPreserved: raw.historicalSavedDecisionPreserved === true,
+      currentEvidenceReconciled: raw.currentEvidenceReconciled === true,
+      currentGovernedAcceptedSales: safeInteger(raw.currentGovernedAcceptedSales),
       watchAtOrBelowCents,
       buyAtOrBelowCents,
       transitions,
@@ -92,11 +105,12 @@
   function unavailableSnapshot(opportunity, reason) {
     const opportunityId = cleanText(opportunity?.id, 200);
     if (!SAFE_ID.test(opportunityId)) return null;
-    const recommendation = String(opportunity?.recommendation || "").toUpperCase();
+    const recommendation = safeDecision(opportunity?.recommendation);
     return {
       available: false,
       opportunityId,
-      currentRecommendation: SAFE_DECISION.test(recommendation) ? recommendation : "",
+      currentRecommendation: recommendation,
+      savedRecommendation: recommendation,
       reason
     };
   }
@@ -147,7 +161,18 @@
     }
   }
 
+  function historicalMismatch(snapshot) {
+    return snapshot?.available === true
+      && snapshot.historicalSavedDecisionPreserved === true
+      && snapshot.savedRecommendationReproduced === false
+      && Boolean(snapshot.savedRecommendation)
+      && snapshot.savedRecommendation !== snapshot.currentRecommendation;
+  }
+
   function statusCopy(snapshot) {
+    if (historicalMismatch(snapshot)) {
+      return `The saved ${snapshot.savedRecommendation} is historical and is not reproducible from the current governed evidence. Current reproducible decision: ${snapshot.currentRecommendation}.`;
+    }
     if (snapshot.currentRecommendation === "VERIFY" && snapshot.transitions.length === 0) {
       return "Price alone cannot repair the missing identity or governed evidence required for this decision.";
     }
@@ -194,18 +219,33 @@
   function buildPanel(snapshot) {
     if (snapshot.available === false) return buildUnavailablePanel(snapshot);
 
+    const mismatch = historicalMismatch(snapshot);
     const ladder = snapshot.transitions.map(step =>
       `<span class="price-intelligence-step"><strong>${escapeHtml(step.recommendation)}</strong> at or below ${escapeHtml(money(step.allInAskCents))}</span>`
     ).join("");
 
+    const decisionMetrics = mismatch
+      ? [
+          metric("Saved historical decision", snapshot.savedRecommendation, snapshot.savedRecommendation),
+          metric("Current reproducible decision", snapshot.currentRecommendation, snapshot.currentRecommendation)
+        ]
+      : [];
     const metrics = [
+      ...decisionMetrics,
       metric("Current ask", money(snapshot.currentAllInAskCents)),
       metric("WATCH at or below", snapshot.watchAtOrBelowCents === null ? "Not reached" : money(snapshot.watchAtOrBelowCents), "WATCH"),
       metric("BUY at or below", snapshot.buyAtOrBelowCents === null ? "Not reached" : money(snapshot.buyAtOrBelowCents), "BUY")
     ].join("");
 
+    const reconciliation = mismatch
+      ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note><strong>Decision reconciliation:</strong> The saved ${escapeHtml(snapshot.savedRecommendation)} remains in history, but current governed evidence reproduces ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
+      : "";
+
     const signature = [
       snapshot.currentRecommendation,
+      snapshot.savedRecommendation || "x",
+      snapshot.savedRecommendationReproduced ? "saved-ok" : "saved-mismatch",
+      snapshot.currentEvidenceReconciled ? "evidence-reconciled" : "evidence-unchanged",
       snapshot.currentAllInAskCents,
       snapshot.watchAtOrBelowCents ?? "x",
       snapshot.buyAtOrBelowCents ?? "x",
@@ -224,12 +264,58 @@
           <span class="staging-status staging-status-neutral price-intelligence-status">CURRENT: ${escapeHtml(snapshot.currentRecommendation)}</span>
         </header>
         <div class="panel-body">
+          ${reconciliation}
           <div class="price-intelligence-grid">${metrics}</div>
           ${ladder ? `<div class="price-intelligence-ladder" aria-label="Lower-price decision ladder">${ladder}</div>` : `<p class="price-intelligence-unavailable">No lower-price decision transition is available from the existing authority.</p>`}
-          <p class="price-intelligence-boundary"><strong>Authority boundary:</strong> These thresholds come from rerunning Smart Opportunity at hypothetical prices while keeping the saved identity, evidence, confidence, liquidity, and risk context unchanged. They are decision support only and do not authorize a purchase, bid, offer, or payment.</p>
+          <p class="price-intelligence-boundary"><strong>Authority boundary:</strong> These thresholds come from rerunning Smart Opportunity at hypothetical prices while keeping the governed non-price context unchanged. They are decision support only and do not authorize a purchase, bid, offer, or payment.</p>
         </div>
       </section>`
     };
+  }
+
+  function reconcileHistoricalDisplay(snapshot) {
+    if (!historicalMismatch(snapshot)) return;
+
+    const summary = `Saved historical decision ${snapshot.savedRecommendation}. Current reproducible decision ${snapshot.currentRecommendation}.`;
+    const heroBadge = document.querySelector(".customer-intelligence-hero .customer-hero-title .staging-status");
+    if (heroBadge) {
+      heroBadge.textContent = `SAVED ${snapshot.savedRecommendation}`;
+      heroBadge.setAttribute("aria-label", summary);
+      heroBadge.setAttribute("title", summary);
+    }
+
+    const tracePanel = Array.from(document.querySelectorAll("#main-content section.panel")).find(section => {
+      const heading = section.querySelector(".panel-header h2");
+      return heading && /Decision Traceback$/.test(String(heading.textContent || "").trim());
+    });
+    if (tracePanel) {
+      const heading = tracePanel.querySelector(".panel-header h2");
+      if (heading) heading.textContent = "Saved Decision Traceback";
+      const traceBadge = tracePanel.querySelector(".panel-header .staging-status");
+      if (traceBadge) {
+        traceBadge.textContent = `SAVED ${snapshot.savedRecommendation}`;
+        traceBadge.setAttribute("aria-label", summary);
+      }
+      let note = tracePanel.querySelector("[data-history-reconciliation-note]");
+      if (!note) {
+        note = document.createElement("div");
+        note.className = "boundary-note";
+        note.dataset.historyReconciliationNote = "true";
+        const body = tracePanel.querySelector(".panel-body");
+        if (body) tracePanel.insertBefore(note, body);
+      }
+      if (note) {
+        note.textContent = `Historical snapshot only: ${snapshot.savedRecommendation} was saved previously. Current governed evidence now reproduces ${snapshot.currentRecommendation}; the saved record is not rewritten.`;
+      }
+    }
+
+    const boundary = document.querySelector(".customer-decision-boundary");
+    if (boundary) {
+      const heading = boundary.querySelector("h2");
+      if (heading) heading.textContent = `Current reproducible decision: ${snapshot.currentRecommendation}`;
+      const paragraph = boundary.querySelector("p");
+      if (paragraph) paragraph.textContent = `The saved ${snapshot.savedRecommendation} remains historical context. Current governed evidence does not reproduce it, so ${snapshot.currentRecommendation} is the current decision-support state.`;
+    }
   }
 
   function render() {
@@ -246,7 +332,10 @@
     const hero = document.querySelector("#main-content .customer-intelligence-hero");
     if (!hero) return;
     const built = buildPanel(snapshot);
-    if (existing?.dataset.priceIntelligenceSignature === built.signature) return;
+    if (existing?.dataset.priceIntelligenceSignature === built.signature) {
+      reconcileHistoricalDisplay(snapshot);
+      return;
+    }
 
     const holder = document.createElement("div");
     holder.innerHTML = built.markup;
@@ -257,6 +346,7 @@
     if (existing) existing.replaceWith(panel);
     else if (cardSightPanel) cardSightPanel.insertAdjacentElement("beforebegin", panel);
     else hero.insertAdjacentElement("afterend", panel);
+    reconcileHistoricalDisplay(snapshot);
   }
 
   function queueRender() {
