@@ -72,10 +72,12 @@
       ? raw.transitions.map(normalizeTransition).filter(Boolean)
       : [];
 
-    const watchAtOrBelowCents = safeInteger(raw.watchAtOrBelowCents);
-    const buyAtOrBelowCents = safeInteger(raw.buyAtOrBelowCents);
+    const thresholds = raw.thresholds && typeof raw.thresholds === "object" ? raw.thresholds : {};
+    const watchAtOrBelowCents = safeInteger(thresholds.watchAtOrBelowCents ?? raw.watchAtOrBelowCents);
+    const buyAtOrBelowCents = safeInteger(thresholds.buyAtOrBelowCents ?? raw.buyAtOrBelowCents);
 
     return {
+      available: true,
       opportunityId,
       currentRecommendation,
       currentAllInAskCents,
@@ -84,6 +86,18 @@
       buyAtOrBelowCents,
       transitions,
       thresholdCount: safeInteger(raw.thresholdCount) ?? transitions.length
+    };
+  }
+
+  function unavailableSnapshot(opportunity, reason) {
+    const opportunityId = cleanText(opportunity?.id, 200);
+    if (!SAFE_ID.test(opportunityId)) return null;
+    const recommendation = String(opportunity?.recommendation || "").toUpperCase();
+    return {
+      available: false,
+      opportunityId,
+      currentRecommendation: SAFE_DECISION.test(recommendation) ? recommendation : "",
+      reason
     };
   }
 
@@ -100,7 +114,15 @@
 
     const payload = await response.clone().json();
     const data = payload?.data;
-    const normalized = normalizePriceIntelligence(data?.opportunity, data?.priceIntelligence);
+    const opportunity = data?.opportunity;
+    const raw = data?.priceIntelligence;
+    const normalized = normalizePriceIntelligence(opportunity, raw)
+      || unavailableSnapshot(
+        opportunity,
+        raw && typeof raw === "object"
+          ? "SAFETY_CONTRACT_NOT_SATISFIED"
+          : "BACKEND_PRICE_INTELLIGENCE_NOT_RETURNED"
+      );
     if (!normalized) return;
     snapshots.set(requestedId, normalized);
     snapshots.set(normalized.opportunityId, normalized);
@@ -143,7 +165,35 @@
     return `<div class="price-intelligence-metric"${decisionAttribute}><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
   }
 
+  function buildUnavailablePanel(snapshot) {
+    const safetyRejected = snapshot.reason === "SAFETY_CONTRACT_NOT_SATISFIED";
+    const explanation = safetyRejected
+      ? "Price Intelligence was returned, but the response did not satisfy FlipForge's read-only safety contract. No threshold was displayed."
+      : "The current backend response did not return governed Price Intelligence for this saved opportunity. No WATCH or BUY threshold was invented.";
+    const signature = `UNAVAILABLE|${snapshot.reason}|${snapshot.currentRecommendation}`;
+    const current = snapshot.currentRecommendation ? `CURRENT: ${snapshot.currentRecommendation}` : "UNAVAILABLE";
+    return {
+      signature,
+      markup: `<section class="panel price-intelligence-panel" data-price-intelligence-panel data-price-intelligence-signature="${escapeHtml(signature)}" aria-label="Counterfactual price intelligence">
+        <header class="panel-header">
+          <div>
+            <span class="eyebrow">What changes the decision?</span>
+            <h2>Price Intelligence</h2>
+            <p>${escapeHtml(explanation)}</p>
+          </div>
+          <span class="staging-status staging-status-neutral price-intelligence-status">${escapeHtml(current)}</span>
+        </header>
+        <div class="panel-body">
+          <p class="price-intelligence-unavailable">Price thresholds remain unavailable until the authoritative backend returns a valid read-only counterfactual result.</p>
+          <p class="price-intelligence-boundary"><strong>Authority boundary:</strong> The browser does not calculate, infer, or repair missing BUY/WATCH/VERIFY/PASS intelligence.</p>
+        </div>
+      </section>`
+    };
+  }
+
   function buildPanel(snapshot) {
+    if (snapshot.available === false) return buildUnavailablePanel(snapshot);
+
     const ladder = snapshot.transitions.map(step =>
       `<span class="price-intelligence-step"><strong>${escapeHtml(step.recommendation)}</strong> at or below ${escapeHtml(money(step.allInAskCents))}</span>`
     ).join("");
