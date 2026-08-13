@@ -52,6 +52,17 @@
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
+  function addBulkEvaluateAction() {
+    const actions = main.querySelector(".page-actions");
+    if (!actions || actions.querySelector("[data-bulk-evaluate-link]")) return;
+    const link = document.createElement("a");
+    link.className = "button button-primary";
+    link.href = "/.netlify/functions/bulk-evaluate";
+    link.setAttribute("data-bulk-evaluate-link", "");
+    link.textContent = "Bulk Evaluate";
+    actions.prepend(link);
+  }
+
   function applyRoute() {
     const [route, id = ""] = routeParts();
     if (route !== "staging") {
@@ -71,6 +82,7 @@
             && evaluationAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
           evaluationAdapter.renderCustomer(main);
+          addBulkEvaluateAction();
           focusMain();
           return;
         }
