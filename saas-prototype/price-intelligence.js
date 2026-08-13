@@ -56,9 +56,8 @@
     };
   }
 
-  function normalizePriceIntelligence(opportunity) {
+  function normalizePriceIntelligence(opportunity, raw) {
     const opportunityId = cleanText(opportunity?.id, 200);
-    const raw = opportunity?.priceIntelligence;
     if (!SAFE_ID.test(opportunityId) || !raw || typeof raw !== "object") return null;
 
     const currentRecommendation = String(raw.currentRecommendation || opportunity?.recommendation || "").toUpperCase();
@@ -100,7 +99,8 @@
     if (!SAFE_ID.test(requestedId)) return;
 
     const payload = await response.clone().json();
-    const normalized = normalizePriceIntelligence(payload?.data?.opportunity);
+    const data = payload?.data;
+    const normalized = normalizePriceIntelligence(data?.opportunity, data?.priceIntelligence);
     if (!normalized) return;
     snapshots.set(requestedId, normalized);
     snapshots.set(normalized.opportunityId, normalized);
