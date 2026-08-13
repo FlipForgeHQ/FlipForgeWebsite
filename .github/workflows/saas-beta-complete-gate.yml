@@ -62,6 +62,7 @@ jobs:
         run: |
           npm run validate:customer-discovery
           npm run validate:cardsight-evidence-visibility
+          npm run validate:price-intelligence
           npm run validate:customer-intelligence
           npm run validate:customer-dashboard
           npm run validate:commercial-dashboard-live-qa

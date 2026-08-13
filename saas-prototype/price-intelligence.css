@@ -1,0 +1,91 @@
+.price-intelligence-panel {
+  margin-top: 1rem;
+}
+
+.price-intelligence-panel .panel-header {
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.price-intelligence-status {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.price-intelligence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .85rem;
+}
+
+.price-intelligence-metric {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+}
+
+.price-intelligence-metric span {
+  display: block;
+  margin-bottom: .35rem;
+  color: var(--muted, #8b8f98);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.price-intelligence-metric strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text, #fff);
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+}
+
+.price-intelligence-metric[data-decision="BUY"] strong {
+  color: #d4af37;
+}
+
+.price-intelligence-ladder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  margin-top: 1rem;
+}
+
+.price-intelligence-step {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .55rem .7rem;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 999px;
+  background: rgba(255,255,255,.035);
+  font-size: .82rem;
+}
+
+.price-intelligence-step strong {
+  color: #fff;
+}
+
+.price-intelligence-boundary,
+.price-intelligence-unavailable {
+  margin: 1rem 0 0;
+  color: var(--muted, #8b8f98);
+  line-height: 1.55;
+}
+
+.price-intelligence-boundary strong {
+  color: var(--text, #fff);
+}
+
+@media (max-width: 760px) {
+  .price-intelligence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .price-intelligence-status {
+    white-space: normal;
+  }
+}
