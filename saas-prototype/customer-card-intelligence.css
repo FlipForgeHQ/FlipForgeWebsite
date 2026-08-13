@@ -1,0 +1,96 @@
+.card-intelligence-assist {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(213, 173, 83, 0.32);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(213, 173, 83, 0.08), rgba(255, 255, 255, 0.025));
+}
+
+.card-intelligence-heading,
+.card-intelligence-result,
+.card-intelligence-inline,
+.card-intelligence-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-intelligence-heading > div,
+.card-intelligence-result > div {
+  display: grid;
+  gap: 4px;
+}
+
+.card-intelligence-heading strong {
+  font-size: 1.05rem;
+}
+
+.card-intelligence-heading small,
+.card-intelligence-result small,
+.card-intelligence-photo small {
+  color: var(--text-muted, #a9a9a9);
+  line-height: 1.45;
+}
+
+.card-intelligence-tabs {
+  flex-wrap: wrap;
+}
+
+.card-intelligence-search label,
+.card-intelligence-photo label {
+  display: grid;
+  gap: 8px;
+}
+
+.card-intelligence-inline input,
+.card-intelligence-photo input[type="file"] {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.34);
+  color: inherit;
+  padding: 11px 12px;
+}
+
+.card-intelligence-inline input {
+  flex: 1 1 320px;
+}
+
+.card-intelligence-results {
+  display: grid;
+  gap: 8px;
+}
+
+.card-intelligence-result {
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.card-intelligence-message {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.9rem;
+}
+
+.card-intelligence-error {
+  border: 1px solid rgba(255, 120, 120, 0.35);
+}
+
+@media (max-width: 720px) {
+  .card-intelligence-inline,
+  .card-intelligence-result {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .card-intelligence-result .button {
+    width: 100%;
+  }
+}
