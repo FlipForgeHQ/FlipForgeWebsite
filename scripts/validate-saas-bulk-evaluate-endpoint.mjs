@@ -36,6 +36,19 @@ check("026 completed batch cannot rerun", source.includes("running||completed") 
 check("027 auth/quota stop statuses", source.includes("[401,403,429].includes(e.status)"));
 check("028 user acknowledgment required", source.includes("!ack.checked"));
 
+check("029 Phase 7 proof version is locked", source.includes('PROOF_VERSION="FF_25_CARD_PROOF_V1"'));
+check("030 successful rows preserve authoritative request ids", source.includes('r.requestId=String(data.requestId||"")') && source.includes("d.requestId!==requestId"));
+check("031 proof export requires exactly 25 completed rows", source.includes('rows.length===25') && source.includes('r.status==="COMPLETE"'));
+check("032 proof sport allocation is pre-registered", source.includes('c.MLB===7') && source.includes('c.NFL===6') && source.includes('c.NBA===6') && source.includes('c.NHL===6'));
+check("033 Phase 7 template contains 7/6/6/6 slots", source.includes('Array(7).fill("MLB")') && source.includes('Array(6).fill("NFL")') && source.includes('Array(6).fill("NBA")') && source.includes('Array(6).fill("NHL")'));
+check("034 proof handoff is explicitly audit-only", source.includes('auditExportOnly:true') && source.includes('sourceOfTruth:"SQLITE"'));
+check("035 proof export carries authority locks", source.includes('accuracyClaimAuthorized:false') && source.includes('selfTrainingAuthority:false') && source.includes('transactionAuthority:false'));
+check("036 proof export never sends a proof cohort write", !source.includes('fetch("/api/v1/proof-cohorts') && !source.includes("fetch('/api/v1/proof-cohorts"));
+check("037 proof handoff does not expose tenant context", !source.includes('trusted-tenant-context') && !source.includes('tenantId:'));
+check("038 no browser persistence is introduced", !/localStorage|sessionStorage|indexedDB/i.test(source));
+check("039 customer wording avoids SQLite implementation detail in row status", source.includes('saved to FlipForge') && !source.includes('saved to SQLite'));
+check("040 Day-0 request ID is visible in results", source.includes("<th>Day-0 ID</th>") && source.includes('esc(r.requestId||"—")'));
+
 const failed = results.filter(result => !result.passed);
 for (const result of results) console.log(`${result.passed ? "PASS" : "FAIL"} ${result.name}`);
 console.log(`\nBulk Evaluate endpoint validation: ${results.length - failed.length}/${results.length} passed.`);
