@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="sidebar-edge-fix.css">
   <link rel="stylesheet" href="staging-browser.css">
   <link rel="stylesheet" href="staging-evaluation.css">
+  <link rel="stylesheet" href="customer-card-intelligence.css">
   <link rel="stylesheet" href="account-lifecycle.css">
   <link rel="stylesheet" href="customer-intelligence.css">
   <link rel="stylesheet" href="customer-explainability.css">
@@ -29,6 +30,8 @@
   <link rel="stylesheet" href="customer-lifecycle-validation.css">
   <link rel="stylesheet" href="customer-export.css">
   <link rel="stylesheet" href="customer-discovery.css">
+  <link rel="stylesheet" href="customer-forge-heat.css">
+  <link rel="stylesheet" href="consumer-pro-navigation.css">
   <link rel="stylesheet" href="cardsight-evidence-visibility.css">
   <link rel="stylesheet" href="price-intelligence.css">
   <link rel="stylesheet" href="customer-entitlements.css">
@@ -66,20 +69,26 @@
         <span class="prototype-chip">PRIVATE BETA</span>
       </div>
 
-      <nav class="primary-nav" aria-label="SaaS sections">
-        <a href="#/beta-start" data-route="beta-start"><span aria-hidden="true">✓</span>Getting Started</a>
+      <nav class="primary-nav" aria-label="Core FlipForge workflow">
         <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">▦</span>Dashboard</a>
         <a href="#/discover" data-route="discover"><span aria-hidden="true">⌕</span>Discover</a>
+        <a href="#/forge-heat" data-route="forge-heat"><span aria-hidden="true">🔥</span>Forge Heat <span class="forge-nav-pro">PRO</span></a>
         <a href="#/evaluate" data-route="evaluate"><span aria-hidden="true">◇</span>Evaluate</a>
         <a href="#/opportunities" data-route="opportunities"><span aria-hidden="true">↗</span>Opportunities</a>
         <a href="#/tracking" data-route="tracking"><span aria-hidden="true">◷</span>Tracking</a>
-        <a href="#/compare" data-route="compare"><span aria-hidden="true">⇄</span>Compare</a>
-        <a href="#/psa-advisor" data-route="psa-advisor"><span aria-hidden="true">A+</span>PSA Advisor</a>
-        <a href="#/evidence" data-route="evidence"><span aria-hidden="true">◎</span>Evidence</a>
         <a href="#/portfolio" data-route="portfolio"><span aria-hidden="true">◫</span>Portfolio</a>
-        <a href="#/sell" data-route="sell"><span aria-hidden="true">$</span>Sell</a>
         <a href="#/alerts" data-route="alerts"><span aria-hidden="true">!</span>Alerts</a>
-        <a href="#/export" data-route="export"><span aria-hidden="true">⇩</span>Audit Export</a>
+        <a href="#/beta-start" data-route="beta-start"><span aria-hidden="true">✓</span>Getting Started</a>
+        <details class="ff-advanced-nav">
+          <summary>Advanced analysis</summary>
+          <div class="ff-advanced-nav-links">
+            <a href="#/compare" data-route="compare"><span aria-hidden="true">⇄</span>Compare</a>
+            <a href="#/psa-advisor" data-route="psa-advisor"><span aria-hidden="true">A+</span>PSA Advisor</a>
+            <a href="#/evidence" data-route="evidence"><span aria-hidden="true">◎</span>Evidence</a>
+            <a href="#/sell" data-route="sell"><span aria-hidden="true">$</span>Exit Review</a>
+            <a href="#/export" data-route="export"><span aria-hidden="true">⇩</span>Audit Export</a>
+          </div>
+        </details>
         <a href="#/staging" data-route="staging" class="staging-only-nav" hidden><span aria-hidden="true">↯</span>Staging Data</a>
         <a href="#/staging-evaluate" data-route="staging-evaluate" class="staging-only-nav" hidden><span aria-hidden="true">◇</span>Staging Evaluate</a>
       </nav>
@@ -158,6 +167,7 @@
   <script src="staging-evaluation.js"></script>
   <script src="customer-opportunities.js"></script>
   <script src="customer-opportunities-bridge.js"></script>
+  <script src="customer-card-cockpit.js"></script>
   <script src="customer-explainability.js"></script>
   <script src="customer-compare.js"></script>
   <script src="customer-lifecycle.js"></script>
@@ -167,10 +177,12 @@
   <script src="customer-portfolio.js"></script>
   <script src="customer-export.js"></script>
   <script src="customer-discovery.js"></script>
+  <script src="customer-forge-heat.js"></script>
   <script src="customer-entitlements.js"></script>
   <script src="customer-account.js"></script>
   <script src="customer-account-bridge.js"></script>
   <script src="customer-billing-portal.js"></script>
+  <script src="customer-card-intelligence.js"></script>
   <script src="staging-route-hook.js"></script>
   <script src="account-lifecycle.js"></script>
   <script src="private-beta.js"></script>
