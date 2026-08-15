@@ -145,8 +145,10 @@ function ensurePerfectedBrandFavicon(html) {
 
 function ensurePerfectedBrandIdentity(html) {
   return html
-    .replaceAll('Signal. Confidence. Advantage.', 'Card Value Intelligence')
-    .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD VALUE INTELLIGENCE');
+    .replaceAll('Signal. Confidence. Advantage.', 'Card Intelligence')
+    .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD INTELLIGENCE')
+    .replaceAll('Card Value Intelligence', 'Card Intelligence')
+    .replaceAll('CARD VALUE INTELLIGENCE', 'CARD INTELLIGENCE');
 }
 
 // Keep the public website and the browser app connected without replacing the
@@ -181,7 +183,8 @@ for (const htmlPath of htmlFiles) {
 
   const failures = [];
   if (!html.includes('assets/brand/flipforge-mark.svg')) failures.push('approved header mark');
-  if (!html.includes('Card Value Intelligence')) failures.push('Card Value Intelligence identity line');
+  if (!html.includes('Card Intelligence')) failures.push('Card Intelligence identity line');
+  if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('perfected brand stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
   if (html.includes('Signal. Confidence. Advantage.')) failures.push('deprecated tagline removal');
