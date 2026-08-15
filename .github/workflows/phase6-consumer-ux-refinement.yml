@@ -1,0 +1,40 @@
+name: Phase 6 Consumer UX Refinement
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'saas-prototype/index.html'
+      - 'saas-prototype/consumer-ux-refinement.js'
+      - 'saas-prototype/consumer-ux-refinement.css'
+      - 'scripts/validate-consumer-ux-refinement.mjs'
+      - '.github/workflows/phase6-consumer-ux-refinement.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate customer-safe Phase 6 UX
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: node --check saas-prototype/consumer-ux-refinement.js
+      - name: Validate Phase 6 customer UX contract
+        run: node scripts/validate-consumer-ux-refinement.mjs
+      - name: Retain consumer navigation contract
+        run: node scripts/validate-consumer-pro-navigation.mjs
+      - name: Retain CardSight customer identity contract
+        run: node scripts/validate-cardsight-customer-intelligence.mjs
+      - name: Retain customer intelligence authority boundary
+        run: npm run validate:customer-intelligence
