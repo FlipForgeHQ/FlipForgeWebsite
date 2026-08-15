@@ -5,6 +5,7 @@ const DEFAULT_TIMEOUT_MS = 5000;
 const MAX_TIMEOUT_MS = 10000;
 const DEFAULT_MAX_RESPONSE_BYTES = 1_000_000;
 const DEFAULT_MAX_REQUEST_BYTES = 65_536;
+const CARD_INTELLIGENCE_IMAGE_REQUEST_BYTES = 5_750_000;
 const TENANT_HEADER = "X-FlipForge-Tenant-Id";
 const USER_HEADER = "X-FlipForge-User-Id";
 const IDEMPOTENCY_HEADER = "Idempotency-Key";
@@ -30,6 +31,10 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/entitlements$/ },
   { method: "POST", pattern: /^\/api\/v1\/discover$/ },
   { method: "POST", pattern: /^\/api\/v1\/evaluations$/ },
+  { method: "POST", pattern: /^\/api\/v1\/card-intelligence\/search$/ },
+  { method: "POST", pattern: /^\/api\/v1\/card-intelligence\/detect$/ },
+  { method: "POST", pattern: /^\/api\/v1\/card-intelligence\/identify$/ },
+  { method: "POST", pattern: /^\/api\/v1\/card-intelligence\/resolve$/ },
   { method: "POST", pattern: /^\/api\/v1\/billing\/paddle\/checkout$/ }
 ];
 
@@ -207,6 +212,11 @@ function routeAllowed(method, path) {
   return ROUTES.some(route => route.method === method && route.pattern.test(path));
 }
 
+function cardIntelligenceImagePath(path) {
+  return path === "/api/v1/card-intelligence/detect"
+    || path === "/api/v1/card-intelligence/identify";
+}
+
 function bridgeEnabled() {
   return String(process.env.FLIPFORGE_API_BRIDGE_ENABLED || "").toLowerCase() === "true";
 }
@@ -372,6 +382,9 @@ function healthPayload(correlationId) {
       checkoutIdempotencyRequired: true,
       paddleCheckoutGatewayRouteAllowed: true,
       paddleWebhookGatewayRouteAllowed: false,
+      cardIntelligenceRoutesAllowed: true,
+      cardIntelligencePhotoRequestLimitBytes: CARD_INTELLIGENCE_IMAGE_REQUEST_BYTES,
+      cardIntelligenceProviderCredentialBrowserExposed: false,
       productionPreviewBypassAllowed: false
     }
   };
@@ -521,11 +534,13 @@ exports.handler = async function handler(event, context) {
     );
   }
 
-  const maxRequestBytes = integerFromEnv(
-    "FLIPFORGE_API_MAX_REQUEST_BYTES",
-    DEFAULT_MAX_REQUEST_BYTES,
-    DEFAULT_MAX_REQUEST_BYTES
-  );
+  const maxRequestBytes = cardIntelligenceImagePath(path)
+    ? CARD_INTELLIGENCE_IMAGE_REQUEST_BYTES
+    : integerFromEnv(
+        "FLIPFORGE_API_MAX_REQUEST_BYTES",
+        DEFAULT_MAX_REQUEST_BYTES,
+        DEFAULT_MAX_REQUEST_BYTES
+      );
   const body = event && event.body ? String(event.body) : "";
   if (Buffer.byteLength(body, "utf8") > maxRequestBytes) {
     return jsonResponse(

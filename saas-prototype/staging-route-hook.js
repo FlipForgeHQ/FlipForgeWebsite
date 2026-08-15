@@ -3,6 +3,7 @@
 
   const adapter = window.FlipForgeStagingReadAdapter;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
+  const cardIntelligenceAdapter = window.FlipForgeCustomerCardIntelligence;
   const compareAdapter = window.FlipForgeCustomerCompare;
   const lifecycleAdapter = window.FlipForgeCustomerLifecycle;
   const managementAdapter = window.FlipForgeCustomerManagement;
@@ -83,6 +84,11 @@
             && evaluationAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
           evaluationAdapter.renderCustomer(main);
+          if (cardIntelligenceAdapter
+              && typeof cardIntelligenceAdapter.mount === "function"
+              && cardIntelligenceAdapter.isEligible()) {
+            cardIntelligenceAdapter.mount(main);
+          }
           addBulkEvaluateAction();
           focusMain();
           return;
