@@ -16,6 +16,7 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/health$/ },
   { method: "GET", pattern: /^\/api\/v1\/dashboard$/ },
   { method: "GET", pattern: /^\/api\/v1\/opportunities$/ },
+  { method: "GET", pattern: /^\/api\/v1\/forge-heat$/ },
   { method: "GET", pattern: /^\/api\/v1\/opportunities\/[A-Za-z0-9._:-]+$/ },
   { method: "GET", pattern: /^\/api\/v1\/compare$/ },
   { method: "GET", pattern: /^\/api\/v1\/psa-advisor\/[A-Za-z0-9._:-]+$/ },

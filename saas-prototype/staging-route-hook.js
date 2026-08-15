@@ -9,6 +9,7 @@
   const portfolioAdapter = window.FlipForgeCustomerPortfolio;
   const exportAdapter = window.FlipForgeCustomerExport;
   const discoveryAdapter = window.FlipForgeCustomerDiscovery;
+  const forgeHeatAdapter = window.FlipForgeCustomerForgeHeat;
   const entitlementsAdapter = window.FlipForgeCustomerEntitlements;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
@@ -101,6 +102,15 @@
             && adapter.isEligible()) {
           showCustomerIntelligenceBanner();
           adapter.renderCustomer(main, id);
+          focusMain();
+          return;
+        }
+        if (route === "forge-heat"
+            && forgeHeatAdapter
+            && typeof forgeHeatAdapter.render === "function"
+            && forgeHeatAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          forgeHeatAdapter.render(main);
           focusMain();
           return;
         }
