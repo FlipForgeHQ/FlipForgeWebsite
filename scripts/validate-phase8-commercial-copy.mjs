@@ -17,7 +17,7 @@ requireText('pricing', pricing, '10 evaluations each month');
 requireText('pricing', pricing, '75 evaluations each month');
 requireText('pricing', pricing, '300 evaluations each month');
 requireText('pricing', pricing, '<tr><td>Monthly evaluations</td><td>10</td><td>75</td><td>300</td></tr>');
-forbidText('pricing', pricing, '5 evaluations each month');
+forbidText('pricing', pricing, '<li>5 evaluations each month</li>');
 forbidText('pricing', pricing, '<tr><td>Monthly evaluations</td><td>5</td>');
 forbidText('pricing', pricing, 'Most popular');
 
