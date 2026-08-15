@@ -5,7 +5,7 @@
   const DETECT_PATH = "/api/v1/card-intelligence/detect";
   const IDENTIFY_PATH = "/api/v1/card-intelligence/identify";
   const RESOLVE_PATH = "/api/v1/card-intelligence/resolve";
-  const MAX_IMAGE_BYTES = 5_000_000;
+  const MAX_IMAGE_BYTES = 4_000_000;
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -128,7 +128,7 @@
       ${state.mode === "search" ? `<form data-card-intelligence-search class="card-intelligence-search">
         <label><span>Player, year, set, card number, or parallel</span><div class="card-intelligence-inline"><input type="search" name="query" maxlength="300" required placeholder="2018 Topps Update Shohei Ohtani US1"><button type="submit" class="button button-secondary"${state.busy ? " disabled" : ""}>${state.busy ? "Searching…" : "Find card"}</button></div></label>
       </form>` : `<form data-card-intelligence-photo class="card-intelligence-photo">
-        <label><span>Card photo</span><input type="file" name="cardPhoto" accept="image/jpeg,image/png,image/webp" required><small>JPEG, PNG, or WebP · maximum 5 MB. The image is sent only to the authenticated server route for CardSight detection/identification.</small></label>
+        <label><span>Card photo</span><input type="file" name="cardPhoto" accept="image/jpeg,image/png,image/webp" required><small>JPEG, PNG, or WebP · maximum 4 MB. The image is sent only to the authenticated server route for CardSight detection/identification.</small></label>
         <button type="submit" class="button button-secondary"${state.busy ? " disabled" : ""}>${state.busy ? "Identifying…" : "Identify card"}</button>
       </form>`}
       ${error}${message}${resultMarkup}
@@ -179,7 +179,7 @@
   async function identify(file) {
     if (!file) throw new Error("Choose a card photo first.");
     if (!ALLOWED_IMAGE_TYPES.has(String(file.type || "").toLowerCase())) throw new Error("Card photo must be JPEG, PNG, or WebP.");
-    if (file.size <= 0 || file.size > MAX_IMAGE_BYTES) throw new Error("Card photo must be no larger than 5 MB.");
+    if (file.size <= 0 || file.size > MAX_IMAGE_BYTES) throw new Error("Card photo must be no larger than 4 MB.");
 
     state.busy = true;
     state.error = "";
