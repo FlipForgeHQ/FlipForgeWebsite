@@ -1,0 +1,55 @@
+name: Forge Heat Consumer Visual QA
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/customer-forge-heat.js'
+      - 'saas-prototype/customer-forge-heat.css'
+      - 'saas-prototype/staging-route-hook.js'
+      - 'saas-prototype/index.html'
+      - 'scripts/audit-forge-heat-consumer-ui.mjs'
+      - '.github/workflows/forge-heat-consumer-visual-qa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'saas-prototype/customer-forge-heat.js'
+      - 'saas-prototype/customer-forge-heat.css'
+      - 'saas-prototype/staging-route-hook.js'
+      - 'saas-prototype/index.html'
+      - 'scripts/audit-forge-heat-consumer-ui.mjs'
+      - '.github/workflows/forge-heat-consumer-visual-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  forge-heat-responsive-ui:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build production app assets
+        run: npm run build:identity
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path preview
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-heat-ui.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/flipforge-heat-ui.log
+          exit 1
+      - name: Audit Forge Heat consumer UI
+        run: node scripts/audit-forge-heat-consumer-ui.mjs
+      - name: Show preview log on failure
+        if: failure()
+        run: cat /tmp/flipforge-heat-ui.log || true
