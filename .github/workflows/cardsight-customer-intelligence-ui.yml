@@ -1,0 +1,46 @@
+name: CardSight Customer Intelligence UI
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'saas-prototype/customer-card-intelligence.js'
+      - 'saas-prototype/customer-card-intelligence.css'
+      - 'saas-prototype/index.html'
+      - 'saas-prototype/staging-route-hook.js'
+      - 'netlify/functions/flipforge-api.js'
+      - 'scripts/validate-cardsight-customer-intelligence.mjs'
+      - '.github/workflows/cardsight-customer-intelligence-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate CardSight customer UI and gateway
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Validate JavaScript syntax
+        run: |
+          node --check saas-prototype/customer-card-intelligence.js
+          node --check saas-prototype/staging-route-hook.js
+          node --check netlify/functions/flipforge-api.js
+      - name: Validate mounted CardSight customer path
+        run: node scripts/validate-cardsight-customer-intelligence.mjs
+      - name: Retain customer evaluation boundary
+        run: npm run validate:customer-intelligence
+      - name: Retain quota boundary
+        run: npm run validate:evaluation-quota-boundary
