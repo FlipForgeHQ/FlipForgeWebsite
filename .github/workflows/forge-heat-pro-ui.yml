@@ -1,0 +1,41 @@
+name: Forge Heat Pro UI
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/customer-forge-heat.js'
+      - 'saas-prototype/customer-forge-heat.css'
+      - 'saas-prototype/staging-route-hook.js'
+      - 'saas-prototype/index.html'
+      - 'netlify/functions/flipforge-api.js'
+      - 'scripts/validate-forge-heat-pro-ui.mjs'
+      - '.github/workflows/forge-heat-pro-ui.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'saas-prototype/customer-forge-heat.js'
+      - 'saas-prototype/customer-forge-heat.css'
+      - 'saas-prototype/staging-route-hook.js'
+      - 'saas-prototype/index.html'
+      - 'netlify/functions/flipforge-api.js'
+      - 'scripts/validate-forge-heat-pro-ui.mjs'
+      - '.github/workflows/forge-heat-pro-ui.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  forge-heat-pro-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate mounted Pro interface
+        run: node scripts/validate-forge-heat-pro-ui.mjs
+      - name: Parse customer scripts
+        run: |
+          node --check saas-prototype/customer-forge-heat.js
+          node --check saas-prototype/staging-route-hook.js
+          node --check netlify/functions/flipforge-api.js
