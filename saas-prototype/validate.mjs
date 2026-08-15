@@ -49,7 +49,7 @@ const routes = [
 check("001 prototype banner is explicit", files.index.includes("NON-PRODUCTION PROTOTYPE"));
 check("002 mock-response boundary is visible", files.index.includes("Mock responses only"));
 check("003 purchase authority is excluded in shell", files.index.includes("No purchase authority"));
-check("004 customer brand identity is present", files.index.includes("CARD VALUE INTELLIGENCE"));
+check("004 customer brand identity is present", files.index.includes("CARD INTELLIGENCE"));
 check("005 primary navigation has an accessible target", files.index.includes('id="primary-navigation"'));
 check("006 mobile menu controls primary navigation", files.index.includes('aria-controls="primary-navigation"'));
 check("007 skip link targets main content", files.index.includes('href="#main-content"'));
@@ -113,7 +113,7 @@ check("063 foundation forbids unapproved deployment", files.foundation.includes(
 check("064 approved brand stylesheet loads after base styles", files.index.indexOf('href="brand.css"') > files.index.indexOf('href="styles.css"'));
 check("065 approved four-corner mark is present", ["brand-corner-tl", "brand-corner-tr", "brand-corner-bl", "brand-corner-br"].every(value => files.index.includes(value)));
 check("066 approved gold center is present", files.index.includes('class="brand-center"'));
-check("067 Card Value Intelligence is the visible identity line", files.index.includes('<span class="brand-subtitle">CARD VALUE INTELLIGENCE</span>'));
+check("067 Card Intelligence is the visible identity line", files.index.includes('<span class="brand-subtitle">CARD INTELLIGENCE</span>'));
 check("068 deprecated Signal Confidence Advantage tagline is absent", !/SIGNAL\s*[.·-]\s*CONFIDENCE\s*[.·-]\s*ADVANTAGE/i.test(browserCode));
 check("069 Söhne typography stack is declared", /font-family:\s*"Söhne",\s*"Sohne"/i.test(files.brand));
 check("070 approved silver charcoal gold palette is declared", ["#f2f2f2", "#8b928f", "#d4af37"].every(value => files.brand.toLowerCase().includes(value)));
@@ -126,7 +126,7 @@ check("074 narrow desktop profile collapses before clipping", files.shell.includ
 check("075 Netlify exposes the app root", files.redirects.includes("/app /saas-prototype/index.html 200"));
 check("076 Netlify exposes the trailing-slash app root", files.redirects.includes("/app/ /saas-prototype/index.html 200"));
 check("077 Netlify rewrites app assets to the isolated prototype", files.redirects.includes("/app/* /saas-prototype/:splat 200"));
-check("078 website build replaces the deprecated tagline", files.websiteBuild.includes("'Signal. Confidence. Advantage.'") && files.websiteBuild.includes("'Card Value Intelligence'"));
+check("078 website build replaces the deprecated tagline", files.websiteBuild.includes("'Signal. Confidence. Advantage.'") && files.websiteBuild.includes("'Card Intelligence'"));
 check("079 website build adds desktop and mobile App Preview links", files.websiteBuild.includes('data-app-preview=\"desktop\"') && files.websiteBuild.includes('data-app-preview=\"mobile\"'));
 check("080 website build adds a footer App Preview link", files.websiteBuild.includes('data-app-preview=\"footer\"'));
 check("081 sidebar remains sticky during long dashboard pages", /\.sidebar\s*,\s*\.topbar\s*\{[\s\S]*?position:\s*sticky/.test(files.shell) && /\.sidebar\s*\{[\s\S]*?align-self:\s*start/.test(files.shell));
