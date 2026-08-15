@@ -15,13 +15,19 @@
     ["Existing recommendations ranked with saved evidence context.", "Saved decisions ranked with evidence context."],
     ["Saved opportunity authority", "SAVED CARD INTELLIGENCE"],
     ["Opportunity detail", "CARD INTELLIGENCE"],
+    ["Tenant-owned saved intelligence", "SAVED CARD INTELLIGENCE"],
     ["Completed evaluation snapshot", "Saved evaluated card"],
     ["Engine", "Model"],
+    ["SQLite saved", "Saved"],
+    ["Tracked in SQLite", "Tracked"],
+    ["Execution authority", "Transaction actions"],
     ["Authority boundary:", "Decision rule:"],
-    ["Identity boundary:", "What this changes:"]
+    ["Identity boundary:", "What this changes:"],
+    ["Customer boundary:", "How this works:"]
   ]);
 
   const diagnosticPattern = /(invalid json|authority contract|authority boundary|browser safety limit|request failed with status|response exceeded)/i;
+  const technicalCodePattern = /^[A-Z][A-Z0-9_:-]{4,}$/;
 
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
@@ -53,6 +59,7 @@
     root.querySelectorAll(".boundary-note").forEach(note => {
       const refined = note.innerHTML
         .replace("<strong>Authority boundary:</strong>", "<strong>Decision rule:</strong>")
+        .replace("<strong>Customer boundary:</strong>", "<strong>How this works:</strong>")
         .replace("Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the sole grading-guidance authority.", "Smart Opportunity provides the saved BUY/WATCH/VERIFY/PASS decision. PSA guidance remains a separate grading view.");
       setHtml(note, refined);
     });
@@ -82,6 +89,13 @@
     });
   }
 
+  function refineErrorPanels(root) {
+    root.querySelectorAll('.staging-error[role="alert"] .panel-body > strong').forEach(node => {
+      const current = node.textContent.trim();
+      if (technicalCodePattern.test(current)) setText(node, "We couldn't complete that request.");
+    });
+  }
+
   function sanitizeDiagnostics(root) {
     root.querySelectorAll('.card-intelligence-error, .forge-heat-error, [role="alert"]').forEach(node => {
       if (diagnosticPattern.test(node.textContent || "")) {
@@ -91,9 +105,10 @@
   }
 
   function markCustomerStates(root) {
-    root.querySelectorAll(".forge-heat-empty").forEach(node => node.classList.add("consumer-state", "consumer-state-empty"));
+    root.querySelectorAll(".forge-heat-empty, .staging-empty").forEach(node => node.classList.add("consumer-state", "consumer-state-empty"));
+    root.querySelectorAll(".staging-loading").forEach(node => node.classList.add("consumer-state", "consumer-state-loading"));
     root.querySelectorAll(".card-intelligence-message").forEach(node => node.classList.add("consumer-state"));
-    root.querySelectorAll('.card-intelligence-error, .forge-heat-error, [role="alert"]').forEach(node => node.classList.add("consumer-state", "consumer-state-error"));
+    root.querySelectorAll('.card-intelligence-error, .forge-heat-error, .staging-error[role="alert"]').forEach(node => node.classList.add("consumer-state", "consumer-state-error"));
   }
 
   function apply() {
@@ -102,6 +117,7 @@
     refineBoundaryNotes(main);
     refineCardIdentity(main);
     refineForgeHeat(main);
+    refineErrorPanels(main);
     sanitizeDiagnostics(main);
     markCustomerStates(main);
     document.documentElement.classList.add("consumer-ux-ready");
