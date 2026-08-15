@@ -1,0 +1,35 @@
+name: Phase 7 Frozen Template Assurance
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'phase7-day0-template.csv'
+      - 'phase7-day0-run.html'
+      - 'scripts/validate-phase7-frozen-template.mjs'
+      - '.github/workflows/phase7-frozen-template-assurance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate frozen Day-0 template mirror
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate exact frozen target mirror
+        run: node scripts/validate-phase7-frozen-template.mjs
+      - name: Validate operator run page has no decision logic
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '/phase7-day0-template.csv' phase7-day0-run.html
+          grep -q '/.netlify/functions/bulk-evaluate' phase7-day0-run.html
+          ! grep -Eqi 'fetch\(|localStorage|sessionStorage|indexedDB|supportedValue|forgeHeat|recommendation[[:space:]]*=' phase7-day0-run.html
+          echo 'PASS: Day-0 run page is guidance/download only.'
