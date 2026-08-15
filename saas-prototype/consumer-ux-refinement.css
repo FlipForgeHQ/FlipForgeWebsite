@@ -1,0 +1,54 @@
+.consumer-ux-ready .boundary-note {
+  border-color: rgba(213, 173, 83, 0.2);
+  background: linear-gradient(145deg, rgba(213, 173, 83, 0.055), rgba(255, 255, 255, 0.018));
+  color: var(--muted, #aeb5c0);
+}
+
+.consumer-ux-ready .boundary-note strong {
+  color: var(--text, #f7f8fa);
+}
+
+.consumer-ux-ready .consumer-state {
+  border: 1px solid rgba(213, 173, 83, 0.22);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(213, 173, 83, 0.035));
+}
+
+.consumer-ux-ready .consumer-state-empty {
+  display: grid;
+  gap: 8px;
+  min-height: 160px;
+  align-content: center;
+  justify-items: start;
+}
+
+.consumer-ux-ready .consumer-state-empty strong {
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+}
+
+.consumer-ux-ready .consumer-state-error {
+  border-color: rgba(255, 107, 107, 0.3);
+  background: rgba(255, 107, 107, 0.065);
+}
+
+.consumer-ux-ready .card-intelligence-heading .eyebrow,
+.consumer-ux-ready .forge-heat-title-row .eyebrow {
+  letter-spacing: 0.14em;
+}
+
+.consumer-ux-ready .card-intelligence-heading > div,
+.consumer-ux-ready .forge-heat-hero > div:first-child {
+  max-width: 760px;
+}
+
+@media (max-width: 640px) {
+  .consumer-ux-ready .consumer-state {
+    padding: 12px 13px;
+  }
+
+  .consumer-ux-ready .consumer-state-empty {
+    min-height: 140px;
+  }
+}
