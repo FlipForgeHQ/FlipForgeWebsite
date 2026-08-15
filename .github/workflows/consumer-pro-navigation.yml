@@ -1,0 +1,28 @@
+name: Consumer Pro Navigation
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/index.html'
+      - 'scripts/validate-consumer-pro-navigation.mjs'
+      - '.github/workflows/consumer-pro-navigation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'saas-prototype/index.html'
+      - 'scripts/validate-consumer-pro-navigation.mjs'
+      - '.github/workflows/consumer-pro-navigation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  consumer-pro-navigation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate focused customer workflow
+        run: node scripts/validate-consumer-pro-navigation.mjs
