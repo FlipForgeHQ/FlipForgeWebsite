@@ -23,12 +23,21 @@
 
   const diagnosticPattern = /(invalid json|authority contract|authority boundary|browser safety limit|request failed with status|response exceeded)/i;
 
+  function setText(node, value) {
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
+  function setHtml(node, value) {
+    if (node && node.innerHTML !== value) node.innerHTML = value;
+  }
+
   function setBrand() {
-    document.title = "FlipForge | Card Intelligence";
+    if (document.title !== "FlipForge | Card Intelligence") document.title = "FlipForge | Card Intelligence";
     const description = document.querySelector('meta[name="description"]');
-    if (description) description.setAttribute("content", "FlipForge private-beta card intelligence platform.");
-    const subtitle = document.querySelector(".brand-subtitle");
-    if (subtitle) subtitle.textContent = "CARD INTELLIGENCE";
+    if (description && description.getAttribute("content") !== "FlipForge private-beta card intelligence platform.") {
+      description.setAttribute("content", "FlipForge private-beta card intelligence platform.");
+    }
+    setText(document.querySelector(".brand-subtitle"), "CARD INTELLIGENCE");
   }
 
   function replaceLeafCopy(root) {
@@ -36,15 +45,16 @@
       if (node.children.length !== 0) return;
       const current = node.textContent.trim();
       const replacement = exactCopy.get(current);
-      if (replacement) node.textContent = replacement;
+      if (replacement && current !== replacement) setText(node, replacement);
     });
   }
 
   function refineBoundaryNotes(root) {
     root.querySelectorAll(".boundary-note").forEach(note => {
-      note.innerHTML = note.innerHTML
+      const refined = note.innerHTML
         .replace("<strong>Authority boundary:</strong>", "<strong>Decision rule:</strong>")
         .replace("Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the sole grading-guidance authority.", "Smart Opportunity provides the saved BUY/WATCH/VERIFY/PASS decision. PSA guidance remains a separate grading view.");
+      setHtml(note, refined);
     });
   }
 
@@ -52,40 +62,30 @@
     const panel = root.querySelector("[data-card-intelligence-assist]");
     if (!panel) return;
 
-    const eyebrow = panel.querySelector(".card-intelligence-heading .eyebrow");
-    if (eyebrow) eyebrow.textContent = "IDENTITY INTELLIGENCE";
-
-    const intro = panel.querySelector(".card-intelligence-heading small");
-    if (intro) intro.textContent = "Search card details or use a photo to confirm the exact card before evaluation.";
-
-    const photoNote = panel.querySelector('[data-card-intelligence-photo] label small');
-    if (photoNote) photoNote.textContent = "JPEG, PNG, or WebP · maximum 4 MB. Used only to identify the card for this evaluation.";
-
-    const boundary = panel.querySelector(".boundary-note");
-    if (boundary) {
-      boundary.innerHTML = "<strong>What this changes:</strong> Choosing a match fills the exact card identity for evaluation. It does not change evidence, grading guidance, or the final Smart Opportunity decision.";
-    }
+    setText(panel.querySelector(".card-intelligence-heading .eyebrow"), "IDENTITY INTELLIGENCE");
+    setText(panel.querySelector(".card-intelligence-heading small"), "Search card details or use a photo to confirm the exact card before evaluation.");
+    setText(panel.querySelector('[data-card-intelligence-photo] label small'), "JPEG, PNG, or WebP · maximum 4 MB. Used only to identify the card for this evaluation.");
+    setHtml(
+      panel.querySelector(".boundary-note"),
+      "<strong>What this changes:</strong> Choosing a match fills the exact card identity for evaluation. It does not change evidence, grading guidance, or the final Smart Opportunity decision."
+    );
   }
 
   function refineForgeHeat(root) {
     const shell = root.querySelector(".forge-heat-shell");
     if (!shell) return;
 
-    const eyebrow = shell.querySelector(".forge-heat-title-row .eyebrow");
-    if (eyebrow) eyebrow.textContent = "PRO CARD INTELLIGENCE";
-
-    const scopeSmall = shell.querySelector(".forge-heat-boundary small");
-    if (scopeSmall) scopeSmall.textContent = "Ranks your saved evaluations · Decision support only";
-
+    setText(shell.querySelector(".forge-heat-title-row .eyebrow"), "PRO CARD INTELLIGENCE");
+    setText(shell.querySelector(".forge-heat-boundary small"), "Ranks your saved evaluations · Decision support only");
     shell.querySelectorAll(".forge-heat-card-foot > span").forEach(node => {
-      node.textContent = "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved decision.";
+      setText(node, "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved decision.");
     });
   }
 
   function sanitizeDiagnostics(root) {
     root.querySelectorAll('.card-intelligence-error, .forge-heat-error, [role="alert"]').forEach(node => {
       if (diagnosticPattern.test(node.textContent || "")) {
-        node.textContent = "This intelligence view is temporarily unavailable. Try again.";
+        setText(node, "This intelligence view is temporarily unavailable. Try again.");
       }
     });
   }
@@ -107,10 +107,20 @@
     document.documentElement.classList.add("consumer-ux-ready");
   }
 
-  const observer = new MutationObserver(() => requestAnimationFrame(apply));
+  let scheduled = false;
+  function scheduleApply() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      apply();
+    });
+  }
+
+  const observer = new MutationObserver(scheduleApply);
   observer.observe(main, { childList: true, subtree: true });
-  window.addEventListener("hashchange", () => requestAnimationFrame(apply));
-  window.addEventListener("pageshow", () => requestAnimationFrame(apply));
-  window.addEventListener("load", () => requestAnimationFrame(apply));
-  requestAnimationFrame(apply);
+  window.addEventListener("hashchange", scheduleApply);
+  window.addEventListener("pageshow", scheduleApply);
+  window.addEventListener("load", scheduleApply);
+  scheduleApply();
 })();
