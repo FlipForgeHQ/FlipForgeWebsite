@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 const html = fs.readFileSync("saas-prototype/index.html", "utf8");
+const shellCompletion = fs.readFileSync("saas-prototype/core-platform-completion-v1.js", "utf8");
 const navMatch = html.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/);
 if (!navMatch) throw new Error("Primary customer navigation is missing.");
 const nav = navMatch[0];
@@ -29,6 +30,9 @@ check("Evidence/PSA capability remains mounted", html.includes('src="customer-ex
 check("Audit export capability remains mounted", html.includes('src="customer-export.js"'));
 check("Primary nav describes core workflow", nav.includes('aria-label="Core FlipForge workflow"'));
 check("Advanced navigation stylesheet mounted", html.includes('href="consumer-pro-navigation.css"'));
+check("Navigation grouping resolves nested expert routes through the advanced group", shellCompletion.includes('target.closest(".ff-advanced-nav")'));
+check("Advanced analysis state follows the active route", shellCompletion.includes("function syncAdvancedAnalysisState()") && shellCompletion.includes("advanced.open = activeInside"));
+check("Advanced route state is synchronized after navigation groups mount", shellCompletion.indexOf("installNavigationGroups();") < shellCompletion.indexOf("syncAdvancedAnalysisState();"));
 
 if (failed) throw new Error(`Consumer Pro navigation validation failed: ${failed}`);
-console.log("Consumer Pro navigation keeps the core journey visible and expert tools collapsed but fully available.");
+console.log("Consumer Pro navigation keeps the core journey visible and expert tools collapsed but fully available, while opening the expert group for its active route.");
