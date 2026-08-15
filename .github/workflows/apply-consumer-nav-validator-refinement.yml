@@ -1,0 +1,83 @@
+name: Apply Consumer Nav Validator Refinement
+
+on:
+  push:
+    branches: [agent/consumer-pro-navigation]
+    paths:
+      - '.github/workflows/apply-consumer-nav-validator-refinement.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/consumer-pro-navigation
+      - name: Refine prototype route validation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('saas-prototype/validate.mjs')
+          text = path.read_text()
+          old = '''const routes = [
+  "dashboard",
+  "discover",
+  "evaluate",
+  "opportunities",
+  "compare",
+  "psa-advisor",
+  "evidence",
+  "portfolio",
+  "sell",
+  "alerts",
+  "account"
+];'''
+          new = '''const primaryRoutes = [
+  "dashboard",
+  "discover",
+  "forge-heat",
+  "evaluate",
+  "opportunities",
+  "tracking",
+  "portfolio",
+  "alerts",
+  "beta-start"
+];
+
+const contextualRoutes = ["compare", "psa-advisor", "evidence", "sell", "export", "account"];'''
+          if old not in text:
+              raise SystemExit('Expected retained route list not found')
+          text = text.replace(old, new, 1)
+          old_loop = '''for (const route of routes) {
+  check(`route navigation exists: ${route}`, files.index.includes(`data-route="${route}"`));
+}'''
+          new_loop = '''for (const route of primaryRoutes) {
+  check(`primary route navigation exists: ${route}`, files.index.includes(`data-route="${route}"`));
+}
+
+for (const route of contextualRoutes) {
+  const routeImplemented = files.app.includes(`case "${route}"`)
+    || files.featurePages.includes(`case "${route}"`)
+    || files.index.includes(`href="#/${route}`)
+    || files.index.includes(`src="customer-${route}`)
+    || (route === "export" && files.index.includes('src="customer-export.js"'))
+    || (route === "psa-advisor" && files.index.includes('src="customer-opportunities-bridge.js"'))
+    || (route === "evidence" && files.index.includes('src="customer-explainability.js"'));
+  check(`contextual route remains implemented: ${route}`, routeImplemented);
+}'''
+          if old_loop not in text:
+              raise SystemExit('Expected retained route assertion loop not found')
+          path.write_text(text.replace(old_loop, new_loop, 1))
+          PY
+      - name: Validate refinement
+        run: node saas-prototype/validate.mjs
+      - name: Commit validator refinement
+        run: |
+          git config user.name "FlipForge Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add saas-prototype/validate.mjs
+          git commit -m "Validate contextual routes without primary-nav coupling"
+          git push origin HEAD:agent/consumer-pro-navigation
