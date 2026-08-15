@@ -20,12 +20,26 @@
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
   }
 
+  function routeName() {
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)[0] || "dashboard";
+  }
+
+  function navigationAnchor(nav, route) {
+    const target = nav.querySelector(`[data-route="${route}"]`);
+    if (!target) return null;
+    if (target.parentElement === nav) return target;
+    const advanced = target.closest(".ff-advanced-nav");
+    return advanced && advanced.parentElement === nav ? advanced : null;
+  }
+
   function installNavigationGroups() {
     const nav = document.querySelector(".primary-nav");
     if (!nav || nav.dataset.ffGrouped === "true") return;
 
     groups.forEach(group => {
-      const target = nav.querySelector(`[data-route="${group.before}"]`);
+      const target = navigationAnchor(nav, group.before);
       if (!target) return;
       const label = document.createElement("span");
       label.className = "ff-nav-group-label";
@@ -35,6 +49,15 @@
     });
 
     nav.dataset.ffGrouped = "true";
+  }
+
+  function syncAdvancedAnalysisState() {
+    const advanced = document.querySelector(".primary-nav .ff-advanced-nav");
+    if (!advanced) return;
+    const route = routeName();
+    const activeInside = [...advanced.querySelectorAll("[data-route]")]
+      .some(link => link.dataset.route === route);
+    advanced.open = activeInside;
   }
 
   function normalizeVisibleLanguage() {
@@ -103,6 +126,7 @@
     if (!eligible()) return;
     document.body.classList.add("ff-core-platform-completion");
     installNavigationGroups();
+    syncAdvancedAnalysisState();
     normalizeVisibleLanguage();
   }
 
