@@ -2,6 +2,8 @@ import fs from 'node:fs';
 
 const pricing = fs.readFileSync('pricing.html', 'utf8');
 const betaTerms = fs.readFileSync('beta-terms.html', 'utf8');
+const terms = fs.readFileSync('terms.html', 'utf8');
+const refund = fs.readFileSync('refund.html', 'utf8');
 const failures = [];
 
 function requireText(label, text, needle) {
@@ -41,7 +43,28 @@ requireText('beta terms', betaTerms, 'Any future paid enrollment requires a sepa
 requireText('beta terms', betaTerms, 'Beta participation does not guarantee a permanent entitlement, permanent discount, or future price');
 requireText('beta terms', betaTerms, 'accepting Private Beta access alone does not enroll you in that offer');
 
-for (const [label, text] of [['pricing', pricing], ['beta terms', betaTerms]]) {
+requireText('terms', terms, 'Paddle acts as the Merchant of Record and seller for transactions it processes and is responsible for collecting payment');
+requireText('terms', terms, 'Subscription prices, billing intervals, taxes, and renewal terms are presented at or before checkout');
+requireText('terms', terms, 'You may cancel a recurring subscription to stop future renewal');
+requireText('terms', terms, 'Unless a refund, withdrawal right, or other mandatory legal remedy applies');
+requireText('terms', terms, 'are processed through Paddle for Paddle transactions');
+requireText('terms', terms, 'Nothing in these terms excludes or limits liability where doing so would be prohibited by applicable law');
+
+requireText('refund', refund, 'Paddle, which acts as the Merchant of Record and seller for transactions completed through Paddle');
+requireText('refund', refund, 'Paddle is responsible for charging the payment method used at checkout and for issuing approved refunds through its payment system');
+requireText('refund', refund, 'Except where required by applicable law or where Paddle approves a refund under its refund policy');
+requireText('refund', refund, 'use Paddle Buyer Support at <a href="https://paddle.net/"');
+requireText('refund', refund, 'Canceling a subscription stops future renewal');
+requireText('refund', refund, 'Nothing in this policy limits rights you may have under applicable consumer-protection law');
+requireText('refund', refund, 'https://www.paddle.com/legal/refund-policy');
+requireText('refund', refund, 'those rights control');
+
+forbidText('terms', terms, 'FlipForge directly processes payments');
+forbidText('refund', refund, 'FlipForge directly issues refunds');
+forbidText('refund', refund, 'no refunds under any circumstances');
+forbidText('refund', refund, 'all sales are final');
+
+for (const [label, text] of [['pricing', pricing], ['beta terms', betaTerms], ['terms', terms], ['refund', refund]]) {
   for (const forbidden of ['localStorage', 'sessionStorage', 'indexedDB', 'transactionAuthority=true', 'recommendation=', 'supportedValue=']) {
     forbidText(label, text, forbidden);
   }
@@ -53,4 +76,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Phase 8 commercial copy matches the locked subscription and Private Beta contract.');
+console.log('PASS: Phase 8 pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
