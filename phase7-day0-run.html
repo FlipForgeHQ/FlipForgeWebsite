@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>FlipForge | Phase 7 Day-0 Run</title>
+  <style>
+    :root{--bg:#07090d;--panel:#10151c;--line:#29323d;--text:#f5f7fa;--muted:#a7b0bc;--gold:#d4af37}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,sans-serif}.shell{max-width:880px;margin:auto;padding:40px 20px}.eyebrow{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.12em}.card{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}h1{font-size:34px;margin:8px 0}h2{font-size:20px;margin:24px 0 8px}p,li{color:var(--muted)}strong{color:var(--text)}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}.button{display:inline-flex;padding:11px 15px;border-radius:10px;border:1px solid var(--line);color:var(--text);text-decoration:none;font-weight:800}.primary{background:var(--gold);border-color:var(--gold);color:#16120a}.lock{border-left:3px solid var(--gold);padding:12px 14px;background:#0b0f14;color:var(--muted)}code{color:#f7d77a}@media(max-width:640px){.shell{padding:24px 14px}h1{font-size:28px}.actions .button{width:100%;justify-content:center}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <span class="eyebrow">PHASE 7 · CONTROLLED PROOF STUDY</span>
+    <h1>Day-0 25-card run</h1>
+    <p>This page is an operator guide for the prospectively frozen <strong>FF_25_CARD_PROOF_V1</strong> cohort. It does not score cards, choose listings, or create proof-cohort membership.</p>
+    <section class="card">
+      <div class="lock"><strong>Frozen selection:</strong> 25 exact targets · 7 MLB / 6 NFL / 6 NBA / 6 NHL. The backend selection manifest and authoritative SQLite remain the proof source of truth.</div>
+      <div class="actions">
+        <a class="button primary" href="/phase7-day0-template.csv" download>Download frozen 25-card CSV</a>
+        <a class="button" href="/.netlify/functions/bulk-evaluate">Open Bulk Evaluate</a>
+      </div>
+      <h2>Before upload</h2>
+      <ol>
+        <li>For each frozen target, select the current eligible eBay fixed-price listing using the locked rule: lowest <strong>item price + shipping + buyer premium</strong> among exact PSA 10 matches.</li>
+        <li>Fill only the live fields: <code>externalListingId</code>, <code>listingUrl</code>, <code>itemPrice</code>, shipping/premium/tax when applicable, and optional seller/format/end time.</li>
+        <li>Do not change <code>proofStudy</code>, sport, or the frozen card identity to improve a likely FlipForge result.</li>
+      </ol>
+      <h2>What happens in proof mode</h2>
+      <p>Bulk Evaluate verifies all 25 identities through server-owned Identity Intelligence before submitting any Day-0 evaluation. If one identity is ambiguous, the proof batch stops before Day 0. After all 25 complete, export the Day-0 proof IDs for the private backend cohort operator.</p>
+      <h2>Authority boundary</h2>
+      <p>Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains grading guidance. This run has no buying, billing, accuracy-claim, or self-training authority.</p>
+    </section>
+  </main>
+</body>
+</html>
