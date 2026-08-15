@@ -105,6 +105,9 @@ async function audit(browser, name, width, height) {
   const context = await browser.newContext({ viewport: { width, height } });
   const page = await context.newPage();
   try {
+    await page.addInitScript(() => {
+      window.localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete");
+    });
     await stubIdentity(page);
     await page.route("**/api/v1/forge-heat?**", route => {
       const correlationId = route.request().headers()["x-correlation-id"] || "heat-qa";
