@@ -1,0 +1,78 @@
+name: Apply Forge Heat Pro UI Patch
+
+on:
+  push:
+    branches:
+      - agent/forge-heat-pro-ui
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/forge-heat-pro-ui
+          fetch-depth: 0
+      - name: Mount Forge Heat customer route
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new, label):
+              text = path.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one anchor, found {count}')
+              path.write_text(text.replace(old, new, 1))
+
+          html = Path('saas-prototype/index.html')
+          replace_once(
+              html,
+              '  <link rel="stylesheet" href="customer-discovery.css">\n',
+              '  <link rel="stylesheet" href="customer-discovery.css">\n  <link rel="stylesheet" href="customer-forge-heat.css">\n',
+              'forge heat stylesheet')
+          replace_once(
+              html,
+              '        <a href="#/opportunities" data-route="opportunities"><span aria-hidden="true">↗</span>Opportunities</a>\n',
+              '        <a href="#/opportunities" data-route="opportunities"><span aria-hidden="true">↗</span>Opportunities</a>\n        <a href="#/forge-heat" data-route="forge-heat"><span aria-hidden="true">🔥</span>Forge Heat <span class="forge-nav-pro">PRO</span></a>\n',
+              'forge heat navigation')
+          replace_once(
+              html,
+              '  <script src="customer-discovery.js"></script>\n',
+              '  <script src="customer-discovery.js"></script>\n  <script src="customer-forge-heat.js"></script>\n',
+              'forge heat script')
+
+          routes = Path('saas-prototype/staging-route-hook.js')
+          replace_once(
+              routes,
+              '  const discoveryAdapter = window.FlipForgeCustomerDiscovery;\n',
+              '  const discoveryAdapter = window.FlipForgeCustomerDiscovery;\n  const forgeHeatAdapter = window.FlipForgeCustomerForgeHeat;\n',
+              'forge heat adapter')
+          replace_once(
+              routes,
+              '        if (route === "opportunities"\n            && adapter\n            && typeof adapter.renderCustomer === "function"\n            && adapter.isEligible()) {\n          showCustomerIntelligenceBanner();\n          adapter.renderCustomer(main, id);\n          focusMain();\n          return;\n        }\n',
+              '        if (route === "opportunities"\n            && adapter\n            && typeof adapter.renderCustomer === "function"\n            && adapter.isEligible()) {\n          showCustomerIntelligenceBanner();\n          adapter.renderCustomer(main, id);\n          focusMain();\n          return;\n        }\n        if (route === "forge-heat"\n            && forgeHeatAdapter\n            && typeof forgeHeatAdapter.render === "function"\n            && forgeHeatAdapter.isEligible()) {\n          showCustomerIntelligenceBanner();\n          forgeHeatAdapter.render(main);\n          focusMain();\n          return;\n        }\n',
+              'forge heat route')
+
+          gateway = Path('netlify/functions/flipforge-api.js')
+          replace_once(
+              gateway,
+              '  { method: "GET", pattern: /^\\/api\\/v1\\/opportunities$/ },\n',
+              '  { method: "GET", pattern: /^\\/api\\/v1\\/opportunities$/ },\n  { method: "GET", pattern: /^\\/api\\/v1\\/forge-heat$/ },\n',
+              'forge heat gateway route')
+          PY
+      - name: Remove one-shot patch workflow
+        run: git rm .github/workflows/apply-forge-heat-pro-ui-patch.yml
+      - name: Commit mounted customer interface
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add saas-prototype/index.html saas-prototype/staging-route-hook.js netlify/functions/flipforge-api.js
+          git commit -m "Mount Forge Heat Pro in customer workspace"
+          git push origin HEAD:agent/forge-heat-pro-ui
