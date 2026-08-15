@@ -1,0 +1,34 @@
+name: Pro Card Intelligence Cockpit
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/customer-card-cockpit.js'
+      - 'saas-prototype/index.html'
+      - 'saas-prototype/customer-forge-heat.js'
+      - 'scripts/validate-pro-card-intelligence-cockpit.mjs'
+      - '.github/workflows/pro-card-intelligence-cockpit.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'saas-prototype/customer-card-cockpit.js'
+      - 'saas-prototype/index.html'
+      - 'saas-prototype/customer-forge-heat.js'
+      - 'scripts/validate-pro-card-intelligence-cockpit.mjs'
+      - '.github/workflows/pro-card-intelligence-cockpit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pro-card-intelligence-cockpit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate cockpit contracts
+        run: node scripts/validate-pro-card-intelligence-cockpit.mjs
+      - name: Parse cockpit script
+        run: node --check saas-prototype/customer-card-cockpit.js
