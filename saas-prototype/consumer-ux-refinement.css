@@ -28,9 +28,29 @@
   letter-spacing: -0.01em;
 }
 
+.consumer-ux-ready .consumer-state-loading {
+  position: relative;
+  overflow: hidden;
+  color: var(--muted, #aeb5c0);
+}
+
+.consumer-ux-ready .consumer-state-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.055), transparent);
+  animation: consumer-state-sheen 1.35s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .consumer-ux-ready .consumer-state-error {
   border-color: rgba(255, 107, 107, 0.3);
   background: rgba(255, 107, 107, 0.065);
+}
+
+.consumer-ux-ready .staging-error.consumer-state {
+  padding: 0;
 }
 
 .consumer-ux-ready .card-intelligence-heading .eyebrow,
@@ -41,6 +61,17 @@
 .consumer-ux-ready .card-intelligence-heading > div,
 .consumer-ux-ready .forge-heat-hero > div:first-child {
   max-width: 760px;
+}
+
+@keyframes consumer-state-sheen {
+  to { transform: translateX(110%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consumer-ux-ready .consumer-state-loading::after {
+    animation: none;
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
