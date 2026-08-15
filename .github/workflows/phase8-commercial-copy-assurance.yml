@@ -1,0 +1,33 @@
+name: Phase 8 Commercial Copy Assurance
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'pricing.html'
+      - 'beta-terms.html'
+      - 'scripts/validate-phase8-commercial-copy.mjs'
+      - '.github/workflows/phase8-commercial-copy-assurance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate pricing and Private Beta commercial copy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse validator
+        run: node --check scripts/validate-phase8-commercial-copy.mjs
+      - name: Validate locked commercial copy
+        run: node scripts/validate-phase8-commercial-copy.mjs
