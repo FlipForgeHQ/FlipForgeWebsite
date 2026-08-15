@@ -6,6 +6,8 @@ on:
     paths:
       - 'pricing.html'
       - 'beta-terms.html'
+      - 'terms.html'
+      - 'refund.html'
       - 'scripts/validate-phase8-commercial-copy.mjs'
       - '.github/workflows/phase8-commercial-copy-assurance.yml'
   workflow_dispatch:
@@ -19,7 +21,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate pricing and Private Beta commercial copy
+    name: Validate pricing, beta, subscription, and refund copy
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
