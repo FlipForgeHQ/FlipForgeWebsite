@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate frozen Day-0 template mirror
+    name: Validate frozen Day-0 template and operator guide
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -25,11 +25,16 @@ jobs:
           node-version: '22'
       - name: Validate exact frozen target mirror
         run: node scripts/validate-phase7-frozen-template.mjs
-      - name: Validate operator run page has no decision logic
+      - name: Validate Day-0 guide follows private selector workflow
         shell: bash
         run: |
           set -euo pipefail
-          grep -q '/phase7-day0-template.csv' phase7-day0-run.html
+          grep -q 'SaaSProofDay0ListingSelectionOperator select' phase7-day0-run.html
+          grep -q '/data/phase7-day0-selected.csv' phase7-day0-run.html
           grep -q '/.netlify/functions/bulk-evaluate' phase7-day0-run.html
+          grep -q 'SaaSProofCohortOperator create25' phase7-day0-run.html
+          grep -q '/phase7-day0-template.csv' phase7-day0-run.html
+          ! grep -q 'For each frozen target, select the current eligible' phase7-day0-run.html
+          ! grep -q 'Fill only the live fields' phase7-day0-run.html
           ! grep -Eqi 'fetch\(|localStorage|sessionStorage|indexedDB|supportedValue|forgeHeat|recommendation[[:space:]]*=' phase7-day0-run.html
-          echo 'PASS: Day-0 run page is guidance/download only.'
+          echo 'PASS: Day-0 guide uses the private selector and contains no browser decision logic.'
