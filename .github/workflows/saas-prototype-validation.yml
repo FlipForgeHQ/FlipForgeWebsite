@@ -11,6 +11,7 @@ on:
       - "docs/SAAS_PRIVATE_BETA_READINESS.md"
       - "docs/SAAS_PRIVATE_BETA_OPERATIONS_BOUNDARY.md"
       - "scripts/build-assets.js"
+      - "scripts/validate-brand-assets.js"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-customer-portfolio.mjs"
       - "scripts/validate-saas-customer-entitlements.mjs"
@@ -55,6 +56,7 @@ jobs:
           node --check saas-prototype/cockpit-layout-fix.js
           node --check saas-prototype/cockpit-polish.js
           node --check saas-prototype/cockpit-final-ux.js
+          node --check saas-prototype/consumer-ux-refinement.js
           node --check saas-prototype/sidebar-edge-fix.js
           node --check saas-prototype/route-guard.js
           node --check saas-prototype/customer-discovery.js
@@ -74,6 +76,7 @@ jobs:
           node saas-prototype/validate-cockpit-expansion.mjs
           node saas-prototype/validate-cockpit-polish.mjs
           node saas-prototype/validate-cockpit-final-ux.mjs
+          node scripts/validate-consumer-ux-refinement.mjs
           node saas-prototype/validate-sidebar-edge-fix.mjs
 
       - name: Verify generated website entry points
@@ -92,8 +95,11 @@ jobs:
             if (html.includes('Signal. Confidence. Advantage.')) {
               failures.push(`${name}: deprecated brand line remains`);
             }
-            if (hasHeader && !html.includes('Card Value Intelligence')) {
-              failures.push(`${name}: Card Value Intelligence is missing`);
+            if (hasHeader && !html.includes('Card Intelligence')) {
+              failures.push(`${name}: Card Intelligence is missing`);
+            }
+            if (hasHeader && (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE'))) {
+              failures.push(`${name}: retired Card Value Intelligence descriptor remains`);
             }
             if (hasHeader && !html.includes('data-app-preview="desktop"')) {
               failures.push(`${name}: desktop App Preview link is missing`);
@@ -111,7 +117,7 @@ jobs:
             process.exit(1);
           }
 
-          console.log(`Verified App Preview and Card Value Intelligence across ${htmlFiles.length} website pages.`);
+          console.log(`Verified App Preview and Card Intelligence across ${htmlFiles.length} website pages.`);
           NODE
           grep -q '/app /saas-prototype/index.html 200' _redirects
           grep -q '/app/ /saas-prototype/index.html 200' _redirects
