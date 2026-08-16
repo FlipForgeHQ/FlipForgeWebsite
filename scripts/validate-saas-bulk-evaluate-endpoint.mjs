@@ -73,10 +73,10 @@ try {
   const generatedHtml = String(page?.body || "");
   const scriptMatch = generatedHtml.match(/<script>\s*([\s\S]*?)\s*<\/script>/);
   if (!scriptMatch) throw new Error("Rendered Bulk Evaluate HTML did not contain an inline script.");
-  new Function(scriptMatch[1]);
+  new vm.Script(scriptMatch[1], { filename: "bulk-evaluate-browser.js" });
   embeddedScriptParses = true;
 } catch (error) {
-  embeddedScriptError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  embeddedScriptError = error instanceof Error ? String(error.stack || `${error.name}: ${error.message}`) : String(error);
 }
 check("054 embedded Bulk Evaluate browser script parses", embeddedScriptParses);
 check("055 CSV chooser is visible instead of hidden behind a label", source.includes('id="file" type="file"') && !source.includes('.upload input{display:none}'));
@@ -87,6 +87,6 @@ check("059 CSV loading gives immediate visible feedback", source.includes('messa
 
 const failed = results.filter(result => !result.passed);
 for (const result of results) console.log(`${result.passed ? "PASS" : "FAIL"} ${result.name}`);
-if (embeddedScriptError) console.error(`Rendered Bulk Evaluate parser error: ${embeddedScriptError}`);
+if (embeddedScriptError) console.error(`Rendered Bulk Evaluate parser error:\n${embeddedScriptError}`);
 console.log(`\nBulk Evaluate endpoint validation: ${results.length - failed.length}/${results.length} passed.`);
 if (failed.length) process.exitCode = 1;
