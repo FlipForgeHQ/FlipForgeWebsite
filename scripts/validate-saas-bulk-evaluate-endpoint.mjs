@@ -63,6 +63,23 @@ check("051 normal Bulk Evaluate does not require proof mode", source.includes('c
 check("052 proof export records identity preflight provenance", source.includes('identityPreflight:{required:true,allResolved:true,source:"server-owned-card-intelligence-search-resolve"}'));
 check("053 governed eBay Browse provider IDs are accepted", source.includes('const SAFE_ID=/^[A-Za-z0-9][A-Za-z0-9._:|-]{0,179}$/;'));
 
+const scriptMatch = source.match(/<script>\n([\s\S]*?)\n<\/script>/);
+let embeddedScriptParses = false;
+try {
+  if (scriptMatch) {
+    new Function(scriptMatch[1]);
+    embeddedScriptParses = true;
+  }
+} catch (_) {
+  embeddedScriptParses = false;
+}
+check("054 embedded Bulk Evaluate browser script parses", embeddedScriptParses);
+check("055 CSV chooser is visible instead of hidden behind a label", source.includes('id="file" type="file"') && !source.includes('.upload input{display:none}'));
+check("056 selected CSV filename is visible", source.includes('id="selected-file"') && source.includes('"Selected: "+selectedFile.name'));
+check("057 explicit same-file load retry is available", source.includes('id="load-file"') && source.includes('loadFile.addEventListener("click"'));
+check("058 choosing a CSV still auto-loads it", source.includes('file.addEventListener("change"') && source.includes('if(selectedFile)load(selectedFile)'));
+check("059 CSV loading gives immediate visible feedback", source.includes('message.textContent="Loading "+f.name+"…"'));
+
 const failed = results.filter(result => !result.passed);
 for (const result of results) console.log(`${result.passed ? "PASS" : "FAIL"} ${result.name}`);
 console.log(`\nBulk Evaluate endpoint validation: ${results.length - failed.length}/${results.length} passed.`);
