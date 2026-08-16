@@ -6,6 +6,7 @@ on:
     paths:
       - 'phase7-day0-template.csv'
       - 'phase7-day0-run.html'
+      - 'docs/phase7-day0-proof-capture.md'
       - 'scripts/validate-phase7-frozen-template.mjs'
       - '.github/workflows/phase7-frozen-template-assurance.yml'
   workflow_dispatch:
@@ -15,7 +16,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate frozen Day-0 template and operator guide
+    name: Validate frozen Day-0 template and locked operator guide
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -25,19 +26,30 @@ jobs:
           node-version: '22'
       - name: Validate exact frozen target mirror
         run: node scripts/validate-phase7-frozen-template.mjs
-      - name: Validate Day-0 guide follows private preflight and selector workflow
+      - name: Validate Day-0 guide follows locked prospective-proof workflow
         shell: bash
         run: |
           set -euo pipefail
           grep -q 'SaaSProofDay0ListingSelectionOperator preflight' phase7-day0-run.html
           grep -q 'ready=true' phase7-day0-run.html
           grep -q 'SaaSProofDay0ListingSelectionOperator select' phase7-day0-run.html
-          grep -q '/data/phase7-day0-selected.csv' phase7-day0-run.html
+          grep -q -- '--format json' phase7-day0-run.html
+          grep -q 'sha256sum' phase7-day0-run.html
+          grep -q 'SaaSProofDay0ListingSelectionOperator export-locked' phase7-day0-run.html
+          grep -q '0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f' phase7-day0-run.html
           grep -q '/.netlify/functions/bulk-evaluate' phase7-day0-run.html
-          grep -q 'SaaSProofCohortOperator create25' phase7-day0-run.html
-          grep -q '/phase7-day0-template.csv' phase7-day0-run.html
           grep -q 'separate identity preflight' phase7-day0-run.html
+          grep -q 'SaaSProofDay0CohortFreezeOperator freeze25' phase7-day0-run.html
+          grep -q 'phase7LockedSelectionVerified=true' phase7-day0-run.html
+          grep -q 'phase7VerifiedRequestCount=25' phase7-day0-run.html
+          grep -q '/phase7-day0-template.csv' phase7-day0-run.html
+          ! grep -q 'SaaSProofCohortOperator create25' phase7-day0-run.html
+          ! grep -q 'select --format csv' phase7-day0-run.html
+          ! grep -q '/data/phase7-day0-selected.csv' phase7-day0-run.html
           ! grep -q 'For each frozen target, select the current eligible' phase7-day0-run.html
           ! grep -q 'Fill only the live fields' phase7-day0-run.html
           ! grep -Eqi 'fetch\(|localStorage|sessionStorage|indexedDB|supportedValue|forgeHeat|recommendation[[:space:]]*=' phase7-day0-run.html
-          echo 'PASS: Day-0 guide requires hosted provider preflight before private selection and contains no browser decision logic.'
+          grep -q 'SaaSProofDay0CohortFreezeOperator freeze25' docs/phase7-day0-proof-capture.md
+          grep -q 'phase7LockedSelectionSha256' docs/phase7-day0-proof-capture.md
+          ! grep -q 'Authoritative cohort membership remains in FlipForge SQLite and is created only through the private backend `SaaSProofCohortOperator create25` path' docs/phase7-day0-proof-capture.md
+          echo 'PASS: Day-0 guide requires hash-locked selection export and locked cohort freeze with no browser decision logic.'
