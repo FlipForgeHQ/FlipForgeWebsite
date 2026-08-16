@@ -53,24 +53,22 @@
       <h2>6 · Let proof mode preflight all 25 identities</h2>
       <p>This is a separate identity preflight. Bulk Evaluate verifies all 25 card identities through server-owned Identity Intelligence before submitting any Day-0 evaluation. If one identity is ambiguous, the entire proof batch stops before Day 0 rather than partially evaluating the cohort.</p>
 
-      <h2>7 · Export the completed Day-0 proof IDs</h2>
-      <p>After all 25 authoritative evaluations complete, download the Day-0 proof-ID audit handoff. Preserve all 25 request IDs exactly as returned. The browser export remains audit-only; it cannot create or mutate the proof cohort.</p>
+      <h2>7 · Download the completed proof-ID audit file</h2>
+      <p>After all 25 authoritative evaluations complete, click <strong>Download Day-0 proof IDs</strong>. Preserve the downloaded <code>flipforge-phase7-day0-proof-ids.json</code> file. It contains the 25 request IDs, listing IDs, resolved identities, sport allocation, Identity Intelligence preflight state, and authority flags needed by the private final-freeze operator.</p>
+      <p class="note">The file remains audit/transport only. It cannot create or mutate a proof cohort by itself, and SQLite remains authoritative.</p>
 
-      <h2>8 · Freeze the cohort against the original locked selection</h2>
-      <p>Use the new private locked-freeze operator. It re-verifies the original JSON SHA-256 and independently binds every completed evaluation to exactly one locked marketplace listing and its Day-0 all-in ask before creating immutable cohort membership.</p>
+      <h2>8 · Freeze the cohort from the proof-ID file</h2>
+      <p>Place the downloaded audit file in the controlled operator environment and pass it directly to the locked-freeze operator. The backend fingerprints that file, validates its Phase 7 structure and authority boundaries, then cross-checks its 25 rows against authoritative SQLite and the original hash-locked selection.</p>
       <pre>java -cp /app/FlipForge.jar com.flipforge2.saas.SaaSProofDay0CohortFreezeOperator freeze25 \
   --tenant &lt;trusted-tenant-context&gt; \
   --database /data/flipforge2.sqlite \
   --selection-file /data/proof/FF_25_CARD_PROOF_V1-day0-selection-YYYYMMDD.json \
   --selection-sha256 0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f \
-  --cohort-id FF-PROOF-25-V1 \
-  --name "FlipForge 25-Card Four-Sport Proof V1" \
-  --request-id &lt;day0-request-1&gt; \
-  ... repeat --request-id exactly 25 times ...</pre>
-      <p>Accept the freeze only when it reports <code>phase7LockedSelectionVerified=true</code>, the exact locked SHA-256, <code>phase7VerifiedRequestCount=25</code>, <code>memberCount=25</code>, and <code>day0SnapshotCount=25</code>.</p>
+  --proof-export-file /data/proof/flipforge-phase7-day0-proof-ids.json</pre>
+      <p>The cohort ID, name, and 25 request IDs come from the validated proof-ID file. Accept the freeze only when it reports <code>phase7LockedSelectionVerified=true</code>, <code>phase7ProofIdExportVerified=true</code>, the exact locked selection SHA-256, a <code>phase7ProofIdExportSha256</code>, <code>phase7VerifiedRequestCount=25</code>, <code>memberCount=25</code>, and <code>day0SnapshotCount=25</code>.</p>
 
       <h2>Authority boundary</h2>
-      <p>Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains grading guidance. Selection, locked export, identity preflight, and cohort freeze cannot create a second recommendation engine, evidence authority, Forge Heat authority, accuracy claim, self-training authority, billing authority, or sports-card transaction authority.</p>
+      <p>Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains grading guidance. Selection, locked export, identity preflight, proof-ID handoff, and cohort freeze cannot create a second recommendation engine, evidence authority, Forge Heat authority, accuracy claim, self-training authority, billing authority, or sports-card transaction authority.</p>
     </section>
   </main>
 </body>
