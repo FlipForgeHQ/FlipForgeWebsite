@@ -47,7 +47,7 @@ const ENDPOINT="/api/v1/evaluations",CARD_SEARCH="/api/v1/card-intelligence/sear
 const REQUIRED=["externalListingId","cardIdentity","listingUrl","itemPrice"];
 const MARKETPLACES=new Set(["EBAY","COMC","MYSLABS","GOLDIN","HERITAGE","FANATICS_COLLECT","DEALER","CARD_SHOW","FACEBOOK_GROUP","OTHER"]);
 const DECISIONS=new Set(["BUY","WATCH","VERIFY","PASS"]),SPORTS=new Set(["MLB","NFL","NBA","NHL"]);
-const SAFE_ID=/^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/;
+const SAFE_ID=/^[A-Za-z0-9][A-Za-z0-9._:|-]{0,179}$/;
 let rows=[],running=false,completed=false;
 const file=document.querySelector("#file"),run=document.querySelector("#run"),proof=document.querySelector("#proof"),ack=document.querySelector("#ack"),message=document.querySelector("#message"),results=document.querySelector("#results");
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;");
