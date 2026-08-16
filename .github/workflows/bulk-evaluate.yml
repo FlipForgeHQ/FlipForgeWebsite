@@ -5,6 +5,7 @@ on:
     paths:
       - "netlify/modern-functions/bulk-evaluate.js"
       - "scripts/validate-saas-bulk-evaluate-endpoint.mjs"
+      - "scripts/validate-phase7-replay-safe-day0-ids.mjs"
       - ".github/workflows/bulk-evaluate.yml"
   workflow_dispatch:
 
@@ -25,3 +26,5 @@ jobs:
         run: node --check netlify/modern-functions/bulk-evaluate.js
       - name: Validate Bulk Evaluate boundary
         run: node scripts/validate-saas-bulk-evaluate-endpoint.mjs
+      - name: Validate replay-safe Phase 7 Day-0 IDs
+        run: node scripts/validate-phase7-replay-safe-day0-ids.mjs
