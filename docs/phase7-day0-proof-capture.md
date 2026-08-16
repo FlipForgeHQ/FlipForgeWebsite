@@ -1,6 +1,6 @@
 # Phase 7 Day-0 Proof Capture
 
-Bulk Evaluate preserves the authoritative evaluation request ID returned for each successful row so a completed 25-card Day-0 batch can be handed to the private proof-cohort operator without copying IDs manually from logs or SQLite.
+Bulk Evaluate preserves the authoritative evaluation request ID returned for each successful row so the completed 25-card Day-0 batch can be reconciled back to the exact SHA-256-locked listing selection before immutable proof-cohort creation.
 
 ## Locked proof handoff
 
@@ -15,9 +15,24 @@ The **Download Day-0 proof IDs** control remains disabled unless all of the foll
 
 The export is JSON and includes the 25 request IDs plus resolved card identity, external listing ID, original decision, confidence, risk, exact trusted comp count, sport label, and identity-preflight provenance for audit/reconciliation.
 
+## Day-0 selection must already be hash-locked
+
+Before Bulk Evaluate begins, the approved Phase 7 path requires:
+
+1. one governed 25-of-25 JSON selection from the private backend selector;
+2. the SHA-256 of that exact saved JSON to be recorded;
+3. the Bulk Evaluate CSV to be produced only with `SaaSProofDay0ListingSelectionOperator export-locked` against that exact fingerprint;
+4. no second marketplace selection after the accepted JSON is fingerprinted.
+
+For the currently accepted V1 selection, the recorded SHA-256 is:
+
+`0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f`
+
+The browser proof-ID export does not replace that selection authority. It supplies the immutable evaluation request IDs that must later be bound back to the locked selection.
+
 ## Identity-first proof behavior
 
-The Phase 7 template activates a proof-only preflight before any Day-0 evaluation request is submitted.
+The Phase 7 proof-tagged CSV activates a proof-only preflight before any Day-0 evaluation request is submitted.
 
 For each of the 25 rows, FlipForge:
 
@@ -27,17 +42,30 @@ For each of the 25 rows, FlipForge:
 4. requires `readyForEvaluation=true` and a non-blank resolved card identity;
 5. replaces the typed identity with the server-resolved identity for the Day-0 evaluation.
 
-If any one of the 25 rows is ambiguous or cannot resolve, the proof preflight stops and **no Day-0 evaluations are submitted**. The row must be corrected and a new Phase 7 CSV uploaded.
+If any one of the 25 rows is ambiguous or cannot resolve, proof preflight stops and **no Day-0 evaluations are submitted**. The row must be corrected without changing the pre-registered selection rule or cherry-picking based on a recommendation or later outcome.
 
-This prevents the proof study from bypassing FlipForge Identity Intelligence just because the cards are being evaluated in bulk.
+Normal Bulk Evaluate remains unchanged: this identity preflight runs only for a 25-row CSV explicitly tagged with the Phase 7 proof-study version.
 
-Normal Bulk Evaluate is unchanged: the identity preflight runs only for a 25-row CSV explicitly tagged with the Phase 7 proof-study version.
+## Final source-of-truth boundary
 
-## Source-of-truth boundary
+The browser export is explicitly `auditExportOnly`. It cannot create or mutate proof-cohort membership.
 
-The browser export is explicitly `auditExportOnly`. Authoritative cohort membership remains in FlipForge SQLite and is created only through the private backend `SaaSProofCohortOperator create25` path.
+The real `FF_25_CARD_PROOF_V1` cohort must be frozen with the private backend:
 
-Bulk Evaluate does not call a proof-cohort endpoint, does not receive tenant headers or service credentials, and cannot edit a frozen cohort.
+`SaaSProofDay0CohortFreezeOperator freeze25`
+
+That operator requires:
+
+- the original saved 25-of-25 selection JSON;
+- its recorded SHA-256;
+- exactly 25 distinct completed evaluation request IDs;
+- the authoritative SQLite database.
+
+Before creating the cohort, it independently verifies that every saved evaluation snapshot matches exactly one locked selection row by marketplace, external listing ID, and Day-0 all-in ask. Hash mismatch, selection tampering, listing substitution, ask changes, duplicate request IDs, missing rows, or cross-tenant snapshots fail closed.
+
+A successful final freeze reports `phase7LockedSelectionVerified=true`, the exact `phase7LockedSelectionSha256`, `phase7VerifiedRequestCount=25`, `memberCount=25`, and `day0SnapshotCount=25`.
+
+The lower-level `SaaSProofCohortOperator create25` is not the approved final-freeze path for this real V1 study because it does not independently bind request IDs back to the hash-locked Day-0 selection.
 
 ## Authority preserved
 
@@ -46,8 +74,4 @@ Bulk Evaluate does not call a proof-cohort endpoint, does not receive tenant hea
 - Card Intelligence preflight performs identity assistance only and is required to report no evidence acceptance, Smart Opportunity recalculation, provider payload persistence, or transaction authority.
 - The page submits completed rows sequentially to the existing evaluation endpoint only after the entire Phase 7 identity preflight succeeds.
 - The page performs no browser-side scoring, evidence acceptance, or recommendation changes.
-- No accuracy claim, self-training authority, billing authority, or transaction authority is added.
-
-## Phase 7 template
-
-The Phase 7 template contains exactly 25 proof-tagged sport slots in the locked 7/6/6/6 allocation. Listing ID, proposed card identity, URL, and price remain blank so the real Day-0 opportunities are selected prospectively and completed against live listings rather than fabricated in the repository.
+- Final proof freeze performs no marketplace search and creates no evidence, recommendation, grading, billing, accuracy-claim, self-training, or transaction authority.
