@@ -13,7 +13,7 @@ The **Download Day-0 proof IDs** control remains disabled unless all of the foll
 - every completed response returned the same authoritative request ID sent as the row's idempotency key;
 - the CSV sport labels resolve to the pre-registered Phase 7 allocation: 7 MLB, 6 NFL, 6 NBA, 6 NHL.
 
-The export is JSON and includes the 25 request IDs plus resolved card identity, external listing ID, original decision, confidence, risk, exact trusted comp count, sport label, and identity-preflight provenance for audit/reconciliation.
+The export is `flipforge-phase7-day0-proof-ids.json`. It includes the 25 request IDs plus resolved card identity, external listing ID, original decision, confidence, risk, exact trusted comp count, sport label, identity-preflight provenance, and explicit authority flags for audit/reconciliation.
 
 ## Day-0 selection must already be hash-locked
 
@@ -28,7 +28,7 @@ For the currently accepted V1 selection, the recorded SHA-256 is:
 
 `0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f`
 
-The browser proof-ID export does not replace that selection authority. It supplies the immutable evaluation request IDs that must later be bound back to the locked selection.
+The browser proof-ID export does not replace that selection authority. It is the preferred transport handoff for the immutable evaluation request IDs that must be reconciled back to the locked selection.
 
 ## Identity-first proof behavior
 
@@ -46,26 +46,57 @@ If any one of the 25 rows is ambiguous or cannot resolve, proof preflight stops 
 
 Normal Bulk Evaluate remains unchanged: this identity preflight runs only for a 25-row CSV explicitly tagged with the Phase 7 proof-study version.
 
-## Final source-of-truth boundary
+## Preferred final source-of-truth boundary
 
 The browser export is explicitly `auditExportOnly`. It cannot create or mutate proof-cohort membership.
 
-The real `FF_25_CARD_PROOF_V1` cohort must be frozen with the private backend:
+The real `FF_25_CARD_PROOF_V1` cohort is frozen with the private backend:
 
 `SaaSProofDay0CohortFreezeOperator freeze25`
 
-That operator requires:
+Preferred input is the downloaded proof-ID audit file itself:
 
-- the original saved 25-of-25 selection JSON;
-- its recorded SHA-256;
-- exactly 25 distinct completed evaluation request IDs;
-- the authoritative SQLite database.
+```text
+java -cp /app/FlipForge.jar com.flipforge2.saas.SaaSProofDay0CohortFreezeOperator freeze25 \
+  --tenant <trusted-tenant-context> \
+  --database /data/flipforge2.sqlite \
+  --selection-file /data/proof/FF_25_CARD_PROOF_V1-day0-selection-YYYYMMDD.json \
+  --selection-sha256 0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f \
+  --proof-export-file /data/proof/flipforge-phase7-day0-proof-ids.json
+```
 
-Before creating the cohort, it independently verifies that every saved evaluation snapshot matches exactly one locked selection row by marketplace, external listing ID, and Day-0 all-in ask. Hash mismatch, selection tampering, listing substitution, ask changes, duplicate request IDs, missing rows, or cross-tenant snapshots fail closed.
+The operator validates the proof-ID file before using it. The approved contract requires:
 
-A successful final freeze reports `phase7LockedSelectionVerified=true`, the exact `phase7LockedSelectionSha256`, `phase7VerifiedRequestCount=25`, `memberCount=25`, and `day0SnapshotCount=25`.
+- `studyVersion=FF_25_CARD_PROOF_V1`;
+- `source=identity-preflight-completed-authoritative-bulk-evaluations`;
+- `sourceOfTruth=SQLITE`;
+- `auditExportOnly=true`;
+- exactly 25 member rows and 25 distinct request IDs;
+- 7 MLB / 6 NFL / 6 NBA / 6 NHL;
+- `identityPreflight.required=true` and `identityPreflight.allResolved=true` from the server-owned search/resolve lane;
+- Smart Opportunity as recommendation authority;
+- existing PSA intelligence as grading-guidance authority;
+- no accuracy-claim, self-training, or transaction authority;
+- unique ordered slots and listing IDs;
+- verified card identity for every member.
 
-The lower-level `SaaSProofCohortOperator create25` is not the approved final-freeze path for this real V1 study because it does not independently bind request IDs back to the hash-locked Day-0 selection.
+The backend then independently cross-checks every proof-export member against authoritative SQLite and the original locked selection. Slot, sport, external listing ID, and card identity must match the corresponding saved evaluation and locked row; the saved evaluation must also preserve the locked marketplace and Day-0 all-in ask.
+
+The proof-ID file is independently SHA-256 fingerprinted during freeze. A successful final freeze reports:
+
+- `phase7LockedSelectionVerified=true`;
+- the exact `phase7LockedSelectionSha256`;
+- `phase7ProofIdExportVerified=true`;
+- `phase7ProofIdExportSha256=<fingerprint of the downloaded audit file>`;
+- `phase7VerifiedRequestCount=25`;
+- `memberCount=25`;
+- `day0SnapshotCount=25`.
+
+Hash mismatch, selection tampering, proof-export identity-preflight removal, unsafe authority flags, sport drift, listing substitution, card-identity tampering, duplicate request IDs, ask changes, missing rows, or cross-tenant snapshots fail closed.
+
+The lower-level repeated `--request-id` mode remains a controlled fallback, but the proof-ID file is preferred because it eliminates manual transcription and gives the final audit handoff its own recorded fingerprint.
+
+`SaaSProofCohortOperator create25` is not the approved final-freeze path for this real V1 study because it does not independently bind the browser handoff and request IDs back to the hash-locked Day-0 selection.
 
 ## Authority preserved
 
