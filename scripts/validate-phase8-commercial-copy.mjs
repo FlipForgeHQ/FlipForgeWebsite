@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 
+const homepage = fs.readFileSync('index.html', 'utf8');
 const pricing = fs.readFileSync('pricing.html', 'utf8');
 const betaTerms = fs.readFileSync('beta-terms.html', 'utf8');
 const terms = fs.readFileSync('terms.html', 'utf8');
@@ -13,6 +14,18 @@ function requireText(label, text, needle) {
 function forbidText(label, text, needle) {
   if (text.includes(needle)) failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);
 }
+
+requireText('homepage', homepage, 'Planned Launch Pricing');
+requireText('homepage', homepage, '<h3>Scout</h3>');
+requireText('homepage', homepage, '<li>10 evaluations per month</li>');
+requireText('homepage', homepage, '<li>75 evaluations per month</li>');
+requireText('homepage', homepage, '<li>300 evaluations per month</li>');
+requireText('homepage', homepage, 'Forge Heat intelligence');
+requireText('homepage', homepage, 'Tracked cards subject to reasonable-use and technical limits');
+requireText('homepage', homepage, 'Advanced PSA intelligence and grade economics');
+requireText('homepage', homepage, 'CSV exports');
+forbidText('homepage', homepage, '<li>5 evaluations per month</li>');
+forbidText('homepage', homepage, 'Most popular');
 
 requireText('pricing', pricing, 'Planned Launch Pricing');
 requireText('pricing', pricing, '10 evaluations each month');
@@ -64,7 +77,7 @@ forbidText('refund', refund, 'FlipForge directly issues refunds');
 forbidText('refund', refund, 'no refunds under any circumstances');
 forbidText('refund', refund, 'all sales are final');
 
-for (const [label, text] of [['pricing', pricing], ['beta terms', betaTerms], ['terms', terms], ['refund', refund]]) {
+for (const [label, text] of [['homepage', homepage], ['pricing', pricing], ['beta terms', betaTerms], ['terms', terms], ['refund', refund]]) {
   for (const forbidden of ['localStorage', 'sessionStorage', 'indexedDB', 'transactionAuthority=true', 'recommendation=', 'supportedValue=']) {
     forbidText(label, text, forbidden);
   }
@@ -76,4 +89,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Phase 8 pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
+console.log('PASS: Phase 8 homepage, pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
