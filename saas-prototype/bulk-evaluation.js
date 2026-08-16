@@ -5,6 +5,7 @@
   const MAX_ROWS = 25;
   const MAX_FILE_BYTES = 256_000;
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
+  const PROOF_VERSION = "FF_25_CARD_PROOF_V1";
   const SAFE_REQUEST_ID = /^[A-Za-z0-9._-]{8,100}$/;
   const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:|-]{0,179}$/;
   const SAFE_OPPORTUNITY_ID = /^[A-Za-z0-9][A-Za-z0-9._:|-]{0,199}$/;
@@ -55,6 +56,9 @@
   function headerKey(value) {
     const normalized = normalizeHeader(value);
     const aliases = {
+      proofstudy: "proofStudy",
+      study: "proofStudy",
+      sport: "sport",
       externallistingid: "externalListingId",
       listingid: "externalListingId",
       marketplace: "marketplace",
@@ -131,6 +135,14 @@
 
     const bodyRows = records.slice(1);
     if (bodyRows.length > MAX_ROWS) throw new Error(`Bulk Evaluate accepts up to ${MAX_ROWS} cards per CSV.`);
+
+    const proofStudyColumn = mappedHeaders.indexOf("proofStudy");
+    if (proofStudyColumn >= 0) {
+      const proofStudyValues = bodyRows.map(values => String(values[proofStudyColumn] ?? "").trim());
+      if (proofStudyValues.some(value => value === PROOF_VERSION)) {
+        throw new Error("Phase 7 proof CSVs must use the governed proof Bulk Evaluate page: /.netlify/functions/bulk-evaluate");
+      }
+    }
 
     return bodyRows.map((values, index) => {
       const draft = { marketplace: "EBAY" };
