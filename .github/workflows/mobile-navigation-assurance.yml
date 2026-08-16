@@ -1,0 +1,62 @@
+name: Mobile Navigation Assurance
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'index.html'
+      - 'assets/js/site.js'
+      - 'assets/css/site.css'
+      - '.github/workflows/mobile-navigation-assurance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate responsive mobile navigation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse site JavaScript
+        run: node --check assets/js/site.js
+      - name: Validate mobile navigation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          grep -q 'class="menu-toggle"' index.html
+          grep -q 'aria-expanded="false"' index.html
+          grep -q 'aria-controls="mobile-navigation"' index.html
+          grep -q 'class="mobile-nav" id="mobile-navigation"' index.html
+          grep -q 'class="backdrop" aria-hidden="true"' index.html
+          grep -q '<script src="assets/js/site.js" defer></script>' index.html
+
+          grep -q "document.querySelector('.menu-toggle')" assets/js/site.js
+          grep -q "document.querySelector('.mobile-nav')" assets/js/site.js
+          grep -q "document.querySelector('.backdrop')" assets/js/site.js
+          grep -q "toggle.setAttribute('aria-expanded','true')" assets/js/site.js
+          grep -q "toggle.setAttribute('aria-expanded','false')" assets/js/site.js
+          grep -q "if(e.key==='Escape')closeMenu()" assets/js/site.js
+          grep -q "if(e.key==='Tab'&&menu.classList.contains('open'))" assets/js/site.js
+          grep -q "document.body.classList.add('menu-open')" assets/js/site.js
+          grep -q "document.body.classList.remove('menu-open')" assets/js/site.js
+          grep -q "window.addEventListener('resize'" assets/js/site.js
+
+          grep -Fq '.menu-toggle{display:none' assets/css/site.css
+          grep -Fq '.mobile-nav{position:fixed' assets/css/site.css
+          grep -Fq '.mobile-nav.open{' assets/css/site.css
+          grep -Fq '.backdrop.open{' assets/css/site.css
+          grep -Fq '@media(max-width:1000px)' assets/css/site.css
+          grep -Fq '.menu-toggle{display:block}' assets/css/site.css
+
+          echo 'PASS: Mobile navigation is implemented directly in the site and remains keyboard/accessibility aware.'
