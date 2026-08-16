@@ -61,6 +61,7 @@ check("049 all identity preflight occurs before Day-0 submission", source.indexO
 check("050 a failed proof identity preflight submits no Day-0 evaluations", source.includes('Identity preflight failed.') && source.includes('No Day-0 evaluations were submitted.') && source.includes('return}message.className="status";message.textContent="All 25 identities verified. Submitting Day-0 evaluations…"'));
 check("051 normal Bulk Evaluate does not require proof mode", source.includes('const isProof=proofMode();if(isProof){') && source.includes('r.detail=isProof?"Identity verified · submitting authoritative evaluation…":"Submitting authoritative evaluation…"'));
 check("052 proof export records identity preflight provenance", source.includes('identityPreflight:{required:true,allResolved:true,source:"server-owned-card-intelligence-search-resolve"}'));
+check("053 governed eBay Browse provider IDs are accepted", source.includes('const SAFE_ID=/^[A-Za-z0-9][A-Za-z0-9._:|-]{0,179}$/;'));
 
 const failed = results.filter(result => !result.passed);
 for (const result of results) console.log(`${result.passed ? "PASS" : "FAIL"} ${result.name}`);
