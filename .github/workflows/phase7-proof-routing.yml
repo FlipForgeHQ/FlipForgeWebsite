@@ -1,0 +1,25 @@
+name: Phase 7 Proof Routing
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/bulk-evaluation.js"
+      - "scripts/validate-phase7-proof-routing.mjs"
+      - ".github/workflows/phase7-proof-routing.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check normal Bulk Evaluate
+        run: node --check saas-prototype/bulk-evaluation.js
+      - name: Validate proof routing boundary
+        run: node scripts/validate-phase7-proof-routing.mjs
