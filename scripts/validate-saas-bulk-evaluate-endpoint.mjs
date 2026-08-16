@@ -59,7 +59,10 @@ check("046 proof identity preflight requires one exact selectable candidate", so
 check("047 proof identity preflight resolves opaque selection token", source.includes('cardApi(CARD_RESOLVE,{selectionToken:candidates[0].selectionToken})'));
 check("048 proof identity preflight requires ready-for-evaluation identity", source.includes('resolved.readyForEvaluation!==true') && source.includes('r.identityVerified=true'));
 check("049 all identity preflight occurs before Day-0 submission", source.indexOf('await resolveProofIdentity(r)') < source.lastIndexOf('await submit(r)'));
-check("050 a failed proof identity preflight submits no Day-0 evaluations", source.includes('Identity preflight failed.') && source.includes('No Day-0 evaluations were submitted.') && source.includes('return}message.className="status";message.textContent="All 25 identities verified. Submitting Day-0 evaluations…"'));
+const preflightFailure = source.indexOf('if(rows.some(r=>r.status==="ERROR"))');
+const preflightReturn = source.indexOf('render();return}', preflightFailure);
+const firstSubmission = source.lastIndexOf('for(const r of rows){if(r.status!=="READY")continue;');
+check("050 a failed proof identity preflight submits no Day-0 evaluations", source.includes('Identity preflight failed.') && source.includes('No Day-0 evaluations were submitted.') && preflightFailure >= 0 && preflightReturn > preflightFailure && firstSubmission > preflightReturn);
 check("051 normal Bulk Evaluate does not require proof mode", source.includes('const isProof=proofMode();if(isProof){') && source.includes('r.detail=isProof?"Identity verified · submitting authoritative evaluation…":"Submitting authoritative evaluation…"'));
 check("052 proof export records identity preflight provenance", source.includes('identityPreflight:{required:true,allResolved:true,source:"server-owned-card-intelligence-search-resolve"}'));
 check("053 governed eBay Browse provider IDs are accepted", source.includes('const SAFE_ID=/^[A-Za-z0-9][A-Za-z0-9._:|-]{0,179}$/;'));
