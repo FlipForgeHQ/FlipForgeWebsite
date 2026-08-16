@@ -39,17 +39,24 @@ jobs:
           grep -q '0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f' phase7-day0-run.html
           grep -q '/.netlify/functions/bulk-evaluate' phase7-day0-run.html
           grep -q 'separate identity preflight' phase7-day0-run.html
+          grep -q 'flipforge-phase7-day0-proof-ids.json' phase7-day0-run.html
           grep -q 'SaaSProofDay0CohortFreezeOperator freeze25' phase7-day0-run.html
+          grep -q -- '--proof-export-file /data/proof/flipforge-phase7-day0-proof-ids.json' phase7-day0-run.html
           grep -q 'phase7LockedSelectionVerified=true' phase7-day0-run.html
+          grep -q 'phase7ProofIdExportVerified=true' phase7-day0-run.html
+          grep -q 'phase7ProofIdExportSha256' phase7-day0-run.html
           grep -q 'phase7VerifiedRequestCount=25' phase7-day0-run.html
           grep -q '/phase7-day0-template.csv' phase7-day0-run.html
           ! grep -q 'SaaSProofCohortOperator create25' phase7-day0-run.html
+          ! grep -q 'repeat --request-id exactly 25 times' phase7-day0-run.html
           ! grep -q 'select --format csv' phase7-day0-run.html
           ! grep -q '/data/phase7-day0-selected.csv' phase7-day0-run.html
           ! grep -q 'For each frozen target, select the current eligible' phase7-day0-run.html
           ! grep -q 'Fill only the live fields' phase7-day0-run.html
           ! grep -Eqi 'fetch\(|localStorage|sessionStorage|indexedDB|supportedValue|forgeHeat|recommendation[[:space:]]*=' phase7-day0-run.html
           grep -q 'SaaSProofDay0CohortFreezeOperator freeze25' docs/phase7-day0-proof-capture.md
-          grep -q 'phase7LockedSelectionSha256' docs/phase7-day0-proof-capture.md
+          grep -q -- '--proof-export-file /data/proof/flipforge-phase7-day0-proof-ids.json' docs/phase7-day0-proof-capture.md
+          grep -q 'phase7ProofIdExportVerified=true' docs/phase7-day0-proof-capture.md
+          grep -q 'phase7ProofIdExportSha256' docs/phase7-day0-proof-capture.md
           ! grep -q 'Authoritative cohort membership remains in FlipForge SQLite and is created only through the private backend `SaaSProofCohortOperator create25` path' docs/phase7-day0-proof-capture.md
-          echo 'PASS: Day-0 guide requires hash-locked selection export and locked cohort freeze with no browser decision logic.'
+          echo 'PASS: Day-0 guide requires locked selection export, direct proof-ID handoff, and locked cohort freeze with no browser decision logic.'
