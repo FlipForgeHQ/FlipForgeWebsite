@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -63,9 +64,13 @@ check("051 normal Bulk Evaluate does not require proof mode", source.includes('c
 check("052 proof export records identity preflight provenance", source.includes('identityPreflight:{required:true,allResolved:true,source:"server-owned-card-intelligence-search-resolve"}'));
 check("053 governed eBay Browse provider IDs are accepted", source.includes('const SAFE_ID=/^[A-Za-z0-9][A-Za-z0-9._:|-]{0,179}$/;'));
 
-const scriptMatch = source.match(/<script>\n([\s\S]*?)\n<\/script>/);
 let embeddedScriptParses = false;
 try {
+  const sandbox = { exports: {} };
+  vm.runInNewContext(source, sandbox, { filename: "bulk-evaluate.js" });
+  const page = await sandbox.exports.handler({ httpMethod: "GET" });
+  const generatedHtml = String(page?.body || "");
+  const scriptMatch = generatedHtml.match(/<script>\s*([\s\S]*?)\s*<\/script>/);
   if (scriptMatch) {
     new Function(scriptMatch[1]);
     embeddedScriptParses = true;
