@@ -14,36 +14,63 @@
   <main class="shell">
     <span class="eyebrow">PHASE 7 · CONTROLLED PROOF STUDY</span>
     <h1>Day-0 25-card run</h1>
-    <p>This is the operator guide for the prospectively frozen <strong>FF_25_CARD_PROOF_V1</strong> cohort. Listing selection is performed by the private backend selector before any Day-0 recommendation is created.</p>
+    <p>This is the operator guide for the prospectively frozen <strong>FF_25_CARD_PROOF_V1</strong> study. The target identities, listing-selection rule, saved 25-of-25 selection, and final cohort membership are governed before later outcomes exist.</p>
     <section class="card">
-      <div class="lock"><strong>Frozen selection:</strong> 25 exact targets · 7 MLB / 6 NFL / 6 NBA / 6 NHL. The frozen backend manifest and authoritative SQLite remain the proof source of truth.</div>
+      <div class="lock"><strong>Frozen study:</strong> 25 exact targets · 7 MLB / 6 NFL / 6 NBA / 6 NHL. SQLite remains the proof source of truth. The accepted Day-0 selection is additionally protected by its SHA-256 fingerprint.</div>
 
       <h2>1 · Confirm hosted provider readiness</h2>
       <p>Run the private provider preflight in the authorized FlipForge backend runtime before making any live marketplace query.</p>
       <pre>java -cp /app/FlipForge.jar com.flipforge2.saas.SaaSProofDay0ListingSelectionOperator preflight</pre>
-      <p>Continue only when the result reports <code>ready=true</code>. This preflight confirms that the frozen 25-card study is intact and that the existing eBay Browse provider is configured for the runtime. It performs no marketplace search, exposes no credential value, and creates no Day-0 decision.</p>
+      <p>Continue only when the result reports <code>ready=true</code>. Preflight performs no marketplace search, exposes no credential value, and creates no Day-0 decision.</p>
 
-      <h2>2 · Generate the governed live-listing CSV</h2>
-      <p>Run the private selector in the same authorized runtime. It queries the existing eBay Browse provider, keeps only eligible exact fixed-price matches, and fails closed if any frozen target cannot be resolved.</p>
-      <pre>java -cp /app/FlipForge.jar com.flipforge2.saas.SaaSProofDay0ListingSelectionOperator select --format csv --output /data/phase7-day0-selected.csv</pre>
-      <p class="note">The selector ranks only the governed authorized API result set. It does not claim market-wide cheapest-listing coverage, and active asks never become sold evidence.</p>
+      <h2>2 · Save the governed 25-of-25 selection as JSON</h2>
+      <p>Run the live selector once and save its authoritative JSON result. Do not generate the proof CSV directly from a second marketplace search.</p>
+      <pre>java -cp /app/FlipForge.jar com.flipforge2.saas.SaaSProofDay0ListingSelectionOperator select \
+  --format json \
+  --output /data/proof/FF_25_CARD_PROOF_V1-day0-selection-YYYYMMDD.json</pre>
+      <p class="note">The selector keeps only eligible exact fixed-price matches from the governed authorized eBay API result set. It does not claim market-wide cheapest-listing coverage, and active asks never become sold evidence.</p>
 
-      <h2>3 · Upload the generated CSV to Bulk Evaluate</h2>
-      <p>Use <code>/data/phase7-day0-selected.csv</code> as the Day-0 input. Do not hand-edit listing choice, frozen identity, sport, or proof-study membership to improve a likely result.</p>
+      <h2>3 · Fingerprint and lock that exact JSON</h2>
+      <p>Record the SHA-256 of the accepted complete 25-of-25 JSON file. Once accepted and fingerprinted, do not rerun selection for this proof study.</p>
+      <pre>sha256sum /data/proof/FF_25_CARD_PROOF_V1-day0-selection-YYYYMMDD.json</pre>
+      <div class="lock"><strong>Current accepted V1 fingerprint:</strong> <code>0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f</code></div>
+
+      <h2>4 · Export Bulk Evaluate CSV from the locked JSON</h2>
+      <p>Use <code>export-locked</code> with the recorded fingerprint. This performs no provider search and refuses a modified or mismatched selection file.</p>
+      <pre>java -cp /app/FlipForge.jar com.flipforge2.saas.SaaSProofDay0ListingSelectionOperator export-locked \
+  --input /data/proof/FF_25_CARD_PROOF_V1-day0-selection-YYYYMMDD.json \
+  --sha256 0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f \
+  --output /data/proof/FF_25_CARD_PROOF_V1-day0-bulk-evaluate-YYYYMMDD.csv</pre>
+
+      <h2>5 · Upload only the locked export to Bulk Evaluate</h2>
+      <p>Use the CSV created by <code>export-locked</code>. Do not hand-edit listing choice, frozen identity, sport, ask, or proof-study membership to improve a likely result.</p>
       <div class="actions">
         <a class="button primary" href="/.netlify/functions/bulk-evaluate">Open Bulk Evaluate</a>
         <a class="button" href="/phase7-day0-template.csv" download>Frozen target reference</a>
       </div>
-      <p class="note">The reference template intentionally contains blank live listing fields. It documents the frozen targets; it is not the Day-0 listing-selection path.</p>
+      <p class="note">The reference template is documentation only. It is not the approved Day-0 listing-selection or cohort-freeze path.</p>
 
-      <h2>4 · Let proof mode preflight all 25 identities</h2>
-      <p>This is a separate identity preflight. Bulk Evaluate verifies all 25 card identities through server-owned Identity Intelligence before submitting any Day-0 evaluation. If one identity is ambiguous, the proof batch stops before Day 0 rather than partially evaluating the cohort.</p>
+      <h2>6 · Let proof mode preflight all 25 identities</h2>
+      <p>This is a separate identity preflight. Bulk Evaluate verifies all 25 card identities through server-owned Identity Intelligence before submitting any Day-0 evaluation. If one identity is ambiguous, the entire proof batch stops before Day 0 rather than partially evaluating the cohort.</p>
 
-      <h2>5 · Export the completed Day-0 proof IDs</h2>
-      <p>After all 25 evaluations complete, download the Day-0 proof-ID audit handoff and use its 25 authoritative evaluation request IDs with the private <code>SaaSProofCohortOperator create25</code> path. Cohort membership is created only in authoritative SQLite.</p>
+      <h2>7 · Export the completed Day-0 proof IDs</h2>
+      <p>After all 25 authoritative evaluations complete, download the Day-0 proof-ID audit handoff. Preserve all 25 request IDs exactly as returned. The browser export remains audit-only; it cannot create or mutate the proof cohort.</p>
+
+      <h2>8 · Freeze the cohort against the original locked selection</h2>
+      <p>Use the new private locked-freeze operator. It re-verifies the original JSON SHA-256 and independently binds every completed evaluation to exactly one locked marketplace listing and its Day-0 all-in ask before creating immutable cohort membership.</p>
+      <pre>java -cp /app/FlipForge.jar com.flipforge2.saas.SaaSProofDay0CohortFreezeOperator freeze25 \
+  --tenant &lt;trusted-tenant-context&gt; \
+  --database /data/flipforge2.sqlite \
+  --selection-file /data/proof/FF_25_CARD_PROOF_V1-day0-selection-YYYYMMDD.json \
+  --selection-sha256 0c9373ea0619a44d8168ecfc10e28d8c8bae5aeb66dc5458141d0f7b36b30c1f \
+  --cohort-id FF-PROOF-25-V1 \
+  --name "FlipForge 25-Card Four-Sport Proof V1" \
+  --request-id &lt;day0-request-1&gt; \
+  ... repeat --request-id exactly 25 times ...</pre>
+      <p>Accept the freeze only when it reports <code>phase7LockedSelectionVerified=true</code>, the exact locked SHA-256, <code>phase7VerifiedRequestCount=25</code>, <code>memberCount=25</code>, and <code>day0SnapshotCount=25</code>.</p>
 
       <h2>Authority boundary</h2>
-      <p>Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains grading guidance. Provider preflight and listing selection cannot read recommendations, supported value, Forge Heat, or later outcomes and cannot create buying, billing, accuracy-claim, self-training, or transaction authority.</p>
+      <p>Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains grading guidance. Selection, locked export, identity preflight, and cohort freeze cannot create a second recommendation engine, evidence authority, Forge Heat authority, accuracy claim, self-training authority, billing authority, or sports-card transaction authority.</p>
     </section>
   </main>
 </body>
