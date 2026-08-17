@@ -9,6 +9,7 @@ on:
       - "saas-prototype/index.html"
       - "netlify/functions/flipforge-api.js"
       - "scripts/validate-saas-staging-evaluation-submit.mjs"
+      - "scripts/validate-saas-value-intelligence-evaluate-ui.mjs"
       - "scripts/validate-saas-staging-evaluation-submit-phase.ps1"
       - "scripts/validate-saas-staging-browser-read-adapter.mjs"
       - "scripts/validate-saas-api-bridge.mjs"
@@ -41,9 +42,13 @@ jobs:
           node --check saas-prototype/staging-evaluation.js
           node --check saas-prototype/staging-route-hook.js
           node --check scripts/validate-saas-staging-evaluation-submit.mjs
+          node --check scripts/validate-saas-value-intelligence-evaluate-ui.mjs
 
       - name: Validate staging evaluation submission
         run: node scripts/validate-saas-staging-evaluation-submit.mjs
+
+      - name: Validate Evaluate value intelligence presentation
+        run: node scripts/validate-saas-value-intelligence-evaluate-ui.mjs
 
       - name: Validate retained staging browser reads
         run: node scripts/validate-saas-staging-browser-read-adapter.mjs
@@ -71,5 +76,8 @@ jobs:
           grep -Fq '"Idempotency-Key": idempotencyKey' saas-prototype/staging-evaluation.js
           grep -Fq 'data.transactionAuthorized === false' saas-prototype/staging-evaluation.js
           grep -Fq 'data.tenantOwned === true' saas-prototype/staging-evaluation.js
+          grep -Fq 'valueIntelligence.recommendationAuthority === false' saas-prototype/staging-evaluation.js
+          grep -Fq 'valueIntelligence.priceAdjustmentApplied === false' saas-prototype/staging-evaluation.js
+          grep -Fq 'Not a supported value' saas-prototype/staging-evaluation.js
           grep -Fq 'route !== "staging-evaluate"' saas-prototype/staging-route-hook.js
           grep -Eq 'data-route="staging-evaluate"[^>]*hidden' saas-prototype/index.html
