@@ -182,6 +182,28 @@
     };
   }
 
+  function validValueIntelligence(valueIntelligence) {
+    if (valueIntelligence == null) return true;
+    if (typeof valueIntelligence !== "object" || Array.isArray(valueIntelligence)) return false;
+    const nonNegativeFields = [
+      "directSupportedValueCents",
+      "referenceLowCents",
+      "referenceMidpointCents",
+      "referenceHighCents",
+      "analogCompletedSaleCount"
+    ];
+    return typeof valueIntelligence.basis === "string"
+      && typeof valueIntelligence.confidenceBand === "string"
+      && typeof valueIntelligence.explanation === "string"
+      && typeof valueIntelligence.version === "string"
+      && valueIntelligence.recommendationAuthority === false
+      && valueIntelligence.priceAdjustmentApplied === false
+      && typeof valueIntelligence.exactEvidenceRequired === "boolean"
+      && nonNegativeFields.every(field => Number.isFinite(Number(valueIntelligence[field])) && Number(valueIntelligence[field]) >= 0)
+      && safeNumber(valueIntelligence.referenceLowCents) <= safeNumber(valueIntelligence.referenceMidpointCents)
+      && safeNumber(valueIntelligence.referenceMidpointCents) <= safeNumber(valueIntelligence.referenceHighCents);
+  }
+
   function validEnvelope(payload, expectedCorrelationId, expectedRequestId) {
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
     const meta = payload.meta;
@@ -207,6 +229,7 @@
       && data.transactionAuthorized === false
       && data.providerCredentialsExposed === false
       && DECISIONS.has(String(decision.recommendation || "").toUpperCase())
+      && validValueIntelligence(data.valueIntelligence)
       && isolation.enforced === true
       && isolation.idempotencyScope === "TENANT"
       && isolation.opportunityOwnership === "GRANTED_ON_COMPLETION"
@@ -365,6 +388,14 @@
     return `<section class="panel staging-evaluation-panel"><header class="panel-header"><div><h2>${heading}</h2><p>${description}</p></div><span class="staging-status staging-status-verify">Write boundary</span></header><form class="panel-body staging-evaluation-form" data-staging-evaluation-form novalidate><div class="customer-intake-step"><span>1</span><div><strong>Listing and exact card identity</strong><small>Describe the specific card and the listing you are considering.</small></div></div><div class="staging-form-grid">${field("externalListingId", "External listing ID", { required: true, maxLength: 180, placeholder: "e.g. 123456789012" })}<label class="staging-field"><span>Marketplace *</span><select name="marketplace" required>${marketplaceOptions}</select><small>Used to form the tenant-owned saved opportunity ID.</small></label><label class="staging-field staging-field-wide"><span>Exact card identity *</span><textarea name="cardIdentity" required maxlength="500" rows="3" placeholder="Year, set, player, card number, parallel, grade/condition">${escapeHtml(state.draft.cardIdentity)}</textarea><small>Identity remains NEEDS_VERIFICATION; this request cannot verify it.</small></label>${field("listingUrl", "Listing URL", { required: true, type: "url", maxLength: 2048, placeholder: "https://..." })}${field("seller", "Seller", { maxLength: 300, placeholder: "Optional" })}</div><div class="customer-intake-step"><span>2</span><div><strong>Complete acquisition cost</strong><small>Include every known cost so the authoritative service receives the real all-in ask.</small></div></div><div class="staging-form-grid">${field("itemPrice", "Item price", { required: true, inputMode: "decimal", placeholder: "0.00" })}${field("shipping", "Shipping", { inputMode: "decimal", placeholder: "0.00" })}${field("buyerPremium", "Buyer premium", { inputMode: "decimal", placeholder: "0.00" })}${field("tax", "Tax", { inputMode: "decimal", placeholder: "0.00" })}${field("listingFormat", "Listing format", { maxLength: 100, placeholder: "Fixed price, auction, offer..." })}${field("endsAt", "Ends at", { maxLength: 100, placeholder: "Optional ISO timestamp" })}</div><div class="customer-intake-step"><span>3</span><div><strong>Confirm the authority boundary</strong><small>The browser submits facts; it never chooses the recommendation.</small></div></div><label class="staging-boundary-check"><input type="checkbox" name="acknowledgeBoundary" value="yes"${state.draft.acknowledgeBoundary ? " checked" : ""}><span>${boundaryCopy}</span></label><div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${listLabel}</a><button class="button button-primary" type="submit"${state.submitting ? " disabled" : ""}>${state.submitting ? "Evaluating…" : submitLabel}</button></div><small class="staging-form-note">An idempotency key is generated and held only in memory. Retrying an unchanged form reuses that key; changing the payload generates a new key.</small></form></section>`;
   }
 
+  function valueIntelligencePanel(data) {
+    const value = data && data.valueIntelligence;
+    if (!value || value.basis !== "ANALOG_REFERENCE_RANGE") return "";
+    if (safeNumber(value.referenceHighCents) <= 0 || safeNumber(value.analogCompletedSaleCount) <= 0) return "";
+    const range = `${moneyFromCents(value.referenceLowCents)} – ${moneyFromCents(value.referenceHighCents)}`;
+    return `<section class="staging-value-intelligence" aria-label="Value intelligence context"><div class="staging-value-intelligence-head"><div><span class="eyebrow">Value intelligence</span><h3>Observed analog reference range</h3></div><span class="staging-value-context-badge">Context only</span></div><div class="staging-value-intelligence-grid"><div><span>Observed range</span><strong>${escapeHtml(range)}</strong></div><div><span>Reference midpoint</span><strong>${escapeHtml(moneyFromCents(value.referenceMidpointCents))}</strong></div><div><span>Analog completed sales</span><strong>${escapeHtml(safeNumber(value.analogCompletedSaleCount))}</strong></div><div><span>Confidence band</span><strong>${escapeHtml(value.confidenceBand || "UNKNOWN")}</strong></div></div><p>${escapeHtml(value.explanation || "Governed analog completed-sale context is available.")}</p><div class="boundary-note"><strong>Not a supported value:</strong> This observed range is contextual only. Exact trusted evidence is still required before it can become supported value, and this range does not change the Smart Opportunity recommendation.</div></section>`;
+  }
+
   function resultPanel() {
     const data = state.result && state.result.data;
     if (!data) return "";
@@ -389,7 +420,7 @@
       : "Saved exactly through the existing Smart Opportunity and tenant ownership boundary.";
     const openLabel = customerSurface() ? "Open Card Intelligence" : "Open saved record";
     const returnLabel = customerSurface() ? "Tracked cards" : "Return to staging list";
-    return `<section class="panel staging-evaluation-result" aria-live="polite"><header class="panel-header"><div><h2>${resultTitle}</h2><p>${resultDescription}</p></div><span class="staging-status staging-status-${escapeHtml(String(decision.recommendation || "unknown").toLowerCase())}">${escapeHtml(decision.recommendation || "UNKNOWN")}</span></header><div class="panel-body"><div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div><div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(decision.reason || "No reason returned.")}</p><p><strong>Missing requirement:</strong> ${escapeHtml(decision.missingRequirement || "None returned.")}</p><p><strong>Next action:</strong> ${escapeHtml(decision.nextAction || "No next action returned.")}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This response persisted to SQLite and granted tenant ownership. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>${canOpen ? `<div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${returnLabel}</a><a class="button button-primary" href="${savedDetailRoute(opportunityId)}">${openLabel}</a></div>` : ""}</div></section>`;
+    return `<section class="panel staging-evaluation-result" aria-live="polite"><header class="panel-header"><div><h2>${resultTitle}</h2><p>${resultDescription}</p></div><span class="staging-status staging-status-${escapeHtml(String(decision.recommendation || "unknown").toLowerCase())}">${escapeHtml(decision.recommendation || "UNKNOWN")}</span></header><div class="panel-body"><div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>${valueIntelligencePanel(data)}<div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(decision.reason || "No reason returned.")}</p><p><strong>Missing requirement:</strong> ${escapeHtml(decision.missingRequirement || "None returned.")}</p><p><strong>Next action:</strong> ${escapeHtml(decision.nextAction || "No next action returned.")}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This response persisted to SQLite and granted tenant ownership. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>${canOpen ? `<div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${returnLabel}</a><a class="button button-primary" href="${savedDetailRoute(opportunityId)}">${openLabel}</a></div>` : ""}</div></section>`;
   }
 
   function renderCurrent() {

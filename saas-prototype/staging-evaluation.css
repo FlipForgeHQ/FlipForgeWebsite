@@ -109,6 +109,80 @@
   border-color: rgba(39, 209, 127, 0.4);
 }
 
+.staging-value-intelligence {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(168, 131, 255, 0.3);
+  border-radius: 14px;
+  background: rgba(168, 131, 255, 0.055);
+}
+
+.staging-value-intelligence-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.staging-value-intelligence-head h3,
+.staging-value-intelligence-head .eyebrow,
+.staging-value-intelligence p {
+  margin: 0;
+}
+
+.staging-value-intelligence-head h3 {
+  margin-top: 3px;
+  color: var(--text-primary);
+}
+
+.staging-value-context-badge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(246, 169, 22, 0.4);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(246, 169, 22, 0.08);
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.staging-value-intelligence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.staging-value-intelligence-grid > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--panel-border);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.staging-value-intelligence-grid span {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.staging-value-intelligence-grid strong {
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.staging-value-intelligence > p {
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
 .staging-result-copy {
   display: grid;
   gap: 8px;
@@ -129,6 +203,12 @@
   color: var(--text-primary);
 }
 
+@media (max-width: 900px) {
+  .staging-value-intelligence-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 720px) {
   .staging-form-grid {
     grid-template-columns: 1fr;
@@ -146,6 +226,19 @@
   .staging-form-actions .button {
     width: 100%;
     justify-content: center;
+  }
+
+  .staging-value-intelligence-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .staging-value-context-badge {
+    align-self: flex-start;
+  }
+
+  .staging-value-intelligence-grid {
+    grid-template-columns: 1fr;
   }
 }
 
