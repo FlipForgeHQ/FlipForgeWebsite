@@ -173,10 +173,20 @@
     return { payload, correlationId: requestCorrelationId };
   }
 
+  function hasExplicitCardNumber(query) {
+    const value = String(query || "");
+    return /#\s*[A-Za-z0-9][A-Za-z0-9.-]*/.test(value)
+      || /\bNO\.?\s*[A-Za-z0-9][A-Za-z0-9.-]*\b/i.test(value)
+      || /\b(?:[A-Za-z]{1,6}[-.]?)?\d{1,5}[A-Za-z]?\s+(?:PSA|BGS|SGC|CGC|CSG|TAG|BCCG)\b/i.test(value);
+  }
+
   function readSearch(form) {
     const values = new FormData(form);
     const exactCardQuery = String(values.get("exactCardQuery") || "").trim().replace(/\s+/g, " ");
     if (!exactCardQuery || exactCardQuery.length > 500) throw makeError("DISCOVER_QUERY_INVALID", "Enter an exact card identity of 500 characters or fewer.", 400);
+    if (!hasExplicitCardNumber(exactCardQuery)) {
+      throw makeError("DISCOVER_CARD_NUMBER_REQUIRED", "For private-beta safety, include the card number (for example, #150) so FlipForge can distinguish the base card from inserts and parallels.", 400);
+    }
     const limit = Number.parseInt(String(values.get("limit") || "25"), 10);
     if (![10, 25, 50].includes(limit)) throw makeError("DISCOVER_LIMIT_INVALID", "Result limit must be 10, 25, or 50.", 400);
     const targetMaxBuy = String(values.get("targetMaxBuy") || "").trim();
@@ -305,7 +315,7 @@
   }
 
   function searchPanel() {
-    return `<section class="panel customer-discovery-search"><header class="panel-header"><div><h2>Search connected active listings</h2><p>Use an exact card identity: year, set, player, card number, parallel/base, and grade when applicable.</p></div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form"><label><span>Exact card identity</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="2018 Topps Chrome Shohei Ohtani #150 PSA 10" autocomplete="off"></label><label><span>Target max buy</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label><label><span>Results</span><select name="limit">${[10,25,50].map(value => `<option value="${value}"${String(value) === state.draft.limit ? " selected" : ""}>${value}</option>`).join("")}</select></label><button class="button button-primary" type="submit" ${state.loading ? "disabled" : ""}>${state.loading ? "Searching…" : "Search connected sources"}</button></form></div></section>`;
+    return `<section class="panel customer-discovery-search"><header class="panel-header"><div><h2>Search connected active listings</h2><p>Use an exact card identity: year, set, player, card number, parallel/base, and grade when applicable. Card number is required during private beta.</p></div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form"><label><span>Exact card identity</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="2018 Topps Chrome Shohei Ohtani #150 PSA 10" autocomplete="off"></label><label><span>Target max buy</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label><label><span>Results</span><select name="limit">${[10,25,50].map(value => `<option value="${value}"${String(value) === state.draft.limit ? " selected" : ""}>${value}</option>`).join("")}</select></label><button class="button button-primary" type="submit" ${state.loading ? "disabled" : ""}>${state.loading ? "Searching…" : "Search connected sources"}</button></form></div></section>`;
   }
 
   function providerPanel() {
