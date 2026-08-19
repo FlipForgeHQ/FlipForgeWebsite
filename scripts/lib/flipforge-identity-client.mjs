@@ -13,6 +13,8 @@ const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhos
 const CALLBACK_HASH = /(?:^#|[&#])(invite_token|confirmation_token|recovery_token|email_change_token)=/i;
 const ROOT_ID = "flipforge-identity-root";
 const STYLE_ID = "flipforge-identity-style";
+const PASSWORD_MIN_LENGTH = 15;
+const PASSWORD_GUIDANCE = `Use a unique password with at least ${PASSWORD_MIN_LENGTH} characters. A password manager is recommended.`;
 
 const state = {
   user: null,
@@ -167,7 +169,7 @@ function ensureStyles() {
 }
 
 function validateNewPassword(password, confirmation) {
-  if (password.length < 10) return "Use a password with at least 10 characters.";
+  if (password.length < PASSWORD_MIN_LENGTH) return PASSWORD_GUIDANCE;
   if (password !== confirmation) return "The passwords do not match.";
   return "";
 }
@@ -187,13 +189,14 @@ function renderInvite(element) {
     <section class="ff-id-panel" role="dialog" aria-modal="true" aria-labelledby="ff-id-invite-title">
       <h2 id="ff-id-invite-title">Activate your FlipForge staging account</h2>
       <p>Set a password to accept this controlled Netlify Identity invitation. This does not activate the production FlipForge API.</p>
+      <p class="ff-id-note">${escapeHtml(PASSWORD_GUIDANCE)}</p>
       <form data-ff-identity-invite>
-        <label>New password<input name="password" type="password" minlength="10" autocomplete="new-password" required></label>
-        <label>Confirm password<input name="confirmPassword" type="password" minlength="10" autocomplete="new-password" required></label>
+        <label>New password<input name="password" type="password" minlength="${PASSWORD_MIN_LENGTH}" autocomplete="new-password" required></label>
+        <label>Confirm password<input name="confirmPassword" type="password" minlength="${PASSWORD_MIN_LENGTH}" autocomplete="new-password" required></label>
         <div class="ff-id-actions"><button class="ff-id-button ff-id-primary" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "Activating…" : "Activate account"}</button></div>
       </form>
       ${state.error ? `<p class="ff-id-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
-      <p class="ff-id-note">The invitation token stays in memory only and is removed from the address bar before the password is submitted.</p>
+      <p class="ff-id-note">The invitation token stays in memory only and is removed from the address bar before the password is submitted. FlipForge does not store or log your password.</p>
     </section>`;
 
   element.querySelector("[data-ff-identity-invite]")?.addEventListener("submit", async event => {
@@ -233,13 +236,14 @@ function renderRecoveryPassword(element) {
     <section class="ff-id-panel" role="dialog" aria-modal="true" aria-labelledby="ff-id-recovery-title">
       <h2 id="ff-id-recovery-title">Choose a new password</h2>
       <p>Your recovery link created a temporary secure Identity session. Set the new password now.</p>
+      <p class="ff-id-note">${escapeHtml(PASSWORD_GUIDANCE)}</p>
       <form data-ff-identity-recovery-password>
-        <label>New password<input name="password" type="password" minlength="10" autocomplete="new-password" required></label>
-        <label>Confirm password<input name="confirmPassword" type="password" minlength="10" autocomplete="new-password" required></label>
+        <label>New password<input name="password" type="password" minlength="${PASSWORD_MIN_LENGTH}" autocomplete="new-password" required></label>
+        <label>Confirm password<input name="confirmPassword" type="password" minlength="${PASSWORD_MIN_LENGTH}" autocomplete="new-password" required></label>
         <div class="ff-id-actions"><button class="ff-id-button ff-id-primary" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "Updating…" : "Update password"}</button></div>
       </form>
       ${state.error ? `<p class="ff-id-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
-      <p class="ff-id-note">The recovery token has already been removed from the address bar and is never stored by FlipForge.</p>
+      <p class="ff-id-note">The recovery token has already been removed from the address bar and is never stored by FlipForge. FlipForge does not store or log your password.</p>
     </section>`;
 
   element.querySelector("[data-ff-identity-recovery-password]")?.addEventListener("submit", async event => {
