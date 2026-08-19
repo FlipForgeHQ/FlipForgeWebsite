@@ -1,0 +1,29 @@
+name: Discover Search Reset Assurance
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/customer-discovery.js'
+      - 'scripts/validate-discover-search-reset.mjs'
+      - '.github/workflows/discover-search-reset-assurance.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'saas-prototype/customer-discovery.js'
+      - 'scripts/validate-discover-search-reset.mjs'
+      - '.github/workflows/discover-search-reset-assurance.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate Discover search reset behavior
+        run: node scripts/validate-discover-search-reset.mjs
