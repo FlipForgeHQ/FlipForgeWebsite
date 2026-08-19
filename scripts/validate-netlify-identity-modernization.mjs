@@ -70,6 +70,9 @@ check("045 generated production Identity bundle contains no FlipForge service-to
 check("046 production app receives production sign-in bundle", appIndex.includes('/assets/js/flipforge-production-signin.js'));
 check("047 production sign-in loads before staging data adapter", appIndex.indexOf('/assets/js/flipforge-production-signin.js') < appIndex.indexOf('staging-browser.js'));
 check("048 production login refreshes shared Identity and tenant adapters", productionIdentitySource.includes("window.FlipForgeIdentity?.refresh?.()") && productionIdentitySource.includes("window.FlipForgeStagingReadAdapter?.refresh?.()"));
+check("049 invite and recovery password minimum is hardened to fifteen characters", identitySource.includes("const PASSWORD_MIN_LENGTH = 15;") && identitySource.includes('minlength="${PASSWORD_MIN_LENGTH}"'));
+check("050 password guidance is visible and recommends unique credentials", identitySource.includes("Use a unique password with at least ${PASSWORD_MIN_LENGTH} characters. A password manager is recommended.") && identitySource.includes("PASSWORD_GUIDANCE"));
+check("051 password handling remains Netlify-only and explicitly non-persistent in FlipForge", identitySource.includes("FlipForge does not store or log your password.") && !/console\.(?:log|info|debug|warn|error)\([^\n]*password/i.test(identitySource));
 
 const failures = checks.filter(item => !item.passed);
 console.log("NetlifyIdentityModernizationValidation");
