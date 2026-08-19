@@ -276,6 +276,9 @@
         : state.data.provider?.available === false
           ? "The authorized active-listing provider is not connected for this runtime. No sample results were substituted."
           : "No active candidates matched this exact-card search.";
+      if (state.data.candidateCount > 0) {
+        state.draft = { exactCardQuery: "", targetMaxBuy: "", limit: String(draft.limit) };
+      }
     } catch (error) {
       state.error = error;
     } finally {
