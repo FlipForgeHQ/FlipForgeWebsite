@@ -1,0 +1,27 @@
+name: Discover Identity Assist Assurance
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/customer-discovery.js'
+      - 'saas-prototype/customer-discovery.css'
+      - 'scripts/validate-discover-identity-assist.mjs'
+      - 'scripts/validate-saas-customer-discovery.mjs'
+      - 'netlify/functions/flipforge-api.js'
+      - '.github/workflows/discover-identity-assist-assurance.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-discover-identity-assist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate JavaScript syntax
+        run: node --check saas-prototype/customer-discovery.js
+      - name: Retain customer Discover production contract
+        run: node scripts/validate-saas-customer-discovery.mjs
+      - name: Validate exact identity assist flow
+        run: node scripts/validate-discover-identity-assist.mjs
