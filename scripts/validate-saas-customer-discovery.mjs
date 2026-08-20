@@ -56,7 +56,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["043 no automated purchase controls", !/Place bid|Buy now|Checkout|Pay now|Accept offer|Create listing/.test(adapter)],
   ["044 gateway allowlists Discover POST", gateway.includes('{ method: "POST", pattern: /^\\/api\\/v1\\/discover$/ }')],
   ["045 gateway injects trusted tenant server-side", gateway.includes("[TENANT_HEADER]: tenant.tenantId")],
-  ["046 gateway forbids client identity headers", gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN")]
+  ["046 gateway forbids client identity headers", gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN")],
+  ["046A best-candidate badge follows backend selection label", adapter.includes('item.discoveryLabel === "BEST_CONNECTED_CANDIDATE"') && !adapter.includes("item.eligibleForBestConnectedCandidate === true")]
 ].forEach(([name, condition]) => check(name, condition));
 
 function response(body, status = 200) {
