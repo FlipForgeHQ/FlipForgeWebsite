@@ -16,16 +16,26 @@ expect(!index.includes("CARD VALUE INTELLIGENCE"), "legacy Card Value Intelligen
 expect(index.includes('href="consumer-ux-refinement.css"'), "consumer UX stylesheet is mounted");
 expect(index.includes('src="consumer-ux-refinement.js"'), "consumer UX script is mounted");
 
-expect(ux.includes('"IDENTITY INTELLIGENCE"'), "CardSight vendor-facing heading is converted to product intelligence language");
-expect(ux.includes('"PRO CARD INTELLIGENCE"'), "Forge Heat hero uses product intelligence language");
-expect(ux.includes('["Tenant-owned saved intelligence", "SAVED CARD INTELLIGENCE"]'), "saved intelligence heading removes tenant engineering language");
+expect(
+  ux.includes('setText(panel.querySelector(".card-intelligence-heading .eyebrow"), "Identity intelligence")'),
+  "CardSight vendor-facing heading is converted to product intelligence language"
+);
+expect(
+  ux.includes('setText(shell.querySelector(".forge-heat-title-row .eyebrow"), isDevelopment ? "In development" : "Forge Heat")'),
+  "Forge Heat hero uses current beta product language"
+);
+expect(
+  ux.includes('["Tenant-owned saved intelligence", "Saved intelligence"]'),
+  "saved intelligence heading removes tenant engineering language"
+);
+expect(!ux.includes('"PRO CARD INTELLIGENCE"'), "Forge Heat refinement does not present paid Pro positioning");
 expect(ux.includes('["SQLite saved", "Saved"]'), "customer status removes SQLite implementation language");
 expect(ux.includes('["Tracked in SQLite", "Tracked"]'), "tracking status removes SQLite implementation language");
 expect(ux.includes('"What this changes:"'), "identity boundary uses customer-safe language");
 expect(ux.includes('"How this works:"'), "customer authority boundary uses customer-safe language");
 expect(ux.includes('"We couldn\'t complete that request."'), "raw internal alert codes receive a customer-safe heading");
 expect(ux.includes('"This intelligence view is temporarily unavailable. Try again."'), "technical diagnostics have a customer-safe error fallback");
-expect(ux.includes('"Ranks your saved evaluations · Decision support only"'), "Forge Heat scope is concise and customer-safe");
+expect(ux.includes('"Ranks saved evaluations · Decision support only"'), "Forge Heat scope is concise and customer-safe");
 expect(ux.includes("function setText"), "DOM copy writes are idempotent");
 expect(ux.includes("let scheduled = false"), "mutation-driven refinement is requestAnimationFrame throttled");
 expect(!ux.includes("fetch("), "refinement layer does not make API calls");
