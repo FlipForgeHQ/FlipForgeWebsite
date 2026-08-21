@@ -8,6 +8,7 @@ on:
       - 'saas-prototype/consumer-ux-refinement.js'
       - 'saas-prototype/consumer-ux-refinement.css'
       - 'scripts/validate-consumer-ux-refinement.mjs'
+      - 'scripts/validate-consumer-pro-navigation.mjs'
       - '.github/workflows/phase6-consumer-ux-refinement.yml'
   workflow_dispatch:
 
