@@ -34,10 +34,13 @@ check("Market View refuses transaction authority", marketView.includes("data.tra
 check("Market View requires saved-evaluated scope", marketView.includes('data.scope.code !== "SAVED_EVALUATED_UNIVERSE"'));
 check("Market View refuses market-wide claim", marketView.includes("data.scope.marketWide !== false"));
 check("Market View refuses continuous scanner claim", marketView.includes("data.scope.continuousMarketScannerActive !== false"));
-check("Market View explicitly says not a whole-market scanner", marketView.includes("Not a whole-market scanner"));
+check("customer hero hides internal Market View version token", marketView.includes('<span class="eyebrow">YOUR MARKET</span>') && !marketView.includes('YOUR MARKET · ${escapeHtml(data.marketViewVersion)}'));
+check("customer summary uses action-oriented labels", marketView.includes('metric("Actionable decisions"') && marketView.includes('metric("Supported upside"') && marketView.includes('metric("Fresh evaluations"'));
+check("decision distribution uses customer-facing wording", marketView.includes('>DECISION MIX</span>') && marketView.includes("Market View summarizes the decisions already made; it does not issue new ones."));
+check("Market View keeps broader market scope explicit", marketView.includes("Broader market scanning is not active yet.") && marketView.includes("Broader market intelligence comes next."));
 check("Market View labels value context as not profit or ROI", marketView.includes("evidence context—not profit or ROI"));
-check("Market View labels observation coverage instead of momentum", marketView.includes("They do not imply market momentum"));
-check("Market View keeps broader market unavailable", marketView.includes("Whole-market intelligence is not active yet"));
+check("Market View labels follow-up coverage instead of momentum", marketView.includes("These percentages show recorded follow-up coverage. They do not imply market momentum."));
+check("Market View keeps Smart Opportunity authority explicit", marketView.includes("Smart Opportunity still owns BUY/WATCH/VERIFY/PASS"));
 check("Market View has responsive styling", marketCss.includes("@media (max-width: 680px)"));
 
 console.log(`MARKET_VIEW_UI_VALIDATION_PASSED=${passed}`);

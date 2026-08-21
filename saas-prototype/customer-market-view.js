@@ -211,7 +211,7 @@
   function valueRows(data) {
     const items = Array.isArray(data.valueContext?.topPositiveGap) ? data.valueContext.topPositiveGap : [];
     if (!items.length) {
-      return `<div class="market-view-empty"><strong>No positive supported-value gaps yet.</strong><p>As you evaluate cards, Market View will summarize evidence-supported value context here.</p></div>`;
+      return `<div class="market-view-empty"><strong>No evidence-supported upside yet.</strong><p>As you evaluate more cards, FlipForge will surface saved evaluations where supported value sits above the all-in ask.</p></div>`;
     }
     return items.map(item => {
       const id = SAFE_ID.test(String(item.opportunityId || "")) ? String(item.opportunityId) : "";
@@ -230,7 +230,7 @@
     return `<article class="market-view-coverage-card">
       <div><span>Day ${horizon}</span><strong>${percent(width)}</strong></div>
       <div class="market-view-coverage-track"><span style="width:${width.toFixed(1)}%"></span></div>
-      <small>${escapeHtml(item.observed)} of ${escapeHtml(item.eligible)} evaluated cards have a governed Day ${horizon} observation.</small>
+      <small>${escapeHtml(item.observed)} of ${escapeHtml(item.eligible)} evaluated cards have a recorded Day ${horizon} follow-up.</small>
     </article>`;
   }
 
@@ -241,34 +241,34 @@
     return `<div class="market-view-shell">
       <header class="market-view-hero">
         <div>
-          <span class="eyebrow">YOUR MARKET · ${escapeHtml(data.marketViewVersion)}</span>
+          <span class="eyebrow">YOUR MARKET</span>
           <h1>Market View</h1>
-          <p>See the shape of the cards you have actually evaluated: decision breadth, evidence strength, value context, freshness, and outcome coverage.</p>
+          <p>See what your own evaluated cards are telling you—where decisions cluster, how strong the evidence is, and whether follow-up data is building.</p>
           <div class="market-view-actions"><a class="button button-primary" href="#/discover">Discover a card</a><a class="button button-secondary" href="#/forge-heat">Open Forge Heat</a></div>
         </div>
         <aside class="market-view-scope">
-          <span>Current scope</span>
+          <span>What this covers</span>
           <strong>${escapeHtml(data.scope?.label || "Your Market")}</strong>
-          <p>Saved completed evaluations for this account.</p>
-          <small>Not a whole-market scanner · No fabricated volume or momentum · No transaction authority</small>
+          <p>Your saved completed evaluations, summarized together.</p>
+          <small>Broader market scanning is not active yet.</small>
         </aside>
       </header>
 
       <section class="market-view-metrics" aria-label="Your Market summary">
-        ${metric("Evaluated cards", number(summary.evaluatedCards), "Latest saved evaluation per opportunity")}
-        ${metric("BUY + WATCH", percent(summary.actionableSharePct), `${number(summary.actionableSavedDecisions)} saved decisions`)}
-        ${metric("Positive value context", percent(summary.positiveGapSharePct), `${number(summary.positiveSupportedValueGap)} cards above saved all-in ask`)}
-        ${metric("Freshness", percent(summary.freshnessPct), `${number(summary.freshWithin30Days)} evaluated within 30 days`)}
+        ${metric("Evaluated cards", number(summary.evaluatedCards), "Latest saved evaluation for each card")}
+        ${metric("Actionable decisions", number(summary.actionableSavedDecisions), `${percent(summary.actionableSharePct)} are BUY or WATCH`)}
+        ${metric("Supported upside", number(summary.positiveSupportedValueGap), `${percent(summary.positiveGapSharePct)} sit above saved all-in ask`)}
+        ${metric("Fresh evaluations", number(summary.freshWithin30Days), `${percent(summary.freshnessPct)} evaluated within 30 days`)}
       </section>
 
       <section class="market-view-grid">
         <article class="market-view-panel">
-          <header><span class="eyebrow">MARKET BREADTH</span><h2>What your saved decisions are saying</h2><p>This is distribution, not a new recommendation engine.</p></header>
+          <header><span class="eyebrow">DECISION MIX</span><h2>How your saved decisions break down</h2><p>Market View summarizes the decisions already made; it does not issue new ones.</p></header>
           <div class="market-view-bars">${decisionMix(data)}</div>
         </article>
 
         <article class="market-view-panel">
-          <header><span class="eyebrow">EVIDENCE HEALTH</span><h2>How well supported the evaluated universe is</h2><p>Evidence quality changes how much weight to place on the picture.</p></header>
+          <header><span class="eyebrow">EVIDENCE HEALTH</span><h2>How strong is the evidence behind these decisions?</h2><p>Stronger exact-match evidence gives the overall picture more weight.</p></header>
           <div class="market-view-health-grid">
             <div><span>Strong evidence</span><strong>${percent(evidence.strongEvidencePct)}</strong><small>${number(evidence.strongEvidenceCards)} cards with 3+ exact trusted sales</small></div>
             <div><span>Avg exact sales</span><strong>${number(evidence.averageExactTrustedSales, 1)}</strong><small>Across evaluated cards</small></div>
@@ -279,12 +279,12 @@
       </section>
 
       <section class="market-view-panel market-view-value-panel">
-        <header class="market-view-section-heading"><div><span class="eyebrow">VALUE CONTEXT</span><h2>Where supported value sits above saved ask</h2><p>Median positive gap: <strong>${signedPercent(value.medianPositiveGapPct)}</strong>. This is evidence context—not profit or ROI.</p></div><a href="#/opportunities">View opportunities →</a></header>
+        <header class="market-view-section-heading"><div><span class="eyebrow">SUPPORTED VALUE</span><h2>Which saved cards show room above the ask?</h2><p>Median supported gap: <strong>${signedPercent(value.medianPositiveGapPct)}</strong>. This is evidence context—not profit or ROI.</p></div><a href="#/opportunities">View opportunities →</a></header>
         <div class="market-view-value-list">${valueRows(data)}</div>
       </section>
 
       <section class="market-view-panel">
-        <header><span class="eyebrow">OUTCOME COVERAGE</span><h2>How much of the 7 / 14 / 30 proof cycle exists</h2><p>These percentages measure governed observation coverage. They do not imply market momentum.</p></header>
+        <header><span class="eyebrow">FOLLOW-UP PROOF</span><h2>Are your 7 / 14 / 30 checkpoints filling in?</h2><p>These percentages show recorded follow-up coverage. They do not imply market momentum.</p></header>
         <div class="market-view-coverage-grid">
           ${coverageCard(data, 7)}
           ${coverageCard(data, 14)}
@@ -294,15 +294,15 @@
 
       <section class="market-view-broader">
         <div class="market-view-broader-mark" aria-hidden="true">↗</div>
-        <div><span class="eyebrow">BROADER MARKET</span><h2>Whole-market intelligence is not active yet.</h2><p>${escapeHtml(data.broaderMarket?.reason || "Governed market-wide scanner and history inputs are not active yet.")}</p><small>FlipForge will add broader volume, momentum, and market-index views only when the underlying data can support those claims.</small></div>
+        <div><span class="eyebrow">BROADER MARKET</span><h2>Broader market intelligence comes next.</h2><p>${escapeHtml(data.broaderMarket?.reason || "Governed market-wide scanner and history inputs are not active yet.")}</p><small>FlipForge will show broader volume, momentum, and market-index views only when the underlying data can support those claims.</small></div>
       </section>
 
-      <p class="market-view-boundary"><strong>Decision boundary:</strong> Market View describes your evaluated universe. Smart Opportunity still owns BUY/WATCH/VERIFY/PASS. Forge Heat prioritizes qualified saved opportunities. Market View does neither.</p>
+      <p class="market-view-boundary"><strong>Decision boundary:</strong> Market View summarizes your saved evaluations. Smart Opportunity still owns BUY/WATCH/VERIFY/PASS, and Forge Heat prioritizes qualified saved opportunities.</p>
     </div>`;
   }
 
   function loading() {
-    return `<div class="market-view-shell"><section class="market-view-loading" role="status"><span class="market-view-spinner" aria-hidden="true"></span><div><strong>Building your Market View…</strong><p>Reading saved evaluations and governed outcome coverage.</p></div></section></div>`;
+    return `<div class="market-view-shell"><section class="market-view-loading" role="status"><span class="market-view-spinner" aria-hidden="true"></span><div><strong>Building your Market View…</strong><p>Reading your saved evaluations and follow-up coverage.</p></div></section></div>`;
   }
 
   function errorView(error) {
@@ -311,8 +311,8 @@
 
   function emptyView() {
     return `<div class="market-view-shell">
-      <header class="market-view-hero"><div><span class="eyebrow">YOUR MARKET · ${MARKET_VIEW_VERSION}</span><h1>Market View</h1><p>Your evaluated universe will appear here after you save completed card evaluations.</p><div class="market-view-actions"><a class="button button-primary" href="#/discover">Discover your first card</a></div></div><aside class="market-view-scope"><span>Current scope</span><strong>Your Market</strong><p>Saved completed evaluations for this account.</p><small>Not a whole-market scanner</small></aside></header>
-      <section class="market-view-empty"><strong>No evaluated cards yet.</strong><p>Evaluate a card and FlipForge will begin building decision breadth, evidence health, value context, and 7/14/30 coverage.</p></section>
+      <header class="market-view-hero"><div><span class="eyebrow">YOUR MARKET</span><h1>Market View</h1><p>Your Market starts taking shape after you save completed card evaluations.</p><div class="market-view-actions"><a class="button button-primary" href="#/discover">Discover your first card</a></div></div><aside class="market-view-scope"><span>What this covers</span><strong>Your Market</strong><p>Your saved completed evaluations, summarized together.</p><small>Broader market scanning is not active yet.</small></aside></header>
+      <section class="market-view-empty"><strong>No evaluated cards yet.</strong><p>Evaluate a card and FlipForge will begin building your decision mix, evidence health, supported value, and 7/14/30 follow-up picture.</p></section>
     </div>`;
   }
 
