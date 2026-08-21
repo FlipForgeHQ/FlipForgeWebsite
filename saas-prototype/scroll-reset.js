@@ -41,7 +41,7 @@
 
   function polishMarketViewZeroState(root = document) {
     if (!/^#\/?market-view(?:[/?]|$)/i.test(String(window.location.hash || ""))) return;
-    const empty = root.querySelector?.(".market-view-empty");
+    const empty = root.querySelector?.(".market-view-shell > section.market-view-empty");
     if (!empty || empty.dataset.ffZeroStatePolished === "true") return;
 
     const title = empty.querySelector("strong");
