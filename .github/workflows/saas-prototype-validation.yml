@@ -12,6 +12,7 @@ on:
       - "docs/SAAS_PRIVATE_BETA_OPERATIONS_BOUNDARY.md"
       - "scripts/build-assets.js"
       - "scripts/validate-brand-assets.js"
+      - "scripts/validate-consumer-ux-refinement.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-customer-portfolio.mjs"
       - "scripts/validate-saas-customer-entitlements.mjs"
@@ -57,6 +58,7 @@ jobs:
           node --check saas-prototype/cockpit-polish.js
           node --check saas-prototype/cockpit-final-ux.js
           node --check saas-prototype/consumer-ux-refinement.js
+          node --check saas-prototype/customer-professional-polish.js
           node --check saas-prototype/sidebar-edge-fix.js
           node --check saas-prototype/route-guard.js
           node --check saas-prototype/customer-discovery.js
@@ -64,6 +66,7 @@ jobs:
           node --check saas-prototype/customer-entitlements.js
           node --check saas-prototype/private-beta.js
           node --check saas-prototype/serve.mjs
+          node --check scripts/validate-consumer-ux-refinement.mjs
           node --check scripts/validate-saas-customer-entitlements.mjs
 
       - name: Run exact Netlify build command
