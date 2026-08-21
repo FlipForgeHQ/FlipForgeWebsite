@@ -5,6 +5,7 @@ const routeHook = fs.readFileSync("saas-prototype/staging-route-hook.js", "utf8"
 const marketView = fs.readFileSync("saas-prototype/customer-market-view.js", "utf8");
 const marketCss = fs.readFileSync("saas-prototype/customer-market-view.css", "utf8");
 const gateway = fs.readFileSync("netlify/functions/flipforge-api.js", "utf8");
+const marketViewGateway = fs.readFileSync("netlify/modern-functions/market-view.mjs", "utf8");
 
 let passed = 0;
 function check(name, condition) {
@@ -18,8 +19,11 @@ check("Market View is placed after Dashboard", index.indexOf('data-route="dashbo
 check("Market View stylesheet loads", index.includes('href="customer-market-view.css"'));
 check("Market View adapter loads before route hook", index.indexOf('src="customer-market-view.js"') > 0 && index.indexOf('src="customer-market-view.js"') < index.indexOf('src="staging-route-hook.js"'));
 check("Market View route delegates to customer adapter", routeHook.includes('route === "market-view"') && routeHook.includes("marketViewAdapter.render(main)"));
-check("Market View uses existing tenant-isolated opportunity read gateway", marketView.includes('const ENDPOINT = "/api/v1/opportunities/__market-view-v1"'));
-check("gateway already permits opportunity detail read path", gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/opportunities\\/[A-Za-z0-9._:-]+$/ }'));
+check("customer uses canonical Market View API route", marketView.includes('const ENDPOINT = "/api/v1/market-view"'));
+check("canonical facade reuses verified identity gateway", marketViewGateway.includes('import flipForgeApi from "./flipforge-api.mjs"'));
+check("canonical facade exposes exact Market View path", marketViewGateway.includes('path: "/api/v1/market-view"'));
+check("canonical facade rewrites only to protected Market View resource", marketViewGateway.includes('url.pathname = "/api/v1/opportunities/__market-view-v1"'));
+check("gateway permits protected opportunity-detail read path", gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/opportunities\\/[A-Za-z0-9._:-]+$/ }'));
 check("Market View validates server authority", marketView.includes('data.authority.recommendationAuthority !== "Smart Opportunity"'));
 check("Market View refuses recommendation authority", marketView.includes("data.authority.marketViewRecommendationAuthority !== false"));
 check("Market View refuses transaction authority", marketView.includes("data.transactionAuthority !== false"));
