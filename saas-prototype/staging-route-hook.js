@@ -11,6 +11,7 @@
   const exportAdapter = window.FlipForgeCustomerExport;
   const discoveryAdapter = window.FlipForgeCustomerDiscovery;
   const forgeHeatAdapter = window.FlipForgeCustomerForgeHeat;
+  const marketViewAdapter = window.FlipForgeCustomerMarketView;
   const entitlementsAdapter = window.FlipForgeCustomerEntitlements;
   const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
@@ -99,6 +100,15 @@
             && adapter.isEligible()) {
           showCustomerIntelligenceBanner();
           adapter.renderCustomerDashboard(main);
+          focusMain();
+          return;
+        }
+        if (route === "market-view"
+            && marketViewAdapter
+            && typeof marketViewAdapter.render === "function"
+            && marketViewAdapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          marketViewAdapter.render(main);
           focusMain();
           return;
         }
