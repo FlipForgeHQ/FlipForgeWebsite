@@ -1,0 +1,36 @@
+name: Homepage Focus
+
+on:
+  pull_request:
+    paths:
+      - "assets/js/marketing-v3.js"
+      - "assets/css/homepage-focus-v1.css"
+      - "scripts/validate-homepage-focus.mjs"
+      - ".github/workflows/homepage-focus.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "assets/js/marketing-v3.js"
+      - "assets/css/homepage-focus-v1.css"
+      - "scripts/validate-homepage-focus.mjs"
+      - ".github/workflows/homepage-focus.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate focused homepage structure
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Parse homepage browser JavaScript
+        run: node --check assets/js/marketing-v3.js
+      - name: Validate focused homepage contract
+        run: node scripts/validate-homepage-focus.mjs
