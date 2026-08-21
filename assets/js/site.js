@@ -279,3 +279,21 @@
     update();
   }
 })();
+
+;(()=>{
+  if(!document.querySelector('.hero#overview'))return;
+  if(!document.querySelector('link[data-ff-marketing-v3]')){
+    const css=document.createElement('link');
+    css.rel='stylesheet';
+    css.href='assets/css/marketing-v3.css';
+    css.dataset.ffMarketingV3='true';
+    document.head.appendChild(css);
+  }
+  if(!document.querySelector('script[data-ff-marketing-v3]')){
+    const script=document.createElement('script');
+    script.src='assets/js/marketing-v3.js';
+    script.async=false;
+    script.dataset.ffMarketingV3='true';
+    document.head.appendChild(script);
+  }
+})();
