@@ -19,6 +19,7 @@
     "validate:customer-lifecycle": "node scripts/validate-saas-customer-lifecycle.mjs",
     "validate:customer-export": "node scripts/validate-saas-customer-export.mjs",
     "validate:customer-discovery": "node scripts/validate-saas-customer-discovery.mjs",
+    "validate:market-view": "node scripts/validate-market-view-v1.mjs",
     "validate:cardsight-evidence-visibility": "node scripts/validate-saas-cardsight-evidence-visibility.mjs",
     "validate:price-intelligence": "node scripts/validate-saas-price-intelligence-ui.mjs",
     "validate:customer-entitlements": "node scripts/validate-saas-customer-entitlements.mjs",
