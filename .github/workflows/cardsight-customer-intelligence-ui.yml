@@ -6,10 +6,12 @@ on:
     paths:
       - 'saas-prototype/customer-card-intelligence.js'
       - 'saas-prototype/customer-card-intelligence.css'
+      - 'saas-prototype/card-brand-display.js'
       - 'saas-prototype/index.html'
       - 'saas-prototype/staging-route-hook.js'
       - 'netlify/functions/flipforge-api.js'
       - 'scripts/validate-cardsight-customer-intelligence.mjs'
+      - 'scripts/validate-card-brand-display.mjs'
       - '.github/workflows/cardsight-customer-intelligence-ui.yml'
   workflow_dispatch:
 
@@ -33,10 +35,13 @@ jobs:
       - name: Validate JavaScript syntax
         run: |
           node --check saas-prototype/customer-card-intelligence.js
+          node --check saas-prototype/card-brand-display.js
           node --check saas-prototype/staging-route-hook.js
           node --check netlify/functions/flipforge-api.js
       - name: Validate mounted CardSight customer path
         run: node scripts/validate-cardsight-customer-intelligence.mjs
+      - name: Validate manufacturer display normalization
+        run: node scripts/validate-card-brand-display.mjs
       - name: Retain customer evaluation boundary
         run: npm run validate:customer-intelligence
       - name: Retain quota boundary
