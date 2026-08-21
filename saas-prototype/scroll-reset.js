@@ -1,31 +1,52 @@
 (() => {
   "use strict";
 
+  function resetScroll(top) {
+    const scrollingElement = document.scrollingElement || document.documentElement;
+
+    if (scrollingElement) {
+      scrollingElement.scrollLeft = 0;
+      scrollingElement.scrollTop = top;
+    }
+    document.documentElement.scrollLeft = 0;
+    document.body.scrollLeft = 0;
+    window.scrollTo({ left: 0, top, behavior: "auto" });
+  }
+
   function resetHorizontalScroll() {
     const scrollingElement = document.scrollingElement || document.documentElement;
     const top = scrollingElement?.scrollTop ?? window.scrollY ?? 0;
-
-    if (scrollingElement) scrollingElement.scrollLeft = 0;
-    document.documentElement.scrollLeft = 0;
-    document.body.scrollLeft = 0;
-    window.scrollTo({ left: 0, top, behavior: "instant" });
+    resetScroll(top);
   }
 
-  function resetAfterLayout() {
-    resetHorizontalScroll();
+  function repeatAfterLayout(action) {
+    action();
 
     window.requestAnimationFrame(() => {
-      resetHorizontalScroll();
-      window.requestAnimationFrame(resetHorizontalScroll);
+      action();
+      window.requestAnimationFrame(action);
     });
 
-    // Chrome can restore a previous horizontal position after hash navigation.
-    window.setTimeout(resetHorizontalScroll, 80);
+    // Chrome can restore a prior scroll position after hash navigation/layout.
+    window.setTimeout(action, 80);
   }
 
-  window.addEventListener("hashchange", resetAfterLayout);
-  window.addEventListener("pageshow", resetAfterLayout);
-  window.addEventListener("load", resetAfterLayout);
-  window.addEventListener("resize", resetAfterLayout);
-  resetAfterLayout();
+  function resetRouteScroll() {
+    repeatAfterLayout(() => resetScroll(0));
+  }
+
+  function resetHorizontalAfterLayout() {
+    repeatAfterLayout(resetHorizontalScroll);
+  }
+
+  // A new application route is a new workspace view. Start it at the top instead
+  // of carrying the previous route's vertical position under the sticky topbar.
+  window.addEventListener("hashchange", resetRouteScroll);
+
+  // Reloads and resizes preserve the user's vertical reading position while still
+  // protecting the shell from accidental horizontal restoration.
+  window.addEventListener("pageshow", resetHorizontalAfterLayout);
+  window.addEventListener("load", resetHorizontalAfterLayout);
+  window.addEventListener("resize", resetHorizontalAfterLayout);
+  resetHorizontalAfterLayout();
 })();
