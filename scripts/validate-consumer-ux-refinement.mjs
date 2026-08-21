@@ -1,5 +1,6 @@
 import fs from "node:fs";
 
+// Current private-beta customer language contract. Keep this validator aligned with approved visible copy.
 const index = fs.readFileSync("saas-prototype/index.html", "utf8");
 const ux = fs.readFileSync("saas-prototype/consumer-ux-refinement.js", "utf8");
 const css = fs.readFileSync("saas-prototype/consumer-ux-refinement.css", "utf8");
