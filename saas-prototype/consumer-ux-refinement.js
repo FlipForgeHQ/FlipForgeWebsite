@@ -7,23 +7,31 @@
   const exactCopy = new Map([
     ["Staging owner review", "Owner preview"],
     ["Expanded owner review", "Owner preview"],
-    ["Interactive prototype history for the selected opportunity.", "Saved ask and supported-value history for the selected opportunity."],
-    ["Prototype customer activity, not live telemetry.", "Recent saved intelligence activity."],
-    ["Prototype list of saved Smart Opportunity output.", "Saved Smart Opportunity decisions ranked with supporting context."],
+    ["Interactive prototype history for the selected opportunity.", "Recent ask and supported-value history for the selected opportunity."],
+    ["Prototype customer activity, not live telemetry.", "Recent intelligence activity."],
+    ["Prototype list of saved Smart Opportunity output.", "Saved decisions ranked with supporting evidence."],
     ["Prototype saved record", "Saved evaluation"],
-    ["Plain-language explanation of saved authority output.", "Why the saved decision was reached."],
-    ["Existing recommendations ranked with saved evidence context.", "Saved decisions ranked with evidence context."],
-    ["Saved opportunity authority", "SAVED CARD INTELLIGENCE"],
-    ["Opportunity detail", "CARD INTELLIGENCE"],
-    ["Tenant-owned saved intelligence", "SAVED CARD INTELLIGENCE"],
+    ["Plain-language explanation of saved authority output.", "Why this decision was reached."],
+    ["Existing recommendations ranked with saved evidence context.", "Your highest-priority opportunities, ranked with supporting evidence."],
+    ["Saved opportunity authority", "Card intelligence"],
+    ["Opportunity detail", "Card intelligence"],
+    ["Tenant-owned saved intelligence", "Saved intelligence"],
     ["Completed evaluation snapshot", "Saved evaluated card"],
     ["Engine", "Model"],
     ["SQLite saved", "Saved"],
     ["Tracked in SQLite", "Tracked"],
     ["Execution authority", "Transaction actions"],
-    ["Authority boundary:", "Decision rule:"],
+    ["Authority boundary:", "Decision framework:"],
     ["Identity boundary:", "What this changes:"],
     ["Customer boundary:", "How this works:"]
+  ]);
+
+  const statusCopy = new Map([
+    ["READY", "Ready"],
+    ["MISSING", "Needs evidence"],
+    ["INVALID", "Needs review"],
+    ["STALE", "Needs refresh"],
+    ["UNAVAILABLE", "Unavailable"]
   ]);
 
   const diagnosticPattern = /(invalid json|authority contract|authority boundary|browser safety limit|request failed with status|response exceeded)/i;
@@ -58,9 +66,11 @@
   function refineBoundaryNotes(root) {
     root.querySelectorAll(".boundary-note").forEach(note => {
       const refined = note.innerHTML
-        .replace("<strong>Authority boundary:</strong>", "<strong>Decision rule:</strong>")
+        .replace("<strong>Authority boundary:</strong>", "<strong>Decision framework:</strong>")
+        .replace("<strong>Decision rule:</strong>", "<strong>Decision framework:</strong>")
         .replace("<strong>Customer boundary:</strong>", "<strong>How this works:</strong>")
-        .replace("Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the sole grading-guidance authority.", "Smart Opportunity provides the saved BUY/WATCH/VERIFY/PASS decision. PSA guidance remains a separate grading view.");
+        .replace("Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the sole grading-guidance authority.", "Smart Opportunity provides BUY/WATCH/VERIFY/PASS recommendations. PSA Advisor provides grading guidance. This screen does not recalculate either.")
+        .replace("Smart Opportunity provides the saved BUY/WATCH/VERIFY/PASS decision. PSA guidance remains a separate grading view.", "Smart Opportunity provides BUY/WATCH/VERIFY/PASS recommendations. PSA Advisor provides grading guidance. This screen does not recalculate either.");
       setHtml(note, refined);
     });
   }
@@ -69,12 +79,12 @@
     const panel = root.querySelector("[data-card-intelligence-assist]");
     if (!panel) return;
 
-    setText(panel.querySelector(".card-intelligence-heading .eyebrow"), "IDENTITY INTELLIGENCE");
+    setText(panel.querySelector(".card-intelligence-heading .eyebrow"), "Identity intelligence");
     setText(panel.querySelector(".card-intelligence-heading small"), "Search card details or use a photo to confirm the exact card before evaluation.");
     setText(panel.querySelector('[data-card-intelligence-photo] label small'), "JPEG, PNG, or WebP · maximum 4 MB. Used only to identify the card for this evaluation.");
     setHtml(
       panel.querySelector(".boundary-note"),
-      "<strong>What this changes:</strong> Choosing a match fills the exact card identity for evaluation. It does not change evidence, grading guidance, or the final Smart Opportunity decision."
+      "<strong>What this changes:</strong> Choosing a match fills the exact card identity for evaluation. It does not change evidence, grading guidance, or the final Smart Opportunity recommendation."
     );
   }
 
@@ -82,10 +92,13 @@
     const shell = root.querySelector(".forge-heat-shell");
     if (!shell) return;
 
-    setText(shell.querySelector(".forge-heat-title-row .eyebrow"), "PRO CARD INTELLIGENCE");
-    setText(shell.querySelector(".forge-heat-boundary small"), "Ranks your saved evaluations · Decision support only");
+    const isDevelopment = shell.classList.contains("forge-heat-development");
+    setText(shell.querySelector(".forge-heat-title-row .eyebrow"), isDevelopment ? "In development" : "Forge Heat");
+    setText(shell.querySelector(".forge-heat-boundary small"), isDevelopment
+      ? "Not available in private beta"
+      : "Ranks saved evaluations · Decision support only");
     shell.querySelectorAll(".forge-heat-card-foot > span").forEach(node => {
-      setText(node, "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved decision.");
+      setText(node, "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved recommendation.");
     });
   }
 
@@ -109,6 +122,14 @@
     root.querySelectorAll(".staging-loading").forEach(node => node.classList.add("consumer-state", "consumer-state-loading"));
     root.querySelectorAll(".card-intelligence-message").forEach(node => node.classList.add("consumer-state"));
     root.querySelectorAll('.card-intelligence-error, .forge-heat-error, .staging-error[role="alert"]').forEach(node => node.classList.add("consumer-state", "consumer-state-error"));
+
+    root.querySelectorAll(".staging-status").forEach(node => {
+      const raw = node.textContent.trim().toUpperCase();
+      const replacement = statusCopy.get(raw);
+      if (!replacement) return;
+      node.dataset.ffState = raw.toLowerCase();
+      setText(node, replacement);
+    });
   }
 
   function apply() {

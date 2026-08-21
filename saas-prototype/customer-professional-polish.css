@@ -1,47 +1,194 @@
-/* Customer-facing professionalism polish for the private-beta shell. */
+/* Final customer-facing product polish. Presentation only; no authority changes. */
 
 .brand-tagline {
   margin-top: 6px;
-  color: rgba(216, 220, 219, .72);
-  font-size: 8px;
-  font-weight: 500;
-  letter-spacing: .055em;
+  color: rgba(216, 220, 219, .68);
+  font-size: 7.5px;
+  font-weight: 520;
+  letter-spacing: .045em;
   line-height: 1.25;
   white-space: nowrap;
 }
 
-/* Keep one clear account entry point in the top bar. */
-.sidebar-footer .account-link {
-  display: none;
+.sidebar-footer .account-link { display: none; }
+.ff-nav-group-label { display: none !important; }
+.primary-nav [data-route="alerts"][hidden] { display: none !important; }
+
+.prototype-banner {
+  min-height: 29px;
+  font-size: 10px;
+  letter-spacing: .08em;
 }
 
-/* Forge Heat remains visible as roadmap context without implying paid availability. */
+.prototype-banner strong {
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+
+.prototype-banner span {
+  font-size: 10px;
+  opacity: .82;
+}
+
+.prototype-chip {
+  padding: 5px 8px;
+  font-size: 8px;
+  letter-spacing: .1em;
+}
+
+.primary-nav a {
+  min-height: 40px;
+  gap: 10px;
+  font-size: 13px;
+  letter-spacing: .005em;
+}
+
+.primary-nav a > span:first-child.ff-nav-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  color: var(--silver-dark);
+  font-size: 0 !important;
+}
+
+.ff-nav-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.primary-nav a[aria-current="page"] .ff-nav-icon { color: var(--gold-strong); }
+
 .primary-nav a[data-route="forge-heat"] {
-  cursor: default;
-  opacity: .72;
+  opacity: .78;
 }
 
-.primary-nav a[data-route="forge-heat"] > span:first-child {
-  font-size: 0;
-}
+.primary-nav a[data-route="forge-heat"]:hover { opacity: 1; }
 
-.primary-nav a[data-route="forge-heat"] > span:first-child::before {
-  content: "⌁";
-  font-size: 14px;
-}
-
-.forge-nav-pro {
-  display: none !important;
-}
+.forge-nav-pro { display: none !important; }
 
 .forge-nav-state {
   margin-left: auto;
-  color: var(--muted) !important;
-  font-size: 8px !important;
+  padding: 2px 5px;
+  color: rgba(216, 220, 219, .65) !important;
+  background: rgba(139, 146, 143, .06);
+  border: 1px solid rgba(139, 146, 143, .18);
+  border-radius: 3px;
+  font-size: 7px !important;
   font-weight: 650;
-  letter-spacing: .11em;
-  text-transform: uppercase;
+  letter-spacing: .08em;
+  line-height: 1.25;
 }
+
+.ff-secondary-nav-link {
+  margin-top: 3px;
+  opacity: .72;
+}
+
+.ff-advanced-nav > summary {
+  font-size: 12px;
+  letter-spacing: .025em;
+}
+
+#main-content .page-heading .eyebrow,
+#main-content .forge-heat-title-row .eyebrow,
+#main-content .panel .eyebrow {
+  font-size: .66rem;
+  font-weight: 650;
+  letter-spacing: .12em;
+}
+
+#main-content .page-heading h1,
+#main-content .forge-heat-hero h1 {
+  font-size: clamp(1.85rem, 3vw, 2.55rem);
+  font-weight: 610;
+  letter-spacing: -.025em;
+  line-height: 1.08;
+}
+
+.ff-trademark {
+  position: relative;
+  top: -.34em;
+  margin-left: .08em;
+  font-size: .32em;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 0;
+  vertical-align: baseline;
+}
+
+#main-content .page-heading p {
+  max-width: 760px;
+  font-size: .94rem;
+  line-height: 1.55;
+}
+
+#main-content .panel,
+#main-content .metric-card,
+#main-content .customer-dashboard-metrics article,
+#main-content .customer-dashboard-opportunity,
+#main-content .customer-dashboard-next .panel-body > a {
+  border-radius: 7px !important;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .22);
+}
+
+#main-content .panel-header {
+  padding: 17px 19px;
+}
+
+#main-content .panel-header h2 {
+  font-size: 1rem;
+  font-weight: 620;
+  letter-spacing: -.005em;
+}
+
+#main-content .panel-header p {
+  max-width: 720px;
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+#main-content .panel-body { padding: 19px; }
+
+#main-content .metric-card { min-height: 112px; }
+#main-content .metric-top > span:first-child {
+  font-size: .7rem;
+  font-weight: 620;
+  letter-spacing: .045em;
+  text-transform: none;
+}
+#main-content .metric-value { font-weight: 610; letter-spacing: -.025em; }
+
+.status-pill,
+.staging-status,
+.prototype-chip,
+.forge-nav-state {
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.boundary-note {
+  padding: 12px 14px;
+  font-size: .8rem;
+  line-height: 1.5;
+  background: rgba(212, 175, 55, .025);
+  border-color: rgba(212, 175, 55, .18);
+}
+
+.consumer-state-empty,
+.staging-empty,
+.forge-heat-empty {
+  padding: 28px !important;
+  text-align: left;
+}
+
+.ff-empty-cta { margin-top: 12px; }
 
 .forge-heat-development {
   max-width: 920px;
@@ -51,17 +198,34 @@
 .forge-heat-development .forge-heat-lock-mark {
   display: grid;
   place-items: center;
-  min-width: 58px;
-  height: 58px;
+  min-width: 52px;
+  width: 52px;
+  height: 52px;
   color: var(--gold-strong);
-  background: rgba(212, 175, 55, .06);
-  border: 1px solid rgba(212, 175, 55, .32);
-  border-radius: 4px;
-  font-size: 24px;
+  background: rgba(212, 175, 55, .045);
+  border: 1px solid rgba(212, 175, 55, .24);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.forge-heat-development .forge-heat-boundary {
+  opacity: .82;
+}
+
+.plan-card .eyebrow {
+  font-size: 8px;
+  letter-spacing: .1em;
+}
+
+.plan-card small {
+  line-height: 1.45;
 }
 
 @media (max-width: 640px) {
-  .brand-tagline {
-    white-space: normal;
-  }
+  .brand-tagline { white-space: normal; }
+  .forge-nav-state { font-size: 6px !important; }
+  #main-content .page-heading h1,
+  #main-content .forge-heat-hero h1 { font-size: 1.8rem; }
 }
