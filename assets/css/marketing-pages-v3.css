@@ -1,0 +1,104 @@
+/* FlipForge marketing pages v3 — product/about presentation. */
+body.ff-marketing-page-v3{
+  --ff-black:#000000;
+  --ff-white:#ffffff;
+  --ff-silver:#8b8f98;
+  --ff-gold:#d4af37;
+  --ff-deep-gold:#b8860b;
+  background:
+    radial-gradient(circle at 78% 2%,rgba(212,175,55,.07),transparent 25%),
+    linear-gradient(180deg,#030405,#000 72%,#030303);
+}
+body.ff-marketing-page-v3 .site-header{background:rgba(0,0,0,.94);border-bottom-color:rgba(255,255,255,.1)}
+body.ff-marketing-page-v3 .brand .tagline{color:var(--ff-gold);letter-spacing:.2em}
+body.ff-marketing-page-v3 .page-hero{position:relative;overflow:hidden;max-width:1180px;margin:28px auto 0;padding:86px 44px 62px;border:1px solid rgba(212,175,55,.17);border-radius:24px;background:linear-gradient(130deg,rgba(255,255,255,.018),rgba(212,175,55,.035) 55%,transparent)}
+body.ff-marketing-page-v3 .page-hero:after{content:"";position:absolute;right:-150px;top:-190px;width:460px;height:460px;border:1px solid rgba(212,175,55,.15);border-radius:50%;box-shadow:0 0 0 70px rgba(212,175,55,.022),0 0 0 140px rgba(212,175,55,.01)}
+body.ff-marketing-page-v3 .page-hero>*{position:relative;z-index:1}
+body.ff-marketing-page-v3 .page-hero .kicker{color:var(--ff-gold)}
+body.ff-marketing-page-v3 .page-hero h1{max-width:880px;font-size:clamp(44px,5.7vw,76px);letter-spacing:-.05em}
+body.ff-marketing-page-v3 .page-hero .lead{max-width:860px;color:#d5d7db}
+.ff-page-promise{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.ff-page-promise span{padding:7px 10px;border:1px solid rgba(255,255,255,.11);border-radius:999px;color:#b9bdc4;background:rgba(255,255,255,.018);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+
+.ff-workflow-strip{max-width:1180px;margin:24px auto 0;padding:0 22px;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.ff-workflow-strip article{min-height:140px;padding:20px;background:#050607}
+.ff-workflow-strip span{display:block;color:var(--ff-gold);font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.ff-workflow-strip strong{display:block;margin-top:12px;font-size:15px}
+.ff-workflow-strip small{display:block;margin-top:5px;color:#8b8f98;font-size:11px;line-height:1.5}
+
+.ff-product-section{max-width:1180px;margin:auto;padding:70px 22px}
+.ff-product-section .ff-product-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:28px;align-items:center}
+.ff-product-section:nth-of-type(even) .ff-product-grid>.ff-product-copy{order:2}
+.ff-product-section:nth-of-type(even) .ff-product-grid>.ff-product-visual{order:1}
+.ff-product-copy .kicker{color:var(--ff-gold)}
+.ff-product-copy h2{font-size:clamp(31px,4vw,48px)}
+.ff-product-copy>p{color:#b9bdc4;font-size:16px}
+.ff-product-visual{overflow:hidden;border:1px solid rgba(212,175,55,.35);border-radius:16px;background:#030303;box-shadow:0 28px 75px rgba(0,0,0,.38)}
+.ff-product-visual img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.ff-product-points{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:20px}
+.ff-product-points div{padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:10px;background:rgba(255,255,255,.018)}
+.ff-product-points strong{display:block;color:#f3f3f4;font-size:12px}
+.ff-product-points small{display:block;margin-top:3px;color:#8b8f98;font-size:10px;line-height:1.45}
+
+.ff-traceback{display:grid;grid-template-columns:.95fr 1.05fr;gap:24px;align-items:center;padding:24px;border:1px solid rgba(212,175,55,.28);border-radius:18px;background:linear-gradient(145deg,#080a0d,#010101)}
+.ff-traceback-list{display:grid;gap:8px}
+.ff-traceback-list div{display:grid;grid-template-columns:38px 1fr;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.016)}
+.ff-traceback-list span{display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(212,175,55,.35);border-radius:8px;color:var(--ff-gold);font-size:10px;font-weight:900}
+.ff-traceback-list strong{display:block;font-size:12px}
+.ff-traceback-list small{display:block;color:#8b8f98;font-size:10px}
+
+.ff-about-story{display:grid;grid-template-columns:.82fr 1.18fr;gap:26px;align-items:start}
+.ff-founder-card,.ff-mission-card{padding:28px;border:1px solid rgba(255,255,255,.1);border-radius:17px;background:linear-gradient(180deg,#080a0c,#020202)}
+.ff-founder-card{position:sticky;top:105px;border-color:rgba(212,175,55,.25)}
+.ff-founder-card .ff-founder-mark{display:grid;place-items:center;width:58px;height:58px;margin-bottom:18px;border:1px solid rgba(212,175,55,.42);border-radius:14px;color:var(--ff-gold);font-weight:900;letter-spacing:.08em}
+.ff-founder-card h2{margin-bottom:5px;font-size:28px}
+.ff-founder-card .ff-role{display:block;color:var(--ff-gold);font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.ff-founder-card p,.ff-mission-card p{color:#b4b8bf;font-size:14px}
+.ff-founder-principle{margin-top:18px;padding:14px;border-left:2px solid var(--ff-gold);background:rgba(212,175,55,.05);color:#d9dbde;font-size:12px;line-height:1.55}
+.ff-mission-card h2{font-size:clamp(30px,4vw,46px)}
+.ff-story-beats{display:grid;gap:9px;margin-top:22px}
+.ff-story-beats div{display:grid;grid-template-columns:42px 1fr;gap:12px;padding:13px;border:1px solid rgba(255,255,255,.08);border-radius:10px}
+.ff-story-beats span{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(212,175,55,.35);border-radius:8px;color:var(--ff-gold);font-size:9px;font-weight:900}
+.ff-story-beats strong{display:block;font-size:12px}
+.ff-story-beats small{display:block;margin-top:2px;color:#8b8f98;font-size:10px}
+
+.ff-principles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ff-principle-card{padding:22px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:linear-gradient(180deg,#07090b,#020202)}
+.ff-principle-card span{display:grid;place-items:center;width:34px;height:34px;margin-bottom:16px;border:1px solid rgba(212,175,55,.35);border-radius:9px;color:var(--ff-gold);font-size:9px;font-weight:900}
+.ff-principle-card h3{font-size:16px}
+.ff-principle-card p{margin-bottom:0;color:#9fa4ac;font-size:12px}
+
+.ff-about-proof{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ff-about-proof>div{padding:25px;border:1px solid rgba(255,255,255,.1);border-radius:15px;background:#050607}
+.ff-about-proof h3{margin-bottom:8px;font-size:19px}
+.ff-about-proof p{margin:0;color:#9fa4ac;font-size:13px}
+.ff-about-proof .ff-proof-sequence{display:flex;gap:7px;margin-top:16px}
+.ff-about-proof .ff-proof-sequence span{flex:1;padding:10px;border:1px solid rgba(212,175,55,.25);border-radius:8px;color:var(--ff-gold);font-size:9px;font-weight:900;text-align:center;letter-spacing:.08em}
+
+.ff-page-vision{overflow:hidden;border:1px solid rgba(212,175,55,.27);border-radius:20px;background:linear-gradient(130deg,#070809,#000)}
+.ff-page-vision-inner{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center;padding:42px}
+.ff-page-vision h2{font-size:clamp(34px,4.6vw,58px)}
+.ff-page-vision h2 span{color:var(--ff-gold)}
+.ff-page-vision p{color:#b4b8bf}
+.ff-page-vision .ff-vision-points{display:grid;gap:7px}
+.ff-page-vision .ff-vision-points div{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.016)}
+.ff-page-vision .ff-vision-points strong{display:block;font-size:11px}
+.ff-page-vision .ff-vision-points small{display:block;margin-top:2px;color:#8b8f98;font-size:10px}
+
+body.ff-marketing-page-v3 .callout{border-radius:15px;background:linear-gradient(130deg,rgba(212,175,55,.11),#030303)}
+
+@media(max-width:1000px){
+  .ff-workflow-strip{grid-template-columns:repeat(2,1fr)}
+  .ff-workflow-strip article:last-child{grid-column:1/-1}
+  .ff-product-section .ff-product-grid,.ff-traceback,.ff-about-story,.ff-about-proof,.ff-page-vision-inner{grid-template-columns:1fr}
+  .ff-product-section:nth-of-type(even) .ff-product-grid>.ff-product-copy,.ff-product-section:nth-of-type(even) .ff-product-grid>.ff-product-visual{order:initial}
+  .ff-founder-card{position:static}
+  .ff-principles-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  body.ff-marketing-page-v3 .page-hero{margin:16px 12px 0;padding:58px 22px 44px}
+  .ff-workflow-strip,.ff-product-points,.ff-principles-grid{grid-template-columns:1fr}
+  .ff-workflow-strip article:last-child{grid-column:auto}
+  .ff-product-section{padding:52px 19px}
+  .ff-page-vision-inner{padding:30px 21px}
+}
