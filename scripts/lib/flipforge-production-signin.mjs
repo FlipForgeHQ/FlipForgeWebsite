@@ -10,6 +10,7 @@ const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const PRODUCTION_APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
 const ROOT_ID = "flipforge-production-identity-root";
 const STYLE_ID = "flipforge-production-identity-style";
+const ACCOUNT_SIGN_OUT_ATTRIBUTE = "data-ff-production-account-signout";
 
 const state = {
   user: null,
@@ -62,11 +63,16 @@ function membershipActive(user) {
   return roles.includes("flipforge-active") && tenantRoles.length === 1;
 }
 
+function accountRoute() {
+  return /^#\/?account(?:[/?]|$)/i.test(String(window.location.hash || ""));
+}
+
 function setUser(nextUser) {
   const normalized = nextUser || null;
   if (userFingerprint(state.user) === userFingerprint(normalized)) return false;
   state.user = normalized;
   render();
+  syncAccountSignOut();
   return true;
 }
 
@@ -109,12 +115,76 @@ function recoveryMarkup() {
   </section>`;
 }
 
+async function signOutSession({ redirect = false } = {}) {
+  if (state.busy) return;
+  state.busy = true;
+  state.error = "";
+  render();
+  try {
+    await logout();
+    state.user = null;
+    await window.FlipForgeIdentity?.refresh?.();
+    state.message = "";
+    state.panelOpen = false;
+    state.recoveryOpen = false;
+    window.FlipForgeStagingReadAdapter?.refresh?.();
+    if (redirect) {
+      window.location.assign(`/production-auth.html?return=${encodeURIComponent("/app/#/dashboard")}`);
+      return;
+    }
+  } catch (error) {
+    state.error = error instanceof Error ? error.message : "Sign out failed.";
+  } finally {
+    state.busy = false;
+    render();
+    syncAccountSignOut();
+  }
+}
+
+function syncAccountSignOut() {
+  const existing = document.querySelector(`[${ACCOUNT_SIGN_OUT_ATTRIBUTE}]`);
+  if (!state.user || !accountRoute()) {
+    existing?.remove();
+    return;
+  }
+
+  const actions = document.querySelector("#main-content .customer-entitlements-page .page-heading .page-actions");
+  if (!actions || existing) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "button button-secondary";
+  button.setAttribute(ACCOUNT_SIGN_OUT_ATTRIBUTE, "");
+  button.textContent = "Sign out";
+  button.addEventListener("click", () => signOutSession({ redirect: true }));
+  actions.appendChild(button);
+}
+
+function installAccountObserver() {
+  const main = document.querySelector("#main-content");
+  if (!main || main.dataset.ffProductionAccountSessionObserver === "true") return;
+  main.dataset.ffProductionAccountSessionObserver = "true";
+  const observer = new MutationObserver(syncAccountSignOut);
+  observer.observe(main, { childList: true, subtree: true });
+  window.addEventListener("hashchange", () => queueMicrotask(syncAccountSignOut));
+}
+
 function render() {
   if (!productionAppHost()) {
     document.getElementById(ROOT_ID)?.remove();
     return;
   }
   ensureStyles();
+
+  // Once authenticated, the app's own topbar Account route becomes the single
+  // customer account entry point. Do not leave a duplicate fixed launcher over
+  // workspace content. Sign-out is injected into the Account page instead.
+  if (state.user && !state.panelOpen) {
+    document.getElementById(ROOT_ID)?.remove();
+    syncAccountSignOut();
+    return;
+  }
+
   const element = root();
   const active = membershipActive(state.user);
   const panel = !state.panelOpen
@@ -200,7 +270,7 @@ function render() {
       state.user = await login(email, password);
       await window.FlipForgeIdentity?.refresh?.();
       state.message = "Signed in. Your secure FlipForge session is active.";
-      state.panelOpen = true;
+      state.panelOpen = false;
       window.FlipForgeStagingReadAdapter?.refresh?.();
     } catch (error) {
       state.error = error instanceof Error ? error.message : "Sign in failed.";
@@ -209,25 +279,7 @@ function render() {
       render();
     }
   });
-  element.querySelector("[data-ff-production-logout]")?.addEventListener("click", async () => {
-    if (state.busy) return;
-    state.busy = true;
-    state.error = "";
-    render();
-    try {
-      await logout();
-      state.user = null;
-      await window.FlipForgeIdentity?.refresh?.();
-      state.message = "";
-      state.panelOpen = false;
-      window.FlipForgeStagingReadAdapter?.refresh?.();
-    } catch (error) {
-      state.error = error instanceof Error ? error.message : "Sign out failed.";
-    } finally {
-      state.busy = false;
-      render();
-    }
-  });
+  element.querySelector("[data-ff-production-logout]")?.addEventListener("click", () => signOutSession());
 }
 
 async function initialize() {
@@ -244,7 +296,9 @@ async function initialize() {
   } catch (_) {
     // Explicit login/logout and refresh still update the UI if subscriptions are unavailable.
   }
+  installAccountObserver();
   render();
+  syncAccountSignOut();
 }
 
 if (document.readyState === "loading") {
