@@ -1,0 +1,27 @@
+name: Market View Shell Fix
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/scroll-reset.js'
+      - 'scripts/lib/flipforge-production-signin.mjs'
+      - 'scripts/validate-market-view-shell-fix.mjs'
+      - '.github/workflows/market-view-shell-fix.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-shell-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate changed JavaScript syntax
+        run: |
+          node --check saas-prototype/scroll-reset.js
+          node --check scripts/lib/flipforge-production-signin.mjs
+
+      - name: Validate Market View shell regression contract
+        run: node scripts/validate-market-view-shell-fix.mjs
