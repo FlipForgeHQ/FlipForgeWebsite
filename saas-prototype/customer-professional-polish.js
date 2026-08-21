@@ -36,9 +36,10 @@
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node;
     while ((node = walker.nextNode())) {
-      let value = node.nodeValue || "";
+      const original = node.nodeValue || "";
+      let value = original;
       for (const [from, to] of replacements) value = value.replaceAll(from, to);
-      node.nodeValue = value;
+      if (value !== original) node.nodeValue = value;
     }
   }
 
