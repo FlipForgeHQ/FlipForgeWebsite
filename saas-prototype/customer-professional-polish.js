@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  const FORGE_HEAT_ROUTE = "forge-heat";
   const ICONS = {
     dashboard: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
     discover: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>',
@@ -63,16 +62,21 @@
     ["Forge Heat V1", "Forge Heat"]
   ];
 
+  const HEAT_TAB_LABELS = {
+    top5: "Top 5",
+    hiddenGems: "Hidden Gems",
+    highestEdge: "Highest Edge",
+    heatingUp: "Heating Up"
+  };
+
   function routeName() {
-    return String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard";
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)[0] || "dashboard";
   }
 
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
-  }
-
-  function setHtml(node, value) {
-    if (node && node.innerHTML !== value) node.innerHTML = value;
   }
 
   function addBrandTagline() {
@@ -103,21 +107,28 @@
     });
   }
 
-  function simplifyNavigation() {
+  function restoreInteractiveNavigation() {
     const nav = document.querySelector(".primary-nav");
     if (!nav) return;
+
     nav.querySelectorAll(".ff-nav-group-label").forEach(node => node.remove());
+
     const alerts = nav.querySelector('[data-route="alerts"]');
-    if (alerts && !alerts.hidden) alerts.hidden = true;
+    if (alerts && alerts.hidden) alerts.hidden = false;
+
     const heat = nav.querySelector('[data-route="forge-heat"]');
     const opportunities = nav.querySelector('[data-route="opportunities"]');
-    if (heat && opportunities && heat.previousElementSibling !== opportunities) opportunities.insertAdjacentElement("afterend", heat);
+    if (heat && opportunities && heat.previousElementSibling !== opportunities) {
+      opportunities.insertAdjacentElement("afterend", heat);
+    }
+
     nav.querySelector('[data-route="beta-start"]')?.classList.add("ff-secondary-nav-link");
   }
 
   function prepareForgeHeatNavigation() {
     const nav = document.querySelector('[data-route="forge-heat"]');
     if (!nav) return;
+
     nav.querySelector(".forge-nav-pro")?.remove();
     let state = nav.querySelector(".forge-nav-state");
     if (!state) {
@@ -125,10 +136,11 @@
       state.className = "forge-nav-state";
       nav.appendChild(state);
     }
-    setText(state, "DEV");
+
+    setText(state, "BETA");
     nav.removeAttribute("aria-disabled");
-    if (nav.getAttribute("aria-label") !== "Forge Heat, in development") nav.setAttribute("aria-label", "Forge Heat, in development");
-    if (nav.getAttribute("title") !== "Forge Heat — in development") nav.setAttribute("title", "Forge Heat — in development");
+    nav.setAttribute("aria-label", "Forge Heat beta intelligence");
+    nav.setAttribute("title", "Forge Heat — beta intelligence");
   }
 
   function customerCopy(root = document) {
@@ -145,15 +157,19 @@
 
   function polishTrademark(root = document) {
     root.querySelectorAll("h1, h2, h3").forEach(node => {
-      if (node.querySelector(".ff-trademark") || !(node.textContent || "").includes("Forge Heat™")) return;
-      node.innerHTML = node.innerHTML.replace(/Forge Heat™/g, 'Forge Heat<sup class="ff-trademark">™</sup>');
-    });
-  }
-
-  function polishBoundaryNotes(root = document) {
-    root.querySelectorAll(".boundary-note").forEach(note => {
-      if (!/Smart Opportunity remains the sole BUY\/WATCH\/VERIFY\/PASS authority/i.test(note.textContent || "")) return;
-      setHtml(note, "<strong>Decision framework:</strong> Smart Opportunity provides BUY/WATCH/VERIFY/PASS recommendations. PSA Advisor provides grading guidance. Review price, liquidity, risk, seller quality, shipping, taxes, and grading before acting.");
+      if (node.querySelector(".ff-trademark")) return;
+      const text = node.textContent || "";
+      if (!text.includes("Forge Heat™")) return;
+      const parts = text.split("Forge Heat™");
+      if (parts.length !== 2) return;
+      node.textContent = "";
+      if (parts[0]) node.append(document.createTextNode(parts[0]));
+      node.append(document.createTextNode("Forge Heat"));
+      const sup = document.createElement("sup");
+      sup.className = "ff-trademark";
+      sup.textContent = "™";
+      node.append(sup);
+      if (parts[1]) node.append(document.createTextNode(parts[1]));
     });
   }
 
@@ -161,12 +177,12 @@
     if (routeName() !== "dashboard") return;
     const main = document.querySelector("#main-content");
     if (!main) return;
+
     const heading = main.querySelector(".page-heading");
     if (heading) {
       setText(heading.querySelector(".eyebrow"), "Card intelligence");
       setText(heading.querySelector("h1"), "Decision Dashboard");
       setText(heading.querySelector("p"), "See what deserves attention, why it qualifies, and what needs review before you act.");
-      setHtml(heading.querySelector(".page-actions"), '<a class="button button-secondary" href="#/evaluate">Evaluate a card</a><a class="button button-primary" href="#/discover">Discover a card</a>');
     }
 
     main.querySelectorAll(".panel").forEach(panel => {
@@ -179,12 +195,47 @@
       if (title === "Decision factors") setText(titleNode, "Decision signals");
       if (title === "Recent activity") setText(titleNode, "Recent intelligence");
     });
+  }
 
-    const firstStack = main.querySelector(".dashboard-grid .stack:first-child");
-    if (firstStack) {
-      const top = [...firstStack.querySelectorAll(":scope > .panel")].find(panel => panel.querySelector(".panel-header h2")?.textContent?.trim() === "Top opportunities");
-      if (top && firstStack.firstElementChild !== top) firstStack.prepend(top);
+  function polishForgeHeatInteractive(root = document) {
+    const shell = root.querySelector(".forge-heat-shell");
+    if (!shell) return;
+
+    shell.classList.add("ff-forge-heat-interactive-beta");
+
+    const eyebrow = shell.querySelector(".forge-heat-title-row .eyebrow");
+    if (eyebrow) setText(eyebrow, "Beta intelligence · In development");
+
+    shell.querySelector(".forge-heat-pro-chip")?.remove();
+
+    const boundarySmall = shell.querySelector(".forge-heat-boundary small");
+    if (boundarySmall) setText(boundarySmall, "Saved-evaluation beta · Decision support only");
+
+    shell.querySelectorAll("[data-heat-tab]").forEach(button => {
+      const key = button.getAttribute("data-heat-tab");
+      if (key && HEAT_TAB_LABELS[key]) setText(button, HEAT_TAB_LABELS[key]);
+    });
+
+    const lock = shell.querySelector(".forge-heat-lock");
+    if (lock) {
+      setText(lock.querySelector(".forge-heat-lock-mark"), "BETA");
+      setText(lock.querySelector(".eyebrow"), "Beta access");
+      const h2 = lock.querySelector("h2");
+      if (h2 && /included with FlipForge Pro|upgrade/i.test(h2.textContent || "")) {
+        setText(h2, "Forge Heat beta access is not enabled for this account.");
+      }
+      lock.querySelectorAll("p").forEach(p => {
+        if (/upgrade to Pro/i.test(p.textContent || "")) {
+          setText(p, "Forge Heat remains in beta while its ranking and history signals are validated.");
+        }
+      });
     }
+
+    shell.querySelectorAll(".forge-heat-card-foot > span").forEach(node => {
+      setText(node, "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved recommendation.");
+    });
+
+    polishTrademark(shell);
   }
 
   function improveEmptyStates(root = document) {
@@ -195,9 +246,12 @@
       portfolio: ["Discover a card", "#/discover"],
       alerts: ["Review tracking", "#/tracking"]
     };
+
     const route = routeName();
     root.querySelectorAll(".staging-empty, .consumer-state-empty, .forge-heat-empty").forEach(state => {
-      if (/No qualifying opportunities yet/i.test(state.textContent || "")) setText(state.querySelector("strong"), "No opportunities meet the evidence threshold yet.");
+      if (/No qualifying opportunities yet/i.test(state.textContent || "")) {
+        setText(state.querySelector("strong"), "No opportunities meet the evidence threshold yet.");
+      }
       if (state.querySelector("a, button") || !ctas[route]) return;
       const [label, href] = ctas[route];
       const link = document.createElement("a");
@@ -208,34 +262,16 @@
     });
   }
 
-  function forgeHeatDevelopmentView() {
-    return `<div class="forge-heat-shell forge-heat-development">
-      <header class="forge-heat-hero">
-        <div><div class="forge-heat-title-row"><span class="eyebrow">In development</span></div><h1>Forge Heat<sup class="ff-trademark">™</sup></h1><p class="forge-heat-lead">Opportunity-ranking intelligence is being built and validated for a future release.</p></div>
-        <div class="forge-heat-boundary"><strong>Current status</strong><span>Not available in private beta</span><small>No upgrade or payment required</small></div>
-      </header>
-      <section class="forge-heat-lock"><span class="forge-heat-lock-mark" aria-hidden="true">FH</span><div><span class="eyebrow">Roadmap feature</span><h2>Forge Heat is not available yet.</h2><p>FlipForge is validating the evidence, ranking, and history requirements before opening this feature.</p><p>When it is ready, Forge Heat will prioritize opportunities without changing the underlying Smart Opportunity recommendation.</p><a class="button button-primary" href="#/discover">Return to Discover</a></div></section>
-    </div>`;
-  }
-
-  function enforceForgeHeatDevelopment() {
-    if (routeName() !== FORGE_HEAT_ROUTE) return;
-    const main = document.querySelector("#main-content");
-    if (!main || main.querySelector(".forge-heat-development")) return;
-    main.innerHTML = forgeHeatDevelopmentView();
-  }
-
   function apply() {
     addBrandTagline();
     consolidateAccountNavigation();
-    simplifyNavigation();
+    restoreInteractiveNavigation();
     installNavigationIcons();
     prepareForgeHeatNavigation();
     customerCopy(document.body);
-    polishBoundaryNotes(document);
     polishDashboard();
     improveEmptyStates(document);
-    enforceForgeHeatDevelopment();
+    polishForgeHeatInteractive(document);
     polishTrademark(document);
     document.documentElement.classList.add("ff-product-polish-ready");
   }
