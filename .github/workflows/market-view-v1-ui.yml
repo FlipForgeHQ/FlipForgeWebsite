@@ -1,0 +1,27 @@
+name: Market View V1 UI
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/index.html'
+      - 'saas-prototype/customer-market-view.js'
+      - 'saas-prototype/customer-market-view.css'
+      - 'saas-prototype/staging-route-hook.js'
+      - 'scripts/validate-market-view-v1.mjs'
+      - '.github/workflows/market-view-v1-ui.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-market-view-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate Market View JavaScript syntax
+        run: node --check saas-prototype/customer-market-view.js
+
+      - name: Validate Market View customer contract
+        run: node scripts/validate-market-view-v1.mjs
