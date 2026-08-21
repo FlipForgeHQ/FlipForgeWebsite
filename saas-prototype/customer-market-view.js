@@ -3,7 +3,7 @@
 
   const CONTRACT_VERSION = "1.0";
   const MARKET_VIEW_VERSION = "MARKET_VIEW_V1";
-  const ENDPOINT = "/api/v1/opportunities/__market-view-v1";
+  const ENDPOINT = "/api/v1/market-view";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
