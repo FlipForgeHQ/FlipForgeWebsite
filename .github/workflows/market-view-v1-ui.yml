@@ -7,6 +7,7 @@ on:
       - 'saas-prototype/customer-market-view.js'
       - 'saas-prototype/customer-market-view.css'
       - 'saas-prototype/staging-route-hook.js'
+      - 'netlify/modern-functions/market-view.mjs'
       - 'scripts/validate-market-view-v1.mjs'
       - '.github/workflows/market-view-v1-ui.yml'
   workflow_dispatch:
@@ -21,7 +22,9 @@ jobs:
           node-version: '22'
 
       - name: Validate Market View JavaScript syntax
-        run: node --check saas-prototype/customer-market-view.js
+        run: |
+          node --check saas-prototype/customer-market-view.js
+          node --check netlify/modern-functions/market-view.mjs
 
       - name: Validate Market View customer contract
         run: node scripts/validate-market-view-v1.mjs
