@@ -26,6 +26,14 @@
     ["Customer boundary:", "How this works:"]
   ]);
 
+  const statusCopy = new Map([
+    ["READY", "Ready"],
+    ["MISSING", "Needs evidence"],
+    ["INVALID", "Needs review"],
+    ["STALE", "Needs refresh"],
+    ["UNAVAILABLE", "Unavailable"]
+  ]);
+
   const diagnosticPattern = /(invalid json|authority contract|authority boundary|browser safety limit|request failed with status|response exceeded)/i;
   const technicalCodePattern = /^[A-Z][A-Z0-9_:-]{4,}$/;
 
@@ -114,6 +122,14 @@
     root.querySelectorAll(".staging-loading").forEach(node => node.classList.add("consumer-state", "consumer-state-loading"));
     root.querySelectorAll(".card-intelligence-message").forEach(node => node.classList.add("consumer-state"));
     root.querySelectorAll('.card-intelligence-error, .forge-heat-error, .staging-error[role="alert"]').forEach(node => node.classList.add("consumer-state", "consumer-state-error"));
+
+    root.querySelectorAll(".staging-status").forEach(node => {
+      const raw = node.textContent.trim().toUpperCase();
+      const replacement = statusCopy.get(raw);
+      if (!replacement) return;
+      node.dataset.ffState = raw.toLowerCase();
+      setText(node, replacement);
+    });
   }
 
   function apply() {
