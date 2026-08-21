@@ -1,0 +1,88 @@
+/* Focused FlipForge homepage: concise marketing flow only. */
+body.ff-home-focused .hero.ff-hero-v3{
+  min-height:auto;
+  gap:42px;
+  padding-top:58px;
+  padding-bottom:44px;
+}
+body.ff-home-focused .hero.ff-hero-v3:before{inset:18px 0 12px}
+body.ff-home-focused .hero.ff-hero-v3 h1{font-size:clamp(46px,5.5vw,72px)}
+body.ff-home-focused .hero.ff-hero-v3 .lead{font-size:18px}
+body.ff-home-focused .ff-hero-points{margin-top:14px}
+body.ff-home-focused .home-section{padding-top:52px;padding-bottom:52px}
+body.ff-home-focused #before-after .product-visual{max-width:920px;margin-inline:auto}
+body.ff-home-focused #try-flipforge .section-head{margin-bottom:22px}
+
+.ff-home-workflow{
+  max-width:1180px;
+  margin:0 auto;
+  padding:56px 22px 62px;
+}
+.ff-home-workflow-head{
+  display:grid;
+  grid-template-columns:1fr .72fr;
+  gap:36px;
+  align-items:end;
+  margin-bottom:24px;
+}
+.ff-home-workflow-head h2{margin:0;max-width:700px}
+.ff-home-workflow-head p{margin:0;color:#aeb2b8;font-size:15px;line-height:1.6}
+.ff-home-workflow-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+.ff-home-workflow-grid article{
+  min-height:172px;
+  padding:20px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:14px;
+  background:linear-gradient(180deg,#080a0d,#020202);
+}
+.ff-home-workflow-grid article>span{
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  margin-bottom:16px;
+  border:1px solid rgba(212,175,55,.4);
+  border-radius:9px;
+  color:#d4af37;
+  font-size:10px;
+  font-weight:900;
+}
+.ff-home-workflow-grid strong{display:block;margin-bottom:7px;font-size:16px}
+.ff-home-workflow-grid small{display:block;color:#9499a1;font-size:12px;line-height:1.55}
+.ff-home-workflow-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  align-items:center;
+  margin-top:14px;
+  padding:16px 18px;
+  border:1px solid rgba(212,175,55,.2);
+  border-radius:12px;
+  background:rgba(212,175,55,.045);
+  color:#b9bdc4;
+  font-size:12px;
+}
+.ff-home-workflow-footer strong{color:#fff}
+.ff-home-workflow-footer>div{display:flex;gap:8px;flex:none}
+.ff-home-workflow-footer .btn{white-space:nowrap}
+body.ff-home-focused main>section:last-of-type{padding-top:38px;padding-bottom:54px}
+body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
+
+@media(max-width:1000px){
+  .ff-home-workflow-head{grid-template-columns:1fr}
+  .ff-home-workflow-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  body.ff-home-focused .hero.ff-hero-v3{padding-top:44px;padding-bottom:30px;gap:30px}
+  body.ff-home-focused .home-section{padding-top:42px;padding-bottom:42px}
+  .ff-home-workflow{padding:46px 18px 50px}
+  .ff-home-workflow-grid{grid-template-columns:1fr}
+  .ff-home-workflow-grid article{min-height:auto}
+  .ff-home-workflow-footer{align-items:stretch;flex-direction:column}
+  .ff-home-workflow-footer>div{display:grid;grid-template-columns:1fr 1fr}
+  .ff-home-workflow-footer .btn{text-align:center}
+}
