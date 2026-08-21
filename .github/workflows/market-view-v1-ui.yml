@@ -9,6 +9,8 @@ on:
       - 'saas-prototype/staging-route-hook.js'
       - 'netlify/modern-functions/market-view.mjs'
       - 'scripts/validate-market-view-v1.mjs'
+      - 'package.json'
+      - 'netlify.toml'
       - '.github/workflows/market-view-v1-ui.yml'
   workflow_dispatch:
 
@@ -27,4 +29,4 @@ jobs:
           node --check netlify/modern-functions/market-view.mjs
 
       - name: Validate Market View customer contract
-        run: node scripts/validate-market-view-v1.mjs
+        run: npm run validate:market-view
