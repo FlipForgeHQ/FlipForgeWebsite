@@ -13,6 +13,7 @@ on:
       - "scripts/build-assets.js"
       - "scripts/validate-brand-assets.js"
       - "scripts/validate-consumer-ux-refinement.mjs"
+      - "scripts/validate-consumer-pro-navigation.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-customer-portfolio.mjs"
       - "scripts/validate-saas-customer-entitlements.mjs"
@@ -65,6 +66,7 @@ jobs:
           node --check saas-prototype/customer-entitlements.js
           node --check saas-prototype/private-beta.js
           node --check saas-prototype/serve.mjs
+          node --check scripts/validate-consumer-pro-navigation.mjs
           node --check scripts/validate-saas-customer-entitlements.mjs
 
       - name: Run exact Netlify build command
@@ -78,6 +80,7 @@ jobs:
           node saas-prototype/validate-cockpit-polish.mjs
           node saas-prototype/validate-cockpit-final-ux.mjs
           node scripts/validate-consumer-ux-refinement.mjs
+          node scripts/validate-consumer-pro-navigation.mjs
           node saas-prototype/validate-sidebar-edge-fix.mjs
 
       - name: Verify generated website entry points
