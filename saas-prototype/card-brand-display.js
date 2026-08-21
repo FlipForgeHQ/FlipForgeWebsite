@@ -65,8 +65,7 @@
     const canonical = canonicalManufacturer(manufacturer);
     const productContext = ` ${normalized(`${releaseName} ${setName}`)} `;
 
-    // Bowman is a collector-facing card brand even when a provider reports Topps as the corporate manufacturer.
-    // Keep the provider value in data; only normalize what the customer sees.
+    // Preserve collector-facing brand normalization for any surface that explicitly asks for a manufacturer label.
     if (productContext.includes(" bowman ")) return "Bowman";
 
     return canonical;
@@ -75,17 +74,25 @@
   function normalizeDetailText(value) {
     const source = String(value ?? "");
     if (!source.includes(" · ")) return source;
-    const parts = source.split(" · ");
-    if (parts.length < 3 || !/^\d{4}(?:-\d{2})?$/.test(parts[0].trim())) return source;
+    const parts = source.split(" · ").map(part => part.trim());
+    if (parts.length < 3 || !/^\d{4}(?:-\d{2})?$/.test(parts[0])) return source;
 
-    const manufacturer = parts[1].trim();
-    const releaseName = parts[2]?.trim() || "";
-    const setName = parts[3]?.trim() || "";
+    const manufacturer = parts[1] || "";
+    const releaseName = parts[2] || "";
+    const setName = parts[3] || "";
+
+    // Customer identity lines should read the way collectors name cards:
+    // "2018 · Topps Chrome · Base Set · #150" rather than
+    // "2018 · Topps · Topps Chrome · Base Set · #150".
+    // Provider manufacturer data remains untouched; this only compacts rendered text.
+    if (releaseName) {
+      parts.splice(1, 1);
+      return parts.filter(Boolean).join(" · ");
+    }
+
     const displayManufacturer = normalizeManufacturer(manufacturer, releaseName, setName);
-    if (!displayManufacturer || displayManufacturer === manufacturer) return source;
-
-    parts[1] = displayManufacturer;
-    return parts.join(" · ");
+    if (displayManufacturer) parts[1] = displayManufacturer;
+    return parts.filter(Boolean).join(" · ");
   }
 
   function normalizeNode(node) {
