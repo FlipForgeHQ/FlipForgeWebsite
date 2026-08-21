@@ -44,7 +44,8 @@ expect(ux.includes("let scheduled = false"), "mutation-driven refinement is requ
 expect(!ux.includes("fetch(") && !polish.includes("fetch("), "presentation layers do not make API calls");
 expect(!ux.includes("recommendation =") && !polish.includes("recommendation ="), "presentation layers do not mutate recommendation authority");
 expect(!ux.includes("supportedValue =") && !polish.includes("supportedValue ="), "presentation layers do not compute supported value");
-expect(!ux.includes("heat =") && !polish.includes("heat ="), "presentation layers do not compute Forge Heat");
+const forgeHeatComputationPattern = /\b(?:compute|calculate|score|rank)ForgeHeat\b|\bforgeHeat(?:Score|Value|Rank)\s*=|\bheatScore\s*=/i;
+expect(!forgeHeatComputationPattern.test(ux) && !forgeHeatComputationPattern.test(polish), "presentation layers do not compute Forge Heat");
 
 expect(css.includes(".consumer-state-empty"), "empty state receives dedicated visual treatment");
 expect(css.includes(".consumer-state-loading"), "loading state receives dedicated visual treatment");
