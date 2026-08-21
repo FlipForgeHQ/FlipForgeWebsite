@@ -12,8 +12,14 @@
   const entitlements = window.FlipForgeCustomerEntitlements;
   if (!entitlements || typeof entitlements.isEligible !== "function") return;
 
+  // The customer entitlement adapter may be frozen by the production hardening layer.
+  // Never mutate that authoritative object in place. Publish a frozen facade instead,
+  // preserving every enumerable capability while extending eligibility for the live app.
   const originalEligible = entitlements.isEligible.bind(entitlements);
-  entitlements.isEligible = () => originalEligible() || productionEligible();
+  window.FlipForgeCustomerEntitlements = Object.freeze({
+    ...entitlements,
+    isEligible: () => originalEligible() || productionEligible()
+  });
 
   document.addEventListener("click", event => {
     if (!productionEligible()) return;
