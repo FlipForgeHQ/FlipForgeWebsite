@@ -1,0 +1,405 @@
+.market-view-shell {
+  display: grid;
+  gap: 22px;
+  padding: 24px;
+  color: var(--text, #f5f5f5);
+}
+
+.market-view-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, .7fr);
+  gap: 24px;
+  align-items: stretch;
+  padding: 28px;
+  border: 1px solid rgba(219, 190, 122, .26);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 0 0, rgba(219, 190, 122, .11), transparent 38%),
+    linear-gradient(145deg, rgba(20, 20, 20, .98), rgba(7, 7, 7, .98));
+}
+
+.market-view-hero h1 {
+  margin: 8px 0 10px;
+  font-size: clamp(2.2rem, 5vw, 4.4rem);
+  line-height: .96;
+  letter-spacing: -.045em;
+}
+
+.market-view-hero > div > p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--text-muted, #b8b8b8);
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.market-view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.market-view-scope {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.market-view-scope > span,
+.market-view-metric > span,
+.market-view-health-grid span,
+.market-view-coverage-card span {
+  color: var(--text-muted, #a9a9a9);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.market-view-scope strong {
+  font-size: 1.45rem;
+  color: #e4c77f;
+}
+
+.market-view-scope p,
+.market-view-scope small {
+  margin: 0;
+  color: var(--text-muted, #aaa);
+  line-height: 1.45;
+}
+
+.market-view-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.market-view-metric {
+  display: flex;
+  min-height: 126px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .025);
+}
+
+.market-view-metric strong {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.market-view-metric small {
+  color: var(--text-muted, #9f9f9f);
+  line-height: 1.4;
+}
+
+.market-view-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.market-view-panel {
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 18px;
+  background: rgba(14, 14, 14, .92);
+}
+
+.market-view-panel header h2,
+.market-view-broader h2 {
+  margin: 5px 0 6px;
+  font-size: 1.25rem;
+}
+
+.market-view-panel header p,
+.market-view-broader p {
+  margin: 0;
+  color: var(--text-muted, #aaa);
+  line-height: 1.55;
+}
+
+.market-view-bars {
+  display: grid;
+  gap: 15px;
+  margin-top: 24px;
+}
+
+.market-view-bar-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+  font-size: .82rem;
+}
+
+.market-view-bar-label span {
+  color: #d6d6d6;
+  font-weight: 700;
+}
+
+.market-view-bar-track,
+.market-view-coverage-track {
+  overflow: hidden;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+}
+
+.market-view-bar-track span,
+.market-view-coverage-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(219, 190, 122, .6), #e4c77f);
+}
+
+.market-view-health-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.market-view-health-grid > div {
+  display: grid;
+  gap: 5px;
+  min-height: 108px;
+  align-content: center;
+  padding: 15px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.market-view-health-grid strong {
+  font-size: 1.28rem;
+}
+
+.market-view-health-grid small {
+  color: var(--text-muted, #999);
+  line-height: 1.35;
+}
+
+.market-view-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.market-view-section-heading > a {
+  white-space: nowrap;
+  color: #e4c77f;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.market-view-value-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.market-view-value-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, .065);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .025);
+}
+
+.market-view-rank {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(219, 190, 122, .12);
+  color: #e4c77f;
+  font-weight: 800;
+}
+
+.market-view-value-identity,
+.market-view-value-numbers {
+  display: grid;
+  gap: 4px;
+}
+
+.market-view-value-identity span,
+.market-view-value-numbers span {
+  color: var(--text-muted, #999);
+  font-size: .82rem;
+}
+
+.market-view-value-numbers {
+  text-align: right;
+}
+
+.market-view-value-numbers strong {
+  color: #e4c77f;
+  font-size: 1.08rem;
+}
+
+.market-view-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.market-view-coverage-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .03);
+}
+
+.market-view-coverage-card > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.market-view-coverage-card strong {
+  font-size: 1.25rem;
+}
+
+.market-view-coverage-card small {
+  color: var(--text-muted, #999);
+  line-height: 1.45;
+}
+
+.market-view-broader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  padding: 22px;
+  border: 1px dashed rgba(219, 190, 122, .28);
+  border-radius: 18px;
+  background: rgba(219, 190, 122, .035);
+}
+
+.market-view-broader-mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(219, 190, 122, .12);
+  color: #e4c77f;
+  font-size: 1.4rem;
+}
+
+.market-view-broader small {
+  display: block;
+  margin-top: 7px;
+  color: var(--text-muted, #999);
+  line-height: 1.45;
+}
+
+.market-view-boundary {
+  margin: 0;
+  padding: 14px 16px;
+  border-left: 3px solid rgba(219, 190, 122, .7);
+  background: rgba(255, 255, 255, .025);
+  color: var(--text-muted, #aaa);
+  line-height: 1.5;
+}
+
+.market-view-boundary strong {
+  color: #f1f1f1;
+}
+
+.market-view-loading,
+.market-view-error,
+.market-view-empty {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .025);
+}
+
+.market-view-loading p,
+.market-view-error p,
+.market-view-empty p {
+  margin: 5px 0 0;
+  color: var(--text-muted, #999);
+}
+
+.market-view-error {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.market-view-spinner {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border: 3px solid rgba(255, 255, 255, .12);
+  border-top-color: #e4c77f;
+  border-radius: 50%;
+  animation: market-view-spin .8s linear infinite;
+}
+
+@keyframes market-view-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 980px) {
+  .market-view-hero,
+  .market-view-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .market-view-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .market-view-shell {
+    padding: 16px;
+  }
+
+  .market-view-hero {
+    padding: 20px;
+  }
+
+  .market-view-metrics,
+  .market-view-health-grid,
+  .market-view-coverage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .market-view-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .market-view-value-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .market-view-value-numbers,
+  .market-view-value-row .button {
+    grid-column: 2;
+    text-align: left;
+  }
+}
