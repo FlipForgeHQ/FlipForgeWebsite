@@ -11,7 +11,7 @@ Use the **horizontal** lockup:
 
 1. Approved cube-in-corners icon on the left.
 2. `FLIPFORGE™` wordmark to the right.
-3. `CARD VALUE INTELLIGENCE` beneath the wordmark in small caps with wide tracking.
+3. `CARD INTELLIGENCE` beneath the wordmark in small caps with wide tracking.
 
 The tagline is **not** part of the compact header lockup.
 
