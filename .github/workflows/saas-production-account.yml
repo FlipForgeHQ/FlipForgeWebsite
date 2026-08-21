@@ -7,10 +7,12 @@ on:
       - "saas-prototype/customer-account.js"
       - "saas-prototype/customer-account-bridge.js"
       - "saas-prototype/customer-entitlements.js"
+      - "saas-prototype/production-customer-entitlements.js"
       - "saas-prototype/staging-route-hook.js"
       - "netlify/functions/flipforge-api.js"
       - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
       - "scripts/validate-saas-production-account.mjs"
+      - "scripts/validate-production-entitlements-compat.mjs"
       - ".github/workflows/saas-production-account.yml"
   push:
     branches:
@@ -20,10 +22,12 @@ on:
       - "saas-prototype/customer-account.js"
       - "saas-prototype/customer-account-bridge.js"
       - "saas-prototype/customer-entitlements.js"
+      - "saas-prototype/production-customer-entitlements.js"
       - "saas-prototype/staging-route-hook.js"
       - "netlify/functions/flipforge-api.js"
       - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
       - "scripts/validate-saas-production-account.mjs"
+      - "scripts/validate-production-entitlements-compat.mjs"
       - ".github/workflows/saas-production-account.yml"
 
 permissions:
@@ -44,7 +48,10 @@ jobs:
         run: |
           node --check saas-prototype/customer-account.js
           node --check saas-prototype/customer-account-bridge.js
+          node --check saas-prototype/production-customer-entitlements.js
       - name: Validate production account boundary
         run: node scripts/validate-saas-production-account.mjs
+      - name: Validate frozen entitlement compatibility
+        run: node scripts/validate-production-entitlements-compat.mjs
       - name: Retain preview entitlements validation
         run: node scripts/validate-saas-customer-entitlements.mjs
