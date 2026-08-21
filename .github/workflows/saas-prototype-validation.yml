@@ -12,6 +12,7 @@ on:
       - "docs/SAAS_PRIVATE_BETA_OPERATIONS_BOUNDARY.md"
       - "scripts/build-assets.js"
       - "scripts/validate-brand-assets.js"
+      - "scripts/validate-consumer-ux-refinement.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-customer-portfolio.mjs"
       - "scripts/validate-saas-customer-entitlements.mjs"
