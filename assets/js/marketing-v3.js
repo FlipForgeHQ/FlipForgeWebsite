@@ -5,6 +5,14 @@
   const main=document.querySelector('main#main');
   if(!hero||!main)return;
 
+  if(!document.querySelector('link[data-ff-home-focus]')){
+    const css=document.createElement('link');
+    css.rel='stylesheet';
+    css.href='assets/css/homepage-focus-v1.css';
+    css.dataset.ffHomeFocus='true';
+    document.head.appendChild(css);
+  }
+
   document.body.classList.add('ff-marketing-v3','ff-home-focused');
   document.querySelectorAll('.brand .tagline').forEach(node=>{node.textContent='CARD INTELLIGENCE';});
 
