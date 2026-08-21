@@ -5,6 +5,7 @@ const routeHook = fs.readFileSync("saas-prototype/staging-route-hook.js", "utf8"
 const marketView = fs.readFileSync("saas-prototype/customer-market-view.js", "utf8");
 const marketCss = fs.readFileSync("saas-prototype/customer-market-view.css", "utf8");
 const gateway = fs.readFileSync("netlify/functions/flipforge-api.js", "utf8");
+const modernGateway = fs.readFileSync("netlify/modern-functions/flipforge-api.mjs", "utf8");
 const marketViewGateway = fs.readFileSync("netlify/modern-functions/market-view.mjs", "utf8");
 
 let passed = 0;
@@ -24,6 +25,9 @@ check("canonical facade reuses verified identity gateway", marketViewGateway.inc
 check("canonical facade exposes exact Market View path", marketViewGateway.includes('path: "/api/v1/market-view"'));
 check("canonical facade rewrites only to protected Market View resource", marketViewGateway.includes('url.pathname = "/api/v1/opportunities/__market-view-v1"'));
 check("gateway permits protected opportunity-detail read path", gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/opportunities\\/[A-Za-z0-9._:-]+$/ }'));
+check("wildcard gateway recognizes canonical Market View path", modernGateway.includes('const MARKET_VIEW_PATH = "/api/v1/market-view"'));
+check("wildcard gateway rewrites Market View to protected resource", modernGateway.includes('const MARKET_VIEW_UPSTREAM_PATH = "/api/v1/opportunities/__market-view-v1"') && modernGateway.includes("url.pathname = MARKET_VIEW_UPSTREAM_PATH"));
+check("wildcard gateway rewrites before legacy allowlist", modernGateway.includes("const effectiveRequest = gatewayRequest(request)") && modernGateway.includes("const event = await legacyEvent(effectiveRequest)"));
 check("Market View validates server authority", marketView.includes('data.authority.recommendationAuthority !== "Smart Opportunity"'));
 check("Market View refuses recommendation authority", marketView.includes("data.authority.marketViewRecommendationAuthority !== false"));
 check("Market View refuses transaction authority", marketView.includes("data.transactionAuthority !== false"));
