@@ -19,8 +19,60 @@
     export: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>'
   };
 
+  const COPY_REPLACEMENTS = [
+    ["PRIVATE BETA INTELLIGENCE", "PRIVATE BETA"],
+    ["BETA INTELLIGENCE", "PRIVATE BETA"],
+    ["BETA PREVIEW", "PRIVATE BETA"],
+    ["Authenticated tenant-scoped intelligence · Saved decisions · No transaction authority", "Card intelligence workspace · Evaluation only"],
+    ["Controlled customer intelligence preview · No transaction authority", "Card intelligence preview · Evaluation only"],
+    ["Controlled customer intelligence · No transaction authority", "Card intelligence workspace · Evaluation only"],
+    ["Tenant access", "Private beta"],
+    ["Plan state and evaluation usage are server-owned. Paid access is not active during private beta.", "Usage updates automatically. Paid access is not active during private beta."],
+    ["Plan state, usage, and checkout availability are server-owned.", "Plan, usage, and checkout availability update automatically."],
+    ["Plan state and usage are server-owned. Paid checkout is deferred until Core Platform Beta Complete.", "Plan and usage update automatically. Paid access is not active during private beta."],
+    ["Plan state and usage are server-owned.", "Plan and usage update automatically."],
+    ["Subscription and usage data stays server-owned.", "Subscription and usage update automatically."],
+    ["Access and usage stay server-owned.", "Access and usage update automatically."],
+    ["Review server-owned access, evaluation usage, and the planned commercial tiers for this tenant.", "Review your access, evaluation usage, and available plan details."],
+    ["Server-owned", "Verified"],
+    ["server-owned", "verified"],
+    ["tenant-scoped", "account-specific"],
+    ["Tenant-owned", "Saved"],
+    ["tenant-owned", "saved"],
+    ["browser-side", "local"],
+    ["browser-invented", "placeholder"],
+    ["authority contract", "service validation"],
+    ["Planned launch plan", "Plan"],
+    ["Planned commercial plans", "Plans"],
+    ["These tiers remain informational during the core-platform completion sprint.", "Plan details are informational during private beta."],
+    ["Billing deferred", "Not active"],
+    ["Checkout deferred until Beta Complete", "Checkout unavailable in private beta"],
+    ["Deferred by core-platform launch gate", "Not available in private beta"],
+    ["Production payment controls are intentionally absent.", "Payments are not available in private beta."],
+    ["Billing launch resumes only after the core customer product reaches Beta Complete.", "Paid access will open only after launch review is complete."],
+    ["This production account screen is read-only.", "Account information is view-only during private beta."],
+    ["No sample subscription or browser-invented allowance was shown.", "No placeholder subscription or allowance is shown."],
+    ["Interactive prototype history for the selected opportunity.", "Recent ask and supported-value history for the selected opportunity."],
+    ["Prototype customer activity, not live telemetry.", "Recent intelligence activity."],
+    ["Prototype list of saved Smart Opportunity output.", "Saved decisions ranked with supporting evidence."],
+    ["Prototype saved record", "Saved evaluation"],
+    ["Plain-language explanation of saved authority output.", "Why this decision was reached."],
+    ["Existing recommendations ranked with saved evidence context.", "Your highest-priority opportunities, ranked with supporting evidence."],
+    ["Saved opportunity authority", "Card intelligence"],
+    ["Tenant-owned saved intelligence", "Saved intelligence"],
+    ["Forge Heat V1", "Forge Heat"]
+  ];
+
   function routeName() {
     return String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard";
+  }
+
+  function setText(node, value) {
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
+  function setHtml(node, value) {
+    if (node && node.innerHTML !== value) node.innerHTML = value;
   }
 
   function addBrandTagline() {
@@ -36,10 +88,8 @@
     document.querySelector(".sidebar-footer .account-link")?.remove();
     const profile = document.querySelector(".profile-button .profile-copy");
     if (!profile) return;
-    const title = profile.querySelector("strong");
-    const detail = profile.querySelector("small");
-    if (title) title.textContent = "Account";
-    if (detail) detail.textContent = "Plan & Usage";
+    setText(profile.querySelector("strong"), "Account");
+    setText(profile.querySelector("small"), "Plan & Usage");
   }
 
   function installNavigationIcons() {
@@ -58,16 +108,11 @@
     if (!nav) return;
     nav.querySelectorAll(".ff-nav-group-label").forEach(node => node.remove());
     const alerts = nav.querySelector('[data-route="alerts"]');
-    if (alerts) alerts.hidden = true;
-
+    if (alerts && !alerts.hidden) alerts.hidden = true;
     const heat = nav.querySelector('[data-route="forge-heat"]');
     const opportunities = nav.querySelector('[data-route="opportunities"]');
-    if (heat && opportunities && heat.previousElementSibling !== opportunities) {
-      opportunities.insertAdjacentElement("afterend", heat);
-    }
-
-    const guide = nav.querySelector('[data-route="beta-start"]');
-    if (guide) guide.classList.add("ff-secondary-nav-link");
+    if (heat && opportunities && heat.previousElementSibling !== opportunities) opportunities.insertAdjacentElement("afterend", heat);
+    nav.querySelector('[data-route="beta-start"]')?.classList.add("ff-secondary-nav-link");
   }
 
   function prepareForgeHeatNavigation() {
@@ -80,83 +125,35 @@
       state.className = "forge-nav-state";
       nav.appendChild(state);
     }
-    state.textContent = "DEV";
+    setText(state, "DEV");
     nav.removeAttribute("aria-disabled");
-    nav.setAttribute("aria-label", "Forge Heat, in development");
-    nav.setAttribute("title", "Forge Heat — in development");
-  }
-
-  function polishTrademark(root = document) {
-    root.querySelectorAll("h1, h2, h3").forEach(node => {
-      if (node.querySelector(".ff-trademark")) return;
-      const text = node.textContent || "";
-      if (!text.includes("Forge Heat™")) return;
-      node.innerHTML = node.innerHTML.replace(/Forge Heat™/g, 'Forge Heat<sup class="ff-trademark">™</sup>');
-    });
+    if (nav.getAttribute("aria-label") !== "Forge Heat, in development") nav.setAttribute("aria-label", "Forge Heat, in development");
+    if (nav.getAttribute("title") !== "Forge Heat — in development") nav.setAttribute("title", "Forge Heat — in development");
   }
 
   function customerCopy(root = document) {
-    const replacements = [
-      ["PRIVATE BETA INTELLIGENCE", "PRIVATE BETA"],
-      ["BETA INTELLIGENCE", "PRIVATE BETA"],
-      ["BETA PREVIEW", "PRIVATE BETA"],
-      ["Authenticated tenant-scoped intelligence · Saved decisions · No transaction authority", "Card intelligence workspace · Evaluation only"],
-      ["Controlled customer intelligence preview · No transaction authority", "Card intelligence preview · Evaluation only"],
-      ["Controlled customer intelligence · No transaction authority", "Card intelligence workspace · Evaluation only"],
-      ["Tenant access", "Private beta"],
-      ["Plan state and evaluation usage are server-owned. Paid access is not active during private beta.", "Usage updates automatically. Paid access is not active during private beta."],
-      ["Plan state, usage, and checkout availability are server-owned.", "Plan, usage, and checkout availability update automatically."],
-      ["Plan state and usage are server-owned. Paid checkout is deferred until Core Platform Beta Complete.", "Plan and usage update automatically. Paid access is not active during private beta."],
-      ["Plan state and usage are server-owned.", "Plan and usage update automatically."],
-      ["Subscription and usage data stays server-owned.", "Subscription and usage update automatically."],
-      ["Access and usage stay server-owned.", "Access and usage update automatically."],
-      ["Review server-owned access, evaluation usage, and the planned commercial tiers for this tenant.", "Review your access, evaluation usage, and available plan details."],
-      ["Review server-owned access, evaluation usage, and the planned commercial tiers for this account.", "Review your access, evaluation usage, and available plan details."],
-      ["Server-owned", "Verified"],
-      ["server-owned", "verified"],
-      ["tenant-scoped", "account-specific"],
-      ["Tenant-owned", "Saved"],
-      ["tenant-owned", "saved"],
-      ["browser-side", "local"],
-      ["browser-invented", "placeholder"],
-      ["authority contract", "service validation"],
-      ["Planned launch plan", "Plan"],
-      ["Planned commercial plans", "Plans"],
-      ["These tiers remain informational during the core-platform completion sprint.", "Plan details are informational during private beta."],
-      ["Billing deferred", "Not active"],
-      ["Checkout deferred until Beta Complete", "Checkout unavailable in private beta"],
-      ["Deferred by core-platform launch gate", "Not available in private beta"],
-      ["Production payment controls are intentionally absent.", "Payments are not available in private beta."],
-      ["Billing launch resumes only after the core customer product reaches Beta Complete.", "Paid access will open only after launch review is complete."],
-      ["This production account screen is read-only.", "Account information is view-only during private beta."],
-      ["No sample subscription or browser-invented allowance was shown.", "No placeholder subscription or allowance is shown."],
-      ["Interactive prototype history for the selected opportunity.", "Recent ask and supported-value history for the selected opportunity."],
-      ["Prototype customer activity, not live telemetry.", "Recent intelligence activity."],
-      ["Prototype list of saved Smart Opportunity output.", "Saved decisions ranked with supporting evidence."],
-      ["Prototype saved record", "Saved evaluation"],
-      ["Plain-language explanation of saved authority output.", "Why this decision was reached."],
-      ["Existing recommendations ranked with saved evidence context.", "Your highest-priority opportunities, ranked with supporting evidence."],
-      ["Saved opportunity authority", "Card intelligence"],
-      ["Tenant-owned saved intelligence", "Saved intelligence"],
-      ["Forge Heat V1", "Forge Heat"]
-    ];
-
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node;
     while ((node = walker.nextNode())) {
       if (node.parentElement?.closest("script, style")) continue;
       const original = node.nodeValue || "";
       let value = original;
-      for (const [from, to] of replacements) value = value.replaceAll(from, to);
+      for (const [from, to] of COPY_REPLACEMENTS) value = value.replaceAll(from, to);
       if (value !== original) node.nodeValue = value;
     }
   }
 
+  function polishTrademark(root = document) {
+    root.querySelectorAll("h1, h2, h3").forEach(node => {
+      if (node.querySelector(".ff-trademark") || !(node.textContent || "").includes("Forge Heat™")) return;
+      node.innerHTML = node.innerHTML.replace(/Forge Heat™/g, 'Forge Heat<sup class="ff-trademark">™</sup>');
+    });
+  }
+
   function polishBoundaryNotes(root = document) {
     root.querySelectorAll(".boundary-note").forEach(note => {
-      if (/Smart Opportunity remains the sole BUY\/WATCH\/VERIFY\/PASS authority/i.test(note.textContent || "")) {
-        note.innerHTML = "<strong>Decision framework:</strong> Smart Opportunity provides BUY/WATCH/VERIFY/PASS recommendations. PSA Advisor provides grading guidance. Review price, liquidity, risk, seller quality, shipping, taxes, and grading before acting.";
-      }
+      if (!/Smart Opportunity remains the sole BUY\/WATCH\/VERIFY\/PASS authority/i.test(note.textContent || "")) return;
+      setHtml(note, "<strong>Decision framework:</strong> Smart Opportunity provides BUY/WATCH/VERIFY/PASS recommendations. PSA Advisor provides grading guidance. Review price, liquidity, risk, seller quality, shipping, taxes, and grading before acting.");
     });
   }
 
@@ -166,38 +163,31 @@
     if (!main) return;
     const heading = main.querySelector(".page-heading");
     if (heading) {
-      const eyebrow = heading.querySelector(".eyebrow");
-      const h1 = heading.querySelector("h1");
-      const p = heading.querySelector("p");
-      if (eyebrow) eyebrow.textContent = "Card intelligence";
-      if (h1) h1.textContent = "Decision Dashboard";
-      if (p) p.textContent = "See what deserves attention, why it qualifies, and what needs review before you act.";
-      const actions = heading.querySelector(".page-actions");
-      if (actions) {
-        actions.innerHTML = '<a class="button button-secondary" href="#/evaluate">Evaluate a card</a><a class="button button-primary" href="#/discover">Discover a card</a>';
-      }
+      setText(heading.querySelector(".eyebrow"), "Card intelligence");
+      setText(heading.querySelector("h1"), "Decision Dashboard");
+      setText(heading.querySelector("p"), "See what deserves attention, why it qualifies, and what needs review before you act.");
+      setHtml(heading.querySelector(".page-actions"), '<a class="button button-secondary" href="#/evaluate">Evaluate a card</a><a class="button button-primary" href="#/discover">Discover a card</a>');
     }
 
     main.querySelectorAll(".panel").forEach(panel => {
-      const title = panel.querySelector(".panel-header h2")?.textContent?.trim();
+      const titleNode = panel.querySelector(".panel-header h2");
+      const title = titleNode?.textContent?.trim();
       const description = panel.querySelector(".panel-header p");
-      if (title === "Ask vs supported value" && description) description.textContent = "Recent price context for the selected opportunity.";
-      if (title === "Top opportunities" && description) description.textContent = "Highest-priority saved opportunities with evidence context.";
-      if (title === "Evidence readiness" && description) description.textContent = "How complete and current the supporting evidence is.";
-      if (title === "Decision factors") panel.querySelector(".panel-header h2").textContent = "Decision signals";
-      if (title === "Recent activity") panel.querySelector(".panel-header h2").textContent = "Recent intelligence";
+      if (title === "Ask vs supported value") setText(description, "Recent price context for the selected opportunity.");
+      if (title === "Top opportunities") setText(description, "Highest-priority saved opportunities with evidence context.");
+      if (title === "Evidence readiness") setText(description, "How complete and current the supporting evidence is.");
+      if (title === "Decision factors") setText(titleNode, "Decision signals");
+      if (title === "Recent activity") setText(titleNode, "Recent intelligence");
     });
 
     const firstStack = main.querySelector(".dashboard-grid .stack:first-child");
     if (firstStack) {
-      const panels = [...firstStack.querySelectorAll(":scope > .panel")];
-      const top = panels.find(panel => panel.querySelector(".panel-header h2")?.textContent?.trim() === "Top opportunities");
+      const top = [...firstStack.querySelectorAll(":scope > .panel")].find(panel => panel.querySelector(".panel-header h2")?.textContent?.trim() === "Top opportunities");
       if (top && firstStack.firstElementChild !== top) firstStack.prepend(top);
     }
   }
 
   function improveEmptyStates(root = document) {
-    const route = routeName();
     const ctas = {
       opportunities: ["Discover a card", "#/discover"],
       tracking: ["Discover a card to track", "#/discover"],
@@ -205,11 +195,9 @@
       portfolio: ["Discover a card", "#/discover"],
       alerts: ["Review tracking", "#/tracking"]
     };
+    const route = routeName();
     root.querySelectorAll(".staging-empty, .consumer-state-empty, .forge-heat-empty").forEach(state => {
-      if (/No qualifying opportunities yet/i.test(state.textContent || "")) {
-        const strong = state.querySelector("strong");
-        if (strong) strong.textContent = "No opportunities meet the evidence threshold yet.";
-      }
+      if (/No qualifying opportunities yet/i.test(state.textContent || "")) setText(state.querySelector("strong"), "No opportunities meet the evidence threshold yet.");
       if (state.querySelector("a, button") || !ctas[route]) return;
       const [label, href] = ctas[route];
       const link = document.createElement("a");
@@ -223,17 +211,10 @@
   function forgeHeatDevelopmentView() {
     return `<div class="forge-heat-shell forge-heat-development">
       <header class="forge-heat-hero">
-        <div>
-          <div class="forge-heat-title-row"><span class="eyebrow">In development</span></div>
-          <h1>Forge Heat<sup class="ff-trademark">™</sup></h1>
-          <p class="forge-heat-lead">Opportunity-ranking intelligence is being built and validated for a future release.</p>
-        </div>
+        <div><div class="forge-heat-title-row"><span class="eyebrow">In development</span></div><h1>Forge Heat<sup class="ff-trademark">™</sup></h1><p class="forge-heat-lead">Opportunity-ranking intelligence is being built and validated for a future release.</p></div>
         <div class="forge-heat-boundary"><strong>Current status</strong><span>Not available in private beta</span><small>No upgrade or payment required</small></div>
       </header>
-      <section class="forge-heat-lock">
-        <span class="forge-heat-lock-mark" aria-hidden="true">FH</span>
-        <div><span class="eyebrow">Roadmap feature</span><h2>Forge Heat is not available yet.</h2><p>FlipForge is validating the evidence, ranking, and history requirements before opening this feature.</p><p>When it is ready, Forge Heat will prioritize opportunities without changing the underlying Smart Opportunity recommendation.</p><a class="button button-primary" href="#/discover">Return to Discover</a></div>
-      </section>
+      <section class="forge-heat-lock"><span class="forge-heat-lock-mark" aria-hidden="true">FH</span><div><span class="eyebrow">Roadmap feature</span><h2>Forge Heat is not available yet.</h2><p>FlipForge is validating the evidence, ranking, and history requirements before opening this feature.</p><p>When it is ready, Forge Heat will prioritize opportunities without changing the underlying Smart Opportunity recommendation.</p><a class="button button-primary" href="#/discover">Return to Discover</a></div></section>
     </div>`;
   }
 
