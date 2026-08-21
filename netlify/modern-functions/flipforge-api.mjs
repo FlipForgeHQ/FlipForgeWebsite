@@ -5,6 +5,8 @@ const legacyHandler = legacyGateway && legacyGateway.handler;
 const TENANT_ROLE_PREFIX = "flipforge-tenant--";
 const ACTIVE_ROLE = "flipforge-active";
 const SAFE_TENANT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/;
+const MARKET_VIEW_PATH = "/api/v1/market-view";
+const MARKET_VIEW_UPSTREAM_PATH = "/api/v1/opportunities/__market-view-v1";
 
 if (typeof legacyHandler !== "function") {
   throw new Error("FlipForge authoritative gateway core is unavailable.");
@@ -35,6 +37,20 @@ async function legacyEvent(request) {
     rawQuery: url.search.startsWith("?") ? url.search.slice(1) : url.search,
     body
   };
+}
+
+function gatewayRequest(request) {
+  const url = new URL(request.url);
+  const method = String(request.method || "GET").toUpperCase();
+  if (method !== "GET" || url.pathname !== MARKET_VIEW_PATH) return request;
+
+  // Netlify can resolve the wildcard /api/v1/* function before the dedicated
+  // Market View function. Rewrite the canonical customer path here as well so
+  // the retained fail-closed gateway sees only the already-approved protected
+  // opportunity-detail resource. Browser tenant identity remains unavailable.
+  url.pathname = MARKET_VIEW_UPSTREAM_PATH;
+  url.search = "";
+  return new Request(url, request);
 }
 
 function signedRoles(user, sourceMetadata) {
@@ -106,7 +122,8 @@ function modernResponse(result) {
 }
 
 export default async function flipForgeApi(request) {
-  const event = await legacyEvent(request);
+  const effectiveRequest = gatewayRequest(request);
+  const event = await legacyEvent(effectiveRequest);
   const publicHealth = event.httpMethod === "GET" && event.path === "/api/v1/health";
 
   // Current Netlify Identity stores the signed session in secure nf_jwt /
