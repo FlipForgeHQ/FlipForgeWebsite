@@ -7,6 +7,7 @@ on:
       - 'saas-prototype/index.html'
       - 'saas-prototype/consumer-ux-refinement.js'
       - 'saas-prototype/consumer-ux-refinement.css'
+      - 'saas-prototype/customer-professional-polish.js'
       - 'scripts/validate-consumer-ux-refinement.mjs'
       - '.github/workflows/phase6-consumer-ux-refinement.yml'
   workflow_dispatch:
@@ -29,7 +30,10 @@ jobs:
         with:
           node-version: '22'
       - name: Validate JavaScript syntax
-        run: node --check saas-prototype/consumer-ux-refinement.js
+        run: |
+          node --check saas-prototype/consumer-ux-refinement.js
+          node --check saas-prototype/customer-professional-polish.js
+          node --check scripts/validate-consumer-ux-refinement.mjs
       - name: Validate Phase 6 customer UX contract
         run: node scripts/validate-consumer-ux-refinement.mjs
       - name: Retain consumer navigation contract
