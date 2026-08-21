@@ -1,0 +1,67 @@
+/* Customer-facing professionalism polish for the private-beta shell. */
+
+.brand-tagline {
+  margin-top: 6px;
+  color: rgba(216, 220, 219, .72);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: .055em;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+/* Keep one clear account entry point in the top bar. */
+.sidebar-footer .account-link {
+  display: none;
+}
+
+/* Forge Heat remains visible as roadmap context without implying paid availability. */
+.primary-nav a[data-route="forge-heat"] {
+  cursor: default;
+  opacity: .72;
+}
+
+.primary-nav a[data-route="forge-heat"] > span:first-child {
+  font-size: 0;
+}
+
+.primary-nav a[data-route="forge-heat"] > span:first-child::before {
+  content: "⌁";
+  font-size: 14px;
+}
+
+.forge-nav-pro {
+  display: none !important;
+}
+
+.forge-nav-state {
+  margin-left: auto;
+  color: var(--muted) !important;
+  font-size: 8px !important;
+  font-weight: 650;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.forge-heat-development {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.forge-heat-development .forge-heat-lock-mark {
+  display: grid;
+  place-items: center;
+  min-width: 58px;
+  height: 58px;
+  color: var(--gold-strong);
+  background: rgba(212, 175, 55, .06);
+  border: 1px solid rgba(212, 175, 55, .32);
+  border-radius: 4px;
+  font-size: 24px;
+}
+
+@media (max-width: 640px) {
+  .brand-tagline {
+    white-space: normal;
+  }
+}
