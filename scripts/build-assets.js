@@ -183,7 +183,7 @@ for (const htmlPath of htmlFiles) {
 
   const failures = [];
   if (!html.includes('assets/brand/flipforge-mark.svg')) failures.push('approved header mark');
-  if (!html.includes('Card Intelligence')) failures.push('Card Intelligence identity line');
+  if (!html.includes('Card Intelligence') && !html.includes('CARD INTELLIGENCE')) failures.push('Card Intelligence identity line');
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('perfected brand stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
