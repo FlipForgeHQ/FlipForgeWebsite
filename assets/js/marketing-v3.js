@@ -8,6 +8,22 @@
   document.body.classList.add('ff-marketing-v3');
 
   document.querySelectorAll('.brand .tagline').forEach(node=>{node.textContent='CARD INTELLIGENCE';});
+
+  const insertEvidenceLabLink=(nav,beforeHref)=>{
+    if(!nav||nav.querySelector('a[href="learn.html"]'))return;
+    const link=document.createElement('a');
+    link.href='learn.html';
+    link.textContent='Evidence Lab';
+    const before=beforeHref?nav.querySelector(`a[href="${beforeHref}"]`):null;
+    if(before)nav.insertBefore(link,before); else nav.appendChild(link);
+  };
+  insertEvidenceLabLink(document.querySelector('.desktop-nav'),'faq.html');
+  insertEvidenceLabLink(document.querySelector('.mobile-nav'),'faq.html');
+  document.querySelectorAll('.footer-links').forEach(group=>{
+    if(!group.querySelector('a[href="product.html"]'))return;
+    insertEvidenceLabLink(group,'faq.html');
+  });
+
   hero.classList.add('ff-hero-v3');
 
   const heroCopy=hero.firstElementChild;
@@ -141,6 +157,7 @@
       ['#what-flipforge-sees','What FlipForge Sees'],
       ['#try-flipforge','Try the Demo'],
       ['#product-screens','Product Screens'],
+      ['learn.html','Evidence Lab'],
       ['#proof-loop','7 / 14 / 30 Proof'],
       ['#vision','Vision']
     ];
