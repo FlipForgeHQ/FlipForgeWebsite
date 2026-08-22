@@ -37,6 +37,7 @@
     ["server-owned", "verified"],
     ["tenant-scoped", "account-specific"],
     ["Tenant-owned saved intelligence", "Saved intelligence"],
+    ["Tenant-owned saved record", "Saved record"],
     ["Tenant-owned", "Saved"],
     ["tenant-owned", "saved"],
     ["browser-side", "local"],

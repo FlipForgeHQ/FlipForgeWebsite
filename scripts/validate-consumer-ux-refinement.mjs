@@ -30,6 +30,11 @@ expect(
     polish.indexOf('["Tenant-owned", "Saved"]'),
   "specific saved-intelligence replacement runs before the generic tenant replacement"
 );
+expect(
+  polish.indexOf('["Tenant-owned saved record", "Saved record"]') <
+    polish.indexOf('["Tenant-owned", "Saved"]'),
+  "specific saved-record replacement prevents duplicated saved copy"
+);
 expect(ux.includes('["SQLite saved", "Saved"]'), "customer status removes SQLite implementation language");
 expect(ux.includes('["Tracked in SQLite", "Tracked"]'), "tracking status removes SQLite implementation language");
 expect(ux.includes('"What this changes:"'), "identity boundary uses customer-safe language");
