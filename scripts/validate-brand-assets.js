@@ -14,6 +14,9 @@ function requireFile(relativePath) {
 const requiredFiles = [
   'assets/brand/flipforge-mark.svg',
   'assets/brand/flipforge-app-icon-dark.svg',
+  'assets/brand/flipforge-app-icon-180.png',
+  'assets/brand/flipforge-app-icon-192.png',
+  'assets/brand/flipforge-app-icon-512.png',
   'assets/brand/flipforge-before-after-overlay.svg',
   'assets/css/brand-v2.css',
   'assets/images/flipforge-grading-scenario.svg',
@@ -27,11 +30,20 @@ for (const file of requiredFiles) requireFile(file);
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const homepageFailures = [];
 
-if (!index.includes('assets/images/flipforge-grading-scenario.svg')) {
-  homepageFailures.push('native grading scenario SVG');
+if (!index.includes('assets/images/flipforge-homepage-dashboard.svg')) {
+  homepageFailures.push('homepage dashboard visual');
 }
-if (!index.includes('assets/images/flipforge-traceback-guidance.svg')) {
-  homepageFailures.push('native traceback SVG');
+if (!index.includes('class="hero ff-hero-v3"')) {
+  homepageFailures.push('static focused hero');
+}
+if (!index.includes('ff-home-focused')) {
+  homepageFailures.push('focused homepage class');
+}
+if (!index.includes('assets/css/marketing-v3.css')) {
+  homepageFailures.push('static marketing stylesheet');
+}
+if (!index.includes('assets/css/homepage-focus-v1.css')) {
+  homepageFailures.push('static homepage focus stylesheet');
 }
 if (index.includes('assets/images/grading-scenario-analysis.webp')) {
   homepageFailures.push('legacy grading WebP reference removed');
@@ -64,8 +76,14 @@ for (const filename of htmlFiles) {
 }
 
 const manifest = fs.readFileSync(path.join(root, 'site.webmanifest'), 'utf8');
-if (!manifest.includes('/assets/brand/flipforge-app-icon-dark.svg')) {
-  throw new Error('site.webmanifest does not use the approved FlipForge app icon');
+for (const icon of [
+  '/assets/brand/flipforge-app-icon-dark.svg',
+  '/assets/brand/flipforge-app-icon-192.png',
+  '/assets/brand/flipforge-app-icon-512.png',
+]) {
+  if (!manifest.includes(icon)) {
+    throw new Error(`site.webmanifest is missing required FlipForge app icon: ${icon}`);
+  }
 }
 
 const brandCss = fs.readFileSync(path.join(root, 'assets/css/brand-v2.css'), 'utf8');
