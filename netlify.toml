@@ -6,6 +6,22 @@
   directory = "netlify/modern-functions"
   node_bundler = "esbuild"
 
+[[headers]]
+  for = "/"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='; style-src 'self'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='; style-src 'self'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
 # FlipForge remains a static website. Netlify builds the current Identity client and
 # the fail-closed Paddle Live browser configuration, validates authentication,
 # intelligence visibility, payment-link boundaries, and approved brand assets, then
@@ -14,3 +30,5 @@
 # SaaS API bridge remains environment-gated and disabled until separately authorized.
 # Customer-facing CardSight evidence, Price Intelligence, and Market View contracts
 # must pass their static safety gates before production publishing can complete.
+# Homepage CSP is intentionally scoped to / and /index.html so customer app routes
+# keep their existing Identity, Paddle, and API integration policies unchanged.

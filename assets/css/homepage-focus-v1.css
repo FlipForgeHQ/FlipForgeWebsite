@@ -1,4 +1,8 @@
 /* Focused FlipForge homepage: concise marketing flow only. */
+@font-face{font-family:Inter;font-style:normal;font-weight:400 900;font-display:optional;src:url("https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2") format("woff2")}
+html,body{max-width:100%;overflow-x:clip}
+body.ff-home-focused .hero>*,body.ff-home-focused .nav>*,.ff-home-workflow>*{min-width:0}
+body.ff-home-focused .hero figure{margin:0}
 body.ff-home-focused .hero.ff-hero-v3{
   min-height:auto;
   gap:42px;
