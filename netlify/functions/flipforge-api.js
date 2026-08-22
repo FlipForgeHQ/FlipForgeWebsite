@@ -554,7 +554,10 @@ exports.handler = async function handler(event, context) {
   const baseUrl = String(process.env.FLIPFORGE_API_BASE_URL).replace(/\/+$/, "");
   const query = queryString(event);
   const upstreamUrl = `${baseUrl}${path}${query ? `?${query}` : ""}`;
-  const timeoutMs = integerFromEnv("FLIPFORGE_API_TIMEOUT_MS", DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS);
+  const timeoutMs = Math.max(
+    DEFAULT_TIMEOUT_MS,
+    integerFromEnv("FLIPFORGE_API_TIMEOUT_MS", DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS)
+  );
   const maxResponseBytes = integerFromEnv(
     "FLIPFORGE_API_MAX_RESPONSE_BYTES",
     DEFAULT_MAX_RESPONSE_BYTES,
