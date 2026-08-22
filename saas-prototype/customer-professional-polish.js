@@ -36,6 +36,7 @@
     ["Server-owned", "Verified"],
     ["server-owned", "verified"],
     ["tenant-scoped", "account-specific"],
+    ["Tenant-owned saved intelligence", "Saved intelligence"],
     ["Tenant-owned", "Saved"],
     ["tenant-owned", "saved"],
     ["browser-side", "local"],
@@ -58,7 +59,6 @@
     ["Plain-language explanation of saved authority output.", "Why this decision was reached."],
     ["Existing recommendations ranked with saved evidence context.", "Your highest-priority opportunities, ranked with supporting evidence."],
     ["Saved opportunity authority", "Card intelligence"],
-    ["Tenant-owned saved intelligence", "Saved intelligence"],
     ["Forge Heat V1", "Forge Heat"]
   ];
 
