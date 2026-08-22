@@ -47,6 +47,7 @@ check("011 request bodies have a fixed size limit", files.gateway.includes("DEFA
 check("012 upstream responses have a fixed size limit", files.gateway.includes("DEFAULT_MAX_RESPONSE_BYTES") && files.gateway.includes("UPSTREAM_RESPONSE_TOO_LARGE"));
 check("013 upstream requests use an AbortController timeout", files.gateway.includes("new AbortController()") && files.gateway.includes("controller.abort()"));
 check("013b timeout errors use a stable semantic code before DOMException numeric codes", files.gateway.includes('const code = timedOut ? "UPSTREAM_TIMEOUT"'));
+check("013c stale lower timeout settings are raised to the production minimum", files.gateway.includes("Math.max(\n    DEFAULT_TIMEOUT_MS,"));
 check("014 upstream redirects are refused", files.gateway.includes('redirect: "error"'));
 check("015 successful upstream JSON is contract validated", files.gateway.includes("validUpstreamEnvelope") && files.gateway.includes("UPSTREAM_CONTRACT_INVALID"));
 check("016 Smart Opportunity authority is required", files.gateway.includes('meta.authority === "Smart Opportunity"'));
@@ -214,11 +215,9 @@ try {
   check("051 response from a second recommendation authority is rejected", invalidAuthority.statusCode === 502 && jsonBody(invalidAuthority).error?.code === "UPSTREAM_CONTRACT_INVALID");
 
   process.env.FLIPFORGE_API_TIMEOUT_MS = "1";
-  globalThis.fetch = async (_url, options) => new Promise((_, reject) => {
-    options.signal.addEventListener("abort", () => {
-      reject(Object.assign(new Error("The operation was aborted."), { name: "AbortError", code: 20 }));
-    }, { once: true });
-  });
+  globalThis.fetch = async () => {
+    throw Object.assign(new Error("The operation was aborted."), { name: "AbortError", code: 20 });
+  };
 
   const timedOut = await handler(event("GET", "/api/v1/dashboard"), {});
   check("052 upstream timeout returns a stable semantic error code", timedOut.statusCode === 503 && jsonBody(timedOut).error?.code === "UPSTREAM_TIMEOUT");
