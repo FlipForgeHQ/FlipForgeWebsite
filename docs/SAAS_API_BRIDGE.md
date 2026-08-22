@@ -47,7 +47,7 @@ These values belong in Netlify server environment settings. None may be placed i
 | `FLIPFORGE_API_BASE_URL` | Base URL of the authoritative FlipForge API service. |
 | `FLIPFORGE_API_SERVICE_TOKEN` | Service-to-service bearer token sent only from the Netlify function. |
 | `FLIPFORGE_API_ALLOWED_ORIGINS` | Optional comma-separated additional HTTPS origins. Same-origin requests are allowed automatically. |
-| `FLIPFORGE_API_TIMEOUT_MS` | Upstream timeout. Defaults to 5,000 ms and is capped at 10,000 ms. |
+| `FLIPFORGE_API_TIMEOUT_MS` | Upstream timeout. Defaults to 20,000 ms and is capped at 25,000 ms. |
 | `FLIPFORGE_API_MAX_RESPONSE_BYTES` | Upstream JSON response limit. Defaults to and is capped at 1,000,000 bytes. |
 | `FLIPFORGE_API_MAX_REQUEST_BYTES` | Evaluation-request limit. Defaults to and is capped at 65,536 bytes. |
 | `FLIPFORGE_API_ALLOW_UNAUTHENTICATED_PREVIEW` | Optional preview-only bypass. It is ignored when Netlify `CONTEXT=production`. |
