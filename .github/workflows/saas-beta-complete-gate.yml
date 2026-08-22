@@ -12,13 +12,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "saas-prototype/**"
-      - "netlify/functions/flipforge-api.js"
-      - "scripts/validate-saas-*.mjs"
-      - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
-      - "docs/SAAS_BETA_COMPLETE_LIVE_QA.md"
-      - ".github/workflows/saas-beta-complete-gate.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
