@@ -25,6 +25,11 @@ expect(
     polish.includes('["Tenant-owned saved intelligence", "Saved intelligence"]'),
   "saved intelligence heading removes tenant engineering language"
 );
+expect(
+  polish.indexOf('["Tenant-owned saved intelligence", "Saved intelligence"]') <
+    polish.indexOf('["Tenant-owned", "Saved"]'),
+  "specific saved-intelligence replacement runs before the generic tenant replacement"
+);
 expect(ux.includes('["SQLite saved", "Saved"]'), "customer status removes SQLite implementation language");
 expect(ux.includes('["Tracked in SQLite", "Tracked"]'), "tracking status removes SQLite implementation language");
 expect(ux.includes('"What this changes:"'), "identity boundary uses customer-safe language");
