@@ -52,7 +52,7 @@ for (const brandAsset of requiredBrandAssets) {
 
 // Earlier generated WebP visuals can decode successfully but still fail to paint
 // in some browser/Netlify combinations. Use native branded SVGs for the grading
-// and traceback panels so these core product visuals render deterministically.
+// and traceback panels wherever those legacy homepage references still exist.
 // Also install deterministic fragment navigation so direct #section URLs and
 // homepage section links align beneath the sticky header after layout completes.
 const indexPath = path.join(root, 'index.html');
@@ -190,8 +190,10 @@ for (const htmlPath of htmlFiles) {
   if (html.includes('Signal. Confidence. Advantage.')) failures.push('deprecated tagline removal');
 
   if (path.basename(htmlPath) === 'index.html') {
-    if (!html.includes('assets/images/flipforge-grading-scenario.svg')) failures.push('native grading scenario visual');
-    if (!html.includes('assets/images/flipforge-traceback-guidance.svg')) failures.push('native traceback visual');
+    if (!html.includes('assets/images/flipforge-homepage-dashboard.svg')) failures.push('homepage dashboard visual');
+    if (!html.includes('ff-home-focused')) failures.push('focused homepage class');
+    if (!html.includes('assets/css/marketing-v3.css')) failures.push('static marketing stylesheet');
+    if (!html.includes('assets/css/homepage-focus-v1.css')) failures.push('static homepage focus stylesheet');
     if (!html.includes('assets/js/section-navigation.js')) failures.push('deterministic section navigation');
   }
 
