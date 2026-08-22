@@ -1,8 +1,8 @@
 const crypto = require("crypto");
 
 const CONTRACT_VERSION = "1.0";
-const DEFAULT_TIMEOUT_MS = 5000;
-const MAX_TIMEOUT_MS = 10000;
+const DEFAULT_TIMEOUT_MS = 20000;
+const MAX_TIMEOUT_MS = 25000;
 const DEFAULT_MAX_RESPONSE_BYTES = 1_000_000;
 const DEFAULT_MAX_REQUEST_BYTES = 65_536;
 const CARD_INTELLIGENCE_IMAGE_REQUEST_BYTES = 5_750_000;
@@ -633,7 +633,7 @@ exports.handler = async function handler(event, context) {
     return jsonResponse(event, 200, payload, correlationId);
   } catch (error) {
     const timedOut = error && error.name === "AbortError";
-    const code = error && error.code ? error.code : timedOut ? "UPSTREAM_TIMEOUT" : "UPSTREAM_UNAVAILABLE";
+    const code = timedOut ? "UPSTREAM_TIMEOUT" : error && error.code ? error.code : "UPSTREAM_UNAVAILABLE";
     const message = timedOut
       ? "The authoritative FlipForge service timed out."
       : "The authoritative FlipForge service is unavailable.";
