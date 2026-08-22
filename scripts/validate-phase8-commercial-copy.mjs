@@ -15,15 +15,13 @@ function forbidText(label, text, needle) {
   if (text.includes(needle)) failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);
 }
 
-requireText('homepage', homepage, 'Planned Launch Pricing');
-requireText('homepage', homepage, '<h3>Scout</h3>');
-requireText('homepage', homepage, '<li>10 evaluations per month</li>');
-requireText('homepage', homepage, '<li>75 evaluations per month</li>');
-requireText('homepage', homepage, '<li>300 evaluations per month</li>');
-requireText('homepage', homepage, 'Forge Heat intelligence');
-requireText('homepage', homepage, 'Tracked cards subject to reasonable-use and technical limits');
-requireText('homepage', homepage, 'Advanced PSA intelligence and grade economics');
-requireText('homepage', homepage, 'CSV exports');
+// The focused homepage intentionally routes detailed commercial terms to pricing.html.
+// Keep the homepage CTA and navigation explicit without duplicating the full plan grid.
+requireText('homepage', homepage, 'Before You Buy, <span>Know Why.</span>');
+requireText('homepage', homepage, 'href="pricing.html"');
+requireText('homepage', homepage, 'href="beta-application.html"');
+requireText('homepage', homepage, 'Controlled Private Beta');
+requireText('homepage', homepage, 'FlipForge does not guarantee profit or authorize transactions.');
 forbidText('homepage', homepage, '<li>5 evaluations per month</li>');
 forbidText('homepage', homepage, 'Most popular');
 
@@ -89,4 +87,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Phase 8 homepage, pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
+console.log('PASS: Focused homepage routing, pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
