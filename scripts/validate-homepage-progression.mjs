@@ -33,6 +33,11 @@ requireText('conversion CSS', conversionCss, '@media(prefers-reduced-motion:redu
 requireText('homepage JavaScript', homepageJs, 'IntersectionObserver');
 requireText('homepage JavaScript', homepageJs, 'prefers-reduced-motion: reduce');
 requireText('homepage JavaScript', homepageJs, 'Pause preview');
+requireText('homepage JavaScript', homepageJs, 'Restart demo');
+requireText('homepage JavaScript', homepageJs, 'Illustrative · Final verdict');
+requireText('homepage JavaScript', homepageJs, 'Decision support only. FlipForge does not authorize transactions or guarantee outcomes.');
+requireText('homepage JavaScript', homepageJs, 'Confirm the parallel → replace mismatched evidence → rerun analysis.');
+requireText('homepage JavaScript', homepageJs, 'finishPreview');
 
 for (const section of ['Identity resolution', 'Evidence chain', 'Decision output', 'Required next checks']) requireText('sample dossier', dossier, section);
 for (const boundary of ['Illustrative sample', 'Not live market data', 'No transaction authority', 'Supported value', 'Withheld', 'VERIFY']) requireText('sample dossier', dossier, boundary);
@@ -53,4 +58,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Conversion-led homepage, governed validation framing, customer-safe Decision Dossier, and lightweight in-view workflow preview remain complete and evidence-safe.');
+console.log('PASS: Conversion-led homepage, governed validation framing, verdict-stop demo behavior, local decision boundaries, and customer-safe Decision Dossier remain complete and evidence-safe.');
