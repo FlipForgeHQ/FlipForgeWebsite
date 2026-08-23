@@ -20,7 +20,7 @@ FlipForge records only these first-party, anonymous conversion events:
 
 The event service accepts only an allowlisted event name, page category, placement category, schema version, and server timestamp. It does not intentionally record a visitor ID, name, email address, account, card, listing, query string, referrer, or user-agent value. The browser script uses no analytics cookies, local storage, or session storage.
 
-Structured events are written as `flipforge_conversion_event` records in the Netlify conversion function logs. Initial funnel review should count events by name and page over the same reporting window. These are directional interaction counts, not unique visitors.
+Structured events are written to the site-scoped conversion-event store and mirrored as allowlisted `flipforge_conversion_event` function logs. The role-gated operator dashboard reports the latest 30-day window and deletes event records older than 90 days. These are directional interaction counts, not unique visitors.
 
 ## Initial funnel measures
 
@@ -34,7 +34,7 @@ Do not describe these counts as product accuracy, investment performance, unique
 
 ## Applicant and tester path
 
-1. Applicant submits the same-site Netlify form.
+1. Applicant submits the same-site server intake form to `/api/beta/applications`.
 2. Confirmation page states `Awaiting selection review` and links to the public preparation guide.
 3. Operator reviews fit, capacity, testing focus, and likely testing frequency.
 4. Selected tester receives an invitation and activates authenticated access.

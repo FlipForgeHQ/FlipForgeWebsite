@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Beta Operations | FlipForge Card Intelligence</title>
+<meta name="description" content="Role-gated FlipForge private-beta applicant review, invitation, activation, and funnel operations.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="assets/css/brand-v2.css">
+<link rel="stylesheet" href="assets/css/beta-operator-v1.css">
+</head>
+<body class="ff-operator-page">
+<a class="skip-link" href="#main">Skip to operations workspace</a>
+<header class="ff-operator-header">
+  <a class="brand" href="index.html" aria-label="FlipForge home"><img class="brand-lockup" src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Intelligence — Before you buy. Know Why."></a>
+  <div class="ff-operator-header-actions"><span>Owner workspace</span><a href="/app/#/dashboard">Customer App</a></div>
+</header>
+
+<main id="main" class="ff-operator-shell">
+  <section class="ff-operator-access" data-operator-access aria-live="polite">
+    <div><span class="ff-operator-kicker">Private operations</span><h1>Beta applicant control</h1><p>This workspace requires a signed FlipForge operator role. Applicant details and invitation actions are never available through the public website.</p></div>
+    <button type="button" data-operator-sign-in>Sign in as Operator</button>
+  </section>
+
+  <div data-operator-workspace hidden>
+    <section class="ff-operator-titlebar">
+      <div><span class="ff-operator-kicker">Controlled private beta</span><h1>Applicant review and activation</h1><p>Review fit, control cohorts, send Identity invitations, and track activation without granting public signup.</p></div>
+      <button type="button" class="ff-operator-button secondary" data-operator-refresh>Refresh &amp; Sync</button>
+    </section>
+
+    <div class="ff-operator-alert" data-operator-alert role="status" hidden></div>
+
+    <section class="ff-operator-metrics" aria-label="Applicant status summary">
+      <article><span>Total applications</span><strong data-metric="total">0</strong></article>
+      <article><span>Needs review</span><strong data-metric="review">0</strong></article>
+      <article><span>Approved</span><strong data-metric="approved">0</strong></article>
+      <article><span>Invitations sent</span><strong data-metric="invited">0</strong></article>
+      <article><span>Activated</span><strong data-metric="activated">0</strong></article>
+      <article><span>Waitlisted</span><strong data-metric="waitlisted">0</strong></article>
+    </section>
+
+    <section class="ff-operator-panel" aria-labelledby="funnel-heading">
+      <header><div><span class="ff-operator-kicker">Last 30 days</span><h2 id="funnel-heading">Acquisition funnel</h2></div><p>Directional interactions—not unique visitors or accuracy claims.</p></header>
+      <div class="ff-funnel-grid" data-funnel-grid></div>
+    </section>
+
+    <section class="ff-operator-panel ff-application-panel" aria-labelledby="applications-heading">
+      <header><div><span class="ff-operator-kicker">Review queue</span><h2 id="applications-heading">Applications</h2></div><div class="ff-operator-filters"><label>Search<input type="search" data-operator-search placeholder="Name or email"></label><label>Status<select data-operator-filter><option value="ALL">All statuses</option><option>SUBMITTED</option><option>UNDER_REVIEW</option><option>WAITLISTED</option><option>APPROVED</option><option>INVITE_SENT</option><option>ACTIVATED</option><option>DECLINED</option></select></label></div></header>
+      <div class="ff-operator-grid">
+        <div class="ff-application-list" data-application-list aria-live="polite"></div>
+        <aside class="ff-application-detail" data-application-detail><div class="ff-operator-empty"><strong>Select an application</strong><p>Applicant details, review controls, and the immutable state history will appear here.</p></div></aside>
+      </div>
+    </section>
+
+    <section class="ff-operator-boundary"><strong>Authority boundary</strong><p>Approving an applicant does not create access. Only the separate Send Identity Invitation action creates or updates an invited account and assigns one server-signed tenant membership. No billing or transaction authority is granted.</p></section>
+  </div>
+</main>
+
+<script src="/assets/js/flipforge-identity.js"></script>
+<script src="assets/js/beta-operator.js" defer></script>
+</body>
+</html>

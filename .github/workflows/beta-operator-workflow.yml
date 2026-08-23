@@ -1,0 +1,68 @@
+name: Beta Operator Workflow
+
+on:
+  pull_request:
+    paths:
+      - "beta-application.html"
+      - "operator-beta.html"
+      - "privacy.html"
+      - "assets/css/beta-operator-v1.css"
+      - "assets/js/beta-application.js"
+      - "assets/js/beta-operator.js"
+      - "scripts/lib/flipforge-identity-client.mjs"
+      - "netlify/modern-functions/beta-applications.mjs"
+      - "netlify/modern-functions/beta-operator.mjs"
+      - "netlify/modern-functions/beta-retention.mjs"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "scripts/validate-beta-operator-workflow.mjs"
+      - "docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md"
+      - "package.json"
+      - "package-lock.json"
+      - "netlify.toml"
+      - ".github/workflows/beta-operator-workflow.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "beta-application.html"
+      - "operator-beta.html"
+      - "privacy.html"
+      - "assets/css/beta-operator-v1.css"
+      - "assets/js/beta-application.js"
+      - "assets/js/beta-operator.js"
+      - "scripts/lib/flipforge-identity-client.mjs"
+      - "netlify/modern-functions/beta-applications.mjs"
+      - "netlify/modern-functions/beta-operator.mjs"
+      - "netlify/modern-functions/beta-retention.mjs"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "scripts/validate-beta-operator-workflow.mjs"
+      - "docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md"
+      - "package.json"
+      - "package-lock.json"
+      - "netlify.toml"
+      - ".github/workflows/beta-operator-workflow.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Parse operator JavaScript
+        run: |
+          node --check assets/js/beta-application.js
+          node --check assets/js/beta-operator.js
+          node --check netlify/modern-functions/beta-applications.mjs
+          node --check netlify/modern-functions/beta-operator.mjs
+          node --check netlify/modern-functions/beta-retention.mjs
+      - name: Validate beta operator workflow
+        run: npm run validate:beta-operator

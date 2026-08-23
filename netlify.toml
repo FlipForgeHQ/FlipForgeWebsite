@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build:identity && npm run validate:identity && npm run build:paddle-live && npm run validate:paddle-live-payment-link && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:market-view && npm run validate:cardsight-evidence-visibility && npm run validate:price-intelligence && npm run validate:customer-entitlements && npm run validate:evaluation-quota-boundary && npm run validate:private-beta-operations-boundary && npm run validate:paddle-customer-checkout && npm run validate:paddle-customer-portal && npm run validate:paddle-webhook-gateway-boundary && npm run validate:private-beta && npm run validate:homepage-progression && npm run validate:beta-acquisition && node scripts/build-assets.js && node scripts/validate-brand-assets.js"
+  command = "npm run build:identity && npm run validate:identity && npm run build:paddle-live && npm run validate:paddle-live-payment-link && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:market-view && npm run validate:cardsight-evidence-visibility && npm run validate:price-intelligence && npm run validate:customer-entitlements && npm run validate:evaluation-quota-boundary && npm run validate:private-beta-operations-boundary && npm run validate:paddle-customer-checkout && npm run validate:paddle-customer-portal && npm run validate:paddle-webhook-gateway-boundary && npm run validate:private-beta && npm run validate:homepage-progression && npm run validate:beta-acquisition && npm run validate:beta-operator && node scripts/build-assets.js && node scripts/validate-brand-assets.js"
   publish = "."
 
 [functions]
@@ -24,6 +24,17 @@
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     Cross-Origin-Opener-Policy = "same-origin"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/operator-beta.html"
+  [headers.values]
+    Cache-Control = "no-store"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
