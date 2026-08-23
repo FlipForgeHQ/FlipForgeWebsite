@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v8';
+const CACHE='flipforge-shell-v9';
 const SHELL=[
   '/',
   '/index.html',
