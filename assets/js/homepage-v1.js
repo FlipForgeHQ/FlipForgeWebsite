@@ -43,33 +43,6 @@
     window.addEventListener('resize',()=>{if(window.innerWidth>1000)closeMenu();},{passive:true});
   }
 
-  const stabilizeHeroLayout=()=>{
-    const hero=document.querySelector('.hero.ff-conversion-hero');
-    const copy=document.querySelector('.ff-hero-copy');
-    const visual=document.querySelector('.ff-hero-visual');
-    const frame=visual?.querySelector('.visual');
-    const image=visual?.querySelector('img');
-    document.documentElement.style.overflowX='hidden';
-    document.body.style.overflowX='hidden';
-    if(!hero||!copy||!visual)return;
-    const stack=window.innerWidth<=1320;
-    hero.style.width='100%';
-    hero.style.boxSizing='border-box';
-    hero.style.gridTemplateColumns=stack?'minmax(0,1fr)':'minmax(0,.9fr) minmax(0,1.1fr)';
-    hero.style.maxWidth=stack?'980px':'1240px';
-    hero.style.gap=stack?'38px':'52px';
-    copy.style.minWidth='0';
-    visual.style.minWidth='0';
-    visual.style.width='100%';
-    visual.style.maxWidth='100%';
-    visual.style.alignSelf=stack?'stretch':'start';
-    visual.style.margin=stack?'0':'-30px 0 0';
-    if(frame){frame.style.width='100%';frame.style.maxWidth='100%';}
-    if(image){image.style.display='block';image.style.width='100%';image.style.maxWidth='100%';image.style.height='auto';}
-  };
-  stabilizeHeroLayout();
-  window.addEventListener('resize',stabilizeHeroLayout,{passive:true});
-
   const promoteTryFlipForge=()=>{
     const desktopTry=document.querySelector('.desktop-nav a[href="#try-flipforge"]');
     const desktopBeta=document.querySelector('.desktop-nav a[href="beta-application.html"]');
@@ -80,7 +53,7 @@
     if(desktopBeta)desktopBeta.textContent='Beta Access';
     if(mobileTry){
       mobileTry.textContent='Try FlipForge — 60-second demo';
-      mobileTry.style.cssText='border:1px solid rgba(212,175,55,.45);border-radius:12px;background:rgba(212,175,55,.10);color:#fff;font-weight:850;';
+      mobileTry.classList.add('ff-mobile-demo-cta');
     }
     const heroActions=document.querySelector('.ff-primary-actions');
     if(heroActions&&!document.querySelector('.ff-hero-jump-link')){
@@ -88,7 +61,6 @@
       jump.className='ff-hero-jump-link';
       jump.href='#try-flipforge';
       jump.textContent='See FlipForge catch a bad decision ↓';
-      jump.style.cssText='display:inline-flex;margin-top:15px;padding:10px 14px;border:1px solid rgba(212,175,55,.34);border-radius:999px;background:rgba(212,175,55,.08);color:#fff;font-size:12px;font-weight:850;text-decoration:none;';
       heroActions.insertAdjacentElement('afterend',jump);
     }
     if(!document.querySelector('.ff-demo-float')){
@@ -96,14 +68,9 @@
       floating.className='ff-demo-float';
       floating.href='#try-flipforge';
       floating.setAttribute('aria-label','Jump to the Try FlipForge demo');
-      floating.innerHTML='<span style="display:block;color:#d4af37;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase">Jump to demo</span><strong style="display:block;margin-top:2px;font-size:14px;color:#fff">Try FlipForge ↓</strong>';
-      floating.style.cssText='position:fixed;right:18px;bottom:18px;z-index:75;padding:12px 17px;border:1px solid rgba(212,175,55,.55);border-radius:999px;background:rgba(3,8,18,.94);box-shadow:0 16px 44px rgba(0,0,0,.45);text-decoration:none;backdrop-filter:blur(12px);transition:opacity .16s ease,transform .16s ease;';
+      floating.innerHTML='<span>Jump to demo</span><strong>Try FlipForge ↓</strong>';
       document.body.append(floating);
     }
-    const demoHeading=document.querySelector('.ff-demo-section .section-head h2');
-    if(demoHeading)demoHeading.textContent='See FlipForge catch a bad decision in four steps.';
-    const demoCopy=document.querySelector('.ff-demo-section .section-copy');
-    if(demoCopy)demoCopy.textContent='Follow one example from seller claim to evidence challenge to a protected VERIFY verdict.';
   };
   promoteTryFlipForge();
 
