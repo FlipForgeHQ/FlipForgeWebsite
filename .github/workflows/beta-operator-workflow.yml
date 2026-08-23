@@ -77,4 +77,4 @@ jobs:
           node --check netlify/modern-functions/beta-operator.mjs
           node --check netlify/modern-functions/beta-retention.mjs
       - name: Validate beta operator workflow
-        run: npm run validate:beta-operator && npm run validate:private-beta
+        run: npm run build:identity && npm run validate:identity && npm run validate:beta-operator && npm run validate:private-beta
