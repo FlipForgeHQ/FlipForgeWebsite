@@ -4,6 +4,7 @@ const read = path => fs.readFileSync(path, 'utf8');
 const homepage = read('index.html');
 const pricing = read('pricing.html');
 const dossier = read('sample-decision-dossier.html');
+const brandCss = read('assets/css/brand-v2.css');
 const homepageCss = read('assets/css/homepage-focus-v1.css');
 const conversionCss = read('assets/css/homepage-conversion-v2.css');
 const densityCss = read('assets/css/marketing-density-v1.css');
@@ -39,7 +40,8 @@ requireText('conversion CSS', conversionCss, '.ff-validation-grid');
 requireText('conversion CSS', conversionCss, '.ff-category-grid');
 requireText('conversion CSS', conversionCss, '@media(prefers-reduced-motion:reduce)');
 
-for (const densityNeedle of ['Visual hierarchy rebalance v2','max-width:1400px!important','grid-template-columns:minmax(0,.70fr) minmax(620px,1.30fr)!important','width:110%!important','font-size:clamp(40px,4.35vw,58px)!important','font-size:clamp(37px,4vw,52px)!important','font-size:clamp(36px,3.8vw,50px)!important']) requireText('balanced marketing hierarchy', densityCss, densityNeedle);
+for (const densityNeedle of ['Visual hierarchy rebalance v2','font-size:clamp(40px,4.35vw,58px)!important','font-size:clamp(37px,4vw,52px)!important','font-size:clamp(36px,3.8vw,50px)!important']) requireText('balanced marketing density', densityCss, densityNeedle);
+for (const brandScaleNeedle of ['Brand-scale hierarchy v3','max-width:1600px!important','grid-template-columns:minmax(0,.52fr) minmax(720px,1.48fr)!important','width:108%!important','font-size:clamp(38px,3.7vw,52px)!important','font-size:clamp(36px,3.65vw,48px)!important','font-size:clamp(35px,3.5vw,47px)!important']) requireText('brand-scale hierarchy', brandCss, brandScaleNeedle);
 
 requireText('homepage JavaScript', homepageJs, 'IntersectionObserver');
 requireText('homepage JavaScript', homepageJs, 'prefers-reduced-motion: reduce');
@@ -53,11 +55,13 @@ requireText('homepage JavaScript', homepageJs, 'stabilizeHeroLayout');
 requireText('homepage JavaScript', homepageJs, 'window.innerWidth<=1320');
 for (const demoDiscoveryNeedle of ['See FlipForge catch a bad decision ↓','Jump to demo','Try FlipForge ↓','See FlipForge catch a bad decision in four steps.','Try FlipForge — 60-second demo']) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
 
-for (const heroNeedle of ['FlipForge decision spotlight motion loop','ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.','CLAIMED: REFRACTOR','FLIPFORGE VERDICT','VERIFY','VERIFY BEFORE YOU BUY.','Before you buy. Know Why.','CARD INTELLIGENCE','M28 17']) requireText('hero decision spotlight', heroSvg, heroNeedle);
+for (const heroNeedle of ['FlipForge decision spotlight motion loop','ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.','CLAIMED: REFRACTOR','FLIPFORGE VERDICT','VERIFY','VERIFY BEFORE YOU BUY.','Before you buy. Know Why.','CARD INTELLIGENCE','M28 17','font-size:48px','font-size:16px','Hold the decision until the evidence is fixed.','Use exact verified comps only.']) requireText('hero decision spotlight', heroSvg, heroNeedle);
 for (const motionNeedle of ['@keyframes claimLoop','@keyframes goodLoop','@keyframes warn1Loop','@keyframes warn2Loop','@keyframes arrowLoop','@keyframes verdictLoop','motion-res1','motion-res2','motion-res3','@media(prefers-reduced-motion:reduce)']) requireText('hero motion loop', heroSvg, motionNeedle);
 requireText('hero fixed verdict panel', heroSvg, 'transform="translate(666 260)" class="font"');
 forbidText('hero fixed verdict panel', heroSvg, 'class="font motion-verdict"');
 forbidText('hero verdict motion', heroSvg, 'transform:scale(');
+forbidText('hero readability', heroSvg, '$675');
+forbidText('hero readability', heroSvg, 'ILLUSTRATIVE ASK');
 forbidText('hero language', heroSvg, 'DO NOT BUY THE STORY.');
 forbidText('hero brand punctuation', heroSvg, 'BEFORE YOU BUY, KNOW WHY.');
 
@@ -68,7 +72,8 @@ forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v6'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v7'");
+requireText('service worker', serviceWorker, "'/assets/css/brand-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/css/marketing-density-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
@@ -89,4 +94,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Homepage brand language, balanced site-wide typography, enlarged hero proof, responsive containment, position-safe looping decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Homepage brand language, readable site-wide heading hierarchy, enlarged and simplified hero proof, responsive containment, position-safe looping decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
