@@ -41,7 +41,7 @@ Netlify deploy previews expose the isolated application at:
 The website build also:
 
 - adds **App Preview** to desktop, mobile, and footer navigation;
-- standardizes the public identity line to **Card Value Intelligence**;
+- standardizes the public identity line to **Card Intelligence**;
 - leaves the marketing homepage as the public entry point.
 
 Production remains unchanged until PR #12 receives explicit merge approval.

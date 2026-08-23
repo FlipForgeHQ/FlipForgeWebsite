@@ -2,13 +2,21 @@
  * FLIPFORGE FINAL BRAND LOCK — 2026-08-11
  *
  * Authoritative compact website/app header system:
- *   approved cube-in-corners vector icon + FLIPFORGE™ + CARD VALUE INTELLIGENCE
- * Typeface system: Söhne (with system fallbacks only when Söhne is unavailable)
+ *   approved cube-in-corners vector icon + FLIPFORGE™ + CARD INTELLIGENCE
+ * Typeface system: Geist Sans (with system fallbacks only when Geist is unavailable)
  * Palette: #000000 / #FFFFFF / #8B8F98 / #D4AF37 / #B8860B
  *
  * This file intentionally loads last so future feature CSS cannot silently drift
  * the primary product identity away from the approved visual system.
  */
+
+@font-face {
+  font-family: Geist;
+  src: url("/assets/fonts/geist-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
 
 :root {
   --ff-black: #000000;
@@ -24,7 +32,7 @@
   --gold-strong: var(--ff-gold);
   --gold-deep: var(--ff-deep-gold);
 
-  font-family: "Söhne", "Sohne", "Helvetica Neue", Arial, sans-serif;
+  font-family: Geist, "Geist Sans", "Helvetica Neue", Arial, sans-serif;
 }
 
 body,
@@ -32,7 +40,7 @@ button,
 input,
 select,
 textarea {
-  font-family: "Söhne", "Sohne", "Helvetica Neue", Arial, sans-serif;
+  font-family: Geist, "Geist Sans", "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Approved horizontal header lockup. The icon is the repository's real vector

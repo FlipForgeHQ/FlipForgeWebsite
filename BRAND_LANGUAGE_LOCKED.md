@@ -4,17 +4,11 @@ Status: **LOCKED**
 
 These phrases are approved for consistent use across the FlipForge website, advertisements, social media, videos, business materials, and product marketing.
 
-## Official brand tagline
+## Official brand slogan
 
-**Signal. Confidence. Advantage.**
+**Before you buy. Know Why.**
 
-Use with the FlipForge logo, header, footer, business cards, email signatures, and formal brand graphics.
-
-## Primary marketing slogan
-
-**Before You Buy, Know Why.**
-
-Use as the main homepage campaign headline and the standard closing line for advertisements and promotional videos.
+Use in the approved primary website logo lockup, the main homepage campaign headline, advertisements, promotional videos, business materials, and formal brand graphics.
 
 ## Primary supporting statement
 
@@ -39,8 +33,8 @@ Use as the main homepage campaign headline and the standard closing line for adv
 
 Use one major slogan per screen, section, advertisement, or graphic. Do not stack multiple headline slogans together. The permanent hierarchy is:
 
-1. **FLIPFORGE**
-2. **Before You Buy, Know Why.**
-3. **Signal. Confidence. Advantage.**
+1. **FLIPFORGE™**
+2. **CARD INTELLIGENCE**
+3. **Before you buy. Know Why.**
 
 Do not replace or materially rewrite these phrases without an explicit brand decision.

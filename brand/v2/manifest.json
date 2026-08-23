@@ -1,20 +1,20 @@
 {
-  "brandVersion": "2.1",
-  "updated": "2026-08-11",
+  "brandVersion": "2.0",
+  "updated": "2026-08-23",
   "status": "APPROVED_LOCKED",
   "identity": {
-    "descriptor": "Card Value Intelligence",
-    "officialTaglineLockup": "BEFORE YOU BUY. KNOW WHY.",
-    "normalProse": "Before you buy, know why.",
-    "typeface": "Söhne",
-    "fontFilesBundled": false,
+    "descriptor": "Card Intelligence",
+    "officialTaglineLockup": "Before you buy. Know Why.",
+    "normalProse": "Before you buy. Know Why.",
+    "typeface": "Geist Sans",
+    "fontFilesBundled": true,
     "websiteHeader": {
       "status": "LOCKED",
       "layout": "HORIZONTAL_ICON_WORDMARK_DESCRIPTOR",
-      "icon": "/brand/v2/master/FlipForge_Icon_Transparent_DarkBG.svg",
+      "icon": "/assets/brand/flipforge-logo-horizontal.svg",
       "wordmark": "FLIPFORGE™",
-      "descriptor": "CARD VALUE INTELLIGENCE",
-      "taglineIncluded": false,
+      "descriptor": "CARD INTELLIGENCE",
+      "taglineIncluded": true,
       "usage": "Primary website and authenticated app header/navigation identity"
     },
     "compactUsage": {

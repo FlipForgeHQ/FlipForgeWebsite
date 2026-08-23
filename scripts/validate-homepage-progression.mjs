@@ -1,0 +1,43 @@
+import fs from 'node:fs';
+
+const read = path => fs.readFileSync(path, 'utf8');
+const homepage = read('index.html');
+const dossier = read('sample-decision-dossier.html');
+const homepageCss = read('assets/css/homepage-focus-v1.css');
+const dossierCss = read('assets/css/sample-dossier-v1.css');
+const homepageJs = read('assets/js/homepage-v1.js');
+const failures = [];
+const requireText = (label, text, needle) => { if (!text.includes(needle)) failures.push(`${label}: missing ${JSON.stringify(needle)}`); };
+const forbidText = (label, text, needle) => { if (text.toLowerCase().includes(needle.toLowerCase())) failures.push(`${label}: forbidden ${JSON.stringify(needle)}`); };
+
+for (const audience of ['Collectors', 'Grading planners', 'Value-conscious buyers']) requireText('homepage audience', homepage, audience);
+requireText('homepage', homepage, 'id="sample-dossier"');
+requireText('homepage', homepage, 'href="sample-decision-dossier.html"');
+requireText('homepage', homepage, 'Illustrative · Auto preview');
+requireText('homepage', homepage, 'id="demo-playback"');
+requireText('homepage CSS', homepageCss, '.ff-audience-grid');
+requireText('homepage CSS', homepageCss, '.ff-dossier-preview');
+requireText('homepage JavaScript', homepageJs, 'IntersectionObserver');
+requireText('homepage JavaScript', homepageJs, 'prefers-reduced-motion: reduce');
+requireText('homepage JavaScript', homepageJs, 'Pause preview');
+
+for (const section of ['Identity resolution', 'Evidence chain', 'Decision output', 'Required next checks']) requireText('sample dossier', dossier, section);
+for (const boundary of ['Illustrative sample', 'Not live market data', 'No transaction authority', 'Supported value', 'Withheld', 'VERIFY']) requireText('sample dossier', dossier, boundary);
+requireText('sample dossier', dossier, 'not a live card evaluation');
+requireText('sample dossier CSS', dossierCss, '@media print');
+requireText('sample dossier CSS', dossierCss, '@media(max-width:700px)');
+
+for (const unsafe of ['accuracy rate', 'guaranteed profit', 'trained on historical auction data', 'private beta spots granted weekly', 'automatic purchase']) {
+  forbidText('public progression', `${homepage}\n${dossier}`, unsafe);
+}
+for (const unsafeData of ['localStorage', 'sessionStorage', 'indexedDB', 'transactionAuthority=true']) {
+  forbidText('public progression', `${homepage}\n${dossier}\n${homepageJs}`, unsafeData);
+}
+
+if (failures.length) {
+  console.error('Homepage proof progression validation failed:');
+  for (const failure of failures) console.error(`- ${failure}`);
+  process.exit(1);
+}
+
+console.log('PASS: Audience framing, customer-safe Decision Dossier, and lightweight in-view workflow preview remain complete and evidence-safe.');

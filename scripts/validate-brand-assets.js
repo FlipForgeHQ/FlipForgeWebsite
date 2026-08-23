@@ -13,11 +13,14 @@ function requireFile(relativePath) {
 
 const requiredFiles = [
   'assets/brand/flipforge-mark.svg',
+  'assets/brand/flipforge-logo-horizontal.svg',
+  'assets/brand/flipforge-logo-stacked.svg',
   'assets/brand/flipforge-app-icon-dark.svg',
   'assets/brand/flipforge-app-icon-180.png',
   'assets/brand/flipforge-app-icon-192.png',
   'assets/brand/flipforge-app-icon-512.png',
   'assets/brand/flipforge-before-after-overlay.svg',
+  'assets/fonts/geist-latin-wght-normal.woff2',
   'assets/css/brand-v2.css',
   'assets/images/flipforge-grading-scenario.svg',
   'assets/images/flipforge-traceback-guidance.svg',
@@ -62,7 +65,8 @@ for (const filename of htmlFiles) {
   if (!html.includes('class="site-header"')) continue;
 
   const failures = [];
-  if (!html.includes('assets/brand/flipforge-mark.svg')) failures.push('approved header mark');
+  if (!html.includes('assets/brand/flipforge-logo-horizontal.svg')) failures.push('approved horizontal logo lockup');
+  if (!html.includes('Before you buy. Know Why.')) failures.push('official slogan lockup');
   if (!html.includes('Card Intelligence')) failures.push('Card Intelligence identity line');
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('brand-v2 stylesheet');
