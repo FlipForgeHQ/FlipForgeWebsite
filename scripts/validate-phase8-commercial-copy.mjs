@@ -16,7 +16,8 @@ function forbidText(label, text, needle) {
 }
 
 // The focused homepage intentionally routes detailed commercial terms to pricing.html.
-requireText('homepage', homepage, 'Before You Buy, <span>Know Why.</span>');
+requireText('homepage', homepage, 'Before you buy. <span>Know Why.</span>');
+forbidText('homepage', homepage, 'Before You Buy, <span>Know Why.</span>');
 requireText('homepage', homepage, 'href="pricing.html"');
 requireText('homepage', homepage, 'href="beta-application.html"');
 requireText('homepage', homepage, 'Controlled Private Beta');
@@ -85,4 +86,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Focused homepage routing, planned pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
+console.log('PASS: Focused homepage routing, locked slogan punctuation, planned pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
