@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const read = path => fs.readFileSync(path, 'utf8');
 const homepage = read('index.html');
+const pricing = read('pricing.html');
 const dossier = read('sample-decision-dossier.html');
 const homepageCss = read('assets/css/homepage-focus-v1.css');
 const conversionCss = read('assets/css/homepage-conversion-v2.css');
@@ -45,26 +46,16 @@ requireText('homepage JavaScript', homepageJs, 'Illustrative · Final verdict');
 requireText('homepage JavaScript', homepageJs, 'Decision support only. FlipForge does not authorize transactions or guarantee outcomes.');
 requireText('homepage JavaScript', homepageJs, 'Confirm the parallel → replace mismatched evidence → rerun analysis.');
 requireText('homepage JavaScript', homepageJs, 'finishPreview');
-for (const demoDiscoveryNeedle of [
-  'See FlipForge catch a bad decision ↓',
-  'Jump to demo',
-  'Try FlipForge ↓',
-  'See FlipForge catch a bad decision in four steps.',
-  'Try FlipForge — 60-second demo'
-]) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
+requireText('homepage JavaScript', homepageJs, 'stabilizeHeroLayout');
+requireText('homepage JavaScript', homepageJs, 'window.innerWidth<=1320');
+for (const demoDiscoveryNeedle of ['See FlipForge catch a bad decision ↓','Jump to demo','Try FlipForge ↓','See FlipForge catch a bad decision in four steps.','Try FlipForge — 60-second demo']) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
 
-for (const heroNeedle of [
-  'FlipForge decision spotlight',
-  'ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.',
-  'CLAIMED: REFRACTOR',
-  'FLIPFORGE VERDICT',
-  'VERIFY',
-  'DO NOT BUY THE STORY.',
-  'BEFORE YOU BUY. KNOW WHY.',
-  'CARD INTELLIGENCE',
-  'M28 17'
-]) requireText('static hero decision spotlight', heroSvg, heroNeedle);
+for (const heroNeedle of ['FlipForge decision spotlight','ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.','CLAIMED: REFRACTOR','FLIPFORGE VERDICT','VERIFY','VERIFY BEFORE YOU BUY.','Before you buy. Know Why.','CARD INTELLIGENCE','M28 17']) requireText('static hero decision spotlight', heroSvg, heroNeedle);
+forbidText('static hero language', heroSvg, 'DO NOT BUY THE STORY.');
 forbidText('static hero brand punctuation', heroSvg, 'BEFORE YOU BUY, KNOW WHY.');
+
+for (const pricingNeedle of ['Launch Plans','Pricing to be announced','Final package pricing has not been published.','No paid checkout and no public package pricing during private beta.']) requireText('launch plan pricing boundary', pricing, pricingNeedle);
+for (const unpublishedAmount of ['$14.99','$29.99','$149','$299','Planned annual option']) forbidText('unpublished package pricing', pricing, unpublishedAmount);
 
 forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
@@ -81,12 +72,8 @@ requireText('sample dossier', dossier, 'not a live card evaluation');
 requireText('sample dossier CSS', dossierCss, '@media print');
 requireText('sample dossier CSS', dossierCss, '@media(max-width:700px)');
 
-for (const unsafe of ['accuracy rate', 'guaranteed profit', 'trained on historical auction data', 'private beta spots granted weekly', 'automatic purchase']) {
-  forbidText('public progression', `${homepage}\n${dossier}`, unsafe);
-}
-for (const unsafeData of ['localStorage', 'sessionStorage', 'indexedDB', 'transactionAuthority=true']) {
-  forbidText('public progression', `${homepage}\n${dossier}\n${homepageJs}`, unsafeData);
-}
+for (const unsafe of ['accuracy rate', 'guaranteed profit', 'trained on historical auction data', 'private beta spots granted weekly', 'automatic purchase']) forbidText('public progression', `${homepage}\n${dossier}`, unsafe);
+for (const unsafeData of ['localStorage', 'sessionStorage', 'indexedDB', 'transactionAuthority=true']) forbidText('public progression', `${homepage}\n${dossier}\n${homepageJs}`, unsafeData);
 
 if (failures.length) {
   console.error('Homepage proof progression validation failed:');
@@ -94,4 +81,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Conversion-led homepage, governed validation framing, static hero decision spotlight, easy Try FlipForge discovery, verdict-stop demo behavior, local decision boundaries, Identity-compatible CSP, refreshed PWA shell, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Homepage brand language, responsive hero containment, static decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
