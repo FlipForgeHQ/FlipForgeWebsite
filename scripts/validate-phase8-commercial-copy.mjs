@@ -15,7 +15,7 @@ function forbidText(label, text, needle) {
   if (text.includes(needle)) failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);
 }
 
-// The focused homepage intentionally routes detailed commercial terms to pricing.html.
+// The focused homepage intentionally routes detailed commercial terms to the launch-plans page.
 requireText('homepage', homepage, 'Before you buy. <span>Know Why.</span>');
 forbidText('homepage', homepage, 'Before You Buy, <span>Know Why.</span>');
 requireText('homepage', homepage, 'href="pricing.html"');
@@ -25,8 +25,12 @@ requireText('homepage', homepage, 'FlipForge does not guarantee profit or author
 forbidText('homepage', homepage, '<li>5 evaluations per month</li>');
 forbidText('homepage', homepage, 'Most popular');
 
-// Pricing remains explicitly planned/private-beta copy. Validate the current commercial contract.
-requireText('pricing', pricing, 'Planned Launch Pricing');
+// Launch plans remain explicitly provisional. Public package prices are intentionally withheld during private beta.
+requireText('pricing', pricing, 'Planned Launch Structure');
+requireText('pricing', pricing, 'Launch Plans');
+requireText('pricing', pricing, 'Pricing to be announced');
+requireText('pricing', pricing, 'Final package pricing has not been published.');
+requireText('pricing', pricing, 'No paid checkout and no public package pricing during private beta.');
 requireText('pricing', pricing, '10 planned evaluations per month');
 requireText('pricing', pricing, '75 planned evaluations per month');
 requireText('pricing', pricing, '300 planned evaluations per month');
@@ -40,9 +44,7 @@ requireText('pricing', pricing, '<tr><td>Forge Heat™</td><td class="no">No</td
 requireText('pricing', pricing, 'Tracked cards subject to reasonable-use and technical limits');
 requireText('pricing', pricing, '<td>Reasonable use*</td>');
 
-requireText('pricing', pricing, '$14.99 <small>/ month</small>');
-requireText('pricing', pricing, '$29.99 <small>/ month</small>');
-requireText('pricing', pricing, 'No paid checkout is active during private beta.');
+for (const amount of ['$14.99', '$29.99', '$149', '$299', 'Planned annual option']) forbidText('pricing', pricing, amount);
 requireText('pricing', pricing, 'Beta participation does not enroll a user in Scout, Collector, Pro, or any future paid plan.');
 requireText('pricing', pricing, 'Any future checkout must be initiated explicitly by the customer after paid access is opened.');
 requireText('pricing', pricing, 'If Paddle is used at commercial launch, it will act as Merchant of Record for transactions it processes.');
@@ -86,4 +88,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Focused homepage routing, locked slogan punctuation, planned pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
+console.log('PASS: Focused homepage routing, locked slogan punctuation, unpublished launch pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
