@@ -7,6 +7,7 @@ const homepageCss = read('assets/css/homepage-focus-v1.css');
 const conversionCss = read('assets/css/homepage-conversion-v2.css');
 const dossierCss = read('assets/css/sample-dossier-v1.css');
 const homepageJs = read('assets/js/homepage-v1.js');
+const heroSvg = read('assets/images/flipforge-homepage-dashboard.svg');
 const netlifyConfig = read('netlify.toml');
 const serviceWorker = read('sw.js');
 const failures = [];
@@ -35,6 +36,7 @@ requireText('conversion CSS', conversionCss, '.ff-problem-grid');
 requireText('conversion CSS', conversionCss, '.ff-validation-grid');
 requireText('conversion CSS', conversionCss, '.ff-category-grid');
 requireText('conversion CSS', conversionCss, '@media(prefers-reduced-motion:reduce)');
+
 requireText('homepage JavaScript', homepageJs, 'IntersectionObserver');
 requireText('homepage JavaScript', homepageJs, 'prefers-reduced-motion: reduce');
 requireText('homepage JavaScript', homepageJs, 'Pause preview');
@@ -43,29 +45,35 @@ requireText('homepage JavaScript', homepageJs, 'Illustrative · Final verdict');
 requireText('homepage JavaScript', homepageJs, 'Decision support only. FlipForge does not authorize transactions or guarantee outcomes.');
 requireText('homepage JavaScript', homepageJs, 'Confirm the parallel → replace mismatched evidence → rerun analysis.');
 requireText('homepage JavaScript', homepageJs, 'finishPreview');
-
-for (const heroNeedle of [
+for (const demoDiscoveryNeedle of [
   'See FlipForge catch a bad decision ↓',
   'Jump to demo',
   'Try FlipForge ↓',
-  'Decision spotlight',
-  'One bad claim can change the whole decision.',
-  'Claimed: Refractor',
-  'FlipForge verdict · VERIFY',
-  'Do not buy the story.',
-  'Try this decision flow ↓',
-  'See FlipForge catch a bad decision in four steps.'
-]) requireText('homepage hero refresh', homepageJs, heroNeedle);
+  'See FlipForge catch a bad decision in four steps.',
+  'Try FlipForge — 60-second demo'
+]) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
 
-// Production homepage hardening must remain compatible with the current Netlify Identity client.
+for (const heroNeedle of [
+  'FlipForge decision spotlight',
+  'ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.',
+  'CLAIMED: REFRACTOR',
+  'FLIPFORGE VERDICT',
+  'VERIFY',
+  'DO NOT BUY THE STORY.',
+  'BEFORE YOU BUY. KNOW WHY.',
+  'CARD INTELLIGENCE',
+  'M28 17'
+]) requireText('static hero decision spotlight', heroSvg, heroNeedle);
+forbidText('static hero brand punctuation', heroSvg, 'BEFORE YOU BUY, KNOW WHY.');
+
 forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-// The installable shell must cache the rebuilt homepage, not the pre-conversion asset set.
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v2'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v3'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
+requireText('service worker', serviceWorker, "'/assets/images/flipforge-homepage-dashboard.svg'");
 
 for (const section of ['Identity resolution', 'Evidence chain', 'Decision output', 'Required next checks']) requireText('sample dossier', dossier, section);
 for (const boundary of ['Illustrative sample', 'Not live market data', 'No transaction authority', 'Supported value', 'Withheld', 'VERIFY']) requireText('sample dossier', dossier, boundary);
@@ -86,4 +94,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Conversion-led homepage, governed validation framing, stronger hero engagement, easy Try FlipForge discovery, verdict-stop demo behavior, local decision boundaries, Identity-compatible CSP, current PWA shell, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Conversion-led homepage, governed validation framing, static hero decision spotlight, easy Try FlipForge discovery, verdict-stop demo behavior, local decision boundaries, Identity-compatible CSP, refreshed PWA shell, and customer-safe Decision Dossier remain complete and evidence-safe.');
