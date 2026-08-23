@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc"><title id="title">FlipForge mark</title><desc id="desc">Four silver corner forms isolate a centered gold signal square.</desc><defs><linearGradient id="silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#f2f2f2"/><stop offset=".62" stop-color="#aeb4b2"/><stop offset=".84" stop-color="#fff"/><stop offset="1" stop-color="#7d8582"/></linearGradient><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3cd58"/><stop offset=".3" stop-color="#d4af37"/><stop offset=".64" stop-color="#a97908"/><stop offset="1" stop-color="#e9be42"/></linearGradient></defs><path fill="url(#silver)" d="M10 10h17v8h-9v9h-8V10Zm27 0h17v17h-8v-9h-9v-8ZM10 37h8v9h9v8H10V37Zm36 0h8v17H37v-8h9v-9Z"/><rect x="27" y="27" width="10" height="10" fill="url(#gold)"/><path d="m27 27 10 10M37 27 27 37" stroke="#fff" stroke-opacity=".22" stroke-width=".55"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">FlipForge icon</title>
+  <desc id="desc">Four white corner brackets frame the approved three-dimensional gold cube.</desc>
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".58" stop-color="#8B8F98"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+    <linearGradient id="goldTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".34" stop-color="#D4AF37"/><stop offset="1" stop-color="#B8860B"/></linearGradient>
+    <linearGradient id="goldLeft" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D4AF37"/><stop offset="1" stop-color="#B8860B"/></linearGradient>
+    <linearGradient id="goldRight" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D4AF37"/><stop offset=".62" stop-color="#B8860B"/><stop offset="1" stop-color="#8B8F98"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#000000" flood-opacity=".48"/></filter>
+  </defs>
+  <path fill="url(#silver)" d="M32 30h72v28H60v44H32V30Zm120 0h72v72h-28V58h-44V30ZM32 154h28v44h44v28H32v-72Zm164 0h28v72h-72v-28h44v-44Z"/>
+  <g filter="url(#shadow)">
+    <path d="M128 67 181 97 128 128 75 97Z" fill="url(#goldTop)" stroke="#000000" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M75 97 128 128 128 188 75 157Z" fill="url(#goldLeft)" stroke="#000000" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M181 97 128 128 128 188 181 157Z" fill="url(#goldRight)" stroke="#000000" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M128 67v61M75 97l53 31 53-31" fill="none" stroke="#FFFFFF" stroke-opacity=".24" stroke-width="1.5"/>
+  </g>
+</svg>

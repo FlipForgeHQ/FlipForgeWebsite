@@ -37,7 +37,10 @@ for (const asset of assets) {
 
 const requiredBrandAssets = [
   path.join(root, 'assets', 'brand', 'flipforge-mark.svg'),
+  path.join(root, 'assets', 'brand', 'flipforge-logo-horizontal.svg'),
+  path.join(root, 'assets', 'brand', 'flipforge-logo-stacked.svg'),
   path.join(root, 'assets', 'brand', 'flipforge-app-icon-dark.svg'),
+  path.join(root, 'assets', 'fonts', 'geist-latin-wght-normal.woff2'),
   path.join(root, 'assets', 'css', 'brand-v2.css'),
   path.join(root, 'assets', 'js', 'section-navigation.js'),
   path.join(root, 'assets', 'images', 'flipforge-grading-scenario.svg'),
@@ -148,7 +151,24 @@ function ensurePerfectedBrandIdentity(html) {
     .replaceAll('Signal. Confidence. Advantage.', 'Card Intelligence')
     .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD INTELLIGENCE')
     .replaceAll('Card Value Intelligence', 'Card Intelligence')
-    .replaceAll('CARD VALUE INTELLIGENCE', 'CARD INTELLIGENCE');
+    .replaceAll('CARD VALUE INTELLIGENCE', 'CARD INTELLIGENCE')
+    .replaceAll('Before you buy, know why.', 'Before you buy. Know Why.')
+    .replaceAll('Before You Buy, Know Why', 'Before you buy. Know Why.');
+}
+
+function removeRetiredRemoteFontImports(html) {
+  return html.replace(
+    /\s*<link\b[^>]*https:\/\/fonts\.(?:googleapis|gstatic)\.com[^>]*>\s*/gi,
+    '\n',
+  );
+}
+
+function ensureApprovedBrandLockups(html) {
+  const lockup = '<img class="brand-lockup" src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Intelligence — Before you buy. Know Why.">';
+  return html.replace(
+    /(<a\b[^>]*class="[^"]*\bbrand\b[^"]*"[^>]*>)[\s\S]*?(<\/a>)/gi,
+    (match, open, close) => `${open}${lockup}${close}`,
+  );
 }
 
 // Keep the public website and the browser app connected without replacing the
@@ -163,6 +183,10 @@ for (const htmlPath of htmlFiles) {
   const original = fs.readFileSync(htmlPath, 'utf8');
   let updated = ensurePerfectedBrandIdentity(original);
 
+  if (path.basename(htmlPath) !== 'font-options.html') {
+    updated = removeRetiredRemoteFontImports(updated);
+  }
+  updated = ensureApprovedBrandLockups(updated);
   updated = ensurePerfectedBrandStylesheet(updated);
   updated = ensurePerfectedBrandFavicon(updated);
   updated = ensureDesktopAppLink(updated);
@@ -182,7 +206,8 @@ for (const htmlPath of htmlFiles) {
   if (!hasHeader) continue;
 
   const failures = [];
-  if (!html.includes('assets/brand/flipforge-mark.svg')) failures.push('approved header mark');
+  if (!html.includes('assets/brand/flipforge-logo-horizontal.svg')) failures.push('approved horizontal logo lockup');
+  if (!html.includes('Before you buy. Know Why.')) failures.push('official slogan lockup');
   if (!html.includes('Card Intelligence')) failures.push('Card Intelligence identity line');
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('perfected brand stylesheet');

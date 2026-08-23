@@ -101,6 +101,13 @@
   const copy=document.getElementById('demo-copy');
   const state=document.getElementById('demo-state');
   const checks=document.getElementById('demo-checks');
+  const demoSection=document.getElementById('try-flipforge');
+  const playback=document.getElementById('demo-playback');
+  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let currentIndex=0;
+  let timer=null;
+  let inView=false;
+  let paused=reducedMotion.matches;
 
   const renderStep=index=>{
     const step=steps[index];
@@ -132,7 +139,53 @@
       fragment.appendChild(row);
     }
     checks.replaceChildren(fragment);
+    currentIndex=index;
   };
 
-  buttons.forEach(button=>button.addEventListener('click',()=>renderStep(Number(button.dataset.demoStep))));
+  const stopPreview=()=>{
+    if(timer!==null){window.clearInterval(timer);timer=null;}
+  };
+  const syncPlayback=()=>{
+    if(!playback)return;
+    playback.textContent=paused?'Play preview':'Pause preview';
+    playback.setAttribute('aria-pressed',String(paused));
+  };
+  const startPreview=()=>{
+    stopPreview();
+    if(paused||!inView||document.hidden||reducedMotion.matches)return;
+    timer=window.setInterval(()=>renderStep((currentIndex+1)%steps.length),4200);
+  };
+  const pauseForInteraction=()=>{
+    paused=true;
+    stopPreview();
+    syncPlayback();
+  };
+
+  buttons.forEach(button=>button.addEventListener('click',()=>{
+    renderStep(Number(button.dataset.demoStep));
+    pauseForInteraction();
+  }));
+  playback?.addEventListener('click',()=>{
+    paused=!paused;
+    syncPlayback();
+    startPreview();
+  });
+  reducedMotion.addEventListener?.('change',event=>{
+    paused=event.matches;
+    syncPlayback();
+    startPreview();
+  });
+  document.addEventListener('visibilitychange',startPreview);
+
+  if(demoSection&&'IntersectionObserver' in window){
+    const observer=new IntersectionObserver(entries=>{
+      inView=entries.some(entry=>entry.isIntersecting&&entry.intersectionRatio>=.35);
+      startPreview();
+    },{threshold:[0,.35,.7]});
+    observer.observe(demoSection);
+  }else{
+    inView=true;
+    startPreview();
+  }
+  syncPlayback();
 })();

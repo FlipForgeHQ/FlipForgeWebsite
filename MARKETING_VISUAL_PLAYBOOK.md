@@ -11,8 +11,8 @@ FlipForge is **CARD INTELLIGENCE**.
 Primary message hierarchy:
 
 1. `FLIPFORGE™`
-2. `Before You Buy, Know Why.`
-3. `Signal. Confidence. Advantage.`
+2. `CARD INTELLIGENCE`
+3. `Before you buy. Know Why.`
 
 Primary supporting statement:
 
@@ -30,7 +30,7 @@ Use only the locked brand direction for production marketing:
 - Gold `#D4AF37`
 - Deep Gold `#B8860B`
 - Approved cube-in-corners mark
-- Söhne when available; repository fallback stack otherwise
+- Geist Sans from the self-hosted repository font; repository fallback stack only if the font cannot load
 
 Do not carry forward lime green, neon blue/purple, crypto-style glows, alternate F marks, or generic AI-brain branding from old concepts.
 

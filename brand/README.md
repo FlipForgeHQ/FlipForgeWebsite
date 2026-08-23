@@ -1,16 +1,16 @@
 # FlipForge Approved Brand Archive v2
 
 Status: **APPROVED**
-Updated: 2026-08-08
+Updated: 2026-08-23
 
 This directory is the versioned GitHub storage location for the approved FlipForge identity introduced in Brand v2.
 
 ## Locked identity
 - Mark: four open corner forms framing a centered 3D gold cube.
-- Descriptor: **CARD VALUE INTELLIGENCE**.
-- Official logo-lockup campaign line: **BEFORE YOU BUY. KNOW WHY.**
-- Normal prose: **Before you buy, know why.**
-- Supporting typeface: **Geist Sans**. Font files are not stored here.
+- Descriptor: **CARD INTELLIGENCE**.
+- Official logo-lockup campaign line: **Before you buy. Know Why.**
+- Normal prose: **Before you buy. Know Why.**
+- Primary typeface: **Geist Sans**. The licensed webfont is self-hosted in `assets/fonts/`.
 - Palette: Black `#000000`, White `#FFFFFF`, Silver `#8B8F98`, Gold `#D4AF37`, Deep Gold `#B8860B`.
 
 ## Repository storage

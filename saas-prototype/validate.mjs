@@ -115,7 +115,7 @@ check("065 approved four-corner mark is present", ["brand-corner-tl", "brand-cor
 check("066 approved gold center is present", files.index.includes('class="brand-center"'));
 check("067 Card Intelligence is the visible identity line", files.index.includes('<span class="brand-subtitle">CARD INTELLIGENCE</span>'));
 check("068 deprecated Signal Confidence Advantage tagline is absent", !/SIGNAL\s*[.·-]\s*CONFIDENCE\s*[.·-]\s*ADVANTAGE/i.test(browserCode));
-check("069 Söhne typography stack is declared", /font-family:\s*"Söhne",\s*"Sohne"/i.test(files.brand));
+check("069 Geist typography stack is declared", /font-family:\s*Geist,\s*"Geist Sans"/i.test(files.brand));
 check("070 approved silver charcoal gold palette is declared", ["#f2f2f2", "#8b928f", "#d4af37"].every(value => files.brand.toLowerCase().includes(value)));
 
 check("071 shell fixes load after approved brand layer", files.index.indexOf('href="shell-fixes.css"') > files.index.indexOf('href="brand.css"'));

@@ -3,17 +3,27 @@ name: Homepage Focus
 on:
   pull_request:
     paths:
+      - "index.html"
+      - "sample-decision-dossier.html"
+      - "assets/js/homepage-v1.js"
       - "assets/js/marketing-v3.js"
       - "assets/css/homepage-focus-v1.css"
+      - "assets/css/sample-dossier-v1.css"
       - "scripts/validate-homepage-focus.mjs"
+      - "scripts/validate-homepage-progression.mjs"
       - ".github/workflows/homepage-focus.yml"
   push:
     branches:
       - main
     paths:
+      - "index.html"
+      - "sample-decision-dossier.html"
+      - "assets/js/homepage-v1.js"
       - "assets/js/marketing-v3.js"
       - "assets/css/homepage-focus-v1.css"
+      - "assets/css/sample-dossier-v1.css"
       - "scripts/validate-homepage-focus.mjs"
+      - "scripts/validate-homepage-progression.mjs"
       - ".github/workflows/homepage-focus.yml"
 
 permissions:
@@ -31,6 +41,10 @@ jobs:
         with:
           node-version: 24
       - name: Parse homepage browser JavaScript
-        run: node --check assets/js/marketing-v3.js
+        run: |
+          node --check assets/js/marketing-v3.js
+          node --check assets/js/homepage-v1.js
       - name: Validate focused homepage contract
-        run: node scripts/validate-homepage-focus.mjs
+        run: |
+          node scripts/validate-homepage-focus.mjs
+          node scripts/validate-homepage-progression.mjs

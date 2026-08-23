@@ -1,0 +1,46 @@
+.ff-dossier-page{background:radial-gradient(circle at 76% 8%,rgba(212,175,55,.08),transparent 28%),#010203}
+.ff-dossier-hero,.ff-dossier-report,.ff-dossier-cta{max-width:1180px;margin:0 auto}
+.ff-dossier-hero{display:grid;grid-template-columns:1fr .68fr;gap:48px;align-items:center;padding:78px 22px 52px}
+.ff-dossier-hero h1{max-width:720px;margin-bottom:18px;font-size:clamp(45px,6vw,76px)}
+.ff-dossier-hero .lead{max-width:720px}
+.ff-sample-labels{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.ff-sample-labels span{padding:7px 9px;border:1px solid rgba(212,175,55,.3);border-radius:999px;color:#c8cbd0;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.ff-dossier-principle{padding:26px;border:1px solid rgba(212,175,55,.45);border-radius:18px;background:linear-gradient(180deg,#0a0c10,#020202);box-shadow:0 26px 68px rgba(0,0,0,.42)}
+.ff-dossier-principle>span{display:block;margin-bottom:12px;color:#d4af37;font-size:9px;font-weight:900;letter-spacing:.15em;text-transform:uppercase}
+.ff-dossier-principle strong{display:block;font-size:24px;line-height:1.28}
+.ff-dossier-principle p{margin:14px 0 0;color:#aeb2b8;font-size:13px;line-height:1.65}
+.ff-dossier-report{overflow:hidden;margin-bottom:62px;border:1px solid rgba(212,175,55,.42);border-radius:22px;background:linear-gradient(180deg,#090b0e,#010101);box-shadow:0 34px 100px rgba(0,0,0,.5)}
+.ff-report-head{display:flex;justify-content:space-between;gap:30px;align-items:flex-start;padding:34px;border-bottom:1px solid rgba(255,255,255,.1);background:radial-gradient(circle at 92% 10%,rgba(212,175,55,.13),transparent 34%)}
+.ff-report-head>div:first-child>span{display:block;color:#d4af37;font-size:10px;font-weight:900;letter-spacing:.16em}
+.ff-report-head h2{max-width:790px;margin:10px 0 6px;font-size:clamp(27px,4vw,43px)}
+.ff-report-head p{margin:0;color:#8f949d;font-size:11px}
+.ff-report-state{min-width:170px;padding:17px;border:1px solid rgba(131,181,255,.45);border-radius:13px;background:rgba(131,181,255,.07);text-align:right}
+.ff-report-state span,.ff-report-state strong{display:block}
+.ff-report-state span{color:#9097a1;font-size:8px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.ff-report-state strong{margin-top:4px;color:#83b5ff;font-size:23px;letter-spacing:.06em}
+.ff-report-section{padding:32px 34px;border-bottom:1px solid rgba(255,255,255,.09)}
+.ff-report-section-head{display:grid;grid-template-columns:42px 1fr;gap:15px;align-items:start;margin-bottom:22px}
+.ff-report-section-head>span{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(212,175,55,.42);border-radius:10px;color:#d4af37;font-size:10px;font-weight:900}
+.ff-report-section-head h3{margin:0 0 4px;font-size:21px}
+.ff-report-section-head p{margin:0;color:#8f949d;font-size:12px}
+.ff-report-facts{display:grid;grid-template-columns:repeat(3,1fr);margin:0;border:1px solid rgba(255,255,255,.09);border-radius:14px}
+.ff-report-facts div{padding:17px;border-right:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+.ff-report-facts div:nth-child(3n){border-right:0}.ff-report-facts div:nth-last-child(-n+3){border-bottom:0}
+.ff-report-facts dt{color:#898f98;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.ff-report-facts dd{margin:5px 0 0;font-size:13px;font-weight:800}.ff-report-facts .ff-fact-alert dd{color:#f1b94c}
+.ff-evidence-chain{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ff-evidence-chain article{padding:18px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.018)}
+.ff-evidence-chain h4{margin:14px 0 7px;font-size:14px}.ff-evidence-chain p{margin:0;color:#9da2aa;font-size:11px;line-height:1.55}
+.ff-evidence-state{display:inline-flex;padding:5px 7px;border:1px solid currentColor;border-radius:999px;font-size:8px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
+.ff-evidence-state.pending{color:#f1b94c}.ff-evidence-state.accepted{color:#59d796}.ff-evidence-state.excluded,.ff-evidence-state.blocked{color:#f27670}
+.ff-decision-output{display:grid;grid-template-columns:.68fr 1.32fr;gap:12px}
+.ff-output-state{padding:22px;border:1px solid rgba(131,181,255,.38);border-radius:14px;background:rgba(131,181,255,.06)}
+.ff-output-state span,.ff-output-state strong{display:block}.ff-output-state span{color:#8f949d;font-size:9px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}.ff-output-state strong{margin-top:6px;color:#83b5ff;font-size:29px}.ff-output-state p{margin:10px 0 0;color:#b5bac2;font-size:12px;line-height:1.55}
+.ff-decision-output dl{display:grid;grid-template-columns:repeat(2,1fr);margin:0;border:1px solid rgba(255,255,255,.09);border-radius:14px}.ff-decision-output dl div{padding:17px;border-right:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}.ff-decision-output dl div:nth-child(2n){border-right:0}.ff-decision-output dl div:nth-last-child(-n+2){border-bottom:0}.ff-decision-output dt{color:#898f98;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.ff-decision-output dd{margin:5px 0 0;font-size:12px;font-weight:800}
+.ff-why-box{margin-top:12px;padding:18px 20px;border-left:3px solid #d4af37;background:rgba(212,175,55,.055)}.ff-why-box strong{color:#e2c660;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.ff-why-box p{margin:8px 0 0;color:#b6bbc3;font-size:12px;line-height:1.65}
+.ff-next-checks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:0;padding:0;list-style:none}.ff-next-checks li{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:17px;border:1px solid rgba(255,255,255,.09);border-radius:13px}.ff-next-checks li>span{display:grid;place-items:center;width:30px;height:30px;border:1px solid rgba(212,175,55,.4);border-radius:9px;color:#d4af37;font-size:9px;font-weight:900}.ff-next-checks strong{font-size:13px}.ff-next-checks p{margin:5px 0 0;color:#969ca5;font-size:11px;line-height:1.55}
+.ff-report-boundary{padding:24px 34px;background:rgba(212,175,55,.045)}.ff-report-boundary strong{display:block;color:#d4af37;font-size:10px;letter-spacing:.1em;text-transform:uppercase}.ff-report-boundary p{margin:8px 0 0;color:#9ca2aa;font-size:11px;line-height:1.6}
+.ff-dossier-cta{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;margin-bottom:64px;padding:30px 32px;border:1px solid rgba(212,175,55,.42);border-radius:18px;background:linear-gradient(135deg,rgba(212,175,55,.11),#050607)}.ff-dossier-cta h2{margin-bottom:8px}.ff-dossier-cta p{margin:0;color:#aeb2b8}.ff-dossier-cta .btn{white-space:nowrap}
+@media(max-width:900px){.ff-dossier-hero,.ff-decision-output{grid-template-columns:1fr}.ff-evidence-chain{grid-template-columns:repeat(2,1fr)}.ff-report-facts{grid-template-columns:repeat(2,1fr)}.ff-report-facts div:nth-child(3n){border-right:1px solid rgba(255,255,255,.08)}.ff-report-facts div:nth-child(2n){border-right:0}.ff-report-facts div:nth-last-child(-n+3){border-bottom:1px solid rgba(255,255,255,.08)}.ff-report-facts div:nth-last-child(-n+2){border-bottom:0}.ff-dossier-cta{grid-template-columns:1fr}}
+@media(max-width:700px){.ff-dossier-hero{padding:58px 19px 42px}.ff-dossier-report{margin:0 12px 48px;border-radius:17px}.ff-report-head{flex-direction:column;padding:25px 20px}.ff-report-state{text-align:left}.ff-report-section{padding:26px 20px}.ff-report-facts,.ff-evidence-chain,.ff-next-checks,.ff-decision-output dl{grid-template-columns:1fr}.ff-report-facts div,.ff-report-facts div:nth-child(2n),.ff-report-facts div:nth-child(3n),.ff-report-facts div:nth-last-child(-n+2),.ff-decision-output dl div,.ff-decision-output dl div:nth-child(2n),.ff-decision-output dl div:nth-last-child(-n+2){border-right:0;border-bottom:1px solid rgba(255,255,255,.08)}.ff-report-facts div:last-child,.ff-decision-output dl div:last-child{border-bottom:0}.ff-report-boundary{padding:22px 20px}.ff-dossier-cta{margin:0 18px 50px;padding:26px 22px}.ff-dossier-cta .btn{width:100%}}
+@media print{.site-header,.mobile-nav,.backdrop,.ff-dossier-hero,.ff-dossier-cta,.footer{display:none!important}.ff-dossier-page{background:#fff;color:#111}.ff-dossier-report{margin:0;border:0;box-shadow:none}.ff-report-head,.ff-report-section,.ff-report-boundary{break-inside:avoid;background:#fff;color:#111}.ff-report-section{padding:20px}.ff-report-section p,.ff-evidence-chain p,.ff-why-box p,.ff-next-checks p,.ff-report-boundary p{color:#333}.ff-report-facts,.ff-evidence-chain article,.ff-decision-output dl,.ff-next-checks li{border-color:#bbb}}

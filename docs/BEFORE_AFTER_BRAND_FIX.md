@@ -7,7 +7,7 @@ The legacy gold shield remains inside the historical WebP source, but the websit
 - Approved four open silver corner forms.
 - Centered faceted gold square.
 - FLIPFORGE™ wordmark.
-- CARD VALUE INTELLIGENCE identity line.
+- CARD INTELLIGENCE identity line.
 - Dark navy integration field matching the graphic background.
 - Responsive overlay sizing for desktop and mobile.
 - Increased top breathing room for the Before vs. After section.

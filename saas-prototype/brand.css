@@ -1,6 +1,6 @@
 /*
  * FlipForge approved visual system override
- * Uses the approved silver / charcoal / gold palette and Söhne-style typography.
+ * Uses the approved silver / black / gold palette and Geist Sans typography.
  * No external font or asset dependency is loaded by the prototype.
  */
 
@@ -30,7 +30,7 @@
   --shadow: 0 22px 65px rgba(0, 0, 0, .42);
   --radius: 5px;
   --radius-sm: 3px;
-  font-family: "Söhne", "Sohne", "Neue Haas Grotesk Text Pro", "Helvetica Neue", Arial, sans-serif;
+  font-family: Geist, "Geist Sans", "Helvetica Neue", Arial, sans-serif;
 }
 
 body {

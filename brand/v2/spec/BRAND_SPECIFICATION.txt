@@ -1,10 +1,10 @@
 FLIPFORGE BRAND SPECIFICATION v2
-Updated 2026-08-08
+Updated 2026-08-23
 
-PRIMARY IDENTITY: Card Value Intelligence
-OFFICIAL LOCKUP: BEFORE YOU BUY. KNOW WHY.
-NORMAL PROSE: Before you buy, know why.
-TYPEFACE: Geist Sans (supporting typography; not bundled)
+PRIMARY IDENTITY: Card Intelligence
+OFFICIAL LOCKUP: Before you buy. Know Why.
+NORMAL PROSE: Before you buy. Know Why.
+TYPEFACE: Geist Sans (primary typography; self-hosted webfont bundled)
 
 COLORS
 Black      #000000

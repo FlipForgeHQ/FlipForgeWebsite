@@ -400,7 +400,7 @@
       if (strong) strong.textContent = "Plan & Usage";
       if (small) small.textContent = "Plan state, evaluation usage, checkout availability, and billing access are server-owned.";
     }
-    if (productionHost()) document.title = "FlipForge | Card Value Intelligence";
+    if (productionHost()) document.title = "FlipForge | Card Intelligence";
   }
 
   function showDashboardBanner() {
