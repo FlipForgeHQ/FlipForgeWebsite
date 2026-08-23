@@ -52,6 +52,9 @@ for (const demoDiscoveryNeedle of ['See FlipForge catch a bad decision ↓','Jum
 
 for (const heroNeedle of ['FlipForge decision spotlight motion loop','ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.','CLAIMED: REFRACTOR','FLIPFORGE VERDICT','VERIFY','VERIFY BEFORE YOU BUY.','Before you buy. Know Why.','CARD INTELLIGENCE','M28 17']) requireText('hero decision spotlight', heroSvg, heroNeedle);
 for (const motionNeedle of ['@keyframes claimLoop','@keyframes goodLoop','@keyframes warn1Loop','@keyframes warn2Loop','@keyframes arrowLoop','@keyframes verdictLoop','motion-res1','motion-res2','motion-res3','@media(prefers-reduced-motion:reduce)']) requireText('hero motion loop', heroSvg, motionNeedle);
+requireText('hero fixed verdict panel', heroSvg, 'transform="translate(666 260)" class="font"');
+forbidText('hero fixed verdict panel', heroSvg, 'class="font motion-verdict"');
+forbidText('hero verdict motion', heroSvg, 'transform:scale(');
 forbidText('hero language', heroSvg, 'DO NOT BUY THE STORY.');
 forbidText('hero brand punctuation', heroSvg, 'BEFORE YOU BUY, KNOW WHY.');
 
@@ -62,7 +65,7 @@ forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v4'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v5'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
 requireText('service worker', serviceWorker, "'/assets/images/flipforge-homepage-dashboard.svg'");
@@ -82,4 +85,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Homepage brand language, responsive hero containment, looping motion decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Homepage brand language, responsive hero containment, position-safe looping decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
