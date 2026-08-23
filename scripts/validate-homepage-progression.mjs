@@ -4,6 +4,7 @@ const read = path => fs.readFileSync(path, 'utf8');
 const homepage = read('index.html');
 const dossier = read('sample-decision-dossier.html');
 const homepageCss = read('assets/css/homepage-focus-v1.css');
+const conversionCss = read('assets/css/homepage-conversion-v2.css');
 const dossierCss = read('assets/css/sample-dossier-v1.css');
 const homepageJs = read('assets/js/homepage-v1.js');
 const failures = [];
@@ -11,12 +12,24 @@ const requireText = (label, text, needle) => { if (!text.includes(needle)) failu
 const forbidText = (label, text, needle) => { if (text.toLowerCase().includes(needle.toLowerCase())) failures.push(`${label}: forbidden ${JSON.stringify(needle)}`); };
 
 for (const audience of ['Collectors', 'Grading planners', 'Value-conscious buyers']) requireText('homepage audience', homepage, audience);
+requireText('homepage', homepage, 'Before you buy. <span>Know Why.</span>');
+forbidText('homepage brand punctuation', homepage, 'Before You Buy,');
+requireText('homepage', homepage, 'Try the 60-second demo');
 requireText('homepage', homepage, 'id="sample-dossier"');
 requireText('homepage', homepage, 'href="sample-decision-dossier.html"');
+requireText('homepage', homepage, 'id="validation"');
+requireText('homepage', homepage, '100-case');
+requireText('homepage', homepage, '20-case');
+requireText('homepage', homepage, 'No invented claims');
+requireText('homepage', homepage, 'A different layer of the hobby stack');
 requireText('homepage', homepage, 'Illustrative · Auto preview');
 requireText('homepage', homepage, 'id="demo-playback"');
 requireText('homepage CSS', homepageCss, '.ff-audience-grid');
 requireText('homepage CSS', homepageCss, '.ff-dossier-preview');
+requireText('conversion CSS', conversionCss, '.ff-problem-grid');
+requireText('conversion CSS', conversionCss, '.ff-validation-grid');
+requireText('conversion CSS', conversionCss, '.ff-category-grid');
+requireText('conversion CSS', conversionCss, '@media(prefers-reduced-motion:reduce)');
 requireText('homepage JavaScript', homepageJs, 'IntersectionObserver');
 requireText('homepage JavaScript', homepageJs, 'prefers-reduced-motion: reduce');
 requireText('homepage JavaScript', homepageJs, 'Pause preview');
@@ -40,4 +53,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Audience framing, customer-safe Decision Dossier, and lightweight in-view workflow preview remain complete and evidence-safe.');
+console.log('PASS: Conversion-led homepage, governed validation framing, customer-safe Decision Dossier, and lightweight in-view workflow preview remain complete and evidence-safe.');
