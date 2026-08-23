@@ -1,5 +1,4 @@
 /* Focused FlipForge homepage: concise marketing flow only. */
-@font-face{font-family:Inter;font-style:normal;font-weight:400 900;font-display:optional;src:url("https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2") format("woff2")}
 html,body{max-width:100%;overflow-x:clip}
 body.ff-home-focused .hero>*,body.ff-home-focused .nav>*,.ff-home-workflow>*{min-width:0}
 body.ff-home-focused .hero figure{margin:0}
@@ -16,6 +15,44 @@ body.ff-home-focused .ff-hero-points{margin-top:14px}
 body.ff-home-focused .home-section{padding-top:52px;padding-bottom:52px}
 body.ff-home-focused #before-after .product-visual{max-width:920px;margin-inline:auto}
 body.ff-home-focused #try-flipforge .section-head{margin-bottom:22px}
+
+.ff-hero-jump-link{
+  display:inline-flex;
+  width:max-content;
+  align-items:center;
+  gap:7px;
+  margin-top:15px;
+  padding:10px 14px;
+  border:1px solid rgba(212,175,55,.34);
+  border-radius:999px;
+  background:rgba(212,175,55,.08);
+  color:#fff;
+  font-size:12px;
+  font-weight:850;
+  text-decoration:none;
+}
+.ff-hero-jump-link:hover,.ff-hero-jump-link:focus-visible{border-color:rgba(212,175,55,.7);background:rgba(212,175,55,.14)}
+.ff-hero-jump-link:focus-visible{outline:3px solid #f0ca58;outline-offset:4px}
+.ff-mobile-demo-cta{border:1px solid rgba(212,175,55,.45)!important;border-radius:12px!important;background:rgba(212,175,55,.10)!important;color:#fff!important;font-weight:850!important}
+.ff-demo-float{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:75;
+  padding:12px 17px;
+  border:1px solid rgba(212,175,55,.55);
+  border-radius:999px;
+  background:rgba(3,8,18,.94);
+  box-shadow:0 16px 44px rgba(0,0,0,.45);
+  color:#fff;
+  text-decoration:none;
+  backdrop-filter:blur(12px);
+  transition:opacity .16s ease,transform .16s ease,border-color .16s ease;
+}
+.ff-demo-float:hover,.ff-demo-float:focus-visible{border-color:rgba(240,202,88,.9)}
+.ff-demo-float:focus-visible{outline:3px solid #f0ca58;outline-offset:4px}
+.ff-demo-float span{display:block;color:#d4af37;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.ff-demo-float strong{display:block;margin-top:2px;color:#fff;font-size:14px}
 
 .ff-audience,
 .ff-dossier-spotlight{
@@ -148,6 +185,8 @@ body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
 @media(max-width:700px){
   body.ff-home-focused .hero.ff-hero-v3{padding-top:44px;padding-bottom:30px;gap:30px}
   body.ff-home-focused .home-section{padding-top:42px;padding-bottom:42px}
+  .ff-hero-jump-link{font-size:11px}
+  .ff-demo-float{right:12px;bottom:12px;padding:10px 14px}
   .ff-audience,.ff-dossier-spotlight{padding:46px 18px}
   .ff-audience-grid{grid-template-columns:1fr}
   .ff-audience-grid article{min-height:210px}
@@ -165,3 +204,4 @@ body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
   .ff-home-workflow-footer>div{display:grid;grid-template-columns:1fr 1fr}
   .ff-home-workflow-footer .btn{text-align:center}
 }
+@media(prefers-reduced-motion:reduce){.ff-demo-float{transition:none}}
