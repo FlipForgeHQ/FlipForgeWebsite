@@ -6,6 +6,7 @@ const pricing = read('pricing.html');
 const dossier = read('sample-decision-dossier.html');
 const homepageCss = read('assets/css/homepage-focus-v1.css');
 const conversionCss = read('assets/css/homepage-conversion-v2.css');
+const densityCss = read('assets/css/marketing-density-v1.css');
 const dossierCss = read('assets/css/sample-dossier-v1.css');
 const homepageJs = read('assets/js/homepage-v1.js');
 const heroSvg = read('assets/images/flipforge-homepage-dashboard.svg');
@@ -38,6 +39,8 @@ requireText('conversion CSS', conversionCss, '.ff-validation-grid');
 requireText('conversion CSS', conversionCss, '.ff-category-grid');
 requireText('conversion CSS', conversionCss, '@media(prefers-reduced-motion:reduce)');
 
+for (const densityNeedle of ['Visual hierarchy rebalance v2','max-width:1400px!important','grid-template-columns:minmax(0,.70fr) minmax(620px,1.30fr)!important','width:110%!important','font-size:clamp(40px,4.35vw,58px)!important','font-size:clamp(37px,4vw,52px)!important','font-size:clamp(36px,3.8vw,50px)!important']) requireText('balanced marketing hierarchy', densityCss, densityNeedle);
+
 requireText('homepage JavaScript', homepageJs, 'IntersectionObserver');
 requireText('homepage JavaScript', homepageJs, 'prefers-reduced-motion: reduce');
 requireText('homepage JavaScript', homepageJs, 'Pause preview');
@@ -65,7 +68,8 @@ forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v5'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v6'");
+requireText('service worker', serviceWorker, "'/assets/css/marketing-density-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
 requireText('service worker', serviceWorker, "'/assets/images/flipforge-homepage-dashboard.svg'");
@@ -85,4 +89,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Homepage brand language, responsive hero containment, position-safe looping decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Homepage brand language, balanced site-wide typography, enlarged hero proof, responsive containment, position-safe looping decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
