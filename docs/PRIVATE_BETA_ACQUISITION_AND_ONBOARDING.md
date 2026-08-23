@@ -40,7 +40,7 @@ Do not describe these counts as product accuracy, investment performance, unique
 4. Selected tester receives an invitation and activates authenticated access.
 5. First authenticated route is the existing in-product Private Beta Guide.
 6. Tester completes one exact-card loop: Discover → Evaluate → Card Intelligence → Traceback → Compare → Track → Decision Dossier → focused feedback.
-7. Tester revisits the preserved decision at 7 / 14 / 30-day checkpoints where possible.
+7. Tester revisits the preserved decision at 7 / 14 / 30-day checkpoints where possible and submits the bounded outcome signal through the signed feedback endpoint.
 
 ## Operator email templates
 

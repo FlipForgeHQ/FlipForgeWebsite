@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { createBetaApplicationsHandler } from "../netlify/modern-functions/beta-applications.mjs";
+import { createBetaFeedbackHandler } from "../netlify/modern-functions/beta-feedback.mjs";
 import { createBetaOperatorHandler } from "../netlify/modern-functions/beta-operator.mjs";
 import { createConversionEventHandler } from "../netlify/modern-functions/conversion-event.mjs";
 
@@ -29,8 +30,10 @@ const applicationHtml = read("beta-application.html");
 const operatorHtml = read("operator-beta.html");
 const operatorCss = read("assets/css/beta-operator-v1.css");
 const operatorClient = read("assets/js/beta-operator.js");
+const testerFeedbackClient = read("saas-prototype/private-beta.js");
 const identityClient = read("scripts/lib/flipforge-identity-client.mjs");
 const intakeSource = read("netlify/modern-functions/beta-applications.mjs");
+const feedbackSource = read("netlify/modern-functions/beta-feedback.mjs");
 const operatorSource = read("netlify/modern-functions/beta-operator.mjs");
 const eventSource = read("netlify/modern-functions/conversion-event.mjs");
 const retentionSource = read("netlify/modern-functions/beta-retention.mjs");
@@ -53,12 +56,17 @@ const checks = [
   ["intake validates consent and terms", coreSource.includes("CONTACT_CONSENT_REQUIRED") && coreSource.includes("TERMS_ACCEPTANCE_REQUIRED")],
   ["email index is hashed", coreSource.includes('digest("SHA-256"') && !coreSource.includes("`email/${email}")],
   ["application deduplication is atomic", intakeSource.includes("onlyIfNew: true") && intakeSource.includes("claim?.modified === false")],
+  ["tester feedback requires signed active membership", feedbackSource.includes("isActiveTester(user)") && feedbackSource.includes("ACTIVE_TESTER_REQUIRED")],
+  ["tester feedback is same-origin, bounded, and rate limited", feedbackSource.includes("sameOrigin(request)") && feedbackSource.includes("MAX_FEEDBACK_BYTES") && feedbackSource.includes("rateLimit")],
+  ["feedback contact email comes only from signed Identity", coreSource.includes("contactAllowed && EMAIL.test(email) ? email : null") && !testerFeedbackClient.includes("payload.testerEmail")],
+  ["outcome reviews require a governed checkpoint and signal", coreSource.includes("OUTCOME_CHECKPOINT_REQUIRED") && coreSource.includes("OUTCOME_STATE_REQUIRED")],
   ["operator page is noindex", operatorHtml.includes('name="robots" content="noindex,nofollow,noarchive"')],
   ["operator page uses locked logo", operatorHtml.includes("flipforge-logo-horizontal.svg") && operatorHtml.includes("Before you buy. Know Why.")],
   ["operator page loads signed identity client", operatorHtml.includes('/assets/js/flipforge-identity.js')],
   ["operator page has desktop and mobile layouts", operatorCss.includes("@media(max-width:1120px)") && operatorCss.includes("@media(max-width:700px)")],
   ["operator client keeps sensitive state in memory", !/localStorage|sessionStorage|indexedDB/i.test(operatorClient)],
   ["operator client confirms invitation", operatorClient.includes("Send a private-beta Identity invitation")],
+  ["operator page includes feedback calibration queue", operatorHtml.includes("Feedback and outcome checkpoints") && operatorClient.includes("data-feedback-transition")],
   ["operator controls re-enable after loading", operatorClient.includes("state.busy=false;render()")],
   ["under-review state omits redundant reopen action", operatorClient.includes('["WAITLISTED","DECLINED","APPROVED"].includes(item.status)') && !operatorClient.includes('["UNDER_REVIEW","WAITLISTED","DECLINED","APPROVED"].includes(item.status)')],
   ["identity snapshot exposes boolean only", identityClient.includes("operatorActive") && !identityClient.includes("operatorRoles:")],
@@ -66,6 +74,7 @@ const checks = [
   ["operator mutations enforce same origin", operatorSource.includes("sameOrigin(request)")],
   ["operator mutations enforce versions", operatorSource.includes("VERSION_CONFLICT")],
   ["operator mutations use atomic blob versions", operatorSource.includes("onlyIfMatch: etag") && operatorSource.includes("conditionalApplicationWrite")],
+  ["feedback review mutations use atomic blob versions", operatorSource.includes("conditionalFeedbackWrite") && operatorSource.includes("FEEDBACK_TRANSITIONED")],
   ["invitation requires approval and cohort", operatorSource.includes("APPLICATION_NOT_APPROVED") && operatorSource.includes("COHORT_REQUIRED")],
   ["invitation reserves state before the Identity side effect", operatorSource.includes("INVITATION_STARTED") && operatorSource.includes("INVITATION_IN_PROGRESS") && operatorSource.indexOf("reserveInvitation(current") < operatorSource.indexOf("inviteApplicant(reserved")],
   ["invitation rejects unconfirmed self-registration conflicts", operatorSource.includes("IDENTITY_ACCOUNT_CONFLICT") && operatorSource.includes("!activatedIdentity(identityUser) && !invitedIdentity(identityUser)")],
@@ -73,6 +82,8 @@ const checks = [
   ["invitation assigns one tenant role", operatorSource.includes("filter(role => !role.startsWith(TENANT_ROLE_PREFIX))") && coreSource.includes('ACTIVE_ROLE = "flipforge-active"')],
   ["activation sync is Identity-backed", operatorSource.includes("syncActivations") && operatorSource.includes("confirmedAt")],
   ["review state machine is explicit", ["SUBMITTED", "UNDER_REVIEW", "WAITLISTED", "APPROVED", "INVITE_SENT", "ACTIVATED", "DECLINED"].every(value => coreSource.includes(value))],
+  ["feedback state machine is explicit", ["NEW", "UNDER_REVIEW", "RESOLVED"].every(value => coreSource.includes(value))],
+  ["feedback summary denies accuracy meaning", coreSource.includes("TESTER_REPORTED_CHECKPOINTS_NOT_ACCURACY") && operatorHtml.includes("not product accuracy")],
   ["conversion events persist without added dimensions", eventSource.includes("CONVERSION_STORE_NAME") && eventSource.includes("setJSON")],
   ["90-day event retention is enforced", operatorSource.includes("90 * 24 * 60 * 60 * 1000") && retentionSource.includes("89 * 24 * 60 * 60 * 1000") && retentionSource.includes('schedule: "0 3 * * *"')],
   ["application and event scans are paginated", coreSource.includes("paginate: true") && coreSource.match(/for await/g)?.length >= 2],
@@ -91,6 +102,7 @@ for (const [name, condition] of checks) {
 
 const applicationStore = new MemoryStore();
 const eventStore = new MemoryStore();
+const feedbackStore = new MemoryStore();
 const fixedNow = new Date("2026-08-23T03:00:00.000Z");
 const validApplication = {
   name: "Test Applicant",
@@ -141,6 +153,36 @@ assert.equal((await conversion(new Request("https://goflipforge.com/api/conversi
   body: JSON.stringify({ event: "beta_form_started", page: "beta-application", placement: "form", email: "never-log@example.com" }),
 }))).status, 202);
 
+const validFeedback = {
+  category: "outcome-review",
+  rating: "4",
+  summary: "The original VERIFY reasoning still fits because identity evidence remains incomplete.",
+  expected: "Keep the missing-evidence requirement visible at the checkpoint.",
+  route: "beta-start",
+  checkpoint: "DAY_7",
+  outcome: "REASONING_HELD",
+  contactAllowed: "yes",
+};
+const feedbackRequest = (body, overrides = {}) => new Request("https://goflipforge.com/api/beta/feedback", {
+  method: overrides.method || "POST",
+  headers: { origin: overrides.origin || "https://goflipforge.com", "content-type": "application/json" },
+  body: overrides.method === "GET" ? undefined : JSON.stringify(body),
+});
+const activeTester = { email: "feedback@example.com", roles: ["flipforge-active", "flipforge-tenant--beta-test"] };
+const anonymousFeedback = createBetaFeedbackHandler({ store: feedbackStore, getUserFn: async () => null, now: () => fixedNow });
+assert.equal((await anonymousFeedback(feedbackRequest(validFeedback))).status, 401);
+const inactiveFeedback = createBetaFeedbackHandler({ store: feedbackStore, getUserFn: async () => ({ email: "inactive@example.com", roles: ["flipforge-active"] }), now: () => fixedNow });
+assert.equal((await inactiveFeedback(feedbackRequest(validFeedback))).status, 403);
+const feedbackIntake = createBetaFeedbackHandler({ store: feedbackStore, getUserFn: async () => activeTester, now: () => fixedNow });
+assert.equal((await feedbackIntake(feedbackRequest(validFeedback, { origin: "https://example.invalid" }))).status, 403);
+assert.equal((await feedbackIntake(feedbackRequest({ ...validFeedback, checkpoint: "GENERAL" }))).status, 400);
+assert.equal((await feedbackIntake(feedbackRequest(validFeedback))).status, 202);
+const feedbackKeys = (await feedbackStore.list({ prefix: "feedback/" })).blobs.map(item => item.key);
+assert.equal(feedbackKeys.length, 1);
+let feedbackRecord = await feedbackStore.get(feedbackKeys[0]);
+assert.equal(feedbackRecord.feedback.contactEmail, "feedback@example.com");
+assert.ok(!JSON.stringify(feedbackRecord).includes("flipforge-tenant--beta-test"));
+
 const identityUsers = [];
 const identityUpdates = [];
 const identityAdmin = {
@@ -166,16 +208,22 @@ const operatorRequest = body => new Request("https://goflipforge.com/api/beta/op
   headers: { origin: "https://goflipforge.com", ...(body ? { "content-type": "application/json" } : {}) },
   body: body ? JSON.stringify(body) : undefined,
 });
-const anonymous = createBetaOperatorHandler({ applicationStore, eventStore, getUserFn: async () => null, identityAdmin, inviteIdentity, now: () => fixedNow });
+const anonymous = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => null, identityAdmin, inviteIdentity, now: () => fixedNow });
 assert.equal((await anonymous(operatorRequest())).status, 401);
-const customer = createBetaOperatorHandler({ applicationStore, eventStore, getUserFn: async () => ({ id: "customer", roles: ["flipforge-active"] }), identityAdmin, inviteIdentity, now: () => fixedNow });
+const customer = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => ({ id: "customer", roles: ["flipforge-active"] }), identityAdmin, inviteIdentity, now: () => fixedNow });
 assert.equal((await customer(operatorRequest())).status, 403);
-const operator = createBetaOperatorHandler({ applicationStore, eventStore, getUserFn: async () => operatorUser, identityAdmin, inviteIdentity, now: () => fixedNow });
+const operator = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => operatorUser, identityAdmin, inviteIdentity, now: () => fixedNow });
 let response = await operator(operatorRequest());
 assert.equal(response.status, 200);
 let dashboard = await response.json();
 assert.equal(dashboard.applicationSummary.total, 1);
 assert.equal(dashboard.funnel.counts.betaFormStarted, 1);
+assert.equal(dashboard.feedbackSummary.total, 1);
+assert.equal(dashboard.feedbackSummary.byCheckpoint.DAY_7, 1);
+response = await operator(operatorRequest({ action: "feedback-transition", feedbackId: feedbackRecord.id, expectedVersion: feedbackRecord.version, targetStatus: "UNDER_REVIEW", note: "Review the evidence-language clarity." }));
+assert.equal(response.status, 200);
+feedbackRecord = (await response.json()).feedback;
+assert.equal(feedbackRecord.status, "UNDER_REVIEW");
 
 response = await operator(operatorRequest({ action: "transition", applicationId: application.id, expectedVersion: application.version, targetStatus: "UNDER_REVIEW", note: "Strong exact-identity testing fit." }));
 assert.equal(response.status, 200);
@@ -204,7 +252,7 @@ response = await operator(operatorRequest());
 dashboard = await response.json();
 assert.equal(dashboard.applications[0].status, "ACTIVATED");
 console.log = originalLog;
-assert.ok(operationLogs.every(line => !line.includes("tester@example.com") && !line.includes("Test Applicant") && !line.includes("never-log@example.com")));
+assert.ok(operationLogs.every(line => !line.includes("tester@example.com") && !line.includes("Test Applicant") && !line.includes("never-log@example.com") && !line.includes("feedback@example.com") && !line.includes("original VERIFY")));
 
 if (failed) process.exit(1);
-console.log(`Beta operator workflow validation passed: ${checks.length + 28} checks.`);
+console.log(`Beta operator workflow validation passed: ${checks.length + 42} checks.`);

@@ -55,6 +55,23 @@
       </div>
     </section>
 
+    <section class="ff-operator-panel ff-feedback-panel" aria-labelledby="feedback-heading">
+      <header><div><span class="ff-operator-kicker">Tester learning loop</span><h2 id="feedback-heading">Feedback and outcome checkpoints</h2></div><p>Tester-reported signals—not product accuracy, market performance, or a recommendation recalculation.</p></header>
+      <div class="ff-feedback-metrics" aria-label="Feedback summary">
+        <article><span>Total feedback</span><strong data-feedback-metric="total">0</strong></article>
+        <article><span>Needs review</span><strong data-feedback-metric="new">0</strong></article>
+        <article><span>7 / 14 / 30 reviews</span><strong data-feedback-metric="checkpoints">0</strong></article>
+        <article><span>Reasoning held</span><strong data-feedback-metric="held">0</strong></article>
+        <article><span>Reasoning changed</span><strong data-feedback-metric="changed">0</strong></article>
+        <article><span>More evidence needed</span><strong data-feedback-metric="insufficient">0</strong></article>
+      </div>
+      <div class="ff-feedback-toolbar"><label>Status<select data-feedback-filter><option value="ALL">All statuses</option><option>NEW</option><option>UNDER_REVIEW</option><option>RESOLVED</option></select></label></div>
+      <div class="ff-operator-grid">
+        <div class="ff-application-list" data-feedback-list aria-live="polite"></div>
+        <aside class="ff-application-detail" data-feedback-detail><div class="ff-operator-empty"><strong>Select tester feedback</strong><p>Feedback details, outcome signals, follow-up permission, and review controls will appear here.</p></div></aside>
+      </div>
+    </section>
+
     <section class="ff-operator-boundary"><strong>Authority boundary</strong><p>Approving an applicant does not create access. Only the separate Send Identity Invitation action creates or updates an invited account and assigns one server-signed tenant membership. No billing or transaction authority is granted.</p></section>
   </div>
 </main>

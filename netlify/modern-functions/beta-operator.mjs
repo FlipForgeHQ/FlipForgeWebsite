@@ -3,9 +3,12 @@ import {
   ACTIVE_ROLE,
   APPLICATION_STORE_NAME,
   CONVERSION_STORE_NAME,
+  FEEDBACK_STORE_NAME,
   MAX_OPERATOR_BYTES,
   TENANT_ROLE_PREFIX,
   applicationKey,
+  feedbackKey,
+  feedbackSummary,
   funnelSummary,
   isOperator,
   listRecordEntries,
@@ -15,6 +18,7 @@ import {
   statusSummary,
   tenantIdFor,
   transitionApplication,
+  transitionFeedback,
 } from "./lib/beta-operations-core.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 
@@ -84,6 +88,21 @@ async function conditionalApplicationWrite(store, key, application, etag) {
   });
   if (result?.modified === false) throw new Error("VERSION_CONFLICT");
   return result?.etag;
+}
+
+async function conditionalFeedbackWrite(store, key, feedback, etag) {
+  if (!etag) throw new Error("VERSION_CONFLICT");
+  const result = await store.setJSON(key, feedback, {
+    metadata: {
+      schemaVersion: Number(feedback.schemaVersion || 1),
+      status: feedback.status,
+      category: feedback.feedback?.category,
+      checkpoint: feedback.feedback?.checkpoint,
+      updatedAt: feedback.updatedAt,
+    },
+    onlyIfMatch: etag,
+  });
+  if (result?.modified === false) throw new Error("VERSION_CONFLICT");
 }
 
 function reserveInvitation(application, now) {
@@ -168,10 +187,12 @@ async function syncActivations(applicationStore, applications, identityAdmin, no
   return updated;
 }
 
-async function dashboard(applicationStore, eventStore, identityAdmin, now, shouldSync = true) {
+async function dashboard(applicationStore, eventStore, feedbackStore, identityAdmin, now, shouldSync = true) {
   let applications = await listRecords(applicationStore, "application/");
   if (shouldSync) applications = await syncActivations(applicationStore, applications, identityAdmin, now);
   applications.sort((left, right) => String(right.submittedAt || "").localeCompare(String(left.submittedAt || "")));
+  const feedback = await listRecords(feedbackStore, "feedback/");
+  feedback.sort((left, right) => String(right.submittedAt || "").localeCompare(String(left.submittedAt || "")));
   const eventEntries = await listRecordEntries(eventStore, "event/");
   const retentionStart = now.getTime() - 90 * 24 * 60 * 60 * 1000;
   const retainedEvents = [];
@@ -184,6 +205,8 @@ async function dashboard(applicationStore, eventStore, identityAdmin, now, shoul
     operation: "beta-operator-dashboard",
     applications,
     applicationSummary: statusSummary(applications),
+    feedback,
+    feedbackSummary: feedbackSummary(feedback),
     funnel: funnelSummary(retainedEvents, applications, now),
     invitationAuthority: "NETLIFY_IDENTITY_SERVER_OPERATOR",
   };
@@ -266,19 +289,23 @@ function publicError(error) {
   const clientErrors = new Set([
     "INVALID_APPLICATION_ID",
     "APPLICATION_NOT_FOUND",
+    "INVALID_FEEDBACK_ID",
+    "FEEDBACK_NOT_FOUND",
     "APPLICATION_NOT_APPROVED",
     "COHORT_REQUIRED",
     "IDENTITY_ACCOUNT_CONFLICT",
     "INVITATION_IN_PROGRESS",
     "INVALID_STATUS_TRANSITION",
+    "INVALID_FEEDBACK_TRANSITION",
     "VERSION_CONFLICT",
   ]);
-  return clientErrors.has(code) ? { status: code === "APPLICATION_NOT_FOUND" ? 404 : 409, code } : { status: 502, code: "OPERATOR_OPERATION_FAILED" };
+  return clientErrors.has(code) ? { status: ["APPLICATION_NOT_FOUND", "FEEDBACK_NOT_FOUND"].includes(code) ? 404 : 409, code } : { status: 502, code: "OPERATOR_OPERATION_FAILED" };
 }
 
 export function createBetaOperatorHandler({
   applicationStore,
   eventStore,
+  feedbackStore,
   getUserFn = getUser,
   identityAdmin = admin,
   inviteIdentity = rawIdentityInvite,
@@ -291,9 +318,10 @@ export function createBetaOperatorHandler({
 
     const applications = applicationStore || betaRuntimeStore(APPLICATION_STORE_NAME, request);
     const events = eventStore || betaRuntimeStore(CONVERSION_STORE_NAME, request);
+    const feedbackRecords = feedbackStore || betaRuntimeStore(FEEDBACK_STORE_NAME, request);
     if (request.method === "GET") {
       try {
-        return reply(200, await dashboard(applications, events, identityAdmin, now(), true));
+        return reply(200, await dashboard(applications, events, feedbackRecords, identityAdmin, now(), true));
       } catch {
         return reply(502, { authorized: true, reason: "OPERATOR_DASHBOARD_UNAVAILABLE" });
       }
@@ -311,7 +339,28 @@ export function createBetaOperatorHandler({
 
     try {
       const action = String(input?.action || "");
-      if (action === "sync") return reply(200, await dashboard(applications, events, identityAdmin, now(), true));
+      if (action === "sync") return reply(200, await dashboard(applications, events, feedbackRecords, identityAdmin, now(), true));
+      if (action === "feedback-transition") {
+        const key = feedbackKey(input?.feedbackId);
+        const currentEntry = await feedbackRecords.getWithMetadata(key, { type: "json" });
+        const current = currentEntry?.data;
+        if (!current) throw new Error("FEEDBACK_NOT_FOUND");
+        if (Number(input?.expectedVersion) !== Number(current.version)) throw new Error("VERSION_CONFLICT");
+        const updatedFeedback = transitionFeedback(current, {
+          targetStatus: String(input?.targetStatus || ""),
+          note: input?.note,
+          now: now(),
+        });
+        await conditionalFeedbackWrite(feedbackRecords, key, updatedFeedback, currentEntry.etag);
+        console.log(JSON.stringify({
+          type: "flipforge_beta_operator_operation",
+          operation: "FEEDBACK_TRANSITIONED",
+          feedbackId: updatedFeedback.id,
+          status: updatedFeedback.status,
+          occurredAt: updatedFeedback.updatedAt,
+        }));
+        return reply(200, { authorized: true, feedback: updatedFeedback });
+      }
       const key = applicationKey(input?.applicationId);
       const currentEntry = await applications.getWithMetadata(key, { type: "json" });
       const current = currentEntry?.data;

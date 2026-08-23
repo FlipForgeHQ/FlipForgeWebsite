@@ -12,7 +12,7 @@ The customer path is now:
 4. review the saved Card Intelligence and Decision Traceback;
 5. return to the tracked SQLite record;
 6. inspect saved Evidence, PSA guidance, Exit Review, lifecycle, Portfolio reference context, or Decision Dossier context;
-7. submit structured beta feedback.
+7. submit structured beta feedback or a 7 / 14 / 30 outcome checkpoint.
 
 Smart Opportunity remains the sole `BUY / WATCH / VERIFY / PASS` authority. Existing PSA intelligence remains the sole grading-guidance authority. SQLite remains the source of truth for saved evaluations and tenant-owned opportunities.
 
@@ -30,16 +30,20 @@ Production remains inactive. Tracked Netlify configuration keeps the gateway dis
 
 ## Feedback capture
 
-The static application registers the Netlify form `flipforge-private-beta-feedback`. The customer form posts a bounded, URL-encoded payload to the same origin and collects only:
+The customer application posts a bounded JSON payload to the same-origin `POST /api/beta/feedback` function. The function independently requires an authenticated account with `flipforge-active` and exactly one administrator-signed tenant role before writing to the site-scoped beta feedback store. It collects only:
 
 - feedback category;
 - optional 1–5 experience rating;
 - required summary;
 - optional expected result;
 - optional permission to include the invited account email for follow-up;
-- the current application route.
+- the current application route;
+- a general, Day 7, Day 14, or Day 30 checkpoint; and
+- an optional tester-reported outcome signal: original reasoning still supported, original reasoning needs revision, or evidence remains insufficient.
 
-The invited account email is included only when the tester checks the explicit follow-up permission. The form never submits a password, raw JWT, refresh token, tenant ID, provider credential, service token, listing URL, card identity, evaluation payload, or saved opportunity ID. Tester guidance explicitly tells users not to paste sensitive or card-specific data into feedback.
+The server reads the invited account email from the signed Identity session only when the tester checks explicit follow-up permission. The browser never submits an email address, password, raw JWT, refresh token, tenant ID, provider credential, service token, listing URL, card identity, evaluation payload, or saved opportunity ID. Tester guidance explicitly tells users not to paste sensitive or card-specific data into feedback.
+
+The role-gated operator workspace reports feedback review state and checkpoint counts. These signals do not mutate the saved evaluation, recalculate a recommendation, prove product accuracy, or represent market performance.
 
 ## Honest beta boundaries
 
