@@ -7,6 +7,8 @@ const homepageCss = read('assets/css/homepage-focus-v1.css');
 const conversionCss = read('assets/css/homepage-conversion-v2.css');
 const dossierCss = read('assets/css/sample-dossier-v1.css');
 const homepageJs = read('assets/js/homepage-v1.js');
+const netlifyConfig = read('netlify.toml');
+const serviceWorker = read('sw.js');
 const failures = [];
 const requireText = (label, text, needle) => { if (!text.includes(needle)) failures.push(`${label}: missing ${JSON.stringify(needle)}`); };
 const forbidText = (label, text, needle) => { if (text.toLowerCase().includes(needle.toLowerCase())) failures.push(`${label}: forbidden ${JSON.stringify(needle)}`); };
@@ -39,6 +41,16 @@ requireText('homepage JavaScript', homepageJs, 'Decision support only. FlipForge
 requireText('homepage JavaScript', homepageJs, 'Confirm the parallel → replace mismatched evidence → rerun analysis.');
 requireText('homepage JavaScript', homepageJs, 'finishPreview');
 
+// Production homepage hardening must remain compatible with the current Netlify Identity client.
+forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
+forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
+requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
+
+// The installable shell must cache the rebuilt homepage, not the pre-conversion asset set.
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v2'");
+requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
+requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
+
 for (const section of ['Identity resolution', 'Evidence chain', 'Decision output', 'Required next checks']) requireText('sample dossier', dossier, section);
 for (const boundary of ['Illustrative sample', 'Not live market data', 'No transaction authority', 'Supported value', 'Withheld', 'VERIFY']) requireText('sample dossier', dossier, boundary);
 requireText('sample dossier', dossier, 'not a live card evaluation');
@@ -58,4 +70,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Conversion-led homepage, governed validation framing, verdict-stop demo behavior, local decision boundaries, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Conversion-led homepage, governed validation framing, verdict-stop demo behavior, local decision boundaries, Identity-compatible CSP, current PWA shell, and customer-safe Decision Dossier remain complete and evidence-safe.');
