@@ -31,7 +31,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["011 feedback uses the signed same-origin server endpoint", beta.includes('const FEEDBACK_ENDPOINT = "/api/beta/feedback"')],
   ["012 feedback includes governed checkpoint and outcome inputs", beta.includes('name="checkpoint"') && beta.includes('name="outcome"') && beta.includes('value="DAY_30"')],
   ["013 legacy anonymous Netlify feedback form is removed", !index.includes('name="flipforge-private-beta-feedback"') && !index.includes('data-netlify="true"')],
-  ["014 beta adapter is deploy-preview constrained", beta.includes("PREVIEW_HOST") && beta.includes("eligibleHost()")],
+  ["014 beta adapter is limited to approved preview and production hosts", beta.includes("PREVIEW_HOST") && beta.includes("PRODUCTION_HOST") && beta.includes("eligibleHost()")],
   ["015 first-run route is beta-start", beta.includes('const ROUTE = "beta-start"')],
   ["016 first-run uses only a named onboarding preference", beta.includes('const ONBOARDING_KEY = "flipforge.privateBeta.onboarding.v1"')],
   ["017 onboarding preference stores only complete", beta.includes('const ONBOARDING_VALUE = "complete"') && beta.includes("setItem(ONBOARDING_KEY, ONBOARDING_VALUE)")],
@@ -47,7 +47,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["027 health failure never substitutes mock data", beta.includes("no mock response was substituted")],
   ["028 disabled bridge is reported honestly", beta.includes("Safely offline") && beta.includes("disabled between controlled beta sessions")],
   ["029 available bridge requires configured and enabled", beta.includes('health.data?.status === "configured" && health.data?.bridgeEnabled')],
-  ["030 production is explicitly inactive", beta.includes('statusCard("Production", "Inactive"')],
+  ["030 production private-beta access remains invitation-only", beta.includes('statusCard("Customer access"') && beta.includes("Live private beta") && beta.includes("invited testers with active membership")],
   ["031 Smart Opportunity remains sole authority", beta.includes("Smart Opportunity remains the sole recommendation authority")],
   ["032 existing PSA authority remains explicit", beta.includes("Existing PSA intelligence remains the sole grading-guidance authority")],
   ["033 SQLite remains source of truth", beta.includes("SQLite remains the source of truth")],
@@ -71,14 +71,14 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["048 feedback payload does not collect tenant ID", !/payload\.(?:tenant|tenantId)/i.test(beta)],
   ["049 feedback payload does not collect card or listing data", !/payload\.(?:card|listing|opportunity|evaluation)/i.test(beta)],
   ["050 feedback warns against sensitive or card-specific content", ["passwords", "access tokens", "provider keys", "tenant IDs", "card listing URLs", "card identities"].every(value => beta.includes(value))],
-  ["050a preview shell uses sanitized tester identity", beta.includes("function syncShell") && beta.includes("session.fullName") && !/syncShell[\s\S]{0,1000}session\.email/.test(beta)],
+  ["050a customer shell uses sanitized tester identity", beta.includes("function syncShell") && beta.includes("session.fullName") && !/syncShell[\s\S]{0,1000}session\.email/.test(beta)],
   ["051 feedback failure cannot claim evaluation loss", beta.includes("Your evaluation data was not affected")],
   ["052 responsive private beta layout exists", css.includes("@media (max-width: 1050px)") && css.includes("@media (max-width: 650px)")],
   ["053 reduced motion is respected", css.includes("prefers-reduced-motion")],
   ["054 docs prohibit a second application or engine", docs.includes("does not create another application, recommendation engine")],
   ["055 docs define the single non-sensitive preference value", docs.includes("flipforge.privateBeta.onboarding.v1") && docs.includes("value `complete`")],
-  ["056 docs retain production-disabled boundary", docs.includes("Production remains inactive")],
-  ["057 docs retain deploy-preview gateway control", docs.includes("gateway disabled unless a separately approved deploy-preview")],
+  ["056 docs define controlled production private-beta access", docs.includes("production private-beta path is active only for invited testers")],
+  ["057 docs retain environment-gated customer API control", docs.includes("customer API can still be disabled between approved testing sessions")],
   ["058 docs enumerate feedback exclusions", docs.includes("password, raw JWT, refresh token, tenant ID, provider credential, service token")],
   ["058a docs make contact email server-owned and opt-in", docs.includes("server reads the invited account email") && docs.includes("only when the tester checks explicit follow-up permission")],
   ["059 docs identify Discover as real but scoped", docs.includes("Provider-backed Discover is a real customer path") && docs.includes("does not claim complete-market coverage") && docs.includes("search results are ephemeral")],
@@ -96,14 +96,14 @@ function makeStorage(initial = {}) {
   };
 }
 
-function runtime({ hash, authenticated, membershipActive, healthStatus = "disabled", bridgeEnabled = false, storage = makeStorage() }) {
+function runtime({ hash, authenticated, membershipActive, healthStatus = "disabled", bridgeEnabled = false, storage = makeStorage(), hostname = "deploy-preview-32--goflipforge.netlify.app" }) {
   const main = { innerHTML: "", focus() {} };
   const bannerTitle = { textContent: "NON-PRODUCTION PROTOTYPE" };
   const bannerCopy = { textContent: "Mock responses only" };
   const banner = { querySelector(selector) { return selector === "strong" ? bannerTitle : selector === "span" ? bannerCopy : null; } };
   const listeners = {};
   const window = {
-    location: { hostname: "deploy-preview-32--goflipforge.netlify.app", hash },
+    location: { hostname, hash },
     localStorage: storage,
     FlipForgeIdentity: {
       getSnapshot: () => ({ authenticated, email: authenticated ? "tester@example.com" : "", fullName: authenticated ? "Beta Tester" : "", membershipActive, membershipConfigured: membershipActive })
@@ -132,6 +132,9 @@ function runtime({ hash, authenticated, membershipActive, healthStatus = "disabl
 const firstRun = runtime({ hash: "#/dashboard", authenticated: true, membershipActive: true });
 check("061 active first-run tester is routed to Beta Guide", firstRun.window.location.hash === "#/beta-start");
 
+const productionFirstRun = runtime({ hash: "#/dashboard", authenticated: true, membershipActive: true, hostname: "goflipforge.com" });
+check("061a active production tester is routed to Beta Guide", productionFirstRun.window.location.hash === "#/beta-start");
+
 const signedOut = runtime({ hash: "#/dashboard", authenticated: false, membershipActive: false });
 check("062 signed-out visitor is not redirected", signedOut.window.location.hash === "#/dashboard");
 
@@ -152,6 +155,12 @@ check("069 Beta Guide banner replaces prototype wording", betaRoute.bannerTitle.
 check("070 rendered guide contains no invited account email", !betaRoute.main.innerHTML.includes("tester@example.com"));
 check("071 rendered guide offers provider-backed Discover", betaRoute.main.innerHTML.includes("Start with Discover") && betaRoute.main.innerHTML.includes("Search one exact card"));
 check("072 rendered guide discloses connected-source scope", betaRoute.main.innerHTML.includes("Connected-source scope"));
+
+const productionBetaRoute = runtime({ hash: "#/beta-start", authenticated: true, membershipActive: true, healthStatus: "configured", bridgeEnabled: true, hostname: "goflipforge.com" });
+await new Promise(resolve => setTimeout(resolve, 20));
+check("073 production Beta Guide renders after invitation activation", productionBetaRoute.main.innerHTML.includes("Private Beta Guide") && productionBetaRoute.main.innerHTML.includes("Tester walkthrough"));
+check("074 production guide reports live private-beta access", productionBetaRoute.main.innerHTML.includes("Live private beta") && productionBetaRoute.main.innerHTML.includes("invited testers with active membership"));
+check("075 unapproved hosts remain ineligible", runtime({ hash: "#/beta-start", authenticated: true, membershipActive: true, hostname: "example.com" }).main.innerHTML === "");
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSPrivateBetaReadinessValidation");
