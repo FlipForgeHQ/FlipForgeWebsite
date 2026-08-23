@@ -44,6 +44,19 @@ requireText('homepage JavaScript', homepageJs, 'Decision support only. FlipForge
 requireText('homepage JavaScript', homepageJs, 'Confirm the parallel → replace mismatched evidence → rerun analysis.');
 requireText('homepage JavaScript', homepageJs, 'finishPreview');
 
+for (const heroNeedle of [
+  'See FlipForge catch a bad decision ↓',
+  'Jump to demo',
+  'Try FlipForge ↓',
+  'Decision spotlight',
+  'One bad claim can change the whole decision.',
+  'Claimed: Refractor',
+  'FlipForge verdict · VERIFY',
+  'Do not buy the story.',
+  'Try this decision flow ↓',
+  'See FlipForge catch a bad decision in four steps.'
+]) requireText('homepage hero refresh', homepageJs, heroNeedle);
+
 // Production homepage hardening must remain compatible with the current Netlify Identity client.
 forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
@@ -73,4 +86,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Conversion-led homepage, governed validation framing, verdict-stop demo behavior, local decision boundaries, Identity-compatible CSP, current PWA shell, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Conversion-led homepage, governed validation framing, stronger hero engagement, easy Try FlipForge discovery, verdict-stop demo behavior, local decision boundaries, Identity-compatible CSP, current PWA shell, and customer-safe Decision Dossier remain complete and evidence-safe.');
