@@ -76,6 +76,8 @@ check("051 password handling remains Netlify-only and explicitly non-persistent 
 check("052 shared Identity UI permits the production operator route only on the canonical site", identitySource.includes("const PRODUCTION_OPERATOR_HOST =") && identitySource.includes("goflipforge\\.com") && identitySource.includes("const PRODUCTION_OPERATOR_PATH =") && identitySource.includes("function productionOperatorPage()"));
 check("053 shared Identity open fails closed outside preview and operator routes", identitySource.includes("if (!interactiveIdentityHost()) return false") && identitySource.includes("return previewHost() || productionOperatorPage()"));
 check("054 production operator sign-in explains server-side role verification", identitySource.includes("Operator authorization is verified again by the server") && identitySource.includes("Operator role not active"));
+check("055 production invitations use customer-facing beta wording", identitySource.includes("Activate your FlipForge beta account") && !identitySource.includes("Activate your FlipForge staging account"));
+check("056 successful production invitation opens Getting Started", identitySource.includes('window.location.assign("/app/#/beta-start")') && identitySource.includes("Opening FlipForge Getting Started"));
 
 const failures = checks.filter(item => !item.passed);
 console.log("NetlifyIdentityModernizationValidation");
