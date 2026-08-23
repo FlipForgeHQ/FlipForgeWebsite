@@ -1,6 +1,13 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
-import conversionEvent from "../netlify/modern-functions/conversion-event.mjs";
+import { createConversionEventHandler } from "../netlify/modern-functions/conversion-event.mjs";
+
+class MemoryStore {
+  constructor() { this.records = new Map(); }
+  async setJSON(key, value) { this.records.set(key, structuredClone(value)); }
+}
+
+const conversionEvent = createConversionEventHandler({ store: new MemoryStore() });
 
 const read = path => fs.readFileSync(path, "utf8");
 const beta = read("beta-application.html");
@@ -19,8 +26,8 @@ const sitemap = read("sitemap.xml");
 const checks = [
   ["validator registered", packageJson.scripts?.["validate:beta-acquisition"] === "node scripts/validate-beta-acquisition-onboarding.mjs"],
   ["Netlify build runs validator", netlify.includes("npm run validate:beta-acquisition")],
-  ["beta application uses same-site Netlify form", beta.includes('name="flipforge-private-beta-application"') && beta.includes('action="/thank-you.html"') && beta.includes('data-netlify="true"')],
-  ["beta application includes honeypot", beta.includes('netlify-honeypot="bot-field"') && beta.includes('name="bot-field"')],
+  ["beta application uses same-site server intake", beta.includes('name="flipforge-private-beta-application"') && beta.includes('action="/api/beta/applications"')],
+  ["beta application includes honeypot", beta.includes('name="bot-field"')],
   ["outside FormSubmit dependency removed", !beta.includes("formsubmit.co") && !privacy.includes("FormSubmit")],
   ["form start hook is mounted", beta.includes("data-beta-application-form") && client.includes('beta_form_started')],
   ["post-submit page states selection boundary", thankYou.includes("Awaiting selection review") && thankYou.includes("does not create an account")],

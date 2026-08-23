@@ -1,3 +1,6 @@
+import { CONVERSION_STORE_NAME } from "./lib/beta-operations-core.mjs";
+import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
+
 const MAX_BODY_BYTES = 2048;
 
 const EVENT_NAMES = new Set([
@@ -60,7 +63,8 @@ function sameOrigin(request) {
   }
 }
 
-export default async function conversionEvent(request) {
+export function createConversionEventHandler({ store, now = () => new Date() } = {}) {
+  return async function conversionEvent(request) {
   if (request.method !== "POST") {
     return reply(405, { accepted: false, reason: "METHOD_NOT_ALLOWED" });
   }
@@ -76,7 +80,7 @@ export default async function conversionEvent(request) {
   let input;
   try {
     const raw = await request.text();
-    if (raw.length > MAX_BODY_BYTES) {
+    if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) {
       return reply(413, { accepted: false, reason: "PAYLOAD_TOO_LARGE" });
     }
     input = JSON.parse(raw);
@@ -97,15 +101,34 @@ export default async function conversionEvent(request) {
     event,
     page,
     placement,
-    occurredAt: new Date().toISOString(),
+    occurredAt: now().toISOString(),
   };
 
   // Deliberately log only allowlisted funnel dimensions. Do not add IP address,
   // user agent, referrer, query string, email, account, card, or listing data.
   console.log(JSON.stringify(record));
+  try {
+    const targetStore = store || betaRuntimeStore(CONVERSION_STORE_NAME, request);
+    const date = record.occurredAt.slice(0, 10);
+    await targetStore.setJSON(`event/${date}/${record.occurredAt}-${crypto.randomUUID()}.json`, record, {
+      metadata: { event: record.event, occurredAt: record.occurredAt },
+    });
+  } catch {
+    // Measurement must never block the visitor's journey. Netlify function logs
+    // remain the fallback record and deliberately contain the same allowlist only.
+    console.error(JSON.stringify({ type: "flipforge_conversion_storage", status: "UNAVAILABLE" }));
+  }
   return reply(202, { accepted: true });
+  };
 }
+
+export default createConversionEventHandler();
 
 export const config = {
   path: "/api/conversion-event",
+  rateLimit: {
+    windowLimit: 60,
+    windowSize: 60,
+    aggregateBy: ["ip", "domain"],
+  },
 };

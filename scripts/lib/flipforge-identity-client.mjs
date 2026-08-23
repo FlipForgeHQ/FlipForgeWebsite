@@ -73,7 +73,8 @@ function identitySnapshot(user = state.user) {
       email: "",
       fullName: "",
       membershipActive: false,
-      membershipConfigured: false
+      membershipConfigured: false,
+      operatorActive: false
     });
   }
 
@@ -91,7 +92,8 @@ function identitySnapshot(user = state.user) {
     email: clean(user.email),
     fullName: clean(userMetadata.full_name),
     membershipActive: roles.includes("flipforge-active") && membershipConfigured,
-    membershipConfigured
+    membershipConfigured,
+    operatorActive: roles.includes("flipforge-operator") || String(user.role || "") === "admin"
   });
 }
 
