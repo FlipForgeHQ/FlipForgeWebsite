@@ -10,6 +10,8 @@ import {
 } from "@netlify/identity";
 
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+const PRODUCTION_OPERATOR_HOST = /^(?:www\.)?goflipforge\.com$/i;
+const PRODUCTION_OPERATOR_PATH = /^\/operator-beta(?:\.html)?\/?$/i;
 const CALLBACK_HASH = /(?:^#|[&#])(invite_token|confirmation_token|recovery_token|email_change_token)=/i;
 const ROOT_ID = "flipforge-identity-root";
 const STYLE_ID = "flipforge-identity-style";
@@ -29,6 +31,15 @@ const state = {
 
 function previewHost() {
   return PREVIEW_HOST.test(String(window.location.hostname || ""));
+}
+
+function productionOperatorPage() {
+  return PRODUCTION_OPERATOR_HOST.test(String(window.location.hostname || ""))
+    && PRODUCTION_OPERATOR_PATH.test(String(window.location.pathname || ""));
+}
+
+function interactiveIdentityHost() {
+  return previewHost() || productionOperatorPage();
 }
 
 function callbackPresent() {
@@ -121,9 +132,11 @@ window.FlipForgeIdentity = Object.freeze({
     return identitySnapshot();
   },
   open: () => {
+    if (!interactiveIdentityHost()) return false;
     state.panelOpen = true;
     state.recoveryRequestOpen = false;
     render();
+    return true;
   },
   requestRecovery: async email => {
     const normalizedEmail = clean(email);
@@ -220,10 +233,12 @@ function renderInvite(element) {
       await acceptInvite(state.inviteToken, password);
       state.inviteToken = "";
       setAuthenticatedUser(await getUser(), { renderIfChanged: false });
-      state.message = previewHost()
+      state.message = productionOperatorPage()
+        ? "Account activated. Checking the signed operator role."
+        : previewHost()
         ? "Account activated and signed in for this deploy preview."
         : "Account activated. Open the approved FlipForge deploy preview and sign in there.";
-      state.panelOpen = previewHost();
+      state.panelOpen = interactiveIdentityHost();
     } catch (error) {
       state.error = error instanceof Error ? error.message : "The invitation could not be accepted.";
     } finally {
@@ -267,8 +282,10 @@ function renderRecoveryPassword(element) {
       const nextUser = await updateUser({ password });
       setAuthenticatedUser(nextUser || await getUser(), { renderIfChanged: false });
       state.recoveryMode = false;
-      state.panelOpen = previewHost();
-      state.message = previewHost()
+      state.panelOpen = interactiveIdentityHost();
+      state.message = productionOperatorPage()
+        ? "Password updated. Checking the signed operator role."
+        : previewHost()
         ? "Password updated. Your secure staging session is active."
         : "Password updated. Open the approved FlipForge deploy preview to continue.";
     } catch (error) {
@@ -294,22 +311,40 @@ function recoveryRequestMarkup() {
 }
 
 function renderPreview(element) {
+  const operatorMode = productionOperatorPage();
+  const snapshot = identitySnapshot();
+  const accessActive = operatorMode ? snapshot.operatorActive : snapshot.membershipActive;
+  const panelLabel = operatorMode ? "FlipForge operator identity" : "FlipForge staging identity";
+  const heading = operatorMode ? "Operator sign in" : "Staging sign in";
+  const signedInHeading = operatorMode ? "Operator identity" : "Staging identity";
+  const signInCopy = operatorMode
+    ? "Use the FlipForge account assigned the signed operator role. Public signup is intentionally unavailable."
+    : "Use a controlled, invited FlipForge staging account. Public signup is intentionally not provided.";
+  const accessLabel = operatorMode
+    ? accessActive ? "Operator role active" : "Operator role not active"
+    : accessActive ? "Active staging membership" : "Membership not active";
+  const accessNote = operatorMode
+    ? "Operator authorization is verified again by the server before any applicant or tester record is returned."
+    : "Tenant membership is resolved server-side from signed application metadata. Browser code cannot choose a tenant.";
+  const toggleLabel = operatorMode
+    ? state.user ? "Operator account" : "Operator sign in"
+    : state.user ? "Staging account" : "Staging sign in";
   const panel = state.recoveryRequestOpen
     ? recoveryRequestMarkup()
     : state.panelOpen
     ? state.user
-      ? `<section class="ff-id-panel ff-id-user" role="dialog" aria-label="FlipForge staging identity">
-          <h2>Staging identity</h2>
+      ? `<section class="ff-id-panel ff-id-user" role="dialog" aria-label="${panelLabel}">
+          <h2>${signedInHeading}</h2>
           <p>Signed in as <strong>${escapeHtml(state.user.email || "Identity user")}</strong>.</p>
-          <span class="ff-id-membership" data-active="${identitySnapshot().membershipActive}">${identitySnapshot().membershipActive ? "Active staging membership" : "Membership not active"}</span>
-          <p class="ff-id-note">Tenant membership is resolved server-side from signed application metadata. Browser code cannot choose a tenant.</p>
+          <span class="ff-id-membership" data-active="${accessActive}">${accessLabel}</span>
+          <p class="ff-id-note">${accessNote}</p>
           <div class="ff-id-actions"><button class="ff-id-button ff-id-secondary" type="button" data-ff-identity-close>Close</button><button class="ff-id-button" type="button" data-ff-identity-logout ${state.busy ? "disabled" : ""}>Sign out</button></div>
           ${state.message ? `<p class="ff-id-status">${escapeHtml(state.message)}</p>` : ""}
           ${state.error ? `<p class="ff-id-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
         </section>`
-      : `<section class="ff-id-panel" role="dialog" aria-label="FlipForge staging sign in">
-          <h2>Staging sign in</h2>
-          <p>Use a controlled, invited FlipForge staging account. Public signup is intentionally not provided.</p>
+      : `<section class="ff-id-panel" role="dialog" aria-label="${panelLabel}">
+          <h2>${heading}</h2>
+          <p>${signInCopy}</p>
           <form data-ff-identity-login>
             <label>Email<input name="email" type="email" autocomplete="username" required></label>
             <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
@@ -321,7 +356,7 @@ function renderPreview(element) {
         </section>`
     : "";
 
-  element.innerHTML = `${panel}<button class="ff-id-button" type="button" data-ff-identity-toggle>${state.user ? "Staging account" : "Staging sign in"}</button>`;
+  element.innerHTML = `${panel}<button class="ff-id-button" type="button" data-ff-identity-toggle>${toggleLabel}</button>`;
 
   element.querySelector("[data-ff-identity-toggle]")?.addEventListener("click", () => {
     state.panelOpen = !state.panelOpen;
@@ -376,7 +411,9 @@ function renderPreview(element) {
     render();
     try {
       setAuthenticatedUser(await login(email, password), { renderIfChanged: false });
-      state.message = "Signed in. Refresh Staging Data to load the authenticated tenant view.";
+      state.message = operatorMode
+        ? "Signed in. Checking the signed operator role."
+        : "Signed in. Refresh Staging Data to load the authenticated tenant view.";
       window.FlipForgeStagingReadAdapter?.refresh?.();
     } catch (error) {
       state.error = error instanceof Error ? error.message : "Sign in failed.";
@@ -406,7 +443,7 @@ function renderPreview(element) {
 
 function render() {
   const needsCallbackUi = Boolean(state.inviteToken);
-  if (!previewHost() && !needsCallbackUi && !state.recoveryMode && !state.message && !state.error) {
+  if (!interactiveIdentityHost() && !needsCallbackUi && !state.recoveryMode && !state.message && !state.error) {
     document.getElementById(ROOT_ID)?.remove();
     return;
   }
@@ -414,7 +451,7 @@ function render() {
   const element = root();
   if (needsCallbackUi) renderInvite(element);
   else if (state.recoveryMode) renderRecoveryPassword(element);
-  else if (previewHost()) renderPreview(element);
+  else if (interactiveIdentityHost()) renderPreview(element);
   else {
     element.innerHTML = `<section class="ff-id-panel"><h2>FlipForge Identity</h2><p>${escapeHtml(state.message || state.error || "Authentication callback completed.")}</p></section>`;
   }

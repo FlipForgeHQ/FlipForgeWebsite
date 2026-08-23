@@ -73,6 +73,9 @@ check("048 production login refreshes shared Identity and tenant adapters", prod
 check("049 invite and recovery password minimum is hardened to fifteen characters", identitySource.includes("const PASSWORD_MIN_LENGTH = 15;") && identitySource.includes('minlength="${PASSWORD_MIN_LENGTH}"'));
 check("050 password guidance is visible and recommends unique credentials", identitySource.includes("Use a unique password with at least ${PASSWORD_MIN_LENGTH} characters. A password manager is recommended.") && identitySource.includes("PASSWORD_GUIDANCE"));
 check("051 password handling remains Netlify-only and explicitly non-persistent in FlipForge", identitySource.includes("FlipForge does not store or log your password.") && !/console\.(?:log|info|debug|warn|error)\([^\n]*password/i.test(identitySource));
+check("052 shared Identity UI permits the production operator route only on the canonical site", identitySource.includes("const PRODUCTION_OPERATOR_HOST =") && identitySource.includes("goflipforge\\.com") && identitySource.includes("const PRODUCTION_OPERATOR_PATH =") && identitySource.includes("function productionOperatorPage()"));
+check("053 shared Identity open fails closed outside preview and operator routes", identitySource.includes("if (!interactiveIdentityHost()) return false") && identitySource.includes("return previewHost() || productionOperatorPage()"));
+check("054 production operator sign-in explains server-side role verification", identitySource.includes("Operator authorization is verified again by the server") && identitySource.includes("Operator role not active"));
 
 const failures = checks.filter(item => !item.passed);
 console.log("NetlifyIdentityModernizationValidation");
