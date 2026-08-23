@@ -37,7 +37,7 @@ const homepageFailures = [];
 if (!index.includes('assets/images/flipforge-homepage-dashboard.svg')) {
   homepageFailures.push('homepage dashboard visual');
 }
-if (!index.includes('class="hero ff-hero-v3"')) {
+if (!index.includes('class="hero ff-hero-v3')) {
   homepageFailures.push('static focused hero');
 }
 if (!index.includes('ff-home-focused')) {
@@ -48,6 +48,9 @@ if (!index.includes('assets/css/marketing-v3.css')) {
 }
 if (!index.includes('assets/css/homepage-focus-v1.css')) {
   homepageFailures.push('static homepage focus stylesheet');
+}
+if (!index.includes('assets/css/homepage-conversion-v2.css')) {
+  homepageFailures.push('conversion homepage stylesheet');
 }
 if (index.includes('assets/images/grading-scenario-analysis.webp')) {
   homepageFailures.push('legacy grading WebP reference removed');

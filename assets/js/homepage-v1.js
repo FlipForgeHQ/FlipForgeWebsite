@@ -44,6 +44,22 @@
     window.addEventListener('resize',()=>{if(window.innerWidth>1000)closeMenu();},{passive:true});
   }
 
+  const decisionBoundaryText='Decision support only. FlipForge does not authorize transactions or guarantee outcomes.';
+  const addDecisionBoundary=(container,placement='append')=>{
+    if(!container||container.querySelector('.ff-decision-boundary'))return;
+    const boundary=document.createElement('p');
+    boundary.className='caption ff-decision-boundary';
+    boundary.textContent=decisionBoundaryText;
+    if(placement==='after')container.insertAdjacentElement('afterend',boundary);
+    else container.append(boundary);
+  };
+
+  const dossierPreview=document.querySelector('.ff-dossier-preview');
+  addDecisionBoundary(dossierPreview);
+
+  const demoResult=document.querySelector('.demo-result');
+  addDecisionBoundary(demoResult,'after');
+
   const steps=[
     {
       label:'Step 1 of 4 · Enter the card',
@@ -89,7 +105,7 @@
       stateClass:'blue',
       checks:[
         ['good','✓','Clear action state','The result explains what is wrong and what to do next.'],
-        ['neutral','→','Required proof','Use slab photos, item specifics, and authoritative identity evidence.'],
+        ['neutral','→','Resolution path','Confirm the parallel → replace mismatched evidence → rerun analysis.'],
         ['good','✓','Decision protected','No purchase authorization comes from weak evidence.']
       ]
     }
@@ -103,11 +119,14 @@
   const checks=document.getElementById('demo-checks');
   const demoSection=document.getElementById('try-flipforge');
   const playback=document.getElementById('demo-playback');
+  const screenMode=document.querySelector('.screen-mode');
   const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const lastStepIndex=steps.length-1;
   let currentIndex=0;
   let timer=null;
   let inView=false;
   let paused=reducedMotion.matches;
+  let completed=false;
 
   const renderStep=index=>{
     const step=steps[index];
@@ -143,49 +162,79 @@
   };
 
   const stopPreview=()=>{
-    if(timer!==null){window.clearInterval(timer);timer=null;}
+    if(timer!==null){window.clearTimeout(timer);timer=null;}
   };
   const syncPlayback=()=>{
     if(!playback)return;
+    if(completed){
+      playback.textContent='Restart demo';
+      playback.setAttribute('aria-pressed','false');
+      if(screenMode)screenMode.textContent='Illustrative · Final verdict';
+      return;
+    }
     playback.textContent=paused?'Play preview':'Pause preview';
     playback.setAttribute('aria-pressed',String(paused));
+    if(screenMode)screenMode.textContent=paused?'Illustrative · Paused':'Illustrative · Auto preview';
   };
-  const startPreview=()=>{
+  const finishPreview=()=>{
     stopPreview();
-    if(paused||!inView||document.hidden||reducedMotion.matches)return;
-    timer=window.setInterval(()=>renderStep((currentIndex+1)%steps.length),4200);
+    paused=true;
+    completed=true;
+    syncPlayback();
+  };
+  const scheduleNext=()=>{
+    stopPreview();
+    if(paused||completed||!inView||document.hidden||reducedMotion.matches)return;
+    timer=window.setTimeout(()=>{
+      if(currentIndex>=lastStepIndex){finishPreview();return;}
+      renderStep(currentIndex+1);
+      if(currentIndex>=lastStepIndex){finishPreview();return;}
+      scheduleNext();
+    },4200);
   };
   const pauseForInteraction=()=>{
     paused=true;
     stopPreview();
     syncPlayback();
   };
+  const restartPreview=()=>{
+    completed=false;
+    paused=false;
+    renderStep(0);
+    syncPlayback();
+    scheduleNext();
+  };
 
   buttons.forEach(button=>button.addEventListener('click',()=>{
-    renderStep(Number(button.dataset.demoStep));
-    pauseForInteraction();
+    const index=Number(button.dataset.demoStep);
+    completed=index===lastStepIndex;
+    renderStep(index);
+    if(completed)finishPreview();
+    else pauseForInteraction();
   }));
   playback?.addEventListener('click',()=>{
+    if(completed){restartPreview();return;}
     paused=!paused;
     syncPlayback();
-    startPreview();
+    scheduleNext();
   });
   reducedMotion.addEventListener?.('change',event=>{
     paused=event.matches;
+    if(event.matches)stopPreview();
     syncPlayback();
-    startPreview();
+    scheduleNext();
   });
-  document.addEventListener('visibilitychange',startPreview);
+  document.addEventListener('visibilitychange',scheduleNext);
 
   if(demoSection&&'IntersectionObserver' in window){
     const observer=new IntersectionObserver(entries=>{
       inView=entries.some(entry=>entry.isIntersecting&&entry.intersectionRatio>=.35);
-      startPreview();
+      scheduleNext();
     },{threshold:[0,.35,.7]});
     observer.observe(demoSection);
   }else{
     inView=true;
-    startPreview();
+    scheduleNext();
   }
   syncPlayback();
 })();
