@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const read = path => fs.readFileSync(path, 'utf8');
 const homepage = read('index.html');
 const pricing = read('pricing.html');
+const faq = read('faq.html');
 const dossier = read('sample-decision-dossier.html');
 const brandCss = read('assets/css/brand-v2.css');
 const homepageCss = read('assets/css/homepage-focus-v1.css');
@@ -11,6 +12,7 @@ const evidenceCss = read('assets/css/homepage-evidence-v1.css');
 const densityCss = read('assets/css/marketing-density-v1.css');
 const dossierCss = read('assets/css/sample-dossier-v1.css');
 const homepageJs = read('assets/js/homepage-v1.js');
+const conversionEvents = read('assets/js/conversion-events.js');
 const heroSvg = read('assets/images/flipforge-homepage-dashboard.svg');
 const netlifyConfig = read('netlify.toml');
 const serviceWorker = read('sw.js');
@@ -40,6 +42,10 @@ requireText('homepage', homepage, 'id="demo-playback"');
 requireText('homepage', homepage, 'No credit card required.');
 requireText('homepage CSS', homepageCss, '.ff-audience-grid');
 requireText('homepage CSS', homepageCss, '.ff-dossier-preview');
+requireText('homepage CSS', homepageCss, '.ff-hero-jump-link');
+requireText('homepage CSS', homepageCss, '.ff-demo-float');
+forbidText('homepage CSS external font', homepageCss, 'fonts.gstatic.com');
+forbidText('homepage CSS external font', homepageCss, 'font-family:Inter');
 requireText('conversion CSS', conversionCss, '.ff-problem-grid');
 requireText('conversion CSS', conversionCss, '.ff-validation-grid');
 requireText('conversion CSS', conversionCss, '.ff-category-grid');
@@ -66,9 +72,13 @@ requireText('homepage JavaScript', homepageJs, 'Illustrative · Final verdict');
 requireText('homepage JavaScript', homepageJs, 'Decision support only. FlipForge does not authorize transactions or guarantee outcomes.');
 requireText('homepage JavaScript', homepageJs, 'Confirm the parallel → replace mismatched evidence → rerun analysis.');
 requireText('homepage JavaScript', homepageJs, 'finishPreview');
-requireText('homepage JavaScript', homepageJs, 'stabilizeHeroLayout');
-requireText('homepage JavaScript', homepageJs, 'window.innerWidth<=1320');
-for (const demoDiscoveryNeedle of ['See FlipForge catch a bad decision ↓','Jump to demo','Try FlipForge ↓','See FlipForge catch a bad decision in four steps.','Try FlipForge — 60-second demo']) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
+requireText('homepage JavaScript', homepageJs, 'promoteTryFlipForge');
+requireText('homepage JavaScript', homepageJs, 'ff-mobile-demo-cta');
+forbidText('homepage JavaScript layout ownership', homepageJs, 'stabilizeHeroLayout');
+forbidText('homepage JavaScript layout ownership', homepageJs, 'hero.style.gridTemplateColumns');
+for (const demoDiscoveryNeedle of ['See FlipForge catch a bad decision ↓','Jump to demo','Try FlipForge ↓','Try FlipForge — 60-second demo']) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
+
+for (const shellNeedle of ['normalizeMarketingShell','Launch Plans','Evidence Lab','sample_dossier_clicked','evidence_lab_clicked']) requireText('marketing shell', conversionEvents, shellNeedle);
 
 for (const heroNeedle of ['FlipForge decision spotlight motion loop','ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.','CLAIMED: REFRACTOR','FLIPFORGE VERDICT','VERIFY','VERIFY BEFORE YOU BUY.','Before you buy. Know Why.','CARD INTELLIGENCE','M28 17','font-size:48px','font-size:16px','Hold the decision until the evidence is fixed.','Use exact verified comps only.']) requireText('hero decision spotlight', heroSvg, heroNeedle);
 for (const motionNeedle of ['@keyframes claimLoop','@keyframes goodLoop','@keyframes warn1Loop','@keyframes warn2Loop','@keyframes arrowLoop','@keyframes verdictLoop','motion-res1','motion-res2','motion-res3','@media(prefers-reduced-motion:reduce)']) requireText('hero motion loop', heroSvg, motionNeedle);
@@ -81,7 +91,12 @@ forbidText('hero language', heroSvg, 'DO NOT BUY THE STORY.');
 forbidText('hero brand punctuation', heroSvg, 'BEFORE YOU BUY, KNOW WHY.');
 
 for (const pricingNeedle of ['Launch Plans','Pricing to be announced','Final package pricing has not been published.','No paid checkout and no public package pricing during private beta.']) requireText('launch plan pricing boundary', pricing, pricingNeedle);
-for (const unpublishedAmount of ['$14.99','$29.99','$149','$299','Planned annual option']) forbidText('unpublished package pricing', pricing, unpublishedAmount);
+for (const unpublishedAmount of ['$14.99','$29.99','$149','$299','Planned annual option']) {
+  forbidText('unpublished package pricing', pricing, unpublishedAmount);
+  forbidText('FAQ unpublished package pricing', faq, unpublishedAmount);
+}
+requireText('FAQ launch boundary', faq, 'Final package pricing has not been published.');
+requireText('FAQ navigation', faq, '>Launch Plans</a>');
 
 forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
@@ -110,4 +125,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Evidence-first homepage architecture, brand language, readable hierarchy, enlarged hero proof, customer-safe Decision Dossier, separate governed validation, easy Try FlipForge discovery, unpublished package-pricing boundary, and decision-support safeguards remain complete and professional.');
+console.log('PASS: Evidence-first homepage architecture, CSS-owned hero layout, locked brand language, readable proof, customer-safe Decision Dossier, separate governed validation, consistent Launch Plans/Evidence Lab shell, unpublished pricing boundary, and decision-support safeguards remain complete and professional.');
