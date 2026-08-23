@@ -1,0 +1,49 @@
+name: Beta Acquisition and Onboarding
+
+on:
+  pull_request:
+    paths:
+      - "beta-application.html"
+      - "thank-you.html"
+      - "beta-onboarding.html"
+      - "privacy.html"
+      - "assets/js/conversion-events.js"
+      - "assets/css/beta-onboarding-v1.css"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "scripts/validate-beta-acquisition-onboarding.mjs"
+      - "docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/beta-acquisition-onboarding.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "beta-application.html"
+      - "thank-you.html"
+      - "beta-onboarding.html"
+      - "privacy.html"
+      - "assets/js/conversion-events.js"
+      - "assets/css/beta-onboarding-v1.css"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "scripts/validate-beta-acquisition-onboarding.mjs"
+      - "docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/beta-acquisition-onboarding.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Parse browser JavaScript
+        run: node --check assets/js/conversion-events.js
+      - name: Validate beta acquisition and onboarding
+        run: node scripts/validate-beta-acquisition-onboarding.mjs
