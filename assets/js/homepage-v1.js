@@ -62,7 +62,8 @@
     visual.style.minWidth='0';
     visual.style.width='100%';
     visual.style.maxWidth='100%';
-    visual.style.margin='0';
+    visual.style.alignSelf=stack?'stretch':'start';
+    visual.style.margin=stack?'0':'-30px 0 0';
     if(frame){frame.style.width='100%';frame.style.maxWidth='100%';}
     if(image){image.style.display='block';image.style.width='100%';image.style.maxWidth='100%';image.style.height='auto';}
   };
