@@ -140,3 +140,94 @@ body.ff-support-v3 .ff-lab-proof div{padding:16px!important}
   body.ff-marketing-page-v3 .ff-page-vision-inner{padding:25px 19px!important}
   body.ff-support-v3 .ff-lab-card{min-height:auto!important}
 }
+
+/* Visual hierarchy rebalance v2 — larger product proof, calmer headline scale. */
+@media(min-width:1321px){
+  body.ff-marketing-v3 .hero.ff-hero-v3{
+    max-width:1400px!important;
+    grid-template-columns:minmax(0,.70fr) minmax(620px,1.30fr)!important;
+    gap:32px!important;
+    padding-left:24px!important;
+    padding-right:24px!important;
+  }
+  body.ff-marketing-v3 .ff-hero-copy{max-width:540px!important}
+  body.ff-marketing-v3 .ff-hero-visual{
+    width:110%!important;
+    max-width:none!important;
+    justify-self:end!important;
+    align-self:start!important;
+    margin:-30px 0 0!important;
+  }
+  body.ff-marketing-v3 .ff-hero-visual .visual,
+  body.ff-marketing-v3 .ff-hero-visual img{width:100%!important;max-width:none!important}
+}
+
+body.ff-marketing-v3 .hero.ff-hero-v3 h1{
+  max-width:540px!important;
+  font-size:clamp(40px,4.35vw,58px)!important;
+  line-height:1.02!important;
+  letter-spacing:-.045em!important;
+}
+body.ff-marketing-v3 .ff-hero-tension{
+  max-width:560px!important;
+  font-size:clamp(17px,1.35vw,21px)!important;
+  line-height:1.42!important;
+}
+body.ff-marketing-v3 .ff-problem-intro h2,
+body.ff-marketing-v3 .ff-validation-head h2,
+body.ff-marketing-v3 .ff-audience-head h2,
+body.ff-marketing-v3 .ff-home-workflow-head h2,
+body.ff-marketing-v3 .ff-final-cta h2{
+  font-size:clamp(28px,3vw,40px)!important;
+  line-height:1.08!important;
+}
+body.ff-marketing-v3 .ff-dossier-v2 .ff-dossier-copy h2,
+body.ff-marketing-v3 .ff-category-copy h2{
+  font-size:clamp(30px,3.25vw,42px)!important;
+  line-height:1.06!important;
+}
+body.ff-marketing-v3 .compact-head h2{
+  font-size:clamp(27px,2.8vw,36px)!important;
+}
+
+body.ff-marketing-page-v3 .page-hero h1{
+  font-size:clamp(37px,4vw,52px)!important;
+  line-height:1.04!important;
+  letter-spacing:-.04em!important;
+}
+body.ff-marketing-page-v3 .ff-product-copy h2,
+body.ff-marketing-page-v3 .ff-mission-card h2,
+body.ff-marketing-page-v3 .ff-page-vision h2{
+  font-size:clamp(27px,3vw,38px)!important;
+  line-height:1.08!important;
+}
+body.ff-support-v3 .page-hero h1{
+  font-size:clamp(36px,3.8vw,50px)!important;
+  line-height:1.04!important;
+  letter-spacing:-.04em!important;
+}
+body.ff-support-v3 .section-head h2,
+body.ff-support-v3 .ff-lab-section h2{
+  font-size:clamp(27px,2.9vw,38px)!important;
+  line-height:1.08!important;
+}
+
+@media(max-width:1320px) and (min-width:701px){
+  body.ff-marketing-v3 .hero.ff-hero-v3 h1{font-size:clamp(40px,5vw,56px)!important}
+  body.ff-marketing-v3 .ff-hero-visual{width:100%!important;max-width:980px!important;margin:0!important}
+}
+
+@media(max-width:700px){
+  body.ff-marketing-v3 .hero.ff-hero-v3 h1{font-size:clamp(36px,10vw,46px)!important}
+  body.ff-marketing-page-v3 .page-hero h1,
+  body.ff-support-v3 .page-hero h1{font-size:clamp(33px,9.2vw,43px)!important}
+  body.ff-marketing-v3 .ff-problem-intro h2,
+  body.ff-marketing-v3 .ff-validation-head h2,
+  body.ff-marketing-v3 .ff-audience-head h2,
+  body.ff-marketing-v3 .ff-home-workflow-head h2,
+  body.ff-marketing-v3 .ff-final-cta h2,
+  body.ff-marketing-v3 .ff-dossier-v2 .ff-dossier-copy h2,
+  body.ff-marketing-v3 .ff-category-copy h2,
+  body.ff-support-v3 .section-head h2,
+  body.ff-support-v3 .ff-lab-section h2{font-size:clamp(26px,7.5vw,34px)!important}
+}
