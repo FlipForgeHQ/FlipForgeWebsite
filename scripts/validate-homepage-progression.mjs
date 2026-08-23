@@ -50,9 +50,10 @@ requireText('homepage JavaScript', homepageJs, 'stabilizeHeroLayout');
 requireText('homepage JavaScript', homepageJs, 'window.innerWidth<=1320');
 for (const demoDiscoveryNeedle of ['See FlipForge catch a bad decision ↓','Jump to demo','Try FlipForge ↓','See FlipForge catch a bad decision in four steps.','Try FlipForge — 60-second demo']) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
 
-for (const heroNeedle of ['FlipForge decision spotlight','ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.','CLAIMED: REFRACTOR','FLIPFORGE VERDICT','VERIFY','VERIFY BEFORE YOU BUY.','Before you buy. Know Why.','CARD INTELLIGENCE','M28 17']) requireText('static hero decision spotlight', heroSvg, heroNeedle);
-forbidText('static hero language', heroSvg, 'DO NOT BUY THE STORY.');
-forbidText('static hero brand punctuation', heroSvg, 'BEFORE YOU BUY, KNOW WHY.');
+for (const heroNeedle of ['FlipForge decision spotlight motion loop','ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.','CLAIMED: REFRACTOR','FLIPFORGE VERDICT','VERIFY','VERIFY BEFORE YOU BUY.','Before you buy. Know Why.','CARD INTELLIGENCE','M28 17']) requireText('hero decision spotlight', heroSvg, heroNeedle);
+for (const motionNeedle of ['@keyframes claimLoop','@keyframes goodLoop','@keyframes warn1Loop','@keyframes warn2Loop','@keyframes arrowLoop','@keyframes verdictLoop','motion-res1','motion-res2','motion-res3','@media(prefers-reduced-motion:reduce)']) requireText('hero motion loop', heroSvg, motionNeedle);
+forbidText('hero language', heroSvg, 'DO NOT BUY THE STORY.');
+forbidText('hero brand punctuation', heroSvg, 'BEFORE YOU BUY, KNOW WHY.');
 
 for (const pricingNeedle of ['Launch Plans','Pricing to be announced','Final package pricing has not been published.','No paid checkout and no public package pricing during private beta.']) requireText('launch plan pricing boundary', pricing, pricingNeedle);
 for (const unpublishedAmount of ['$14.99','$29.99','$149','$299','Planned annual option']) forbidText('unpublished package pricing', pricing, unpublishedAmount);
@@ -61,7 +62,7 @@ forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v3'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v4'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
 requireText('service worker', serviceWorker, "'/assets/images/flipforge-homepage-dashboard.svg'");
@@ -81,4 +82,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Homepage brand language, responsive hero containment, static decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Homepage brand language, responsive hero containment, looping motion decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
