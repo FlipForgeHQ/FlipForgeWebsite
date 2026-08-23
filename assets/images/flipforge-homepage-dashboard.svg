@@ -5,46 +5,119 @@
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b0e14"/><stop offset="1" stop-color="#020305"/></linearGradient>
     <linearGradient id="goldGlow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d4af37" stop-opacity=".18"/><stop offset="1" stop-color="#d4af37" stop-opacity="0"/></linearGradient>
     <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7f7f7"/><stop offset=".55" stop-color="#bfc3ca"/><stop offset="1" stop-color="#818792"/></linearGradient>
-    <filter id="goldHalo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="blueHalo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>
     <style>
       @font-face{font-family:Geist;src:url('../fonts/geist-latin-wght-normal.woff2') format('woff2');font-weight:100 900}
       .font{font-family:Geist,'Geist Sans',Arial,sans-serif}.white{fill:#f7f8fa}.silver{fill:#b8bec8}.muted{fill:#7f8793}.gold{fill:#d4af37}.red{fill:#ffaaa8}.green{fill:#8ae2ae}.blue{fill:#d9e8ff}.eyebrow{font-size:11px;font-weight:900;letter-spacing:2.6px}.small{font-size:12px}.body{font-size:14px}.label{font-size:12px;font-weight:850;letter-spacing:1.8px}.title{font-size:34px;font-weight:900;letter-spacing:-1px}.verdict{font-size:38px;font-weight:900;letter-spacing:-1.2px}.wordmark{font-size:27px;font-weight:900;letter-spacing:4.7px}.tag{font-size:10px;font-weight:850;letter-spacing:2.6px}
-      .motion{pointer-events:none}.motion-claim{animation:claimLoop 10s ease-in-out infinite}.motion-good{animation:goodLoop 10s ease-in-out infinite}.motion-warn1{animation:warn1Loop 10s ease-in-out infinite}.motion-warn2{animation:warn2Loop 10s ease-in-out infinite}.motion-arrow{animation:arrowLoop 10s ease-in-out infinite}.motion-verdict{animation:verdictLoop 10s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.motion-res1{animation:res1Loop 10s ease-in-out infinite}.motion-res2{animation:res2Loop 10s ease-in-out infinite}.motion-res3{animation:res3Loop 10s ease-in-out infinite}
-      @keyframes claimLoop{0%,6%,100%{opacity:.08}10%,22%{opacity:.95}27%{opacity:.08}}
-      @keyframes goodLoop{0%,18%,100%{opacity:.05}23%,34%{opacity:.8}39%{opacity:.05}}
-      @keyframes warn1Loop{0%,28%,100%{opacity:.05}33%,45%{opacity:.9}50%{opacity:.05}}
-      @keyframes warn2Loop{0%,38%,100%{opacity:.05}43%,55%{opacity:.95}60%{opacity:.05}}
-      @keyframes arrowLoop{0%,46%,100%{opacity:.2;transform:translateX(-5px)}52%,63%{opacity:1;transform:translateX(5px)}68%{opacity:.2;transform:translateX(-5px)}}
-      @keyframes verdictLoop{0%,54%,100%{opacity:.7;transform:scale(1)}61%,80%{opacity:1;transform:scale(1.025)}86%{opacity:.8;transform:scale(1)}}
-      @keyframes res1Loop{0%,64%,100%{opacity:.18}70%,88%{opacity:.95}92%{opacity:.18}}
-      @keyframes res2Loop{0%,69%,100%{opacity:.18}75%,90%{opacity:.95}94%{opacity:.18}}
-      @keyframes res3Loop{0%,74%,100%{opacity:.18}80%,92%{opacity:.95}96%{opacity:.18}}
-      @media(prefers-reduced-motion:reduce){.motion{animation:none!important;opacity:.35!important;transform:none!important}}
+      .motion{pointer-events:none}.motion-claim{animation:claimLoop 10s ease-in-out infinite}.motion-good{animation:goodLoop 10s ease-in-out infinite}.motion-warn1{animation:warn1Loop 10s ease-in-out infinite}.motion-warn2{animation:warn2Loop 10s ease-in-out infinite}.motion-arrow{animation:arrowLoop 10s ease-in-out infinite}.motion-verdict{animation:verdictLoop 10s ease-in-out infinite}.motion-res1{animation:res1Loop 10s ease-in-out infinite}.motion-res2{animation:res2Loop 10s ease-in-out infinite}.motion-res3{animation:res3Loop 10s ease-in-out infinite}
+      @keyframes claimLoop{0%,6%,100%{opacity:.06}10%,22%{opacity:.95}27%{opacity:.06}}
+      @keyframes goodLoop{0%,18%,100%{opacity:.04}23%,34%{opacity:.85}39%{opacity:.04}}
+      @keyframes warn1Loop{0%,28%,100%{opacity:.04}33%,45%{opacity:.92}50%{opacity:.04}}
+      @keyframes warn2Loop{0%,38%,100%{opacity:.04}43%,55%{opacity:.95}60%{opacity:.04}}
+      @keyframes arrowLoop{0%,46%,100%{opacity:.18}52%,63%{opacity:1}68%{opacity:.18}}
+      @keyframes verdictLoop{0%,54%,100%{opacity:.1}61%,82%{opacity:1}88%{opacity:.18}}
+      @keyframes res1Loop{0%,64%,100%{opacity:.12}70%,88%{opacity:.95}92%{opacity:.12}}
+      @keyframes res2Loop{0%,69%,100%{opacity:.12}75%,90%{opacity:.95}94%{opacity:.12}}
+      @keyframes res3Loop{0%,74%,100%{opacity:.12}80%,92%{opacity:.95}96%{opacity:.12}}
+      @media(prefers-reduced-motion:reduce){.motion{animation:none!important;opacity:.35!important}}
     </style>
   </defs>
-  <rect width="1280" height="720" rx="28" fill="url(#bg)"/><rect x="24" y="24" width="1232" height="672" rx="24" fill="none" stroke="#d4af37" stroke-opacity=".34"/><rect x="24" y="24" width="1232" height="150" rx="24" fill="url(#goldGlow)"/>
-  <g transform="translate(58 45)"><g transform="scale(1.12)"><path d="M0 0H22V11H11V22H0Z" fill="url(#silver)"/><path d="M34 0H56V22H45V11H34Z" fill="url(#silver)"/><path d="M0 34H11V45H22V56H0Z" fill="url(#silver)"/><path d="M45 34H56V56H34V45H45Z" fill="url(#silver)"/><path d="M28 17 41 24.5 28 32 15 24.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><path d="M15 24.5 28 32v15L15 39.5Z" fill="#b8860b" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><path d="M41 24.5 28 32v15l13-7.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></g><text x="82" y="31" class="font wordmark white">FLIPFORGE</text><text x="84" y="52" class="font tag gold">CARD INTELLIGENCE</text></g>
-  <g class="font"><text x="58" y="145" class="eyebrow gold">DECISION SPOTLIGHT · ILLUSTRATIVE · NOT LIVE MARKET DATA</text><text x="58" y="190" class="title white">ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.</text><text x="58" y="220" class="body silver">The seller says Refractor. FlipForge makes the evidence prove it before the price gets a vote.</text></g>
+  <rect width="1280" height="720" rx="28" fill="url(#bg)"/>
+  <rect x="24" y="24" width="1232" height="672" rx="24" fill="none" stroke="#d4af37" stroke-opacity=".34"/>
+  <rect x="24" y="24" width="1232" height="150" rx="24" fill="url(#goldGlow)"/>
+
+  <g transform="translate(58 45)">
+    <g transform="scale(1.12)">
+      <path d="M0 0H22V11H11V22H0Z" fill="url(#silver)"/>
+      <path d="M34 0H56V22H45V11H34Z" fill="url(#silver)"/>
+      <path d="M0 34H11V45H22V56H0Z" fill="url(#silver)"/>
+      <path d="M45 34H56V56H34V45H45Z" fill="url(#silver)"/>
+      <path d="M28 17 41 24.5 28 32 15 24.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M15 24.5 28 32v15L15 39.5Z" fill="#b8860b" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M41 24.5 28 32v15l13-7.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+    </g>
+    <text x="82" y="31" class="font wordmark white">FLIPFORGE</text>
+    <text x="84" y="52" class="font tag gold">CARD INTELLIGENCE</text>
+  </g>
+
+  <g class="font">
+    <text x="58" y="145" class="eyebrow gold">DECISION SPOTLIGHT · ILLUSTRATIVE · NOT LIVE MARKET DATA</text>
+    <text x="58" y="190" class="title white">ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.</text>
+    <text x="58" y="220" class="body silver">The seller says Refractor. FlipForge makes the evidence prove it before the price gets a vote.</text>
+  </g>
 
   <g transform="translate(58 260)" class="font">
-    <rect width="510" height="360" rx="20" fill="#0c1017" stroke="#343b47"/><text x="22" y="36" class="eyebrow muted">SELLER LISTING</text>
+    <rect width="510" height="360" rx="20" fill="#0c1017" stroke="#343b47"/>
+    <text x="22" y="36" class="eyebrow muted">SELLER LISTING</text>
     <rect x="22" y="58" width="466" height="116" rx="15" fill="#111720" stroke="#303845"/>
     <rect class="motion motion-claim" x="22" y="58" width="466" height="116" rx="15" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="2"/>
-    <text x="40" y="88" class="label white">2018 TOPPS CHROME SHOHEI OHTANI #150 · PSA 10</text><text x="40" y="116" class="small silver">Seller title claim</text><rect x="40" y="132" width="150" height="27" rx="13.5" fill="#251f0e" stroke="#d4af37" stroke-opacity=".65"/><text x="115" y="150" text-anchor="middle" class="eyebrow white">CLAIMED: REFRACTOR</text><text x="452" y="133" text-anchor="end" font-size="30" font-weight="900" class="white">$675</text><text x="452" y="153" text-anchor="end" class="eyebrow muted">ILLUSTRATIVE ASK</text>
+    <text x="40" y="88" class="label white">2018 TOPPS CHROME SHOHEI OHTANI #150 · PSA 10</text>
+    <text x="40" y="116" class="small silver">Seller title claim</text>
+    <rect x="40" y="132" width="150" height="27" rx="13.5" fill="#251f0e" stroke="#d4af37" stroke-opacity=".65"/>
+    <text x="115" y="150" text-anchor="middle" class="eyebrow white">CLAIMED: REFRACTOR</text>
+    <text x="452" y="133" text-anchor="end" font-size="30" font-weight="900" class="white">$675</text>
+    <text x="452" y="153" text-anchor="end" class="eyebrow muted">ILLUSTRATIVE ASK</text>
     <text x="22" y="212" class="eyebrow gold">FLIPFORGE CHECKS</text>
-    <rect x="22" y="232" width="466" height="42" rx="11" fill="#0e1914" stroke="#5ab17c" stroke-opacity=".55"/><rect class="motion motion-good" x="22" y="232" width="466" height="42" rx="11" fill="#58d697" fill-opacity=".06" stroke="#8ae2ae" stroke-width="2"/><circle cx="45" cy="253" r="11" fill="#183a27"/><text x="45" y="258" text-anchor="middle" font-size="13" font-weight="900" class="green">✓</text><text x="66" y="250" class="label white">BASE IDENTITY ALIGNS</text><text x="66" y="266" font-size="10.5" class="muted">Year, set, player, number, grader and grade line up.</text>
-    <rect x="22" y="282" width="466" height="42" rx="11" fill="#1a1012" stroke="#b85f62" stroke-opacity=".55"/><rect class="motion motion-warn1" x="22" y="282" width="466" height="42" rx="11" fill="#ff7a7a" fill-opacity=".05" stroke="#ffaaa8" stroke-width="2"/><circle cx="45" cy="303" r="11" fill="#37191d"/><text x="45" y="308" text-anchor="middle" font-size="14" font-weight="900" class="red">!</text><text x="66" y="300" class="label white">PARALLEL UNRESOLVED</text><text x="66" y="316" font-size="10.5" class="muted">Available evidence does not prove the claimed Refractor.</text>
-    <rect x="22" y="332" width="466" height="42" rx="11" fill="#1a1012" stroke="#b85f62" stroke-opacity=".55"/><rect class="motion motion-warn2" x="22" y="332" width="466" height="42" rx="11" fill="#ff7a7a" fill-opacity=".05" stroke="#ffaaa8" stroke-width="2"/><circle cx="45" cy="353" r="11" fill="#37191d"/><text x="45" y="358" text-anchor="middle" font-size="14" font-weight="900" class="red">!</text><text x="66" y="350" class="label white">MISMATCHED COMP BLOCKED</text><text x="66" y="366" font-size="10.5" class="muted">Base / unstated evidence cannot quietly support this target.</text>
+
+    <rect x="22" y="232" width="466" height="42" rx="11" fill="#0e1914" stroke="#5ab17c" stroke-opacity=".55"/>
+    <rect class="motion motion-good" x="22" y="232" width="466" height="42" rx="11" fill="#58d697" fill-opacity=".06" stroke="#8ae2ae" stroke-width="2"/>
+    <circle cx="45" cy="253" r="11" fill="#183a27"/>
+    <text x="45" y="258" text-anchor="middle" font-size="13" font-weight="900" class="green">✓</text>
+    <text x="66" y="250" class="label white">BASE IDENTITY ALIGNS</text>
+    <text x="66" y="266" font-size="10.5" class="muted">Year, set, player, number, grader and grade line up.</text>
+
+    <rect x="22" y="282" width="466" height="42" rx="11" fill="#1a1012" stroke="#b85f62" stroke-opacity=".55"/>
+    <rect class="motion motion-warn1" x="22" y="282" width="466" height="42" rx="11" fill="#ff7a7a" fill-opacity=".05" stroke="#ffaaa8" stroke-width="2"/>
+    <circle cx="45" cy="303" r="11" fill="#37191d"/>
+    <text x="45" y="308" text-anchor="middle" font-size="14" font-weight="900" class="red">!</text>
+    <text x="66" y="300" class="label white">PARALLEL UNRESOLVED</text>
+    <text x="66" y="316" font-size="10.5" class="muted">Available evidence does not prove the claimed Refractor.</text>
+
+    <rect x="22" y="332" width="466" height="42" rx="11" fill="#1a1012" stroke="#b85f62" stroke-opacity=".55"/>
+    <rect class="motion motion-warn2" x="22" y="332" width="466" height="42" rx="11" fill="#ff7a7a" fill-opacity=".05" stroke="#ffaaa8" stroke-width="2"/>
+    <circle cx="45" cy="353" r="11" fill="#37191d"/>
+    <text x="45" y="358" text-anchor="middle" font-size="14" font-weight="900" class="red">!</text>
+    <text x="66" y="350" class="label white">MISMATCHED COMP BLOCKED</text>
+    <text x="66" y="366" font-size="10.5" class="muted">Base / unstated evidence cannot quietly support this target.</text>
   </g>
 
-  <g class="font motion motion-arrow"><line x1="592" y1="438" x2="640" y2="438" stroke="#d4af37" stroke-width="2"/><path d="M640 438 626 430v16Z" fill="#d4af37"/><text x="616" y="422" text-anchor="middle" class="eyebrow gold">EVIDENCE GATE</text></g>
-
-  <g transform="translate(666 260)" class="font motion-verdict">
-    <rect width="556" height="360" rx="20" fill="#090d14" stroke="#395b8d" stroke-opacity=".65"/><circle cx="438" cy="72" r="120" fill="#2967b8" fill-opacity=".08"/><circle class="motion motion-verdict" cx="87" cy="73" r="44" fill="#4d8ee7" fill-opacity=".09" filter="url(#goldHalo)"/><text x="24" y="36" class="eyebrow muted">FLIPFORGE VERDICT</text><rect x="24" y="58" width="126" height="31" rx="15.5" fill="#132641" stroke="#4d8ee7" stroke-opacity=".7"/><text x="87" y="79" text-anchor="middle" class="eyebrow blue">VERIFY</text><text x="24" y="136" class="verdict white">VERIFY BEFORE YOU BUY.</text><text x="24" y="170" class="body silver">The claimed parallel is not proven, so the ask cannot be supported yet.</text><text x="24" y="192" class="body silver">FlipForge protects the decision instead of manufacturing certainty.</text>
-    <rect x="24" y="222" width="508" height="36" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".32"/><rect class="motion motion-res1" x="24" y="222" width="508" height="36" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/><text x="40" y="245" class="eyebrow gold">1 · CONFIRM</text><text x="152" y="245" class="small white">Verify slab and card images against authoritative identity evidence.</text>
-    <rect x="24" y="266" width="508" height="36" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".32"/><rect class="motion motion-res2" x="24" y="266" width="508" height="36" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/><text x="40" y="289" class="eyebrow gold">2 · REPLACE</text><text x="152" y="289" class="small white">Use exact verified matches; keep mismatched evidence out of value.</text>
-    <rect x="24" y="310" width="508" height="36" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".32"/><rect class="motion motion-res3" x="24" y="310" width="508" height="36" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/><text x="40" y="333" class="eyebrow gold">3 · RERUN</text><text x="152" y="333" class="small white">Recalculate only after the claimed parallel is proven.</text>
+  <g class="font">
+    <line x1="592" y1="438" x2="640" y2="438" stroke="#d4af37" stroke-width="2"/>
+    <path d="M640 438 626 430v16Z" fill="#d4af37"/>
+    <text x="616" y="422" text-anchor="middle" class="eyebrow gold">EVIDENCE GATE</text>
+    <rect class="motion motion-arrow" x="584" y="400" width="64" height="58" rx="18" fill="#d4af37" fill-opacity=".03" stroke="#d4af37" stroke-opacity=".45"/>
   </g>
 
-  <g class="font"><line x1="58" y1="648" x2="1222" y2="648" stroke="#313741"/><text x="58" y="683" font-size="17" font-weight="900" letter-spacing="1.2" class="white">Before you buy. Know Why.</text><text x="1222" y="683" text-anchor="end" class="body gold">Seller claim → Evidence challenge → VERIFY → Resolution path</text></g>
+  <g transform="translate(666 260)" class="font">
+    <rect width="556" height="360" rx="20" fill="#090d14" stroke="#395b8d" stroke-opacity=".65"/>
+    <circle cx="438" cy="72" r="120" fill="#2967b8" fill-opacity=".08"/>
+    <circle class="motion motion-verdict" cx="87" cy="73" r="46" fill="#4d8ee7" fill-opacity=".13" filter="url(#blueHalo)"/>
+    <text x="24" y="36" class="eyebrow muted">FLIPFORGE VERDICT</text>
+    <rect x="24" y="58" width="126" height="31" rx="15.5" fill="#132641" stroke="#4d8ee7" stroke-opacity=".7"/>
+    <text x="87" y="79" text-anchor="middle" class="eyebrow blue">VERIFY</text>
+    <text x="24" y="136" class="verdict white">VERIFY BEFORE YOU BUY.</text>
+    <text x="24" y="170" class="body silver">The claimed parallel is not proven, so the ask cannot be supported yet.</text>
+    <text x="24" y="192" class="body silver">FlipForge protects the decision instead of manufacturing certainty.</text>
+
+    <rect x="24" y="222" width="508" height="36" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".32"/>
+    <rect class="motion motion-res1" x="24" y="222" width="508" height="36" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="40" y="245" class="eyebrow gold">1 · CONFIRM</text>
+    <text x="152" y="245" class="small white">Verify slab and card images against authoritative identity evidence.</text>
+
+    <rect x="24" y="266" width="508" height="36" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".32"/>
+    <rect class="motion motion-res2" x="24" y="266" width="508" height="36" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="40" y="289" class="eyebrow gold">2 · REPLACE</text>
+    <text x="152" y="289" class="small white">Use exact verified matches; keep mismatched evidence out of value.</text>
+
+    <rect x="24" y="310" width="508" height="36" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".32"/>
+    <rect class="motion motion-res3" x="24" y="310" width="508" height="36" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="40" y="333" class="eyebrow gold">3 · RERUN</text>
+    <text x="152" y="333" class="small white">Recalculate only after the claimed parallel is proven.</text>
+  </g>
+
+  <g class="font">
+    <line x1="58" y1="648" x2="1222" y2="648" stroke="#313741"/>
+    <text x="58" y="683" font-size="17" font-weight="900" letter-spacing="1.2" class="white">Before you buy. Know Why.</text>
+    <text x="1222" y="683" text-anchor="end" class="body gold">Seller claim → Evidence challenge → VERIFY → Resolution path</text>
+  </g>
 </svg>
