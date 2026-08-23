@@ -65,6 +65,7 @@ const checks = [
   ["operator page loads signed identity client", operatorHtml.includes('/assets/js/flipforge-identity.js')],
   ["operator page has desktop and mobile layouts", operatorCss.includes("@media(max-width:1120px)") && operatorCss.includes("@media(max-width:700px)")],
   ["operator client keeps sensitive state in memory", !/localStorage|sessionStorage|indexedDB/i.test(operatorClient)],
+  ["operator UI uses plain-language beta test group wording", operatorClient.includes("Beta test group") && !operatorClient.includes("Cohort slug")],
   ["operator client confirms invitation", operatorClient.includes("Send a private-beta Identity invitation")],
   ["operator page includes feedback calibration queue", operatorHtml.includes("Feedback and outcome checkpoints") && operatorClient.includes("data-feedback-transition")],
   ["operator controls re-enable after loading", operatorClient.includes("state.busy=false;render()")],

@@ -10,6 +10,7 @@ import {
 } from "@netlify/identity";
 
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+const PRODUCTION_SITE_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const PRODUCTION_OPERATOR_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const PRODUCTION_OPERATOR_PATH = /^\/operator-beta(?:\.html)?\/?$/i;
 const CALLBACK_HASH = /(?:^#|[&#])(invite_token|confirmation_token|recovery_token|email_change_token)=/i;
@@ -31,6 +32,10 @@ const state = {
 
 function previewHost() {
   return PREVIEW_HOST.test(String(window.location.hostname || ""));
+}
+
+function productionSiteHost() {
+  return PRODUCTION_SITE_HOST.test(String(window.location.hostname || ""));
 }
 
 function productionOperatorPage() {
@@ -202,8 +207,8 @@ function root() {
 function renderInvite(element) {
   element.innerHTML = `
     <section class="ff-id-panel" role="dialog" aria-modal="true" aria-labelledby="ff-id-invite-title">
-      <h2 id="ff-id-invite-title">Activate your FlipForge staging account</h2>
-      <p>Set a password to accept this controlled Netlify Identity invitation. This does not activate the production FlipForge API.</p>
+      <h2 id="ff-id-invite-title">Activate your FlipForge beta account</h2>
+      <p>Set a password to accept your invitation. After activation, FlipForge will open the private-beta Getting Started guide.</p>
       <p class="ff-id-note">${escapeHtml(PASSWORD_GUIDANCE)}</p>
       <form data-ff-identity-invite>
         <label>New password<input name="password" type="password" minlength="${PASSWORD_MIN_LENGTH}" autocomplete="new-password" required></label>
@@ -233,12 +238,13 @@ function renderInvite(element) {
       await acceptInvite(state.inviteToken, password);
       state.inviteToken = "";
       setAuthenticatedUser(await getUser(), { renderIfChanged: false });
-      state.message = productionOperatorPage()
-        ? "Account activated. Checking the signed operator role."
+      state.message = productionSiteHost()
+        ? "Account activated. Opening FlipForge Getting Started…"
         : previewHost()
         ? "Account activated and signed in for this deploy preview."
-        : "Account activated. Open the approved FlipForge deploy preview and sign in there.";
+        : "Account activated and signed in.";
       state.panelOpen = interactiveIdentityHost();
+      if (productionSiteHost()) window.location.assign("/app/#/beta-start");
     } catch (error) {
       state.error = error instanceof Error ? error.message : "The invitation could not be accepted.";
     } finally {
