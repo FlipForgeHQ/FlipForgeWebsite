@@ -16,7 +16,48 @@ html,body,button,input,select,textarea{font-family:Geist,"Geist Sans",Arial,sans
 #decision-tools .compact-head{margin-bottom:16px;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);gap:44px;align-items:end}
 #decision-tools .compact-head h2{max-width:760px;font-size:clamp(32px,2.8vw,48px);line-height:1.08;letter-spacing:-.025em}
 #decision-tools .section-copy{max-width:560px;margin-bottom:3px;font-size:clamp(16px,1.35vw,20px);line-height:1.48}
-#decision-tools .tool-tabs{margin-top:2px;margin-bottom:14px}
 @media(max-width:1000px){#decision-tools .compact-head{grid-template-columns:1fr;gap:12px;align-items:start}#decision-tools .compact-head h2{max-width:720px;font-size:clamp(30px,5.2vw,44px)}#decision-tools .section-copy{max-width:720px}}
 @media(max-width:700px){.site-header .brand{width:220px}.footer .brand{width:245px}#before-after{padding-top:64px}#before-after .product-visual .visual::before{left:1%;top:1%;width:36%}#case-study{padding-bottom:20px}#decision-tools{padding-top:24px;scroll-margin-top:94px}#decision-tools .compact-head{margin-bottom:14px;gap:9px}#decision-tools .compact-head h2{font-size:clamp(28px,8.5vw,38px);line-height:1.08}#decision-tools .section-copy{font-size:15px;line-height:1.5}}
 @media(max-width:390px){.site-header .brand{width:190px}#before-after .product-visual .visual::before{width:39%}}
+
+/* Brand-scale hierarchy v3 — product proof should lead, headings should frame it. */
+body.ff-marketing-v3.ff-home-focused main#main h1{font-size:clamp(38px,3.7vw,52px)!important;line-height:1.03!important;letter-spacing:-.04em!important}
+body.ff-marketing-v3.ff-home-focused main#main h2{font-size:clamp(26px,2.55vw,36px)!important;line-height:1.09!important;letter-spacing:-.028em!important}
+body.ff-marketing-page-v3 main#main h1{font-size:clamp(36px,3.65vw,48px)!important;line-height:1.05!important;letter-spacing:-.038em!important}
+body.ff-marketing-page-v3 main#main h2{font-size:clamp(26px,2.6vw,36px)!important;line-height:1.09!important;letter-spacing:-.025em!important}
+body.ff-support-v3 main#main h1{font-size:clamp(35px,3.5vw,47px)!important;line-height:1.05!important;letter-spacing:-.038em!important}
+body.ff-support-v3 main#main h2{font-size:clamp(25px,2.5vw,35px)!important;line-height:1.1!important;letter-spacing:-.024em!important}
+
+@media(min-width:1321px){
+  body.ff-marketing-v3.ff-home-focused main#main .hero.ff-conversion-hero{
+    max-width:1600px!important;
+    grid-template-columns:minmax(0,.52fr) minmax(720px,1.48fr)!important;
+    gap:18px!important;
+    padding-left:22px!important;
+    padding-right:22px!important;
+  }
+  body.ff-marketing-v3.ff-home-focused main#main .ff-hero-copy{max-width:470px!important}
+  body.ff-marketing-v3.ff-home-focused main#main .ff-hero-visual{
+    width:108%!important;
+    max-width:none!important;
+    justify-self:end!important;
+    margin:-42px -4% 0 0!important;
+  }
+  body.ff-marketing-v3.ff-home-focused main#main .ff-hero-visual .visual,
+  body.ff-marketing-v3.ff-home-focused main#main .ff-hero-visual img{width:100%!important;max-width:none!important}
+  body.ff-marketing-v3.ff-home-focused main#main .ff-hero-visual .caption{font-size:13px!important;line-height:1.45!important;margin-top:12px!important}
+}
+
+@media(max-width:1320px) and (min-width:701px){
+  body.ff-marketing-v3.ff-home-focused main#main .hero.ff-conversion-hero h1{font-size:clamp(38px,4.6vw,50px)!important}
+  body.ff-marketing-v3.ff-home-focused main#main .ff-hero-visual{max-width:1060px!important;margin-inline:auto!important}
+}
+
+@media(max-width:700px){
+  body.ff-marketing-v3.ff-home-focused main#main h1{font-size:clamp(35px,9.5vw,44px)!important}
+  body.ff-marketing-v3.ff-home-focused main#main h2,
+  body.ff-marketing-page-v3 main#main h2,
+  body.ff-support-v3 main#main h2{font-size:clamp(25px,7.4vw,32px)!important}
+  body.ff-marketing-page-v3 main#main h1,
+  body.ff-support-v3 main#main h1{font-size:clamp(33px,9vw,43px)!important}
+}
