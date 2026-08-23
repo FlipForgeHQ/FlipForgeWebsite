@@ -63,11 +63,20 @@ Anonymous conversion events are copied to the site-scoped `flipforge-conversion-
 
 The operator dashboard reports the last 30 days and labels all counts as directional interactions rather than unique visitors. A daily retention job removes records before they can exceed 90 days; dashboard refresh also removes expired records. Funnel reporting is not product accuracy, investment performance, or a customer count.
 
+## Tester feedback and outcome checkpoints
+
+Invited testers submit structured feedback to `POST /api/beta/feedback`. The server requires a signed active tester membership, validates strict category, route, rating, checkpoint, outcome, and text limits, and stores the record separately from applications, conversion events, and authoritative evaluations.
+
+Feedback may identify a general session or a Day 7, Day 14, or Day 30 checkpoint. Outcome options record whether the tester believes the original reasoning still holds, needs revision, or still lacks evidence. These are tester-reported calibration inputs—not an accuracy score, a changed recommendation, a completed-sale claim, or transaction authority.
+
+The operator may move a feedback record through `NEW → UNDER_REVIEW → RESOLVED`, with version-checked updates and an append-only review history. Follow-up email is visible only when the tester explicitly grants permission; otherwise no tester email is stored with the feedback record.
+
 ## Privacy and security boundaries
 
 - No analytics cookie, local storage, session storage, fingerprint, or persistent visitor ID.
 - No name, email, account ID, card identity, listing URL, query string, referrer, or user-agent value in conversion events.
 - Applicant records are available only through the server-verified operator role.
+- Tester feedback is accepted only from signed active members and read only through the server-verified operator role.
 - Platform rate limiting may use normal request metadata, including IP address, without writing it into FlipForge applicant or conversion records.
 - Review notes must not contain passwords, access tokens, provider keys, tenant IDs, card records, or listing URLs.
 - Public application confirmation never reveals whether an email already applied.

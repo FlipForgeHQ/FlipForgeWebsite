@@ -5,7 +5,7 @@
   const ROUTE = "beta-start";
   const ONBOARDING_KEY = "flipforge.privateBeta.onboarding.v1";
   const ONBOARDING_VALUE = "complete";
-  const FORM_NAME = "flipforge-private-beta-feedback";
+  const FEEDBACK_ENDPOINT = "/api/beta/feedback";
 
   function eligibleHost() {
     return PREVIEW_HOST.test(String(window.location.hostname || ""));
@@ -107,7 +107,6 @@
   function feedbackForm(session) {
     const signedIn = session.authenticated && session.membershipActive;
     return `<form class="private-beta-feedback-form" data-private-beta-feedback>
-      <input type="hidden" name="form-name" value="${FORM_NAME}">
       <div class="private-beta-feedback-row">
         <label>Feedback type
           <select name="category" required>
@@ -117,6 +116,7 @@
             <option value="psa-guidance">PSA guidance</option>
             <option value="accessibility">Accessibility</option>
             <option value="bug">Bug</option>
+            <option value="outcome-review">7 / 14 / 30 outcome review</option>
           </select>
         </label>
         <label>Experience rating
@@ -130,6 +130,24 @@
           </select>
         </label>
       </div>
+      <div class="private-beta-feedback-row">
+        <label>Feedback timing
+          <select name="checkpoint">
+            <option value="GENERAL">Current session</option>
+            <option value="DAY_7">Day 7 checkpoint</option>
+            <option value="DAY_14">Day 14 checkpoint</option>
+            <option value="DAY_30">Day 30 checkpoint</option>
+          </select>
+        </label>
+        <label>Outcome signal
+          <select name="outcome">
+            <option value="">Not an outcome review</option>
+            <option value="REASONING_HELD">Original reasoning still supported</option>
+            <option value="REASONING_CHANGED">Original reasoning needs revision</option>
+            <option value="MORE_EVIDENCE_NEEDED">Evidence remains insufficient</option>
+          </select>
+        </label>
+      </div>
       <label>What happened?
         <textarea name="summary" maxlength="2000" required placeholder="Describe the workflow, wording, or behavior that helped or blocked you."></textarea>
       </label>
@@ -137,7 +155,7 @@
         <textarea name="expected" maxlength="1200" placeholder="Optional: describe what a clearer or better outcome would look like."></textarea>
       </label>
       <label class="private-beta-consent"><input type="checkbox" name="contactAllowed" value="yes"><span>FlipForge may include my invited account email with this feedback and follow up about it.</span></label>
-      <p class="private-beta-feedback-note">Do not paste passwords, access tokens, provider keys, tenant IDs, card listing URLs, card identities, or other sensitive data. This form records product feedback—not an evaluation.</p>
+      <p class="private-beta-feedback-note">For an outcome review, choose Day 7, 14, or 30 and an outcome signal. Do not paste passwords, access tokens, provider keys, tenant IDs, card listing URLs, card identities, or other sensitive data. This form records tester feedback—not a new evaluation or accuracy claim.</p>
       <div class="page-actions"><button class="button button-primary" type="submit" ${signedIn ? "" : "disabled"}>Send beta feedback</button></div>
       <p class="private-beta-message" data-private-beta-message role="status" aria-live="polite">${signedIn ? "" : "Sign in with an active invitation before sending feedback."}</p>
     </form>`;
@@ -188,7 +206,7 @@
           </section>
 
           <section class="panel" id="beta-feedback">
-            <header class="panel-header"><div><h2>Beta feedback</h2><p>Structured feedback is captured by the approved Netlify form and stays separate from evaluation data.</p></div></header>
+            <header class="panel-header"><div><h2>Beta feedback</h2><p>Structured feedback enters the role-gated operator queue and stays separate from authoritative evaluation data.</p></div></header>
             <div class="panel-body">${feedbackForm(session)}</div>
           </section>
         </div>
@@ -281,24 +299,29 @@
         return;
       }
 
-      const payload = new URLSearchParams();
-      ["form-name", "category", "rating", "summary", "expected", "contactAllowed"].forEach(name => {
-        const value = String(input.get(name) || "").trim();
-        if (value) payload.set(name, value);
-      });
-      if (input.get("contactAllowed") === "yes" && session.email) {
-        payload.set("testerEmail", session.email);
+      const category = String(input.get("category") || "");
+      const checkpoint = String(input.get("checkpoint") || "GENERAL");
+      const outcome = String(input.get("outcome") || "");
+      if (category === "outcome-review" && (checkpoint === "GENERAL" || !outcome)) {
+        setMessage("Choose a Day 7, 14, or 30 checkpoint and an outcome signal.", "error");
+        return;
       }
-      payload.set("route", routeName());
+
+      const payload = {};
+      ["category", "rating", "summary", "expected", "contactAllowed", "checkpoint", "outcome"].forEach(name => {
+        const value = String(input.get(name) || "").trim();
+        if (value) payload[name] = value;
+      });
+      payload.route = routeName();
 
       button.disabled = true;
       setMessage("Sending beta feedback…");
       try {
-        const response = await fetch("/", {
+        const response = await fetch(FEEDBACK_ENDPOINT, {
           method: "POST",
           credentials: "same-origin",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: payload.toString()
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload)
         });
         if (!response.ok) throw new Error("Feedback endpoint rejected the submission.");
         form.reset();

@@ -1,9 +1,11 @@
 export const APPLICATION_STORE_NAME = "flipforge-beta-applications";
 export const CONVERSION_STORE_NAME = "flipforge-conversion-events";
+export const FEEDBACK_STORE_NAME = "flipforge-beta-feedback";
 export const OPERATOR_ROLE = "flipforge-operator";
 export const ACTIVE_ROLE = "flipforge-active";
 export const TENANT_ROLE_PREFIX = "flipforge-tenant--";
 export const MAX_APPLICATION_BYTES = 16_384;
+export const MAX_FEEDBACK_BYTES = 8_192;
 export const MAX_OPERATOR_BYTES = 8_192;
 
 export const APPLICATION_STATUSES = Object.freeze([
@@ -16,6 +18,8 @@ export const APPLICATION_STATUSES = Object.freeze([
   "DECLINED",
 ]);
 
+export const FEEDBACK_STATUSES = Object.freeze(["NEW", "UNDER_REVIEW", "RESOLVED"]);
+
 const STATUS_TRANSITIONS = Object.freeze({
   SUBMITTED: new Set(["UNDER_REVIEW", "WAITLISTED", "DECLINED"]),
   UNDER_REVIEW: new Set(["APPROVED", "WAITLISTED", "DECLINED"]),
@@ -26,15 +30,27 @@ const STATUS_TRANSITIONS = Object.freeze({
   DECLINED: new Set(["UNDER_REVIEW"]),
 });
 
+const FEEDBACK_TRANSITIONS = Object.freeze({
+  NEW: new Set(["UNDER_REVIEW", "RESOLVED"]),
+  UNDER_REVIEW: new Set(["RESOLVED"]),
+  RESOLVED: new Set(["UNDER_REVIEW"]),
+});
+
 const ALLOWED = Object.freeze({
   collectorType: new Set(["Collector", "Flipper / reseller", "Grading-focused collector", "Dealer / shop", "New to the hobby"]),
   experience: new Set(["Less than 1 year", "1–3 years", "4–10 years", "10+ years"]),
   monthlyCardVolume: new Set(["1–5", "6–20", "21–50", "51–100", "100+"]),
   hostedWebBetaAccess: new Set(["Yes — several times per week", "Yes — about once per week", "Occasionally", "No"]),
   testingFocus: new Set(["Discover and search", "Exact-card identity", "Evidence and comparable-sale review", "Supported value / decision guidance", "PSA / grading scenarios", "Tracking and outcome review", "Forge Heat beta intelligence", "Broad product testing"]),
+  feedbackCategory: new Set(["workflow", "decision-explanation", "evidence", "psa-guidance", "accessibility", "bug", "outcome-review"]),
+  feedbackRating: new Set(["", "1", "2", "3", "4", "5"]),
+  feedbackCheckpoint: new Set(["GENERAL", "DAY_7", "DAY_14", "DAY_30"]),
+  feedbackOutcome: new Set(["", "REASONING_HELD", "REASONING_CHANGED", "MORE_EVIDENCE_NEEDED"]),
+  feedbackRoute: new Set(["account", "alerts", "beta-start", "compare", "dashboard", "discover", "evaluate", "evidence", "export", "forge-heat", "market-view", "opportunities", "portfolio", "psa-advisor", "sell", "staging", "staging-evaluate", "tracking"]),
 });
 
 const SAFE_APPLICATION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SAFE_FEEDBACK_ID = SAFE_APPLICATION_ID;
 const SAFE_COHORT = /^[a-z0-9][a-z0-9-]{2,47}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -106,6 +122,11 @@ export function applicationKey(id) {
   return `application/${id}.json`;
 }
 
+export function feedbackKey(id) {
+  if (!SAFE_FEEDBACK_ID.test(String(id || ""))) throw new Error("INVALID_FEEDBACK_ID");
+  return `feedback/${id}.json`;
+}
+
 export async function emailIndexKey(email) {
   const bytes = new TextEncoder().encode(normalizeEmail(email));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -132,6 +153,72 @@ export function createApplication(applicant, now = new Date()) {
     invitedAt: null,
     activatedAt: null,
     history: [{ type: "APPLICATION_SUBMITTED", at, actor: "applicant" }],
+  };
+}
+
+export function isActiveTester(user) {
+  const roles = operatorRoles(user);
+  const tenantRoles = roles.filter(role => role.startsWith(TENANT_ROLE_PREFIX));
+  return roles.includes(ACTIVE_ROLE) && new Set(tenantRoles).size === 1;
+}
+
+export function validateFeedback(input, user) {
+  const email = normalizeEmail(user?.email);
+  const category = selected(input, "category", ALLOWED.feedbackCategory);
+  const checkpoint = selected(input, "checkpoint", ALLOWED.feedbackCheckpoint);
+  const outcome = selected(input, "outcome", ALLOWED.feedbackOutcome);
+  const ratingValue = selected(input, "rating", ALLOWED.feedbackRating);
+  const contactAllowed = yes(input?.contactAllowed);
+  const feedback = {
+    category,
+    rating: ratingValue ? Number(ratingValue) : null,
+    summary: cleanLongText(input?.summary, 2_000),
+    expected: cleanLongText(input?.expected, 1_200),
+    route: selected(input, "route", ALLOWED.feedbackRoute),
+    checkpoint,
+    outcome,
+    contactAllowed,
+    contactEmail: contactAllowed && EMAIL.test(email) ? email : null,
+  };
+  const errors = [];
+  if (!feedback.category) errors.push("FEEDBACK_CATEGORY_INVALID");
+  if (feedback.summary.length < 10) errors.push("FEEDBACK_SUMMARY_REQUIRED");
+  if (!feedback.route) errors.push("FEEDBACK_ROUTE_INVALID");
+  if (!feedback.checkpoint) errors.push("FEEDBACK_CHECKPOINT_INVALID");
+  if (feedback.category === "outcome-review" && feedback.checkpoint === "GENERAL") errors.push("OUTCOME_CHECKPOINT_REQUIRED");
+  if (feedback.category === "outcome-review" && !feedback.outcome) errors.push("OUTCOME_STATE_REQUIRED");
+  if (!feedback.contactAllowed) feedback.contactEmail = null;
+  return { ok: errors.length === 0, feedback, errors };
+}
+
+export function createFeedback(feedback, now = new Date()) {
+  const id = crypto.randomUUID();
+  const at = now.toISOString();
+  return {
+    schemaVersion: 1,
+    id,
+    version: 1,
+    status: "NEW",
+    submittedAt: at,
+    updatedAt: at,
+    feedback,
+    reviewNote: "",
+    history: [{ type: "FEEDBACK_SUBMITTED", at, actor: "tester" }],
+  };
+}
+
+export function transitionFeedback(record, { targetStatus, note, now = new Date() }) {
+  if (!FEEDBACK_STATUSES.includes(targetStatus) || !FEEDBACK_TRANSITIONS[record.status]?.has(targetStatus)) {
+    throw new Error("INVALID_FEEDBACK_TRANSITION");
+  }
+  const at = now.toISOString();
+  return {
+    ...record,
+    version: Number(record.version || 0) + 1,
+    status: targetStatus,
+    reviewNote: normalizeReviewNote(note),
+    updatedAt: at,
+    history: [...(record.history || []), { type: `FEEDBACK_${targetStatus}`, at, actor: "operator" }],
   };
 }
 
@@ -236,4 +323,23 @@ export function statusSummary(applications) {
     if (Object.hasOwn(byStatus, item.status)) byStatus[item.status] += 1;
   }
   return { total: applications.length, byStatus };
+}
+
+export function feedbackSummary(records) {
+  const byStatus = Object.fromEntries(FEEDBACK_STATUSES.map(status => [status, 0]));
+  const byCheckpoint = Object.fromEntries(["GENERAL", "DAY_7", "DAY_14", "DAY_30"].map(value => [value, 0]));
+  const byOutcome = Object.fromEntries(["REASONING_HELD", "REASONING_CHANGED", "MORE_EVIDENCE_NEEDED"].map(value => [value, 0]));
+  for (const record of records) {
+    if (Object.hasOwn(byStatus, record.status)) byStatus[record.status] += 1;
+    if (Object.hasOwn(byCheckpoint, record.feedback?.checkpoint)) byCheckpoint[record.feedback.checkpoint] += 1;
+    if (Object.hasOwn(byOutcome, record.feedback?.outcome)) byOutcome[record.feedback.outcome] += 1;
+  }
+  return {
+    total: records.length,
+    outcomeCheckpoints: byCheckpoint.DAY_7 + byCheckpoint.DAY_14 + byCheckpoint.DAY_30,
+    byStatus,
+    byCheckpoint,
+    byOutcome,
+    countingBoundary: "TESTER_REPORTED_CHECKPOINTS_NOT_ACCURACY",
+  };
 }

@@ -9,14 +9,19 @@ on:
       - "assets/css/beta-operator-v1.css"
       - "assets/js/beta-application.js"
       - "assets/js/beta-operator.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/private-beta.js"
       - "scripts/lib/flipforge-identity-client.mjs"
       - "netlify/modern-functions/beta-applications.mjs"
+      - "netlify/modern-functions/beta-feedback.mjs"
       - "netlify/modern-functions/beta-operator.mjs"
       - "netlify/modern-functions/beta-retention.mjs"
       - "netlify/modern-functions/conversion-event.mjs"
       - "netlify/modern-functions/lib/beta-operations-core.mjs"
       - "scripts/validate-beta-operator-workflow.mjs"
       - "docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md"
+      - "docs/SAAS_PRIVATE_BETA_READINESS.md"
+      - "scripts/validate-saas-private-beta-readiness.mjs"
       - "package.json"
       - "package-lock.json"
       - "netlify.toml"
@@ -31,14 +36,19 @@ on:
       - "assets/css/beta-operator-v1.css"
       - "assets/js/beta-application.js"
       - "assets/js/beta-operator.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/private-beta.js"
       - "scripts/lib/flipforge-identity-client.mjs"
       - "netlify/modern-functions/beta-applications.mjs"
+      - "netlify/modern-functions/beta-feedback.mjs"
       - "netlify/modern-functions/beta-operator.mjs"
       - "netlify/modern-functions/beta-retention.mjs"
       - "netlify/modern-functions/conversion-event.mjs"
       - "netlify/modern-functions/lib/beta-operations-core.mjs"
       - "scripts/validate-beta-operator-workflow.mjs"
       - "docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md"
+      - "docs/SAAS_PRIVATE_BETA_READINESS.md"
+      - "scripts/validate-saas-private-beta-readiness.mjs"
       - "package.json"
       - "package-lock.json"
       - "netlify.toml"
@@ -61,8 +71,10 @@ jobs:
         run: |
           node --check assets/js/beta-application.js
           node --check assets/js/beta-operator.js
+          node --check saas-prototype/private-beta.js
           node --check netlify/modern-functions/beta-applications.mjs
+          node --check netlify/modern-functions/beta-feedback.mjs
           node --check netlify/modern-functions/beta-operator.mjs
           node --check netlify/modern-functions/beta-retention.mjs
       - name: Validate beta operator workflow
-        run: npm run validate:beta-operator
+        run: npm run validate:beta-operator && npm run validate:private-beta
