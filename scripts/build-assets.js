@@ -146,6 +146,14 @@ function ensurePerfectedBrandFavicon(html) {
   return html.replace(/<\/head>/i, `${favicon}\n</head>`);
 }
 
+function ensureConversionEventLayer(html) {
+  if (!html.includes('class="site-header"') || html.includes('assets/js/conversion-events.js')) return html;
+  return html.replace(
+    /<\/body>/i,
+    '<script src="assets/js/conversion-events.js" defer></script>\n</body>',
+  );
+}
+
 function ensurePerfectedBrandIdentity(html) {
   return html
     .replaceAll('Signal. Confidence. Advantage.', 'Card Intelligence')
@@ -192,6 +200,7 @@ for (const htmlPath of htmlFiles) {
   updated = ensureDesktopAppLink(updated);
   updated = ensureMobileAppLink(updated);
   updated = ensureFooterAppLink(updated);
+  updated = ensureConversionEventLayer(updated);
 
   if (updated !== original) {
     fs.writeFileSync(htmlPath, updated, 'utf8');
@@ -212,6 +221,7 @@ for (const htmlPath of htmlFiles) {
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('perfected brand stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
+  if (!html.includes('assets/js/conversion-events.js')) failures.push('privacy-conscious conversion event layer');
   if (html.includes('Signal. Confidence. Advantage.')) failures.push('deprecated tagline removal');
 
   if (path.basename(htmlPath) === 'index.html') {
