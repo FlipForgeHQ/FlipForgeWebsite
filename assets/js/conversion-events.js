@@ -1,4 +1,32 @@
 (()=>{
+  const normalizeMarketingShell=()=>{
+    document.querySelectorAll('a[href="pricing.html"]').forEach(link=>{
+      if(link.textContent.trim()==='Pricing')link.textContent='Launch Plans';
+    });
+
+    const addEvidenceLink=container=>{
+      if(!container||container.querySelector('a[href="learn.html"]'))return;
+      const link=document.createElement('a');
+      link.href='learn.html';
+      link.textContent='Evidence Lab';
+      const anchor=container.querySelector('a[href="faq.html"],a[href="about.html"],[data-app-preview]');
+      if(anchor)container.insertBefore(link,anchor);
+      else container.append(link);
+    };
+
+    addEvidenceLink(document.querySelector('.desktop-nav'));
+    addEvidenceLink(document.querySelector('.mobile-nav'));
+    document.querySelectorAll('.footer-links').forEach(group=>{
+      if(group.querySelector('a[href="product.html"]'))addEvidenceLink(group);
+    });
+
+    const copyright=document.querySelector('.copyright');
+    if(copyright&&copyright.textContent.includes('Planned pricing and beta capabilities')){
+      copyright.textContent=copyright.textContent.replace('Planned pricing and beta capabilities','Launch plans and beta capabilities');
+    }
+  };
+  normalizeMarketingShell();
+
   const endpoint="/api/conversion-event";
   const sent=new Set();
   const pathname=location.pathname.replace(/\/+$/,"")||"/";
@@ -15,10 +43,10 @@
     "/beta-onboarding":"beta-onboarding",
     "/product.html":"product",
     "/product":"product",
-    "/pricing.html":"pricing",
-    "/pricing":"pricing",
-    "/learn.html":"learn",
-    "/learn":"learn",
+    "/pricing.html":"launch-plans",
+    "/pricing":"launch-plans",
+    "/learn.html":"evidence-lab",
+    "/learn":"evidence-lab",
     "/faq.html":"faq",
     "/faq":"faq",
     "/about.html":"about",
@@ -42,12 +70,19 @@
     if(link.closest(".site-header,.mobile-nav"))return"navigation";
     if(link.closest(".footer"))return"footer";
     if(link.closest(".ff-dossier-spotlight"))return"sample-spotlight";
+    if(link.closest(".ff-evidence"))return"evidence";
     if(link.closest(".page-hero,.hero"))return"hero";
     return"page";
   };
 
   document.querySelectorAll('a[href$="beta-application.html"],a[href="/beta-application"]').forEach(link=>{
     link.addEventListener("click",()=>emit("beta_cta_clicked",placementFor(link)));
+  });
+  document.querySelectorAll('a[href="sample-decision-dossier.html"]').forEach(link=>{
+    link.addEventListener("click",()=>emit("sample_dossier_clicked",placementFor(link)));
+  });
+  document.querySelectorAll('a[href="learn.html"]').forEach(link=>{
+    link.addEventListener("click",()=>emit("evidence_lab_clicked",placementFor(link)));
   });
   document.querySelectorAll("[data-app-preview]").forEach(link=>{
     link.addEventListener("click",()=>emit("app_preview_clicked",placementFor(link)));
