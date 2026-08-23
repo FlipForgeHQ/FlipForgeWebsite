@@ -7,6 +7,7 @@ const dossier = read('sample-decision-dossier.html');
 const brandCss = read('assets/css/brand-v2.css');
 const homepageCss = read('assets/css/homepage-focus-v1.css');
 const conversionCss = read('assets/css/homepage-conversion-v2.css');
+const evidenceCss = read('assets/css/homepage-evidence-v1.css');
 const densityCss = read('assets/css/marketing-density-v1.css');
 const dossierCss = read('assets/css/sample-dossier-v1.css');
 const homepageJs = read('assets/js/homepage-v1.js');
@@ -17,10 +18,13 @@ const failures = [];
 const requireText = (label, text, needle) => { if (!text.includes(needle)) failures.push(`${label}: missing ${JSON.stringify(needle)}`); };
 const forbidText = (label, text, needle) => { if (text.toLowerCase().includes(needle.toLowerCase())) failures.push(`${label}: forbidden ${JSON.stringify(needle)}`); };
 
-for (const audience of ['Collectors', 'Grading planners', 'Value-conscious buyers']) requireText('homepage audience', homepage, audience);
+for (const audience of ['Buyers', 'Grading planners', 'Value hunters']) requireText('homepage audience', homepage, audience);
 requireText('homepage', homepage, 'Before you buy. <span>Know Why.</span>');
 forbidText('homepage brand punctuation', homepage, 'Before You Buy,');
 requireText('homepage', homepage, 'Try the 60-second demo');
+requireText('homepage', homepage, 'id="evidence"');
+requireText('homepage', homepage, 'data-ff-home-evidence="true"');
+for (const evidenceNeedle of ['Evidence is the product boundary','Accepted evidence','Excluded evidence','Decision traceback','A Refractor claim cannot be supported by a Base / Unstated sale.','Supported value withheld · VERIFY']) requireText('homepage product evidence', homepage, evidenceNeedle);
 requireText('homepage', homepage, 'id="sample-dossier"');
 requireText('homepage', homepage, 'href="sample-decision-dossier.html"');
 requireText('homepage', homepage, 'id="validation"');
@@ -28,17 +32,28 @@ for (const governedResult of ['Evidence records reviewed', 'Eligible unique sale
 for (const governedCount of ['<strong>100</strong>', '<strong>74</strong>', '<strong>26</strong>', '<strong>18</strong>']) requireText('homepage governed audit', homepage, governedCount);
 requireText('homepage governed audit', homepage, '20-case blind re-review');
 requireText('homepage governed audit', homepage, '25-card prospective study');
-requireText('homepage governed audit', homepage, '8 repeated sources were detected');
+requireText('homepage governed audit', homepage, 'Eight repeated sources were detected');
 requireText('homepage governed audit boundary', homepage, 'has not authorized a public accuracy percentage');
 requireText('homepage', homepage, 'A different layer of the hobby stack');
 requireText('homepage', homepage, 'Illustrative · Auto preview');
 requireText('homepage', homepage, 'id="demo-playback"');
+requireText('homepage', homepage, 'No credit card required.');
 requireText('homepage CSS', homepageCss, '.ff-audience-grid');
 requireText('homepage CSS', homepageCss, '.ff-dossier-preview');
 requireText('conversion CSS', conversionCss, '.ff-problem-grid');
 requireText('conversion CSS', conversionCss, '.ff-validation-grid');
 requireText('conversion CSS', conversionCss, '.ff-category-grid');
 requireText('conversion CSS', conversionCss, '@media(prefers-reduced-motion:reduce)');
+for (const evidenceStyle of ['.ff-evidence-grid','.ff-evidence-card.accepted','.ff-evidence-card.excluded','.ff-evidence-card.traceback','.ff-evidence-flow','font-size:15px']) requireText('evidence CSS', evidenceCss, evidenceStyle);
+
+const architecture = ['id="before-after"','id="evidence"','id="sample-dossier"','id="validation"','id="try-flipforge"','id="who-its-for"','class="ff-category"','id="how-it-works"'];
+let lastIndex = -1;
+for (const marker of architecture) {
+  const index = homepage.indexOf(marker);
+  if (index < 0) failures.push(`homepage architecture: missing ${JSON.stringify(marker)}`);
+  else if (index <= lastIndex) failures.push(`homepage architecture: ${JSON.stringify(marker)} is out of order`);
+  lastIndex = Math.max(lastIndex,index);
+}
 
 for (const densityNeedle of ['Visual hierarchy rebalance v2','font-size:clamp(40px,4.35vw,58px)!important','font-size:clamp(37px,4vw,52px)!important','font-size:clamp(36px,3.8vw,50px)!important']) requireText('balanced marketing density', densityCss, densityNeedle);
 for (const brandScaleNeedle of ['Brand-scale hierarchy v3','max-width:1600px!important','grid-template-columns:minmax(0,.52fr) minmax(720px,1.48fr)!important','width:108%!important','font-size:clamp(38px,3.7vw,52px)!important','font-size:clamp(36px,3.65vw,48px)!important','font-size:clamp(35px,3.5vw,47px)!important']) requireText('brand-scale hierarchy', brandCss, brandScaleNeedle);
@@ -72,10 +87,11 @@ forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v7'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v8'");
 requireText('service worker', serviceWorker, "'/assets/css/brand-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/css/marketing-density-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
+requireText('service worker', serviceWorker, "'/assets/css/homepage-evidence-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
 requireText('service worker', serviceWorker, "'/assets/images/flipforge-homepage-dashboard.svg'");
 
@@ -85,8 +101,8 @@ requireText('sample dossier', dossier, 'not a live card evaluation');
 requireText('sample dossier CSS', dossierCss, '@media print');
 requireText('sample dossier CSS', dossierCss, '@media(max-width:700px)');
 
-for (const unsafe of ['accuracy rate', 'guaranteed profit', 'trained on historical auction data', 'private beta spots granted weekly', 'automatic purchase']) forbidText('public progression', `${homepage}\n${dossier}`, unsafe);
-for (const unsafeData of ['localStorage', 'sessionStorage', 'indexedDB', 'transactionAuthority=true']) forbidText('public progression', `${homepage}\n${dossier}\n${homepageJs}`, unsafeData);
+for (const unsafe of ['accuracy rate','guaranteed profit','trained on historical auction data','private beta spots granted weekly','automatic purchase','True Market Value','Smart Buy Indicator','Card Health Check']) forbidText('public progression', `${homepage}\n${dossier}`, unsafe);
+for (const unsafeData of ['localStorage','sessionStorage','indexedDB','transactionAuthority=true']) forbidText('public progression', `${homepage}\n${dossier}\n${homepageJs}`, unsafeData);
 
 if (failures.length) {
   console.error('Homepage proof progression validation failed:');
@@ -94,4 +110,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Homepage brand language, readable site-wide heading hierarchy, enlarged and simplified hero proof, responsive containment, position-safe looping decision spotlight, easy Try FlipForge discovery, unpublished package-pricing boundary, verdict-stop demo behavior, governed validation framing, and customer-safe Decision Dossier remain complete and evidence-safe.');
+console.log('PASS: Evidence-first homepage architecture, brand language, readable hierarchy, enlarged hero proof, customer-safe Decision Dossier, separate governed validation, easy Try FlipForge discovery, unpublished package-pricing boundary, and decision-support safeguards remain complete and professional.');
