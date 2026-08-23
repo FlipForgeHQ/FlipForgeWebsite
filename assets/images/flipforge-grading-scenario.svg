@@ -6,6 +6,7 @@
   <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0ca58"/><stop offset=".55" stop-color="#d4af37"/><stop offset="1" stop-color="#9a720d"/></linearGradient>
   <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2f2f2"/><stop offset=".6" stop-color="#aab0ae"/><stop offset="1" stop-color="#747c79"/></linearGradient>
   <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".38"/></filter>
+  <style>@font-face{font-family:Geist;src:url('../fonts/geist-latin-wght-normal.woff2') format('woff2');font-weight:100 900}</style>
 </defs>
 <rect width="1280" height="720" fill="url(#bg)"/>
 <circle cx="1130" cy="100" r="260" fill="#d4af37" opacity=".035"/>
@@ -16,65 +17,67 @@
 <g transform="translate(54 48)">
   <g transform="scale(.74)">
     <path d="M8 8H28V19H19V28H8ZM36 8H56V28H45V19H36ZM8 36H19V45H28V56H8ZM45 36H56V56H36V45H45Z" fill="url(#silver)"/>
-    <rect x="28" y="28" width="8" height="8" fill="url(#gold)"/>
+    <path d="M32 17 46 25 32 33 18 25Z" fill="#d4af37" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M18 25 32 33v16L18 41Z" fill="#b8860b" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M46 25 32 33v16l14-8Z" fill="#d4af37" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/>
   </g>
-  <text x="54" y="22" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="5">FLIPFORGE™</text>
-  <text x="55" y="45" fill="#d4af37" font-family="Geist,Arial,sans-serif" font-size="9" font-weight="800" letter-spacing="3.4">CARD INTELLIGENCE</text>
+  <text x="54" y="22" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="5">FLIPFORGE™</text>
+  <text x="55" y="45" fill="#d4af37" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="9" font-weight="800" letter-spacing="3.4">CARD INTELLIGENCE</text>
 </g>
-<text x="54" y="142" fill="#d4af37" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800" letter-spacing="4">GRADING SCENARIO ANALYSIS</text>
-<text x="54" y="181" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="35" font-weight="800">The PSA 10 price is not your grading profit.</text>
-<text x="54" y="214" fill="#9ca9b8" font-family="Inter,Arial,sans-serif" font-size="16">Illustrative economics only — FlipForge does not predict the grade a raw card will receive.</text>
+<text x="54" y="142" fill="#d4af37" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="15" font-weight="800" letter-spacing="4">GRADING SCENARIO ANALYSIS</text>
+<text x="54" y="181" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="35" font-weight="800">The PSA 10 price is not your grading profit.</text>
+<text x="54" y="214" fill="#9ca9b8" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="16">Illustrative economics only — FlipForge does not predict the grade a raw card will receive.</text>
 
 <!-- left input card -->
 <g filter="url(#shadow)">
   <rect x="54" y="258" width="270" height="352" rx="20" fill="#091525" stroke="#304054"/>
-  <text x="78" y="294" fill="#d4af37" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800" letter-spacing="2">ILLUSTRATIVE INPUT</text>
-  <text x="78" y="335" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700">Raw card value</text>
-  <text x="78" y="379" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="40" font-weight="800">$225</text>
+  <text x="78" y="294" fill="#d4af37" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="12" font-weight="800" letter-spacing="2">ILLUSTRATIVE INPUT</text>
+  <text x="78" y="335" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="20" font-weight="700">Raw card value</text>
+  <text x="78" y="379" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="40" font-weight="800">$225</text>
   <line x1="78" y1="404" x2="300" y2="404" stroke="#304054"/>
-  <text x="78" y="444" fill="#9ca9b8" font-family="Inter,Arial,sans-serif" font-size="14">Grading + shipping</text>
-  <text x="78" y="477" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="25" font-weight="700">$50</text>
+  <text x="78" y="444" fill="#9ca9b8" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="14">Grading + shipping</text>
+  <text x="78" y="477" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="25" font-weight="700">$50</text>
   <line x1="78" y1="500" x2="300" y2="500" stroke="#304054"/>
-  <text x="78" y="541" fill="#9ca9b8" font-family="Inter,Arial,sans-serif" font-size="14">All-in basis</text>
-  <text x="78" y="580" fill="#d4af37" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="800">$275</text>
+  <text x="78" y="541" fill="#9ca9b8" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="14">All-in basis</text>
+  <text x="78" y="580" fill="#d4af37" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="30" font-weight="800">$275</text>
 </g>
 
 <!-- center outcome chart -->
 <g filter="url(#shadow)">
   <rect x="350" y="258" width="560" height="352" rx="20" fill="#081322" stroke="#304054"/>
-  <text x="378" y="294" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="17" font-weight="800">Possible graded outcomes</text>
-  <text x="378" y="321" fill="#8290a2" font-family="Inter,Arial,sans-serif" font-size="13">A higher label does not guarantee a better economic result.</text>
+  <text x="378" y="294" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="17" font-weight="800">Possible graded outcomes</text>
+  <text x="378" y="321" fill="#8290a2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="13">A higher label does not guarantee a better economic result.</text>
 
   <line x1="430" y1="548" x2="856" y2="548" stroke="#405066" stroke-width="2"/>
   <line x1="430" y1="374" x2="430" y2="548" stroke="#405066" stroke-width="2"/>
   <line x1="430" y1="470" x2="856" y2="470" stroke="#d4af37" stroke-opacity=".32" stroke-dasharray="7 7"/>
-  <text x="442" y="462" fill="#d4af37" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700">ALL-IN BASIS $275</text>
+  <text x="442" y="462" fill="#d4af37" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="11" font-weight="700">ALL-IN BASIS $275</text>
 
   <rect x="492" y="488" width="78" height="60" rx="8" fill="#f27670" opacity=".78"/>
   <rect x="621" y="438" width="78" height="110" rx="8" fill="#f0b84a" opacity=".82"/>
   <rect x="750" y="350" width="78" height="198" rx="8" fill="url(#gold)"/>
-  <text x="531" y="576" text-anchor="middle" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">PSA 8</text>
-  <text x="660" y="576" text-anchor="middle" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">PSA 9</text>
-  <text x="789" y="576" text-anchor="middle" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="800">PSA 10</text>
-  <text x="531" y="479" text-anchor="middle" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">$180</text>
-  <text x="660" y="429" text-anchor="middle" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">$325</text>
-  <text x="789" y="341" text-anchor="middle" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="800">$800</text>
+  <text x="531" y="576" text-anchor="middle" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="15" font-weight="800">PSA 8</text>
+  <text x="660" y="576" text-anchor="middle" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="15" font-weight="800">PSA 9</text>
+  <text x="789" y="576" text-anchor="middle" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="15" font-weight="800">PSA 10</text>
+  <text x="531" y="479" text-anchor="middle" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="14" font-weight="800">$180</text>
+  <text x="660" y="429" text-anchor="middle" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="14" font-weight="800">$325</text>
+  <text x="789" y="341" text-anchor="middle" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="14" font-weight="800">$800</text>
 </g>
 
 <!-- right intelligence card -->
 <g filter="url(#shadow)">
   <rect x="936" y="258" width="290" height="352" rx="20" fill="#091525" stroke="#d4af37" stroke-opacity=".46"/>
-  <text x="962" y="294" fill="#d4af37" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800" letter-spacing="2">WHAT MATTERS</text>
-  <text x="962" y="336" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="800">Break-even grade</text>
-  <text x="962" y="374" fill="#d4af37" font-family="Inter,Arial,sans-serif" font-size="31" font-weight="800">PSA 9</text>
+  <text x="962" y="294" fill="#d4af37" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="12" font-weight="800" letter-spacing="2">WHAT MATTERS</text>
+  <text x="962" y="336" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="18" font-weight="800">Break-even grade</text>
+  <text x="962" y="374" fill="#d4af37" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="31" font-weight="800">PSA 9</text>
   <line x1="962" y1="400" x2="1200" y2="400" stroke="#304054"/>
-  <text x="962" y="441" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="800">Expected value</text>
-  <text x="962" y="477" fill="#f2f2f2" font-family="Inter,Arial,sans-serif" font-size="28" font-weight="800">Depends on odds</text>
-  <text x="962" y="504" fill="#9ca9b8" font-family="Inter,Arial,sans-serif" font-size="13">Grade probabilities must be</text>
-  <text x="962" y="523" fill="#9ca9b8" font-family="Inter,Arial,sans-serif" font-size="13">supported, not assumed.</text>
+  <text x="962" y="441" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="18" font-weight="800">Expected value</text>
+  <text x="962" y="477" fill="#f2f2f2" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="28" font-weight="800">Depends on odds</text>
+  <text x="962" y="504" fill="#9ca9b8" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="13">Grade probabilities must be</text>
+  <text x="962" y="523" fill="#9ca9b8" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="13">supported, not assumed.</text>
   <line x1="962" y1="547" x2="1200" y2="547" stroke="#304054"/>
-  <text x="962" y="580" fill="#83b5ff" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="800">DECISION SUPPORT ONLY</text>
+  <text x="962" y="580" fill="#83b5ff" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="13" font-weight="800">DECISION SUPPORT ONLY</text>
 </g>
 
-<text x="54" y="658" fill="#7f8da0" font-family="Inter,Arial,sans-serif" font-size="12">Example values are illustrative. Existing PSA intelligence remains the sole grading-guidance authority.</text>
+<text x="54" y="658" fill="#7f8da0" font-family="Geist,Geist Sans,Arial,sans-serif" font-size="12">Example values are illustrative. Existing PSA intelligence remains the sole grading-guidance authority.</text>
 </svg>

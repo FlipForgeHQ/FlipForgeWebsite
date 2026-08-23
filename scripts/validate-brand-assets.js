@@ -22,6 +22,7 @@ const requiredFiles = [
   'assets/brand/flipforge-before-after-overlay.svg',
   'assets/fonts/geist-latin-wght-normal.woff2',
   'assets/css/brand-v2.css',
+  'assets/images/flipforge-homepage-dashboard.svg',
   'assets/images/flipforge-grading-scenario.svg',
   'assets/images/flipforge-traceback-guidance.svg',
   'site.webmanifest',
@@ -57,6 +58,27 @@ if (index.includes('assets/images/recommendation-explorer.webp')) {
 
 if (homepageFailures.length) {
   throw new Error(`Homepage brand asset validation failed: ${homepageFailures.join(', ')}`);
+}
+
+const embeddedBrandVisuals = [
+  ['assets/images/flipforge-homepage-dashboard.svg', 'M28 17'],
+  ['assets/images/flipforge-traceback-guidance.svg', 'M28 17'],
+  ['assets/images/flipforge-grading-scenario.svg', 'M32 17'],
+];
+
+for (const [relativePath, cubePath] of embeddedBrandVisuals) {
+  const svg = fs.readFileSync(path.join(root, relativePath), 'utf8');
+  const failures = [];
+  if (!svg.includes('CARD INTELLIGENCE')) failures.push('Card Intelligence descriptor');
+  if (!svg.includes(cubePath)) failures.push('three-dimensional cube mark');
+  if (!/font-family(?::|=")Geist/.test(svg)) failures.push('Geist typography');
+  if (/Signal\. Confidence\. Advantage\.|SIGNAL\. CONFIDENCE\. ADVANTAGE\./.test(svg)) failures.push('deprecated tagline removed');
+  if (/Card Value Intelligence|CARD VALUE INTELLIGENCE/.test(svg)) failures.push('retired descriptor removed');
+  if (/<rect x="(?:24|28)" y="(?:24|28)" width="8" height="8"/.test(svg)) failures.push('flat center square removed');
+
+  if (failures.length) {
+    throw new Error(`${relativePath} failed embedded brand validation: ${failures.join(', ')}`);
+  }
 }
 
 const htmlFiles = fs.readdirSync(root).filter((name) => name.endsWith('.html'));

@@ -22,7 +22,7 @@
       <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000" flood-opacity=".4"/>
     </filter>
     <style>
-      .font{font-family:Inter,Arial,Helvetica,sans-serif}.silver{fill:#c0c3ca}.white{fill:#f2f2f2}.muted{fill:#8b928f}.gold{fill:#d4af37}.green{fill:#58d697}.label{font-size:13px;font-weight:800;letter-spacing:2.3px}.body{font-size:14px}.small{font-size:12px}.headline{font-size:34px;font-weight:900;letter-spacing:-.7px}.question{font-size:23px;font-weight:800;letter-spacing:-.35px}.wordmark{font-size:29px;font-weight:900;letter-spacing:5px}.tag{font-size:10px;font-weight:800;letter-spacing:2.8px}.panel{fill:url(#panel);stroke:#343a45;stroke-width:1.4}.rule{stroke:#333944;stroke-width:1}.flow{stroke:#4b515b;stroke-width:3}.flowGold{stroke:#d4af37;stroke-width:3}.chip{fill:#151a22;stroke:#414752}.chipGold{fill:#241f10;stroke:#d4af37;stroke-opacity:.7}.chipGreen{fill:#10241a;stroke:#58d697;stroke-opacity:.75}
+      @font-face{font-family:Geist;src:url('../fonts/geist-latin-wght-normal.woff2') format('woff2');font-weight:100 900}.font{font-family:Geist,'Geist Sans',Arial,sans-serif}.silver{fill:#c0c3ca}.white{fill:#f2f2f2}.muted{fill:#8b928f}.gold{fill:#d4af37}.green{fill:#58d697}.label{font-size:13px;font-weight:800;letter-spacing:2.3px}.body{font-size:14px}.small{font-size:12px}.headline{font-size:34px;font-weight:900;letter-spacing:-.7px}.question{font-size:23px;font-weight:800;letter-spacing:-.35px}.wordmark{font-size:29px;font-weight:900;letter-spacing:5px}.tag{font-size:10px;font-weight:800;letter-spacing:2.8px}.panel{fill:url(#panel);stroke:#343a45;stroke-width:1.4}.rule{stroke:#333944;stroke-width:1}.flow{stroke:#4b515b;stroke-width:3}.flowGold{stroke:#d4af37;stroke-width:3}.chip{fill:#151a22;stroke:#414752}.chipGold{fill:#241f10;stroke:#d4af37;stroke-opacity:.7}.chipGreen{fill:#10241a;stroke:#58d697;stroke-opacity:.75}
     </style>
   </defs>
 
@@ -30,17 +30,19 @@
   <rect width="1280" height="720" rx="26" fill="url(#grid)"/>
   <rect x="25" y="25" width="1230" height="670" rx="24" fill="none" stroke="#d4af37" stroke-opacity=".42" stroke-width="1.5"/>
 
-  <!-- Approved FlipForge identity: four inward-facing corner blocks with gold center square -->
+  <!-- Approved FlipForge identity: four inward-facing corner blocks with three-dimensional gold cube -->
   <g transform="translate(60 45)">
     <g transform="scale(1.22)">
       <path d="M0 0H22V11H11V22H0Z" fill="url(#silver)"/>
       <path d="M34 0H56V22H45V11H34Z" fill="url(#silver)"/>
       <path d="M0 34H11V45H22V56H0Z" fill="url(#silver)"/>
       <path d="M45 34H56V56H34V45H45Z" fill="url(#silver)"/>
-      <rect x="24" y="24" width="8" height="8" rx="1" fill="#d4af37"/>
+      <path d="M28 17 41 24.5 28 32 15 24.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M15 24.5 28 32v15L15 39.5Z" fill="#b8860b" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M41 24.5 28 32v15l13-7.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
     </g>
     <text x="88" y="34" class="font wordmark white">FLIPFORGE</text>
-    <text x="90" y="55" class="font tag gold">SIGNAL. CONFIDENCE. ADVANTAGE.</text>
+    <text x="90" y="55" class="font tag gold">CARD INTELLIGENCE</text>
   </g>
 
   <g class="font">
