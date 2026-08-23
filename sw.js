@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v7';
+const CACHE='flipforge-shell-v8';
 const SHELL=[
   '/',
   '/index.html',
@@ -9,6 +9,7 @@ const SHELL=[
   '/assets/css/marketing-density-v1.css',
   '/assets/css/homepage-focus-v1.css',
   '/assets/css/homepage-conversion-v2.css',
+  '/assets/css/homepage-evidence-v1.css',
   '/assets/js/homepage-v1.js',
   '/assets/brand/flipforge-app-icon-dark.svg',
   '/assets/images/flipforge-homepage-dashboard.svg'
