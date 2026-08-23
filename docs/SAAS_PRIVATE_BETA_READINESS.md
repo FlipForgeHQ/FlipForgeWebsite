@@ -18,7 +18,7 @@ Smart Opportunity remains the sole `BUY / WATCH / VERIFY / PASS` authority. Exis
 
 ## First-run guidance
 
-Authenticated users with an active, administrator-signed tenant membership are routed once to `#/beta-start` on eligible deploy previews. Completing the introduction stores only the browser preference key `flipforge.privateBeta.onboarding.v1` with the value `complete`.
+Authenticated users with an active, administrator-signed tenant membership are routed once to `#/beta-start` on `goflipforge.com` and eligible controlled previews. A successfully activated production invitation also lands directly on that guide. Completing the introduction stores only the browser preference key `flipforge.privateBeta.onboarding.v1` with the value `complete`.
 
 The preference contains no email, user ID, tenant ID, token, card identity, listing URL, evaluation, recommendation, evidence, or entitlement. Clearing browser storage simply causes the guide to appear again. It does not change the account or authoritative data.
 
@@ -26,7 +26,7 @@ The preference contains no email, user ID, tenant ID, token, card identity, list
 
 The Beta Guide reads the same-origin `/api/v1/health` endpoint and reports the gateway as available, disabled, or unavailable. It never treats a disabled bridge as an active customer path and never substitutes mock data for a failed health response.
 
-Production remains inactive. Tracked Netlify configuration keeps the gateway disabled unless a separately approved deploy-preview proof or beta session explicitly enables it.
+The production private-beta path is active only for invited testers with an administrator-signed tenant membership. This is controlled customer access, not a public launch or paid production activation. The customer API remains environment-gated and can still be disabled between approved testing sessions without affecting saved SQLite records.
 
 ## Feedback capture
 
@@ -48,15 +48,15 @@ The role-gated operator workspace reports feedback review state and checkpoint c
 ## Honest beta boundaries
 
 - Invitation-only access; no public signup.
-- Deploy previews only; no production customer activation.
-- The API bridge may be disabled between controlled sessions.
+- Production access is invitation-only and tenant-scoped; controlled deploy previews remain available for pre-promotion validation.
+- The customer API can still be disabled between approved testing sessions; no mock result replaces it and saved SQLite records remain authoritative.
 - Provider-backed Discover is a real customer path when both the private-beta bridge and the approved server-side active-listing provider are configured.
 - Discover currently searches approved connected active-listing sources only; it does not claim complete-market coverage.
 - Discover search results are ephemeral and do not create tenant-owned saved opportunities. Ownership begins only after the customer explicitly requests authoritative evaluation.
 - If the provider is unavailable, Discover returns an honest empty/unavailable state and does not substitute mock candidates or expose provider setup/credential details.
 - Discover ranking is active-listing prioritization only. It is not `BUY / WATCH / VERIFY / PASS` and active asks never become completed-sale evidence.
 - Manual Evaluate remains available as a direct customer entry path.
-- Dashboard, Discover, Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, Evidence Center, saved PSA guidance, Exit Review, Tracking, Portfolio, Alerts, and Decision Dossier use the existing tenant-scoped staging API when enabled.
+- Dashboard, Discover, Evaluate, Opportunities, Card Intelligence, Decision Traceback, Compare, Evidence Center, saved PSA guidance, Exit Review, Tracking, Portfolio, Alerts, and Decision Dossier use the existing same-origin tenant-scoped customer API when enabled.
 - Decision Dossier export composes existing tenant-scoped reads into one complete audit package when enabled.
 - Tracking persists watch status, review timing, acquisition/pass/sale outcomes, cost basis, and in-app reminder settings through tenant-owned SQLite lifecycle records with optimistic version checks and append-only history.
 - Portfolio projects current `OWNED` holdings and customer-entered cost basis. When exact identity is confirmed and at least three accepted exact completed sales include a sale no more than 30 days old, Portfolio may also expose an evidence-supported reference value and server-calculated unrealized reference comparison.
