@@ -2,13 +2,19 @@
   "use strict";
 
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const ROUTE = "beta-start";
   const ONBOARDING_KEY = "flipforge.privateBeta.onboarding.v1";
   const ONBOARDING_VALUE = "complete";
   const FEEDBACK_ENDPOINT = "/api/beta/feedback";
 
+  function productionHost() {
+    return PRODUCTION_HOST.test(String(window.location.hostname || ""));
+  }
+
   function eligibleHost() {
-    return PREVIEW_HOST.test(String(window.location.hostname || ""));
+    const hostname = String(window.location.hostname || "");
+    return PREVIEW_HOST.test(hostname) || PRODUCTION_HOST.test(hostname);
   }
 
   function routeName() {
@@ -90,7 +96,7 @@
     if (!health) return ["Checking", "Reading the same-origin gateway health contract.", "neutral"];
     if (health.error) return ["Unavailable", "No customer data request was attempted and no mock response was substituted.", "warn"];
     if (health.data?.status === "configured" && health.data?.bridgeEnabled) {
-      return ["Available", "The tenant-scoped customer intelligence path is enabled for this preview.", "ok"];
+      return ["Available", "The tenant-scoped customer intelligence path is enabled for this private-beta session.", "ok"];
     }
     return ["Safely offline", "The preview bridge is disabled between controlled beta sessions.", "warn"];
   }
@@ -165,6 +171,7 @@
     const [accessValue, accessDetail, accessTone] = sessionState(session);
     const [bridgeValue, bridgeDetail, bridgeTone] = bridgeState(health);
     const introComplete = preferenceComplete();
+    const liveProduction = productionHost();
     const displayName = session.fullName || "FlipForge tester";
 
     return `<div class="page private-beta-page" data-private-beta-readiness>
@@ -186,7 +193,7 @@
         ${statusCard("Tester access", accessValue, accessDetail, accessTone)}
         ${statusCard("Customer API", bridgeValue, bridgeDetail, bridgeTone, "data-private-beta-bridge")}
         ${statusCard("Data authority", "SQLite saved", "Evaluations and tracked opportunities use the existing tenant-owned source of truth.", "ok")}
-        ${statusCard("Production", "Inactive", "This customer path remains restricted to approved deploy previews.", "neutral")}
+        ${statusCard("Customer access", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
       </section>
 
       <div class="private-beta-grid">
@@ -213,7 +220,7 @@
 
         <div class="stack">
           <section class="panel">
-            <header class="panel-header"><div><h2>What is real now</h2><p>Current deploy-preview customer capabilities.</p></div></header>
+            <header class="panel-header"><div><h2>What is real now</h2><p>Current approved private-beta capabilities.</p></div></header>
             <div class="panel-body private-beta-limit-list">
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Invitation and recovery</strong><small>Secure sign-in, activation, password recovery, session state, and profile updates.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Discover → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Provider-backed active-listing search, tenant-scoped reads/writes, and comparison use the proven same-origin staging gateway when enabled.</small></span></div>
@@ -234,7 +241,7 @@
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Provider may be unavailable</strong><small>If the authorized active-listing source is not configured for a session, Discover shows an honest unavailable state with no sample fallback. Manual Evaluate remains available.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Current value and performance remain unavailable when evidence gates fail</strong><small>Portfolio does not invent a value for uncovered holdings. Eligible rows show evidence-supported reference value and unrealized reference performance only; fees, taxes, liquidation proceeds, and appraisal claims remain unavailable.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>External alert delivery is not connected</strong><small>Review reminders are in-app only. Email, SMS, push, and marketplace actions remain disabled.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Bridge may be offline</strong><small>The customer API stays disabled between approved testing sessions.</small></span></div>
+              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Bridge may be offline</strong><small>The customer API can be disabled between approved testing sessions without affecting saved SQLite records.</small></span></div>
               <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>No billing or transactions</strong><small>No paid limits, checkout, payment, purchase, listing, sale, or marketplace action is active.</small></span></div>
             </div>
           </section>
