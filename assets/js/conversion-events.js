@@ -1,15 +1,35 @@
 (()=>{
   const normalizeMarketingShell=()=>{
-    document.querySelectorAll('a[href="pricing.html"]').forEach(link=>{
-      if(link.textContent.trim()==='Pricing')link.textContent='Launch Plans';
+    const normalizedPath=link=>{
+      try{
+        const path=new URL(link.getAttribute('href')||'',location.href).pathname
+          .replace(/\/index\.html$/,'/')
+          .replace(/\.html$/,'')
+          .replace(/\/+$/,'');
+        return path||'/';
+      }catch{return '';}
+    };
+    const linksFor=(container,path)=>container?[...container.querySelectorAll('a[href]')].filter(link=>normalizedPath(link)===path):[];
+
+    document.querySelectorAll('a[href]').forEach(link=>{
+      if(normalizedPath(link)==='/pricing'&&link.textContent.trim()==='Pricing')link.textContent='Launch Plans';
     });
 
     const addEvidenceLink=container=>{
-      if(!container||container.querySelector('a[href="learn.html"]'))return;
+      if(!container)return;
+      const existing=linksFor(container,'/learn');
+      if(existing.length){
+        existing.slice(1).forEach(link=>link.remove());
+        existing[0].textContent='Evidence Lab';
+        return;
+      }
       const link=document.createElement('a');
       link.href='learn.html';
       link.textContent='Evidence Lab';
-      const anchor=container.querySelector('a[href="faq.html"],a[href="about.html"],[data-app-preview]');
+      const anchor=[...container.querySelectorAll('a,[data-app-preview]')].find(item=>{
+        const path=normalizedPath(item);
+        return path==='/faq'||path==='/about'||item.hasAttribute('data-app-preview');
+      });
       if(anchor)container.insertBefore(link,anchor);
       else container.append(link);
     };
@@ -17,7 +37,11 @@
     addEvidenceLink(document.querySelector('.desktop-nav'));
     addEvidenceLink(document.querySelector('.mobile-nav'));
     document.querySelectorAll('.footer-links').forEach(group=>{
-      if(group.querySelector('a[href="product.html"]'))addEvidenceLink(group);
+      if(linksFor(group,'/product').length)addEvidenceLink(group);
+    });
+
+    [document.querySelector('.desktop-nav'),document.querySelector('.mobile-nav')].forEach(container=>{
+      linksFor(container,'/beta-application').forEach(link=>link.textContent='Request Beta Access');
     });
 
     const copyright=document.querySelector('.copyright');
@@ -81,7 +105,7 @@
   document.querySelectorAll('a[href="sample-decision-dossier.html"]').forEach(link=>{
     link.addEventListener("click",()=>emit("sample_dossier_clicked",placementFor(link)));
   });
-  document.querySelectorAll('a[href="learn.html"]').forEach(link=>{
+  document.querySelectorAll('a[href="learn.html"],a[href="/learn"]').forEach(link=>{
     link.addEventListener("click",()=>emit("evidence_lab_clicked",placementFor(link)));
   });
   document.querySelectorAll("[data-app-preview]").forEach(link=>{
