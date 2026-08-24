@@ -70,6 +70,8 @@
     heatingUp: "Heating Up"
   };
 
+  let discoverRenderPending = false;
+
   function routeName() {
     return String(window.location.hash || "#/dashboard")
       .replace(/^#\/?/, "")
@@ -263,6 +265,25 @@
     });
   }
 
+  function scheduleCustomerDiscover() {
+    if (routeName() !== "discover" || discoverRenderPending) return;
+    const main = document.querySelector("#main-content");
+    const discovery = window.FlipForgeCustomerDiscovery;
+    if (!main || !discovery || typeof discovery.render !== "function" || typeof discovery.isEligible !== "function" || !discovery.isEligible()) return;
+    if (main.querySelector(".customer-discovery-page")) return;
+
+    discoverRenderPending = true;
+    requestAnimationFrame(async () => {
+      discoverRenderPending = false;
+      if (routeName() !== "discover") return;
+      try {
+        await discovery.render(main);
+      } catch (_) {
+        // Discover itself renders fail-closed errors; never restore the mock feature page here.
+      }
+    });
+  }
+
   function apply() {
     addBrandTagline();
     consolidateAccountNavigation();
@@ -275,6 +296,7 @@
     polishForgeHeatInteractive(document);
     polishTrademark(document);
     document.documentElement.classList.add("ff-product-polish-ready");
+    scheduleCustomerDiscover();
   }
 
   let scheduled = false;
