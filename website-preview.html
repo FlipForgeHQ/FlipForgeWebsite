@@ -24,17 +24,17 @@
     <div>
       <span class="change-kicker">Review batch 01 · Customer path QA</span>
       <h1 id="preview-title">Fix the path before <span>we publish the batch.</span></h1>
-      <p>This page is the holding area for the current website, onboarding, and owner-workspace changes. Nothing shown here is considered approved for the live customer experience until the full path has been reviewed.</p>
+      <p>This page holds the current website, activation, first-run, and owner-workspace changes. Nothing shown here is considered approved for the live customer experience until the full path has been reviewed.</p>
     </div>
     <div class="preview-summary" aria-label="Current preview status">
-      <div><strong>6</strong><span>Pending changes</span></div>
+      <div><strong>7</strong><span>Pending changes</span></div>
       <div><strong>1</strong><span>Merged / verify</span></div>
-      <div><strong>4</strong><span>Beta-path blockers</span></div>
+      <div><strong>5</strong><span>Beta-path blockers</span></div>
       <div><strong>01</strong><span>Current review batch</span></div>
     </div>
   </section>
 
-  <p class="preview-rule"><strong>Publishing rule:</strong> audit → add the proposed fix here → review the whole customer path → publish the approved batch together. The owner workspace can be improved in the same batch, but it remains private and role-gated.</p>
+  <p class="preview-rule"><strong>Publishing rule:</strong> audit → add the proposed fix here → review the whole customer path → publish the approved batch together. The owner workspace remains private and role-gated.</p>
 
   <nav class="preview-tabs" aria-label="Preview sections">
     <a href="#navigation">Navigation</a>
@@ -42,6 +42,7 @@
     <a href="#hero-spacing">Hero spacing</a>
     <a href="#access-flow">Access flow</a>
     <a href="#activation">Activation</a>
+    <a href="#first-login">First login</a>
     <a href="#first-run">First-run guide</a>
     <a href="#sign-in">Sign in</a>
     <a href="#owner-dashboard">Owner dashboard</a>
@@ -49,7 +50,7 @@
   </nav>
 
   <section class="change-section" id="navigation">
-    <div class="change-head"><div><span class="change-kicker">Global navigation · Must fix before beta invitations</span><h2>Separate “Request Access” from “Sign In.”</h2><p>New applicants and returning approved testers currently have to infer two different jobs from the same navigation. The header should make both paths obvious.</p></div><span class="status-badge blocker">Near-blocker</span></div>
+    <div class="change-head"><div><span class="change-kicker">Global navigation · Must fix before beta invitations</span><h2>Separate “Request Access” from “Sign In.”</h2><p>New applicants and returning approved testers currently have to infer two different jobs from the same navigation.</p></div><span class="status-badge blocker">Near-blocker</span></div>
     <div class="comparison-grid">
       <article class="compare-panel"><div class="panel-label"><strong>Current</strong><span>Customer infers the path</span></div><div class="preview-navbar"><img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge"><div class="preview-navlinks"><span>Product</span><span>Launch Plans</span><span>Evidence Lab</span><span>FAQ</span><span>App Preview</span><span class="access">Request Access</span></div></div></article>
       <article class="compare-panel proposed"><div class="panel-label"><strong>Proposed</strong><span>Two jobs, two actions</span></div><div class="preview-navbar"><img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge"><div class="preview-navlinks"><span>Product</span><span>Evidence Lab</span><span>FAQ</span><a class="signin" href="production-auth.html">Sign In</a><a class="access" href="beta-application.html">Request Access</a></div></div></article>
@@ -57,12 +58,12 @@
   </section>
 
   <section class="change-section" id="beta-banner">
-    <div class="change-head"><div><span class="change-kicker">Homepage attention layer · Must fix before beta invitations</span><h2>Make the private beta visible immediately.</h2><p>A restrained animated banner under the header gives the beta one obvious entry point without turning the homepage into an advertisement.</p></div><span class="status-badge pending">Pending approval</span></div>
+    <div class="change-head"><div><span class="change-kicker">Homepage attention layer · Must fix before beta invitations</span><h2>Make the private beta visible immediately.</h2><p>A restrained animated banner under the header gives the beta one obvious entry point.</p></div><span class="status-badge pending">Pending approval</span></div>
     <div class="compare-panel proposed" style="margin-top:18px"><div class="panel-label"><strong>Proposed</strong><span>Subtle gold motion</span></div><div class="beta-banner"><strong>Private Beta Now Open</strong><span>Help shape FlipForge before launch.</span><a href="beta-application.html">Request Access →</a><a href="production-auth.html">Already approved? Sign In →</a></div></div>
   </section>
 
   <section class="change-section" id="hero-spacing">
-    <div class="change-head"><div><span class="change-kicker">Homepage hero · Must fix before beta invitations</span><h2>Move the first meaningful text higher.</h2><p>The premium spacing stays, but the value proposition should begin much sooner. The beta banner becomes the visual transition instead of empty space.</p></div><span class="status-badge pending">Pending approval</span></div>
+    <div class="change-head"><div><span class="change-kicker">Homepage hero · Must fix before beta invitations</span><h2>Move the first meaningful text higher.</h2><p>The beta banner becomes the visual transition instead of empty space.</p></div><span class="status-badge pending">Pending approval</span></div>
     <div class="comparison-grid">
       <article class="compare-panel"><div class="panel-label"><strong>Current feel</strong><span>Too much air</span></div><div class="hero-mock loose"><div class="eyebrow">Sports Card Decision Intelligence</div><h3>Before you buy. <span>Know Why.</span></h3><p>A wrong parallel, bad comp, or unrealistic grading assumption can change the entire decision.</p></div></article>
       <article class="compare-panel proposed"><div class="panel-label"><strong>Proposed</strong><span>Message starts sooner</span></div><div class="hero-mock tight"><div class="eyebrow">Sports Card Decision Intelligence</div><h3>Before you buy. <span>Know Why.</span></h3><p>A wrong parallel, bad comp, or unrealistic grading assumption can change the entire decision.</p></div></article>
@@ -74,7 +75,7 @@
     <div class="compare-panel proposed" style="margin-top:18px"><div class="panel-label"><strong>Proposed customer path</strong><span>Three explicit states</span></div><div class="flow-grid">
       <article class="flow-card"><span>New tester</span><strong>Request access.</strong><p>Submit the beta application and wait for review.</p><div class="flow-path">Apply → Review → Invitation</div></article>
       <article class="flow-card"><span>Invited tester</span><strong>Activate the account.</strong><p>Create the password from the invitation and enter FlipForge.</p><div class="flow-path">Invitation → Activate → Getting Started</div></article>
-      <article class="flow-card"><span>Returning tester</span><strong>Sign in directly.</strong><p>No application form and no “App Preview” detour.</p><div class="flow-path">Sign In → Dashboard</div></article>
+      <article class="flow-card"><span>Returning tester</span><strong>Sign in directly.</strong><p>No application form and no App Preview detour.</p><div class="flow-path">Sign In → Dashboard</div></article>
     </div></div>
   </section>
 
@@ -86,21 +87,54 @@
     </div>
   </section>
 
+  <section class="change-section" id="first-login">
+    <div class="change-head"><div><span class="change-kicker">Observed first-login result · New blocker</span><h2>A new tester is being dropped into the middle of Card Intelligence.</h2><p>The live first-login experience shown during QA opens a dense saved-decision screen with navigation, evidence gates, Forge Heat, CardSight, Price Intelligence, Traceback, Evidence Chain, PSA context, and authority boundaries before the tester has been taught the basic workflow.</p></div><span class="status-badge blocker">Beta blocker</span></div>
+    <div class="comparison-grid">
+      <article class="compare-panel">
+        <div class="panel-label"><strong>Observed live experience</strong><span>Too much, too soon</span></div>
+        <div style="padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:#050607">
+          <span class="change-kicker">Card Intelligence</span>
+          <h3 style="margin:5px 0 8px;font-size:20px">VERIFY · Saved intelligence</h3>
+          <p style="margin:0;color:#9ba3ad;font-size:11px;line-height:1.6">Forge Heat withheld · Price Intelligence · CardSight sold evidence · Confidence 0/100 · Liquidity 35/100 · Risk 90/100 · Rank 9/100 · Decision Traceback · Evidence Chain · PSA guidance.</p>
+          <div style="margin-top:14px;padding:12px;border:1px solid rgba(242,118,112,.28);border-radius:10px;color:#ffaaa6;font-size:10px;line-height:1.55">A first-time tester has no context yet for which of these modules matters, what VERIFY means, or what action should happen next.</div>
+        </div>
+      </article>
+      <article class="compare-panel proposed">
+        <div class="panel-label"><strong>Required first-login behavior</strong><span>One clear job</span></div>
+        <div class="signin-mock">
+          <img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge">
+          <div class="eyebrow">Welcome to FlipForge Private Beta</div>
+          <h3>Start with one exact card.</h3>
+          <p>Before showing saved intelligence, teach the customer the three-step loop: Discover → Evaluate → Save &amp; Track.</p>
+          <div class="signin-button">Start with Discover →</div>
+          <div class="signin-meta"><span>First session</span><span>Optional: 60-second tour</span></div>
+        </div>
+      </article>
+    </div>
+    <ul class="change-notes">
+      <li>First activation must never land directly on Card Intelligence, Opportunities, or another saved-record detail view.</li>
+      <li>First successful login should route to Getting Started and show the one-time welcome window.</li>
+      <li>The primary button should send the tester directly to Discover.</li>
+      <li>After onboarding is completed or dismissed, normal saved-intelligence routing can resume.</li>
+      <li>If a card shown on first login was not created by that tester, treat that as a separate data-isolation blocker and investigate before inviting external users.</li>
+    </ul>
+  </section>
+
   <section class="change-section" id="first-run">
-    <div class="change-head"><div><span class="change-kicker">First successful login · New must-fix</span><h2>Do not drop a new tester onto a dashboard and expect them to know where to begin.</h2><p>After activation—or the first successful sign-in—the app should show a one-time welcome window that gives the tester a single clear starting path. It can be reopened later from Getting Started / Help.</p></div><span class="status-badge blocker">Beta blocker</span></div>
+    <div class="change-head"><div><span class="change-kicker">First successful login · Must fix</span><h2>Give the tester a one-time welcome window.</h2><p>The first goal is not learning every screen. It is completing one real decision from exact identity through evidence and tracking.</p></div><span class="status-badge blocker">Beta blocker</span></div>
     <div class="compare-panel proposed" style="margin-top:18px">
       <div class="panel-label"><strong>Proposed first-run window</strong><span>One time per account</span></div>
       <div style="max-width:760px;margin:0 auto;padding:26px;border:1px solid rgba(212,175,55,.34);border-radius:18px;background:radial-gradient(circle at 90% 0,rgba(212,175,55,.08),transparent 30%),#07111f;box-shadow:0 24px 70px rgba(0,0,0,.42)">
         <div class="change-kicker">Welcome to FlipForge Private Beta</div>
         <h3 style="margin:6px 0 8px;font-size:30px;letter-spacing:-.03em">Start with one exact card.</h3>
-        <p style="margin:0;color:#aeb7c2;line-height:1.6">Your first goal is not to learn every screen. Run one real decision from exact identity through evidence and tracking.</p>
+        <p style="margin:0;color:#aeb7c2;line-height:1.6">Run one real decision from exact identity through evidence and tracking.</p>
         <div class="flow-grid" style="margin-top:18px">
-          <article class="flow-card"><span>01 · Discover</span><strong>Find one exact card.</strong><p>Enter year, set, player, card number, parallel, grader and grade. Confirm the identity before moving on.</p></article>
-          <article class="flow-card"><span>02 · Evaluate</span><strong>Challenge the evidence.</strong><p>Review what matched, what was excluded, what remains uncertain, and why FlipForge reached the decision state.</p></article>
-          <article class="flow-card"><span>03 · Save &amp; Track</span><strong>Preserve the decision.</strong><p>Save the reasoning, add the card to Tracking, and return for the 7 / 14 / 30-day evidence checks.</p></article>
+          <article class="flow-card"><span>01 · Discover</span><strong>Find one exact card.</strong><p>Enter year, set, player, card number, parallel, grader and grade. Confirm identity before moving on.</p></article>
+          <article class="flow-card"><span>02 · Evaluate</span><strong>Challenge the evidence.</strong><p>Review what matched, what was excluded, what remains uncertain, and why FlipForge reached its decision state.</p></article>
+          <article class="flow-card"><span>03 · Save &amp; Track</span><strong>Preserve the decision.</strong><p>Save the reasoning, add the card to Tracking, and return for 7 / 14 / 30-day evidence checks.</p></article>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><span class="mock-btn primary" style="padding:12px 18px">Start with Discover →</span><span class="mock-btn" style="padding:12px 18px">Take the 60-second tour</span></div>
-        <p style="margin:12px 0 0;color:#7f8996;font-size:10px">Shown automatically after first activation. “Getting Started” remains available from the app afterward.</p>
+        <p style="margin:12px 0 0;color:#7f8996;font-size:10px">Shown automatically after first activation. Getting Started remains available from the app afterward.</p>
       </div>
     </div>
   </section>
@@ -111,12 +145,11 @@
   </section>
 
   <section class="change-section" id="owner-dashboard">
-    <div class="change-head"><div><span class="change-kicker">Owner workspace · Operations redesign</span><h2>Turn Beta Operations into an actual dashboard.</h2><p>The current workspace gives too much visual weight to the acquisition funnel and selected-record detail, while the floating Identity panel covers working space. The owner view should prioritize what needs attention now.</p></div><span class="status-badge pending">Owner UX</span></div>
+    <div class="change-head"><div><span class="change-kicker">Owner workspace · Operations redesign</span><h2>Turn Beta Operations into an actual dashboard.</h2><p>The owner view should prioritize what needs attention now instead of presenting one long administrative page.</p></div><span class="status-badge pending">Owner UX</span></div>
     <div class="comparison-grid">
-      <article class="compare-panel"><div class="panel-label"><strong>Current problems</strong><span>Dense and hard to scan</span></div><ul class="change-notes" style="margin-top:0"><li>Acquisition funnel dominates the top of the page instead of operational tasks.</li><li>Applicant list and detail compete for space with no clear hierarchy.</li><li>The Identity/account panel floats over the workspace.</li><li>Approve / invite / waitlist actions are visually buried.</li><li>Feedback and applicant operations read like one long admin page.</li></ul></article>
-      <article class="compare-panel proposed"><div class="panel-label"><strong>Proposed structure</strong><span>Operator-first dashboard</span></div><ul class="change-notes" style="margin-top:0"><li>Compact KPI row: Needs Review, Approved, Invited, Activated.</li><li>Primary work area: queue on the left, selected applicant in the center, quick actions on the right.</li><li>Operator identity becomes a small verified badge in the header—not a floating panel.</li><li>Acquisition analytics move below the active work queue.</li><li>Feedback / outcome checkpoints become a separate dashboard section or tab.</li></ul></article>
+      <article class="compare-panel"><div class="panel-label"><strong>Current problems</strong><span>Dense and hard to scan</span></div><ul class="change-notes" style="margin-top:0"><li>Acquisition funnel dominates the page.</li><li>Applicant list and detail compete for space.</li><li>The Identity/account panel floats over working space.</li><li>Approve / invite / waitlist actions are visually buried.</li><li>Feedback and applicant operations read like one long admin page.</li></ul></article>
+      <article class="compare-panel proposed"><div class="panel-label"><strong>Proposed structure</strong><span>Operator-first dashboard</span></div><ul class="change-notes" style="margin-top:0"><li>Compact KPI row: Needs Review, Approved, Invited, Activated.</li><li>Queue on the left, selected applicant in the center, quick actions on the right.</li><li>Operator identity becomes a small verified badge in the header.</li><li>Acquisition analytics move below active operations.</li><li>Feedback / outcome checkpoints become a separate section or tab.</li></ul></article>
     </div>
-
     <div class="compare-panel proposed" style="margin-top:18px">
       <div class="panel-label"><strong>Dashboard mock</strong><span>Owner Beta Operations</span></div>
       <div style="border:1px solid rgba(255,255,255,.09);border-radius:16px;background:#050607;overflow:hidden">
@@ -124,17 +157,17 @@
         <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.09)">
           <div class="flow-card"><span>Needs review</span><strong style="font-size:24px">2</strong><p>Open applications</p></div><div class="flow-card"><span>Approved</span><strong style="font-size:24px">0</strong><p>Ready to invite</p></div><div class="flow-card"><span>Invited</span><strong style="font-size:24px">2</strong><p>Awaiting activation</p></div><div class="flow-card"><span>Activated</span><strong style="font-size:24px">0</strong><p>Active testers</p></div>
         </div>
-        <div style="display:grid;grid-template-columns:minmax(210px,.72fr) minmax(320px,1.35fr) minmax(190px,.62fr);min-height:360px">
-          <div style="padding:15px;border-right:1px solid rgba(255,255,255,.09)"><span class="change-kicker">Review queue</span><div class="flow-card" style="margin-top:10px;border-color:rgba(212,175,55,.35)"><span>Invite sent</span><strong>John</strong><p>Discover and search</p></div><div class="flow-card" style="margin-top:8px"><span>Invite sent</span><strong>Todd Holbvein</strong><p>Discover and search</p></div></div>
-          <div style="padding:18px"><span class="change-kicker">Selected applicant</span><h3 style="margin:6px 0 4px;font-size:24px">John</h3><p style="margin:0;color:#9da5af;font-size:11px">Collector · Less than 1 year · Discover and search</p><div class="flow-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px"><article class="flow-card"><span>Primary use case</span><p>Review the applicant’s actual testing goal here without scanning a wall of fields.</p></article><article class="flow-card"><span>Beta test group</span><strong>private-beta-2026-08</strong><p>Internal grouping is visible but not dominant.</p></article></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><span class="mock-btn primary">Approve</span><span class="mock-btn">Waitlist</span><span class="mock-btn">Decline</span></div><div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.09);color:#858e99;font-size:10px">State history and internal notes stay available below the decision controls.</div></div>
-          <div style="padding:15px;border-left:1px solid rgba(255,255,255,.09)"><span class="change-kicker">Quick actions</span><div class="flow-card" style="margin-top:10px"><strong>Invite approved tester</strong><p>Only appears when approval is complete.</p></div><div class="flow-card" style="margin-top:8px"><strong>View feedback</strong><p>3 items need review.</p></div><div class="flow-card" style="margin-top:8px"><strong>Acquisition analytics</strong><p>Moved below active operations.</p></div></div>
+        <div style="display:grid;grid-template-columns:minmax(210px,.72fr) minmax(320px,1.35fr) minmax(190px,.62fr);min-height:330px">
+          <div style="padding:15px;border-right:1px solid rgba(255,255,255,.09)"><span class="change-kicker">Review queue</span><div class="flow-card" style="margin-top:10px;border-color:rgba(212,175,55,.35)"><span>Invite sent</span><strong>John</strong><p>Discover and search</p></div><div class="flow-card" style="margin-top:8px"><span>Invite sent</span><strong>Tester 2</strong><p>Discover and search</p></div></div>
+          <div style="padding:18px"><span class="change-kicker">Selected applicant</span><h3 style="margin:6px 0 4px;font-size:24px">John</h3><p style="margin:0;color:#9da5af;font-size:11px">Collector · Less than 1 year · Discover and search</p><div class="flow-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px"><article class="flow-card"><span>Primary use case</span><p>Review the applicant’s actual testing goal without scanning a wall of fields.</p></article><article class="flow-card"><span>Beta test group</span><strong>private-beta-2026-08</strong><p>Internal grouping stays visible but secondary.</p></article></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><span class="mock-btn primary">Approve</span><span class="mock-btn">Waitlist</span><span class="mock-btn">Decline</span></div></div>
+          <div style="padding:15px;border-left:1px solid rgba(255,255,255,.09)"><span class="change-kicker">Quick actions</span><div class="flow-card" style="margin-top:10px"><strong>Invite approved tester</strong><p>Only appears when approval is complete.</p></div><div class="flow-card" style="margin-top:8px"><strong>View feedback</strong><p>Items needing review.</p></div><div class="flow-card" style="margin-top:8px"><strong>Acquisition analytics</strong><p>Moved below active operations.</p></div></div>
         </div>
       </div>
     </div>
   </section>
 
   <section class="change-section" id="mobile">
-    <div class="change-head"><div><span class="change-kicker">Homepage mobile hero · Already merged</span><h2>Stack the mobile hero instead of squeezing desktop into a phone.</h2><p>The CSS conflict was corrected and the floating demo chip was removed on mobile. This still needs a real-device screenshot check before the batch is closed.</p></div><span class="status-badge merged">Merged · verify</span></div>
+    <div class="change-head"><div><span class="change-kicker">Homepage mobile hero · Already merged</span><h2>Stack the mobile hero instead of squeezing desktop into a phone.</h2><p>The CSS conflict was corrected and the floating demo chip removed on mobile. This still needs a real-device screenshot check before the batch is closed.</p></div><span class="status-badge merged">Merged · verify</span></div>
   </section>
 
   <footer class="preview-footer">FlipForge internal review workspace · Noindex / nofollow · Customer-facing changes are not considered published until explicitly approved and released.</footer>
