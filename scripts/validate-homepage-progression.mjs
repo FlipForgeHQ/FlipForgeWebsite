@@ -61,6 +61,7 @@ requireText('homepage CSS', homepageCss, '.ff-audience-grid');
 requireText('homepage CSS', homepageCss, '.ff-dossier-preview');
 requireText('homepage CSS', homepageCss, '.ff-demo-float');
 requireText('homepage CSS', homepageCss, '.ff-decision-boundary');
+requireText('homepage compact transition', homepageCss, 'body.ff-home-focused #before-after{padding-bottom:28px}');
 forbidText('homepage CSS obsolete hero jump', homepageCss, '.ff-hero-jump-link');
 forbidText('homepage CSS external font', homepageCss, 'fonts.gstatic.com');
 forbidText('homepage CSS external font', homepageCss, 'font-family:Inter');
@@ -68,7 +69,7 @@ requireText('conversion CSS', conversionCss, '.ff-problem-grid');
 requireText('conversion CSS', conversionCss, '.ff-validation-grid');
 requireText('conversion CSS', conversionCss, '.ff-category-grid');
 requireText('conversion CSS', conversionCss, '@media(prefers-reduced-motion:reduce)');
-for (const evidenceStyle of ['.ff-evidence-grid','.ff-evidence-card.accepted','.ff-evidence-card.excluded','.ff-evidence-card.traceback','.ff-evidence-flow','font-size:15px']) requireText('evidence CSS', evidenceCss, evidenceStyle);
+for (const evidenceStyle of ['.ff-evidence-grid','.ff-evidence-card.accepted','.ff-evidence-card.excluded','.ff-evidence-card.traceback','.ff-evidence-flow','padding:38px 24px 64px','font-size:clamp(27px,2.25vw,33px)!important','font-size:15px']) requireText('evidence CSS', evidenceCss, evidenceStyle);
 
 const architecture = ['id="before-after"','id="evidence"','id="sample-dossier"','id="validation"','id="try-flipforge"','id="who-its-for"','class="ff-category"','id="how-it-works"'];
 let lastIndex = -1;
@@ -99,7 +100,7 @@ for (const demoDiscoveryNeedle of ['Product demo','See FlipForge ↓','Try FlipF
 forbidText('homepage JavaScript layout ownership', homepageJs, 'stabilizeHeroLayout');
 forbidText('homepage JavaScript layout ownership', homepageJs, 'hero.style.gridTemplateColumns');
 
-for (const shellNeedle of ['normalizeMarketingShell','Launch Plans','Evidence Lab','sample_dossier_clicked','evidence_lab_clicked']) requireText('marketing shell', conversionEvents, shellNeedle);
+for (const shellNeedle of ['normalizeMarketingShell','normalizedPath','Launch Plans','Evidence Lab','Request Beta Access','sample_dossier_clicked','evidence_lab_clicked']) requireText('marketing shell', conversionEvents, shellNeedle);
 
 for (const heroNeedle of ['FlipForge decision spotlight motion loop','ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.','CLAIMED: REFRACTOR','FLIPFORGE VERDICT','VERIFY','VERIFY BEFORE YOU BUY.','Before you buy. Know Why.','CARD INTELLIGENCE','M28 17','font-size:48px','font-size:16px','Hold the decision until the evidence is fixed.','Use exact verified comps only.']) requireText('hero decision spotlight', heroSvg, heroNeedle);
 for (const motionNeedle of ['@keyframes claimLoop','@keyframes goodLoop','@keyframes warn1Loop','@keyframes warn2Loop','@keyframes arrowLoop','@keyframes verdictLoop','motion-res1','motion-res2','motion-res3','@media(prefers-reduced-motion:reduce)']) requireText('hero motion loop', heroSvg, motionNeedle);
@@ -123,7 +124,7 @@ forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v10'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v11'");
 requireText('service worker', serviceWorker, "'/assets/css/brand-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/css/marketing-density-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
@@ -146,4 +147,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Request Beta Access owns primary conversion, hero copy is disciplined, Ohtani remains the evidence/dossier case rather than the interactive demo, decision boundaries sit beside decision states, pricing stays unpublished, and the locked FlipForge brand remains intact.');
+console.log('PASS: Request Beta Access owns primary conversion, hero copy is disciplined, marketing navigation survives pretty URLs without duplication, the Evidence transition is compact and readable, Ohtani remains the evidence/dossier case rather than the interactive demo, decision boundaries sit beside decision states, pricing stays unpublished, and the locked FlipForge brand remains intact.');
