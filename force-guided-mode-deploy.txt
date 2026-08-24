@@ -1,0 +1,2 @@
+Force Netlify production rebuild for guided mode deployment verification.
+Triggered 2026-08-24 after guided-mode-v1 integration.
