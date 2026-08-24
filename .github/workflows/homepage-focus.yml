@@ -4,26 +4,34 @@ on:
   pull_request:
     paths:
       - "index.html"
+      - "product.html"
       - "sample-decision-dossier.html"
       - "assets/js/homepage-v1.js"
       - "assets/js/marketing-v3.js"
+      - "assets/js/site.js"
       - "assets/css/homepage-focus-v1.css"
       - "assets/css/sample-dossier-v1.css"
+      - "assets/css/visual-sections.css"
       - "scripts/validate-homepage-focus.mjs"
       - "scripts/validate-homepage-progression.mjs"
+      - "scripts/validate-product-identity-simulator.mjs"
       - ".github/workflows/homepage-focus.yml"
   push:
     branches:
       - main
     paths:
       - "index.html"
+      - "product.html"
       - "sample-decision-dossier.html"
       - "assets/js/homepage-v1.js"
       - "assets/js/marketing-v3.js"
+      - "assets/js/site.js"
       - "assets/css/homepage-focus-v1.css"
       - "assets/css/sample-dossier-v1.css"
+      - "assets/css/visual-sections.css"
       - "scripts/validate-homepage-focus.mjs"
       - "scripts/validate-homepage-progression.mjs"
+      - "scripts/validate-product-identity-simulator.mjs"
       - ".github/workflows/homepage-focus.yml"
 
 permissions:
@@ -40,11 +48,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Parse homepage browser JavaScript
+      - name: Parse marketing browser JavaScript
         run: |
           node --check assets/js/marketing-v3.js
           node --check assets/js/homepage-v1.js
-      - name: Validate focused homepage contract
+          node --check assets/js/site.js
+      - name: Validate focused marketing contract
         run: |
           node scripts/validate-homepage-focus.mjs
           node scripts/validate-homepage-progression.mjs
+          node scripts/validate-product-identity-simulator.mjs
