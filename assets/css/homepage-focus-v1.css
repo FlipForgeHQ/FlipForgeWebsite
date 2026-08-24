@@ -14,6 +14,7 @@ body.ff-home-focused .hero.ff-hero-v3 .ff-hero-tension{max-width:500px;margin-bo
 body.ff-home-focused .hero.ff-hero-v3 .lead{max-width:520px;font-size:18px}
 body.ff-home-focused .ff-primary-actions{margin-top:24px}
 body.ff-home-focused .home-section{padding-top:52px;padding-bottom:52px}
+body.ff-home-focused #before-after{padding-bottom:28px}
 body.ff-home-focused #before-after .product-visual{max-width:920px;margin-inline:auto}
 body.ff-home-focused #try-flipforge .section-head{margin-bottom:22px}
 
@@ -184,6 +185,7 @@ body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
 @media(max-width:700px){
   body.ff-home-focused .hero.ff-hero-v3{padding-top:44px;padding-bottom:30px;gap:30px}
   body.ff-home-focused .home-section{padding-top:42px;padding-bottom:42px}
+  body.ff-home-focused #before-after{padding-bottom:22px}
   .ff-demo-float{right:12px;bottom:12px;padding:9px 12px}
   .ff-audience,.ff-dossier-spotlight{padding:46px 18px}
   .ff-audience-grid{grid-template-columns:1fr}
