@@ -1,0 +1,61 @@
+.customer-discovery-identity-message.ff-identity-assist-explained{
+  display:grid;
+  gap:5px;
+  border-color:rgba(224,182,62,.55);
+  background:rgba(224,182,62,.09);
+  color:#d7dde5;
+}
+.customer-discovery-identity-message.ff-identity-assist-explained strong{
+  color:#f2cb67;
+  font-size:13px;
+}
+.customer-discovery-identity-message.ff-identity-assist-explained span{
+  color:#b8c1cc;
+  line-height:1.5;
+}
+.ff-identity-review-match{
+  border-color:rgba(224,182,62,.24)!important;
+  background:linear-gradient(135deg,rgba(224,182,62,.045),rgba(255,255,255,.015))!important;
+}
+.ff-identity-review-actions{
+  display:grid;
+  gap:7px;
+  justify-items:end;
+  flex:none;
+  min-width:155px;
+}
+.ff-identity-review-label{
+  color:#d8b85b;
+  font-size:9px;
+  font-weight:800;
+  line-height:1.25;
+  letter-spacing:.05em;
+  text-align:right;
+  text-transform:uppercase;
+}
+.ff-identity-review-actions .button{
+  min-width:145px;
+  border-color:rgba(224,182,62,.55);
+  color:#f2cb67;
+}
+.ff-identity-review-actions .button:hover,
+.ff-identity-review-actions .button:focus-visible{
+  border-color:#f2cb67;
+  background:rgba(224,182,62,.11);
+  outline:none;
+}
+.ff-identity-recheck-input{
+  border-color:#f2cb67!important;
+  box-shadow:0 0 0 4px rgba(224,182,62,.2)!important;
+}
+.ff-identity-selectable{
+  border-color:rgba(92,201,139,.36)!important;
+}
+@media(max-width:680px){
+  .ff-identity-review-actions{
+    width:100%;
+    justify-items:stretch;
+  }
+  .ff-identity-review-label{text-align:left}
+  .ff-identity-review-actions .button{width:100%;min-width:0}
+}
