@@ -27,9 +27,9 @@
       <p>This page is the holding area for website changes between publishing cycles. New changes are added here by section, reviewed together, and only moved into the customer-facing pages after approval.</p>
     </div>
     <div class="preview-summary" aria-label="Current preview status">
-      <div><strong>3</strong><span>Pending changes</span></div>
+      <div><strong>4</strong><span>Pending changes</span></div>
       <div><strong>1</strong><span>Merged / verify</span></div>
-      <div><strong>1</strong><span>Access blocker found</span></div>
+      <div><strong>3</strong><span>Access blockers found</span></div>
       <div><strong>01</strong><span>Current review batch</span></div>
     </div>
   </section>
@@ -41,6 +41,7 @@
     <a href="#beta-banner">Beta banner</a>
     <a href="#hero-spacing">Hero spacing</a>
     <a href="#access-flow">Access flow</a>
+    <a href="#activation">Invite activation</a>
     <a href="#sign-in">Sign in</a>
     <a href="#mobile">Mobile hero</a>
   </nav>
@@ -180,6 +181,51 @@
         </article>
       </div>
     </div>
+  </section>
+
+  <section class="change-section" id="activation" aria-labelledby="activation-title">
+    <div class="change-head">
+      <div>
+        <span class="change-kicker">Invitation acceptance · Must fix before beta invitations</span>
+        <h2 id="activation-title">Make the invitation link feel like the start of FlipForge—not a hidden authentication callback.</h2>
+        <p>The current Identity email returns the tester to the public homepage. The activation form is rendered as a small fixed panel near the lower-right corner, so the next step competes with the normal website and can be easy to miss. The proposed experience gives activation the whole page and immediately explains what happens next.</p>
+      </div>
+      <span class="status-badge blocker">Near-blocker</span>
+    </div>
+    <div class="comparison-grid">
+      <article class="compare-panel">
+        <div class="panel-label"><strong>Current</strong><span>Callback lands on homepage</span></div>
+        <div style="position:relative;min-height:300px;padding:22px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:linear-gradient(135deg,#050505,#0a0a0a);overflow:hidden">
+          <div style="max-width:65%;color:#777f88;font-size:10px;line-height:1.6">Normal homepage content remains visible behind the account action, so the tester has to notice that the actual activation control appeared separately.</div>
+          <div style="position:absolute;right:14px;bottom:14px;width:min(270px,78%);padding:14px;border:1px solid rgba(212,175,55,.35);border-radius:12px;background:#07111f">
+            <strong style="display:block;font-size:13px">Activate your FlipForge beta account</strong>
+            <p style="margin:6px 0 10px;color:#9ca6b3;font-size:9px;line-height:1.45">Set a password to accept your invitation.</p>
+            <div style="height:30px;border:1px solid #465365;border-radius:7px;background:#030812;margin-top:7px"></div>
+            <div style="height:30px;border:1px solid #465365;border-radius:7px;background:#030812;margin-top:7px"></div>
+            <div style="margin-top:9px;padding:8px;border-radius:7px;background:#d4af37;color:#030812;text-align:center;font-size:9px;font-weight:900">ACTIVATE ACCOUNT</div>
+          </div>
+        </div>
+      </article>
+      <article class="compare-panel proposed">
+        <div class="panel-label"><strong>Proposed</strong><span>Dedicated first-run activation</span></div>
+        <div class="signin-mock">
+          <img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge">
+          <div class="eyebrow">Your Beta Invitation Is Ready</div>
+          <h3>Activate your FlipForge account.</h3>
+          <p>You have been approved for the private beta. Create your password below. When activation is complete, we will take you directly to Getting Started.</p>
+          <div class="signin-field"><label>Create password</label><div aria-hidden="true"></div></div>
+          <div class="signin-field"><label>Confirm password</label><div aria-hidden="true"></div></div>
+          <div class="signin-button">Activate &amp; Enter FlipForge</div>
+          <div class="signin-meta"><span>Step 1 of 2 · Activate account</span><span>Next: Getting Started →</span></div>
+        </div>
+      </article>
+    </div>
+    <ul class="change-notes">
+      <li>Invitation links should open a dedicated activation state instead of making the user search the homepage for the next action.</li>
+      <li>Use one dominant action: create password and activate.</li>
+      <li>After activation, automatically send the tester to the private-beta Getting Started screen.</li>
+      <li>Do not ask the tester to return to the application form or manually find the app.</li>
+    </ul>
   </section>
 
   <section class="change-section" id="sign-in" aria-labelledby="signin-title">
