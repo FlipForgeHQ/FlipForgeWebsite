@@ -27,7 +27,6 @@
       document.body.classList.add('menu-open');
       focusable()[0]?.focus();
     };
-
     toggle.addEventListener('click',()=>toggle.getAttribute('aria-expanded')==='true'?closeMenu():openMenu());
     backdrop.addEventListener('click',closeMenu);
     menu.querySelectorAll('a').forEach(link=>link.addEventListener('click',closeMenu));
@@ -44,71 +43,34 @@
     window.addEventListener('resize',()=>{if(window.innerWidth>1000)closeMenu();},{passive:true});
   }
 
-  const decisionBoundaryText='Decision support only. FlipForge does not authorize transactions or guarantee outcomes.';
-  const addDecisionBoundary=(container,placement='append')=>{
-    if(!container||container.querySelector('.ff-decision-boundary'))return;
-    const boundary=document.createElement('p');
-    boundary.className='caption ff-decision-boundary';
-    boundary.textContent=decisionBoundaryText;
-    if(placement==='after')container.insertAdjacentElement('afterend',boundary);
-    else container.append(boundary);
+  const normalizeHomepageActions=()=>{
+    const desktopTry=document.querySelector('.desktop-nav a[href="#try-flipforge"]');
+    const desktopBeta=document.querySelector('.desktop-nav a[href="beta-application.html"]');
+    const mobileTry=document.querySelector('.mobile-nav a[href="#try-flipforge"]');
+    desktopTry?.classList.remove('nav-cta');
+    desktopBeta?.classList.add('nav-cta');
+    if(desktopTry)desktopTry.textContent='Try FlipForge';
+    if(desktopBeta)desktopBeta.textContent='Request Access';
+    if(mobileTry){
+      mobileTry.textContent='Try FlipForge — interactive demo';
+      mobileTry.classList.add('ff-mobile-demo-cta');
+    }
+    if(!document.querySelector('.ff-demo-float')){
+      const floating=document.createElement('a');
+      floating.className='ff-demo-float';
+      floating.href='#try-flipforge';
+      floating.setAttribute('aria-label','See the Try FlipForge interactive demo');
+      floating.innerHTML='<span>Product demo</span><strong>See FlipForge ↓</strong>';
+      document.body.append(floating);
+    }
   };
-
-  const dossierPreview=document.querySelector('.ff-dossier-preview');
-  addDecisionBoundary(dossierPreview);
-
-  const demoResult=document.querySelector('.demo-result');
-  addDecisionBoundary(demoResult,'after');
+  normalizeHomepageActions();
 
   const steps=[
-    {
-      label:'Step 1 of 4 · Enter the card',
-      title:'A title claim is not enough.',
-      copy:'FlipForge separates the seller’s wording from the verified card attributes before comparing any price or sale.',
-      state:'CHECK IDENTITY',
-      stateClass:'amber',
-      checks:[
-        ['good','✓','Base identity aligns','Year, set, player, and card number are consistent.'],
-        ['bad','!','Parallel unresolved','Refractor cannot be assumed from the title.'],
-        ['neutral','→','Next check','Review slab and card images against identity evidence.']
-      ]
-    },
-    {
-      label:'Step 2 of 4 · FlipForge checks it',
-      title:'Only true matches should influence value.',
-      copy:'The returned record is Base / Unstated. Because the target is a Refractor, FlipForge excludes it instead of blending two markets.',
-      state:'EVIDENCE BLOCKED',
-      stateClass:'red',
-      checks:[
-        ['good','✓','Sale status reviewed','A completed sale still must match the target card.'],
-        ['bad','!','Parallel mismatch found','Base and Refractor values cannot be combined.'],
-        ['neutral','→','Evidence effect','The record stays visible in traceback but out of supported value.']
-      ]
-    },
-    {
-      label:'Step 3 of 4 · Review economics',
-      title:'Unsupported identity means unsupported economics.',
-      copy:'FlipForge will not create a confident purchase or grading thesis from a comp set containing an unresolved mismatch.',
-      state:'VALUE UNSUPPORTED',
-      stateClass:'red',
-      checks:[
-        ['bad','!','Fair value withheld','The evidence set does not prove the target card.'],
-        ['bad','!','ROI withheld','A precise percentage would create false confidence.'],
-        ['good','✓','Uncertainty preserved','The missing proof stays visible instead of being guessed.']
-      ]
-    },
-    {
-      label:'Step 4 of 4 · Get guidance',
-      title:'Verify before the card influences a decision.',
-      copy:'The correct outcome is VERIFY: confirm the parallel, replace the mismatched record, and rerun evidence review.',
-      state:'VERIFY',
-      stateClass:'blue',
-      checks:[
-        ['good','✓','Clear action state','The result explains what is wrong and what to do next.'],
-        ['neutral','→','Resolution path','Confirm the parallel → replace mismatched evidence → rerun analysis.'],
-        ['good','✓','Decision protected','No purchase authorization comes from weak evidence.']
-      ]
-    }
+    {label:'Step 1 of 4 · Define the card',title:'Start with the card you actually own.',copy:'FlipForge separates the raw card baseline from the best-case graded headline before modeling any outcome.',state:'DEFINE INPUTS',stateClass:'amber',checks:[['good','✓','Raw identity defined','Year, set, player, card number, and current state are explicit.'],['neutral','→','Raw baseline stays separate','The current card is not valued as though a future grade already happened.'],['neutral','→','Next input','Set realistic grade probabilities before comparing upside.']]},
+    {label:'Step 2 of 4 · Set outcomes',title:'A PSA 10 cannot be the default assumption.',copy:'FlipForge requires the grading scenario to account for multiple realistic outcomes instead of anchoring the decision to the highest grade.',state:'SCENARIO READY',stateClass:'blue',checks:[['good','✓','Outcome probabilities defined','The scenario accounts for more than one possible grade.'],['good','✓','Probabilities must total 100%','The model cannot quietly ignore downside outcomes.'],['neutral','→','Best case remains a scenario','PSA 10 upside is visible without being treated as guaranteed.']]},
+    {label:'Step 3 of 4 · Add costs',title:'The best-case price is not the expected result.',copy:'Once grading and shipping costs plus lower-grade outcomes are included, the apparent advantage becomes much thinner.',state:'MARGIN THIN',stateClass:'amber',checks:[['good','✓','Grading cost included','Submission and shipping cost reduce the expected outcome.'],['bad','!','Lower grades change the economics','A strong headline value can be offset by more likely lower-grade results.'],['neutral','→','Expected uplift is limited','The decision now reflects the full scenario rather than the best case.']]},
+    {label:'Step 4 of 4 · Get guidance',title:'Keep it raw when the grading edge is not strong enough.',copy:'The modeled scenario does not create enough expected advantage to justify grading risk. FlipForge preserves the assumptions and returns KEEP RAW.',state:'KEEP RAW',stateClass:'amber',checks:[['good','✓','Clear grading guidance','The result follows the probability-weighted setup, not the PSA 10 headline.'],['neutral','→','What could change it','Better condition evidence, lower costs, or stronger graded values can change the scenario.'],['good','✓','No grade guarantee','FlipForge models grading economics; it does not promise a future grade.']]}
   ];
 
   const buttons=[...document.querySelectorAll('[data-demo-step]')];
@@ -120,6 +82,7 @@
   const demoSection=document.getElementById('try-flipforge');
   const playback=document.getElementById('demo-playback');
   const screenMode=document.querySelector('.screen-mode');
+  const floatingDemo=document.querySelector('.ff-demo-float');
   const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   const lastStepIndex=steps.length-1;
   let currentIndex=0;
@@ -131,17 +94,12 @@
   const renderStep=index=>{
     const step=steps[index];
     if(!step||!label||!title||!copy||!state||!checks)return;
-    buttons.forEach((button,i)=>{
-      const active=i===index;
-      button.classList.toggle('active',active);
-      button.setAttribute('aria-selected',String(active));
-    });
+    buttons.forEach((button,i)=>{const active=i===index;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));});
     label.textContent=step.label;
     title.textContent=step.title;
     copy.textContent=step.copy;
     state.textContent=step.state;
     state.className=`badge ${step.stateClass}`;
-
     const fragment=document.createDocumentFragment();
     for(const [kind,symbol,heading,detail] of step.checks){
       const row=document.createElement('div');
@@ -160,80 +118,38 @@
     checks.replaceChildren(fragment);
     currentIndex=index;
   };
-
-  const stopPreview=()=>{
-    if(timer!==null){window.clearTimeout(timer);timer=null;}
-  };
+  const stopPreview=()=>{if(timer!==null){window.clearTimeout(timer);timer=null;}};
   const syncPlayback=()=>{
     if(!playback)return;
-    if(completed){
-      playback.textContent='Restart demo';
-      playback.setAttribute('aria-pressed','false');
-      if(screenMode)screenMode.textContent='Illustrative · Final verdict';
-      return;
-    }
+    if(completed){playback.textContent='Restart demo';playback.setAttribute('aria-pressed','false');if(screenMode)screenMode.textContent='Illustrative · Final guidance';return;}
     playback.textContent=paused?'Play preview':'Pause preview';
     playback.setAttribute('aria-pressed',String(paused));
     if(screenMode)screenMode.textContent=paused?'Illustrative · Paused':'Illustrative · Auto preview';
   };
-  const finishPreview=()=>{
-    stopPreview();
-    paused=true;
-    completed=true;
-    syncPlayback();
-  };
+  const finishPreview=()=>{stopPreview();paused=true;completed=true;syncPlayback();};
   const scheduleNext=()=>{
     stopPreview();
     if(paused||completed||!inView||document.hidden||reducedMotion.matches)return;
-    timer=window.setTimeout(()=>{
-      if(currentIndex>=lastStepIndex){finishPreview();return;}
-      renderStep(currentIndex+1);
-      if(currentIndex>=lastStepIndex){finishPreview();return;}
-      scheduleNext();
-    },4200);
+    timer=window.setTimeout(()=>{if(currentIndex>=lastStepIndex){finishPreview();return;}renderStep(currentIndex+1);if(currentIndex>=lastStepIndex){finishPreview();return;}scheduleNext();},4200);
   };
-  const pauseForInteraction=()=>{
-    paused=true;
-    stopPreview();
-    syncPlayback();
-  };
-  const restartPreview=()=>{
-    completed=false;
-    paused=false;
-    renderStep(0);
-    syncPlayback();
-    scheduleNext();
-  };
+  const pauseForInteraction=()=>{paused=true;stopPreview();syncPlayback();};
+  const restartPreview=()=>{completed=false;paused=false;renderStep(0);syncPlayback();scheduleNext();};
 
-  buttons.forEach(button=>button.addEventListener('click',()=>{
-    const index=Number(button.dataset.demoStep);
-    completed=index===lastStepIndex;
-    renderStep(index);
-    if(completed)finishPreview();
-    else pauseForInteraction();
-  }));
-  playback?.addEventListener('click',()=>{
-    if(completed){restartPreview();return;}
-    paused=!paused;
-    syncPlayback();
-    scheduleNext();
-  });
-  reducedMotion.addEventListener?.('change',event=>{
-    paused=event.matches;
-    if(event.matches)stopPreview();
-    syncPlayback();
-    scheduleNext();
-  });
+  buttons.forEach(button=>button.addEventListener('click',()=>{const index=Number(button.dataset.demoStep);completed=index===lastStepIndex;renderStep(index);if(completed)finishPreview();else pauseForInteraction();}));
+  playback?.addEventListener('click',()=>{if(completed){restartPreview();return;}paused=!paused;syncPlayback();scheduleNext();});
+  reducedMotion.addEventListener?.('change',event=>{paused=event.matches;if(event.matches)stopPreview();syncPlayback();scheduleNext();});
   document.addEventListener('visibilitychange',scheduleNext);
 
   if(demoSection&&'IntersectionObserver' in window){
     const observer=new IntersectionObserver(entries=>{
       inView=entries.some(entry=>entry.isIntersecting&&entry.intersectionRatio>=.35);
+      if(floatingDemo){floatingDemo.style.opacity=inView?'0':'1';floatingDemo.style.transform=inView?'translateY(8px)':'translateY(0)';floatingDemo.style.pointerEvents=inView?'none':'auto';floatingDemo.setAttribute('aria-hidden',inView?'true':'false');}
       scheduleNext();
     },{threshold:[0,.35,.7]});
     observer.observe(demoSection);
   }else{
     inView=true;
+    if(floatingDemo){floatingDemo.style.opacity='0';floatingDemo.style.pointerEvents='none';floatingDemo.setAttribute('aria-hidden','true');}
     scheduleNext();
   }
   syncPlayback();

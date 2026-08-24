@@ -1,5 +1,4 @@
 /* Focused FlipForge homepage: concise marketing flow only. */
-@font-face{font-family:Inter;font-style:normal;font-weight:400 900;font-display:optional;src:url("https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2") format("woff2")}
 html,body{max-width:100%;overflow-x:clip}
 body.ff-home-focused .hero>*,body.ff-home-focused .nav>*,.ff-home-workflow>*{min-width:0}
 body.ff-home-focused .hero figure{margin:0}
@@ -11,11 +10,34 @@ body.ff-home-focused .hero.ff-hero-v3{
 }
 body.ff-home-focused .hero.ff-hero-v3:before{inset:18px 0 12px}
 body.ff-home-focused .hero.ff-hero-v3 h1{font-size:clamp(46px,5.5vw,72px)}
-body.ff-home-focused .hero.ff-hero-v3 .lead{font-size:18px}
-body.ff-home-focused .ff-hero-points{margin-top:14px}
+body.ff-home-focused .hero.ff-hero-v3 .ff-hero-tension{max-width:500px;margin-bottom:10px}
+body.ff-home-focused .hero.ff-hero-v3 .lead{max-width:520px;font-size:18px}
+body.ff-home-focused .ff-primary-actions{margin-top:24px}
 body.ff-home-focused .home-section{padding-top:52px;padding-bottom:52px}
+body.ff-home-focused #before-after{padding-bottom:28px}
 body.ff-home-focused #before-after .product-visual{max-width:920px;margin-inline:auto}
 body.ff-home-focused #try-flipforge .section-head{margin-bottom:22px}
+
+.ff-mobile-demo-cta{border:1px solid rgba(255,255,255,.12)!important;border-radius:12px!important;background:rgba(255,255,255,.025)!important;color:#e9ebef!important;font-weight:750!important}
+.ff-demo-float{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:75;
+  padding:10px 14px;
+  border:1px solid rgba(212,175,55,.28);
+  border-radius:999px;
+  background:rgba(3,8,18,.91);
+  box-shadow:0 12px 34px rgba(0,0,0,.34);
+  color:#fff;
+  text-decoration:none;
+  backdrop-filter:blur(10px);
+  transition:opacity .16s ease,transform .16s ease,border-color .16s ease;
+}
+.ff-demo-float:hover,.ff-demo-float:focus-visible{border-color:rgba(240,202,88,.68)}
+.ff-demo-float:focus-visible{outline:3px solid #f0ca58;outline-offset:4px}
+.ff-demo-float span{display:block;color:#bda750;font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.ff-demo-float strong{display:block;margin-top:1px;color:#f3f4f6;font-size:12px}
 
 .ff-audience,
 .ff-dossier-spotlight{
@@ -75,6 +97,21 @@ body.ff-home-focused #try-flipforge .section-head{margin-bottom:22px}
 .ff-dossier-preview dd{margin:5px 0 0;color:#f2f3f5;font-size:12px;font-weight:800}
 .ff-dossier-preview>p{margin:0;padding:17px 24px;color:#b8bdc5;font-size:12px;line-height:1.6}
 .ff-dossier-preview>p strong{color:#e2c660}
+
+.ff-decision-boundary{
+  margin:14px 0 0;
+  padding:11px 13px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:rgba(255,255,255,.018);
+  color:#8f949d;
+  font-size:11px;
+  line-height:1.55;
+}
+.ff-dossier-preview>.ff-decision-boundary{margin:0;border-width:1px 0 0;border-radius:0;background:rgba(255,255,255,.012);padding:13px 24px}
+.ff-decision-boundary a{color:#d4af37;font-weight:800;text-decoration:none}
+.ff-decision-boundary a:hover{text-decoration:underline;text-underline-offset:3px}
+.ff-decision-boundary a:focus-visible{outline:2px solid #f0ca58;outline-offset:3px;border-radius:3px}
 
 .screen-controls{display:flex;align-items:center;gap:10px}
 .demo-playback{padding:6px 8px;border:1px solid rgba(212,175,55,.36);border-radius:7px;background:rgba(212,175,55,.06);color:#e2c660;font-size:9px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
@@ -148,6 +185,8 @@ body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
 @media(max-width:700px){
   body.ff-home-focused .hero.ff-hero-v3{padding-top:44px;padding-bottom:30px;gap:30px}
   body.ff-home-focused .home-section{padding-top:42px;padding-bottom:42px}
+  body.ff-home-focused #before-after{padding-bottom:22px}
+  .ff-demo-float{right:12px;bottom:12px;padding:9px 12px}
   .ff-audience,.ff-dossier-spotlight{padding:46px 18px}
   .ff-audience-grid{grid-template-columns:1fr}
   .ff-audience-grid article{min-height:210px}
@@ -165,3 +204,4 @@ body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
   .ff-home-workflow-footer>div{display:grid;grid-template-columns:1fr 1fr}
   .ff-home-workflow-footer .btn{text-align:center}
 }
+@media(prefers-reduced-motion:reduce){.ff-demo-float{transition:none}}

@@ -1,138 +1,105 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
-  <title id="title">FlipForge decision intelligence workflow</title>
-  <desc id="desc">A branded FlipForge workflow showing identity verification, evidence control, grading and purchase economics, and an explainable decision.</desc>
+  <title id="title">FlipForge decision spotlight motion loop</title>
+  <desc id="desc">An illustrative looping FlipForge workflow showing a seller claim for an Ohtani Refractor, evidence checks that leave the parallel unresolved, and a VERIFY decision with clear next steps.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#11151d"/>
-      <stop offset="1" stop-color="#08090b"/>
-    </linearGradient>
-    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#171c25"/>
-      <stop offset="1" stop-color="#0e1218"/>
-    </linearGradient>
-    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f2f2f2"/>
-      <stop offset="0.5" stop-color="#c0c3ca"/>
-      <stop offset="1" stop-color="#8b928f"/>
-    </linearGradient>
-    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity=".025"/>
-    </pattern>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
-      <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000" flood-opacity=".4"/>
-    </filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b0e14"/><stop offset="1" stop-color="#020305"/></linearGradient>
+    <linearGradient id="goldGlow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d4af37" stop-opacity=".18"/><stop offset="1" stop-color="#d4af37" stop-opacity="0"/></linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7f7f7"/><stop offset=".55" stop-color="#bfc3ca"/><stop offset="1" stop-color="#818792"/></linearGradient>
+    <filter id="blueHalo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
     <style>
-      @font-face{font-family:Geist;src:url('../fonts/geist-latin-wght-normal.woff2') format('woff2');font-weight:100 900}.font{font-family:Geist,'Geist Sans',Arial,sans-serif}.silver{fill:#c0c3ca}.white{fill:#f2f2f2}.muted{fill:#8b928f}.gold{fill:#d4af37}.green{fill:#58d697}.label{font-size:13px;font-weight:800;letter-spacing:2.3px}.body{font-size:14px}.small{font-size:12px}.headline{font-size:34px;font-weight:900;letter-spacing:-.7px}.question{font-size:23px;font-weight:800;letter-spacing:-.35px}.wordmark{font-size:29px;font-weight:900;letter-spacing:5px}.tag{font-size:10px;font-weight:800;letter-spacing:2.8px}.panel{fill:url(#panel);stroke:#343a45;stroke-width:1.4}.rule{stroke:#333944;stroke-width:1}.flow{stroke:#4b515b;stroke-width:3}.flowGold{stroke:#d4af37;stroke-width:3}.chip{fill:#151a22;stroke:#414752}.chipGold{fill:#241f10;stroke:#d4af37;stroke-opacity:.7}.chipGreen{fill:#10241a;stroke:#58d697;stroke-opacity:.75}
+      @font-face{font-family:Geist;src:url('../fonts/geist-latin-wght-normal.woff2') format('woff2');font-weight:100 900}
+      .font{font-family:Geist,'Geist Sans',Arial,sans-serif}.white{fill:#f7f8fa}.silver{fill:#c8cdd5}.muted{fill:#8d96a4}.gold{fill:#d4af37}.red{fill:#ffb1ae}.green{fill:#94e5b5}.blue{fill:#dceaff}.eyebrow{font-size:14px;font-weight:900;letter-spacing:2.5px}.small{font-size:14px}.body{font-size:17px}.label{font-size:16px;font-weight:850;letter-spacing:1.2px}.title{font-size:40px;font-weight:900;letter-spacing:-1px}.verdict{font-size:48px;font-weight:900;letter-spacing:-1.3px}.wordmark{font-size:30px;font-weight:900;letter-spacing:4.3px}.tag{font-size:12px;font-weight:850;letter-spacing:2.4px}
+      .motion{pointer-events:none}.motion-claim{animation:claimLoop 10s ease-in-out infinite}.motion-good{animation:goodLoop 10s ease-in-out infinite}.motion-warn1{animation:warn1Loop 10s ease-in-out infinite}.motion-warn2{animation:warn2Loop 10s ease-in-out infinite}.motion-arrow{animation:arrowLoop 10s ease-in-out infinite}.motion-verdict{animation:verdictLoop 10s ease-in-out infinite}.motion-res1{animation:res1Loop 10s ease-in-out infinite}.motion-res2{animation:res2Loop 10s ease-in-out infinite}.motion-res3{animation:res3Loop 10s ease-in-out infinite}
+      @keyframes claimLoop{0%,6%,100%{opacity:.06}10%,22%{opacity:.95}27%{opacity:.06}}
+      @keyframes goodLoop{0%,18%,100%{opacity:.04}23%,34%{opacity:.85}39%{opacity:.04}}
+      @keyframes warn1Loop{0%,28%,100%{opacity:.04}33%,45%{opacity:.92}50%{opacity:.04}}
+      @keyframes warn2Loop{0%,38%,100%{opacity:.04}43%,55%{opacity:.95}60%{opacity:.04}}
+      @keyframes arrowLoop{0%,46%,100%{opacity:.18}52%,63%{opacity:1}68%{opacity:.18}}
+      @keyframes verdictLoop{0%,54%,100%{opacity:.1}61%,82%{opacity:1}88%{opacity:.18}}
+      @keyframes res1Loop{0%,64%,100%{opacity:.12}70%,88%{opacity:.95}92%{opacity:.12}}
+      @keyframes res2Loop{0%,69%,100%{opacity:.12}75%,90%{opacity:.95}94%{opacity:.12}}
+      @keyframes res3Loop{0%,74%,100%{opacity:.12}80%,92%{opacity:.95}96%{opacity:.12}}
+      @media(prefers-reduced-motion:reduce){.motion{animation:none!important;opacity:.35!important}}
     </style>
   </defs>
 
-  <rect width="1280" height="720" rx="26" fill="url(#bg)"/>
-  <rect width="1280" height="720" rx="26" fill="url(#grid)"/>
-  <rect x="25" y="25" width="1230" height="670" rx="24" fill="none" stroke="#d4af37" stroke-opacity=".42" stroke-width="1.5"/>
+  <rect width="1280" height="720" rx="28" fill="url(#bg)"/>
+  <rect x="24" y="24" width="1232" height="672" rx="24" fill="none" stroke="#d4af37" stroke-opacity=".38"/>
+  <rect x="24" y="24" width="1232" height="152" rx="24" fill="url(#goldGlow)"/>
 
-  <!-- Approved FlipForge identity: four inward-facing corner blocks with three-dimensional gold cube -->
-  <g transform="translate(60 45)">
-    <g transform="scale(1.22)">
-      <path d="M0 0H22V11H11V22H0Z" fill="url(#silver)"/>
-      <path d="M34 0H56V22H45V11H34Z" fill="url(#silver)"/>
-      <path d="M0 34H11V45H22V56H0Z" fill="url(#silver)"/>
-      <path d="M45 34H56V56H34V45H45Z" fill="url(#silver)"/>
-      <path d="M28 17 41 24.5 28 32 15 24.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
-      <path d="M15 24.5 28 32v15L15 39.5Z" fill="#b8860b" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
-      <path d="M41 24.5 28 32v15l13-7.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+  <g transform="translate(58 42)">
+    <g transform="scale(1.2)">
+      <path d="M0 0H22V11H11V22H0Z" fill="url(#silver)"/><path d="M34 0H56V22H45V11H34Z" fill="url(#silver)"/><path d="M0 34H11V45H22V56H0Z" fill="url(#silver)"/><path d="M45 34H56V56H34V45H45Z" fill="url(#silver)"/>
+      <path d="M28 17 41 24.5 28 32 15 24.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><path d="M15 24.5 28 32v15L15 39.5Z" fill="#b8860b" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><path d="M41 24.5 28 32v15l13-7.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
     </g>
-    <text x="88" y="34" class="font wordmark white">FLIPFORGE</text>
-    <text x="90" y="55" class="font tag gold">CARD INTELLIGENCE</text>
+    <text x="92" y="34" class="font wordmark white">FLIPFORGE</text>
+    <text x="94" y="58" class="font tag gold">CARD INTELLIGENCE</text>
   </g>
 
   <g class="font">
-    <text x="60" y="150" class="headline white">A DECISION, NOT JUST A PRICE.</text>
-    <text x="60" y="180" class="body silver">FlipForge challenges the card, the evidence, and the economics before it explains the next move.</text>
+    <text x="58" y="142" class="eyebrow gold">DECISION SPOTLIGHT · ILLUSTRATIVE</text>
+    <text x="58" y="191" class="title white">ONE BAD CLAIM CAN CHANGE THE WHOLE DECISION.</text>
   </g>
 
-  <!-- Process rail -->
-  <line x1="100" y1="225" x2="1180" y2="225" class="flow"/>
-  <line x1="100" y1="225" x2="460" y2="225" class="flowGold"/>
-  <g class="font" text-anchor="middle">
-    <g><circle cx="100" cy="225" r="18" fill="#d4af37"/><text x="100" y="230" font-size="13" font-weight="900" fill="#08090b">1</text></g>
-    <g><circle cx="460" cy="225" r="18" fill="#161b22" stroke="#d4af37"/><text x="460" y="230" font-size="13" font-weight="900" class="white">2</text></g>
-    <g><circle cx="820" cy="225" r="18" fill="#161b22" stroke="#d4af37"/><text x="820" y="230" font-size="13" font-weight="900" class="white">3</text></g>
-    <g><circle cx="1180" cy="225" r="18" fill="#161b22" stroke="#d4af37"/><text x="1180" y="230" font-size="13" font-weight="900" class="white">4</text></g>
-  </g>
+  <g transform="translate(58 248)" class="font">
+    <rect width="510" height="374" rx="20" fill="#0c1017" stroke="#343b47"/>
+    <text x="24" y="38" class="eyebrow muted">SELLER CLAIM</text>
+    <rect x="24" y="62" width="462" height="106" rx="15" fill="#111720" stroke="#303845"/>
+    <rect class="motion motion-claim" x="24" y="62" width="462" height="106" rx="15" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="2.5"/>
+    <text x="42" y="98" class="label white">2018 TOPPS CHROME OHTANI #150 · PSA 10</text>
+    <rect x="42" y="119" width="204" height="32" rx="16" fill="#251f0e" stroke="#d4af37" stroke-opacity=".75"/>
+    <text x="144" y="141" text-anchor="middle" class="eyebrow white">CLAIMED: REFRACTOR</text>
 
-  <!-- Panel 1 -->
-  <g transform="translate(60 270)" filter="url(#shadow)" class="font">
-    <rect width="272" height="330" rx="18" class="panel"/>
-    <text x="22" y="35" class="label gold">01 · IDENTITY</text>
-    <text x="22" y="76" class="question white">Is this the exact</text>
-    <text x="22" y="103" class="question white">card?</text>
-    <line x1="22" y1="125" x2="250" y2="125" class="rule"/>
-    <g class="body">
-      <text x="22" y="158" class="muted">Year + set</text><text x="250" y="158" text-anchor="end" class="white">Verified</text>
-      <text x="22" y="191" class="muted">Card number</text><text x="250" y="191" text-anchor="end" class="white">Matched</text>
-      <text x="22" y="224" class="muted">Parallel / insert</text><text x="250" y="224" text-anchor="end" class="white">Required</text>
-      <text x="22" y="257" class="muted">Grader + grade</text><text x="250" y="257" text-anchor="end" class="white">Exact lane</text>
-    </g>
-    <rect x="22" y="283" width="228" height="29" rx="8" class="chipGreen"/>
-    <text x="136" y="303" text-anchor="middle" class="label green">IDENTITY CONTROLLED</text>
-  </g>
+    <text x="24" y="213" class="eyebrow gold">FLIPFORGE CHECKS</text>
 
-  <!-- Panel 2 -->
-  <g transform="translate(356 270)" filter="url(#shadow)" class="font">
-    <rect width="272" height="330" rx="18" class="panel"/>
-    <text x="22" y="35" class="label gold">02 · EVIDENCE</text>
-    <text x="22" y="76" class="question white">Can these sales</text>
-    <text x="22" y="103" class="question white">be trusted?</text>
-    <line x1="22" y1="125" x2="250" y2="125" class="rule"/>
-    <g class="body">
-      <text x="22" y="158" class="muted">Exact completed sales</text><text x="250" y="158" text-anchor="end" class="white">Accepted</text>
-      <text x="22" y="191" class="muted">Wrong variants</text><text x="250" y="191" text-anchor="end" fill="#ef7b72">Rejected</text>
-      <text x="22" y="224" class="muted">Outliers / lots</text><text x="250" y="224" text-anchor="end" fill="#ef7b72">Blocked</text>
-      <text x="22" y="257" class="muted">Source + date</text><text x="250" y="257" text-anchor="end" class="white">Visible</text>
-    </g>
-    <rect x="22" y="283" width="228" height="29" rx="8" class="chipGold"/>
-    <text x="136" y="303" text-anchor="middle" class="label gold">EVIDENCE CHALLENGED</text>
-  </g>
+    <rect x="24" y="235" width="462" height="50" rx="12" fill="#0e1914" stroke="#5ab17c" stroke-opacity=".62"/>
+    <rect class="motion motion-good" x="24" y="235" width="462" height="50" rx="12" fill="#58d697" fill-opacity=".06" stroke="#8ae2ae" stroke-width="2.5"/>
+    <circle cx="50" cy="260" r="13" fill="#183a27"/><text x="50" y="266" text-anchor="middle" font-size="16" font-weight="900" class="green">✓</text>
+    <text x="76" y="257" class="label white">BASE IDENTITY ALIGNS</text>
+    <text x="76" y="276" class="small muted">Year, set, player, card number, grader and grade match.</text>
 
-  <!-- Panel 3 -->
-  <g transform="translate(652 270)" filter="url(#shadow)" class="font">
-    <rect width="272" height="330" rx="18" class="panel"/>
-    <text x="22" y="35" class="label gold">03 · ECONOMICS</text>
-    <text x="22" y="76" class="question white">Does the deal</text>
-    <text x="22" y="103" class="question white">still work?</text>
-    <line x1="22" y1="125" x2="250" y2="125" class="rule"/>
-    <g class="body">
-      <text x="22" y="158" class="muted">All-in acquisition cost</text><text x="250" y="158" text-anchor="end" class="white">Included</text>
-      <text x="22" y="191" class="muted">Fair-value range</text><text x="250" y="191" text-anchor="end" class="white">Modeled</text>
-      <text x="22" y="224" class="muted">Grading outcomes</text><text x="250" y="224" text-anchor="end" class="white">Weighted</text>
-      <text x="22" y="257" class="muted">Downside risk</text><text x="250" y="257" text-anchor="end" class="white">Exposed</text>
-    </g>
-    <rect x="22" y="283" width="228" height="29" rx="8" class="chipGold"/>
-    <text x="136" y="303" text-anchor="middle" class="label gold">SCENARIO TESTED</text>
-  </g>
-
-  <!-- Panel 4 -->
-  <g transform="translate(948 270)" filter="url(#shadow)" class="font">
-    <rect width="272" height="330" rx="18" class="panel"/>
-    <text x="22" y="35" class="label gold">04 · DECISION</text>
-    <text x="22" y="76" class="question white">What should I</text>
-    <text x="22" y="103" class="question white">do next?</text>
-    <line x1="22" y1="125" x2="250" y2="125" class="rule"/>
-    <g transform="translate(22 145)">
-      <rect width="108" height="40" rx="9" class="chipGreen"/><text x="54" y="26" text-anchor="middle" font-size="13" font-weight="900" class="green">BUY CANDIDATE</text>
-      <rect x="120" width="108" height="40" rx="9" class="chip"/><text x="174" y="26" text-anchor="middle" font-size="13" font-weight="900" class="white">WATCH</text>
-      <rect y="51" width="108" height="40" rx="9" class="chipGold"/><text x="54" y="77" text-anchor="middle" font-size="13" font-weight="900" class="gold">VERIFY</text>
-      <rect x="120" y="51" width="108" height="40" rx="9" class="chip"/><text x="174" y="77" text-anchor="middle" font-size="13" font-weight="900" class="silver">PASS</text>
-    </g>
-    <text x="22" y="267" class="small muted">Every outcome shows why, confidence,</text>
-    <text x="22" y="284" class="small muted">risk, and what must be checked next.</text>
-    <rect x="22" y="296" width="228" height="20" rx="7" class="chipGreen"/>
-    <text x="136" y="311" text-anchor="middle" font-size="11" font-weight="900" letter-spacing="1.8" class="green">EXPLAINABLE GUIDANCE</text>
+    <rect x="24" y="296" width="462" height="62" rx="12" fill="#1a1012" stroke="#b85f62" stroke-opacity=".62"/>
+    <rect class="motion motion-warn1" x="24" y="296" width="462" height="62" rx="12" fill="#ff7a7a" fill-opacity=".05" stroke="#ffaaa8" stroke-width="2.5"/>
+    <rect class="motion motion-warn2" x="24" y="296" width="462" height="62" rx="12" fill="#ff7a7a" fill-opacity=".025"/>
+    <circle cx="50" cy="327" r="13" fill="#37191d"/><text x="50" y="333" text-anchor="middle" font-size="17" font-weight="900" class="red">!</text>
+    <text x="76" y="322" class="label white">PARALLEL UNRESOLVED</text>
+    <text x="76" y="344" class="small muted">The Refractor claim is not proven. Mismatched comps stay out.</text>
   </g>
 
   <g class="font">
-    <line x1="60" y1="635" x2="1220" y2="635" class="rule"/>
-    <text x="60" y="672" font-size="18" font-weight="900" letter-spacing="1.2" class="white">BEFORE YOU BUY, KNOW WHY.</text>
-    <text x="1220" y="672" text-anchor="end" class="body gold">Discovery → Evidence → Validation → Decision → Outcome</text>
+    <line x1="592" y1="438" x2="640" y2="438" stroke="#d4af37" stroke-width="2.5"/>
+    <path d="M640 438 624 429v18Z" fill="#d4af37"/>
+    <text x="616" y="414" text-anchor="middle" class="eyebrow gold">EVIDENCE GATE</text>
+    <rect class="motion motion-arrow" x="582" y="388" width="68" height="72" rx="20" fill="#d4af37" fill-opacity=".03" stroke="#d4af37" stroke-opacity=".5"/>
+  </g>
+
+  <g transform="translate(666 260)" class="font">
+    <rect width="556" height="360" rx="20" fill="#090d14" stroke="#395b8d" stroke-opacity=".72"/>
+    <circle cx="438" cy="72" r="120" fill="#2967b8" fill-opacity=".08"/>
+    <circle class="motion motion-verdict" cx="92" cy="74" r="52" fill="#4d8ee7" fill-opacity=".15" filter="url(#blueHalo)"/>
+    <text x="26" y="38" class="eyebrow muted">FLIPFORGE VERDICT</text>
+    <rect x="26" y="60" width="132" height="36" rx="18" fill="#132641" stroke="#4d8ee7" stroke-opacity=".75"/>
+    <text x="92" y="84" text-anchor="middle" class="eyebrow blue">VERIFY</text>
+    <text x="26" y="151" class="verdict white">VERIFY BEFORE YOU BUY.</text>
+    <text x="26" y="184" class="body silver">The claimed parallel is not proven.</text>
+    <text x="26" y="208" class="body silver">Hold the decision until the evidence is fixed.</text>
+
+    <rect x="26" y="232" width="504" height="34" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".35"/>
+    <rect class="motion motion-res1" x="26" y="232" width="504" height="34" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="44" y="255" class="label gold">1 · CONFIRM</text><text x="186" y="255" class="small white">Prove the exact parallel.</text>
+
+    <rect x="26" y="275" width="504" height="34" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".35"/>
+    <rect class="motion motion-res2" x="26" y="275" width="504" height="34" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="44" y="298" class="label gold">2 · REPLACE</text><text x="186" y="298" class="small white">Use exact verified comps only.</text>
+
+    <rect x="26" y="318" width="504" height="34" rx="10" fill="#17150b" stroke="#d4af37" stroke-opacity=".35"/>
+    <rect class="motion motion-res3" x="26" y="318" width="504" height="34" rx="10" fill="#d4af37" fill-opacity=".05" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="44" y="341" class="label gold">3 · RERUN</text><text x="186" y="341" class="small white">Recalculate with clean evidence.</text>
+  </g>
+
+  <g class="font">
+    <line x1="58" y1="650" x2="1222" y2="650" stroke="#313741"/>
+    <text x="58" y="686" font-size="20" font-weight="900" letter-spacing="1" class="white">Before you buy. Know Why.</text>
+    <text x="1222" y="686" text-anchor="end" class="small gold">Claim → Check → VERIFY → Resolve</text>
   </g>
 </svg>
