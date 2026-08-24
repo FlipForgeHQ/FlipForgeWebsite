@@ -1,0 +1,283 @@
+/* FlipForge private-beta customer flow v2 — one guided card workflow. */
+:root{
+  --ff-flow-gold:#d8b447;
+  --ff-flow-gold-strong:#f0cd69;
+  --ff-flow-bg:#08111c;
+  --ff-flow-panel:#0b1521;
+  --ff-flow-line:rgba(216,180,71,.32);
+  --ff-flow-soft:#aab4c1;
+  --ff-flow-ok:#8eddb5;
+  --ff-flow-warn:#f1c96a;
+}
+
+/* The customer sees one core path. Supporting tools live under Advanced Intelligence. */
+.primary-nav > a.ff-core-nav{
+  position:relative;
+  font-weight:800;
+}
+.primary-nav > a.ff-core-nav[data-route="discover"]{
+  border-color:rgba(216,180,71,.34);
+}
+.primary-nav > a.ff-nav-relocated{
+  display:none!important;
+}
+.ff-advanced-nav{
+  margin-top:8px;
+  border-top:1px solid rgba(255,255,255,.07);
+  padding-top:8px;
+}
+.ff-advanced-nav > summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  color:#98a4b2;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+.ff-advanced-nav > summary::marker{color:var(--ff-flow-gold)}
+.ff-advanced-hint{
+  color:#6f7b88;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.ff-advanced-nav[open] .ff-advanced-hint{display:none}
+.ff-advanced-nav-links a.ff-support-clone{
+  opacity:.82;
+}
+.ff-advanced-nav-links a.ff-support-clone.ff-support-active{
+  opacity:1;
+  color:var(--ff-flow-gold-strong);
+  background:rgba(216,180,71,.07);
+}
+
+/* New Card is the unmistakable primary action. */
+.ff-global-new-card.ff-primary-new-card,
+.ff-page-new-card{
+  border-color:rgba(240,205,105,.9)!important;
+  background:linear-gradient(135deg,var(--ff-flow-gold-strong),var(--ff-flow-gold))!important;
+  color:#070b10!important;
+  box-shadow:0 8px 24px rgba(216,180,71,.14)!important;
+  font-weight:900!important;
+}
+.ff-global-new-card.ff-primary-new-card:hover,
+.ff-global-new-card.ff-primary-new-card:focus-visible,
+.ff-page-new-card:hover,
+.ff-page-new-card:focus-visible{
+  filter:brightness(1.06);
+  outline:none;
+}
+
+/* The four screens feel like one task instead of four unrelated features. */
+.ff-workflow-strip{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin:-2px 0 16px;
+  padding:9px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:12px;
+  background:rgba(255,255,255,.018);
+}
+.ff-workflow-step{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid transparent;
+  border-radius:9px;
+  color:#8793a1;
+  text-decoration:none;
+  font-size:10px;
+  font-weight:800;
+  transition:border-color .16s ease,background .16s ease,color .16s ease;
+}
+.ff-workflow-step:hover,.ff-workflow-step:focus-visible{
+  color:#fff;
+  border-color:rgba(216,180,71,.28);
+  outline:none;
+}
+.ff-workflow-step-number{
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  flex:none;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  font-size:9px;
+}
+.ff-workflow-step[data-done="true"]{color:#c7d0da}
+.ff-workflow-step[data-done="true"] .ff-workflow-step-number{
+  border-color:rgba(142,221,181,.45);
+  background:rgba(142,221,181,.09);
+  color:var(--ff-flow-ok);
+}
+.ff-workflow-step[aria-current="step"]{
+  border-color:rgba(216,180,71,.43);
+  background:rgba(216,180,71,.075);
+  color:#fff;
+}
+.ff-workflow-step[aria-current="step"] .ff-workflow-step-number{
+  border-color:var(--ff-flow-gold);
+  background:var(--ff-flow-gold);
+  color:#070b10;
+}
+
+/* Decision first. Deep diagnostics second. */
+.ff-decision-summary{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:20px;
+  align-items:center;
+  margin:0 0 16px;
+  padding:20px;
+  border:1px solid rgba(216,180,71,.35);
+  border-radius:13px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(216,180,71,.09),transparent 34%),
+    linear-gradient(135deg,rgba(216,180,71,.055),rgba(255,255,255,.018));
+}
+.ff-decision-summary-main{min-width:0}
+.ff-decision-summary-kicker{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:7px;
+  color:var(--ff-flow-gold-strong);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.ff-decision-summary-pill{
+  display:inline-flex;
+  align-items:center;
+  min-height:25px;
+  padding:4px 9px;
+  border:1px solid rgba(216,180,71,.42);
+  border-radius:999px;
+  background:rgba(216,180,71,.08);
+  color:#fff;
+  font-size:11px;
+  font-weight:950;
+}
+.ff-decision-summary h2{
+  margin:0;
+  font-size:clamp(20px,2.2vw,28px);
+  line-height:1.12;
+  letter-spacing:-.025em;
+}
+.ff-decision-summary p{
+  max-width:820px;
+  margin:8px 0 0;
+  color:var(--ff-flow-soft);
+  font-size:12px;
+  line-height:1.58;
+}
+.ff-decision-next{
+  margin-top:10px!important;
+  color:#d8dee6!important;
+}
+.ff-decision-next strong{color:#fff}
+.ff-decision-summary-actions{
+  display:grid;
+  gap:8px;
+  min-width:210px;
+}
+.ff-decision-summary-actions .button{justify-content:center;white-space:nowrap}
+.ff-advanced-toggle{
+  border-color:rgba(255,255,255,.13)!important;
+  background:rgba(255,255,255,.02)!important;
+  color:#c0c8d1!important;
+}
+
+/* Guided users see the useful explanation first, then can reveal deeper intelligence. */
+html.ff-guided-incomplete:not(.ff-show-advanced) #main-content .ff-progressive-advanced{
+  display:none!important;
+}
+html.ff-guided-incomplete.ff-show-advanced #main-content .ff-progressive-advanced{
+  display:block;
+}
+
+/* Saved means saved. The next action is explicit. */
+.ff-saved-decision-bar.ff-save-confirmed{
+  border-color:rgba(142,221,181,.33)!important;
+  background:linear-gradient(135deg,rgba(142,221,181,.07),rgba(255,255,255,.015))!important;
+}
+.ff-saved-decision-bar.ff-just-saved{
+  box-shadow:0 0 0 1px rgba(142,221,181,.16),0 16px 44px rgba(0,0,0,.2);
+}
+.ff-saved-decision-bar.ff-just-saved .ff-saved-decision-check{
+  animation:ffSavePop .45s ease-out 1;
+}
+@keyframes ffSavePop{0%{transform:scale(.55);opacity:.2}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+
+/* Contextual recovery: the guide stays useful when something goes wrong. */
+.ff-recovery-coach{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  align-items:center;
+  margin:12px 0 16px;
+  padding:16px 18px;
+  border:1px solid rgba(241,201,106,.36);
+  border-left:3px solid var(--ff-flow-warn);
+  border-radius:11px;
+  background:rgba(241,201,106,.045);
+}
+.ff-recovery-coach span{
+  display:block;
+  margin-bottom:4px;
+  color:var(--ff-flow-warn);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.ff-recovery-coach h3{margin:0;font-size:16px;line-height:1.25}
+.ff-recovery-coach p{max-width:760px;margin:5px 0 0;color:#aeb8c4;font-size:11px;line-height:1.5}
+.ff-recovery-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+
+.ff-beta-mission{
+  margin:0 0 16px;
+  padding:17px 18px;
+  border:1px solid rgba(216,180,71,.3);
+  border-radius:12px;
+  background:rgba(216,180,71,.045);
+}
+.ff-beta-mission .eyebrow{color:var(--ff-flow-gold-strong)}
+.ff-beta-mission h2{margin:5px 0 6px;font-size:19px}
+.ff-beta-mission p{margin:0;color:#aab4c1;font-size:11px;line-height:1.55}
+.ff-beta-mission-checks{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.ff-beta-mission-checks span{padding:6px 9px;border:1px solid rgba(255,255,255,.09);border-radius:999px;color:#c4ccd5;font-size:9px;font-weight:800}
+
+/* Make the current task visually dominant without removing access to expert tools. */
+html.ff-guided-incomplete .ff-advanced-nav{opacity:.72}
+html.ff-guided-incomplete .ff-advanced-nav:hover,
+html.ff-guided-incomplete .ff-advanced-nav[open]{opacity:1}
+
+@media(max-width:980px){
+  .ff-decision-summary{grid-template-columns:1fr}
+  .ff-decision-summary-actions{grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}
+  .ff-recovery-coach{grid-template-columns:1fr}
+  .ff-recovery-actions{justify-content:flex-start}
+}
+
+@media(max-width:720px){
+  .ff-workflow-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .ff-workflow-step{padding:8px;font-size:9px}
+  .ff-decision-summary{padding:16px}
+  .ff-decision-summary-actions{grid-template-columns:1fr}
+  .ff-global-new-card.ff-primary-new-card{font-size:0!important;min-width:44px!important;padding-left:11px!important;padding-right:11px!important}
+  .ff-global-new-card.ff-primary-new-card span{font-size:17px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .ff-workflow-step{transition:none}
+  .ff-saved-decision-bar.ff-just-saved .ff-saved-decision-check{animation:none}
+}
