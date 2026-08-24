@@ -2,24 +2,25 @@
 .ff-evidence{
   max-width:1240px;
   margin:0 auto;
-  padding:76px 24px;
+  padding:38px 24px 64px;
 }
 .ff-evidence-head{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(320px,.72fr);
-  gap:48px;
-  align-items:end;
-  margin-bottom:30px;
+  gap:40px;
+  align-items:start;
+  margin-bottom:24px;
 }
 .ff-evidence-head h2{
-  max-width:790px;
+  max-width:760px;
   margin:0;
-  font-size:clamp(28px,2.55vw,36px)!important;
-  line-height:1.09;
-  letter-spacing:-.028em;
+  font-size:clamp(27px,2.25vw,33px)!important;
+  line-height:1.1;
+  letter-spacing:-.026em;
 }
 .ff-evidence-head p{
-  margin:0;
+  max-width:500px;
+  margin:4px 0 0;
   color:#b9bec6;
   font-size:15px;
   line-height:1.65;
@@ -179,13 +180,16 @@
 .ff-evidence-actions a:focus-visible{outline:3px solid #f0ca58;outline-offset:5px;border-radius:4px}
 
 @media(max-width:900px){
-  .ff-evidence-head{grid-template-columns:1fr;gap:14px;align-items:start}
+  .ff-evidence{padding-top:34px}
+  .ff-evidence-head{grid-template-columns:1fr;gap:12px;align-items:start}
+  .ff-evidence-head p{max-width:720px;margin-top:0}
   .ff-evidence-grid{grid-template-columns:1fr}
   .ff-evidence-card{min-height:auto}
   .ff-evidence-example{grid-template-columns:1fr}
 }
 @media(max-width:700px){
-  .ff-evidence{padding:56px 18px}
+  .ff-evidence{padding:32px 18px 52px}
+  .ff-evidence-head h2{font-size:clamp(25px,7vw,31px)!important}
   .ff-evidence-head p{font-size:14px}
   .ff-evidence-card{padding:22px}
   .ff-evidence-flow{grid-template-columns:1fr}
