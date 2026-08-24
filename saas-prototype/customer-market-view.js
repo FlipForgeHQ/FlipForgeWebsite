@@ -189,6 +189,14 @@
     return `<article class="market-view-metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(detail)}</small></article>`;
   }
 
+  function supportedUpsideDetail(summary) {
+    const supportedCount = Number(summary?.positiveSupportedValueGap || 0);
+    if (!Number.isFinite(supportedCount) || supportedCount <= 0) {
+      return "No evaluated cards currently show evidence-supported upside.";
+    }
+    return `${percent(summary.positiveGapSharePct)} sit above saved all-in ask`;
+  }
+
   function decisionMix(data) {
     const total = Math.max(1, Number(data.summary?.evaluatedCards || 0));
     const mix = data.decisionMix || {};
@@ -257,7 +265,7 @@
       <section class="market-view-metrics" aria-label="Your Market summary">
         ${metric("Evaluated cards", number(summary.evaluatedCards), "Latest saved evaluation for each card")}
         ${metric("Actionable decisions", number(summary.actionableSavedDecisions), `${percent(summary.actionableSharePct)} are BUY or WATCH`)}
-        ${metric("Supported upside", number(summary.positiveSupportedValueGap), `${percent(summary.positiveGapSharePct)} sit above saved all-in ask`)}
+        ${metric("Supported upside", number(summary.positiveSupportedValueGap), supportedUpsideDetail(summary))}
         ${metric("Fresh evaluations", number(summary.freshWithin30Days), `${percent(summary.freshnessPct)} evaluated within 30 days`)}
       </section>
 
