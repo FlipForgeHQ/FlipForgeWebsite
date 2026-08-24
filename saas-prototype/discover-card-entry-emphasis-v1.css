@@ -2,32 +2,49 @@
 .customer-discovery-search{
   position:relative;
   overflow:visible;
-  border:2px solid rgba(240,202,88,.72)!important;
+  border:1px solid rgba(240,202,88,.34)!important;
   background:
     radial-gradient(circle at 0 0,rgba(240,202,88,.11),transparent 28%),
     linear-gradient(145deg,rgba(212,175,55,.055),rgba(255,255,255,.018))!important;
-  box-shadow:0 0 0 1px rgba(212,175,55,.12),0 18px 50px rgba(0,0,0,.22)!important;
+  box-shadow:0 0 0 1px rgba(212,175,55,.08),0 18px 50px rgba(0,0,0,.22)!important;
 }
 
+/* Keep the START HERE treatment inside normal document flow. The previous
+   absolutely positioned badge plus full-panel highlight produced the stray
+   horizontal gold line/clipped label seen in production. */
 .customer-discovery-search::before{
   content:"START HERE · ENTER YOUR CARD";
-  position:absolute;
-  top:-13px;
-  left:18px;
-  z-index:3;
+  position:static;
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  max-width:calc(100% - 36px);
+  margin:14px 18px 0;
   padding:6px 11px;
-  border:1px solid rgba(240,202,88,.88);
+  border:1px solid rgba(240,202,88,.72);
   border-radius:999px;
-  background:#e3b83f;
-  color:#080b10;
+  background:rgba(227,184,63,.12);
+  color:#f0ca58;
   font:950 10px/1 Inter,system-ui,sans-serif;
   letter-spacing:.08em;
   text-transform:uppercase;
-  box-shadow:0 8px 20px rgba(0,0,0,.3);
+  box-shadow:none;
+}
+
+/* Guided Mode should emphasize the actual input, not draw a second outline
+   around the entire Discover panel. */
+.customer-discovery-search.ff-guide-highlight{
+  outline:none!important;
+  outline-offset:0!important;
+  box-shadow:0 0 0 1px rgba(212,175,55,.14),0 18px 50px rgba(0,0,0,.22)!important;
+}
+.customer-discovery-search.ff-guide-highlight::after{
+  display:none!important;
+  content:none!important;
 }
 
 .customer-discovery-search .panel-header{
-  padding-top:22px;
+  padding-top:12px;
 }
 
 .customer-discovery-search .panel-header h2{
@@ -131,7 +148,7 @@
 }
 
 @media(max-width:680px){
-  .customer-discovery-search::before{left:12px;font-size:9px}
+  .customer-discovery-search::before{max-width:calc(100% - 24px);margin:12px 12px 0;font-size:9px}
   .customer-discovery-form{grid-template-columns:1fr}
   .customer-discovery-form > label:first-child{grid-column:1}
   .customer-discovery-form input[name="exactCardQuery"]{min-height:62px!important;font-size:16px!important}
