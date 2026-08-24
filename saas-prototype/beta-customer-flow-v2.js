@@ -7,6 +7,7 @@
   const CORE_ROUTES = new Set(["dashboard", "discover", "evaluate", "opportunities", "tracking", "beta-start"]);
   const SUPPORTING_ROUTES = ["market-view", "forge-heat", "portfolio", "alerts"];
   const ADVANCED_ROUTES = new Set(["market-view", "forge-heat", "portfolio", "alerts", "compare", "psa-advisor", "evidence", "sell", "export"]);
+  const MAIN = "#main-content";
   let scheduled = false;
 
   function eligibleHost() {
@@ -28,11 +29,18 @@
     return routeParts()[0] || "dashboard";
   }
 
+  function setText(node, value) {
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
+  function setHtml(node, value) {
+    if (node && node.innerHTML !== value) node.innerHTML = value;
+  }
+
   function guidedProgress() {
     const progress = window.FlipForgeGuidedMode?.getProgress?.();
-    const completed = new Set(Array.isArray(progress?.completed) ? progress.completed : []);
     return {
-      completed,
+      completed: new Set(Array.isArray(progress?.completed) ? progress.completed : []),
       firstRunComplete: progress?.firstRunComplete === true
     };
   }
@@ -47,8 +55,11 @@
   function setAnchorLabel(anchor, label) {
     if (!anchor) return;
     const textNode = [...anchor.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim());
-    if (textNode) textNode.nodeValue = label;
-    else anchor.append(document.createTextNode(label));
+    if (textNode) {
+      if (textNode.nodeValue !== label) textNode.nodeValue = label;
+    } else {
+      anchor.append(document.createTextNode(label));
+    }
   }
 
   function simplifyNavigation() {
@@ -57,8 +68,9 @@
     const progress = syncGuidedState();
 
     nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
-      const route = String(link.dataset.route || "");
-      link.classList.toggle("ff-core-nav", CORE_ROUTES.has(route));
+      const core = CORE_ROUTES.has(String(link.dataset.route || ""));
+      if (core && !link.classList.contains("ff-core-nav")) link.classList.add("ff-core-nav");
+      if (!core && link.classList.contains("ff-core-nav")) link.classList.remove("ff-core-nav");
     });
 
     setAnchorLabel(nav.querySelector(':scope > a[data-route="opportunities"]'), "Saved Decisions");
@@ -69,8 +81,7 @@
     if (!details || !links || !summary) return;
 
     const summaryText = [...summary.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
-    if (summaryText) summaryText.nodeValue = "Advanced Intelligence ";
-    else summary.prepend(document.createTextNode("Advanced Intelligence "));
+    if (summaryText && summaryText.nodeValue !== "Advanced Intelligence ") summaryText.nodeValue = "Advanced Intelligence ";
 
     let hint = summary.querySelector(".ff-advanced-hint");
     if (!hint) {
@@ -78,14 +89,14 @@
       hint.className = "ff-advanced-hint";
       summary.appendChild(hint);
     }
-    hint.textContent = progress.firstRunComplete ? "Optional" : "After your first card";
+    setText(hint, progress.firstRunComplete ? "Optional" : "After your first card");
 
     SUPPORTING_ROUTES.forEach(route => {
       const original = nav.querySelector(`:scope > a[data-route="${route}"]`);
       if (!original) return;
-      original.classList.add("ff-nav-relocated");
-      original.setAttribute("aria-hidden", "true");
-      original.tabIndex = -1;
+      if (!original.classList.contains("ff-nav-relocated")) original.classList.add("ff-nav-relocated");
+      if (original.getAttribute("aria-hidden") !== "true") original.setAttribute("aria-hidden", "true");
+      if (original.tabIndex !== -1) original.tabIndex = -1;
 
       let clone = links.querySelector(`[data-ff-support-route="${route}"]`);
       if (!clone) {
@@ -98,12 +109,13 @@
         clone.classList.add("ff-support-clone");
         links.prepend(clone);
       }
-      clone.classList.toggle("ff-support-active", routeName() === route);
-      if (routeName() === route) clone.setAttribute("aria-current", "page");
+      const active = routeName() === route;
+      clone.classList.toggle("ff-support-active", active);
+      if (active) clone.setAttribute("aria-current", "page");
       else clone.removeAttribute("aria-current");
     });
 
-    if (ADVANCED_ROUTES.has(routeName())) details.open = true;
+    if (ADVANCED_ROUTES.has(routeName()) && !details.open) details.open = true;
   }
 
   const TECHNICAL_EXACT = new Map([
@@ -136,12 +148,7 @@
   ];
 
   function refineCustomerLanguage() {
-    const roots = [
-      document.querySelector("#main-content"),
-      document.querySelector(".prototype-banner"),
-      document.querySelector(".plan-card")
-    ].filter(Boolean);
-
+    const roots = [document.querySelector(MAIN), document.querySelector(".prototype-banner"), document.querySelector(".plan-card")].filter(Boolean);
     roots.forEach(root => {
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
       let node;
@@ -151,7 +158,8 @@
         const original = node.nodeValue || "";
         const trimmed = original.trim();
         if (TECHNICAL_EXACT.has(trimmed)) {
-          node.nodeValue = original.replace(trimmed, TECHNICAL_EXACT.get(trimmed));
+          const replacement = original.replace(trimmed, TECHNICAL_EXACT.get(trimmed));
+          if (replacement !== original) node.nodeValue = replacement;
           continue;
         }
         let value = original;
@@ -161,24 +169,14 @@
     });
   }
 
-  function currentStep(route, parts) {
-    if (route === "discover") return "discover";
-    if (route === "evaluate") return "evaluate";
-    if (route === "opportunities") return "understand";
-    if (route === "tracking") return "track";
-    if (route === "beta-start") return "";
-    return parts.length ? "" : "";
-  }
-
   function workflowStrip() {
-    const main = document.querySelector("#main-content");
+    const main = document.querySelector(MAIN);
     const heading = main?.querySelector(".page-heading");
     const route = routeName();
-    const parts = routeParts();
     if (!main || !heading || !["discover", "evaluate", "opportunities", "tracking", "beta-start"].includes(route)) return;
 
     const progress = guidedProgress();
-    const current = currentStep(route, parts);
+    const current = route === "discover" ? "discover" : route === "evaluate" ? "evaluate" : route === "opportunities" ? "understand" : route === "tracking" ? "track" : "";
     const steps = [
       ["discover", "Discover", "#/discover"],
       ["evaluate", "Evaluate", "#/evaluate"],
@@ -195,19 +193,18 @@
       heading.insertAdjacentElement("afterend", strip);
     }
 
-    strip.innerHTML = steps.map(([key, label, href], index) => {
+    const html = steps.map(([key, label, href], index) => {
       const done = progress.completed.has(key);
       const active = current === key;
       return `<a class="ff-workflow-step" href="${href}" data-done="${done}" ${active ? 'aria-current="step"' : ""}><span class="ff-workflow-step-number">${done ? "✓" : index + 1}</span><span>${label}</span></a>`;
     }).join("");
+    setHtml(strip, html);
   }
 
   function recommendation() {
-    const main = document.querySelector("#main-content");
+    const main = document.querySelector(MAIN);
     if (!main) return "";
-    const nodes = [
-      ...main.querySelectorAll(".status-pill,.customer-intelligence-hero [data-recommendation],.customer-intelligence-hero strong")
-    ];
+    const nodes = [...main.querySelectorAll(".status-pill,.customer-intelligence-hero [data-recommendation],.customer-intelligence-hero strong")];
     for (const node of nodes) {
       const text = String(node.textContent || "").trim().toUpperCase();
       if (["BUY", "WATCH", "VERIFY", "PASS"].includes(text)) return text;
@@ -226,46 +223,27 @@
       else if (evidence) reason = "There is not enough exact completed-sale evidence yet to support a value or stronger decision.";
       return { title: "This card needs verification before you act.", reason, next: "Review what is missing, then decide whether to verify the identity or wait for stronger sold evidence." };
     }
-    if (rec === "WATCH") return {
-      title: "This card is worth watching—not chasing.",
-      reason: "The current price or evidence does not support moving further yet.",
-      next: "Add it to Tracking and watch for a better price or stronger evidence."
-    };
-    if (rec === "PASS") return {
-      title: "The current setup does not support this opportunity.",
-      reason: "Price, evidence, risk, or a combination of those factors keeps this card below FlipForge's decision threshold.",
-      next: "Read why, then move on or start another card."
-    };
-    if (rec === "BUY") return {
-      title: "The evaluated price clears the current decision checks.",
-      reason: "FlipForge found enough support for a BUY decision at the evaluated price.",
-      next: "Review the exact evidence and risk before taking any action outside FlipForge."
-    };
-    return {
-      title: "Start with the decision—not the advanced details.",
-      reason: "Read the plain-English result first, then open deeper intelligence only when you need it.",
-      next: "Understand why the decision was reached before moving on."
-    };
+    if (rec === "WATCH") return { title: "This card is worth watching—not chasing.", reason: "The current price or evidence does not support moving further yet.", next: "Add it to Tracking and watch for a better price or stronger evidence." };
+    if (rec === "PASS") return { title: "The current setup does not support this opportunity.", reason: "Price, evidence, risk, or a combination of those factors keeps this card below FlipForge's decision threshold.", next: "Read why, then move on or start another card." };
+    if (rec === "BUY") return { title: "The evaluated price clears the current decision checks.", reason: "FlipForge found enough support for a BUY decision at the evaluated price.", next: "Review the exact evidence and risk before taking any action outside FlipForge." };
+    return { title: "Start with the decision—not the advanced details.", reason: "Read the plain-English result first, then open deeper intelligence only when you need it.", next: "Understand why the decision was reached before moving on." };
   }
 
   function markProgressiveAdvanced() {
-    const main = document.querySelector("#main-content");
+    const main = document.querySelector(MAIN);
     if (!main || routeName() !== "opportunities" || routeParts().length < 2) return;
     const patterns = /Forge Heat|Price Intelligence|Historical sold evidence|How to read this decision|Evidence Chain|Evidence readiness|Saved PSA guidance/i;
     main.querySelectorAll("h2,h3").forEach(heading => {
       if (!patterns.test(String(heading.textContent || ""))) return;
       const section = heading.closest("section,article,.panel,.customer-intelligence-section");
-      section?.classList.add("ff-progressive-advanced");
+      if (section && !section.classList.contains("ff-progressive-advanced")) section.classList.add("ff-progressive-advanced");
     });
   }
 
   function decisionSummary() {
-    const main = document.querySelector("#main-content");
+    const main = document.querySelector(MAIN);
     const parts = routeParts();
-    if (!main || parts[0] !== "opportunities" || parts.length < 2) {
-      main?.querySelector?.("[data-ff-decision-summary]")?.remove();
-      return;
-    }
+    if (!main || parts[0] !== "opportunities" || parts.length < 2) return;
 
     markProgressiveAdvanced();
     const rec = recommendation();
@@ -275,51 +253,44 @@
       summary = document.createElement("section");
       summary.className = "ff-decision-summary";
       summary.dataset.ffDecisionSummary = "";
-      const saved = main.querySelector("[data-ff-saved-decision-bar]");
-      const workflow = main.querySelector("[data-ff-workflow-strip]");
-      const heading = main.querySelector(".page-heading");
-      const anchor = saved || workflow || heading;
+      const anchor = main.querySelector("[data-ff-saved-decision-bar]") || main.querySelector("[data-ff-workflow-strip]") || main.querySelector(".page-heading");
       anchor?.insertAdjacentElement("afterend", summary);
     }
 
     const id = encodeURIComponent(parts[1]);
     const advancedHidden = document.documentElement.classList.contains("ff-guided-incomplete") && !document.documentElement.classList.contains("ff-show-advanced");
-    summary.innerHTML = `<div class="ff-decision-summary-main"><div class="ff-decision-summary-kicker"><span class="ff-decision-summary-pill">${rec || "DECISION"}</span><span>Start here</span></div><h2>${copy.title}</h2><p>${copy.reason}</p><p class="ff-decision-next"><strong>What you should do next:</strong> ${copy.next}</p></div><div class="ff-decision-summary-actions"><button type="button" class="button button-primary" data-ff-show-why>Show me why →</button><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button type="button" class="button button-secondary" data-ff-new-card>+ Start another card</button><button type="button" class="button button-secondary ff-advanced-toggle" data-ff-toggle-advanced>${advancedHidden ? "Show advanced intelligence" : "Hide advanced intelligence"}</button></div>`;
+    const html = `<div class="ff-decision-summary-main"><div class="ff-decision-summary-kicker"><span class="ff-decision-summary-pill">${rec || "DECISION"}</span><span>Start here</span></div><h2>${copy.title}</h2><p>${copy.reason}</p><p class="ff-decision-next"><strong>What you should do next:</strong> ${copy.next}</p></div><div class="ff-decision-summary-actions"><button type="button" class="button button-primary" data-ff-show-why>Show me why →</button><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button type="button" class="button button-secondary" data-ff-new-card>+ Start another card</button><button type="button" class="button button-secondary ff-advanced-toggle" data-ff-toggle-advanced>${advancedHidden ? "Show advanced intelligence" : "Hide advanced intelligence"}</button></div>`;
+    setHtml(summary, html);
   }
 
   function enhanceSaveConfirmation() {
-    const main = document.querySelector("#main-content");
+    const main = document.querySelector(MAIN);
     const parts = routeParts();
     const bar = main?.querySelector("[data-ff-saved-decision-bar]");
     if (!bar || parts[0] !== "opportunities" || parts.length < 2) return;
 
-    const justSaved = (() => {
-      try { return window.sessionStorage.getItem("flipforge.pendingEvaluationSave") === "1"; } catch (_) { return false; }
-    })();
+    let justSaved = false;
+    try { justSaved = window.sessionStorage.getItem("flipforge.pendingEvaluationSave") === "1"; } catch (_) { justSaved = false; }
     if (justSaved) {
-      try { window.sessionStorage.removeItem("flipforge.pendingEvaluationSave"); } catch (_) { /* session preference only */ }
+      try { window.sessionStorage.removeItem("flipforge.pendingEvaluationSave"); } catch (_) { /* session only */ }
     }
 
-    bar.classList.add("ff-save-confirmed");
+    if (!bar.classList.contains("ff-save-confirmed")) bar.classList.add("ff-save-confirmed");
     bar.classList.toggle("ff-just-saved", justSaved);
-    const strong = bar.querySelector(".ff-saved-decision-copy strong");
-    const small = bar.querySelector(".ff-saved-decision-copy small");
-    if (strong) strong.textContent = justSaved ? "Evaluation complete & saved" : "Evaluation saved";
-    if (small) small.textContent = "This decision is saved to your account. Starting another card will not remove it.";
+    setText(bar.querySelector(".ff-saved-decision-copy strong"), justSaved ? "Evaluation complete & saved" : "Evaluation saved");
+    setText(bar.querySelector(".ff-saved-decision-copy small"), "This decision is saved to your account. Starting another card will not remove it.");
 
     const actions = bar.querySelector(".ff-saved-decision-actions");
-    if (actions) {
-      const id = encodeURIComponent(parts[1]);
-      actions.innerHTML = `<button class="button button-primary" type="button" data-ff-show-why>Understand this decision →</button><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button class="button button-secondary" type="button" data-ff-new-card>+ Start another card</button>`;
-    }
+    const id = encodeURIComponent(parts[1]);
+    setHtml(actions, `<button class="button button-primary" type="button" data-ff-show-why>Understand this decision →</button><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button class="button button-secondary" type="button" data-ff-new-card>+ Start another card</button>`);
   }
 
   function ensurePrimaryNewCard() {
     const global = document.querySelector("[data-ff-global-new-card]");
-    if (global) global.classList.add("ff-primary-new-card");
+    if (global && !global.classList.contains("ff-primary-new-card")) global.classList.add("ff-primary-new-card");
 
     if (routeName() !== "dashboard") return;
-    const actions = document.querySelector("#main-content .page-heading .page-actions");
+    const actions = document.querySelector(`${MAIN} .page-heading .page-actions`);
     if (!actions || actions.querySelector("[data-ff-page-new-card]")) return;
     const button = document.createElement("button");
     button.type = "button";
@@ -330,78 +301,72 @@
     actions.prepend(button);
   }
 
-  function recoveryMarkup(title, copy, actions) {
+  function recoveryHtml(title, copy, actions) {
     return `<div><span>I'm still with you</span><h3>${title}</h3><p>${copy}</p></div><div class="ff-recovery-actions">${actions}</div>`;
   }
 
-  function addRecoveryAfter(anchor, key, html) {
-    if (!anchor || document.querySelector(`[data-ff-recovery="${key}"]`)) return;
-    const coach = document.createElement("section");
-    coach.className = "ff-recovery-coach";
-    coach.dataset.ffRecovery = key;
-    coach.innerHTML = html;
-    anchor.insertAdjacentElement("afterend", coach);
+  function setRecovery(key, anchor, html) {
+    const main = document.querySelector(MAIN);
+    if (!main || !anchor) return;
+    let coach = main.querySelector("[data-ff-recovery]");
+    if (!coach) {
+      coach = document.createElement("section");
+      coach.className = "ff-recovery-coach";
+      coach.dataset.ffRecovery = key;
+      anchor.insertAdjacentElement("afterend", coach);
+    } else if (coach.dataset.ffRecovery !== key) {
+      coach.dataset.ffRecovery = key;
+      anchor.insertAdjacentElement("afterend", coach);
+    }
+    setHtml(coach, html);
+  }
+
+  function clearRecovery() {
+    document.querySelector(`${MAIN} [data-ff-recovery]`)?.remove();
   }
 
   function recoveryGuidance() {
-    const main = document.querySelector("#main-content");
+    const main = document.querySelector(MAIN);
     if (!main) return;
     const route = routeName();
-
-    main.querySelectorAll("[data-ff-recovery]").forEach(node => node.remove());
 
     if (route === "discover") {
       const error = main.querySelector('.customer-discovery-page .staging-error[role="alert"]');
       if (error) {
-        addRecoveryAfter(error, "discover-error", recoveryMarkup(
-          "The search didn't finish. Nothing was saved.",
-          "Go back to the card box, confirm the exact identity, and try again. If the card number or parallel is uncertain, use Find exact card first.",
-          '<button class="button button-primary" type="button" data-ff-focus-card>Show me the card box</button><button class="button button-secondary" type="button" data-ff-find-exact>Find exact card</button>'
-        ));
+        setRecovery("discover-error", error, recoveryHtml("The search didn't finish. Nothing was saved.", "Go back to the card box, confirm the exact identity, and try again. If the card number or parallel is uncertain, use Find exact card first.", '<button class="button button-primary" type="button" data-ff-focus-card>Show me the card box</button><button class="button button-secondary" type="button" data-ff-find-exact>Find exact card</button>'));
         return;
       }
 
       const identity = main.querySelector(".customer-discovery-identity-assist");
       if (identity && /No selectable exact identity|No selectable|Add a year, set, player, card number/i.test(identity.textContent || "")) {
-        addRecoveryAfter(identity, "identity-missing", recoveryMarkup(
-          "FlipForge needs a little more card detail.",
-          "Add the year, set, player, and card number first. Add the parallel, insert, grader, and grade when you know them. Then try Find exact card again.",
-          '<button class="button button-primary" type="button" data-ff-focus-card>Take me back to the card box</button>'
-        ));
+        setRecovery("identity-missing", identity, recoveryHtml("FlipForge needs a little more card detail.", "Add the year, set, player, and card number first. Add the parallel, insert, grader, and grade when you know them. Then try Find exact card again.", '<button class="button button-primary" type="button" data-ff-focus-card>Take me back to the card box</button>'));
         return;
       }
 
       const empty = [...main.querySelectorAll(".staging-empty")].find(node => /No active candidate|No connected listing|No active candidates/i.test(node.textContent || ""));
       if (empty) {
-        addRecoveryAfter(empty, "discover-empty", recoveryMarkup(
-          "No matching active listing came back yet.",
-          "That does not mean the card is bad. Tighten the identity with the exact card number, parallel or grade, or use Find exact card before searching again.",
-          '<button class="button button-primary" type="button" data-ff-focus-card>Refine this card</button><button class="button button-secondary" type="button" data-ff-find-exact>Find exact card</button>'
-        ));
+        setRecovery("discover-empty", empty, recoveryHtml("No matching active listing came back yet.", "That does not mean the card is bad. Tighten the identity with the exact card number, parallel or grade, or use Find exact card before searching again.", '<button class="button button-primary" type="button" data-ff-focus-card>Refine this card</button><button class="button button-secondary" type="button" data-ff-find-exact>Find exact card</button>'));
+        return;
       }
+      clearRecovery();
+      return;
     }
 
     if (route === "evaluate") {
       const error = main.querySelector('.staging-error[role="alert"],.consumer-state-error');
       if (error) {
-        addRecoveryAfter(error, "evaluate-error", recoveryMarkup(
-          "The evaluation couldn't complete. Nothing new was saved.",
-          "Review the card identity and listing facts, then try again. If you are unsure about the card, return to Discover instead of guessing.",
-          '<a class="button button-primary" href="#/discover">Return to Discover</a><button class="button button-secondary" type="button" data-ff-new-card>Start a different card</button>'
-        ));
+        setRecovery("evaluate-error", error, recoveryHtml("The evaluation couldn't complete. Nothing new was saved.", "Review the card identity and listing facts, then try again. If you are unsure about the card, return to Discover instead of guessing.", '<a class="button button-primary" href="#/discover">Return to Discover</a><button class="button button-secondary" type="button" data-ff-new-card>Start a different card</button>'));
+        return;
       }
     }
+    clearRecovery();
   }
 
   function betaMission() {
-    const main = document.querySelector("#main-content");
-    if (!main || routeName() !== "beta-start") return;
-    if (main.querySelector("[data-ff-beta-mission]")) return;
-    const workflow = main.querySelector("[data-ff-workflow-strip]");
-    const heading = main.querySelector(".page-heading");
-    const anchor = workflow || heading;
+    const main = document.querySelector(MAIN);
+    if (!main || routeName() !== "beta-start" || main.querySelector("[data-ff-beta-mission]")) return;
+    const anchor = main.querySelector("[data-ff-workflow-strip]") || main.querySelector(".page-heading");
     if (!anchor) return;
-
     const mission = document.createElement("section");
     mission.className = "ff-beta-mission";
     mission.dataset.ffBetaMission = "";
@@ -411,7 +376,7 @@
 
   function showWhy() {
     document.documentElement.classList.add("ff-show-advanced");
-    const main = document.querySelector("#main-content");
+    const main = document.querySelector(MAIN);
     const headings = [...(main?.querySelectorAll("h2,h3") || [])];
     const targetHeading = headings.find(node => /Decision Traceback|Why FlipForge says this|How to read this decision/i.test(String(node.textContent || "")));
     const target = targetHeading?.closest("section,article,.panel,.customer-intelligence-section") || targetHeading;
@@ -425,16 +390,15 @@
   }
 
   function toggleAdvanced() {
-    const root = document.documentElement;
-    root.classList.toggle("ff-show-advanced");
+    document.documentElement.classList.toggle("ff-show-advanced");
     scheduleApply();
   }
 
   function handleFindExact() {
-    const button = document.querySelector("#main-content [data-discovery-find-exact]");
+    const button = document.querySelector(`${MAIN} [data-discovery-find-exact]`);
     if (button) {
       button.scrollIntoView({ behavior: "smooth", block: "center" });
-      button.focus({ preventScroll: true });
+      try { button.focus({ preventScroll: true }); } catch (_) { button.focus(); }
       button.click();
       return;
     }
@@ -488,10 +452,10 @@
   function init() {
     if (!eligibleHost()) return;
     bindEvents();
-    const main = document.querySelector("#main-content");
-    if (main) new MutationObserver(scheduleApply).observe(main, { childList: true, subtree: true, characterData: true });
+    const main = document.querySelector(MAIN);
+    if (main) new MutationObserver(scheduleApply).observe(main, { childList: true, subtree: true });
     const nav = document.querySelector(".primary-nav");
-    if (nav) new MutationObserver(scheduleApply).observe(nav, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+    if (nav) new MutationObserver(scheduleApply).observe(nav, { childList: true, subtree: true });
     window.addEventListener("hashchange", () => {
       document.documentElement.classList.remove("ff-show-advanced");
       window.setTimeout(scheduleApply, 70);
@@ -502,11 +466,6 @@
     scheduleApply();
   }
 
-  window.FlipForgeBetaCustomerFlow = Object.freeze({
-    refresh: scheduleApply,
-    showWhy,
-    toggleAdvanced
-  });
-
+  window.FlipForgeBetaCustomerFlow = Object.freeze({ refresh: scheduleApply, showWhy, toggleAdvanced });
   init();
 })();
