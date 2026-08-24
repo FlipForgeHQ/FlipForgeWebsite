@@ -186,7 +186,7 @@ body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
   body.ff-home-focused .hero.ff-hero-v3{padding-top:44px;padding-bottom:30px;gap:30px}
   body.ff-home-focused .home-section{padding-top:42px;padding-bottom:42px}
   body.ff-home-focused #before-after{padding-bottom:22px}
-  .ff-demo-float{right:12px;bottom:12px;padding:9px 12px}
+  .ff-demo-float{display:none!important}
   .ff-audience,.ff-dossier-spotlight{padding:46px 18px}
   .ff-audience-grid{grid-template-columns:1fr}
   .ff-audience-grid article{min-height:210px}
