@@ -1,0 +1,3 @@
+Deploy trigger for the unified private-beta customer-flow implementation.
+Requested by owner on 2026-08-24 14:25 America/New_York.
+Includes simplified navigation, primary New Card actions, Discover → Evaluate → Understand → Track workflow guidance, plain-English decision summaries, progressive disclosure, saved-evaluation confirmation, failure-state coaching, customer-language cleanup, and the first-card usability gate.
