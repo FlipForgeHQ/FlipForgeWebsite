@@ -10,6 +10,23 @@
       .split(/[/?]/)[0] || "dashboard";
   }
 
+  function loadIdentityAssistVerification() {
+    if (!document.querySelector('link[data-ff-identity-assist-verification]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "identity-assist-verification-v1.css";
+      link.dataset.ffIdentityAssistVerification = "";
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-ff-identity-assist-verification]')) {
+      const script = document.createElement("script");
+      script.src = "identity-assist-verification-v1.js";
+      script.defer = true;
+      script.dataset.ffIdentityAssistVerification = "";
+      document.body.appendChild(script);
+    }
+  }
+
   function decorate() {
     if (routeName() !== "discover") return;
     const main = document.querySelector(MAIN);
@@ -43,6 +60,7 @@
     });
   }
 
+  loadIdentityAssistVerification();
   const main = document.querySelector(MAIN);
   if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
   window.addEventListener("hashchange", schedule);
