@@ -23,12 +23,21 @@ const forbidText = (label, text, needle) => { if (text.toLowerCase().includes(ne
 for (const audience of ['Buyers', 'Grading planners', 'Value hunters']) requireText('homepage audience', homepage, audience);
 requireText('homepage', homepage, 'Before you buy. <span>Know Why.</span>');
 forbidText('homepage brand punctuation', homepage, 'Before You Buy,');
-requireText('homepage', homepage, 'Try the 60-second demo');
+forbidText('homepage brand case', homepage, 'Before you buy. Know why.');
+
+requireText('hero simplified problem', homepage, 'A wrong parallel, bad comp, or unrealistic grading assumption can change the entire decision.');
+requireText('hero simplified value', homepage, 'FlipForge checks the card, challenges the evidence, and explains what to do next—and why.');
+requireText('hero CTA hierarchy', homepage, '<a class="btn primary" href="beta-application.html">Request Beta Access</a><a class="btn" data-demo-cta="hero" href="#try-flipforge">See FlipForge in action</a>');
+for (const removedHeroBlock of ['class="hero-promise"','class="ff-hero-points"','class="ff-hero-text-link"']) forbidText('simplified hero', homepage, removedHeroBlock);
+const primaryButtons = (homepage.match(/class="btn primary"/g)||[]).length;
+if (primaryButtons !== 2) failures.push(`CTA hierarchy: expected exactly 2 homepage btn primary elements, found ${primaryButtons}`);
+
 requireText('homepage', homepage, 'id="evidence"');
 requireText('homepage', homepage, 'data-ff-home-evidence="true"');
 for (const evidenceNeedle of ['Evidence is the product boundary','Accepted evidence','Excluded evidence','Decision traceback','A Refractor claim cannot be supported by a Base / Unstated sale.','Supported value withheld · VERIFY']) requireText('homepage product evidence', homepage, evidenceNeedle);
 requireText('homepage', homepage, 'id="sample-dossier"');
-requireText('homepage', homepage, 'href="sample-decision-dossier.html"');
+requireText('homepage', homepage, '<a class="btn" href="sample-decision-dossier.html">View Sample Dossier</a>');
+forbidText('dossier CTA hierarchy', homepage, '<a class="btn primary" href="sample-decision-dossier.html">');
 requireText('homepage', homepage, 'id="validation"');
 for (const governedResult of ['Evidence records reviewed', 'Eligible unique sales retained', 'Records held out', 'Evidence-gate failures detected']) requireText('homepage governed audit', homepage, governedResult);
 for (const governedCount of ['<strong>100</strong>', '<strong>74</strong>', '<strong>26</strong>', '<strong>18</strong>']) requireText('homepage governed audit', homepage, governedCount);
@@ -36,14 +45,23 @@ requireText('homepage governed audit', homepage, '20-case blind re-review');
 requireText('homepage governed audit', homepage, '25-card prospective study');
 requireText('homepage governed audit', homepage, 'Eight repeated sources were detected');
 requireText('homepage governed audit boundary', homepage, 'has not authorized a public accuracy percentage');
+
+const boundaryText='Decision support only. FlipForge does not authorize transactions or guarantee price, grade, profit, or transaction outcomes.';
+const boundaryCount=(homepage.match(new RegExp(boundaryText.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'))||[]).length;
+if(boundaryCount<3) failures.push(`decision boundary proximity: expected at least 3 static boundaries, found ${boundaryCount}`);
+requireText('decision boundary terms link', homepage, '<a href="terms.html">Terms</a>');
+
 requireText('homepage', homepage, 'A different layer of the hobby stack');
 requireText('homepage', homepage, 'Illustrative · Auto preview');
 requireText('homepage', homepage, 'id="demo-playback"');
 requireText('homepage', homepage, 'No credit card required.');
+for (const gradingDemoNeedle of ['See FlipForge challenge a grading decision in four steps.','Illustrative grading scenario','2020 Panini Prizm Joe Burrow #307 · Raw','The PSA 10 upside looks attractive. The full grading economics need to prove it.','DEFINE INPUTS']) requireText('grading demo static fallback', homepage, gradingDemoNeedle);
+
 requireText('homepage CSS', homepageCss, '.ff-audience-grid');
 requireText('homepage CSS', homepageCss, '.ff-dossier-preview');
-requireText('homepage CSS', homepageCss, '.ff-hero-jump-link');
 requireText('homepage CSS', homepageCss, '.ff-demo-float');
+requireText('homepage CSS', homepageCss, '.ff-decision-boundary');
+forbidText('homepage CSS obsolete hero jump', homepageCss, '.ff-hero-jump-link');
 forbidText('homepage CSS external font', homepageCss, 'fonts.gstatic.com');
 forbidText('homepage CSS external font', homepageCss, 'font-family:Inter');
 requireText('conversion CSS', conversionCss, '.ff-problem-grid');
@@ -68,15 +86,18 @@ requireText('homepage JavaScript', homepageJs, 'IntersectionObserver');
 requireText('homepage JavaScript', homepageJs, 'prefers-reduced-motion: reduce');
 requireText('homepage JavaScript', homepageJs, 'Pause preview');
 requireText('homepage JavaScript', homepageJs, 'Restart demo');
-requireText('homepage JavaScript', homepageJs, 'Illustrative · Final verdict');
-requireText('homepage JavaScript', homepageJs, 'Decision support only. FlipForge does not authorize transactions or guarantee outcomes.');
-requireText('homepage JavaScript', homepageJs, 'Confirm the parallel → replace mismatched evidence → rerun analysis.');
+requireText('homepage JavaScript', homepageJs, 'Illustrative · Final guidance');
 requireText('homepage JavaScript', homepageJs, 'finishPreview');
-requireText('homepage JavaScript', homepageJs, 'promoteTryFlipForge');
-requireText('homepage JavaScript', homepageJs, 'ff-mobile-demo-cta');
+requireText('homepage JavaScript', homepageJs, 'normalizeHomepageActions');
+requireText('homepage JavaScript', homepageJs, "desktopBeta?.classList.add('nav-cta')");
+requireText('homepage JavaScript', homepageJs, "desktopTry?.classList.remove('nav-cta')");
+forbidText('homepage JavaScript obsolete CTA promotion', homepageJs, 'promoteTryFlipForge');
+forbidText('homepage JavaScript duplicated Ohtani demo', homepageJs, 'Ohtani');
+forbidText('homepage JavaScript duplicated parallel demo', homepageJs, 'Refractor');
+for (const gradingNeedle of ['A PSA 10 cannot be the default assumption.','SCENARIO READY','MARGIN THIN','KEEP RAW','No grade guarantee']) requireText('grading demo behavior', homepageJs, gradingNeedle);
+for (const demoDiscoveryNeedle of ['Product demo','See FlipForge ↓','Try FlipForge — interactive demo']) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
 forbidText('homepage JavaScript layout ownership', homepageJs, 'stabilizeHeroLayout');
 forbidText('homepage JavaScript layout ownership', homepageJs, 'hero.style.gridTemplateColumns');
-for (const demoDiscoveryNeedle of ['See FlipForge catch a bad decision ↓','Jump to demo','Try FlipForge ↓','Try FlipForge — 60-second demo']) requireText('homepage demo discovery', homepageJs, demoDiscoveryNeedle);
 
 for (const shellNeedle of ['normalizeMarketingShell','Launch Plans','Evidence Lab','sample_dossier_clicked','evidence_lab_clicked']) requireText('marketing shell', conversionEvents, shellNeedle);
 
@@ -102,7 +123,7 @@ forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v9'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v10'");
 requireText('service worker', serviceWorker, "'/assets/css/brand-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/css/marketing-density-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
@@ -125,4 +146,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Evidence-first homepage architecture, CSS-owned hero layout, locked brand language, readable proof, customer-safe Decision Dossier, separate governed validation, consistent Launch Plans/Evidence Lab shell, unpublished pricing boundary, and decision-support safeguards remain complete and professional.');
+console.log('PASS: Request Beta Access owns primary conversion, hero copy is disciplined, Ohtani remains the evidence/dossier case rather than the interactive demo, decision boundaries sit beside decision states, pricing stays unpublished, and the locked FlipForge brand remains intact.');
