@@ -128,7 +128,7 @@
   transition:outline-color .2s ease,box-shadow .2s ease!important;
 }
 .ff-guide-highlight::after{
-  content:"Do this next";
+  content:attr(data-guide-label);
   position:absolute;
   z-index:2147481250;
   top:-13px;
@@ -141,6 +141,67 @@
   letter-spacing:.07em;
   text-transform:uppercase;
 }
+.ff-guide-input-focus{
+  border-color:var(--ff-guide-gold-strong)!important;
+  box-shadow:0 0 0 3px rgba(212,175,55,.18)!important;
+}
+
+/* Discover now has one unmistakable entry point. */
+.ff-discover-coach{
+  display:flex;
+  justify-content:space-between;
+  gap:22px;
+  align-items:center;
+  margin:0 0 14px;
+  padding:18px 20px;
+  border:1px solid rgba(212,175,55,.34);
+  border-radius:10px;
+  background:linear-gradient(135deg,rgba(212,175,55,.075),rgba(255,255,255,.018));
+  box-shadow:0 14px 38px rgba(0,0,0,.18);
+}
+.ff-discover-coach>div:first-child{min-width:0}
+.ff-discover-coach span{
+  display:block;
+  margin-bottom:5px;
+  color:var(--ff-guide-gold-strong);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.ff-discover-coach h2{margin:0;font-size:1.2rem;line-height:1.2;letter-spacing:-.015em}
+.ff-discover-coach p{max-width:760px;margin:6px 0 0;color:#aeb7c2;font-size:.82rem;line-height:1.5}
+.ff-discover-coach-actions{display:flex;gap:8px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.ff-discover-results-label{
+  display:grid;
+  gap:3px;
+  margin:18px 0 10px;
+  padding:12px 14px;
+  border-left:3px solid rgba(212,175,55,.68);
+  background:rgba(212,175,55,.035);
+}
+.ff-discover-results-label strong{font-size:.88rem}
+.ff-discover-results-label span{color:#9fa9b5;font-size:.76rem;line-height:1.45}
+
+.ff-global-new-card{
+  border-color:rgba(212,175,55,.42)!important;
+  color:#f2d16e!important;
+  background:rgba(212,175,55,.055)!important;
+  white-space:nowrap;
+}
+.ff-global-new-card:hover,.ff-global-new-card:focus-visible{
+  border-color:rgba(240,202,88,.72)!important;
+  background:rgba(212,175,55,.095)!important;
+  outline:none;
+}
+
+/* When the user chooses New card, old search output gets out of the way. */
+.ff-start-new-card .customer-discovery-results,
+.ff-start-new-card .customer-discovery-notice,
+.ff-start-new-card .customer-discovery-identity-assist,
+.ff-start-new-card .ff-discover-results-label,
+.ff-start-new-card .panel:has(.customer-discovery-provider){display:none!important}
+.ff-start-new-card .customer-discovery-search{margin-top:0!important}
 
 .ff-guide-modal-backdrop{
   position:fixed;
@@ -179,6 +240,11 @@
 
 body.ff-guide-modal-open{overflow:hidden}
 
+@media(max-width:900px){
+  .ff-discover-coach{align-items:flex-start;flex-direction:column}
+  .ff-discover-coach-actions{width:100%;justify-content:flex-start}
+}
+
 @media(max-width:760px){
   .ff-guide-panel{right:8px;bottom:8px;width:calc(100vw - 16px);max-height:min(72vh,620px);overflow:auto;border-radius:14px}
   .ff-guide-launcher{right:10px;bottom:10px}
@@ -188,6 +254,8 @@ body.ff-guide-modal-open{overflow:hidden}
   .ff-guide-modal-steps{grid-template-columns:1fr}
   .ff-guide-modal-actions{display:grid}
   .ff-guide-modal-actions .ff-guide-action{width:100%;min-width:0}
+  .ff-global-new-card{min-width:44px}
+  .ff-discover-coach-actions .button{width:100%}
 }
 
 @media(prefers-reduced-motion:reduce){
