@@ -1,0 +1,3 @@
+Deploy trigger for Discover guided-focus repair.
+Requested during live private-beta UX testing on 2026-08-24 14:08 America/New_York.
+Includes direct provider-backed Discover rendering and a visible card-entry highlight/focus cue.
