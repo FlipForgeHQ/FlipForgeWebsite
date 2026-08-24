@@ -1,0 +1,3 @@
+Deploy trigger for current private-beta testing batch.
+Requested by owner on 2026-08-24 13:58 America/New_York.
+Includes guided onboarding, Discover new-card flow, and saved-decision clarity work already on main.
