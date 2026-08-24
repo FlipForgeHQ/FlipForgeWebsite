@@ -1,0 +1,3 @@
+Deploy trigger for private-beta Discover route correction.
+Observed issue: + New card landed on the legacy mock Discover/filter page instead of the provider-backed card search form.
+Fix commit: 7ce7ffb36cdfdf07b06ffa60f0be371e0287e230
