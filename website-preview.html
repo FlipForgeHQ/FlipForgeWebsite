@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FlipForge Website Change Preview</title>
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/brand-v2.css">
+<link rel="stylesheet" href="assets/css/website-preview-v1.css">
+</head>
+<body class="ff-website-preview">
+<main class="preview-shell">
+  <header class="preview-header">
+    <div class="preview-brand">
+      <img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Intelligence — Before you buy. Know Why.">
+      <span class="preview-label">Internal website change preview</span>
+    </div>
+    <a class="preview-home-link" href="index.html">Open current live homepage</a>
+  </header>
+
+  <section class="preview-hero" aria-labelledby="preview-title">
+    <div>
+      <span class="change-kicker">Review batch 01 · Customer path QA</span>
+      <h1 id="preview-title">Review every change <span>before it replaces the live section.</span></h1>
+      <p>This page is the holding area for website changes between publishing cycles. New changes are added here by section, reviewed together, and only moved into the customer-facing pages after approval.</p>
+    </div>
+    <div class="preview-summary" aria-label="Current preview status">
+      <div><strong>3</strong><span>Pending changes</span></div>
+      <div><strong>1</strong><span>Merged / verify</span></div>
+      <div><strong>1</strong><span>Access blocker found</span></div>
+      <div><strong>01</strong><span>Current review batch</span></div>
+    </div>
+  </section>
+
+  <p class="preview-rule"><strong>Publishing rule:</strong> customer-facing changes stay on this preview page until reviewed. After approval, the matching live section is updated and the change is marked published. This page is intentionally excluded from search indexing and is not linked from the public navigation.</p>
+
+  <nav class="preview-tabs" aria-label="Preview sections">
+    <a href="#navigation">Navigation</a>
+    <a href="#beta-banner">Beta banner</a>
+    <a href="#hero-spacing">Hero spacing</a>
+    <a href="#access-flow">Access flow</a>
+    <a href="#sign-in">Sign in</a>
+    <a href="#mobile">Mobile hero</a>
+  </nav>
+
+  <section class="change-section" id="navigation" aria-labelledby="navigation-title">
+    <div class="change-head">
+      <div>
+        <span class="change-kicker">Global navigation · Must fix before beta invitations</span>
+        <h2 id="navigation-title">Make returning-user access impossible to miss.</h2>
+        <p>The current navigation offers Request Access and App Preview, but it does not provide an obvious customer Sign In path. The proposed header separates those jobs clearly.</p>
+      </div>
+      <span class="status-badge blocker">Near-blocker</span>
+    </div>
+    <div class="comparison-grid">
+      <article class="compare-panel">
+        <div class="panel-label"><strong>Current</strong><span>Customer must infer the path</span></div>
+        <div class="preview-navbar">
+          <img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge">
+          <div class="preview-navlinks">
+            <span>Product</span><span>Launch Plans</span><span>Evidence Lab</span><span>FAQ</span><span>App Preview</span><span class="access">Request Access</span>
+          </div>
+        </div>
+      </article>
+      <article class="compare-panel proposed">
+        <div class="panel-label"><strong>Proposed</strong><span>New and returning users separated</span></div>
+        <div class="preview-navbar">
+          <img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge">
+          <div class="preview-navlinks">
+            <span>Product</span><span>Evidence Lab</span><span>FAQ</span><a class="signin" href="production-auth.html">Sign In</a><a class="access" href="beta-application.html">Request Access</a>
+          </div>
+        </div>
+      </article>
+    </div>
+    <ul class="change-notes">
+      <li>Add Sign In to desktop and mobile navigation.</li>
+      <li>Keep Request Access visually primary for new testers.</li>
+      <li>Stop using App Preview as a substitute for customer authentication.</li>
+    </ul>
+  </section>
+
+  <section class="change-section" id="beta-banner" aria-labelledby="banner-title">
+    <div class="change-head">
+      <div>
+        <span class="change-kicker">Homepage attention layer · Must fix before beta invitations</span>
+        <h2 id="banner-title">Make the private beta visible without turning it into an ad.</h2>
+        <p>A restrained animated banner directly under the navigation gives the beta a clear visual entry point. Motion is subtle and automatically removed for users who prefer reduced motion.</p>
+      </div>
+      <span class="status-badge pending">Pending approval</span>
+    </div>
+    <div class="comparison-grid">
+      <article class="compare-panel">
+        <div class="panel-label"><strong>Current</strong><span>No persistent beta callout</span></div>
+        <div style="padding:22px;border:1px dashed rgba(255,255,255,.12);border-radius:11px;color:#757b83;text-align:center;font-size:11px">No banner between navigation and hero.</div>
+      </article>
+      <article class="compare-panel proposed">
+        <div class="panel-label"><strong>Proposed</strong><span>Subtle gold motion</span></div>
+        <div class="beta-banner">
+          <strong>Private Beta Now Open</strong>
+          <span>Help shape FlipForge before launch.</span>
+          <a href="beta-application.html">Request Access →</a>
+          <a href="production-auth.html">Already approved? Sign In →</a>
+        </div>
+      </article>
+    </div>
+    <ul class="change-notes">
+      <li>One-line beta message immediately under the header.</li>
+      <li>Two explicit paths: new tester and approved tester.</li>
+      <li>Animation is a slow shimmer, not constant movement.</li>
+    </ul>
+  </section>
+
+  <section class="change-section" id="hero-spacing" aria-labelledby="hero-title">
+    <div class="change-head">
+      <div>
+        <span class="change-kicker">Homepage hero · Must fix before beta invitations</span>
+        <h2 id="hero-title">Move the first meaningful text higher on the page.</h2>
+        <p>The current composition spends too much vertical space before the value proposition begins. The proposed version preserves the premium frame while tightening the top rhythm.</p>
+      </div>
+      <span class="status-badge pending">Pending approval</span>
+    </div>
+    <div class="comparison-grid">
+      <article class="compare-panel">
+        <div class="panel-label"><strong>Current feel</strong><span>Too much air above message</span></div>
+        <div class="hero-mock loose">
+          <div class="eyebrow">Sports Card Decision Intelligence</div>
+          <h3>Before you buy. <span>Know Why.</span></h3>
+          <p>A wrong parallel, bad comp, or unrealistic grading assumption can change the entire decision.</p>
+          <div class="mock-actions"><span class="mock-btn primary">Request Beta Access</span><span class="mock-btn">See FlipForge in action</span></div>
+        </div>
+      </article>
+      <article class="compare-panel proposed">
+        <div class="panel-label"><strong>Proposed</strong><span>Message begins sooner</span></div>
+        <div class="hero-mock tight">
+          <div class="eyebrow">Sports Card Decision Intelligence</div>
+          <h3>Before you buy. <span>Know Why.</span></h3>
+          <p>A wrong parallel, bad comp, or unrealistic grading assumption can change the entire decision.</p>
+          <div class="mock-actions"><span class="mock-btn primary">Request Beta Access</span><span class="mock-btn">See FlipForge in action</span></div>
+        </div>
+      </article>
+    </div>
+    <ul class="change-notes">
+      <li>Reduce top hero padding instead of adding decorative filler.</li>
+      <li>Let the beta banner provide the visual interruption above the hero.</li>
+      <li>Keep the primary brand statement unchanged.</li>
+    </ul>
+  </section>
+
+  <section class="change-section" id="access-flow" aria-labelledby="flow-title">
+    <div class="change-head">
+      <div>
+        <span class="change-kicker">Customer path · Must fix before beta invitations</span>
+        <h2 id="flow-title">Explain what happens after someone applies.</h2>
+        <p>Submitting a beta application does not create an account. The website should communicate the three customer states clearly instead of forcing users to discover the difference themselves.</p>
+      </div>
+      <span class="status-badge blocker">Near-blocker</span>
+    </div>
+    <div class="compare-panel proposed" style="margin-top:18px">
+      <div class="panel-label"><strong>Proposed customer path</strong><span>Three explicit states</span></div>
+      <div class="flow-grid">
+        <article class="flow-card">
+          <span>New tester</span>
+          <strong>Request access first.</strong>
+          <p>Submit the private-beta application. The application enters review; it does not create an account.</p>
+          <div class="flow-path">Request Access → Review → Approval / Invitation → Activate account → Sign In</div>
+        </article>
+        <article class="flow-card">
+          <span>Approved tester</span>
+          <strong>Sign in directly.</strong>
+          <p>Once access has been approved and the account is active, the user should never need to return to the application form.</p>
+          <div class="flow-path">Sign In → FlipForge Dashboard</div>
+        </article>
+        <article class="flow-card">
+          <span>Already authenticated</span>
+          <strong>Open FlipForge.</strong>
+          <p>Authenticated customers should see the shortest path possible instead of another approval or registration explanation.</p>
+          <div class="flow-path">Open FlipForge → Dashboard</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="change-section" id="sign-in" aria-labelledby="signin-title">
+    <div class="change-head">
+      <div>
+        <span class="change-kicker">Production authentication · Preview redesign</span>
+        <h2 id="signin-title">Turn the existing authentication utility into a customer-facing sign-in page.</h2>
+        <p>The production sign-in endpoint already exists. The preview removes operator-style language and focuses the screen on one job: enter FlipForge.</p>
+      </div>
+      <span class="status-badge pending">Pending approval</span>
+    </div>
+    <div class="comparison-grid">
+      <article class="compare-panel">
+        <div class="panel-label"><strong>Current problems</strong><span>Utility language is visible</span></div>
+        <ul class="change-notes" style="margin-top:0">
+          <li>“Invitation-only account access” reads like infrastructure rather than onboarding.</li>
+          <li>“Test account access” is not a normal customer action.</li>
+          <li>The user must discover how to return to FlipForge after authentication.</li>
+          <li>There is no site-wide navigation link pointing here.</li>
+        </ul>
+      </article>
+      <article class="compare-panel proposed">
+        <div class="panel-label"><strong>Proposed</strong><span>Customer-safe sign in</span></div>
+        <div class="signin-mock">
+          <img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge">
+          <div class="eyebrow">Private Beta Access</div>
+          <h3>Welcome back.</h3>
+          <p>Sign in with your approved FlipForge beta account.</p>
+          <div class="signin-field"><label>Email</label><div aria-hidden="true"></div></div>
+          <div class="signin-field"><label>Password</label><div aria-hidden="true"></div></div>
+          <div class="signin-button">Sign In to FlipForge</div>
+          <div class="signin-meta"><span>Forgot password?</span><span>Need access? Request Beta Access</span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="change-section" id="mobile" aria-labelledby="mobile-title">
+    <div class="change-head">
+      <div>
+        <span class="change-kicker">Homepage mobile hero · Already merged</span>
+        <h2 id="mobile-title">Stack the mobile hero instead of squeezing the desktop layout.</h2>
+        <p>The CSS conflict that forced the hero into two columns on phones has been corrected. This remains in the review workspace until it is visually verified on a real phone.</p>
+      </div>
+      <span class="status-badge merged">Merged · verify</span>
+    </div>
+    <div class="compare-panel proposed" style="margin-top:18px">
+      <div class="panel-label"><strong>Expected mobile result</strong><span>No floating demo overlay</span></div>
+      <div class="mobile-mock-wrap">
+        <div class="mobile-mock">
+          <div class="mobile-screen">
+            <div class="mobile-top"><img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge"><span class="mobile-menu">☰</span></div>
+            <div class="mobile-hero">
+              <div class="eyebrow">Sports Card Decision Intelligence</div>
+              <h3>Before you buy. <span>Know Why.</span></h3>
+              <p>A wrong parallel, bad comp, or unrealistic grading assumption can change the entire decision.</p>
+              <span class="mock-btn primary">Request Beta Access</span>
+              <span class="mock-btn">See FlipForge in action</span>
+            </div>
+            <div class="mobile-demo">Product demo appears below copy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="change-notes">
+      <li>Hero copy and demo are forced into one column below tablet width.</li>
+      <li>The floating demo chip is hidden on phones.</li>
+      <li>Final real-device screenshot verification is still required.</li>
+    </ul>
+  </section>
+
+  <footer class="preview-footer">
+    FlipForge internal review workspace · Not customer navigation · Noindex / nofollow · Changes shown here are not considered customer-facing until explicitly published.
+  </footer>
+</main>
+</body>
+</html>
