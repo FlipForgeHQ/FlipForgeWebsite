@@ -1,0 +1,44 @@
+/* FlipForge customer save/clear flow. Presentation only; evaluated decisions remain server-persisted. */
+.ff-saved-decision-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin:0 0 14px;
+  padding:15px 17px;
+  border:1px solid rgba(87,196,132,.30);
+  border-radius:10px;
+  background:linear-gradient(135deg,rgba(87,196,132,.075),rgba(212,175,55,.035));
+  box-shadow:0 12px 34px rgba(0,0,0,.18);
+}
+.ff-saved-decision-copy{display:grid;grid-template-columns:auto minmax(0,1fr);gap:11px;align-items:center;min-width:0}
+.ff-saved-decision-check{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:rgba(87,196,132,.12);border:1px solid rgba(87,196,132,.38);color:#9be3ba;font-weight:900}
+.ff-saved-decision-copy strong{display:block;font-size:.92rem}
+.ff-saved-decision-copy small{display:block;margin-top:3px;color:#aeb7c2;font-size:.75rem;line-height:1.45}
+.ff-saved-decision-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:none}
+.ff-saved-decision-actions .button{white-space:nowrap}
+
+.ff-discover-persistence-note{
+  display:flex;
+  gap:9px;
+  align-items:flex-start;
+  margin:0 0 14px;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:8px;
+  background:rgba(255,255,255,.018);
+  color:#9fa9b5;
+  font-size:.75rem;
+  line-height:1.48;
+}
+.ff-discover-persistence-note strong{color:#eceff2}
+.ff-discover-persistence-note span:first-child{color:#f0ca58;font-weight:900}
+
+@media(max-width:820px){
+  .ff-saved-decision-bar{align-items:flex-start;flex-direction:column}
+  .ff-saved-decision-actions{width:100%;justify-content:flex-start}
+}
+@media(max-width:560px){
+  .ff-saved-decision-actions{display:grid;width:100%}
+  .ff-saved-decision-actions .button{width:100%}
+}
