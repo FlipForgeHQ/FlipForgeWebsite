@@ -36,6 +36,7 @@ check("Market View refuses market-wide claim", marketView.includes("data.scope.m
 check("Market View refuses continuous scanner claim", marketView.includes("data.scope.continuousMarketScannerActive !== false"));
 check("customer hero hides internal Market View version token", marketView.includes('<span class="eyebrow">YOUR MARKET</span>') && !marketView.includes('YOUR MARKET · ${escapeHtml(data.marketViewVersion)}'));
 check("customer summary uses action-oriented labels", marketView.includes('metric("Actionable decisions"') && marketView.includes('metric("Supported upside"') && marketView.includes('metric("Fresh evaluations"'));
+check("supported upside zero state is customer-readable", marketView.includes("function supportedUpsideDetail(summary)") && marketView.includes("No evaluated cards currently show evidence-supported upside.") && marketView.includes('metric("Supported upside", number(summary.positiveSupportedValueGap), supportedUpsideDetail(summary))'));
 check("decision distribution uses customer-facing wording", marketView.includes('>DECISION MIX</span>') && marketView.includes("Market View summarizes the decisions already made; it does not issue new ones."));
 check("Market View keeps broader market scope explicit", marketView.includes("Broader market scanning is not active yet.") && marketView.includes("Broader market intelligence comes next."));
 check("Market View labels value context as not profit or ROI", marketView.includes("evidence context—not profit or ROI"));
