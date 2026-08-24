@@ -23,7 +23,7 @@ const forbidText = (label, text, needle) => { if (text.toLowerCase().includes(ne
 for (const audience of ['Buyers', 'Grading planners', 'Value hunters']) requireText('homepage audience', homepage, audience);
 requireText('homepage', homepage, 'Before you buy. <span>Know Why.</span>');
 forbidText('homepage brand punctuation', homepage, 'Before You Buy,');
-forbidText('homepage brand case', homepage, 'Before you buy. Know why.');
+if (homepage.includes('Before you buy. Know why.')) failures.push('homepage brand case: lowercase why is forbidden');
 
 requireText('hero simplified problem', homepage, 'A wrong parallel, bad comp, or unrealistic grading assumption can change the entire decision.');
 requireText('hero simplified value', homepage, 'FlipForge checks the card, challenges the evidence, and explains what to do next—and why.');
