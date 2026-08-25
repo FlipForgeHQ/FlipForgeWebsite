@@ -1,6 +1,14 @@
 (()=>{
   'use strict';
 
+  if(!document.querySelector('link[data-ff-mobile-simplify]')){
+    const mobileCss=document.createElement('link');
+    mobileCss.rel='stylesheet';
+    mobileCss.href='assets/css/homepage-mobile-simplify-v1.css';
+    mobileCss.dataset.ffMobileSimplify='true';
+    document.head.append(mobileCss);
+  }
+
   const root=document.documentElement;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   if(!reduced.matches)root.classList.add('ff-motion-ready');
