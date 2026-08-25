@@ -1,24 +1,10 @@
 /* FlipForge premium customer-first restructure — desire first, proof second, depth on demand. */
-:root{
-  --ff-aw-gold:#d8b64a;
-  --ff-aw-ink:#05070b;
-  --ff-aw-panel:#0a0e15;
-  --ff-aw-line:rgba(255,255,255,.09);
-  --ff-aw-muted:#9aa2ad;
-  --ff-aw-max:1180px;
-}
+:root{--ff-aw-gold:#d8b64a;--ff-aw-ink:#05070b;--ff-aw-panel:#0a0e15;--ff-aw-line:rgba(255,255,255,.09);--ff-aw-muted:#9aa2ad;--ff-aw-max:1180px}
 
 /* Marketing navigation: fewer choices, stronger conversion focus. */
-.ff-marketing-page-v3 .site-header .nav,
-.ff-home-focused .site-header .nav{max-width:var(--ff-aw-max)}
-.ff-marketing-page-v3 .desktop-nav a[href="faq.html"],
-.ff-marketing-page-v3 .desktop-nav a[data-app-preview],
-.ff-home-focused .desktop-nav a[href="faq.html"],
-.ff-home-focused .desktop-nav a[data-app-preview]{display:none!important}
-.ff-marketing-page-v3 .mobile-nav a[href="faq.html"],
-.ff-marketing-page-v3 .mobile-nav a[data-app-preview],
-.ff-home-focused .mobile-nav a[href="faq.html"],
-.ff-home-focused .mobile-nav a[data-app-preview]{display:none!important}
+.ff-marketing-page-v3 .site-header .nav,.ff-home-focused .site-header .nav{max-width:var(--ff-aw-max)}
+.ff-marketing-page-v3 .desktop-nav a[href="faq.html"],.ff-marketing-page-v3 .desktop-nav a[data-app-preview],.ff-home-focused .desktop-nav a[href="faq.html"],.ff-home-focused .desktop-nav a[data-app-preview],.ff-home-focused .desktop-nav a[href="#try-flipforge"]{display:none!important}
+.ff-marketing-page-v3 .mobile-nav a[href="faq.html"],.ff-marketing-page-v3 .mobile-nav a[data-app-preview],.ff-home-focused .mobile-nav a[href="faq.html"],.ff-home-focused .mobile-nav a[data-app-preview],.ff-home-focused .mobile-nav a[href="#try-flipforge"]{display:none!important}
 
 /* Premium page rhythm */
 .ff-aw-page{overflow-x:hidden}
@@ -30,49 +16,41 @@
 .ff-aw-page .section-head h2{max-width:760px;font-size:clamp(32px,4vw,52px);line-height:1.03;letter-spacing:-.04em}
 .ff-aw-page .section-copy{max-width:560px;color:#9da4ae}
 
-.ff-aw-proof-strip{
-  max-width:var(--ff-aw-max);margin:0 auto;padding:0 24px 24px;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
-  border:1px solid var(--ff-aw-line);border-radius:20px;overflow:hidden;background:var(--ff-aw-line)
-}
+.ff-aw-proof-strip{max-width:var(--ff-aw-max);margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--ff-aw-line);border-radius:20px;overflow:hidden;background:var(--ff-aw-line)}
 .ff-aw-proof-strip article{padding:24px;background:#070a10}
 .ff-aw-proof-strip span{display:block;color:#8a929e;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
 .ff-aw-proof-strip strong{display:block;margin-top:10px;color:#fff;font-size:20px;line-height:1.25}
 .ff-aw-proof-strip p{margin:8px 0 0;color:#939ba6;font-size:13px;line-height:1.55}
 
 .ff-aw-question-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.ff-aw-question{
-  position:relative;min-height:210px;padding:28px;border:1px solid var(--ff-aw-line);border-radius:20px;
-  background:linear-gradient(160deg,rgba(255,255,255,.035),rgba(255,255,255,.008));overflow:hidden
-}
+.ff-aw-question{position:relative;min-height:210px;padding:28px;border:1px solid var(--ff-aw-line);border-radius:20px;background:linear-gradient(160deg,rgba(255,255,255,.035),rgba(255,255,255,.008));overflow:hidden}
 .ff-aw-question::before{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:linear-gradient(180deg,transparent,var(--ff-aw-gold),transparent);opacity:.55}
 .ff-aw-question span{display:block;color:#9b8438;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
 .ff-aw-question h3{margin:32px 0 0;color:#fff;font-size:25px;line-height:1.16;letter-spacing:-.025em}
 .ff-aw-question p{margin:10px 0 0;color:#9ba2ad;line-height:1.65}
 
-.ff-aw-customer-cta{
-  max-width:var(--ff-aw-max);margin:18px auto 72px;padding:34px;
-  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:center;
-  border:1px solid rgba(216,182,74,.25);border-radius:22px;
-  background:radial-gradient(circle at 90% 10%,rgba(216,182,74,.12),transparent 32%),linear-gradient(145deg,#0b0f17,#05070b)
-}
+.ff-aw-customer-cta{max-width:var(--ff-aw-max);margin:18px auto 72px;padding:34px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:center;border:1px solid rgba(216,182,74,.25);border-radius:22px;background:radial-gradient(circle at 90% 10%,rgba(216,182,74,.12),transparent 32%),linear-gradient(145deg,#0b0f17,#05070b)}
 .ff-aw-customer-cta h2{margin:0;color:#fff;font-size:clamp(28px,3.4vw,44px);line-height:1.06;letter-spacing:-.035em}
 .ff-aw-customer-cta p{max-width:680px;margin:10px 0 0;color:#a4abb5;line-height:1.6}
 
-/* Homepage progressive disclosure. Deep methodology remains available elsewhere. */
-.ff-home-focused.ff-aw-home main#main > .ff-customer-outcomes,
-.ff-home-focused.ff-aw-home main#main > .ff-evidence,
-.ff-home-focused.ff-aw-home main#main > .ff-category,
-.ff-home-focused.ff-aw-home main#main > .ff-accountability-static{display:none!important}
+/* Homepage: persuasion only. Deep methodology moves to Product and Evidence Lab. */
+.ff-home-focused.ff-aw-home main#main>.ff-customer-outcomes,
+.ff-home-focused.ff-aw-home main#main>.ff-transformation,
+.ff-home-focused.ff-aw-home main#main>.ff-evidence,
+.ff-home-focused.ff-aw-home main#main>.ff-dossier-spotlight,
+.ff-home-focused.ff-aw-home main#main>.ff-audience,
+.ff-home-focused.ff-aw-home main#main>.ff-category,
+.ff-home-focused.ff-aw-home main#main>.ff-home-workflow,
+.ff-home-focused.ff-aw-home main#main>.ff-accountability-static{display:none!important}
 .ff-home-focused.ff-aw-home .ff-false-confidence{margin-top:52px!important}
-.ff-home-focused.ff-aw-home .ff-problem-grid article:nth-child(n+4){display:none!important}
+.ff-home-focused.ff-aw-home .ff-problem-grid article:nth-child(2){display:none!important}
 .ff-home-focused.ff-aw-home .ff-problem-grid{grid-template-columns:repeat(3,1fr)!important}
+.ff-home-focused.ff-aw-home .ff-validation{margin-top:64px!important}
+.ff-home-focused.ff-aw-home .ff-demo-section{margin-top:24px!important}
 .ff-home-focused.ff-aw-home .ff-beta-wedge{margin-top:34px}
 
 /* Busted Comp interactive module */
-.ff-aw-busted{
-  max-width:var(--ff-aw-max);margin:56px auto 0;padding:0 24px;
-}
+.ff-aw-busted{max-width:var(--ff-aw-max);margin:56px auto 0;padding:0 24px}
 .ff-aw-busted-shell{padding:28px;border:1px solid rgba(216,182,74,.22);border-radius:24px;background:linear-gradient(145deg,#0c111b,#05070b)}
 .ff-aw-busted-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.7fr);gap:30px;align-items:end}
 .ff-aw-busted-head h2{margin:6px 0 0;color:#fff;font-size:clamp(30px,4vw,50px);line-height:1;letter-spacing:-.04em}
@@ -86,15 +64,17 @@
 .ff-aw-comp-result{margin-top:14px;padding:18px;border:1px solid var(--ff-aw-line);border-radius:14px;background:#05070b;color:#dfe2e7;min-height:88px}
 .ff-aw-comp-result strong{color:var(--ff-aw-gold)}
 
-/* Beta two-stage feeling without changing server contract. */
+/* Beta two-stage experience without changing the server contract. */
 .ff-aw-beta-progress{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 20px}
 .ff-aw-beta-progress span{padding:10px 12px;border:1px solid var(--ff-aw-line);border-radius:10px;color:#8f97a2;font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
 .ff-aw-beta-progress span:first-child{border-color:rgba(216,182,74,.35);color:#d9bd62;background:rgba(216,182,74,.05)}
 .ff-aw-beta-form-intro{margin:0 0 18px;padding:18px;border:1px solid var(--ff-aw-line);border-radius:14px;background:rgba(255,255,255,.02)}
 .ff-aw-beta-form-intro strong{display:block;color:#fff;font-size:18px}
 .ff-aw-beta-form-intro p{margin:6px 0 0;color:#979fa9;line-height:1.55}
+.ff-aw-beta-step{border:0;margin:0;padding:0;min-width:0}
+.ff-aw-beta-step[hidden]{display:none!important}
 
-/* Launch Plans simplified visual hierarchy */
+/* Launch Plans simplified hierarchy. */
 .ff-aw-plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .ff-aw-plan{padding:26px;border:1px solid var(--ff-aw-line);border-radius:20px;background:linear-gradient(180deg,#0a0d13,#050609)}
 .ff-aw-plan.featured{border-color:rgba(216,182,74,.34);box-shadow:0 22px 60px rgba(0,0,0,.24)}
@@ -118,5 +98,6 @@
   .ff-aw-page .section{padding:52px 18px}
   .ff-aw-busted{padding:0 18px;margin-top:36px}
   .ff-aw-busted-shell{padding:20px}
+  .ff-aw-beta-progress{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
