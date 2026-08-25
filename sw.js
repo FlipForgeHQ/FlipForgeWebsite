@@ -11,6 +11,7 @@ const SHELL=[
   '/assets/css/homepage-conversion-v2.css',
   '/assets/css/homepage-evidence-v1.css',
   '/assets/css/homepage-contender-v1.css',
+  '/assets/css/homepage-mobile-simplify-v1.css',
   '/assets/js/homepage-v1.js',
   '/assets/js/homepage-contender-v1.js',
   '/assets/brand/flipforge-app-icon-dark.svg',
