@@ -197,12 +197,12 @@
           metric("Newly persisted", summary.newlyPersistedRows),
           metric("Review required", summary.reviewRows),
           metric("Rejected", summary.rejectedRows),
-          metric("CardSight accepted now", currentAccepted),
-          metric("All exact accepted sales", totalAccepted)
+          metric("Saved CardSight accepted sales", currentAccepted),
+          metric("All saved exact accepted sales", totalAccepted)
         ].join("")
       : [
-          metric("CardSight accepted now", currentAccepted),
-          metric("All exact accepted sales", totalAccepted)
+          metric("Saved CardSight accepted sales", currentAccepted),
+          metric("All saved exact accepted sales", totalAccepted)
         ].join("");
 
     const signature = panelSignature(summary, evidence);
