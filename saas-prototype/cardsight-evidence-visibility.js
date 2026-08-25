@@ -49,10 +49,11 @@
     const status = String(summary.status || "").toUpperCase();
     if (!SAFE_STATUS.test(status)) return null;
     if (typeof summary.attempted !== "boolean") return null;
-    if (summary.fixedPriceRowsCanSupportValue !== false
+    if (typeof summary.fixedPriceRowsCanSupportValue !== "boolean"
         || summary.activeListingsCanSupportValue !== false
         || summary.automaticOutlierAcceptance !== false
         || summary.transactionAuthority !== false) return null;
+    if (summary.fixedPriceRowsCanSupportValue === true && summary.historicalCompletedSalesOnly !== true) return null;
 
     return {
       opportunityId,
@@ -64,6 +65,8 @@
       newlyPersistedRows: safeInteger(summary.newlyPersistedRows),
       reviewRows: safeInteger(summary.reviewRows),
       rejectedRows: safeInteger(summary.rejectedRows),
+      fixedPriceRowsCanSupportValue: summary.fixedPriceRowsCanSupportValue === true,
+      historicalCompletedSalesOnly: summary.historicalCompletedSalesOnly === true,
       message: cleanText(summary.message)
     };
   }
@@ -143,9 +146,12 @@
 
   function statusExplanation(summary) {
     if (!summary) return "Current evidence is shown below. A fresh evaluation will also show whether CardSight historical pricing was attempted and how many rows qualified.";
-    if (summary.status === "ENRICHED") return "CardSight historical auction records were checked before Smart Opportunity ran. Only rows that passed FlipForge exact-evidence rules were allowed to support value.";
+    const completedScope = summary.fixedPriceRowsCanSupportValue
+      ? "historical completed-sale records, including auction and fixed-price sales"
+      : "historical auction records";
+    if (summary.status === "ENRICHED") return `CardSight ${completedScope} were checked before Smart Opportunity ran. Only rows that passed FlipForge exact-evidence rules were allowed to support value.`;
     if (summary.status === "REVIEW_REQUIRED") return "CardSight returned historical records, but one or more trust gates prevented automatic acceptance. Those rows did not silently become value-supporting evidence.";
-    if (summary.status === "NO_EXACT_SALES") return "CardSight was checked, but no recent historical auction sale met FlipForge's exact-evidence standard for this card.";
+    if (summary.status === "NO_EXACT_SALES") return `CardSight was checked, but no recent ${summary.fixedPriceRowsCanSupportValue ? "historical completed sale" : "historical auction sale"} met FlipForge's exact-evidence standard for this card.`;
     if (summary.status === "PROVIDER_NOT_CONFIGURED") return "CardSight was not configured for this runtime when the evaluation ran. No substitute sold comps were invented.";
     if (summary.status === "PROVIDER_UNAVAILABLE") return "CardSight could not be reached for this evaluation. FlipForge continued only with previously governed evidence and invented nothing.";
     return summary.attempted
@@ -167,6 +173,7 @@
       summary?.newlyPersistedRows ?? "x",
       summary?.reviewRows ?? "x",
       summary?.rejectedRows ?? "x",
+      summary?.fixedPriceRowsCanSupportValue === true ? 1 : 0,
       evidence?.cardSightRows ?? "x",
       evidence?.acceptedCardSightRows ?? "x",
       evidence?.acceptedExactCompletedSales ?? "x"
@@ -200,6 +207,9 @@
 
     const signature = panelSignature(summary, evidence);
     const providerMessage = summary?.message ? `<p class="cardsight-evidence-provider-message">${escapeHtml(summary.message)}</p>` : "";
+    const boundary = summary?.fixedPriceRowsCanSupportValue === true
+      ? "Historical completed sales, including fixed-price completed sales, may support value only after FlipForge exact-evidence checks. Active listings and asking prices cannot support value."
+      : "Fixed-price asks and active listings cannot support value.";
     const markup = `<section class="panel cardsight-evidence-panel" data-cardsight-evidence-panel data-cardsight-evidence-signature="${escapeHtml(signature)}" aria-label="CardSight sold evidence status">
       <header class="panel-header">
         <div>
@@ -212,7 +222,7 @@
       <div class="panel-body">
         <div class="cardsight-evidence-grid">${metrics}</div>
         ${providerMessage}
-        <p class="cardsight-evidence-boundary"><strong>Evidence boundary:</strong> Fixed-price asks and active listings cannot support value. CardSight never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the sole decision authority.</p>
+        <p class="cardsight-evidence-boundary"><strong>Evidence boundary:</strong> ${escapeHtml(boundary)} CardSight never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the sole decision authority.</p>
       </div>
     </section>`;
     return { signature, markup };
