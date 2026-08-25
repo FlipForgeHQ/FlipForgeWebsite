@@ -129,7 +129,6 @@ requireText('service worker', serviceWorker, "'/assets/css/brand-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/css/marketing-density-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-evidence-v1.css'");
-requireText('service worker', serviceWorker, "'/assets/css/homepage-mobile-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
 requireText('service worker', serviceWorker, "'/assets/images/flipforge-homepage-dashboard.svg'");
 
