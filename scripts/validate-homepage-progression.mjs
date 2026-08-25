@@ -124,11 +124,12 @@ forbidText('homepage CSP', netlifyConfig, "require-trusted-types-for 'script'");
 forbidText('homepage CSP', netlifyConfig, 'trusted-types default');
 requireText('homepage CSP', netlifyConfig, "script-src 'self' 'sha256-wumeeI6dx0xNlGWRJpiV3jOhf8VPtf+yhn+75h8OlvI='");
 
-requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v11'");
+requireText('service worker', serviceWorker, "const CACHE='flipforge-shell-v12'");
 requireText('service worker', serviceWorker, "'/assets/css/brand-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/css/marketing-density-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-conversion-v2.css'");
 requireText('service worker', serviceWorker, "'/assets/css/homepage-evidence-v1.css'");
+requireText('service worker', serviceWorker, "'/assets/css/homepage-mobile-v1.css'");
 requireText('service worker', serviceWorker, "'/assets/js/homepage-v1.js'");
 requireText('service worker', serviceWorker, "'/assets/images/flipforge-homepage-dashboard.svg'");
 
