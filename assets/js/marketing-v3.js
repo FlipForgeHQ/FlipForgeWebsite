@@ -12,6 +12,13 @@
     css.dataset.ffHomeFocus='true';
     document.head.appendChild(css);
   }
+  if(!document.querySelector('link[data-ff-false-confidence]')){
+    const css=document.createElement('link');
+    css.rel='stylesheet';
+    css.href='assets/css/homepage-false-confidence-v1.css';
+    css.dataset.ffFalseConfidence='true';
+    document.head.appendChild(css);
+  }
 
   document.body.classList.add('ff-marketing-v3','ff-home-focused');
   document.querySelectorAll('.brand .tagline').forEach(node=>{node.textContent='CARD INTELLIGENCE';});
@@ -30,8 +37,75 @@
     if(group.querySelector('a[href="product.html"]'))insertEvidenceLabLink(group,'faq.html');
   });
 
-  hero.classList.add('ff-hero-v3');
+  hero.classList.add('ff-hero-v3','ff-hero-false-confidence');
   hero.querySelector('figure')?.classList.add('ff-hero-visual');
+
+  const heroCopy=hero.querySelector('.ff-hero-copy')||hero.firstElementChild;
+  if(heroCopy){
+    const eyebrow=heroCopy.querySelector('.eyebrow');
+    const heading=heroCopy.querySelector('h1');
+    const tension=heroCopy.querySelector('.ff-hero-tension');
+    const lead=heroCopy.querySelector('.lead');
+    const actions=heroCopy.querySelector('.ff-primary-actions,.buttons');
+    if(eyebrow)eyebrow.textContent='CARD INTELLIGENCE';
+    if(heading)heading.innerHTML='Before you buy. <span>Know Why.</span>';
+
+    if(heading&&!heroCopy.querySelector('.ff-hero-scenario')){
+      const scenario=document.createElement('div');
+      scenario.className='ff-hero-scenario';
+      scenario.setAttribute('aria-label','Illustrative buying scenario: last comp 900 dollars, listing 850 dollars');
+      scenario.innerHTML=`
+        <span class="ff-hero-scenario-label">Illustrative decision · not live market data</span>
+        <div class="ff-hero-scenario-numbers">
+          <div><small>Last comp</small><strong>$900</strong></div>
+          <span class="ff-hero-vs" aria-hidden="true">vs.</span>
+          <div><small>Listed at</small><strong>$850</strong></div>
+        </div>
+        <p><span>Looks like a $50 edge.</span> Easy buy — or is it?</p>`;
+      heading.insertAdjacentElement('afterend',scenario);
+    }
+
+    if(tension)tension.textContent='A precise-looking number can create false confidence. The comp may be a different parallel, too stale to trust, or backed by too little evidence.';
+    if(lead)lead.textContent='FlipForge checks the card, challenges the evidence, and shows you the risk and reasoning behind the decision—before your money is on the line.';
+    if(actions){
+      const secondary=actions.querySelector('[data-demo-cta="hero"]')||actions.querySelector('.btn:not(.primary)');
+      if(secondary)secondary.textContent='See FlipForge challenge a decision';
+      if(!heroCopy.querySelector('.ff-hero-boundary')){
+        const boundary=document.createElement('p');
+        boundary.className='ff-hero-boundary';
+        boundary.textContent='Illustrative scenario. Decision support only; no outcome or profit guarantee.';
+        actions.insertAdjacentElement('afterend',boundary);
+      }
+    }
+  }
+
+  const heroCaption=hero.querySelector('.ff-hero-visual figcaption,.ff-hero-visual .caption');
+  if(heroCaption)heroCaption.textContent='Illustrative seller claim → evidence challenge → protected decision. The reason trail stays visible.';
+
+  const problemBand=document.querySelector('.ff-problem-band');
+  if(problemBand){
+    problemBand.classList.add('ff-false-confidence');
+    const kicker=problemBand.querySelector('.ff-problem-intro .ff-kicker');
+    const heading=problemBand.querySelector('.ff-problem-intro h2');
+    if(kicker)kicker.textContent='THE ENEMY IS FALSE CONFIDENCE';
+    if(heading)heading.textContent='A price can look precise and still be wrong for the card in front of you.';
+    const cards=[...problemBand.querySelectorAll('.ff-problem-grid article')];
+    const falseConfidence=[
+      ['FALSE CONFIDENCE 01','Wrong parallel','A $900 sale does not support an $850 listing if the cards are not the same parallel or variation.'],
+      ['FALSE CONFIDENCE 02','Stale comp','A clean sale can still mislead when the market has moved since it happened.'],
+      ['FALSE CONFIDENCE 03','Thin evidence','One precise sale is not the same thing as a dependable evidence base.'],
+      ['FALSE CONFIDENCE 04','Grade assumption','A PSA 10 outcome can look profitable while realistic lower-grade outcomes erase the apparent edge.']
+    ];
+    cards.slice(0,falseConfidence.length).forEach((card,index)=>{
+      const [label,title,copy]=falseConfidence[index];
+      const number=card.querySelector('span');
+      const strong=card.querySelector('strong');
+      const paragraph=card.querySelector('p');
+      if(number)number.textContent=label;
+      if(strong)strong.textContent=title;
+      if(paragraph)paragraph.textContent=copy;
+    });
+  }
 
   document.querySelector('.homepage-directory')?.remove();
   ['product-screens','identity-checker','case-study','decision-tools','comparison','pricing'].forEach(id=>{
