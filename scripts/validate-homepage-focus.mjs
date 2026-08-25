@@ -4,6 +4,7 @@ const read = path => fs.readFileSync(path, 'utf8');
 const marketing = read('assets/js/marketing-v3.js');
 const focusCss = read('assets/css/homepage-focus-v1.css');
 const evidenceCss = read('assets/css/homepage-evidence-v1.css');
+const falseConfidenceCss = read('assets/css/homepage-false-confidence-v1.css');
 const serviceWorker = read('sw.js');
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
@@ -21,7 +22,7 @@ check('010 workflow keeps four decision stages', ['Resolve the card','Challenge 
 check('011 outcome follow-up remains visible', marketing.includes('7 / 14 / 30 days'));
 check('012 deeper detail routes outward', marketing.includes('href="product.html"') && marketing.includes('href="learn.html"'));
 check('013 pricing grid is removed from homepage rendering', marketing.includes("'pricing'") && !marketing.includes('Planned Launch Pricing'));
-check('014 brand descriptor remains CARD INTELLIGENCE', marketing.includes("node.textContent='CARD INTELLIGENCE'"));
+check('014 brand descriptor remains CARD INTELLIGENCE', marketing.includes("node.textContent='CARD INTELLIGENCE'") && marketing.includes("eyebrow.textContent='CARD INTELLIGENCE'"));
 check('015 focused CSS tightens hero height', focusCss.includes('min-height:auto') && focusCss.includes('padding-top:58px'));
 check('016 focused CSS has responsive tablet layout', focusCss.includes('@media(max-width:1000px)'));
 check('017 focused CSS has responsive mobile layout', focusCss.includes('@media(max-width:700px)'));
@@ -44,6 +45,17 @@ check('033 floating demo is hidden on mobile', evidenceCss.includes('.ff-demo-fl
 check('034 mobile breakpoint covers narrow tablet and phone widths', evidenceCss.includes('@media(max-width:900px)') && evidenceCss.includes('@media(max-width:520px)'));
 check('035 PWA cache advances for the mobile layout release', serviceWorker.includes("const CACHE='flipforge-shell-v12'"));
 check('036 PWA shell refreshes the final homepage stylesheet', serviceWorker.includes("'/assets/css/homepage-evidence-v1.css'"));
+check('037 False Confidence stylesheet is loaded explicitly', marketing.includes('data-ff-false-confidence') && marketing.includes('homepage-false-confidence-v1.css'));
+check('038 locked hero promise remains exact', marketing.includes("heading.innerHTML='Before you buy. <span>Know Why.</span>'"));
+check('039 illustrative micro-decision uses specific 900 and 850 values', marketing.includes('<small>Last comp</small><strong>$900</strong>') && marketing.includes('<small>Listed at</small><strong>$850</strong>'));
+check('040 illustrative scenario cannot be mistaken for live market data', marketing.includes('Illustrative decision · not live market data') && marketing.includes('Illustrative scenario. Decision support only; no outcome or profit guarantee.'));
+check('041 hero names False Confidence without changing category', marketing.includes('A precise-looking number can create false confidence.') && marketing.includes("eyebrow.textContent='CARD INTELLIGENCE'"));
+check('042 hero CTA invites a decision challenge', marketing.includes("secondary.textContent='See FlipForge challenge a decision'"));
+check('043 False Confidence becomes a four-part repeatable framework', ['FALSE CONFIDENCE 01','FALSE CONFIDENCE 02','FALSE CONFIDENCE 03','FALSE CONFIDENCE 04','Wrong parallel','Stale comp','Thin evidence','Grade assumption'].every(text => marketing.includes(text)));
+check('044 False Confidence section states the enemy clearly', marketing.includes("kicker.textContent='THE ENEMY IS FALSE CONFIDENCE'") && marketing.includes('A price can look precise and still be wrong for the card in front of you.'));
+check('045 desktop hero gives the micro-decision enough copy width', falseConfidenceCss.includes('grid-template-columns:minmax(520px,.94fr) minmax(620px,1.06fr)!important') && falseConfidenceCss.includes('max-width:650px!important'));
+check('046 scenario design remains responsive on phone widths', falseConfidenceCss.includes('@media(max-width:900px)') && falseConfidenceCss.includes('@media(max-width:520px)') && falseConfidenceCss.includes('.ff-hero-scenario-numbers'));
+check('047 scenario is visibly labeled and visually separated', falseConfidenceCss.includes('.ff-hero-scenario-label') && falseConfidenceCss.includes('border:1px solid rgba(212,175,55,.34)'));
 
 const failures = results.filter(result => !result.passed);
 console.log('FlipForge homepage focus validation');
