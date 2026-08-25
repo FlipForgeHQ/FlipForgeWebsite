@@ -31,18 +31,6 @@
   });
 
   hero.classList.add('ff-hero-v3');
-  const heroCopy=hero.firstElementChild;
-  if(heroCopy&&!heroCopy.querySelector('.ff-hero-points')){
-    const points=document.createElement('div');
-    points.className='ff-hero-points';
-    ['Exact identity','Evidence that counts','Visible risk','Explainable decision'].forEach(label=>{
-      const item=document.createElement('span');
-      item.textContent=label;
-      points.appendChild(item);
-    });
-    const buttons=heroCopy.querySelector('.buttons');
-    if(buttons)heroCopy.insertBefore(points,buttons); else heroCopy.appendChild(points);
-  }
   hero.querySelector('figure')?.classList.add('ff-hero-visual');
 
   document.querySelector('.homepage-directory')?.remove();
@@ -80,7 +68,7 @@
         <p>The homepage gives you the overview. Product and Evidence Lab carry the deeper feature and methodology detail.</p>
       </div>
       <div class="ff-home-workflow-grid">
-        <article><span>01</span><strong>Resolve the card</strong><small>Year, set, number, parallel, grader, and grade.</small></article>
+        <article><span>01</span><strong>Resolve the card</strong><small>Year, set, number, parallel, grader, and grade. If identity is ambiguous, FlipForge stops for an explicit choice instead of auto-picking the first match.</small></article>
         <article><span>02</span><strong>Challenge the evidence</strong><small>Exact matches count. Weak or mismatched records stay visible but do not quietly drive value.</small></article>
         <article><span>03</span><strong>Measure the setup</strong><small>Price, supported value, liquidity, downside, confidence, and grading economics stay connected.</small></article>
         <article><span>04</span><strong>Understand the decision</strong><small>BUY CANDIDATE, WATCH, VERIFY, PASS, or grading guidance comes with a reason trail.</small></article>
@@ -90,6 +78,31 @@
         <div><a class="btn" href="product.html">Explore Product</a><a class="btn" href="learn.html">Evidence Lab</a></div>
       </div>`;
     demo.insertAdjacentElement('afterend',workflow);
+  }
+
+  const workflow=document.getElementById('how-it-works');
+  if(workflow&&!document.getElementById('decision-accountability')){
+    const accountability=document.createElement('section');
+    accountability.className='ff-accountability';
+    accountability.id='decision-accountability';
+    accountability.setAttribute('aria-labelledby','decision-accountability-heading');
+    accountability.innerHTML=`
+      <div class="ff-accountability-head">
+        <div><span class="ff-kicker">Decision accountability</span><h2 id="decision-accountability-heading">A decision is only useful if it holds up later.</h2></div>
+        <p>FlipForge preserves the original decision and its context so controlled validation can compare what the system said with what happened at later checkpoints. That creates calibration evidence without rewriting the original call.</p>
+      </div>
+      <div class="ff-accountability-timeline" aria-label="Illustrative FlipForge outcome review timeline">
+        <article><span class="ff-accountability-day">Day 0</span><strong>Lock the original call</strong><p>Preserve the decision, confidence, evidence quality, liquidity, risk, and reason trail as they existed when the decision was made.</p></article>
+        <article><span class="ff-accountability-day">Day 7</span><strong>Check the first signals</strong><p>Review what changed and whether the original assumptions are beginning to hold, weaken, or remain unresolved.</p></article>
+        <article><span class="ff-accountability-day">Day 14</span><strong>Stress the prediction</strong><p>Compare confidence, liquidity, volatility, and evidence quality with the developing outcome instead of judging only the headline price.</p></article>
+        <article><span class="ff-accountability-day">Day 30</span><strong>Grade the call</strong><p>Classify what held, what missed, and where the original decision was too aggressive, too conservative, or appropriately cautious.</p></article>
+      </div>
+      <div class="ff-accountability-proof">
+        <div><span>The proof question</span><strong>Did the decision age well?</strong><p>The goal is evidence-calibrated intelligence: measure the system against outcomes, then improve only when the sample supports it.</p></div>
+        <p class="ff-accountability-boundary"><strong>Proof boundary:</strong> No public accuracy percentage is claimed from this workflow unless a governed review explicitly authorizes it. Decision support only; no outcome or profit guarantee.</p>
+        <a class="ff-text-link" href="learn.html">See the Evidence Lab <span aria-hidden="true">→</span></a>
+      </div>`;
+    workflow.insertAdjacentElement('afterend',accountability);
   }
 
   const finalCallout=[...main.querySelectorAll('.home-section .callout')].pop();
