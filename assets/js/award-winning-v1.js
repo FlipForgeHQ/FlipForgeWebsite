@@ -48,6 +48,10 @@
     const steps=[...betaForm.querySelectorAll('[data-aw-beta-step]')];
     const next=betaForm.querySelector('[data-aw-beta-next]');
     const back=betaForm.querySelector('[data-aw-beta-back]');
+    if(steps.length>1){
+      steps.slice(1).forEach(step=>{step.hidden=true;});
+      betaForm.dataset.awStep='1';
+    }
     const setStep=index=>{
       steps.forEach((step,i)=>{step.hidden=i!==index;});
       betaForm.dataset.awStep=String(index+1);
