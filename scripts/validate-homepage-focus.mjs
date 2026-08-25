@@ -50,7 +50,7 @@ check('035 mobile hero base contract remains', evidenceCss.includes('Final homep
 check('036 mobile hero headline remains protected from word stacking', evidenceCss.includes('word-break:normal'));
 check('037 floating demo remains hidden on mobile', evidenceCss.includes('.ff-demo-float{display:none!important}'));
 check('038 focused hero still avoids excess height', focusCss.includes('min-height:auto'));
-check('039 PWA shell advances for mobile hero release', serviceWorker.includes("const CACHE='flipforge-shell-v14'"));
+check('039 PWA shell remains on proven v13 contract', serviceWorker.includes("const CACHE='flipforge-shell-v13'"));
 check('040 PWA shell includes contender CSS', serviceWorker.includes("'/assets/css/homepage-contender-v1.css'"));
 check('041 PWA shell includes contender JS', serviceWorker.includes("'/assets/js/homepage-contender-v1.js'"));
 check('042 final CTA asks for a real buying decision', index.includes('Bring us the card you are actually thinking about buying.'));
