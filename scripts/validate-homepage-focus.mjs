@@ -3,6 +3,9 @@ import fs from 'node:fs';
 const read = path => fs.readFileSync(path, 'utf8');
 const marketing = read('assets/js/marketing-v3.js');
 const focusCss = read('assets/css/homepage-focus-v1.css');
+const evidenceCss = read('assets/css/homepage-evidence-v1.css');
+const mobileCss = read('assets/css/homepage-mobile-v1.css');
+const serviceWorker = read('sw.js');
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
@@ -33,6 +36,15 @@ check('024 outcome language remains decision support without profit guarantee', 
 check('025 accountability layout has desktop timeline', focusCss.includes('.ff-accountability-timeline') && focusCss.includes('grid-template-columns:repeat(4,1fr)'));
 check('026 accountability layout collapses for tablet', focusCss.includes('.ff-home-workflow-grid,.ff-accountability-timeline{grid-template-columns:repeat(2,1fr)}'));
 check('027 accountability layout collapses for mobile', focusCss.includes('.ff-accountability-timeline{grid-template-columns:1fr}'));
+check('028 dedicated mobile layout loads after conversion styles', evidenceCss.startsWith('@import url("homepage-mobile-v1.css");'));
+check('029 mobile hero is forced to a single flow', mobileCss.includes('display:block!important') && mobileCss.includes('width:calc(100% - 24px)'));
+check('030 mobile hero copy receives the full available width', mobileCss.includes('.ff-hero-copy') && mobileCss.includes('width:100%') && mobileCss.includes('max-width:none'));
+check('031 mobile headline prevents narrow-column word stacking', mobileCss.includes('font-size:clamp(40px,11vw,46px)') && mobileCss.includes('word-break:normal'));
+check('032 mobile hero visual cannot overlap copy', mobileCss.includes('.ff-hero-visual') && mobileCss.includes('position:relative!important') && mobileCss.includes('transform:none!important'));
+check('033 floating demo is hidden on mobile', mobileCss.includes('.ff-demo-float') && mobileCss.includes('display:none!important'));
+check('034 mobile breakpoint covers narrow tablet and phone widths', mobileCss.includes('@media(max-width:900px)') && mobileCss.includes('@media(max-width:520px)'));
+check('035 PWA cache advances for the mobile layout release', serviceWorker.includes("const CACHE='flipforge-shell-v12'"));
+check('036 PWA shell includes the mobile stylesheet', serviceWorker.includes("'/assets/css/homepage-mobile-v1.css'"));
 
 const failures = results.filter(result => !result.passed);
 console.log('FlipForge homepage focus validation');
