@@ -50,7 +50,7 @@ check("023 Card Intelligence fixed list routes are read-only", ["/api/v1/health"
 check("024 Card Intelligence detail families are allowlisted", opportunities.includes("(opportunities|evidence|psa-advisor)"));
 check("025 Card Intelligence validates Smart Opportunity authority", opportunities.includes('meta.authority === "Smart Opportunity"'));
 check("026 Card Intelligence validates PSA authority", opportunities.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
-check("027 Card Intelligence shows Decision Traceback", opportunities.includes("Decision Traceback") && opportunities.includes("1 · Identity") && opportunities.includes("2 · Evidence") && opportunities.includes("4 · Authority output"));
+check("027 Card Intelligence shows Decision Traceback without conflating provider mapping and exact identity", opportunities.includes("Decision Traceback") && opportunities.includes("1 · Provider catalog link") && opportunities.includes("2 · Evidence") && opportunities.includes("4 · Authority output") && !opportunities.includes('mappingConfirmed ? "Exact identity confirmed" : "Identity needs verification"'));
 check("028 Card Intelligence shows Evidence Chain", opportunities.includes("Evidence Chain") && opportunities.includes("acceptedExactCompletedSales"));
 check("029 Card Intelligence links the rest of customer workflow", ["#/compare", "#/evidence/", "#/psa-advisor/", "#/tracking/", "#/export/"].every(value => opportunities.includes(value)));
 check("030 Card Intelligence explicitly has no execution authority", opportunities.includes("No bid, checkout, payment, evidence acceptance, or grade prediction is authorized"));
