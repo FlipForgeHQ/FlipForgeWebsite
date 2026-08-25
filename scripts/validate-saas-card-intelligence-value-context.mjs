@@ -24,7 +24,8 @@ check("010 list view remains based on saved supported value only", source.includ
 check("011 production detail rejects invalid value authority", source.includes("VALUE_INTELLIGENCE_CONTRACT_INVALID"));
 check("012 shared contextual panel stylesheet is loaded", index.includes('href="staging-evaluation.css"') && evaluationCss.includes(".staging-value-intelligence"));
 check("013 saved detail has a direct tenant-protected fast path", source.includes("async function loadDetailDirect()") && source.includes("if (state.requestedId) await loadDetailDirect()"));
-check("014 detail fast path does not require the saved-opportunity list first", !/loadDetailDirect[\s\S]{0,1800}\/api\/v1\/opportunities\"/.test(source));
+const detailFastPathSource = source.split("async function loadDetailDirect()")[1]?.split("async function loadList()")[0] || "";
+check("014 detail fast path does not require the saved-opportunity list first", detailFastPathSource.length > 0 && !detailFastPathSource.includes('request("/api/v1/opportunities")'));
 
 function makeMain() {
   return {
