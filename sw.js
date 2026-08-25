@@ -12,8 +12,10 @@ const SHELL=[
   '/assets/css/homepage-evidence-v1.css',
   '/assets/css/homepage-contender-v1.css',
   '/assets/css/homepage-mobile-simplify-v1.css',
+  '/assets/css/award-winning-v1.css',
   '/assets/js/homepage-v1.js',
   '/assets/js/homepage-contender-v1.js',
+  '/assets/js/award-winning-v1.js',
   '/assets/brand/flipforge-app-icon-dark.svg',
   '/assets/images/flipforge-homepage-dashboard.svg'
 ];

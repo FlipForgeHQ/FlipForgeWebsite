@@ -8,6 +8,20 @@
     mobileCss.dataset.ffMobileSimplify='true';
     document.head.append(mobileCss);
   }
+  if(!document.querySelector('link[data-ff-award-winning]')){
+    const css=document.createElement('link');
+    css.rel='stylesheet';
+    css.href='assets/css/award-winning-v1.css';
+    css.dataset.ffAwardWinning='true';
+    document.head.append(css);
+  }
+  if(!document.querySelector('script[data-ff-award-winning]')){
+    const script=document.createElement('script');
+    script.src='assets/js/award-winning-v1.js';
+    script.defer=true;
+    script.dataset.ffAwardWinning='true';
+    document.head.append(script);
+  }
 
   const root=document.documentElement;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
