@@ -10,6 +10,7 @@
     "validate:paddle-live-payment-link": "node scripts/validate-paddle-live-payment-link.mjs",
     "validate:account-lifecycle": "node scripts/validate-saas-customer-account-lifecycle.mjs",
     "validate:customer-intelligence": "node scripts/validate-saas-customer-intelligence-loop.mjs",
+    "validate:card-intelligence-result-priority": "node scripts/validate-card-intelligence-result-priority.mjs",
     "validate:customer-dashboard": "node scripts/validate-saas-customer-dashboard.mjs",
     "validate:commercial-dashboard-live-qa": "node scripts/validate-saas-commercial-dashboard-live-qa.mjs",
     "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs",
