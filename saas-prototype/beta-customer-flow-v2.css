@@ -196,6 +196,12 @@
   color:#c0c8d1!important;
 }
 
+/* On a saved-card detail route the Card Intelligence hero already is the
+   decision summary. Do not stack a second large coaching card above it. */
+.customer-intelligence-page .ff-decision-summary{
+  display:none!important;
+}
+
 /* Guided users see the useful explanation first, then can reveal deeper intelligence. */
 html.ff-guided-incomplete:not(.ff-show-advanced) #main-content .ff-progressive-advanced{
   display:none!important;

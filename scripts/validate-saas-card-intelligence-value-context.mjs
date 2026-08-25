@@ -23,6 +23,9 @@ check("009 browser does not derive analog endpoints", !/reference(?:Low|Midpoint
 check("010 list view remains based on saved supported value only", source.includes("supportedValueText(item)") && !source.includes("valueIntelligencePanel(item) ?"));
 check("011 production detail rejects invalid value authority", source.includes("VALUE_INTELLIGENCE_CONTRACT_INVALID"));
 check("012 shared contextual panel stylesheet is loaded", index.includes('href="staging-evaluation.css"') && evaluationCss.includes(".staging-value-intelligence"));
+check("013 saved detail has a direct tenant-protected fast path", source.includes("async function loadDetailDirect()") && source.includes("if (state.requestedId) await loadDetailDirect()"));
+const detailFastPathSource = source.split("async function loadDetailDirect()")[1]?.split("async function loadList()")[0] || "";
+check("014 detail fast path does not require the saved-opportunity list first", detailFastPathSource.length > 0 && !detailFastPathSource.includes('request("/api/v1/opportunities")'));
 
 function makeMain() {
   return {
@@ -173,25 +176,28 @@ function createRuntime(valueIntelligence = analogValue) {
 
 const runtime = createRuntime();
 const main = makeMain();
-check("013 production app route is eligible", runtime.window.FlipForgeCustomerOpportunities.isEligible() === true);
-check("014 production detail render starts", runtime.window.FlipForgeCustomerOpportunities.render(main, "opp-analog") === true);
+check("015 production app route is eligible", runtime.window.FlipForgeCustomerOpportunities.isEligible() === true);
+check("016 production detail render starts", runtime.window.FlipForgeCustomerOpportunities.render(main, "opp-analog") === true);
 await new Promise(resolve => setTimeout(resolve, 60));
 
-check("015 saved detail performs existing six read requests only", runtime.calls.length === 6 && runtime.calls.every(call => call.options.method === "GET"));
-check("016 saved VERIFY recommendation remains visible", main.innerHTML.includes(">VERIFY<"));
-check("017 exact supported value remains unavailable", main.innerHTML.includes("Supported value") && main.innerHTML.includes("Unavailable"));
-check("018 observed analog range survives saved navigation", main.innerHTML.includes("Observed analog reference range") && main.innerHTML.includes("$420 – $610"));
-check("019 server midpoint and analog count render", main.innerHTML.includes("$500") && main.innerHTML.includes("Analog completed sales") && main.innerHTML.includes(">3<"));
-check("020 authority warning remains visible", main.innerHTML.includes("Context only") && main.innerHTML.includes("Not a supported value"));
-check("021 no invented exact evidence appears", main.innerHTML.includes("No accepted exact completed sales") && !main.innerHTML.includes("value-positive"));
+const detailUrls = runtime.calls.map(call => call.url);
+check("017 saved detail performs only the three protected detail reads", runtime.calls.length === 3 && runtime.calls.every(call => call.options.method === "GET"));
+check("018 saved detail opens detail evidence and PSA in parallel", detailUrls.includes("/api/v1/opportunities/opp-analog") && detailUrls.includes("/api/v1/evidence/opp-analog") && detailUrls.includes("/api/v1/psa-advisor/opp-analog"));
+check("019 saved detail skips health dashboard and list preflight", !detailUrls.includes("/api/v1/health") && !detailUrls.includes("/api/v1/dashboard") && !detailUrls.includes("/api/v1/opportunities"));
+check("020 saved VERIFY recommendation remains visible", main.innerHTML.includes(">VERIFY<"));
+check("021 exact supported value remains unavailable", main.innerHTML.includes("Supported value") && main.innerHTML.includes("Unavailable"));
+check("022 observed analog range survives saved navigation", main.innerHTML.includes("Observed analog reference range") && main.innerHTML.includes("$420 – $610"));
+check("023 server midpoint and analog count render", main.innerHTML.includes("$500") && main.innerHTML.includes("Analog completed sales") && main.innerHTML.includes(">3<"));
+check("024 authority warning remains visible", main.innerHTML.includes("Context only") && main.innerHTML.includes("Not a supported value"));
+check("025 no invented exact evidence appears", main.innerHTML.includes("No accepted exact completed sales") && !main.innerHTML.includes("value-positive"));
 
 const unsafeRuntime = createRuntime({ ...analogValue, recommendationAuthority: true });
 const unsafeMain = makeMain();
 unsafeRuntime.window.FlipForgeCustomerOpportunities.render(unsafeMain, "opp-analog");
 await new Promise(resolve => setTimeout(resolve, 60));
-check("022 unsafe contextual authority fails closed", unsafeMain.innerHTML.includes("VALUE_INTELLIGENCE_CONTRACT_INVALID"));
-check("023 rejected contextual range is not rendered", !unsafeMain.innerHTML.includes("$420 – $610"));
-check("024 no extra request is made to recover or recalculate unsafe context", unsafeRuntime.calls.length === 6);
+check("026 unsafe contextual authority fails closed", unsafeMain.innerHTML.includes("VALUE_INTELLIGENCE_CONTRACT_INVALID"));
+check("027 rejected contextual range is not rendered", !unsafeMain.innerHTML.includes("$420 – $610"));
+check("028 no extra request is made to recover or recalculate unsafe context", unsafeRuntime.calls.length === 3);
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSCardIntelligenceValueContextValidation");
