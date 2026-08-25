@@ -23,6 +23,16 @@ check('014 brand descriptor remains CARD INTELLIGENCE', marketing.includes("node
 check('015 focused CSS tightens hero height', focusCss.includes('min-height:auto') && focusCss.includes('padding-top:58px'));
 check('016 focused CSS has responsive tablet layout', focusCss.includes('@media(max-width:1000px)'));
 check('017 focused CSS has responsive mobile layout', focusCss.includes('@media(max-width:700px)'));
+check('018 hero stays simplified without runtime feature pills', !marketing.includes('ff-hero-points'));
+check('019 ambiguous identity is described as an explicit user choice', marketing.includes('stops for an explicit choice instead of auto-picking the first match'));
+check('020 decision-accountability section exists', marketing.includes("accountability.id='decision-accountability'") && marketing.includes('A decision is only useful if it holds up later.'));
+check('021 accountability timeline preserves day zero and 7/14/30 checkpoints', ['Day 0','Day 7','Day 14','Day 30'].every(text => marketing.includes(text)));
+check('022 accountability preserves original context instead of rewriting history', marketing.includes('without rewriting the original call') && marketing.includes('Preserve the decision, confidence, evidence quality, liquidity, risk, and reason trail'));
+check('023 public accuracy claim remains governed', marketing.includes('No public accuracy percentage is claimed from this workflow unless a governed review explicitly authorizes it'));
+check('024 outcome language remains decision support without profit guarantee', marketing.includes('Decision support only; no outcome or profit guarantee.'));
+check('025 accountability layout has desktop timeline', focusCss.includes('.ff-accountability-timeline') && focusCss.includes('grid-template-columns:repeat(4,1fr)'));
+check('026 accountability layout collapses for tablet', focusCss.includes('.ff-home-workflow-grid,.ff-accountability-timeline{grid-template-columns:repeat(2,1fr)}'));
+check('027 accountability layout collapses for mobile', focusCss.includes('.ff-accountability-timeline{grid-template-columns:1fr}'));
 
 const failures = results.filter(result => !result.passed);
 console.log('FlipForge homepage focus validation');
