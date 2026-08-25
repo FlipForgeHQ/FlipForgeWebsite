@@ -173,14 +173,93 @@ body.ff-home-focused #try-flipforge .section-head{margin-bottom:22px}
 .ff-home-workflow-footer strong{color:#fff}
 .ff-home-workflow-footer>div{display:flex;gap:8px;flex:none}
 .ff-home-workflow-footer .btn{white-space:nowrap}
+
+.ff-accountability{
+  max-width:1180px;
+  margin:0 auto;
+  padding:12px 22px 66px;
+}
+.ff-accountability-head{
+  display:grid;
+  grid-template-columns:1fr .78fr;
+  gap:40px;
+  align-items:end;
+  margin-bottom:24px;
+}
+.ff-accountability-head h2{max-width:760px;margin:0}
+.ff-accountability-head p{margin:0;color:#aeb2b8;font-size:15px;line-height:1.65}
+.ff-accountability-timeline{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+.ff-accountability-timeline:before{
+  content:"";
+  position:absolute;
+  top:35px;
+  left:7%;
+  right:7%;
+  height:1px;
+  background:linear-gradient(90deg,rgba(212,175,55,.12),rgba(212,175,55,.68),rgba(212,175,55,.12));
+}
+.ff-accountability-timeline article{
+  position:relative;
+  z-index:1;
+  min-height:224px;
+  padding:22px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:15px;
+  background:linear-gradient(180deg,#080a0d,#020202);
+}
+.ff-accountability-day{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:58px;
+  min-height:28px;
+  margin-bottom:20px;
+  padding:5px 9px;
+  border:1px solid rgba(212,175,55,.48);
+  border-radius:999px;
+  background:#060708;
+  color:#e2c660;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.ff-accountability-timeline strong{display:block;margin-bottom:8px;font-size:16px;line-height:1.35}
+.ff-accountability-timeline p{margin:0;color:#9499a1;font-size:12px;line-height:1.62}
+.ff-accountability-proof{
+  display:grid;
+  grid-template-columns:1.1fr .9fr auto;
+  gap:22px;
+  align-items:center;
+  margin-top:12px;
+  padding:20px 22px;
+  border:1px solid rgba(212,175,55,.26);
+  border-radius:14px;
+  background:radial-gradient(circle at 10% 0%,rgba(212,175,55,.08),transparent 34%),rgba(255,255,255,.015);
+}
+.ff-accountability-proof>div>span{display:block;color:#d4af37;font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+.ff-accountability-proof>div>strong{display:block;margin-top:4px;color:#fff;font-size:18px}
+.ff-accountability-proof>div>p{margin:5px 0 0;color:#aeb2b8;font-size:12px;line-height:1.55}
+.ff-accountability-boundary{margin:0;color:#8f949d;font-size:11px;line-height:1.55}
+.ff-accountability-boundary strong{color:#c7cad0}
+.ff-accountability-proof .ff-text-link{white-space:nowrap}
+
 body.ff-home-focused main>section:last-of-type{padding-top:38px;padding-bottom:54px}
 body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
 
 @media(max-width:1000px){
   .ff-audience-head,.ff-dossier-spotlight{grid-template-columns:1fr}
   .ff-audience-grid{grid-template-columns:repeat(3,1fr)}
-  .ff-home-workflow-head{grid-template-columns:1fr}
-  .ff-home-workflow-grid{grid-template-columns:repeat(2,1fr)}
+  .ff-home-workflow-head,.ff-accountability-head{grid-template-columns:1fr}
+  .ff-home-workflow-grid,.ff-accountability-timeline{grid-template-columns:repeat(2,1fr)}
+  .ff-accountability-timeline:before{display:none}
+  .ff-accountability-proof{grid-template-columns:1fr 1fr}
+  .ff-accountability-proof .ff-text-link{grid-column:1/-1;justify-self:start}
 }
 @media(max-width:700px){
   body.ff-home-focused .hero.ff-hero-v3{padding-top:44px;padding-bottom:30px;gap:30px}
@@ -203,5 +282,10 @@ body.ff-home-focused main>section:last-of-type .callout{padding:28px 30px}
   .ff-home-workflow-footer{align-items:stretch;flex-direction:column}
   .ff-home-workflow-footer>div{display:grid;grid-template-columns:1fr 1fr}
   .ff-home-workflow-footer .btn{text-align:center}
+  .ff-accountability{padding:4px 18px 50px}
+  .ff-accountability-timeline{grid-template-columns:1fr}
+  .ff-accountability-timeline article{min-height:auto}
+  .ff-accountability-proof{grid-template-columns:1fr;gap:16px}
+  .ff-accountability-proof .ff-text-link{grid-column:auto}
 }
 @media(prefers-reduced-motion:reduce){.ff-demo-float{transition:none}}
