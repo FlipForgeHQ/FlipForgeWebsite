@@ -18,7 +18,7 @@
     const style = document.createElement("style");
     style.id = "ff-discover-focus-fix-styles";
     style.textContent = `
-      #${HINT_ID}{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:10px 14px;border:1px solid rgba(226,181,65,.9);border-radius:10px;background:rgba(226,181,65,.12);color:#f2cb67;font-weight:800;letter-spacing:.04em;box-shadow:0 0 0 1px rgba(226,181,65,.16),0 12px 32px rgba(0,0,0,.28)}
+      #${HINT_ID}{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;margin:0 0 10px;padding:10px 14px;border:1px solid rgba(226,181,65,.9);border-radius:10px;background:rgba(226,181,65,.12);color:#f2cb67;font-weight:800;letter-spacing:.04em;box-shadow:0 0 0 1px rgba(226,181,65,.16),0 12px 32px rgba(0,0,0,.28)}
       #${HINT_ID} span{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:999px;background:#d6a92f;color:#090d12;font-size:16px}
       .ff-discover-direct-form{position:relative!important;outline:3px solid rgba(226,181,65,.9)!important;outline-offset:7px!important;border-radius:12px!important;box-shadow:0 0 0 8px rgba(226,181,65,.08),0 0 36px rgba(226,181,65,.22)!important}
       .ff-discover-direct-input{border-color:#e0b63e!important;box-shadow:0 0 0 4px rgba(226,181,65,.2)!important;background:rgba(226,181,65,.055)!important}
@@ -86,7 +86,7 @@
       hint.id = HINT_ID;
       hint.setAttribute("role", "status");
       hint.innerHTML = '<span aria-hidden="true">↓</span><strong>TYPE YOUR CARD HERE</strong> — start with year, set, player and card number.';
-      (label || input).insertAdjacentElement("beforebegin", hint);
+      (form || label || input).insertAdjacentElement("beforebegin", hint);
 
       form?.classList.add("ff-discover-direct-form");
       input.classList.add("ff-discover-direct-input");
