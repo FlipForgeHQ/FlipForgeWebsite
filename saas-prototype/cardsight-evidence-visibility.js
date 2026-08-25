@@ -67,7 +67,7 @@
       rejectedRows: safeInteger(summary.rejectedRows),
       fixedPriceRowsCanSupportValue: summary.fixedPriceRowsCanSupportValue === true,
       historicalCompletedSalesOnly: summary.historicalCompletedSalesOnly === true,
-      message: cleanText(summary.message)
+      message: cleanText(summary.message).replace(/\bqualified for governed evidence\b/gi, "passed FlipForge's evidence checks")
     };
   }
 
