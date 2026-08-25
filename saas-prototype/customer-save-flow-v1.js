@@ -33,17 +33,26 @@
       main?.querySelector?.("[data-ff-saved-decision-bar]")?.remove();
       return;
     }
-    if (main.querySelector("[data-ff-saved-decision-bar]")) return;
 
-    const anchor = main.querySelector(".customer-intelligence-hero, .hero-card, .page-heading, .forge-heat-card, .forge-heat-lock");
-    if (!anchor) return;
+    const hero = main.querySelector(".customer-intelligence-hero");
+    let bar = main.querySelector("[data-ff-saved-decision-bar]");
 
-    const bar = document.createElement("section");
-    bar.className = "ff-saved-decision-bar";
-    bar.dataset.ffSavedDecisionBar = "";
-    bar.setAttribute("role", "status");
-    bar.innerHTML = `<div class="ff-saved-decision-copy"><span class="ff-saved-decision-check" aria-hidden="true">✓</span><div><strong>Saved automatically</strong><small>This evaluated decision is already in Saved Intelligence. Starting another card clears only the Discover workspace; this decision stays saved.</small></div></div><div class="ff-saved-decision-actions"><a class="button button-secondary" href="#/tracking/${encodeURIComponent(id)}">Track this card</a><button class="button button-primary" type="button" data-ff-new-card>+ Start another card</button><a class="button button-secondary" href="#/opportunities">View saved decisions</a></div>`;
-    anchor.insertAdjacentElement("beforebegin", bar);
+    // Do not stack save guidance above a loading state. The authoritative
+    // decision should be the first meaningful result the customer sees.
+    if (!hero) {
+      bar?.remove();
+      return;
+    }
+
+    if (!bar) {
+      bar = document.createElement("section");
+      bar.className = "ff-saved-decision-bar";
+      bar.dataset.ffSavedDecisionBar = "";
+      bar.setAttribute("role", "status");
+      bar.innerHTML = `<div class="ff-saved-decision-copy"><span class="ff-saved-decision-check" aria-hidden="true">✓</span><div><strong>Saved automatically</strong><small>This evaluated decision is already in Saved Intelligence. Starting another card clears only the Discover workspace; this decision stays saved.</small></div></div><div class="ff-saved-decision-actions"><a class="button button-secondary" href="#/tracking/${encodeURIComponent(id)}">Track this card</a><button class="button button-primary" type="button" data-ff-new-card>+ Start another card</button><a class="button button-secondary" href="#/opportunities">View saved decisions</a></div>`;
+    }
+
+    if (hero.nextElementSibling !== bar) hero.insertAdjacentElement("afterend", bar);
   }
 
   function decorateDiscover() {
