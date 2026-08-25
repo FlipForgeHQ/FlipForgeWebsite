@@ -1,73 +1,77 @@
 import fs from 'node:fs';
 
-const read = path => fs.readFileSync(path, 'utf8');
-const index = read('index.html');
-const focusCss = read('assets/css/homepage-focus-v1.css');
-const evidenceCss = read('assets/css/homepage-evidence-v1.css');
-const contenderCss = read('assets/css/homepage-contender-v1.css');
-const mobileSimplifyCss = read('assets/css/homepage-mobile-simplify-v1.css');
-const contenderJs = read('assets/js/homepage-contender-v1.js');
-const homepageJs = read('assets/js/homepage-v1.js');
-const serviceWorker = read('sw.js');
-const results = [];
-const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
+const read=path=>fs.readFileSync(path,'utf8');
+const index=read('index.html');
+const awardCss=read('assets/css/award-winning-v1.css');
+const contenderCss=read('assets/css/homepage-contender-v1.css');
+const mobileCss=read('assets/css/homepage-mobile-simplify-v1.css');
+const contenderJs=read('assets/js/homepage-contender-v1.js');
+const awardJs=read('assets/js/award-winning-v1.js');
+const sw=read('sw.js');
+const checks=[];
+const check=(name,condition)=>checks.push({name,passed:Boolean(condition)});
 
-check('001 homepage stays in focused marketing mode', index.includes('ff-home-focused'));
-check('002 locked category is static CARD INTELLIGENCE', index.includes('<div class="eyebrow">CARD INTELLIGENCE</div>'));
-check('003 prohibited old descriptor is absent', !index.includes('CARD VALUE INTELLIGENCE'));
-check('004 locked hero promise remains exact', index.includes('Before you buy. <span>Know Why.</span>'));
-check('005 customer is explicitly the decision owner', index.includes('You are the one putting money on the line.'));
-check('006 hero includes specific illustrative 900 / 850 micro-decision', index.includes('<small>Last comp</small><strong>$900</strong>') && index.includes('<small>Listed at</small><strong>$850</strong>'));
-check('007 illustrative scenario cannot be mistaken for live data', index.includes('Illustrative decision · not live market data'));
-check('008 hero challenges apparent bargain', index.includes('Easy buy — or is it?'));
-check('009 hero explains collector benefit before product mechanics', index.includes('before you commit your money'));
-check('010 customer outcomes are static in HTML', ['Know the card','Know the evidence','Know the next move'].every(text => index.includes(text)));
-check('011 False Confidence is static and names all four pillars', ['FALSE CONFIDENCE 01','FALSE CONFIDENCE 02','FALSE CONFIDENCE 03','FALSE CONFIDENCE 04','Wrong parallel','Stale comp','Thin evidence','Grade assumption'].every(text => index.includes(text)));
-check('012 evidence qualification remains core positioning', index.includes('A sale should influence your decision only when the evidence earns the right to count.'));
-check('013 accepted and excluded evidence remain distinct', index.includes('Accepted evidence') && index.includes('Excluded evidence'));
-check('014 decision traceback remains customer-facing', index.includes('What you can inspect later.'));
-check('015 governed audit proof remains visible', ['100','74','26','18'].every(text => index.includes(`>${text}<`)));
-check('016 public accuracy claim remains unauthorized', index.includes('FlipForge has not authorized a public accuracy percentage'));
-check('017 interactive grading demo remains', index.includes('id="try-flipforge"') && homepageJs.includes('Step 4 of 4'));
-check('018 current beta wedge is narrow without narrowing company category', index.includes('Modern football rookie autos + scarce parallels') && index.includes('FlipForge remains Card Intelligence for sports cards broadly'));
-check('019 market position distinguishes marketplace, sales data, and FlipForge', ['MARKETPLACE','SALES DATA','FLIPFORGE','Does the evidence support your decision?'].every(text => index.includes(text)));
-check('020 identity ambiguity stays fail-closed in public workflow language', index.includes('Ambiguity stops for an explicit choice instead of a silent guess.'));
-check('021 outcome accountability is static in HTML', index.includes('id="decision-accountability"') && index.includes('Did the decision age well?'));
-check('022 accountability preserves day zero plus 7/14/30', ['Day 0','Day 7','Day 14','Day 30'].every(text => index.includes(text)));
-check('023 proof language rejects history rewriting', index.includes('not rewriting history to make the model look right'));
-check('024 no profit or outcome guarantee remains adjacent to hero', index.includes('Decision support only; no transaction, grade, outcome, or profit guarantee.'));
-check('025 contender stylesheet is first-paint dependency', index.includes('assets/css/homepage-contender-v1.css'));
-check('026 contender motion script is loaded explicitly', index.includes('assets/js/homepage-contender-v1.js'));
-check('027 hero motion visual is semantic static HTML', index.includes('ff-decision-motion is-replaying') && index.includes('VERIFY before buying'));
-check('028 motion visual explains the customer lesson', index.includes('The listing price did not. Your confidence should.'));
-check('029 replay control is available', index.includes('data-replay-decision') && contenderJs.includes("replay?.addEventListener('click',restart)"));
-check('030 reduced-motion preference is respected in JS', contenderJs.includes("prefers-reduced-motion: reduce"));
-check('031 reduced-motion preference is respected in CSS', contenderCss.includes('@media(prefers-reduced-motion:reduce)'));
-check('032 attention motion is staged, not an infinite casino loop', contenderCss.includes('@keyframes ff-stage-focus') && !contenderCss.includes('infinite'));
-check('033 customer-first reveal motion preserves content without JS', contenderCss.includes('[data-reveal]{opacity:1;transform:none}'));
-check('034 mobile contender layout has phone breakpoint', contenderCss.includes('@media(max-width:520px)'));
-check('035 mobile hero base contract remains', evidenceCss.includes('Final homepage mobile layout contract') && evidenceCss.includes('@media(max-width:900px)'));
-check('036 mobile hero headline remains protected from word stacking', evidenceCss.includes('word-break:normal'));
-check('037 floating demo remains hidden on mobile', evidenceCss.includes('.ff-demo-float{display:none!important}'));
-check('038 focused hero still avoids excess height', focusCss.includes('min-height:auto'));
-check('039 PWA shell remains on proven v13 contract', serviceWorker.includes("const CACHE='flipforge-shell-v13'"));
-check('040 PWA shell includes contender CSS', serviceWorker.includes("'/assets/css/homepage-contender-v1.css'"));
-check('041 PWA shell includes contender JS', serviceWorker.includes("'/assets/js/homepage-contender-v1.js'"));
-check('042 final CTA asks for a real buying decision', index.includes('Bring us the card you are actually thinking about buying.'));
-check('043 beta participation remains explicitly unpaid', index.includes('Private beta participation does not create a paid subscription.'));
-check('044 transaction authority remains absent from claims', index.includes('FlipForge does not guarantee profit or authorize transactions.'));
-check('045 mobile simplification stylesheet is loaded by contender script', contenderJs.includes('homepage-mobile-simplify-v1.css') && contenderJs.includes('data-ff-mobile-simplify'));
-check('046 mobile hero removes repeated explanatory copy', ['.ff-customer-promise','.ff-hero-scenario','.lead','.ff-hero-boundary'].every(text => mobileSimplifyCss.includes(text)) && mobileSimplifyCss.includes('display:none!important'));
-check('047 mobile hero keeps one primary CTA', mobileSimplifyCss.includes('.ff-primary-actions .btn:not(.primary)') && mobileSimplifyCss.includes('display:none!important'));
-check('048 mobile proof remains compact', mobileSimplifyCss.includes('.ff-motion-step:nth-child(3){display:none!important}') && mobileSimplifyCss.includes('.ff-motion-footer p') && mobileSimplifyCss.includes('display:none!important'));
-check('049 mobile proof remains replayable', mobileSimplifyCss.includes('.ff-motion-replay'));
-check('050 mobile simplification has phone and narrow-phone breakpoints', mobileSimplifyCss.includes('@media(max-width:520px)') && mobileSimplifyCss.includes('@media(max-width:360px)'));
-check('051 mobile simplification respects reduced motion', mobileSimplifyCss.includes('@media(prefers-reduced-motion:reduce)'));
-check('052 PWA shell includes mobile simplification CSS', serviceWorker.includes("'/assets/css/homepage-mobile-simplify-v1.css'"));
+check('001 focused homepage mode remains',index.includes('ff-home-focused'));
+check('002 locked category remains CARD INTELLIGENCE',index.includes('<div class="eyebrow">CARD INTELLIGENCE</div>'));
+check('003 old descriptor remains forbidden',!index.includes('CARD VALUE INTELLIGENCE'));
+check('004 locked slogan remains exact',index.includes('Before you buy. <span>Know Why.</span>'));
+check('005 customer owns the decision',index.includes('You are the one putting money on the line.'));
+check('006 hero uses one tension sentence',index.includes('A convincing comp can still be the wrong reason to buy.'));
+check('007 duplicate text-side price scenario is gone',!index.includes('ff-hero-scenario'));
+check('008 long customer-promise paragraph is gone',!index.includes('ff-customer-promise'));
+check('009 hero has exactly one primary CTA',((index.match(/class="btn primary"/g)||[]).length===2));
+check('010 hero primary CTA requests beta',index.includes('<a class="btn primary" href="beta-application.html">Request Beta Access</a>'));
+check('011 hero secondary CTA points to interactive proof',index.includes('data-demo-cta="hero" href="#busted-comp">See why</a>'));
+check('012 hero keeps no-profit boundary',index.includes('Decision support only; no transaction, grade, outcome, or profit guarantee.'));
 
-const failures = results.filter(result => !result.passed);
-console.log('FlipForge customer-first contender homepage validation');
-console.log(`PASSED: ${results.length - failures.length}`);
+check('013 animated price story remains static HTML',index.includes('<small>Last comp</small><strong>$900</strong>')&&index.includes('<small>Listing</small><strong>$850</strong>'));
+check('014 animated story challenges easy buy',index.includes('Easy buy — or is it?'));
+check('015 animated story ends VERIFY',index.includes('VERIFY before buying'));
+check('016 animated story teaches confidence shift',index.includes('The listing price did not. Your confidence should.'));
+check('017 illustrative status is adjacent',index.includes('Illustrative decision · not live market data'));
+check('018 replay control remains',index.includes('data-replay-decision'));
+
+check('019 homepage names False Confidence',index.includes('THE ENEMY IS FALSE CONFIDENCE'));
+check('020 homepage keeps three memorable problem cards',['Wrong parallel','Thin evidence','Grade assumption'].every(v=>index.includes(v)));
+check('021 deep False Confidence education routes to lab',index.includes('Explore all False Confidence cases'));
+
+check('022 Busted Comp is static first-paint content',index.includes('id="busted-comp"')&&index.includes('BUSTED COMP · INTERACTIVE'));
+check('023 Busted Comp presents three evidence choices',['data-aw-comp="exact"','data-aw-comp="parallel"','data-aw-comp="grade"'].every(v=>index.includes(v)));
+check('024 Busted Comp behavior is interactive',awardJs.includes("data-aw-comp-result")&&awardJs.includes("EXCLUDED."));
+
+check('025 governed proof remains concise but visible',['>100<','>74<','>26<','>18<'].every(v=>index.includes(v)));
+check('026 blind review remains disclosed',index.includes('20-case blind re-review'));
+check('027 prospective study remains disclosed',index.includes('25-card prospective study'));
+check('028 public accuracy claim remains unauthorized',index.includes('FlipForge has not authorized a public accuracy percentage'));
+
+check('029 accountability remains Day 0/7/14/30',['Day 0','Day 7','Day 14','Day 30'].every(v=>index.includes(v)));
+check('030 accountability asks memorable proof question',index.includes('Did the decision age well?'));
+check('031 accountability rejects hindsight rewrite',index.includes('not rewriting history to make the model look right'));
+
+check('032 beta wedge remains narrow',index.includes('Modern football rookie autos + scarce parallels'));
+check('033 category remains broad',index.includes('FlipForge remains Card Intelligence for sports cards broadly'));
+check('034 final CTA asks for a real buying decision',index.includes('Bring us the card you are actually thinking about buying.'));
+check('035 beta remains explicitly unpaid',index.includes('Private beta participation does not create a paid subscription.'));
+check('036 transaction authority remains absent',index.includes('FlipForge does not guarantee profit or authorize transactions.'));
+
+for(const oldSection of ['ff-customer-outcomes','ff-transformation','id="evidence"','id="sample-dossier"','id="who-its-for"','class="ff-category"','id="how-it-works"']){
+  check(`037 lean homepage removes ${oldSection}`,!index.includes(oldSection));
+}
+
+check('044 premium CSS is first-paint dependency',index.includes('assets/css/award-winning-v1.css'));
+check('045 premium JS is loaded explicitly',index.includes('assets/js/award-winning-v1.js'));
+check('046 premium navigation hides low-priority links',awardCss.includes('a[href="faq.html"]')&&awardCss.includes('a[data-app-preview]'));
+check('047 motion remains finite',contenderCss.includes('@keyframes ff-stage-focus')&&!contenderCss.includes('infinite'));
+check('048 reduced-motion CSS remains',contenderCss.includes('@media(prefers-reduced-motion:reduce)'));
+check('049 reduced-motion JS remains',contenderJs.includes('prefers-reduced-motion: reduce'));
+check('050 mobile simplification remains',mobileCss.includes('@media(max-width:520px)')&&mobileCss.includes('.ff-primary-actions .btn:not(.primary)'));
+check('051 PWA keeps proven v13 cache',sw.includes("const CACHE='flipforge-shell-v13'"));
+check('052 PWA caches premium CSS',sw.includes("'/assets/css/award-winning-v1.css'"));
+check('053 PWA caches premium JS',sw.includes("'/assets/js/award-winning-v1.js'"));
+
+const failures=checks.filter(item=>!item.passed);
+console.log('FlipForge premium customer-first homepage validation');
+console.log(`PASSED: ${checks.length-failures.length}`);
 console.log(`FAILED: ${failures.length}`);
-for (const failure of failures) console.error(`FAIL | ${failure.name}`);
-if (failures.length) process.exitCode = 1;
+for(const failure of failures)console.error(`FAIL | ${failure.name}`);
+if(failures.length)process.exitCode=1;
