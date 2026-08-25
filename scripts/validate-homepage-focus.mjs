@@ -3,6 +3,8 @@ import fs from 'node:fs';
 const read = path => fs.readFileSync(path, 'utf8');
 const marketing = read('assets/js/marketing-v3.js');
 const focusCss = read('assets/css/homepage-focus-v1.css');
+const evidenceCss = read('assets/css/homepage-evidence-v1.css');
+const serviceWorker = read('sw.js');
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
@@ -33,6 +35,15 @@ check('024 outcome language remains decision support without profit guarantee', 
 check('025 accountability layout has desktop timeline', focusCss.includes('.ff-accountability-timeline') && focusCss.includes('grid-template-columns:repeat(4,1fr)'));
 check('026 accountability layout collapses for tablet', focusCss.includes('.ff-home-workflow-grid,.ff-accountability-timeline{grid-template-columns:repeat(2,1fr)}'));
 check('027 accountability layout collapses for mobile', focusCss.includes('.ff-accountability-timeline{grid-template-columns:1fr}'));
+check('028 final homepage stylesheet owns mobile layout contract', evidenceCss.includes('Final homepage mobile layout contract'));
+check('029 mobile hero is forced to a single flow', evidenceCss.includes('display:block!important') && evidenceCss.includes('width:calc(100% - 24px)'));
+check('030 mobile hero copy receives the full available width', evidenceCss.includes('.ff-hero-copy') && evidenceCss.includes('width:100%') && evidenceCss.includes('max-width:none'));
+check('031 mobile headline prevents narrow-column word stacking', evidenceCss.includes('font-size:clamp(40px,11vw,46px)') && evidenceCss.includes('word-break:normal'));
+check('032 mobile hero visual cannot overlap copy', evidenceCss.includes('.ff-hero-visual') && evidenceCss.includes('position:relative!important') && evidenceCss.includes('transform:none!important'));
+check('033 floating demo is hidden on mobile', evidenceCss.includes('.ff-demo-float{display:none!important}'));
+check('034 mobile breakpoint covers narrow tablet and phone widths', evidenceCss.includes('@media(max-width:900px)') && evidenceCss.includes('@media(max-width:520px)'));
+check('035 PWA cache advances for the mobile layout release', serviceWorker.includes("const CACHE='flipforge-shell-v12'"));
+check('036 PWA shell refreshes the final homepage stylesheet', serviceWorker.includes("'/assets/css/homepage-evidence-v1.css'"));
 
 const failures = results.filter(result => !result.passed);
 console.log('FlipForge homepage focus validation');
