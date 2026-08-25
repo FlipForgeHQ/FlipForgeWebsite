@@ -31,10 +31,13 @@ requireText(index, 'src="cardsight-evidence-visibility.js"', "visibility script 
 requireText(js, 'url.pathname === "/api/v1/evaluations"', "evaluation response is not observed");
 requireText(js, '/^\\/api\\/v1\\/evidence\\/([^/?#]+)$/', "current evidence response is not observed");
 requireText(js, 'String(summary.provider || "").toUpperCase() !== "CARDSIGHT"', "provider identity is not constrained to CardSight");
-requireText(js, 'summary.fixedPriceRowsCanSupportValue !== false', "fixed-price evidence boundary is not enforced");
+requireText(js, 'typeof summary.fixedPriceRowsCanSupportValue !== "boolean"', "fixed-price completed-sale capability is not explicitly validated");
+requireText(js, 'summary.fixedPriceRowsCanSupportValue === true && summary.historicalCompletedSalesOnly !== true', "historical-completed-sale boundary is not enforced");
 requireText(js, 'summary.activeListingsCanSupportValue !== false', "active-listing evidence boundary is not enforced");
 requireText(js, 'summary.automaticOutlierAcceptance !== false', "automatic outlier boundary is not enforced");
 requireText(js, 'summary.transactionAuthority !== false', "transaction-authority boundary is not enforced");
+requireText(js, 'including fixed-price completed sales', "completed fixed-price evidence disclosure is missing");
+requireText(js, 'Active listings and asking prices cannot support value', "active-ask exclusion disclosure is missing");
 requireText(js, 'Smart Opportunity remains the sole decision authority', "Smart Opportunity authority disclosure is missing");
 requireText(js, 'data-cardsight-evidence-signature', "stable render signature is missing");
 requireText(css, '.cardsight-evidence-grid', "responsive evidence metrics styling is missing");
