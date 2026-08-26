@@ -1,0 +1,35 @@
+name: Decision Intelligence Assurance
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer-ui-system-v1.css"
+      - "saas-prototype/decision-intelligence-v1.js"
+      - "saas-prototype/validate-decision-intelligence.mjs"
+      - ".github/workflows/decision-intelligence-assurance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Protect SaaS presentation authority
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Parse Decision Intelligence runtime
+        run: node --check saas-prototype/decision-intelligence-v1.js
+
+      - name: Validate Decision Intelligence contract
+        run: node saas-prototype/validate-decision-intelligence.mjs
