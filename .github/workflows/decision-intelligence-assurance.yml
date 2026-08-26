@@ -5,6 +5,7 @@ on:
     paths:
       - "saas-prototype/index.html"
       - "saas-prototype/customer-ui-system-v1.css"
+      - "saas-prototype/decision-intelligence-server-v1.css"
       - "saas-prototype/decision-intelligence-v1.js"
       - "saas-prototype/validate-decision-intelligence.mjs"
       - ".github/workflows/decision-intelligence-assurance.yml"
