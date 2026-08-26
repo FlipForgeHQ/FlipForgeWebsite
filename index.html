@@ -29,6 +29,7 @@
 <link rel="stylesheet" href="assets/css/homepage-evidence-v1.css" data-ff-home-evidence="true">
 <link rel="stylesheet" href="assets/css/homepage-contender-v1.css" data-ff-home-contender="true">
 <link rel="stylesheet" href="assets/css/award-winning-v1.css" data-ff-award-winning="true">
+<link rel="stylesheet" href="assets/css/homepage-visual-proof-v1.css" data-ff-visual-proof="true">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"FlipForge LLC","url":"https://goflipforge.com/","email":"support@goflipforge.com","logo":"https://goflipforge.com/assets/brand/flipforge-logo-horizontal.svg","slogan":"Before you buy. Know Why."},{"@type":"SoftwareApplication","name":"FlipForge","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Card Intelligence for sports-card collectors: exact identity, evidence qualification, grading economics, risk, explainable decisions, and outcome review."}]}</script>
 </head>
 <body class="ff-marketing-v3 ff-home-focused ff-home-conversion-v2 ff-aw-home ff-aw-page">
@@ -46,17 +47,30 @@
     <p class="ff-hero-boundary">Decision support only; no transaction, grade, outcome, or profit guarantee.</p>
   </div>
   <figure class="ff-hero-visual ff-decision-motion is-replaying" aria-labelledby="decision-motion-caption">
-    <div class="ff-motion-head"><span>FlipForge decision check</span><span class="ff-motion-live">Analyzing evidence</span></div>
-    <div class="ff-motion-price"><div><small>Last comp</small><strong>$900</strong></div><span>vs.</span><div><small>Listing</small><strong>$850</strong></div></div>
-    <p class="ff-motion-hook"><span>$50 under comp.</span> Easy buy — or is it?</p>
-    <div class="ff-motion-stack" aria-label="Illustrative FlipForge analysis stages">
-      <div class="ff-motion-step alert"><span>01</span><div><small>Identity</small><strong>Parallel mismatch detected</strong></div><em>Check</em></div>
-      <div class="ff-motion-step alert"><span>02</span><div><small>Evidence</small><strong>2 of 3 records cannot support the target</strong></div><em>Filter</em></div>
-      <div class="ff-motion-step alert"><span>03</span><div><small>Risk</small><strong>The apparent $50 edge is unsupported</strong></div><em>Reassess</em></div>
-      <div class="ff-motion-step result"><span>04</span><div><small>Decision</small><strong>VERIFY before buying</strong></div><em>Protected</em></div>
+    <div class="ff-card-stage" aria-hidden="true">
+      <span class="ff-card-stage-label">Illustrative card · evidence scan</span>
+      <i class="ff-scan-bracket tl"></i><i class="ff-scan-bracket tr"></i><i class="ff-scan-bracket bl"></i><i class="ff-scan-bracket br"></i>
+      <div class="ff-card-slab">
+        <div class="ff-slab-label"><span>ROOKIE AUTO · SCARCE PARALLEL</span><strong>GEM 10 · #08</strong></div>
+        <div class="ff-card-face"><img class="ff-card-mark" src="assets/brand/flipforge-app-icon-dark.svg" alt=""><span class="ff-card-type">Illustrative target</span><i class="ff-card-line"></i><strong class="ff-card-serial">08/25</strong></div>
+      </div>
+      <div class="ff-evidence-ticket exact"><i></i><div><small>Exact completed sale</small><strong>Identity aligned</strong></div><em>Counts</em></div>
+      <div class="ff-evidence-ticket mismatch"><i></i><div><small>Parallel mismatch</small><strong>Looks close. Is not exact.</strong></div><em>Excluded</em></div>
+      <div class="ff-evidence-ticket context"><i></i><div><small>Different grade</small><strong>Useful context, not exact evidence.</strong></div><em>Context</em></div>
     </div>
-    <div class="ff-motion-result"><span>What changed?</span><strong>The listing price did not. Your confidence should.</strong></div>
-    <div class="ff-motion-footer"><p id="decision-motion-caption">Illustrative decision · not live market data. FlipForge makes the reason trail visible before the decision.</p><button class="ff-motion-replay" type="button" data-replay-decision>Replay analysis</button></div>
+    <div class="ff-motion-console">
+      <div class="ff-motion-head"><span>FlipForge decision check</span><span class="ff-motion-live">Analyzing evidence</span></div>
+      <div class="ff-motion-price"><div><small>Last comp</small><strong>$900</strong></div><span>vs.</span><div><small>Listing</small><strong>$850</strong></div></div>
+      <p class="ff-motion-hook"><span>$50 under comp.</span> Easy buy — or is it?</p>
+      <div class="ff-motion-stack" aria-label="Illustrative FlipForge analysis stages">
+        <div class="ff-motion-step alert"><span>01</span><div><small>Identity</small><strong>Parallel mismatch detected</strong></div><em>Check</em></div>
+        <div class="ff-motion-step alert"><span>02</span><div><small>Evidence</small><strong>2 of 3 records cannot support the target</strong></div><em>Filter</em></div>
+        <div class="ff-motion-step alert"><span>03</span><div><small>Risk</small><strong>The apparent $50 edge is unsupported</strong></div><em>Reassess</em></div>
+        <div class="ff-motion-step result"><span>04</span><div><small>Decision</small><strong>VERIFY before buying</strong></div><em>Protected</em></div>
+      </div>
+      <div class="ff-motion-result"><span>What changed?</span><strong>The listing price did not. Your confidence should.</strong></div>
+      <div class="ff-motion-footer"><p id="decision-motion-caption">Illustrative decision · not live market data. FlipForge makes the reason trail visible before the decision.</p><button class="ff-motion-replay" type="button" data-replay-decision>Replay analysis</button></div>
+    </div>
   </figure>
 </section>
 
@@ -68,6 +82,17 @@
     <article><span>FALSE CONFIDENCE 03</span><strong>Grade assumption</strong><p>Best-case PSA upside is not the expected outcome.</p></article>
   </div>
   <div class="ff-evidence-actions"><a href="learn.html">Explore all False Confidence cases <span aria-hidden="true">→</span></a></div>
+</section>
+
+<section class="ff-visual-showcase" aria-labelledby="visual-showcase-heading" data-reveal>
+  <div class="ff-visual-showcase-head"><div><span class="ff-kicker">SEE THE INTELLIGENCE</span><h2 id="visual-showcase-heading">The decision should be visible, not buried in a paragraph.</h2></div><p>FlipForge turns identity, evidence and grading economics into a reason trail you can inspect before money leaves your account.</p></div>
+  <div class="ff-visual-mosaic">
+    <figure class="ff-visual-shot large"><img src="assets/images/flipforge-identity-first.webp" alt="FlipForge identity intelligence interface showing exact-card verification"><figcaption><span>IDENTITY FIRST</span><strong>Resolve the exact card before price gets a vote.</strong></figcaption></figure>
+    <div class="ff-visual-mosaic-stack">
+      <figure class="ff-visual-shot"><img src="assets/images/flipforge-evidence-review.webp" alt="FlipForge evidence review interface"><figcaption><span>EVIDENCE REVIEW</span><strong>See what counts, what does not, and why.</strong></figcaption></figure>
+      <figure class="ff-visual-shot"><img src="assets/images/flipforge-grading-scenario.svg" alt="FlipForge grading economics scenario"><figcaption><span>GRADE PREMIUM</span><strong>Separate best-case upside from expected economics.</strong></figcaption></figure>
+    </div>
+  </div>
 </section>
 
 <section class="ff-aw-busted" id="busted-comp" aria-labelledby="ff-aw-busted-heading" data-reveal>
