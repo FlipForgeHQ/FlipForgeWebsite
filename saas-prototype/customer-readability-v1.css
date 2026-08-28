@@ -24,7 +24,7 @@ body {
 .prototype-chip,
 .forge-nav-state,
 .brand-tagline {
-  font-size: .7rem !important;
+  font-size: var(--ff-type-xs) !important;
 }
 
 .primary-nav a {
@@ -49,14 +49,14 @@ body {
 }
 
 .global-search input { font-size: .9rem; }
-kbd { font-size: .7rem; }
+kbd { font-size: var(--ff-type-xs); }
 .date-button { font-size: var(--ff-type-sm); }
 
 #main-content .page-heading .eyebrow,
 #main-content .forge-heat-title-row .eyebrow,
 #main-content .panel .eyebrow,
 .eyebrow {
-  font-size: .72rem;
+  font-size: var(--ff-type-xs);
 }
 
 #main-content .page-heading p {
@@ -110,7 +110,7 @@ kbd { font-size: .7rem; }
 }
 
 th {
-  font-size: .72rem;
+  font-size: var(--ff-type-xs);
   line-height: 1.35;
 }
 
@@ -122,7 +122,7 @@ td {
 .card-cell strong { font-size: .875rem; }
 .card-cell small { font-size: var(--ff-type-xs); }
 .status-pill,
-.staging-status { font-size: .7rem; }
+.staging-status { font-size: var(--ff-type-xs); }
 
 .customer-lifecycle-notice {
   font-size: .875rem;
@@ -193,7 +193,7 @@ td {
 .ff-di-compare-metrics strong { font-size: .9rem; }
 .ff-di-pop-column span,
 .ff-di-compare-metrics span { font-size: var(--ff-type-xs); }
-.ff-di-decision { font-size: .7rem; }
+.ff-di-decision { font-size: var(--ff-type-xs); }
 .ff-di-compare-side h3 { font-size: 1rem; }
 
 .signal-label,
