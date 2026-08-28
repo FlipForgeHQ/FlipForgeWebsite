@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import { applyProductionAppBoundary, assertProductionAppBoundary } from "./lib/production-app-boundary.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDirectory, "..");
@@ -97,14 +98,29 @@ function injectCommercialAppPolish(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
+function enforceProductionAppBoundary(htmlPath) {
+  if (!fs.existsSync(htmlPath)) throw new Error(`Production app boundary target missing: ${path.relative(root, htmlPath)}`);
+  const current = fs.readFileSync(htmlPath, "utf8");
+
+  // Exercise the production projection on every build, including PR/deploy-preview CI,
+  // so regressions are caught even when Netlify CONTEXT is not production.
+  const productionProbe = applyProductionAppBoundary(current, "production");
+  assertProductionAppBoundary(current, productionProbe);
+
+  const context = String(process.env.CONTEXT || "").toLowerCase();
+  if (context !== "production") return;
+
+  fs.writeFileSync(htmlPath, productionProbe, "utf8");
+}
+
 // Default Identity invite/recovery emails return to the project root, so the
 // public landing page must be able to process callback hashes. The client stays
 // visually dormant there unless a callback is present.
 injectBefore(path.join(root, "index.html"), "</body>");
 
-// The staging application initializes the current Identity UI before its
-// read/evaluation adapters execute. Customer API authentication remains
-// cookie-based; the adapters never read or forward a raw JWT.
+// The app initializes the current Identity UI before its read/evaluation adapters
+// execute. Customer API authentication remains cookie-based; adapters never read
+// or forward a raw JWT.
 const appIndex = path.join(root, "saas-prototype", "index.html");
 injectBefore(appIndex, '<script src="staging-browser.js"></script>');
 injectProductionSignInBefore(appIndex, '<script src="staging-browser.js"></script>');
@@ -126,6 +142,12 @@ injectCommercialDashboard(appIndex);
 // and replaces the hand-built sidebar mark with the repository-approved brand asset.
 injectCommercialAppPolish(appIndex);
 
+// Deploy previews/local source retain explicit staging diagnostics. Production
+// output strips the preview-only staging read adapter, its navigation, and its CSS.
+// Shared customer Evaluate/router modules remain because they still serve the
+// production customer path and are independently authority-gated.
+enforceProductionAppBoundary(appIndex);
+
 const identityBytes = fs.statSync(identityOutput).size;
 const productionSignInBytes = fs.statSync(productionSignInOutput).size;
 const productionAuthProbeBytes = fs.statSync(productionAuthProbeOutput).size;
@@ -136,3 +158,4 @@ console.log(`Built FlipForge isolated production auth probe (${productionAuthPro
 console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
 console.log("Injected FlipForge commercial dashboard v2 assets.");
 console.log("Injected FlipForge commercial app polish v2 assets.");
+console.log(`Applied FlipForge production/preview app boundary for CONTEXT=${process.env.CONTEXT || "local"}.`);

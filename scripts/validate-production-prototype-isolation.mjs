@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { applyProductionAppBoundary, assertProductionAppBoundary } from "./lib/production-app-boundary.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), "utf8");
@@ -9,6 +10,9 @@ const read = relativePath => fs.readFileSync(path.join(root, relativePath), "utf
 const index = read("saas-prototype/index.html");
 const loader = read("saas-prototype/prototype-visual-loader.js");
 const decision = read("saas-prototype/decision-intelligence-v1.js");
+const stagingBrowser = read("saas-prototype/staging-browser.js");
+const stagingEvaluation = read("saas-prototype/staging-evaluation.js");
+const buildIdentity = read("scripts/build-identity-client.mjs");
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
@@ -90,6 +94,34 @@ check("023 preview runtime keeps prototype visuals enabled", preview.window.Flip
 
 const localhost = executeLoader("localhost");
 check("024 localhost keeps prototype visual QA enabled", localhost.appended.length === 1 && localhost.window.FlipForgePrototypeVisualRuntime?.prototypeVisualsAllowed === true);
+
+const productionIndex = applyProductionAppBoundary(index, "production");
+let productionBoundaryValid = true;
+try {
+  assertProductionAppBoundary(index, productionIndex);
+} catch (error) {
+  productionBoundaryValid = false;
+  console.error(error.message);
+}
+const previewIndex = applyProductionAppBoundary(index, "deploy-preview");
+const localIndex = applyProductionAppBoundary(index, "");
+
+check("025 production app boundary contract validates", productionBoundaryValid);
+check("026 production output strips staging read adapter", !productionIndex.includes('<script src="staging-browser.js"></script>'));
+check("027 production output strips staging browser stylesheet", !productionIndex.includes('href="staging-browser.css"'));
+check("028 production output strips staging diagnostic navigation", !productionIndex.includes('data-route="staging"') && !productionIndex.includes('data-route="staging-evaluate"'));
+check("029 production retains shared customer evaluation module", productionIndex.includes('<script src="staging-evaluation.js"></script>') && stagingEvaluation.includes("renderCustomer"));
+check("030 production retains shared customer route hook", productionIndex.includes('<script src="staging-route-hook.js"></script>'));
+check("031 production retains Dashboard fail-closed guard", productionIndex.includes('<script src="production-dashboard-guard.js"></script>'));
+check("032 production retains server-owned opportunity modules", productionIndex.includes('<script src="customer-opportunities.js"></script>') && productionIndex.includes('<script src="customer-opportunities-bridge.js"></script>'));
+check("033 deploy preview keeps staging diagnostics", previewIndex === index && previewIndex.includes('<script src="staging-browser.js"></script>'));
+check("034 local build keeps staging diagnostics", localIndex === index);
+check("035 production transform is idempotent", applyProductionAppBoundary(productionIndex, "production") === productionIndex);
+check("036 source staging adapter remains preview-host constrained", stagingBrowser.includes('ALLOWED_HOST = /^(?:deploy-preview-') && !stagingBrowser.includes("goflipforge.com"));
+check("037 build imports production boundary helper", buildIdentity.includes('from "./lib/production-app-boundary.mjs"'));
+check("038 build self-tests production boundary on every build", buildIdentity.includes('const productionProbe = applyProductionAppBoundary(current, "production")') && buildIdentity.includes("assertProductionAppBoundary(current, productionProbe)"));
+check("039 build writes stripped app only for production context", buildIdentity.includes('if (context !== "production") return;') && buildIdentity.includes('fs.writeFileSync(htmlPath, productionProbe, "utf8")'));
+check("040 production boundary runs after Identity and commercial injections", buildIdentity.indexOf("injectCommercialAppPolish(appIndex)") < buildIdentity.indexOf("enforceProductionAppBoundary(appIndex)"));
 
 const failures = results.filter(result => !result.passed);
 console.log("ProductionPrototypeIsolationValidation");
