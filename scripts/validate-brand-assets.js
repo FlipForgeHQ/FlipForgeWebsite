@@ -2,6 +2,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
+const OFFICIAL_SLOGAN = 'Before you buy. Know Why.';
+const RETIRED_SLOGAN_PATTERNS = [
+  /Before you buy,\s*know why\./,
+  /Before You Buy,\s*Know Why\.?/,
+  /BEFORE YOU BUY,\s*KNOW WHY\./,
+];
 
 function requireFile(relativePath) {
   const absolutePath = path.join(root, relativePath);
@@ -9,6 +15,10 @@ function requireFile(relativePath) {
     throw new Error(`Required brand file is missing: ${relativePath}`);
   }
   return absolutePath;
+}
+
+function retiredSloganVariant(content) {
+  return RETIRED_SLOGAN_PATTERNS.find((pattern) => pattern.test(content));
 }
 
 const requiredFiles = [
@@ -79,6 +89,11 @@ for (const [relativePath, cubePath] of embeddedBrandVisuals) {
   if (/Card Value Intelligence|CARD VALUE INTELLIGENCE/.test(svg)) failures.push('retired descriptor removed');
   if (/<rect x="(?:24|28)" y="(?:24|28)" width="8" height="8"/.test(svg)) failures.push('flat center square removed');
 
+  if (relativePath === 'assets/images/flipforge-traceback-guidance.svg') {
+    if (!svg.includes(OFFICIAL_SLOGAN)) failures.push('official slogan');
+    if (retiredSloganVariant(svg)) failures.push('retired slogan variant removed');
+  }
+
   if (failures.length) {
     throw new Error(`${relativePath} failed embedded brand validation: ${failures.join(', ')}`);
   }
@@ -91,7 +106,8 @@ for (const filename of htmlFiles) {
 
   const failures = [];
   if (!html.includes('assets/brand/flipforge-logo-horizontal.svg')) failures.push('approved horizontal logo lockup');
-  if (!html.includes('Before you buy. Know Why.')) failures.push('official slogan lockup');
+  if (!html.includes(OFFICIAL_SLOGAN)) failures.push('official slogan lockup');
+  if (retiredSloganVariant(html)) failures.push('retired slogan variant removed');
   if (!html.includes('Card Intelligence')) failures.push('Card Intelligence identity line');
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('brand-v2 stylesheet');
@@ -102,6 +118,11 @@ for (const filename of htmlFiles) {
   if (failures.length) {
     throw new Error(`${filename} failed brand integrity validation: ${failures.join(', ')}`);
   }
+}
+
+const marketingPlaybook = fs.readFileSync(path.join(root, 'MARKETING_VISUAL_PLAYBOOK.md'), 'utf8');
+if (!marketingPlaybook.includes(OFFICIAL_SLOGAN) || retiredSloganVariant(marketingPlaybook)) {
+  throw new Error('MARKETING_VISUAL_PLAYBOOK.md must use the locked slogan exactly: Before you buy. Know Why.');
 }
 
 const manifest = fs.readFileSync(path.join(root, 'site.webmanifest'), 'utf8');
