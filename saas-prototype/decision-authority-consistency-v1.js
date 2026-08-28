@@ -9,12 +9,19 @@
     return /^#\/opportunities\/[^/?#]+/.test(String(window.location.hash || ""));
   }
 
-  function evidenceHref() {
-    const match = String(window.location.hash || "").match(/^#\/opportunities\/([^/?#]+)/);
+  function evidenceDetailRoute() {
+    return /^#\/evidence\/[^/?#]+/.test(String(window.location.hash || ""));
+  }
+
+  function routeId(route) {
+    const match = String(window.location.hash || "").match(new RegExp(`^#/${route}/([^/?#]+)`));
     if (!match) return "";
-    let id = match[1];
-    try { id = decodeURIComponent(id); } catch (_) { /* keep safe route token */ }
-    return `#/evidence/${encodeURIComponent(id)}`;
+    try { return decodeURIComponent(match[1]); } catch (_) { return match[1]; }
+  }
+
+  function evidenceHref() {
+    const id = routeId("opportunities");
+    return id ? `#/evidence/${encodeURIComponent(id)}` : "";
   }
 
   function replaceWithEvidenceLink(node, href) {
@@ -134,12 +141,106 @@
     };
   }
 
-  function sync() {
-    queued = false;
-    if (!opportunityDetailRoute()) return;
-    const main = document.querySelector(MAIN);
-    if (!main) return;
+  function metricValue(main, label) {
+    for (const article of main?.querySelectorAll?.(".customer-management-metrics article") || []) {
+      const span = article.querySelector("span");
+      if (String(span?.textContent || "").trim() !== label) continue;
+      const value = Number.parseInt(String(article.querySelector("strong")?.textContent || ""), 10);
+      return Number.isFinite(value) ? value : null;
+    }
+    return null;
+  }
 
+  function setCellLabel(cell, from, to) {
+    if (!cell) return;
+    const text = String(cell.textContent || "").trim();
+    if (text === from) cell.textContent = to;
+  }
+
+  function syncEvidenceSemantics(main) {
+    if (!main || !evidenceDetailRoute()) return;
+    const page = main.querySelector(".customer-management-page");
+    if (!page) return;
+
+    const accepted = metricValue(main, "Accepted exact sales");
+    const ineligible = metricValue(main, "Visible but ineligible");
+    if (accepted !== null && ineligible !== null && !page.querySelector("[data-ff-evidence-current-history]")) {
+      const note = document.createElement("section");
+      note.className = "panel";
+      note.dataset.ffEvidenceCurrentHistory = "";
+      note.innerHTML = `<div class="panel-body"><strong>Current eligibility vs. historical ledger</strong><p><strong>${accepted}</strong> linked completed sales currently satisfy FlipForge's exact-comparable authority rules. <strong>${ineligible}</strong> linked rows remain visible for audit history but are currently ineligible. Historical ledger events preserve what happened at the time; they do not restore authority to a row that fails today's rules.</p></div>`;
+      const metrics = page.querySelector(".customer-management-metrics");
+      metrics?.insertAdjacentElement("afterend", note);
+    }
+
+    const sections = [...page.querySelectorAll("section.panel")];
+    const linkedSection = sections.find(section => /Linked evidence/i.test(String(section.querySelector("h2")?.textContent || "")));
+    const candidateSection = sections.find(section => /Manual evidence candidates|Saved evidence candidate pool/i.test(String(section.querySelector("h2")?.textContent || "")));
+
+    const linkedTable = linkedSection?.querySelector("table");
+    if (linkedTable) {
+      const headers = linkedTable.querySelectorAll("thead th");
+      if (headers[3] && headers[3].textContent !== "Identity key") headers[3].textContent = "Identity key";
+      if (headers[4] && headers[4].textContent !== "Current authority") headers[4].textContent = "Current authority";
+      linkedTable.querySelectorAll("tbody tr").forEach(row => {
+        const cells = row.querySelectorAll("td");
+        setCellLabel(cells[3], "Exact match", "Identity key match");
+        setCellLabel(cells[3], "Mismatch", "Identity key differs");
+        setCellLabel(cells[4], "Eligible", "Current eligible");
+        setCellLabel(cells[4], "Ineligible", "Currently ineligible");
+      });
+    }
+
+    if (candidateSection) {
+      const heading = candidateSection.querySelector("h2");
+      const copy = candidateSection.querySelector(".panel-header p");
+      if (heading && heading.textContent !== "Saved evidence candidate pool") heading.textContent = "Saved evidence candidate pool";
+      const expectedCopy = "This pool includes historically linked rows and unlinked candidates. Stored source confidence is not current exact-comparable authority; only current authority-eligible exact completed sales support value.";
+      if (copy && copy.textContent !== expectedCopy) copy.textContent = expectedCopy;
+      const table = candidateSection.querySelector("table");
+      if (table) {
+        const headers = table.querySelectorAll("thead th");
+        if (headers[3] && headers[3].textContent !== "Stored source confidence") headers[3].textContent = "Stored source confidence";
+        if (headers[4] && headers[4].textContent !== "Link state") headers[4].textContent = "Link state";
+        table.querySelectorAll("tbody tr").forEach(row => {
+          const cells = row.querySelectorAll("td");
+          setCellLabel(cells[4], "Linked", "Historically linked");
+        });
+      }
+    }
+  }
+
+  function syncGuidedEvidence() {
+    if (!evidenceDetailRoute()) return;
+    const id = routeId("evidence");
+    if (!id) return;
+    const guide = document.getElementById("ff-guided-mode-root");
+    const panel = guide?.querySelector(".ff-guide-panel");
+    if (!panel) return;
+
+    const location = panel.querySelector(".ff-guide-location");
+    const title = panel.querySelector(".ff-guide-body h2");
+    const copyNode = panel.querySelector(".ff-guide-body > p");
+    const whyNode = panel.querySelector(".ff-guide-why");
+    const actions = panel.querySelector(".ff-guide-actions");
+
+    panel.dataset.ffGuideEvidenceStep = id;
+    if (location && location.textContent !== "Evidence · Step 3") location.textContent = "Evidence · Step 3";
+    if (title && title.textContent !== "This is why FlipForge reached the decision.") title.textContent = "This is why FlipForge reached the decision.";
+    const copy = "Review the current authority-eligible sales and the rows FlipForge excludes. Historical evidence stays visible for auditability without changing the saved decision.";
+    if (copyNode && copyNode.textContent !== copy) copyNode.textContent = copy;
+    if (whyNode) {
+      const expected = "Why this matters: Evidence explains the decision without changing it.";
+      if (String(whyNode.textContent || "").trim() !== expected) {
+        whyNode.innerHTML = "<strong>Why this matters:</strong> Evidence explains the decision without changing it.";
+      }
+    }
+    if (actions && !actions.querySelector("[data-ff-evidence-understood]")) {
+      actions.innerHTML = `<a class="ff-guide-action" data-ff-evidence-understood href="#/tracking/${encodeURIComponent(id)}">I understand the evidence →</a><a class="ff-guide-action secondary" href="#/opportunities/${encodeURIComponent(id)}">Back to Card Intelligence</a>`;
+    }
+  }
+
+  function syncOpportunity(main) {
     syncEvidenceLinks(main);
 
     const decision = authoritativeDecision(main);
@@ -167,6 +268,21 @@
         strong.textContent = "What you should do next:";
         next.append(strong, document.createTextNode(` ${copy.next}`));
       }
+    }
+  }
+
+  function sync() {
+    queued = false;
+    const main = document.querySelector(MAIN);
+    if (!main) return;
+
+    if (opportunityDetailRoute()) {
+      syncOpportunity(main);
+      return;
+    }
+    if (evidenceDetailRoute()) {
+      syncEvidenceSemantics(main);
+      syncGuidedEvidence();
     }
   }
 
