@@ -21,6 +21,7 @@ const commercialDashboardStylesheetTag = '<link rel="stylesheet" href="commercia
 const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"></script>';
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
 const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
+const typographyFloorScriptTag = '<script src="customer-typography-floor-v1.js"></script>';
 const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability-v1.css">';
 
 fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
@@ -101,6 +102,15 @@ function injectCommercialAppPolish(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
+function injectTypographyFloor(htmlPath) {
+  if (!fs.existsSync(htmlPath)) throw new Error(`Typography floor target missing: ${path.relative(root, htmlPath)}`);
+  let html = fs.readFileSync(htmlPath, "utf8");
+  if (html.includes('customer-typography-floor-v1.js')) return;
+  if (!html.includes("</body>")) throw new Error(`Typography floor body marker missing in ${path.relative(root, htmlPath)}`);
+  html = html.replace("</body>", `  ${typographyFloorScriptTag}\n</body>`);
+  fs.writeFileSync(htmlPath, html, "utf8");
+}
+
 function enforceProductionAppBoundary(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Production app boundary target missing: ${path.relative(root, htmlPath)}`);
   const current = fs.readFileSync(htmlPath, "utf8");
@@ -140,6 +150,10 @@ injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-port
 injectCommercialDashboard(appIndex);
 injectCommercialAppPolish(appIndex);
 
+// The computed typography floor runs after every route/presentation script so it
+// can correct legacy microcopy selectors without shrinking any text already >=14px.
+injectTypographyFloor(appIndex);
+
 // Deploy previews/local source retain explicit staging diagnostics. Production
 // output strips the preview-only staging read adapter, its navigation, and its CSS.
 // Shared customer Evaluate/router modules remain because they still serve the
@@ -156,4 +170,5 @@ console.log(`Built FlipForge isolated production auth probe (${productionAuthPro
 console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
 console.log("Injected FlipForge commercial dashboard v2 assets before customer readability.");
 console.log("Injected FlipForge commercial app polish v2 assets before customer readability.");
+console.log("Injected FlipForge computed customer typography floor after route presentation scripts.");
 console.log(`Applied FlipForge production/preview app boundary for CONTEXT=${process.env.CONTEXT || "local"}.`);
