@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const stagingAdapter = window.FlipForgeStagingReadAdapter;
+  const stagingAdapter = window.FlipForgeStagingReadAdapter || null;
   const customerAdapter = window.FlipForgeCustomerOpportunities;
-  if (!stagingAdapter || !customerAdapter) return;
+  if (!customerAdapter) return;
 
   const CONTRACT_VERSION = "1.0";
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -58,7 +58,7 @@
     return serial === recoverySerial
       && routeOpportunityId() === id
       && Boolean(main)
-      && String(main.textContent || "").includes("Loading card intelligence");
+      && String(main.textContent || main.innerHTML || "").includes("Loading card intelligence");
   }
 
   async function parseResponse(response) {
@@ -179,20 +179,38 @@
     return started;
   }
 
-  // Keep the staging diagnostic implementation unchanged while routing the
-  // customer Opportunities/Card Intelligence surface through the dedicated
-  // production-safe adapter. Dashboard is intentionally not proxied here.
-  window.FlipForgeStagingReadAdapter = Object.freeze({
+  const customerBridge = Object.freeze({
     isEligible() {
-      return customerAdapter.isEligible()
-        || (typeof stagingAdapter.isEligible === "function" && stagingAdapter.isEligible());
+      return typeof customerAdapter.isEligible === "function" && customerAdapter.isEligible();
     },
     renderCustomer,
     render(main, id = "") {
-      return stagingAdapter.render(main, id);
+      return renderCustomer(main, id);
     },
-    reset: typeof stagingAdapter.reset === "function"
-      ? () => stagingAdapter.reset()
+    refresh: typeof customerAdapter.refresh === "function"
+      ? () => customerAdapter.refresh()
       : undefined
   });
+
+  // Production owns Opportunities/Card Intelligence through this dedicated
+  // bridge even when preview-only staging-browser.js has been stripped.
+  window.FlipForgeCustomerOpportunitiesBridge = customerBridge;
+
+  // Deploy previews keep the staging diagnostic surface, but customer routing
+  // no longer depends on this object existing in production.
+  if (stagingAdapter) {
+    window.FlipForgeStagingReadAdapter = Object.freeze({
+      isEligible() {
+        return customerBridge.isEligible()
+          || (typeof stagingAdapter.isEligible === "function" && stagingAdapter.isEligible());
+      },
+      renderCustomer,
+      render(main, id = "") {
+        return typeof stagingAdapter.render === "function" ? stagingAdapter.render(main, id) : false;
+      },
+      reset: typeof stagingAdapter.reset === "function"
+        ? () => stagingAdapter.reset()
+        : undefined
+    });
+  }
 })();
