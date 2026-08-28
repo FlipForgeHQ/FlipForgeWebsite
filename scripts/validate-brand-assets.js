@@ -21,6 +21,13 @@ function retiredSloganVariant(content) {
   return RETIRED_SLOGAN_PATTERNS.find((pattern) => pattern.test(content));
 }
 
+function validateLockedSlogan(relativePath) {
+  const content = fs.readFileSync(path.join(root, relativePath), 'utf8');
+  if (!content.includes(OFFICIAL_SLOGAN) || retiredSloganVariant(content)) {
+    throw new Error(`${relativePath} must use the locked slogan exactly: ${OFFICIAL_SLOGAN}`);
+  }
+}
+
 const requiredFiles = [
   'assets/brand/flipforge-mark.svg',
   'assets/brand/flipforge-logo-horizontal.svg',
@@ -89,15 +96,14 @@ for (const [relativePath, cubePath] of embeddedBrandVisuals) {
   if (/Card Value Intelligence|CARD VALUE INTELLIGENCE/.test(svg)) failures.push('retired descriptor removed');
   if (/<rect x="(?:24|28)" y="(?:24|28)" width="8" height="8"/.test(svg)) failures.push('flat center square removed');
 
-  if (relativePath === 'assets/images/flipforge-traceback-guidance.svg') {
-    if (!svg.includes(OFFICIAL_SLOGAN)) failures.push('official slogan');
-    if (retiredSloganVariant(svg)) failures.push('retired slogan variant removed');
-  }
-
   if (failures.length) {
     throw new Error(`${relativePath} failed embedded brand validation: ${failures.join(', ')}`);
   }
 }
+
+validateLockedSlogan('assets/images/flipforge-traceback-guidance.svg');
+validateLockedSlogan('MARKETING_VISUAL_PLAYBOOK.md');
+validateLockedSlogan('saas-prototype/visual-intelligence.js');
 
 const htmlFiles = fs.readdirSync(root).filter((name) => name.endsWith('.html'));
 for (const filename of htmlFiles) {
@@ -118,11 +124,6 @@ for (const filename of htmlFiles) {
   if (failures.length) {
     throw new Error(`${filename} failed brand integrity validation: ${failures.join(', ')}`);
   }
-}
-
-const marketingPlaybook = fs.readFileSync(path.join(root, 'MARKETING_VISUAL_PLAYBOOK.md'), 'utf8');
-if (!marketingPlaybook.includes(OFFICIAL_SLOGAN) || retiredSloganVariant(marketingPlaybook)) {
-  throw new Error('MARKETING_VISUAL_PLAYBOOK.md must use the locked slogan exactly: Before you buy. Know Why.');
 }
 
 const manifest = fs.readFileSync(path.join(root, 'site.webmanifest'), 'utf8');
