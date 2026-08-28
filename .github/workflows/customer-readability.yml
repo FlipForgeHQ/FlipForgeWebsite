@@ -5,13 +5,17 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/validate-customer-readability.mjs"
+      - "scripts/audit-customer-typography-ci.mjs"
       - ".github/workflows/customer-readability.yml"
+      - ".github/workflows/saas-full-site-visual-qa.yml"
   push:
     branches: [main]
     paths:
       - "saas-prototype/**"
       - "scripts/validate-customer-readability.mjs"
+      - "scripts/audit-customer-typography-ci.mjs"
       - ".github/workflows/customer-readability.yml"
+      - ".github/workflows/saas-full-site-visual-qa.yml"
 
 permissions:
   contents: read
