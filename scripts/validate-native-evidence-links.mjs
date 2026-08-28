@@ -6,6 +6,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
 const consistency = read("saas-prototype/decision-authority-consistency-v1.js");
+const evidenceSplit = read("saas-prototype/evidence-authority-split-v1.js");
+const appIndex = read("saas-prototype/index.html");
 const managementCss = read("saas-prototype/customer-management.css");
 
 const checks = [
@@ -27,7 +29,13 @@ const checks = [
   ["locked tagline casing is normalized", consistency.includes('"Before you buy. Know why."') && consistency.includes('"Know Why."')],
   ["Evidence v2 has dedicated responsive visual hierarchy", managementCss.includes("Evidence Experience v2") && managementCss.includes(".ff-evidence-proof-hero") && managementCss.includes(".ff-evidence-funnel") && managementCss.includes(".ff-evidence-next-step")],
   ["Evidence proof and next-step layout collapse on smaller screens", managementCss.includes("@media (max-width: 760px)") && managementCss.includes(".ff-evidence-funnel") && managementCss.includes(".ff-evidence-next-step")],
-  ["body observer repairs dynamic customer rerenders", consistency.includes("new MutationObserver(queue).observe(document.body")]
+  ["body observer repairs dynamic customer rerenders", consistency.includes("new MutationObserver(queue).observe(document.body")],
+  ["Evidence authority split runtime is loaded after the consistency layer", appIndex.indexOf('decision-authority-consistency-v1.js') > -1 && appIndex.indexOf('evidence-authority-split-v1.js') > appIndex.indexOf('decision-authority-consistency-v1.js')],
+  ["trusted table contains only server-authority-eligible rows", evidenceSplit.includes('linked.filter(item => item?.authorityEligible === true)') && evidenceSplit.includes('data-ff-trusted-evidence-table')],
+  ["excluded table contains only server-authority-ineligible rows", evidenceSplit.includes('linked.filter(item => item?.authorityEligible !== true)') && evidenceSplit.includes('data-ff-excluded-evidence-table')],
+  ["excluded rows explain server-returned rejection reason", evidenceSplit.includes('item.rejectionReason') && evidenceSplit.includes('What FlipForge excluded — and why')],
+  ["Evidence split validates the server authority envelope", evidenceSplit.includes('payload?.meta?.authority !== "Smart Opportunity"') && evidenceSplit.includes('payload?.meta?.gradingAuthority !== "Existing PSA intelligence"') && evidenceSplit.includes('payload?.meta?.correlationId !== requestCorrelationId')],
+  ["Evidence split fails closed on count disagreement", evidenceSplit.includes('trusted.length !== trustedCount') && evidenceSplit.includes('excluded.length !== excludedCount') && evidenceSplit.includes('ffEvidenceAuthoritySplit = "invalid"')]
 ];
 
 const failures = checks.filter(([, passed]) => !passed);
