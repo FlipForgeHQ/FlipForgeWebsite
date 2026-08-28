@@ -8,6 +8,12 @@
   --ff-type-md: .9375rem;
   --ff-type-lg: 1.0625rem;
   --ff-type-xl: 1.25rem;
+  --ff-text-secondary: #d2d8e1;
+  --ff-text-muted: #c2cad5;
+  --ff-text-subtle: #b4becb;
+  --text-soft: var(--ff-text-secondary);
+  --muted: var(--ff-text-muted);
+  --ff-guide-muted: var(--ff-text-muted);
 }
 
 body {
@@ -226,4 +232,28 @@ td {
   .primary-nav a { font-size: .92rem; }
   .button { min-height: 44px; font-size: .86rem; }
   td { font-size: .9rem; }
+}
+
+/* Secondary copy must remain clearly readable on the customer app's darkest surfaces. */
+.brand-tagline {
+  color: rgba(232, 235, 239, .88);
+}
+
+.forge-nav-state {
+  color: rgba(232, 235, 239, .84) !important;
+}
+
+.ff-guide-icon-button,
+.ff-guide-location,
+.ff-guide-progress-top,
+.ff-guide-footer,
+.ff-guide-footer button,
+.ff-guide-modal-note {
+  color: var(--ff-text-subtle);
+}
+
+.ff-guide-why,
+.ff-guide-modal-step p,
+.ff-discover-results-label span {
+  color: var(--ff-text-muted);
 }

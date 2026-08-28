@@ -26,6 +26,11 @@ const checks = [
   ["lifecycle history is enlarged", css.includes(".customer-lifecycle-history span") && css.includes("font-size: .8rem")],
   ["buttons use a larger customer scale", css.includes(".button") && css.includes("font-size: .84rem")],
   ["Decision Intelligence microcopy is raised", css.includes(".ff-di-card > p") && css.includes("font-size: .84rem")],
+  ["customer muted-text token is visibly brighter", css.includes("--ff-text-muted: #c2cad5")],
+  ["legacy muted copy inherits the brighter customer token", css.includes("--muted: var(--ff-text-muted)")],
+  ["Guided Mode inherits the brighter customer token", css.includes("--ff-guide-muted: var(--ff-text-muted)")],
+  ["low-contrast Guided Mode footer copy is overridden", css.includes(".ff-guide-progress-top") && css.includes(".ff-guide-modal-note") && css.includes("color: var(--ff-text-subtle)")],
+  ["brand tagline receives an explicit contrast lift", css.includes(".brand-tagline") && css.includes("rgba(232, 235, 239, .88)")],
   ["mobile keeps a 16px baseline", /@media \(max-width: 760px\)[\s\S]*body \{ font-size: 16px; \}/.test(css)]
 ];
 
