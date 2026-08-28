@@ -301,11 +301,87 @@
     page.dataset.ffAlertsCustomerUx = "v1";
   }
 
+  function polishPortfolio() {
+    const page = document.querySelector(`${MAIN} .customer-lifecycle-page`);
+    if (!page) return;
+
+    const heading = page.querySelector(".page-heading");
+    setText(heading?.querySelector(".eyebrow"), "Collection tracking");
+    setText(heading?.querySelector("p"), "See the cards you marked as owned and the purchase cost you recorded for each one.");
+
+    const actions = heading?.querySelector(".page-actions");
+    setText(actions?.querySelector('a[href="#/tracking"]'), "Manage owned cards");
+
+    const boundary = page.querySelector(".boundary-note");
+    if (boundary) {
+      boundary.innerHTML = "<strong>Portfolio boundary:</strong> Portfolio uses purchase facts you saved in Tracking. It does not estimate current market value, profit, loss, fees, taxes, or tell you when to sell.";
+    }
+
+    const metrics = [...page.querySelectorAll(".customer-management-metrics article")];
+    metrics.forEach(article => {
+      const label = article.querySelector("span");
+      const strong = article.querySelector("strong");
+      const value = String(label?.textContent || "").trim();
+      if (/Current holdings/i.test(value)) setText(label, "Owned cards");
+      if (/Total cost basis/i.test(value)) setText(label, "Total purchase cost");
+      if (/Current value/i.test(value)) {
+        setText(label, "Market value");
+        if (/Not calculated/i.test(String(strong?.textContent || ""))) setText(strong, "Not shown yet");
+      }
+      if (/Transactions/i.test(value)) {
+        setText(label, "Buying & selling");
+        if (/Disabled/i.test(String(strong?.textContent || ""))) setText(strong, "Not available");
+      }
+    });
+
+    const panels = [...page.querySelectorAll("section.panel")];
+    const holdings = panels.find(section => /Tenant-owned holdings|Owned cards/i.test(String(section.querySelector("h2")?.textContent || "")));
+    if (holdings) {
+      setText(holdings.querySelector("h2"), "Owned cards");
+      setText(holdings.querySelector(".panel-header p"), "Cards you marked as Owned in Tracking.");
+
+      const badge = holdings.querySelector(".staging-status");
+      if (badge) setText(badge, "Saved");
+
+      const headers = [...holdings.querySelectorAll("thead th")];
+      headers.forEach(header => {
+        const value = String(header.textContent || "").trim();
+        if (/Cost basis/i.test(value)) setText(header, "Purchase cost");
+        if (/Acquired/i.test(value)) setText(header, "Purchase date");
+      });
+
+      holdings.querySelectorAll("tbody tr").forEach(row => {
+        const rawId = row.querySelector("td:first-child small");
+        if (rawId) rawId.style.display = "none";
+        setText(row.querySelector('a[href^="#/tracking/"]'), "Open tracking");
+      });
+
+      holdings.querySelectorAll(".staging-empty").forEach(empty => {
+        const strong = empty.querySelector("strong");
+        if (/No current holdings/i.test(String(strong?.textContent || ""))) {
+          setText(strong, "No owned cards yet.");
+          setText(empty.querySelector("p"), "When you mark a saved card as Owned and add its purchase details, it will appear here.");
+          setText(empty.querySelector('a[href="#/tracking"]'), "Open tracking");
+        }
+      });
+    }
+
+    const limitation = panels.find(section => /No supported-value total or performance chart was created|Market value and performance/i.test(String(section.textContent || "")));
+    if (limitation) {
+      const strong = limitation.querySelector("strong");
+      setText(strong, "Market value and performance are not shown yet.");
+      setText(limitation.querySelector("p"), "Portfolio currently uses only the purchase facts you recorded. FlipForge will not invent a gain or loss without a governed current-value snapshot.");
+    }
+
+    page.dataset.ffPortfolioCustomerUx = "v1";
+  }
+
   function polishCurrentRoute() {
     queued = false;
     const route = routeName();
     if (route === "tracking") polishTracking();
     if (route === "alerts") polishAlerts();
+    if (route === "portfolio") polishPortfolio();
   }
 
   function queue() {
