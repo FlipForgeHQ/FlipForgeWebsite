@@ -12,6 +12,7 @@ on:
       - "docs/SAAS_PRIVATE_BETA_OPERATIONS_BOUNDARY.md"
       - "scripts/build-assets.js"
       - "scripts/validate-brand-assets.js"
+      - "scripts/validate-production-prototype-isolation.mjs"
       - "scripts/validate-consumer-ux-refinement.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-customer-portfolio.mjs"
@@ -52,6 +53,7 @@ jobs:
           node --check saas-prototype/feature-data.js
           node --check saas-prototype/app.js
           node --check saas-prototype/feature-pages.js
+          node --check saas-prototype/prototype-visual-loader.js
           node --check saas-prototype/visual-intelligence.js
           node --check saas-prototype/cockpit-expansion.js
           node --check saas-prototype/cockpit-layout-fix.js
@@ -66,11 +68,12 @@ jobs:
           node --check saas-prototype/customer-entitlements.js
           node --check saas-prototype/private-beta.js
           node --check saas-prototype/serve.mjs
+          node --check scripts/validate-production-prototype-isolation.mjs
           node --check scripts/validate-consumer-ux-refinement.mjs
           node --check scripts/validate-saas-customer-entitlements.mjs
 
       - name: Run exact Netlify build command
-        run: npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:customer-entitlements && npm run validate:private-beta-operations-boundary && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
+        run: npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:production-prototype-isolation && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:customer-entitlements && npm run validate:private-beta-operations-boundary && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
 
       - name: Run deterministic prototype checks
         run: |
@@ -79,6 +82,7 @@ jobs:
           node saas-prototype/validate-cockpit-expansion.mjs
           node saas-prototype/validate-cockpit-polish.mjs
           node saas-prototype/validate-cockpit-final-ux.mjs
+          node scripts/validate-production-prototype-isolation.mjs
           node scripts/validate-consumer-ux-refinement.mjs
           node saas-prototype/validate-sidebar-edge-fix.mjs
 
