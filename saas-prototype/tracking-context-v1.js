@@ -181,7 +181,9 @@
     if (restoreGenericTrackingRoute()) return;
     const main = document.querySelector(MAIN);
     verifyExactTracking(main);
-    polishTracking(main);
+    // Tracking context owns exact-record routing only. Customer-facing Tracking
+    // presentation is owned by tracking-navigation-reload-v1.js so a lifecycle
+    // re-render cannot be overwritten by this older polish layer.
   }
 
   function queue() {
