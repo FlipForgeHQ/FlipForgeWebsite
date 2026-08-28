@@ -1,0 +1,229 @@
+/* FlipForge Customer Readability v1
+ * Presentation only. Java/Core remains the sole intelligence authority.
+ * Raises the customer-facing type floor without changing business logic.
+ */
+:root {
+  --ff-type-xs: .75rem;
+  --ff-type-sm: .8125rem;
+  --ff-type-md: .9375rem;
+  --ff-type-lg: 1.0625rem;
+  --ff-type-xl: 1.25rem;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.prototype-banner,
+.prototype-banner strong,
+.prototype-banner span {
+  font-size: var(--ff-type-xs);
+}
+
+.prototype-chip,
+.forge-nav-state,
+.brand-tagline {
+  font-size: var(--ff-type-xs) !important;
+}
+
+.primary-nav a {
+  min-height: 44px;
+  font-size: .9rem;
+}
+
+.ff-advanced-nav > summary {
+  min-height: 40px;
+  font-size: .82rem;
+}
+
+.plan-card .eyebrow,
+.plan-card strong,
+.usage-row,
+.plan-card small,
+.account-link strong,
+.account-link small,
+.profile-copy strong,
+.profile-copy small {
+  font-size: var(--ff-type-xs);
+}
+
+.global-search input { font-size: .9rem; }
+kbd { font-size: var(--ff-type-xs); }
+.date-button { font-size: var(--ff-type-sm); }
+
+#main-content .page-heading .eyebrow,
+#main-content .forge-heat-title-row .eyebrow,
+#main-content .panel .eyebrow,
+.eyebrow {
+  font-size: var(--ff-type-xs);
+}
+
+#main-content .page-heading p {
+  font-size: .98rem;
+  line-height: 1.62;
+}
+
+#main-content .panel-header h2 { font-size: 1.08rem; }
+
+#main-content .panel-header p,
+.panel-header p {
+  font-size: .875rem;
+  line-height: 1.55;
+}
+
+#main-content .panel-body,
+#main-content .panel-body p,
+#main-content .panel-body li {
+  font-size: var(--ff-type-md);
+}
+
+#main-content small {
+  font-size: var(--ff-type-xs);
+  line-height: 1.5;
+}
+
+.button {
+  min-height: 42px;
+  padding-inline: 15px;
+  font-size: .84rem;
+}
+
+.boundary-note {
+  font-size: .84rem;
+  line-height: 1.58;
+}
+
+.panel-link { font-size: var(--ff-type-sm); }
+
+.metric-top,
+.metric-note,
+#main-content .metric-top > span:first-child {
+  font-size: var(--ff-type-xs);
+}
+
+.customer-dashboard-metrics span,
+.customer-management-metrics span,
+.customer-portfolio-metrics span,
+.customer-portfolio-key-grid span {
+  font-size: var(--ff-type-xs) !important;
+}
+
+th {
+  font-size: var(--ff-type-xs);
+  line-height: 1.35;
+}
+
+td {
+  font-size: .875rem;
+  line-height: 1.5;
+}
+
+.card-cell strong { font-size: .875rem; }
+.card-cell small { font-size: var(--ff-type-xs); }
+.status-pill,
+.staging-status { font-size: var(--ff-type-xs); }
+
+.customer-lifecycle-notice {
+  font-size: .875rem;
+  line-height: 1.5;
+}
+
+.customer-lifecycle-fields label {
+  font-size: var(--ff-type-xs);
+  line-height: 1.35;
+}
+
+.customer-lifecycle-fields input,
+.customer-lifecycle-fields select {
+  min-height: 46px;
+  font-size: .9rem;
+}
+
+.customer-lifecycle-submit small { font-size: .8rem; }
+
+.customer-lifecycle-history span,
+.customer-lifecycle-history p {
+  font-size: .8rem;
+  line-height: 1.55;
+}
+
+.customer-lifecycle-history strong { font-size: .94rem; }
+.customer-lifecycle-alerts h3 { font-size: .94rem; }
+.customer-lifecycle-alerts p { font-size: .84rem; line-height: 1.5; }
+
+.customer-portfolio-boundaries p,
+.customer-portfolio-key-grid strong {
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.customer-portfolio-boundaries small,
+.customer-portfolio-table small {
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+.ff-di-hero-copy .eyebrow,
+.ff-di-state-top span,
+.ff-di-state-meta span,
+.ff-di-mini-label,
+.ff-di-control label,
+.ff-di-state-value div span,
+.ff-di-authority strong {
+  font-size: var(--ff-type-xs);
+}
+
+.ff-di-hero-copy p { font-size: 1rem; }
+.ff-di-card h2 { font-size: 1.15rem; }
+.ff-di-card > p,
+.ff-di-bar-row > span,
+.ff-di-factor-head span,
+.ff-di-evidence-head span,
+.ff-di-factor-head strong,
+.ff-di-evidence-head strong,
+.ff-di-authority span,
+.ff-di-gap span {
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.ff-di-bar-row > strong,
+.ff-di-pop-column strong,
+.ff-di-compare-metrics strong { font-size: .9rem; }
+.ff-di-pop-column span,
+.ff-di-compare-metrics span { font-size: var(--ff-type-xs); }
+.ff-di-decision { font-size: var(--ff-type-xs); }
+.ff-di-compare-side h3 { font-size: 1rem; }
+
+.signal-label,
+.signal-value,
+.check-item strong,
+.activity-item strong {
+  font-size: .8rem;
+}
+
+.check-item small,
+.check-item > span:last-child,
+.activity-item small,
+.activity-time,
+.hero-price span,
+.key-value span,
+.readiness-ring-copy span,
+.chart-legend,
+.chart-tooltip,
+.chart-axis {
+  font-size: var(--ff-type-xs);
+}
+
+.hero-title p { font-size: .84rem; }
+.key-value strong { font-size: .9rem; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  #main-content { padding: 20px 16px; }
+  #main-content .page-heading p { font-size: .95rem; }
+  .primary-nav a { font-size: .92rem; }
+  .button { min-height: 44px; font-size: .86rem; }
+  td { font-size: .9rem; }
+}

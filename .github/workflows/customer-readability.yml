@@ -1,0 +1,28 @@
+name: Customer Readability
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/validate-customer-readability.mjs"
+      - ".github/workflows/customer-readability.yml"
+  push:
+    branches: [main]
+    paths:
+      - "saas-prototype/**"
+      - "scripts/validate-customer-readability.mjs"
+      - ".github/workflows/customer-readability.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate customer readability scale
+        run: node scripts/validate-customer-readability.mjs
