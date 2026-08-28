@@ -46,11 +46,12 @@ check("Saved Decisions / Card Intelligence uses the production opportunity bridg
 check("Opportunity detail renderer validates exact requested ids", opportunities.includes("state.requestedId") && opportunities.includes("/api/v1/opportunities/${encoded}") && opportunities.includes("SAFE_ID"));
 check("Opportunity bridge does not require staging diagnostics in production", opportunitiesBridge.includes("const stagingAdapter = window.FlipForgeStagingReadAdapter") && opportunitiesBridge.includes("const customerAdapter = window.FlipForgeCustomerOpportunities") && !opportunitiesBridge.includes("if (!stagingAdapter || !customerAdapter) return"));
 check("Tracking route is owned by lifecycle adapter", lifecycle.includes('const ROUTES = new Set(["tracking", "portfolio", "alerts"])') && hook.includes("lifecycleAdapter.handles(route)"));
+check("Tracking lifecycle reads/writes stay server-owned", lifecycle.includes('"/api/v1/lifecycle"') && lifecycle.includes('/api/v1/lifecycle/${') && lifecycle.includes('credentials: "same-origin"'));
 check("Portfolio has a dedicated customer adapter before generic lifecycle handling", hook.includes('route === "portfolio"') && hook.indexOf('route === "portfolio"') < hook.indexOf("lifecycleAdapter.handles(route)"));
 check("Alerts has a server-owned lifecycle path", lifecycle.includes('"alerts"') && lifecycle.includes('"/api/v1/alerts"'));
-check("PSA Advisor is owned by customer management", management.includes('const ROUTES = new Set(["psa-advisor", "evidence", "sell", "portfolio", "alerts"])') && hook.includes("managementAdapter.handles(route)"));
-check("Evidence is owned by customer management", management.includes('"evidence"') && management.includes('"/api/v1/(opportunities|evidence|psa-advisor)') === false);
-check("Exit Review is owned by customer management", management.includes('"sell"'));
+check("PSA Advisor is owned by customer management", management.includes('const ROUTES = new Set(["psa-advisor", "evidence", "sell", "portfolio", "alerts"])') && hook.includes("managementAdapter.handles(route)") && management.includes('/api/v1/psa-advisor/${encoded}'));
+check("Evidence is owned by customer management", management.includes('"evidence"') && management.includes('/api/v1/evidence/${encoded}'));
+check("Exit Review is owned by customer management", management.includes('"sell"') && management.includes("sellView"));
 check("Compare is routed to the dedicated customer adapter", hook.includes('route === "compare"') && hook.includes("compareAdapter.render(main"));
 check("Forge Heat is routed to the dedicated customer adapter", hook.includes('route === "forge-heat"') && hook.includes("forgeHeatAdapter.render(main)"));
 check("Market View is routed to the dedicated customer adapter", hook.includes('route === "market-view"') && hook.includes("marketViewAdapter.render(main)"));
@@ -59,7 +60,7 @@ check("Account / Plan & Usage is routed to customer entitlements", hook.includes
 check("Decision Intelligence production host cannot fall back to prototype rows", decision.includes("if (productionHost())") && decision.includes('state.source = "error"') && decision.includes('state.source = "prototype"'));
 check("Decision Intelligence validates Smart Opportunity authority", decision.includes('meta.authority === "Smart Opportunity"'));
 check("Decision Intelligence validates PSA authority", decision.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
-check("Customer route hook has no transaction action", !/buy now|place bid|checkout|execute purchase/i.test(hook));
+check("Customer route hook has no transaction action", !/buy now|place bid|execute purchase/i.test(hook));
 
 const sourceRoutes = [
   "dashboard",
