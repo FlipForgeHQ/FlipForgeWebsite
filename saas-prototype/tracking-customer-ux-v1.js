@@ -155,8 +155,6 @@
   }
 
   function polishTracking() {
-    queued = false;
-    if (routeName() !== "tracking") return;
     const page = document.querySelector(`${MAIN} .customer-lifecycle-page`);
     if (!page) return;
 
@@ -194,13 +192,126 @@
     clarifyDuplicateCards(page);
     polishForm(page);
     humanizeHistory(page);
-    page.dataset.ffTrackingCustomerUx = "v2";
+    page.dataset.ffTrackingCustomerUx = "v3";
+  }
+
+  function friendlyReviewTime(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return raw;
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(parsed);
+  }
+
+  function polishAlertItems(page) {
+    page.querySelectorAll(".customer-lifecycle-alerts article").forEach(article => {
+      setText(article.querySelector(".eyebrow"), "Review reminder");
+      const detail = article.querySelector("p");
+      if (detail) {
+        const raw = String(detail.textContent || "").replace(/^Review at\s+/i, "").trim();
+        const formatted = friendlyReviewTime(raw);
+        if (formatted) setText(detail, `Review: ${formatted}`);
+      }
+      const manage = article.querySelector('a[href^="#/tracking/"]');
+      setText(manage, "Open tracking");
+    });
+  }
+
+  function polishAlertLimits(page) {
+    const panels = [...page.querySelectorAll("section.panel")];
+    const limits = panels.find(section => /Delivery boundary|Private beta reminder limits/i.test(String(section.querySelector("h2")?.textContent || "")));
+    if (!limits) return;
+
+    setText(limits.querySelector("h2"), "Private beta reminder limits");
+    setText(limits.querySelector(".panel-header p"), "Reminders currently appear inside FlipForge. Email, SMS, and push delivery are not active in private beta.");
+
+    const rows = [...limits.querySelectorAll(".customer-management-checklist > div")];
+    rows.forEach(row => {
+      const strong = row.querySelector("strong");
+      const small = row.querySelector("small");
+      const title = String(strong?.textContent || "").trim();
+      if (/SQLite rule persistence/i.test(title)) {
+        setText(strong, "In-app reminders");
+        setText(small, "Saved to your account and shown here when they are due.");
+      } else if (/Email, SMS, and push/i.test(title)) {
+        setText(strong, "Email, SMS & push");
+        setText(small, "Not available in private beta yet.");
+      } else if (/Zero transaction authority/i.test(title)) {
+        setText(strong, "No automatic transactions");
+        setText(small, "A reminder cannot buy, sell, list, bid, or pay for anything.");
+      }
+    });
+  }
+
+  function polishAlerts() {
+    const page = document.querySelector(`${MAIN} .customer-lifecycle-page`);
+    if (!page) return;
+
+    const heading = page.querySelector(".page-heading");
+    setText(heading?.querySelector(".eyebrow"), "Review reminders");
+    setText(heading?.querySelector("p"), "See which saved cards need attention and open Tracking when you want to change a reminder.");
+
+    const actions = heading?.querySelector(".page-actions");
+    const manage = actions?.querySelector('a[href="#/tracking"]');
+    setText(manage, "Manage reminders");
+
+    const boundary = page.querySelector(".boundary-note");
+    if (boundary) {
+      boundary.innerHTML = "<strong>Reminder boundary:</strong> Alerts tell you when to revisit a saved card. They never rescore the decision or execute a transaction.";
+    }
+
+    const metrics = [...page.querySelectorAll(".customer-management-metrics article")];
+    metrics.forEach(article => {
+      const label = article.querySelector("span");
+      const strong = article.querySelector("strong");
+      const value = String(label?.textContent || "").trim();
+      if (/Enabled rules/i.test(value)) setText(label, "Active reminders");
+      if (/Reviews due/i.test(value)) setText(label, "Due now");
+      if (/In-app queue/i.test(value)) setText(label, "In-app reminders");
+      if (/Email \/ push/i.test(value)) {
+        setText(label, "Email & push");
+        if (/Not connected/i.test(String(strong?.textContent || ""))) setText(strong, "Not in beta");
+      }
+    });
+
+    const panels = [...page.querySelectorAll("section.panel")];
+    const reminders = panels.find(section => /Review reminders|Your reminders/i.test(String(section.querySelector("h2")?.textContent || "")));
+    if (reminders) {
+      setText(reminders.querySelector("h2"), "Your reminders");
+      setText(reminders.querySelector(".panel-header p"), "Cards you scheduled to revisit in FlipForge.");
+
+      reminders.querySelectorAll(".staging-empty").forEach(empty => {
+        const strong = empty.querySelector("strong");
+        if (/No review reminder is enabled/i.test(String(strong?.textContent || ""))) {
+          setText(strong, "No reminders yet.");
+          setText(empty.querySelector("p"), "Set a review date on a tracked card and turn on Remind me in FlipForge.");
+          setText(empty.querySelector('a[href="#/tracking"]'), "Open tracking");
+        }
+      });
+    }
+
+    polishAlertItems(page);
+    polishAlertLimits(page);
+    page.dataset.ffAlertsCustomerUx = "v1";
+  }
+
+  function polishCurrentRoute() {
+    queued = false;
+    const route = routeName();
+    if (route === "tracking") polishTracking();
+    if (route === "alerts") polishAlerts();
   }
 
   function queue() {
     if (queued) return;
     queued = true;
-    window.requestAnimationFrame(polishTracking);
+    window.requestAnimationFrame(polishCurrentRoute);
   }
 
   const main = document.querySelector(MAIN);
