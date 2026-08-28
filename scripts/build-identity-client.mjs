@@ -21,6 +21,8 @@ const commercialDashboardStylesheetTag = '<link rel="stylesheet" href="commercia
 const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"></script>';
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
 const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
+const typographyFloorScriptTag = '<script src="customer-typography-floor-v1.js"></script>';
+const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability-v1.css">';
 
 fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
 
@@ -70,13 +72,18 @@ function injectProductionEntitlementsBefore(htmlPath, marker) {
   fs.writeFileSync(htmlPath, updated, "utf8");
 }
 
+function injectStylesheetBeforeReadability(html, stylesheetTag, label, htmlPath) {
+  if (html.includes(stylesheetTag)) return html;
+  if (!html.includes(readabilityStylesheetTag)) {
+    throw new Error(`${label} readability marker missing in ${path.relative(root, htmlPath)}`);
+  }
+  return html.replace(readabilityStylesheetTag, `${stylesheetTag}\n  ${readabilityStylesheetTag}`);
+}
+
 function injectCommercialDashboard(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Commercial dashboard target missing: ${path.relative(root, htmlPath)}`);
   let html = fs.readFileSync(htmlPath, "utf8");
-  if (!html.includes('commercial-dashboard-v2.css')) {
-    if (!html.includes("</head>")) throw new Error(`Commercial dashboard head marker missing in ${path.relative(root, htmlPath)}`);
-    html = html.replace("</head>", `  ${commercialDashboardStylesheetTag}\n</head>`);
-  }
+  html = injectStylesheetBeforeReadability(html, commercialDashboardStylesheetTag, "Commercial dashboard", htmlPath);
   if (!html.includes('commercial-dashboard-v2.js')) {
     if (!html.includes("</body>")) throw new Error(`Commercial dashboard body marker missing in ${path.relative(root, htmlPath)}`);
     html = html.replace("</body>", `  ${commercialDashboardScriptTag}\n</body>`);
@@ -87,14 +94,20 @@ function injectCommercialDashboard(htmlPath) {
 function injectCommercialAppPolish(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Commercial app polish target missing: ${path.relative(root, htmlPath)}`);
   let html = fs.readFileSync(htmlPath, "utf8");
-  if (!html.includes('commercial-app-polish-v2.css')) {
-    if (!html.includes("</head>")) throw new Error(`Commercial app polish head marker missing in ${path.relative(root, htmlPath)}`);
-    html = html.replace("</head>", `  ${commercialAppPolishStylesheetTag}\n</head>`);
-  }
+  html = injectStylesheetBeforeReadability(html, commercialAppPolishStylesheetTag, "Commercial app polish", htmlPath);
   if (!html.includes('commercial-app-polish-v2.js')) {
     if (!html.includes("</body>")) throw new Error(`Commercial app polish body marker missing in ${path.relative(root, htmlPath)}`);
     html = html.replace("</body>", `  ${commercialAppPolishScriptTag}\n</body>`);
   }
+  fs.writeFileSync(htmlPath, html, "utf8");
+}
+
+function injectTypographyFloor(htmlPath) {
+  if (!fs.existsSync(htmlPath)) throw new Error(`Typography floor target missing: ${path.relative(root, htmlPath)}`);
+  let html = fs.readFileSync(htmlPath, "utf8");
+  if (html.includes('customer-typography-floor-v1.js')) return;
+  if (!html.includes("</body>")) throw new Error(`Typography floor body marker missing in ${path.relative(root, htmlPath)}`);
+  html = html.replace("</body>", `  ${typographyFloorScriptTag}\n</body>`);
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
@@ -131,16 +144,15 @@ injectProductionSignInBefore(appIndex, '<script src="staging-browser.js"></scrip
 // authentication has been established.
 injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-portal.js"></script>');
 
-// Commercial dashboard v2 is presentation-only over the existing authenticated
-// dashboard/opportunity contracts. It deliberately keeps Market Index blank until
-// a server-authoritative market-index engine exists and never creates a synthetic
-// ForgeScore in the browser.
+// Commercial presentation layers are injected BEFORE the final customer
+// readability stylesheet. This keeps the premium visual system while ensuring
+// the uniform readability/accessibility floor is the final typography authority.
 injectCommercialDashboard(appIndex);
-
-// Commercial app polish extends the premium visual system to existing customer
-// workspaces, keeps the production shell labeled as private beta on every route,
-// and replaces the hand-built sidebar mark with the repository-approved brand asset.
 injectCommercialAppPolish(appIndex);
+
+// The computed typography floor runs after every route/presentation script so it
+// can correct legacy microcopy selectors without shrinking any text already >=14px.
+injectTypographyFloor(appIndex);
 
 // Deploy previews/local source retain explicit staging diagnostics. Production
 // output strips the preview-only staging read adapter, its navigation, and its CSS.
@@ -156,6 +168,7 @@ console.log(`Built FlipForge Netlify Identity client (${identityBytes} bytes).`)
 console.log(`Built FlipForge production Identity sign-in (${productionSignInBytes} bytes).`);
 console.log(`Built FlipForge isolated production auth probe (${productionAuthProbeBytes} bytes).`);
 console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
-console.log("Injected FlipForge commercial dashboard v2 assets.");
-console.log("Injected FlipForge commercial app polish v2 assets.");
+console.log("Injected FlipForge commercial dashboard v2 assets before customer readability.");
+console.log("Injected FlipForge commercial app polish v2 assets before customer readability.");
+console.log("Injected FlipForge computed customer typography floor after route presentation scripts.");
 console.log(`Applied FlipForge production/preview app boundary for CONTEXT=${process.env.CONTEXT || "local"}.`);

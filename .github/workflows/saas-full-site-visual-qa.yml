@@ -7,6 +7,7 @@ on:
       - "scripts/build-identity-client.mjs"
       - "scripts/audit-saas-layout-ci.mjs"
       - "scripts/audit-saas-layout.mjs"
+      - "scripts/audit-customer-typography-ci.mjs"
       - "scripts/check-saas-layout-report.mjs"
       - ".github/workflows/saas-full-site-visual-qa.yml"
   push:
@@ -17,6 +18,7 @@ on:
       - "scripts/build-identity-client.mjs"
       - "scripts/audit-saas-layout-ci.mjs"
       - "scripts/audit-saas-layout.mjs"
+      - "scripts/audit-customer-typography-ci.mjs"
       - "scripts/check-saas-layout-report.mjs"
       - ".github/workflows/saas-full-site-visual-qa.yml"
   workflow_dispatch:
@@ -28,7 +30,7 @@ jobs:
   visual-layout-audit:
     name: Audit built SaaS routes at desktop tablet and mobile widths
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 14
 
     steps:
       - name: Check out repository
@@ -70,12 +72,17 @@ jobs:
       - name: Gate actionable layout and Dashboard semantic failures
         run: node scripts/check-saas-layout-report.mjs
 
-      - name: Upload layout audit report
+      - name: Gate uniform customer typography floor
+        run: node scripts/audit-customer-typography-ci.mjs
+
+      - name: Upload layout and typography audit reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: flipforge-saas-full-site-layout-audit
-          path: qa-artifacts/saas-layout
+          path: |
+            qa-artifacts/saas-layout
+            qa-artifacts/customer-typography
           if-no-files-found: warn
           retention-days: 14
 
