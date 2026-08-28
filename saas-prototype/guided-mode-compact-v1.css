@@ -3,6 +3,10 @@
  * comfortable reading sizes and touch targets.
  */
 
+.topbar-actions .date-button {
+  text-decoration: none;
+}
+
 .ff-guide-panel {
   width: min(340px, calc(100vw - 28px));
 }
