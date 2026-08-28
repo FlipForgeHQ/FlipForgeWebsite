@@ -14,7 +14,7 @@
     "validate:card-intelligence-result-priority": "node scripts/validate-card-intelligence-result-priority.mjs",
     "validate:card-intelligence-detail-route": "node scripts/validate-card-intelligence-detail-route.mjs && node scripts/validate-card-intelligence-loading-recovery.mjs",
     "validate:production-prototype-isolation": "node scripts/validate-production-prototype-isolation.mjs",
-    "validate:customer-dashboard": "node scripts/validate-saas-customer-dashboard.mjs && node scripts/validate-production-prototype-isolation.mjs",
+    "validate:customer-dashboard": "node scripts/validate-saas-customer-dashboard.mjs",
     "validate:commercial-dashboard-live-qa": "node scripts/validate-saas-commercial-dashboard-live-qa.mjs",
     "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs",
     "validate:customer-compare": "node scripts/validate-saas-customer-compare.mjs",
