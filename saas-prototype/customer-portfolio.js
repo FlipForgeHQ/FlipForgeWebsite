@@ -297,15 +297,26 @@
   }
 
   function coveragePanel(data) {
+    const hasHoldings = Number(data.count) > 0;
     const completeReference = data.completeReferenceCoverage === true;
     const completePerformance = data.completePerformanceCoverage === true;
-    const totalReference = completeReference
+    const coverageLabel = !hasHoldings
+      ? "No holdings yet"
+      : completeReference
+        ? "Complete coverage"
+        : "Partial coverage";
+    const coverageTone = !hasHoldings ? "neutral" : completeReference ? "ok" : "warn";
+    const totalReference = !hasHoldings
+      ? "No holdings to evaluate"
+      : completeReference
       ? moneyCents(data.completePortfolioReferenceValueCents)
       : "Unavailable until every holding passes evidence gates";
-    const totalDelta = completePerformance
+    const totalDelta = !hasHoldings
+      ? "No holdings to evaluate"
+      : completePerformance
       ? signedMoneyCents(data.completePortfolioReferenceDeltaCents)
       : "Unavailable until every holding has reference + cost basis";
-    return `<div class="customer-portfolio-grid"><section class="panel"><header class="panel-header"><div><h2>Coverage-aware totals</h2><p>FlipForge never extrapolates uncovered holdings.</p></div>${badge(completeReference ? "Complete coverage" : "Partial coverage", completeReference ? "ok" : "warn")}</header><div class="panel-body customer-portfolio-key-grid"><div><span>Whole-portfolio reference</span><strong>${escapeHtml(totalReference)}</strong></div><div><span>Whole-portfolio reference delta</span><strong>${escapeHtml(totalDelta)}</strong></div><div><span>Covered reference subtotal</span><strong>${escapeHtml(moneyCents(data.coveredReferenceValueCents))}</strong></div><div><span>Covered cost basis</span><strong>${escapeHtml(moneyCents(data.coveredCostBasisCents))}</strong></div><div><span>Covered reference delta</span><strong>${escapeHtml(signedMoneyCents(data.coveredReferenceDeltaCents))}</strong></div><div><span>Method</span><strong>Accepted exact completed-sale average</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>What this number is not</h2><p>The evidence reference is intentionally narrower than a generic market-price claim.</p></div></header><div class="panel-body customer-portfolio-boundaries"><div><span>✓</span><p><strong>Completed sales only</strong><small>At least 3 accepted exact sales; newest sale must be 30 days old or less.</small></p></div><div><span>×</span><p><strong>No active asks</strong><small>Current listings and fixed-price asks do not become completed-sale evidence.</small></p></div><div><span>×</span><p><strong>No appraisal or liquidation promise</strong><small>Fees, taxes, shipping, insurance, liquidity discounts, and transaction timing are excluded.</small></p></div></div></section></div>`;
+    return `<div class="customer-portfolio-grid"><section class="panel"><header class="panel-header"><div><h2>Coverage-aware totals</h2><p>FlipForge never extrapolates uncovered holdings.</p></div>${badge(coverageLabel, coverageTone)}</header><div class="panel-body customer-portfolio-key-grid"><div><span>Whole-portfolio reference</span><strong>${escapeHtml(totalReference)}</strong></div><div><span>Whole-portfolio reference delta</span><strong>${escapeHtml(totalDelta)}</strong></div><div><span>Covered reference subtotal</span><strong>${escapeHtml(moneyCents(data.coveredReferenceValueCents))}</strong></div><div><span>Covered cost basis</span><strong>${escapeHtml(moneyCents(data.coveredCostBasisCents))}</strong></div><div><span>Covered reference delta</span><strong>${escapeHtml(signedMoneyCents(data.coveredReferenceDeltaCents))}</strong></div><div><span>Method</span><strong>Accepted exact completed-sale average</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>What this number is not</h2><p>The evidence reference is intentionally narrower than a generic market-price claim.</p></div></header><div class="panel-body customer-portfolio-boundaries"><div><span>✓</span><p><strong>Completed sales only</strong><small>At least 3 accepted exact sales; newest sale must be 30 days old or less.</small></p></div><div><span>×</span><p><strong>No active asks</strong><small>Current listings and fixed-price asks do not become completed-sale evidence.</small></p></div><div><span>×</span><p><strong>No appraisal or liquidation promise</strong><small>Fees, taxes, shipping, insurance, liquidity discounts, and transaction timing are excluded.</small></p></div></div></section></div>`;
   }
 
   function pageMarkup() {
