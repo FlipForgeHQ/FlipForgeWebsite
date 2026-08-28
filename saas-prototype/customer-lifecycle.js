@@ -388,7 +388,7 @@
       };
       await request(`/api/v1/lifecycle/${encodeURIComponent(state.selectedId)}`, { method: "PUT", body });
       await load();
-      state.notice = "Lifecycle saved in tenant-scoped SQLite.";
+      state.notice = "Tracking changes saved to your account.";
     } catch (error) {
       state.error = error;
     } finally {

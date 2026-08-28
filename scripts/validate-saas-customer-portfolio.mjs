@@ -146,26 +146,45 @@ check("037 customer cost basis renders", preview.main.innerHTML.includes("$525.0
 check("038 server reference delta renders", preview.main.innerHTML.includes("+$175.00") && preview.main.innerHTML.includes("+33.33%"));
 check("039 active-ask exclusion renders", preview.main.innerHTML.includes("Active asks excluded"));
 
-const production = runtime({ hostname: "goflipforge.com", pathname: "/app/" });
-check("040 production app is eligible", production.window.FlipForgeCustomerPortfolio.isEligible());
-check("041 production Portfolio render activates", production.window.FlipForgeCustomerPortfolio.render(production.main) === true);
+const empty = runtime({ mutate(data) {
+  data.count = 0;
+  data.totalCostBasisCents = 0;
+  data.referenceValueAvailableCount = 0;
+  data.performanceAvailableCount = 0;
+  data.completeReferenceCoverage = false;
+  data.completePerformanceCoverage = false;
+  data.coveredReferenceValueCents = 0;
+  data.coveredCostBasisCents = 0;
+  data.coveredReferenceDeltaCents = 0;
+  data.completePortfolioReferenceValueCents = null;
+  data.completePortfolioReferenceDeltaCents = null;
+  data.items = [];
+} });
+empty.window.FlipForgeCustomerPortfolio.render(empty.main);
 await settle();
-check("042 production uses hardened same-origin reads", production.calls.every(call => call.options.method === "GET" && call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
+check("040 zero holdings use an honest empty coverage state", empty.main.innerHTML.includes("No holdings yet") && empty.main.innerHTML.includes("No holdings to evaluate"));
+check("041 zero holdings do not claim partial coverage", !empty.main.innerHTML.includes("Partial coverage"));
+
+const production = runtime({ hostname: "goflipforge.com", pathname: "/app/" });
+check("042 production app is eligible", production.window.FlipForgeCustomerPortfolio.isEligible());
+check("043 production Portfolio render activates", production.window.FlipForgeCustomerPortfolio.render(production.main) === true);
+await settle();
+check("044 production uses hardened same-origin reads", production.calls.every(call => call.options.method === "GET" && call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
 
 const marketing = runtime({ hostname: "goflipforge.com", pathname: "/" });
-check("043 public marketing path is ineligible", marketing.window.FlipForgeCustomerPortfolio.isEligible() === false);
+check("045 public marketing path is ineligible", marketing.window.FlipForgeCustomerPortfolio.isEligible() === false);
 
 const disabled = runtime({ healthStatus: "disabled" });
 disabled.window.FlipForgeCustomerPortfolio.render(disabled.main);
 await settle();
-check("044 disabled gateway stops after health", disabled.calls.length === 1);
-check("045 disabled gateway renders no sample value", /safely offline/i.test(disabled.main.innerHTML) && !disabled.main.innerHTML.includes("$700.00"));
+check("046 disabled gateway stops after health", disabled.calls.length === 1);
+check("047 disabled gateway renders no sample value", /safely offline/i.test(disabled.main.innerHTML) && !disabled.main.innerHTML.includes("$700.00"));
 
 const contaminated = runtime({ mutate: value => { value.items[0].referenceValue.activeListingsUsed = true; } });
 contaminated.window.FlipForgeCustomerPortfolio.render(contaminated.main);
 await settle();
-check("046 active-listing contamination fails closed", contaminated.main.innerHTML.includes("PORTFOLIO_REFERENCE_CONTRACT_INVALID"));
-check("047 contaminated reference never renders", !contaminated.main.innerHTML.includes("$700.00"));
+check("048 active-listing contamination fails closed", contaminated.main.innerHTML.includes("PORTFOLIO_REFERENCE_CONTRACT_INVALID"));
+check("049 contaminated reference never renders", !contaminated.main.innerHTML.includes("$700.00"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer Portfolio production validation");
