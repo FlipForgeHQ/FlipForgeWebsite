@@ -55,13 +55,13 @@
       const strong = row.querySelector("strong");
       const small = row.querySelector("small");
       const title = String(strong?.textContent || "").trim();
-      if (/SQLite rule persistence/i.test(title)) {
+      if (/SQLite rule persistence|account rule persistence|your account rule persistence/i.test(title)) {
         setText(strong, "In-app reminders");
         setText(small, "Saved to your account and shown here when they are due.");
-      } else if (/Email, SMS, and push/i.test(title)) {
+      } else if (/Email, SMS,? (?:and|&) push/i.test(title)) {
         setText(strong, "Email, SMS & push");
         setText(small, "Not available in private beta yet.");
-      } else if (/Zero transaction authority/i.test(title)) {
+      } else if (/Zero transaction authority|No automatic transactions/i.test(title)) {
         setText(strong, "No automatic transactions");
         setText(small, "A reminder cannot buy, sell, list, bid, or pay for anything.");
       }
@@ -102,11 +102,17 @@
     if (reminders) {
       setText(reminders.querySelector("h2"), "Your reminders");
       setText(reminders.querySelector(".panel-header p"), "Cards you scheduled to revisit in FlipForge.");
+
+      const availability = reminders.querySelector(".staging-status");
+      if (/IN_APP_REVIEW_ALERTS_AVAILABLE/i.test(String(availability?.textContent || ""))) {
+        setText(availability, "In-app reminders available");
+      }
+
       reminders.querySelectorAll(".staging-empty").forEach(empty => {
         const strong = empty.querySelector("strong");
-        if (/No review reminder is enabled/i.test(String(strong?.textContent || ""))) {
+        if (/No review reminder is enabled|No reminders yet/i.test(String(strong?.textContent || ""))) {
           setText(strong, "No reminders yet.");
-          setText(empty.querySelector("p"), "Set a review date on a tracked card and turn on Remind me in FlipForge.");
+          setText(empty.querySelector("p"), "Choose Review in Tracking, set a review date, and save. FlipForge will keep the in-app reminder with that saved card.");
           setText(empty.querySelector('a[href="#/tracking"]'), "Open tracking");
         }
       });
@@ -114,7 +120,7 @@
 
     polishAlertItems(page);
     polishAlertLimits(page);
-    page.dataset.ffAlertsCustomerUx = "v1";
+    page.dataset.ffAlertsCustomerUx = "v2";
   }
 
   function polishPortfolio() {
