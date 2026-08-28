@@ -30,9 +30,9 @@ assert.equal(local.context, "local");
 assert.equal(local.commitRef, "local");
 
 const forbiddenSourcePatterns = [
-  /process\.env\s*[),}]/,
   /Object\.assign\([^\n]*process\.env/,
   /\.\.\.process\.env/,
+  /JSON\.stringify\(\s*process\.env/i,
   /API[_-]?KEY/i,
   /SECRET/i,
   /TOKEN/i,
@@ -46,10 +46,15 @@ for (const pattern of forbiddenSourcePatterns) {
   assert.equal(pattern.test(contractSource), false, `forbidden deploy-manifest source pattern: ${pattern}`);
   assert.equal(pattern.test(writerSource), false, `forbidden deploy writer source pattern: ${pattern}`);
 }
+assert.equal(
+  writerSource.includes("createDeployManifest(process.env)"),
+  true,
+  "writer must pass the build environment only through the strict manifest allowlist helper"
+);
 
 if (fs.existsSync("deploy-meta.json")) {
   const actual = JSON.parse(fs.readFileSync("deploy-meta.json", "utf8"));
   validateDeployManifest(actual);
 }
 
-console.log("Deployment manifest validation passed: safe fields, production authority boundary, preview isolation, and no secret-bearing source patterns.");
+console.log("Deployment manifest validation passed: safe fields, production authority boundary, preview isolation, and no raw environment serialization.");
