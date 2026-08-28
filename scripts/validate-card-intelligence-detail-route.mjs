@@ -2,6 +2,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const source = fs.readFileSync(new URL("../saas-prototype/customer-opportunities.js", import.meta.url), "utf8");
+const routeHookSource = fs.readFileSync(new URL("../saas-prototype/staging-route-hook.js", import.meta.url), "utf8");
 
 function envelope(correlationId, data) {
   return {
@@ -35,21 +36,21 @@ const fetchImpl = async (url, options) => {
     kind: "opportunity-detail",
     opportunity: {
       id: "EBAY-live-001",
-      title: "2018 Topps Chrome Shohei Ohtani #150 Refractor PSA 9",
-      cardIdentity: "2018 Topps Chrome Shohei Ohtani #150 Refractor PSA 9",
+      title: "2018 Topps Chrome Shohei Ohtani #150 PSA 9",
+      cardIdentity: "2018 Topps Chrome Shohei Ohtani #150 PSA 9",
       platform: "EBAY",
       recommendation: "PASS",
       workflowStatus: "PASS",
-      ask: 3999.99,
-      supportedValue: 3500,
-      confidence: 80,
+      ask: 904.98,
+      supportedValue: 855,
+      confidence: 83,
       liquidity: 70,
       risk: 35,
       rank: 40,
       evidenceCount: 6,
       observedAt: "2026-08-25T00:00:00Z",
-      mappingState: "NOT_CONFIRMED",
-      evidence: { acceptedSales: 6, averagePrice: 3500, latestSaleDate: "2026-08-24" },
+      mappingState: "CONFIRMED",
+      evidence: { acceptedSales: 6, averagePrice: 855, latestSaleDate: "2026-08-24" },
       authorityBoundary: "Smart Opportunity remains authoritative."
     }
   }));
@@ -99,6 +100,43 @@ const main = { innerHTML: "", querySelectorAll() { return []; } };
 const started = window.FlipForgeCustomerOpportunities.render(main, "EBAY-live-001");
 await new Promise(resolve => setTimeout(resolve, 40));
 
+const routeRenderCalls = [];
+const routeMain = {
+  innerHTML: "prototype fallback must not survive",
+  focus() {},
+  querySelector() { return null; },
+  querySelectorAll() { return []; }
+};
+const routeWindow = {
+  location: { hostname: "goflipforge.com", pathname: "/app/", hash: "#/opportunities/EBAY-live-001" },
+  FlipForgeCustomerOpportunities: {
+    isEligible: () => true,
+    render(target, id) {
+      routeRenderCalls.push({ target, id });
+      target.innerHTML = `authoritative:${id}`;
+      return true;
+    }
+  },
+  addEventListener() {},
+  scrollTo() {}
+};
+const routeDocument = {
+  querySelector(selector) {
+    if (selector === "#main-content") return routeMain;
+    return null;
+  },
+  createElement() {
+    return {};
+  }
+};
+const routeContext = vm.createContext({
+  window: routeWindow,
+  document: routeDocument,
+  console,
+  queueMicrotask(callback) { callback(); }
+});
+vm.runInContext(routeHookSource, routeContext, { filename: "staging-route-hook.js" });
+
 const checks = [
   ["detail render starts", started === true],
   ["exactly three direct reads", calls.length === 3],
@@ -107,7 +145,10 @@ const checks = [
   ["no saved-list preflight", !calls.includes("/api/v1/opportunities")],
   ["decision renders", main.innerHTML.includes(">PASS<")],
   ["supported value renders", main.innerHTML.includes("Supported value")],
-  ["loading state clears", !main.innerHTML.includes("Loading card intelligence…")]
+  ["loading state clears", !main.innerHTML.includes("Loading card intelligence…")],
+  ["production Opportunities route starts without staging read adapter", routeRenderCalls.length === 1],
+  ["production Opportunities route preserves authoritative opportunity id", routeRenderCalls[0]?.id === "EBAY-live-001"],
+  ["production Opportunities route replaces prototype fallback", routeMain.innerHTML === "authoritative:EBAY-live-001"]
 ];
 
 let failed = 0;
