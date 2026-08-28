@@ -66,18 +66,19 @@
     floorPseudo(element, "::after", AFTER_CLASS);
   }
 
-  function scan(root = document.body) {
+  function scan() {
+    const root = document.body;
     if (!(root instanceof Element)) return;
     floorElement(root);
     root.querySelectorAll("*").forEach(floorElement);
   }
 
-  function queueScan(root = document.body) {
+  function queueScan() {
     if (queued) return;
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      scan(root instanceof Element ? root : document.body);
+      scan();
     });
   }
 
@@ -95,18 +96,10 @@
   function start() {
     installStyle();
     queueScan();
+    setTimeout(queueScan, 100);
+    setTimeout(queueScan, 400);
 
-    const observer = new MutationObserver(mutations => {
-      let root = document.body;
-      for (const mutation of mutations) {
-        if (mutation.type === "childList" && mutation.target instanceof Element) {
-          root = mutation.target;
-          break;
-        }
-        if (mutation.target instanceof Element) root = mutation.target;
-      }
-      queueScan(root);
-    });
+    const observer = new MutationObserver(() => queueScan());
 
     observer.observe(document.body, {
       subtree: true,
@@ -115,11 +108,15 @@
       attributeFilter: ["class", "style", "hidden"]
     });
 
-    window.addEventListener("hashchange", () => queueScan());
-    window.addEventListener("resize", () => queueScan(), { passive: true });
+    window.addEventListener("hashchange", () => {
+      queueScan();
+      setTimeout(queueScan, 80);
+      setTimeout(queueScan, 300);
+    });
+    window.addEventListener("resize", queueScan, { passive: true });
     window.FlipForgeCustomerTypographyFloor = Object.freeze({
       minimumPx: MINIMUM_PX,
-      rescan: () => queueScan()
+      rescan: queueScan
     });
   }
 
