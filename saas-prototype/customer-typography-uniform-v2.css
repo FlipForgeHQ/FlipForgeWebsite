@@ -142,6 +142,99 @@
   line-height: 1.15;
 }
 
+/* Core four-step workflow strip and decision summary. */
+.ff-workflow-step,
+.ff-workflow-step > span:last-child,
+.ff-workflow-step-number,
+.ff-decision-summary-kicker,
+.ff-decision-summary-pill,
+.ff-decision-summary p,
+.ff-decision-next,
+.ff-decision-next strong,
+.ff-recovery-coach span,
+.ff-recovery-coach p,
+.ff-beta-mission p,
+.ff-beta-mission-checks span {
+  font-size: var(--ff-type-xs) !important;
+  line-height: 1.45;
+}
+
+.ff-workflow-step-number {
+  width: 28px;
+  height: 28px;
+}
+
+.ff-decision-summary p,
+.ff-decision-next {
+  font-size: var(--ff-type-sm) !important;
+  line-height: 1.58;
+}
+
+/* Private-beta walkthrough/status/feedback surfaces. */
+.private-beta-progress span,
+.private-beta-progress small,
+.private-beta-status-card span,
+.private-beta-status-card small,
+.private-beta-step-copy > span,
+.private-beta-step-copy small,
+.private-beta-limit small,
+.private-beta-feedback-form label,
+.private-beta-consent,
+.private-beta-consent span,
+.private-beta-feedback-note,
+.private-beta-message,
+.private-beta-page .check-mark {
+  font-size: var(--ff-type-xs) !important;
+  line-height: 1.5;
+}
+
+.private-beta-step-copy strong,
+.private-beta-limit strong,
+.private-beta-status-card strong {
+  font-size: var(--ff-type-sm) !important;
+  line-height: 1.45;
+}
+
+/* Guided first-run modal/quick-path copy. */
+.ff-guide-modal-step span,
+.ff-guide-modal-step p,
+.ff-guide-modal-note,
+.ff-guide-modal .ff-guide-intro,
+.ff-guide-quick-path span,
+.ff-guide-quick-path p {
+  font-size: var(--ff-type-xs) !important;
+  line-height: 1.5;
+}
+
+/* Discover entry, labels, persistence note, and generated badges. */
+.customer-discovery-search::before,
+.customer-discovery-form > label > span,
+.customer-discovery-form > label:has(input[name="exactCardQuery"]) > span,
+.customer-discovery-form > label:has(input[name="exactCardQuery"]) > span::before,
+.ff-card-entry-helper,
+.ff-card-entry-helper::before,
+.ff-discover-persistence-note,
+.ff-discover-persistence-note span,
+.ff-discover-persistence-note div,
+.ff-discover-persistence-note strong {
+  font-size: var(--ff-type-xs) !important;
+  line-height: 1.45;
+}
+
+.ff-discover-persistence-note strong {
+  font-size: var(--ff-type-sm) !important;
+}
+
+/* Remaining compact state markers. */
+.check-mark,
+.ff-di-source,
+.ff-di-source-server,
+.ff-di-decision,
+.ff-di-state-value strong {
+  font-size: var(--ff-type-xs) !important;
+  line-height: 1.4;
+}
+
 @media (max-width: 900px) {
   .ff-commercial-shell .brand-block {
     padding-left: 14px;
@@ -150,5 +243,12 @@
 
   .ff-commercial-shell .primary-nav a {
     min-height: 58px;
+  }
+
+  .ff-workflow-step,
+  .ff-workflow-step > span:last-child,
+  .ff-workflow-step-number,
+  .customer-discovery-search::before {
+    font-size: var(--ff-type-xs) !important;
   }
 }
