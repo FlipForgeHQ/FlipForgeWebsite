@@ -242,35 +242,50 @@ async function auditPage(page) {
     const isTextControl = element => element.matches("input, select, textarea");
     const issues = [];
 
+    const pushIfUndersized = (selector, tag, style, text) => {
+      const size = Number.parseFloat(style.fontSize);
+      if (!Number.isFinite(size) || size + 0.01 >= minimum) return;
+      issues.push({
+        selector,
+        tag,
+        fontSizePx: Number(size.toFixed(2)),
+        text: String(text || "").slice(0, 120)
+      });
+    };
+
+    const pseudoText = (element, pseudo) => {
+      const style = getComputedStyle(element, pseudo);
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return;
+      const raw = String(style.content || "").trim();
+      if (!raw || raw === "none" || raw === "normal" || raw === '""' || raw === "''") return;
+      const text = raw.replace(/^['"]|['"]$/g, "").replace(/\\A/g, " ").trim();
+      if (!/[A-Za-z0-9]/.test(text)) return;
+      pushIfUndersized(`${label(element)}${pseudo}`, `pseudo${pseudo}`, style, text);
+    };
+
     for (const element of document.querySelectorAll("body *")) {
       if (!(element instanceof HTMLElement)) continue;
       if (excluded.some(selector => element.matches(selector) || element.closest(selector))) continue;
       const style = getComputedStyle(element);
       if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0 || !element.getClientRects().length) continue;
-      if (!directText(element) && !isTextControl(element)) continue;
 
-      const text = isTextControl(element)
-        ? String(element.value || element.getAttribute("placeholder") || element.getAttribute("aria-label") || "").trim()
-        : String([...element.childNodes]
-            .filter(node => node.nodeType === Node.TEXT_NODE)
-            .map(node => node.nodeValue || "")
-            .join(" "))
-            .replace(/\s+/g, " ")
-            .trim();
-
-      if (!text) continue;
-      const size = Number.parseFloat(style.fontSize);
-      if (Number.isFinite(size) && size + 0.01 < minimum) {
-        issues.push({
-          selector: label(element),
-          tag: element.tagName.toLowerCase(),
-          fontSizePx: Number(size.toFixed(2)),
-          text: text.slice(0, 120)
-        });
+      if (directText(element) || isTextControl(element)) {
+        const text = isTextControl(element)
+          ? String(element.value || element.getAttribute("placeholder") || element.getAttribute("aria-label") || "").trim()
+          : String([...element.childNodes]
+              .filter(node => node.nodeType === Node.TEXT_NODE)
+              .map(node => node.nodeValue || "")
+              .join(" "))
+              .replace(/\s+/g, " ")
+              .trim();
+        if (text) pushIfUndersized(label(element), element.tagName.toLowerCase(), style, text);
       }
+
+      pseudoText(element, "::before");
+      pseudoText(element, "::after");
     }
 
-    return issues.slice(0, 200);
+    return issues.slice(0, 250);
   }, minimumTextPx);
 }
 
@@ -358,9 +373,10 @@ const markdown = [
   "## Findings",
   ...(failures.length
     ? failures.slice(0, 250).map(item => `- **${item.route} · ${item.viewport}** — ${item.fontSizePx}px · ${item.selector} — ${item.text}`)
-    : ["- None. All rendered customer text met the 14px floor."]),
+    : ["- None. All rendered customer text, including generated pseudo-copy, met the 14px floor."]),
   "",
   "This audit expands collapsed details before measuring and checks the production-built /app mount at desktop, tablet, and mobile widths.",
+  "Generated ::before/::after copy containing human-readable text is included in the typography floor.",
   "Synthetic API fixtures are browser-only and do not write account data or change any FlipForge authority.",
   ""
 ].join("\n");
