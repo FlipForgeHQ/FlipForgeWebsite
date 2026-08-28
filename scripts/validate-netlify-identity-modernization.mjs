@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const exists = relative => fs.existsSync(path.join(root, relative));
+const productionBuild = String(process.env.CONTEXT || "").toLowerCase() === "production";
 
 const packageJson = JSON.parse(read("package.json"));
 const netlify = read("netlify.toml");
@@ -21,6 +22,10 @@ const productionBundle = exists("assets/js/flipforge-production-signin.js") ? re
 
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
+const identityIndex = appIndex.indexOf('/assets/js/flipforge-identity.js');
+const productionSignInIndex = appIndex.indexOf('/assets/js/flipforge-production-signin.js');
+const stagingReadIndex = appIndex.indexOf('staging-browser.js');
+const retainedCustomerRuntimeIndex = appIndex.indexOf('staging-evaluation.js');
 
 check("001 current Netlify Identity dependency is pinned", packageJson.dependencies?.["@netlify/identity"] === "1.2.0");
 check("002 browser bundler is pinned", packageJson.devDependencies?.esbuild === "0.28.1");
@@ -54,8 +59,10 @@ check("029 Identity UI cannot inject trusted tenant or user headers", !/X-FlipFo
 check("030 Identity bundle build targets browser IIFE", buildIdentity.includes('format: "iife"') && buildIdentity.includes('platform: "browser"'));
 check("031 generated Identity bundle exists", bundle.length > 0);
 check("032 public root receives callback-capable Identity client", index.includes('/assets/js/flipforge-identity.js'));
-check("033 staging app receives Identity client", appIndex.includes('/assets/js/flipforge-identity.js'));
-check("034 staging Identity client loads before staging data adapter", appIndex.indexOf('/assets/js/flipforge-identity.js') < appIndex.indexOf('staging-browser.js'));
+check("033 app receives Identity client", identityIndex >= 0);
+check("034 Identity client respects preview/production adapter ordering", productionBuild
+  ? stagingReadIndex === -1 && retainedCustomerRuntimeIndex >= 0 && identityIndex < retainedCustomerRuntimeIndex
+  : stagingReadIndex >= 0 && identityIndex < stagingReadIndex);
 check("035 generated bundle contains no FlipForge service-token identifier", !/FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_SAAS_SERVICE_TOKEN/.test(bundle));
 check("036 eBay privacy function exists in deployed functions directory", exists("netlify/modern-functions/ebay-privacy.js"));
 check("037 duplicate auth snapshots are fingerprinted before UI updates", identitySource.includes("function identityFingerprint(user)") && identitySource.includes("identityFingerprint(state.user) === identityFingerprint(normalized)"));
@@ -67,8 +74,10 @@ check("042 production sign-in stores no raw auth or gateway secrets in browser c
 check("043 build bundles and injects the production sign-in before app adapters", buildIdentity.includes("flipforge-production-signin.mjs") && buildIdentity.includes("flipforge-production-signin.js") && buildIdentity.includes("injectProductionSignInBefore"));
 check("044 generated production Identity bundle exists", productionBundle.length > 0);
 check("045 generated production Identity bundle contains no FlipForge service-token identifier", !/FLIPFORGE_API_SERVICE_TOKEN|FLIPFORGE_SAAS_SERVICE_TOKEN/.test(productionBundle));
-check("046 production app receives production sign-in bundle", appIndex.includes('/assets/js/flipforge-production-signin.js'));
-check("047 production sign-in loads before staging data adapter", appIndex.indexOf('/assets/js/flipforge-production-signin.js') < appIndex.indexOf('staging-browser.js'));
+check("046 production app receives production sign-in bundle", productionSignInIndex >= 0);
+check("047 production sign-in respects preview/production adapter ordering", productionBuild
+  ? stagingReadIndex === -1 && retainedCustomerRuntimeIndex >= 0 && productionSignInIndex < retainedCustomerRuntimeIndex
+  : stagingReadIndex >= 0 && productionSignInIndex < stagingReadIndex);
 check("048 production login refreshes shared Identity and tenant adapters", productionIdentitySource.includes("window.FlipForgeIdentity?.refresh?.()") && productionIdentitySource.includes("window.FlipForgeStagingReadAdapter?.refresh?.()"));
 check("049 invite and recovery password minimum is hardened to fifteen characters", identitySource.includes("const PASSWORD_MIN_LENGTH = 15;") && identitySource.includes('minlength="${PASSWORD_MIN_LENGTH}"'));
 check("050 password guidance is visible and recommends unique credentials", identitySource.includes("Use a unique password with at least ${PASSWORD_MIN_LENGTH} characters. A password manager is recommended.") && identitySource.includes("PASSWORD_GUIDANCE"));
@@ -78,9 +87,11 @@ check("053 shared Identity open fails closed outside preview and operator routes
 check("054 production operator sign-in explains server-side role verification", identitySource.includes("Operator authorization is verified again by the server") && identitySource.includes("Operator role not active"));
 check("055 production invitations use customer-facing beta wording", identitySource.includes("Activate your FlipForge beta account") && !identitySource.includes("Activate your FlipForge staging account"));
 check("056 successful production invitation opens Getting Started", identitySource.includes('window.location.assign("/app/#/beta-start")') && identitySource.includes("Opening FlipForge Getting Started"));
+check("057 production build validates the staging diagnostic strip rather than requiring preview assets", !productionBuild || (stagingReadIndex === -1 && !appIndex.includes('href="staging-browser.css"') && !appIndex.includes('data-route="staging"') && !appIndex.includes('data-route="staging-evaluate"')));
 
 const failures = checks.filter(item => !item.passed);
 console.log("NetlifyIdentityModernizationValidation");
+console.log(`CONTEXT: ${process.env.CONTEXT || "local"}`);
 console.log(`PASSED: ${checks.length - failures.length}`);
 console.log(`FAILED: ${failures.length}`);
 for (const failure of failures) console.error(`FAIL | ${failure.name}`);
