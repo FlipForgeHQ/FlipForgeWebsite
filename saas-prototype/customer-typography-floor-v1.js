@@ -100,6 +100,19 @@
         overflow-x: hidden !important;
       }
 
+      .ff-commercial-shell .ff-advanced-nav-links,
+      .ff-commercial-shell .ff-advanced-nav-links a {
+        box-sizing: border-box !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .ff-commercial-shell .ff-advanced-nav-links a {
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+
       .ff-commercial-shell .ff-advanced-nav > summary {
         display: grid !important;
         grid-template-columns: minmax(0, 1fr) !important;
