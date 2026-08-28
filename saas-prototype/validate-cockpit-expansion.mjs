@@ -6,6 +6,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const read = name => fs.readFileSync(path.join(root, name), "utf8");
 
 const index = read("index.html");
+const loader = read("prototype-visual-loader.js");
 const script = read("cockpit-expansion.js");
 const styles = read("cockpit-expansion.css");
 const layoutScript = read("cockpit-layout-fix.js");
@@ -14,8 +15,8 @@ const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
 check("001 cockpit stylesheet is loaded", index.includes('href="cockpit-expansion.css"'));
-check("002 cockpit script is loaded", index.includes('src="cockpit-expansion.js"'));
-check("003 cockpit script loads after visual intelligence", index.indexOf('src="cockpit-expansion.js"') > index.indexOf('src="visual-intelligence.js"'));
+check("002 cockpit script is host-gated through the prototype loader", index.includes('src="prototype-visual-loader.js"') && loader.includes('"cockpit-expansion.js"'));
+check("003 cockpit script loads after visual intelligence inside the loader", loader.indexOf('"cockpit-expansion.js"') > loader.indexOf('"visual-intelligence.js"'));
 check("004 platform overview exists", script.includes("Every major FlipForge intelligence module"));
 check("005 Evaluator module exists", script.includes('"Evaluator"'));
 check("006 Smart Opportunity module exists", script.includes('"Smart Opportunity"'));
@@ -49,7 +50,7 @@ check("033 reduced motion support exists", styles.includes("@media (prefers-redu
 check("034 chart meaning has accessible labels", script.includes('role="img"') && script.includes("aria-label"));
 check("035 cockpit hierarchy stylesheet is loaded", index.includes('href="cockpit-layout-fix.css"'));
 check("036 cockpit hierarchy script is loaded", index.includes('src="cockpit-layout-fix.js"'));
-check("037 hierarchy fix loads after cockpit expansion", index.indexOf('src="cockpit-layout-fix.js"') > index.indexOf('src="cockpit-expansion.js"'));
+check("037 hierarchy fix loads after prototype visual loader", index.indexOf('src="cockpit-layout-fix.js"') > index.indexOf('src="prototype-visual-loader.js"'));
 check("038 cockpit becomes the primary dashboard", layoutScript.includes("heading.after(cockpit)"));
 check("039 deep analysis follows the cockpit", layoutScript.includes("deepAnalysisHeading.after(visualLayer)"));
 check("040 duplicate legacy dashboard blocks are hidden only after replacement exists", layoutScript.includes("cockpit-legacy-dashboard-block") && layoutScript.includes("if (!page || !heading || !cockpit || !visualLayer) return"));
@@ -57,6 +58,8 @@ check("041 dashboard navigation resets to the top", layoutScript.includes("prima
 check("042 hidden legacy blocks are removed visually", layoutStyles.includes(".cockpit-legacy-dashboard-block") && layoutStyles.includes("display: none !important"));
 check("043 selected analysis section remains visible", layoutScript.includes("Why this card deserves attention"));
 check("044 hierarchy fix includes responsive layout", layoutStyles.includes("@media (max-width: 1180px)") && layoutStyles.includes("@media (max-width: 760px)"));
+check("045 production host disables prototype cockpit loading", loader.includes('if (production) return;') && loader.includes('PRODUCTION_SERVER_OWNED'));
+check("046 cockpit expansion is not directly wired into production HTML", !index.includes('<script src="cockpit-expansion.js"></script>'));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSCockpitExpansionValidation");
