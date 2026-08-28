@@ -32,12 +32,4 @@
     stylesheet.dataset.stagingDiagnosticsStyle = "";
     document.head.appendChild(stylesheet);
   }
-
-  if (document.querySelector('script[data-staging-diagnostics-adapter]')) return;
-  const script = document.createElement("script");
-  script.src = "staging-browser.js";
-  script.async = true;
-  script.dataset.stagingDiagnosticsAdapter = "";
-  script.addEventListener("load", () => window.dispatchEvent(new Event("flipforge:staging-adapter-ready")));
-  document.head.appendChild(script);
 })();
