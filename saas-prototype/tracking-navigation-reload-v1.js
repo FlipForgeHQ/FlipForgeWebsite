@@ -56,3 +56,12 @@
     }
   }, true);
 })();
+
+(() => {
+  "use strict";
+  if (document.querySelector('script[data-ff-tracking-customer-ux]')) return;
+  const script = document.createElement("script");
+  script.src = "tracking-customer-ux-v1.js";
+  script.dataset.ffTrackingCustomerUx = "";
+  document.head.appendChild(script);
+})();
