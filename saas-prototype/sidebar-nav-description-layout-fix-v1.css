@@ -1,0 +1,43 @@
+/* FlipForge sidebar navigation description layout fix.
+ * Presentation only. Prevents readable two-line nav descriptions from colliding
+ * with adjacent navigation rows after the customer typography rebalance.
+ */
+
+.ff-commercial-shell .primary-nav a {
+  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  align-content: center;
+  min-height: 64px;
+  height: auto;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  row-gap: 2px;
+}
+
+.ff-commercial-shell .primary-nav a > span:first-child.ff-nav-icon {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: center;
+}
+
+.ff-commercial-shell .primary-nav a::after,
+.ff-commercial-shell .primary-nav a .nav-description,
+.ff-commercial-shell .primary-nav a small {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+@media (max-width: 900px) {
+  .ff-commercial-shell .primary-nav a {
+    min-height: 64px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
