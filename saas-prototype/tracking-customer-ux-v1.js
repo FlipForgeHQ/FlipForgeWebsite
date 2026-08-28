@@ -72,6 +72,13 @@
     return form.querySelector(`[name="${name}"]`)?.closest("label") || null;
   }
 
+  function setFieldVisible(form, name, visible) {
+    const label = fieldLabel(form, name);
+    if (!label) return;
+    label.hidden = !visible;
+    label.style.display = visible ? "" : "none";
+  }
+
   function polishForm(page) {
     const form = page.querySelector("[data-lifecycle-form]");
     if (!form) return;
@@ -97,14 +104,10 @@
     const purchaseVisible = status === "OWNED" || status === "SOLD";
     const saleVisible = status === "SOLD";
 
-    ["acquisitionCost", "acquiredAt"].forEach(name => {
-      const label = fieldLabel(form, name);
-      if (label) label.hidden = !purchaseVisible;
-    });
-    ["dispositionProceeds", "disposedAt"].forEach(name => {
-      const label = fieldLabel(form, name);
-      if (label) label.hidden = !saleVisible;
-    });
+    setFieldVisible(form, "acquisitionCost", purchaseVisible);
+    setFieldVisible(form, "acquiredAt", purchaseVisible);
+    setFieldVisible(form, "dispositionProceeds", saleVisible);
+    setFieldVisible(form, "disposedAt", saleVisible);
 
     const cost = form.querySelector('input[name="acquisitionCost"]');
     if (cost) cost.placeholder = "Required when owned or sold";
@@ -138,6 +141,17 @@
           .replace(/\s+·\s+Version\s+/i, " · Update ");
       }
     });
+
+    page.querySelectorAll(".staging-empty").forEach(empty => {
+      const strong = empty.querySelector("strong");
+      if (!/No lifecycle history yet/i.test(String(strong?.textContent || ""))) return;
+      setText(strong, "No tracking history yet.");
+      setText(empty.querySelector("p"), "Save your first tracking update and it will appear here.");
+    });
+  }
+
+  function removeTrackingOnlyClutter() {
+    document.querySelectorAll(`${MAIN} [data-ff-beta-mission]`).forEach(node => node.remove());
   }
 
   function polishTracking() {
@@ -145,6 +159,8 @@
     if (routeName() !== "tracking") return;
     const page = document.querySelector(`${MAIN} .customer-lifecycle-page`);
     if (!page) return;
+
+    removeTrackingOnlyClutter();
 
     const heading = page.querySelector(".page-heading");
     setText(heading?.querySelector(".eyebrow"), "Decision follow-up");
@@ -178,7 +194,7 @@
     clarifyDuplicateCards(page);
     polishForm(page);
     humanizeHistory(page);
-    page.dataset.ffTrackingCustomerUx = "v1";
+    page.dataset.ffTrackingCustomerUx = "v2";
   }
 
   function queue() {
