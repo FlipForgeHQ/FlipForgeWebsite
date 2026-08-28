@@ -34,7 +34,6 @@
     "validate:paddle-customer-checkout": "node scripts/validate-saas-paddle-customer-checkout.mjs",
     "validate:paddle-customer-portal": "node scripts/validate-saas-paddle-customer-portal.mjs",
     "validate:paddle-webhook-gateway-boundary": "node scripts/validate-saas-paddle-webhook-gateway-boundary.mjs",
-    "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs",
     "validate:homepage-progression": "node scripts/validate-homepage-progression.mjs",
     "validate:beta-acquisition": "node scripts/validate-beta-acquisition-onboarding.mjs",
     "validate:beta-operator": "node scripts/validate-beta-operator-workflow.mjs"
