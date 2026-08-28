@@ -13,6 +13,9 @@ const checks = [
   ["Guided Mode explain controls are rewritten", consistency.includes('document.getElementById("ff-guided-mode-root")') && consistency.includes('guide?.querySelectorAll("[data-guide-action]")')],
   ["all explain labels are covered", consistency.includes("Show me why") && consistency.includes("Show me what is missing") && consistency.includes("I understand this decision")],
   ["native links target exact saved Evidence route", consistency.includes('return `#/evidence/${encodeURIComponent(id)}`')],
+  ["authoritative decision is read only from the saved Card Intelligence hero", consistency.includes('main?.querySelector(".customer-intelligence-hero")') && consistency.includes('hero.querySelectorAll(".staging-status,[data-recommendation]")')],
+  ["Guided Mode is synchronized to authoritative decision", consistency.includes("function syncGuidedDecision(decision)") && consistency.includes("panel.dataset.ffAuthoritativeDecision = decision") && consistency.includes('title.textContent = `Start here: ${decision}.`')],
+  ["Guided Mode decision copy covers BUY WATCH VERIFY and PASS", consistency.includes('decision === "BUY"') && consistency.includes('decision === "WATCH"') && consistency.includes('decision === "PASS"') && consistency.includes("VERIFY means FlipForge")],
   ["body observer repairs Guided Mode rerenders", consistency.includes("new MutationObserver(queue).observe(document.body")]
 ];
 
