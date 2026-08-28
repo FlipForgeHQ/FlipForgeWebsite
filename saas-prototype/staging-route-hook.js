@@ -122,6 +122,15 @@
           focusMain();
           return;
         }
+        if (route === "opportunities"
+            && adapter
+            && typeof adapter.renderCustomer === "function"
+            && adapter.isEligible()) {
+          showCustomerIntelligenceBanner();
+          adapter.renderCustomer(main, id);
+          focusMain();
+          return;
+        }
         if (route === "forge-heat"
             && forgeHeatAdapter
             && typeof forgeHeatAdapter.render === "function"
