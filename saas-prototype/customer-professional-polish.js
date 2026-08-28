@@ -219,6 +219,13 @@
       if (key && HEAT_TAB_LABELS[key]) setText(button, HEAT_TAB_LABELS[key]);
     });
 
+    shell.querySelectorAll(".forge-heat-summary > div").forEach(metric => {
+      const label = metric.querySelector("span");
+      const text = label?.textContent?.trim();
+      if (text === "Heat eligible") setText(label, "Eligible for scoring");
+      if (text === "Surfaced") setText(label, "60+ surfaced");
+    });
+
     const lock = shell.querySelector(".forge-heat-lock");
     if (lock) {
       setText(lock.querySelector(".forge-heat-lock-mark"), "BETA");
@@ -253,7 +260,8 @@
     const route = routeName();
     root.querySelectorAll(".staging-empty, .consumer-state-empty, .forge-heat-empty").forEach(state => {
       if (/No qualifying opportunities yet/i.test(state.textContent || "")) {
-        setText(state.querySelector("strong"), "No opportunities meet the evidence threshold yet.");
+        setText(state.querySelector("strong"), "No opportunity reaches the Forge Heat surface threshold yet.");
+        setText(state.querySelector("p"), "Forge Heat scores eligible decisions first, then surfaces only those with a score of 60 or higher.");
       }
       if (state.querySelector("a, button") || !ctas[route]) return;
       const [label, href] = ctas[route];
