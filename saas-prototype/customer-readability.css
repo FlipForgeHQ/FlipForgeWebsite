@@ -34,7 +34,7 @@ body {
 
 .primary-nav a {
   min-height: 46px;
-  font-size: var(--ff-type-md) !important;
+  font-size: var(--ff-type-sm) !important;
   line-height: 1.3;
 }
 
@@ -42,7 +42,7 @@ body {
 .primary-nav .nav-description,
 .ff-secondary-nav-link,
 .ff-advanced-nav > summary {
-  font-size: var(--ff-type-sm) !important;
+  font-size: var(--ff-type-xs) !important;
   line-height: 1.4;
 }
 
@@ -86,12 +86,12 @@ kbd,
 #main-content .customer-lifecycle-page > header p,
 #main-content .customer-portfolio-page > header p,
 #main-content .customer-management-page > header p {
-  font-size: 1.0625rem !important;
-  line-height: 1.62;
+  font-size: var(--ff-type-md) !important;
+  line-height: 1.55;
 }
 
 #main-content .panel-header h2 {
-  font-size: 1.1875rem;
+  font-size: var(--ff-type-lg);
 }
 
 #main-content .panel-header p,
@@ -101,7 +101,7 @@ kbd,
 #main-content .customer-portfolio-boundaries p,
 #main-content .customer-portfolio-key-grid strong {
   font-size: var(--ff-type-sm) !important;
-  line-height: 1.58;
+  line-height: 1.52;
 }
 
 #main-content .panel-body,
@@ -110,8 +110,8 @@ kbd,
 #main-content .customer-lifecycle-page p,
 #main-content .customer-portfolio-page p,
 #main-content .customer-management-page p {
-  font-size: var(--ff-type-md);
-  line-height: 1.58;
+  font-size: var(--ff-type-sm);
+  line-height: 1.52;
 }
 
 #main-content small,
@@ -157,7 +157,7 @@ td,
 #main-content td,
 .card-cell strong {
   font-size: var(--ff-type-sm) !important;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .card-cell small,
@@ -187,7 +187,7 @@ td,
 .customer-lifecycle-history p,
 .customer-lifecycle-alerts p {
   font-size: var(--ff-type-xs) !important;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .customer-lifecycle-fields input,
@@ -216,12 +216,12 @@ td,
 }
 
 .ff-di-hero-copy p {
-  font-size: 1.0625rem !important;
-  line-height: 1.6;
+  font-size: var(--ff-type-md) !important;
+  line-height: 1.55;
 }
 
 .ff-di-card h2 {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
 }
 
 .ff-di-card > p,
@@ -233,7 +233,7 @@ td,
 .ff-di-authority span,
 .ff-di-gap span {
   font-size: var(--ff-type-sm) !important;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .ff-di-bar-row > strong,
@@ -243,7 +243,7 @@ td,
 }
 
 .ff-di-compare-side h3 {
-  font-size: 1.0625rem;
+  font-size: var(--ff-type-md);
 }
 
 /* Dashboard, charts, state cards, and compact utility surfaces */
@@ -296,7 +296,7 @@ td,
 .forge-heat-history p,
 .forge-heat-empty strong {
   font-size: var(--ff-type-sm) !important;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 /* Guided Mode */
@@ -321,12 +321,12 @@ td,
 }
 
 .ff-guide-head strong {
-  font-size: var(--ff-type-lg) !important;
+  font-size: var(--ff-type-md) !important;
 }
 
 .ff-guide-body h2 {
-  font-size: 1.5rem !important;
-  line-height: 1.2;
+  font-size: 1.25rem !important;
+  line-height: 1.22;
 }
 
 .ff-guide-body > p,
@@ -338,7 +338,7 @@ td,
 }
 
 .ff-guide-action {
-  min-height: 46px;
+  min-height: 44px;
 }
 
 .ff-discover-results-label strong,
@@ -432,8 +432,8 @@ td,
 }
 
 .ff-commercial-shell .primary-nav a {
-  min-height: 56px;
-  font-size: var(--ff-type-md) !important;
+  min-height: 54px;
+  font-size: var(--ff-type-sm) !important;
 }
 
 .ff-commercial-shell .primary-nav a::after {
@@ -444,7 +444,7 @@ td,
 }
 
 .ff-commercial-shell .primary-nav a > span:first-child {
-  font-size: var(--ff-type-md) !important;
+  font-size: var(--ff-type-sm) !important;
 }
 
 .ff-data-freshness,
@@ -480,7 +480,7 @@ td,
 .ff-decision-identity p,
 .ff-market-placeholder p {
   font-size: var(--ff-type-sm) !important;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .ff-v2-table td {
@@ -516,7 +516,7 @@ td,
   }
 
   .ff-commercial-shell .primary-nav a {
-    min-height: 58px;
+    min-height: 56px;
   }
 }
 
