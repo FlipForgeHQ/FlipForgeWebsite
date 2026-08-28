@@ -5,6 +5,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "docs/SAAS_UI_FOUNDATION.md"
+      - "docs/SAAS_CUSTOMER_DASHBOARD.md"
       - "docs/SAAS_CUSTOMER_DISCOVERY.md"
       - "docs/SAAS_CUSTOMER_PORTFOLIO_REFERENCE_VALUE.md"
       - "docs/SAAS_CUSTOMER_SUBSCRIPTION_ENTITLEMENTS.md"
@@ -13,6 +14,8 @@ on:
       - "scripts/build-assets.js"
       - "scripts/validate-brand-assets.js"
       - "scripts/validate-production-prototype-isolation.mjs"
+      - "scripts/validate-saas-customer-dashboard.mjs"
+      - "scripts/validate-saas-commercial-dashboard-live-qa.mjs"
       - "scripts/validate-consumer-ux-refinement.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-customer-portfolio.mjs"
@@ -51,6 +54,7 @@ jobs:
         run: |
           node --check saas-prototype/mock-data.js
           node --check saas-prototype/feature-data.js
+          node --check saas-prototype/production-dashboard-guard.js
           node --check saas-prototype/app.js
           node --check saas-prototype/feature-pages.js
           node --check saas-prototype/prototype-visual-loader.js
@@ -68,6 +72,8 @@ jobs:
           node --check saas-prototype/customer-entitlements.js
           node --check saas-prototype/private-beta.js
           node --check saas-prototype/serve.mjs
+          node --check scripts/validate-saas-customer-dashboard.mjs
+          node --check scripts/validate-saas-commercial-dashboard-live-qa.mjs
           node --check scripts/validate-production-prototype-isolation.mjs
           node --check scripts/validate-consumer-ux-refinement.mjs
           node --check scripts/validate-saas-customer-entitlements.mjs
@@ -82,6 +88,8 @@ jobs:
           node saas-prototype/validate-cockpit-expansion.mjs
           node saas-prototype/validate-cockpit-polish.mjs
           node saas-prototype/validate-cockpit-final-ux.mjs
+          node scripts/validate-saas-customer-dashboard.mjs
+          node scripts/validate-saas-commercial-dashboard-live-qa.mjs
           node scripts/validate-production-prototype-isolation.mjs
           node scripts/validate-consumer-ux-refinement.mjs
           node saas-prototype/validate-sidebar-edge-fix.mjs
