@@ -89,6 +89,68 @@
     style.textContent = `
       .${BEFORE_CLASS}::before,
       .${AFTER_CLASS}::after { font-size: ${MINIMUM_PX}px !important; }
+
+      /* Keep horizontal containment on the actual scrolling navigation surface. */
+      .sidebar,
+      .primary-nav {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+      }
+
+      .primary-nav {
+        overflow-y: auto !important;
+      }
+
+      /* Advanced groups themselves should not create a second scroll container. */
+      .ff-advanced-nav,
+      .ff-advanced-nav-links {
+        box-sizing: border-box !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        margin-inline: 0 !important;
+        padding-inline: 0 !important;
+        overflow: visible !important;
+      }
+
+      .ff-advanced-nav-links a {
+        box-sizing: border-box !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        margin-inline: 0 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+
+      .ff-advanced-nav > summary {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        align-items: start !important;
+        gap: 4px !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+
+      .ff-advanced-hint {
+        justify-self: start !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+
+      /* Lifecycle history is ordinary customer reading text, not microcopy. */
+      .customer-lifecycle-history span,
+      .customer-lifecycle-history p,
+      .customer-lifecycle-history strong,
+      .customer-lifecycle-history time {
+        font-size: ${MINIMUM_PX}px !important;
+        line-height: 1.5 !important;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -105,8 +167,10 @@
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ["class", "style", "hidden"]
+      attributeFilter: ["class", "style", "hidden", "open"]
     });
+
+    document.addEventListener("toggle", queueScan, true);
 
     window.addEventListener("hashchange", () => {
       queueScan();
