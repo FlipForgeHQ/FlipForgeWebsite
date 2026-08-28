@@ -10,7 +10,8 @@ const hook = read("saas-prototype/staging-route-hook.js");
 const lifecycle = read("saas-prototype/customer-lifecycle.js");
 const management = read("saas-prototype/customer-management.js");
 const decision = read("saas-prototype/decision-intelligence-v1.js");
-const dashboard = read("saas-prototype/production-dashboard-guard.js");
+const dashboardGuard = read("saas-prototype/production-dashboard-guard.js");
+const commercialDashboard = read("saas-prototype/commercial-dashboard-v2.js");
 const opportunities = read("saas-prototype/customer-opportunities.js");
 const opportunitiesBridge = read("saas-prototype/customer-opportunities-bridge.js");
 
@@ -19,6 +20,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
 
 const requiredScripts = [
   "production-dashboard-guard.js",
+  "commercial-dashboard-v2.js",
   "staging-evaluation.js",
   "customer-opportunities.js",
   "customer-opportunities-bridge.js",
@@ -39,7 +41,9 @@ for (const script of requiredScripts) {
   check(`production app retains ${script}`, index.includes(`<script src="${script}"></script>`));
 }
 
-check("Dashboard has a dedicated production fail-closed guard", dashboard.includes("PRODUCTION_HOST") && dashboard.includes("CUSTOMER_API_NOT_CONFIGURED") && dashboard.includes("[data-commercial-dashboard-v2]"));
+check("Dashboard has a dedicated production prototype guard", dashboardGuard.includes("PRODUCTION_HOST") && dashboardGuard.includes("[data-commercial-dashboard-v2]") && dashboardGuard.includes("[data-production-dashboard-guard]"));
+check("Commercial Dashboard fails closed when bridge is unavailable", commercialDashboard.includes("CUSTOMER_API_NOT_CONFIGURED") && commercialDashboard.includes("bridgeEnabled") && commercialDashboard.includes('credentials: "same-origin"'));
+check("Commercial Dashboard validates Smart Opportunity authority", commercialDashboard.includes('meta.authority === "Smart Opportunity"') && commercialDashboard.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
 check("Discover is routed to the dedicated customer adapter", hook.includes('route === "discover"') && hook.includes("discoveryAdapter.render(main)"));
 check("Evaluate uses the shared customer renderer", hook.includes('route === "evaluate"') && hook.includes("evaluationAdapter.renderCustomer(main)"));
 check("Saved Decisions / Card Intelligence uses the production opportunity bridge", hook.includes("FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities") && hook.includes('route === "opportunities" && renderOpportunityRoute(id)'));
