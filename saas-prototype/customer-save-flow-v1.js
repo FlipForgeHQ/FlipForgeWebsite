@@ -33,6 +33,14 @@
     return true;
   }
 
+  function isGuidedExplainAction(button) {
+    if (!button || !opportunityId()) return false;
+    const type = String(button.dataset.guideAction || "");
+    if (type !== "highlight" && type !== "understand") return false;
+    const label = String(button.textContent || "").trim();
+    return /^(?:Show me why|Show me what is missing|I understand this decision)/i.test(label);
+  }
+
   function decorateSavedDecision() {
     const id = opportunityId();
     const main = document.querySelector("#main-content");
@@ -85,9 +93,11 @@
   }
 
   document.addEventListener("click", event => {
-    const button = event.target.closest("[data-ff-show-why]");
-    if (!button) return;
+    const direct = event.target.closest("[data-ff-show-why]");
+    const guided = event.target.closest("[data-guide-action]");
+    if (!direct && !isGuidedExplainAction(guided)) return;
     event.preventDefault();
+    event.stopImmediatePropagation();
     openDecisionEvidence();
   }, true);
 
