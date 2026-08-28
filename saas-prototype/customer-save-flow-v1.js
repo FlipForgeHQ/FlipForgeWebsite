@@ -26,23 +26,10 @@
     return parts[0] === "opportunities" && parts.length > 1 ? parts[1] : "";
   }
 
-  function focusDecisionWhy() {
+  function openDecisionEvidence() {
     const id = opportunityId();
-    const main = document.querySelector("#main-content");
-    if (!id || !main) return false;
-
-    document.documentElement.classList.add("ff-show-advanced");
-    const heading = [...main.querySelectorAll("h2,h3")]
-      .find(node => /Decision Traceback|Why FlipForge says this|How to read this decision/i.test(String(node.textContent || "")));
-    const target = heading?.closest("section,article,.panel,.customer-intelligence-section") || heading;
-    if (!target) return false;
-
-    target.classList.remove("ff-progressive-advanced");
-    if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
-    try { target.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) { target.scrollIntoView(); }
-    window.setTimeout(() => {
-      try { target.focus({ preventScroll: true }); } catch (_) { target.focus?.(); }
-    }, 80);
+    if (!id) return false;
+    window.location.hash = `#/evidence/${encodeURIComponent(id)}`;
     return true;
   }
 
@@ -101,9 +88,7 @@
     const button = event.target.closest("[data-ff-show-why]");
     if (!button) return;
     event.preventDefault();
-    if (focusDecisionWhy()) return;
-    const id = opportunityId();
-    if (id) window.location.hash = `#/evidence/${encodeURIComponent(id)}`;
+    openDecisionEvidence();
   }, true);
 
   window.addEventListener("hashchange", () => window.setTimeout(decorate, 60));
