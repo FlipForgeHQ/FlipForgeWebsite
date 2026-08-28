@@ -338,6 +338,259 @@
   margin-top: 12px;
 }
 
+/* Evidence Experience v2 — customer-first decision explanation */
+.customer-management-page[data-ff-evidence-experience="v2"] {
+  gap: 20px;
+}
+
+.customer-management-page[data-ff-evidence-experience="v2"] .page-heading {
+  padding-bottom: 4px;
+}
+
+.customer-management-page[data-ff-evidence-experience="v2"] .page-heading h1 {
+  max-width: 900px;
+  font-size: clamp(34px, 4.5vw, 58px);
+  line-height: .98;
+  letter-spacing: -.04em;
+}
+
+.customer-management-page[data-ff-evidence-experience="v2"] .page-heading p {
+  max-width: 880px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.ff-evidence-readonly-note {
+  padding: 12px 14px;
+  color: var(--text-soft);
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--border-soft);
+  border-left: 2px solid rgba(246,197,80,.5);
+  border-radius: 10px;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.ff-evidence-readonly-note strong {
+  color: var(--text);
+}
+
+.ff-evidence-selector-panel {
+  opacity: .86;
+}
+
+.ff-evidence-selector-panel .panel-body {
+  padding: 10px 14px;
+}
+
+.ff-evidence-proof-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+  gap: 28px;
+  padding: clamp(24px, 4vw, 42px);
+  background:
+    radial-gradient(circle at 78% 25%, rgba(246,197,80,.11), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+  border: 1px solid rgba(246,197,80,.28);
+  border-radius: 18px;
+  box-shadow: 0 22px 60px rgba(0,0,0,.18);
+}
+
+.ff-evidence-kicker {
+  color: var(--gold-strong);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.ff-evidence-proof-copy h2,
+.ff-evidence-next-step h2 {
+  margin: 9px 0 12px;
+  color: var(--text);
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.08;
+  letter-spacing: -.025em;
+}
+
+.ff-evidence-proof-copy > p,
+.ff-evidence-next-step p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.ff-evidence-proof-copy > p strong {
+  color: var(--text);
+}
+
+.ff-evidence-principle {
+  margin-top: 20px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+  background: rgba(246,197,80,.055);
+  border: 1px solid rgba(246,197,80,.18);
+  border-radius: 11px;
+}
+
+.ff-evidence-principle strong {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.ff-evidence-principle span {
+  color: var(--text-soft);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.ff-evidence-funnel {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.ff-evidence-funnel article {
+  min-width: 0;
+  padding: 18px 14px;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  text-align: center;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.ff-evidence-funnel article[data-tone="trusted"] {
+  background: rgba(39,209,127,.07);
+  border-color: rgba(39,209,127,.26);
+}
+
+.ff-evidence-funnel article[data-tone="excluded"] {
+  background: rgba(246,169,22,.055);
+  border-color: rgba(246,169,22,.22);
+}
+
+.ff-evidence-funnel article span {
+  color: var(--text-soft);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.ff-evidence-funnel article strong {
+  color: var(--text);
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1;
+}
+
+.ff-evidence-funnel article small {
+  color: var(--text-soft);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.ff-evidence-funnel-arrow {
+  align-self: center;
+  color: var(--gold-strong);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.customer-management-page[data-ff-evidence-experience="v2"] .customer-management-metrics article {
+  min-height: 126px;
+  padding: 18px;
+  align-content: start;
+}
+
+.customer-management-page[data-ff-evidence-experience="v2"] .customer-management-metrics article[data-tone="trusted"] {
+  border-color: rgba(39,209,127,.25);
+  background: linear-gradient(145deg, rgba(39,209,127,.075), rgba(255,255,255,.018));
+}
+
+.customer-management-page[data-ff-evidence-experience="v2"] .customer-management-metrics article[data-tone="excluded"] {
+  border-color: rgba(246,169,22,.22);
+  background: linear-gradient(145deg, rgba(246,169,22,.06), rgba(255,255,255,.018));
+}
+
+.ff-evidence-metric-copy {
+  margin-top: 2px;
+  color: var(--text-soft);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.ff-evidence-content-grid {
+  grid-template-columns: 1fr;
+}
+
+.ff-evidence-content-grid > .stack {
+  display: grid;
+  gap: 16px;
+}
+
+.ff-evidence-trusted-section {
+  border-color: rgba(39,209,127,.22);
+}
+
+.ff-evidence-trusted-section .panel-header {
+  background: linear-gradient(90deg, rgba(39,209,127,.055), transparent 60%);
+}
+
+.ff-evidence-disclosure {
+  width: 100%;
+}
+
+.ff-evidence-disclosure > summary {
+  padding: 12px 14px;
+  color: var(--text);
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+  list-style-position: inside;
+}
+
+.ff-evidence-disclosure[open] > summary {
+  margin-bottom: 14px;
+  border-color: rgba(246,197,80,.22);
+}
+
+.ff-evidence-disclosure-content {
+  min-width: 0;
+}
+
+.ff-evidence-next-step {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  align-items: center;
+  padding: clamp(22px, 3vw, 32px);
+  background: linear-gradient(120deg, rgba(246,197,80,.09), rgba(255,255,255,.025));
+  border: 1px solid rgba(246,197,80,.25);
+  border-radius: 16px;
+}
+
+.ff-evidence-next-step > div {
+  max-width: 760px;
+}
+
+.ff-evidence-next-step h2 {
+  font-size: clamp(21px, 2.4vw, 30px);
+}
+
+.ff-evidence-next-step .button {
+  flex: 0 0 auto;
+  min-width: 210px;
+  justify-content: center;
+}
+
 @media (max-width: 1050px) {
   .customer-management-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -345,6 +598,29 @@
 
   .customer-management-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ff-evidence-proof-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .ff-evidence-funnel {
+    grid-template-columns: 1fr;
+  }
+
+  .ff-evidence-funnel-arrow {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+
+  .ff-evidence-next-step {
+    display: grid;
+  }
+
+  .ff-evidence-next-step .button {
+    width: 100%;
   }
 }
 
@@ -361,6 +637,14 @@
 
   .customer-exit-values {
     width: 100%;
+  }
+
+  .ff-evidence-proof-hero {
+    padding: 20px;
+  }
+
+  .customer-management-page[data-ff-evidence-experience="v2"] .page-heading h1 {
+    font-size: 38px;
   }
 }
 
