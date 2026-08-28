@@ -1,0 +1,24 @@
+/* FlipForge Guided Mode desktop layout fix v1
+ * Presentation only. Keeps the larger customer readability scale intact while
+ * preventing the fixed guide from covering primary workspace content.
+ */
+
+@media (min-width: 1480px) {
+  body:has(.ff-guide-panel) #main-content {
+    padding-right: 414px;
+  }
+
+  body:has(.ff-guide-panel) .ff-guide-panel {
+    width: 360px;
+    max-height: calc(100vh - 116px);
+    overflow: auto;
+  }
+}
+
+@media (min-width: 1180px) and (max-width: 1479px) {
+  body:has(.ff-guide-panel) .ff-guide-panel {
+    width: min(330px, calc(100vw - 28px));
+    max-height: calc(100vh - 104px);
+    overflow: auto;
+  }
+}
