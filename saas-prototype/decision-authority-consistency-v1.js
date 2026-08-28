@@ -9,6 +9,48 @@
     return /^#\/opportunities\/[^/?#]+/.test(String(window.location.hash || ""));
   }
 
+  function evidenceHref() {
+    const match = String(window.location.hash || "").match(/^#\/opportunities\/([^/?#]+)/);
+    if (!match) return "";
+    let id = match[1];
+    try { id = decodeURIComponent(id); } catch (_) { /* keep safe route token */ }
+    return `#/evidence/${encodeURIComponent(id)}`;
+  }
+
+  function replaceWithEvidenceLink(node, href) {
+    if (!node || !href) return;
+    if (node.tagName === "A") {
+      if (node.getAttribute("href") !== href) node.setAttribute("href", href);
+      node.dataset.ffNativeEvidenceLink = "";
+      return;
+    }
+    const link = document.createElement("a");
+    link.className = node.className;
+    link.href = href;
+    link.textContent = node.textContent;
+    link.dataset.ffNativeEvidenceLink = "";
+    const ariaLabel = node.getAttribute("aria-label");
+    const title = node.getAttribute("title");
+    if (ariaLabel) link.setAttribute("aria-label", ariaLabel);
+    if (title) link.setAttribute("title", title);
+    node.replaceWith(link);
+  }
+
+  function syncEvidenceLinks(main) {
+    const href = evidenceHref();
+    if (!href || !main) return;
+
+    main.querySelectorAll("[data-ff-show-why]").forEach(node => replaceWithEvidenceLink(node, href));
+
+    const guide = document.getElementById("ff-guided-mode-root");
+    guide?.querySelectorAll("[data-guide-action]").forEach(node => {
+      const label = String(node.textContent || "").trim();
+      if (/^(?:Show me why|Show me what is missing|I understand this decision)/i.test(label)) {
+        replaceWithEvidenceLink(node, href);
+      }
+    });
+  }
+
   function authoritativeDecision(main) {
     const hero = main?.querySelector(".customer-intelligence-hero");
     if (!hero) return "";
@@ -53,8 +95,12 @@
     queued = false;
     if (!opportunityDetailRoute()) return;
     const main = document.querySelector(MAIN);
-    const summary = main?.querySelector("[data-ff-decision-summary]");
-    if (!main || !summary) return;
+    if (!main) return;
+
+    syncEvidenceLinks(main);
+
+    const summary = main.querySelector("[data-ff-decision-summary]");
+    if (!summary) return;
 
     const decision = authoritativeDecision(main);
     if (!decision) return;
@@ -88,7 +134,6 @@
   window.addEventListener("hashchange", () => window.setTimeout(queue, 40));
   window.addEventListener("pageshow", queue);
   window.addEventListener("load", queue);
-  const main = document.querySelector(MAIN);
-  if (main) new MutationObserver(queue).observe(main, { childList: true, subtree: true, characterData: true });
+  if (document.body) new MutationObserver(queue).observe(document.body, { childList: true, subtree: true, characterData: true });
   queue();
 })();
