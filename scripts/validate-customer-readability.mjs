@@ -7,36 +7,62 @@ const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
 const index = read("saas-prototype/index.html");
 const css = read("saas-prototype/customer-readability-v1.css");
+const typographyAudit = read("scripts/audit-customer-typography-ci.mjs");
+const visualWorkflow = read(".github/workflows/saas-full-site-visual-qa.yml");
 
 const readabilityLink = '<link rel="stylesheet" href="customer-readability-v1.css">';
 const decisionLink = '<link rel="stylesheet" href="decision-intelligence-server-v1.css">';
+
+function pxValue(value, unit) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return unit === "rem" ? number * 16 : number;
+}
+
+const undersizedReadabilityDeclarations = [...css.matchAll(/font-size:\s*([0-9]*\.?[0-9]+)(px|rem)\b/g)]
+  .map(match => ({ literal: match[0], px: pxValue(match[1], match[2]) }))
+  .filter(item => item.px !== null && item.px < 14 - 0.01);
+
+const requiredRoutes = [
+  "dashboard", "beta-start", "market-view", "discover", "forge-heat", "evaluate",
+  "opportunities", "tracking", "alerts", "portfolio", "decision-intelligence", "compare",
+  "psa-advisor", "evidence", "sell", "export", "account"
+];
 
 const checks = [
   ["readability stylesheet is loaded", index.includes(readabilityLink)],
   ["readability stylesheet loads after accumulated customer styles", index.indexOf(readabilityLink) > index.indexOf(decisionLink)],
   ["body baseline is 16px", /body\s*\{[^}]*font-size:\s*16px;/s.test(css)],
-  ["12px customer microcopy token exists", css.includes("--ff-type-xs: .75rem")],
-  ["normal panel copy uses the customer medium scale", css.includes("#main-content .panel-body") && css.includes("font-size: var(--ff-type-md)")],
-  ["page descriptions are near 16px", css.includes("#main-content .page-heading p") && css.includes("font-size: .98rem")],
-  ["table cells are raised above legacy 11px", /td\s*\{[^}]*font-size:\s*\.875rem;/s.test(css)],
-  ["table headers use the 12px floor token", /th\s*\{[^}]*font-size:\s*var\(--ff-type-xs\);/s.test(css)],
-  ["status pills use the 12px floor token", css.includes(".staging-status { font-size: var(--ff-type-xs); }")],
-  ["lifecycle field labels are at least 12px", css.includes(".customer-lifecycle-fields label") && css.includes("font-size: var(--ff-type-xs)")],
-  ["lifecycle controls are enlarged", css.includes("min-height: 46px") && css.includes("font-size: .9rem")],
-  ["lifecycle history is enlarged", css.includes(".customer-lifecycle-history span") && css.includes("font-size: .8rem")],
-  ["buttons use a larger customer scale", css.includes(".button") && css.includes("font-size: .84rem")],
-  ["Decision Intelligence microcopy is raised", css.includes(".ff-di-card > p") && css.includes("font-size: .84rem")],
-  ["customer muted-text token is visibly brighter", css.includes("--ff-text-muted: #c2cad5")],
-  ["legacy muted copy inherits the brighter customer token", css.includes("--muted: var(--ff-text-muted)")],
-  ["Guided Mode inherits the brighter customer token", css.includes("--ff-guide-muted: var(--ff-text-muted)")],
-  ["low-contrast Guided Mode footer copy is overridden", css.includes(".ff-guide-progress-top") && css.includes(".ff-guide-modal-note") && css.includes("color: var(--ff-text-subtle)")],
-  ["brand tagline receives an explicit contrast lift", css.includes(".brand-tagline") && css.includes("rgba(232, 235, 239, .88)")],
-  ["mobile keeps a 16px baseline", /@media \(max-width: 760px\)[\s\S]*body \{ font-size: 16px; \}/.test(css)]
+  ["customer text floor token is 14px", css.includes("--ff-type-xs: .875rem")],
+  ["supporting copy token is 15px", css.includes("--ff-type-sm: .9375rem")],
+  ["normal reading token is 16px", css.includes("--ff-type-md: 1rem")],
+  ["readability layer contains no explicit font size below 14px", undersizedReadabilityDeclarations.length === 0],
+  ["navigation is at least normal reading size", css.includes(".primary-nav a") && css.includes("font-size: var(--ff-type-md) !important")],
+  ["page descriptions are above the body baseline", css.includes("font-size: 1.0625rem !important")],
+  ["table cells use at least the 15px supporting scale", /td,[\s\S]*#main-content td,[\s\S]*font-size:\s*var\(--ff-type-sm\) !important;/s.test(css)],
+  ["table headers use the 14px floor", /th,[\s\S]*#main-content th[\s\S]*font-size:\s*var\(--ff-type-xs\) !important;/s.test(css)],
+  ["lifecycle labels use the 14px floor", css.includes(".customer-lifecycle-fields label") && css.includes(".customer-lifecycle-history span")],
+  ["lifecycle controls use 16px text", css.includes(".customer-lifecycle-fields input") && css.includes("font-size: var(--ff-type-md) !important")],
+  ["Decision Intelligence microcopy uses the 14px floor", css.includes(".ff-di-mini-label") && css.includes(".ff-di-decision")],
+  ["Forge Heat compact labels use the 14px floor", css.includes(".forge-heat-summary span") && css.includes(".forge-heat-tabs button")],
+  ["Guided Mode body copy is at least 15px", css.includes(".ff-guide-body > p") && css.includes("font-size: var(--ff-type-sm) !important")],
+  ["Guided Mode footer and progress copy use the 14px floor", css.includes(".ff-guide-progress-top") && css.includes(".ff-guide-footer button")],
+  ["muted customer text uses brighter tokens", css.includes("--ff-text-muted: #cbd3dd") && css.includes("--ff-guide-muted: var(--ff-text-muted)")],
+  ["mobile keeps a 16px root/body baseline", /@media \(max-width: 760px\)[\s\S]*body\s*\{[\s\S]*font-size:\s*16px;/s.test(css)],
+  ["computed typography audit enforces a 14px minimum", typographyAudit.includes("const minimumTextPx = 14")],
+  ["typography audit expands collapsed sections", typographyAudit.includes('document.querySelectorAll("details").forEach')],
+  ["typography audit runs desktop tablet and mobile", typographyAudit.includes('["desktop", 1536, 1000]') && typographyAudit.includes('["tablet", 900, 1100]') && typographyAudit.includes('["mobile", 390, 844]')],
+  ["typography audit covers every major customer route", requiredRoutes.every(route => typographyAudit.includes(`"${route}"`))],
+  ["full-site visual workflow gates the computed typography audit", visualWorkflow.includes("node scripts/audit-customer-typography-ci.mjs")]
 ];
 
 const failures = checks.filter(([, passed]) => !passed);
 console.log("CustomerReadabilityValidation");
 console.log(`PASSED: ${checks.length - failures.length}`);
 console.log(`FAILED: ${failures.length}`);
+if (undersizedReadabilityDeclarations.length) {
+  console.error("Undersized declarations in customer-readability-v1.css:");
+  for (const item of undersizedReadabilityDeclarations) console.error(`- ${item.literal} (${item.px}px)`);
+}
 for (const [name] of failures) console.error(`FAIL | ${name}`);
 if (failures.length) process.exitCode = 1;
