@@ -3,6 +3,7 @@
 
   const adapter = window.FlipForgeStagingReadAdapter;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
+  const opportunitiesAdapter = window.FlipForgeCustomerOpportunities;
   const cardIntelligenceAdapter = window.FlipForgeCustomerCardIntelligence;
   const compareAdapter = window.FlipForgeCustomerCompare;
   const lifecycleAdapter = window.FlipForgeCustomerLifecycle;
@@ -113,11 +114,11 @@
           return;
         }
         if (route === "opportunities"
-            && adapter
-            && typeof adapter.renderCustomer === "function"
-            && adapter.isEligible()) {
+            && opportunitiesAdapter
+            && typeof opportunitiesAdapter.render === "function"
+            && opportunitiesAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          adapter.renderCustomer(main, id);
+          opportunitiesAdapter.render(main, id);
           focusMain();
           return;
         }
