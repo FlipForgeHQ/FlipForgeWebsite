@@ -165,6 +165,16 @@
     window.setTimeout(() => { repairing = false; queue(); }, 250);
   }
 
+  function renderExactTracking(id) {
+    if (!SAFE_ID.test(String(id || ""))) return false;
+    const main = document.querySelector(MAIN);
+    const adapter = window.FlipForgeCustomerLifecycle;
+    if (!main || !adapter || typeof adapter.render !== "function" || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
+    main.innerHTML = "";
+    adapter.render(main, "tracking", id);
+    return true;
+  }
+
   function sync() {
     queued = false;
     keepTrackingNavInContext();
@@ -183,8 +193,25 @@
   document.addEventListener("click", event => {
     const evidenceContinue = event.target.closest?.("[data-ff-evidence-understood]");
     if (evidenceContinue) {
-      const id = detailId();
-      if (id) remember(id);
+      const hrefId = idFromHref(evidenceContinue.getAttribute("href"), "tracking");
+      const currentId = detailId();
+      const id = hrefId || currentId;
+      if (!id) return;
+      remember(id);
+
+      // Preserve native browser behavior for modified clicks/new tabs. Own the
+      // ordinary left-click so another in-page handler cannot swallow the
+      // Evidence -> Tracking transition.
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const nextHash = `#/tracking/${encodeURIComponent(id)}`;
+      if (window.location.hash === nextHash) {
+        renderExactTracking(id);
+        return;
+      }
+      window.location.hash = nextHash;
       return;
     }
 
