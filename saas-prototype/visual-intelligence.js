@@ -151,7 +151,7 @@
               <div class="vi-value-block is-positive"><span>Value gap</span><strong>+${currency.format(opportunity.gap)}</strong><small>+${opportunity.gapPercent.toFixed(1)}% before outside costs</small></div>
             </div>
             <div class="vi-source-row">
-              <span><strong>Before you buy, know why.</strong> Graphics explain the stored decision; they do not recalculate it.</span>
+              <span><strong>Before you buy. Know Why.</strong> Graphics explain the stored decision; they do not recalculate it.</span>
               <span class="vi-card-actions"><a class="vi-action-link" href="#/opportunities/${encodeURIComponent(opportunity.id)}">View full analysis</a></span>
             </div>
           </div>

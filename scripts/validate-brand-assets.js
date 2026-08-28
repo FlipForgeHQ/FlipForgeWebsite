@@ -2,6 +2,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
+const OFFICIAL_SLOGAN = 'Before you buy. Know Why.';
+const RETIRED_SLOGAN_PATTERNS = [
+  /Before you buy,\s*know why\./,
+  /Before You Buy,\s*Know Why\.?/,
+  /BEFORE YOU BUY,\s*KNOW WHY\./,
+];
 
 function requireFile(relativePath) {
   const absolutePath = path.join(root, relativePath);
@@ -9,6 +15,17 @@ function requireFile(relativePath) {
     throw new Error(`Required brand file is missing: ${relativePath}`);
   }
   return absolutePath;
+}
+
+function retiredSloganVariant(content) {
+  return RETIRED_SLOGAN_PATTERNS.find((pattern) => pattern.test(content));
+}
+
+function validateLockedSlogan(relativePath) {
+  const content = fs.readFileSync(path.join(root, relativePath), 'utf8');
+  if (!content.includes(OFFICIAL_SLOGAN) || retiredSloganVariant(content)) {
+    throw new Error(`${relativePath} must use the locked slogan exactly: ${OFFICIAL_SLOGAN}`);
+  }
 }
 
 const requiredFiles = [
@@ -84,6 +101,10 @@ for (const [relativePath, cubePath] of embeddedBrandVisuals) {
   }
 }
 
+validateLockedSlogan('assets/images/flipforge-traceback-guidance.svg');
+validateLockedSlogan('MARKETING_VISUAL_PLAYBOOK.md');
+validateLockedSlogan('saas-prototype/visual-intelligence.js');
+
 const htmlFiles = fs.readdirSync(root).filter((name) => name.endsWith('.html'));
 for (const filename of htmlFiles) {
   const html = fs.readFileSync(path.join(root, filename), 'utf8');
@@ -91,7 +112,8 @@ for (const filename of htmlFiles) {
 
   const failures = [];
   if (!html.includes('assets/brand/flipforge-logo-horizontal.svg')) failures.push('approved horizontal logo lockup');
-  if (!html.includes('Before you buy. Know Why.')) failures.push('official slogan lockup');
+  if (!html.includes(OFFICIAL_SLOGAN)) failures.push('official slogan lockup');
+  if (retiredSloganVariant(html)) failures.push('retired slogan variant removed');
   if (!html.includes('Card Intelligence')) failures.push('Card Intelligence identity line');
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('brand-v2 stylesheet');

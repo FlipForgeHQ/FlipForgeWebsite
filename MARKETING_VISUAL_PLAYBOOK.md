@@ -145,7 +145,7 @@ Allowed today:
 
 Recommended public-site sequence:
 
-1. Hero — `Before You Buy, Know Why.`
+1. Hero — `Before you buy. Know Why.`
 2. The problem — price without decision context
 3. What FlipForge sees — the intelligence stack
 4. Interactive demo — identity → evidence → economics → guidance
