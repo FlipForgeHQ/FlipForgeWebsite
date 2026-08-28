@@ -34,7 +34,7 @@
   max-width: 720px;
   margin: 0;
   color: var(--text-secondary);
-  font-size: 0.98rem;
+  font-size: 1rem;
   line-height: 1.65;
 }
 
@@ -51,9 +51,9 @@
 .private-beta-status-card span,
 .private-beta-step-copy > span {
   color: var(--text-secondary);
-  font-size: 0.72rem;
+  font-size: 14px;
   font-weight: 850;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -63,6 +63,7 @@
 
 .private-beta-progress small {
   color: var(--text-secondary);
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -87,9 +88,14 @@
   overflow-wrap: anywhere;
 }
 
+.private-beta-status-card strong {
+  font-size: 15px;
+}
+
 .private-beta-status-card small {
   color: var(--text-secondary);
-  line-height: 1.4;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .private-beta-status-card[data-tone="ok"] {
@@ -128,14 +134,15 @@
 }
 
 .private-beta-step-number {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(226, 189, 66, 0.42);
   border-radius: 50%;
   color: var(--gold);
   background: rgba(226, 189, 66, 0.08);
+  font-size: 14px;
   font-weight: 900;
 }
 
@@ -146,10 +153,12 @@
 
 .private-beta-step-copy strong {
   margin: 4px 0;
+  font-size: 15px;
 }
 
 .private-beta-step-copy small {
   color: var(--text-secondary);
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -175,9 +184,14 @@
   display: block;
 }
 
+.private-beta-limit strong {
+  font-size: 15px;
+}
+
 .private-beta-limit small {
   margin-top: 3px;
   color: var(--text-secondary);
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -196,7 +210,7 @@
   display: grid;
   gap: 6px;
   color: var(--text-primary);
-  font-size: 0.78rem;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -209,7 +223,7 @@
   background: rgba(3, 8, 18, 0.72);
   color: var(--text-primary);
   padding: 10px 11px;
-  font: inherit;
+  font-size: 15px;
 }
 
 .private-beta-feedback-form textarea {
@@ -232,6 +246,7 @@
   gap: 9px !important;
   align-items: start;
   color: var(--text-secondary) !important;
+  font-size: 14px;
   font-weight: 650 !important;
   line-height: 1.45;
 }
@@ -241,10 +256,14 @@
   margin-top: 3px;
 }
 
+.private-beta-consent span {
+  font-size: 14px;
+}
+
 .private-beta-feedback-note {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 0.76rem;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -252,7 +271,7 @@
   min-height: 1.3em;
   margin: 0;
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 14px;
 }
 
 .private-beta-message[data-tone="ok"] {
