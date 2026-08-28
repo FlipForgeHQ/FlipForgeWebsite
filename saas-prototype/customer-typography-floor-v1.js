@@ -105,8 +105,10 @@
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ["class", "style", "hidden"]
+      attributeFilter: ["class", "style", "hidden", "open"]
     });
+
+    document.addEventListener("toggle", queueScan, true);
 
     window.addEventListener("hashchange", () => {
       queueScan();
