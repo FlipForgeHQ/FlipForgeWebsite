@@ -13,6 +13,10 @@
     return /^#\/evidence\/[^/?#]+/.test(String(window.location.hash || ""));
   }
 
+  function trackingDetailRoute() {
+    return /^#\/tracking\/[^/?#]+/.test(String(window.location.hash || ""));
+  }
+
   function routeId(route) {
     const match = String(window.location.hash || "").match(new RegExp(`^#/${route}/([^/?#]+)`));
     if (!match) return "";
@@ -157,25 +161,48 @@
     if (text === from) cell.textContent = to;
   }
 
+  function sectionByHeading(page, pattern) {
+    return [...page.querySelectorAll("section.panel")].find(section =>
+      pattern.test(String(section.querySelector("h2")?.textContent || ""))) || null;
+  }
+
+  function makeDisclosure(section, summaryLabel) {
+    if (!section || section.dataset.ffEvidenceDisclosure === "true") return;
+    const body = section.querySelector(".panel-body");
+    if (!body) return;
+    const details = document.createElement("details");
+    details.className = "ff-evidence-disclosure";
+    const summary = document.createElement("summary");
+    summary.textContent = summaryLabel;
+    const content = document.createElement("div");
+    content.className = "ff-evidence-disclosure-content";
+    while (body.firstChild) content.append(body.firstChild);
+    details.append(summary, content);
+    body.append(details);
+    section.dataset.ffEvidenceDisclosure = "true";
+  }
+
+  function selectedCardLabel(page) {
+    const select = page.querySelector("[data-customer-management-select]");
+    const selected = select?.selectedOptions?.[0];
+    return String(selected?.textContent || "").trim();
+  }
+
+  function addMetricContext(article, copy) {
+    if (!article || article.querySelector(".ff-evidence-metric-copy")) return;
+    const small = document.createElement("small");
+    small.className = "ff-evidence-metric-copy";
+    small.textContent = copy;
+    article.append(small);
+  }
+
   function syncEvidenceSemantics(main) {
     if (!main || !evidenceDetailRoute()) return;
     const page = main.querySelector(".customer-management-page");
     if (!page) return;
 
-    const accepted = metricValue(main, "Accepted exact sales");
-    const ineligible = metricValue(main, "Visible but ineligible");
-    if (accepted !== null && ineligible !== null && !page.querySelector("[data-ff-evidence-current-history]")) {
-      const note = document.createElement("section");
-      note.className = "panel";
-      note.dataset.ffEvidenceCurrentHistory = "";
-      note.innerHTML = `<div class="panel-body"><strong>Current eligibility vs. historical ledger</strong><p><strong>${accepted}</strong> linked completed sales currently satisfy FlipForge's exact-comparable authority rules. <strong>${ineligible}</strong> linked rows remain visible for audit history but are currently ineligible. Historical ledger events preserve what happened at the time; they do not restore authority to a row that fails today's rules.</p></div>`;
-      const metrics = page.querySelector(".customer-management-metrics");
-      metrics?.insertAdjacentElement("afterend", note);
-    }
-
-    const sections = [...page.querySelectorAll("section.panel")];
-    const linkedSection = sections.find(section => /Linked evidence/i.test(String(section.querySelector("h2")?.textContent || "")));
-    const candidateSection = sections.find(section => /Manual evidence candidates|Saved evidence candidate pool/i.test(String(section.querySelector("h2")?.textContent || "")));
+    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge trusted/i);
+    const candidateSection = sectionByHeading(page, /Manual evidence candidates|Saved evidence candidate pool|What FlipForge reviewed/i);
 
     const linkedTable = linkedSection?.querySelector("table");
     if (linkedTable) {
@@ -194,8 +221,10 @@
     if (candidateSection) {
       const heading = candidateSection.querySelector("h2");
       const copy = candidateSection.querySelector(".panel-header p");
-      if (heading && heading.textContent !== "Saved evidence candidate pool") heading.textContent = "Saved evidence candidate pool";
-      const expectedCopy = "This pool includes historically linked rows and unlinked candidates. Stored source confidence is not current exact-comparable authority; only current authority-eligible exact completed sales support value.";
+      if (heading && heading.textContent !== "What FlipForge reviewed but did not use") {
+        heading.textContent = "What FlipForge reviewed but did not use";
+      }
+      const expectedCopy = "Candidate rows stay visible for transparency. Stored source confidence is not current exact-comparable authority, and candidate-only rows do not support value.";
       if (copy && copy.textContent !== expectedCopy) copy.textContent = expectedCopy;
       const table = candidateSection.querySelector("table");
       if (table) {
@@ -208,6 +237,136 @@
         });
       }
     }
+  }
+
+  function syncEvidenceExperience(main) {
+    if (!main || !evidenceDetailRoute()) return;
+    const page = main.querySelector(".customer-management-page");
+    if (!page || page.dataset.ffEvidenceExperience === "v2") return;
+
+    const accepted = metricValue(main, "Accepted exact sales");
+    const ineligible = metricValue(main, "Visible but ineligible");
+    const ledgerEvents = metricValue(main, "Ledger events");
+    const candidates = metricValue(main, "Manual candidates");
+    if (accepted === null || ineligible === null) return;
+
+    const possibleLinked = accepted + ineligible;
+    const cardLabel = selectedCardLabel(page);
+    const heading = page.querySelector(".page-heading");
+    const eyebrow = heading?.querySelector(".eyebrow");
+    const h1 = heading?.querySelector("h1");
+    const intro = heading?.querySelector("p");
+    if (eyebrow) eyebrow.textContent = "Evidence behind this decision";
+    if (h1) h1.textContent = "Why FlipForge trusts this decision";
+    if (intro) {
+      intro.textContent = cardLabel
+        ? `See what FlipForge trusted, what it excluded, and what remains audit-only for ${cardLabel}.`
+        : "See what FlipForge trusted, what it excluded, and what remains audit-only for this saved decision.";
+    }
+
+    const boundary = page.querySelector(".boundary-note");
+    if (boundary) {
+      boundary.classList.add("ff-evidence-readonly-note");
+      boundary.innerHTML = "<strong>Evidence is read-only.</strong> This page explains the evidence behind the saved decision. It cannot change the decision, promote an active listing into a completed sale, or give browser-side evidence authority.";
+    }
+
+    const selectorPanel = page.querySelector(".customer-management-select-panel");
+    selectorPanel?.classList.add("ff-evidence-selector-panel");
+
+    const metrics = page.querySelector(".customer-management-metrics");
+    const metricArticles = metrics ? [...metrics.querySelectorAll("article")] : [];
+    if (metricArticles[0]) {
+      metricArticles[0].querySelector("span").textContent = "Trusted sales";
+      metricArticles[0].dataset.tone = "trusted";
+      addMetricContext(metricArticles[0], "Exact completed sales currently allowed to support value.");
+    }
+    if (metricArticles[1]) {
+      metricArticles[1].querySelector("span").textContent = "Excluded from authority";
+      metricArticles[1].dataset.tone = "excluded";
+      addMetricContext(metricArticles[1], "Visible for transparency, but not allowed to support value.");
+    }
+    if (metricArticles[2]) {
+      metricArticles[2].querySelector("span").textContent = "Audit events";
+      addMetricContext(metricArticles[2], "Immutable history of evidence activity.");
+    }
+    if (metricArticles[3]) {
+      metricArticles[3].querySelector("span").textContent = "Candidate pool";
+      addMetricContext(metricArticles[3], "Rows reviewed or retained without current evidence authority.");
+    }
+
+    const proof = document.createElement("section");
+    proof.className = "ff-evidence-proof-hero";
+    proof.dataset.ffEvidenceProof = "";
+    proof.innerHTML = `
+      <div class="ff-evidence-proof-copy">
+        <span class="ff-evidence-kicker">THE PROOF</span>
+        <h2>${accepted} exact completed sale${accepted === 1 ? "" : "s"} currently support this card.</h2>
+        <p>FlipForge did not treat every historical row as a comp. It kept <strong>${ineligible}</strong> linked row${ineligible === 1 ? "" : "s"} visible for auditability while excluding them from current value authority.</p>
+        <div class="ff-evidence-principle"><strong>More data is not automatically better evidence.</strong><span>FlipForge is designed to show its work—and to show what it refused to use.</span></div>
+      </div>
+      <div class="ff-evidence-funnel" aria-label="Evidence qualification summary">
+        <article>
+          <span>Possible linked history</span>
+          <strong>${possibleLinked}</strong>
+          <small>Visible historical rows</small>
+        </article>
+        <span class="ff-evidence-funnel-arrow" aria-hidden="true">→</span>
+        <article data-tone="trusted">
+          <span>Trusted now</span>
+          <strong>${accepted}</strong>
+          <small>Current exact completed sales</small>
+        </article>
+        <span class="ff-evidence-funnel-arrow" aria-hidden="true">+</span>
+        <article data-tone="excluded">
+          <span>Excluded now</span>
+          <strong>${ineligible}</strong>
+          <small>Visible, but no value authority</small>
+        </article>
+      </div>`;
+    if (selectorPanel) selectorPanel.insertAdjacentElement("afterend", proof);
+    else if (heading) heading.insertAdjacentElement("afterend", proof);
+
+    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge trusted/i);
+    const candidateSection = sectionByHeading(page, /What FlipForge reviewed but did not use|Saved evidence candidate pool|Manual evidence candidates/i);
+    const historySection = sectionByHeading(page, /Evidence history|Full audit trail/i);
+
+    if (linkedSection) {
+      const linkedHeading = linkedSection.querySelector("h2");
+      const linkedCopy = linkedSection.querySelector(".panel-header p");
+      if (linkedHeading) linkedHeading.textContent = "What FlipForge trusted";
+      if (linkedCopy) linkedCopy.textContent = `${accepted} linked completed sale${accepted === 1 ? "" : "s"} currently satisfy the exact-comparable rules required to support this saved decision.`;
+      linkedSection.classList.add("ff-evidence-trusted-section");
+    }
+
+    if (historySection) {
+      const historyHeading = historySection.querySelector("h2");
+      const historyCopy = historySection.querySelector(".panel-header p");
+      if (historyHeading) historyHeading.textContent = "Full audit trail";
+      if (historyCopy) historyCopy.textContent = "Immutable evidence events remain available when you want the forensic history.";
+    }
+
+    const grid = page.querySelector(".customer-management-grid");
+    const stack = grid?.querySelector(".stack");
+    if (grid) grid.classList.add("ff-evidence-content-grid");
+    if (stack && historySection && historySection.parentElement !== stack) stack.append(historySection);
+
+    makeDisclosure(candidateSection, `Review candidate pool${candidates !== null ? ` (${candidates})` : ""}`);
+    makeDisclosure(historySection, `View full audit trail${ledgerEvents !== null ? ` (${ledgerEvents} events)` : ""}`);
+
+    const continuePanel = document.createElement("section");
+    continuePanel.className = "ff-evidence-next-step";
+    continuePanel.innerHTML = `
+      <div>
+        <span class="ff-evidence-kicker">NEXT</span>
+        <h2>You know why. Now decide what to do with it.</h2>
+        <p>Continue to the exact saved card's Tracking record to set review timing or record what happens next. Tracking cannot change this evidence or the saved Smart Opportunity decision.</p>
+      </div>
+      <a class="button button-primary" data-ff-evidence-understood href="#/tracking/${encodeURIComponent(routeId("evidence"))}">Continue to Tracking →</a>`;
+    const partialError = page.querySelector(".staging-error");
+    if (partialError) partialError.insertAdjacentElement("beforebegin", continuePanel);
+    else page.append(continuePanel);
+
+    page.dataset.ffEvidenceExperience = "v2";
   }
 
   function syncGuidedEvidence() {
@@ -226,18 +385,44 @@
 
     panel.dataset.ffGuideEvidenceStep = id;
     if (location && location.textContent !== "Evidence · Step 3") location.textContent = "Evidence · Step 3";
-    if (title && title.textContent !== "This is why FlipForge reached the decision.") title.textContent = "This is why FlipForge reached the decision.";
-    const copy = "Review the current authority-eligible sales and the rows FlipForge excludes. Historical evidence stays visible for auditability without changing the saved decision.";
+    if (title && title.textContent !== "See what FlipForge trusted—and what it refused to use.") {
+      title.textContent = "See what FlipForge trusted—and what it refused to use.";
+    }
+    const copy = "Start with the trusted-vs-excluded summary. Open the candidate pool or full audit trail only if you want deeper forensic detail.";
     if (copyNode && copyNode.textContent !== copy) copyNode.textContent = copy;
     if (whyNode) {
-      const expected = "Why this matters: Evidence explains the decision without changing it.";
+      const expected = "Why this matters: A decision is more trustworthy when you can inspect both the evidence and the exclusions.";
       if (String(whyNode.textContent || "").trim() !== expected) {
-        whyNode.innerHTML = "<strong>Why this matters:</strong> Evidence explains the decision without changing it.";
+        whyNode.innerHTML = "<strong>Why this matters:</strong> A decision is more trustworthy when you can inspect both the evidence and the exclusions.";
       }
     }
-    if (actions && !actions.querySelector("[data-ff-evidence-understood]")) {
-      actions.innerHTML = `<a class="ff-guide-action" data-ff-evidence-understood href="#/tracking/${encodeURIComponent(id)}">I understand the evidence →</a><a class="ff-guide-action secondary" href="#/opportunities/${encodeURIComponent(id)}">Back to Card Intelligence</a>`;
+    if (actions) {
+      actions.innerHTML = `<a class="ff-guide-action" data-ff-evidence-understood href="#/tracking/${encodeURIComponent(id)}">Continue to Tracking →</a><a class="ff-guide-action secondary" href="#/opportunities/${encodeURIComponent(id)}">Back to Card Intelligence</a>`;
     }
+  }
+
+  function ensureTrackingOwnership(main) {
+    if (!main || !trackingDetailRoute()) return;
+    const id = routeId("tracking");
+    if (!id || main.querySelector(".customer-lifecycle-page")) return;
+    const adapter = window.FlipForgeCustomerLifecycle;
+    if (!adapter
+        || typeof adapter.isEligible !== "function"
+        || !adapter.isEligible()
+        || typeof adapter.render !== "function") return;
+    adapter.render(main, "tracking", id);
+  }
+
+  function normalizeLockedTagline(root) {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      if (String(node.nodeValue || "").trim() === "Before you buy. Know why.") {
+        node.nodeValue = node.nodeValue.replace("Know why.", "Know Why.");
+      }
+    });
   }
 
   function syncOpportunity(main) {
@@ -276,13 +461,20 @@
     const main = document.querySelector(MAIN);
     if (!main) return;
 
+    normalizeLockedTagline(main);
+
     if (opportunityDetailRoute()) {
       syncOpportunity(main);
       return;
     }
     if (evidenceDetailRoute()) {
       syncEvidenceSemantics(main);
+      syncEvidenceExperience(main);
       syncGuidedEvidence();
+      return;
+    }
+    if (trackingDetailRoute()) {
+      ensureTrackingOwnership(main);
     }
   }
 
@@ -291,6 +483,15 @@
     queued = true;
     window.requestAnimationFrame(sync);
   }
+
+  document.addEventListener("click", event => {
+    const link = event.target.closest?.("[data-ff-evidence-understood]");
+    if (!link) return;
+    window.setTimeout(() => {
+      const main = document.querySelector(MAIN);
+      ensureTrackingOwnership(main);
+    }, 75);
+  }, true);
 
   window.addEventListener("hashchange", () => window.setTimeout(queue, 40));
   window.addEventListener("pageshow", queue);
