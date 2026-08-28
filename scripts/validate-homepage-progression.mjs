@@ -12,6 +12,7 @@ const awardJs=read('assets/js/award-winning-v1.js');
 const contenderJs=read('assets/js/homepage-contender-v1.js');
 const sw=read('sw.js');
 const failures=[];
+const productionBuild=String(process.env.CONTEXT||'').toLowerCase()==='production';
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toLowerCase()))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 
@@ -96,12 +97,19 @@ requireText('premium CSS mobile',awardCss,'@media(max-width:520px)');
 requireText('premium CSS beta',awardCss,'.ff-aw-beta-step[hidden]');
 requireText('premium JS loaded by homepage',contenderJs,'award-winning-v1.js');
 
-// App Preview keeps core routes primary, advanced analysis grouped, and staging hidden.
+// App keeps customer routes in production while staging diagnostics remain preview-only.
 for(const core of ['data-route="dashboard"','data-route="discover"','data-route="evaluate"','data-route="opportunities"','data-route="tracking"','data-route="portfolio"'])requireText('app core workflow',app,core);
 requireText('app advanced analysis',app,'<details class="ff-advanced-nav">');
 for(const advanced of ['data-route="compare"','data-route="psa-advisor"','data-route="evidence"','data-route="sell"','data-route="export"'])requireText('app advanced routes',app,advanced);
-requireText('staging hidden',app,'data-route="staging" class="staging-only-nav" hidden');
-requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
+if(productionBuild){
+  forbidText('production staging route',app,'data-route="staging"');
+  forbidText('production staging evaluate route',app,'data-route="staging-evaluate"');
+  forbidText('production staging read adapter',app,'src="staging-browser.js"');
+  forbidText('production staging stylesheet',app,'href="staging-browser.css"');
+}else{
+  requireText('staging hidden',app,'data-route="staging" class="staging-only-nav" hidden');
+  requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
+}
 
 // PWA and motion boundaries.
 requireText('PWA cache',sw,"const CACHE='flipforge-shell-v13'");
@@ -118,4 +126,4 @@ if(failures.length){
   failures.forEach(failure=>console.error(`- ${failure}`));
   process.exit(1);
 }
-console.log('PASS: FlipForge now follows a customer-first premium journey: desire, False Confidence, interactive evidence proof, governed trust, outcome accountability, and focused beta conversion—with depth moved to Product and Evidence Lab.');
+console.log(`PASS: FlipForge customer-first premium journey and ${productionBuild?'production app boundary':'preview staging diagnostics'} validated.`);
