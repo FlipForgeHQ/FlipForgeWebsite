@@ -62,6 +62,49 @@
     return "";
   }
 
+  function guideCopy(decision) {
+    if (decision === "BUY") return {
+      copy: "BUY is decision support only. Read the evidence and risk before acting outside FlipForge.",
+      why: "Understand the reason before moving on."
+    };
+    if (decision === "WATCH") return {
+      copy: "WATCH means the card may be worth monitoring, but the current price or evidence does not support moving further yet.",
+      why: "Understand the reason before moving on."
+    };
+    if (decision === "PASS") return {
+      copy: "PASS means the current evidence and context do not support the opportunity.",
+      why: "Understand the reason before moving on."
+    };
+    return {
+      copy: "VERIFY means FlipForge does not yet have enough trustworthy support for a stronger call.",
+      why: "Find what is missing before doing anything else."
+    };
+  }
+
+  function syncGuidedDecision(decision) {
+    if (!decision) return;
+    const guide = document.getElementById("ff-guided-mode-root");
+    const panel = guide?.querySelector(".ff-guide-panel");
+    if (!panel) return;
+    const title = panel.querySelector(".ff-guide-body h2");
+    const copyNode = panel.querySelector(".ff-guide-body > p");
+    const whyNode = panel.querySelector(".ff-guide-why");
+    const model = guideCopy(decision);
+
+    panel.dataset.ffAuthoritativeDecision = decision;
+    if (title && title.textContent !== `Start here: ${decision}.`) title.textContent = `Start here: ${decision}.`;
+    if (copyNode && copyNode.textContent !== model.copy) copyNode.textContent = model.copy;
+    if (whyNode) {
+      const expected = `Why this matters: ${model.why}`;
+      if (String(whyNode.textContent || "").trim() !== expected) {
+        whyNode.innerHTML = "";
+        const strong = document.createElement("strong");
+        strong.textContent = "Why this matters:";
+        whyNode.append(strong, document.createTextNode(` ${model.why}`));
+      }
+    }
+  }
+
   function copyFor(decision, pageText) {
     if (decision === "BUY") return {
       title: "The evaluated price clears the current decision checks.",
@@ -99,11 +142,13 @@
 
     syncEvidenceLinks(main);
 
-    const summary = main.querySelector("[data-ff-decision-summary]");
-    if (!summary) return;
-
     const decision = authoritativeDecision(main);
     if (!decision) return;
+
+    syncGuidedDecision(decision);
+
+    const summary = main.querySelector("[data-ff-decision-summary]");
+    if (!summary) return;
 
     const pill = summary.querySelector(".ff-decision-summary-pill");
     const title = summary.querySelector(".ff-decision-summary-main h2");
