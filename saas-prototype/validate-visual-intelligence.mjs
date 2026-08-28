@@ -6,6 +6,7 @@ const prototypeRoot = path.dirname(fileURLToPath(import.meta.url));
 const read = name => fs.readFileSync(path.join(prototypeRoot, name), "utf8");
 
 const index = read("index.html");
+const loader = read("prototype-visual-loader.js");
 const script = read("visual-intelligence.js");
 const styles = read("visual-intelligence.css");
 const data = read("mock-data.js");
@@ -18,17 +19,18 @@ function check(name, condition) {
 let syntaxValid = true;
 try {
   new Function(script);
+  new Function(loader);
 } catch (error) {
   syntaxValid = false;
   console.error(error.message);
 }
 
 check("001 visual stylesheet is loaded", index.includes('href="visual-intelligence.css"'));
-check("002 visual script is loaded", index.includes('src="visual-intelligence.js"'));
+check("002 visual script is host-gated through the prototype loader", index.includes('src="prototype-visual-loader.js"') && loader.includes('"visual-intelligence.js"'));
 check("003 visual stylesheet follows feature styles", index.indexOf('href="visual-intelligence.css"') > index.indexOf('href="feature-pages.css"'));
-check("004 visual script follows route renderers", index.indexOf('src="visual-intelligence.js"') > index.indexOf('src="feature-pages.js"'));
-check("005 route guard remains after visual module", index.indexOf('src="route-guard.js"') > index.indexOf('src="visual-intelligence.js"'));
-check("006 visual JavaScript parses", syntaxValid);
+check("004 visual loader follows route renderers", index.indexOf('src="prototype-visual-loader.js"') > index.indexOf('src="feature-pages.js"'));
+check("005 route guard remains after visual loader", index.indexOf('src="route-guard.js"') > index.indexOf('src="prototype-visual-loader.js"'));
+check("006 visual JavaScript and loader parse", syntaxValid);
 check("007 dashboard-only enhancement is explicit", script.includes('activeRoute() !== "dashboard"'));
 check("008 enhancement prevents duplicate insertion", script.includes("visualIntelligenceEnhanced"));
 check("009 Smart Opportunity authority is explicit", script.includes("Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority"));
@@ -51,6 +53,8 @@ check("025 approved identity data remains available", data.includes('authority: 
 check("026 active asks remain labeled as listing context", script.includes("Saved listing context"));
 check("027 population remains display-only", script.includes("Population context remains display-only"));
 check("028 transaction authority is absent", !/auto-buy|checkout|collect payment|authorize purchase/i.test(script));
+check("029 production host disables prototype visual loading", loader.includes('if (production) return;') && loader.includes('PRODUCTION_SERVER_OWNED'));
+check("030 visual script is not directly wired into production HTML", !index.includes('<script src="visual-intelligence.js"></script>'));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSVisualIntelligenceValidation");
