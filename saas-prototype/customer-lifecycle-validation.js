@@ -17,6 +17,14 @@
     return Boolean(field(form, name)?.checked);
   }
 
+  function defaultReviewReminder(form) {
+    if (!form || value(form, "trackingStatus") !== "REVIEW") return;
+    if (form.dataset.ffReviewReminderDefaulted === "true") return;
+    const reminder = field(form, "alertEnabled");
+    if (reminder && !reminder.checked) reminder.checked = true;
+    form.dataset.ffReviewReminderDefaulted = "true";
+  }
+
   function validMoney(text) {
     if (!text) return false;
     const amount = Number(text);
@@ -153,12 +161,30 @@
   document.addEventListener("change", event => {
     const form = event.target?.closest?.(FORM_SELECTOR);
     if (!form) return;
+
+    if (event.target?.getAttribute?.("name") === "trackingStatus") {
+      delete form.dataset.ffReviewReminderDefaulted;
+      defaultReviewReminder(form);
+    }
+
     const panel = form.parentElement?.querySelector(PANEL_SELECTOR);
     if (panel) {
       const validation = validate(form);
       if (validation.ok) clear(form);
     }
   }, true);
+
+  function initializeForms(root = document) {
+    root.querySelectorAll?.(FORM_SELECTOR).forEach(defaultReviewReminder);
+  }
+
+  const main = document.getElementById("main-content");
+  if (main && typeof MutationObserver === "function") {
+    new MutationObserver(() => initializeForms(main)).observe(main, { childList: true, subtree: true });
+  }
+  window.addEventListener("pageshow", () => initializeForms(document));
+  document.addEventListener("DOMContentLoaded", () => initializeForms(document));
+  initializeForms(document);
 
   window.FlipForgeLifecycleValidation = Object.freeze({ validate });
 })();
