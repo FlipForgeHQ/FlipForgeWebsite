@@ -1,0 +1,109 @@
+/* FlipForge Guided Mode compact scale.
+ * Keeps the helper subordinate to the customer workspace while preserving
+ * comfortable reading sizes and touch targets.
+ */
+
+.topbar-actions .date-button {
+  text-decoration: none;
+}
+
+.ff-guide-panel {
+  width: min(340px, calc(100vw - 28px));
+}
+
+.ff-guide-head {
+  padding: 12px 14px 10px;
+}
+
+.ff-guide-kicker,
+.ff-guide-location,
+.ff-guide-progress-top,
+.ff-guide-footer,
+.ff-guide-footer button,
+.ff-guide-modal-note {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+.ff-guide-head strong {
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+}
+
+.ff-guide-body {
+  padding: 13px 14px;
+}
+
+.ff-guide-body h2 {
+  margin-bottom: 6px;
+  font-size: 17px !important;
+  line-height: 1.18 !important;
+}
+
+.ff-guide-body > p,
+.ff-guide-why,
+.ff-guide-action {
+  font-size: 13px !important;
+  line-height: 1.42 !important;
+}
+
+.ff-guide-why {
+  margin-top: 10px;
+  padding: 9px 10px;
+}
+
+.ff-guide-actions {
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.ff-guide-action {
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.ff-guide-progress {
+  padding: 0 14px 11px;
+}
+
+.ff-guide-footer {
+  padding: 9px 14px;
+}
+
+.ff-guide-icon-button {
+  width: 30px;
+  height: 30px;
+  font-size: 14px !important;
+}
+
+@media (min-width: 1480px) {
+  body:has(.ff-guide-panel) #main-content {
+    padding-right: 382px;
+  }
+
+  body:has(.ff-guide-panel) .ff-guide-panel {
+    width: 330px;
+  }
+}
+
+@media (min-width: 1180px) and (max-width: 1479px) {
+  body:has(.ff-guide-panel) .ff-guide-panel {
+    width: min(310px, calc(100vw - 28px));
+  }
+}
+
+@media (max-width: 760px) {
+  .ff-guide-panel {
+    width: calc(100vw - 16px);
+  }
+
+  .ff-guide-body h2 {
+    font-size: 17px !important;
+  }
+
+  .ff-guide-body > p,
+  .ff-guide-why,
+  .ff-guide-action {
+    font-size: 13px !important;
+  }
+}
