@@ -35,8 +35,21 @@
     const acquiredAt = value(form, "acquiredAt");
     const dispositionProceeds = value(form, "dispositionProceeds");
     const disposedAt = value(form, "disposedAt");
+    const alertEnabled = checked(form, "alertEnabled");
 
-    if (checked(form, "alertEnabled") && !reviewAt) {
+    if (tracking === "REVIEW") {
+      const missing = [];
+      if (!reviewAt) missing.push("reviewAt");
+      if (!alertEnabled) missing.push("alertEnabled");
+      if (missing.length) {
+        return result(
+          "To schedule a review, choose a review date and keep Remind me in FlipForge enabled.",
+          missing
+        );
+      }
+    }
+
+    if (alertEnabled && !reviewAt) {
       return result(
         "Choose a review time before enabling an in-app review reminder.",
         ["reviewAt", "alertEnabled"]
@@ -95,7 +108,7 @@
     panel.setAttribute("data-lifecycle-client-validation", "");
     panel.setAttribute("role", "alert");
     panel.innerHTML = `
-      <strong>Lifecycle details required</strong>
+      <strong>Tracking details required</strong>
       <p>${validation.message}</p>
       <small>Nothing was saved. Complete the highlighted fields and try again.</small>
     `;
