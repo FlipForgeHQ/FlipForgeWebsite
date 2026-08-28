@@ -429,6 +429,7 @@
       const requestId = idempotencyKeyFor(payload);
       const result = await request(EVALUATION_PATH, { method: "POST", body: payload, idempotencyKey: requestId });
       if (!validateEvaluation(result.payload, result.correlationId, requestId)) throw makeError("DISCOVER_EVALUATION_CONTRACT_INVALID", "The authoritative evaluation response failed the tenant-owned Smart Opportunity contract.");
+      state.evaluatingIndex = -1;
       window.location.hash = `#/opportunities/${encodeURIComponent(result.payload.data.opportunityId)}`;
     } catch (error) {
       state.error = error;
@@ -535,6 +536,7 @@
 
   async function render(main) {
     state.main = main;
+    state.evaluatingIndex = -1;
     state.error = null;
     state.notice = "";
     if (!eligibleHost()) return false;

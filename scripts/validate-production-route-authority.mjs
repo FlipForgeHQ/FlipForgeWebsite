@@ -14,6 +14,9 @@ const dashboardGuard = read("saas-prototype/production-dashboard-guard.js");
 const commercialDashboard = read("saas-prototype/commercial-dashboard-v2.js");
 const opportunities = read("saas-prototype/customer-opportunities.js");
 const opportunitiesBridge = read("saas-prototype/customer-opportunities-bridge.js");
+const discovery = read("saas-prototype/customer-discovery.js");
+const saveFlow = read("saas-prototype/customer-save-flow-v1.js");
+const betaFlow = read("saas-prototype/beta-customer-flow-v2.js");
 
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
@@ -45,10 +48,14 @@ check("Dashboard has a dedicated production prototype guard", dashboardGuard.inc
 check("Commercial Dashboard fails closed when bridge is unavailable", commercialDashboard.includes("CUSTOMER_API_NOT_CONFIGURED") && commercialDashboard.includes("bridgeEnabled") && commercialDashboard.includes('credentials: "same-origin"'));
 check("Commercial Dashboard validates Smart Opportunity authority", commercialDashboard.includes('meta.authority === "Smart Opportunity"') && commercialDashboard.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
 check("Discover is routed to the dedicated customer adapter", hook.includes('route === "discover"') && hook.includes("discoveryAdapter.render(main)"));
+check("Discover releases the evaluation lock before opening saved Card Intelligence", discovery.includes('state.evaluatingIndex = -1;\n      window.location.hash = `#/opportunities/${encodeURIComponent(result.payload.data.opportunityId)}`;'));
+check("Discover clears any stale evaluation lock whenever the route is rendered again", discovery.includes('async function render(main) {\n    state.main = main;\n    state.evaluatingIndex = -1;'));
 check("Evaluate uses the shared customer renderer", hook.includes('route === "evaluate"') && hook.includes("evaluationAdapter.renderCustomer(main)"));
 check("Saved Decisions / Card Intelligence uses the production opportunity bridge", hook.includes("FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities") && hook.includes('route === "opportunities" && renderOpportunityRoute(id)'));
 check("Opportunity detail renderer validates exact requested ids", opportunities.includes("state.requestedId") && opportunities.includes("/api/v1/opportunities/${encoded}") && opportunities.includes("SAFE_ID"));
 check("Opportunity bridge does not require staging diagnostics in production", opportunitiesBridge.includes("const stagingAdapter = window.FlipForgeStagingReadAdapter") && opportunitiesBridge.includes("const customerAdapter = window.FlipForgeCustomerOpportunities") && !opportunitiesBridge.includes("if (!stagingAdapter || !customerAdapter) return"));
+check("Understand decision CTA is present in the customer beta flow", betaFlow.includes("data-ff-show-why") && betaFlow.includes("Understand this decision →"));
+check("Understand decision CTA has deterministic scroll/focus behavior with Evidence fallback", saveFlow.includes("function focusDecisionWhy()") && saveFlow.includes('[data-ff-show-why]') && saveFlow.includes("target.scrollIntoView") && saveFlow.includes('window.location.hash = `#/evidence/${encodeURIComponent(id)}`'));
 check("Tracking route is owned by lifecycle adapter", lifecycle.includes('const ROUTES = new Set(["tracking", "portfolio", "alerts"])') && hook.includes("lifecycleAdapter.handles(route)"));
 check("Tracking lifecycle reads/writes stay server-owned", lifecycle.includes('"/api/v1/lifecycle"') && lifecycle.includes('/api/v1/lifecycle/${') && lifecycle.includes('credentials: "same-origin"'));
 check("Portfolio has a dedicated customer adapter before generic lifecycle handling", hook.includes('route === "portfolio"') && hook.indexOf('route === "portfolio"') < hook.indexOf("lifecycleAdapter.handles(route)"));
