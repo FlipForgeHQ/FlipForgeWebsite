@@ -47,7 +47,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["034 gateway GET lifecycle list allowlisted", gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/lifecycle$/ }')],
   ["035 gateway GET lifecycle detail allowlisted", gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/lifecycle\\/[A-Za-z0-9._:-]+$/ }')],
   ["036 gateway PUT lifecycle detail allowlisted", gateway.includes('{ method: "PUT", pattern: /^\\/api\\/v1\\/lifecycle\\/[A-Za-z0-9._:-]+$/ }')],
-  ["037 gateway still forbids client identity headers", gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN")]
+  ["037 gateway still forbids client identity headers", gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN")],
+  ["038 save confirmation is customer-readable", adapter.includes('state.notice = "Tracking changes saved to your account."') && !adapter.includes("Lifecycle saved in tenant-scoped SQLite.")]
 ].forEach(([name, condition]) => check(name, condition));
 
 function response(body, status = 200) {
@@ -94,27 +95,27 @@ function runtime({ hostname = "deploy-preview-36--goflipforge.netlify.app", path
 const settle = () => new Promise(resolve => setTimeout(resolve, 40));
 
 const preview = runtime();
-check("038 preview app eligible", preview.window.FlipForgeCustomerLifecycle.isEligible());
-check("039 preview tracking render activates", preview.window.FlipForgeCustomerLifecycle.render(preview.main, "tracking", "opp-1") === true);
+check("039 preview app eligible", preview.window.FlipForgeCustomerLifecycle.isEligible());
+check("040 preview tracking render activates", preview.window.FlipForgeCustomerLifecycle.render(preview.main, "tracking", "opp-1") === true);
 await settle();
-check("040 tracking reads health opportunities lifecycle detail", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/opportunities,/api/v1/lifecycle,/api/v1/lifecycle/opp-1");
-check("041 tracking renders saved workflow state", preview.main.innerHTML.includes("WATCHING") && preview.main.innerHTML.includes("Lifecycle history"));
-check("042 tracking requests are hardened", preview.calls.every(call => call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
+check("041 tracking reads health opportunities lifecycle detail", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/opportunities,/api/v1/lifecycle,/api/v1/lifecycle/opp-1");
+check("042 tracking renders saved workflow state", preview.main.innerHTML.includes("WATCHING") && preview.main.innerHTML.includes("Lifecycle history"));
+check("043 tracking requests are hardened", preview.calls.every(call => call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
 
 const production = runtime({ hostname: "goflipforge.com", pathname: "/app/" });
-check("043 production app eligible", production.window.FlipForgeCustomerLifecycle.isEligible());
-check("044 production tracking render activates", production.window.FlipForgeCustomerLifecycle.render(production.main, "tracking", "opp-1") === true);
+check("044 production app eligible", production.window.FlipForgeCustomerLifecycle.isEligible());
+check("045 production tracking render activates", production.window.FlipForgeCustomerLifecycle.render(production.main, "tracking", "opp-1") === true);
 await settle();
-check("045 production reads tenant lifecycle through same-origin gateway", production.calls.length === 4 && production.calls.every(call => call.options.credentials === "same-origin"));
+check("046 production reads tenant lifecycle through same-origin gateway", production.calls.length === 4 && production.calls.every(call => call.options.credentials === "same-origin"));
 
 const marketing = runtime({ hostname: "goflipforge.com", pathname: "/" });
-check("046 public marketing path ineligible", marketing.window.FlipForgeCustomerLifecycle.isEligible() === false);
+check("047 public marketing path ineligible", marketing.window.FlipForgeCustomerLifecycle.isEligible() === false);
 
 const disabled = runtime({ healthStatus: "disabled" });
 disabled.window.FlipForgeCustomerLifecycle.render(disabled.main, "tracking", "opp-1");
 await settle();
-check("047 disabled gateway stops after health", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
-check("048 disabled gateway renders safe offline state", /safely offline/i.test(disabled.main.innerHTML));
+check("048 disabled gateway stops after health", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
+check("049 disabled gateway renders safe offline state", /safely offline/i.test(disabled.main.innerHTML));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer lifecycle production validation");
