@@ -6,6 +6,8 @@
   "scripts": {
     "build:identity": "node scripts/build-identity-client.mjs",
     "build:paddle-live": "node scripts/build-paddle-live-config.mjs",
+    "build:deploy-manifest": "node scripts/write-deploy-manifest.mjs",
+    "validate:deploy-manifest": "node scripts/validate-deploy-manifest.mjs",
     "validate:brand": "node scripts/validate-brand-assets.js",
     "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs",
     "validate:paddle-live-payment-link": "node scripts/validate-paddle-live-payment-link.mjs",
@@ -32,6 +34,7 @@
     "validate:paddle-customer-checkout": "node scripts/validate-saas-paddle-customer-checkout.mjs",
     "validate:paddle-customer-portal": "node scripts/validate-saas-paddle-customer-portal.mjs",
     "validate:paddle-webhook-gateway-boundary": "node scripts/validate-saas-paddle-webhook-gateway-boundary.mjs",
+    "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs",
     "validate:homepage-progression": "node scripts/validate-homepage-progression.mjs",
     "validate:beta-acquisition": "node scripts/validate-beta-acquisition-onboarding.mjs",
     "validate:beta-operator": "node scripts/validate-beta-operator-workflow.mjs"
