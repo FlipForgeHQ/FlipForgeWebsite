@@ -7,10 +7,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const files = {
   index: read("saas-prototype/index.html"),
-  adapter: read("saas-prototype/staging-browser.js"),
-  hook: read("saas-prototype/staging-route-hook.js"),
-  css: read("saas-prototype/customer-dashboard.css"),
-  beta: read("saas-prototype/private-beta.js"),
+  guard: read("saas-prototype/production-dashboard-guard.js"),
+  legacyApp: read("saas-prototype/app.js"),
+  dashboard: read("saas-prototype/commercial-dashboard-v2.js"),
+  build: read("scripts/build-identity-client.mjs"),
+  css: read("saas-prototype/commercial-dashboard-v2.css"),
   docs: read("docs/SAAS_CUSTOMER_DASHBOARD.md"),
   packageJson: JSON.parse(read("package.json")),
   netlify: read("netlify.toml"),
@@ -23,156 +24,229 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
 [
   ["001 customer Dashboard validator is registered", files.packageJson.scripts?.["validate:customer-dashboard"] === "node scripts/validate-saas-customer-dashboard.mjs"],
   ["002 Netlify build runs customer Dashboard validation", files.netlify.includes("npm run validate:customer-dashboard")],
-  ["003 customer Dashboard stylesheet exists", fs.existsSync(path.join(root, "saas-prototype/customer-dashboard.css"))],
-  ["004 app loads customer Dashboard stylesheet", files.index.includes('href="customer-dashboard.css"')],
-  ["005 customer Dashboard documentation exists", fs.existsSync(path.join(root, "docs/SAAS_CUSTOMER_DASHBOARD.md"))],
-  ["006 deploy previews replace the mock Dashboard route", files.hook.includes('route === "dashboard"') && files.hook.includes("adapter.renderCustomerDashboard(main)")],
-  ["007 production keeps the existing prototype Dashboard", files.hook.includes("adapter.isEligible()")],
-  ["008 adapter exposes a dedicated customer Dashboard entrypoint", files.adapter.includes("function renderCustomerDashboard") && files.adapter.includes("renderCustomerDashboard," )],
-  ["009 Dashboard uses the existing read adapter", files.adapter.includes('currentSurface = "customer-dashboard"')],
-  ["010 Dashboard reads the fixed health path", files.adapter.includes('health: "/api/v1/health"')],
-  ["011 Dashboard reads the fixed dashboard path", files.adapter.includes('dashboard: "/api/v1/dashboard"')],
-  ["012 Dashboard reads the fixed opportunities path", files.adapter.includes('opportunities: "/api/v1/opportunities"')],
-  ["013 Dashboard reads both tenant projections together", files.adapter.includes("state.dashboard, state.opportunities")],
-  ["014 Dashboard displays server tracked count", files.adapter.includes("metrics.trackedOpportunities")],
-  ["015 Dashboard displays server evidence-ready count", files.adapter.includes("metrics.evidenceReady")],
-  ["016 Dashboard displays server population count", files.adapter.includes("metrics.populationContextAvailable")],
-  ["017 Dashboard displays server verification count", files.adapter.includes("metrics.needsVerification") && files.adapter.includes("Server-reported review count")],
-  ["018 saved decisions retain server order", files.adapter.includes("Records remain in the order returned by the server") && !files.adapter.includes("dashboardOpportunityCards().sort")],
-  ["019 Dashboard links to real Evaluate", files.adapter.includes('href="#/evaluate">Evaluate a card')],
-  ["020 Dashboard links to tracked opportunities", files.adapter.includes('href="#/opportunities">Tracked cards')],
-  ["021 Dashboard links to Compare", files.adapter.includes('href="#/compare"')],
-  ["022 Dashboard makes SQLite authority explicit", files.adapter.includes("tenant-owned SQLite record") && files.adapter.includes("SQLite source of truth")],
-  ["023 Dashboard makes Smart Opportunity authority explicit", files.adapter.includes("Smart Opportunity projection") && files.adapter.includes("Recommendation authority")],
-  ["024 Dashboard forbids browser reranking and rescoring", files.adapter.includes("does not rerank, rescore")],
-  ["025 Dashboard forbids evidence acceptance and grade prediction", files.adapter.includes("accept evidence, predict a grade")],
-  ["026 Dashboard exposes zero transaction authority", files.adapter.includes("Transaction authority") && files.adapter.includes(">None<")],
-  ["027 disabled Dashboard refuses sample substitution", files.adapter.includes("no sample dashboard was substituted")],
-  ["028 empty Dashboard offers a real evaluation next step", files.adapter.includes("No saved decisions yet") && files.adapter.includes("Evaluate one exact card")],
-  ["029 Dashboard requests use same-origin credentials", files.adapter.includes('credentials: "same-origin"')],
-  ["030 Dashboard requests disable caching", files.adapter.includes('cache: "no-store"')],
-  ["031 Dashboard requests reject redirects", files.adapter.includes('redirect: "error"')],
-  ["032 browser sends no tenant identity", !/X-FlipForge-(?:Tenant|User)-Id/i.test(files.adapter)],
-  ["033 browser contains no service token", !/FLIPFORGE_API_SERVICE_TOKEN/.test(files.adapter)],
-  ["034 browser persists no Dashboard or identity state", !/localStorage|sessionStorage|document\.cookie/.test(files.adapter)],
-  ["035 gateway remains the trusted tenant injector", files.gateway.includes("[TENANT_HEADER]: tenant.tenantId")],
-  ["036 Dashboard remains deploy-preview constrained", files.adapter.includes("deploy-preview-") && !files.adapter.includes("www.goflipforge.com")],
-  ["037 Dashboard CSS has four-metric desktop layout", files.css.includes("grid-template-columns: repeat(4")],
-  ["038 Dashboard CSS has tablet layout", files.css.includes("@media (max-width: 1050px)")],
-  ["039 Dashboard CSS has mobile layout", files.css.includes("@media (max-width: 680px)")],
-  ["040 Dashboard CSS has keyboard focus treatment", files.css.includes(":focus-visible")],
-  ["041 Dashboard CSS respects reduced motion", files.css.includes("prefers-reduced-motion")],
-  ["042 Beta Guide now lists the real customer intelligence loop", files.beta.includes("Discover → Evaluate → Intelligence → Traceback → Compare → Track")],
-  ["043 Beta Guide no longer lists Dashboard as a sample", !files.beta.includes("Dashboard, Discover, Portfolio, Sell, and Alerts")],
-  ["044 docs prohibit a second engine or ranking layer", files.docs.includes("does not create a dashboard database, recommendation engine, review engine, ranking layer")],
-  ["045 docs retain production-disabled boundary", files.docs.includes("Production keeps the existing static prototype behavior")],
-  ["046 docs disclose the current incomplete capabilities", files.docs.includes("current value") && files.docs.includes("email, SMS, or push") && files.docs.includes("Billing, paid-plan entitlements") && files.docs.includes("No customer surface has transaction authority")]
+  ["003 production Dashboard guard exists", fs.existsSync(path.join(root, "saas-prototype/production-dashboard-guard.js"))],
+  ["004 production Dashboard guard loads before legacy app router", files.index.includes('src="production-dashboard-guard.js"') && files.index.indexOf('src="production-dashboard-guard.js"') < files.index.indexOf('src="app.js"')],
+  ["005 production Dashboard guard is production-host restricted", files.guard.includes('/^(?:www\\.)?goflipforge\\.com$/i')],
+  ["006 production Dashboard guard is app-path restricted", files.guard.includes('/^\\/(?:app|saas-prototype)(?:\\/|$)/i')],
+  ["007 production Dashboard guard is dashboard-route restricted", files.guard.includes('route === "dashboard"')],
+  ["008 production Dashboard guard recognizes authoritative render", files.guard.includes('[data-commercial-dashboard-v2]')],
+  ["009 production Dashboard guard exposes no prototype data dependency", !/FlipForgePrototypeData|data\.dashboard|data\.opportunities/.test(files.guard)],
+  ["010 production Dashboard guard uses honest authoritative loading language", files.guard.includes("Loading tenant-owned FlipForge intelligence") && files.guard.includes("Loading authoritative dashboard data")],
+  ["011 legacy prototype Dashboard remains identifiable for non-production cleanup", files.legacyApp.includes("Prototype customer activity, not live telemetry") && files.legacyApp.includes("already-governed mock records")],
+  ["012 commercial Dashboard uses fixed health path", files.dashboard.includes('health: "/api/v1/health"')],
+  ["013 commercial Dashboard uses fixed dashboard path", files.dashboard.includes('dashboard: "/api/v1/dashboard"')],
+  ["014 commercial Dashboard uses fixed opportunities path", files.dashboard.includes('opportunities: "/api/v1/opportunities"')],
+  ["015 commercial Dashboard is production eligible", files.dashboard.includes('/^(?:www\\.)?goflipforge\\.com$/i') && files.dashboard.includes("PRODUCTION_HOST.test(host)")],
+  ["016 commercial Dashboard uses same-origin credentials", files.dashboard.includes('credentials: "same-origin"')],
+  ["017 commercial Dashboard disables caching", files.dashboard.includes('cache: "no-store"')],
+  ["018 commercial Dashboard rejects redirects", files.dashboard.includes('redirect: "error"')],
+  ["019 commercial Dashboard validates contract version", files.dashboard.includes('meta.contractVersion === CONTRACT_VERSION')],
+  ["020 commercial Dashboard validates request correlation", files.dashboard.includes('meta.correlationId === requestCorrelationId')],
+  ["021 commercial Dashboard validates Smart Opportunity authority", files.dashboard.includes('meta.authority === "Smart Opportunity"')],
+  ["022 commercial Dashboard validates existing PSA authority", files.dashboard.includes('meta.gradingAuthority === "Existing PSA intelligence"')],
+  ["023 commercial Dashboard exposes no browser tenant identity header", !/X-FlipForge-(?:Tenant|User)-Id/i.test(files.dashboard)],
+  ["024 commercial Dashboard contains no service token", !/FLIPFORGE_API_SERVICE_TOKEN/.test(files.dashboard)],
+  ["025 commercial Dashboard fails closed on unavailable bridge", files.dashboard.includes("CUSTOMER_API_NOT_CONFIGURED") && files.dashboard.includes("fails closed")],
+  ["026 commercial Dashboard preserves server order", files.dashboard.includes("server order preserved") && files.dashboard.includes("Records stay in the order returned by the authoritative service")],
+  ["027 commercial Dashboard keeps Market Index unavailable", files.dashboard.includes("NOT CONFIGURED") && files.dashboard.includes("rather than presenting a fabricated index or chart")],
+  ["028 commercial Dashboard forbids browser authority", files.dashboard.includes("No browser scoring, evidence acceptance, grade prediction, purchase, sale, or transaction authority")],
+  ["029 production build injects commercial Dashboard stylesheet", files.build.includes('commercial-dashboard-v2.css') && files.build.includes("injectCommercialDashboard(appIndex)")],
+  ["030 production build injects commercial Dashboard script", files.build.includes('commercial-dashboard-v2.js')],
+  ["031 production build injects commercial Dashboard before commercial polish", files.build.indexOf("injectCommercialDashboard(appIndex)") < files.build.indexOf("injectCommercialAppPolish(appIndex)")],
+  ["032 gateway remains trusted tenant injector", files.gateway.includes("[TENANT_HEADER]: tenant.tenantId")],
+  ["033 Dashboard CSS has desktop layout", files.css.includes("ff-kpi-grid")],
+  ["034 Dashboard CSS has responsive rules", /@media\s*\(max-width:/.test(files.css)],
+  ["035 docs require server-owned production Dashboard", files.docs.includes("Production Dashboard is server-owned") && files.docs.includes("goflipforge.com/app/")],
+  ["036 docs prohibit production prototype fallback", files.docs.includes("must never appear on production") && files.docs.includes("production-dashboard-guard.js")],
+  ["037 docs preserve Smart Opportunity authority", files.docs.includes("Smart Opportunity remains the sole")],
+  ["038 docs preserve PSA authority", files.docs.includes("Existing PSA intelligence remains the sole")],
+  ["039 docs preserve SQLite source of truth", files.docs.includes("SQLite remains the source of truth")],
+  ["040 docs preserve zero transaction authority", files.docs.includes("No customer surface has transaction authority")]
 ].forEach(([name, condition]) => check(name, condition));
 
-function envelope(correlationId, data, authority = "Smart Opportunity") {
+function guardRuntime({ hostname = "goflipforge.com", pathname = "/app/", hash = "#/dashboard", initialHtml = "" } = {}) {
+  let observerCallback = null;
+  const main = {
+    innerHTML: initialHtml,
+    querySelector(selector) {
+      if (selector === "[data-commercial-dashboard-v2]") return this.innerHTML.includes("data-commercial-dashboard-v2") ? {} : null;
+      if (selector === "[data-production-dashboard-guard]") return this.innerHTML.includes("data-production-dashboard-guard") ? {} : null;
+      return null;
+    }
+  };
+  class MutationObserver {
+    constructor(callback) { observerCallback = callback; }
+    observe() {}
+    disconnect() {}
+  }
+  const window = {
+    location: { hostname, pathname, hash },
+    addEventListener() {}
+  };
+  const document = {
+    querySelector(selector) { return selector === "#main-content" ? main : null; }
+  };
+  const context = vm.createContext({
+    window,
+    document,
+    MutationObserver,
+    queueMicrotask: callback => callback(),
+    String,
+    RegExp
+  });
+  vm.runInContext(files.guard, context, { filename: "production-dashboard-guard.js" });
+  return { main, triggerMutation: () => observerCallback?.() };
+}
+
+const guarded = guardRuntime({ initialHtml: '<div data-prototype-dashboard>PROTOTYPE_SENTINEL</div>' });
+check("041 production Dashboard starts behind authoritative guard", guarded.main.innerHTML.includes("data-production-dashboard-guard") && !guarded.main.innerHTML.includes("PROTOTYPE_SENTINEL"));
+guarded.main.innerHTML = '<div data-prototype-dashboard>PROTOTYPE_SENTINEL</div>';
+guarded.triggerMutation();
+check("042 production guard removes a later legacy prototype overwrite", guarded.main.innerHTML.includes("data-production-dashboard-guard") && !guarded.main.innerHTML.includes("PROTOTYPE_SENTINEL"));
+guarded.main.innerHTML = '<div data-commercial-dashboard-v2>AUTHORITATIVE_SENTINEL</div>';
+guarded.triggerMutation();
+check("043 production guard preserves authoritative commercial Dashboard", guarded.main.innerHTML.includes("AUTHORITATIVE_SENTINEL") && !guarded.main.innerHTML.includes("data-production-dashboard-guard"));
+
+const wwwGuarded = guardRuntime({ hostname: "www.goflipforge.com", initialHtml: "WWW_PROTOTYPE_SENTINEL" });
+check("044 www production host is guarded", wwwGuarded.main.innerHTML.includes("data-production-dashboard-guard") && !wwwGuarded.main.innerHTML.includes("WWW_PROTOTYPE_SENTINEL"));
+
+const previewGuarded = guardRuntime({ hostname: "deploy-preview-174--goflipforge.netlify.app", pathname: "/saas-prototype/", initialHtml: "PREVIEW_SENTINEL" });
+check("045 deploy preview keeps explicit prototype behavior", previewGuarded.main.innerHTML === "PREVIEW_SENTINEL");
+const localGuarded = guardRuntime({ hostname: "localhost", pathname: "/saas-prototype/", initialHtml: "LOCAL_SENTINEL" });
+check("046 localhost keeps explicit prototype behavior", localGuarded.main.innerHTML === "LOCAL_SENTINEL");
+const productionOtherRoute = guardRuntime({ hash: "#/discover", initialHtml: "DISCOVER_SENTINEL" });
+check("047 production guard does not interfere with non-Dashboard routes", productionOtherRoute.main.innerHTML === "DISCOVER_SENTINEL");
+
+function authorityEnvelope(correlationId, data, overrides = {}) {
   return {
     meta: {
-      contractVersion: "1.0",
+      contractVersion: overrides.contractVersion || "1.0",
       engineVersion: "test-smart-opportunity+psa",
-      authority,
-      gradingAuthority: "Existing PSA intelligence",
+      authority: overrides.authority || "Smart Opportunity",
+      gradingAuthority: overrides.gradingAuthority || "Existing PSA intelligence",
       evidenceFreshness: "CURRENT_SAVED_CONTEXT",
       limitations: ["Decision support only."],
-      correlationId
+      correlationId: overrides.correlationId || correlationId,
+      generatedAt: "2026-08-27T22:00:00.000Z"
     },
     data
   };
 }
 
-function response(body, status = 200) {
+function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 }
 
-function makeMain() {
-  return { innerHTML: "", focus() {}, querySelectorAll() { return []; } };
-}
-
-function runtime({ hostname = "deploy-preview-34--goflipforge.netlify.app", healthStatus = "configured", dataStatus = 200, invalidAuthority = false } = {}) {
+function commercialRuntime({ healthStatus = "configured", dataStatus = 200, authority = "Smart Opportunity", gradingAuthority = "Existing PSA intelligence", mismatchCorrelation = false } = {}) {
   const calls = [];
   let uuid = 0;
+  const main = {
+    innerHTML: '<div data-prototype-dashboard>PROTOTYPE_SENTINEL</div>',
+    querySelector() { return null; }
+  };
   const window = {
-    location: { hostname, hash: "#/dashboard" },
-    crypto: { randomUUID: () => `dashboard-correlation-${++uuid}` }
+    location: { hostname: "goflipforge.com", pathname: "/app/", hash: "#/dashboard" },
+    crypto: { randomUUID: () => `dashboard-correlation-${++uuid}` },
+    addEventListener() {}
   };
   const document = {
+    title: "",
+    body: { classList: { add() {} } },
     querySelector(selector) {
-      if (selector === "[data-route='staging']") return { hidden: true };
-      if (selector === "#main-content") return makeMain();
+      if (selector === "#main-content") return main;
       return null;
-    },
-    createElement() { return {}; }
+    }
   };
   const opportunities = [
-    { id: "opp-first", title: "First returned decision", cardIdentity: "Card A", platform: "EBAY", recommendation: "BUY", ask: 525, supportedValue: 602, confidence: 86, evidence: { acceptedSales: 4 }, mappingState: "CONFIRMED" },
-    { id: "opp-second", title: "Second returned decision", cardIdentity: "Card B", platform: "EBAY", recommendation: "VERIFY", ask: 410, supportedValue: 445, confidence: 73, evidence: { acceptedSales: 0 }, mappingState: "NOT_CONFIRMED" }
+    { id: "opp-first", title: "Tenant Decision Alpha", cardIdentity: "Card A #1 PSA 10", platform: "EBAY", recommendation: "BUY", ask: 525, supportedValue: 602, confidence: 86, liquidity: 82, risk: 21, rank: 91, evidence: { acceptedSales: 4 }, mappingState: "CONFIRMED" },
+    { id: "opp-second", title: "Tenant Decision Beta", cardIdentity: "Card B #2 PSA 9", platform: "EBAY", recommendation: "VERIFY", ask: 410, supportedValue: 445, confidence: 73, liquidity: 66, risk: 48, rank: 74, evidence: { acceptedSales: 0 }, mappingState: "NOT_CONFIRMED" }
   ];
   const fetch = async (url, options) => {
     calls.push({ url, options });
-    const correlation = options.headers["X-Correlation-Id"];
+    const correlationId = options.headers["X-Correlation-Id"];
     if (url === "/api/v1/health") {
-      return response({ meta: { contractVersion: "1.0", correlationId: correlation }, data: { status: healthStatus, bridgeEnabled: healthStatus === "configured", upstreamConfigured: true, authenticationRequired: true, tenantMembershipRequired: true } });
+      return jsonResponse({
+        meta: { contractVersion: "1.0", correlationId },
+        data: { status: healthStatus, bridgeEnabled: healthStatus === "configured", upstreamConfigured: true, authenticationRequired: true, tenantMembershipRequired: true }
+      });
     }
+    if (dataStatus !== 200) {
+      const code = dataStatus === 401 ? "AUTHENTICATION_REQUIRED" : dataStatus === 403 ? "TENANT_MEMBERSHIP_REQUIRED" : "UPSTREAM_REJECTED";
+      return jsonResponse({ error: { code, message: "Authoritative request denied.", correlationId } }, dataStatus);
+    }
+    const correlationOverride = mismatchCorrelation ? `${correlationId}-mismatch` : correlationId;
     if (url === "/api/v1/dashboard") {
-      if (dataStatus !== 200) return response({ error: { code: dataStatus === 401 ? "AUTHENTICATION_REQUIRED" : "UPSTREAM_REJECTED", message: "Request denied.", correlationId: correlation } }, dataStatus);
-      return response(envelope(correlation, { kind: "dashboard", metrics: { trackedOpportunities: 2, evidenceReady: 1, populationContextAvailable: 1, needsVerification: 1 } }, invalidAuthority ? "Second Engine" : "Smart Opportunity"));
+      return jsonResponse(authorityEnvelope(correlationId, {
+        kind: "dashboard",
+        metrics: { trackedOpportunities: 2, evidenceReady: 1, populationContextAvailable: 1, needsVerification: 1 }
+      }, { authority, gradingAuthority, correlationId: correlationOverride }));
     }
     if (url === "/api/v1/opportunities") {
-      if (dataStatus !== 200) return response({ error: { code: dataStatus === 401 ? "AUTHENTICATION_REQUIRED" : "UPSTREAM_REJECTED", message: "Request denied.", correlationId: correlation } }, dataStatus);
-      return response(envelope(correlation, { kind: "opportunities", count: opportunities.length, items: opportunities }));
+      return jsonResponse(authorityEnvelope(correlationId, { kind: "opportunities", count: opportunities.length, items: opportunities }, { authority, gradingAuthority, correlationId: correlationOverride }));
     }
     throw new Error(`Unexpected request: ${url}`);
   };
-  const context = vm.createContext({ window, document, fetch, Response, URL, Intl, Math, Date, Object, Array, String, Number, Boolean, RegExp, Promise, console, setTimeout, clearTimeout, encodeURIComponent, decodeURIComponent });
-  vm.runInContext(files.adapter, context, { filename: "staging-browser.js" });
-  return { window, calls };
+  const context = vm.createContext({
+    window,
+    document,
+    fetch,
+    Response,
+    Intl,
+    Math,
+    Date,
+    Object,
+    Array,
+    String,
+    Number,
+    Boolean,
+    RegExp,
+    Promise,
+    console,
+    setTimeout,
+    clearTimeout,
+    queueMicrotask: callback => callback(),
+    encodeURIComponent,
+    decodeURIComponent
+  });
+  vm.runInContext(files.dashboard, context, { filename: "commercial-dashboard-v2.js" });
+  return { main, calls };
 }
 
-const settle = () => new Promise(resolve => setTimeout(resolve, 30));
+const settle = () => new Promise(resolve => setTimeout(resolve, 40));
 
-const configured = runtime();
-const configuredMain = makeMain();
-check("047 customer Dashboard adapter is eligible", configured.window.FlipForgeStagingReadAdapter.isEligible());
-check("048 customer Dashboard runtime entrypoint exists", typeof configured.window.FlipForgeStagingReadAdapter.renderCustomerDashboard === "function");
-configured.window.FlipForgeStagingReadAdapter.renderCustomerDashboard(configuredMain);
+const production = commercialRuntime();
 await settle();
-check("049 Dashboard loads health dashboard and opportunities", configured.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/dashboard,/api/v1/opportunities");
-check("050 Dashboard renders authoritative metrics", configuredMain.innerHTML.includes("Tracked decisions</span><strong>2") && configuredMain.innerHTML.includes("Needs verification</span><strong>1"));
-check("051 Dashboard renders returned decisions", configuredMain.innerHTML.includes("First returned decision") && configuredMain.innerHTML.includes("Second returned decision"));
-check("052 Dashboard preserves returned order", configuredMain.innerHTML.indexOf("First returned decision") < configuredMain.innerHTML.indexOf("Second returned decision"));
-check("053 Dashboard renders returned recommendations", configuredMain.innerHTML.includes(">BUY<") && configuredMain.innerHTML.includes(">VERIFY<"));
-check("054 Dashboard renders authority state", configuredMain.innerHTML.includes("Smart Opportunity") && configuredMain.innerHTML.includes("Transaction authority"));
-check("055 Dashboard uses secure read controls", configured.calls.every(call => call.options.method === "GET" && call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
-check("056 Dashboard exposes no transaction action", !/Place bid|Buy now|Checkout|Pay now|List for sale/.test(configuredMain.innerHTML));
+check("048 production commercial Dashboard loads health dashboard opportunities", production.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/dashboard,/api/v1/opportunities");
+check("049 production Dashboard renders authoritative tenant metrics", production.main.innerHTML.includes("Tracked Decisions") && production.main.innerHTML.includes(">2<") && production.main.innerHTML.includes("Needs Verification"));
+check("050 production Dashboard renders server-returned decisions", production.main.innerHTML.includes("Tenant Decision Alpha") && production.main.innerHTML.includes("Tenant Decision Beta"));
+check("051 production Dashboard preserves server decision order", production.main.innerHTML.indexOf("Tenant Decision Alpha") < production.main.innerHTML.indexOf("Tenant Decision Beta"));
+check("052 production Dashboard preserves server recommendations", production.main.innerHTML.includes(">BUY<") && production.main.innerHTML.includes(">VERIFY<"));
+check("053 production Dashboard removes prototype sentinel immediately", !production.main.innerHTML.includes("PROTOTYPE_SENTINEL"));
+check("054 production Dashboard requests are GET same-origin no-store redirect-error", production.calls.every(call => call.options.method === "GET" && call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
+check("055 production Dashboard sends correlation IDs", production.calls.every(call => /^dashboard-correlation-\d+$/.test(call.options.headers["X-Correlation-Id"])));
+check("056 production Dashboard exposes no transaction action", !/Place bid|Buy now|Checkout|Pay now|List for sale/.test(production.main.innerHTML));
+check("057 production Dashboard renders explicit authority boundary", production.main.innerHTML.includes("Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority") && production.main.innerHTML.includes("Existing PSA intelligence remains the sole grading-guidance authority"));
 
-const disabled = runtime({ healthStatus: "disabled" });
-const disabledMain = makeMain();
-disabled.window.FlipForgeStagingReadAdapter.renderCustomerDashboard(disabledMain);
+const disabled = commercialRuntime({ healthStatus: "disabled" });
 await settle();
-check("057 disabled Dashboard makes only public health request", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
-check("058 disabled Dashboard is honest and mock-free", disabledMain.innerHTML.includes("safely offline") && disabledMain.innerHTML.includes("no sample dashboard was substituted") && !disabledMain.innerHTML.includes("First returned decision"));
+check("058 disabled bridge stops after health", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
+check("059 disabled bridge fails closed without prototype content", disabled.main.innerHTML.includes("CUSTOMER_API_NOT_CONFIGURED") && disabled.main.innerHTML.includes("fails closed") && !disabled.main.innerHTML.includes("PROTOTYPE_SENTINEL") && !disabled.main.innerHTML.includes("Tenant Decision Alpha"));
 
-const unauthorized = runtime({ dataStatus: 401 });
-const unauthorizedMain = makeMain();
-unauthorized.window.FlipForgeStagingReadAdapter.renderCustomerDashboard(unauthorizedMain);
+for (const status of [401, 403, 500]) {
+  const failed = commercialRuntime({ dataStatus: status });
+  await settle();
+  check(`060-${status} request failure fails closed`, failed.main.innerHTML.includes(status === 401 ? "AUTHENTICATION_REQUIRED" : status === 403 ? "TENANT_MEMBERSHIP_REQUIRED" : "UPSTREAM_REJECTED") && !failed.main.innerHTML.includes("PROTOTYPE_SENTINEL") && !failed.main.innerHTML.includes("Tenant Decision Alpha"));
+}
+
+const invalidAuthority = commercialRuntime({ authority: "Second Engine" });
 await settle();
-check("059 authentication failure shows secure sign-in", unauthorizedMain.innerHTML.includes("AUTHENTICATION_REQUIRED") && unauthorizedMain.innerHTML.includes("Sign in securely"));
-check("060 Dashboard sign-in returns to Dashboard", unauthorizedMain.innerHTML.includes("%23%2Fdashboard"));
-check("061 authentication failure leaks no saved record", !unauthorizedMain.innerHTML.includes("First returned decision"));
-
-const invalid = runtime({ invalidAuthority: true });
-const invalidMain = makeMain();
-invalid.window.FlipForgeStagingReadAdapter.renderCustomerDashboard(invalidMain);
+check("061 invalid recommendation authority fails closed", invalidAuthority.main.innerHTML.includes("DASHBOARD_CONTRACT_INVALID") && !invalidAuthority.main.innerHTML.includes("Tenant Decision Alpha") && !invalidAuthority.main.innerHTML.includes("PROTOTYPE_SENTINEL"));
+const invalidPsa = commercialRuntime({ gradingAuthority: "Browser PSA" });
 await settle();
-check("062 invalid authority envelope fails closed", invalidMain.innerHTML.includes("STAGING_CONTRACT_INVALID") && !invalidMain.innerHTML.includes("Tracked decisions</span><strong>2"));
-
-const production = runtime({ hostname: "goflipforge.com" });
-const productionMain = makeMain();
-check("063 production refuses real Dashboard adapter", production.window.FlipForgeStagingReadAdapter.renderCustomerDashboard(productionMain) === false && production.calls.length === 0);
+check("062 invalid PSA authority fails closed", invalidPsa.main.innerHTML.includes("DASHBOARD_CONTRACT_INVALID") && !invalidPsa.main.innerHTML.includes("Tenant Decision Alpha") && !invalidPsa.main.innerHTML.includes("PROTOTYPE_SENTINEL"));
+const invalidCorrelation = commercialRuntime({ mismatchCorrelation: true });
+await settle();
+check("063 mismatched correlation fails closed", invalidCorrelation.main.innerHTML.includes("DASHBOARD_CONTRACT_INVALID") && !invalidCorrelation.main.innerHTML.includes("Tenant Decision Alpha") && !invalidCorrelation.main.innerHTML.includes("PROTOTYPE_SENTINEL"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSCustomerDashboardValidation");
