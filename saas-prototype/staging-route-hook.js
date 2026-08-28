@@ -2,6 +2,7 @@
   "use strict";
 
   const adapter = window.FlipForgeStagingReadAdapter;
+  const opportunityAdapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
   const cardIntelligenceAdapter = window.FlipForgeCustomerCardIntelligence;
   const compareAdapter = window.FlipForgeCustomerCompare;
@@ -51,12 +52,12 @@
   }
 
   function focusMain() {
-    main.focus({ preventScroll: true });
-    window.scrollTo({ top: 0, behavior: "instant" });
+    if (main && typeof main.focus === "function") main.focus({ preventScroll: true });
+    if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   function addBulkEvaluateAction() {
-    const actions = main.querySelector(".page-actions");
+    const actions = main && typeof main.querySelector === "function" ? main.querySelector(".page-actions") : null;
     if (!actions || actions.querySelector("[data-bulk-evaluate-link]")) return;
     const link = document.createElement("a");
     link.className = "button button-primary";
@@ -64,6 +65,16 @@
     link.setAttribute("data-bulk-evaluate-link", "");
     link.textContent = "Bulk Evaluate";
     actions.prepend(link);
+  }
+
+  function renderOpportunityRoute(id) {
+    if (!opportunityAdapter || typeof opportunityAdapter.isEligible !== "function" || !opportunityAdapter.isEligible()) return false;
+    const renderer = typeof opportunityAdapter.renderCustomer === "function"
+      ? opportunityAdapter.renderCustomer
+      : opportunityAdapter.render;
+    if (typeof renderer !== "function") return false;
+    renderer.call(opportunityAdapter, main, id);
+    return true;
   }
 
   function applyRoute() {
@@ -112,12 +123,8 @@
           focusMain();
           return;
         }
-        if (route === "opportunities"
-            && adapter
-            && typeof adapter.renderCustomer === "function"
-            && adapter.isEligible()) {
+        if (route === "opportunities" && renderOpportunityRoute(id)) {
           showCustomerIntelligenceBanner();
-          adapter.renderCustomer(main, id);
           focusMain();
           return;
         }
