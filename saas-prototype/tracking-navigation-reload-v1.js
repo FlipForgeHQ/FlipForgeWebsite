@@ -41,10 +41,6 @@
     const nextHash = `#/tracking/${encodeURIComponent(id)}`;
     const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
 
-    // A fresh load is intentional here. The legacy prototype router and the
-    // customer lifecycle router both receive hash changes in the existing app.
-    // Loading the exact Tracking URL gives the lifecycle router one clean
-    // initialization path—the same behavior that already works in a new tab.
     try {
       window.history.pushState({ flipforgeTrackingReload: true }, "", nextUrl);
       window.location.reload();
@@ -60,9 +56,6 @@
 (() => {
   "use strict";
 
-  // Keep the Tracking customer polish in this already-loaded file. A prior
-  // version injected tracking-customer-ux-v1.js dynamically, which was not
-  // reliable on the production app. This layer changes presentation only.
   const MAIN = "#main-content";
   let queued = false;
 
@@ -80,7 +73,7 @@
     if (!option) return "";
     if (!option.dataset.ffTrackingBaseLabel) {
       option.dataset.ffTrackingBaseLabel = String(option.textContent || "")
-        .replace(/\s+·\s+saved record\s+\d+(?:\s+of\s+\d+)?$/i, "")
+        .replace(/\s+·\s+saved\s+(?:record\s+)?\d+(?:\s+of\s+\d+)?$/i, "")
         .trim();
     }
     return option.dataset.ffTrackingBaseLabel;
@@ -142,13 +135,30 @@
     label.setAttribute("aria-hidden", visible ? "false" : "true");
   }
 
+  function syncedOutcome(status, currentOutcome) {
+    switch (status) {
+      case "WATCHING":
+      case "REVIEW":
+        return "NONE";
+      case "OWNED":
+        return "ACQUIRED";
+      case "SOLD":
+        return "SOLD";
+      case "PASSED":
+        return "PASSED";
+      case "ARCHIVED":
+        return currentOutcome || "NONE";
+      default:
+        return currentOutcome || "NONE";
+    }
+  }
+
   function polishForm(page) {
     const form = page.querySelector("[data-lifecycle-form]");
     if (!form) return;
 
     const replacements = {
       trackingStatus: "Status",
-      outcomeStatus: "Result",
       reviewAt: "Review date",
       acquisitionCost: "Purchase cost",
       acquiredAt: "Purchase date",
@@ -163,7 +173,15 @@
     const reminder = form.querySelector('input[name="alertEnabled"]')?.closest("label");
     setText(reminder?.querySelector("span"), "Remind me in FlipForge");
 
-    const status = String(form.querySelector('select[name="trackingStatus"]')?.value || "").toUpperCase();
+    const statusSelect = form.querySelector('select[name="trackingStatus"]');
+    const outcomeSelect = form.querySelector('select[name="outcomeStatus"]');
+    const status = String(statusSelect?.value || "").toUpperCase();
+    if (outcomeSelect) {
+      const nextOutcome = syncedOutcome(status, String(outcomeSelect.value || "").toUpperCase());
+      if (outcomeSelect.value !== nextOutcome) outcomeSelect.value = nextOutcome;
+      setFieldVisible(form, "outcomeStatus", false);
+    }
+
     const purchaseVisible = status === "OWNED" || status === "SOLD";
     const saleVisible = status === "SOLD";
 
@@ -179,9 +197,8 @@
 
     const submit = form.querySelector('button[type="submit"]');
     if (submit && !/Saving/i.test(String(submit.textContent || ""))) setText(submit, "Save tracking");
-    setText(form.querySelector(".customer-lifecycle-submit small"), "Set a review date while watching. Add purchase details only when you own the card, and sale details only after it is sold.");
+    setText(form.querySelector(".customer-lifecycle-submit small"), "Choose a status. FlipForge sets the matching result automatically. Add purchase details only when you own the card and sale details only after it is sold.");
 
-    const statusSelect = form.querySelector('select[name="trackingStatus"]');
     if (statusSelect && statusSelect.dataset.ffTrackingVisibilityBound !== "true") {
       statusSelect.dataset.ffTrackingVisibilityBound = "true";
       statusSelect.addEventListener("change", () => polishForm(page));
@@ -252,7 +269,7 @@
     clarifyDuplicateCards(page);
     polishForm(page);
     humanizeHistory(page);
-    page.dataset.ffTrackingCustomerUx = "v2";
+    page.dataset.ffTrackingCustomerUx = "v3";
   }
 
   function queue() {
