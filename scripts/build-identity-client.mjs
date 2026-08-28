@@ -22,7 +22,7 @@ const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"><
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
 const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
 const typographyFloorScriptTag = '<script src="customer-typography-floor-v1.js"></script>';
-const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability-v1.css">';
+const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability.css">';
 
 fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
 
@@ -114,9 +114,6 @@ function injectTypographyFloor(htmlPath) {
 function enforceProductionAppBoundary(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Production app boundary target missing: ${path.relative(root, htmlPath)}`);
   const current = fs.readFileSync(htmlPath, "utf8");
-
-  // Exercise the production projection on every build, including PR/deploy-preview CI,
-  // so regressions are caught even when Netlify CONTEXT is not production.
   const productionProbe = applyProductionAppBoundary(current, "production");
   assertProductionAppBoundary(current, productionProbe);
 
@@ -126,38 +123,16 @@ function enforceProductionAppBoundary(htmlPath) {
   fs.writeFileSync(htmlPath, productionProbe, "utf8");
 }
 
-// Default Identity invite/recovery emails return to the project root, so the
-// public landing page must be able to process callback hashes. The client stays
-// visually dormant there unless a callback is present.
 injectBefore(path.join(root, "index.html"), "</body>");
 
-// The app initializes the current Identity UI before its read/evaluation adapters
-// execute. Customer API authentication remains cookie-based; adapters never read
-// or forward a raw JWT.
 const appIndex = path.join(root, "saas-prototype", "index.html");
 injectBefore(appIndex, '<script src="staging-browser.js"></script>');
 injectProductionSignInBefore(appIndex, '<script src="staging-browser.js"></script>');
-
-// The retained entitlement workspace was originally preview-only. Production
-// activation keeps the same server-owned contracts and checkout handoff, but
-// permits that workspace on the approved production app host after Identity
-// authentication has been established.
 injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-portal.js"></script>');
 
-// Commercial presentation layers are injected BEFORE the final customer
-// readability stylesheet. This keeps the premium visual system while ensuring
-// the uniform readability/accessibility floor is the final typography authority.
 injectCommercialDashboard(appIndex);
 injectCommercialAppPolish(appIndex);
-
-// The computed typography floor runs after every route/presentation script so it
-// can correct legacy microcopy selectors without shrinking any text already >=14px.
 injectTypographyFloor(appIndex);
-
-// Deploy previews/local source retain explicit staging diagnostics. Production
-// output strips the preview-only staging read adapter, its navigation, and its CSS.
-// Shared customer Evaluate/router modules remain because they still serve the
-// production customer path and are independently authority-gated.
 enforceProductionAppBoundary(appIndex);
 
 const identityBytes = fs.statSync(identityOutput).size;
