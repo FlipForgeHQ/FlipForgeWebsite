@@ -1,0 +1,70 @@
+name: Production App Boundary Validation
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/index.html"
+      - "scripts/build-identity-client.mjs"
+      - "scripts/lib/production-app-boundary.mjs"
+      - "scripts/validate-netlify-identity-modernization.mjs"
+      - "scripts/lib/deploy-manifest.mjs"
+      - "scripts/write-deploy-manifest.mjs"
+      - "scripts/validate-deploy-manifest.mjs"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/production-app-boundary-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-boundary:
+    name: Build and validate production app boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      CONTEXT: production
+      BRANCH: main
+      COMMIT_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install website build dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity and app boundary
+        run: npm run build:identity
+
+      - name: Validate production Identity contract
+        run: npm run validate:identity
+
+      - name: Assert preview-only staging diagnostics are absent
+        run: |
+          ! grep -q 'src="staging-browser.js"' saas-prototype/index.html
+          ! grep -q 'href="staging-browser.css"' saas-prototype/index.html
+          ! grep -q 'data-route="staging"' saas-prototype/index.html
+          ! grep -q 'data-route="staging-evaluate"' saas-prototype/index.html
+
+      - name: Assert required customer production runtime remains
+        run: |
+          grep -q 'src="/assets/js/flipforge-identity.js"' saas-prototype/index.html
+          grep -q 'src="/assets/js/flipforge-production-signin.js"' saas-prototype/index.html
+          grep -q 'src="production-dashboard-guard.js"' saas-prototype/index.html
+          grep -q 'src="staging-evaluation.js"' saas-prototype/index.html
+          grep -q 'src="staging-route-hook.js"' saas-prototype/index.html
+          grep -q 'src="customer-opportunities.js"' saas-prototype/index.html
+          grep -q 'src="customer-opportunities-bridge.js"' saas-prototype/index.html
+
+      - name: Build and validate production deployment manifest
+        run: |
+          npm run build:deploy-manifest
+          npm run validate:deploy-manifest
+          node -e 'const m=require("./deploy-meta.json"); if(m.context!=="production"||m.production!==true||m.commitRef!==process.env.COMMIT_REF||m.appBoundary!=="PRODUCTION_SERVER_OWNED_FAIL_CLOSED"||m.transactionAuthority!==false) process.exit(1)'
