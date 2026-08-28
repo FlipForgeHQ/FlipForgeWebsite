@@ -13,6 +13,9 @@ on:
       - "docs/SAAS_PRIVATE_BETA_OPERATIONS_BOUNDARY.md"
       - "scripts/build-assets.js"
       - "scripts/validate-brand-assets.js"
+      - "scripts/lib/deploy-manifest.mjs"
+      - "scripts/write-deploy-manifest.mjs"
+      - "scripts/validate-deploy-manifest.mjs"
       - "scripts/validate-production-prototype-isolation.mjs"
       - "scripts/validate-saas-customer-dashboard.mjs"
       - "scripts/validate-saas-commercial-dashboard-live-qa.mjs"
@@ -50,7 +53,7 @@ jobs:
       - name: Install website build dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Parse browser JavaScript
+      - name: Parse browser and deployment JavaScript
         run: |
           node --check saas-prototype/mock-data.js
           node --check saas-prototype/feature-data.js
@@ -72,14 +75,27 @@ jobs:
           node --check saas-prototype/customer-entitlements.js
           node --check saas-prototype/private-beta.js
           node --check saas-prototype/serve.mjs
+          node --check scripts/lib/deploy-manifest.mjs
+          node --check scripts/write-deploy-manifest.mjs
+          node --check scripts/validate-deploy-manifest.mjs
           node --check scripts/validate-saas-customer-dashboard.mjs
           node --check scripts/validate-saas-commercial-dashboard-live-qa.mjs
           node --check scripts/validate-production-prototype-isolation.mjs
           node --check scripts/validate-consumer-ux-refinement.mjs
           node --check scripts/validate-saas-customer-entitlements.mjs
 
-      - name: Run exact Netlify build command
+      - name: Run production-path application validations
         run: npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:production-prototype-isolation && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:customer-entitlements && npm run validate:private-beta-operations-boundary && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
+
+      - name: Simulate Netlify Deploy Preview identity manifest
+        env:
+          CONTEXT: deploy-preview
+          BRANCH: audit/ci-deploy-manifest
+          COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+        run: |
+          npm run build:deploy-manifest
+          npm run validate:deploy-manifest
+          node -e 'const m=require("./deploy-meta.json"); if(m.context!=="deploy-preview"||m.commitRef!==process.env.COMMIT_REF||m.production!==false||m.transactionAuthority!==false) process.exit(1)'
 
       - name: Run deterministic prototype checks
         run: |

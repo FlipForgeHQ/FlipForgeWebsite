@@ -6,6 +6,8 @@
   "scripts": {
     "build:identity": "node scripts/build-identity-client.mjs",
     "build:paddle-live": "node scripts/build-paddle-live-config.mjs",
+    "build:deploy-manifest": "node scripts/write-deploy-manifest.mjs",
+    "validate:deploy-manifest": "node scripts/validate-deploy-manifest.mjs",
     "validate:brand": "node scripts/validate-brand-assets.js",
     "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs",
     "validate:paddle-live-payment-link": "node scripts/validate-paddle-live-payment-link.mjs",
