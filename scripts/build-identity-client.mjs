@@ -21,6 +21,7 @@ const commercialDashboardStylesheetTag = '<link rel="stylesheet" href="commercia
 const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"></script>';
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
 const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
+const mobileNavigationStabilizerScriptTag = '<script src="mobile-navigation-stabilizer-v1.js"></script>';
 const typographyFloorScriptTag = '<script src="customer-typography-floor-v1.js"></script>';
 const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability.css">';
 
@@ -102,6 +103,15 @@ function injectCommercialAppPolish(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
+function injectMobileNavigationStabilizer(htmlPath) {
+  if (!fs.existsSync(htmlPath)) throw new Error(`Mobile navigation target missing: ${path.relative(root, htmlPath)}`);
+  let html = fs.readFileSync(htmlPath, "utf8");
+  if (html.includes('mobile-navigation-stabilizer-v1.js')) return;
+  if (!html.includes("</body>")) throw new Error(`Mobile navigation body marker missing in ${path.relative(root, htmlPath)}`);
+  html = html.replace("</body>", `  ${mobileNavigationStabilizerScriptTag}\n</body>`);
+  fs.writeFileSync(htmlPath, html, "utf8");
+}
+
 function injectTypographyFloor(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Typography floor target missing: ${path.relative(root, htmlPath)}`);
   let html = fs.readFileSync(htmlPath, "utf8");
@@ -132,6 +142,7 @@ injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-port
 
 injectCommercialDashboard(appIndex);
 injectCommercialAppPolish(appIndex);
+injectMobileNavigationStabilizer(appIndex);
 injectTypographyFloor(appIndex);
 enforceProductionAppBoundary(appIndex);
 
@@ -145,5 +156,6 @@ console.log(`Built FlipForge isolated production auth probe (${productionAuthPro
 console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
 console.log("Injected FlipForge commercial dashboard v2 assets before customer readability.");
 console.log("Injected FlipForge commercial app polish v2 assets before customer readability.");
+console.log("Injected FlipForge mobile navigation stabilizer after route presentation scripts.");
 console.log("Injected FlipForge computed customer typography floor after route presentation scripts.");
 console.log(`Applied FlipForge production/preview app boundary for CONTEXT=${process.env.CONTEXT || "local"}.`);
