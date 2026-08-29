@@ -1,6 +1,38 @@
 (() => {
   "use strict";
 
+  function isPlainLeftClick(event) {
+    return event.button === 0
+      && !event.metaKey
+      && !event.ctrlKey
+      && !event.shiftKey
+      && !event.altKey;
+  }
+
+  // Saved Decisions is served by the customer adapter while the legacy shell also
+  // listens for hash changes. Use a clean same-tab load for the list route so
+  // repeated clicks never become a same-hash no-op and stale detail requests
+  // cannot repaint the list after the customer returns to Saved Decisions.
+  document.addEventListener("click", event => {
+    const link = event.target.closest?.('a[href="#/opportunities"]');
+    if (!link || !isPlainLeftClick(event)) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    const nextHash = "#/opportunities";
+    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
+    try {
+      window.history.pushState({ flipforgeSavedIntelligenceReload: true }, "", nextUrl);
+      window.location.reload();
+    } catch (_) {
+      const url = new URL(window.location.href);
+      url.hash = nextHash;
+      url.searchParams.set("ff_saved_nav", String(Date.now()));
+      window.location.assign(url.toString());
+    }
+  }, true);
+
   function resetScroll(top) {
     const scrollingElement = document.scrollingElement || document.documentElement;
 
