@@ -45,6 +45,25 @@
 
   const betaForm=document.querySelector('[data-beta-application-form]');
   if(betaForm){
+    const applySection=betaForm.closest('.section');
+    if(applySection&&!applySection.id)applySection.id='apply';
+
+    const hero=document.querySelector('main > .page-hero');
+    if(hero&&!hero.querySelector('.buttons')){
+      const actions=document.createElement('div');
+      actions.className='buttons ff-beta-hero-actions';
+      actions.innerHTML='<a class="btn primary" href="#apply">Start application</a>';
+      hero.appendChild(actions);
+    }
+
+    const directNotices=[...document.querySelectorAll('main > .ff-beta-notice')];
+    if(directNotices.length>1&&!document.querySelector('.ff-beta-notice-grid')){
+      const grid=document.createElement('div');
+      grid.className='ff-beta-notice-grid';
+      directNotices[0].before(grid);
+      directNotices.forEach(notice=>grid.appendChild(notice));
+    }
+
     const steps=[...betaForm.querySelectorAll('[data-aw-beta-step]')];
     const next=betaForm.querySelector('[data-aw-beta-next]');
     const back=betaForm.querySelector('[data-aw-beta-back]');
