@@ -1,0 +1,68 @@
+name: Sitewide UX Assurance
+
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "product.html"
+      - "learn.html"
+      - "pricing.html"
+      - "about.html"
+      - "beta-application.html"
+      - "package.json"
+      - "assets/css/marketing-v3.css"
+      - "assets/css/marketing-pages-v3.css"
+      - "assets/css/marketing-support-v3.css"
+      - "assets/css/marketing-density-v1.css"
+      - "assets/css/homepage-product-proof-v2.css"
+      - "assets/css/homepage-visual-proof-v1.css"
+      - "assets/js/award-winning-v1.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer-readability.css"
+      - "saas-prototype/customer-layout-system-v2.css"
+      - "saas-prototype/guided-mode-compact-v1.css"
+      - "scripts/validate-sitewide-ux.mjs"
+      - ".github/workflows/sitewide-ux.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "index.html"
+      - "product.html"
+      - "learn.html"
+      - "pricing.html"
+      - "about.html"
+      - "beta-application.html"
+      - "package.json"
+      - "assets/css/marketing-v3.css"
+      - "assets/css/marketing-pages-v3.css"
+      - "assets/css/marketing-support-v3.css"
+      - "assets/css/marketing-density-v1.css"
+      - "assets/css/homepage-product-proof-v2.css"
+      - "assets/css/homepage-visual-proof-v1.css"
+      - "assets/js/award-winning-v1.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer-readability.css"
+      - "saas-prototype/customer-layout-system-v2.css"
+      - "saas-prototype/guided-mode-compact-v1.css"
+      - "scripts/validate-sitewide-ux.mjs"
+      - ".github/workflows/sitewide-ux.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate sitewide viewport and density ownership
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Parse changed browser JavaScript
+        run: node --check assets/js/award-winning-v1.js
+      - name: Validate sitewide UX system
+        run: npm run validate:sitewide-ux
