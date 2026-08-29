@@ -61,8 +61,9 @@
   .global-search kbd{display:none!important}
   .topbar-actions{display:none!important}
   #main-content{box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:14px 12px 96px!important;overflow-x:hidden!important}
-  #main-content *,#main-content *::before,#main-content *::after{box-sizing:border-box!important;min-width:0}
+  #main-content *,#main-content *::before,#main-content *::after{box-sizing:border-box!important;min-width:0;max-width:100%!important}
   #main-content .page,#main-content .ff-di-page,#main-content section,#main-content article,#main-content form,#main-content .panel{width:100%!important;max-width:100%!important;min-width:0!important}
+  #main-content .panel,#main-content .panel-body,#main-content .panel-header{overflow-wrap:anywhere!important;word-break:normal!important}
   #main-content .page-heading{display:grid!important;gap:10px!important;margin-bottom:13px!important}
   #main-content .page-heading h1{font-size:clamp(1.55rem,7.2vw,1.9rem)!important;line-height:1.08!important}
   #main-content .page-heading p{font-size:.94rem!important;line-height:1.45!important}
