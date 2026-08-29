@@ -96,7 +96,7 @@ async function clickRoute(page, route) {
     const shell = document.querySelector(".app-shell");
     const active = document.querySelector(`[data-route="${expected}"]`);
     const main = document.querySelector("#main-content");
-    const heading = String(main?.querySelector("h1, h2")?.textContent || "").trim();
+    const heading = String(main?.querySelector("h1, h2, .ff-di-empty strong")?.textContent || "").trim();
     const text = String(main?.textContent || "").trim();
     return {
       hash: window.location.hash,
@@ -111,7 +111,7 @@ async function clickRoute(page, route) {
   if (result.hash !== `#/${route}`) failures.push(`hash stayed at ${result.hash || "(empty)"}`);
   if (result.navOpen !== "false") failures.push(`mobile navigation stayed open (${result.navOpen})`);
   if (result.ariaCurrent !== "page") failures.push("active navigation item is not marked aria-current=page");
-  if (!result.heading) failures.push("route rendered without a visible heading");
+  if (!result.heading) failures.push("route rendered without a visible title or empty-state heading");
   if (result.textLength < 20) failures.push(`route rendered too little content (${result.textLength} chars)`);
 
   return { route, heading: result.heading, failures };
