@@ -1,0 +1,86 @@
+/* FlipForge homepage product-proof upgrade — 2026-08-29
+   Presentation only. Keeps marketing claims inside the existing decision-support boundary. */
+
+:root{
+  --ff-proof-bg:#030812;
+  --ff-proof-raised:#07101d;
+  --ff-proof-panel:#0a1423;
+  --ff-proof-panel-2:#0d1929;
+  --ff-proof-line:rgba(158,176,201,.18);
+  --ff-proof-line-strong:rgba(212,175,55,.34);
+  --ff-proof-gold:#d4af37;
+  --ff-proof-gold-soft:#f1cf67;
+  --ff-proof-white:#f7f9fc;
+  --ff-proof-muted:#aab4c3;
+  --ff-proof-green:#6ad8a1;
+  --ff-proof-warn:#f0c662;
+}
+
+.ff-hero-customer{align-items:center;gap:clamp(38px,6vw,88px)}
+.ff-hero-customer .ff-hero-copy{max-width:620px}
+.ff-hero-customer .ff-hero-tension{max-width:600px;color:var(--ff-proof-white);font-size:clamp(18px,2vw,22px);line-height:1.55;margin-bottom:16px}
+.ff-hero-customer .ff-hero-context{max-width:570px;color:var(--ff-proof-muted);font-size:15px;line-height:1.65;margin:0 0 28px}
+.ff-hero-customer .ff-primary-actions{align-items:center;gap:18px;flex-wrap:wrap}
+.ff-hero-customer .ff-hero-text-link{color:var(--ff-proof-white);font-weight:650;font-size:14px;border-bottom:1px solid rgba(212,175,55,.55);padding:5px 0 4px;transition:color .18s ease,border-color .18s ease}
+.ff-hero-customer .ff-hero-text-link:hover,.ff-hero-customer .ff-hero-text-link:focus-visible{color:var(--ff-proof-gold-soft);border-color:var(--ff-proof-gold-soft)}
+
+.ff-live-product-frame{position:relative;overflow:hidden;border:1px solid var(--ff-proof-line);border-radius:14px;background:linear-gradient(180deg,rgba(12,23,39,.98),rgba(5,12,22,.98));box-shadow:0 28px 90px rgba(0,0,0,.42),0 0 0 1px rgba(212,175,55,.04) inset}
+.ff-live-product-bar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:13px 16px;border-bottom:1px solid var(--ff-proof-line);background:rgba(3,8,18,.72)}
+.ff-live-product-bar span{color:var(--ff-proof-gold);font-size:10px;font-weight:800;letter-spacing:.13em}
+.ff-live-product-bar strong{color:var(--ff-proof-muted);font-size:11px;font-weight:600}
+.ff-live-product-shot{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:top left;background:#050a12}
+.ff-live-product-proof{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--ff-proof-line)}
+.ff-live-product-proof div{padding:15px 16px 16px;min-width:0}
+.ff-live-product-proof div+div{border-left:1px solid var(--ff-proof-line)}
+.ff-live-product-proof small,.ff-decision-receipt small{display:block;color:var(--ff-proof-muted);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.ff-live-product-proof strong{display:block;color:var(--ff-proof-white);font-size:12px;line-height:1.35}
+
+.ff-hero-customer .ff-card-stage{display:none}
+.ff-hero-customer .ff-motion-console{margin-top:12px;border-radius:14px;border-color:var(--ff-proof-line);background:linear-gradient(180deg,rgba(10,20,35,.98),rgba(5,12,22,.98));box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.ff-hero-customer .ff-motion-head{padding-top:16px}
+.ff-hero-customer .ff-motion-stack{gap:7px}
+.ff-hero-customer .ff-motion-step{min-height:auto}
+
+.ff-reason-trail{position:relative;max-width:1280px;margin:0 auto;padding:clamp(72px,9vw,118px) clamp(24px,4vw,54px);border-bottom:1px solid var(--ff-proof-line)}
+.ff-reason-trail::before{content:"";position:absolute;inset:14% auto auto 44%;width:42%;height:58%;background:radial-gradient(circle,rgba(212,175,55,.09),transparent 66%);pointer-events:none;filter:blur(8px)}
+.ff-reason-head{display:grid;grid-template-columns:minmax(0,.85fr) minmax(320px,.55fr);gap:48px;align-items:end;margin-bottom:42px}
+.ff-reason-head h2{max-width:700px;margin-top:10px;font-size:clamp(34px,4.6vw,58px);line-height:1.03;letter-spacing:-.035em}
+.ff-reason-head p{color:var(--ff-proof-muted);font-size:16px;line-height:1.7;max-width:470px}
+.ff-reason-grid{position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:18px;z-index:1}
+.ff-decision-receipt,.ff-why-panel{border:1px solid var(--ff-proof-line);border-radius:14px;background:linear-gradient(180deg,rgba(10,20,35,.96),rgba(5,12,22,.98));box-shadow:0 22px 70px rgba(0,0,0,.25)}
+.ff-decision-receipt{padding:24px}
+.ff-receipt-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--ff-proof-line)}
+.ff-receipt-head span{display:block;color:var(--ff-proof-gold);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.ff-receipt-head h3{margin:0;color:var(--ff-proof-white);font-size:clamp(18px,2vw,24px);line-height:1.3}
+.ff-verdict-pill{flex:0 0 auto;border:1px solid var(--ff-proof-line-strong);background:rgba(212,175,55,.1);color:var(--ff-proof-gold-soft);border-radius:999px;padding:8px 11px;font-size:11px;font-weight:850;letter-spacing:.08em}
+.ff-receipt-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0 -24px;border-bottom:1px solid var(--ff-proof-line)}
+.ff-receipt-metrics div{padding:20px 24px}
+.ff-receipt-metrics div+div{border-left:1px solid var(--ff-proof-line)}
+.ff-receipt-metrics strong{display:block;color:var(--ff-proof-white);font-size:14px;line-height:1.35}
+.ff-decision-lanes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px}
+.ff-decision-lanes span{text-align:center;color:var(--ff-proof-muted);border:1px solid var(--ff-proof-line);border-radius:7px;padding:9px 5px;font-size:10px;font-weight:800;letter-spacing:.08em}
+.ff-decision-lanes .is-active{color:var(--ff-proof-gold-soft);border-color:var(--ff-proof-line-strong);background:rgba(212,175,55,.08)}
+.ff-receipt-boundary{color:var(--ff-proof-muted);font-size:11px;line-height:1.55;margin:18px 0 0}
+.ff-why-panel{padding:24px}
+.ff-why-panel>span{color:var(--ff-proof-gold);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.ff-why-panel h3{color:var(--ff-proof-white);margin:8px 0 20px;font-size:24px}
+.ff-why-list{display:grid;gap:0}
+.ff-why-item{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:15px 0;border-top:1px solid var(--ff-proof-line)}
+.ff-why-item:first-child{border-top:0;padding-top:0}
+.ff-why-item i{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;font-style:normal;font-size:11px;font-weight:900;color:var(--ff-proof-green);border:1px solid rgba(106,216,161,.4);background:rgba(106,216,161,.06)}
+.ff-why-item strong{display:block;color:var(--ff-proof-white);font-size:13px;margin-bottom:4px}
+.ff-why-item p{color:var(--ff-proof-muted);font-size:12px;line-height:1.55;margin:0}
+.ff-why-action{display:inline-flex;align-items:center;gap:8px;margin-top:20px;color:var(--ff-proof-white);font-size:13px;font-weight:750}
+.ff-why-action span{color:var(--ff-proof-gold)}
+
+.ff-forge-heat-strip{display:grid;grid-template-columns:minmax(200px,.7fr) minmax(0,1.3fr) auto;gap:28px;align-items:center;margin-top:18px;padding:22px 24px;border:1px solid var(--ff-proof-line);border-left:3px solid var(--ff-proof-gold);border-radius:10px;background:rgba(7,16,29,.78)}
+.ff-forge-heat-strip span{color:var(--ff-proof-gold);font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+.ff-forge-heat-strip strong{display:block;color:var(--ff-proof-white);font-size:17px;margin-bottom:4px}
+.ff-forge-heat-strip p{color:var(--ff-proof-muted);font-size:12px;line-height:1.55;margin:0}
+.ff-forge-heat-strip a{white-space:nowrap;color:var(--ff-proof-white);font-size:12px;font-weight:750}
+
+.ff-aw-validation .ff-validation-grid::before{content:"AUDIT COHORT · NOT AN ACCURACY RATE";grid-column:1/-1;color:var(--ff-proof-gold);font-size:10px;font-weight:850;letter-spacing:.12em;margin-bottom:-2px}
+
+@media(max-width:980px){.ff-reason-head,.ff-reason-grid{grid-template-columns:1fr}.ff-reason-head{gap:22px}.ff-forge-heat-strip{grid-template-columns:1fr;gap:10px}}
+@media(max-width:700px){.ff-live-product-proof,.ff-receipt-metrics{grid-template-columns:1fr}.ff-live-product-proof div+div,.ff-receipt-metrics div+div{border-left:0;border-top:1px solid var(--ff-proof-line)}.ff-receipt-metrics{margin:0}.ff-receipt-metrics div{padding:15px 0}.ff-decision-lanes{grid-template-columns:repeat(2,1fr)}.ff-receipt-head{flex-direction:column}.ff-live-product-bar{align-items:flex-start;flex-direction:column;gap:3px}}
+@media(prefers-reduced-motion:reduce){.ff-hero-customer .ff-hero-text-link{transition:none}}

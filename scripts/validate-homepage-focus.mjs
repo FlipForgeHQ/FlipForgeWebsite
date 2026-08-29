@@ -16,13 +16,15 @@ check('002 locked category remains CARD INTELLIGENCE',index.includes('<div class
 check('003 old descriptor remains forbidden',!index.includes('CARD VALUE INTELLIGENCE'));
 check('004 locked slogan remains exact',index.includes('Before you buy. <span>Know Why.</span>'));
 check('005 customer owns the decision',index.includes('You are the one putting money on the line.'));
-check('006 hero uses one tension sentence',index.includes('A convincing comp can still be the wrong reason to buy.'));
+check('006 hero keeps false-confidence tension',index.includes('A convincing comp can still be the wrong reason to buy.'));
 check('007 duplicate text-side price scenario is gone',!index.includes('ff-hero-scenario'));
 check('008 long customer-promise paragraph is gone',!index.includes('ff-customer-promise'));
 check('009 hero has exactly one primary CTA',((index.match(/class="btn primary"/g)||[]).length===2));
 check('010 hero primary CTA requests beta',index.includes('<a class="btn primary" href="beta-application.html">Request Beta Access</a>'));
-check('011 hero secondary CTA points to interactive proof',index.includes('data-demo-cta="hero" href="#busted-comp">See why</a>'));
+check('011 hero secondary path opens reason trail',index.includes('data-demo-cta="hero" href="#reason-trail">See how FlipForge reasons'));
 check('012 hero keeps no-profit boundary',index.includes('Decision support only; no transaction, grade, outcome, or profit guarantee.'));
+check('012a hero uses approved supporting statement',index.includes('FlipForge checks the card, challenges the evidence, and explains the decision before you spend.'));
+check('012b hero shows real product interface',index.includes('ff-live-product-frame')&&index.includes('Real FlipForge product interface'));
 
 check('013 animated price story remains static HTML',index.includes('<small>Last comp</small><strong>$900</strong>')&&index.includes('<small>Listing</small><strong>$850</strong>'));
 check('014 animated story challenges easy buy',index.includes('Easy buy — or is it?'));
@@ -30,6 +32,11 @@ check('015 animated story ends VERIFY',index.includes('VERIFY before buying'));
 check('016 animated story teaches confidence shift',index.includes('The listing price did not. Your confidence should.'));
 check('017 illustrative status is adjacent',index.includes('Illustrative decision · not live market data'));
 check('018 replay control remains',index.includes('data-replay-decision'));
+
+check('018a reason trail is first-paint content',index.includes('id="reason-trail"')&&index.includes("DON'T JUST GET A VERDICT. SEE WHY."));
+check('018b reason trail exposes decision framework',['>BUY<','>WATCH<','>VERIFY<','>PASS<'].every(v=>index.includes(v)));
+check('018c reason trail keeps evidence inspectable',index.includes('Why this decision')&&index.includes('Filter what actually counts.'));
+check('018d Forge Heat stays secondary',index.includes('DISCOVERY LAYER · FORGE HEAT BETA')&&index.includes('Find what deserves a closer look.'));
 
 check('019 homepage names False Confidence',index.includes('THE ENEMY IS FALSE CONFIDENCE'));
 check('020 homepage keeps three memorable problem cards',['Wrong parallel','Thin evidence','Grade assumption'].every(v=>index.includes(v)));
@@ -59,6 +66,7 @@ for(const oldSection of ['ff-customer-outcomes','ff-transformation','id="evidenc
 }
 
 check('044 premium CSS is first-paint dependency',index.includes('assets/css/award-winning-v1.css'));
+check('044a product-proof CSS is first-paint dependency',index.includes('assets/css/homepage-product-proof-v2.css'));
 check('045 premium JS is loaded explicitly',index.includes('assets/js/award-winning-v1.js'));
 check('046 premium navigation hides low-priority links',awardCss.includes('a[href="faq.html"]')&&awardCss.includes('a[data-app-preview]'));
 check('047 motion remains finite',contenderCss.includes('@keyframes ff-stage-focus')&&!contenderCss.includes('infinite'));
