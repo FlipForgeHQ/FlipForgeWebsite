@@ -22,6 +22,90 @@ const routes = [
   "account"
 ];
 
+const expectedHeading = {
+  dashboard: /^Dashboard$/i,
+  "market-view": /^Market View$/i,
+  discover: /^Discover$/i,
+  "forge-heat": /^Forge Heat/i,
+  evaluate: /^Evaluate/i,
+  opportunities: /^Opportunities$/i,
+  tracking: /^Tracking$/i,
+  portfolio: /^Portfolio$/i,
+  alerts: /^Alerts$/i,
+  "beta-start": /^Private Beta Guide$|^Getting Started$/i,
+  "decision-intelligence": /^Decision Intelligence|^No saved decisions yet\.?$/i,
+  compare: /^Direct Comparison$|^Compare$/i,
+  "psa-advisor": /^PSA Advisor$/i,
+  evidence: /^Evidence readiness$|^Evidence Center$|^Evidence$/i,
+  sell: /^Exit Review$|^Sell$/i,
+  export: /^Audit Export$|^Decision Dossier$|^Export$/i,
+  account: /^Plan & Usage$|^Account$/i
+};
+
+function emptyMarketView() {
+  const coverage = horizonDays => ({ horizonDays, observed: 0, eligible: 0, coveragePct: 0 });
+  return {
+    kind: "market-view",
+    marketViewVersion: "MARKET_VIEW_V1",
+    readOnly: true,
+    scope: {
+      code: "SAVED_EVALUATED_UNIVERSE",
+      label: "Your Market",
+      marketWide: false,
+      continuousMarketScannerActive: false
+    },
+    authority: {
+      recommendationAuthority: "Smart Opportunity",
+      marketViewRecommendationAuthority: false,
+      clientComputed: false,
+      transactionAuthority: false
+    },
+    transactionAuthority: false,
+    summary: {
+      evaluatedCards: 0,
+      actionableSavedDecisions: 0,
+      actionableSharePct: 0,
+      positiveSupportedValueGap: 0,
+      positiveGapSharePct: 0,
+      freshWithin30Days: 0,
+      freshnessPct: 0
+    },
+    decisionMix: { BUY: 0, WATCH: 0, VERIFY: 0, PASS: 0, OTHER: 0 },
+    evidenceHealth: {
+      strongEvidenceCards: 0,
+      strongEvidencePct: 0,
+      averageExactTrustedSales: 0,
+      averageConfidence: 0,
+      averageRisk: 0
+    },
+    valueContext: { profitOrRoi: false, topPositiveGap: [], medianPositiveGapPct: 0 },
+    outcomeCoverage: { "7": coverage(7), "14": coverage(14), "30": coverage(30) },
+    broaderMarket: {
+      available: false,
+      marketWideVolume: false,
+      marketWideMomentum: false,
+      marketPriceIndex: false,
+      reason: "Not active in the QA fixture."
+    }
+  };
+}
+
+function lifecycleProjection(kind) {
+  return {
+    kind,
+    configured: true,
+    sourceOfTruth: "SQLite",
+    status: "READY",
+    count: 0,
+    dueCount: 0,
+    totalCostBasisCents: 0,
+    currentValueConfigured: false,
+    transactionAuthority: false,
+    notificationDeliveryConfigured: false,
+    items: []
+  };
+}
+
 function apiFixture(request) {
   const pathname = new URL(request.url()).pathname;
   const correlationId = request.headers()["x-correlation-id"] || "mobile-nav-qa";
@@ -44,6 +128,18 @@ function apiFixture(request) {
   }
   if (pathname === "/api/v1/opportunities") {
     return { meta, data: { kind: "opportunities", items: [] } };
+  }
+  if (pathname === "/api/v1/lifecycle") {
+    return { meta, data: lifecycleProjection("lifecycle") };
+  }
+  if (pathname === "/api/v1/portfolio") {
+    return { meta, data: lifecycleProjection("portfolio") };
+  }
+  if (pathname === "/api/v1/alerts") {
+    return { meta, data: lifecycleProjection("alerts") };
+  }
+  if (pathname === "/api/v1/market-view") {
+    return { meta, data: emptyMarketView() };
   }
   return { meta, data: { kind: "qa-fixture", path: pathname } };
 }
@@ -90,7 +186,7 @@ async function clickRoute(page, route) {
 
   await page.waitForFunction(expected => window.location.hash === `#/${expected}`, route, { timeout: 7000 });
   await page.waitForSelector("#main-content", { state: "attached", timeout: 5000 });
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(650);
 
   const result = await page.evaluate(expected => {
     const shell = document.querySelector(".app-shell");
@@ -113,6 +209,9 @@ async function clickRoute(page, route) {
   if (result.ariaCurrent !== "page") failures.push("active navigation item is not marked aria-current=page");
   if (!result.heading) failures.push("route rendered without a visible title or empty-state heading");
   if (result.textLength < 20) failures.push(`route rendered too little content (${result.textLength} chars)`);
+  if (!expectedHeading[route]?.test(result.heading)) {
+    failures.push(`wrong route content rendered; heading was ${result.heading || "(none)"}`);
+  }
 
   return { route, heading: result.heading, failures };
 }
@@ -129,7 +228,6 @@ try {
     contentType: "application/json; charset=utf-8",
     body: JSON.stringify(apiFixture(route.request()))
   }));
-  await page.route("**/staging-route-hook.js", route => route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: "(() => {})();" }));
 
   await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded", timeout: 10_000 });
   await page.waitForSelector("#main-content", { state: "attached", timeout: 5000 });
