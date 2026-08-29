@@ -36,11 +36,59 @@ const expectedContent = {
   "decision-intelligence": /Decision Intelligence|No saved decisions yet/i,
   compare: /Direct comparison|\bCompare\b/i,
   "psa-advisor": /PSA Advisor/i,
-  evidence: /Evidence readiness|\bEvidence\b/i,
+  evidence: /Evidence readiness|Evidence Center|\bEvidence\b/i,
   sell: /Exit Review|\bSell\b/i,
-  export: /Audit Export|\bExport\b/i,
-  account: /\bAccount\b/i
+  export: /Audit Export|Decision Dossier|\bExport\b/i,
+  account: /\bAccount\b|Plan & Usage/i
 };
+
+function emptyMarketView() {
+  const coverage = horizonDays => ({ horizonDays, observed: 0, eligible: 0, coveragePct: 0 });
+  return {
+    kind: "market-view",
+    marketViewVersion: "MARKET_VIEW_V1",
+    readOnly: true,
+    scope: {
+      code: "SAVED_EVALUATED_UNIVERSE",
+      label: "Your Market",
+      marketWide: false,
+      continuousMarketScannerActive: false
+    },
+    authority: {
+      recommendationAuthority: "Smart Opportunity",
+      marketViewRecommendationAuthority: false,
+      clientComputed: false,
+      transactionAuthority: false
+    },
+    transactionAuthority: false,
+    summary: {
+      evaluatedCards: 0,
+      actionableSavedDecisions: 0,
+      actionableSharePct: 0,
+      positiveSupportedValueGap: 0,
+      positiveGapSharePct: 0,
+      freshWithin30Days: 0,
+      freshnessPct: 0
+    },
+    decisionMix: { BUY: 0, WATCH: 0, VERIFY: 0, PASS: 0, OTHER: 0 },
+    evidenceHealth: {
+      strongEvidenceCards: 0,
+      strongEvidencePct: 0,
+      averageExactTrustedSales: 0,
+      averageConfidence: 0,
+      averageRisk: 0
+    },
+    valueContext: { profitOrRoi: false, topPositiveGap: [], medianPositiveGapPct: 0 },
+    outcomeCoverage: { "7": coverage(7), "14": coverage(14), "30": coverage(30) },
+    broaderMarket: {
+      available: false,
+      marketWideVolume: false,
+      marketWideMomentum: false,
+      marketPriceIndex: false,
+      reason: "Not active in the QA fixture."
+    }
+  };
+}
 
 function apiFixture(request) {
   const pathname = new URL(request.url()).pathname;
@@ -64,6 +112,12 @@ function apiFixture(request) {
   }
   if (pathname === "/api/v1/opportunities") {
     return { meta, data: { kind: "opportunities", items: [] } };
+  }
+  if (pathname === "/api/v1/lifecycle" || pathname === "/api/v1/alerts") {
+    return { meta, data: { items: [] } };
+  }
+  if (pathname === "/api/v1/market-view") {
+    return { meta, data: emptyMarketView() };
   }
   return { meta, data: { kind: "qa-fixture", path: pathname } };
 }
@@ -129,12 +183,13 @@ async function clickRoute(page, route) {
   }, route);
 
   const failures = [];
+  const routeFingerprint = `${result.heading}\n${result.text}`;
   if (result.hash !== `#/${route}`) failures.push(`hash stayed at ${result.hash || "(empty)"}`);
   if (result.navOpen !== "false") failures.push(`mobile navigation stayed open (${result.navOpen})`);
   if (result.ariaCurrent !== "page") failures.push("active navigation item is not marked aria-current=page");
   if (!result.heading) failures.push("route rendered without a visible title or empty-state heading");
   if (result.textLength < 20) failures.push(`route rendered too little content (${result.textLength} chars)`);
-  if (!expectedContent[route]?.test(result.text)) {
+  if (!expectedContent[route]?.test(routeFingerprint)) {
     failures.push(`route-specific content is missing; rendered heading: ${result.heading || "(none)"}`);
   }
 
