@@ -2,11 +2,20 @@
   "use strict";
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
+  const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const APP_ROUTE_HASH = /^#\//;
   const main = document.querySelector("#main-content");
   if (!main) return;
 
   let applying = false;
+  let routeReloading = false;
+
+  function customerApp() {
+    const host = String(window.location.hostname || "");
+    const path = String(window.location.pathname || "");
+    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host)) && APP_PATH.test(path);
+  }
 
   function productionDashboard() {
     const host = String(window.location.hostname || "");
@@ -39,9 +48,28 @@
     applying = false;
   }
 
+  function cleanRouteTransition(event) {
+    if (!customerApp() || routeReloading) return;
+    if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
+
+    // The customer app has both historical prototype listeners and the current
+    // customer router. Let exactly one route own a document lifetime: when the
+    // app route changes, reload once with the new hash so old async work and old
+    // DOM listeners cannot repaint or freeze the next workspace.
+    routeReloading = true;
+    if (event && typeof event.stopImmediatePropagation === "function") {
+      event.stopImmediatePropagation();
+    }
+    window.location.reload();
+  }
+
   const observer = new MutationObserver(() => queueMicrotask(enforce));
   observer.observe(main, { childList: true });
-  window.addEventListener("hashchange", () => queueMicrotask(enforce));
+
+  // Registered before app.js and every later customer router. This turns route
+  // changes into deterministic clean loads while leaving non-route anchors alone.
+  window.addEventListener("hashchange", cleanRouteTransition);
+  window.addEventListener("pageshow", enforce);
 
   enforce();
 })();
