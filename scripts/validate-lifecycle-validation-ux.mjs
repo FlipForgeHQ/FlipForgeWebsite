@@ -82,7 +82,12 @@ assert.equal(result.ok, false);
 assert.match(result.message, /choose a review date/i);
 assert.match(result.message, /Remind me in FlipForge/i);
 
-result = validate(form({ trackingStatus: "REVIEW", outcomeStatus: "NONE" }));
+result = validate(form({
+  trackingStatus: "REVIEW",
+  outcomeStatus: "NONE",
+  reviewAt: "2026-08-30T09:00",
+  alertEnabled: true
+}));
 assert.equal(result.ok, true);
 
 assert.ok(
