@@ -42,29 +42,32 @@
     if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
     routeReloading = true;
     if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
-    window.location.reload();
+    if (typeof window.location?.reload === "function") window.location.reload();
   }
 
   function isPlainLeftClick(event) {
     return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
   }
 
-  /* Hash routers do not emit hashchange when a customer taps the route they are
-   * already on. Treat every ordinary app-route link as a deterministic navigation:
-   * changed routes use the existing clean-load guard; same-route taps reload the
-   * current workspace so a stale or half-rendered screen can recover. */
-  document.addEventListener("click", event => {
+  function handleRouteClick(event) {
     if (!customerApp() || routeReloading || !isPlainLeftClick(event)) return;
-    const link = event.target.closest?.('a[href^="#/"]');
+    const link = event.target?.closest?.('a[href^="#/"]');
     if (!link) return;
     const targetHash = String(link.getAttribute("href") || "");
     if (!APP_ROUTE_HASH.test(targetHash)) return;
     if (targetHash !== String(window.location.hash || "")) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
+    event.preventDefault?.();
+    event.stopImmediatePropagation?.();
     routeReloading = true;
-    window.location.reload();
-  }, true);
+    if (typeof window.location?.reload === "function") window.location.reload();
+  }
+
+  /* The browser has addEventListener; the static dashboard validation harness does
+   * not. Keep touch-navigation recovery browser-only so the production guard remains
+   * directly executable by deterministic CI. */
+  if (typeof document.addEventListener === "function") {
+    document.addEventListener("click", handleRouteClick, true);
+  }
 
   const observer = new MutationObserver(() => queueMicrotask(enforce));
   observer.observe(main, { childList: true });
