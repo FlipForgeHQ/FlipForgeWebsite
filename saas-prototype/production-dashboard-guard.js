@@ -20,29 +20,18 @@
   function productionDashboard() {
     const host = String(window.location.hostname || "");
     const path = String(window.location.pathname || "");
-    const route = String(window.location.hash || "#/dashboard")
-      .replace(/^#\/?/, "")
-      .split(/[/?]/)[0] || "dashboard";
+    const route = String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard";
     return PRODUCTION_HOST.test(host) && APP_PATH.test(path) && route === "dashboard";
   }
 
   function guardedMarkup() {
-    return `<div class="page ff-commercial-dashboard" data-production-dashboard-guard>
-      <header class="ff-dashboard-head">
-        <div>
-          <h1>Dashboard</h1>
-          <p>Loading tenant-owned FlipForge intelligence.</p>
-        </div>
-      </header>
-      <div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div>
-    </div>`;
+    return `<div class="page ff-commercial-dashboard" data-production-dashboard-guard><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>Loading tenant-owned FlipForge intelligence.</p></div></header><div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div></div>`;
   }
 
   function enforce() {
     if (!productionDashboard() || applying) return;
     if (main.querySelector("[data-commercial-dashboard-v2]")) return;
     if (main.querySelector("[data-production-dashboard-guard]")) return;
-
     applying = true;
     main.innerHTML = guardedMarkup();
     applying = false;
@@ -51,25 +40,35 @@
   function cleanRouteTransition(event) {
     if (!customerApp() || routeReloading) return;
     if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
-
-    // The customer app has both historical prototype listeners and the current
-    // customer router. Let exactly one route own a document lifetime: when the
-    // app route changes, reload once with the new hash so old async work and old
-    // DOM listeners cannot repaint or freeze the next workspace.
     routeReloading = true;
-    if (event && typeof event.stopImmediatePropagation === "function") {
-      event.stopImmediatePropagation();
-    }
+    if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
     window.location.reload();
   }
 
+  function isPlainLeftClick(event) {
+    return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+  }
+
+  /* Hash routers do not emit hashchange when a customer taps the route they are
+   * already on. Treat every ordinary app-route link as a deterministic navigation:
+   * changed routes use the existing clean-load guard; same-route taps reload the
+   * current workspace so a stale or half-rendered screen can recover. */
+  document.addEventListener("click", event => {
+    if (!customerApp() || routeReloading || !isPlainLeftClick(event)) return;
+    const link = event.target.closest?.('a[href^="#/"]');
+    if (!link) return;
+    const targetHash = String(link.getAttribute("href") || "");
+    if (!APP_ROUTE_HASH.test(targetHash)) return;
+    if (targetHash !== String(window.location.hash || "")) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    routeReloading = true;
+    window.location.reload();
+  }, true);
+
   const observer = new MutationObserver(() => queueMicrotask(enforce));
   observer.observe(main, { childList: true });
-
-  // Registered before app.js and every later customer router. This turns route
-  // changes into deterministic clean loads while leaving non-route anchors alone.
   window.addEventListener("hashchange", cleanRouteTransition);
   window.addEventListener("pageshow", enforce);
-
   enforce();
 })();
