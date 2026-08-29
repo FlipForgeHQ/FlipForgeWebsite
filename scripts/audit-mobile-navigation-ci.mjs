@@ -94,6 +94,7 @@ function lifecycleProjection(kind) {
   return {
     kind,
     configured: true,
+    sourceOfTruth: "SQLite",
     status: "READY",
     count: 0,
     dueCount: 0,
