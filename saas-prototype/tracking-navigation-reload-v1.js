@@ -1,6 +1,130 @@
 (() => {
   "use strict";
 
+  if (window.__ffLifecycleFetchGuardV1 === true) return;
+
+  const nativeFetch = window.fetch.bind(window);
+  const READ_TIMEOUT_MS = 10000;
+  const WRITE_TIMEOUT_MS = 15000;
+
+  function routeName() {
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)[0] || "dashboard";
+  }
+
+  function guardedLifecycleRequest(input, init) {
+    if (!["tracking", "alerts", "portfolio"].includes(routeName())) return false;
+    const method = String(init?.method || "GET").toUpperCase();
+    if (method !== "GET" && method !== "PUT") return false;
+
+    let url;
+    try {
+      const raw = typeof input === "string" ? input : input?.url;
+      url = new URL(String(raw || ""), window.location.origin);
+    } catch (_) {
+      return false;
+    }
+
+    if (url.origin !== window.location.origin) return false;
+    return /^\/api\/v1\/(?:health|opportunities|lifecycle(?:\/[^/?#]+)?|portfolio|alerts)$/.test(url.pathname);
+  }
+
+  window.fetch = function flipForgeLifecycleFetch(input, init = {}) {
+    if (!guardedLifecycleRequest(input, init) || init?.signal) {
+      return nativeFetch(input, init);
+    }
+
+    const method = String(init?.method || "GET").toUpperCase();
+    const controller = new AbortController();
+    const timeoutMs = method === "PUT" ? WRITE_TIMEOUT_MS : READ_TIMEOUT_MS;
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+
+    return nativeFetch(input, { ...init, signal: controller.signal })
+      .catch(error => {
+        if (error?.name !== "AbortError") throw error;
+        const message = method === "PUT"
+          ? "Saving Tracking took too long. Nothing was confirmed saved. Try again."
+          : "Tracking took too long to load. Try again.";
+        throw Object.assign(new Error(message), {
+          code: "LIFECYCLE_TIMEOUT",
+          status: 504
+        });
+      })
+      .finally(() => window.clearTimeout(timer));
+  };
+
+  window.__ffLifecycleFetchGuardV1 = true;
+})();
+
+(() => {
+  "use strict";
+
+  const MAIN = "#main-content";
+  let queued = false;
+
+  function routeName() {
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)[0] || "dashboard";
+  }
+
+  function addTrackingRetry() {
+    queued = false;
+    if (routeName() !== "tracking") return;
+
+    const page = document.querySelector(`${MAIN} .customer-lifecycle-page`);
+    const heading = page?.querySelector(".page-heading");
+    const title = String(heading?.querySelector("h1")?.textContent || "");
+    if (!page || !heading || !/Lifecycle unavailable/i.test(title)) return;
+    if (heading.querySelector("[data-ff-tracking-retry]")) return;
+
+    let actions = heading.querySelector(".page-actions");
+    if (!actions) {
+      actions = document.createElement("div");
+      actions.className = "page-actions";
+      heading.appendChild(actions);
+    }
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button button-primary";
+    button.dataset.ffTrackingRetry = "";
+    button.textContent = "Try tracking again";
+    button.addEventListener("click", () => {
+      const lifecycle = window.FlipForgeCustomerLifecycle;
+      if (lifecycle && typeof lifecycle.refresh === "function") lifecycle.refresh();
+      else window.location.reload();
+    });
+    actions.appendChild(button);
+
+    const error = page.querySelector(".staging-error");
+    const code = String(error?.querySelector("strong")?.textContent || "");
+    if (/LIFECYCLE_TIMEOUT/i.test(code)) {
+      const copy = error?.querySelector("p");
+      if (copy) copy.textContent = "FlipForge stopped a lifecycle request that was taking too long instead of leaving this page frozen. Your saved record was not replaced or changed.";
+    }
+  }
+
+  function queue() {
+    if (queued) return;
+    queued = true;
+    window.requestAnimationFrame(addTrackingRetry);
+  }
+
+  const main = document.querySelector(MAIN);
+  if (main && typeof MutationObserver === "function") {
+    new MutationObserver(queue).observe(main, { childList: true, subtree: true, characterData: true });
+  }
+  window.addEventListener("hashchange", queue);
+  window.addEventListener("pageshow", queue);
+  window.addEventListener("load", queue);
+  queue();
+})();
+
+(() => {
+  "use strict";
+
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
   const STORAGE_KEY = "flipforge.trackingContext.v1";
 
