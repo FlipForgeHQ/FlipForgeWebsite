@@ -115,7 +115,8 @@ async function audit(browser, name, width, height) {
     });
     await page.goto(`${baseUrl}/#/forge-heat`, { waitUntil: "domcontentloaded", timeout: 10_000 });
     await page.waitForSelector(".forge-heat-shell", { timeout: 5000 });
-    await page.waitForSelector(".forge-heat-card", { timeout: 5000 });
+    await page.waitForSelector(".ff-heat-control-room", { state: "visible", timeout: 5000 });
+    await page.waitForSelector(".ff-heat-table tbody tr", { state: "visible", timeout: 5000 });
     await page.waitForTimeout(150);
 
     return await page.evaluate(viewportName => {
@@ -124,17 +125,44 @@ async function audit(browser, name, width, height) {
       const documentWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
       if (documentWidth > viewportWidth + 4) failures.push(`horizontal overflow: ${documentWidth}px document in ${viewportWidth}px viewport`);
 
-      const text = document.querySelector("#main-content")?.textContent || "";
-      for (const required of ["Forge Heat", "WHITE HOT", "93/100", "21/100", "24 sales", "Supported value", "What invalidates it"]) {
-        if (!text.includes(required)) failures.push(`missing consumer intelligence: ${required}`);
+      const main = document.querySelector("#main-content");
+      const text = main?.textContent || "";
+      for (const required of [
+        "Forge Heat",
+        "WHITE HOT",
+        "93/100",
+        "21/100",
+        "24 sales",
+        "Supported",
+        "Value Gap",
+        "DEEP DIVE TRACEBACK",
+        "QUALIFICATION TRACE",
+        "RISK CHECK",
+        "Smart Opportunity remains the decision authority"
+      ]) {
+        if (!text.includes(required)) failures.push(`missing control-room intelligence: ${required}`);
       }
-      if (text.includes("net profit") && !text.includes("not net profit")) failures.push("net profit language lacks V1 limitation");
+      if (text.includes("Estimated Profit")) failures.push("control room must not invent estimated profit from supported-value gap");
 
-      const score = document.querySelector(".forge-heat-score");
-      if (!score || score.getBoundingClientRect().width < 1 || score.getBoundingClientRect().height < 1) failures.push("Heat score is not visibly rendered");
-      const card = document.querySelector(".forge-heat-card");
-      const rect = card?.getBoundingClientRect();
-      if (!rect || rect.right > viewportWidth + 8) failures.push(`Heat card exceeds ${viewportName} viewport`);
+      const console = document.querySelector(".ff-heat-control-room");
+      const consoleRect = console?.getBoundingClientRect();
+      if (!consoleRect || consoleRect.width < 1 || consoleRect.height < 1) failures.push("control room is not visibly rendered");
+      if (consoleRect && consoleRect.right > viewportWidth + 8) failures.push(`control room exceeds ${viewportName} viewport`);
+
+      const heat = document.querySelector(".ff-heat-score-pill");
+      const heatRect = heat?.getBoundingClientRect();
+      if (!heatRect || heatRect.width < 1 || heatRect.height < 1) failures.push("Heat score pill is not visibly rendered");
+
+      const tableWrap = document.querySelector(".ff-heat-table-wrap");
+      if (!tableWrap) failures.push("ranked table scrolling surface is missing");
+      if (viewportName === "mobile" && tableWrap && tableWrap.scrollWidth <= tableWrap.clientWidth) {
+        failures.push("mobile ranked table should scroll locally rather than widen the document");
+      }
+
+      const legacyCard = document.querySelector(".forge-heat-card");
+      if (legacyCard && legacyCard.getBoundingClientRect().width > 0 && legacyCard.getBoundingClientRect().height > 0) {
+        failures.push("legacy Forge Heat cards remain visibly duplicated under control-room view");
+      }
 
       return { viewport: viewportName, width: viewportWidth, documentWidth, failures };
     }, name);
@@ -156,5 +184,5 @@ try {
   await browser.close();
 }
 
-if (failed) throw new Error(`Forge Heat consumer visual audit failed: ${failed}`);
-console.log("Forge Heat consumer visual audit passed at desktop, tablet, and mobile widths.");
+if (failed) throw new Error(`Forge Heat control-room visual audit failed: ${failed}`);
+console.log("Forge Heat control-room visual audit passed at desktop, tablet, and mobile widths.");
