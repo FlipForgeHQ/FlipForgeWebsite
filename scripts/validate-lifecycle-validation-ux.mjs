@@ -10,12 +10,19 @@ const displaySource = fs.readFileSync(displayPath, "utf8");
 const index = fs.readFileSync(indexPath, "utf8");
 
 const listeners = [];
+const windowListeners = [];
 const document = {
   addEventListener(type, listener, capture) {
     listeners.push({ type, listener, capture });
+  },
+  getElementById() { return null; },
+  querySelectorAll() { return []; }
+};
+const window = {
+  addEventListener(type, listener) {
+    windowListeners.push({ type, listener });
   }
 };
-const window = {};
 vm.runInNewContext(source, { document, window, Object, String, Number, Boolean, console });
 
 assert.ok(window.FlipForgeLifecycleValidation, "validator export should be available");
@@ -72,14 +79,24 @@ assert.match(result.message, /set Outcome to PASSED/i);
 
 result = validate(form({ trackingStatus: "REVIEW", alertEnabled: true }));
 assert.equal(result.ok, false);
-assert.match(result.message, /Choose a review time/i);
+assert.match(result.message, /choose a review date/i);
+assert.match(result.message, /Remind me in FlipForge/i);
 
-result = validate(form({ trackingStatus: "REVIEW", outcomeStatus: "NONE" }));
+result = validate(form({
+  trackingStatus: "REVIEW",
+  outcomeStatus: "NONE",
+  reviewAt: "2026-08-30T09:00",
+  alertEnabled: true
+}));
 assert.equal(result.ok, true);
 
 assert.ok(
   listeners.some(listener => listener.type === "submit" && listener.capture === true),
   "submit guard must run in capture phase before the lifecycle save handler"
+);
+assert.ok(
+  windowListeners.some(listener => listener.type === "pageshow"),
+  "lifecycle validation should initialize again on pageshow"
 );
 assert.match(source, /event\.preventDefault\(\)/);
 assert.match(source, /event\.stopImmediatePropagation\(\)/);
