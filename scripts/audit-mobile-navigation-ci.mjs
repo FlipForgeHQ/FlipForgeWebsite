@@ -22,24 +22,24 @@ const routes = [
   "account"
 ];
 
-const expectedContent = {
-  dashboard: /\bDashboard\b/i,
-  "market-view": /\bMarket View\b/i,
-  discover: /\bDiscover\b/i,
-  "forge-heat": /\bForge Heat\b/i,
-  evaluate: /\bEvaluate\b/i,
-  opportunities: /\bOpportunities\b/i,
-  tracking: /\bTracking\b/i,
-  portfolio: /\bPortfolio\b/i,
-  alerts: /\bAlerts\b/i,
-  "beta-start": /Private Beta Guide|Getting Started/i,
-  "decision-intelligence": /Decision Intelligence|No saved decisions yet/i,
-  compare: /Direct comparison|\bCompare\b/i,
-  "psa-advisor": /PSA Advisor/i,
-  evidence: /Evidence readiness|Evidence Center|\bEvidence\b/i,
-  sell: /Exit Review|\bSell\b/i,
-  export: /Audit Export|Decision Dossier|\bExport\b/i,
-  account: /\bAccount\b|Plan & Usage/i
+const expectedHeading = {
+  dashboard: /^Dashboard$/i,
+  "market-view": /^Market View$/i,
+  discover: /^Discover$/i,
+  "forge-heat": /^Forge Heat/i,
+  evaluate: /^Evaluate/i,
+  opportunities: /^Opportunities$/i,
+  tracking: /^Tracking$/i,
+  portfolio: /^Portfolio$/i,
+  alerts: /^Alerts$/i,
+  "beta-start": /^Private Beta Guide$|^Getting Started$/i,
+  "decision-intelligence": /^Decision Intelligence|^No saved decisions yet\.?$/i,
+  compare: /^Direct Comparison$|^Compare$/i,
+  "psa-advisor": /^PSA Advisor$/i,
+  evidence: /^Evidence readiness$|^Evidence Center$|^Evidence$/i,
+  sell: /^Exit Review$|^Sell$/i,
+  export: /^Audit Export$|^Decision Dossier$|^Export$/i,
+  account: /^Plan & Usage$|^Account$/i
 };
 
 function emptyMarketView() {
@@ -90,6 +90,21 @@ function emptyMarketView() {
   };
 }
 
+function lifecycleProjection(kind) {
+  return {
+    kind,
+    configured: true,
+    status: "READY",
+    count: 0,
+    dueCount: 0,
+    totalCostBasisCents: 0,
+    currentValueConfigured: false,
+    transactionAuthority: false,
+    notificationDeliveryConfigured: false,
+    items: []
+  };
+}
+
 function apiFixture(request) {
   const pathname = new URL(request.url()).pathname;
   const correlationId = request.headers()["x-correlation-id"] || "mobile-nav-qa";
@@ -113,8 +128,14 @@ function apiFixture(request) {
   if (pathname === "/api/v1/opportunities") {
     return { meta, data: { kind: "opportunities", items: [] } };
   }
-  if (pathname === "/api/v1/lifecycle" || pathname === "/api/v1/alerts") {
-    return { meta, data: { items: [] } };
+  if (pathname === "/api/v1/lifecycle") {
+    return { meta, data: lifecycleProjection("lifecycle") };
+  }
+  if (pathname === "/api/v1/portfolio") {
+    return { meta, data: lifecycleProjection("portfolio") };
+  }
+  if (pathname === "/api/v1/alerts") {
+    return { meta, data: lifecycleProjection("alerts") };
   }
   if (pathname === "/api/v1/market-view") {
     return { meta, data: emptyMarketView() };
@@ -177,20 +198,18 @@ async function clickRoute(page, route) {
       navOpen: shell?.dataset.navOpen,
       ariaCurrent: active?.getAttribute("aria-current"),
       heading,
-      text,
       textLength: text.length
     };
   }, route);
 
   const failures = [];
-  const routeFingerprint = `${result.heading}\n${result.text}`;
   if (result.hash !== `#/${route}`) failures.push(`hash stayed at ${result.hash || "(empty)"}`);
   if (result.navOpen !== "false") failures.push(`mobile navigation stayed open (${result.navOpen})`);
   if (result.ariaCurrent !== "page") failures.push("active navigation item is not marked aria-current=page");
   if (!result.heading) failures.push("route rendered without a visible title or empty-state heading");
   if (result.textLength < 20) failures.push(`route rendered too little content (${result.textLength} chars)`);
-  if (!expectedContent[route]?.test(routeFingerprint)) {
-    failures.push(`route-specific content is missing; rendered heading: ${result.heading || "(none)"}`);
+  if (!expectedHeading[route]?.test(result.heading)) {
+    failures.push(`wrong route content rendered; heading was ${result.heading || "(none)"}`);
   }
 
   return { route, heading: result.heading, failures };
