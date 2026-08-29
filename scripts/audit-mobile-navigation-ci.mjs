@@ -22,6 +22,26 @@ const routes = [
   "account"
 ];
 
+const expectedContent = {
+  dashboard: /\bDashboard\b/i,
+  "market-view": /\bMarket View\b/i,
+  discover: /\bDiscover\b/i,
+  "forge-heat": /\bForge Heat\b/i,
+  evaluate: /\bEvaluate\b/i,
+  opportunities: /\bOpportunities\b/i,
+  tracking: /\bTracking\b/i,
+  portfolio: /\bPortfolio\b/i,
+  alerts: /\bAlerts\b/i,
+  "beta-start": /Private Beta Guide|Getting Started/i,
+  "decision-intelligence": /Decision Intelligence|No saved decisions yet/i,
+  compare: /Direct comparison|\bCompare\b/i,
+  "psa-advisor": /PSA Advisor/i,
+  evidence: /Evidence readiness|\bEvidence\b/i,
+  sell: /Exit Review|\bSell\b/i,
+  export: /Audit Export|\bExport\b/i,
+  account: /\bAccount\b/i
+};
+
 function apiFixture(request) {
   const pathname = new URL(request.url()).pathname;
   const correlationId = request.headers()["x-correlation-id"] || "mobile-nav-qa";
@@ -103,6 +123,7 @@ async function clickRoute(page, route) {
       navOpen: shell?.dataset.navOpen,
       ariaCurrent: active?.getAttribute("aria-current"),
       heading,
+      text,
       textLength: text.length
     };
   }, route);
@@ -113,6 +134,9 @@ async function clickRoute(page, route) {
   if (result.ariaCurrent !== "page") failures.push("active navigation item is not marked aria-current=page");
   if (!result.heading) failures.push("route rendered without a visible title or empty-state heading");
   if (result.textLength < 20) failures.push(`route rendered too little content (${result.textLength} chars)`);
+  if (!expectedContent[route]?.test(result.text)) {
+    failures.push(`route-specific content is missing; rendered heading: ${result.heading || "(none)"}`);
+  }
 
   return { route, heading: result.heading, failures };
 }
