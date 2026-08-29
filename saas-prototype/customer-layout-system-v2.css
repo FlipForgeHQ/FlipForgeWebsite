@@ -54,14 +54,15 @@
   .app-shell{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important}
   .workspace{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:0!important}
   .sidebar{position:fixed!important;inset:0 auto 0 0!important;z-index:1000!important;margin:0!important}
-  .topbar{display:grid!important;grid-template-columns:44px minmax(0,1fr)!important;gap:10px!important;min-height:60px!important;padding:8px 10px!important;width:100%!important;max-width:100%!important}
+  .topbar{display:grid!important;grid-template-columns:44px minmax(0,1fr)!important;gap:10px!important;min-height:60px!important;padding:8px 10px!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
   .menu-button{width:44px!important;height:44px!important}
   .global-search{min-width:0!important;width:100%!important;max-width:100%!important}
   .global-search input{width:100%!important;min-width:0!important;height:44px!important;font-size:15px!important;text-overflow:ellipsis!important}
   .global-search kbd{display:none!important}
   .topbar-actions{display:none!important}
   #main-content{box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:14px 12px 96px!important;overflow-x:hidden!important}
-  #main-content .page,#main-content .ff-di-page,#main-content section,#main-content article,#main-content form{max-width:100%!important;min-width:0!important}
+  #main-content *,#main-content *::before,#main-content *::after{box-sizing:border-box!important;min-width:0}
+  #main-content .page,#main-content .ff-di-page,#main-content section,#main-content article,#main-content form,#main-content .panel{width:100%!important;max-width:100%!important;min-width:0!important}
   #main-content .page-heading{display:grid!important;gap:10px!important;margin-bottom:13px!important}
   #main-content .page-heading h1{font-size:clamp(1.55rem,7.2vw,1.9rem)!important;line-height:1.08!important}
   #main-content .page-heading p{font-size:.94rem!important;line-height:1.45!important}
