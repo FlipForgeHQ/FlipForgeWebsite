@@ -8,6 +8,7 @@ on:
       - "scripts/audit-saas-layout-ci.mjs"
       - "scripts/audit-saas-layout.mjs"
       - "scripts/audit-mobile-navigation-ci.mjs"
+      - "scripts/audit-mobile-guided-mode-ci.mjs"
       - "scripts/audit-customer-typography-ci.mjs"
       - "scripts/check-saas-layout-report.mjs"
       - ".github/workflows/saas-full-site-visual-qa.yml"
@@ -20,6 +21,7 @@ on:
       - "scripts/audit-saas-layout-ci.mjs"
       - "scripts/audit-saas-layout.mjs"
       - "scripts/audit-mobile-navigation-ci.mjs"
+      - "scripts/audit-mobile-guided-mode-ci.mjs"
       - "scripts/audit-customer-typography-ci.mjs"
       - "scripts/check-saas-layout-report.mjs"
       - ".github/workflows/saas-full-site-visual-qa.yml"
@@ -76,6 +78,9 @@ jobs:
 
       - name: Gate mobile navigation taps
         run: node scripts/audit-mobile-navigation-ci.mjs
+
+      - name: Gate mobile Guided Mode behavior
+        run: node scripts/audit-mobile-guided-mode-ci.mjs
 
       - name: Gate uniform customer typography floor
         run: node scripts/audit-customer-typography-ci.mjs
