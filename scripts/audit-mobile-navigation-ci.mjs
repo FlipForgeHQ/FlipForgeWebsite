@@ -110,7 +110,7 @@ async function clickRoute(page, route) {
 
   await page.waitForFunction(expected => window.location.hash === `#/${expected}`, route, { timeout: 7000 });
   await page.waitForSelector("#main-content", { state: "attached", timeout: 5000 });
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(650);
 
   const result = await page.evaluate(expected => {
     const shell = document.querySelector(".app-shell");
@@ -153,7 +153,6 @@ try {
     contentType: "application/json; charset=utf-8",
     body: JSON.stringify(apiFixture(route.request()))
   }));
-  await page.route("**/staging-route-hook.js", route => route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: "(() => {})();" }));
 
   await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded", timeout: 10_000 });
   await page.waitForSelector("#main-content", { state: "attached", timeout: 5000 });
