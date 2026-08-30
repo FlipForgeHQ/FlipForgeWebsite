@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const opportunities = fs.readFileSync(new URL("../saas-prototype/customer-opportunities.js", import.meta.url), "utf8");
 const saveFlow = fs.readFileSync(new URL("../saas-prototype/customer-save-flow-v1.js", import.meta.url), "utf8");
+const saveFlowCss = fs.readFileSync(new URL("../saas-prototype/customer-save-flow-v1.css", import.meta.url), "utf8");
 const flowCss = fs.readFileSync(new URL("../saas-prototype/beta-customer-flow-v2.css", import.meta.url), "utf8");
 const clarity = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.js", import.meta.url), "utf8");
 const clarityCss = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.css", import.meta.url), "utf8");
@@ -19,6 +20,9 @@ const checks = [
   ["detail header keeps only core actions", opportunities.includes("Saved decisions") && opportunities.includes(">Track</a>") && !opportunities.includes("PSA guidance</a><a class=\"button button-secondary\" href=\"#/tracking")],
   ["save confirmation waits for the Card Intelligence hero", saveFlow.includes('const hero = main.querySelector(".customer-intelligence-hero")') && saveFlow.includes("if (!hero)" )],
   ["save confirmation is placed after the result hero", saveFlow.includes('hero.insertAdjacentElement("afterend", bar)')],
+  ["saved-decision message keeps full row width above actions", saveFlowCss.includes(".ff-saved-decision-bar{") && saveFlowCss.includes("grid-template-columns:minmax(0,1fr)")],
+  ["saved-decision actions use a bounded three-column desktop grid", saveFlowCss.includes("grid-template-columns:repeat(3,minmax(0,1fr))") && saveFlowCss.includes("white-space:normal")],
+  ["saved-decision actions stack before narrow desktop copy can collapse", saveFlowCss.includes("@media(max-width:820px)") && saveFlowCss.includes(".ff-saved-decision-actions{grid-template-columns:1fr}")],
   ["duplicate coaching summary is hidden on Card Intelligence detail", flowCss.includes(".customer-intelligence-page .ff-decision-summary") && flowCss.includes("display:none!important")],
   ["decision clarity is wired through a production-safe shell utility", scrollReset.includes("loadDecisionClarityAssets();") && scrollReset.includes("customer-decision-clarity-v1.js") && scrollReset.includes("customer-decision-clarity-v1.css")],
   ["first-value clarity is wired through the same production-safe shell utility", scrollReset.includes("loadFirstValueAssets();") && scrollReset.includes("customer-first-value-v1.js") && scrollReset.includes("customer-first-value-v1.css")],
@@ -28,7 +32,8 @@ const checks = [
   ["decision clarity defines plain-language BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => clarity.includes(value))],
   ["first-value layer uses the same BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => firstValue.includes(value))],
   ["decision clarity follows decision value risk why evidence hierarchy", ["Why FlipForge says", "Supported value", "Risk", "View evidence", "Decision details"].every(value => clarity.includes(value))],
-  ["raw Card Intelligence metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, risk score and rank")],
+  ["raw Card Intelligence metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, market factors and rank")],
+  ["final decision risk is distinguished from the market risk factor", ["Decision risk", "Market risk factor", "final saved decision risk"].every(value => clarity.includes(value))],
   ["Evaluate is reduced to card cost decision first-value flow", ["Confirm the exact card and listing", "Enter your real all-in cost", "Review and get the decision", "Get FlipForge decision"].every(value => firstValue.includes(value))],
   ["Evaluate result leads with decision supported value cost risk why and next action", ["Your FlipForge decision", "Supported value", "All-in cost", "Risk", "Why", "What to do next"].every(value => firstValue.includes(value))],
   ["Evaluate raw result detail is progressively disclosed", firstValue.includes("data-ff-evaluate-result-details") && firstValue.includes("Raw scores, workflow status, requirements and authority notes")],
