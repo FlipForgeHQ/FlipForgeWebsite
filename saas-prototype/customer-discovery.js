@@ -561,7 +561,7 @@
       ? `<details class="customer-discovery-identity-review"><summary>${identityReview.length} excluded provider result${identityReview.length === 1 ? "" : "s"} — identity not confirmed</summary><p>These results are visible for transparency, but they are not ranked with exact matches and cannot be evaluated as the searched card.</p>${identityReview.map(({ item, index }) => candidateCard(item, index, true)).join("")}</details>`
       : "";
     const exactLabel = `${exact.length} exact active candidate${exact.length === 1 ? "" : "s"}`;
-    return `<section class="customer-discovery-results" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Lower complete all-in cost breaks otherwise equivalent evidence and listing-state context.</span></div>${exactResults}${identityReviewResults}</section>`;
+    return `<section class="customer-discovery-results" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Open “Why this result is ranked here” to review the server-owned ranking factors when available.</span></div>${exactResults}${identityReviewResults}</section>`;
   }
 
   function renderCurrent() {
