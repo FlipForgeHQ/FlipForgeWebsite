@@ -13,6 +13,7 @@ on:
       - "docs/SAAS_PRIVATE_BETA_OPERATIONS_BOUNDARY.md"
       - "scripts/build-assets.js"
       - "scripts/validate-brand-assets.js"
+      - "scripts/validate-netlify-rule-budget.mjs"
       - "scripts/lib/deploy-manifest.mjs"
       - "scripts/write-deploy-manifest.mjs"
       - "scripts/validate-deploy-manifest.mjs"
@@ -25,6 +26,7 @@ on:
       - "scripts/validate-saas-customer-entitlements.mjs"
       - "scripts/validate-saas-private-beta-operations-boundary.mjs"
       - "scripts/validate-saas-private-beta-readiness.mjs"
+      - "netlify/modern-functions/ebay-privacy.js"
       - "netlify.toml"
       - "package.json"
       - "_redirects"
@@ -78,6 +80,7 @@ jobs:
           node --check scripts/lib/deploy-manifest.mjs
           node --check scripts/write-deploy-manifest.mjs
           node --check scripts/validate-deploy-manifest.mjs
+          node --check scripts/validate-netlify-rule-budget.mjs
           node --check scripts/validate-saas-customer-dashboard.mjs
           node --check scripts/validate-saas-commercial-dashboard-live-qa.mjs
           node --check scripts/validate-production-prototype-isolation.mjs
@@ -85,7 +88,7 @@ jobs:
           node --check scripts/validate-saas-customer-entitlements.mjs
 
       - name: Run production-path application validations
-        run: npm run build:identity && npm run validate:identity && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:production-prototype-isolation && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:customer-entitlements && npm run validate:private-beta-operations-boundary && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
+        run: npm run build:identity && npm run validate:identity && node scripts/validate-netlify-rule-budget.mjs && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:production-prototype-isolation && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:customer-entitlements && npm run validate:private-beta-operations-boundary && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
 
       - name: Simulate Netlify Deploy Preview identity manifest
         env:
@@ -150,6 +153,8 @@ jobs:
 
           console.log(`Verified App Preview and Card Intelligence across ${htmlFiles.length} website pages.`);
           NODE
-          grep -q '/app /saas-prototype/index.html 200' _redirects
-          grep -q '/app/ /saas-prototype/index.html 200' _redirects
-          grep -q '/app/\* /saas-prototype/:splat 200' _redirects
+          node scripts/validate-netlify-rule-budget.mjs
+          grep -q '^/app /saas-prototype/index.html 200$' _redirects
+          grep -q '^/app/\* /saas-prototype/:splat 200$' _redirects
+          ! grep -q '^/api/ebay/privacy ' _redirects
+          ! grep -q '^/app/ /saas-prototype/index.html 200$' _redirects
