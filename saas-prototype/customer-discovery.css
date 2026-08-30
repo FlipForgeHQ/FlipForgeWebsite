@@ -223,6 +223,50 @@
   margin-top: 14px;
 }
 
+.customer-discovery-ranking-details,
+.customer-discovery-identity-review {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .018);
+  padding: 11px 13px;
+}
+
+.customer-discovery-ranking-details {
+  margin-top: 12px;
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.customer-discovery-ranking-details summary,
+.customer-discovery-identity-review > summary {
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.customer-discovery-ranking-details p {
+  margin: 10px 0 6px;
+}
+
+.customer-discovery-identity-review {
+  display: grid;
+  gap: 12px;
+  border-color: rgba(213, 173, 83, .32);
+}
+
+.customer-discovery-identity-review > p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.customer-discovery-candidate-review {
+  border-style: dashed;
+  border-color: rgba(213, 173, 83, .28);
+}
+
 .customer-discovery-notice {
   padding: 12px 14px;
   border: 1px solid rgba(67, 174, 116, .45);
