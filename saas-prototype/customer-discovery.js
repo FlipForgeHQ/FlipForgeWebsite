@@ -226,8 +226,12 @@
   }
 
   function safeEvaluationRequest(item) {
-    if (!item || item.evaluationEligible !== true || !item.evaluationRequest || typeof item.evaluationRequest !== "object") {
-      throw makeError("DISCOVER_EVALUATION_NOT_ELIGIBLE", "This active listing does not have the minimum verified fields required for authoritative evaluation.", 400);
+    if (!item
+      || item.evaluationEligible !== true
+      || String(item.matchQuality || "") !== "EXACT_MATCH"
+      || !item.evaluationRequest
+      || typeof item.evaluationRequest !== "object") {
+      throw makeError("DISCOVER_EVALUATION_NOT_ELIGIBLE", item?.evaluationBlockReason || "Exact listing identity and complete current cost are required before authoritative evaluation.", 400);
     }
     const source = item.evaluationRequest;
     const externalListingId = String(source.externalListingId || "").trim();
@@ -294,11 +298,20 @@
       });
       if (!validateDiscover(result.payload, result.correlationId)) throw makeError("DISCOVER_CONTRACT_INVALID", "The provider-backed Discover response failed the FlipForge authority, evidence, or tenant contract.");
       state.data = result.payload.data;
-      state.notice = state.data.candidateCount
-        ? `${state.data.candidateCount} active candidate${state.data.candidateCount === 1 ? "" : "s"} returned from currently connected sources.`
-        : state.data.provider?.available === false
-          ? "The authorized active-listing provider is not connected for this runtime. No sample results were substituted."
-          : "No active candidates matched this exact-card search.";
+      const returnedItems = Array.isArray(state.data.items) ? state.data.items : [];
+      const exactCandidateCount = Number.isInteger(state.data.exactCandidateCount)
+        ? state.data.exactCandidateCount
+        : returnedItems.filter(item => String(item?.matchQuality || "") === "EXACT_MATCH").length;
+      const identityReviewCandidateCount = Number.isInteger(state.data.identityReviewCandidateCount)
+        ? state.data.identityReviewCandidateCount
+        : Math.max(0, returnedItems.length - exactCandidateCount);
+      state.notice = exactCandidateCount
+        ? `${exactCandidateCount} exact active candidate${exactCandidateCount === 1 ? "" : "s"} returned from currently connected sources.`
+        : identityReviewCandidateCount
+          ? `No exact active listing matched. ${identityReviewCandidateCount} provider result${identityReviewCandidateCount === 1 ? " was" : "s were"} withheld for identity review.`
+          : state.data.provider?.available === false
+            ? "The authorized active-listing provider is not connected for this runtime. No sample results were substituted."
+            : "No active candidates matched this exact-card search.";
       if (state.data.candidateCount > 0) {
         state.draft = { exactCardQuery: "", targetMaxBuy: "", limit: String(draft.limit) };
       }
@@ -481,23 +494,74 @@
     if (!state.data) return "";
     const provider = state.data.provider || {};
     const tone = provider.available ? "ok" : "warn";
-    return `<section class="panel"><header class="panel-header"><div><h2>Connected source status</h2><p>${escapeHtml(provider.status || "Provider status unavailable.")}</p></div><span class="staging-status staging-status-${tone}">${provider.available ? "Connected" : "Unavailable"}</span></header><div class="panel-body customer-discovery-provider"><span><strong>${escapeHtml(provider.name || "Authorized source")}</strong><small>Automated active-listing connector · customer configuration disabled</small></span><span><strong>${escapeHtml(state.data.candidateCount || 0)}</strong><small>Active candidates</small></span><span><strong>${escapeHtml(state.data.evidenceSupportedCount || 0)}</strong><small>With trusted exact sold context</small></span></div></section>`;
+    const items = Array.isArray(state.data.items) ? state.data.items : [];
+    const exactCandidateCount = Number.isInteger(state.data.exactCandidateCount)
+      ? state.data.exactCandidateCount
+      : items.filter(item => String(item?.matchQuality || "") === "EXACT_MATCH").length;
+    const identityReviewCandidateCount = Number.isInteger(state.data.identityReviewCandidateCount)
+      ? state.data.identityReviewCandidateCount
+      : Math.max(0, items.length - exactCandidateCount);
+    const reviewNote = identityReviewCandidateCount
+      ? `<small>${identityReviewCandidateCount} additional provider result${identityReviewCandidateCount === 1 ? "" : "s"} withheld from exact ranking for identity review.</small>`
+      : "";
+    return `<section class="panel"><header class="panel-header"><div><h2>Connected source status</h2><p>${escapeHtml(provider.status || "Provider status unavailable.")}</p></div><span class="staging-status staging-status-${tone}">${provider.available ? "Connected" : "Unavailable"}</span></header><div class="panel-body customer-discovery-provider"><span><strong>${escapeHtml(provider.name || "Authorized source")}</strong><small>Automated active-listing connector · customer configuration disabled</small></span><span><strong>${escapeHtml(exactCandidateCount)}</strong><small>Exact candidates</small>${reviewNote}</span><span><strong>${escapeHtml(state.data.evidenceSupportedCount || 0)}</strong><small>With trusted exact sold context</small></span></div></section>`;
   }
 
-  function candidateCard(item, index) {
+  function candidateCard(item, index, identityReview = false) {
     const evidence = item.evidence || {};
-    const label = item.discoveryLabel === "BEST_CONNECTED_CANDIDATE"
-      ? "Best connected candidate"
-      : String(item.discoveryLabel || "Connected candidate").replaceAll("_", " ");
-    const evaluateDisabled = item.evaluationEligible !== true || state.evaluatingIndex >= 0;
-    return `<article class="panel customer-discovery-candidate"><header class="panel-header"><div><span class="eyebrow">Rank ${escapeHtml(item.rank || index + 1)} · ${escapeHtml(item.providerDisplayName || item.marketplace || "Authorized source")}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p><p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div><div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div><div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div></div></article>`;
+    const exactIdentity = String(item.matchQuality || "") === "EXACT_MATCH";
+    const label = identityReview
+      ? "Identity not confirmed"
+      : item.discoveryLabel === "BEST_CONNECTED_CANDIDATE"
+        ? "Best connected candidate"
+        : String(item.discoveryLabel || "Connected candidate").replaceAll("_", " ");
+    const evaluateDisabled = identityReview
+      || !exactIdentity
+      || item.evaluationEligible !== true
+      || state.evaluatingIndex >= 0;
+    const sellerFeedback = Number(item.sellerFeedbackScore);
+    const rankingContext = [
+      Number.isFinite(sellerFeedback) && sellerFeedback >= 0
+        ? `Seller feedback ${new Intl.NumberFormat("en-US").format(sellerFeedback)}`
+        : "",
+      item.condition ? `Condition ${item.condition}` : "",
+      item.listingFormat ? `Format ${String(item.listingFormat).replaceAll("_", " ")}` : ""
+    ].filter(Boolean).join(" · ");
+    const factors = item.rankingFactors && typeof item.rankingFactors === "object"
+      ? Object.entries(item.rankingFactors)
+        .filter(([, value]) => Number.isFinite(Number(value)))
+        .map(([name, value]) => `${name.replace(/([A-Z])/g, " $1").replace(/^./, character => character.toUpperCase())} ${Number(value)}/100`)
+        .join(" · ")
+      : "";
+    const rankingDetails = item.rankingExplanation || factors
+      ? `<details class="customer-discovery-ranking-details"><summary>Why this result is ranked here</summary>${item.rankingExplanation ? `<p>${escapeHtml(item.rankingExplanation)}</p>` : ""}${factors ? `<small>${escapeHtml(factors)}</small>` : ""}</details>`
+      : "";
+    const eyebrow = identityReview
+      ? `Excluded provider result · ${escapeHtml(item.providerDisplayName || item.marketplace || "Authorized source")}`
+      : `Rank ${escapeHtml(item.rank || index + 1)} · ${escapeHtml(item.providerDisplayName || item.marketplace || "Authorized source")}`;
+    const blockReason = item.evaluationBlockReason || "Exact listing identity is required before evaluation.";
+    const boundary = identityReview
+      ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
+      : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${boundary}</div></article>`;
   }
 
   function resultsPanel() {
     if (!state.data) return "";
     const items = Array.isArray(state.data.items) ? state.data.items : [];
     if (!items.length) return `<section class="panel"><div class="panel-body staging-empty"><strong>No active candidate is available.</strong><p>${escapeHtml(state.data.coverageSummary || "No connected listing matched this search.")}</p></div></section>`;
-    return `<section class="customer-discovery-results" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(state.data.coverageSummary || "Connected-source discovery results")}</strong><span>Best candidate means best across currently connected sources—not the entire market.</span></div>${items.map(candidateCard).join("")}</section>`;
+
+    const indexed = items.map((item, index) => ({ item, index }));
+    const exact = indexed.filter(({ item }) => String(item?.matchQuality || "") === "EXACT_MATCH");
+    const identityReview = indexed.filter(({ item }) => String(item?.matchQuality || "") !== "EXACT_MATCH");
+    const exactResults = exact.length
+      ? exact.map(({ item, index }) => candidateCard(item, index, false)).join("")
+      : `<section class="panel"><div class="panel-body staging-empty"><strong>No exact active listing matched.</strong><p>Provider results that do not confirm the searched grade, card number, or variation are withheld from the exact ranking.</p></div></section>`;
+    const identityReviewResults = identityReview.length
+      ? `<details class="customer-discovery-identity-review"><summary>${identityReview.length} excluded provider result${identityReview.length === 1 ? "" : "s"} — identity not confirmed</summary><p>These results are visible for transparency, but they are not ranked with exact matches and cannot be evaluated as the searched card.</p>${identityReview.map(({ item, index }) => candidateCard(item, index, true)).join("")}</details>`
+      : "";
+    const exactLabel = `${exact.length} exact active candidate${exact.length === 1 ? "" : "s"}`;
+    return `<section class="customer-discovery-results" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Lower complete all-in cost breaks otherwise equivalent evidence and listing-state context.</span></div>${exactResults}${identityReviewResults}</section>`;
   }
 
   function renderCurrent() {
