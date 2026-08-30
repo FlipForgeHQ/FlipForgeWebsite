@@ -26,6 +26,7 @@ const gateway = read("netlify/functions/flipforge-api.js");
 const customerCss = read("saas-prototype/customer-intelligence.css");
 const discoveryCss = read("saas-prototype/customer-discovery.css");
 const lifecycleCss = read("saas-prototype/customer-lifecycle.css");
+const fullSiteVisualQa = read(".github/workflows/saas-full-site-visual-qa.yml");
 
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
@@ -108,6 +109,8 @@ check("066 Discover evaluation requires exact listing identity", discovery.inclu
 check("067 non-exact provider results are separated from exact ranking", discovery.includes("excluded provider result") && discovery.includes("identity not confirmed") && discovery.includes("cannot be evaluated as the searched card"));
 check("068 Discover exposes ranking context and explanation", discovery.includes("Ranking context:") && discovery.includes("Why this result is ranked here") && discovery.includes("rankingExplanation"));
 check("069 Discover defers ranking explanation to server-owned factors", discovery.includes("server-owned ranking factors when available."));
+check("070 imperfect-identity browser validator exists", exists("scripts/audit-discover-identity-assist-ci.mjs"));
+check("071 visual QA executes imperfect-identity resolution gate", fullSiteVisualQa.includes("Gate Discover imperfect-identity resolution") && fullSiteVisualQa.includes("node scripts/audit-discover-identity-assist-ci.mjs"));
 
 const failures = results.filter(result => !result.passed);
 console.log("FlipForge SaaS Beta Complete Static Gate");

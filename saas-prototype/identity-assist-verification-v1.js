@@ -74,12 +74,12 @@
     const message = panel.querySelector(".customer-discovery-identity-message");
     if (!message) return;
     if (hasSelectable) {
-      message.innerHTML = `<strong>Exact card match found.</strong><span>Confirm the exact card below to search connected listings. Other possible variants are kept out of the way unless you need them.</span>`;
+      message.innerHTML = `<strong>Exact card match found.</strong><span>Confirm the exact card below to search connected listings. FlipForge will not choose one for you. Other possible variants are kept out of the way unless you need them.</span>`;
       message.classList.add("ff-identity-assist-explained", "ff-identity-exact-found");
       return;
     }
     if (reviewCount > 0) {
-      message.innerHTML = `<strong>No exact match is verified yet.</strong><span>Review the closest catalog matches below. Choose <b>Verify this match</b> only when the visible card identity is the one you mean.</span>`;
+      message.innerHTML = `<strong>No exact match is verified yet.</strong><span>FlipForge will not choose one for you. Review the closest catalog matches below. Choose <b>Verify this match</b> only when the visible card identity is the one you mean.</span>`;
       message.classList.add("ff-identity-assist-explained");
     }
   }
