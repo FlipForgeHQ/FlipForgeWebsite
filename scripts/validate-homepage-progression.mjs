@@ -66,7 +66,7 @@ requireText('unpaid beta',homepage,'Private beta participation does not create a
 requireText('transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
 
 // Product answers customer questions rather than presenting architecture.
-for(const needle of ['Is the premium actually supported?','Is this actually the card?','Do these comps actually belong?','Is the setup actually supported?','What could make this wrong?','What should I do next—and why?','Can I challenge the recommendation too?'])requireText('Product customer questions',product,needle);
+for(const needle of ['Is the premium actually supported?','Is this actually the card?','Do these comps actually belong?','Is the price actually supported?','What could make this wrong?','What should I do next—and why?','Can I challenge the recommendation too?'])requireText('Product customer questions',product,needle);
 for(const simulator of ['id="identity-simulator"','Try to break the identity','Choose the wrong card and watch FlipForge stop it.','Bad evidence stops before price gets a vote.','Supported value is not allowed to update from the mismatch','Illustrative product simulation.'])requireText('Product identity proof',product,simulator);
 for(const grade of ['id="grade-form"','Grade-premium intelligence','The PSA 10 price is not your grading profit.'])requireText('Product grade proof',product,grade);
 requireText('Product decision receipt',product,'Decision receipt');
