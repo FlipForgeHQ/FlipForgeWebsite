@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FlipForge — Before you buy. Know Why.</title>
+<style>
+  @font-face{
+    font-family:'Geist Sans';
+    src:url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2-variations');
+    font-weight:100 900;
+    font-style:normal;
+    font-display:swap;
+  }
+
+  :root{
+    --black:#000000;
+    --panel:#0B0D10;
+    --panel2:#11151A;
+    --white:#FFFFFF;
+    --silver:#8B8F98;
+    --muted:#6F7680;
+    --gold:#D4AF37;
+    --deep-gold:#B8860B;
+    --green:#53C985;
+    --line:rgba(255,255,255,.10);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    width:100%;
+    height:100%;
+    background:#000000;
+    color:var(--white);
+    font-family:'Geist Sans',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:0;
+    overflow:hidden;
+  }
+
+  .stage-wrap{
+    width:100%;
+    height:100%;
+    display:grid;
+    place-items:center;
+  }
+
+  .frame{
+    position:relative;
+    width:min(390px,100%);
+    aspect-ratio:9/16;
+    overflow:hidden;
+    border-radius:20px;
+    background:
+      radial-gradient(circle at 50% 0%,rgba(212,175,55,.08),transparent 30%),
+      var(--black);
+    box-shadow:0 32px 90px rgba(0,0,0,.62),0 0 0 1px rgba(212,175,55,.18);
+  }
+
+  .progress-track{
+    position:absolute;inset:0 0 auto 0;height:3px;
+    background:rgba(255,255,255,.08);z-index:40;
+  }
+  .progress-fill{height:100%;width:0;background:var(--gold)}
+
+  .beat{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:30px 26px 52px;
+    opacity:0;pointer-events:none;
+    transition:opacity .28s ease;
+  }
+  .beat.active{opacity:1;pointer-events:auto}
+
+  .eyebrow{
+    color:var(--gold);
+    font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    margin-bottom:9px;text-align:center;
+  }
+  .headline{
+    max-width:315px;
+    color:var(--white);
+    font-size:24px;font-weight:780;line-height:1.18;text-align:center;
+    letter-spacing:-.02em;
+  }
+  .subline{
+    max-width:315px;
+    margin-top:10px;
+    color:var(--silver);
+    font-size:13px;line-height:1.5;text-align:center;
+  }
+
+  .listing-card{
+    width:100%;max-width:300px;
+    border:1px solid rgba(212,175,55,.26);
+    border-radius:14px;
+    padding:16px;
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+    box-shadow:0 18px 45px rgba(0,0,0,.28);
+  }
+  .listing-kicker{
+    color:var(--gold);font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .listing-title{font-size:14px;font-weight:760;line-height:1.35;margin-bottom:10px}
+  .listing-row{
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:8px 0;border-top:1px solid rgba(255,255,255,.07);
+    font-size:12px;
+  }
+  .listing-row span:first-child{color:var(--silver)}
+  .price-main{font-size:18px;font-weight:850;color:var(--white)}
+  .price-comp{font-weight:750;color:var(--white)}
+  .deal-chip{
+    margin-top:12px;
+    display:inline-flex;align-items:center;gap:6px;
+    padding:7px 10px;border-radius:999px;
+    background:rgba(83,201,133,.12);border:1px solid rgba(83,201,133,.35);
+    color:#bde9cf;font-size:11px;font-weight:750;
+  }
+
+  .comparison{
+    width:100%;max-width:305px;
+    display:grid;gap:11px;
+  }
+  .compare-row{
+    display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+    padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025);
+  }
+  .compare-row strong{font-size:13px}
+  .compare-row small{display:block;color:var(--silver);font-size:10px;margin-top:3px;line-height:1.35}
+  .compare-value{font-size:18px;font-weight:850}
+  .warning{
+    border-color:rgba(212,175,55,.42);
+    background:rgba(212,175,55,.06);
+  }
+
+  .scan-card{
+    width:100%;max-width:305px;border:1px solid rgba(212,175,55,.32);border-radius:14px;
+    background:rgba(255,255,255,.024);overflow:hidden;
+  }
+  .scan-head{
+    display:flex;align-items:center;gap:9px;padding:12px 14px;
+    border-bottom:1px solid rgba(212,175,55,.22);
+    color:var(--gold);font-size:10px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;
+  }
+  .scan-row{
+    display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;
+    padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06);
+    opacity:0;transform:translateY(5px);
+  }
+  .scan-row:last-child{border-bottom:0}
+  .scan-row svg{width:18px;height:18px;margin-top:1px}
+  .scan-row strong{display:block;font-size:12px;line-height:1.35}
+  .scan-row small{display:block;color:var(--silver);font-size:10.5px;line-height:1.4;margin-top:3px}
+  .scan-row.flag strong{color:var(--gold)}
+  #beat3 .scan-row:nth-child(2){animation:rowIn .35s .2s forwards}
+  #beat3 .scan-row:nth-child(3){animation:rowIn .35s .8s forwards}
+  #beat3 .scan-row:nth-child(4){animation:rowIn .35s 1.4s forwards}
+  @keyframes rowIn{to{opacity:1;transform:none}}
+
+  .decision-card{
+    width:100%;max-width:310px;
+    border:1px solid rgba(212,175,55,.45);
+    border-radius:16px;
+    padding:16px;
+    background:
+      linear-gradient(145deg,rgba(212,175,55,.08),rgba(255,255,255,.018));
+    box-shadow:0 20px 55px rgba(0,0,0,.34);
+  }
+  .decision-top{
+    display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:13px;
+  }
+  .decision-label{
+    display:inline-flex;padding:8px 13px;border:1px solid var(--gold);border-radius:8px;
+    color:var(--gold);font-size:20px;font-weight:900;letter-spacing:.04em;
+  }
+  .decision-copy{
+    color:var(--white);font-size:12px;line-height:1.42;text-align:right;max-width:150px;
+  }
+  .decision-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  }
+  .metric{
+    padding:11px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.18);
+  }
+  .metric span{
+    display:block;color:var(--silver);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;
+  }
+  .metric strong{font-size:13px;line-height:1.35}
+  .why{
+    margin-top:10px;padding:12px;border-radius:10px;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.24);
+  }
+  .why span{
+    display:block;color:var(--gold);font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;
+  }
+  .why p{font-size:11px;line-height:1.45;color:var(--white)}
+
+  .knowledge-line{
+    margin-top:14px;max-width:310px;
+    color:var(--white);font-size:16px;font-weight:720;text-align:center;line-height:1.35;
+  }
+  .knowledge-line em{color:var(--gold);font-style:normal}
+
+  .lockup{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+  .brand-lockup{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .brand-mark{width:86px;height:86px;filter:drop-shadow(0 10px 24px rgba(212,175,55,.18))}
+  .brand-mark svg{width:100%;height:100%;display:block}
+  .brand-wordmark{
+    display:flex;align-items:baseline;justify-content:center;
+    font-size:26px;font-weight:760;letter-spacing:.16em;line-height:1;
+  }
+  .brand-wordmark .flip{color:var(--white)}
+  .brand-wordmark .forge{
+    background:linear-gradient(180deg,#F4CF67 0%,var(--gold) 48%,var(--deep-gold) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .brand-wordmark sup{
+    color:var(--gold);font-size:7px;letter-spacing:0;margin-left:3px;top:-1.2em;position:relative;
+  }
+  .brand-descriptor{
+    display:grid;grid-template-columns:34px auto 34px;gap:9px;align-items:center;
+    color:var(--gold);font-size:9px;font-weight:650;letter-spacing:.22em;text-transform:uppercase;
+  }
+  .brand-descriptor::before,.brand-descriptor::after{
+    content:"";height:1px;background:linear-gradient(90deg,transparent,var(--gold));
+  }
+  .brand-descriptor::after{background:linear-gradient(90deg,var(--gold),transparent)}
+  .tagline{font-size:15px;color:var(--white);font-weight:600;margin-top:5px;letter-spacing:.01em}
+  .cta{
+    margin-top:10px;
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:11px 17px;border-radius:9px;background:var(--gold);color:#07090c;
+    font-size:12px;font-weight:900;letter-spacing:.02em;
+  }
+  .cta-note{font-size:9.5px;color:var(--silver);margin-top:6px}
+
+  .disclaimer{
+    position:absolute;left:0;right:0;bottom:0;z-index:30;
+    padding:8px 14px;background:rgba(0,0,0,.80);
+    border-top:1px solid rgba(255,255,255,.09);
+    color:var(--silver);font-size:9px;text-align:center;letter-spacing:.025em;
+  }
+
+  @media (max-width:420px){
+    .beat{padding-left:22px;padding-right:22px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .scan-row{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="stage-wrap">
+  <div class="frame" id="frame">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <section class="beat" id="beat1">
+      <div class="eyebrow">The listing</div>
+      <div class="listing-card">
+        <div class="listing-kicker">2018 PSA 10 · Rookie Auto</div>
+        <div class="listing-title">Card listed below the last visible comp</div>
+        <div class="listing-row"><span>Listing price</span><span class="price-main">$850</span></div>
+        <div class="listing-row"><span>Apparent recent comp</span><span class="price-comp">$900</span></div>
+        <div class="deal-chip">Looks like a $50 edge</div>
+      </div>
+      <div class="subline">Looks like a deal.</div>
+    </section>
+
+    <section class="beat" id="beat2">
+      <div class="eyebrow">The problem</div>
+      <div class="headline">One comp can create false confidence.</div>
+      <div class="comparison" style="margin-top:18px">
+        <div class="compare-row">
+          <div><strong>Listing</strong><small>What you're about to buy</small></div>
+          <div class="compare-value">$850</div>
+        </div>
+        <div class="compare-row warning">
+          <div><strong>Comp</strong><small>Looks supportive — but is it the same card?</small></div>
+          <div class="compare-value">$900</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="beat" id="beat3">
+      <div class="eyebrow">FlipForge checks the reason</div>
+      <div class="scan-card">
+        <div class="scan-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.6">
+            <path d="M12 3l8 4v6c0 5-3.5 7.5-8 8-4.5-.5-8-3-8-8V7l8-4z"/>
+          </svg>
+          Evidence check
+        </div>
+        <div class="scan-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#53c985" stroke-width="1.7"><path d="M5 12l4 4L19 6"/></svg>
+          <div><strong>Grade matches</strong><small>PSA 10 context is consistent.</small></div>
+        </div>
+        <div class="scan-row flag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.7"><path d="M12 3l9 16H3L12 3z"/><path d="M12 9v4M12 16h.01"/></svg>
+          <div><strong>Different parallel</strong><small>The $900 comp is not the exact card being considered.</small></div>
+        </div>
+        <div class="scan-row flag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.7"><path d="M4 17l4-4 3 2 5-7 4 2"/></svg>
+          <div><strong>Thin exact-card evidence</strong><small>Only 2 relevant sales qualify in the example window.</small></div>
+        </div>
+      </div>
+      <div class="subline">The comp looked convincing. The evidence didn't.</div>
+    </section>
+
+    <section class="beat" id="beat4">
+      <div class="eyebrow">The decision</div>
+      <div class="decision-card">
+        <div class="decision-top">
+          <div class="decision-label">VERIFY</div>
+          <div class="decision-copy">Don't buy confidently yet.</div>
+        </div>
+        <div class="decision-grid">
+          <div class="metric"><span>Value</span><strong>Apparent $50 edge not supported</strong></div>
+          <div class="metric"><span>Risk</span><strong>Moderate</strong></div>
+        </div>
+        <div class="why">
+          <span>Why</span>
+          <p>Wrong parallel + thin exact-card evidence.</p>
+        </div>
+      </div>
+      <div class="knowledge-line">The price didn't change. <em>What you know did.</em></div>
+    </section>
+
+    <section class="beat" id="beat5">
+      <div class="eyebrow">Why FlipForge</div>
+      <div class="headline">A comp tells you what sold.</div>
+      <div class="headline" style="color:var(--gold);margin-top:7px">FlipForge helps you decide whether the reason holds up.</div>
+      <div class="subline">Decision · Value · Risk · Why · Evidence</div>
+    </section>
+
+    <section class="beat" id="beat6">
+      <div class="lockup">
+        <div class="brand-lockup" aria-label="FlipForge Card Intelligence">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 100 100" role="img">
+              <defs>
+                <linearGradient id="ffTop" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#FFF2B8"/>
+                  <stop offset="45%" stop-color="#D4AF37"/>
+                  <stop offset="100%" stop-color="#B8860B"/>
+                </linearGradient>
+                <linearGradient id="ffLeft" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#D4AF37"/>
+                  <stop offset="100%" stop-color="#8B5F00"/>
+                </linearGradient>
+                <linearGradient id="ffRight" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#F0C74B"/>
+                  <stop offset="100%" stop-color="#B8860B"/>
+                </linearGradient>
+                <filter id="ffGlow" x="-40%" y="-40%" width="180%" height="180%">
+                  <feGaussianBlur stdDeviation="3.2" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <path d="M18 13H35V20H25V31H18Z" fill="#FFFFFF"/>
+              <path d="M82 13H65V20H75V31H82Z" fill="#FFFFFF"/>
+              <path d="M18 87H35V80H25V69H18Z" fill="#FFFFFF"/>
+              <path d="M82 87H65V80H75V69H82Z" fill="#FFFFFF"/>
+              <g filter="url(#ffGlow)">
+                <polygon points="50,26 69,37 50,48 31,37" fill="url(#ffTop)" stroke="#000000" stroke-width="1.5"/>
+                <polygon points="31,37 50,48 50,72 31,61" fill="url(#ffLeft)" stroke="#000000" stroke-width="1.5"/>
+                <polygon points="69,37 50,48 50,72 69,61" fill="url(#ffRight)" stroke="#000000" stroke-width="1.5"/>
+              </g>
+            </svg>
+          </div>
+          <div class="brand-wordmark" aria-hidden="true">
+            <span class="flip">FLIP</span><span class="forge">FORGE</span><sup>™</sup>
+          </div>
+          <div class="brand-descriptor">CARD INTELLIGENCE</div>
+        </div>
+        <div class="tagline">Before you buy. Know Why.</div>
+        <div class="cta">Request Beta Access</div>
+        <div class="cta-note">Decision support only · No transaction authority</div>
+      </div>
+    </section>
+
+    <div class="disclaimer">Illustrative example. Not investment advice. No transaction authority.</div>
+  </div>
+</div>
+
+<script>
+  const beats = [
+    {id:'beat1',duration:3000},
+    {id:'beat2',duration:4000},
+    {id:'beat3',duration:6000},
+    {id:'beat4',duration:7000},
+    {id:'beat5',duration:3000},
+    {id:'beat6',duration:4000}
+  ];
+  const totalDuration = beats.reduce((sum,b)=>sum+b.duration,0);
+
+  let elapsed = 0;
+  let currentBeat = 0;
+  let playing = true;
+  let lastTs = null;
+
+  const progressFill = document.getElementById('progressFill');
+
+  function showBeat(index){
+    document.querySelectorAll('.beat').forEach(el=>el.classList.remove('active'));
+    const beat = document.getElementById(beats[index].id);
+    beat.classList.add('active');
+    beat.querySelectorAll('*').forEach(child=>{
+      child.style.animation='none';
+      void child.offsetWidth;
+      child.style.animation='';
+    });
+  }
+
+  function tick(ts){
+    if(lastTs === null) lastTs = ts;
+    const dt = ts - lastTs;
+    lastTs = ts;
+
+    if(playing){
+      elapsed += dt;
+      if(elapsed >= totalDuration) elapsed = 0;
+
+      let remaining = elapsed;
+      let index = 0;
+      for(; index < beats.length; index++){
+        if(remaining < beats[index].duration) break;
+        remaining -= beats[index].duration;
+      }
+      if(index >= beats.length) index = 0;
+
+      if(index !== currentBeat){
+        currentBeat = index;
+        showBeat(currentBeat);
+      }
+
+      progressFill.style.width = `${(elapsed/totalDuration)*100}%`;
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  const frame = document.getElementById('frame');
+  frame.setAttribute('tabindex','0');
+  frame.setAttribute('role','button');
+  frame.setAttribute('aria-label','FlipForge illustrative decision animation. Press Enter or Space to pause or resume.');
+
+  function togglePlayback(){
+    playing = !playing;
+    lastTs = null;
+  }
+  frame.addEventListener('click',togglePlayback);
+  frame.addEventListener('keydown',event=>{
+    if(event.key==='Enter' || event.key===' '){
+      event.preventDefault();
+      togglePlayback();
+    }
+  });
+
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    playing = false;
+    elapsed = 13000;
+    currentBeat = 3;
+    showBeat(currentBeat);
+    progressFill.style.width = `${(elapsed/totalDuration)*100}%`;
+  } else {
+    showBeat(0);
+  }
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>
