@@ -10,6 +10,9 @@ const plan = read("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md");
 const liveQa = read("docs/SAAS_BETA_COMPLETE_LIVE_QA.md");
 const index = read("saas-prototype/index.html");
 const discovery = read("saas-prototype/customer-discovery.js");
+const discoverEmphasis = read("saas-prototype/discover-card-entry-emphasis-v1.js");
+const identityAssistVerification = read("saas-prototype/identity-assist-verification-v1.js");
+const discoverControls = read("saas-prototype/customer-discovery-controls-v2.js");
 const evaluation = read("saas-prototype/staging-evaluation.js");
 const opportunities = read("saas-prototype/customer-opportunities.js");
 const explainability = read("saas-prototype/customer-explainability.js");
@@ -95,6 +98,12 @@ check("057 static core-production validator exists", exists("scripts/validate-sa
 check("058 explainability validator exists", exists("scripts/validate-saas-customer-explainability.mjs"));
 check("059 production account validator exists", exists("scripts/validate-saas-production-account.mjs"));
 check("060 live QA protects secret handling", ["service tokens", "provider credentials", "raw JWTs", "tenant IDs"].every(value => liveQa.includes(value)));
+
+check("061 Discover exact-card action is unmistakable", discoverEmphasis.includes('searchButton.textContent = "Search active listings"') && discoverEmphasis.includes('identifyButton.textContent = "Help me identify it"'));
+check("062 Discover exact candidate is primary", identityAssistVerification.includes('useButton.textContent = "Use exact match"') && identityAssistVerification.includes("ff-identity-selectable"));
+check("063 Discover variants use progressive disclosure", identityAssistVerification.includes("COLLAPSED_REVIEW_COUNT = 4") && identityAssistVerification.includes("ff-identity-hidden") && identityAssistVerification.includes("Show ${hiddenCount}"));
+check("064 Discover entered grade is consolidated", identityAssistVerification.includes("Grade filter from your search") && identityAssistVerification.includes("cleanInheritedGrade"));
+check("065 Discover result controls wait for live results", discoverControls.includes("if (!hasLiveResults || !previous)") && discoverControls.includes("removeResultControls(actions)"));
 
 const failures = results.filter(result => !result.passed);
 console.log("FlipForge SaaS Beta Complete Static Gate");
