@@ -1,13 +1,12 @@
-const crypto = require("crypto");
+import crypto from "node:crypto";
 
-function response(statusCode, body) {
-  return {
-    statusCode,
+function jsonResponse(status, body) {
+  return new Response(JSON.stringify(body), {
+    status,
     headers: {
       "Content-Type": "application/json; charset=utf-8"
-    },
-    body: JSON.stringify(body)
-  };
+    }
+  });
 }
 
 function makeChallengeResponse(challengeCode, verificationToken, endpoint) {
@@ -24,41 +23,35 @@ function hashIdentifier(value) {
   return crypto.createHash("sha256").update(String(value), "utf8").digest("hex");
 }
 
-exports.handler = async function handler(event) {
+export default async function ebayPrivacy(request) {
+  const method = String(request.method || "GET").toUpperCase();
   const verificationToken = process.env.EBAY_ACCOUNT_DELETION_VERIFICATION_TOKEN;
   const endpoint = process.env.EBAY_ACCOUNT_DELETION_ENDPOINT_URL;
 
-  if (event.httpMethod === "GET") {
-    const challengeCode =
-      event.queryStringParameters && event.queryStringParameters.challenge_code;
+  if (method === "GET") {
+    const url = new URL(request.url);
+    const challengeCode = url.searchParams.get("challenge_code");
 
     if (!challengeCode) {
-      return response(400, {
-        error: "Missing challenge_code query parameter."
-      });
+      return jsonResponse(400, { error: "Missing challenge_code query parameter." });
     }
-
     if (!verificationToken) {
-      return response(500, {
-        error: "Server missing EBAY_ACCOUNT_DELETION_VERIFICATION_TOKEN."
-      });
+      return jsonResponse(500, { error: "Server missing EBAY_ACCOUNT_DELETION_VERIFICATION_TOKEN." });
     }
-
     if (!endpoint) {
-      return response(500, {
-        error: "Server missing EBAY_ACCOUNT_DELETION_ENDPOINT_URL."
-      });
+      return jsonResponse(500, { error: "Server missing EBAY_ACCOUNT_DELETION_ENDPOINT_URL." });
     }
 
-    return response(200, {
+    return jsonResponse(200, {
       challengeResponse: makeChallengeResponse(challengeCode, verificationToken, endpoint)
     });
   }
 
-  if (event.httpMethod === "POST") {
+  if (method === "POST") {
     let payload = {};
     try {
-      payload = event.body ? JSON.parse(event.body) : {};
+      const rawBody = await request.text();
+      payload = rawBody ? JSON.parse(rawBody) : {};
     } catch (_) {
       payload = { rawBodyParseError: true };
     }
@@ -67,39 +60,27 @@ exports.handler = async function handler(event) {
     const notification = payload && payload.notification ? payload.notification : {};
     const data = notification && notification.data ? notification.data : {};
 
-    console.info(
-      JSON.stringify({
-        event: "EBAY_MARKETPLACE_ACCOUNT_DELETION_RECEIVED",
-        topic: metadata.topic || null,
-        schemaVersion: metadata.schemaVersion || null,
-        notificationId: notification.notificationId || null,
-        eventDate: notification.eventDate || null,
-        publishDate: notification.publishDate || null,
-        publishAttemptCount: notification.publishAttemptCount || null,
-        usernameHash: hashIdentifier(data.username),
-        userIdHash: hashIdentifier(data.userId),
-        eiasTokenHash: hashIdentifier(data.eiasToken),
-        signatureHeaderPresent: Boolean(
-          event.headers &&
-            (event.headers["x-ebay-signature"] || event.headers["X-EBAY-SIGNATURE"])
-        )
-      })
-    );
+    console.info(JSON.stringify({
+      event: "EBAY_MARKETPLACE_ACCOUNT_DELETION_RECEIVED",
+      topic: metadata.topic || null,
+      schemaVersion: metadata.schemaVersion || null,
+      notificationId: notification.notificationId || null,
+      eventDate: notification.eventDate || null,
+      publishDate: notification.publishDate || null,
+      publishAttemptCount: notification.publishAttemptCount || null,
+      usernameHash: hashIdentifier(data.username),
+      userIdHash: hashIdentifier(data.userId),
+      eiasTokenHash: hashIdentifier(data.eiasToken),
+      signatureHeaderPresent: Boolean(request.headers.get("x-ebay-signature"))
+    }));
 
-    return response(202, {
-      status: "accepted"
-    });
+    return jsonResponse(202, { status: "accepted" });
   }
 
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 204,
-      headers: {},
-      body: ""
-    };
-  }
+  if (method === "OPTIONS") return new Response(null, { status: 204 });
+  return jsonResponse(405, { error: "Method not allowed." });
+}
 
-  return response(405, {
-    error: "Method not allowed."
-  });
+export const config = {
+  path: "/api/ebay/privacy"
 };
