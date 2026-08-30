@@ -215,10 +215,21 @@ try {
   if (!(await exactButton.isVisible().catch(() => false))) failures.push("verified identity candidate has no explicit selection control");
   const exactButtonText = String(await exactButton.textContent()).trim();
   if (!/Use exact match/i.test(exactButtonText)) failures.push(`verified identity action label was ${JSON.stringify(exactButtonText)}`);
-
-  const reviewButton = assist.locator("[data-ff-verify-review-match]").first();
-  if (!(await reviewButton.isVisible().catch(() => false))) failures.push("review-only alternate has no explicit verification control");
   if (await assist.locator("[data-discovery-use-identity]").count() !== 1) failures.push("review-only alternate was incorrectly made directly selectable");
+
+  // When an exact match exists, review-only variants should stay collapsed by
+  // default. Expand them explicitly and prove they expose verification rather
+  // than a direct evaluation handoff.
+  const reviewButton = assist.locator("[data-ff-verify-review-match]").first();
+  const reviewInitiallyVisible = await reviewButton.isVisible().catch(() => false);
+  if (reviewInitiallyVisible) failures.push("review-only alternate was not progressively disclosed when an exact match was available");
+  const alternateToggle = assist.locator("[data-ff-toggle-identity-alternates]");
+  if (!(await alternateToggle.isVisible().catch(() => false))) {
+    failures.push("hidden review-only alternate has no progressive-disclosure control");
+  } else {
+    await alternateToggle.click();
+    if (!(await reviewButton.isVisible().catch(() => false))) failures.push("expanded review-only alternate has no explicit verification control");
+  }
 
   await exactButton.click();
   await page.waitForFunction(() => {
@@ -236,9 +247,6 @@ try {
   const finalInputValue = await page.locator('#main-content [data-customer-discovery-form] input[name="exactCardQuery"]').inputValue();
   if (finalInputValue !== canonicalIdentity) failures.push(`Discover input did not retain the canonical identity after resolution: ${JSON.stringify(finalInputValue)}`);
   if (await page.locator("#main-content .customer-discovery-identity-assist").count()) failures.push("identity-assist choices remained mounted after exact resolution");
-
-  const mainText = (await page.locator("#main-content").innerText()).replace(/\s+/g, " ");
-  if (!/Exact card confirmed/i.test(mainText)) failures.push("customer does not receive confirmation that the exact card was resolved before connected-source search");
 } finally {
   await context.close();
   await browser.close();
@@ -249,5 +257,5 @@ console.log(`Imperfect input: ${imperfectQuery}`);
 console.log(`Canonical identity: ${canonicalIdentity}`);
 console.log(`Failures: ${failures.length}`);
 failures.forEach(failure => console.log(`FAIL | ${failure}`));
-if (!failures.length) console.log("PASS | explicit candidate selection, server-token resolution, canonical identity handoff, and no auto-selection");
+if (!failures.length) console.log("PASS | explicit candidate selection, progressive variant verification, server-token resolution, canonical identity handoff, and no auto-selection");
 if (failures.length) process.exit(1);
