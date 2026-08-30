@@ -10,30 +10,10 @@
   const runtime = {
     mode: production ? "PRODUCTION_SERVER_OWNED" : "NON_PRODUCTION_PROTOTYPE",
     prototypeVisualsAllowed: !production,
-    decisionClarityEnabled: true,
     loaded: []
   };
 
   window.FlipForgePrototypeVisualRuntime = runtime;
-
-  function loadDecisionClarity() {
-    if (!document.querySelector('link[data-ff-decision-clarity]')) {
-      const stylesheet = document.createElement("link");
-      stylesheet.rel = "stylesheet";
-      stylesheet.href = "customer-decision-clarity-v1.css";
-      stylesheet.dataset.ffDecisionClarity = "style";
-      document.head.appendChild(stylesheet);
-    }
-    if (!document.querySelector('script[data-ff-decision-clarity]')) {
-      const script = document.createElement("script");
-      script.src = "customer-decision-clarity-v1.js";
-      script.async = false;
-      script.dataset.ffDecisionClarity = "script";
-      document.head.appendChild(script);
-    }
-  }
-
-  loadDecisionClarity();
 
   if (production) return;
 

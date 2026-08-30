@@ -1,6 +1,23 @@
 (() => {
   "use strict";
 
+  function loadDecisionClarityAssets() {
+    if (!document.querySelector('link[data-ff-decision-clarity]')) {
+      const stylesheet = document.createElement("link");
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = "customer-decision-clarity-v1.css";
+      stylesheet.dataset.ffDecisionClarity = "style";
+      document.head.appendChild(stylesheet);
+    }
+    if (!document.querySelector('script[data-ff-decision-clarity]')) {
+      const script = document.createElement("script");
+      script.src = "customer-decision-clarity-v1.js";
+      script.async = false;
+      script.dataset.ffDecisionClarity = "script";
+      document.head.appendChild(script);
+    }
+  }
+
   function isPlainLeftClick(event) {
     return event.button === 0
       && !event.metaKey
@@ -104,6 +121,10 @@
     const observer = new MutationObserver(syncRoutePresentation);
     observer.observe(main, { childList: true, subtree: true });
   }
+
+  // Decision clarity is presentation-only and is loaded through this production-safe
+  // shell utility rather than through the prototype visual loader.
+  loadDecisionClarityAssets();
 
   // Reloads and resizes preserve the user's vertical reading position while still
   // protecting the shell from accidental horizontal restoration.

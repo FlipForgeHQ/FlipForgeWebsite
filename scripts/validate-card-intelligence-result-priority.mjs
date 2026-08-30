@@ -5,10 +5,8 @@ const saveFlow = fs.readFileSync(new URL("../saas-prototype/customer-save-flow-v
 const flowCss = fs.readFileSync(new URL("../saas-prototype/beta-customer-flow-v2.css", import.meta.url), "utf8");
 const clarity = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.js", import.meta.url), "utf8");
 const clarityCss = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.css", import.meta.url), "utf8");
-const loader = fs.readFileSync(new URL("../saas-prototype/prototype-visual-loader.js", import.meta.url), "utf8");
-
-const clarityLoadIndex = loader.indexOf("loadDecisionClarity();");
-const productionReturnIndex = loader.indexOf("if (production) return;");
+const scrollReset = fs.readFileSync(new URL("../saas-prototype/scroll-reset.js", import.meta.url), "utf8");
+const prototypeLoader = fs.readFileSync(new URL("../saas-prototype/prototype-visual-loader.js", import.meta.url), "utf8");
 
 const checks = [
   ["saved detail has a direct detail fast path", opportunities.includes("async function loadDetailDirect()")],
@@ -18,8 +16,9 @@ const checks = [
   ["save confirmation waits for the Card Intelligence hero", saveFlow.includes('const hero = main.querySelector(".customer-intelligence-hero")') && saveFlow.includes("if (!hero)" )],
   ["save confirmation is placed after the result hero", saveFlow.includes('hero.insertAdjacentElement("afterend", bar)')],
   ["duplicate coaching summary is hidden on Card Intelligence detail", flowCss.includes(".customer-intelligence-page .ff-decision-summary") && flowCss.includes("display:none!important")],
-  ["decision clarity loads before the production visual-loader return", clarityLoadIndex >= 0 && productionReturnIndex >= 0 && clarityLoadIndex < productionReturnIndex],
-  ["decision clarity is production-safe presentation only", !clarity.includes("fetch(") && !clarity.includes("XMLHttpRequest") && clarity.includes("No browser-side scoring")],
+  ["decision clarity is wired through a production-safe shell utility", scrollReset.includes("loadDecisionClarityAssets();") && scrollReset.includes("customer-decision-clarity-v1.js") && scrollReset.includes("customer-decision-clarity-v1.css")],
+  ["prototype visual loader remains production-isolated", prototypeLoader.includes("if (production) return;") && !prototypeLoader.includes("customer-decision-clarity")],
+  ["decision clarity is presentation only", !clarity.includes("fetch(") && !clarity.includes("XMLHttpRequest") && clarity.includes("No browser-side scoring")],
   ["decision clarity defines plain-language BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => clarity.includes(value))],
   ["decision clarity follows decision value risk why evidence hierarchy", ["Why FlipForge says", "Supported value", "Risk", "View evidence", "Decision details"].every(value => clarity.includes(value))],
   ["raw metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, risk score and rank")],
