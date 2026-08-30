@@ -72,11 +72,32 @@ function requestBody(request) {
   try { return request.postDataJSON(); } catch (_) { return {}; }
 }
 
+function accountHash(value) {
+  let hash = 2166136261;
+  const text = String(value || "anonymous").trim().toLowerCase();
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();
 
 try {
+  const key = accountHash(email);
+  await page.addInitScript(({ key }) => {
+    // Model a returning invited tester. The private-beta first-run redirect is
+    // a real product guard, so this test must explicitly complete that browser
+    // preference before exercising the signed-in Step 9 identity path.
+    localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete");
+    localStorage.setItem(`flipforge.guidedMode.v3.${key}.welcome`, "seen");
+    localStorage.setItem(`flipforge.guidedMode.v3.${key}.enabled`, "off");
+    localStorage.setItem(`flipforge.guidedMode.v3.${key}.steps`, "discover,evaluate,understand,track");
+  }, { key });
+
   await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
     status: 200,
     contentType: "text/javascript; charset=utf-8",
