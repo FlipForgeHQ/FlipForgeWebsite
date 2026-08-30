@@ -17,6 +17,15 @@
     return String(node?.textContent || "").replace(/\s+/g, " ").trim();
   }
 
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
   }
@@ -92,15 +101,15 @@
     panel.className = "panel ff-decision-why";
     panel.setAttribute("data-ff-decision-why", "");
     panel.innerHTML = `<div class="panel-body">
-      <div class="ff-why-head"><span class="eyebrow">Why</span><h2>Why FlipForge says ${decision}</h2></div>
+      <div class="ff-why-head"><span class="eyebrow">Why</span><h2>Why FlipForge says ${escapeHtml(decision)}</h2></div>
       <ul class="ff-why-list">
-        <li>${valueReason}</li>
-        <li>${evidenceReason}</li>
-        <li>${riskReason}</li>
+        <li>${escapeHtml(valueReason)}</li>
+        <li>${escapeHtml(evidenceReason)}</li>
+        <li>${escapeHtml(riskReason)}</li>
       </ul>
       <div class="ff-why-actions">
-        <a class="button button-primary" href="#ff-evidence-chain">View evidence</a>
-        <a class="button button-secondary" href="#ff-decision-details">See decision details</a>
+        <button class="button button-primary" type="button" data-ff-scroll-target="ff-evidence-chain">View evidence</button>
+        <button class="button button-secondary" type="button" data-ff-scroll-target="ff-decision-details">See decision details</button>
       </div>
     </div>`;
     hero.insertAdjacentElement("afterend", panel);
@@ -136,7 +145,7 @@
       riskChip.className = "ff-risk-summary";
       meaning.insertAdjacentElement("afterend", riskChip);
     }
-    const markup = `<span>Risk</span><strong>${risk.label}</strong>${risk.score ? `<small>${risk.score} saved risk score</small>` : ""}`;
+    const markup = `<span>Risk</span><strong>${escapeHtml(risk.label)}</strong>${risk.score ? `<small>${escapeHtml(risk.score)} saved risk score</small>` : ""}`;
     if (riskChip.innerHTML !== markup) riskChip.innerHTML = markup;
   }
 
@@ -230,6 +239,16 @@
       apply();
     });
   }
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest?.("[data-ff-scroll-target]");
+    if (!button) return;
+    const id = String(button.getAttribute("data-ff-scroll-target") || "");
+    const target = id ? document.getElementById(id) : null;
+    if (!target) return;
+    event.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   const main = document.getElementById("main-content");
   if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
