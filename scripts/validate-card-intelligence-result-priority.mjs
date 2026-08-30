@@ -9,6 +9,8 @@ const firstValue = fs.readFileSync(new URL("../saas-prototype/customer-first-val
 const firstValueCss = fs.readFileSync(new URL("../saas-prototype/customer-first-value-v1.css", import.meta.url), "utf8");
 const scrollReset = fs.readFileSync(new URL("../saas-prototype/scroll-reset.js", import.meta.url), "utf8");
 const prototypeLoader = fs.readFileSync(new URL("../saas-prototype/prototype-visual-loader.js", import.meta.url), "utf8");
+const product = fs.readFileSync(new URL("../product.html", import.meta.url), "utf8");
+const faq = fs.readFileSync(new URL("../faq.html", import.meta.url), "utf8");
 
 const checks = [
   ["saved detail has a direct detail fast path", opportunities.includes("async function loadDetailDirect()")],
@@ -35,6 +37,10 @@ const checks = [
   ["beta comprehension check asks the three required questions", ["What does FlipForge recommend?", "Why did it reach that decision?", "What would you do next?"].every(value => firstValue.includes(value))],
   ["beta feedback prompt captures comprehension without a new data contract", firstValue.includes("What decision did you see, why did FlipForge give it, and what would you do next?")],
   ["global decision key makes decision language consistently available", firstValue.includes("What do BUY / WATCH / VERIFY / PASS mean?") && firstValue.includes("data-ff-decision-key")],
+  ["public product uses the same four decision states", product.includes("BUY / WATCH / VERIFY / PASS") && ["BUY", "WATCH", "VERIFY", "PASS"].every(value => product.includes(`<span>${value}</span>`))],
+  ["public FAQ defines the same four decision states", faq.includes("What do BUY, WATCH, VERIFY, and PASS mean?") && ["<strong>BUY</strong>", "<strong>WATCH</strong>", "<strong>VERIFY</strong>", "<strong>PASS</strong>"].every(value => faq.includes(value))],
+  ["legacy BUY CANDIDATE wording is absent from customer marketing", !product.includes("BUY CANDIDATE") && !faq.includes("BUY CANDIDATE")],
+  ["technical traceback label is replaced by customer-facing decision details on product and FAQ", !product.includes(">Traceback<") && !faq.includes("What is decision traceback?") && product.includes("Decision details") && faq.includes("Decision details")],
   ["locked brand line uses exact capitalization", clarity.includes("Before you buy. Know Why.")],
   ["clarity layouts are responsive", clarityCss.includes("@media (max-width: 900px)") && clarityCss.includes("@media (max-width: 650px)") && firstValueCss.includes("@media (max-width: 900px)") && firstValueCss.includes("@media (max-width: 720px)")]
 ];
