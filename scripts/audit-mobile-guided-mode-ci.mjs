@@ -53,12 +53,19 @@ try {
     const rect = node.getBoundingClientRect();
     return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left, width: rect.width, height: rect.height };
   });
-  if (geometry.height > height * 0.43) failures.push(`guide height ${Math.round(geometry.height)}px exceeds 43% mobile viewport`);
+  if (geometry.height > height * 0.31) failures.push(`guide height ${Math.round(geometry.height)}px exceeds 31% mobile viewport`);
   if (geometry.left < 6 || geometry.right > width - 6) failures.push(`guide escapes mobile horizontal gutters: ${JSON.stringify(geometry)}`);
   if (geometry.bottom > height - 4) failures.push(`guide extends below viewport: ${Math.round(geometry.bottom)}px`);
 
   const mainHeading = page.locator("#main-content h1, #main-content h2").first();
   if (!(await mainHeading.isVisible().catch(() => false))) failures.push("main task heading is not visible while Guided Mode is open");
+
+  const whyVisible = await page.locator(".ff-guide-why").isVisible().catch(() => false);
+  if (whyVisible) failures.push("mobile guide still shows secondary Why this matters block");
+  const progressVisible = await page.locator(".ff-guide-progress").isVisible().catch(() => false);
+  if (progressVisible) failures.push("mobile guide still shows progress block over the active task");
+  const primaryAction = page.locator(".ff-guide-action").first();
+  if (!(await primaryAction.isVisible().catch(() => false))) failures.push("mobile guide primary action is not visible");
 
   await page.locator("[data-guide-minimize]").click();
   await page.waitForSelector(".ff-guide-launcher", { state: "visible", timeout: 3000 });
@@ -82,5 +89,5 @@ console.log("FlipForge mobile Guided Mode audit");
 console.log(`Viewport: ${width}x${height}`);
 console.log(`Failures: ${failures.length}`);
 failures.forEach(failure => console.log(`FAIL | ${failure}`));
-if (!failures.length) console.log("PASS | guide size, minimize, off, reopen, and task visibility");
+if (!failures.length) console.log("PASS | compact guide size, primary action, minimize, off, reopen, and task visibility");
 if (failures.length) process.exit(1);
