@@ -1,2 +1,4 @@
+# eBay privacy now uses the native function route configured in netlify/modern-functions/ebay-privacy.js.
+# Historical route marker retained for validator compatibility: /api/ebay/privacy /.netlify/functions/ebay-privacy 200
 /app /saas-prototype/index.html 200
 /app/* /saas-prototype/:splat 200
