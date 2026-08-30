@@ -44,6 +44,11 @@
       linksFor(container,'/beta-application').forEach(link=>link.textContent='Request Beta Access');
     });
 
+    document.querySelectorAll('[data-app-preview]').forEach(link=>{
+      link.textContent='Private Beta App';
+      link.setAttribute('aria-label','Open Private Beta App');
+    });
+
     const copyright=document.querySelector('.copyright');
     if(copyright&&copyright.textContent.includes('Planned pricing and beta capabilities')){
       copyright.textContent=copyright.textContent.replace('Planned pricing and beta capabilities','Launch plans and beta capabilities');
