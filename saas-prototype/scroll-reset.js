@@ -18,6 +18,23 @@
     }
   }
 
+  function loadFirstValueAssets() {
+    if (!document.querySelector('link[data-ff-first-value]')) {
+      const stylesheet = document.createElement("link");
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = "customer-first-value-v1.css";
+      stylesheet.dataset.ffFirstValue = "style";
+      document.head.appendChild(stylesheet);
+    }
+    if (!document.querySelector('script[data-ff-first-value]')) {
+      const script = document.createElement("script");
+      script.src = "customer-first-value-v1.js";
+      script.async = false;
+      script.dataset.ffFirstValue = "script";
+      document.head.appendChild(script);
+    }
+  }
+
   function isPlainLeftClick(event) {
     return event.button === 0
       && !event.metaKey
@@ -122,9 +139,10 @@
     observer.observe(main, { childList: true, subtree: true });
   }
 
-  // Decision clarity is presentation-only and is loaded through this production-safe
-  // shell utility rather than through the prototype visual loader.
+  // Customer clarity layers are presentation-only and are loaded through this
+  // production-safe shell utility rather than through the prototype visual loader.
   loadDecisionClarityAssets();
+  loadFirstValueAssets();
 
   // Reloads and resizes preserve the user's vertical reading position while still
   // protecting the shell from accidental horizontal restoration.
