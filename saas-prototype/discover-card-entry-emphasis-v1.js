@@ -27,6 +27,15 @@
     }
   }
 
+  function loadDiscoverControls() {
+    if (document.querySelector('script[data-ff-discover-controls-v2]')) return;
+    const script = document.createElement("script");
+    script.src = "customer-discovery-controls-v2.js?v=20260830-1";
+    script.defer = true;
+    script.dataset.ffDiscoverControlsV2 = "";
+    document.body.appendChild(script);
+  }
+
   function decorate() {
     if (routeName() !== "discover") return;
     const main = document.querySelector(MAIN);
@@ -61,6 +70,7 @@
   }
 
   loadIdentityAssistVerification();
+  loadDiscoverControls();
   const main = document.querySelector(MAIN);
   if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
   window.addEventListener("hashchange", schedule);
