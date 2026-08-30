@@ -94,8 +94,8 @@
       : "Value: no supported value is shown without accepted exact completed-sale evidence.";
     const evidenceReason = `Evidence: ${evidenceFact(root)}`;
     const riskReason = risk.score
-      ? `Risk: ${risk.label} (${risk.score}). The underlying saved score remains available in details.`
-      : "Risk: the saved risk score is unavailable for this record.";
+      ? `Decision risk: ${risk.label} (${risk.score}). This is the final saved decision risk; deeper market-factor values are inputs, not replacements for this score.`
+      : "Decision risk: the final saved decision risk is unavailable for this record.";
 
     const panel = document.createElement("section");
     panel.className = "panel ff-decision-why";
@@ -145,8 +145,29 @@
       riskChip.className = "ff-risk-summary";
       meaning.insertAdjacentElement("afterend", riskChip);
     }
-    const markup = `<span>Risk</span><strong>${escapeHtml(risk.label)}</strong>${risk.score ? `<small>${escapeHtml(risk.score)} saved risk score</small>` : ""}`;
+    const markup = `<span>Decision risk</span><strong>${escapeHtml(risk.label)}</strong>${risk.score ? `<small>${escapeHtml(risk.score)} final saved decision risk</small>` : ""}`;
     if (riskChip.innerHTML !== markup) riskChip.innerHTML = markup;
+  }
+
+  function clarifyRiskSemantics(root) {
+    const riskMetric = [...root.querySelectorAll(".customer-intelligence-metrics article")]
+      .find(article => ["risk", "decision risk"].includes(text(article.querySelector("span")).toLowerCase()));
+    setText(riskMetric?.querySelector("span"), "Decision risk");
+
+    const detail = panelByHeading(root, /Decision Traceback|Decision details/i);
+    const marketStep = detail
+      ? [...detail.querySelectorAll(".customer-trace-step")]
+        .find(step => /^3\s*·\s*Market factors/i.test(text(step.querySelector("span"))))
+      : null;
+    const marketTitle = marketStep?.querySelector("strong");
+    if (marketTitle && /\bRisk\b/i.test(text(marketTitle)) && !/Market risk factor/i.test(text(marketTitle))) {
+      setText(marketTitle, text(marketTitle).replace(/\bRisk\b/i, "Market risk factor"));
+    }
+    const marketDetail = marketStep?.querySelector("p");
+    const distinction = "Market risk is one saved input; the final saved decision risk is shown at the top.";
+    if (marketDetail && !/final saved decision risk/i.test(text(marketDetail))) {
+      setText(marketDetail, `${text(marketDetail)} ${distinction}`.trim());
+    }
   }
 
   function collapseAdvancedMetrics(root) {
@@ -154,7 +175,7 @@
     if (!metrics || metrics.closest(".ff-decision-advanced")) return;
     const details = document.createElement("details");
     details.className = "panel ff-decision-advanced";
-    details.innerHTML = `<summary><span><strong>More decision detail</strong><small>Confidence, liquidity, risk score and rank</small></span><span aria-hidden="true">+</span></summary>`;
+    details.innerHTML = `<summary><span><strong>More decision detail</strong><small>Confidence, liquidity, market factors and rank</small></span><span aria-hidden="true">+</span></summary>`;
     metrics.insertAdjacentElement("beforebegin", details);
     details.appendChild(metrics);
   }
@@ -215,8 +236,9 @@
       if (!hero) return;
 
       const decision = decisionLabel(root);
-      const risk = riskDisplay(metric(root, "Risk"));
+      const risk = riskDisplay(metric(root, "Decision risk") || metric(root, "Risk"));
       const facts = valueFacts(root);
+      clarifyRiskSemantics(root);
 
       if (hero.dataset.ffDecisionClarity !== "v1") hero.dataset.ffDecisionClarity = "v1";
       setText(root.querySelector(".page-heading p"), "Decision, value, risk, why, and evidence — with deeper detail when you need it.");
