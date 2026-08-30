@@ -54,8 +54,23 @@
     if (!label.querySelector(".ff-card-entry-helper")) {
       const helper = document.createElement("small");
       helper.className = "ff-card-entry-helper";
-      helper.textContent = "Start with year, set, player and card number. Add parallel, grader and grade when you know them.";
+      helper.textContent = "Know the exact card? Search active listings. Not sure which version it is? Use identity help first.";
       input.insertAdjacentElement("afterend", helper);
+    }
+
+    const form = main.querySelector("[data-customer-discovery-form]");
+    const searchButton = form?.querySelector('button[type="submit"]');
+    if (searchButton && !searchButton.disabled) searchButton.textContent = "Search active listings";
+    if (searchButton) {
+      searchButton.setAttribute("aria-label", "Search active listings for this card");
+      searchButton.title = "Use this when you already know the exact card identity.";
+    }
+
+    const identifyButton = form?.querySelector("[data-discovery-find-exact]");
+    if (identifyButton && !identifyButton.disabled) identifyButton.textContent = "Help me identify it";
+    if (identifyButton) {
+      identifyButton.setAttribute("aria-label", "Help identify the exact card");
+      identifyButton.title = "Use this when you are unsure which base, parallel, variation, or card number is correct.";
     }
   }
 
