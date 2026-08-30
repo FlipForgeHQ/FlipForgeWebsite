@@ -1,0 +1,176 @@
+.customer-intelligence-page .customer-intelligence-hero {
+  border-color: rgba(226, 189, 66, 0.52);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+}
+
+.customer-intelligence-page .customer-intelligence-hero .panel-body {
+  align-items: stretch;
+}
+
+.customer-intelligence-page .customer-hero-title .staging-status {
+  padding: 9px 14px;
+  font-size: clamp(0.95rem, 1.4vw, 1.12rem);
+  letter-spacing: 0.055em;
+}
+
+.customer-intelligence-page .ff-decision-meaning {
+  max-width: 62ch;
+  margin: 2px 0 0;
+  color: var(--text-primary);
+  font-size: clamp(1rem, 1.3vw, 1.12rem);
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.customer-intelligence-page .ff-risk-summary {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 8px 10px;
+  align-items: baseline;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 9px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.025);
+}
+
+.customer-intelligence-page .ff-risk-summary > span {
+  color: var(--text-secondary);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.customer-intelligence-page .ff-risk-summary > strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.customer-intelligence-page .ff-risk-summary > small {
+  color: var(--text-secondary);
+}
+
+.customer-intelligence-page .customer-value-summary {
+  align-content: center;
+  border-color: rgba(226, 189, 66, 0.38);
+  background: linear-gradient(145deg, rgba(226,189,66,.08), rgba(5,10,17,.5));
+}
+
+.customer-intelligence-page .customer-value-summary strong.value-positive {
+  color: var(--gold);
+  font-size: clamp(1.45rem, 2.8vw, 2.2rem);
+}
+
+.customer-intelligence-page .ff-decision-why {
+  border-color: rgba(226, 189, 66, 0.34);
+  background: linear-gradient(150deg, rgba(226,189,66,.07), rgba(255,255,255,.012));
+}
+
+.customer-intelligence-page .ff-decision-why .panel-body {
+  display: grid;
+  gap: 16px;
+  padding: clamp(18px, 2.4vw, 28px);
+}
+
+.customer-intelligence-page .ff-why-head h2 {
+  margin: 5px 0 0;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.customer-intelligence-page .ff-why-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.customer-intelligence-page .ff-why-list li {
+  min-width: 0;
+  padding: 14px 15px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: rgba(5,10,17,.3);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.customer-intelligence-page .ff-why-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.customer-intelligence-page .ff-decision-advanced {
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.012);
+}
+
+.customer-intelligence-page .ff-decision-advanced > summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 15px 18px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--text-primary);
+}
+
+.customer-intelligence-page .ff-decision-advanced > summary::-webkit-details-marker { display: none; }
+
+.customer-intelligence-page .ff-decision-advanced > summary span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.customer-intelligence-page .ff-decision-advanced > summary small {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.customer-intelligence-page .ff-decision-advanced > summary span[aria-hidden="true"] {
+  color: var(--gold);
+  font-size: 1.35rem;
+  font-weight: 700;
+  transition: transform .16s ease;
+}
+
+.customer-intelligence-page .ff-decision-advanced[open] > summary span[aria-hidden="true"] { transform: rotate(45deg); }
+
+.customer-intelligence-page .ff-decision-advanced .customer-intelligence-metrics {
+  margin: 0;
+  padding: 0 16px 16px;
+}
+
+.customer-intelligence-page #ff-decision-details,
+.customer-intelligence-page #ff-evidence-chain,
+.customer-intelligence-page #ff-psa-context { scroll-margin-top: 86px; }
+
+.customer-intelligence-page .customer-tracked-state {
+  border-color: rgba(39,209,127,.22);
+  background: rgba(39,209,127,.045);
+}
+
+@media (max-width: 900px) {
+  .customer-intelligence-page .ff-why-list { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 650px) {
+  .customer-intelligence-page .ff-risk-summary { grid-template-columns: auto auto; }
+  .customer-intelligence-page .ff-risk-summary > small { grid-column: 1 / -1; }
+  .customer-intelligence-page .ff-why-actions .button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-intelligence-page .ff-decision-advanced > summary span[aria-hidden="true"] { transition: none; }
+}
