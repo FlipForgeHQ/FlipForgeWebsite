@@ -38,12 +38,10 @@ requireText('pricing', pricing, '<tr><td>Planned monthly evaluations</td><td>10<
 forbidText('pricing', pricing, '<li>5 evaluations each month</li>');
 forbidText('pricing', pricing, '<tr><td>Monthly evaluations</td><td>5</td>');
 forbidText('pricing', pricing, 'Most popular');
-
 requireText('pricing', pricing, 'Forge Heat™ beta/roadmap access when available');
 requireText('pricing', pricing, '<tr><td>Forge Heat™</td><td class="no">No</td><td class="no">No</td><td class="varies">Beta / roadmap</td></tr>');
 requireText('pricing', pricing, 'Tracked cards subject to reasonable-use and technical limits');
 requireText('pricing', pricing, '<td>Reasonable use*</td>');
-
 for (const amount of ['$14.99', '$29.99', '$149', '$299', 'Planned annual option']) forbidText('pricing', pricing, amount);
 requireText('pricing', pricing, 'Beta participation does not enroll a user in Scout, Collector, Pro, or any future paid plan.');
 requireText('pricing', pricing, 'Any future checkout must be initiated explicitly by the customer after paid access is opened.');
@@ -55,21 +53,27 @@ requireText('beta terms', betaTerms, 'Any future paid enrollment requires a sepa
 requireText('beta terms', betaTerms, 'Beta participation does not guarantee a permanent entitlement, permanent discount, or future price');
 requireText('beta terms', betaTerms, 'accepting Private Beta access alone does not enroll you in that offer');
 
-requireText('terms', terms, 'Paddle acts as the Merchant of Record and seller for transactions it processes and is responsible for collecting payment');
-requireText('terms', terms, 'Subscription prices, billing intervals, taxes, and renewal terms are presented at or before checkout');
-requireText('terms', terms, 'You may cancel a recurring subscription to stop future renewal');
-requireText('terms', terms, 'Unless a refund, withdrawal right, or other mandatory legal remedy applies');
-requireText('terms', terms, 'are processed through Paddle for Paddle transactions');
+// General terms must describe today's actual commercial state first; future billing terms remain conditional.
+requireText('terms', terms, 'Paid subscriptions are not currently offered.');
+requireText('terms', terms, 'The current private beta is $0.');
+requireText('terms', terms, 'Paid checkout is not active.');
+requireText('terms', terms, 'If FlipForge later opens paid subscriptions, any checkout must be a separate, explicit customer action.');
+requireText('terms', terms, 'If Paddle is used for a future transaction, Paddle will act as Merchant of Record and seller for that transaction.');
+requireText('terms', terms, 'The current private beta has no subscription charge to cancel or refund.');
 requireText('terms', terms, 'Nothing in these terms excludes or limits liability where doing so would be prohibited by applicable law');
+forbidText('terms', terms, 'Paid FlipForge subscriptions purchased through Paddle are recurring subscriptions');
+forbidText('terms', terms, 'You may cancel a recurring subscription to stop future renewal');
 
-requireText('refund', refund, 'Paddle, which acts as the Merchant of Record and seller for transactions completed through Paddle');
-requireText('refund', refund, 'Paddle is responsible for charging the payment method used at checkout and for issuing approved refunds through its payment system');
-requireText('refund', refund, 'Except where required by applicable law or where Paddle approves a refund under its refund policy');
-requireText('refund', refund, 'use Paddle Buyer Support at <a href="https://paddle.net/"');
-requireText('refund', refund, 'Canceling a subscription stops future renewal');
-requireText('refund', refund, 'Nothing in this policy limits rights you may have under applicable consumer-protection law');
-requireText('refund', refund, 'https://www.paddle.com/legal/refund-policy');
-requireText('refund', refund, 'those rights control');
+// Refund policy must not imply that a paid transaction exists during private beta.
+requireText('refund', refund, 'The current FlipForge private beta is $0');
+requireText('refund', refund, 'FlipForge is not currently offering paid checkout or paid subscriptions.');
+requireText('refund', refund, 'The refund and cancellation rules below apply only if FlipForge later opens paid access');
+requireText('refund', refund, 'If Paddle is used for a future FlipForge transaction, Paddle will act as the Merchant of Record and seller for that transaction');
+requireText('refund', refund, 'Nothing on this page limits non-waivable rights under applicable law.');
+requireText('refund', refund, 'If you ever see a charge represented as a FlipForge payment while the site still states that paid checkout is inactive');
+forbidText('refund', refund, 'Paid FlipForge subscriptions are processed by Paddle');
+forbidText('refund', refund, 'paid subscription charges are generally non-refundable');
+forbidText('refund', refund, 'Canceling a subscription stops future renewal');
 
 forbidText('terms', terms, 'FlipForge directly processes payments');
 forbidText('refund', refund, 'FlipForge directly issues refunds');
@@ -88,4 +92,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Focused homepage routing, locked slogan punctuation, unpublished launch pricing, Private Beta, subscription terms, and refund copy remain commercially consistent.');
+console.log('PASS: Private-beta no-charge status, unpublished launch pricing, future-only checkout terms, locked slogan punctuation, and refund boundaries remain commercially consistent.');
