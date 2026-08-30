@@ -32,6 +32,40 @@ For each step record only:
 
 Do not record account email, raw request headers, tenant identifiers, auth cookies, or secrets.
 
+## Locked production identities — 2026-08-30
+
+Website production:
+- repository: `FlipForgeHQ/FlipForgeWebsite`
+- branch: `main`
+- commit: `665cd8694708387d66b40c89d54b5786b1465bf8`
+- context: `production`
+- appBoundary: `PRODUCTION_SERVER_OWNED_FAIL_CLOSED`
+- productionDiagnosticsSeparated: `true`
+- recommendationAuthority: `Smart Opportunity`
+- gradingAuthority: `Existing PSA intelligence`
+- browserRecommendationAuthority: `false`
+- transactionAuthority: `false`
+
+Java production service:
+- service: `flipforge-saas-production`
+- repository: `FlipForgeHQ/FlipForge2`
+- branch: `main`
+- commit: `e46c4b7dbcf0137e8f81edd8b636485c70f70cb0`
+- commit identity: `Map quality-blocked high-edge signals to VERIFY (#365)`
+
+Do not infer a different Java production commit from repository `main`; the identity above is the actual running Render service reported by its environment.
+
+## Customer clarity acceptance
+
+The live signed-in experience must preserve the current customer-first hierarchy:
+
+- Card Intelligence leads with **Decision → Value → Risk → Why → Evidence**.
+- Evaluate presents **Card → Cost → Decision**.
+- Saved Evaluate result leads with **Decision → Supported Value → All-in Cost → Risk → Why → What to do next**.
+- BUY / WATCH / VERIFY / PASS have consistent plain-language meanings across the signed-in product and public explanation.
+- Advanced/raw scores and authority detail remain available without dominating the first view.
+- A tester can answer within roughly 10 seconds: **What does FlipForge recommend? Why? What would you do next?**
+
 ## 1. Discover an exact card
 
 Route: `/app/#/discover`
@@ -80,7 +114,8 @@ Route: `/app/#/evaluate` or the Evaluate action from Discover.
 - the result is one of BUY / WATCH / VERIFY / PASS from Smart Opportunity;
 - successful completion is persisted to SQLite and grants tenant ownership;
 - the browser does not verify evidence/identity, recalculate PSA guidance, or authorize a transaction;
-- a rejected/invalid request fails closed with useful error copy and no invented result.
+- a rejected/invalid request fails closed with useful error copy and no invented result;
+- the first view presents **Decision → Supported Value → All-in Cost → Risk → Why → What to do next** before raw scores and implementation detail.
 
 ## 5. Open saved Card Intelligence and understand why
 
@@ -90,9 +125,11 @@ Route: `/app/#/opportunities/<saved-id>`
 
 - the newly saved record appears in Opportunities;
 - Card Intelligence loads the matching tenant-owned record;
-- Decision Traceback explains identity, evidence, saved market factors, and authority output;
-- Evidence Chain distinguishes accepted completed-sale evidence from visible-but-ineligible records;
-- Supported Value, Confidence, Liquidity, Risk, and Rank have understandable explanations;
+- the first view leads with **Decision → Value → Risk → Why → Evidence**;
+- Decision details preserve the reasoning trail for identity, evidence, saved market factors, and authority output;
+- Evidence distinguishes accepted completed-sale evidence from visible-but-ineligible records;
+- Supported Value and Risk are understandable without requiring the customer to interpret raw scores;
+- Confidence, Liquidity, numeric Risk, Rank, and deeper authority detail remain available behind progressive disclosure;
 - saved PSA guidance is labeled as context and does not predict a grade;
 - partial evidence/PSA context fails honestly without fabricated replacement data.
 
@@ -124,7 +161,7 @@ Do not enter fabricated financial facts into a record that is intended to repres
 
 ## 8. Validate supporting customer workspaces
 
-Test: Compare, Evidence, PSA Advisor, Portfolio, Alerts, Sell/Exit Review, Audit Export, and Plan & Usage.
+Test: Compare, Evidence, PSA Advisor, Portfolio, Alerts, Sell/Exit Review, Audit Export, Forge Heat, and Plan & Usage.
 
 **PASS when:**
 
@@ -135,6 +172,7 @@ Test: Compare, Evidence, PSA Advisor, Portfolio, Alerts, Sell/Exit Review, Audit
 - Alerts show persisted in-app review rules and clearly disclose that email/SMS/push delivery is not connected where unavailable;
 - Sell/Exit Review provides decision support without sale/listing execution authority;
 - Audit Export/Decision Dossier is complete when offered and does not silently produce a partial authoritative record;
+- Forge Heat remains a presentation over saved evidence-qualified evaluations and does not become a second recommendation authority;
 - production Plan & Usage shows server-owned access/usage and keeps checkout disabled/deferred until Beta Complete.
 
 ## 9. Loading, empty, unavailable, auth, and error states
@@ -166,16 +204,42 @@ Run the core loop on:
 - primary actions remain usable by keyboard and pointer;
 - focus is visible;
 - important authority/source/error copy remains readable;
-- no route becomes unusable because of horizontal overflow or hidden controls.
+- no route becomes unusable because of horizontal overflow or hidden controls;
+- Guided Mode remains contained and does not obscure the primary decision/result.
+
+## 11. Customer comprehension
+
+After a real saved evaluation is displayed, do not coach the tester before asking:
+
+1. What does FlipForge recommend?
+2. Why did it reach that decision?
+3. What would you do next?
+
+**PASS when:** the tester can answer all three correctly from the first-view experience within roughly 10 seconds without needing raw-score interpretation or architecture knowledge.
+
+## Retained correctness regression set
+
+Do not manufacture a BUY, alter evidence, rewrite identity, or change authority merely to make a scenario pass.
+
+- [ ] Exact base card — representative target such as `2018 Topps Chrome Shohei Ohtani #150 PSA 9`; exact base evidence only.
+- [ ] Exact plain Refractor/parallel — no base or neighboring-parallel sold-evidence borrowing.
+- [ ] Wrong grade isolation — no silent grade normalization or inherited target value authority.
+- [ ] Wrong parallel isolation — mismatched parallel cannot support target value.
+- [ ] Missing/ambiguous/conflicting card number — fail closed or require identity resolution; no silent choice.
+- [ ] Insufficient evidence — no fabricated supported value; VERIFY/evidence-required behavior when appropriate.
+- [ ] Overpriced listing — strong identity/evidence alone must not force BUY.
+- [ ] Naturally favorable listing, if available — observe Smart Opportunity output; do not force a BUY expectation.
 
 ## Final Beta Complete decision
 
 FlipForge may be marked **CORE PLATFORM BETA COMPLETE** only when all of the following are true:
 
-1. the `SaaS Beta Complete Gate` GitHub Actions workflow is green on the exact `main` commit being evaluated;
-2. Netlify production deploy for that commit is successful;
-3. steps 1–10 above are PASS, except a provider-dependent source-link step may be BLOCKED only when the authorized provider itself did not return that capability and the UI disclosed the limitation honestly;
-4. no Severity 1 or Severity 2 customer-workflow defect remains open;
-5. no unresolved defect violates tenant isolation, authentication, evidence authority, grading authority, secret handling, or zero-transaction-authority rules.
+1. the `SaaS Beta Complete Gate` GitHub Actions workflow is green on the exact Website `main` candidate being evaluated;
+2. the live Netlify production manifest matches Website commit `665cd8694708387d66b40c89d54b5786b1465bf8`;
+3. the running Render Java service identity is `flipforge-saas-production` / `FlipForgeHQ/FlipForge2` / `main` / `e46c4b7dbcf0137e8f81edd8b636485c70f70cb0` for this QA session;
+4. steps 1–11 above are PASS, except a provider-dependent source-link step may be BLOCKED only when the authorized provider itself did not return that capability and the UI disclosed the limitation honestly;
+5. the retained correctness regressions show no authority contamination;
+6. no Severity 1 or Severity 2 customer-workflow defect remains open;
+7. no unresolved defect violates tenant isolation, authentication, evidence authority, grading authority, secret handling, or zero-transaction-authority rules.
 
 Only after that decision should the separate paid-billing launch work resume.
