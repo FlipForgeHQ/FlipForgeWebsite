@@ -17,6 +17,10 @@
     return String(node?.textContent || "").replace(/\s+/g, " ").trim();
   }
 
+  function setText(node, value) {
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
   function decisionLabel(root) {
     const chip = root.querySelector(".customer-intelligence-hero .customer-hero-title .staging-status");
     const value = text(chip).toUpperCase();
@@ -47,11 +51,11 @@
       ask: values[0] ? text(values[0]) : "Unavailable",
       supported: values[1] ? text(values[1]) : "Unavailable"
     };
-    if (labels[0]) labels[0].textContent = "Listing price";
-    if (labels[1]) labels[1].textContent = "Supported value";
+    setText(labels[0], "Listing price");
+    setText(labels[1], "Supported value");
     const gap = summary.querySelector(":scope > small");
     if (gap && /saved value gap/i.test(gap.textContent || "")) {
-      gap.textContent = String(gap.textContent || "").replace(/saved value gap/ig, "difference from supported value");
+      setText(gap, String(gap.textContent || "").replace(/saved value gap/ig, "difference from supported value"));
     }
     return facts;
   }
@@ -107,11 +111,11 @@
     if (!tracked) return;
     const strong = tracked.querySelector("strong");
     const small = tracked.querySelector("small");
-    if (strong) strong.textContent = "Decision saved";
-    if (small) {
+    setText(strong, "Decision saved");
+    if (small && !/^Saved to your account/.test(text(small))) {
       const original = text(small);
       const marker = original.includes("·") ? original.split("·").slice(-1)[0].trim() : original;
-      small.textContent = marker ? `Saved to your account · ${marker}` : "Saved to your account";
+      setText(small, marker ? `Saved to your account · ${marker}` : "Saved to your account");
     }
   }
 
@@ -124,7 +128,7 @@
       meaning.className = "ff-decision-meaning";
       copy.querySelector(".customer-hero-title")?.insertAdjacentElement("afterend", meaning);
     }
-    meaning.textContent = DECISION_COPY[decision] || DECISION_COPY.UNKNOWN;
+    setText(meaning, DECISION_COPY[decision] || DECISION_COPY.UNKNOWN);
 
     let riskChip = copy.querySelector(".ff-risk-summary");
     if (!riskChip) {
@@ -132,7 +136,8 @@
       riskChip.className = "ff-risk-summary";
       meaning.insertAdjacentElement("afterend", riskChip);
     }
-    riskChip.innerHTML = `<span>Risk</span><strong>${risk.label}</strong>${risk.score ? `<small>${risk.score} saved risk score</small>` : ""}`;
+    const markup = `<span>Risk</span><strong>${risk.label}</strong>${risk.score ? `<small>${risk.score} saved risk score</small>` : ""}`;
+    if (riskChip.innerHTML !== markup) riskChip.innerHTML = markup;
   }
 
   function collapseAdvancedMetrics(root) {
@@ -152,35 +157,27 @@
     const psa = panelByHeading(root, /Saved PSA guidance|PSA context/i);
 
     if (traceback) {
-      traceback.id = "ff-decision-details";
-      const h2 = traceback.querySelector(".panel-header h2");
-      const p = traceback.querySelector(".panel-header p");
-      if (h2) h2.textContent = "Decision details";
-      if (p) p.textContent = "How the saved decision was reached. No browser-side scoring.";
+      if (traceback.id !== "ff-decision-details") traceback.id = "ff-decision-details";
+      setText(traceback.querySelector(".panel-header h2"), "Decision details");
+      setText(traceback.querySelector(".panel-header p"), "How the saved decision was reached. No browser-side scoring.");
     }
     if (evidence) {
-      evidence.id = "ff-evidence-chain";
-      const h2 = evidence.querySelector(".panel-header h2");
-      const p = evidence.querySelector(".panel-header p");
-      if (h2) h2.textContent = "Evidence";
-      if (p) p.textContent = "Exact completed-sale evidence that can support the saved decision, plus excluded rows.";
+      if (evidence.id !== "ff-evidence-chain") evidence.id = "ff-evidence-chain";
+      setText(evidence.querySelector(".panel-header h2"), "Evidence");
+      setText(evidence.querySelector(".panel-header p"), "Exact completed-sale evidence that can support the saved decision, plus excluded rows.");
     }
     if (readiness) {
-      const h2 = readiness.querySelector(".panel-header h2");
-      const p = readiness.querySelector(".panel-header p");
-      if (h2) h2.textContent = "Evidence details";
-      if (p) p.textContent = "What the engine could and could not use.";
+      setText(readiness.querySelector(".panel-header h2"), "Evidence details");
+      setText(readiness.querySelector(".panel-header p"), "What the engine could and could not use.");
     }
     if (psa) {
-      psa.id = "ff-psa-context";
-      const h2 = psa.querySelector(".panel-header h2");
-      const p = psa.querySelector(".panel-header p");
-      if (h2) h2.textContent = "PSA context";
-      if (p) p.textContent = "Saved PSA guidance from the existing grading intelligence. No grade is predicted here.";
+      if (psa.id !== "ff-psa-context") psa.id = "ff-psa-context";
+      setText(psa.querySelector(".panel-header h2"), "PSA context");
+      setText(psa.querySelector(".panel-header p"), "Saved PSA guidance from the existing grading intelligence. No grade is predicted here.");
     }
 
     root.querySelectorAll(".customer-decision-boundary .eyebrow").forEach(node => {
-      node.textContent = "Before you buy. Know Why.";
+      setText(node, "Before you buy. Know Why.");
     });
   }
 
@@ -188,17 +185,13 @@
     if (root.querySelector(".customer-intelligence-hero")) return;
     const heading = root.querySelector(".page-heading");
     if (heading && /Opportunities/i.test(text(heading.querySelector("h1")))) {
-      const p = heading.querySelector("p");
-      if (p) p.textContent = "Saved decisions, value context, and evidence — all in one place.";
+      setText(heading.querySelector("p"), "Saved decisions, value context, and evidence — all in one place.");
     }
     const list = root.querySelector(".customer-intelligence-list");
     if (list) {
-      const h2 = list.querySelector(".panel-header h2");
-      const p = list.querySelector(".panel-header p");
-      const status = list.querySelector(".panel-header .staging-status");
-      if (h2) h2.textContent = "Saved decisions";
-      if (p) p.textContent = "Open a card to see the decision, value, risk, why, and evidence.";
-      if (status) status.textContent = "Saved";
+      setText(list.querySelector(".panel-header h2"), "Saved decisions");
+      setText(list.querySelector(".panel-header p"), "Open a card to see the decision, value, risk, why, and evidence.");
+      setText(list.querySelector(".panel-header .staging-status"), "Saved");
     }
   }
 
@@ -216,9 +209,8 @@
       const risk = riskDisplay(metric(root, "Risk"));
       const facts = valueFacts(root);
 
-      hero.dataset.ffDecisionClarity = "v1";
-      const pageDescription = root.querySelector(".page-heading p");
-      if (pageDescription) pageDescription.textContent = "Decision, value, risk, why, and evidence — with deeper detail when you need it.";
+      if (hero.dataset.ffDecisionClarity !== "v1") hero.dataset.ffDecisionClarity = "v1";
+      setText(root.querySelector(".page-heading p"), "Decision, value, risk, why, and evidence — with deeper detail when you need it.");
 
       simplifySavedState(root);
       promoteDecisionMeaning(root, decision, risk);
