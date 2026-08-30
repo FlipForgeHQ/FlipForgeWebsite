@@ -107,7 +107,7 @@ check("065 Discover result controls wait for live results", discoverControls.inc
 check("066 Discover evaluation requires exact listing identity", discovery.includes('String(item.matchQuality || "") !== "EXACT_MATCH"') && discovery.includes("evaluationBlockReason"));
 check("067 non-exact provider results are separated from exact ranking", discovery.includes("excluded provider result") && discovery.includes("identity not confirmed") && discovery.includes("cannot be evaluated as the searched card"));
 check("068 Discover exposes ranking context and explanation", discovery.includes("Ranking context:") && discovery.includes("Why this result is ranked here") && discovery.includes("rankingExplanation"));
-check("069 equivalent context discloses lower all-in cost tie break", discovery.includes("Lower complete all-in cost breaks otherwise equivalent evidence and listing-state context."));
+check("069 Discover defers ranking explanation to server-owned factors", discovery.includes("server-owned ranking factors when available."));
 
 const failures = results.filter(result => !result.passed);
 console.log("FlipForge SaaS Beta Complete Static Gate");
