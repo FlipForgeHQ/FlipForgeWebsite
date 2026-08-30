@@ -4,6 +4,7 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const COLLAPSED_REVIEW_COUNT = 4;
   let queued = false;
 
   function eligibleHost() {
@@ -28,7 +29,7 @@
     const detail = row.querySelector("div > small")?.textContent?.trim() || "";
     const parts = detail.split("·").map(value => value.trim()).filter(Boolean);
     const grade = gradeContext(originalQuery);
-    const hasGrade = /\b(?:PSA|BGS|SGC|CGC|CSG|TAG|BCCG)\s*(?:10|9\.5|9|8\.5|8|7\.5|7|6\.5|6)\b/i.test(detail);
+    const hasGrade = /\b(?:PSA|BGS|SGC|CSG|TAG|BCCG)\s*(?:10|9\.5|9|8\.5|8|7\.5|7|6\.5|6)\b/i.test(detail);
     return [...parts, name, !hasGrade ? grade : ""]
       .filter(Boolean)
       .join(" ")
@@ -36,11 +37,74 @@
       .trim();
   }
 
-  function updateMessage(panel, hasSelectable, reviewCount) {
+  function cleanInheritedGrade(row, originalQuery) {
+    const grade = gradeContext(originalQuery);
+    if (!grade) return;
+    const detail = row.querySelector("div > small");
+    if (!detail || detail.dataset.ffGradeCleaned === "1") return;
+    detail.dataset.ffGradeCleaned = "1";
+    const escaped = grade.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    detail.textContent = String(detail.textContent || "")
+      .replace(new RegExp(`\\s*·\\s*${escaped}\\s*\\(entered\\)`, "i"), "")
+      .replace(new RegExp(`\\s*${escaped}\\s*\\(entered\\)`, "i"), "")
+      .trim();
+  }
+
+  function ensureGradeNote(panel, originalQuery) {
+    const grade = gradeContext(originalQuery);
+    const existing = panel.querySelector("[data-ff-identity-grade-note]");
+    if (!grade) {
+      existing?.remove();
+      return;
+    }
+    if (existing) {
+      existing.querySelector("strong").textContent = grade;
+      return;
+    }
     const message = panel.querySelector(".customer-discovery-identity-message");
-    if (!message || hasSelectable || reviewCount < 1) return;
-    message.innerHTML = `<strong>Possible matches found — none is verified enough to select yet.</strong><span>If one of the cards below is the card you mean, choose <b>Verify this match</b>. FlipForge will use the visible year, set and card number to run a stricter server-side check before allowing it into Discover.</span>`;
-    message.classList.add("ff-identity-assist-explained");
+    if (!message) return;
+    const note = document.createElement("div");
+    note.className = "ff-identity-grade-note";
+    note.dataset.ffIdentityGradeNote = "";
+    note.innerHTML = `<span>Grade filter from your search</span><strong>${grade}</strong><small>Shown once here because the catalog matches below identify the card, not a verified slab.</small>`;
+    message.insertAdjacentElement("afterend", note);
+  }
+
+  function setMessage(panel, hasSelectable, reviewCount) {
+    const message = panel.querySelector(".customer-discovery-identity-message");
+    if (!message) return;
+    if (hasSelectable) {
+      message.innerHTML = `<strong>Exact card match found.</strong><span>Confirm the exact card below to search connected listings. Other possible variants are kept out of the way unless you need them.</span>`;
+      message.classList.add("ff-identity-assist-explained", "ff-identity-exact-found");
+      return;
+    }
+    if (reviewCount > 0) {
+      message.innerHTML = `<strong>No exact match is verified yet.</strong><span>Review the closest catalog matches below. Choose <b>Verify this match</b> only when the visible card identity is the one you mean.</span>`;
+      message.classList.add("ff-identity-assist-explained");
+    }
+  }
+
+  function ensureToggle(panel, hiddenCount, exactAvailable) {
+    let toggle = panel.querySelector("[data-ff-toggle-identity-alternates]");
+    if (hiddenCount < 1) {
+      toggle?.remove();
+      return;
+    }
+    if (!toggle) {
+      toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "button button-secondary ff-identity-alternates-toggle";
+      toggle.dataset.ffToggleIdentityAlternates = "";
+      const options = panel.querySelector(".customer-discovery-identity-options");
+      options?.insertAdjacentElement("afterend", toggle);
+    }
+    const expanded = panel.dataset.ffIdentityExpanded === "1";
+    toggle.setAttribute("aria-expanded", String(expanded));
+    toggle.textContent = expanded
+      ? "Hide other variants"
+      : exactAvailable
+        ? `Show ${hiddenCount} other possible variant${hiddenCount === 1 ? "" : "s"}`
+        : `Show ${hiddenCount} more possible match${hiddenCount === 1 ? "" : "es"}`;
   }
 
   function decorate() {
@@ -48,30 +112,47 @@
     const panel = document.querySelector("#main-content .customer-discovery-identity-assist");
     if (!panel) return;
 
+    const form = document.querySelector("#main-content [data-customer-discovery-form]");
+    const originalQuery = String(form?.querySelector('input[name="exactCardQuery"]')?.value || "");
     const rows = [...panel.querySelectorAll(".customer-discovery-identity-option")];
-    const hasSelectable = rows.some(row => row.querySelector("[data-discovery-use-identity]"));
+    const selectableRows = rows.filter(row => row.querySelector("[data-discovery-use-identity]"));
+    const hasSelectable = selectableRows.length > 0;
     let reviewCount = 0;
 
     rows.forEach((row, index) => {
-      if (row.querySelector("[data-discovery-use-identity]")) {
+      cleanInheritedGrade(row, originalQuery);
+      const useButton = row.querySelector("[data-discovery-use-identity]");
+      if (useButton) {
         row.classList.add("ff-identity-selectable");
+        row.classList.remove("ff-identity-secondary", "ff-identity-hidden");
+        useButton.textContent = "Use exact match";
         return;
       }
 
       const oldStatus = [...row.querySelectorAll(".staging-status")]
         .find(node => /review only/i.test(node.textContent || ""));
       if (!oldStatus && !row.querySelector("[data-ff-verify-review-match]")) return;
+      const reviewIndex = reviewCount;
       reviewCount += 1;
-      row.classList.add("ff-identity-review-match");
+      row.classList.add("ff-identity-review-match", "ff-identity-secondary");
 
-      if (row.querySelector("[data-ff-verify-review-match]")) return;
-      const actions = document.createElement("div");
-      actions.className = "ff-identity-review-actions";
-      actions.innerHTML = `<span class="ff-identity-review-label">Possible match · needs verification</span><button class="button button-secondary" type="button" data-ff-verify-review-match="${index}">Verify this match</button>`;
-      oldStatus?.replaceWith(actions);
+      if (!row.querySelector("[data-ff-verify-review-match]")) {
+        const actions = document.createElement("div");
+        actions.className = "ff-identity-review-actions";
+        actions.innerHTML = `<span class="ff-identity-review-label">Possible variant · not yet verified</span><button class="button button-secondary" type="button" data-ff-verify-review-match="${index}">Verify this match</button>`;
+        oldStatus?.replaceWith(actions);
+      }
+
+      const expanded = panel.dataset.ffIdentityExpanded === "1";
+      const shouldHide = hasSelectable ? !expanded : reviewIndex >= COLLAPSED_REVIEW_COUNT && !expanded;
+      row.classList.toggle("ff-identity-hidden", shouldHide);
     });
 
-    updateMessage(panel, hasSelectable, reviewCount);
+    panel.classList.toggle("ff-identity-has-selectable", hasSelectable);
+    setMessage(panel, hasSelectable, reviewCount);
+    ensureGradeNote(panel, originalQuery);
+    const visibleReviewCount = hasSelectable ? 0 : Math.min(reviewCount, COLLAPSED_REVIEW_COUNT);
+    ensureToggle(panel, Math.max(0, reviewCount - visibleReviewCount), hasSelectable);
   }
 
   async function verifyReviewMatch(button) {
@@ -100,10 +181,19 @@
   }
 
   document.addEventListener("click", event => {
-    const button = event.target.closest("[data-ff-verify-review-match]");
-    if (!button) return;
+    const verifyButton = event.target.closest("[data-ff-verify-review-match]");
+    if (verifyButton) {
+      event.preventDefault();
+      verifyReviewMatch(verifyButton);
+      return;
+    }
+    const toggle = event.target.closest("[data-ff-toggle-identity-alternates]");
+    if (!toggle) return;
     event.preventDefault();
-    verifyReviewMatch(button);
+    const panel = toggle.closest(".customer-discovery-identity-assist");
+    if (!panel) return;
+    panel.dataset.ffIdentityExpanded = panel.dataset.ffIdentityExpanded === "1" ? "0" : "1";
+    decorate();
   }, true);
 
   const main = document.querySelector("#main-content");

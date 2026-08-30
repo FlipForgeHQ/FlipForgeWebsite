@@ -1,42 +1,76 @@
 .customer-discovery-identity-message.ff-identity-assist-explained{
   display:grid;
-  gap:5px;
+  gap:6px;
   border-color:rgba(224,182,62,.55);
   background:rgba(224,182,62,.09);
   color:#d7dde5;
+  font-size:14px;
 }
 .customer-discovery-identity-message.ff-identity-assist-explained strong{
   color:#f2cb67;
-  font-size:13px;
+  font-size:16px;
 }
 .customer-discovery-identity-message.ff-identity-assist-explained span{
-  color:#b8c1cc;
-  line-height:1.5;
+  color:#c2cad4;
+  line-height:1.55;
+}
+.customer-discovery-identity-message.ff-identity-exact-found{
+  border-color:rgba(92,201,139,.46);
+  background:rgba(92,201,139,.08);
+}
+.customer-discovery-identity-message.ff-identity-exact-found strong{
+  color:#9fe0bb;
+}
+.ff-identity-grade-note{
+  display:grid;
+  grid-template-columns:auto auto 1fr;
+  align-items:center;
+  gap:8px;
+  margin:-2px 0 14px;
+  padding:9px 12px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;
+  background:rgba(255,255,255,.018);
+}
+.ff-identity-grade-note span{
+  color:#9aa5b2;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.ff-identity-grade-note strong{
+  color:#fff;
+  font-size:13px;
+}
+.ff-identity-grade-note small{
+  color:#8f99a6;
+  line-height:1.4;
 }
 .ff-identity-review-match{
-  border-color:rgba(224,182,62,.24)!important;
-  background:linear-gradient(135deg,rgba(224,182,62,.045),rgba(255,255,255,.015))!important;
+  border-color:rgba(224,182,62,.18)!important;
+  background:linear-gradient(135deg,rgba(224,182,62,.03),rgba(255,255,255,.012))!important;
 }
 .ff-identity-review-actions{
   display:grid;
   gap:7px;
   justify-items:end;
   flex:none;
-  min-width:155px;
+  min-width:175px;
 }
 .ff-identity-review-label{
-  color:#d8b85b;
-  font-size:9px;
+  color:#bda45d;
+  font-size:10px;
   font-weight:800;
-  line-height:1.25;
-  letter-spacing:.05em;
+  line-height:1.3;
+  letter-spacing:.045em;
   text-align:right;
   text-transform:uppercase;
 }
 .ff-identity-review-actions .button{
-  min-width:145px;
-  border-color:rgba(224,182,62,.55);
-  color:#f2cb67;
+  min-width:160px;
+  border-color:rgba(224,182,62,.42);
+  color:#e6c568;
 }
 .ff-identity-review-actions .button:hover,
 .ff-identity-review-actions .button:focus-visible{
@@ -49,13 +83,51 @@
   box-shadow:0 0 0 4px rgba(224,182,62,.2)!important;
 }
 .ff-identity-selectable{
-  border-color:rgba(92,201,139,.36)!important;
+  border:1px solid rgba(92,201,139,.5)!important;
+  background:linear-gradient(135deg,rgba(92,201,139,.09),rgba(255,255,255,.018))!important;
+  padding:16px!important;
+}
+.ff-identity-selectable strong{
+  font-size:16px!important;
+}
+.ff-identity-selectable small{
+  font-size:13px!important;
+  color:#c2cad4!important;
+}
+.ff-identity-selectable .button{
+  min-width:170px;
+  min-height:44px;
+  font-weight:900;
+}
+.ff-identity-secondary{
+  opacity:.92;
+}
+.ff-identity-hidden{
+  display:none!important;
+}
+.ff-identity-alternates-toggle{
+  width:auto;
+  min-height:40px;
+  margin:0 0 12px;
+  border-color:rgba(255,255,255,.12)!important;
+  color:#c2cad4!important;
+}
+.customer-discovery-identity-assist.ff-identity-has-selectable .boundary-note{
+  margin-top:4px;
 }
 @media(max-width:680px){
+  .ff-identity-grade-note{
+    grid-template-columns:1fr auto;
+  }
+  .ff-identity-grade-note small{
+    grid-column:1 / -1;
+  }
   .ff-identity-review-actions{
     width:100%;
     justify-items:stretch;
   }
   .ff-identity-review-label{text-align:left}
-  .ff-identity-review-actions .button{width:100%;min-width:0}
+  .ff-identity-review-actions .button,
+  .ff-identity-selectable .button{width:100%;min-width:0}
+  .ff-identity-alternates-toggle{width:100%}
 }
