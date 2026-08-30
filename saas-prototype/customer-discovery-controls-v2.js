@@ -44,8 +44,8 @@
 
   function successfulSearchRendered() {
     const root = main();
-    if (!root || root.querySelector(".staging-error")) return false;
-    return Boolean(root.querySelector(".customer-discovery-results") || root.querySelector(".customer-discovery-notice"));
+    if (!root || root.querySelector(".staging-error") || root.querySelector(".customer-discovery-identity-assist")) return false;
+    return Boolean(root.querySelector(".customer-discovery-results") || root.querySelector(".customer-discovery-provider") || root.querySelector(".customer-discovery-notice"));
   }
 
   function applyResetLimit(target) {
@@ -88,17 +88,31 @@
     window.location.reload();
   }
 
+  function removeResultControls(actions) {
+    actions?.querySelector("[data-discovery-refresh-v2]")?.remove();
+    actions?.querySelector("[data-discovery-clear-v2]")?.remove();
+  }
+
   function ensureControls() {
     if (!onDiscover()) return;
     const target = form();
     if (!target) return;
     applyResetLimit(target);
     const actions = target.querySelector(".customer-discovery-search-actions") || target;
+    const hasLiveResults = successfulSearchRendered();
+    const previous = lastSearch();
+
+    actions.classList.toggle("ff-discover-result-actions-visible", Boolean(hasLiveResults && previous));
+    if (!hasLiveResults || !previous) {
+      removeResultControls(actions);
+      return;
+    }
+
     let refresh = actions.querySelector("[data-discovery-refresh-v2]");
     if (!refresh) {
       refresh = document.createElement("button");
       refresh.type = "button";
-      refresh.className = "button button-secondary";
+      refresh.className = "button button-secondary ff-discover-result-control";
       refresh.dataset.discoveryRefreshV2 = "";
       refresh.textContent = "Refresh results";
       refresh.addEventListener("click", refreshResults);
@@ -108,14 +122,14 @@
     if (!clear) {
       clear = document.createElement("button");
       clear.type = "button";
-      clear.className = "button button-secondary";
+      clear.className = "button button-secondary ff-discover-result-control";
       clear.dataset.discoveryClearV2 = "";
-      clear.textContent = "Clear / New search";
+      clear.textContent = "New search";
       clear.addEventListener("click", clearAndStartNew);
       actions.appendChild(clear);
     }
     const busy = searchBusy();
-    refresh.disabled = busy || !lastSearch();
+    refresh.disabled = busy;
     clear.disabled = busy;
   }
 
