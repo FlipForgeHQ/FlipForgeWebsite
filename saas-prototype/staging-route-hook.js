@@ -20,6 +20,7 @@
   const bannerCopy = banner ? banner.querySelector("span") : null;
   const originalTitle = bannerTitle ? bannerTitle.textContent : "";
   const originalCopy = bannerCopy ? bannerCopy.textContent : "";
+  let psaLoadFailed = false;
 
   function routeParts() {
     const raw = window.location.hash.replace(/^#\/?/, "") || "dashboard";
@@ -74,6 +75,42 @@
       : opportunityAdapter.render;
     if (typeof renderer !== "function") return false;
     renderer.call(opportunityAdapter, main, id);
+    return true;
+  }
+
+  function loadPsaAdapter() {
+    if (window.FlipForgeCustomerPsaAdvisor || psaLoadFailed) return;
+    if (document.querySelector('script[data-ff-psa-advisor]')) return;
+    const script = document.createElement("script");
+    script.src = "customer-psa-advisor.js?v=20260830-1";
+    script.async = false;
+    script.setAttribute("data-ff-psa-advisor", "");
+    script.addEventListener("load", applyRoute, { once: true });
+    script.addEventListener("error", () => {
+      psaLoadFailed = true;
+      if (routeParts()[0] !== "psa-advisor") return;
+      showCustomerIntelligenceBanner();
+      main.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Saved PSA guidance could not be loaded safely.</p></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>PSA_ADVISOR_UNAVAILABLE</strong><p>The live tenant-scoped PSA Advisor adapter did not load. No mock PSA data or browser-generated guidance was substituted.</p></div></section></div>`;
+      focusMain();
+    }, { once: true });
+    document.head.appendChild(script);
+  }
+
+  function renderPsaRoute(id) {
+    const psaAdapter = window.FlipForgeCustomerPsaAdvisor;
+    if (psaAdapter
+        && typeof psaAdapter.render === "function"
+        && typeof psaAdapter.isEligible === "function"
+        && psaAdapter.isEligible()) {
+      showCustomerIntelligenceBanner();
+      psaAdapter.render(main, id);
+      focusMain();
+      return true;
+    }
+    loadPsaAdapter();
+    showCustomerIntelligenceBanner();
+    main.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Loading tenant-owned saved PSA guidance…</p></div></header></div>`;
+    focusMain();
     return true;
   }
 
@@ -150,6 +187,7 @@
           focusMain();
           return;
         }
+        if (route === "psa-advisor" && renderPsaRoute(id)) return;
         if (route === "portfolio"
             && portfolioAdapter
             && typeof portfolioAdapter.render === "function"
