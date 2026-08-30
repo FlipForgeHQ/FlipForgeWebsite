@@ -86,10 +86,52 @@
     search.insertAdjacentElement("afterend", note);
   }
 
+  function cleanKnownLimitations() {
+    const main = document.querySelector("#main-content");
+    if (!main) return;
+    main.querySelectorAll("details").forEach(details => {
+      const summary = details.querySelector(":scope > summary");
+      if (!/^Known limitations$/i.test(String(summary?.textContent || "").trim())) return;
+      const list = details.querySelector(":scope > ul");
+      if (!list) return;
+      [...list.querySelectorAll(":scope > li")].forEach(item => {
+        if (!String(item.textContent || "").trim()) item.remove();
+      });
+      if (!list.querySelector(":scope > li")) details.remove();
+    });
+  }
+
+  function clarifyGuidedProgress() {
+    const panel = document.querySelector("#ff-guided-mode-root .ff-guide-panel");
+    if (!panel) return;
+    const location = String(panel.querySelector(".ff-guide-location")?.textContent || "").trim();
+    const labels = panel.querySelectorAll(".ff-guide-progress-top span");
+    if (labels.length < 2) return;
+    const status = String(labels[1].textContent || "").replace(/\s+/g, " ").trim();
+    if (!/^4\s*\/\s*4\s*complete$/i.test(status)) return;
+
+    const currentStep = location.match(/\bStep\s+([1-4])\b/i)?.[1] || "";
+    const primary = "Core path learned";
+    const secondary = currentStep ? `Current card · Step ${currentStep}` : "Ready for another card";
+    if (labels[0].textContent !== primary) labels[0].textContent = primary;
+    if (labels[1].textContent !== secondary) labels[1].textContent = secondary;
+  }
+
+  function observeGuide() {
+    const guide = document.getElementById("ff-guided-mode-root");
+    if (!guide || guide.dataset.ffProgressClarityObserved === "true") return;
+    guide.dataset.ffProgressClarityObserved = "true";
+    new MutationObserver(clarifyGuidedProgress).observe(guide, { childList: true, subtree: true });
+    clarifyGuidedProgress();
+  }
+
   function decorate() {
     if (!eligibleHost()) return;
     decorateSavedDecision();
     decorateDiscover();
+    cleanKnownLimitations();
+    observeGuide();
+    clarifyGuidedProgress();
   }
 
   document.addEventListener("click", event => {
@@ -116,5 +158,8 @@
     }).observe(main, { childList: true, subtree: true });
   }
 
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => window.setTimeout(decorate, 0), { once: true });
+  }
   decorate();
 })();
