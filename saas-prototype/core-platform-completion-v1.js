@@ -18,15 +18,6 @@
       .split(/[/?]/)[0] || "dashboard";
   }
 
-  function ensureDiscoverRefreshController() {
-    if (!eligible() || document.querySelector('script[data-ff-discover-refresh-clear]')) return;
-    const script = document.createElement("script");
-    script.src = "discover-refresh-clear-v2.js?v=20260830-1";
-    script.defer = true;
-    script.setAttribute("data-ff-discover-refresh-clear", "");
-    document.head.append(script);
-  }
-
   function syncAdvancedAnalysisState() {
     const advanced = document.querySelector(".primary-nav .ff-advanced-nav");
     if (!advanced) return;
@@ -97,7 +88,6 @@
   function apply() {
     if (!eligible()) return;
     document.body.classList.add("ff-core-platform-completion");
-    ensureDiscoverRefreshController();
     syncAdvancedAnalysisState();
     normalizeVisibleLanguage();
   }
