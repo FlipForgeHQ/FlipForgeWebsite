@@ -32,28 +32,18 @@ For each step record only:
 
 Do not record account email, raw request headers, tenant identifiers, auth cookies, or secrets.
 
-## Locked production identities — 2026-08-30
+## Production identity gate
 
-Website production:
-- repository: `FlipForgeHQ/FlipForgeWebsite`
-- branch: `main`
-- commit: `665cd8694708387d66b40c89d54b5786b1465bf8`
-- context: `production`
-- appBoundary: `PRODUCTION_SERVER_OWNED_FAIL_CLOSED`
-- productionDiagnosticsSeparated: `true`
-- recommendationAuthority: `Smart Opportunity`
-- gradingAuthority: `Existing PSA intelligence`
-- browserRecommendationAuthority: `false`
-- transactionAuthority: `false`
+Before the signed-in QA begins:
 
-Java production service:
-- service: `flipforge-saas-production`
-- repository: `FlipForgeHQ/FlipForge2`
-- branch: `main`
-- commit: `e46c4b7dbcf0137e8f81edd8b636485c70f70cb0`
-- commit identity: `Map quality-blocked high-edge signals to VERIFY (#365)`
+- record the exact Website `main` commit from live `/deploy-meta.json`;
+- require `context=production`, `production=true`, `appBoundary=PRODUCTION_SERVER_OWNED_FAIL_CLOSED`, `productionDiagnosticsSeparated=true`, Smart Opportunity recommendation authority, existing PSA grading authority, browser recommendation authority false, and transaction authority false;
+- record the exact running Java production service, repository, branch, and commit from the Render service environment;
+- verify the Java commit exists in `FlipForgeHQ/FlipForge2` and record its commit meaning;
+- record both runtime identities in Website #69 and FlipForge2 #377;
+- after the identities are captured, do not change the release candidate during that QA session. If either runtime changes, restart the identity gate before continuing.
 
-Do not infer a different Java production commit from repository `main`; the identity above is the actual running Render service reported by its environment.
+Do not infer the Java production identity from repository `main`; record the actual running service identity.
 
 ## Customer clarity acceptance
 
@@ -207,7 +197,7 @@ Run the core loop on:
 - no route becomes unusable because of horizontal overflow or hidden controls;
 - Guided Mode remains contained and does not obscure the primary decision/result.
 
-## 11. Customer comprehension
+## Customer comprehension check
 
 After a real saved evaluation is displayed, do not coach the tester before asking:
 
@@ -234,10 +224,10 @@ Do not manufacture a BUY, alter evidence, rewrite identity, or change authority 
 
 FlipForge may be marked **CORE PLATFORM BETA COMPLETE** only when all of the following are true:
 
-1. the `SaaS Beta Complete Gate` GitHub Actions workflow is green on the exact Website `main` candidate being evaluated;
-2. the live Netlify production manifest matches Website commit `665cd8694708387d66b40c89d54b5786b1465bf8`;
-3. the running Render Java service identity is `flipforge-saas-production` / `FlipForgeHQ/FlipForge2` / `main` / `e46c4b7dbcf0137e8f81edd8b636485c70f70cb0` for this QA session;
-4. steps 1–11 above are PASS, except a provider-dependent source-link step may be BLOCKED only when the authorized provider itself did not return that capability and the UI disclosed the limitation honestly;
+1. the `SaaS Beta Complete Gate` GitHub Actions workflow is green on the exact `main` commit being evaluated;
+2. the Netlify production deploy for that commit is successful and the live `/deploy-meta.json` commit matches it;
+3. the exact running Java production service identity and commit have been recorded before the governed signed-in actions;
+4. steps 1–10 above and the customer comprehension check are PASS, except a provider-dependent source-link step may be BLOCKED only when the authorized provider itself did not return that capability and the UI disclosed the limitation honestly;
 5. the retained correctness regressions show no authority contamination;
 6. no Severity 1 or Severity 2 customer-workflow defect remains open;
 7. no unresolved defect violates tenant isolation, authentication, evidence authority, grading authority, secret handling, or zero-transaction-authority rules.
