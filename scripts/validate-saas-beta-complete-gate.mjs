@@ -104,6 +104,10 @@ check("062 Discover exact candidate is primary", identityAssistVerification.incl
 check("063 Discover variants use progressive disclosure", identityAssistVerification.includes("COLLAPSED_REVIEW_COUNT = 4") && identityAssistVerification.includes("ff-identity-hidden") && identityAssistVerification.includes("Show ${hiddenCount}"));
 check("064 Discover entered grade is consolidated", identityAssistVerification.includes("Grade filter from your search") && identityAssistVerification.includes("cleanInheritedGrade"));
 check("065 Discover result controls wait for live results", discoverControls.includes("if (!hasLiveResults || !previous)") && discoverControls.includes("removeResultControls(actions)"));
+check("066 Discover evaluation requires exact listing identity", discovery.includes('String(item.matchQuality || "") !== "EXACT_MATCH"') && discovery.includes("evaluationBlockReason"));
+check("067 non-exact provider results are separated from exact ranking", discovery.includes("excluded provider result") && discovery.includes("identity not confirmed") && discovery.includes("cannot be evaluated as the searched card"));
+check("068 Discover exposes ranking context and explanation", discovery.includes("Ranking context:") && discovery.includes("Why this result is ranked here") && discovery.includes("rankingExplanation"));
+check("069 equivalent context discloses lower all-in cost tie break", discovery.includes("Lower complete all-in cost breaks otherwise equivalent evidence and listing-state context."));
 
 const failures = results.filter(result => !result.passed);
 console.log("FlipForge SaaS Beta Complete Static Gate");
