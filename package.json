@@ -27,6 +27,7 @@
     "validate:customer-export": "node scripts/validate-saas-customer-export.mjs",
     "validate:customer-discovery": "node scripts/validate-saas-customer-discovery.mjs && node scripts/validate-discover-identity-start-selection-v2.mjs && node scripts/validate-discover-grade-context-lock.mjs && node scripts/validate-discover-new-query-rearm.mjs",
     "audit:prebeta-customer-state": "node scripts/audit-prebeta-customer-state-ci.mjs",
+    "audit:prebeta-saved-decision-lifecycle": "node scripts/audit-prebeta-saved-decision-lifecycle-ci.mjs",
     "validate:market-view": "node scripts/validate-market-view-v1.mjs",
     "validate:cardsight-evidence-visibility": "node scripts/validate-saas-cardsight-evidence-visibility.mjs",
     "validate:price-intelligence": "node scripts/validate-saas-price-intelligence-ui.mjs",
