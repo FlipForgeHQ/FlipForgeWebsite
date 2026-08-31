@@ -38,7 +38,14 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["027 identity selection adds no persistent browser storage", !/localStorage|sessionStorage|indexedDB|document\.cookie/.test(verify)],
   ["028 start chooser adds no new recommendation authority", !/\b(?:BUY|WATCH|PASS)\b/.test(entry)],
   ["029 only the primary selectable row is labeled exact match", verify.includes("const primarySelectableRow = selectableRows[0] || null") && verify.includes('useButton.textContent = isPrimary ? "Use exact match" : "Select & verify"')],
-  ["030 alternate selectable rows use secondary styling", verify.includes('useButton.classList.toggle("button-primary", isPrimary)') && verify.includes('useButton.classList.toggle("button-secondary", !isPrimary)')]
+  ["030 alternate selectable rows use secondary styling", verify.includes('useButton.classList.toggle("button-primary", isPrimary)') && verify.includes('useButton.classList.toggle("button-secondary", !isPrimary)')],
+  ["031 displayed composite is labeled Factor score", entry.includes('label.textContent = "Factor score"')],
+  ["032 rank explanation says factor score is not sole sort key", entry.includes("Rank is not sorted by factor score alone")],
+  ["033 lower complete all-in ask is explained before factor-score tie break", entry.includes("lower complete all-in ask") && entry.includes("factor score as a tie-breaker")],
+  ["034 excluded identity-review evaluate button is removed", entry.includes('.customer-discovery-candidate-review [data-discovery-evaluate]') && entry.includes("button.replaceWith(status)")],
+  ["035 excluded row shows non-actionable evaluation status", entry.includes("Not eligible for evaluation")],
+  ["036 start chooser is removed during identity assist", entry.includes("hasIdentityAssist") && entry.includes("hasIdentityAssist || hasResults")],
+  ["037 start chooser is removed after results render", entry.includes("hasResults") && entry.includes("document.getElementById(START_PANEL_ID)?.remove()")]
 ].forEach(([name, condition]) => check(name, condition));
 
 const failures = results.filter(result => !result.passed);

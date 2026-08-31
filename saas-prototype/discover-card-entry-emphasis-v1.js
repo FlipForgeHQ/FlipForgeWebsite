@@ -139,13 +139,44 @@
     }
   }
 
+  function decorateResultClarity(main) {
+    const results = main?.querySelector(".customer-discovery-results");
+    if (!results) return;
+
+    results.querySelectorAll(".customer-discovery-score small").forEach(label => {
+      label.textContent = "Factor score";
+    });
+
+    const summary = results.querySelector(".customer-discovery-summary");
+    if (summary && !summary.querySelector("[data-ff-ranking-order-note]")) {
+      const note = document.createElement("small");
+      note.dataset.ffRankingOrderNote = "";
+      note.style.display = "block";
+      note.style.marginTop = "6px";
+      note.textContent = "Rank is not sorted by factor score alone. After eligibility, evidence support, confidence/risk, availability and freshness, FlipForge prefers the lower complete all-in ask before using factor score as a tie-breaker.";
+      summary.appendChild(note);
+    }
+
+    results.querySelectorAll(".customer-discovery-candidate-review [data-discovery-evaluate]").forEach(button => {
+      const status = document.createElement("span");
+      status.className = "staging-status staging-status-verify";
+      status.dataset.ffEvaluationUnavailable = "";
+      status.textContent = "Not eligible for evaluation";
+      button.replaceWith(status);
+    });
+  }
+
   function decorate() {
     if (routeName() !== "discover") {
       document.getElementById(START_PANEL_ID)?.remove();
       return;
     }
     const main = document.querySelector(MAIN);
-    const input = main?.querySelector(INPUT);
+    if (!main) return;
+
+    decorateResultClarity(main);
+
+    const input = main.querySelector(INPUT);
     if (!input) return;
 
     const label = input.closest("label");
@@ -179,7 +210,13 @@
       identifyButton.title = "Use this when you are unsure which base, parallel, variation, or card number is correct.";
     }
 
-    ensureStartChooser(form, input, searchButton, identifyButton);
+    const hasIdentityAssist = Boolean(main.querySelector(".customer-discovery-identity-assist"));
+    const hasResults = Boolean(main.querySelector(".customer-discovery-results"));
+    if (hasIdentityAssist || hasResults) {
+      document.getElementById(START_PANEL_ID)?.remove();
+    } else {
+      ensureStartChooser(form, input, searchButton, identifyButton);
+    }
   }
 
   let queued = false;
