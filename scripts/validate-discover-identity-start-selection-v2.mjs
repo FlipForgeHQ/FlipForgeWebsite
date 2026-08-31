@@ -45,7 +45,11 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["034 excluded identity-review evaluate button is removed", entry.includes('.customer-discovery-candidate-review [data-discovery-evaluate]') && entry.includes("button.replaceWith(status)")],
   ["035 excluded row shows non-actionable evaluation status", entry.includes("Not eligible for evaluation")],
   ["036 start chooser is removed during identity assist", entry.includes("hasIdentityAssist") && entry.includes("hasIdentityAssist || hasResults")],
-  ["037 start chooser is removed after results render", entry.includes("hasResults") && entry.includes("document.getElementById(START_PANEL_ID)?.remove()")]
+  ["037 start chooser is removed after results render", entry.includes("hasResults") && entry.includes("document.getElementById(START_PANEL_ID)?.remove()")],
+  ["038 identity helper uses an explicit cache-busting version", entry.includes('IDENTITY_HELPER_VERSION = "20260831-3"')],
+  ["039 identity verification script is loaded with the cache-busting version", entry.includes('script.src = `identity-assist-verification-v1.js?v=${IDENTITY_HELPER_VERSION}`')],
+  ["040 identity verification stylesheet is loaded with the cache-busting version", entry.includes('link.href = `identity-assist-verification-v1.css?v=${IDENTITY_HELPER_VERSION}`')],
+  ["041 stale identity helper elements are replaced when the version differs", entry.includes("existingScript?.remove()") && entry.includes("existingLink?.remove()") && entry.includes("ffIdentityAssistVerificationVersion")]
 ].forEach(([name, condition]) => check(name, condition));
 
 const failures = results.filter(result => !result.passed);

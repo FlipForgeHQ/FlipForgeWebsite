@@ -4,6 +4,7 @@
   const MAIN = "#main-content";
   const INPUT = '[data-customer-discovery-form] input[name="exactCardQuery"]';
   const START_PANEL_ID = "ff-discover-start-choice";
+  const IDENTITY_HELPER_VERSION = "20260831-3";
 
   function routeName() {
     return String(window.location.hash || "#/dashboard")
@@ -12,18 +13,24 @@
   }
 
   function loadIdentityAssistVerification() {
-    if (!document.querySelector('link[data-ff-identity-assist-verification]')) {
+    const existingLink = document.querySelector('link[data-ff-identity-assist-verification]');
+    if (!existingLink || existingLink.dataset.ffIdentityAssistVerificationVersion !== IDENTITY_HELPER_VERSION) {
+      existingLink?.remove();
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "identity-assist-verification-v1.css";
+      link.href = `identity-assist-verification-v1.css?v=${IDENTITY_HELPER_VERSION}`;
       link.dataset.ffIdentityAssistVerification = "";
+      link.dataset.ffIdentityAssistVerificationVersion = IDENTITY_HELPER_VERSION;
       document.head.appendChild(link);
     }
-    if (!document.querySelector('script[data-ff-identity-assist-verification]')) {
+    const existingScript = document.querySelector('script[data-ff-identity-assist-verification]');
+    if (!existingScript || existingScript.dataset.ffIdentityAssistVerificationVersion !== IDENTITY_HELPER_VERSION) {
+      existingScript?.remove();
       const script = document.createElement("script");
-      script.src = "identity-assist-verification-v1.js";
+      script.src = `identity-assist-verification-v1.js?v=${IDENTITY_HELPER_VERSION}`;
       script.defer = true;
       script.dataset.ffIdentityAssistVerification = "";
+      script.dataset.ffIdentityAssistVerificationVersion = IDENTITY_HELPER_VERSION;
       document.body.appendChild(script);
     }
   }
