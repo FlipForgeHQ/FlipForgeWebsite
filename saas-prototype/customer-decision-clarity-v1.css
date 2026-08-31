@@ -38,7 +38,7 @@
 
 .customer-intelligence-page .ff-risk-summary > span {
   color: var(--text-secondary);
-  font-size: .72rem;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: .045em;
   text-transform: uppercase;
