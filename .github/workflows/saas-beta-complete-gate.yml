@@ -10,13 +10,22 @@ on:
       - "scripts/audit-prebeta-customer-state-ci.mjs"
       - "scripts/validate-prebeta-saved-decision-lifecycle-audit.mjs"
       - "scripts/audit-prebeta-saved-decision-lifecycle-ci.mjs"
+      - "scripts/validate-prebeta-cross-surface-audit.mjs"
+      - "scripts/audit-prebeta-cross-surface-ci.mjs"
+      - "scripts/validate-live-production-parity-gate.mjs"
+      - "scripts/verify-live-production-parity.mjs"
       - "package.json"
+      - "DEPLOYMENT_CHECKLIST.md"
       - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
       - "docs/SAAS_BETA_COMPLETE_LIVE_QA.md"
       - "docs/PREBETA_CUSTOMER_STATE_AUDIT.md"
       - "docs/PREBETA_SAVED_DECISION_LIFECYCLE_AUDIT.md"
+      - "docs/PREBETA_CROSS_SURFACE_AUDIT.md"
+      - "docs/LIVE_PRODUCTION_PARITY_GATE.md"
       - ".github/workflows/prebeta-customer-state-audit.yml"
       - ".github/workflows/prebeta-saved-decision-lifecycle-audit.yml"
+      - ".github/workflows/prebeta-cross-surface-audit.yml"
+      - ".github/workflows/live-production-parity.yml"
       - ".github/workflows/saas-beta-complete-gate.yml"
   push:
     branches:
@@ -53,6 +62,12 @@ jobs:
 
       - name: Validate destructive saved-decision lifecycle audit is wired
         run: node scripts/validate-prebeta-saved-decision-lifecycle-audit.mjs
+
+      - name: Validate destructive cross-surface audit is wired
+        run: node scripts/validate-prebeta-cross-surface-audit.mjs
+
+      - name: Validate live production parity gate is wired
+        run: node scripts/validate-live-production-parity-gate.mjs
 
       - name: Validate production customer loop
         run: node scripts/validate-saas-core-production-loop.mjs
