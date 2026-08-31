@@ -298,11 +298,11 @@ async function waitForForm() {
 async function openDiscover() {
   if (!page.url().startsWith(baseUrl)) {
     await page.goto(`${baseUrl}/#/discover`, { waitUntil: "domcontentloaded", timeout: 10_000 });
-  } else {
-    await page.evaluate(() => {
-      if (window.location.hash !== "#/discover") window.location.hash = "#/discover";
-    });
-    await poll(() => /#\/discover$/.test(page.url()), "Discover route did not settle after in-app navigation", 5000);
+  } else if (!/#\/discover$/.test(page.url())) {
+    const discoverNav = page.locator('a[href="#/discover"]').first();
+    await discoverNav.waitFor({ state: "visible", timeout: 5000 });
+    await discoverNav.click();
+    await poll(() => /#\/discover$/.test(page.url()), "Discover route did not settle after customer navigation", 5000);
   }
   await waitForForm();
 }
