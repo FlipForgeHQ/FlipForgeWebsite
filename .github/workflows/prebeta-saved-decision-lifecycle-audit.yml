@@ -5,6 +5,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/audit-prebeta-saved-decision-lifecycle-ci.mjs"
+      - "scripts/diagnose-saved-decision-tracking-route-ci.mjs"
       - "scripts/validate-prebeta-saved-decision-lifecycle-audit.mjs"
       - "scripts/validate-saas-customer-lifecycle.mjs"
       - "scripts/validate-saas-customer-export.mjs"
@@ -19,6 +20,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/audit-prebeta-saved-decision-lifecycle-ci.mjs"
+      - "scripts/diagnose-saved-decision-tracking-route-ci.mjs"
       - "scripts/validate-prebeta-saved-decision-lifecycle-audit.mjs"
       - "scripts/validate-saas-customer-lifecycle.mjs"
       - "scripts/validate-saas-customer-export.mjs"
@@ -77,6 +79,9 @@ jobs:
           done
           cat /tmp/flipforge-prebeta-lifecycle-audit-server.log
           exit 1
+
+      - name: Diagnose Saved Decision to Tracking route ownership
+        run: node scripts/diagnose-saved-decision-tracking-route-ci.mjs
 
       - name: Run destructive saved-decision lifecycle browser matrix
         run: npm run audit:prebeta-saved-decision-lifecycle
