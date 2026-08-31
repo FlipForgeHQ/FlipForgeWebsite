@@ -213,8 +213,17 @@ async function stubIdentity(page) {
 }
 
 async function auditPage(page) {
-  return page.evaluate(minimum => {
+  return page.evaluate(async minimum => {
     document.querySelectorAll("details").forEach(detail => { detail.open = true; });
+
+    // Programmatically opening collapsed details exposes text in the same JS
+    // turn. Give the real production typography floor the animation frames it
+    // receives after a customer toggle before measuring the newly visible text.
+    if (window.FlipForgeCustomerTypographyFloor
+        && typeof window.FlipForgeCustomerTypographyFloor.rescan === "function") {
+      window.FlipForgeCustomerTypographyFloor.rescan();
+    }
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     const excluded = [
       "script",
