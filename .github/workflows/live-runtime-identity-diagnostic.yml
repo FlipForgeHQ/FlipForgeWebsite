@@ -1,0 +1,63 @@
+name: Live Runtime Identity Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/live-runtime-identity-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Diagnose public backend identity path
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Probe public gateway health and runtime identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in health runtime-identity; do
+            body="$(mktemp)"
+            status="$(curl -sS --max-time 15 -o "$body" -w '%{http_code}' "https://goflipforge.com/api/v1/$path")"
+            PATH_LABEL="$path" HTTP_STATUS="$status" BODY_FILE="$body" node <<'NODE'
+          const fs = require('node:fs');
+          const label = process.env.PATH_LABEL;
+          const httpStatus = Number(process.env.HTTP_STATUS);
+          let payload;
+          try {
+            payload = JSON.parse(fs.readFileSync(process.env.BODY_FILE, 'utf8'));
+          } catch {
+            console.log(JSON.stringify({ path: label, httpStatus, json: false }, null, 2));
+            process.exit(0);
+          }
+          const data = payload && typeof payload.data === 'object' && payload.data ? payload.data : {};
+          if (label === 'health') {
+            console.log(JSON.stringify({
+              path: label,
+              httpStatus,
+              status: data.status ?? null,
+              bridgeEnabled: data.bridgeEnabled ?? null,
+              upstreamConfigured: data.upstreamConfigured ?? null,
+              authenticationRequired: data.authenticationRequired ?? null,
+              tenantMembershipRequired: data.tenantMembershipRequired ?? null,
+              productionPreviewBypassAllowed: data.productionPreviewBypassAllowed ?? null
+            }, null, 2));
+          } else {
+            console.log(JSON.stringify({
+              path: label,
+              httpStatus,
+              status: data.status ?? null,
+              runtimeBuildCommitVerified: data.runtimeBuildCommitVerified ?? null,
+              authorityVerified: data.authorityVerified ?? null,
+              runtimeMode: data.runtimeMode ?? null,
+              backendUrlExposed: data.backendUrlExposed ?? null,
+              serviceTokenExposed: data.serviceTokenExposed ?? null,
+              transactionAuthority: data.transactionAuthority ?? null
+            }, null, 2));
+          }
+          NODE
+            rm -f "$body"
+          done
