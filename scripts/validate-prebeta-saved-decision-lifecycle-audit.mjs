@@ -42,7 +42,7 @@ const checks = [
   ["audit emits a machine-readable lifecycle report", audit.includes("qa-artifacts/prebeta-saved-decision-lifecycle") && audit.includes("saved-decision-lifecycle-audit.json")],
   ["audit attacks optimistic lifecycle version conflicts", audit.includes("LIFECYCLE_VERSION_CONFLICT") && audit.includes("expectedVersion")],
   ["audit attacks navigation during an in-flight save", audit.includes("slowNextLifecyclePut") && audit.includes("repaint stale Tracking over Card Intelligence")],
-  ["audit verifies export re-reads governed sources", audit.includes("/api/v1/evidence/") && audit.includes("/api/v1/psa-advisor/") && audit.includes("/api/v1/lifecycle/")],
+  ["audit verifies export re-reads governed sources", audit.includes("const evidenceMatch = url.pathname.match") && audit.includes("const psaMatch = url.pathname.match") && audit.includes("const lifecycleMatch = url.pathname.match") && audit.includes("Export did not re-read lifecycle detail")],
   ["audit inspects tenant/user header boundaries", audit.includes("x-flipforge-tenant-id") && audit.includes("x-flipforge-user-id")],
   ["workflow validates lifecycle and export contracts before browser attacks", workflow.includes("npm run validate:customer-lifecycle") && workflow.includes("npm run validate:customer-export")],
   ["workflow runs saved-decision lifecycle browser matrix", workflow.includes("npm run audit:prebeta-saved-decision-lifecycle")],
