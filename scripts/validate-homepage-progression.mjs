@@ -8,6 +8,7 @@ const beta=read('beta-application.html');
 const pricing=read('pricing.html');
 const app=read('saas-prototype/index.html');
 const awardCss=read('assets/css/award-winning-v1.css');
+const polishCss=read('assets/css/homepage-proof-polish-v1.css');
 const awardJs=read('assets/js/award-winning-v1.js');
 const contenderJs=read('assets/js/homepage-contender-v1.js');
 const sw=read('sw.js');
@@ -59,11 +60,25 @@ requireText('Busted Comp behavior',awardJs,'CONTEXT ONLY.');
 for(const proof of ['>100<','>74<','>26<','>18<','20-case blind re-review','25-card prospective study','FlipForge has not authorized a public accuracy percentage'])requireText('governed proof',homepage,proof);
 for(const day of ['Day 0','Day 7','Day 14','Day 30'])requireText('outcome accountability',homepage,day);
 requireText('outcome accountability',homepage,'not rewriting history to make the model look right');
+requireText('accountability timeline',polishCss,'.ff-aw-accountability .ff-aw-question-grid::before');
+requireText('accountability timeline',awardJs,"aria-label','Decision accountability timeline: Day 0, Day 7, Day 14 and Day 30'");
 
 requireText('beta wedge',homepage,'Modern football rookie autos + scarce parallels');
 requireText('broad category',homepage,'FlipForge remains Card Intelligence for sports cards broadly');
+requireText('single beta CTA behavior',awardJs,"if(String(link.textContent||'').trim()==='See Private Beta')link.textContent='Request Beta Access'");
 requireText('unpaid beta',homepage,'Private beta participation does not create a paid subscription.');
 requireText('transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
+
+// The discovery teaser may look alive, but must not imply fabricated market measurements.
+requireText('Forge Heat signal',awardJs,"signal.className='ff-forge-heat-signal'");
+requireText('Forge Heat signal',polishCss,'.ff-forge-heat-signal');
+requireText('Forge Heat non-data boundary',awardJs,'it represents no market measurement or live data');
+
+// Mobile hero stays focused on one action and one real product proof.
+requireText('mobile hero simplification',polishCss,'.ff-hero-customer .ff-motion-console');
+requireText('mobile hero simplification',polishCss,'.ff-hero-customer .ff-hero-text-link');
+requireText('mobile product proof',polishCss,'.ff-live-product-proof');
+requireText('proof polish stylesheet load',awardJs,"polish.href='assets/css/homepage-proof-polish-v1.css'");
 
 // Product answers customer questions rather than presenting architecture.
 for(const needle of ['Is the premium actually supported?','Is this actually the card?','Do these comps actually belong?','Is the price actually supported?','What could make this wrong?','What should I do next—and why?','Can I challenge the recommendation too?'])requireText('Product customer questions',product,needle);
@@ -112,8 +127,9 @@ if(productionBuild){
 }
 
 // PWA and motion boundaries.
-requireText('PWA cache',sw,"const CACHE='flipforge-shell-v13'");
+requireText('PWA cache',sw,"const CACHE='flipforge-shell-v14'");
 requireText('PWA premium CSS',sw,"'/assets/css/award-winning-v1.css'");
+requireText('PWA proof polish CSS',sw,"'/assets/css/homepage-proof-polish-v1.css'");
 requireText('PWA premium JS',sw,"'/assets/js/award-winning-v1.js'");
 requireText('reduced motion',contenderJs,'prefers-reduced-motion: reduce');
 
