@@ -76,7 +76,7 @@
     const message = panel.querySelector(".customer-discovery-identity-message");
     if (!message) return;
     if (hasSelectable) {
-      message.innerHTML = `<strong>Exact card match found.</strong><span>Use the highlighted exact match if it is the card you mean. Other possible variants must be explicitly selected and re-verified server-side before marketplace search.</span>`;
+      message.innerHTML = `<strong>Exact card match found.</strong><span>FlipForge will not choose one for you. Use the highlighted exact match if it is the card you mean. Other possible variants must be explicitly selected and re-verified server-side before marketplace search.</span>`;
       message.classList.add("ff-identity-assist-explained", "ff-identity-exact-found");
       return;
     }
