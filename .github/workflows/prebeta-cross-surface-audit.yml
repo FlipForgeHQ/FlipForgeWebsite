@@ -1,0 +1,104 @@
+name: Pre-Beta Cross-Surface Audit
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-prebeta-cross-surface-ci.mjs"
+      - "scripts/validate-prebeta-cross-surface-audit.mjs"
+      - "scripts/validate-production-route-authority.mjs"
+      - "scripts/validate-saas-customer-management.mjs"
+      - "scripts/validate-saas-customer-portfolio.mjs"
+      - "scripts/validate-saas-customer-compare.mjs"
+      - "scripts/validate-saas-customer-lifecycle.mjs"
+      - "scripts/validate-market-view-v1.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "package.json"
+      - "docs/PREBETA_CROSS_SURFACE_AUDIT.md"
+      - ".github/workflows/prebeta-cross-surface-audit.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-prebeta-cross-surface-ci.mjs"
+      - "scripts/validate-prebeta-cross-surface-audit.mjs"
+      - "scripts/validate-production-route-authority.mjs"
+      - "scripts/validate-saas-customer-management.mjs"
+      - "scripts/validate-saas-customer-portfolio.mjs"
+      - "scripts/validate-saas-customer-compare.mjs"
+      - "scripts/validate-saas-customer-lifecycle.mjs"
+      - "scripts/validate-market-view-v1.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "package.json"
+      - "docs/PREBETA_CROSS_SURFACE_AUDIT.md"
+      - ".github/workflows/prebeta-cross-surface-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  destructive-cross-surface-audit:
+    name: Attack remaining customer surfaces before beta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production app assets
+        run: npm run build:identity
+
+      - name: Validate governed cross-surface contracts
+        run: |
+          npm run validate:production-route-authority
+          npm run validate:customer-management
+          npm run validate:customer-portfolio
+          npm run validate:customer-compare
+          npm run validate:customer-lifecycle
+          npm run validate:market-view
+          node scripts/validate-prebeta-cross-surface-audit.mjs
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local SaaS preview at production app path
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-prebeta-cross-surface-server.log 2>&1 &
+          echo $! > /tmp/flipforge-prebeta-cross-surface-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-prebeta-cross-surface-server.log
+          exit 1
+
+      - name: Run destructive cross-surface browser matrix
+        run: npm run audit:prebeta-cross-surface
+
+      - name: Upload cross-surface audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flipforge-prebeta-cross-surface-audit
+          path: qa-artifacts/prebeta-cross-surface
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Show preview-server log on failure
+        if: failure()
+        run: cat /tmp/flipforge-prebeta-cross-surface-server.log || true
