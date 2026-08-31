@@ -5,6 +5,16 @@ const id = "qa-opportunity-1";
 const email = "tracking-route-diagnostic@flipforge.test";
 const apiCalls = [];
 
+function accountHash(value) {
+  let hash = 2166136261;
+  const text = String(value || "anonymous").trim().toLowerCase();
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 function envelope(correlationId, data) {
   return {
     meta: {
@@ -56,9 +66,13 @@ const context = await browser.newContext({ viewport: { width: 1365, height: 900 
 const page = await context.newPage();
 
 try {
-  await page.addInitScript(() => {
+  const key = accountHash(email);
+  await page.addInitScript(({ key }) => {
     localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete");
-  });
+    localStorage.setItem(`flipforge.guidedMode.v3.${key}.welcome`, "seen");
+    localStorage.setItem(`flipforge.guidedMode.v3.${key}.enabled`, "off");
+    localStorage.setItem(`flipforge.guidedMode.v3.${key}.steps`, "discover,evaluate,understand,track");
+  }, { key });
 
   await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
     status: 200,
@@ -99,6 +113,17 @@ try {
       data = { kind: "lifecycle", sourceOfTruth: "SQLite", items: [lifecycle], transactionAuthority: false };
     } else if (method === "GET" && url.pathname === `/api/v1/lifecycle/${id}`) {
       data = { kind: "lifecycle-detail", opportunityId: id, sourceOfTruth: "SQLite", lifecycle, history: [], transactionAuthority: false };
+    } else if (method === "GET" && url.pathname === "/api/v1/forge-heat") {
+      data = {
+        kind: "forge-heat",
+        heatVersion: "FORGE_HEAT_V1",
+        proFeature: true,
+        locked: true,
+        access: { currentPlan: "BETA" },
+        authority: { recommendationAuthority: "Smart Opportunity", forgeHeatRecommendationAuthority: false, clientComputed: false, transactionAuthority: false },
+        scope: { code: "SAVED_EVALUATED_UNIVERSE", marketWide: false },
+        top5: [], hiddenGems: [], highestEdge: [], unscoredPreview: []
+      };
     } else {
       console.log(`DIAG UNMOCKED | ${method} ${url.pathname}`);
       await route.fulfill({ status: 404, contentType: "application/json; charset=utf-8", body: JSON.stringify({ error: { code: "QA_NOT_MOCKED", message: `${method} ${url.pathname}` } }) });
@@ -112,6 +137,7 @@ try {
   await page.waitForTimeout(900);
   console.log(`DIAG BEFORE URL | ${page.url()}`);
   console.log(`DIAG BEFORE PAGE | ${await page.locator("#main-content > *").first().getAttribute("class").catch(() => "")}`);
+  console.log(`DIAG GUIDE MODAL | ${await page.locator("#ff-guided-mode-welcome").count()}`);
 
   const links = page.locator(`#main-content a[href='#/tracking/${id}']`);
   const count = await links.count();
