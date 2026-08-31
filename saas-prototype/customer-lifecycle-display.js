@@ -28,9 +28,15 @@
     if (!select) return;
     [...select.options].forEach(option => {
       const raw = String(option.value || option.textContent || "").trim().toUpperCase();
-      if (!TRACKING_STATUS_LABELS[raw]) return;
-      option.value = raw;
-      option.textContent = TRACKING_STATUS_LABELS[raw];
+      const label = TRACKING_STATUS_LABELS[raw];
+      if (!label) return;
+
+      // This normalizer runs inside a childList MutationObserver. Reassigning
+      // textContent when it is already correct replaces the text node, creates
+      // another childList mutation, and previously caused an infinite observer
+      // feedback loop as soon as Tracking rendered. Only mutate on real drift.
+      if (option.value !== raw) option.value = raw;
+      if (option.textContent !== label) option.textContent = label;
     });
   }
 
