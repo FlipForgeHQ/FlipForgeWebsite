@@ -36,7 +36,9 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["025 marketplace search begins only after successful verification", verify.indexOf("input.value = canonical") < verify.indexOf("form.requestSubmit?.()")],
   ["026 failed verification stays in identity workflow", verify.includes('button.textContent = "Select & verify"') && verify.includes("setRowStatus(row, error?.message")],
   ["027 identity selection adds no persistent browser storage", !/localStorage|sessionStorage|indexedDB|document\.cookie/.test(verify)],
-  ["028 start chooser adds no new recommendation authority", !/\b(?:BUY|WATCH|PASS)\b/.test(entry)]
+  ["028 start chooser adds no new recommendation authority", !/\b(?:BUY|WATCH|PASS)\b/.test(entry)],
+  ["029 only the primary selectable row is labeled exact match", verify.includes("const primarySelectableRow = selectableRows[0] || null") && verify.includes('useButton.textContent = isPrimary ? "Use exact match" : "Select & verify"')],
+  ["030 alternate selectable rows use secondary styling", verify.includes('useButton.classList.toggle("button-primary", isPrimary)') && verify.includes('useButton.classList.toggle("button-secondary", !isPrimary)')]
 ].forEach(([name, condition]) => check(name, condition));
 
 const failures = results.filter(result => !result.passed);
