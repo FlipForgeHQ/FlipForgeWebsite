@@ -14,9 +14,13 @@
   function main() { return document.querySelector(MAIN_SELECTOR); }
   function form() { return main()?.querySelector?.("[data-customer-discovery-form]") || null; }
 
+  function normalizedQuery(value) {
+    return String(value || "").trim().replace(/\s+/g, " ");
+  }
+
   function readForm(target) {
     if (!target) return null;
-    const query = String(target.querySelector('[name="exactCardQuery"]')?.value || "").trim();
+    const query = normalizedQuery(target.querySelector('[name="exactCardQuery"]')?.value || "");
     const targetMaxBuy = String(target.querySelector('[name="targetMaxBuy"]')?.value || "").trim();
     const limit = String(target.querySelector('[name="limit"]')?.value || "25");
     if (!query || !["10", "25", "50"].includes(limit)) return null;
@@ -32,20 +36,28 @@
     try {
       const parsed = JSON.parse(window.sessionStorage.getItem(LAST_SEARCH_KEY) || "null");
       if (!parsed || !parsed.query || !["10", "25", "50"].includes(String(parsed.limit))) return null;
-      return { query: String(parsed.query), targetMaxBuy: String(parsed.targetMaxBuy || ""), limit: String(parsed.limit) };
+      return { query: normalizedQuery(parsed.query), targetMaxBuy: String(parsed.targetMaxBuy || ""), limit: String(parsed.limit) };
     } catch (_) { return null; }
   }
 
   function searchBusy() {
-    const root = main();
-    const primary = form()?.querySelector('button[type="submit"]');
-    return Boolean(primary?.disabled || root?.querySelector?.("[data-discovery-evaluate][disabled]") || root?.querySelector?.("[data-discovery-find-exact][disabled]"));
+    const target = form();
+    const primary = target?.querySelector('button[type="submit"]');
+    const identify = target?.querySelector("[data-discovery-find-exact]");
+    return Boolean(primary?.disabled || identify?.disabled);
   }
 
   function successfulSearchRendered() {
     const root = main();
     if (!root || root.querySelector(".staging-error") || root.querySelector(".customer-discovery-identity-assist")) return false;
     return Boolean(root.querySelector(".customer-discovery-results") || root.querySelector(".customer-discovery-provider") || root.querySelector(".customer-discovery-notice"));
+  }
+
+  function editingDifferentSearch(target, previous) {
+    if (!target || !previous) return false;
+    const input = target.querySelector('[name="exactCardQuery"]');
+    const current = normalizedQuery(input?.value || "");
+    return Boolean(current && current !== normalizedQuery(previous.query));
   }
 
   function applyResetLimit(target) {
@@ -101,9 +113,11 @@
     const actions = target.querySelector(".customer-discovery-search-actions") || target;
     const hasLiveResults = successfulSearchRendered();
     const previous = lastSearch();
+    const hasNewQueryDraft = hasLiveResults && editingDifferentSearch(target, previous);
 
-    actions.classList.toggle("ff-discover-result-actions-visible", Boolean(hasLiveResults && previous));
-    if (!hasLiveResults || !previous) {
+    actions.classList.toggle("ff-discover-result-actions-visible", Boolean(hasLiveResults && previous && !hasNewQueryDraft));
+    actions.classList.toggle("ff-discover-new-query-draft", Boolean(hasNewQueryDraft));
+    if (!hasLiveResults || !previous || hasNewQueryDraft) {
       removeResultControls(actions);
       return;
     }
@@ -154,6 +168,13 @@
     const target = event.target?.closest?.("[data-customer-discovery-form]");
     if (!target) return;
     pendingSearch = readForm(target);
+    queue();
+  }, true);
+
+  document.addEventListener("input", event => {
+    if (!onDiscover()) return;
+    const input = event.target?.closest?.('[data-customer-discovery-form] input[name="exactCardQuery"]');
+    if (!input) return;
     queue();
   }, true);
 
