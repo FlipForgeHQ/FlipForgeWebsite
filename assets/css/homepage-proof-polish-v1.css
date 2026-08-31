@@ -1,0 +1,182 @@
+/* FlipForge homepage proof polish — 2026-08-30.
+ * Clarifies the accountability timeline, gives Forge Heat a restrained signal mark,
+ * and reduces mobile hero density without adding decorative data animation.
+ */
+
+/* Decision Accountability should read as one governed timeline, not four unrelated cards. */
+.ff-aw-accountability .ff-aw-question-grid{
+  position:relative;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:18px;
+  padding-top:34px;
+}
+.ff-aw-accountability .ff-aw-question-grid::before{
+  content:"";
+  position:absolute;
+  top:14px;
+  left:12.5%;
+  right:12.5%;
+  height:2px;
+  background:linear-gradient(90deg,rgba(212,175,55,.22),rgba(212,175,55,.88),rgba(212,175,55,.22));
+  box-shadow:0 0 18px rgba(212,175,55,.12);
+}
+.ff-aw-accountability .ff-aw-question{
+  min-height:196px;
+  overflow:visible;
+  padding:27px 24px 24px;
+}
+.ff-aw-accountability .ff-aw-question::before{display:none}
+.ff-aw-accountability .ff-aw-question::after{
+  content:"";
+  position:absolute;
+  top:-26px;
+  left:50%;
+  width:12px;
+  height:12px;
+  transform:translateX(-50%);
+  border:3px solid #07101d;
+  border-radius:50%;
+  background:#d4af37;
+  box-shadow:0 0 0 1px rgba(212,175,55,.5),0 0 18px rgba(212,175,55,.32);
+}
+.ff-aw-accountability .ff-aw-question span{
+  color:#d4af37;
+  font-size:10px;
+  letter-spacing:.13em;
+}
+.ff-aw-accountability .ff-aw-question h3{margin-top:24px}
+
+/* Forge Heat gets a branded discovery signal, not a fake chart. */
+.ff-forge-heat-strip{
+  grid-template-columns:70px minmax(180px,.65fr) minmax(0,1.25fr) auto;
+}
+.ff-forge-heat-signal{
+  width:58px;
+  height:42px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:5px;
+  padding:8px 9px;
+  box-sizing:border-box;
+  border:1px solid rgba(212,175,55,.24);
+  border-radius:10px;
+  background:radial-gradient(circle at 50% 82%,rgba(212,175,55,.12),transparent 62%),#050b14;
+  box-shadow:inset 0 0 18px rgba(212,175,55,.04);
+}
+.ff-forge-heat-signal i{
+  display:block;
+  width:4px;
+  border-radius:999px 999px 2px 2px;
+  background:linear-gradient(180deg,#f1cf67,#9a7b20);
+  box-shadow:0 0 8px rgba(212,175,55,.18);
+}
+.ff-forge-heat-signal i:nth-child(1){height:11px;opacity:.48}
+.ff-forge-heat-signal i:nth-child(2){height:20px;opacity:.72}
+.ff-forge-heat-signal i:nth-child(3){height:28px}
+.ff-forge-heat-signal i:nth-child(4){height:18px;opacity:.78}
+.ff-forge-heat-signal i:nth-child(5){height:24px;opacity:.9}
+
+/* Mobile: one message, one CTA, one real product proof. */
+@media(max-width:700px){
+  body.ff-home-conversion-v2 .hero.ff-hero-customer .ff-hero-context,
+  body.ff-home-conversion-v2 .hero.ff-hero-customer .ff-hero-text-link,
+  body.ff-home-conversion-v2 .hero.ff-hero-customer .ff-motion-console{
+    display:none!important;
+  }
+  body.ff-home-conversion-v2 .hero.ff-hero-customer .ff-primary-actions{
+    margin-top:17px!important;
+  }
+  body.ff-home-conversion-v2 .hero.ff-hero-customer .ff-primary-actions .btn.primary{
+    display:flex!important;
+    align-items:center;
+    justify-content:center;
+  }
+  body.ff-home-conversion-v2 .hero.ff-hero-customer .ff-hero-visual{
+    margin-top:17px!important;
+  }
+  .ff-home-focused .ff-decision-motion{
+    padding:7px!important;
+    border-radius:15px!important;
+  }
+  .ff-live-product-frame{border-radius:10px}
+  .ff-live-product-bar{padding:8px 10px}
+  .ff-live-product-bar strong{display:none}
+  .ff-live-product-shot{
+    height:auto!important;
+    aspect-ratio:16/10;
+    object-position:top left;
+  }
+  .ff-live-product-proof{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+  .ff-live-product-proof div{
+    padding:8px 7px 9px!important;
+    text-align:center;
+  }
+  .ff-live-product-proof div+div{
+    border-top:0!important;
+    border-left:1px solid rgba(158,176,201,.18)!important;
+  }
+  .ff-live-product-proof small{
+    font-size:7px!important;
+    margin-bottom:2px!important;
+  }
+  .ff-live-product-proof strong{
+    font-size:9px!important;
+    line-height:1.25!important;
+  }
+
+  .ff-aw-accountability .ff-aw-question-grid{
+    grid-template-columns:1fr;
+    gap:12px;
+    padding:0 0 0 30px;
+  }
+  .ff-aw-accountability .ff-aw-question-grid::before{
+    top:20px;
+    bottom:20px;
+    left:7px;
+    right:auto;
+    width:2px;
+    height:auto;
+    background:linear-gradient(180deg,rgba(212,175,55,.28),rgba(212,175,55,.85),rgba(212,175,55,.28));
+  }
+  .ff-aw-accountability .ff-aw-question{
+    min-height:0;
+    padding:20px 20px 19px;
+  }
+  .ff-aw-accountability .ff-aw-question::after{
+    top:24px;
+    left:-23px;
+    transform:none;
+    width:10px;
+    height:10px;
+  }
+  .ff-aw-accountability .ff-aw-question h3{margin-top:13px}
+
+  .ff-forge-heat-strip{
+    grid-template-columns:56px 1fr;
+    gap:10px 12px;
+    align-items:center;
+  }
+  .ff-forge-heat-signal{
+    grid-row:1/3;
+    width:52px;
+    height:40px;
+    padding:8px;
+    gap:4px;
+  }
+  .ff-forge-heat-strip>span{align-self:end}
+  .ff-forge-heat-strip>div:not(.ff-forge-heat-signal){grid-column:2}
+  .ff-forge-heat-strip>a{grid-column:2;margin-top:2px}
+}
+
+@media(max-width:420px){
+  .ff-live-product-proof strong{font-size:8px!important}
+  .ff-live-product-proof div{padding-left:5px!important;padding-right:5px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .ff-aw-accountability .ff-aw-question::after,
+  .ff-forge-heat-signal i{transition:none!important;animation:none!important}
+}

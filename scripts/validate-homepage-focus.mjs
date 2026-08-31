@@ -5,6 +5,7 @@ const index=read('index.html');
 const awardCss=read('assets/css/award-winning-v1.css');
 const contenderCss=read('assets/css/homepage-contender-v1.css');
 const mobileCss=read('assets/css/homepage-mobile-simplify-v1.css');
+const polishCss=read('assets/css/homepage-proof-polish-v1.css');
 const contenderJs=read('assets/js/homepage-contender-v1.js');
 const awardJs=read('assets/js/award-winning-v1.js');
 const sw=read('sw.js');
@@ -54,9 +55,12 @@ check('028 public accuracy claim remains unauthorized',index.includes('FlipForge
 check('029 accountability remains Day 0/7/14/30',['Day 0','Day 7','Day 14','Day 30'].every(v=>index.includes(v)));
 check('030 accountability asks memorable proof question',index.includes('Did the decision age well?'));
 check('031 accountability rejects hindsight rewrite',index.includes('not rewriting history to make the model look right'));
+check('031a accountability is visually connected',polishCss.includes('.ff-aw-accountability .ff-aw-question-grid::before'));
+check('031b accountability exposes timeline semantics',awardJs.includes('Decision accountability timeline: Day 0, Day 7, Day 14 and Day 30'));
 
 check('032 beta wedge remains narrow',index.includes('Modern football rookie autos + scarce parallels'));
 check('033 category remains broad',index.includes('FlipForge remains Card Intelligence for sports cards broadly'));
+check('033a beta CTA normalizes to one label',awardJs.includes("link.textContent='Request Beta Access'"));
 check('034 final CTA asks for a real buying decision',index.includes('Bring us the card you are actually thinking about buying.'));
 check('035 beta remains explicitly unpaid',index.includes('Private beta participation does not create a paid subscription.'));
 check('036 transaction authority remains absent',index.includes('FlipForge does not guarantee profit or authorize transactions.'));
@@ -67,14 +71,18 @@ for(const oldSection of ['ff-customer-outcomes','ff-transformation','id="evidenc
 
 check('044 premium CSS is first-paint dependency',index.includes('assets/css/award-winning-v1.css'));
 check('044a product-proof CSS is first-paint dependency',index.includes('assets/css/homepage-product-proof-v2.css'));
+check('044b proof-polish CSS is loaded',awardJs.includes('assets/css/homepage-proof-polish-v1.css'));
 check('045 premium JS is loaded explicitly',index.includes('assets/js/award-winning-v1.js'));
 check('046 premium navigation hides low-priority links',awardCss.includes('a[href="faq.html"]')&&awardCss.includes('a[data-app-preview]'));
 check('047 motion remains finite',contenderCss.includes('@keyframes ff-stage-focus')&&!contenderCss.includes('infinite'));
 check('048 reduced-motion CSS remains',contenderCss.includes('@media(prefers-reduced-motion:reduce)'));
 check('049 reduced-motion JS remains',contenderJs.includes('prefers-reduced-motion: reduce'));
 check('050 mobile simplification remains',mobileCss.includes('@media(max-width:520px)')&&mobileCss.includes('.ff-primary-actions .btn:not(.primary)'));
-check('051 PWA keeps proven v13 cache',sw.includes("const CACHE='flipforge-shell-v13'"));
+check('050a mobile proof polish hides redundant console',polishCss.includes('.ff-hero-customer .ff-motion-console'));
+check('050b Forge Heat visual remains non-data',polishCss.includes('.ff-forge-heat-signal')&&awardJs.includes('it represents no market measurement or live data'));
+check('051 PWA keeps proven v14 cache',sw.includes("const CACHE='flipforge-shell-v14'"));
 check('052 PWA caches premium CSS',sw.includes("'/assets/css/award-winning-v1.css'"));
+check('052a PWA caches proof-polish CSS',sw.includes("'/assets/css/homepage-proof-polish-v1.css'"));
 check('053 PWA caches premium JS',sw.includes("'/assets/js/award-winning-v1.js'"));
 
 const failures=checks.filter(item=>!item.passed);
