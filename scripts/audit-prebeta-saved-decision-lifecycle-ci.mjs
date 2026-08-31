@@ -344,8 +344,21 @@ async function submitTracking() {
   await page.locator("#main-content [data-lifecycle-form] button[type='submit']").click();
 }
 
+async function setHash(hash) {
+  await page.evaluate(nextHash => {
+    window.location.hash = nextHash;
+  }, hash);
+}
+
 async function reloadTracking(id) {
-  await gotoRoute(`tracking/${id}`);
+  const targetHash = `#/tracking/${encodeURIComponent(id)}`;
+  const currentHash = new URL(page.url()).hash;
+  if (currentHash === targetHash) {
+    await setHash("#/dashboard");
+    await poll(() => /#\/dashboard$/.test(page.url()), "Could not leave Tracking before revisit");
+    await page.waitForTimeout(120);
+  }
+  await setHash(targetHash);
   await waitTracking(id);
 }
 
@@ -481,8 +494,12 @@ try {
     const beforeVersion = lifecycle.get("qa-opportunity-1").snapshot.version;
     await setTrackingFields({ status: "OWNED", outcome: "ACQUIRED" });
     await submitTracking();
-    await poll(() => calls.lifecyclePut.length > beforePuts, "Incomplete OWNED save did not reach the governed lifecycle boundary");
-    await page.locator("#main-content .staging-error").waitFor({ state: "visible", timeout: 7000 });
+    const validation = page.locator("#main-content [data-lifecycle-client-validation]");
+    await validation.waitFor({ state: "visible", timeout: 7000 });
+    const validationText = await validation.innerText();
+    expect(calls.lifecyclePut.length === beforePuts, "Incomplete OWNED save bypassed customer validation and reached the server");
+    expect(/purchase cost/i.test(validationText) && /purchase date/i.test(validationText), "Incomplete OWNED guidance did not explain the visible required fields");
+    expect(!/set Outcome|Outcome to ACQUIRED/i.test(validationText), "Incomplete OWNED guidance exposed the hidden derived outcome field");
     expect(lifecycle.get("qa-opportunity-1").snapshot.version === beforeVersion, "Rejected OWNED transition mutated the server record");
     expect(lifecycle.get("qa-opportunity-1").snapshot.trackingStatus === "WATCHING", "Rejected OWNED transition changed tracking status");
     await reloadTracking("qa-opportunity-1");
@@ -522,8 +539,15 @@ try {
     const record = lifecycle.get("qa-opportunity-1");
     const staleExpectedVersion = Number(await page.locator("#main-content [data-lifecycle-form] input[name='expectedVersion']").inputValue());
     expect(staleExpectedVersion === 3, `Expected browser version 3 before conflict, saw ${staleExpectedVersion}`);
-    record.snapshot = { ...record.snapshot, trackingStatus: "REVIEW", version: 4 };
-    record.history.unshift({ recordedAt: "2026-08-31T16:04:30Z", eventType: "EXTERNAL_UPDATE", trackingStatus: "REVIEW", outcomeStatus: record.snapshot.outcomeStatus, recordVersion: 4 });
+    record.snapshot = {
+      ...record.snapshot,
+      trackingStatus: "REVIEW",
+      outcomeStatus: "NONE",
+      reviewAt: "2026-09-04T15:00:00.000Z",
+      alertEnabled: true,
+      version: 4
+    };
+    record.history.unshift({ recordedAt: "2026-08-31T16:04:30Z", eventType: "EXTERNAL_UPDATE", trackingStatus: "REVIEW", outcomeStatus: "NONE", recordVersion: 4 });
     const beforeHistory = record.history.length;
     await setTrackingFields({ status: "PASSED", outcome: "PASSED" });
     const beforePuts = calls.lifecyclePut.length;
@@ -539,7 +563,7 @@ try {
   await runScenario("navigation away during slow save cannot repaint stale Tracking over Card Intelligence", async () => {
     const beforePuts = calls.lifecyclePut.length;
     slowNextLifecyclePut = true;
-    await setTrackingFields({ status: "REVIEW", outcome: "ACQUIRED", cost: "800.00", acquired: "2026-08-31", reviewAt: "2026-09-04T15:00" });
+    await setTrackingFields({ status: "REVIEW", outcome: "NONE", reviewAt: "2026-09-04T15:00", alert: true });
     await submitTracking();
     await poll(() => calls.lifecyclePut.length > beforePuts, "Slow lifecycle write did not start");
     await page.evaluate(() => { window.location.hash = "#/opportunities/qa-opportunity-1"; });
