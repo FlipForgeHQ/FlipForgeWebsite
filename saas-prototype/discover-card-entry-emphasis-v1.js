@@ -64,6 +64,41 @@
     }, 80);
   }
 
+  function liveDiscoverControls() {
+    const main = document.querySelector(MAIN);
+    const form = main?.querySelector("[data-customer-discovery-form]");
+    const input = form?.querySelector('input[name="exactCardQuery"]');
+    const searchButton = form?.querySelector('button[type="submit"]');
+    const identifyButton = form?.querySelector("[data-discovery-find-exact]");
+    return { form, input, searchButton, identifyButton };
+  }
+
+  function runFindExactFromChooser() {
+    const current = liveDiscoverControls();
+    if (!current.input || !current.identifyButton || current.identifyButton.disabled) return;
+    focusInput(current.input);
+    if (!String(current.input.value || "").trim()) return;
+    window.setTimeout(() => {
+      const live = liveDiscoverControls();
+      if (!live.input || !live.identifyButton || live.identifyButton.disabled) return;
+      if (!String(live.input.value || "").trim()) return;
+      live.identifyButton.click();
+    }, 120);
+  }
+
+  function runActiveSearchFromChooser() {
+    const current = liveDiscoverControls();
+    if (!current.form || !current.input || !current.searchButton || current.searchButton.disabled) return;
+    focusInput(current.input);
+    if (!String(current.input.value || "").trim()) return;
+    window.setTimeout(() => {
+      const live = liveDiscoverControls();
+      if (!live.form || !live.input || !live.searchButton || live.searchButton.disabled) return;
+      if (!String(live.input.value || "").trim()) return;
+      live.form.requestSubmit?.();
+    }, 120);
+  }
+
   function ensureStartChooser(form, input, searchButton, identifyButton) {
     if (!form || !input || !searchButton || !identifyButton) return;
     ensureStartStyles();
@@ -95,18 +130,12 @@
     const findStart = panel.querySelector("[data-ff-discover-start-find]");
     if (findStart && findStart.dataset.ffBound !== "1") {
       findStart.dataset.ffBound = "1";
-      findStart.addEventListener("click", () => {
-        focusInput(input);
-        if (String(input.value || "").trim()) window.setTimeout(() => identifyButton.click(), 120);
-      });
+      findStart.addEventListener("click", runFindExactFromChooser);
     }
     const searchStart = panel.querySelector("[data-ff-discover-start-search]");
     if (searchStart && searchStart.dataset.ffBound !== "1") {
       searchStart.dataset.ffBound = "1";
-      searchStart.addEventListener("click", () => {
-        focusInput(input);
-        if (String(input.value || "").trim()) window.setTimeout(() => form.requestSubmit?.(), 120);
-      });
+      searchStart.addEventListener("click", runActiveSearchFromChooser);
     }
   }
 
