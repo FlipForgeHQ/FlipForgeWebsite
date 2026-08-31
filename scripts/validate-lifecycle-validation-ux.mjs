@@ -56,7 +56,10 @@ const validate = window.FlipForgeLifecycleValidation.validate;
 
 let result = validate(form({ trackingStatus: "OWNED", outcomeStatus: "NONE" }));
 assert.equal(result.ok, false);
-assert.match(result.message, /set Outcome to ACQUIRED/i);
+assert.match(result.message, /purchase cost/i);
+assert.match(result.message, /purchase date/i);
+assert.match(result.message, /records the matching result automatically/i);
+assert.doesNotMatch(result.message, /set Outcome/i);
 assert.deepEqual(Array.from(result.fields), ["outcomeStatus", "acquisitionCost", "acquiredAt"]);
 
 result = validate(form({
@@ -69,13 +72,18 @@ assert.equal(result.ok, true);
 
 result = validate(form({ trackingStatus: "SOLD", outcomeStatus: "SOLD" }));
 assert.equal(result.ok, false);
-assert.match(result.message, /complete the acquisition cost/i);
+assert.match(result.message, /purchase cost/i);
+assert.match(result.message, /sale proceeds/i);
+assert.match(result.message, /records the matching result automatically/i);
+assert.doesNotMatch(result.message, /set Outcome/i);
 assert.ok(result.fields.includes("dispositionProceeds"));
 assert.ok(result.fields.includes("disposedAt"));
 
 result = validate(form({ trackingStatus: "PASSED", outcomeStatus: "NONE" }));
 assert.equal(result.ok, false);
-assert.match(result.message, /set Outcome to PASSED/i);
+assert.match(result.message, /choose Passed again/i);
+assert.doesNotMatch(result.message, /set Outcome/i);
+assert.deepEqual(Array.from(result.fields), ["trackingStatus"]);
 
 result = validate(form({ trackingStatus: "REVIEW", alertEnabled: true }));
 assert.equal(result.ok, false);
@@ -102,6 +110,9 @@ assert.match(source, /event\.preventDefault\(\)/);
 assert.match(source, /event\.stopImmediatePropagation\(\)/);
 assert.match(source, /Nothing was saved/);
 assert.match(source, /aria-invalid/);
+assert.doesNotMatch(source, /set Outcome to ACQUIRED/i);
+assert.doesNotMatch(source, /set Outcome to SOLD/i);
+assert.doesNotMatch(source, /set Outcome to PASSED/i);
 
 const displayDocument = {
   querySelector() { return null; },

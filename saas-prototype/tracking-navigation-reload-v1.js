@@ -152,7 +152,10 @@
   }
 
   document.addEventListener("click", event => {
-    const link = event.target.closest?.('a[data-ff-evidence-understood], .ff-evidence-next-step a[href^="#/tracking/"]');
+    // Every exact Tracking transition uses the reload boundary. This prevents
+    // an older route renderer from repainting #main-content after the customer
+    // has already moved to a different saved decision.
+    const link = event.target.closest?.('a[href^="#/tracking/"]');
     if (!link || !isPlainLeftClick(event)) return;
 
     const id = trackingIdFromHref(link.getAttribute("href"));

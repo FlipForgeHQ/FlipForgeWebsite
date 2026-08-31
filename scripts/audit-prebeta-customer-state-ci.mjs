@@ -295,9 +295,20 @@ async function waitForForm() {
   await queryInput().waitFor({ state: "visible", timeout: 7000 });
 }
 
-async function resetDiscover() {
-  await page.goto(`${baseUrl}/#/discover`, { waitUntil: "domcontentloaded", timeout: 10_000 });
+async function openDiscover() {
+  if (!page.url().startsWith(baseUrl)) {
+    await page.goto(`${baseUrl}/#/discover`, { waitUntil: "domcontentloaded", timeout: 10_000 });
+  } else if (!/#\/discover$/.test(page.url())) {
+    const discoverNav = page.locator('a[href="#/discover"]').first();
+    await discoverNav.waitFor({ state: "visible", timeout: 5000 });
+    await discoverNav.click();
+    await poll(() => /#\/discover$/.test(page.url()), "Discover route did not settle after customer navigation", 5000);
+  }
   await waitForForm();
+}
+
+async function resetDiscover() {
+  await openDiscover();
   await page.evaluate(() => {
     sessionStorage.removeItem("flipforge.discover.lastSearch.v2");
     sessionStorage.removeItem("flipforge.discover.resetLimit.v2");
@@ -560,8 +571,7 @@ try {
     await evaluate.click();
     await poll(() => calls.evaluation.length > evalBefore, "Explicit evaluation request did not run");
     await poll(() => /#\/opportunities\/qa-opportunity-1$/.test(page.url()), "Evaluation did not hand off to the saved opportunity route");
-    await page.goto(`${baseUrl}/#/discover`, { waitUntil: "domcontentloaded", timeout: 10_000 });
-    await waitForForm();
+    await openDiscover();
     const discoverBefore = calls.discover.length;
     await fillQuery(identities.ohtani9.canonical);
     await searchButton().click();

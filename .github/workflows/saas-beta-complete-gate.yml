@@ -8,11 +8,15 @@ on:
       - "scripts/validate-saas-*.mjs"
       - "scripts/validate-prebeta-customer-state-audit.mjs"
       - "scripts/audit-prebeta-customer-state-ci.mjs"
+      - "scripts/validate-prebeta-saved-decision-lifecycle-audit.mjs"
+      - "scripts/audit-prebeta-saved-decision-lifecycle-ci.mjs"
       - "package.json"
       - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
       - "docs/SAAS_BETA_COMPLETE_LIVE_QA.md"
       - "docs/PREBETA_CUSTOMER_STATE_AUDIT.md"
+      - "docs/PREBETA_SAVED_DECISION_LIFECYCLE_AUDIT.md"
       - ".github/workflows/prebeta-customer-state-audit.yml"
+      - ".github/workflows/prebeta-saved-decision-lifecycle-audit.yml"
       - ".github/workflows/saas-beta-complete-gate.yml"
   push:
     branches:
@@ -46,6 +50,9 @@ jobs:
 
       - name: Validate destructive customer-state audit is wired
         run: node scripts/validate-prebeta-customer-state-audit.mjs
+
+      - name: Validate destructive saved-decision lifecycle audit is wired
+        run: node scripts/validate-prebeta-saved-decision-lifecycle-audit.mjs
 
       - name: Validate production customer loop
         run: node scripts/validate-saas-core-production-loop.mjs

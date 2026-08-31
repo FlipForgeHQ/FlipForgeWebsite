@@ -213,8 +213,17 @@ async function stubIdentity(page) {
 }
 
 async function auditPage(page) {
-  return page.evaluate(minimum => {
+  return page.evaluate(async minimum => {
     document.querySelectorAll("details").forEach(detail => { detail.open = true; });
+
+    // Programmatically opening collapsed details exposes text in the same JS
+    // turn. Give the real production typography floor the animation frames it
+    // receives after a customer toggle before measuring the newly visible text.
+    if (window.FlipForgeCustomerTypographyFloor
+        && typeof window.FlipForgeCustomerTypographyFloor.rescan === "function") {
+      window.FlipForgeCustomerTypographyFloor.rescan();
+    }
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     const excluded = [
       "script",
@@ -289,6 +298,25 @@ async function auditPage(page) {
   }, minimumTextPx);
 }
 
+function navigationRace(error) {
+  return /execution context was destroyed|most likely because of a navigation|frame was detached/i.test(String(error?.message || error || ""));
+}
+
+async function afterRouteSettles(page, operation) {
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!navigationRace(error) || attempt === 2) throw error;
+      await page.waitForLoadState("domcontentloaded", { timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(250);
+    }
+  }
+  throw lastError;
+}
+
 async function runRoute(browser, viewportName, width, height, route) {
   const context = await browser.newContext({ viewport: { width, height } });
   const page = await context.newPage();
@@ -299,18 +327,16 @@ async function runRoute(browser, viewportName, width, height, route) {
       contentType: "application/json; charset=utf-8",
       body: JSON.stringify(apiFixture(routeHandler.request()))
     }));
-    await page.route("**/staging-route-hook.js", routeHandler => routeHandler.fulfill({
-      status: 200,
-      contentType: "text/javascript; charset=utf-8",
-      body: "(() => {})();"
-    }));
 
+    // Typography must be measured on the same production route stack customers
+    // use. Stubbing staging-route-hook.js creates legacy-shell ownership churn
+    // and measures text that the governed customer renderer would replace.
     await page.goto(`${baseUrl}/#/${route}`, { waitUntil: "domcontentloaded", timeout: 10_000 });
     await page.waitForSelector("#main-content", { state: "attached", timeout: 5_000 });
     await page.waitForTimeout(500);
 
-    const heading = (await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => ""))?.trim() || "";
-    const issues = await auditPage(page);
+    const heading = await afterRouteSettles(page, async () => (await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => ""))?.trim() || "");
+    const issues = await afterRouteSettles(page, () => auditPage(page));
     return { route, viewport: viewportName, size: `${width}x${height}`, heading, issues };
   } finally {
     await context.close();

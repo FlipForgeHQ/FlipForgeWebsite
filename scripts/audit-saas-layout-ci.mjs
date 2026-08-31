@@ -201,22 +201,43 @@ async function waitForPage(page) {
   await page.waitForTimeout(350);
 }
 
+function navigationRace(error) {
+  return /execution context was destroyed|most likely because of a navigation|frame was detached/i.test(String(error?.message || error || ""));
+}
+
+async function afterRouteSettles(page, operation) {
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!navigationRace(error) || attempt === 2) throw error;
+      await page.waitForLoadState("domcontentloaded", { timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(250);
+    }
+  }
+  throw lastError;
+}
+
 async function auditPrototype(browser, viewportName, width, height, route) {
   const context = await browser.newContext({ viewport: { width, height } });
   const page = await context.newPage();
   try {
     await stubIdentity(page);
     await page.route("**/api/v1/**", routeHandler => routeHandler.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: JSON.stringify(apiFixture(routeHandler.request())) }));
-    await page.route("**/staging-route-hook.js", request => request.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: "(() => {})();" }));
+    // Keep the real staging-route-hook.js active. It is the production route
+    // renderer that the customer route-ownership guard re-dispatches when a
+    // legacy shell paints late. Stubbing it creates an artificial repair loop.
     await page.goto(`${baseUrl}/#/${route}`, { waitUntil: "domcontentloaded", timeout: 10_000 });
     await waitForPage(page);
     if (route === "dashboard") {
       await page.waitForSelector("[data-commercial-dashboard-v2]", { timeout: 5000 });
       await page.waitForTimeout(120);
     }
-    const heading = (await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => ""))?.trim() || "";
-    const measured = await measure(page);
-    const semanticFailures = route === "dashboard" ? await dashboardSemantics(page) : [];
+    const heading = await afterRouteSettles(page, async () => (await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => ""))?.trim() || "");
+    const measured = await afterRouteSettles(page, () => measure(page));
+    const semanticFailures = route === "dashboard" ? await afterRouteSettles(page, () => dashboardSemantics(page)) : [];
     return { mode: "prototype", route, viewport: viewportName, size: `${width}x${height}`, heading, failures: [...semanticFailures, ...measured.failures], warnings: measured.warnings };
   } finally {
     await context.close();
@@ -231,8 +252,8 @@ async function auditCustomerStress(browser, viewportName, width, height) {
     await page.route("**/api/v1/**", route => route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: JSON.stringify(apiFixture(route.request())) }));
     await page.goto(`${baseUrl}/#/opportunities/${stressId}`, { waitUntil: "domcontentloaded", timeout: 10_000 });
     await waitForPage(page);
-    const heading = (await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => ""))?.trim() || "";
-    const measured = await measure(page);
+    const heading = await afterRouteSettles(page, async () => (await page.locator("#main-content h1, #main-content h2").first().textContent().catch(() => ""))?.trim() || "");
+    const measured = await afterRouteSettles(page, () => measure(page));
     return { mode: "customer-stress", route: `opportunities/${stressId}`, viewport: viewportName, size: `${width}x${height}`, heading, ...measured };
   } finally {
     await context.close();

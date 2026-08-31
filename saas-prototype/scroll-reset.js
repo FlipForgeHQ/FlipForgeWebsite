@@ -1,6 +1,15 @@
 (() => {
   "use strict";
 
+  function loadRouteOwnershipAssets() {
+    if (document.querySelector('script[data-ff-customer-route-ownership]')) return;
+    const script = document.createElement("script");
+    script.src = "customer-route-ownership-v1.js?v=20260831-1";
+    script.async = false;
+    script.dataset.ffCustomerRouteOwnership = "v1";
+    document.head.appendChild(script);
+  }
+
   function loadDecisionClarityAssets() {
     if (!document.querySelector('link[data-ff-decision-clarity]')) {
       const stylesheet = document.createElement("link");
@@ -138,6 +147,10 @@
     const observer = new MutationObserver(syncRoutePresentation);
     observer.observe(main, { childList: true, subtree: true });
   }
+
+  // Customer route ownership prevents a late async completion from an old page
+  // from reclaiming the workspace after the customer has already navigated away.
+  loadRouteOwnershipAssets();
 
   // Customer clarity layers are presentation-only and are loaded through this
   // production-safe shell utility rather than through the prototype visual loader.
