@@ -14,6 +14,12 @@
     tracking: ".customer-lifecycle-page",
     portfolio: ".customer-portfolio-page",
     alerts: ".customer-lifecycle-page",
+    "forge-heat": ".forge-heat-shell",
+    "market-view": ".market-view-shell",
+    compare: ".customer-compare-page",
+    "psa-advisor": ".customer-intelligence-page",
+    evidence: ".customer-management-page",
+    sell: ".customer-management-page",
     export: ".customer-export-page"
   });
 
@@ -80,10 +86,6 @@
     if (!intentStillActive()) return false;
     const current = normalizedHash();
     if (current === explicitIntent.hash) {
-      // Keep a short stabilization claim after the requested route first wins.
-      // Older async work from the previous screen can otherwise redirect the
-      // customer back a few milliseconds later. A new customer click replaces
-      // this intent, and Back/Forward explicitly clears it below.
       markIntentReached();
       return false;
     }
@@ -107,12 +109,27 @@
       && adapter.isEligible());
   }
 
+  function managementAdapterReady(route) {
+    const adapter = window.FlipForgeCustomerManagement;
+    return Boolean(adapter
+      && typeof adapter.render === "function"
+      && typeof adapter.handles === "function"
+      && adapter.handles(route)
+      && typeof adapter.isEligible === "function"
+      && adapter.isEligible());
+  }
+
+  function simpleAdapterReady(adapter) {
+    return Boolean(adapter
+      && typeof adapter.render === "function"
+      && typeof adapter.isEligible === "function"
+      && adapter.isEligible());
+  }
+
   function adapterReady(route) {
     switch (route) {
-      case "discover": {
-        const adapter = window.FlipForgeCustomerDiscovery;
-        return Boolean(adapter && typeof adapter.render === "function" && typeof adapter.isEligible === "function" && adapter.isEligible());
-      }
+      case "discover":
+        return simpleAdapterReady(window.FlipForgeCustomerDiscovery);
       case "opportunities": {
         const adapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
         if (!adapter || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
@@ -121,17 +138,19 @@
       case "tracking":
       case "alerts":
         return lifecycleAdapterReady(route);
-      case "portfolio": {
-        // staging-route-hook intentionally gives Portfolio to the specialized
-        // Portfolio adapter before the generic lifecycle fallback. Ownership
-        // must follow that same priority or the guard will continually reject
-        // the correct Portfolio page and redispatch the current hash forever.
-        const adapter = window.FlipForgeCustomerPortfolio;
-        return Boolean(adapter
-          && typeof adapter.render === "function"
-          && typeof adapter.isEligible === "function"
-          && adapter.isEligible());
-      }
+      case "portfolio":
+        return simpleAdapterReady(window.FlipForgeCustomerPortfolio);
+      case "forge-heat":
+        return simpleAdapterReady(window.FlipForgeCustomerForgeHeat);
+      case "market-view":
+        return simpleAdapterReady(window.FlipForgeCustomerMarketView);
+      case "compare":
+        return simpleAdapterReady(window.FlipForgeCustomerCompare);
+      case "psa-advisor":
+        return simpleAdapterReady(window.FlipForgeCustomerPsaAdvisor);
+      case "evidence":
+      case "sell":
+        return managementAdapterReady(route);
       case "export": {
         const adapter = window.FlipForgeCustomerExport;
         return Boolean(adapter
@@ -155,10 +174,6 @@
     if (!main || !main.children.length) return true;
     if (main.querySelector(expected)) return true;
 
-    // Once the governed adapter for this route is available, any non-empty
-    // workspace without its expected customer page is stale ownership. This
-    // intentionally includes generic legacy shell pages such as app.js's
-    // dashboard fallback; allowing those pages to remain was the route race.
     if (!adapterReady(route)) return true;
     return false;
   }
@@ -171,9 +186,6 @@
     repairing = true;
     lastRepairAt = Date.now();
     try {
-      // staging-route-hook owns authoritative route rendering. Re-dispatching the
-      // current route lets it repaint the correct adapter without creating a new
-      // history entry or changing recommendation/evidence/transaction authority.
       window.dispatchEvent(new HashChangeEvent("hashchange", {
         oldURL: window.location.href,
         newURL: window.location.href
@@ -202,8 +214,6 @@
     rememberExplicitIntent(href);
   }, true);
 
-  // Browser history is itself an explicit navigation. Never let a prior click's
-  // stabilization claim interfere with Back/Forward semantics.
   window.addEventListener("popstate", clearExplicitIntent, true);
 
   window.addEventListener("hashchange", () => {
