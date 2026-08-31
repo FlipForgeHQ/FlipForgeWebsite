@@ -207,7 +207,10 @@ async function auditPrototype(browser, viewportName, width, height, route) {
   try {
     await stubIdentity(page);
     await page.route("**/api/v1/**", routeHandler => routeHandler.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: JSON.stringify(apiFixture(routeHandler.request())) }));
-    await page.route("**/staging-route-hook.js", request => request.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: "(() => {})();" }));
+    // Keep the real staging-route-hook.js active. It is the production route
+    // renderer that the customer route-ownership guard re-dispatches when a
+    // legacy shell paints late. Stubbing it creates an artificial repair loop
+    // and destroys the browser execution context during layout measurement.
     await page.goto(`${baseUrl}/#/${route}`, { waitUntil: "domcontentloaded", timeout: 10_000 });
     await waitForPage(page);
     if (route === "dashboard") {
