@@ -6,7 +6,7 @@ const checks = [
   ["search busy is limited to actual search and identity actions", source.includes("return Boolean(primary?.disabled || identify?.disabled)")],
   ["changed card identity is detected against the previous completed search", source.includes("function editingDifferentSearch(target, previous)") && source.includes("current !== normalizedQuery(previous.query)")],
   ["typing a changed card identity re-runs control synchronization", source.includes('document.addEventListener("input"') && source.includes("queue();")],
-  ["a changed card draft removes stale refresh/new-search controls", source.includes("hasNewQueryDraft") && source.includes("if (!hasLiveResults || !previous || hasNewQueryDraft)") && source.includes("removeResultControls(actions)")],
+  ["a changed card draft removes stale refresh/new-search controls", source.includes("hasNewQueryDraft") && source.includes("if (hasNewQueryDraft)") && source.includes("removeResultControls(actions)")],
   ["new-query detection does not persist or authorize anything", !/localStorage|indexedDB|document\.cookie|transactionAuthority|BUY|WATCH|PASS/.test(source)]
 ];
 
