@@ -560,7 +560,7 @@ try {
     await evaluate.click();
     await poll(() => calls.evaluation.length > evalBefore, "Explicit evaluation request did not run");
     await poll(() => /#\/opportunities\/qa-opportunity-1$/.test(page.url()), "Evaluation did not hand off to the saved opportunity route");
-    await page.evaluate(() => { window.location.hash = "#/discover"; });
+    await page.goto(`${baseUrl}/#/discover`, { waitUntil: "domcontentloaded", timeout: 10_000 });
     await waitForForm();
     const discoverBefore = calls.discover.length;
     await fillQuery(identities.ohtani9.canonical);
