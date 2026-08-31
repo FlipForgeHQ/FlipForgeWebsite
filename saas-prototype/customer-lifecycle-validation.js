@@ -71,7 +71,7 @@
       if (!acquiredAt) missing.push("acquiredAt");
       if (missing.length) {
         return result(
-          "To mark this card as OWNED, set Outcome to ACQUIRED and enter the acquisition cost and acquired date.",
+          "To mark this card as Owned, enter the purchase cost and purchase date. FlipForge records the matching result automatically.",
           missing
         );
       }
@@ -86,7 +86,7 @@
       if (!disposedAt) missing.push("disposedAt");
       if (missing.length) {
         return result(
-          "To mark this card as SOLD, set Outcome to SOLD and complete the acquisition cost, acquired date, disposition proceeds, and disposition date.",
+          "To mark this card as Sold, complete the purchase cost, purchase date, sale proceeds, and sale date. FlipForge records the matching result automatically.",
           missing
         );
       }
@@ -94,8 +94,8 @@
 
     if (tracking === "PASSED" && outcome !== "PASSED") {
       return result(
-        "To mark this card as PASSED, set Outcome to PASSED.",
-        ["outcomeStatus"]
+        "FlipForge could not align the saved result with Passed. Choose Passed again and retry; nothing was saved.",
+        ["trackingStatus"]
       );
     }
 
@@ -127,7 +127,7 @@
       const control = field(form, name);
       if (!control) return;
       control.setAttribute("aria-invalid", "true");
-      if (!first) first = control;
+      if (!first && !control.closest?.("[hidden]") && control.offsetParent !== null) first = control;
     });
     first?.focus({ preventScroll: true });
     panel.scrollIntoView({ block: "nearest", behavior: "smooth" });
