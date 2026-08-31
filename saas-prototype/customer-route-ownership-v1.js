@@ -11,7 +11,7 @@
     discover: ".customer-discovery-page",
     opportunities: ".customer-intelligence-page",
     tracking: ".customer-lifecycle-page",
-    portfolio: ".customer-lifecycle-page",
+    portfolio: ".customer-portfolio-page",
     alerts: ".customer-lifecycle-page",
     export: ".customer-export-page"
   });
@@ -64,6 +64,16 @@
     return true;
   }
 
+  function lifecycleAdapterReady(route) {
+    const adapter = window.FlipForgeCustomerLifecycle;
+    return Boolean(adapter
+      && typeof adapter.render === "function"
+      && typeof adapter.handles === "function"
+      && adapter.handles(route)
+      && typeof adapter.isEligible === "function"
+      && adapter.isEligible());
+  }
+
   function adapterReady(route) {
     switch (route) {
       case "discover": {
@@ -76,13 +86,16 @@
         return typeof adapter.renderCustomer === "function" || typeof adapter.render === "function";
       }
       case "tracking":
-      case "portfolio":
-      case "alerts": {
-        const adapter = window.FlipForgeCustomerLifecycle;
+      case "alerts":
+        return lifecycleAdapterReady(route);
+      case "portfolio": {
+        // staging-route-hook intentionally gives Portfolio to the specialized
+        // Portfolio adapter before the generic lifecycle fallback. Ownership
+        // must follow that same priority or the guard will continually reject
+        // the correct Portfolio page and redispatch the current hash forever.
+        const adapter = window.FlipForgeCustomerPortfolio;
         return Boolean(adapter
           && typeof adapter.render === "function"
-          && typeof adapter.handles === "function"
-          && adapter.handles(route)
           && typeof adapter.isEligible === "function"
           && adapter.isEligible());
       }
