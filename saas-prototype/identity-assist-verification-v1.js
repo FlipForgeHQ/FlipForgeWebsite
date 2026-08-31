@@ -76,7 +76,7 @@
     const message = panel.querySelector(".customer-discovery-identity-message");
     if (!message) return;
     if (hasSelectable) {
-      message.innerHTML = `<strong>Exact card match found.</strong><span>Confirm the exact card below to search connected listings. FlipForge will not choose one for you. Other possible variants can still be selected for server verification.</span>`;
+      message.innerHTML = `<strong>Exact card match found.</strong><span>FlipForge will not choose one for you. Use the highlighted exact match if it is the card you mean. Other possible variants must be explicitly selected and re-verified server-side before marketplace search.</span>`;
       message.classList.add("ff-identity-assist-explained", "ff-identity-exact-found");
       return;
     }
@@ -123,15 +123,21 @@
     const rows = [...panel.querySelectorAll(".customer-discovery-identity-option")];
     const selectableRows = rows.filter(row => row.querySelector("[data-discovery-use-identity]"));
     const hasSelectable = selectableRows.length > 0;
+    const primarySelectableRow = selectableRows[0] || null;
     let reviewCount = 0;
 
     rows.forEach((row, index) => {
       cleanInheritedGrade(row, originalQuery);
       const useButton = row.querySelector("[data-discovery-use-identity]");
       if (useButton) {
+        const isPrimary = row === primarySelectableRow;
         row.classList.add("ff-identity-selectable");
-        row.classList.remove("ff-identity-secondary", "ff-identity-hidden");
-        useButton.textContent = "Use exact match";
+        row.classList.toggle("ff-identity-primary", isPrimary);
+        row.classList.toggle("ff-identity-secondary", !isPrimary);
+        row.classList.remove("ff-identity-hidden");
+        useButton.textContent = isPrimary ? "Use exact match" : "Select & verify";
+        useButton.classList.toggle("button-primary", isPrimary);
+        useButton.classList.toggle("button-secondary", !isPrimary);
         return;
       }
 

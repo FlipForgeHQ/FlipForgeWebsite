@@ -101,7 +101,7 @@ check("059 production account validator exists", exists("scripts/validate-saas-p
 check("060 live QA protects secret handling", ["service tokens", "provider credentials", "raw JWTs", "tenant IDs"].every(value => liveQa.includes(value)));
 
 check("061 Discover exact-card action is unmistakable", discoverEmphasis.includes('searchButton.textContent = "Search active listings"') && discoverEmphasis.includes('identifyButton.textContent = "Find exact card"') && discoverEmphasis.includes('data-ff-discover-start-find') && discoverEmphasis.includes('<strong>Find exact card</strong>'));
-check("062 Discover exact candidate is primary", identityAssistVerification.includes('useButton.textContent = "Use exact match"') && identityAssistVerification.includes("ff-identity-selectable"));
+check("062 Discover exact candidate is primary", identityAssistVerification.includes("const primarySelectableRow = selectableRows[0] || null") && identityAssistVerification.includes('useButton.textContent = isPrimary ? "Use exact match" : "Select & verify"') && identityAssistVerification.includes('useButton.classList.toggle("button-primary", isPrimary)'));
 check("063 Discover variants use progressive disclosure", identityAssistVerification.includes("COLLAPSED_REVIEW_COUNT = 4") && identityAssistVerification.includes("ff-identity-hidden") && identityAssistVerification.includes("Show ${hiddenCount}"));
 check("064 Discover entered grade is consolidated", identityAssistVerification.includes("Grade filter from your search") && identityAssistVerification.includes("cleanInheritedGrade"));
 check("065 Discover result controls wait for live results", discoverControls.includes("if (!hasLiveResults || !previous)") && discoverControls.includes("removeResultControls(actions)"));
