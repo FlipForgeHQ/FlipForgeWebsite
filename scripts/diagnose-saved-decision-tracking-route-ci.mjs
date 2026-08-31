@@ -64,7 +64,7 @@ const lifecycle = {
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1365, height: 900 } });
 const page = await context.newPage();
-page.setDefaultTimeout(8_000);
+page.setDefaultTimeout(5_000);
 page.setDefaultNavigationTimeout(10_000);
 
 try {
@@ -137,9 +137,14 @@ try {
 
   await page.goto(`${baseUrl}/#/opportunities/${id}`, { waitUntil: "domcontentloaded", timeout: 10_000 });
   await page.waitForTimeout(900);
-  console.log(`DIAG BEFORE URL | ${page.url()}`);
-  console.log(`DIAG BEFORE PAGE | ${await page.locator("#main-content > *").first().getAttribute("class").catch(() => "")}`);
-  console.log(`DIAG GUIDE MODAL | ${await page.locator("#ff-guided-mode-welcome").count()}`);
+  const before = await page.evaluate(() => ({
+    url: window.location.href,
+    firstClass: document.querySelector("#main-content > *")?.className || "",
+    guideCount: document.querySelectorAll("#ff-guided-mode-welcome").length
+  }));
+  console.log(`DIAG BEFORE URL | ${before.url}`);
+  console.log(`DIAG BEFORE PAGE | ${before.firstClass}`);
+  console.log(`DIAG GUIDE MODAL | ${before.guideCount}`);
 
   const links = page.locator(`#main-content a[href='#/tracking/${id}']`);
   const count = await links.count();
@@ -155,16 +160,24 @@ try {
   console.log("DIAG CLICK | returned from exact Tracking click");
   await page.waitForTimeout(1500);
 
-  console.log(`DIAG AFTER URL | ${page.url()}`);
-  console.log(`DIAG AFTER HASH | ${await page.evaluate(() => window.location.hash)}`);
-  console.log(`DIAG AFTER PAGE | ${await page.locator("#main-content > *").first().getAttribute("class").catch(() => "")}`);
-  console.log(`DIAG AFTER H1 | ${await page.locator("#main-content h1").first().textContent().catch(() => "")}`);
-  console.log(`DIAG FORM COUNT | ${await page.locator("#main-content [data-lifecycle-form]").count()}`);
-  console.log(`DIAG ERROR | ${await page.locator("#main-content .staging-error").first().innerText().catch(() => "")}`);
+  const after = await page.evaluate(() => ({
+    url: window.location.href,
+    hash: window.location.hash,
+    firstClass: document.querySelector("#main-content > *")?.className || "",
+    h1: document.querySelector("#main-content h1")?.textContent || "",
+    formCount: document.querySelectorAll("#main-content [data-lifecycle-form]").length,
+    error: document.querySelector("#main-content .staging-error")?.textContent?.replace(/\s+/g, " ").trim() || ""
+  }));
+  console.log(`DIAG AFTER URL | ${after.url}`);
+  console.log(`DIAG AFTER HASH | ${after.hash}`);
+  console.log(`DIAG AFTER PAGE | ${after.firstClass}`);
+  console.log(`DIAG AFTER H1 | ${after.h1}`);
+  console.log(`DIAG FORM COUNT | ${after.formCount}`);
+  console.log(`DIAG ERROR | ${after.error}`);
   console.log(`DIAG API SEQUENCE | ${apiCalls.join(" -> ")}`);
 
-  if (!/#\/tracking\/qa-opportunity-1$/.test(page.url())) throw new Error("Tracking hash did not remain active.");
-  if (await page.locator("#main-content [data-lifecycle-form]").count() !== 1) throw new Error("Tracking form did not mount after real Track click.");
+  if (!/#\/tracking\/qa-opportunity-1$/.test(after.url)) throw new Error("Tracking hash did not remain active.");
+  if (after.formCount !== 1) throw new Error("Tracking form did not mount after real Track click.");
 } finally {
   await context.close();
   await browser.close();
