@@ -148,7 +148,7 @@ try {
   }
 
   if (!count) throw new Error("No Track link rendered on saved decision.");
-  await links.first().click();
+  await links.first().click({ force: true });
   await page.waitForTimeout(1500);
 
   console.log(`DIAG AFTER URL | ${page.url()}`);
