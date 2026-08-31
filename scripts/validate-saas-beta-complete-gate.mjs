@@ -112,6 +112,12 @@ check("069 Discover defers ranking explanation to server-owned factors", discove
 check("070 imperfect-identity browser validator exists", exists("scripts/audit-discover-identity-assist-ci.mjs"));
 check("071 visual QA executes imperfect-identity resolution gate", fullSiteVisualQa.includes("Gate Discover imperfect-identity resolution") && fullSiteVisualQa.includes("node scripts/audit-discover-identity-assist-ci.mjs"));
 
+check("072 destructive cross-surface browser audit exists", exists("scripts/audit-prebeta-cross-surface-ci.mjs"));
+check("073 destructive cross-surface audit workflow exists", exists(".github/workflows/prebeta-cross-surface-audit.yml"));
+check("074 destructive cross-surface audit policy exists", exists("docs/PREBETA_CROSS_SURFACE_AUDIT.md"));
+check("075 destructive cross-surface assurance exists", exists("scripts/validate-prebeta-cross-surface-audit.mjs"));
+check("076 destructive cross-surface audit covers all remaining customer surfaces", ["alerts", "portfolio", "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell"].every(route => read("scripts/audit-prebeta-cross-surface-ci.mjs").includes(`\"${route}`)));
+
 const failures = results.filter(result => !result.passed);
 console.log("FlipForge SaaS Beta Complete Static Gate");
 console.log(`PASSED: ${results.length - failures.length}`);

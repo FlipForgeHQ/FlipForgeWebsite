@@ -5,6 +5,7 @@
 
   const MAIN_SELECTOR = "#main-content";
   const INTENT_WINDOW_MS = 3000;
+  const INTENT_SETTLE_MS = 800;
   const REPAIR_COOLDOWN_MS = 120;
 
   const expectedPageByRoute = Object.freeze({
@@ -13,10 +14,17 @@
     tracking: ".customer-lifecycle-page",
     portfolio: ".customer-portfolio-page",
     alerts: ".customer-lifecycle-page",
+    "forge-heat": ".forge-heat-shell",
+    "market-view": ".market-view-shell",
+    compare: ".customer-compare-page",
+    "psa-advisor": ".customer-intelligence-page",
+    evidence: ".customer-management-page",
+    sell: ".customer-management-page",
     export: ".customer-export-page"
   });
 
-  let explicitIntent = { hash: "", until: 0 };
+  let explicitIntent = { hash: "", until: 0, serial: 0, reached: false };
+  let intentSerial = 0;
   let ownershipCheckQueued = false;
   let repairing = false;
   let lastRepairAt = 0;
@@ -43,35 +51,49 @@
   function rememberExplicitIntent(hash) {
     const value = normalizedHash(hash);
     if (!/^#\/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+$/.test(value)) return;
-    explicitIntent = { hash: value, until: Date.now() + INTENT_WINDOW_MS };
+    intentSerial += 1;
+    explicitIntent = {
+      hash: value,
+      until: Date.now() + INTENT_WINDOW_MS,
+      serial: intentSerial,
+      reached: false
+    };
   }
 
   function clearExplicitIntent() {
-    explicitIntent = { hash: "", until: 0 };
+    explicitIntent = { hash: "", until: 0, serial: 0, reached: false };
   }
 
   function intentStillActive() {
     return Boolean(explicitIntent.hash) && Date.now() < explicitIntent.until;
   }
 
+  function markIntentReached() {
+    if (!intentStillActive() || explicitIntent.reached) return;
+    const serial = explicitIntent.serial;
+    explicitIntent = {
+      ...explicitIntent,
+      reached: true,
+      until: Date.now() + INTENT_SETTLE_MS
+    };
+    window.setTimeout(() => {
+      if (explicitIntent.serial !== serial || !explicitIntent.reached) return;
+      clearExplicitIntent();
+    }, INTENT_SETTLE_MS + 20);
+  }
+
   function restoreExplicitIntentIfNeeded() {
     if (!intentStillActive()) return false;
     const current = normalizedHash();
     if (current === explicitIntent.hash) {
-      // The click's requested route has won. Consume the intent immediately so
-      // Back, another nav click, or a direct hash navigation is never forced
-      // back to a route the customer already reached.
-      clearExplicitIntent();
+      markIntentReached();
       return false;
     }
 
     const target = explicitIntent.hash;
     queueMicrotask(() => {
       if (!intentStillActive()) return;
-      if (normalizedHash() === target) {
-        clearExplicitIntent();
-        return;
-      }
+      if (normalizedHash() === target) return;
       window.location.hash = target;
     });
     return true;
@@ -87,12 +109,27 @@
       && adapter.isEligible());
   }
 
+  function managementAdapterReady(route) {
+    const adapter = window.FlipForgeCustomerManagement;
+    return Boolean(adapter
+      && typeof adapter.render === "function"
+      && typeof adapter.handles === "function"
+      && adapter.handles(route)
+      && typeof adapter.isEligible === "function"
+      && adapter.isEligible());
+  }
+
+  function simpleAdapterReady(adapter) {
+    return Boolean(adapter
+      && typeof adapter.render === "function"
+      && typeof adapter.isEligible === "function"
+      && adapter.isEligible());
+  }
+
   function adapterReady(route) {
     switch (route) {
-      case "discover": {
-        const adapter = window.FlipForgeCustomerDiscovery;
-        return Boolean(adapter && typeof adapter.render === "function" && typeof adapter.isEligible === "function" && adapter.isEligible());
-      }
+      case "discover":
+        return simpleAdapterReady(window.FlipForgeCustomerDiscovery);
       case "opportunities": {
         const adapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
         if (!adapter || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
@@ -101,17 +138,19 @@
       case "tracking":
       case "alerts":
         return lifecycleAdapterReady(route);
-      case "portfolio": {
-        // staging-route-hook intentionally gives Portfolio to the specialized
-        // Portfolio adapter before the generic lifecycle fallback. Ownership
-        // must follow that same priority or the guard will continually reject
-        // the correct Portfolio page and redispatch the current hash forever.
-        const adapter = window.FlipForgeCustomerPortfolio;
-        return Boolean(adapter
-          && typeof adapter.render === "function"
-          && typeof adapter.isEligible === "function"
-          && adapter.isEligible());
-      }
+      case "portfolio":
+        return simpleAdapterReady(window.FlipForgeCustomerPortfolio);
+      case "forge-heat":
+        return simpleAdapterReady(window.FlipForgeCustomerForgeHeat);
+      case "market-view":
+        return simpleAdapterReady(window.FlipForgeCustomerMarketView);
+      case "compare":
+        return simpleAdapterReady(window.FlipForgeCustomerCompare);
+      case "psa-advisor":
+        return simpleAdapterReady(window.FlipForgeCustomerPsaAdvisor);
+      case "evidence":
+      case "sell":
+        return managementAdapterReady(route);
       case "export": {
         const adapter = window.FlipForgeCustomerExport;
         return Boolean(adapter
@@ -135,10 +174,6 @@
     if (!main || !main.children.length) return true;
     if (main.querySelector(expected)) return true;
 
-    // Once the governed adapter for this route is available, any non-empty
-    // workspace without its expected customer page is stale ownership. This
-    // intentionally includes generic legacy shell pages such as app.js's
-    // dashboard fallback; allowing those pages to remain was the route race.
     if (!adapterReady(route)) return true;
     return false;
   }
@@ -151,9 +186,6 @@
     repairing = true;
     lastRepairAt = Date.now();
     try {
-      // staging-route-hook owns authoritative route rendering. Re-dispatching the
-      // current route lets it repaint the correct adapter without creating a new
-      // history entry or changing recommendation/evidence/transaction authority.
       window.dispatchEvent(new HashChangeEvent("hashchange", {
         oldURL: window.location.href,
         newURL: window.location.href
@@ -181,6 +213,8 @@
     if (!href) return;
     rememberExplicitIntent(href);
   }, true);
+
+  window.addEventListener("popstate", clearExplicitIntent, true);
 
   window.addEventListener("hashchange", () => {
     if (restoreExplicitIntentIfNeeded()) return;
