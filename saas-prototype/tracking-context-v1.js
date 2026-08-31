@@ -234,3 +234,152 @@
   if (document.body) new MutationObserver(queue).observe(document.body, { childList: true, subtree: true, characterData: true });
   queue();
 })();
+
+(() => {
+  "use strict";
+
+  if (window.__ffSavedDecisionRouteOwnershipGuardV1 === true) return;
+
+  const MAIN = "#main-content";
+  const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+  const STORAGE_KEY = "flipforge.trackingContext.v1";
+  let repairTimer = 0;
+  let repairing = false;
+
+  function routeParts() {
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)
+      .filter(Boolean)
+      .map(value => {
+        try { return decodeURIComponent(value); } catch (_) { return value; }
+      });
+  }
+
+  function isPlainLeftClick(event) {
+    return event.button === 0
+      && !event.metaKey
+      && !event.ctrlKey
+      && !event.shiftKey
+      && !event.altKey;
+  }
+
+  function trackingIdFromHref(href) {
+    const match = String(href || "").match(/#\/tracking\/([^/?#]+)/);
+    if (!match) return "";
+    try {
+      const id = decodeURIComponent(match[1]);
+      return SAFE_ID.test(id) ? id : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function remember(id) {
+    if (!SAFE_ID.test(String(id || ""))) return;
+    try { window.sessionStorage.setItem(STORAGE_KEY, String(id)); } catch (_) { /* session context only */ }
+  }
+
+  function finishRepair() {
+    window.setTimeout(() => {
+      repairing = false;
+      scheduleRepair();
+    }, 150);
+  }
+
+  function mountTracking(main, id) {
+    const adapter = window.FlipForgeCustomerLifecycle;
+    if (!main || !SAFE_ID.test(id) || !adapter || typeof adapter.render !== "function" || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
+    repairing = true;
+    main.innerHTML = "";
+    adapter.render(main, "tracking", id);
+    finishRepair();
+    return true;
+  }
+
+  function mountOpportunity(main, id) {
+    const adapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
+    if (!main || !SAFE_ID.test(id) || !adapter || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
+    const renderer = typeof adapter.renderCustomer === "function" ? adapter.renderCustomer : adapter.render;
+    if (typeof renderer !== "function") return false;
+    repairing = true;
+    main.innerHTML = "";
+    renderer.call(adapter, main, id);
+    finishRepair();
+    return true;
+  }
+
+  function mountExport(main, id) {
+    const adapter = window.FlipForgeCustomerExport;
+    if (!main || !SAFE_ID.test(id) || !adapter || typeof adapter.render !== "function" || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
+    repairing = true;
+    main.innerHTML = "";
+    adapter.render(main, id);
+    finishRepair();
+    return true;
+  }
+
+  function repairRouteOwnership() {
+    repairTimer = 0;
+    if (repairing) return;
+    const main = document.querySelector(MAIN);
+    if (!main) return;
+
+    const [route, id = ""] = routeParts();
+    if (route === "tracking" && SAFE_ID.test(id)) {
+      remember(id);
+      if (!main.querySelector(".customer-lifecycle-page")) mountTracking(main, id);
+      return;
+    }
+
+    // A completed Tracking request must never repaint a different saved-decision
+    // route after the customer has already navigated away.
+    if (main.querySelector(".customer-lifecycle-page")) {
+      if (route === "opportunities" && SAFE_ID.test(id)) {
+        mountOpportunity(main, id);
+        return;
+      }
+      if (route === "export" && SAFE_ID.test(id)) {
+        mountExport(main, id);
+      }
+    }
+  }
+
+  function scheduleRepair() {
+    if (repairTimer) window.clearTimeout(repairTimer);
+    repairTimer = window.setTimeout(repairRouteOwnership, 40);
+  }
+
+  document.addEventListener("click", event => {
+    const link = event.target.closest?.('a[href^="#/tracking/"]');
+    if (!link || !isPlainLeftClick(event)) return;
+
+    const id = trackingIdFromHref(link.getAttribute("href"));
+    if (!id) return;
+    const [route] = routeParts();
+    if (!["opportunities", "evidence", "export", "portfolio", "alerts"].includes(route)) return;
+
+    remember(id);
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const nextHash = `#/tracking/${encodeURIComponent(id)}`;
+    if (window.location.hash !== nextHash) window.location.hash = nextHash;
+    window.setTimeout(() => {
+      if (window.location.hash === nextHash) {
+        const main = document.querySelector(MAIN);
+        if (main && !main.querySelector(".customer-lifecycle-page")) mountTracking(main, id);
+      }
+    }, 0);
+  }, true);
+
+  const main = document.querySelector(MAIN);
+  if (main && typeof MutationObserver === "function") {
+    new MutationObserver(scheduleRepair).observe(main, { childList: true, subtree: false });
+  }
+  window.addEventListener("hashchange", scheduleRepair);
+  window.addEventListener("pageshow", scheduleRepair);
+  window.addEventListener("load", scheduleRepair);
+  scheduleRepair();
+
+  window.__ffSavedDecisionRouteOwnershipGuardV1 = true;
+})();
