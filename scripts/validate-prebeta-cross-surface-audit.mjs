@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import vm from "node:vm";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -19,8 +19,12 @@ const doc = exists(docPath) ? read(docPath) : "";
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
+const syntax = exists(auditPath)
+  ? spawnSync(process.execPath, ["--check", path.join(root, auditPath)], { encoding: "utf8" })
+  : { status: 1 };
+
 check("001 browser audit exists", exists(auditPath));
-check("002 audit parses as JavaScript", (() => { try { new vm.SourceTextModule(audit); return true; } catch (_) { return false; } })());
+check("002 audit parses as JavaScript", syntax.status === 0);
 check("003 workflow exists", exists(workflowPath));
 check("004 locked audit document exists", exists(docPath));
 check("005 package command wires audit", packageJson.includes('"audit:prebeta-cross-surface": "node scripts/audit-prebeta-cross-surface-ci.mjs"'));
