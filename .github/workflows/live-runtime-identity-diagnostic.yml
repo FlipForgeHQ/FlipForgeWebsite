@@ -1,5 +1,6 @@
 name: Live Runtime Identity Diagnostic
 
+# Diagnostic trigger: 2026-08-31 backend parity investigation.
 on:
   pull_request:
     paths:
