@@ -3,6 +3,7 @@
 
   const MAIN = "#main-content";
   const INPUT = '[data-customer-discovery-form] input[name="exactCardQuery"]';
+  const START_PANEL_ID = "ff-discover-start-choice";
 
   function routeName() {
     return String(window.location.hash || "#/dashboard")
@@ -36,8 +37,84 @@
     document.body.appendChild(script);
   }
 
+  function ensureStartStyles() {
+    if (document.getElementById("ff-discover-start-choice-styles")) return;
+    const style = document.createElement("style");
+    style.id = "ff-discover-start-choice-styles";
+    style.textContent = `
+      #${START_PANEL_ID}{margin:0 0 18px;padding:18px;border:1px solid rgba(226,181,65,.34);border-radius:14px;background:linear-gradient(180deg,rgba(226,181,65,.07),rgba(255,255,255,.018));box-shadow:0 12px 34px rgba(0,0,0,.18)}
+      #${START_PANEL_ID} .ff-discover-start-heading{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+      #${START_PANEL_ID} .ff-discover-start-heading strong{font-size:17px;color:#f5f7fb}
+      #${START_PANEL_ID} .ff-discover-start-heading span{font-size:12px;line-height:1.5;color:#aeb5c1}
+      #${START_PANEL_ID} .ff-discover-start-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      #${START_PANEL_ID} .ff-discover-start-option{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-height:118px;padding:15px;border:1px solid rgba(255,255,255,.11);border-radius:12px;background:rgba(5,8,12,.72);text-align:left;cursor:pointer;color:inherit}
+      #${START_PANEL_ID} .ff-discover-start-option:hover,#${START_PANEL_ID} .ff-discover-start-option:focus-visible{border-color:rgba(226,181,65,.82);box-shadow:0 0 0 3px rgba(226,181,65,.12);outline:none}
+      #${START_PANEL_ID} .ff-discover-start-option strong{font-size:15px;color:#f2cb67}
+      #${START_PANEL_ID} .ff-discover-start-option span{font-size:12px;line-height:1.45;color:#c2c8d1}
+      #${START_PANEL_ID} .ff-discover-start-option small{margin-top:auto;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#8f98a6}
+      @media(max-width:720px){#${START_PANEL_ID} .ff-discover-start-grid{grid-template-columns:1fr}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function focusInput(input) {
+    input.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => {
+      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+    }, 80);
+  }
+
+  function ensureStartChooser(form, input, searchButton, identifyButton) {
+    if (!form || !input || !searchButton || !identifyButton) return;
+    ensureStartStyles();
+    let panel = document.getElementById(START_PANEL_ID);
+    if (!panel) {
+      panel = document.createElement("section");
+      panel.id = START_PANEL_ID;
+      panel.setAttribute("aria-label", "Choose how to start Discover");
+      panel.innerHTML = `
+        <div class="ff-discover-start-heading">
+          <strong>How do you want to start?</strong>
+          <span>Confirm the card first when identity is uncertain, or go directly to active listings when you already know the exact card.</span>
+        </div>
+        <div class="ff-discover-start-grid">
+          <button type="button" class="ff-discover-start-option" data-ff-discover-start-find>
+            <strong>Find exact card</strong>
+            <span>Search the verified card catalog, choose the correct card, and let FlipForge confirm the identity before marketplace search.</span>
+            <small>Best when card number or variant is uncertain</small>
+          </button>
+          <button type="button" class="ff-discover-start-option" data-ff-discover-start-search>
+            <strong>Search active listings</strong>
+            <span>Use the exact card identity you already know and search currently connected active-listing sources.</span>
+            <small>Best when exact identity is known</small>
+          </button>
+        </div>`;
+      form.closest(".customer-discovery-search")?.insertAdjacentElement("beforebegin", panel);
+    }
+
+    const findStart = panel.querySelector("[data-ff-discover-start-find]");
+    if (findStart && findStart.dataset.ffBound !== "1") {
+      findStart.dataset.ffBound = "1";
+      findStart.addEventListener("click", () => {
+        focusInput(input);
+        if (String(input.value || "").trim()) window.setTimeout(() => identifyButton.click(), 120);
+      });
+    }
+    const searchStart = panel.querySelector("[data-ff-discover-start-search]");
+    if (searchStart && searchStart.dataset.ffBound !== "1") {
+      searchStart.dataset.ffBound = "1";
+      searchStart.addEventListener("click", () => {
+        focusInput(input);
+        if (String(input.value || "").trim()) window.setTimeout(() => form.requestSubmit?.(), 120);
+      });
+    }
+  }
+
   function decorate() {
-    if (routeName() !== "discover") return;
+    if (routeName() !== "discover") {
+      document.getElementById(START_PANEL_ID)?.remove();
+      return;
+    }
     const main = document.querySelector(MAIN);
     const input = main?.querySelector(INPUT);
     if (!input) return;
@@ -54,7 +131,7 @@
     if (!label.querySelector(".ff-card-entry-helper")) {
       const helper = document.createElement("small");
       helper.className = "ff-card-entry-helper";
-      helper.textContent = "Know the exact card? Search active listings. Not sure which version it is? Use identity help first.";
+      helper.textContent = "Not sure of the exact card? Find and confirm it first. Already know it? Search active listings.";
       input.insertAdjacentElement("afterend", helper);
     }
 
@@ -67,11 +144,13 @@
     }
 
     const identifyButton = form?.querySelector("[data-discovery-find-exact]");
-    if (identifyButton && !identifyButton.disabled) identifyButton.textContent = "Help me identify it";
+    if (identifyButton && !identifyButton.disabled) identifyButton.textContent = "Find exact card";
     if (identifyButton) {
-      identifyButton.setAttribute("aria-label", "Help identify the exact card");
+      identifyButton.setAttribute("aria-label", "Find and confirm the exact card");
       identifyButton.title = "Use this when you are unsure which base, parallel, variation, or card number is correct.";
     }
+
+    ensureStartChooser(form, input, searchButton, identifyButton);
   }
 
   let queued = false;
