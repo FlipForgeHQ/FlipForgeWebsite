@@ -273,6 +273,7 @@ function applyLifecycleWrite(id, body) {
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1365, height: 900 }, acceptDownloads: true });
 const page = await context.newPage();
+page.setDefaultTimeout(10_000);
 
 function accountHash(value) {
   let hash = 2166136261;
@@ -299,14 +300,41 @@ async function waitTracking(id) {
   }
 }
 
+function expectedOutcome(status) {
+  switch (String(status || "").toUpperCase()) {
+    case "OWNED": return "ACQUIRED";
+    case "SOLD": return "SOLD";
+    case "PASSED": return "PASSED";
+    case "WATCHING":
+    case "REVIEW": return "NONE";
+    default: return null;
+  }
+}
+
 async function setTrackingFields({ status, outcome, cost = "", acquired = "", proceeds = "", disposed = "", reviewAt = "", alert = false }) {
   const form = page.locator("#main-content [data-lifecycle-form]");
-  await form.locator('select[name="trackingStatus"]').selectOption(status);
-  await form.locator('select[name="outcomeStatus"]').selectOption(outcome);
-  await form.locator('input[name="acquisitionCost"]').fill(cost);
-  await form.locator('input[name="acquiredAt"]').fill(acquired);
-  await form.locator('input[name="dispositionProceeds"]').fill(proceeds);
-  await form.locator('input[name="disposedAt"]').fill(disposed);
+  const statusSelect = form.locator('select[name="trackingStatus"]');
+  const outcomeSelect = form.locator('select[name="outcomeStatus"]');
+  await statusSelect.selectOption(status);
+
+  const derivedOutcome = expectedOutcome(status);
+  if (derivedOutcome) {
+    await poll(async () => await outcomeSelect.inputValue() === derivedOutcome,
+      `Tracking status ${status} did not synchronize hidden outcome ${derivedOutcome}`);
+  }
+  // outcome is intentionally not selected directly. It is a derived, hidden
+  // implementation field in the customer Tracking UX; the audit verifies the
+  // synchronization above instead of bypassing the customer-visible control.
+  void outcome;
+
+  if (status === "OWNED" || status === "SOLD") {
+    await form.locator('input[name="acquisitionCost"]').fill(cost);
+    await form.locator('input[name="acquiredAt"]').fill(acquired);
+  }
+  if (status === "SOLD") {
+    await form.locator('input[name="dispositionProceeds"]').fill(proceeds);
+    await form.locator('input[name="disposedAt"]').fill(disposed);
+  }
   await form.locator('input[name="reviewAt"]').fill(reviewAt);
   const checkbox = form.locator('input[name="alertEnabled"]');
   if (alert) await checkbox.check(); else await checkbox.uncheck();
