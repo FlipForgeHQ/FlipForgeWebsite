@@ -5,6 +5,7 @@
 
   const MAIN_SELECTOR = "#main-content";
   const INTENT_WINDOW_MS = 3000;
+  const INTENT_SETTLE_MS = 800;
   const REPAIR_COOLDOWN_MS = 120;
 
   const expectedPageByRoute = Object.freeze({
@@ -16,7 +17,8 @@
     export: ".customer-export-page"
   });
 
-  let explicitIntent = { hash: "", until: 0 };
+  let explicitIntent = { hash: "", until: 0, serial: 0, reached: false };
+  let intentSerial = 0;
   let ownershipCheckQueued = false;
   let repairing = false;
   let lastRepairAt = 0;
@@ -43,35 +45,53 @@
   function rememberExplicitIntent(hash) {
     const value = normalizedHash(hash);
     if (!/^#\/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+$/.test(value)) return;
-    explicitIntent = { hash: value, until: Date.now() + INTENT_WINDOW_MS };
+    intentSerial += 1;
+    explicitIntent = {
+      hash: value,
+      until: Date.now() + INTENT_WINDOW_MS,
+      serial: intentSerial,
+      reached: false
+    };
   }
 
   function clearExplicitIntent() {
-    explicitIntent = { hash: "", until: 0 };
+    explicitIntent = { hash: "", until: 0, serial: 0, reached: false };
   }
 
   function intentStillActive() {
     return Boolean(explicitIntent.hash) && Date.now() < explicitIntent.until;
   }
 
+  function markIntentReached() {
+    if (!intentStillActive() || explicitIntent.reached) return;
+    const serial = explicitIntent.serial;
+    explicitIntent = {
+      ...explicitIntent,
+      reached: true,
+      until: Date.now() + INTENT_SETTLE_MS
+    };
+    window.setTimeout(() => {
+      if (explicitIntent.serial !== serial || !explicitIntent.reached) return;
+      clearExplicitIntent();
+    }, INTENT_SETTLE_MS + 20);
+  }
+
   function restoreExplicitIntentIfNeeded() {
     if (!intentStillActive()) return false;
     const current = normalizedHash();
     if (current === explicitIntent.hash) {
-      // The click's requested route has won. Consume the intent immediately so
-      // Back, another nav click, or a direct hash navigation is never forced
-      // back to a route the customer already reached.
-      clearExplicitIntent();
+      // Keep a short stabilization claim after the requested route first wins.
+      // Older async work from the previous screen can otherwise redirect the
+      // customer back a few milliseconds later. A new customer click replaces
+      // this intent, and Back/Forward explicitly clears it below.
+      markIntentReached();
       return false;
     }
 
     const target = explicitIntent.hash;
     queueMicrotask(() => {
       if (!intentStillActive()) return;
-      if (normalizedHash() === target) {
-        clearExplicitIntent();
-        return;
-      }
+      if (normalizedHash() === target) return;
       window.location.hash = target;
     });
     return true;
@@ -181,6 +201,10 @@
     if (!href) return;
     rememberExplicitIntent(href);
   }, true);
+
+  // Browser history is itself an explicit navigation. Never let a prior click's
+  // stabilization claim interfere with Back/Forward semantics.
+  window.addEventListener("popstate", clearExplicitIntent, true);
 
   window.addEventListener("hashchange", () => {
     if (restoreExplicitIntentIfNeeded()) return;
