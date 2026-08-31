@@ -10,13 +10,16 @@ Use this checklist for controlled private-beta Website/SaaS production releases.
 
 ## 2. Netlify production identity
 
-- Open `https://goflipforge.com/deploy-meta.json` after the production deploy.
+- Require the `Live Production Parity` GitHub Actions workflow to pass on the exact `main` commit being treated as the production candidate.
+- The parity workflow waits for Netlify convergence and then requires live `https://goflipforge.com/deploy-meta.json` to report the exact GitHub `main` commit plus the locked production authority boundaries.
+- A stale live commit, malformed manifest, wrong branch/context, missing production boundary, recommendation/grading authority drift, browser recommendation authority, or transaction authority must fail the parity workflow.
+- For manual cross-checking, open `https://goflipforge.com/deploy-meta.json` after the production deploy.
 - Require `context` = `production`.
 - Require `commitRef` to equal the approved Website `main` merge SHA.
 - Require `appBoundary` = `PRODUCTION_SERVER_OWNED_FAIL_CLOSED`.
 - Require `productionDiagnosticsSeparated` = `true`.
 - Require `browserRecommendationAuthority` = `false` and `transactionAuthority` = `false`.
-- If the manifest is missing, stale, malformed, or references a different commit, production parity is **not verified**.
+- If the automated parity gate is red or the manifest is missing, stale, malformed, or references a different commit, production parity is **not verified**.
 
 ## 3. Production app boundary
 
@@ -58,6 +61,7 @@ Record:
 
 - Website merge SHA;
 - production `deploy-meta.json` commit SHA;
+- `Live Production Parity` workflow result;
 - production verification date/time;
 - signed-in QA result and tested viewport classes;
 - any open S1/S2 blocker;
