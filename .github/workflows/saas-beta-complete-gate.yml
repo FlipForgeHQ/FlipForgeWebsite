@@ -5,6 +5,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "netlify/functions/flipforge-api.js"
+      - "netlify/modern-functions/flipforge-api.mjs"
       - "scripts/validate-saas-*.mjs"
       - "scripts/validate-prebeta-customer-state-audit.mjs"
       - "scripts/audit-prebeta-customer-state-ci.mjs"
@@ -14,6 +15,7 @@ on:
       - "scripts/audit-prebeta-cross-surface-ci.mjs"
       - "scripts/validate-live-production-parity-gate.mjs"
       - "scripts/verify-live-production-parity.mjs"
+      - "scripts/validate-backend-runtime-identity-gateway.mjs"
       - "package.json"
       - "DEPLOYMENT_CHECKLIST.md"
       - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
@@ -26,6 +28,7 @@ on:
       - ".github/workflows/prebeta-saved-decision-lifecycle-audit.yml"
       - ".github/workflows/prebeta-cross-surface-audit.yml"
       - ".github/workflows/live-production-parity.yml"
+      - ".github/workflows/backend-runtime-identity-gateway-assurance.yml"
       - ".github/workflows/saas-beta-complete-gate.yml"
   push:
     branches:
@@ -68,6 +71,9 @@ jobs:
 
       - name: Validate live production parity gate is wired
         run: node scripts/validate-live-production-parity-gate.mjs
+
+      - name: Validate backend runtime identity gateway
+        run: node scripts/validate-backend-runtime-identity-gateway.mjs
 
       - name: Validate production customer loop
         run: node scripts/validate-saas-core-production-loop.mjs

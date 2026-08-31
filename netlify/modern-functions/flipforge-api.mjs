@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { getUser } from "@netlify/identity";
 import legacyGateway from "../functions/flipforge-api.js";
 
@@ -5,8 +6,11 @@ const legacyHandler = legacyGateway && legacyGateway.handler;
 const TENANT_ROLE_PREFIX = "flipforge-tenant--";
 const ACTIVE_ROLE = "flipforge-active";
 const SAFE_TENANT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/;
+const FULL_GIT_SHA = /^[0-9a-f]{40}$/;
 const MARKET_VIEW_PATH = "/api/v1/market-view";
 const MARKET_VIEW_UPSTREAM_PATH = "/api/v1/opportunities/__market-view-v1";
+const RUNTIME_IDENTITY_PATH = "/api/v1/runtime-identity";
+const RUNTIME_IDENTITY_TIMEOUT_MS = 5000;
 
 if (typeof legacyHandler !== "function") {
   throw new Error("FlipForge authoritative gateway core is unavailable.");
@@ -121,7 +125,129 @@ function modernResponse(result) {
   return new Response(result?.body || "", { status, headers });
 }
 
+function runtimeIdentityHeaders(correlationId) {
+  return {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store, max-age=0",
+    Pragma: "no-cache",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
+    "X-Correlation-Id": correlationId
+  };
+}
+
+function runtimeIdentityResponse(status, correlationId, data) {
+  return new Response(JSON.stringify({
+    meta: {
+      contractVersion: "1.0",
+      generatedAt: new Date().toISOString(),
+      correlationId
+    },
+    data
+  }), {
+    status,
+    headers: runtimeIdentityHeaders(correlationId)
+  });
+}
+
+function validRuntimeIdentityEnvelope(payload, correlationId) {
+  const meta = payload?.meta;
+  const data = payload?.data;
+  const commit = String(meta?.runtimeBuildCommit || "").trim();
+  return Boolean(
+    meta &&
+    data &&
+    meta.contractVersion === "1.0" &&
+    meta.authority === "Smart Opportunity" &&
+    meta.gradingAuthority === "Existing PSA intelligence" &&
+    meta.correlationId === correlationId &&
+    meta.runtimeBuildCommitVerified === true &&
+    FULL_GIT_SHA.test(commit) &&
+    data.runtimeMode === "PRIVATE_HOSTED" &&
+    data.status === "ready" &&
+    data.transactionAuthority === false
+  );
+}
+
+async function runtimeIdentity(request) {
+  const correlationId = crypto.randomUUID();
+  const method = String(request.method || "GET").toUpperCase();
+  if (method !== "GET") {
+    return runtimeIdentityResponse(405, correlationId, {
+      service: "flipforge-runtime-identity-gateway",
+      status: "method-not-allowed",
+      runtimeBuildCommit: null,
+      runtimeBuildCommitVerified: false,
+      transactionAuthority: false
+    });
+  }
+
+  const baseUrl = String(process.env.FLIPFORGE_API_BASE_URL || "").trim().replace(/\/+$/, "");
+  const serviceToken = String(process.env.FLIPFORGE_API_SERVICE_TOKEN || "").trim();
+  if (!baseUrl || !serviceToken) {
+    return runtimeIdentityResponse(503, correlationId, {
+      service: "flipforge-runtime-identity-gateway",
+      status: "upstream-not-configured",
+      runtimeBuildCommit: null,
+      runtimeBuildCommitVerified: false,
+      authorityVerified: false,
+      backendUrlExposed: false,
+      serviceTokenExposed: false,
+      transactionAuthority: false
+    });
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/api/v1/health`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${serviceToken}`,
+        "X-Correlation-Id": correlationId
+      },
+      redirect: "error",
+      cache: "no-store",
+      signal: AbortSignal.timeout(RUNTIME_IDENTITY_TIMEOUT_MS)
+    });
+    if (!response.ok) throw new Error("UPSTREAM_HEALTH_REJECTED");
+
+    const text = await response.text();
+    if (Buffer.byteLength(text, "utf8") > 200_000) throw new Error("UPSTREAM_HEALTH_TOO_LARGE");
+    const payload = JSON.parse(text);
+    if (!validRuntimeIdentityEnvelope(payload, correlationId)) throw new Error("UPSTREAM_IDENTITY_INVALID");
+
+    return runtimeIdentityResponse(200, correlationId, {
+      service: "flipforge-runtime-identity-gateway",
+      status: "verified",
+      runtimeBuildCommit: payload.meta.runtimeBuildCommit,
+      runtimeBuildCommitVerified: true,
+      authority: "Smart Opportunity",
+      gradingAuthority: "Existing PSA intelligence",
+      authorityVerified: true,
+      runtimeMode: "PRIVATE_HOSTED",
+      backendUrlExposed: false,
+      serviceTokenExposed: false,
+      transactionAuthority: false
+    });
+  } catch (_) {
+    return runtimeIdentityResponse(503, correlationId, {
+      service: "flipforge-runtime-identity-gateway",
+      status: "unavailable",
+      runtimeBuildCommit: null,
+      runtimeBuildCommitVerified: false,
+      authorityVerified: false,
+      backendUrlExposed: false,
+      serviceTokenExposed: false,
+      transactionAuthority: false
+    });
+  }
+}
+
 export default async function flipForgeApi(request) {
+  const requestUrl = new URL(request.url);
+  if (requestUrl.pathname === RUNTIME_IDENTITY_PATH) return runtimeIdentity(request);
+
   const effectiveRequest = gatewayRequest(request);
   const event = await legacyEvent(effectiveRequest);
   const publicHealth = event.httpMethod === "GET" && event.path === "/api/v1/health";
