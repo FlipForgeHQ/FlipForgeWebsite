@@ -64,6 +64,8 @@ const lifecycle = {
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1365, height: 900 } });
 const page = await context.newPage();
+page.setDefaultTimeout(8_000);
+page.setDefaultNavigationTimeout(10_000);
 
 try {
   const key = accountHash(email);
@@ -148,7 +150,9 @@ try {
   }
 
   if (!count) throw new Error("No Track link rendered on saved decision.");
-  await links.first().click({ force: true });
+  console.log("DIAG CLICK | starting exact Tracking click");
+  await links.first().click({ force: true, noWaitAfter: true, timeout: 5_000 });
+  console.log("DIAG CLICK | returned from exact Tracking click");
   await page.waitForTimeout(1500);
 
   console.log(`DIAG AFTER URL | ${page.url()}`);
