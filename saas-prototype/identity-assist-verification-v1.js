@@ -4,6 +4,9 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const RESOLVE_PATH = "/api/v1/card-intelligence/resolve";
+  const CONTRACT_VERSION = "1.0";
+  const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const COLLAPSED_REVIEW_COUNT = 4;
   let queued = false;
 
@@ -19,22 +22,21 @@
       .split(/[/?]/)[0] || "dashboard";
   }
 
+  function correlationId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
+    return `identity-choice-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
   function gradeContext(value) {
     const match = String(value || "").match(/\b(PSA|BGS|SGC|CGC|CSG|TAG|BCCG)\s*(10|9\.5|9|8\.5|8|7\.5|7|6\.5|6)\b/i);
     return match ? `${match[1].toUpperCase()} ${match[2]}` : "";
   }
 
-  function queryFromRow(row, originalQuery) {
-    const name = row.querySelector("div > strong")?.textContent?.trim() || "";
+  function detailForVerification(row, originalQuery) {
     const detail = row.querySelector("div > small")?.textContent?.trim() || "";
-    const parts = detail.split("·").map(value => value.trim()).filter(Boolean);
     const grade = gradeContext(originalQuery);
-    const hasGrade = /\b(?:PSA|BGS|SGC|CSG|TAG|BCCG)\s*(?:10|9\.5|9|8\.5|8|7\.5|7|6\.5|6)\b/i.test(detail);
-    return [...parts, name, !hasGrade ? grade : ""]
-      .filter(Boolean)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
+    if (!grade || new RegExp(`\\b${grade.replace(" ", "\\s*")}\\b`, "i").test(detail)) return detail;
+    return detail ? `${detail} · ${grade} (entered)` : `${grade} (entered)`;
   }
 
   function cleanInheritedGrade(row, originalQuery) {
@@ -74,12 +76,12 @@
     const message = panel.querySelector(".customer-discovery-identity-message");
     if (!message) return;
     if (hasSelectable) {
-      message.innerHTML = `<strong>Exact card match found.</strong><span>Confirm the exact card below to search connected listings. FlipForge will not choose one for you. Other possible variants are kept out of the way unless you need them.</span>`;
+      message.innerHTML = `<strong>Exact card match found.</strong><span>Confirm the exact card below to search connected listings. FlipForge will not choose one for you. Other possible variants can still be selected for server verification.</span>`;
       message.classList.add("ff-identity-assist-explained", "ff-identity-exact-found");
       return;
     }
     if (reviewCount > 0) {
-      message.innerHTML = `<strong>No exact match is verified yet.</strong><span>FlipForge will not choose one for you. Review the closest catalog matches below. Choose <b>Verify this match</b> only when the visible card identity is the one you mean.</span>`;
+      message.innerHTML = `<strong>Choose the card you mean.</strong><span>FlipForge will not choose one for you. Select <b>Select &amp; verify</b> on the correct visible card. The server must confirm one exact canonical identity before marketplace search can run.</span>`;
       message.classList.add("ff-identity-assist-explained");
     }
   }
@@ -105,6 +107,10 @@
       : exactAvailable
         ? `Show ${hiddenCount} other possible variant${hiddenCount === 1 ? "" : "s"}`
         : `Show ${hiddenCount} more possible match${hiddenCount === 1 ? "" : "es"}`;
+  }
+
+  function rowHasCardNumber(row) {
+    return /(?:^|[·\s])#[A-Za-z0-9][A-Za-z0-9.-]*/.test(row.querySelector("div > small")?.textContent || "");
   }
 
   function decorate() {
@@ -137,9 +143,10 @@
       row.classList.add("ff-identity-review-match", "ff-identity-secondary");
 
       if (!row.querySelector("[data-ff-verify-review-match]")) {
+        if (!rowHasCardNumber(row)) return;
         const actions = document.createElement("div");
         actions.className = "ff-identity-review-actions";
-        actions.innerHTML = `<span class="ff-identity-review-label">Possible variant · not yet verified</span><button class="button button-secondary" type="button" data-ff-verify-review-match="${index}">Verify this match</button>`;
+        actions.innerHTML = `<span class="ff-identity-review-label">Catalog card · final verification required</span><button class="button button-secondary" type="button" data-ff-verify-review-match="${index}">Select &amp; verify</button>`;
         oldStatus?.replaceWith(actions);
       }
 
@@ -155,29 +162,81 @@
     ensureToggle(panel, Math.max(0, reviewCount - visibleReviewCount), hasSelectable);
   }
 
+  function setRowStatus(row, message, isError = false) {
+    let status = row.querySelector("[data-ff-identity-choice-status]");
+    if (!status) {
+      status = document.createElement("small");
+      status.dataset.ffIdentityChoiceStatus = "";
+      status.style.display = "block";
+      status.style.marginTop = "8px";
+      row.appendChild(status);
+    }
+    status.style.color = isError ? "#f0a3a3" : "#c9d0da";
+    status.textContent = message;
+  }
+
   async function verifyReviewMatch(button) {
     const row = button.closest(".customer-discovery-identity-option");
     const main = document.querySelector("#main-content");
     const form = main?.querySelector("[data-customer-discovery-form]");
     const input = form?.querySelector('input[name="exactCardQuery"]');
-    const findExact = form?.querySelector("[data-discovery-find-exact]");
-    if (!row || !input || !findExact) return;
+    if (!row || !input || !form) return;
 
-    const originalQuery = input.value;
-    const exactQuery = queryFromRow(row, originalQuery);
-    if (!exactQuery) return;
-
-    input.value = exactQuery;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.classList.add("ff-identity-recheck-input");
-    input.scrollIntoView({ behavior: "smooth", block: "center" });
-    try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+    const originalQuery = String(input.value || "").trim();
+    const candidateName = row.querySelector("div > strong")?.textContent?.trim() || "";
+    const candidateDetail = detailForVerification(row, originalQuery);
+    if (!originalQuery || !candidateName || !rowHasCardNumber(row)) return;
 
     button.disabled = true;
     button.textContent = "Verifying…";
-    window.setTimeout(() => {
-      findExact.click();
-    }, 180);
+    setRowStatus(row, "Checking this catalog card against the server-owned exact identity record…");
+
+    const requestCorrelationId = correlationId();
+    try {
+      const response = await fetch(RESOLVE_PATH, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json; charset=utf-8",
+          "X-Correlation-Id": requestCorrelationId
+        },
+        body: JSON.stringify({ query: originalQuery, candidateName, candidateDetail }),
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "error"
+      });
+      const text = await response.text();
+      if (text.length > MAX_RESPONSE_CHARACTERS) throw new Error("The identity response exceeded the browser safety limit.");
+      const payload = text ? JSON.parse(text) : {};
+      const meta = payload?.meta;
+      const data = payload?.data;
+      const boundaryValid = meta?.contractVersion === CONTRACT_VERSION
+        && meta?.authority === "Smart Opportunity"
+        && meta?.gradingAuthority === "Existing PSA intelligence"
+        && meta?.correlationId === requestCorrelationId
+        && data?.providerIdentifierExposed === false
+        && data?.rawProviderPayloadExposed === false
+        && data?.providerPayloadPersisted === false
+        && data?.soldEvidenceAccepted === false
+        && data?.smartOpportunityRecalculated === false
+        && data?.transactionAuthority === false;
+      if (!response.ok || !boundaryValid) throw new Error(payload?.error?.message || "The selected card could not be safely verified.");
+
+      const canonical = String(data.cardIdentity || "").trim().replace(/\s+/g, " ");
+      if (data.readyForEvaluation !== true || !canonical || !/#\s*[A-Za-z0-9][A-Za-z0-9.-]*/.test(canonical)) {
+        throw new Error(data.message || "That card is still ambiguous. Add more identity detail and try again.");
+      }
+
+      input.value = canonical;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      setRowStatus(row, "Exact card confirmed. Searching active listings…");
+      window.setTimeout(() => form.requestSubmit?.(), 120);
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = "Select & verify";
+      setRowStatus(row, error?.message || "This card could not be verified yet.", true);
+    }
   }
 
   document.addEventListener("click", event => {
