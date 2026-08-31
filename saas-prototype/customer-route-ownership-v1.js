@@ -46,6 +46,10 @@
     explicitIntent = { hash: value, until: Date.now() + INTENT_WINDOW_MS };
   }
 
+  function clearExplicitIntent() {
+    explicitIntent = { hash: "", until: 0 };
+  }
+
   function intentStillActive() {
     return Boolean(explicitIntent.hash) && Date.now() < explicitIntent.until;
   }
@@ -53,12 +57,21 @@
   function restoreExplicitIntentIfNeeded() {
     if (!intentStillActive()) return false;
     const current = normalizedHash();
-    if (current === explicitIntent.hash) return false;
+    if (current === explicitIntent.hash) {
+      // The click's requested route has won. Consume the intent immediately so
+      // Back, another nav click, or a direct hash navigation is never forced
+      // back to a route the customer already reached.
+      clearExplicitIntent();
+      return false;
+    }
 
     const target = explicitIntent.hash;
     queueMicrotask(() => {
       if (!intentStillActive()) return;
-      if (normalizedHash() === target) return;
+      if (normalizedHash() === target) {
+        clearExplicitIntent();
+        return;
+      }
       window.location.hash = target;
     });
     return true;
