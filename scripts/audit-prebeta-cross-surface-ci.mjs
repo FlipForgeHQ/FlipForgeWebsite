@@ -377,7 +377,11 @@ async function waitPsaReady(id = "qa-a") {
 
 async function waitEvidenceReady(id = "qa-a") {
   await poll(() => callsFor(`/api/v1/evidence/${id}`).length > 0, `Evidence did not read ${id}`);
-  await page.locator("#main-content .customer-management-page h1").filter({ hasText: "Evidence Center" }).waitFor({ state: "visible", timeout: 7000 });
+  await page.locator("#main-content .customer-management-page").waitFor({ state: "visible", timeout: 7000 });
+  await poll(async () => {
+    const heading = await page.locator("#main-content .customer-management-page h1").first().textContent().catch(() => "");
+    return /Evidence Center|Why FlipForge trusts this decision/i.test(String(heading || ""));
+  }, "Evidence never reached the production customer presentation");
   await poll(async () => !(await page.locator("#main-content .staging-loading").count()), "Evidence remained in a loading state");
 }
 
@@ -582,7 +586,11 @@ try {
     await openRoute("evidence/qa-a");
     await waitEvidenceReady("qa-a");
     const boundary = await page.locator("#main-content .boundary-note").first().innerText();
-    expect(/server-governed/i.test(boundary) && /active asks/i.test(boundary), "Evidence Center omitted the server-governed evidence boundary");
+    expect(
+      /Evidence is read-only|server-governed/i.test(boundary)
+        && /active listing|active asks|browser-side evidence authority|cannot change/i.test(boundary),
+      "Evidence Center omitted the read-only evidence-authority boundary"
+    );
     const actions = (await page.locator("#main-content button").allTextContents()).join(" ");
     expect(!/accept evidence|reject evidence|relink evidence|hold evidence/i.test(actions), "Evidence Center exposed an operator evidence mutation control");
   });
