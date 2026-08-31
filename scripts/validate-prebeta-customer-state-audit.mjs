@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -59,12 +60,12 @@ for (const [label, passed] of checks) {
 }
 
 if (audit) {
-  try {
-    new Function(audit.replace(/^import .*$/gm, ""));
-    console.log("PASS: destructive audit source parses after import stripping");
-  } catch (error) {
+  const syntax = spawnSync(process.execPath, ["--check", path.join(root, auditPath)], { encoding: "utf8" });
+  if (syntax.status === 0) {
+    console.log("PASS: destructive audit source passes node --check");
+  } else {
     failures += 1;
-    console.error(`FAIL: destructive audit syntax assurance: ${error.message}`);
+    console.error(`FAIL: destructive audit syntax assurance: ${(syntax.stderr || syntax.stdout || "unknown syntax error").trim()}`);
   }
 }
 
