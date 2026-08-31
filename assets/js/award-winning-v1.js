@@ -5,9 +5,40 @@
   if(!body)return;
   body.classList.add('ff-aw-page');
 
+  if(!document.querySelector('link[data-ff-homepage-proof-polish]')){
+    const polish=document.createElement('link');
+    polish.rel='stylesheet';
+    polish.href='assets/css/homepage-proof-polish-v1.css';
+    polish.dataset.ffHomepageProofPolish='true';
+    document.head.appendChild(polish);
+  }
+
   const isHome=Boolean(document.querySelector('.hero#overview'));
   if(isHome){
     body.classList.add('ff-aw-home');
+
+    /* Keep the application destination on one customer-facing CTA label. */
+    [...document.querySelectorAll('a[href="beta-application.html"]')].forEach(link=>{
+      if(String(link.textContent||'').trim()==='See Private Beta')link.textContent='Request Beta Access';
+    });
+
+    /* Make Day 0 / 7 / 14 / 30 an explicit accessible progression. */
+    const accountability=document.querySelector('.ff-aw-accountability .ff-aw-question-grid');
+    if(accountability){
+      accountability.setAttribute('role','list');
+      accountability.setAttribute('aria-label','Decision accountability timeline: Day 0, Day 7, Day 14 and Day 30');
+      [...accountability.querySelectorAll('.ff-aw-question')].forEach(item=>item.setAttribute('role','listitem'));
+    }
+
+    /* Visual discovery signal only; it represents no market measurement or live data. */
+    const forgeHeat=document.querySelector('.ff-forge-heat-strip');
+    if(forgeHeat&&!forgeHeat.querySelector('.ff-forge-heat-signal')){
+      const signal=document.createElement('div');
+      signal.className='ff-forge-heat-signal';
+      signal.setAttribute('aria-hidden','true');
+      signal.innerHTML='<i></i><i></i><i></i><i></i><i></i>';
+      forgeHeat.prepend(signal);
+    }
 
     const falseConfidence=document.querySelector('.ff-false-confidence');
     if(falseConfidence&&!document.querySelector('.ff-aw-busted')){
