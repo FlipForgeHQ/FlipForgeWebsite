@@ -33,7 +33,8 @@ check("006 beta complete statically requires audit", betaGate.includes("PREBETA_
 const surfaces = ["alerts", "portfolio", "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell"];
 for (const surface of surfaces) {
   check(`surface ${surface} is attacked`, audit.includes(`\"${surface}\"`) || audit.includes(`\"${surface}/`));
-  check(`surface ${surface} is documented`, doc.toLowerCase().includes(surface));
+  const documentedName = surface.replaceAll("-", " ");
+  check(`surface ${surface} is documented`, doc.toLowerCase().includes(documentedName));
 }
 
 const scenarios = [
