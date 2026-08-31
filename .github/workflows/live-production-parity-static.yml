@@ -1,0 +1,35 @@
+name: Live Production Parity Static Assurance
+
+on:
+  pull_request:
+    paths:
+      - "scripts/verify-live-production-parity.mjs"
+      - "scripts/validate-live-production-parity-gate.mjs"
+      - "package.json"
+      - "DEPLOYMENT_CHECKLIST.md"
+      - "docs/LIVE_PRODUCTION_PARITY_GATE.md"
+      - ".github/workflows/live-production-parity.yml"
+      - ".github/workflows/live-production-parity-static.yml"
+      - ".github/workflows/saas-beta-complete-gate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate live parity gate without touching production
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate gate wiring
+        run: node scripts/validate-live-production-parity-gate.mjs
+
+      - name: Syntax-check live verifier
+        run: node --check scripts/verify-live-production-parity.mjs

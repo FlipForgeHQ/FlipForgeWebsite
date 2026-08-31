@@ -1,0 +1,36 @@
+name: Live Production Parity
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-production-parity
+  cancel-in-progress: true
+
+jobs:
+  verify-live-production:
+    name: Verify Netlify production serves exact main commit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Wait for production convergence and verify authority boundary
+        env:
+          EXPECTED_COMMIT_REF: ${{ github.sha }}
+          LIVE_PARITY_MAX_ATTEMPTS: "30"
+          LIVE_PARITY_RETRY_MS: "20000"
+        run: node scripts/verify-live-production-parity.mjs
