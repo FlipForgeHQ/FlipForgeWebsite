@@ -171,6 +171,8 @@ try {
         body: JSON.stringify(envelope(correlationId, cardIntelligenceData({
           readyForEvaluation: true,
           cardIdentity: canonicalIdentity,
+          grader: "PSA",
+          grade: "9",
           message: "Exact card identity confirmed by the server-owned resolver."
         })))
       });
@@ -234,7 +236,7 @@ try {
   await exactButton.click();
   await page.waitForFunction(() => {
     const input = document.querySelector('#main-content [data-customer-discovery-form] input[name="exactCardQuery"]');
-    return input && input.value.includes("#150");
+    return input && input.value.includes("#150") && /PSA\s*9/i.test(input.value);
   }, { timeout: 5_000 });
   await page.waitForTimeout(250);
 
@@ -242,6 +244,7 @@ try {
   if (calls.resolve[0]?.selectionToken !== selectionToken) failures.push("identity resolve did not send only the selected server-issued token");
   if (calls.discover.length !== 1) failures.push(`Discover call count after resolution was ${calls.discover.length}, expected 1`);
   if (calls.discover[0]?.exactCardQuery !== canonicalIdentity) failures.push(`Discover did not receive the server-resolved canonical identity: ${JSON.stringify(calls.discover[0])}`);
+  if (!/PSA\s*9/i.test(calls.discover[0]?.exactCardQuery || "")) failures.push("Discover lost the declared PSA 9 grade filter after identity resolution");
   if (calls.discover[0]?.exactCardQuery === imperfectQuery) failures.push("Discover reused the imperfect input instead of the resolved canonical identity");
 
   const finalInputValue = await page.locator('#main-content [data-customer-discovery-form] input[name="exactCardQuery"]').inputValue();
@@ -257,5 +260,5 @@ console.log(`Imperfect input: ${imperfectQuery}`);
 console.log(`Canonical identity: ${canonicalIdentity}`);
 console.log(`Failures: ${failures.length}`);
 failures.forEach(failure => console.log(`FAIL | ${failure}`));
-if (!failures.length) console.log("PASS | explicit candidate selection, progressive variant verification, server-token resolution, canonical identity handoff, and no auto-selection");
+if (!failures.length) console.log("PASS | explicit candidate selection, grade-context preservation, progressive variant verification, server-token resolution, canonical identity handoff, and no auto-selection");
 if (failures.length) process.exit(1);

@@ -4,11 +4,13 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const SEARCH_PATH = "/api/v1/card-intelligence/search";
   const RESOLVE_PATH = "/api/v1/card-intelligence/resolve";
   const CONTRACT_VERSION = "1.0";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const COLLAPSED_REVIEW_COUNT = 4;
   let queued = false;
+  let activeDeclaredGrade = "";
 
   function eligibleHost() {
     const host = String(window.location.hostname || "");
@@ -30,6 +32,80 @@
   function gradeContext(value) {
     const match = String(value || "").match(/\b(PSA|BGS|SGC|CGC|CSG|TAG|BCCG)\s*(10|9\.5|9|8\.5|8|7\.5|7|6\.5|6)\b/i);
     return match ? `${match[1].toUpperCase()} ${match[2]}` : "";
+  }
+
+  function requestPath(input) {
+    try {
+      const value = typeof input === "string" ? input : input?.url;
+      return new URL(String(value || ""), window.location.origin).pathname;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function requestMethod(input, init) {
+    return String(init?.method || input?.method || "GET").toUpperCase();
+  }
+
+  function requestJson(init) {
+    if (typeof init?.body !== "string" || !init.body.trim()) return {};
+    try { return JSON.parse(init.body); } catch (_) { return {}; }
+  }
+
+  function rewrittenResponse(response, payload) {
+    const headers = new Headers(response.headers);
+    headers.set("Content-Type", "application/json; charset=utf-8");
+    return new Response(JSON.stringify(payload), {
+      status: response.status,
+      statusText: response.statusText,
+      headers
+    });
+  }
+
+  function installGradeContextLock() {
+    if (window.__flipForgeDiscoverGradeContextLockV1) return;
+    window.__flipForgeDiscoverGradeContextLockV1 = true;
+    const nativeFetch = window.fetch.bind(window);
+
+    window.fetch = async (input, init = {}) => {
+      const path = requestPath(input);
+      const method = requestMethod(input, init);
+      const body = requestJson(init);
+
+      if (method === "POST" && path === SEARCH_PATH) {
+        activeDeclaredGrade = gradeContext(body.query);
+      }
+
+      const response = await nativeFetch(input, init);
+      if (method !== "POST" || path !== RESOLVE_PATH || !activeDeclaredGrade) return response;
+
+      const expectedGrade = activeDeclaredGrade;
+      activeDeclaredGrade = "";
+      if (!response.ok) return response;
+
+      let payload;
+      try {
+        payload = await response.clone().json();
+      } catch (_) {
+        return response;
+      }
+
+      const data = payload?.data;
+      if (!data || typeof data !== "object") return response;
+
+      const serverGrade = gradeContext(`${String(data.grader || "")} ${String(data.grade || "")}`);
+      const canonical = String(data.cardIdentity || "").trim().replace(/\s+/g, " ");
+      const canonicalGrade = gradeContext(canonical);
+
+      if (serverGrade !== expectedGrade || (canonicalGrade && canonicalGrade !== expectedGrade)) {
+        data.readyForEvaluation = false;
+        data.message = `The resolved card did not preserve the ${expectedGrade} grade filter. FlipForge stopped before marketplace search.`;
+      } else if (canonical && !canonicalGrade) {
+        data.cardIdentity = `${canonical} ${serverGrade}`.replace(/\s+/g, " ").trim();
+      }
+
+      return rewrittenResponse(response, payload);
+    };
   }
 
   function detailForVerification(row, originalQuery) {
@@ -260,6 +336,8 @@
     panel.dataset.ffIdentityExpanded = panel.dataset.ffIdentityExpanded === "1" ? "0" : "1";
     decorate();
   }, true);
+
+  installGradeContextLock();
 
   const main = document.querySelector("#main-content");
   if (main) {
