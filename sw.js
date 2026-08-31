@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v13';
+const CACHE='flipforge-shell-v14';
 const SHELL=[
   '/',
   '/index.html',
@@ -14,6 +14,7 @@ const SHELL=[
   '/assets/css/homepage-mobile-simplify-v1.css',
   '/assets/css/award-winning-v1.css',
   '/assets/css/homepage-visual-proof-v1.css',
+  '/assets/css/homepage-proof-polish-v1.css',
   '/assets/js/homepage-v1.js',
   '/assets/js/homepage-contender-v1.js',
   '/assets/js/award-winning-v1.js',
