@@ -6,12 +6,6 @@
   const MAIN_SELECTOR = "#main-content";
   const INTENT_WINDOW_MS = 3000;
   const REPAIR_COOLDOWN_MS = 120;
-  const KNOWN_PAGE_SELECTOR = [
-    ".customer-discovery-page",
-    ".customer-intelligence-page",
-    ".customer-lifecycle-page",
-    ".customer-export-page"
-  ].join(", ");
 
   const expectedPageByRoute = Object.freeze({
     discover: ".customer-discovery-page",
@@ -70,6 +64,42 @@
     return true;
   }
 
+  function adapterReady(route) {
+    switch (route) {
+      case "discover": {
+        const adapter = window.FlipForgeCustomerDiscovery;
+        return Boolean(adapter && typeof adapter.render === "function" && typeof adapter.isEligible === "function" && adapter.isEligible());
+      }
+      case "opportunities": {
+        const adapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
+        if (!adapter || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
+        return typeof adapter.renderCustomer === "function" || typeof adapter.render === "function";
+      }
+      case "tracking":
+      case "portfolio":
+      case "alerts": {
+        const adapter = window.FlipForgeCustomerLifecycle;
+        return Boolean(adapter
+          && typeof adapter.render === "function"
+          && typeof adapter.handles === "function"
+          && adapter.handles(route)
+          && typeof adapter.isEligible === "function"
+          && adapter.isEligible());
+      }
+      case "export": {
+        const adapter = window.FlipForgeCustomerExport;
+        return Boolean(adapter
+          && typeof adapter.render === "function"
+          && typeof adapter.handles === "function"
+          && adapter.handles(route)
+          && typeof adapter.isEligible === "function"
+          && adapter.isEligible());
+      }
+      default:
+        return false;
+    }
+  }
+
   function pageOwnershipMatches() {
     const route = routeName();
     const expected = expectedPageByRoute[route];
@@ -79,9 +109,12 @@
     if (!main || !main.children.length) return true;
     if (main.querySelector(expected)) return true;
 
-    // Only repair when another known customer workspace has actually taken over.
-    // Loading shells or routes outside this guard remain untouched.
-    return !main.querySelector(KNOWN_PAGE_SELECTOR);
+    // Once the governed adapter for this route is available, any non-empty
+    // workspace without its expected customer page is stale ownership. This
+    // intentionally includes generic legacy shell pages such as app.js's
+    // dashboard fallback; allowing those pages to remain was the route race.
+    if (!adapterReady(route)) return true;
+    return false;
   }
 
   function repairCurrentRoute() {
