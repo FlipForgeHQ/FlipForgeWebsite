@@ -1,0 +1,89 @@
+name: Pre-Beta Customer-State Audit
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-prebeta-customer-state-ci.mjs"
+      - "scripts/validate-discover-*.mjs"
+      - "scripts/validate-saas-customer-discovery.mjs"
+      - "scripts/validate-saas-beta-complete-gate.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "package.json"
+      - "docs/PREBETA_CUSTOMER_STATE_AUDIT.md"
+      - ".github/workflows/prebeta-customer-state-audit.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-prebeta-customer-state-ci.mjs"
+      - "scripts/validate-discover-*.mjs"
+      - "scripts/validate-saas-customer-discovery.mjs"
+      - "scripts/validate-saas-beta-complete-gate.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "package.json"
+      - "docs/PREBETA_CUSTOMER_STATE_AUDIT.md"
+      - ".github/workflows/prebeta-customer-state-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  destructive-customer-state-audit:
+    name: Attack repeated customer-state transitions before beta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production app assets
+        run: npm run build:identity
+
+      - name: Validate deterministic Discover contracts
+        run: npm run validate:customer-discovery
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local SaaS preview at production app path
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-prebeta-state-audit-server.log 2>&1 &
+          echo $! > /tmp/flipforge-prebeta-state-audit-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-prebeta-state-audit-server.log
+          exit 1
+
+      - name: Run destructive customer-state browser matrix
+        run: npm run audit:prebeta-customer-state
+
+      - name: Upload destructive audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flipforge-prebeta-customer-state-audit
+          path: qa-artifacts/prebeta-customer-state
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Show preview-server log on failure
+        if: failure()
+        run: cat /tmp/flipforge-prebeta-state-audit-server.log || true

@@ -6,8 +6,13 @@ on:
       - "saas-prototype/**"
       - "netlify/functions/flipforge-api.js"
       - "scripts/validate-saas-*.mjs"
+      - "scripts/validate-prebeta-customer-state-audit.mjs"
+      - "scripts/audit-prebeta-customer-state-ci.mjs"
+      - "package.json"
       - "docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md"
       - "docs/SAAS_BETA_COMPLETE_LIVE_QA.md"
+      - "docs/PREBETA_CUSTOMER_STATE_AUDIT.md"
+      - ".github/workflows/prebeta-customer-state-audit.yml"
       - ".github/workflows/saas-beta-complete-gate.yml"
   push:
     branches:
@@ -38,6 +43,9 @@ jobs:
 
       - name: Validate Beta Complete static contract
         run: node scripts/validate-saas-beta-complete-gate.mjs
+
+      - name: Validate destructive customer-state audit is wired
+        run: node scripts/validate-prebeta-customer-state-audit.mjs
 
       - name: Validate production customer loop
         run: node scripts/validate-saas-core-production-loop.mjs

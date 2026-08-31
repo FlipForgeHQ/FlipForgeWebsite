@@ -3,6 +3,7 @@
 
   const LAST_SEARCH_KEY = "flipforge.discover.lastSearch.v2";
   const RESET_LIMIT_KEY = "flipforge.discover.resetLimit.v2";
+  const DISCOVER_PATH = "/api/v1/discover";
   const MAIN_SELECTOR = "#main-content";
   let pendingSearch = null;
   let queued = false;
@@ -38,6 +39,51 @@
       if (!parsed || !parsed.query || !["10", "25", "50"].includes(String(parsed.limit))) return null;
       return { query: normalizedQuery(parsed.query), targetMaxBuy: String(parsed.targetMaxBuy || ""), limit: String(parsed.limit) };
     } catch (_) { return null; }
+  }
+
+  function requestPath(input) {
+    try {
+      const value = typeof input === "string" ? input : input?.url;
+      return new URL(String(value || ""), window.location.origin).pathname;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function requestMethod(input, init) {
+    return String(init?.method || input?.method || "GET").toUpperCase();
+  }
+
+  function requestJson(init) {
+    if (typeof init?.body !== "string" || !init.body.trim()) return {};
+    try { return JSON.parse(init.body); } catch (_) { return {}; }
+  }
+
+  function installCompletedSearchCapture() {
+    if (window.__flipForgeDiscoverCompletedSearchCaptureV2) return;
+    window.__flipForgeDiscoverCompletedSearchCaptureV2 = true;
+    const nativeFetch = window.fetch.bind(window);
+
+    window.fetch = async (input, init = {}) => {
+      const path = requestPath(input);
+      const method = requestMethod(input, init);
+      const body = method === "POST" && path === DISCOVER_PATH ? requestJson(init) : null;
+      const response = await nativeFetch(input, init);
+
+      if (body && response.ok) {
+        const query = normalizedQuery(body.exactCardQuery);
+        const limit = String(body.limit || "25");
+        if (query && ["10", "25", "50"].includes(limit)) {
+          const target = form();
+          const targetMaxBuy = String(target?.querySelector('[name="targetMaxBuy"]')?.value || "").trim();
+          saveLastSearch({ query, targetMaxBuy, limit });
+          pendingSearch = null;
+          queue();
+        }
+      }
+
+      return response;
+    };
   }
 
   function searchBusy() {
@@ -185,6 +231,7 @@
   window.addEventListener("hashchange", queue);
   window.addEventListener("pageshow", queue);
   window.addEventListener("load", queue);
+  installCompletedSearchCapture();
   if (document.body) new MutationObserver(queue).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"] });
   queue();
 })();
