@@ -117,7 +117,11 @@
 
     actions.classList.toggle("ff-discover-result-actions-visible", Boolean(hasLiveResults && previous && !hasNewQueryDraft));
     actions.classList.toggle("ff-discover-new-query-draft", Boolean(hasNewQueryDraft));
-    if (!hasLiveResults || !previous || hasNewQueryDraft) {
+    if (!hasLiveResults || !previous) {
+      removeResultControls(actions);
+      return;
+    }
+    if (hasNewQueryDraft) {
       removeResultControls(actions);
       return;
     }
