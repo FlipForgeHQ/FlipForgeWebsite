@@ -81,7 +81,7 @@ jobs:
           exit 1
 
       - name: Diagnose Saved Decision to Tracking route ownership
-        run: node scripts/diagnose-saved-decision-tracking-route-ci.mjs
+        run: timeout 20s node scripts/diagnose-saved-decision-tracking-route-ci.mjs
 
       - name: Run destructive saved-decision lifecycle browser matrix
         run: npm run audit:prebeta-saved-decision-lifecycle
