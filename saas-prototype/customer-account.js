@@ -152,9 +152,9 @@
     const track = card.querySelector(".usage-track span");
     const small = card.querySelector("small");
     if (strong) strong.textContent = current.name || "Private Beta";
-    if (row[0]) row[0].textContent = "Evaluation allowance";
+    if (row[0]) row[0].textContent = "Evaluation usage";
     if (row[1]) row[1].textContent = usage.monthlyEvaluationLimit == null
-      ? String(usage.completedEvaluations ?? 0)
+      ? `${admissionUsage} used · Unlimited beta`
       : `${admissionUsage} / ${usage.monthlyEvaluationLimit}`;
     if (track) track.style.width = `${percent(admissionUsage, usage.monthlyEvaluationLimit)}%`;
     if (small) small.textContent = "Plan state and usage are server-owned. Paid checkout is deferred until Core Platform Beta Complete.";
