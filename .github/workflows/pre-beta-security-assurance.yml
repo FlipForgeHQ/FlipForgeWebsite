@@ -62,24 +62,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Generate audited dependency refresh candidate
+      - name: Audit locked dependency graph
         shell: bash
         run: |
           set -euo pipefail
           node --version
           npm --version
-          npm install --package-lock-only --ignore-scripts --save-exact @netlify/blobs@10.7.13
           npm audit --package-lock-only --audit-level=high
-
-      - name: Retain dependency refresh candidate
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: website-secure-dependency-lock
-          path: |
-            package.json
-            package-lock.json
-          if-no-files-found: error
-          retention-days: 7
 
   codeql:
     name: Analyze JavaScript with CodeQL
