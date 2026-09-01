@@ -46,15 +46,15 @@
         <h1 id="decision-hero-title"><span class="decision-question">Would you pay</span><strong>$349</strong><span class="decision-question">for this card?</span></h1>
         <p class="decision-lead">FlipForge analyzes exact-card evidence, supported value, and risk—so you can see what the evidence supports before you buy.</p>
         <p class="decision-emphasis">A price can look convincing. <b>The reason behind it matters more.</b></p>
-        <div class="decision-actions"><a class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a><a class="decision-button decision-button-secondary" href="#decision-video">See How It Works</a></div>
+        <div class="decision-actions"><a class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a><a class="decision-button decision-button-secondary" href="#decision-video" data-ff-how-it-works>See How It Works</a></div>
         <div class="decision-trust" aria-label="FlipForge decision principles">
           <div><span class="decision-trust-icon" aria-hidden="true">✓</span><p><small>TRACEABLE EVIDENCE</small><strong>Eligible sales. Visible exclusions.</strong></p></div>
           <div><span class="decision-trust-icon" aria-hidden="true">↗</span><p><small>DECISION CONTEXT</small><strong>Value, risk, and reasoning together.</strong></p></div>
           <div><span class="decision-trust-icon" aria-hidden="true">?</span><p><small>EXPLAINABLE</small><strong>See the reason trail.</strong></p></div>
         </div>
       </div>
-      <figure class="decision-approved-visual" aria-label="Illustrative FlipForge supported-value decision">
-        <img src="assets/images/flipforge-approved-decision-visual.webp" width="935" height="685" decoding="async" fetchpriority="high" alt="Illustrative graded Shohei Ohtani card beside a FlipForge panel comparing a $349 ask with a $272 supported value, a WATCH decision, strong market evidence, elevated risk, and high confidence">
+      <figure class="decision-approved-visual" aria-label="Illustrative FlipForge Card Intelligence visual">
+        <img src="assets/images/flipforge-homepage-hero.webp" width="800" height="450" decoding="async" fetchpriority="high" alt="FlipForge Card Intelligence decision-first illustration">
         <figcaption>Illustrative landing-page example · not live market data</figcaption>
       </figure>
     </section>
@@ -69,14 +69,29 @@
     </section>
 
     <section class="ff-video-proof" id="decision-video" aria-labelledby="decision-video-title">
-      <div class="ff-video-copy"><p class="ff-video-kicker">30 SECONDS · ONE DECISION</p><h2 id="decision-video-title">See how FlipForge reaches the decision.</h2><p>Exact-card identity, evidence quality, risk, supported value, and the reason behind the verdict—without burying the answer in a dashboard.</p></div>
-      <div class="ff-video-shell"><video id="ff-decision-video" muted playsinline controls preload="metadata" poster="assets/images/flipforge-approved-decision-visual.webp" aria-label="Thirty-second FlipForge decision explainer"><source src="assets/video/flipforge-how-it-works-30s.mp4" type="video/mp4">Your browser does not support embedded video.</video></div>
+      <div class="ff-video-copy"><p class="ff-video-kicker">LESS THAN 30 SECONDS · ONE DECISION</p><h2 id="decision-video-title" tabindex="-1">See how FlipForge reaches the decision.</h2><p>Watch FlipForge challenge an apparent deal, check exact-card evidence, expose a mismatched comp, and explain why the result becomes VERIFY.</p></div>
+      <div class="ff-video-shell ff-animatic-shell"><iframe class="ff-decision-animatic" src="assets/interactive/flipforge-know-why.html" title="FlipForge Before you buy. Know Why. decision explainer" loading="eager"></iframe></div>
       <p class="ff-video-boundary"><strong>Controlled Private Beta.</strong> Illustrative example · not live market data · decision support only. FlipForge does not guarantee profit or authorize transactions.</p>
       <a class="ff-video-cta" href="beta-application.html">Request Beta Access <span aria-hidden="true">→</span></a>
     </section>
   </main>
 
   <script src="assets/js/homepage-v1.js" defer></script>
-  <script>(()=>{const video=document.getElementById('ff-decision-video');if(!video||!('IntersectionObserver'in window))return;let started=false;const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting&&entry.intersectionRatio>=.45&&!started&&!video.ended){started=true;video.play().catch(()=>{});}else if(!entry.isIntersecting&&!video.paused&&!video.ended){video.pause();}}},{threshold:[0,.45,.8]});observer.observe(video);})();</script>
+  <script>
+    (() => {
+      const trigger = document.querySelector('[data-ff-how-it-works]');
+      const target = document.getElementById('decision-video');
+      const heading = document.getElementById('decision-video-title');
+      if (!trigger || !target) return;
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        if (window.history && typeof window.history.replaceState === 'function') window.history.replaceState(null, '', '#decision-video');
+        else window.location.hash = 'decision-video';
+        if (heading) window.setTimeout(() => heading.focus({ preventScroll: true }), reduceMotion ? 0 : 450);
+      });
+    })();
+  </script>
 </body>
 </html>
