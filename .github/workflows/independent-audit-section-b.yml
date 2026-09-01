@@ -1,0 +1,97 @@
+name: Independent Audit — Section B Authentication and Tenant Isolation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/independent-audit-section-b.yml"
+      - "scripts/lib/flipforge-identity-client.mjs"
+      - "scripts/validate-netlify-identity-modernization.mjs"
+      - "scripts/validate-beta-operator-workflow.mjs"
+      - "scripts/validate-saas-gateway-tenant-membership.mjs"
+      - "netlify/modern-functions/flipforge-api.mjs"
+      - "netlify/modern-functions/beta-operator.mjs"
+      - "netlify/modern-functions/beta-feedback.mjs"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "netlify/functions/flipforge-api.js"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/independent-audit-section-b.yml"
+      - "scripts/lib/flipforge-identity-client.mjs"
+      - "scripts/validate-netlify-identity-modernization.mjs"
+      - "scripts/validate-beta-operator-workflow.mjs"
+      - "scripts/validate-saas-gateway-tenant-membership.mjs"
+      - "netlify/modern-functions/flipforge-api.mjs"
+      - "netlify/modern-functions/beta-operator.mjs"
+      - "netlify/modern-functions/beta-feedback.mjs"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "netlify/functions/flipforge-api.js"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+jobs:
+  website-auth-contract:
+    name: B1-B7 signed identity and browser trust boundary
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Build generated Identity bundles before validation
+        run: npm run build:identity
+      - name: Re-run signed Identity modernization contract
+        run: node scripts/validate-netlify-identity-modernization.mjs
+      - name: Re-run operator authorization and active-tester contract
+        run: node scripts/validate-beta-operator-workflow.mjs
+      - name: Re-run tenant spoofing and gateway isolation contract
+        run: node scripts/validate-saas-gateway-tenant-membership.mjs
+      - name: Independently verify callback/session fail-closed source invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          identity="scripts/lib/flipforge-identity-client.mjs"
+          gateway="netlify/modern-functions/flipforge-api.mjs"
+          grep -F 'tenantRoles.length !== 1' "$gateway"
+          grep -F 'await getUser()' "$gateway"
+          grep -F 'state.inviteToken = callback.token' "$identity"
+          grep -F 'clearCallbackHash();' "$identity"
+          grep -F 'state.inviteToken = ""' "$identity"
+          grep -F 'onAuthChange' "$identity"
+          if grep -E 'localStorage|sessionStorage' "$identity" | grep -Eiq 'invite|recovery|confirmation|token'; then
+            echo 'Auth callback token appears to be persisted in browser storage.' >&2
+            exit 1
+          fi
+
+  live-anonymous-boundary:
+    name: B1-B3 live anonymous denial probes
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Verify protected production APIs reject anonymous requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe() {
+            path="$1"
+            code="$(curl --silent --show-error --output /tmp/body --write-out '%{http_code}' "https://goflipforge.com${path}")"
+            echo "${path} -> ${code}"
+            case "$code" in
+              401|403) ;;
+              *)
+                echo "Protected route did not fail closed for an anonymous request." >&2
+                cat /tmp/body >&2 || true
+                exit 1
+                ;;
+            esac
+          }
+          probe /api/v1/dashboard
+          probe /api/v1/opportunities
+          probe /api/v1/market-view
+          probe /api/beta/operator
