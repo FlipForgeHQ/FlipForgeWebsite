@@ -1,0 +1,37 @@
+.customer-discovery-page.ff-discover-above-fold > .page-heading{
+  margin-bottom:.7rem;
+}
+
+.customer-discovery-page.ff-discover-above-fold > .customer-discovery-search{
+  margin-top:0;
+  border-color:rgba(216,180,71,.42);
+  box-shadow:0 16px 36px rgba(0,0,0,.18);
+}
+
+.customer-discovery-page.ff-discover-above-fold > .customer-discovery-search .panel-header{
+  padding-bottom:.7rem;
+}
+
+.customer-discovery-page.ff-discover-above-fold > .customer-discovery-search .panel-header p{
+  max-width:72ch;
+  margin-top:.35rem;
+}
+
+.customer-discovery-page.ff-discover-above-fold > [data-ff-discover-coach],
+.customer-discovery-page.ff-discover-above-fold > [data-ff-workflow-strip],
+.customer-discovery-page.ff-discover-above-fold > [data-ff-decision-key],
+.customer-discovery-page.ff-discover-above-fold > .boundary-note{
+  margin-top:.75rem;
+}
+
+@media (max-width:720px){
+  .customer-discovery-page.ff-discover-above-fold > .page-heading{
+    margin-bottom:.5rem;
+  }
+
+  .customer-discovery-page.ff-discover-above-fold > .customer-discovery-search .panel-header,
+  .customer-discovery-page.ff-discover-above-fold > .customer-discovery-search .panel-body{
+    padding-left:1rem;
+    padding-right:1rem;
+  }
+}
