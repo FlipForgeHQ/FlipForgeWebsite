@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "description": "FlipForge website and non-production SaaS staging surface.",
   "scripts": {
-    "build:identity": "node scripts/build-identity-client.mjs",
+    "build:identity": "node scripts/build-identity-client.mjs && node scripts/inject-discovery-request-guard.mjs",
     "build:paddle-live": "node scripts/build-paddle-live-config.mjs",
     "build:deploy-manifest": "node scripts/write-deploy-manifest.mjs",
     "validate:deploy-manifest": "node scripts/validate-deploy-manifest.mjs",
