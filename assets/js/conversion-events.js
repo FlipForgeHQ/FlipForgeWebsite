@@ -1,15 +1,11 @@
 (()=>{
-  const ensureIndependentAuditReadability=()=>{
-    if(document.getElementById('ff-public-readability-floor'))return;
-    const style=document.createElement('style');
-    style.id='ff-public-readability-floor';
-    style.textContent=`
-      .identity-option,.tool-tab,.outcome-button,.demo-disclaimer{font-size:12px!important}
-      .ff-beta-notice p,.ff-pricing-boundaries p,.ff-beta-expectations p{font-size:12px!important}
-    `;
-    document.head.appendChild(style);
+  const enforceReadabilityFloor=()=>{
+    document.querySelectorAll('main p, main li, main label, main button, main input, main select').forEach(el=>{
+      const size=parseFloat(getComputedStyle(el).fontSize)||0;
+      if(size>0&&size<12)el.style.fontSize='12px';
+    });
   };
-  ensureIndependentAuditReadability();
+  enforceReadabilityFloor();
 
   const normalizeMarketingShell=()=>{
     const normalizedPath=link=>{
@@ -67,6 +63,7 @@
     }
   };
   normalizeMarketingShell();
+  enforceReadabilityFloor();
 
   const endpoint="/api/conversion-event";
   const sent=new Set();
@@ -141,6 +138,8 @@
     application.addEventListener("input",started,{once:true});
     application.addEventListener("change",started,{once:true});
   }
+
+  window.addEventListener('resize',enforceReadabilityFloor,{passive:true});
 
   if(page==="sample-dossier")emit("sample_dossier_viewed","sample-page",true);
   if(page==="application-received")emit("beta_application_received","post-submit",true);
