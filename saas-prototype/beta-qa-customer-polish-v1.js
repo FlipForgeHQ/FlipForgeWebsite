@@ -173,7 +173,7 @@
 
     const candidates = findSectionByHeading(main, "Manual evidence candidates");
     if (candidates) {
-      setText(candidates.querySelector(".panel-header p"), "Candidates are review inputs only. Candidate match signals are not evidence authority and cannot support value until the governed evidence rules accept them.");
+      setText(candidates.querySelector(".panel-header p"), "Candidates are review inputs only. Candidate match signals are not evidence authority and cannot support value until the current evidence rules accept them.");
       const headers = [...candidates.querySelectorAll("thead th")];
       if (headers[3]) setText(headers[3], "Authority review");
       [...candidates.querySelectorAll("tbody tr")].forEach(row => {
