@@ -6,7 +6,7 @@ on:
       - ".github/workflows/independent-audit-section-b.yml"
       - "scripts/lib/flipforge-identity-client.mjs"
       - "scripts/validate-netlify-identity-modernization.mjs"
-      - "scripts/validate-beta-operator-workflow.mjs"
+      - "scripts/validate-beta-operator-current.mjs"
       - "scripts/validate-saas-gateway-tenant-membership.mjs"
       - "netlify/modern-functions/flipforge-api.mjs"
       - "netlify/modern-functions/beta-operator.mjs"
@@ -21,7 +21,7 @@ on:
       - ".github/workflows/independent-audit-section-b.yml"
       - "scripts/lib/flipforge-identity-client.mjs"
       - "scripts/validate-netlify-identity-modernization.mjs"
-      - "scripts/validate-beta-operator-workflow.mjs"
+      - "scripts/validate-beta-operator-current.mjs"
       - "scripts/validate-saas-gateway-tenant-membership.mjs"
       - "netlify/modern-functions/flipforge-api.mjs"
       - "netlify/modern-functions/beta-operator.mjs"
@@ -50,7 +50,7 @@ jobs:
       - name: Re-run signed Identity modernization contract
         run: node scripts/validate-netlify-identity-modernization.mjs
       - name: Re-run operator authorization and active-tester contract
-        run: node scripts/validate-beta-operator-workflow.mjs
+        run: npm run validate:beta-operator
       - name: Re-run tenant spoofing and gateway isolation contract
         run: node scripts/validate-saas-gateway-tenant-membership.mjs
       - name: Independently verify callback/session fail-closed source invariants
