@@ -42,7 +42,7 @@
     "validate:homepage-progression": "node scripts/validate-homepage-progression.mjs",
     "validate:sitewide-ux": "node scripts/validate-sitewide-ux.mjs",
     "validate:beta-acquisition": "node scripts/validate-beta-acquisition-onboarding.mjs",
-    "validate:beta-operator": "node scripts/validate-beta-operator-workflow.mjs"
+    "validate:beta-operator": "node scripts/validate-beta-operator-current.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "10.7.13",
