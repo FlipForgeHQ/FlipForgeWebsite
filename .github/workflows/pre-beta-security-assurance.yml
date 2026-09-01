@@ -1,0 +1,103 @@
+name: Pre-Beta Security Assurance
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '29 11 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    name: Scan full Git history for leaked credentials
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Install checksum-pinned TruffleHog 3.97.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/trufflehog_3.97.1_linux_amd64.tar.gz"
+          install_dir="$RUNNER_TEMP/trufflehog-3.97.1"
+          mkdir -p "$install_dir"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            --output "$archive" \
+            'https://github.com/trufflesecurity/trufflehog/releases/download/v3.97.1/trufflehog_3.97.1_linux_amd64.tar.gz'
+          echo 'f863ea3a8d786f7d097870496c977944cce7372a2fe1e56707d965016e543ece  '"$archive" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$install_dir" trufflehog
+          "$install_dir/trufflehog" --version
+          echo "TRUFFLEHOG=$install_dir/trufflehog" >> "$GITHUB_ENV"
+
+      - name: Scan complete repository history
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$TRUFFLEHOG" git "file://$GITHUB_WORKSPACE" \
+            --fail \
+            --no-update \
+            --results=verified,unknown \
+            --github-actions
+
+  dependencies:
+    name: Block high or critical npm vulnerabilities
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Audit locked dependency graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --version
+          npm --version
+          npm audit --package-lock-only --audit-level=high
+
+  codeql:
+    name: Analyze JavaScript with CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Analyze locally
+        uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+        with:
+          output: results
+          upload: never
+
+      - name: Fail on high or critical CodeQL findings
+        run: node ./scripts/codeql-sarif-security-guard.mjs results
+
+      - name: Retain CodeQL SARIF evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: website-codeql-security-sarif
+          path: results/**/*.sarif
+          if-no-files-found: error
+          retention-days: 30
