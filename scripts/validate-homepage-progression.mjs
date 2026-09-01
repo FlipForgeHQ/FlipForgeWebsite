@@ -7,78 +7,42 @@ const learn=read('learn.html');
 const beta=read('beta-application.html');
 const pricing=read('pricing.html');
 const app=read('saas-prototype/index.html');
-const awardCss=read('assets/css/award-winning-v1.css');
-const polishCss=read('assets/css/homepage-proof-polish-v1.css');
 const awardJs=read('assets/js/award-winning-v1.js');
-const contenderJs=read('assets/js/homepage-contender-v1.js');
+const navJs=read('assets/js/homepage-v1.js');
+const mobileCss=read('assets/css/homepage-mobile-nav-v1.css');
 const sw=read('sw.js');
 const failures=[];
 const productionBuild=String(process.env.CONTEXT||'').toLowerCase()==='production';
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toLowerCase()))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 
-// Locked brand and customer-first category.
-requireText('homepage brand',homepage,'Before you buy. <span>Know Why.</span>');
-requireText('homepage category',homepage,'<div class="eyebrow">CARD INTELLIGENCE</div>');
+// Locked brand and decision-first homepage.
+requireText('homepage category',homepage,'CARD INTELLIGENCE');
+requireText('homepage slogan',homepage,'Before you buy. Know Why.');
 forbidText('public category',`${homepage}\n${product}\n${learn}`,'CARD VALUE INTELLIGENCE');
-if(homepage.includes('Before you buy. Know why.'))failures.push('brand case: lowercase why is forbidden');
+requireText('homepage hook',homepage,'Would you pay');
+requireText('homepage hook',homepage,'<strong>$349</strong>');
+requireText('homepage hook',homepage,'for this card?');
+requireText('homepage reason tension',homepage,'The reason behind it matters more.');
+requireText('homepage approved visual',homepage,'assets/images/flipforge-approved-decision-visual.webp');
+requireText('homepage illustrative boundary',homepage,'Illustrative landing-page example · not live market data');
+requireText('homepage proof',homepage,'REAL MARKET EVIDENCE');
+requireText('homepage proof',homepage,'RISK &amp; REWARD INSIGHT');
+requireText('homepage proof',homepage,'MAKE BETTER DECISIONS');
+requireText('homepage video',homepage,'id="decision-video"');
+requireText('homepage video',homepage,'assets/video/flipforge-how-it-works-30s.mp4');
+requireText('homepage video',homepage,'See how FlipForge reaches the decision.');
+requireText('homepage beta boundary',homepage,'Controlled Private Beta.');
+requireText('homepage transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
+requireText('homepage primary CTA',homepage,'decision-button-primary" href="beta-application.html">Request Beta Access');
+requireText('homepage video CTA',homepage,'href="#decision-video">See How It Works');
+for(const removed of ['ff-decision-motion','ff-card-stage','ff-motion-console','data-replay-decision','ff-live-product-frame','id="busted-comp"'])forbidText('simplified homepage',homepage,removed);
 
-// Homepage is now six customer moments, in order.
-const homeMarkers=[
-  'class="hero ff-hero-v3 ff-conversion-hero ff-hero-customer"',
-  'class="ff-problem-band ff-false-confidence"',
-  'id="busted-comp"',
-  'id="validation"',
-  'id="decision-accountability"',
-  'class="ff-beta-wedge"',
-  'class="section home-section ff-final-cta"'
-];
-let last=-1;
-for(const marker of homeMarkers){
-  const idx=homepage.indexOf(marker);
-  if(idx<0)failures.push(`homepage architecture: missing ${JSON.stringify(marker)}`);
-  else if(idx<=last)failures.push(`homepage architecture: out of order ${JSON.stringify(marker)}`);
-  last=Math.max(last,idx);
-}
-for(const removed of ['ff-customer-outcomes','id="before-after"','id="evidence"','id="sample-dossier"','id="who-its-for"','class="ff-category"','id="how-it-works"'])forbidText('lean homepage',homepage,removed);
-
-for(const customerNeedle of [
-  'You are the one putting money on the line.',
-  'A convincing comp can still be the wrong reason to buy.',
-  'THE ENEMY IS FALSE CONFIDENCE',
-  'Which sale actually deserves to count?',
-  'Trust has to be earned',
-  'Did the decision age well?',
-  'Bring us the card you are actually thinking about buying.'
-])requireText('customer-first homepage',homepage,customerNeedle);
-
-for(const hero of ['<small>Last comp</small><strong>$900</strong>','<small>Listing</small><strong>$850</strong>','Easy buy — or is it?','VERIFY before buying','The listing price did not. Your confidence should.','Illustrative decision · not live market data','data-replay-decision'])requireText('hero decision theatre',homepage,hero);
-for(const comp of ['data-aw-comp="exact"','data-aw-comp="parallel"','data-aw-comp="grade"'])requireText('Busted Comp challenge',homepage,comp);
-requireText('Busted Comp behavior',awardJs,'EXCLUDED.');
-requireText('Busted Comp behavior',awardJs,'CONTEXT ONLY.');
-
-for(const proof of ['>100<','>74<','>26<','>18<','20-case blind re-review','25-card prospective study','FlipForge has not authorized a public accuracy percentage'])requireText('governed proof',homepage,proof);
-for(const day of ['Day 0','Day 7','Day 14','Day 30'])requireText('outcome accountability',homepage,day);
-requireText('outcome accountability',homepage,'not rewriting history to make the model look right');
-requireText('accountability timeline',polishCss,'.ff-aw-accountability .ff-aw-question-grid::before');
-requireText('accountability timeline',awardJs,"aria-label','Decision accountability timeline: Day 0, Day 7, Day 14 and Day 30'");
-
-requireText('beta wedge',homepage,'Modern football rookie autos + scarce parallels');
-requireText('broad category',homepage,'FlipForge remains Card Intelligence for sports cards broadly');
-requireText('single beta CTA behavior',awardJs,"if(String(link.textContent||'').trim()==='See Private Beta')link.textContent='Request Beta Access'");
-requireText('unpaid beta',homepage,'Private beta participation does not create a paid subscription.');
-requireText('transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
-
-// The discovery teaser may look alive, but must not imply fabricated market measurements.
-requireText('Forge Heat signal',awardJs,"signal.className='ff-forge-heat-signal'");
-requireText('Forge Heat signal',polishCss,'.ff-forge-heat-signal');
-requireText('Forge Heat non-data boundary',awardJs,'it represents no market measurement or live data');
-
-// Mobile hero stays focused on one action and one real product proof.
-requireText('mobile hero simplification',polishCss,'.ff-hero-customer .ff-motion-console');
-requireText('mobile hero simplification',polishCss,'.ff-hero-customer .ff-hero-text-link');
-requireText('mobile product proof',polishCss,'.ff-live-product-proof');
-requireText('proof polish stylesheet load',awardJs,"polish.href='assets/css/homepage-proof-polish-v1.css'");
+// Mobile navigation remains keyboard/accessibility aware.
+for(const needle of ['class="menu-toggle"','aria-controls="mobile-navigation"','class="mobile-nav" id="mobile-navigation"','class="backdrop" aria-hidden="true"','<script src="assets/js/homepage-v1.js" defer></script>'])requireText('homepage mobile navigation',homepage,needle);
+requireText('mobile menu Escape',navJs,"event.key==='Escape'");
+requireText('mobile menu focus trap',navJs,"event.key!=='Tab'");
+requireText('mobile menu CSS',mobileCss,'.menu-toggle{display:block}');
 
 // Product answers customer questions rather than presenting architecture.
 for(const needle of ['Is the premium actually supported?','Is this actually the card?','Do these comps actually belong?','Is the price actually supported?','What could make this wrong?','What should I do next—and why?','Can I challenge the recommendation too?'])requireText('Product customer questions',product,needle);
@@ -86,10 +50,10 @@ for(const simulator of ['id="identity-simulator"','Try to break the identity','C
 for(const grade of ['id="grade-form"','Grade-premium intelligence','The PSA 10 price is not your grading profit.'])requireText('Product grade proof',product,grade);
 requireText('Product decision receipt',product,'Decision receipt');
 
-// Evidence Lab owns the market language and content franchise.
+// Evidence Lab owns the deeper education layer.
 for(const needle of ['Learn to spot False Confidence before it costs you.','BUSTED COMP','CASE 01 · WRONG PARALLEL','CASE 02 · ONE-SALE TRAP','CASE 03 · PSA 10 MIRAGE','CASE 04 · STALE MARKET','CASE 05 · ASK ≠ EVIDENCE','7 / 14 / 30 Review','Do not trust a decision engine because it sounds confident. Measure how its calls age.'])requireText('Evidence Lab authority hub',learn,needle);
 
-// Beta sells value first and feels like two short steps while preserving server intake.
+// Beta remains a controlled, unpaid, server-backed intake.
 for(const needle of ['Bring the card that makes you hesitate.','Challenge a real decision','See the reason trail','name="flipforge-private-beta-application"','action="/api/beta/applications"','name="bot-field"','data-beta-application-form','data-aw-beta-step','data-aw-beta-next','data-aw-beta-back','Private beta is not a paid subscription.'])requireText('Beta customer-first funnel',beta,needle);
 requireText('Beta step behavior',awardJs,'steps.slice(1)');
 requireText('Beta step behavior',awardJs,'setStep(1)');
@@ -98,7 +62,7 @@ requireText('Beta step behavior',awardJs,'setStep(1)');
 for(const needle of ['Planned Launch Structure','Launch Plans','Pricing to be announced','Final package pricing has not been published.','No paid checkout and no public package pricing during private beta.','10 planned evaluations per month','75 planned evaluations per month','300 planned evaluations per month','Open full planned feature comparison'])requireText('Launch Plans progressive disclosure',pricing,needle);
 for(const amount of ['$14.99','$29.99','$149','$299'])forbidText('Launch Plans unpublished pricing',pricing,amount);
 
-// Marketing shell and premium visual system.
+// Shared marketing shell remains navigable.
 for(const page of [homepage,product,learn,beta,pricing]){
   requireText('marketing navigation',page,'>Product</a>');
   requireText('marketing navigation',page,'>Evidence Lab</a>');
@@ -106,11 +70,6 @@ for(const page of [homepage,product,learn,beta,pricing]){
   requireText('marketing navigation',page,'>About</a>');
   requireText('marketing navigation',page,'>Request Beta Access</a>');
 }
-requireText('premium CSS rhythm',awardCss,'.ff-aw-question-grid');
-requireText('premium CSS navigation',awardCss,'a[data-app-preview]');
-requireText('premium CSS mobile',awardCss,'@media(max-width:520px)');
-requireText('premium CSS beta',awardCss,'.ff-aw-beta-step[hidden]');
-requireText('premium JS loaded by homepage',contenderJs,'award-winning-v1.js');
 
 // App keeps customer routes in production while staging diagnostics remain preview-only.
 for(const core of ['data-route="dashboard"','data-route="discover"','data-route="evaluate"','data-route="opportunities"','data-route="tracking"','data-route="portfolio"'])requireText('app core workflow',app,core);
@@ -126,20 +85,15 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-// PWA and motion boundaries.
+// PWA and public-safety boundaries remain.
 requireText('PWA cache',sw,"const CACHE='flipforge-shell-v14'");
-requireText('PWA premium CSS',sw,"'/assets/css/award-winning-v1.css'");
-requireText('PWA proof polish CSS',sw,"'/assets/css/homepage-proof-polish-v1.css'");
-requireText('PWA premium JS',sw,"'/assets/js/award-winning-v1.js'");
-requireText('reduced motion',contenderJs,'prefers-reduced-motion: reduce');
-
 const publicCopy=`${homepage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true','CARD VALUE INTELLIGENCE'])forbidText('public safety',publicCopy,unsafe);
 for(const unsafeData of ['localStorage','sessionStorage','indexedDB'])forbidText('public static pages',publicCopy,unsafeData);
 
 if(failures.length){
-  console.error('Premium website progression validation failed:');
+  console.error('Decision-first website progression validation failed:');
   failures.forEach(failure=>console.error(`- ${failure}`));
   process.exit(1);
 }
-console.log(`PASS: FlipForge customer-first premium journey and ${productionBuild?'production app boundary':'preview staging diagnostics'} validated.`);
+console.log(`PASS: FlipForge decision-first journey and ${productionBuild?'production app boundary':'preview staging diagnostics'} validated.`);
