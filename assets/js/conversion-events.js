@@ -1,4 +1,16 @@
 (()=>{
+  const ensureIndependentAuditReadability=()=>{
+    if(document.getElementById('ff-public-readability-floor'))return;
+    const style=document.createElement('style');
+    style.id='ff-public-readability-floor';
+    style.textContent=`
+      .identity-option,.tool-tab,.outcome-button,.demo-disclaimer{font-size:12px!important}
+      .ff-beta-notice p,.ff-pricing-boundaries p,.ff-beta-expectations p{font-size:12px!important}
+    `;
+    document.head.appendChild(style);
+  };
+  ensureIndependentAuditReadability();
+
   const normalizeMarketingShell=()=>{
     const normalizedPath=link=>{
       try{
