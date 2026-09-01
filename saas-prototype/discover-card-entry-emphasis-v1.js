@@ -3,7 +3,6 @@
 
   const MAIN = "#main-content";
   const INPUT = '[data-customer-discovery-form] input[name="exactCardQuery"]';
-  const START_PANEL_ID = "ff-discover-start-choice";
   const IDENTITY_HELPER_VERSION = "20260831-3";
 
   function routeName() {
@@ -44,105 +43,31 @@
     document.body.appendChild(script);
   }
 
-  function ensureStartStyles() {
-    if (document.getElementById("ff-discover-start-choice-styles")) return;
-    const style = document.createElement("style");
-    style.id = "ff-discover-start-choice-styles";
-    style.textContent = `
-      #${START_PANEL_ID}{margin:0 0 18px;padding:18px;border:1px solid rgba(226,181,65,.34);border-radius:14px;background:linear-gradient(180deg,rgba(226,181,65,.07),rgba(255,255,255,.018));box-shadow:0 12px 34px rgba(0,0,0,.18)}
-      #${START_PANEL_ID} .ff-discover-start-heading{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
-      #${START_PANEL_ID} .ff-discover-start-heading strong{font-size:17px;color:#f5f7fb}
-      #${START_PANEL_ID} .ff-discover-start-heading span{font-size:12px;line-height:1.5;color:#aeb5c1}
-      #${START_PANEL_ID} .ff-discover-start-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-      #${START_PANEL_ID} .ff-discover-start-option{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-height:118px;padding:15px;border:1px solid rgba(255,255,255,.11);border-radius:12px;background:rgba(5,8,12,.72);text-align:left;cursor:pointer;color:inherit}
-      #${START_PANEL_ID} .ff-discover-start-option:hover,#${START_PANEL_ID} .ff-discover-start-option:focus-visible{border-color:rgba(226,181,65,.82);box-shadow:0 0 0 3px rgba(226,181,65,.12);outline:none}
-      #${START_PANEL_ID} .ff-discover-start-option strong{font-size:15px;color:#f2cb67}
-      #${START_PANEL_ID} .ff-discover-start-option span{font-size:12px;line-height:1.45;color:#c2c8d1}
-      #${START_PANEL_ID} .ff-discover-start-option small{margin-top:auto;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#8f98a6}
-      @media(max-width:720px){#${START_PANEL_ID} .ff-discover-start-grid{grid-template-columns:1fr}}
-    `;
-    document.head.appendChild(style);
-  }
+  function promoteSearchPanel(main) {
+    const page = main?.querySelector(".customer-discovery-page");
+    const heading = page?.querySelector(":scope > .page-heading");
+    const search = page?.querySelector(":scope > .customer-discovery-search");
+    if (!page || !heading || !search) return;
 
-  function focusInput(input) {
-    input.scrollIntoView({ behavior: "smooth", block: "center" });
-    window.setTimeout(() => {
-      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-    }, 80);
-  }
+    page.classList.add("ff-discover-above-fold");
 
-  function liveDiscoverControls() {
-    const main = document.querySelector(MAIN);
-    const form = main?.querySelector("[data-customer-discovery-form]");
-    const input = form?.querySelector('input[name="exactCardQuery"]');
-    const searchButton = form?.querySelector('button[type="submit"]');
-    const identifyButton = form?.querySelector("[data-discovery-find-exact]");
-    return { form, input, searchButton, identifyButton };
-  }
-
-  function runFindExactFromChooser() {
-    const current = liveDiscoverControls();
-    if (!current.input || !current.identifyButton || current.identifyButton.disabled) return;
-    focusInput(current.input);
-    if (!String(current.input.value || "").trim()) return;
-    window.setTimeout(() => {
-      const live = liveDiscoverControls();
-      if (!live.input || !live.identifyButton || live.identifyButton.disabled) return;
-      if (!String(live.input.value || "").trim()) return;
-      live.identifyButton.click();
-    }, 120);
-  }
-
-  function runActiveSearchFromChooser() {
-    const current = liveDiscoverControls();
-    if (!current.form || !current.input || !current.searchButton || current.searchButton.disabled) return;
-    focusInput(current.input);
-    if (!String(current.input.value || "").trim()) return;
-    window.setTimeout(() => {
-      const live = liveDiscoverControls();
-      if (!live.form || !live.input || !live.searchButton || live.searchButton.disabled) return;
-      if (!String(live.input.value || "").trim()) return;
-      live.form.requestSubmit?.();
-    }, 120);
-  }
-
-  function ensureStartChooser(form, input, searchButton, identifyButton) {
-    if (!form || !input || !searchButton || !identifyButton) return;
-    ensureStartStyles();
-    let panel = document.getElementById(START_PANEL_ID);
-    if (!panel) {
-      panel = document.createElement("section");
-      panel.id = START_PANEL_ID;
-      panel.setAttribute("aria-label", "Choose how to start Discover");
-      panel.innerHTML = `
-        <div class="ff-discover-start-heading">
-          <strong>How do you want to start?</strong>
-          <span>Confirm the card first when identity is uncertain, or go directly to active listings when you already know the exact card.</span>
-        </div>
-        <div class="ff-discover-start-grid">
-          <button type="button" class="ff-discover-start-option" data-ff-discover-start-find>
-            <strong>Find exact card</strong>
-            <span>Search the verified card catalog, choose the correct card, and let FlipForge confirm the identity before marketplace search.</span>
-            <small>Best when card number or variant is uncertain</small>
-          </button>
-          <button type="button" class="ff-discover-start-option" data-ff-discover-start-search>
-            <strong>Search active listings</strong>
-            <span>Use the exact card identity you already know and search currently connected active-listing sources.</span>
-            <small>Best when exact identity is known</small>
-          </button>
-        </div>`;
-      form.closest(".customer-discovery-search")?.insertAdjacentElement("beforebegin", panel);
+    // Search is the primary Discover job. Keep it immediately under the page
+    // heading so workflow education and decision terminology cannot bury it.
+    if (heading.nextElementSibling !== search) {
+      heading.insertAdjacentElement("afterend", search);
     }
 
-    const findStart = panel.querySelector("[data-ff-discover-start-find]");
-    if (findStart && findStart.dataset.ffBound !== "1") {
-      findStart.dataset.ffBound = "1";
-      findStart.addEventListener("click", runFindExactFromChooser);
-    }
-    const searchStart = panel.querySelector("[data-ff-discover-start-search]");
-    if (searchStart && searchStart.dataset.ffBound !== "1") {
-      searchStart.dataset.ffBound = "1";
-      searchStart.addEventListener("click", runActiveSearchFromChooser);
+    const coach = page.querySelector(":scope > [data-ff-discover-coach]");
+    const workflow = page.querySelector(":scope > [data-ff-workflow-strip]");
+    const decisionKey = page.querySelector(":scope > [data-ff-decision-key]");
+    const boundary = [...page.querySelectorAll(":scope > .boundary-note")]
+      .find(node => /decision framework|authority boundary/i.test(String(node.textContent || "")));
+
+    let anchor = search;
+    for (const node of [coach, workflow, decisionKey, boundary]) {
+      if (!node || node === anchor) continue;
+      if (anchor.nextElementSibling !== node) anchor.insertAdjacentElement("afterend", node);
+      anchor = node;
     }
   }
 
@@ -174,13 +99,11 @@
   }
 
   function decorate() {
-    if (routeName() !== "discover") {
-      document.getElementById(START_PANEL_ID)?.remove();
-      return;
-    }
+    if (routeName() !== "discover") return;
     const main = document.querySelector(MAIN);
     if (!main) return;
 
+    promoteSearchPanel(main);
     decorateResultClarity(main);
 
     const input = main.querySelector(INPUT);
@@ -215,14 +138,6 @@
     if (identifyButton) {
       identifyButton.setAttribute("aria-label", "Find and confirm the exact card");
       identifyButton.title = "Use this when you are unsure which base, parallel, variation, or card number is correct.";
-    }
-
-    const hasIdentityAssist = Boolean(main.querySelector(".customer-discovery-identity-assist"));
-    const hasResults = Boolean(main.querySelector(".customer-discovery-results"));
-    if (hasIdentityAssist || hasResults) {
-      document.getElementById(START_PANEL_ID)?.remove();
-    } else {
-      ensureStartChooser(form, input, searchButton, identifyButton);
     }
   }
 
