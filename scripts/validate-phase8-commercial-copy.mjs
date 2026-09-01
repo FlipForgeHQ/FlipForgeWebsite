@@ -15,12 +15,13 @@ function forbidText(label, text, needle) {
   if (text.includes(needle)) failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);
 }
 
-// The focused homepage intentionally routes detailed commercial terms to the launch-plans page.
-requireText('homepage', homepage, 'Before you buy. <span>Know Why.</span>');
-forbidText('homepage', homepage, 'Before You Buy, <span>Know Why.</span>');
+// The decision-first homepage routes detailed commercial terms to Launch Plans and keeps the current beta boundary explicit.
+requireText('homepage', homepage, 'Before you buy. Know Why.');
+forbidText('homepage', homepage, 'Before You Buy, Know Why.');
+forbidText('homepage', homepage, 'Before you buy. Know why.');
 requireText('homepage', homepage, 'href="pricing.html"');
 requireText('homepage', homepage, 'href="beta-application.html"');
-requireText('homepage', homepage, 'Controlled Private Beta');
+requireText('homepage', homepage, 'Controlled Private Beta.');
 requireText('homepage', homepage, 'FlipForge does not guarantee profit or authorize transactions.');
 forbidText('homepage', homepage, '<li>5 evaluations per month</li>');
 forbidText('homepage', homepage, 'Most popular');
@@ -92,4 +93,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Private-beta no-charge status, unpublished launch pricing, future-only checkout terms, locked slogan punctuation, and refund boundaries remain commercially consistent.');
+console.log('PASS: Decision-first homepage, private-beta no-charge status, unpublished launch pricing, future-only checkout terms, locked slogan punctuation, and refund boundaries remain commercially consistent.');
