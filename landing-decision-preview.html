@@ -70,7 +70,7 @@
 
     <section class="ff-video-proof" id="decision-video" aria-labelledby="decision-video-title">
       <div class="ff-video-copy"><p class="ff-video-kicker">LESS THAN 30 SECONDS · ONE DECISION</p><h2 id="decision-video-title" tabindex="-1">See how FlipForge reaches the decision.</h2><p>Watch FlipForge challenge an apparent deal, check exact-card evidence, expose a mismatched comp, and explain why the result becomes VERIFY.</p></div>
-      <div class="ff-video-shell ff-animatic-shell"><iframe class="ff-decision-animatic" src="assets/interactive/flipforge-know-why.html" title="FlipForge Before you buy. Know Why. decision explainer" loading="eager"></iframe></div>
+      <div class="ff-video-shell ff-animatic-shell"><iframe id="ff-decision-animatic" class="ff-decision-animatic" src="assets/interactive/flipforge-know-why.html" title="FlipForge Before you buy. Know Why. animated decision explainer" loading="eager"></iframe></div>
       <p class="ff-video-boundary"><strong>Controlled Private Beta.</strong> Illustrative example · not live market data · decision support only. FlipForge does not guarantee profit or authorize transactions.</p>
       <a class="ff-video-cta" href="beta-application.html">Request Beta Access <span aria-hidden="true">→</span></a>
     </section>
@@ -82,6 +82,7 @@
       const trigger = document.querySelector('[data-ff-how-it-works]');
       const target = document.getElementById('decision-video');
       const heading = document.getElementById('decision-video-title');
+      const animatic = document.getElementById('ff-decision-animatic');
       if (!trigger || !target) return;
       trigger.addEventListener('click', (event) => {
         event.preventDefault();
@@ -89,7 +90,10 @@
         target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
         if (window.history && typeof window.history.replaceState === 'function') window.history.replaceState(null, '', '#decision-video');
         else window.location.hash = 'decision-video';
-        if (heading) window.setTimeout(() => heading.focus({ preventScroll: true }), reduceMotion ? 0 : 450);
+        window.setTimeout(() => {
+          if (animatic && animatic.contentWindow) animatic.contentWindow.postMessage('ff-play-restart', '*');
+          if (heading) heading.focus({ preventScroll: true });
+        }, reduceMotion ? 0 : 450);
       });
     })();
   </script>
