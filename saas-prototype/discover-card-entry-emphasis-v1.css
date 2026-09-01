@@ -1,4 +1,19 @@
 /* FlipForge Discover card-entry emphasis v1 */
+.customer-discovery-page.ff-discover-above-fold > .page-heading{
+  margin-bottom:.7rem;
+}
+
+.customer-discovery-page.ff-discover-above-fold > .customer-discovery-search{
+  margin-top:0;
+}
+
+.customer-discovery-page.ff-discover-above-fold > [data-ff-discover-coach],
+.customer-discovery-page.ff-discover-above-fold > [data-ff-workflow-strip],
+.customer-discovery-page.ff-discover-above-fold > [data-ff-decision-key],
+.customer-discovery-page.ff-discover-above-fold > .boundary-note{
+  margin-top:.75rem;
+}
+
 .customer-discovery-search{
   position:relative;
   overflow:visible;
@@ -41,6 +56,7 @@
 
 .customer-discovery-search .panel-header{
   padding-top:12px;
+  padding-bottom:10px;
 }
 
 .customer-discovery-search .panel-header h2{
@@ -51,6 +67,7 @@
 .customer-discovery-search .panel-header p{
   max-width:820px;
   color:#b8c0ca;
+  margin-top:.35rem;
 }
 
 .customer-discovery-form{
@@ -169,6 +186,7 @@
 }
 
 @media(max-width:680px){
+  .customer-discovery-page.ff-discover-above-fold > .page-heading{margin-bottom:.5rem}
   .customer-discovery-search::before{
     display:flex;
     width:auto;
