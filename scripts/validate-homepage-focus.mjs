@@ -27,11 +27,11 @@ check('011 broken landing binaries are no longer referenced',!index.includes('fl
 check('012 three-value proof strip remains concise',['REAL MARKET EVIDENCE','RISK &amp; REWARD INSIGHT','MAKE BETTER DECISIONS'].every(v=>index.includes(v)));
 check('013 proof strip precedes explainer',index.indexOf('id="decision-proof"')>0&&index.indexOf('id="decision-video"')>index.indexOf('id="decision-proof"'));
 check('014 real interactive explainer is embedded',index.includes('src="assets/interactive/flipforge-know-why.html"')&&fs.existsSync('assets/interactive/flipforge-know-why.html'));
-check('015 explainer contains timed beat animation',animatic.includes("requestAnimationFrame(tick)")&&animatic.includes("{id:'beat6',duration:4000}"));
-check('016 explainer is user pausable',animatic.includes('togglePlayback')&&animatic.includes("frame.addEventListener('click',togglePlayback)"));
-check('017 CTA has explicit scroll behavior',index.includes("target.scrollIntoView")&&index.includes("'#decision-video'"));
-check('018 CTA focuses explainer heading after navigation',index.includes("heading.focus({ preventScroll: true })"));
-check('019 explainer iframe is responsive',videoCss.includes('.ff-decision-animatic')&&videoCss.includes('aspect-ratio:9/16'));
+check('015 explainer contains timed beat animation',animatic.includes('requestAnimationFrame(tick)')&&animatic.includes("{id:'beat6',name:'Know Why',duration:4000}"));
+check('016 explainer has visible playback controls',animatic.includes('id="playPause"')&&animatic.includes('id="restart"')&&animatic.includes("playPause.addEventListener('click'"));
+check('017 CTA has explicit scroll behavior',index.includes('target.scrollIntoView')&&index.includes("'#decision-video'"));
+check('018 CTA restarts explainer and focuses heading',index.includes("postMessage('ff-play-restart'")&&index.includes('heading.focus({ preventScroll: true })'));
+check('019 explainer iframe is wide and responsive',videoCss.includes('.ff-decision-animatic')&&videoCss.includes('aspect-ratio:16/9')&&videoCss.includes('min-height:500px'));
 check('020 private-beta boundary stays explicit',index.includes('Controlled Private Beta.'));
 check('021 transaction and profit boundary stays explicit',index.includes('FlipForge does not guarantee profit or authorize transactions.'));
 check('022 commercial launch plans remain navigable',index.includes('href="pricing.html">Launch Plans</a>'));
