@@ -1,0 +1,17 @@
+/* FlipForge landing readability pass: keep the hero decision visual large enough to read. */
+@media (min-width:1121px){
+  .decision-nav{width:min(1480px,calc(100% - 48px))}
+  .decision-hero{width:min(1480px,calc(100% - 48px));grid-template-columns:minmax(360px,.68fr) minmax(760px,1.32fr);gap:clamp(30px,3vw,48px);min-height:650px}
+  .decision-hero-copy{max-width:520px}
+  .decision-approved-visual{width:100%!important;max-width:1000px!important}
+  .decision-approved-visual img{width:100%!important;max-width:980px!important}
+}
+@media (min-width:761px) and (max-width:1120px){
+  .decision-approved-visual{width:100%!important;max-width:900px!important}
+  .decision-approved-visual img{width:100%!important;max-width:880px!important}
+}
+@media (max-width:760px){
+  .decision-approved-visual{width:calc(100vw - 24px)!important;max-width:none!important;margin-left:50%!important;transform:translateX(-50%)}
+  .decision-approved-visual img{width:100%!important;max-width:none!important}
+  .decision-approved-visual figcaption{font-size:.66rem!important;line-height:1.35}
+}
