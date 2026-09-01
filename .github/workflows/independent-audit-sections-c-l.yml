@@ -1,0 +1,303 @@
+name: Independent Audit — Sections C-L
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/independent-audit-sections-c-l.yml"
+      - ".github/workflows/pre-beta-security-assurance.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/**"
+      - "saas-prototype/**"
+      - "netlify/**"
+      - "*.html"
+      - "netlify.toml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/independent-audit-sections-c-l.yml"
+      - ".github/workflows/pre-beta-security-assurance.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/**"
+      - "saas-prototype/**"
+      - "netlify/**"
+      - "*.html"
+      - "netlify.toml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: independent-audit-c-l-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  section-c-operator:
+    name: C1-C7 Operator / Beta Administration
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run build:identity
+      - run: npm run validate:beta-operator
+      - run: npm run validate:private-beta-operations-boundary
+      - name: Live anonymous operator denial
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o /tmp/body -w '%{http_code}' https://goflipforge.com/api/beta/operator)"
+          case "$code" in 401|403) ;; *) cat /tmp/body; exit 1;; esac
+      - name: Operator source invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'MAX_OPERATOR_BYTES' netlify/modern-functions/lib/beta-operations-core.mjs
+          grep -Fq 'isOperator' netlify/modern-functions/lib/beta-operations-core.mjs
+          grep -Fq 'Cache-Control = "no-store"' netlify.toml
+          grep -qi 'noindex' operator-beta.html
+
+  section-d-discover:
+    name: D1-D8 Discover / Identity / Provider Correctness
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run build:identity
+      - run: npm run validate:customer-discovery
+      - name: Install Playwright Chromium for destructive browser audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path SaaS audit server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node saas-prototype/serve.mjs > /tmp/section-d-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/section-d-server.log
+          exit 1
+      - run: npm run audit:prebeta-customer-state
+      - run: node scripts/validate-saas-staging-browser-read-adapter.mjs
+      - name: Mock fallback remains forbidden
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -RqsE 'No mock fallback|never falls back to mock records' saas-prototype scripts
+
+  section-e-evaluate:
+    name: E1-E6 Evaluate / Smart Opportunity Authority
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run build:identity
+      - run: npm run validate:customer-intelligence
+      - run: npm run validate:price-intelligence
+      - run: npm run validate:card-intelligence-result-priority
+      - name: Install Playwright Chromium for cross-surface audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path SaaS audit server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node saas-prototype/serve.mjs > /tmp/section-e-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/section-e-server.log
+          exit 1
+      - run: npm run audit:prebeta-cross-surface
+      - name: Smart Opportunity authority remains explicit
+        shell: bash
+        run: grep -Rqs 'Smart Opportunity' saas-prototype
+
+  section-f-evidence-psa:
+    name: F1-F6 Evidence / CardSight / PSA
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run validate:cardsight-evidence-visibility
+      - run: npm run validate:customer-management
+      - run: node saas-prototype/validate-decision-intelligence.mjs
+      - name: PSA authority boundary remains explicit
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Rqs 'without predicting a grade' saas-prototype scripts
+          grep -Rqs 'never runs or persists a new analysis' saas-prototype scripts
+          grep -Rqs 'Existing PSA intelligence' saas-prototype scripts
+
+  section-g-saved-lifecycle:
+    name: G1-G7 Saved State / Lifecycle / Compare / Portfolio
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run build:identity
+      - run: npm run validate:account-lifecycle
+      - run: npm run validate:customer-compare
+      - run: npm run validate:customer-portfolio
+      - run: npm run validate:customer-lifecycle
+      - run: npm run validate:customer-export
+      - name: Install Playwright Chromium for lifecycle attack audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path SaaS audit server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node saas-prototype/serve.mjs > /tmp/section-g-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/section-g-server.log
+          exit 1
+      - run: npm run audit:prebeta-saved-decision-lifecycle
+
+  section-h-derived-intelligence:
+    name: H1-H5 Decision Intelligence / Forge Heat / Market View
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run build:identity
+      - run: node saas-prototype/validate-decision-intelligence.mjs
+      - name: Install Playwright Chromium for Forge Heat visual audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path SaaS audit server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node saas-prototype/serve.mjs > /tmp/section-h-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/section-h-server.log
+          exit 1
+      - run: node scripts/audit-forge-heat-consumer-ui.mjs
+      - run: npm run validate:market-view
+      - run: npm run validate:production-route-authority
+
+  section-i-billing-boundary:
+    name: I1-I5 Billing / Plan / Transaction Boundary
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run validate:customer-entitlements
+      - run: npm run validate:evaluation-quota-boundary
+      - run: npm run validate:private-beta-operations-boundary
+      - run: npm run validate:paddle-customer-checkout
+      - run: npm run validate:paddle-customer-portal
+      - run: npm run validate:paddle-webhook-gateway-boundary
+      - name: Live beta remains non-paid
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(curl -fsSL https://goflipforge.com/pricing.html)"
+          grep -Eqi 'Private Beta remains \$0|Private beta is not a paid subscription|No paid checkout' <<<"$body"
+
+  section-j-security:
+    name: J1-J8 Security Engineering
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - name: Block HIGH/CRITICAL dependency vulnerabilities
+        run: npm audit --audit-level=high
+      - name: Browser/server secret boundary scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in FLIPFORGE_API_SERVICE_TOKEN EBAY_CLIENT_SECRET PADDLE_API_KEY; do
+            if grep -Rni "$name" assets saas-prototype 2>/dev/null; then
+              echo "Server-only secret identifier found in browser-delivered assets: $name" >&2
+              exit 1
+            fi
+          done
+      - name: Live baseline security headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in / /terms.html /privacy.html /operator-beta.html /app/; do
+            h="$(curl -fsSI "https://goflipforge.com${path}")"
+            grep -qi '^strict-transport-security:' <<<"$h"
+            grep -qi '^x-content-type-options: *nosniff' <<<"$h"
+            grep -qi '^x-frame-options:' <<<"$h"
+          done
+
+  section-k-reliability:
+    name: K1-K6 Reliability / Recovery / Deployment Identity
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run build:identity
+      - run: npm run build:deploy-manifest
+      - run: npm run validate:deploy-manifest
+      - run: npm run validate:production-prototype-isolation
+      - run: npm run validate:production-route-authority
+      - name: Live runtime identity is verified and non-transactional
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(curl -fsSL https://goflipforge.com/api/v1/runtime-identity)"
+          grep -q '"runtimeBuildCommitVerified":true' <<<"$body"
+          grep -q '"runtimeMode":"PRIVATE_HOSTED"' <<<"$body"
+          grep -q '"transactionAuthority":false' <<<"$body"
+          grep -q '"backendUrlExposed":false' <<<"$body"
+          grep -q '"serviceTokenExposed":false' <<<"$body"
+
+  section-l-legal-trust:
+    name: L1-L5 Legal / Customer Trust / Comprehension
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run validate:beta-acquisition
+      - run: npm run validate:private-beta
+      - run: npm run validate:sitewide-ux
+      - name: Terms/privacy/beta-data boundary checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Eqi 'decision support|independently verify' beta-terms.html
+          grep -qi 'private beta' terms.html
+          grep -Eqi 'Identity|tenant|account' privacy.html
+          test -f data-use.html
+          grep -q 'beta_terms_accepted' beta-application.html
+          grep -Eqi 'No transaction authority|decision support' faq.html product.html beta-terms.html
