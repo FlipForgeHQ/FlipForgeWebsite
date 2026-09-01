@@ -10,6 +10,7 @@ const account = read("saas-prototype/customer-account.js");
 const bridge = read("saas-prototype/customer-account-bridge.js");
 const preview = read("saas-prototype/customer-entitlements.js");
 const routeHook = read("saas-prototype/staging-route-hook.js");
+const completion = read("saas-prototype/core-platform-completion-v1.js");
 const gateway = read("netlify/functions/flipforge-api.js");
 const plan = read("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md");
 
@@ -52,6 +53,12 @@ check("032 preview adapter remains preview constrained", preview.includes("PREVI
 check("033 gateway still allowlists entitlement reads", /method:\s*"GET"[\s\S]{0,100}entitlements/.test(gateway));
 check("034 core plan still defers Paddle until Beta Complete", plan.includes("Paddle checkout") && plan.includes("deferred until"));
 check("035 production account introduces no transaction controls", !/Place bid|Buy now|Pay now|Accept offer|Create listing|Upgrade now/i.test(account));
+check("036 sidebar reports usage rather than mislabeling completed count as allowance", account.includes('row[0].textContent = "Evaluation usage"') && account.includes('`${admissionUsage} used · Unlimited beta`'));
+check("037 Plan & Usage card is pointer navigable", completion.includes('planCard.addEventListener("click"') && completion.includes('window.location.hash = "#/account"'));
+check("038 Plan & Usage card is keyboard navigable", completion.includes('event.key !== "Enter" && event.key !== " "') && completion.includes('planCard.setAttribute("role", "link")'));
+check("039 private beta raw access enums are customer-readable", completion.includes('PRIVATE_BETA_ACTIVE: "Private Beta Active"') && completion.includes('INVITATION_DEFAULT: "Beta Invitation"'));
+check("040 planned entitlement enum labels are customer-readable", completion.includes('UNLIMITED_SUBJECT_TO_REASONABLE_USE: "Unlimited (reasonable use)"') && completion.includes('NOT_INCLUDED: "Not included"'));
+check("041 provider-mapped evidence metric is named accurately", completion.includes('label.textContent = "Provider-mapped evidence"'));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS production account validation");
