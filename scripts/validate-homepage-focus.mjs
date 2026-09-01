@@ -7,11 +7,19 @@ const mobileCss=read('assets/css/homepage-mobile-nav-v1.css');
 const videoCss=read('assets/css/homepage-video-v1.css');
 const navJs=read('assets/js/homepage-v1.js');
 const animatic=read('assets/interactive/flipforge-know-why.html');
+const netlify=read('netlify.toml');
 const heroPath='assets/images/flipforge-homepage-hero.webp';
 const heroBytes=fs.readFileSync(heroPath);
 const checks=[];
 const check=(name,condition)=>checks.push({name,passed:Boolean(condition)});
 const isWebP=buffer=>buffer.length>12&&buffer.subarray(0,4).toString('ascii')==='RIFF'&&buffer.subarray(8,12).toString('ascii')==='WEBP';
+const headerBlock=route=>{
+  const marker=`for = "${route}"`;
+  const start=netlify.indexOf(marker);
+  if(start<0)return '';
+  const next=netlify.indexOf('[[headers]]',start+marker.length);
+  return netlify.slice(start,next<0?netlify.length:next);
+};
 
 check('001 locked category remains CARD INTELLIGENCE',index.includes('CARD INTELLIGENCE'));
 check('002 locked slogan remains exact',index.includes('Before you buy. Know Why.'));
@@ -48,6 +56,10 @@ check('032 reduced-motion navigation remains',mobileCss.includes('@media(prefers
 check('033 explainer has responsive presentation',videoCss.includes('@media(max-width:760px)')&&videoCss.includes('.ff-animatic-shell'));
 check('034 production metadata keeps canonical URL',index.includes('<link rel="canonical" href="https://goflipforge.com/">'));
 check('035 structured data keeps locked slogan',index.includes('"slogan":"Before you buy. Know Why."'));
+check('036 sitewide frame policy permits approved same-origin embeds',headerBlock('/*').includes('X-Frame-Options = "SAMEORIGIN"'));
+check('037 homepage remains explicitly unframeable',headerBlock('/').includes('X-Frame-Options = "DENY"')&&headerBlock('/').includes("frame-ancestors 'none'"));
+check('038 index route remains explicitly unframeable',headerBlock('/index.html').includes('X-Frame-Options = "DENY"')&&headerBlock('/index.html').includes("frame-ancestors 'none'"));
+check('039 operator route remains explicitly unframeable',headerBlock('/operator-beta.html').includes('X-Frame-Options = "DENY"')&&headerBlock('/operator-beta.html').includes("frame-ancestors 'none'"));
 
 const failures=checks.filter(item=>!item.passed);
 console.log('FlipForge decision-first homepage validation');
