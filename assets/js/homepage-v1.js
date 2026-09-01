@@ -1,6 +1,14 @@
 (()=>{
   'use strict';
 
+  const enforceReadabilityFloor=()=>{
+    document.querySelectorAll('main p, main li, main label, main button, main input, main select').forEach(el=>{
+      const size=parseFloat(getComputedStyle(el).fontSize)||0;
+      if(size>0&&size<12)el.style.fontSize='12px';
+    });
+  };
+  enforceReadabilityFloor();
+
   const ensureKnowWhyExperience=()=>{
     if(!document.querySelector('link[data-ff-know-why-animatic]')){
       const link=document.createElement('link');
@@ -49,6 +57,7 @@
         </figure>
       </div>`;
     problem.insertAdjacentElement('afterend',section);
+    enforceReadabilityFloor();
   };
 
   ensureKnowWhyExperience();
@@ -94,5 +103,5 @@
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
   });
-  window.addEventListener('resize',()=>{if(window.innerWidth>1000)closeMenu();},{passive:true});
+  window.addEventListener('resize',()=>{enforceReadabilityFloor();if(window.innerWidth>1000)closeMenu();},{passive:true});
 })();
