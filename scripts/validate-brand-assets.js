@@ -39,6 +39,11 @@ const requiredFiles = [
   'assets/brand/flipforge-before-after-overlay.svg',
   'assets/fonts/geist-latin-wght-normal.woff2',
   'assets/css/brand-v2.css',
+  'assets/css/homepage-decision-hero-v1.css',
+  'assets/css/homepage-mobile-nav-v1.css',
+  'assets/css/homepage-video-v1.css',
+  'assets/images/flipforge-approved-decision-visual.webp',
+  'assets/video/flipforge-how-it-works-30s.mp4',
   'assets/images/flipforge-homepage-dashboard.svg',
   'assets/images/flipforge-grading-scenario.svg',
   'assets/images/flipforge-traceback-guidance.svg',
@@ -51,30 +56,22 @@ for (const file of requiredFiles) requireFile(file);
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const homepageFailures = [];
 
-if (!index.includes('assets/images/flipforge-homepage-dashboard.svg')) {
-  homepageFailures.push('homepage dashboard visual');
-}
-if (!index.includes('class="hero ff-hero-v3')) {
-  homepageFailures.push('static focused hero');
-}
-if (!index.includes('ff-home-focused')) {
-  homepageFailures.push('focused homepage class');
-}
-if (!index.includes('assets/css/marketing-v3.css')) {
-  homepageFailures.push('static marketing stylesheet');
-}
-if (!index.includes('assets/css/homepage-focus-v1.css')) {
-  homepageFailures.push('static homepage focus stylesheet');
-}
-if (!index.includes('assets/css/homepage-conversion-v2.css')) {
-  homepageFailures.push('conversion homepage stylesheet');
-}
-if (index.includes('assets/images/grading-scenario-analysis.webp')) {
-  homepageFailures.push('legacy grading WebP reference removed');
-}
-if (index.includes('assets/images/recommendation-explorer.webp')) {
-  homepageFailures.push('legacy recommendation WebP reference removed');
-}
+if (!index.includes('assets/brand/flipforge-logo-horizontal.svg')) homepageFailures.push('approved horizontal logo lockup');
+if (!index.includes(OFFICIAL_SLOGAN)) homepageFailures.push('locked slogan');
+if (!index.includes('CARD INTELLIGENCE')) homepageFailures.push('Card Intelligence descriptor');
+if (!index.includes('Would you pay')) homepageFailures.push('decision-first hook');
+if (!index.includes('assets/images/flipforge-approved-decision-visual.webp')) homepageFailures.push('approved decision visual');
+if (!index.includes('assets/video/flipforge-how-it-works-30s.mp4')) homepageFailures.push('approved decision video');
+if (!index.includes('assets/css/homepage-decision-hero-v1.css')) homepageFailures.push('decision-first homepage stylesheet');
+if (!index.includes('assets/css/homepage-mobile-nav-v1.css')) homepageFailures.push('mobile navigation stylesheet');
+if (!index.includes('assets/css/homepage-video-v1.css')) homepageFailures.push('video proof stylesheet');
+if (!index.includes('Controlled Private Beta.')) homepageFailures.push('private beta boundary');
+if (!index.includes('FlipForge does not guarantee profit or authorize transactions.')) homepageFailures.push('transaction/profit boundary');
+if (retiredSloganVariant(index)) homepageFailures.push('retired slogan variant removed');
+if (index.includes('CARD VALUE INTELLIGENCE')) homepageFailures.push('retired descriptor removed');
+if (['ff-decision-motion','ff-card-stage','ff-motion-console','data-replay-decision','ff-live-product-frame'].some(token=>index.includes(token))) homepageFailures.push('retired overloaded homepage theatre removed');
+if (index.includes('assets/images/grading-scenario-analysis.webp')) homepageFailures.push('legacy grading WebP reference removed');
+if (index.includes('assets/images/recommendation-explorer.webp')) homepageFailures.push('legacy recommendation WebP reference removed');
 
 if (homepageFailures.length) {
   throw new Error(`Homepage brand asset validation failed: ${homepageFailures.join(', ')}`);

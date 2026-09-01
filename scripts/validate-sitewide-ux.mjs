@@ -5,12 +5,12 @@ const failures=[];
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.includes(needle))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 
-const marketing=read('assets/css/marketing-v3.css');
 const marketingPages=read('assets/css/marketing-pages-v3.css');
 const marketingSupport=read('assets/css/marketing-support-v3.css');
 const density=read('assets/css/marketing-density-v1.css');
-const homeProof=read('assets/css/homepage-product-proof-v2.css');
-const homeVisual=read('assets/css/homepage-visual-proof-v1.css');
+const heroCss=read('assets/css/homepage-decision-hero-v1.css');
+const mobileHomeCss=read('assets/css/homepage-mobile-nav-v1.css');
+const videoCss=read('assets/css/homepage-video-v1.css');
 const awardJs=read('assets/js/award-winning-v1.js');
 const appIndex=read('saas-prototype/index.html');
 const appLayout=read('saas-prototype/customer-layout-system-v2.css');
@@ -24,42 +24,50 @@ const plans=read('pricing.html');
 const about=read('about.html');
 const beta=read('beta-application.html');
 
-for(const [label,text] of [['homepage marketing',marketing],['product/about marketing',marketingPages],['support marketing',marketingSupport]]) requireText(label,text,'@import url("marketing-density-v1.css")');
+// Shared marketing system remains for the deeper pages.
+for(const [label,text] of [['product/about marketing',marketingPages],['support marketing',marketingSupport]]) requireText(label,text,'@import url("marketing-density-v1.css")');
 requireText('marketing density purpose',density,'definitive marketing density system');
-requireText('homepage viewport',density,'min-height:0!important');
-requireText('homepage vertical alignment',density,'align-items:start!important');
-requireText('homepage proof width',density,'max-width:720px!important');
 requireText('marketing page hero cap',density,'font-size:clamp(38px,4vw,52px)!important');
 requireText('support page hero cap',density,'font-size:clamp(36px,3.75vw,50px)!important');
-requireText('shared question density',density,'min-height:168px!important');
-requireText('beta notice compaction',density,'.ff-beta-notice-grid');
 requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
-forbidText('marketing density old giant desktop visual',density,'width:110%!important');
-forbidText('marketing density old giant desktop visual',density,'margin:-30px 0 0!important');
-forbidText('marketing density old giant desktop hero',density,'max-width:1400px!important');
-requireText('homepage proof owner',homeProof,'Real product first. Illustrative receipt stays compact and secondary.');
-requireText('homepage real proof layout',homeProof,'.ff-home-focused .ff-decision-motion');
-requireText('homepage real proof layout',homeProof,'display:block!important');
-requireText('homepage product screenshot',homeProof,'.ff-live-product-shot');
-requireText('homepage product screenshot height',homeProof,'height:clamp(255px,24vw,330px)');
-requireText('homepage compact illustrative receipt',homeProof,'.ff-motion-stack{display:none!important}');
-requireText('homepage compact illustrative footer',homeProof,'.ff-motion-footer{display:none!important}');
-requireText('homepage real product content',homepage,'Real FlipForge product interface');
+
+// Homepage now has its own approved decision-first visual owner.
+requireText('homepage hero stylesheet',homepage,'assets/css/homepage-decision-hero-v1.css');
+requireText('homepage mobile stylesheet',homepage,'assets/css/homepage-mobile-nav-v1.css');
+requireText('homepage video stylesheet',homepage,'assets/css/homepage-video-v1.css');
+requireText('homepage real approved visual',homepage,'assets/images/flipforge-approved-decision-visual.webp');
 requireText('homepage first action',homepage,'Request Beta Access');
-requireText('homepage reason trail',homepage,'id="reason-trail"');
-requireText('legacy theatre recognized',homeVisual,'grid-template-columns:minmax(190px,.72fr) minmax(0,1.28fr)');
+requireText('homepage reason path',homepage,'href="#decision-video">See How It Works');
+requireText('homepage video proof',homepage,'assets/video/flipforge-how-it-works-30s.mp4');
+requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
+requireText('homepage transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
+for(const old of ['ff-live-product-frame','ff-motion-console','ff-card-stage','data-replay-decision'])forbidText('homepage old overload removed',homepage,old);
+requireText('homepage compact width',heroCss,'width:min(1380px,calc(100% - 56px))');
+requireText('homepage approved visual cap',heroCss,'max-width:760px!important');
+requireText('homepage mobile single column',heroCss,'@media(max-width:760px)');
+requireText('homepage mobile nav',mobileHomeCss,'.mobile-nav.open');
+requireText('homepage reduced motion',mobileHomeCss,'@media(prefers-reduced-motion:reduce)');
+requireText('homepage video responsive',videoCss,'aspect-ratio');
+
+// Beta progressive form behavior remains untouched.
 requireText('beta start action',awardJs,'Start application');
 requireText('beta apply anchor',awardJs,"applySection.id='apply'");
 requireText('beta notice grouping',awardJs,"grid.className='ff-beta-notice-grid'");
 requireText('beta server form',beta,'action="/api/beta/applications"');
 requireText('beta step one',awardJs,'steps.slice(1)');
 requireText('beta step transition',awardJs,'setStep(1)');
-for(const [label,text] of [['homepage',homepage],['product',product],['Evidence Lab',evidence],['Launch Plans',plans],['About',about],['Beta',beta]]){requireText(`${label} brand`,text,'FlipForge');requireText(`${label} navigation`,text,'Request Beta Access');}
+
+for(const [label,text] of [['homepage',homepage],['product',product],['Evidence Lab',evidence],['Launch Plans',plans],['About',about],['Beta',beta]]){
+  requireText(`${label} brand`,text,'FlipForge');
+  requireText(`${label} navigation`,text,'Request Beta Access');
+}
 requireText('product primary action',product,'Request Beta Access');
 requireText('Evidence Lab primary action',evidence,'Start with Busted Comp');
 requireText('Launch Plans primary action',plans,'Request Beta Access');
 requireText('About purpose',about,'WHY FLIPFORGE EXISTS');
 requireText('Beta purpose',beta,'CONTROLLED PRIVATE BETA');
+
+// Customer app density and phone shell remain governed separately.
 requireText('app layout purpose',appLayout,'definitive viewport and density owner');
 requireText('app topbar density',appLayout,'min-height:68px!important');
 requireText('app workspace density',appLayout,'padding:22px 24px 34px!important');
@@ -85,9 +93,11 @@ requireText('mobile shell sidebar fully off canvas',mobileShell,'transform:trans
 requireText('final stylesheet present',appIndex,'<link rel="stylesheet" href="guided-mode-compact-v1.css">');
 requireText('readability retained',readability,'single customer-facing typography/readability owner');
 requireText('readability text floor',readability,'--ff-type-xs: .875rem');
+
 const publicCopy=[homepage,product,evidence,plans,about,beta].join('\n');
 requireText('locked slogan',publicCopy,'Before you buy. Know Why.');
 for(const unsafe of ['CARD VALUE INTELLIGENCE','guaranteed profit','automatic purchase']) if(publicCopy.toLowerCase().includes(unsafe.toLowerCase()))failures.push(`public safety: forbidden ${JSON.stringify(unsafe)}`);
 requireText('app transaction boundary',appIndex,'No transaction authority');
+
 if(failures.length){console.error('Sitewide UX system validation failed:');failures.forEach(failure=>console.error(`- ${failure}`));process.exit(1);}
-console.log('PASS: FlipForge sitewide marketing and customer-app UX ownership validated.');
+console.log('PASS: FlipForge decision-first homepage, deeper marketing pages, and customer-app UX ownership validated.');
