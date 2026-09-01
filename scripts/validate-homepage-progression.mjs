@@ -40,8 +40,11 @@ requireText('homepage transaction boundary',homepage,'FlipForge does not guarant
 requireText('homepage primary CTA',homepage,'decision-button-primary" href="beta-application.html">Request Beta Access');
 requireText('homepage explainer CTA',homepage,'href="#decision-video" data-ff-how-it-works>See How It Works');
 requireText('homepage explainer scroll behavior',homepage,'target.scrollIntoView');
+requireText('homepage explainer restart behavior',homepage,"postMessage('ff-play-restart'");
 requireText('interactive explainer evidence beat',animatic,'FlipForge checks the reason');
-requireText('interactive explainer decision beat',animatic,'<div class="decision-label">VERIFY</div>');
+requireText('interactive explainer decision beat',animatic,'<div class="verdict"><strong>VERIFY</strong></div>');
+requireText('interactive explainer playback control',animatic,'id="playPause"');
+requireText('interactive explainer restart control',animatic,'id="restart"');
 for(const removed of ['ff-decision-motion','ff-card-stage','ff-motion-console','data-replay-decision','ff-live-product-frame','id="busted-comp"'])forbidText('simplified homepage',homepage,removed);
 
 // Mobile navigation remains keyboard/accessibility aware.
