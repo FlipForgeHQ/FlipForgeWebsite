@@ -239,10 +239,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -Eri '(FLIPFORGE_API_SERVICE_TOKEN|EBAY_CLIENT_SECRET|PADDLE_API_KEY)[[:space:]]*[:=][[:space:]]*["'"'][^"'"']+' assets saas-prototype scripts; then
-            echo 'A secret-like value appears in browser/source assets.' >&2
-            exit 1
-          fi
+          for name in FLIPFORGE_API_SERVICE_TOKEN EBAY_CLIENT_SECRET PADDLE_API_KEY; do
+            if grep -Rni "$name" assets saas-prototype 2>/dev/null; then
+              echo "Server-only secret identifier found in browser-delivered assets: $name" >&2
+              exit 1
+            fi
+          done
       - name: Live baseline security headers
         shell: bash
         run: |
