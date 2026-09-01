@@ -1,0 +1,62 @@
+name: Independent Audit — Section A Public Website
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "assets/js/homepage-v1.js"
+      - "assets/js/conversion-events.js"
+      - "scripts/audit-independent-section-a-*.mjs"
+      - ".github/workflows/independent-audit-section-a.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: A1-A4 static public/acquisition checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Run independent static Section A audit
+        run: node scripts/audit-independent-section-a-static.mjs
+
+  live:
+    name: A1 live-route load + A5 header report
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Probe live production routes and headers
+        run: node scripts/audit-independent-section-a-live.mjs
+
+  responsive:
+    name: A6 desktop/tablet/mobile browser audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Set up Node.js
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        with:
+          node-version: 24
+      - name: Install Playwright for independent browser audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local public site
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/flipforge-section-a.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/flipforge-section-a.log
+          exit 1
+      - name: Run responsive browser audit
+        run: node scripts/audit-independent-section-a-responsive.mjs
