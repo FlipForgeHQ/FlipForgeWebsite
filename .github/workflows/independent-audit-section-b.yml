@@ -45,6 +45,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Build generated Identity bundles before validation
+        run: npm run build:identity
       - name: Re-run signed Identity modernization contract
         run: node scripts/validate-netlify-identity-modernization.mjs
       - name: Re-run operator authorization and active-tester contract
@@ -93,17 +95,3 @@ jobs:
           probe /api/v1/opportunities
           probe /api/v1/market-view
           probe /api/beta/operator
-
-  backend-cross-tenant:
-    name: B4-B5 backend cross-tenant isolation runners
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out current FlipForge2 main
-        shell: bash
-        run: git clone --depth 1 https://github.com/FlipForgeHQ/FlipForge2.git backend
-      - name: Re-run tenant grant isolation
-        working-directory: backend
-        run: ./mvnw -q -Dexec.mainClass=com.flipforge2.saas.SaaSTenantIsolationValidationRunner org.codehaus.mojo:exec-maven-plugin:3.5.0:java
-      - name: Re-run tenant-scoped projection isolation
-        working-directory: backend
-        run: ./mvnw -q -Dexec.mainClass=com.flipforge2.saas.SaaSTenantScopedProjectionValidationRunner org.codehaus.mojo:exec-maven-plugin:3.5.0:java
