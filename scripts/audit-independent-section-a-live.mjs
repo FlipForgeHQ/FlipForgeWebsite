@@ -48,9 +48,12 @@ for (const [name, route] of headerRoutes) {
       csp: Boolean(h['content-security-policy']),
       cacheControl: h['cache-control'] || null
     };
-    headerReport.push({ name, route, http:response.status, ...checks });
+    const baselinePass = response.ok && checks.hsts && checks.nosniff && checks.frameProtection && checks.referrerPolicy && checks.permissionsPolicy;
+    if (!baselinePass) failed = true;
+    headerReport.push({ name, route, status:baselinePass?'PASS':'FAIL', http:response.status, ...checks });
   } catch (error) {
-    headerReport.push({ name, route, error:String(error) });
+    headerReport.push({ name, route, status:'FAIL', error:String(error) });
+    failed = true;
   }
 }
 console.log(JSON.stringify({ section:'A', liveRoutes:results, headers:headerReport }, null, 2));
