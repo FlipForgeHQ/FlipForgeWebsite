@@ -6,6 +6,17 @@
   directory = "netlify/modern-functions"
   node_bundler = "esbuild"
 
+# Baseline browser hardening applies to every public, legal, app-entry, and support
+# route. More specific route rules below may tighten these values further.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
 [[headers]]
   for = "/deploy-meta.json"
   [headers.values]
@@ -69,9 +80,11 @@
 # Market View contracts must pass their static safety gates before production
 # publishing can complete. Homepage CSP and isolation headers are intentionally scoped
 # to / and /index.html so customer app routes keep their existing Identity, Paddle,
-# and API integration policies unchanged. The eBay privacy endpoint is now owned by
-# the modern function's native /api/ebay/privacy path, keeping _redirects at the
-# account-tier budget of exactly two active app rewrite rules. Trusted Types
-# enforcement is intentionally omitted on the public homepage because the current
-# Netlify Identity client requires DOM string sinks during initialization; script
-# execution remains restricted by the explicit script-src policy.
+# and API integration policies unchanged. Sitewide baseline anti-framing, MIME,
+# referrer, permissions, and HSTS headers apply independently of those route-specific
+# CSP rules. The eBay privacy endpoint is now owned by the modern function's native
+# /api/ebay/privacy path, keeping _redirects at the account-tier budget of exactly two
+# active app rewrite rules. Trusted Types enforcement is intentionally omitted on the
+# public homepage because the current Netlify Identity client requires DOM string sinks
+# during initialization; script execution remains restricted by the explicit
+# script-src policy.
