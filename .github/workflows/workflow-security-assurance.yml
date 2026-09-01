@@ -1,0 +1,29 @@
+name: Workflow Security Assurance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - "scripts/validate-workflow-action-refs.mjs"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - "scripts/validate-workflow-action-refs.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-action-refs:
+    name: Validate workflow action references
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up Node.js
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
+        with:
+          node-version: 24
+      - name: Enforce workflow action reference policy
+        run: node scripts/validate-workflow-action-refs.mjs
