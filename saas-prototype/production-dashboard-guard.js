@@ -11,6 +11,19 @@
   let applying = false;
   let routeReloading = false;
 
+  function ensureBrandFavicon() {
+    if (typeof document.querySelector !== "function" || typeof document.createElement !== "function" || !document.head) return;
+    const href = "/assets/brand/flipforge-app-icon-dark.svg";
+    let link = document.querySelector('link[rel~="icon"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      link.type = "image/svg+xml";
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }
+
   function customerApp() {
     const host = String(window.location.hostname || "");
     const path = String(window.location.pathname || "");
@@ -73,5 +86,6 @@
   observer.observe(main, { childList: true });
   window.addEventListener("hashchange", cleanRouteTransition);
   window.addEventListener("pageshow", enforce);
+  ensureBrandFavicon();
   enforce();
 })();
