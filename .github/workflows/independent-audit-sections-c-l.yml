@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/independent-audit-sections-c-l.yml"
+      - ".github/workflows/pre-beta-security-assurance.yml"
       - "package.json"
       - "package-lock.json"
       - "scripts/**"
@@ -15,6 +16,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/independent-audit-sections-c-l.yml"
+      - ".github/workflows/pre-beta-security-assurance.yml"
       - "package.json"
       - "package-lock.json"
       - "scripts/**"
@@ -52,9 +54,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -F 'MAX_OPERATOR_BYTES' netlify/modern-functions/lib/beta-operations-core.mjs
-          grep -F 'isOperator' netlify/modern-functions/lib/beta-operations-core.mjs
-          grep -F 'Cache-Control = "no-store"' netlify.toml
+          grep -Fq 'MAX_OPERATOR_BYTES' netlify/modern-functions/lib/beta-operations-core.mjs
+          grep -Fq 'isOperator' netlify/modern-functions/lib/beta-operations-core.mjs
+          grep -Fq 'Cache-Control = "no-store"' netlify.toml
           grep -qi 'noindex' operator-beta.html
 
   section-d-discover:
@@ -65,14 +67,30 @@ jobs:
       - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - run: npm run build:identity
       - run: npm run validate:customer-discovery
+      - name: Install Playwright Chromium for destructive browser audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path SaaS audit server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node saas-prototype/serve.mjs > /tmp/section-d-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/section-d-server.log
+          exit 1
       - run: npm run audit:prebeta-customer-state
       - run: node scripts/validate-saas-staging-browser-read-adapter.mjs
       - name: Mock fallback remains forbidden
         shell: bash
         run: |
           set -euo pipefail
-          grep -R "No mock fallback\|never falls back to mock records" -n saas-prototype scripts | head -20
+          grep -RqsE 'No mock fallback|never falls back to mock records' saas-prototype scripts
 
   section-e-evaluate:
     name: E1-E6 Evaluate / Smart Opportunity Authority
@@ -82,12 +100,29 @@ jobs:
       - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - run: npm run build:identity
       - run: npm run validate:customer-intelligence
       - run: npm run validate:price-intelligence
       - run: npm run validate:card-intelligence-result-priority
+      - name: Install Playwright Chromium for cross-surface audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path SaaS audit server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node saas-prototype/serve.mjs > /tmp/section-e-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/section-e-server.log
+          exit 1
       - run: npm run audit:prebeta-cross-surface
       - name: Smart Opportunity authority remains explicit
-        run: grep -R "Smart Opportunity" -n saas-prototype | head -40
+        shell: bash
+        run: grep -Rqs 'Smart Opportunity' saas-prototype
 
   section-f-evidence-psa:
     name: F1-F6 Evidence / CardSight / PSA
@@ -104,8 +139,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -R "without predicting a grade\|never runs or persists a new analysis" -n saas-prototype scripts | head -20
-          grep -R "Existing PSA intelligence" -n saas-prototype scripts | head -30
+          grep -Rqs 'without predicting a grade' saas-prototype scripts
+          grep -Rqs 'never runs or persists a new analysis' saas-prototype scripts
+          grep -Rqs 'Existing PSA intelligence' saas-prototype scripts
 
   section-g-saved-lifecycle:
     name: G1-G7 Saved State / Lifecycle / Compare / Portfolio
@@ -115,11 +151,27 @@ jobs:
       - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - run: npm run build:identity
       - run: npm run validate:account-lifecycle
       - run: npm run validate:customer-compare
       - run: npm run validate:customer-portfolio
       - run: npm run validate:customer-lifecycle
       - run: npm run validate:customer-export
+      - name: Install Playwright Chromium for lifecycle attack audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path SaaS audit server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node saas-prototype/serve.mjs > /tmp/section-g-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/section-g-server.log
+          exit 1
       - run: npm run audit:prebeta-saved-decision-lifecycle
 
   section-h-derived-intelligence:
@@ -130,7 +182,23 @@ jobs:
       - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - run: npm run build:identity
       - run: node saas-prototype/validate-decision-intelligence.mjs
+      - name: Install Playwright Chromium for Forge Heat visual audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start production-path SaaS audit server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node saas-prototype/serve.mjs > /tmp/section-h-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/section-h-server.log
+          exit 1
       - run: node scripts/audit-forge-heat-consumer-ui.mjs
       - run: npm run validate:market-view
       - run: npm run validate:production-route-authority
@@ -194,6 +262,7 @@ jobs:
       - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - run: npm run build:identity
       - run: npm run build:deploy-manifest
       - run: npm run validate:deploy-manifest
       - run: npm run validate:production-prototype-isolation
