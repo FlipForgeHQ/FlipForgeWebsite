@@ -27,6 +27,37 @@
     advanced.open = activeInside;
   }
 
+  function enablePlanUsageNavigation() {
+    const planCard = document.querySelector(".plan-card");
+    if (!planCard) return;
+
+    planCard.classList.add("ff-plan-card-link");
+    planCard.setAttribute("role", "link");
+    planCard.setAttribute("tabindex", "0");
+    planCard.setAttribute("aria-label", "Open Plan & Usage");
+
+    if (planCard.dataset.planUsageNavigationBound === "true") return;
+
+    const navigate = () => {
+      if (window.location.hash === "#/account") {
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+        return;
+      }
+      window.location.hash = "#/account";
+    };
+
+    planCard.addEventListener("click", event => {
+      if (event.target.closest("a, button, input, select, textarea")) return;
+      navigate();
+    });
+    planCard.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      navigate();
+    });
+    planCard.dataset.planUsageNavigationBound = "true";
+  }
+
   function normalizeVisibleLanguage() {
     const isProduction = production();
     const banner = document.querySelector(".prototype-banner");
@@ -89,6 +120,7 @@
     if (!eligible()) return;
     document.body.classList.add("ff-core-platform-completion");
     syncAdvancedAnalysisState();
+    enablePlanUsageNavigation();
     normalizeVisibleLanguage();
   }
 
