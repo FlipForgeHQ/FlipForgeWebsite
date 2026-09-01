@@ -28,6 +28,14 @@ function validateLockedSlogan(relativePath) {
   }
 }
 
+function validateWebP(relativePath) {
+  const bytes = fs.readFileSync(path.join(root, relativePath));
+  const valid = bytes.length > 12
+    && bytes.subarray(0, 4).toString('ascii') === 'RIFF'
+    && bytes.subarray(8, 12).toString('ascii') === 'WEBP';
+  if (!valid) throw new Error(`${relativePath} is not a browser-decodable WebP asset.`);
+}
+
 const requiredFiles = [
   'assets/brand/flipforge-mark.svg',
   'assets/brand/flipforge-logo-horizontal.svg',
@@ -42,8 +50,8 @@ const requiredFiles = [
   'assets/css/homepage-decision-hero-v1.css',
   'assets/css/homepage-mobile-nav-v1.css',
   'assets/css/homepage-video-v1.css',
-  'assets/images/flipforge-approved-decision-visual.webp',
-  'assets/video/flipforge-how-it-works-30s.mp4',
+  'assets/images/flipforge-homepage-hero.webp',
+  'assets/interactive/flipforge-know-why.html',
   'assets/images/flipforge-homepage-dashboard.svg',
   'assets/images/flipforge-grading-scenario.svg',
   'assets/images/flipforge-traceback-guidance.svg',
@@ -52,6 +60,7 @@ const requiredFiles = [
 ];
 
 for (const file of requiredFiles) requireFile(file);
+validateWebP('assets/images/flipforge-homepage-hero.webp');
 
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const homepageFailures = [];
@@ -60,11 +69,13 @@ if (!index.includes('assets/brand/flipforge-logo-horizontal.svg')) homepageFailu
 if (!index.includes(OFFICIAL_SLOGAN)) homepageFailures.push('locked slogan');
 if (!index.includes('CARD INTELLIGENCE')) homepageFailures.push('Card Intelligence descriptor');
 if (!index.includes('Would you pay')) homepageFailures.push('decision-first hook');
-if (!index.includes('assets/images/flipforge-approved-decision-visual.webp')) homepageFailures.push('approved decision visual');
-if (!index.includes('assets/video/flipforge-how-it-works-30s.mp4')) homepageFailures.push('approved decision video');
+if (!index.includes('assets/images/flipforge-homepage-hero.webp')) homepageFailures.push('browser-decodable homepage hero');
+if (!index.includes('assets/interactive/flipforge-know-why.html')) homepageFailures.push('interactive Know Why explainer');
+if (index.includes('assets/images/flipforge-approved-decision-visual.webp')) homepageFailures.push('broken former decision visual removed');
+if (index.includes('assets/video/flipforge-how-it-works-30s.mp4')) homepageFailures.push('mislabeled former video removed');
 if (!index.includes('assets/css/homepage-decision-hero-v1.css')) homepageFailures.push('decision-first homepage stylesheet');
 if (!index.includes('assets/css/homepage-mobile-nav-v1.css')) homepageFailures.push('mobile navigation stylesheet');
-if (!index.includes('assets/css/homepage-video-v1.css')) homepageFailures.push('video proof stylesheet');
+if (!index.includes('assets/css/homepage-video-v1.css')) homepageFailures.push('explainer proof stylesheet');
 if (!index.includes('Controlled Private Beta.')) homepageFailures.push('private beta boundary');
 if (!index.includes('FlipForge does not guarantee profit or authorize transactions.')) homepageFailures.push('transaction/profit boundary');
 if (retiredSloganVariant(index)) homepageFailures.push('retired slogan variant removed');
