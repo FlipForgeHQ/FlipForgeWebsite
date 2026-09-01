@@ -77,13 +77,20 @@
     const page = main.querySelector(".customer-discovery-page");
     const search = page?.querySelector(".customer-discovery-search");
     if (!page || !search) return;
-    if (page.querySelector("[data-ff-discover-persistence-note]")) return;
 
-    const note = document.createElement("div");
-    note.className = "ff-discover-persistence-note";
-    note.dataset.ffDiscoverPersistenceNote = "";
-    note.innerHTML = `<span aria-hidden="true">✓</span><div><strong>Searches are temporary; evaluated decisions are saved.</strong> You can use <strong>+ New card</strong> anytime. It clears the current Discover workspace only—it does not remove cards you already evaluated.</div>`;
-    search.insertAdjacentElement("afterend", note);
+    const submit = search.querySelector("[data-customer-discovery-form] button[type='submit']");
+    if (submit && !submit.disabled && /^Search connected sources$/i.test(String(submit.textContent || "").trim())) {
+      submit.textContent = "Search active listings";
+    }
+
+    let note = page.querySelector("[data-ff-discover-persistence-note]");
+    if (!note) {
+      note = document.createElement("div");
+      note.className = "ff-discover-persistence-note";
+      note.dataset.ffDiscoverPersistenceNote = "";
+      search.insertAdjacentElement("afterend", note);
+    }
+    note.innerHTML = `<span aria-hidden="true">✓</span><div><strong>Searches are temporary; evaluated decisions are saved.</strong> Use <strong>Discover a card</strong> anytime to clear the current Discover workspace and start fresh. Cards you already evaluated stay saved.</div>`;
   }
 
   function cleanKnownLimitations() {
