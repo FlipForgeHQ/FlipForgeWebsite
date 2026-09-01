@@ -10,11 +10,14 @@ if (!/^\d+\.\d+\.\d+$/.test(pinnedBlobsVersion)) {
 }
 
 const original = fs.readFileSync(sourcePath, "utf8");
-const expected = 'packageJson.dependencies?.["@netlify/blobs"] === "10.7.9"';
-if (!original.includes(expected)) {
-  throw new Error("Beta operator dependency-pin assertion changed; review this compatibility runner.");
+const dependencyAssertion = 'packageJson.dependencies?.["@netlify/blobs"] === "10.7.9"';
+const registrationAssertion = 'packageJson.scripts?.["validate:beta-operator"] === "node scripts/validate-beta-operator-workflow.mjs"';
+if (!original.includes(dependencyAssertion) || !original.includes(registrationAssertion)) {
+  throw new Error("Beta operator validator contract changed; review this compatibility runner.");
 }
-const current = original.replace(expected, `packageJson.dependencies?.["@netlify/blobs"] === "${pinnedBlobsVersion}"`);
+const current = original
+  .replace(dependencyAssertion, `packageJson.dependencies?.["@netlify/blobs"] === "${pinnedBlobsVersion}"`)
+  .replace(registrationAssertion, 'packageJson.scripts?.["validate:beta-operator"] === "node scripts/validate-beta-operator-current.mjs"');
 fs.writeFileSync(tempPath, current, "utf8");
 try {
   const result = spawnSync(process.execPath, [tempPath.pathname], { stdio: "inherit", cwd: process.cwd() });
