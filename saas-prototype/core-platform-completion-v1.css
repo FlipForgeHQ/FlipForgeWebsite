@@ -91,6 +91,18 @@
   background: rgba(216,174,59,.025);
 }
 
+.ff-core-platform-completion .plan-card.ff-plan-card-link {
+  cursor: pointer;
+}
+
+.ff-core-platform-completion .plan-card.ff-plan-card-link:hover,
+.ff-core-platform-completion .plan-card.ff-plan-card-link:focus-visible {
+  border-color: rgba(216,174,59,.3);
+  background: rgba(216,174,59,.05);
+  outline: 2px solid rgba(216,174,59,.45);
+  outline-offset: 2px;
+}
+
 .ff-core-platform-completion .plan-card .eyebrow {
   color: #b49338;
 }
@@ -131,6 +143,24 @@
   max-width: 680px;
   color: #8f9aa6;
   line-height: 1.55;
+}
+
+.ff-core-platform-completion .ff-di-card .ff-di-empty strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #eef1f3;
+  font-size: .9rem;
+}
+
+.ff-core-platform-completion .ff-di-card .ff-di-empty p {
+  margin: 0 0 12px;
+  color: #8f9aa6;
+  line-height: 1.5;
+}
+
+.ff-core-platform-completion .ff-di-card .ff-di-empty .button {
+  min-height: 38px;
+  padding-inline: 14px;
 }
 
 @media (max-width: 900px) {
