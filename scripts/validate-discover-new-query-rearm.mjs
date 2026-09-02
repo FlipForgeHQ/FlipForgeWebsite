@@ -7,6 +7,9 @@ const checks = [
   ["changed card identity is detected against the previous completed search", source.includes("function editingDifferentSearch(target, previous)") && source.includes("current !== normalizedQuery(previous.query)")],
   ["typing a changed card identity re-runs control synchronization", source.includes('document.addEventListener("input"') && source.includes("queue();")],
   ["a changed card draft removes stale refresh/new-search controls", source.includes("hasNewQueryDraft") && source.includes("if (hasNewQueryDraft)") && source.includes("removeResultControls(actions)")],
+  ["refresh replays the known completed search through an explicit submit event", source.includes("function dispatchKnownSearch(target, refreshButton)") && source.includes('new SubmitEvent("submit"') && source.includes("target.dispatchEvent(submitEvent)")],
+  ["refresh does not rely on requestSubmit native constraint validation", !source.includes("target.requestSubmit?.()")],
+  ["refresh gives immediate customer-visible progress", source.includes('refreshButton.textContent = "Refreshing…"') && source.includes('refreshButton.setAttribute("aria-busy", "true")')],
   ["new-query detection does not persist or authorize anything", !/localStorage|indexedDB|document\.cookie|transactionAuthority|BUY|WATCH|PASS/.test(source)]
 ];
 

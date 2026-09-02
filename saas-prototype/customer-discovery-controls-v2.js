@@ -119,7 +119,30 @@
     if (select) select.value = value;
   }
 
-  function refreshResults() {
+  function dispatchKnownSearch(target, refreshButton) {
+    const submitter = target?.querySelector?.('button[type="submit"]');
+    if (!target || !submitter) return false;
+
+    if (refreshButton) {
+      refreshButton.disabled = true;
+      refreshButton.textContent = "Refreshing…";
+      refreshButton.setAttribute("aria-busy", "true");
+    }
+
+    let submitEvent;
+    try {
+      submitEvent = typeof SubmitEvent === "function"
+        ? new SubmitEvent("submit", { bubbles: true, cancelable: true, submitter })
+        : new Event("submit", { bubbles: true, cancelable: true });
+    } catch (_) {
+      submitEvent = new Event("submit", { bubbles: true, cancelable: true });
+    }
+
+    target.dispatchEvent(submitEvent);
+    return true;
+  }
+
+  function refreshResults(event) {
     if (searchBusy()) return;
     const previous = lastSearch();
     const target = form();
@@ -131,7 +154,17 @@
     if (maxBuy) maxBuy.value = previous.targetMaxBuy;
     if (limit) limit.value = previous.limit;
     pendingSearch = { ...previous };
-    target.requestSubmit?.();
+
+    // A completed search is already server-validated and stored only for this
+    // browser session. Dispatch the same submit event the customer form handles
+    // instead of relying on requestSubmit(), which can be swallowed by native
+    // constraint validation after the results renderer intentionally clears the
+    // visible search draft.
+    const started = dispatchKnownSearch(target, event?.currentTarget || null);
+    if (!started) {
+      pendingSearch = null;
+      queue();
+    }
   }
 
   function clearAndStartNew() {
