@@ -1,0 +1,19 @@
+name: Discover Grade Handoff Assurance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover-grade-handoff:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Validate server-confirmed slab-grade handoff
+        run: node scripts/validate-discovery-grade-handoff.mjs
