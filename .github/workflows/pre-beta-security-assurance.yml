@@ -101,3 +101,17 @@ jobs:
           path: results/**/*.sarif
           if-no-files-found: error
           retention-days: 30
+
+  security-gate:
+    name: Pre-Beta Security gate
+    if: ${{ always() }}
+    needs: [secrets, dependencies, codeql]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every security job to pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ needs.secrets.result }}" = "success"
+          test "${{ needs.dependencies.result }}" = "success"
+          test "${{ needs.codeql.result }}" = "success"
