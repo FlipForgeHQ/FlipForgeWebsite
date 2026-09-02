@@ -2,9 +2,7 @@ name: Workflow Security Assurance
 
 on:
   pull_request:
-    paths:
-      - ".github/workflows/**"
-      - "scripts/validate-workflow-action-refs.mjs"
+    branches: [main]
   push:
     branches: [main]
     paths:
