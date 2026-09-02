@@ -2,16 +2,7 @@ name: Independent Audit — Sections C-L
 
 on:
   pull_request:
-    paths:
-      - ".github/workflows/independent-audit-sections-c-l.yml"
-      - ".github/workflows/pre-beta-security-assurance.yml"
-      - "package.json"
-      - "package-lock.json"
-      - "scripts/**"
-      - "saas-prototype/**"
-      - "netlify/**"
-      - "*.html"
-      - "netlify.toml"
+    branches: [main]
   push:
     branches: [main]
     paths:
@@ -301,3 +292,34 @@ jobs:
           test -f data-use.html
           grep -q 'beta_terms_accepted' beta-application.html
           grep -Eqi 'No transaction authority|decision support' faq.html product.html beta-terms.html
+
+  audit-gate:
+    name: Independent Audit C-L gate
+    if: ${{ always() }}
+    needs:
+      - section-c-operator
+      - section-d-discover
+      - section-e-evaluate
+      - section-f-evidence-psa
+      - section-g-saved-lifecycle
+      - section-h-derived-intelligence
+      - section-i-billing-boundary
+      - section-j-security
+      - section-k-reliability
+      - section-l-legal-trust
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every independent audit section to pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ needs.section-c-operator.result }}" = "success"
+          test "${{ needs.section-d-discover.result }}" = "success"
+          test "${{ needs.section-e-evaluate.result }}" = "success"
+          test "${{ needs.section-f-evidence-psa.result }}" = "success"
+          test "${{ needs.section-g-saved-lifecycle.result }}" = "success"
+          test "${{ needs.section-h-derived-intelligence.result }}" = "success"
+          test "${{ needs.section-i-billing-boundary.result }}" = "success"
+          test "${{ needs.section-j-security.result }}" = "success"
+          test "${{ needs.section-k-reliability.result }}" = "success"
+          test "${{ needs.section-l-legal-trust.result }}" = "success"
