@@ -7,9 +7,14 @@
   const scenes=[...film.querySelectorAll('[data-ff-film-scene]')];
   if(!scenes.length)return;
 
-  const timings=[0,1800,4200,6800,9300,11700];
-  const loopMs=14500;
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const timings=[0,3000,7000,11000,15000,20000];
+  const loopMs=25000;
   let timers=[];
+  let running=false;
+
+  const label=film.querySelector('.ff-film-label');
+  if(label)label.textContent='Autoplay · 25 seconds';
 
   const clear=()=>{
     timers.forEach(clearTimeout);
@@ -31,24 +36,59 @@
     film.classList.add('is-playing');
   };
 
-  const play=()=>{
+  const stop=()=>{
+    running=false;
     clear();
+    film.classList.remove('is-playing');
+  };
+
+  const play=()=>{
+    if(reduce){
+      stop();
+      show(scenes.length-1);
+      return;
+    }
+    clear();
+    running=true;
     restartTimeline();
     show(0);
     timings.slice(1).forEach((delay,i)=>{
-      timers.push(setTimeout(()=>show(i+1),delay));
+      timers.push(setTimeout(()=>{
+        if(running)show(i+1);
+      },delay));
     });
-    timers.push(setTimeout(play,loopMs));
+    timers.push(setTimeout(()=>{
+      if(running)play();
+    },loopMs));
   };
 
-  play();
+  const observer=('IntersectionObserver' in window)
+    ? new IntersectionObserver(entries=>{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting&&entry.intersectionRatio>=0.25){
+            if(!running&&!document.hidden)play();
+          }else if(running){
+            stop();
+          }
+        });
+      },{threshold:[0,.25,.5]})
+    : null;
+
+  if(observer){
+    observer.observe(film);
+  }else{
+    play();
+  }
 
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){
-      clear();
-      film.classList.remove('is-playing');
-    }else{
+      stop();
+    }else if(!observer){
       play();
+    }else{
+      const rect=film.getBoundingClientRect();
+      const visible=rect.bottom>0&&rect.top<window.innerHeight;
+      if(visible)play();
     }
   });
 })();
