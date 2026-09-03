@@ -49,9 +49,9 @@ const requiredFiles = [
   'assets/css/brand-v2.css',
   'assets/css/homepage-decision-hero-v1.css',
   'assets/css/homepage-mobile-nav-v1.css',
-  'assets/css/homepage-video-v1.css',
+  'assets/css/homepage-deal-or-decoy-v1.css',
+  'assets/js/homepage-deal-or-decoy-v1.js',
   'assets/images/flipforge-homepage-hero.webp',
-  'assets/interactive/flipforge-know-why.html',
   'assets/images/flipforge-homepage-dashboard.svg',
   'assets/images/flipforge-grading-scenario.svg',
   'assets/images/flipforge-traceback-guidance.svg',
@@ -68,14 +68,16 @@ const homepageFailures = [];
 if (!index.includes('assets/brand/flipforge-logo-horizontal.svg')) homepageFailures.push('approved horizontal logo lockup');
 if (!index.includes(OFFICIAL_SLOGAN)) homepageFailures.push('locked slogan');
 if (!index.includes('CARD INTELLIGENCE')) homepageFailures.push('Card Intelligence descriptor');
-if (!index.includes('Would you pay')) homepageFailures.push('decision-first hook');
+if (!index.includes('<span>Before you buy.</span>') || !index.includes('<strong>Know Why.</strong>')) homepageFailures.push('immediate Know Why promise');
 if (!index.includes('assets/images/flipforge-homepage-hero.webp')) homepageFailures.push('browser-decodable homepage hero');
-if (!index.includes('assets/interactive/flipforge-know-why.html')) homepageFailures.push('interactive Know Why explainer');
+if (!index.includes('id="deal-or-decoy"')) homepageFailures.push('interactive Deal or Decoy proof');
+if (!index.includes('data-ff-choice="BUY"') || !index.includes('data-ff-choice="VERIFY"')) homepageFailures.push('decision choices');
 if (index.includes('assets/images/flipforge-approved-decision-visual.webp')) homepageFailures.push('broken former decision visual removed');
 if (index.includes('assets/video/flipforge-how-it-works-30s.mp4')) homepageFailures.push('mislabeled former video removed');
 if (!index.includes('assets/css/homepage-decision-hero-v1.css')) homepageFailures.push('decision-first homepage stylesheet');
 if (!index.includes('assets/css/homepage-mobile-nav-v1.css')) homepageFailures.push('mobile navigation stylesheet');
-if (!index.includes('assets/css/homepage-video-v1.css')) homepageFailures.push('explainer proof stylesheet');
+if (!index.includes('assets/css/homepage-deal-or-decoy-v1.css')) homepageFailures.push('Deal or Decoy stylesheet');
+if (!index.includes('assets/js/homepage-deal-or-decoy-v1.js')) homepageFailures.push('Deal or Decoy behavior');
 if (!index.includes('Controlled Private Beta.')) homepageFailures.push('private beta boundary');
 if (!index.includes('FlipForge does not guarantee profit or authorize transactions.')) homepageFailures.push('transaction/profit boundary');
 if (retiredSloganVariant(index)) homepageFailures.push('retired slogan variant removed');
