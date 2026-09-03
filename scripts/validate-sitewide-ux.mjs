@@ -27,14 +27,12 @@ const plans=read('pricing.html');
 const about=read('about.html');
 const beta=read('beta-application.html');
 
-// Shared marketing system remains for the deeper pages.
 for(const [label,text] of [['product/about marketing',marketingPages],['support marketing',marketingSupport]]) requireText(label,text,'@import url("marketing-density-v1.css")');
 requireText('marketing density purpose',density,'definitive marketing density system');
 requireText('marketing page hero cap',density,'font-size:clamp(38px,4vw,52px)!important');
 requireText('support page hero cap',density,'font-size:clamp(36px,3.75vw,50px)!important');
 requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
 
-// Homepage owns a video-first proof experience before the interactive deal check.
 requireText('homepage hero stylesheet',homepage,'assets/css/homepage-decision-hero-v1.css');
 requireText('homepage film stylesheet',homepage,'assets/css/homepage-hero-film-v1.css');
 requireText('homepage mobile stylesheet',homepage,'assets/css/homepage-mobile-nav-v1.css');
@@ -44,7 +42,7 @@ requireText('homepage first action',homepage,'Try the Deal Check');
 requireText('homepage proof path',homepage,'href="#deal-or-decoy" data-ff-see-action');
 requireText('homepage animated proof',homepage,'assets/js/homepage-hero-film-v1.js');
 requireText('homepage interactive proof',homepage,'assets/js/homepage-deal-or-decoy-v1.js');
-requireText('homepage film progression',filmJs,'22000');
+requireText('homepage film progression',filmJs,'25000');
 requireText('homepage film reduced motion',filmCss,'@media(prefers-reduced-motion:reduce)');
 forbidText('homepage broken visual removed',homepage,'assets/images/flipforge-approved-decision-visual.webp');
 forbidText('homepage unfinished video removed',homepage,'assets/video/flipforge-how-it-works-30s.mp4');
@@ -59,7 +57,6 @@ requireText('homepage reduced motion',mobileHomeCss,'@media(prefers-reduced-moti
 requireText('homepage proof responsive',dealCss,'.ff-deal-choice-layout');
 requireText('homepage proof immediate reveal',dealJs,'resultStage.hidden=false');
 
-// Beta progressive form behavior remains untouched.
 requireText('beta start action',awardJs,'Start application');
 requireText('beta apply anchor',awardJs,"applySection.id='apply'");
 requireText('beta notice grouping',awardJs,"grid.className='ff-beta-notice-grid'");
@@ -77,7 +74,6 @@ requireText('Launch Plans primary action',plans,'Request Beta Access');
 requireText('About purpose',about,'WHY FLIPFORGE EXISTS');
 requireText('Beta purpose',beta,'CONTROLLED PRIVATE BETA');
 
-// Customer app density and phone shell remain governed separately.
 requireText('app layout purpose',appLayout,'definitive viewport and density owner');
 requireText('app topbar density',appLayout,'min-height:68px!important');
 requireText('app workspace density',appLayout,'padding:22px 24px 34px!important');
