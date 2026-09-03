@@ -63,7 +63,7 @@ check('037 homepage remains explicitly unframeable',headerBlock('/').includes('X
 check('038 index route remains explicitly unframeable',headerBlock('/index.html').includes('X-Frame-Options = "DENY"')&&headerBlock('/index.html').includes("frame-ancestors 'none'"));
 check('039 operator route remains explicitly unframeable',headerBlock('/operator-beta.html').includes('X-Frame-Options = "DENY"')&&headerBlock('/operator-beta.html').includes("frame-ancestors 'none'"));
 check('040 animated hero film stylesheet is loaded',index.includes('assets/css/homepage-hero-film-v1.css')&&filmCss.includes('.ff-hero-film'));
-check('041 animated hero film behavior is loaded',index.includes('assets/js/homepage-hero-film-v1.js')&&filmJs.includes('22000'));
+check('041 animated hero film behavior is loaded',index.includes('assets/js/homepage-hero-film-v1.js')&&filmJs.includes('25000'));
 check('042 animated hero respects reduced motion',filmCss.includes('@media(prefers-reduced-motion:reduce)')&&filmJs.includes('prefers-reduced-motion'));
 check('043 hero film shows evidence transformation',index.includes('5 of 7 rejected')&&index.includes('The apparent bargain nearly disappears.')&&index.includes('FlipForge decision'));
 
