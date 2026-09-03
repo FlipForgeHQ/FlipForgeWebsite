@@ -9,42 +9,51 @@ const pricing=read('pricing.html');
 const app=read('saas-prototype/index.html');
 const awardJs=read('assets/js/award-winning-v1.js');
 const navJs=read('assets/js/homepage-v1.js');
+const dealJs=read('assets/js/homepage-deal-or-decoy-v1.js');
+const heroCss=read('assets/css/homepage-decision-hero-v1.css');
+const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
 const mobileCss=read('assets/css/homepage-mobile-nav-v1.css');
-const animatic=read('assets/interactive/flipforge-know-why.html');
 const sw=read('sw.js');
 const failures=[];
 const productionBuild=String(process.env.CONTEXT||'').toLowerCase()==='production';
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toLowerCase()))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 
-// Locked brand and decision-first homepage.
+// Locked brand and immediate introduction.
 requireText('homepage category',homepage,'CARD INTELLIGENCE');
 requireText('homepage slogan',homepage,'Before you buy. Know Why.');
 forbidText('public category',`${homepage}\n${product}\n${learn}`,'CARD VALUE INTELLIGENCE');
-requireText('homepage hook',homepage,'Would you pay');
-requireText('homepage hook',homepage,'<strong>$349</strong>');
-requireText('homepage hook',homepage,'for this card?');
-requireText('homepage reason tension',homepage,'The reason behind it matters more.');
+requireText('homepage value explanation',homepage,'FlipForge checks the exact sports-card identity');
+requireText('homepage value explanation',homepage,'validates the comparisons behind its price');
+requireText('homepage value explanation',homepage,'whether the evidence supports BUY, WATCH, VERIFY, or PASS');
+requireText('homepage assurance',homepage,'Evidence-backed. Explainable. Always your decision.');
 requireText('homepage browser-decodable visual',homepage,'assets/images/flipforge-homepage-hero.webp');
 forbidText('homepage broken former visual',homepage,'assets/images/flipforge-approved-decision-visual.webp');
 requireText('homepage illustrative boundary',homepage,'Illustrative landing-page example · not live market data');
-requireText('homepage proof',homepage,'REAL MARKET EVIDENCE');
-requireText('homepage proof',homepage,'RISK &amp; REWARD INSIGHT');
-requireText('homepage proof',homepage,'MAKE BETTER DECISIONS');
-requireText('homepage explainer section',homepage,'id="decision-video"');
-requireText('homepage interactive explainer',homepage,'assets/interactive/flipforge-know-why.html');
-forbidText('homepage mislabeled former video',homepage,'assets/video/flipforge-how-it-works-30s.mp4');
-requireText('homepage explainer',homepage,'See how FlipForge reaches the decision.');
+requireText('homepage proof section',homepage,'id="deal-or-decoy"');
+requireText('homepage proof hook',homepage,'This card looks 24% under market. Is it really a deal?');
+requireText('homepage proof instruction',homepage,'Your only task:');
+for(const decision of ['data-ff-choice="BUY"','data-ff-choice="WATCH"','data-ff-choice="VERIFY"','data-ff-choice="PASS"'])requireText('homepage customer choice',homepage,decision);
+requireText('homepage evidence correction',homepage,'5 of 7 comparisons were invalid.');
+requireText('homepage evidence correction',homepage,'24.0%');
+requireText('homepage evidence correction',homepage,'2.3%');
+requireText('homepage decision',homepage,'VERIFY before you buy.');
+requireText('homepage optional details',homepage,'See all 7 comparison checks');
 requireText('homepage beta boundary',homepage,'Controlled Private Beta.');
 requireText('homepage transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
-requireText('homepage primary CTA',homepage,'decision-button-primary" href="beta-application.html">Request Beta Access');
-requireText('homepage explainer CTA',homepage,'href="#decision-video" data-ff-how-it-works>See How It Works');
-requireText('homepage explainer scroll behavior',homepage,'target.scrollIntoView');
-requireText('homepage explainer restart behavior',homepage,"postMessage('ff-play-restart'");
-requireText('interactive explainer evidence beat',animatic,'FlipForge checks the reason');
-requireText('interactive explainer decision beat',animatic,'<div class="verdict"><strong>VERIFY</strong></div>');
-requireText('interactive explainer playback control',animatic,'id="playPause"');
-requireText('interactive explainer restart control',animatic,'id="restart"');
+requireText('homepage primary CTA',homepage,'decision-button-primary" href="#deal-or-decoy" data-ff-see-action>See FlipForge in Action');
+requireText('homepage secondary CTA',homepage,'decision-button-secondary" href="beta-application.html">Request Beta Access');
+requireText('homepage Evaluate CTA',homepage,'href="/app/#/evaluate" data-ff-deal-cta="evaluate_listing"');
+requireText('homepage interaction stylesheet',homepage,'assets/css/homepage-deal-or-decoy-v1.css');
+requireText('homepage interaction behavior',homepage,'assets/js/homepage-deal-or-decoy-v1.js');
+requireText('homepage choice behavior',dealJs,"button.addEventListener('click'");
+requireText('homepage immediate reveal',dealJs,'choiceStage.hidden=true');
+requireText('homepage replay behavior',dealJs,"replay?.addEventListener('click'");
+requireText('homepage measurement',dealJs,'flipforge_demo_choice_recorded');
+requireText('homepage decision-change measurement',dealJs,'flipforge_demo_decision_changed');
+for(const browserStore of ['localStorage','sessionStorage','indexedDB'])forbidText('homepage device storage',dealJs,browserStore);
+requireText('homepage hero responsive',heroCss,'grid-template-columns:1fr');
+requireText('homepage demo responsive',dealCss,'@media(max-width:760px)');
 for(const removed of ['ff-decision-motion','ff-card-stage','ff-motion-console','data-replay-decision','ff-live-product-frame','id="busted-comp"'])forbidText('simplified homepage',homepage,removed);
 
 // Mobile navigation remains keyboard/accessibility aware.
@@ -95,7 +104,9 @@ if(productionBuild){
 }
 
 // PWA and public-safety boundaries remain.
-requireText('PWA cache',sw,"const CACHE='flipforge-shell-v14'");
+requireText('PWA cache',sw,"const CACHE='flipforge-shell-v15'");
+requireText('PWA deal stylesheet',sw,"'/assets/css/homepage-deal-or-decoy-v1.css'");
+requireText('PWA deal behavior',sw,"'/assets/js/homepage-deal-or-decoy-v1.js'");
 const publicCopy=`${homepage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true','CARD VALUE INTELLIGENCE'])forbidText('public safety',publicCopy,unsafe);
 for(const unsafeData of ['localStorage','sessionStorage','indexedDB'])forbidText('public static pages',publicCopy,unsafeData);

@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v14';
+const CACHE='flipforge-shell-v15';
 const SHELL=[
   '/',
   '/index.html',
@@ -15,10 +15,17 @@ const SHELL=[
   '/assets/css/award-winning-v1.css',
   '/assets/css/homepage-visual-proof-v1.css',
   '/assets/css/homepage-proof-polish-v1.css',
+  '/assets/css/homepage-decision-hero-v1.css',
+  '/assets/css/homepage-scale-v1.css',
+  '/assets/css/homepage-mobile-nav-v1.css',
+  '/assets/css/homepage-deal-or-decoy-v1.css',
   '/assets/js/homepage-v1.js',
+  '/assets/js/homepage-deal-or-decoy-v1.js',
   '/assets/js/homepage-contender-v1.js',
   '/assets/js/award-winning-v1.js',
   '/assets/brand/flipforge-app-icon-dark.svg',
+  '/assets/brand/flipforge-logo-horizontal.svg',
+  '/assets/images/flipforge-homepage-hero.webp',
   '/assets/images/flipforge-homepage-dashboard.svg',
   '/assets/images/flipforge-identity-first.webp',
   '/assets/images/flipforge-evidence-review.webp',
