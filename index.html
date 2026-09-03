@@ -22,6 +22,7 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="stylesheet" href="assets/css/homepage-decision-hero-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-mobile-nav-v1.css">
+  <link rel="stylesheet" href="assets/css/homepage-hero-film-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-deal-or-decoy-v1.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"FlipForge LLC","url":"https://goflipforge.com/","email":"support@goflipforge.com","logo":"https://goflipforge.com/assets/brand/flipforge-logo-horizontal.svg","slogan":"Before you buy. Know Why."},{"@type":"SoftwareApplication","name":"FlipForge","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Card Intelligence for sports-card collectors: exact identity, evidence qualification, risk, supported value, explainable decisions, and outcome review."}]}</script>
 </head>
@@ -62,27 +63,89 @@
           <span>Before you buy.</span>
           <strong>Know Why.</strong>
         </h1>
-        <p class="decision-lead">FlipForge checks the exact sports-card identity, validates the comparisons behind its price, and exposes hidden risk—then explains whether the evidence supports BUY, WATCH, VERIFY, or PASS.</p>
+        <p class="decision-lead">FlipForge checks whether the evidence behind a sports-card deal actually holds up.</p>
 
         <div class="decision-actions">
-          <a class="decision-button decision-button-primary" href="#deal-or-decoy" data-ff-see-action>See FlipForge in Action</a>
+          <a class="decision-button decision-button-primary" href="#deal-or-decoy" data-ff-see-action>Try the Deal Check</a>
           <a class="decision-button decision-button-secondary" href="beta-application.html">Request Beta Access</a>
         </div>
 
-        <p class="decision-assurance">Evidence-backed. Explainable. Always your decision.</p>
+        <p class="decision-assurance">Exact card. Qualified evidence. Explainable decision.</p>
       </div>
 
-      <figure class="decision-approved-visual" aria-label="Illustrative FlipForge Card Intelligence visual">
-        <img src="assets/images/flipforge-homepage-hero.webp" width="800" height="450" decoding="async" fetchpriority="high" alt="FlipForge Card Intelligence decision-first illustration">
-        <figcaption>Illustrative landing-page example · not live market data</figcaption>
-      </figure>
+      <div>
+        <div class="ff-hero-film" data-ff-hero-film aria-label="Animated concept showing FlipForge challenging an apparent sports-card deal">
+          <div class="ff-film-topbar">
+            <span class="ff-film-brand">FlipForge Deal Check</span>
+            <span class="ff-film-label">Silent autoplay concept</span>
+          </div>
+          <div class="ff-film-stage">
+            <div class="ff-film-card-bg" aria-hidden="true"></div>
+            <article class="ff-film-listing">
+              <small>Illustrative listing</small>
+              <h3>2020 Panini Prizm #307 Joe Burrow Silver Prizm · PSA 10</h3>
+              <div class="ff-film-listing-price">
+                <strong>$349</strong>
+                <span>Market reference<b>$459.21</b></span>
+              </div>
+              <div class="ff-film-badge"><span>Looks under market</span><strong>24.0%</strong></div>
+            </article>
+
+            <div class="ff-film-scenes">
+              <div class="ff-film-scene ff-film-question is-active" data-ff-film-scene>
+                <span>The apparent deal</span>
+                <strong>Looks like a bargain. But why?</strong>
+              </div>
+
+              <div class="ff-film-scene ff-film-scan" data-ff-film-scene>
+                <span>FlipForge evidence check</span>
+                <h4>Checking the comparisons…</h4>
+                <div class="ff-film-comp-grid">
+                  <div class="ff-film-comp"><span>Exact Silver Prizm · PSA 10</span><b>✓</b></div>
+                  <div class="ff-film-comp is-bad"><span>White Sparkle parallel</span><b>×</b></div>
+                  <div class="ff-film-comp is-bad"><span>Duplicate comparison</span><b>×</b></div>
+                  <div class="ff-film-comp is-bad"><span>Identity conflict</span><b>×</b></div>
+                </div>
+              </div>
+
+              <div class="ff-film-scene ff-film-reject" data-ff-film-scene>
+                <small>Evidence problem found</small>
+                <strong>5 of 7 rejected</strong>
+                <p>Wrong parallels, duplicates, and an identity conflict were inflating the comparison set.</p>
+              </div>
+
+              <div class="ff-film-scene ff-film-shift" data-ff-film-scene>
+                <small>After qualified evidence</small>
+                <div class="ff-film-shift-values"><span>24.0%</span><b>→</b><strong>2.3%</strong></div>
+                <p>The apparent bargain nearly disappears.</p>
+              </div>
+
+              <div class="ff-film-scene ff-film-verdict" data-ff-film-scene>
+                <small>FlipForge decision</small>
+                <strong>VERIFY</strong>
+                <p>The price alone does not support BUY.</p>
+                <em>Before you buy. Know Why.</em>
+              </div>
+
+              <div class="ff-film-scene ff-film-verdict" data-ff-film-scene>
+                <small>Card Intelligence</small>
+                <strong>KNOW WHY.</strong>
+                <p>See what the price alone cannot tell you.</p>
+                <em>Now make the next call yourself ↓</em>
+              </div>
+            </div>
+          </div>
+          <div class="ff-film-timeline" aria-hidden="true"><span></span></div>
+        </div>
+        <p class="ff-film-caption">Animated homepage concept · illustrative example · not live market data</p>
+      </div>
     </section>
 
     <section class="ff-deal-demo" id="deal-or-decoy" aria-labelledby="deal-or-decoy-title">
       <div class="ff-deal-intro">
-        <p class="ff-deal-kicker">DEAL OR DECOY?</p>
-        <h2 id="deal-or-decoy-title" tabindex="-1">This card looks 24% under market. Is it really a deal?</h2>
-        <p>Look at the listing, then click one choice. FlipForge will immediately show whether the deal survives an evidence check.</p>
+        <p class="ff-deal-kicker">YOUR TURN · DEAL OR DECOY?</p>
+        <h2 id="deal-or-decoy-title" tabindex="-1">Think you would have caught it?</h2>
+        <p>Make the next call yourself. Choose what you would do with the listing, and FlipForge will immediately show what the evidence changes.</p>
       </div>
 
       <div class="ff-deal-shell" data-ff-deal-demo>
@@ -186,6 +249,7 @@
   </main>
 
   <script src="assets/js/homepage-v1.js" defer></script>
+  <script src="assets/js/homepage-hero-film-v1.js" defer></script>
   <script src="assets/js/homepage-deal-or-decoy-v1.js" defer></script>
 </body>
 </html>
