@@ -4,6 +4,9 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const sourceRoot = path.join(root, 'assets', 'source');
 const outputRoot = path.join(root, 'assets', 'images');
+const CURRENT_DESCRIPTOR = 'Card Decision Intelligence';
+const CURRENT_DESCRIPTOR_DISPLAY = 'CARD DECISION INTELLIGENCE';
+const CURRENT_LOCKUP_ALT = 'FlipForge — Card Decision Intelligence — Before you buy. Know Why.';
 
 const assets = [
   {
@@ -156,10 +159,16 @@ function ensureConversionEventLayer(html) {
 
 function ensurePerfectedBrandIdentity(html) {
   return html
-    .replaceAll('Signal. Confidence. Advantage.', 'Card Intelligence')
-    .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', 'CARD INTELLIGENCE')
-    .replaceAll('Card Value Intelligence', 'Card Intelligence')
-    .replaceAll('CARD VALUE INTELLIGENCE', 'CARD INTELLIGENCE')
+    .replaceAll('Signal. Confidence. Advantage.', CURRENT_DESCRIPTOR)
+    .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', CURRENT_DESCRIPTOR_DISPLAY)
+    .replaceAll('Card Value Intelligence', CURRENT_DESCRIPTOR)
+    .replaceAll('CARD VALUE INTELLIGENCE', CURRENT_DESCRIPTOR_DISPLAY)
+    .replaceAll('FlipForge — Card Intelligence — Before you buy. Know Why.', CURRENT_LOCKUP_ALT)
+    .replaceAll('FlipForge — Card Intelligence', 'FlipForge — Card Decision Intelligence')
+    .replaceAll('FlipForge Card Intelligence', 'FlipForge Card Decision Intelligence')
+    .replaceAll('FlipForge | Card Intelligence', 'FlipForge | Card Decision Intelligence')
+    .replaceAll('<span class="brand-subtitle">CARD INTELLIGENCE</span>', '<span class="brand-subtitle">CARD DECISION INTELLIGENCE</span>')
+    .replaceAll('<div class="descriptor">CARD INTELLIGENCE</div>', '<div class="descriptor">CARD DECISION INTELLIGENCE</div>')
     .replaceAll('Before you buy, know why.', 'Before you buy. Know Why.')
     .replaceAll('Before You Buy, Know Why', 'Before you buy. Know Why.');
 }
@@ -172,11 +181,35 @@ function removeRetiredRemoteFontImports(html) {
 }
 
 function ensureApprovedBrandLockups(html) {
-  const lockup = '<img class="brand-lockup" src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Intelligence — Before you buy. Know Why.">';
+  const lockup = `<img class="brand-lockup" src="assets/brand/flipforge-logo-horizontal.svg" alt="${CURRENT_LOCKUP_ALT}">`;
   return html.replace(
     /(<a\b[^>]*class="[^"]*\bbrand\b[^"]*"[^>]*>)[\s\S]*?(<\/a>)/gi,
     (match, open, close) => `${open}${lockup}${close}`,
   );
+}
+
+function collectHtmlFiles(directory, results = []) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    if (entry.name === '.git' || entry.name === 'node_modules') continue;
+    const absolutePath = path.join(directory, entry.name);
+    if (entry.isDirectory()) collectHtmlFiles(absolutePath, results);
+    else if (entry.isFile() && entry.name.endsWith('.html')) results.push(absolutePath);
+  }
+  return results;
+}
+
+// Normalize brand identity wording on every deployable HTML surface, including the
+// customer app shell, auth pages, checkout, interactive examples, and Identity email
+// templates. Product-module uses of "Card Intelligence" are intentionally left alone;
+// only brand/lockup contexts are rewritten.
+const allHtmlFiles = collectHtmlFiles(root);
+for (const htmlPath of allHtmlFiles) {
+  const original = fs.readFileSync(htmlPath, 'utf8');
+  const updated = ensurePerfectedBrandIdentity(original);
+  if (updated !== original) {
+    fs.writeFileSync(htmlPath, updated, 'utf8');
+    console.log(`Normalized Card Decision Intelligence branding in ${path.relative(root, htmlPath)}`);
+  }
 }
 
 // Keep the public website and the browser app connected without replacing the
@@ -217,7 +250,8 @@ for (const htmlPath of htmlFiles) {
   const failures = [];
   if (!html.includes('assets/brand/flipforge-logo-horizontal.svg')) failures.push('approved horizontal logo lockup');
   if (!html.includes('Before you buy. Know Why.')) failures.push('official slogan lockup');
-  if (!html.includes('Card Intelligence')) failures.push('Card Intelligence identity line');
+  if (!html.includes(CURRENT_DESCRIPTOR)) failures.push('Card Decision Intelligence identity line');
+  if (html.includes('FlipForge — Card Intelligence') || html.includes('FlipForge Card Intelligence')) failures.push('retired Card Intelligence brand descriptor removed');
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('perfected brand stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
@@ -237,4 +271,4 @@ for (const htmlPath of htmlFiles) {
   }
 }
 
-console.log(`Verified perfected FlipForge brand integration across ${htmlFiles.length} website pages.`);
+console.log(`Verified perfected FlipForge brand integration across ${htmlFiles.length} website pages and ${allHtmlFiles.length} deployable HTML surfaces.`);
