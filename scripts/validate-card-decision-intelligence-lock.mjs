@@ -60,11 +60,13 @@ const currentSurfaces = [
   ['saas-prototype/index.html', DISPLAY_DESCRIPTOR],
   ['assets/js/marketing-v3.js', DISPLAY_DESCRIPTOR],
   ['saas-prototype/consumer-ux-refinement.js', DISPLAY_DESCRIPTOR],
+  ['saas-prototype/commercial-app-polish-v2.js', DISPLAY_DESCRIPTOR],
   ['identity-emails/invitation.html', PROSE_DESCRIPTOR],
   ['assets/interactive/flipforge-know-why.html', DISPLAY_DESCRIPTOR],
   ['assets/images/flipforge-homepage-dashboard.svg', DISPLAY_DESCRIPTOR],
   ['assets/images/flipforge-traceback-guidance.svg', DISPLAY_DESCRIPTOR],
   ['assets/images/flipforge-grading-scenario.svg', DISPLAY_DESCRIPTOR],
+  ['docs/BRAND_SYSTEM_V2.md', DISPLAY_DESCRIPTOR],
 ];
 
 for (const [relativePath, expected] of currentSurfaces) {
@@ -84,6 +86,7 @@ const retiredBrandPatterns = [
   '<div class="descriptor">CARD INTELLIGENCE</div>',
   "node.textContent='CARD INTELLIGENCE'",
   'node.textContent="CARD INTELLIGENCE"',
+  'subtitle.textContent = "CARD INTELLIGENCE"',
 ];
 
 for (const [relativePath] of currentSurfaces) {
