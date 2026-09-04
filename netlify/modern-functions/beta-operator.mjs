@@ -22,6 +22,8 @@ import {
 } from "./lib/beta-operations-core.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 
+const TERMS_PENDING_ROLE = "flipforge-terms-pending";
+
 function reply(status, body) {
   return Response.json(body, {
     status,
@@ -70,6 +72,11 @@ function activatedIdentity(user) {
 
 function invitedIdentity(user) {
   return Boolean(user?.invitedAt || user?.invited_at);
+}
+
+function founderTermsPending(application) {
+  return application?.selectionSource === "FOUNDER_SELECTED"
+    && !application?.termsAcceptance?.acceptedAt;
 }
 
 function applicationMetadata(application) {
@@ -162,6 +169,7 @@ async function rawIdentityInvite(email, fullName) {
 
 function withActivation(application, user, now) {
   if (application.status !== "INVITE_SENT" || !activatedIdentity(user)) return application;
+  if (founderTermsPending(application)) return application;
   const at = now.toISOString();
   return {
     ...application,
@@ -240,8 +248,13 @@ async function inviteApplicant(application, identityAdmin, inviteIdentity, now) 
   if (!identityUserId) throw new Error("IDENTITY_USER_ID_MISSING");
   const tenantId = tenantIdFor(application);
   const currentMetadata = identityUser.appMetadata || identityUser.app_metadata || {};
-  const roles = operatorRoles(identityUser).filter(role => !role.startsWith(TENANT_ROLE_PREFIX));
-  roles.push(ACTIVE_ROLE, `${TENANT_ROLE_PREFIX}${tenantId}`);
+  const requiresTerms = founderTermsPending(application);
+  const roles = operatorRoles(identityUser).filter(role =>
+    !role.startsWith(TENANT_ROLE_PREFIX)
+    && role !== TERMS_PENDING_ROLE
+    && (!requiresTerms || role !== ACTIVE_ROLE));
+  roles.push(`${TENANT_ROLE_PREFIX}${tenantId}`);
+  roles.push(requiresTerms ? TERMS_PENDING_ROLE : ACTIVE_ROLE);
 
   const updatedIdentity = await identityAdmin.updateUser(identityUserId, {
     app_metadata: {
@@ -250,7 +263,7 @@ async function inviteApplicant(application, identityAdmin, inviteIdentity, now) 
       roles: [...new Set(roles)],
       flipforge: {
         tenantId,
-        access: "active",
+        access: requiresTerms ? "terms_pending" : "active",
         betaApplicationId: application.id,
         cohort,
       },
@@ -262,7 +275,7 @@ async function inviteApplicant(application, identityAdmin, inviteIdentity, now) 
   });
 
   const at = now.toISOString();
-  const active = activatedIdentity(updatedIdentity || identityUser);
+  const active = !requiresTerms && activatedIdentity(updatedIdentity || identityUser);
   const next = {
     ...application,
     version: Number(application.version || 0) + 1,
@@ -278,6 +291,7 @@ async function inviteApplicant(application, identityAdmin, inviteIdentity, now) 
     history: [
       ...(application.history || []),
       { type: "IDENTITY_INVITE_SENT", at, actor: "operator" },
+      ...(requiresTerms ? [{ type: "BETA_TERMS_REQUIRED", at, actor: "system" }] : []),
       ...(active ? [{ type: "IDENTITY_ACTIVATED", at, actor: "identity" }] : []),
     ],
   };
