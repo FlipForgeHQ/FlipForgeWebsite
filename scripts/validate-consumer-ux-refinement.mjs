@@ -10,14 +10,16 @@ function expect(condition, label) {
   checks.push({ condition: Boolean(condition), label });
 }
 
-expect(index.includes("FlipForge | Card Intelligence"), "app title uses Card Intelligence");
-expect(index.includes("FlipForge private-beta card intelligence platform."), "meta description uses Card Intelligence");
-expect(index.includes("<span class=\"brand-subtitle\">CARD INTELLIGENCE</span>"), "brand subtitle uses Card Intelligence");
+expect(index.includes("FlipForge | Card Decision Intelligence"), "app title uses Card Decision Intelligence");
+expect(index.includes("FlipForge private-beta card decision intelligence platform."), "meta description uses Card Decision Intelligence");
+expect(index.includes("<span class=\"brand-subtitle\">CARD DECISION INTELLIGENCE</span>"), "brand subtitle uses Card Decision Intelligence");
+expect(!index.includes("<span class=\"brand-subtitle\">CARD INTELLIGENCE</span>"), "retired Card Intelligence brand subtitle is absent");
 expect(!index.includes("CARD VALUE INTELLIGENCE"), "legacy Card Value Intelligence descriptor removed from app shell");
 expect(index.includes('href="consumer-ux-refinement.css"'), "consumer UX stylesheet is mounted");
 expect(index.includes('src="consumer-ux-refinement.js"'), "consumer UX script is mounted");
 expect(index.includes('src="customer-professional-polish.js"'), "professional polish script is mounted");
 
+expect(ux.includes('"CARD DECISION INTELLIGENCE"'), "runtime brand normalization uses Card Decision Intelligence");
 expect(ux.includes('"Identity intelligence"'), "identity heading uses current customer-facing intelligence language");
 expect(polish.includes('"Beta intelligence · In development"'), "Forge Heat hero uses current beta intelligence language");
 expect(
