@@ -129,11 +129,14 @@ jobs:
             if (html.includes('Signal. Confidence. Advantage.')) {
               failures.push(`${name}: deprecated brand line remains`);
             }
-            if (hasHeader && !html.includes('Card Intelligence')) {
-              failures.push(`${name}: Card Intelligence is missing`);
+            if (hasHeader && !html.includes('Card Decision Intelligence')) {
+              failures.push(`${name}: Card Decision Intelligence is missing`);
             }
             if (hasHeader && (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE'))) {
               failures.push(`${name}: retired Card Value Intelligence descriptor remains`);
+            }
+            if (hasHeader && (html.includes('FlipForge — Card Intelligence') || html.includes('FlipForge Card Intelligence'))) {
+              failures.push(`${name}: retired Card Intelligence brand descriptor remains`);
             }
             if (hasHeader && !html.includes('data-app-preview="desktop"')) {
               failures.push(`${name}: desktop App Preview link is missing`);
@@ -151,7 +154,7 @@ jobs:
             process.exit(1);
           }
 
-          console.log(`Verified App Preview and Card Intelligence across ${htmlFiles.length} website pages.`);
+          console.log(`Verified App Preview and Card Decision Intelligence across ${htmlFiles.length} website pages.`);
           NODE
           node scripts/validate-netlify-rule-budget.mjs
           grep -q '^/app /saas-prototype/index.html 200$' _redirects
