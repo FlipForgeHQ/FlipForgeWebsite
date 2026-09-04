@@ -1,9 +1,9 @@
 {
-  "brandVersion": "2.0",
-  "updated": "2026-08-23",
+  "brandVersion": "2.1",
+  "updated": "2026-09-04",
   "status": "APPROVED_LOCKED",
   "identity": {
-    "descriptor": "Card Intelligence",
+    "descriptor": "Card Decision Intelligence",
     "officialTaglineLockup": "Before you buy. Know Why.",
     "normalProse": "Before you buy. Know Why.",
     "typeface": "Geist Sans",
@@ -13,7 +13,7 @@
       "layout": "HORIZONTAL_ICON_WORDMARK_DESCRIPTOR",
       "icon": "/assets/brand/flipforge-logo-horizontal.svg",
       "wordmark": "FLIPFORGE™",
-      "descriptor": "CARD INTELLIGENCE",
+      "descriptor": "CARD DECISION INTELLIGENCE",
       "taglineIncluded": true,
       "usage": "Primary website and authenticated app header/navigation identity"
     },
@@ -29,18 +29,24 @@
       "deepGold": "#B8860B"
     }
   },
+  "supersedes": {
+    "descriptor": "Card Intelligence",
+    "effective": "2026-09-04"
+  },
   "packages": [
     {
       "filename": "FlipForge_Brand_Asset_Pack.zip",
       "sha256": "07845801466201bfca9fb9b75096c9b3ab567aa266dbb3797afd51b7078a73d3",
       "bytes": 6685301,
-      "files": 92
+      "files": 92,
+      "status": "LEGACY_V2_0_REEXPORT_REQUIRED"
     },
     {
       "filename": "FlipForge_True_Vector_Master.zip",
       "sha256": "677910710cd3696fc8548ef5af5b22a1f5d094b4f7179dc094b13cf860b9f36f",
       "bytes": 161344,
-      "files": 50
+      "files": 50,
+      "status": "LEGACY_V2_0_REEXPORT_REQUIRED"
     }
   ]
 }
