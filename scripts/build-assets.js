@@ -56,11 +56,6 @@ for (const brandAsset of requiredBrandAssets) {
   }
 }
 
-// Earlier generated WebP visuals can decode successfully but still fail to paint
-// in some browser/Netlify combinations. Use native branded SVGs for the grading
-// and traceback panels wherever those legacy homepage references still exist.
-// Also install deterministic fragment navigation so direct #section URLs and
-// homepage section links align beneath the sticky header after layout completes.
 const indexPath = path.join(root, 'index.html');
 if (fs.existsSync(indexPath)) {
   const original = fs.readFileSync(indexPath, 'utf8');
@@ -163,10 +158,15 @@ function ensurePerfectedBrandIdentity(html) {
     .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', CURRENT_DESCRIPTOR_DISPLAY)
     .replaceAll('Card Value Intelligence', CURRENT_DESCRIPTOR)
     .replaceAll('CARD VALUE INTELLIGENCE', CURRENT_DESCRIPTOR_DISPLAY)
+    .replaceAll('CARD INTELLIGENCE', CURRENT_DESCRIPTOR_DISPLAY)
     .replaceAll('FlipForge — Card Intelligence — Before you buy. Know Why.', CURRENT_LOCKUP_ALT)
     .replaceAll('FlipForge — Card Intelligence', 'FlipForge — Card Decision Intelligence')
     .replaceAll('FlipForge Card Intelligence', 'FlipForge Card Decision Intelligence')
     .replaceAll('FlipForge | Card Intelligence', 'FlipForge | Card Decision Intelligence')
+    .replaceAll('Card Intelligence helps', 'Card Decision Intelligence helps')
+    .replaceAll('Card Intelligence that', 'Card Decision Intelligence that')
+    .replaceAll('Card Intelligence for sports-card', 'Card Decision Intelligence for sports-card')
+    .replaceAll('Card Intelligence visual', 'Card Decision Intelligence visual')
     .replaceAll('<span class="brand-subtitle">CARD INTELLIGENCE</span>', '<span class="brand-subtitle">CARD DECISION INTELLIGENCE</span>')
     .replaceAll('<div class="descriptor">CARD INTELLIGENCE</div>', '<div class="descriptor">CARD DECISION INTELLIGENCE</div>')
     .replaceAll('Before you buy, know why.', 'Before you buy. Know Why.')
@@ -198,10 +198,6 @@ function collectHtmlFiles(directory, results = []) {
   return results;
 }
 
-// Normalize brand identity wording on every deployable HTML surface, including the
-// customer app shell, auth pages, checkout, interactive examples, and Identity email
-// templates. Product-module uses of "Card Intelligence" are intentionally left alone;
-// only brand/lockup contexts are rewritten.
 const allHtmlFiles = collectHtmlFiles(root);
 for (const htmlPath of allHtmlFiles) {
   const original = fs.readFileSync(htmlPath, 'utf8');
@@ -212,10 +208,6 @@ for (const htmlPath of allHtmlFiles) {
   }
 }
 
-// Keep the public website and the browser app connected without replacing the
-// marketing homepage. Netlify exposes the isolated prototype at /app/ through
-// _redirects; the build adds a consistent entry point and approved brand layer
-// across every root website page.
 const htmlFiles = fs.readdirSync(root)
   .filter((name) => name.endsWith('.html'))
   .map((name) => path.join(root, name));
