@@ -21,7 +21,7 @@
   }
 
   document.body.classList.add('ff-marketing-v3','ff-home-focused');
-  document.querySelectorAll('.brand .tagline').forEach(node=>{node.textContent='CARD INTELLIGENCE';});
+  document.querySelectorAll('.brand .tagline').forEach(node=>{node.textContent='CARD DECISION INTELLIGENCE';});
 
   const insertEvidenceLabLink=(nav,beforeHref)=>{
     if(!nav||nav.querySelector('a[href="learn.html"]'))return;
@@ -47,7 +47,7 @@
     const tension=heroCopy.querySelector('.ff-hero-tension');
     const lead=heroCopy.querySelector('.lead');
     const actions=heroCopy.querySelector('.ff-primary-actions,.buttons');
-    if(eyebrow)eyebrow.textContent='CARD INTELLIGENCE';
+    if(eyebrow)eyebrow.textContent='CARD DECISION INTELLIGENCE';
     if(heading)heading.innerHTML='Before you buy. <span>Know Why.</span>';
 
     if(heading&&!heroCopy.querySelector('.ff-hero-scenario')){

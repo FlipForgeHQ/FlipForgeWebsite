@@ -21,7 +21,7 @@
     const name = document.querySelector(".brand-name");
     if (name) name.textContent = "FLIPFORGE™";
     const subtitle = document.querySelector(".brand-subtitle");
-    if (subtitle) subtitle.textContent = "CARD INTELLIGENCE";
+    if (subtitle) subtitle.textContent = "CARD DECISION INTELLIGENCE";
   }
 
   function normalizeCardDisplay(value) {
@@ -225,7 +225,7 @@
       if (small) small.textContent = "Plan state, evaluation usage, checkout availability, and billing access are server-owned.";
     }
 
-    if (production()) document.title = "FlipForge | Card Intelligence";
+    if (production()) document.title = "FlipForge | Card Decision Intelligence";
     installApprovedBrandMark();
     installDiscoveryObserver();
     enhanceDiscoverySourceLinks(document);

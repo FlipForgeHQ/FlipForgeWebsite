@@ -4,6 +4,8 @@ const { execFileSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const OFFICIAL_SLOGAN = 'Before you buy. Know Why.';
+const CURRENT_DESCRIPTOR = 'Card Decision Intelligence';
+const CURRENT_DESCRIPTOR_DISPLAY = 'CARD DECISION INTELLIGENCE';
 const RETIRED_SLOGAN_PATTERNS = [
   /Before you buy,\s*know why\./,
   /Before You Buy,\s*Know Why\.?/,
@@ -68,7 +70,7 @@ const homepageFailures = [];
 
 if (!index.includes('assets/brand/flipforge-logo-horizontal.svg')) homepageFailures.push('approved horizontal logo lockup');
 if (!index.includes(OFFICIAL_SLOGAN)) homepageFailures.push('locked slogan');
-if (!index.includes('CARD INTELLIGENCE')) homepageFailures.push('Card Intelligence descriptor');
+if (!index.includes(CURRENT_DESCRIPTOR_DISPLAY)) homepageFailures.push('Card Decision Intelligence descriptor');
 if (!index.includes('<span>Before you buy.</span>') || !index.includes('<strong>Know Why.</strong>')) homepageFailures.push('immediate Know Why promise');
 if (!index.includes('assets/images/flipforge-homepage-hero.webp')) homepageFailures.push('browser-decodable homepage hero');
 if (!index.includes('id="deal-or-decoy"')) homepageFailures.push('interactive Deal or Decoy proof');
@@ -82,7 +84,8 @@ if (!index.includes('assets/js/homepage-deal-or-decoy-v1.js')) homepageFailures.
 if (!index.includes('Controlled Private Beta.')) homepageFailures.push('private beta boundary');
 if (!index.includes('FlipForge does not guarantee profit or authorize transactions.')) homepageFailures.push('transaction/profit boundary');
 if (retiredSloganVariant(index)) homepageFailures.push('retired slogan variant removed');
-if (index.includes('CARD VALUE INTELLIGENCE')) homepageFailures.push('retired descriptor removed');
+if (index.includes('CARD VALUE INTELLIGENCE')) homepageFailures.push('retired Card Value Intelligence descriptor removed');
+if (index.includes('FlipForge — Card Intelligence') || index.includes('FlipForge Card Intelligence')) homepageFailures.push('retired Card Intelligence brand descriptor removed');
 if (['ff-decision-motion','ff-card-stage','ff-motion-console','data-replay-decision','ff-live-product-frame'].some(token=>index.includes(token))) homepageFailures.push('retired overloaded homepage theatre removed');
 if (index.includes('assets/images/grading-scenario-analysis.webp')) homepageFailures.push('legacy grading WebP reference removed');
 if (index.includes('assets/images/recommendation-explorer.webp')) homepageFailures.push('legacy recommendation WebP reference removed');
@@ -100,11 +103,11 @@ const embeddedBrandVisuals = [
 for (const [relativePath, cubePath] of embeddedBrandVisuals) {
   const svg = fs.readFileSync(path.join(root, relativePath), 'utf8');
   const failures = [];
-  if (!svg.includes('CARD INTELLIGENCE')) failures.push('Card Intelligence descriptor');
+  if (!svg.includes(CURRENT_DESCRIPTOR_DISPLAY)) failures.push('Card Decision Intelligence descriptor');
   if (!svg.includes(cubePath)) failures.push('three-dimensional cube mark');
   if (!/font-family(?::|=")Geist/.test(svg)) failures.push('Geist typography');
   if (/Signal\. Confidence\. Advantage\.|SIGNAL\. CONFIDENCE\. ADVANTAGE\./.test(svg)) failures.push('deprecated tagline removed');
-  if (/Card Value Intelligence|CARD VALUE INTELLIGENCE/.test(svg)) failures.push('retired descriptor removed');
+  if (/Card Value Intelligence|CARD VALUE INTELLIGENCE/.test(svg)) failures.push('retired Card Value Intelligence descriptor removed');
   if (/<rect x="(?:24|28)" y="(?:24|28)" width="8" height="8"/.test(svg)) failures.push('flat center square removed');
 
   if (failures.length) {
@@ -125,7 +128,8 @@ for (const filename of htmlFiles) {
   if (!html.includes('assets/brand/flipforge-logo-horizontal.svg')) failures.push('approved horizontal logo lockup');
   if (!html.includes(OFFICIAL_SLOGAN)) failures.push('official slogan lockup');
   if (retiredSloganVariant(html)) failures.push('retired slogan variant removed');
-  if (!html.includes('Card Intelligence')) failures.push('Card Intelligence identity line');
+  if (!html.includes(CURRENT_DESCRIPTOR)) failures.push('Card Decision Intelligence identity line');
+  if (html.includes('FlipForge — Card Intelligence') || html.includes('FlipForge Card Intelligence')) failures.push('retired Card Intelligence brand descriptor removed');
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('brand-v2 stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');

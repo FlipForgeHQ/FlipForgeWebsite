@@ -6,12 +6,12 @@ This document translates earlier marketing concepts into the current FlipForge b
 
 ## Core positioning
 
-FlipForge is **CARD INTELLIGENCE**.
+FlipForge is **CARD DECISION INTELLIGENCE**.
 
 Primary message hierarchy:
 
 1. `FLIPFORGE™`
-2. `CARD INTELLIGENCE`
+2. `CARD DECISION INTELLIGENCE`
 3. `Before you buy. Know Why.`
 
 Primary supporting statement:
@@ -46,7 +46,7 @@ Do not carry forward lime green, neon blue/purple, crypto-style glows, alternate
 
 **Change:**
 - Replace green branding with locked black/gold/white
-- Replace “sports card market intelligence” with `CARD INTELLIGENCE`
+- Replace “sports card market intelligence” with `CARD DECISION INTELLIGENCE`
 - Replace generic ROI/profit claims with evidence, confidence, risk, and decision state
 - Use actual FlipForge product screenshots wherever possible
 
@@ -165,4 +165,4 @@ Do not redesign the product to match an old marketing mockup.
 
 Instead:
 
-> Preserve useful composition → apply locked FlipForge branding → replace generic finance claims with real card intelligence → use the real product as proof.
+> Preserve useful composition → apply locked FlipForge branding → replace generic finance claims with real card decision intelligence → use the real product as proof.

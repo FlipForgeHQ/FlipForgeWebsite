@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
 const requiredPages = [
@@ -11,12 +12,18 @@ const pass = (id, detail) => findings.push({ id, status: 'PASS', detail });
 const fail = (id, detail) => findings.push({ id, status: 'FAIL', detail });
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
+// Section A audits the artifact Netlify actually publishes. The repository's website
+// build normalizes the locked brand layer and generated entry points before publish,
+// so apply that deterministic build step in the ephemeral audit workspace first.
+execFileSync(process.execPath, [path.join(root, 'scripts', 'build-assets.js')], { stdio: 'inherit' });
+
 const missing = requiredPages.filter(file => !fs.existsSync(path.join(root, file)));
 if (missing.length) fail('A1', `Missing required page(s): ${missing.join(', ')}`);
 else pass('A1', `All ${requiredPages.length} required public/acquisition pages exist.`);
 
 const retiredBrand = [
   /Card Value Intelligence/i,
+  /FlipForge\s*[—|-]\s*Card Intelligence/i,
   /Before you buy,\s*know why\.?/i,
   /Before You Buy,\s*Know Why\.?/,
   /Before you buy\.\s*Know why\./
@@ -25,12 +32,12 @@ const brandIssues = [];
 for (const file of requiredPages) {
   if (!fs.existsSync(path.join(root, file))) continue;
   const html = read(file);
-  if (!/Card Intelligence/i.test(html)) brandIssues.push(`${file}: missing Card Intelligence`);
+  if (!/Card Decision Intelligence/i.test(html)) brandIssues.push(`${file}: missing Card Decision Intelligence`);
   if (!html.includes('Before you buy. Know Why.')) brandIssues.push(`${file}: missing locked slogan`);
   for (const pattern of retiredBrand) if (pattern.test(html)) brandIssues.push(`${file}: retired brand wording ${pattern}`);
 }
 if (brandIssues.length) fail('A2', brandIssues.join(' | '));
-else pass('A2', 'Locked CARD INTELLIGENCE / Before you buy. Know Why. language is consistent across required pages.');
+else pass('A2', 'Locked CARD DECISION INTELLIGENCE / Before you buy. Know Why. language is consistent across required deployed pages.');
 
 const pricing = read('pricing.html');
 const terms = read('terms.html');
