@@ -50,4 +50,49 @@ for (const relativePath of [
   }
 }
 
-console.log(`Brand descriptor lock passed: ${DISPLAY_DESCRIPTOR}`);
+// These are current customer/operator/marketing surfaces, not historical records or
+// internal product-module names. The deploy build must leave every one on the current
+// brand descriptor. This intentionally does not ban generic product uses of the phrase
+// "Card Intelligence" elsewhere in the codebase.
+const currentSurfaces = [
+  ['index.html', DISPLAY_DESCRIPTOR],
+  ['operator-beta.html', PROSE_DESCRIPTOR],
+  ['saas-prototype/index.html', DISPLAY_DESCRIPTOR],
+  ['assets/js/marketing-v3.js', DISPLAY_DESCRIPTOR],
+  ['saas-prototype/consumer-ux-refinement.js', DISPLAY_DESCRIPTOR],
+  ['identity-emails/invitation.html', PROSE_DESCRIPTOR],
+  ['assets/interactive/flipforge-know-why.html', DISPLAY_DESCRIPTOR],
+  ['assets/images/flipforge-homepage-dashboard.svg', DISPLAY_DESCRIPTOR],
+  ['assets/images/flipforge-traceback-guidance.svg', DISPLAY_DESCRIPTOR],
+  ['assets/images/flipforge-grading-scenario.svg', DISPLAY_DESCRIPTOR],
+];
+
+for (const [relativePath, expected] of currentSurfaces) {
+  const absolutePath = path.join(root, relativePath);
+  if (!fs.existsSync(absolutePath)) throw new Error(`Current brand surface is missing: ${relativePath}`);
+  const content = fs.readFileSync(absolutePath, 'utf8');
+  if (!content.includes(expected)) {
+    throw new Error(`${relativePath} is missing current brand descriptor: ${expected}`);
+  }
+}
+
+const retiredBrandPatterns = [
+  'FlipForge — Card Intelligence',
+  'FlipForge Card Intelligence',
+  'FlipForge | Card Intelligence',
+  '<span class="brand-subtitle">CARD INTELLIGENCE</span>',
+  '<div class="descriptor">CARD INTELLIGENCE</div>',
+  "node.textContent='CARD INTELLIGENCE'",
+  'node.textContent="CARD INTELLIGENCE"',
+];
+
+for (const [relativePath] of currentSurfaces) {
+  const content = fs.readFileSync(path.join(root, relativePath), 'utf8');
+  for (const retired of retiredBrandPatterns) {
+    if (content.includes(retired)) {
+      throw new Error(`${relativePath} still contains retired brand context: ${retired}`);
+    }
+  }
+}
+
+console.log(`Brand descriptor lock passed across current surfaces: ${DISPLAY_DESCRIPTOR}`);
