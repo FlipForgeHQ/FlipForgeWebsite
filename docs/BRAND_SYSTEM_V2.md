@@ -5,7 +5,7 @@ Status: approved and locked
 ## Governing identity
 
 - Brand: **FLIPFORGE™**
-- Identity line: **CARD INTELLIGENCE**
+- Identity line: **CARD DECISION INTELLIGENCE**
 - Core mark: four open white/silver corner forms around one centered three-dimensional gold cube
 - Official slogan: **Before you buy. Know Why.**
 - Meaning: noise → discovery → validation → advantage
@@ -35,10 +35,11 @@ Status: approved and locked
 3. Do not alter the four-corner proportions.
 4. Maintain clear space equal to at least the height of the gold cube.
 5. Use the icon-only mark at small sizes.
-6. Keep **CARD INTELLIGENCE** uppercase with wide tracking.
+6. Keep **CARD DECISION INTELLIGENCE** uppercase with wide tracking.
 7. Preserve the trademark after **FLIPFORGE™**.
 8. Keep **Before you buy. Know Why.** in the primary website lockup.
 9. Do not restore the deprecated `Signal. Confidence. Advantage.` website tagline.
+10. Treat **CARD INTELLIGENCE** and **CARD VALUE INTELLIGENCE** as retired brand descriptors. Product-module or historical uses may remain only when they are not presented as the FlipForge identity line.
 
 ## Boundaries
 
