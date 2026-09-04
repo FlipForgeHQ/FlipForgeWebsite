@@ -78,9 +78,9 @@
     handoff.setAttribute('aria-label','Try the FlipForge deal check');
     handoff.innerHTML=`
       <div class="ff-proof-handoff-copy">
-        <small>YOU SAW WHAT FLIPFORGE CAUGHT</small>
-        <strong>Now make the call before FlipForge reveals the answer.</strong>
-        <span>One listing. One choice. Then see whether the evidence changes your decision.</span>
+        <small>CHECK THE CARD BEFORE YOU CHASE THE PRICE.</small>
+        <strong>Make your call. Then see what the evidence supports.</strong>
+        <span>Choose BUY, WATCH, VERIFY, or PASS before FlipForge reveals the exact-card reasoning.</span>
       </div>
       <a class="ff-proof-handoff-button" href="#deal-or-decoy" data-ff-handoff>MAKE THE CALL →</a>
     `;
@@ -114,9 +114,9 @@
       const prompt=document.createElement('div');
       prompt.className='ff-conversion-prompt';
       prompt.innerHTML=`
-        <small>THIS IS THE FLIPFORGE DIFFERENCE</small>
+        <small>EVIDENCE BEFORE EMOTION.</small>
         <strong>Bring the card that makes you hesitate.</strong>
-        <p>Private beta is where you can test this reasoning on your own listings before you spend.</p>
+        <p>Check the exact card, challenge the comps, and see whether the evidence supports the price before you spend.</p>
       `;
       actions.before(prompt);
     }
