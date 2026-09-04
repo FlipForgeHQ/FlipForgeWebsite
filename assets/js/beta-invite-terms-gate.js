@@ -72,17 +72,19 @@
     const intent=pending();
     if(!intent||recording)return;
     const snapshot=window.FlipForgeIdentity?.getSnapshot?.();
-    if(!snapshot?.authenticated||!snapshot?.membershipActive)return;
+    if(!snapshot?.authenticated)return;
     recording=true;
     overlay("Recording your acceptance of the Private Beta Terms before the workspace opens.");
     try{
       const response=await fetch(ENDPOINT,{method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",headers:{"Content-Type":"application/json"},body:JSON.stringify({accepted:true,termsVersion:TERMS_VERSION})});
       const payload=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(payload.reason||"TERMS_RECORD_FAILED");
+      await window.FlipForgeIdentity?.refresh?.().catch?.(()=>{});
       clearPending();
       document.querySelector("[data-beta-terms-finalize]")?.remove();
+      if(!String(window.location.pathname||"").startsWith("/app"))window.location.assign("/app/#/beta-start");
     }catch(error){
-      overlay("Your account invitation was accepted, but FlipForge could not yet record the Beta Terms receipt. Retry before continuing. No payment or transaction authority was created.",true);
+      overlay("Your account invitation was accepted, but FlipForge could not yet finish the Beta Terms receipt and access promotion. Retry before continuing. No payment or transaction authority was created.",true);
     }finally{recording=false}
   }
 
