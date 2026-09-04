@@ -52,32 +52,33 @@ Before the first invitation is sent, require all of the following:
 
 ## Founder-selected testers
 
-The operator may personally select a tester without requiring the public beta questionnaire.
+The operator may personally invite a tester without requiring the public beta questionnaire or manually moving that person through the public application review states.
 
-Use **Add a founder-selected tester** in `/operator-beta.html`, provide name, email, and cohort, then use the existing **Send Identity Invitation** action from the Applications queue.
+Use **Invite a tester** in `/operator-beta.html`, provide name, email, and beta test group, then select **Send private beta invite**.
 
-Founder selection does not accept legal terms on the tester's behalf. The tester must explicitly accept the current FlipForge Private Beta Terms during invitation activation before the account setup can complete. The accepted Terms version and timestamp are recorded against the application-bound Identity membership.
+Behind the scenes, FlipForge creates one deduplicated application-compatible record as `APPROVED` with `selectionSource=FOUNDER_SELECTED`, then immediately calls the existing server-owned Identity invitation path. If the Identity send fails after the record is created, the operator can retry the existing **Send Identity Invitation** action from Applications without creating a duplicate.
+
+Founder selection does not accept legal terms on the tester's behalf. Founder-selected membership remains `terms_pending` until the tester explicitly accepts the current FlipForge Private Beta Terms during invitation activation. The accepted Terms version and timestamp are recorded against the application-bound Identity membership before active beta access is granted.
 
 ## Invitation message
 
-**Subject:** Your FlipForge private-beta invitation
+**Subject:** You’re invited to the FlipForge Private Beta
 
 Hi {{first_name}},
 
-You have been selected for the invitation-only FlipForge private beta.
+You’ve been selected to join the FlipForge private beta and help test a different way to evaluate sports-card deals: not just what a card costs, but whether the evidence behind the decision actually holds up.
 
-For your first session, do not try to test every feature. Bring one real sports-card listing you would seriously consider buying and run one exact-card decision from Discover through Card Intelligence and the Decision Dossier.
+For your first session, bring **one real sports-card listing you would seriously consider buying**. FlipForge will walk you through exact-card identity, market evidence, supported value, risk, and the reasoning behind the final decision state.
 
-The question we are testing is simple: **Does FlipForge help you understand whether the evidence behind the deal actually holds up before you spend?**
+Activate your account using the secure invitation, accept the Private Beta Terms, then open the Private Beta Guide before beginning.
 
-Please pay particular attention to anything FlipForge excludes, withholds, or flags for verification. We want to know where the reasoning helps, where it confuses you, and where you believe it is wrong.
-
-Activate your account using the invitation sent separately, accept the Private Beta Terms, then open the Private Beta Guide before beginning.
+Please pay particular attention to anything FlipForge excludes, withholds, or flags for verification. We are testing the quality and usefulness of the reasoning—not looking for compliments.
 
 FlipForge is decision support. It does not authorize a purchase, guarantee profit, or predict a future grade.
 
 Todd  
-Founder, FlipForge
+Founder, FlipForge  
+**Before you buy. Know Why.**
 
 ## First-session assignment
 
@@ -217,11 +218,11 @@ Public statistical claims require a separately governed metric definition, denom
 
 1. Perform the security cleanup gate.
 2. Open `/operator-beta.html` and Refresh & Sync.
-3. Add founder-selected testers directly or select qualified public applications.
-4. For public applicants, move each through UNDER_REVIEW → APPROVED with cohort `wave-1-sep-2026`; founder-selected records are created directly as APPROVED.
-5. Send the Identity invitation only after approval.
-6. Tester accepts the Private Beta Terms during activation and creates the account password.
-7. Verify `INVITE_SENT`, Terms receipt, and later `ACTIVATED` states.
-8. Tester opens the Private Beta Guide and completes the first exact-card loop.
-9. Review new feedback daily; resolve blockers before expanding.
-10. Complete the Day-7 Wave 1 scorecard and expand to 10 only when the Wave 1 decision rules support it.
+3. For people you personally choose: enter name, email, and beta group under **Invite a tester**, then select **Send private beta invite**. No manual review sequence is required.
+4. For public applicants only: review fit and move qualified applicants through UNDER_REVIEW → APPROVED with cohort `wave-1-sep-2026`, then send the Identity invitation.
+5. Tester accepts the Private Beta Terms during activation and creates the account password.
+6. Verify `INVITE_SENT`, Terms receipt, and later `ACTIVATED` states.
+7. Tester opens the Private Beta Guide and completes the first exact-card loop.
+8. Review new feedback daily; resolve blockers before expanding.
+9. Complete the Day-7 Wave 1 scorecard.
+10. Expand to 10 only when the Wave 1 decision rules support it.
