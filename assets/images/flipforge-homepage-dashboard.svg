@@ -8,7 +8,7 @@
     <filter id="blueHalo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
     <style>
       @font-face{font-family:Geist;src:url('../fonts/geist-latin-wght-normal.woff2') format('woff2');font-weight:100 900}
-      .font{font-family:Geist,'Geist Sans',Arial,sans-serif}.white{fill:#f7f8fa}.silver{fill:#c8cdd5}.muted{fill:#8d96a4}.gold{fill:#d4af37}.red{fill:#ffb1ae}.green{fill:#94e5b5}.blue{fill:#dceaff}.eyebrow{font-size:14px;font-weight:900;letter-spacing:2.5px}.small{font-size:14px}.body{font-size:17px}.label{font-size:16px;font-weight:850;letter-spacing:1.2px}.title{font-size:40px;font-weight:900;letter-spacing:-1px}.verdict{font-size:48px;font-weight:900;letter-spacing:-1.3px}.wordmark{font-size:30px;font-weight:900;letter-spacing:4.3px}.tag{font-size:12px;font-weight:850;letter-spacing:2.4px}
+      .font{font-family:Geist,'Geist Sans',Arial,sans-serif}.white{fill:#f7f8fa}.silver{fill:#c8cdd5}.muted{fill:#8d96a4}.gold{fill:#d4af37}.red{fill:#ffb1ae}.green{fill:#94e5b5}.blue{fill:#dceaff}.eyebrow{font-size:14px;font-weight:900;letter-spacing:2.5px}.small{font-size:14px}.body{font-size:17px}.label{font-size:16px;font-weight:850;letter-spacing:1.2px}.title{font-size:40px;font-weight:900;letter-spacing:-1px}.verdict{font-size:48px;font-weight:900;letter-spacing:-1.3px}.wordmark{font-size:30px;font-weight:900;letter-spacing:4.3px}.tag{font-size:10px;font-weight:850;letter-spacing:1.8px}
       .motion{pointer-events:none}.motion-claim{animation:claimLoop 10s ease-in-out infinite}.motion-good{animation:goodLoop 10s ease-in-out infinite}.motion-warn1{animation:warn1Loop 10s ease-in-out infinite}.motion-warn2{animation:warn2Loop 10s ease-in-out infinite}.motion-arrow{animation:arrowLoop 10s ease-in-out infinite}.motion-verdict{animation:verdictLoop 10s ease-in-out infinite}.motion-res1{animation:res1Loop 10s ease-in-out infinite}.motion-res2{animation:res2Loop 10s ease-in-out infinite}.motion-res3{animation:res3Loop 10s ease-in-out infinite}
       @keyframes claimLoop{0%,6%,100%{opacity:.06}10%,22%{opacity:.95}27%{opacity:.06}}
       @keyframes goodLoop{0%,18%,100%{opacity:.04}23%,34%{opacity:.85}39%{opacity:.04}}
@@ -33,7 +33,7 @@
       <path d="M28 17 41 24.5 28 32 15 24.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><path d="M15 24.5 28 32v15L15 39.5Z" fill="#b8860b" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><path d="M41 24.5 28 32v15l13-7.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
     </g>
     <text x="92" y="34" class="font wordmark white">FLIPFORGE</text>
-    <text x="94" y="58" class="font tag gold">CARD INTELLIGENCE</text>
+    <text x="94" y="58" class="font tag gold">CARD DECISION INTELLIGENCE</text>
   </g>
 
   <g class="font">
