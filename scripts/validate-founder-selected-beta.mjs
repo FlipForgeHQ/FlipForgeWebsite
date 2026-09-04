@@ -11,6 +11,7 @@ const operatorFn = read("netlify/modern-functions/beta-operator.mjs");
 const termsFn = read("netlify/modern-functions/beta-terms-acceptance.mjs");
 const termsGate = read("assets/js/beta-invite-terms-gate.js");
 const injector = read("scripts/inject-beta-invite-terms-gate.mjs");
+const netlify = read("netlify.toml");
 
 check("001 operator loads founder-selected UI", operator.includes("beta-founder-select.js"));
 check("002 founder endpoint is operator-authenticated", founderFn.includes("isOperator(user)") && founderFn.includes('path: "/api/beta/founder-select"'));
@@ -29,6 +30,9 @@ check("014 terms gate injects into public callback and app surfaces", injector.i
 check("015 founder UI defaults Wave 1 cohort", founderUi.includes('wave-1-sep-2026'));
 check("016 public applications remain separately reviewable", operator.includes("Public application queue") && operator.includes("UNDER_REVIEW") && operator.includes("WAITLISTED"));
 check("017 no payment or transaction authority is added", !founderFn.includes("checkout") && !termsFn.includes("checkout") && operator.includes("No billing or transaction authority is granted"));
+check("018 operator invite scripts are cache-busted", operator.includes('beta-operator.js?v=wave1-20260904-2') && operator.includes('beta-founder-select.js?v=wave1-20260904-2'));
+check("019 operator invite scripts are no-store", netlify.includes('for = "/assets/js/beta-operator.js"') && netlify.includes('for = "/assets/js/beta-founder-select.js"') && netlify.includes('for = "/assets/js/beta-invite-terms-gate.js"') && netlify.includes('Cache-Control = "no-store, max-age=0, must-revalidate"'));
+check("020 founder UI diagnoses deploy skew without bypassing fail-closed behavior", founderUi.includes("INVALID_BODY") && founderUi.includes("ORIGIN_NOT_ALLOWED") && founderUi.includes("Refresh & Sync") && founderUi.includes("failed safely"));
 
 for (const item of checks) console.log(`${item.passed ? "PASS" : "FAIL"} ${item.name}`);
 const failed = checks.filter(item => !item.passed);

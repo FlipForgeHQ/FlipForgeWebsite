@@ -36,6 +36,25 @@
   [headers.values]
     Cache-Control = "no-cache, max-age=0, must-revalidate"
 
+# Operator invitation assets are deliberately no-store. The owner workspace changes
+# infrequently but must never combine a cached UI from one deploy with beta functions
+# from another deploy, because that can turn a safe validation response into an opaque
+# fail-closed operator error.
+[[headers]]
+  for = "/assets/js/beta-operator.js"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/js/beta-founder-select.js"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/js/beta-invite-terms-gate.js"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0, must-revalidate"
+
 [[headers]]
   for = "/"
   [headers.values]
