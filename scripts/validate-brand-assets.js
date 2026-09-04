@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const OFFICIAL_SLOGAN = 'Before you buy. Know Why.';
@@ -151,5 +152,10 @@ const brandCss = fs.readFileSync(path.join(root, 'assets/css/brand-v2.css'), 'ut
 if (!brandCss.includes('flipforge-before-after-overlay.svg')) {
   throw new Error('brand-v2.css is not wired to the Before/After correction overlay');
 }
+
+// Enforce the current logo descriptor in the same validation path used by Netlify.
+execFileSync(process.execPath, [path.join(root, 'scripts', 'validate-card-decision-intelligence-lock.mjs')], {
+  stdio: 'inherit',
+});
 
 console.log(`Brand integrity validation passed across ${htmlFiles.length} website pages.`);
