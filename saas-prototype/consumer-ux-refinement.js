@@ -46,12 +46,12 @@
   }
 
   function setBrand() {
-    if (document.title !== "FlipForge | Card Intelligence") document.title = "FlipForge | Card Intelligence";
+    if (document.title !== "FlipForge | Card Decision Intelligence") document.title = "FlipForge | Card Decision Intelligence";
     const description = document.querySelector('meta[name="description"]');
-    if (description && description.getAttribute("content") !== "FlipForge private-beta card intelligence platform.") {
-      description.setAttribute("content", "FlipForge private-beta card intelligence platform.");
+    if (description && description.getAttribute("content") !== "FlipForge private-beta card decision intelligence platform.") {
+      description.setAttribute("content", "FlipForge private-beta card decision intelligence platform.");
     }
-    setText(document.querySelector(".brand-subtitle"), "CARD INTELLIGENCE");
+    setText(document.querySelector(".brand-subtitle"), "CARD DECISION INTELLIGENCE");
   }
 
   function replaceLeafCopy(root) {
