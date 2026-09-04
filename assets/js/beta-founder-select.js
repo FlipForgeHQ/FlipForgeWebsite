@@ -74,9 +74,23 @@
         form.elements.cohort.value=DEFAULT_COHORT;
         refreshButton()?.click();
       }catch(error){
-        const messages={TESTER_ALREADY_EXISTS:"That email already has a beta record. Find the tester in Applications and send or retry the invitation there.",EMAIL_INVALID:"Enter a valid email address.",NAME_REQUIRED:"Enter the tester's name.",COHORT_REQUIRED:"Enter a valid beta test group.",OPERATOR_ROLE_REQUIRED:"Your signed-in account does not have the FlipForge operator role."};
+        const code=String(error?.message||"FOUNDER_SELECTED_CREATE_FAILED");
+        const messages={
+          TESTER_ALREADY_EXISTS:"That email already has a beta record. Find the tester in Applications and send or retry the invitation there.",
+          EMAIL_INVALID:"Enter a valid email address.",
+          NAME_REQUIRED:"Enter the tester's name.",
+          COHORT_REQUIRED:"Enter a valid beta test group.",
+          OPERATOR_ROLE_REQUIRED:"Your signed-in account does not have the FlipForge operator role.",
+          AUTHENTICATION_REQUIRED:"Your operator session is no longer authenticated. Sign in again, then retry.",
+          ORIGIN_NOT_ALLOWED:"FlipForge blocked the request because this page is not running from the active same-origin operator deployment. Reopen the production operator page.",
+          INVALID_BODY:"The deployed operator page and invitation endpoint are out of sync. Hard-refresh the operator page before retrying.",
+          PAYLOAD_TOO_LARGE:"The invitation details exceeded the operator request limit.",
+          FOUNDER_SELECTED_CREATE_FAILED:"The invitation endpoint did not return the expected beta record. Refresh & Sync, search Applications for this email, then retry only if no record exists."
+        };
         status.dataset.error="true";
-        status.textContent=messages[error.message]||"The invitation was not created. The operation failed closed.";
+        status.textContent=messages[code]||(error instanceof TypeError
+          ?"The invitation request could not reach the active FlipForge endpoint. Reopen the production operator page and retry after Refresh & Sync."
+          :`The invitation failed safely (${code}). Refresh & Sync and verify the tester is not already in Applications before retrying.`);
       }finally{button.disabled=false}
     });
   }
