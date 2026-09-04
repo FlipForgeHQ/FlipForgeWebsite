@@ -17,6 +17,7 @@ else pass('A1', `All ${requiredPages.length} required public/acquisition pages e
 
 const retiredBrand = [
   /Card Value Intelligence/i,
+  /FlipForge\s*[—|-]\s*Card Intelligence/i,
   /Before you buy,\s*know why\.?/i,
   /Before You Buy,\s*Know Why\.?/,
   /Before you buy\.\s*Know why\./
@@ -25,12 +26,12 @@ const brandIssues = [];
 for (const file of requiredPages) {
   if (!fs.existsSync(path.join(root, file))) continue;
   const html = read(file);
-  if (!/Card Intelligence/i.test(html)) brandIssues.push(`${file}: missing Card Intelligence`);
+  if (!/Card Decision Intelligence/i.test(html)) brandIssues.push(`${file}: missing Card Decision Intelligence`);
   if (!html.includes('Before you buy. Know Why.')) brandIssues.push(`${file}: missing locked slogan`);
   for (const pattern of retiredBrand) if (pattern.test(html)) brandIssues.push(`${file}: retired brand wording ${pattern}`);
 }
 if (brandIssues.length) fail('A2', brandIssues.join(' | '));
-else pass('A2', 'Locked CARD INTELLIGENCE / Before you buy. Know Why. language is consistent across required pages.');
+else pass('A2', 'Locked CARD DECISION INTELLIGENCE / Before you buy. Know Why. language is consistent across required pages.');
 
 const pricing = read('pricing.html');
 const terms = read('terms.html');
