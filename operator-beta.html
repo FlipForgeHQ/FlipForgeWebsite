@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Beta Operations | FlipForge Card Intelligence</title>
-<meta name="description" content="Role-gated FlipForge private-beta applicant review, founder-selected tester invitation, activation, and funnel operations.">
+<meta name="description" content="Role-gated FlipForge private-beta invitations, applicant review, activation, and funnel operations.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
@@ -21,13 +21,13 @@
 
 <main id="main" class="ff-operator-shell">
   <section class="ff-operator-access" data-operator-access aria-live="polite">
-    <div><span class="ff-operator-kicker">Private operations</span><h1>Beta applicant control</h1><p>This workspace requires a signed FlipForge operator role. Applicant details and invitation actions are never available through the public website.</p></div>
+    <div><span class="ff-operator-kicker">Private operations</span><h1>Beta access</h1><p>This workspace requires a signed FlipForge operator role. Invitation and applicant controls are never available through the public website.</p></div>
     <button type="button" data-operator-sign-in>Sign in as Operator</button>
   </section>
 
   <div data-operator-workspace hidden>
     <section class="ff-operator-titlebar">
-      <div><span class="ff-operator-kicker">Controlled private beta</span><h1>Applicant review and activation</h1><p>Review fit, add founder-selected testers, control cohorts, send Identity invitations, and track activation without granting public signup.</p></div>
+      <div><span class="ff-operator-kicker">Controlled private beta</span><h1>Beta access</h1><p>Invite people you choose, review public applications, and track activation and tester feedback.</p></div>
       <button type="button" class="ff-operator-button secondary" data-operator-refresh>Refresh &amp; Sync</button>
     </section>
 
@@ -48,7 +48,7 @@
     </section>
 
     <section class="ff-operator-panel ff-application-panel" aria-labelledby="applications-heading">
-      <header><div><span class="ff-operator-kicker">Review queue</span><h2 id="applications-heading">Applications</h2></div><div class="ff-operator-filters"><label>Search<input type="search" data-operator-search placeholder="Name or email"></label><label>Status<select data-operator-filter><option value="ALL">All statuses</option><option>SUBMITTED</option><option>UNDER_REVIEW</option><option>WAITLISTED</option><option>APPROVED</option><option>INVITE_SENT</option><option>ACTIVATED</option><option>DECLINED</option></select></label></div></header>
+      <header><div><span class="ff-operator-kicker">Public application queue</span><h2 id="applications-heading">Applications</h2></div><div class="ff-operator-filters"><label>Search<input type="search" data-operator-search placeholder="Name or email"></label><label>Status<select data-operator-filter><option value="ALL">All statuses</option><option>SUBMITTED</option><option>UNDER_REVIEW</option><option>WAITLISTED</option><option>APPROVED</option><option>INVITE_SENT</option><option>ACTIVATED</option><option>DECLINED</option></select></label></div></header>
       <div class="ff-operator-grid">
         <div class="ff-application-list" data-application-list aria-live="polite"></div>
         <aside class="ff-application-detail" data-application-detail><div class="ff-operator-empty"><strong>Select an application</strong><p>Applicant details, review controls, and the immutable state history will appear here.</p></div></aside>
@@ -72,7 +72,7 @@
       </div>
     </section>
 
-    <section class="ff-operator-boundary"><strong>Authority boundary</strong><p>Founder selection and approval do not create customer access. Only the separate Send Identity Invitation action creates or updates an invited account and assigns one server-signed tenant membership. Invitation activation requires explicit Private Beta Terms acceptance. No billing or transaction authority is granted.</p></section>
+    <section class="ff-operator-boundary"><strong>Authority boundary</strong><p>Direct invitations skip selection review, not security controls. The tester still must accept the Private Beta Terms before active beta access is granted. No billing or transaction authority is granted.</p></section>
   </div>
 </main>
 
