@@ -12,12 +12,15 @@ if (!/^\d+\.\d+\.\d+$/.test(pinnedBlobsVersion)) {
 const original = fs.readFileSync(sourcePath, "utf8");
 const dependencyAssertion = 'packageJson.dependencies?.["@netlify/blobs"] === "10.7.9"';
 const registrationAssertion = 'packageJson.scripts?.["validate:beta-operator"] === "node scripts/validate-beta-operator-workflow.mjs"';
-if (!original.includes(dependencyAssertion) || !original.includes(registrationAssertion)) {
+const legacyTenantAssertion = 'operatorSource.includes("filter(role => !role.startsWith(TENANT_ROLE_PREFIX))") && coreSource.includes(\'ACTIVE_ROLE = "flipforge-active"\')';
+const termsGatedTenantAssertion = 'operatorSource.includes("TERMS_PENDING_ROLE") && operatorSource.includes("roles.push(`${TENANT_ROLE_PREFIX}${tenantId}`)") && operatorSource.includes("roles.push(requiresTerms ? TERMS_PENDING_ROLE : ACTIVE_ROLE)") && coreSource.includes(\'ACTIVE_ROLE = "flipforge-active"\')';
+if (!original.includes(dependencyAssertion) || !original.includes(registrationAssertion) || !original.includes(legacyTenantAssertion)) {
   throw new Error("Beta operator validator contract changed; review this compatibility runner.");
 }
 const current = original
   .replace(dependencyAssertion, `packageJson.dependencies?.["@netlify/blobs"] === "${pinnedBlobsVersion}"`)
-  .replace(registrationAssertion, 'packageJson.scripts?.["validate:beta-operator"] === "node scripts/validate-beta-operator-current.mjs"');
+  .replace(registrationAssertion, 'packageJson.scripts?.["validate:beta-operator"] === "node scripts/validate-beta-operator-current.mjs"')
+  .replace(legacyTenantAssertion, termsGatedTenantAssertion);
 fs.writeFileSync(tempPath, current, "utf8");
 try {
   const result = spawnSync(process.execPath, [tempPath.pathname], { stdio: "inherit", cwd: process.cwd() });
