@@ -7,6 +7,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 const operator = read("operator-beta.html");
 const founderUi = read("assets/js/beta-founder-select.js");
 const founderFn = read("netlify/modern-functions/beta-founder-select.mjs");
+const operatorFn = read("netlify/modern-functions/beta-operator.mjs");
 const termsFn = read("netlify/modern-functions/beta-terms-acceptance.mjs");
 const termsGate = read("assets/js/beta-invite-terms-gate.js");
 const injector = read("scripts/inject-beta-invite-terms-gate.mjs");
@@ -16,11 +17,15 @@ check("002 founder endpoint is operator-authenticated", founderFn.includes("isOp
 check("003 founder record is approved but terms remain unaccepted", founderFn.includes('status: "APPROVED"') && founderFn.includes('betaTermsAccepted: false') && founderFn.includes('selectionSource: "FOUNDER_SELECTED"'));
 check("004 founder intake deduplicates by email index", founderFn.includes("emailIndexKey(email)") && founderFn.includes("onlyIfNew: true"));
 check("005 invitation UI requires explicit Beta Terms checkbox", termsGate.includes("data-beta-terms-accept") && termsGate.includes("/beta-terms.html") && termsGate.includes("stopImmediatePropagation"));
-check("006 terms receipt is bound to authenticated active tester", termsFn.includes("isActiveTester(user)") && termsFn.includes("APPLICATION_IDENTITY_MISMATCH"));
-check("007 terms receipt uses versioned conditional write", termsFn.includes('BETA_TERMS_VERSION = "2026-08-15"') && termsFn.includes("onlyIfMatch: entry.etag"));
-check("008 invitation acceptance is persisted for retry before workspace use", termsGate.includes("PENDING_KEY") && termsGate.includes("/api/beta/terms-acceptance") && termsGate.includes("Finalizing your beta access"));
-check("009 terms gate injects into public callback and app surfaces", injector.includes('inject("index.html")') && injector.includes('saas-prototype'));
-check("010 founder UI defaults Wave 1 cohort", founderUi.includes('wave-1-sep-2026'));
+check("006 founder invitation withholds active role until Terms", operatorFn.includes('TERMS_PENDING_ROLE = "flipforge-terms-pending"') && operatorFn.includes('access: requiresTerms ? "terms_pending" : "active"') && operatorFn.includes('roles.push(requiresTerms ? TERMS_PENDING_ROLE : ACTIVE_ROLE)'));
+check("007 founder activation sync waits for Terms receipt", operatorFn.includes("founderTermsPending(application)") && operatorFn.includes("if (founderTermsPending(application)) return application"));
+check("008 terms receipt accepts only bound beta membership", termsFn.includes("BETA_MEMBERSHIP_REQUIRED") && termsFn.includes("APPLICATION_IDENTITY_MISMATCH") && termsFn.includes("TENANT_MEMBERSHIP_MISMATCH"));
+check("009 Terms acceptance promotes founder-selected membership", termsFn.includes("promoteFounderSelected") && termsFn.includes("TERMS_PENDING_ROLE") && termsFn.includes("roles.push(ACTIVE_ROLE)"));
+check("010 terms receipt uses versioned conditional write", termsFn.includes('BETA_TERMS_VERSION = "2026-08-15"') && termsFn.includes("onlyIfMatch: etag"));
+check("011 invitation acceptance is persisted for retry before workspace use", termsGate.includes("PENDING_KEY") && termsGate.includes("/api/beta/terms-acceptance") && termsGate.includes("Finalizing your beta access"));
+check("012 terms gate injects into public callback and app surfaces", injector.includes('inject("index.html")') && injector.includes('saas-prototype'));
+check("013 founder UI defaults Wave 1 cohort", founderUi.includes('wave-1-sep-2026'));
+check("014 no payment or transaction authority is added", !founderFn.includes("checkout") && !termsFn.includes("checkout") && operator.includes("No billing or transaction authority is granted"));
 
 for (const item of checks) console.log(`${item.passed ? "PASS" : "FAIL"} ${item.name}`);
 const failed = checks.filter(item => !item.passed);
