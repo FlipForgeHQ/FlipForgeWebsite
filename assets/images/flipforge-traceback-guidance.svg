@@ -13,7 +13,7 @@
 
   <g transform="translate(54 38)">
     <g transform="scale(1.05)"><path d="M0 0H22V11H11V22H0Z" fill="url(#silver)"/><path d="M34 0H56V22H45V11H34Z" fill="url(#silver)"/><path d="M0 34H11V45H22V56H0Z" fill="url(#silver)"/><path d="M45 34H56V56H34V45H45Z" fill="url(#silver)"/><path d="M28 17 41 24.5 28 32 15 24.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><path d="M15 24.5 28 32v15L15 39.5Z" fill="#b8860b" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><path d="M41 24.5 28 32v15l13-7.5Z" fill="#d4af37" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></g>
-    <text x="76" y="30" class="f w" font-size="27" font-weight="900" letter-spacing="5">FLIPFORGE</text><text x="78" y="50" class="f g" font-size="9" font-weight="900" letter-spacing="2.6">CARD INTELLIGENCE</text>
+    <text x="76" y="30" class="f w" font-size="27" font-weight="900" letter-spacing="5">FLIPFORGE</text><text x="78" y="50" class="f g" font-size="8" font-weight="900" letter-spacing="1.8">CARD DECISION INTELLIGENCE</text>
   </g>
   <g class="f"><text x="54" y="135" class="head w">DECISION TRACEBACK</text><text x="54" y="165" class="body s">See what entered the decision, what was rejected, what remains uncertain, and why the outcome changed.</text></g>
 
