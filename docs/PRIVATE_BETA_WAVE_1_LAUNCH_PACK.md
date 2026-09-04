@@ -13,6 +13,7 @@ This document supplements the existing private-beta operating contracts:
 
 - `docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md`
 - `docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md`
+- `docs/FOUNDER_SELECTED_BETA_TESTER_FLOW.md`
 - `docs/SAAS_PRIVATE_BETA_READINESS.md`
 - in-product `#/beta-start` Private Beta Guide
 
@@ -49,6 +50,14 @@ Before the first invitation is sent, require all of the following:
 - no public CardSight accuracy percentage is displayed or implied;
 - billing and transaction authority remain disabled.
 
+## Founder-selected testers
+
+The operator may personally select a tester without requiring the public beta questionnaire.
+
+Use **Add a founder-selected tester** in `/operator-beta.html`, provide name, email, and cohort, then use the existing **Send Identity Invitation** action from the Applications queue.
+
+Founder selection does not accept legal terms on the tester's behalf. The tester must explicitly accept the current FlipForge Private Beta Terms during invitation activation before the account setup can complete. The accepted Terms version and timestamp are recorded against the application-bound Identity membership.
+
 ## Invitation message
 
 **Subject:** Your FlipForge private-beta invitation
@@ -63,7 +72,7 @@ The question we are testing is simple: **Does FlipForge help you understand whet
 
 Please pay particular attention to anything FlipForge excludes, withholds, or flags for verification. We want to know where the reasoning helps, where it confuses you, and where you believe it is wrong.
 
-Activate your account using the invitation sent separately, then open the Private Beta Guide before beginning.
+Activate your account using the invitation sent separately, accept the Private Beta Terms, then open the Private Beta Guide before beginning.
 
 FlipForge is decision support. It does not authorize a purchase, guarantee profit, or predict a future grade.
 
@@ -208,11 +217,11 @@ Public statistical claims require a separately governed metric definition, denom
 
 1. Perform the security cleanup gate.
 2. Open `/operator-beta.html` and Refresh & Sync.
-3. Select the first five qualified applications.
-4. Move each through UNDER_REVIEW → APPROVED with cohort `wave-1-sep-2026`.
+3. Add founder-selected testers directly or select qualified public applications.
+4. For public applicants, move each through UNDER_REVIEW → APPROVED with cohort `wave-1-sep-2026`; founder-selected records are created directly as APPROVED.
 5. Send the Identity invitation only after approval.
-6. Verify `INVITE_SENT` and later `ACTIVATED` states.
-7. Send the Wave 1 invitation message.
-8. Review new feedback daily; resolve blockers before expanding.
-9. Complete the Day-7 Wave 1 scorecard.
-10. Expand to 10 only when the Wave 1 decision rules support it.
+6. Tester accepts the Private Beta Terms during activation and creates the account password.
+7. Verify `INVITE_SENT`, Terms receipt, and later `ACTIVATED` states.
+8. Tester opens the Private Beta Guide and completes the first exact-card loop.
+9. Review new feedback daily; resolve blockers before expanding.
+10. Complete the Day-7 Wave 1 scorecard and expand to 10 only when the Wave 1 decision rules support it.
