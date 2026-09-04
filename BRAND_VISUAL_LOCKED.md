@@ -1,7 +1,8 @@
 # FlipForge Visual Identity — LOCKED
 
+**Brand version:** 2.1  
 **Status:** APPROVED / LOCKED  
-**Effective:** 2026-08-23
+**Effective:** 2026-09-04
 
 This document is the repository-level visual lock for FlipForge website and authenticated SaaS product identity.
 
@@ -11,8 +12,14 @@ Use the **horizontal** lockup:
 
 1. Approved cube-in-corners icon on the left.
 2. `FLIPFORGE™` wordmark to the right.
-3. `CARD INTELLIGENCE` beneath the wordmark in small caps with wide tracking.
+3. `CARD DECISION INTELLIGENCE` beneath the wordmark in small caps with wide tracking.
 4. `Before you buy. Know Why.` beneath the descriptor in the approved extended website lockup.
+
+### Descriptor lock
+
+`CARD DECISION INTELLIGENCE` is the current and only approved FlipForge logo descriptor.
+
+The prior `CARD INTELLIGENCE` descriptor is superseded for logo, header, brand-sheet, marketing-lockup, and identity usage. Historical documents and feature names may retain earlier wording when they are describing past states or product modules rather than the current logo descriptor.
 
 ### Approved icon source
 
@@ -60,6 +67,7 @@ Normal prose:
 ## Do not
 
 - Do not use the retired CSS-drawn flat center square as the primary mark.
+- Do not use `CARD INTELLIGENCE` as the current logo descriptor.
 - Do not change the locked palette without a new approved brand version.
 - Do not remove the tagline from the primary website lockup. Icon-only and space-constrained application surfaces remain approved compact exceptions.
 - Do not stretch, recolor, or alter the approved icon proportions.
