@@ -59,6 +59,7 @@ const currentSurfaces = [
   ['operator-beta.html', PROSE_DESCRIPTOR],
   ['saas-prototype/index.html', DISPLAY_DESCRIPTOR],
   ['assets/js/marketing-v3.js', DISPLAY_DESCRIPTOR],
+  ['assets/js/homepage-hero-film-v1.js', PROSE_DESCRIPTOR],
   ['saas-prototype/consumer-ux-refinement.js', DISPLAY_DESCRIPTOR],
   ['saas-prototype/commercial-app-polish-v2.js', DISPLAY_DESCRIPTOR],
   ['identity-emails/invitation.html', PROSE_DESCRIPTOR],
