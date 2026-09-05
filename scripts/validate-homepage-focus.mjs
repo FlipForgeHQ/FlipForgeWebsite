@@ -23,7 +23,7 @@ const headerBlock=route=>{
   return netlify.slice(start,next<0?netlify.length:next);
 };
 
-check('001 locked category remains CARD INTELLIGENCE',index.includes('CARD INTELLIGENCE'));
+check('001 locked category remains CARD DECISION INTELLIGENCE',index.includes('CARD DECISION INTELLIGENCE'));
 check('002 locked slogan remains exact',index.includes('Before you buy. Know Why.'));
 check('003 old descriptor remains forbidden',!index.includes('CARD VALUE INTELLIGENCE'));
 check('004 real locked logo asset is used',index.includes('assets/brand/flipforge-logo-horizontal.svg'));
