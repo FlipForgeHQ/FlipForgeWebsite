@@ -4,6 +4,23 @@
  * evidence, billing, tenant, recommendation, or transaction authority changes.
  */
 
+/* Customer content must remain selectable/copyable and form fields must accept
+ * native paste on desktop and mobile. Keep browser selection/callout behavior
+ * intact across every authenticated route. */
+#main-content,
+#main-content *{
+  -webkit-user-select:text!important;
+  user-select:text!important;
+  -webkit-touch-callout:default!important;
+}
+input,
+textarea,
+[contenteditable="true"]{
+  -webkit-user-select:text!important;
+  user-select:text!important;
+  -webkit-touch-callout:default!important;
+}
+
 @media (max-width:760px){
   html{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important}
 
