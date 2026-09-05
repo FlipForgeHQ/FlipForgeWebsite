@@ -113,26 +113,56 @@
 .ff-deal-listing{overflow:hidden}
 .ff-deal-listing-image{
   position:relative;
-  min-height:230px;
+  min-height:265px;
   display:grid;
   place-items:center;
   overflow:hidden;
   border-bottom:1px solid #27303d;
-  background:#070b11;
+  background:
+    radial-gradient(circle at 50% 47%,rgba(212,175,55,.16),transparent 36%),
+    linear-gradient(145deg,#060a10 0%,#111927 56%,#060a10 100%);
 }
 
-.ff-deal-listing-image img{
-  width:100%;
-  height:265px;
-  object-fit:cover;
-  object-position:center;
-  opacity:.86;
+/* The Deal Check is a card-listing demo, not a second homepage hero. Keep the
+ * listing visual independent from whatever marketing artwork the hero uses. */
+.ff-deal-listing-image img{display:none!important}
+.ff-deal-listing-image::before{
+  content:"";
+  width:min(188px,46%);
+  aspect-ratio:.70;
+  border:9px solid rgba(237,241,246,.96);
+  border-radius:12px;
+  background:
+    linear-gradient(to bottom,rgba(249,250,252,.98) 0 17%,transparent 17%),
+    radial-gradient(circle at 50% 43%,rgba(212,175,55,.62) 0 10%,transparent 10.5%),
+    linear-gradient(132deg,transparent 36%,rgba(212,175,55,.3) 36% 42%,transparent 42% 58%,rgba(143,194,255,.16) 58% 63%,transparent 63%),
+    linear-gradient(145deg,#141c28 18%,#697484 44%,#263141 67%,#111822 100%);
+  box-shadow:0 22px 52px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.14);
+  transform:rotate(-2deg);
+}
+.ff-deal-listing-image::after{
+  content:"PSA 10";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:min(152px,38%);
+  padding:3px 6px 4px;
+  transform:translate(-50%,-92px) rotate(-2deg);
+  border-bottom:1px solid #d5dbe2;
+  background:#f8f9fb;
+  color:#8f1717;
+  font-size:.7rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  line-height:1;
+  text-align:right;
 }
 
 .ff-deal-listing-image>span{
   position:absolute;
   top:16px;
   left:16px;
+  z-index:2;
   padding:6px 9px;
   border:1px solid rgba(255,255,255,.24);
   border-radius:6px;
@@ -252,7 +282,7 @@
   .ff-deal-instruction{padding:14px 16px;display:block;text-align:left}
   .ff-deal-stage{padding:15px}
   .ff-deal-choice-layout,.ff-deal-result-summary,.ff-deal-result-detail{gap:14px}
-  .ff-deal-listing-image img{height:215px}
+  .ff-deal-listing-image{min-height:250px}
   .ff-deal-listing-copy,.ff-deal-choice-panel,.ff-deal-result-panel,.ff-deal-finding-panel,.ff-deal-reasons{padding:20px}
   .ff-deal-choice-panel{min-height:0}
   .ff-deal-price-row{align-items:flex-start}
