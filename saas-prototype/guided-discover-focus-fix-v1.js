@@ -5,7 +5,13 @@
   const INPUT_SELECTOR = '[data-customer-discovery-form] input[name="exactCardQuery"]';
   const FORM_SELECTOR = "[data-customer-discovery-form]";
   const HINT_ID = "ff-discover-direct-hint";
+  const LEGACY_WELCOME_ID = "ff-guided-mode-welcome";
   let busy = false;
+
+  function neutralizeLegacyWelcome() {
+    document.getElementById(LEGACY_WELCOME_ID)?.remove();
+    document.body?.classList.remove("ff-guide-modal-open");
+  }
 
   function routeName() {
     return String(window.location.hash || "#/dashboard")
@@ -65,6 +71,7 @@
     if (busy) return;
     busy = true;
     try {
+      neutralizeLegacyWelcome();
       installStyles();
       clearDirectCue();
       const input = await ensureProviderDiscover();
@@ -105,6 +112,13 @@
     }
   }
 
+  function enforceSearchFirst({ focus = false } = {}) {
+    neutralizeLegacyWelcome();
+    if (routeName() === "discover" && focus) {
+      window.setTimeout(() => showExactCardEntry({ clear: false }), 80);
+    }
+  }
+
   document.addEventListener("click", event => {
     const focusButton = event.target.closest('[data-ff-focus-card], [data-guide-action="focus-discover"]');
     if (!focusButton) return;
@@ -117,11 +131,34 @@
   }, true);
 
   window.addEventListener("hashchange", () => {
-    if (routeName() !== "discover") clearDirectCue();
+    neutralizeLegacyWelcome();
+    if (routeName() !== "discover") {
+      clearDirectCue();
+      return;
+    }
+    window.setTimeout(() => showExactCardEntry({ clear: false }), 120);
   });
+
+  window.addEventListener("flipforge:identity-change", () => {
+    enforceSearchFirst({ focus: routeName() === "discover" });
+  });
+
+  const welcomeObserver = new MutationObserver(() => neutralizeLegacyWelcome());
+  const beginRuntimeGuard = () => {
+    neutralizeLegacyWelcome();
+    if (document.body) welcomeObserver.observe(document.body, { childList: true });
+    if (routeName() === "discover") window.setTimeout(() => showExactCardEntry({ clear: false }), 180);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", beginRuntimeGuard, { once: true });
+  } else {
+    beginRuntimeGuard();
+  }
 
   window.FlipForgeDiscoverFocusFix = Object.freeze({
     show: () => showExactCardEntry({ clear: false }),
-    startNew: () => showExactCardEntry({ clear: true })
+    startNew: () => showExactCardEntry({ clear: true }),
+    enforceSearchFirst: () => enforceSearchFirst({ focus: routeName() === "discover" })
   });
 })();
