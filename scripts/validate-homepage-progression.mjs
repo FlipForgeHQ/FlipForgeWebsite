@@ -21,8 +21,10 @@ const productionBuild=String(process.env.CONTEXT||'').toLowerCase()==='productio
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toLowerCase()))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 
-requireText('homepage category',homepage,'CARD INTELLIGENCE');
+requireText('homepage category',homepage,'CARD DECISION INTELLIGENCE');
 requireText('homepage slogan',homepage,'Before you buy. Know Why.');
+forbidText('homepage retired brand descriptor',homepage,'FlipForge — Card Intelligence');
+forbidText('homepage retired film descriptor',homepage,'<small>Card Intelligence</small>');
 forbidText('public category',`${homepage}\n${product}\n${learn}`,'CARD VALUE INTELLIGENCE');
 requireText('homepage value explanation',homepage,'FlipForge checks whether the evidence behind a sports-card deal actually holds up.');
 requireText('homepage assurance',homepage,'Exact card. Qualified evidence. Explainable decision.');

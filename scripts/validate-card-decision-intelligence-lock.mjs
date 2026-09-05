@@ -83,6 +83,7 @@ const retiredBrandPatterns = [
   'FlipForge — Card Intelligence',
   'FlipForge Card Intelligence',
   'FlipForge | Card Intelligence',
+  '<small>Card Intelligence</small>',
   '<span class="brand-subtitle">CARD INTELLIGENCE</span>',
   '<div class="descriptor">CARD INTELLIGENCE</div>',
   "node.textContent='CARD INTELLIGENCE'",

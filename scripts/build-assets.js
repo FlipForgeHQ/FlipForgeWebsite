@@ -167,6 +167,7 @@ function ensurePerfectedBrandIdentity(html) {
     .replaceAll('Card Intelligence that', 'Card Decision Intelligence that')
     .replaceAll('Card Intelligence for sports-card', 'Card Decision Intelligence for sports-card')
     .replaceAll('Card Intelligence visual', 'Card Decision Intelligence visual')
+    .replaceAll('<small>Card Intelligence</small>', '<small>Card Decision Intelligence</small>')
     .replaceAll('<span class="brand-subtitle">CARD INTELLIGENCE</span>', '<span class="brand-subtitle">CARD DECISION INTELLIGENCE</span>')
     .replaceAll('<div class="descriptor">CARD INTELLIGENCE</div>', '<div class="descriptor">CARD DECISION INTELLIGENCE</div>')
     .replaceAll('Before you buy, know why.', 'Before you buy. Know Why.')
@@ -244,6 +245,7 @@ for (const htmlPath of htmlFiles) {
   if (!html.includes('Before you buy. Know Why.')) failures.push('official slogan lockup');
   if (!html.includes(CURRENT_DESCRIPTOR)) failures.push('Card Decision Intelligence identity line');
   if (html.includes('FlipForge — Card Intelligence') || html.includes('FlipForge Card Intelligence')) failures.push('retired Card Intelligence brand descriptor removed');
+  if (html.includes('<small>Card Intelligence</small>')) failures.push('retired homepage film descriptor removed');
   if (html.includes('Card Value Intelligence') || html.includes('CARD VALUE INTELLIGENCE')) failures.push('retired Card Value Intelligence descriptor removed');
   if (!html.includes('assets/css/brand-v2.css')) failures.push('perfected brand stylesheet');
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
