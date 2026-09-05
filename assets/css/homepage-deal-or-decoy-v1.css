@@ -279,15 +279,26 @@
   .ff-deal-intro>p:last-child{font-size:1rem}
   .ff-deal-shell{border-radius:16px}
   .ff-deal-topbar{padding:14px 15px;align-items:flex-start;flex-direction:column;gap:3px}
+  .ff-deal-topbar span::after{content:' · 1 Review · 2 Choose · 3 See why';color:#d8c17c}
   .ff-deal-instruction{padding:14px 16px;display:block;text-align:left}
+  .ff-deal-instruction::after{content:'↓ Start by picking one option below. You can review the full listing details after your choice.';display:block;margin-top:8px;color:#f0d184;font-size:.82rem;font-weight:780;line-height:1.35}
   .ff-deal-stage{padding:15px}
   .ff-deal-choice-layout,.ff-deal-result-summary,.ff-deal-result-detail{gap:14px}
-  .ff-deal-listing-image{min-height:250px}
+  .ff-deal-choice-panel{grid-row:1;min-height:0;border-color:rgba(230,170,53,.5);box-shadow:0 0 0 1px rgba(230,170,53,.08),0 16px 36px rgba(0,0,0,.28)}
+  .ff-deal-listing{grid-row:2}
+  .ff-deal-choice-panel::before{content:'START HERE · PICK ONE';display:block;margin:0 0 10px;color:#f0d184;font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+  .ff-deal-listing-image{min-height:210px}
+  .ff-deal-listing-image::before{width:min(154px,43%);border-width:7px}
+  .ff-deal-listing-image::after{width:min(124px,35%);transform:translate(-50%,-76px) rotate(-2deg);font-size:.62rem}
   .ff-deal-listing-copy,.ff-deal-choice-panel,.ff-deal-result-panel,.ff-deal-finding-panel,.ff-deal-reasons{padding:20px}
-  .ff-deal-choice-panel{min-height:0}
+  .ff-deal-choice-panel h3{font-size:1.65rem}
+  .ff-deal-choice-panel>p{margin-bottom:14px}
+  .ff-deal-discount{margin-bottom:14px;padding:12px 14px}
+  .ff-deal-discount strong{font-size:1.65rem}
+  .ff-deal-choice-panel .ff-deal-choice-label{margin-bottom:8px}
   .ff-deal-price-row{align-items:flex-start}
   .ff-deal-price-row strong{font-size:1.72rem}
-  .ff-deal-choices button{min-height:70px}
+  .ff-deal-choices button{min-height:62px;padding:10px 12px}
   .ff-deal-exclusions{grid-template-columns:1fr}
   .ff-deal-shift{flex-wrap:wrap}
   .ff-deal-actions{display:grid}
@@ -298,8 +309,10 @@
 }
 
 @media(max-width:430px){
-  .ff-deal-choices{grid-template-columns:1fr}
-  .ff-deal-choices button{min-height:64px}
+  .ff-deal-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ff-deal-choices button{min-height:60px;padding:9px 10px}
+  .ff-deal-choices button strong{font-size:.9rem}
+  .ff-deal-choices button span{font-size:.72rem;line-height:1.2}
   .ff-deal-price-row{gap:12px}
 }
 

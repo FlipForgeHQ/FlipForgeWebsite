@@ -19,6 +19,7 @@ const appIndex=read('saas-prototype/index.html');
 const appLayout=read('saas-prototype/customer-layout-system-v2.css');
 const guideCompact=read('saas-prototype/guided-mode-compact-v1.css');
 const mobileShell=read('saas-prototype/mobile-shell-v3.css');
+const mobileShellV4=read('saas-prototype/mobile-shell-v4.css');
 const readability=read('saas-prototype/customer-readability.css');
 const homepage=read('index.html');
 const product=read('product.html');
@@ -56,6 +57,8 @@ requireText('homepage mobile nav',mobileHomeCss,'.mobile-nav.open');
 requireText('homepage reduced motion',mobileHomeCss,'@media(prefers-reduced-motion:reduce)');
 requireText('homepage proof responsive',dealCss,'.ff-deal-choice-layout');
 requireText('homepage proof immediate reveal',dealJs,'resultStage.hidden=false');
+requireText('homepage proof action-first mobile ordering',dealCss,'.ff-deal-choice-panel{grid-row:1');
+requireText('homepage proof explicit mobile start cue',dealCss,"content:'START HERE · PICK ONE'");
 
 requireText('beta start action',awardJs,'Start application');
 requireText('beta apply anchor',awardJs,"applySection.id='apply'");
@@ -99,6 +102,9 @@ requireText('mobile shell sidebar fully off canvas',mobileShell,'transform:trans
 requireText('final stylesheet present',appIndex,'<link rel="stylesheet" href="guided-mode-compact-v1.css">');
 requireText('readability retained',readability,'single customer-facing typography/readability owner');
 requireText('readability text floor',readability,'--ff-type-xs: .875rem');
+requireText('customer content stays selectable for copy',mobileShellV4,'#main-content *');
+requireText('customer content allows native selection',mobileShellV4,'user-select:text!important');
+requireText('customer fields allow native mobile paste',mobileShellV4,'-webkit-touch-callout:default!important');
 
 const publicCopy=[homepage,product,evidence,plans,about,beta].join('\n');
 requireText('locked slogan',publicCopy,'Before you buy. Know Why.');
