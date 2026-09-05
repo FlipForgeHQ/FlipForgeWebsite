@@ -1,0 +1,149 @@
+/* FlipForge mobile shell v4 — authoritative phone drawer repair.
+ * Presentation only. This file is linked last in the authenticated app so phone
+ * navigation cannot inherit desktop spacing/description rules. No intelligence,
+ * evidence, billing, tenant, recommendation, or transaction authority changes.
+ */
+
+@media (max-width:760px){
+  html{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important}
+
+  .sidebar{
+    display:flex!important;
+    flex-direction:column!important;
+    width:min(88vw,340px)!important;
+    max-width:340px!important;
+    padding:0!important;
+    background:#091019!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+  }
+
+  .ff-commercial-shell .brand-block{
+    flex:0 0 auto!important;
+    padding:14px 14px 11px!important;
+    overflow:hidden!important;
+  }
+  .ff-commercial-shell .brand{
+    display:grid!important;
+    grid-template-columns:36px minmax(0,1fr)!important;
+    align-items:center!important;
+    gap:9px!important;
+    width:100%!important;
+  }
+  .ff-commercial-shell .brand-mark,
+  .ff-commercial-shell .brand-mark.ff-approved-brand-mark img{
+    width:36px!important;
+    height:36px!important;
+  }
+  .ff-commercial-shell .brand-copy{min-width:0!important}
+  .ff-commercial-shell .brand-name{
+    font-size:15px!important;
+    line-height:1!important;
+    letter-spacing:.09em!important;
+    white-space:nowrap!important;
+  }
+  .ff-commercial-shell .brand-subtitle{
+    margin-top:5px!important;
+    font-size:10px!important;
+    line-height:1.2!important;
+    letter-spacing:.065em!important;
+    white-space:normal!important;
+  }
+  .ff-commercial-shell .brand-tagline{display:none!important}
+  .ff-commercial-shell .prototype-chip{
+    display:inline-flex!important;
+    width:auto!important;
+    max-width:none!important;
+    margin:9px 0 0 45px!important;
+    padding:4px 8px!important;
+    font-size:10px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+
+  .ff-commercial-shell .primary-nav{
+    display:grid!important;
+    flex:1 1 auto!important;
+    align-content:start!important;
+    gap:4px!important;
+    min-height:0!important;
+    padding:8px!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+  }
+  .ff-commercial-shell .primary-nav > a,
+  .ff-commercial-shell .ff-advanced-nav-links > a,
+  .ff-commercial-shell .primary-nav > a.ff-nav-relocated,
+  .ff-commercial-shell .primary-nav > .ff-mobile-account-nav{
+    position:relative!important;
+    display:grid!important;
+    grid-template-columns:24px minmax(0,1fr) auto!important;
+    grid-template-rows:1fr!important;
+    align-items:center!important;
+    align-content:center!important;
+    column-gap:10px!important;
+    row-gap:0!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:48px!important;
+    height:48px!important;
+    padding:0 12px!important;
+    border-radius:10px!important;
+    font-size:15px!important;
+    font-weight:720!important;
+    line-height:1.15!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .ff-commercial-shell .primary-nav a > span:first-child,
+  .ff-commercial-shell .primary-nav a > span:first-child.ff-nav-icon{
+    position:static!important;
+    inset:auto!important;
+    grid-column:1!important;
+    grid-row:1!important;
+    align-self:center!important;
+    width:24px!important;
+    min-width:24px!important;
+    margin:0!important;
+    font-size:15px!important;
+    line-height:1!important;
+    text-align:center!important;
+  }
+  .ff-commercial-shell .primary-nav a::after,
+  .ff-commercial-shell .primary-nav a .nav-description,
+  .ff-commercial-shell .primary-nav a small{
+    display:none!important;
+    content:none!important;
+  }
+  .ff-commercial-shell .primary-nav a[data-route="market-view"]{white-space:nowrap!important}
+  .ff-commercial-shell .forge-nav-pro{
+    position:static!important;
+    grid-column:3!important;
+    grid-row:1!important;
+    margin:0 0 0 6px!important;
+    font-size:9px!important;
+    line-height:1!important;
+  }
+
+  .ff-commercial-shell .ff-advanced-nav{margin:2px 0!important}
+  .ff-commercial-shell .ff-advanced-nav > summary{
+    min-height:44px!important;
+    padding:0 12px!important;
+    font-size:13px!important;
+    line-height:1.2!important;
+  }
+  .ff-commercial-shell .ff-advanced-nav-links{
+    gap:3px!important;
+    padding:4px 0 2px!important;
+  }
+
+  .ff-commercial-shell .sidebar-footer{display:none!important}
+
+  .ff-guide-launcher,
+  .ff-guide-panel{z-index:90!important}
+
+  .app-shell[data-nav-open="true"] .sidebar{z-index:1000!important}
+  .app-shell[data-nav-open="true"] .mobile-scrim{z-index:990!important}
+}
