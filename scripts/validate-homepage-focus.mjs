@@ -69,6 +69,8 @@ check('043 hero film shows evidence transformation',index.includes('5 of 7 rejec
 check('044 Deal Check listing does not render the homepage hero art',dealCss.includes('.ff-deal-listing-image img{display:none!important}'));
 check('045 Deal Check has a dedicated graded-card visual',dealCss.includes('.ff-deal-listing-image::before')&&dealCss.includes('.ff-deal-listing-image::after')&&dealCss.includes('content:"PSA 10"'));
 check('046 mobile Deal Check no longer forces the hero image into a cropped fixed height',!dealCss.includes('.ff-deal-listing-image img{height:215px}'));
+check('047 mobile Deal Check puts the choice panel before listing details',dealCss.includes('.ff-deal-choice-panel{grid-row:1')&&dealCss.includes('.ff-deal-listing{grid-row:2}'));
+check('048 mobile Deal Check gives a literal start cue and keeps four choices compact',dealCss.includes("content:'START HERE · PICK ONE'")&&dealCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))'));
 
 const failures=checks.filter(item=>!item.passed);
 console.log('FlipForge video-first homepage validation');
