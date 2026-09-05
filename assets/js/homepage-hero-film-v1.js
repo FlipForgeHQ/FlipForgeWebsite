@@ -7,6 +7,13 @@
   const scenes=[...film.querySelectorAll('[data-ff-film-scene]')];
   if(!scenes.length)return;
 
+  // Keep the final animation brand label aligned with the locked FlipForge descriptor
+  // even when the static homepage source predates the current brand lock.
+  const finalBrandLabel=scenes.at(-1)?.querySelector('small');
+  if(finalBrandLabel&&finalBrandLabel.textContent.trim()==='Card Intelligence'){
+    finalBrandLabel.textContent='Card Decision Intelligence';
+  }
+
   const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const timings=[0,3000,7000,11000,15000,20000];
   const loopMs=25000;
