@@ -34,7 +34,7 @@ Use in the approved primary website logo lockup, the main homepage campaign head
 Use one major slogan per screen, section, advertisement, or graphic. Do not stack multiple headline slogans together. The permanent hierarchy is:
 
 1. **FLIPFORGE™**
-2. **CARD INTELLIGENCE**
+2. **CARD DECISION INTELLIGENCE**
 3. **Before you buy. Know Why.**
 
 Do not replace or materially rewrite these phrases without an explicit brand decision.
