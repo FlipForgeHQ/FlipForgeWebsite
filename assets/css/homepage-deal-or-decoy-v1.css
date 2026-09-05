@@ -113,69 +113,56 @@
 .ff-deal-listing{overflow:hidden}
 .ff-deal-listing-image{
   position:relative;
-  min-height:230px;
+  min-height:265px;
   display:grid;
   place-items:center;
   overflow:hidden;
   border-bottom:1px solid #27303d;
-  background:#070b11;
+  background:
+    radial-gradient(circle at 50% 47%,rgba(212,175,55,.16),transparent 36%),
+    linear-gradient(145deg,#060a10 0%,#111927 56%,#060a10 100%);
 }
 
-.ff-deal-listing-visual{
-  position:relative;
-  width:min(168px,46%);
-  aspect-ratio:2.5/3.5;
-  display:grid;
-  place-items:center;
-  border:8px solid #d9dde3;
-  border-radius:10px;
-  background:linear-gradient(160deg,#181f2a,#080c12 64%,#171406);
-  box-shadow:0 20px 48px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.16);
+/* The Deal Check is a card-listing demo, not a second homepage hero. Keep the
+ * listing visual independent from whatever marketing artwork the hero uses. */
+.ff-deal-listing-image img{display:none!important}
+.ff-deal-listing-image::before{
+  content:"";
+  width:min(188px,46%);
+  aspect-ratio:.70;
+  border:9px solid rgba(237,241,246,.96);
+  border-radius:12px;
+  background:
+    linear-gradient(to bottom,rgba(249,250,252,.98) 0 17%,transparent 17%),
+    radial-gradient(circle at 50% 43%,rgba(212,175,55,.62) 0 10%,transparent 10.5%),
+    linear-gradient(132deg,transparent 36%,rgba(212,175,55,.3) 36% 42%,transparent 42% 58%,rgba(143,194,255,.16) 58% 63%,transparent 63%),
+    linear-gradient(145deg,#141c28 18%,#697484 44%,#263141 67%,#111822 100%);
+  box-shadow:0 22px 52px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.14);
   transform:rotate(-2deg);
 }
-.ff-deal-listing-visual::before{
-  content:'PSA 10';
+.ff-deal-listing-image::after{
+  content:"PSA 10";
   position:absolute;
-  top:8px;
-  left:8px;
-  right:8px;
-  padding:5px 4px;
-  border-radius:4px;
-  background:#8d2430;
-  color:#fff;
-  font-size:.68rem;
-  font-weight:850;
-  letter-spacing:.09em;
-  text-align:center;
-}
-.ff-deal-listing-visual::after{
-  content:'#307';
-  position:absolute;
-  bottom:10px;
-  color:#f0d184;
-  font-size:.78rem;
-  font-weight:850;
-  letter-spacing:.1em;
-}
-.ff-deal-listing-visual span{
-  width:62%;
-  aspect-ratio:1/1.18;
-  display:grid;
-  place-items:center;
-  border:1px solid rgba(240,209,132,.42);
-  border-radius:50% 50% 42% 42%;
-  background:radial-gradient(circle at 50% 30%,rgba(240,209,132,.22),rgba(240,209,132,.03) 58%,transparent 59%);
-  color:#f7f8fa;
-  font-size:.72rem;
-  font-weight:850;
+  left:50%;
+  top:50%;
+  width:min(152px,38%);
+  padding:3px 6px 4px;
+  transform:translate(-50%,-92px) rotate(-2deg);
+  border-bottom:1px solid #d5dbe2;
+  background:#f8f9fb;
+  color:#8f1717;
+  font-size:.7rem;
+  font-weight:900;
   letter-spacing:.08em;
-  text-align:center;
-  text-transform:uppercase;
+  line-height:1;
+  text-align:right;
 }
+
 .ff-deal-listing-image>span{
   position:absolute;
   top:16px;
   left:16px;
+  z-index:2;
   padding:6px 9px;
   border:1px solid rgba(255,255,255,.24);
   border-radius:6px;
@@ -300,17 +287,18 @@
   .ff-deal-choice-panel{grid-row:1;min-height:0;border-color:rgba(230,170,53,.5);box-shadow:0 0 0 1px rgba(230,170,53,.08),0 16px 36px rgba(0,0,0,.28)}
   .ff-deal-listing{grid-row:2}
   .ff-deal-choice-panel::before{content:'START HERE · PICK ONE';display:block;margin:0 0 10px;color:#f0d184;font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+  .ff-deal-listing-image{min-height:210px}
+  .ff-deal-listing-image::before{width:min(154px,43%);border-width:7px}
+  .ff-deal-listing-image::after{width:min(124px,35%);transform:translate(-50%,-76px) rotate(-2deg);font-size:.62rem}
   .ff-deal-listing-copy,.ff-deal-choice-panel,.ff-deal-result-panel,.ff-deal-finding-panel,.ff-deal-reasons{padding:20px}
   .ff-deal-choice-panel h3{font-size:1.65rem}
   .ff-deal-choice-panel>p{margin-bottom:14px}
   .ff-deal-discount{margin-bottom:14px;padding:12px 14px}
   .ff-deal-discount strong{font-size:1.65rem}
   .ff-deal-choice-panel .ff-deal-choice-label{margin-bottom:8px}
-  .ff-deal-choices button{min-height:62px;padding:10px 12px}
-  .ff-deal-listing-image{min-height:190px}
-  .ff-deal-listing-visual{width:min(142px,43%);border-width:7px}
   .ff-deal-price-row{align-items:flex-start}
   .ff-deal-price-row strong{font-size:1.72rem}
+  .ff-deal-choices button{min-height:62px;padding:10px 12px}
   .ff-deal-exclusions{grid-template-columns:1fr}
   .ff-deal-shift{flex-wrap:wrap}
   .ff-deal-actions{display:grid}
