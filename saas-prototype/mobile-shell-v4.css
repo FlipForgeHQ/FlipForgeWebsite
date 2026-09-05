@@ -147,5 +147,8 @@
   body.ff-mobile-nav-open .ff-guide-panel{display:none!important}
 
   .app-shell[data-nav-open="true"] .sidebar{z-index:1000!important}
-  .app-shell[data-nav-open="true"] .mobile-scrim{z-index:990!important}
+  .app-shell[data-nav-open="true"] .mobile-scrim{
+    left:min(88vw,340px)!important;
+    z-index:990!important;
+  }
 }
