@@ -167,6 +167,74 @@ async function ensureMenuOpen(page) {
   await page.waitForFunction(() => document.querySelector(".app-shell")?.dataset.navOpen === "true");
 }
 
+async function auditOpenDrawerLayout(page) {
+  await ensureMenuOpen(page);
+  await page.waitForTimeout(120);
+
+  const snapshot = await page.evaluate(() => {
+    const sidebar = document.querySelector(".sidebar");
+    const brandBlock = document.querySelector(".brand-block");
+    const footer = document.querySelector(".sidebar-footer");
+    const links = [...document.querySelectorAll(".primary-nav > a")].filter(link => !link.hidden).slice(0, 6);
+    const guide = document.querySelector(".ff-guide-launcher, .ff-guide-panel");
+    const brandName = document.querySelector(".brand-name");
+
+    return {
+      viewportWidth: window.innerWidth,
+      sidebarWidth: sidebar?.getBoundingClientRect().width || 0,
+      brandHeight: brandBlock?.getBoundingClientRect().height || 0,
+      footerDisplay: footer ? getComputedStyle(footer).display : "missing",
+      guideDisplay: guide ? getComputedStyle(guide).display : "missing",
+      brandText: String(brandName?.textContent || "").trim(),
+      links: links.map(link => {
+        const style = getComputedStyle(link);
+        const icon = link.querySelector(":scope > span:first-child");
+        const iconStyle = icon ? getComputedStyle(icon) : null;
+        const pseudo = getComputedStyle(link, "::after");
+        return {
+          route: link.getAttribute("data-route"),
+          display: style.display,
+          height: link.getBoundingClientRect().height,
+          whiteSpace: style.whiteSpace,
+          overflow: style.overflow,
+          iconPosition: iconStyle?.position || "missing",
+          pseudoDisplay: pseudo.display,
+          pseudoContent: pseudo.content
+        };
+      })
+    };
+  });
+
+  const failures = [];
+  if (!snapshot.sidebarWidth || snapshot.sidebarWidth > Math.min(snapshot.viewportWidth * 0.9, 350)) {
+    failures.push(`drawer width ${snapshot.sidebarWidth}px is too wide for ${snapshot.viewportWidth}px viewport`);
+  }
+  if (!snapshot.brandHeight || snapshot.brandHeight > 120) {
+    failures.push(`brand block is too tall (${snapshot.brandHeight}px)`);
+  }
+  if (snapshot.footerDisplay !== "none") {
+    failures.push(`mobile Plan & Usage footer still consumes drawer space (${snapshot.footerDisplay})`);
+  }
+  if (snapshot.guideDisplay !== "missing" && snapshot.guideDisplay !== "none") {
+    failures.push(`Guided Mode floats above an open drawer (${snapshot.guideDisplay})`);
+  }
+  if (snapshot.brandText !== "FLIPFORGE") {
+    failures.push(`brand text contains duplicate trademark content (${snapshot.brandText || "empty"})`);
+  }
+
+  for (const link of snapshot.links) {
+    if (link.display !== "grid") failures.push(`${link.route} is ${link.display}, expected grid`);
+    if (link.height < 44 || link.height > 54) failures.push(`${link.route} row height is ${link.height}px`);
+    if (link.iconPosition !== "static") failures.push(`${link.route} icon is ${link.iconPosition}, expected static`);
+    if (link.pseudoDisplay !== "none" && link.pseudoContent !== "none") failures.push(`${link.route} desktop description is still visible`);
+    if (link.whiteSpace !== "nowrap") failures.push(`${link.route} can wrap (${link.whiteSpace})`);
+  }
+
+  await page.locator("[data-nav-close]").click();
+  await page.waitForFunction(() => document.querySelector(".app-shell")?.dataset.navOpen === "false");
+  return { route: "drawer-layout", heading: "Mobile drawer geometry", failures };
+}
+
 async function openAdvancedIfNeeded(page, route) {
   const advanced = ["decision-intelligence", "compare", "psa-advisor", "evidence", "sell", "export"];
   if (!advanced.includes(route)) return;
@@ -232,6 +300,12 @@ try {
   await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded", timeout: 10_000 });
   await page.waitForSelector("#main-content", { state: "attached", timeout: 5000 });
   await page.waitForTimeout(500);
+
+  try {
+    results.push(await auditOpenDrawerLayout(page));
+  } catch (error) {
+    results.push({ route: "drawer-layout", heading: "", failures: [String(error?.message || error)] });
+  }
 
   for (const route of routes) {
     console.log(`[mobile-nav-ci] ${route}`);
