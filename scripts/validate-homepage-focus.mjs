@@ -66,6 +66,9 @@ check('040 animated hero film stylesheet is loaded',index.includes('assets/css/h
 check('041 animated hero film behavior is loaded',index.includes('assets/js/homepage-hero-film-v1.js')&&filmJs.includes('25000'));
 check('042 animated hero respects reduced motion',filmCss.includes('@media(prefers-reduced-motion:reduce)')&&filmJs.includes('prefers-reduced-motion'));
 check('043 hero film shows evidence transformation',index.includes('5 of 7 rejected')&&index.includes('The apparent bargain nearly disappears.')&&index.includes('FlipForge decision'));
+check('044 Deal Check listing does not render the homepage hero art',dealCss.includes('.ff-deal-listing-image img{display:none!important}'));
+check('045 Deal Check has a dedicated graded-card visual',dealCss.includes('.ff-deal-listing-image::before')&&dealCss.includes('.ff-deal-listing-image::after')&&dealCss.includes('content:"PSA 10"'));
+check('046 mobile Deal Check no longer forces the hero image into a cropped fixed height',!dealCss.includes('.ff-deal-listing-image img{height:215px}'));
 
 const failures=checks.filter(item=>!item.passed);
 console.log('FlipForge video-first homepage validation');
