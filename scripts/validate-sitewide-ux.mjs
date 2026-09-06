@@ -13,6 +13,7 @@ const heroCss=read('assets/css/homepage-decision-hero-v1.css');
 const mobileHomeCss=read('assets/css/homepage-mobile-nav-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
 const dealRefinement=read('assets/css/homepage-deal-refinement-v2.css');
+const dealProcess=read('assets/css/homepage-deal-live-process-v3.css');
 const dealJs=read('assets/js/homepage-deal-or-decoy-v1.js');
 const awardJs=read('assets/js/award-winning-v1.js');
 const appIndex=read('saas-prototype/index.html');
@@ -81,18 +82,32 @@ requireText('homepage hero stylesheet',homepage,'assets/css/homepage-decision-he
 requireText('homepage mobile stylesheet',homepage,'assets/css/homepage-mobile-nav-v1.css');
 requireText('homepage proof stylesheet',homepage,'assets/css/homepage-deal-or-decoy-v1.css');
 requireText('homepage refinement stylesheet',homepage,'assets/css/homepage-deal-refinement-v2.css');
+requireText('homepage live process stylesheet',homepage,'assets/css/homepage-deal-live-process-v3.css');
 requireText('homepage refinement owns result contrast',dealRefinement,'.ff-deal-result-heading');
 requireText('homepage refinement owns signature correction',dealRefinement,'.ff-deal-shift strong');
+requireText('homepage live process owns evidence animation',dealProcess,'.ff-process-comp.is-rejected');
+requireText('homepage live process owns value correction',dealProcess,'.ff-process-supported.is-updated strong');
+requireText('homepage live process responsive',dealProcess,'@media(max-width:760px)');
 requireText('homepage browser-decodable visual metadata',homepage,'assets/images/flipforge-homepage-hero.webp');
 requireText('homepage direct first action',homepage,'Would you pay <span>$349</span> for this card?');
 requireText('homepage proof path',homepage,'class="ff-deal-demo" id="deal-or-decoy"');
 requireText('homepage interactive proof',homepage,'assets/js/homepage-deal-or-decoy-v1.js');
+requireText('homepage processing stage',homepage,'data-ff-processing-stage');
+requireText('homepage live identity step',homepage,'01 · EXACT CARD');
+requireText('homepage live evidence step',homepage,'02 · CHALLENGE 7 COMPARISONS');
+requireText('homepage live value step',homepage,'03 · SUPPORTED VALUE');
+requireText('homepage live decision step',homepage,'04 · DECISION');
 forbidText('homepage retired film stylesheet',homepage,'assets/css/homepage-hero-film-v1.css');
 forbidText('homepage retired film behavior',homepage,'assets/js/homepage-hero-film-v1.js');
 forbidText('homepage retired scroll CTA',homepage,'Try the Deal Check');
 forbidText('homepage forced scroll behavior',dealJs,'scrollIntoView');
 requireText('homepage first viewport',heroCss,'min-height:calc(100dvh - 79px)');
-requireText('homepage immediate reveal',dealJs,'resultStage.hidden=false');
+requireText('homepage enters processing before result',dealJs,"demo.dataset.ffState='processing'");
+requireText('homepage animates comparison review',dealJs,"setCompState(index,'reviewing')");
+requireText('homepage corrects supported value',dealJs,"supportedValue.textContent='$357.20'");
+requireText('homepage corrects supported discount',dealJs,"supportedDiscount.textContent='2.3%'");
+requireText('homepage result after processing',dealJs,'schedule(token,3820,showResult)');
+requireText('homepage result reveal',dealJs,'resultStage.hidden=false');
 requireText('homepage view transition progressive enhancement',dealJs,'document.startViewTransition');
 requireText('homepage native evidence dialog',dealJs,'showModal');
 requireText('homepage stateful result hierarchy',dealJs,"demo.dataset.ffState='result'");
@@ -105,6 +120,7 @@ requireText('homepage compact width',heroCss,'width:min(1380px,calc(100% - 56px)
 requireText('homepage mobile single column',heroCss,'@media(max-width:760px)');
 requireText('homepage mobile nav',mobileHomeCss,'.mobile-nav.open');
 requireText('homepage reduced motion',mobileHomeCss,'@media(prefers-reduced-motion:reduce)');
+requireText('homepage process reduced motion',dealProcess,'@media(prefers-reduced-motion:reduce)');
 requireText('homepage proof responsive',dealCss,'@media(max-width:760px)');
 requireText('homepage proof compact mobile choices',dealCss,'grid-template-columns:repeat(2,minmax(0,1fr))');
 requireText('homepage proof explicit mobile start cue',dealCss,"content:'START HERE · PICK ONE'");
@@ -161,4 +177,4 @@ for(const unsafe of ['CARD VALUE INTELLIGENCE','guaranteed profit','automatic pu
 requireText('app transaction boundary',appIndex,'No transaction authority');
 
 if(failures.length){console.error('Sitewide UX system validation failed:');failures.forEach(failure=>console.error(`- ${failure}`));process.exit(1);}
-console.log('PASS: FlipForge public typography, Home navigation, first-viewport homepage, deeper marketing pages, and customer-app UX ownership validated.');
+console.log('PASS: FlipForge public typography, Home navigation, live first-viewport Deal Check, deeper marketing pages, and customer-app UX ownership validated.');
