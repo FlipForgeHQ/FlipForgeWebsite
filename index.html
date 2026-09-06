@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="assets/css/homepage-mobile-nav-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-deal-or-decoy-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-deal-refinement-v2.css">
+  <link rel="stylesheet" href="assets/css/homepage-deal-live-process-v3.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"FlipForge LLC","url":"https://goflipforge.com/","email":"support@goflipforge.com","logo":"https://goflipforge.com/assets/brand/flipforge-logo-horizontal.svg","slogan":"Before you buy. Know Why."},{"@type":"SoftwareApplication","name":"FlipForge","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Card Decision Intelligence for sports-card collectors: exact identity, evidence qualification, risk, supported value, explainable decisions, and outcome review."}]}</script>
 </head>
 <body>
@@ -66,7 +67,7 @@
           <strong>Know Why.</strong>
         </h1>
         <p class="decision-lead">FlipForge checks whether the evidence behind a sports-card deal actually holds up.</p>
-        <p class="decision-demo-cue"><strong>Try it now.</strong> Make one call on the example here. FlipForge gives you the answer in the same screen.</p>
+        <p class="decision-demo-cue"><strong>Try it now.</strong> Make one call, then watch FlipForge check the exact card, challenge the comps, recalculate the value, and explain the verdict.</p>
         <div class="decision-actions">
           <a class="decision-button decision-button-secondary" href="beta-application.html">Request Beta Access</a>
         </div>
@@ -77,14 +78,14 @@
         <div class="ff-deal-shell">
           <div class="ff-deal-topbar">
             <strong>FLIPFORGE DEAL CHECK</strong>
-            <span>One choice. Immediate answer.</span>
+            <span>Choose a call. Watch FlipForge test it.</span>
           </div>
 
           <div class="ff-deal-stage" data-ff-choice-stage>
             <div class="ff-deal-question">
               <p class="ff-deal-kicker">YOUR ONLY TASK</p>
               <h2 id="deal-or-decoy-title">Would you pay <span>$349</span> for this card?</h2>
-              <p>Pick what you would do. That is it.</p>
+              <p>Pick what you would do. FlipForge will show you what changes.</p>
             </div>
 
             <article class="ff-deal-listing" aria-label="Illustrative sports-card listing">
@@ -113,7 +114,61 @@
               <button type="button" data-ff-choice="VERIFY"><strong>VERIFY</strong><span>Check the evidence first</span></button>
               <button type="button" data-ff-choice="PASS"><strong>PASS</strong><span>Walk away</span></button>
             </div>
-            <p class="ff-deal-choice-note">Your choice reveals FlipForge’s decision instantly.</p>
+            <p class="ff-deal-choice-note">Pick one. Then watch FlipForge test identity → evidence → value → decision.</p>
+          </div>
+
+          <div class="ff-deal-stage ff-deal-processing-stage" data-ff-processing-stage data-ff-process-step="1" hidden aria-labelledby="ff-processing-title">
+            <div class="ff-process-heading">
+              <div>
+                <p class="ff-deal-kicker">FLIPFORGE IS CHECKING YOUR CALL</p>
+                <h2 id="ff-processing-title">Watch the deal change as the evidence is tested.</h2>
+                <p>This is the part a headline price cannot show you.</p>
+              </div>
+              <div class="ff-process-call"><small>YOUR CALL</small><strong data-ff-processing-choice>—</strong></div>
+            </div>
+
+            <div class="ff-process-live" aria-live="polite">
+              <span class="ff-process-pulse" aria-hidden="true"></span>
+              <div><small data-ff-process-label>STEP 1 OF 4 · EXACT CARD</small><strong data-ff-process-title>Confirming year, set, card number, parallel, grader and grade…</strong></div>
+              <span data-ff-process-counter>CHECKING</span>
+            </div>
+            <div class="ff-process-progress" aria-hidden="true"><span></span></div>
+
+            <div class="ff-process-grid">
+              <article class="ff-process-card is-active" data-ff-process-card="identity">
+                <div class="ff-process-card-header"><small>01 · EXACT CARD</small><b data-ff-identity-state>CHECKING</b></div>
+                <h3>Joe Burrow · #307 · Silver Prizm · PSA 10</h3>
+                <p>Identity must match before any price evidence gets a vote.</p>
+              </article>
+
+              <article class="ff-process-card" data-ff-process-card="value">
+                <div class="ff-process-card-header"><small>03 · SUPPORTED VALUE</small><b data-ff-value-state>WAITING</b></div>
+                <h3>Rebuild value from qualified evidence.</h3>
+                <p>The displayed market reference is not accepted automatically.</p>
+              </article>
+
+              <div class="ff-process-comps" data-ff-process-card="evidence">
+                <div class="ff-process-comps-head"><small>02 · CHALLENGE 7 COMPARISONS</small><strong data-ff-evidence-state>WAITING</strong></div>
+                <div class="ff-process-comp-row" aria-label="Seven comparison records being tested">
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="valid" aria-label="Comparison 1 pending"><b>1</b><small>EXACT</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 2 pending"><b>2</b><small>PARALLEL</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 3 pending"><b>3</b><small>DUPLICATE</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 4 pending"><b>4</b><small>PARALLEL</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 5 pending"><b>5</b><small>DUPLICATE</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 6 pending"><b>6</b><small>IDENTITY</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="valid" aria-label="Comparison 7 pending"><b>7</b><small>EXACT</small></span>
+                </div>
+              </div>
+
+              <div class="ff-process-value-lane" data-ff-value-lane>
+                <div><small>DISPLAYED REFERENCE</small><strong>$459.21</strong></div>
+                <span aria-hidden="true">→</span>
+                <div class="ff-process-supported" data-ff-supported><small>EVIDENCE-SUPPORTED VALUE</small><strong data-ff-supported-value>Checking…</strong></div>
+                <div class="ff-process-discount" data-ff-process-discount><small>APPARENT 24.0%</small><strong data-ff-supported-discount>—</strong></div>
+              </div>
+
+              <div class="ff-process-verdict" data-ff-process-verdict><small>04 · DECISION</small><strong data-ff-process-verdict-text>WAITING FOR EVIDENCE</strong></div>
+            </div>
           </div>
 
           <div class="ff-deal-stage ff-deal-result-stage" data-ff-result-stage hidden>
