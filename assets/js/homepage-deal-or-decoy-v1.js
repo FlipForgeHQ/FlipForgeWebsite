@@ -20,6 +20,7 @@
   const isDeployPreview=/^deploy-preview-\d+--goflipforge\.netlify\.app$/i.test(String(window.location.hostname||''));
   let visitorChoice=null;
   let started=false;
+  let previewJourneyDock=null;
 
   const style=document.createElement('style');
   style.textContent=`
@@ -142,9 +143,53 @@
     evaluate.setAttribute('aria-label','Continue this Joe Burrow deal into the FlipForge customer journey preview');
   };
 
+  const buildPreviewJourneyDock=()=>{
+    if(!isDeployPreview||previewJourneyDock)return;
+    const cssHref='assets/css/homepage-preview-journey-dock-v1.css';
+    if(!document.querySelector(`link[href="${cssHref}"]`)){
+      const link=document.createElement('link');
+      link.rel='stylesheet';
+      link.href=cssHref;
+      document.head.append(link);
+    }
+    const dock=document.createElement('aside');
+    dock.className='ff-preview-journey-dock';
+    dock.hidden=true;
+    dock.setAttribute('aria-label','Continue into the FlipForge customer journey preview');
+    dock.innerHTML=`
+      <div class="ff-preview-journey-dock-copy">
+        <small>YOU HAVE THE ANSWER</small>
+        <strong>Continue with this exact $349 card — no scrolling required.</strong>
+        <span>See the same decision flow inside the simplified FlipForge product experience.</span>
+      </div>
+      <a href="customer-journey-preview.html?from=deal-check" data-ff-preview-next>Continue Into FlipForge →</a>
+    `;
+    document.body.append(dock);
+    dock.querySelector('[data-ff-preview-next]')?.addEventListener('click',()=>track('flipforge_demo_preview_handoff_clicked',{
+      visitor_choice:visitorChoice,
+      flipforge_decision:visitorChoice?'VERIFY':null
+    }));
+    previewJourneyDock=dock;
+  };
+
+  const showPreviewJourneyDock=()=>{
+    if(!previewJourneyDock)return;
+    previewJourneyDock.hidden=false;
+    window.requestAnimationFrame(()=>previewJourneyDock?.classList.add('is-visible'));
+  };
+
+  const hidePreviewJourneyDock=()=>{
+    if(!previewJourneyDock)return;
+    previewJourneyDock.classList.remove('is-visible');
+    window.setTimeout(()=>{
+      if(previewJourneyDock&&!previewJourneyDock.classList.contains('is-visible'))previewJourneyDock.hidden=true;
+    },reduceMotion()?0:220);
+  };
+
   buildHandoff();
   buildConversionMoment();
   wirePreviewJourney();
+  buildPreviewJourneyDock();
 
   if('IntersectionObserver' in window){
     const observer=new IntersectionObserver(entries=>{
@@ -197,6 +242,7 @@
       renderChoiceComparison();
       choiceStage.hidden=true;
       resultStage.hidden=false;
+      showPreviewJourneyDock();
       if(status)status.textContent='Five of seven comparisons were invalid. The supported discount is 2.3 percent, and FlipForge returns VERIFY.';
 
       window.setTimeout(()=>{
@@ -209,6 +255,7 @@
   replay?.addEventListener('click',()=>{
     track('flipforge_demo_replayed',{previous_choice:visitorChoice});
     visitorChoice=null;
+    hidePreviewJourneyDock();
     choiceStage.hidden=false;
     resultStage.hidden=true;
     if(details)details.open=false;
