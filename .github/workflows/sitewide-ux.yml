@@ -9,21 +9,24 @@ on:
       - "pricing.html"
       - "about.html"
       - "beta-application.html"
+      - "faq.html"
+      - "data-use.html"
+      - "privacy.html"
+      - "terms.html"
+      - "beta-terms.html"
+      - "refund.html"
+      - "thank-you.html"
+      - "beta-onboarding.html"
+      - "404.html"
       - "package.json"
-      - "assets/css/brand-v2.css"
-      - "assets/css/public-typography-contract-v1.css"
-      - "assets/css/marketing-v3.css"
-      - "assets/css/marketing-pages-v3.css"
-      - "assets/css/marketing-support-v3.css"
-      - "assets/css/marketing-density-v1.css"
-      - "assets/css/homepage-product-proof-v2.css"
-      - "assets/css/homepage-visual-proof-v1.css"
+      - "assets/css/**"
       - "assets/js/award-winning-v1.js"
       - "saas-prototype/index.html"
       - "saas-prototype/customer-readability.css"
       - "saas-prototype/customer-layout-system-v2.css"
       - "saas-prototype/guided-mode-compact-v1.css"
       - "scripts/validate-sitewide-ux.mjs"
+      - "scripts/audit-public-typography-rendered.mjs"
       - ".github/workflows/sitewide-ux.yml"
   push:
     branches:
@@ -35,21 +38,24 @@ on:
       - "pricing.html"
       - "about.html"
       - "beta-application.html"
+      - "faq.html"
+      - "data-use.html"
+      - "privacy.html"
+      - "terms.html"
+      - "beta-terms.html"
+      - "refund.html"
+      - "thank-you.html"
+      - "beta-onboarding.html"
+      - "404.html"
       - "package.json"
-      - "assets/css/brand-v2.css"
-      - "assets/css/public-typography-contract-v1.css"
-      - "assets/css/marketing-v3.css"
-      - "assets/css/marketing-pages-v3.css"
-      - "assets/css/marketing-support-v3.css"
-      - "assets/css/marketing-density-v1.css"
-      - "assets/css/homepage-product-proof-v2.css"
-      - "assets/css/homepage-visual-proof-v1.css"
+      - "assets/css/**"
       - "assets/js/award-winning-v1.js"
       - "saas-prototype/index.html"
       - "saas-prototype/customer-readability.css"
       - "saas-prototype/customer-layout-system-v2.css"
       - "saas-prototype/guided-mode-compact-v1.css"
       - "scripts/validate-sitewide-ux.mjs"
+      - "scripts/audit-public-typography-rendered.mjs"
       - ".github/workflows/sitewide-ux.yml"
 
 permissions:
@@ -57,8 +63,9 @@ permissions:
 
 jobs:
   validate:
-    name: Validate sitewide viewport and density ownership
+    name: Validate sitewide viewport, typography, and density ownership
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -68,5 +75,20 @@ jobs:
           node-version: 24
       - name: Parse changed browser JavaScript
         run: node --check assets/js/award-winning-v1.js
-      - name: Validate sitewide UX system
+      - name: Validate static sitewide UX contracts
         run: npm run validate:sitewide-ux
+      - name: Install Chromium for rendered typography audit
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local public site
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/flipforge-sitewide-ux.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/flipforge-sitewide-ux.log
+          exit 1
+      - name: Validate rendered typography across public pages
+        run: node scripts/audit-public-typography-rendered.mjs
