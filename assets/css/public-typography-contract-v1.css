@@ -1,0 +1,110 @@
+/* FlipForge public typography contract v1 — authoritative semantic scale.
+ * Same role = same scale across Home, Product, Evidence Lab, Launch Plans,
+ * About, Beta, FAQ, and standard public support pages.
+ * The authenticated SaaS app intentionally keeps its denser workspace scale.
+ *
+ * IMPORTANT: public page-specific styles may control layout/composition, but this
+ * file owns the final rendered font size for shared semantic roles. CI verifies
+ * the computed browser result at desktop and mobile widths.
+ */
+:root{
+  --ff-type-home-display:clamp(42px,4vw,54px);
+  --ff-type-page-title:clamp(36px,3.6vw,48px);
+  --ff-type-section-title:clamp(28px,2.6vw,36px);
+  --ff-type-subsection-title:clamp(22px,2vw,28px);
+  --ff-type-card-title:18px;
+  --ff-type-lead:16px;
+  --ff-type-body:15px;
+  --ff-type-small:13px;
+  --ff-type-label:11px;
+  --ff-type-nav:13px;
+}
+
+/* Primary public navigation */
+html body .site-header .desktop-nav a,
+html body .decision-nav-links{
+  font-size:var(--ff-type-nav)!important;
+}
+
+/* Homepage display — intentionally only one step larger than internal page titles. */
+html body main#main .decision-hero h1 span,
+html body main#main .decision-hero h1 strong,
+html body.ff-marketing-v3.ff-home-focused main#main h1{
+  font-size:var(--ff-type-home-display)!important;
+  line-height:1.01!important;
+  letter-spacing:-.04em!important;
+}
+
+/* Internal marketing/support page titles. */
+html body.ff-marketing-page-v3 main#main .page-hero h1,
+html body.ff-support-v3 main#main .page-hero h1,
+html body.ff-marketing-page-v3 main#main>section.page-hero h1,
+html body.ff-support-v3 main#main>section.page-hero h1,
+html body.ff-aw-page main#main .page-hero h1{
+  font-size:var(--ff-type-page-title)!important;
+  line-height:1.04!important;
+  letter-spacing:-.04em!important;
+}
+
+/* Shared section-title roles */
+html body.ff-marketing-page-v3 main#main .section-head h2,
+html body.ff-support-v3 main#main .section-head h2,
+html body.ff-aw-page main#main .section-head h2,
+html body.ff-marketing-page-v3 main#main .ff-product-copy h2,
+html body.ff-marketing-page-v3 main#main .ff-page-vision h2,
+html body main#main .ff-aw-customer-cta h2,
+html body main#main .ff-aw-busted-head h2,
+html body.ff-marketing-v3 main#main .ff-problem-intro h2,
+html body.ff-marketing-v3 main#main .ff-validation-head h2,
+html body.ff-marketing-v3 main#main .ff-audience-head h2,
+html body.ff-marketing-v3 main#main .ff-home-workflow-head h2,
+html body.ff-marketing-v3 main#main .ff-final-cta h2,
+html body.ff-marketing-v3 main#main .ff-marketing-section .ff-section-intro h2{
+  font-size:var(--ff-type-section-title)!important;
+  line-height:1.09!important;
+  letter-spacing:-.025em!important;
+}
+
+/* Secondary panel titles */
+html body.ff-marketing-page-v3 main#main .ff-founder-card h2,
+html body.ff-marketing-page-v3 main#main .ff-mission-card h2{
+  font-size:var(--ff-type-subsection-title)!important;
+  line-height:1.12!important;
+}
+
+/* Card titles: keep repeated information units visually stable. */
+html body.ff-support-v3 main#main .ff-lab-card h3,
+html body.ff-support-v3 main#main .ff-lab-proof h3,
+html body.ff-marketing-page-v3 main#main .ff-principle-card h3,
+html body.ff-marketing-page-v3 main#main .ff-about-proof h3{
+  font-size:var(--ff-type-card-title)!important;
+  line-height:1.22!important;
+}
+
+/* Long-form public copy */
+html body.ff-marketing-v3 main#main .lead,
+html body.ff-marketing-page-v3 main#main .lead,
+html body.ff-support-v3 main#main .lead,
+html body.ff-aw-page main#main .page-hero .lead,
+html body main#main .decision-lead{
+  font-size:var(--ff-type-lead)!important;
+  line-height:1.55!important;
+}
+
+html body.ff-marketing-v3 main#main .section-copy,
+html body.ff-marketing-page-v3 main#main .section-copy,
+html body.ff-support-v3 main#main .section-copy{
+  font-size:var(--ff-type-body)!important;
+  line-height:1.58!important;
+}
+
+@media(max-width:700px){
+  :root{
+    --ff-type-home-display:clamp(36px,9.5vw,44px);
+    --ff-type-page-title:clamp(32px,8.8vw,40px);
+    --ff-type-section-title:clamp(24px,7vw,30px);
+    --ff-type-subsection-title:clamp(20px,6vw,24px);
+    --ff-type-lead:16px;
+    --ff-type-body:15px;
+  }
+}
