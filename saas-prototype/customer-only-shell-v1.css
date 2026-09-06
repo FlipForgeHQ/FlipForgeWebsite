@@ -1,0 +1,111 @@
+/* FlipForge customer-only beta shell v1
+ * Presentation-only separation for the customer app. Operator controls remain on
+ * /operator-beta.html and keep their existing server-side role enforcement.
+ */
+
+body[data-ff-surface="customer"] .ff-customer-route-registry,
+body[data-ff-surface="customer"] .ff-advanced-nav,
+body[data-ff-surface="customer"] .staging-only-nav {
+  display: none !important;
+}
+
+body[data-ff-surface="customer"] .primary-nav {
+  display: grid;
+  gap: 6px;
+}
+
+body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {
+  min-height: 44px;
+}
+
+body[data-ff-surface="customer"] .sidebar-footer .plan-card {
+  display: none !important;
+}
+
+body[data-ff-surface="customer"] .prototype-chip {
+  letter-spacing: .08em;
+}
+
+body[data-ff-surface="customer"] .ff-customer-home-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 0;
+}
+
+body[data-ff-surface="customer"] .ff-customer-home-action {
+  display: grid;
+  gap: 8px;
+  min-height: 144px;
+  padding: 20px;
+  border: 1px solid rgba(212, 175, 55, .18);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015));
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .16s ease, transform .16s ease, background .16s ease;
+}
+
+body[data-ff-surface="customer"] .ff-customer-home-action:hover,
+body[data-ff-surface="customer"] .ff-customer-home-action:focus-visible {
+  border-color: rgba(212, 175, 55, .5);
+  background: rgba(212, 175, 55, .055);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+body[data-ff-surface="customer"] .ff-customer-home-action span {
+  color: var(--gold, #d4af37);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+body[data-ff-surface="customer"] .ff-customer-home-action strong {
+  font-size: 1.08rem;
+  line-height: 1.25;
+}
+
+body[data-ff-surface="customer"] .ff-customer-home-action small {
+  color: var(--muted, #9ba3ad);
+  line-height: 1.5;
+}
+
+html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .metric-grid,
+html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .dashboard-grid {
+  display: none !important;
+}
+
+html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .boundary-note {
+  margin-top: 18px;
+}
+
+body[data-ff-surface="customer"] .ff-customer-only-note {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(136, 143, 152, .18);
+  border-radius: 9px;
+  background: rgba(255,255,255,.018);
+  color: var(--muted, #9ba3ad);
+  font-size: .84rem;
+  line-height: 1.45;
+}
+
+body[data-ff-surface="customer"] .ff-customer-only-note strong {
+  color: var(--text, #fff);
+}
+
+body[data-ff-surface="customer"] .private-beta-step[data-ff-customer-hide="true"] {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  body[data-ff-surface="customer"] .ff-customer-home-actions {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-ff-surface="customer"] .ff-customer-home-action {
+    min-height: 0;
+  }
+}
