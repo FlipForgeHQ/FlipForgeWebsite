@@ -9,6 +9,8 @@
   const queryInput=document.querySelector('#card-query');
   const progressSteps=[...document.querySelectorAll('[data-progress-step]')];
   const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+  const params=new URLSearchParams(window.location.search);
+  const fromDealCheck=params.get('from')==='deal-check';
 
   const state={
     screen:'search',
@@ -82,6 +84,57 @@
     const card=value?.trim()||'Your selected card';
     state.card=card;
     document.querySelectorAll('[data-card-name]').forEach(node=>{node.textContent=card;});
+  }
+
+  function hydrateDealCheckContext(){
+    if(!fromDealCheck||!queryInput)return;
+    const card='2020 Panini Prizm #307 Joe Burrow Silver Prizm PSA 10';
+    queryInput.value=card;
+    applyCardName(card);
+
+    const dlValues=[...document.querySelectorAll('.identity-copy dl dd')];
+    ['2020 Panini Prizm','#307','Silver Prizm','PSA 10'].forEach((value,index)=>{
+      if(dlValues[index])dlValues[index].textContent=value;
+    });
+    const slabCard=document.querySelector('.slab-card');
+    const slabPlayer=document.querySelector('.slab-player');
+    if(slabCard)slabCard.textContent='307';
+    if(slabPlayer)slabPlayer.textContent='JB';
+
+    document.querySelectorAll('.listing-visual').forEach(visual=>{
+      const grade=visual.querySelector('span');
+      const parallel=visual.querySelector('b');
+      const number=visual.querySelector('small');
+      if(grade)grade.textContent='PSA 10';
+      if(parallel)parallel.innerHTML='SILVER<br>PRIZM';
+      if(number)number.textContent='#307';
+    });
+
+    const rejected=[...document.querySelectorAll('.alternate-body .reject-row strong')];
+    if(rejected[0])rejected[0].textContent='Base Prizm #307 PSA 10';
+    if(rejected[1])rejected[1].textContent='Silver Prizm #307 PSA 9';
+
+    const searchFrame=document.querySelector('.search-frame');
+    const searchCard=document.querySelector('.card-search-card');
+    if(searchFrame&&searchCard&&!document.querySelector('[data-landing-handoff]')){
+      const handoff=document.createElement('div');
+      handoff.className='next-step-note';
+      handoff.dataset.landingHandoff='';
+      handoff.innerHTML='<span>CONTINUING FROM THE LANDING-PAGE DEAL CHECK</span><p>The same $349 Joe Burrow Silver Prizm listing is loaded below, so you can see how the customer experience continues inside FlipForge.</p>';
+      searchCard.before(handoff);
+    }
+
+    const banner=document.querySelector('.preview-banner');
+    if(banner&&!banner.querySelector('[data-back-to-landing]')){
+      const back=document.createElement('a');
+      back.href='./#deal-or-decoy';
+      back.dataset.backToLanding='';
+      back.textContent='← Back to landing page';
+      back.setAttribute('aria-label','Return to the landing-page Deal Check preview');
+      banner.append(back);
+    }
+
+    track('landing_handoff_loaded',{card});
   }
 
   function resetProgress(){
@@ -180,7 +233,7 @@
       return;
     }
     applyCardName(value);
-    track('card_search',{query:value});
+    track('card_search',{query:value,source:fromDealCheck?'landing_deal_check':'direct_preview'});
     showScreen('identity');
   });
 
@@ -237,7 +290,7 @@
     const save=document.querySelector('[data-save-decision]');
     if(save){save.disabled=false;save.textContent='Save decision';}
     try{localStorage.removeItem(analyticsKey);}catch(_){/* no-op */}
-    if(queryInput)queryInput.value='2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10';
+    if(queryInput)queryInput.value=fromDealCheck?'2020 Panini Prizm #307 Joe Burrow Silver Prizm PSA 10':'2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10';
     applyCardName(queryInput?.value||'');
     showScreen('search');
     toast('The interactive journey is back at the first screen.','Preview reset.');
@@ -256,6 +309,7 @@
   // Native selection, copy, and paste are intentionally untouched across the preview.
   // No contextmenu, selectstart, copy, cut, or paste handlers are registered.
 
-  applyCardName(state.card);
-  track('preview_opened',{screen:'search'});
+  hydrateDealCheckContext();
+  applyCardName(queryInput?.value||state.card);
+  track('preview_opened',{screen:'search',source:fromDealCheck?'landing_deal_check':'direct_preview'});
 })();
