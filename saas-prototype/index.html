@@ -53,22 +53,23 @@
   <link rel="stylesheet" href="guided-mode-compact-v1.css">
   <link rel="stylesheet" href="forge-heat-control-room-v2.css">
   <link rel="stylesheet" href="mobile-shell-v4.css">
+  <link rel="stylesheet" href="customer-only-shell-v1.css">
 </head>
-<body>
+<body data-ff-surface="customer">
   <!-- Retained non-production validation boundary: NON-PRODUCTION PROTOTYPE · Mock responses only · No purchase authority · Billing is not connected · Private beta · Invitation only · Not active. Production customer language and billing state are replaced by authenticated server-owned runtime data. -->
   <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <div class="prototype-banner" role="status">
-    <strong>BETA INTELLIGENCE</strong>
-    <span>Controlled customer intelligence · No transaction authority</span>
+    <strong>PRIVATE BETA</strong>
+    <span>Customer experience · Card decision intelligence · No transaction authority</span>
   </div>
 
-  <div class="app-shell" data-nav-open="false">
+  <div class="app-shell" data-nav-open="false" data-ff-interface="customer">
     <div class="mobile-scrim" data-nav-close aria-hidden="true"></div>
 
-    <aside class="sidebar" id="primary-navigation" aria-label="Primary navigation">
+    <aside class="sidebar" id="primary-navigation" aria-label="Customer navigation">
       <div class="brand-block">
-        <a class="brand" href="#/dashboard" aria-label="FlipForge dashboard">
+        <a class="brand" href="#/dashboard" aria-label="FlipForge home">
           <span class="brand-mark" aria-hidden="true">
             <span class="brand-corner brand-corner-tl"></span>
             <span class="brand-corner brand-corner-tr"></span>
@@ -81,46 +82,51 @@
             <span class="brand-subtitle">CARD DECISION INTELLIGENCE</span>
           </span>
         </a>
-        <span class="prototype-chip">PRIVATE BETA</span>
+        <span class="prototype-chip">CUSTOMER BETA</span>
       </div>
 
-      <nav class="primary-nav" aria-label="Core FlipForge workflow">
-        <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">▦</span>Dashboard</a>
-        <a href="#/market-view" data-route="market-view"><span aria-hidden="true">◫</span>Market View</a>
-        <a href="#/discover" data-route="discover"><span aria-hidden="true">⌕</span>Discover</a>
-        <a href="#/forge-heat" data-route="forge-heat"><span aria-hidden="true">🔥</span>Forge Heat <span class="forge-nav-pro">PRO</span></a>
-        <a href="#/evaluate" data-route="evaluate"><span aria-hidden="true">◇</span>Evaluate</a>
-        <a href="#/opportunities" data-route="opportunities"><span aria-hidden="true">↗</span>Opportunities</a>
-        <a href="#/tracking" data-route="tracking"><span aria-hidden="true">◷</span>Tracking</a>
-        <a href="#/portfolio" data-route="portfolio"><span aria-hidden="true">◫</span>Portfolio</a>
-        <a href="#/alerts" data-route="alerts"><span aria-hidden="true">!</span>Alerts</a>
-        <a href="#/beta-start" data-route="beta-start"><span aria-hidden="true">✓</span>Getting Started</a>
-        <details class="ff-advanced-nav">
+      <nav class="primary-nav" aria-label="Core customer workflow">
+        <a href="#/dashboard" data-route="dashboard" data-ff-customer-core><span aria-hidden="true">⌂</span>Home</a>
+        <a href="#/discover" data-route="discover" data-ff-customer-core><span aria-hidden="true">◇</span>Evaluate</a>
+        <a href="#/opportunities" data-route="opportunities" data-ff-customer-core><span aria-hidden="true">▤</span>Saved Decisions</a>
+        <a href="#/tracking" data-route="tracking" data-ff-customer-core><span aria-hidden="true">◷</span>Tracking</a>
+
+        <!-- Hidden route registry preserves deep-link compatibility and validation coverage
+             without exposing advanced/internal destinations in the customer navigation. -->
+        <div class="ff-customer-route-registry" hidden aria-hidden="true">
+          <a href="#/market-view" data-route="market-view">Market View</a>
+          <a href="#/forge-heat" data-route="forge-heat">Forge Heat</a>
+          <a href="#/evaluate" data-route="evaluate">Manual Evaluate</a>
+          <a href="#/portfolio" data-route="portfolio">Portfolio</a>
+          <a href="#/alerts" data-route="alerts">Alerts</a>
+          <a href="#/beta-start" data-route="beta-start">Getting Started</a>
+          <a href="#/decision-intelligence" data-route="decision-intelligence">Decision Intelligence</a>
+          <a href="#/compare" data-route="compare">Compare</a>
+          <a href="#/psa-advisor" data-route="psa-advisor">PSA Advisor</a>
+          <a href="#/evidence" data-route="evidence">Evidence</a>
+          <a href="#/sell" data-route="sell">Exit Review</a>
+          <a href="#/export" data-route="export">Audit Export</a>
+          <a href="#/staging" data-route="staging" class="staging-only-nav">Staging Data</a>
+          <a href="#/staging-evaluate" data-route="staging-evaluate" class="staging-only-nav">Staging Evaluate</a>
+        </div>
+
+        <details class="ff-advanced-nav" hidden aria-hidden="true">
           <summary>Advanced analysis</summary>
-          <div class="ff-advanced-nav-links">
-            <a href="#/decision-intelligence" data-route="decision-intelligence"><span aria-hidden="true">◇</span>Decision Intelligence</a>
-            <a href="#/compare" data-route="compare"><span aria-hidden="true">⇄</span>Compare</a>
-            <a href="#/psa-advisor" data-route="psa-advisor"><span aria-hidden="true">A+</span>PSA Advisor</a>
-            <a href="#/evidence" data-route="evidence"><span aria-hidden="true">◎</span>Evidence</a>
-            <a href="#/sell" data-route="sell"><span aria-hidden="true">$</span>Exit Review</a>
-            <a href="#/export" data-route="export"><span aria-hidden="true">⇩</span>Audit Export</a>
-          </div>
+          <div class="ff-advanced-nav-links"></div>
         </details>
-        <a href="#/staging" data-route="staging" class="staging-only-nav" hidden><span aria-hidden="true">↯</span>Staging Data</a>
-        <a href="#/staging-evaluate" data-route="staging-evaluate" class="staging-only-nav" hidden><span aria-hidden="true">◇</span>Staging Evaluate</a>
       </nav>
 
       <div class="sidebar-footer">
         <div class="plan-card">
-          <span class="eyebrow">Tenant access</span>
+          <span class="eyebrow">Customer access</span>
           <strong>Plan &amp; Usage</strong>
           <div class="usage-row"><span>Usage meter</span><span>Server-owned</span></div>
-          <div class="usage-track" aria-label="Tenant evaluation usage loads from the server"><span style="width:0%"></span></div>
+          <div class="usage-track" aria-label="Customer evaluation usage loads from the server"><span style="width:0%"></span></div>
           <small>Plan state and evaluation usage are server-owned. Paid access is not active during private beta.</small>
         </div>
         <a class="account-link" href="#/account" data-route="account">
           <span class="avatar" aria-hidden="true">FF</span>
-          <span><strong>FlipForge Account</strong><small>Plan &amp; Usage</small></span>
+          <span><strong>FlipForge Account</strong><small>Private beta</small></span>
           <span aria-hidden="true">›</span>
         </a>
       </div>
@@ -130,14 +136,14 @@
       <header class="topbar">
         <button class="icon-button menu-button" type="button" data-nav-toggle aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded="false">☰</button>
         <form class="global-search" role="search" id="global-search-form">
-          <label class="sr-only" for="global-search">Search cards, players, sets, or listings</label>
+          <label class="sr-only" for="global-search">Search cards or saved decisions</label>
           <span aria-hidden="true">⌕</span>
-          <input id="global-search" type="search" placeholder="Search cards, players, sets, or listings…" autocomplete="off">
+          <input id="global-search" type="search" placeholder="Search cards or saved decisions…" autocomplete="off">
           <kbd>Ctrl K</kbd>
         </form>
         <div class="topbar-actions">
-          <a class="date-button ff-global-new-card ff-primary-new-card" data-ff-global-new-card href="#/discover" aria-label="Discover a card"><span aria-hidden="true">＋</span> Discover a card</a>
-          <a class="date-button" href="#/opportunities" aria-label="Open saved intelligence"><span aria-hidden="true">◷</span> Saved intelligence</a>
+          <a class="date-button ff-global-new-card ff-primary-new-card" data-ff-global-new-card href="#/discover" aria-label="Evaluate a card"><span aria-hidden="true">＋</span> Evaluate a card</a>
+          <a class="date-button" href="#/opportunities" aria-label="Open saved decisions"><span aria-hidden="true">◷</span> Saved Decisions</a>
           <a class="icon-button notification-button" href="#/alerts" aria-label="Alerts"><span aria-hidden="true">♢</span></a>
           <a class="profile-button" href="#/account" aria-label="Open account">
             <span class="avatar" aria-hidden="true">FF</span>
@@ -214,5 +220,6 @@
   <script src="evidence-final-polish-v1.js"></script>
   <script src="decision-intelligence-final-polish-v1.js"></script>
   <script src="mobile-ui-runtime-fix-v1.js"></script>
+  <script src="customer-only-shell-v1.js"></script>
 </body>
 </html>
