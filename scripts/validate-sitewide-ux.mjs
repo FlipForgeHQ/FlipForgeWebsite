@@ -10,6 +10,8 @@ const marketingSupport=read('assets/css/marketing-support-v3.css');
 const density=read('assets/css/marketing-density-v1.css');
 const brandCss=read('assets/css/brand-v2.css');
 const typography=read('assets/css/public-typography-contract-v1.css');
+const workflow=read('.github/workflows/sitewide-ux.yml');
+const renderedTypographyAudit=read('scripts/audit-public-typography-rendered.mjs');
 const heroCss=read('assets/css/homepage-decision-hero-v1.css');
 const mobileHomeCss=read('assets/css/homepage-mobile-nav-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
@@ -44,8 +46,8 @@ requireText('marketing density purpose',density,'definitive marketing density sy
 requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
 
 /* Public brand/typography contract: one semantic scale owns the public site.
- * Legacy page-specific sizes may remain for layout compatibility, but this
- * contract has the specificity and !important authority to win the cascade. */
+ * Rendered browser QA is mandatory so cascade regressions cannot hide behind
+ * static CSS checks. */
 requireText('brand imports authoritative typography contract',brandCss,'@import url("public-typography-contract-v1.css")');
 requireText('public home display token',typography,'--ff-type-home-display:clamp(42px,4vw,54px)');
 requireText('public internal page title token',typography,'--ff-type-page-title:clamp(36px,3.6vw,48px)');
@@ -59,6 +61,16 @@ requireText('public section-title ownership',typography,'body.ff-support-v3 main
 requireText('public mobile home display token',typography,'--ff-type-home-display:clamp(36px,9.5vw,44px)');
 requireText('public mobile page title token',typography,'--ff-type-page-title:clamp(32px,8.8vw,40px)');
 requireText('public mobile section title token',typography,'--ff-type-section-title:clamp(24px,7vw,30px)');
+requireText('rendered typography audit imports Playwright',renderedTypographyAudit,"import { chromium } from 'playwright'");
+requireText('rendered typography audit covers Evidence Lab',renderedTypographyAudit,"['Evidence Lab', '/learn.html']");
+requireText('rendered typography audit covers public page-title equivalence',renderedTypographyAudit,'page title ${size}px differs from Product');
+requireText('rendered typography audit covers public section-title equivalence',renderedTypographyAudit,'section title ${size}px differs from Product');
+requireText('rendered typography audit covers desktop and mobile',renderedTypographyAudit,"{ name: 'desktop', width: 1440");
+requireText('rendered typography audit covers mobile viewport',renderedTypographyAudit,"{ name: 'mobile', width: 390");
+requireText('sitewide workflow triggers on every public CSS change',workflow,'- "assets/css/**"');
+requireText('sitewide workflow installs Playwright',workflow,'playwright@1.55.0');
+requireText('sitewide workflow starts local public site',workflow,'python3 -m http.server 4173');
+requireText('sitewide workflow executes rendered typography audit',workflow,'node scripts/audit-public-typography-rendered.mjs');
 requireText('non-home explicit Home control',brandCss,'.site-header .brand::after{content:"HOME"');
 requireText('Home control is removed from footer brand',brandCss,'.footer .brand::after{content:none}');
 requireText('homepage uses shared Geist brand stylesheet',homepage,'assets/css/brand-v2.css');
@@ -185,4 +197,4 @@ for(const unsafe of ['CARD VALUE INTELLIGENCE','guaranteed profit','automatic pu
 requireText('app transaction boundary',appIndex,'No transaction authority');
 
 if(failures.length){console.error('Sitewide UX system validation failed:');failures.forEach(failure=>console.error(`- ${failure}`));process.exit(1);}
-console.log('PASS: FlipForge authoritative public typography, Home navigation, live first-viewport Deal Check, deeper marketing pages, and customer-app UX ownership validated.');
+console.log('PASS: FlipForge authoritative public typography, rendered cross-page browser QA, Home navigation, live first-viewport Deal Check, deeper marketing pages, and customer-app UX ownership validated.');
