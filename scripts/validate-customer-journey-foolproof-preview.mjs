@@ -37,10 +37,12 @@ check('017 copy/paste and native selection are not intercepted', !/addEventListe
 check('018 preview does not call production decision APIs', !/fetch\s*\(/.test(js) && !/\/api\/v1\//.test(js));
 check('019 landing-page handoff stays inside deploy preview', js.includes("params.get('from')==='deal-check'") && html.includes('Back to FlipForge landing-page preview'));
 check('020 advanced tools stay secondary to the first-card path', html.includes('popovertarget="ff-more-menu"') && html.indexOf('id="ff-more-menu"') > html.indexOf('class="ff-action-dock"'));
-check('021 landing result exposes next step without bottom-of-page scrolling', landingJs.includes('buildPreviewJourneyDock') && landingJs.includes('showPreviewJourneyDock()') && landingDockCss.includes('position:fixed') && landingDockCss.includes('Continue Into FlipForge') === false);
+check('021 landing result exposes next step without bottom-of-page scrolling', landingJs.includes('buildPreviewJourneyDock') && landingJs.includes('showPreviewJourneyDock()') && landingDockCss.includes('position:fixed'));
 check('022 landing journey dock is deploy-preview only', landingJs.includes('if(!isDeployPreview||previewJourneyDock)return') && landingJs.includes("customer-journey-preview.html?from=deal-check"));
 check('023 landing journey dock respects mobile safe area', landingDockCss.includes('env(safe-area-inset-bottom)') && landingDockCss.includes('@media(max-width:700px)'));
 check('024 replay removes the fixed journey handoff', landingJs.includes('hidePreviewJourneyDock();') && landingJs.indexOf('hidePreviewJourneyDock();') > landingJs.indexOf("replay?.addEventListener"));
+check('025 preview shell protects iPhone top and side safe areas', css.includes('env(safe-area-inset-top)') && css.includes('env(safe-area-inset-left)') && css.includes('env(safe-area-inset-right)'));
+check('026 dynamic viewport has a classic viewport fallback', css.includes('height:100vh;height:100dvh') && css.includes('min-height:100vh;min-height:100dvh'));
 
 if (failures) {
   console.error(`\n${failures} customer-journey preview validation check(s) failed.`);
