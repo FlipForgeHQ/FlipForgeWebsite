@@ -2,6 +2,10 @@
  * Same role = same scale across Home, Product, Evidence Lab, Launch Plans,
  * About, Beta, FAQ, and standard public support pages.
  * The authenticated SaaS app intentionally keeps its denser workspace scale.
+ *
+ * IMPORTANT: public page-specific styles may control layout/composition, but this
+ * file owns the final rendered font size for shared semantic roles. CI verifies
+ * the computed browser result at desktop and mobile widths.
  */
 :root{
   --ff-type-home-display:clamp(42px,4vw,54px);
@@ -31,12 +35,12 @@ html body.ff-marketing-v3.ff-home-focused main#main h1{
   letter-spacing:-.04em!important;
 }
 
-/* Internal marketing/support page titles. High specificity makes this the final
- * authority even when older page-specific CSS is loaded later. */
+/* Internal marketing/support page titles. */
 html body.ff-marketing-page-v3 main#main .page-hero h1,
 html body.ff-support-v3 main#main .page-hero h1,
 html body.ff-marketing-page-v3 main#main>section.page-hero h1,
-html body.ff-support-v3 main#main>section.page-hero h1{
+html body.ff-support-v3 main#main>section.page-hero h1,
+html body.ff-aw-page main#main .page-hero h1{
   font-size:var(--ff-type-page-title)!important;
   line-height:1.04!important;
   letter-spacing:-.04em!important;
@@ -45,9 +49,11 @@ html body.ff-support-v3 main#main>section.page-hero h1{
 /* Shared section-title roles */
 html body.ff-marketing-page-v3 main#main .section-head h2,
 html body.ff-support-v3 main#main .section-head h2,
+html body.ff-aw-page main#main .section-head h2,
 html body.ff-marketing-page-v3 main#main .ff-product-copy h2,
 html body.ff-marketing-page-v3 main#main .ff-page-vision h2,
 html body main#main .ff-aw-customer-cta h2,
+html body main#main .ff-aw-busted-head h2,
 html body.ff-marketing-v3 main#main .ff-problem-intro h2,
 html body.ff-marketing-v3 main#main .ff-validation-head h2,
 html body.ff-marketing-v3 main#main .ff-audience-head h2,
@@ -79,6 +85,7 @@ html body.ff-marketing-page-v3 main#main .ff-about-proof h3{
 html body.ff-marketing-v3 main#main .lead,
 html body.ff-marketing-page-v3 main#main .lead,
 html body.ff-support-v3 main#main .lead,
+html body.ff-aw-page main#main .page-hero .lead,
 html body main#main .decision-lead{
   font-size:var(--ff-type-lead)!important;
   line-height:1.55!important;
