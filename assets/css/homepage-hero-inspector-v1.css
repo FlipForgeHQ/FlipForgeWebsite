@@ -29,61 +29,51 @@
   font-weight:650;
   line-height:1.35;
 }
-.ff-hero-film{cursor:help}
-.ff-film-inspect-cue{
-  position:absolute;
-  z-index:18;
-  right:14px;
-  bottom:13px;
-  padding:7px 9px;
-  border:1px solid rgba(212,175,55,.3);
-  border-radius:999px;
-  background:rgba(0,0,0,.76);
-  color:#d7dce3;
-  font-size:.62rem;
-  font-weight:800;
-  letter-spacing:.055em;
-  text-transform:uppercase;
-  pointer-events:none;
-  backdrop-filter:blur(8px);
-  transition:opacity .18s ease,transform .18s ease;
-}
-.ff-hero-film.is-inspecting .ff-film-inspect-cue{opacity:0;transform:translateY(6px)}
+.ff-hero-film{cursor:default}
 .ff-film-explainer{
-  position:absolute;
+  position:relative;
   z-index:19;
-  left:18px;
-  right:18px;
-  bottom:18px;
   display:grid;
-  grid-template-columns:58px minmax(0,1fr) auto;
+  grid-template-columns:64px minmax(0,1fr) auto;
   align-items:center;
-  gap:13px;
-  padding:13px 14px;
-  border:1px solid rgba(212,175,55,.45);
-  border-radius:12px;
-  background:rgba(3,6,10,.96);
-  box-shadow:0 18px 45px rgba(0,0,0,.46);
-  backdrop-filter:blur(14px);
-  opacity:0;
-  transform:translateY(14px);
-  pointer-events:none;
-  transition:opacity .2s ease,transform .2s ease;
+  gap:14px;
+  min-height:112px;
+  padding:15px 17px 16px;
+  border-top:1px solid rgba(212,175,55,.34);
+  background:linear-gradient(135deg,rgba(8,13,21,.98),rgba(2,6,11,.98));
+  box-shadow:0 -12px 32px rgba(0,0,0,.2) inset;
 }
-.ff-hero-film.is-inspecting .ff-film-explainer{opacity:1;transform:translateY(0)}
+.ff-film-explainer::before{
+  content:"WHAT FLIPFORGE IS DOING";
+  position:absolute;
+  top:8px;
+  left:96px;
+  color:rgba(230,170,53,.68);
+  font-size:.5rem;
+  font-weight:900;
+  letter-spacing:.13em;
+}
 .ff-film-explainer-step{
-  width:58px;
-  height:58px;
+  width:64px;
+  height:64px;
   display:grid;
   place-items:center;
   border:1px solid rgba(212,175,55,.52);
-  border-radius:11px;
+  border-radius:12px;
   background:rgba(212,175,55,.08);
   color:#e6aa35;
-  font-size:1.15rem;
+  font-size:1.2rem;
   font-weight:900;
+  line-height:1;
 }
-.ff-film-explainer-copy{min-width:0}
+.ff-film-explainer-step span{
+  display:block;
+  margin-left:2px;
+  color:#7e8793;
+  font-size:.52rem;
+  font-weight:800;
+}
+.ff-film-explainer-copy{min-width:0;padding-top:8px}
 .ff-film-explainer-copy small{
   display:block;
   margin-bottom:3px;
@@ -96,35 +86,30 @@
 .ff-film-explainer-copy strong{
   display:block;
   color:#fff;
-  font-size:.9rem;
+  font-size:.94rem;
   line-height:1.2;
 }
 .ff-film-explainer-copy p{
-  margin:4px 0 0;
+  margin:5px 0 0;
   color:#aeb6c1;
-  font-size:.7rem;
-  line-height:1.35;
+  font-size:.72rem;
+  line-height:1.42;
 }
 .ff-film-explainer-visual{
-  min-width:96px;
-  padding:9px 10px;
-  border:1px solid rgba(212,175,55,.18);
+  min-width:112px;
+  padding:10px 12px;
+  border:1px solid rgba(212,175,55,.2);
   border-radius:9px;
   background:#0a1018;
   color:#f0d184;
-  font-size:.76rem;
+  font-size:.8rem;
   font-weight:900;
   line-height:1.15;
   text-align:center;
   white-space:nowrap;
 }
-.ff-hero-film:focus-visible{outline:3px solid rgba(230,170,53,.62);outline-offset:4px}
-.ff-hero-film.is-inspecting .ff-film-timeline span{animation-play-state:paused!important}
-.ff-hero-film.is-inspecting .ff-film-card-bg,
-.ff-hero-film.is-inspecting .ff-film-listing,
-.ff-hero-film.is-inspecting .ff-film-badge strong,
-.ff-hero-film.is-inspecting .ff-film-brand::before,
-.ff-hero-film.is-inspecting::after{animation-play-state:paused!important}
+.ff-film-explainer[data-ff-explain-scene]{animation:ffExplainPulse .32s ease-out}
+@keyframes ffExplainPulse{from{background-color:rgba(212,175,55,.08)}to{background-color:transparent}}
 @media(max-width:1120px){
   .ff-decision-lead-impact{max-width:720px!important;margin-left:auto!important;margin-right:auto!important}
 }
@@ -133,13 +118,26 @@
   .ff-decision-lead-impact>span{padding:10px 12px!important}
   .ff-decision-lead-impact b{font-size:.9rem!important}
   .ff-decision-lead-impact small{font-size:.68rem!important}
-  .ff-film-inspect-cue{right:10px;bottom:10px;font-size:.57rem}
-  .ff-film-explainer{left:10px;right:10px;bottom:10px;grid-template-columns:42px minmax(0,1fr);gap:9px;padding:10px}
-  .ff-film-explainer-step{width:42px;height:42px;border-radius:9px;font-size:.9rem}
-  .ff-film-explainer-copy strong{font-size:.78rem}
-  .ff-film-explainer-copy p{font-size:.64rem}
-  .ff-film-explainer-visual{grid-column:1/-1;min-width:0;padding:7px 9px;font-size:.69rem;text-align:left}
+  .ff-film-explainer{
+    grid-template-columns:46px minmax(0,1fr);
+    gap:10px;
+    min-height:0;
+    padding:13px 12px 12px;
+  }
+  .ff-film-explainer::before{display:none}
+  .ff-film-explainer-step{width:46px;height:46px;border-radius:9px;font-size:.92rem}
+  .ff-film-explainer-step span{font-size:.45rem}
+  .ff-film-explainer-copy{padding-top:0}
+  .ff-film-explainer-copy strong{font-size:.8rem}
+  .ff-film-explainer-copy p{font-size:.65rem;line-height:1.36}
+  .ff-film-explainer-visual{
+    grid-column:1/-1;
+    min-width:0;
+    padding:7px 9px;
+    font-size:.7rem;
+    text-align:left;
+  }
 }
 @media(prefers-reduced-motion:reduce){
-  .ff-film-explainer,.ff-film-inspect-cue{transition:none!important}
+  .ff-film-explainer{animation:none!important}
 }
