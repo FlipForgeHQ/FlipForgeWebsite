@@ -4,6 +4,7 @@ const read=path=>fs.readFileSync(path,'utf8');
 const index=read('index.html');
 const heroCss=read('assets/css/homepage-decision-hero-v1.css');
 const filmCss=read('assets/css/homepage-hero-film-v1.css');
+const explainerCss=read('assets/css/homepage-hero-explainer-v1.css');
 const mobileCss=read('assets/css/homepage-mobile-nav-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
 const navJs=read('assets/js/homepage-v1.js');
@@ -28,11 +29,11 @@ check('002 locked slogan remains exact',index.includes('Before you buy. Know Why
 check('003 old descriptor remains forbidden',!index.includes('CARD VALUE INTELLIGENCE'));
 check('004 real locked logo asset is used',index.includes('assets/brand/flipforge-logo-horizontal.svg'));
 check('005 hero leads with the locked promise',index.includes('<span>Before you buy.</span>')&&index.includes('<strong>Know Why.</strong>'));
-check('006 hero explains the value in one sentence',index.includes('FlipForge checks whether the evidence behind a sports-card deal actually holds up.'));
+check('006 hero names the concrete differentiator',index.includes('Bad comps can make a bad deal look good.')&&index.includes('verifies the exact card')&&index.includes('shows what the price actually supports'));
 check('007 hero primary CTA opens the proof',index.includes('decision-button-primary" href="#deal-or-decoy" data-ff-see-action>Try the Deal Check'));
 check('008 hero secondary CTA requests beta',index.includes('decision-button-secondary" href="beta-application.html">Request Beta Access'));
 check('009 hero uses verified WebP asset',index.includes(heroPath)&&fs.existsSync(heroPath)&&isWebP(heroBytes));
-check('010 hero concept stays explicitly illustrative',index.includes('Animated homepage concept · illustrative example · not live market data'));
+check('010 hero concept stays explicitly illustrative',index.includes('Illustrative example')&&index.includes('not live market data'));
 check('011 unfinished MP4 is not referenced',!index.includes('flipforge-how-it-works-30s.mp4'));
 check('012 proof asks one explicit task',index.includes('<strong>Your only task:</strong>')&&index.includes('choose what you would do with this $349 listing.'));
 check('013 proof follows the hero',index.indexOf('id="deal-or-decoy"')>index.indexOf('class="decision-hero"'));
@@ -63,7 +64,7 @@ check('037 homepage remains explicitly unframeable',headerBlock('/').includes('X
 check('038 index route remains explicitly unframeable',headerBlock('/index.html').includes('X-Frame-Options = "DENY"')&&headerBlock('/index.html').includes("frame-ancestors 'none'"));
 check('039 operator route remains explicitly unframeable',headerBlock('/operator-beta.html').includes('X-Frame-Options = "DENY"')&&headerBlock('/operator-beta.html').includes("frame-ancestors 'none'"));
 check('040 animated hero film stylesheet is loaded',index.includes('assets/css/homepage-hero-film-v1.css')&&filmCss.includes('.ff-hero-film'));
-check('041 animated hero film behavior is loaded',index.includes('assets/js/homepage-hero-film-v1.js')&&filmJs.includes('25000'));
+check('041 animated hero film behavior is loaded',index.includes('assets/js/homepage-hero-film-v1.js')&&filmJs.includes('durations=[3000,4000,4000,4000,5000,5000]')&&filmJs.includes('scheduleNext'));
 check('042 animated hero respects reduced motion',filmCss.includes('@media(prefers-reduced-motion:reduce)')&&filmJs.includes('prefers-reduced-motion'));
 check('043 hero film shows evidence transformation',index.includes('5 of 7 rejected')&&index.includes('The apparent bargain nearly disappears.')&&index.includes('FlipForge decision'));
 check('044 Deal Check listing does not render the homepage hero art',dealCss.includes('.ff-deal-listing-image img{display:none!important}'));
@@ -71,6 +72,11 @@ check('045 Deal Check has a dedicated graded-card visual',dealCss.includes('.ff-
 check('046 mobile Deal Check no longer forces the hero image into a cropped fixed height',!dealCss.includes('.ff-deal-listing-image img{height:215px}'));
 check('047 mobile Deal Check puts the choice panel before listing details',dealCss.includes('.ff-deal-choice-panel{grid-row:1')&&dealCss.includes('.ff-deal-listing{grid-row:2}'));
 check('048 mobile Deal Check gives a literal start cue and keeps four choices compact',dealCss.includes("content:'START HERE · PICK ONE'")&&dealCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))'));
+check('049 hero animation has a persistent scene explanation',index.includes('data-ff-film-explainer')&&index.includes('WHAT FLIPFORGE IS DOING')&&filmJs.includes('renderExplanation'));
+check('050 hero explanation says what each step means',filmJs.includes('wrong parallels, duplicates, or an identity conflict')&&filmJs.includes('apparent 24% discount falls to about 2.3%')&&filmJs.includes('FlipForge returns VERIFY instead'));
+check('051 desktop hover and mobile tap can inspect the current step',filmJs.includes("'(hover:hover) and (pointer:fine)'")&&filmJs.includes("film.addEventListener('mouseenter',inspect)")&&filmJs.includes("film.addEventListener('click'"));
+check('052 inspect interaction has visible paused state',explainerCss.includes('.ff-hero-film.is-inspecting')&&explainerCss.includes('animation-play-state:paused!important'));
+check('053 explainer remains readable on phones',explainerCss.includes('@media(max-width:760px)')&&explainerCss.includes('.ff-film-explainer'));
 
 const failures=checks.filter(item=>!item.passed);
 console.log('FlipForge video-first homepage validation');
