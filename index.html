@@ -20,10 +20,12 @@
   <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/flipforge-app-icon-180.png">
   <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="assets/css/brand-v2.css">
   <link rel="stylesheet" href="assets/css/homepage-decision-hero-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-mobile-nav-v1.css">
-  <link rel="stylesheet" href="assets/css/homepage-hero-film-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-deal-or-decoy-v1.css">
+  <link rel="stylesheet" href="assets/css/homepage-deal-refinement-v2.css">
+  <link rel="stylesheet" href="assets/css/homepage-deal-live-process-v3.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"FlipForge LLC","url":"https://goflipforge.com/","email":"support@goflipforge.com","logo":"https://goflipforge.com/assets/brand/flipforge-logo-horizontal.svg","slogan":"Before you buy. Know Why."},{"@type":"SoftwareApplication","name":"FlipForge","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Card Decision Intelligence for sports-card collectors: exact identity, evidence qualification, risk, supported value, explainable decisions, and outcome review."}]}</script>
 </head>
 <body>
@@ -44,6 +46,7 @@
       <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-navigation"><span></span></button>
     </div>
   </header>
+
   <nav class="mobile-nav" id="mobile-navigation" aria-label="Mobile navigation">
     <a href="product.html">Product</a>
     <a href="learn.html">Evidence Lab</a>
@@ -64,192 +67,171 @@
           <strong>Know Why.</strong>
         </h1>
         <p class="decision-lead">FlipForge checks whether the evidence behind a sports-card deal actually holds up.</p>
-
+        <p class="decision-demo-cue"><strong>Try it now.</strong> Make one call, then watch FlipForge check the exact card, challenge the comps, recalculate the value, and explain the verdict.</p>
         <div class="decision-actions">
-          <a class="decision-button decision-button-primary" href="#deal-or-decoy" data-ff-see-action>Try the Deal Check</a>
           <a class="decision-button decision-button-secondary" href="beta-application.html">Request Beta Access</a>
         </div>
-
         <p class="decision-assurance">Exact card. Qualified evidence. Explainable decision.</p>
       </div>
 
-      <div>
-        <div class="ff-hero-film" data-ff-hero-film aria-label="Animated concept showing FlipForge challenging an apparent sports-card deal">
-          <div class="ff-film-topbar">
-            <span class="ff-film-brand">FlipForge Deal Check</span>
-            <span class="ff-film-label">Silent autoplay concept</span>
+      <section class="ff-deal-demo" id="deal-or-decoy" aria-labelledby="deal-or-decoy-title" data-ff-deal-demo>
+        <div class="ff-deal-shell">
+          <div class="ff-deal-topbar">
+            <strong>FLIPFORGE DEAL CHECK</strong>
+            <span>Choose a call. Watch FlipForge test it.</span>
           </div>
-          <div class="ff-film-stage">
-            <div class="ff-film-card-bg" aria-hidden="true"></div>
-            <article class="ff-film-listing">
-              <small>Illustrative listing</small>
-              <h3>2020 Panini Prizm #307 Joe Burrow Silver Prizm · PSA 10</h3>
-              <div class="ff-film-listing-price">
-                <strong>$349</strong>
-                <span>Market reference<b>$459.21</b></span>
-              </div>
-              <div class="ff-film-badge"><span>Looks under market</span><strong>24.0%</strong></div>
-            </article>
 
-            <div class="ff-film-scenes">
-              <div class="ff-film-scene ff-film-question is-active" data-ff-film-scene>
-                <span>The apparent deal</span>
-                <strong>Looks like a bargain. But why?</strong>
-              </div>
-
-              <div class="ff-film-scene ff-film-scan" data-ff-film-scene>
-                <span>FlipForge evidence check</span>
-                <h4>Checking the comparisons…</h4>
-                <div class="ff-film-comp-grid">
-                  <div class="ff-film-comp"><span>Exact Silver Prizm · PSA 10</span><b>✓</b></div>
-                  <div class="ff-film-comp is-bad"><span>White Sparkle parallel</span><b>×</b></div>
-                  <div class="ff-film-comp is-bad"><span>Duplicate comparison</span><b>×</b></div>
-                  <div class="ff-film-comp is-bad"><span>Identity conflict</span><b>×</b></div>
-                </div>
-              </div>
-
-              <div class="ff-film-scene ff-film-reject" data-ff-film-scene>
-                <small>Evidence problem found</small>
-                <strong>5 of 7 rejected</strong>
-                <p>Wrong parallels, duplicates, and an identity conflict were inflating the comparison set.</p>
-              </div>
-
-              <div class="ff-film-scene ff-film-shift" data-ff-film-scene>
-                <small>After qualified evidence</small>
-                <div class="ff-film-shift-values"><span>24.0%</span><b>→</b><strong>2.3%</strong></div>
-                <p>The apparent bargain nearly disappears.</p>
-              </div>
-
-              <div class="ff-film-scene ff-film-verdict" data-ff-film-scene>
-                <small>FlipForge decision</small>
-                <strong>VERIFY</strong>
-                <p>The price alone does not support BUY.</p>
-                <em>Before you buy. Know Why.</em>
-              </div>
-
-              <div class="ff-film-scene ff-film-verdict" data-ff-film-scene>
-                <small>Card Decision Intelligence</small>
-                <strong>KNOW WHY.</strong>
-                <p>See what the price alone cannot tell you.</p>
-                <em>Now make the next call yourself ↓</em>
-              </div>
+          <div class="ff-deal-stage" data-ff-choice-stage>
+            <div class="ff-deal-question">
+              <p class="ff-deal-kicker">YOUR ONLY TASK</p>
+              <h2 id="deal-or-decoy-title">Would you pay <span>$349</span> for this card?</h2>
+              <p>Pick what you would do. FlipForge will show you what changes.</p>
             </div>
-          </div>
-          <div class="ff-film-timeline" aria-hidden="true"><span></span></div>
-        </div>
-        <p class="ff-film-caption">Animated homepage concept · illustrative example · not live market data</p>
-      </div>
-    </section>
 
-    <section class="ff-deal-demo" id="deal-or-decoy" aria-labelledby="deal-or-decoy-title">
-      <div class="ff-deal-intro">
-        <p class="ff-deal-kicker">YOUR TURN · DEAL OR DECOY?</p>
-        <h2 id="deal-or-decoy-title" tabindex="-1">Think you would have caught it?</h2>
-        <p>Make the next call yourself. Choose what you would do with the listing, and FlipForge will immediately show what the evidence changes.</p>
-      </div>
-
-      <div class="ff-deal-shell" data-ff-deal-demo>
-        <div class="ff-deal-topbar">
-          <strong>60-second deal check</strong>
-          <span>One choice. Immediate answer.</span>
-        </div>
-        <p class="ff-deal-instruction"><strong>Your only task:</strong> choose what you would do with this $349 listing.</p>
-
-        <div class="ff-deal-stage" data-ff-choice-stage>
-          <div class="ff-deal-choice-layout">
             <article class="ff-deal-listing" aria-label="Illustrative sports-card listing">
-              <div class="ff-deal-listing-image">
-                <img src="assets/images/flipforge-homepage-hero.webp" width="800" height="450" decoding="async" loading="lazy" alt="Illustrative FlipForge card listing">
-                <span>Illustrative example</span>
-              </div>
+              <div class="ff-deal-mini-card" aria-hidden="true"><span>PSA 10</span></div>
               <div class="ff-deal-listing-copy">
+                <small>Illustrative listing</small>
                 <h3>2020 Panini Prizm #307 Joe Burrow Silver Prizm · PSA 10</h3>
                 <p>Buy It Now · shipping included · seller rating 99.8%</p>
-                <div class="ff-deal-price-row">
-                  <div><small>Listing price</small><strong>$349</strong></div>
-                  <div><small>Displayed market reference</small><strong>$459.21</strong><span>7 comparisons</span></div>
-                </div>
+              </div>
+              <div class="ff-deal-price-stack">
+                <small>Asking price</small>
+                <strong>$349</strong>
+                <span>Displayed market reference $459.21</span>
               </div>
             </article>
 
-            <div class="ff-deal-choice-panel">
-              <h3>Would you trust this deal?</h3>
-              <p>Other price tools make it look like a bargain. Make your call before FlipForge checks the evidence.</p>
-              <div class="ff-deal-discount"><span>Apparent discount</span><strong>24.0%</strong></div>
-              <p class="ff-deal-choice-label" id="ff-deal-choice-label">Click one choice</p>
-              <div class="ff-deal-choices" role="group" aria-labelledby="ff-deal-choice-label">
-                <button type="button" data-ff-choice="BUY"><strong>BUY</strong><span>Purchase it now</span></button>
-                <button type="button" data-ff-choice="WATCH"><strong>WATCH</strong><span>Wait for a better price</span></button>
-                <button type="button" data-ff-choice="VERIFY"><strong>VERIFY</strong><span>Check the evidence first</span></button>
-                <button type="button" data-ff-choice="PASS"><strong>PASS</strong><span>Walk away</span></button>
+            <div class="ff-deal-discount" aria-label="Apparent discount">
+              <span>Looks under market</span>
+              <strong>24.0%</strong>
+            </div>
+
+            <p class="ff-deal-choice-label" id="ff-deal-choice-label">What would you do?</p>
+            <div class="ff-deal-choices" role="group" aria-labelledby="ff-deal-choice-label">
+              <button type="button" data-ff-choice="BUY"><strong>BUY</strong><span>Purchase it now</span></button>
+              <button type="button" data-ff-choice="WATCH"><strong>WATCH</strong><span>Wait and monitor</span></button>
+              <button type="button" data-ff-choice="VERIFY"><strong>VERIFY</strong><span>Check the evidence first</span></button>
+              <button type="button" data-ff-choice="PASS"><strong>PASS</strong><span>Walk away</span></button>
+            </div>
+            <p class="ff-deal-choice-note">Pick one. Then watch FlipForge test identity → evidence → value → decision.</p>
+          </div>
+
+          <div class="ff-deal-stage ff-deal-processing-stage" data-ff-processing-stage data-ff-process-step="1" hidden aria-labelledby="ff-processing-title">
+            <div class="ff-process-heading">
+              <div>
+                <p class="ff-deal-kicker">FLIPFORGE IS CHECKING YOUR CALL</p>
+                <h2 id="ff-processing-title">Watch the deal change as the evidence is tested.</h2>
+                <p>This is the part a headline price cannot show you.</p>
               </div>
-              <p class="ff-deal-choice-note">Your answer reveals FlipForge’s decision immediately.</p>
+              <div class="ff-process-call"><small>YOUR CALL</small><strong data-ff-processing-choice>—</strong></div>
+            </div>
+
+            <div class="ff-process-live" aria-live="polite">
+              <span class="ff-process-pulse" aria-hidden="true"></span>
+              <div><small data-ff-process-label>STEP 1 OF 4 · EXACT CARD</small><strong data-ff-process-title>Confirming year, set, card number, parallel, grader and grade…</strong></div>
+              <span data-ff-process-counter>CHECKING</span>
+            </div>
+            <div class="ff-process-progress" aria-hidden="true"><span></span></div>
+
+            <div class="ff-process-grid">
+              <article class="ff-process-card is-active" data-ff-process-card="identity">
+                <div class="ff-process-card-header"><small>01 · EXACT CARD</small><b data-ff-identity-state>CHECKING</b></div>
+                <h3>Joe Burrow · #307 · Silver Prizm · PSA 10</h3>
+                <p>Identity must match before any price evidence gets a vote.</p>
+              </article>
+
+              <article class="ff-process-card" data-ff-process-card="value">
+                <div class="ff-process-card-header"><small>03 · SUPPORTED VALUE</small><b data-ff-value-state>WAITING</b></div>
+                <h3>Rebuild value from qualified evidence.</h3>
+                <p>The displayed market reference is not accepted automatically.</p>
+              </article>
+
+              <div class="ff-process-comps" data-ff-process-card="evidence">
+                <div class="ff-process-comps-head"><small>02 · CHALLENGE 7 COMPARISONS</small><strong data-ff-evidence-state>WAITING</strong></div>
+                <div class="ff-process-comp-row" aria-label="Seven comparison records being tested">
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="valid" aria-label="Comparison 1 pending"><b>1</b><small>EXACT</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 2 pending"><b>2</b><small>PARALLEL</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 3 pending"><b>3</b><small>DUPLICATE</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 4 pending"><b>4</b><small>PARALLEL</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 5 pending"><b>5</b><small>DUPLICATE</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="rejected" aria-label="Comparison 6 pending"><b>6</b><small>IDENTITY</small></span>
+                  <span class="ff-process-comp" data-ff-live-comp data-final-state="valid" aria-label="Comparison 7 pending"><b>7</b><small>EXACT</small></span>
+                </div>
+              </div>
+
+              <div class="ff-process-value-lane" data-ff-value-lane>
+                <div><small>DISPLAYED REFERENCE</small><strong>$459.21</strong></div>
+                <span aria-hidden="true">→</span>
+                <div class="ff-process-supported" data-ff-supported><small>EVIDENCE-SUPPORTED VALUE</small><strong data-ff-supported-value>Checking…</strong></div>
+                <div class="ff-process-discount" data-ff-process-discount><small>APPARENT 24.0%</small><strong data-ff-supported-discount>—</strong></div>
+              </div>
+
+              <div class="ff-process-verdict" data-ff-process-verdict><small>04 · DECISION</small><strong data-ff-process-verdict-text>WAITING FOR EVIDENCE</strong></div>
             </div>
           </div>
-        </div>
 
-        <div class="ff-deal-stage" data-ff-result-stage hidden>
-          <div class="ff-deal-result-heading">
-            <p class="ff-deal-kicker">FLIPFORGE ANSWER</p>
-            <h3 tabindex="-1">VERIFY before you buy.</h3>
-            <p data-ff-decision-comparison>You chose —. FlipForge checked the evidence before trusting the advertised discount.</p>
-          </div>
+          <div class="ff-deal-stage ff-deal-result-stage" data-ff-result-stage hidden>
+            <div class="ff-deal-result-heading">
+              <p class="ff-deal-kicker">YOU CHOSE <strong data-ff-visitor-choice>—</strong></p>
+              <h2 tabindex="-1">FlipForge says <span>VERIFY.</span></h2>
+              <p>Price looked convincing. The evidence changed the decision.</p>
+            </div>
 
-          <div class="ff-deal-result-summary">
-            <div class="ff-deal-result-panel">
-              <p class="ff-deal-result-kicker">The deal after evidence review</p>
+            <div class="ff-deal-shift-card">
+              <small>APPARENT DISCOUNT → EVIDENCE-SUPPORTED DISCOUNT</small>
               <div class="ff-deal-shift"><span>24.0%</span><b aria-hidden="true">→</b><strong>2.3%</strong></div>
-              <p>The apparent discount nearly disappears. Supported value is <strong>$357.20</strong>, not $459.21.</p>
-              <div class="ff-deal-verdict"><span>FlipForge decision</span><strong>VERIFY</strong></div>
+              <p>Supported value is <strong>$357.20</strong>, not $459.21.</p>
             </div>
 
-            <div class="ff-deal-finding-panel">
-              <p class="ff-deal-result-kicker">What FlipForge found</p>
-              <h3>5 of 7 comparisons were invalid.</h3>
-              <p>The inflated comparison set made the listing look much cheaper than it really was.</p>
-              <div class="ff-deal-exclusions" aria-label="Invalid comparison reasons">
-                <div><strong>2</strong><span>Wrong parallels</span></div>
-                <div><strong>2</strong><span>Duplicate records</span></div>
-                <div><strong>1</strong><span>Identity conflict</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="ff-deal-result-detail">
             <div class="ff-deal-reasons">
-              <h3>Why FlipForge said VERIFY</h3>
               <div><span>01</span><p>Only <strong>2 of 7 comparisons</strong> matched the exact card, parallel, and grade.</p></div>
               <div><span>02</span><p>A <strong>2.3% price gap</strong> is too small to support BUY while identity evidence remains conflicted.</p></div>
-              <div class="ff-deal-actions">
-                <a class="decision-button decision-button-primary" href="/app/#/evaluate" data-ff-deal-cta="evaluate_listing">Evaluate Your Own Listing</a>
-                <a class="decision-button decision-button-secondary" href="beta-application.html" data-ff-deal-cta="beta_access">Request Beta Access</a>
-              </div>
-              <button class="ff-deal-replay" type="button" data-ff-replay>Replay the decision</button>
             </div>
 
-            <details class="ff-deal-comparisons">
-              <summary>See all 7 comparison checks</summary>
-              <div class="ff-deal-comparison-list">
-                <div class="is-valid"><span>✓</span><p><strong>Exact Silver Prizm · PSA 10</strong><small>Eligible completed sale</small></p><b>$355.00</b></div>
-                <div class="is-rejected"><span>×</span><p><strong>White Sparkle parallel</strong><small>Wrong parallel</small></p><b>$505.00</b></div>
-                <div class="is-rejected"><span>×</span><p><strong>White Sparkle repeat</strong><small>Duplicate record</small></p><b>$505.00</b></div>
-                <div class="is-rejected"><span>×</span><p><strong>Gold parallel</strong><small>Wrong parallel</small></p><b>$498.00</b></div>
-                <div class="is-rejected"><span>×</span><p><strong>Gold parallel repeat</strong><small>Duplicate record</small></p><b>$498.00</b></div>
-                <div class="is-rejected"><span>×</span><p><strong>Parallel not confirmed</strong><small>Identity conflict</small></p><b>$494.07</b></div>
-                <div class="is-valid"><span>✓</span><p><strong>Exact Silver Prizm · PSA 10</strong><small>Eligible completed sale</small></p><b>$359.40</b></div>
-              </div>
-            </details>
+            <div class="ff-deal-result-actions">
+              <button class="ff-deal-evidence" type="button" data-ff-open-evidence>See the evidence</button>
+              <a class="decision-button decision-button-primary" href="/app/#/evaluate" data-ff-deal-cta="evaluate_listing">Evaluate Your Own Listing</a>
+              <a class="decision-button decision-button-secondary" href="beta-application.html" data-ff-deal-cta="beta_access">Request Beta Access</a>
+              <button class="ff-deal-replay" type="button" data-ff-replay>Try another choice</button>
+            </div>
           </div>
+
+          <p class="ff-deal-boundary"><strong>Controlled Private Beta.</strong> Illustrative example · not live market data · decision support only. FlipForge does not guarantee profit or authorize transactions.</p>
+          <p class="ff-visually-hidden" aria-live="polite" data-ff-deal-status></p>
         </div>
 
-        <p class="ff-deal-boundary"><strong>Controlled Private Beta.</strong> Illustrative example · not live market data · decision support only. FlipForge does not guarantee profit or authorize transactions.</p>
-        <p class="ff-visually-hidden" aria-live="polite" data-ff-deal-status></p>
-      </div>
+        <dialog class="ff-evidence-dialog" data-ff-evidence-dialog aria-labelledby="ff-evidence-title">
+          <div class="ff-evidence-dialog-header">
+            <div>
+              <p class="ff-deal-kicker">WHY FLIPFORGE SAID VERIFY</p>
+              <h2 id="ff-evidence-title">5 of 7 comparisons were invalid.</h2>
+            </div>
+            <button type="button" data-ff-close-evidence aria-label="Close evidence">×</button>
+          </div>
+
+          <p class="ff-evidence-intro">The displayed $459.21 reference was inflated by wrong parallels, duplicates, and an identity conflict. FlipForge keeps only evidence that belongs to the exact card.</p>
+
+          <div class="ff-deal-comparison-list" aria-label="Seven comparison checks">
+            <div class="is-valid"><span>✓</span><p><strong>Exact Silver Prizm · PSA 10</strong><small>Eligible completed sale</small></p><b>$355.00</b></div>
+            <div class="is-rejected"><span>×</span><p><strong>White Sparkle parallel</strong><small>Wrong parallel</small></p><b>$505.00</b></div>
+            <div class="is-rejected"><span>×</span><p><strong>White Sparkle repeat</strong><small>Duplicate record</small></p><b>$505.00</b></div>
+            <div class="is-rejected"><span>×</span><p><strong>Gold parallel</strong><small>Wrong parallel</small></p><b>$498.00</b></div>
+            <div class="is-rejected"><span>×</span><p><strong>Gold parallel repeat</strong><small>Duplicate record</small></p><b>$498.00</b></div>
+            <div class="is-rejected"><span>×</span><p><strong>Parallel not confirmed</strong><small>Identity conflict</small></p><b>$494.07</b></div>
+            <div class="is-valid"><span>✓</span><p><strong>Exact Silver Prizm · PSA 10</strong><small>Eligible completed sale</small></p><b>$359.40</b></div>
+          </div>
+
+          <div class="ff-evidence-dialog-footer">
+            <strong>24.0% apparent → 2.3% supported</strong>
+            <button type="button" data-ff-close-evidence>Back to the decision</button>
+          </div>
+        </dialog>
+      </section>
     </section>
   </main>
 
   <script src="assets/js/homepage-v1.js" defer></script>
-  <script src="assets/js/homepage-hero-film-v1.js" defer></script>
   <script src="assets/js/homepage-deal-or-decoy-v1.js" defer></script>
 </body>
 </html>

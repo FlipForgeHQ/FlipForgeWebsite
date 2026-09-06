@@ -8,11 +8,12 @@ const forbidText=(label,text,needle)=>{if(text.includes(needle))failures.push(`$
 const marketingPages=read('assets/css/marketing-pages-v3.css');
 const marketingSupport=read('assets/css/marketing-support-v3.css');
 const density=read('assets/css/marketing-density-v1.css');
+const brandCss=read('assets/css/brand-v2.css');
 const heroCss=read('assets/css/homepage-decision-hero-v1.css');
-const filmCss=read('assets/css/homepage-hero-film-v1.css');
 const mobileHomeCss=read('assets/css/homepage-mobile-nav-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
-const filmJs=read('assets/js/homepage-hero-film-v1.js');
+const dealRefinement=read('assets/css/homepage-deal-refinement-v2.css');
+const dealProcess=read('assets/css/homepage-deal-live-process-v3.css');
 const dealJs=read('assets/js/homepage-deal-or-decoy-v1.js');
 const awardJs=read('assets/js/award-winning-v1.js');
 const appIndex=read('saas-prototype/index.html');
@@ -27,6 +28,15 @@ const evidence=read('learn.html');
 const plans=read('pricing.html');
 const about=read('about.html');
 const beta=read('beta-application.html');
+const faq=read('faq.html');
+const dataUse=read('data-use.html');
+const privacy=read('privacy.html');
+const terms=read('terms.html');
+const betaTerms=read('beta-terms.html');
+const refund=read('refund.html');
+const thankYou=read('thank-you.html');
+const betaOnboarding=read('beta-onboarding.html');
+const notFound=read('404.html');
 
 for(const [label,text] of [['product/about marketing',marketingPages],['support marketing',marketingSupport]]) requireText(label,text,'@import url("marketing-density-v1.css")');
 requireText('marketing density purpose',density,'definitive marketing density system');
@@ -34,30 +44,85 @@ requireText('marketing page hero cap',density,'font-size:clamp(38px,4vw,52px)!im
 requireText('support page hero cap',density,'font-size:clamp(36px,3.75vw,50px)!important');
 requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
 
+/* Public brand/typography contract: navigating around the public site should
+ * feel like one product rather than a collection of separate templates. */
+requireText('shared public heading scale',brandCss,'font-size:clamp(38px,4.2vw,56px)!important');
+requireText('shared public section heading scale',brandCss,'font-size:clamp(26px,2.6vw,36px)!important');
+requireText('shared public lead scale',brandCss,'font-size:17px!important');
+requireText('shared public desktop nav scale',brandCss,'.site-header .desktop-nav a{font-size:13px!important}');
+requireText('non-home explicit Home control',brandCss,'.site-header .brand::after{content:"HOME"');
+requireText('Home control is removed from footer brand',brandCss,'.footer .brand::after{content:none}');
+requireText('homepage uses shared Geist brand stylesheet',homepage,'assets/css/brand-v2.css');
+requireText('homepage uses shared Geist typeface',heroCss,'font-family:Geist,"Geist Sans",Arial,sans-serif');
+requireText('homepage uses shared desktop nav scale',heroCss,'font-size:13px;font-weight:650');
+requireText('homepage uses shared hero scale',heroCss,'font-size:clamp(38px,4.2vw,56px)');
+
+const publicShellPages=[
+  ['Product',product],
+  ['Evidence Lab',evidence],
+  ['Launch Plans',plans],
+  ['About',about],
+  ['Beta',beta],
+  ['FAQ',faq],
+  ['Data Use',dataUse],
+  ['Privacy',privacy],
+  ['Terms',terms],
+  ['Beta Terms',betaTerms],
+  ['Refund',refund],
+  ['Thank You',thankYou],
+  ['Beta Onboarding',betaOnboarding],
+  ['404',notFound]
+];
+for(const [label,text] of publicShellPages){
+  requireText(`${label} shared brand stylesheet`,text,'assets/css/brand-v2.css');
+  requireText(`${label} explicit route home`,text,'class="brand" href="index.html"');
+}
+
 requireText('homepage hero stylesheet',homepage,'assets/css/homepage-decision-hero-v1.css');
-requireText('homepage film stylesheet',homepage,'assets/css/homepage-hero-film-v1.css');
 requireText('homepage mobile stylesheet',homepage,'assets/css/homepage-mobile-nav-v1.css');
 requireText('homepage proof stylesheet',homepage,'assets/css/homepage-deal-or-decoy-v1.css');
-requireText('homepage browser-decodable visual',homepage,'assets/images/flipforge-homepage-hero.webp');
-requireText('homepage first action',homepage,'Try the Deal Check');
-requireText('homepage proof path',homepage,'href="#deal-or-decoy" data-ff-see-action');
-requireText('homepage animated proof',homepage,'assets/js/homepage-hero-film-v1.js');
+requireText('homepage refinement stylesheet',homepage,'assets/css/homepage-deal-refinement-v2.css');
+requireText('homepage live process stylesheet',homepage,'assets/css/homepage-deal-live-process-v3.css');
+requireText('homepage refinement owns result contrast',dealRefinement,'.ff-deal-result-heading');
+requireText('homepage refinement owns signature correction',dealRefinement,'.ff-deal-shift strong');
+requireText('homepage live process owns evidence animation',dealProcess,'.ff-process-comp.is-rejected');
+requireText('homepage live process owns value correction',dealProcess,'.ff-process-supported.is-updated strong');
+requireText('homepage live process responsive',dealProcess,'@media(max-width:760px)');
+requireText('homepage browser-decodable visual metadata',homepage,'assets/images/flipforge-homepage-hero.webp');
+requireText('homepage direct first action',homepage,'Would you pay <span>$349</span> for this card?');
+requireText('homepage proof path',homepage,'class="ff-deal-demo" id="deal-or-decoy"');
 requireText('homepage interactive proof',homepage,'assets/js/homepage-deal-or-decoy-v1.js');
-requireText('homepage film progression',filmJs,'25000');
-requireText('homepage film reduced motion',filmCss,'@media(prefers-reduced-motion:reduce)');
+requireText('homepage processing stage',homepage,'data-ff-processing-stage');
+requireText('homepage live identity step',homepage,'01 · EXACT CARD');
+requireText('homepage live evidence step',homepage,'02 · CHALLENGE 7 COMPARISONS');
+requireText('homepage live value step',homepage,'03 · SUPPORTED VALUE');
+requireText('homepage live decision step',homepage,'04 · DECISION');
+forbidText('homepage retired film stylesheet',homepage,'assets/css/homepage-hero-film-v1.css');
+forbidText('homepage retired film behavior',homepage,'assets/js/homepage-hero-film-v1.js');
+forbidText('homepage retired scroll CTA',homepage,'Try the Deal Check');
+forbidText('homepage forced scroll behavior',dealJs,'scrollIntoView');
+requireText('homepage first viewport',heroCss,'min-height:calc(100dvh - 79px)');
+requireText('homepage enters processing before result',dealJs,"demo.dataset.ffState='processing'");
+requireText('homepage animates comparison review',dealJs,"setCompState(index,'reviewing')");
+requireText('homepage corrects supported value',dealJs,"supportedValue.textContent='$357.20'");
+requireText('homepage corrects supported discount',dealJs,"supportedDiscount.textContent='2.3%'");
+requireText('homepage result after processing',dealJs,'schedule(token,3820,showResult)');
+requireText('homepage result reveal',dealJs,'resultStage.hidden=false');
+requireText('homepage view transition progressive enhancement',dealJs,'document.startViewTransition');
+requireText('homepage native evidence dialog',dealJs,'showModal');
+requireText('homepage stateful result hierarchy',dealJs,"demo.dataset.ffState='result'");
 forbidText('homepage broken visual removed',homepage,'assets/images/flipforge-approved-decision-visual.webp');
 forbidText('homepage unfinished video removed',homepage,'assets/video/flipforge-how-it-works-30s.mp4');
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
 requireText('homepage transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
 for(const old of ['ff-live-product-frame','ff-motion-console','ff-card-stage','data-replay-decision'])forbidText('homepage old overload removed',homepage,old);
 requireText('homepage compact width',heroCss,'width:min(1380px,calc(100% - 56px))');
-requireText('homepage film responsive',filmCss,'@media(max-width:760px)');
 requireText('homepage mobile single column',heroCss,'@media(max-width:760px)');
 requireText('homepage mobile nav',mobileHomeCss,'.mobile-nav.open');
 requireText('homepage reduced motion',mobileHomeCss,'@media(prefers-reduced-motion:reduce)');
-requireText('homepage proof responsive',dealCss,'.ff-deal-choice-layout');
-requireText('homepage proof immediate reveal',dealJs,'resultStage.hidden=false');
-requireText('homepage proof action-first mobile ordering',dealCss,'.ff-deal-choice-panel{grid-row:1');
+requireText('homepage process reduced motion',dealProcess,'@media(prefers-reduced-motion:reduce)');
+requireText('homepage proof responsive',dealCss,'@media(max-width:760px)');
+requireText('homepage proof compact mobile choices',dealCss,'grid-template-columns:repeat(2,minmax(0,1fr))');
 requireText('homepage proof explicit mobile start cue',dealCss,"content:'START HERE · PICK ONE'");
 
 requireText('beta start action',awardJs,'Start application');
@@ -112,4 +177,4 @@ for(const unsafe of ['CARD VALUE INTELLIGENCE','guaranteed profit','automatic pu
 requireText('app transaction boundary',appIndex,'No transaction authority');
 
 if(failures.length){console.error('Sitewide UX system validation failed:');failures.forEach(failure=>console.error(`- ${failure}`));process.exit(1);}
-console.log('PASS: FlipForge video-first homepage, deeper marketing pages, and customer-app UX ownership validated.');
+console.log('PASS: FlipForge public typography, Home navigation, live first-viewport Deal Check, deeper marketing pages, and customer-app UX ownership validated.');

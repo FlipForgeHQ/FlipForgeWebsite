@@ -2,169 +2,234 @@
   'use strict';
 
   const demo=document.querySelector('[data-ff-deal-demo]');
-  const heroTrigger=document.querySelector('[data-ff-see-action]');
   if(!demo)return;
 
-  const section=document.getElementById('deal-or-decoy');
-  const sectionHeading=document.getElementById('deal-or-decoy-title');
   const choiceStage=demo.querySelector('[data-ff-choice-stage]');
+  const processingStage=demo.querySelector('[data-ff-processing-stage]');
   const resultStage=demo.querySelector('[data-ff-result-stage]');
-  const resultHeading=resultStage?.querySelector('h3');
-  const comparison=demo.querySelector('[data-ff-decision-comparison]');
+  const resultHeading=resultStage?.querySelector('h2');
+  const visitorChoiceLabel=demo.querySelector('[data-ff-visitor-choice]');
+  const processingChoiceLabel=demo.querySelector('[data-ff-processing-choice]');
   const replay=demo.querySelector('[data-ff-replay]');
-  const details=demo.querySelector('.ff-deal-comparisons');
+  const evidenceDialog=demo.querySelector('[data-ff-evidence-dialog]');
+  const evidenceOpen=demo.querySelector('[data-ff-open-evidence]');
+  const evidenceClose=[...demo.querySelectorAll('[data-ff-close-evidence]')];
   const status=demo.querySelector('[data-ff-deal-status]');
   const choices=[...demo.querySelectorAll('[data-ff-choice]')];
-  const heroFilm=document.querySelector('[data-ff-hero-film]');
+
+  const processLabel=demo.querySelector('[data-ff-process-label]');
+  const processTitle=demo.querySelector('[data-ff-process-title]');
+  const processCounter=demo.querySelector('[data-ff-process-counter]');
+  const identityCard=demo.querySelector('[data-ff-process-card="identity"]');
+  const valueCard=demo.querySelector('[data-ff-process-card="value"]');
+  const evidenceCard=demo.querySelector('[data-ff-process-card="evidence"]');
+  const identityState=demo.querySelector('[data-ff-identity-state]');
+  const valueState=demo.querySelector('[data-ff-value-state]');
+  const evidenceState=demo.querySelector('[data-ff-evidence-state]');
+  const processComps=[...demo.querySelectorAll('[data-ff-live-comp]')];
+  const valueLane=demo.querySelector('[data-ff-value-lane]');
+  const supported=demo.querySelector('[data-ff-supported]');
+  const processDiscount=demo.querySelector('[data-ff-process-discount]');
+  const supportedValue=demo.querySelector('[data-ff-supported-value]');
+  const supportedDiscount=demo.querySelector('[data-ff-supported-discount]');
+  const processVerdict=demo.querySelector('[data-ff-process-verdict]');
+  const processVerdictText=demo.querySelector('[data-ff-process-verdict-text]');
+
   const reduceMotion=()=>Boolean(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   let visitorChoice=null;
-  let started=false;
+  let processTimers=[];
+  let processToken=0;
 
-  const style=document.createElement('style');
-  style.textContent=`
-    .ff-proof-handoff{width:min(1180px,calc(100% - 48px));margin:6px auto 0;padding:24px 28px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px;border:1px solid rgba(212,175,55,.28);border-radius:18px;background:linear-gradient(120deg,rgba(184,134,11,.11),rgba(0,0,0,.72));box-shadow:0 18px 48px rgba(0,0,0,.24);transition:border-color .35s ease,box-shadow .35s ease,transform .35s ease}
-    .ff-proof-handoff.is-ready{border-color:rgba(212,175,55,.65);box-shadow:0 22px 64px rgba(0,0,0,.36),0 0 34px rgba(212,175,55,.08);transform:translateY(-2px)}
-    .ff-proof-handoff-copy small{display:block;margin-bottom:7px;color:#d4af37;font-size:.74rem;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
-    .ff-proof-handoff-copy strong{display:block;color:#fff;font-size:clamp(1.35rem,2.5vw,2rem);line-height:1.08;letter-spacing:-.025em}
-    .ff-proof-handoff-copy span{display:block;margin-top:7px;color:#8b8f98;font-size:.96rem;line-height:1.45}
-    .ff-proof-handoff-button{min-width:190px;padding:14px 20px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #d4af37;border-radius:10px;background:#d4af37;color:#000;font:inherit;font-weight:850;text-decoration:none;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}
-    .ff-proof-handoff-button:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(212,175,55,.15)}
-    .ff-proof-handoff-button:focus-visible{outline:3px solid rgba(212,175,55,.55);outline-offset:3px}
-    .ff-deal-reasons>.ff-conversion-prompt{width:100%;margin:22px 0 0;padding:20px 22px;display:block;grid-template-columns:none;gap:0;border:1px solid rgba(212,175,55,.32);border-radius:13px;background:linear-gradient(120deg,rgba(184,134,11,.11),rgba(0,0,0,.35))}
-    .ff-deal-reasons>.ff-conversion-prompt small{display:block;color:#d4af37;font-size:.72rem;font-weight:850;letter-spacing:.13em;line-height:1.45;text-transform:uppercase}
-    .ff-deal-reasons>.ff-conversion-prompt strong{display:block;margin-top:6px;color:#fff;font-size:1.2rem;line-height:1.25}
-    .ff-deal-reasons>.ff-conversion-prompt p{display:block;margin:7px 0 0;color:#8b8f98;font-size:.9rem;line-height:1.5}
-    .ff-deal-actions.is-conversion-ready{margin-top:13px;padding-top:0}
-    .ff-deal-actions.is-conversion-ready [data-ff-deal-cta="beta_access"]{order:-1;box-shadow:0 10px 28px rgba(212,175,55,.13)}
-    @media(max-width:760px){
-      .ff-proof-handoff{width:calc(100% - 24px);padding:20px;grid-template-columns:1fr;gap:16px}
-      .ff-proof-handoff-button{width:100%}
-      .ff-deal-reasons>.ff-conversion-prompt{margin-top:18px;padding:18px;display:block;grid-template-columns:none;gap:0}
-      .ff-deal-reasons>.ff-conversion-prompt small{font-size:.68rem;line-height:1.45}
-      .ff-deal-reasons>.ff-conversion-prompt strong{font-size:1.12rem;line-height:1.3}
-      .ff-deal-reasons>.ff-conversion-prompt p{font-size:.9rem;line-height:1.55}
-    }
-    @media(prefers-reduced-motion:reduce){.ff-proof-handoff,.ff-proof-handoff-button{transition:none!important}}
-  `;
-  document.head.append(style);
+  demo.dataset.ffState='choice';
 
   const track=(eventName,detail={})=>{
-    const payload={
-      event:eventName,
-      component:'deal_or_decoy_homepage',
-      example:'joe_burrow_silver_prizm_psa10_demo',
-      ...detail
-    };
+    const payload={event:eventName,component:'deal_or_decoy_homepage',example:'joe_burrow_silver_prizm_psa10_demo',...detail};
     window.dataLayer=window.dataLayer||[];
     window.dataLayer.push(payload);
     window.dispatchEvent(new CustomEvent('flipforge:demo',{detail:payload}));
   };
 
-  const markStarted=()=>{
-    if(started)return;
-    started=true;
-    track('flipforge_demo_started');
+  const transition=(mutate)=>{
+    if(!reduceMotion()&&typeof document.startViewTransition==='function'){
+      document.startViewTransition(mutate);
+      return;
+    }
+    mutate();
   };
 
-  const scrollTo=(target)=>{
-    if(!target)return;
-    target.scrollIntoView({behavior:reduceMotion()?'auto':'smooth',block:'start'});
+  const clearProcessing=()=>{
+    processTimers.forEach(window.clearTimeout);
+    processTimers=[];
+    processToken+=1;
   };
 
-  const buildHandoff=()=>{
-    if(!section||document.querySelector('.ff-proof-handoff'))return;
-    const handoff=document.createElement('aside');
-    handoff.className='ff-proof-handoff';
-    handoff.setAttribute('aria-label','Try the FlipForge deal check');
-    handoff.innerHTML=`
-      <div class="ff-proof-handoff-copy">
-        <small>CHECK THE CARD BEFORE YOU CHASE THE PRICE.</small>
-        <strong>Make your call. Then see what the evidence supports.</strong>
-        <span>Choose BUY, WATCH, VERIFY, or PASS before FlipForge reveals the exact-card reasoning.</span>
-      </div>
-      <a class="ff-proof-handoff-button" href="#deal-or-decoy" data-ff-handoff>MAKE THE CALL →</a>
-    `;
-    section.before(handoff);
-    const button=handoff.querySelector('[data-ff-handoff]');
-    button?.addEventListener('click',event=>{
-      event.preventDefault();
-      markStarted();
-      track('flipforge_demo_handoff_clicked');
-      if(window.history&&typeof window.history.replaceState==='function')window.history.replaceState(null,'','#deal-or-decoy');
-      scrollTo(section);
-      window.setTimeout(()=>sectionHeading?.focus({preventScroll:true}),reduceMotion()?0:420);
+  const schedule=(token,delay,fn)=>{
+    const timer=window.setTimeout(()=>{
+      if(token!==processToken)return;
+      fn();
+    },delay);
+    processTimers.push(timer);
+  };
+
+  const setProcessCopy=(step,label,title,counter)=>{
+    if(processingStage)processingStage.dataset.ffProcessStep=String(step);
+    if(processLabel)processLabel.textContent=label;
+    if(processTitle)processTitle.textContent=title;
+    if(processCounter)processCounter.textContent=counter;
+  };
+
+  const setCompState=(index,state)=>{
+    const comp=processComps[index];
+    if(!comp)return;
+    comp.classList.remove('is-reviewing','is-valid','is-rejected');
+    if(state)comp.classList.add(`is-${state}`);
+    const descriptor=comp.querySelector('small')?.textContent||`comparison ${index+1}`;
+    const spoken=state==='valid'?'accepted exact match':state==='rejected'?'rejected':state==='reviewing'?'being checked':'pending';
+    comp.setAttribute('aria-label',`Comparison ${index+1}, ${descriptor}, ${spoken}`);
+  };
+
+  const resetProcessingVisuals=()=>{
+    if(processingStage)processingStage.dataset.ffProcessStep='1';
+    [identityCard,valueCard].forEach(card=>card?.classList.remove('is-active','is-complete'));
+    identityCard?.classList.add('is-active');
+    evidenceCard?.classList.remove('is-active','is-complete');
+    valueLane?.classList.remove('is-recalculating');
+    supported?.classList.remove('is-updated');
+    processDiscount?.classList.remove('is-updated');
+    processVerdict?.classList.remove('is-active');
+    if(identityState)identityState.textContent='CHECKING';
+    if(evidenceState)evidenceState.textContent='WAITING';
+    if(valueState)valueState.textContent='WAITING';
+    if(supportedValue)supportedValue.textContent='Checking…';
+    if(supportedDiscount)supportedDiscount.textContent='—';
+    if(processVerdictText)processVerdictText.textContent='WAITING FOR EVIDENCE';
+    processComps.forEach((_,index)=>setCompState(index,''));
+    setProcessCopy(1,'STEP 1 OF 4 · EXACT CARD','Confirming year, set, card number, parallel, grader and grade…','CHECKING');
+  };
+
+  const finalizeProcessingVisuals=()=>{
+    identityCard?.classList.remove('is-active');
+    identityCard?.classList.add('is-complete');
+    if(identityState)identityState.textContent='MATCH';
+    processComps.forEach((comp,index)=>setCompState(index,comp.dataset.finalState||'rejected'));
+    evidenceCard?.classList.add('is-complete');
+    if(evidenceState)evidenceState.textContent='2 EXACT · 5 REJECTED';
+    valueCard?.classList.add('is-complete');
+    if(valueState)valueState.textContent='RECALCULATED';
+    if(supportedValue)supportedValue.textContent='$357.20';
+    if(supportedDiscount)supportedDiscount.textContent='2.3%';
+    supported?.classList.add('is-updated');
+    processDiscount?.classList.add('is-updated');
+    processVerdict?.classList.add('is-active');
+    if(processVerdictText)processVerdictText.textContent='VERIFY';
+    setProcessCopy(4,'STEP 4 OF 4 · DECISION','The apparent bargain does not survive the evidence check.','VERIFY');
+  };
+
+  const recordCompletedDecision=()=>{
+    track('flipforge_demo_completed',{visitor_choice:visitorChoice,flipforge_decision:'VERIFY',decision_changed:visitorChoice!=='VERIFY'});
+    if(visitorChoice!=='VERIFY')track('flipforge_demo_decision_changed',{from:visitorChoice,to:'VERIFY'});
+  };
+
+  const showResult=()=>{
+    clearProcessing();
+    transition(()=>{
+      demo.dataset.ffState='result';
+      choiceStage.hidden=true;
+      if(processingStage)processingStage.hidden=true;
+      resultStage.hidden=false;
+    });
+    recordCompletedDecision();
+    if(status)status.textContent=`You chose ${visitorChoice}. FlipForge returns VERIFY because five of seven comparisons were invalid and the supported discount is 2.3 percent.`;
+    window.setTimeout(()=>resultHeading?.focus({preventScroll:true}),reduceMotion()?0:140);
+  };
+
+  const runProcessingSequence=()=>{
+    clearProcessing();
+    resetProcessingVisuals();
+    const token=processToken;
+
+    if(reduceMotion()){
+      finalizeProcessingVisuals();
+      showResult();
+      return;
+    }
+
+    track('flipforge_demo_processing_started',{visitor_choice:visitorChoice});
+
+    schedule(token,620,()=>{
+      identityCard?.classList.remove('is-active');
+      identityCard?.classList.add('is-complete');
+      if(identityState)identityState.textContent='MATCH';
+      setProcessCopy(2,'STEP 2 OF 4 · CHALLENGE THE COMPS','Testing seven comparisons against the exact Silver Prizm PSA 10…','0 / 7');
+      evidenceCard?.classList.add('is-active');
     });
 
-    if(heroFilm&&'MutationObserver' in window){
-      const sync=()=>handoff.classList.toggle('is-ready',heroFilm.dataset.ffScene==='6');
-      sync();
-      const observer=new MutationObserver(sync);
-      observer.observe(heroFilm,{attributes:true,attributeFilter:['data-ff-scene']});
-    }
-  };
-
-  const buildConversionMoment=()=>{
-    const reasons=demo.querySelector('.ff-deal-reasons');
-    const actions=demo.querySelector('.ff-deal-actions');
-    const betaAccess=demo.querySelector('[data-ff-deal-cta="beta_access"]');
-    const evaluate=demo.querySelector('[data-ff-deal-cta="evaluate_listing"]');
-    if(!reasons||!actions||!betaAccess)return;
-
-    if(!reasons.querySelector('.ff-conversion-prompt')){
-      const prompt=document.createElement('div');
-      prompt.className='ff-conversion-prompt';
-      prompt.innerHTML=`
-        <small>EVIDENCE BEFORE EMOTION.</small>
-        <strong>Bring the card that makes you hesitate.</strong>
-        <p>Check the exact card, challenge the comps, and see whether the evidence supports the price before you spend.</p>
-      `;
-      actions.before(prompt);
-    }
-
-    betaAccess.classList.remove('decision-button-secondary');
-    betaAccess.classList.add('decision-button-primary');
-    if(evaluate){
-      evaluate.classList.remove('decision-button-primary');
-      evaluate.classList.add('decision-button-secondary');
-      actions.insertBefore(betaAccess,evaluate);
-    }
-    actions.classList.add('is-conversion-ready');
-  };
-
-  buildHandoff();
-  buildConversionMoment();
-
-  if('IntersectionObserver' in window){
-    const observer=new IntersectionObserver(entries=>{
-      if(!entries.some(entry=>entry.isIntersecting))return;
-      markStarted();
-      observer.disconnect();
-    },{threshold:.35});
-    observer.observe(demo);
-  }else{
-    markStarted();
-  }
-
-  if(heroTrigger&&section){
-    heroTrigger.addEventListener('click',event=>{
-      event.preventDefault();
-      markStarted();
-      if(window.history&&typeof window.history.replaceState==='function')window.history.replaceState(null,'','#deal-or-decoy');
-      scrollTo(section);
-      window.setTimeout(()=>sectionHeading?.focus({preventScroll:true}),reduceMotion()?0:450);
+    const start=850;
+    const stride=190;
+    processComps.forEach((comp,index)=>{
+      schedule(token,start+(index*stride),()=>{
+        setCompState(index,'reviewing');
+        if(index>0){
+          const previous=processComps[index-1];
+          setCompState(index-1,previous.dataset.finalState||'rejected');
+        }
+        if(evidenceState)evidenceState.textContent=`CHECKING ${index+1} OF 7`;
+        if(processCounter)processCounter.textContent=`${index+1} / 7`;
+      });
     });
-  }
 
-  const renderChoiceComparison=()=>{
-    if(!comparison||!visitorChoice)return;
-    comparison.replaceChildren();
-    comparison.append('You chose ');
-    const chosen=document.createElement('strong');
-    chosen.textContent=visitorChoice;
-    comparison.append(chosen,'. FlipForge checked the evidence and returned ');
-    const verdict=document.createElement('strong');
-    verdict.textContent='VERIFY';
-    comparison.append(verdict,'.');
+    schedule(token,start+(processComps.length*stride),()=>{
+      const last=processComps.at(-1);
+      if(last)setCompState(processComps.length-1,last.dataset.finalState||'valid');
+      evidenceCard?.classList.remove('is-active');
+      evidenceCard?.classList.add('is-complete');
+      if(evidenceState)evidenceState.textContent='2 EXACT · 5 REJECTED';
+      setProcessCopy(3,'STEP 3 OF 4 · RECALCULATE VALUE','Five weak comparisons are out. Rebuilding value from the two exact matches…','2 / 7 KEPT');
+      valueCard?.classList.add('is-active');
+      valueLane?.classList.add('is-recalculating');
+    });
+
+    schedule(token,2740,()=>{
+      if(supportedValue)supportedValue.textContent='$357.20';
+      if(supportedDiscount)supportedDiscount.textContent='2.3%';
+      supported?.classList.add('is-updated');
+      processDiscount?.classList.add('is-updated');
+      valueCard?.classList.remove('is-active');
+      valueCard?.classList.add('is-complete');
+      if(valueState)valueState.textContent='RECALCULATED';
+      if(processCounter)processCounter.textContent='$357.20';
+    });
+
+    schedule(token,3220,()=>{
+      setProcessCopy(4,'STEP 4 OF 4 · DECISION','The 24.0% apparent bargain is only 2.3% after evidence qualification.','VERIFY');
+      processVerdict?.classList.add('is-active');
+      if(processVerdictText)processVerdictText.textContent='VERIFY';
+    });
+
+    schedule(token,3820,showResult);
+  };
+
+  const showProcessing=()=>{
+    transition(()=>{
+      demo.dataset.ffState='processing';
+      choiceStage.hidden=true;
+      resultStage.hidden=true;
+      if(processingStage)processingStage.hidden=false;
+    });
+    runProcessingSequence();
+  };
+
+  const showChoices=()=>{
+    clearProcessing();
+    transition(()=>{
+      demo.dataset.ffState='choice';
+      delete demo.dataset.ffVisitorChoice;
+      resultStage.hidden=true;
+      if(processingStage)processingStage.hidden=true;
+      choiceStage.hidden=false;
+    });
+    resetProcessingVisuals();
+    window.setTimeout(()=>choices[0]?.focus({preventScroll:true}),reduceMotion()?0:140);
   };
 
   choices.forEach(button=>{
@@ -172,37 +237,44 @@
       visitorChoice=button.dataset.ffChoice||null;
       if(!visitorChoice)return;
 
-      markStarted();
+      demo.dataset.ffVisitorChoice=visitorChoice.toLowerCase();
+      if(visitorChoiceLabel)visitorChoiceLabel.textContent=visitorChoice;
+      if(processingChoiceLabel)processingChoiceLabel.textContent=visitorChoice;
       track('flipforge_demo_choice_recorded',{visitor_choice:visitorChoice});
-      const decisionChanged=visitorChoice!=='VERIFY';
-      track('flipforge_demo_completed',{
-        visitor_choice:visitorChoice,
-        flipforge_decision:'VERIFY',
-        decision_changed:decisionChanged
-      });
-      if(decisionChanged)track('flipforge_demo_decision_changed',{from:visitorChoice,to:'VERIFY'});
-
-      renderChoiceComparison();
-      choiceStage.hidden=true;
-      resultStage.hidden=false;
-      if(status)status.textContent='Five of seven comparisons were invalid. The supported discount is 2.3 percent, and FlipForge returns VERIFY.';
-
-      window.setTimeout(()=>{
-        scrollTo(resultStage);
-        resultHeading?.focus({preventScroll:true});
-      },reduceMotion()?0:80);
+      if(status)status.textContent=`You chose ${visitorChoice}. FlipForge is now checking exact identity, comparison quality, supported value, and the final decision.`;
+      showProcessing();
     });
+  });
+
+  evidenceOpen?.addEventListener('click',()=>{
+    track('flipforge_demo_evidence_opened',{visitor_choice:visitorChoice});
+    if(typeof evidenceDialog?.showModal==='function')evidenceDialog.showModal();
+    else evidenceDialog?.setAttribute('open','');
+  });
+
+  const closeEvidence=()=>{
+    if(!evidenceDialog)return;
+    if(typeof evidenceDialog.close==='function'&&evidenceDialog.open)evidenceDialog.close();
+    else evidenceDialog.removeAttribute('open');
+  };
+
+  evidenceClose.forEach(button=>button.addEventListener('click',closeEvidence));
+
+  evidenceDialog?.addEventListener('click',event=>{
+    if(event.target!==evidenceDialog)return;
+    const rect=evidenceDialog.getBoundingClientRect();
+    const inside=event.clientX>=rect.left&&event.clientX<=rect.right&&event.clientY>=rect.top&&event.clientY<=rect.bottom;
+    if(!inside)closeEvidence();
   });
 
   replay?.addEventListener('click',()=>{
     track('flipforge_demo_replayed',{previous_choice:visitorChoice});
     visitorChoice=null;
-    choiceStage.hidden=false;
-    resultStage.hidden=true;
-    if(details)details.open=false;
+    if(visitorChoiceLabel)visitorChoiceLabel.textContent='—';
+    if(processingChoiceLabel)processingChoiceLabel.textContent='—';
     if(status)status.textContent='The demonstration has been reset. Choose BUY, WATCH, VERIFY, or PASS.';
-    scrollTo(choiceStage);
-    window.setTimeout(()=>choices[0]?.focus({preventScroll:true}),reduceMotion()?0:350);
+    closeEvidence();
+    showChoices();
   });
 
   demo.querySelectorAll('[data-ff-deal-cta]').forEach(link=>{
