@@ -34,7 +34,7 @@ check('016 archive is the normal removal path', js.includes("analytics('decision
 check('017 copy/paste and native selection are not intercepted', !/addEventListener\(\s*['"](?:copy|cut|paste|selectstart|contextmenu)['"]/.test(js) && !/on(?:copy|cut|paste|selectstart|contextmenu)\s*=/.test(html + js));
 check('018 preview does not call production decision APIs', !/fetch\s*\(/.test(js) && !/\/api\/v1\//.test(js));
 check('019 landing-page handoff stays inside deploy preview', js.includes("params.get('from')==='deal-check'") && html.includes('Back to FlipForge landing-page preview'));
-check('020 advanced tools stay secondary to the first-card path', html.includes('popovertarget="ff-more-menu"') && html.indexOf('ff-more-menu') > html.indexOf('ff-action-dock'));
+check('020 advanced tools stay secondary to the first-card path', html.includes('popovertarget="ff-more-menu"') && html.indexOf('id="ff-more-menu"') > html.indexOf('class="ff-action-dock"'));
 
 if (failures) {
   console.error(`\n${failures} customer-journey preview validation check(s) failed.`);
