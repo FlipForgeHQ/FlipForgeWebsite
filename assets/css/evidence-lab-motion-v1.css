@@ -1,0 +1,199 @@
+/* FlipForge Evidence Lab motion v1 — guided motion, not decoration. */
+
+.ff-lab-directory{
+  position:sticky;
+  top:72px;
+  z-index:14;
+  padding-top:10px;
+  padding-bottom:10px;
+  border-radius:14px;
+  background:rgba(3,7,13,.88);
+  backdrop-filter:blur(16px) saturate(125%);
+  box-shadow:0 12px 34px rgba(0,0,0,.22);
+}
+.ff-lab-directory a{
+  position:relative;
+  overflow:hidden;
+  transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease;
+}
+.ff-lab-directory a::after{
+  content:"";
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:5px;
+  height:2px;
+  border-radius:99px;
+  background:#d4af37;
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform .22s ease;
+}
+.ff-lab-directory a[aria-current="step"]{
+  border-color:rgba(212,175,55,.62);
+  background:rgba(212,175,55,.09);
+  color:#f0ca58;
+  transform:translateY(-1px);
+}
+.ff-lab-directory a[aria-current="step"]::after{transform:scaleX(1)}
+
+body.ff-lab-motion-ready .ff-lab-section{
+  opacity:.26;
+  transform:translateY(18px);
+  transition:opacity .42s ease,transform .42s cubic-bezier(.2,.8,.2,1);
+}
+body.ff-lab-motion-ready .ff-lab-section.is-visible{
+  opacity:1;
+  transform:none;
+}
+body.ff-lab-motion-ready .ff-lab-section .section-head::after{
+  content:"";
+  display:block;
+  width:72px;
+  height:2px;
+  margin-top:14px;
+  border-radius:99px;
+  background:linear-gradient(90deg,#d4af37,rgba(212,175,55,.06));
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform .5s ease .06s;
+}
+body.ff-lab-motion-ready .ff-lab-section.is-visible .section-head::after{transform:scaleX(1)}
+
+body.ff-lab-motion-ready .ff-lab-card,
+body.ff-lab-motion-ready .ff-lab-proof>div,
+body.ff-lab-motion-ready .ff-lab-case>div{
+  opacity:0;
+  transform:translateY(14px);
+}
+body.ff-lab-motion-ready .ff-lab-section.is-visible .ff-lab-card,
+body.ff-lab-motion-ready .ff-lab-section.is-visible .ff-lab-proof>div,
+body.ff-lab-motion-ready .ff-lab-section.is-visible .ff-lab-case>div{
+  animation:ff-lab-card-in .42s cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay:calc(var(--ff-lab-i,0) * 85ms);
+}
+
+.ff-lab-card{
+  transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.ff-lab-card:hover{
+  border-color:rgba(212,175,55,.28);
+  transform:translateY(-3px);
+  box-shadow:0 16px 34px rgba(0,0,0,.2);
+}
+.ff-lab-card:hover .ff-lab-number{
+  border-color:rgba(212,175,55,.7);
+  background:rgba(212,175,55,.08);
+}
+
+.ff-lab-case{position:relative;overflow:hidden}
+.ff-lab-case::before{
+  content:"";
+  position:absolute;
+  left:8%;
+  right:8%;
+  top:50%;
+  height:1px;
+  background:linear-gradient(90deg,rgba(212,175,55,.08),rgba(212,175,55,.62),rgba(212,175,55,.08));
+  transform:scaleX(0);
+  transform-origin:left center;
+}
+.ff-lab-section.is-visible .ff-lab-case::before{animation:ff-lab-line .75s ease .34s forwards}
+.ff-lab-section.is-visible .ff-case-arrow{animation:ff-lab-arrow 1s cubic-bezier(.2,.8,.2,1) .38s 2}
+.ff-lab-case>div:last-child{transition:border-color .2s ease,background .2s ease}
+.ff-lab-section.is-visible .ff-lab-case>div:last-child{
+  animation:ff-lab-reject 1.15s ease .9s 1 both;
+}
+
+.ff-lab-proof{position:relative}
+.ff-lab-proof::before{
+  content:"";
+  position:absolute;
+  left:8%;
+  right:8%;
+  top:18px;
+  height:2px;
+  border-radius:99px;
+  background:rgba(212,175,55,.16);
+  transform:scaleX(0);
+  transform-origin:left center;
+}
+.ff-lab-section.is-visible .ff-lab-proof::before{animation:ff-lab-line .9s ease .28s forwards}
+.ff-lab-proof>div{position:relative}
+.ff-lab-proof>div::before{
+  content:"";
+  position:absolute;
+  top:-7px;
+  left:20px;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#d4af37;
+  box-shadow:0 0 0 5px rgba(212,175,55,.1);
+  opacity:0;
+  transform:scale(.65);
+}
+.ff-lab-section.is-visible .ff-lab-proof>div::before{
+  animation:ff-lab-dot .3s ease forwards;
+  animation-delay:calc(.38s + (var(--ff-lab-i,0) * 120ms));
+}
+
+.ff-lab-section .callout{
+  transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease;
+}
+.ff-lab-section.is-visible .callout{
+  border-color:rgba(212,175,55,.28);
+  box-shadow:0 18px 42px rgba(0,0,0,.18);
+}
+
+@keyframes ff-lab-card-in{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:none}
+}
+@keyframes ff-lab-line{
+  from{transform:scaleX(0);opacity:.25}
+  to{transform:scaleX(1);opacity:1}
+}
+@keyframes ff-lab-arrow{
+  0%{transform:translateX(-5px);opacity:.45}
+  45%{transform:translateX(6px);opacity:1}
+  100%{transform:translateX(0);opacity:.75}
+}
+@keyframes ff-lab-reject{
+  0%,45%{border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.015)}
+  70%{border-color:rgba(255,126,126,.55);background:rgba(90,24,24,.14)}
+  100%{border-color:rgba(255,126,126,.32);background:rgba(70,20,20,.08)}
+}
+@keyframes ff-lab-dot{
+  from{opacity:0;transform:scale(.65)}
+  to{opacity:1;transform:scale(1)}
+}
+
+@media(max-width:700px){
+  .ff-lab-directory{
+    top:60px;
+    margin-left:12px;
+    margin-right:12px;
+    padding:8px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .ff-lab-directory a{padding:9px 8px;font-size:8px}
+  .ff-lab-case::before{display:none}
+  .ff-lab-proof::before{left:24px;right:auto;top:8%;bottom:8%;width:2px;height:auto;transform:scaleY(0);transform-origin:center top}
+  .ff-lab-section.is-visible .ff-lab-proof::before{animation:ff-lab-line-y .9s ease .28s forwards}
+  .ff-lab-proof>div::before{top:20px;left:-5px}
+}
+@keyframes ff-lab-line-y{
+  from{transform:scaleY(0);opacity:.25}
+  to{transform:scaleY(1);opacity:1}
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  body.ff-lab-motion-ready .ff-lab-section,
+  body.ff-lab-motion-ready .ff-lab-card,
+  body.ff-lab-motion-ready .ff-lab-proof>div,
+  body.ff-lab-motion-ready .ff-lab-case>div{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}
+  .ff-lab-directory a,.ff-lab-directory a::after,.ff-lab-card,.ff-lab-section .section-head::after{transition:none!important}
+  .ff-lab-case::before,.ff-lab-proof::before,.ff-lab-proof>div::before,.ff-case-arrow{animation:none!important;transform:none!important;opacity:1!important}
+}
