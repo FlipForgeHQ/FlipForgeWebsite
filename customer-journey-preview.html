@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>FlipForge Customer Journey Preview</title>
   <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/css/customer-journey-foolproof-v2.css?v=20260906-2">
+  <link rel="stylesheet" href="assets/css/customer-journey-foolproof-v2.css?v=20260906-3">
 </head>
 <body>
   <a class="skip-link" href="#ff-main">Skip to current step</a>
@@ -228,38 +228,42 @@
               <div class="ff-tracking-details">
                 <div><small>Decision</small><strong>VERIFY</strong></div>
                 <div><small>Selected listing</small><strong data-selected-price-copy>$349</strong></div>
-                <div><small>Status</small><strong>Tracking started</strong></div>
+                <div><small>Status</small><strong>Tracking active</strong></div>
               </div>
             </article>
           </section>
 
           <section class="ff-panel" data-panel="saved" aria-labelledby="saved-title" hidden>
             <div class="ff-saved-head">
-              <div><p class="eyebrow">YOUR LIBRARY</p><h1 id="saved-title">Saved Decisions</h1></div>
+              <div><p class="eyebrow">YOUR SAVED DECISIONS</p><h1 id="saved-title">Keep the list useful.</h1></div>
               <div class="ff-saved-tabs" role="tablist" aria-label="Saved decision views">
-                <button class="is-active" type="button" data-saved-tab="active" role="tab" aria-selected="true">Active</button>
-                <button type="button" data-saved-tab="archived" role="tab" aria-selected="false">Archived</button>
+                <button class="is-active" type="button" role="tab" aria-selected="true" data-saved-tab="active">Active</button>
+                <button type="button" role="tab" aria-selected="false" data-saved-tab="archived">Archived</button>
               </div>
             </div>
 
-            <div class="ff-saved-list" data-saved-view="active">
-              <article class="ff-saved-row" data-saved-row>
-                <div><h2 data-card-name>2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10</h2><p>Saved decision · evidence retained</p></div>
-                <strong class="decision">VERIFY</strong>
-                <strong class="price" data-selected-price-copy>$349</strong>
-                <button class="ff-menu-trigger" type="button" popovertarget="saved-card-menu" aria-label="More actions for this saved card">•••</button>
-              </article>
-              <div class="ff-empty" data-active-empty hidden><strong>No active saved decisions.</strong><p>Archived cards can still be restored.</p></div>
+            <div data-saved-view="active">
+              <div class="ff-saved-list">
+                <article class="ff-saved-row" data-saved-row hidden>
+                  <div><h2 data-card-name>2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10</h2><p>Saved decision · exact-card evidence attached</p></div>
+                  <strong class="decision">VERIFY</strong>
+                  <strong class="price" data-selected-price-copy>$349</strong>
+                  <button class="ff-menu-trigger" type="button" popovertarget="saved-card-menu" aria-label="Manage saved decision">•••</button>
+                </article>
+                <div class="ff-empty" data-active-empty><strong>No active saved decisions.</strong><p>Save and track a decision to put it here.</p></div>
+              </div>
             </div>
 
-            <div class="ff-saved-list" data-saved-view="archived" hidden>
-              <article class="ff-saved-row" data-archived-row hidden>
-                <div><h2 data-card-name>2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10</h2><p>Archived · historical decision retained</p></div>
-                <strong class="decision">VERIFY</strong>
-                <strong class="price" data-selected-price-copy>$349</strong>
-                <button class="ff-menu-trigger" type="button" data-restore-card aria-label="Restore this archived card">↶</button>
-              </article>
-              <div class="ff-empty" data-archived-empty><strong>No archived decisions.</strong><p>Archive removes a card from your active list without destroying its decision history.</p></div>
+            <div data-saved-view="archived" hidden>
+              <div class="ff-saved-list">
+                <article class="ff-saved-row" data-archived-row hidden>
+                  <div><h2 data-card-name>2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10</h2><p>Archived · history retained in this preview</p></div>
+                  <strong class="decision">VERIFY</strong>
+                  <strong class="price" data-selected-price-copy>$349</strong>
+                  <button class="ff-menu-trigger" type="button" data-restore-card aria-label="Restore archived decision">Restore</button>
+                </article>
+                <div class="ff-empty" data-archived-empty><strong>No archived decisions.</strong><p>Archive removes a card from your active list without destroying its decision history.</p></div>
+              </div>
             </div>
           </section>
         </div>
@@ -308,6 +312,6 @@
     <button type="button" data-toast-action hidden>Undo</button>
   </div>
 
-  <script src="assets/js/customer-journey-foolproof-v2.js?v=20260906-2" defer></script>
+  <script src="assets/js/customer-journey-foolproof-v2.js?v=20260906-3" defer></script>
 </body>
 </html>
