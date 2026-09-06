@@ -9,6 +9,7 @@ const marketingPages=read('assets/css/marketing-pages-v3.css');
 const marketingSupport=read('assets/css/marketing-support-v3.css');
 const density=read('assets/css/marketing-density-v1.css');
 const brandCss=read('assets/css/brand-v2.css');
+const typography=read('assets/css/public-typography-contract-v1.css');
 const heroCss=read('assets/css/homepage-decision-hero-v1.css');
 const mobileHomeCss=read('assets/css/homepage-mobile-nav-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
@@ -40,22 +41,29 @@ const notFound=read('404.html');
 
 for(const [label,text] of [['product/about marketing',marketingPages],['support marketing',marketingSupport]]) requireText(label,text,'@import url("marketing-density-v1.css")');
 requireText('marketing density purpose',density,'definitive marketing density system');
-requireText('marketing page hero cap',density,'font-size:clamp(38px,4vw,52px)!important');
-requireText('support page hero cap',density,'font-size:clamp(36px,3.75vw,50px)!important');
 requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
 
-/* Public brand/typography contract: navigating around the public site should
- * feel like one product rather than a collection of separate templates. */
-requireText('shared public heading scale',brandCss,'font-size:clamp(38px,4.2vw,56px)!important');
-requireText('shared public section heading scale',brandCss,'font-size:clamp(26px,2.6vw,36px)!important');
-requireText('shared public lead scale',brandCss,'font-size:17px!important');
-requireText('shared public desktop nav scale',brandCss,'.site-header .desktop-nav a{font-size:13px!important}');
+/* Public brand/typography contract: one semantic scale owns the public site.
+ * Legacy page-specific sizes may remain for layout compatibility, but this
+ * contract has the specificity and !important authority to win the cascade. */
+requireText('brand imports authoritative typography contract',brandCss,'@import url("public-typography-contract-v1.css")');
+requireText('public home display token',typography,'--ff-type-home-display:clamp(42px,4vw,54px)');
+requireText('public internal page title token',typography,'--ff-type-page-title:clamp(36px,3.6vw,48px)');
+requireText('public section title token',typography,'--ff-type-section-title:clamp(28px,2.6vw,36px)');
+requireText('public lead token',typography,'--ff-type-lead:16px');
+requireText('public body token',typography,'--ff-type-body:15px');
+requireText('public nav token',typography,'--ff-type-nav:13px');
+requireText('public homepage display ownership',typography,'main#main .decision-hero h1 span');
+requireText('public internal page-title ownership',typography,'body.ff-support-v3 main#main .page-hero h1');
+requireText('public section-title ownership',typography,'body.ff-support-v3 main#main .section-head h2');
+requireText('public mobile home display token',typography,'--ff-type-home-display:clamp(36px,9.5vw,44px)');
+requireText('public mobile page title token',typography,'--ff-type-page-title:clamp(32px,8.8vw,40px)');
+requireText('public mobile section title token',typography,'--ff-type-section-title:clamp(24px,7vw,30px)');
 requireText('non-home explicit Home control',brandCss,'.site-header .brand::after{content:"HOME"');
 requireText('Home control is removed from footer brand',brandCss,'.footer .brand::after{content:none}');
 requireText('homepage uses shared Geist brand stylesheet',homepage,'assets/css/brand-v2.css');
 requireText('homepage uses shared Geist typeface',heroCss,'font-family:Geist,"Geist Sans",Arial,sans-serif');
 requireText('homepage uses shared desktop nav scale',heroCss,'font-size:13px;font-weight:650');
-requireText('homepage uses shared hero scale',heroCss,'font-size:clamp(38px,4.2vw,56px)');
 
 const publicShellPages=[
   ['Product',product],
@@ -177,4 +185,4 @@ for(const unsafe of ['CARD VALUE INTELLIGENCE','guaranteed profit','automatic pu
 requireText('app transaction boundary',appIndex,'No transaction authority');
 
 if(failures.length){console.error('Sitewide UX system validation failed:');failures.forEach(failure=>console.error(`- ${failure}`));process.exit(1);}
-console.log('PASS: FlipForge public typography, Home navigation, live first-viewport Deal Check, deeper marketing pages, and customer-app UX ownership validated.');
+console.log('PASS: FlipForge authoritative public typography, Home navigation, live first-viewport Deal Check, deeper marketing pages, and customer-app UX ownership validated.');
