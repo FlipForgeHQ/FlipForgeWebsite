@@ -5,330 +5,320 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>FlipForge Customer Journey Preview</title>
+  <meta name="theme-color" content="#02060c">
+  <title>FlipForge Foolproof Customer Journey Preview</title>
   <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/css/customer-journey-preview.css?v=20260906-1">
+  <link rel="stylesheet" href="assets/css/customer-journey-preview.css?v=20260906-2">
 </head>
 <body>
-  <a class="skip-link" href="#preview-main">Skip to preview</a>
+  <a class="skip-link" href="#journey-main">Skip to current step</a>
 
   <div class="preview-banner" role="status">
     <strong>PRIVATE UX PREVIEW</strong>
-    <span>Interactive concept · illustrative data only · not connected to the live FlipForge app</span>
+    <span>One screen · one decision · next action always visible</span>
   </div>
 
-  <div class="ff-preview-shell" data-shell>
-    <div class="mobile-scrim" data-close-nav aria-hidden="true"></div>
+  <div class="journey-shell" data-shell>
+    <header class="journey-header">
+      <a class="journey-brand" href="./" aria-label="Back to FlipForge landing-page preview">
+        <img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why.">
+      </a>
 
-    <aside class="preview-sidebar" id="preview-navigation" aria-label="Preview navigation">
-      <div class="preview-brand-wrap">
-        <a href="#search" class="preview-brand" data-nav-target="search" aria-label="FlipForge preview home">
-          <img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why.">
-        </a>
-        <span class="preview-chip">UX CONCEPT</span>
+      <ol class="journey-progress" aria-label="First-card progress">
+        <li data-progress="search" aria-current="step"><span>1</span><b>Card</b></li>
+        <li data-progress="identity"><span>2</span><b>Match</b></li>
+        <li data-progress="listing"><span>3</span><b>Listing</b></li>
+        <li data-progress="decision"><span>4</span><b>Answer</b></li>
+      </ol>
+
+      <div class="journey-header-actions">
+        <button class="header-action" type="button" popovertarget="journey-help" aria-label="How this preview works">?</button>
+        <button class="header-action saved-shortcut" type="button" data-open-saved aria-label="Open saved decisions">Saved</button>
       </div>
+    </header>
 
-      <nav class="preview-nav" aria-label="Customer workflow">
-        <p class="nav-section-label">Your workflow</p>
-        <button class="preview-nav-item is-active" type="button" data-nav-target="search">
-          <span class="nav-icon" aria-hidden="true">⌕</span>
-          <span><strong>Search a Card</strong><small>Start every decision here</small></span>
-        </button>
-        <button class="preview-nav-item" type="button" data-nav-target="saved">
-          <span class="nav-icon" aria-hidden="true">◇</span>
-          <span><strong>Saved Decisions</strong><small>Review previous calls</small></span>
-        </button>
-        <button class="preview-nav-item" type="button" data-nav-target="tracking">
-          <span class="nav-icon" aria-hidden="true">◷</span>
-          <span><strong>Tracking</strong><small>See what changed</small></span>
-        </button>
+    <div class="journey-help" id="journey-help" popover>
+      <strong>You should never have to hunt for the next step.</strong>
+      <p>FlipForge keeps the current task in one viewport and pins the next action to the bottom of the screen. Optional detail opens only when you ask for it.</p>
+      <small>Search → confirm → choose listing → answer → explain → track</small>
+    </div>
 
-        <details class="preview-more">
-          <summary><span class="nav-icon" aria-hidden="true">＋</span><span><strong>More Intelligence</strong><small>Advanced tools when you need them</small></span></summary>
-          <div class="preview-more-links">
-            <button type="button" data-advanced="Market View">Market View</button>
-            <button type="button" data-advanced="Forge Heat">Forge Heat</button>
-            <button type="button" data-advanced="Portfolio">Portfolio</button>
-            <button type="button" data-advanced="Alerts">Alerts</button>
-            <button type="button" data-advanced="Compare">Compare</button>
-            <button type="button" data-advanced="PSA Advisor">PSA Advisor</button>
+    <main class="journey-main" id="journey-main" tabindex="-1">
+      <section class="journey-screen is-active" data-screen="search" aria-labelledby="search-title">
+        <div class="stage-card search-stage">
+          <div class="stage-copy">
+            <p class="eyebrow" data-search-kicker>START HERE</p>
+            <h1 id="search-title" data-search-title>What card are you looking at?</h1>
+            <p class="stage-lede" data-search-lede>Enter the exact card. FlipForge handles identity, evidence, supported value, risk, and the decision.</p>
           </div>
-        </details>
-      </nav>
 
-      <div class="preview-sidebar-footer">
-        <div class="sidebar-promise">
-          <span>CUSTOMER RULE</span>
-          <strong>One obvious next step.</strong>
-          <p>No screen should make a collector guess what to do next.</p>
+          <aside class="handoff-card" data-deal-handoff hidden>
+            <span>CONTINUING YOUR DEAL CHECK</span>
+            <strong>2020 Panini Prizm #307 Joe Burrow Silver Prizm · PSA 10</strong>
+            <div><b>$349 listing</b><em>FlipForge result: VERIFY</em></div>
+            <p>You already saw why the apparent bargain changed. Now continue with the same card inside FlipForge.</p>
+          </aside>
+
+          <form class="card-search" data-card-search>
+            <label for="card-query">Exact card</label>
+            <div class="search-control">
+              <span aria-hidden="true">⌕</span>
+              <input id="card-query" name="cardQuery" type="search" autocomplete="off" spellcheck="false" value="2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10" aria-describedby="search-hint">
+            </div>
+            <p id="search-hint">Year · set · player · card number · parallel · grader · grade</p>
+          </form>
+
+          <div class="micro-proof" aria-label="What FlipForge does next">
+            <span><b>1</b> Exact identity</span>
+            <span><b>2</b> Qualified evidence</span>
+            <span><b>3</b> Explainable answer</span>
+          </div>
         </div>
+      </section>
+
+      <section class="journey-screen" data-screen="identity" aria-labelledby="identity-title" hidden>
+        <div class="stage-card identity-stage">
+          <div class="stage-copy compact-copy">
+            <p class="eyebrow">STEP 1 · EXACT MATCH</p>
+            <h1 id="identity-title">Is this the card you mean?</h1>
+            <p class="stage-lede">FlipForge will not silently substitute a base card, another parallel, or another grade.</p>
+          </div>
+
+          <article class="identity-card">
+            <div class="slab-visual" aria-hidden="true">
+              <span class="slab-label">PSA <b>10</b></span>
+              <strong class="slab-number">89</strong>
+              <span class="slab-mark">FF</span>
+            </div>
+            <div class="identity-detail">
+              <span class="exact-badge">EXACT MATCH</span>
+              <h2 data-card-name>2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10</h2>
+              <div class="identity-facts">
+                <span><small>Identity</small><b>Confirmed structure</b></span>
+                <span><small>Parallel</small><b data-parallel>Green Refractor</b></span>
+                <span><small>Grade</small><b>PSA 10</b></span>
+              </div>
+              <button class="why-link" type="button" popovertarget="identity-help">Why does FlipForge ask me this?</button>
+            </div>
+          </article>
+
+          <div class="mini-popover" id="identity-help" popover>
+            <strong>Identity mistakes destroy price comparisons.</strong>
+            <p>Cards from the same set can look almost identical while carrying very different evidence. FlipForge asks before price is allowed to influence the decision.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="journey-screen" data-screen="listing" aria-labelledby="listing-title" hidden>
+        <div class="stage-card listing-stage">
+          <div class="stage-copy compact-copy">
+            <p class="eyebrow">STEP 2 · YOUR REAL PRICE</p>
+            <h1 id="listing-title">Which listing are you actually considering?</h1>
+            <p class="stage-lede">Pick the listing. FlipForge evaluates the price and seller context you would really act on.</p>
+          </div>
+
+          <div class="listing-rail" data-listing-rail aria-label="Illustrative listings">
+            <button class="listing-option is-selected" type="button" data-listing="A" data-price="349" aria-pressed="true">
+              <span class="listing-label">LISTING A · BEST FIT</span>
+              <strong>$349</strong>
+              <p data-card-name>2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10</p>
+              <small>Shipping included · seller 99.8%</small>
+              <b class="selected-mark">Selected ✓</b>
+            </button>
+            <button class="listing-option" type="button" data-listing="B" data-price="379" aria-pressed="false">
+              <span class="listing-label">LISTING B</span>
+              <strong>$379</strong>
+              <p>Same exact card · PSA 10</p>
+              <small>Higher ask · seller 100%</small>
+              <b class="selected-mark">Select</b>
+            </button>
+            <button class="listing-option" type="button" data-listing="C" data-price="335" aria-pressed="false">
+              <span class="listing-label">LISTING C</span>
+              <strong>$335</strong>
+              <p>Same exact card · PSA 10</p>
+              <small>Seller review needed</small>
+              <b class="selected-mark">Select</b>
+            </button>
+          </div>
+
+          <p class="swipe-hint">Swipe or tap another listing if you want a different price.</p>
+        </div>
+      </section>
+
+      <section class="journey-screen" data-screen="analysis" aria-labelledby="analysis-title" hidden>
+        <div class="stage-card analysis-stage">
+          <div class="analysis-orbit" aria-hidden="true"><span></span></div>
+          <div class="stage-copy compact-copy analysis-copy">
+            <p class="eyebrow">FLIPFORGE IS WORKING</p>
+            <h1 id="analysis-title">Building the decision.</h1>
+            <p class="stage-lede">No mystery spinner. You can see exactly what FlipForge is checking.</p>
+          </div>
+
+          <div class="analysis-grid" data-analysis-progress>
+            <div class="analysis-step" data-progress-step="0"><span>1</span><p><strong>Exact identity</strong><small>Year, set, card, parallel, grade</small></p><b>Waiting</b></div>
+            <div class="analysis-step" data-progress-step="1"><span>2</span><p><strong>Listing facts</strong><small>Ask, shipping, seller context</small></p><b>Waiting</b></div>
+            <div class="analysis-step" data-progress-step="2"><span>3</span><p><strong>Comparable evidence</strong><small>Exact vs weak comparisons</small></p><b>Waiting</b></div>
+            <div class="analysis-step" data-progress-step="3"><span>4</span><p><strong>PSA context</strong><small>Available grading context</small></p><b>Waiting</b></div>
+            <div class="analysis-step" data-progress-step="4"><span>5</span><p><strong>Value &amp; risk</strong><small>Supported price context</small></p><b>Waiting</b></div>
+            <div class="analysis-step" data-progress-step="5"><span>6</span><p><strong>Decision</strong><small>One clear next action</small></p><b>Waiting</b></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="journey-screen" data-screen="decision" aria-labelledby="decision-title" hidden>
+        <div class="stage-card decision-stage">
+          <div class="decision-grid">
+            <section class="decision-callout">
+              <span class="decision-label">FLIPFORGE DECISION</span>
+              <strong class="decision-word">VERIFY</strong>
+              <h1 id="decision-title">The price alone does not support BUY.</h1>
+              <p>Your selected <b data-selected-price>$349</b> listing is only about <b>2.3%</b> below the illustrative supported value after weak comparisons are removed.</p>
+            </section>
+
+            <section class="next-action-card">
+              <span>WHAT TO DO NEXT</span>
+              <strong>Confirm the unresolved identity evidence before buying.</strong>
+              <p>You do not need to read a dashboard first. This is the next thing that matters.</p>
+              <button class="explain-button" type="button" data-open-evidence>See exactly why →</button>
+            </section>
+          </div>
+
+          <div class="decision-metrics" aria-label="Decision summary">
+            <span><small>Your cost</small><strong data-selected-price>$349</strong></span>
+            <span><small>Supported value</small><strong>$357.20</strong></span>
+            <span><small>Qualified evidence</small><strong>2 / 7</strong></span>
+            <span><small>Confidence</small><strong>Moderate</strong></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="journey-screen" data-screen="tracking" aria-labelledby="tracking-title" hidden>
+        <div class="stage-card completion-stage">
+          <div class="completion-mark" aria-hidden="true">✓</div>
+          <div class="stage-copy completion-copy">
+            <p class="eyebrow">DONE</p>
+            <h1 id="tracking-title">Saved and tracking.</h1>
+            <p class="stage-lede">FlipForge will keep this decision available and surface what changes. You can archive it whenever you no longer want it in Saved Decisions.</p>
+          </div>
+
+          <article class="tracked-card">
+            <span class="decision-dot"></span>
+            <div><strong data-card-name>Your selected card</strong><small>VERIFY · tracking active</small></div>
+            <b data-selected-price>$349</b>
+          </article>
+
+          <div class="completion-options">
+            <button type="button" class="secondary-inline" data-open-saved>Manage Saved Decisions</button>
+            <button type="button" class="secondary-inline" data-open-evidence>Review why FlipForge said VERIFY</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="action-dock" data-action-dock>
+      <button class="dock-back" type="button" data-dock-back hidden>← Back</button>
+      <div class="dock-guidance">
+        <span data-dock-kicker>YOUR NEXT STEP</span>
+        <strong data-dock-guidance>Check the exact card.</strong>
       </div>
-    </aside>
-
-    <section class="preview-workspace">
-      <header class="preview-topbar">
-        <button class="mobile-menu" type="button" data-open-nav aria-label="Open navigation" aria-controls="preview-navigation" aria-expanded="false">☰</button>
-        <div class="topbar-search" aria-hidden="true">
-          <span>⌕</span>
-          <span>Search → Answer → Explain → Track</span>
-        </div>
-        <div class="topbar-actions">
-          <button type="button" class="text-button" data-nav-target="saved">Saved</button>
-          <button type="button" class="account-pill" aria-label="Preview account"><span>FF</span><strong>Preview</strong></button>
-        </div>
-      </header>
-
-      <main id="preview-main" tabindex="-1">
-        <section class="preview-screen is-active" data-screen="search" aria-labelledby="search-title">
-          <div class="screen-frame search-frame">
-            <div class="first-value-copy">
-              <p class="eyebrow">START HERE</p>
-              <h1 id="search-title">What card are you looking at?</h1>
-              <p class="lede">Enter the exact card. FlipForge handles the rest — identity, evidence, supported value, risk, and the decision.</p>
-            </div>
-
-            <form class="card-search-card" data-card-search>
-              <label for="card-query">Card identity</label>
-              <div class="search-input-row">
-                <span aria-hidden="true">⌕</span>
-                <input id="card-query" name="cardQuery" type="search" autocomplete="off" spellcheck="false" value="2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10" aria-describedby="search-help">
-                <button type="submit">Check this card <span aria-hidden="true">→</span></button>
-              </div>
-              <p id="search-help">Best results: year · set · player · card number · parallel · grader · grade</p>
-            </form>
-
-            <div class="search-confidence-grid" aria-label="What FlipForge checks">
-              <article><span>01</span><strong>Exact identity</strong><p>Prevents base, parallel, or grade mix-ups.</p></article>
-              <article><span>02</span><strong>Qualified evidence</strong><p>Bad comparisons stay out of the decision.</p></article>
-              <article><span>03</span><strong>Explainable decision</strong><p>You see the call and why FlipForge made it.</p></article>
-            </div>
-
-            <section class="recent-strip" aria-labelledby="recent-title">
-              <div><p class="eyebrow">RETURNING USER</p><h2 id="recent-title">Pick up where you left off.</h2></div>
-              <button type="button" class="recent-decision" data-open-sample-result>
-                <span class="decision-dot verify"></span>
-                <span><strong>Joe Burrow Silver Prizm · PSA 10</strong><small>VERIFY · saved yesterday</small></span>
-                <b>Open →</b>
-              </button>
-            </section>
-          </div>
-        </section>
-
-        <section class="preview-screen" data-screen="identity" aria-labelledby="identity-title" hidden>
-          <div class="screen-frame compact-frame">
-            <button class="back-link" type="button" data-back="search">← Search another card</button>
-            <div class="step-heading">
-              <p class="eyebrow">STEP 1 · IDENTITY</p>
-              <h1 id="identity-title">Confirm the exact card.</h1>
-              <p>FlipForge found a strong match. Confirm it before any price or evidence is allowed to influence the decision.</p>
-            </div>
-
-            <article class="identity-match is-primary">
-              <div class="identity-slab" aria-hidden="true">
-                <span class="slab-grade">PSA <b>10</b></span>
-                <span class="slab-card">89</span>
-                <span class="slab-player">JD</span>
-              </div>
-              <div class="identity-copy">
-                <span class="match-badge">EXACT MATCH</span>
-                <h2 data-card-name>2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10</h2>
-                <dl>
-                  <div><dt>Year / Set</dt><dd>2024 Topps Chrome</dd></div>
-                  <div><dt>Card</dt><dd>#89</dd></div>
-                  <div><dt>Parallel</dt><dd>Green Refractor</dd></div>
-                  <div><dt>Grade</dt><dd>PSA 10</dd></div>
-                </dl>
-                <div class="identity-actions">
-                  <button class="primary-action" type="button" data-confirm-identity>Yes — use this exact card →</button>
-                  <button class="secondary-action" type="button" data-back="search">Change my search</button>
-                </div>
-              </div>
-            </article>
-
-            <details class="alternate-matches">
-              <summary>Why FlipForge is asking me to confirm</summary>
-              <div class="alternate-body">
-                <p>Similar cards can look almost identical but have very different market evidence. FlipForge will not silently substitute a base card, another refractor, or another grade.</p>
-                <div class="reject-row"><span>×</span><p><strong>Base Chrome #89 PSA 10</strong><small>Wrong parallel</small></p></div>
-                <div class="reject-row"><span>×</span><p><strong>Green Refractor #89 PSA 9</strong><small>Wrong grade</small></p></div>
-              </div>
-            </details>
-          </div>
-        </section>
-
-        <section class="preview-screen" data-screen="listings" aria-labelledby="listings-title" hidden>
-          <div class="screen-frame compact-frame">
-            <button class="back-link" type="button" data-back="identity">← Back to card identity</button>
-            <div class="step-heading">
-              <p class="eyebrow">STEP 2 · LISTING</p>
-              <h1 id="listings-title">Which listing are you considering?</h1>
-              <p>Choose the exact listing. FlipForge evaluates the price you would actually pay, not an abstract market average.</p>
-            </div>
-
-            <div class="listing-grid">
-              <article class="listing-card is-featured">
-                <div class="listing-topline"><span>Listing A</span><strong>Best fit to your search</strong></div>
-                <div class="listing-visual" aria-hidden="true"><span>PSA 10</span><b>GREEN<br>REFRACTOR</b><small>#89</small></div>
-                <div class="listing-copy">
-                  <h2 data-card-name>2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10</h2>
-                  <div class="listing-money"><div><small>Listing price</small><strong>$349.00</strong></div><div><small>Shipping</small><strong>Included</strong></div></div>
-                  <p class="seller-line">Seller 99.8% · returns accepted · illustrative UX listing</p>
-                  <button class="primary-action full" type="button" data-evaluate-listing>Evaluate this $349 listing →</button>
-                </div>
-              </article>
-
-              <article class="listing-card secondary-listing">
-                <div class="listing-topline"><span>Listing B</span><strong>Higher ask</strong></div>
-                <div class="listing-copy"><h2>Same exact card · PSA 10</h2><div class="listing-money"><div><small>Listing price</small><strong>$379.00</strong></div></div><button class="secondary-action full" type="button" data-evaluate-listing>Evaluate $379 listing</button></div>
-              </article>
-
-              <article class="listing-card secondary-listing">
-                <div class="listing-topline"><span>Listing C</span><strong>Needs seller review</strong></div>
-                <div class="listing-copy"><h2>Same exact card · PSA 10</h2><div class="listing-money"><div><small>Listing price</small><strong>$335.00</strong></div></div><button class="secondary-action full" type="button" data-evaluate-listing>Evaluate $335 listing</button></div>
-              </article>
-            </div>
-
-            <div class="next-step-note"><span>WHY THIS STEP EXISTS</span><p>Choosing the listing gives FlipForge your real decision context: exact item, exact seller, and exact cost.</p></div>
-          </div>
-        </section>
-
-        <section class="preview-screen" data-screen="loading" aria-labelledby="loading-title" hidden>
-          <div class="screen-frame loading-frame">
-            <div class="loading-mark" aria-hidden="true"><span></span></div>
-            <p class="eyebrow">FLIPFORGE IS CHECKING THIS CARD</p>
-            <h1 id="loading-title">Building the decision.</h1>
-            <p class="lede">You should always be able to see what FlipForge is doing — and what it is waiting on.</p>
-
-            <div class="analysis-progress" data-analysis-progress>
-              <div class="analysis-step" data-progress-step="0"><span>1</span><p><strong>Exact card identity</strong><small>Confirming year, set, number, parallel, grader, and grade.</small></p><b>Waiting</b></div>
-              <div class="analysis-step" data-progress-step="1"><span>2</span><p><strong>Connected listings</strong><small>Checking the listing facts and all-in cost.</small></p><b>Waiting</b></div>
-              <div class="analysis-step" data-progress-step="2"><span>3</span><p><strong>Comparable evidence</strong><small>Separating exact evidence from weak or conflicting comparisons.</small></p><b>Waiting</b></div>
-              <div class="analysis-step" data-progress-step="3"><span>4</span><p><strong>PSA context</strong><small>Checking available grading and population context.</small></p><b>Waiting</b></div>
-              <div class="analysis-step" data-progress-step="4"><span>5</span><p><strong>Supported value &amp; risk</strong><small>Calculating the evidence-supported price context and uncertainty.</small></p><b>Waiting</b></div>
-              <div class="analysis-step" data-progress-step="5"><span>6</span><p><strong>Decision reasoning</strong><small>Turning the evidence into one clear next action.</small></p><b>Waiting</b></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="preview-screen" data-screen="result" aria-labelledby="result-title" hidden>
-          <div class="screen-frame result-frame">
-            <div class="result-toolbar">
-              <button class="back-link" type="button" data-back="search">← Search another card</button>
-              <span class="illustrative-pill">ILLUSTRATIVE UX DATA</span>
-            </div>
-
-            <section class="decision-hero-card">
-              <div class="decision-callout">
-                <span class="decision-label">FLIPFORGE DECISION</span>
-                <strong class="decision-word">VERIFY</strong>
-                <p id="result-title">This $349 listing is only about <b>2.3%</b> below the supported value after weak comparisons are removed.</p>
-              </div>
-              <div class="decision-next">
-                <span>WHAT TO DO NEXT</span>
-                <strong>Confirm the listing identity before buying.</strong>
-                <p>The remaining margin is too small to ignore unresolved identity evidence.</p>
-                <button type="button" class="primary-action" data-show-evidence>Show me what needs verification →</button>
-              </div>
-            </section>
-
-            <section class="decision-metrics" aria-label="Decision summary">
-              <article><span>YOUR COST</span><strong>$349.00</strong><small>Illustrative all-in price</small></article>
-              <article><span>SUPPORTED VALUE</span><strong>$357.20</strong><small>After evidence qualification</small></article>
-              <article><span>PRICE GAP</span><strong>2.3%</strong><small>Too small for a stronger call</small></article>
-              <article><span>CONFIDENCE</span><strong>Moderate</strong><small>Identity conflict remains</small></article>
-            </section>
-
-            <section class="why-card" id="why-card" data-evidence-panel tabindex="-1">
-              <div class="section-heading-inline">
-                <div><p class="eyebrow">WHY FLIPFORGE SAID VERIFY</p><h2>Most of the original comparison set did not qualify.</h2></div>
-                <div class="evidence-score"><strong>2 / 7</strong><span>qualified</span></div>
-              </div>
-
-              <div class="evidence-strength">
-                <div class="strength-label"><span>Evidence strength</span><strong>MODERATE</strong></div>
-                <div class="strength-track"><span></span></div>
-                <p>Enough evidence to narrow the decision, but not enough to ignore the unresolved identity issue.</p>
-              </div>
-
-              <div class="evidence-columns">
-                <div class="qualified-panel">
-                  <span class="panel-kicker good">QUALIFIED · 2</span>
-                  <div class="evidence-row good"><span>✓</span><p><strong>Exact parallel · PSA 10</strong><small>Eligible comparison</small></p></div>
-                  <div class="evidence-row good"><span>✓</span><p><strong>Exact parallel · PSA 10</strong><small>Eligible comparison</small></p></div>
-                </div>
-                <div class="rejected-panel">
-                  <span class="panel-kicker bad">EXCLUDED · 5</span>
-                  <div class="exclusion-summary"><div><strong>2</strong><span>Wrong parallels</span></div><div><strong>2</strong><span>Duplicates</span></div><div><strong>1</strong><span>Identity conflict</span></div></div>
-                </div>
-              </div>
-
-              <details class="evidence-details">
-                <summary>See every evidence check</summary>
-                <div class="evidence-detail-list">
-                  <div class="evidence-row bad"><span>×</span><p><strong>White Sparkle parallel</strong><small>Wrong parallel · excluded</small></p></div>
-                  <div class="evidence-row bad"><span>×</span><p><strong>White Sparkle repeat</strong><small>Duplicate · excluded</small></p></div>
-                  <div class="evidence-row bad"><span>×</span><p><strong>Gold parallel</strong><small>Wrong parallel · excluded</small></p></div>
-                  <div class="evidence-row bad"><span>×</span><p><strong>Gold repeat</strong><small>Duplicate · excluded</small></p></div>
-                  <div class="evidence-row bad"><span>×</span><p><strong>Parallel not confirmed</strong><small>Identity conflict · excluded</small></p></div>
-                </div>
-              </details>
-            </section>
-
-            <section class="psa-context-card">
-              <div><p class="eyebrow">PSA CONTEXT</p><h2>Grading context should appear automatically when trustworthy data is available.</h2><p>This preview shows the presentation model only. Production PSA values remain governed by FlipForge source and freshness rules.</p></div>
-              <div class="psa-status"><span>✓</span><strong>Context checked</strong><small>Source + freshness visible to the customer</small></div>
-            </section>
-
-            <section class="result-actions-card">
-              <div><p class="eyebrow">NEXT ACTION</p><h2>Keep the decision useful after today.</h2><p>Track the card so FlipForge can show whether price, evidence, or risk changes later.</p></div>
-              <div class="result-actions">
-                <button type="button" class="primary-action" data-track-card>Track this card →</button>
-                <button type="button" class="secondary-action" data-save-decision>Save decision</button>
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <section class="preview-screen" data-screen="saved" aria-labelledby="saved-title" hidden>
-          <div class="screen-frame compact-frame">
-            <div class="step-heading split-heading"><div><p class="eyebrow">SAVED DECISIONS</p><h1 id="saved-title">Decisions you've already made.</h1><p>Open one to review why FlipForge made the call — or start another card.</p></div><button class="primary-action" type="button" data-nav-target="search">+ Search another card</button></div>
-            <div class="saved-list">
-              <button class="saved-row" type="button" data-open-sample-result><span class="decision-badge verify">VERIFY</span><span><strong>Joe Burrow Silver Prizm · PSA 10</strong><small>$349 cost · 2.3% supported gap · saved yesterday</small></span><b>Review →</b></button>
-              <button class="saved-row" type="button"><span class="decision-badge watch">WATCH</span><span><strong>2018 Topps Update Ronald Acuña Jr. · PSA 10</strong><small>Waiting for a better entry · tracked 6 days</small></span><b>Review →</b></button>
-              <button class="saved-row" type="button"><span class="decision-badge pass">PASS</span><span><strong>2020 Panini Prizm Justin Herbert · PSA 10</strong><small>Evidence did not support current ask</small></span><b>Review →</b></button>
-            </div>
-          </div>
-        </section>
-
-        <section class="preview-screen" data-screen="tracking" aria-labelledby="tracking-title" hidden>
-          <div class="screen-frame compact-frame">
-            <div class="step-heading split-heading"><div><p class="eyebrow">TRACKING</p><h1 id="tracking-title">What changed since your decision?</h1><p>Tracking should answer that question immediately instead of forcing you to reinterpret the whole card.</p></div><button class="primary-action" type="button" data-nav-target="search">+ Search another card</button></div>
-
-            <article class="tracking-card">
-              <div class="tracking-head"><span class="decision-badge verify">VERIFY</span><div><strong>Joe Burrow Silver Prizm · PSA 10</strong><small>Tracked since Sep 5</small></div></div>
-              <div class="change-grid"><div><span>PRICE</span><strong>No meaningful change</strong><small>$349 → $347</small></div><div><span>EVIDENCE</span><strong>1 new exact comp</strong><small>Evidence strength improved</small></div><div><span>RISK</span><strong>Still unresolved</strong><small>Identity confirmation remains</small></div></div>
-              <div class="tracking-next"><span>NEXT CHECK</span><strong>VERIFY remains the right action.</strong><button type="button" class="secondary-action" data-open-sample-result>Review updated reasoning →</button></div>
-            </article>
-          </div>
-        </section>
-
-        <section class="preview-screen" data-screen="advanced" aria-labelledby="advanced-title" hidden>
-          <div class="screen-frame compact-frame">
-            <button class="back-link" type="button" data-back="search">← Back to Search</button>
-            <div class="step-heading"><p class="eyebrow">MORE INTELLIGENCE</p><h1 id="advanced-title" data-advanced-title>Advanced tool</h1><p>This concept keeps advanced analysis available without making a first-time collector understand it before completing one card decision.</p></div>
-            <div class="advanced-preview-card"><span>PROGRESSIVE DISCLOSURE</span><strong data-advanced-title>Advanced intelligence appears when it is useful.</strong><p>Market View, Forge Heat, Portfolio, Alerts, Compare, and PSA Advisor remain powerful destinations — they are simply moved out of the customer's first-decision path.</p><button type="button" class="primary-action" data-nav-target="search">Search a card first →</button></div>
-          </div>
-        </section>
-      </main>
-
-      <footer class="preview-footer">
-        <span>Private UX preview · no live market data · no transaction authority</span>
-        <button type="button" data-reset-preview>Reset preview</button>
-      </footer>
-    </section>
+      <button class="dock-primary" type="button" data-dock-primary>Check this card →</button>
+    </footer>
   </div>
+
+  <dialog class="sheet-dialog evidence-dialog" id="evidence-dialog" aria-labelledby="evidence-title">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <header class="sheet-header">
+      <div><span>WHY FLIPFORGE SAID VERIFY</span><h2 id="evidence-title">Most of the comparison set did not qualify.</h2></div>
+      <button type="button" class="sheet-close" data-close-dialog aria-label="Close explanation">×</button>
+    </header>
+
+    <div class="evidence-summary">
+      <div class="evidence-score"><strong>2 / 7</strong><span>qualified</span></div>
+      <p>Five records were excluded before they could influence the decision.</p>
+    </div>
+
+    <div class="evidence-columns">
+      <section>
+        <span class="evidence-kicker good">QUALIFIED</span>
+        <div class="evidence-row good"><b>✓</b><p><strong>Exact card · exact parallel · PSA 10</strong><small>Eligible comparison</small></p></div>
+        <div class="evidence-row good"><b>✓</b><p><strong>Exact card · exact parallel · PSA 10</strong><small>Eligible comparison</small></p></div>
+      </section>
+      <section>
+        <span class="evidence-kicker bad">EXCLUDED</span>
+        <div class="evidence-row bad"><b>×2</b><p><strong>Wrong parallel</strong><small>Should not influence this card</small></p></div>
+        <div class="evidence-row bad"><b>×2</b><p><strong>Duplicate records</strong><small>Would over-count the same evidence</small></p></div>
+        <div class="evidence-row bad"><b>×1</b><p><strong>Identity conflict</strong><small>Needs verification</small></p></div>
+      </section>
+    </div>
+
+    <div class="evidence-shift">
+      <span>Apparent discount <s>24.0%</s></span>
+      <strong>→ 2.3%</strong>
+      <p>That is why the decision changes from “looks cheap” to <b>VERIFY</b>.</p>
+    </div>
+
+    <footer class="sheet-actions">
+      <button type="button" class="secondary-action" data-close-dialog>Close</button>
+      <button type="button" class="primary-action" data-save-track>Save &amp; track this card →</button>
+    </footer>
+  </dialog>
+
+  <dialog class="sheet-dialog saved-dialog" id="saved-dialog" aria-labelledby="saved-title">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <header class="sheet-header">
+      <div><span>YOUR CARDS</span><h2 id="saved-title">Saved Decisions</h2></div>
+      <button type="button" class="sheet-close" data-close-dialog aria-label="Close Saved Decisions">×</button>
+    </header>
+
+    <div class="saved-empty" data-saved-empty>
+      <strong>No saved cards yet.</strong>
+      <p>When you save a decision, it will appear here.</p>
+    </div>
+
+    <div class="saved-sections" data-saved-content hidden>
+      <section>
+        <div class="saved-section-head"><strong>ACTIVE</strong><span>1</span></div>
+        <article class="saved-card-row" data-active-saved>
+          <span class="decision-dot"></span>
+          <div><strong data-card-name>Your selected card</strong><small>VERIFY · tracking active</small></div>
+          <b data-selected-price>$349</b>
+          <details class="saved-menu">
+            <summary aria-label="Saved card actions">•••</summary>
+            <div>
+              <button type="button" data-archive-card>Archive from Saved</button>
+              <button type="button" class="danger" data-request-delete>Delete permanently…</button>
+            </div>
+          </details>
+        </article>
+      </section>
+
+      <section data-archived-section hidden>
+        <div class="saved-section-head"><strong>ARCHIVED</strong><span>1</span></div>
+        <article class="saved-card-row is-archived">
+          <span class="archive-dot">A</span>
+          <div><strong data-card-name>Your selected card</strong><small>Archived · not shown in active Saved Decisions</small></div>
+          <b data-selected-price>$349</b>
+          <div class="archived-actions">
+            <button type="button" data-restore-card>Restore</button>
+            <button type="button" class="danger-link" data-request-delete>Delete</button>
+          </div>
+        </article>
+      </section>
+    </div>
+  </dialog>
+
+  <dialog class="confirm-dialog" id="delete-dialog" aria-labelledby="delete-title">
+    <span class="danger-icon" aria-hidden="true">!</span>
+    <h2 id="delete-title">Delete this saved card?</h2>
+    <p>This removes the card from this customer preview. In production, FlipForge should retain only the minimal audit metadata required by policy while removing the card from your customer-visible Saved Decisions.</p>
+    <div>
+      <button type="button" class="secondary-action" data-close-dialog>Cancel</button>
+      <button type="button" class="danger-action" data-delete-card>Delete permanently</button>
+    </div>
+  </dialog>
 
   <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
-  <script src="assets/js/customer-journey-preview.js?v=20260906-1"></script>
+
+  <script src="assets/js/customer-journey-preview.js?v=20260906-2" defer></script>
 </body>
 </html>
