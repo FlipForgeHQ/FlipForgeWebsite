@@ -48,11 +48,14 @@
   }
 
   const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const loopMs=25000;
   const durations=[3000,4000,4000,4000,5000,5000];
   let timer=null;
   let running=false;
   let currentIndex=0;
   let inspecting=false;
+
+  film.dataset.ffLoopMs=String(loopMs);
 
   const label=film.querySelector('.ff-film-label');
   const stepEl=film.querySelector('[data-ff-film-step]');
