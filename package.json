@@ -42,7 +42,8 @@
     "validate:homepage-progression": "node scripts/validate-homepage-progression.mjs",
     "validate:sitewide-ux": "node scripts/validate-sitewide-ux.mjs && node scripts/validate-guided-mode-search-first.mjs",
     "validate:beta-acquisition": "node scripts/validate-beta-acquisition-onboarding.mjs",
-    "validate:beta-operator": "node scripts/validate-beta-operator-current.mjs"
+    "validate:beta-operator": "node scripts/validate-beta-operator-current.mjs",
+    "validate:customer-operator-split": "node scripts/validate-customer-operator-interface-split.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "10.7.13",
