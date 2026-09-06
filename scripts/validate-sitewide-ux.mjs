@@ -27,6 +27,15 @@ const evidence=read('learn.html');
 const plans=read('pricing.html');
 const about=read('about.html');
 const beta=read('beta-application.html');
+const faq=read('faq.html');
+const dataUse=read('data-use.html');
+const privacy=read('privacy.html');
+const terms=read('terms.html');
+const betaTerms=read('beta-terms.html');
+const refund=read('refund.html');
+const thankYou=read('thank-you.html');
+const betaOnboarding=read('beta-onboarding.html');
+const notFound=read('404.html');
 
 for(const [label,text] of [['product/about marketing',marketingPages],['support marketing',marketingSupport]]) requireText(label,text,'@import url("marketing-density-v1.css")');
 requireText('marketing density purpose',density,'definitive marketing density system');
@@ -34,8 +43,8 @@ requireText('marketing page hero cap',density,'font-size:clamp(38px,4vw,52px)!im
 requireText('support page hero cap',density,'font-size:clamp(36px,3.75vw,50px)!important');
 requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
 
-/* Public brand/typography contract: Home, Product, Evidence Lab, Plans, About,
- * and Beta must feel like one product rather than separate templates. */
+/* Public brand/typography contract: navigating around the public site should
+ * feel like one product rather than a collection of separate templates. */
 requireText('shared public heading scale',brandCss,'font-size:clamp(38px,4.2vw,56px)!important');
 requireText('shared public section heading scale',brandCss,'font-size:clamp(26px,2.6vw,36px)!important');
 requireText('shared public lead scale',brandCss,'font-size:17px!important');
@@ -46,7 +55,24 @@ requireText('homepage uses shared Geist brand stylesheet',homepage,'assets/css/b
 requireText('homepage uses shared Geist typeface',heroCss,'font-family:Geist,"Geist Sans",Arial,sans-serif');
 requireText('homepage uses shared desktop nav scale',heroCss,'font-size:13px;font-weight:650');
 requireText('homepage uses shared hero scale',heroCss,'font-size:clamp(38px,4.2vw,56px)');
-for(const [label,text] of [['Product',product],['Evidence Lab',evidence],['Launch Plans',plans],['About',about],['Beta',beta]]){
+
+const publicShellPages=[
+  ['Product',product],
+  ['Evidence Lab',evidence],
+  ['Launch Plans',plans],
+  ['About',about],
+  ['Beta',beta],
+  ['FAQ',faq],
+  ['Data Use',dataUse],
+  ['Privacy',privacy],
+  ['Terms',terms],
+  ['Beta Terms',betaTerms],
+  ['Refund',refund],
+  ['Thank You',thankYou],
+  ['Beta Onboarding',betaOnboarding],
+  ['404',notFound]
+];
+for(const [label,text] of publicShellPages){
   requireText(`${label} shared brand stylesheet`,text,'assets/css/brand-v2.css');
   requireText(`${label} explicit route home`,text,'class="brand" href="index.html"');
 }
