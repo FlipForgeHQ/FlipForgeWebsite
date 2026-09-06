@@ -9,10 +9,8 @@ const marketingPages=read('assets/css/marketing-pages-v3.css');
 const marketingSupport=read('assets/css/marketing-support-v3.css');
 const density=read('assets/css/marketing-density-v1.css');
 const heroCss=read('assets/css/homepage-decision-hero-v1.css');
-const filmCss=read('assets/css/homepage-hero-film-v1.css');
 const mobileHomeCss=read('assets/css/homepage-mobile-nav-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
-const filmJs=read('assets/js/homepage-hero-film-v1.js');
 const dealJs=read('assets/js/homepage-deal-or-decoy-v1.js');
 const awardJs=read('assets/js/award-winning-v1.js');
 const appIndex=read('saas-prototype/index.html');
@@ -35,29 +33,31 @@ requireText('support page hero cap',density,'font-size:clamp(36px,3.75vw,50px)!i
 requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
 
 requireText('homepage hero stylesheet',homepage,'assets/css/homepage-decision-hero-v1.css');
-requireText('homepage film stylesheet',homepage,'assets/css/homepage-hero-film-v1.css');
 requireText('homepage mobile stylesheet',homepage,'assets/css/homepage-mobile-nav-v1.css');
 requireText('homepage proof stylesheet',homepage,'assets/css/homepage-deal-or-decoy-v1.css');
-requireText('homepage browser-decodable visual',homepage,'assets/images/flipforge-homepage-hero.webp');
-requireText('homepage first action',homepage,'Try the Deal Check');
-requireText('homepage proof path',homepage,'href="#deal-or-decoy" data-ff-see-action');
-requireText('homepage animated proof',homepage,'assets/js/homepage-hero-film-v1.js');
+requireText('homepage browser-decodable visual metadata',homepage,'assets/images/flipforge-homepage-hero.webp');
+requireText('homepage direct first action',homepage,'Would you pay <span>$349</span> for this card?');
+requireText('homepage proof path',homepage,'class="ff-deal-demo" id="deal-or-decoy"');
 requireText('homepage interactive proof',homepage,'assets/js/homepage-deal-or-decoy-v1.js');
-requireText('homepage film progression',filmJs,'25000');
-requireText('homepage film reduced motion',filmCss,'@media(prefers-reduced-motion:reduce)');
+forbidText('homepage retired film stylesheet',homepage,'assets/css/homepage-hero-film-v1.css');
+forbidText('homepage retired film behavior',homepage,'assets/js/homepage-hero-film-v1.js');
+forbidText('homepage retired scroll CTA',homepage,'Try the Deal Check');
+forbidText('homepage forced scroll behavior',dealJs,'scrollIntoView');
+requireText('homepage first viewport',heroCss,'min-height:calc(100dvh - 79px)');
+requireText('homepage immediate reveal',dealJs,'resultStage.hidden=false');
+requireText('homepage view transition progressive enhancement',dealJs,'document.startViewTransition');
+requireText('homepage native evidence dialog',dealJs,'showModal');
 forbidText('homepage broken visual removed',homepage,'assets/images/flipforge-approved-decision-visual.webp');
 forbidText('homepage unfinished video removed',homepage,'assets/video/flipforge-how-it-works-30s.mp4');
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
 requireText('homepage transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
 for(const old of ['ff-live-product-frame','ff-motion-console','ff-card-stage','data-replay-decision'])forbidText('homepage old overload removed',homepage,old);
 requireText('homepage compact width',heroCss,'width:min(1380px,calc(100% - 56px))');
-requireText('homepage film responsive',filmCss,'@media(max-width:760px)');
 requireText('homepage mobile single column',heroCss,'@media(max-width:760px)');
 requireText('homepage mobile nav',mobileHomeCss,'.mobile-nav.open');
 requireText('homepage reduced motion',mobileHomeCss,'@media(prefers-reduced-motion:reduce)');
-requireText('homepage proof responsive',dealCss,'.ff-deal-choice-layout');
-requireText('homepage proof immediate reveal',dealJs,'resultStage.hidden=false');
-requireText('homepage proof action-first mobile ordering',dealCss,'.ff-deal-choice-panel{grid-row:1');
+requireText('homepage proof responsive',dealCss,'@media(max-width:760px)');
+requireText('homepage proof compact mobile choices',dealCss,'grid-template-columns:repeat(2,minmax(0,1fr))');
 requireText('homepage proof explicit mobile start cue',dealCss,"content:'START HERE · PICK ONE'");
 
 requireText('beta start action',awardJs,'Start application');
@@ -112,4 +112,4 @@ for(const unsafe of ['CARD VALUE INTELLIGENCE','guaranteed profit','automatic pu
 requireText('app transaction boundary',appIndex,'No transaction authority');
 
 if(failures.length){console.error('Sitewide UX system validation failed:');failures.forEach(failure=>console.error(`- ${failure}`));process.exit(1);}
-console.log('PASS: FlipForge video-first homepage, deeper marketing pages, and customer-app UX ownership validated.');
+console.log('PASS: FlipForge first-viewport homepage, deeper marketing pages, and customer-app UX ownership validated.');
