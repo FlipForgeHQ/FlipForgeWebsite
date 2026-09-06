@@ -17,7 +17,12 @@ check("003 customer app exposes Evaluate", index.includes('data-route="discover"
 check("004 customer app exposes Saved Decisions", index.includes('data-route="opportunities" data-ff-customer-core') && index.includes("Saved Decisions"));
 check("005 customer app exposes Tracking", index.includes('data-route="tracking" data-ff-customer-core') && index.includes(">Tracking</a>"));
 check("006 exactly four visible customer-core destinations are declared", (index.match(/data-ff-customer-core/g) || []).length === 4);
-check("007 advanced route registry is hidden from customer navigation", index.includes('class="ff-customer-route-registry" hidden aria-hidden="true"'));
+check(
+  "007 non-core navigation contracts are retained but hidden",
+  ["market-view", "forge-heat", "evaluate", "portfolio", "alerts", "beta-start"].every(route =>
+    new RegExp(`data-route="${route}"[^>]*hidden[^>]*aria-hidden="true"`).test(index)
+  )
+);
 check("008 advanced analysis container is hidden", index.includes('class="ff-advanced-nav" hidden aria-hidden="true"'));
 check("009 customer app does not link to operator workspace", !index.includes("operator-beta.html"));
 check("010 customer shell stylesheet is loaded", index.includes('href="customer-only-shell-v1.css"'));
