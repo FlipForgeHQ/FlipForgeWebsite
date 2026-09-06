@@ -17,6 +17,8 @@
   const reduceMotion=()=>Boolean(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   let visitorChoice=null;
 
+  demo.dataset.ffState='choice';
+
   const track=(eventName,detail={})=>{
     const payload={event:eventName,component:'deal_or_decoy_homepage',example:'joe_burrow_silver_prizm_psa10_demo',...detail};
     window.dataLayer=window.dataLayer||[];
@@ -34,6 +36,7 @@
 
   const showResult=()=>{
     transition(()=>{
+      demo.dataset.ffState='result';
       choiceStage.hidden=true;
       resultStage.hidden=false;
     });
@@ -42,6 +45,8 @@
 
   const showChoices=()=>{
     transition(()=>{
+      demo.dataset.ffState='choice';
+      delete demo.dataset.ffVisitorChoice;
       resultStage.hidden=true;
       choiceStage.hidden=false;
     });
@@ -53,6 +58,7 @@
       visitorChoice=button.dataset.ffChoice||null;
       if(!visitorChoice)return;
 
+      demo.dataset.ffVisitorChoice=visitorChoice.toLowerCase();
       if(visitorChoiceLabel)visitorChoiceLabel.textContent=visitorChoice;
       track('flipforge_demo_choice_recorded',{visitor_choice:visitorChoice});
       track('flipforge_demo_completed',{visitor_choice:visitorChoice,flipforge_decision:'VERIFY',decision_changed:visitorChoice!=='VERIFY'});
