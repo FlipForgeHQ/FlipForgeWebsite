@@ -1,315 +1,436 @@
 (()=>{
   'use strict';
 
-  const shell=document.querySelector('[data-shell]');
   const screens=[...document.querySelectorAll('[data-screen]')];
-  const navButtons=[...document.querySelectorAll('[data-nav-target]')];
-  const toastRegion=document.querySelector('.toast-region');
-  const searchForm=document.querySelector('[data-card-search]');
-  const queryInput=document.querySelector('#card-query');
+  const progressItems=[...document.querySelectorAll('[data-progress]')];
   const progressSteps=[...document.querySelectorAll('[data-progress-step]')];
+  const queryInput=document.querySelector('#card-query');
+  const searchForm=document.querySelector('[data-card-search]');
+  const dock=document.querySelector('[data-action-dock]');
+  const dockPrimary=dock?.querySelector('[data-dock-primary]');
+  const dockBack=dock?.querySelector('[data-dock-back]');
+  const dockGuidance=dock?.querySelector('[data-dock-guidance]');
+  const dockKicker=dock?.querySelector('[data-dock-kicker]');
+  const evidenceDialog=document.querySelector('#evidence-dialog');
+  const savedDialog=document.querySelector('#saved-dialog');
+  const deleteDialog=document.querySelector('#delete-dialog');
+  const toastRegion=document.querySelector('.toast-region');
   const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
   const params=new URLSearchParams(window.location.search);
   const fromDealCheck=params.get('from')==='deal-check';
+  const SUPPORTED_VALUE=357.20;
 
   const state={
     screen:'search',
-    card:queryInput?.value?.trim()||'Card',
-    loadingTimer:0,
-    loadingIndex:-1,
+    card:'2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10',
+    parallel:'Green Refractor',
+    slabNumber:'89',
+    listing:'A',
+    price:349,
     saved:false,
-    tracked:false
+    tracked:false,
+    archived:false,
+    analysisTimer:0
   };
 
-  const analyticsKey='flipforge.preview.customerJourney.v1';
+  const analyticsKey='flipforge.preview.foolproofJourney.v2';
 
   function track(event,detail={}){
     const payload={event,detail,at:new Date().toISOString()};
     try{
       const events=JSON.parse(localStorage.getItem(analyticsKey)||'[]');
       events.push(payload);
-      localStorage.setItem(analyticsKey,JSON.stringify(events.slice(-100)));
-    }catch(_){/* preview analytics are optional */}
+      localStorage.setItem(analyticsKey,JSON.stringify(events.slice(-150)));
+    }catch(_){/* preview telemetry is optional */}
   }
 
   function toast(message,strong=''){
     if(!toastRegion)return;
     const node=document.createElement('div');
     node.className='toast';
-    node.innerHTML=strong?`<strong>${escapeHtml(strong)}</strong> ${escapeHtml(message)}`:escapeHtml(message);
+    if(strong){
+      const lead=document.createElement('strong');
+      lead.textContent=strong;
+      node.append(lead,' ',message);
+    }else{
+      node.textContent=message;
+    }
     toastRegion.append(node);
-    window.setTimeout(()=>node.remove(),2800);
+    window.setTimeout(()=>node.remove(),2600);
   }
 
-  function escapeHtml(value){
-    return String(value??'').replace(/[&<>'"]/g,char=>({
-      '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
-    })[char]);
+  function showModal(dialog){
+    if(!dialog)return;
+    if(typeof dialog.showModal==='function'){
+      if(!dialog.open)dialog.showModal();
+    }else{
+      dialog.setAttribute('open','');
+    }
   }
 
-  function closeNav(){
-    if(!shell)return;
-    shell.dataset.navOpen='false';
-    document.querySelector('[data-open-nav]')?.setAttribute('aria-expanded','false');
+  function closeModal(dialog){
+    if(!dialog)return;
+    if(typeof dialog.close==='function'&&dialog.open)dialog.close();
+    else dialog.removeAttribute('open');
   }
 
-  function updateNav(screen){
-    const normalized=['identity','listings','loading','result'].includes(screen)?'search':screen;
-    document.querySelectorAll('.preview-nav-item').forEach(button=>{
-      button.classList.toggle('is-active',button.dataset.navTarget===normalized);
+  function setCard(card){
+    state.card=String(card||'').trim()||'Your selected card';
+    document.querySelectorAll('[data-card-name]').forEach(node=>{node.textContent=state.card;});
+  }
+
+  function setSelectedPrice(price){
+    state.price=Number(price)||349;
+    const value=`$${state.price.toFixed(0)}`;
+    document.querySelectorAll('[data-selected-price]').forEach(node=>{node.textContent=value;});
+    updateDecisionSummary();
+  }
+
+  function updateDecisionSummary(){
+    const summary=document.querySelector('.decision-callout p');
+    if(!summary)return;
+    const pct=Math.abs(((SUPPORTED_VALUE-state.price)/SUPPORTED_VALUE)*100);
+    const relation=state.price<=SUPPORTED_VALUE?'below':'above';
+    summary.replaceChildren();
+    summary.append('Your selected ');
+    const price=document.createElement('b');
+    price.textContent=`$${state.price.toFixed(0)}`;
+    summary.append(price,` listing is about `);
+    const gap=document.createElement('b');
+    gap.textContent=`${pct.toFixed(1)}%`;
+    summary.append(gap,` ${relation} the illustrative supported value after weak comparisons are removed.`);
+  }
+
+  function updateProgress(screen){
+    const rank={search:0,identity:1,listing:2,analysis:3,decision:3,tracking:4};
+    const current=rank[screen]??0;
+    progressItems.forEach((item,index)=>{
+      item.classList.toggle('is-complete',index<current||screen==='tracking');
+      if((screen==='analysis'||screen==='decision')&&index===3){
+        item.setAttribute('aria-current','step');
+      }else if(index===current&&current<4){
+        item.setAttribute('aria-current','step');
+      }else{
+        item.removeAttribute('aria-current');
+      }
+      const bubble=item.querySelector('span');
+      if(bubble)bubble.textContent=(index<current||screen==='tracking')?'✓':String(index+1);
     });
   }
 
-  function showScreen(name,options={}){
-    const target=screens.find(screen=>screen.dataset.screen===name);
-    if(!target)return;
+  const dockModel={
+    search:{kicker:'YOUR NEXT STEP',guidance:'Check the exact card.',primary:'Check this card →',back:null},
+    identity:{kicker:'ONE THING TO DO',guidance:'Confirm the exact match.',primary:'Yes — use this exact card →',back:'search'},
+    listing:{kicker:'ONE THING TO DO',guidance:'Choose the listing you would really pay for.',primary:'Evaluate selected listing →',back:'identity'},
+    analysis:{kicker:'FLIPFORGE IS WORKING',guidance:'You can see each check as it completes.',primary:'Checking…',back:null,disabled:true},
+    decision:{kicker:'YOUR NEXT STEP',guidance:'Save it, track it, or open “See exactly why.”',primary:'Save & track this card →',back:'listing'},
+    tracking:{kicker:'READY FOR THE NEXT CARD',guidance:'This decision is saved and tracking.',primary:'Search another card →',back:'decision'}
+  };
+
+  function renderDock(){
+    const model=dockModel[state.screen]||dockModel.search;
+    if(dockKicker)dockKicker.textContent=model.kicker;
+    if(dockGuidance)dockGuidance.textContent=model.guidance;
+    if(dockPrimary){
+      dockPrimary.textContent=state.screen==='listing'?`Evaluate $${state.price.toFixed(0)} listing →`:model.primary;
+      dockPrimary.disabled=Boolean(model.disabled);
+    }
+    if(dockBack){
+      dockBack.hidden=!model.back;
+      dockBack.dataset.backTarget=model.back||'';
+    }
+  }
+
+  function focusCurrent(){
+    const screen=screens.find(node=>node.dataset.screen===state.screen);
+    const heading=screen?.querySelector('h1');
+    if(heading){
+      if(!heading.hasAttribute('tabindex'))heading.setAttribute('tabindex','-1');
+      try{heading.focus({preventScroll:true});}catch(_){/* no-op */}
+    }else{
+      try{document.querySelector('#journey-main')?.focus({preventScroll:true});}catch(_){/* no-op */}
+    }
+  }
+
+  function applyScreen(name){
     state.screen=name;
     screens.forEach(screen=>{
-      const active=screen===target;
+      const active=screen.dataset.screen===name;
       screen.hidden=!active;
       screen.classList.toggle('is-active',active);
+      if(active)screen.removeAttribute('inert');
+      else screen.setAttribute('inert','');
     });
-    updateNav(name);
-    closeNav();
+    const main=document.querySelector('.journey-main');
+    if(main)main.scrollTop=0;
+    updateProgress(name);
+    renderDock();
     track('screen_view',{screen:name});
-    if(options.scroll!==false){
-      window.scrollTo({top:0,behavior:reduceMotion?'auto':'smooth'});
-    }
-    window.setTimeout(()=>{
-      try{document.querySelector('#preview-main')?.focus({preventScroll:true});}catch(_){/* no-op */}
-    },0);
+    window.setTimeout(focusCurrent,0);
   }
 
-  function applyCardName(value){
-    const card=value?.trim()||'Your selected card';
-    state.card=card;
-    document.querySelectorAll('[data-card-name]').forEach(node=>{node.textContent=card;});
+  function showScreen(name){
+    if(name===state.screen)return;
+    if(!reduceMotion&&typeof document.startViewTransition==='function'){
+      document.startViewTransition(()=>applyScreen(name));
+    }else{
+      applyScreen(name);
+    }
   }
 
-  function hydrateDealCheckContext(){
-    if(!fromDealCheck||!queryInput)return;
-    const card='2020 Panini Prizm #307 Joe Burrow Silver Prizm PSA 10';
-    queryInput.value=card;
-    applyCardName(card);
-
-    const dlValues=[...document.querySelectorAll('.identity-copy dl dd')];
-    ['2020 Panini Prizm','#307','Silver Prizm','PSA 10'].forEach((value,index)=>{
-      if(dlValues[index])dlValues[index].textContent=value;
-    });
-    const slabCard=document.querySelector('.slab-card');
-    const slabPlayer=document.querySelector('.slab-player');
-    if(slabCard)slabCard.textContent='307';
-    if(slabPlayer)slabPlayer.textContent='JB';
-
-    document.querySelectorAll('.listing-visual').forEach(visual=>{
-      const grade=visual.querySelector('span');
-      const parallel=visual.querySelector('b');
-      const number=visual.querySelector('small');
-      if(grade)grade.textContent='PSA 10';
-      if(parallel)parallel.innerHTML='SILVER<br>PRIZM';
-      if(number)number.textContent='#307';
-    });
-
-    const rejected=[...document.querySelectorAll('.alternate-body .reject-row strong')];
-    if(rejected[0])rejected[0].textContent='Base Prizm #307 PSA 10';
-    if(rejected[1])rejected[1].textContent='Silver Prizm #307 PSA 9';
-
-    const searchFrame=document.querySelector('.search-frame');
-    const searchCard=document.querySelector('.card-search-card');
-    if(searchFrame&&searchCard&&!document.querySelector('[data-landing-handoff]')){
-      const handoff=document.createElement('div');
-      handoff.className='next-step-note';
-      handoff.dataset.landingHandoff='';
-      handoff.innerHTML='<span>CONTINUING FROM THE LANDING-PAGE DEAL CHECK</span><p>The same $349 Joe Burrow Silver Prizm listing is loaded below, so you can see how the customer experience continues inside FlipForge.</p>';
-      searchCard.before(handoff);
+  function validateSearch(){
+    const value=queryInput?.value?.trim()||'';
+    if(!value){
+      toast('Enter the card before continuing.','Start with the exact card.');
+      queryInput?.focus();
+      return false;
     }
-
-    const banner=document.querySelector('.preview-banner');
-    if(banner&&!banner.querySelector('[data-back-to-landing]')){
-      const back=document.createElement('a');
-      back.href='./#deal-or-decoy';
-      back.dataset.backToLanding='';
-      back.textContent='← Back to landing page';
-      back.setAttribute('aria-label','Return to the landing-page Deal Check preview');
-      banner.append(back);
+    setCard(value);
+    if(/burrow/i.test(value)){
+      state.parallel=/silver/i.test(value)?'Silver Prizm':'Prizm';
+      state.slabNumber='307';
+    }else{
+      state.parallel=/green/i.test(value)?'Green Refractor':'Exact parallel';
+      const number=value.match(/#\s*([A-Za-z0-9-]+)/)?.[1];
+      state.slabNumber=number||'89';
     }
-
-    track('landing_handoff_loaded',{card});
+    const slab=document.querySelector('.slab-number');
+    if(slab)slab.textContent=state.slabNumber;
+    const parallel=document.querySelector('[data-parallel]');
+    if(parallel)parallel.textContent=state.parallel;
+    track('card_search',{query:value,fromDealCheck});
+    return true;
   }
 
-  function resetProgress(){
-    window.clearTimeout(state.loadingTimer);
-    state.loadingIndex=-1;
+  function resetAnalysis(){
+    window.clearTimeout(state.analysisTimer);
     progressSteps.forEach((step,index)=>{
       step.classList.remove('is-running','is-complete');
-      const status=step.querySelector('b');
-      if(status)status.textContent='Waiting';
       const badge=step.querySelector(':scope > span');
+      const status=step.querySelector(':scope > b');
       if(badge)badge.textContent=String(index+1);
+      if(status)status.textContent='Waiting';
     });
   }
 
-  function runProgress(){
-    resetProgress();
-    showScreen('loading');
-    track('evaluation_started',{card:state.card});
-    const interval=reduceMotion?130:620;
-
+  function runAnalysis(){
+    resetAnalysis();
+    showScreen('analysis');
+    track('evaluation_started',{card:state.card,listing:state.listing,price:state.price});
+    const interval=reduceMotion?100:420;
     const advance=index=>{
       if(index>=progressSteps.length){
-        state.loadingTimer=window.setTimeout(()=>{
-          track('decision_ready',{decision:'VERIFY'});
-          showScreen('result');
-        },reduceMotion?80:500);
+        state.analysisTimer=window.setTimeout(()=>{
+          track('decision_ready',{decision:'VERIFY',price:state.price});
+          showScreen('decision');
+        },reduceMotion?60:300);
         return;
       }
-
       progressSteps.forEach((step,i)=>{
+        const status=step.querySelector(':scope > b');
+        const badge=step.querySelector(':scope > span');
         step.classList.toggle('is-complete',i<index);
         step.classList.toggle('is-running',i===index);
-        const status=step.querySelector('b');
-        const badge=step.querySelector(':scope > span');
-        if(i<index){
-          if(status)status.textContent='Checked';
-          if(badge)badge.textContent='✓';
-        }else if(i===index){
-          if(status)status.textContent='Checking';
-          if(badge)badge.textContent='•';
-        }else{
-          if(status)status.textContent='Waiting';
-          if(badge)badge.textContent=String(i+1);
-        }
+        if(i<index){if(status)status.textContent='Checked';if(badge)badge.textContent='✓';}
+        else if(i===index){if(status)status.textContent='Checking';if(badge)badge.textContent='•';}
+        else{if(status)status.textContent='Waiting';if(badge)badge.textContent=String(i+1);}
       });
-
-      state.loadingIndex=index;
-      state.loadingTimer=window.setTimeout(()=>advance(index+1),interval);
+      state.analysisTimer=window.setTimeout(()=>advance(index+1),interval);
     };
-
     advance(0);
   }
 
-  function showEvidence(){
-    const panel=document.querySelector('[data-evidence-panel]');
-    if(!panel)return;
-    track('evidence_opened',{decision:'VERIFY'});
-    panel.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});
-    window.setTimeout(()=>{
-      try{panel.focus({preventScroll:true});}catch(_){/* no-op */}
-    },reduceMotion?0:350);
+  function saveAndTrack(){
+    state.saved=true;
+    state.tracked=true;
+    state.archived=false;
+    updateSavedUI();
+    closeModal(evidenceDialog);
+    track('decision_saved',{decision:'VERIFY',card:state.card});
+    track('tracking_started',{card:state.card});
+    showScreen('tracking');
+    toast('You can archive or delete it later from Saved.','Saved and tracking.');
   }
 
-  function handleAdvanced(label){
-    document.querySelectorAll('[data-advanced-title]').forEach(node=>{node.textContent=label;});
-    track('advanced_tool_preview',{tool:label});
-    showScreen('advanced');
-  }
-
-  document.querySelector('[data-open-nav]')?.addEventListener('click',()=>{
-    const next=shell?.dataset.navOpen!=='true';
-    if(shell)shell.dataset.navOpen=String(next);
-    document.querySelector('[data-open-nav]')?.setAttribute('aria-expanded',String(next));
-  });
-  document.querySelector('[data-close-nav]')?.addEventListener('click',closeNav);
-
-  navButtons.forEach(button=>{
-    button.addEventListener('click',event=>{
-      const name=button.dataset.navTarget;
-      if(!name)return;
-      event.preventDefault?.();
-      showScreen(name);
+  function resetJourney(){
+    resetAnalysis();
+    state.saved=false;
+    state.tracked=false;
+    state.archived=false;
+    state.listing='A';
+    setSelectedPrice(349);
+    document.querySelectorAll('[data-listing]').forEach(button=>{
+      const selected=button.dataset.listing==='A';
+      button.classList.toggle('is-selected',selected);
+      button.setAttribute('aria-pressed',String(selected));
+      const mark=button.querySelector('.selected-mark');
+      if(mark)mark.textContent=selected?'Selected ✓':'Select';
     });
-  });
+    if(queryInput)queryInput.value='';
+    setCard('Your selected card');
+    updateSavedUI();
+    showScreen('search');
+    window.setTimeout(()=>queryInput?.focus(),100);
+  }
 
-  document.querySelectorAll('[data-advanced]').forEach(button=>{
-    button.addEventListener('click',()=>handleAdvanced(button.dataset.advanced||'Advanced Intelligence'));
-  });
+  function updateSavedUI(){
+    const empty=document.querySelector('[data-saved-empty]');
+    const content=document.querySelector('[data-saved-content]');
+    const active=document.querySelector('[data-active-saved]');
+    const archivedSection=document.querySelector('[data-archived-section]');
+    if(empty)empty.hidden=state.saved;
+    if(content)content.hidden=!state.saved;
+    if(active)active.hidden=!state.saved||state.archived;
+    if(archivedSection)archivedSection.hidden=!state.saved||!state.archived;
+    document.querySelectorAll('.saved-shortcut').forEach(button=>{
+      button.textContent=state.saved?(state.archived?'Saved · 0':'Saved · 1'):'Saved';
+    });
+  }
+
+  function archiveCard(){
+    if(!state.saved)return;
+    state.archived=true;
+    state.tracked=false;
+    updateSavedUI();
+    track('decision_archived',{card:state.card});
+    toast('Restore it anytime from Archived.','Archived from Saved.');
+  }
+
+  function restoreCard(){
+    if(!state.saved)return;
+    state.archived=false;
+    updateSavedUI();
+    track('decision_restored',{card:state.card});
+    toast('The card is active in Saved Decisions again.','Restored.');
+  }
+
+  function deleteCard(){
+    const deletedCard=state.card;
+    state.saved=false;
+    state.tracked=false;
+    state.archived=false;
+    updateSavedUI();
+    closeModal(deleteDialog);
+    closeModal(savedDialog);
+    track('decision_deleted_preview',{card:deletedCard});
+    toast('The customer-visible saved card is gone.','Deleted.');
+    if(state.screen==='tracking')showScreen('search');
+  }
+
+  function openSaved(){
+    updateSavedUI();
+    track('saved_opened',{saved:state.saved,archived:state.archived});
+    showModal(savedDialog);
+  }
+
+  function openEvidence(){
+    track('evidence_opened',{decision:'VERIFY'});
+    showModal(evidenceDialog);
+  }
+
+  function primaryAction(){
+    if(state.screen==='search'){
+      if(validateSearch())showScreen('identity');
+      return;
+    }
+    if(state.screen==='identity'){
+      track('identity_confirmed',{card:state.card});
+      showScreen('listing');
+      return;
+    }
+    if(state.screen==='listing'){
+      track('listing_selected',{listing:state.listing,price:state.price});
+      runAnalysis();
+      return;
+    }
+    if(state.screen==='decision'){
+      saveAndTrack();
+      return;
+    }
+    if(state.screen==='tracking')resetJourney();
+  }
+
+  function configureHandoff(){
+    if(!fromDealCheck)return;
+    state.card='2020 Panini Prizm #307 Joe Burrow Silver Prizm PSA 10';
+    state.parallel='Silver Prizm';
+    state.slabNumber='307';
+    if(queryInput)queryInput.value=state.card;
+    setCard(state.card);
+    const handoff=document.querySelector('[data-deal-handoff]');
+    if(handoff)handoff.hidden=false;
+    const kicker=document.querySelector('[data-search-kicker]');
+    const title=document.querySelector('[data-search-title]');
+    const lede=document.querySelector('[data-search-lede]');
+    if(kicker)kicker.textContent='CONTINUE THE SAME DEAL';
+    if(title)title.textContent='Now see how this works inside FlipForge.';
+    if(lede)lede.textContent='The Joe Burrow $349 example is already loaded. Your next action is pinned below — no scrolling required.';
+    if(dockPrimary)dockPrimary.textContent='Continue with this $349 deal →';
+    const slab=document.querySelector('.slab-number');
+    if(slab)slab.textContent='307';
+    const parallel=document.querySelector('[data-parallel]');
+    if(parallel)parallel.textContent='Silver Prizm';
+    track('landing_handoff_received',{example:'joe_burrow_silver_prizm_psa10',price:349});
+  }
 
   searchForm?.addEventListener('submit',event=>{
     event.preventDefault();
-    const value=queryInput?.value?.trim();
-    if(!value){
-      toast('Enter the year, set, player, card number, and any known parallel or grade.','Start with the exact card.');
-      queryInput?.focus();
-      return;
-    }
-    applyCardName(value);
-    track('card_search',{query:value,source:fromDealCheck?'landing_deal_check':'direct_preview'});
-    showScreen('identity');
+    primaryAction();
   });
 
-  document.querySelectorAll('[data-confirm-identity]').forEach(button=>{
+  dockPrimary?.addEventListener('click',primaryAction);
+  dockBack?.addEventListener('click',()=>{
+    const target=dockBack.dataset.backTarget;
+    if(target)showScreen(target);
+  });
+
+  document.querySelectorAll('[data-listing]').forEach(button=>{
     button.addEventListener('click',()=>{
-      track('identity_confirmed',{card:state.card});
-      showScreen('listings');
+      document.querySelectorAll('[data-listing]').forEach(other=>{
+        const selected=other===button;
+        other.classList.toggle('is-selected',selected);
+        other.setAttribute('aria-pressed',String(selected));
+        const mark=other.querySelector('.selected-mark');
+        if(mark)mark.textContent=selected?'Selected ✓':'Select';
+      });
+      state.listing=button.dataset.listing||'A';
+      setSelectedPrice(button.dataset.price);
+      renderDock();
+      track('listing_choice_changed',{listing:state.listing,price:state.price});
     });
   });
 
-  document.querySelectorAll('[data-evaluate-listing]').forEach(button=>{
-    button.addEventListener('click',()=>{
-      track('listing_selected',{label:button.closest('.listing-card')?.querySelector('.listing-topline span')?.textContent||'listing'});
-      runProgress();
+  document.querySelectorAll('[data-open-evidence]').forEach(button=>button.addEventListener('click',openEvidence));
+  document.querySelectorAll('[data-open-saved]').forEach(button=>button.addEventListener('click',openSaved));
+  document.querySelectorAll('[data-save-track]').forEach(button=>button.addEventListener('click',saveAndTrack));
+  document.querySelectorAll('[data-archive-card]').forEach(button=>button.addEventListener('click',archiveCard));
+  document.querySelectorAll('[data-restore-card]').forEach(button=>button.addEventListener('click',restoreCard));
+  document.querySelectorAll('[data-request-delete]').forEach(button=>button.addEventListener('click',()=>showModal(deleteDialog)));
+  document.querySelectorAll('[data-delete-card]').forEach(button=>button.addEventListener('click',deleteCard));
+  document.querySelectorAll('[data-close-dialog]').forEach(button=>button.addEventListener('click',()=>closeModal(button.closest('dialog'))));
+
+  [evidenceDialog,savedDialog,deleteDialog].forEach(dialog=>{
+    dialog?.addEventListener('click',event=>{
+      if(event.target===dialog)closeModal(dialog);
     });
-  });
-
-  document.querySelectorAll('[data-back]').forEach(button=>{
-    button.addEventListener('click',()=>showScreen(button.dataset.back||'search'));
-  });
-
-  document.querySelectorAll('[data-show-evidence]').forEach(button=>button.addEventListener('click',showEvidence));
-
-  document.querySelectorAll('[data-save-decision]').forEach(button=>{
-    button.addEventListener('click',()=>{
-      state.saved=true;
-      button.textContent='Saved ✓';
-      button.disabled=true;
-      track('decision_saved',{decision:'VERIFY'});
-      toast('You can revisit the reasoning without starting over.','Decision saved.');
-    });
-  });
-
-  document.querySelectorAll('[data-track-card]').forEach(button=>{
-    button.addEventListener('click',()=>{
-      state.tracked=true;
-      track('tracking_started',{decision:'VERIFY'});
-      toast('FlipForge will surface what changes next.','Tracking started.');
-      window.setTimeout(()=>showScreen('tracking'),650);
-    });
-  });
-
-  document.querySelectorAll('[data-open-sample-result]').forEach(button=>{
-    button.addEventListener('click',()=>{
-      track('saved_decision_opened',{decision:'VERIFY'});
-      showScreen('result');
-    });
-  });
-
-  document.querySelector('[data-reset-preview]')?.addEventListener('click',()=>{
-    resetProgress();
-    state.saved=false;
-    state.tracked=false;
-    const save=document.querySelector('[data-save-decision]');
-    if(save){save.disabled=false;save.textContent='Save decision';}
-    try{localStorage.removeItem(analyticsKey);}catch(_){/* no-op */}
-    if(queryInput)queryInput.value=fromDealCheck?'2020 Panini Prizm #307 Joe Burrow Silver Prizm PSA 10':'2024 Topps Chrome #89 Jasson Dominguez Green Refractor PSA 10';
-    applyCardName(queryInput?.value||'');
-    showScreen('search');
-    toast('The interactive journey is back at the first screen.','Preview reset.');
   });
 
   document.addEventListener('keydown',event=>{
-    if(event.key==='Escape'&&shell?.dataset.navOpen==='true')closeNav();
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){
       event.preventDefault();
-      showScreen('search',{scroll:false});
+      showScreen('search');
       window.setTimeout(()=>queryInput?.focus(),0);
-      track('keyboard_search_focus');
     }
   });
 
-  // Native selection, copy, and paste are intentionally untouched across the preview.
-  // No contextmenu, selectstart, copy, cut, or paste handlers are registered.
+  // Native text selection, copy, cut, paste, context menus, and form editing are intentionally untouched.
+  // The preview uses native <dialog>, Popover API targets, CSS dynamic viewport units,
+  // container queries, scroll snapping, safe-area insets, and the View Transitions API when available.
 
-  hydrateDealCheckContext();
-  applyCardName(queryInput?.value||state.card);
-  track('preview_opened',{screen:'search',source:fromDealCheck?'landing_deal_check':'direct_preview'});
+  setSelectedPrice(349);
+  updateSavedUI();
+  applyScreen('search');
+  configureHandoff();
+  renderDock();
+  track('preview_opened',{version:'foolproof-v2',fromDealCheck});
 })();
