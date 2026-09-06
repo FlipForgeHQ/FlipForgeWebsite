@@ -17,6 +17,7 @@
   const choices=[...demo.querySelectorAll('[data-ff-choice]')];
   const heroFilm=document.querySelector('[data-ff-hero-film]');
   const reduceMotion=()=>Boolean(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const isDeployPreview=/^deploy-preview-\d+--goflipforge\.netlify\.app$/i.test(String(window.location.hostname||''));
   let visitorChoice=null;
   let started=false;
 
@@ -131,8 +132,19 @@
     actions.classList.add('is-conversion-ready');
   };
 
+  const wirePreviewJourney=()=>{
+    if(!isDeployPreview)return;
+    const evaluate=demo.querySelector('[data-ff-deal-cta="evaluate_listing"]');
+    if(!evaluate)return;
+    evaluate.href='customer-journey-preview.html?from=deal-check';
+    evaluate.textContent='Continue Into FlipForge →';
+    evaluate.dataset.ffDealCta='customer_journey_preview';
+    evaluate.setAttribute('aria-label','Continue this Joe Burrow deal into the FlipForge customer journey preview');
+  };
+
   buildHandoff();
   buildConversionMoment();
+  wirePreviewJourney();
 
   if('IntersectionObserver' in window){
     const observer=new IntersectionObserver(entries=>{
