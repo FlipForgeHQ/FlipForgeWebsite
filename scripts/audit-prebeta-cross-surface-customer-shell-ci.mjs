@@ -26,9 +26,19 @@ const replacement = `async function advancedNavLink(route) {
 
   return {
     async click() {
-      await page.evaluate(nextRoute => {
-        window.location.hash = \`#/$\{nextRoute}\`;
-      }, route);
+      try {
+        await page.evaluate(nextRoute => {
+          window.location.hash = \`#/$\{nextRoute}\`;
+        }, route);
+      } catch (error) {
+        const message = String(error?.message || error || "");
+        if (!/execution context was destroyed|most likely because of a navigation/i.test(message)) {
+          throw error;
+        }
+        // A governed SPA transition can replace the execution context immediately
+        // after the hash assignment. The caller verifies the resulting URL, so
+        // this specific race is safe to treat as an initiated navigation.
+      }
     }
   };
 }
