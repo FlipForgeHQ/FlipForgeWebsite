@@ -1,0 +1,38 @@
+name: Customer Journey Foolproof Preview
+
+on:
+  pull_request:
+    paths:
+      - "customer-journey-preview.html"
+      - "assets/css/customer-journey-foolproof-v2.css"
+      - "assets/js/customer-journey-foolproof-v2.js"
+      - "scripts/validate-customer-journey-foolproof-preview.mjs"
+      - ".github/workflows/customer-journey-foolproof-preview.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "customer-journey-preview.html"
+      - "assets/css/customer-journey-foolproof-v2.css"
+      - "assets/js/customer-journey-foolproof-v2.js"
+      - "scripts/validate-customer-journey-foolproof-preview.mjs"
+      - ".github/workflows/customer-journey-foolproof-preview.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate foolproof customer journey
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Parse preview JavaScript
+        run: node --check assets/js/customer-journey-foolproof-v2.js
+      - name: Validate preview customer journey contract
+        run: node scripts/validate-customer-journey-foolproof-preview.mjs
