@@ -8,9 +8,11 @@ const forbidText=(label,text,needle)=>{if(text.includes(needle))failures.push(`$
 const marketingPages=read('assets/css/marketing-pages-v3.css');
 const marketingSupport=read('assets/css/marketing-support-v3.css');
 const density=read('assets/css/marketing-density-v1.css');
+const brandCss=read('assets/css/brand-v2.css');
 const heroCss=read('assets/css/homepage-decision-hero-v1.css');
 const mobileHomeCss=read('assets/css/homepage-mobile-nav-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
+const dealRefinement=read('assets/css/homepage-deal-refinement-v2.css');
 const dealJs=read('assets/js/homepage-deal-or-decoy-v1.js');
 const awardJs=read('assets/js/award-winning-v1.js');
 const appIndex=read('saas-prototype/index.html');
@@ -32,9 +34,29 @@ requireText('marketing page hero cap',density,'font-size:clamp(38px,4vw,52px)!im
 requireText('support page hero cap',density,'font-size:clamp(36px,3.75vw,50px)!important');
 requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
 
+/* Public brand/typography contract: Home, Product, Evidence Lab, Plans, About,
+ * and Beta must feel like one product rather than separate templates. */
+requireText('shared public heading scale',brandCss,'font-size:clamp(38px,4.2vw,56px)!important');
+requireText('shared public section heading scale',brandCss,'font-size:clamp(26px,2.6vw,36px)!important');
+requireText('shared public lead scale',brandCss,'font-size:17px!important');
+requireText('shared public desktop nav scale',brandCss,'.site-header .desktop-nav a{font-size:13px!important}');
+requireText('non-home explicit Home control',brandCss,'.site-header .brand::after{content:"HOME"');
+requireText('Home control is removed from footer brand',brandCss,'.footer .brand::after{content:none}');
+requireText('homepage uses shared Geist brand stylesheet',homepage,'assets/css/brand-v2.css');
+requireText('homepage uses shared Geist typeface',heroCss,'font-family:Geist,"Geist Sans",Arial,sans-serif');
+requireText('homepage uses shared desktop nav scale',heroCss,'font-size:13px;font-weight:650');
+requireText('homepage uses shared hero scale',heroCss,'font-size:clamp(38px,4.2vw,56px)');
+for(const [label,text] of [['Product',product],['Evidence Lab',evidence],['Launch Plans',plans],['About',about],['Beta',beta]]){
+  requireText(`${label} shared brand stylesheet`,text,'assets/css/brand-v2.css');
+  requireText(`${label} explicit route home`,text,'class="brand" href="index.html"');
+}
+
 requireText('homepage hero stylesheet',homepage,'assets/css/homepage-decision-hero-v1.css');
 requireText('homepage mobile stylesheet',homepage,'assets/css/homepage-mobile-nav-v1.css');
 requireText('homepage proof stylesheet',homepage,'assets/css/homepage-deal-or-decoy-v1.css');
+requireText('homepage refinement stylesheet',homepage,'assets/css/homepage-deal-refinement-v2.css');
+requireText('homepage refinement owns result contrast',dealRefinement,'.ff-deal-result-heading');
+requireText('homepage refinement owns signature correction',dealRefinement,'.ff-deal-shift strong');
 requireText('homepage browser-decodable visual metadata',homepage,'assets/images/flipforge-homepage-hero.webp');
 requireText('homepage direct first action',homepage,'Would you pay <span>$349</span> for this card?');
 requireText('homepage proof path',homepage,'class="ff-deal-demo" id="deal-or-decoy"');
@@ -47,6 +69,7 @@ requireText('homepage first viewport',heroCss,'min-height:calc(100dvh - 79px)');
 requireText('homepage immediate reveal',dealJs,'resultStage.hidden=false');
 requireText('homepage view transition progressive enhancement',dealJs,'document.startViewTransition');
 requireText('homepage native evidence dialog',dealJs,'showModal');
+requireText('homepage stateful result hierarchy',dealJs,"demo.dataset.ffState='result'");
 forbidText('homepage broken visual removed',homepage,'assets/images/flipforge-approved-decision-visual.webp');
 forbidText('homepage unfinished video removed',homepage,'assets/video/flipforge-how-it-works-30s.mp4');
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
@@ -112,4 +135,4 @@ for(const unsafe of ['CARD VALUE INTELLIGENCE','guaranteed profit','automatic pu
 requireText('app transaction boundary',appIndex,'No transaction authority');
 
 if(failures.length){console.error('Sitewide UX system validation failed:');failures.forEach(failure=>console.error(`- ${failure}`));process.exit(1);}
-console.log('PASS: FlipForge first-viewport homepage, deeper marketing pages, and customer-app UX ownership validated.');
+console.log('PASS: FlipForge public typography, Home navigation, first-viewport homepage, deeper marketing pages, and customer-app UX ownership validated.');
