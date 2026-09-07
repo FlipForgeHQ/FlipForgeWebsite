@@ -30,24 +30,50 @@
     return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host)) && APP_PATH.test(path);
   }
 
+  function dashboardRoute() {
+    const route = String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard";
+    return route === "dashboard";
+  }
+
   function productionDashboard() {
     const host = String(window.location.hostname || "");
-    const path = String(window.location.pathname || "");
-    const route = String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard";
-    return PRODUCTION_HOST.test(host) && APP_PATH.test(path) && route === "dashboard";
+    return PRODUCTION_HOST.test(host) && customerApp() && dashboardRoute();
+  }
+
+  function customerDashboard() {
+    return customerApp() && dashboardRoute();
   }
 
   function guardedMarkup() {
     return `<div class="page ff-commercial-dashboard" data-production-dashboard-guard><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>Loading tenant-owned FlipForge intelligence.</p></div></header><div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div></div>`;
   }
 
+  function customerHomeMarkup() {
+    return `<div class="page ff-customer-home-page" data-customer-home-v1><header class="page-heading"><div><span class="eyebrow">Private beta</span><h1>Before you buy, know why.</h1><p>Evaluate an exact card, understand the decision, and track what happens next.</p></div><div class="page-actions"><a class="button button-primary" href="#/discover">Evaluate a card</a></div></header></div>`;
+  }
+
+  function presentCustomerHome() {
+    if (!customerDashboard() || applying) return;
+    if (main.querySelector("[data-customer-home-v1]")) return;
+    applying = true;
+    main.innerHTML = customerHomeMarkup();
+    applying = false;
+    if (window.FlipForgeCustomerOnlyShell?.refresh) window.FlipForgeCustomerOnlyShell.refresh();
+  }
+
   function enforce() {
     if (!productionDashboard() || applying) return;
+    if (main.querySelector("[data-customer-home-v1]")) return;
     if (main.querySelector("[data-commercial-dashboard-v2]")) return;
     if (main.querySelector("[data-production-dashboard-guard]")) return;
     applying = true;
     main.innerHTML = guardedMarkup();
     applying = false;
+  }
+
+  function reconcileDashboardPresentation() {
+    enforce();
+    presentCustomerHome();
   }
 
   function cleanRouteTransition(event) {
@@ -82,10 +108,10 @@
     document.addEventListener("click", handleRouteClick, true);
   }
 
-  const observer = new MutationObserver(() => queueMicrotask(enforce));
+  const observer = new MutationObserver(() => queueMicrotask(reconcileDashboardPresentation));
   observer.observe(main, { childList: true });
   window.addEventListener("hashchange", cleanRouteTransition);
-  window.addEventListener("pageshow", enforce);
+  window.addEventListener("pageshow", reconcileDashboardPresentation);
   ensureBrandFavicon();
-  enforce();
+  reconcileDashboardPresentation();
 })();
