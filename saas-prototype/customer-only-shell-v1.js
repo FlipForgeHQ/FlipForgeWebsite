@@ -19,7 +19,10 @@
     return String(window.location.hash || "#/dashboard")
       .replace(/^#\/?/, "")
       .split(/[/?]/)
-      .filter(Boolean);
+      .filter(Boolean)
+      .map(value => {
+        try { return decodeURIComponent(value); } catch (_) { return value; }
+      });
   }
 
   function routeName() {
@@ -161,11 +164,238 @@
   function simplifyWorkflowStrip() {
     const strip = document.querySelector(`${MAIN} [data-ff-workflow-strip]`);
     if (!strip) return;
-    const labels = ["Find card", "Evaluate", "Understand", "Track"];
+    const labels = ["Enter card", "Confirm", "Decision", "Save & track"];
     strip.querySelectorAll(".ff-workflow-step").forEach((step, index) => {
       const text = step.querySelector("span:last-child");
       if (labels[index]) setText(text, labels[index]);
     });
+  }
+
+  function ensureEvaluateSteps(main, activeIndex) {
+    const heading = main?.querySelector(".page-heading");
+    if (!main || !heading) return;
+
+    let strip = main.querySelector("[data-ff-evaluate-steps]");
+    if (!strip) {
+      strip = document.createElement("nav");
+      strip.className = "ff-evaluate-steps";
+      strip.dataset.ffEvaluateSteps = "";
+      strip.setAttribute("aria-label", "FlipForge evaluation progress");
+      heading.insertAdjacentElement("afterend", strip);
+    }
+
+    const labels = ["Enter card", "Confirm", "Decision", "Save & track"];
+    const wanted = labels.map((label, index) => {
+      const active = index === activeIndex;
+      const complete = index < activeIndex;
+      return `<span class="ff-evaluate-step" data-active="${active}" data-complete="${complete}"${active ? ' aria-current="step"' : ""}><b>${complete ? "✓" : index + 1}</b><span>${label}</span></span>`;
+    }).join("");
+    setHtml(strip, wanted);
+  }
+
+  function simplifyEvaluateFlow() {
+    const main = document.querySelector(MAIN);
+    const active = routeName() === "discover";
+    document.documentElement.classList.toggle("ff-customer-evaluate-live", active);
+    if (!main || !active) return;
+
+    const heading = main.querySelector(".page-heading");
+    if (!heading) return;
+    setText(heading.querySelector(".eyebrow"), "Evaluate");
+    setText(heading.querySelector("h1"), "One card. One decision. Know why.");
+    setText(heading.querySelector("p"), "Start with the exact card you are considering. FlipForge confirms identity, finds connected listings, and sends only the listing you choose to Smart Opportunity.");
+    const headingActions = heading.querySelector(".page-actions");
+    if (headingActions && !headingActions.hidden) headingActions.hidden = true;
+
+    const hasConfirmation = Boolean(main.querySelector(".customer-discovery-identity-assist, .customer-discovery-results"));
+    ensureEvaluateSteps(main, hasConfirmation ? 1 : 0);
+
+    const pageBoundary = main.querySelector(".customer-discovery-page > .boundary-note");
+    if (pageBoundary) {
+      setHtml(pageBoundary, "<strong>Customer boundary:</strong> FlipForge evaluates and explains. It does not buy, bid, pay, or list cards.");
+    }
+
+    const searchPanel = main.querySelector(".customer-discovery-search");
+    if (searchPanel) {
+      setText(searchPanel.querySelector(".panel-header h2"), "What card are you looking at?");
+      setText(searchPanel.querySelector(".panel-header p"), "Enter the exact identity you know. If the card needs clarification, FlipForge will ask you to confirm it before searching connected listings.");
+
+      const identityInput = searchPanel.querySelector('input[name="exactCardQuery"]');
+      const targetInput = searchPanel.querySelector('input[name="targetMaxBuy"]');
+      const limitSelect = searchPanel.querySelector('select[name="limit"]');
+      setText(identityInput?.closest("label")?.querySelector("span"), "Card or exact identity");
+      setText(targetInput?.closest("label")?.querySelector("span"), "Max price you would consider (optional)");
+      const limitLabel = limitSelect?.closest("label");
+      if (limitLabel && limitLabel.dataset.ffEvaluateHide !== "true") limitLabel.dataset.ffEvaluateHide = "true";
+
+      const primary = searchPanel.querySelector('button[type="submit"]');
+      if (primary && !primary.disabled) setText(primary, "Find this card");
+      const secondary = searchPanel.querySelector("[data-discovery-find-exact]");
+      if (secondary && !secondary.classList.contains("ff-evaluate-secondary-find")) secondary.classList.add("ff-evaluate-secondary-find");
+      setText(searchPanel.querySelector(".customer-discovery-search-help"), "Include year, set, player, card number, parallel and grade when you know them. FlipForge will not silently choose between similar cards.");
+    }
+
+    const identity = main.querySelector(".customer-discovery-identity-assist");
+    if (identity) {
+      setText(identity.querySelector(".eyebrow"), "Confirm card");
+      setText(identity.querySelector(".panel-header h2"), "Confirm the exact card");
+      setText(identity.querySelector(".panel-header p"), "Choose the card that matches what you are considering. FlipForge will not guess when more than one identity is possible.");
+      const boundary = identity.querySelector(".boundary-note");
+      if (boundary) setHtml(boundary, "<strong>Why confirmation matters:</strong> Only the exact card you select can move forward to listing search and evaluation.");
+    }
+
+    const providerGrid = main.querySelector(".customer-discovery-provider");
+    const providerPanel = providerGrid?.closest(".panel");
+    if (providerPanel) {
+      const status = String(providerPanel.querySelector(".staging-status")?.textContent || "");
+      providerPanel.classList.toggle("ff-evaluate-provider-collapsed", /connected/i.test(status));
+    }
+
+    const results = main.querySelector(".customer-discovery-results");
+    if (results) {
+      const summary = results.querySelector(".customer-discovery-summary");
+      setText(summary?.querySelector("strong"), "Choose the listing you want evaluated");
+      setText(summary?.querySelector("span"), "These are active listings for the exact card. Pick the listing you are actually considering, then FlipForge will run the decision engine.");
+
+      results.querySelectorAll(".customer-discovery-candidate:not(.customer-discovery-candidate-review)").forEach(candidate => {
+        const button = candidate.querySelector("[data-discovery-evaluate]");
+        if (button && !button.disabled) setText(button, "Get FlipForge decision");
+        const boundary = candidate.querySelector(".boundary-note");
+        if (boundary) setHtml(boundary, "<strong>Not a decision yet:</strong> Choose this listing to run Smart Opportunity and create the saved BUY, WATCH, VERIFY, or PASS result.");
+      });
+    }
+  }
+
+  function traceReasonData(main) {
+    const rows = [...main.querySelectorAll(".customer-trace-step")].map((step, index) => {
+      const copy = step.querySelector("div");
+      const label = String(copy?.querySelector("span")?.textContent || "").trim();
+      const title = String(copy?.querySelector("strong")?.textContent || "").trim();
+      const detail = String(copy?.querySelector("p")?.textContent || "").trim();
+      const warning = Boolean(step.querySelector(".check-mark.warn"));
+      const priority = warning ? 0 : /evidence/i.test(label) ? 1 : /market factors/i.test(label) ? 2 : /provider catalog/i.test(label) ? 3 : 4;
+      return { label, title, detail, warning, priority, index };
+    }).filter(item => item.title && item.detail && !/authority output/i.test(item.label));
+
+    rows.sort((left, right) => left.priority - right.priority || left.index - right.index);
+    return rows.slice(0, 2);
+  }
+
+  function ensureDecisionReasons(main, id) {
+    const hero = main.querySelector(".customer-intelligence-hero");
+    if (!hero) return;
+    const reasons = traceReasonData(main);
+    if (!reasons.length) return;
+
+    let section = main.querySelector("[data-ff-decision-reasons]");
+    if (!section) {
+      section = document.createElement("section");
+      section.className = "ff-decision-reasons";
+      section.dataset.ffDecisionReasons = "";
+      hero.insertAdjacentElement("afterend", section);
+    }
+
+    const signature = JSON.stringify(reasons.map(item => [item.label, item.title, item.detail, item.warning]));
+    if (section.dataset.ffReasonSignature !== signature) {
+      section.dataset.ffReasonSignature = signature;
+      section.replaceChildren();
+
+      const heading = document.createElement("div");
+      heading.className = "ff-decision-reasons-heading";
+      const eyebrow = document.createElement("span");
+      eyebrow.className = "eyebrow";
+      eyebrow.textContent = "Why this decision";
+      const title = document.createElement("h2");
+      title.textContent = "The two strongest reasons";
+      const copy = document.createElement("p");
+      copy.textContent = "These reasons are taken from the saved FlipForge decision trace. No new browser-side score or recommendation is created here.";
+      heading.append(eyebrow, title, copy);
+      section.appendChild(heading);
+
+      const list = document.createElement("div");
+      list.className = "ff-decision-reasons-list";
+      reasons.forEach((reason, index) => {
+        const article = document.createElement("article");
+        article.className = "ff-decision-reason";
+        const number = document.createElement("b");
+        number.textContent = String(index + 1);
+        const body = document.createElement("div");
+        const label = document.createElement("span");
+        label.textContent = reason.label.replace(/^\d+\s*·\s*/, "");
+        const strong = document.createElement("strong");
+        strong.textContent = reason.title;
+        const paragraph = document.createElement("p");
+        paragraph.textContent = reason.detail;
+        body.append(label, strong, paragraph);
+        article.append(number, body);
+        list.appendChild(article);
+      });
+      section.appendChild(list);
+
+      const actions = document.createElement("div");
+      actions.className = "ff-decision-reasons-actions";
+      const track = document.createElement("a");
+      track.className = "button button-primary";
+      track.href = `#/tracking/${encodeURIComponent(id)}`;
+      track.textContent = "Track this card";
+      const evidence = document.createElement("button");
+      evidence.className = "button button-secondary";
+      evidence.type = "button";
+      evidence.dataset.ffEvaluateEvidenceToggle = "";
+      evidence.setAttribute("aria-expanded", "false");
+      evidence.textContent = "View full evidence";
+      actions.append(track, evidence);
+      section.appendChild(actions);
+
+      const boundary = document.createElement("div");
+      boundary.className = "ff-evaluate-decision-boundary";
+      boundary.innerHTML = "<strong>Decision support only:</strong> FlipForge does not buy, bid, pay, accept offers, or list cards.";
+      section.appendChild(boundary);
+    }
+  }
+
+  function simplifyDecisionDetail() {
+    const main = document.querySelector(MAIN);
+    const parts = routeParts();
+    const active = parts[0] === "opportunities" && parts.length > 1;
+    document.documentElement.classList.toggle("ff-customer-decision-live", active);
+    if (!active) {
+      document.documentElement.classList.remove("ff-evaluate-show-advanced");
+      return;
+    }
+    if (!main) return;
+
+    const heading = main.querySelector(".page-heading");
+    if (heading) {
+      setText(heading.querySelector(".eyebrow"), "Saved decision");
+      setText(heading.querySelector("h1"), "Your FlipForge decision");
+      setText(heading.querySelector("p"), "Decision first. Two strongest reasons next. Open the full evidence only when you want the deeper detail.");
+      const actions = heading.querySelector(".page-actions");
+      if (actions && !actions.hidden) actions.hidden = true;
+    }
+
+    ensureEvaluateSteps(main, 2);
+    ensureDecisionReasons(main, parts[1]);
+
+    main.querySelector(".customer-intelligence-hero")?.classList.add("ff-evaluate-decision-hero");
+    main.querySelector(".customer-intelligence-grid")?.classList.add("ff-evaluate-detail-advanced");
+    main.querySelector(".staging-value-intelligence")?.classList.add("ff-evaluate-detail-advanced");
+    main.querySelectorAll(".ff-progressive-advanced").forEach(section => section.classList.add("ff-evaluate-detail-advanced"));
+
+    const toggle = main.querySelector("[data-ff-evaluate-evidence-toggle]");
+    if (toggle) {
+      const shown = document.documentElement.classList.contains("ff-evaluate-show-advanced");
+      toggle.setAttribute("aria-expanded", String(shown));
+      setText(toggle, shown ? "Hide full evidence" : "View full evidence");
+    }
+  }
+
+  function simplifyTrackingProgress() {
+    const main = document.querySelector(MAIN);
+    const active = routeName() === "tracking";
+    document.documentElement.classList.toggle("ff-customer-track-live", active);
+    if (!main || !active) return;
+    ensureEvaluateSteps(main, 3);
   }
 
   function simplifyBetaGuide() {
@@ -210,6 +440,9 @@
     customerHome();
     renameSavedDecisions();
     simplifyWorkflowStrip();
+    simplifyEvaluateFlow();
+    simplifyDecisionDetail();
+    simplifyTrackingProgress();
     simplifyBetaGuide();
   }
 
@@ -228,6 +461,15 @@
     const nav = document.querySelector(".primary-nav");
     if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
     if (nav) new MutationObserver(schedule).observe(nav, { childList: true, subtree: true });
+    document.addEventListener("click", event => {
+      const toggle = event.target.closest?.("[data-ff-evaluate-evidence-toggle]");
+      if (!toggle) return;
+      event.preventDefault();
+      const shown = !document.documentElement.classList.contains("ff-evaluate-show-advanced");
+      document.documentElement.classList.toggle("ff-evaluate-show-advanced", shown);
+      toggle.setAttribute("aria-expanded", String(shown));
+      setText(toggle, shown ? "Hide full evidence" : "View full evidence");
+    });
     window.addEventListener("hashchange", () => window.setTimeout(schedule, 40));
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);
