@@ -48,7 +48,8 @@ const replacement = `async function advancedNavLink(route) {
       // from in-app navigation. The destructive audit may still deep-link to those
       // governed owners so their state/authority boundaries remain testable.
       try {
-        await page.goto(\`${baseUrl}/#/$\{route}\`, { waitUntil: "domcontentloaded", timeout: 12_000 });
+        const appRoot = page.url().split("/#/")[0];
+        await page.goto(appRoot + "/#/" + route, { waitUntil: "domcontentloaded", timeout: 12_000 });
         return;
       } catch (error) {
         throw lastError || error;
