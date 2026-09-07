@@ -2,25 +2,7 @@
   "use strict";
 
   const MOBILE_QUERY = "(max-width: 760px)";
-  const CORE_ROUTES = [
-    "dashboard",
-    "market-view",
-    "discover",
-    "forge-heat",
-    "evaluate",
-    "opportunities",
-    "tracking",
-    "portfolio",
-    "alerts",
-    "beta-start"
-  ];
-
-  const routeLabel = {
-    "market-view": "Market View",
-    "forge-heat": "Forge Heat",
-    "beta-start": "Getting Started",
-    account: "Account"
-  };
+  const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"];
 
   function mobile() {
     return window.matchMedia?.(MOBILE_QUERY).matches === true;
@@ -38,14 +20,18 @@
     style.id = "ff-mobile-navigation-stabilizer-style";
     style.textContent = `
       @media (max-width:760px) {
-        .primary-nav > a[data-route="market-view"],
-        .primary-nav > a[data-route="alerts"],
-        .primary-nav > a[data-route="beta-start"],
-        .primary-nav > a.ff-nav-relocated,
-        .primary-nav > .ff-mobile-account-nav {
-          display:grid !important;
+        .primary-nav > a[data-ff-customer-core],
+        .primary-nav > .ff-mobile-account-nav,
+        .primary-nav > .ff-advanced-nav {
           visibility:visible !important;
           opacity:1 !important;
+        }
+        .primary-nav > a[data-ff-customer-core],
+        .primary-nav > .ff-mobile-account-nav {
+          display:grid !important;
+        }
+        .primary-nav > .ff-advanced-nav {
+          display:block !important;
         }
       }`;
     document.head.appendChild(style);
@@ -94,16 +80,16 @@
     if (!nav) return;
 
     ensureStyle();
-    CORE_ROUTES.forEach(route => restoreLink(nav.querySelector(`[data-route="${route}"]`)));
+    PRIMARY_ROUTES.forEach(route => restoreLink(nav.querySelector(`[data-route="${route}"]`)));
     const account = ensureAccountLink(nav);
     restoreLink(account);
 
-    nav.querySelectorAll("[data-route]").forEach(link => {
-      const route = link.getAttribute("data-route") || "";
-      if (!CORE_ROUTES.includes(route) && route !== "account") return;
-      restoreLink(link);
-      if (!link.textContent.trim() && routeLabel[route]) link.textContent = routeLabel[route];
-    });
+    const advanced = nav.querySelector(".ff-advanced-nav");
+    if (advanced) {
+      advanced.hidden = false;
+      advanced.removeAttribute("hidden");
+      advanced.removeAttribute("aria-hidden");
+    }
 
     syncActiveRoute(nav);
   }

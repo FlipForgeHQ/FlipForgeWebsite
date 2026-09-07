@@ -4,7 +4,6 @@
  */
 
 body[data-ff-surface="customer"] .ff-customer-route-registry,
-body[data-ff-surface="customer"] .ff-advanced-nav,
 body[data-ff-surface="customer"] .staging-only-nav {
   display: none !important;
 }
@@ -16,6 +15,19 @@ body[data-ff-surface="customer"] .primary-nav {
 
 body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {
   min-height: 44px;
+}
+
+body[data-ff-surface="customer"] .ff-advanced-nav {
+  display: block !important;
+  width: 100%;
+}
+
+body[data-ff-surface="customer"] .ff-advanced-nav > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
 }
 
 body[data-ff-surface="customer"] .sidebar-footer .plan-card {
