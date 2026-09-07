@@ -3,11 +3,11 @@
 
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);
-  const HIDDEN_NAV_ROUTES = new Set([
-    "market-view", "forge-heat", "evaluate", "portfolio", "alerts", "beta-start",
-    "decision-intelligence", "compare", "psa-advisor", "evidence", "sell", "export",
-    "staging", "staging-evaluate"
+  const CUSTOMER_TOOL_ROUTES = new Set([
+    "market-view", "forge-heat", "portfolio", "alerts",
+    "decision-intelligence", "compare", "psa-advisor", "evidence", "sell", "export"
   ]);
+  const INTERNAL_NAV_ROUTES = new Set(["evaluate", "staging", "staging-evaluate"]);
   const MAIN = "#main-content";
   let scheduled = false;
 
@@ -66,20 +66,34 @@
       const route = String(link.dataset.route || "");
       if (CORE_ROUTES.has(route)) {
         if (link.hidden) link.hidden = false;
+        link.removeAttribute("hidden");
         if (link.getAttribute("aria-hidden") === "true") link.removeAttribute("aria-hidden");
         if (link.tabIndex === -1) link.removeAttribute("tabindex");
         if (!link.hasAttribute("data-ff-customer-core")) link.setAttribute("data-ff-customer-core", "");
         replaceTextNode(link, labels.get(route));
-      } else if (HIDDEN_NAV_ROUTES.has(route)) {
+      } else if (INTERNAL_NAV_ROUTES.has(route)) {
         if (!link.hidden) link.hidden = true;
         if (link.getAttribute("aria-hidden") !== "true") link.setAttribute("aria-hidden", "true");
         if (link.tabIndex !== -1) link.tabIndex = -1;
+        link.removeAttribute("data-ff-customer-core");
+      } else if (CUSTOMER_TOOL_ROUTES.has(route) && link.closest(".ff-advanced-nav")) {
+        if (link.hidden) link.hidden = false;
+        link.removeAttribute("hidden");
+        link.removeAttribute("aria-hidden");
+        if (link.tabIndex === -1) link.removeAttribute("tabindex");
         link.removeAttribute("data-ff-customer-core");
       }
     });
 
     const advanced = nav.querySelector(".ff-advanced-nav");
-    if (advanced && !advanced.hidden) advanced.hidden = true;
+    if (advanced) {
+      advanced.hidden = false;
+      advanced.removeAttribute("hidden");
+      advanced.removeAttribute("aria-hidden");
+      const summary = advanced.querySelector("summary");
+      replaceTextNode(summary, "More tools");
+      if (CUSTOMER_TOOL_ROUTES.has(routeName())) advanced.open = true;
+    }
   }
 
   function simplifyTopbar() {
