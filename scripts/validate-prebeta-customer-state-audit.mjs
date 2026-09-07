@@ -8,14 +8,21 @@ const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const exists = relative => fs.existsSync(path.join(root, relative));
 
 const auditPath = "scripts/audit-prebeta-customer-state-ci.mjs";
+const adapterPath = "scripts/audit-prebeta-customer-state-customer-shell-ci.mjs";
 const workflowPath = ".github/workflows/prebeta-customer-state-audit.yml";
 const docsPath = "docs/PREBETA_CUSTOMER_STATE_AUDIT.md";
 const packagePath = "package.json";
 
 const audit = exists(auditPath) ? read(auditPath) : "";
+const adapter = exists(adapterPath) ? read(adapterPath) : "";
 const workflow = exists(workflowPath) ? read(workflowPath) : "";
 const docs = exists(docsPath) ? read(docsPath) : "";
 const packageJson = exists(packagePath) ? JSON.parse(read(packagePath)) : {};
+const auditCommand = packageJson?.scripts?.["audit:prebeta-customer-state"] || "";
+const allowedAuditCommands = new Set([
+  "node scripts/audit-prebeta-customer-state-ci.mjs",
+  "node scripts/audit-prebeta-customer-state-customer-shell-ci.mjs"
+]);
 
 const requiredScenarios = [
   "baseline imperfect identity resolves before marketplace search",
@@ -33,11 +40,21 @@ const requiredScenarios = [
   "browser requests never supply tenant identity or transaction authority"
 ];
 
+const adapterActive = auditCommand === "node scripts/audit-prebeta-customer-state-customer-shell-ci.mjs";
+const adapterValid = !adapterActive || (
+  exists(adapterPath)
+  && adapter.includes('scripts/audit-prebeta-customer-state-ci.mjs')
+  && adapter.includes("await searchButton().click();")
+  && adapter.includes("select.value = \"10\"")
+  && adapter.includes("pathToFileURL")
+);
+
 const checks = [
   ["destructive browser audit exists", exists(auditPath)],
   ["audit documentation exists", exists(docsPath)],
   ["dedicated CI workflow exists", exists(workflowPath)],
-  ["package exposes audit command", packageJson?.scripts?.["audit:prebeta-customer-state"] === "node scripts/audit-prebeta-customer-state-ci.mjs"],
+  ["package exposes an approved customer-state audit command", allowedAuditCommands.has(auditCommand)],
+  ["customer-shell adapter preserves and drives the original audit when active", adapterValid],
   ["all locked destructive scenarios remain in the browser audit", requiredScenarios.every(name => audit.includes(name))],
   ["audit emits a machine-readable report", audit.includes("qa-artifacts/prebeta-customer-state") && audit.includes("customer-state-audit.json")],
   ["audit inspects tenant/user header boundaries", audit.includes("x-flipforge-tenant-id") && audit.includes("x-flipforge-user-id")],
@@ -59,15 +76,16 @@ for (const [label, passed] of checks) {
   }
 }
 
-if (audit) {
-  const syntax = spawnSync(process.execPath, ["--check", path.join(root, auditPath)], { encoding: "utf8" });
+for (const sourcePath of [auditPath, ...(adapterActive ? [adapterPath] : [])]) {
+  if (!exists(sourcePath)) continue;
+  const syntax = spawnSync(process.execPath, ["--check", path.join(root, sourcePath)], { encoding: "utf8" });
   if (syntax.status === 0) {
-    console.log("PASS: destructive audit source passes node --check");
+    console.log(`PASS: ${sourcePath} passes node --check`);
   } else {
     failures += 1;
-    console.error(`FAIL: destructive audit syntax assurance: ${(syntax.stderr || syntax.stdout || "unknown syntax error").trim()}`);
+    console.error(`FAIL: ${sourcePath} syntax assurance: ${(syntax.stderr || syntax.stdout || "unknown syntax error").trim()}`);
   }
 }
 
 if (failures) process.exit(1);
-console.log(`Pre-beta customer-state audit assurance passed (${checks.length + 1}/${checks.length + 1}).`);
+console.log(`Pre-beta customer-state audit assurance passed (${checks.length + (adapterActive ? 2 : 1)}/${checks.length + (adapterActive ? 2 : 1)}).`);
