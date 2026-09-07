@@ -44,11 +44,11 @@
   }
 
   if (productionEligible()) {
-    const observer = new MutationObserver(() => applyPrivateBetaAllowanceCopy());
     const start = () => {
-      if (!document.body) return;
-      observer.observe(document.body, { childList: true, subtree: true });
       applyPrivateBetaAllowanceCopy();
+      if (typeof MutationObserver !== "function" || !document.body) return;
+      const observer = new MutationObserver(() => applyPrivateBetaAllowanceCopy());
+      observer.observe(document.body, { childList: true, subtree: true });
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
     else start();
