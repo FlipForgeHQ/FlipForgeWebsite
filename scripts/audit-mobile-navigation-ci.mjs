@@ -2,24 +2,22 @@ import { chromium } from "playwright";
 
 const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app";
 
-const routes = [
-  "dashboard",
-  "market-view",
-  "discover",
-  "forge-heat",
-  "evaluate",
-  "opportunities",
-  "tracking",
-  "portfolio",
-  "alerts",
-  "beta-start",
-  "decision-intelligence",
-  "compare",
-  "psa-advisor",
-  "evidence",
-  "sell",
-  "export",
-  "account"
+const routeSpecs = [
+  { route: "dashboard", mode: "primary" },
+  { route: "discover", mode: "primary" },
+  { route: "opportunities", mode: "primary" },
+  { route: "tracking", mode: "primary" },
+  { route: "market-view", mode: "more" },
+  { route: "forge-heat", mode: "more" },
+  { route: "portfolio", mode: "more" },
+  { route: "alerts", mode: "more" },
+  { route: "decision-intelligence", mode: "more" },
+  { route: "compare", mode: "more" },
+  { route: "psa-advisor", mode: "more" },
+  { route: "evidence", mode: "more" },
+  { route: "sell", mode: "more" },
+  { route: "export", mode: "more" },
+  { route: "account", mode: "account" }
 ];
 
 const expectedHeading = {
@@ -27,12 +25,10 @@ const expectedHeading = {
   "market-view": /^Market View$/i,
   discover: /^Discover$/i,
   "forge-heat": /^Forge Heat/i,
-  evaluate: /^Evaluate/i,
-  opportunities: /^Opportunities$/i,
+  opportunities: /^Saved Decisions$/i,
   tracking: /^Tracking$/i,
   portfolio: /^Portfolio$/i,
   alerts: /^Alerts$/i,
-  "beta-start": /^Private Beta Guide$|^Getting Started$/i,
   "decision-intelligence": /^Decision Intelligence|^No saved decisions yet\.?$/i,
   compare: /^Direct Comparison$|^Compare$/i,
   "psa-advisor": /^PSA Advisor$/i,
@@ -167,17 +163,29 @@ async function ensureMenuOpen(page) {
   await page.waitForFunction(() => document.querySelector(".app-shell")?.dataset.navOpen === "true");
 }
 
+async function ensureMoreOpen(page) {
+  const details = page.locator(".ff-advanced-nav");
+  await details.waitFor({ state: "visible", timeout: 5000 });
+  if (!(await details.evaluate(node => node.open))) {
+    await details.locator("summary").click();
+  }
+  await page.waitForFunction(() => document.querySelector(".ff-advanced-nav")?.open === true);
+}
+
 async function auditOpenDrawerLayout(page) {
   await ensureMenuOpen(page);
-  await page.waitForTimeout(120);
+  await page.waitForTimeout(180);
 
   const snapshot = await page.evaluate(() => {
     const sidebar = document.querySelector(".sidebar");
     const brandBlock = document.querySelector(".brand-block");
     const footer = document.querySelector(".sidebar-footer");
-    const links = [...document.querySelectorAll(".primary-nav > a")].filter(link => !link.hidden).slice(0, 6);
+    const links = [...document.querySelectorAll(".primary-nav > a")].filter(link => !link.hidden && getComputedStyle(link).display !== "none").slice(0, 8);
     const guide = document.querySelector(".ff-guide-launcher, .ff-guide-panel");
     const brandName = document.querySelector(".brand-name");
+    const more = document.querySelector(".ff-advanced-nav");
+    const moreSummary = more?.querySelector("summary");
+    const moreLinks = more ? [...more.querySelectorAll('a[href^="#/"]')].filter(link => !link.hidden) : [];
 
     return {
       viewportWidth: window.innerWidth,
@@ -186,6 +194,9 @@ async function auditOpenDrawerLayout(page) {
       footerDisplay: footer ? getComputedStyle(footer).display : "missing",
       guideDisplay: guide ? getComputedStyle(guide).display : "missing",
       brandText: String(brandName?.textContent || "").trim(),
+      moreDisplay: more ? getComputedStyle(more).display : "missing",
+      moreSummary: String(moreSummary?.textContent || "").trim(),
+      moreLinkCount: moreLinks.length,
       links: links.map(link => {
         const style = getComputedStyle(link);
         const icon = link.querySelector(":scope > span:first-child");
@@ -221,6 +232,15 @@ async function auditOpenDrawerLayout(page) {
   if (snapshot.brandText !== "FLIPFORGE") {
     failures.push(`brand text contains duplicate trademark content (${snapshot.brandText || "empty"})`);
   }
+  if (snapshot.moreDisplay === "missing" || snapshot.moreDisplay === "none") {
+    failures.push("More tools group is not visible in the customer mobile drawer");
+  }
+  if (!/^More tools(?:\s|$)/i.test(snapshot.moreSummary)) {
+    failures.push(`More tools summary is mislabeled (${snapshot.moreSummary || "empty"})`);
+  }
+  if (snapshot.moreLinkCount < 10) {
+    failures.push(`More tools exposes only ${snapshot.moreLinkCount} customer routes; expected at least 10`);
+  }
 
   for (const link of snapshot.links) {
     if (link.display !== "grid") failures.push(`${link.route} is ${link.display}, expected grid`);
@@ -232,23 +252,23 @@ async function auditOpenDrawerLayout(page) {
 
   await page.locator("[data-nav-close]").click();
   await page.waitForFunction(() => document.querySelector(".app-shell")?.dataset.navOpen === "false");
-  return { route: "drawer-layout", heading: "Mobile drawer geometry", failures };
+  return { route: "drawer-layout", heading: "Mobile drawer geometry + More tools", failures };
 }
 
-async function openAdvancedIfNeeded(page, route) {
-  const advanced = ["decision-intelligence", "compare", "psa-advisor", "evidence", "sell", "export"];
-  if (!advanced.includes(route)) return;
-  const details = page.locator(".ff-advanced-nav");
-  if (!(await details.evaluate(node => node.open))) {
-    await details.locator("summary").click();
-  }
-}
-
-async function clickRoute(page, route) {
+async function clickRoute(page, spec) {
+  const { route, mode } = spec;
   await ensureMenuOpen(page);
-  await openAdvancedIfNeeded(page, route);
 
-  const link = page.locator(`[data-route="${route}"]`).first();
+  let link;
+  if (mode === "more") {
+    await ensureMoreOpen(page);
+    link = page.locator(`.ff-advanced-nav a[href="#/${route}"]`).first();
+  } else if (mode === "account") {
+    link = page.locator(`.primary-nav > a[data-route="account"], .primary-nav > a[href="#/account"]`).first();
+  } else {
+    link = page.locator(`.primary-nav > a[data-route="${route}"][data-ff-customer-core]`).first();
+  }
+
   await link.waitFor({ state: "visible", timeout: 5000 });
   await link.click();
 
@@ -258,7 +278,8 @@ async function clickRoute(page, route) {
 
   const result = await page.evaluate(expected => {
     const shell = document.querySelector(".app-shell");
-    const active = document.querySelector(`[data-route="${expected}"]`);
+    const candidates = [...document.querySelectorAll(`.primary-nav a[href="#/${expected}"]`)];
+    const active = candidates.find(link => link.getAttribute("aria-current") === "page") || candidates[0];
     const main = document.querySelector("#main-content");
     const heading = String(main?.querySelector("h1, h2, .ff-di-empty strong")?.textContent || "").trim();
     const text = String(main?.textContent || "").trim();
@@ -299,7 +320,7 @@ try {
 
   await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded", timeout: 10_000 });
   await page.waitForSelector("#main-content", { state: "attached", timeout: 5000 });
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(700);
 
   try {
     results.push(await auditOpenDrawerLayout(page));
@@ -307,12 +328,12 @@ try {
     results.push({ route: "drawer-layout", heading: "", failures: [String(error?.message || error)] });
   }
 
-  for (const route of routes) {
-    console.log(`[mobile-nav-ci] ${route}`);
+  for (const spec of routeSpecs) {
+    console.log(`[mobile-nav-ci] ${spec.route} (${spec.mode})`);
     try {
-      results.push(await clickRoute(page, route));
+      results.push(await clickRoute(page, spec));
     } catch (error) {
-      results.push({ route, heading: "", failures: [String(error?.message || error)] });
+      results.push({ route: spec.route, heading: "", failures: [String(error?.message || error)] });
     }
   }
 } finally {
@@ -321,7 +342,7 @@ try {
 }
 
 const failed = results.filter(result => result.failures.length);
-console.log("\nFlipForge mobile navigation click audit");
+console.log("\nFlipForge mobile customer navigation audit");
 console.log(`Routes tested: ${results.length}`);
 console.log(`Passed: ${results.length - failed.length}`);
 console.log(`Failed: ${failed.length}`);
