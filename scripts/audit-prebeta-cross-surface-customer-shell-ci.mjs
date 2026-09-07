@@ -6,24 +6,17 @@ import { pathToFileURL } from "node:url";
 // visible navigation. The destructive cross-surface audit still needs to exercise
 // those governed route owners to prove stale state cannot leak between them.
 //
-// Keep the original audit scenarios/fixtures intact and only replace the helper
-// that assumes every audited route is visibly clickable in the sidebar. When a
-// route is intentionally hidden, return a click-compatible deep-link handle that
-// navigates by SPA hash. This preserves the original route-churn scenarios without
-// re-exposing advanced/operator UI to customers.
+// Keep the original audit scenarios/fixtures intact and replace the helper that
+// assumes audited routes remain visibly clickable in the sidebar. The customer
+// shell can hide a link between a visibility check and Playwright's click action,
+// so the audit must not depend on transient presentation state. Navigate governed
+// routes directly by SPA hash and let each scenario verify final route ownership.
 
 const sourcePath = path.resolve("scripts/audit-prebeta-cross-surface-ci.mjs");
 const generatedPath = path.resolve("scripts/.audit-prebeta-cross-surface-customer-shell.generated.mjs");
 const source = await fs.readFile(sourcePath, "utf8");
 
 const replacement = `async function advancedNavLink(route) {
-  const href = \`#/$\{route}\`;
-  const directLink = page.locator(\`.primary-nav a[href="$\{href}"]\`).first();
-
-  if (await directLink.isVisible().catch(() => false)) {
-    return directLink;
-  }
-
   return {
     async click() {
       try {
