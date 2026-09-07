@@ -16,7 +16,13 @@ if (!source.includes(waitNeedle)) {
 }
 source = source.replace(
   waitNeedle,
-  'await page.waitForSelector("[data-customer-home-v1], [data-commercial-dashboard-v2]", { timeout: 5000 });'
+  `await page.waitForFunction(() => {
+        const home = document.querySelector("[data-customer-home-v1]");
+        if (home) {
+          return String(home.querySelector("h1")?.textContent || "").trim() === "Before you buy, know why.";
+        }
+        return Boolean(document.querySelector("[data-commercial-dashboard-v2]"));
+      }, { timeout: 5000 });`
 );
 
 const semanticsNeedle = `async function dashboardSemantics(page) {\n  return page.evaluate(() => {\n    const failures = [];`;
