@@ -28,12 +28,21 @@
 
     const desktop=document.querySelector('.decision-nav-links');
     const mobile=document.querySelector('.mobile-nav');
-    [desktop,mobile].forEach(nav=>{
-      const home=ensureLink(nav,{href:'/',label:'Home',position:'start',marker:'home'});
+
+    // Keep the desktop header compact. The locked FlipForge logo is the Home control.
+    if(desktop){
+      desktop.querySelector('a[href="/"]')?.remove();
+      ensureLink(desktop,{href:'decision-intelligence.html',label:'Decision Intelligence',position:'after-product',marker:'decision-intelligence'});
+      ensureLink(desktop,{href:'/connect/',label:'Connect',position:'before-cta',marker:'connect'});
+    }
+
+    // Mobile keeps an explicit Home destination inside the drawer.
+    if(mobile){
+      const home=ensureLink(mobile,{href:'/',label:'Home',position:'start',marker:'home'});
       if(home)home.setAttribute('aria-current','page');
-      ensureLink(nav,{href:'decision-intelligence.html',label:'Decision Intelligence',position:'after-product',marker:'decision-intelligence'});
-      ensureLink(nav,{href:'/connect/',label:'Connect',position:'before-cta',marker:'connect'});
-    });
+      ensureLink(mobile,{href:'decision-intelligence.html',label:'Decision Intelligence',position:'after-product',marker:'decision-intelligence'});
+      ensureLink(mobile,{href:'/connect/',label:'Connect',position:'before-cta',marker:'connect'});
+    }
 
     const eyebrow=document.querySelector('.decision-eyebrow');
     if(eyebrow)eyebrow.textContent='CARD DECISION INTELLIGENCE™';
@@ -94,5 +103,5 @@
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
   });
-  window.addEventListener('resize',()=>{enforceReadabilityFloor();if(window.innerWidth>1000)closeMenu();},{passive:true});
+  window.addEventListener('resize',()=>{enforceReadabilityFloor();if(window.innerWidth>1120)closeMenu();},{passive:true});
 })();
