@@ -8,7 +8,7 @@ const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(
 
 for(const needle of [
   'id="identity-simulator"',
-  'Try to break the identity',
+  'See it work',
   'Choose the wrong card and watch FlipForge stop it.',
   'data-identity-state="exact"',
   'data-identity-state="parallel"',
