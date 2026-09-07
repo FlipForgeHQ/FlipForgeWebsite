@@ -152,7 +152,7 @@
     "/faq.html":"faq",
     "/faq":"faq",
     "/about.html":"about",
-    "/about":"about",
+    "/about":"about"
   };
   const page=pages[pathname]||"legal";
 
