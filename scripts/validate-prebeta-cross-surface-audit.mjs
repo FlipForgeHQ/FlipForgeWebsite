@@ -8,11 +8,13 @@ const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const exists = relative => fs.existsSync(path.join(root, relative));
 
 const auditPath = "scripts/audit-prebeta-cross-surface-ci.mjs";
+const customerShellAdapterPath = "scripts/audit-prebeta-cross-surface-customer-shell-ci.mjs";
 const workflowPath = ".github/workflows/prebeta-cross-surface-audit.yml";
 const docPath = "docs/PREBETA_CROSS_SURFACE_AUDIT.md";
 const packageJson = read("package.json");
 const betaGate = read("scripts/validate-saas-beta-complete-gate.mjs");
 const audit = exists(auditPath) ? read(auditPath) : "";
+const customerShellAdapter = exists(customerShellAdapterPath) ? read(customerShellAdapterPath) : "";
 const workflow = exists(workflowPath) ? read(workflowPath) : "";
 const doc = exists(docPath) ? read(docPath) : "";
 
@@ -22,12 +24,25 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
 const syntax = exists(auditPath)
   ? spawnSync(process.execPath, ["--check", path.join(root, auditPath)], { encoding: "utf8" })
   : { status: 1 };
+const adapterSyntax = exists(customerShellAdapterPath)
+  ? spawnSync(process.execPath, ["--check", path.join(root, customerShellAdapterPath)], { encoding: "utf8" })
+  : { status: 1 };
 
 check("001 browser audit exists", exists(auditPath));
 check("002 audit parses as JavaScript", syntax.status === 0);
 check("003 workflow exists", exists(workflowPath));
 check("004 locked audit document exists", exists(docPath));
-check("005 package command wires audit", packageJson.includes('"audit:prebeta-cross-surface": "node scripts/audit-prebeta-cross-surface-ci.mjs"'));
+check(
+  "005 package command wires audit",
+  packageJson.includes('"audit:prebeta-cross-surface": "node scripts/audit-prebeta-cross-surface-ci.mjs"') ||
+    (
+      packageJson.includes('"audit:prebeta-cross-surface": "node scripts/audit-prebeta-cross-surface-customer-shell-ci.mjs"') &&
+      exists(customerShellAdapterPath) &&
+      adapterSyntax.status === 0 &&
+      customerShellAdapter.includes('scripts/audit-prebeta-cross-surface-ci.mjs') &&
+      customerShellAdapter.includes('window.location.hash')
+    )
+);
 check("006 beta complete statically requires audit", betaGate.includes("PREBETA_CROSS_SURFACE_AUDIT.md") && betaGate.includes("audit-prebeta-cross-surface-ci.mjs") && betaGate.includes("prebeta-cross-surface-audit.yml"));
 
 const surfaces = ["alerts", "portfolio", "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell"];
