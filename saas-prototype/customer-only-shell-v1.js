@@ -31,7 +31,8 @@
     const node = [...anchor.childNodes].find(item => item.nodeType === Node.TEXT_NODE && String(item.nodeValue || "").trim());
     if (node) {
       const leading = /^\s*/.exec(node.nodeValue || "")?.[0] || "";
-      if (String(node.nodeValue || "").trim() !== value) node.nodeValue = `${leading}${value}`;
+      if (String(node.nodeValue || "").trim() !== value.trim()) node.nodeValue = `${leading}${value}`;
+      else if (node.nodeValue !== `${leading}${value}`) node.nodeValue = `${leading}${value}`;
       return;
     }
     anchor.append(document.createTextNode(value));
@@ -115,7 +116,7 @@
       advanced.removeAttribute("hidden");
       advanced.removeAttribute("aria-hidden");
       const summary = advanced.querySelector("summary");
-      replaceTextNode(summary, "More tools");
+      replaceTextNode(summary, "More tools ");
       advanced.querySelectorAll("a[data-ff-support-route]").forEach(link => {
         link.hidden = false;
         link.removeAttribute("hidden");
