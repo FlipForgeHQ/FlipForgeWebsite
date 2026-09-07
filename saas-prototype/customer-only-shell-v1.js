@@ -92,6 +92,12 @@
       advanced.removeAttribute("aria-hidden");
       const summary = advanced.querySelector("summary");
       replaceTextNode(summary, "More tools");
+      advanced.querySelectorAll("a[data-ff-support-route]").forEach(link => {
+        link.hidden = false;
+        link.removeAttribute("hidden");
+        link.removeAttribute("aria-hidden");
+        if (link.tabIndex === -1) link.removeAttribute("tabindex");
+      });
       if (CUSTOMER_TOOL_ROUTES.has(routeName())) advanced.open = true;
     }
   }
