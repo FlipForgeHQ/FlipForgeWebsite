@@ -15,6 +15,7 @@
 
   function applyPrivateBetaAllowanceCopy() {
     if (!productionEligible()) return;
+    if (!document || typeof document.querySelector !== "function") return;
     const page = document.querySelector(".customer-entitlements-page");
     if (!page) return;
 
