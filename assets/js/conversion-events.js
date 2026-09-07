@@ -93,39 +93,6 @@
     }
   };
   normalizeMarketingShell();
-
-  const ensureDecisionIntelligenceStyles=()=>{
-    if(document.querySelector('link[data-ff-di-teaser]'))return;
-    const link=document.createElement('link');
-    link.rel='stylesheet';
-    link.href='/assets/css/decision-intelligence-teaser-v1.css';
-    link.dataset.ffDiTeaser='true';
-    document.head.appendChild(link);
-  };
-
-  const homeDecisionIntelligenceMarkup=()=>`<section class="ff-di-teaser ff-di-teaser-home" data-ff-di-teaser aria-labelledby="ff-di-home-title"><div class="ff-di-teaser-inner"><p class="ff-di-teaser-kicker">MARQUEE FEATURE · CARD DECISION INTELLIGENCE</p><div class="ff-di-teaser-head"><h2 id="ff-di-home-title">Price data tells you what happened.<span>Decision Intelligence helps you understand what the evidence means for your next move.</span></h2><p class="ff-di-teaser-summary">Comps, sold listings, population context, liquidity, grading economics, and risk can all matter. FlipForge organizes those signals around the exact card and preserves why the decision changes.</p></div><div class="ff-di-teaser-grid"><article><span>01 · FROM DATA</span><strong>Start with the exact card and evidence that actually belongs.</strong><p>Identity comes before price. Completed sales can support value only when they match the card being evaluated.</p></article><article><span>02 · TO CONTEXT</span><strong>See supported value, liquidity, risk, and grading economics together.</strong><p>The goal is not another isolated number. It is a clearer picture of what strengthens the case and what could make it wrong.</p></article><article><span>03 · TO DECISION</span><strong>Translate the evidence into BUY, WATCH, VERIFY, or PASS.</strong><p>Smart Opportunity keeps one decision language and preserves the reason trail behind the result.</p></article></div><div class="ff-di-teaser-footer"><a class="ff-di-teaser-cta" href="/decision-intelligence.html" data-ff-di-link="home-teaser">What is Decision Intelligence? →</a><p class="ff-di-teaser-boundary">FlipForge does not predict future prices or grades. It evaluates current evidence and uncertainty. The final call remains yours.</p></div></div></section>`;
-
-  const productDecisionIntelligenceMarkup=()=>`<section class="ff-di-teaser ff-di-teaser-product" data-ff-di-teaser aria-labelledby="ff-di-product-title"><div class="ff-di-teaser-inner"><p class="ff-di-teaser-kicker">FROM PRICE TRACKING TO CARD DECISION INTELLIGENCE</p><div class="ff-di-teaser-head"><h2 id="ff-di-product-title">Historical sales answer one question:<span>what happened?</span></h2><p class="ff-di-teaser-summary">FlipForge is built for what comes next: Is this the exact card? Does the evidence belong? Is the value supported? What could make the case wrong? What should you do next — and why?</p></div><div class="ff-di-teaser-grid"><article><span>MOVE BEYOND THE REAR-VIEW MIRROR</span><strong>Use historical sales as evidence, not as the whole decision.</strong><p>A comp matters only after exact identity and evidence quality are established.</p></article><article><span>ELIMINATE ANALYSIS PARALYSIS</span><strong>Bring fragmented decision inputs into one context.</strong><p>Supported value, liquidity, risk, scarcity and population context, and grading economics are easier to interpret together than across ten tabs.</p></article><article><span>MOVE WITH CLARITY</span><strong>Get a reasoned posture instead of a black-box score.</strong><p>BUY, WATCH, VERIFY, and PASS express the current evidence posture while preserving what drove it and what could change it.</p></article></div><div class="ff-di-teaser-footer"><a class="ff-di-teaser-cta" href="/decision-intelligence.html" data-ff-di-link="product-teaser">Explore Decision Intelligence →</a><p class="ff-di-teaser-boundary">Decision support only. Smart Opportunity remains the sole BUY / WATCH / VERIFY / PASS authority. FlipForge does not authorize transactions.</p></div></div></section>`;
-
-  const surfaceDecisionIntelligence=()=>{
-    if(document.querySelector('[data-ff-di-teaser]'))return;
-    const main=document.querySelector('main#main');
-    if(!main)return;
-    if(pathname==='/'||pathname==='/index.html'){
-      const anchor=main.querySelector('.decision-hero');
-      if(!anchor)return;
-      ensureDecisionIntelligenceStyles();
-      anchor.insertAdjacentHTML('afterend',homeDecisionIntelligenceMarkup());
-      return;
-    }
-    if(pathname==='/product.html'||pathname==='/product'){
-      const anchor=main.querySelector('.ff-aw-proof-strip')||main.querySelector('.page-hero');
-      if(!anchor)return;
-      ensureDecisionIntelligenceStyles();
-      anchor.insertAdjacentHTML('afterend',productDecisionIntelligenceMarkup());
-    }
-  };
-  surfaceDecisionIntelligence();
   enforceReadabilityFloor();
 
   const endpoint="/api/conversion-event";
@@ -171,7 +138,6 @@
   const placementFor=link=>{
     if(link.closest(".site-header,.decision-header,.mobile-nav"))return"navigation";
     if(link.closest(".footer"))return"footer";
-    if(link.closest(".ff-di-teaser"))return"decision-intelligence-teaser";
     if(link.closest(".ff-dossier-spotlight"))return"sample-spotlight";
     if(link.closest(".ff-evidence"))return"evidence";
     if(link.closest(".page-hero,.hero"))return"hero";
