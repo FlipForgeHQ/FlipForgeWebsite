@@ -100,6 +100,274 @@ body[data-ff-surface="customer"] .private-beta-step[data-ff-customer-hide="true"
   display: none !important;
 }
 
+/* Customer Evaluate UX Simplification v1
+ * The customer sees one guided path while the existing discovery, identity,
+ * evaluation, evidence, and Smart Opportunity authority remain untouched.
+ */
+
+body[data-ff-surface="customer"] .ff-evaluate-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 20px;
+}
+
+body[data-ff-surface="customer"] .ff-evaluate-step {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  background: rgba(255,255,255,.018);
+  color: var(--muted, #9ba3ad);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+body[data-ff-surface="customer"] .ff-evaluate-step b {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 50%;
+  color: inherit;
+  font-size: .72rem;
+}
+
+body[data-ff-surface="customer"] .ff-evaluate-step[data-active="true"] {
+  border-color: rgba(212,175,55,.48);
+  background: rgba(212,175,55,.07);
+  color: #f0dfaa;
+}
+
+body[data-ff-surface="customer"] .ff-evaluate-step[data-active="true"] b {
+  border-color: var(--gold, #d4af37);
+  background: var(--gold, #d4af37);
+  color: #111;
+}
+
+body[data-ff-surface="customer"] .ff-evaluate-step[data-complete="true"] {
+  color: #d6d6d2;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .ff-workflow-strip,
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .ff-workflow-strip,
+html.ff-customer-track-live body[data-ff-surface="customer"] #main-content .ff-workflow-strip {
+  display: none !important;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-page {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .page-heading {
+  margin-bottom: 18px;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .page-heading h1 {
+  max-width: 760px;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-search {
+  border-color: rgba(212,175,55,.26);
+  box-shadow: 0 18px 50px rgba(0,0,0,.16);
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-search .panel-header {
+  padding-bottom: 14px;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-form {
+  grid-template-columns: minmax(0, 1.65fr) minmax(180px, .65fr);
+  align-items: end;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content [data-ff-evaluate-hide="true"],
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .ff-evaluate-secondary-find {
+  display: none !important;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-search-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-search-actions .button-primary {
+  min-width: 190px;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .ff-evaluate-provider-collapsed {
+  display: none !important;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-identity-assist {
+  border-color: rgba(212,175,55,.22);
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-summary {
+  margin-top: 6px;
+  padding: 16px 18px;
+  border: 1px solid rgba(212,175,55,.18);
+  border-radius: 10px;
+  background: rgba(212,175,55,.035);
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-score {
+  display: none !important;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-metrics > :nth-child(n+3) {
+  display: none !important;
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-candidate {
+  border-color: rgba(255,255,255,.1);
+}
+
+html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-candidate .customer-discovery-actions {
+  justify-content: flex-end;
+}
+
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .customer-intelligence-page {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .page-heading {
+  margin-bottom: 18px;
+}
+
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content [data-ff-decision-summary] {
+  margin-bottom: 16px;
+  border: 1px solid rgba(212,175,55,.26);
+  background: linear-gradient(180deg, rgba(212,175,55,.075), rgba(255,255,255,.018));
+}
+
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .ff-decision-summary-actions {
+  display: none !important;
+}
+
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .ff-evaluate-decision-hero {
+  margin-top: 0;
+}
+
+body[data-ff-surface="customer"] .ff-decision-reasons {
+  margin: 16px 0;
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.012));
+}
+
+body[data-ff-surface="customer"] .ff-decision-reasons-heading h2 {
+  margin: 6px 0 7px;
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+}
+
+body[data-ff-surface="customer"] .ff-decision-reasons-heading p {
+  margin: 0;
+  color: var(--muted, #9ba3ad);
+  line-height: 1.5;
+}
+
+body[data-ff-surface="customer"] .ff-decision-reasons-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+body[data-ff-surface="customer"] .ff-decision-reason {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  background: rgba(0,0,0,.16);
+}
+
+body[data-ff-surface="customer"] .ff-decision-reason > b {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(212,175,55,.32);
+  border-radius: 50%;
+  color: var(--gold, #d4af37);
+}
+
+body[data-ff-surface="customer"] .ff-decision-reason span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--gold, #d4af37);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+body[data-ff-surface="customer"] .ff-decision-reason strong {
+  display: block;
+  line-height: 1.35;
+}
+
+body[data-ff-surface="customer"] .ff-decision-reason p {
+  margin: 6px 0 0;
+  color: var(--muted, #9ba3ad);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+body[data-ff-surface="customer"] .ff-decision-reasons-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+body[data-ff-surface="customer"] .ff-evaluate-decision-boundary {
+  margin-top: 14px;
+  color: var(--muted, #9ba3ad);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+body[data-ff-surface="customer"] .ff-evaluate-decision-boundary strong {
+  color: var(--text, #fff);
+}
+
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .customer-intelligence-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .customer-intelligence-metrics > :nth-child(2),
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .customer-intelligence-metrics > :nth-child(4) {
+  display: none !important;
+}
+
+html.ff-customer-decision-live body[data-ff-surface="customer"] #main-content .ff-evaluate-detail-advanced {
+  display: none !important;
+}
+
+html.ff-customer-decision-live.ff-evaluate-show-advanced body[data-ff-surface="customer"] #main-content .ff-evaluate-detail-advanced {
+  display: grid !important;
+}
+
+html.ff-customer-decision-live.ff-evaluate-show-advanced body[data-ff-surface="customer"] #main-content .staging-value-intelligence.ff-evaluate-detail-advanced,
+html.ff-customer-decision-live.ff-evaluate-show-advanced body[data-ff-surface="customer"] #main-content section.ff-evaluate-detail-advanced,
+html.ff-customer-decision-live.ff-evaluate-show-advanced body[data-ff-surface="customer"] #main-content article.ff-evaluate-detail-advanced {
+  display: block !important;
+}
+
 @media (max-width: 900px) {
   body[data-ff-surface="customer"] .ff-customer-home-actions {
     grid-template-columns: 1fr;
@@ -107,5 +375,29 @@ body[data-ff-surface="customer"] .private-beta-step[data-ff-customer-hide="true"
 
   body[data-ff-surface="customer"] .ff-customer-home-action {
     min-height: 0;
+  }
+
+  body[data-ff-surface="customer"] .ff-evaluate-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html.ff-customer-evaluate-live body[data-ff-surface="customer"] #main-content .customer-discovery-form,
+  body[data-ff-surface="customer"] .ff-decision-reasons-list {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-ff-surface="customer"] .ff-decision-reasons-actions {
+    flex-direction: column;
+  }
+
+  body[data-ff-surface="customer"] .ff-decision-reasons-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 560px) {
+  body[data-ff-surface="customer"] .ff-evaluate-steps {
+    grid-template-columns: 1fr;
   }
 }
