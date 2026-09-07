@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlipForge — Customer Evaluate UX Preview</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+    :root{
+      --bg:#070707;--panel:#101010;--panel2:#151515;--line:#282828;--text:#f7f7f5;--muted:#9b9b9b;
+      --gold:#d4af37;--gold2:#b8860b;--good:#7edaa5;--warn:#f0c36a;--danger:#e38a8a;
+      --shadow:0 24px 80px rgba(0,0,0,.35);--radius:20px;
+    }
+    *{box-sizing:border-box}
+    html{background:var(--bg);color-scheme:dark}
+    body{margin:0;background:radial-gradient(circle at 70% -10%,rgba(212,175,55,.11),transparent 34%),var(--bg);color:var(--text);font-family:Geist,Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    a{color:inherit;text-decoration:none}
+    button,input{font:inherit}
+    .shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+    .sidebar{border-right:1px solid var(--line);padding:26px 20px;position:sticky;top:0;height:100vh;background:rgba(7,7,7,.88);backdrop-filter:blur(16px)}
+    .brand{display:block;margin:0 0 32px}
+    .brand img{width:178px;max-width:100%;display:block}
+    .beta-chip{display:inline-flex;margin-top:12px;border:1px solid rgba(212,175,55,.32);color:#e7cf83;background:rgba(212,175,55,.07);border-radius:999px;padding:6px 10px;font-size:11px;font-weight:750;letter-spacing:.09em}
+    .nav{display:grid;gap:7px}.nav a{padding:12px 13px;border-radius:12px;color:#b8b8b8;font-weight:650;font-size:14px}.nav a.active{background:#171717;color:#fff;border:1px solid #2d2d2d}.nav a:hover{background:#121212;color:white}
+    .side-note{position:absolute;bottom:24px;left:20px;right:20px;color:#777;font-size:12px;line-height:1.5}
+    .main{min-width:0}
+    .topbar{height:74px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:flex-end;padding:0 34px;gap:12px;background:rgba(7,7,7,.72);backdrop-filter:blur(16px);position:sticky;top:0;z-index:3}
+    .icon-button,.account{height:40px;border:1px solid #292929;background:#111;color:#d8d8d8;border-radius:12px;padding:0 13px;display:inline-flex;align-items:center;gap:8px}
+    .mobile-nav{display:none}
+    .canvas{max-width:1120px;margin:0 auto;padding:54px 38px 88px}
+    .preview-note{display:flex;justify-content:space-between;gap:20px;align-items:center;border:1px solid rgba(212,175,55,.25);background:linear-gradient(90deg,rgba(212,175,55,.08),rgba(212,175,55,.02));padding:12px 16px;border-radius:14px;color:#d8c98f;font-size:13px;margin-bottom:30px}
+    .preview-note strong{color:#f3df9d}
+    .heading{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:34px}
+    .eyebrow{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+    h1{font-size:clamp(34px,4vw,56px);line-height:1.02;letter-spacing:-.045em;margin:10px 0 12px;max-width:760px}
+    .heading p{margin:0;color:#aaa;max-width:700px;font-size:17px;line-height:1.65}
+    .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 24px}
+    .step{border:1px solid #252525;background:#0d0d0d;border-radius:13px;padding:12px 14px;display:flex;gap:10px;align-items:center;color:#777;font-size:13px;font-weight:650;transition:.2s ease}
+    .step b{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;border:1px solid #333;font-size:11px}
+    .step.active{border-color:rgba(212,175,55,.48);background:rgba(212,175,55,.07);color:#f0dfaa}.step.active b{border-color:var(--gold);color:#111;background:var(--gold)}
+    .card{border:1px solid var(--line);background:linear-gradient(180deg,#111,#0d0d0d);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .card-head{padding:26px 28px 17px;border-bottom:1px solid #232323}.card-head h2{margin:0 0 7px;font-size:24px;letter-spacing:-.02em}.card-head p{margin:0;color:#949494;line-height:1.55}
+    .card-body{padding:28px}
+    .field{display:grid;gap:9px;margin-bottom:19px}.field label{font-size:13px;color:#c9c9c9;font-weight:700}.field small{color:#747474;line-height:1.45}
+    input{width:100%;height:52px;border-radius:13px;border:1px solid #303030;background:#090909;color:#fff;padding:0 15px;outline:none;transition:.15s;border-color:.2s}
+    input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,.11)}
+    input[aria-invalid="true"]{border-color:var(--danger);box-shadow:0 0 0 3px rgba(227,138,138,.1)}
+    .field-error{display:none;color:#f0aaaa;font-size:12px;line-height:1.45;font-weight:650}
+    .field-error.visible{display:block}
+    .row{display:grid;grid-template-columns:1fr .55fr;gap:14px}
+    .actions{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-top:26px}.actions-right{display:flex;gap:10px}
+    .btn{min-height:44px;border-radius:12px;border:1px solid #323232;background:#141414;color:#e7e7e7;padding:0 17px;font-weight:750;cursor:pointer}.btn:hover{background:#1b1b1b}.btn.primary{border-color:#d4af37;background:linear-gradient(180deg,#dcc259,#bb9322);color:#0b0b0b}.btn.primary:hover{filter:brightness(1.05)}
+    .micro{color:#6e6e6e;font-size:12px;line-height:1.5}
+    .screen{display:none}.screen.active{display:block}
+    .confirm-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:16px}
+    .identity-box,.price-box{border:1px solid #2a2a2a;background:#0b0b0b;border-radius:16px;padding:20px}.label{font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#777;font-weight:800}.identity-value{font-size:21px;line-height:1.35;font-weight:750;margin-top:9px}.price-value{font-size:31px;font-weight:800;margin-top:8px;color:#f0d77a}
+    .checks{display:grid;gap:10px;margin-top:18px}.check{display:flex;gap:10px;align-items:flex-start;color:#b8b8b8;font-size:14px}.check i{font-style:normal;color:var(--good);margin-top:1px}
+    .decision-shell{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    .decision{border:1px solid rgba(212,175,55,.3);background:radial-gradient(circle at 100% 0,rgba(212,175,55,.12),transparent 38%),#0b0b0b;border-radius:18px;padding:24px}
+    .decision-badge{display:inline-flex;border-radius:999px;padding:8px 12px;border:1px solid rgba(240,195,106,.38);background:rgba(240,195,106,.08);color:#f0c36a;font-size:13px;font-weight:850;letter-spacing:.08em}
+    .decision h3{font-size:30px;margin:18px 0 8px;letter-spacing:-.03em}.decision p{color:#999;line-height:1.6;margin:0}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:22px}.metric{border-top:1px solid #292929;padding-top:14px}.metric span{display:block;color:#737373;font-size:11px;text-transform:uppercase;letter-spacing:.08em}.metric strong{display:block;margin-top:6px;font-size:16px}
+    .reasons{border:1px solid #292929;background:#0b0b0b;border-radius:18px;padding:24px}.reasons h3{margin:0 0 16px;font-size:19px}.reason{display:grid;grid-template-columns:30px 1fr;gap:12px;padding:14px 0;border-top:1px solid #242424}.reason:first-of-type{border-top:none;padding-top:0}.reason b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#171717;border:1px solid #303030;color:var(--gold)}.reason strong{display:block;font-size:14px;margin-bottom:5px}.reason p{margin:0;color:#878787;font-size:13px;line-height:1.55}
+    .secondary-drawer{margin-top:18px;border:1px solid #252525;background:#0b0b0b;border-radius:14px}.secondary-drawer summary{cursor:pointer;padding:15px 17px;color:#aaa;font-weight:700;font-size:13px}.secondary-drawer .inside{padding:0 17px 17px;color:#777;font-size:13px;line-height:1.6}
+    .bottom-actions{display:flex;gap:10px;margin-top:18px}.bottom-actions .btn{flex:1}
+    .footer-note{margin-top:20px;color:#666;font-size:12px;line-height:1.6;text-align:center}
+    @media(max-width:900px){
+      .shell{grid-template-columns:1fr}.sidebar{display:none}.topbar{padding:0 18px}.canvas{padding:34px 18px 132px}.heading{display:block}.steps{grid-template-columns:1fr 1fr}.confirm-grid,.decision-shell{grid-template-columns:1fr}.row{grid-template-columns:1fr}.preview-note{align-items:flex-start;flex-direction:column}.metrics{grid-template-columns:1fr}.actions{align-items:flex-start;flex-direction:column}.actions-right{width:100%}.actions-right .btn{flex:1}
+      .mobile-nav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:10px;right:10px;bottom:10px;z-index:20;border:1px solid #2b2b2b;background:rgba(10,10,10,.96);backdrop-filter:blur(18px);border-radius:16px;padding:7px;box-shadow:0 16px 50px rgba(0,0,0,.45)}
+      .mobile-nav a{min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;color:#8e8e8e;font-size:11px;font-weight:750;padding:5px}
+      .mobile-nav a.active{background:#181818;color:#f1dfa3;border:1px solid rgba(212,175,55,.25)}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#"><img src="/assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge"><span class="beta-chip">CUSTOMER BETA</span></a>
+      <nav class="nav" aria-label="Customer navigation">
+        <a href="#">Home</a>
+        <a class="active" href="#">Evaluate</a>
+        <a href="#">Saved Decisions</a>
+        <a href="#">Tracking</a>
+      </nav>
+      <div class="side-note">CARD DECISION INTELLIGENCE<br><br>Customer-only interface preview. Internal operator controls remain separate.</div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar"><button class="icon-button" type="button">🔔</button><button class="account" type="button">Account</button></div>
+      <nav class="mobile-nav" aria-label="Mobile customer navigation">
+        <a href="#">Home</a>
+        <a class="active" href="#">Evaluate</a>
+        <a href="#">Saved</a>
+        <a href="#">Tracking</a>
+      </nav>
+      <div class="canvas">
+        <div class="preview-note"><span><strong>DESIGN PREVIEW</strong> — not connected to live customer data or decision output.</span><span>Evaluate UX Simplification v1</span></div>
+
+        <header class="heading">
+          <div>
+            <span class="eyebrow">Evaluate</span>
+            <h1>One card. One decision. Know why.</h1>
+            <p>Start with the exact card or listing you are considering. FlipForge handles the evidence and reasoning underneath.</p>
+          </div>
+        </header>
+
+        <div class="steps" aria-label="Evaluation workflow">
+          <div class="step active" data-step="1"><b>1</b>Enter card</div>
+          <div class="step" data-step="2"><b>2</b>Confirm</div>
+          <div class="step" data-step="3"><b>3</b>Decision</div>
+          <div class="step" data-step="4"><b>4</b>Save & track</div>
+        </div>
+
+        <section class="card">
+          <div id="screen-1" class="screen active">
+            <div class="card-head"><h2>What card are you looking at?</h2><p>Use the exact identity you know. You can also add the listing price or URL.</p></div>
+            <div class="card-body">
+              <div class="field">
+                <label for="card-input">Card or listing</label>
+                <input id="card-input" value="2018 Topps Chrome Shohei Ohtani PSA 9" autocomplete="off" aria-describedby="card-help card-error">
+                <small id="card-help">Example: year, set, player, card number, parallel and grade when known.</small>
+                <div id="card-error" class="field-error" role="alert" aria-live="polite"></div>
+              </div>
+              <div class="row">
+                <div class="field"><label for="url-input">Listing URL <span class="micro">(optional)</span></label><input id="url-input" placeholder="Paste the listing URL"></div>
+                <div class="field"><label for="price-input">Asking price <span class="micro">(optional)</span></label><input id="price-input" value="450" inputmode="decimal" aria-describedby="price-error"><div id="price-error" class="field-error" role="alert" aria-live="polite"></div></div>
+              </div>
+              <div class="actions"><span class="micro">Nothing is bought, sold, or listed from this screen.</span><div class="actions-right"><button class="btn primary" type="button" data-next="2">Find this card</button></div></div>
+            </div>
+          </div>
+
+          <div id="screen-2" class="screen">
+            <div class="card-head"><h2>Confirm the card</h2><p>Before FlipForge evaluates anything, make sure the identity and listing context are right.</p></div>
+            <div class="card-body">
+              <div class="confirm-grid">
+                <div class="identity-box"><span class="label">Card identity</span><div class="identity-value" id="confirm-card"></div></div>
+                <div class="price-box"><span class="label">Listing price</span><div class="price-value" id="confirm-price"></div></div>
+              </div>
+              <div class="checks">
+                <div class="check"><i>✓</i><span>Exact identity is confirmed before an authoritative evaluation is saved.</span></div>
+                <div class="check"><i>✓</i><span>Active listing price is context only — it is not completed-sale evidence.</span></div>
+                <div class="check"><i>✓</i><span>FlipForge keeps provider and operator controls behind the customer interface.</span></div>
+              </div>
+              <div class="actions"><button class="btn" type="button" data-next="1">Back</button><div class="actions-right"><button class="btn primary" type="button" data-next="3">Evaluate card</button></div></div>
+            </div>
+          </div>
+
+          <div id="screen-3" class="screen">
+            <div class="card-head"><h2>Your FlipForge decision</h2><p>The result gets the visual priority. Deeper evidence is available only when you want it.</p></div>
+            <div class="card-body">
+              <div class="decision-shell">
+                <div class="decision">
+                  <span class="decision-badge">DECISION AREA</span>
+                  <h3>BUY · WATCH · VERIFY · PASS</h3>
+                  <p>The live app will show the server-owned Smart Opportunity decision here. This preview intentionally does not invent a result for the example card.</p>
+                  <div class="metrics">
+                    <div class="metric"><span>Supported value</span><strong>Server value</strong></div>
+                    <div class="metric"><span>Confidence</span><strong>Server confidence</strong></div>
+                    <div class="metric"><span>Risk</span><strong>Server risk</strong></div>
+                  </div>
+                </div>
+                <aside class="reasons">
+                  <h3>Why FlipForge says this</h3>
+                  <div class="reason"><b>1</b><div><strong>Strongest reason first</strong><p>The highest-impact governed evidence or risk reason appears here in plain language.</p></div></div>
+                  <div class="reason"><b>2</b><div><strong>Second strongest reason</strong><p>Only the next most important reason is shown before the customer chooses to go deeper.</p></div></div>
+                </aside>
+              </div>
+              <details class="secondary-drawer"><summary>View supporting evidence and deeper analysis</summary><div class="inside">Evidence details, PSA context, liquidity, identity trace, confidence detail and other advanced context stay available here without competing with the decision.</div></details>
+              <div class="bottom-actions"><button class="btn" type="button" data-next="2">Back</button><button class="btn" type="button">View evidence</button><button class="btn primary" type="button" data-next="4">Save & track</button></div>
+            </div>
+          </div>
+
+          <div id="screen-4" class="screen">
+            <div class="card-head"><h2>Saved. Now follow what happens.</h2><p>The customer leaves evaluation with one obvious next action instead of another dashboard.</p></div>
+            <div class="card-body">
+              <div class="identity-box"><span class="label">Saved decision</span><div class="identity-value" id="saved-card"></div><div class="checks"><div class="check"><i>✓</i><span>Decision saved to Saved Decisions.</span></div><div class="check"><i>✓</i><span>Tracking can surface future changes without changing the original evidence record.</span></div></div></div>
+              <div class="bottom-actions"><button class="btn" type="button" data-next="3">Back</button><button class="btn primary" type="button" id="restart">Evaluate another card</button></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="footer-note">Before you buy, know why. · This page is a UX preview only and does not create, recalculate or represent an actual FlipForge recommendation.</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (()=>{
+      const screens=[1,2,3,4];
+      const card=document.querySelector('#card-input');
+      const price=document.querySelector('#price-input');
+      const cardError=document.querySelector('#card-error');
+      const priceError=document.querySelector('#price-error');
+
+      const setError=(input,box,message)=>{
+        input.setAttribute('aria-invalid','true');
+        box.textContent=message;
+        box.classList.add('visible');
+      };
+      const clearError=(input,box)=>{
+        input.removeAttribute('aria-invalid');
+        box.textContent='';
+        box.classList.remove('visible');
+      };
+      const validateEntry=()=>{
+        clearError(card,cardError);
+        clearError(price,priceError);
+        const identity=card.value.trim();
+        const rawPrice=price.value.trim();
+        if(!identity){
+          setError(card,cardError,'Enter a card or listing to continue.');
+          card.focus();
+          return false;
+        }
+        if(rawPrice && !/^\d+(?:\.\d{1,2})?$/.test(rawPrice)){
+          setError(price,priceError,'Enter the asking price as a dollar amount, such as 450 or 450.00.');
+          price.focus();
+          return false;
+        }
+        return true;
+      };
+      const show=n=>{
+        screens.forEach(i=>document.querySelector('#screen-'+i).classList.toggle('active',i===n));
+        document.querySelectorAll('.step').forEach(el=>el.classList.toggle('active',Number(el.dataset.step)===n));
+        if(n===2||n===4){
+          const identity=card.value.trim();
+          document.querySelector('#confirm-card').textContent=identity;
+          document.querySelector('#saved-card').textContent=identity;
+          const raw=price.value.trim();
+          document.querySelector('#confirm-price').textContent=raw?('$'+Number(raw).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2})):'Not provided';
+        }
+        window.scrollTo({top:0,behavior:'smooth'});
+      };
+      card.addEventListener('input',()=>clearError(card,cardError));
+      price.addEventListener('input',()=>clearError(price,priceError));
+      document.addEventListener('click',e=>{
+        const n=e.target.closest('[data-next]');
+        if(!n)return;
+        const next=Number(n.dataset.next);
+        if(next===2 && document.querySelector('#screen-1').classList.contains('active') && !validateEntry())return;
+        show(next);
+      });
+      document.querySelector('#restart').addEventListener('click',()=>show(1));
+    })();
+  </script>
+</body>
+</html>

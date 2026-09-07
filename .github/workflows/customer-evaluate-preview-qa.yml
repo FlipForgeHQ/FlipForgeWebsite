@@ -1,0 +1,43 @@
+name: Customer Evaluate Preview QA
+
+on:
+  pull_request:
+    paths:
+      - "customer-evaluate-ux-preview.html"
+      - "scripts/audit-customer-evaluate-preview-ci.mjs"
+      - ".github/workflows/customer-evaluate-preview-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stress-test:
+    name: Stress-test simplified Evaluate preview
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static preview server
+        run: |
+          python3 -m http.server 4174 --bind 127.0.0.1 > /tmp/customer-evaluate-preview.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4174/customer-evaluate-ux-preview.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/customer-evaluate-preview.log
+          exit 1
+      - name: Run desktop mobile and failure-state audit
+        run: node scripts/audit-customer-evaluate-preview-ci.mjs
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/customer-evaluate-preview.log || true
