@@ -2,12 +2,12 @@
 
 ## Purpose
 
-FlipForge now treats the authenticated customer app and the private operator workspace as two separate interfaces over the same FlipForge intelligence system.
+FlipForge treats the authenticated customer app and the private operator workspace as two separate interfaces over the same FlipForge intelligence system.
 
 - Customer app: `/app/`
 - Operator workspace: `/operator-beta.html`
 
-This change does **not** create a second decision engine, a second evidence authority, or a second source of truth.
+This does **not** create a second decision engine, a second evidence authority, or a second source of truth.
 
 ## Customer interface
 
@@ -28,9 +28,27 @@ The customer Home screen is intentionally reduced to three actions:
 - Review saved decisions
 - Check tracking
 
-The private-beta guide is also reduced to one customer loop:
+The customer loop is:
 
-**Find card → Evaluate → Understand → Track**
+**Enter card → Confirm → Decision → Save & track**
+
+### Live Evaluate flow
+
+`/app/#/discover` is the customer-facing **Evaluate** experience. The existing connected-source discovery and identity services remain underneath it; the customer no longer has to understand the internal separation between Discover and Evaluate.
+
+The first-view experience is intentionally limited to:
+
+1. Enter the exact card identity the customer knows.
+2. Confirm the exact card when identity clarification is required.
+3. Choose the active listing actually being considered.
+4. Run the existing Smart Opportunity evaluation for that listing.
+5. Read the saved BUY, WATCH, VERIFY, or PASS result.
+6. See the two highest-priority reasons taken from the saved decision traceback.
+7. Track the card or open the full evidence when deeper review is wanted.
+
+Healthy provider diagnostics, result-count controls, secondary ranking metrics, full traceback, Evidence Chain, PSA detail, and other advanced context do not compete with the first-view workflow. They remain available underneath the same governed system and can be progressively disclosed where appropriate.
+
+The customer shell does not create a recommendation, rescore a decision, accept evidence, predict a grade, or invent a reason. The two visible reasons are selected from the already-rendered saved decision traceback.
 
 ## Operator interface
 
@@ -63,4 +81,4 @@ Run:
 npm run validate:customer-operator-split
 ```
 
-The validator confirms that the customer app exposes exactly four primary destinations, the advanced/internal route registry remains hidden, the operator workspace is not linked from the customer app, the operator/customer roles remain server-defined, and `/app` continues to route to the authenticated SaaS surface.
+The validator confirms that the customer app exposes exactly four primary destinations, the advanced/internal route registry remains hidden, the operator workspace is not linked from the customer app, the operator/customer roles remain server-defined, `/app` continues to route to the authenticated SaaS surface, and the simplified live Evaluate workflow preserves the decision/evidence boundaries described above.
