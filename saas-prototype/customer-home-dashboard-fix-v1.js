@@ -3,6 +3,7 @@
 
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const MAIN = "#main-content";
+  const STYLE_ID = "ff-customer-home-dashboard-fix-v1-style";
   let scheduled = false;
 
   function eligible() {
@@ -21,11 +22,20 @@
     if (node && node.textContent !== value) node.textContent = value;
   }
 
+  function ensureStyle() {
+    if (document.getElementById(STYLE_ID)) return;
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = 'body[data-ff-surface="customer"] .ff-customer-home-action > span{font-size:14px!important;}';
+    document.head.appendChild(style);
+  }
+
   function ensureHome() {
     if (!eligible() || !isHome()) return;
     const main = document.querySelector(MAIN);
     if (!main) return;
 
+    ensureStyle();
     document.documentElement.classList.add("ff-customer-simple-home");
 
     const heading = main.querySelector(".page-heading, .ff-dashboard-head");
