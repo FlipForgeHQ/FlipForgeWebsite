@@ -10,7 +10,9 @@ import { pathToFileURL } from "node:url";
 // assumes audited routes remain visibly clickable in the sidebar. The customer
 // shell can hide a link between a visibility check and Playwright's click action,
 // so the audit must not depend on transient presentation state. Navigate governed
-// routes directly by SPA hash and let each scenario verify final route ownership.
+// routes directly by SPA hash and reassert the target briefly if an earlier async
+// route owner races the final transition. A deep-link reload is used only as a
+// last-resort audit fallback; each scenario still verifies the final governed DOM.
 
 const sourcePath = path.resolve("scripts/audit-prebeta-cross-surface-ci.mjs");
 const generatedPath = path.resolve("scripts/.audit-prebeta-cross-surface-customer-shell.generated.mjs");
@@ -19,18 +21,37 @@ const source = await fs.readFile(sourcePath, "utf8");
 const replacement = `async function advancedNavLink(route) {
   return {
     async click() {
-      try {
-        await page.evaluate(nextRoute => {
-          window.location.hash = \`#/$\{nextRoute}\`;
-        }, route);
-      } catch (error) {
-        const message = String(error?.message || error || "");
-        if (!/execution context was destroyed|most likely because of a navigation/i.test(message)) {
-          throw error;
+      const target = \`#/$\{route}\`;
+      let lastError = null;
+
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        try {
+          await page.evaluate(nextRoute => {
+            window.location.hash = \`#/$\{nextRoute}\`;
+          }, route);
+        } catch (error) {
+          lastError = error;
+          const message = String(error?.message || error || "");
+          if (!/execution context was destroyed|most likely because of a navigation/i.test(message)) {
+            throw error;
+          }
         }
-        // A governed SPA transition can replace the execution context immediately
-        // after the hash assignment. The caller verifies the resulting URL, so
-        // this specific race is safe to treat as an initiated navigation.
+
+        await page.waitForTimeout(90);
+        if (page.url().includes(target)) {
+          await page.waitForTimeout(90);
+          if (page.url().includes(target)) return;
+        }
+      }
+
+      // Customer-shell presentation guards can legitimately remove hidden routes
+      // from in-app navigation. The destructive audit may still deep-link to those
+      // governed owners so their state/authority boundaries remain testable.
+      try {
+        await page.goto(\`${baseUrl}/#/$\{route}\`, { waitUntil: "domcontentloaded", timeout: 12_000 });
+        return;
+      } catch (error) {
+        throw lastError || error;
       }
     }
   };
