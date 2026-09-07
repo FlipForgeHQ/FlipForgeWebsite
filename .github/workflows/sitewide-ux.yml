@@ -5,6 +5,8 @@ on:
     paths:
       - "index.html"
       - "product.html"
+      - "decision-intelligence.html"
+      - "connect/index.html"
       - "learn.html"
       - "pricing.html"
       - "about.html"
@@ -21,11 +23,13 @@ on:
       - "package.json"
       - "assets/css/**"
       - "assets/js/award-winning-v1.js"
+      - "assets/js/conversion-events.js"
       - "saas-prototype/index.html"
       - "saas-prototype/customer-readability.css"
       - "saas-prototype/customer-layout-system-v2.css"
       - "saas-prototype/guided-mode-compact-v1.css"
       - "scripts/validate-sitewide-ux.mjs"
+      - "scripts/validate-decision-intelligence-public-page.mjs"
       - "scripts/audit-public-typography-rendered.mjs"
       - ".github/workflows/sitewide-ux.yml"
   push:
@@ -34,6 +38,8 @@ on:
     paths:
       - "index.html"
       - "product.html"
+      - "decision-intelligence.html"
+      - "connect/index.html"
       - "learn.html"
       - "pricing.html"
       - "about.html"
@@ -50,11 +56,13 @@ on:
       - "package.json"
       - "assets/css/**"
       - "assets/js/award-winning-v1.js"
+      - "assets/js/conversion-events.js"
       - "saas-prototype/index.html"
       - "saas-prototype/customer-readability.css"
       - "saas-prototype/customer-layout-system-v2.css"
       - "saas-prototype/guided-mode-compact-v1.css"
       - "scripts/validate-sitewide-ux.mjs"
+      - "scripts/validate-decision-intelligence-public-page.mjs"
       - "scripts/audit-public-typography-rendered.mjs"
       - ".github/workflows/sitewide-ux.yml"
 
@@ -74,7 +82,11 @@ jobs:
         with:
           node-version: 24
       - name: Parse changed browser JavaScript
-        run: node --check assets/js/award-winning-v1.js
+        run: |
+          node --check assets/js/award-winning-v1.js
+          node --check assets/js/conversion-events.js
+      - name: Validate Decision Intelligence public contract
+        run: node scripts/validate-decision-intelligence-public-page.mjs
       - name: Validate static sitewide UX contracts
         run: npm run validate:sitewide-ux
       - name: Install Chromium for rendered typography audit

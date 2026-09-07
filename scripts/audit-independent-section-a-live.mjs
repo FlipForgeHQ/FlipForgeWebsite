@@ -1,6 +1,6 @@
 const base = 'https://goflipforge.com';
 const pages = [
-  ['A1-home','/','CARD INTELLIGENCE'],
+  ['A1-home','/','CARD DECISION INTELLIGENCE'],
   ['A1-product','/product','Is the premium actually supported?'],
   ['A1-pricing','/pricing','Private Beta'],
   ['A1-faq','/faq','Frequently Asked Questions'],
