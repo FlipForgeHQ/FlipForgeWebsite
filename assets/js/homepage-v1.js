@@ -29,14 +29,14 @@
     const desktop=document.querySelector('.decision-nav-links');
     const mobile=document.querySelector('.mobile-nav');
 
-    // Keep the desktop header compact. The locked FlipForge logo is the Home control.
+    // Keep every public destination visible on desktop. Condense; do not remove links.
     if(desktop){
-      desktop.querySelector('a[href="/"]')?.remove();
+      const home=ensureLink(desktop,{href:'/',label:'Home',position:'start',marker:'home'});
+      if(home)home.setAttribute('aria-current','page');
       ensureLink(desktop,{href:'decision-intelligence.html',label:'Decision Intelligence',position:'after-product',marker:'decision-intelligence'});
       ensureLink(desktop,{href:'/connect/',label:'Connect',position:'before-cta',marker:'connect'});
     }
 
-    // Mobile keeps an explicit Home destination inside the drawer.
     if(mobile){
       const home=ensureLink(mobile,{href:'/',label:'Home',position:'start',marker:'home'});
       if(home)home.setAttribute('aria-current','page');
