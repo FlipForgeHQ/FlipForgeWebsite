@@ -36,6 +36,19 @@ check("017 operator role remains server-defined", betaCore.includes('OPERATOR_RO
 check("018 active customer role remains server-defined", betaCore.includes('ACTIVE_ROLE = "flipforge-active"'));
 check("019 app routing remains isolated under /app", redirects.includes("/app /saas-prototype/index.html 200") && redirects.includes("/app/* /saas-prototype/:splat 200"));
 
+check("020 customer Evaluate uses one four-step progress model", shellJs.includes('const labels = ["Enter card", "Confirm", "Decision", "Save & track"]') && shellJs.includes("ensureEvaluateSteps"));
+check("021 customer Evaluate headline uses locked decision-first framing", shellJs.includes('"One card. One decision. Know why."'));
+check("022 customer Evaluate keeps one primary card-finding action", shellJs.includes('setText(primary, "Find this card")') && shellJs.includes("ff-evaluate-secondary-find"));
+check("023 result-count control is removed from first-view customer flow", shellJs.includes("dataset.ffEvaluateHide") && shellCss.includes('[data-ff-evaluate-hide="true"]'));
+check("024 connected provider diagnostics collapse when healthy", shellJs.includes("ff-evaluate-provider-collapsed") && shellCss.includes(".ff-evaluate-provider-collapsed"));
+check("025 active listing selection leads explicitly to Smart Opportunity decision", shellJs.includes('"Get FlipForge decision"') && shellJs.includes("Not a decision yet"));
+check("026 customer decision detail prioritizes exactly two trace-derived reasons", shellJs.includes("traceReasonData") && shellJs.includes("rows.slice(0, 2)") && shellJs.includes("The two strongest reasons"));
+check("027 decision reasons are derived from rendered saved trace instead of a browser recommendation", shellJs.includes('main.querySelectorAll(".customer-trace-step")') && shellJs.includes("No new browser-side score or recommendation is created here"));
+check("028 full evidence is progressively disclosed", shellJs.includes("data-ff-evaluate-evidence-toggle") && shellCss.includes("ff-evaluate-detail-advanced") && shellCss.includes("ff-evaluate-show-advanced"));
+check("029 decision-first customer metrics keep confidence and risk while hiding secondary metrics", shellCss.includes(".customer-intelligence-metrics > :nth-child(2)") && shellCss.includes(".customer-intelligence-metrics > :nth-child(4)"));
+check("030 transaction boundary remains explicit in simplified decision flow", shellJs.includes("FlipForge does not buy, bid, pay, accept offers, or list cards"));
+check("031 tracking is the fourth guided customer step", shellJs.includes("simplifyTrackingProgress") && shellJs.includes("ensureEvaluateSteps(main, 3)"));
+
 for (const item of checks) {
   console.log(`${item.passed ? "PASS" : "FAIL"} ${item.name}`);
 }
