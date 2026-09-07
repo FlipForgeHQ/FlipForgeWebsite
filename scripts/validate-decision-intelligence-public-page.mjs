@@ -17,6 +17,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 const sectionCount = text => (text.match(/<section\b/g) || []).length;
 const publicText = page.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '');
 const forbiddenImplementationLanguage = /\b(?:API|SQLite|CardSight|Netlify|Render|JavaScript|source code|database|engineVersion|correlationId|provider credential|service credential)\b/i;
+const exhibitContract = `${page}\n${exhibitJs}`;
 
 check('dedicated Decision Intelligence page exists', page.includes('<title>What Is Decision Intelligence? | FlipForge</title>'));
 check('current Card Decision Intelligence descriptor is used', page.includes('CARD DECISION INTELLIGENCE'));
@@ -28,7 +29,7 @@ check('interactive exhibit exists', page.includes('data-ff-di-exhibit') && page.
 check('five customer-facing reasoning stages are present', ['Identity','Evidence','Value','Decision','Outcome'].every(label => page.includes(`>${label}</button>`) || page.includes(` ${label}</button>`)));
 check('exact identity remains explicit', page.includes('Exact card'));
 check('evidence rejection is demonstrated', page.includes('7</strong><span>found') && page.includes('5</strong><span>rejected') && page.includes('2</strong><span>usable'));
-check('apparent-versus-supported shift is demonstrated', page.includes('24%') && page.includes('2.3%'));
+check('apparent-versus-supported shift is demonstrated', exhibitContract.includes('24%') && exhibitContract.includes('2.3%'));
 check('BUY WATCH VERIFY PASS language is explicit', /BUY, WATCH, VERIFY or PASS/.test(page));
 check('no-transaction independence is explicit', page.includes('No transaction required.'));
 check('outcome accountability is explicit', page.includes('Day 7') && page.includes('Day 14') && page.includes('Day 30'));
