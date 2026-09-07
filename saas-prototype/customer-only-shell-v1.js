@@ -31,7 +31,8 @@
     const node = [...anchor.childNodes].find(item => item.nodeType === Node.TEXT_NODE && String(item.nodeValue || "").trim());
     if (node) {
       const leading = /^\s*/.exec(node.nodeValue || "")?.[0] || "";
-      if (String(node.nodeValue || "").trim() !== value) node.nodeValue = `${leading}${value}`;
+      if (String(node.nodeValue || "").trim() !== value.trim()) node.nodeValue = `${leading}${value}`;
+      else if (node.nodeValue !== `${leading}${value}`) node.nodeValue = `${leading}${value}`;
       return;
     }
     anchor.append(document.createTextNode(value));
@@ -49,6 +50,30 @@
     if (document.body?.dataset.ffSurface !== "customer") document.body.dataset.ffSurface = "customer";
     const chip = document.querySelector(".prototype-chip");
     setText(chip, "CUSTOMER BETA");
+  }
+
+  function ensurePublicDecisionIntelligenceLink(advanced) {
+    if (!advanced) return;
+    const links = advanced.querySelector(".ff-advanced-nav-links");
+    const privateLink = advanced.querySelector('a[data-route="decision-intelligence"]');
+    if (!links || !privateLink) return;
+
+    replaceTextNode(privateLink, "Saved Intelligence");
+
+    let publicLink = links.querySelector("[data-ff-public-decision-intelligence]");
+    if (!publicLink) {
+      publicLink = document.createElement("a");
+      publicLink.href = "/decision-intelligence.html";
+      publicLink.dataset.ffPublicDecisionIntelligence = "";
+      publicLink.className = "ff-public-decision-intelligence";
+      publicLink.setAttribute("aria-label", "Open the public Decision Intelligence exhibit");
+      publicLink.innerHTML = '<span aria-hidden="true">✦</span>Decision Intelligence';
+      privateLink.insertAdjacentElement("beforebegin", publicLink);
+    }
+    publicLink.hidden = false;
+    publicLink.removeAttribute("hidden");
+    publicLink.removeAttribute("aria-hidden");
+    if (publicLink.tabIndex === -1) publicLink.removeAttribute("tabindex");
   }
 
   function simplifyNavigation() {
@@ -91,13 +116,14 @@
       advanced.removeAttribute("hidden");
       advanced.removeAttribute("aria-hidden");
       const summary = advanced.querySelector("summary");
-      replaceTextNode(summary, "More tools");
+      replaceTextNode(summary, "More tools ");
       advanced.querySelectorAll("a[data-ff-support-route]").forEach(link => {
         link.hidden = false;
         link.removeAttribute("hidden");
         link.removeAttribute("aria-hidden");
         if (link.tabIndex === -1) link.removeAttribute("tabindex");
       });
+      ensurePublicDecisionIntelligenceLink(advanced);
       if (CUSTOMER_TOOL_ROUTES.has(routeName())) advanced.open = true;
     }
   }
@@ -201,7 +227,7 @@
     const steps = [...main.querySelectorAll(".private-beta-step")];
     const labels = [
       ["Evaluate", "Find one exact card", "Start with the card or listing you are actually considering."],
-      ["Decision", "Get the FlipForge decision", "Let the server-owned decision engine return BUY, WATCH, VERIFY, or PASS."],
+      ["Decision", "Get the FlipForge decision", "Let the decision system return BUY, WATCH, VERIFY, or PASS."],
       ["Why", "Understand the two strongest reasons", "Read the evidence and risk that most directly support the result."],
       ["Track", "Save it and follow what happens", "Keep the decision so you can review the outcome later."]
     ];

@@ -29,7 +29,7 @@ check(
   "009 customer intelligence tool group is visible and labeled More tools",
   shellCss.includes('body[data-ff-surface="customer"] .ff-advanced-nav {') &&
   shellCss.includes('display: block !important') &&
-  shellJs.includes('replaceTextNode(summary, "More tools")') &&
+  /replaceTextNode\(summary,\s*"More tools\s*"\)/.test(shellJs) &&
   shellJs.includes('advanced.hidden = false')
 );
 check("010 customer app does not link to operator workspace", !index.includes("operator-beta.html"));
