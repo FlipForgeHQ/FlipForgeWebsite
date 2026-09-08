@@ -144,8 +144,25 @@
     return"page";
   };
 
+  const allowedInteractiveEvents=new Set([
+    "di_evidence_started",
+    "di_evidence_completed",
+    "di_identity_started",
+    "di_identity_completed",
+    "di_decision_started",
+    "di_decision_completed"
+  ]);
+  window.addEventListener("flipforge:conversion",event=>{
+    const detail=event?.detail||{};
+    if(!allowedInteractiveEvents.has(detail.event))return;
+    emit(detail.event,String(detail.placement||"interactive"),false);
+  });
+
   document.querySelectorAll('a[href$="beta-application.html"],a[href="/beta-application"]').forEach(link=>{
     link.addEventListener("click",()=>emit("beta_cta_clicked",placementFor(link)));
+  });
+  document.querySelectorAll('[data-ff-di-beta-cta]').forEach(link=>{
+    link.addEventListener("click",()=>emit("di_beta_cta_clicked","decision-intelligence",false));
   });
   document.querySelectorAll('a[href="sample-decision-dossier.html"]').forEach(link=>{
     link.addEventListener("click",()=>emit("sample_dossier_clicked",placementFor(link)));
