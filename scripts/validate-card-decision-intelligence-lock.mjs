@@ -50,12 +50,13 @@ for (const relativePath of [
   }
 }
 
-// These are current customer/operator/marketing surfaces, not historical records or
-// internal product-module names. The deploy build must leave every one on the current
-// brand descriptor. This intentionally does not ban generic product uses of the phrase
-// "Card Intelligence" elsewhere in the codebase.
+// These are current customer/operator/marketing/legal/support surfaces, not historical
+// records or internal product-module names. The deploy build must leave every one on the
+// current brand descriptor. Generic product uses of the phrase "Card Intelligence" are
+// still allowed where they do not represent the public brand descriptor.
 const currentSurfaces = [
   ['index.html', DISPLAY_DESCRIPTOR],
+  ['decision-intelligence.html', PROSE_DESCRIPTOR],
   ['operator-beta.html', PROSE_DESCRIPTOR],
   ['saas-prototype/index.html', DISPLAY_DESCRIPTOR],
   ['assets/js/marketing-v3.js', DISPLAY_DESCRIPTOR],
@@ -68,6 +69,12 @@ const currentSurfaces = [
   ['assets/images/flipforge-traceback-guidance.svg', DISPLAY_DESCRIPTOR],
   ['assets/images/flipforge-grading-scenario.svg', DISPLAY_DESCRIPTOR],
   ['docs/BRAND_SYSTEM_V2.md', DISPLAY_DESCRIPTOR],
+  ['terms.html', PROSE_DESCRIPTOR],
+  ['privacy.html', PROSE_DESCRIPTOR],
+  ['data-use.html', PROSE_DESCRIPTOR],
+  ['beta-terms.html', PROSE_DESCRIPTOR],
+  ['refund.html', PROSE_DESCRIPTOR],
+  ['faq.html', PROSE_DESCRIPTOR],
 ];
 
 for (const [relativePath, expected] of currentSurfaces) {
@@ -84,6 +91,7 @@ const retiredBrandPatterns = [
   'FlipForge Card Intelligence',
   'FlipForge | Card Intelligence',
   '<small>Card Intelligence</small>',
+  '<strong>Card Intelligence</strong>',
   '<span class="brand-subtitle">CARD INTELLIGENCE</span>',
   '<div class="descriptor">CARD INTELLIGENCE</div>',
   "node.textContent='CARD INTELLIGENCE'",
@@ -100,4 +108,4 @@ for (const [relativePath] of currentSurfaces) {
   }
 }
 
-console.log(`Brand descriptor lock passed across current surfaces: ${DISPLAY_DESCRIPTOR}`);
+console.log(`Brand descriptor lock passed across current marketing, legal, support, customer, and operator surfaces: ${DISPLAY_DESCRIPTOR}`);
