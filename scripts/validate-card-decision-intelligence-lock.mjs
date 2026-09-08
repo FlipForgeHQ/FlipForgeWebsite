@@ -75,6 +75,7 @@ const currentSurfaces = [
   ['beta-terms.html', PROSE_DESCRIPTOR],
   ['refund.html', PROSE_DESCRIPTOR],
   ['faq.html', PROSE_DESCRIPTOR],
+  ['partner-disclosure.html', PROSE_DESCRIPTOR],
 ];
 
 for (const [relativePath, expected] of currentSurfaces) {
