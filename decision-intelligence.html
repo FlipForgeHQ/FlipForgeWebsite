@@ -41,6 +41,11 @@
       <div class="ff-di-rule">CLAIM → INSPECT → CHALLENGE → EVIDENCE SURVIVES → DECISION</div>
     </div>
 
+    <aside class="ff-di-boundary" id="ff-di-shared-boundary" role="note">
+      <strong>Illustrative scenarios · not live market data.</strong>
+      <span>Decision support only. FlipForge does not authorize transactions or guarantee outcomes or profit.</span>
+    </aside>
+
     <article class="ff-di-module" data-ff-evidence-lab aria-labelledby="evidence-title">
       <div class="ff-di-module-head">
         <div><span>INTERACTIVE 01 · EVIDENCE LAB</span><h2 id="evidence-title">The Comp Collapse</h2><p>Watch an apparent bargain shrink when comparisons that do not belong lose influence.</p></div>
@@ -52,11 +57,11 @@
           <div class="ff-di-price">$349</div>
           <div class="ff-di-discount">24% under apparent market</div>
           <p>A normal price view makes this look easy. FlipForge does not treat the headline discount as proof.</p>
-          <button class="ff-di-action" type="button" data-ff-evidence-run>Inspect Evidence (7 Comps Found)</button>
-          <div class="ff-di-note" data-ff-evidence-live aria-live="polite">No comparison has been accepted or rejected yet.</div>
+          <button class="ff-di-action" type="button" data-ff-evidence-run aria-controls="ff-evidence-results" aria-describedby="ff-di-shared-boundary">Inspect Evidence (7 Comps Found)</button>
+          <div class="ff-di-note" data-ff-evidence-live role="status" aria-live="polite" aria-atomic="true">No comparison has been accepted or rejected yet.</div>
         </div>
-        <div class="ff-di-evidence-panel">
-          <span class="ff-di-label">Comparison evidence</span>
+        <div class="ff-di-evidence-panel" id="ff-evidence-results" role="region" aria-labelledby="evidence-results-label" aria-busy="false" tabindex="-1">
+          <span class="ff-di-label" id="evidence-results-label">Comparison evidence</span>
           <div class="ff-di-comps">
             <div class="ff-di-comp" data-ff-comp data-result="reject"><b>Comp 01 · PSA 9</b><em>Wrong grade</em></div>
             <div class="ff-di-comp" data-ff-comp data-result="reject"><b>Comp 02 · relisted sale</b><em>Duplicate listing</em></div>
@@ -73,7 +78,7 @@
         </div>
       </div>
     </article>
-    <p class="ff-di-note">Illustrative example. FlipForge demonstrates the decision reasoning while keeping proprietary methodology private.</p>
+    <p class="ff-di-note">Method note: FlipForge demonstrates decision reasoning while keeping proprietary methodology private.</p>
   </div>
 </section>
 
@@ -103,8 +108,8 @@
             <div class="ff-di-id-check" data-ff-id-check>Parallel</div>
             <div class="ff-di-id-check" data-ff-id-check>Grade</div>
           </div>
-          <div class="ff-di-id-result" data-ff-id-result aria-live="polite">Five identity checkpoints must agree before price evidence gets influence.</div>
-          <div style="margin-top:14px"><button class="ff-di-action" type="button" data-ff-identity-run>Run Identity Lock</button></div>
+          <div class="ff-di-id-result" id="ff-identity-result" data-ff-id-result role="status" aria-live="polite" aria-atomic="true" tabindex="-1">Five identity checkpoints must agree before price evidence gets influence.</div>
+          <div style="margin-top:14px"><button class="ff-di-action" type="button" data-ff-identity-run aria-controls="ff-identity-result" aria-describedby="ff-di-shared-boundary">Run Identity Lock</button></div>
         </div>
       </article>
 
@@ -118,21 +123,21 @@
             <div class="ff-di-stat"><span>Apparent market</span><strong>$400</strong></div>
           </div>
           <div class="ff-di-naive" data-ff-naive-buy>Looks like a BUY: 15% below market</div>
-          <button class="ff-di-action" type="button" data-ff-decision-run>Challenge This Deal</button>
+          <button class="ff-di-action" type="button" data-ff-decision-run aria-controls="ff-decision-result" aria-describedby="ff-di-shared-boundary">Challenge This Deal</button>
           <div class="ff-di-risk-list" aria-label="Decision context">
             <div class="ff-di-risk" data-ff-risk>Thin evidence · too few strong exact comparisons</div>
             <div class="ff-di-risk" data-ff-risk>Low liquidity · exit demand is limited</div>
             <div class="ff-di-risk" data-ff-risk>Elevated volatility · the apparent edge may not hold</div>
           </div>
-          <div class="ff-di-final" data-ff-final><span>FlipForge decision</span><strong>—</strong><p>Challenge the apparent deal first.</p></div>
-          <div class="ff-di-note" data-ff-decision-live aria-live="polite">The apparent discount has not been accepted as a decision.</div>
+          <div class="ff-di-final" id="ff-decision-result" data-ff-final role="status" aria-live="polite" aria-atomic="true" tabindex="-1"><span>FlipForge decision</span><strong>—</strong><p>Challenge the apparent deal first.</p></div>
+          <div class="ff-di-note" data-ff-decision-live aria-live="polite" aria-atomic="true">The apparent discount has not been accepted as a decision.</div>
         </div>
       </article>
     </div>
   </div>
 </section>
 
-<div class="ff-di-cta"><a class="btn primary" href="beta-application.html">Request Beta Access</a><a class="btn" href="product.html">See FlipForge</a></div>
+<div class="ff-di-cta"><a class="btn primary" href="beta-application.html" data-ff-di-beta-cta>Request Beta Access</a><a class="btn" href="product.html">See FlipForge</a></div>
 </main>
 
 <footer class="footer"><div class="footer-inner"><div><a class="brand" href="index.html"><img class="brand-lockup" src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why."></a><p><strong>Card Decision Intelligence™</strong><br>Before you buy. Know Why.</p></div><div class="footer-links"><strong>Explore</strong><a href="product.html">Product</a><a href="decision-intelligence.html" aria-current="page">Decision Intelligence</a><a href="learn.html">Evidence Lab</a><a href="about.html">About</a></div><div class="footer-links"><strong>Trust</strong><a href="data-use.html">Data Use</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="beta-terms.html">Beta Terms</a><a href="mailto:info@goflipforge.com">Contact</a></div></div><div class="copyright">© 2026 FlipForge LLC. FlipForge™.</div></footer>
