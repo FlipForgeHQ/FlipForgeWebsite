@@ -18,6 +18,15 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 const sectionCount = text => (text.match(/<section\b/g) || []).length;
 const publicText = page.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '');
 const forbiddenImplementationLanguage = /\b(?:API|SQLite|CardSight|Netlify|Render|JavaScript|source code|database|engineVersion|correlationId|provider credential|service credential)\b/i;
+const forbiddenPublicClaims = [
+  /\baccuracy rate\b/i,
+  /\bguaranteed profit\b/i,
+  /\bguaranteed return\b/i,
+  /\bguaranteed outcome\b/i,
+  /\btrue value\b/i,
+  /\bobjective value\b/i,
+  /\b\d{1,3}(?:\.\d+)?%\s+accurate\b/i
+];
 const exhibitContract = `${page}\n${exhibitJs}`;
 const heroIndex = page.indexOf('<section class="ff-di-hero"');
 const evidenceIndex = page.indexOf('data-ff-evidence-lab');
@@ -33,14 +42,24 @@ check('flagship Evidence Lab appears inside first content section', heroIndex >=
 check('Evidence Lab interaction exists', page.includes('data-ff-evidence-lab') && page.includes('Inspect Evidence (7 Comps Found)'));
 check('Exact-Card Identity Lock interaction exists', page.includes('data-ff-identity') && page.includes('Run Identity Lock'));
 check('Decision Layer interaction exists', page.includes('data-ff-decision-layer') && page.includes('Challenge This Deal'));
+check('shared illustrative boundary covers the interactive scenarios', page.includes('Illustrative scenarios · not live market data.') && page.includes('Decision support only. FlipForge does not authorize transactions or guarantee outcomes or profit.'));
 check('exact identity remains explicit', page.includes('Exact-Card Identity Lock') && page.includes('Parallel') && page.includes('Grade'));
 check('evidence rejection is demonstrated', page.includes('5 REJECTED') || (page.includes('Wrong grade') && page.includes('Wrong parallel')));
 check('apparent-versus-supported shift is demonstrated', exhibitContract.includes('24%') && exhibitContract.includes('2.3%'));
 check('VERIFY is a visible example decision', exhibitJs.includes('<strong>VERIFY</strong>'));
 check('public exhibit protects proprietary methodology', page.includes('keeping proprietary methodology private'));
 check('public page exposes no implementation vocabulary', !forbiddenImplementationLanguage.test(publicText));
+check('public page contains no unauthorized accuracy, guarantee, or true-value claim', forbiddenPublicClaims.every(pattern => !pattern.test(publicText)));
 check('interactions support reduced motion', exhibitJs.includes('prefers-reduced-motion') && exhibitCss.includes('prefers-reduced-motion'));
 check('interactions are user-controlled by click', ['data-ff-evidence-run','data-ff-identity-run','data-ff-decision-run'].every(token => exhibitJs.includes(token)) && exhibitJs.includes('addEventListener("click"'));
+check('interactive controls expose their result regions', ['aria-controls="ff-evidence-results"','aria-controls="ff-identity-result"','aria-controls="ff-decision-result"'].every(token => page.includes(token)));
+check('interactive results announce state changes', page.includes('role="status"') && page.includes('aria-live="polite"') && exhibitJs.includes('aria-busy'));
+check('keyboard-triggered completions move focus to the resolved result', exhibitJs.includes('keyboardTriggered') && exhibitJs.includes('focus({ preventScroll: true })'));
+check('visible focus treatment exists', exhibitCss.includes(':focus-visible') && exhibitCss.includes('outline:3px solid'));
+check('interaction start and completion analytics are wired', [
+  'di_evidence_started','di_evidence_completed','di_identity_started','di_identity_completed','di_decision_started','di_decision_completed'
+].every(event => exhibitJs.includes(event) && conversion.includes(event)));
+check('Decision Intelligence beta CTA is measured', page.includes('data-ff-di-beta-cta') && conversion.includes('di_beta_cta_clicked'));
 check('no continuous decorative animation is introduced', !/@keyframes/.test(exhibitCss));
 check('Decision Intelligence page stays highly focused', sectionCount(page) <= 2);
 check('Product page stays compact', sectionCount(product) <= 5);
