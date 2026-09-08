@@ -145,17 +145,22 @@
   };
 
   const allowedInteractiveEvents=new Set([
+    "di_choice_recorded",
+    "di_world_entered",
     "di_evidence_started",
     "di_evidence_completed",
+    "di_decision_changed",
+    "di_decision_kept",
     "di_identity_started",
     "di_identity_completed",
-    "di_decision_started",
-    "di_decision_completed"
+    "di_challenge_started",
+    "di_challenge_completed",
+    "di_world_completed"
   ]);
   window.addEventListener("flipforge:conversion",event=>{
     const detail=event?.detail||{};
     if(!allowedInteractiveEvents.has(detail.event))return;
-    emit(detail.event,String(detail.placement||"interactive"),false);
+    emit(detail.event,String(detail.placement||"decision-intelligence"),false);
   });
 
   document.querySelectorAll('a[href$="beta-application.html"],a[href="/beta-application"]').forEach(link=>{
