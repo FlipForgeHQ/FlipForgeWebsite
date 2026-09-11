@@ -200,24 +200,6 @@
     setText(heading, parts.length > 1 ? "Saved Decision" : "Saved Decisions");
   }
 
-  function simplifyWorkflowStrip() {
-    const strip = document.querySelector(`${MAIN} [data-ff-workflow-strip]`);
-    if (!strip) return;
-    const labels = ["Evaluate", "Decision", "Track"];
-    const steps = [...strip.querySelectorAll(".ff-workflow-step")];
-    steps.forEach((step, index) => {
-      if (index >= labels.length) {
-        step.hidden = true;
-        step.setAttribute("aria-hidden", "true");
-        return;
-      }
-      step.hidden = false;
-      step.removeAttribute("aria-hidden");
-      const text = step.querySelector("span:last-child");
-      setText(text, labels[index]);
-    });
-  }
-
   function simplifyBetaGuide() {
     const main = document.querySelector(MAIN);
     if (!main || routeName() !== "beta-start") return;
@@ -258,7 +240,6 @@
     simplifyTopbar();
     customerHome();
     renameSavedDecisions();
-    simplifyWorkflowStrip();
     simplifyBetaGuide();
   }
 
