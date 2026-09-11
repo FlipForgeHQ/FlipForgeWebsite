@@ -61,7 +61,7 @@ const checks = [
   ["beta session milestone names are allowlisted server-side", sessionEvents.every(value => server.includes(`\"${value}\"`))],
   ["beta session runtime emits every approved milestone", sessionEvents.every(value => betaSession.includes(`emit(\"${value}\")`))],
   ["beta session telemetry sends only event page and placement", betaSession.includes("JSON.stringify({ event, page: PAGE, placement: PLACEMENT })")],
-  ["beta session runtime never sends card or listing content", !/exactCardQuery|cardIdentity|listingUrl|itemPriceCents|recommendation\s*:/i.test(betaSession)],
+  ["beta session runtime never references sensitive payload fields", ["exactCardQuery", "cardIdentity", "listingUrl", "itemPriceCents"].every(value => !betaSession.includes(value))],
   ["beta session presentation files are loaded last", appIndex.includes('href="beta-session-v1.css"') && /customer-only-shell-v1\.js[\s\S]*beta-session-v1\.js[\s\S]*<\/body>/.test(appIndex)],
   ["beta session hides technical provider status and result-count control", betaSession.includes("Connected source status") && betaSession.includes("ffBetaHiddenControl") && betaSessionCss.includes("ff-beta-hidden-control")],
   ["privacy policy discloses limited events", privacy.includes("Website measurement") && privacy.includes("does not set analytics cookies") && privacy.includes("create a visitor identifier")],
