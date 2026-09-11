@@ -40,7 +40,7 @@ body[data-ff-surface="customer"] .prototype-chip {
 
 body[data-ff-surface="customer"] .ff-customer-home-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin: 18px 0 0;
 }
@@ -110,6 +110,12 @@ body[data-ff-surface="customer"] .ff-customer-only-note strong {
 
 body[data-ff-surface="customer"] .private-beta-step[data-ff-customer-hide="true"] {
   display: none !important;
+}
+
+@media (max-width: 1180px) {
+  body[data-ff-surface="customer"] .ff-customer-home-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
