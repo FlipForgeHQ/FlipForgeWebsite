@@ -13,6 +13,22 @@
     if (node && node.textContent !== value) node.textContent = value;
   }
 
+  function ensureDecisionCardEvidenceAssets() {
+    if (!document.querySelector('link[data-ff-decision-card-evidence]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "decision-card-evidence-v1.css";
+      link.dataset.ffDecisionCardEvidence = "style";
+      document.head.appendChild(link);
+    }
+    if (!window.FlipForgeDecisionCardEvidenceV1 && !document.querySelector('script[data-ff-decision-card-evidence]')) {
+      const script = document.createElement("script");
+      script.src = "decision-card-evidence-v1.js";
+      script.dataset.ffDecisionCardEvidence = "runtime";
+      document.body.appendChild(script);
+    }
+  }
+
   function disambiguate(select) {
     if (!select || select.dataset.ffDiLabels === "true") return;
     const options = [...select.options];
@@ -69,6 +85,7 @@
 
   function apply() {
     scheduled = false;
+    ensureDecisionCardEvidenceAssets();
     const route = routeName();
     if (route === "decision-intelligence") polishDecisionIntelligence();
     if (route === "compare") polishCompare();
