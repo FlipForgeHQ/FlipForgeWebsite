@@ -10,6 +10,7 @@ const product = read('product.html');
 const connect = read('connect/index.html');
 const conversion = read('assets/js/conversion-events.js');
 const customerShell = read('saas-prototype/customer-only-shell-v1.js');
+const customerIndex = read('saas-prototype/index.html');
 const sitemap = read('sitemap.xml');
 
 const checks = [];
@@ -51,7 +52,8 @@ check('public navigation receives Decision Intelligence link', conversion.includ
 check('Decision Intelligence click tracking is wired', conversion.includes('decision_intelligence_clicked'));
 check('customer app exposes public Decision Intelligence exhibit', customerShell.includes('data.ffPublicDecisionIntelligence') || customerShell.includes('data-ff-public-decision-intelligence') || customerShell.includes('ffPublicDecisionIntelligence'));
 check('customer app points public Decision Intelligence to the public page', customerShell.includes('publicLink.href = "/decision-intelligence.html"'));
-check('private saved-data view is distinctly labeled', customerShell.includes('replaceTextNode(privateLink, "Saved Intelligence")'));
+check('private customer Decision Intelligence is a primary saved-data route', customerIndex.includes('href="#/decision-intelligence" data-route="decision-intelligence" data-ff-customer-core'));
+check('public exhibit remains distinctly labeled from the private customer route', customerShell.includes('Decision Intelligence exhibit'));
 
 const passed = checks.filter(item => item.passed).length;
 const failed = checks.filter(item => !item.passed);

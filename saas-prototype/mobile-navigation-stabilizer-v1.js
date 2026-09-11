@@ -2,7 +2,7 @@
   "use strict";
 
   const MOBILE_QUERY = "(max-width: 760px)";
-  const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"];
+  const PRIMARY_ROUTES = ["dashboard", "discover", "decision-intelligence", "opportunities", "tracking"];
 
   function mobile() {
     return window.matchMedia?.(MOBILE_QUERY).matches === true;

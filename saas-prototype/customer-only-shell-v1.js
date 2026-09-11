@@ -2,10 +2,10 @@
   "use strict";
 
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
-  const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);
+  const CORE_ROUTES = new Set(["dashboard", "discover", "decision-intelligence", "opportunities", "tracking"]);
   const CUSTOMER_TOOL_ROUTES = new Set([
     "market-view", "forge-heat", "portfolio", "alerts",
-    "decision-intelligence", "compare", "psa-advisor", "evidence", "sell", "export"
+    "compare", "psa-advisor", "evidence", "sell", "export"
   ]);
   const INTERNAL_NAV_ROUTES = new Set(["evaluate", "staging", "staging-evaluate"]);
   const MAIN = "#main-content";
@@ -55,10 +55,7 @@
   function ensurePublicDecisionIntelligenceLink(advanced) {
     if (!advanced) return;
     const links = advanced.querySelector(".ff-advanced-nav-links");
-    const privateLink = advanced.querySelector('a[data-route="decision-intelligence"]');
-    if (!links || !privateLink) return;
-
-    replaceTextNode(privateLink, "Saved Intelligence");
+    if (!links) return;
 
     let publicLink = links.querySelector("[data-ff-public-decision-intelligence]");
     if (!publicLink) {
@@ -67,8 +64,8 @@
       publicLink.dataset.ffPublicDecisionIntelligence = "";
       publicLink.className = "ff-public-decision-intelligence";
       publicLink.setAttribute("aria-label", "Open the public Decision Intelligence exhibit");
-      publicLink.innerHTML = '<span aria-hidden="true">✦</span>Decision Intelligence';
-      privateLink.insertAdjacentElement("beforebegin", publicLink);
+      publicLink.innerHTML = '<span aria-hidden="true">✦</span>Decision Intelligence exhibit';
+      links.insertAdjacentElement("afterbegin", publicLink);
     }
     publicLink.hidden = false;
     publicLink.removeAttribute("hidden");
@@ -83,6 +80,7 @@
     const labels = new Map([
       ["dashboard", "Home"],
       ["discover", "Evaluate"],
+      ["decision-intelligence", "Decision Intelligence"],
       ["opportunities", "Saved Decisions"],
       ["tracking", "Tracking"]
     ]);
@@ -179,8 +177,9 @@
 
     const wanted = [
       ["01", "Evaluate a card", "Enter the exact card or listing and let FlipForge guide you to a decision.", "#/discover"],
-      ["02", "Review saved decisions", "Return to cards you already evaluated and see what the evidence supports.", "#/opportunities"],
-      ["03", "Check tracking", "Follow saved cards and see what changed after the original decision.", "#/tracking"]
+      ["02", "Understand the decision", "See what FlipForge trusted, what it rejected, and what would need to change.", "#/decision-intelligence"],
+      ["03", "Review saved decisions", "Return to cards you already evaluated and see what the evidence supports.", "#/opportunities"],
+      ["04", "Check tracking", "Follow saved cards and see what changed after the original decision.", "#/tracking"]
     ].map(([step, title, copy, href]) => `<a class="ff-customer-home-action" href="${href}"><span>${step}</span><strong>${title}</strong><small>${copy}</small></a>`).join("");
     setHtml(quick, wanted);
 

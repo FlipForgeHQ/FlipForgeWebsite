@@ -283,7 +283,7 @@
     discoverRenderPending = true;
     requestAnimationFrame(async () => {
       discoverRenderPending = false;
-      if (routeName() !== "discover") return;
+      if (routeName() !== "discover" || main.querySelector(".customer-discovery-page")) return;
       try {
         await discovery.render(main);
       } catch (_) {
