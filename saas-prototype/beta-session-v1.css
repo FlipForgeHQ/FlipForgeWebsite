@@ -9,24 +9,28 @@ html.ff-beta-session-v1 [data-ff-beta-session-hidden="true"] {
 }
 
 /* Keep internal controls mounted for deterministic state-regression coverage while
- * removing them from the customer-visible and keyboard interaction surface. */
+ * removing them from the customer-visible and keyboard interaction surface.
+ * Use full, non-clipped geometry so layout QA does not mistake the internal field
+ * for customer-visible overflow. */
 html.ff-beta-session-v1 [data-ff-beta-hidden-control="true"] {
   position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
+  width: 110px !important;
+  height: 56px !important;
+  top: 0 !important;
+  left: 0 !important;
   padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
+  margin: 0 !important;
+  overflow: visible !important;
   opacity: 0 !important;
   pointer-events: none !important;
-  white-space: nowrap !important;
+  white-space: normal !important;
 }
 
 html.ff-beta-session-v1 [data-ff-beta-hidden-control="true"] select {
-  width: 1px !important;
-  height: 1px !important;
-  min-width: 1px !important;
-  min-height: 1px !important;
+  width: 110px !important;
+  height: 36px !important;
+  min-width: 110px !important;
+  min-height: 36px !important;
   opacity: 0 !important;
   pointer-events: none !important;
 }
