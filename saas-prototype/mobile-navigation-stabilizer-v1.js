@@ -2,7 +2,7 @@
   "use strict";
 
   const MOBILE_QUERY = "(max-width: 760px)";
-  const PRIMARY_ROUTES = ["dashboard", "discover", "decision-intelligence", "opportunities", "tracking"];
+  const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"];
 
   function mobile() {
     return window.matchMedia?.(MOBILE_QUERY).matches === true;
@@ -21,17 +21,13 @@
     style.textContent = `
       @media (max-width:760px) {
         .primary-nav > a[data-ff-customer-core],
-        .primary-nav > .ff-mobile-account-nav,
-        .primary-nav > .ff-advanced-nav {
+        .primary-nav > .ff-mobile-account-nav {
           visibility:visible !important;
           opacity:1 !important;
-        }
-        .primary-nav > a[data-ff-customer-core],
-        .primary-nav > .ff-mobile-account-nav {
           display:grid !important;
         }
         .primary-nav > .ff-advanced-nav {
-          display:block !important;
+          display:none !important;
         }
       }`;
     document.head.appendChild(style);
@@ -57,12 +53,9 @@
     account.href = "#/account";
     account.dataset.route = "account";
     account.className = "ff-mobile-account-nav";
-    account.setAttribute("aria-label", "Open account and plan usage");
+    account.setAttribute("aria-label", "Open account");
     account.innerHTML = '<span aria-hidden="true">●</span>Account';
-
-    const advanced = nav.querySelector(".ff-advanced-nav");
-    if (advanced) advanced.insertAdjacentElement("beforebegin", account);
-    else nav.appendChild(account);
+    nav.appendChild(account);
     return account;
   }
 
@@ -81,16 +74,26 @@
 
     ensureStyle();
     PRIMARY_ROUTES.forEach(route => restoreLink(nav.querySelector(`[data-route="${route}"]`)));
-    const account = ensureAccountLink(nav);
-    restoreLink(account);
+
+    nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
+      const route = String(link.dataset.route || "");
+      if (!PRIMARY_ROUTES.includes(route) && route !== "account") {
+        link.hidden = true;
+        link.setAttribute("aria-hidden", "true");
+        link.tabIndex = -1;
+        link.removeAttribute("data-ff-customer-core");
+      }
+    });
 
     const advanced = nav.querySelector(".ff-advanced-nav");
     if (advanced) {
-      advanced.hidden = false;
-      advanced.removeAttribute("hidden");
-      advanced.removeAttribute("aria-hidden");
+      advanced.open = false;
+      advanced.hidden = true;
+      advanced.setAttribute("aria-hidden", "true");
     }
 
+    const account = ensureAccountLink(nav);
+    restoreLink(account);
     syncActiveRoute(nav);
   }
 
@@ -105,7 +108,12 @@
   }
 
   const observer = new MutationObserver(schedule);
-  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "tabindex", "class"] });
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["hidden", "aria-hidden", "tabindex", "class", "data-ff-customer-core"]
+  });
   window.addEventListener("hashchange", schedule);
   window.addEventListener("pageshow", schedule);
   window.addEventListener("resize", schedule);
