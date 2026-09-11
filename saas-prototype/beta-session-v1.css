@@ -1,0 +1,85 @@
+/* FlipForge Beta Session v1
+ * Presentation-only first-session simplification.
+ * No decision, evidence, valuation, grading, persistence, provider,
+ * transaction, or server authority is implemented here.
+ */
+
+html.ff-beta-session-v1 [data-ff-beta-session-hidden="true"],
+html.ff-beta-session-v1 [data-ff-beta-hidden-control="true"] {
+  display: none !important;
+}
+
+html.ff-beta-session-v1 .customer-discovery-search .panel-header {
+  padding-bottom: 14px;
+}
+
+html.ff-beta-session-v1 .customer-discovery-search .panel-header h2 {
+  margin-bottom: 6px;
+}
+
+html.ff-beta-session-v1 .customer-discovery-form {
+  grid-template-columns: minmax(0, 2fr) minmax(180px, .8fr) !important;
+  align-items: end;
+}
+
+html.ff-beta-session-v1 .customer-discovery-form > label:nth-of-type(1) {
+  grid-column: 1;
+}
+
+html.ff-beta-session-v1 .customer-discovery-form > label:nth-of-type(2) {
+  grid-column: 2;
+}
+
+html.ff-beta-session-v1 .customer-discovery-search-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+html.ff-beta-session-v1 .customer-discovery-search-actions .button-primary {
+  min-width: 180px;
+}
+
+html.ff-beta-session-v1 .customer-discovery-search-help {
+  display: block;
+  margin-top: 12px;
+  line-height: 1.55;
+}
+
+html.ff-beta-session-v1 .ff-saved-decision-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+html.ff-beta-session-v1 .ff-saved-decision-actions .button-primary {
+  order: -1;
+}
+
+@media (max-width: 760px) {
+  html.ff-beta-session-v1 .customer-discovery-form {
+    grid-template-columns: 1fr !important;
+  }
+
+  html.ff-beta-session-v1 .customer-discovery-form > label:nth-of-type(1),
+  html.ff-beta-session-v1 .customer-discovery-form > label:nth-of-type(2),
+  html.ff-beta-session-v1 .customer-discovery-search-actions {
+    grid-column: 1;
+  }
+
+  html.ff-beta-session-v1 .customer-discovery-search-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  html.ff-beta-session-v1 .customer-discovery-search-actions .button,
+  html.ff-beta-session-v1 .ff-saved-decision-actions .button {
+    width: 100%;
+  }
+
+  html.ff-beta-session-v1 .ff-saved-decision-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
