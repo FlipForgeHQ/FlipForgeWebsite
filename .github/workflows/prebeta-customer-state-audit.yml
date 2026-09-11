@@ -5,6 +5,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/audit-prebeta-customer-state-ci.mjs"
+      - "scripts/audit-beta-first-decision-trial.mjs"
       - "scripts/validate-discover-*.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-beta-complete-gate.mjs"
@@ -18,6 +19,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/audit-prebeta-customer-state-ci.mjs"
+      - "scripts/audit-beta-first-decision-trial.mjs"
       - "scripts/validate-discover-*.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-beta-complete-gate.mjs"
@@ -34,7 +36,7 @@ jobs:
   destructive-customer-state-audit:
     name: Attack repeated customer-state transitions before beta
     runs-on: ubuntu-24.04
-    timeout-minutes: 14
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository
@@ -75,12 +77,26 @@ jobs:
       - name: Run destructive customer-state browser matrix
         run: npm run audit:prebeta-customer-state
 
+      - name: Run controlled three-card trial against the live production shell
+        run: node scripts/audit-beta-first-decision-trial.mjs
+        env:
+          FLIPFORGE_FIRST_DECISION_URL: https://goflipforge.com/app/
+
       - name: Upload destructive audit report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: flipforge-prebeta-customer-state-audit
           path: qa-artifacts/prebeta-customer-state
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload first-decision trial report and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flipforge-beta-first-decision-trial
+          path: qa-artifacts/beta-first-decision-trial
           if-no-files-found: warn
           retention-days: 30
 
