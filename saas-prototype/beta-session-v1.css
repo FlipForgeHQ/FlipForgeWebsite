@@ -65,17 +65,30 @@ html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step
 
 html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(1) > span:last-child,
 html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(3) > span:last-child {
-  font-size: 0 !important;
+  position: relative;
+  display: inline-block;
+  min-width: 4.75rem;
+  text-indent: -9999px;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(1) > span:last-child::after,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(3) > span:last-child::after {
+  position: absolute;
+  left: 0;
+  top: 0;
+  text-indent: 0;
+  white-space: nowrap;
+  font-size: inherit;
 }
 
 html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(1) > span:last-child::after {
   content: "Evaluate";
-  font-size: .86rem;
 }
 
 html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(3) > span:last-child::after {
   content: "Decision";
-  font-size: .86rem;
 }
 
 /* First-session screens should lead with the decision, not platform architecture. */
