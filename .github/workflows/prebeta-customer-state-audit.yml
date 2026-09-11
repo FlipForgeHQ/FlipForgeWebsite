@@ -6,6 +6,7 @@ on:
       - "saas-prototype/**"
       - "scripts/audit-prebeta-customer-state-ci.mjs"
       - "scripts/audit-beta-first-decision-trial.mjs"
+      - "scripts/audit-beta-first-decision-trial-runner.mjs"
       - "scripts/validate-discover-*.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-beta-complete-gate.mjs"
@@ -20,6 +21,7 @@ on:
       - "saas-prototype/**"
       - "scripts/audit-prebeta-customer-state-ci.mjs"
       - "scripts/audit-beta-first-decision-trial.mjs"
+      - "scripts/audit-beta-first-decision-trial-runner.mjs"
       - "scripts/validate-discover-*.mjs"
       - "scripts/validate-saas-customer-discovery.mjs"
       - "scripts/validate-saas-beta-complete-gate.mjs"
@@ -78,7 +80,7 @@ jobs:
         run: npm run audit:prebeta-customer-state
 
       - name: Run controlled three-card trial against the live production shell
-        run: node scripts/audit-beta-first-decision-trial.mjs
+        run: node scripts/audit-beta-first-decision-trial-runner.mjs
         env:
           FLIPFORGE_FIRST_DECISION_URL: https://goflipforge.com/app/
 
