@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 const indexUrl = new URL("../saas-prototype/index.html", import.meta.url);
+const betaFlowUrl = new URL("../saas-prototype/beta-customer-flow-v2.js", import.meta.url);
 const marker = '  <script src="customer-discovery.js"></script>';
 const guard = '  <script src="customer-discovery-request-guard.js"></script>';
 let source = fs.readFileSync(indexUrl, "utf8");
@@ -13,4 +14,17 @@ if (!source.includes(guard)) {
   fs.writeFileSync(indexUrl, source, "utf8");
 }
 
-console.log("Injected Discover stale identity-request guard before customer-discovery.js.");
+let betaFlow = fs.readFileSync(betaFlowUrl, "utf8");
+const decisionButton = '<button type="button" class="button button-primary" data-ff-show-why>Show me why →</button>';
+const decisionLink = '<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Show me why →</a>';
+const savedButton = '<button class="button button-primary" type="button" data-ff-show-why>Understand this decision →</button>';
+const savedLink = '<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Understand this decision →</a>';
+
+if (betaFlow.includes(decisionButton)) betaFlow = betaFlow.replace(decisionButton, decisionLink);
+if (betaFlow.includes(savedButton)) betaFlow = betaFlow.replace(savedButton, savedLink);
+if (!betaFlow.includes(decisionLink) || !betaFlow.includes(savedLink)) {
+  throw new Error("Stable Decision Intelligence evidence-link transformation failed.");
+}
+fs.writeFileSync(betaFlowUrl, betaFlow, "utf8");
+
+console.log("Injected Discover stale identity-request guard and stabilized Decision Intelligence evidence actions.");
