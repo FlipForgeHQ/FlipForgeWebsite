@@ -12,6 +12,11 @@ const EVENT_NAMES = new Set([
   "onboarding_guide_clicked",
   "onboarding_guide_viewed",
   "onboarding_workspace_clicked",
+  "evaluation_started",
+  "evaluation_completed",
+  "decision_explanation_viewed",
+  "decision_saved",
+  "tracking_viewed",
 ]);
 
 const PAGE_NAMES = new Set([
@@ -20,6 +25,7 @@ const PAGE_NAMES = new Set([
   "beta-application",
   "application-received",
   "beta-onboarding",
+  "beta-app",
   "product",
   "pricing",
   "learn",
@@ -38,6 +44,7 @@ const PLACEMENTS = new Set([
   "form",
   "post-submit",
   "onboarding",
+  "workflow",
   "page",
   "unknown",
 ]);
@@ -105,7 +112,8 @@ export function createConversionEventHandler({ store, now = () => new Date() } =
   };
 
   // Deliberately log only allowlisted funnel dimensions. Do not add IP address,
-  // user agent, referrer, query string, email, account, card, or listing data.
+  // user agent, referrer, query string, email, account, card, listing, price, or
+  // recommendation data. Beta-session measurement records milestones only.
   console.log(JSON.stringify(record));
   try {
     const targetStore = store || betaRuntimeStore(CONVERSION_STORE_NAME, request);
