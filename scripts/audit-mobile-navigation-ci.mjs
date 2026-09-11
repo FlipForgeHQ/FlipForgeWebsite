@@ -5,13 +5,13 @@ const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173
 const routeSpecs = [
   { route: "dashboard", mode: "primary" },
   { route: "discover", mode: "primary" },
+  { route: "decision-intelligence", mode: "primary" },
   { route: "opportunities", mode: "primary" },
   { route: "tracking", mode: "primary" },
   { route: "market-view", mode: "more" },
   { route: "forge-heat", mode: "more" },
   { route: "portfolio", mode: "more" },
   { route: "alerts", mode: "more" },
-  { route: "decision-intelligence", mode: "more" },
   { route: "compare", mode: "more" },
   { route: "psa-advisor", mode: "more" },
   { route: "evidence", mode: "more" },
@@ -238,8 +238,8 @@ async function auditOpenDrawerLayout(page) {
   if (!/^More tools(?:\s|$)/i.test(snapshot.moreSummary)) {
     failures.push(`More tools summary is mislabeled (${snapshot.moreSummary || "empty"})`);
   }
-  if (snapshot.moreLinkCount < 10) {
-    failures.push(`More tools exposes only ${snapshot.moreLinkCount} customer routes; expected at least 10`);
+  if (snapshot.moreLinkCount < 9) {
+    failures.push(`More tools exposes only ${snapshot.moreLinkCount} customer routes; expected at least 9 after Decision Intelligence promotion`);
   }
 
   for (const link of snapshot.links) {
