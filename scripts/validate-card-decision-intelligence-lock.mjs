@@ -6,6 +6,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const DISPLAY_DESCRIPTOR = 'CARD DECISION INTELLIGENCE';
 const PROSE_DESCRIPTOR = 'Card Decision Intelligence';
+const OFFICIAL_SLOGAN = 'Before you buy. Know Why.';
 
 const required = [
   'BRAND_VISUAL_LOCKED.md',
@@ -13,6 +14,7 @@ const required = [
   'brand/v2/manifest.json',
   'assets/brand/flipforge-logo-horizontal.svg',
   'assets/brand/flipforge-logo-stacked.svg',
+  'assets/brand/flipforge-before-after-overlay.svg',
 ];
 
 for (const relativePath of required) {
@@ -40,13 +42,14 @@ if (manifest?.identity?.websiteHeader?.descriptor !== DISPLAY_DESCRIPTOR) {
 for (const relativePath of [
   'assets/brand/flipforge-logo-horizontal.svg',
   'assets/brand/flipforge-logo-stacked.svg',
+  'assets/brand/flipforge-before-after-overlay.svg',
 ]) {
   const content = fs.readFileSync(path.join(root, relativePath), 'utf8');
   if (!content.includes(`aria-label="${DISPLAY_DESCRIPTOR}"`)) {
     throw new Error(`${relativePath} must render the locked descriptor as accessible SVG text.`);
   }
-  if (!content.includes('Before you buy. Know Why.')) {
-    throw new Error(`${relativePath} must retain the locked tagline.`);
+  if (!content.includes(OFFICIAL_SLOGAN)) {
+    throw new Error(`${relativePath} must retain the locked slogan exactly: ${OFFICIAL_SLOGAN}`);
   }
 }
 
@@ -67,6 +70,7 @@ const currentSurfaces = [
   ['assets/images/flipforge-homepage-dashboard.svg', DISPLAY_DESCRIPTOR],
   ['assets/images/flipforge-traceback-guidance.svg', DISPLAY_DESCRIPTOR],
   ['assets/images/flipforge-grading-scenario.svg', DISPLAY_DESCRIPTOR],
+  ['assets/brand/flipforge-before-after-overlay.svg', DISPLAY_DESCRIPTOR],
   ['docs/BRAND_SYSTEM_V2.md', DISPLAY_DESCRIPTOR],
 ];
 
