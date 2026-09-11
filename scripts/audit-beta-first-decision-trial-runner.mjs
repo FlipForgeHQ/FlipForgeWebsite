@@ -14,6 +14,8 @@ const nextActionNeedle = '    check(decisionScreen.text.includes("What you shoul
 const nextActionReplacement = '    check(decisionScreen.text.includes("What you should do next") || decisionScreen.actions.some(value => /Understand this decision|Track this card|Start another card/i.test(value)), "Decision screen did not give an obvious next action.");';
 const explanationNeedle = '    check(decisionScreen.actions.some(value => /Show me why/i.test(value)), "Decision screen did not provide a clear \'Show me why\' action.");';
 const explanationReplacement = '    check(decisionScreen.actions.some(value => /Show me why|Understand this decision|View evidence/i.test(value)), "Decision screen did not provide a clear decision-explanation action.");';
+const lifecycleListNeedle = '      await fulfill({ kind: "lifecycle", items: [lifecycleRecord(fixture)] });';
+const lifecycleListReplacement = '      await fulfill({ kind: "lifecycle", sourceOfTruth: "SQLite", items: [lifecycleRecord(fixture)] });';
 const lifecycleDetailNeedle = '      await fulfill({ kind: "lifecycle-detail", lifecycle: lifecycleRecord(fixture), history: [] });';
 const lifecycleDetailReplacement = '      await fulfill({ kind: "lifecycle-detail", opportunityId: fixture.opportunityId, lifecycle: lifecycleRecord(fixture), history: [] });';
 
@@ -22,6 +24,7 @@ for (const [needle, label] of [
   [commitNeedle, "production-commit"],
   [nextActionNeedle, "next-action semantics"],
   [explanationNeedle, "decision-explanation semantics"],
+  [lifecycleListNeedle, "lifecycle-list contract"],
   [lifecycleDetailNeedle, "lifecycle-detail contract"]
 ]) {
   if (!original.includes(needle)) throw new Error(`First-decision trial ${label} patch target was not found.`);
@@ -32,9 +35,10 @@ const patched = original
   .replace(commitNeedle, commitReplacement)
   .replace(nextActionNeedle, nextActionReplacement)
   .replace(explanationNeedle, explanationReplacement)
+  .replace(lifecycleListNeedle, lifecycleListReplacement)
   .replace(lifecycleDetailNeedle, lifecycleDetailReplacement);
 
-for (const needle of [requestIdNeedle, commitNeedle, nextActionNeedle, explanationNeedle, lifecycleDetailNeedle]) {
+for (const needle of [requestIdNeedle, commitNeedle, nextActionNeedle, explanationNeedle, lifecycleListNeedle, lifecycleDetailNeedle]) {
   if (patched.includes(needle)) throw new Error("First-decision trial harness patch was not unique.");
 }
 
