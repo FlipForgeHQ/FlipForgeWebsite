@@ -146,18 +146,21 @@ try {
   console.log(`DIAG BEFORE PAGE | ${before.firstClass}`);
   console.log(`DIAG GUIDE MODAL | ${before.guideCount}`);
 
-  const links = page.locator(`#main-content a[href='#/tracking/${id}']`);
-  const count = await links.count();
-  console.log(`DIAG TRACK LINKS | ${count}`);
-  for (let index = 0; index < count; index += 1) {
-    const link = links.nth(index);
+  const allLinks = page.locator(`#main-content a[href='#/tracking/${id}']`);
+  const allCount = await allLinks.count();
+  console.log(`DIAG TRACK LINKS | ${allCount}`);
+  for (let index = 0; index < allCount; index += 1) {
+    const link = allLinks.nth(index);
     console.log(`DIAG TRACK LINK ${index} | class=${await link.getAttribute("class")} | parent=${await link.evaluate(node => node.parentElement?.className || "")}`);
   }
 
-  if (!count) throw new Error("No Track link rendered on saved decision.");
-  console.log("DIAG CLICK | starting exact Tracking click");
-  await links.first().click({ force: true, noWaitAfter: true, timeout: 5_000 });
-  console.log("DIAG CLICK | returned from exact Tracking click");
+  const links = page.locator(`#main-content a[href='#/tracking/${id}']:visible`);
+  const count = await links.count();
+  console.log(`DIAG VISIBLE TRACK LINKS | ${count}`);
+  if (!count) throw new Error("No visible Track link rendered on saved decision.");
+  console.log("DIAG CLICK | starting visible Tracking click");
+  await links.first().click({ noWaitAfter: true, timeout: 5_000 });
+  console.log("DIAG CLICK | returned from visible Tracking click");
   await page.waitForTimeout(1500);
 
   const after = await page.evaluate(() => ({
