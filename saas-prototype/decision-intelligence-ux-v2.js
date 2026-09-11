@@ -216,8 +216,9 @@
     root.dataset.ffDecisionIntelligenceUx = "v2";
     const heroTitle = root.querySelector(".ff-di-hero-copy h1");
     const heroCopy = root.querySelector(".ff-di-hero-copy p");
-    if (heroTitle) heroTitle.textContent = "Know why before you buy.";
-    if (heroCopy) heroCopy.textContent = "FlipForge shows what it trusted, what it rejected, why value was allowed or withheld, and what would need to change before the decision changes.";
+    if (heroTitle && heroTitle.textContent !== "Know why before you buy.") heroTitle.textContent = "Know why before you buy.";
+    const heroMessage = "FlipForge shows what it trusted, what it rejected, why value was allowed or withheld, and what would need to change before the decision changes.";
+    if (heroCopy && heroCopy.textContent !== heroMessage) heroCopy.textContent = heroMessage;
 
     let command = root.querySelector("[data-ff-di-v2-command]");
     if (!command) {
@@ -232,6 +233,20 @@
     const supported = safeNumber(detail.supportedValue);
     const supportedLabel = accepted > 0 && supported > 0 ? money(supported) : "WITHHELD";
     const decision = String(detail.recommendation || "UNKNOWN").toUpperCase();
+    const breakdown = reasonBreakdown(evidence);
+    const signature = JSON.stringify([
+      state.activeId,
+      decision,
+      supported,
+      safeNumber(detail.confidence),
+      safeNumber(detail.risk),
+      accepted,
+      excluded,
+      String(detail.changeSummary || ""),
+      breakdown
+    ]);
+    if (command.dataset.ffDiV2Signature === signature) return;
+    command.dataset.ffDiV2Signature = signature;
 
     command.innerHTML = `
       <article class="ff-di-v2-verdict" data-decision="${escapeHtml(decision)}">
@@ -267,14 +282,15 @@
 
   function renderPrototypeV2() {
     if (routeName() !== "decision-intelligence" || isServerSurface()) return;
-    const root = document.querySelector(".ff-di-page[data-decision-intelligence-source="prototype"]");
+    const root = document.querySelector('.ff-di-page[data-decision-intelligence-source="prototype"]');
     const controls = root?.querySelector(".ff-di-controls");
     if (!root || !controls) return;
     root.dataset.ffDecisionIntelligenceUx = "v2";
     const heroTitle = root.querySelector(".ff-di-hero-copy h1");
     const heroCopy = root.querySelector(".ff-di-hero-copy p");
-    if (heroTitle) heroTitle.textContent = "Know why before you buy.";
-    if (heroCopy) heroCopy.textContent = "Preview mode demonstrates the Decision Intelligence layout only. Production uses server-owned evidence and recommendations.";
+    if (heroTitle && heroTitle.textContent !== "Know why before you buy.") heroTitle.textContent = "Know why before you buy.";
+    const previewMessage = "Preview mode demonstrates the Decision Intelligence layout only. Production uses server-owned evidence and recommendations.";
+    if (heroCopy && heroCopy.textContent !== previewMessage) heroCopy.textContent = previewMessage;
     if (root.querySelector("[data-ff-di-v2-command]")) return;
     const command = document.createElement("section");
     command.className = "ff-di-v2-command ff-di-v2-preview";
@@ -284,7 +300,7 @@
   }
 
   async function loadForSelection(id) {
-    if (!id || state.loading || id === state.activeId) return;
+    if (!id || (id === state.activeId && state.detail && state.evidence)) return;
     const serial = ++state.requestSerial;
     state.loading = true;
     state.activeId = id;
