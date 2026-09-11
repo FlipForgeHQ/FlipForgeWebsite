@@ -56,11 +56,26 @@ html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > .ff-adva
   display: none !important;
 }
 
-/* The beta has three customer concepts: Evaluate -> Decision -> Track. Older
- * workflow renderers still mount a fourth internal step; never show it. */
-html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(n+4),
-html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step[hidden] {
+/* beta-customer-flow-v2 is the sole structural owner of the workflow strip.
+ * Present its Discover / Evaluate / Understand / Track model as the three beta
+ * concepts without rewriting or replacing its DOM: Evaluate / Decision / Track. */
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(2) {
   display: none !important;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(1) > span:last-child,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(3) > span:last-child {
+  font-size: 0 !important;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(1) > span:last-child::after {
+  content: "Evaluate";
+  font-size: .86rem;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(3) > span:last-child::after {
+  content: "Decision";
+  font-size: .86rem;
 }
 
 /* First-session screens should lead with the decision, not platform architecture. */
