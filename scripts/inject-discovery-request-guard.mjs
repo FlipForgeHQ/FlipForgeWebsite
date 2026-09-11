@@ -15,6 +15,22 @@ if (!source.includes(guard)) {
 }
 
 let betaFlow = fs.readFileSync(betaFlowUrl, "utf8");
+const rawSetHtml = `  function setHtml(node, value) {
+    if (node && node.innerHTML !== value) node.innerHTML = value;
+  }`;
+const stableSetHtml = `  function setHtml(node, value) {
+    if (!node) return;
+    const template = document.createElement("template");
+    template.innerHTML = value;
+    const normalized = template.innerHTML;
+    if (node.innerHTML !== normalized) node.innerHTML = normalized;
+  }`;
+
+if (betaFlow.includes(rawSetHtml)) betaFlow = betaFlow.replace(rawSetHtml, stableSetHtml);
+if (!betaFlow.includes(stableSetHtml)) {
+  throw new Error("Stable beta-flow HTML renderer transformation failed.");
+}
+
 const decisionButton = '<button type="button" class="button button-primary" data-ff-show-why>Show me why →</button>';
 const decisionLink = '<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Show me why →</a>';
 const savedButton = '<button class="button button-primary" type="button" data-ff-show-why>Understand this decision →</button>';
@@ -27,4 +43,4 @@ if (!betaFlow.includes(decisionLink) || !betaFlow.includes(savedLink)) {
 }
 fs.writeFileSync(betaFlowUrl, betaFlow, "utf8");
 
-console.log("Injected Discover stale identity-request guard and stabilized Decision Intelligence evidence actions.");
+console.log("Injected Discover stale identity-request guard, normalized beta-flow HTML rendering, and stabilized Decision Intelligence evidence actions.");
