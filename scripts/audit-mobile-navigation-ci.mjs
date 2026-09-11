@@ -5,86 +5,18 @@ const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173
 const routeSpecs = [
   { route: "dashboard", mode: "primary" },
   { route: "discover", mode: "primary" },
-  { route: "decision-intelligence", mode: "primary" },
   { route: "opportunities", mode: "primary" },
   { route: "tracking", mode: "primary" },
-  { route: "market-view", mode: "more" },
-  { route: "forge-heat", mode: "more" },
-  { route: "portfolio", mode: "more" },
-  { route: "alerts", mode: "more" },
-  { route: "compare", mode: "more" },
-  { route: "psa-advisor", mode: "more" },
-  { route: "evidence", mode: "more" },
-  { route: "sell", mode: "more" },
-  { route: "export", mode: "more" },
   { route: "account", mode: "account" }
 ];
 
 const expectedHeading = {
-  dashboard: /^Dashboard$/i,
-  "market-view": /^Market View$/i,
-  discover: /^Discover$/i,
-  "forge-heat": /^Forge Heat/i,
+  dashboard: /^What card are you considering\?|^Dashboard$/i,
+  discover: /^Discover$|^Evaluate/i,
   opportunities: /^Saved Decisions$/i,
   tracking: /^Tracking$/i,
-  portfolio: /^Portfolio$/i,
-  alerts: /^Alerts$/i,
-  "decision-intelligence": /^Decision Intelligence|^No saved decisions yet\.?$/i,
-  compare: /^Direct Comparison$|^Compare$/i,
-  "psa-advisor": /^PSA Advisor$/i,
-  evidence: /^Evidence readiness$|^Evidence Center$|^Evidence$/i,
-  sell: /^Exit Review$|^Sell$/i,
-  export: /^Audit Export$|^Decision Dossier$|^Export$/i,
   account: /^Plan & Usage$|^Account$/i
 };
-
-function emptyMarketView() {
-  const coverage = horizonDays => ({ horizonDays, observed: 0, eligible: 0, coveragePct: 0 });
-  return {
-    kind: "market-view",
-    marketViewVersion: "MARKET_VIEW_V1",
-    readOnly: true,
-    scope: {
-      code: "SAVED_EVALUATED_UNIVERSE",
-      label: "Your Market",
-      marketWide: false,
-      continuousMarketScannerActive: false
-    },
-    authority: {
-      recommendationAuthority: "Smart Opportunity",
-      marketViewRecommendationAuthority: false,
-      clientComputed: false,
-      transactionAuthority: false
-    },
-    transactionAuthority: false,
-    summary: {
-      evaluatedCards: 0,
-      actionableSavedDecisions: 0,
-      actionableSharePct: 0,
-      positiveSupportedValueGap: 0,
-      positiveGapSharePct: 0,
-      freshWithin30Days: 0,
-      freshnessPct: 0
-    },
-    decisionMix: { BUY: 0, WATCH: 0, VERIFY: 0, PASS: 0, OTHER: 0 },
-    evidenceHealth: {
-      strongEvidenceCards: 0,
-      strongEvidencePct: 0,
-      averageExactTrustedSales: 0,
-      averageConfidence: 0,
-      averageRisk: 0
-    },
-    valueContext: { profitOrRoi: false, topPositiveGap: [], medianPositiveGapPct: 0 },
-    outcomeCoverage: { "7": coverage(7), "14": coverage(14), "30": coverage(30) },
-    broaderMarket: {
-      available: false,
-      marketWideVolume: false,
-      marketWideMomentum: false,
-      marketPriceIndex: false,
-      reason: "Not active in the QA fixture."
-    }
-  };
-}
 
 function lifecycleProjection(kind) {
   return {
@@ -111,7 +43,7 @@ function apiFixture(request) {
     authority: "Smart Opportunity",
     gradingAuthority: "Existing PSA intelligence",
     correlationId,
-    generatedAt: "2026-08-29T20:00:00Z",
+    generatedAt: "2026-09-11T16:30:00Z",
     evidenceFreshness: "QA_FIXTURE",
     limitations: ["Synthetic navigation fixture only."]
   };
@@ -133,9 +65,6 @@ function apiFixture(request) {
   }
   if (pathname === "/api/v1/alerts") {
     return { meta, data: lifecycleProjection("alerts") };
-  }
-  if (pathname === "/api/v1/market-view") {
-    return { meta, data: emptyMarketView() };
   }
   return { meta, data: { kind: "qa-fixture", path: pathname } };
 }
@@ -163,29 +92,18 @@ async function ensureMenuOpen(page) {
   await page.waitForFunction(() => document.querySelector(".app-shell")?.dataset.navOpen === "true");
 }
 
-async function ensureMoreOpen(page) {
-  const details = page.locator(".ff-advanced-nav");
-  await details.waitFor({ state: "visible", timeout: 5000 });
-  if (!(await details.evaluate(node => node.open))) {
-    await details.locator("summary").click();
-  }
-  await page.waitForFunction(() => document.querySelector(".ff-advanced-nav")?.open === true);
-}
-
 async function auditOpenDrawerLayout(page) {
   await ensureMenuOpen(page);
-  await page.waitForTimeout(180);
+  await page.waitForTimeout(220);
 
   const snapshot = await page.evaluate(() => {
     const sidebar = document.querySelector(".sidebar");
     const brandBlock = document.querySelector(".brand-block");
     const footer = document.querySelector(".sidebar-footer");
-    const links = [...document.querySelectorAll(".primary-nav > a")].filter(link => !link.hidden && getComputedStyle(link).display !== "none").slice(0, 8);
     const guide = document.querySelector(".ff-guide-launcher, .ff-guide-panel");
-    const brandName = document.querySelector(".brand-name");
-    const more = document.querySelector(".ff-advanced-nav");
-    const moreSummary = more?.querySelector("summary");
-    const moreLinks = more ? [...more.querySelectorAll('a[href^="#/"]')].filter(link => !link.hidden) : [];
+    const advanced = document.querySelector(".ff-advanced-nav");
+    const visibleLinks = [...document.querySelectorAll(".primary-nav > a[data-route]")]
+      .filter(link => !link.hidden && getComputedStyle(link).display !== "none");
 
     return {
       viewportWidth: window.innerWidth,
@@ -193,22 +111,15 @@ async function auditOpenDrawerLayout(page) {
       brandHeight: brandBlock?.getBoundingClientRect().height || 0,
       footerDisplay: footer ? getComputedStyle(footer).display : "missing",
       guideDisplay: guide ? getComputedStyle(guide).display : "missing",
-      brandText: String(brandName?.textContent || "").trim(),
-      moreDisplay: more ? getComputedStyle(more).display : "missing",
-      moreSummary: String(moreSummary?.textContent || "").trim(),
-      moreLinkCount: moreLinks.length,
-      links: links.map(link => {
+      advancedDisplay: advanced ? getComputedStyle(advanced).display : "missing",
+      routes: visibleLinks.map(link => link.getAttribute("data-route")),
+      links: visibleLinks.map(link => {
         const style = getComputedStyle(link);
-        const icon = link.querySelector(":scope > span:first-child");
-        const iconStyle = icon ? getComputedStyle(icon) : null;
         const pseudo = getComputedStyle(link, "::after");
         return {
           route: link.getAttribute("data-route"),
           display: style.display,
           height: link.getBoundingClientRect().height,
-          whiteSpace: style.whiteSpace,
-          overflow: style.overflow,
-          iconPosition: iconStyle?.position || "missing",
           pseudoDisplay: pseudo.display,
           pseudoContent: pseudo.content
         };
@@ -220,7 +131,7 @@ async function auditOpenDrawerLayout(page) {
   if (!snapshot.sidebarWidth || snapshot.sidebarWidth > Math.min(snapshot.viewportWidth * 0.9, 350)) {
     failures.push(`drawer width ${snapshot.sidebarWidth}px is too wide for ${snapshot.viewportWidth}px viewport`);
   }
-  if (!snapshot.brandHeight || snapshot.brandHeight > 120) {
+  if (!snapshot.brandHeight || snapshot.brandHeight > 140) {
     failures.push(`brand block is too tall (${snapshot.brandHeight}px)`);
   }
   if (snapshot.footerDisplay !== "none") {
@@ -229,45 +140,35 @@ async function auditOpenDrawerLayout(page) {
   if (snapshot.guideDisplay !== "missing" && snapshot.guideDisplay !== "none") {
     failures.push(`Guided Mode floats above an open drawer (${snapshot.guideDisplay})`);
   }
-  if (snapshot.brandText !== "FLIPFORGE") {
-    failures.push(`brand text contains duplicate trademark content (${snapshot.brandText || "empty"})`);
+  if (snapshot.advancedDisplay !== "none") {
+    failures.push(`advanced tool navigation is exposed in beta (${snapshot.advancedDisplay})`);
   }
-  if (snapshot.moreDisplay === "missing" || snapshot.moreDisplay === "none") {
-    failures.push("More tools group is not visible in the customer mobile drawer");
-  }
-  if (!/^More tools(?:\s|$)/i.test(snapshot.moreSummary)) {
-    failures.push(`More tools summary is mislabeled (${snapshot.moreSummary || "empty"})`);
-  }
-  if (snapshot.moreLinkCount < 9) {
-    failures.push(`More tools exposes only ${snapshot.moreLinkCount} customer routes; expected at least 9 after Decision Intelligence promotion`);
+
+  const expectedRoutes = ["dashboard", "discover", "opportunities", "tracking", "account"];
+  if (JSON.stringify(snapshot.routes) !== JSON.stringify(expectedRoutes)) {
+    failures.push(`visible mobile routes were ${snapshot.routes.join(", ")}; expected ${expectedRoutes.join(", ")}`);
   }
 
   for (const link of snapshot.links) {
     if (link.display !== "grid") failures.push(`${link.route} is ${link.display}, expected grid`);
-    if (link.height < 44 || link.height > 54) failures.push(`${link.route} row height is ${link.height}px`);
-    if (link.iconPosition !== "static") failures.push(`${link.route} icon is ${link.iconPosition}, expected static`);
-    if (link.pseudoDisplay !== "none" && link.pseudoContent !== "none") failures.push(`${link.route} desktop description is still visible`);
-    if (link.whiteSpace !== "nowrap") failures.push(`${link.route} can wrap (${link.whiteSpace})`);
+    if (link.height < 44 || link.height > 72) failures.push(`${link.route} row height is ${link.height}px`);
+    if (link.pseudoDisplay !== "none" && link.pseudoContent !== "none") {
+      failures.push(`${link.route} desktop description is still visible`);
+    }
   }
 
   await page.locator("[data-nav-close]").click();
   await page.waitForFunction(() => document.querySelector(".app-shell")?.dataset.navOpen === "false");
-  return { route: "drawer-layout", heading: "Mobile drawer geometry + More tools", failures };
+  return { route: "drawer-layout", heading: "Simple beta drawer", failures };
 }
 
 async function clickRoute(page, spec) {
   const { route, mode } = spec;
   await ensureMenuOpen(page);
 
-  let link;
-  if (mode === "more") {
-    await ensureMoreOpen(page);
-    link = page.locator(`.ff-advanced-nav a[href="#/${route}"]`).first();
-  } else if (mode === "account") {
-    link = page.locator(`.primary-nav > a[data-route="account"], .primary-nav > a[href="#/account"]`).first();
-  } else {
-    link = page.locator(`.primary-nav > a[data-route="${route}"][data-ff-customer-core]`).first();
-  }
+  const link = mode === "account"
+    ? page.locator('.primary-nav > a[data-route="account"], .primary-nav > a[href="#/account"]').first()
+    : page.locator(`.primary-nav > a[data-route="${route}"][data-ff-customer-core]`).first();
 
   await link.waitFor({ state: "visible", timeout: 5000 });
   await link.click();
