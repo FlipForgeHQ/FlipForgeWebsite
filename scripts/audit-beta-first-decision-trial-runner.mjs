@@ -14,12 +14,15 @@ const nextActionNeedle = '    check(decisionScreen.text.includes("What you shoul
 const nextActionReplacement = '    check(decisionScreen.text.includes("What you should do next") || decisionScreen.actions.some(value => /Understand this decision|Track this card|Start another card/i.test(value)), "Decision screen did not give an obvious next action.");';
 const explanationNeedle = '    check(decisionScreen.actions.some(value => /Show me why/i.test(value)), "Decision screen did not provide a clear \'Show me why\' action.");';
 const explanationReplacement = '    check(decisionScreen.actions.some(value => /Show me why|Understand this decision|View evidence/i.test(value)), "Decision screen did not provide a clear decision-explanation action.");';
+const lifecycleDetailNeedle = '      await fulfill({ kind: "lifecycle-detail", lifecycle: lifecycleRecord(fixture), history: [] });';
+const lifecycleDetailReplacement = '      await fulfill({ kind: "lifecycle-detail", opportunityId: fixture.opportunityId, lifecycle: lifecycleRecord(fixture), history: [] });';
 
 for (const [needle, label] of [
   [requestIdNeedle, "request-id"],
   [commitNeedle, "production-commit"],
   [nextActionNeedle, "next-action semantics"],
-  [explanationNeedle, "decision-explanation semantics"]
+  [explanationNeedle, "decision-explanation semantics"],
+  [lifecycleDetailNeedle, "lifecycle-detail contract"]
 ]) {
   if (!original.includes(needle)) throw new Error(`First-decision trial ${label} patch target was not found.`);
 }
@@ -28,9 +31,10 @@ const patched = original
   .replace(requestIdNeedle, requestIdReplacement)
   .replace(commitNeedle, commitReplacement)
   .replace(nextActionNeedle, nextActionReplacement)
-  .replace(explanationNeedle, explanationReplacement);
+  .replace(explanationNeedle, explanationReplacement)
+  .replace(lifecycleDetailNeedle, lifecycleDetailReplacement);
 
-for (const needle of [requestIdNeedle, commitNeedle, nextActionNeedle, explanationNeedle]) {
+for (const needle of [requestIdNeedle, commitNeedle, nextActionNeedle, explanationNeedle, lifecycleDetailNeedle]) {
   if (patched.includes(needle)) throw new Error("First-decision trial harness patch was not unique.");
 }
 
