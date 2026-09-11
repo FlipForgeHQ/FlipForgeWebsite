@@ -91,6 +91,27 @@ html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step
   content: "Decision";
 }
 
+/* The release-wide customer typography gate requires every visible label and helper
+ * to render at 14px or larger. Keep the simplified beta flow readable on all widths. */
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step > span,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step > span::after,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step-number {
+  font-size: 14px !important;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step-number {
+  width: 28px;
+  height: 28px;
+}
+
+html.ff-beta-session-v1 #main-content .ff-discover-persistence-note,
+html.ff-beta-session-v1 #main-content .ff-discover-persistence-note span,
+html.ff-beta-session-v1 #main-content .ff-discover-persistence-note div,
+html.ff-beta-session-v1 #main-content .ff-discover-persistence-note strong {
+  font-size: 14px !important;
+}
+
 /* First-session screens should lead with the decision, not platform architecture. */
 html.ff-beta-session-v1 #main-content .ff-progressive-advanced {
   display: none !important;
