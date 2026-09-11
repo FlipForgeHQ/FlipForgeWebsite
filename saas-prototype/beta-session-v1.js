@@ -87,50 +87,32 @@
 
     const heading = panel.querySelector("h2");
     const intro = panel.querySelector(".panel-header p");
-    if (heading) heading.textContent = "Evaluate one card";
-    if (intro) intro.textContent = "Start with the exact card you are considering. Include the year, set, player, card number, parallel, grader and grade when you know them.";
+    if (heading && heading.textContent !== "Evaluate one card") heading.textContent = "Evaluate one card";
+    const introCopy = "Start with the exact card you are considering. Include the year, set, player, card number, parallel, grader and grade when you know them.";
+    if (intro && intro.textContent !== introCopy) intro.textContent = introCopy;
 
     const cardLabel = form.querySelector('input[name="exactCardQuery"]')?.closest("label");
     const priceLabel = form.querySelector('input[name="targetMaxBuy"]')?.closest("label");
     const resultsLabel = form.querySelector('select[name="limit"]')?.closest("label");
-    if (cardLabel?.querySelector("span")) cardLabel.querySelector("span").textContent = "Card";
-    if (priceLabel?.querySelector("span")) priceLabel.querySelector("span").textContent = "Max price (optional)";
+    if (cardLabel?.querySelector("span") && cardLabel.querySelector("span").textContent !== "Card") cardLabel.querySelector("span").textContent = "Card";
+    if (priceLabel?.querySelector("span") && priceLabel.querySelector("span").textContent !== "Max price (optional)") priceLabel.querySelector("span").textContent = "Max price (optional)";
     if (resultsLabel) resultsLabel.dataset.ffBetaHiddenControl = "true";
 
     const submit = form.querySelector('button[type="submit"]');
-    if (submit && !submit.disabled && !/Searching|Resolving/i.test(String(submit.textContent || ""))) {
+    if (submit && !submit.disabled && !/Searching|Resolving/i.test(String(submit.textContent || "")) && submit.textContent !== "Find this card") {
       submit.textContent = "Find this card";
     }
     const exact = form.querySelector("[data-discovery-find-exact]");
-    if (exact && !exact.disabled) exact.textContent = "Help me find the exact card";
+    if (exact && !exact.disabled && exact.textContent !== "Help me find the exact card") exact.textContent = "Help me find the exact card";
 
     const help = panel.querySelector(".customer-discovery-search-help");
-    if (help) help.innerHTML = "Best results: <strong>year · set · player · card number · parallel · grader · grade</strong>. If you do not know every detail, FlipForge can help you identify the exact card first.";
+    const helpCopy = "Best results: <strong>year · set · player · card number · parallel · grader · grade</strong>. If you do not know every detail, FlipForge can help you identify the exact card first.";
+    if (help && help.innerHTML !== helpCopy) help.innerHTML = helpCopy;
 
     hideTechnicalSectionByHeading(/^Connected source status$/i);
     main.querySelectorAll(".customer-discovery-identity-assist .boundary-note").forEach(node => {
       node.dataset.ffBetaSessionHidden = "true";
     });
-  }
-
-  function simplifySavedDecision() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts.length < 2) return;
-    const main = document.querySelector("#main-content");
-    const bar = main?.querySelector("[data-ff-saved-decision-bar]");
-    if (!bar) return;
-
-    const strong = bar.querySelector(".ff-saved-decision-copy strong");
-    const small = bar.querySelector(".ff-saved-decision-copy small");
-    if (strong) strong.textContent = "Decision saved";
-    if (small) small.textContent = "FlipForge saved this evaluation so you can return to it later.";
-
-    const actions = bar.querySelector(".ff-saved-decision-actions");
-    if (actions) {
-      const id = encodeURIComponent(parts[1]);
-      const wanted = `<a class="button button-primary" href="#/tracking/${id}">Track this card</a><button class="button button-secondary" type="button" data-ff-new-card>Evaluate another card</button>`;
-      if (actions.innerHTML !== wanted) actions.innerHTML = wanted;
-    }
   }
 
   function syncMilestones() {
@@ -147,7 +129,6 @@
     if (!eligible()) return;
     document.documentElement.classList.add("ff-beta-session-v1");
     simplifyDiscover();
-    simplifySavedDecision();
     syncMilestones();
   }
 
@@ -167,7 +148,14 @@
       setPendingEvaluation(true);
       emit("evaluation_started");
     }
-    if (target.closest("[data-ff-show-why]")) emit("decision_explanation_viewed");
+  }, true);
+
+  // The existing explanation handler intentionally stops the click event at the
+  // document capture boundary. Pointer-down lets this telemetry observe the user's
+  // intent without changing or competing with the decision-explanation behavior.
+  document.addEventListener("pointerdown", event => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (target?.closest("[data-ff-show-why]")) emit("decision_explanation_viewed");
   }, true);
 
   function init() {
