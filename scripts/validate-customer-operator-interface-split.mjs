@@ -13,45 +13,57 @@ const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
 check("001 customer app is explicitly marked as customer surface", index.includes('data-ff-surface="customer"'));
-check("002 customer app exposes Home", index.includes('data-route="dashboard" data-ff-customer-core') && index.includes(">Home</a>"));
-check("003 customer app exposes Evaluate", index.includes('data-route="discover" data-ff-customer-core') && index.includes(">Evaluate</a>"));
-check("004 customer app exposes Decision Intelligence", index.includes('data-route="decision-intelligence" data-ff-customer-core') && index.includes(">Decision Intelligence</a>"));
-check("005 customer app exposes Saved Decisions", index.includes('data-route="opportunities" data-ff-customer-core') && index.includes("Saved Decisions"));
-check("006 customer app exposes Tracking", index.includes('data-route="tracking" data-ff-customer-core') && index.includes(">Tracking</a>"));
-check("007 exactly five primary customer destinations are declared", (index.match(/data-ff-customer-core/g) || []).length === 5);
+check("002 Home route remains mounted", index.includes('data-route="dashboard"'));
+check("003 Evaluate route remains mounted", index.includes('data-route="discover"'));
+check("004 Decision Intelligence route remains mounted for decision-result handoff", index.includes('data-route="decision-intelligence"'));
+check("005 Saved Decisions route remains mounted", index.includes('data-route="opportunities"'));
+check("006 Tracking route remains mounted", index.includes('data-route="tracking"'));
 check(
-  "008 legacy/supporting direct navigation contracts remain mounted for runtime grouping",
-  ["market-view", "forge-heat", "evaluate", "portfolio", "alerts", "beta-start"].every(route =>
-    index.includes(`data-route="${route}"`)
-  )
+  "007 beta runtime limits primary customer navigation to four destinations",
+  shellJs.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"])')
 );
-check("009 customer intelligence tool group remains mounted", index.includes('<details class="ff-advanced-nav">'));
 check(
-  "010 customer intelligence tool group is visible and labeled More tools",
-  shellCss.includes('body[data-ff-surface="customer"] .ff-advanced-nav {') &&
-  shellCss.includes('display: block !important') &&
-  /replaceTextNode\(summary,\s*"More tools\s*"\)/.test(shellJs) &&
-  shellJs.includes('advanced.hidden = false')
+  "008 deeper product routes remain mounted but hidden from beta navigation",
+  ["decision-intelligence", "market-view", "forge-heat", "evaluate", "portfolio", "alerts", "beta-start",
+   "compare", "psa-advisor", "evidence", "sell", "export"].every(route => shellJs.includes(`"${route}"`))
 );
-check("011 public Decision Intelligence exhibit remains available from More tools", shellJs.includes("Decision Intelligence exhibit") && shellJs.includes("/decision-intelligence.html"));
+check("009 customer intelligence tool group remains mounted for non-beta/internal reuse", index.includes('<details class="ff-advanced-nav">'));
+check(
+  "010 advanced tool group is hidden from the private beta",
+  shellCss.includes('body[data-ff-surface="customer"] .ff-advanced-nav') &&
+  shellCss.includes('display: none !important') &&
+  shellJs.includes('hideElement(advanced)')
+);
+check(
+  "011 Decision Intelligence is delivered inside the decision workflow instead of primary navigation",
+  shellJs.includes('"decision-intelligence"') &&
+  !shellJs.includes('["decision-intelligence", "Decision Intelligence"]')
+);
 check("012 customer app does not link to operator workspace", !index.includes("operator-beta.html"));
 check("013 customer shell stylesheet is loaded", index.includes('href="customer-only-shell-v1.css"'));
 check("014 customer shell runtime is loaded last", /mobile-ui-runtime-fix-v1\.js[\s\S]*customer-only-shell-v1\.js[\s\S]*<\/body>/.test(index));
 check(
-  "015 customer runtime hides only duplicate/internal navigation while preserving customer tools",
-  shellJs.includes("CUSTOMER_TOOL_ROUTES") &&
-  shellJs.includes("INTERNAL_NAV_ROUTES") &&
-  shellJs.includes('"evaluate", "staging", "staging-evaluate"') &&
-  !shellJs.includes("HIDDEN_NAV_ROUTES")
+  "015 customer runtime hides all non-core beta navigation without disabling underlying routes",
+  shellJs.includes("BETA_HIDDEN_NAV_ROUTES") &&
+  shellJs.includes('if (route !== "account") hideElement(link)')
 );
-check("016 customer home exposes evaluate, intelligence, saved decisions, and tracking", shellJs.includes("Evaluate a card") && shellJs.includes("Understand the decision") && shellJs.includes("Review saved decisions") && shellJs.includes("Check tracking"));
-check("017 customer home has responsive four-card layout", shellCss.includes("repeat(4, minmax(0, 1fr))") && shellCss.includes("@media (max-width: 1180px)"));
+check(
+  "016 customer home teaches a three-step beta loop",
+  shellJs.includes("What card are you considering?") &&
+  shellJs.includes("One card. One decision. Clear reasons.") &&
+  shellJs.includes("BUY, WATCH, VERIFY, or PASS")
+);
+check(
+  "017 customer home exposes only two secondary destinations after the primary Evaluate CTA",
+  shellJs.includes('["Saved Decisions", "Reopen cards you already evaluated."') &&
+  shellJs.includes('["Tracking", "See what changed after the original decision."')
+);
 check("018 customer shell hides plan card", shellCss.includes(".plan-card"));
 check(
-  "019 mobile stabilizer restores five primary customer routes plus Account/More tools",
-  mobileNav.includes('const PRIMARY_ROUTES = ["dashboard", "discover", "decision-intelligence", "opportunities", "tracking"]') &&
+  "019 mobile stabilizer restores only four primary beta routes plus Account",
+  mobileNav.includes('const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"]') &&
   mobileNav.includes('.primary-nav > .ff-advanced-nav') &&
-  !mobileNav.includes('CORE_ROUTES.forEach')
+  mobileNav.includes('display:none !important')
 );
 check("020 operator workspace remains a separate page", operator.includes("Private operations") || operator.includes("Sign in as Operator"));
 check("021 operator role remains server-defined", betaCore.includes('OPERATOR_ROLE = "flipforge-operator"'));
