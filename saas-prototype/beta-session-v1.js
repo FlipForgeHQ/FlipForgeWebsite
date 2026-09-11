@@ -28,6 +28,10 @@
     return routeParts()[0] || "dashboard";
   }
 
+  function setText(node, value) {
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
   function sent(event) {
     try { return window.sessionStorage.getItem(`${SENT_PREFIX}${event}`) === "1"; }
     catch (_) { return false; }
@@ -68,13 +72,19 @@
     catch (_) { return false; }
   }
 
+  function hideNode(node) {
+    if (!node) return;
+    node.dataset.ffBetaSessionHidden = "true";
+    node.setAttribute("aria-hidden", "true");
+  }
+
   function hideTechnicalSectionByHeading(pattern) {
     const main = document.querySelector("#main-content");
     if (!main) return;
     [...main.querySelectorAll("h2,h3")].forEach(heading => {
       if (!pattern.test(String(heading.textContent || "").trim())) return;
-      const section = heading.closest("section,article,.panel");
-      if (section) section.dataset.ffBetaSessionHidden = "true";
+      const section = heading.closest("section,article,.panel,.customer-intelligence-section");
+      if (section) hideNode(section);
     });
   }
 
@@ -84,6 +94,14 @@
     const form = main?.querySelector("[data-customer-discovery-form]");
     const panel = form?.closest(".customer-discovery-search");
     if (!form || !panel) return;
+
+    const pageHeading = main.querySelector(".page-heading");
+    if (pageHeading) {
+      setText(pageHeading.querySelector(".eyebrow"), "Evaluate");
+      setText(pageHeading.querySelector("h1"), "Evaluate a Card");
+      setText(pageHeading.querySelector("p"), "Enter the card you are considering. FlipForge will find the best match, evaluate it, and explain the decision.");
+      hideNode(pageHeading.querySelector(".page-actions"));
+    }
 
     const heading = panel.querySelector("h2");
     const intro = panel.querySelector(".panel-header p");
@@ -118,9 +136,72 @@
     if (help && help.innerHTML !== helpCopy) help.innerHTML = helpCopy;
 
     hideTechnicalSectionByHeading(/^Connected source status$/i);
-    main.querySelectorAll(".customer-discovery-identity-assist .boundary-note").forEach(node => {
-      node.dataset.ffBetaSessionHidden = "true";
+    main.querySelectorAll(".customer-discovery-identity-assist .boundary-note").forEach(hideNode);
+    main.querySelectorAll(".boundary-note").forEach(hideNode);
+  }
+
+  function simplifyDecision() {
+    const parts = routeParts();
+    if (parts[0] !== "opportunities" || parts.length < 2) return;
+    const main = document.querySelector("#main-content");
+    if (!main) return;
+
+    const heading = main.querySelector(".page-heading");
+    if (heading) {
+      setText(heading.querySelector(".eyebrow"), "Your result");
+      setText(heading.querySelector("h1"), "Your Decision");
+      setText(heading.querySelector("p"), "Start with the decision and the reason. Open the evidence only when you want the deeper proof.");
+      const legacyActions = heading.querySelector(".page-actions");
+      hideNode(legacyActions);
+      const legacyTrack = legacyActions?.querySelector("a[href^='#/tracking/']");
+      if (legacyTrack) legacyTrack.setAttribute("href", "#/tracking");
+    }
+
+    hideTechnicalSectionByHeading(/^(Forge Heat|Price Intelligence|Historical sold evidence|How to read this decision|Decision details|Evidence details|PSA context|Evidence)$/i);
+    hideTechnicalSectionByHeading(/^What changes (?:this|the) decision\??$/i);
+    main.querySelectorAll(".boundary-note").forEach(hideNode);
+
+    const moreDetail = [...main.querySelectorAll("button,a,summary")].find(node => /More decision detail/i.test(String(node.textContent || "")));
+    if (moreDetail) hideNode(moreDetail.closest("section,article,.panel,details") || moreDetail);
+  }
+
+  function simplifySavedDecisions() {
+    const parts = routeParts();
+    if (parts[0] !== "opportunities" || parts.length !== 1) return;
+    const main = document.querySelector("#main-content");
+    if (!main) return;
+
+    const heading = main.querySelector(".page-heading");
+    if (heading) {
+      setText(heading.querySelector(".eyebrow"), "Saved cards");
+      setText(heading.querySelector("h1"), "Saved Decisions");
+      setText(heading.querySelector("p"), "Reopen a card to review the decision or continue tracking it.");
+      hideNode(heading.querySelector(".page-actions"));
+    }
+
+    main.querySelectorAll(".metric-grid,.dashboard-grid,.customer-management-metrics,.boundary-note").forEach(hideNode);
+    main.querySelectorAll("section,article,.panel").forEach(section => {
+      const text = String(section.textContent || "").replace(/\s+/g, " ").trim();
+      if (/MODEL/i.test(text) && /TRANSACTION ACTIONS/i.test(text) && /CUSTOMER CONTROLS/i.test(text)) hideNode(section);
     });
+  }
+
+  function simplifyTracking() {
+    if (routeName() !== "tracking") return;
+    const main = document.querySelector("#main-content");
+    if (!main) return;
+
+    const heading = main.querySelector(".page-heading");
+    if (heading) {
+      setText(heading.querySelector(".eyebrow"), "Decision follow-up");
+      setText(heading.querySelector("h1"), "Tracking");
+      setText(heading.querySelector("p"), "Choose what happens next with this saved card: keep watching, set a review date, record ownership, or close it out.");
+      hideNode(heading.querySelector(".page-actions"));
+    }
+
+    main.querySelectorAll(".customer-management-metrics,.boundary-note").forEach(hideNode);
+    const save = main.querySelector('[data-lifecycle-form] button[type="submit"]');
+    if (save && !save.disabled && !/Saving/i.test(String(save.textContent || ""))) setText(save, "Save update");
   }
 
   function syncMilestones() {
@@ -137,6 +218,9 @@
     if (!eligible()) return;
     document.documentElement.classList.add("ff-beta-session-v1");
     simplifyDiscover();
+    simplifyDecision();
+    simplifySavedDecisions();
+    simplifyTracking();
     syncMilestones();
   }
 
@@ -170,6 +254,8 @@
     if (!eligible()) return;
     const main = document.querySelector("#main-content");
     if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
+    const nav = document.querySelector(".primary-nav");
+    if (nav) new MutationObserver(schedule).observe(nav, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "tabindex", "class"] });
     window.addEventListener("hashchange", () => window.setTimeout(schedule, 50));
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);

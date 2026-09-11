@@ -35,6 +35,97 @@ html.ff-beta-session-v1 [data-ff-beta-hidden-control="true"] select {
   pointer-events: none !important;
 }
 
+/* Private-beta boundary: only the four customer-loop destinations are visible.
+ * Keep deeper routes mounted for internal/future use without exposing them in the
+ * tester navigation. This explicit display rule also wins against older nav CSS. */
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="decision-intelligence"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="market-view"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="forge-heat"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="evaluate"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="portfolio"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="alerts"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="beta-start"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="compare"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="psa-advisor"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="evidence"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="sell"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="export"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="staging"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > a[data-route="staging-evaluate"],
+html.ff-beta-session-v1 body[data-ff-surface="customer"] .primary-nav > .ff-advanced-nav {
+  display: none !important;
+}
+
+/* beta-customer-flow-v2 is the sole structural owner of the workflow strip.
+ * Present its Discover / Evaluate / Understand / Track model as the three beta
+ * concepts without rewriting or replacing its DOM: Evaluate / Decision / Track. */
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(2) {
+  display: none !important;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(1) > span:last-child,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(3) > span:last-child {
+  position: relative;
+  display: inline-block;
+  min-width: 4.75rem;
+  text-indent: -9999px;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(1) > span:last-child::after,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(3) > span:last-child::after {
+  position: absolute;
+  left: 0;
+  top: 0;
+  text-indent: 0;
+  white-space: nowrap;
+  font-size: inherit;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(1) > span:last-child::after {
+  content: "Evaluate";
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step:nth-child(3) > span:last-child::after {
+  content: "Decision";
+}
+
+/* The release-wide customer typography gate requires every visible label and helper
+ * to render at 14px or larger. Keep the simplified beta flow readable on all widths. */
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step > span,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step > span::after,
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step-number {
+  font-size: 14px !important;
+}
+
+html.ff-beta-session-v1 #main-content [data-ff-workflow-strip] .ff-workflow-step-number {
+  width: 28px;
+  height: 28px;
+}
+
+html.ff-beta-session-v1 #main-content .ff-discover-persistence-note,
+html.ff-beta-session-v1 #main-content .ff-discover-persistence-note span,
+html.ff-beta-session-v1 #main-content .ff-discover-persistence-note div,
+html.ff-beta-session-v1 #main-content .ff-discover-persistence-note strong {
+  font-size: 14px !important;
+}
+
+/* First-session screens should lead with the decision, not platform architecture. */
+html.ff-beta-session-v1 #main-content .ff-progressive-advanced {
+  display: none !important;
+}
+
+html.ff-beta-session-v1 #main-content .boundary-note,
+html.ff-beta-session-v1 #main-content .customer-management-metrics {
+  display: none !important;
+}
+
+html.ff-beta-session-v1 #main-content .page-heading .page-actions {
+  display: none !important;
+}
+
 html.ff-beta-session-v1 .customer-discovery-search .panel-header {
   padding-bottom: 14px;
 }
