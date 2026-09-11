@@ -80,6 +80,7 @@ jobs:
         run: npm run audit:prebeta-customer-state
 
       - name: Run controlled three-card trial against the live production shell
+        if: always()
         run: node scripts/audit-beta-first-decision-trial-runner.mjs
         env:
           FLIPFORGE_FIRST_DECISION_URL: https://goflipforge.com/app/
