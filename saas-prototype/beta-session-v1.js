@@ -151,7 +151,10 @@
       setText(heading.querySelector(".eyebrow"), "Your result");
       setText(heading.querySelector("h1"), "Your Decision");
       setText(heading.querySelector("p"), "Start with the decision and the reason. Open the evidence only when you want the deeper proof.");
-      hideNode(heading.querySelector(".page-actions"));
+      const legacyActions = heading.querySelector(".page-actions");
+      hideNode(legacyActions);
+      const legacyTrack = legacyActions?.querySelector("a[href^='#/tracking/']");
+      if (legacyTrack) legacyTrack.setAttribute("href", "#/tracking");
     }
 
     hideTechnicalSectionByHeading(/^(Forge Heat|Price Intelligence|Historical sold evidence|How to read this decision|Decision details|Evidence details|PSA context|Evidence)$/i);
