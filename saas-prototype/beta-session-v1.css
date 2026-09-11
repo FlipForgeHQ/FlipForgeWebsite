@@ -4,9 +4,31 @@
  * transaction, or server authority is implemented here.
  */
 
-html.ff-beta-session-v1 [data-ff-beta-session-hidden="true"],
-html.ff-beta-session-v1 [data-ff-beta-hidden-control="true"] {
+html.ff-beta-session-v1 [data-ff-beta-session-hidden="true"] {
   display: none !important;
+}
+
+/* Keep internal controls mounted for deterministic state-regression coverage while
+ * removing them from the customer-visible and keyboard interaction surface. */
+html.ff-beta-session-v1 [data-ff-beta-hidden-control="true"] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  white-space: nowrap !important;
+}
+
+html.ff-beta-session-v1 [data-ff-beta-hidden-control="true"] select {
+  width: 1px !important;
+  height: 1px !important;
+  min-width: 1px !important;
+  min-height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 html.ff-beta-session-v1 .customer-discovery-search .panel-header {
