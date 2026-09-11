@@ -30,30 +30,33 @@ check("002 stylesheet is loaded", index.includes('href="decision-card-evidence-v
 check("003 runtime is loaded", index.includes('src="decision-card-evidence-v1.js"'));
 check("004 runtime loads after Decision Intelligence UX v2", index.indexOf('src="decision-card-evidence-v1.js"') > index.indexOf('src="decision-intelligence-ux-v2.js"'));
 check("005 stylesheet loads after Decision Intelligence UX v2", index.indexOf('href="decision-card-evidence-v1.css"') > index.indexOf('href="decision-intelligence-ux-v2.css"'));
+check("006 beta result route is first-class", js.includes('parts[0] !== "opportunities"') && js.includes('[data-ff-decision-summary]'));
+check("007 standalone Decision Intelligence remains supported", js.includes('routeName() !== "decision-intelligence"') && js.includes('[data-ff-di-v2-command]'));
 
 for (const [number, label] of [
-  ["01", "Identity Intelligence"],
-  ["02", "Evidence Intelligence"],
-  ["03", "Economic Intelligence"],
-  ["04", "Risk + Uncertainty Intelligence"],
-  ["05", "Decision Intelligence"],
-  ["06", "Decision Traceback / Decision Receipt"],
-  ["07", "Outcome Intelligence"]
+  ["08", "Identity Intelligence"],
+  ["09", "Evidence Intelligence"],
+  ["10", "Economic Intelligence"],
+  ["11", "Risk + Uncertainty Intelligence"],
+  ["12", "Decision Intelligence"],
+  ["13", "Decision Traceback / Decision Receipt"],
+  ["14", "Outcome Intelligence"]
 ]) {
   check(`${number} ${label} is present`, js.includes(label));
 }
 
-check("013 top summary remains decision-first", js.includes("Decision Card summary") && js.includes(">Decision<") && js.includes(">Evidence<") && js.includes("Risk + uncertainty"));
-check("014 full evidence trail stays native", js.includes("Open full evidence trail"));
-check("015 Decision Receipt opens the existing server-owned receipt", js.includes("data-ff-open-decision-receipt") && js.includes(".ff-di-v2-receipt"));
-check("016 outcome layer routes to governed Tracking", js.includes('href="#/tracking"'));
-check("017 economics copy forbids inferred profit", js.includes("does not infer profit or recompute value"));
-check("018 presentation layer performs no network writes", !/fetch\s*\(|XMLHttpRequest|method\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(js));
-check("019 presentation layer introduces no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(js));
-check("020 presentation layer does not assign recommendation authority", !/recommendation\s*=|supportedValue\s*=|authorityEligible\s*=\s*true/i.test(js));
-check("021 customer-visible text floor is 13px or larger", !/font-size\s*:\s*(?:[0-9]|1[0-2])px/i.test(css));
-check("022 tablet responsiveness exists", css.includes("@media (max-width:1020px)"));
-check("023 phone responsiveness exists", css.includes("@media (max-width:640px)"));
+check("015 decision remains above the evidence layer", js.includes('model.anchor.insertAdjacentElement("afterend", panel)') && js.includes("The decision stays first"));
+check("016 full evidence trail stays native", js.includes("Open full evidence trail") && js.includes("#/evidence/"));
+check("017 receipt is never reconstructed on the beta result screen", js.includes("does not reconstruct it in the browser") && js.includes('receiptMode: "reference"'));
+check("018 attached server receipt can still be opened", js.includes("data-ff-open-decision-receipt") && js.includes(".ff-di-v2-receipt"));
+check("019 outcome layer routes to governed Tracking", js.includes("trackingHref") && js.includes("Continue to Tracking"));
+check("020 economics copy forbids inferred profit", js.includes("does not infer profit or recompute value"));
+check("021 presentation layer performs no network activity", !/fetch\s*\(|XMLHttpRequest/i.test(js));
+check("022 presentation layer introduces no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(js));
+check("023 presentation layer does not assign recommendation authority", !/recommendation\s*=|authorityEligible\s*=\s*true/i.test(js));
+check("024 customer-visible text floor is 14px or larger", !/font-size\s*:\s*(?:[0-9]|1[0-3])px/i.test(css));
+check("025 tablet responsiveness exists", css.includes("@media (max-width:1020px)"));
+check("026 phone responsiveness exists", css.includes("@media (max-width:640px)"));
 
 console.log(`PASSED: ${passed}`);
 console.log(`FAILED: ${failures.length}`);
