@@ -93,10 +93,18 @@
 
     const cardLabel = form.querySelector('input[name="exactCardQuery"]')?.closest("label");
     const priceLabel = form.querySelector('input[name="targetMaxBuy"]')?.closest("label");
-    const resultsLabel = form.querySelector('select[name="limit"]')?.closest("label");
+    const resultsSelect = form.querySelector('select[name="limit"]');
+    const resultsLabel = resultsSelect?.closest("label");
     if (cardLabel?.querySelector("span") && cardLabel.querySelector("span").textContent !== "Card") cardLabel.querySelector("span").textContent = "Card";
     if (priceLabel?.querySelector("span") && priceLabel.querySelector("span").textContent !== "Max price (optional)") priceLabel.querySelector("span").textContent = "Max price (optional)";
-    if (resultsLabel) resultsLabel.dataset.ffBetaHiddenControl = "true";
+    if (resultsLabel) {
+      resultsLabel.dataset.ffBetaHiddenControl = "true";
+      resultsLabel.setAttribute("aria-hidden", "true");
+    }
+    if (resultsSelect) {
+      resultsSelect.tabIndex = -1;
+      resultsSelect.setAttribute("aria-hidden", "true");
+    }
 
     const submit = form.querySelector('button[type="submit"]');
     if (submit && !submit.disabled && !/Searching|Resolving/i.test(String(submit.textContent || "")) && submit.textContent !== "Find this card") {
