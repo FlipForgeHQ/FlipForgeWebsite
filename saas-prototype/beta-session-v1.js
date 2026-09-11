@@ -32,10 +32,6 @@
     if (node && node.textContent !== value) node.textContent = value;
   }
 
-  function setHtml(node, value) {
-    if (node && node.innerHTML !== value) node.innerHTML = value;
-  }
-
   function sent(event) {
     try { return window.sessionStorage.getItem(`${SENT_PREFIX}${event}`) === "1"; }
     catch (_) { return false; }
@@ -89,38 +85,6 @@
       if (!pattern.test(String(heading.textContent || "").trim())) return;
       const section = heading.closest("section,article,.panel,.customer-intelligence-section");
       if (section) hideNode(section);
-    });
-  }
-
-  function simplifyWorkflowStrip() {
-    const main = document.querySelector("#main-content");
-    const strip = main?.querySelector("[data-ff-workflow-strip]");
-    if (!strip) return;
-
-    const parts = routeParts();
-    const route = parts[0] || "dashboard";
-    const steps = [...strip.querySelectorAll(".ff-workflow-step")];
-    const config = [
-      { label: "Evaluate", href: "#/discover", active: route === "discover" || route === "evaluate" },
-      { label: "Decision", href: "#/opportunities", active: route === "opportunities" || route === "evidence" || route === "psa-advisor" },
-      { label: "Track", href: parts[1] && route !== "tracking" ? `#/tracking/${encodeURIComponent(parts[1])}` : "#/tracking", active: route === "tracking" }
-    ];
-
-    steps.forEach((step, index) => {
-      if (index >= config.length) {
-        hideNode(step);
-        step.tabIndex = -1;
-        return;
-      }
-      const item = config[index];
-      delete step.dataset.ffBetaSessionHidden;
-      step.removeAttribute("aria-hidden");
-      step.hidden = false;
-      step.setAttribute("href", item.href);
-      if (item.active) step.setAttribute("aria-current", "step");
-      else step.removeAttribute("aria-current");
-      const label = step.querySelector("span:last-child");
-      setText(label, item.label);
     });
   }
 
@@ -250,7 +214,6 @@
   function apply() {
     if (!eligible()) return;
     document.documentElement.classList.add("ff-beta-session-v1");
-    simplifyWorkflowStrip();
     simplifyDiscover();
     simplifyDecision();
     simplifySavedDecisions();
