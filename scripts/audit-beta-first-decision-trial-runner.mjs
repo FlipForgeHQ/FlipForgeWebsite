@@ -4,7 +4,7 @@ import path from "node:path";
 
 const sourcePath = path.resolve("scripts/audit-beta-first-decision-trial.mjs");
 const runtimePath = path.resolve("scripts/.audit-beta-first-decision-trial.runtime.mjs");
-const productionCommit = "11a6adac119da95c826b6798c66a24979f6fd4e6";
+const productionCommit = "f05fd6f18729ccdd69f402a7ba086e8f7656a63c";
 const original = await readFile(sourcePath, "utf8");
 const requestIdNeedle = 'requestId: `qa-${fixture.key}`,';
 const requestIdReplacement = 'requestId: String(headers["idempotency-key"] || ""),';
