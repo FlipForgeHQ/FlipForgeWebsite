@@ -1,33 +1,51 @@
 /* FlipForge customer-only beta shell v1
- * Presentation-only separation for the customer app. Operator controls remain on
- * /operator-beta.html and keep their existing server-side role enforcement.
+ * Customer beta presentation only. The beta intentionally exposes the simple
+ * customer loop instead of the full internal/product architecture.
  */
 
 body[data-ff-surface="customer"] .ff-customer-route-registry,
-body[data-ff-surface="customer"] .staging-only-nav {
+body[data-ff-surface="customer"] .staging-only-nav,
+body[data-ff-surface="customer"] .ff-advanced-nav {
+  display: none !important;
+}
+
+body[data-ff-surface="customer"] .brand-tagline {
   display: none !important;
 }
 
 body[data-ff-surface="customer"] .primary-nav {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
 }
 
 body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {
-  min-height: 44px;
-}
-
-body[data-ff-surface="customer"] .ff-advanced-nav {
-  display: block !important;
-  width: 100%;
-}
-
-body[data-ff-surface="customer"] .ff-advanced-nav > summary {
-  min-height: 44px;
-  display: flex;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
+  gap: 10px;
+  min-height: 54px;
+  height: auto;
+  padding: 10px 12px;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] > span:first-child {
+  position: static !important;
+  width: 28px;
+  min-width: 28px;
+  margin: 0 !important;
+  text-align: center;
+}
+
+body[data-ff-surface="customer"] .primary-nav > a::after,
+body[data-ff-surface="customer"] .primary-nav > a .nav-description,
+body[data-ff-surface="customer"] .primary-nav > a small {
+  display: none !important;
+  content: none !important;
 }
 
 body[data-ff-surface="customer"] .sidebar-footer .plan-card {
@@ -38,92 +56,153 @@ body[data-ff-surface="customer"] .prototype-chip {
   letter-spacing: .08em;
 }
 
+body[data-ff-surface="customer"] .ff-beta-simple-loop {
+  display: grid;
+  gap: 18px;
+  margin: 20px 0 0;
+  padding: 22px;
+  border: 1px solid rgba(212, 175, 55, .24);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(212,175,55,.05), rgba(255,255,255,.018));
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-loop-copy {
+  display: grid;
+  gap: 6px;
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-loop-copy > span {
+  color: var(--gold, #d4af37);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-loop-copy > strong {
+  font-size: 1.18rem;
+  line-height: 1.3;
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-steps > div {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-steps b {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(212,175,55,.45);
+  border-radius: 50%;
+  color: var(--gold, #d4af37);
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-steps span {
+  display: grid;
+  gap: 5px;
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-steps strong {
+  font-size: 1rem;
+}
+
+body[data-ff-surface="customer"] .ff-beta-simple-steps small {
+  color: var(--muted, #9ba3ad);
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
 body[data-ff-surface="customer"] .ff-customer-home-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin: 18px 0 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0 0;
 }
 
 body[data-ff-surface="customer"] .ff-customer-home-action {
   display: grid;
-  gap: 8px;
-  min-height: 144px;
-  padding: 20px;
-  border: 1px solid rgba(212, 175, 55, .18);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015));
+  gap: 6px;
+  min-height: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 11px;
+  background: rgba(255,255,255,.018);
   color: inherit;
   text-decoration: none;
-  transition: border-color .16s ease, transform .16s ease, background .16s ease;
+  transition: border-color .16s ease, background .16s ease;
 }
 
 body[data-ff-surface="customer"] .ff-customer-home-action:hover,
 body[data-ff-surface="customer"] .ff-customer-home-action:focus-visible {
-  border-color: rgba(212, 175, 55, .5);
-  background: rgba(212, 175, 55, .055);
-  transform: translateY(-1px);
+  border-color: rgba(212, 175, 55, .45);
+  background: rgba(212, 175, 55, .045);
   outline: none;
 }
 
-body[data-ff-surface="customer"] .ff-customer-home-action span {
-  color: var(--gold, #d4af37);
-  font-size: .74rem;
-  font-weight: 800;
-  letter-spacing: .11em;
-  text-transform: uppercase;
-}
-
 body[data-ff-surface="customer"] .ff-customer-home-action strong {
-  font-size: 1.08rem;
+  font-size: 1rem;
   line-height: 1.25;
 }
 
 body[data-ff-surface="customer"] .ff-customer-home-action small {
   color: var(--muted, #9ba3ad);
-  line-height: 1.5;
-}
-
-html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .metric-grid,
-html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .dashboard-grid {
-  display: none !important;
-}
-
-html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .boundary-note {
-  margin-top: 18px;
-}
-
-body[data-ff-surface="customer"] .ff-customer-only-note {
-  margin-top: 16px;
-  padding: 12px 14px;
-  border: 1px solid rgba(136, 143, 152, .18);
-  border-radius: 9px;
-  background: rgba(255,255,255,.018);
-  color: var(--muted, #9ba3ad);
-  font-size: .84rem;
   line-height: 1.45;
 }
 
-body[data-ff-surface="customer"] .ff-customer-only-note strong {
-  color: var(--text, #fff);
+html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .metric-grid,
+html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .dashboard-grid,
+html.ff-customer-simple-home body[data-ff-surface="customer"] #main-content .boundary-note {
+  display: none !important;
+}
+
+body[data-ff-surface="customer"] .ff-customer-only-note {
+  display: none !important;
 }
 
 body[data-ff-surface="customer"] .private-beta-step[data-ff-customer-hide="true"] {
   display: none !important;
 }
 
-@media (max-width: 1180px) {
-  body[data-ff-surface="customer"] .ff-customer-home-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 900px) {
+  body[data-ff-surface="customer"] .ff-beta-simple-steps,
   body[data-ff-surface="customer"] .ff-customer-home-actions {
     grid-template-columns: 1fr;
   }
+}
 
-  body[data-ff-surface="customer"] .ff-customer-home-action {
-    min-height: 0;
+@media (max-width: 760px) {
+  body[data-ff-surface="customer"] .primary-nav {
+    flex: 0 0 auto !important;
+    gap: 6px !important;
+    padding: 10px !important;
+    overflow-y: visible !important;
+  }
+
+  body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core],
+  body[data-ff-surface="customer"] .primary-nav > .ff-mobile-account-nav {
+    min-height: 50px !important;
+    height: auto !important;
+    padding: 10px 12px !important;
+    white-space: normal !important;
+  }
+
+  body[data-ff-surface="customer"] .brand-block {
+    padding-bottom: 10px !important;
+  }
+
+  body[data-ff-surface="customer"] .ff-beta-simple-loop {
+    padding: 16px;
   }
 }
