@@ -22,19 +22,15 @@
       .split(/[/?]/)[0] || "dashboard";
   }
 
-  function nextFrame() {
-    return new Promise(resolve => window.requestAnimationFrame(resolve));
+  function markOwned(main, run) {
+    if (run !== generation || routeName() !== "discover") return;
+    const form = main?.querySelector?.("[data-customer-discovery-form]");
+    if (form) form.dataset.ffDiscoveryRouteOwner = "live";
   }
 
-  async function reclaimDiscoverRoute() {
+  function reclaimDiscoverRoute() {
     const run = ++generation;
     if (!eligibleHost() || routeName() !== "discover") return;
-
-    // Let the legacy hash router and route hook finish first, then make the
-    // production Discover adapter the final owner of the route.
-    await nextFrame();
-    await nextFrame();
-    if (run !== generation || routeName() !== "discover") return;
 
     const main = document.querySelector("#main-content");
     const adapter = window.FlipForgeCustomerDiscovery;
@@ -45,10 +41,13 @@
         || !adapter.isEligible()) return;
 
     try {
-      await adapter.render(main);
-      if (run !== generation || routeName() !== "discover") return;
-      const form = main.querySelector("[data-customer-discovery-form]");
-      if (form) form.dataset.ffDiscoveryRouteOwner = "live";
+      // Reclaim synchronously inside the hashchange turn. Delaying this work can
+      // replace a form after the customer has already started typing or clicked.
+      const result = adapter.render(main);
+      markOwned(main, run);
+      if (result && typeof result.then === "function") {
+        result.then(() => markOwned(main, run)).catch(() => {});
+      }
     } catch (_) {
       // Discover owns fail-closed error rendering. Never substitute a mock
       // surface, recommendation, or weakened authority check here.
