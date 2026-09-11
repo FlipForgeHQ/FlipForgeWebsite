@@ -50,10 +50,10 @@ check('Decision Intelligence page is included in sitemap', sitemap.includes('htt
 check('Connect hub exposes Decision Intelligence', connect.includes('What is Decision Intelligence?') && connect.includes('/decision-intelligence.html'));
 check('public navigation receives Decision Intelligence link', conversion.includes("link.textContent='Decision Intelligence'") && conversion.includes("link.href='/decision-intelligence.html'"));
 check('Decision Intelligence click tracking is wired', conversion.includes('decision_intelligence_clicked'));
-check('customer app exposes public Decision Intelligence exhibit', customerShell.includes('data.ffPublicDecisionIntelligence') || customerShell.includes('data-ff-public-decision-intelligence') || customerShell.includes('ffPublicDecisionIntelligence'));
-check('customer app points public Decision Intelligence to the public page', customerShell.includes('publicLink.href = "/decision-intelligence.html"'));
-check('private customer Decision Intelligence is a primary saved-data route', customerIndex.includes('href="#/decision-intelligence" data-route="decision-intelligence" data-ff-customer-core'));
-check('public exhibit remains distinctly labeled from the private customer route', customerShell.includes('Decision Intelligence exhibit'));
+check('private beta intentionally does not expose the public Decision Intelligence exhibit', !customerShell.includes('ffPublicDecisionIntelligence') && !customerShell.includes('Decision Intelligence exhibit'));
+check('private beta keeps Decision Intelligence inside the result workflow', customerShell.includes('"decision-intelligence"') && customerShell.includes('BETA_HIDDEN_NAV_ROUTES'));
+check('private Decision Intelligence route remains mounted for full-platform use', customerIndex.includes('href="#/decision-intelligence" data-route="decision-intelligence"'));
+check('private beta primary navigation excludes standalone Decision Intelligence at runtime', customerShell.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"])'));
 
 const passed = checks.filter(item => item.passed).length;
 const failed = checks.filter(item => !item.passed);
