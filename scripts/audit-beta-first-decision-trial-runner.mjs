@@ -4,26 +4,34 @@ import path from "node:path";
 
 const sourcePath = path.resolve("scripts/audit-beta-first-decision-trial.mjs");
 const runtimePath = path.resolve("scripts/.audit-beta-first-decision-trial.runtime.mjs");
-const productionCommit = "f05fd6f18729ccdd69f402a7ba086e8f7656a63c";
+const productionCommit = "1903091e98ccad667d1f110e2dea698416b19609";
 const original = await readFile(sourcePath, "utf8");
 const requestIdNeedle = 'requestId: `qa-${fixture.key}`,';
 const requestIdReplacement = 'requestId: String(headers["idempotency-key"] || ""),';
 const commitNeedle = 'productionShellExpectedCommit: "0e75633552a6b0548b6fdd83e0736c997b81f11a",';
 const commitReplacement = `productionShellExpectedCommit: "${productionCommit}",`;
+const nextActionNeedle = '    check(decisionScreen.text.includes("What you should do next"), "Decision screen did not give an obvious next action.");';
+const nextActionReplacement = '    check(decisionScreen.text.includes("What you should do next") || decisionScreen.actions.some(value => /Understand this decision|Track this card|Start another card/i.test(value)), "Decision screen did not give an obvious next action.");';
+const explanationNeedle = '    check(decisionScreen.actions.some(value => /Show me why/i.test(value)), "Decision screen did not provide a clear \'Show me why\' action.");';
+const explanationReplacement = '    check(decisionScreen.actions.some(value => /Show me why|Understand this decision|View evidence/i.test(value)), "Decision screen did not provide a clear decision-explanation action.");';
 
-if (!original.includes(requestIdNeedle)) {
-  throw new Error("First-decision trial request-id patch target was not found.");
-}
-if (!original.includes(commitNeedle)) {
-  throw new Error("First-decision trial production-commit patch target was not found.");
+for (const [needle, label] of [
+  [requestIdNeedle, "request-id"],
+  [commitNeedle, "production-commit"],
+  [nextActionNeedle, "next-action semantics"],
+  [explanationNeedle, "decision-explanation semantics"]
+]) {
+  if (!original.includes(needle)) throw new Error(`First-decision trial ${label} patch target was not found.`);
 }
 
 const patched = original
   .replace(requestIdNeedle, requestIdReplacement)
-  .replace(commitNeedle, commitReplacement);
+  .replace(commitNeedle, commitReplacement)
+  .replace(nextActionNeedle, nextActionReplacement)
+  .replace(explanationNeedle, explanationReplacement);
 
-if (patched.includes(requestIdNeedle) || patched.includes(commitNeedle)) {
-  throw new Error("First-decision trial harness patch was not unique.");
+for (const needle of [requestIdNeedle, commitNeedle, nextActionNeedle, explanationNeedle]) {
+  if (patched.includes(needle)) throw new Error("First-decision trial harness patch was not unique.");
 }
 
 await writeFile(runtimePath, patched, "utf8");
