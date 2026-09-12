@@ -7,6 +7,7 @@ import {
   isActiveTester,
   validateFeedback,
 } from "./lib/beta-operations-core.mjs";
+import { validateCdiLearning } from "./lib/beta-cdi-learning.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 
 function reply(status, body) {
@@ -55,9 +56,19 @@ export function createBetaFeedbackHandler({ store, getUserFn = getUser, now = ()
     }
 
     const validation = validateFeedback(input, user);
-    if (!validation.ok) return reply(400, { accepted: false, reason: "FEEDBACK_INVALID", fields: validation.errors });
+    const learningValidation = validateCdiLearning(input);
+    if (!validation.ok || !learningValidation.ok) {
+      return reply(400, {
+        accepted: false,
+        reason: "FEEDBACK_INVALID",
+        fields: [...validation.errors, ...learningValidation.errors],
+      });
+    }
 
-    const record = createFeedback(validation.feedback, now());
+    const feedback = learningValidation.signals
+      ? { ...validation.feedback, learning: learningValidation.signals }
+      : validation.feedback;
+    const record = createFeedback(feedback, now());
     const targetStore = store || betaRuntimeStore(FEEDBACK_STORE_NAME, request);
     await targetStore.setJSON(feedbackKey(record.id), record, {
       metadata: {
@@ -76,6 +87,7 @@ export function createBetaFeedbackHandler({ store, getUserFn = getUser, now = ()
       feedbackId: record.id,
       category: record.feedback.category,
       checkpoint: record.feedback.checkpoint,
+      cdiLearning: Boolean(record.feedback.learning),
       occurredAt: record.submittedAt,
     }));
     return reply(202, { accepted: true, status: "AWAITING_OPERATOR_REVIEW" });
