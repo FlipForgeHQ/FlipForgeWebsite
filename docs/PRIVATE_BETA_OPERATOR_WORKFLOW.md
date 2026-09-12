@@ -69,12 +69,14 @@ Invited testers submit structured feedback to `POST /api/beta/feedback`. The ser
 
 Feedback may identify a general session or a Day 7, Day 14, or Day 30 checkpoint. Outcome options record whether the tester believes the original reasoning still holds, needs revision, or still lacks evidence. These are tester-reported calibration inputs—not an accuracy score, a changed recommendation, a completed-sale claim, or transaction authority.
 
+Wave 1 also includes a short Card Decision Intelligence comprehension check on the real saved-decision screen. It records four allowlisted learning signals only: whether the tester understood the decision, whether the next step was clear, how viewing evidence affected confidence, and which CDI layer was most useful. The check does not include card identity, listing URL, account ID, recommendation inputs, or transaction data. Its operator scorecard is an aggregate comprehension view, not an accuracy or performance metric.
+
 The operator may move a feedback record through `NEW → UNDER_REVIEW → RESOLVED`, with version-checked updates and an append-only review history. Follow-up email is visible only when the tester explicitly grants permission; otherwise no tester email is stored with the feedback record.
 
 ## Privacy and security boundaries
 
-- No analytics cookie, local storage, session storage, fingerprint, or persistent visitor ID.
-- No name, email, account ID, card identity, listing URL, query string, referrer, or user-agent value in conversion events.
+- No analytics cookie, local storage, session storage, fingerprint, or persistent visitor ID is introduced by the CDI learning check.
+- No name, email, account ID, card identity, listing URL, query string, referrer, or user-agent value enters the CDI comprehension fields.
 - Applicant records are available only through the server-verified operator role.
 - Tester feedback is accepted only from signed active members and read only through the server-verified operator role.
 - Platform rate limiting may use normal request metadata, including IP address, without writing it into FlipForge applicant or conversion records.
@@ -90,4 +92,5 @@ The operator may move a feedback record through `NEW → UNDER_REVIEW → RESOLV
 5. Confirm the email address and select **Send Identity Invitation**.
 6. Verify the record becomes `INVITE_SENT`; never promise access before that state.
 7. Refresh later to synchronize confirmed Identity accounts to `ACTIVATED`.
-8. Use the existing in-product Getting Started guide for the first exact-card loop and 7 / 14 / 30-day evidence review.
+8. Review the Decision Intelligence scorecard for comprehension signals from active testers; do not interpret those counts as accuracy.
+9. Use the existing in-product Getting Started guide for the first exact-card loop and 7 / 14 / 30-day evidence review.
