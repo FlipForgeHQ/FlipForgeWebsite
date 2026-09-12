@@ -40,9 +40,10 @@
     "validate:paddle-customer-portal": "node scripts/validate-saas-paddle-customer-portal.mjs",
     "validate:paddle-webhook-gateway-boundary": "node scripts/validate-saas-paddle-webhook-gateway-boundary.mjs",
     "validate:homepage-progression": "node scripts/validate-homepage-progression.mjs",
-    "validate:sitewide-ux": "node scripts/validate-sitewide-ux.mjs && node scripts/validate-guided-mode-search-first.mjs && node scripts/validate-decision-intelligence-ux-v2.mjs && node scripts/validate-decision-card-evidence-v1.mjs",
+    "validate:sitewide-ux": "node scripts/validate-sitewide-ux.mjs && node scripts/validate-guided-mode-search-first.mjs && node scripts/validate-decision-intelligence-ux-v2.mjs && node scripts/validate-decision-card-evidence-v1.mjs && node scripts/validate-beta-cdi-learning-scorecard-v1.mjs",
     "validate:decision-intelligence-ux-v2": "node scripts/validate-decision-intelligence-ux-v2.mjs",
     "validate:decision-card-evidence-v1": "node scripts/validate-decision-card-evidence-v1.mjs",
+    "validate:beta-cdi-learning-scorecard-v1": "node scripts/validate-beta-cdi-learning-scorecard-v1.mjs",
     "validate:beta-acquisition": "node scripts/validate-beta-acquisition-onboarding.mjs",
     "validate:beta-operator": "node scripts/validate-beta-operator-current.mjs",
     "validate:customer-operator-split": "node scripts/validate-customer-operator-interface-split.mjs"

@@ -29,6 +29,22 @@
     }
   }
 
+  function ensureBetaCdiLearningAssets() {
+    if (!document.querySelector('link[data-ff-beta-cdi-learning]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "beta-cdi-learning-v1.css";
+      link.dataset.ffBetaCdiLearning = "style";
+      document.head.appendChild(link);
+    }
+    if (!window.FlipForgeBetaCdiLearningV1 && !document.querySelector('script[data-ff-beta-cdi-learning]')) {
+      const script = document.createElement("script");
+      script.src = "beta-cdi-learning-v1.js";
+      script.dataset.ffBetaCdiLearning = "runtime";
+      document.body.appendChild(script);
+    }
+  }
+
   function disambiguate(select) {
     if (!select || select.dataset.ffDiLabels === "true") return;
     const options = [...select.options];
@@ -86,6 +102,7 @@
   function apply() {
     scheduled = false;
     ensureDecisionCardEvidenceAssets();
+    ensureBetaCdiLearningAssets();
     const route = routeName();
     if (route === "decision-intelligence") polishDecisionIntelligence();
     if (route === "compare") polishCompare();
