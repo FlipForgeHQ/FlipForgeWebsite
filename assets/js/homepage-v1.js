@@ -16,11 +16,7 @@
         link.textContent=label;
         if(marker)link.dataset.ffHomepageNav=marker;
         if(position==='start')nav.insertBefore(link,nav.firstElementChild);
-        else if(position==='after-product'){
-          const product=nav.querySelector('a[href="product.html"]');
-          product?.insertAdjacentElement('afterend',link);
-          if(!product)nav.appendChild(link);
-        }else if(position==='before-cta'){
+        else if(position==='before-cta'){
           const cta=nav.querySelector('.decision-nav-cta, a[href="beta-application.html"]');
           if(cta)nav.insertBefore(link,cta);else nav.appendChild(link);
         }else nav.appendChild(link);
@@ -28,22 +24,29 @@
       return link;
     };
 
-    const desktop=document.querySelector('.decision-nav-links');
-    const mobile=document.querySelector('.mobile-nav');
+    const configureNav=(nav,{mobile=false}={})=>{
+      if(!nav)return;
 
-    if(desktop){
-      const home=ensureLink(desktop,{href:'/',label:'Home',position:'start',marker:'home'});
-      if(home)home.setAttribute('aria-current','page');
-      ensureLink(desktop,{href:'decision-intelligence.html',label:'Decision Intelligence',position:'after-product',marker:'decision-intelligence'});
-      ensureLink(desktop,{href:'/connect/',label:'Connect',position:'before-cta',marker:'connect'});
-    }
+      nav.querySelectorAll('[data-ff-homepage-nav="home"],[data-ff-homepage-nav="connect"]').forEach(link=>link.remove());
 
-    if(mobile){
-      const home=ensureLink(mobile,{href:'/',label:'Home',position:'start',marker:'home'});
-      if(home)home.setAttribute('aria-current','page');
-      ensureLink(mobile,{href:'decision-intelligence.html',label:'Decision Intelligence',position:'after-product',marker:'decision-intelligence'});
-      ensureLink(mobile,{href:'/connect/',label:'Connect',position:'before-cta',marker:'connect'});
-    }
+      const product=nav.querySelector('a[href="product.html"],a[href="/product.html"],a[href="/product"]');
+      if(product)product.textContent='How It Works';
+
+      const decision=ensureLink(nav,{
+        href:'decision-intelligence.html',
+        label:mobile?'Card Decision Intelligence™':'Decision Intelligence™',
+        position:'start',
+        marker:'decision-intelligence'
+      });
+      if(decision){
+        decision.textContent=mobile?'Card Decision Intelligence™':'Decision Intelligence™';
+        decision.dataset.ffHomepageNav='decision-intelligence';
+        nav.insertBefore(decision,nav.firstElementChild);
+      }
+    };
+
+    configureNav(document.querySelector('.decision-nav-links'));
+    configureNav(document.querySelector('.mobile-nav'),{mobile:true});
 
     const eyebrow=document.querySelector('.decision-eyebrow');
     if(eyebrow)eyebrow.textContent='CARD DECISION INTELLIGENCE™';

@@ -52,5 +52,17 @@ self.addEventListener('fetch',event=>{
     event.respondWith(fetch(event.request).catch(()=>caches.match('/index.html').then(response=>response||caches.match('/'))));
     return;
   }
+  if(event.request.destination==='script'||event.request.destination==='style'){
+    event.respondWith(
+      fetch(event.request).then(response=>{
+        if(response&&response.ok){
+          const copy=response.clone();
+          caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{});
+        }
+        return response;
+      }).catch(()=>caches.match(event.request))
+    );
+    return;
+  }
   event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
 });
