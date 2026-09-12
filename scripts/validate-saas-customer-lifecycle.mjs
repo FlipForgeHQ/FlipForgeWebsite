@@ -176,7 +176,11 @@ check("057 missing historical snapshots stay honest", unavailableTimeline.main.i
 const invalidTimeline = runtime({ timeline: { available: true, kind: "decision-timeline", opportunityId: "opp-1", entries: [], historicalRescoring: true, historicalSnapshotsImmutable: false, transactionAuthority: false } });
 invalidTimeline.window.FlipForgeCustomerLifecycle.render(invalidTimeline.main, "tracking", "opp-1");
 await settle();
-check("058 invalid timeline fails closed", invalidTimeline.main.innerHTML.includes("Lifecycle unavailable") && invalidTimeline.main.innerHTML.includes("DECISION_TIMELINE_INVALID"));
+check("058 invalid timeline fails closed inside timeline panel without disabling Tracking",
+  invalidTimeline.main.innerHTML.includes("Decision history unavailable")
+    && invalidTimeline.main.innerHTML.includes("data-lifecycle-form")
+    && invalidTimeline.main.innerHTML.includes("Lifecycle history")
+    && !invalidTimeline.main.innerHTML.includes("Lifecycle unavailable"));
 
 const marketing = runtime({ hostname: "goflipforge.com", pathname: "/" });
 check("059 public marketing path ineligible", marketing.window.FlipForgeCustomerLifecycle.isEligible() === false);
