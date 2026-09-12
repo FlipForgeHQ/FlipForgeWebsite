@@ -1,0 +1,24 @@
+.ff-beta-cdi-check{margin:16px 0 0;border:1px solid rgba(212,175,55,.18);border-radius:16px;background:rgba(255,255,255,.02);overflow:hidden}
+.ff-beta-cdi-check>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 18px;cursor:pointer;list-style:none}
+.ff-beta-cdi-check>summary::-webkit-details-marker{display:none}
+.ff-beta-cdi-check>summary span:first-child{display:flex;flex-direction:column;gap:3px}
+.ff-beta-cdi-check>summary strong{font-size:15px;color:#fff}
+.ff-beta-cdi-check>summary small{font-size:14px;line-height:1.4;color:rgba(255,255,255,.62)}
+.ff-beta-cdi-check>summary span:last-child{font-size:22px;color:#d4af37;transition:transform .2s ease}
+.ff-beta-cdi-check[open]>summary span:last-child{transform:rotate(45deg)}
+.ff-beta-cdi-check form{padding:0 18px 18px;border-top:1px solid rgba(255,255,255,.08)}
+.ff-beta-cdi-intro{padding:16px 0 12px}
+.ff-beta-cdi-intro>span{font-size:14px;font-weight:800;letter-spacing:.1em;color:#d4af37}
+.ff-beta-cdi-intro p{margin:5px 0 0;font-size:14px;line-height:1.5;color:rgba(255,255,255,.7)}
+.ff-beta-cdi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ff-beta-cdi-grid label,.ff-beta-cdi-note{display:grid;gap:7px;font-size:14px;font-weight:700;color:rgba(255,255,255,.84)}
+.ff-beta-cdi-grid select,.ff-beta-cdi-note textarea{width:100%;min-height:44px;border:1px solid rgba(255,255,255,.13);border-radius:10px;background:#0e0e12;color:#fff;padding:10px 12px;font:inherit;font-size:14px}
+.ff-beta-cdi-note{margin-top:12px}
+.ff-beta-cdi-note textarea{min-height:88px;resize:vertical}
+.ff-beta-cdi-note small{font-size:14px;font-weight:500;color:rgba(255,255,255,.52)}
+.ff-beta-cdi-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.ff-beta-cdi-actions p{margin:0;font-size:14px;line-height:1.4;color:rgba(255,255,255,.68)}
+.ff-beta-cdi-actions p[data-tone="ok"]{color:#b8e6c2}
+.ff-beta-cdi-actions p[data-tone="error"]{color:#ffc2c2}
+.ff-beta-cdi-boundary{margin:12px 0 0;font-size:14px;line-height:1.5;color:rgba(255,255,255,.52)}
+@media(max-width:640px){.ff-beta-cdi-grid{grid-template-columns:1fr}.ff-beta-cdi-check>summary,.ff-beta-cdi-check form{padding-left:16px;padding-right:16px}}
