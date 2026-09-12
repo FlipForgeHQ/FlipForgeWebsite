@@ -136,6 +136,47 @@ function lifecycleListData() {
   };
 }
 
+function decisionTimelineData(id) {
+  const opportunity = opportunities[id];
+  const record = lifecycle.get(id);
+  return {
+    kind: "decision-timeline",
+    opportunityId: id,
+    available: true,
+    timelineVersion: "v1.5.0",
+    snapshotCount: 1,
+    changedEntryCount: 0,
+    historicalSnapshotsImmutable: true,
+    historicalRescoring: false,
+    historicalBackfill: false,
+    transactionAuthority: false,
+    entries: [{
+      requestId: `qa-t0-${id}`,
+      evaluatedAt: opportunity.observedAt,
+      cardIdentity: opportunity.cardIdentity,
+      marketplace: opportunity.platform,
+      decision: opportunity.recommendation,
+      workflowStatus: record.snapshot.trackingStatus,
+      allInAskCents: Math.round(opportunity.ask * 100),
+      supportedValueCents: Math.round(opportunity.supportedValue * 100),
+      evidenceQuality: "QA_FIXTURE",
+      acceptedEvidenceCount: opportunity.evidence?.acceptedSales || 0,
+      reviewEvidenceCount: 0,
+      rejectedEvidenceCount: 0,
+      confidence: opportunity.confidence,
+      risk: opportunity.risk,
+      exactIdentityEligible: true,
+      decisionContractAvailable: true,
+      profitabilitySnapshotPresent: false,
+      whatWouldChange: [],
+      immutable: true,
+      changedFromPrevious: false,
+      changes: [],
+      whatChanged: []
+    }]
+  };
+}
+
 function lifecycleDetailData(id) {
   const record = lifecycle.get(id);
   return {
@@ -144,6 +185,7 @@ function lifecycleDetailData(id) {
     sourceOfTruth: "SQLite",
     lifecycle: { ...record.snapshot },
     history: record.history.map(event => ({ ...event })),
+    decisionTimeline: decisionTimelineData(id),
     transactionAuthority: false
   };
 }
@@ -322,9 +364,6 @@ async function setTrackingFields({ status, outcome, cost = "", acquired = "", pr
     await poll(async () => await outcomeSelect.inputValue() === derivedOutcome,
       `Tracking status ${status} did not synchronize hidden outcome ${derivedOutcome}`);
   }
-  // outcome is intentionally not selected directly. It is a derived, hidden
-  // implementation field in the customer Tracking UX; the audit verifies the
-  // synchronization above instead of bypassing the customer-visible control.
   void outcome;
 
   if (status === "OWNED" || status === "SOLD") {
