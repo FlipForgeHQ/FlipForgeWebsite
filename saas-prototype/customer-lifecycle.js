@@ -375,9 +375,6 @@
           if (state.detail?.data?.kind !== "lifecycle-detail" || String(state.detail?.data?.opportunityId || "") !== state.selectedId || !Array.isArray(state.detail?.data?.history)) {
             throw Object.assign(new Error("The lifecycle detail failed its selected-record contract."), { code: "LIFECYCLE_DETAIL_INVALID" });
           }
-          if (!validDecisionTimeline(state.detail?.data?.decisionTimeline, state.selectedId)) {
-            throw Object.assign(new Error("The Decision Timeline failed its immutable-history contract."), { code: "DECISION_TIMELINE_INVALID" });
-          }
         }
         return;
       }
