@@ -61,6 +61,45 @@ const lifecycle = {
   version: 1
 };
 
+function decisionTimelineFor(savedOpportunity) {
+  return {
+    kind: "decision-timeline",
+    opportunityId: savedOpportunity.id,
+    available: true,
+    timelineVersion: "v1.5.0",
+    snapshotCount: 1,
+    changedEntryCount: 0,
+    historicalSnapshotsImmutable: true,
+    historicalRescoring: false,
+    historicalBackfill: false,
+    transactionAuthority: false,
+    entries: [{
+      requestId: `qa-t0-${savedOpportunity.id}`,
+      evaluatedAt: savedOpportunity.observedAt,
+      cardIdentity: savedOpportunity.cardIdentity,
+      marketplace: savedOpportunity.platform,
+      decision: savedOpportunity.recommendation,
+      workflowStatus: lifecycle.trackingStatus,
+      allInAskCents: Math.round(savedOpportunity.ask * 100),
+      supportedValueCents: Math.round(savedOpportunity.supportedValue * 100),
+      evidenceQuality: "QA_FIXTURE",
+      acceptedEvidenceCount: savedOpportunity.evidence?.acceptedSales || 0,
+      reviewEvidenceCount: 0,
+      rejectedEvidenceCount: 0,
+      confidence: savedOpportunity.confidence,
+      risk: savedOpportunity.risk,
+      exactIdentityEligible: true,
+      decisionContractAvailable: true,
+      profitabilitySnapshotPresent: false,
+      whatWouldChange: [],
+      immutable: true,
+      changedFromPrevious: false,
+      changes: [],
+      whatChanged: []
+    }]
+  };
+}
+
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1365, height: 900 } });
 const page = await context.newPage();
@@ -114,7 +153,15 @@ try {
     } else if (method === "GET" && url.pathname === "/api/v1/lifecycle") {
       data = { kind: "lifecycle", sourceOfTruth: "SQLite", items: [lifecycle], transactionAuthority: false };
     } else if (method === "GET" && url.pathname === `/api/v1/lifecycle/${id}`) {
-      data = { kind: "lifecycle-detail", opportunityId: id, sourceOfTruth: "SQLite", lifecycle, history: [], transactionAuthority: false };
+      data = {
+        kind: "lifecycle-detail",
+        opportunityId: id,
+        sourceOfTruth: "SQLite",
+        lifecycle,
+        history: [],
+        decisionTimeline: decisionTimelineFor(opportunity),
+        transactionAuthority: false
+      };
     } else if (method === "GET" && url.pathname === "/api/v1/forge-heat") {
       data = {
         kind: "forge-heat",

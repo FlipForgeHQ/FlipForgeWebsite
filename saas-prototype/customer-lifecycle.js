@@ -111,6 +111,17 @@
       && payload.meta.correlationId === expectedCorrelationId;
   }
 
+  function validDecisionTimeline(value, opportunityId) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    if (typeof value.available !== "boolean" || value.historicalRescoring !== false) return false;
+    if (!Array.isArray(value.entries)) return false;
+    if (value.available !== true) return value.entries.length === 0;
+    return value.kind === "decision-timeline"
+      && String(value.opportunityId || "") === String(opportunityId || "")
+      && value.historicalSnapshotsImmutable === true
+      && value.transactionAuthority === false;
+  }
+
   async function parseResponse(response) {
     const text = await response.text();
     if (text.length > MAX_RESPONSE_CHARACTERS) {
@@ -231,10 +242,49 @@
     return String(value || "") === expected ? "selected" : "";
   }
 
+  function decisionTone(decision) {
+    const value = String(decision || "").toUpperCase();
+    if (value === "BUY") return "buy";
+    if (value === "PASS") return "danger";
+    if (value === "VERIFY" || value === "WATCH") return "warn";
+    return "neutral";
+  }
+
+  function timelineEntryMarkup(entry, index) {
+    const changes = safeArray(entry?.whatChanged);
+    const wouldChange = safeArray(entry?.whatWouldChange);
+    const changeMarkup = changes.length
+      ? `<div class="customer-decision-timeline-changes"><strong>What changed</strong><ul>${changes.map(change => `<li>${escapeHtml(change)}</li>`).join("")}</ul></div>`
+      : `<p class="customer-decision-timeline-baseline">${index === 0 ? "Baseline governed snapshot." : "No governed decision inputs changed from the previous saved snapshot."}</p>`;
+    const wouldChangeMarkup = wouldChange.length
+      ? `<details class="customer-decision-timeline-conditions"><summary>What would change this decision?</summary><ul>${wouldChange.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>`
+      : "";
+    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div><span>${escapeHtml(entry?.evaluatedAt || "Time unavailable")}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${moneyFromCents(entry?.supportedValueCents)}</strong></span><span><small>Confidence</small><strong>${safeNumber(entry?.confidence)}%</strong></span><span><small>Risk</small><strong>${safeNumber(entry?.risk)}%</strong></span><span><small>Evidence</small><strong>${escapeHtml(entry?.evidenceQuality || "Unavailable")}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
+  }
+
+  function decisionTimelineMarkup() {
+    const timeline = state.detail?.data?.decisionTimeline;
+    if (!validDecisionTimeline(timeline, state.selectedId)) {
+      return `<section class="panel customer-decision-timeline-panel"><header class="panel-header"><div><h2>Decision Timeline</h2><p>The saved decision history could not be verified from the authoritative response.</p></div>${badge("Unavailable", "warn")}</header><div class="panel-body staging-empty"><strong>Decision history unavailable.</strong><p>Tracking remains available, but FlipForge will not reconstruct or guess missing historical decisions.</p></div></section>`;
+    }
+    if (timeline.available !== true || !timeline.entries.length) {
+      return `<section class="panel customer-decision-timeline-panel"><header class="panel-header"><div><h2>Decision Timeline</h2><p>Immutable saved evaluations and What Changed.</p></div>${badge("No history yet", "neutral")}</header><div class="panel-body staging-empty"><strong>No immutable decision history yet.</strong><p>A future governed re-evaluation can add a new saved snapshot. Historical decisions are never backfilled or rescored.</p></div></section>`;
+    }
+    return `<section class="panel customer-decision-timeline-panel"><header class="panel-header"><div><span class="eyebrow">Card Decision Intelligence™</span><h2>Decision Timeline</h2><p>What FlipForge believed at each saved evaluation—and what changed between them.</p></div>${badge(`${safeNumber(timeline.snapshotCount)} saved`, "ok")}</header><div class="panel-body"><div class="customer-decision-timeline-boundary"><strong>Read-only governed history.</strong><span>Snapshots are immutable. Tracking does not rescore or rewrite an earlier BUY / WATCH / VERIFY / PASS decision.</span></div><div class="customer-decision-timeline">${timeline.entries.map(timelineEntryMarkup).join("")}</div></div></section>`;
+  }
+
   function historyMarkup() {
     const history = safeArray(state.detail?.data?.history);
     if (!history.length) return `<div class="staging-empty"><strong>No lifecycle history yet.</strong><p>The first saved change will create an append-only event.</p></div>`;
     return `<div class="customer-lifecycle-history">${history.map(event => `<article><span>${escapeHtml(event.recordedAt || "Time unavailable")}</span><strong>${escapeHtml(event.eventType || "UPDATED")} · ${escapeHtml(event.trackingStatus || "UNKNOWN")}</strong><p>Outcome ${escapeHtml(event.outcomeStatus || "NONE")} · Version ${safeNumber(event.recordVersion)}</p></article>`).join("")}</div>`;
+  }
+
+  function lifecycleForm(lifecycle) {
+    return `<section class="panel"><header class="panel-header"><div><h2>${escapeHtml(titleFor(lifecycle.opportunityId))}</h2><p>Save one complete lifecycle snapshot with optimistic version protection.</p></div>${badge(lifecycle.trackingStatus || "WATCHING", lifecycle.trackingStatus === "OWNED" ? "buy" : lifecycle.trackingStatus === "SOLD" ? "ok" : "warn")}</header><div class="panel-body"><form class="customer-lifecycle-form" data-lifecycle-form><div class="customer-lifecycle-fields"><label><span>Tracking status</span><select name="trackingStatus" required><option ${selected(lifecycle.trackingStatus, "WATCHING")}>WATCHING</option><option ${selected(lifecycle.trackingStatus, "REVIEW")}>REVIEW</option><option ${selected(lifecycle.trackingStatus, "OWNED")}>OWNED</option><option ${selected(lifecycle.trackingStatus, "SOLD")}>SOLD</option><option ${selected(lifecycle.trackingStatus, "PASSED")}>PASSED</option><option ${selected(lifecycle.trackingStatus, "ARCHIVED")}>ARCHIVED</option></select></label><label><span>Outcome</span><select name="outcomeStatus" required><option ${selected(lifecycle.outcomeStatus, "NONE")}>NONE</option><option ${selected(lifecycle.outcomeStatus, "ACQUIRED")}>ACQUIRED</option><option ${selected(lifecycle.outcomeStatus, "SOLD")}>SOLD</option><option ${selected(lifecycle.outcomeStatus, "PASSED")}>PASSED</option></select></label><label><span>Review time</span><input name="reviewAt" type="datetime-local" value="${escapeHtml(localDateTime(lifecycle.reviewAt))}"></label><label class="customer-lifecycle-check"><input name="alertEnabled" type="checkbox" ${lifecycle.alertEnabled ? "checked" : ""}><span>Enable in-app review reminder</span></label><label><span>Acquisition cost</span><input name="acquisitionCost" type="number" min="0" step="0.01" value="${lifecycle.acquisitionCostCents == null ? "" : escapeHtml((lifecycle.acquisitionCostCents / 100).toFixed(2))}" placeholder="Required for OWNED or SOLD"></label><label><span>Acquired date</span><input name="acquiredAt" type="date" value="${escapeHtml(dateOnly(lifecycle.acquiredAt))}"></label><label><span>Disposition proceeds</span><input name="dispositionProceeds" type="number" min="0" step="0.01" value="${lifecycle.dispositionProceedsCents == null ? "" : escapeHtml((lifecycle.dispositionProceedsCents / 100).toFixed(2))}" placeholder="Required for SOLD"></label><label><span>Disposition date</span><input name="disposedAt" type="date" value="${escapeHtml(dateOnly(lifecycle.disposedAt))}"></label></div><input type="hidden" name="expectedVersion" value="${safeNumber(lifecycle.version)}"><div class="customer-lifecycle-submit"><button class="button button-primary" type="submit" ${state.saving ? "disabled" : ""}>${state.saving ? "Saving…" : "Save lifecycle"}</button><small>OWNED requires acquisition facts. SOLD requires acquisition and disposition facts. Alerts require a review time.</small></div></form></div></section>`;
+  }
+
+  function lifecycleHistoryPanel() {
+    return `<section class="panel"><header class="panel-header"><div><h2>Lifecycle history</h2><p>Append-only customer workflow events; newest first.</p></div></header><div class="panel-body">${historyMarkup()}</div></section>`;
   }
 
   function trackingView() {
@@ -246,7 +296,10 @@
     if (!items.length) {
       return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Tracking", "Manage review timing and outcomes for tenant-owned saved decisions.", actions)}${boundary("Tracking state records customer workflow facts only. It cannot change Smart Opportunity, PSA guidance, or evidence eligibility.")}<section class="panel"><div class="panel-body staging-empty"><strong>No saved opportunity is available.</strong><p>Evaluate a card first; the authoritative result will create the tenant-owned tracking boundary.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></section></div>`;
     }
-    return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Tracking", "Persist review timing, watch state, acquisition or pass outcomes, and in-app review reminders.", actions)}${boundary("These are customer workflow facts in SQLite. They never rescore, rerank, verify evidence, predict a grade, buy, sell, list, or handle payment.")}${state.notice ? `<div class="customer-lifecycle-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}<section class="panel customer-management-select-panel"><div class="panel-body">${selector()}</div></section><section class="customer-management-metrics"><article><span>Tenant-owned records</span><strong>${items.length}</strong></article><article><span>Current holdings</span><strong>${owned}</strong></article><article><span>Reviews due</span><strong>${due}</strong></article><article><span>Selected version</span><strong>${safeNumber(lifecycle?.version)}</strong></article></section>${lifecycle ? `<div class="customer-lifecycle-grid"><section class="panel"><header class="panel-header"><div><h2>${escapeHtml(titleFor(lifecycle.opportunityId))}</h2><p>Save one complete lifecycle snapshot with optimistic version protection.</p></div>${badge(lifecycle.trackingStatus || "WATCHING", lifecycle.trackingStatus === "OWNED" ? "buy" : lifecycle.trackingStatus === "SOLD" ? "ok" : "warn")}</header><div class="panel-body"><form class="customer-lifecycle-form" data-lifecycle-form><div class="customer-lifecycle-fields"><label><span>Tracking status</span><select name="trackingStatus" required><option ${selected(lifecycle.trackingStatus, "WATCHING")}>WATCHING</option><option ${selected(lifecycle.trackingStatus, "REVIEW")}>REVIEW</option><option ${selected(lifecycle.trackingStatus, "OWNED")}>OWNED</option><option ${selected(lifecycle.trackingStatus, "SOLD")}>SOLD</option><option ${selected(lifecycle.trackingStatus, "PASSED")}>PASSED</option><option ${selected(lifecycle.trackingStatus, "ARCHIVED")}>ARCHIVED</option></select></label><label><span>Outcome</span><select name="outcomeStatus" required><option ${selected(lifecycle.outcomeStatus, "NONE")}>NONE</option><option ${selected(lifecycle.outcomeStatus, "ACQUIRED")}>ACQUIRED</option><option ${selected(lifecycle.outcomeStatus, "SOLD")}>SOLD</option><option ${selected(lifecycle.outcomeStatus, "PASSED")}>PASSED</option></select></label><label><span>Review time</span><input name="reviewAt" type="datetime-local" value="${escapeHtml(localDateTime(lifecycle.reviewAt))}"></label><label class="customer-lifecycle-check"><input name="alertEnabled" type="checkbox" ${lifecycle.alertEnabled ? "checked" : ""}><span>Enable in-app review reminder</span></label><label><span>Acquisition cost</span><input name="acquisitionCost" type="number" min="0" step="0.01" value="${lifecycle.acquisitionCostCents == null ? "" : escapeHtml((lifecycle.acquisitionCostCents / 100).toFixed(2))}" placeholder="Required for OWNED or SOLD"></label><label><span>Acquired date</span><input name="acquiredAt" type="date" value="${escapeHtml(dateOnly(lifecycle.acquiredAt))}"></label><label><span>Disposition proceeds</span><input name="dispositionProceeds" type="number" min="0" step="0.01" value="${lifecycle.dispositionProceedsCents == null ? "" : escapeHtml((lifecycle.dispositionProceedsCents / 100).toFixed(2))}" placeholder="Required for SOLD"></label><label><span>Disposition date</span><input name="disposedAt" type="date" value="${escapeHtml(dateOnly(lifecycle.disposedAt))}"></label></div><input type="hidden" name="expectedVersion" value="${safeNumber(lifecycle.version)}"><div class="customer-lifecycle-submit"><button class="button button-primary" type="submit" ${state.saving ? "disabled" : ""}>${state.saving ? "Saving…" : "Save lifecycle"}</button><small>OWNED requires acquisition facts. SOLD requires acquisition and disposition facts. Alerts require a review time.</small></div></form></div></section><section class="panel"><header class="panel-header"><div><h2>Lifecycle history</h2><p>Append-only customer workflow events; newest first.</p></div></header><div class="panel-body">${historyMarkup()}</div></section></div>` : ""}</div>`;
+    const selectedContent = lifecycle
+      ? `${decisionTimelineMarkup()}<div class="customer-lifecycle-grid">${lifecycleForm(lifecycle)}${lifecycleHistoryPanel()}</div>`
+      : "";
+    return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Tracking", "Persist review timing, watch state, acquisition or pass outcomes, and in-app review reminders.", actions)}${boundary("These are customer workflow facts in SQLite. They never rescore, rerank, verify evidence, predict a grade, buy, sell, list, or handle payment.")}${state.notice ? `<div class="customer-lifecycle-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}<section class="panel customer-management-select-panel"><div class="panel-body">${selector()}</div></section><section class="customer-management-metrics"><article><span>Tenant-owned records</span><strong>${items.length}</strong></article><article><span>Current holdings</span><strong>${owned}</strong></article><article><span>Reviews due</span><strong>${due}</strong></article><article><span>Selected version</span><strong>${safeNumber(lifecycle?.version)}</strong></article></section>${selectedContent}</div>`;
   }
 
   function portfolioView() {
