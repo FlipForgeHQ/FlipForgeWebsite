@@ -129,6 +129,20 @@
     return String(page.querySelector("select[data-lifecycle-select]")?.value || "");
   }
 
+  function outcomeSignature(opportunityId) {
+    const record = outcomeByOpportunity.get(opportunityId);
+    if (!record || !record.valid || record.data?.available !== true) return "unavailable";
+    const reconciliation = record.data.outcomeReconciliation || {};
+    const checkpoints = Array.isArray(reconciliation.checkpoints) ? reconciliation.checkpoints : [];
+    return [
+      record.data.phaseVersion || "",
+      reconciliation.requestId || "",
+      reconciliation.observedCheckpointCount ?? "",
+      reconciliation.measurableCheckpointCount ?? "",
+      ...checkpoints.map(item => [item?.horizonDays, item?.measurementState, item?.observedAt, item?.observedSupportedValueCents, item?.acceptedEvidenceDelta].join(":"))
+    ].join("|");
+  }
+
   function outcomePanelMarkup(opportunityId) {
     const record = outcomeByOpportunity.get(opportunityId);
     if (!record || !record.valid || record.data?.available !== true) {
@@ -149,15 +163,17 @@
     if (!timeline) return;
     const opportunityId = selectedOpportunityId(page);
     if (!opportunityId) return;
+    const signature = outcomeSignature(opportunityId);
     const existing = page.querySelector("[data-ff-outcome-intelligence]");
+    if (existing && existing.dataset.ffOutcomeOpportunity === opportunityId && existing.dataset.ffOutcomeSignature === signature) return;
     const markup = outcomePanelMarkup(opportunityId);
-    if (existing) {
-      if (existing.dataset.ffOutcomeOpportunity !== opportunityId || existing.outerHTML !== markup) existing.outerHTML = markup;
-    } else {
-      timeline.insertAdjacentHTML("afterend", markup);
-    }
+    if (existing) existing.outerHTML = markup;
+    else timeline.insertAdjacentHTML("afterend", markup);
     const rendered = page.querySelector("[data-ff-outcome-intelligence]");
-    if (rendered) rendered.dataset.ffOutcomeOpportunity = opportunityId;
+    if (rendered) {
+      rendered.dataset.ffOutcomeOpportunity = opportunityId;
+      rendered.dataset.ffOutcomeSignature = signature;
+    }
   }
 
   function queueOutcomeRender() {
