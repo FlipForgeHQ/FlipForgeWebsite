@@ -20,7 +20,7 @@
     "validate:production-route-authority": "node scripts/validate-production-route-authority.mjs",
     "validate:customer-dashboard": "node scripts/validate-saas-customer-dashboard.mjs",
     "validate:commercial-dashboard-live-qa": "node scripts/validate-saas-commercial-dashboard-live-qa.mjs",
-    "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs",
+    "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs && node scripts/validate-beta-cdi-learning-scorecard-v1.mjs",
     "validate:customer-compare": "node scripts/validate-saas-customer-compare.mjs",
     "validate:customer-management": "node scripts/validate-saas-customer-management.mjs",
     "validate:customer-portfolio": "node scripts/validate-saas-customer-portfolio.mjs",
