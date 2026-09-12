@@ -1,6 +1,8 @@
 (()=>{
   'use strict';
 
+  const isHomepage=()=>window.location.pathname==='/'||window.location.pathname==='/index.html';
+
   const syncHomepageNavigation=()=>{
     const brand=document.querySelector('.decision-brand');
     if(brand)brand.setAttribute('href','/');
@@ -29,7 +31,6 @@
     const desktop=document.querySelector('.decision-nav-links');
     const mobile=document.querySelector('.mobile-nav');
 
-    // Keep every public destination visible on desktop. Condense; do not remove links.
     if(desktop){
       const home=ensureLink(desktop,{href:'/',label:'Home',position:'start',marker:'home'});
       if(home)home.setAttribute('aria-current','page');
@@ -52,6 +53,87 @@
     }
   };
 
+  const syncHomepagePositioning=()=>{
+    if(!isHomepage())return;
+
+    document.title='FlipForge™ | Card Decision Intelligence';
+    const description=document.querySelector('meta[name="description"]');
+    if(description)description.setAttribute('content','FlipForge is Card Decision Intelligence for sports cards—the missing layer between card data and the decision to BUY, WATCH, VERIFY, or PASS.');
+
+    const hero=document.querySelector('.decision-hero');
+    const copy=document.querySelector('.decision-hero-copy');
+    if(!hero||!copy)return;
+
+    const title=copy.querySelector('#decision-hero-title');
+    const titleTop=title?.querySelector('span');
+    const titleBottom=title?.querySelector('strong');
+    if(titleTop)titleTop.textContent="More data isn't the answer.";
+    if(titleBottom)titleBottom.textContent='A better decision is.';
+
+    const lead=copy.querySelector('.decision-lead');
+    if(lead)lead.textContent='FlipForge turns sports-card data into one clear next move—BUY, WATCH, VERIFY, or PASS—before you spend.';
+
+    const cue=copy.querySelector('.decision-demo-cue');
+    if(cue)cue.innerHTML='<strong>Before you buy. Know Why.</strong> FlipForge checks the exact card, challenges weak comps, weighs the deal, and shows why the decision changed.';
+
+    const actions=copy.querySelector('.decision-actions');
+    if(actions&&!actions.querySelector('[data-ff-cdi-primary]')){
+      const primary=document.createElement('a');
+      primary.className='decision-button decision-button-primary';
+      primary.href='decision-intelligence.html';
+      primary.dataset.ffCdiPrimary='true';
+      primary.textContent='Why FlipForge Is Different';
+      actions.insertBefore(primary,actions.firstChild);
+    }
+
+    const assurance=copy.querySelector('.decision-assurance');
+    if(assurance)assurance.textContent='The missing layer between card data and card decisions.';
+
+    if(document.querySelector('[data-ff-cdi-moat]'))return;
+
+    const section=document.createElement('section');
+    section.className='ff-cdi-moat';
+    section.dataset.ffCdiMoat='true';
+    section.setAttribute('aria-labelledby','ff-cdi-moat-title');
+    section.innerHTML=`
+      <div class="ff-cdi-moat-inner">
+        <div class="ff-cdi-moat-head">
+          <p class="ff-cdi-moat-kicker">THE FLIPFORGE DIFFERENCE</p>
+          <h2 id="ff-cdi-moat-title">Most card tools stop at data. FlipForge keeps going.</h2>
+          <p>Listings tell you what someone is asking. Sales history tells you what happened. Charts show movement. FlipForge helps answer the question that actually costs money: <strong>What should I do?</strong></p>
+        </div>
+
+        <div class="ff-cdi-category-grid" aria-label="How FlipForge differs from common card tools">
+          <article><span>MARKETPLACES</span><h3>What is for sale?</h3><p>Useful for finding cards. Not a decision.</p></article>
+          <article><span>PRICE + COMP TOOLS</span><h3>What has it sold for?</h3><p>Useful context. Still not a decision.</p></article>
+          <article><span>MARKET ANALYTICS</span><h3>How is the market moving?</h3><p>Useful signal. Still not a decision.</p></article>
+          <article class="is-flipforge"><span>FLIPFORGE</span><h3>What does the evidence support?</h3><p>Then: BUY, WATCH, VERIFY, or PASS—and why.</p></article>
+        </div>
+
+        <div class="ff-cdi-path-head">
+          <p class="ff-cdi-moat-kicker">CARD DECISION INTELLIGENCE™</p>
+          <h2>From card data to a decision you can explain.</h2>
+        </div>
+
+        <div class="ff-cdi-path">
+          <article><b>01</b><div><h3>Know the exact card.</h3><p>Wrong parallel, grade, or variation can make the whole comparison meaningless.</p></div></article>
+          <article><b>02</b><div><h3>Challenge the evidence.</h3><p>FlipForge does not let every comp count just because it looks similar.</p></div></article>
+          <article><b>03</b><div><h3>Weigh the deal.</h3><p>Price only matters after the evidence and risk are put in context.</p></div></article>
+          <article><b>04</b><div><h3>Make the call.</h3><p>BUY, WATCH, VERIFY, or PASS—with the strongest reasons visible.</p></div></article>
+        </div>
+
+        <div class="ff-cdi-moat-bottom">
+          <div><span>CARD DECISION INTELLIGENCE™</span><strong>Not another price tracker. A decision system for collectors.</strong></div>
+          <div class="ff-cdi-moat-actions">
+            <a class="decision-button decision-button-primary" href="decision-intelligence.html">See How It Works</a>
+            <a class="decision-button decision-button-secondary" href="beta-application.html">Request Beta Access</a>
+          </div>
+        </div>
+      </div>`;
+
+    hero.insertAdjacentElement('afterend',section);
+  };
+
   const enforceReadabilityFloor=()=>{
     document.querySelectorAll('main p, main li, main label, main button, main input, main select').forEach(el=>{
       const size=parseFloat(getComputedStyle(el).fontSize)||0;
@@ -60,6 +142,7 @@
   };
 
   syncHomepageNavigation();
+  syncHomepagePositioning();
   enforceReadabilityFloor();
 
   const toggle=document.querySelector('.menu-toggle');
