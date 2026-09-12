@@ -312,6 +312,113 @@
   cursor: pointer;
 }
 
+.customer-outcome-panel .panel-header {
+  align-items: flex-start;
+}
+
+.customer-outcome-boundary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(207, 174, 84, .3);
+  border-radius: 10px;
+  background: rgba(207, 174, 84, .06);
+}
+
+.customer-outcome-boundary strong {
+  color: var(--gold-strong, #d9bd72);
+  font-size: 14px;
+}
+
+.customer-outcome-boundary span {
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.customer-outcome-baseline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.customer-outcome-baseline > span,
+.customer-outcome-checkpoint-grid > span {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, .12);
+}
+
+.customer-outcome-baseline small,
+.customer-outcome-baseline strong,
+.customer-outcome-checkpoint-grid small,
+.customer-outcome-checkpoint-grid strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.customer-outcome-baseline small,
+.customer-outcome-checkpoint-grid small {
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.customer-outcome-baseline strong,
+.customer-outcome-checkpoint-grid strong {
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.customer-outcome-checkpoints {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.customer-outcome-checkpoint {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .018);
+}
+
+.customer-outcome-checkpoint[data-state="MEASURABLE"] {
+  border-color: rgba(67, 174, 116, .42);
+}
+
+.customer-outcome-checkpoint-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.customer-outcome-checkpoint-head strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.customer-outcome-checkpoint-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.customer-outcome-waiting {
+  margin: 10px 0 0;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
 @media (max-width: 1050px) {
   .customer-lifecycle-grid {
     grid-template-columns: 1fr;
@@ -319,6 +426,10 @@
 
   .customer-decision-timeline-signals {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .customer-outcome-checkpoints {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -342,6 +453,10 @@
 
   .customer-decision-timeline-signals {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .customer-outcome-baseline {
+    grid-template-columns: 1fr;
   }
 }
 
