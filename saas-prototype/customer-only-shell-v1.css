@@ -175,9 +175,95 @@ body[data-ff-surface="customer"] .private-beta-step[data-ff-customer-hide="true"
   display: none !important;
 }
 
+/* Full customer application mode. This is presentation-only and is activated only
+ * on /customer-app/. The controlled /app beta presentation above remains unchanged. */
+body.ff-full-customer-app .prototype-banner {
+  display: none !important;
+}
+
+body.ff-full-customer-app .prototype-chip {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  color: #f4d983 !important;
+  border-color: rgba(212, 175, 55, .42) !important;
+  background: rgba(212, 175, 55, .08) !important;
+}
+
+body.ff-full-customer-app .primary-nav > .ff-advanced-nav {
+  display: block !important;
+  margin-top: 4px;
+}
+
+body.ff-full-customer-app .sidebar-footer .plan-card {
+  display: grid !important;
+}
+
+body.ff-full-customer-app .primary-nav {
+  gap: 6px;
+}
+
+body.ff-full-customer-app .primary-nav > a[data-ff-customer-core] {
+  min-height: 46px;
+  padding: 8px 11px;
+}
+
+body.ff-full-customer-app .ff-advanced-nav > summary {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+body.ff-full-customer-app .ff-advanced-nav-links {
+  display: grid;
+  gap: 6px;
+  padding-top: 7px;
+}
+
+body.ff-full-customer-app .ff-advanced-nav-links a {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 8px;
+}
+
+body.ff-full-customer-app .ff-full-customer-steps {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+body.ff-full-customer-app .ff-customer-home-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.ff-full-customer-app #main-content .page-heading {
+  margin-bottom: 18px;
+}
+
+body.ff-full-customer-app #main-content .page-heading h1 {
+  max-width: 900px;
+}
+
+body.ff-full-customer-app .global-search,
+body.ff-full-customer-app .notification-button,
+body.ff-full-customer-app .topbar-actions a[href="#/opportunities"],
+body.ff-full-customer-app .profile-button {
+  display: flex !important;
+}
+
+@media (max-width: 1100px) {
+  body.ff-full-customer-app .ff-full-customer-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 900px) {
   body[data-ff-surface="customer"] .ff-beta-simple-steps,
-  body[data-ff-surface="customer"] .ff-customer-home-actions {
+  body[data-ff-surface="customer"] .ff-customer-home-actions,
+  body.ff-full-customer-app .ff-full-customer-steps {
     grid-template-columns: 1fr;
   }
 }
@@ -204,5 +290,9 @@ body[data-ff-surface="customer"] .private-beta-step[data-ff-customer-hide="true"
 
   body[data-ff-surface="customer"] .ff-beta-simple-loop {
     padding: 16px;
+  }
+
+  body.ff-full-customer-app .topbar-actions a[href="#/opportunities"] {
+    display: none !important;
   }
 }
