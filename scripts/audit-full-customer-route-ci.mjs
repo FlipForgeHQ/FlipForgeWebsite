@@ -190,10 +190,14 @@ try {
   await page.waitForSelector('.ff-di-page[data-decision-intelligence-source="server"]', { timeout: 10000 });
   await page.waitForSelector("section[data-ff-decision-card-evidence]", { timeout: 10000 });
 
-  // Reproduce the auth-return bug after route navigation. Older feature modules may
-  // still emit an /app return; the production redirect must preserve /app/customer/.
+  // Return through the real customer navigation and let route ownership settle
+  // before reproducing a stale /app auth link. This avoids conflating a hash-route
+  // transition with the auth-return assertion.
+  await page.locator('.primary-nav a[data-route="dashboard"]').click();
+  await page.waitForFunction(() => window.location.hash === "#/dashboard", null, { timeout: 10000 });
+  await page.waitForTimeout(1000);
+
   await page.evaluate(() => {
-    window.location.hash = "#/dashboard";
     const link = document.createElement("a");
     link.id = "ff-customer-auth-regression";
     link.href = "/production-auth.html?return=%2Fapp%2F%23%2Fdashboard";
