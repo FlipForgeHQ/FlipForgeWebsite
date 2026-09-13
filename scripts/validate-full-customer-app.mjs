@@ -21,10 +21,12 @@ const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 
-check(redirects.includes("/app/customer /app/customer/ 301"),
-  "customer app canonical route redirects to trailing slash");
+check(redirects.includes("/app/customer /saas-prototype/index.html 200"),
+  "customer app no-slash route serves the production SaaS shell directly");
 check(redirects.includes("/app/customer/ /saas-prototype/index.html 200"),
-  "customer app serves the existing production SaaS shell");
+  "customer app trailing-slash route serves the existing production SaaS shell directly");
+check(!redirects.includes("/app/customer /app/customer/ 301"),
+  "customer app avoids canonical redirects that can loop after authentication");
 check(redirects.includes("/app/customer/* /saas-prototype/:splat 200"),
   "customer app assets stay under the production app path");
 check(redirects.indexOf("/app/customer/* /saas-prototype/:splat 200") < redirects.indexOf("/app/* /saas-prototype/:splat 200"),
