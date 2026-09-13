@@ -22,6 +22,17 @@
     }catch{return '';}
   };
 
+  const dedupeRouteLinks=container=>{
+    if(!container)return;
+    const seen=new Set();
+    [...container.querySelectorAll('a[href]')].forEach(link=>{
+      const route=normalizeRoutePath(link);
+      if(!route)return;
+      if(seen.has(route))link.remove();
+      else seen.add(route);
+    });
+  };
+
   const ensureStylesheet=href=>{
     const route=normalizeRoutePath(href);
     const found=[...document.querySelectorAll('link[rel="stylesheet"][href]')].some(link=>normalizeRoutePath(link.getAttribute('href'))===route);
@@ -56,6 +67,7 @@
         fragment.appendChild(link);
       });
       nav.replaceChildren(fragment);
+      dedupeRouteLinks(nav);
     };
 
     render(document.querySelector('.decision-nav-links'));
