@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 const baseUrl = process.env.FLIPFORGE_PUBLIC_AUDIT_URL || 'http://127.0.0.1:4173';
 const viewports = [
   { name: 'desktop', width: 1440, height: 1000, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 54.1 },
+  { name: 'wide', width: 2048, height: 900, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 54.1 },
   { name: 'mobile', width: 390, height: 844, pageTitleMax: 40.1, sectionTitleMax: 30.1, homeDisplayMax: 44.1 }
 ];
 
@@ -68,10 +69,10 @@ async function auditHomepageNavigation(page, viewport) {
     return { decisionCount: decisionLinks.length, clipped, labels: visible.map(link => link.textContent.trim()) };
   });
 
-  if (viewport.name === 'desktop' && state.decisionCount !== 1) {
+  if (state.decisionCount !== 1) {
     failures.push(`${viewport.name} Home: expected one visible Decision Intelligence nav link, found ${state.decisionCount} (${state.labels.join(' | ')})`);
   }
-  if (viewport.name === 'desktop' && state.clipped.length) {
+  if (state.clipped.length) {
     failures.push(`${viewport.name} Home: navigation clips outside viewport ${JSON.stringify(state.clipped)}`);
   }
 }
@@ -128,7 +129,7 @@ try {
     const navSize = px(await page.$eval('.site-header .desktop-nav a', el => getComputedStyle(el).fontSize));
     if (!nearlyEqual(navSize, 13, 0.15)) failures.push(`${viewport.name}: desktop navigation resolved to ${navSize}px instead of 13px`);
 
-    await auditHomepageNavigation(page, viewport);
+    if (viewport.name !== 'mobile') await auditHomepageNavigation(page, viewport);
 
     console.log(`${viewport.name}: internal titles ${pageTitles.map(([label, size]) => `${label}=${size}px`).join(', ')}`);
     console.log(`${viewport.name}: section titles ${sectionTitles.map(([label, size]) => `${label}=${size}px`).join(', ')}`);
@@ -147,4 +148,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: rendered public typography is consistent across Home, Product, Decision Intelligence, Evidence Lab, Launch Plans, About, Beta, and FAQ; homepage navigation is unique and unclipped at desktop and mobile viewports.');
+console.log('PASS: rendered public typography is consistent across Home, Product, Decision Intelligence, Evidence Lab, Launch Plans, About, Beta, and FAQ; homepage navigation is unique and unclipped at 1440px and 2048px desktop widths.');
