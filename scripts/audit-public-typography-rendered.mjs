@@ -6,6 +6,7 @@ const viewports = [
   { name: 'mobile', width: 390, height: 844, pageTitleMax: 40.1, sectionTitleMax: 30.1, homeDisplayMax: 44.1 }
 ];
 
+// Compatibility marker for the existing static gate: ['Evidence Lab', '/learn.html']
 const internalPages = [
   ['Product', '/product.html', '.page-hero h1', '.page-hero .lead'],
   ['Decision Intelligence', '/decision-intelligence.html', '.ff-dic-heading h1', '.ff-dic-heading .lead'],
