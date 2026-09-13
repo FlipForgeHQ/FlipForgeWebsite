@@ -47,6 +47,8 @@ jobs:
           node-version: 24
       - name: Install repository dependencies
         run: npm install --no-audit --no-fund
+      - name: Build production Identity assets
+        run: npm run build:identity
       - name: Build governed marketing preview surfaces
         run: npm run build:marketing
       - name: Parse homepage runtime
@@ -74,8 +76,6 @@ jobs:
           exit 1
       - name: Audit rendered routes across mobile, breakpoint, desktop, and wide viewports
         run: npm run audit:site-composition
-      - name: Build production Identity assets for customer route audit
-        run: npm run build:identity
       - name: Validate full customer app contracts
         run: |
           node scripts/validate-netlify-rule-budget.mjs
