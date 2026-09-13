@@ -31,6 +31,16 @@ function requestCandidates(urlPath) {
 
   if (!relative) return [join(prototypeRoot, "index.html")];
 
+  if (relative === "app/customer") {
+    return [join(prototypeRoot, "customer.html")];
+  }
+  if (relative.startsWith("app/customer/")) {
+    const nested = relative.slice("app/customer/".length);
+    if (!nested) return [join(prototypeRoot, "customer.html")];
+    const candidate = resolve(join(prototypeRoot, nested));
+    return contained(prototypeRoot, candidate) ? [candidate, join(prototypeRoot, "customer.html")] : [];
+  }
+
   for (const prefix of ["app", "saas-prototype"]) {
     if (relative === prefix) return [join(prototypeRoot, "index.html")];
     if (relative.startsWith(`${prefix}/`)) {
@@ -71,7 +81,9 @@ const server = createServer(async (request, response) => {
     let filePath = await resolveFile(request.url || "/");
     if (!filePath) {
       const requested = String(request.url || "/").split("?")[0];
-      if (requested.startsWith("/app/") || requested === "/app" || requested.startsWith("/saas-prototype/")) {
+      if (requested.startsWith("/app/customer/")) {
+        filePath = join(prototypeRoot, "customer.html");
+      } else if (requested.startsWith("/app/") || requested === "/app" || requested.startsWith("/saas-prototype/")) {
         filePath = join(prototypeRoot, "index.html");
       } else {
         response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("Not found");
@@ -94,5 +106,6 @@ const server = createServer(async (request, response) => {
 
 server.listen(port, "127.0.0.1", () => {
   console.log(`FlipForge SaaS preview running at http://localhost:${port}/app/#/dashboard`);
+  console.log(`FlipForge customer app running at http://localhost:${port}/app/customer/#/dashboard`);
   console.log("Press Ctrl+C to stop the preview server.");
 });

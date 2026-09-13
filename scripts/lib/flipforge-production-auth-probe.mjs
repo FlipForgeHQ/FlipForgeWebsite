@@ -21,11 +21,15 @@ function safeReturnPath() {
   if (!requested || requested.startsWith("//")) return "/app/#/account";
   try {
     const resolved = new URL(requested, window.location.origin);
-    const pathAllowed = resolved.pathname === "/app/"
-      || resolved.pathname === "/app/customer/"
-      || resolved.pathname === "/saas-prototype/";
+    const normalizedPath = resolved.pathname === "/app" ? "/app/"
+      : resolved.pathname === "/app/customer" ? "/app/customer/"
+      : resolved.pathname === "/saas-prototype" ? "/saas-prototype/"
+      : resolved.pathname;
+    const pathAllowed = normalizedPath === "/app/"
+      || normalizedPath === "/app/customer/"
+      || normalizedPath === "/saas-prototype/";
     if (resolved.origin !== window.location.origin || !pathAllowed) return "/app/#/account";
-    return `${resolved.pathname}${resolved.search}${resolved.hash || "#/account"}`;
+    return `${normalizedPath}${resolved.search}${resolved.hash || "#/account"}`;
   } catch (_) {
     return "/app/#/account";
   }
