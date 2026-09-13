@@ -3,32 +3,37 @@
 
   const isHomepage=()=>window.location.pathname==='/'||window.location.pathname==='/index.html';
 
+  const ensureStylesheet=href=>{
+    if(document.querySelector(`link[href="${href}"]`))return;
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=href;
+    document.head.appendChild(link);
+  };
+
+  const ensureLink=(nav,{href,label,position='end',marker})=>{
+    if(!nav)return null;
+    let link=nav.querySelector(`a[href="${href}"]`);
+    if(!link){
+      link=document.createElement('a');
+      link.href=href;
+      link.textContent=label;
+      if(marker)link.dataset.ffHomepageNav=marker;
+      if(position==='start')nav.insertBefore(link,nav.firstElementChild);
+      else if(position==='before-cta'){
+        const cta=nav.querySelector('.decision-nav-cta, a[href="beta-application.html"]');
+        if(cta)nav.insertBefore(link,cta);else nav.appendChild(link);
+      }else nav.appendChild(link);
+    }
+    return link;
+  };
+
   const syncHomepageNavigation=()=>{
     const brand=document.querySelector('.decision-brand');
     if(brand)brand.setAttribute('href','/');
 
-    const ensureLink=(nav,{href,label,position='end',marker})=>{
-      if(!nav)return null;
-      let link=nav.querySelector(`a[href="${href}"]`);
-      if(!link){
-        link=document.createElement('a');
-        link.href=href;
-        link.textContent=label;
-        if(marker)link.dataset.ffHomepageNav=marker;
-        if(position==='start')nav.insertBefore(link,nav.firstElementChild);
-        else if(position==='before-cta'){
-          const cta=nav.querySelector('.decision-nav-cta, a[href="beta-application.html"]');
-          if(cta)nav.insertBefore(link,cta);else nav.appendChild(link);
-        }else nav.appendChild(link);
-      }
-      return link;
-    };
-
     const configureNav=(nav,{mobile=false}={})=>{
       if(!nav)return;
-
-      nav.querySelectorAll('[data-ff-homepage-nav="home"],[data-ff-homepage-nav="connect"]').forEach(link=>link.remove());
-
       const product=nav.querySelector('a[href="product.html"],a[href="/product.html"],a[href="/product"]');
       if(product)product.textContent='How It Works';
 
@@ -47,94 +52,102 @@
 
     configureNav(document.querySelector('.decision-nav-links'));
     configureNav(document.querySelector('.mobile-nav'),{mobile:true});
-
-    const eyebrow=document.querySelector('.decision-eyebrow');
-    if(eyebrow)eyebrow.textContent='CARD DECISION INTELLIGENCE™';
-
-    if(window.location.pathname==='/index.html'){
-      window.history.replaceState(null,'',`/${window.location.search}${window.location.hash}`);
-    }
   };
+
+  const cdiHomeMarkup=()=>`
+    <div class="ff-cdi-home-inner">
+      <div class="ff-cdi-home-head">
+        <p class="ff-cdi-home-kicker">WHAT IS CARD DECISION INTELLIGENCE™?</p>
+        <h2>Data tells you what happened. FlipForge helps you decide what to do now.</h2>
+        <p>Card Decision Intelligence™ connects the exact card, qualified evidence, economics, uncertainty, decision reasoning, and later outcomes into one explainable system. <strong>It is the layer between sports-card data and the decision to spend.</strong></p>
+      </div>
+
+      <div class="ff-cdi-contrast" aria-label="Difference between market data and Card Decision Intelligence">
+        <article><span>MARKET DATA</span><h3>What sold? What is listed? What moved?</h3><p>Useful context, but it still leaves the collector responsible for deciding which evidence belongs and what the risk means.</p></article>
+        <article><span>CARD DECISION INTELLIGENCE™</span><h3>What should I do — and why?</h3><p>FlipForge turns trusted context into BUY, WATCH, VERIFY, or PASS, while preserving the reason trail behind the call.</p></article>
+      </div>
+
+      <div class="ff-cdi-layers" aria-label="Seven layers of Card Decision Intelligence">
+        <article class="ff-cdi-layer"><b>01</b><small>Identity Intelligence</small><h3>Know the exact card.</h3><p>Year, set, card number, parallel, grader, and grade must agree before evidence gets a vote.</p></article>
+        <article class="ff-cdi-layer"><b>02</b><small>Evidence Intelligence</small><h3>Test what deserves to count.</h3><p>Keep qualified evidence. Reject duplicates, wrong variants, conflicts, and weak comparisons.</p></article>
+        <article class="ff-cdi-layer"><b>03</b><small>Economic Intelligence</small><h3>Rebuild the economics.</h3><p>Supported value, price edge, liquidity, and costs matter only after the evidence survives review.</p></article>
+        <article class="ff-cdi-layer"><b>04</b><small>Risk + Uncertainty</small><h3>Expose what is still unknown.</h3><p>Missing, stale, or conflicting evidence remains visible instead of being hidden behind false confidence.</p></article>
+        <article class="ff-cdi-layer"><b>05</b><small>Decision Intelligence</small><h3>Make the call.</h3><p>BUY, WATCH, VERIFY, or PASS — based on governed evidence and the current decision context.</p></article>
+        <article class="ff-cdi-layer"><b>06</b><small>Decision Receipt</small><h3>Show why the call happened.</h3><p>The decision keeps a traceable reason trail so the user can inspect what supported or weakened it.</p></article>
+        <article class="ff-cdi-layer"><b>07</b><small>Outcome Intelligence</small><h3>See what happened next.</h3><p>Later observations are measured against the original decision without rewriting the historical record.</p></article>
+      </div>
+
+      <div class="ff-cdi-home-footer">
+        <div class="ff-cdi-home-footer-copy"><span>FLIPFORGE = CARD DECISION INTELLIGENCE™</span><strong>Other tools show you market information. FlipForge helps you decide what to do with it.</strong></div>
+        <div class="ff-cdi-home-actions">
+          <a class="decision-button decision-button-primary" href="decision-intelligence.html">Explore Decision Intelligence</a>
+          <a class="decision-button decision-button-secondary" href="beta-application.html">Request Beta Access</a>
+        </div>
+      </div>
+    </div>`;
 
   const syncHomepagePositioning=()=>{
     if(!isHomepage())return;
+    ensureStylesheet('assets/css/homepage-cdi-positioning-v1.css');
 
     document.title='FlipForge™ | Card Decision Intelligence';
     const description=document.querySelector('meta[name="description"]');
-    if(description)description.setAttribute('content','FlipForge is Card Decision Intelligence for sports cards—the missing layer between card data and the decision to BUY, WATCH, VERIFY, or PASS.');
+    if(description)description.setAttribute('content','FlipForge is Card Decision Intelligence for sports cards—turning exact identity, qualified evidence, economics, risk, and outcomes into an explainable BUY, WATCH, VERIFY, or PASS decision.');
 
-    const hero=document.querySelector('.decision-hero');
     const copy=document.querySelector('.decision-hero-copy');
-    if(!hero||!copy)return;
+    if(copy){
+      const eyebrow=copy.querySelector('.decision-eyebrow');
+      if(eyebrow)eyebrow.textContent='CARD DECISION INTELLIGENCE™';
 
-    const title=copy.querySelector('#decision-hero-title');
-    const titleTop=title?.querySelector('span');
-    const titleBottom=title?.querySelector('strong');
-    if(titleTop)titleTop.textContent="More data isn't the answer.";
-    if(titleBottom)titleBottom.textContent='A better decision is.';
+      const title=copy.querySelector('#decision-hero-title');
+      const titleTop=title?.querySelector('span');
+      const titleBottom=title?.querySelector('strong');
+      if(titleTop)titleTop.textContent='Before you buy.';
+      if(titleBottom)titleBottom.textContent='Know Why.';
 
-    const lead=copy.querySelector('.decision-lead');
-    if(lead)lead.textContent='FlipForge turns sports-card data into one clear next move—BUY, WATCH, VERIFY, or PASS—before you spend.';
+      const lead=copy.querySelector('.decision-lead');
+      if(lead)lead.textContent='FlipForge is Card Decision Intelligence™ for sports cards—turning exact identity, qualified evidence, supported value, risk, and market context into an explainable BUY, WATCH, VERIFY, or PASS decision.';
 
-    const cue=copy.querySelector('.decision-demo-cue');
-    if(cue)cue.innerHTML='<strong>Before you buy. Know Why.</strong> FlipForge checks the exact card, challenges weak comps, weighs the deal, and shows why the decision changed.';
+      const cue=copy.querySelector('.decision-demo-cue');
+      if(cue)cue.innerHTML='<strong>Other tools show you data.</strong> FlipForge helps you decide what to do with it—and shows the reason trail behind the call.';
 
-    const actions=copy.querySelector('.decision-actions');
-    if(actions&&!actions.querySelector('[data-ff-cdi-primary]')){
-      const primary=document.createElement('a');
-      primary.className='decision-button decision-button-primary';
-      primary.href='decision-intelligence.html';
-      primary.dataset.ffCdiPrimary='true';
-      primary.textContent='Why FlipForge Is Different';
-      actions.insertBefore(primary,actions.firstChild);
+      const actions=copy.querySelector('.decision-actions');
+      if(actions&&!actions.querySelector('[data-ff-cdi-primary]')){
+        const primary=document.createElement('a');
+        primary.className='decision-button decision-button-primary';
+        primary.href='decision-intelligence.html';
+        primary.dataset.ffCdiPrimary='true';
+        primary.textContent='Explore Decision Intelligence';
+        actions.insertBefore(primary,actions.firstChild);
+      }
+
+      const assurance=copy.querySelector('.decision-assurance');
+      if(assurance)assurance.textContent='Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome.';
     }
 
-    const assurance=copy.querySelector('.decision-assurance');
-    if(assurance)assurance.textContent='The missing layer between card data and card decisions.';
+    const resultStage=document.querySelector('[data-ff-result-stage]');
+    if(resultStage&&!resultStage.querySelector('[data-ff-cdi-reveal]')){
+      const reasons=resultStage.querySelector('.ff-deal-reasons');
+      const reveal=document.createElement('div');
+      reveal.className='ff-cdi-reveal';
+      reveal.dataset.ffCdiReveal='true';
+      reveal.innerHTML='<small>YOU JUST USED CARD DECISION INTELLIGENCE™</small><h3>FlipForge did more than find a different price.</h3><p>It confirmed the exact card, rejected weak evidence, rebuilt supported value, exposed uncertainty, and returned a decision with a reason trail you can inspect.</p>';
+      if(reasons)reasons.insertAdjacentElement('afterend',reveal);else resultStage.appendChild(reveal);
+    }
 
-    if(document.querySelector('[data-ff-cdi-moat]'))return;
+    if(!document.querySelector('[data-ff-cdi-home]')){
+      const hero=document.querySelector('.decision-hero');
+      if(hero){
+        const section=document.createElement('section');
+        section.className='ff-cdi-home';
+        section.dataset.ffCdiHome='true';
+        section.setAttribute('aria-labelledby','ff-cdi-home-title');
+        section.innerHTML=cdiHomeMarkup().replace('<h2>','<h2 id="ff-cdi-home-title">');
+        hero.insertAdjacentElement('afterend',section);
+      }
+    }
 
-    const section=document.createElement('section');
-    section.className='ff-cdi-moat';
-    section.dataset.ffCdiMoat='true';
-    section.setAttribute('aria-labelledby','ff-cdi-moat-title');
-    section.innerHTML=`
-      <div class="ff-cdi-moat-inner">
-        <div class="ff-cdi-moat-head">
-          <p class="ff-cdi-moat-kicker">THE FLIPFORGE DIFFERENCE</p>
-          <h2 id="ff-cdi-moat-title">Most card tools stop at data. FlipForge keeps going.</h2>
-          <p>Listings tell you what someone is asking. Sales history tells you what happened. Charts show movement. FlipForge helps answer the question that actually costs money: <strong>What should I do?</strong></p>
-        </div>
-
-        <div class="ff-cdi-category-grid" aria-label="How FlipForge differs from common card tools">
-          <article><span>MARKETPLACES</span><h3>What is for sale?</h3><p>Useful for finding cards. Not a decision.</p></article>
-          <article><span>PRICE + COMP TOOLS</span><h3>What has it sold for?</h3><p>Useful context. Still not a decision.</p></article>
-          <article><span>MARKET ANALYTICS</span><h3>How is the market moving?</h3><p>Useful signal. Still not a decision.</p></article>
-          <article class="is-flipforge"><span>FLIPFORGE</span><h3>What does the evidence support?</h3><p>Then: BUY, WATCH, VERIFY, or PASS—and why.</p></article>
-        </div>
-
-        <div class="ff-cdi-path-head">
-          <p class="ff-cdi-moat-kicker">CARD DECISION INTELLIGENCE™</p>
-          <h2>From card data to a decision you can explain.</h2>
-        </div>
-
-        <div class="ff-cdi-path">
-          <article><b>01</b><div><h3>Know the exact card.</h3><p>Wrong parallel, grade, or variation can make the whole comparison meaningless.</p></div></article>
-          <article><b>02</b><div><h3>Challenge the evidence.</h3><p>FlipForge does not let every comp count just because it looks similar.</p></div></article>
-          <article><b>03</b><div><h3>Weigh the deal.</h3><p>Price only matters after the evidence and risk are put in context.</p></div></article>
-          <article><b>04</b><div><h3>Make the call.</h3><p>BUY, WATCH, VERIFY, or PASS—with the strongest reasons visible.</p></div></article>
-        </div>
-
-        <div class="ff-cdi-moat-bottom">
-          <div><span>CARD DECISION INTELLIGENCE™</span><strong>Not another price tracker. A decision system for collectors.</strong></div>
-          <div class="ff-cdi-moat-actions">
-            <a class="decision-button decision-button-primary" href="decision-intelligence.html">See How It Works</a>
-            <a class="decision-button decision-button-secondary" href="beta-application.html">Request Beta Access</a>
-          </div>
-        </div>
-      </div>`;
-
-    hero.insertAdjacentElement('afterend',section);
+    if(window.location.pathname==='/index.html')window.history.replaceState(null,'',`/${window.location.search}${window.location.hash}`);
   };
 
   const enforceReadabilityFloor=()=>{
