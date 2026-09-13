@@ -24,7 +24,7 @@ permissions:
 jobs:
   marketing-governance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -57,3 +57,17 @@ jobs:
           grep -q 'Identity Intelligence' marketing-preview/card-decision-intelligence/index.html
           grep -q 'Outcome Intelligence' marketing-preview/card-decision-intelligence/index.html
           grep -q '24% off can become 2.3%' marketing-preview/campaigns/deal-or-decoy/index.html
+      - name: Install Chromium for rendered marketing QA
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Audit marketing previews at desktop and mobile widths
+        run: node scripts/marketing/audit-marketing-preview-ci.mjs
+      - name: Retain marketing QA evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: flipforge-marketing-system-qa
+          path: qa-artifacts/marketing-system
+          if-no-files-found: warn
+          retention-days: 14
