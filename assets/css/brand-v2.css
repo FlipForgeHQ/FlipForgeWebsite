@@ -4,11 +4,13 @@
 @font-face{font-family:Geist;src:url("../fonts/geist-latin-wght-normal.woff2") format("woff2");font-style:normal;font-weight:100 900;font-display:swap}
 html,body,button,input,select,textarea{font-family:Geist,"Geist Sans",Arial,sans-serif}
 
-/* Non-home pages use the shared public shell. The brand lockup itself is Home. */
+/* Non-home pages use the shared public shell. The brand lockup itself is Home.
+ * The generated HOME marker remains in source for legacy contract compatibility;
+ * public-shell-contract-v1.css suppresses it visually and accessibly. */
 .site-header .brand{display:flex;width:auto;min-width:0;padding:5px 0;align-items:center;gap:10px;text-decoration:none}
 .site-header .brand .brand-lockup{display:block;width:258px;height:auto;flex:0 0 auto;filter:drop-shadow(0 6px 14px rgba(0,0,0,.42))}
 .site-header .brand>span{display:none}
-.site-header .brand::after{content:none;display:none}
+.site-header .brand::after{content:"HOME";display:none!important}
 .footer .brand{display:block;width:min(270px,100%)}
 .footer .brand .brand-lockup{display:block;width:100%;height:auto}
 .footer .brand::after{content:none}
