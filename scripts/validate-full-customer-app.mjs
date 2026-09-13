@@ -21,6 +21,7 @@ const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
 const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
+const productionLoginRedirect = read("saas-prototype/production-identity-login-redirect.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 
 check(redirects.includes("/app/customer /saas-prototype/index.html 200"),
@@ -97,7 +98,18 @@ check(cockpitFinalUx.includes('if (accountName && !customer) accountName.textCon
 check(cockpitFinalUx.includes('profileMode.textContent = customer ? "Customer" : "Preview"'),
   "legacy cockpit preserves customer account mode");
 
-check(authProbe.includes('resolved.pathname === "/app/customer/"'),
+check(productionLoginRedirect.includes('a[href^="/production-auth.html"]'),
+  "production sign-in interceptor covers feature-level auth links");
+check(productionLoginRedirect.includes('const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`'),
+  "production sign-in preserves the active customer pathname query and route");
+check(productionLoginRedirect.includes('pathname === "/app/customer" ? "/app/customer/"'),
+  "customer no-slash sign-in normalizes to the full customer route");
+check(productionLoginRedirect.includes('if (!launcher && !authLink) return;'),
+  "production sign-in interceptor handles both launcher and feature auth links");
+
+check(authProbe.includes('resolved.pathname === "/app/customer" ? "/app/customer/"'),
+  "production auth normalizes the no-slash customer return path");
+check(authProbe.includes('normalizedPath === "/app/customer/"'),
   "production sign-in may return authenticated users to the full customer app");
 check(authProbe.includes('resolved.origin !== window.location.origin || !pathAllowed'),
   "customer auth return remains same-origin and allowlisted");
