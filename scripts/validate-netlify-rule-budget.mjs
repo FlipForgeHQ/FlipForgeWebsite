@@ -10,7 +10,10 @@ const activeRules = redirects
 
 const expectedRules = [
   "/app /saas-prototype/index.html 200",
-  "/app/* /saas-prototype/:splat 200"
+  "/app/* /saas-prototype/:splat 200",
+  "/customer-app /customer-app/ 301",
+  "/customer-app/ /saas-prototype/index.html 200",
+  "/customer-app/* /saas-prototype/:splat 200"
 ];
 
 const failures = [];
@@ -18,11 +21,14 @@ const check = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-check(activeRules.length === 2, `expected exactly 2 active Netlify redirect rules, found ${activeRules.length}`);
-check(activeRules[0] === expectedRules[0], "canonical /app rewrite is missing or out of order");
-check(activeRules[1] === expectedRules[1], "wildcard /app/* rewrite is missing or out of order");
+check(activeRules.length === expectedRules.length,
+  `expected exactly ${expectedRules.length} active Netlify redirect rules, found ${activeRules.length}`);
+expectedRules.forEach((rule, index) => {
+  check(activeRules[index] === rule, `redirect rule ${index + 1} is missing or out of order: ${rule}`);
+});
 check(!activeRules.some(rule => rule.includes("/api/ebay/privacy")), "eBay privacy must not consume a redirect rule");
 check(!activeRules.some(rule => rule.startsWith("/app/ ")), "redundant /app/ rewrite must remain removed");
+check(!activeRules.some(rule => rule.startsWith("/customer-app//")), "customer app route must not contain duplicate slash rules");
 check(ebayPrivacy.includes('path: "/api/ebay/privacy"'), "eBay privacy function must own /api/ebay/privacy through native function routing");
 check(ebayPrivacy.includes("export default async function ebayPrivacy"), "eBay privacy must use the modern Netlify function request/response contract");
 
