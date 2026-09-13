@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "brandName": "FLIPFORGE",
+  "descriptor": "CARD DECISION INTELLIGENCE",
+  "category": "Card Decision Intelligence™",
+  "slogan": "Before you buy. Know Why.",
+  "primaryLogo": "/assets/brand/flipforge-logo-horizontal.svg",
+  "stackedLogo": "/assets/brand/flipforge-logo-stacked.svg",
+  "mark": "/assets/brand/flipforge-mark.svg",
+  "palette": {
+    "black": "#030812",
+    "panel": "#0A101C",
+    "gold": "#D7B56D",
+    "goldSoft": "#F0D9A2",
+    "white": "#F7F7F4",
+    "muted": "#A6AFBE",
+    "line": "#263244"
+  },
+  "publicPosition": "A trusted intelligence layer for sports-card decisions.",
+  "internalStrategicAnalogy": "Bloomberg of sports cards",
+  "publicUseOfInternalAnalogy": false,
+  "decisionStates": ["BUY", "WATCH", "VERIFY", "PASS"],
+  "locked": true
+}
