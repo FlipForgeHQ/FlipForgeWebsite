@@ -14,8 +14,10 @@
       const url=value instanceof Element&&value.tagName==='A'
         ?new URL(value.getAttribute('href')||value.href,window.location.href)
         :new URL(String(value||''),window.location.href);
-      let route=url.pathname.replace(/\/+$/,'')||'/';
-      if(route==='/index.html')route='/';
+      let route=url.pathname
+        .replace(/\/index\.html$/,'/')
+        .replace(/\.html$/,'')
+        .replace(/\/+$/,'')||'/';
       return route;
     }catch{return '';}
   };
@@ -70,7 +72,7 @@
     const configureNav=(nav,{mobile=false}={})=>{
       if(!nav)return;
       dedupeRouteLinks(nav);
-      const product=[...nav.querySelectorAll('a[href]')].find(link=>['/product.html','/product'].includes(normalizeRoutePath(link)));
+      const product=[...nav.querySelectorAll('a[href]')].find(link=>normalizeRoutePath(link)==='/product');
       if(product)product.textContent='How It Works';
 
       const decision=ensureLink(nav,{

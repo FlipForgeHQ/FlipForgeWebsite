@@ -1,6 +1,6 @@
 /* FlipForge public typography contract v1 — authoritative semantic scale.
- * Same role = same scale across Home, Product, Evidence Lab, Launch Plans,
- * About, Beta, FAQ, and standard public support pages.
+ * Same role = same scale across Home, Product, Decision Intelligence, Evidence Lab,
+ * Launch Plans, About, Beta, FAQ, and standard public support pages.
  * The authenticated SaaS app intentionally keeps its denser workspace scale.
  *
  * IMPORTANT: public page-specific styles may control layout/composition, but this
@@ -26,6 +26,15 @@ html body .decision-nav-links{
   font-size:var(--ff-type-nav)!important;
 }
 
+/* Last-resort visual guard while cached homepage runtimes upgrade: never render
+ * duplicate Decision Intelligence entries in the same navigation row. */
+html body .decision-nav-links>a[href$="decision-intelligence.html"]~a[href$="decision-intelligence.html"],
+html body .decision-nav-links>a[href$="/decision-intelligence"]~a[href$="/decision-intelligence"],
+html body .decision-nav-links>a[href$="decision-intelligence.html"]~a[href$="/decision-intelligence"],
+html body .decision-nav-links>a[href$="/decision-intelligence"]~a[href$="decision-intelligence.html"]{
+  display:none!important;
+}
+
 /* Homepage display — intentionally only one step larger than internal page titles. */
 html body main#main .decision-hero h1 span,
 html body main#main .decision-hero h1 strong,
@@ -40,7 +49,8 @@ html body.ff-marketing-page-v3 main#main .page-hero h1,
 html body.ff-support-v3 main#main .page-hero h1,
 html body.ff-marketing-page-v3 main#main>section.page-hero h1,
 html body.ff-support-v3 main#main>section.page-hero h1,
-html body.ff-aw-page main#main .page-hero h1{
+html body.ff-aw-page main#main .page-hero h1,
+html body.ff-dic-page main#main .ff-dic-heading h1{
   font-size:var(--ff-type-page-title)!important;
   line-height:1.04!important;
   letter-spacing:-.04em!important;
@@ -59,7 +69,12 @@ html body.ff-marketing-v3 main#main .ff-validation-head h2,
 html body.ff-marketing-v3 main#main .ff-audience-head h2,
 html body.ff-marketing-v3 main#main .ff-home-workflow-head h2,
 html body.ff-marketing-v3 main#main .ff-final-cta h2,
-html body.ff-marketing-v3 main#main .ff-marketing-section .ff-section-intro h2{
+html body.ff-marketing-v3 main#main .ff-marketing-section .ff-section-intro h2,
+html body main#main .ff-cdi-home h2,
+html body.ff-dic-page main#main .ff-dic-demo-heading h2,
+html body.ff-dic-page main#main .ff-dic-simple-head h2,
+html body.ff-dic-page main#main .ff-dic-final h2,
+html body.ff-dic-page main#main .ff-dic-inline-final h2{
   font-size:var(--ff-type-section-title)!important;
   line-height:1.09!important;
   letter-spacing:-.025em!important;
@@ -76,7 +91,10 @@ html body.ff-marketing-page-v3 main#main .ff-mission-card h2{
 html body.ff-support-v3 main#main .ff-lab-card h3,
 html body.ff-support-v3 main#main .ff-lab-proof h3,
 html body.ff-marketing-page-v3 main#main .ff-principle-card h3,
-html body.ff-marketing-page-v3 main#main .ff-about-proof h3{
+html body.ff-marketing-page-v3 main#main .ff-about-proof h3,
+html body.ff-dic-page main#main .ff-dic-category strong,
+html body.ff-dic-page main#main .ff-dic-seven-simple h3,
+html body.ff-dic-page main#main .ff-dic-three h3{
   font-size:var(--ff-type-card-title)!important;
   line-height:1.22!important;
 }
@@ -86,16 +104,27 @@ html body.ff-marketing-v3 main#main .lead,
 html body.ff-marketing-page-v3 main#main .lead,
 html body.ff-support-v3 main#main .lead,
 html body.ff-aw-page main#main .page-hero .lead,
-html body main#main .decision-lead{
+html body main#main .decision-lead,
+html body.ff-dic-page main#main .ff-dic-heading .lead{
   font-size:var(--ff-type-lead)!important;
   line-height:1.55!important;
 }
 
 html body.ff-marketing-v3 main#main .section-copy,
 html body.ff-marketing-page-v3 main#main .section-copy,
-html body.ff-support-v3 main#main .section-copy{
+html body.ff-support-v3 main#main .section-copy,
+html body.ff-dic-page main#main .ff-dic-simple-head p,
+html body.ff-dic-page main#main .ff-dic-story-copy,
+html body.ff-dic-page main#main .ff-dic-final p{
   font-size:var(--ff-type-body)!important;
   line-height:1.58!important;
+}
+
+/* Decision Intelligence's illustrative percentage is a data callout, not a page
+ * title. Keep it strong without letting it dominate the hierarchy. */
+html body.ff-dic-page main#main .ff-dic-big{
+  font-size:clamp(52px,6vw,72px)!important;
+  line-height:.92!important;
 }
 
 @media(max-width:700px){
@@ -106,5 +135,9 @@ html body.ff-support-v3 main#main .section-copy{
     --ff-type-subsection-title:clamp(20px,6vw,24px);
     --ff-type-lead:16px;
     --ff-type-body:15px;
+  }
+
+  html body.ff-dic-page main#main .ff-dic-big{
+    font-size:52px!important;
   }
 }
