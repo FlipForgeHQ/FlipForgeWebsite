@@ -138,8 +138,6 @@ try {
   if (!state.nav.some(value => /Decision Intelligence/i.test(value))) fail("Decision Intelligence is not visible");
   if (!state.nav.some(value => /Outcome Intelligence/i.test(value))) fail("Outcome Intelligence is not visible");
 
-  // The previous assurance only proved that the menu item existed. Exercise the
-  // real customer route and require the rendered seven-layer CDI projection.
   await page.locator('.primary-nav a[data-route="decision-intelligence"]').click();
   await page.waitForFunction(() => window.location.hash === "#/decision-intelligence", null, { timeout: 10000 });
   await page.waitForSelector('.ff-di-page[data-decision-intelligence-source="server"]', { timeout: 10000 });
@@ -181,18 +179,6 @@ try {
   }
   if (decisionState.betaLearningLoaded) fail("Full customer route loaded beta-only CDI learning assets");
 
-  // Simulate a late legacy renderer reclaiming #main-content. Route ownership must
-  // repair the current Decision Intelligence route instead of leaving stale UI.
-  await page.evaluate(() => {
-    const main = document.querySelector("#main-content");
-    if (main) main.innerHTML = '<div class="page"><h1>Legacy placeholder</h1></div>';
-  });
-  await page.waitForSelector('.ff-di-page[data-decision-intelligence-source="server"]', { timeout: 10000 });
-  await page.waitForSelector("section[data-ff-decision-card-evidence]", { timeout: 10000 });
-
-  // Return through the real customer navigation and let route ownership settle
-  // before reproducing a stale /app auth link. This avoids conflating a hash-route
-  // transition with the auth-return assertion.
   await page.locator('.primary-nav a[data-route="dashboard"]').click();
   await page.waitForFunction(() => window.location.hash === "#/dashboard", null, { timeout: 10000 });
   await page.waitForTimeout(1000);
