@@ -10,7 +10,7 @@ const activeRules = redirects
 
 const expectedRules = [
   "/app /saas-prototype/index.html 200",
-  "/app/customer /app/customer/ 301",
+  "/app/customer /saas-prototype/index.html 200",
   "/app/customer/ /saas-prototype/index.html 200",
   "/app/customer/* /saas-prototype/:splat 200",
   "/app/* /saas-prototype/:splat 200"
@@ -29,6 +29,8 @@ expectedRules.forEach((rule, index) => {
 check(!activeRules.some(rule => rule.includes("/api/ebay/privacy")), "eBay privacy must not consume a redirect rule");
 check(!activeRules.some(rule => rule.startsWith("/app/ ")), "redundant /app/ rewrite must remain removed");
 check(!activeRules.some(rule => rule.startsWith("/app/customer//")), "customer app route must not contain duplicate slash rules");
+check(!activeRules.some(rule => /\/app\/customer\/?\s+\/app\/customer\/?\s+30[1278]/.test(rule)),
+  "customer app must not use a canonical redirect that can loop with host path normalization");
 check(activeRules.indexOf("/app/customer/* /saas-prototype/:splat 200") < activeRules.indexOf("/app/* /saas-prototype/:splat 200"),
   "customer app wildcard must precede the generic app wildcard");
 check(ebayPrivacy.includes('path: "/api/ebay/privacy"'), "eBay privacy function must own /api/ebay/privacy through native function routing");
