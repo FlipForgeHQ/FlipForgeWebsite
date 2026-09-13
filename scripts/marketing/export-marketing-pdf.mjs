@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import http from "node:http";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
@@ -21,14 +22,52 @@ try {
   process.exit(1);
 }
 
+const contentTypes = {
+  ".html":"text/html; charset=utf-8",
+  ".css":"text/css; charset=utf-8",
+  ".js":"text/javascript; charset=utf-8",
+  ".json":"application/json; charset=utf-8",
+  ".svg":"image/svg+xml",
+  ".png":"image/png",
+  ".jpg":"image/jpeg",
+  ".jpeg":"image/jpeg",
+  ".webp":"image/webp"
+};
+
+const server = http.createServer((request,response)=>{
+  try {
+    const url = new URL(request.url || "/", "http://127.0.0.1");
+    let relative = decodeURIComponent(url.pathname).replace(/^\/+/, "");
+    if (!relative || relative.endsWith("/")) relative += "index.html";
+    const target = path.resolve(root, relative);
+    if (!target.startsWith(root + path.sep) || !fs.existsSync(target) || !fs.statSync(target).isFile()) {
+      response.writeHead(404,{"content-type":"text/plain; charset=utf-8"});
+      response.end("Not found");
+      return;
+    }
+    response.writeHead(200,{"content-type":contentTypes[path.extname(target).toLowerCase()] || "application/octet-stream"});
+    fs.createReadStream(target).pipe(response);
+  } catch {
+    response.writeHead(500,{"content-type":"text/plain; charset=utf-8"});
+    response.end("Export server error");
+  }
+});
+
+await new Promise((resolve,reject)=>{
+  server.once("error",reject);
+  server.listen(0,"127.0.0.1",resolve);
+});
+const address = server.address();
+if (!address || typeof address === "string") throw new Error("Could not start local marketing export server.");
+const baseUrl = `http://127.0.0.1:${address.port}`;
+
 const outputDir = path.join(root,"marketing/exports");
 fs.mkdirSync(outputDir,{recursive:true});
 const browser = await playwright.chromium.launch({headless:true});
 try {
   for (const doc of docs) {
     const page = await browser.newPage({viewport:{width:1440,height:1100},deviceScaleFactor:1});
-    const file = path.join(root,"marketing/generated",`${doc.slug}.html`);
-    await page.goto(`file://${file}`,{waitUntil:"load"});
+    await page.goto(`${baseUrl}/marketing-preview/${encodeURIComponent(doc.slug)}/`,{waitUntil:"networkidle"});
     await page.emulateMedia({media:"print"});
     await page.pdf({
       path:path.join(outputDir,`${doc.slug}.pdf`),
@@ -43,4 +82,5 @@ try {
   }
 } finally {
   await browser.close();
+  await new Promise(resolve=>server.close(resolve));
 }
