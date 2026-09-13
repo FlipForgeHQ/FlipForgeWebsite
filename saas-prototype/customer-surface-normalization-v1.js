@@ -10,10 +10,13 @@
     ["Private Beta", "Early Access"],
     ["Private beta", "Early access"],
     ["private beta", "early access"],
+    ["Private-beta", "Early-access"],
     ["private-beta", "early-access"],
     ["Beta Invitation", "Invitation"],
     ["Unlimited during beta", "No monthly cap"],
     ["Unlimited beta", "No monthly cap"],
+    ["Paid checkout, plan changes, and customer portal controls are intentionally deferred until Core Platform Beta Complete.", "Paid checkout, plan changes, and customer portal controls are not available yet."],
+    ["Private-beta access remains unchanged.", "Current access remains unchanged."],
     ["Checkout deferred until Beta Complete", "Checkout not available yet"],
     ["Deferred by core-platform launch gate", "Not available yet"],
     ["Checkout unavailable in early access", "Checkout not available yet"],
@@ -23,7 +26,8 @@
     ["Plan details are informational during early access.", "Plan details are informational."],
     ["Billing launch resumes only after the core customer product reaches Beta Complete.", "Billing will open after launch readiness review."],
     ["These tiers remain informational during the core-platform completion sprint.", "Plan details are informational until billing is enabled."],
-    ["Sign in with an invited FlipForge early-access account.", "Sign in with your invited FlipForge account."]
+    ["Sign in with an invited FlipForge early-access account.", "Sign in with your invited FlipForge account."],
+    ["Beta Complete", "launch readiness"]
   ];
 
   let queued = false;
