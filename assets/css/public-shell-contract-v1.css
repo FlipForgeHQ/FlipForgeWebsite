@@ -1,0 +1,273 @@
+/* FlipForge public shell contract v1 — authoritative header/nav/first-content geometry.
+ * Every public top-navigation destination shares this shell. Page-specific CSS may
+ * own content composition, but it must not move or resize the public chrome.
+ */
+:root{
+  --ff-public-shell-max:1880px;
+  --ff-public-header-height:90px;
+  --ff-public-logo-width:300px;
+  --ff-public-logo-height:70px;
+  --ff-public-nav-gap:clamp(14px,1vw,24px);
+  --ff-public-content-max:1180px;
+}
+
+/* One exact header geometry everywhere. */
+html body .site-header,
+html body .decision-header{
+  position:sticky!important;
+  top:0!important;
+  z-index:100!important;
+  height:var(--ff-public-header-height)!important;
+  min-height:var(--ff-public-header-height)!important;
+  max-height:var(--ff-public-header-height)!important;
+  padding:0!important;
+  background:rgba(0,0,0,.94)!important;
+  border-bottom:1px solid rgba(255,255,255,.10)!important;
+  backdrop-filter:blur(16px)!important;
+}
+html body .site-header .nav,
+html body .decision-header .decision-nav{
+  width:min(var(--ff-public-shell-max),calc(100% - 48px))!important;
+  max-width:none!important;
+  height:var(--ff-public-header-height)!important;
+  min-height:var(--ff-public-header-height)!important;
+  max-height:var(--ff-public-header-height)!important;
+  margin:0 auto!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:24px!important;
+}
+
+/* The logo itself is Home; the logo box is identical on every route. */
+html body .site-header .brand,
+html body .decision-header .decision-brand{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  flex:0 0 var(--ff-public-logo-width)!important;
+  width:var(--ff-public-logo-width)!important;
+  min-width:var(--ff-public-logo-width)!important;
+  max-width:var(--ff-public-logo-width)!important;
+  height:var(--ff-public-logo-height)!important;
+  min-height:var(--ff-public-logo-height)!important;
+  max-height:var(--ff-public-logo-height)!important;
+  padding:0!important;
+  margin:0!important;
+  line-height:0!important;
+  text-decoration:none!important;
+}
+html body .site-header .brand::after{content:none!important;display:none!important}
+html body .site-header .brand .brand-lockup,
+html body .decision-header .decision-brand img{
+  display:block!important;
+  width:var(--ff-public-logo-width)!important;
+  max-width:var(--ff-public-logo-width)!important;
+  height:var(--ff-public-logo-height)!important;
+  max-height:var(--ff-public-logo-height)!important;
+  object-fit:contain!important;
+  object-position:left center!important;
+  flex:0 0 auto!important;
+}
+
+/* Same navigation order, baseline, sizing and hit area everywhere. */
+html body .site-header .desktop-nav,
+html body .decision-header .decision-nav-links{
+  display:flex!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:var(--ff-public-nav-gap)!important;
+  white-space:nowrap!important;
+}
+html body .site-header .desktop-nav a,
+html body .decision-header .decision-nav-links a{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:44px!important;
+  height:44px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#e7eaee!important;
+  font-size:13px!important;
+  font-weight:700!important;
+  line-height:1.2!important;
+  letter-spacing:0!important;
+  text-decoration:none!important;
+  white-space:nowrap!important;
+}
+html body .site-header .desktop-nav a:hover,
+html body .site-header .desktop-nav a:focus-visible,
+html body .site-header .desktop-nav a[aria-current="page"],
+html body .decision-header .decision-nav-links a:hover,
+html body .decision-header .decision-nav-links a:focus-visible,
+html body .decision-header .decision-nav-links a[aria-current="page"]{color:#f0ca58!important}
+html body .site-header .desktop-nav .nav-cta,
+html body .decision-header .decision-nav-links .decision-nav-cta{
+  min-height:44px!important;
+  height:44px!important;
+  padding:0 17px!important;
+  border:1px solid rgba(212,175,55,.58)!important;
+  border-radius:10px!important;
+  background:linear-gradient(180deg,#efb441 0%,#d89a2a 100%)!important;
+  color:#080b10!important;
+  box-shadow:0 10px 28px rgba(212,175,55,.12)!important;
+}
+
+/* Every top-nav destination uses one intro composition. */
+html body.ff-marketing-page-v3 main#main>.page-hero,
+html body.ff-support-v3 main#main>.page-hero,
+html body.ff-aw-page main#main>.page-hero{
+  width:min(var(--ff-public-content-max),calc(100% - 44px))!important;
+  max-width:var(--ff-public-content-max)!important;
+  margin:28px auto 0!important;
+  padding:64px 44px 54px!important;
+}
+html body.ff-dic-page main#main>.ff-dic-hero{padding:28px 22px 42px!important}
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap{
+  width:min(var(--ff-public-content-max),100%)!important;
+  max-width:var(--ff-public-content-max)!important;
+}
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child{
+  position:relative!important;
+  overflow:hidden!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0 0 34px!important;
+  padding:64px 44px 54px!important;
+  border:1px solid rgba(212,175,55,.17)!important;
+  border-radius:24px!important;
+  background:linear-gradient(130deg,rgba(255,255,255,.018),rgba(212,175,55,.035) 55%,transparent)!important;
+  text-align:left!important;
+}
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child h1{
+  max-width:880px!important;
+  margin:0 0 22px!important;
+}
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child .lead{
+  max-width:860px!important;
+  margin:0!important;
+}
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child .ff-dic-hero-actions{justify-content:flex-start!important}
+
+/* One mobile navigation pattern everywhere. */
+html body .menu-toggle{
+  flex:0 0 44px!important;
+  width:44px!important;
+  min-width:44px!important;
+  max-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  margin:0!important;
+}
+html body .mobile-nav{
+  position:fixed!important;
+  z-index:120!important;
+  top:calc(var(--ff-public-header-height) + 10px)!important;
+  right:14px!important;
+  width:min(360px,calc(100vw - 28px))!important;
+  height:auto!important;
+  max-height:calc(100dvh - var(--ff-public-header-height) - 24px)!important;
+  overflow:auto!important;
+  padding:10px!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  border-radius:14px!important;
+  background:rgba(5,10,17,.985)!important;
+  box-shadow:0 24px 60px rgba(0,0,0,.5)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  transform:translateY(-10px) scale(.98)!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s!important;
+}
+html body .mobile-nav.open{
+  transform:none!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transition-delay:0s!important;
+}
+html body .mobile-nav a{
+  display:flex!important;
+  align-items:center!important;
+  min-height:46px!important;
+  padding:0 14px!important;
+  border:0!important;
+  border-radius:9px!important;
+  color:#eef1f5!important;
+  font-size:15px!important;
+  font-weight:700!important;
+  text-decoration:none!important;
+}
+html body .mobile-nav a:hover,
+html body .mobile-nav a:focus-visible,
+html body .mobile-nav a[aria-current="page"]{
+  background:rgba(212,175,55,.09)!important;
+  color:#f0ca58!important;
+}
+html body .backdrop{
+  position:fixed!important;
+  z-index:110!important;
+  inset:0!important;
+  background:rgba(0,0,0,.58)!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  display:block!important;
+}
+html body .backdrop.open{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+
+@media(max-width:1120px){
+  :root{
+    --ff-public-header-height:76px;
+    --ff-public-logo-width:250px;
+    --ff-public-logo-height:58px;
+  }
+  html body .site-header .desktop-nav,
+  html body .decision-header .decision-nav-links{display:none!important}
+  html body .menu-toggle{display:block!important}
+  html body .site-header .nav,
+  html body .decision-header .decision-nav{width:calc(100% - 32px)!important;gap:16px!important}
+}
+@media(min-width:1121px){
+  html body .menu-toggle{display:none!important}
+  html body .mobile-nav,
+  html body .backdrop{display:none!important}
+}
+@media(max-width:700px){
+  :root{
+    --ff-public-header-height:72px;
+    --ff-public-logo-width:220px;
+    --ff-public-logo-height:52px;
+  }
+  html body .site-header .nav,
+  html body .decision-header .decision-nav{width:calc(100% - 28px)!important}
+  html body.ff-marketing-page-v3 main#main>.page-hero,
+  html body.ff-support-v3 main#main>.page-hero,
+  html body.ff-aw-page main#main>.page-hero{
+    width:calc(100% - 24px)!important;
+    margin:16px auto 0!important;
+    padding:40px 22px 38px!important;
+  }
+  html body.ff-dic-page main#main>.ff-dic-hero{padding:16px 12px 30px!important}
+  html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child{
+    margin-bottom:24px!important;
+    padding:40px 22px 38px!important;
+  }
+  html body .mobile-nav{top:82px!important}
+}
+@media(max-width:390px){
+  :root{
+    --ff-public-logo-width:196px;
+    --ff-public-logo-height:46px;
+  }
+}
+@media(prefers-reduced-motion:reduce){html body .mobile-nav{transition:none!important}}
