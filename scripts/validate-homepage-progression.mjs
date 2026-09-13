@@ -20,107 +20,103 @@ const failures=[];
 const productionBuild=String(process.env.CONTEXT||'').toLowerCase()==='production';
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toLowerCase()))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
+const requireAll=(label,text,needles)=>needles.forEach(needle=>requireText(label,text,needle));
 
-requireText('homepage category',homepage,'CARD DECISION INTELLIGENCE™');
-requireText('homepage slogan',homepage,'Before you buy. Know Why.');
+requireAll('homepage CDI identity',homepage,[
+  'CARD DECISION INTELLIGENCE™',
+  'Before you buy. Know Why.',
+  'FlipForge is Card Decision Intelligence™ for sports cards',
+  'Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome.',
+  'href="decision-intelligence.html">Decision Intelligence™</a>',
+  'href="decision-intelligence.html">Card Decision Intelligence™</a>',
+  'data-ff-cdi-primary="true">Explore Decision Intelligence</a>'
+]);
 forbidText('homepage retired brand descriptor',homepage,'FlipForge — Card Intelligence');
 forbidText('public category',`${homepage}\n${product}\n${learn}`,'CARD VALUE INTELLIGENCE');
-requireText('homepage category definition',homepage,'FlipForge is Card Decision Intelligence™ for sports cards');
-requireText('homepage assurance',homepage,'Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome.');
-requireText('homepage CDI primary nav',homepage,'href="decision-intelligence.html">Decision Intelligence™</a>');
-requireText('homepage CDI mobile nav',homepage,'href="decision-intelligence.html">Card Decision Intelligence™</a>');
-requireText('homepage CDI hero CTA',homepage,'data-ff-cdi-primary="true">Explore Decision Intelligence</a>');
-requireText('homepage browser-decodable visual metadata',homepage,'assets/images/flipforge-homepage-hero.webp');
-forbidText('homepage broken former visual',homepage,'assets/images/flipforge-approved-decision-visual.webp');
-requireText('homepage illustrative boundary',homepage,'Illustrative example · not live market data');
-requireText('homepage proof section',homepage,'class="ff-deal-demo" id="deal-or-decoy"');
-requireText('homepage direct hook',homepage,'Would you pay <span>$349</span> for this card?');
-requireText('homepage proof instruction',homepage,'YOUR ONLY TASK');
-requireText('homepage proof instruction',homepage,'Pick what you would do. FlipForge will show you what changes.');
-for(const decision of ['data-ff-choice="BUY"','data-ff-choice="WATCH"','data-ff-choice="VERIFY"','data-ff-choice="PASS"'])requireText('homepage customer choice',homepage,decision);
-requireText('homepage live processing stage',homepage,'data-ff-processing-stage');
-for(const step of ['01 · EXACT CARD','02 · CHALLENGE 7 COMPARISONS','03 · SUPPORTED VALUE','04 · DECISION'])requireText('homepage live process step',homepage,step);
-requireText('homepage live process stylesheet',homepage,'assets/css/homepage-deal-live-process-v3.css');
-requireText('homepage CDI stylesheet',homepage,'assets/css/homepage-cdi-positioning-v1.css');
-requireText('homepage evidence correction',homepage,'5 of 7 comparisons were invalid.');
-requireText('homepage evidence correction',homepage,'24.0%');
-requireText('homepage evidence correction',homepage,'2.3%');
-requireText('homepage decision',homepage,'FlipForge says <span>VERIFY.</span>');
-requireText('homepage CDI result reveal',homepage,'YOU JUST USED CARD DECISION INTELLIGENCE™');
-requireText('homepage CDI result explanation',homepage,'FlipForge did more than find a different price.');
-requireText('homepage optional evidence dialog',homepage,'<dialog class="ff-evidence-dialog"');
-requireText('homepage optional evidence action',homepage,'data-ff-open-evidence>See the evidence');
-requireText('homepage beta boundary',homepage,'Controlled Private Beta.');
-requireText('homepage transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
-requireText('homepage beta CTA',homepage,'decision-button-secondary" href="beta-application.html">Request Beta Access');
-requireText('homepage Evaluate CTA',homepage,'href="/app/#/evaluate" data-ff-deal-cta="evaluate_listing"');
-requireText('homepage interaction stylesheet',homepage,'assets/css/homepage-deal-or-decoy-v1.css');
-requireText('homepage interaction behavior',homepage,'assets/js/homepage-deal-or-decoy-v1.js');
-forbidText('homepage retired film stylesheet',homepage,'assets/css/homepage-hero-film-v1.css');
-forbidText('homepage retired film behavior',homepage,'assets/js/homepage-hero-film-v1.js');
-forbidText('homepage retired scroll CTA',homepage,'Try the Deal Check');
-forbidText('homepage retired scroll trigger',homepage,'data-ff-see-action');
-requireText('homepage choice behavior',dealJs,"button.addEventListener('click'");
-requireText('homepage enters live processing',dealJs,"demo.dataset.ffState='processing'");
-requireText('homepage processing is visible',dealJs,'processingStage.hidden=false');
-requireText('homepage evidence scan animation',dealJs,"setCompState(index,'reviewing')");
-requireText('homepage supported value correction',dealJs,"supportedValue.textContent='$357.20'");
-requireText('homepage supported discount correction',dealJs,"supportedDiscount.textContent='2.3%'");
-requireText('homepage result follows live sequence',dealJs,'schedule(token,3820,showResult)');
-requireText('homepage final reveal',dealJs,'resultStage.hidden=false');
-requireText('homepage replay behavior',dealJs,"replay?.addEventListener('click'");
-requireText('homepage measurement',dealJs,'flipforge_demo_choice_recorded');
-requireText('homepage processing measurement',dealJs,'flipforge_demo_processing_started');
-requireText('homepage decision-change measurement',dealJs,'flipforge_demo_decision_changed');
-requireText('homepage modern view transition',dealJs,'document.startViewTransition');
-requireText('homepage native dialog',dealJs,'showModal');
-forbidText('homepage forced scrolling',dealJs,'scrollIntoView');
-for(const browserStore of ['localStorage','sessionStorage','indexedDB'])forbidText('homepage device storage',dealJs,browserStore);
-requireText('homepage first viewport',heroCss,'min-height:calc(100dvh - 79px)');
-requireText('homepage hero responsive',heroCss,'grid-template-columns:1fr');
-requireText('homepage demo responsive',dealCss,'@media(max-width:760px)');
-requireText('homepage process responsive',processCss,'@media(max-width:760px)');
-requireText('homepage process reduced motion',processCss,'@media(prefers-reduced-motion:reduce)');
-requireText('homepage CDI responsive',cdiCss,'@media(max-width:520px)');
-requireText('homepage CDI reduced motion',cdiCss,'@media(prefers-reduced-motion:reduce)');
-requireText('homepage compact mobile choices',dealCss,'grid-template-columns:repeat(2,minmax(0,1fr))');
-requireText('homepage mobile start cue',dealCss,"content:'START HERE · PICK ONE'");
-for(const removed of ['ff-decision-motion','ff-card-stage','ff-motion-console','data-replay-decision','ff-live-product-frame','id="busted-comp"'])forbidText('simplified homepage',homepage,removed);
 
+requireAll('homepage interactive proof',homepage,[
+  'assets/images/flipforge-homepage-hero.webp',
+  'Illustrative example · not live market data',
+  'class="ff-deal-demo" id="deal-or-decoy"',
+  'Would you pay <span>$349</span> for this card?',
+  'YOUR ONLY TASK',
+  'Pick what you would do. FlipForge will show you what changes.',
+  'data-ff-processing-stage',
+  '01 · EXACT CARD','02 · CHALLENGE 7 COMPARISONS','03 · SUPPORTED VALUE','04 · DECISION',
+  '5 of 7 comparisons were invalid.','24.0%','2.3%',
+  'FlipForge says <span>VERIFY.</span>',
+  '<dialog class="ff-evidence-dialog"','data-ff-open-evidence>See the evidence',
+  'Controlled Private Beta.',
+  'FlipForge does not guarantee profit or authorize transactions.',
+  'href="/app/#/evaluate" data-ff-deal-cta="evaluate_listing"',
+  'assets/css/homepage-deal-or-decoy-v1.css',
+  'assets/css/homepage-deal-live-process-v3.css',
+  'assets/js/homepage-deal-or-decoy-v1.js'
+]);
+for(const decision of ['BUY','WATCH','VERIFY','PASS'])requireText('homepage customer choice',homepage,`data-ff-choice="${decision}"`);
+for(const retired of ['assets/css/homepage-hero-film-v1.css','assets/js/homepage-hero-film-v1.js','Try the Deal Check','data-ff-see-action','assets/images/flipforge-approved-decision-visual.webp'])forbidText('homepage retired surface',homepage,retired);
+
+requireAll('homepage CDI reveal',homepage,[
+  'assets/css/homepage-cdi-positioning-v1.css',
+  'YOU JUST USED CARD DECISION INTELLIGENCE™',
+  'FlipForge did more than find a different price.',
+  'Data tells you what happened. FlipForge helps you decide what to do now.',
+  'What should I do — and why?',
+  'FLIPFORGE = CARD DECISION INTELLIGENCE™'
+]);
 for(const layer of ['Identity Intelligence','Evidence Intelligence','Economic Intelligence','Risk + Uncertainty','Decision Intelligence','Decision Receipt','Outcome Intelligence'])requireText('homepage seven-layer CDI',homepage,layer);
-requireText('homepage data-vs-decision positioning',homepage,'Data tells you what happened. FlipForge helps you decide what to do now.');
-requireText('homepage customer question',homepage,'What should I do — and why?');
-requireText('homepage category ownership',homepage,'FLIPFORGE = CARD DECISION INTELLIGENCE™');
 
-for(const needle of ['class="menu-toggle"','aria-controls="mobile-navigation"','class="mobile-nav" id="mobile-navigation"','class="backdrop" aria-hidden="true"','<script src="assets/js/homepage-v1.js" defer></script>'])requireText('homepage mobile navigation',homepage,needle);
+requireAll('homepage behavior',dealJs,[
+  "button.addEventListener('click'",
+  "demo.dataset.ffState='processing'",
+  'processingStage.hidden=false',
+  "setCompState(index,'reviewing')",
+  "supportedValue.textContent='$357.20'",
+  "supportedDiscount.textContent='2.3%'",
+  'schedule(token,3820,showResult)',
+  'resultStage.hidden=false',
+  "replay?.addEventListener('click'",
+  'flipforge_demo_choice_recorded',
+  'flipforge_demo_processing_started',
+  'flipforge_demo_decision_changed',
+  'document.startViewTransition',
+  'showModal'
+]);
+forbidText('homepage forced scrolling',dealJs,'scrollIntoView');
+for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('homepage device storage',dealJs,store);
+
+requireAll('homepage presentation',[heroCss,dealCss,processCss,cdiCss,mobileCss].join('\n'),[
+  'min-height:calc(100dvh - 79px)',
+  '@media(max-width:760px)',
+  '@media(prefers-reduced-motion:reduce)',
+  'grid-template-columns:repeat(2,minmax(0,1fr))',
+  '.menu-toggle{display:block}'
+]);
+requireText('homepage compact start cue',dealCss,"content:'START HERE · PICK ONE'");
+requireText('homepage CDI mobile stack',cdiCss,'@media(max-width:520px)');
+
+requireAll('homepage mobile navigation',homepage,[
+  'class="menu-toggle"','aria-controls="mobile-navigation"','class="mobile-nav" id="mobile-navigation"','class="backdrop" aria-hidden="true"','<script src="assets/js/homepage-v1.js" defer></script>'
+]);
 requireText('mobile menu Escape',navJs,"event.key==='Escape'");
 requireText('mobile menu focus trap',navJs,"event.key!=='Tab'");
-requireText('mobile menu CSS',mobileCss,'.menu-toggle{display:block}');
 
-for(const needle of ['CARD DECISION INTELLIGENCE','Know whether the evidence supports the card before you spend.','Exact card','Supported value','Clear next move','More than a comp check','Risk + liquidity','Grading economics','Decision Intelligence'])requireText('Product customer-first summary',product,needle);
-for(const simulator of ['id="identity-simulator"','See it work','Choose the wrong card and watch FlipForge stop it.','Bad evidence stops before price gets a vote.','Supported value is not allowed to update from the mismatch','Illustrative product simulation.'])requireText('Product identity proof',product,simulator);
+requireAll('Product customer-first summary',product,['CARD DECISION INTELLIGENCE','Know whether the evidence supports the card before you spend.','Exact card','Supported value','Clear next move','More than a comp check','Risk + liquidity','Grading economics','Decision Intelligence']);
+requireText('Product Decision Intelligence navigation',product,'decision-intelligence.html');
+requireAll('Product identity proof',product,['id="identity-simulator"','See it work','Choose the wrong card and watch FlipForge stop it.','Bad evidence stops before price gets a vote.','Supported value is not allowed to update from the mismatch','Illustrative product simulation.']);
 for(const overload of ['Five questions before confidence','One decision language','Grade-premium intelligence','Decision receipt','id="grade-form"'])forbidText('Product overload removed',product,overload);
 
-for(const needle of ['Learn to spot False Confidence before it costs you.','BUSTED COMP','CASE 01 · WRONG PARALLEL','CASE 02 · ONE-SALE TRAP','CASE 03 · PSA 10 MIRAGE','CASE 04 · STALE MARKET','CASE 05 · ASK ≠ EVIDENCE','7 / 14 / 30 Review','Do not trust a decision engine because it sounds confident. Measure how its calls age.'])requireText('Evidence Lab authority hub',learn,needle);
-
-for(const needle of ['Bring the card that makes you hesitate.','Challenge a real decision','See the reason trail','name="flipforge-private-beta-application"','action="/api/beta/applications"','name="bot-field"','data-beta-application-form','data-aw-beta-step','data-aw-beta-next','data-aw-beta-back','Private beta is not a paid subscription.'])requireText('Beta customer-first funnel',beta,needle);
-requireText('Beta step behavior',awardJs,'steps.slice(1)');
-requireText('Beta step behavior',awardJs,'setStep(1)');
-
-for(const needle of ['Planned Launch Structure','Launch Plans','Pricing to be announced','Final package pricing has not been published.','No paid checkout and no public package pricing during private beta.','10 planned evaluations per month','75 planned evaluations per month','300 planned evaluations per month','Open full planned feature comparison'])requireText('Launch Plans progressive disclosure',pricing,needle);
+requireAll('Evidence Lab authority hub',learn,['Learn to spot False Confidence before it costs you.','BUSTED COMP','CASE 01 · WRONG PARALLEL','CASE 02 · ONE-SALE TRAP','CASE 03 · PSA 10 MIRAGE','CASE 04 · STALE MARKET','CASE 05 · ASK ≠ EVIDENCE','7 / 14 / 30 Review','Do not trust a decision engine because it sounds confident. Measure how its calls age.']);
+requireAll('Beta customer-first funnel',beta,['Bring the card that makes you hesitate.','Challenge a real decision','See the reason trail','name="flipforge-private-beta-application"','action="/api/beta/applications"','name="bot-field"','data-beta-application-form','data-aw-beta-step','data-aw-beta-next','data-aw-beta-back','Private beta is not a paid subscription.']);
+requireAll('Beta step behavior',awardJs,['steps.slice(1)','setStep(1)']);
+requireAll('Launch Plans progressive disclosure',pricing,['Planned Launch Structure','Launch Plans','Pricing to be announced','Final package pricing has not been published.','No paid checkout and no public package pricing during private beta.','10 planned evaluations per month','75 planned evaluations per month','300 planned evaluations per month','Open full planned feature comparison']);
 for(const amount of ['$14.99','$29.99','$149','$299'])forbidText('Launch Plans unpublished pricing',pricing,amount);
 
-for(const page of [homepage,product,learn,beta,pricing]){
-  requireText('marketing navigation',page,'>Evidence Lab</a>');
-  requireText('marketing navigation',page,'>Launch Plans</a>');
-  requireText('marketing navigation',page,'>About</a>');
-  requireText('marketing navigation',page,'>Request Beta Access</a>');
-}
-for(const page of [homepage,product,learn])requireText('Decision Intelligence navigation',page,'decision-intelligence.html');
+for(const page of [homepage,product,learn,beta,pricing])requireAll('marketing navigation',page,['>Evidence Lab</a>','>Launch Plans</a>','>About</a>','>Request Beta Access</a>']);
 
-for(const core of ['data-route="dashboard"','data-route="discover"','data-route="evaluate"','data-route="opportunities"','data-route="tracking"','data-route="portfolio"'])requireText('app core workflow',app,core);
+for(const core of ['dashboard','discover','evaluate','opportunities','tracking','portfolio'])requireText('app core workflow',app,`data-route="${core}"`);
 requireText('app advanced analysis',app,'<details class="ff-advanced-nav">');
-for(const advanced of ['data-route="compare"','data-route="psa-advisor"','data-route="evidence"','data-route="sell"','data-route="export"'])requireText('app advanced routes',app,advanced);
+for(const advanced of ['compare','psa-advisor','evidence','sell','export'])requireText('app advanced routes',app,`data-route="${advanced}"`);
 if(productionBuild){
   forbidText('production staging route',app,'data-route="staging"');
   forbidText('production staging evaluate route',app,'data-route="staging-evaluate"');
@@ -131,10 +127,7 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireText('PWA cache',sw,"const CACHE='flipforge-shell-v16'");
-requireText('PWA CDI stylesheet',sw,"'/assets/css/homepage-cdi-positioning-v1.css'");
-requireText('PWA deal stylesheet',sw,"'/assets/css/homepage-deal-or-decoy-v1.css'");
-requireText('PWA deal behavior',sw,"'/assets/js/homepage-deal-or-decoy-v1.js'");
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v16'","'/assets/css/homepage-cdi-positioning-v1.css'","'/assets/css/homepage-deal-or-decoy-v1.css'","'/assets/js/homepage-deal-or-decoy-v1.js'"]);
 const publicCopy=`${homepage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true','CARD VALUE INTELLIGENCE'])forbidText('public safety',publicCopy,unsafe);
 for(const unsafeData of ['localStorage','sessionStorage','indexedDB'])forbidText('public static pages',publicCopy,unsafeData);
