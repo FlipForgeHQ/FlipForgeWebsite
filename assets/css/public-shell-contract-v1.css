@@ -4,19 +4,23 @@
  */
 :root{
   --ff-public-shell-max:1880px;
-  --ff-public-header-height:84px;
+  --ff-public-header-height:90px;
   --ff-public-logo-width:300px;
+  --ff-public-logo-height:70px;
   --ff-public-nav-gap:clamp(14px,1vw,24px);
   --ff-public-content-max:1180px;
 }
 
-/* One header geometry everywhere. */
+/* One exact header geometry everywhere. */
 html body .site-header,
 html body .decision-header{
   position:sticky!important;
   top:0!important;
   z-index:100!important;
+  height:var(--ff-public-header-height)!important;
   min-height:var(--ff-public-header-height)!important;
+  max-height:var(--ff-public-header-height)!important;
+  padding:0!important;
   background:rgba(0,0,0,.94)!important;
   border-bottom:1px solid rgba(255,255,255,.10)!important;
   backdrop-filter:blur(16px)!important;
@@ -25,7 +29,9 @@ html body .site-header .nav,
 html body .decision-header .decision-nav{
   width:min(var(--ff-public-shell-max),calc(100% - 48px))!important;
   max-width:none!important;
+  height:var(--ff-public-header-height)!important;
   min-height:var(--ff-public-header-height)!important;
+  max-height:var(--ff-public-header-height)!important;
   margin:0 auto!important;
   padding:0!important;
   display:flex!important;
@@ -34,26 +40,34 @@ html body .decision-header .decision-nav{
   gap:24px!important;
 }
 
-/* The logo itself is Home. */
+/* The logo itself is Home; the logo box is identical on every route. */
 html body .site-header .brand,
 html body .decision-header .decision-brand{
   display:flex!important;
   align-items:center!important;
+  justify-content:flex-start!important;
   flex:0 0 var(--ff-public-logo-width)!important;
   width:var(--ff-public-logo-width)!important;
   min-width:var(--ff-public-logo-width)!important;
   max-width:var(--ff-public-logo-width)!important;
+  height:var(--ff-public-logo-height)!important;
+  min-height:var(--ff-public-logo-height)!important;
+  max-height:var(--ff-public-logo-height)!important;
   padding:0!important;
   margin:0!important;
+  line-height:0!important;
   text-decoration:none!important;
 }
 html body .site-header .brand::after{content:none!important;display:none!important}
 html body .site-header .brand .brand-lockup,
 html body .decision-header .decision-brand img{
   display:block!important;
-  width:100%!important;
-  max-width:100%!important;
-  height:auto!important;
+  width:var(--ff-public-logo-width)!important;
+  max-width:var(--ff-public-logo-width)!important;
+  height:var(--ff-public-logo-height)!important;
+  max-height:var(--ff-public-logo-height)!important;
+  object-fit:contain!important;
+  object-position:left center!important;
   flex:0 0 auto!important;
 }
 
@@ -74,6 +88,7 @@ html body .decision-header .decision-nav-links a{
   align-items:center!important;
   justify-content:center!important;
   min-height:44px!important;
+  height:44px!important;
   padding:0!important;
   border:0!important;
   border-radius:0!important;
@@ -95,6 +110,7 @@ html body .decision-header .decision-nav-links a[aria-current="page"]{color:#f0c
 html body .site-header .desktop-nav .nav-cta,
 html body .decision-header .decision-nav-links .decision-nav-cta{
   min-height:44px!important;
+  height:44px!important;
   padding:0 17px!important;
   border:1px solid rgba(212,175,55,.58)!important;
   border-radius:10px!important;
@@ -112,9 +128,7 @@ html body.ff-aw-page main#main>.page-hero{
   margin:28px auto 0!important;
   padding:64px 44px 54px!important;
 }
-html body.ff-dic-page main#main>.ff-dic-hero{
-  padding:28px 22px 42px!important;
-}
+html body.ff-dic-page main#main>.ff-dic-hero{padding:28px 22px 42px!important}
 html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap{
   width:min(var(--ff-public-content-max),100%)!important;
   max-width:var(--ff-public-content-max)!important;
@@ -139,12 +153,19 @@ html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-
   max-width:860px!important;
   margin:0!important;
 }
-html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child .ff-dic-hero-actions{
-  justify-content:flex-start!important;
-}
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child .ff-dic-hero-actions{justify-content:flex-start!important}
 
 /* One mobile navigation pattern everywhere. */
-html body .menu-toggle{flex:0 0 44px!important;width:44px!important;height:44px!important}
+html body .menu-toggle{
+  flex:0 0 44px!important;
+  width:44px!important;
+  min-width:44px!important;
+  max-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  margin:0!important;
+}
 html body .mobile-nav{
   position:fixed!important;
   z-index:120!important;
@@ -205,7 +226,11 @@ html body .backdrop{
 html body .backdrop.open{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
 
 @media(max-width:1120px){
-  :root{--ff-public-header-height:76px;--ff-public-logo-width:250px}
+  :root{
+    --ff-public-header-height:76px;
+    --ff-public-logo-width:250px;
+    --ff-public-logo-height:58px;
+  }
   html body .site-header .desktop-nav,
   html body .decision-header .decision-nav-links{display:none!important}
   html body .menu-toggle{display:block!important}
@@ -218,7 +243,11 @@ html body .backdrop.open{opacity:1!important;visibility:visible!important;pointe
   html body .backdrop{display:none!important}
 }
 @media(max-width:700px){
-  :root{--ff-public-header-height:72px;--ff-public-logo-width:220px}
+  :root{
+    --ff-public-header-height:72px;
+    --ff-public-logo-width:220px;
+    --ff-public-logo-height:52px;
+  }
   html body .site-header .nav,
   html body .decision-header .decision-nav{width:calc(100% - 28px)!important}
   html body.ff-marketing-page-v3 main#main>.page-hero,
@@ -235,5 +264,10 @@ html body .backdrop.open{opacity:1!important;visibility:visible!important;pointe
   }
   html body .mobile-nav{top:82px!important}
 }
-@media(max-width:390px){:root{--ff-public-logo-width:196px}}
+@media(max-width:390px){
+  :root{
+    --ff-public-logo-width:196px;
+    --ff-public-logo-height:46px;
+  }
+}
 @media(prefers-reduced-motion:reduce){html body .mobile-nav{transition:none!important}}
