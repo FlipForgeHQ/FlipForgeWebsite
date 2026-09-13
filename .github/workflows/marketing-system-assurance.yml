@@ -1,0 +1,50 @@
+name: Marketing System Assurance
+
+on:
+  pull_request:
+    paths:
+      - 'marketing/**'
+      - 'scripts/marketing/**'
+      - 'package.json'
+      - 'netlify.toml'
+      - '.github/workflows/marketing-system-assurance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'marketing/**'
+      - 'scripts/marketing/**'
+      - 'package.json'
+      - 'netlify.toml'
+      - '.github/workflows/marketing-system-assurance.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  marketing-governance:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build governed marketing documents
+        run: npm run build:marketing
+      - name: Validate marketing locks and generated outputs
+        run: npm run validate:marketing
+      - name: Verify generated preview package
+        run: |
+          test -f marketing-preview/index.html
+          test -f marketing-preview/product-one-pager/index.html
+          test -f marketing-preview/card-decision-intelligence/index.html
+          test -f marketing-preview/why-flipforge-exists/index.html
+          test -f marketing-preview/how-a-decision-is-built/index.html
+          test -f marketing-preview/dealer-flipper-sell-sheet/index.html
+          test -f marketing-preview/collector-investor-sell-sheet/index.html
+          test -f marketing-preview/sample-decision-dossier/index.html
+          grep -q 'CARD DECISION INTELLIGENCE' marketing-preview/product-one-pager/index.html
+          grep -q 'Before you buy. Know Why.' marketing-preview/product-one-pager/index.html
+          grep -q 'Identity Intelligence' marketing-preview/card-decision-intelligence/index.html
+          grep -q 'Outcome Intelligence' marketing-preview/card-decision-intelligence/index.html
