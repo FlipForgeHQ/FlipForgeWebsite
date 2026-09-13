@@ -1,7 +1,9 @@
 import fs from "node:fs";
+import path from "node:path";
 
 const redirects = fs.readFileSync("_redirects", "utf8");
 const ebayPrivacy = fs.readFileSync("netlify/modern-functions/ebay-privacy.js", "utf8");
+const functionDir = "netlify/modern-functions";
 
 const activeRules = redirects
   .split(/\r?\n/)
@@ -15,6 +17,15 @@ const expectedRules = [
   "/app/customer/* /saas-prototype/:splat 200",
   "/app/* /saas-prototype/:splat 200"
 ];
+
+const functionFiles = fs.readdirSync(functionDir)
+  .filter(name => /\.(?:js|mjs)$/.test(name))
+  .sort();
+const rateLimitedFunctions = functionFiles.filter(name => {
+  const source = fs.readFileSync(path.join(functionDir, name), "utf8");
+  return /\brateLimit\s*:/.test(source);
+});
+const expectedRateLimitedFunctions = ["beta-applications.mjs", "conversion-event.mjs"];
 
 const failures = [];
 const check = (condition, message) => {
@@ -36,9 +47,16 @@ check(activeRules.indexOf("/app/customer/* /saas-prototype/:splat 200") < active
 check(ebayPrivacy.includes('path: "/api/ebay/privacy"'), "eBay privacy function must own /api/ebay/privacy through native function routing");
 check(ebayPrivacy.includes("export default async function ebayPrivacy"), "eBay privacy must use the modern Netlify function request/response contract");
 
+check(rateLimitedFunctions.length <= 2,
+  `Netlify account tier permits at most 2 code-based rate-limit rules, found ${rateLimitedFunctions.length}: ${rateLimitedFunctions.join(", ")}`);
+check(JSON.stringify(rateLimitedFunctions) === JSON.stringify(expectedRateLimitedFunctions),
+  `platform rate-limit rules must be reserved for public intake endpoints: expected ${expectedRateLimitedFunctions.join(", ")}, found ${rateLimitedFunctions.join(", ")}`);
+
 console.log("NetlifyRuleBudgetValidation");
 console.log(`ACTIVE_REDIRECT_RULES: ${activeRules.length}`);
 for (const rule of activeRules) console.log(`RULE: ${rule}`);
+console.log(`CODE_RATE_LIMIT_RULES: ${rateLimitedFunctions.length}`);
+for (const name of rateLimitedFunctions) console.log(`RATE_LIMIT: ${name}`);
 console.log(`FAILED: ${failures.length}`);
 for (const failure of failures) console.error(`FAIL | ${failure}`);
 
