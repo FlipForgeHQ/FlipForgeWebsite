@@ -4,10 +4,17 @@ on:
   pull_request:
     paths:
       - '_redirects'
+      - 'package.json'
+      - 'saas-prototype/index.html'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
       - 'saas-prototype/beta-session-v1.js'
       - 'saas-prototype/mobile-navigation-stabilizer-v1.js'
+      - 'saas-prototype/production-identity-login-redirect.js'
+      - 'saas-prototype/serve.mjs'
+      - 'scripts/build-full-customer-entry.mjs'
+      - 'scripts/audit-full-customer-route-ci.mjs'
+      - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
       - '.github/workflows/full-customer-app-assurance.yml'
@@ -18,8 +25,9 @@ permissions:
 
 jobs:
   validate:
-    name: Customer app isolation and authority boundary
-    runs-on: ubuntu-latest
+    name: Customer app browser identity and authority boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -27,5 +35,32 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
-      - name: Validate full customer app
-        run: node scripts/validate-full-customer-app.mjs
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build identity and dedicated customer entry
+        run: npm run build:identity
+      - name: Validate full customer app contracts
+        run: |
+          node scripts/validate-netlify-rule-budget.mjs
+          node scripts/validate-full-customer-app.mjs
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-full-customer-server.log 2>&1 &
+          echo $! > /tmp/flipforge-full-customer-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/customer/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-full-customer-server.log
+          exit 1
+      - name: Audit rendered full customer route and sign-in return
+        run: node scripts/audit-full-customer-route-ci.mjs
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/flipforge-full-customer-server.log || true
