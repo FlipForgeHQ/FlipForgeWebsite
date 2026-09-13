@@ -10,8 +10,8 @@ const activeRules = redirects
 
 const expectedRules = [
   "/app /saas-prototype/index.html 200",
-  "/app/customer /saas-prototype/index.html 200",
-  "/app/customer/ /saas-prototype/index.html 200",
+  "/app/customer /saas-prototype/customer.html 200",
+  "/app/customer/ /saas-prototype/customer.html 200",
   "/app/customer/* /saas-prototype/:splat 200",
   "/app/* /saas-prototype/:splat 200"
 ];
