@@ -17,21 +17,24 @@ function check(condition, name) {
 const redirects = read("_redirects");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
+const betaSession = read("saas-prototype/beta-session-v1.js");
 
-check(redirects.includes("/customer-app /customer-app/ 301"),
+check(redirects.includes("/app/customer /app/customer/ 301"),
   "customer app canonical route redirects to trailing slash");
-check(redirects.includes("/customer-app/ /saas-prototype/index.html 200"),
-  "customer app serves the existing SaaS shell");
-check(redirects.includes("/customer-app/* /saas-prototype/:splat 200"),
-  "customer app assets stay on the isolated route");
+check(redirects.includes("/app/customer/ /saas-prototype/index.html 200"),
+  "customer app serves the existing production SaaS shell");
+check(redirects.includes("/app/customer/* /saas-prototype/:splat 200"),
+  "customer app assets stay under the production app path");
+check(redirects.indexOf("/app/customer/* /saas-prototype/:splat 200") < redirects.indexOf("/app/* /saas-prototype/:splat 200"),
+  "customer app wildcard precedes generic app wildcard");
 check(redirects.includes("/app /saas-prototype/index.html 200")
   && redirects.includes("/app/* /saas-prototype/:splat 200"),
   "controlled beta app route remains intact");
 
 check(shell.includes('const APP_PATH = /^\\/(?:app|saas-prototype)(?:\\/|$)/i;'),
-  "existing beta path contract remains unchanged");
-check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/customer-app(?:\\/|$)/i;'),
-  "full customer mode is route-isolated");
+  "existing production app path contract remains unchanged");
+check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'),
+  "full customer mode is isolated inside the production app path");
 check(shell.includes('setText(chip, "PRIVATE BETA")'),
   "beta route still renders its private-beta identity");
 check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'),
@@ -44,8 +47,7 @@ check(shell.includes('["discover", "Discover"]') && shell.includes('["evaluate",
   "full customer navigation separates Discover from Evaluate");
 check(shell.includes('["forge-heat", "Forge Heat"]') && shell.includes('["market-view", "Market View"]'),
   "full customer navigation exposes discovery intelligence surfaces");
-check(shell.includes('showElement(document.querySelector("#global-search-form"))')
-  || shell.includes('showElement(search);'),
+check(shell.includes('showElement(search);'),
   "full customer mode restores global search");
 check(shell.includes('showElement(document.querySelector(".notification-button"))'),
   "full customer mode restores alerts access");
@@ -53,6 +55,11 @@ check(shell.includes('if (["beta-start", "staging", "staging-evaluate"].includes
   "full customer mode keeps beta and staging routes out of customer navigation");
 check(shell.includes("T7, T14, and T30"),
   "customer home explains governed outcome checkpoints");
+
+check(betaSession.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'),
+  "beta session renderer recognizes the full customer route");
+check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"),
+  "beta session renderer stands down on the full customer route");
 
 check(css.includes("body.ff-full-customer-app .prototype-banner")
   && css.includes("display: none !important;"),
