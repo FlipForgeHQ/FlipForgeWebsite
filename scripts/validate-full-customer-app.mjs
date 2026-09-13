@@ -19,6 +19,7 @@ const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
 const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
+const loginRedirect = read("saas-prototype/production-identity-login-redirect.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 
 check(redirects.includes("/app/customer /saas-prototype/customer.html 200"), "customer no-slash route serves dedicated customer document");
@@ -54,8 +55,15 @@ check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session 
 check(mobileNav.includes('"evaluate", "decision-intelligence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains full route set");
 check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish cannot overwrite customer identity");
 check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit cannot overwrite customer identity");
-check(authProbe.includes('resolved.pathname === "/app/customer/"'), "production sign-in may return to full customer app");
+
+check(loginRedirect.includes('a[href^="/production-auth.html"]'), "customer login interceptor covers feature-level auth links");
+check(loginRedirect.includes('pathname === "/app/customer" ? "/app/customer/"'), "customer login interceptor normalizes customer pathname");
+check(loginRedirect.includes('const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`'), "customer login interceptor rebuilds auth return from current route");
+check(loginRedirect.includes('if (!launcher && !authLink) return;'), "customer login interceptor handles launchers and feature auth links");
+check(authProbe.includes('resolved.pathname === "/app/customer" ? "/app/customer/"'), "production auth normalizes no-slash customer return");
+check(authProbe.includes('normalizedPath === "/app/customer/"'), "production sign-in may return to full customer app");
 check(authProbe.includes('resolved.origin !== window.location.origin || !pathAllowed'), "auth return remains same-origin and allowlisted");
+
 check(css.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav") && css.includes("display: block !important;"), "full customer CSS preserves advanced navigation");
 
 const forbiddenAuthority = ["evaluateAndSave(", "saveEvidence(", "saveListing(", "appendObservation(", "transactionAuthority", "recommendation =", "supportedValue ="];
