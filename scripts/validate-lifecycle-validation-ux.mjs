@@ -16,6 +16,7 @@ const document = {
     listeners.push({ type, listener, capture });
   },
   getElementById() { return null; },
+  querySelector() { return null; },
   querySelectorAll() { return []; }
 };
 const window = {
@@ -119,12 +120,24 @@ const displayDocument = {
   getElementById() { return null; },
   addEventListener() {}
 };
-const displayWindow = {};
+const displayWindow = {
+  location: { origin: "https://goflipforge.com" },
+  fetch: async () => ({ ok: false }),
+  requestAnimationFrame(callback) { callback(); }
+};
 vm.runInNewContext(displaySource, {
   document: displayDocument,
   window: displayWindow,
   MutationObserver: undefined,
   String,
+  Number,
+  Boolean,
+  Array,
+  Object,
+  Map,
+  URL,
+  Intl,
+  Promise,
   console
 });
 assert.ok(displayWindow.FlipForgeLifecycleDisplay, "lifecycle display normalizer should be available");
@@ -136,6 +149,24 @@ assert.equal(
   displayWindow.FlipForgeLifecycleDisplay.normalizeCardDisplay("2018 Topps Chrome Shohei Ohtani #150 PSA 10"),
   "2018 Topps Chrome Shohei Ohtani #150 PSA 10"
 );
+assert.equal(typeof displayWindow.FlipForgeLifecycleDisplay.renderOutcomeIntelligence, "function");
+
+assert.match(displaySource, /decisionChangeIntelligence/);
+assert.match(displaySource, /outcomeReconciliation/);
+assert.match(displaySource, /\[7, 14, 30\]/);
+assert.match(displaySource, /customerAccuracyClaimAuthorized === false/);
+assert.match(displaySource, /selfTrainingAuthorized === false/);
+assert.match(displaySource, /historicalRescoring !== false/);
+assert.match(displaySource, /historicalBackfill !== false/);
+assert.match(displaySource, /transactionAuthority !== false/);
+assert.match(displaySource, /Observation, not a new recommendation/);
+assert.match(displaySource, /will not infer or backfill missing observations/);
+assert.doesNotMatch(displaySource, /decisionAlignment/);
+assert.doesNotMatch(displaySource, /decisionOutcome/);
+assert.doesNotMatch(displaySource, /observedSupportedValueCents\s*[-+*/]/);
+assert.doesNotMatch(displaySource, /supportedValueChangePercent\s*[-+*/]/);
+assert.match(displaySource, /response\.clone\(\)\.json\(\)/);
+assert.equal((displaySource.match(/nativeFetch\(input, init\)/g) || []).length, 1, "Outcome presentation must reuse the existing lifecycle request rather than issue another API request");
 
 assert.match(index, /customer-lifecycle-validation\.css/);
 assert.match(index, /customer-lifecycle\.js[\s\S]*customer-lifecycle-validation\.js/);
