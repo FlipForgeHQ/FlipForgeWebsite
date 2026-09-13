@@ -19,6 +19,7 @@ const shell = read("saas-prototype/customer-only-shell-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
+const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 
 check(redirects.includes("/app/customer /saas-prototype/index.html 200"),
@@ -76,6 +77,15 @@ check(mobileNav.includes("const routes = fullCustomerMode() ? FULL_CUSTOMER_ROUT
   "mobile navigation separates beta and full customer route sets");
 check(mobileNav.includes("html.ff-full-customer-app .primary-nav > .ff-advanced-nav"),
   "mobile full customer mode preserves advanced analysis access");
+
+check(commercialPolish.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'),
+  "commercial polish recognizes the full customer route");
+check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'),
+  "commercial polish cannot overwrite full customer identity with beta copy");
+check(commercialPolish.includes('banner.hidden = true;') && commercialPolish.includes('banner.setAttribute("aria-hidden", "true")'),
+  "commercial polish keeps beta banner hidden in full customer mode");
+check(commercialPolish.includes('profileSmall.textContent = "Customer"'),
+  "commercial polish preserves customer account chrome");
 
 check(authProbe.includes('resolved.pathname === "/app/customer/"'),
   "production sign-in may return authenticated users to the full customer app");
