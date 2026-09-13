@@ -15,6 +15,7 @@ function check(condition, name) {
 }
 
 const redirects = read("_redirects");
+const customerEntry = read("saas-prototype/customer-index.html");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
@@ -24,10 +25,10 @@ const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
 const productionLoginRedirect = read("saas-prototype/production-identity-login-redirect.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 
-check(redirects.includes("/app/customer /saas-prototype/index.html 200"),
-  "customer app no-slash route serves the production SaaS shell directly");
-check(redirects.includes("/app/customer/ /saas-prototype/index.html 200"),
-  "customer app trailing-slash route serves the existing production SaaS shell directly");
+check(redirects.includes("/app/customer /saas-prototype/customer-index.html 200"),
+  "customer app no-slash route serves the dedicated customer document directly");
+check(redirects.includes("/app/customer/ /saas-prototype/customer-index.html 200"),
+  "customer app trailing-slash route serves the dedicated customer document directly");
 check(!redirects.includes("/app/customer /app/customer/ 301"),
   "customer app avoids canonical redirects that can loop after authentication");
 check(redirects.includes("/app/customer/* /saas-prototype/:splat 200"),
@@ -38,6 +39,24 @@ check(redirects.includes("/app /saas-prototype/index.html 200")
   && redirects.includes("/app/* /saas-prototype/:splat 200"),
   "controlled beta app route remains intact");
 
+check(customerEntry.includes('<meta name="ff-customer-entry" content="full-customer">'),
+  "dedicated customer document carries an explicit full-customer marker");
+check(customerEntry.includes('class="prototype-chip">CUSTOMER APP</span>'),
+  "dedicated customer document is customer-branded before JavaScript runs");
+check(!customerEntry.includes('<strong>PRIVATE BETA</strong>') && !customerEntry.includes('class="prototype-chip">CUSTOMER BETA</span>'),
+  "dedicated customer document contains no visible beta banner or beta chip");
+check(customerEntry.includes('<html lang="en" class="ff-full-customer-app">')
+  && customerEntry.includes('<body data-ff-surface="customer" class="ff-full-customer-app">'),
+  "dedicated customer document starts in full-customer mode without waiting for scripts");
+check(!customerEntry.includes('<script src="private-beta.js"></script>')
+  && !customerEntry.includes('<script src="beta-customer-flow-v2.js"></script>')
+  && !customerEntry.includes('<script src="beta-session-v1.js"></script>'),
+  "dedicated customer document does not load beta-only presentation runtimes");
+check(!customerEntry.includes('href="private-beta.css"')
+  && !customerEntry.includes('href="beta-customer-flow-v2.css"')
+  && !customerEntry.includes('href="beta-session-v1.css"'),
+  "dedicated customer document does not load beta-only presentation styles");
+
 check(shell.includes('const APP_PATH = /^\\/(?:app|saas-prototype)(?:\\/|$)/i;'),
   "existing production app path contract remains unchanged");
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'),
@@ -45,7 +64,7 @@ check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;
 check(shell.includes('setText(chip, "PRIVATE BETA")'),
   "beta route still renders its private-beta identity");
 check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'),
-  "full customer route uses customer-app identity");
+  "full customer route reinforces customer-app identity");
 check(shell.includes('["tracking", "Outcome Intelligence"]'),
   "full customer navigation promotes Outcome Intelligence");
 check(shell.includes('["decision-intelligence", "Decision Intelligence"]'),
@@ -85,7 +104,7 @@ check(commercialPolish.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(
 check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'),
   "commercial polish cannot overwrite full customer identity with beta copy");
 check(commercialPolish.includes('banner.hidden = true;') && commercialPolish.includes('banner.setAttribute("aria-hidden", "true")'),
-  "commercial polish keeps beta banner hidden in full customer mode");
+  "commercial polish keeps beta banner hidden if a shared shell ever supplies one");
 check(commercialPolish.includes('profileSmall.textContent = "Customer"'),
   "commercial polish preserves customer account chrome");
 
@@ -116,7 +135,7 @@ check(authProbe.includes('resolved.origin !== window.location.origin || !pathAll
 
 check(css.includes("body.ff-full-customer-app .prototype-banner")
   && css.includes("display: none !important;"),
-  "full customer mode removes beta banner chrome");
+  "full customer mode removes beta banner chrome defensively");
 check(css.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav")
   && css.includes("display: block !important;"),
   "full customer mode restores advanced customer analysis navigation");
