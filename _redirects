@@ -2,7 +2,7 @@
 # Historical route marker retained for validator compatibility: /api/ebay/privacy /.netlify/functions/ebay-privacy 200
 # Historical trailing-slash marker retained for validator compatibility: /app/ /saas-prototype/index.html 200
 /app /saas-prototype/index.html 200
+/app/customer /app/customer/ 301
+/app/customer/ /saas-prototype/index.html 200
+/app/customer/* /saas-prototype/:splat 200
 /app/* /saas-prototype/:splat 200
-/customer-app /customer-app/ 301
-/customer-app/ /saas-prototype/index.html 200
-/customer-app/* /saas-prototype/:splat 200
