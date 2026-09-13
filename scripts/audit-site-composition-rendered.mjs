@@ -36,7 +36,6 @@ const homeBreakpoints=[
 const failures=[];
 const results=[];
 const safeName=value=>value.replace(/^\/+|\/$/g,'').replace(/[^a-z0-9]+/gi,'-')||'home';
-const visible=style=>style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0.01;
 
 async function inspect(page,route,viewport){
   const staticFailures=[];
@@ -63,9 +62,12 @@ async function inspect(page,route,viewport){
     };
     const routeOf=anchor=>{
       try{
-        const url=new URL(anchor.getAttribute('href')||anchor.href,location.href);
+        const raw=String(anchor.getAttribute('href')||'').trim();
+        if(!raw||raw==='#'||/^javascript:/i.test(raw))return '';
+        const url=new URL(raw,location.href);
         let route=url.pathname.replace(/\/+$/,'')||'/';
         if(route==='/index.html')route='/';
+        if(url.hash&&url.hash!=='#')route+=url.hash;
         return route;
       }catch{return '';}
     };
