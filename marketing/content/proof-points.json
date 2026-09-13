@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "proofPoints": [
+    {"key":"identity-first","title":"Exact-card identity first","copy":"FlipForge resolves the card, variation, grade, parallel, and listing context before evidence is allowed to influence the decision."},
+    {"key":"evidence-trace","title":"Evidence stays inspectable","copy":"Accepted, excluded, conflicting, and missing evidence can remain visible instead of disappearing behind a single score."},
+    {"key":"decision-receipt","title":"Every decision keeps a receipt","copy":"The decision can preserve what was known at T0, why records counted or did not count, and what action was supported."},
+    {"key":"outcome-intelligence","title":"Outcomes add context without rewriting history","copy":"T7, T14, and T30 reviews add governed observations while T0 remains immutable."},
+    {"key":"fail-closed","title":"Uncertainty can stop the decision","copy":"When evidence is missing or weak, FlipForge can return VERIFY or PASS instead of inventing confidence."}
+  ],
+  "claimPolicy": "Only product behavior that is actually implemented and governed may be promoted as a proof point. Study accuracy percentages require separate authorization."
+}
