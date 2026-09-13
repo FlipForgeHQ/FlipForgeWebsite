@@ -85,6 +85,11 @@ requireAll('homepage behavior',dealJs,[
 forbidText('homepage forced scrolling',dealJs,'scrollIntoView');
 for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('homepage device storage',dealJs,store);
 
+requireAll('homepage navigation collision guards',navJs,['normalizeRoutePath','dedupeRouteLinks']);
+requireText('homepage closed mobile nav is non-focusable',mobileCss,'visibility:hidden');
+requireText('homepage open mobile nav restores visibility',mobileCss,'.mobile-nav.open');
+requireText('homepage horizontal clipping guard',cdiCss,'overflow-x:clip');
+
 requireAll('homepage presentation',[heroCss,dealCss,processCss,cdiCss,mobileCss].join('\n'),[
   'min-height:calc(100dvh - 79px)',
   '@media(max-width:760px)',
@@ -127,7 +132,7 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v16'","'/assets/css/homepage-cdi-positioning-v1.css'","'/assets/css/homepage-deal-or-decoy-v1.css'","'/assets/js/homepage-deal-or-decoy-v1.js'"]);
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v17'","'/assets/css/homepage-cdi-positioning-v1.css'","'/assets/css/homepage-deal-or-decoy-v1.css'","'/assets/js/homepage-deal-or-decoy-v1.js'"]);
 const publicCopy=`${homepage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true','CARD VALUE INTELLIGENCE'])forbidText('public safety',publicCopy,unsafe);
 for(const unsafeData of ['localStorage','sessionStorage','indexedDB'])forbidText('public static pages',publicCopy,unsafeData);
