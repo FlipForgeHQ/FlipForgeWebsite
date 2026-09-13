@@ -10,12 +10,14 @@
   --ff-cdi-muted:#9eabc0;
 }
 
-.decision-nav-links>a[href="decision-intelligence.html"],
-.mobile-nav>a[href="decision-intelligence.html"]{
+html,body{max-width:100%;overflow-x:clip}
+
+.decision-nav-links>a[href$="decision-intelligence.html"],
+.mobile-nav>a[href$="decision-intelligence.html"]{
   font-weight:800;
 }
 
-.decision-nav-links>a[href="decision-intelligence.html"]{
+.decision-nav-links>a[href$="decision-intelligence.html"]{
   color:var(--ff-cdi-gold-soft);
 }
 
