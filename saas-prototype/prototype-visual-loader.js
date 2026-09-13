@@ -19,7 +19,7 @@
   window.FlipForgePrototypeVisualRuntime = runtime;
 
   function appendScript(source, datasetKey, onload) {
-    if (document.querySelector(`script[src$="${source}"]`)) {
+    if (typeof document.querySelector === "function" && document.querySelector(`script[src$="${source}"]`)) {
       onload?.();
       return;
     }
