@@ -1,0 +1,111 @@
+name: Strict Site Composition Assurance
+
+on:
+  pull_request:
+    paths:
+      - '**/*.html'
+      - 'assets/css/**'
+      - 'assets/js/**'
+      - 'saas-prototype/**'
+      - 'marketing/**'
+      - 'scripts/**'
+      - 'sw.js'
+      - '_redirects'
+      - 'netlify.toml'
+      - 'package.json'
+      - '.github/workflows/site-composition-assurance.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.html'
+      - 'assets/css/**'
+      - 'assets/js/**'
+      - 'saas-prototype/**'
+      - 'marketing/**'
+      - 'scripts/**'
+      - 'sw.js'
+      - '_redirects'
+      - 'netlify.toml'
+      - 'package.json'
+      - '.github/workflows/site-composition-assurance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  strict-audit:
+    name: Whole-site code, route, overlap, and rendered collision audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install repository dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build governed marketing preview surfaces
+        run: npm run build:marketing
+      - name: Parse homepage runtime
+        run: node --check assets/js/homepage-v1.js
+      - name: Audit all static website code and local references
+        run: npm run audit:site-code
+      - name: Run existing static website contracts
+        run: |
+          npm run validate:homepage-progression
+          npm run validate:sitewide-ux
+          node scripts/validate-decision-intelligence-public-page.mjs
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local whole-site server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/flipforge-strict-site.log 2>&1 &
+          echo $! >/tmp/flipforge-strict-site.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/index.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/flipforge-strict-site.log
+          exit 1
+      - name: Audit rendered routes across mobile, breakpoint, desktop, and wide viewports
+        run: npm run audit:site-composition
+      - name: Build production Identity assets for customer route audit
+        run: npm run build:identity
+      - name: Validate full customer app contracts
+        run: |
+          node scripts/validate-netlify-rule-budget.mjs
+          node scripts/validate-full-customer-app.mjs
+      - name: Stop static server before customer-path server
+        if: always()
+        run: |
+          if [ -f /tmp/flipforge-strict-site.pid ]; then kill $(cat /tmp/flipforge-strict-site.pid) || true; fi
+      - name: Start production-path customer app server
+        run: |
+          node saas-prototype/serve.mjs >/tmp/flipforge-strict-customer.log 2>&1 &
+          echo $! >/tmp/flipforge-strict-customer.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/customer/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/flipforge-strict-customer.log
+          exit 1
+      - name: Audit full customer route, CDI, Outcome Intelligence, Account, and auth return
+        run: node scripts/audit-full-customer-route-ci.mjs
+      - name: Upload strict audit report and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-site-composition-${{ github.sha }}
+          path: artifacts/site-composition
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Show server logs on failure
+        if: failure()
+        run: |
+          cat /tmp/flipforge-strict-site.log 2>/dev/null || true
+          cat /tmp/flipforge-strict-customer.log 2>/dev/null || true
