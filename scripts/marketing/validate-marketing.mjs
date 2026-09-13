@@ -10,6 +10,7 @@ const exists = relative => fs.existsSync(path.join(root, relative));
 const brand = readJson("marketing/content/brand.json");
 const cdi = readJson("marketing/content/decision-intelligence.json");
 const docs = readJson("marketing/content/documents.json").documents;
+const campaigns = readJson("marketing/content/campaigns.json").campaigns;
 const disclaimers = readJson("marketing/content/disclaimers.json");
 const positioning = readJson("marketing/content/positioning.json");
 const proof = readJson("marketing/content/proof-points.json");
@@ -39,6 +40,7 @@ check("positioning preserves decision-engine category", positioning.categoryStat
 check("positioning rejects price-guide framing", positioning.notA.includes("price guide"));
 check("proof-point policy blocks premature accuracy claims", proof.claimPolicy.toLowerCase().includes("accuracy") && proof.claimPolicy.toLowerCase().includes("authorization"));
 check("seven required documents defined", docs.length === 7);
+check("five governed campaigns defined", campaigns.length === 5);
 
 const requiredSlugs = [
   "product-one-pager",
@@ -50,6 +52,9 @@ const requiredSlugs = [
   "sample-decision-dossier"
 ];
 for (const slug of requiredSlugs) check(`document defined: ${slug}`, docs.some(doc=>doc.slug === slug));
+
+const requiredCampaigns = ["deal-or-decoy","wrong-comp","more-data","decision-receipt","what-happened-next"];
+for (const key of requiredCampaigns) check(`campaign defined: ${key}`, campaigns.some(campaign=>campaign.key === key));
 
 const publicSources = [
   "marketing/content/positioning.json",
@@ -83,8 +88,24 @@ for (const doc of docs) {
   }
 }
 
+for (const campaign of campaigns) {
+  const generated = `marketing/generated/campaigns/${campaign.key}.html`;
+  const preview = `marketing-preview/campaigns/${campaign.key}/index.html`;
+  check(`generated campaign exists: ${campaign.key}`, exists(generated));
+  check(`preview campaign exists: ${campaign.key}`, exists(preview));
+  if (exists(generated)) {
+    const html = read(generated);
+    check(`campaign keeps slogan: ${campaign.key}`, html.includes("Before you buy. Know Why."));
+    check(`campaign keeps decision boundary: ${campaign.key}`, html.includes(disclaimers.compact));
+    for (const claim of disclaimers.forbiddenClaims) check(`campaign ${campaign.key} excludes ${claim}`, !html.toLowerCase().includes(String(claim).toLowerCase()));
+    for (const phrase of disclaimers.restrictedPublicPhrases) check(`campaign ${campaign.key} excludes ${phrase}`, !html.toLowerCase().includes(String(phrase).toLowerCase()));
+  }
+}
+
 check("preview center exists", exists("marketing-preview/index.html"));
+check("campaign preview center exists", exists("marketing-preview/campaigns/index.html"));
 check("generated manifest exists", exists("marketing/generated/manifest.json"));
+check("generated campaign manifest exists", exists("marketing/generated/campaigns/manifest.json"));
 check("locked primary logo exists", exists(brand.primaryLogo.replace(/^\//, "")));
 check("locked stacked logo exists", exists(brand.stackedLogo.replace(/^\//, "")));
 check("locked mark exists", exists(brand.mark.replace(/^\//, "")));
