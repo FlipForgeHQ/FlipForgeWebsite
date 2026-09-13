@@ -57,7 +57,7 @@ const checks = [
   ["email index is hashed", coreSource.includes('digest("SHA-256"') && !coreSource.includes("`email/${email}")],
   ["application deduplication is atomic", intakeSource.includes("onlyIfNew: true") && intakeSource.includes("claim?.modified === false")],
   ["tester feedback requires signed active membership", feedbackSource.includes("isActiveTester(user)") && feedbackSource.includes("ACTIVE_TESTER_REQUIRED")],
-  ["tester feedback is same-origin, bounded, and rate limited", feedbackSource.includes("sameOrigin(request)") && feedbackSource.includes("MAX_FEEDBACK_BYTES") && feedbackSource.includes("rateLimit")],
+  ["tester feedback is same-origin, payload-bounded, and schema validated", feedbackSource.includes("sameOrigin(request)") && feedbackSource.includes("MAX_FEEDBACK_BYTES") && feedbackSource.includes("validateFeedback(input, user)") && feedbackSource.includes("validateCdiLearning(input)")],
   ["feedback contact email comes only from signed Identity", coreSource.includes("contactAllowed && EMAIL.test(email) ? email : null") && !testerFeedbackClient.includes("payload.testerEmail")],
   ["outcome reviews require a governed checkpoint and signal", coreSource.includes("OUTCOME_CHECKPOINT_REQUIRED") && coreSource.includes("OUTCOME_STATE_REQUIRED")],
   ["operator page is noindex", operatorHtml.includes('name="robots" content="noindex,nofollow,noarchive"')],

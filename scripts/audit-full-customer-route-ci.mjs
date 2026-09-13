@@ -91,6 +91,37 @@ function apiFixture(request) {
       }
     };
   }
+  if (pathname === "/api/v1/entitlements") {
+    return {
+      meta,
+      data: {
+        kind: "entitlements",
+        readOnly: true,
+        transactionAuthority: false,
+        current: {
+          code: "PRIVATE_BETA",
+          name: "Private Beta",
+          accessState: "Private Beta Evaluation Allowance Reached",
+          entitlementSource: "Beta Invitation",
+          paidPlanActive: false
+        },
+        usage: {
+          completedEvaluations: 23,
+          inProgressReservations: 0,
+          admissionUsage: 23,
+          monthlyEvaluationLimit: 5,
+          remainingEvaluations: 0
+        },
+        plannedCommercialPlans: [],
+        checkoutAvailable: false,
+        customerCheckoutAllowed: false,
+        billingProviderConnected: false
+      }
+    };
+  }
+  if (pathname === "/api/v1/lifecycle") {
+    return { meta, data: { kind: "lifecycle", items: [] } };
+  }
   return { meta, data: { kind: "qa-fixture", path: pathname } };
 }
 
@@ -179,9 +210,41 @@ try {
   }
   if (decisionState.betaLearningLoaded) fail("Full customer route loaded beta-only CDI learning assets");
 
+  // Outcome Intelligence must be a real customer route, not merely a navigation label.
+  await page.locator('.primary-nav a[data-route="tracking"]').click();
+  await page.waitForFunction(() => window.location.hash === "#/tracking", null, { timeout: 10000 });
+  await page.waitForSelector("#main-content .customer-lifecycle-page", { timeout: 10000 });
+  const outcomeState = await page.evaluate(() => ({
+    hash: window.location.hash,
+    chip: document.querySelector(".prototype-chip")?.textContent?.trim() || "",
+    pageVisible: Boolean(document.querySelector("#main-content .customer-lifecycle-page"))
+  }));
+  if (!outcomeState.pageVisible) fail("Outcome Intelligence did not render its customer lifecycle page");
+  if (outcomeState.chip !== "CUSTOMER APP") fail(`Outcome Intelligence lost customer identity: ${outcomeState.chip}`);
+
+  // Reproduce the exact internal beta-language leak seen on the production account page.
+  await page.locator(".profile-button").click();
+  await page.waitForFunction(() => window.location.hash === "#/account", null, { timeout: 10000 });
+  await page.waitForSelector("#main-content .customer-entitlements-page", { timeout: 10000 });
+  await page.waitForTimeout(400);
+  const accountState = await page.evaluate(() => ({
+    text: String(document.querySelector("#main-content")?.innerText || "").replace(/\s+/g, " ").trim(),
+    sidebar: String(document.querySelector(".plan-card")?.innerText || "").replace(/\s+/g, " ").trim(),
+    chip: document.querySelector(".prototype-chip")?.textContent?.trim() || "",
+    normalizerLoaded: window.__ffCustomerSurfaceNormalizationV1 === true
+  }));
+  if (!accountState.normalizerLoaded) fail("Customer-only surface normalizer was not loaded");
+  if (accountState.chip !== "CUSTOMER APP") fail(`Account route lost customer identity: ${accountState.chip}`);
+  if (/private[ -]beta/i.test(`${accountState.text} ${accountState.sidebar}`)) fail(`Private-beta language leaked into customer account: ${accountState.text}`);
+  if (/Beta Invitation/i.test(accountState.text)) fail(`Beta Invitation leaked into customer account: ${accountState.text}`);
+  if (/Beta Complete/i.test(accountState.text)) fail(`Internal Beta Complete language leaked into customer account: ${accountState.text}`);
+  if (!/Early Access/i.test(`${accountState.text} ${accountState.sidebar}`)) fail(`Customer-safe access label is missing: ${accountState.text}`);
+  if (!/Evaluation allowance reached/i.test(accountState.text)) fail(`Customer-safe allowance state is missing: ${accountState.text}`);
+  if (!/Invitation/i.test(accountState.text)) fail(`Customer-safe entitlement source is missing: ${accountState.text}`);
+
   await page.locator('.primary-nav a[data-route="dashboard"]').click();
   await page.waitForFunction(() => window.location.hash === "#/dashboard", null, { timeout: 10000 });
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(600);
 
   await page.evaluate(() => {
     const link = document.createElement("a");
@@ -205,7 +268,7 @@ try {
   if (seriousErrors.length) fail(`Browser syntax errors: ${seriousErrors.join(" | ")}`);
 
   console.log("Full customer browser audit passed");
-  console.log(JSON.stringify({ state, decisionState, authReturn }, null, 2));
+  console.log(JSON.stringify({ state, decisionState, outcomeState, accountState, authReturn }, null, 2));
 } finally {
   await browser.close();
 }
