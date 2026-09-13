@@ -13,6 +13,7 @@ const dealJs=read('assets/js/homepage-deal-or-decoy-v1.js');
 const heroCss=read('assets/css/homepage-decision-hero-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
 const processCss=read('assets/css/homepage-deal-live-process-v3.css');
+const cdiCss=read('assets/css/homepage-cdi-positioning-v1.css');
 const mobileCss=read('assets/css/homepage-mobile-nav-v1.css');
 const sw=read('sw.js');
 const failures=[];
@@ -20,12 +21,15 @@ const productionBuild=String(process.env.CONTEXT||'').toLowerCase()==='productio
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toLowerCase()))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 
-requireText('homepage category',homepage,'CARD DECISION INTELLIGENCE');
+requireText('homepage category',homepage,'CARD DECISION INTELLIGENCE™');
 requireText('homepage slogan',homepage,'Before you buy. Know Why.');
 forbidText('homepage retired brand descriptor',homepage,'FlipForge — Card Intelligence');
 forbidText('public category',`${homepage}\n${product}\n${learn}`,'CARD VALUE INTELLIGENCE');
-requireText('homepage value explanation',homepage,'FlipForge checks whether the evidence behind a sports-card deal actually holds up.');
-requireText('homepage assurance',homepage,'Exact card. Qualified evidence. Explainable decision.');
+requireText('homepage category definition',homepage,'FlipForge is Card Decision Intelligence™ for sports cards');
+requireText('homepage assurance',homepage,'Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome.');
+requireText('homepage CDI primary nav',homepage,'href="decision-intelligence.html">Decision Intelligence™</a>');
+requireText('homepage CDI mobile nav',homepage,'href="decision-intelligence.html">Card Decision Intelligence™</a>');
+requireText('homepage CDI hero CTA',homepage,'data-ff-cdi-primary="true">Explore Decision Intelligence</a>');
 requireText('homepage browser-decodable visual metadata',homepage,'assets/images/flipforge-homepage-hero.webp');
 forbidText('homepage broken former visual',homepage,'assets/images/flipforge-approved-decision-visual.webp');
 requireText('homepage illustrative boundary',homepage,'Illustrative example · not live market data');
@@ -37,10 +41,13 @@ for(const decision of ['data-ff-choice="BUY"','data-ff-choice="WATCH"','data-ff-
 requireText('homepage live processing stage',homepage,'data-ff-processing-stage');
 for(const step of ['01 · EXACT CARD','02 · CHALLENGE 7 COMPARISONS','03 · SUPPORTED VALUE','04 · DECISION'])requireText('homepage live process step',homepage,step);
 requireText('homepage live process stylesheet',homepage,'assets/css/homepage-deal-live-process-v3.css');
+requireText('homepage CDI stylesheet',homepage,'assets/css/homepage-cdi-positioning-v1.css');
 requireText('homepage evidence correction',homepage,'5 of 7 comparisons were invalid.');
 requireText('homepage evidence correction',homepage,'24.0%');
 requireText('homepage evidence correction',homepage,'2.3%');
 requireText('homepage decision',homepage,'FlipForge says <span>VERIFY.</span>');
+requireText('homepage CDI result reveal',homepage,'YOU JUST USED CARD DECISION INTELLIGENCE™');
+requireText('homepage CDI result explanation',homepage,'FlipForge did more than find a different price.');
 requireText('homepage optional evidence dialog',homepage,'<dialog class="ff-evidence-dialog"');
 requireText('homepage optional evidence action',homepage,'data-ff-open-evidence>See the evidence');
 requireText('homepage beta boundary',homepage,'Controlled Private Beta.');
@@ -74,9 +81,16 @@ requireText('homepage hero responsive',heroCss,'grid-template-columns:1fr');
 requireText('homepage demo responsive',dealCss,'@media(max-width:760px)');
 requireText('homepage process responsive',processCss,'@media(max-width:760px)');
 requireText('homepage process reduced motion',processCss,'@media(prefers-reduced-motion:reduce)');
+requireText('homepage CDI responsive',cdiCss,'@media(max-width:520px)');
+requireText('homepage CDI reduced motion',cdiCss,'@media(prefers-reduced-motion:reduce)');
 requireText('homepage compact mobile choices',dealCss,'grid-template-columns:repeat(2,minmax(0,1fr))');
 requireText('homepage mobile start cue',dealCss,"content:'START HERE · PICK ONE'");
 for(const removed of ['ff-decision-motion','ff-card-stage','ff-motion-console','data-replay-decision','ff-live-product-frame','id="busted-comp"'])forbidText('simplified homepage',homepage,removed);
+
+for(const layer of ['Identity Intelligence','Evidence Intelligence','Economic Intelligence','Risk + Uncertainty','Decision Intelligence','Decision Receipt','Outcome Intelligence'])requireText('homepage seven-layer CDI',homepage,layer);
+requireText('homepage data-vs-decision positioning',homepage,'Data tells you what happened. FlipForge helps you decide what to do now.');
+requireText('homepage customer question',homepage,'What should I do — and why?');
+requireText('homepage category ownership',homepage,'FLIPFORGE = CARD DECISION INTELLIGENCE™');
 
 for(const needle of ['class="menu-toggle"','aria-controls="mobile-navigation"','class="mobile-nav" id="mobile-navigation"','class="backdrop" aria-hidden="true"','<script src="assets/js/homepage-v1.js" defer></script>'])requireText('homepage mobile navigation',homepage,needle);
 requireText('mobile menu Escape',navJs,"event.key==='Escape'");
@@ -97,12 +111,12 @@ for(const needle of ['Planned Launch Structure','Launch Plans','Pricing to be an
 for(const amount of ['$14.99','$29.99','$149','$299'])forbidText('Launch Plans unpublished pricing',pricing,amount);
 
 for(const page of [homepage,product,learn,beta,pricing]){
-  requireText('marketing navigation',page,'>Product</a>');
   requireText('marketing navigation',page,'>Evidence Lab</a>');
   requireText('marketing navigation',page,'>Launch Plans</a>');
   requireText('marketing navigation',page,'>About</a>');
   requireText('marketing navigation',page,'>Request Beta Access</a>');
 }
+for(const page of [homepage,product,learn])requireText('Decision Intelligence navigation',page,'decision-intelligence.html');
 
 for(const core of ['data-route="dashboard"','data-route="discover"','data-route="evaluate"','data-route="opportunities"','data-route="tracking"','data-route="portfolio"'])requireText('app core workflow',app,core);
 requireText('app advanced analysis',app,'<details class="ff-advanced-nav">');
@@ -117,7 +131,8 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireText('PWA cache',sw,"const CACHE='flipforge-shell-v15'");
+requireText('PWA cache',sw,"const CACHE='flipforge-shell-v16'");
+requireText('PWA CDI stylesheet',sw,"'/assets/css/homepage-cdi-positioning-v1.css'");
 requireText('PWA deal stylesheet',sw,"'/assets/css/homepage-deal-or-decoy-v1.css'");
 requireText('PWA deal behavior',sw,"'/assets/js/homepage-deal-or-decoy-v1.js'");
 const publicCopy=`${homepage}\n${product}\n${learn}\n${beta}\n${pricing}`;
@@ -125,8 +140,8 @@ for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','t
 for(const unsafeData of ['localStorage','sessionStorage','indexedDB'])forbidText('public static pages',publicCopy,unsafeData);
 
 if(failures.length){
-  console.error('Decision-first website progression validation failed:');
+  console.error('CDI-centered website progression validation failed:');
   failures.forEach(failure=>console.error(`- ${failure}`));
   process.exit(1);
 }
-console.log(`PASS: FlipForge first-viewport decision journey and ${productionBuild?'production app boundary':'preview staging diagnostics'} validated.`);
+console.log(`PASS: FlipForge CDI-centered homepage journey and ${productionBuild?'production app boundary':'preview staging diagnostics'} validated.`);
