@@ -21,7 +21,9 @@ function safeReturnPath() {
   if (!requested || requested.startsWith("//")) return "/app/#/account";
   try {
     const resolved = new URL(requested, window.location.origin);
-    const pathAllowed = resolved.pathname === "/app/" || resolved.pathname === "/saas-prototype/";
+    const pathAllowed = resolved.pathname === "/app/"
+      || resolved.pathname === "/app/customer/"
+      || resolved.pathname === "/saas-prototype/";
     if (resolved.origin !== window.location.origin || !pathAllowed) return "/app/#/account";
     return `${resolved.pathname}${resolved.search}${resolved.hash || "#/account"}`;
   } catch (_) {
