@@ -22,21 +22,6 @@
     }catch{return '';}
   };
 
-  const dedupeRouteLinks=nav=>{
-    if(!nav)return;
-    const seen=new Map();
-    [...nav.querySelectorAll('a[href]')].forEach(link=>{
-      const route=normalizeRoutePath(link);
-      if(!route)return;
-      const prior=seen.get(route);
-      if(!prior){seen.set(route,link);return;}
-      const priorOwned=prior.hasAttribute('data-ff-homepage-nav');
-      const linkOwned=link.hasAttribute('data-ff-homepage-nav');
-      if(priorOwned&&!linkOwned){prior.remove();seen.set(route,link);return;}
-      link.remove();
-    });
-  };
-
   const ensureStylesheet=href=>{
     const route=normalizeRoutePath(href);
     const found=[...document.querySelectorAll('link[rel="stylesheet"][href]')].some(link=>normalizeRoutePath(link.getAttribute('href'))===route);
@@ -47,50 +32,34 @@
     document.head.appendChild(link);
   };
 
-  const ensureLink=(nav,{href,label,position='end',marker})=>{
-    if(!nav)return null;
-    const targetRoute=normalizeRoutePath(href);
-    let link=[...nav.querySelectorAll('a[href]')].find(candidate=>normalizeRoutePath(candidate)===targetRoute);
-    if(!link){
-      link=document.createElement('a');
-      link.href=href;
-      link.textContent=label;
-      if(marker)link.dataset.ffHomepageNav=marker;
-      if(position==='start')nav.insertBefore(link,nav.firstElementChild);
-      else if(position==='before-cta'){
-        const cta=nav.querySelector('.decision-nav-cta, a[href="beta-application.html"], a[href="/beta-application.html"]');
-        if(cta)nav.insertBefore(link,cta);else nav.appendChild(link);
-      }else nav.appendChild(link);
-    }
-    return link;
-  };
-
   const syncHomepageNavigation=()=>{
     const brand=document.querySelector('.decision-brand');
     if(brand)brand.setAttribute('href','/');
 
-    const configureNav=(nav,{mobile=false}={})=>{
-      if(!nav)return;
-      dedupeRouteLinks(nav);
-      const product=[...nav.querySelectorAll('a[href]')].find(link=>normalizeRoutePath(link)==='/product');
-      if(product)product.textContent='How It Works';
+    const canonical=[
+      {href:'product.html',label:'Product'},
+      {href:'decision-intelligence.html',label:'Decision Intelligence'},
+      {href:'learn.html',label:'Evidence Lab'},
+      {href:'pricing.html',label:'Launch Plans'},
+      {href:'about.html',label:'About'},
+      {href:'beta-application.html',label:'Request Beta Access',cta:true}
+    ];
 
-      const decision=ensureLink(nav,{
-        href:'decision-intelligence.html',
-        label:mobile?'Card Decision Intelligence™':'Decision Intelligence™',
-        position:'start',
-        marker:'decision-intelligence'
+    const render=(nav,{mobile=false}={})=>{
+      if(!nav)return;
+      const fragment=document.createDocumentFragment();
+      canonical.forEach(item=>{
+        const link=document.createElement('a');
+        link.href=item.href;
+        link.textContent=item.label;
+        if(item.cta&&!mobile)link.className='decision-nav-cta';
+        fragment.appendChild(link);
       });
-      if(decision){
-        decision.textContent=mobile?'Card Decision Intelligence™':'Decision Intelligence™';
-        decision.dataset.ffHomepageNav='decision-intelligence';
-        nav.insertBefore(decision,nav.firstElementChild);
-      }
-      dedupeRouteLinks(nav);
+      nav.replaceChildren(fragment);
     };
 
-    configureNav(document.querySelector('.decision-nav-links'));
-    configureNav(document.querySelector('.mobile-nav'),{mobile:true});
+    render(document.querySelector('.decision-nav-links'));
+    render(document.querySelector('.mobile-nav'),{mobile:true});
   };
 
   const cdiHomeMarkup=()=>`
