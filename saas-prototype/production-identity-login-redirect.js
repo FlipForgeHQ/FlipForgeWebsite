@@ -2,6 +2,7 @@
   "use strict";
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
+  const PRODUCTION_AUTH_LINK = 'a[href^="/production-auth.html"],a[href*="goflipforge.com/production-auth.html"]';
 
   function eligibleHost() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -18,20 +19,26 @@
   }
 
   function productionAuthUrl() {
-    const returnPath = `${window.location.pathname}${window.location.search}${window.location.hash || "#/account"}`;
+    const pathname = String(window.location.pathname || "/app/");
+    const normalizedPath = pathname === "/app/customer" ? "/app/customer/"
+      : pathname === "/app" ? "/app/"
+      : pathname;
+    const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`;
     return `/production-auth.html?return=${encodeURIComponent(returnPath)}`;
   }
 
   document.addEventListener("click", event => {
-    if (!eligibleHost()) return;
-    const trigger = event.target && event.target.closest
-      ? event.target.closest("[data-ff-production-toggle]")
-      : null;
-    if (!trigger || currentUser()) return;
+    if (!eligibleHost() || currentUser()) return;
+    const target = event.target && event.target.closest ? event.target : null;
+    if (!target) return;
 
-    // Keep credential entry on an isolated production Identity surface so the
-    // cockpit's route/focus renderers cannot consume or replace the sign-in UI.
-    // Authentication remains the same secure same-origin Netlify Identity cookie session.
+    const launcher = target.closest("[data-ff-production-toggle]");
+    const authLink = target.closest(PRODUCTION_AUTH_LINK);
+    if (!launcher && !authLink) return;
+
+    // Keep every production sign-in handoff on the exact product surface the
+    // user was using. In particular, /app/customer/ must never collapse into
+    // the separate controlled /app beta because a feature emitted an old link.
     event.preventDefault();
     event.stopImmediatePropagation();
     window.location.assign(productionAuthUrl());
