@@ -10,7 +10,6 @@
 
   const expectedPageByRoute = Object.freeze({
     discover: ".customer-discovery-page",
-    "decision-intelligence": ".ff-di-page[data-decision-intelligence-source]",
     opportunities: ".customer-intelligence-page",
     tracking: ".customer-lifecycle-page",
     portfolio: ".customer-portfolio-page",
@@ -131,8 +130,6 @@
     switch (route) {
       case "discover":
         return simpleAdapterReady(window.FlipForgeCustomerDiscovery);
-      case "decision-intelligence":
-        return Boolean(document.querySelector('script[src*="decision-intelligence-v1.js"]'));
       case "opportunities": {
         const adapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
         if (!adapter || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
