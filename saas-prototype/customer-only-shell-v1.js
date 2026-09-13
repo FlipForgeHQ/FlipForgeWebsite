@@ -2,7 +2,7 @@
   "use strict";
 
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
-  const FULL_CUSTOMER_PATH = /^\/customer-app(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);
   const BETA_HIDDEN_NAV_ROUTES = new Set([
     "decision-intelligence", "market-view", "forge-heat", "evaluate", "portfolio", "alerts",
