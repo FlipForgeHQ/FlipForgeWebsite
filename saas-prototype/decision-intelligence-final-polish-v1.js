@@ -1,7 +1,13 @@
 (() => {
   "use strict";
 
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   let scheduled = false;
+
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
+  }
 
   function routeName() {
     return String(window.location.hash || "#/dashboard")
@@ -11,6 +17,16 @@
 
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
+  }
+
+  function normalizeDecisionIntelligenceSourceMarker() {
+    const page = document.querySelector(".ff-di-page[data-decision-intelligence-source]");
+    if (!page) return;
+    const source = String(page.getAttribute("data-decision-intelligence-source") || "").trim();
+    if (!source) return;
+    if (page.getAttribute("data-ff-decision-intelligence-source") !== source) {
+      page.setAttribute("data-ff-decision-intelligence-source", source);
+    }
   }
 
   function ensureDecisionCardEvidenceAssets() {
@@ -30,6 +46,7 @@
   }
 
   function ensureBetaCdiLearningAssets() {
+    if (fullCustomerMode()) return;
     if (!document.querySelector('link[data-ff-beta-cdi-learning]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
@@ -65,6 +82,7 @@
   }
 
   function polishDecisionIntelligence() {
+    normalizeDecisionIntelligenceSourceMarker();
     disambiguate(document.querySelector("#ff-di-primary"));
     disambiguate(document.querySelector("#ff-di-compare"));
   }
@@ -101,9 +119,10 @@
 
   function apply() {
     scheduled = false;
+    const route = routeName();
+    if (route === "decision-intelligence") normalizeDecisionIntelligenceSourceMarker();
     ensureDecisionCardEvidenceAssets();
     ensureBetaCdiLearningAssets();
-    const route = routeName();
     if (route === "decision-intelligence") polishDecisionIntelligence();
     if (route === "compare") polishCompare();
   }
