@@ -426,11 +426,9 @@ export function createBetaOperatorHandler({
 
 export default createBetaOperatorHandler();
 
+// Netlify's current project tier permits two code-based rate-limit rules.
+// Operator access remains authenticated, operator-role gated, same-origin for writes,
+// payload-bounded, transition-validated, and version-conflict protected.
 export const config = {
   path: "/api/beta/operator",
-  rateLimit: {
-    windowLimit: 120,
-    windowSize: 60,
-    aggregateBy: ["ip", "domain"],
-  },
 };
