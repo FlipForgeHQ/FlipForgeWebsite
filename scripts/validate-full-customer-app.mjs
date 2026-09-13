@@ -18,6 +18,7 @@ const redirects = read("_redirects");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
+const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 
 check(redirects.includes("/app/customer /app/customer/ 301"),
   "customer app canonical route redirects to trailing slash");
@@ -60,6 +61,18 @@ check(betaSession.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/
   "beta session renderer recognizes the full customer route");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"),
   "beta session renderer stands down on the full customer route");
+
+check(mobileNav.includes('const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"]'),
+  "mobile beta navigation keeps its four-route contract");
+check(mobileNav.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'),
+  "mobile navigation recognizes full customer mode");
+check(mobileNav.includes('"evaluate", "decision-intelligence"')
+  && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'),
+  "mobile full customer navigation retains Decision Intelligence and supporting product routes");
+check(mobileNav.includes("const routes = fullCustomerMode() ? FULL_CUSTOMER_ROUTES : PRIMARY_ROUTES;"),
+  "mobile navigation separates beta and full customer route sets");
+check(mobileNav.includes("html.ff-full-customer-app .primary-nav > .ff-advanced-nav"),
+  "mobile full customer mode preserves advanced analysis access");
 
 check(css.includes("body.ff-full-customer-app .prototype-banner")
   && css.includes("display: none !important;"),
