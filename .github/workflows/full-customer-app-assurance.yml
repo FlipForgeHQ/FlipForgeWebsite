@@ -6,6 +6,8 @@ on:
       - '_redirects'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
+      - 'saas-prototype/beta-session-v1.js'
+      - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
       - '.github/workflows/full-customer-app-assurance.yml'
   workflow_dispatch:
