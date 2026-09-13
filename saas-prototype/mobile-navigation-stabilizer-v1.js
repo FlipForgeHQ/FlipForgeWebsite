@@ -3,6 +3,15 @@
 
   const MOBILE_QUERY = "(max-width: 760px)";
   const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"];
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_ROUTES = [
+    "dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking",
+    "portfolio", "alerts", "forge-heat", "market-view"
+  ];
+
+  function fullCustomerMode() {
+    return FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
+  }
 
   function mobile() {
     return window.matchMedia?.(MOBILE_QUERY).matches === true;
@@ -26,8 +35,13 @@
           opacity:1 !important;
           display:grid !important;
         }
-        .primary-nav > .ff-advanced-nav {
+        html:not(.ff-full-customer-app) .primary-nav > .ff-advanced-nav {
           display:none !important;
+        }
+        html.ff-full-customer-app .primary-nav > .ff-advanced-nav {
+          display:block !important;
+          visibility:visible !important;
+          opacity:1 !important;
         }
       }`;
     document.head.appendChild(style);
@@ -73,11 +87,12 @@
     if (!nav) return;
 
     ensureStyle();
-    PRIMARY_ROUTES.forEach(route => restoreLink(nav.querySelector(`[data-route="${route}"]`)));
+    const routes = fullCustomerMode() ? FULL_CUSTOMER_ROUTES : PRIMARY_ROUTES;
+    routes.forEach(route => restoreLink(nav.querySelector(`[data-route="${route}"]`)));
 
     nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
       const route = String(link.dataset.route || "");
-      if (!PRIMARY_ROUTES.includes(route) && route !== "account") {
+      if (!routes.includes(route) && route !== "account") {
         link.hidden = true;
         link.setAttribute("aria-hidden", "true");
         link.tabIndex = -1;
@@ -87,9 +102,15 @@
 
     const advanced = nav.querySelector(".ff-advanced-nav");
     if (advanced) {
-      advanced.open = false;
-      advanced.hidden = true;
-      advanced.setAttribute("aria-hidden", "true");
+      if (fullCustomerMode()) {
+        advanced.hidden = false;
+        advanced.removeAttribute("hidden");
+        advanced.removeAttribute("aria-hidden");
+      } else {
+        advanced.open = false;
+        advanced.hidden = true;
+        advanced.setAttribute("aria-hidden", "true");
+      }
     }
 
     const account = ensureAccountLink(nav);
