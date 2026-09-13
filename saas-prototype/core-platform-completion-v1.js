@@ -3,6 +3,7 @@
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const DECISION_CONTEXT_TIMEOUT_MS = 8000;
   const ENUM_LABELS = Object.freeze({
     PRIVATE_BETA_ACTIVE: "Private Beta Active",
@@ -25,6 +26,11 @@
 
   function production() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
+  }
+
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
   }
 
   function routeName() {
@@ -88,20 +94,29 @@
 
   function normalizeVisibleLanguage() {
     const isProduction = production();
+    const customer = fullCustomerMode();
     const banner = document.querySelector(".prototype-banner");
     const chip = document.querySelector(".prototype-chip");
 
     if (banner) {
-      const title = banner.querySelector("strong");
-      const copy = banner.querySelector("span");
-      if (title && title.textContent !== "PRIVATE BETA") title.textContent = "PRIVATE BETA";
-      const desiredCopy = isProduction
-        ? "Card intelligence workspace · Evaluation only"
-        : "Card intelligence preview · Evaluation only";
-      if (copy && copy.textContent !== desiredCopy) copy.textContent = desiredCopy;
+      if (customer) {
+        banner.hidden = true;
+        banner.setAttribute("aria-hidden", "true");
+      } else {
+        banner.hidden = false;
+        banner.removeAttribute("aria-hidden");
+        const title = banner.querySelector("strong");
+        const copy = banner.querySelector("span");
+        if (title && title.textContent !== "PRIVATE BETA") title.textContent = "PRIVATE BETA";
+        const desiredCopy = isProduction
+          ? "Card intelligence workspace · Evaluation only"
+          : "Card intelligence preview · Evaluation only";
+        if (copy && copy.textContent !== desiredCopy) copy.textContent = desiredCopy;
+      }
     }
 
-    if (chip && chip.textContent !== "PRIVATE BETA") chip.textContent = "PRIVATE BETA";
+    const desiredChip = customer ? "CUSTOMER APP" : "PRIVATE BETA";
+    if (chip && chip.textContent !== desiredChip) chip.textContent = desiredChip;
 
     const guide = document.querySelector('.primary-nav [data-route="beta-start"]');
     if (guide && !/Getting Started/.test(guide.textContent || "")) {
@@ -111,7 +126,7 @@
     }
 
     document.querySelectorAll(".staging-only-nav").forEach(node => {
-      if (isProduction) node.hidden = true;
+      if (isProduction || customer) node.hidden = true;
     });
 
     const planCard = document.querySelector(".plan-card");
@@ -119,9 +134,13 @@
       const eyebrow = planCard.querySelector(".eyebrow");
       const strong = planCard.querySelector("strong");
       const small = planCard.querySelector("small");
-      if (eyebrow && eyebrow.textContent !== "Private beta") eyebrow.textContent = "Private beta";
+      const desiredEyebrow = customer ? "Customer account" : "Private beta";
+      if (eyebrow && eyebrow.textContent !== desiredEyebrow) eyebrow.textContent = desiredEyebrow;
       if (strong && strong.textContent !== "Plan & Usage") strong.textContent = "Plan & Usage";
-      if (small && /billing|prototype|preview|server-owned|tenant/i.test(small.textContent || "")) {
+      if (small && customer) {
+        const desired = "Plan state and evaluation usage are loaded from your account.";
+        if (small.textContent !== desired) small.textContent = desired;
+      } else if (small && /billing|prototype|preview|server-owned|tenant/i.test(small.textContent || "")) {
         const desired = "Usage updates automatically. Paid access is not active during private beta.";
         if (small.textContent !== desired) small.textContent = desired;
       }
@@ -138,7 +157,8 @@
     }
 
     const profileSmall = document.querySelector(".profile-button .profile-copy small");
-    if (profileSmall && profileSmall.textContent !== "Plan & Usage") profileSmall.textContent = "Plan & Usage";
+    const desiredProfileMode = customer ? "Customer" : "Plan & Usage";
+    if (profileSmall && profileSmall.textContent !== desiredProfileMode) profileSmall.textContent = desiredProfileMode;
 
     const shortcut = document.querySelector(".global-search kbd");
     if (shortcut) {
@@ -146,7 +166,9 @@
       if (shortcut.textContent !== desired) shortcut.textContent = desired;
     }
 
-    document.title = isProduction ? "FlipForge | Card Intelligence" : "FlipForge Beta | Card Intelligence";
+    document.title = customer
+      ? "FlipForge | Customer App — Card Decision Intelligence"
+      : isProduction ? "FlipForge | Card Intelligence" : "FlipForge Beta | Card Intelligence";
   }
 
   function humanizeServerEnums() {
