@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "hero": {
+    "eyebrow": "CARD DECISION INTELLIGENCE™",
+    "headline": "What should I do — and why?",
+    "copy": "FlipForge evaluates the exact card, tests the evidence and economics, keeps risk visible, and returns BUY, WATCH, VERIFY, or PASS with a decision receipt you can inspect.",
+    "primaryCta": "See how a decision is built",
+    "secondaryCta": "View a sample Decision Dossier"
+  },
+  "trust": [
+    "Exact-card identity comes before price conclusions.",
+    "Invalid or conflicting evidence stays visible.",
+    "Risk and uncertainty are not hidden inside one score.",
+    "Every decision keeps a traceable receipt.",
+    "T0 stays immutable while T7, T14, and T30 add outcome context."
+  ],
+  "shortDescriptions": {
+    "dealer": "Pressure-test card economics before inventory money gets committed.",
+    "collector": "Understand what the evidence supports before buying the card you actually want.",
+    "flipper": "See whether the apparent spread survives exact-card evidence and risk checks.",
+    "investor": "Separate a compelling narrative from a defensible decision.",
+    "grading": "Use PSA context as one governed input — not as a substitute for the full decision."
+  }
+}

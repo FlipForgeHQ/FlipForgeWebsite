@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "campaigns": [
+    {
+      "key":"deal-or-decoy",
+      "name":"Deal or Decoy",
+      "hook":"24% off can become 2.3% after the evidence is cleaned.",
+      "story":["Apparent discount: 24%","Choose BUY, WATCH, VERIFY, or PASS before the reveal","Reveal 5 of 7 comparisons as invalid or conflicting","Recalculate the supported spread: 2.3%","Decision: VERIFY","Show the two reasons that still block action"],
+      "formats":["20-30 second video","vertical social","carousel","one-page case study","website interactive","email","dealer handout"]
+    },
+    {
+      "key":"wrong-comp",
+      "name":"The Wrong Comp Problem",
+      "hook":"Two cards can look identical and still be the wrong comparison.",
+      "layer":"Identity Intelligence",
+      "formats":["carousel","short video","one-pager"]
+    },
+    {
+      "key":"more-data",
+      "name":"More Data ≠ Better Evidence",
+      "hook":"Seven comps are not useful if five should never have counted.",
+      "layer":"Evidence Intelligence",
+      "formats":["carousel","email","short video"]
+    },
+    {
+      "key":"decision-receipt",
+      "name":"Show Me Why",
+      "hook":"Do not just tell me VERIFY. Show me why.",
+      "layer":"Decision Traceback / Decision Receipt",
+      "formats":["product one-pager","social","demo video"]
+    },
+    {
+      "key":"what-happened-next",
+      "name":"What Happened Next?",
+      "hook":"T0 was the decision. T7, T14, and T30 show what changed without rewriting it.",
+      "layer":"Outcome Intelligence",
+      "formats":["case study","timeline graphic","email","social"]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "categoryStatement": "FlipForge is Card Decision Intelligence™ for sports cards.",
+  "oneSentence": "FlipForge helps collectors, investors, flippers, dealers, and grading users decide what to do next — and understand why.",
+  "problem": "Sports-card buyers are surrounded by prices, charts, opinions, comps, and confident predictions, but the evidence is often mismatched, duplicated, stale, incomplete, or impossible to trace back to a decision.",
+  "promise": "FlipForge turns the evidence into a defensible decision while keeping uncertainty visible.",
+  "differentiator": "The product does not stop at price. It resolves identity, evaluates evidence, tests economics and risk, produces a decision receipt, and tracks what happened afterward.",
+  "notA": [
+    "price guide",
+    "marketplace",
+    "collection tracker",
+    "prediction bot",
+    "auto-buy tool"
+  ],
+  "decisionStates": {
+    "BUY": "The evidence and economics support action within the governed decision context.",
+    "WATCH": "The opportunity is worth monitoring, but action is not yet supported.",
+    "VERIFY": "Something important still needs to be confirmed before spending.",
+    "PASS": "The current evidence, economics, or risk does not support the opportunity."
+  },
+  "publicHeadlineOptions": [
+    "Know what the evidence supports before you buy.",
+    "Sports-card decisions with reasons you can inspect.",
+    "Stop buying the story. Inspect the decision."
+  ]
+}

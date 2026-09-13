@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "standard": "FlipForge provides decision support based on available evidence. It is not a marketplace, does not execute purchases or sales, and does not guarantee price, grade, liquidity, profit, or future performance.",
+  "compact": "Decision support only. No transaction authority or guaranteed outcomes.",
+  "accuracy": "Outcome tracking and study results must not be presented as a public accuracy claim unless a separately authorized claim standard has been met.",
+  "evidence": "Missing, stale, conflicting, or insufficient evidence must remain visible and may require VERIFY or PASS.",
+  "forbiddenClaims": [
+    "guaranteed profit",
+    "guaranteed return",
+    "guaranteed winner",
+    "100% accurate",
+    "predict the next big card",
+    "predicts the next big card",
+    "FlipForge automatically buys",
+    "FlipForge executes purchases",
+    "FlipForge has transaction authority",
+    "risk-free return",
+    "can't lose",
+    "cannot lose"
+  ],
+  "restrictedPublicPhrases": [
+    "Bloomberg of sports cards"
+  ]
+}

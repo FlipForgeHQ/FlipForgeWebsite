@@ -4,3 +4,6 @@ assets/js/flipforge-identity.js
 assets/js/flipforge-production-auth-probe.js
 assets/js/flipforge-production-signin.js
 assets/js/flipforge-staging-auth-probe.js
+marketing/generated/
+marketing/exports/
+marketing-preview/

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "documents": [
+    {
+      "slug":"product-one-pager",
+      "title":"FlipForge Product Overview",
+      "eyebrow":"CARD DECISION INTELLIGENCE™",
+      "headline":"Know what the evidence supports before you buy.",
+      "summary":"FlipForge is a sports-card decision engine that turns exact-card identity, evidence, economics, risk, and outcomes into a defensible BUY, WATCH, VERIFY, or PASS decision.",
+      "sections":["problem","solution","decision-states","proof-points","seven-layers","cta"],
+      "audience":"all"
+    },
+    {
+      "slug":"card-decision-intelligence",
+      "title":"What Is Card Decision Intelligence?",
+      "eyebrow":"OWN THE DECISION — NOT JUST THE DATA",
+      "headline":"A price is a fact. A decision needs context.",
+      "summary":"Card Decision Intelligence™ is FlipForge’s governed process for moving from exact-card identity to evidence, economics, risk, decision reasoning, and tracked outcomes.",
+      "sections":["seven-layers","decision-states","decision-receipt","outcomes","cta"],
+      "audience":"all"
+    },
+    {
+      "slug":"why-flipforge-exists",
+      "title":"Why FlipForge Exists",
+      "eyebrow":"THE TRUST GAP",
+      "headline":"The market has plenty of data. The harder problem is knowing what deserves to count.",
+      "summary":"FlipForge exists because collectors and dealers are forced to translate prices, comps, opinions, and uncertainty into decisions without a consistent trust layer.",
+      "sections":["problem","market-gaps","solution","proof-points","cta"],
+      "audience":"all"
+    },
+    {
+      "slug":"how-a-decision-is-built",
+      "title":"How FlipForge Builds a Decision",
+      "eyebrow":"SEVEN GOVERNED LAYERS",
+      "headline":"From exact card to explainable action.",
+      "summary":"Each layer answers a different question. No single price, grade, or score is allowed to stand in for the whole decision.",
+      "sections":["seven-layers","decision-states","decision-receipt","disclaimer"],
+      "audience":"all"
+    },
+    {
+      "slug":"dealer-flipper-sell-sheet",
+      "title":"FlipForge for Dealers & Flippers",
+      "eyebrow":"PRESSURE-TEST THE SPREAD",
+      "headline":"Inventory money deserves more than a good-looking comp.",
+      "summary":"Use Card Decision Intelligence™ to test identity, evidence, margin, liquidity, risk, and the next action before capital gets committed.",
+      "sections":["audience","decision-states","proof-points","deal-or-decoy","cta"],
+      "audience":"dealer"
+    },
+    {
+      "slug":"collector-investor-sell-sheet",
+      "title":"FlipForge for Collectors & Investors",
+      "eyebrow":"BUY WITH REASONS YOU CAN INSPECT",
+      "headline":"Separate the card you want from the evidence you need.",
+      "summary":"FlipForge helps you understand whether the exact card, evidence, economics, and risk support BUY, WATCH, VERIFY, or PASS.",
+      "sections":["audience","seven-layers","proof-points","decision-receipt","cta"],
+      "audience":"collector"
+    },
+    {
+      "slug":"sample-decision-dossier",
+      "title":"Sample FlipForge Decision Dossier",
+      "eyebrow":"DECISION RECEIPT",
+      "headline":"VERIFY — the apparent deal does not survive evidence review.",
+      "summary":"A sample marketing dossier showing how an apparent 24% discount can fall to 2.3% after invalid comparisons are removed.",
+      "sections":["deal-or-decoy","evidence-chain","seven-layers","outcomes","disclaimer"],
+      "audience":"all"
+    }
+  ]
+}
