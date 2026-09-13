@@ -3,6 +3,7 @@
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
 
   function eligible() {
     return APP_PATH.test(String(window.location.pathname || ""));
@@ -10,6 +11,10 @@
 
   function production() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
+  }
+
+  function fullCustomerMode() {
+    return FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
   }
 
   function installApprovedBrandMark() {
@@ -193,25 +198,35 @@
   function syncEnvironmentLanguage() {
     if (!eligible()) return;
     document.body.classList.add("ff-commercial-shell");
+    const customer = fullCustomerMode();
 
     const banner = document.querySelector(".prototype-banner");
     if (banner) {
-      const title = banner.querySelector("strong");
-      const copy = banner.querySelector("span");
-      if (production()) {
-        if (title) title.textContent = "PRIVATE BETA INTELLIGENCE";
-        if (copy) copy.textContent = "Authenticated tenant-scoped decisions · SQLite saved · No transaction authority";
+      if (customer) {
+        banner.hidden = true;
+        banner.setAttribute("aria-hidden", "true");
       } else {
-        if (title) title.textContent = "BETA PREVIEW";
-        if (copy) copy.textContent = "Controlled customer intelligence preview · No transaction authority";
+        banner.hidden = false;
+        banner.removeAttribute("aria-hidden");
+        const title = banner.querySelector("strong");
+        const copy = banner.querySelector("span");
+        if (production()) {
+          if (title) title.textContent = "PRIVATE BETA INTELLIGENCE";
+          if (copy) copy.textContent = "Authenticated tenant-scoped decisions · SQLite saved · No transaction authority";
+        } else {
+          if (title) title.textContent = "BETA PREVIEW";
+          if (copy) copy.textContent = "Controlled customer intelligence preview · No transaction authority";
+        }
       }
     }
 
     const chip = document.querySelector(".prototype-chip");
-    if (chip) chip.textContent = production() ? "PRIVATE BETA" : "BETA PREVIEW";
+    if (chip) chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW";
 
     const profileSmall = document.querySelector(".profile-button .profile-copy small");
-    if (production() && profileSmall && /preview/i.test(profileSmall.textContent || "")) {
+    if (customer && profileSmall) {
+      profileSmall.textContent = "Customer";
+    } else if (production() && profileSmall && /preview/i.test(profileSmall.textContent || "")) {
       profileSmall.textContent = "Private beta";
     }
 
@@ -220,12 +235,22 @@
       const eyebrow = planCard.querySelector(".eyebrow");
       const strong = planCard.querySelector("strong");
       const small = planCard.querySelector("small");
-      if (eyebrow) eyebrow.textContent = "Tenant access";
-      if (strong) strong.textContent = "Plan & Usage";
-      if (small) small.textContent = "Plan state, evaluation usage, checkout availability, and billing access are server-owned.";
+      if (customer) {
+        if (eyebrow) eyebrow.textContent = "Customer account";
+        if (strong) strong.textContent = "Plan & Usage";
+        if (small) small.textContent = "Plan state and evaluation usage are loaded from your account.";
+      } else {
+        if (eyebrow) eyebrow.textContent = "Tenant access";
+        if (strong) strong.textContent = "Plan & Usage";
+        if (small) small.textContent = "Plan state, evaluation usage, checkout availability, and billing access are server-owned.";
+      }
     }
 
-    if (production()) document.title = "FlipForge | Card Decision Intelligence";
+    if (production()) {
+      document.title = customer
+        ? "FlipForge | Customer App — Card Decision Intelligence"
+        : "FlipForge | Card Decision Intelligence";
+    }
     installApprovedBrandMark();
     installDiscoveryObserver();
     enhanceDiscoverySourceLinks(document);

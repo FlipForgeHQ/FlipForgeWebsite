@@ -4,6 +4,7 @@
   const core = window.FlipForgePrototypeData;
   const features = window.FlipForgeSaaSFeatureData;
   const main = document.querySelector("#main-content");
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   if (!core || !features || !main) return;
 
   const currency = new Intl.NumberFormat("en-US", {
@@ -11,6 +12,10 @@
     currency: "USD",
     maximumFractionDigits: 0
   });
+
+  function fullCustomerMode() {
+    return FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
+  }
 
   function activeRoute() {
     return (window.location.hash.replace(/^#\/?/, "").split("/")[0] || "dashboard").split("?")[0];
@@ -53,17 +58,18 @@
 
     replacements.forEach(([from, to]) => replaceLeafText(page, from, to));
 
+    const customer = fullCustomerMode();
     const prototypeChip = document.querySelector(".prototype-chip");
-    if (prototypeChip) prototypeChip.textContent = "SAAS PREVIEW";
+    if (prototypeChip) prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW";
 
     const planEyebrow = document.querySelector(".plan-card .eyebrow");
-    if (planEyebrow) planEyebrow.textContent = "Preview plan";
+    if (planEyebrow && !customer) planEyebrow.textContent = "Preview plan";
 
     const accountName = document.querySelector(".account-link strong");
-    if (accountName) accountName.textContent = "Owner account";
+    if (accountName && !customer) accountName.textContent = "Owner account";
 
     const profileMode = document.querySelector(".profile-copy small");
-    if (profileMode) profileMode.textContent = "Preview";
+    if (profileMode) profileMode.textContent = customer ? "Customer" : "Preview";
 
     const gradingPanel = panelByHeading(cockpit, "Grading value predictor");
     if (gradingPanel) {
