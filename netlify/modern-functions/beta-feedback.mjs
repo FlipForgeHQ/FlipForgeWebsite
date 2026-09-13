@@ -96,11 +96,9 @@ export function createBetaFeedbackHandler({ store, getUserFn = getUser, now = ()
 
 export default createBetaFeedbackHandler();
 
+// Netlify's current project tier permits two code-based rate-limit rules.
+// This endpoint remains same-origin, authenticated, active-tester gated, payload-bounded,
+// schema-validated, and write-once. The two platform rules are reserved for public intake.
 export const config = {
   path: "/api/beta/feedback",
-  rateLimit: {
-    windowLimit: 20,
-    windowSize: 3600,
-    aggregateBy: ["ip", "domain"],
-  },
 };
