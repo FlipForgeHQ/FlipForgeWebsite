@@ -1,6 +1,12 @@
 (()=>{
   'use strict';
 
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});
+    },{once:true});
+  }
+
   const isHomepage=()=>window.location.pathname==='/'||window.location.pathname==='/index.html';
 
   const normalizeRoutePath=value=>{
