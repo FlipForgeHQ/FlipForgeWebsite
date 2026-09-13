@@ -10,9 +10,10 @@
   enforceReadabilityFloor();
 
   const normalizeMarketingShell=()=>{
-    const normalizedPath=link=>{
+    const normalizedPath=value=>{
       try{
-        const path=new URL(link.getAttribute('href')||'',location.href).pathname
+        const href=value instanceof Element?(value.getAttribute('href')||''):String(value||'');
+        const path=new URL(href,location.href).pathname
           .replace(/\/index\.html$/,'/')
           .replace(/\.html$/,'')
           .replace(/\/+$/,'');
@@ -20,10 +21,34 @@
       }catch{return '';}
     };
     const linksFor=(container,path)=>container?[...container.querySelectorAll('a[href]')].filter(link=>normalizedPath(link)===path):[];
+    const currentPath=normalizedPath(location.pathname);
 
-    document.querySelectorAll('a[href]').forEach(link=>{
-      if(normalizedPath(link)==='/pricing'&&link.textContent.trim()==='Pricing')link.textContent='Launch Plans';
-    });
+    const canonicalPrimaryNav=[
+      {path:'/product',href:'/product.html',label:'Product'},
+      {path:'/decision-intelligence',href:'/decision-intelligence.html',label:'Decision Intelligence'},
+      {path:'/learn',href:'/learn.html',label:'Evidence Lab'},
+      {path:'/pricing',href:'/pricing.html',label:'Launch Plans'},
+      {path:'/about',href:'/about.html',label:'About'},
+      {path:'/beta-application',href:'/beta-application.html',label:'Request Beta Access',cta:true}
+    ];
+
+    const renderPrimaryNav=container=>{
+      if(!container)return;
+      const isDecisionHeader=container.classList.contains('decision-nav-links');
+      const isMobile=container.classList.contains('mobile-nav');
+      const fragment=document.createDocumentFragment();
+      canonicalPrimaryNav.forEach(item=>{
+        const link=document.createElement('a');
+        link.href=item.href;
+        link.textContent=item.label;
+        if(item.cta&&!isMobile)link.classList.add(isDecisionHeader?'decision-nav-cta':'nav-cta');
+        if(currentPath===item.path)link.setAttribute('aria-current','page');
+        fragment.append(link);
+      });
+      container.replaceChildren(fragment);
+    };
+
+    document.querySelectorAll('.desktop-nav,.decision-nav-links,.mobile-nav').forEach(renderPrimaryNav);
 
     const addEvidenceLink=container=>{
       if(!container)return;
@@ -36,11 +61,8 @@
       const link=document.createElement('a');
       link.href='/learn.html';
       link.textContent='Evidence Lab';
-      const anchor=[...container.querySelectorAll('a,[data-app-preview]')].find(item=>{
-        const path=normalizedPath(item);
-        return path==='/faq'||path==='/about'||item.hasAttribute('data-app-preview');
-      });
-      if(anchor)container.insertBefore(link,anchor);
+      const about=linksFor(container,'/about')[0];
+      if(about)container.insertBefore(link,about);
       else container.append(link);
     };
 
@@ -57,20 +79,9 @@
       link.textContent='Decision Intelligence';
       const product=linksFor(container,'/product')[0];
       if(product)product.insertAdjacentElement('afterend',link);
-      else{
-        const anchor=[...container.querySelectorAll('a,[data-app-preview]')].find(item=>{
-          const path=normalizedPath(item);
-          return path==='/learn'||path==='/faq'||path==='/about'||item.hasAttribute('data-app-preview');
-        });
-        if(anchor)container.insertBefore(link,anchor);
-        else container.prepend(link);
-      }
+      else container.prepend(link);
     };
 
-    [document.querySelector('.desktop-nav'),document.querySelector('.decision-nav-links'),document.querySelector('.mobile-nav')].forEach(container=>{
-      addDecisionIntelligenceLink(container);
-      addEvidenceLink(container);
-    });
     document.querySelectorAll('.footer-links').forEach(group=>{
       if(linksFor(group,'/product').length){
         addDecisionIntelligenceLink(group);
@@ -78,13 +89,17 @@
       }
     });
 
-    [document.querySelector('.desktop-nav'),document.querySelector('.decision-nav-links'),document.querySelector('.mobile-nav')].forEach(container=>{
-      linksFor(container,'/beta-application').forEach(link=>link.textContent='Request Beta Access');
-    });
-
     document.querySelectorAll('[data-app-preview]').forEach(link=>{
       link.textContent='Private Beta App';
       link.setAttribute('aria-label','Open Private Beta App');
+    });
+
+    document.querySelectorAll('.footer p strong').forEach(label=>{
+      const text=label.textContent.trim().replace(/™/g,'');
+      if(text==='Card Intelligence'||text==='Card Decision Intelligence')label.textContent='Card Decision Intelligence™';
+    });
+    document.querySelectorAll('img.brand-lockup,.decision-brand img').forEach(image=>{
+      image.alt='FlipForge — Card Decision Intelligence — Before you buy. Know Why.';
     });
 
     const copyright=document.querySelector('.copyright');
@@ -140,7 +155,7 @@
     if(link.closest(".footer"))return"footer";
     if(link.closest(".ff-dossier-spotlight"))return"sample-spotlight";
     if(link.closest(".ff-evidence"))return"evidence";
-    if(link.closest(".page-hero,.hero"))return"hero";
+    if(link.closest(".page-hero,.hero,.decision-hero,.ff-dic-hero"))return"hero";
     return"page";
   };
 
