@@ -19,6 +19,7 @@ const shell = read("saas-prototype/customer-only-shell-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
+const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 
 check(redirects.includes("/app/customer /app/customer/ 301"),
   "customer app canonical route redirects to trailing slash");
@@ -73,6 +74,11 @@ check(mobileNav.includes("const routes = fullCustomerMode() ? FULL_CUSTOMER_ROUT
   "mobile navigation separates beta and full customer route sets");
 check(mobileNav.includes("html.ff-full-customer-app .primary-nav > .ff-advanced-nav"),
   "mobile full customer mode preserves advanced analysis access");
+
+check(authProbe.includes('resolved.pathname === "/app/customer/"'),
+  "production sign-in may return authenticated users to the full customer app");
+check(authProbe.includes('resolved.origin !== window.location.origin || !pathAllowed'),
+  "customer auth return remains same-origin and allowlisted");
 
 check(css.includes("body.ff-full-customer-app .prototype-banner")
   && css.includes("display: none !important;"),
