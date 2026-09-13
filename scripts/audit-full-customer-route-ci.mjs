@@ -144,11 +144,11 @@ try {
   await page.waitForFunction(() => window.location.hash === "#/decision-intelligence", null, { timeout: 10000 });
   await page.waitForSelector('.ff-di-page[data-decision-intelligence-source="server"]', { timeout: 10000 });
   await page.waitForSelector("[data-ff-di-v2-command]", { timeout: 10000 });
-  await page.waitForSelector("[data-ff-decision-card-evidence]", { timeout: 10000 });
+  await page.waitForSelector("section[data-ff-decision-card-evidence]", { timeout: 10000 });
 
   const decisionState = await page.evaluate(() => {
     const root = document.querySelector('.ff-di-page[data-decision-intelligence-source="server"]');
-    const panel = document.querySelector("[data-ff-decision-card-evidence]");
+    const panel = document.querySelector("section[data-ff-decision-card-evidence]");
     return {
       hash: window.location.hash,
       chip: document.querySelector(".prototype-chip")?.textContent?.trim() || "",
@@ -188,7 +188,7 @@ try {
     if (main) main.innerHTML = '<div class="page"><h1>Legacy placeholder</h1></div>';
   });
   await page.waitForSelector('.ff-di-page[data-decision-intelligence-source="server"]', { timeout: 10000 });
-  await page.waitForSelector("[data-ff-decision-card-evidence]", { timeout: 10000 });
+  await page.waitForSelector("section[data-ff-decision-card-evidence]", { timeout: 10000 });
 
   // Reproduce the auth-return bug after route navigation. Older feature modules may
   // still emit an /app return; the production redirect must preserve /app/customer/.
