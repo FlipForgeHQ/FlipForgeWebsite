@@ -2,6 +2,7 @@
   "use strict";
 
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const ENDPOINT = "/api/conversion-event";
@@ -13,8 +14,10 @@
 
   function eligible() {
     const host = String(window.location.hostname || "");
+    const path = String(window.location.pathname || "");
     return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
-      && APP_PATH.test(String(window.location.pathname || ""));
+      && APP_PATH.test(path)
+      && !FULL_CUSTOMER_PATH.test(path);
   }
 
   function routeParts() {

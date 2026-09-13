@@ -35,13 +35,15 @@ check(
   shellJs.includes('hideElement(advanced)')
 );
 check(
-  "011 Decision Intelligence is delivered inside the decision workflow instead of primary navigation",
-  shellJs.includes('"decision-intelligence"') &&
-  !shellJs.includes('["decision-intelligence", "Decision Intelligence"]')
+  "011 Decision Intelligence stays out of beta primary nav and is exposed only by full customer mode",
+  shellJs.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;') &&
+  shellJs.includes('if (fullCustomerMode()) {\n      fullCustomerNavigation(nav);') &&
+  shellJs.includes('["decision-intelligence", "Decision Intelligence"]') &&
+  shellJs.includes('if (route !== "account") hideElement(link)')
 );
 check("012 customer app does not link to operator workspace", !index.includes("operator-beta.html"));
 check("013 customer shell stylesheet is loaded", index.includes('href="customer-only-shell-v1.css"'));
-check("014 customer shell runtime is loaded last", /mobile-ui-runtime-fix-v1\.js[\s\S]*customer-only-shell-v1\.js[\s\S]*<\/body>/.test(index));
+check("014 customer shell runtime is loaded after route presentation scripts", /mobile-ui-runtime-fix-v1\.js[\s\S]*customer-only-shell-v1\.js[\s\S]*<\/body>/.test(index));
 check(
   "015 customer runtime hides all non-core beta navigation without disabling underlying routes",
   shellJs.includes("BETA_HIDDEN_NAV_ROUTES") &&
@@ -54,13 +56,13 @@ check(
   shellJs.includes("BUY, WATCH, VERIFY, or PASS")
 );
 check(
-  "017 customer home exposes only two secondary destinations after the primary Evaluate CTA",
+  "017 beta customer home keeps two secondary destinations after the primary Evaluate CTA",
   shellJs.includes('["Saved Decisions", "Reopen cards you already evaluated."') &&
   shellJs.includes('["Tracking", "See what changed after the original decision."')
 );
-check("018 customer shell hides plan card", shellCss.includes(".plan-card"));
+check("018 customer shell hides plan card in beta", shellCss.includes(".plan-card"));
 check(
-  "019 mobile stabilizer restores only four primary beta routes plus Account",
+  "019 mobile stabilizer preserves the four-route beta contract",
   mobileNav.includes('const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"]') &&
   mobileNav.includes('.primary-nav > .ff-advanced-nav') &&
   mobileNav.includes('display:none !important')
@@ -68,7 +70,13 @@ check(
 check("020 operator workspace remains a separate page", operator.includes("Private operations") || operator.includes("Sign in as Operator"));
 check("021 operator role remains server-defined", betaCore.includes('OPERATOR_ROLE = "flipforge-operator"'));
 check("022 active customer role remains server-defined", betaCore.includes('ACTIVE_ROLE = "flipforge-active"'));
-check("023 app routing remains isolated under /app", redirects.includes("/app /saas-prototype/index.html 200") && redirects.includes("/app/* /saas-prototype/:splat 200"));
+check(
+  "023 beta and full customer routing remain isolated under /app",
+  redirects.includes("/app /saas-prototype/index.html 200") &&
+  redirects.includes("/app/customer/ /saas-prototype/index.html 200") &&
+  redirects.includes("/app/customer/* /saas-prototype/:splat 200") &&
+  redirects.includes("/app/* /saas-prototype/:splat 200")
+);
 
 for (const item of checks) {
   console.log(`${item.passed ? "PASS" : "FAIL"} ${item.name}`);

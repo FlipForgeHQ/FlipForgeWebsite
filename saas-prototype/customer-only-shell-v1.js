@@ -2,16 +2,26 @@
   "use strict";
 
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);
   const BETA_HIDDEN_NAV_ROUTES = new Set([
     "decision-intelligence", "market-view", "forge-heat", "evaluate", "portfolio", "alerts",
     "beta-start", "compare", "psa-advisor", "evidence", "sell", "export", "staging", "staging-evaluate"
   ]);
+  const FULL_CUSTOMER_ROUTES = new Set([
+    "dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking",
+    "portfolio", "alerts", "forge-heat", "market-view"
+  ]);
   const MAIN = "#main-content";
   let scheduled = false;
 
+  function fullCustomerMode() {
+    return FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
+  }
+
   function eligible() {
-    return APP_PATH.test(String(window.location.pathname || ""));
+    const path = String(window.location.pathname || "");
+    return APP_PATH.test(path) || FULL_CUSTOMER_PATH.test(path);
   }
 
   function routeParts() {
@@ -55,25 +65,115 @@
     node.removeAttribute("data-ff-customer-core");
   }
 
+  function showElement(node) {
+    if (!node) return;
+    if (node.hidden) node.hidden = false;
+    node.removeAttribute("hidden");
+    node.removeAttribute("aria-hidden");
+    if (node.getAttribute("tabindex") === "-1") node.removeAttribute("tabindex");
+  }
+
   function showCoreLink(link, label) {
     if (!link) return;
-    if (link.hidden) link.hidden = false;
-    link.removeAttribute("hidden");
-    link.removeAttribute("aria-hidden");
-    if (link.getAttribute("tabindex") === "-1") link.removeAttribute("tabindex");
+    showElement(link);
     if (!link.hasAttribute("data-ff-customer-core")) link.setAttribute("data-ff-customer-core", "");
     replaceTextNode(link, label);
   }
 
+  function fullCustomerChrome() {
+    if (!fullCustomerMode()) return;
+
+    document.documentElement.classList.add("ff-full-customer-app");
+    document.body?.classList.add("ff-full-customer-app");
+    document.title = "FlipForge | Customer App — Card Decision Intelligence";
+
+    const description = document.querySelector('meta[name="description"]');
+    if (description) description.setAttribute(
+      "content",
+      "FlipForge customer app for Card Decision Intelligence: discover, evaluate, understand, save, and track sports-card decisions."
+    );
+
+    hideElement(document.querySelector(".prototype-banner"));
+    setText(document.querySelector(".prototype-chip"), "CUSTOMER APP");
+
+    const plan = document.querySelector(".sidebar-footer .plan-card");
+    if (plan) {
+      showElement(plan);
+      setText(plan.querySelector(".eyebrow"), "Customer account");
+      setText(plan.querySelector("strong"), "Plan & Usage");
+      const small = plan.querySelector("small");
+      if (small) setText(small, "Plan state and evaluation usage are loaded from your account.");
+    }
+
+    const accountSmall = document.querySelector(".account-link small");
+    setText(accountSmall, "Account");
+    const profileSmall = document.querySelector(".profile-copy small");
+    setText(profileSmall, "Customer");
+  }
+
   function markCustomerSurface() {
     if (document.body?.dataset.ffSurface !== "customer") document.body.dataset.ffSurface = "customer";
+    if (fullCustomerMode()) {
+      fullCustomerChrome();
+      return;
+    }
     const chip = document.querySelector(".prototype-chip");
     setText(chip, "PRIVATE BETA");
+  }
+
+  function fullCustomerNavigation(nav) {
+    const labels = new Map([
+      ["dashboard", "Home"],
+      ["discover", "Discover"],
+      ["evaluate", "Evaluate a Card"],
+      ["decision-intelligence", "Decision Intelligence"],
+      ["opportunities", "Saved Decisions"],
+      ["tracking", "Outcome Intelligence"],
+      ["portfolio", "Portfolio"],
+      ["alerts", "Alerts"],
+      ["forge-heat", "Forge Heat"],
+      ["market-view", "Market View"]
+    ]);
+
+    nav.querySelectorAll("a[data-route]").forEach(link => {
+      const route = String(link.dataset.route || "");
+      if (FULL_CUSTOMER_ROUTES.has(route)) {
+        showCoreLink(link, labels.get(route));
+        return;
+      }
+      if (["beta-start", "staging", "staging-evaluate"].includes(route)) hideElement(link);
+    });
+
+    const advanced = nav.querySelector(".ff-advanced-nav");
+    if (advanced) {
+      showElement(advanced);
+      advanced.removeAttribute("data-ff-customer-hide");
+      advanced.open = false;
+      advanced.querySelectorAll("a[data-route]").forEach(showElement);
+    }
+
+    const orderedRoutes = [
+      "dashboard", "discover", "evaluate", "decision-intelligence", "opportunities",
+      "tracking", "portfolio", "alerts", "forge-heat", "market-view"
+    ];
+    const insertionPoint = advanced || nav.querySelector(".staging-only-nav") || null;
+    orderedRoutes.forEach(route => {
+      const link = nav.querySelector(`a[data-route="${route}"]`);
+      if (link) nav.insertBefore(link, insertionPoint);
+    });
+
+    delete nav.dataset.ffBetaSimpleNavigation;
+    nav.dataset.ffFullCustomerNavigation = "true";
   }
 
   function simplifyNavigation() {
     const nav = document.querySelector(".primary-nav");
     if (!nav) return;
+
+    if (fullCustomerMode()) {
+      fullCustomerNavigation(nav);
+      return;
+    }
 
     const labels = new Map([
       ["dashboard", "Home"],
@@ -102,6 +202,25 @@
 
   function simplifyTopbar() {
     const search = document.querySelector("#global-search-form");
+
+    if (fullCustomerMode()) {
+      showElement(search);
+
+      const evaluate = document.querySelector("[data-ff-global-new-card]");
+      if (evaluate) {
+        showElement(evaluate);
+        evaluate.setAttribute("href", "#/evaluate");
+        evaluate.setAttribute("aria-label", "Evaluate a card");
+        const wanted = '<span aria-hidden="true">＋</span> Evaluate a card';
+        if (evaluate.innerHTML !== wanted) evaluate.innerHTML = wanted;
+      }
+
+      showElement(document.querySelector('.topbar-actions a[href="#/opportunities"]'));
+      showElement(document.querySelector(".notification-button"));
+      showElement(document.querySelector(".profile-button"));
+      return;
+    }
+
     if (search) hideElement(search);
 
     const evaluate = document.querySelector("[data-ff-global-new-card]");
@@ -131,6 +250,63 @@
     }
   }
 
+  function fullCustomerHome(main, heading) {
+    setText(heading.querySelector(".eyebrow"), "CARD DECISION INTELLIGENCE™");
+    setText(heading.querySelector("h1"), "What card are you considering?");
+    setText(
+      heading.querySelector("p"),
+      "Discover the card, evaluate the evidence, understand the decision, and track what changes next."
+    );
+
+    const actions = heading.querySelector(".page-actions");
+    if (actions) {
+      setHtml(actions,
+        '<a class="button button-primary" href="#/discover">Discover a card</a>' +
+        '<a class="button button-secondary" href="#/evaluate">Evaluate a card</a>'
+      );
+    }
+
+    let loop = main.querySelector("[data-ff-beta-simple-loop]");
+    if (!loop) {
+      loop = document.createElement("section");
+      loop.className = "ff-beta-simple-loop";
+      loop.dataset.ffBetaSimpleLoop = "";
+      heading.insertAdjacentElement("afterend", loop);
+    }
+
+    setHtml(loop, `
+      <div class="ff-beta-simple-loop-copy">
+        <span>THE FLIPFORGE LOOP</span>
+        <strong>From card data to a defensible decision.</strong>
+      </div>
+      <div class="ff-beta-simple-steps ff-full-customer-steps" aria-label="FlipForge customer workflow">
+        <div><b>1</b><span><strong>Discover</strong><small>Find the exact card or listing you are considering.</small></span></div>
+        <div><b>2</b><span><strong>Evaluate</strong><small>Challenge identity, evidence, economics, risk, and uncertainty.</small></span></div>
+        <div><b>3</b><span><strong>Understand</strong><small>See BUY, WATCH, VERIFY, or PASS with the reasons behind it.</small></span></div>
+        <div><b>4</b><span><strong>Track</strong><small>Preserve T0 and follow governed T7, T14, and T30 outcomes.</small></span></div>
+      </div>
+    `);
+
+    let quick = main.querySelector("[data-ff-customer-home-actions]");
+    if (!quick) {
+      quick = document.createElement("section");
+      quick.className = "ff-customer-home-actions";
+      quick.dataset.ffCustomerHomeActions = "";
+      loop.insertAdjacentElement("afterend", quick);
+    }
+
+    setHtml(quick, [
+      ["Decision Intelligence", "Open the governed decision and see why it changed.", "#/decision-intelligence"],
+      ["Saved Decisions", "Reopen cards you already evaluated.", "#/opportunities"],
+      ["Outcome Intelligence", "Follow immutable T0 through T7, T14, and T30.", "#/tracking"],
+      ["Forge Heat", "Scan the discovery layer for cards worth investigating.", "#/forge-heat"]
+    ].map(([title, copy, href]) =>
+      `<a class="ff-customer-home-action" href="${href}"><strong>${title}</strong><small>${copy}</small></a>`
+    ).join(""));
+
+    main.querySelector("[data-ff-customer-only-note]")?.remove();
+  }
+
   function customerHome() {
     const main = document.querySelector(MAIN);
     const isHome = routeName() === "dashboard";
@@ -139,6 +315,11 @@
 
     const heading = main.querySelector(".page-heading");
     if (!heading) return;
+
+    if (fullCustomerMode()) {
+      fullCustomerHome(main, heading);
+      return;
+    }
 
     setText(heading.querySelector(".eyebrow"), "Private beta");
     setText(heading.querySelector("h1"), "What card are you considering?");
@@ -201,6 +382,7 @@
   }
 
   function simplifyBetaGuide() {
+    if (fullCustomerMode()) return;
     const main = document.querySelector(MAIN);
     if (!main || routeName() !== "beta-start") return;
 
@@ -267,9 +449,11 @@
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);
     window.addEventListener("flipforge:identity-change", schedule);
+    window.setTimeout(schedule, 120);
+    window.setTimeout(schedule, 600);
     schedule();
   }
 
-  window.FlipForgeCustomerOnlyShell = Object.freeze({ refresh: schedule });
+  window.FlipForgeCustomerOnlyShell = Object.freeze({ refresh: schedule, fullCustomerMode });
   init();
 })();

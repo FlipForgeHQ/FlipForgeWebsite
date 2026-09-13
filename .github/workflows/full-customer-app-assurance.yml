@@ -1,0 +1,31 @@
+name: Full Customer App Assurance
+
+on:
+  pull_request:
+    paths:
+      - '_redirects'
+      - 'saas-prototype/customer-only-shell-v1.js'
+      - 'saas-prototype/customer-only-shell-v1.css'
+      - 'saas-prototype/beta-session-v1.js'
+      - 'saas-prototype/mobile-navigation-stabilizer-v1.js'
+      - 'scripts/validate-netlify-rule-budget.mjs'
+      - 'scripts/validate-full-customer-app.mjs'
+      - '.github/workflows/full-customer-app-assurance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Customer app isolation and authority boundary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Validate full customer app
+        run: node scripts/validate-full-customer-app.mjs
