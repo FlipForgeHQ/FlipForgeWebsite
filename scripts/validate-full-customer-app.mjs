@@ -20,6 +20,7 @@ const css = read("saas-prototype/customer-only-shell-v1.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
+const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 
 check(redirects.includes("/app/customer /saas-prototype/index.html 200"),
@@ -86,6 +87,15 @@ check(commercialPolish.includes('banner.hidden = true;') && commercialPolish.inc
   "commercial polish keeps beta banner hidden in full customer mode");
 check(commercialPolish.includes('profileSmall.textContent = "Customer"'),
   "commercial polish preserves customer account chrome");
+
+check(cockpitFinalUx.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'),
+  "legacy cockpit recognizes the full customer route");
+check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'),
+  "legacy cockpit cannot overwrite customer identity with preview copy");
+check(cockpitFinalUx.includes('if (accountName && !customer) accountName.textContent = "Owner account"'),
+  "legacy cockpit preserves the signed-in customer identity");
+check(cockpitFinalUx.includes('profileMode.textContent = customer ? "Customer" : "Preview"'),
+  "legacy cockpit preserves customer account mode");
 
 check(authProbe.includes('resolved.pathname === "/app/customer/"'),
   "production sign-in may return authenticated users to the full customer app");
