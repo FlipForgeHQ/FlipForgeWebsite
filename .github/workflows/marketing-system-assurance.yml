@@ -56,4 +56,4 @@ jobs:
           grep -q 'Before you buy. Know Why.' marketing-preview/product-one-pager/index.html
           grep -q 'Identity Intelligence' marketing-preview/card-decision-intelligence/index.html
           grep -q 'Outcome Intelligence' marketing-preview/card-decision-intelligence/index.html
-          grep -q '24% → 2.3%' marketing-preview/campaigns/deal-or-decoy/index.html
+          grep -q '24% off can become 2.3%' marketing-preview/campaigns/deal-or-decoy/index.html
