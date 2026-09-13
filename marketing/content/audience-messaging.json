@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "audiences": [
+    {"key":"collector","name":"Collectors","pain":"You want the card, but you do not want enthusiasm to hide weak evidence.","value":"FlipForge separates the exact-card facts from the story and shows what still needs verification.","cta":"Inspect the decision before you buy."},
+    {"key":"investor","name":"Investors","pain":"A chart can show what happened without telling you whether today’s opportunity is defensible.","value":"FlipForge connects identity, evidence, economics, risk, and outcome tracking into one decision record.","cta":"See the reasoning, not just the trend."},
+    {"key":"flipper","name":"Flippers","pain":"An apparent spread disappears fast when comps are wrong, liquidity is weak, or costs are ignored.","value":"FlipForge pressure-tests the spread before you commit capital.","cta":"Test the margin before you chase it."},
+    {"key":"dealer","name":"Dealers","pain":"Inventory decisions compound quickly when a weak comp or identity mismatch slips through.","value":"FlipForge creates a repeatable decision process your inventory review can trace later.","cta":"Make inventory decisions you can explain."},
+    {"key":"grading","name":"Grading users","pain":"Population and grade spread matter, but they do not answer the whole purchase decision.","value":"FlipForge keeps grading intelligence in context with evidence, economics, and uncertainty.","cta":"Use grade context without losing the full decision."}
+  ]
+}
