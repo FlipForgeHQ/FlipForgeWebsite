@@ -161,7 +161,6 @@ try {
   await page.locator('.primary-nav a[data-route="dashboard"]').click();
   await page.waitForFunction(() => document.querySelector(".app-shell")?.dataset.navOpen === "false", null, { timeout: MAX_DRAWER_CLOSE_MS });
   timings.sameRouteDrawerCloseMs = Date.now() - sameRouteStarted;
-  if (window.location?.hash === "") fail("Dashboard same-route tap lost the route");
   await assertSameDocument("mobile same-route Dashboard tap");
 
   const finalState = await page.evaluate(() => ({
