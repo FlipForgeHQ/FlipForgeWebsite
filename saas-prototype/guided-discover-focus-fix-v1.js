@@ -6,11 +6,17 @@
   const FORM_SELECTOR = "[data-customer-discovery-form]";
   const HINT_ID = "ff-discover-direct-hint";
   const LEGACY_WELCOME_ID = "ff-guided-mode-welcome";
+  const FULL_CUSTOMER_PATH = /^\/app\/customer\/?$/i;
   let busy = false;
 
   function neutralizeLegacyWelcome() {
     document.getElementById(LEGACY_WELCOME_ID)?.remove();
     document.body?.classList.remove("ff-guide-modal-open");
+  }
+
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
   }
 
   function routeName() {
@@ -67,7 +73,7 @@
     return null;
   }
 
-  async function showExactCardEntry({ clear = false } = {}) {
+  async function showExactCardEntry({ clear = false, scroll = true } = {}) {
     if (busy) return;
     busy = true;
     try {
@@ -97,7 +103,7 @@
 
       form?.classList.add("ff-discover-direct-form");
       input.classList.add("ff-discover-direct-input");
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (scroll) input.scrollIntoView({ behavior: "smooth", block: "center" });
       window.setTimeout(() => {
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
         input.select?.();
@@ -112,22 +118,26 @@
     }
   }
 
+  function showRouteCue() {
+    return showExactCardEntry({ clear: false, scroll: !fullCustomerMode() });
+  }
+
   function enforceSearchFirst({ focus = false } = {}) {
     neutralizeLegacyWelcome();
     if (routeName() === "discover" && focus) {
-      window.setTimeout(() => showExactCardEntry({ clear: false }), 80);
+      window.setTimeout(() => showRouteCue(), 80);
     }
   }
 
   document.addEventListener("click", event => {
     const focusButton = event.target.closest('[data-ff-focus-card], [data-guide-action="focus-discover"]');
     if (!focusButton) return;
-    window.setTimeout(() => showExactCardEntry({ clear: false }), 0);
+    window.setTimeout(() => showExactCardEntry({ clear: false, scroll: true }), 0);
   }, true);
 
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-ff-global-new-card],[data-ff-new-card]")) return;
-    window.setTimeout(() => showExactCardEntry({ clear: true }), 160);
+    window.setTimeout(() => showExactCardEntry({ clear: true, scroll: true }), 160);
   }, true);
 
   window.addEventListener("hashchange", () => {
@@ -136,7 +146,7 @@
       clearDirectCue();
       return;
     }
-    window.setTimeout(() => showExactCardEntry({ clear: false }), 120);
+    window.setTimeout(() => showRouteCue(), 120);
   });
 
   window.addEventListener("flipforge:identity-change", () => {
@@ -147,7 +157,7 @@
   const beginRuntimeGuard = () => {
     neutralizeLegacyWelcome();
     if (document.body) welcomeObserver.observe(document.body, { childList: true });
-    if (routeName() === "discover") window.setTimeout(() => showExactCardEntry({ clear: false }), 180);
+    if (routeName() === "discover") window.setTimeout(() => showRouteCue(), 180);
   };
 
   if (document.readyState === "loading") {
@@ -157,8 +167,8 @@
   }
 
   window.FlipForgeDiscoverFocusFix = Object.freeze({
-    show: () => showExactCardEntry({ clear: false }),
-    startNew: () => showExactCardEntry({ clear: true }),
+    show: () => showExactCardEntry({ clear: false, scroll: true }),
+    startNew: () => showExactCardEntry({ clear: true, scroll: true }),
     enforceSearchFirst: () => enforceSearchFirst({ focus: routeName() === "discover" })
   });
 })();
