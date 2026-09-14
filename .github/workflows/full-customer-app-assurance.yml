@@ -19,6 +19,8 @@ on:
       - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
+      - 'scripts/validate-customer-app-audit-standard.mjs'
+      - 'docs/CUSTOMER_APP_AUDIT_STANDARD.md'
       - '.github/workflows/full-customer-app-assurance.yml'
   push:
     branches:
@@ -40,6 +42,8 @@ on:
       - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
+      - 'scripts/validate-customer-app-audit-standard.mjs'
+      - 'docs/CUSTOMER_APP_AUDIT_STANDARD.md'
       - '.github/workflows/full-customer-app-assurance.yml'
   workflow_dispatch:
 
@@ -62,9 +66,10 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Build production Identity assets
         run: npm run build:identity
-      - name: Validate full customer app contracts
+      - name: Validate full customer app contracts and audit coverage
         run: |
           node scripts/validate-netlify-rule-budget.mjs
+          node scripts/validate-customer-app-audit-standard.mjs
           node scripts/validate-full-customer-app.mjs
       - name: Install Playwright Chromium
         run: |
