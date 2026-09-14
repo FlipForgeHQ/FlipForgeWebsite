@@ -46,10 +46,18 @@
   }
 
   function setBrand() {
-    if (document.title !== "FlipForge | Card Decision Intelligence") document.title = "FlipForge | Card Decision Intelligence";
+    const customer = window.FlipForgeFullCustomerEntry === true
+      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+    const title = customer
+      ? "FlipForge | Customer App — Card Decision Intelligence"
+      : "FlipForge | Card Decision Intelligence";
+    if (document.title !== title) document.title = title;
     const description = document.querySelector('meta[name="description"]');
-    if (description && description.getAttribute("content") !== "FlipForge private-beta card decision intelligence platform.") {
-      description.setAttribute("content", "FlipForge private-beta card decision intelligence platform.");
+    const descriptionText = customer
+      ? "FlipForge customer app for Card Decision Intelligence: discover, evaluate, understand, save, and track sports-card decisions."
+      : "FlipForge private-beta card decision intelligence platform.";
+    if (description && description.getAttribute("content") !== descriptionText) {
+      description.setAttribute("content", descriptionText);
     }
     setText(document.querySelector(".brand-subtitle"), "CARD DECISION INTELLIGENCE");
   }

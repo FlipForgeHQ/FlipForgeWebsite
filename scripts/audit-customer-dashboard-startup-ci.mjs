@@ -140,7 +140,8 @@ try {
       await page.locator("[data-commercial-dashboard-refresh]").click();
       await settled("ready");
 
-      await page.locator('.primary-nav a[data-route="opportunities"]').click({ force: true });
+      if (viewport.name === "mobile") await page.locator("[data-nav-toggle]").click();
+      await page.locator('.primary-nav a[data-route="opportunities"]').click();
       await page.waitForURL(url => url.hash === "#/opportunities");
       await page.goto(`${base}#/dashboard`, { waitUntil: "domcontentloaded" });
       await settled("ready");
