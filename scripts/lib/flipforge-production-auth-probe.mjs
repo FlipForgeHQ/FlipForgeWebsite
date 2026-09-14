@@ -2,6 +2,7 @@ import { getUser, login, logout, requestPasswordRecovery } from "@netlify/identi
 
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const hostAllowed = PRODUCTION_HOST.test(String(window.location.hostname || ""));
+const reauthRequested = new URLSearchParams(window.location.search).get("reauth") === "1";
 
 const form = document.querySelector("[data-production-auth-form]");
 const emailInput = document.querySelector("[data-production-auth-email]");
@@ -72,7 +73,18 @@ async function initialize() {
     return;
   }
   try {
-    setSignedIn(await withTimeout(getUser()));
+    const user = await withTimeout(getUser());
+    setSignedIn(user);
+    if (reauthRequested) {
+      if (user) {
+        setStatus("The app rejected this cached session. Sign out, then sign in again to restore access.", "error");
+        result.textContent = "Server authentication returned HTTP 401. Browser identity alone is not treated as valid access.";
+        result.dataset.tone = "error";
+      } else {
+        setStatus("Your previous app session expired. Sign in again to continue.", "neutral");
+      }
+      emailInput?.focus();
+    }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : "Identity initialization failed.", "error");
   }
@@ -125,6 +137,7 @@ signOutButton?.addEventListener("click", async () => {
     await withTimeout(logout());
     setSignedIn(null);
     result.textContent = "";
+    if (reauthRequested) setStatus("Signed out. Sign in again to restore app access.", "neutral");
   } catch (error) {
     setStatus(error instanceof Error ? error.message : "Sign out failed.", "error");
   } finally {
