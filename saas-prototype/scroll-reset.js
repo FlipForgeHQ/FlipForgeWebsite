@@ -1,6 +1,11 @@
 (() => {
   "use strict";
 
+  function fullCustomerEntry() {
+    return window.FlipForgeFullCustomerEntry === true
+      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
   function loadRouteOwnershipAssets() {
     if (document.querySelector('script[data-ff-customer-route-ownership]')) return;
     const script = document.createElement("script");
@@ -52,13 +57,12 @@
       && !event.altKey;
   }
 
-  // Saved Decisions is served by the customer adapter while the legacy shell also
-  // listens for hash changes. Use a clean same-tab load for the list route so
-  // repeated clicks never become a same-hash no-op and stale detail requests
-  // cannot repaint the list after the customer returns to Saved Decisions.
+  // Legacy beta keeps the hard reload that protects its older route stack. The
+  // full customer app relies on governed route ownership instead, so Saved Decisions
+  // remains part of the same continuous decision-intelligence workspace.
   document.addEventListener("click", event => {
     const link = event.target.closest?.('a[href="#/opportunities"]');
-    if (!link || !isPlainLeftClick(event)) return;
+    if (!link || !isPlainLeftClick(event) || fullCustomerEntry()) return;
 
     event.preventDefault();
     event.stopImmediatePropagation();

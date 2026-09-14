@@ -20,7 +20,8 @@
     "psa-advisor": ".customer-intelligence-page",
     evidence: ".customer-management-page",
     sell: ".customer-management-page",
-    export: ".customer-export-page"
+    export: ".customer-export-page",
+    account: ".customer-entitlements-page"
   });
 
   let explicitIntent = { hash: "", until: 0, serial: 0, reached: false };
@@ -34,10 +35,15 @@
     return raw.startsWith("#/") ? raw : `#/${raw.replace(/^#?\/?/, "")}`;
   }
 
-  function routeName(value = window.location.hash) {
+  function routeParts(value = window.location.hash) {
     return normalizedHash(value)
       .replace(/^#\//, "")
-      .split(/[/?]/)[0] || "dashboard";
+      .split(/[/?]/)
+      .filter(Boolean);
+  }
+
+  function routeName(value = window.location.hash) {
+    return routeParts(value)[0] || "dashboard";
   }
 
   function plainLeftClick(event) {
@@ -126,12 +132,16 @@
       && adapter.isEligible());
   }
 
+  function opportunityAdapter() {
+    return window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
+  }
+
   function adapterReady(route) {
     switch (route) {
       case "discover":
         return simpleAdapterReady(window.FlipForgeCustomerDiscovery);
       case "opportunities": {
-        const adapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
+        const adapter = opportunityAdapter();
         if (!adapter || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
         return typeof adapter.renderCustomer === "function" || typeof adapter.render === "function";
       }
@@ -160,6 +170,8 @@
           && typeof adapter.isEligible === "function"
           && adapter.isEligible());
       }
+      case "account":
+        return simpleAdapterReady(window.FlipForgeCustomerEntitlements);
       default:
         return false;
     }
@@ -178,6 +190,61 @@
     return false;
   }
 
+  function renderOwnedRouteDirectly() {
+    const main = document.querySelector(MAIN_SELECTOR);
+    if (!main) return false;
+    const [route, id = ""] = routeParts();
+
+    switch (route) {
+      case "discover":
+        window.FlipForgeCustomerDiscovery.render(main);
+        return true;
+      case "opportunities": {
+        const adapter = opportunityAdapter();
+        const renderer = typeof adapter?.renderCustomer === "function" ? adapter.renderCustomer : adapter?.render;
+        if (typeof renderer !== "function") return false;
+        renderer.call(adapter, main, id);
+        return true;
+      }
+      case "tracking":
+      case "alerts":
+        window.FlipForgeCustomerLifecycle.render(main, route, id);
+        return true;
+      case "portfolio":
+        window.FlipForgeCustomerPortfolio.render(main);
+        return true;
+      case "forge-heat":
+        window.FlipForgeCustomerForgeHeat.render(main);
+        return true;
+      case "market-view":
+        window.FlipForgeCustomerMarketView.render(main);
+        return true;
+      case "compare": {
+        const preferredLeftId = window.FlipForgeCompareRouteState
+          && typeof window.FlipForgeCompareRouteState.consumePendingLeftId === "function"
+          ? window.FlipForgeCompareRouteState.consumePendingLeftId()
+          : "";
+        window.FlipForgeCustomerCompare.render(main, preferredLeftId || "");
+        return true;
+      }
+      case "psa-advisor":
+        window.FlipForgeCustomerPsaAdvisor.render(main, id);
+        return true;
+      case "evidence":
+      case "sell":
+        window.FlipForgeCustomerManagement.render(main, route, id);
+        return true;
+      case "export":
+        window.FlipForgeCustomerExport.render(main, id);
+        return true;
+      case "account":
+        window.FlipForgeCustomerEntitlements.render(main);
+        return true;
+      default:
+        return false;
+    }
+  }
+
   function repairCurrentRoute() {
     ownershipCheckQueued = false;
     if (repairing || pageOwnershipMatches()) return;
@@ -186,17 +253,22 @@
     repairing = true;
     lastRepairAt = Date.now();
     try {
-      window.dispatchEvent(new HashChangeEvent("hashchange", {
-        oldURL: window.location.href,
-        newURL: window.location.href
-      }));
-    } catch (_) {
-      window.dispatchEvent(new Event("hashchange"));
+      if (!renderOwnedRouteDirectly()) {
+        try {
+          window.dispatchEvent(new HashChangeEvent("hashchange", {
+            oldURL: window.location.href,
+            newURL: window.location.href
+          }));
+        } catch (_) {
+          window.dispatchEvent(new Event("hashchange"));
+        }
+      }
+    } finally {
+      window.setTimeout(() => {
+        repairing = false;
+        queueOwnershipCheck();
+      }, REPAIR_COOLDOWN_MS);
     }
-    window.setTimeout(() => {
-      repairing = false;
-      queueOwnershipCheck();
-    }, REPAIR_COOLDOWN_MS);
   }
 
   function queueOwnershipCheck() {
