@@ -87,6 +87,31 @@ function fixture(request) {
   if (path === "/api/v1/alerts") {
     return { meta, data: { kind: "alerts", items: [], sourceOfTruth: "SQLite", transactionAuthority: false } };
   }
+  if (path === "/api/v1/entitlements") {
+    return {
+      meta,
+      data: {
+        kind: "entitlements",
+        readOnly: true,
+        transactionAuthority: false,
+        current: {
+          code: "PRIVATE_BETA",
+          name: "Early Access",
+          accessState: "ACTIVE",
+          entitlementSource: "SERVER",
+          paidPlanActive: false
+        },
+        usage: {
+          completedEvaluations: 1,
+          inProgressReservations: 0,
+          admissionUsage: 1,
+          monthlyEvaluationLimit: null,
+          remainingEvaluations: null
+        },
+        plannedCommercialPlans: []
+      }
+    };
+  }
   return { meta, data: { kind: "qa-fixture", path, transactionAuthority: false } };
 }
 
@@ -150,7 +175,9 @@ try {
 
   const timings = {};
   timings.decisionIntelligenceMs = await navigate("decision-intelligence", '.ff-di-page[data-decision-intelligence-source="server"]');
+  timings.savedDecisionsMs = await navigate("opportunities", "#main-content .customer-intelligence-page");
   timings.outcomeIntelligenceMs = await navigate("tracking", "#main-content .customer-lifecycle-page");
+  timings.accountMs = await navigate("account", "#main-content .customer-entitlements-page");
   timings.dashboardMs = await navigate("dashboard", "#main-content [data-commercial-dashboard-v2]");
 
   await page.setViewportSize({ width: 390, height: 844 });
