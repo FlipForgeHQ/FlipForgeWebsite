@@ -19,7 +19,12 @@ requireText('runtime guard removes legacy modal node', focusFix, 'document.getEl
 requireText('runtime guard removes modal body lock', focusFix, 'classList.remove("ff-guide-modal-open")');
 requireText('runtime guard watches late modal recreation', focusFix, 'new MutationObserver(() => neutralizeLegacyWelcome())');
 requireText('authenticated identity changes re-enforce search first', focusFix, 'flipforge:identity-change');
-requireText('Discover routes surface the exact-card entry', focusFix, 'showExactCardEntry({ clear: false })');
+requireText('full customer route is recognized before route-driven focus', focusFix, 'FULL_CUSTOMER_PATH');
+requireText('Discover routes still surface the exact-card entry', focusFix, 'function showRouteCue()');
+requireText('full customer route cue preserves governed scroll origin', focusFix, 'showExactCardEntry({ clear: false, scroll: !fullCustomerMode() })');
+requireText('Discover hash changes still surface the route cue', focusFix, 'window.setTimeout(() => showRouteCue(), 120)');
+requireText('explicit card-focus actions still scroll to the input', focusFix, 'showExactCardEntry({ clear: false, scroll: true })');
+requireText('explicit new-card actions still scroll to a cleared input', focusFix, 'showExactCardEntry({ clear: true, scroll: true })');
 requireText('Discover still owns the exact-card search form', discover, 'data-customer-discovery-form');
 requireText('Discover still exposes the card identity input', discover, 'name="exactCardQuery"');
 
@@ -29,4 +34,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: sign-in onboarding cannot cover Discover; runtime removes any recreated welcome modal and card search remains immediately available.');
+console.log('PASS: sign-in onboarding cannot cover Discover; automatic full-customer route entry preserves scroll position while explicit card-focus actions still surface the exact-card input.');
