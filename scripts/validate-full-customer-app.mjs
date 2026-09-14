@@ -12,6 +12,10 @@ function check(condition, name) {
 }
 
 const redirects = read("_redirects");
+const activeRedirects = redirects
+  .split(/\r?\n/)
+  .map(line => line.trim())
+  .filter(line => line && !line.startsWith("#"));
 const customer = read("saas-prototype/customer.html");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
@@ -23,12 +27,12 @@ const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
 const loginRedirect = read("saas-prototype/production-identity-login-redirect.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 
-check(redirects.includes("/app/customer /saas-prototype/customer.html 200"), "customer no-slash route serves dedicated customer document");
-check(redirects.includes("/app/customer/ /saas-prototype/customer.html 200"), "customer trailing-slash route serves dedicated customer document");
-check(!redirects.includes("/app/customer /app/customer/ 301"), "customer route avoids redirect loops");
-check(redirects.includes("/app/customer/* /saas-prototype/:splat 200"), "customer assets stay under production app path");
-check(redirects.indexOf("/app/customer/* /saas-prototype/:splat 200") < redirects.indexOf("/app/* /app/customer/:splat 301"), "customer wildcard precedes generic app canonical redirect");
-check(redirects.includes("/app /app/customer/ 301") && !redirects.includes("/app /saas-prototype/index.html 200"), "public app entry resolves to the full customer app instead of the beta shell");
+check(activeRedirects.includes("/app/customer /saas-prototype/customer.html 200"), "customer no-slash route serves dedicated customer document");
+check(activeRedirects.includes("/app/customer/ /saas-prototype/customer.html 200"), "customer trailing-slash route serves dedicated customer document");
+check(!activeRedirects.includes("/app/customer /app/customer/ 301"), "customer route avoids redirect loops");
+check(activeRedirects.includes("/app/customer/* /saas-prototype/:splat 200"), "customer assets stay under production app path");
+check(activeRedirects.indexOf("/app/customer/* /saas-prototype/:splat 200") < activeRedirects.indexOf("/app/* /app/customer/:splat 301"), "customer wildcard precedes generic app canonical redirect");
+check(activeRedirects.includes("/app /app/customer/ 301") && !activeRedirects.includes("/app /saas-prototype/index.html 200"), "public app entry resolves to the full customer app instead of the beta shell");
 
 check(customer.includes('window.FlipForgeFullCustomerEntry=true'), "customer document hard-marks full customer entry before app scripts");
 check(customer.includes('>CUSTOMER APP</span>'), "customer document is statically labeled CUSTOMER APP");
