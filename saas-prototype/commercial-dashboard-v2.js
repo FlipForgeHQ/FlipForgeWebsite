@@ -11,6 +11,7 @@
     opportunities: "/api/v1/opportunities"
   });
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
+  const REQUEST_TIMEOUT_MS = 15_000;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
   const main = document.querySelector("#main-content");
@@ -108,34 +109,53 @@
   async function request(path, health = false) {
     if (!Object.values(PATHS).includes(path)) throw new Error("Dashboard API path is not allowlisted.");
     const requestCorrelationId = correlationId();
-    const response = await fetch(path, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "X-Correlation-Id": requestCorrelationId
-      },
-      credentials: "same-origin",
-      cache: "no-store",
-      redirect: "error"
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        const error = new Error("Your dashboard is taking too long to respond. Please try again.");
+        error.code = "DASHBOARD_REQUEST_TIMEOUT";
+        error.correlationId = requestCorrelationId;
+        reject(error);
+        controller?.abort();
+      }, REQUEST_TIMEOUT_MS);
     });
-    const payload = await parseResponse(response);
-    if (!response.ok) {
-      const upstream = payload && payload.error ? payload.error : {};
-      const error = new Error(upstream.message || `Customer request failed with status ${response.status}.`);
-      error.code = upstream.code || "DASHBOARD_REQUEST_FAILED";
-      error.status = response.status;
-      error.correlationId = upstream.correlationId || requestCorrelationId;
-      throw error;
+    try {
+      // Bound the full response, including a body that stalls after its headers.
+      return await Promise.race([timeout, (async () => {
+        const response = await fetch(path, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "X-Correlation-Id": requestCorrelationId
+          },
+          credentials: "same-origin",
+          cache: "no-store",
+          redirect: "error",
+          ...(controller ? { signal: controller.signal } : {})
+        });
+        const payload = await parseResponse(response);
+        if (!response.ok) {
+          const upstream = payload && payload.error ? payload.error : {};
+          const error = new Error(upstream.message || `Customer request failed with status ${response.status}.`);
+          error.code = upstream.code || "DASHBOARD_REQUEST_FAILED";
+          error.status = response.status;
+          error.correlationId = upstream.correlationId || requestCorrelationId;
+          throw error;
+        }
+        const valid = health
+          ? validHealth(payload, requestCorrelationId)
+          : validAuthorityEnvelope(payload, requestCorrelationId);
+        if (!valid) {
+          const error = new Error("The customer response failed the FlipForge authority contract.");
+          error.code = "DASHBOARD_CONTRACT_INVALID";
+          throw error;
+        }
+        return payload;
+      })()]);
+    } finally {
+      clearTimeout(timer);
     }
-    const valid = health
-      ? validHealth(payload, requestCorrelationId)
-      : validAuthorityEnvelope(payload, requestCorrelationId);
-    if (!valid) {
-      const error = new Error("The customer response failed the FlipForge authority contract.");
-      error.code = "DASHBOARD_CONTRACT_INVALID";
-      throw error;
-    }
-    return payload;
   }
 
   function relativeTime(value) {
@@ -312,7 +332,7 @@
     const focusConfidence = focus && numberOrNull(focus.confidence);
     const freshness = relativeTime(dashboard.meta && dashboard.meta.generatedAt || opportunities.meta && opportunities.meta.generatedAt);
 
-    main.innerHTML = `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2>
+    main.innerHTML = `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2 data-dashboard-state="ready">
       <header class="ff-dashboard-head">
         <div><h1>Dashboard</h1><p>Your tenant-owned decision intelligence at a glance: saved opportunities, evidence readiness, confidence, review states, and the next action—without inventing market data.</p></div>
         <div class="ff-dashboard-head-actions"><span class="ff-data-freshness">◷ ${escapeHtml(freshness)}</span><button class="button button-secondary" type="button" data-commercial-dashboard-refresh>↻ Refresh</button><a class="button button-primary" href="#/evaluate">+ Evaluate Card</a></div>
@@ -347,12 +367,12 @@
 
   function renderLoading() {
     if (!main || routeName() !== "dashboard") return;
-    main.innerHTML = `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>Loading tenant-owned FlipForge intelligence.</p></div></header><div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div></div>`;
+    main.innerHTML = `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2 data-dashboard-state="loading"><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>Loading tenant-owned FlipForge intelligence.</p></div></header><div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div></div>`;
   }
 
   function renderError(error) {
     if (!main || routeName() !== "dashboard") return;
-    main.innerHTML = `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>FlipForge fails closed when the authenticated customer intelligence path is unavailable.</p></div><div class="ff-dashboard-head-actions"><button class="button button-secondary" type="button" data-commercial-dashboard-refresh>↻ Retry</button></div></header>${errorMarkup(error)}</div>`;
+    main.innerHTML = `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2 data-dashboard-state="error"><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>FlipForge fails closed when the authenticated customer intelligence path is unavailable.</p></div><div class="ff-dashboard-head-actions"><button class="button button-secondary" type="button" data-commercial-dashboard-refresh>↻ Retry</button></div></header>${errorMarkup(error)}</div>`;
     const refresh = main.querySelector("[data-commercial-dashboard-refresh]");
     if (refresh) refresh.addEventListener("click", () => loadDashboard(true));
   }
@@ -382,6 +402,7 @@
       renderSnapshot(lastSnapshot);
     } catch (error) {
       if (current !== generation || routeName() !== "dashboard") return;
+      lastSnapshot = null;
       renderError(error);
     }
   }
@@ -389,18 +410,24 @@
   function polishShell() {
     if (!appEligible()) return;
     document.body.classList.add("ff-commercial-shell");
+    const customer = window.FlipForgeFullCustomerEntry === true
+      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
     const chip = document.querySelector(".prototype-chip");
-    if (chip) chip.textContent = productionHost() ? "PRIVATE BETA" : "BETA PREVIEW";
+    if (chip) chip.textContent = customer ? "CUSTOMER APP" : productionHost() ? "PRIVATE BETA" : "BETA PREVIEW";
     const planCard = document.querySelector(".plan-card");
     if (planCard) {
       const eyebrow = planCard.querySelector(".eyebrow");
       const strong = planCard.querySelector("strong");
       const small = planCard.querySelector("small");
-      if (eyebrow) eyebrow.textContent = "Tenant access";
+      if (eyebrow) eyebrow.textContent = customer ? "Customer account" : "Tenant access";
       if (strong) strong.textContent = "Plan & Usage";
-      if (small) small.textContent = "Plan state, evaluation usage, checkout availability, and billing access are server-owned.";
+      if (small) small.textContent = customer
+        ? "Plan state and evaluation usage are loaded from your account."
+        : "Plan state, evaluation usage, checkout availability, and billing access are server-owned.";
     }
-    if (productionHost()) document.title = "FlipForge | Card Intelligence";
+    if (productionHost()) document.title = customer
+      ? "FlipForge | Customer App — Card Decision Intelligence"
+      : "FlipForge | Card Decision Intelligence";
   }
 
   function showDashboardBanner() {

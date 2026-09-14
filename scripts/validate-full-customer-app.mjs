@@ -18,6 +18,7 @@ const activeRedirects = redirects
   .filter(line => line && !line.startsWith("#"));
 const customer = read("saas-prototype/customer.html");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
+const dashboardBuild = read("scripts/build-identity-client.mjs");
 const css = read("saas-prototype/customer-only-shell-v1.css");
 const visualSystem = read("saas-prototype/customer-app-system-v2.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
@@ -56,6 +57,18 @@ check(customer.includes('data-route="forge-heat"') && customer.includes('data-ro
 check(customer.includes('id="global-search-form"'), "customer document includes global search");
 check(customer.includes('class="icon-button notification-button"'), "customer document includes alerts access");
 check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
+
+// A loading guard without its renderer is a dead end even when sign-in works.
+for (const asset of ["commercial-dashboard-v2.js", "commercial-app-polish-v2.js"]) {
+  check(customer.split('src="' + asset + '"').length === 2, "customer entry loads exactly one " + asset);
+}
+for (const asset of ["commercial-dashboard-v2.css", "commercial-app-polish-v2.css"]) {
+  check(customer.split('href="' + asset + '"').length === 2, "customer entry loads exactly one " + asset);
+  check(customer.indexOf('href="' + asset + '"') < customer.indexOf('href="customer-app-system-v2.css"'), "customer visual system follows " + asset);
+}
+check(dashboardBuild.includes("injectCommercialDashboard(customerApp)") && dashboardBuild.includes("injectCommercialAppPolish(customerApp)"), "build maintains full customer dashboard runtime");
+check(fullCustomerWorkflow.includes("node scripts/audit-customer-dashboard-startup-ci.mjs"), "customer CI proves dashboard exits loading and can recover");
+check(customer.indexOf('src="commercial-dashboard-v2.js"') < customer.indexOf('src="commercial-app-polish-v2.js"'), "dashboard renderer precedes its presentation layer");
 
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
 check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell reinforces customer identity");

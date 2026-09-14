@@ -40,7 +40,7 @@ function healthFixture(correlationId) {
 }
 
 function authorizedFixture(pathname, correlationId) {
-  const meta = { contractVersion: "1.0", correlationId, authority: "Smart Opportunity" };
+  const meta = { contractVersion: "1.0", correlationId, engineVersion: "auth-recovery-audit", authority: "Smart Opportunity", gradingAuthority: "Existing PSA intelligence" };
   if (pathname === "/api/v1/dashboard") {
     return { meta, data: { metrics: { trackedOpportunities: 0, evidenceReady: 0, populationContextAvailable: 0, needsVerification: 0 } } };
   }
@@ -191,7 +191,7 @@ async function auditAuthenticatedState(browser) {
       waitUntil: "domcontentloaded",
       timeout: 30000
     });
-    await page.waitForTimeout(650);
+    await page.waitForSelector('[data-commercial-dashboard-v2][data-dashboard-state="ready"]', { timeout: 10000 });
     const state = await page.evaluate(() => {
       const link = document.querySelector("[data-ff-customer-sign-in]");
       return {
