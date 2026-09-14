@@ -157,7 +157,8 @@ jobs:
           console.log(`Verified App Preview and Card Decision Intelligence across ${htmlFiles.length} website pages.`);
           NODE
           node scripts/validate-netlify-rule-budget.mjs
-          grep -q '^/app /saas-prototype/index.html 200$' _redirects
-          grep -q '^/app/\* /saas-prototype/:splat 200$' _redirects
+          grep -q '^/app /app/customer/ 301$' _redirects
+          grep -q '^/app/customer/\* /saas-prototype/:splat 200$' _redirects
+          grep -q '^/app/\* /app/customer/:splat 301$' _redirects
           ! grep -q '^/api/ebay/privacy ' _redirects
-          ! grep -q '^/app/ /saas-prototype/index.html 200$' _redirects
+          ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
