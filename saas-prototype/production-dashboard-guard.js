@@ -4,6 +4,7 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const APP_ROUTE_HASH = /^#\//;
   const AUTHORITATIVE_FETCH_TIMEOUT_MS = 15000;
   const FULL_CUSTOMER_DASHBOARD_SCRIPT = "commercial-dashboard-v2.js";
   const FULL_CUSTOMER_DASHBOARD_STYLESHEET = "commercial-dashboard-v2.css";
@@ -12,6 +13,7 @@
 
   let applying = false;
   let enforceQueued = false;
+  let legacyBetaReloading = false;
 
   function customerApp() {
     const host = String(window.location.hostname || "");
@@ -21,6 +23,10 @@
 
   function fullCustomerEntry() {
     return window.FlipForgeFullCustomerEntry === true;
+  }
+
+  function legacyBetaEntry() {
+    return customerApp() && !fullCustomerEntry();
   }
 
   function authoritativeApiRequest(input) {
@@ -153,18 +159,68 @@
     });
   }
 
+  function closeFullCustomerNavigation() {
+    if (!fullCustomerEntry()) return;
+    const shell = document.querySelector(".app-shell");
+    const toggle = document.querySelector("[data-nav-toggle]");
+    if (shell) shell.dataset.navOpen = "false";
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
+  }
+
+  function isPlainLeftClick(event) {
+    return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+  }
+
+  function handleRouteClick(event) {
+    if (!customerApp() || !isPlainLeftClick(event)) return;
+    const link = event.target?.closest?.('a[href^="#/"]');
+    if (!link) return;
+    const targetHash = String(link.getAttribute("href") || "");
+    if (!APP_ROUTE_HASH.test(targetHash)) return;
+
+    if (fullCustomerEntry()) {
+      // Customer experience rule: route taps close the drawer immediately, including
+      // taps on the already-active route, without discarding the current workspace.
+      closeFullCustomerNavigation();
+      return;
+    }
+
+    // Preserve the controlled private-beta reload boundary until its older route
+    // presentation stack is independently converted. Do not make beta reliability a
+    // prerequisite for the full customer app's faster connected-navigation model.
+    if (legacyBetaReloading || targetHash !== String(window.location.hash || "")) return;
+    event.preventDefault?.();
+    event.stopImmediatePropagation?.();
+    legacyBetaReloading = true;
+    if (typeof window.location?.reload === "function") window.location.reload();
+  }
+
+  function handleHashChange(event) {
+    if (fullCustomerEntry()) {
+      closeFullCustomerNavigation();
+      scheduleEnforce();
+      return;
+    }
+    if (!legacyBetaEntry() || legacyBetaReloading) return;
+    legacyBetaReloading = true;
+    if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+    if (typeof window.location?.reload === "function") window.location.reload();
+  }
+
   installEarlyAuthoritativeAuthObserver();
   ensureFullCustomerDashboardAssets();
 
   const observer = new MutationObserver(scheduleEnforce);
   observer.observe(main, { childList: true });
 
-  // Keep route changes inside the single-page customer workspace. The authoritative
-  // Dashboard renderer already owns its own hashchange lifecycle, so a full document
-  // reload here only discards customer context, repeats asset work, and makes the app
-  // feel disconnected. The guard now only protects the Dashboard when that route is
-  // active and otherwise gets out of the customer's way.
-  window.addEventListener("hashchange", scheduleEnforce);
+  if (typeof document.addEventListener === "function") {
+    document.addEventListener("click", handleRouteClick, true);
+  }
+
+  // The full customer app stays inside one workspace: no page reload between Home,
+  // Discover, Evaluate, Decision Intelligence, Saved Decisions, and follow-up routes.
+  // This preserves customer context and avoids repeating the full asset/bootstrap cost.
+  window.addEventListener("hashchange", handleHashChange);
   window.addEventListener("pageshow", scheduleEnforce);
 
   ensureBrandFavicon();
