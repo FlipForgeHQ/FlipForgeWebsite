@@ -193,6 +193,9 @@ body.ff-full-customer-app .topbar-actions .date-button {
 body.ff-full-customer-app #main-content {
   min-width: 0;
   width: 100%;
+  margin-top: 0 !important;
+  top: auto !important;
+  transform: none !important;
   padding: var(--ff-customer-content-y) var(--ff-customer-content-x) 48px;
   overflow-x: clip;
 }
@@ -230,6 +233,16 @@ body.ff-full-customer-app #main-content .customer-management-page > header,
 body.ff-full-customer-app #main-content .customer-entitlements-page > header {
   margin-top: 0 !important;
   margin-bottom: 20px;
+}
+
+/* A customer route gets one H1 scale. Route-level CSS may not make one screen
+ * feel like a marketing landing page while the next feels like a utility view. */
+body.ff-full-customer-app #main-content h1 {
+  max-width: 960px;
+  margin-top: 0;
+  font-size: var(--ff-customer-title) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.032em !important;
 }
 
 body.ff-full-customer-app #main-content .page-heading h1,
@@ -457,6 +470,7 @@ body.ff-full-customer-app .ff-di-card {
     margin-bottom: 16px;
   }
 
+  body.ff-full-customer-app #main-content h1,
   body.ff-full-customer-app #main-content .page-heading h1,
   body.ff-full-customer-app #main-content .ff-di-hero-copy h1,
   body.ff-full-customer-app #main-content > * > h1 {
