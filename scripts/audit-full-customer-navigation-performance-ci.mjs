@@ -162,9 +162,9 @@ try {
     if (state.assetEntries !== baseline.assetEntries) fail(`${label}: customer navigation reloaded JS/CSS assets (${baseline.assetEntries} -> ${state.assetEntries})`);
   }
 
-  async function navigate(route, selector) {
+  async function navigate(route, selector, triggerSelector = `.sidebar a[data-route="${route}"]`) {
     const started = Date.now();
-    const routeLink = page.locator(`.sidebar a[data-route="${route}"]`).first();
+    const routeLink = page.locator(triggerSelector).first();
     await routeLink.click();
     await page.waitForFunction(expected => window.location.hash === `#/${expected}`, route, { timeout: 10000 });
     await page.waitForSelector(selector, { timeout: 10000 });
@@ -178,7 +178,7 @@ try {
   timings.decisionIntelligenceMs = await navigate("decision-intelligence", '.ff-di-page[data-decision-intelligence-source="server"]');
   timings.savedDecisionsMs = await navigate("opportunities", "#main-content .customer-intelligence-page");
   timings.outcomeIntelligenceMs = await navigate("tracking", "#main-content .customer-lifecycle-page");
-  timings.accountMs = await navigate("account", "#main-content .customer-entitlements-page");
+  timings.accountMs = await navigate("account", "#main-content .customer-entitlements-page", '.profile-button[href="#/account"]');
   timings.dashboardMs = await navigate("dashboard", "#main-content [data-commercial-dashboard-v2]");
 
   await page.setViewportSize({ width: 390, height: 844 });
