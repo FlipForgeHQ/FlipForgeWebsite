@@ -11,6 +11,45 @@
   let applying = false;
   let routeReloading = false;
 
+  function customerApp() {
+    const host = String(window.location.hostname || "");
+    const path = String(window.location.pathname || "");
+    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host)) && APP_PATH.test(path);
+  }
+
+  function authoritativeApiRequest(input) {
+    try {
+      const raw = typeof input === "string" ? input : input?.url || String(input || "");
+      const url = new URL(raw, window.location.href);
+      return /^\/api\/v1\//.test(url.pathname) && url.pathname !== "/api/v1/health";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function publishAuthoritativeAuthState(input, response) {
+    if (!customerApp() || !authoritativeApiRequest(input) || !response) return;
+    if (response.status !== 401 && !response.ok) return;
+    const denied = response.status === 401;
+    window.__FlipForgeAuthoritativeAuthDenied = denied;
+    if (typeof window.dispatchEvent === "function" && typeof CustomEvent === "function") {
+      window.dispatchEvent(new CustomEvent("flipforge:authoritative-auth", {
+        detail: { denied, status: response.status }
+      }));
+    }
+  }
+
+  function installEarlyAuthoritativeAuthObserver() {
+    if (!customerApp() || window.__ffEarlyAuthoritativeAuthObserverInstalled || typeof window.fetch !== "function") return;
+    window.__ffEarlyAuthoritativeAuthObserverInstalled = true;
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const response = await nativeFetch(...args);
+      publishAuthoritativeAuthState(args[0], response);
+      return response;
+    };
+  }
+
   function ensureBrandFavicon() {
     if (typeof document.querySelector !== "function" || typeof document.createElement !== "function" || !document.head) return;
     const href = "/assets/brand/flipforge-app-icon-dark.svg";
@@ -22,12 +61,6 @@
       document.head.appendChild(link);
     }
     link.href = href;
-  }
-
-  function customerApp() {
-    const host = String(window.location.hostname || "");
-    const path = String(window.location.pathname || "");
-    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host)) && APP_PATH.test(path);
   }
 
   function productionDashboard() {
@@ -82,6 +115,7 @@
     document.addEventListener("click", handleRouteClick, true);
   }
 
+  installEarlyAuthoritativeAuthObserver();
   const observer = new MutationObserver(() => queueMicrotask(enforce));
   observer.observe(main, { childList: true });
   window.addEventListener("hashchange", cleanRouteTransition);
