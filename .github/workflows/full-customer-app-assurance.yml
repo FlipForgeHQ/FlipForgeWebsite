@@ -21,8 +21,12 @@ on:
       - 'scripts/validate-full-customer-app.mjs'
       - 'scripts/validate-customer-app-audit-standard.mjs'
       - 'scripts/validate-customer-app-audit-coverage.mjs'
+      - 'scripts/validate-customer-app-audit-policy.mjs'
+      - 'scripts/customer-audit-manifest.json'
+      - 'scripts/validate-customer-audit-manifest.mjs'
       - 'docs/CUSTOMER_APP_AUDIT_STANDARD.md'
       - 'docs/CUSTOMER_APP_AUDIT_COVERAGE.md'
+      - 'docs/CUSTOMER_APP_AUDIT_POLICY.md'
       - '.github/workflows/full-customer-app-assurance.yml'
   push:
     branches:
@@ -46,8 +50,12 @@ on:
       - 'scripts/validate-full-customer-app.mjs'
       - 'scripts/validate-customer-app-audit-standard.mjs'
       - 'scripts/validate-customer-app-audit-coverage.mjs'
+      - 'scripts/validate-customer-app-audit-policy.mjs'
+      - 'scripts/customer-audit-manifest.json'
+      - 'scripts/validate-customer-audit-manifest.mjs'
       - 'docs/CUSTOMER_APP_AUDIT_STANDARD.md'
       - 'docs/CUSTOMER_APP_AUDIT_COVERAGE.md'
+      - 'docs/CUSTOMER_APP_AUDIT_POLICY.md'
       - '.github/workflows/full-customer-app-assurance.yml'
   workflow_dispatch:
 
@@ -73,8 +81,10 @@ jobs:
       - name: Validate full customer app contracts and audit coverage
         run: |
           node scripts/validate-netlify-rule-budget.mjs
+          node scripts/validate-customer-app-audit-policy.mjs
           node scripts/validate-customer-app-audit-standard.mjs
           node scripts/validate-customer-app-audit-coverage.mjs
+          node scripts/validate-customer-audit-manifest.mjs
           node scripts/validate-full-customer-app.mjs
       - name: Install Playwright Chromium
         run: |
