@@ -3,7 +3,7 @@
 
   const MAIN = "#main-content";
   const INPUT = '[data-customer-discovery-form] input[name="exactCardQuery"]';
-  const IDENTITY_HELPER_VERSION = "20260831-3";
+  const IDENTITY_HELPER_VERSION = "20260914-1";
 
   function routeName() {
     return String(window.location.hash || "#/dashboard")
