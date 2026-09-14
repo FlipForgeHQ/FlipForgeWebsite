@@ -18,7 +18,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["007 decision terminology cannot precede the card entry", entry.includes('page.querySelector(":scope > [data-ff-decision-key]")') && entry.includes("let anchor = search")],
   ["008 buried identity action is named consistently", !entry.includes("Help me identify it") && entry.includes('identifyButton.textContent = "Find exact card"')],
   ["009 review rows gain an explicit verification action", verify.includes("data-ff-verify-review-match") && verify.includes("Select &amp; verify")],
-  ["010 only visible card-number rows receive review selection", verify.includes("rowHasCardNumber(row)") && verify.includes("if (!rowHasCardNumber(row)) return")],
+  ["010 review choice no longer silently no-ops when the visible row lacks a card number", verify.includes("rowHasCardNumber(row)\n      ?") && !verify.includes("!originalQuery || !candidateName || !rowHasCardNumber(row)")],
   ["011 review selection uses existing server-owned resolve route", verify.includes('RESOLVE_PATH = "/api/v1/card-intelligence/resolve"')],
   ["012 review selection sends public choice fingerprint", verify.includes("query: originalQuery, candidateName, candidateDetail")],
   ["013 verification request uses same-origin credentials", verify.includes('credentials: "same-origin"')],
@@ -46,10 +46,15 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["035 excluded row shows non-actionable evaluation status", entry.includes("Not eligible for evaluation")],
   ["036 redundant pre-search chooser is removed", !entry.includes("How do you want to start?") && !entry.includes("data-ff-discover-start-find")],
   ["037 primary entry is reasserted after rerenders", entry.includes("new MutationObserver(schedule).observe(main") && entry.includes("promoteSearchPanel(main)")],
-  ["038 identity helper uses an explicit cache-busting version", entry.includes('IDENTITY_HELPER_VERSION = "20260831-3"')],
+  ["038 identity helper uses an explicit cache-busting version", entry.includes('IDENTITY_HELPER_VERSION = "20260914-1"')],
   ["039 identity verification script is loaded with the cache-busting version", entry.includes('script.src = `identity-assist-verification-v1.js?v=${IDENTITY_HELPER_VERSION}`')],
   ["040 identity verification stylesheet is loaded with the cache-busting version", entry.includes('link.href = `identity-assist-verification-v1.css?v=${IDENTITY_HELPER_VERSION}`')],
-  ["041 stale identity helper elements are replaced when the version differs", entry.includes("existingScript?.remove()") && entry.includes("existingLink?.remove()") && entry.includes("ffIdentityAssistVerificationVersion")]
+  ["041 stale identity helper elements are replaced when the version differs", entry.includes("existingScript?.remove()") && entry.includes("existingLink?.remove()") && entry.includes("ffIdentityAssistVerificationVersion")],
+  ["042 one review verification owns the interaction at a time", verify.includes("let reviewVerificationBusy = false") && verify.includes("if (reviewVerificationBusy || button.disabled) return")],
+  ["043 review verification disables competing identity controls", verify.includes("setReviewVerificationState(panel, button, true)") && verify.includes("[data-ff-verify-review-match], [data-discovery-use-identity], [data-ff-toggle-identity-alternates]")],
+  ["044 selected review row shows immediate progress", verify.includes('button.textContent = "Verifying…"') && verify.includes("ff-identity-verifying-choice")],
+  ["045 successful review verification becomes visibly confirmed", verify.includes('button.textContent = "Verified"') && verify.includes("Exact card confirmed. Searching active listings…")],
+  ["046 incomplete client row detail is delegated to server verification instead of being accepted locally", verify.includes("recover and confirm the exact card number") && verify.includes("data.readyForEvaluation !== true")]
 ].forEach(([name, condition]) => check(name, condition));
 
 const failures = results.filter(result => !result.passed);
