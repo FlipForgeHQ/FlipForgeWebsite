@@ -76,8 +76,6 @@ body.ff-full-customer-app .prototype-chip {
   line-height: 1.2;
 }
 
-/* The full customer nav can be longer than the viewport. The nav scrolls; the
- * identity/account footer stays in a predictable place. */
 body.ff-full-customer-app .primary-nav {
   flex: 1 1 auto;
   min-height: 0;
@@ -211,7 +209,6 @@ body.ff-full-customer-app #main-content > :first-child {
   margin-top: 0 !important;
 }
 
-/* Known customer route roots share the same content coordinate system. */
 body.ff-full-customer-app #main-content .page,
 body.ff-full-customer-app #main-content .ff-di-page,
 body.ff-full-customer-app #main-content .customer-lifecycle-page,
@@ -235,8 +232,6 @@ body.ff-full-customer-app #main-content .customer-entitlements-page > header {
   margin-bottom: 20px;
 }
 
-/* A customer route gets one H1 scale. Route-level CSS may not make one screen
- * feel like a marketing landing page while the next feels like a utility view. */
 body.ff-full-customer-app #main-content h1 {
   max-width: 960px;
   margin-top: 0;
@@ -336,7 +331,6 @@ body.ff-full-customer-app #main-content textarea {
   min-height: 46px;
 }
 
-/* Dense data must scroll inside its own surface rather than move the app shell. */
 body.ff-full-customer-app #main-content .table-wrap,
 body.ff-full-customer-app #main-content .table-shell,
 body.ff-full-customer-app #main-content .customer-table-wrap,
@@ -491,6 +485,23 @@ body.ff-full-customer-app .ff-di-card {
   body.ff-full-customer-app .ff-di-card {
     padding-left: 15px;
     padding-right: 15px;
+  }
+
+  /* Legacy mobile layers use !important geometry. This final high-specificity
+   * block makes the governance contract actually own the customer shell. */
+  html.ff-full-customer-app body.ff-full-customer-app .sidebar {
+    width: min(88vw, 320px) !important;
+    max-width: 320px !important;
+  }
+
+  html.ff-full-customer-app body.ff-full-customer-app .topbar {
+    min-height: 64px !important;
+    height: 64px !important;
+    padding: 10px 12px !important;
+  }
+
+  html.ff-full-customer-app body.ff-full-customer-app #main-content {
+    padding: 18px 16px 36px !important;
   }
 }
 
