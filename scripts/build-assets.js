@@ -7,6 +7,7 @@ const outputRoot = path.join(root, 'assets', 'images');
 const CURRENT_DESCRIPTOR = 'Card Decision Intelligence';
 const CURRENT_DESCRIPTOR_DISPLAY = 'CARD DECISION INTELLIGENCE';
 const CURRENT_LOCKUP_ALT = 'FlipForge — Card Decision Intelligence — Before you buy. Know Why.';
+const CUSTOMER_APP_URL = '/app/customer/#/dashboard';
 
 const assets = [
   {
@@ -86,7 +87,7 @@ function ensureDesktopAppLink(html) {
   return html.replace(
     /(<nav\b[^>]*class="[^"]*\bdesktop-nav\b[^"]*"[^>]*>)([\s\S]*?)(<\/nav>)/i,
     (match, open, inner, close) => {
-      const link = '<a data-app-preview="desktop" href="/app/#/dashboard">App Preview</a>';
+      const link = `<a data-app-preview="desktop" href="${CUSTOMER_APP_URL}">App Preview</a>`;
       const cta = /(<a\b[^>]*class="[^"]*\bnav-cta\b[^"]*"[^>]*>)/i;
       const updatedInner = cta.test(inner)
         ? inner.replace(cta, `${link}$1`)
@@ -102,14 +103,14 @@ function ensureMobileAppLink(html) {
   return html.replace(
     /(<nav\b[^>]*id="mobile-navigation"[^>]*>)([\s\S]*?)(<\/nav>)/i,
     (match, open, inner, close) =>
-      `${open}${inner}<a data-app-preview="mobile" href="/app/#/dashboard">App Preview</a>${close}`,
+      `${open}${inner}<a data-app-preview="mobile" href="${CUSTOMER_APP_URL}">App Preview</a>${close}`,
   );
 }
 
 function ensureFooterAppLink(html) {
   if (html.includes('data-app-preview="footer"')) return html;
 
-  const link = '<a data-app-preview="footer" href="/app/#/dashboard">App Preview</a>';
+  const link = `<a data-app-preview="footer" href="${CUSTOMER_APP_URL}">App Preview</a>`;
   const exploreGroup = /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>\s*<strong>Explore<\/strong>)([\s\S]*?)(<\/div>)/i;
   const withExploreLink = html.replace(
     exploreGroup,
@@ -154,6 +155,7 @@ function ensureConversionEventLayer(html) {
 
 function ensurePerfectedBrandIdentity(html) {
   return html
+    .replaceAll('/app/#/dashboard', CUSTOMER_APP_URL)
     .replaceAll('Signal. Confidence. Advantage.', CURRENT_DESCRIPTOR)
     .replaceAll('SIGNAL. CONFIDENCE. ADVANTAGE.', CURRENT_DESCRIPTOR_DISPLAY)
     .replaceAll('Card Value Intelligence', CURRENT_DESCRIPTOR)
@@ -255,6 +257,7 @@ for (const htmlPath of htmlFiles) {
   if (!html.includes('assets/brand/flipforge-app-icon-dark.svg')) failures.push('approved favicon');
   if (!html.includes('assets/js/conversion-events.js')) failures.push('privacy-conscious conversion event layer');
   if (html.includes('Signal. Confidence. Advantage.')) failures.push('deprecated tagline removal');
+  if (html.includes('data-app-preview=') && html.includes('/app/#/dashboard')) failures.push('legacy beta App Preview link removed');
 
   if (path.basename(htmlPath) === 'index.html') {
     if (!html.includes('assets/images/flipforge-homepage-dashboard.svg')) failures.push('homepage dashboard visual');
