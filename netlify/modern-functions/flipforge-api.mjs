@@ -11,6 +11,7 @@ const MARKET_VIEW_PATH = "/api/v1/market-view";
 const MARKET_VIEW_UPSTREAM_PATH = "/api/v1/opportunities/__market-view-v1";
 const RUNTIME_IDENTITY_PATH = "/api/v1/runtime-identity";
 const RUNTIME_IDENTITY_TIMEOUT_MS = 5000;
+const IDENTITY_LOOKUP_TIMEOUT_MS = 5000;
 
 if (typeof legacyHandler !== "function") {
   throw new Error("FlipForge authoritative gateway core is unavailable.");
@@ -137,6 +138,38 @@ function runtimeIdentityHeaders(correlationId) {
   };
 }
 
+function identityFailureResponse(request, code, message) {
+  const correlationId = String(request.headers.get("x-correlation-id") || "").trim() || crypto.randomUUID();
+  return new Response(JSON.stringify({
+    error: {
+      code,
+      message,
+      correlationId
+    }
+  }), {
+    status: 503,
+    headers: runtimeIdentityHeaders(correlationId)
+  });
+}
+
+async function identityUser() {
+  let timeoutId;
+  const lookup = (async () => await getUser())();
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      const error = new Error("Netlify Identity lookup timed out.");
+      error.code = "IDENTITY_LOOKUP_TIMEOUT";
+      reject(error);
+    }, IDENTITY_LOOKUP_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([lookup, timeout]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function runtimeIdentityResponse(status, correlationId, data) {
   return new Response(JSON.stringify({
     meta: {
@@ -256,7 +289,22 @@ export default async function flipForgeApi(request) {
   // nf_refresh cookies. getUser() verifies that session inside the modern
   // Netlify runtime. Tenant membership is derived only from owner-managed,
   // Netlify-signed roles; the browser cannot choose a tenant or mark itself active.
-  const user = publicHealth ? null : await getUser();
+  let user = null;
+  if (!publicHealth) {
+    try {
+      user = await identityUser();
+    } catch (error) {
+      const timedOut = error?.code === "IDENTITY_LOOKUP_TIMEOUT";
+      return identityFailureResponse(
+        request,
+        timedOut ? "IDENTITY_SERVICE_TIMEOUT" : "IDENTITY_SERVICE_UNAVAILABLE",
+        timedOut
+          ? "FlipForge sign-in verification did not respond in time. Please retry the request."
+          : "FlipForge sign-in verification is temporarily unavailable."
+      );
+    }
+  }
+
   const result = await legacyHandler(event, legacyContext(user));
   return modernResponse(normalizeHealth(result, event));
 }
