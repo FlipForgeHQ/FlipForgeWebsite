@@ -147,6 +147,8 @@ body.ff-full-customer-app .topbar-actions {
 }
 
 body.ff-full-customer-app #main-content {
+  /* Async route panels must not become scroll anchors during startup. */
+  overflow-anchor: none;
   box-sizing: border-box !important;
   width: 100% !important;
   max-width: none !important;
@@ -164,6 +166,12 @@ body.ff-full-customer-app #main-content .page {
   min-width: 0 !important;
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+/* The workspace owns the page gutters. Legacy commercial presentation must
+ * not add a second set of gutters after the route has rendered. */
+body.ff-full-customer-app #main-content > .page {
+  padding: 0 !important;
 }
 
 body.ff-full-customer-app #main-content .page-heading {
