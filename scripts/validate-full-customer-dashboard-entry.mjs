@@ -7,6 +7,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
 const customer = read("saas-prototype/customer.html");
 const guard = read("saas-prototype/production-dashboard-guard.js");
+const dashboard = read("saas-prototype/commercial-dashboard-v2.js");
 const redirects = read("_redirects");
 
 const checks = [];
@@ -22,6 +23,11 @@ check("007 bootstrap refuses duplicate Dashboard assets", guard.includes("[data-
 check("008 renderer load failure cannot leave endless loading guard", guard.includes("DASHBOARD_RENDERER_UNAVAILABLE") && guard.includes("rendererFailureMarkup"));
 check("009 customer asset route rewrites to SaaS prototype assets", redirects.includes("/app/customer/* /saas-prototype/:splat 200"));
 check("010 production guard still recognizes authoritative renderer", guard.includes('[data-commercial-dashboard-v2]'));
+check("011 customer route transitions do not force a full document reload", !guard.includes("window.location.reload()") && !guard.includes("window.location.assign("));
+check("012 guard batches Dashboard enforcement work", guard.includes("let enforceQueued = false") && guard.includes("function scheduleEnforce()") && guard.includes("new MutationObserver(scheduleEnforce)"));
+check("013 hash navigation stays inside the customer workspace", guard.includes('window.addEventListener("hashchange", scheduleEnforce)'));
+check("014 authoritative Dashboard renderer owns hash navigation lifecycle", dashboard.includes('window.addEventListener("hashchange", () => queueMicrotask(apply))'));
+check("015 SPA performance change preserves customer API timeout guard", guard.includes("AUTHORITATIVE_FETCH_TIMEOUT_MS = 15000") && guard.includes("fetchWithAuthoritativeTimeout"));
 
 const failed = checks.filter(result => !result.passed);
 for (const result of checks) {
