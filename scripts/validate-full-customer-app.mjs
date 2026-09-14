@@ -70,15 +70,21 @@ check(loginRedirect.includes('if (!launcher && !authLink) return;'), "customer l
 check(authProbe.includes('resolved.pathname === "/app/customer" ? "/app/customer/"'), "production auth normalizes no-slash customer return");
 check(authProbe.includes('normalizedPath === "/app/customer/"'), "production sign-in may return to full customer app");
 check(authProbe.includes('resolved.origin !== window.location.origin || !pathAllowed'), "auth return remains same-origin and allowlisted");
+check(authProbe.includes('reauthRequested'), "production auth page recognizes server-requested reauthentication");
+check(authProbe.includes('The app rejected this cached session'), "production auth explains stale-session recovery");
 
-// Anonymous access must never become a dead end. The recovery control is shell-owned,
-// route-preserving, usable on desktop/mobile, visible when anonymous, and hidden once
-// a real production identity exists.
+// Authentication recovery is shell-owned. Browser identity can improve UX, but the
+// authoritative service decides whether the session is actually usable. A server
+// 401 must always recover even when cached browser identity is still truthy.
 check(loginRedirect.includes('const SIGN_IN_ID = "ff-customer-sign-in-entry"'), "customer shell owns a persistent sign-in recovery control");
 check(loginRedirect.includes('link.dataset.ffCustomerSignIn = ""'), "persistent sign-in control has an auditable selector");
-check(loginRedirect.includes('link.textContent = "Sign in to FlipForge"'), "persistent sign-in control uses clear customer language");
+check(loginRedirect.includes('"Sign in to FlipForge"') && loginRedirect.includes('"Restore FlipForge sign in"'), "persistent sign-in control uses clear normal and stale-session language");
 check(loginRedirect.includes('link.href = productionAuthUrl()'), "persistent sign-in control preserves the governed production auth handoff");
-check(loginRedirect.includes('link.hidden = Boolean(currentUser())'), "persistent sign-in control hides after authentication");
+check(loginRedirect.includes('authoritativeAuthenticationDenied = true'), "server 401 records authoritative authentication denial");
+check(loginRedirect.includes('response.status === 401'), "customer shell observes authoritative 401 responses");
+check(loginRedirect.includes('const requiresSignIn = authoritativeAuthenticationDenied || !currentUser()'), "server 401 overrides cached browser identity");
+check(loginRedirect.includes('link.hidden = !requiresSignIn'), "persistent sign-in visibility follows authoritative recovery state");
+check(loginRedirect.includes('installAuthoritativeAuthObserver()'), "customer shell installs production API auth observation");
 check(loginRedirect.includes('window.addEventListener("hashchange", ensureSignInControl)'), "persistent sign-in return updates as the customer changes routes");
 check(loginRedirect.includes('window.addEventListener("flipforge:identity-change", ensureSignInControl)'), "persistent sign-in reacts to authentication changes");
 check(loginRedirect.includes('@media(max-width:760px)'), "persistent sign-in has a mobile visibility contract");
@@ -91,7 +97,10 @@ check(authRecoveryAudit.includes('{ name: "desktop", width: 1440, height: 900 }'
 check(authRecoveryAudit.includes('{ name: "mobile", width: 390, height: 844 }'), "auth recovery audit covers mobile");
 check(authRecoveryAudit.includes('status: 401'), "auth recovery audit exercises anonymous 401 state");
 check(authRecoveryAudit.includes('protected route rendered a blank customer workspace'), "auth recovery audit fails blank protected routes");
-check(authRecoveryAudit.includes('authenticated customer still sees the anonymous sign-in control'), "auth recovery audit checks authenticated cleanup");
+check(authRecoveryAudit.includes('healthy authenticated customer still sees the anonymous sign-in control'), "auth recovery audit checks healthy authenticated cleanup");
+check(authRecoveryAudit.includes('auditStaleCachedSessionState'), "auth recovery audit exercises stale cached identity");
+check(authRecoveryAudit.includes('server 401 was hidden by stale cached browser identity'), "auth recovery audit fails the exact production dead-end regression");
+check(authRecoveryAudit.includes('destination.searchParams.get("reauth") !== "1"'), "auth recovery audit proves stale-session reauthentication intent");
 check(fullCustomerWorkflow.includes('node scripts/audit-customer-auth-recovery-ci.mjs'), "full customer CI runs auth recovery audit");
 check(fullCustomerWorkflow.includes('push:') && fullCustomerWorkflow.includes('- main'), "full customer assurance re-runs after merge on main");
 
