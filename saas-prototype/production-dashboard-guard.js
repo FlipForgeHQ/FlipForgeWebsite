@@ -4,7 +4,6 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
-  const APP_ROUTE_HASH = /^#\//;
   const AUTHORITATIVE_FETCH_TIMEOUT_MS = 15000;
   const FULL_CUSTOMER_DASHBOARD_SCRIPT = "commercial-dashboard-v2.js";
   const FULL_CUSTOMER_DASHBOARD_STYLESHEET = "commercial-dashboard-v2.css";
@@ -12,7 +11,7 @@
   if (!main) return;
 
   let applying = false;
-  let routeReloading = false;
+  let enforceQueued = false;
 
   function customerApp() {
     const host = String(window.location.hostname || "");
@@ -145,44 +144,29 @@
     applying = false;
   }
 
-  function cleanRouteTransition(event) {
-    if (!customerApp() || routeReloading) return;
-    if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
-    routeReloading = true;
-    if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
-    if (typeof window.location?.reload === "function") window.location.reload();
-  }
-
-  function isPlainLeftClick(event) {
-    return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
-  }
-
-  function handleRouteClick(event) {
-    if (!customerApp() || routeReloading || !isPlainLeftClick(event)) return;
-    const link = event.target?.closest?.('a[href^="#/"]');
-    if (!link) return;
-    const targetHash = String(link.getAttribute("href") || "");
-    if (!APP_ROUTE_HASH.test(targetHash)) return;
-    if (targetHash !== String(window.location.hash || "")) return;
-    event.preventDefault?.();
-    event.stopImmediatePropagation?.();
-    routeReloading = true;
-    if (typeof window.location?.reload === "function") window.location.reload();
-  }
-
-  /* The browser has addEventListener; the static dashboard validation harness does
-   * not. Keep touch-navigation recovery browser-only so the production guard remains
-   * directly executable by deterministic CI. */
-  if (typeof document.addEventListener === "function") {
-    document.addEventListener("click", handleRouteClick, true);
+  function scheduleEnforce() {
+    if (enforceQueued) return;
+    enforceQueued = true;
+    queueMicrotask(() => {
+      enforceQueued = false;
+      enforce();
+    });
   }
 
   installEarlyAuthoritativeAuthObserver();
   ensureFullCustomerDashboardAssets();
-  const observer = new MutationObserver(() => queueMicrotask(enforce));
+
+  const observer = new MutationObserver(scheduleEnforce);
   observer.observe(main, { childList: true });
-  window.addEventListener("hashchange", cleanRouteTransition);
-  window.addEventListener("pageshow", enforce);
+
+  // Keep route changes inside the single-page customer workspace. The authoritative
+  // Dashboard renderer already owns its own hashchange lifecycle, so a full document
+  // reload here only discards customer context, repeats asset work, and makes the app
+  // feel disconnected. The guard now only protects the Dashboard when that route is
+  // active and otherwise gets out of the customer's way.
+  window.addEventListener("hashchange", scheduleEnforce);
+  window.addEventListener("pageshow", scheduleEnforce);
+
   ensureBrandFavicon();
   enforce();
 })();
