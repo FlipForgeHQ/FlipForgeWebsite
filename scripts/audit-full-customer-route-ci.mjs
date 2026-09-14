@@ -137,6 +137,15 @@ page.on("pageerror", error => pageErrors.push(String(error?.message || error)));
 const fail = message => { throw new Error(message); };
 
 try {
+  // The full customer account must be correct at render source. Disable the late
+  // customer text normalizer here so the regression test cannot pass by masking
+  // beta-era account copy after it has already rendered.
+  await page.route("**/customer-surface-normalization-v1.js", route => route.fulfill({
+    status: 200,
+    contentType: "application/javascript; charset=utf-8",
+    body: "window.__ffCustomerSurfaceNormalizationV1 = false;"
+  }));
+
   await page.route("**/api/v1/**", route => route.fulfill({
     status: 200,
     contentType: "application/json; charset=utf-8",
@@ -223,6 +232,8 @@ try {
   if (outcomeState.chip !== "CUSTOMER APP") fail(`Outcome Intelligence lost customer identity: ${outcomeState.chip}`);
 
   // Reproduce the exact internal beta-language leak seen on the production account page.
+  // The normalizer is intentionally disabled above: this section proves the account
+  // renderer itself emits customer-safe language while preserving server authority data.
   await page.locator(".profile-button").click();
   await page.waitForFunction(() => window.location.hash === "#/account", null, { timeout: 10000 });
   await page.waitForSelector("#main-content .customer-entitlements-page", { timeout: 10000 });
@@ -233,7 +244,7 @@ try {
     chip: document.querySelector(".prototype-chip")?.textContent?.trim() || "",
     normalizerLoaded: window.__ffCustomerSurfaceNormalizationV1 === true
   }));
-  if (!accountState.normalizerLoaded) fail("Customer-only surface normalizer was not loaded");
+  if (accountState.normalizerLoaded) fail("Full customer account regression unexpectedly depended on the surface normalizer");
   if (accountState.chip !== "CUSTOMER APP") fail(`Account route lost customer identity: ${accountState.chip}`);
   if (/private[ -]beta/i.test(`${accountState.text} ${accountState.sidebar}`)) fail(`Private-beta language leaked into customer account: ${accountState.text}`);
   if (/Beta Invitation/i.test(accountState.text)) fail(`Beta Invitation leaked into customer account: ${accountState.text}`);
@@ -241,6 +252,9 @@ try {
   if (!/Early Access/i.test(`${accountState.text} ${accountState.sidebar}`)) fail(`Customer-safe access label is missing: ${accountState.text}`);
   if (!/Evaluation allowance reached/i.test(accountState.text)) fail(`Customer-safe allowance state is missing: ${accountState.text}`);
   if (!/Invitation/i.test(accountState.text)) fail(`Customer-safe entitlement source is missing: ${accountState.text}`);
+  if (!/23\s*\/\s*5/.test(accountState.sidebar)) fail(`Server-owned usage was not preserved in the sidebar: ${accountState.sidebar}`);
+  if (!/Paid plan\s+No/i.test(accountState.text)) fail(`Server-owned paid-plan state was not preserved: ${accountState.text}`);
+  if (!/Production checkout\s+Not available yet/i.test(accountState.text)) fail(`Customer checkout boundary is not explicit: ${accountState.text}`);
 
   await page.locator('.primary-nav a[data-route="dashboard"]').click();
   await page.waitForFunction(() => window.location.hash === "#/dashboard", null, { timeout: 10000 });
