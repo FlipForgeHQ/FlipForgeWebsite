@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "description": "FlipForge website and non-production SaaS staging surface.",
   "scripts": {
-    "build:identity": "node scripts/build-identity-client.mjs && node scripts/inject-discovery-request-guard.mjs",
+    "build:identity": "node scripts/build-identity-client.mjs && node scripts/inject-discovery-request-guard.mjs && node scripts/validate-full-customer-dashboard-entry.mjs",
     "build:paddle-live": "node scripts/build-paddle-live-config.mjs",
     "build:deploy-manifest": "node scripts/write-deploy-manifest.mjs",
     "build:marketing": "node scripts/marketing/build-marketing.mjs && node scripts/marketing/build-campaigns.mjs",
@@ -24,7 +24,7 @@
     "validate:card-intelligence-detail-route": "node scripts/validate-card-intelligence-detail-route.mjs && node scripts/validate-card-intelligence-loading-recovery.mjs",
     "validate:production-prototype-isolation": "node scripts/validate-production-prototype-isolation.mjs",
     "validate:production-route-authority": "node scripts/validate-production-route-authority.mjs",
-    "validate:customer-dashboard": "node scripts/validate-saas-customer-dashboard.mjs && node scripts/validate-full-customer-dashboard-entry.mjs",
+    "validate:customer-dashboard": "node scripts/validate-saas-customer-dashboard.mjs",
     "validate:commercial-dashboard-live-qa": "node scripts/validate-saas-commercial-dashboard-live-qa.mjs",
     "validate:private-beta": "node scripts/validate-saas-private-beta-readiness.mjs",
     "validate:customer-compare": "node scripts/validate-saas-customer-compare.mjs",
