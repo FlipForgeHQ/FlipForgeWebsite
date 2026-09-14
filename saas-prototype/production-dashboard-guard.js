@@ -5,6 +5,8 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const APP_ROUTE_HASH = /^#\//;
+  const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+  const TRACKING_STORAGE_KEY = "flipforge.trackingContext.v1";
   const AUTHORITATIVE_FETCH_TIMEOUT_MS = 15000;
   const FULL_CUSTOMER_DASHBOARD_SCRIPT = "commercial-dashboard-v2.js";
   const FULL_CUSTOMER_DASHBOARD_STYLESHEET = "commercial-dashboard-v2.css";
@@ -171,6 +173,31 @@
     return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
   }
 
+  function trackingIdFromHash(hash) {
+    const match = String(hash || "").match(/^#\/tracking\/([^/?#]+)$/);
+    if (!match) return "";
+    try {
+      const id = decodeURIComponent(match[1]);
+      return SAFE_ID.test(id) ? id : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function openExactTrackingInWorkspace(event, targetHash) {
+    const id = trackingIdFromHash(targetHash);
+    if (!id) return false;
+
+    try { window.sessionStorage.setItem(TRACKING_STORAGE_KEY, id); } catch (_) { /* session preference only */ }
+    const owner = window.FlipForgeCustomerRouteOwnership;
+    if (owner && typeof owner.rememberExplicitIntent === "function") owner.rememberExplicitIntent(targetHash);
+
+    event.preventDefault?.();
+    event.stopImmediatePropagation?.();
+    if (targetHash !== String(window.location.hash || "")) window.location.hash = targetHash;
+    return true;
+  }
+
   function handleRouteClick(event) {
     if (!customerApp() || !isPlainLeftClick(event)) return;
     const link = event.target?.closest?.('a[href^="#/"]');
@@ -182,6 +209,11 @@
       // Customer experience rule: route taps close the drawer immediately, including
       // taps on the already-active route, without discarding the current workspace.
       closeFullCustomerNavigation();
+
+      // The older Tracking helper uses a hard reload for exact-card handoffs. In the
+      // full customer app, preserve the same selected-card context but keep the user
+      // inside one document so follow-up feels connected to the decision they saved.
+      if (openExactTrackingInWorkspace(event, targetHash)) return;
       return;
     }
 
