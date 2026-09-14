@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "surface": "full-customer-app",
+  "routes": [
+    "dashboard",
+    "discover",
+    "evaluate",
+    "decision-intelligence",
+    "opportunities",
+    "tracking",
+    "portfolio",
+    "alerts",
+    "forge-heat",
+    "market-view",
+    "account",
+    "compare",
+    "psa-advisor",
+    "evidence",
+    "sell",
+    "export"
+  ],
+  "requiredStates": [
+    "anonymous-401",
+    "authenticated",
+    "authorized-data",
+    "empty-data",
+    "unavailable-upstream"
+  ],
+  "requiredViewports": ["desktop", "mobile"],
+  "requiredAssertions": [
+    "visible-next-action",
+    "nonblank-workspace",
+    "route-preserving-auth-return",
+    "shell-stability",
+    "authority-boundary",
+    "no-synthetic-fallback"
+  ]
+}
