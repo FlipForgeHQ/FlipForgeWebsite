@@ -31,11 +31,11 @@ jobs:
     timeout-minutes: 12
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288ca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Install website dependencies
         run: npm install --no-audit --no-fund
       - name: Build production Identity assets
