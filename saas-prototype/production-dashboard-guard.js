@@ -6,6 +6,8 @@
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const APP_ROUTE_HASH = /^#\//;
   const AUTHORITATIVE_FETCH_TIMEOUT_MS = 15000;
+  const FULL_CUSTOMER_DASHBOARD_SCRIPT = "commercial-dashboard-v2.js";
+  const FULL_CUSTOMER_DASHBOARD_STYLESHEET = "commercial-dashboard-v2.css";
   const main = document.querySelector("#main-content");
   if (!main) return;
 
@@ -16,6 +18,10 @@
     const host = String(window.location.hostname || "");
     const path = String(window.location.pathname || "");
     return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host)) && APP_PATH.test(path);
+  }
+
+  function fullCustomerEntry() {
+    return window.FlipForgeFullCustomerEntry === true;
   }
 
   function authoritativeApiRequest(input) {
@@ -97,6 +103,35 @@
     return PRODUCTION_HOST.test(host) && APP_PATH.test(path) && route === "dashboard";
   }
 
+  function rendererFailureMarkup() {
+    return `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>FlipForge could not start the authoritative customer Dashboard.</p></div></header><div class="ff-commercial-error" role="alert"><strong>DASHBOARD_RENDERER_UNAVAILABLE</strong><p>The authoritative Dashboard renderer failed to load. Reload the customer app and try again.</p></div></div>`;
+  }
+
+  function ensureFullCustomerDashboardAssets() {
+    if (!customerApp() || !fullCustomerEntry()) return;
+    if (typeof document.querySelector !== "function" || typeof document.createElement !== "function" || !document.head) return;
+
+    if (!document.querySelector('[data-ff-commercial-dashboard-css]')) {
+      const stylesheet = document.createElement("link");
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = FULL_CUSTOMER_DASHBOARD_STYLESHEET;
+      stylesheet.setAttribute("data-ff-commercial-dashboard-css", "");
+      document.head.appendChild(stylesheet);
+    }
+
+    if (!document.querySelector('[data-ff-commercial-dashboard-js]')) {
+      const script = document.createElement("script");
+      script.src = FULL_CUSTOMER_DASHBOARD_SCRIPT;
+      script.async = false;
+      script.setAttribute("data-ff-commercial-dashboard-js", "");
+      script.addEventListener("error", () => {
+        if (!productionDashboard() || main.querySelector("[data-commercial-dashboard-v2]")) return;
+        main.innerHTML = rendererFailureMarkup();
+      }, { once: true });
+      document.head.appendChild(script);
+    }
+  }
+
   function guardedMarkup() {
     return `<div class="page ff-commercial-dashboard" data-production-dashboard-guard><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>Loading tenant-owned FlipForge intelligence.</p></div></header><div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div></div>`;
   }
@@ -143,6 +178,7 @@
   }
 
   installEarlyAuthoritativeAuthObserver();
+  ensureFullCustomerDashboardAssets();
   const observer = new MutationObserver(() => queueMicrotask(enforce));
   observer.observe(main, { childList: true });
   window.addEventListener("hashchange", cleanRouteTransition);
