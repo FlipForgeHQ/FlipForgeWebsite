@@ -11,6 +11,7 @@
   const COLLAPSED_REVIEW_COUNT = 4;
   let queued = false;
   let activeDeclaredGrade = "";
+  let reviewVerificationBusy = false;
 
   function eligibleHost() {
     const host = String(window.location.hostname || "");
@@ -157,7 +158,7 @@
       return;
     }
     if (reviewCount > 0) {
-      message.innerHTML = `<strong>Choose the card you mean.</strong><span>FlipForge will not choose one for you. Select <b>Select &amp; verify</b> on the correct visible card. The server must confirm one exact canonical identity before marketplace search can run.</span>`;
+      message.innerHTML = `<strong>Choose the card you mean.</strong><span>FlipForge will not choose one for you. Select <b>Select &amp; verify</b> on the correct visible card. FlipForge will lock that choice while the server confirms an exact canonical identity before marketplace search can run.</span>`;
       message.classList.add("ff-identity-assist-explained");
     }
   }
@@ -225,7 +226,6 @@
       row.classList.add("ff-identity-review-match", "ff-identity-secondary");
 
       if (!row.querySelector("[data-ff-verify-review-match]")) {
-        if (!rowHasCardNumber(row)) return;
         const actions = document.createElement("div");
         actions.className = "ff-identity-review-actions";
         actions.innerHTML = `<span class="ff-identity-review-label">Catalog card · final verification required</span><button class="button button-secondary" type="button" data-ff-verify-review-match="${index}">Select &amp; verify</button>`;
@@ -257,21 +257,44 @@
     status.textContent = message;
   }
 
+  function setReviewVerificationState(panel, activeButton, busy) {
+    panel?.toggleAttribute("aria-busy", busy);
+    panel?.querySelectorAll("[data-ff-verify-review-match], [data-discovery-use-identity], [data-ff-toggle-identity-alternates]").forEach(control => {
+      control.disabled = busy;
+      control.setAttribute("aria-disabled", String(busy));
+    });
+    panel?.querySelectorAll(".customer-discovery-identity-option").forEach(candidate => {
+      candidate.classList.toggle("ff-identity-verifying-choice", busy && candidate.contains(activeButton));
+    });
+    if (!busy) {
+      panel?.querySelectorAll("[aria-disabled='false']").forEach(control => control.removeAttribute("aria-disabled"));
+    }
+  }
+
   async function verifyReviewMatch(button) {
+    if (reviewVerificationBusy || button.disabled) return;
+
     const row = button.closest(".customer-discovery-identity-option");
+    const panel = button.closest(".customer-discovery-identity-assist");
     const main = document.querySelector("#main-content");
     const form = main?.querySelector("[data-customer-discovery-form]");
     const input = form?.querySelector('input[name="exactCardQuery"]');
-    if (!row || !input || !form) return;
+    if (!row || !panel || !input || !form) return;
 
     const originalQuery = String(input.value || "").trim();
     const candidateName = row.querySelector("div > strong")?.textContent?.trim() || "";
     const candidateDetail = detailForVerification(row, originalQuery);
-    if (!originalQuery || !candidateName || !rowHasCardNumber(row)) return;
+    if (!originalQuery || !candidateName) {
+      setRowStatus(row, "This card option is missing the identity detail needed for verification. Refine the search and try again.", true);
+      return;
+    }
 
-    button.disabled = true;
+    reviewVerificationBusy = true;
+    setReviewVerificationState(panel, button, true);
     button.textContent = "Verifying…";
-    setRowStatus(row, "Checking this catalog card against the server-owned exact identity record…");
+    setRowStatus(row, rowHasCardNumber(row)
+      ? "Checking this catalog card against the server-owned exact identity record…"
+      : "Checking this catalog match with the server to recover and confirm the exact card number…");
 
     const requestCorrelationId = correlationId();
     try {
@@ -310,14 +333,16 @@
       }
 
       input.value = canonical;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
       input.dispatchEvent(new Event("change", { bubbles: true }));
       setRowStatus(row, "Exact card confirmed. Searching active listings…");
+      button.textContent = "Verified";
       window.setTimeout(() => form.requestSubmit?.(), 120);
     } catch (error) {
-      button.disabled = false;
       button.textContent = "Select & verify";
       setRowStatus(row, error?.message || "This card could not be verified yet.", true);
+      setReviewVerificationState(panel, button, false);
+    } finally {
+      reviewVerificationBusy = false;
     }
   }
 
