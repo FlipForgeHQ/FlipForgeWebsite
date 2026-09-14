@@ -5,6 +5,7 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const APP_ROUTE_HASH = /^#\//;
+  const AUTHORITATIVE_FETCH_TIMEOUT_MS = 15000;
   const main = document.querySelector("#main-content");
   if (!main) return;
 
@@ -27,6 +28,32 @@
     }
   }
 
+  async function fetchWithAuthoritativeTimeout(nativeFetch, args) {
+    if (!authoritativeApiRequest(args[0])) return nativeFetch(...args);
+
+    const input = args[0];
+    const init = args[1] && typeof args[1] === "object" ? { ...args[1] } : {};
+    if (init.signal) return nativeFetch(input, init);
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), AUTHORITATIVE_FETCH_TIMEOUT_MS);
+    init.signal = controller.signal;
+
+    try {
+      return await nativeFetch(input, init);
+    } catch (error) {
+      if (controller.signal.aborted) {
+        const timeoutError = new Error("The FlipForge customer data service did not respond in time. Retry the request or restore your sign-in if prompted.");
+        timeoutError.name = "TimeoutError";
+        timeoutError.code = "CUSTOMER_API_TIMEOUT";
+        throw timeoutError;
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   function publishAuthoritativeAuthState(input, response) {
     if (!customerApp() || !authoritativeApiRequest(input) || !response) return;
     if (response.status !== 401 && !response.ok) return;
@@ -44,7 +71,7 @@
     window.__ffEarlyAuthoritativeAuthObserverInstalled = true;
     const nativeFetch = window.fetch.bind(window);
     window.fetch = async (...args) => {
-      const response = await nativeFetch(...args);
+      const response = await fetchWithAuthoritativeTimeout(nativeFetch, args);
       publishAuthoritativeAuthState(args[0], response);
       return response;
     };
