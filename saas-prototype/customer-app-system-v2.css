@@ -1,0 +1,460 @@
+/* FlipForge Full Customer App Visual System v2
+ * Final presentation owner for /app/customer/ only.
+ * Purpose: keep every customer route on one shell, density, typography,
+ * spacing, and responsive contract without changing product authority.
+ */
+
+body.ff-full-customer-app {
+  --ff-app-sidebar-width: 272px;
+  --ff-app-topbar-height: 72px;
+  --ff-app-content-max: 1440px;
+  --ff-app-page-pad-x: 28px;
+  --ff-app-page-pad-y: 24px;
+  --ff-app-radius: 12px;
+  --ff-app-control-height: 40px;
+}
+
+body.ff-full-customer-app .app-shell {
+  grid-template-columns: var(--ff-app-sidebar-width) minmax(0, 1fr) !important;
+  min-height: 100vh;
+}
+
+body.ff-full-customer-app .sidebar {
+  width: var(--ff-app-sidebar-width) !important;
+  min-width: var(--ff-app-sidebar-width) !important;
+  max-width: var(--ff-app-sidebar-width) !important;
+  box-sizing: border-box !important;
+}
+
+body.ff-full-customer-app .brand-block {
+  padding: 18px 16px 14px !important;
+}
+
+body.ff-full-customer-app .brand {
+  gap: 11px !important;
+  align-items: center !important;
+}
+
+body.ff-full-customer-app .brand-name {
+  font-size: 1.02rem !important;
+  line-height: 1.05 !important;
+  letter-spacing: .06em !important;
+}
+
+body.ff-full-customer-app .brand-subtitle {
+  margin-top: 3px !important;
+  font-size: .68rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: .08em !important;
+}
+
+body.ff-full-customer-app .prototype-chip {
+  min-height: 24px !important;
+  padding: 4px 7px !important;
+  border-radius: 999px !important;
+  font-size: .66rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
+body.ff-full-customer-app .primary-nav {
+  gap: 4px !important;
+  padding: 8px 10px 12px !important;
+}
+
+body.ff-full-customer-app .primary-nav > a[data-ff-customer-core],
+body.ff-full-customer-app .ff-advanced-nav-links a {
+  min-height: 44px !important;
+  padding: 8px 10px !important;
+  border-radius: 9px !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  gap: 9px !important;
+  font-size: .88rem !important;
+  line-height: 1.2 !important;
+}
+
+body.ff-full-customer-app .primary-nav > a[data-ff-customer-core] > span:first-child,
+body.ff-full-customer-app .ff-advanced-nav-links a > span:first-child {
+  width: 24px !important;
+  min-width: 24px !important;
+}
+
+body.ff-full-customer-app .ff-advanced-nav {
+  margin-top: 6px !important;
+}
+
+body.ff-full-customer-app .ff-advanced-nav > summary {
+  min-height: 40px !important;
+  padding: 8px 10px !important;
+  border-radius: 9px !important;
+  font-size: .8rem !important;
+  line-height: 1.2 !important;
+}
+
+body.ff-full-customer-app .ff-advanced-nav-links {
+  gap: 4px !important;
+  padding-top: 5px !important;
+}
+
+body.ff-full-customer-app .sidebar-footer {
+  padding: 10px !important;
+}
+
+body.ff-full-customer-app .plan-card {
+  padding: 12px !important;
+  border-radius: 10px !important;
+}
+
+body.ff-full-customer-app .account-link {
+  min-height: 48px !important;
+  margin-top: 8px !important;
+  padding: 8px 10px !important;
+  border-radius: 10px !important;
+}
+
+body.ff-full-customer-app .workspace {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+body.ff-full-customer-app .topbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 80 !important;
+  min-height: var(--ff-app-topbar-height) !important;
+  height: var(--ff-app-topbar-height) !important;
+  padding: 10px 18px !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+}
+
+body.ff-full-customer-app .global-search {
+  min-width: 240px !important;
+  max-width: 620px !important;
+}
+
+body.ff-full-customer-app .global-search input,
+body.ff-full-customer-app .date-button,
+body.ff-full-customer-app .icon-button,
+body.ff-full-customer-app .profile-button {
+  min-height: var(--ff-app-control-height) !important;
+  height: var(--ff-app-control-height) !important;
+}
+
+body.ff-full-customer-app .topbar-actions {
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+body.ff-full-customer-app #main-content {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  padding: var(--ff-app-page-pad-y) var(--ff-app-page-pad-x) 40px !important;
+}
+
+body.ff-full-customer-app #main-content > .page,
+body.ff-full-customer-app #main-content > .ff-di-page,
+body.ff-full-customer-app #main-content .page {
+  width: min(100%, var(--ff-app-content-max)) !important;
+  max-width: var(--ff-app-content-max) !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+body.ff-full-customer-app #main-content .page-heading {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  min-height: 76px !important;
+  margin: 0 0 18px !important;
+}
+
+body.ff-full-customer-app #main-content .page-heading > div:first-child {
+  min-width: 0 !important;
+  max-width: 860px !important;
+}
+
+body.ff-full-customer-app #main-content .page-heading .eyebrow,
+body.ff-full-customer-app #main-content .eyebrow {
+  margin: 0 0 6px !important;
+  font-size: .74rem !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+  letter-spacing: .09em !important;
+}
+
+body.ff-full-customer-app #main-content .page-heading h1,
+body.ff-full-customer-app #main-content .ff-di-hero-copy h1 {
+  margin: 0 !important;
+  max-width: 900px !important;
+  font-size: clamp(2rem, 2.6vw, 2.6rem) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -.035em !important;
+}
+
+body.ff-full-customer-app #main-content .page-heading p,
+body.ff-full-customer-app #main-content .ff-di-hero-copy p {
+  max-width: 800px !important;
+  margin: 8px 0 0 !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+}
+
+body.ff-full-customer-app #main-content .page-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  min-height: var(--ff-app-control-height) !important;
+}
+
+body.ff-full-customer-app #main-content .button,
+body.ff-full-customer-app #main-content button,
+body.ff-full-customer-app #main-content select,
+body.ff-full-customer-app #main-content input[type="text"],
+body.ff-full-customer-app #main-content input[type="search"],
+body.ff-full-customer-app #main-content input[type="number"] {
+  min-height: var(--ff-app-control-height) !important;
+}
+
+body.ff-full-customer-app #main-content .panel,
+body.ff-full-customer-app #main-content .metric-card,
+body.ff-full-customer-app #main-content .ff-di-card,
+body.ff-full-customer-app #main-content .ff-customer-home-action,
+body.ff-full-customer-app #main-content .ff-beta-simple-loop {
+  border-radius: var(--ff-app-radius) !important;
+}
+
+body.ff-full-customer-app #main-content .panel-header {
+  padding: 14px 16px 11px !important;
+}
+
+body.ff-full-customer-app #main-content .panel-body {
+  padding: 15px 16px !important;
+}
+
+body.ff-full-customer-app #main-content .panel-header h2,
+body.ff-full-customer-app #main-content .section-title,
+body.ff-full-customer-app #main-content h2 {
+  font-size: clamp(1.25rem, 1.5vw, 1.55rem) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.02em !important;
+}
+
+body.ff-full-customer-app #main-content h3 {
+  font-size: 1.02rem !important;
+  line-height: 1.3 !important;
+}
+
+body.ff-full-customer-app #main-content p,
+body.ff-full-customer-app #main-content li,
+body.ff-full-customer-app #main-content td,
+body.ff-full-customer-app #main-content th,
+body.ff-full-customer-app #main-content label,
+body.ff-full-customer-app #main-content small {
+  line-height: 1.48 !important;
+}
+
+body.ff-full-customer-app #main-content .metric-grid,
+body.ff-full-customer-app #main-content .dashboard-grid,
+body.ff-full-customer-app #main-content .detail-grid,
+body.ff-full-customer-app #main-content .stack,
+body.ff-full-customer-app #main-content .ff-di-grid {
+  gap: 14px !important;
+}
+
+body.ff-full-customer-app #main-content .metric-card {
+  min-height: 104px !important;
+  padding: 14px !important;
+}
+
+body.ff-full-customer-app #main-content .metric-value {
+  margin-top: 7px !important;
+  font-size: 1.45rem !important;
+  line-height: 1.15 !important;
+}
+
+body.ff-full-customer-app #main-content table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+body.ff-full-customer-app #main-content th,
+body.ff-full-customer-app #main-content td {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+body.ff-full-customer-app .ff-di-hero {
+  grid-template-columns: minmax(0, 1.12fr) minmax(300px, .88fr) !important;
+  gap: 18px !important;
+  align-items: start !important;
+  margin-bottom: 18px !important;
+}
+
+body.ff-full-customer-app .ff-di-hero-state,
+body.ff-full-customer-app .ff-di-card,
+body.ff-full-customer-app .ff-di-controls {
+  padding: 15px !important;
+}
+
+body.ff-full-customer-app .ff-customer-home-actions {
+  gap: 12px !important;
+}
+
+body.ff-full-customer-app .ff-customer-home-action {
+  padding: 15px 16px !important;
+}
+
+@media (max-width: 1180px) {
+  body.ff-full-customer-app {
+    --ff-app-page-pad-x: 20px;
+  }
+
+  body.ff-full-customer-app .ff-di-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.ff-full-customer-app .topbar-actions .profile-copy {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.ff-full-customer-app #main-content .page-heading {
+    display: grid !important;
+    min-height: 0 !important;
+    gap: 12px !important;
+  }
+
+  body.ff-full-customer-app #main-content .page-actions {
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body.ff-full-customer-app {
+    --ff-app-topbar-height: 60px;
+    --ff-app-page-pad-x: 12px;
+    --ff-app-page-pad-y: 14px;
+  }
+
+  body.ff-full-customer-app .app-shell {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  body.ff-full-customer-app .workspace {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  body.ff-full-customer-app .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 1000 !important;
+    width: min(86vw, 320px) !important;
+    min-width: 0 !important;
+    max-width: min(86vw, 320px) !important;
+  }
+
+  body.ff-full-customer-app .topbar {
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    min-height: var(--ff-app-topbar-height) !important;
+    height: var(--ff-app-topbar-height) !important;
+    padding: 8px 10px !important;
+  }
+
+  body.ff-full-customer-app .menu-button {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+  }
+
+  body.ff-full-customer-app .global-search {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body.ff-full-customer-app .global-search input {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    font-size: 15px !important;
+  }
+
+  body.ff-full-customer-app .global-search kbd,
+  body.ff-full-customer-app .topbar-actions {
+    display: none !important;
+  }
+
+  body.ff-full-customer-app #main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: var(--ff-app-page-pad-y) var(--ff-app-page-pad-x) 92px !important;
+    overflow-x: hidden !important;
+  }
+
+  body.ff-full-customer-app #main-content *,
+  body.ff-full-customer-app #main-content *::before,
+  body.ff-full-customer-app #main-content *::after {
+    box-sizing: border-box !important;
+    min-width: 0;
+    max-width: 100% !important;
+  }
+
+  body.ff-full-customer-app #main-content .page-heading h1,
+  body.ff-full-customer-app #main-content .ff-di-hero-copy h1 {
+    font-size: clamp(1.7rem, 8vw, 2rem) !important;
+    line-height: 1.08 !important;
+  }
+
+  body.ff-full-customer-app #main-content .page-heading p,
+  body.ff-full-customer-app #main-content .ff-di-hero-copy p {
+    font-size: .95rem !important;
+  }
+
+  body.ff-full-customer-app #main-content .page-actions {
+    width: 100% !important;
+  }
+
+  body.ff-full-customer-app #main-content .page-actions .button,
+  body.ff-full-customer-app #main-content .page-actions button {
+    flex: 1 1 auto !important;
+  }
+
+  body.ff-full-customer-app #main-content .metric-grid,
+  body.ff-full-customer-app #main-content .customer-management-metrics,
+  body.ff-full-customer-app #main-content .customer-portfolio-metrics,
+  body.ff-full-customer-app #main-content .customer-dashboard-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  body.ff-full-customer-app #main-content .metric-card {
+    min-height: 88px !important;
+    padding: 11px !important;
+  }
+
+  body.ff-full-customer-app #main-content .metric-value {
+    font-size: 1.22rem !important;
+  }
+
+  body.ff-full-customer-app #main-content .panel-header,
+  body.ff-full-customer-app #main-content .panel-body {
+    padding: 12px !important;
+  }
+}
