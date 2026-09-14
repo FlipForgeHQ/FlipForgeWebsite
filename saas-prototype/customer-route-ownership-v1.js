@@ -20,7 +20,8 @@
     "psa-advisor": ".customer-intelligence-page",
     evidence: ".customer-management-page",
     sell: ".customer-management-page",
-    export: ".customer-export-page"
+    export: ".customer-export-page",
+    account: ".customer-entitlements-page"
   });
 
   let explicitIntent = { hash: "", until: 0, serial: 0, reached: false };
@@ -160,6 +161,8 @@
           && typeof adapter.isEligible === "function"
           && adapter.isEligible());
       }
+      case "account":
+        return simpleAdapterReady(window.FlipForgeCustomerEntitlements);
       default:
         return false;
     }
