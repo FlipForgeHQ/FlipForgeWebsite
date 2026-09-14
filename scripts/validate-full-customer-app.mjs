@@ -15,6 +15,7 @@ const redirects = read("_redirects");
 const customer = read("saas-prototype/customer.html");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
+const visualSystem = read("saas-prototype/customer-app-system-v2.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
@@ -65,6 +66,17 @@ check(authProbe.includes('normalizedPath === "/app/customer/"'), "production sig
 check(authProbe.includes('resolved.origin !== window.location.origin || !pathAllowed'), "auth return remains same-origin and allowlisted");
 
 check(css.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav") && css.includes("display: block !important;"), "full customer CSS preserves advanced navigation");
+check(customer.includes('href="customer-app-system-v2.css"'), "full customer app loads final visual system");
+check(customer.indexOf('href="customer-app-system-v2.css"') > customer.indexOf('href="customer-only-shell-v1.css"'), "customer app visual system is the final stylesheet owner");
+check(visualSystem.includes("--ff-app-sidebar-width: 272px"), "customer app owns one desktop sidebar width");
+check(visualSystem.includes("--ff-app-topbar-height: 72px"), "customer app owns one desktop topbar height");
+check(visualSystem.includes("--ff-app-content-max: 1440px"), "customer app owns one content width");
+check(visualSystem.includes("#main-content .page-heading"), "customer app owns one page-heading geometry");
+check(visualSystem.includes("#main-content .page-heading h1") && visualSystem.includes("#main-content .ff-di-hero-copy h1"), "Decision Intelligence and standard routes share the customer title scale");
+check(visualSystem.includes("#main-content .panel-header h2") && visualSystem.includes("#main-content h2"), "customer app owns one section-title scale");
+check(visualSystem.includes("@media (max-width: 760px)"), "customer app visual system has a mobile contract");
+check(visualSystem.includes("grid-template-columns: 44px minmax(0, 1fr)"), "mobile customer topbar uses one menu-search geometry");
+check(visualSystem.includes("overflow-x: hidden !important"), "mobile customer app prevents horizontal shell overflow");
 
 const forbiddenAuthority = ["evaluateAndSave(", "saveEvidence(", "saveListing(", "appendObservation(", "transactionAuthority", "recommendation =", "supportedValue ="];
 for (const token of forbiddenAuthority) check(!customer.includes(token), `customer entry adds no authority token: ${token}`);
