@@ -39,6 +39,17 @@ function healthFixture(correlationId) {
   };
 }
 
+function authorizedFixture(pathname, correlationId) {
+  const meta = { contractVersion: "1.0", correlationId, authority: "Smart Opportunity" };
+  if (pathname === "/api/v1/dashboard") {
+    return { meta, data: { metrics: { trackedOpportunities: 0, evidenceReady: 0, populationContextAvailable: 0, needsVerification: 0 } } };
+  }
+  if (pathname === "/api/v1/entitlements") {
+    return { meta, data: { current: { code: "EARLY_ACCESS", name: "Early Access" }, usage: { completedEvaluations: 0, monthlyEvaluationLimit: 5 }, checkoutAvailable: false } };
+  }
+  return { meta, data: { kind: "audit", items: [] } };
+}
+
 async function installAnonymousGateway(page) {
   await page.route("**/api/v1/**", route => {
     const pathname = new URL(route.request().url()).pathname;
@@ -62,6 +73,36 @@ async function installAnonymousGateway(page) {
       })
     });
   });
+}
+
+async function installAuthorizedGateway(page) {
+  await page.route("**/api/v1/**", route => {
+    const pathname = new URL(route.request().url()).pathname;
+    const correlationId = route.request().headers()["x-correlation-id"] || "auth-recovery-authorized-audit";
+    const body = pathname === "/api/v1/health"
+      ? healthFixture(correlationId)
+      : authorizedFixture(pathname, correlationId);
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(body)
+    });
+  });
+}
+
+async function installCachedAuthenticatedIdentity(page) {
+  await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
+    status: 200,
+    contentType: "application/javascript; charset=utf-8",
+    body: `
+      window.FlipForgeIdentity = Object.freeze({
+        getUser: () => ({ email: "audit@example.com" }),
+        getSnapshot: () => Object.freeze({ authenticated: true, membershipActive: true, membershipConfigured: true }),
+        refresh: async () => Object.freeze({ authenticated: true, membershipActive: true, membershipConfigured: true })
+      });
+      window.dispatchEvent(new CustomEvent("flipforge:identity-change", { detail: { authenticated: true, membershipActive: true } }));
+    `
+  }));
 }
 
 async function auditAnonymousState(browser, viewport) {
@@ -118,8 +159,6 @@ async function auditAnonymousState(browser, viewport) {
         fail(`${viewport.name} ${route}: auth return mismatch: ${destination.searchParams.get("return") || "<missing>"}`);
       }
 
-      // Every protected route must render either content or a clear failure state;
-      // a blank main region is a customer dead end even if the shell survives.
       if (state.mainText.length < 8) fail(`${viewport.name} ${route}: protected route rendered a blank customer workspace`);
     }
 
@@ -144,20 +183,8 @@ async function auditAnonymousState(browser, viewport) {
 async function auditAuthenticatedState(browser) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
-
-  await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
-    status: 200,
-    contentType: "application/javascript; charset=utf-8",
-    body: `
-      window.FlipForgeIdentity = Object.freeze({
-        getUser: () => ({ email: "audit@example.com" }),
-        getSnapshot: () => Object.freeze({ authenticated: true, membershipActive: true, membershipConfigured: true }),
-        refresh: async () => Object.freeze({ authenticated: true, membershipActive: true, membershipConfigured: true })
-      });
-      window.dispatchEvent(new CustomEvent("flipforge:identity-change", { detail: { authenticated: true, membershipActive: true } }));
-    `
-  }));
-  await installAnonymousGateway(page);
+  await installCachedAuthenticatedIdentity(page);
+  await installAuthorizedGateway(page);
 
   try {
     await page.goto("http://goflipforge.com:4173/app/customer/#/dashboard", {
@@ -174,7 +201,54 @@ async function auditAuthenticatedState(browser) {
       };
     });
     if (!state.exists) fail("authenticated state lost the governed shell auth control entirely");
-    if (!state.hidden || state.ariaHidden !== "true") fail("authenticated customer still sees the anonymous sign-in control");
+    if (!state.hidden || state.ariaHidden !== "true") fail("healthy authenticated customer still sees the anonymous sign-in control");
+  } finally {
+    await context.close();
+  }
+}
+
+async function auditStaleCachedSessionState(browser, viewport) {
+  const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+  const page = await context.newPage();
+  await installCachedAuthenticatedIdentity(page);
+  await installAnonymousGateway(page);
+
+  try {
+    await page.goto("http://goflipforge.com:4173/app/customer/#/dashboard", {
+      waitUntil: "domcontentloaded",
+      timeout: 30000
+    });
+    await page.waitForFunction(() => document.querySelector("[data-ff-customer-sign-in]")?.dataset.ffAuthoritativeAuthDenied === "true", null, { timeout: 10000 });
+    await page.waitForTimeout(250);
+
+    const state = await page.evaluate(() => {
+      const link = document.querySelector("[data-ff-customer-sign-in]");
+      const style = link ? getComputedStyle(link) : null;
+      const box = link?.getBoundingClientRect?.();
+      return {
+        href: link?.getAttribute("href") || "",
+        text: String(link?.textContent || "").trim(),
+        hidden: Boolean(link?.hidden),
+        ariaHidden: link?.getAttribute("aria-hidden") || "",
+        display: style?.display || "",
+        box: box ? { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height } : null,
+        viewport: { width: window.innerWidth, height: window.innerHeight }
+      };
+    });
+
+    if (state.hidden || state.ariaHidden === "true" || state.display === "none") {
+      fail(`${viewport.name}: server 401 was hidden by stale cached browser identity`);
+    }
+    if (!/Restore FlipForge sign in/i.test(state.text)) fail(`${viewport.name}: stale-session recovery label is missing`);
+    if (!state.box || state.box.width < 40 || state.box.height < 40) fail(`${viewport.name}: stale-session recovery is not a usable target`);
+    if (state.box.left < -1 || state.box.top < -1 || state.box.right > state.viewport.width + 1 || state.box.bottom > state.viewport.height + 1) {
+      fail(`${viewport.name}: stale-session recovery is outside the viewport`);
+    }
+
+    const destination = new URL(state.href, "http://goflipforge.com:4173");
+    if (destination.pathname !== "/production-auth.html") fail(`${viewport.name}: stale-session recovery uses the wrong auth destination`);
+    if (destination.searchParams.get("return") !== "/app/customer/#/dashboard") fail(`${viewport.name}: stale-session recovery lost the customer route`);
+    if (destination.searchParams.get("reauth") !== "1") fail(`${viewport.name}: stale-session recovery did not mark reauthentication intent`);
   } finally {
     await context.close();
   }
@@ -188,8 +262,13 @@ const browser = await chromium.launch({
 try {
   for (const viewport of viewports) await auditAnonymousState(browser, viewport);
   await auditAuthenticatedState(browser);
+  for (const viewport of viewports) await auditStaleCachedSessionState(browser, viewport);
   console.log("Customer auth recovery audit passed");
-  console.log(JSON.stringify({ routes: customerRoutes.length, viewports: viewports.map(item => item.name), states: ["anonymous-401", "authenticated"] }, null, 2));
+  console.log(JSON.stringify({
+    routes: customerRoutes.length,
+    viewports: viewports.map(item => item.name),
+    states: ["anonymous-401", "authenticated", "stale-cached-session-401"]
+  }, null, 2));
 } finally {
   await browser.close();
 }
