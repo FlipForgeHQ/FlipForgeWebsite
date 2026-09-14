@@ -9,6 +9,7 @@ on:
       - 'saas-prototype/commercial-dashboard-v2.js'
       - 'saas-prototype/commercial-app-polish-v2.js'
       - 'scripts/audit-customer-dashboard-startup-ci.mjs'
+      - 'scripts/verify-live-customer-dashboard.mjs'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
       - 'saas-prototype/customer-app-system-v2.css'
@@ -42,6 +43,7 @@ on:
       - 'saas-prototype/commercial-dashboard-v2.js'
       - 'saas-prototype/commercial-app-polish-v2.js'
       - 'scripts/audit-customer-dashboard-startup-ci.mjs'
+      - 'scripts/verify-live-customer-dashboard.mjs'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
       - 'saas-prototype/customer-app-system-v2.css'
@@ -118,6 +120,15 @@ jobs:
         run: node scripts/audit-customer-auth-recovery-ci.mjs
       - name: Audit visual parity across full customer routes
         run: node scripts/audit-customer-shell-parity-ci.mjs
+      - name: Verify published customer dashboard assets after merge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          EXPECTED_COMMIT_REF: ${{ github.sha }}
+          LIVE_PARITY_MAX_ATTEMPTS: "18"
+          LIVE_PARITY_RETRY_MS: "10000"
+        run: |
+          node scripts/verify-live-production-parity.mjs
+          node scripts/verify-live-customer-dashboard.mjs
       - name: Show server log on failure
         if: failure()
         run: cat /tmp/flipforge-full-customer-server.log || true

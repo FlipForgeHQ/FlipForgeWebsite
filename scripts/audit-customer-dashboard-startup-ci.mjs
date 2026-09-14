@@ -91,6 +91,9 @@ try {
     async function open(nextScenario) {
       scenario = nextScenario;
       calls.clear();
+      // A same-URL fragment navigation can retain the previous document and data.
+      // Start a fresh document for each independent gateway scenario.
+      await page.goto("about:blank");
       await page.goto(`${base}#/dashboard`, { waitUntil: "domcontentloaded", timeout: 30000 });
     }
 
