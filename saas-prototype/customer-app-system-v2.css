@@ -157,6 +157,7 @@ body.ff-full-customer-app #main-content {
 body.ff-full-customer-app #main-content > .page,
 body.ff-full-customer-app #main-content > .ff-di-page,
 body.ff-full-customer-app #main-content > .forge-heat-shell,
+body.ff-full-customer-app #main-content > .market-view-shell,
 body.ff-full-customer-app #main-content .page {
   width: min(100%, var(--ff-app-content-max)) !important;
   max-width: var(--ff-app-content-max) !important;
