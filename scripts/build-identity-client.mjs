@@ -146,6 +146,13 @@ injectMobileNavigationStabilizer(appIndex);
 injectTypographyFloor(appIndex);
 enforceProductionAppBoundary(appIndex);
 
+// The full customer document is a separate production entry point. Its loading
+// guard must always be paired with the data renderer and its presentation assets.
+// These injections are idempotent when the source already declares the assets.
+const customerApp = path.join(root, "saas-prototype", "customer.html");
+injectCommercialDashboard(customerApp);
+injectCommercialAppPolish(customerApp);
+
 const identityBytes = fs.statSync(identityOutput).size;
 const productionSignInBytes = fs.statSync(productionSignInOutput).size;
 const productionAuthProbeBytes = fs.statSync(productionAuthProbeOutput).size;
