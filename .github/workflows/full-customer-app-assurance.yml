@@ -14,6 +14,28 @@ on:
       - 'saas-prototype/production-identity-login-redirect.js'
       - 'saas-prototype/serve.mjs'
       - 'scripts/audit-full-customer-route-ci.mjs'
+      - 'scripts/audit-customer-auth-recovery-ci.mjs'
+      - 'scripts/audit-customer-shell-parity-ci.mjs'
+      - 'scripts/lib/flipforge-production-auth-probe.mjs'
+      - 'scripts/validate-netlify-rule-budget.mjs'
+      - 'scripts/validate-full-customer-app.mjs'
+      - '.github/workflows/full-customer-app-assurance.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '_redirects'
+      - 'saas-prototype/customer.html'
+      - 'saas-prototype/customer-only-shell-v1.js'
+      - 'saas-prototype/customer-only-shell-v1.css'
+      - 'saas-prototype/customer-app-system-v2.css'
+      - 'saas-prototype/guided-discover-focus-fix-v1.js'
+      - 'saas-prototype/beta-session-v1.js'
+      - 'saas-prototype/mobile-navigation-stabilizer-v1.js'
+      - 'saas-prototype/production-identity-login-redirect.js'
+      - 'saas-prototype/serve.mjs'
+      - 'scripts/audit-full-customer-route-ci.mjs'
+      - 'scripts/audit-customer-auth-recovery-ci.mjs'
       - 'scripts/audit-customer-shell-parity-ci.mjs'
       - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
@@ -26,9 +48,9 @@ permissions:
 
 jobs:
   validate:
-    name: Customer app browser identity and authority boundary
+    name: Customer app critical journey, identity and authority boundary
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -62,6 +84,8 @@ jobs:
           exit 1
       - name: Audit rendered customer route and sign-in return
         run: node scripts/audit-full-customer-route-ci.mjs
+      - name: Audit anonymous and authenticated customer recovery paths
+        run: node scripts/audit-customer-auth-recovery-ci.mjs
       - name: Audit visual parity across full customer routes
         run: node scripts/audit-customer-shell-parity-ci.mjs
       - name: Show server log on failure
