@@ -6,7 +6,7 @@
   const PRODUCTION_AUTH_LINK = 'a[href^="/production-auth.html"],a[href*="goflipforge.com/production-auth.html"]';
   const SIGN_IN_ID = "ff-customer-sign-in-entry";
   const STYLE_ID = "ff-customer-sign-in-entry-style";
-  let authoritativeAuthenticationDenied = false;
+  let authoritativeAuthenticationDenied = window.__FlipForgeAuthoritativeAuthDenied === true;
   let fetchObserved = false;
 
   function eligibleHost() {
@@ -48,18 +48,20 @@
     }
   }
 
+  function setAuthoritativeAuthDenied(denied) {
+    authoritativeAuthenticationDenied = denied === true;
+    window.__FlipForgeAuthoritativeAuthDenied = authoritativeAuthenticationDenied;
+    ensureSignInControl();
+  }
+
   function recordAuthoritativeResponse(input, response) {
     if (!fullCustomerSurface() || !protectedApiPath(input) || !response) return;
     if (response.status === 401) {
-      authoritativeAuthenticationDenied = true;
-      ensureSignInControl();
+      setAuthoritativeAuthDenied(true);
       window.dispatchEvent(new CustomEvent("flipforge:auth-required", { detail: { status: 401 } }));
       return;
     }
-    if (response.ok && authoritativeAuthenticationDenied) {
-      authoritativeAuthenticationDenied = false;
-      ensureSignInControl();
-    }
+    if (response.ok && authoritativeAuthenticationDenied) setAuthoritativeAuthDenied(false);
   }
 
   function installAuthoritativeAuthObserver() {
@@ -107,14 +109,23 @@
     return link;
   }
 
+  function handleAuthoritativeAuthEvent(event) {
+    setAuthoritativeAuthDenied(event?.detail?.denied === true);
+  }
+
   function initializeSignInControl() {
     if (!fullCustomerSurface()) return;
+    authoritativeAuthenticationDenied = window.__FlipForgeAuthoritativeAuthDenied === true;
     installAuthoritativeAuthObserver();
     ensureSignInControl();
     window.addEventListener("hashchange", ensureSignInControl);
     window.addEventListener("popstate", ensureSignInControl);
     window.addEventListener("flipforge:identity-change", ensureSignInControl);
-    window.setTimeout(ensureSignInControl, 250);
+    window.addEventListener("flipforge:authoritative-auth", handleAuthoritativeAuthEvent);
+    window.setTimeout(() => {
+      authoritativeAuthenticationDenied = window.__FlipForgeAuthoritativeAuthDenied === true;
+      ensureSignInControl();
+    }, 250);
   }
 
   document.addEventListener("click", event => {
