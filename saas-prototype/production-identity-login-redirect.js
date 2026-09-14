@@ -6,6 +6,8 @@
   const PRODUCTION_AUTH_LINK = 'a[href^="/production-auth.html"],a[href*="goflipforge.com/production-auth.html"]';
   const SIGN_IN_ID = "ff-customer-sign-in-entry";
   const STYLE_ID = "ff-customer-sign-in-entry-style";
+  let authoritativeAuthenticationDenied = false;
+  let fetchObserved = false;
 
   function eligibleHost() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -31,7 +33,44 @@
       : pathname === "/app" ? "/app/"
       : pathname;
     const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`;
-    return `/production-auth.html?return=${encodeURIComponent(returnPath)}`;
+    const params = new URLSearchParams({ return: returnPath });
+    if (authoritativeAuthenticationDenied && currentUser()) params.set("reauth", "1");
+    return `/production-auth.html?${params.toString()}`;
+  }
+
+  function protectedApiPath(input) {
+    try {
+      const raw = typeof input === "string" ? input : input?.url || String(input || "");
+      const url = new URL(raw, window.location.href);
+      return url.origin === window.location.origin && /^\/api\/v1\//.test(url.pathname) && url.pathname !== "/api/v1/health";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function recordAuthoritativeResponse(input, response) {
+    if (!fullCustomerSurface() || !protectedApiPath(input) || !response) return;
+    if (response.status === 401) {
+      authoritativeAuthenticationDenied = true;
+      ensureSignInControl();
+      window.dispatchEvent(new CustomEvent("flipforge:auth-required", { detail: { status: 401 } }));
+      return;
+    }
+    if (response.ok && authoritativeAuthenticationDenied) {
+      authoritativeAuthenticationDenied = false;
+      ensureSignInControl();
+    }
+  }
+
+  function installAuthoritativeAuthObserver() {
+    if (!fullCustomerSurface() || fetchObserved || typeof window.fetch !== "function") return;
+    fetchObserved = true;
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const response = await nativeFetch(...args);
+      recordAuthoritativeResponse(args[0], response);
+      return response;
+    };
   }
 
   function ensureSignInStyles() {
@@ -55,18 +94,22 @@
       link = document.createElement("a");
       link.id = SIGN_IN_ID;
       link.dataset.ffCustomerSignIn = "";
-      link.textContent = "Sign in to FlipForge";
       link.setAttribute("aria-label", "Sign in to FlipForge and return to this page");
       document.body.appendChild(link);
     }
+    const staleAuthenticatedSession = authoritativeAuthenticationDenied && Boolean(currentUser());
+    const requiresSignIn = authoritativeAuthenticationDenied || !currentUser();
+    link.textContent = staleAuthenticatedSession ? "Restore FlipForge sign in" : "Sign in to FlipForge";
     link.href = productionAuthUrl();
-    link.hidden = Boolean(currentUser());
-    link.setAttribute("aria-hidden", link.hidden ? "true" : "false");
+    link.hidden = !requiresSignIn;
+    link.setAttribute("aria-hidden", requiresSignIn ? "false" : "true");
+    link.dataset.ffAuthoritativeAuthDenied = authoritativeAuthenticationDenied ? "true" : "false";
     return link;
   }
 
   function initializeSignInControl() {
     if (!fullCustomerSurface()) return;
+    installAuthoritativeAuthObserver();
     ensureSignInControl();
     window.addEventListener("hashchange", ensureSignInControl);
     window.addEventListener("popstate", ensureSignInControl);
@@ -75,7 +118,7 @@
   }
 
   document.addEventListener("click", event => {
-    if (!eligibleHost() || currentUser()) return;
+    if (!eligibleHost() || (currentUser() && !authoritativeAuthenticationDenied)) return;
     const target = event.target && event.target.closest ? event.target : null;
     if (!target) return;
 
@@ -84,14 +127,14 @@
     if (!launcher && !authLink) return;
 
     // Keep every production sign-in handoff on the exact product surface the
-    // user was using. In particular, /app/customer/ must never collapse into
-    // the separate controlled /app beta because a feature emitted an old link.
+    // user was using. A server 401 always outranks stale browser identity.
     event.preventDefault();
     event.stopImmediatePropagation();
     window.location.assign(productionAuthUrl());
   }, true);
 
   if (document.readyState === "loading") {
+    installAuthoritativeAuthObserver();
     document.addEventListener("DOMContentLoaded", initializeSignInControl, { once: true });
   } else {
     initializeSignInControl();
