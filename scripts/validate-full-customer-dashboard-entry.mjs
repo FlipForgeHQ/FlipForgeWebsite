@@ -23,11 +23,13 @@ check("007 bootstrap refuses duplicate Dashboard assets", guard.includes("[data-
 check("008 renderer load failure cannot leave endless loading guard", guard.includes("DASHBOARD_RENDERER_UNAVAILABLE") && guard.includes("rendererFailureMarkup"));
 check("009 customer asset route rewrites to SaaS prototype assets", redirects.includes("/app/customer/* /saas-prototype/:splat 200"));
 check("010 production guard still recognizes authoritative renderer", guard.includes('[data-commercial-dashboard-v2]'));
-check("011 customer route transitions do not force a full document reload", !guard.includes("window.location.reload()") && !guard.includes("window.location.assign("));
+check("011 full customer hash navigation stays in one workspace", guard.includes("function handleHashChange(event)") && guard.includes("if (fullCustomerEntry()) {\n      closeFullCustomerNavigation();\n      scheduleEnforce();\n      return;\n    }"));
 check("012 guard batches Dashboard enforcement work", guard.includes("let enforceQueued = false") && guard.includes("function scheduleEnforce()") && guard.includes("new MutationObserver(scheduleEnforce)"));
-check("013 hash navigation stays inside the customer workspace", guard.includes('window.addEventListener("hashchange", scheduleEnforce)'));
+check("013 full customer route taps close the mobile drawer without intercepting navigation", guard.includes("function closeFullCustomerNavigation()") && guard.includes('shell.dataset.navOpen = "false"') && guard.includes('toggle.setAttribute("aria-expanded", "false")') && guard.includes("if (fullCustomerEntry()) {\n      // Customer experience rule") && guard.includes("closeFullCustomerNavigation();\n      return;"));
 check("014 authoritative Dashboard renderer owns hash navigation lifecycle", dashboard.includes('window.addEventListener("hashchange", () => queueMicrotask(apply))'));
 check("015 SPA performance change preserves customer API timeout guard", guard.includes("AUTHORITATIVE_FETCH_TIMEOUT_MS = 15000") && guard.includes("fetchWithAuthoritativeTimeout"));
+check("016 legacy beta reload boundary is isolated from full customer mode", guard.includes("function legacyBetaEntry()") && guard.includes("return customerApp() && !fullCustomerEntry()") && guard.includes("if (!legacyBetaEntry() || legacyBetaReloading) return;"));
+check("017 full customer click path returns before legacy beta reload", guard.indexOf("if (fullCustomerEntry()) {\n      // Customer experience rule") < guard.indexOf("if (legacyBetaReloading || targetHash"));
 
 const failed = checks.filter(result => !result.passed);
 for (const result of checks) {
