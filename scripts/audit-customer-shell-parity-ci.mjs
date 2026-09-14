@@ -164,6 +164,7 @@ async function measure(page, route, viewport) {
       } : null,
       rootDisplay: rootStyle?.display || "",
       active,
+      scrollY: window.scrollY,
       scrollWidth: document.documentElement.scrollWidth,
       innerWidth: window.innerWidth,
       horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
@@ -198,6 +199,7 @@ try {
       if (state.hash !== `#/${route}`) fail(`${viewport.name}/${route}: route changed unexpectedly`, state);
       if (!state.root) fail(`${viewport.name}/${route}: customer route rendered no main root`, state);
       if (state.horizontalOverflow > 1) fail(`${viewport.name}/${route}: page has horizontal overflow`, state);
+      if (state.scrollY > 1) fail(`${viewport.name}/${route}: route changed the viewport scroll position`, state);
 
       if (!baseline) baseline = state;
       if (viewport.name !== "mobile") {
@@ -209,15 +211,17 @@ try {
         if (!closeEnough(state.main?.left, baseline.main?.left)) fail(`${viewport.name}/${route}: workspace horizontal origin drifted`, { baseline, state });
         if (!closeEnough(state.root?.left, baseline.root?.left)) fail(`${viewport.name}/${route}: route content left edge drifted`, { baseline, state });
         if (!closeEnough(state.root?.top, baseline.root?.top)) fail(`${viewport.name}/${route}: route content top edge drifted`, { baseline, state });
-        if (state.heading && (state.heading.fontSize < 30 || state.heading.fontSize > 39)) {
-          fail(`${viewport.name}/${route}: customer page title escaped the governed app scale`, state.heading);
-        }
-      } else {
-        if (state.heading && (state.heading.fontSize < 27 || state.heading.fontSize > 33)) {
-          fail(`mobile/${route}: customer page title escaped the governed mobile scale`, state.heading);
-        }
-        if (state.root.left < 14 || state.root.right > state.innerWidth - 14) {
-          fail(`mobile/${route}: route content escaped the governed mobile gutters`, state);
+      } else if (state.root.left < 14 || state.root.right > state.innerWidth - 14) {
+        fail(`mobile/${route}: route content escaped the governed mobile gutters`, state);
+      }
+
+      if (state.heading && baseline.heading && !closeEnough(state.heading.fontSize, baseline.heading.fontSize, 0.2)) {
+        fail(`${viewport.name}/${route}: customer page title size drifted`, { baseline: baseline.heading, state: state.heading });
+      }
+      if (state.heading) {
+        const [min, max] = viewport.name === "mobile" ? [27, 33] : [30, 39];
+        if (state.heading.fontSize < min || state.heading.fontSize > max) {
+          fail(`${viewport.name}/${route}: customer page title escaped the governed scale`, state.heading);
         }
       }
     }
@@ -233,5 +237,5 @@ try {
 console.log("PASS: full customer shell parity is governed across core routes.");
 for (const state of results) {
   const heading = state.heading ? `${state.heading.fontSize}px ${state.heading.text}` : "no h1";
-  console.log(`${state.viewport.padEnd(7)} ${state.route.padEnd(22)} root=${Math.round(state.root.left)},${Math.round(state.root.top)} topbar=${Math.round(state.topbar.height)}px overflow=${state.horizontalOverflow}px title=${heading}`);
+  console.log(`${state.viewport.padEnd(7)} ${state.route.padEnd(22)} root=${Math.round(state.root.left)},${Math.round(state.root.top)} topbar=${Math.round(state.topbar.height)}px scrollY=${Math.round(state.scrollY)} overflow=${state.horizontalOverflow}px title=${heading}`);
 }
