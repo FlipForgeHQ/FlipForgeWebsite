@@ -51,6 +51,15 @@
   border-color:rgba(224,182,62,.18)!important;
   background:linear-gradient(135deg,rgba(224,182,62,.03),rgba(255,255,255,.012))!important;
 }
+.ff-identity-review-match.ff-identity-verifying-choice{
+  border-color:rgba(242,203,103,.78)!important;
+  background:linear-gradient(135deg,rgba(224,182,62,.14),rgba(255,255,255,.025))!important;
+  box-shadow:0 0 0 2px rgba(224,182,62,.12),0 16px 40px rgba(0,0,0,.18);
+  opacity:1!important;
+}
+.customer-discovery-identity-assist[aria-busy="true"] .customer-discovery-identity-option:not(.ff-identity-verifying-choice){
+  opacity:.48;
+}
 .ff-identity-review-actions{
   display:grid;
   gap:7px;
@@ -77,6 +86,10 @@
   border-color:#f2cb67;
   background:rgba(224,182,62,.11);
   outline:none;
+}
+.ff-identity-review-actions .button:disabled{
+  cursor:wait;
+  opacity:.72;
 }
 .ff-identity-recheck-input{
   border-color:#f2cb67!important;
