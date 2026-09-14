@@ -24,6 +24,7 @@ const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
 const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
+const productionDashboardGuard = read("saas-prototype/production-dashboard-guard.js");
 const loginRedirect = read("saas-prototype/production-identity-login-redirect.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 const authRecoveryAudit = read("scripts/audit-customer-auth-recovery-ci.mjs");
@@ -54,6 +55,7 @@ check(customer.includes('data-route="discover"') && customer.includes('data-rout
 check(customer.includes('data-route="forge-heat"') && customer.includes('data-route="market-view"'), "customer navigation exposes Forge Heat and Market View");
 check(customer.includes('id="global-search-form"'), "customer document includes global search");
 check(customer.includes('class="icon-button notification-button"'), "customer document includes alerts access");
+check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
 
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
 check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell reinforces customer identity");
@@ -76,15 +78,21 @@ check(authProbe.includes('The app rejected this cached session'), "production au
 // Authentication recovery is shell-owned. Browser identity can improve UX, but the
 // authoritative service decides whether the session is actually usable. A server
 // 401 must always recover even when cached browser identity is still truthy.
+check(productionDashboardGuard.includes('installEarlyAuthoritativeAuthObserver()'), "early production guard installs auth observer before app clients capture fetch");
+check(productionDashboardGuard.includes('window.__FlipForgeAuthoritativeAuthDenied = denied'), "early production guard persists authoritative auth state");
+check(productionDashboardGuard.includes('new CustomEvent("flipforge:authoritative-auth"'), "early production guard broadcasts authoritative auth changes");
+check(productionDashboardGuard.includes('response.status === 401'), "early production guard recognizes authoritative 401");
+check(loginRedirect.includes('let authoritativeAuthenticationDenied = window.__FlipForgeAuthoritativeAuthDenied === true'), "customer sign-in shell consumes auth state captured before it loads");
+check(loginRedirect.includes('window.addEventListener("flipforge:authoritative-auth", handleAuthoritativeAuthEvent)'), "customer sign-in shell subscribes to early authoritative auth events");
 check(loginRedirect.includes('const SIGN_IN_ID = "ff-customer-sign-in-entry"'), "customer shell owns a persistent sign-in recovery control");
 check(loginRedirect.includes('link.dataset.ffCustomerSignIn = ""'), "persistent sign-in control has an auditable selector");
 check(loginRedirect.includes('"Sign in to FlipForge"') && loginRedirect.includes('"Restore FlipForge sign in"'), "persistent sign-in control uses clear normal and stale-session language");
 check(loginRedirect.includes('link.href = productionAuthUrl()'), "persistent sign-in control preserves the governed production auth handoff");
-check(loginRedirect.includes('authoritativeAuthenticationDenied = true'), "server 401 records authoritative authentication denial");
-check(loginRedirect.includes('response.status === 401'), "customer shell observes authoritative 401 responses");
+check(loginRedirect.includes('setAuthoritativeAuthDenied(true)'), "server 401 records authoritative authentication denial");
+check(loginRedirect.includes('response.status === 401'), "customer shell retains redundant late 401 observation");
 check(loginRedirect.includes('const requiresSignIn = authoritativeAuthenticationDenied || !currentUser()'), "server 401 overrides cached browser identity");
 check(loginRedirect.includes('link.hidden = !requiresSignIn'), "persistent sign-in visibility follows authoritative recovery state");
-check(loginRedirect.includes('installAuthoritativeAuthObserver()'), "customer shell installs production API auth observation");
+check(loginRedirect.includes('installAuthoritativeAuthObserver()'), "customer shell retains fallback production API auth observation");
 check(loginRedirect.includes('window.addEventListener("hashchange", ensureSignInControl)'), "persistent sign-in return updates as the customer changes routes");
 check(loginRedirect.includes('window.addEventListener("flipforge:identity-change", ensureSignInControl)'), "persistent sign-in reacts to authentication changes");
 check(loginRedirect.includes('@media(max-width:760px)'), "persistent sign-in has a mobile visibility contract");
