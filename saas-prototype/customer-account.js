@@ -5,6 +5,7 @@
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const READ_PATHS = new Set(["/api/v1/health", "/api/v1/entitlements"]);
 
   const state = {
@@ -20,12 +21,39 @@
       && APP_PATH.test(String(window.location.pathname || ""));
   }
 
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
+  }
+
+  function customerFacingText(value) {
+    let text = String(value ?? "");
+    if (!fullCustomerMode()) return text;
+    return text
+      .replaceAll("Private Beta Evaluation Allowance Reached", "Evaluation allowance reached")
+      .replaceAll("PRIVATE BETA", "EARLY ACCESS")
+      .replaceAll("Private Beta", "Early Access")
+      .replaceAll("Private beta", "Early access")
+      .replaceAll("private beta", "early access")
+      .replaceAll("Beta Invitation", "Invitation")
+      .replaceAll("Core Platform Beta Complete", "launch readiness")
+      .replaceAll("Beta Complete", "launch readiness");
+  }
+
+  function currentAccessLabel(current) {
+    return customerFacingText(current?.name || current?.code || "Unavailable");
+  }
+
+  function accountReturnPath() {
+    return fullCustomerMode() ? "/app/customer/#/account" : "/app/#/account";
+  }
+
   function escapeHtml(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
+      .replace(/\"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
 
@@ -106,7 +134,7 @@
   }
 
   function numberOrUnlimited(value, fallback = "Unavailable") {
-    if (value === null || value === undefined) return "Unlimited during beta";
+    if (value === null || value === undefined) return fullCustomerMode() ? "No monthly cap" : "Unlimited during beta";
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed.toLocaleString("en-US") : fallback;
   }
@@ -137,8 +165,14 @@
 
   function planCards(plans) {
     const safePlans = Array.isArray(plans) ? plans : [];
-    if (!safePlans.length) return `<div class="staging-empty"><strong>Commercial plan details are unavailable.</strong><p>Private-beta access remains unchanged.</p></div>`;
-    return `<div class="customer-entitlement-plans">${safePlans.map(plan => `<article class="panel customer-entitlement-plan"><div class="panel-body"><div class="customer-entitlement-plan-head"><div><span class="eyebrow">Planned launch plan</span><h3>${escapeHtml(plan.name || plan.code || "Plan")}</h3></div>${badge("Planned", "neutral")}</div><ul>${planFeature("Monthly evaluations", plan.monthlyEvaluationLimit)}${planFeature("Tracked cards", plan.trackedCardLimitLabel || plan.trackedCardLimit)}${planFeature("Full evidence", plan.fullEvidenceReview)}${planFeature("Decision traceback", plan.decisionTraceback)}${planFeature("PSA intelligence", plan.psaIntelligence)}${planFeature("CSV exports", plan.csvExports)}${planFeature("Batch evaluation", plan.batchEvaluation)}</ul><div class="customer-checkout-action"><button class="button button-secondary" type="button" disabled>Checkout deferred until Beta Complete</button></div></div></article>`).join("")}</div>`;
+    if (!safePlans.length) {
+      const detail = fullCustomerMode() ? "Current access remains unchanged." : "Private-beta access remains unchanged.";
+      return `<div class="staging-empty"><strong>Commercial plan details are unavailable.</strong><p>${detail}</p></div>`;
+    }
+    const planEyebrow = fullCustomerMode() ? "Plan" : "Planned launch plan";
+    const planBadge = fullCustomerMode() ? "Informational" : "Planned";
+    const checkoutLabel = fullCustomerMode() ? "Checkout not available yet" : "Checkout deferred until Beta Complete";
+    return `<div class="customer-entitlement-plans">${safePlans.map(plan => `<article class="panel customer-entitlement-plan"><div class="panel-body"><div class="customer-entitlement-plan-head"><div><span class="eyebrow">${planEyebrow}</span><h3>${escapeHtml(plan.name || plan.code || "Plan")}</h3></div>${badge(planBadge, "neutral")}</div><ul>${planFeature("Monthly evaluations", plan.monthlyEvaluationLimit)}${planFeature("Tracked cards", plan.trackedCardLimitLabel || plan.trackedCardLimit)}${planFeature("Full evidence", plan.fullEvidenceReview)}${planFeature("Decision traceback", plan.decisionTraceback)}${planFeature("PSA intelligence", plan.psaIntelligence)}${planFeature("CSV exports", plan.csvExports)}${planFeature("Batch evaluation", plan.batchEvaluation)}</ul><div class="customer-checkout-action"><button class="button button-secondary" type="button" disabled>${checkoutLabel}</button></div></div></article>`).join("")}</div>`;
   }
 
   function syncSidebar(data) {
@@ -151,13 +185,15 @@
     const row = card.querySelectorAll(".usage-row span");
     const track = card.querySelector(".usage-track span");
     const small = card.querySelector("small");
-    if (strong) strong.textContent = current.name || "Private Beta";
+    if (strong) strong.textContent = currentAccessLabel(current);
     if (row[0]) row[0].textContent = "Evaluation usage";
     if (row[1]) row[1].textContent = usage.monthlyEvaluationLimit == null
-      ? `${admissionUsage} used · Unlimited beta`
+      ? (fullCustomerMode() ? `${admissionUsage} used · No monthly cap` : `${admissionUsage} used · Unlimited beta`)
       : `${admissionUsage} / ${usage.monthlyEvaluationLimit}`;
     if (track) track.style.width = `${percent(admissionUsage, usage.monthlyEvaluationLimit)}%`;
-    if (small) small.textContent = "Plan state and usage are server-owned. Paid checkout is deferred until Core Platform Beta Complete.";
+    if (small) small.textContent = fullCustomerMode()
+      ? "Plan state and usage are verified by the server. Paid checkout is not active yet."
+      : "Plan state and usage are server-owned. Paid checkout is deferred until Core Platform Beta Complete.";
   }
 
   function loadingView() {
@@ -170,7 +206,7 @@
 
   function errorView(error) {
     const signIn = error?.status === 401
-      ? `<a class="button button-primary" href="/production-auth.html?return=${encodeURIComponent("/app/#/account")}">Sign in securely</a>`
+      ? `<a class="button button-primary" href="/production-auth.html?return=${encodeURIComponent(accountReturnPath())}">Sign in securely</a>`
       : "";
     return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Account state could not be loaded.</p></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "ACCOUNT_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "The account workspace is unavailable.")}</p><small>No sample subscription or browser-invented allowance was shown.</small>${signIn}</div></section></div>`;
   }
@@ -186,10 +222,27 @@
     const accessBadge = current.paidPlanActive === true
       ? badge("Verified paid access", "ok")
       : current.code === "PRIVATE_BETA"
-        ? badge("Private beta", "ok")
-        : badge(current.accessState || "Access state", "warn");
+        ? badge(fullCustomerMode() ? "Early access" : "Private beta", "ok")
+        : badge(customerFacingText(current.accessState || "Access state"), "warn");
+    const headingCopy = fullCustomerMode()
+      ? "Review your access, evaluation usage, and available plan details."
+      : "Review server-owned access, evaluation usage, and the planned commercial tiers for this tenant.";
+    const boundaryCopy = fullCustomerMode()
+      ? "Paid checkout, plan changes, and customer portal controls are not available yet. Account information is view-only."
+      : "Paid checkout, plan changes, and customer portal controls are intentionally deferred until Core Platform Beta Complete. This production account screen is read-only.";
+    const plansTitle = fullCustomerMode() ? "Plans" : "Planned commercial plans";
+    const plansCopy = fullCustomerMode()
+      ? "Plan details are informational until billing is enabled."
+      : "These tiers remain informational during the core-platform completion sprint.";
+    const billingBadge = fullCustomerMode() ? "Billing not active" : "Billing deferred";
+    const safetyTitle = fullCustomerMode()
+      ? "Payments are not available yet."
+      : "Production payment controls are intentionally absent.";
+    const safetyCopy = fullCustomerMode()
+      ? "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing will open after launch readiness review."
+      : "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing launch resumes only after the core customer product reaches Beta Complete.";
 
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Review server-owned access, evaluation usage, and the planned commercial tiers for this tenant.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Launch boundary:</strong> Paid checkout, plan changes, and customer portal controls are intentionally deferred until Core Platform Beta Complete. This production account screen is read-only.</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(current.name || current.code || "Unavailable")}</h2></div>${accessBadge}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(current.accessState || "Unavailable")}</dd></div><div><dt>Source</dt><dd>${escapeHtml(current.entitlementSource || "Unavailable")}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Production checkout</dt><dd>Deferred by core-platform launch gate</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Usage is returned by the authoritative service. The browser cannot increase an allowance or create an entitlement.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>Planned commercial plans</h2><p>These tiers remain informational during the core-platform completion sprint.</p></div>${badge("Billing deferred", "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>Production payment controls are intentionally absent.</strong><p>This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing launch resumes only after the core customer product reaches Beta Complete.</p></div></section></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>${headingCopy}</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Launch boundary:</strong> ${boundaryCopy}</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(currentAccessLabel(current))}</h2></div>${accessBadge}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(customerFacingText(current.accessState || "Unavailable"))}</dd></div><div><dt>Source</dt><dd>${escapeHtml(customerFacingText(current.entitlementSource || "Unavailable"))}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Production checkout</dt><dd>${fullCustomerMode() ? "Not available yet" : "Deferred by core-platform launch gate"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Usage is returned by the authoritative service. The browser cannot increase an allowance or create an entitlement.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>${plansTitle}</h2><p>${plansCopy}</p></div>${badge(billingBadge, "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>${safetyTitle}</strong><p>${safetyCopy}</p></div></section></div>`;
   }
 
   function attachActions() {
