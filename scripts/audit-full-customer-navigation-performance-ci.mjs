@@ -164,7 +164,8 @@ try {
 
   async function navigate(route, selector) {
     const started = Date.now();
-    await page.locator(`.primary-nav a[data-route="${route}"]`).click();
+    const routeLink = page.locator(`.sidebar a[data-route="${route}"]`).first();
+    await routeLink.click();
     await page.waitForFunction(expected => window.location.hash === `#/${expected}`, route, { timeout: 10000 });
     await page.waitForSelector(selector, { timeout: 10000 });
     const elapsedMs = Date.now() - started;
