@@ -151,8 +151,8 @@ try {
               name: "Shohei Ohtani",
               year: "2018",
               setName: "Topps Chrome Update",
-              cardNumber: "HMT1",
-              parallelName: "",
+              cardNumber: "",
+              parallelName: "Gold",
               grader: "PSA",
               grade: "9",
               exactCardCandidate: false
@@ -165,6 +165,21 @@ try {
 
     if (url.pathname === "/api/v1/card-intelligence/resolve") {
       calls.resolve.push(body);
+      if (body.candidateName) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json; charset=utf-8",
+          body: JSON.stringify(envelope(correlationId, cardIntelligenceData({
+            readyForEvaluation: false,
+            cardIdentity: "",
+            grader: "PSA",
+            grade: "9",
+            message: "This catalog match still needs an exact card number before marketplace search."
+          })))
+        });
+        return;
+      }
       await route.fulfill({
         status: 200,
         contentType: "application/json; charset=utf-8",
@@ -220,8 +235,9 @@ try {
   if (await assist.locator("[data-discovery-use-identity]").count() !== 1) failures.push("review-only alternate was incorrectly made directly selectable");
 
   // When an exact match exists, review-only variants should stay collapsed by
-  // default. Expand them explicitly and prove they expose verification rather
-  // than a direct evaluation handoff.
+  // default. Expand them explicitly and prove Select & verify is a real action,
+  // including immediate progress, single-choice locking, and visible fail-closed
+  // feedback when the server cannot establish the exact card number.
   const reviewButton = assist.locator("[data-ff-verify-review-match]").first();
   const reviewInitiallyVisible = await reviewButton.isVisible().catch(() => false);
   if (reviewInitiallyVisible) failures.push("review-only alternate was not progressively disclosed when an exact match was available");
@@ -233,6 +249,29 @@ try {
     if (!(await reviewButton.isVisible().catch(() => false))) failures.push("expanded review-only alternate has no explicit verification control");
   }
 
+  await reviewButton.click();
+  await page.waitForFunction(() => {
+    const button = document.querySelector("#main-content [data-ff-verify-review-match]");
+    const panel = document.querySelector("#main-content .customer-discovery-identity-assist");
+    return button?.textContent?.includes("Verifying") && panel?.getAttribute("aria-busy") === "true";
+  }, { timeout: 2_000 });
+
+  if (!(await exactButton.isDisabled().catch(() => false))) failures.push("exact-match action stayed enabled while a review candidate was verifying");
+  if (!(await reviewButton.isDisabled().catch(() => false))) failures.push("review candidate did not lock after selection");
+  if (calls.resolve.length !== 1) failures.push(`review verification did not issue exactly one resolve request; got ${calls.resolve.length}`);
+  if (calls.resolve[0]?.selectionToken) failures.push("review verification incorrectly reused a server selection token that the review-only row did not own");
+  if (calls.resolve[0]?.query !== imperfectQuery || !calls.resolve[0]?.candidateName) failures.push(`review verification did not send the explicit customer choice fingerprint: ${JSON.stringify(calls.resolve[0])}`);
+
+  const reviewStatus = assist.locator("[data-ff-identity-choice-status]").first();
+  await page.waitForFunction(() => {
+    const status = document.querySelector("#main-content [data-ff-identity-choice-status]");
+    return /exact card number/i.test(status?.textContent || "");
+  }, { timeout: 3_000 });
+  if (await reviewButton.isDisabled().catch(() => true)) failures.push("review action did not unlock after server verification failed closed");
+  if (await exactButton.isDisabled().catch(() => true)) failures.push("exact-match action did not unlock after review verification failed closed");
+  if (!/exact card number/i.test(await reviewStatus.textContent())) failures.push("review verification failure was not shown beside the selected row");
+  if (calls.discover.length !== 0) failures.push("Discover ran after a review-only candidate failed exact server verification");
+
   await exactButton.click();
   await page.waitForFunction(() => {
     const input = document.querySelector('#main-content [data-customer-discovery-form] input[name="exactCardQuery"]');
@@ -240,9 +279,9 @@ try {
   }, { timeout: 5_000 });
   await page.waitForTimeout(250);
 
-  if (calls.resolve.length !== 1) failures.push(`identity resolve call count was ${calls.resolve.length}, expected 1`);
-  if (calls.resolve[0]?.selectionToken !== selectionToken) failures.push("identity resolve did not send only the selected server-issued token");
-  if (calls.discover.length !== 1) failures.push(`Discover call count after resolution was ${calls.discover.length}, expected 1`);
+  if (calls.resolve.length !== 2) failures.push(`identity resolve call count was ${calls.resolve.length}, expected 2 after review + exact selection`);
+  if (calls.resolve[1]?.selectionToken !== selectionToken) failures.push("exact identity resolve did not send only the selected server-issued token");
+  if (calls.discover.length !== 1) failures.push(`Discover call count after exact resolution was ${calls.discover.length}, expected 1`);
   if (calls.discover[0]?.exactCardQuery !== canonicalIdentity) failures.push(`Discover did not receive the server-resolved canonical identity: ${JSON.stringify(calls.discover[0])}`);
   if (!/PSA\s*9/i.test(calls.discover[0]?.exactCardQuery || "")) failures.push("Discover lost the declared PSA 9 grade filter after identity resolution");
   if (calls.discover[0]?.exactCardQuery === imperfectQuery) failures.push("Discover reused the imperfect input instead of the resolved canonical identity");
@@ -260,5 +299,5 @@ console.log(`Imperfect input: ${imperfectQuery}`);
 console.log(`Canonical identity: ${canonicalIdentity}`);
 console.log(`Failures: ${failures.length}`);
 failures.forEach(failure => console.log(`FAIL | ${failure}`));
-if (!failures.length) console.log("PASS | explicit candidate selection, grade-context preservation, progressive variant verification, server-token resolution, canonical identity handoff, and no auto-selection");
+if (!failures.length) console.log("PASS | review Select & verify progress/locking, fail-closed feedback, explicit exact candidate selection, grade-context preservation, server-token resolution, canonical identity handoff, and no auto-selection");
 if (failures.length) process.exit(1);
