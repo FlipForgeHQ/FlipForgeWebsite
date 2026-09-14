@@ -7,11 +7,13 @@ on:
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
+      - 'saas-prototype/customer-app-governance-v2.css'
       - 'saas-prototype/beta-session-v1.js'
       - 'saas-prototype/mobile-navigation-stabilizer-v1.js'
       - 'saas-prototype/production-identity-login-redirect.js'
       - 'saas-prototype/serve.mjs'
       - 'scripts/audit-full-customer-route-ci.mjs'
+      - 'scripts/audit-customer-shell-parity-ci.mjs'
       - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
@@ -59,6 +61,8 @@ jobs:
           exit 1
       - name: Audit rendered customer route and sign-in return
         run: node scripts/audit-full-customer-route-ci.mjs
+      - name: Audit governed shell parity across customer routes
+        run: node scripts/audit-customer-shell-parity-ci.mjs
       - name: Show server log on failure
         if: failure()
         run: cat /tmp/flipforge-full-customer-server.log || true
