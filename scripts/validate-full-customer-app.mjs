@@ -26,6 +26,8 @@ const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
 const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
 const loginRedirect = read("saas-prototype/production-identity-login-redirect.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
+const authRecoveryAudit = read("scripts/audit-customer-auth-recovery-ci.mjs");
+const fullCustomerWorkflow = read(".github/workflows/full-customer-app-assurance.yml");
 
 check(activeRedirects.includes("/app/customer /saas-prototype/customer.html 200"), "customer no-slash route serves dedicated customer document");
 check(activeRedirects.includes("/app/customer/ /saas-prototype/customer.html 200"), "customer trailing-slash route serves dedicated customer document");
@@ -68,6 +70,30 @@ check(loginRedirect.includes('if (!launcher && !authLink) return;'), "customer l
 check(authProbe.includes('resolved.pathname === "/app/customer" ? "/app/customer/"'), "production auth normalizes no-slash customer return");
 check(authProbe.includes('normalizedPath === "/app/customer/"'), "production sign-in may return to full customer app");
 check(authProbe.includes('resolved.origin !== window.location.origin || !pathAllowed'), "auth return remains same-origin and allowlisted");
+
+// Anonymous access must never become a dead end. The recovery control is shell-owned,
+// route-preserving, usable on desktop/mobile, visible when anonymous, and hidden once
+// a real production identity exists.
+check(loginRedirect.includes('const SIGN_IN_ID = "ff-customer-sign-in-entry"'), "customer shell owns a persistent sign-in recovery control");
+check(loginRedirect.includes('link.dataset.ffCustomerSignIn = ""'), "persistent sign-in control has an auditable selector");
+check(loginRedirect.includes('link.textContent = "Sign in to FlipForge"'), "persistent sign-in control uses clear customer language");
+check(loginRedirect.includes('link.href = productionAuthUrl()'), "persistent sign-in control preserves the governed production auth handoff");
+check(loginRedirect.includes('link.hidden = Boolean(currentUser())'), "persistent sign-in control hides after authentication");
+check(loginRedirect.includes('window.addEventListener("hashchange", ensureSignInControl)'), "persistent sign-in return updates as the customer changes routes");
+check(loginRedirect.includes('window.addEventListener("flipforge:identity-change", ensureSignInControl)'), "persistent sign-in reacts to authentication changes");
+check(loginRedirect.includes('@media(max-width:760px)'), "persistent sign-in has a mobile visibility contract");
+
+check(authRecoveryAudit.includes('const customerRoutes = ['), "auth recovery audit declares the complete customer route matrix");
+for (const route of ["dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "sell", "export"]) {
+  check(authRecoveryAudit.includes(`"${route}"`), `auth recovery audit covers ${route}`);
+}
+check(authRecoveryAudit.includes('{ name: "desktop", width: 1440, height: 900 }'), "auth recovery audit covers desktop");
+check(authRecoveryAudit.includes('{ name: "mobile", width: 390, height: 844 }'), "auth recovery audit covers mobile");
+check(authRecoveryAudit.includes('status: 401'), "auth recovery audit exercises anonymous 401 state");
+check(authRecoveryAudit.includes('protected route rendered a blank customer workspace'), "auth recovery audit fails blank protected routes");
+check(authRecoveryAudit.includes('authenticated customer still sees the anonymous sign-in control'), "auth recovery audit checks authenticated cleanup");
+check(fullCustomerWorkflow.includes('node scripts/audit-customer-auth-recovery-ci.mjs'), "full customer CI runs auth recovery audit");
+check(fullCustomerWorkflow.includes('push:') && fullCustomerWorkflow.includes('- main'), "full customer assurance re-runs after merge on main");
 
 check(css.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav") && css.includes("display: block !important;"), "full customer CSS preserves advanced navigation");
 check(customer.includes('href="customer-app-system-v2.css"'), "full customer app loads final visual system");
