@@ -6,8 +6,10 @@
   const PRODUCTION_AUTH_LINK = 'a[href^="/production-auth.html"],a[href*="goflipforge.com/production-auth.html"]';
   const SIGN_IN_ID = "ff-customer-sign-in-entry";
   const STYLE_ID = "ff-customer-sign-in-entry-style";
+  const AUTH_PROBE_PATH = "/api/v1/entitlements";
   let authoritativeAuthenticationDenied = window.__FlipForgeAuthoritativeAuthDenied === true;
   let fetchObserved = false;
+  let authProbeInFlight = null;
 
   function eligibleHost() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -75,6 +77,30 @@
     };
   }
 
+  async function probeAuthoritativeSession() {
+    if (!fullCustomerSurface() || !currentUser() || typeof window.fetch !== "function") return;
+    if (authProbeInFlight) return authProbeInFlight;
+    authProbeInFlight = (async () => {
+      try {
+        const response = await window.fetch(AUTH_PROBE_PATH, {
+          method: "GET",
+          headers: { Accept: "application/json", "X-Correlation-Id": `customer-auth-probe-${Date.now()}` },
+          credentials: "same-origin",
+          cache: "no-store",
+          redirect: "error"
+        });
+        if (response.status === 401) setAuthoritativeAuthDenied(true);
+        else if (response.ok) setAuthoritativeAuthDenied(false);
+      } catch (_) {
+        // Network failure is not equivalent to authentication failure. Existing
+        // customer error handling remains responsible for unavailable upstreams.
+      } finally {
+        authProbeInFlight = null;
+      }
+    })();
+    return authProbeInFlight;
+  }
+
   function ensureSignInStyles() {
     if (!fullCustomerSurface() || document.getElementById(STYLE_ID)) return;
     const style = document.createElement("style");
@@ -113,6 +139,11 @@
     setAuthoritativeAuthDenied(event?.detail?.denied === true);
   }
 
+  function handleIdentityChange() {
+    ensureSignInControl();
+    if (currentUser()) probeAuthoritativeSession();
+  }
+
   function initializeSignInControl() {
     if (!fullCustomerSurface()) return;
     authoritativeAuthenticationDenied = window.__FlipForgeAuthoritativeAuthDenied === true;
@@ -120,11 +151,13 @@
     ensureSignInControl();
     window.addEventListener("hashchange", ensureSignInControl);
     window.addEventListener("popstate", ensureSignInControl);
-    window.addEventListener("flipforge:identity-change", ensureSignInControl);
+    window.addEventListener("flipforge:identity-change", handleIdentityChange);
     window.addEventListener("flipforge:authoritative-auth", handleAuthoritativeAuthEvent);
+    if (currentUser()) probeAuthoritativeSession();
     window.setTimeout(() => {
       authoritativeAuthenticationDenied = window.__FlipForgeAuthoritativeAuthDenied === true;
       ensureSignInControl();
+      if (currentUser()) probeAuthoritativeSession();
     }, 250);
   }
 
