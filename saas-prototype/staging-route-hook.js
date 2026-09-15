@@ -14,7 +14,7 @@
   const forgeHeatAdapter = window.FlipForgeCustomerForgeHeat;
   const marketViewAdapter = window.FlipForgeCustomerMarketView;
   const entitlementsAdapter = window.FlipForgeCustomerEntitlements;
-  const main = document.querySelector("#main-content");
+  const rootMain = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
   const bannerTitle = banner ? banner.querySelector("strong") : null;
   const bannerCopy = banner ? banner.querySelector("span") : null;
@@ -42,8 +42,8 @@
   }
 
   function routeOwnedMain(epoch, expectedHash) {
-    if (!main || typeof Proxy !== "function") return main;
-    return new Proxy(main, {
+    if (!rootMain || typeof Proxy !== "function") return rootMain;
+    return new Proxy(rootMain, {
       get(target, property) {
         if (property === "querySelector") {
           return selector => routeWriteAllowed(epoch, expectedHash) ? target.querySelector(selector) : null;
@@ -95,12 +95,12 @@
   }
 
   function focusMain() {
-    if (main && typeof main.focus === "function") main.focus({ preventScroll: true });
+    if (rootMain && typeof rootMain.focus === "function") rootMain.focus({ preventScroll: true });
     if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   function addBulkEvaluateAction() {
-    const actions = main && typeof main.querySelector === "function" ? main.querySelector(".page-actions") : null;
+    const actions = rootMain && typeof rootMain.querySelector === "function" ? rootMain.querySelector(".page-actions") : null;
     if (!actions || actions.querySelector("[data-bulk-evaluate-link]")) return;
     const link = document.createElement("a");
     link.className = "button button-primary";
@@ -110,13 +110,13 @@
     actions.prepend(link);
   }
 
-  function renderOpportunityRoute(targetMain, id) {
+  function renderOpportunityRoute(main, id) {
     if (!opportunityAdapter || typeof opportunityAdapter.isEligible !== "function" || !opportunityAdapter.isEligible()) return false;
     const renderer = typeof opportunityAdapter.renderCustomer === "function"
       ? opportunityAdapter.renderCustomer
       : opportunityAdapter.render;
     if (typeof renderer !== "function") return false;
-    renderer.call(opportunityAdapter, targetMain, id);
+    renderer.call(opportunityAdapter, main, id);
     return true;
   }
 
@@ -132,26 +132,26 @@
       psaLoadFailed = true;
       if (routeParts()[0] !== "psa-advisor") return;
       showCustomerIntelligenceBanner();
-      main.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Saved PSA guidance could not be loaded safely.</p></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>PSA_ADVISOR_UNAVAILABLE</strong><p>The live tenant-scoped PSA Advisor adapter did not load. No mock PSA data or browser-generated guidance was substituted.</p></div></section></div>`;
+      rootMain.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Saved PSA guidance could not be loaded safely.</p></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>PSA_ADVISOR_UNAVAILABLE</strong><p>The live tenant-scoped PSA Advisor adapter did not load. No mock PSA data or browser-generated guidance was substituted.</p></div></section></div>`;
       focusMain();
     }, { once: true });
     document.head.appendChild(script);
   }
 
-  function renderPsaRoute(targetMain, id) {
+  function renderPsaRoute(main, id) {
     const psaAdapter = window.FlipForgeCustomerPsaAdvisor;
     if (psaAdapter
         && typeof psaAdapter.render === "function"
         && typeof psaAdapter.isEligible === "function"
         && psaAdapter.isEligible()) {
       showCustomerIntelligenceBanner();
-      psaAdapter.render(targetMain, id);
+      psaAdapter.render(main, id);
       focusMain();
       return true;
     }
     loadPsaAdapter();
     showCustomerIntelligenceBanner();
-    targetMain.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Loading tenant-owned saved PSA guidance…</p></div></header></div>`;
+    main.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Loading tenant-owned saved PSA guidance…</p></div></header></div>`;
     focusMain();
     return true;
   }
@@ -160,7 +160,7 @@
     renderEpoch += 1;
     const epoch = renderEpoch;
     const expectedHash = routeKey();
-    const targetMain = routeOwnedMain(epoch, expectedHash);
+    const main = routeOwnedMain(epoch, expectedHash);
     const [route, id = ""] = routeParts();
     if (route !== "staging") {
       if (route !== "staging-evaluate") {
@@ -169,7 +169,7 @@
             && typeof discoveryAdapter.render === "function"
             && discoveryAdapter.isEligible()) {
           showDiscoveryBanner();
-          discoveryAdapter.render(targetMain);
+          discoveryAdapter.render(main);
           focusMain();
           return;
         }
@@ -178,11 +178,11 @@
             && typeof evaluationAdapter.renderCustomer === "function"
             && evaluationAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          evaluationAdapter.renderCustomer(targetMain);
+          evaluationAdapter.renderCustomer(main);
           if (cardIntelligenceAdapter
               && typeof cardIntelligenceAdapter.mount === "function"
               && cardIntelligenceAdapter.isEligible()) {
-            cardIntelligenceAdapter.mount(targetMain);
+            cardIntelligenceAdapter.mount(main);
           }
           addBulkEvaluateAction();
           focusMain();
@@ -193,7 +193,7 @@
             && typeof adapter.renderCustomerDashboard === "function"
             && adapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          adapter.renderCustomerDashboard(targetMain);
+          adapter.renderCustomerDashboard(main);
           focusMain();
           return;
         }
@@ -202,11 +202,11 @@
             && typeof marketViewAdapter.render === "function"
             && marketViewAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          marketViewAdapter.render(targetMain);
+          marketViewAdapter.render(main);
           focusMain();
           return;
         }
-        if (route === "opportunities" && renderOpportunityRoute(targetMain, id)) {
+        if (route === "opportunities" && renderOpportunityRoute(main, id)) {
           showCustomerIntelligenceBanner();
           focusMain();
           return;
@@ -216,7 +216,7 @@
             && typeof forgeHeatAdapter.render === "function"
             && forgeHeatAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          forgeHeatAdapter.render(targetMain);
+          forgeHeatAdapter.render(main);
           focusMain();
           return;
         }
@@ -229,17 +229,17 @@
             ? window.FlipForgeCompareRouteState.consumePendingLeftId()
             : "";
           showCustomerIntelligenceBanner();
-          compareAdapter.render(targetMain, preferredLeftId || "");
+          compareAdapter.render(main, preferredLeftId || "");
           focusMain();
           return;
         }
-        if (route === "psa-advisor" && renderPsaRoute(targetMain, id)) return;
+        if (route === "psa-advisor" && renderPsaRoute(main, id)) return;
         if (route === "portfolio"
             && portfolioAdapter
             && typeof portfolioAdapter.render === "function"
             && portfolioAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          portfolioAdapter.render(targetMain);
+          portfolioAdapter.render(main);
           focusMain();
           return;
         }
@@ -248,7 +248,7 @@
             && typeof entitlementsAdapter.render === "function"
             && entitlementsAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          entitlementsAdapter.render(targetMain);
+          entitlementsAdapter.render(main);
           focusMain();
           return;
         }
@@ -258,7 +258,7 @@
             && typeof lifecycleAdapter.render === "function"
             && lifecycleAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          lifecycleAdapter.render(targetMain, route, id);
+          lifecycleAdapter.render(main, route, id);
           focusMain();
           return;
         }
@@ -268,7 +268,7 @@
             && typeof managementAdapter.render === "function"
             && managementAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          managementAdapter.render(targetMain, route, id);
+          managementAdapter.render(main, route, id);
           focusMain();
           return;
         }
@@ -278,7 +278,7 @@
             && typeof exportAdapter.render === "function"
             && exportAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          exportAdapter.render(targetMain, id);
+          exportAdapter.render(main, id);
           focusMain();
           return;
         }
@@ -290,22 +290,22 @@
     if (route === "staging") {
       showStagingBanner();
       if (!adapter || typeof adapter.render !== "function") {
-        targetMain.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Data</h1><p>The deploy-preview read adapter did not load.</p></div></header></div>`;
+        main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Data</h1><p>The deploy-preview read adapter did not load.</p></div></header></div>`;
         focusMain();
         return;
       }
-      adapter.render(targetMain, id);
+      adapter.render(main, id);
       focusMain();
       return;
     }
 
     showEvaluationBanner();
     if (!evaluationAdapter || typeof evaluationAdapter.render !== "function") {
-      targetMain.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Evaluation</h1><p>The deploy-preview evaluation adapter did not load.</p></div></header></div>`;
+      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Evaluation</h1><p>The deploy-preview evaluation adapter did not load.</p></div></header></div>`;
       focusMain();
       return;
     }
-    evaluationAdapter.render(targetMain);
+    evaluationAdapter.render(main);
     focusMain();
   }
 
