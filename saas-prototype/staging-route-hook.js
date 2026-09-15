@@ -20,11 +20,53 @@
   const bannerCopy = banner ? banner.querySelector("span") : null;
   const originalTitle = bannerTitle ? bannerTitle.textContent : "";
   const originalCopy = bannerCopy ? bannerCopy.textContent : "";
+  const MUTATING_MAIN_METHODS = new Set([
+    "append", "appendChild", "prepend", "replaceChildren", "insertBefore",
+    "insertAdjacentHTML", "insertAdjacentElement", "removeChild"
+  ]);
+  const GUARDED_MAIN_WRITES = new Set(["innerHTML", "innerText", "textContent"]);
   let psaLoadFailed = false;
+  let renderEpoch = 0;
 
   function routeParts() {
     const raw = window.location.hash.replace(/^#\/?/, "") || "dashboard";
     return raw.split(/[/?]/).filter(Boolean);
+  }
+
+  function routeKey() {
+    return String(window.location.hash || "#/dashboard");
+  }
+
+  function routeWriteAllowed(epoch, expectedHash) {
+    return epoch === renderEpoch && routeKey() === expectedHash;
+  }
+
+  function routeOwnedMain(epoch, expectedHash) {
+    if (!main || typeof Proxy !== "function") return main;
+    return new Proxy(main, {
+      get(target, property) {
+        if (property === "querySelector") {
+          return selector => routeWriteAllowed(epoch, expectedHash) ? target.querySelector(selector) : null;
+        }
+        if (property === "querySelectorAll") {
+          return selector => routeWriteAllowed(epoch, expectedHash) ? target.querySelectorAll(selector) : [];
+        }
+        const value = Reflect.get(target, property, target);
+        if (typeof value !== "function") return value;
+        if (MUTATING_MAIN_METHODS.has(String(property))) {
+          return (...args) => routeWriteAllowed(epoch, expectedHash)
+            ? value.apply(target, args)
+            : undefined;
+        }
+        return value.bind(target);
+      },
+      set(target, property, value) {
+        if (GUARDED_MAIN_WRITES.has(String(property)) && !routeWriteAllowed(epoch, expectedHash)) {
+          return true;
+        }
+        return Reflect.set(target, property, value, target);
+      }
+    });
   }
 
   function restoreBanner() {
@@ -68,13 +110,13 @@
     actions.prepend(link);
   }
 
-  function renderOpportunityRoute(id) {
+  function renderOpportunityRoute(targetMain, id) {
     if (!opportunityAdapter || typeof opportunityAdapter.isEligible !== "function" || !opportunityAdapter.isEligible()) return false;
     const renderer = typeof opportunityAdapter.renderCustomer === "function"
       ? opportunityAdapter.renderCustomer
       : opportunityAdapter.render;
     if (typeof renderer !== "function") return false;
-    renderer.call(opportunityAdapter, main, id);
+    renderer.call(opportunityAdapter, targetMain, id);
     return true;
   }
 
@@ -96,25 +138,29 @@
     document.head.appendChild(script);
   }
 
-  function renderPsaRoute(id) {
+  function renderPsaRoute(targetMain, id) {
     const psaAdapter = window.FlipForgeCustomerPsaAdvisor;
     if (psaAdapter
         && typeof psaAdapter.render === "function"
         && typeof psaAdapter.isEligible === "function"
         && psaAdapter.isEligible()) {
       showCustomerIntelligenceBanner();
-      psaAdapter.render(main, id);
+      psaAdapter.render(targetMain, id);
       focusMain();
       return true;
     }
     loadPsaAdapter();
     showCustomerIntelligenceBanner();
-    main.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Loading tenant-owned saved PSA guidance…</p></div></header></div>`;
+    targetMain.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Loading tenant-owned saved PSA guidance…</p></div></header></div>`;
     focusMain();
     return true;
   }
 
   function applyRoute() {
+    renderEpoch += 1;
+    const epoch = renderEpoch;
+    const expectedHash = routeKey();
+    const targetMain = routeOwnedMain(epoch, expectedHash);
     const [route, id = ""] = routeParts();
     if (route !== "staging") {
       if (route !== "staging-evaluate") {
@@ -123,7 +169,7 @@
             && typeof discoveryAdapter.render === "function"
             && discoveryAdapter.isEligible()) {
           showDiscoveryBanner();
-          discoveryAdapter.render(main);
+          discoveryAdapter.render(targetMain);
           focusMain();
           return;
         }
@@ -132,11 +178,11 @@
             && typeof evaluationAdapter.renderCustomer === "function"
             && evaluationAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          evaluationAdapter.renderCustomer(main);
+          evaluationAdapter.renderCustomer(targetMain);
           if (cardIntelligenceAdapter
               && typeof cardIntelligenceAdapter.mount === "function"
               && cardIntelligenceAdapter.isEligible()) {
-            cardIntelligenceAdapter.mount(main);
+            cardIntelligenceAdapter.mount(targetMain);
           }
           addBulkEvaluateAction();
           focusMain();
@@ -147,7 +193,7 @@
             && typeof adapter.renderCustomerDashboard === "function"
             && adapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          adapter.renderCustomerDashboard(main);
+          adapter.renderCustomerDashboard(targetMain);
           focusMain();
           return;
         }
@@ -156,11 +202,11 @@
             && typeof marketViewAdapter.render === "function"
             && marketViewAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          marketViewAdapter.render(main);
+          marketViewAdapter.render(targetMain);
           focusMain();
           return;
         }
-        if (route === "opportunities" && renderOpportunityRoute(id)) {
+        if (route === "opportunities" && renderOpportunityRoute(targetMain, id)) {
           showCustomerIntelligenceBanner();
           focusMain();
           return;
@@ -170,7 +216,7 @@
             && typeof forgeHeatAdapter.render === "function"
             && forgeHeatAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          forgeHeatAdapter.render(main);
+          forgeHeatAdapter.render(targetMain);
           focusMain();
           return;
         }
@@ -183,17 +229,17 @@
             ? window.FlipForgeCompareRouteState.consumePendingLeftId()
             : "";
           showCustomerIntelligenceBanner();
-          compareAdapter.render(main, preferredLeftId || "");
+          compareAdapter.render(targetMain, preferredLeftId || "");
           focusMain();
           return;
         }
-        if (route === "psa-advisor" && renderPsaRoute(id)) return;
+        if (route === "psa-advisor" && renderPsaRoute(targetMain, id)) return;
         if (route === "portfolio"
             && portfolioAdapter
             && typeof portfolioAdapter.render === "function"
             && portfolioAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          portfolioAdapter.render(main);
+          portfolioAdapter.render(targetMain);
           focusMain();
           return;
         }
@@ -202,7 +248,7 @@
             && typeof entitlementsAdapter.render === "function"
             && entitlementsAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          entitlementsAdapter.render(main);
+          entitlementsAdapter.render(targetMain);
           focusMain();
           return;
         }
@@ -212,7 +258,7 @@
             && typeof lifecycleAdapter.render === "function"
             && lifecycleAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          lifecycleAdapter.render(main, route, id);
+          lifecycleAdapter.render(targetMain, route, id);
           focusMain();
           return;
         }
@@ -222,7 +268,7 @@
             && typeof managementAdapter.render === "function"
             && managementAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          managementAdapter.render(main, route, id);
+          managementAdapter.render(targetMain, route, id);
           focusMain();
           return;
         }
@@ -232,7 +278,7 @@
             && typeof exportAdapter.render === "function"
             && exportAdapter.isEligible()) {
           showCustomerIntelligenceBanner();
-          exportAdapter.render(main, id);
+          exportAdapter.render(targetMain, id);
           focusMain();
           return;
         }
@@ -244,22 +290,22 @@
     if (route === "staging") {
       showStagingBanner();
       if (!adapter || typeof adapter.render !== "function") {
-        main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Data</h1><p>The deploy-preview read adapter did not load.</p></div></header></div>`;
+        targetMain.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Data</h1><p>The deploy-preview read adapter did not load.</p></div></header></div>`;
         focusMain();
         return;
       }
-      adapter.render(main, id);
+      adapter.render(targetMain, id);
       focusMain();
       return;
     }
 
     showEvaluationBanner();
     if (!evaluationAdapter || typeof evaluationAdapter.render !== "function") {
-      main.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Evaluation</h1><p>The deploy-preview evaluation adapter did not load.</p></div></header></div>`;
+      targetMain.innerHTML = `<div class="page"><header class="page-heading"><div><span class="eyebrow">Staging adapter unavailable</span><h1>Staging Evaluation</h1><p>The deploy-preview evaluation adapter did not load.</p></div></header></div>`;
       focusMain();
       return;
     }
-    evaluationAdapter.render(main);
+    evaluationAdapter.render(targetMain);
     focusMain();
   }
 
