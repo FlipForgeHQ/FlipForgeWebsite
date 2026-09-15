@@ -74,8 +74,9 @@ for (const token of forbiddenAuthorityTokens) {
 }
 
 check(betaShell.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);'), "private beta keeps its intentionally simplified four-route core");
-check(betaShell.includes('"decision-intelligence", "market-view", "forge-heat", "evaluate", "portfolio", "alerts"'), "private beta still hides full-customer decision and management routes from navigation");
+check(betaShell.includes('"decision-intelligence", "why-this-decision", "market-view", "forge-heat", "evaluate", "portfolio", "alerts"'), "private beta explicitly hides full-customer Why and management routes from navigation");
 check(betaShell.includes('"compare", "psa-advisor", "evidence", "sell", "export"'), "private beta still hides advanced/evidence navigation while preserving internal route availability");
+check(betaShell.includes('"why-this-decision", "evidence"') || (betaShell.includes('"why-this-decision"') && betaShell.includes('"evidence"')), "private beta hide contract covers both promoted explanation surfaces");
 check(!betaShell.includes("customer-navigation-parity-v1"), "private beta shell has no dependency on the full-customer parity controller");
 
 check(!customer.includes('src="private-beta.js"'), "full customer never loads private-beta runtime");
