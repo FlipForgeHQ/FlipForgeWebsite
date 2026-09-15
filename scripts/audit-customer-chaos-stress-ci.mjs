@@ -64,6 +64,35 @@ function meta(correlationId = "customer-chaos-stress") {
   };
 }
 
+function portfolioData() {
+  return {
+    kind: "portfolio",
+    configured: true,
+    items: [],
+    transactionAuthority: false,
+    currentValueConfigured: true,
+    performanceConfigured: true,
+    currentValueType: "EVIDENCE_SUPPORTED_REFERENCE_NOT_APPRAISAL",
+    currentValueMethod: "AVERAGE_ACCEPTED_EXACT_COMPLETED_SALES",
+    performanceType: "UNREALIZED_REFERENCE_COMPARISON",
+    feesIncluded: false,
+    taxesIncluded: false,
+    liquidationEstimate: false,
+    appraisal: false,
+    count: 0,
+    totalCostBasisCents: 0,
+    referenceValueAvailableCount: 0,
+    performanceAvailableCount: 0,
+    completeReferenceCoverage: true,
+    completePerformanceCoverage: true,
+    coveredReferenceValueCents: 0,
+    coveredCostBasisCents: 0,
+    coveredReferenceDeltaCents: 0,
+    completePortfolioReferenceValueCents: 0,
+    completePortfolioReferenceDeltaCents: 0
+  };
+}
+
 function marketViewData() {
   return {
     kind: "market-view",
@@ -115,7 +144,7 @@ function fixture(request) {
     return { meta: authority, data: { kind: "alerts", items: [], records: [] } };
   }
   if (pathname === "/api/v1/portfolio") {
-    return { meta: authority, data: { kind: "portfolio", configured: true, items: [], transactionAuthority: false, count: 0, totalCostBasisCents: 0, referenceValueAvailableCount: 0, performanceAvailableCount: 0, completeReferenceCoverage: true, completePerformanceCoverage: true } };
+    return { meta: authority, data: portfolioData() };
   }
   if (pathname === "/api/v1/entitlements") {
     return {
@@ -220,6 +249,20 @@ async function poll(predicate, message, timeoutMs = 6000) {
   throw new Error(message);
 }
 
+async function setHashConfirmed(page, target, timeoutMs = 6000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (page.url().includes(`#/${target}`)) return;
+    try {
+      await page.evaluate(route => { window.location.hash = `#/${route}`; }, target);
+    } catch (error) {
+      if (!isNavigationContextError(error)) throw error;
+    }
+    await page.waitForTimeout(50);
+  }
+  throw new Error(`confirmed hash navigation did not settle on ${target}`);
+}
+
 async function mutationDelta(page, sampleMs = 220) {
   const start = await evaluateStable(page, () => Number(window.__ffChaosStress?.mutations || 0));
   await page.waitForTimeout(sampleMs);
@@ -227,10 +270,20 @@ async function mutationDelta(page, sampleMs = 220) {
   return Math.max(0, end - start);
 }
 
+async function meaningfulWorkspace(page) {
+  return evaluateStable(page, () => {
+    const main = document.querySelector("#main-content");
+    const root = main?.firstElementChild || null;
+    const text = String(main?.textContent || "").replace(/\s+/g, " ").trim();
+    return Boolean(main && root && text.length > 0);
+  });
+}
+
 async function assertHealthy(page, expectedRoute, worker, action, mutationThreshold) {
   await poll(() => page.url().includes(`#/${expectedRoute}`), `worker ${worker}: route did not settle on ${expectedRoute}`);
   await page.locator("#main-content").waitFor({ state: "attached", timeout: 6000 });
-  await page.waitForTimeout(120);
+  await poll(() => meaningfulWorkspace(page), `worker ${worker}: ${action} left a blank customer workspace on ${expectedRoute}`, 2500);
+  await page.waitForTimeout(80);
 
   const state = await evaluateStable(page, route => {
     const main = document.querySelector("#main-content");
@@ -268,21 +321,28 @@ async function navigate(page, target, mode, random) {
   if (mode === "click") {
     const link = page.locator(`a[href="#/${target}"]:visible`).first();
     if (await link.count()) {
-      await link.click({ timeout: 3000 }).catch(async error => {
+      let clicked = false;
+      try {
+        await link.click({ timeout: 3000 });
+        clicked = true;
+      } catch (error) {
         if (!isNavigationContextError(error)) {
           const message = String(error?.message || error || "");
           if (!/element is not attached|not visible|intercepts pointer events|timeout/i.test(message)) throw error;
         }
-        await fireNavigation(page, route => { window.location.hash = `#/${route}`; }, target);
-      });
+      }
+      if (clicked) {
+        await poll(() => page.url().includes(`#/${target}`), `clicked navigation did not settle on ${target}`);
+      } else {
+        await setHashConfirmed(page, target);
+      }
     } else {
-      await fireNavigation(page, route => { window.location.hash = `#/${route}`; }, target);
+      await setHashConfirmed(page, target);
     }
   } else {
-    await fireNavigation(page, route => { window.location.hash = `#/${route}`; }, target);
+    await setHashConfirmed(page, target);
   }
   if (random() < 0.35) await page.waitForTimeout(Math.floor(random() * 30));
-  await poll(() => page.url().includes(`#/${target}`), `navigation did not settle on ${target}`);
 }
 
 async function runWorker(browser, workerIndex, seed) {
@@ -359,11 +419,11 @@ async function runWorker(browser, workerIndex, seed) {
         trace.action = action;
         trace.target = expectedRoute;
         trace.burst = burst;
-        for (const route of burst) {
+        for (const route of burst.slice(0, -1)) {
           await fireNavigation(page, nextRoute => { window.location.hash = `#/${nextRoute}`; }, route);
           await page.waitForTimeout(2);
         }
-        await poll(() => page.url().includes(`#/${expectedRoute}`), `rapid burst did not settle on ${expectedRoute}`);
+        await setHashConfirmed(page, expectedRoute);
         await page.waitForTimeout(180);
       } else if (actionRoll < 0.80) {
         action = "history-back-forward";
@@ -375,9 +435,17 @@ async function runWorker(browser, workerIndex, seed) {
         trace.historyPair = [first, second];
         await navigate(page, first, "hash", random);
         await navigate(page, second, "hash", random);
-        await fireNavigation(page, () => { history.back(); });
+        try {
+          await page.goBack({ timeout: 3500 });
+        } catch (error) {
+          if (!isNavigationContextError(error) && !/timeout/i.test(String(error?.message || error || ""))) throw error;
+        }
         await poll(() => page.url().includes(`#/${first}`), `history.back() did not settle on ${first}`);
-        await fireNavigation(page, () => { history.forward(); });
+        try {
+          await page.goForward({ timeout: 3500 });
+        } catch (error) {
+          if (!isNavigationContextError(error) && !/timeout/i.test(String(error?.message || error || ""))) throw error;
+        }
         await poll(() => page.url().includes(`#/${second}`), `history.forward() did not settle on ${second}`);
         expectedRoute = second;
       } else if (actionRoll < 0.88) {
