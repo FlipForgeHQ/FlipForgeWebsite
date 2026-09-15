@@ -1,11 +1,12 @@
 {
-  "version": 2,
+  "version": 3,
   "surface": "full-customer-app",
   "routes": [
     "dashboard",
     "discover",
     "evaluate",
     "decision-intelligence",
+    "decision-intelligence/why",
     "opportunities",
     "tracking",
     "portfolio",
