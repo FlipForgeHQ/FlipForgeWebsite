@@ -1,0 +1,53 @@
+name: Collection Intelligence Alerts UI Assurance
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/collection-intelligence-alerts-v1.js"
+      - "saas-prototype/collection-intelligence-alerts-v1.css"
+      - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/staging-route-hook.js"
+      - "saas-prototype/index.html"
+      - "scripts/validate-collection-intelligence-alerts-ui.mjs"
+      - ".github/workflows/collection-intelligence-alerts-ui.yml"
+  push:
+    branches: [ main ]
+    paths:
+      - "saas-prototype/collection-intelligence-alerts-v1.js"
+      - "saas-prototype/collection-intelligence-alerts-v1.css"
+      - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/staging-route-hook.js"
+      - "saas-prototype/index.html"
+      - "scripts/validate-collection-intelligence-alerts-ui.mjs"
+      - ".github/workflows/collection-intelligence-alerts-ui.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  collection-intelligence-alerts-ui:
+    name: Validate additive customer Alerts intelligence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate Collection Intelligence Alerts projection
+        run: node scripts/validate-collection-intelligence-alerts-ui.mjs
+      - name: Guard customer route ownership boundary
+        shell: bash
+        run: |
+          ! grep -q 'FlipForgeCustomerLifecycle =' saas-prototype/collection-intelligence-alerts-v1.js
+          ! grep -q 'localStorage\|sessionStorage\|document.cookie' saas-prototype/collection-intelligence-alerts-v1.js
+          grep -q 'The existing Alerts route remains available' saas-prototype/collection-intelligence-alerts-v1.js
+          grep -q 'No recommendation' saas-prototype/collection-intelligence-alerts-v1.js
+          grep -q 'transaction delivery remain disabled' saas-prototype/collection-intelligence-alerts-v1.js
