@@ -14,13 +14,24 @@
     main: null,
     loading: false,
     payload: null,
-    error: null
+    error: null,
+    generation: 0
   };
 
   function eligibleHost() {
     const host = String(window.location.hostname || "");
     return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
       && APP_PATH.test(String(window.location.pathname || ""));
+  }
+
+  function routeName() {
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)[0] || "dashboard";
+  }
+
+  function activeGeneration(generation) {
+    return generation === state.generation && routeName() === "market-view";
   }
 
   function escapeHtml(value) {
@@ -324,36 +335,42 @@
     </div>`;
   }
 
-  function paint() {
-    if (!state.main) return;
+  function paint(generation = state.generation) {
+    if (!state.main || !activeGeneration(generation)) return;
     if (state.loading) state.main.innerHTML = loading();
     else if (state.error) state.main.innerHTML = errorView(state.error);
     else if (!state.payload?.data?.summary?.evaluatedCards) state.main.innerHTML = emptyView();
     else state.main.innerHTML = content(state.payload.data);
 
-    state.main.querySelector("[data-market-view-retry]")?.addEventListener("click", refresh);
+    state.main.querySelector("[data-market-view-retry]")?.addEventListener("click", () => refresh(generation));
   }
 
-  async function refresh() {
+  async function refresh(generation = state.generation) {
+    if (!activeGeneration(generation)) return;
     state.loading = true;
     state.error = null;
-    paint();
+    paint(generation);
     try {
-      state.payload = await load();
+      const payload = await load();
+      if (!activeGeneration(generation)) return;
+      state.payload = payload;
     } catch (error) {
+      if (!activeGeneration(generation)) return;
       state.payload = null;
       state.error = error;
     } finally {
+      if (!activeGeneration(generation)) return;
       state.loading = false;
-      paint();
+      paint(generation);
     }
   }
 
   function render(main) {
     state.main = main;
+    state.generation += 1;
     state.payload = null;
     state.error = null;
-    refresh();
+    refresh(state.generation);
   }
 
   window.FlipForgeCustomerMarketView = Object.freeze({
