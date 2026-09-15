@@ -130,6 +130,21 @@
     });
   }
 
+  function bindStableNavigation(nav) {
+    if (nav.dataset.ffCustomerStableNavigation === "v1") return;
+    nav.dataset.ffCustomerStableNavigation = "v1";
+    nav.addEventListener("click", event => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target instanceof Element ? event.target.closest('a[href^="#/"]') : null;
+      if (!target || !nav.contains(target) || target.hasAttribute("download") || target.getAttribute("target")) return;
+      const href = String(target.getAttribute("href") || "");
+      if (!/^#\/[A-Za-z0-9._~!$&'()*+,;=:@%?\/-]+$/.test(href)) return;
+      event.preventDefault();
+      if (window.location.hash !== href) window.location.hash = href;
+      else schedule();
+    }, true);
+  }
+
   function apply() {
     const nav = document.querySelector(".primary-nav");
     if (!nav) return;
@@ -141,6 +156,7 @@
     });
     normalizeAdvanced(nav);
     syncActive(nav);
+    bindStableNavigation(nav);
     if (nav.dataset.ffCustomerNavigationParity !== "v1") nav.dataset.ffCustomerNavigationParity = "v1";
   }
 
@@ -157,6 +173,7 @@
     ensureWhyDecisionView();
     const nav = document.querySelector(".primary-nav");
     if (!nav) return;
+    bindStableNavigation(nav);
     new MutationObserver(schedule).observe(nav, {
       childList: true,
       subtree: true,
