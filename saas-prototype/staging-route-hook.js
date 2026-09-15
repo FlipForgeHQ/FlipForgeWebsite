@@ -14,59 +14,17 @@
   const forgeHeatAdapter = window.FlipForgeCustomerForgeHeat;
   const marketViewAdapter = window.FlipForgeCustomerMarketView;
   const entitlementsAdapter = window.FlipForgeCustomerEntitlements;
-  const rootMain = document.querySelector("#main-content");
+  const main = document.querySelector("#main-content");
   const banner = document.querySelector(".prototype-banner");
   const bannerTitle = banner ? banner.querySelector("strong") : null;
   const bannerCopy = banner ? banner.querySelector("span") : null;
   const originalTitle = bannerTitle ? bannerTitle.textContent : "";
   const originalCopy = bannerCopy ? bannerCopy.textContent : "";
-  const MUTATING_MAIN_METHODS = new Set([
-    "append", "appendChild", "prepend", "replaceChildren", "insertBefore",
-    "insertAdjacentHTML", "insertAdjacentElement", "removeChild"
-  ]);
-  const GUARDED_MAIN_WRITES = new Set(["innerHTML", "innerText", "textContent"]);
   let psaLoadFailed = false;
-  let renderEpoch = 0;
 
   function routeParts() {
     const raw = window.location.hash.replace(/^#\/?/, "") || "dashboard";
     return raw.split(/[/?]/).filter(Boolean);
-  }
-
-  function routeKey() {
-    return String(window.location.hash || "#/dashboard");
-  }
-
-  function routeWriteAllowed(epoch, expectedHash) {
-    return epoch === renderEpoch && routeKey() === expectedHash;
-  }
-
-  function routeOwnedMain(epoch, expectedHash) {
-    if (!rootMain || typeof Proxy !== "function") return rootMain;
-    return new Proxy(rootMain, {
-      get(target, property) {
-        if (property === "querySelector") {
-          return selector => routeWriteAllowed(epoch, expectedHash) ? target.querySelector(selector) : null;
-        }
-        if (property === "querySelectorAll") {
-          return selector => routeWriteAllowed(epoch, expectedHash) ? target.querySelectorAll(selector) : [];
-        }
-        const value = Reflect.get(target, property, target);
-        if (typeof value !== "function") return value;
-        if (MUTATING_MAIN_METHODS.has(String(property))) {
-          return (...args) => routeWriteAllowed(epoch, expectedHash)
-            ? value.apply(target, args)
-            : undefined;
-        }
-        return value.bind(target);
-      },
-      set(target, property, value) {
-        if (GUARDED_MAIN_WRITES.has(String(property)) && !routeWriteAllowed(epoch, expectedHash)) {
-          return true;
-        }
-        return Reflect.set(target, property, value, target);
-      }
-    });
   }
 
   function restoreBanner() {
@@ -95,12 +53,12 @@
   }
 
   function focusMain() {
-    if (rootMain && typeof rootMain.focus === "function") rootMain.focus({ preventScroll: true });
+    if (main && typeof main.focus === "function") main.focus({ preventScroll: true });
     if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   function addBulkEvaluateAction() {
-    const actions = rootMain && typeof rootMain.querySelector === "function" ? rootMain.querySelector(".page-actions") : null;
+    const actions = main && typeof main.querySelector === "function" ? main.querySelector(".page-actions") : null;
     if (!actions || actions.querySelector("[data-bulk-evaluate-link]")) return;
     const link = document.createElement("a");
     link.className = "button button-primary";
@@ -110,7 +68,7 @@
     actions.prepend(link);
   }
 
-  function renderOpportunityRoute(main, id) {
+  function renderOpportunityRoute(id) {
     if (!opportunityAdapter || typeof opportunityAdapter.isEligible !== "function" || !opportunityAdapter.isEligible()) return false;
     const renderer = typeof opportunityAdapter.renderCustomer === "function"
       ? opportunityAdapter.renderCustomer
@@ -132,13 +90,13 @@
       psaLoadFailed = true;
       if (routeParts()[0] !== "psa-advisor") return;
       showCustomerIntelligenceBanner();
-      rootMain.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Saved PSA guidance could not be loaded safely.</p></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>PSA_ADVISOR_UNAVAILABLE</strong><p>The live tenant-scoped PSA Advisor adapter did not load. No mock PSA data or browser-generated guidance was substituted.</p></div></section></div>`;
+      main.innerHTML = `<div class="page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Saved PSA guidance could not be loaded safely.</p></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>PSA_ADVISOR_UNAVAILABLE</strong><p>The live tenant-scoped PSA Advisor adapter did not load. No mock PSA data or browser-generated guidance was substituted.</p></div></section></div>`;
       focusMain();
     }, { once: true });
     document.head.appendChild(script);
   }
 
-  function renderPsaRoute(main, id) {
+  function renderPsaRoute(id) {
     const psaAdapter = window.FlipForgeCustomerPsaAdvisor;
     if (psaAdapter
         && typeof psaAdapter.render === "function"
@@ -157,10 +115,6 @@
   }
 
   function applyRoute() {
-    renderEpoch += 1;
-    const epoch = renderEpoch;
-    const expectedHash = routeKey();
-    const main = routeOwnedMain(epoch, expectedHash);
     const [route, id = ""] = routeParts();
     if (route !== "staging") {
       if (route !== "staging-evaluate") {
@@ -206,7 +160,7 @@
           focusMain();
           return;
         }
-        if (route === "opportunities" && renderOpportunityRoute(main, id)) {
+        if (route === "opportunities" && renderOpportunityRoute(id)) {
           showCustomerIntelligenceBanner();
           focusMain();
           return;
@@ -233,7 +187,7 @@
           focusMain();
           return;
         }
-        if (route === "psa-advisor" && renderPsaRoute(main, id)) return;
+        if (route === "psa-advisor" && renderPsaRoute(id)) return;
         if (route === "portfolio"
             && portfolioAdapter
             && typeof portfolioAdapter.render === "function"
