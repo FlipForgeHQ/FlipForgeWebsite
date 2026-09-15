@@ -38,6 +38,16 @@
     return route;
   }
 
+  function ensureWhyDecisionView() {
+    if (window.FlipForgeCustomerWhyDecisionViewV1) return;
+    if (document.querySelector('script[data-ff-customer-why-decision-view]')) return;
+    const script = document.createElement("script");
+    script.src = "customer-why-decision-view-v1.js";
+    script.async = false;
+    script.setAttribute("data-ff-customer-why-decision-view", "");
+    document.head.appendChild(script);
+  }
+
   function show(link) {
     if (!link) return;
     if (link.hidden) link.hidden = false;
@@ -144,6 +154,7 @@
   }
 
   function init() {
+    ensureWhyDecisionView();
     const nav = document.querySelector(".primary-nav");
     if (!nav) return;
     new MutationObserver(schedule).observe(nav, {
