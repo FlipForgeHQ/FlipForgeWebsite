@@ -9,6 +9,7 @@ const routePairs = [
   ["Discover", "discover"],
   ["Evaluate", "evaluate"],
   ["Decision Intelligence", "decision-intelligence"],
+  ["Why This Decision", "decision-intelligence/why"],
   ["Saved Decisions", "opportunities"],
   ["Outcome Intelligence", "tracking"],
   ["Portfolio", "portfolio"],
@@ -18,7 +19,7 @@ const routePairs = [
   ["Account", "account"],
   ["Compare", "compare"],
   ["PSA Advisor", "psa-advisor"],
-  ["Evidence", "evidence"],
+  ["Evidence Review", "evidence"],
   ["Exit Review", "sell"],
   ["Audit Export", "export"]
 ];
