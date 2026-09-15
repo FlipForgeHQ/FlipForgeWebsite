@@ -174,18 +174,23 @@ try {
       body: JSON.stringify(fixture(route.request()))
     }));
 
+    const mobile = viewport.name === "mobile";
+    const expectedFullVisible = mobile ? [...fullTopLevel, "account"] : fullTopLevel;
+    const expectedBetaVisible = mobile ? [...betaTopLevel, "account"] : betaTopLevel;
+
     await page.goto(fullUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.waitForSelector(".primary-nav", { timeout: 10_000 });
     await page.waitForTimeout(1000);
     let state = await shellState(page);
     if (state.chip !== "CUSTOMER APP") fail(`${viewport.name}: full customer shell lost CUSTOMER APP identity`, state);
     if (state.parity !== "v1") fail(`${viewport.name}: full customer parity controller did not apply`, state);
-    if (!same(state.topLevelVisible, fullTopLevel)) fail(`${viewport.name}: full customer top-level navigation is incomplete, duplicated, or out of order`, state);
+    if (!same(state.topLevelVisible, expectedFullVisible)) fail(`${viewport.name}: full customer top-level navigation is incomplete, duplicated, or out of order`, state);
     if (!same(state.coreVisible, fullTopLevel)) fail(`${viewport.name}: full customer core-route markers do not match the canonical hierarchy`, state);
     if (!same(state.advancedRoutes, fullAdvanced)) fail(`${viewport.name}: full customer Advanced analysis overlaps or is incomplete`, state);
     if (state.advancedHidden) fail(`${viewport.name}: full customer Advanced analysis is hidden`, state);
     if (semanticLabel(state.labels["why-this-decision"]) !== "Why This Decision") fail(`${viewport.name}: Why This Decision label is missing or changed`, state);
     if (semanticLabel(state.labels.evidence) !== "Evidence Review") fail(`${viewport.name}: Evidence Review label is missing or changed`, state);
+    if (mobile && semanticLabel(state.labels.account) !== "Account") fail("mobile: full customer Account navigation is missing or changed", state);
     if (new Set(state.topLevelAll).size !== state.topLevelAll.length) fail(`${viewport.name}: full customer contains duplicate top-level route keys`, state);
 
     await page.evaluate(() => { location.hash = "#/decision-intelligence/why"; });
@@ -213,8 +218,9 @@ try {
     if (state.chip !== "PRIVATE BETA") fail(`${viewport.name}: private beta shell lost PRIVATE BETA identity`, state);
     if (state.parity) fail(`${viewport.name}: full-customer parity controller leaked into private beta`, state);
     if (state.whyRuntime || state.whyFocused) fail(`${viewport.name}: focused Why presentation leaked into private beta`, state);
-    if (!same(state.topLevelVisible, betaTopLevel)) fail(`${viewport.name}: private beta navigation expanded or lost its simplified core`, state);
+    if (!same(state.topLevelVisible, expectedBetaVisible)) fail(`${viewport.name}: private beta navigation expanded or lost its simplified core`, state);
     if (!state.advancedHidden) fail(`${viewport.name}: Advanced analysis leaked into private beta`, state);
+    if (mobile && semanticLabel(state.labels.account) !== "Account") fail("mobile: private beta Account navigation is missing or changed", state);
     for (const route of fullOnlyNav) {
       if (state.topLevelVisible.includes(route) || state.coreVisible.includes(route)) fail(`${viewport.name}: full-customer route leaked into private beta navigation: ${route}`, state);
     }
