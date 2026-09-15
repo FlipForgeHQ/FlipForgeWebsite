@@ -10,6 +10,7 @@
 
   const expectedPageByRoute = Object.freeze({
     discover: ".customer-discovery-page",
+    evaluate: ".customer-evaluation-page",
     opportunities: ".customer-intelligence-page",
     tracking: ".customer-lifecycle-page",
     portfolio: ".customer-portfolio-page",
@@ -126,10 +127,20 @@
       && adapter.isEligible());
   }
 
+  function evaluationAdapterReady() {
+    const adapter = window.FlipForgeStagingEvaluationAdapter;
+    return Boolean(adapter
+      && typeof adapter.renderCustomer === "function"
+      && typeof adapter.isEligible === "function"
+      && adapter.isEligible());
+  }
+
   function adapterReady(route) {
     switch (route) {
       case "discover":
         return simpleAdapterReady(window.FlipForgeCustomerDiscovery);
+      case "evaluate":
+        return evaluationAdapterReady();
       case "opportunities": {
         const adapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
         if (!adapter || typeof adapter.isEligible !== "function" || !adapter.isEligible()) return false;
@@ -171,11 +182,12 @@
     if (!expected) return true;
 
     const main = document.querySelector(MAIN_SELECTOR);
-    if (!main || !main.children.length) return true;
-    if (main.querySelector(expected)) return true;
+    if (!main) return true;
 
-    if (!adapterReady(route)) return true;
-    return false;
+    const ready = adapterReady(route);
+    if (!ready) return true;
+    if (!main.children.length) return false;
+    return Boolean(main.querySelector(expected));
   }
 
   function repairCurrentRoute() {
