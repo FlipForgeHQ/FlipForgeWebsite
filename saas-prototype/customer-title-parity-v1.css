@@ -1,3 +1,5 @@
+@import url("customer-mobile-drawer-v3.css");
+
 /* Full Customer title parity contract.
  * This file intentionally loads after customer-app-system-v2.css.
  * It neutralizes legacy route-specific mobile title overrides so every

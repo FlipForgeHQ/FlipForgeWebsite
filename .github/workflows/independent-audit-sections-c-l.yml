@@ -241,7 +241,7 @@ jobs:
         run: |
           set -euo pipefail
           for path in / /terms.html /privacy.html /operator-beta.html /app/; do
-            h="$(curl -fsSI "https://goflipforge.com${path}")"
+            h="$(curl -fsSIL "https://goflipforge.com${path}")"
             grep -qi '^strict-transport-security:' <<<"$h"
             grep -qi '^x-content-type-options: *nosniff' <<<"$h"
             grep -qi '^x-frame-options:' <<<"$h"

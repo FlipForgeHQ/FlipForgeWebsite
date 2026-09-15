@@ -1,0 +1,207 @@
+/* FlipForge full-customer mobile drawer v3
+ * Presentation-only repair for /app/customer/ phone and narrow-tablet layouts.
+ * Keeps the customer shell usable without changing intelligence, identity,
+ * tenant, billing, grading, evidence, recommendation, or transaction authority.
+ */
+
+@media (max-width: 760px) {
+  body.ff-full-customer-app .sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    width: min(80vw, 304px) !important;
+    min-width: 0 !important;
+    max-width: min(80vw, 304px) !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    transform: translateX(-105%) !important;
+    transition: transform .18s ease !important;
+    background: #091019 !important;
+    border-right: 1px solid rgba(255,255,255,.10) !important;
+    box-shadow: 18px 0 48px rgba(0,0,0,.38) !important;
+  }
+
+  body.ff-full-customer-app .app-shell[data-nav-open="true"] .sidebar {
+    transform: translateX(0) !important;
+  }
+
+  body.ff-full-customer-app .brand-block {
+    flex: 0 0 auto !important;
+    padding: 14px 12px 10px !important;
+    overflow: visible !important;
+    border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  }
+
+  body.ff-full-customer-app .brand {
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 9px !important;
+  }
+
+  body.ff-full-customer-app .brand-mark {
+    flex: 0 0 34px !important;
+    width: 34px !important;
+    height: 34px !important;
+    margin: 0 !important;
+  }
+
+  body.ff-full-customer-app .brand-copy {
+    min-width: 0 !important;
+  }
+
+  body.ff-full-customer-app .brand-name {
+    font-size: .95rem !important;
+    white-space: nowrap !important;
+  }
+
+  body.ff-full-customer-app .brand-subtitle {
+    max-width: 185px !important;
+    font-size: .64rem !important;
+    line-height: 1.18 !important;
+    white-space: normal !important;
+  }
+
+  body.ff-full-customer-app .prototype-chip {
+    margin-top: 9px !important;
+    min-height: 24px !important;
+    padding: 4px 8px !important;
+    font-size: .64rem !important;
+  }
+
+  body.ff-full-customer-app .primary-nav {
+    display: grid !important;
+    flex: 1 1 auto !important;
+    align-content: start !important;
+    gap: 3px !important;
+    min-height: 0 !important;
+    padding: 8px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255,255,255,.28) transparent !important;
+  }
+
+  body.ff-full-customer-app .primary-nav::-webkit-scrollbar {
+    width: 5px !important;
+  }
+
+  body.ff-full-customer-app .primary-nav::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  body.ff-full-customer-app .primary-nav::-webkit-scrollbar-thumb {
+    border-radius: 999px !important;
+    background: rgba(255,255,255,.24) !important;
+  }
+
+  body.ff-full-customer-app .primary-nav > a[data-ff-customer-core],
+  body.ff-full-customer-app .ff-advanced-nav-links a {
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 7px 9px !important;
+    gap: 8px !important;
+    border-radius: 9px !important;
+    font-size: .9rem !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+  }
+
+  body.ff-full-customer-app .primary-nav > a[data-route="forge-heat"] {
+    grid-template-columns: 24px minmax(0,1fr) auto !important;
+  }
+
+  body.ff-full-customer-app .forge-nav-pro {
+    position: static !important;
+    margin: 0 !important;
+    justify-self: end !important;
+    font-size: .58rem !important;
+  }
+
+  body.ff-full-customer-app .ff-advanced-nav > summary {
+    min-height: 40px !important;
+    padding: 7px 9px !important;
+  }
+
+  body.ff-full-customer-app .sidebar-footer {
+    flex: 0 0 auto !important;
+    padding: 8px !important;
+    background: #091019 !important;
+    border-top: 1px solid rgba(255,255,255,.08) !important;
+  }
+
+  /* Detailed plan information belongs on Account on phones; keeping the full card
+   * in the drawer is what squeezed the navigation in the reported layout. */
+  body.ff-full-customer-app .sidebar-footer .plan-card {
+    display: none !important;
+  }
+
+  body.ff-full-customer-app .account-link {
+    min-height: 48px !important;
+    margin: 0 !important;
+    padding: 8px 10px !important;
+  }
+
+  body.ff-full-customer-app .mobile-scrim {
+    position: fixed !important;
+    inset: 0 !important;
+    left: 0 !important;
+    z-index: 990 !important;
+    display: none !important;
+    background: rgba(2,6,10,.72) !important;
+    backdrop-filter: blur(2px) !important;
+    pointer-events: none !important;
+  }
+
+  body.ff-full-customer-app .app-shell[data-nav-open="true"] .mobile-scrim {
+    display: block !important;
+    left: 0 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Reuse the existing menu toggle as an explicit close control while the drawer
+   * is open. No extra JavaScript or alternate navigation authority is introduced. */
+  body.ff-full-customer-app .app-shell[data-nav-open="true"] .menu-button {
+    position: fixed !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 1010 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    border: 1px solid rgba(255,255,255,.16) !important;
+    border-radius: 11px !important;
+    background: #111a24 !important;
+    color: transparent !important;
+    box-shadow: 0 10px 26px rgba(0,0,0,.28) !important;
+  }
+
+  body.ff-full-customer-app .app-shell[data-nav-open="true"] .menu-button::before {
+    content: "×" !important;
+    color: #f3f5f7 !important;
+    font-size: 28px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+  }
+
+  body.ff-full-customer-app .workspace,
+  body.ff-full-customer-app #main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  body.ff-full-customer-app .sidebar {
+    width: min(82vw, 288px) !important;
+    max-width: min(82vw, 288px) !important;
+  }
+
+  body.ff-full-customer-app .brand-subtitle {
+    max-width: 170px !important;
+  }
+}
