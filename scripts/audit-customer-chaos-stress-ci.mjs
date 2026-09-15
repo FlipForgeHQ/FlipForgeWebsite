@@ -210,6 +210,14 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function exactRoute(page, target) {
+  try {
+    return new URL(page.url()).hash === `#/${target}`;
+  } catch (_) {
+    return false;
+  }
+}
+
 function isNavigationContextError(error) {
   return /execution context was destroyed|most likely because of a navigation|cannot find context with specified id|frame was detached/i.test(String(error?.message || error || ""));
 }
@@ -252,7 +260,7 @@ async function poll(predicate, message, timeoutMs = 6000) {
 async function setHashConfirmed(page, target, timeoutMs = 6000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    if (page.url().includes(`#/${target}`)) return;
+    if (exactRoute(page, target)) return;
     try {
       await page.evaluate(route => { window.location.hash = `#/${route}`; }, target);
     } catch (error) {
@@ -280,7 +288,7 @@ async function meaningfulWorkspace(page) {
 }
 
 async function assertHealthy(page, expectedRoute, worker, action, mutationThreshold) {
-  await poll(() => page.url().includes(`#/${expectedRoute}`), `worker ${worker}: route did not settle on ${expectedRoute}`);
+  await poll(() => exactRoute(page, expectedRoute), `worker ${worker}: route did not settle on ${expectedRoute}`);
   await page.locator("#main-content").waitFor({ state: "attached", timeout: 6000 });
   await poll(() => meaningfulWorkspace(page), `worker ${worker}: ${action} left a blank customer workspace on ${expectedRoute}`, 2500);
   await page.waitForTimeout(80);
@@ -332,7 +340,7 @@ async function navigate(page, target, mode, random) {
         }
       }
       if (clicked) {
-        await poll(() => page.url().includes(`#/${target}`), `clicked navigation did not settle on ${target}`);
+        await poll(() => exactRoute(page, target), `clicked navigation did not settle on ${target}`);
       } else {
         await setHashConfirmed(page, target);
       }
@@ -440,13 +448,13 @@ async function runWorker(browser, workerIndex, seed) {
         } catch (error) {
           if (!isNavigationContextError(error) && !/timeout/i.test(String(error?.message || error || ""))) throw error;
         }
-        await poll(() => page.url().includes(`#/${first}`), `history.back() did not settle on ${first}`);
+        await poll(() => exactRoute(page, first), `history.back() did not settle on ${first}`);
         try {
           await page.goForward({ timeout: 3500 });
         } catch (error) {
           if (!isNavigationContextError(error) && !/timeout/i.test(String(error?.message || error || ""))) throw error;
         }
-        await poll(() => page.url().includes(`#/${second}`), `history.forward() did not settle on ${second}`);
+        await poll(() => exactRoute(page, second), `history.forward() did not settle on ${second}`);
         expectedRoute = second;
       } else if (actionRoll < 0.88) {
         action = "reload";
@@ -454,7 +462,7 @@ async function runWorker(browser, workerIndex, seed) {
         trace.action = action;
         trace.target = expectedRoute;
         await page.reload({ waitUntil: "domcontentloaded", timeout: 20_000 });
-        await poll(() => page.url().includes(`#/${expectedRoute}`), `reload did not preserve ${expectedRoute}`);
+        await poll(() => exactRoute(page, expectedRoute), `reload did not preserve ${expectedRoute}`);
       } else if (actionRoll < 0.94) {
         action = "viewport-churn";
         const nextViewport = pick(random, viewports);
@@ -476,7 +484,7 @@ async function runWorker(browser, workerIndex, seed) {
         }, { malformed });
         await navigate(page, expectedRoute, "hash", random);
         await page.reload({ waitUntil: "domcontentloaded", timeout: 20_000 });
-        await poll(() => page.url().includes("#/discover"), "Discover did not recover after stale storage reload");
+        await poll(() => exactRoute(page, "discover"), "Discover did not recover after stale storage reload");
       }
 
       currentRoute = expectedRoute;
@@ -497,8 +505,8 @@ async function runWorker(browser, workerIndex, seed) {
       body: JSON.stringify(fixture(handler.request()))
     }));
     await sibling.goto(`${base}#/market-view`, { waitUntil: "domcontentloaded", timeout: 20_000 });
-    await poll(() => sibling.url().includes("#/market-view"), "sibling tab did not reach market-view");
-    if (!page.url().includes(`#/${stableRoute}`)) throw new Error(`worker ${workerIndex}: sibling tab navigation changed the original tab route`);
+    await poll(() => exactRoute(sibling, "market-view"), "sibling tab did not reach market-view");
+    if (!exactRoute(page, stableRoute)) throw new Error(`worker ${workerIndex}: sibling tab navigation changed the original tab route`);
     await sibling.close();
 
     return {
