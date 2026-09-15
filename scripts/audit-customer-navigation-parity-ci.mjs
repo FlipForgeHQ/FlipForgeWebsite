@@ -4,6 +4,10 @@ const host = "http://goflipforge.com:4173";
 const fullUrl = `${host}/app/customer/#/dashboard`;
 const betaUrl = `${host}/saas-prototype/#/dashboard`;
 
+const viewports = [
+  { name: "desktop", width: 1440, height: 1000 },
+  { name: "mobile", width: 390, height: 844 }
+];
 const fullTopLevel = [
   "dashboard",
   "discover",
@@ -120,6 +124,8 @@ async function shellState(page) {
     const nav = document.querySelector(".primary-nav");
     const top = [...(nav?.querySelectorAll(":scope > a[data-route]") || [])];
     const advanced = nav?.querySelector(":scope > .ff-advanced-nav") || null;
+    const controls = document.querySelector("#main-content .ff-di-controls");
+    const grid = document.querySelector("#main-content .ff-di-grid");
     return {
       path: location.pathname,
       hash: location.hash,
@@ -132,7 +138,14 @@ async function shellState(page) {
       advancedHidden: !advanced || !visible(advanced),
       advancedRoutes: [...(advanced?.querySelectorAll("a[data-route]") || [])].map(link => String(link.dataset.route || "")),
       active: [...(nav?.querySelectorAll('a[data-route][aria-current="page"]') || [])].map(link => String(link.dataset.route || "")),
-      mainText: String(document.querySelector("#main-content")?.textContent || "").replace(/\s+/g, " ").trim()
+      mainText: String(document.querySelector("#main-content")?.textContent || "").replace(/\s+/g, " ").trim(),
+      mainTitle: String(document.querySelector("#main-content h1")?.textContent || "").replace(/\s+/g, " ").trim(),
+      whyFocused: document.documentElement.classList.contains("ff-customer-why-decision-view"),
+      whyRuntime: Boolean(window.FlipForgeCustomerWhyDecisionViewV1),
+      whyMarker: document.querySelector("#main-content .ff-di-page")?.dataset.ffCustomerWhyDecisionView || "",
+      whyActions: [...document.querySelectorAll("[data-ff-customer-why-actions] a")].map(link => link.getAttribute("href") || ""),
+      controlsDisplay: controls ? getComputedStyle(controls).display : "",
+      gridDisplay: grid ? getComputedStyle(grid).display : ""
     };
   });
 }
@@ -143,63 +156,71 @@ const browser = await chromium.launch({
 });
 
 try {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-  const page = await context.newPage();
-  const pageErrors = [];
-  page.on("pageerror", error => pageErrors.push(String(error?.message || error)));
-  await page.route("**/api/v1/**", route => route.fulfill({
-    status: 200,
-    contentType: "application/json; charset=utf-8",
-    body: JSON.stringify(fixture(route.request()))
-  }));
+  for (const viewport of viewports) {
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+    const page = await context.newPage();
+    const pageErrors = [];
+    page.on("pageerror", error => pageErrors.push(String(error?.message || error)));
+    await page.route("**/api/v1/**", route => route.fulfill({
+      status: 200,
+      contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(fixture(route.request()))
+    }));
 
-  await page.goto(fullUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  await page.waitForSelector(".primary-nav", { timeout: 10_000 });
-  await page.waitForTimeout(900);
-  let state = await shellState(page);
-  if (state.chip !== "CUSTOMER APP") fail("Full customer shell lost CUSTOMER APP identity", state);
-  if (state.parity !== "v1") fail("Full customer parity controller did not apply", state);
-  if (!same(state.topLevelVisible, fullTopLevel)) fail("Full customer top-level navigation is incomplete, duplicated, or out of order", state);
-  if (!same(state.coreVisible, fullTopLevel)) fail("Full customer core-route markers do not match the canonical hierarchy", state);
-  if (!same(state.advancedRoutes, fullAdvanced)) fail("Full customer Advanced analysis overlaps or is incomplete", state);
-  if (state.advancedHidden) fail("Full customer Advanced analysis is hidden", state);
-  if (state.labels["why-this-decision"] !== "?Why This Decision") fail("Why This Decision label is missing or changed", state);
-  if (state.labels.evidence !== "◎Evidence Review") fail("Evidence Review label is missing or changed", state);
-  if (new Set(state.topLevelAll).size !== state.topLevelAll.length) fail("Full customer contains duplicate top-level route keys", state);
+    await page.goto(fullUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForSelector(".primary-nav", { timeout: 10_000 });
+    await page.waitForTimeout(1000);
+    let state = await shellState(page);
+    if (state.chip !== "CUSTOMER APP") fail(`${viewport.name}: full customer shell lost CUSTOMER APP identity`, state);
+    if (state.parity !== "v1") fail(`${viewport.name}: full customer parity controller did not apply`, state);
+    if (!same(state.topLevelVisible, fullTopLevel)) fail(`${viewport.name}: full customer top-level navigation is incomplete, duplicated, or out of order`, state);
+    if (!same(state.coreVisible, fullTopLevel)) fail(`${viewport.name}: full customer core-route markers do not match the canonical hierarchy`, state);
+    if (!same(state.advancedRoutes, fullAdvanced)) fail(`${viewport.name}: full customer Advanced analysis overlaps or is incomplete`, state);
+    if (state.advancedHidden) fail(`${viewport.name}: full customer Advanced analysis is hidden`, state);
+    if (state.labels["why-this-decision"] !== "?Why This Decision") fail(`${viewport.name}: Why This Decision label is missing or changed`, state);
+    if (state.labels.evidence !== "◎Evidence Review") fail(`${viewport.name}: Evidence Review label is missing or changed`, state);
+    if (new Set(state.topLevelAll).size !== state.topLevelAll.length) fail(`${viewport.name}: full customer contains duplicate top-level route keys`, state);
 
-  await page.evaluate(() => { location.hash = "#/decision-intelligence/why"; });
-  await page.waitForTimeout(1100);
-  state = await shellState(page);
-  if (state.hash !== "#/decision-intelligence/why") fail("Why This Decision subview rewrote the route", state);
-  if (!same(state.active, ["why-this-decision"])) fail("Why This Decision does not own active navigation state", state);
-  if (!/decision|evidence|why/i.test(state.mainText) || state.mainText.length < 80) fail("Why This Decision rendered a blank or unrelated workspace", state);
+    await page.evaluate(() => { location.hash = "#/decision-intelligence/why"; });
+    await page.waitForTimeout(1300);
+    state = await shellState(page);
+    if (state.hash !== "#/decision-intelligence/why") fail(`${viewport.name}: Why This Decision subview rewrote the route`, state);
+    if (!same(state.active, ["why-this-decision"])) fail(`${viewport.name}: Why This Decision does not own active navigation state`, state);
+    if (!state.whyFocused || !state.whyRuntime || state.whyMarker !== "v1") fail(`${viewport.name}: focused Why presentation did not activate`, state);
+    if (state.mainTitle !== "Why FlipForge made this decision.") fail(`${viewport.name}: Why presentation did not become explanation-first`, state);
+    if (state.controlsDisplay !== "none" || state.gridDisplay !== "none") fail(`${viewport.name}: Why presentation still exposes the full analysis controls/grid`, state);
+    if (!same(state.whyActions, ["#/decision-intelligence", "#/evidence"])) fail(`${viewport.name}: Why presentation lost governed analysis/evidence handoffs`, state);
+    if (!/decision|evidence|why/i.test(state.mainText) || state.mainText.length < 80) fail(`${viewport.name}: Why This Decision rendered a blank or unrelated workspace`, state);
 
-  await page.evaluate(() => { location.hash = "#/evidence"; });
-  await page.waitForTimeout(1000);
-  state = await shellState(page);
-  if (!state.active.includes("evidence")) fail("Evidence Review does not own active navigation state", state);
-  if (!/Evidence/i.test(state.mainText) || state.mainText.length < 60) fail("Evidence Review rendered a blank workspace", state);
+    await page.evaluate(() => { location.hash = "#/evidence"; });
+    await page.waitForTimeout(1000);
+    state = await shellState(page);
+    if (!state.active.includes("evidence")) fail(`${viewport.name}: Evidence Review does not own active navigation state`, state);
+    if (state.whyFocused) fail(`${viewport.name}: focused Why presentation leaked into Evidence Review`, state);
+    if (!/Evidence/i.test(state.mainText) || state.mainText.length < 60) fail(`${viewport.name}: Evidence Review rendered a blank workspace`, state);
 
-  await page.goto(betaUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  await page.waitForSelector(".primary-nav", { timeout: 10_000 });
-  await page.waitForTimeout(900);
-  state = await shellState(page);
-  if (state.chip !== "PRIVATE BETA") fail("Private beta shell lost PRIVATE BETA identity", state);
-  if (state.parity) fail("Full-customer parity controller leaked into private beta", state);
-  if (!same(state.topLevelVisible, betaTopLevel)) fail("Private beta navigation expanded or lost its simplified core", state);
-  if (!state.advancedHidden) fail("Advanced analysis leaked into private beta", state);
-  for (const route of fullOnlyNav) {
-    if (state.topLevelVisible.includes(route) || state.coreVisible.includes(route)) fail(`Full-customer route leaked into private beta navigation: ${route}`, state);
+    await page.goto(betaUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForSelector(".primary-nav", { timeout: 10_000 });
+    await page.waitForTimeout(1000);
+    state = await shellState(page);
+    if (state.chip !== "PRIVATE BETA") fail(`${viewport.name}: private beta shell lost PRIVATE BETA identity`, state);
+    if (state.parity) fail(`${viewport.name}: full-customer parity controller leaked into private beta`, state);
+    if (state.whyRuntime || state.whyFocused) fail(`${viewport.name}: focused Why presentation leaked into private beta`, state);
+    if (!same(state.topLevelVisible, betaTopLevel)) fail(`${viewport.name}: private beta navigation expanded or lost its simplified core`, state);
+    if (!state.advancedHidden) fail(`${viewport.name}: Advanced analysis leaked into private beta`, state);
+    for (const route of fullOnlyNav) {
+      if (state.topLevelVisible.includes(route) || state.coreVisible.includes(route)) fail(`${viewport.name}: full-customer route leaked into private beta navigation: ${route}`, state);
+    }
+    if (state.labels.discover !== "◇Evaluate a Card" && state.labels.discover !== "Evaluate a Card") {
+      fail(`${viewport.name}: private beta Discover route no longer presents as the simplified Evaluate action`, state);
+    }
+
+    const serious = pageErrors.filter(message => /SyntaxError|Unexpected token|Unexpected identifier|Maximum call stack/i.test(message));
+    if (serious.length) fail(`${viewport.name}: navigation parity browser audit observed serious runtime errors`, serious);
+    await context.close();
   }
-  if (state.labels.discover !== "◇Evaluate a Card" && state.labels.discover !== "Evaluate a Card") {
-    fail("Private beta Discover route no longer presents as the simplified Evaluate action", state);
-  }
 
-  const serious = pageErrors.filter(message => /SyntaxError|Unexpected token|Unexpected identifier|Maximum call stack/i.test(message));
-  if (serious.length) fail("Navigation parity browser audit observed serious runtime errors", serious);
-
-  console.log("PASS: full customer CDI navigation is complete, deduplicated, and isolated from private beta navigation.");
-  await context.close();
+  console.log("PASS: full customer CDI navigation is complete, explanation-focused, deduplicated, mobile-safe, and isolated from private beta navigation.");
 } finally {
   await browser.close();
 }
