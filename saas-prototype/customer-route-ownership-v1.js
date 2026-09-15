@@ -32,6 +32,7 @@
   let delayedOwnershipCheckTimer = 0;
   let repairing = false;
   let lastRepairAt = 0;
+  let pendingPointerRouteIntent = null;
 
   function normalizedHash(value = window.location.hash) {
     const raw = String(value || "#/dashboard");
@@ -292,6 +293,40 @@
     ownershipCheckQueued = true;
     window.requestAnimationFrame(repairCurrentRoute);
   }
+
+  // A full-customer nav link can be normalized between pointerdown and click
+  // while compatibility/presentation observers settle after reload. Preserve the
+  // same plain-left route activation across that node churn without preventing
+  // default behavior, taking renderer authority, or converting drags into clicks.
+  window.addEventListener("pointerdown", event => {
+    if (!plainLeftClick(event)) return;
+    const link = event.target.closest?.('a[href^="#/"]');
+    if (!link) return;
+    const href = String(link.getAttribute("href") || "");
+    if (!href) return;
+    pendingPointerRouteIntent = {
+      hash: href,
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY
+    };
+    rememberExplicitIntent(href);
+  }, true);
+
+  window.addEventListener("pointercancel", event => {
+    if (!pendingPointerRouteIntent || event.pointerId !== pendingPointerRouteIntent.pointerId) return;
+    pendingPointerRouteIntent = null;
+  }, true);
+
+  window.addEventListener("pointerup", event => {
+    const pending = pendingPointerRouteIntent;
+    if (!pending || event.pointerId !== pending.pointerId) return;
+    pendingPointerRouteIntent = null;
+    if (!plainLeftClick(event)) return;
+    const distance = Math.hypot(event.clientX - pending.clientX, event.clientY - pending.clientY);
+    if (distance > 12) return;
+    enforceExplicitIntentAfterClick(pending.hash);
+  }, true);
 
   // Observe explicit route intent at the window capture boundary. The ownership
   // guard is loaded last so its repair checks run after compatibility layers, but
