@@ -102,6 +102,19 @@
     return true;
   }
 
+  function enforceExplicitIntentAfterClick(hash) {
+    const target = normalizedHash(hash);
+    queueMicrotask(() => {
+      if (!intentStillActive() || explicitIntent.hash !== target) return;
+      if (normalizedHash() === target) {
+        markIntentReached();
+        queueOwnershipCheck();
+        return;
+      }
+      window.location.hash = target;
+    });
+  }
+
   function lifecycleAdapterReady(route) {
     const adapter = window.FlipForgeCustomerLifecycle;
     return Boolean(adapter
@@ -209,7 +222,10 @@
     const renderer = window.FlipForgeCustomerRouteRenderer;
     if (!renderer || typeof renderer.applyCurrentRoute !== "function") return false;
     renderer.applyCurrentRoute();
-    return true;
+    // Do not report a successful repair merely because the authoritative
+    // renderer exists. The repair owns the route only when the governed page is
+    // actually present; otherwise let the fallback hash listeners recover it.
+    return pageOwnershipMatches();
   }
 
   function broadcastRepairFallback() {
@@ -273,6 +289,10 @@
     const href = String(link.getAttribute("href") || "");
     if (!href) return;
     rememberExplicitIntent(href);
+    // The stable-navigation layer normally applies the hash. Under intense DOM
+    // churn the clicked node can be replaced after pointer dispatch, so verify
+    // the user's explicit route intent in a microtask and apply it if needed.
+    enforceExplicitIntentAfterClick(href);
   }, true);
 
   window.addEventListener("popstate", clearExplicitIntent, true);
