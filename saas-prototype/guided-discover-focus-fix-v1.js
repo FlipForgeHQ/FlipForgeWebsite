@@ -8,6 +8,7 @@
   const LEGACY_WELCOME_ID = "ff-guided-mode-welcome";
   const FULL_CUSTOMER_PATH = /^\/app\/customer\/?$/i;
   let busy = false;
+  let explicitDiscoverNavigation = false;
 
   function neutralizeLegacyWelcome() {
     document.getElementById(LEGACY_WELCOME_ID)?.remove();
@@ -45,6 +46,15 @@
     document.querySelectorAll(".ff-discover-direct-input").forEach(node => node.classList.remove("ff-discover-direct-input"));
   }
 
+  async function withDiscoverNavigation(action) {
+    explicitDiscoverNavigation = true;
+    try {
+      return await action();
+    } finally {
+      explicitDiscoverNavigation = false;
+    }
+  }
+
   async function ensureProviderDiscover({ allowNavigation = false } = {}) {
     const main = document.querySelector(MAIN_SELECTOR);
     if (!main) return null;
@@ -56,8 +66,8 @@
       if (!allowNavigation) return null;
       window.location.hash = "#/discover";
       await new Promise(resolve => window.setTimeout(resolve, 120));
-      // An explicit New Card / Focus Discover action may navigate here once,
-      // but it must never reclaim the route after a newer user navigation.
+      // Explicit New Card / Focus Discover actions may navigate here once,
+      // but they must never reclaim the route after newer user navigation.
       if (routeName() !== "discover") return null;
     }
 
@@ -80,14 +90,14 @@
     return null;
   }
 
-  async function showExactCardEntry({ clear = false, scroll = true, allowNavigation = false } = {}) {
+  async function showExactCardEntry({ clear = false, scroll = true } = {}) {
     if (busy) return;
     busy = true;
     try {
       neutralizeLegacyWelcome();
       installStyles();
       clearDirectCue();
-      const input = await ensureProviderDiscover({ allowNavigation });
+      const input = await ensureProviderDiscover({ allowNavigation: explicitDiscoverNavigation });
       if (!input || routeName() !== "discover") return;
 
       const form = input.closest(FORM_SELECTOR) || input.form;
@@ -129,7 +139,7 @@
 
   function showRouteCue() {
     if (routeName() !== "discover") return Promise.resolve();
-    return showExactCardEntry({ clear: false, scroll: !fullCustomerMode(), allowNavigation: false });
+    return showExactCardEntry({ clear: false, scroll: !fullCustomerMode() });
   }
 
   function enforceSearchFirst({ focus = false } = {}) {
@@ -144,12 +154,12 @@
   document.addEventListener("click", event => {
     const focusButton = event.target.closest('[data-ff-focus-card], [data-guide-action="focus-discover"]');
     if (!focusButton) return;
-    window.setTimeout(() => showExactCardEntry({ clear: false, scroll: true, allowNavigation: true }), 0);
+    window.setTimeout(() => withDiscoverNavigation(() => showExactCardEntry({ clear: false, scroll: true })), 0);
   }, true);
 
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-ff-global-new-card],[data-ff-new-card]")) return;
-    window.setTimeout(() => showExactCardEntry({ clear: true, scroll: true, allowNavigation: true }), 160);
+    window.setTimeout(() => withDiscoverNavigation(() => showExactCardEntry({ clear: true, scroll: true })), 160);
   }, true);
 
   window.addEventListener("hashchange", () => {
@@ -158,9 +168,7 @@
       clearDirectCue();
       return;
     }
-    window.setTimeout(() => {
-      if (routeName() === "discover") showRouteCue();
-    }, 120);
+    window.setTimeout(() => showRouteCue(), 120);
   });
 
   window.addEventListener("flipforge:identity-change", () => {
@@ -185,8 +193,8 @@
   }
 
   window.FlipForgeDiscoverFocusFix = Object.freeze({
-    show: () => showExactCardEntry({ clear: false, scroll: true, allowNavigation: true }),
-    startNew: () => showExactCardEntry({ clear: true, scroll: true, allowNavigation: true }),
+    show: () => withDiscoverNavigation(() => showExactCardEntry({ clear: false, scroll: true })),
+    startNew: () => withDiscoverNavigation(() => showExactCardEntry({ clear: true, scroll: true })),
     enforceSearchFirst: () => enforceSearchFirst({ focus: routeName() === "discover" })
   });
 })();
