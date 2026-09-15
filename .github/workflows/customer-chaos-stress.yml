@@ -98,14 +98,14 @@ jobs:
           npm run audit:customer-chaos-stress
           cp qa-artifacts/customer-chaos-stress/customer-chaos-stress.json qa-artifacts/customer-chaos-stress/random-seed.json
 
-      - name: Qualify PR 399 across six new deterministic seeds
+      - name: Qualify PR 399 across deterministic regression seeds
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 399 }}
         env:
           FLIPFORGE_STRESS_WORKERS: "3"
           FLIPFORGE_STRESS_ROUNDS: "70"
         run: |
           set -euo pipefail
-          for seed in 731942611 1847263905 298451703 4129081777 965314827 2576039142; do
+          for seed in 625715956 731942611 1847263905 298451703 4129081777 965314827 2576039142; do
             echo "Qualifying customer chaos seed ${seed} (3 workers x 70 rounds = 210 transitions)"
             FLIPFORGE_STRESS_SEED="${seed}" npm run audit:customer-chaos-stress
             cp qa-artifacts/customer-chaos-stress/customer-chaos-stress.json "qa-artifacts/customer-chaos-stress/qualification-seed-${seed}.json"
