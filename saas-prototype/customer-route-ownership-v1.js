@@ -28,6 +28,7 @@
   let explicitIntent = { hash: "", until: 0, serial: 0, reached: false };
   let intentSerial = 0;
   let ownershipCheckQueued = false;
+  let delayedOwnershipCheckTimer = 0;
   let repairing = false;
   let lastRepairAt = 0;
 
@@ -195,13 +196,12 @@
     const main = document.querySelector(MAIN_SELECTOR);
     if (!main) return true;
 
-    // A governed customer route must never be considered healthy while its
-    // workspace is empty. Adapter readiness can lag route churn briefly, so
-    // fail closed here and let the bounded repair loop keep trying.
+    // Empty governed customer workspaces are always failures. Adapter readiness
+    // may lag route churn briefly, but that must never convert blank content into
+    // a healthy state; the repair loop keeps checking until ownership settles.
     if (!main.children.length) return false;
 
-    const ready = adapterReady(route);
-    if (!ready) return true;
+    if (!adapterReady(route)) return true;
     return Boolean(main.querySelector(expected));
   }
 
@@ -223,10 +223,28 @@
     }
   }
 
+  function queueOwnershipCheckAfter(delayMs) {
+    if (delayedOwnershipCheckTimer) return;
+    delayedOwnershipCheckTimer = window.setTimeout(() => {
+      delayedOwnershipCheckTimer = 0;
+      queueOwnershipCheck();
+    }, Math.max(1, Math.ceil(delayMs)));
+  }
+
   function repairCurrentRoute() {
     ownershipCheckQueued = false;
-    if (repairing || pageOwnershipMatches()) return;
-    if (Date.now() - lastRepairAt < REPAIR_COOLDOWN_MS) return;
+    if (pageOwnershipMatches()) return;
+
+    if (repairing) {
+      queueOwnershipCheckAfter(REPAIR_COOLDOWN_MS);
+      return;
+    }
+
+    const elapsed = Date.now() - lastRepairAt;
+    if (elapsed < REPAIR_COOLDOWN_MS) {
+      queueOwnershipCheckAfter(REPAIR_COOLDOWN_MS - elapsed + 1);
+      return;
+    }
 
     repairing = true;
     lastRepairAt = Date.now();
@@ -235,6 +253,7 @@
     } catch (_) {
       broadcastRepairFallback();
     }
+
     window.setTimeout(() => {
       repairing = false;
       queueOwnershipCheck();
