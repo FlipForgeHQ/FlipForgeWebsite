@@ -9,7 +9,7 @@ const routePairs = [
   ["Discover", "discover"],
   ["Evaluate", "evaluate"],
   ["Decision Intelligence", "decision-intelligence"],
-  ["Why This Decision", "decision-intelligence/why"],
+  ["Why This Decision (Decision Intelligence subview)", "decision-intelligence/why"],
   ["Saved Decisions", "opportunities"],
   ["Outcome Intelligence", "tracking"],
   ["Portfolio", "portfolio"],
