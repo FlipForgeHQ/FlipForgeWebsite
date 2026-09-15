@@ -1,0 +1,12 @@
+/* Full Customer title parity contract.
+ * This file intentionally loads after customer-app-system-v2.css.
+ * It neutralizes legacy route-specific mobile title overrides so every
+ * full-customer page uses the same governed title scale.
+ */
+
+@media (max-width: 760px) {
+  html.ff-full-customer-app body.ff-full-customer-app #main-content .page-heading.page-heading h1 {
+    font-size: clamp(1.7rem, 8vw, 2rem) !important;
+    line-height: 1.08 !important;
+  }
+}
