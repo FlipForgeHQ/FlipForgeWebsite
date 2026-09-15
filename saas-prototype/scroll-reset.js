@@ -1,10 +1,19 @@
 (() => {
   "use strict";
 
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
   function loadRouteOwnershipAssets() {
+    // Full customer loads this guard synchronously at the end of customer.html,
+    // after every route renderer and compatibility layer. Private beta keeps the
+    // dynamic loader because its intentionally smaller shell has different order.
+    if (fullCustomerMode()) return;
     if (document.querySelector('script[data-ff-customer-route-ownership]')) return;
     const script = document.createElement("script");
-    script.src = "customer-route-ownership-v1.js?v=20260915-1";
+    script.src = "customer-route-ownership-v1.js?v=20260915-2";
     script.async = false;
     script.dataset.ffCustomerRouteOwnership = "v1";
     document.head.appendChild(script);
