@@ -57,10 +57,19 @@
     if (actions.innerHTML !== wanted) actions.innerHTML = wanted;
   }
 
+  function clearWhyPresentation() {
+    document.querySelector("[data-ff-customer-why-actions]")?.remove();
+    const root = document.querySelector("#main-content .ff-di-page");
+    if (root) delete root.dataset.ffCustomerWhyDecisionView;
+  }
+
   function applyWhyPresentation() {
     const active = whyView();
     document.documentElement.classList.toggle("ff-customer-why-decision-view", active);
-    if (!active) return;
+    if (!active) {
+      clearWhyPresentation();
+      return;
+    }
 
     ensureStyle();
     const root = document.querySelector("#main-content .ff-di-page");
