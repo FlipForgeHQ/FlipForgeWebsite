@@ -4,7 +4,7 @@
   function loadRouteOwnershipAssets() {
     if (document.querySelector('script[data-ff-customer-route-ownership]')) return;
     const script = document.createElement("script");
-    script.src = "customer-route-ownership-v1.js?v=20260831-1";
+    script.src = "customer-route-ownership-v1.js?v=20260915-1";
     script.async = false;
     script.dataset.ffCustomerRouteOwnership = "v1";
     document.head.appendChild(script);
