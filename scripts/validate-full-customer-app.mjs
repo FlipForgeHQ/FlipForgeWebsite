@@ -63,7 +63,23 @@ check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf
 
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
 check(shell.includes('"why-this-decision", "evidence"'), "canonical customer shell includes Why This Decision and Evidence Review in the full route set");
-check(shell.includes('"why-this-decision", "evidence", "opportunities"'), "canonical customer shell preserves CDI lifecycle ordering");
+const orderedRouteTokens = [
+  '"dashboard"', '"discover"', '"evaluate"', '"decision-intelligence"', '"why-this-decision"', '"evidence"',
+  '"opportunities"', '"tracking"', '"portfolio"', '"alerts"', '"forge-heat"', '"market-view"'
+];
+const orderedRouteAnchor = shell.indexOf("const orderedRoutes = [");
+const orderedRouteEnd = shell.indexOf("];", orderedRouteAnchor);
+const orderedRouteBlock = orderedRouteAnchor >= 0 && orderedRouteEnd > orderedRouteAnchor
+  ? shell.slice(orderedRouteAnchor, orderedRouteEnd)
+  : "";
+let previousRoutePosition = -1;
+const lifecycleOrderValid = orderedRouteTokens.every(token => {
+  const position = orderedRouteBlock.indexOf(token, previousRoutePosition + 1);
+  if (position < 0) return false;
+  previousRoutePosition = position;
+  return true;
+});
+check(lifecycleOrderValid, "canonical customer shell preserves CDI lifecycle ordering");
 check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell reinforces customer identity");
 check(shell.includes("T7, T14, and T30"), "customer home explains governed outcome checkpoints");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session renderer still stands down on full customer route");
@@ -105,7 +121,7 @@ check(loginRedirect.includes('window.addEventListener("flipforge:identity-change
 check(loginRedirect.includes('@media(max-width:760px)'), "persistent sign-in has a mobile visibility contract");
 
 check(authRecoveryAudit.includes('const customerRoutes = ['), "auth recovery audit declares the complete customer route matrix");
-for (const route of ["dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "sell", "export"]) {
+for (const route of ["dashboard", "discover", "evaluate", "decision-intelligence", "decision-intelligence/why", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "sell", "export"]) {
   check(authRecoveryAudit.includes(`"${route}"`), `auth recovery audit covers ${route}`);
 }
 check(authRecoveryAudit.includes('{ name: "desktop", width: 1440, height: 900 }'), "auth recovery audit covers desktop");
