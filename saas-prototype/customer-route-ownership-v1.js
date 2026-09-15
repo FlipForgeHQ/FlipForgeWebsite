@@ -195,9 +195,13 @@
     const main = document.querySelector(MAIN_SELECTOR);
     if (!main) return true;
 
+    // A governed customer route must never be considered healthy while its
+    // workspace is empty. Adapter readiness can lag route churn briefly, so
+    // fail closed here and let the bounded repair loop keep trying.
+    if (!main.children.length) return false;
+
     const ready = adapterReady(route);
     if (!ready) return true;
-    if (!main.children.length) return false;
     return Boolean(main.querySelector(expected));
   }
 
