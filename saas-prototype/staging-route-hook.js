@@ -263,6 +263,14 @@
     focusMain();
   }
 
+  // Presentation-only repair hook. Customer route ownership can re-run the
+  // already-existing authoritative renderer without rebroadcasting a hashchange
+  // to every legacy listener and recreating the same route race.
+  window.FlipForgeCustomerRouteRenderer = Object.freeze({
+    applyCurrentRoute: applyRoute,
+    routeParts
+  });
+
   window.addEventListener("hashchange", applyRoute);
   queueMicrotask(applyRoute);
 })();
