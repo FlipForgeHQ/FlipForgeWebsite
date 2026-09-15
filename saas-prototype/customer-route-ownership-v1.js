@@ -9,6 +9,7 @@
   const REPAIR_COOLDOWN_MS = 120;
 
   const expectedPageByRoute = Object.freeze({
+    dashboard: ".customer-dashboard-page",
     discover: ".customer-discovery-page",
     evaluate: ".customer-evaluation-page",
     opportunities: ".customer-intelligence-page",
@@ -127,6 +128,14 @@
       && adapter.isEligible());
   }
 
+  function dashboardAdapterReady() {
+    const adapter = window.FlipForgeStagingReadAdapter;
+    return Boolean(adapter
+      && typeof adapter.renderCustomerDashboard === "function"
+      && typeof adapter.isEligible === "function"
+      && adapter.isEligible());
+  }
+
   function evaluationAdapterReady() {
     const adapter = window.FlipForgeStagingEvaluationAdapter;
     return Boolean(adapter
@@ -137,6 +146,8 @@
 
   function adapterReady(route) {
     switch (route) {
+      case "dashboard":
+        return dashboardAdapterReady();
       case "discover":
         return simpleAdapterReady(window.FlipForgeCustomerDiscovery);
       case "evaluate":
@@ -190,6 +201,24 @@
     return Boolean(main.querySelector(expected));
   }
 
+  function applyAuthoritativeCustomerRoute() {
+    const renderer = window.FlipForgeCustomerRouteRenderer;
+    if (!renderer || typeof renderer.applyCurrentRoute !== "function") return false;
+    renderer.applyCurrentRoute();
+    return true;
+  }
+
+  function broadcastRepairFallback() {
+    try {
+      window.dispatchEvent(new HashChangeEvent("hashchange", {
+        oldURL: window.location.href,
+        newURL: window.location.href
+      }));
+    } catch (_) {
+      window.dispatchEvent(new Event("hashchange"));
+    }
+  }
+
   function repairCurrentRoute() {
     ownershipCheckQueued = false;
     if (repairing || pageOwnershipMatches()) return;
@@ -198,12 +227,9 @@
     repairing = true;
     lastRepairAt = Date.now();
     try {
-      window.dispatchEvent(new HashChangeEvent("hashchange", {
-        oldURL: window.location.href,
-        newURL: window.location.href
-      }));
+      if (!applyAuthoritativeCustomerRoute()) broadcastRepairFallback();
     } catch (_) {
-      window.dispatchEvent(new Event("hashchange"));
+      broadcastRepairFallback();
     }
     window.setTimeout(() => {
       repairing = false;
