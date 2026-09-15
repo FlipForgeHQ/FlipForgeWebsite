@@ -62,8 +62,56 @@ if (!routeOwnership.includes(ownershipSingleOwner)) {
     throw new Error("Customer route-ownership Discover target was not found.");
   }
   routeOwnership = routeOwnership.replace(ownershipAnchor, ownershipSingleOwner);
-  fs.writeFileSync(routeOwnershipUrl, routeOwnership, "utf8");
 }
+
+// A full-customer nav link can be normalized between pointerdown and click while
+// compatibility/presentation observers settle after reload. Record the intended
+// route before that churn and complete the same plain-left activation on pointerup
+// if needed. This does not prevent default behavior, does not own rendering, and
+// ignores drags, modified clicks, and cancelled pointers. Keyboard activation is
+// still handled by the normal click listener below.
+const pointerIntentMarker = '  let pendingPointerRouteIntent = null;';
+if (!routeOwnership.includes(pointerIntentMarker)) {
+  const pointerIntentAnchor = '  // Observe explicit route intent at the window capture boundary.';
+  if (!routeOwnership.includes(pointerIntentAnchor)) {
+    throw new Error("Customer route-ownership pointer intent target was not found.");
+  }
+  const pointerIntentBlock = `  let pendingPointerRouteIntent = null;
+
+  window.addEventListener("pointerdown", event => {
+    if (!plainLeftClick(event)) return;
+    const link = event.target.closest?.('a[href^="#/"]');
+    if (!link) return;
+    const href = String(link.getAttribute("href") || "");
+    if (!href) return;
+    pendingPointerRouteIntent = {
+      hash: href,
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY
+    };
+    rememberExplicitIntent(href);
+  }, true);
+
+  window.addEventListener("pointercancel", event => {
+    if (!pendingPointerRouteIntent || event.pointerId !== pendingPointerRouteIntent.pointerId) return;
+    pendingPointerRouteIntent = null;
+  }, true);
+
+  window.addEventListener("pointerup", event => {
+    const pending = pendingPointerRouteIntent;
+    if (!pending || event.pointerId !== pending.pointerId) return;
+    pendingPointerRouteIntent = null;
+    if (!plainLeftClick(event)) return;
+    const distance = Math.hypot(event.clientX - pending.clientX, event.clientY - pending.clientY);
+    if (distance > 12) return;
+    enforceExplicitIntentAfterClick(pending.hash);
+  }, true);
+
+`;
+  routeOwnership = routeOwnership.replace(pointerIntentAnchor, `${pointerIntentBlock}${pointerIntentAnchor}`);
+}
+fs.writeFileSync(routeOwnershipUrl, routeOwnership, "utf8");
 
 let betaFlow = fs.readFileSync(betaFlowUrl, "utf8");
 const rawSetHtml = `  function setHtml(node, value) {
@@ -94,4 +142,4 @@ if (!betaFlow.includes(decisionLink) || !betaFlow.includes(savedLink)) {
 }
 fs.writeFileSync(betaFlowUrl, betaFlow, "utf8");
 
-console.log("Injected Discover request guard, enforced single route ownership, loaded the full-customer ownership guard last, normalized beta-flow HTML rendering, and stabilized Decision Intelligence evidence actions.");
+console.log("Injected Discover request guard, enforced single route ownership, preserved pointer route intent across nav churn, loaded the full-customer ownership guard last, normalized beta-flow HTML rendering, and stabilized Decision Intelligence evidence actions.");
