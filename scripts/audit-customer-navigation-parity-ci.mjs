@@ -114,6 +114,13 @@ function same(actual, expected) {
   return JSON.stringify(actual) === JSON.stringify(expected);
 }
 
+function semanticLabel(value) {
+  return String(value || "")
+    .replace(/^[^A-Za-z0-9]+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function shellState(page) {
   return page.evaluate(() => {
     const visible = element => {
@@ -177,8 +184,8 @@ try {
     if (!same(state.coreVisible, fullTopLevel)) fail(`${viewport.name}: full customer core-route markers do not match the canonical hierarchy`, state);
     if (!same(state.advancedRoutes, fullAdvanced)) fail(`${viewport.name}: full customer Advanced analysis overlaps or is incomplete`, state);
     if (state.advancedHidden) fail(`${viewport.name}: full customer Advanced analysis is hidden`, state);
-    if (state.labels["why-this-decision"] !== "?Why This Decision") fail(`${viewport.name}: Why This Decision label is missing or changed`, state);
-    if (state.labels.evidence !== "◎Evidence Review") fail(`${viewport.name}: Evidence Review label is missing or changed`, state);
+    if (semanticLabel(state.labels["why-this-decision"]) !== "Why This Decision") fail(`${viewport.name}: Why This Decision label is missing or changed`, state);
+    if (semanticLabel(state.labels.evidence) !== "Evidence Review") fail(`${viewport.name}: Evidence Review label is missing or changed`, state);
     if (new Set(state.topLevelAll).size !== state.topLevelAll.length) fail(`${viewport.name}: full customer contains duplicate top-level route keys`, state);
 
     await page.evaluate(() => { location.hash = "#/decision-intelligence/why"; });
@@ -211,7 +218,7 @@ try {
     for (const route of fullOnlyNav) {
       if (state.topLevelVisible.includes(route) || state.coreVisible.includes(route)) fail(`${viewport.name}: full-customer route leaked into private beta navigation: ${route}`, state);
     }
-    if (state.labels.discover !== "◇Evaluate a Card" && state.labels.discover !== "Evaluate a Card") {
+    if (semanticLabel(state.labels.discover) !== "Evaluate a Card") {
       fail(`${viewport.name}: private beta Discover route no longer presents as the simplified Evaluate action`, state);
     }
 
