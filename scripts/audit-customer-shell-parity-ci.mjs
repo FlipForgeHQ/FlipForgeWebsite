@@ -6,6 +6,8 @@ const routes = [
   "discover",
   "evaluate",
   "decision-intelligence",
+  "decision-intelligence/why",
+  "evidence",
   "opportunities",
   "tracking",
   "portfolio",
@@ -163,7 +165,8 @@ async function measure(page, route, viewport) {
       scrollWidth: document.documentElement.scrollWidth,
       innerWidth: window.innerWidth,
       horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
-      visualSystemLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-app-system-v2.css")))
+      visualSystemLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-app-system-v2.css"))),
+      titleParityLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-title-parity-v1.css")))
     };
   }, { route, viewport });
 }
@@ -191,6 +194,7 @@ try {
       const state = await measure(page, route, viewport.name);
       results.push(state);
       if (!state.visualSystemLoaded) fail(`${viewport.name}/${route}: final customer visual system is not loaded`, state);
+      if (!state.titleParityLoaded) fail(`${viewport.name}/${route}: customer title parity contract is not loaded`, state);
       if (state.hash !== `#/${route}`) fail(`${viewport.name}/${route}: route changed unexpectedly`, state);
       if (!state.root) fail(`${viewport.name}/${route}: customer route rendered no main root`, state);
       if (state.horizontalOverflow > 1) fail(`${viewport.name}/${route}: page has horizontal overflow`, state);
@@ -229,8 +233,8 @@ try {
   await browser.close();
 }
 
-console.log("PASS: full customer #384 visual-system parity is governed across core routes.");
+console.log("PASS: full customer #384 visual-system parity is governed across every top-level CDI route and the Why subview.");
 for (const state of results) {
   const heading = state.heading ? `${state.heading.fontSize}px ${state.heading.text}` : "no h1";
-  console.log(`${state.viewport.padEnd(7)} ${state.route.padEnd(22)} root=${Math.round(state.root.left)},${Math.round(state.root.top)} topbar=${Math.round(state.topbar.height)}px scrollY=${Math.round(state.scrollY)} overflow=${state.horizontalOverflow}px title=${heading}`);
+  console.log(`${state.viewport.padEnd(7)} ${state.route.padEnd(26)} root=${Math.round(state.root.left)},${Math.round(state.root.top)} topbar=${Math.round(state.topbar.height)}px scrollY=${Math.round(state.scrollY)} overflow=${state.horizontalOverflow}px title=${heading}`);
 }

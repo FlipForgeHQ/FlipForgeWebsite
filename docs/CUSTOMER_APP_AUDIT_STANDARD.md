@@ -27,6 +27,8 @@ The governed customer route matrix includes:
 - Discover
 - Evaluate
 - Decision Intelligence
+- Why This Decision (Decision Intelligence subview; same saved decision authority)
+- Evidence Review
 - Saved Decisions
 - Outcome Intelligence
 - Portfolio
@@ -36,9 +38,31 @@ The governed customer route matrix includes:
 - Account
 - Compare
 - PSA Advisor
-- Evidence
 - Exit Review
 - Audit Export
+
+## Required customer navigation hierarchy
+
+The full customer app must expose one continuous Card Decision Intelligence journey in this order:
+
+1. Home
+2. Discover
+3. Evaluate a Card
+4. Decision Intelligence
+5. Why This Decision
+6. Evidence Review
+7. Saved Decisions
+8. Outcome Intelligence
+9. Portfolio
+10. Alerts
+11. Forge Heat
+12. Market View
+
+Advanced Analysis may contain Compare, PSA Advisor, Exit Review, and Audit Export. A promoted top-level route must not also appear in Advanced Analysis.
+
+Why This Decision is a presentation subview of the existing Decision Intelligence route and must not create a second recommendation, evidence, supported-value, or grading authority. Evidence Review must continue to use the existing governed evidence projection.
+
+The private-beta shell intentionally remains simpler. Full-customer-only navigation must not leak into private beta. Internal beta links may still open an existing governed evidence route when needed for the beta workflow; navigation isolation does not mean duplicating or disabling the shared evidence authority.
 
 ## Required customer-journey assertions
 
@@ -49,6 +73,9 @@ The governed customer route matrix includes:
 - The authentication recovery control must remain inside the viewport on desktop and mobile.
 - The recovery control must disappear only after a healthy authenticated state is paired with authorized server responses.
 - Customer navigation must remain usable and visually stable across routes.
+- Full customer navigation and private-beta navigation must remain intentionally separate and independently auditable.
+- No full-customer-only top-level feature may leak into private-beta navigation.
+- No promoted top-level feature may also appear in Advanced Analysis.
 - Customer-facing copy must not leak beta/operator implementation language.
 - No browser surface may create recommendation, evidence, grading, supported-value, outcome, entitlement, tenant, or transaction authority that belongs to the authoritative service.
 - No synthetic data may be substituted when authoritative data is unavailable.
@@ -58,11 +85,13 @@ The governed customer route matrix includes:
 ## Current automated gates
 
 - `scripts/validate-full-customer-app.mjs`
+- `scripts/validate-customer-navigation-parity.mjs`
 - `scripts/audit-full-customer-route-ci.mjs`
 - `scripts/audit-customer-auth-recovery-ci.mjs`
 - `scripts/audit-customer-shell-parity-ci.mjs`
+- `scripts/audit-customer-navigation-parity-ci.mjs`
 - `.github/workflows/full-customer-app-assurance.yml`
 
 ## Release rule
 
-A customer-app change is not release-ready if any required audit fails. Fix the product or the audit fixture; do not weaken an authority, identity, evidence, security, or customer-journey rule merely to make CI green.
+A customer-app change is not release-ready if any required audit fails. Fix the product or the audit fixture; do not weaken an authority, identity, evidence, security, navigation-isolation, or customer-journey rule merely to make CI green.

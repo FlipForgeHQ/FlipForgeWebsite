@@ -5,6 +5,7 @@ const customerRoutes = [
   "discover",
   "evaluate",
   "decision-intelligence",
+  "decision-intelligence/why",
   "opportunities",
   "tracking",
   "portfolio",
@@ -162,15 +163,15 @@ async function auditAnonymousState(browser, viewport) {
       if (state.mainText.length < 8) fail(`${viewport.name} ${route}: protected route rendered a blank customer workspace`);
     }
 
-    await page.evaluate(() => { window.location.hash = "#/decision-intelligence"; });
+    await page.evaluate(() => { window.location.hash = "#/decision-intelligence/why"; });
     await page.waitForTimeout(350);
     await Promise.all([
       page.waitForURL(url => url.pathname === "/production-auth.html", { timeout: 10000 }),
       page.click("[data-ff-customer-sign-in]")
     ]);
     const authReturn = await page.evaluate(() => new URLSearchParams(window.location.search).get("return"));
-    if (authReturn !== "/app/customer/#/decision-intelligence") {
-      fail(`${viewport.name}: clicking persistent sign-in did not preserve route: ${authReturn || "<missing>"}`);
+    if (authReturn !== "/app/customer/#/decision-intelligence/why") {
+      fail(`${viewport.name}: clicking persistent sign-in did not preserve Why This Decision route: ${authReturn || "<missing>"}`);
     }
 
     const seriousErrors = pageErrors.filter(message => /SyntaxError|Unexpected token|Unexpected identifier/i.test(message));

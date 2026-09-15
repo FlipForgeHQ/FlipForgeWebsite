@@ -6,8 +6,11 @@ on:
       - '_redirects'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
+      - 'saas-prototype/customer-navigation-parity-v1.js'
+      - 'saas-prototype/customer-why-decision-view-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
       - 'saas-prototype/customer-app-system-v2.css'
+      - 'saas-prototype/customer-title-parity-v1.css'
       - 'saas-prototype/guided-discover-focus-fix-v1.js'
       - 'saas-prototype/beta-session-v1.js'
       - 'saas-prototype/mobile-navigation-stabilizer-v1.js'
@@ -16,6 +19,8 @@ on:
       - 'scripts/audit-full-customer-route-ci.mjs'
       - 'scripts/audit-customer-auth-recovery-ci.mjs'
       - 'scripts/audit-customer-shell-parity-ci.mjs'
+      - 'scripts/audit-customer-navigation-parity-ci.mjs'
+      - 'scripts/validate-customer-navigation-parity.mjs'
       - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
@@ -35,8 +40,11 @@ on:
       - '_redirects'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
+      - 'saas-prototype/customer-navigation-parity-v1.js'
+      - 'saas-prototype/customer-why-decision-view-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
       - 'saas-prototype/customer-app-system-v2.css'
+      - 'saas-prototype/customer-title-parity-v1.css'
       - 'saas-prototype/guided-discover-focus-fix-v1.js'
       - 'saas-prototype/beta-session-v1.js'
       - 'saas-prototype/mobile-navigation-stabilizer-v1.js'
@@ -45,6 +53,8 @@ on:
       - 'scripts/audit-full-customer-route-ci.mjs'
       - 'scripts/audit-customer-auth-recovery-ci.mjs'
       - 'scripts/audit-customer-shell-parity-ci.mjs'
+      - 'scripts/audit-customer-navigation-parity-ci.mjs'
+      - 'scripts/validate-customer-navigation-parity.mjs'
       - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
@@ -85,6 +95,7 @@ jobs:
           node scripts/validate-customer-app-audit-standard.mjs
           node scripts/validate-customer-app-audit-coverage.mjs
           node scripts/validate-customer-audit-manifest.mjs
+          node scripts/validate-customer-navigation-parity.mjs
           node scripts/validate-full-customer-app.mjs
       - name: Install Playwright Chromium
         run: |
@@ -106,6 +117,8 @@ jobs:
         run: node scripts/audit-full-customer-route-ci.mjs
       - name: Audit anonymous and authenticated customer recovery paths
         run: node scripts/audit-customer-auth-recovery-ci.mjs
+      - name: Audit customer and beta navigation separation
+        run: node scripts/audit-customer-navigation-parity-ci.mjs
       - name: Audit visual parity across full customer routes
         run: node scripts/audit-customer-shell-parity-ci.mjs
       - name: Show server log on failure

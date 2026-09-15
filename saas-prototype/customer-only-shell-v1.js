@@ -5,12 +5,12 @@
   const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);
   const BETA_HIDDEN_NAV_ROUTES = new Set([
-    "decision-intelligence", "market-view", "forge-heat", "evaluate", "portfolio", "alerts",
+    "decision-intelligence", "why-this-decision", "market-view", "forge-heat", "evaluate", "portfolio", "alerts",
     "beta-start", "compare", "psa-advisor", "evidence", "sell", "export", "staging", "staging-evaluate"
   ]);
   const FULL_CUSTOMER_ROUTES = new Set([
-    "dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking",
-    "portfolio", "alerts", "forge-heat", "market-view"
+    "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
+    "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
   ]);
   const MAIN = "#main-content";
   let scheduled = false;
@@ -127,6 +127,8 @@
       ["discover", "Discover"],
       ["evaluate", "Evaluate a Card"],
       ["decision-intelligence", "Decision Intelligence"],
+      ["why-this-decision", "Why This Decision"],
+      ["evidence", "Evidence Review"],
       ["opportunities", "Saved Decisions"],
       ["tracking", "Outcome Intelligence"],
       ["portfolio", "Portfolio"],
@@ -153,8 +155,8 @@
     }
 
     const orderedRoutes = [
-      "dashboard", "discover", "evaluate", "decision-intelligence", "opportunities",
-      "tracking", "portfolio", "alerts", "forge-heat", "market-view"
+      "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
+      "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
     ];
     const insertionPoint = advanced || nav.querySelector(".staging-only-nav") || null;
     orderedRoutes.forEach(route => {
@@ -347,7 +349,7 @@
         <strong>One card. One decision. Clear reasons.</strong>
       </div>
       <div class="ff-beta-simple-steps" aria-label="FlipForge beta workflow">
-        <div><b>1</b><span><strong>Evaluate</strong><small>Enter the exact card you are considering.</small></span></div>
+        <div><b>1</b><span><strong>Evaluate</strong><small>Enter one exact card you are considering.</small></span></div>
         <div><b>2</b><span><strong>Understand</strong><small>FlipForge returns BUY, WATCH, VERIFY, or PASS and explains why.</small></span></div>
         <div><b>3</b><span><strong>Track</strong><small>Save the decision and see what changes over time.</small></span></div>
       </div>

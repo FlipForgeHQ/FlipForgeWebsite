@@ -18,6 +18,7 @@ const activeRedirects = redirects
   .filter(line => line && !line.startsWith("#"));
 const customer = read("saas-prototype/customer.html");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
+const navigationParity = read("saas-prototype/customer-navigation-parity-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
 const visualSystem = read("saas-prototype/customer-app-system-v2.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
@@ -50,18 +51,42 @@ check(!customer.includes('href="beta-session-v1.css"'), "customer document never
 check(!customer.includes('href="beta-customer-flow-v2.css"'), "customer document never loads beta-flow stylesheet");
 
 check(customer.includes('data-route="decision-intelligence"') && customer.includes('Decision Intelligence'), "customer navigation exposes Decision Intelligence");
+check(customer.includes('href="#/decision-intelligence/why" data-route="why-this-decision"') && customer.includes('Why This Decision'), "customer navigation exposes Why This Decision as a Decision Intelligence subview");
+check(customer.includes('href="#/evidence" data-route="evidence"') && customer.includes('Evidence Review'), "customer navigation promotes Evidence Review");
 check(customer.includes('data-route="tracking"') && customer.includes('Outcome Intelligence'), "customer navigation exposes Outcome Intelligence");
 check(customer.includes('data-route="discover"') && customer.includes('data-route="evaluate"'), "customer navigation separates Discover and Evaluate");
 check(customer.includes('data-route="forge-heat"') && customer.includes('data-route="market-view"'), "customer navigation exposes Forge Heat and Market View");
+check(customer.includes('src="customer-navigation-parity-v1.js"'), "customer document loads full-customer navigation parity controller");
 check(customer.includes('id="global-search-form"'), "customer document includes global search");
 check(customer.includes('class="icon-button notification-button"'), "customer document includes alerts access");
 check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
 
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
+check(shell.includes('"why-this-decision", "evidence"'), "canonical customer shell includes Why This Decision and Evidence Review in the full route set");
+const orderedRouteTokens = [
+  '"dashboard"', '"discover"', '"evaluate"', '"decision-intelligence"', '"why-this-decision"', '"evidence"',
+  '"opportunities"', '"tracking"', '"portfolio"', '"alerts"', '"forge-heat"', '"market-view"'
+];
+const orderedRouteAnchor = shell.indexOf("const orderedRoutes = [");
+const orderedRouteEnd = shell.indexOf("];", orderedRouteAnchor);
+const orderedRouteBlock = orderedRouteAnchor >= 0 && orderedRouteEnd > orderedRouteAnchor
+  ? shell.slice(orderedRouteAnchor, orderedRouteEnd)
+  : "";
+let previousRoutePosition = -1;
+const lifecycleOrderValid = orderedRouteTokens.every(token => {
+  const position = orderedRouteBlock.indexOf(token, previousRoutePosition + 1);
+  if (position < 0) return false;
+  previousRoutePosition = position;
+  return true;
+});
+check(lifecycleOrderValid, "canonical customer shell preserves CDI lifecycle ordering");
 check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell reinforces customer identity");
 check(shell.includes("T7, T14, and T30"), "customer home explains governed outcome checkpoints");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session renderer still stands down on full customer route");
-check(mobileNav.includes('"evaluate", "decision-intelligence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains full route set");
+check(navigationParity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "navigation parity controller cannot run outside /app/customer");
+check(navigationParity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"])'), "promoted Evidence Review is not duplicated in Advanced analysis");
+check(mobileNav.includes('"decision-intelligence", "why-this-decision", "evidence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set");
+check(mobileNav.includes('parts[0] === "decision-intelligence" && parts[1] === "why"') && mobileNav.includes('return "why-this-decision"'), "mobile active navigation distinguishes Why This Decision from Decision Intelligence");
 check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish cannot overwrite customer identity");
 check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit cannot overwrite customer identity");
 
@@ -96,7 +121,7 @@ check(loginRedirect.includes('window.addEventListener("flipforge:identity-change
 check(loginRedirect.includes('@media(max-width:760px)'), "persistent sign-in has a mobile visibility contract");
 
 check(authRecoveryAudit.includes('const customerRoutes = ['), "auth recovery audit declares the complete customer route matrix");
-for (const route of ["dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "sell", "export"]) {
+for (const route of ["dashboard", "discover", "evaluate", "decision-intelligence", "decision-intelligence/why", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "sell", "export"]) {
   check(authRecoveryAudit.includes(`"${route}"`), `auth recovery audit covers ${route}`);
 }
 check(authRecoveryAudit.includes('{ name: "desktop", width: 1440, height: 900 }'), "auth recovery audit covers desktop");
@@ -108,6 +133,8 @@ check(authRecoveryAudit.includes('auditStaleCachedSessionState'), "auth recovery
 check(authRecoveryAudit.includes('server 401 was hidden by stale cached browser identity'), "auth recovery audit fails the exact production dead-end regression");
 check(authRecoveryAudit.includes('destination.searchParams.get("reauth") !== "1"'), "auth recovery audit proves stale-session reauthentication intent");
 check(fullCustomerWorkflow.includes('node scripts/audit-customer-auth-recovery-ci.mjs'), "full customer CI runs auth recovery audit");
+check(fullCustomerWorkflow.includes('node scripts/validate-customer-navigation-parity.mjs'), "full customer CI runs static navigation parity audit");
+check(fullCustomerWorkflow.includes('node scripts/audit-customer-navigation-parity-ci.mjs'), "full customer CI runs rendered customer/beta separation audit");
 check(fullCustomerWorkflow.includes('push:') && fullCustomerWorkflow.includes('- main'), "full customer assurance re-runs after merge on main");
 
 check(css.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav") && css.includes("display: block !important;"), "full customer CSS preserves advanced navigation");
