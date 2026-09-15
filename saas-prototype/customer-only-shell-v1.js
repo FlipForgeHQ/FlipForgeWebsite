@@ -158,11 +158,23 @@
       "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
       "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
     ];
-    const insertionPoint = advanced || nav.querySelector(".staging-only-nav") || null;
-    orderedRoutes.forEach(route => {
-      const link = nav.querySelector(`a[data-route="${route}"]`);
-      if (link) nav.insertBefore(link, insertionPoint);
-    });
+    const currentRoutes = [...nav.children]
+      .filter(node => node.matches?.("a[data-route]"))
+      .map(node => String(node.dataset.route || ""))
+      .filter(route => FULL_CUSTOMER_ROUTES.has(route));
+    const orderMatches = currentRoutes.length === orderedRoutes.length
+      && orderedRoutes.every((route, index) => currentRoutes[index] === route);
+
+    // Do not detach and reinsert customer navigation on every MutationObserver pass.
+    // Reordering is allowed only when the actual top-level route order is wrong.
+    if (!orderMatches) {
+      const insertionPoint = advanced || nav.querySelector(".staging-only-nav") || null;
+      orderedRoutes.forEach(route => {
+        const link = nav.querySelector(`:scope > a[data-route="${route}"]`)
+          || nav.querySelector(`a[data-route="${route}"]`);
+        if (link) nav.insertBefore(link, insertionPoint);
+      });
+    }
 
     delete nav.dataset.ffBetaSimpleNavigation;
     nav.dataset.ffFullCustomerNavigation = "true";
