@@ -3,6 +3,7 @@ import fs from "node:fs";
 const read = path => fs.readFileSync(path, "utf8");
 const customer = read("saas-prototype/customer.html");
 const parity = read("saas-prototype/customer-navigation-parity-v1.js");
+const whyView = read("saas-prototype/customer-why-decision-view-v1.js");
 const betaShell = read("saas-prototype/customer-only-shell-v1.js");
 const betaDocument = read("saas-prototype/index.html");
 
@@ -45,16 +46,24 @@ check(!advancedBlock.includes('data-route="evidence"'), "Evidence Review is not 
 for (const route of requiredAdvanced) {
   check(count(advancedBlock, `data-route="${route}"`) === 1, `Advanced analysis retains exactly one ${route} link`);
 }
+check(customer.includes('<script src="mobile-navigation-stabilizer-v1.js"></script>'), "full customer document loads mobile navigation stabilizer");
 check(customer.includes('<script src="customer-navigation-parity-v1.js"></script>'), "full customer document loads parity controller");
 check(!betaDocument.includes('customer-navigation-parity-v1.js'), "private beta document does not load full-customer parity controller");
+check(!betaDocument.includes('customer-why-decision-view-v1.js'), "private beta document does not load focused Why presentation");
 
 check(parity.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "parity controller is hard-gated to /app/customer");
 check(parity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "parity controller exits outside full customer path");
+check(parity.includes('script.src = "customer-why-decision-view-v1.js"'), "full-customer controller owns focused Why presentation loading");
 for (const route of requiredTopLevel) {
   check(parity.includes(`["${route}"`), `parity controller governs ${route}`);
 }
 check(parity.includes('route === "decision-intelligence" && subroute === "why"') && parity.includes('return "why-this-decision"'), "Why subview owns its active navigation state without new authority");
 check(parity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"])'), "Advanced analysis excludes promoted Evidence Review");
+
+check(whyView.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "focused Why view is hard-gated to /app/customer");
+check(whyView.includes('parts[0] === "decision-intelligence" && parts[1] === "why"'), "focused Why view only activates on the Why subroute");
+check(whyView.includes('Why FlipForge made this decision.'), "focused Why view has explanation-first customer presentation");
+check(whyView.includes('Open full Decision Intelligence') && whyView.includes('Open Evidence Review'), "focused Why view preserves navigation back to governed analysis and evidence");
 
 const forbiddenAuthorityTokens = [
   "evaluateAndSave(",
@@ -71,6 +80,7 @@ const forbiddenAuthorityTokens = [
 ];
 for (const token of forbiddenAuthorityTokens) {
   check(!parity.includes(token), `navigation parity creates no authority: ${token}`);
+  check(!whyView.includes(token), `Why presentation creates no authority: ${token}`);
 }
 
 check(betaShell.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);'), "private beta keeps its intentionally simplified four-route core");
@@ -78,6 +88,7 @@ check(betaShell.includes('"decision-intelligence", "why-this-decision", "market-
 check(betaShell.includes('"compare", "psa-advisor", "evidence", "sell", "export"'), "private beta still hides advanced/evidence navigation while preserving internal route availability");
 check(betaShell.includes('"why-this-decision", "evidence"') || (betaShell.includes('"why-this-decision"') && betaShell.includes('"evidence"')), "private beta hide contract covers both promoted explanation surfaces");
 check(!betaShell.includes("customer-navigation-parity-v1"), "private beta shell has no dependency on the full-customer parity controller");
+check(!betaShell.includes("customer-why-decision-view-v1"), "private beta shell has no dependency on focused Why presentation");
 
 check(!customer.includes('src="private-beta.js"'), "full customer never loads private-beta runtime");
 check(!customer.includes('src="beta-session-v1.js"'), "full customer never loads beta-session runtime");
