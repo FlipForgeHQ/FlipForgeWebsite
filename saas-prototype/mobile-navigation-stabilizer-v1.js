@@ -5,8 +5,8 @@
   const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"];
   const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const FULL_CUSTOMER_ROUTES = [
-    "dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking",
-    "portfolio", "alerts", "forge-heat", "market-view"
+    "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
+    "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
   ];
 
   function fullCustomerMode() {
@@ -18,9 +18,12 @@
   }
 
   function activeRoute() {
-    return String(window.location.hash || "#/dashboard")
+    const parts = String(window.location.hash || "#/dashboard")
       .replace(/^#\/?/, "")
-      .split(/[/?]/)[0] || "dashboard";
+      .split(/[/?]/)
+      .filter(Boolean);
+    if (parts[0] === "decision-intelligence" && parts[1] === "why") return "why-this-decision";
+    return parts[0] || "dashboard";
   }
 
   function ensureStyle() {
