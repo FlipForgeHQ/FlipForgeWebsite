@@ -181,13 +181,39 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function isNavigationContextError(error) {
+  return /execution context was destroyed|most likely because of a navigation|cannot find context with specified id|frame was detached/i.test(String(error?.message || error || ""));
+}
+
+async function evaluateStable(page, fn, arg, attempts = 6) {
+  let lastError = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await page.evaluate(fn, arg);
+    } catch (error) {
+      lastError = error;
+      if (!isNavigationContextError(error)) throw error;
+      await page.waitForTimeout(40 + attempt * 35);
+    }
+  }
+  throw lastError || new Error("Browser execution context did not stabilize");
+}
+
+async function fireNavigation(page, fn, arg) {
+  try {
+    await page.evaluate(fn, arg);
+  } catch (error) {
+    if (!isNavigationContextError(error)) throw error;
+  }
+}
+
 async function poll(predicate, message, timeoutMs = 6000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
     try {
       if (await predicate()) return;
     } catch (_) {
-      // Same-document SPA transitions can temporarily replace execution contexts.
+      // SPA transitions may replace the execution context while the target route settles.
     }
     await sleep(40);
   }
@@ -195,9 +221,9 @@ async function poll(predicate, message, timeoutMs = 6000) {
 }
 
 async function mutationDelta(page, sampleMs = 220) {
-  const start = await page.evaluate(() => Number(window.__ffChaosStress?.mutations || 0));
+  const start = await evaluateStable(page, () => Number(window.__ffChaosStress?.mutations || 0));
   await page.waitForTimeout(sampleMs);
-  const end = await page.evaluate(() => Number(window.__ffChaosStress?.mutations || 0));
+  const end = await evaluateStable(page, () => Number(window.__ffChaosStress?.mutations || 0));
   return Math.max(0, end - start);
 }
 
@@ -206,7 +232,7 @@ async function assertHealthy(page, expectedRoute, worker, action, mutationThresh
   await page.locator("#main-content").waitFor({ state: "attached", timeout: 6000 });
   await page.waitForTimeout(120);
 
-  const state = await page.evaluate(route => {
+  const state = await evaluateStable(page, route => {
     const main = document.querySelector("#main-content");
     const root = main?.firstElementChild || null;
     return {
@@ -233,7 +259,7 @@ async function assertHealthy(page, expectedRoute, worker, action, mutationThresh
   }
 
   await Promise.race([
-    page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve(true)))),
+    evaluateStable(page, () => new Promise(resolve => requestAnimationFrame(() => resolve(true)))),
     sleep(1500).then(() => { throw new Error(`worker ${worker}: ${action} event loop did not reach animation frame on ${expectedRoute}`); })
   ]);
 }
@@ -242,14 +268,18 @@ async function navigate(page, target, mode, random) {
   if (mode === "click") {
     const link = page.locator(`a[href="#/${target}"]:visible`).first();
     if (await link.count()) {
-      await link.click({ timeout: 3000 }).catch(async () => {
-        await page.evaluate(route => { window.location.hash = `#/${route}`; }, target);
+      await link.click({ timeout: 3000 }).catch(async error => {
+        if (!isNavigationContextError(error)) {
+          const message = String(error?.message || error || "");
+          if (!/element is not attached|not visible|intercepts pointer events|timeout/i.test(message)) throw error;
+        }
+        await fireNavigation(page, route => { window.location.hash = `#/${route}`; }, target);
       });
     } else {
-      await page.evaluate(route => { window.location.hash = `#/${route}`; }, target);
+      await fireNavigation(page, route => { window.location.hash = `#/${route}`; }, target);
     }
   } else {
-    await page.evaluate(route => { window.location.hash = `#/${route}`; }, target);
+    await fireNavigation(page, route => { window.location.hash = `#/${route}`; }, target);
   }
   if (random() < 0.35) await page.waitForTimeout(Math.floor(random() * 30));
   await poll(() => page.url().includes(`#/${target}`), `navigation did not settle on ${target}`);
@@ -307,25 +337,32 @@ async function runWorker(browser, workerIndex, seed) {
       const actionRoll = random();
       let action = "navigate-hash";
       let expectedRoute = currentRoute;
+      const trace = { round, action: "pending", from: currentRoute, target: currentRoute, status: "RUNNING" };
+      history.push(trace);
 
       if (actionRoll < 0.34) {
         action = "navigate-click";
         expectedRoute = pick(random, routes);
+        trace.action = action;
+        trace.target = expectedRoute;
         await navigate(page, expectedRoute, "click", random);
       } else if (actionRoll < 0.58) {
         action = "navigate-hash";
         expectedRoute = pick(random, routes);
+        trace.action = action;
+        trace.target = expectedRoute;
         await navigate(page, expectedRoute, "hash", random);
       } else if (actionRoll < 0.70) {
         action = "rapid-route-burst";
         const burst = Array.from({ length: 4 + Math.floor(random() * 5) }, () => pick(random, routes));
         expectedRoute = burst.at(-1);
-        await page.evaluate(async sequence => {
-          for (const route of sequence) {
-            window.location.hash = `#/${route}`;
-            await new Promise(resolve => setTimeout(resolve, 2));
-          }
-        }, burst);
+        trace.action = action;
+        trace.target = expectedRoute;
+        trace.burst = burst;
+        for (const route of burst) {
+          await fireNavigation(page, nextRoute => { window.location.hash = `#/${nextRoute}`; }, route);
+          await page.waitForTimeout(2);
+        }
         await poll(() => page.url().includes(`#/${expectedRoute}`), `rapid burst did not settle on ${expectedRoute}`);
         await page.waitForTimeout(180);
       } else if (actionRoll < 0.80) {
@@ -333,38 +370,52 @@ async function runWorker(browser, workerIndex, seed) {
         const first = pick(random, routes);
         let second = pick(random, routes);
         if (second === first) second = routes[(routes.indexOf(first) + 1) % routes.length];
+        trace.action = action;
+        trace.target = second;
+        trace.historyPair = [first, second];
         await navigate(page, first, "hash", random);
         await navigate(page, second, "hash", random);
-        await page.evaluate(() => history.back());
+        await fireNavigation(page, () => { history.back(); });
         await poll(() => page.url().includes(`#/${first}`), `history.back() did not settle on ${first}`);
-        await page.evaluate(() => history.forward());
+        await fireNavigation(page, () => { history.forward(); });
         await poll(() => page.url().includes(`#/${second}`), `history.forward() did not settle on ${second}`);
         expectedRoute = second;
       } else if (actionRoll < 0.88) {
         action = "reload";
         expectedRoute = currentRoute;
+        trace.action = action;
+        trace.target = expectedRoute;
         await page.reload({ waitUntil: "domcontentloaded", timeout: 20_000 });
         await poll(() => page.url().includes(`#/${expectedRoute}`), `reload did not preserve ${expectedRoute}`);
       } else if (actionRoll < 0.94) {
         action = "viewport-churn";
         const nextViewport = pick(random, viewports);
+        trace.action = action;
+        trace.target = currentRoute;
+        trace.viewport = nextViewport.name;
         await page.setViewportSize({ width: nextViewport.width, height: nextViewport.height });
         expectedRoute = currentRoute;
       } else {
         action = "stale-storage-recovery";
         expectedRoute = "discover";
-        await page.evaluate(({ malformed }) => {
-          sessionStorage.setItem("flipforge.discover.lastSearch.v2", malformed ? "{broken-json" : JSON.stringify({ exactCardQuery: "stale-card", grade: "PSA 10", observedAt: 0 }));
-          sessionStorage.setItem("flipforge.discover.resetLimit.v2", malformed ? "not-a-number" : "999999");
-        }, { malformed: random() < 0.5 });
+        const malformed = random() < 0.5;
+        trace.action = action;
+        trace.target = expectedRoute;
+        trace.malformed = malformed;
+        await evaluateStable(page, ({ malformed: broken }) => {
+          sessionStorage.setItem("flipforge.discover.lastSearch.v2", broken ? "{broken-json" : JSON.stringify({ exactCardQuery: "stale-card", grade: "PSA 10", observedAt: 0 }));
+          sessionStorage.setItem("flipforge.discover.resetLimit.v2", broken ? "not-a-number" : "999999");
+        }, { malformed });
         await navigate(page, expectedRoute, "hash", random);
         await page.reload({ waitUntil: "domcontentloaded", timeout: 20_000 });
         await poll(() => page.url().includes("#/discover"), "Discover did not recover after stale storage reload");
       }
 
       currentRoute = expectedRoute;
-      history.push({ round, action, route: currentRoute, url: page.url() });
+      trace.route = currentRoute;
+      trace.url = page.url();
       await assertHealthy(page, currentRoute, workerIndex, action, mutationThreshold);
+      trace.status = "PASS";
 
       if (pageErrors.length) throw new Error(`worker ${workerIndex}: browser pageerror after ${action}: ${pageErrors.at(-1)}`);
       if (seriousConsoleErrors.length) throw new Error(`worker ${workerIndex}: serious console error after ${action}: ${seriousConsoleErrors.at(-1)}`);
@@ -395,6 +446,12 @@ async function runWorker(browser, workerIndex, seed) {
       history
     };
   } catch (error) {
+    const running = history.findLast?.(entry => entry.status === "RUNNING");
+    if (running) {
+      running.status = "FAIL";
+      running.url = page.url();
+      running.message = error?.message || String(error);
+    }
     return {
       worker: workerIndex,
       seed,
