@@ -14,7 +14,8 @@
     loading: false,
     payload: null,
     error: null,
-    tab: "top5"
+    tab: "top5",
+    generation: 0
   };
 
   function productionHost() {
@@ -25,6 +26,16 @@
     const host = String(window.location.hostname || "");
     return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
       && APP_PATH.test(String(window.location.pathname || ""));
+  }
+
+  function routeName() {
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)[0] || "dashboard";
+  }
+
+  function activeGeneration(generation) {
+    return generation === state.generation && routeName() === "forge-heat";
   }
 
   function escapeHtml(value) {
@@ -298,48 +309,55 @@
     return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">PRO INTELLIGENCE</span><h1>Forge Heat™</h1></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "FORGE_HEAT_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "Forge Heat intelligence is unavailable.")}</p><small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
   }
 
-  function wire() {
-    if (!state.main) return;
+  function wire(generation = state.generation) {
+    if (!state.main || !activeGeneration(generation)) return;
     state.main.querySelectorAll("[data-heat-tab]").forEach(button => {
       button.addEventListener("click", () => {
+        if (!activeGeneration(generation)) return;
         state.tab = button.getAttribute("data-heat-tab") || "top5";
-        renderState();
+        renderState(generation);
       });
     });
     const retry = state.main.querySelector("[data-forge-heat-retry]");
-    if (retry) retry.addEventListener("click", refresh);
+    if (retry) retry.addEventListener("click", () => refresh(generation));
   }
 
-  function renderState() {
-    if (!state.main) return;
+  function renderState(generation = state.generation) {
+    if (!state.main || !activeGeneration(generation)) return;
     if (state.loading) state.main.innerHTML = loading();
     else if (state.error) state.main.innerHTML = errorView(state.error);
     else if (state.payload) state.main.innerHTML = page(state.payload.data);
     else state.main.innerHTML = loading();
-    wire();
+    wire(generation);
   }
 
-  async function refresh() {
+  async function refresh(generation = state.generation) {
+    if (!activeGeneration(generation)) return;
     state.loading = true;
     state.error = null;
-    renderState();
+    renderState(generation);
     try {
-      state.payload = await load();
+      const payload = await load();
+      if (!activeGeneration(generation)) return;
+      state.payload = payload;
     } catch (error) {
+      if (!activeGeneration(generation)) return;
       state.payload = null;
       state.error = error;
     } finally {
+      if (!activeGeneration(generation)) return;
       state.loading = false;
-      renderState();
+      renderState(generation);
     }
   }
 
   function render(main) {
     state.main = main;
+    state.generation += 1;
     state.tab = "top5";
     state.payload = null;
     state.error = null;
-    refresh();
+    refresh(state.generation);
   }
 
   window.FlipForgeCustomerForgeHeat = Object.freeze({

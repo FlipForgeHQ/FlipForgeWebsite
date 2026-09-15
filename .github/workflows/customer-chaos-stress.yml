@@ -1,0 +1,125 @@
+name: Customer Chaos Stress Audit
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-customer-chaos-stress-ci.mjs"
+      - "package.json"
+      - ".github/workflows/customer-chaos-stress.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-customer-chaos-stress-ci.mjs"
+      - "package.json"
+      - ".github/workflows/customer-chaos-stress.yml"
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Optional deterministic stress seed; blank uses the workflow run id"
+        required: false
+        type: string
+      rounds:
+        description: "Rounds per browser worker"
+        required: false
+        default: "70"
+        type: string
+      workers:
+        description: "Parallel browser workers (1-6)"
+        required: false
+        default: "3"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: customer-chaos-stress-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  customer-chaos-stress:
+    name: Randomized customer route and state stress
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-customer-chaos-stress-server.log 2>&1 &
+          echo $! > /tmp/flipforge-customer-chaos-stress-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/customer/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-customer-chaos-stress-server.log
+          exit 1
+
+      - name: Replay known blank-route race seed
+        env:
+          FLIPFORGE_STRESS_WORKERS: "3"
+          FLIPFORGE_STRESS_ROUNDS: "70"
+          FLIPFORGE_STRESS_SEED: "608381750"
+        run: |
+          npm run audit:customer-chaos-stress
+          cp qa-artifacts/customer-chaos-stress/customer-chaos-stress.json qa-artifacts/customer-chaos-stress/known-seed-608381750.json
+
+      - name: Run fresh randomized customer chaos stress audit
+        env:
+          FLIPFORGE_STRESS_WORKERS: ${{ github.event.inputs.workers || '3' }}
+          FLIPFORGE_STRESS_ROUNDS: ${{ github.event_name == 'schedule' && '120' || github.event.inputs.rounds || '70' }}
+          FLIPFORGE_STRESS_SEED: ${{ github.event.inputs.seed || github.run_id }}
+        run: |
+          npm run audit:customer-chaos-stress
+          cp qa-artifacts/customer-chaos-stress/customer-chaos-stress.json qa-artifacts/customer-chaos-stress/random-seed.json
+
+      - name: Qualify PR 399 across deterministic regression seeds
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 399 }}
+        env:
+          FLIPFORGE_STRESS_WORKERS: "3"
+          FLIPFORGE_STRESS_ROUNDS: "70"
+        run: |
+          set -euo pipefail
+          for seed in 625715956 731942611 1847263905 298451703 4129081777 965314827 2576039142; do
+            echo "Qualifying customer chaos seed ${seed} (3 workers x 70 rounds = 210 transitions)"
+            FLIPFORGE_STRESS_SEED="${seed}" npm run audit:customer-chaos-stress
+            cp qa-artifacts/customer-chaos-stress/customer-chaos-stress.json "qa-artifacts/customer-chaos-stress/qualification-seed-${seed}.json"
+          done
+
+      - name: Upload chaos stress report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: flipforge-customer-chaos-stress
+          path: qa-artifacts/customer-chaos-stress
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Show preview-server log on failure
+        if: failure()
+        run: cat /tmp/flipforge-customer-chaos-stress-server.log || true

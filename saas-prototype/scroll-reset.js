@@ -1,10 +1,19 @@
 (() => {
   "use strict";
 
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
   function loadRouteOwnershipAssets() {
+    // Full customer loads this guard synchronously at the end of customer.html,
+    // after every route renderer and compatibility layer. Private beta keeps the
+    // dynamic loader because its intentionally smaller shell has different order.
+    if (fullCustomerMode()) return;
     if (document.querySelector('script[data-ff-customer-route-ownership]')) return;
     const script = document.createElement("script");
-    script.src = "customer-route-ownership-v1.js?v=20260831-1";
+    script.src = "customer-route-ownership-v1.js?v=20260915-2";
     script.async = false;
     script.dataset.ffCustomerRouteOwnership = "v1";
     document.head.appendChild(script);
@@ -52,13 +61,13 @@
       && !event.altKey;
   }
 
-  // Saved Decisions is served by the customer adapter while the legacy shell also
-  // listens for hash changes. Use a clean same-tab load for the list route so
-  // repeated clicks never become a same-hash no-op and stale detail requests
-  // cannot repaint the list after the customer returns to Saved Decisions.
+  // Saved Decisions used a clean same-tab reload before the full customer SPA had
+  // authoritative route ownership. Keep that legacy recovery only for non-full-
+  // customer surfaces. Full customer navigation must stay inside the SPA so stale
+  // renderers are rejected by route ownership instead of tearing down valid pages.
   document.addEventListener("click", event => {
     const link = event.target.closest?.('a[href="#/opportunities"]');
-    if (!link || !isPlainLeftClick(event)) return;
+    if (!link || !isPlainLeftClick(event) || fullCustomerMode()) return;
 
     event.preventDefault();
     event.stopImmediatePropagation();

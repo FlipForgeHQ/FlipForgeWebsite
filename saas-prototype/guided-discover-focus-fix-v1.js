@@ -8,6 +8,7 @@
   const LEGACY_WELCOME_ID = "ff-guided-mode-welcome";
   const FULL_CUSTOMER_PATH = /^\/app\/customer\/?$/i;
   let busy = false;
+  let explicitDiscoverNavigation = false;
 
   function neutralizeLegacyWelcome() {
     document.getElementById(LEGACY_WELCOME_ID)?.remove();
@@ -45,20 +46,35 @@
     document.querySelectorAll(".ff-discover-direct-input").forEach(node => node.classList.remove("ff-discover-direct-input"));
   }
 
-  async function ensureProviderDiscover() {
+  async function withDiscoverNavigation(action) {
+    explicitDiscoverNavigation = true;
+    try {
+      return await action();
+    } finally {
+      explicitDiscoverNavigation = false;
+    }
+  }
+
+  async function ensureProviderDiscover({ allowNavigation = false } = {}) {
     const main = document.querySelector(MAIN_SELECTOR);
     if (!main) return null;
-    let input = main.querySelector(INPUT_SELECTOR);
-    if (input) return input;
 
-    const discovery = window.FlipForgeCustomerDiscovery;
+    let input = main.querySelector(INPUT_SELECTOR);
+    if (input && routeName() === "discover") return input;
+
     if (routeName() !== "discover") {
+      if (!allowNavigation) return null;
       window.location.hash = "#/discover";
       await new Promise(resolve => window.setTimeout(resolve, 120));
+      // Explicit New Card / Focus Discover actions may navigate here once,
+      // but they must never reclaim the route after newer user navigation.
+      if (routeName() !== "discover") return null;
     }
 
+    const discovery = window.FlipForgeCustomerDiscovery;
     if (discovery && typeof discovery.render === "function" && typeof discovery.isEligible === "function" && discovery.isEligible()) {
       try {
+        if (routeName() !== "discover") return null;
         await discovery.render(main);
       } catch (_) {
         // The provider-backed Discover renderer owns its fail-closed error state.
@@ -66,6 +82,7 @@
     }
 
     for (let attempt = 0; attempt < 20; attempt += 1) {
+      if (routeName() !== "discover") return null;
       input = main.querySelector(INPUT_SELECTOR);
       if (input) return input;
       await new Promise(resolve => window.setTimeout(resolve, 75));
@@ -80,8 +97,8 @@
       neutralizeLegacyWelcome();
       installStyles();
       clearDirectCue();
-      const input = await ensureProviderDiscover();
-      if (!input) return;
+      const input = await ensureProviderDiscover({ allowNavigation: explicitDiscoverNavigation });
+      if (!input || routeName() !== "discover") return;
 
       const form = input.closest(FORM_SELECTOR) || input.form;
       const label = input.closest("label") || input.parentElement;
@@ -95,6 +112,7 @@
         }
       }
 
+      if (routeName() !== "discover") return;
       const hint = document.createElement("div");
       hint.id = HINT_ID;
       hint.setAttribute("role", "status");
@@ -105,6 +123,7 @@
       input.classList.add("ff-discover-direct-input");
       if (scroll) input.scrollIntoView({ behavior: "smooth", block: "center" });
       window.setTimeout(() => {
+        if (routeName() !== "discover" || !input.isConnected) return;
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
         input.select?.();
       }, 300);
@@ -119,25 +138,28 @@
   }
 
   function showRouteCue() {
+    if (routeName() !== "discover") return Promise.resolve();
     return showExactCardEntry({ clear: false, scroll: !fullCustomerMode() });
   }
 
   function enforceSearchFirst({ focus = false } = {}) {
     neutralizeLegacyWelcome();
     if (routeName() === "discover" && focus) {
-      window.setTimeout(() => showRouteCue(), 80);
+      window.setTimeout(() => {
+        if (routeName() === "discover") showRouteCue();
+      }, 80);
     }
   }
 
   document.addEventListener("click", event => {
     const focusButton = event.target.closest('[data-ff-focus-card], [data-guide-action="focus-discover"]');
     if (!focusButton) return;
-    window.setTimeout(() => showExactCardEntry({ clear: false, scroll: true }), 0);
+    window.setTimeout(() => withDiscoverNavigation(() => showExactCardEntry({ clear: false, scroll: true })), 0);
   }, true);
 
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-ff-global-new-card],[data-ff-new-card]")) return;
-    window.setTimeout(() => showExactCardEntry({ clear: true, scroll: true }), 160);
+    window.setTimeout(() => withDiscoverNavigation(() => showExactCardEntry({ clear: true, scroll: true })), 160);
   }, true);
 
   window.addEventListener("hashchange", () => {
@@ -157,7 +179,11 @@
   const beginRuntimeGuard = () => {
     neutralizeLegacyWelcome();
     if (document.body) welcomeObserver.observe(document.body, { childList: true });
-    if (routeName() === "discover") window.setTimeout(() => showRouteCue(), 180);
+    if (routeName() === "discover") {
+      window.setTimeout(() => {
+        if (routeName() === "discover") showRouteCue();
+      }, 180);
+    }
   };
 
   if (document.readyState === "loading") {
@@ -167,8 +193,8 @@
   }
 
   window.FlipForgeDiscoverFocusFix = Object.freeze({
-    show: () => showExactCardEntry({ clear: false, scroll: true }),
-    startNew: () => showExactCardEntry({ clear: true, scroll: true }),
+    show: () => withDiscoverNavigation(() => showExactCardEntry({ clear: false, scroll: true })),
+    startNew: () => withDiscoverNavigation(() => showExactCardEntry({ clear: true, scroll: true })),
     enforceSearchFirst: () => enforceSearchFirst({ focus: routeName() === "discover" })
   });
 })();

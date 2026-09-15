@@ -146,7 +146,11 @@
   }
 
   function cleanRouteTransition(event) {
-    if (!customerApp() || routeReloading) return;
+    // The full customer entry is a real SPA with explicit route ownership. A
+    // forced reload here tears down a route after the authoritative renderer has
+    // already painted it and can leave #main-content empty under route churn.
+    // Keep the legacy reload recovery only for non-full-customer app surfaces.
+    if (!customerApp() || fullCustomerEntry() || routeReloading) return;
     if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
     routeReloading = true;
     if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
@@ -158,7 +162,9 @@
   }
 
   function handleRouteClick(event) {
-    if (!customerApp() || routeReloading || !isPlainLeftClick(event)) return;
+    // Same-hash reload recovery is also legacy-only. Full customer navigation
+    // must remain inside the SPA so the route-ownership guard can arbitrate it.
+    if (!customerApp() || fullCustomerEntry() || routeReloading || !isPlainLeftClick(event)) return;
     const link = event.target?.closest?.('a[href^="#/"]');
     if (!link) return;
     const targetHash = String(link.getAttribute("href") || "");

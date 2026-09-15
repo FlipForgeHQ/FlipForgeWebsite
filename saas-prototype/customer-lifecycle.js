@@ -29,7 +29,8 @@
     detail: null,
     feature: null,
     error: null,
-    notice: ""
+    notice: "",
+    generation: 0
   };
 
   function productionHost() {
@@ -44,6 +45,18 @@
 
   function handles(route) {
     return ROUTES.has(String(route || ""));
+  }
+
+  function currentRouteName() {
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)[0] || "dashboard";
+  }
+
+  function activeGeneration(generation, route) {
+    return generation === state.generation
+      && String(route || "") === state.route
+      && currentRouteName() === String(route || "");
   }
 
   function escapeHtml(value) {
@@ -350,19 +363,25 @@
     return ids[0] || "";
   }
 
-  async function load() {
+  async function load(generation = state.generation, route = state.route) {
+    if (!activeGeneration(generation, route)) return;
     state.loading = true;
     state.notice = "";
     resetData();
-    renderCurrent();
+    renderCurrent(generation, route);
     try {
-      state.health = await request("/api/v1/health");
+      const health = await request("/api/v1/health");
+      if (!activeGeneration(generation, route)) return;
+      state.health = health;
       if (state.health?.data?.status !== "configured") return;
-      if (state.route === "tracking") {
-        [state.opportunities, state.lifecycle] = await Promise.all([
+      if (route === "tracking") {
+        const [opportunities, lifecycle] = await Promise.all([
           request("/api/v1/opportunities"),
           request("/api/v1/lifecycle")
         ]);
+        if (!activeGeneration(generation, route)) return;
+        state.opportunities = opportunities;
+        state.lifecycle = lifecycle;
         if (state.opportunities?.data?.kind !== "opportunities" || !Array.isArray(state.opportunities?.data?.items)) {
           throw Object.assign(new Error("The tracked opportunity list failed its contract."), { code: "TRACKING_OPPORTUNITIES_INVALID" });
         }
@@ -371,28 +390,35 @@
         }
         state.selectedId = chooseId();
         if (state.selectedId) {
-          state.detail = await request(`/api/v1/lifecycle/${encodeURIComponent(state.selectedId)}`);
+          const detail = await request(`/api/v1/lifecycle/${encodeURIComponent(state.selectedId)}`);
+          if (!activeGeneration(generation, route)) return;
+          state.detail = detail;
           if (state.detail?.data?.kind !== "lifecycle-detail" || String(state.detail?.data?.opportunityId || "") !== state.selectedId || !Array.isArray(state.detail?.data?.history)) {
             throw Object.assign(new Error("The lifecycle detail failed its selected-record contract."), { code: "LIFECYCLE_DETAIL_INVALID" });
           }
         }
         return;
       }
-      [state.feature, state.opportunities] = await Promise.all([
-        request(`/api/v1/${state.route}`),
+      const [feature, opportunities] = await Promise.all([
+        request(`/api/v1/${route}`),
         request("/api/v1/opportunities")
       ]);
-      if (state.feature?.data?.kind !== state.route || state.feature?.data?.configured !== true || !Array.isArray(state.feature?.data?.items)) {
+      if (!activeGeneration(generation, route)) return;
+      state.feature = feature;
+      state.opportunities = opportunities;
+      if (state.feature?.data?.kind !== route || state.feature?.data?.configured !== true || !Array.isArray(state.feature?.data?.items)) {
         throw Object.assign(new Error("The lifecycle projection failed the customer contract."), { code: "LIFECYCLE_PROJECTION_INVALID" });
       }
       if (state.opportunities?.data?.kind !== "opportunities" || !Array.isArray(state.opportunities?.data?.items)) {
         throw Object.assign(new Error("The lifecycle label source failed the customer contract."), { code: "LIFECYCLE_LABELS_INVALID" });
       }
     } catch (error) {
+      if (!activeGeneration(generation, route)) return;
       state.error = error;
     } finally {
+      if (!activeGeneration(generation, route)) return;
       state.loading = false;
-      renderCurrent();
+      renderCurrent(generation, route);
     }
   }
 
@@ -419,10 +445,13 @@
 
   async function save(form) {
     if (!state.selectedId || state.saving) return;
+    const generation = state.generation;
+    const route = state.route;
+    if (!activeGeneration(generation, route)) return;
     state.saving = true;
     state.error = null;
     state.notice = "";
-    renderCurrent();
+    renderCurrent(generation, route);
     try {
       const formData = new FormData(form);
       const reviewAt = toInstant(formData.get("reviewAt"), "Review time");
@@ -440,46 +469,52 @@
         expectedVersion: Number(formData.get("expectedVersion"))
       };
       await request(`/api/v1/lifecycle/${encodeURIComponent(state.selectedId)}`, { method: "PUT", body });
-      await load();
+      if (!activeGeneration(generation, route)) return;
+      await load(generation, route);
+      if (!activeGeneration(generation, route)) return;
       state.notice = "Tracking changes saved to your account.";
     } catch (error) {
+      if (!activeGeneration(generation, route)) return;
       state.error = error;
     } finally {
+      if (!activeGeneration(generation, route)) return;
       state.saving = false;
-      renderCurrent();
+      renderCurrent(generation, route);
     }
   }
 
-  function bindActions() {
-    if (!state.main || typeof state.main.querySelector !== "function") return;
-    state.main.querySelector("[data-lifecycle-refresh]")?.addEventListener("click", load);
+  function bindActions(generation = state.generation, route = state.route) {
+    if (!state.main || !activeGeneration(generation, route) || typeof state.main.querySelector !== "function") return;
+    state.main.querySelector("[data-lifecycle-refresh]")?.addEventListener("click", () => load(generation, route));
     const select = state.main.querySelector("[data-lifecycle-select]");
     select?.addEventListener("change", () => {
+      if (!activeGeneration(generation, route)) return;
       const id = String(select.value || "");
       if (SAFE_ID.test(id)) window.location.hash = `#/tracking/${encodeURIComponent(id)}`;
     });
     state.main.querySelector("[data-lifecycle-form]")?.addEventListener("submit", event => {
       event.preventDefault();
-      save(event.currentTarget);
+      if (activeGeneration(generation, route)) save(event.currentTarget);
     });
   }
 
-  function renderCurrent() {
-    if (!state.main) return;
+  function renderCurrent(generation = state.generation, route = state.route) {
+    if (!state.main || !activeGeneration(generation, route)) return;
     state.main.innerHTML = pageMarkup();
-    bindActions();
+    bindActions(generation, route);
   }
 
   function render(main, route, id = "") {
     if (!eligibleHost() || !handles(route)) return false;
     state.main = main;
     state.route = String(route);
+    state.generation += 1;
     try {
       state.requestedId = decodeURIComponent(String(id || ""));
     } catch (_) {
       state.requestedId = String(id || "");
     }
-    load();
+    load(state.generation, state.route);
     return true;
   }
 
