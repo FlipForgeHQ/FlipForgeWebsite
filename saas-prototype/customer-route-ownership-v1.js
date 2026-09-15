@@ -293,7 +293,12 @@
     window.requestAnimationFrame(repairCurrentRoute);
   }
 
-  document.addEventListener("click", event => {
+  // Observe explicit route intent at the window capture boundary. The ownership
+  // guard is loaded last so its repair checks run after compatibility layers, but
+  // older document-capture listeners may legitimately stop propagation. Window
+  // capture records the customer's route choice before those handlers without
+  // preventing default behavior or taking renderer authority.
+  window.addEventListener("click", event => {
     if (!plainLeftClick(event)) return;
     const link = event.target.closest?.('a[href^="#/"]');
     if (!link) return;
