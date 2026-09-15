@@ -9,7 +9,7 @@ This matrix is a release-control index for the full customer app. It does not re
 | Evaluate | Required | Required | Required | Required | Required | Required | Required | Required |
 | Decision Intelligence | Required | Required | Required | Required | Required | Required | Required | Required |
 | Why This Decision (Decision Intelligence subview) | Required | Required | Required | Required | Required | Required | Required | Required |
-| Evidence Review (`evidence`) | Required | Required | Required | Required | Required | Required | Required | Required |
+| Evidence Review | Required | Required | Required | Required | Required | Required | Required | Required |
 | Saved Decisions | Required | Required | Required | Required | Required | Required | Required | Required |
 | Outcome Intelligence | Required | Required | Required | Required | Required | Required | Required | Required |
 | Portfolio | Required | Required | Required | Required | Required | Required | Required | Required |
