@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 const indexUrl = new URL("../saas-prototype/index.html", import.meta.url);
+const customerUrl = new URL("../saas-prototype/customer.html", import.meta.url);
 const betaFlowUrl = new URL("../saas-prototype/beta-customer-flow-v2.js", import.meta.url);
 const stagingRouteUrl = new URL("../saas-prototype/staging-route-hook.js", import.meta.url);
 const professionalPolishUrl = new URL("../saas-prototype/customer-professional-polish.js", import.meta.url);
@@ -15,6 +16,20 @@ if (!source.includes(marker)) {
 if (!source.includes(guard)) {
   source = source.replace(marker, `${guard}\n${marker}`);
   fs.writeFileSync(indexUrl, source, "utf8");
+}
+
+// The full customer app has many compatibility/presentation listeners. Its
+// route-ownership guard must execute last so recovery runs after those layers
+// instead of competing with them. Private beta keeps the dynamic loader.
+let customer = fs.readFileSync(customerUrl, "utf8");
+const customerParityMarker = '  <script src="customer-navigation-parity-v1.js"></script>';
+const lateOwnershipScript = '  <script src="customer-route-ownership-v1.js?v=20260915-2" data-ff-customer-route-ownership-last></script>';
+if (!customer.includes(customerParityMarker)) {
+  throw new Error("Full customer navigation parity marker is missing.");
+}
+if (!customer.includes(lateOwnershipScript)) {
+  customer = customer.replace(customerParityMarker, `${customerParityMarker}\n${lateOwnershipScript}`);
+  fs.writeFileSync(customerUrl, customer, "utf8");
 }
 
 let stagingRoute = fs.readFileSync(stagingRouteUrl, "utf8");
@@ -79,4 +94,4 @@ if (!betaFlow.includes(decisionLink) || !betaFlow.includes(savedLink)) {
 }
 fs.writeFileSync(betaFlowUrl, betaFlow, "utf8");
 
-console.log("Injected Discover request guard, enforced a single Discover route owner, normalized beta-flow HTML rendering, and stabilized Decision Intelligence evidence actions.");
+console.log("Injected Discover request guard, enforced single route ownership, loaded the full-customer ownership guard last, normalized beta-flow HTML rendering, and stabilized Decision Intelligence evidence actions.");
