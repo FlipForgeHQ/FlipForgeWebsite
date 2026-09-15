@@ -80,12 +80,23 @@ jobs:
           cat /tmp/flipforge-customer-chaos-stress-server.log
           exit 1
 
-      - name: Run randomized customer chaos stress audit
+      - name: Replay known blank-route race seed
+        env:
+          FLIPFORGE_STRESS_WORKERS: "3"
+          FLIPFORGE_STRESS_ROUNDS: "70"
+          FLIPFORGE_STRESS_SEED: "608381750"
+        run: |
+          npm run audit:customer-chaos-stress
+          cp qa-artifacts/customer-chaos-stress/customer-chaos-stress.json qa-artifacts/customer-chaos-stress/known-seed-608381750.json
+
+      - name: Run fresh randomized customer chaos stress audit
         env:
           FLIPFORGE_STRESS_WORKERS: ${{ github.event.inputs.workers || '3' }}
           FLIPFORGE_STRESS_ROUNDS: ${{ github.event_name == 'schedule' && '120' || github.event.inputs.rounds || '70' }}
           FLIPFORGE_STRESS_SEED: ${{ github.event.inputs.seed || github.run_id }}
-        run: npm run audit:customer-chaos-stress
+        run: |
+          npm run audit:customer-chaos-stress
+          cp qa-artifacts/customer-chaos-stress/customer-chaos-stress.json qa-artifacts/customer-chaos-stress/random-seed.json
 
       - name: Upload chaos stress report
         if: always()
