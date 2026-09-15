@@ -40,11 +40,11 @@
 
   function show(link) {
     if (!link) return;
-    link.hidden = false;
-    link.removeAttribute("hidden");
-    link.removeAttribute("aria-hidden");
+    if (link.hidden) link.hidden = false;
+    if (link.hasAttribute("hidden")) link.removeAttribute("hidden");
+    if (link.hasAttribute("aria-hidden")) link.removeAttribute("aria-hidden");
     if (link.getAttribute("tabindex") === "-1") link.removeAttribute("tabindex");
-    link.setAttribute("data-ff-customer-core", "");
+    if (!link.hasAttribute("data-ff-customer-core")) link.setAttribute("data-ff-customer-core", "");
   }
 
   function replaceLabel(link, label) {
@@ -54,7 +54,8 @@
     );
     if (textNode) {
       const leading = /^\s*/.exec(textNode.nodeValue || "")?.[0] || "";
-      textNode.nodeValue = `${leading}${label}`;
+      const wanted = `${leading}${label}`;
+      if (textNode.nodeValue !== wanted) textNode.nodeValue = wanted;
     } else {
       link.append(document.createTextNode(label));
     }
@@ -82,8 +83,8 @@
     for (const duplicate of all) {
       if (duplicate !== link) duplicate.remove();
     }
-    link.setAttribute("href", href);
-    link.dataset.route = route;
+    if (link.getAttribute("href") !== href) link.setAttribute("href", href);
+    if (link.dataset.route !== route) link.dataset.route = route;
     replaceLabel(link, label);
     show(link);
     return link;
@@ -92,9 +93,9 @@
   function normalizeAdvanced(nav) {
     const advanced = nav.querySelector(":scope > .ff-advanced-nav");
     if (!advanced) return;
-    advanced.hidden = false;
-    advanced.removeAttribute("hidden");
-    advanced.removeAttribute("aria-hidden");
+    if (advanced.hidden) advanced.hidden = false;
+    if (advanced.hasAttribute("hidden")) advanced.removeAttribute("hidden");
+    if (advanced.hasAttribute("aria-hidden")) advanced.removeAttribute("aria-hidden");
     advanced.style.order = "130";
     advanced.querySelectorAll("a[data-route]").forEach(link => {
       const route = String(link.dataset.route || "");
@@ -103,9 +104,9 @@
         return;
       }
       if (!ADVANCED_ROUTES.has(route)) return;
-      link.hidden = false;
-      link.removeAttribute("hidden");
-      link.removeAttribute("aria-hidden");
+      if (link.hidden) link.hidden = false;
+      if (link.hasAttribute("hidden")) link.removeAttribute("hidden");
+      if (link.hasAttribute("aria-hidden")) link.removeAttribute("aria-hidden");
       if (link.getAttribute("tabindex") === "-1") link.removeAttribute("tabindex");
     });
   }
@@ -113,8 +114,9 @@
   function syncActive(nav) {
     const active = activeNavigationRoute();
     nav.querySelectorAll("a[data-route]").forEach(link => {
-      if (String(link.dataset.route || "") === active) link.setAttribute("aria-current", "page");
-      else link.removeAttribute("aria-current");
+      const current = String(link.dataset.route || "") === active;
+      if (current && link.getAttribute("aria-current") !== "page") link.setAttribute("aria-current", "page");
+      if (!current && link.hasAttribute("aria-current")) link.removeAttribute("aria-current");
     });
   }
 
@@ -124,11 +126,12 @@
 
     ROUTES.forEach(([route, href, label, icon], index) => {
       const link = canonicalLink(nav, route, href, label, icon);
-      link.style.order = String((index + 1) * 10);
+      const order = String((index + 1) * 10);
+      if (link.style.order !== order) link.style.order = order;
     });
     normalizeAdvanced(nav);
     syncActive(nav);
-    nav.dataset.ffCustomerNavigationParity = "v1";
+    if (nav.dataset.ffCustomerNavigationParity !== "v1") nav.dataset.ffCustomerNavigationParity = "v1";
   }
 
   function schedule() {
