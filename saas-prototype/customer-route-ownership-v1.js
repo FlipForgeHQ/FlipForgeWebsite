@@ -93,9 +93,17 @@
       return false;
     }
 
+    // Once a click has reached its requested destination, that intent is spent.
+    // A later legitimate route change must never be pulled back to the old click
+    // during the short ownership-settle window.
+    if (explicitIntent.reached) {
+      clearExplicitIntent();
+      return false;
+    }
+
     const target = explicitIntent.hash;
     queueMicrotask(() => {
-      if (!intentStillActive()) return;
+      if (!intentStillActive() || explicitIntent.reached) return;
       if (normalizedHash() === target) return;
       window.location.hash = target;
     });
