@@ -16,6 +16,7 @@
     tracking: ".customer-lifecycle-page",
     portfolio: ".customer-portfolio-page",
     alerts: ".customer-lifecycle-page",
+    account: ".customer-entitlements-page",
     "forge-heat": ".forge-heat-shell",
     "market-view": ".market-view-shell",
     compare: ".customer-compare-page",
@@ -184,6 +185,8 @@
         return lifecycleAdapterReady(route);
       case "portfolio":
         return simpleAdapterReady(window.FlipForgeCustomerPortfolio);
+      case "account":
+        return simpleAdapterReady(window.FlipForgeCustomerEntitlements);
       case "forge-heat":
         return simpleAdapterReady(window.FlipForgeCustomerForgeHeat);
       case "market-view":
