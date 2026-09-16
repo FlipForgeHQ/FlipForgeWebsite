@@ -13,6 +13,7 @@ const operatorSource = read("assets/js/beta-cdi-scorecard-operator-v1.js");
 const checks = [
   ["feedback intake validates CDI learning signals", feedbackSource.includes("validateCdiLearning") && feedbackSource.includes("learning: learningValidation.signals")],
   ["feedback intake binds a pseudonymous tester key", feedbackSource.includes("pseudonymousTesterKey") && feedbackSource.includes("testerKey") && !feedbackSource.includes("testerEmail")],
+  ["feedback intake stamps only signed beta cohort", feedbackSource.includes("signedCohort(user)") && feedbackSource.includes("metadata?.flipforge?.cohort") && feedbackSource.includes("cohort: record.cohort")],
   ["feedback intake accepts governed beta issue severity", ["S1_BLOCKING", "S2_MAJOR", "S3_MINOR", "S4_COSMETIC"].every(value => feedbackSource.includes(value))],
   ["customer learning loads in canonical customer app", loaderSource.includes("ensureBetaCdiLearningAssets") && loaderSource.includes("beta-cdi-learning-v1.js") && !loaderSource.includes("if (fullCustomerMode()) return")],
   ["customer check runs on saved decision detail", customerSource.includes('parts[0] !== "opportunities"') && customerSource.includes("data-ff-decision-card-evidence")],
@@ -26,6 +27,8 @@ const checks = [
   ["operator scorecard is role-gated through existing operator endpoint", operatorSource.includes('ENDPOINT = "/api/beta/operator"') && operatorSource.includes("operatorActive")],
   ["operator scorecard is read only", operatorSource.includes('method: "GET"') && !/method\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(operatorSource)],
   ["operator scorecard keeps no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(operatorSource)],
+  ["operator scorecard filters official metrics to Wave 1 cohort", operatorSource.includes('WAVE = "wave-1-sep-2026"') && operatorSource.includes("item?.cohort") && operatorSource.includes("waveRecords")],
+  ["operator scorecard excludes missing ratings from rate denominator", operatorSource.includes("rating !== null") && operatorSource.includes('rating !== ""')],
   ["operator page exposes Wave 1 launch scorecard", operatorHtml.includes("Founder beta scorecard") && operatorHtml.includes("data-wave1-launch-scorecard") && operatorHtml.includes("data-wave1-recommendation")],
   ["operator Wave 1 rules include hold expand pause", ["BUILD FIRST 5", "HOLD AT 5", "PAUSE AND FIX", "EXPAND TO 10"].every(value => operatorSource.includes(value))],
   ["operator page uses canonical customer route", operatorHtml.includes('href="/app/customer/#/dashboard"') && !operatorHtml.includes('href="/app/#/dashboard"')],
