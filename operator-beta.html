@@ -16,7 +16,7 @@
 <a class="skip-link" href="#main">Skip to operations workspace</a>
 <header class="ff-operator-header">
   <a class="brand" href="index.html" aria-label="FlipForge home"><img class="brand-lockup" src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why."></a>
-  <div class="ff-operator-header-actions"><span>Owner workspace</span><a href="/app/#/dashboard">Customer App</a></div>
+  <div class="ff-operator-header-actions"><span>Owner workspace</span><a href="/app/customer/#/dashboard">Customer App</a></div>
 </header>
 
 <main id="main" class="ff-operator-shell">
@@ -55,8 +55,27 @@
       </div>
     </section>
 
+    <section class="ff-operator-panel" aria-labelledby="wave1-launch-heading" data-wave1-launch-scorecard>
+      <header><div><span class="ff-operator-kicker">Wave 1 launch control</span><h2 id="wave1-launch-heading">Founder beta scorecard</h2></div><p>Rule-based operating signals for cohort <code>wave-1-sep-2026</code>.</p></header>
+      <div class="ff-feedback-metrics" aria-label="Wave 1 launch summary">
+        <article><span>Invited</span><strong data-wave1-metric="invited">0</strong></article>
+        <article><span>Activated</span><strong data-wave1-metric="activated">0</strong></article>
+        <article><span>Activation rate</span><strong data-wave1-metric="activation-rate">—</strong></article>
+        <article><span>First-session testers</span><strong data-wave1-metric="first-session">0</strong></article>
+        <article><span>Clear / better (4–5)</span><strong data-wave1-metric="clear-rate">—</strong></article>
+        <article><span>Blocked / difficult (1–2)</span><strong data-wave1-metric="blocked-rate">—</strong></article>
+        <article><span>Unresolved S1/S2</span><strong data-wave1-metric="severe-blockers">0</strong></article>
+        <article><span>Surfaced something important</span><strong data-wave1-metric="surfaced-important">0</strong></article>
+        <article><span>Changed or confirmed decision</span><strong data-wave1-metric="changed-confirmed">0</strong></article>
+        <article><span>Would use again — Yes</span><strong data-wave1-metric="future-use">0</strong></article>
+      </div>
+      <p class="ff-feedback-boundary ff-wave1-recommendation" data-wave1-recommendation role="status" aria-live="polite">BUILD FIRST 5 — awaiting Wave 1 tester signals.</p>
+      <div class="ff-wave1-blockers" data-wave1-blockers><div class="ff-operator-empty"><strong>No unresolved S1/S2 beta blockers</strong><p>Severe issue reports will appear here without card identities, listing URLs, tenant IDs, or credentials.</p></div></div>
+      <p class="ff-feedback-boundary">Expansion rules: pause for unresolved S1/S2 issues or ≥30% blocked/difficult ratings; hold for activation below 70%; expand only after at least 3 first-session testers and at least 3 “use again — Yes” signals. These are directional beta rules, not population claims.</p>
+    </section>
+
     <section class="ff-operator-panel" aria-labelledby="cdi-learning-heading" data-cdi-learning-scorecard>
-      <header><div><span class="ff-operator-kicker">Wave 1 comprehension</span><h2 id="cdi-learning-heading">Decision Intelligence scorecard</h2></div><p>Structured tester understanding signals from the real decision screen.</p></header>
+      <header><div><span class="ff-operator-kicker">Wave 1 comprehension</span><h2 id="cdi-learning-heading">Decision Intelligence scorecard</h2></div><p>Structured tester understanding and product-value signals from the real decision screen.</p></header>
       <div class="ff-feedback-metrics" aria-label="Decision Intelligence learning summary">
         <article><span>Responses</span><strong data-cdi-learning-metric="responses">0</strong></article>
         <article><span>Decision clear</span><strong data-cdi-learning-metric="decision-clear">0</strong></article>
@@ -65,9 +84,12 @@
         <article><span>Evidence increased confidence</span><strong data-cdi-learning-metric="evidence-up">0</strong></article>
         <article><span>Evidence decreased confidence</span><strong data-cdi-learning-metric="evidence-down">0</strong></article>
         <article><span>Most useful CDI layer</span><strong data-cdi-learning-metric="top-layer">No signal yet</strong></article>
+        <article><span>Product-value responses</span><strong data-cdi-learning-metric="value-responses">0</strong></article>
+        <article><span>Surfaced important signal</span><strong data-cdi-learning-metric="surfaced-important">0</strong></article>
+        <article><span>Would use again — Yes</span><strong data-cdi-learning-metric="future-use">0</strong></article>
       </div>
       <p class="ff-feedback-boundary" data-cdi-learning-status role="status" aria-live="polite">No structured comprehension checks have been submitted yet.</p>
-      <p class="ff-feedback-boundary">These are tester-reported comprehension signals. They are not accuracy, investment performance, a recommendation recalculation, or evidence authority.</p>
+      <p class="ff-feedback-boundary">These are tester-reported comprehension and product-value signals. They are not accuracy, investment performance, a recommendation recalculation, or evidence authority.</p>
     </section>
 
     <section class="ff-operator-panel ff-feedback-panel" aria-labelledby="feedback-heading">
@@ -94,6 +116,6 @@
 <script src="/assets/js/flipforge-identity.js"></script>
 <script src="assets/js/beta-operator.js?v=wave1-20260904-2" defer></script>
 <script src="assets/js/beta-founder-select.js?v=wave1-20260904-2" defer></script>
-<script src="assets/js/beta-cdi-scorecard-operator-v1.js?v=20260911-1" defer></script>
+<script src="assets/js/beta-cdi-scorecard-operator-v1.js?v=20260916-wave1" defer></script>
 </body>
 </html>
