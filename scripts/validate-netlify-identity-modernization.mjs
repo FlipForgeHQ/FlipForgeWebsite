@@ -86,8 +86,9 @@ check("052 shared Identity UI permits the production operator route only on the 
 check("053 shared Identity open fails closed outside preview and operator routes", identitySource.includes("if (!interactiveIdentityHost()) return false") && identitySource.includes("return previewHost() || productionOperatorPage()"));
 check("054 production operator sign-in explains server-side role verification", identitySource.includes("Operator authorization is verified again by the server") && identitySource.includes("Operator role not active"));
 check("055 production invitations use customer-facing beta wording", identitySource.includes("Activate your FlipForge beta account") && !identitySource.includes("Activate your FlipForge staging account"));
-check("056 successful production invitation opens Getting Started", identitySource.includes('window.location.assign("/app/#/beta-start")') && identitySource.includes("Opening FlipForge Getting Started"));
-check("057 production build validates the staging diagnostic strip rather than requiring preview assets", !productionBuild || (stagingReadIndex === -1 && !appIndex.includes('href="staging-browser.css"') && !appIndex.includes('data-route="staging"') && !appIndex.includes('data-route="staging-evaluate"')));
+check("056 successful production invitation opens canonical customer Getting Started", identitySource.includes('window.location.assign("/app/customer/#/beta-start")') && identitySource.includes("Opening FlipForge Getting Started"));
+check("057 legacy beta-shell onboarding target is absent", !identitySource.includes('window.location.assign("/app/#/beta-start")'));
+check("058 production build validates the staging diagnostic strip rather than requiring preview assets", !productionBuild || (stagingReadIndex === -1 && !appIndex.includes('href="staging-browser.css"') && !appIndex.includes('data-route="staging"') && !appIndex.includes('data-route="staging-evaluate"')));
 
 const failures = checks.filter(item => !item.passed);
 console.log("NetlifyIdentityModernizationValidation");
