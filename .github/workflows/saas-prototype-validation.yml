@@ -14,6 +14,7 @@ on:
       - "scripts/build-assets.js"
       - "scripts/validate-brand-assets.js"
       - "scripts/validate-netlify-rule-budget.mjs"
+      - "scripts/validate-customer-grading-economics-context.mjs"
       - "scripts/lib/deploy-manifest.mjs"
       - "scripts/write-deploy-manifest.mjs"
       - "scripts/validate-deploy-manifest.mjs"
@@ -76,11 +77,14 @@ jobs:
           node --check saas-prototype/customer-portfolio.js
           node --check saas-prototype/customer-entitlements.js
           node --check saas-prototype/private-beta.js
+          node --check saas-prototype/customer-grading-economics.js
+          node --check saas-prototype/staging-route-hook.js
           node --check saas-prototype/serve.mjs
           node --check scripts/lib/deploy-manifest.mjs
           node --check scripts/write-deploy-manifest.mjs
           node --check scripts/validate-deploy-manifest.mjs
           node --check scripts/validate-netlify-rule-budget.mjs
+          node --check scripts/validate-customer-grading-economics-context.mjs
           node --check scripts/validate-saas-customer-dashboard.mjs
           node --check scripts/validate-saas-commercial-dashboard-live-qa.mjs
           node --check scripts/validate-production-prototype-isolation.mjs
@@ -88,7 +92,7 @@ jobs:
           node --check scripts/validate-saas-customer-entitlements.mjs
 
       - name: Run production-path application validations
-        run: npm run build:identity && npm run validate:identity && node scripts/validate-netlify-rule-budget.mjs && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:production-prototype-isolation && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:customer-entitlements && npm run validate:private-beta-operations-boundary && npm run validate:private-beta && node scripts/build-assets.js && node scripts/validate-brand-assets.js
+        run: npm run build:identity && npm run validate:identity && node scripts/validate-netlify-rule-budget.mjs && npm run validate:account-lifecycle && npm run validate:customer-intelligence && npm run validate:customer-dashboard && npm run validate:production-prototype-isolation && npm run validate:customer-compare && npm run validate:customer-management && npm run validate:customer-portfolio && npm run validate:customer-lifecycle && npm run validate:customer-export && npm run validate:customer-discovery && npm run validate:customer-entitlements && npm run validate:private-beta-operations-boundary && npm run validate:private-beta && node scripts/validate-customer-grading-economics-context.mjs && node scripts/build-assets.js && node scripts/validate-brand-assets.js
 
       - name: Simulate Netlify Deploy Preview identity manifest
         env:
@@ -111,6 +115,7 @@ jobs:
           node scripts/validate-saas-commercial-dashboard-live-qa.mjs
           node scripts/validate-production-prototype-isolation.mjs
           node scripts/validate-consumer-ux-refinement.mjs
+          node scripts/validate-customer-grading-economics-context.mjs
           node saas-prototype/validate-sidebar-edge-fix.mjs
 
       - name: Verify generated website entry points
