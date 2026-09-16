@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "v1.0.0";
+  const VERSION = "v1.1.0";
   const CONTRACT_VERSION = "1.0";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -102,6 +102,20 @@
     return safe ? economics : null;
   }
 
+  function governedContext(economics) {
+    const context = economics?.context;
+    if (!context || typeof context !== "object") return null;
+    const safe = context.readOnly === true
+      && context.gradePredictionPerformed === false
+      && context.gradingAuthorityChanged === false
+      && context.recommendationAuthorityChanged === false
+      && context.selfTrainingAuthorized === false
+      && context.transactionAuthority === false
+      && context.populationUsedAsValueEvidence === false
+      && context.populationUsedAsGradeProbability === false;
+    return safe ? context : null;
+  }
+
   function badge(label, tone = "neutral") {
     return `<span class="staging-status staging-status-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
   }
@@ -159,6 +173,74 @@
     return `<div><span>Saved direct grading costs</span><strong>${formatCurrency(direct)}</strong><small>${friction.toFixed(1)}% selling friction is also modeled.</small></div>`;
   }
 
+  function laneContext(context, key) {
+    const lane = context?.laneContext?.[key];
+    return lane && typeof lane === "object" ? lane : null;
+  }
+
+  function evidenceQualityCopy(context) {
+    const labels = [
+      ["RAW", laneContext(context, "raw")],
+      ["PSA 9", laneContext(context, "psa9")],
+      ["PSA 10", laneContext(context, "psa10")]
+    ].map(([label, lane]) => {
+      const status = lane?.evidenceQuality?.status;
+      return `${label} ${status ? titleCase(status) : "Unavailable"}`;
+    });
+    return labels.join(" · ");
+  }
+
+  function liquidityCopy(context) {
+    const labels = [
+      ["RAW", laneContext(context, "raw")],
+      ["PSA 9", laneContext(context, "psa9")],
+      ["PSA 10", laneContext(context, "psa10")]
+    ].map(([label, lane]) => {
+      const score = Number(lane?.liquidity?.score);
+      return `${label} ${Number.isFinite(score) ? Math.round(score) : "—"}`;
+    });
+    return labels.join(" · ");
+  }
+
+  function populationLabel(entry) {
+    if (!entry || typeof entry !== "object") return "Unavailable";
+    if (entry.displayable !== true) return titleCase(entry.state || "Unavailable");
+    const inGrade = Number(entry.populationInGrade);
+    const total = Number(entry.totalPopulation);
+    if (Number.isFinite(inGrade) && Number.isFinite(total)) {
+      return `${Math.round(inGrade).toLocaleString("en-US")} in grade · ${Math.round(total).toLocaleString("en-US")} total`;
+    }
+    return titleCase(entry.state || "Available");
+  }
+
+  function receiptCopy(economics) {
+    const traceback = economics?.traceback;
+    if (!traceback || typeof traceback !== "object") return "Traceback is not available for this projection.";
+    const acquisition = traceback.acquisitionDecisionReceiptLinked === true
+      ? "Acquisition Decision Receipt linked"
+      : "Acquisition Decision Receipt not linked";
+    const grading = traceback.sourceGradingReceiptLinked === true
+      ? "grading receipt linked"
+      : "grading receipt not linked";
+    return `${acquisition}; ${grading}.`;
+  }
+
+  function contextMarkup(economics) {
+    const context = governedContext(economics);
+    if (!context) return "";
+    const uncertainty = titleCase(context?.overallUncertainty?.level || "Unknown");
+    const population = context.population || {};
+    const turnaround = context.turnaround || {};
+    const timing = turnaround.available === true && Number.isFinite(Number(turnaround.estimatedDays))
+      ? `${Math.round(Number(turnaround.estimatedDays))} days`
+      : "Not modeled";
+    const timingDetail = turnaround.available === true
+      ? "Source-backed turnaround context is available."
+      : "No source-backed turnaround estimate is attached, so FlipForge leaves timing out of the economics.";
+
+    return `<div class="boundary-note"><strong>Why these economics?</strong> FlipForge keeps the supporting evidence and the missing pieces visible instead of hiding them behind one number.</div><div class="staging-key-grid"><div><span>Evidence quality</span><strong>${escapeHtml(uncertainty)} uncertainty</strong><small>${escapeHtml(evidenceQualityCopy(context))}</small></div><div><span>Liquidity</span><strong>Evidence depth</strong><small>${escapeHtml(liquidityCopy(context))}</small></div><div><span>PSA 9 population</span><strong>${escapeHtml(populationLabel(population.psa9))}</strong><small>Population is context only; it does not create value or a grade probability.</small></div><div><span>PSA 10 population</span><strong>${escapeHtml(populationLabel(population.psa10))}</strong><small>No scarcity verdict is manufactured from population counts.</small></div><div><span>Turnaround</span><strong>${escapeHtml(timing)}</strong><small>${escapeHtml(timingDetail)}</small></div></div><div class="boundary-note"><strong>Receipt continuity:</strong> ${escapeHtml(receiptCopy(economics))}</div>`;
+  }
+
   function panelMarkup(economics) {
     const status = statusCopy(economics);
     const analysis = economics?.economicsReady === true && economics.economics && typeof economics.economics === "object"
@@ -171,11 +253,11 @@
       ? "These values come from governed exact completed-sale evidence. Active listings are excluded from value authority."
       : "FlipForge requires governed exact completed-sale evidence for RAW, PSA 9, and PSA 10 before treating the value lanes as ready.";
 
-    return `<section class="panel" data-ff-grading-economics data-ff-version="${VERSION}"><header class="panel-header"><div><span class="eyebrow">Grading Economics</span><h2>What does grading have to overcome?</h2><p>Compare RAW, PSA 9, and PSA 10 economics using evidence-backed value lanes and saved costs.</p></div>${badge(status.label, status.tone)}</header><div class="panel-body"><p>${escapeHtml(status.detail)}</p><div class="staging-key-grid">${laneCard("RAW", economics?.raw)}${laneCard("PSA 9", economics?.psa9)}${laneCard("PSA 10", economics?.psa10)}</div>${scenarioMarkup}<div class="boundary-note"><strong>Evidence boundary:</strong> ${escapeHtml(readyNote)}</div><div class="boundary-note"><strong>Decision boundary:</strong> This is scenario analysis only. FlipForge does not predict the grade, assign grade probabilities, change the saved BUY/WATCH/VERIFY/PASS decision, or authorize a transaction.</div></div></section>`;
+    return `<section class="panel" data-ff-grading-economics data-ff-version="${VERSION}"><header class="panel-header"><div><span class="eyebrow">Grading Economics</span><h2>What does grading have to overcome?</h2><p>Compare RAW, PSA 9, and PSA 10 economics using evidence-backed value lanes and saved costs.</p></div>${badge(status.label, status.tone)}</header><div class="panel-body"><p>${escapeHtml(status.detail)}</p><div class="staging-key-grid">${laneCard("RAW", economics?.raw)}${laneCard("PSA 9", economics?.psa9)}${laneCard("PSA 10", economics?.psa10)}</div>${scenarioMarkup}${contextMarkup(economics)}<div class="boundary-note"><strong>Evidence boundary:</strong> ${escapeHtml(readyNote)}</div><div class="boundary-note"><strong>Decision boundary:</strong> This is scenario analysis only. FlipForge does not predict the grade, assign grade probabilities, change the saved BUY/WATCH/VERIFY/PASS decision, or authorize a transaction.</div></div></section>`;
   }
 
   function unavailableMarkup() {
-    return `<section class="panel" data-ff-grading-economics data-ff-version="${VERSION}"><header class="panel-header"><div><span class="eyebrow">Grading Economics</span><h2>Grading economics not available yet</h2><p>The governed A12A projection is not ready for this saved card.</p></div>${badge("Not ready", "warn")}</header><div class="panel-body"><div class="boundary-note"><strong>No substitute data:</strong> FlipForge did not create estimated values, grade probabilities, or a grading recommendation to fill the gap.</div></div></section>`;
+    return `<section class="panel" data-ff-grading-economics data-ff-version="${VERSION}"><header class="panel-header"><div><span class="eyebrow">Grading Economics</span><h2>Grading economics not available yet</h2><p>The governed A12A projection is not ready for this saved card.</p></div>${badge("Not ready", "warn")}</header><div class="panel-body"><div class="boundary-note"><strong>No substitute data:</strong> FlipForge did not create estimated values, grade probabilities, population claims, turnaround estimates, or a grading recommendation to fill the gap.</div></div></section>`;
   }
 
   function inject(markup) {
