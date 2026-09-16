@@ -244,7 +244,7 @@ function renderInvite(element) {
         ? "Account activated and signed in for this deploy preview."
         : "Account activated and signed in.";
       state.panelOpen = interactiveIdentityHost();
-      if (productionSiteHost()) window.location.assign("/app/#/beta-start");
+      if (productionSiteHost()) window.location.assign("/app/customer/#/beta-start");
     } catch (error) {
       state.error = error instanceof Error ? error.message : "The invitation could not be accepted.";
     } finally {
