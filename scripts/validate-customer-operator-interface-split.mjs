@@ -11,6 +11,12 @@ const betaCore = read("netlify/modern-functions/lib/beta-operations-core.mjs");
 const redirects = read("_redirects");
 const privateBeta = read("saas-prototype/private-beta.js");
 
+const redirectLines = redirects
+  .split(/\r?\n/)
+  .map(line => line.trim())
+  .filter(line => line && !line.startsWith("#"));
+const hasRedirect = rule => redirectLines.includes(rule);
+
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
@@ -33,12 +39,12 @@ check("016 full customer CSS preserves advanced navigation", shellCss.includes("
 check("017 operator workspace remains a separate page", operator.includes("Private operations") || operator.includes("Sign in as Operator"));
 check("018 operator role remains server-defined", betaCore.includes('OPERATOR_ROLE = "flipforge-operator"'));
 check("019 active customer role remains server-defined", betaCore.includes('ACTIVE_ROLE = "flipforge-active"'));
-check("020 public app alias canonicalizes to definitive customer app", redirects.includes("/app /app/customer/ 301"));
-check("021 full customer route serves dedicated customer document", redirects.includes("/app/customer /saas-prototype/customer.html 200") && redirects.includes("/app/customer/ /saas-prototype/customer.html 200"));
-check("022 customer assets remain isolated under /app/customer", redirects.includes("/app/customer/* /saas-prototype/:splat 200"));
-check("023 generic app routes canonicalize into the customer app", redirects.includes("/app/* /app/customer/:splat 301"));
-check("024 legacy /app beta-index route is inactive", !redirects.includes("/app /saas-prototype/index.html 200"));
-check("025 legacy /app beta wildcard is inactive", !redirects.includes("/app/* /saas-prototype/:splat 200"));
+check("020 public app alias canonicalizes to definitive customer app", hasRedirect("/app /app/customer/ 301"));
+check("021 full customer route serves dedicated customer document", hasRedirect("/app/customer /saas-prototype/customer.html 200") && hasRedirect("/app/customer/ /saas-prototype/customer.html 200"));
+check("022 customer assets remain isolated under /app/customer", hasRedirect("/app/customer/* /saas-prototype/:splat 200"));
+check("023 generic app routes canonicalize into the customer app", hasRedirect("/app/* /app/customer/:splat 301"));
+check("024 legacy /app beta-index route is inactive", !hasRedirect("/app /saas-prototype/index.html 200") && !hasRedirect("/app/ /saas-prototype/index.html 200"));
+check("025 legacy /app beta wildcard is inactive", !hasRedirect("/app/* /saas-prototype/:splat 200"));
 
 for (const item of checks) console.log(`${item.passed ? "PASS" : "FAIL"} ${item.name}`);
 const failed = checks.filter(item => !item.passed);
