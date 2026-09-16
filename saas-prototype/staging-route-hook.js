@@ -83,7 +83,7 @@
     if (window.FlipForgeCustomerGradingEconomics || gradingEconomicsLoadFailed) return;
     if (document.querySelector('script[data-ff-grading-economics]')) return;
     const script = document.createElement("script");
-    script.src = "customer-grading-economics.js?v=20260916-1";
+    script.src = "customer-grading-economics.js?v=20260916-2";
     script.async = false;
     script.setAttribute("data-ff-grading-economics", "");
     script.addEventListener("error", () => {
