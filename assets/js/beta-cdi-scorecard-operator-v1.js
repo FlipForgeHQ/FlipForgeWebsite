@@ -93,18 +93,21 @@
 
   function waveSummary(applications, records, comprehension) {
     const waveApps = (applications || []).filter(item => String(item?.cohort || "").toLowerCase() === WAVE);
+    const waveRecords = (records || []).filter(item => String(item?.cohort || "").toLowerCase() === WAVE);
     const invited = waveApps.filter(item => item?.invitedAt || ["INVITE_SENT", "ACTIVATED"].includes(item?.status)).length;
     const activated = waveApps.filter(item => item?.status === "ACTIVATED").length;
-    const general = (records || []).filter(item => item?.feedback?.checkpoint === "GENERAL");
+    const general = waveRecords.filter(item => item?.feedback?.checkpoint === "GENERAL");
     const respondentKeys = new Set(general
       .filter(item => item?.feedback?.learning && item?.testerKey)
       .map(item => item.testerKey));
     const fallbackResponses = general.filter(item => item?.feedback?.learning).length;
     const firstSession = respondentKeys.size || fallbackResponses;
-    const rated = general.filter(item => Number.isFinite(Number(item?.feedback?.rating)));
+    const rated = general.filter(item => item?.feedback?.rating !== null
+      && item?.feedback?.rating !== ""
+      && Number.isFinite(Number(item.feedback.rating)));
     const clear = rated.filter(item => Number(item.feedback.rating) >= 4).length;
     const blocked = rated.filter(item => Number(item.feedback.rating) <= 2).length;
-    const severe = (records || []).filter(item =>
+    const severe = waveRecords.filter(item =>
       item?.feedback?.category === "bug"
       && ["S1_BLOCKING", "S2_MAJOR"].includes(item?.feedback?.betaIssue?.severity)
       && item?.status !== "RESOLVED");
@@ -159,8 +162,8 @@
     if (topLayer) topLayer.textContent = summary.topLayer;
     status(
       summary.responses
-        ? `${summary.responses} structured comprehension response${summary.responses === 1 ? "" : "s"}; ${summary.valueResponses} include product-value signals. These counts measure tester understanding and usefulness, not product accuracy.`
-        : "No structured comprehension checks have been submitted yet.",
+        ? `${summary.responses} Wave 1 comprehension response${summary.responses === 1 ? "" : "s"}; ${summary.valueResponses} include product-value signals. These counts measure tester understanding and usefulness, not product accuracy.`
+        : "No Wave 1 structured comprehension checks have been submitted yet.",
       summary.responses ? "ok" : "neutral"
     );
   }
@@ -207,7 +210,8 @@
       });
       if (!response.ok) throw new Error("operator unavailable");
       const payload = await response.json();
-      const comprehension = comprehensionSummary(payload.feedback || []);
+      const waveRecords = (payload.feedback || []).filter(item => String(item?.cohort || "").toLowerCase() === WAVE);
+      const comprehension = comprehensionSummary(waveRecords);
       renderComprehension(comprehension);
       renderWave(waveSummary(payload.applications || [], payload.feedback || [], comprehension));
     } catch (_) {
