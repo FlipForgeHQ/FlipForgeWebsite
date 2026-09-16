@@ -18,5 +18,6 @@ function inject(relativePath) {
 
 inject("index.html");
 inject(path.join("saas-prototype", "index.html"));
+inject(path.join("saas-prototype", "customer.html"));
 
-console.log("Injected FlipForge beta invitation Terms gate on public callback and app surfaces.");
+console.log("Injected FlipForge beta invitation Terms gate on public callback and canonical customer app surfaces.");
