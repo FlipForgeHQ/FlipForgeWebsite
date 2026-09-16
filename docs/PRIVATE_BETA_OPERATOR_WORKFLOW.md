@@ -1,11 +1,13 @@
 # FlipForge Private Beta Operator Workflow
 
 Status: **ACTIVE OWNER/OPERATOR CONTRACT**
-Effective: **2026-08-23**
+Effective: **2026-09-16**
 
 ## Purpose
 
 This workflow turns the public beta application into a controlled operating queue. It does not create public signup, paid access, transaction authority, or a second product source of truth.
+
+Private Beta does **not** use a separate customer application. Activated testers use the definitive customer SaaS at `/app/customer/`; the canonical onboarding route is `/app/customer/#/beta-start`.
 
 Operator workspace: `/operator-beta.html` (not linked in public navigation and marked `noindex`).
 
@@ -46,8 +48,9 @@ The Send Identity Invitation action is intentionally separate from approval.
 3. The server calls the Netlify Identity admin-only `/invite` endpoint using the short-lived operator token available only inside Netlify Functions.
 4. The server assigns `flipforge-active` and exactly one `flipforge-tenant--<tenantId>` role plus matching `app_metadata.flipforge` membership.
 5. A pre-existing, unconfirmed self-registration that was not created by an Identity invitation is treated as an account conflict; no beta roles are granted.
-6. The existing invitation callback asks the tester to choose a password of at least 15 characters.
-7. Invitation or role-assignment failures fail closed. The applicant is not reported as activated.
+6. The existing invitation callback asks the tester to choose a password of at least 15 characters and explicitly accept the Private Beta Terms.
+7. After the Terms receipt is recorded, the tester is sent to `/app/customer/#/beta-start` inside the full customer application.
+8. Invitation, Terms-recording, or role-assignment failures fail closed. The applicant is not reported as activated.
 
 The invitation grants no billing, bid, purchase, sale, grading, evidence-acceptance, or transaction authority.
 
@@ -92,5 +95,6 @@ The operator may move a feedback record through `NEW → UNDER_REVIEW → RESOLV
 5. Confirm the email address and select **Send Identity Invitation**.
 6. Verify the record becomes `INVITE_SENT`; never promise access before that state.
 7. Refresh later to synchronize confirmed Identity accounts to `ACTIVATED`.
-8. Review the Decision Intelligence scorecard for comprehension signals from active testers; do not interpret those counts as accuracy.
-9. Use the existing in-product Getting Started guide for the first exact-card loop and 7 / 14 / 30-day evidence review.
+8. Confirm the tester begins at `/app/customer/#/beta-start` and remains inside the same customer application throughout onboarding.
+9. Review the Decision Intelligence scorecard for comprehension signals from active testers; do not interpret those counts as accuracy.
+10. Use the in-product Private Beta Guide for the first exact-card loop and 7 / 14 / 30-day evidence review.
