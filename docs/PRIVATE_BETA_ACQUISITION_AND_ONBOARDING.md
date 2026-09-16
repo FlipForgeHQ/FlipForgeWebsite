@@ -100,4 +100,4 @@ The same review continues at days 14 and 30 when the case remains active.
 - No public accuracy percentage is authorized.
 - No guaranteed profit, fraud-filtering, transaction authority, or grade prediction claim is permitted.
 - SQLite remains the product source of truth; funnel logs are website interaction evidence only.
-- No support material may present `/app/#/beta-start` or a separate beta shell as the customer destination.
+- No support material may present a retired beta-shell path or a separate beta shell as the customer destination.
