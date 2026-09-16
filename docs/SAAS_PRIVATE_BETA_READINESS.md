@@ -85,6 +85,6 @@ npm run validate:customer-portfolio
 npm run validate:private-beta
 ```
 
-The private-beta validation must also fail if an invitation, Terms callback, customer shell, or beta documentation reintroduces `/app/#/beta-start` as the customer destination. The canonical destination is `/app/customer/#/beta-start`.
+Private-beta validation must fail if an invitation, Terms callback, customer shell, or beta documentation reintroduces the retired beta-shell onboarding destination. The only canonical tester destination is `/app/customer/#/beta-start`.
 
 The retained Identity, account lifecycle, customer intelligence, provider-backed Discover, evidence-gated Portfolio, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof harness, activation-readiness, prototype, Decision Dossier, and visual suites must remain green.
