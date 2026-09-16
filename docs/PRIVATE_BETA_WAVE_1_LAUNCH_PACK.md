@@ -5,66 +5,41 @@ Effective: **2026-09-16**
 
 ## Purpose
 
-Move FlipForge from internal readiness proof into controlled real-user validation without reopening completed architecture/security audits or expanding faster than the evidence supports.
+Move FlipForge from internal proof into controlled real-user validation without reopening completed architecture/security work or expanding faster than the evidence supports.
 
-Wave 1 is intentionally small. The objective is to learn whether serious collectors understand the product, complete the exact-card decision loop, find the reasoning useful, and return to use it again.
+Wave 1 is intentionally small. The objective is to learn whether real collectors can complete the exact-card decision loop, understand Card Decision Intelligence™, find the reasoning useful, and choose to use FlipForge again before another meaningful purchase.
 
-Private Beta is not a separate customer application. All invited testers use the definitive customer SaaS at `/app/customer/`, with onboarding at `/app/customer/#/beta-start`.
+Private Beta is not a separate application. Invited testers use the definitive customer SaaS at `/app/customer/`, with onboarding at `/app/customer/#/beta-start`.
 
-This document supplements the existing private-beta operating contracts:
-
-- `docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md`
-- `docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md`
-- `docs/FOUNDER_SELECTED_BETA_TESTER_FLOW.md`
-- `docs/SAAS_PRIVATE_BETA_READINESS.md`
-- `docs/BETA_CUSTOMER_APP_CANONICAL_ROUTE_2026-09-16.md`
-- in-product `/app/customer/#/beta-start` Private Beta Guide
-
-It does not authorize billing, a public accuracy percentage, transactions, auto-buying, grade prediction, or production self-training.
+This launch does **not** authorize billing, a public accuracy percentage, transactions, auto-buying, grade prediction, recommendation recomputation from tester feedback, or production self-training.
 
 ## Wave 1 cohort
 
-Target cohort slug: `wave-1-sep-2026`
+Cohort slug: `wave-1-sep-2026`
 
-Initial size: **5 invited testers**.
+Initial size: **5 invited testers**.  
+Expansion ceiling before founder review: **10 testers total**.
 
-Expansion ceiling before review: **10 testers total**.
-
-Preferred tester mix:
+Preferred first-five mix:
 
 - at least 2 experienced collectors who regularly buy graded cards;
 - at least 1 grading-focused collector;
 - at least 1 active buyer who compares multiple listings before purchase;
 - at least 1 user who is less familiar with advanced card-data tools, to expose comprehension problems.
 
-Do not optimize Wave 1 for praise. Prefer testers who will challenge identity, evidence, supported value, and the final BUY CANDIDATE / WATCH / VERIFY / PASS reasoning.
+Do not optimize Wave 1 for praise. Prefer people who will challenge identity, evidence, supported value, risk, and BUY / WATCH / VERIFY / PASS reasoning.
 
-## Launch gate
+## Founder-selected tester criteria
 
-Before the first invitation is sent, require all of the following:
+A strong Wave 1 tester should meet most of these conditions:
 
-- master independent audit is closed completed;
-- production signed-in customer-path QA is closed completed;
-- local managed backup is READY;
-- latest managed backup has verified Cloudflare R2 offsite copy;
-- non-destructive production restore rehearsal is READY;
-- previously exposed/replaced R2 credential has been revoked;
-- temporary local presigned PUT/GET URL files have been deleted;
-- no public CardSight accuracy percentage is displayed or implied;
-- billing and transaction authority remain disabled;
-- invitation activation, Beta Terms completion, documentation, and support guidance all resolve to `/app/customer/#/beta-start` rather than a legacy beta-shell route.
+1. Buys or seriously evaluates sports cards with real money.
+2. Can bring one real listing they would genuinely consider buying.
+3. Is willing to inspect the reasoning rather than judge FlipForge only by whether they agree with the result.
+4. Will report confusing, missing, or incorrect behavior directly.
+5. Can return for at least one follow-up checkpoint.
 
-## Founder-selected testers
-
-The operator may personally invite a tester without requiring the public beta questionnaire or manually moving that person through the public application review states.
-
-Use **Invite a tester** in `/operator-beta.html`, provide name, email, and beta test group, then select **Send private beta invite**.
-
-Behind the scenes, FlipForge creates one deduplicated application-compatible record as `APPROVED` with `selectionSource=FOUNDER_SELECTED`, then immediately calls the existing server-owned Identity invitation path. If the Identity send fails after the record is created, the operator can retry the existing **Send Identity Invitation** action from Applications without creating a duplicate.
-
-Founder selection does not accept legal terms on the tester's behalf. Founder-selected membership remains `terms_pending` until the tester explicitly accepts the current FlipForge Private Beta Terms during invitation activation. The accepted Terms version and timestamp are recorded against the application-bound Identity membership before active beta access is granted.
-
-After successful activation and Terms recording, the tester is sent to `/app/customer/#/beta-start` inside the full customer application.
+Do not require a tester to be an expert. A mixed skill level is intentional.
 
 ## Invitation message
 
@@ -86,95 +61,128 @@ Todd
 Founder, FlipForge  
 **Before you buy. Know Why.**
 
-## First-session assignment
+## First-session mission
 
-Each tester should complete **one exact-card loop** before broad exploration:
+The in-product Private Beta Guide reduces the first session to **five tasks**:
 
-1. Open `/app/customer/#/beta-start` and review the Private Beta Guide.
-2. Search one exact card in Discover.
-3. Confirm that the returned identity matches year, set, player, card number, parallel/variation, grader, and grade.
-4. Select one real listing or enter one manually in Evaluate.
-5. Review Decision Intelligence before accepting the recommendation state.
-6. Open Decision Traceback and inspect what evidence was accepted, excluded, or withheld.
-7. Save/track the decision and create a Decision Dossier when available.
-8. Submit structured feedback from the Private Beta Guide.
+1. **Bring one real card.** Use a sports-card listing the tester would genuinely consider buying.
+2. **Verify the exact identity.** Confirm year, set, player, card number, parallel/variation, grader, and grade.
+3. **Get the FlipForge decision.** Use the real all-in acquisition cost and read BUY / WATCH / VERIFY / PASS before deeper analysis.
+4. **Challenge the evidence.** Inspect what evidence was accepted, excluded, or withheld and whether the Decision Receipt / traceback makes sense.
+5. **Track it and report what changed.** Save or track the decision, complete the structured beta check, rate the first-session experience, and report any blocker.
 
-The original decision is preserved. Later evidence is compared with it; it is not rewritten in hindsight.
+The original decision remains preserved. Tester feedback never rewrites it.
 
-## What Wave 1 must measure
+## Structured decision and product-value check
 
-### Already captured by the current product
+The saved-decision screen now captures seven governed fields from active invited testers:
 
-The current beta system can provide:
+### Comprehension
 
-- application and invitation state;
-- activation state;
-- structured feedback category;
-- route where feedback occurred;
-- 1–5 experience rating;
-- GENERAL / DAY_7 / DAY_14 / DAY_30 checkpoint;
-- `REASONING_HELD`, `REASONING_CHANGED`, or `MORE_EVIDENCE_NEEDED` outcome signal;
-- feedback review state NEW / UNDER_REVIEW / RESOLVED;
-- anonymous onboarding/funnel interaction counts already defined by the acquisition contract.
+- `decisionUnderstood`: YES / PARTLY / NO
+- `nextStepClear`: YES / PARTLY / NO
+- `evidenceImpact`: INCREASED / NO_CHANGE / DECREASED / NOT_VIEWED
+- `mostUsefulLayer`: IDENTITY / EVIDENCE / ECONOMICS / RISK_UNCERTAINTY / DECISION / RECEIPT / OUTCOME / NONE
 
-### Operator scorecard fields
+### Product value
 
-For Wave 1, maintain these additional cohort-level counts without putting card identities, listing URLs, tenant IDs, credentials, or private customer data into the scorecard:
+- `surfacedImportant`: YES / NO / UNSURE
+- `decisionEffect`: CHANGED / CONFIRMED / NEITHER
+- `futureUse`: YES / MAYBE / NO
 
-| Metric | Definition |
-|---|---|
-| Invited | Number moved to `INVITE_SENT`. |
-| Activated | Number synchronized to `ACTIVATED`. |
-| Activation rate | Activated / Invited. |
-| First-session respondents | Activated testers who submit GENERAL feedback after attempting the first exact-card loop. |
-| First-session response rate | First-session respondents / Activated. |
-| Clear-or-better rate | Ratings 4–5 / rated first-session responses. |
-| Blocked-or-difficult rate | Ratings 1–2 / rated first-session responses. |
-| Day-7 participation | Testers submitting a DAY_7 outcome review / eligible activated testers. |
-| Reasoning held | DAY_7 responses marked `REASONING_HELD`. |
-| Reasoning changed | DAY_7 responses marked `REASONING_CHANGED`. |
-| More evidence needed | DAY_7 responses marked `MORE_EVIDENCE_NEEDED`. |
-| Repeated blocker | Same material workflow/identity/evidence defect reported by 2+ testers. |
+The three product-value questions therefore no longer require an off-platform follow-up spreadsheet or email tally.
 
-## Three product-value questions
+These are **product-value signals**, not accuracy statistics.
 
-The current structured feedback form does **not yet** directly capture the following three questions. Until they are added to the product, ask them during the Wave 1 follow-up and record only aggregate counts:
+## Privacy-preserving response counting
 
-1. **Did FlipForge surface something important you would otherwise have missed?** — Yes / No / Unsure
-2. **Did the reasoning change or confirm what you planned to do?** — Changed / Confirmed / Neither
-3. **Would you use FlipForge before another meaningful card purchase?** — Yes / Maybe / No
+Each new beta feedback record may include a server-generated `testerKey` derived from the signed Identity account through a one-way SHA-256 namespace digest.
 
-These are product-value signals, not accuracy statistics.
+The tester key exists only to count unique tester participation without storing the tester's email in the scorecard. The operator scorecard does not display the key.
+
+Beta feedback must not contain card identities, listing URLs, passwords, access tokens, provider credentials, tenant IDs, or other sensitive data.
+
+## Beta issue flow
+
+The Private Beta Guide includes a dedicated **Report a beta issue** flow.
+
+Severity values:
+
+- `S1_BLOCKING` — tester cannot continue;
+- `S2_MAJOR` — major workflow problem;
+- `S3_MINOR` — minor problem;
+- `S4_COSMETIC` — visual/polish issue.
+
+Issue reports enter the existing authenticated beta-feedback queue and do not mutate any evaluation or authority state. Unresolved S1/S2 issues are surfaced in the founder scorecard.
+
+## Founder scorecard
+
+`/operator-beta.html` contains the Wave 1 founder scorecard for `wave-1-sep-2026`.
+
+It reports:
+
+- invited testers;
+- activated testers;
+- activation rate;
+- first-session tester participation;
+- clear-or-better 4–5 rating rate when ratings are present;
+- blocked-or-difficult 1–2 rating rate when ratings are present;
+- unresolved S1/S2 beta blockers;
+- testers who say FlipForge surfaced something important;
+- testers whose decision was changed or confirmed;
+- testers who say they would use FlipForge before another meaningful card purchase;
+- the Decision Intelligence comprehension counts and most useful CDI layer.
+
+The scorecard is read-only. It reads the existing operator endpoint and never changes customer data, recommendations, evidence, grading guidance, or entitlements.
 
 ## Wave 1 decision rules
 
-Do not expand the cohort merely because invitations are available.
+The operator scorecard converts the current cohort signals into one operating state:
 
-- If activation rate is below **70%**, treat onboarding/invitation friction as the priority before expanding.
-- If blocked-or-difficult feedback reaches **30% or more**, stop expansion and fix the dominant workflow issue.
-- If the same material identity/evidence/customer-path defect is reported by **2 or more testers**, classify it before sending more invitations.
-- Do not expand beyond the first 5 until at least **3 testers complete the first exact-card loop** and there is no unresolved S1/S2 beta blocker.
-- A strong early product signal is at least **3 of the first 5 activated testers** saying they would use FlipForge before another meaningful purchase. This is directional beta evidence only, not a population-level conversion claim.
+### `BUILD FIRST 5`
 
-## Day-7 review scorecard
+Use while fewer than five Wave 1 testers have been invited.
 
-Complete one cohort review seven days after the first Wave 1 activations.
+### `PAUSE AND FIX`
 
-Record:
+Use when either condition is true:
 
-- invited;
-- activated;
-- completed first-session responses;
-- median/typical rating and ratings distribution;
-- top 3 repeated confusion points;
-- top 3 reasons testers found the reasoning useful;
-- count of repeated material defects;
+- an unresolved S1/S2 beta blocker exists; or
+- at least three first-session ratings exist and 30% or more are rated 1–2.
+
+### `HOLD — FIX ACTIVATION`
+
+Use when at least three invitations have been sent and activation is below 70%.
+
+### `EXPAND TO 10`
+
+Expansion is allowed only after the first five are in motion, no pause condition exists, at least three testers have completed the structured first-session check, and at least three product-value responses say `futureUse=YES`.
+
+### `HOLD AT 5`
+
+Use when five have been invited but there is not yet enough evidence to expand and no pause condition exists.
+
+These are founder operating rules for a tiny private beta. They are not statistical population claims.
+
+## Day-7 review
+
+Seven days after the first Wave 1 activations, review:
+
+- invited and activated counts;
+- first-session participation;
+- Decision Intelligence understanding;
+- next-step clarity;
+- evidence confidence effect;
+- most useful CDI layer;
+- product-value responses;
+- unresolved and resolved beta issues;
 - DAY_7 outcome participation;
-- reasoning-held / changed / insufficient-evidence counts;
-- aggregate answers to the three product-value questions;
+- `REASONING_HELD`, `REASONING_CHANGED`, and `MORE_EVIDENCE_NEEDED` counts;
 - fixes shipped during the week;
 - items intentionally deferred;
-- recommendation: `HOLD AT 5`, `EXPAND TO 10`, or `PAUSE AND FIX`.
+- whether the founder scorecard says HOLD, EXPAND, or PAUSE.
+
+Do not change the original Day-0 decision during review.
 
 ## Follow-up message after first session
 
@@ -182,15 +190,11 @@ Record:
 
 Hi {{first_name}},
 
-Thanks for running your first FlipForge case. I am interested in the decision process more than whether you liked the interface.
+Thanks for running your first FlipForge case. The most useful thing you can do now is make sure you submitted the short beta check on the saved decision screen and the 1–5 session rating in the Private Beta Guide.
 
-Please answer these three questions:
+If something appeared wrong, use **Report a beta issue** in the Private Beta Guide. Tell us what happened and what you expected instead, but do not include card/listing identifiers or private account information.
 
-1. Did FlipForge surface something important you would otherwise have missed?
-2. Did the reasoning change your planned decision, confirm it, or neither?
-3. Would you use FlipForge before another meaningful card purchase?
-
-If something appeared wrong, tell us the route, what you expected, what happened instead, and why it mattered. Please keep card/listing identifiers and private information out of email and feedback.
+The goal is to learn whether the reasoning was clear, useful, and worth returning to before another real purchase.
 
 ## Day-7 message
 
@@ -206,29 +210,21 @@ The goal is to learn what held up, what changed, and where more evidence is stil
 
 ## Accuracy-claim boundary
 
-Wave 1 does not authorize a public CardSight accuracy rate.
+Wave 1 does not authorize a public CardSight or FlipForge accuracy rate.
 
-Do not convert:
-
-- tester agreement;
-- experience ratings;
-- outcome-review participation;
-- reasoning-held counts; or
-- small-cohort product-value responses
-
-into an advertised accuracy percentage.
+Do not convert tester agreement, experience ratings, comprehension, `futureUse`, outcome participation, reasoning-held counts, or small-cohort product-value responses into an advertised accuracy percentage.
 
 Public statistical claims require a separately governed metric definition, denominator, blind/evaluable sample policy, exclusions, minimum sample size, confidence treatment, and approved claim language.
 
 ## Operator sequence
 
-1. Perform the security cleanup gate.
-2. Open `/operator-beta.html` and Refresh & Sync.
-3. For people you personally choose: enter name, email, and beta group under **Invite a tester**, then select **Send private beta invite**. No manual review sequence is required.
-4. For public applicants only: review fit and move qualified applicants through UNDER_REVIEW → APPROVED with cohort `wave-1-sep-2026`, then send the Identity invitation.
-5. Tester accepts the Private Beta Terms during activation and creates the account password.
-6. Verify `INVITE_SENT`, Terms receipt, and later `ACTIVATED` states.
-7. Tester lands at `/app/customer/#/beta-start` inside the same full customer app and completes the first exact-card loop.
-8. Review new feedback daily; resolve blockers before expanding.
-9. Complete the Day-7 Wave 1 scorecard.
-10. Expand to 10 only when the Wave 1 decision rules support it.
+1. Open `/operator-beta.html` and use **Refresh & Sync**.
+2. Personally selected testers: use **Invite a tester**, enter name/email/group `wave-1-sep-2026`, and send the private beta invite.
+3. Public applicants: review fit and move qualified applicants through the normal approval path before invitation.
+4. Tester accepts the Private Beta Terms and activates the account.
+5. Verify `INVITE_SENT`, Terms receipt, and then `ACTIVATED`.
+6. Tester lands at `/app/customer/#/beta-start` and completes the five-task mission.
+7. Review the founder scorecard and new feedback daily.
+8. Treat unresolved S1/S2 reports as blockers before expansion.
+9. Complete the Day-7 review.
+10. Expand to 10 only when the Wave 1 scorecard supports it.

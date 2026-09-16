@@ -46,7 +46,6 @@
   }
 
   function ensureBetaCdiLearningAssets() {
-    if (fullCustomerMode()) return;
     if (!document.querySelector('link[data-ff-beta-cdi-learning]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
