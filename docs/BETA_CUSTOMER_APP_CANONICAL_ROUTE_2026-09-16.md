@@ -15,7 +15,7 @@ Canonical private-beta onboarding route:
 
 `/app/customer/#/beta-start`
 
-The legacy `/app/#/beta-start` route must not be emitted by invitation, Terms-acceptance, onboarding, operator, launch, or support code. `/app` may remain only as a Netlify compatibility alias that canonicalizes to `/app/customer/`.
+The retired pre-canonical beta-shell onboarding target must not be emitted by invitation, Terms-acceptance, onboarding, operator, launch, or support code. `/app` may remain only as a Netlify compatibility alias that canonicalizes to `/app/customer/`.
 
 ## Activation contract
 
@@ -45,7 +45,7 @@ All operator instructions, invitation callbacks, launch packs, readiness docs, c
 
 Private-beta validation must fail if:
 
-- `/app/#/beta-start` reappears in invitation or Terms-completion code;
+- the retired beta-shell onboarding target reappears in invitation or Terms-completion code;
 - the customer app stops loading `private-beta.css` or `private-beta.js`;
 - the Terms-gate injector stops targeting `saas-prototype/customer.html`;
 - canonical beta documentation stops naming `/app/customer/#/beta-start`;
