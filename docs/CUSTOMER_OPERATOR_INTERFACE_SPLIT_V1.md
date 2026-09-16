@@ -2,39 +2,31 @@
 
 ## Purpose
 
-FlipForge now treats the authenticated customer app and the private operator workspace as two separate interfaces over the same FlipForge intelligence system.
+FlipForge treats the definitive authenticated customer app and the private operator workspace as two separate interfaces over the same FlipForge intelligence system.
 
-- Customer app: `/app/`
+- Customer app: `/app/customer/`
+- Private Beta onboarding inside customer app: `/app/customer/#/beta-start`
 - Operator workspace: `/operator-beta.html`
 
-This change does **not** create a second decision engine, a second evidence authority, or a second source of truth.
+The `/app` path is only a compatibility alias that canonicalizes to `/app/customer/`. Private Beta does **not** create a separate customer app.
+
+This interface split does **not** create a second decision engine, a second evidence authority, or a second source of truth.
 
 ## Customer interface
 
-The customer-visible primary navigation is intentionally limited to:
+The full customer app exposes the current Card Decision Intelligence workflow, including Home, Discover, Evaluate a Card, Decision Intelligence, Why This Decision, Evidence Review, Saved Decisions, Outcome Intelligence, Portfolio, Alerts, Forge Heat, Market View, and approved advanced-analysis routes.
 
-1. Home
-2. Evaluate
-3. Saved Decisions
-4. Tracking
+Private Beta testers enter this same customer shell. Their signed membership controls beta access and capability availability. The `#/beta-start` route is a first-run guide rendered by `private-beta.js` inside the full customer shell; it is not an alternative beta application.
 
-Alerts remain available from the top-bar notification control. Account remains available from the account control.
+The first-session beta loop remains intentionally focused:
 
-Advanced analytical destinations remain deep-link compatible for existing internal flows, validators, and saved references, but they are not exposed as primary customer navigation.
+**Find card → Evaluate → Understand the evidence and decision → Save/Track → Feedback**
 
-The customer Home screen is intentionally reduced to three actions:
-
-- Evaluate a card
-- Review saved decisions
-- Check tracking
-
-The private-beta guide is also reduced to one customer loop:
-
-**Find card → Evaluate → Understand → Track**
+The customer UI must clearly label beta-limited or unavailable capabilities rather than presenting dead controls that imply an authority or backend capability that is intentionally inactive.
 
 ## Operator interface
 
-The existing operator workspace remains separate at `/operator-beta.html`.
+The operator workspace remains separate at `/operator-beta.html`.
 
 Operator access continues to depend on the existing `flipforge-operator` role (or authorized admin role). Operator applicant reads and mutations remain re-authorized server-side.
 
@@ -55,6 +47,14 @@ It does not change:
 - transaction authority;
 - the canonical backend source of truth.
 
+## Canonical routing contract
+
+- `/app` → `/app/customer/`
+- `/app/customer/` serves the definitive customer document.
+- `/app/customer/#/beta-start` renders Private Beta onboarding inside that document.
+- `/app/#/beta-start` is legacy and must not be emitted by invitation, Terms-completion, onboarding, operator, or support flows.
+- `/operator-beta.html` remains the separate owner/operator interface.
+
 ## Validation
 
 Run:
@@ -63,4 +63,4 @@ Run:
 npm run validate:customer-operator-split
 ```
 
-The validator confirms that the customer app exposes exactly four primary destinations, the advanced/internal route registry remains hidden, the operator workspace is not linked from the customer app, the operator/customer roles remain server-defined, and `/app` continues to route to the authenticated SaaS surface.
+The validator confirms that the full customer app remains authoritative, the Private Beta Guide is mounted inside it, operator/customer roles remain server-defined, the operator workspace is not linked from the customer app, `/app` canonicalizes to `/app/customer/`, and the retired legacy beta-shell redirects do not return.

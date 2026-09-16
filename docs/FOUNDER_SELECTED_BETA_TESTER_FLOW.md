@@ -1,11 +1,17 @@
 # FlipForge Founder-Selected Beta Tester Flow
 
-Status: **PREVIEW / PR REVIEW**  
-Effective candidate: **2026-09-04**
+Status: **ACTIVE / CANONICAL CUSTOMER APP FLOW**  
+Effective: **2026-09-16**
 
 ## Purpose
 
 Allow the founder to personally invite a private-beta tester without forcing that person through the public application questionnaire or a manual review sequence, while preserving controlled Identity access, tenant membership, Beta Terms, feedback, and no-transaction boundaries.
+
+Private Beta is **not a separate customer application**. Invited testers use the same definitive FlipForge customer SaaS at `/app/customer/`. Beta status controls access, onboarding, and capability availability inside that customer app.
+
+Canonical onboarding route:
+
+`/app/customer/#/beta-start`
 
 ## Operator flow
 
@@ -32,15 +38,16 @@ Founder selection is not Terms acceptance. The founder never accepts Beta Terms 
 4. The Identity client accepts the invitation and creates the password-controlled account.
 5. A same-origin authenticated request records the accepted Terms version and timestamp against the tester's application-bound Identity membership.
 6. If the receipt cannot be recorded immediately, the browser retains only a bounded pending-acceptance marker and presents a blocking retry screen rather than treating the receipt as complete.
-7. After acceptance is recorded, the tester lands on `/app/#/beta-start` and follows the existing Private Beta Guide.
+7. After acceptance is recorded, the tester lands on `/app/customer/#/beta-start` inside the full customer application and follows the Private Beta Guide.
+8. Completing the guide continues directly into the same customer routes used for Discover, Evaluate, Decision Intelligence, Saved Decisions, Outcome Intelligence, Portfolio, Alerts, Forge Heat, Market View, and approved advanced analysis.
 
 Current Terms version: `2026-08-15`.
 
 ## First-session guidance
 
-The existing Private Beta Guide remains authoritative for onboarding:
+The Private Beta Guide inside the customer app remains authoritative for onboarding:
 
-`Discover → Evaluate → Card Intelligence → Decision Traceback → Compare → Track → Decision Dossier → Feedback`
+`Discover → Evaluate → Decision Intelligence → Decision Traceback → Compare → Track → Decision Dossier → Feedback`
 
 For Wave 1, the tester should bring one real sports-card listing they would seriously consider and complete one exact-card loop before broad exploration.
 
@@ -53,6 +60,8 @@ The public application flow still uses its governed review states because those 
 The direct founder-selected path intentionally skips only the unnecessary selection review:
 
 `FOUNDER_SELECTED → INVITE_SENT → TERMS_ACCEPTED → ACTIVATED`
+
+Both flows end in the same canonical customer application. There is no separate beta application shell for testers.
 
 ## Data and security boundaries
 
@@ -74,4 +83,4 @@ The founder experience becomes:
 
 The tester experience becomes:
 
-**Invitation email → accept Beta Terms + set password → Private Beta Guide → first exact-card test → structured feedback → 7 / 14 / 30 outcome review.**
+**Invitation email → accept Beta Terms + set password → `/app/customer/#/beta-start` → first exact-card test → structured feedback → 7 / 14 / 30 outcome review.**

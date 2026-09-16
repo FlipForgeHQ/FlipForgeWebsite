@@ -4,21 +4,26 @@
 
 This phase wraps the existing customer intelligence loop in a controlled private-beta experience. It does not create another application, recommendation engine, grading authority, database, or billing system.
 
+The definitive customer application is `/app/customer/`. Private Beta is an access/onboarding mode inside that application, not a separate beta UI. The canonical Private Beta onboarding route is `/app/customer/#/beta-start`.
+
 The customer path is now:
 
 1. accept an invitation and sign in;
-2. either search approved connected active-listing sources in Discover or enter one exact listing manually in Evaluate;
-3. explicitly submit the chosen listing to the existing authoritative Smart Opportunity evaluation endpoint;
-4. review the saved Card Intelligence and Decision Traceback;
-5. return to the tracked SQLite record;
-6. inspect saved Evidence, PSA guidance, Exit Review, lifecycle, Portfolio reference context, or Decision Dossier context;
-7. submit structured beta feedback or a 7 / 14 / 30 outcome checkpoint.
+2. land in the canonical customer app Private Beta Guide at `/app/customer/#/beta-start`;
+3. either search approved connected active-listing sources in Discover or enter one exact listing manually in Evaluate;
+4. explicitly submit the chosen listing to the existing authoritative Smart Opportunity evaluation endpoint;
+5. review the saved Card Intelligence and Decision Traceback;
+6. return to the tracked SQLite record;
+7. inspect saved Evidence, PSA guidance, Exit Review, lifecycle, Portfolio reference context, or Decision Dossier context;
+8. submit structured beta feedback or a 7 / 14 / 30 outcome checkpoint.
 
 Smart Opportunity remains the sole `BUY / WATCH / VERIFY / PASS` authority. Existing PSA intelligence remains the sole grading-guidance authority. SQLite remains the source of truth for saved evaluations and tenant-owned opportunities.
 
 ## First-run guidance
 
-Authenticated users with an active, administrator-signed tenant membership are routed once to `#/beta-start` on `goflipforge.com` and eligible controlled previews. A successfully activated production invitation also lands directly on that guide. Completing the introduction stores only the browser preference key `flipforge.privateBeta.onboarding.v1` with the value `complete`.
+Authenticated users with an active, administrator-signed tenant membership are routed once to `#/beta-start` **inside `/app/customer/`** on `goflipforge.com` and eligible controlled previews. A successfully activated production invitation lands directly on `/app/customer/#/beta-start`.
+
+The customer shell loads the Private Beta Guide assets directly, so the onboarding route cannot fall through to a different beta shell or silently become the normal dashboard. Completing the introduction stores only the browser preference key `flipforge.privateBeta.onboarding.v1` with the value `complete`.
 
 The preference contains no email, user ID, tenant ID, token, card identity, listing URL, evaluation, recommendation, evidence, or entitlement. Clearing browser storage simply causes the guide to appear again. It does not change the account or authoritative data.
 
@@ -49,6 +54,7 @@ The role-gated operator workspace reports feedback review state and checkpoint c
 
 - Invitation-only access; no public signup.
 - Production access is invitation-only and tenant-scoped; controlled deploy previews remain available for pre-promotion validation.
+- The canonical customer application is `/app/customer/`; no second beta customer application is authoritative.
 - The customer API can still be disabled between approved testing sessions; no mock result replaces it and saved SQLite records remain authoritative.
 - Provider-backed Discover is a real customer path when both the private-beta bridge and the approved server-side active-listing provider are configured.
 - Discover currently searches approved connected active-listing sources only; it does not claim complete-market coverage.
@@ -78,5 +84,7 @@ npm run validate:customer-discovery
 npm run validate:customer-portfolio
 npm run validate:private-beta
 ```
+
+Private-beta validation must fail if an invitation, Terms callback, customer shell, or beta documentation reintroduces the retired beta-shell onboarding destination. The only canonical tester destination is `/app/customer/#/beta-start`.
 
 The retained Identity, account lifecycle, customer intelligence, provider-backed Discover, evidence-gated Portfolio, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof harness, activation-readiness, prototype, Decision Dossier, and visual suites must remain green.

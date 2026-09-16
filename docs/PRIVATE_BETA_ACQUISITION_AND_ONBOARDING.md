@@ -1,7 +1,16 @@
 # FlipForge Private Beta Acquisition and Onboarding
 
 Status: **ACTIVE PRIVATE-BETA OPERATING CONTRACT**  
-Effective: **2026-08-23**
+Effective: **2026-09-16**
+
+## Canonical customer entry
+
+FlipForge Private Beta is an invited-access mode inside the definitive customer SaaS, not a separate beta application.
+
+Canonical customer app: `/app/customer/`  
+Canonical onboarding route: `/app/customer/#/beta-start`
+
+All invitation, Terms-acceptance, onboarding, support, and follow-up guidance must point testers into that same customer application.
 
 ## Funnel events
 
@@ -16,7 +25,7 @@ FlipForge records only these first-party, anonymous conversion events:
 | `app_preview_clicked` | A visitor selected an App Preview entry point. |
 | `onboarding_guide_clicked` | An applicant selected the onboarding guide from the receipt page. |
 | `onboarding_guide_viewed` | A visitor loaded the beta onboarding guide. |
-| `onboarding_workspace_clicked` | A visitor selected the invitation-only workspace entry point. |
+| `onboarding_workspace_clicked` | A visitor selected the invitation-only customer-app entry point. |
 
 The event service accepts only an allowlisted event name, page category, placement category, schema version, and server timestamp. It does not intentionally record a visitor ID, name, email address, account, card, listing, query string, referrer, or user-agent value. The browser script uses no analytics cookies, local storage, or session storage.
 
@@ -34,12 +43,12 @@ Do not describe these counts as product accuracy, investment performance, unique
 
 ## Applicant and tester path
 
-1. Applicant submits the same-site server intake form to `/api/beta/applications`.
-2. Confirmation page states `Awaiting selection review` and links to the public preparation guide.
-3. Operator reviews fit, capacity, testing focus, and likely testing frequency.
-4. Selected tester receives an invitation and activates authenticated access.
-5. First authenticated route is the existing in-product Private Beta Guide.
-6. Tester completes one exact-card loop: Discover → Evaluate → Card Intelligence → Traceback → Compare → Track → Decision Dossier → focused feedback.
+1. Applicant submits the same-site server intake form to `/api/beta/applications`, or the founder directly selects the tester from `/operator-beta.html`.
+2. Public applicants receive the normal selection-review flow; founder-selected testers may skip only that review step.
+3. Selected tester receives an invitation and activates authenticated access.
+4. Tester explicitly accepts the Private Beta Terms and creates the account password.
+5. Successful activation opens `/app/customer/#/beta-start` inside the full customer application.
+6. Tester completes one exact-card loop: Discover → Evaluate → Decision Intelligence → Traceback → Compare → Track → Decision Dossier → focused feedback.
 7. Tester revisits the preserved decision at 7 / 14 / 30-day checkpoints where possible and submits the bounded outcome signal through the signed feedback endpoint.
 
 ## Operator email templates
@@ -52,7 +61,9 @@ Hi {{first_name}},
 
 You have been selected for the invitation-only FlipForge private beta. Your first goal is not to test every feature. It is to run one exact-card decision through identity, evidence, recommendation, and traceback, then tell us where the reasoning helped or failed.
 
-Activate your account using the invitation sent separately, then open the Private Beta Guide before starting.
+Activate your account using the invitation sent separately, accept the Private Beta Terms, then continue into the Private Beta Guide inside the FlipForge customer app.
+
+Your onboarding destination after activation is `/app/customer/#/beta-start`.
 
 Prepare one case with the year, set, player, card number, parallel or insert, grader, grade, and the decision you are trying to make. Do not send passwords, access tokens, provider keys, tenant IDs, listing URLs, or private personal information in feedback.
 
@@ -89,3 +100,4 @@ The same review continues at days 14 and 30 when the case remains active.
 - No public accuracy percentage is authorized.
 - No guaranteed profit, fraud-filtering, transaction authority, or grade prediction claim is permitted.
 - SQLite remains the product source of truth; funnel logs are website interaction evidence only.
+- No support material may present a retired beta-shell path or a separate beta shell as the customer destination.

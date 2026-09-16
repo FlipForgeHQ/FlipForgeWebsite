@@ -42,11 +42,11 @@ check(customer.includes('window.FlipForgeFullCustomerEntry=true'), "customer doc
 check(customer.includes('>CUSTOMER APP</span>'), "customer document is statically labeled CUSTOMER APP");
 check(!customer.includes('>CUSTOMER BETA</span>'), "customer document contains no customer-beta chip");
 check(!customer.includes('<div class="prototype-banner"'), "customer document contains no beta banner");
-check(!customer.includes('src="private-beta.js"'), "customer document never loads private-beta runtime");
+check(customer.includes('src="private-beta.js"'), "customer document loads private-beta onboarding runtime in the canonical shell");
 check(!customer.includes('src="beta-session-v1.js"'), "customer document never loads beta-session runtime");
 check(!customer.includes('src="beta-customer-flow-v2.js"'), "customer document never loads beta customer-flow runtime");
 check(!customer.includes('src="beta-qa-customer-polish-v1.js"'), "customer document never loads beta QA presentation runtime");
-check(!customer.includes('href="private-beta.css"'), "customer document never loads private-beta stylesheet");
+check(customer.includes('href="private-beta.css"'), "customer document loads private-beta onboarding stylesheet in the canonical shell");
 check(!customer.includes('href="beta-session-v1.css"'), "customer document never loads beta-session stylesheet");
 check(!customer.includes('href="beta-customer-flow-v2.css"'), "customer document never loads beta-flow stylesheet");
 
