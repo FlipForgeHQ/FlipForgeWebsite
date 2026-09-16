@@ -51,6 +51,19 @@
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
+  function moneyFromCents(value) {
+    const cents = Number(value);
+    if (!Number.isFinite(cents) || cents < 0) return "Unavailable";
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
+  }
+
+  function signedMoneyFromCents(value) {
+    const cents = Number(value);
+    if (!Number.isFinite(cents)) return "Unavailable";
+    const formatted = moneyFromCents(Math.abs(cents));
+    return cents > 0 ? `+${formatted}` : cents < 0 ? `-${formatted}` : formatted;
+  }
+
   function correlationId() {
     return window.crypto && typeof window.crypto.randomUUID === "function"
       ? window.crypto.randomUUID()
@@ -161,6 +174,35 @@
     return `<span class="staging-status staging-status-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
   }
 
+  function gradingEconomicsMarkup(psa) {
+    const economics = psa?.gradingIntelligence?.gradingEconomics;
+    if (!economics || typeof economics !== "object") return "";
+
+    const raw = economics.raw || {};
+    const psa9 = economics.psa9 || {};
+    const psa10 = economics.psa10 || {};
+    const costs = economics.costs || {};
+    const analysis = economics.economics || {};
+    const valueReady = economics.valueLanesReady === true;
+    const economicsReady = economics.economicsReady === true;
+    const costsReady = economics.costAssumptionsAvailable === true;
+    const authoritySafe = economics.gradePredictionPerformed === false
+      && economics.gradingAuthorityChanged === false
+      && economics.recommendationAuthorityChanged === false
+      && economics.transactionAuthority === false
+      && economics.gradeProbabilitiesConsumed === false;
+
+    const statusLabel = economicsReady
+      ? "Scenario economics ready"
+      : valueReady ? "Values ready · costs needed" : "More governed evidence needed";
+    const tone = economicsReady ? "ok" : "warn";
+    const costSummary = costsReady
+      ? `${moneyFromCents(costs.gradingFeeCents)} grading fee · ${safeNumber(costs.sellingFrictionBps) / 100}% selling friction`
+      : "No complete saved cost profile is attached to this card.";
+
+    return `<section class="panel"><header class="panel-header"><div><span class="eyebrow">A12A · Grading Economics</span><h2>What changes if this card grades PSA 9 or PSA 10?</h2><p>FlipForge compares governed value lanes and explicit costs. It does not predict which grade the card will receive.</p></div>${badge(statusLabel, tone)}</header><div class="panel-body"><div class="staging-key-grid"><div><span>RAW supported value</span><strong>${valueReady ? moneyFromCents(raw.supportedValueCents) : "Unavailable"}</strong><small>${safeNumber(raw.acceptedExactCompletedSaleCount)} accepted exact completed sales</small></div><div><span>PSA 9 supported value</span><strong>${valueReady ? moneyFromCents(psa9.supportedValueCents) : "Unavailable"}</strong><small>${safeNumber(psa9.acceptedExactCompletedSaleCount)} accepted exact completed sales</small></div><div><span>PSA 10 supported value</span><strong>${valueReady ? moneyFromCents(psa10.supportedValueCents) : "Unavailable"}</strong><small>${safeNumber(psa10.acceptedExactCompletedSaleCount)} accepted exact completed sales</small></div><div><span>Saved cost profile</span><strong>${costsReady ? "Available" : "Required for net economics"}</strong><small>${escapeHtml(costSummary)}</small></div>${economicsReady ? `<div><span>Total grading cost</span><strong>${moneyFromCents(analysis.totalGradingCostCents)}</strong></div><div><span>Break-even graded value</span><strong>${moneyFromCents(analysis.breakEvenGradedValueCents)}</strong></div><div><span>PSA 9 net vs RAW</span><strong>${signedMoneyFromCents(analysis.psa9?.incrementalNetVsRawCents)}</strong></div><div><span>PSA 10 net vs RAW</span><strong>${signedMoneyFromCents(analysis.psa10?.incrementalNetVsRawCents)}</strong></div>` : ""}</div><div class="boundary-note"><strong>How to read this:</strong> These are separate grade scenarios, not grade odds. A positive PSA 9 or PSA 10 net difference means that scenario clears the saved costs versus selling RAW; it does not mean FlipForge expects that grade.</div><div class="boundary-note"><strong>Authority boundary:</strong> ${escapeHtml(economics.boundary || "Grading Economics cannot predict a grade or change the saved Smart Opportunity decision.")}</div>${authoritySafe ? "" : `<div class="boundary-note"><strong>Projection unavailable:</strong> The authority boundary did not validate, so scenario economics are hidden.</div>`}</div></section>`;
+  }
+
   function guidanceMarkup() {
     const envelope = state.psa;
     const psa = envelope?.data;
@@ -179,13 +221,13 @@
       ? "The saved PSA snapshot is more conservative than this saved Smart Opportunity decision. PSA Advisor does not override or recalculate that decision. Review the saved evidence and run a fresh evaluation after verification if updated context is needed."
       : "";
 
-    return `<section class="panel"><header class="panel-header"><div><h2>${escapeHtml(psa.cardIdentity || "Saved PSA guidance")}</h2><p>Saved grading context from FlipForge's existing PSA intelligence authority.</p></div>${badge(available ? "Saved guidance available" : "Insufficient saved context", available ? "ok" : "warn")}</header><div class="panel-body"><div class="staging-key-grid"><div><span>Guidance status</span><strong>${escapeHtml(psa.guidanceStatus || "Unavailable")}</strong></div><div><span>PSA intelligence score</span><strong>${scoreReturned ? `${safeNumber(snapshot.latestPsaScore)}/100` : "Unavailable"}</strong></div><div><span>PSA impact</span><strong>${escapeHtml(snapshot.latestPsaImpact || "Unavailable")}</strong></div><div><span>Readiness</span><strong>${escapeHtml(snapshot.readinessStatus || "Unavailable")}</strong></div><div><span>PSA 10 population</span><strong>${population.available === true ? safeNumber(population.psa10Population) : "Unavailable"}</strong></div><div><span>PSA 9 population</span><strong>${population.available === true ? safeNumber(population.psa9Population) : "Unavailable"}</strong></div><div><span>Manual verification</span><strong>${snapshot.manualVerificationRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Fresh comp evidence</span><strong>${snapshot.freshCompEvidenceRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Additional population snapshot</span><strong>${snapshot.additionalSnapshotRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Recalculated in browser</span><strong>${psa.recalculated === false ? "No" : "Invalid response"}</strong></div></div><div class="boundary-note"><strong>PSA boundary:</strong> ${escapeHtml(psaBoundary)}</div>${savedRecordReview ? `<div class="boundary-note"><strong>Saved-record review:</strong> ${escapeHtml(savedRecordReview)}</div>` : ""}<div class="customer-intelligence-actions"><a class="button button-secondary" href="#/opportunities/${encodeURIComponent(psa.opportunityId || state.selectedId)}">Open Card Intelligence</a><a class="button button-secondary" href="#/evidence/${encodeURIComponent(psa.opportunityId || state.selectedId)}">Review evidence</a></div>${limitations.length ? `<details><summary>Known limitations</summary><ul>${limitations.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>` : ""}</div></section>`;
+    return `<section class="panel"><header class="panel-header"><div><h2>${escapeHtml(psa.cardIdentity || "Saved PSA guidance")}</h2><p>Saved grading context from FlipForge's existing PSA intelligence authority.</p></div>${badge(available ? "Saved guidance available" : "Insufficient saved context", available ? "ok" : "warn")}</header><div class="panel-body"><div class="staging-key-grid"><div><span>Guidance status</span><strong>${escapeHtml(psa.guidanceStatus || "Unavailable")}</strong></div><div><span>PSA intelligence score</span><strong>${scoreReturned ? `${safeNumber(snapshot.latestPsaScore)}/100` : "Unavailable"}</strong></div><div><span>PSA impact</span><strong>${escapeHtml(snapshot.latestPsaImpact || "Unavailable")}</strong></div><div><span>Readiness</span><strong>${escapeHtml(snapshot.readinessStatus || "Unavailable")}</strong></div><div><span>PSA 10 population</span><strong>${population.available === true ? safeNumber(population.psa10Population) : "Unavailable"}</strong></div><div><span>PSA 9 population</span><strong>${population.available === true ? safeNumber(population.psa9Population) : "Unavailable"}</strong></div><div><span>Manual verification</span><strong>${snapshot.manualVerificationRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Fresh comp evidence</span><strong>${snapshot.freshCompEvidenceRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Additional population snapshot</span><strong>${snapshot.additionalSnapshotRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Recalculated in browser</span><strong>${psa.recalculated === false ? "No" : "Invalid response"}</strong></div></div><div class="boundary-note"><strong>PSA boundary:</strong> ${escapeHtml(psaBoundary)}</div>${savedRecordReview ? `<div class="boundary-note"><strong>Saved-record review:</strong> ${escapeHtml(savedRecordReview)}</div>` : ""}<div class="customer-intelligence-actions"><a class="button button-secondary" href="#/opportunities/${encodeURIComponent(psa.opportunityId || state.selectedId)}">Open Card Intelligence</a><a class="button button-secondary" href="#/evidence/${encodeURIComponent(psa.opportunityId || state.selectedId)}">Review evidence</a></div>${limitations.length ? `<details><summary>Known limitations</summary><ul>${limitations.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>` : ""}</div></section>${gradingEconomicsMarkup(psa)}`;
   }
 
   function pageMarkup() {
     const configured = state.health?.data?.status === "configured";
     const hasSavedCards = state.opportunities.length > 0;
-    return `<div class="page staging-page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Review saved PSA guidance, population context, and verification requirements for a saved card without predicting a grade or creating a new recommendation.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-psa-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Decision framework:</strong> This page reads saved PSA intelligence through the authenticated account-specific gateway. It does not recalculate PSA scores in the browser, predict a grade, accept evidence, or authorize a transaction.</div>${state.loading ? `<div class="staging-loading" role="status">Loading saved PSA guidance…</div>` : ""}${errorPanel(state.error)}${configured && !state.loading && hasSavedCards ? `<section class="panel"><header class="panel-header"><div><h2>Choose a saved card</h2><p>PSA guidance is only shown for records already saved to your account.</p></div></header><div class="panel-body"><div class="field"><label for="psa-advisor-card">Saved card</label><select id="psa-advisor-card">${optionMarkup()}</select></div></div></section>${guidanceMarkup()}` : ""}${configured && !state.loading && !state.error && !hasSavedCards ? `<section class="panel"><div class="panel-body staging-empty"><strong>No saved cards yet.</strong><p>Evaluate a card first. FlipForge will not fabricate PSA guidance without a saved record.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></section>` : ""}${!configured && state.health && !state.loading ? `<section class="panel"><div class="panel-body staging-empty"><strong>PSA Advisor is safely offline.</strong><p>The customer gateway is disabled, so no account request was attempted and no mock PSA data was substituted.</p></div></section>` : ""}</div>`;
+    return `<div class="page staging-page customer-intelligence-page"><header class="page-heading"><div><span class="eyebrow">Existing PSA intelligence</span><h1>PSA Advisor</h1><p>Review saved PSA guidance, population context, and grading economics for a saved card without predicting a grade or creating a new recommendation.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-psa-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Decision framework:</strong> This page reads saved PSA intelligence and governed Grading Economics through the authenticated account-specific gateway. It does not calculate grade probabilities in the browser, predict a grade, accept evidence, change BUY/WATCH/VERIFY/PASS, or authorize a transaction.</div>${state.loading ? `<div class="staging-loading" role="status">Loading saved PSA guidance…</div>` : ""}${errorPanel(state.error)}${configured && !state.loading && hasSavedCards ? `<section class="panel"><header class="panel-header"><div><h2>Choose a saved card</h2><p>PSA guidance is only shown for records already saved to your account.</p></div></header><div class="panel-body"><div class="field"><label for="psa-advisor-card">Saved card</label><select id="psa-advisor-card">${optionMarkup()}</select></div></div></section>${guidanceMarkup()}` : ""}${configured && !state.loading && !state.error && !hasSavedCards ? `<section class="panel"><div class="panel-body staging-empty"><strong>No saved cards yet.</strong><p>Evaluate a card first. FlipForge will not fabricate PSA guidance without a saved record.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></section>` : ""}${!configured && state.health && !state.loading ? `<section class="panel"><div class="panel-body staging-empty"><strong>PSA Advisor is safely offline.</strong><p>The customer gateway is disabled, so no account request was attempted and no mock PSA data was substituted.</p></div></section>` : ""}</div>`;
   }
 
   function renderCurrent() {
@@ -224,6 +266,16 @@
       if (!data || data.kind !== "psa-advisor" || String(data.opportunityId || "") !== state.selectedId || data.recalculated !== false) {
         throw Object.assign(new Error("Saved PSA guidance did not match the selected saved card."), {
           code: "PSA_CONTRACT_INVALID"
+        });
+      }
+      const gradingEconomics = data?.gradingIntelligence?.gradingEconomics;
+      if (gradingEconomics && (gradingEconomics.gradePredictionPerformed !== false
+        || gradingEconomics.gradingAuthorityChanged !== false
+        || gradingEconomics.recommendationAuthorityChanged !== false
+        || gradingEconomics.transactionAuthority !== false
+        || gradingEconomics.gradeProbabilitiesConsumed !== false)) {
+        throw Object.assign(new Error("Grading Economics violated the FlipForge authority boundary."), {
+          code: "GRADING_ECONOMICS_AUTHORITY_INVALID"
         });
       }
     } catch (error) {
