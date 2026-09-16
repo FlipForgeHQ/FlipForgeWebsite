@@ -21,6 +21,7 @@
   const originalTitle = bannerTitle ? bannerTitle.textContent : "";
   const originalCopy = bannerCopy ? bannerCopy.textContent : "";
   let psaLoadFailed = false;
+  let gradingEconomicsLoadFailed = false;
 
   function routeParts() {
     const raw = window.location.hash.replace(/^#\/?/, "") || "dashboard";
@@ -78,6 +79,19 @@
     return true;
   }
 
+  function loadGradingEconomicsAdapter() {
+    if (window.FlipForgeCustomerGradingEconomics || gradingEconomicsLoadFailed) return;
+    if (document.querySelector('script[data-ff-grading-economics]')) return;
+    const script = document.createElement("script");
+    script.src = "customer-grading-economics.js?v=20260916-1";
+    script.async = false;
+    script.setAttribute("data-ff-grading-economics", "");
+    script.addEventListener("error", () => {
+      gradingEconomicsLoadFailed = true;
+    }, { once: true });
+    document.head.appendChild(script);
+  }
+
   function loadPsaAdapter() {
     if (window.FlipForgeCustomerPsaAdvisor || psaLoadFailed) return;
     if (document.querySelector('script[data-ff-psa-advisor]')) return;
@@ -85,7 +99,10 @@
     script.src = "customer-psa-advisor.js?v=20260830-1";
     script.async = false;
     script.setAttribute("data-ff-psa-advisor", "");
-    script.addEventListener("load", applyRoute, { once: true });
+    script.addEventListener("load", () => {
+      loadGradingEconomicsAdapter();
+      applyRoute();
+    }, { once: true });
     script.addEventListener("error", () => {
       psaLoadFailed = true;
       if (routeParts()[0] !== "psa-advisor") return;
@@ -97,6 +114,7 @@
   }
 
   function renderPsaRoute(id) {
+    loadGradingEconomicsAdapter();
     const psaAdapter = window.FlipForgeCustomerPsaAdvisor;
     if (psaAdapter
         && typeof psaAdapter.render === "function"
