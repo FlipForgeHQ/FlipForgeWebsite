@@ -211,6 +211,9 @@ async function auditAuthenticatedState(browser) {
 async function auditStaleCachedSessionState(browser, viewport) {
   const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
   const page = await context.newPage();
+  await page.addInitScript(() => {
+    window.localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete");
+  });
   await installCachedAuthenticatedIdentity(page);
   await installAnonymousGateway(page);
 
