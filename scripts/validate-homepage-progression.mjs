@@ -14,6 +14,9 @@ const heroCss=read('assets/css/homepage-decision-hero-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
 const processCss=read('assets/css/homepage-deal-live-process-v3.css');
 const cdiCss=read('assets/css/homepage-cdi-positioning-v1.css');
+const proofPage=read('decision-proof.html');
+const proofCss=read('assets/css/decision-proof-v1.css');
+const proofJs=read('assets/js/decision-proof-v1.js');
 const mobileCss=read('assets/css/homepage-mobile-nav-v1.css');
 const sw=read('sw.js');
 const failures=[];
@@ -65,6 +68,39 @@ requireAll('homepage CDI reveal',homepage,[
   'FLIPFORGE = CARD DECISION INTELLIGENCE™'
 ]);
 for(const layer of ['Identity Intelligence','Evidence Intelligence','Economic Intelligence','Risk + Uncertainty','Decision Intelligence','Decision Receipt','Outcome Intelligence'])requireText('homepage seven-layer CDI',homepage,layer);
+
+requireAll('homepage Decision Proof',homepage,[
+  'assets/css/decision-proof-v1.css',
+  'class="ff-decision-proof" id="decision-proof" data-ff-decision-proof',
+  'Proof100 checkpoint · September 18, 2026',
+  '<strong>100</strong><span>Frozen decisions</span>',
+  '<strong>42</strong><span>T7 decisions measurable</span>',
+  '<strong>58</strong><span>Awaiting sufficient evidence</span>',
+  '17</b> Economically justified holds',
+  'Current economically eligible non-BUY review candidates',
+  'href="decision-proof.html">See the full Decision Proof</a>',
+  'not presented as a customer-facing accuracy score',
+  'assets/js/decision-proof-v1.js'
+]);
+requireAll('Decision Proof methodology page',proofPage,[
+  '<title>Decision Proof | FlipForge</title>',
+  'Snapshot: September 18, 2026',
+  '01 · Raw outcome signal',
+  '02 · Economic interpretation',
+  '03 · Policy-review candidate',
+  '<strong>T0</strong>',
+  '<strong>T7</strong>',
+  '<strong>T14</strong>',
+  '<strong>T30</strong>',
+  '<span>15 cases</span><h3>Negative net economics</h3>',
+  '<span>2 cases</span><h3>Margin of safety not met</h3>',
+  '<span>16 cases</span><h3>Ask above Maximum Buy Price</h3>',
+  'T14, T30, then Proof1000'
+]);
+requireText('Decision Proof responsive CSS',proofCss,'@media(max-width:680px)');
+requireText('Decision Proof reduced motion CSS',proofCss,'@media(prefers-reduced-motion:reduce)');
+requireText('Decision Proof reduced motion JS',proofJs,'prefers-reduced-motion: reduce');
+for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('Decision Proof browser storage',proofJs,store);
 
 requireAll('homepage behavior',dealJs,[
   "button.addEventListener('click'",
@@ -132,8 +168,8 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v17'","'/assets/css/homepage-cdi-positioning-v1.css'","'/assets/css/homepage-deal-or-decoy-v1.css'","'/assets/js/homepage-deal-or-decoy-v1.js'"]);
-const publicCopy=`${homepage}\n${product}\n${learn}\n${beta}\n${pricing}`;
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v18'","'/decision-proof.html'","'/assets/css/homepage-cdi-positioning-v1.css'","'/assets/css/decision-proof-v1.css'","'/assets/css/homepage-deal-or-decoy-v1.css'","'/assets/js/homepage-deal-or-decoy-v1.js'","'/assets/js/decision-proof-v1.js'"]);
+const publicCopy=`${homepage}\n${proofPage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true','CARD VALUE INTELLIGENCE'])forbidText('public safety',publicCopy,unsafe);
 for(const unsafeData of ['localStorage','sessionStorage','indexedDB'])forbidText('public static pages',publicCopy,unsafeData);
 
