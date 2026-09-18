@@ -4,7 +4,6 @@ const read=path=>fs.readFileSync(path,'utf8');
 const home=read('index.html');
 const page=read('decision-proof.html');
 const css=read('assets/css/decision-proof-v1.css');
-const js=read('assets/js/decision-proof-v1.js');
 const sitemap=read('sitemap.xml');
 const sw=read('sw.js');
 
@@ -13,9 +12,8 @@ const check=(label,condition)=>{if(!condition)failures.push(label);};
 const includesAll=(text,needles)=>needles.every(needle=>text.includes(needle));
 
 check('homepage loads Decision Proof CSS',home.includes('assets/css/decision-proof-v1.css'));
-check('homepage loads Decision Proof JS',home.includes('assets/js/decision-proof-v1.js'));
 check('homepage navigation exposes Decision Proof',home.includes('href="decision-proof.html">Decision Proof</a>'));
-check('homepage section exists',home.includes('class="ff-decision-proof" id="decision-proof" data-ff-decision-proof'));
+check('homepage section exists',home.includes('class="ff-decision-proof" id="decision-proof"'));
 check('homepage section uses governed snapshot date',home.includes('Proof100 checkpoint · September 18, 2026'));
 check('homepage core counts are present',includesAll(home,[
   '<strong>100</strong><span>Frozen decisions</span>',
@@ -71,12 +69,14 @@ check('dedicated page progress is semantically exposed',page.includes('role="pro
 check('premium proof page hero is present',page.includes('Proof, not hindsight.<strong>Freeze the decision before the outcome is known.</strong>'));
 check('CSS is responsive',css.includes('@media(max-width:680px)')&&css.includes('@media(max-width:980px)'));
 check('CSS honors reduced motion',css.includes('@media(prefers-reduced-motion:reduce)'));
-check('progressive enhancement honors reduced motion',js.includes('prefers-reduced-motion: reduce'));
-check('progressive enhancement has no browser persistence',!['localStorage','sessionStorage','indexedDB'].some(key=>js.includes(key)));
+check('Decision Proof homepage has no inline style attributes',!home.match(/<[^>]+style="/));
+check('Decision Proof page has no inline style attributes',!page.match(/<[^>]+style="/));
+check('Decision Proof homepage does not load retired runtime JS',!home.includes('assets/js/decision-proof-v1.js'));
+check('Decision Proof page does not load retired runtime JS',!page.includes('assets/js/decision-proof-v1.js'));
+check('service worker does not cache retired Decision Proof JS',!sw.includes("'/assets/js/decision-proof-v1.js'"));
 check('sitemap includes Decision Proof',sitemap.includes('https://goflipforge.com/decision-proof.html'));
 check('service worker caches Decision Proof page',sw.includes("'/decision-proof.html'"));
 check('service worker caches Decision Proof CSS',sw.includes("'/assets/css/decision-proof-v1.css'"));
-check('service worker caches Decision Proof JS',sw.includes("'/assets/js/decision-proof-v1.js'"));
 
 const publicCopy=(home+'\n'+page).toLowerCase();
 for(const unsafe of ['guaranteed profit','100% accurate','automatic purchase','transactionauthority=true']){
