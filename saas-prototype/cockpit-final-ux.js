@@ -60,7 +60,7 @@
 
     const customer = fullCustomerMode();
     const prototypeChip = document.querySelector(".prototype-chip");
-    if (prototypeChip) prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW";
+    if (prototypeChip) prototypeChip.textContent = customer ? "DECISION WORKSPACE" : "SAAS PREVIEW";
 
     const planEyebrow = document.querySelector(".plan-card .eyebrow");
     if (planEyebrow && !customer) planEyebrow.textContent = "Preview plan";
