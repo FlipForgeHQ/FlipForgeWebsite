@@ -6,7 +6,7 @@
   --ff-proof-muted:#617084;
   --ff-proof-line:#d8e0e9;
   --ff-proof-blue:#0759cf;
-  --ff-proof-green:#15964a;
+  --ff-proof-green:#117f42;
   --ff-proof-green-dark:#0c6e35;
   --ff-proof-mint:#eaf8f0;
   --ff-proof-navy:#041526;
@@ -464,7 +464,7 @@
 .ff-proof-button-primary{
   color:#fff;
   border:1px solid var(--ff-proof-green-dark);
-  background:linear-gradient(180deg,#15964a,#0f7b3c);
+  background:linear-gradient(180deg,#117f42,#0c6e35);
   box-shadow:0 12px 30px rgba(21,150,74,.17);
 }
 
@@ -477,7 +477,7 @@
 .ff-proof-boundary{
   margin:13px auto 0;
   max-width:850px;
-  color:#6f7e8f;
+  color:#637286;
   font-size:.78rem;
   line-height:1.5;
   text-align:center;
