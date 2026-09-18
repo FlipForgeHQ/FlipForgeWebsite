@@ -85,16 +85,16 @@
 
     document.documentElement.classList.add("ff-full-customer-app");
     document.body?.classList.add("ff-full-customer-app");
-    document.title = "FlipForge | Customer App — Card Decision Intelligence";
+    document.title = "FlipForge | Decision Workspace — Card Decision Intelligence™";
 
     const description = document.querySelector('meta[name="description"]');
     if (description) description.setAttribute(
       "content",
-      "FlipForge customer app for Card Decision Intelligence: discover, evaluate, understand, save, and track sports-card decisions."
+      "FlipForge Decision Workspace for Card Decision Intelligence™: discover, evaluate, understand, save, and track collectible-card decisions."
     );
 
     hideElement(document.querySelector(".prototype-banner"));
-    setText(document.querySelector(".prototype-chip"), "CUSTOMER APP");
+    setText(document.querySelector(".prototype-chip"), "DECISION WORKSPACE");
 
     const plan = document.querySelector(".sidebar-footer .plan-card");
     if (plan) {
