@@ -221,7 +221,7 @@
     }
 
     const chip = document.querySelector(".prototype-chip");
-    if (chip) chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW";
+    if (chip) chip.textContent = customer ? "DECISION WORKSPACE" : production() ? "PRIVATE BETA" : "BETA PREVIEW";
 
     const profileSmall = document.querySelector(".profile-button .profile-copy small");
     if (customer && profileSmall) {
@@ -248,7 +248,7 @@
 
     if (production()) {
       document.title = customer
-        ? "FlipForge | Customer App — Card Decision Intelligence"
+        ? "FlipForge | Decision Workspace — Card Decision Intelligence™"
         : "FlipForge | Card Decision Intelligence";
     }
     installApprovedBrandMark();
