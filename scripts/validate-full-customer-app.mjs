@@ -36,10 +36,10 @@ check(activeRedirects.includes("/app/customer/ /saas-prototype/customer.html 200
 check(!activeRedirects.includes("/app/customer /app/customer/ 301"), "customer route avoids redirect loops");
 check(activeRedirects.includes("/app/customer/* /saas-prototype/:splat 200"), "customer assets stay under production app path");
 check(activeRedirects.indexOf("/app/customer/* /saas-prototype/:splat 200") < activeRedirects.indexOf("/app/* /app/customer/:splat 301"), "customer wildcard precedes generic app canonical redirect");
-check(activeRedirects.includes("/app /app/customer/ 301") && !activeRedirects.includes("/app /saas-prototype/index.html 200"), "public app entry resolves to the full customer app instead of the beta shell");
+check(activeRedirects.includes("/app /app/customer/ 301") && !activeRedirects.includes("/app /saas-prototype/index.html 200"), "public app entry resolves to the full Decision Workspace instead of the beta shell");
 
 check(customer.includes('window.FlipForgeFullCustomerEntry=true'), "customer document hard-marks full customer entry before app scripts");
-check(customer.includes('>CUSTOMER APP</span>'), "customer document is statically labeled CUSTOMER APP");
+check(customer.includes('>DECISION WORKSPACE</span>'), "customer document is statically labeled DECISION WORKSPACE");
 check(!customer.includes('>CUSTOMER BETA</span>'), "customer document contains no customer-beta chip");
 check(!customer.includes('<div class="prototype-banner"'), "customer document contains no beta banner");
 check(customer.includes('src="private-beta.js"'), "customer document loads private-beta onboarding runtime in the canonical shell");
@@ -59,7 +59,7 @@ check(customer.includes('data-route="forge-heat"') && customer.includes('data-ro
 check(customer.includes('src="customer-navigation-parity-v1.js"'), "customer document loads full-customer navigation parity controller");
 check(customer.includes('id="global-search-form"'), "customer document includes global search");
 check(customer.includes('class="icon-button notification-button"'), "customer document includes alerts access");
-check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
+check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before Decision Workspace runtime");
 
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
 check(shell.includes('"why-this-decision", "evidence"'), "canonical customer shell includes Why This Decision and Evidence Review in the full route set");
@@ -80,22 +80,22 @@ const lifecycleOrderValid = orderedRouteTokens.every(token => {
   return true;
 });
 check(lifecycleOrderValid, "canonical customer shell preserves CDI lifecycle ordering");
-check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell reinforces customer identity");
+check(shell.includes('setText(document.querySelector(".prototype-chip"), "DECISION WORKSPACE")'), "customer shell reinforces Decision Workspace identity");
 check(shell.includes("T7, T14, and T30"), "customer home explains governed outcome checkpoints");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session renderer still stands down on full customer route");
 check(navigationParity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "navigation parity controller cannot run outside /app/customer");
 check(navigationParity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"])'), "promoted Evidence Review is not duplicated in Advanced analysis");
 check(mobileNav.includes('"decision-intelligence", "why-this-decision", "evidence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set");
 check(mobileNav.includes('parts[0] === "decision-intelligence" && parts[1] === "why"') && mobileNav.includes('return "why-this-decision"'), "mobile active navigation distinguishes Why This Decision from Decision Intelligence");
-check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish cannot overwrite customer identity");
-check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit cannot overwrite customer identity");
+check(commercialPolish.includes('chip.textContent = customer ? "DECISION WORKSPACE" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish cannot overwrite Decision Workspace identity");
+check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "DECISION WORKSPACE" : "SAAS PREVIEW"'), "legacy cockpit cannot overwrite Decision Workspace identity");
 
 check(loginRedirect.includes('a[href^="/production-auth.html"]'), "customer login interceptor covers feature-level auth links");
 check(loginRedirect.includes('pathname === "/app/customer" ? "/app/customer/"'), "customer login interceptor normalizes customer pathname");
 check(loginRedirect.includes('const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`'), "customer login interceptor rebuilds auth return from current route");
 check(loginRedirect.includes('if (!launcher && !authLink) return;'), "customer login interceptor handles launchers and feature auth links");
 check(authProbe.includes('resolved.pathname === "/app/customer" ? "/app/customer/"'), "production auth normalizes no-slash customer return");
-check(authProbe.includes('normalizedPath === "/app/customer/"'), "production sign-in may return to full customer app");
+check(authProbe.includes('normalizedPath === "/app/customer/"'), "production sign-in may return to full Decision Workspace");
 check(authProbe.includes('resolved.origin !== window.location.origin || !pathAllowed'), "auth return remains same-origin and allowlisted");
 check(authProbe.includes('reauthRequested'), "production auth page recognizes server-requested reauthentication");
 check(authProbe.includes('The app rejected this cached session'), "production auth explains stale-session recovery");
@@ -138,21 +138,21 @@ check(fullCustomerWorkflow.includes('node scripts/audit-customer-navigation-pari
 check(fullCustomerWorkflow.includes('push:') && fullCustomerWorkflow.includes('- main'), "full customer assurance re-runs after merge on main");
 
 check(css.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav") && css.includes("display: block !important;"), "full customer CSS preserves advanced navigation");
-check(customer.includes('href="customer-app-system-v2.css"'), "full customer app loads final visual system");
-check(customer.indexOf('href="customer-app-system-v2.css"') > customer.indexOf('href="customer-only-shell-v1.css"'), "customer app visual system is the final stylesheet owner");
-check(visualSystem.includes("--ff-app-sidebar-width: 272px"), "customer app owns one desktop sidebar width");
-check(visualSystem.includes("--ff-app-topbar-height: 72px"), "customer app owns one desktop topbar height");
-check(visualSystem.includes("--ff-app-content-max: 1440px"), "customer app owns one content width");
-check(visualSystem.includes("#main-content .page-heading"), "customer app owns one page-heading geometry");
+check(customer.includes('href="customer-app-system-v2.css"'), "full Decision Workspace loads final visual system");
+check(customer.indexOf('href="customer-app-system-v2.css"') > customer.indexOf('href="customer-only-shell-v1.css"'), "Decision Workspace visual system is the final stylesheet owner");
+check(visualSystem.includes("--ff-app-sidebar-width: 272px"), "Decision Workspace owns one desktop sidebar width");
+check(visualSystem.includes("--ff-app-topbar-height: 72px"), "Decision Workspace owns one desktop topbar height");
+check(visualSystem.includes("--ff-app-content-max: 1440px"), "Decision Workspace owns one content width");
+check(visualSystem.includes("#main-content .page-heading"), "Decision Workspace owns one page-heading geometry");
 check(visualSystem.includes("#main-content .page-heading h1") && visualSystem.includes("#main-content .ff-di-hero-copy h1"), "Decision Intelligence and standard routes share the customer title scale");
-check(visualSystem.includes("#main-content .panel-header h2") && visualSystem.includes("#main-content h2"), "customer app owns one section-title scale");
-check(visualSystem.includes("@media (max-width: 760px)"), "customer app visual system has a mobile contract");
+check(visualSystem.includes("#main-content .panel-header h2") && visualSystem.includes("#main-content h2"), "Decision Workspace owns one section-title scale");
+check(visualSystem.includes("@media (max-width: 760px)"), "Decision Workspace visual system has a mobile contract");
 check(visualSystem.includes("grid-template-columns: 44px minmax(0, 1fr)"), "mobile customer topbar uses one menu-search geometry");
-check(visualSystem.includes("overflow-x: hidden !important"), "mobile customer app prevents horizontal shell overflow");
+check(visualSystem.includes("overflow-x: hidden !important"), "mobile Decision Workspace prevents horizontal shell overflow");
 
 const forbiddenAuthority = ["evaluateAndSave(", "saveEvidence(", "saveListing(", "appendObservation(", "transactionAuthority", "recommendation =", "supportedValue ="];
 for (const token of forbiddenAuthority) check(!customer.includes(token), `customer entry adds no authority token: ${token}`);
 
-console.log(`\nFull Customer App Assurance\nPASSED: ${passed}\nFAILED: ${failed}`);
+console.log(`\nFull Decision Workspace Assurance\nPASSED: ${passed}\nFAILED: ${failed}`);
 if (failures.length) failures.forEach(item => console.log(` - ${item}`));
 if (failed > 0) process.exit(1);
