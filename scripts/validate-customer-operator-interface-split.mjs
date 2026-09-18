@@ -22,7 +22,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 
 check("001 legacy prototype remains a non-authoritative customer-compatible surface", index.includes('data-ff-surface="customer"'));
 check("002 dedicated customer entry is explicitly marked as full customer", customer.includes('class="ff-full-customer-app"'));
-check("003 definitive customer entry is not branded as a separate beta app", customer.includes('>CUSTOMER APP</span>') && !customer.includes('>CUSTOMER BETA</span>'));
+check("003 definitive customer entry is not branded as a separate beta app", customer.includes('>DECISION WORKSPACE</span>') && !customer.includes('>CUSTOMER BETA</span>'));
 check("004 definitive customer entry hosts the Private Beta Guide runtime", customer.includes('href="private-beta.css"') && customer.includes('src="private-beta.js"'));
 check("005 dedicated customer entry excludes legacy beta session runtime", !customer.includes('src="beta-session-v1.js"'));
 check("006 dedicated customer entry excludes legacy separate beta flow runtime", !customer.includes('src="beta-customer-flow-v2.js"'));
@@ -31,7 +31,7 @@ check("008 customer entry exposes Decision Intelligence", customer.includes('dat
 check("009 customer entry exposes Outcome Intelligence", customer.includes('data-route="tracking"') && customer.includes('Outcome Intelligence'));
 check("010 customer entry exposes Discover and Evaluate separately", customer.includes('data-route="discover"') && customer.includes('data-route="evaluate"'));
 check("011 advanced customer analysis remains mounted", customer.includes('<details class="ff-advanced-nav">'));
-check("012 customer app does not link to operator workspace", !customer.includes("operator-beta.html"));
+check("012 Decision Workspace does not link to operator workspace", !customer.includes("operator-beta.html"));
 check("013 customer shell stylesheet is loaded", customer.includes('href="customer-only-shell-v1.css"'));
 check("014 customer shell runtime remains loaded", customer.includes('src="customer-only-shell-v1.js"'));
 check("015 legacy navigation helpers cannot turn beta into a second authoritative app", shellJs.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"])') && mobileNav.includes('const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"]'));
@@ -39,10 +39,10 @@ check("016 full customer CSS preserves advanced navigation", shellCss.includes("
 check("017 operator workspace remains a separate page", operator.includes("Private operations") || operator.includes("Sign in as Operator"));
 check("018 operator role remains server-defined", betaCore.includes('OPERATOR_ROLE = "flipforge-operator"'));
 check("019 active customer role remains server-defined", betaCore.includes('ACTIVE_ROLE = "flipforge-active"'));
-check("020 public app alias canonicalizes to definitive customer app", hasRedirect("/app /app/customer/ 301"));
+check("020 public app alias canonicalizes to definitive Decision Workspace", hasRedirect("/app /app/customer/ 301"));
 check("021 full customer route serves dedicated customer document", hasRedirect("/app/customer /saas-prototype/customer.html 200") && hasRedirect("/app/customer/ /saas-prototype/customer.html 200"));
 check("022 customer assets remain isolated under /app/customer", hasRedirect("/app/customer/* /saas-prototype/:splat 200"));
-check("023 generic app routes canonicalize into the customer app", hasRedirect("/app/* /app/customer/:splat 301"));
+check("023 generic app routes canonicalize into the Decision Workspace", hasRedirect("/app/* /app/customer/:splat 301"));
 check("024 legacy /app beta-index route is inactive", !hasRedirect("/app /saas-prototype/index.html 200") && !hasRedirect("/app/ /saas-prototype/index.html 200"));
 check("025 legacy /app beta wildcard is inactive", !hasRedirect("/app/* /saas-prototype/:splat 200"));
 
