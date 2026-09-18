@@ -171,10 +171,10 @@ try {
   }));
 
   if (state.pathname !== "/app/customer/") fail(`Expected customer pathname, got ${state.pathname}`);
-  if (state.chip !== "CUSTOMER APP") fail(`Expected CUSTOMER APP, got ${state.chip || "<empty>"}`);
+  if (state.chip !== "DECISION WORKSPACE") fail(`Expected DECISION WORKSPACE, got ${state.chip || "<empty>"}`);
   if (state.bannerExists) fail("Customer route rendered a beta banner element");
   if (!state.htmlFullCustomer || !state.bodyFullCustomer) fail("Customer route is missing full-customer root state");
-  if (!/Customer App/i.test(state.title)) fail(`Customer document title is wrong: ${state.title}`);
+  if (!/Decision Workspace/i.test(state.title)) fail(`Customer document title is wrong: ${state.title}`);
   if (!state.nav.some(value => /Decision Intelligence/i.test(value))) fail("Decision Intelligence is not visible");
   if (!state.nav.some(value => /Outcome Intelligence/i.test(value))) fail("Outcome Intelligence is not visible");
 
@@ -211,7 +211,7 @@ try {
   ];
 
   if (decisionState.hash !== "#/decision-intelligence") fail(`Decision Intelligence route moved to ${decisionState.hash}`);
-  if (decisionState.chip !== "CUSTOMER APP") fail(`Decision Intelligence lost customer identity: ${decisionState.chip}`);
+  if (decisionState.chip !== "DECISION WORKSPACE") fail(`Decision Intelligence lost Decision Workspace identity: ${decisionState.chip}`);
   if (decisionState.sourceAlias !== "server") fail(`Seven-layer source marker was not bridged: ${decisionState.sourceAlias || "<missing>"}`);
   if (decisionState.layerCount !== 7) fail(`Expected 7 CDI layers, got ${decisionState.layerCount}`);
   for (const label of expectedLayers) {
@@ -229,7 +229,7 @@ try {
     pageVisible: Boolean(document.querySelector("#main-content .customer-lifecycle-page"))
   }));
   if (!outcomeState.pageVisible) fail("Outcome Intelligence did not render its customer lifecycle page");
-  if (outcomeState.chip !== "CUSTOMER APP") fail(`Outcome Intelligence lost customer identity: ${outcomeState.chip}`);
+  if (outcomeState.chip !== "DECISION WORKSPACE") fail(`Outcome Intelligence lost Decision Workspace identity: ${outcomeState.chip}`);
 
   // Reproduce the exact internal beta-language leak seen on the production account page.
   // The normalizer is intentionally disabled above: this section proves the account
@@ -245,7 +245,7 @@ try {
     normalizerLoaded: window.__ffCustomerSurfaceNormalizationV1 === true
   }));
   if (accountState.normalizerLoaded) fail("Full customer account regression unexpectedly depended on the surface normalizer");
-  if (accountState.chip !== "CUSTOMER APP") fail(`Account route lost customer identity: ${accountState.chip}`);
+  if (accountState.chip !== "DECISION WORKSPACE") fail(`Account route lost Decision Workspace identity: ${accountState.chip}`);
   if (/private[ -]beta/i.test(`${accountState.text} ${accountState.sidebar}`)) fail(`Private-beta language leaked into customer account: ${accountState.text}`);
   if (/Beta Invitation/i.test(accountState.text)) fail(`Beta Invitation leaked into customer account: ${accountState.text}`);
   if (/Beta Complete/i.test(accountState.text)) fail(`Internal Beta Complete language leaked into customer account: ${accountState.text}`);
