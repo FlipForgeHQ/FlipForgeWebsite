@@ -109,13 +109,13 @@
         const copy = banner.querySelector("span");
         if (title && title.textContent !== "PRIVATE BETA") title.textContent = "PRIVATE BETA";
         const desiredCopy = isProduction
-          ? "Card intelligence workspace · Evaluation only"
-          : "Card intelligence preview · Evaluation only";
+          ? "Card Decision Intelligence™ workspace · Evaluation only"
+          : "Card Decision Intelligence™ preview · Evaluation only";
         if (copy && copy.textContent !== desiredCopy) copy.textContent = desiredCopy;
       }
     }
 
-    const desiredChip = customer ? "CUSTOMER APP" : "PRIVATE BETA";
+    const desiredChip = customer ? "DECISION WORKSPACE" : "PRIVATE BETA";
     if (chip && chip.textContent !== desiredChip) chip.textContent = desiredChip;
 
     const guide = document.querySelector('.primary-nav [data-route="beta-start"]');
@@ -167,7 +167,7 @@
     }
 
     document.title = customer
-      ? "FlipForge | Customer App — Card Decision Intelligence"
+      ? "FlipForge | Decision Workspace — Card Decision Intelligence™"
       : isProduction ? "FlipForge | Card Intelligence" : "FlipForge Beta | Card Intelligence";
   }
 
