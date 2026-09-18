@@ -1,7 +1,8 @@
-const CACHE='flipforge-shell-v17';
+const CACHE='flipforge-shell-v18';
 const SHELL=[
   '/',
   '/index.html',
+  '/decision-proof.html',
   '/assets/css/site.css',
   '/assets/css/brand-v2.css',
   '/assets/css/public-typography-contract-v1.css',
@@ -23,9 +24,11 @@ const SHELL=[
   '/assets/css/homepage-deal-refinement-v2.css',
   '/assets/css/homepage-deal-live-process-v3.css',
   '/assets/css/homepage-cdi-positioning-v1.css',
+  '/assets/css/decision-proof-v1.css',
   '/assets/css/decision-intelligence-consumer-v2.css',
   '/assets/js/homepage-v1.js',
   '/assets/js/homepage-deal-or-decoy-v1.js',
+  '/assets/js/decision-proof-v1.js',
   '/assets/js/homepage-contender-v1.js',
   '/assets/js/award-winning-v1.js',
   '/assets/brand/flipforge-app-icon-dark.svg',

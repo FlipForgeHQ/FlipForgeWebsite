@@ -4,17 +4,21 @@ on:
   pull_request:
     paths:
       - "index.html"
+      - "decision-proof.html"
       - "product.html"
       - "sample-decision-dossier.html"
       - "netlify.toml"
       - "assets/js/homepage-v1.js"
+      - "assets/js/decision-proof-v1.js"
       - "assets/js/marketing-v3.js"
       - "assets/js/site.js"
       - "assets/css/homepage-focus-v1.css"
+      - "assets/css/decision-proof-v1.css"
       - "assets/css/sample-dossier-v1.css"
       - "assets/css/visual-sections.css"
       - "scripts/validate-homepage-focus.mjs"
       - "scripts/validate-homepage-progression.mjs"
+      - "scripts/validate-decision-proof-public-v1.mjs"
       - "scripts/validate-product-identity-simulator.mjs"
       - ".github/workflows/homepage-focus.yml"
   push:
@@ -22,17 +26,21 @@ on:
       - main
     paths:
       - "index.html"
+      - "decision-proof.html"
       - "product.html"
       - "sample-decision-dossier.html"
       - "netlify.toml"
       - "assets/js/homepage-v1.js"
+      - "assets/js/decision-proof-v1.js"
       - "assets/js/marketing-v3.js"
       - "assets/js/site.js"
       - "assets/css/homepage-focus-v1.css"
+      - "assets/css/decision-proof-v1.css"
       - "assets/css/sample-dossier-v1.css"
       - "assets/css/visual-sections.css"
       - "scripts/validate-homepage-focus.mjs"
       - "scripts/validate-homepage-progression.mjs"
+      - "scripts/validate-decision-proof-public-v1.mjs"
       - "scripts/validate-product-identity-simulator.mjs"
       - ".github/workflows/homepage-focus.yml"
 
@@ -54,9 +62,11 @@ jobs:
         run: |
           node --check assets/js/marketing-v3.js
           node --check assets/js/homepage-v1.js
+          node --check assets/js/decision-proof-v1.js
           node --check assets/js/site.js
       - name: Validate focused marketing contract
         run: |
           node scripts/validate-homepage-focus.mjs
           node scripts/validate-homepage-progression.mjs
+          node scripts/validate-decision-proof-public-v1.mjs
           node scripts/validate-product-identity-simulator.mjs

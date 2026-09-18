@@ -53,7 +53,8 @@
     "validate:beta-cdi-learning-scorecard-v1": "node scripts/validate-beta-cdi-learning-scorecard-v1.mjs",
     "validate:beta-acquisition": "node scripts/validate-beta-acquisition-onboarding.mjs",
     "validate:beta-operator": "node scripts/validate-beta-operator-current.mjs",
-    "validate:customer-operator-split": "node scripts/validate-customer-operator-interface-split.mjs"
+    "validate:customer-operator-split": "node scripts/validate-customer-operator-interface-split.mjs",
+    "validate:decision-proof": "node scripts/validate-decision-proof-public-v1.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "10.7.13",
