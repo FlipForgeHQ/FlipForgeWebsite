@@ -97,6 +97,15 @@ requireAll('Decision Proof methodology page',proofPage,[
   '<span>16 cases</span><h3>Ask above Maximum Buy Price</h3>',
   'T14, T30, then Proof1000'
 ]);
+requireAll('Decision Proof premium brand',proofCss,[
+  '--ff-proof-black:#05070a',
+  '--ff-proof-gold:#d7b56d',
+  '--ff-proof-gold-bright:#f0d79c'
+]);
+for(const retiredColor of ['--ff-proof-blue','--ff-proof-green'])forbidText('Decision Proof retired analytics palette',proofCss,retiredColor);
+requireText('Decision Proof homepage semantic progress',homepage,'role="progressbar" aria-label="Proof100 T7 evidence coverage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42"');
+requireText('Decision Proof page semantic progress',proofPage,'role="progressbar" aria-label="Proof100 T7 evidence coverage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42"');
+requireText('Decision Proof premium hero',proofPage,'Proof, not hindsight.<strong>Freeze the decision before the outcome is known.</strong>');
 requireText('Decision Proof responsive CSS',proofCss,'@media(max-width:680px)');
 requireText('Decision Proof reduced motion CSS',proofCss,'@media(prefers-reduced-motion:reduce)');
 requireText('Decision Proof reduced motion JS',proofJs,'prefers-reduced-motion: reduce');
