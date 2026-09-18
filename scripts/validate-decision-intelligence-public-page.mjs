@@ -6,6 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const page = read('decision-intelligence.html');
 const exhibitJs = read('assets/js/decision-intelligence-consumer-v2.js');
+const exhibitCss = read('assets/css/decision-intelligence-consumer-v2.css');
 const product = read('product.html');
 const connect = read('connect/index.html');
 const conversion = read('assets/js/conversion-events.js');
@@ -28,6 +29,7 @@ check('current Card Decision Intelligence descriptor is used', page.includes('CA
 check('current shared brand stylesheet is used', page.includes('assets/css/brand-v2.css'));
 check('consumer-first visual system is loaded', page.includes('assets/css/decision-intelligence-consumer-v2.css'));
 check('consumer-first interaction is loaded', page.includes('assets/js/decision-intelligence-consumer-v2.js'));
+check('public exhibit uses premium brand palette without neon mint', exhibitCss.includes('--dic-warm:#d8aa52;') && exhibitCss.includes('--dic-good:#eef2f6;') && exhibitCss.includes('.ff-dic-shift b{font-size:18px;color:var(--dic-gold-soft)}') && !exhibitCss.includes('#83e3b0'));
 check('consumer hook is immediate and price-led', page.includes('Looks like a 24% bargain. Is it?'));
 check('exhibit appears inside the first content section', heroIndex >= 0 && demoIndex > heroIndex && (secondSectionIndex < 0 || demoIndex < secondSectionIndex));
 check('interactive consumer demo exists', page.includes('data-ff-dic-demo') && page.includes('Replay example'));
