@@ -79,7 +79,7 @@
       <div class="ff-cdi-home-head">
         <p class="ff-cdi-home-kicker">WHAT IS CARD DECISION INTELLIGENCE™?</p>
         <h2>Data tells you what happened. FlipForge helps you decide what to do now.</h2>
-        <p>Card Decision Intelligence™ connects the exact card, qualified evidence, economics, uncertainty, decision reasoning, and later outcomes into one explainable system. <strong>It is the layer between sports-card data and the decision to spend.</strong></p>
+        <p>Card Decision Intelligence™ connects the exact card, qualified evidence, economics, uncertainty, decision reasoning, and later outcomes into one explainable system. <strong>It is the intelligence layer between card-market data and the decision to act.</strong></p>
       </div>
 
       <div class="ff-cdi-contrast" aria-label="Difference between market data and Card Decision Intelligence">
