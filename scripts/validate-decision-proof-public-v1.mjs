@@ -26,9 +26,9 @@ check('homepage core counts are present',includesAll(home,[
 check('homepage economic interpretation is explicit',includesAll(home,[
   '17</b> Economically justified holds',
   'Current economically eligible non-BUY review candidates',
-  'were not BUY-eligible under their authoritative Day-0 profitability state'
+  'All 17 were not BUY-eligible under their authoritative Day-0 economics.'
 ]));
-check('homepage unresolved records are not forced',home.includes('Unresolved outcomes stay unknown instead of being forced into a result.'));
+check('homepage unresolved records are not forced',home.includes('Unknown stays unknown.'));
 check('homepage proof CTA reaches dedicated page',home.includes('href="decision-proof.html">See the full Decision Proof</a>'));
 check('homepage public boundary blocks overclaiming',home.includes('not presented as a customer-facing accuracy score'));
 
@@ -59,6 +59,16 @@ check('dedicated page states coverage limitation',includesAll(page,[
 check('dedicated page blocks universal performance claim',page.includes('does not prove that FlipForge will always make the right decision, guarantee profit, or establish a universal performance percentage'));
 check('dedicated page keeps beta CTA',page.includes('href="beta-application.html">Request Beta Access</a>'));
 
+check('FlipForge premium brand tokens are present',includesAll(css,[
+  '--ff-proof-black:#05070a',
+  '--ff-proof-gold:#d7b56d',
+  '--ff-proof-gold-bright:#f0d79c',
+  'background:linear-gradient(180deg,var(--ff-proof-gold-bright),var(--ff-proof-gold))'
+]));
+check('generic blue-green analytics tokens are retired',!css.includes('--ff-proof-blue')&&!css.includes('--ff-proof-green'));
+check('homepage progress is semantically exposed',home.includes('role="progressbar"')&&home.includes('aria-valuenow="42"'));
+check('dedicated page progress is semantically exposed',page.includes('role="progressbar"')&&page.includes('aria-valuenow="42"'));
+check('premium proof page hero is present',page.includes('Proof, not hindsight.<strong>Freeze the decision before the outcome is known.</strong>'));
 check('CSS is responsive',css.includes('@media(max-width:680px)')&&css.includes('@media(max-width:980px)'));
 check('CSS honors reduced motion',css.includes('@media(prefers-reduced-motion:reduce)'));
 check('progressive enhancement honors reduced motion',js.includes('prefers-reduced-motion: reduce'));
