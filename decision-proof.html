@@ -55,8 +55,8 @@
     <section class="ff-proof-page-hero" data-ff-decision-proof aria-labelledby="proof-page-title">
       <div class="ff-proof-page-wrap">
         <p class="ff-proof-kicker">DECISION PROOF</p>
-        <h1 id="proof-page-title">We don't just record the outcome.<strong>We test whether the original reasoning held up.</strong></h1>
-        <p class="ff-proof-lead">FlipForge preserves the original decision, waits for governed outcome evidence, and then compares what happened with the exact evidence, risk, and economics that existed when the decision was made.</p>
+        <h1 id="proof-page-title">Proof, not hindsight.<strong>Freeze the decision before the outcome is known.</strong></h1>
+        <p class="ff-proof-lead">A Decision Receipt preserves what FlipForge knew and why it acted. Later evidence is compared against that frozen record.</p>
         <div class="ff-proof-page-meta">
           <span>Proof100 cohort</span>
           <span>T7 checkpoint</span>
@@ -70,26 +70,26 @@
       <div class="ff-proof-page-wrap">
         <p class="ff-proof-kicker">CURRENT CHECKPOINT</p>
         <h2 id="proof-current-title">What the Proof100 data currently shows</h2>
-        <p>The current checkpoint is intentionally separated into measured outcomes, unresolved outcomes, raw review signals, and economic interpretation. Unresolved cards are not counted as wins or losses.</p>
+        <p>Measured, unresolved, raw signals, and economic interpretation stay separate. Unknowns are never counted as wins or losses.</p>
 
         <div class="ff-proof-metrics ff-proof-page-metrics" aria-label="Current Proof100 metrics">
-          <article class="ff-proof-metric"><strong>100</strong><span>Frozen decisions</span><p>Full study denominator locked before later outcome review.</p></article>
-          <article class="ff-proof-metric is-blue"><strong>42</strong><span>Measurable at T7</span><p>Sufficient governed outcome evidence exists for review.</p></article>
-          <article class="ff-proof-metric"><strong>58</strong><span>Still unresolved</span><p>Insufficient evidence remains an explicit unknown state.</p></article>
-          <article class="ff-proof-metric is-green"><strong>17</strong><span>Economically justified holds</span><p>Raw conservative signals explained by authoritative Day-0 economics.</p></article>
+          <article class="ff-proof-metric"><strong>100</strong><span>Frozen decisions</span><p>Locked before later outcomes are known.</p></article>
+          <article class="ff-proof-metric is-blue"><strong>42</strong><span>Measurable at T7</span><p>Enough governed evidence for T7 review.</p></article>
+          <article class="ff-proof-metric"><strong>58</strong><span>Still unresolved</span><p>Insufficient evidence remains unknown.</p></article>
+          <article class="ff-proof-metric is-green"><strong>17</strong><span>Economically justified holds</span><p>Raw flags reconciled to Day-0 economics.</p></article>
         </div>
 
         <div class="ff-proof-analysis">
           <article class="ff-proof-progress-card">
             <h3>Proof100 T7 evidence coverage</h3>
-            <div class="ff-proof-progress-track" aria-label="42 percent measured"><span data-ff-proof-progress="42" style="width:42%"></span></div>
+            <div class="ff-proof-progress-track" role="progressbar" aria-label="Proof100 T7 evidence coverage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42"><span data-ff-proof-progress="42" style="width:42%"></span></div>
             <div class="ff-proof-progress-labels"><span>42 measured</span><span>58 unresolved</span></div>
           </article>
           <article class="ff-proof-finding">
             <div class="ff-proof-check" aria-hidden="true">✓</div>
             <div class="ff-proof-finding-copy">
               <h3><b>0</b> Current economically eligible non-BUY review candidates</h3>
-              <p>At this checkpoint, none of the 17 raw conservative-review cases were BUY-eligible under their authoritative original profitability state.</p>
+              <p>None of the 17 raw conservative-review cases were BUY-eligible under their original profitability state.</p>
             </div>
             <div class="ff-proof-zero"><strong>17/17</strong><span>Raw conservative signals economically justified</span></div>
           </article>
@@ -101,23 +101,23 @@
       <div class="ff-proof-page-wrap">
         <p class="ff-proof-kicker">READ THE NUMBERS CORRECTLY</p>
         <h2 id="proof-definitions-title">Three different things must stay separate</h2>
-        <p>A later price move is not the same thing as a good original decision. FlipForge keeps raw market outcomes, original economics, and policy-review candidates separate so hindsight does not become false confidence.</p>
+        <p>A later price move is not the same thing as a good original decision. Three layers stay separate:</p>
 
         <div class="ff-proof-definition-grid">
           <article class="ff-proof-definition">
             <span>01 · Raw outcome signal</span>
             <h3>What happened later?</h3>
-            <p>A raw comparison may flag that a non-BUY card later moved enough to deserve review. That signal starts the investigation; it does not finish it.</p>
+            <p>A later move can trigger review. It does not decide whether the original call was wrong.</p>
           </article>
           <article class="ff-proof-definition">
             <span>02 · Economic interpretation</span>
             <h3>Was BUY actually justified at T0?</h3>
-            <p>FlipForge reconnects the outcome to the original acquisition price, profitability gate, margin of safety, and Maximum Buy Price.</p>
+            <p>Outcome evidence is reconnected to the original price, profitability gate, margin of safety, and Maximum Buy Price.</p>
           </article>
           <article class="ff-proof-definition">
             <span>03 · Policy-review candidate</span>
             <h3>Did economics allow BUY but the recommendation still hold back?</h3>
-            <p>Only that narrower condition creates a recommendation-policy review candidate. It still does not automatically change a production rule.</p>
+            <p>Only a BUY-eligible non-BUY decision becomes a policy-review candidate. No rule changes automatically.</p>
           </article>
         </div>
       </div>
@@ -127,7 +127,7 @@
       <div class="ff-proof-page-wrap">
         <p class="ff-proof-kicker">METHOD</p>
         <h2 id="proof-method-title">The original decision stays frozen</h2>
-        <p>Decision Proof is designed to prevent post-hoc rewriting. The study follows the same decision through time instead of replacing old reasoning with whatever the market later did.</p>
+        <p>The same frozen decision is followed through time. Later evidence adds context; it never rewrites T0.</p>
 
         <div class="ff-proof-method">
           <div class="ff-proof-method-row"><strong>T0</strong><p>Exact identity, qualified evidence, supported value, risk, recommendation, and original economics are preserved.</p></div>
@@ -143,7 +143,7 @@
       <div class="ff-proof-page-wrap">
         <p class="ff-proof-kicker">WHY THE 17-CASE FINDING MATTERS</p>
         <h2 id="proof-finding-title">A rising card can still have been a poor buy at the original price</h2>
-        <p>The 17 raw conservative signals were reviewed against authoritative Day-0 profitability context. All 17 were not BUY-eligible at the time of the original decision.</p>
+        <p>All 17 raw conservative signals were checked against authoritative Day-0 profitability. None was BUY-eligible at T0.</p>
 
         <div class="ff-proof-definition-grid">
           <article class="ff-proof-definition"><span>15 cases</span><h3>Negative net economics</h3><p>The modeled opportunity did not clear the governed profitability requirements at the original acquisition terms.</p></article>
@@ -162,7 +162,7 @@
       <div class="ff-proof-page-wrap">
         <p class="ff-proof-kicker">CURRENT LIMITS</p>
         <h2 id="proof-limits-title">The biggest limitation right now is coverage</h2>
-        <p>Proof100 currently has 42 measurable T7 outcomes and 58 unresolved outcomes. FlipForge keeps those 58 unresolved instead of weakening exact-card or outcome-evidence standards just to fill the chart.</p>
+        <p>Proof100 has 42 measurable T7 outcomes and 58 unresolved. FlipForge does not lower evidence standards just to fill the chart.</p>
 
         <div class="ff-proof-definition-grid">
           <article class="ff-proof-definition"><span>Known</span><h3>42 measurable T7 observations</h3><p>These records have enough governed outcome evidence to enter the current T7 analysis.</p></article>
@@ -173,7 +173,7 @@
         <div class="ff-proof-page-cta">
           <div>
             <h2>Bring FlipForge a real decision.</h2>
-            <p>Private beta users can evaluate a card, inspect the reason trail, save the decision, and help test how the intelligence holds up over time.</p>
+            <p>Evaluate a real card, inspect the reason trail, and track how the decision holds up.</p>
           </div>
           <div class="ff-proof-actions ff-proof-page-cta-actions">
             <a class="ff-proof-button ff-proof-button-primary" href="beta-application.html">Request Beta Access</a>
