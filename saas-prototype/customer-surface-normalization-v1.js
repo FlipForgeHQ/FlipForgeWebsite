@@ -78,7 +78,7 @@
     normalizeVisibleText(document);
     normalizeCustomerLinks(document);
     const chip = document.querySelector(".prototype-chip");
-    if (chip && chip.textContent?.trim() !== "CUSTOMER APP") chip.textContent = "CUSTOMER APP";
+    if (chip && chip.textContent?.trim() !== "DECISION WORKSPACE") chip.textContent = "DECISION WORKSPACE";
     document.querySelector(".prototype-banner")?.remove();
   }
 
