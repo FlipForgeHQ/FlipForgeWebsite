@@ -182,7 +182,7 @@ try {
     await page.waitForSelector(".primary-nav", { timeout: 10_000 });
     await page.waitForTimeout(1000);
     let state = await shellState(page);
-    if (state.chip !== "CUSTOMER APP") fail(`${viewport.name}: full customer shell lost CUSTOMER APP identity`, state);
+    if (state.chip !== "DECISION WORKSPACE") fail(`${viewport.name}: full customer shell lost DECISION WORKSPACE identity`, state);
     if (state.parity !== "v1") fail(`${viewport.name}: full customer parity controller did not apply`, state);
     if (!same(state.topLevelVisible, expectedFullVisible)) fail(`${viewport.name}: full customer top-level navigation is incomplete, duplicated, or out of order`, state);
     if (!same(state.coreVisible, fullTopLevel)) fail(`${viewport.name}: full customer core-route markers do not match the canonical hierarchy`, state);
