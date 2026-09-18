@@ -7,9 +7,9 @@
   --dic-panel-2:#0d1520;
   --dic-line:rgba(255,255,255,.08);
   --dic-text:#f7f9fc;
-  --dic-muted:#a7b1bf;
-  --dic-warm:#f0b56b;
-  --dic-good:#83e3b0;
+  --dic-muted:#aeb8c4;
+  --dic-warm:#d8aa52;
+  --dic-good:#eef2f6;
   background:radial-gradient(circle at 50% 0%,rgba(212,175,55,.10),transparent 30%),var(--dic-bg);
   color:var(--dic-text);
 }
@@ -65,7 +65,7 @@
 
 .ff-dic-shift{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:24px;padding-top:18px;border-top:1px solid var(--dic-line)}
 .ff-dic-shift strong{font-size:18px;color:var(--dic-warm)}
-.ff-dic-shift b{font-size:18px;color:var(--dic-good)}
+.ff-dic-shift b{font-size:18px;color:var(--dic-gold-soft)}
 .ff-dic-shift span{color:#7f8b9a;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
 
 .ff-dic-receipt{display:grid;gap:10px;align-content:start}
@@ -74,6 +74,7 @@
 .ff-dic-receipt-card strong{display:block;margin-top:6px;font-size:25px;letter-spacing:-.035em}
 .ff-dic-receipt-card p{margin:6px 0 0;color:#9ca7b5;font-size:12px;line-height:1.45}
 .ff-dic-receipt-card[data-accent="reject"] strong{color:var(--dic-warm)}
+.ff-dic-receipt-card[data-accent="accept"]{border-color:rgba(238,242,246,.14);background:rgba(238,242,246,.028)}
 .ff-dic-receipt-card[data-accent="accept"] strong{color:var(--dic-good)}
 .ff-dic-receipt-card[data-accent="decision"]{border-color:rgba(212,175,55,.26);background:rgba(212,175,55,.055)}
 .ff-dic-receipt-card[data-accent="decision"] strong{color:var(--dic-gold-soft)}
