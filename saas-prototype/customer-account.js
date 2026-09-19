@@ -7,13 +7,17 @@
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const READ_PATHS = new Set(["/api/v1/health", "/api/v1/entitlements"]);
+  const CHECKOUT_PATH = "/api/v1/billing/paddle/checkout";
+  const CUSTOMER_CHECKOUT_PLANS = new Set(["COLLECTOR"]);
 
   const state = {
     main: null,
     loading: false,
     health: null,
     entitlements: null,
-    error: null
+    error: null,
+    checkoutPlan: null,
+    checkoutError: null
   };
 
   function isEligible() {
@@ -62,6 +66,23 @@
     return `production-account-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
+  function checkoutIdempotencyKey() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return `checkout.${window.crypto.randomUUID()}`;
+    }
+    return `checkout.${Date.now()}.${Math.random().toString(16).slice(2)}`.slice(0, 100);
+  }
+
+  function validatedCheckoutUrl(value) {
+    try {
+      const parsed = new URL(String(value || ""));
+      if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.hash) return null;
+      return parsed.href;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function validHealth(payload, expectedCorrelationId) {
     return Boolean(payload?.meta && payload?.data)
       && payload.meta.contractVersion === CONTRACT_VERSION
@@ -80,6 +101,29 @@
       && meta.correlationId === expectedCorrelationId
       && data.kind === "entitlements"
       && data.readOnly === true
+      && data.transactionAuthority === false;
+  }
+
+  function validCheckoutEnvelope(payload, expectedCorrelationId, expectedPlan) {
+    const meta = payload?.meta;
+    const data = payload?.data;
+    return Boolean(meta && data)
+      && meta.contractVersion === CONTRACT_VERSION
+      && typeof meta.engineVersion === "string"
+      && meta.engineVersion.length > 0
+      && meta.authority === "Smart Opportunity"
+      && meta.gradingAuthority === "Existing PSA intelligence"
+      && meta.correlationId === expectedCorrelationId
+      && data.kind === "paddle-checkout"
+      && data.provider === "PADDLE"
+      && data.planCode === expectedPlan
+      && Boolean(validatedCheckoutUrl(data.checkoutUrl))
+      && typeof data.idempotentReplay === "boolean"
+      && data.customerPriceIdIncluded === false
+      && data.opaqueBillingReferenceIncluded === false
+      && data.paidAccessActivated === false
+      && data.webhookRequiredForPaidActivation === true
+      && data.paymentCredentialsHandledByFlipForge === false
       && data.transactionAuthority === false;
   }
 
@@ -129,6 +173,53 @@
     return payload;
   }
 
+  async function checkoutRequest(planCode) {
+    const plan = String(planCode || "").trim().toUpperCase();
+    if (!CUSTOMER_CHECKOUT_PLANS.has(plan)) {
+      throw Object.assign(new Error("Collector is the only paid plan currently available for checkout."), {
+        code: "CUSTOMER_CHECKOUT_PLAN_INVALID"
+      });
+    }
+
+    const currentData = state.entitlements?.data || {};
+    if (currentData.checkoutAvailable !== true || currentData.customerCheckoutAllowed !== true) {
+      throw Object.assign(new Error("Collector checkout is not currently enabled for this account."), {
+        code: "CUSTOMER_CHECKOUT_NOT_AVAILABLE"
+      });
+    }
+
+    const requestCorrelationId = correlationId();
+    const response = await fetch(CHECKOUT_PATH, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-Correlation-Id": requestCorrelationId,
+        "Idempotency-Key": checkoutIdempotencyKey()
+      },
+      body: JSON.stringify({ planCode: plan }),
+      credentials: "same-origin",
+      cache: "no-store",
+      redirect: "error"
+    });
+
+    const payload = await parseResponse(response);
+    if (!response.ok) {
+      const upstream = payload?.error || {};
+      throw Object.assign(new Error(upstream.message || `Checkout request failed with status ${response.status}.`), {
+        code: upstream.code || "CUSTOMER_CHECKOUT_FAILED",
+        status: response.status,
+        correlationId: upstream.correlationId || requestCorrelationId
+      });
+    }
+    if (!validCheckoutEnvelope(payload, requestCorrelationId, plan)) {
+      throw Object.assign(new Error("The checkout handoff failed the FlipForge authority contract."), {
+        code: "CUSTOMER_CHECKOUT_CONTRACT_INVALID"
+      });
+    }
+    return payload;
+  }
+
   function badge(label, tone = "neutral") {
     return `<span class="staging-status staging-status-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
   }
@@ -163,16 +254,43 @@
     return `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(display)}</strong></li>`;
   }
 
-  function planCards(plans) {
+  function checkoutButton(plan, data) {
+    const code = String(plan?.code || "").trim().toUpperCase();
+    if (code === "PRO") {
+      return `<button class="button button-secondary" type="button" disabled>Pro coming later</button>`;
+    }
+    if (!CUSTOMER_CHECKOUT_PLANS.has(code)) return "";
+    if (data?.checkoutAvailable !== true || data?.customerCheckoutAllowed !== true) {
+      return `<button class="button button-secondary" type="button" disabled>Collector checkout not enabled</button>`;
+    }
+    const busy = state.checkoutPlan === code;
+    const label = busy
+      ? "Preparing secure checkout…"
+      : data.sandboxCheckout === true
+        ? "Start Collector sandbox checkout"
+        : "Continue with Collector";
+    return `<button class="button button-primary" type="button" data-production-checkout-plan="${escapeHtml(code)}" ${state.checkoutPlan ? "disabled" : ""}>${escapeHtml(label)}</button>`;
+  }
+
+  function planCards(plans, data) {
     const safePlans = Array.isArray(plans) ? plans : [];
     if (!safePlans.length) {
       const detail = fullCustomerMode() ? "Current access remains unchanged." : "Private-beta access remains unchanged.";
       return `<div class="staging-empty"><strong>Commercial plan details are unavailable.</strong><p>${detail}</p></div>`;
     }
-    const planEyebrow = fullCustomerMode() ? "Plan" : "Planned launch plan";
-    const planBadge = fullCustomerMode() ? "Informational" : "Planned";
-    const checkoutLabel = fullCustomerMode() ? "Checkout not available yet" : "Checkout deferred until Beta Complete";
-    return `<div class="customer-entitlement-plans">${safePlans.map(plan => `<article class="panel customer-entitlement-plan"><div class="panel-body"><div class="customer-entitlement-plan-head"><div><span class="eyebrow">${planEyebrow}</span><h3>${escapeHtml(plan.name || plan.code || "Plan")}</h3></div>${badge(planBadge, "neutral")}</div><ul>${planFeature("Monthly evaluations", plan.monthlyEvaluationLimit)}${planFeature("Tracked cards", plan.trackedCardLimitLabel || plan.trackedCardLimit)}${planFeature("Full evidence", plan.fullEvidenceReview)}${planFeature("Decision traceback", plan.decisionTraceback)}${planFeature("PSA intelligence", plan.psaIntelligence)}${planFeature("CSV exports", plan.csvExports)}${planFeature("Batch evaluation", plan.batchEvaluation)}</ul><div class="customer-checkout-action"><button class="button button-secondary" type="button" disabled>${checkoutLabel}</button></div></div></article>`).join("")}</div>`;
+
+    return `<div class="customer-entitlement-plans">${safePlans.map(plan => {
+      const code = String(plan?.code || "").trim().toUpperCase();
+      const collectorCheckout = code === "COLLECTOR"
+        && data?.checkoutAvailable === true
+        && data?.customerCheckoutAllowed === true;
+      const status = code === "PRO"
+        ? badge("Coming later", "neutral")
+        : collectorCheckout
+          ? badge(data?.sandboxCheckout === true ? "Sandbox checkout" : "Available", data?.sandboxCheckout === true ? "warn" : "ok")
+          : badge(fullCustomerMode() ? "Current access unchanged" : "Planned", "neutral");
+      return `<article class="panel customer-entitlement-plan"><div class="panel-body"><div class="customer-entitlement-plan-head"><div><span class="eyebrow">${fullCustomerMode() ? "Plan" : "Planned launch plan"}</span><h3>${escapeHtml(plan.name || plan.code || "Plan")}</h3></div>${status}</div><ul>${planFeature("Monthly evaluations", plan.monthlyEvaluationLimit)}${planFeature("Tracked cards", plan.trackedCardLimitLabel || plan.trackedCardLimit)}${planFeature("Full evidence", plan.fullEvidenceReview)}${planFeature("Decision traceback", plan.decisionTraceback)}${planFeature("PSA intelligence", plan.psaIntelligence)}${planFeature("Forge Heat", plan.forgeHeat === true)}${planFeature("CSV exports", plan.csvExports)}${planFeature("Batch evaluation", plan.batchEvaluation)}</ul><div class="customer-checkout-action">${checkoutButton(plan, data)}</div></div></article>`;
+    }).join("")}</div>`;
   }
 
   function syncSidebar(data) {
@@ -191,9 +309,11 @@
       ? (fullCustomerMode() ? `${admissionUsage} used · No monthly cap` : `${admissionUsage} used · Unlimited beta`)
       : `${admissionUsage} / ${usage.monthlyEvaluationLimit}`;
     if (track) track.style.width = `${percent(admissionUsage, usage.monthlyEvaluationLimit)}%`;
-    if (small) small.textContent = fullCustomerMode()
-      ? "Plan state and usage are verified by the server. Paid checkout is not active yet."
-      : "Plan state and usage are server-owned. Paid checkout is deferred until Core Platform Beta Complete.";
+    if (small) small.textContent = data.checkoutAvailable === true && data.customerCheckoutAllowed === true
+      ? "Plan state, usage, and Collector checkout availability are verified by the server."
+      : fullCustomerMode()
+        ? "Plan state and usage are verified by the server. Collector checkout is not enabled."
+        : "Plan state and usage are server-owned. Paid checkout remains gated.";
   }
 
   function loadingView() {
@@ -227,27 +347,53 @@
     const headingCopy = fullCustomerMode()
       ? "Review your access, evaluation usage, and available plan details."
       : "Review server-owned access, evaluation usage, and the planned commercial tiers for this tenant.";
-    const boundaryCopy = fullCustomerMode()
-      ? "Paid checkout, plan changes, and customer portal controls are not available yet. Account information is view-only."
-      : "Paid checkout, plan changes, and customer portal controls are intentionally deferred until Core Platform Beta Complete. This production account screen is read-only.";
-    const plansTitle = fullCustomerMode() ? "Plans" : "Planned commercial plans";
-    const plansCopy = fullCustomerMode()
-      ? "Plan details are informational until billing is enabled."
-      : "These tiers remain informational during the core-platform completion sprint.";
-    const billingBadge = fullCustomerMode() ? "Billing not active" : "Billing deferred";
-    const safetyTitle = fullCustomerMode()
-      ? "Payments are not available yet."
-      : "Production payment controls are intentionally absent.";
-    const safetyCopy = fullCustomerMode()
-      ? "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing will open after launch readiness review."
-      : "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing launch resumes only after the core customer product reaches Beta Complete.";
+    const checkoutAvailable = data.checkoutAvailable === true && data.customerCheckoutAllowed === true;
+    const boundaryCopy = checkoutAvailable
+      ? "Collector checkout is available only through an explicit customer action. Existing early-access users are not automatically converted to a paid plan."
+      : "Collector checkout is not enabled for this account. Existing access remains unchanged.";
+    const plansTitle = fullCustomerMode() ? "Plans" : "Commercial plans";
+    const plansCopy = checkoutAvailable
+      ? "Collector can be started through secure Paddle checkout. Pro remains unavailable until its premium feature set is ready."
+      : "Collector is prepared for launch but remains unavailable until the authoritative billing gate is enabled.";
+    const billingBadge = checkoutAvailable ? "Collector checkout available" : "Checkout gated";
+    const safetyTitle = checkoutAvailable
+      ? "Payment details stay with Paddle."
+      : "Payments are not enabled for this account.";
+    const safetyCopy = checkoutAvailable
+      ? "FlipForge sends only the selected Collector plan and a one-time request key. Checkout creation does not activate paid access; only a verified Paddle webhook can do that. Sports-card transaction authority remains false."
+      : "This screen cannot start a payment while the server gate is closed. It cannot create an entitlement, change evidence, recalculate PSA guidance, or authorize a sports-card transaction.";
 
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>${headingCopy}</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Launch boundary:</strong> ${boundaryCopy}</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(currentAccessLabel(current))}</h2></div>${accessBadge}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(customerFacingText(current.accessState || "Unavailable"))}</dd></div><div><dt>Source</dt><dd>${escapeHtml(customerFacingText(current.entitlementSource || "Unavailable"))}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Production checkout</dt><dd>${fullCustomerMode() ? "Not available yet" : "Deferred by core-platform launch gate"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Usage is returned by the authoritative service. The browser cannot increase an allowance or create an entitlement.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>${plansTitle}</h2><p>${plansCopy}</p></div>${badge(billingBadge, "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>${safetyTitle}</strong><p>${safetyCopy}</p></div></section></div>`;
+    const checkoutError = state.checkoutError
+      ? `<div class="staging-error" role="alert"><strong>${escapeHtml(state.checkoutError.code || "CHECKOUT_UNAVAILABLE")}</strong><p>${escapeHtml(state.checkoutError.message || "Collector checkout could not be prepared.")}</p></div>`
+      : "";
+
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>${headingCopy}</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Launch boundary:</strong> ${boundaryCopy}</div>${checkoutError}<section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(currentAccessLabel(current))}</h2></div>${accessBadge}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(customerFacingText(current.accessState || "Unavailable"))}</dd></div><div><dt>Source</dt><dd>${escapeHtml(customerFacingText(current.entitlementSource || "Unavailable"))}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Production checkout</dt><dd>${fullCustomerMode() ? "Not available yet" : "Deferred by core-platform launch gate"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Usage is returned by the authoritative service. The browser cannot increase an allowance or create an entitlement.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>${plansTitle}</h2><p>${plansCopy}</p></div>${badge(billingBadge, "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans, data)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>${safetyTitle}</strong><p>${safetyCopy}</p></div></section></div>`;
   }
 
   function attachActions() {
     const refresh = state.main?.querySelector?.("[data-production-account-refresh]");
     if (refresh) refresh.addEventListener("click", load);
+    state.main?.querySelectorAll?.("[data-production-checkout-plan]").forEach(button => {
+      button.addEventListener("click", () => startCheckout(button.getAttribute("data-production-checkout-plan")));
+    });
+  }
+
+  async function startCheckout(planCode) {
+    if (state.checkoutPlan) return;
+    const plan = String(planCode || "").trim().toUpperCase();
+    state.checkoutPlan = plan;
+    state.checkoutError = null;
+    renderState();
+    try {
+      const payload = await checkoutRequest(plan);
+      const url = validatedCheckoutUrl(payload?.data?.checkoutUrl);
+      if (!url) throw Object.assign(new Error("The checkout URL was not safe to open."), { code: "CUSTOMER_CHECKOUT_URL_INVALID" });
+      window.location.assign(url);
+    } catch (error) {
+      state.checkoutError = error;
+      state.checkoutPlan = null;
+      renderState();
+    }
   }
 
   function renderState() {
@@ -270,9 +416,10 @@
   }
 
   async function load() {
-    if (!state.main || state.loading) return;
+    if (!state.main || state.loading || state.checkoutPlan) return;
     state.loading = true;
     state.error = null;
+    state.checkoutError = null;
     renderState();
     try {
       state.health = await request("/api/v1/health");
@@ -294,6 +441,8 @@
     state.health = null;
     state.entitlements = null;
     state.error = null;
+    state.checkoutPlan = null;
+    state.checkoutError = null;
     load();
     return true;
   }
