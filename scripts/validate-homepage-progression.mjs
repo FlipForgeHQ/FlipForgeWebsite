@@ -66,7 +66,24 @@ requireAll('homepage CDI reveal',homepage,[
   'What should I do — and why?',
   'FLIPFORGE = CARD DECISION INTELLIGENCE™'
 ]);
-for(const layer of ['Identity Intelligence','Evidence Intelligence','Economic Intelligence','Risk + Uncertainty','Decision Intelligence','Decision Receipt','Outcome Intelligence'])requireText('homepage seven-layer CDI',homepage,layer);
+requireAll('homepage four-system CDI model',homepage,[
+  'A · KNOW THE CARD',
+  'B · KNOW THE MARKET',
+  'C · MAKE THE DECISION',
+  'D · LEARN WHAT HAPPENED',
+  'Release',
+  'Taxonomy',
+  'Identity',
+  'Provenance + Trust',
+  'Evidence',
+  'Economics',
+  'Product + Variant',
+  'Grade + Scarcity',
+  'Risk + Uncertainty',
+  'Decision Receipt',
+  'Outcome',
+  'Governance + Continuous'
+]);
 
 requireAll('homepage Decision Proof',homepage,[
   'assets/css/decision-proof-v1.css',
