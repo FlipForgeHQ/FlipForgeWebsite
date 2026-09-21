@@ -6,6 +6,12 @@ const product=read('product.html');
 const learn=read('learn.html');
 const beta=read('beta-application.html');
 const pricing=read('pricing.html');
+const about=read('about.html');
+const decisionPage=read('decision-intelligence.html');
+const phase2Css=read('assets/css/phase2-premium-intelligence-v1.css');
+const phase2Js=read('assets/js/phase2-premium-intelligence-v1.js');
+const decisionCardCss=read('saas-prototype/decision-card-evidence-v1.css');
+const decisionCardJs=read('saas-prototype/decision-card-evidence-v1.js');
 const app=read('saas-prototype/index.html');
 const awardJs=read('assets/js/award-winning-v1.js');
 const navJs=read('assets/js/homepage-v1.js');
@@ -179,6 +185,35 @@ requireAll('Beta customer-first funnel',beta,['Bring the card that makes you hes
 requireAll('Beta step behavior',awardJs,['steps.slice(1)','setStep(1)']);
 requireAll('Launch Plans progressive disclosure',pricing,['Planned Launch Structure','Launch Plans','Pricing to be announced','Final package pricing has not been published.','No paid checkout and no public package pricing during private beta.','10 planned evaluations per month','75 planned evaluations per month','300 planned evaluations per month','Open full planned feature comparison']);
 for(const amount of ['$14.99','$29.99','$149','$299'])forbidText('Launch Plans unpublished pricing',pricing,amount);
+
+requireAll('Phase 2 premium public rollout',phase2Js,[
+  'buildCdiTheater()',
+  'buildEvidenceTheater()',
+  'buildProductReceipt()',
+  'cdi_layer_viewed',
+  'evidence_failure_selected',
+  'decision_receipt_cta_clicked',
+  'phase2_beta_cta_clicked'
+]);
+requireAll('Phase 2 premium visual system',phase2Css,[
+  '.ff-phase2-cdi-theater',
+  '.ff-phase2-evidence-theater',
+  '.ff-phase2-product-receipt',
+  '@media(prefers-reduced-motion:reduce)'
+]);
+for(const [label,page] of [['Decision Intelligence',decisionPage],['Evidence Lab',learn],['Product',product],['Launch Plans',pricing],['About',about],['Beta',beta]]){
+  requireText(`Phase 2 ${label} stylesheet`,page,'assets/css/phase2-premium-intelligence-v1.css');
+  requireText(`Phase 2 ${label} runtime`,page,'assets/js/phase2-premium-intelligence-v1.js');
+}
+requireAll('Phase 2 customer Decision Receipt',decisionCardCss,[
+  'Phase 2 Decision Passport motion',
+  '.ff-dce-passport-motion',
+  '@keyframes ffDcePassportLayer'
+]);
+requireAll('Phase 2 customer Decision Receipt runtime',decisionCardJs,[
+  'ff-dce-passport-motion',
+  '--ff-dce-i'
+]);
 
 for(const page of [homepage,product,learn,beta,pricing])requireAll('marketing navigation',page,['>Evidence Lab</a>','>Launch Plans</a>','>About</a>','>Request Beta Access</a>']);
 

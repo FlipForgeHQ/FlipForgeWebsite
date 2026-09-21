@@ -157,12 +157,13 @@
     let panel = model.root.querySelector("[data-ff-decision-card-evidence]");
     if (!panel) {
       panel = document.createElement("section");
-      panel.className = "ff-decision-card-evidence";
+      panel.className = "ff-decision-card-evidence ff-dce-passport-motion";
       panel.dataset.ffDecisionCardEvidence = "v1";
       model.anchor.insertAdjacentElement("afterend", panel);
     }
     if (panel.dataset.ffDecisionCardSignature === signature) return;
     panel.dataset.ffDecisionCardSignature = signature;
+    panel.classList.add("ff-dce-passport-motion");
 
     const receiptAction = model.receiptMode === "attached"
       ? '<button type="button" data-ff-open-decision-receipt>Open Decision Receipt</button>'
@@ -196,6 +197,8 @@
           <li data-cdi-layer="outcome"><span class="ff-dce-number">07</span><div><strong>Outcome Intelligence</strong><p>Track what happened after the decision.</p><small>Use the governed Tracking workflow for 7 / 14 / 30 outcome review.</small><a href="${escapeHtml(model.trackingHref)}">Continue to Tracking →</a></div></li>
         </ol>
       </details>`;
+
+    [...panel.querySelectorAll(".ff-dce-layers li")].forEach((item,index)=>item.style.setProperty("--ff-dce-i",String(index)));
   }
 
   function enhance() {
