@@ -47,7 +47,9 @@ check('021 live sequence rejects weak comparisons visibly',dealJs.includes("setC
 check('022 live sequence recalculates to governed values',dealJs.includes("supportedValue.textContent='$357.20'")&&dealJs.includes("supportedDiscount.textContent='2.3%'"));
 check('023 result follows processing in the same component',dealJs.includes('schedule(token,3820,showResult)')&&dealJs.includes('resultStage.hidden=false'));
 check('024 reveal names the experience Card Decision Intelligence',index.includes('YOU JUST USED CARD DECISION INTELLIGENCE™')&&index.includes('FlipForge did more than find a different price.'));
-check('025 seven CDI layers are explicit',['Identity Intelligence','Evidence Intelligence','Economic Intelligence','Risk + Uncertainty','Decision Intelligence','Decision Receipt','Outcome Intelligence'].every(v=>index.includes(v)));
+check('025 updated CDI model exposes four systems and thirteen governed layers',
+  ['KNOW THE CARD','KNOW THE MARKET','MAKE THE DECISION','LEARN WHAT HAPPENED'].every(v=>index.includes(v))
+  && ['Release','Taxonomy','Identity','Provenance + Trust','Evidence','Economics','Product + Variant','Grade + Scarcity','Risk + Uncertainty','Decision','Decision Receipt','Outcome','Governance + Continuous'].every(v=>index.includes(v)));
 check('026 CDI differentiates data from decisions',index.includes('Data tells you what happened. FlipForge helps you decide what to do now.')&&index.includes('What should I do — and why?'));
 check('027 interaction uses progressive enhancement',dealJs.includes('document.startViewTransition')&&dealJs.includes('showModal'));
 check('028 interaction is responsive',dealCss.includes('@media(max-width:760px)')&&dealCss.includes('.ff-deal-choices')&&processCss.includes('@media(max-width:760px)')&&cdiCss.includes('@media(max-width:520px)'));
