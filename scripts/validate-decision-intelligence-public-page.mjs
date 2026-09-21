@@ -45,6 +45,10 @@ check('public page exposes no implementation vocabulary', !forbiddenImplementati
 check('exhibit automation supports reduced motion', exhibitJs.includes('prefers-reduced-motion'));
 check('exhibit stops after the decision instead of looping indefinitely', exhibitJs.includes('if (current >= states.length - 1) return'));
 check('exhibit has direct user-controlled stages', exhibitJs.includes('data-ff-dic-step') && exhibitJs.includes('addEventListener("click"'));
+check('updated public model presents four systems', ['KNOW THE CARD','KNOW THE MARKET','MAKE THE DECISION','LEARN WHETHER IT HELD UP'].every(label => page.includes(label)));
+check('updated public model exposes thirteen governed layers', ['Release Intelligence','Taxonomy Intelligence','Identity Intelligence','Identity Provenance + Trust','Evidence Intelligence','Market + Economic Intelligence','Product + Variant Intelligence','Grade + Scarcity Intelligence','Risk + Uncertainty Intelligence','Decision Intelligence','Decision Traceback / Receipt','Outcome Intelligence','Governance + Continuous Intelligence'].every(label => page.includes(label)));
+check('identity fail-closed rule is public and explicit', page.includes('Unknown or conflicting identity fails closed'));
+check('evidence-only product doctrine is public and explicit', page.includes('Product knowledge supplies context. Market evidence supplies truth.'));
 check('Decision Intelligence page stays highly focused', sectionCount(page) <= 2);
 check('Product page stays compact', sectionCount(product) <= 5);
 check('Product uses current Card Decision Intelligence branding', product.includes('CARD DECISION INTELLIGENCE') && product.includes('Card Decision Intelligence'));
