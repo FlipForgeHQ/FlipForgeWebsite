@@ -1,16 +1,151 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "Card Decision Intelligence™",
   "coreQuestion": "What should I do — and why?",
-  "summary": "FlipForge turns exact-card identity, evidence quality, economics, risk, and outcomes into a defensible BUY, WATCH, VERIFY, or PASS decision.",
-  "layers": [
-    {"number":"01","key":"identity","name":"Identity Intelligence","question":"Are we evaluating the exact card?","publicCopy":"Resolve the exact card, variation, grade, parallel, and listing context before anything else counts."},
-    {"number":"02","key":"evidence","name":"Evidence Intelligence","question":"Which evidence deserves to count?","publicCopy":"Separate valid evidence from mismatched, duplicated, stale, or conflicting records."},
-    {"number":"03","key":"economic","name":"Economic Intelligence","question":"What do the economics actually support?","publicCopy":"Evaluate supported value, cost, margin, liquidity, and market context without turning a price into a conclusion."},
-    {"number":"04","key":"risk","name":"Risk + Uncertainty Intelligence","question":"What remains unknown or dangerous?","publicCopy":"Keep missing evidence, uncertainty, seller quality, grading risk, and thin margins visible instead of hiding them inside one score."},
-    {"number":"05","key":"decision","name":"Decision Intelligence","question":"What should I do now?","publicCopy":"Return BUY, WATCH, VERIFY, or PASS with the reasons and next action behind the decision."},
-    {"number":"06","key":"receipt","name":"Decision Traceback / Decision Receipt","question":"Why did FlipForge reach that conclusion?","publicCopy":"Preserve the evidence, exclusions, assumptions, and reasoning that produced the decision."},
-    {"number":"07","key":"outcome","name":"Outcome Intelligence","question":"What happened afterward?","publicCopy":"Keep T0 immutable and review governed T7, T14, and T30 outcomes so later evidence adds context without rewriting history."}
+  "summary": "FlipForge connects exact-card identity, qualified evidence, economics, uncertainty, decision reasoning, outcomes, and governance into a traceable BUY, WATCH, VERIFY, or PASS decision system.",
+  "systems": [
+    {
+      "key": "know-card",
+      "name": "Know the Card",
+      "purpose": "Prove what the card is before market evidence gets a vote.",
+      "layers": [
+        "release",
+        "taxonomy",
+        "identity",
+        "identity-trust"
+      ]
+    },
+    {
+      "key": "know-market",
+      "name": "Know the Market",
+      "purpose": "Use qualified evidence to establish what the market actually supports.",
+      "layers": [
+        "evidence",
+        "economic",
+        "product-variant",
+        "grade-scarcity"
+      ]
+    },
+    {
+      "key": "make-decision",
+      "name": "Make the Decision",
+      "purpose": "Keep uncertainty visible, make the call, and preserve why.",
+      "layers": [
+        "risk",
+        "decision",
+        "receipt"
+      ]
+    },
+    {
+      "key": "learn",
+      "name": "Learn Whether It Held Up",
+      "purpose": "Measure outcomes and govern changes without rewriting history.",
+      "layers": [
+        "outcome",
+        "governance"
+      ]
+    }
   ],
+  "layers": [
+    {
+      "number": "00",
+      "key": "release",
+      "name": "Release Intelligence",
+      "question": "What official product or release are we dealing with?",
+      "publicCopy": "Track known releases and their validated source context so identity begins with the right product family and release."
+    },
+    {
+      "number": "01",
+      "key": "taxonomy",
+      "name": "Taxonomy Intelligence",
+      "question": "What card structures are valid inside this release?",
+      "publicCopy": "Separate base cards, subsets, inserts, parallels, serial rules, autos, memorabilia, and variations instead of treating seller wording as truth."
+    },
+    {
+      "number": "02",
+      "key": "identity",
+      "name": "Identity Intelligence",
+      "question": "Are we evaluating the exact card?",
+      "publicCopy": "Resolve the exact card, variation, grade, parallel, and listing context before anything else counts."
+    },
+    {
+      "number": "03",
+      "key": "identity-trust",
+      "name": "Identity Provenance + Trust",
+      "question": "Why does FlipForge believe this identity?",
+      "publicCopy": "Preserve the source, normalized identity, verification state, and conflict reason for material identity fields."
+    },
+    {
+      "number": "04",
+      "key": "evidence",
+      "name": "Evidence Intelligence",
+      "question": "Which evidence deserves to count?",
+      "publicCopy": "Separate valid evidence from mismatched, duplicated, stale, or conflicting records."
+    },
+    {
+      "number": "05",
+      "key": "economic",
+      "name": "Market + Economic Intelligence",
+      "question": "What do the economics actually support?",
+      "publicCopy": "Evaluate supported value, cost, margin, market depth, dispersion, and context without turning a price into a conclusion."
+    },
+    {
+      "number": "06",
+      "key": "product-variant",
+      "name": "Product + Variant Intelligence",
+      "question": "How does this product or variant behave when evidence supports the distinction?",
+      "publicCopy": "Measure product and variant behavior from observed evidence rather than hobby reputation, fixed multipliers, or prestige assumptions."
+    },
+    {
+      "number": "07",
+      "key": "grade-scarcity",
+      "name": "Grade + Scarcity Intelligence",
+      "question": "How do grade and scarcity change the evidence picture?",
+      "publicCopy": "Keep grade spreads, downside floors, population context, and serial scarcity separate from unsupported assumptions about premiums."
+    },
+    {
+      "number": "08",
+      "key": "risk",
+      "name": "Risk + Uncertainty Intelligence",
+      "question": "What remains unknown or dangerous?",
+      "publicCopy": "Keep missing evidence, identity uncertainty, seller quality, grading risk, thin samples, and weak margins visible instead of hiding them inside one score."
+    },
+    {
+      "number": "09",
+      "key": "decision",
+      "name": "Decision Intelligence",
+      "question": "What should I do now?",
+      "publicCopy": "Return BUY, WATCH, VERIFY, or PASS with the reasons and next action behind the decision."
+    },
+    {
+      "number": "10",
+      "key": "receipt",
+      "name": "Decision Traceback / Decision Receipt",
+      "question": "Why did FlipForge reach that conclusion?",
+      "publicCopy": "Preserve identity, accepted and rejected evidence, uncertainty, supported economics, and policy context behind the call."
+    },
+    {
+      "number": "11",
+      "key": "outcome",
+      "name": "Outcome Intelligence",
+      "question": "What happened afterward?",
+      "publicCopy": "Keep T0 immutable and review governed T7, T14, and T30 outcomes so later evidence adds context without rewriting history."
+    },
+    {
+      "number": "12",
+      "key": "governance",
+      "name": "Governance + Continuous Intelligence",
+      "question": "How does FlipForge improve without corrupting itself?",
+      "publicCopy": "Route unknowns and conflicts through governed review, version material changes, and require validation before new intelligence can affect decisions."
+    }
+  ],
+  "doctrine": {
+    "identity": "Identity establishes what the card is.",
+    "evidence": "Evidence establishes what the market supports.",
+    "risk": "Risk establishes what remains unknown.",
+    "decision": "Decision Intelligence determines what the evidence justifies.",
+    "outcome": "Outcomes determine whether the reasoning held up.",
+    "rule": "Product knowledge supplies context. Market evidence supplies truth."
+  },
   "locked": true
 }

@@ -20,7 +20,7 @@ The internal strategic analogy “Bloomberg of sports cards” is not approved a
 
 - `content/brand.json` — locked brand and decision-state vocabulary
 - `content/positioning.json` — category and product positioning
-- `content/decision-intelligence.json` — seven governed CDI layers
+- `content/decision-intelligence.json` — four governed CDI systems and thirteen intelligence layers
 - `content/product-messaging.json` — universal customer messaging
 - `content/audience-messaging.json` — collector, investor, flipper, dealer, and grading-user framing
 - `content/proof-points.json` — approved behavioral proof points
@@ -52,7 +52,7 @@ The validator fails if:
 
 - locked descriptor/category/slogan language changes;
 - BUY/WATCH/VERIFY/PASS changes;
-- any of the seven CDI layer names drift;
+- any of the thirteen CDI layer names or four-system structure drift;
 - a required document disappears;
 - forbidden performance/profit claims appear;
 - the internal Bloomberg analogy leaks into generated public copy;

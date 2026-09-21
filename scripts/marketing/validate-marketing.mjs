@@ -25,17 +25,26 @@ check("category lock", brand.category === "Card Decision Intelligence™");
 check("slogan lock", brand.slogan === "Before you buy. Know Why.");
 check("decision-state lock", JSON.stringify(brand.decisionStates) === JSON.stringify(["BUY","WATCH","VERIFY","PASS"]));
 check("internal analogy is not approved for public use", brand.publicUseOfInternalAnalogy === false);
-check("seven CDI layers exist", cdi.layers.length === 7);
-check("seven CDI layer names locked", JSON.stringify(cdi.layers.map(item=>item.name)) === JSON.stringify([
+check("four CDI systems exist", Array.isArray(cdi.systems) && cdi.systems.length === 4);
+check("thirteen CDI layers exist", cdi.layers.length === 13);
+check("thirteen CDI layer names locked", JSON.stringify(cdi.layers.map(item=>item.name)) === JSON.stringify([
+  "Release Intelligence",
+  "Taxonomy Intelligence",
   "Identity Intelligence",
+  "Identity Provenance + Trust",
   "Evidence Intelligence",
-  "Economic Intelligence",
+  "Market + Economic Intelligence",
+  "Product + Variant Intelligence",
+  "Grade + Scarcity Intelligence",
   "Risk + Uncertainty Intelligence",
   "Decision Intelligence",
   "Decision Traceback / Decision Receipt",
-  "Outcome Intelligence"
+  "Outcome Intelligence",
+  "Governance + Continuous Intelligence"
 ]));
-check("T0/T7/T14/T30 outcome language exists", cdi.layers.at(-1)?.publicCopy.includes("T0") && cdi.layers.at(-1)?.publicCopy.includes("T7") && cdi.layers.at(-1)?.publicCopy.includes("T14") && cdi.layers.at(-1)?.publicCopy.includes("T30"));
+const outcomeLayer = cdi.layers.find(item => item.key === "outcome");
+check("T0/T7/T14/T30 outcome language exists", outcomeLayer?.publicCopy.includes("T0") && outcomeLayer?.publicCopy.includes("T7") && outcomeLayer?.publicCopy.includes("T14") && outcomeLayer?.publicCopy.includes("T30"));
+check("evidence-only product doctrine locked", cdi.doctrine?.rule === "Product knowledge supplies context. Market evidence supplies truth.");
 check("positioning preserves decision-engine category", positioning.categoryStatement.includes("Card Decision Intelligence™"));
 check("positioning rejects price-guide framing", positioning.notA.includes("price guide"));
 check("proof-point policy blocks premature accuracy claims", proof.claimPolicy.toLowerCase().includes("accuracy") && proof.claimPolicy.toLowerCase().includes("authorization"));
