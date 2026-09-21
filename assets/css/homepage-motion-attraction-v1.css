@@ -1,0 +1,159 @@
+/* FlipForge animated landing attraction — production motion layer */
+.ff-motion-attraction{
+  position:relative;
+  min-height:660px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:24px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 64% 30%,rgba(212,175,55,.14),transparent 28%),
+    radial-gradient(circle at 82% 72%,rgba(70,112,153,.12),transparent 34%),
+    linear-gradient(145deg,#02060c 0%,#07111b 56%,#02060c 100%);
+  box-shadow:0 36px 120px rgba(0,0,0,.46);
+  isolation:isolate;
+}
+.ff-motion-attraction::before{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;z-index:-1;
+  background-image:
+    linear-gradient(rgba(255,255,255,.026) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.026) 1px,transparent 1px);
+  background-size:34px 34px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.85),rgba(0,0,0,.18));
+}
+.ff-motion-topbar{
+  min-height:56px;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  border-bottom:1px solid rgba(255,255,255,.08);background:rgba(3,8,14,.72);backdrop-filter:blur(10px)
+}
+.ff-motion-topbar strong{color:#f0d184;font-size:.72rem;letter-spacing:.14em}
+.ff-motion-topbar span{color:#8f99a7;font-size:.72rem}
+.ff-motion-stage{position:relative;height:520px;overflow:hidden}
+.ff-motion-aperture{
+  position:absolute;left:50%;top:48%;width:min(430px,68%);aspect-ratio:1;transform:translate(-50%,-50%);
+  border:1px solid rgba(212,175,55,.20);clip-path:polygon(50% 0,84% 12%,100% 48%,86% 82%,51% 100%,16% 86%,0 52%,13% 16%);
+  background:radial-gradient(circle,rgba(212,175,55,.05),transparent 62%);
+  transition:transform 700ms cubic-bezier(.2,.8,.2,1),filter 700ms ease;
+}
+.ff-motion-aperture::before,.ff-motion-aperture::after{
+  content:"";position:absolute;inset:12%;border:1px solid rgba(255,255,255,.10);
+  clip-path:inherit;transform:rotate(11deg)
+}
+.ff-motion-aperture::after{inset:24%;border-color:rgba(212,175,55,.22);transform:rotate(-9deg)}
+.ff-motion-card{
+  position:absolute;left:50%;top:49%;width:178px;aspect-ratio:.70;transform:translate(-50%,-50%) rotate(-3deg);
+  border:8px solid #eef1f4;border-radius:9px;background:linear-gradient(145deg,#172331,#5d6876 45%,#17202c 75%,#0b121b);
+  box-shadow:0 30px 55px rgba(0,0,0,.52);overflow:hidden;transition:transform 650ms cubic-bezier(.2,.8,.2,1),box-shadow 650ms ease
+}
+.ff-motion-card::before{
+  content:"";position:absolute;inset:16% 7% 6%;
+  background:
+    linear-gradient(132deg,transparent 26%,rgba(212,175,55,.72) 27% 31%,transparent 32% 46%,rgba(143,194,255,.22) 47% 50%,transparent 51%),
+    linear-gradient(35deg,#18293a,#0d1621);
+}
+.ff-motion-card::after{content:"2020 PRIZM #307\A JOE BURROW · SILVER · PSA 10";white-space:pre;position:absolute;left:7px;right:7px;top:7px;padding:6px;background:#fff;color:#11161b;font-size:.49rem;font-weight:900;line-height:1.35;letter-spacing:.035em}
+.ff-motion-card img{position:absolute;z-index:2;left:50%;top:56%;width:76px;transform:translate(-50%,-50%);filter:drop-shadow(0 8px 10px rgba(0,0,0,.42))}
+.ff-motion-node{
+  position:absolute;z-index:4;padding:10px 12px;min-width:148px;
+  border:1px solid #334150;background:rgba(5,12,19,.84);backdrop-filter:blur(8px);
+  transition:transform 500ms ease,opacity 500ms ease,border-color 500ms ease,box-shadow 500ms ease
+}
+.ff-motion-node small{display:block;color:#7f8996;font-size:.58rem;font-weight:900;letter-spacing:.14em}
+.ff-motion-node strong{display:block;margin-top:4px;color:#fff;font-size:.8rem;letter-spacing:.04em}
+.ff-motion-node::before{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:#56616d;top:50%;transform:translateY(-50%)}
+.ff-motion-node-left::before{right:-4px}.ff-motion-node-right::before{left:-4px}
+.ff-motion-node-identity{left:5%;top:18%}.ff-motion-node-evidence{right:4%;top:21%}
+.ff-motion-node-risk{left:5%;bottom:18%}.ff-motion-node-decision{right:4%;bottom:17%}
+.ff-motion-evidence-rail{
+  position:absolute;left:50%;bottom:30px;width:min(520px,80%);transform:translateX(-50%);
+  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;z-index:5
+}
+.ff-motion-comp{
+  min-height:48px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;
+  border:1px solid #273442;background:#07101a;color:#8e99a7;font-size:.56rem;font-weight:900;
+  transition:transform 420ms ease,opacity 420ms ease,border-color 420ms ease,background 420ms ease,color 420ms ease
+}
+.ff-motion-comp b{font-size:.7rem}.ff-motion-comp[data-kind="good"]{--final:#75c69d}.ff-motion-comp[data-kind="bad"]{--final:#e06b6b}
+.ff-motion-scan{
+  position:absolute;z-index:6;top:11%;bottom:17%;left:18%;width:2px;opacity:0;
+  background:#d4af37;box-shadow:0 0 12px #d4af37,0 0 30px rgba(212,175,55,.45);
+  transition:left 1250ms cubic-bezier(.2,.8,.2,1),opacity 220ms ease
+}
+.ff-motion-scan::after{content:"";position:absolute;top:0;bottom:0;left:-60px;width:120px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.08),transparent)}
+.ff-motion-caption{
+  min-height:84px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:18px;
+  border-top:1px solid rgba(212,175,55,.28);background:rgba(2,7,12,.92)
+}
+.ff-motion-caption small{display:block;color:#d4af37;font-size:.63rem;font-weight:900;letter-spacing:.16em}
+.ff-motion-caption h3{margin:4px 0 2px;font-size:1.2rem;line-height:1.1}
+.ff-motion-caption p{margin:0;color:#8f99a7;font-size:.76rem}
+.ff-motion-state{
+  min-width:150px;padding:11px 14px;border-radius:10px;text-align:center;background:#d4af37;color:#05070a;
+  font-size:.72rem;font-weight:950;letter-spacing:.08em;transition:background 350ms ease,color 350ms ease,transform 350ms ease
+}
+.ff-motion-progress{position:absolute;left:0;bottom:0;height:3px;width:0;background:linear-gradient(90deg,#b8860b,#d4af37,#f0d184);z-index:8}
+.ff-motion-brand-close{
+  position:absolute;z-index:7;inset:56px 0 84px;display:grid;place-items:center;text-align:center;
+  background:radial-gradient(circle at center,rgba(212,175,55,.08),rgba(2,6,12,.95) 63%);
+  opacity:0;pointer-events:none;transition:opacity 500ms ease
+}
+.ff-motion-brand-close img{width:104px;margin:0 auto 14px}
+.ff-motion-brand-close small{color:#d4af37;font-size:.66rem;font-weight:900;letter-spacing:.18em}
+.ff-motion-brand-close strong{display:block;margin-top:9px;color:#fff;font-size:clamp(1.8rem,4vw,3.2rem);line-height:.96;letter-spacing:-.045em}
+.ff-motion-brand-close strong span{color:#d4af37}
+.ff-motion-brand-close a{display:inline-flex;margin-top:18px;min-height:42px;padding:0 16px;align-items:center;justify-content:center;border-radius:8px;background:#d4af37;color:#05070a;font-size:.78rem;font-weight:900;text-decoration:none}
+.ff-motion-attraction[data-state="identity"] .ff-motion-node-identity,
+.ff-motion-attraction[data-state="evidence"] .ff-motion-node-evidence,
+.ff-motion-attraction[data-state="risk"] .ff-motion-node-risk,
+.ff-motion-attraction[data-state="decision"] .ff-motion-node-decision{
+  border-color:#75c69d;box-shadow:0 0 0 1px rgba(117,198,157,.12),0 14px 34px rgba(0,0,0,.25)
+}
+.ff-motion-attraction[data-state="identity"] .ff-motion-node-identity::before,
+.ff-motion-attraction[data-state="decision"] .ff-motion-node-decision::before{background:#75c69d}
+.ff-motion-attraction[data-state="evidence"] .ff-motion-node-evidence{border-color:#e06b6b}
+.ff-motion-attraction[data-state="evidence"] .ff-motion-node-evidence::before{background:#e06b6b}
+.ff-motion-attraction[data-state="risk"] .ff-motion-node-risk{border-color:#d4af37}
+.ff-motion-attraction[data-state="risk"] .ff-motion-node-risk::before{background:#d4af37}
+.ff-motion-attraction[data-state="identity"] .ff-motion-scan,
+.ff-motion-attraction[data-state="evidence"] .ff-motion-scan{opacity:1}
+.ff-motion-attraction[data-state="evidence"] .ff-motion-comp[data-kind="bad"]{
+  opacity:.34;transform:translateY(8px) scale(.94);border-color:#7b3a3a;color:#d58e8e;background:#12090c;text-decoration:line-through
+}
+.ff-motion-attraction[data-state="evidence"] .ff-motion-comp[data-kind="good"],
+.ff-motion-attraction[data-state="risk"] .ff-motion-comp[data-kind="good"],
+.ff-motion-attraction[data-state="decision"] .ff-motion-comp[data-kind="good"]{
+  border-color:#477861;color:#a9e0c2;background:#07120d
+}
+.ff-motion-attraction[data-state="decision"] .ff-motion-card{transform:translate(-50%,-50%) rotate(0deg) scale(1.035);box-shadow:0 28px 70px rgba(212,175,55,.18)}
+.ff-motion-attraction[data-state="decision"] .ff-motion-aperture{transform:translate(-50%,-50%) rotate(5deg) scale(1.03);filter:drop-shadow(0 0 26px rgba(212,175,55,.11))}
+.ff-motion-attraction[data-state="close"] .ff-motion-brand-close{opacity:1}
+.ff-motion-attraction[data-state="close"] .ff-motion-scan{opacity:0}
+.ff-motion-attraction[data-state="evidence"] .ff-motion-state{background:#e06b6b}
+.ff-motion-attraction[data-state="risk"] .ff-motion-state{background:#d4af37}
+.ff-motion-attraction[data-state="decision"] .ff-motion-state{background:#d4af37;transform:scale(1.04)}
+.decision-hero>.ff-deal-demo{grid-column:1/-1;margin-top:6px}
+@media(max-width:1020px){
+  .ff-motion-attraction{min-height:610px}
+  .ff-motion-stage{height:470px}
+  .decision-hero>.ff-deal-demo{grid-column:auto}
+}
+@media(max-width:760px){
+  .ff-motion-attraction{min-height:560px;border-radius:18px}
+  .ff-motion-topbar{padding:10px 12px}.ff-motion-topbar span{display:none}
+  .ff-motion-stage{height:420px}
+  .ff-motion-card{width:140px}
+  .ff-motion-aperture{width:300px}
+  .ff-motion-node{min-width:118px;padding:8px 9px}
+  .ff-motion-node small{font-size:.48rem}.ff-motion-node strong{font-size:.68rem}
+  .ff-motion-node-identity,.ff-motion-node-risk{left:2%}
+  .ff-motion-node-evidence,.ff-motion-node-decision{right:2%}
+  .ff-motion-evidence-rail{width:92%;gap:3px}
+  .ff-motion-comp{min-height:42px;font-size:.45rem}
+  .ff-motion-caption{min-height:83px;padding:11px 12px}
+  .ff-motion-caption h3{font-size:1rem}.ff-motion-caption p{font-size:.67rem}
+  .ff-motion-state{min-width:112px;padding:9px 10px;font-size:.62rem}
+}
+@media(prefers-reduced-motion:reduce){
+  .ff-motion-attraction *{transition:none!important;animation:none!important}
+  .ff-motion-scan{display:none}
+  .ff-motion-attraction[data-state="close"] .ff-motion-brand-close{opacity:0}
+}
