@@ -71,7 +71,7 @@ const homepageFailures = [];
 if (!index.includes('assets/brand/flipforge-logo-horizontal.svg')) homepageFailures.push('approved horizontal logo lockup');
 if (!index.includes(OFFICIAL_SLOGAN)) homepageFailures.push('locked slogan');
 if (!index.includes(CURRENT_DESCRIPTOR_DISPLAY)) homepageFailures.push('Card Decision Intelligence descriptor');
-if (!index.includes('<span>Before you buy.</span>') || !index.includes('<strong>Know Why.</strong>')) homepageFailures.push('immediate Know Why promise');
+if (!index.includes('<span>Don’t buy the price.</span>') || !index.includes('<strong>Buy the reason.</strong>')) homepageFailures.push('approved decision-first hero promise');
 if (!index.includes('assets/images/flipforge-homepage-hero.webp')) homepageFailures.push('browser-decodable homepage hero');
 if (!index.includes('id="deal-or-decoy"')) homepageFailures.push('interactive Deal or Decoy proof');
 if (!index.includes('data-ff-choice="BUY"') || !index.includes('data-ff-choice="VERIFY"')) homepageFailures.push('decision choices');
