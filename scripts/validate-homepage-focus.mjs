@@ -84,7 +84,9 @@ check('056 replay remains available without page travel',index.includes('data-ff
 check('057 evidence dialog can close natively',dealJs.includes('evidenceDialog.close'));
 check('058 no browser storage is introduced',['localStorage','sessionStorage','indexedDB'].every(v=>!dealJs.includes(v)&&!navJs.includes(v)));
 check('059 reduced motion is respected',heroCss.includes('@media(prefers-reduced-motion:reduce)')&&dealCss.includes('@media(prefers-reduced-motion:reduce)')&&processCss.includes('@media(prefers-reduced-motion:reduce)')&&cdiCss.includes('@media(prefers-reduced-motion:reduce)')&&dealJs.includes('prefers-reduced-motion'));
-check('060 live processing is measured',dealJs.includes('flipforge_demo_processing_started'));\ncheck('061 premium landing attraction is loaded',index.includes('assets/css/homepage-motion-attraction-v1.css')&&index.includes('assets/js/homepage-motion-attraction-v1.js'));\ncheck('062 landing attraction uses the approved repository mark',index.includes('<section class=\"ff-motion-attraction\"')&&index.includes('assets/brand/flipforge-mark.svg'));
+check('060 live processing is measured',dealJs.includes('flipforge_demo_processing_started'));
+check('061 premium landing attraction is loaded',index.includes('assets/css/homepage-motion-attraction-v1.css')&&index.includes('assets/js/homepage-motion-attraction-v1.js'));
+check('062 landing attraction uses the approved repository mark',index.includes('<section class=\"ff-motion-attraction\"')&&index.includes('assets/brand/flipforge-mark.svg'));
 
 const failures=checks.filter(item=>!item.passed);
 console.log('FlipForge CDI-centered homepage validation');
