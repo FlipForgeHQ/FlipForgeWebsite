@@ -63,3 +63,47 @@
   .ff-dce-layers ol{grid-template-columns:1fr}
   .ff-dce-layers li,.ff-dce-layers li:last-child{grid-column:auto;border-right:0;padding:16px 18px}
 }
+
+
+/* Phase 2 Decision Passport motion — presentation only, authority unchanged. */
+.ff-decision-card-evidence.ff-dce-passport-motion{
+  position:relative;
+  border-color:rgba(212,175,55,.30);
+  background:
+    radial-gradient(circle at 82% 12%,rgba(212,175,55,.08),transparent 28%),
+    linear-gradient(155deg,rgba(13,18,24,.99),rgba(6,8,11,.99));
+}
+.ff-decision-card-evidence.ff-dce-passport-motion::before{
+  content:"";
+  position:absolute;inset:0 auto 0 0;width:6px;
+  background:linear-gradient(180deg,#f0d184,#d4af37 42%,#b8860b);
+  box-shadow:0 0 22px rgba(212,175,55,.18);
+}
+.ff-dce-passport-motion .ff-dce-head{padding-left:26px}
+.ff-dce-passport-motion .ff-dce-summary article{
+  position:relative;overflow:hidden
+}
+.ff-dce-passport-motion .ff-dce-summary article::after{
+  content:"";position:absolute;left:18px;right:18px;bottom:0;height:1px;
+  background:linear-gradient(90deg,rgba(212,175,55,.45),transparent);
+  transform:scaleX(0);transform-origin:left center;
+  transition:transform .55s cubic-bezier(.2,.8,.2,1)
+}
+.ff-dce-passport-motion .ff-dce-summary article:hover::after{transform:scaleX(1)}
+.ff-dce-passport-motion .ff-dce-layers[open] li{
+  opacity:0;transform:translateY(10px);
+  animation:ffDcePassportLayer .42s cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay:calc((var(--ff-dce-i,0)) * 65ms);
+}
+.ff-dce-passport-motion .ff-dce-number{
+  border-radius:50%;
+  box-shadow:0 0 0 4px rgba(212,175,55,.045)
+}
+.ff-dce-passport-motion .ff-dce-layers[open] summary{
+  background:linear-gradient(90deg,rgba(212,175,55,.07),rgba(255,255,255,.018))
+}
+@keyframes ffDcePassportLayer{to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .ff-dce-passport-motion .ff-dce-layers[open] li{opacity:1!important;transform:none!important;animation:none!important}
+  .ff-dce-passport-motion .ff-dce-summary article::after{transition:none!important}
+}
