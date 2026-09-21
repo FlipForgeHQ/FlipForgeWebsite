@@ -79,7 +79,7 @@
       <div class="ff-cdi-home-head">
         <p class="ff-cdi-home-kicker">WHAT IS CARD DECISION INTELLIGENCE™?</p>
         <h2>Data tells you what happened. FlipForge helps you decide what to do now.</h2>
-        <p>Card Decision Intelligence™ connects the exact card, qualified evidence, economics, uncertainty, decision reasoning, and later outcomes into one explainable system. <strong>It is the layer between sports-card data and the decision to spend.</strong></p>
+        <p>Card Decision Intelligence™ connects verified card identity, qualified evidence, market economics, uncertainty, decision reasoning, outcomes, and governance into one explainable system. <strong>It is the layer between sports-card data and the decision to spend.</strong></p>
       </div>
 
       <div class="ff-cdi-contrast" aria-label="Difference between market data and Card Decision Intelligence">
@@ -87,18 +87,15 @@
         <article><span>CARD DECISION INTELLIGENCE™</span><h3>What should I do — and why?</h3><p>FlipForge turns trusted context into BUY, WATCH, VERIFY, or PASS, while preserving the reason trail behind the call.</p></article>
       </div>
 
-      <div class="ff-cdi-layers" aria-label="Seven layers of Card Decision Intelligence">
-        <article class="ff-cdi-layer"><b>01</b><small>Identity Intelligence</small><h3>Know the exact card.</h3><p>Year, set, card number, parallel, grader, and grade must agree before evidence gets a vote.</p></article>
-        <article class="ff-cdi-layer"><b>02</b><small>Evidence Intelligence</small><h3>Test what deserves to count.</h3><p>Keep qualified evidence. Reject duplicates, wrong variants, conflicts, and weak comparisons.</p></article>
-        <article class="ff-cdi-layer"><b>03</b><small>Economic Intelligence</small><h3>Rebuild the economics.</h3><p>Supported value, price edge, liquidity, and costs matter only after the evidence survives review.</p></article>
-        <article class="ff-cdi-layer"><b>04</b><small>Risk + Uncertainty</small><h3>Expose what is still unknown.</h3><p>Missing, stale, or conflicting evidence remains visible instead of being hidden behind false confidence.</p></article>
-        <article class="ff-cdi-layer"><b>05</b><small>Decision Intelligence</small><h3>Make the call.</h3><p>BUY, WATCH, VERIFY, or PASS — based on governed evidence and the current decision context.</p></article>
-        <article class="ff-cdi-layer"><b>06</b><small>Decision Receipt</small><h3>Show why the call happened.</h3><p>The decision keeps a traceable reason trail so the user can inspect what supported or weakened it.</p></article>
-        <article class="ff-cdi-layer"><b>07</b><small>Outcome Intelligence</small><h3>See what happened next.</h3><p>Later observations are measured against the original decision without rewriting the historical record.</p></article>
-      </div>
+      <div class="ff-cdi-systems" aria-label="Four systems of Card Decision Intelligence">
+          <article class="ff-cdi-system-card"><span>A · KNOW THE CARD</span><h3>Prove the exact card.</h3><p>Release, card structure, exact identity, and identity trust are resolved before market evidence gets a vote.</p><div class="ff-cdi-system-layers"><small>Release</small><small>Taxonomy</small><small>Identity</small><small>Provenance + Trust</small></div></article>
+          <article class="ff-cdi-system-card"><span>B · KNOW THE MARKET</span><h3>Use evidence that belongs.</h3><p>Qualified evidence supports value, product and variant behavior, grade context, and scarcity observations.</p><div class="ff-cdi-system-layers"><small>Evidence</small><small>Economics</small><small>Product + Variant</small><small>Grade + Scarcity</small></div></article>
+          <article class="ff-cdi-system-card"><span>C · MAKE THE DECISION</span><h3>Make the call—and show why.</h3><p>Risk stays visible while FlipForge turns the surviving evidence into BUY, WATCH, VERIFY, or PASS and preserves the reason trail.</p><div class="ff-cdi-system-layers"><small>Risk + Uncertainty</small><small>Decision</small><small>Decision Receipt</small></div></article>
+          <article class="ff-cdi-system-card"><span>D · LEARN WHAT HAPPENED</span><h3>Measure whether it held up.</h3><p>Outcomes are measured against the original decision while unknowns, conflicts, and future changes stay governed.</p><div class="ff-cdi-system-layers"><small>Outcome</small><small>Governance + Continuous</small></div></article>
+        </div>
 
-      <div class="ff-cdi-home-footer">
-        <div class="ff-cdi-home-footer-copy"><span>FLIPFORGE = CARD DECISION INTELLIGENCE™</span><strong>Other tools show you market information. FlipForge helps you decide what to do with it.</strong></div>
+        <div class="ff-cdi-home-footer">
+        <div class="ff-cdi-home-footer-copy"><span>FLIPFORGE = CARD DECISION INTELLIGENCE™</span><strong>Know the card. Know the market. Make the decision. Learn what happened.</strong></div>
         <div class="ff-cdi-home-actions">
           <a class="decision-button decision-button-primary" href="decision-intelligence.html">Explore Decision Intelligence</a>
           <a class="decision-button decision-button-secondary" href="beta-application.html">Request Beta Access</a>
