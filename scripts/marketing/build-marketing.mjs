@@ -69,8 +69,8 @@ function renderProofPoints() {
   return section(4, "What makes the decision defensible", "FlipForge is designed to preserve the difference between what is known, what is excluded, and what still needs verification.", `<div class="ff-mkt-grid">${proof.proofPoints.map((item,index)=>`<article class="ff-mkt-card"><span class="ff-mkt-card-number">${String(index+1).padStart(2,"0")}</span><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.copy)}</p></article>`).join("")}</div>`);
 }
 
-function renderSevenLayers() {
-  return section(5, "Seven layers of Card Decision Intelligence™", "Each layer answers a different question. No single price, score, or grade is allowed to stand in for the whole decision.", `<div class="ff-mkt-layers">${cdi.layers.map(layer=>`<article class="ff-mkt-layer" data-cdi-layer="${escapeHtml(layer.key)}"><span class="ff-mkt-layer-num">${escapeHtml(layer.number)}</span><div><h3>${escapeHtml(layer.name)}</h3><strong>${escapeHtml(layer.question)}</strong><p>${escapeHtml(layer.publicCopy)}</p></div></article>`).join("")}</div>`);
+function renderIntelligenceLayers() {
+  return section(5, "Thirteen intelligence layers of Card Decision Intelligence™", "Four systems organize thirteen governed layers. Identity, evidence, uncertainty, decisions, outcomes, and governance remain distinct instead of collapsing into one price or score.", `<div class="ff-mkt-layers">${cdi.layers.map(layer=>`<article class="ff-mkt-layer" data-cdi-layer="${escapeHtml(layer.key)}"><span class="ff-mkt-layer-num">${escapeHtml(layer.number)}</span><div><h3>${escapeHtml(layer.name)}</h3><strong>${escapeHtml(layer.question)}</strong><p>${escapeHtml(layer.publicCopy)}</p></div></article>`).join("")}</div>`);
 }
 
 function renderAudience(doc) {
@@ -126,7 +126,7 @@ function bodyFor(doc) {
     "solution": renderSolution,
     "decision-states": renderDecisionStates,
     "proof-points": renderProofPoints,
-    "seven-layers": renderSevenLayers,
+    "seven-layers": renderIntelligenceLayers,
     "audience": () => renderAudience(doc),
     "decision-receipt": renderDecisionReceipt,
     "outcomes": renderOutcomes,
