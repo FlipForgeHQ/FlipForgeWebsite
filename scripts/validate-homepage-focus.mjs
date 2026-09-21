@@ -27,7 +27,7 @@ check('001 locked category remains CARD DECISION INTELLIGENCE',index.includes('C
 check('002 locked slogan remains exact',index.includes('Before you buy. Know Why.'));
 check('003 old descriptor remains forbidden',!index.includes('CARD VALUE INTELLIGENCE'));
 check('004 real locked logo asset is used',index.includes('assets/brand/flipforge-logo-horizontal.svg'));
-check('005 hero leads with the locked promise',index.includes('<span>Before you buy.</span>')&&index.includes('<strong>Know Why.</strong>'));
+check('005 hero leads with the approved decision-first promise',index.includes('<span>Don’t buy the price.</span>')&&index.includes('<strong>Buy the reason.</strong>'));
 check('006 hero explicitly defines FlipForge as CDI',index.includes('FlipForge is Card Decision Intelligence™ for sports cards'));
 check('007 Decision Intelligence is top-level navigation',index.includes('href="decision-intelligence.html">Decision Intelligence™</a>')&&index.includes('href="decision-intelligence.html">Card Decision Intelligence™</a>'));
 check('008 dedicated CDI CTA is in hero',index.includes('data-ff-cdi-primary="true">Explore Decision Intelligence</a>'));
@@ -84,7 +84,7 @@ check('056 replay remains available without page travel',index.includes('data-ff
 check('057 evidence dialog can close natively',dealJs.includes('evidenceDialog.close'));
 check('058 no browser storage is introduced',['localStorage','sessionStorage','indexedDB'].every(v=>!dealJs.includes(v)&&!navJs.includes(v)));
 check('059 reduced motion is respected',heroCss.includes('@media(prefers-reduced-motion:reduce)')&&dealCss.includes('@media(prefers-reduced-motion:reduce)')&&processCss.includes('@media(prefers-reduced-motion:reduce)')&&cdiCss.includes('@media(prefers-reduced-motion:reduce)')&&dealJs.includes('prefers-reduced-motion'));
-check('060 live processing is measured',dealJs.includes('flipforge_demo_processing_started'));
+check('060 live processing is measured',dealJs.includes('flipforge_demo_processing_started'));\ncheck('061 premium landing attraction is loaded',index.includes('assets/css/homepage-motion-attraction-v1.css')&&index.includes('assets/js/homepage-motion-attraction-v1.js'));\ncheck('062 landing attraction uses the approved repository mark',index.includes('<section class=\"ff-motion-attraction\"')&&index.includes('assets/brand/flipforge-mark.svg'));
 
 const failures=checks.filter(item=>!item.passed);
 console.log('FlipForge CDI-centered homepage validation');
