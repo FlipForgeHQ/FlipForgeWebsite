@@ -524,6 +524,10 @@ try {
   });
 
   await runScenario("no-results state does not trap the next search", async () => {
+    // Keep this state-transition scenario independent of the preceding Refresh
+    // scenario. The behavior under test is empty-result -> next search, not
+    // cross-scenario residue from an earlier completed-search replay.
+    await resetDiscover();
     const emptyQuery = "2020 Test Player #404 PSA 9";
     await directSearch(emptyQuery);
     await poll(() => page.locator("#main-content .customer-discovery-provider").count().then(count => count === 1), "No-results provider state did not render");
