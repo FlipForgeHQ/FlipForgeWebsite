@@ -64,7 +64,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["040 docs preserve zero transaction authority", files.docs.includes("No customer surface has transaction authority")]
 ].forEach(([name, condition]) => check(name, condition));
 
-function guardRuntime({ hostname = "goflipforge.com", pathname = "/app/", hash = "#/dashboard", initialHtml = "" } = {}) {
+function guardRuntime({ hostname = "goflipforge.com", pathname = "/app/", hash = "#/dashboard", initialHtml = "", fullCustomer = true } = {}) {
   let observerCallback = null;
   const main = {
     innerHTML: initialHtml,
@@ -80,6 +80,7 @@ function guardRuntime({ hostname = "goflipforge.com", pathname = "/app/", hash =
     disconnect() {}
   }
   const window = {
+    FlipForgeFullCustomerEntry: fullCustomer,
     location: { hostname, pathname, hash },
     addEventListener() {}
   };
@@ -110,12 +111,16 @@ check("043 production guard preserves authoritative commercial Dashboard", guard
 const wwwGuarded = guardRuntime({ hostname: "www.goflipforge.com", initialHtml: "WWW_PROTOTYPE_SENTINEL" });
 check("044 www production host is guarded", wwwGuarded.main.innerHTML.includes("data-production-dashboard-guard") && !wwwGuarded.main.innerHTML.includes("WWW_PROTOTYPE_SENTINEL"));
 
-const previewGuarded = guardRuntime({ hostname: "deploy-preview-174--goflipforge.netlify.app", pathname: "/saas-prototype/", initialHtml: "PREVIEW_SENTINEL" });
-check("045 deploy preview keeps explicit prototype behavior", previewGuarded.main.innerHTML === "PREVIEW_SENTINEL");
-const localGuarded = guardRuntime({ hostname: "localhost", pathname: "/saas-prototype/", initialHtml: "LOCAL_SENTINEL" });
-check("046 localhost keeps explicit prototype behavior", localGuarded.main.innerHTML === "LOCAL_SENTINEL");
+const previewGuarded = guardRuntime({ hostname: "deploy-preview-174--goflipforge.netlify.app", pathname: "/app/customer/", initialHtml: "PREVIEW_SENTINEL" });
+check("045 full-customer deploy preview uses the same authoritative Dashboard guard", previewGuarded.main.innerHTML.includes("data-production-dashboard-guard") && !previewGuarded.main.innerHTML.includes("PREVIEW_SENTINEL"));
+const legacyPreview = guardRuntime({ hostname: "deploy-preview-174--goflipforge.netlify.app", pathname: "/saas-prototype/", initialHtml: "LEGACY_PREVIEW_SENTINEL", fullCustomer: false });
+check("046 legacy preview surface remains outside the full-customer Dashboard guard", legacyPreview.main.innerHTML === "LEGACY_PREVIEW_SENTINEL");
+const localGuarded = guardRuntime({ hostname: "localhost", pathname: "/app/customer/", initialHtml: "LOCAL_SENTINEL" });
+check("047 local full-customer route uses the authoritative Dashboard guard", localGuarded.main.innerHTML.includes("data-production-dashboard-guard") && !localGuarded.main.innerHTML.includes("LOCAL_SENTINEL"));
+const localLegacy = guardRuntime({ hostname: "localhost", pathname: "/saas-prototype/", initialHtml: "LOCAL_LEGACY_SENTINEL", fullCustomer: false });
+check("048 local legacy prototype remains outside the full-customer Dashboard guard", localLegacy.main.innerHTML === "LOCAL_LEGACY_SENTINEL");
 const productionOtherRoute = guardRuntime({ hash: "#/discover", initialHtml: "DISCOVER_SENTINEL" });
-check("047 production guard does not interfere with non-Dashboard routes", productionOtherRoute.main.innerHTML === "DISCOVER_SENTINEL");
+check("049 production guard does not interfere with non-Dashboard routes", productionOtherRoute.main.innerHTML === "DISCOVER_SENTINEL");
 
 function authorityEnvelope(correlationId, data, overrides = {}) {
   return {
