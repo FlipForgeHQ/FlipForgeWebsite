@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# exact-head diagnostic marker
 set -u
 
 report="netlify-build-diagnostic.txt"
