@@ -45,6 +45,11 @@
       .split(/[/?]/)[0] || "dashboard";
   }
 
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
   function plainLeftClick(event) {
     return event.button === 0
       && !event.metaKey
@@ -171,7 +176,7 @@
   function adapterReady(route) {
     switch (route) {
       case "dashboard":
-        return dashboardAdapterReady();
+        return fullCustomerMode() ? true : dashboardAdapterReady();
       case "discover":
         return simpleAdapterReady(window.FlipForgeCustomerDiscovery);
       case "evaluate":
@@ -215,11 +220,15 @@
 
   function pageOwnershipMatches() {
     const route = routeName();
-    const expected = expectedPageByRoute[route];
-    if (!expected) return true;
-
     const main = document.querySelector(MAIN_SELECTOR);
     if (!main) return true;
+
+    if (route === "dashboard" && fullCustomerMode()) {
+      return Boolean(main.querySelector("[data-commercial-dashboard-v2],[data-production-dashboard-guard]"));
+    }
+
+    const expected = expectedPageByRoute[route];
+    if (!expected) return true;
 
     // Empty governed customer workspaces are always failures. Adapter readiness
     // may lag route churn briefly, but that must never convert blank content into
