@@ -194,6 +194,55 @@
         ${statusCard("Customer access", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
       </section>
 
+      <section class="private-beta-record-system" aria-labelledby="private-beta-record-title" data-private-beta-record-system>
+        <header class="private-beta-record-head">
+          <div>
+            <span class="eyebrow">YOUR FLIPFORGE RECORD</span>
+            <h2 id="private-beta-record-title">One evaluation becomes a structured decision record.</h2>
+            <p>FlipForge does not throw away the reasoning after it returns a verdict. The exact identity, qualified evidence, governed decision, receipt, and later outcome checkpoints stay connected as one tenant-owned server record.</p>
+          </div>
+          <span class="private-beta-record-badge">SERVER-BACKED · TRACEABLE</span>
+        </header>
+        <div class="private-beta-record-map" aria-label="FlipForge persistent decision record system">
+          <div class="private-beta-record-rail">
+            <article class="private-beta-record-node">
+              <span>01 · IDENTITY RECORD</span>
+              <strong>Exact card</strong>
+              <small>Year · product · card number · parallel · grader · grade</small>
+            </article>
+            <article class="private-beta-record-node">
+              <span>02 · EVIDENCE RECORD</span>
+              <strong>Qualified evidence</strong>
+              <small>Accepted, review, rejected, source, match reason, and exclusions stay traceable.</small>
+            </article>
+          </div>
+          <article class="private-beta-record-core">
+            <div class="private-beta-record-stack" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <span>STRUCTURED DECISION RECORD</span>
+            <strong>One source of truth for the decision.</strong>
+            <p>Tenant-owned · server-backed SQLite · browser does not become the authority</p>
+            <div class="private-beta-record-fields" aria-label="Decision record layers">
+              <small>Identity</small><small>Evidence</small><small>Economics</small><small>Risk</small><small>Decision</small>
+            </div>
+          </article>
+          <div class="private-beta-record-rail">
+            <article class="private-beta-record-node">
+              <span>03 · DECISION RECEIPT</span>
+              <strong>What FlipForge knew</strong>
+              <small>The verdict and reason trail remain inspectable instead of collapsing into one score.</small>
+            </article>
+            <article class="private-beta-record-node">
+              <span>04 · OUTCOME HISTORY</span>
+              <strong>What happened later</strong>
+              <small>Day 7 / 14 / 30 observations attach to the original record without rewriting Day 0.</small>
+            </article>
+          </div>
+        </div>
+        <footer class="private-beta-record-footer">
+          <span>Saved Decisions</span><b>→</b><span>Decision Receipt</span><b>→</b><span>Outcome Intelligence</span><b>→</b><span>Decision Dossier</span>
+        </footer>
+      </section>
+
       <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
         <div class="private-beta-v2-mission-copy">
           <span class="private-beta-v2-number">01</span>
