@@ -32,6 +32,7 @@
       active: false,
       busy: false,
       query: "",
+      requestSerial: 0,
       results: [],
       message: ""
     }
@@ -215,9 +216,19 @@
     return match ? { grader: match[1].toUpperCase(), grade: match[2] } : { grader: "", grade: "" };
   }
 
+  function normalizeIdentityQuery(value) {
+    return String(value || "").trim().replace(/\s+/g, " ");
+  }
+
+  function currentVisibleIdentityQuery() {
+    return normalizeIdentityQuery(
+      state.main?.querySelector?.('[data-customer-discovery-form] input[name="exactCardQuery"]')?.value || ""
+    );
+  }
+
   function readSearch(form) {
     const values = new FormData(form);
-    const exactCardQuery = String(values.get("exactCardQuery") || "").trim().replace(/\s+/g, " ");
+    const exactCardQuery = normalizeIdentityQuery(values.get("exactCardQuery") || "");
     if (!exactCardQuery || exactCardQuery.length > 500) throw makeError("DISCOVER_QUERY_INVALID", "Enter a card identity of 500 characters or fewer.", 400);
     const limit = Number.parseInt(String(values.get("limit") || "25"), 10);
     if (![10, 25, 50].includes(limit)) throw makeError("DISCOVER_LIMIT_INVALID", "Result limit must be 10, 25, or 50.", 400);
@@ -324,20 +335,24 @@
   }
 
   async function suggestIdentity(draft) {
+    const requestedQuery = normalizeIdentityQuery(draft.exactCardQuery);
+    const requestSerial = state.identityAssist.requestSerial + 1;
+    state.identityAssist.requestSerial = requestSerial;
     state.error = null;
     state.notice = "";
     state.data = null;
     state.identityAssist.active = true;
     state.identityAssist.busy = true;
-    state.identityAssist.query = draft.exactCardQuery;
+    state.identityAssist.query = requestedQuery;
     state.identityAssist.results = [];
     state.identityAssist.message = "Looking for exact catalog identities…";
     renderCurrent();
     try {
       const data = await cardIntelligenceRequest(CARD_INTELLIGENCE_SEARCH_PATH, {
-        query: draft.exactCardQuery,
+        query: requestedQuery,
         limit: 12
       });
+      if (requestSerial !== state.identityAssist.requestSerial || requestedQuery !== state.identityAssist.query) return;
       state.identityAssist.results = Array.isArray(data.results) ? data.results : [];
       const selectableCount = state.identityAssist.results.filter(row => row
         && row.exactCardCandidate === true
@@ -346,11 +361,14 @@
         ? `${selectableCount} verified card option${selectableCount === 1 ? "" : "s"} can be selected. FlipForge will not choose one for you.`
         : "No selectable exact identity was returned. Add a year, set, player, card number, or parallel and try again.";
     } catch (error) {
+      if (requestSerial !== state.identityAssist.requestSerial) return;
       state.error = error;
       state.identityAssist.message = "";
     } finally {
-      state.identityAssist.busy = false;
-      renderCurrent();
+      if (requestSerial === state.identityAssist.requestSerial) {
+        state.identityAssist.busy = false;
+        renderCurrent();
+      }
     }
   }
 
@@ -391,7 +409,16 @@
     await suggestIdentity(draft);
   }
 
-  async function resolveIdentity(index) {
+  async function resolveIdentity(index, expectedQuery) {
+    const ownedQuery = normalizeIdentityQuery(expectedQuery);
+    const currentQuery = normalizeIdentityQuery(state.identityAssist.query);
+    const draftQuery = normalizeIdentityQuery(state.draft.exactCardQuery);
+    const visibleQuery = currentVisibleIdentityQuery();
+    if (!ownedQuery || ownedQuery !== currentQuery || ownedQuery !== draftQuery || (visibleQuery && ownedQuery !== visibleQuery)) {
+      state.identityAssist.message = "That identity choice is no longer current. Review the latest card options before continuing.";
+      renderCurrent();
+      return;
+    }
     const row = state.identityAssist.results[Number(index)];
     const token = String(row?.selectionToken || "");
     if (!row || row.exactCardCandidate !== true || !SAFE_SELECTION_TOKEN.test(token)) return;
@@ -584,10 +611,13 @@
     findExactButton?.addEventListener("click", () => {
       if (form && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) findExactCard(form);
     });
+    const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.query);
     state.main?.querySelectorAll?.("[data-discovery-use-identity]").forEach(button => {
       button.addEventListener("click", () => {
         const index = Number.parseInt(button.dataset.discoveryUseIdentity || "-1", 10);
-        if (Number.isInteger(index) && index >= 0 && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) resolveIdentity(index);
+        if (Number.isInteger(index) && index >= 0 && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) {
+          resolveIdentity(index, selectionOwnerQuery);
+        }
       });
     });
     state.main?.querySelectorAll?.("[data-discovery-evaluate]").forEach(button => {
