@@ -493,6 +493,8 @@ try {
   });
 
   await runScenario("PSA 10 to PSA 9 re-arms without + New card", async () => {
+    await resetDiscover();
+    await resolveByIdentityAssist(identities.ohtani10.imperfect);
     const discoverBefore = calls.discover.length;
     await fillQuery(identities.ohtani9.imperfect);
     expect(await page.locator("[data-discovery-refresh-v2]").count() === 0, "Stale Refresh results remained after editing to a different grade");
@@ -509,6 +511,8 @@ try {
   });
 
   await runScenario("player change replaces previous card state", async () => {
+    await resetDiscover();
+    await directSearch(identities.ohtani9.canonical);
     const body = await directSearch(identities.acuna10.canonical);
     expect(body.exactCardQuery === identities.acuna10.canonical, "Acuna query did not replace the prior Ohtani query");
     expect(!/Ohtani/i.test(body.exactCardQuery), "Previous player leaked into the next Discover request");
@@ -516,6 +520,8 @@ try {
   });
 
   await runScenario("Refresh results repeats the completed search exactly", async () => {
+    await resetDiscover();
+    await directSearch(identities.acuna10.canonical);
     await poll(() => page.locator("[data-discovery-refresh-v2]").count().then(count => count === 1), "Refresh results was unavailable");
     const before = calls.discover.length;
     await page.locator("[data-discovery-refresh-v2]").click();
@@ -536,6 +542,8 @@ try {
   });
 
   await runScenario("removing a grade does not inherit the old grade", async () => {
+    await resetDiscover();
+    await directSearch(identities.ohtani9.canonical);
     const ungraded = "2018 Topps Chrome Shohei Ohtani #150";
     const body = await directSearch(ungraded);
     expect(body.exactCardQuery === ungraded, "Ungraded query was altered before Discover");
