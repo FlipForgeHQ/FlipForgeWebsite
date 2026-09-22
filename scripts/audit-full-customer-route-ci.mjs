@@ -170,7 +170,7 @@ try {
       .filter(link => !link.hidden && link.getAttribute("aria-hidden") !== "true" && getComputedStyle(link).display !== "none")
       .map(link => ({
         route: String(link.dataset.route || ""),
-        label: String(link.textContent || "").replace(/\s+/g, " ").trim()
+        label: String(link.textContent || "").replace(/\s+/g, " ").trim().replace(/^[^A-Za-z0-9]+/, "")
       }))
   }));
 
