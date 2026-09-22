@@ -415,9 +415,10 @@
   async function findExactCard(form) {
     let draft;
     try {
+      // The visible form is the customer's current identity intent. Never
+      // overwrite it with a previous identity-assist query; doing so can carry a
+      // stale server selection token into the next card search.
       draft = readSearch(form);
-      const typedQuery = normalizeIdentityQuery(state.identityAssist.typedQuery);
-      if (typedQuery) draft.exactCardQuery = typedQuery;
     } catch (error) {
       state.error = error;
       renderCurrent();
