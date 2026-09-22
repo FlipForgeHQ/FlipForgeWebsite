@@ -333,12 +333,20 @@ async function submitSearchForm() {
   await form().evaluate(node => node.requestSubmit());
 }
 
+async function waitForDiscoverSettled(message = "Discover UI did not settle after the response") {
+  await poll(async () => {
+    const providerReady = await page.locator("#main-content .customer-discovery-provider").count() === 1;
+    const buttonReady = await searchButton().count() === 1 && !(await searchButton().isDisabled());
+    return providerReady && buttonReady;
+  }, message, 7000);
+}
+
 async function directSearch(value) {
   const before = calls.discover.length;
   await fillQuery(value);
   await submitSearchForm();
   await poll(() => calls.discover.length > before, `Discover did not run for ${value}`);
-  await page.waitForTimeout(120);
+  await waitForDiscoverSettled(`Discover UI did not settle for ${value}`);
   return calls.discover.at(-1);
 }
 
@@ -624,6 +632,7 @@ try {
     let before = calls.discover.length;
     await submitSearchForm();
     await poll(() => calls.discover.length > before, "Configured target/limit search did not run");
+    await waitForDiscoverSettled("Configured target/limit search did not settle");
     let body = calls.discover.at(-1);
     expect(body.targetMaxBuyCents === 12345, `Target max buy was ${body.targetMaxBuyCents}, expected 12345`);
     expect(body.limit === 10, `Result limit was ${body.limit}, expected 10`);
