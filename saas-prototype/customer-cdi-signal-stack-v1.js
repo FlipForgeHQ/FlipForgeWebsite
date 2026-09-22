@@ -220,13 +220,14 @@
 
     const decision = decisionValue(root, mode);
     const signature = JSON.stringify([decision, model.identity, model.reason, model.evidenceHref, model.signals]);
-    let stack = root.querySelector(":scope > [data-ff-cdi-stack]");
+    let stack = root.querySelector(":scope > [data-ff-cdi-stack-host]");
     if (!stack) {
       const anchor = mode === "decision-intelligence"
         ? root.querySelector(".ff-di-controls")
         : root.querySelector(".customer-intelligence-hero");
       if (!anchor) return;
       stack = document.createElement("div");
+      stack.dataset.ffCdiStackHost = "";
       anchor.insertAdjacentElement("afterend", stack);
     }
     if (stack.dataset.ffCdiSignature !== signature) {
