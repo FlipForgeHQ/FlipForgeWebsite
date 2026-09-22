@@ -4,18 +4,51 @@
   const main = document.querySelector("#main-content");
   if (!main || document.body?.dataset?.ffSurface !== "customer") return;
 
-  const IDLE_MS = 96;
-  const MAX_HOLD_MS = 700;
+  const IDLE_MS = 170;
+  const MAX_HOLD_MS = 950;
+  const STABLE_FRAMES = 3;
+  const GEOMETRY_TOLERANCE = 1.5;
   let idleTimer = 0;
   let maxTimer = 0;
   let generation = 0;
+  let frameToken = 0;
 
   function internalRouteLink(target) {
     return target?.closest?.('a[href^="#/"]') || null;
   }
 
+  function geometry() {
+    const page = main.firstElementChild;
+    const heading = main.querySelector("h1");
+    const panel = main.querySelector(".panel,[data-ff-di-v2-command],[data-commercial-dashboard-v2]");
+    const mainRect = main.getBoundingClientRect?.();
+    const pageRect = page?.getBoundingClientRect?.();
+    const headingRect = heading?.getBoundingClientRect?.();
+    const panelRect = panel?.getBoundingClientRect?.();
+    const headingStyle = heading ? window.getComputedStyle(heading) : null;
+    return [
+      mainRect?.width || 0,
+      main.scrollHeight || 0,
+      pageRect?.top || 0,
+      pageRect?.width || 0,
+      pageRect?.height || 0,
+      headingRect?.top || 0,
+      headingRect?.width || 0,
+      headingRect?.height || 0,
+      Number.parseFloat(headingStyle?.fontSize || "0") || 0,
+      panelRect?.top || 0,
+      panelRect?.width || 0
+    ];
+  }
+
+  function closeEnough(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    return a.every((value, index) => Math.abs(value - b[index]) <= GEOMETRY_TOLERANCE);
+  }
+
   function begin() {
     generation += 1;
+    frameToken += 1;
     const current = generation;
     clearTimeout(idleTimer);
     clearTimeout(maxTimer);
@@ -30,18 +63,48 @@
   }
 
   function scheduleReveal(current = generation) {
+    if (current !== generation) return;
+    frameToken += 1;
+    const token = frameToken;
     clearTimeout(idleTimer);
     idleTimer = window.setTimeout(() => {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => reveal(current));
-      });
+      if (token !== frameToken || current !== generation) return;
+      waitForStableGeometry(current, token);
     }, IDLE_MS);
+  }
+
+  function waitForStableGeometry(current, token) {
+    let previous = null;
+    let stable = 0;
+
+    const sample = () => {
+      if (current !== generation || token !== frameToken) return;
+      if (document.fonts && document.fonts.status !== "loaded") {
+        document.fonts.ready.then(() => {
+          if (current === generation && token === frameToken) window.requestAnimationFrame(sample);
+        }).catch(() => window.requestAnimationFrame(sample));
+        return;
+      }
+
+      const next = geometry();
+      stable = closeEnough(previous, next) ? stable + 1 : 0;
+      previous = next;
+
+      if (stable >= STABLE_FRAMES) {
+        reveal(current);
+        return;
+      }
+      window.requestAnimationFrame(sample);
+    };
+
+    window.requestAnimationFrame(sample);
   }
 
   function reveal(current) {
     if (current !== generation) return;
     clearTimeout(idleTimer);
     clearTimeout(maxTimer);
+    frameToken += 1;
     delete main.dataset.ffRouteTransitioning;
     main.removeAttribute("aria-busy");
     main.style.removeProperty("--ff-route-lock-height");
@@ -60,15 +123,14 @@
 
   window.addEventListener("hashchange", () => {
     // User clicks are captured before the hash changes. Programmatic route
-    // changes (including auth redirects and guarded-route recovery) must not be
-    // hidden behind the visual stabilizer.
+    // changes, including auth redirects, stay immediate.
     if (main.dataset.ffRouteTransitioning === "true") scheduleReveal();
   });
 
   const observer = new MutationObserver(() => {
     if (main.dataset.ffRouteTransitioning === "true") scheduleReveal();
   });
-  observer.observe(main, { childList: true, subtree: true, characterData: true });
+  observer.observe(main, { childList: true, subtree: true, characterData: true, attributes: true });
 
   window.addEventListener("pageshow", () => {
     if (main.dataset.ffRouteTransitioning === "true") scheduleReveal();
