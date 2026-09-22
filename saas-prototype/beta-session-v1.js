@@ -97,6 +97,9 @@
     const form = main?.querySelector("[data-customer-discovery-form]");
     const panel = form?.closest(".customer-discovery-search");
     if (!form || !panel) return;
+    if (panel.dataset.ffDiscoverCopyOwner !== "beta-session") {
+      panel.dataset.ffDiscoverCopyOwner = "beta-session";
+    }
 
     const pageHeading = main.querySelector(".page-heading");
     if (pageHeading) {
