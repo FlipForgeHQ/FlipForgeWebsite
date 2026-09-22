@@ -52,46 +52,125 @@
     const model=document.querySelector('.ff-dic-model');
     const section=model?.closest('.ff-dic-simple');
     if(!model||!section||document.querySelector('.ff-phase2-cdi-theater'))return;
+
+    const signals=[
+      {key:'identity',kicker:'IDENTITY',value:'CONFIRMED',detail:'Exact card resolved',level:100,role:'GATE',copy:'Identity must be exact before market evidence can receive authority.'},
+      {key:'evidence',kicker:'EVIDENCE',value:'2 / 7',detail:'exact sales retained',level:29,role:'AUTHORITY',copy:'Two exact completed sales remain. Five comparison candidates stay visible but lose decision authority.'},
+      {key:'economics',kicker:'ECONOMICS',value:'2.3%',detail:'supported edge',level:23,role:'CONTEXT',copy:'The apparent 24% bargain collapses to a 2.3% supported edge after invalid comparisons are removed.'},
+      {key:'confidence',kicker:'CONFIDENCE',value:'60 / 100',detail:'calibrated support',level:60,role:'QUALITY',copy:'Confidence reflects the quality and depth of the governed evidence. It cannot create a verdict by itself.'},
+      {key:'risk',kicker:'RISK',value:'70 / 100',detail:'uncertainty retained',level:70,role:'SAFETY',copy:'Risk keeps thin evidence and unresolved uncertainty visible instead of allowing the price gap to dominate.'},
+      {key:'heat',kicker:'FORGE HEAT',value:'WITHHELD',detail:'decision is VERIFY',level:0,role:'AFTER THE DECISION',copy:'Forge Heat ranks already-saved BUY or WATCH opportunities. It never feeds or changes the Smart Opportunity verdict.'}
+    ];
+
     const shell=document.createElement('section');
-    shell.className='ff-phase2-cdi-theater';
-    shell.dataset.system='card';
-    shell.setAttribute('aria-labelledby','ff-phase2-cdi-title');
-    const steps=Object.keys(layerCopy).map(Number).map(n=>{
-      const [title,copy]=layerCopy[n];
-      return '<article class="ff-phase2-cdi-step" data-layer-number="'+String(n).padStart(2,'0')+'" data-layer="'+n+'" tabindex="0"><small>'+systemFor(n).toUpperCase()+'</small><h3>'+title+'</h3><p>'+copy+'</p></article>';
+    shell.className='ff-phase2-cdi-theater ff-cdi-signature';
+    shell.dataset.activeSignal='evidence';
+    shell.dataset.phase='settled';
+    shell.setAttribute('aria-labelledby','ff-cdi-signature-title');
+    const nodes=signals.map((signal,index)=>{
+      const gauge=signal.key==='identity'
+        ? '<span class="ff-cdi-sig-status-dot" aria-hidden="true"></span>'
+        : signal.key==='heat'
+          ? '<span class="ff-cdi-sig-after-mark" aria-hidden="true">↗</span>'
+          : '<svg class="ff-cdi-sig-mini-gauge" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="17" pathLength="100"></circle><circle class="meter" cx="22" cy="22" r="17" pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100-signal.level)+'"></circle></svg>';
+      return '<button type="button" class="ff-cdi-sig-node" data-signal="'+signal.key+'" data-node-index="'+index+'" aria-pressed="'+(signal.key==='evidence'?'true':'false')+'">'+
+        '<span class="ff-cdi-sig-node-visual">'+gauge+'</span>'+
+        '<span class="ff-cdi-sig-node-copy"><small>'+signal.kicker+'</small><strong>'+signal.value+'</strong><em>'+signal.detail+'</em></span>'+
+      '</button>';
     }).join('');
-    shell.innerHTML='<div class="ff-phase2-cdi-theater-head"><div><small>THE GOVERNED DECISION ENGINE</small><h2 id="ff-phase2-cdi-title">One decision. Thirteen checkpoints.</h2></div><p>Scroll the system. Every layer can preserve uncertainty or stop authority from moving downstream.</p></div><div class="ff-phase2-cdi-grid"><aside class="ff-phase2-cdi-sticky"><div class="ff-phase2-cdi-aperture"><div class="ff-phase2-cdi-core"><img src="assets/brand/flipforge-mark.svg" alt=""></div></div><div class="ff-phase2-cdi-status"><small data-ff-p2-cdi-kicker>LAYER 00 · KNOW THE CARD</small><strong data-ff-p2-cdi-title>Release Intelligence</strong><p data-ff-p2-cdi-copy>Confirm the real release before any checklist assumption.</p><div class="ff-phase2-cdi-progress"><span data-ff-p2-cdi-progress></span></div></div></aside><div class="ff-phase2-cdi-steps">'+steps+'</div></div>';
+
+    shell.innerHTML=
+      '<header class="ff-cdi-sig-head">'+
+        '<div><small>CARD DECISION INTELLIGENCE™ · SIGNATURE ENGINE</small><h2 id="ff-cdi-signature-title">Watch the decision form.</h2><p>Not another scorecard. FlipForge shows which governed signals are allowed to reach the verdict—and which are stopped.</p></div>'+
+        '<span class="ff-cdi-sig-example">ILLUSTRATIVE REPLAY · NO LIVE MARKET DATA</span>'+
+      '</header>'+
+      '<div class="ff-cdi-sig-stage">'+
+        '<svg class="ff-cdi-sig-wires" viewBox="0 0 1000 650" preserveAspectRatio="none" aria-hidden="true">'+
+          '<path data-wire="identity" d="M210 120 C350 120 365 260 475 300"></path>'+
+          '<path data-wire="evidence" d="M790 120 C650 120 635 260 525 300"></path>'+
+          '<path data-wire="economics" d="M155 330 C310 330 360 330 445 325"></path>'+
+          '<path data-wire="confidence" d="M845 330 C690 330 640 330 555 325"></path>'+
+          '<path data-wire="risk" d="M235 540 C355 510 390 400 465 360"></path>'+
+          '<path class="ff-cdi-sig-wire-after" data-wire="heat" d="M535 360 C625 420 675 505 790 540"></path>'+
+        '</svg>'+
+        '<div class="ff-cdi-sig-orbit" aria-hidden="true"><span></span><span></span><span></span></div>'+
+        '<div class="ff-cdi-sig-core" data-ff-cdi-core>'+
+          '<span class="ff-cdi-sig-core-kicker">SMART OPPORTUNITY</span>'+
+          '<div class="ff-cdi-sig-core-mark"><img src="assets/brand/flipforge-mark.svg" alt=""></div>'+
+          '<strong data-ff-cdi-core-verdict>VERIFY</strong>'+
+          '<small>governed verdict</small>'+
+        '</div>'+
+        nodes+
+        '<aside class="ff-cdi-sig-inspector" aria-live="polite">'+
+          '<span data-ff-cdi-signal-role>AUTHORITY</span>'+
+          '<strong data-ff-cdi-signal-title>EVIDENCE · 2 / 7</strong>'+
+          '<p data-ff-cdi-signal-copy>Two exact completed sales remain. Five comparison candidates stay visible but lose decision authority.</p>'+
+        '</aside>'+
+      '</div>'+
+      '<div class="ff-cdi-sig-replay">'+
+        '<div class="ff-cdi-sig-shift">'+
+          '<span><small>HEADLINE</small><strong data-ff-cdi-apparent>24%</strong><em>apparent discount</em></span>'+
+          '<i aria-hidden="true">→</i>'+
+          '<span><small>AFTER EVIDENCE</small><strong data-ff-cdi-supported>2.3%</strong><em>supported edge</em></span>'+
+          '<i aria-hidden="true">→</i>'+
+          '<span class="ff-cdi-sig-shift-decision"><small>SMART OPPORTUNITY</small><strong>VERIFY</strong><em>final governed call</em></span>'+
+        '</div>'+
+        '<button type="button" class="ff-cdi-sig-replay-button" data-ff-cdi-replay>Replay the evidence challenge</button>'+
+      '</div>'+
+      '<div class="ff-cdi-sig-flow" aria-label="Governed decision sequence">'+
+        '<span>IDENTITY</span><i>→</i><span>EVIDENCE</span><i>→</i><span>ECONOMICS</span><i>→</i><span>CONFIDENCE + RISK</span><i>→</i><strong>SMART OPPORTUNITY</strong>'+
+        '<b>THEN</b><span class="is-after">FORGE HEAT · ATTENTION RANKING</span>'+
+      '</div>'+
+      '<footer class="ff-cdi-sig-boundary"><strong>Forge Heat comes after the decision.</strong><span>It can rank saved BUY/WATCH opportunities for attention. It cannot create, upgrade, downgrade, or replace BUY / WATCH / VERIFY / PASS.</span></footer>';
+
     section.before(shell);
-    const cards=[...shell.querySelectorAll('.ff-phase2-cdi-step')];
-    const title=shell.querySelector('[data-ff-p2-cdi-title]');
-    const copy=shell.querySelector('[data-ff-p2-cdi-copy]');
-    const kicker=shell.querySelector('[data-ff-p2-cdi-kicker]');
-    const progress=shell.querySelector('[data-ff-p2-cdi-progress]');
-    let last=-1;
-    const activate=n=>{
-      if(last===n)return;
-      last=n;
-      const data=layerCopy[n];
-      cards.forEach((c,i)=>c.classList.toggle('is-active',i===n));
-      shell.dataset.system=systemFor(n);
-      title.textContent=data[0];
-      copy.textContent=data[1];
-      kicker.textContent='LAYER '+String(n).padStart(2,'0')+' · '+({card:'KNOW THE CARD',market:'KNOW THE MARKET',decision:'MAKE THE DECISION',learn:'LEARN WHAT HAPPENED'}[systemFor(n)]);
-      progress.style.width=((n+1)/13*100)+'%';
-      emit('cdi_layer_viewed','layer_'+String(n).padStart(2,'0'));
+    section.classList.add('ff-cdi-reference');
+    const buttons=[...shell.querySelectorAll('[data-signal]')];
+    const role=shell.querySelector('[data-ff-cdi-signal-role]');
+    const title=shell.querySelector('[data-ff-cdi-signal-title]');
+    const copy=shell.querySelector('[data-ff-cdi-signal-copy]');
+    const verdict=shell.querySelector('[data-ff-cdi-core-verdict]');
+    const replay=shell.querySelector('[data-ff-cdi-replay]');
+    let replayToken=0;
+
+    const activate=(key,track=true)=>{
+      const signal=signals.find(item=>item.key===key)||signals[0];
+      shell.dataset.activeSignal=signal.key;
+      buttons.forEach(button=>button.setAttribute('aria-pressed',button.dataset.signal===signal.key?'true':'false'));
+      role.textContent=signal.role;
+      title.textContent=signal.kicker+' · '+signal.value;
+      copy.textContent=signal.copy;
+      if(track){
+        emit('cdi_signal_selected',signal.key);
+        emit('cdi_layer_viewed','signal_'+signal.key);
+      }
     };
-    cards.forEach((card,i)=>{
-      card.addEventListener('click',()=>activate(i));
-      card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(i)}});
+
+    buttons.forEach(button=>{
+      button.addEventListener('click',()=>activate(button.dataset.signal));
+      button.addEventListener('pointerenter',()=>{if(matchMedia('(hover:hover)').matches)activate(button.dataset.signal,false)});
+      button.addEventListener('focus',()=>activate(button.dataset.signal,false));
     });
-    if(!reduced){
-      const observer=new IntersectionObserver(entries=>{
-        const hit=entries.filter(x=>x.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
-        if(hit)activate(Number(hit.target.dataset.layer));
-      },{threshold:[.25,.5,.75],rootMargin:'-28% 0px -48% 0px'});
-      cards.forEach(c=>observer.observe(c));
-    }
-    activate(0);
+
+    const settle=token=>{
+      if(token!==replayToken)return;
+      shell.dataset.phase='settled';
+      verdict.textContent='VERIFY';
+      activate('evidence',false);
+    };
+    replay?.addEventListener('click',()=>{
+      const token=++replayToken;
+      emit('cdi_signal_replay_started','public_signature_engine');
+      shell.dataset.phase='headline';
+      verdict.textContent='CHECK';
+      activate('economics',false);
+      if(reduced){settle(token);return}
+      window.setTimeout(()=>{if(token!==replayToken)return;shell.dataset.phase='screening';activate('evidence',false)},620);
+      window.setTimeout(()=>{if(token!==replayToken)return;shell.dataset.phase='quality';activate('risk',false)},1320);
+      window.setTimeout(()=>settle(token),2060);
+    });
+
+    activate('evidence',false);
   }
 
   const failures=[
