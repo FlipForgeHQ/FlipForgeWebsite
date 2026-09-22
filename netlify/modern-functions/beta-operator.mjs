@@ -7,6 +7,7 @@ import {
   MAX_OPERATOR_BYTES,
   TENANT_ROLE_PREFIX,
   applicationKey,
+  emailIndexKey,
   feedbackKey,
   feedbackSummary,
   funnelSummary,
@@ -144,6 +145,85 @@ async function clearInvitationReservation(store, key, application, etag, now) {
   await conditionalApplicationWrite(store, key, released, etag).catch(() => {});
 }
 
+
+function reserveRemoval(application, now) {
+  if (application.status === "REMOVED") throw new Error("APPLICATION_ALREADY_REMOVED");
+  if (application.invitationAttempt?.id) throw new Error("INVITATION_IN_PROGRESS");
+  const existing = application.removalAttempt;
+  if (existing?.id) {
+    const age = now.getTime() - Date.parse(existing.startedAt || "");
+    if (!Number.isFinite(age) || age < 120_000) throw new Error("REMOVAL_IN_PROGRESS");
+    return application;
+  }
+  const at = now.toISOString();
+  return {
+    ...application,
+    version: Number(application.version || 0) + 1,
+    removalAttempt: { id: crypto.randomUUID(), startedAt: at, previousStatus: application.status },
+    updatedAt: at,
+    history: [...(application.history || []), { type: "ONBOARDING_REMOVAL_STARTED", at, actor: "operator" }],
+  };
+}
+
+async function clearRemovalReservation(store, key, application, etag, now) {
+  if (!application.removalAttempt?.id || !etag) return;
+  const at = now.toISOString();
+  const released = {
+    ...application,
+    version: Number(application.version || 0) + 1,
+    removalAttempt: null,
+    updatedAt: at,
+    history: [...(application.history || []), { type: "ONBOARDING_REMOVAL_FAILED", at, actor: "system" }],
+  };
+  await conditionalApplicationWrite(store, key, released, etag).catch(() => {});
+}
+
+async function revokeBetaMembership(application, identityAdmin) {
+  if (!application.identityUserId) return;
+  const users = await listIdentityUsers(identityAdmin);
+  const user = users.find(value => String(value?.id || "") === String(application.identityUserId || ""));
+  if (!user) return;
+
+  const currentMetadata = user.appMetadata || user.app_metadata || {};
+  const membership = currentMetadata.flipforge || {};
+  const expectedTenantId = application.tenantId || tenantIdFor(application);
+  const ownsMembership = String(membership.betaApplicationId || "") === String(application.id)
+    || String(membership.tenantId || "") === String(expectedTenantId);
+  if (!ownsMembership) throw new Error("IDENTITY_MEMBERSHIP_MISMATCH");
+
+  const tenantRole = `${TENANT_ROLE_PREFIX}${expectedTenantId}`;
+  let roles = operatorRoles(user).filter(role => role !== tenantRole && role !== TERMS_PENDING_ROLE);
+  if (!roles.some(role => role.startsWith(TENANT_ROLE_PREFIX))) roles = roles.filter(role => role !== ACTIVE_ROLE);
+
+  const { flipforge: _removedMembership, ...metadataWithoutMembership } = currentMetadata;
+  await identityAdmin.updateUser(String(application.identityUserId), {
+    app_metadata: { ...metadataWithoutMembership, roles: [...new Set(roles)] },
+    user_metadata: { ...(user.userMetadata || user.user_metadata || {}) },
+  });
+}
+
+function finalizeRemoval(application, now) {
+  const at = now.toISOString();
+  return {
+    ...application,
+    version: Number(application.version || 0) + 1,
+    status: "REMOVED",
+    removalPreviousStatus: application.removalAttempt?.previousStatus || application.status,
+    removalAttempt: null,
+    removedAt: at,
+    updatedAt: at,
+    history: [...(application.history || []), { type: "ONBOARDING_REMOVED", at, actor: "operator" }],
+  };
+}
+
+async function releaseApplicationEmailClaim(store, application) {
+  const email = String(application?.applicant?.email || "");
+  if (!email) return;
+  const key = await emailIndexKey(email);
+  const entry = await store.getWithMetadata(key, { type: "json" }).catch(() => null);
+  if (String(entry?.data?.applicationId || "") === String(application.id || "")) await store.delete(key).catch(() => {});
+}
+
 async function rawIdentityInvite(email, fullName) {
   const identity = getIdentityConfig();
   if (!identity?.url || !identity?.token) throw new Error("IDENTITY_OPERATOR_TOKEN_UNAVAILABLE");
@@ -182,7 +262,7 @@ function withActivation(application, user, now) {
 }
 
 async function syncActivations(applicationStore, applications, identityAdmin, now) {
-  const pending = applications.filter(item => item.status === "INVITE_SENT" && item.identityUserId);
+  const pending = applications.filter(item => item.status === "INVITE_SENT" && item.identityUserId && !item.removalAttempt?.id);
   if (!pending.length) return applications;
   const users = await listIdentityUsers(identityAdmin);
   const byId = new Map(users.map(user => [String(user.id || ""), user]));
@@ -209,13 +289,17 @@ async function dashboard(applicationStore, eventStore, feedbackStore, identityAd
     if (Number.isFinite(occurredAt) && occurredAt < retentionStart) await eventStore.delete(entry.key);
     else retainedEvents.push(entry.value);
   }
+  const activeApplications = applications.filter(item => item.status !== "REMOVED");
   return {
     operation: "beta-operator-dashboard",
     applications,
-    applicationSummary: statusSummary(applications),
+    applicationSummary: {
+      ...statusSummary(activeApplications),
+      removed: applications.length - activeApplications.length,
+    },
     feedback,
     feedbackSummary: feedbackSummary(feedback),
-    funnel: funnelSummary(retainedEvents, applications, now),
+    funnel: funnelSummary(retainedEvents, activeApplications, now),
     invitationAuthority: "NETLIFY_IDENTITY_SERVER_OPERATOR",
   };
 }
@@ -382,6 +466,7 @@ export function createBetaOperatorHandler({
       if (Number(input?.expectedVersion) !== Number(current.version)) throw new Error("VERSION_CONFLICT");
 
       let updated;
+      if (action !== "remove" && current.removalAttempt?.id) throw new Error("REMOVAL_IN_PROGRESS");
       if (action === "transition") {
         if (current.invitationAttempt?.id) throw new Error("INVITATION_IN_PROGRESS");
         updated = transitionApplication(current, {
@@ -405,13 +490,27 @@ export function createBetaOperatorHandler({
           await clearInvitationReservation(applications, key, reserved, reservationEtag, now());
           throw error;
         }
+      } else if (action === "remove") {
+        const removalNow = now();
+        const reserved = reserveRemoval(current, removalNow);
+        let reservationEtag = currentEntry.etag;
+        if (reserved !== current) reservationEtag = await conditionalApplicationWrite(applications, key, reserved, currentEntry.etag);
+        try {
+          await revokeBetaMembership(reserved, identityAdmin);
+          updated = finalizeRemoval(reserved, removalNow);
+          await conditionalApplicationWrite(applications, key, updated, reservationEtag);
+          await releaseApplicationEmailClaim(applications, updated);
+        } catch (error) {
+          await clearRemovalReservation(applications, key, reserved, reservationEtag, now());
+          throw error;
+        }
       } else {
         return reply(400, { authorized: true, reason: "ACTION_NOT_ALLOWED" });
       }
 
       console.log(JSON.stringify({
         type: "flipforge_beta_operator_operation",
-        operation: action === "invite" ? "INVITATION_PROCESSED" : "APPLICATION_TRANSITIONED",
+        operation: action === "invite" ? "INVITATION_PROCESSED" : action === "remove" ? "ONBOARDING_REMOVED" : "APPLICATION_TRANSITIONED",
         applicationId: updated.id,
         status: updated.status,
         occurredAt: updated.updatedAt,
