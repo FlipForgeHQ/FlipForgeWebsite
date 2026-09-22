@@ -4,20 +4,20 @@
  * adapters finish. Does not alter scoring, evidence, auth, persistence, or API data.
  */
 
-html.ff-full-customer-app body.ff-full-customer-app #main-content {
+body[data-ff-surface="customer"] #main-content {
   position: relative;
 }
 
-html.ff-full-customer-app body.ff-full-customer-app #main-content[data-ff-route-transitioning="true"] {
+body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"] {
   min-height: var(--ff-route-lock-height, 320px) !important;
   overflow: hidden !important;
 }
 
-html.ff-full-customer-app body.ff-full-customer-app #main-content[data-ff-route-transitioning="true"] > * {
+body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"] > * {
   visibility: hidden !important;
 }
 
-html.ff-full-customer-app body.ff-full-customer-app #main-content[data-ff-route-transitioning="true"]::before {
+body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"]::before {
   content: "";
   position: absolute;
   z-index: 3;
@@ -41,7 +41,7 @@ html.ff-full-customer-app body.ff-full-customer-app #main-content[data-ff-route-
 }
 
 @media(max-width:760px){
-  html.ff-full-customer-app body.ff-full-customer-app #main-content[data-ff-route-transitioning="true"]::before {
+  body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"]::before {
     top: 14px;
     left: 12px;
     right: 12px;
@@ -51,7 +51,7 @@ html.ff-full-customer-app body.ff-full-customer-app #main-content[data-ff-route-
 }
 
 @media(prefers-reduced-motion:reduce){
-  html.ff-full-customer-app body.ff-full-customer-app #main-content[data-ff-route-transitioning="true"]::before {
+  body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"]::before {
     animation: none !important;
   }
 }
