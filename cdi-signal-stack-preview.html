@@ -10,7 +10,7 @@
 <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
 <link rel="stylesheet" href="assets/css/brand-v2.css">
-<link rel="stylesheet" href="assets/css/cdi-signal-stack-preview.css?v=20260922-2">
+<link rel="stylesheet" href="assets/css/cdi-signal-stack-preview.css?v=20260922-3">
 </head>
 <body class="ff-cdi-preview-page">
 <a class="skip-link" href="#main">Skip to preview</a>
@@ -44,6 +44,28 @@
   </section>
 
   <section class="ff-cdi-stage" data-cdi-stage data-state="VERIFY">
+    <section class="ff-cdi-new-user-guide" aria-labelledby="ff-cdi-new-user-heading">
+      <div class="ff-cdi-new-user-copy">
+        <span class="eyebrow">NEW TO FLIPFORGE?</span>
+        <h2 id="ff-cdi-new-user-heading">Here’s what FlipForge just checked for you.</h2>
+        <p>You do not need to calculate anything or know our terminology. FlipForge checks these four things, then gives you the decision. Tap a step only if you want to see why.</p>
+      </div>
+      <div class="ff-cdi-new-user-steps" aria-label="How FlipForge reaches a decision">
+        <button type="button" data-guide-signal="identity">
+          <span>1</span><strong>Confirm the exact card</strong><small>Right year, set, number, variant, and grade</small>
+        </button>
+        <button type="button" data-guide-signal="evidence">
+          <span>2</span><strong>Check trustworthy sales</strong><small>Keep valid comparisons and reject bad ones</small>
+        </button>
+        <button type="button" data-guide-signal="economics">
+          <span>3</span><strong>Compare the price</strong><small>See whether the ask is supported by the evidence</small>
+        </button>
+        <button type="button" data-guide-signal="uncertainty">
+          <span>4</span><strong>Measure uncertainty</strong><small>Show confidence and risk instead of hiding doubt</small>
+        </button>
+        <div class="ff-cdi-new-user-result" aria-hidden="true"><span>→</span><strong>Decision</strong></div>
+      </div>
+    </section>
     <div class="ff-cdi-stage-grid">
       <section class="ff-cdi-decision-column" aria-labelledby="ff-cdi-decision-title">
         <div class="ff-cdi-card-identity">
@@ -71,32 +93,32 @@
         </div>
 
         <div class="ff-cdi-stack-head">
-          <div><span>REASON TRAIL</span><strong>How this decision is supported</strong></div>
+          <div><span>WHY FLIPFORGE SAID THIS</span><strong>Tap any row to see the reason behind it</strong></div>
           <span data-stack-status role="status" aria-live="polite">4 signals · ready</span>
         </div>
         <div class="ff-cdi-stack" aria-label="Decision signal stack">
           <button class="ff-cdi-signal" type="button" data-signal="identity" aria-pressed="true">
             <span class="ff-cdi-signal-index">01</span>
             <span class="ff-cdi-signal-icon" aria-hidden="true">⌖</span>
-            <span class="ff-cdi-signal-copy"><small>IDENTITY</small><strong data-signal-title="identity">Exact identity confirmed</strong><span data-signal-detail="identity">Base card · PSA 10 · exact card number</span></span>
+            <span class="ff-cdi-signal-copy"><small>STEP 1 · EXACT CARD <b>Identity</b></small><strong data-signal-title="identity">Exact identity confirmed</strong><span data-signal-detail="identity">Base card · PSA 10 · exact card number</span></span>
             <span class="ff-cdi-signal-state" data-signal-state="identity">LOCKED</span>
           </button>
           <button class="ff-cdi-signal" type="button" data-signal="evidence" aria-pressed="false">
             <span class="ff-cdi-signal-index">02</span>
             <span class="ff-cdi-signal-icon" aria-hidden="true">◉</span>
-            <span class="ff-cdi-signal-copy"><small>EVIDENCE</small><strong data-signal-title="evidence">3 of 7 candidates qualified</strong><span data-signal-detail="evidence">Wrong parallels and duplicate evidence stayed out</span></span>
+            <span class="ff-cdi-signal-copy"><small>STEP 2 · TRUSTWORTHY SALES <b>Evidence</b></small><strong data-signal-title="evidence">3 of 7 candidates qualified</strong><span data-signal-detail="evidence">Wrong parallels and duplicate evidence stayed out</span></span>
             <span class="ff-cdi-signal-state" data-signal-state="evidence">THIN</span>
           </button>
           <button class="ff-cdi-signal" type="button" data-signal="economics" aria-pressed="false">
             <span class="ff-cdi-signal-index">03</span>
             <span class="ff-cdi-signal-icon" aria-hidden="true">↗</span>
-            <span class="ff-cdi-signal-copy"><small>ECONOMICS</small><strong data-signal-title="economics">Supported value withheld</strong><span data-signal-detail="economics">Exact sold evidence did not clear the value gate</span></span>
+            <span class="ff-cdi-signal-copy"><small>STEP 3 · PRICE CHECK <b>Economics</b></small><strong data-signal-title="economics">Supported value withheld</strong><span data-signal-detail="economics">Exact sold evidence did not clear the value gate</span></span>
             <span class="ff-cdi-signal-state" data-signal-state="economics">WITHHELD</span>
           </button>
           <button class="ff-cdi-signal" type="button" data-signal="uncertainty" aria-pressed="false">
             <span class="ff-cdi-signal-index">04</span>
             <span class="ff-cdi-signal-icon" aria-hidden="true">△</span>
-            <span class="ff-cdi-signal-copy"><small>UNCERTAINTY</small><strong data-signal-title="uncertainty">Confidence 61 · Risk 58</strong><span data-signal-detail="uncertainty">Uncertainty remains too high for stronger authority</span></span>
+            <span class="ff-cdi-signal-copy"><small>STEP 4 · UNCERTAINTY CHECK <b>Confidence + Risk</b></small><strong data-signal-title="uncertainty">Confidence 61 · Risk 58</strong><span data-signal-detail="uncertainty">Uncertainty remains too high for stronger authority</span></span>
             <span class="ff-cdi-signal-state" data-signal-state="uncertainty">REVIEW</span>
           </button>
         </div>
@@ -190,6 +212,6 @@
   </section>
 </main>
 
-<script src="assets/js/cdi-signal-stack-preview.js?v=20260922-2" defer></script>
+<script src="assets/js/cdi-signal-stack-preview.js?v=20260922-3" defer></script>
 </body>
 </html>
