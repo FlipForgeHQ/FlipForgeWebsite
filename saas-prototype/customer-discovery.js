@@ -32,6 +32,7 @@
       active: false,
       busy: false,
       query: "",
+      typedQuery: "",
       requestSerial: 0,
       results: [],
       message: ""
@@ -336,6 +337,7 @@
 
   async function suggestIdentity(draft) {
     const requestedQuery = normalizeIdentityQuery(draft.exactCardQuery);
+    state.identityAssist.typedQuery = requestedQuery;
     const requestSerial = state.identityAssist.requestSerial + 1;
     state.identityAssist.requestSerial = requestSerial;
     state.error = null;
@@ -400,6 +402,8 @@
     let draft;
     try {
       draft = readSearch(form);
+      const typedQuery = normalizeIdentityQuery(state.identityAssist.typedQuery);
+      if (typedQuery) draft.exactCardQuery = typedQuery;
     } catch (error) {
       state.error = error;
       renderCurrent();
@@ -414,7 +418,12 @@
     const currentQuery = normalizeIdentityQuery(state.identityAssist.query);
     const draftQuery = normalizeIdentityQuery(state.draft.exactCardQuery);
     const visibleQuery = currentVisibleIdentityQuery();
-    if (!ownedQuery || ownedQuery !== currentQuery || ownedQuery !== draftQuery || (visibleQuery && ownedQuery !== visibleQuery)) {
+    const typedQuery = normalizeIdentityQuery(state.identityAssist.typedQuery);
+    if (!ownedQuery
+      || ownedQuery !== currentQuery
+      || ownedQuery !== draftQuery
+      || (typedQuery && ownedQuery !== typedQuery)
+      || (visibleQuery && ownedQuery !== visibleQuery)) {
       state.identityAssist.message = "That identity choice is no longer current. Review the latest card options before continuing.";
       renderCurrent();
       return;
@@ -610,11 +619,18 @@
     const identityInput = form?.querySelector?.('input[name="exactCardQuery"]');
     identityInput?.addEventListener("input", () => {
       const visibleQuery = normalizeIdentityQuery(identityInput.value);
+      state.identityAssist.typedQuery = visibleQuery;
+      state.draft.exactCardQuery = visibleQuery;
       if (state.identityAssist.active && visibleQuery !== normalizeIdentityQuery(state.identityAssist.query)) {
         state.identityAssist.requestSerial += 1;
+        state.identityAssist.active = false;
+        state.identityAssist.busy = false;
         state.identityAssist.query = "";
         state.identityAssist.results = [];
         state.identityAssist.message = "";
+        // Remove stale selection controls immediately without re-rendering the
+        // form the customer is actively typing in.
+        state.main?.querySelector?.(".customer-discovery-identity-assist")?.remove();
       }
     });
     const findExactButton = state.main?.querySelector?.("[data-discovery-find-exact]");
