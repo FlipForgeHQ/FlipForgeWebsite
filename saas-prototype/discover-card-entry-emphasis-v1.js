@@ -113,7 +113,9 @@
     if (!label) return;
 
     const labelText = label.querySelector(":scope > span");
-    if (labelText) labelText.textContent = "CARD IDENTITY — ENTER THE CARD YOU WANT TO EVALUATE";
+    if (labelText && labelText.textContent !== "CARD IDENTITY — ENTER THE CARD YOU WANT TO EVALUATE") {
+      labelText.textContent = "CARD IDENTITY — ENTER THE CARD YOU WANT TO EVALUATE";
+    }
 
     input.placeholder = "Example: 2018 Topps Chrome Shohei Ohtani #150 PSA 9";
     input.setAttribute("aria-label", "Card identity — start here");
@@ -127,14 +129,18 @@
 
     const form = main.querySelector("[data-customer-discovery-form]");
     const searchButton = form?.querySelector('button[type="submit"]');
-    if (searchButton && !searchButton.disabled) searchButton.textContent = "Search active listings";
+    if (searchButton && !searchButton.disabled && searchButton.textContent !== "Search active listings") {
+      searchButton.textContent = "Search active listings";
+    }
     if (searchButton) {
       searchButton.setAttribute("aria-label", "Search active listings for this card");
       searchButton.title = "Use this when you already know the exact card identity.";
     }
 
     const identifyButton = form?.querySelector("[data-discovery-find-exact]");
-    if (identifyButton && !identifyButton.disabled) identifyButton.textContent = "Find exact card";
+    if (identifyButton && !identifyButton.disabled && identifyButton.textContent !== "Find exact card") {
+      identifyButton.textContent = "Find exact card";
+    }
     if (identifyButton) {
       identifyButton.setAttribute("aria-label", "Find and confirm the exact card");
       identifyButton.title = "Use this when you are unsure which base, parallel, variation, or card number is correct.";
@@ -142,19 +148,45 @@
   }
 
   let queued = false;
+  let observer = null;
+
+  function observeMain() {
+    const main = document.querySelector(MAIN);
+    if (main && observer) observer.observe(main, { childList: true, subtree: true });
+  }
+
+  function decorateWithoutSelfObservation() {
+    if (observer) observer.disconnect();
+    try {
+      decorate();
+    } finally {
+      if (observer) observeMain();
+    }
+  }
+
   function schedule() {
     if (queued) return;
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      decorate();
+      decorateWithoutSelfObservation();
     });
   }
 
   loadIdentityAssistVerification();
   loadDiscoverControls();
   const main = document.querySelector(MAIN);
-  if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
+  if (main) {
+    observer = new MutationObserver(records => {
+      const meaningful = records.some(record => {
+        const target = record.target instanceof Element ? record.target : record.target?.parentElement;
+        if (target?.closest?.("[data-ff-ranking-order-note],[data-ff-evaluation-unavailable],.ff-card-entry-helper")) return false;
+        return true;
+      });
+      if (meaningful) schedule();
+    });
+    observeMain();
+  }
   window.addEventListener("hashchange", schedule);
   window.addEventListener("pageshow", schedule);
   window.addEventListener("load", schedule);
