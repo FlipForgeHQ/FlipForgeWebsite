@@ -36,6 +36,8 @@
       query: "",
       typedQuery: "",
       requestSerial: 0,
+      resultsQuery: "",
+      resultsSerial: 0,
       results: [],
       message: ""
     }
@@ -360,6 +362,8 @@
     state.identityAssist.active = true;
     state.identityAssist.busy = true;
     state.identityAssist.query = requestedQuery;
+    state.identityAssist.resultsQuery = "";
+    state.identityAssist.resultsSerial = 0;
     state.identityAssist.results = [];
     state.identityAssist.message = "Looking for exact catalog identities…";
     renderCurrent();
@@ -370,6 +374,8 @@
       });
       if (requestSerial !== state.identityAssist.requestSerial || requestedQuery !== state.identityAssist.query) return;
       state.identityAssist.results = Array.isArray(data.results) ? data.results : [];
+      state.identityAssist.resultsQuery = requestedQuery;
+      state.identityAssist.resultsSerial = requestSerial;
       const selectableCount = state.identityAssist.results.filter(row => row
         && row.exactCardCandidate === true
         && SAFE_SELECTION_TOKEN.test(String(row.selectionToken || ""))).length;
@@ -402,6 +408,8 @@
     }
     state.draft = { exactCardQuery: draft.exactCardQuery, targetMaxBuy: draft.targetMaxBuy, limit: String(draft.limit) };
     state.identityAssist.active = false;
+    state.identityAssist.resultsQuery = "";
+    state.identityAssist.resultsSerial = 0;
     state.identityAssist.results = [];
     state.identityAssist.message = "";
 
@@ -428,14 +436,22 @@
     await suggestIdentity(draft);
   }
 
-  async function resolveIdentity(index, expectedQuery) {
+  async function resolveIdentity(index, expectedQuery, expectedSerial) {
     const ownedQuery = normalizeIdentityQuery(expectedQuery);
     const currentQuery = normalizeIdentityQuery(state.identityAssist.query);
+    const resultQuery = normalizeIdentityQuery(state.identityAssist.resultsQuery);
     const draftQuery = normalizeIdentityQuery(state.draft.exactCardQuery);
     const visibleQuery = currentVisibleIdentityQuery();
     const typedQuery = normalizeIdentityQuery(state.identityAssist.typedQuery);
+    const currentSerial = state.identityAssist.requestSerial;
+    const resultSerial = state.identityAssist.resultsSerial;
     if (!ownedQuery
+      || !Number.isInteger(expectedSerial)
+      || expectedSerial <= 0
+      || expectedSerial !== currentSerial
+      || expectedSerial !== resultSerial
       || ownedQuery !== currentQuery
+      || ownedQuery !== resultQuery
       || ownedQuery !== draftQuery
       || (typedQuery && ownedQuery !== typedQuery)
       || (visibleQuery && ownedQuery !== visibleQuery)) {
@@ -468,6 +484,8 @@
       };
       state.draft.exactCardQuery = cardIdentity;
       state.identityAssist.active = false;
+      state.identityAssist.resultsQuery = "";
+      state.identityAssist.resultsSerial = 0;
       state.identityAssist.results = [];
       state.identityAssist.message = "";
       state.identityAssist.busy = false;
@@ -641,6 +659,8 @@
         state.identityAssist.active = false;
         state.identityAssist.busy = false;
         state.identityAssist.query = "";
+        state.identityAssist.resultsQuery = "";
+        state.identityAssist.resultsSerial = 0;
         state.identityAssist.results = [];
         state.identityAssist.message = "";
         // Remove stale selection controls immediately without re-rendering the
@@ -652,12 +672,13 @@
     findExactButton?.addEventListener("click", () => {
       if (form && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) findExactCard(form);
     });
-    const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.query);
+    const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.resultsQuery);
+    const selectionOwnerSerial = state.identityAssist.resultsSerial;
     state.main?.querySelectorAll?.("[data-discovery-use-identity]").forEach(button => {
       button.addEventListener("click", () => {
         const index = Number.parseInt(button.dataset.discoveryUseIdentity || "-1", 10);
         if (Number.isInteger(index) && index >= 0 && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) {
-          resolveIdentity(index, selectionOwnerQuery);
+          resolveIdentity(index, selectionOwnerQuery, selectionOwnerSerial);
         }
       });
     });
