@@ -32,7 +32,7 @@ check("005 full customer shell loads Phase 3 stylesheet", customer.includes('hre
 check("006 full customer shell loads Phase 3 runtime", customer.includes('src="phase3-first-decision-activation-v1.js"'));
 check("007 public landing loads activation measurement", publicIndex.includes('assets/js/phase3-activation-events-v1.js'));
 
-check("008 first-use onboarding derives from authoritative dashboard count", js.includes("trackedCount(dashboard)") && js.includes("if (tracked <= 0) firstUseActivation"));
+check("008 first-use onboarding derives from authoritative dashboard count", js.includes("trackedCount(dashboard)") && js.includes("if (tracked <= 0)") && js.includes("if (!first) firstUseActivation(dashboard)"));
 check("009 first-use onboarding has one exact-card activation CTA", js.includes('data-ff-p3-first-evaluate') && js.includes('href="#/discover"'));
 check("010 returning home is server-state dependent", js.includes("returningHome(dashboard, tracked)") && js.includes("tracked > 0"));
 check("011 returning home exposes saved decisions", js.includes('href="#/opportunities"'));
