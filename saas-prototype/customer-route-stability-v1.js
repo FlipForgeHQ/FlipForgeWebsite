@@ -59,8 +59,10 @@
   }, true);
 
   window.addEventListener("hashchange", () => {
-    if (main.dataset.ffRouteTransitioning !== "true") begin();
-    else scheduleReveal();
+    // User clicks are captured before the hash changes. Programmatic route
+    // changes (including auth redirects and guarded-route recovery) must not be
+    // hidden behind the visual stabilizer.
+    if (main.dataset.ffRouteTransitioning === "true") scheduleReveal();
   });
 
   const observer = new MutationObserver(() => {
