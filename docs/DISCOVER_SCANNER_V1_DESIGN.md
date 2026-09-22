@@ -6,6 +6,14 @@ Turn customer Discover from a stacked active-listing card view into a fast compa
 
 The scanner is a presentation and selection layer over authoritative Discover data. Smart Opportunity remains the only BUY/WATCH/VERIFY/PASS authority.
 
+## Product-surface boundary
+
+This scanner belongs to the **full FlipForge Customer Portal only**.
+
+Private Beta is intentionally a smaller preview of FlipForge intelligence. It is not expected to expose the complete customer portal, full scanner, full Decision Workspace, monitoring system, portfolio workflow, or every advanced customer capability.
+
+Customer Portal evolution must not automatically expand the Beta surface. Beta receives only the deliberately selected intelligence preview needed for testing and comprehension.
+
 ## v1 architecture
 
 ### 1. Server-owned search scope
