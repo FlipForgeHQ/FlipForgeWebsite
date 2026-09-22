@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const root = process.cwd();
+// Integrated customer-surface CDI presentation gate.\nconst root = process.cwd();
 const read = rel => fs.readFileSync(path.join(root, rel), "utf8");
 const customer = read("saas-prototype/customer.html");
 const index = read("saas-prototype/index.html");
