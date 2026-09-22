@@ -36,6 +36,23 @@
     return route || "dashboard";
   }
 
+  const MODERN_CUSTOMER_ROUTES = new Set([
+    "dashboard", "discover", "evaluate", "decision-intelligence", "evidence",
+    "opportunities", "tracking", "portfolio", "alerts", "forge-heat",
+    "market-view", "compare", "psa-advisor", "sell", "export", "account"
+  ]);
+
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
+  function modernRouteOwns(route) {
+    if (fullCustomerMode() && MODERN_CUSTOMER_ROUTES.has(route)) return true;
+    if (route === "beta-start") return Boolean(window.FlipForgePrivateBeta);
+    return false;
+  }
+
   function opportunityById(id) {
     return data.opportunities.find(item => item.id === id) || data.opportunities[0];
   }
@@ -492,6 +509,11 @@
     setActiveNavigation();
     closeNavigation();
 
+    // Full customer routes are owned by the server-backed/customer adapters that
+    // load later in this document. Painting the legacy prototype here first
+    // creates a visible intermediate page that is immediately replaced.
+    if (modernRouteOwns(route)) return;
+
     switch (route) {
       case "dashboard": renderDashboard(); break;
       case "discover": renderDiscover(); break;
@@ -547,5 +569,7 @@
   });
 
   window.addEventListener("hashchange", renderRoute);
-  renderRoute();
+  // Defer the initial legacy fallback until the document's modern route owners
+  // have had a chance to register. On full customer routes this becomes a no-op.
+  window.setTimeout(renderRoute, 0);
 })();
