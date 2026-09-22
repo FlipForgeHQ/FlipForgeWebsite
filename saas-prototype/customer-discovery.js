@@ -643,8 +643,11 @@
         state.identityAssist.results = [];
         state.identityAssist.message = "";
         // Remove stale selection controls immediately without re-rendering the
-        // form the customer is actively typing in.
+        // form the customer is actively typing in. Re-arm the existing controls
+        // because this DOM was rendered while identityAssist.busy was true.
         state.main?.querySelector?.(".customer-discovery-identity-assist")?.remove();
+        state.main?.querySelector?.("[data-discovery-find-exact]")?.removeAttribute("disabled");
+        state.main?.querySelector?.("[data-customer-discovery-form] button[type=\"submit\"]")?.removeAttribute("disabled");
       }
     });
     const findExactButton = state.main?.querySelector?.("[data-discovery-find-exact]");
