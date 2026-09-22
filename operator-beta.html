@@ -40,6 +40,7 @@
       <article><span>Invitations sent</span><strong data-metric="invited">0</strong></article>
       <article><span>Activated</span><strong data-metric="activated">0</strong></article>
       <article><span>Waitlisted</span><strong data-metric="waitlisted">0</strong></article>
+      <article><span>Removed</span><strong data-metric="removed">0</strong></article>
     </section>
 
     <section class="ff-operator-panel" aria-labelledby="funnel-heading">
@@ -48,11 +49,17 @@
     </section>
 
     <section class="ff-operator-panel ff-application-panel" aria-labelledby="applications-heading">
-      <header><div><span class="ff-operator-kicker">Public application queue</span><h2 id="applications-heading">Applications</h2></div><div class="ff-operator-filters"><label>Search<input type="search" data-operator-search placeholder="Name or email"></label><label>Status<select data-operator-filter><option value="ALL">All statuses</option><option>SUBMITTED</option><option>UNDER_REVIEW</option><option>WAITLISTED</option><option>APPROVED</option><option>INVITE_SENT</option><option>ACTIVATED</option><option>DECLINED</option></select></label></div></header>
-      <div class="ff-operator-grid">
-        <div class="ff-application-list" data-application-list aria-live="polite"></div>
-        <aside class="ff-application-detail" data-application-detail><div class="ff-operator-empty"><strong>Select an application</strong><p>Applicant details, review controls, and the immutable state history will appear here.</p></div></aside>
-      </div>
+      <header class="ff-directory-header">
+        <div><span class="ff-operator-kicker">Onboarding database</span><h2 id="applications-heading">Tester directory</h2><p>Search, filter, and open any beta applicant or tester from one operator-only directory.</p></div>
+        <div class="ff-operator-filters">
+          <label>Search<input type="search" data-operator-search placeholder="Name, email, group, or focus"></label>
+          <label>View<select data-operator-view><option value="ACTIVE">Active onboarding</option><option value="REMOVED">Removed archive</option><option value="ALL">All records</option></select></label>
+          <label>Status<select data-operator-filter><option value="ALL">All statuses</option><option>SUBMITTED</option><option>UNDER_REVIEW</option><option>WAITLISTED</option><option>APPROVED</option><option>INVITE_SENT</option><option>ACTIVATED</option><option>DECLINED</option><option>REMOVED</option></select></label>
+        </div>
+      </header>
+      <div class="ff-directory-summary" data-directory-summary aria-live="polite"></div>
+      <div class="ff-tester-directory" data-application-list aria-live="polite"></div>
+      <aside class="ff-application-detail ff-directory-detail" data-application-detail><div class="ff-operator-empty"><strong>Select a tester</strong><p>Profile, access path, review controls, dates, and immutable state history will appear here.</p></div></aside>
     </section>
 
     <section class="ff-operator-panel" aria-labelledby="cdi-learning-heading" data-cdi-learning-scorecard>
