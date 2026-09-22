@@ -481,9 +481,42 @@
   }
 
   document.addEventListener("click", (event) => {
-    const trigger = event.target instanceof Element ? event.target.closest("[data-ff-open-decision-receipt]") : null;
-    if (!trigger) return;
-    const container = trigger.closest("[data-ff-di-v2-command]");
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+
+    const start = target.closest("[data-ff-dce-start],[data-ff-dce-replay]");
+    if (start) {
+      const panel = start.closest("[data-ff-decision-card-evidence]");
+      if (panel) playSignalBuild(panel);
+      return;
+    }
+
+    const signal = target.closest("[data-ff-dce-signal]");
+    if (signal) {
+      const panel = signal.closest("[data-ff-decision-card-evidence]");
+      if (!panel) return;
+      panel._ffDceTimers?.forEach?.(timer => window.clearTimeout(timer));
+      panel._ffDceTimers = [];
+      panel.classList.remove("ff-dce-motion-ready");
+      const rows = [...panel.querySelectorAll("[data-ff-dce-signal]")];
+      rows.forEach(row => {
+        row.classList.add("is-in");
+        row.classList.remove("is-active-step");
+        row.setAttribute("aria-pressed", String(row === signal));
+      });
+      const index = Math.max(0, rows.indexOf(signal));
+      const step = panel.querySelector("[data-ff-dce-step]");
+      const caption = panel.querySelector("[data-ff-dce-caption]");
+      const status = panel.querySelector("[data-ff-dce-status]");
+      if (step) step.textContent = `STEP ${index + 1} OF ${rows.length}`;
+      if (caption) caption.textContent = signal.dataset.ffDceCaptionValue || "";
+      if (status) status.textContent = "Step opened";
+      return;
+    }
+
+    const receiptTrigger = target.closest("[data-ff-open-decision-receipt]");
+    if (!receiptTrigger) return;
+    const container = receiptTrigger.closest("[data-ff-di-v2-command]");
     const receipt = container?.querySelector(".ff-di-v2-receipt");
     if (!receipt) return;
     receipt.open = true;
