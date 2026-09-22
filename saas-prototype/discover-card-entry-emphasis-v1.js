@@ -109,6 +109,10 @@
     const input = main.querySelector(INPUT);
     if (!input) return;
 
+    const form = main.querySelector("[data-customer-discovery-form]");
+    const copyOwner = form?.closest(".customer-discovery-search")?.dataset.ffDiscoverCopyOwner || "";
+    if (copyOwner === "beta-session") return;
+
     const label = input.closest("label");
     if (!label) return;
 
@@ -127,7 +131,6 @@
       input.insertAdjacentElement("afterend", helper);
     }
 
-    const form = main.querySelector("[data-customer-discovery-form]");
     const searchButton = form?.querySelector('button[type="submit"]');
     if (searchButton && !searchButton.disabled && searchButton.textContent !== "Search active listings") {
       searchButton.textContent = "Search active listings";
