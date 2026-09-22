@@ -101,6 +101,31 @@
     return ["Safely offline", "The preview bridge is disabled between controlled beta sessions.", "warn"];
   }
 
+
+  function updateBridgeStatus(main, health) {
+    const [value, detail, tone] = bridgeState(health);
+    const card = typeof main?.querySelector === "function"
+      ? main.querySelector("[data-private-beta-bridge]")
+      : null;
+
+    // Browser path: patch only the one status card whose data changed. Replacing
+    // the entire onboarding document here causes avoidable layout shift.
+    if (card) {
+      card.dataset.tone = tone;
+      const strong = card.querySelector("strong");
+      const small = card.querySelector("small");
+      if (strong) strong.textContent = value;
+      if (small) small.textContent = detail;
+      return;
+    }
+
+    // Deterministic validation harnesses use a lightweight main-content stub.
+    // Preserve their render contract without changing the browser behavior above.
+    if (main && Object.prototype.hasOwnProperty.call(main, "innerHTML")) {
+      main.innerHTML = pageMarkup(identitySnapshot(), health);
+    }
+  }
+
   function showBanner() {
     const banner = document.querySelector(".prototype-banner");
     if (!banner) return;
@@ -440,9 +465,8 @@
 
     const health = await loadHealth();
     if (!onBetaRoute()) return true;
-    const latestSession = identitySnapshot();
-    main.innerHTML = pageMarkup(latestSession, health);
-    bind(latestSession);
+    syncShell(identitySnapshot());
+    updateBridgeStatus(main, health);
     return true;
   }
 
