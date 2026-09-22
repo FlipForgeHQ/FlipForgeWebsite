@@ -193,12 +193,16 @@
       heading.insertAdjacentElement("afterend", strip);
     }
 
+    const signature = steps.map(([key]) => `${key}:${progress.completed.has(key) ? "1" : "0"}:${current === key ? "1" : "0"}`).join("|");
+    if (strip.dataset.ffWorkflowSignature === signature) return;
     const html = steps.map(([key, label, href], index) => {
       const done = progress.completed.has(key);
       const active = current === key;
-      return `<a class="ff-workflow-step" href="${href}" data-done="${done}" ${active ? 'aria-current="step"' : ""}><span class="ff-workflow-step-number">${done ? "✓" : index + 1}</span><span>${label}</span></a>`;
+      const currentAttribute = active ? ' aria-current="step"' : "";
+      return `<a class="ff-workflow-step" href="${href}" data-done="${done}"${currentAttribute}><span class="ff-workflow-step-number">${done ? "✓" : index + 1}</span><span>${label}</span></a>`;
     }).join("");
-    setHtml(strip, html);
+    strip.innerHTML = html;
+    strip.dataset.ffWorkflowSignature = signature;
   }
 
   function recommendation() {
