@@ -111,7 +111,7 @@
     if (!customerApp() || !fullCustomerEntry()) return;
     if (typeof document.querySelector !== "function" || typeof document.createElement !== "function" || !document.head) return;
 
-    if (!document.querySelector('[data-ff-commercial-dashboard-css]')) {
+    if (!document.querySelector('[data-ff-commercial-dashboard-css], link[href$="commercial-dashboard-v2.css"]')) {
       const stylesheet = document.createElement("link");
       stylesheet.rel = "stylesheet";
       stylesheet.href = FULL_CUSTOMER_DASHBOARD_STYLESHEET;
