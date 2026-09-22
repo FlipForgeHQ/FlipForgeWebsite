@@ -311,9 +311,14 @@ async function inviteApplicant(application, identityAdmin, inviteIdentity, now) 
 
   const allUsers = await listIdentityUsers(identityAdmin);
   let identityUser = allUsers.find(user => identityEmail(user) === application.applicant.email) || null;
+  const preexistingIdentity = Boolean(identityUser);
+  const preexistingActivated = activatedIdentity(identityUser);
+  const preexistingInvited = invitedIdentity(identityUser);
+  let invitationCreatedNow = false;
   if (!identityUser) {
     try {
       identityUser = await inviteIdentity(application.applicant.email, application.applicant.fullName);
+      invitationCreatedNow = true;
     } catch (error) {
       if (!(error instanceof Error) || error.message !== "IDENTITY_USER_EXISTS") throw error;
       const refreshedUsers = await listIdentityUsers(identityAdmin);
@@ -360,21 +365,38 @@ async function inviteApplicant(application, identityAdmin, inviteIdentity, now) 
 
   const at = now.toISOString();
   const active = !requiresTerms && activatedIdentity(updatedIdentity || identityUser);
+  const activationPath = invitationCreatedNow
+    ? "NEW_INVITATION"
+    : preexistingActivated
+      ? "EXISTING_ACCOUNT"
+      : preexistingInvited || invitedIdentity(identityUser)
+        ? "EXISTING_INVITATION"
+        : preexistingIdentity
+          ? "EXISTING_ACCOUNT"
+          : "NEW_INVITATION";
+  const pathEvent = activationPath === "NEW_INVITATION"
+    ? "IDENTITY_INVITE_SENT"
+    : activationPath === "EXISTING_INVITATION"
+      ? "IDENTITY_EXISTING_INVITATION_REUSED"
+      : "IDENTITY_EXISTING_ACCOUNT_ACCESS_ASSIGNED";
   const next = {
     ...application,
     version: Number(application.version || 0) + 1,
     status: active ? "ACTIVATED" : "INVITE_SENT",
     invitationAttempt: null,
+    activationPath,
     tenantId,
     identityUserId,
-    invitedAt: identityUser.invitedAt || identityUser.invited_at || at,
+    invitedAt: invitationCreatedNow
+      ? identityUser.invitedAt || identityUser.invited_at || at
+      : identityUser.invitedAt || identityUser.invited_at || null,
     activatedAt: active
       ? updatedIdentity?.confirmedAt || updatedIdentity?.confirmed_at || updatedIdentity?.lastSignInAt || updatedIdentity?.last_sign_in_at || at
       : null,
     updatedAt: at,
     history: [
       ...(application.history || []),
-      { type: "IDENTITY_INVITE_SENT", at, actor: "operator" },
+      { type: pathEvent, at, actor: "operator" },
       ...(requiresTerms ? [{ type: "BETA_TERMS_REQUIRED", at, actor: "system" }] : []),
       ...(active ? [{ type: "IDENTITY_ACTIVATED", at, actor: "identity" }] : []),
     ],
