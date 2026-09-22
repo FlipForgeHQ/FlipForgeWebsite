@@ -146,3 +146,92 @@
   .ff-p3-enter{animation:none!important}
   .ff-p3-evaluate-intro::after,.ff-p3-returning-card{transition:none!important}
 }
+
+/* First-session Home — suppress empty analytics until there is something to analyze */
+.ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-head{
+  align-items:start;
+}
+.ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-head h1{
+  font-size:clamp(2rem,4vw,3.4rem);
+  letter-spacing:-.045em;
+}
+.ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-head>div:first-child{
+  max-width:720px;
+}
+.ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-head-actions,
+.ff-commercial-dashboard.ff-p3-zero-dashboard .ff-kpi-grid,
+.ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-main-grid,
+.ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-boundary{
+  display:none!important;
+}
+.ff-p3-home-zero{
+  margin-top:4px;
+}
+.ff-p3-home-zero-grid{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);
+  gap:30px;
+  align-items:center;
+}
+.ff-p3-home-zero-copy h2{
+  margin:8px 0 10px;
+  max-width:680px;
+  font-size:clamp(2.25rem,5vw,4.5rem);
+  line-height:.96;
+  letter-spacing:-.055em;
+}
+.ff-p3-home-zero-copy p{
+  max-width:660px;
+}
+.ff-p3-home-learn{
+  display:inline-block;
+  margin-top:15px;
+  color:var(--ff-p3-gold-soft);
+  font-size:.8rem;
+  font-weight:800;
+  text-decoration:none;
+}
+.ff-p3-home-learn:hover,
+.ff-p3-home-learn:focus-visible{
+  text-decoration:underline;
+}
+.ff-p3-home-path{
+  display:grid;
+  gap:10px;
+}
+.ff-p3-home-zero-footer{
+  position:relative;
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:center;
+  margin-top:22px;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.ff-p3-home-zero-footer span{
+  color:#fff;
+  font-size:.8rem;
+  font-weight:850;
+}
+.ff-p3-home-zero-footer small{
+  max-width:650px;
+  color:#8793a0;
+  font-size:.74rem;
+  line-height:1.45;
+  text-align:right;
+}
+.ff-commercial-dashboard.ff-p3-returning-dashboard .ff-dashboard-head h1{
+  letter-spacing:-.035em;
+}
+
+@media(max-width:900px){
+  .ff-p3-home-zero-grid{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .ff-p3-home-zero-copy h2{font-size:clamp(2rem,12vw,3.25rem)}
+  .ff-p3-home-zero .ff-p3-actions .button{width:100%}
+  .ff-p3-home-zero-footer{display:grid}
+  .ff-p3-home-zero-footer small{text-align:left}
+}

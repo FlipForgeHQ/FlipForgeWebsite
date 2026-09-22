@@ -64,25 +64,30 @@
     const head = root.querySelector(".ff-dashboard-head");
     if (!head) return;
     const section = document.createElement("section");
-    section.className = "ff-p3-activation ff-p3-enter";
+    section.className = "ff-p3-activation ff-p3-home-zero ff-p3-enter";
     section.dataset.ffP3Activation = "";
     section.dataset.flipforgePhase3Owned = "first-use";
     section.innerHTML = `
-      <div class="ff-p3-activation-grid">
-        <div>
-          <span class="ff-p3-kicker">YOUR FIRST FLIPFORGE DECISION</span>
-          <h2>What card are you considering?</h2>
-          <p>Start with one exact card. FlipForge will verify the identity, test the evidence, expose the risk, and preserve the reason trail behind the decision.</p>
+      <div class="ff-p3-home-zero-grid">
+        <div class="ff-p3-home-zero-copy">
+          <span class="ff-p3-kicker">START HERE · YOUR FIRST DECISION</span>
+          <h2>Evaluate your first card.</h2>
+          <p>Start with one exact card you are genuinely considering. FlipForge will verify the identity, qualify the evidence, return the governed decision, and preserve the reason trail.</p>
           <div class="ff-p3-actions">
-            <a class="button button-primary" href="#/discover" data-ff-p3-first-evaluate>Evaluate my first card</a>
-            <a class="button button-secondary" href="#/decision-intelligence">See how the decision engine works</a>
+            <a class="button button-primary" href="#/discover" data-ff-p3-first-evaluate>Find a card to evaluate</a>
+            <a class="button button-secondary" href="#/evaluate">Enter a listing manually</a>
           </div>
+          <a class="ff-p3-home-learn" href="#/decision-intelligence">New to FlipForge? See how Card Decision Intelligence works →</a>
         </div>
-        <div class="ff-p3-first-steps" aria-label="First decision workflow">
-          <div class="ff-p3-first-step"><b>01</b><span><strong>Verify the exact card</strong><small>Identity gets authority before price does.</small></span></div>
-          <div class="ff-p3-first-step"><b>02</b><span><strong>Test the evidence</strong><small>Wrong or weak comparisons cannot silently control the result.</small></span></div>
-          <div class="ff-p3-first-step"><b>03</b><span><strong>Read the decision</strong><small>BUY, WATCH, VERIFY, or PASS—with the reason attached.</small></span></div>
+        <div class="ff-p3-home-path" aria-label="Your first FlipForge decision">
+          <div class="ff-p3-first-step"><b>01</b><span><strong>Find the exact card</strong><small>Identity is verified before price evidence gets authority.</small></span></div>
+          <div class="ff-p3-first-step"><b>02</b><span><strong>Let the evidence earn its place</strong><small>Wrong, weak, or ineligible comparisons are kept from silently driving the result.</small></span></div>
+          <div class="ff-p3-first-step"><b>03</b><span><strong>Read the decision and receipt</strong><small>BUY, WATCH, VERIFY, or PASS—with the reasons and uncertainty preserved.</small></span></div>
         </div>
+      </div>
+      <div class="ff-p3-home-zero-footer">
+        <span>Nothing else is required for your first session.</span>
+        <small>Saved-decision analytics, Outcome Intelligence, Portfolio, and other tools become useful after you have real decisions to work with.</small>
       </div>`;
     head.insertAdjacentElement("afterend", section);
     root.setAttribute(ENHANCED_ATTRIBUTE, "dashboard:first-use");
@@ -121,18 +126,32 @@
     if (!dashboard) return;
     const tracked = trackedCount(dashboard);
     if (tracked === null) return;
+
+    const head = dashboard.querySelector(".ff-dashboard-head");
+    const title = head?.querySelector("h1");
+    const intro = head?.querySelector("p");
+    if (title && title.textContent !== "Home") title.textContent = "Home";
+
     const primary = dashboard.querySelector(".ff-dashboard-head-actions .button-primary");
-    if (primary && tracked <= 0 && (primary.getAttribute("href") !== "#/discover" || primary.textContent !== "Evaluate first card")) {
-      primary.setAttribute("href", "#/discover");
-      primary.textContent = "Evaluate first card";
-    }
     const first = dashboard.querySelector("[data-ff-p3-activation]");
     const returning = dashboard.querySelector("[data-ff-p3-returning]");
+
     if (tracked <= 0) {
+      dashboard.classList.add("ff-p3-zero-dashboard");
+      dashboard.classList.remove("ff-p3-returning-dashboard");
+      if (intro) intro.textContent = "Start with one real card. FlipForge will guide you from exact identity to evidence, decision, and Decision Receipt.";
+      if (primary && (primary.getAttribute("href") !== "#/discover" || primary.textContent !== "Evaluate first card")) {
+        primary.setAttribute("href", "#/discover");
+        primary.textContent = "Evaluate first card";
+      }
       if (returning) returning.remove();
       if (!first) firstUseActivation(dashboard);
     }
+
     if (tracked > 0) {
+      dashboard.classList.remove("ff-p3-zero-dashboard");
+      dashboard.classList.add("ff-p3-returning-dashboard");
+      if (intro) intro.textContent = "Continue from your saved decisions, review what changed, and investigate the next card when you are ready.";
       if (first) first.remove();
       if (!returning) returningHome(dashboard, tracked);
     }

@@ -16,6 +16,7 @@ export const APPLICATION_STATUSES = Object.freeze([
   "INVITE_SENT",
   "ACTIVATED",
   "DECLINED",
+  "REMOVED",
 ]);
 
 export const FEEDBACK_STATUSES = Object.freeze(["NEW", "UNDER_REVIEW", "RESOLVED"]);
