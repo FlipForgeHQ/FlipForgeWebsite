@@ -59,18 +59,18 @@
 
   function show(node) {
     if (!node) return;
-    node.hidden = false;
-    node.removeAttribute("hidden");
-    node.removeAttribute("aria-hidden");
+    if (node.hidden) node.hidden = false;
+    if (node.hasAttribute("hidden")) node.removeAttribute("hidden");
+    if (node.hasAttribute("aria-hidden")) node.removeAttribute("aria-hidden");
     if (node.getAttribute("tabindex") === "-1") node.removeAttribute("tabindex");
   }
 
   function hide(node) {
     if (!node) return;
-    node.hidden = true;
-    node.setAttribute("aria-hidden", "true");
-    node.setAttribute("tabindex", "-1");
-    node.removeAttribute("aria-current");
+    if (!node.hidden) node.hidden = true;
+    if (node.getAttribute("aria-hidden") !== "true") node.setAttribute("aria-hidden", "true");
+    if (node.getAttribute("tabindex") !== "-1") node.setAttribute("tabindex", "-1");
+    if (node.hasAttribute("aria-current")) node.removeAttribute("aria-current");
   }
 
   function setAnchorLabel(link, label) {
@@ -93,9 +93,9 @@
       link.innerHTML = `<span aria-hidden="true">${icon}</span>${label}`;
       nav.insertBefore(link, nav.querySelector(":scope > .ff-advanced-nav") || null);
     }
-    link.href = href;
-    link.dataset.ffPortalPrimary = "true";
-    link.setAttribute("data-ff-customer-core", "");
+    if (link.getAttribute("href") !== href) link.setAttribute("href", href);
+    if (link.dataset.ffPortalPrimary !== "true") link.dataset.ffPortalPrimary = "true";
+    if (!link.hasAttribute("data-ff-customer-core")) link.setAttribute("data-ff-customer-core", "");
     setAnchorLabel(link, label);
     show(link);
     return link;
@@ -116,7 +116,8 @@
 
     PRIMARY.forEach(([route, href, label, icon], index) => {
       const link = ensurePrimaryLink(nav, route, href, label, icon);
-      link.style.order = String((index + 1) * 10);
+      const order = String((index + 1) * 10);
+      if (link.style.order !== order) link.style.order = order;
     });
 
     const active = ROUTE_PARENT[routeName()] || "dashboard";
@@ -188,9 +189,8 @@
       </nav>`;
   }
 
-  function removeArchitectureBars(main) {
-    main.querySelectorAll(":scope > .ff-decision-workspace-nav, :scope > .ff-portal-context-nav").forEach(node => node.remove());
-    main.querySelectorAll(".page > .ff-decision-workspace-nav, .page > .ff-portal-context-nav").forEach(node => node.remove());
+  function removeArchitectureBars(page) {
+    page.querySelectorAll(":scope > .ff-decision-workspace-nav, :scope > .ff-portal-context-nav").forEach(node => node.remove());
   }
 
   function mountContextNavigation() {
@@ -199,10 +199,14 @@
     const page = main.querySelector(":scope > .page") || main.firstElementChild;
     if (!page) return;
 
-    removeArchitectureBars(main);
-
     const id = currentRecordId();
     const context = contextualLinks();
+    const signature = id ? `workspace:${routeName()}:${id}` : context ? `context:${routeName()}` : "none";
+    const existing = page.querySelector(":scope > .ff-decision-workspace-nav, :scope > .ff-portal-context-nav");
+    if (page.dataset.ffPortalContextSignature === signature && (signature === "none" || existing)) return;
+
+    removeArchitectureBars(page);
+    page.dataset.ffPortalContextSignature = signature;
     const heading = page.querySelector(":scope > .page-heading") || page.querySelector(".page-heading");
 
     if (id) {
@@ -227,16 +231,18 @@
   function normalizeTopbar() {
     const evaluate = document.querySelector("[data-ff-global-new-card]");
     if (evaluate) {
-      evaluate.href = "#/discover";
-      evaluate.setAttribute("aria-label", "Discover or evaluate a card");
-      evaluate.innerHTML = '<span aria-hidden="true">＋</span> New decision';
+      if (evaluate.getAttribute("href") !== "#/discover") evaluate.setAttribute("href", "#/discover");
+      if (evaluate.getAttribute("aria-label") !== "Discover or evaluate a card") evaluate.setAttribute("aria-label", "Discover or evaluate a card");
+      const wanted = '<span aria-hidden="true">＋</span> New decision';
+      if (evaluate.innerHTML !== wanted) evaluate.innerHTML = wanted;
     }
 
     const decisions = document.querySelector('.topbar-actions a[href="#/opportunities"]');
     if (decisions) {
       show(decisions);
-      decisions.setAttribute("aria-label", "Open decisions");
-      decisions.innerHTML = '<span aria-hidden="true">◆</span> Decisions';
+      if (decisions.getAttribute("aria-label") !== "Open decisions") decisions.setAttribute("aria-label", "Open decisions");
+      const wanted = '<span aria-hidden="true">◆</span> Decisions';
+      if (decisions.innerHTML !== wanted) decisions.innerHTML = wanted;
     }
   }
 
