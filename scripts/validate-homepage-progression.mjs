@@ -214,6 +214,27 @@ requireAll('Phase 2 customer Decision Receipt runtime',decisionCardJs,[
   'ff-dce-passport-motion',
   '--ff-dce-i'
 ]);
+requireAll('Phase 3 public Decision Receipt anatomy',phase2Js,[
+  'ff-phase3-product-receipt',
+  'ILLUSTRATIVE ANATOMY · NO LIVE MARKET DATA',
+  'assets/brand/flipforge-logo-horizontal.svg',
+  'data-ff-p3-receipt-layer',
+  'WHAT IT PRESERVES',
+  'WHAT IT DOES NOT DO',
+  'decision_receipt_layer_selected'
+]);
+requireAll('Phase 4 public Decision Receipt polish',phase2Css,[
+  '.ff-phase3-product-receipt-layout',
+  '.ff-phase3-product-receipt-reveal',
+  '@media(max-width:640px)',
+  '@media(prefers-reduced-motion:reduce)'
+]);
+requireAll('Phase 4 receipt interaction behavior',phase2Js,[
+  'ArrowRight',
+  'ArrowLeft',
+  'prefers-reduced-motion: reduce',
+  "panel.animate"
+]);
 
 for(const page of [homepage,product,learn,beta,pricing])requireAll('marketing navigation',page,['>Evidence Lab</a>','>Launch Plans</a>','>About</a>','>Request Beta Access</a>']);
 

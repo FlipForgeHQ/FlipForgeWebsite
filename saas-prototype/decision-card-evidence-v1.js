@@ -213,7 +213,8 @@
     const receipt = container?.querySelector(".ff-di-v2-receipt");
     if (!receipt) return;
     receipt.open = true;
-    receipt.scrollIntoView({ behavior: "smooth", block: "center" });
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
+    receipt.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
   });
 
   let queued = false;

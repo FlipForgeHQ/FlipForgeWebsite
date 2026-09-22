@@ -365,3 +365,164 @@
     white-space: normal;
   }
 }
+
+
+/* Phase 3 — signature Decision Receipt. Presentation only; server authority is unchanged. */
+.ff-di-v3-receipt{
+  margin-top:20px;
+  border:1px solid rgba(212,175,55,.34);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 86% 8%,rgba(212,175,55,.10),transparent 27%),
+    linear-gradient(155deg,rgba(8,12,17,.995),rgba(2,5,8,.995));
+  box-shadow:0 24px 58px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.025);
+  overflow:hidden;
+}
+.ff-di-v3-receipt>summary{
+  min-height:72px;
+  padding:16px 18px;
+  border-bottom:1px solid transparent;
+  background:linear-gradient(90deg,rgba(212,175,55,.055),rgba(255,255,255,.012));
+  transition:background .28s ease,border-color .28s ease;
+}
+.ff-di-v3-receipt[open]>summary{
+  border-bottom-color:rgba(255,255,255,.075);
+  background:linear-gradient(90deg,rgba(212,175,55,.09),rgba(255,255,255,.016));
+}
+.ff-di-v3-receipt-summary{display:flex;align-items:center;min-width:0}
+.ff-di-v3-receipt-summary-copy{display:grid;gap:3px;min-width:0}
+.ff-di-v3-receipt-summary-copy>strong{font-size:.94rem;letter-spacing:-.01em;color:#fff}
+.ff-di-v3-receipt-summary-copy>small{font-size:.72rem;line-height:1.4;color:rgba(255,255,255,.60)}
+.ff-di-v3-receipt-open{display:flex;align-items:center;gap:10px;flex:none;color:#d4af37;font-size:.72rem;font-weight:850;letter-spacing:.04em}
+.ff-di-v3-receipt-open b{
+  display:grid;place-items:center;width:30px;height:30px;border:1px solid rgba(212,175,55,.28);
+  border-radius:50%;font-size:1rem;font-weight:500;transition:transform .28s cubic-bezier(.2,.8,.2,1),background .28s ease
+}
+.ff-di-v3-receipt[open] .ff-di-v3-receipt-open b{transform:rotate(45deg);background:rgba(212,175,55,.08)}
+
+.ff-di-v3-receipt-object{
+  position:relative;padding:20px;isolation:isolate;
+  background:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+    radial-gradient(circle at 94% 4%,rgba(212,175,55,.08),transparent 24%),
+    #05090e;
+  background-size:30px 30px,30px 30px,auto,auto;
+}
+.ff-di-v3-receipt-object::before{
+  content:"";position:absolute;z-index:-1;inset:0 auto 0 0;width:5px;
+  background:linear-gradient(180deg,#f0d184,#d4af37 48%,#9f7915);
+  box-shadow:0 0 24px rgba(212,175,55,.16)
+}
+.ff-di-v3-receipt-brand{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:0 0 18px 8px;border-bottom:1px solid rgba(255,255,255,.08)
+}
+.ff-di-v3-receipt-brand img{display:block;width:min(260px,52%);height:auto}
+.ff-di-v3-receipt-seal{
+  display:grid;justify-items:end;gap:5px;padding:9px 11px;border:1px solid rgba(212,175,55,.28);
+  border-radius:11px;background:rgba(212,175,55,.045)
+}
+.ff-di-v3-receipt-seal span{font-size:.62rem;font-weight:900;letter-spacing:.13em;color:rgba(240,209,132,.78)}
+.ff-di-v3-receipt-seal strong{font-size:.93rem;letter-spacing:.08em;color:#f0d184}
+
+.ff-di-v3-receipt-identity{padding:20px 8px 17px;border-bottom:1px solid rgba(255,255,255,.075)}
+.ff-di-v3-receipt-identity>span{display:block;font-size:.63rem;font-weight:900;letter-spacing:.14em;color:#d4af37}
+.ff-di-v3-receipt-identity h4{margin:7px 0 6px;font-size:clamp(1.15rem,2.2vw,1.65rem);line-height:1.15;letter-spacing:-.025em;color:#fff}
+.ff-di-v3-receipt-identity p{margin:0;font-size:.76rem;line-height:1.5;color:rgba(255,255,255,.60)}
+
+.ff-di-v3-receipt-layers{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:16px 8px
+}
+.ff-di-v3-receipt-layer{
+  display:grid;grid-template-columns:38px minmax(0,1fr);gap:11px;align-items:start;
+  min-height:132px;padding:14px;border:1px solid rgba(255,255,255,.075);border-radius:13px;
+  background:linear-gradient(150deg,rgba(255,255,255,.025),rgba(255,255,255,.008));
+  transition:transform .24s ease,border-color .24s ease,background .24s ease,box-shadow .24s ease
+}
+.ff-di-v3-receipt-layer-number{
+  display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(212,175,55,.28);
+  border-radius:50%;font-size:.65rem;font-weight:900;color:#d4af37;background:rgba(212,175,55,.045)
+}
+.ff-di-v3-receipt-layer small{display:block;font-size:.61rem;font-weight:900;letter-spacing:.13em;color:rgba(240,209,132,.76)}
+.ff-di-v3-receipt-layer strong{display:block;margin-top:6px;font-size:.84rem;line-height:1.3;color:#fff;overflow-wrap:anywhere}
+.ff-di-v3-receipt-layer p{margin:7px 0 0;font-size:.73rem;line-height:1.48;color:rgba(255,255,255,.61)}
+.ff-di-v3-receipt-layer[data-layer="decision"]{
+  border-color:rgba(212,175,55,.34);
+  background:linear-gradient(150deg,rgba(212,175,55,.075),rgba(255,255,255,.01))
+}
+
+.ff-di-v3-receipt-support{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 8px 16px
+}
+.ff-di-v3-receipt-support>div{
+  padding:14px 15px;border:1px solid rgba(212,175,55,.16);border-radius:12px;
+  background:rgba(212,175,55,.035)
+}
+.ff-di-v3-receipt-support span{display:block;font-size:.61rem;font-weight:900;letter-spacing:.12em;color:#d4af37}
+.ff-di-v3-receipt-support p{margin:7px 0 0;font-size:.74rem;line-height:1.52;color:rgba(255,255,255,.68)}
+
+.ff-di-v3-receipt-footer{
+  display:grid;grid-template-columns:auto auto 1fr;gap:12px;align-items:start;
+  margin:0 8px;padding:14px 0 0;border-top:1px solid rgba(255,255,255,.075)
+}
+.ff-di-v3-receipt-footer>div{display:grid;gap:3px;min-width:110px}
+.ff-di-v3-receipt-footer span{font-size:.59rem;font-weight:850;letter-spacing:.11em;text-transform:uppercase;color:rgba(255,255,255,.43)}
+.ff-di-v3-receipt-footer strong{font-size:.7rem;color:rgba(255,255,255,.78);overflow-wrap:anywhere}
+.ff-di-v3-receipt-footer>p{margin:0;font-size:.68rem;line-height:1.5;color:rgba(255,255,255,.49)}
+.ff-di-v3-receipt-machine-values{display:none!important}
+
+/* Phase 4 — motion, timing, responsive behavior, and accessibility polish. */
+.ff-di-v3-receipt[open] .ff-di-v3-receipt-layer{
+  animation:ffDecisionReceiptLayerReveal .42s cubic-bezier(.2,.8,.2,1) both
+}
+.ff-di-v3-receipt[open] .ff-di-v3-receipt-layer:nth-child(1){animation-delay:45ms}
+.ff-di-v3-receipt[open] .ff-di-v3-receipt-layer:nth-child(2){animation-delay:90ms}
+.ff-di-v3-receipt[open] .ff-di-v3-receipt-layer:nth-child(3){animation-delay:135ms}
+.ff-di-v3-receipt[open] .ff-di-v3-receipt-layer:nth-child(4){animation-delay:180ms}
+.ff-di-v3-receipt[open] .ff-di-v3-receipt-layer:nth-child(5){animation-delay:225ms}
+.ff-di-v3-receipt[open] .ff-di-v3-receipt-layer:nth-child(6){animation-delay:270ms}
+@keyframes ffDecisionReceiptLayerReveal{
+  from{opacity:0;transform:translateY(10px) scale(.992)}
+  to{opacity:1;transform:none}
+}
+@media (hover:hover){
+  .ff-di-v3-receipt-layer:hover{
+    transform:translateY(-2px);border-color:rgba(212,175,55,.25);
+    box-shadow:0 12px 26px rgba(0,0,0,.18)
+  }
+}
+
+@media (max-width:1020px){
+  .ff-di-v3-receipt-footer{grid-template-columns:1fr 1fr}
+  .ff-di-v3-receipt-footer>p{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .ff-di-v3-receipt-object{padding:17px}
+  .ff-di-v3-receipt-layers,.ff-di-v3-receipt-support{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .ff-di-v3-receipt{border-radius:15px}
+  .ff-di-v3-receipt>summary{min-height:68px;padding:14px 15px}
+  .ff-di-v3-receipt-open>span{display:none}
+  .ff-di-v3-receipt-object{padding:15px 13px 16px}
+  .ff-di-v3-receipt-brand{display:grid;justify-items:start;padding-left:8px}
+  .ff-di-v3-receipt-brand img{width:min(230px,78%)}
+  .ff-di-v3-receipt-seal{justify-items:start}
+  .ff-di-v3-receipt-identity{padding-left:8px;padding-right:8px}
+  .ff-di-v3-receipt-layers{padding:13px 8px}
+  .ff-di-v3-receipt-layer{min-height:0;padding:13px}
+  .ff-di-v3-receipt-support{padding-left:8px;padding-right:8px}
+  .ff-di-v3-receipt-footer{grid-template-columns:1fr;margin:0 8px}
+  .ff-di-v3-receipt-footer>p{grid-column:auto}
+}
+@media (max-width:420px){
+  .ff-di-v3-receipt-layer{grid-template-columns:32px minmax(0,1fr);gap:9px}
+  .ff-di-v3-receipt-layer-number{width:30px;height:30px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ff-di-v3-receipt>summary,
+  .ff-di-v3-receipt-open b,
+  .ff-di-v3-receipt-layer{transition:none!important}
+  .ff-di-v3-receipt[open] .ff-di-v3-receipt-layer{animation:none!important;opacity:1!important;transform:none!important}
+}
