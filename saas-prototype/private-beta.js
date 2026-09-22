@@ -177,7 +177,7 @@
     return `<div class="page private-beta-page private-beta-v2" data-private-beta-readiness>
       <header class="private-beta-v2-header">
         <div class="private-beta-v2-heading">
-          <span class="eyebrow">PRIVATE BETA · FIRST SESSION</span>
+          <span class="eyebrow">Private Beta Guide · First Session</span>
           <h1>Welcome to FlipForge.</h1>
           <p>Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust.</p>
         </div>
@@ -191,7 +191,7 @@
         ${statusCard("Your access", accessValue, accessDetail, accessTone)}
         ${statusCard("Evaluation system", bridgeValue, bridgeDetail, bridgeTone, "data-private-beta-bridge")}
         ${statusCard("Saved decisions", "SQLite source of truth", "Your evaluations and tracked decisions stay tenant-owned and server-backed.", "ok")}
-        ${statusCard("Environment", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
+        ${statusCard("Customer access", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
       </section>
 
       <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
