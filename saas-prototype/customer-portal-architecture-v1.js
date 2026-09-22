@@ -35,6 +35,16 @@
 
   let queued = false;
 
+  function ensureWhyDecisionView() {
+    if (window.FlipForgeCustomerWhyDecisionViewV1) return;
+    if (document.querySelector('script[data-ff-customer-why-decision-view]')) return;
+    const script = document.createElement("script");
+    script.src = "customer-why-decision-view-v1.js";
+    script.async = false;
+    script.setAttribute("data-ff-customer-why-decision-view", "");
+    document.head.appendChild(script);
+  }
+
   function routeParts() {
     return String(window.location.hash || "#/dashboard")
       .replace(/^#\/?/, "")
@@ -247,6 +257,7 @@
   }
 
   function apply() {
+    ensureWhyDecisionView();
     normalizePrimaryNavigation();
     normalizeTopbar();
     mountContextNavigation();
