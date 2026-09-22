@@ -5,6 +5,8 @@ const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const entry = read("saas-prototype/discover-card-entry-emphasis-v1.js");
 const verify = read("saas-prototype/identity-assist-verification-v1.js");
+const discovery = read("saas-prototype/customer-discovery.js");
+const guide = read("saas-prototype/guided-mode-v1.js");
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
@@ -45,11 +47,18 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["034 excluded identity-review evaluate button is removed", entry.includes('.customer-discovery-candidate-review [data-discovery-evaluate]') && entry.includes("button.replaceWith(status)")],
   ["035 excluded row shows non-actionable evaluation status", entry.includes("Not eligible for evaluation")],
   ["036 redundant pre-search chooser is removed", !entry.includes("How do you want to start?") && !entry.includes("data-ff-discover-start-find")],
-  ["037 primary entry is reasserted after rerenders", entry.includes("new MutationObserver(schedule).observe(main") && entry.includes("promoteSearchPanel(main)")],
+  ["037 primary entry is reasserted after rerenders without self-observation", entry.includes("observer = new MutationObserver") && entry.includes("decorateWithoutSelfObservation") && entry.includes("promoteSearchPanel(main)")],
   ["038 identity helper uses an explicit cache-busting version", entry.includes('IDENTITY_HELPER_VERSION = "20260831-3"')],
   ["039 identity verification script is loaded with the cache-busting version", entry.includes('script.src = `identity-assist-verification-v1.js?v=${IDENTITY_HELPER_VERSION}`')],
   ["040 identity verification stylesheet is loaded with the cache-busting version", entry.includes('link.href = `identity-assist-verification-v1.css?v=${IDENTITY_HELPER_VERSION}`')],
-  ["041 stale identity helper elements are replaced when the version differs", entry.includes("existingScript?.remove()") && entry.includes("existingLink?.remove()") && entry.includes("ffIdentityAssistVerificationVersion")]
+  ["041 stale identity helper elements are replaced when the version differs", entry.includes("existingScript?.remove()") && entry.includes("existingLink?.remove()") && entry.includes("ffIdentityAssistVerificationVersion")],
+  ["042 identity assist owns each asynchronous search by request serial", discovery.includes("requestSerial: 0") && discovery.includes("requestSerial !== state.identityAssist.requestSerial")],
+  ["043 changed card input invalidates current identity-assist ownership", discovery.includes('identityInput?.addEventListener("input"') && discovery.includes("state.identityAssist.requestSerial += 1")],
+  ["044 identity selection is bound to the query that rendered it", discovery.includes("const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.query)") && discovery.includes("resolveIdentity(index, selectionOwnerQuery)")],
+  ["045 stale selection fails closed against current assist draft and visible query", discovery.includes("ownedQuery !== currentQuery") && discovery.includes("ownedQuery !== draftQuery") && discovery.includes("ownedQuery !== visibleQuery")],
+  ["046 Discover entry text rewrites are idempotent", entry.includes('labelText.textContent !== "CARD IDENTITY — ENTER THE CARD YOU WANT TO EVALUATE"') && entry.includes('searchButton.textContent !== "Search active listings"') && entry.includes('identifyButton.textContent !== "Find exact card"')],
+  ["047 Discover entry observer disconnects during owned writes", entry.includes("observer.disconnect()") && entry.includes("decorateWithoutSelfObservation") && entry.includes("observeMain()")],
+  ["048 Guided Mode follows canonical search-first ordering", guide.includes('search.insertAdjacentElement("afterend", coach)') && !guide.includes('coach.insertAdjacentElement("afterend", search)')]
 ].forEach(([name, condition]) => check(name, condition));
 
 const failures = results.filter(result => !result.passed);

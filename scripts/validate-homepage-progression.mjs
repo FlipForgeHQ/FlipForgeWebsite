@@ -56,7 +56,7 @@ requireAll('homepage interactive proof',homepage,[
   '<dialog class="ff-evidence-dialog"','data-ff-open-evidence>See the evidence',
   'Controlled Private Beta.',
   'FlipForge does not guarantee profit or authorize transactions.',
-  'href="/app/#/evaluate" data-ff-deal-cta="evaluate_listing"',
+  'href="/app/#/discover" data-ff-deal-cta="evaluate_listing"',
   'assets/css/homepage-deal-or-decoy-v1.css',
   'assets/css/homepage-deal-live-process-v3.css',
   'assets/js/homepage-deal-or-decoy-v1.js'

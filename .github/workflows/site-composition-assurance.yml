@@ -76,6 +76,8 @@ jobs:
           exit 1
       - name: Audit rendered routes across mobile, breakpoint, desktop, and wide viewports
         run: npm run audit:site-composition
+      - name: Audit Phase 3 DOM mutation stability for 10 seconds
+        run: node scripts/audit-phase3-mutation-stability-ci.mjs
       - name: Validate full customer app contracts
         run: |
           node scripts/validate-netlify-rule-budget.mjs

@@ -25,6 +25,9 @@ on:
       - "assets/js/award-winning-v1.js"
       - "assets/js/conversion-events.js"
       - "saas-prototype/index.html"
+      - "saas-prototype/phase3-first-decision-activation-v1.js"
+      - "saas-prototype/phase3-first-decision-activation-v1.css"
+      - "scripts/audit-phase3-mutation-stability-ci.mjs"
       - "saas-prototype/customer-readability.css"
       - "saas-prototype/customer-layout-system-v2.css"
       - "saas-prototype/guided-mode-compact-v1.css"
@@ -58,6 +61,9 @@ on:
       - "assets/js/award-winning-v1.js"
       - "assets/js/conversion-events.js"
       - "saas-prototype/index.html"
+      - "saas-prototype/phase3-first-decision-activation-v1.js"
+      - "saas-prototype/phase3-first-decision-activation-v1.css"
+      - "scripts/audit-phase3-mutation-stability-ci.mjs"
       - "saas-prototype/customer-readability.css"
       - "saas-prototype/customer-layout-system-v2.css"
       - "saas-prototype/guided-mode-compact-v1.css"
@@ -104,3 +110,5 @@ jobs:
           exit 1
       - name: Validate rendered typography across public pages
         run: node scripts/audit-public-typography-rendered.mjs
+      - name: Audit Phase 3 DOM mutation stability for 10 seconds
+        run: node scripts/audit-phase3-mutation-stability-ci.mjs

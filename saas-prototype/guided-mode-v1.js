@@ -216,9 +216,7 @@
       coach = document.createElement("section");
       coach.className = "ff-discover-coach";
       coach.dataset.ffDiscoverCoach = "";
-      const heading = page.querySelector(".page-heading");
-      if (heading) heading.insertAdjacentElement("afterend", coach);
-      else page.prepend(coach);
+      search.insertAdjacentElement("afterend", coach);
     }
 
     if (coach.dataset.mode !== mode) {
@@ -232,7 +230,7 @@
       }
     }
 
-    if (search.previousElementSibling !== coach) coach.insertAdjacentElement("afterend", search);
+    if (search.nextElementSibling !== coach) search.insertAdjacentElement("afterend", coach);
     page.classList.toggle("ff-start-new-card", state.startingNewCard);
   }
 

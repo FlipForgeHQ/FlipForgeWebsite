@@ -79,7 +79,7 @@ check('051 operator route remains explicitly unframeable',headerBlock('/operator
 check('052 retired hero film CSS is still not loaded',!index.includes('assets/css/homepage-hero-film-v1.css'));
 check('053 retired hero film JS is still not loaded',!index.includes('assets/js/homepage-hero-film-v1.js'));
 check('054 choice processing and result stay in one component',index.includes('data-ff-choice-stage')&&index.includes('data-ff-processing-stage')&&index.includes('data-ff-result-stage'));
-check('055 CTA to evaluate a real listing remains',index.includes('href="/app/#/evaluate" data-ff-deal-cta="evaluate_listing"'));
+check('055 CTA to evaluate a real listing remains',index.includes('href="/app/#/discover" data-ff-deal-cta="evaluate_listing"'));
 check('056 replay remains available without page travel',index.includes('data-ff-replay>Try another choice')&&dealJs.includes('showChoices()'));
 check('057 evidence dialog can close natively',dealJs.includes('evidenceDialog.close'));
 check('058 no browser storage is introduced',['localStorage','sessionStorage','indexedDB'].every(v=>!dealJs.includes(v)&&!navJs.includes(v)));

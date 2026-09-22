@@ -323,12 +323,30 @@ async function fillQuery(value) {
   await page.waitForTimeout(120);
 }
 
+async function submitSearchForm() {
+  await waitForForm();
+  await searchButton().waitFor({ state: "visible", timeout: 5000 });
+  await poll(async () => !(await searchButton().isDisabled()), "Discover submit did not become actionable", 5000);
+  // This destructive-state audit verifies request/state isolation, not pointer
+  // mechanics. Submit through the live form contract so unrelated text/decorator
+  // observers cannot make the state audit flaky between actionability checks.
+  await form().evaluate(node => node.requestSubmit());
+}
+
+async function waitForDiscoverSettled(message = "Discover UI did not settle after the response") {
+  await poll(async () => {
+    const providerReady = await page.locator("#main-content .customer-discovery-provider").count() === 1;
+    const buttonReady = await searchButton().count() === 1 && !(await searchButton().isDisabled());
+    return providerReady && buttonReady;
+  }, message, 7000);
+}
+
 async function directSearch(value) {
   const before = calls.discover.length;
   await fillQuery(value);
-  await searchButton().click();
+  await submitSearchForm();
   await poll(() => calls.discover.length > before, `Discover did not run for ${value}`);
-  await page.waitForTimeout(120);
+  await waitForDiscoverSettled(`Discover UI did not settle for ${value}`);
   return calls.discover.at(-1);
 }
 
@@ -483,6 +501,8 @@ try {
   });
 
   await runScenario("PSA 10 to PSA 9 re-arms without + New card", async () => {
+    await resetDiscover();
+    await resolveByIdentityAssist(identities.ohtani10.imperfect);
     const discoverBefore = calls.discover.length;
     await fillQuery(identities.ohtani9.imperfect);
     expect(await page.locator("[data-discovery-refresh-v2]").count() === 0, "Stale Refresh results remained after editing to a different grade");
@@ -499,6 +519,8 @@ try {
   });
 
   await runScenario("player change replaces previous card state", async () => {
+    await resetDiscover();
+    await directSearch(identities.ohtani9.canonical);
     const body = await directSearch(identities.acuna10.canonical);
     expect(body.exactCardQuery === identities.acuna10.canonical, "Acuna query did not replace the prior Ohtani query");
     expect(!/Ohtani/i.test(body.exactCardQuery), "Previous player leaked into the next Discover request");
@@ -506,6 +528,8 @@ try {
   });
 
   await runScenario("Refresh results repeats the completed search exactly", async () => {
+    await resetDiscover();
+    await directSearch(identities.acuna10.canonical);
     await poll(() => page.locator("[data-discovery-refresh-v2]").count().then(count => count === 1), "Refresh results was unavailable");
     const before = calls.discover.length;
     await page.locator("[data-discovery-refresh-v2]").click();
@@ -514,6 +538,10 @@ try {
   });
 
   await runScenario("no-results state does not trap the next search", async () => {
+    // Keep this state-transition scenario independent of the preceding Refresh
+    // scenario. The behavior under test is empty-result -> next search, not
+    // cross-scenario residue from an earlier completed-search replay.
+    await resetDiscover();
     const emptyQuery = "2020 Test Player #404 PSA 9";
     await directSearch(emptyQuery);
     await poll(() => page.locator("#main-content .customer-discovery-provider").count().then(count => count === 1), "No-results provider state did not render");
@@ -522,6 +550,8 @@ try {
   });
 
   await runScenario("removing a grade does not inherit the old grade", async () => {
+    await resetDiscover();
+    await directSearch(identities.ohtani9.canonical);
     const ungraded = "2018 Topps Chrome Shohei Ohtani #150";
     const body = await directSearch(ungraded);
     expect(body.exactCardQuery === ungraded, "Ungraded query was altered before Discover");
@@ -552,11 +582,11 @@ try {
     const errorQuery = "2021 Error Player #999 PSA 9";
     const before = calls.discover.length;
     await fillQuery(errorQuery);
-    await searchButton().click();
+    await submitSearchForm();
     await poll(() => calls.discover.length > before, "First transient-error request did not run");
     await page.locator("#main-content .staging-error").waitFor({ state: "visible", timeout: 5000 });
     expect(await queryInput().inputValue() === errorQuery, "Customer query was lost after a provider error");
-    await searchButton().click();
+    await submitSearchForm();
     await poll(() => calls.discover.length > before + 1, "Retry did not issue a second Discover request");
     await page.locator("#main-content .customer-discovery-results").waitFor({ state: "visible", timeout: 5000 });
     expect(transientAttempts.get(errorQuery) === 2, "Transient error fixture was not retried exactly once");
@@ -574,7 +604,7 @@ try {
     await openDiscover();
     const discoverBefore = calls.discover.length;
     await fillQuery(identities.ohtani9.canonical);
-    await searchButton().click();
+    await submitSearchForm();
     await poll(() => calls.discover.length > discoverBefore, "Discover was not usable after returning from evaluation");
     expect(calls.discover.at(-1)?.exactCardQuery === identities.ohtani9.canonical, "Returning from evaluation restored stale PSA 10 identity");
   });
@@ -600,8 +630,9 @@ try {
     await form().locator('input[name="targetMaxBuy"]').fill("123.45");
     await form().locator('select[name="limit"]').selectOption("10");
     let before = calls.discover.length;
-    await searchButton().click();
+    await submitSearchForm();
     await poll(() => calls.discover.length > before, "Configured target/limit search did not run");
+    await waitForDiscoverSettled("Configured target/limit search did not settle");
     let body = calls.discover.at(-1);
     expect(body.targetMaxBuyCents === 12345, `Target max buy was ${body.targetMaxBuyCents}, expected 12345`);
     expect(body.limit === 10, `Result limit was ${body.limit}, expected 10`);
@@ -610,7 +641,7 @@ try {
     await form().locator('input[name="targetMaxBuy"]').fill("");
     await form().locator('select[name="limit"]').selectOption("25");
     before = calls.discover.length;
-    await searchButton().click();
+    await submitSearchForm();
     await poll(() => calls.discover.length > before, "Second target/limit search did not run");
     body = calls.discover.at(-1);
     expect(body.targetMaxBuyCents === 0, "Previous target max buy leaked into the next search");
