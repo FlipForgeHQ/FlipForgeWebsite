@@ -278,9 +278,7 @@
     const heading = root?.querySelector(".page-heading");
     if (!root || !heading) return;
 
-    const h1 = heading.querySelector("h1");
     const p = heading.querySelector("p");
-    if (h1) h1.textContent = "Check trustworthy sales";
     if (p) p.textContent = "See what FlipForge could use, what it excluded, and why that matters to the saved decision.";
 
     if (root.querySelector("[data-ff-cdi-evidence-guide]")) return;
@@ -288,7 +286,7 @@
     guide.className = "ff-cdi-evidence-guide";
     guide.dataset.ffCdiEvidenceGuide = "";
     guide.innerHTML =
-      '<article><span>01</span><strong>Accepted</strong><p>Exact completed sales that are eligible to support the saved decision.</p></article>' +
+      '<article><span>01 · ACCEPTED</span><strong>Check trustworthy sales</strong><p>Exact completed sales that are eligible to support the saved decision.</p></article>' +
       '<article><span>02</span><strong>Excluded</strong><p>Visible rows that fail an identity, sale-state, freshness, or authority check.</p></article>' +
       '<article><span>03</span><strong>Why it matters</strong><p>Supported value should get stronger only when the evidence gets stronger.</p></article>';
     heading.insertAdjacentElement("afterend", guide);
