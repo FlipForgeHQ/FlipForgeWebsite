@@ -185,21 +185,92 @@
     const accepted = Math.max(0, safeNumber(evidence?.acceptedExactCompletedSales));
     const excluded = Math.max(0, safeNumber(evidence?.visibleButAuthorityIneligible));
     const supported = safeNumber(detail?.supportedValue);
-    return `<details class="ff-di-v2-receipt">
-      <summary><span><strong>Decision Receipt</strong><small>Server-owned record of what FlipForge knew and returned</small></span><span aria-hidden="true">＋</span></summary>
-      <div class="ff-di-v2-receipt-grid">
-        <div><span>Decision</span><strong>${escapeHtml(detail?.recommendation || "UNKNOWN")}</strong></div>
-        <div><span>Exact card</span><strong>${escapeHtml(detail?.cardIdentity || "Unavailable")}</strong></div>
-        <div><span>Evaluated ask</span><strong>${money(detail?.ask)}</strong></div>
-        <div><span>Supported value</span><strong>${accepted > 0 && supported > 0 ? money(supported) : "Withheld"}</strong></div>
-        <div><span>Confidence</span><strong>${safeNumber(detail?.confidence)}/100</strong></div>
-        <div><span>Risk</span><strong>${safeNumber(detail?.risk)}/100 · ${riskLabel(detail?.risk)}</strong></div>
-        <div><span>Trusted exact sales</span><strong>${accepted}</strong></div>
-        <div><span>Excluded linked rows</span><strong>${excluded}</strong></div>
-        <div><span>Observed</span><strong>${escapeHtml(detail?.observedAt || "Unavailable")}</strong></div>
-        <div><span>Engine</span><strong>${escapeHtml(meta?.engineVersion || "Server-owned")}</strong></div>
+    const decision = String(detail?.recommendation || "UNKNOWN").toUpperCase();
+    const mapping = String(detail?.mappingState || "UNKNOWN").toUpperCase();
+    const identityState = mapping === "CONFIRMED" ? "Verified exact identity" : "Identity review required";
+    const supportedLabel = accepted > 0 && supported > 0 ? money(supported) : "Withheld";
+    const observed = escapeHtml(detail?.observedAt || "Unavailable");
+    const engine = escapeHtml(meta?.engineVersion || "Server-owned");
+    const authority = escapeHtml(meta?.authority || "Smart Opportunity");
+    const change = escapeHtml(whatChangesCopy(detail, evidence));
+
+    return `<details class="ff-di-v2-receipt ff-di-v3-receipt" data-ff-decision-receipt data-decision="${escapeHtml(decision)}">
+      <summary>
+        <span class="ff-di-v3-receipt-summary">
+          <span class="ff-di-v3-receipt-summary-copy">
+            <span class="ff-di-v2-kicker">DECISION RECEIPT</span>
+            <strong>Preserve the reason trail.</strong>
+            <small>Open the server-owned snapshot behind this decision.</small>
+          </span>
+        </span>
+        <span class="ff-di-v3-receipt-open"><span>View receipt</span><b aria-hidden="true">＋</b></span>
+      </summary>
+
+      <div class="ff-di-v3-receipt-object">
+        <header class="ff-di-v3-receipt-brand">
+          <img src="/assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why.">
+          <div class="ff-di-v3-receipt-seal">
+            <span>SERVER-OWNED RECORD</span>
+            <strong>${escapeHtml(decision)}</strong>
+          </div>
+        </header>
+
+        <section class="ff-di-v3-receipt-identity" aria-label="Receipt identity">
+          <span>EXACT CARD</span>
+          <h4>${escapeHtml(detail?.cardIdentity || "Unavailable")}</h4>
+          <p>${escapeHtml(identityState)} · observed ${observed}</p>
+        </section>
+
+        <div class="ff-di-v3-receipt-layers" aria-label="Decision Receipt layers">
+          <article class="ff-di-v3-receipt-layer" data-layer="identity">
+            <span class="ff-di-v3-receipt-layer-number">01</span>
+            <div><small>IDENTITY</small><strong>${escapeHtml(identityState)}</strong><p>The exact card identity controls which evidence is allowed to support the decision.</p></div>
+          </article>
+          <article class="ff-di-v3-receipt-layer" data-layer="evidence">
+            <span class="ff-di-v3-receipt-layer-number">02</span>
+            <div><small>EVIDENCE</small><strong>${accepted} trusted · ${excluded} excluded</strong><p>Only authority-eligible exact completed sales are allowed to support value.</p></div>
+          </article>
+          <article class="ff-di-v3-receipt-layer" data-layer="economics">
+            <span class="ff-di-v3-receipt-layer-number">03</span>
+            <div><small>ECONOMICS</small><strong>${money(detail?.ask)} ask · ${escapeHtml(supportedLabel)} supported</strong><p>Supported value is shown only when the governed evidence permits it.</p></div>
+          </article>
+          <article class="ff-di-v3-receipt-layer" data-layer="risk">
+            <span class="ff-di-v3-receipt-layer-number">04</span>
+            <div><small>RISK + UNCERTAINTY</small><strong>${safeNumber(detail?.risk)}/100 risk · ${safeNumber(detail?.confidence)}/100 confidence</strong><p>Uncertainty remains visible rather than being converted into false precision.</p></div>
+          </article>
+          <article class="ff-di-v3-receipt-layer" data-layer="decision">
+            <span class="ff-di-v3-receipt-layer-number">05</span>
+            <div><small>DECISION</small><strong>${escapeHtml(decision)}</strong><p>This is the governed BUY / WATCH / VERIFY / PASS result returned for the saved evaluation context.</p></div>
+          </article>
+          <article class="ff-di-v3-receipt-layer" data-layer="provenance">
+            <span class="ff-di-v3-receipt-layer-number">06</span>
+            <div><small>TRACEBACK</small><strong>${authority} · ${engine}</strong><p>The receipt preserves the authority and engine context that returned the decision.</p></div>
+          </article>
+        </div>
+
+        <aside class="ff-di-v3-receipt-support" aria-label="Decision Receipt supporting context">
+          <div>
+            <span>WHAT THIS RECEIPT PRESERVES</span>
+            <p>Identity, governed evidence, economics, risk, decision state, observation time, and engine context are kept together so the reason trail can be inspected later.</p>
+          </div>
+          <div>
+            <span>WHAT WOULD CHANGE THE DECISION</span>
+            <p>${change}</p>
+          </div>
+        </aside>
+
+        <footer class="ff-di-v3-receipt-footer">
+          <div><span>Authority</span><strong>${authority}</strong></div>
+          <div><span>Engine</span><strong>${engine}</strong></div>
+          <p>This receipt does not authorize a purchase, predict an outcome, accept evidence in the browser, calculate a new value, or rewrite the saved decision after later events.</p>
+        </footer>
+
+        <div class="ff-di-v2-receipt-grid ff-di-v3-receipt-machine-values" aria-hidden="true">
+          <div><span>Evaluated ask</span><strong>${money(detail?.ask)}</strong></div>
+          <div><span>Supported value</span><strong>${escapeHtml(supportedLabel)}</strong></div>
+          <div><span>Observed</span><strong>${observed}</strong></div>
+        </div>
       </div>
-      <p>No browser-side recommendation, value calculation, grade prediction or evidence acceptance was performed.</p>
     </details>`;
   }
 
