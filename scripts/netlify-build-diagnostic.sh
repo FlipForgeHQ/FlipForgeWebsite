@@ -2,16 +2,17 @@
 set -u
 
 report="netlify-build-diagnostic.txt"
-: > "$report"
+commit_ref="${COMMIT_REF:-unknown}"
+printf 'COMMIT_REF: %s\n' "$commit_ref" > "$report"
 
 run_step() {
   label="$1"
   shift
-  printf 'RUNNING: %s\n' "$label" > "$report"
+  printf 'COMMIT_REF: %s\nRUNNING: %s\n' "$commit_ref" "$label" > "$report"
   "$@" >/tmp/ff-netlify-diagnostic.log 2>&1
   code=$?
   if [ "$code" -ne 0 ]; then
-    printf 'FAIL: %s\nEXIT_CODE: %s\n' "$label" "$code" > "$report"
+    printf 'COMMIT_REF: %s\nFAIL: %s\nEXIT_CODE: %s\n' "$commit_ref" "$label" "$code" > "$report"
     if [ "$label" = "validate:identity" ]; then
       grep -E 'FAIL|Error|ENOENT|missing|CONTEXT|PASSED|FAILED' /tmp/ff-netlify-diagnostic.log | tail -n 20 >> "$report" || true
     fi
@@ -22,11 +23,11 @@ run_step() {
 run_shell_step() {
   label="$1"
   command="$2"
-  printf 'RUNNING: %s\n' "$label" > "$report"
+  printf 'COMMIT_REF: %s\nRUNNING: %s\n' "$commit_ref" "$label" > "$report"
   bash -lc "$command" >/tmp/ff-netlify-diagnostic.log 2>&1
   code=$?
   if [ "$code" -ne 0 ]; then
-    printf 'FAIL: %s\nEXIT_CODE: %s\n' "$label" "$code" > "$report"
+    printf 'COMMIT_REF: %s\nFAIL: %s\nEXIT_CODE: %s\n' "$commit_ref" "$label" "$code" > "$report"
     if [ "$label" = "validate:identity" ]; then
       grep '^FAIL |' /tmp/ff-netlify-diagnostic.log >> "$report" || true
     fi
@@ -75,5 +76,5 @@ run_shell_step "validate-brand-assets" "node scripts/validate-brand-assets.js"
 run_shell_step "build:deploy-manifest" "npm run build:deploy-manifest"
 run_shell_step "validate:deploy-manifest" "npm run validate:deploy-manifest"
 
-printf 'PASS: all Netlify build steps completed\n' > "$report"
+printf 'COMMIT_REF: %s\nPASS: all Netlify build steps completed\n' "$commit_ref" > "$report"
 exit 0
