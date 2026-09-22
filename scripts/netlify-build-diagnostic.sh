@@ -13,7 +13,7 @@ run_step() {
   if [ "$code" -ne 0 ]; then
     printf 'FAIL: %s\nEXIT_CODE: %s\n' "$label" "$code" > "$report"
     if [ "$label" = "validate:identity" ]; then
-      grep '^FAIL |' /tmp/ff-netlify-diagnostic.log >> "$report" || true
+      grep -E 'FAIL|Error|ENOENT|missing|CONTEXT|PASSED|FAILED' /tmp/ff-netlify-diagnostic.log | tail -n 20 >> "$report" || true
     fi
     exit 0
   fi
