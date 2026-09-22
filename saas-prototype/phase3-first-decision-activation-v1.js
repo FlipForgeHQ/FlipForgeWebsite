@@ -119,7 +119,7 @@
     }
     dashboard.querySelectorAll("[data-ff-p3-activation],[data-ff-p3-returning]").forEach(node => node.remove());
     if (tracked <= 0) firstUseActivation(dashboard);
-    else returningHome(dashboard, tracked);
+    if (tracked > 0) returningHome(dashboard, tracked);
   }
 
   function evaluateStage(root) {
