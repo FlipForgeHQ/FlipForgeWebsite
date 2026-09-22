@@ -183,6 +183,10 @@
       label.textContent=layer[2];
       title.textContent=layer[3];
       copy.textContent=layer[4];
+      const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+      if(!reduceMotion&&typeof panel.animate==='function'){
+        panel.animate([{opacity:.58,transform:'translateY(5px)'},{opacity:1,transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.8,.2,1)'});
+      }
       emit('decision_receipt_layer_selected',layer[0]);
     };
     tabs.forEach((tab,i)=>{
