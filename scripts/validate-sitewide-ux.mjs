@@ -199,8 +199,11 @@ requireText('dashboard CSS is preloaded before route paint',appIndex,'<link rel=
 requireText('route stability CSS is loaded in customer entry',appIndex,'<link rel="stylesheet" href="customer-route-stability-v1.css">');
 requireText('route stability runtime is loaded last',appIndex,'<script src="customer-route-stability-v1.js"></script>');
 requireText('route stability hides intermediate route DOM',routeStabilityCss,'#main-content[data-ff-route-transitioning="true"] > *');
-requireText('route stability waits for mutation idle',routeStabilityJs,'const IDLE_MS = 96');
-requireText('route stability has bounded fail-safe',routeStabilityJs,'const MAX_HOLD_MS = 700');
+requireText('route stability waits for mutation idle',routeStabilityJs,'const IDLE_MS = 170');
+requireText('route stability has bounded fail-safe',routeStabilityJs,'const MAX_HOLD_MS = 950');
+requireText('route stability samples rendered geometry',routeStabilityJs,'function geometry()');
+requireText('route stability requires consecutive stable frames',routeStabilityJs,'const STABLE_FRAMES = 3');
+requireText('route stability waits for loaded fonts',routeStabilityJs,'document.fonts.status !== "loaded"');
 forbidText('guided mode must not resize main content',guideCompact,'#main-content{padding-right:382px}');
 requireText('readability retained',readability,'single customer-facing typography/readability owner');
 requireText('readability text floor',readability,'--ff-type-xs: .875rem');
