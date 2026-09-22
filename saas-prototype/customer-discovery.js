@@ -21,6 +21,8 @@
   const state = {
     main: null,
     health: null,
+    healthPromise: null,
+    renderSerial: 0,
     data: null,
     loading: false,
     evaluatingIndex: -1,
@@ -295,6 +297,18 @@
       throw makeError("DISCOVER_HEALTH_INVALID", "The gateway health response failed its contract.");
     }
     state.health = data;
+  }
+
+  async function ensureHealth() {
+    if (state.health) return state.health;
+    if (!state.healthPromise) {
+      state.healthPromise = loadHealth()
+        .then(() => state.health)
+        .finally(() => {
+          state.healthPromise = null;
+        });
+    }
+    return state.healthPromise;
   }
 
   async function runDiscover(draft) {
@@ -655,22 +669,34 @@
   }
 
   async function render(main) {
+    const renderSerial = state.renderSerial + 1;
+    state.renderSerial = renderSerial;
     state.main = main;
     state.evaluatingIndex = -1;
     state.error = null;
     state.notice = "";
     if (!eligibleHost()) return false;
+
     if (!state.health) {
       state.loading = true;
       renderCurrent();
+      let healthError = null;
       try {
-        await loadHealth();
+        await ensureHealth();
       } catch (error) {
-        state.error = error;
-      } finally {
-        state.loading = false;
+        healthError = error;
       }
+
+      // applyRoute intentionally does not await adapters. If another route pass
+      // entered render() while health was loading, only the newest pass may own
+      // the final DOM. This prevents a late health completion from replacing a
+      // form the customer has already started using.
+      if (renderSerial !== state.renderSerial || state.main !== main) return false;
+      state.error = healthError;
+      state.loading = false;
     }
+
+    if (renderSerial !== state.renderSerial || state.main !== main) return false;
     renderCurrent();
     return true;
   }
