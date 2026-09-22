@@ -175,7 +175,12 @@
             <div class="ff-p3-evaluate-step" data-p3-step="receipt"><b>04</b><strong>Receipt</strong><small>Keep the reason trail.</small></div>
           </div>
         </div>`;
-      panel.prepend(shell);
+      // Keep the Phase 3 intelligence rail outside the Discover panel's
+      // shared enhancement zone. Several existing customer-polish observers own
+      // descendants of .customer-discovery-search; nesting Phase 3 there lets
+      // independent runtimes rewrite the same nodes and can create cross-observer
+      // oscillation even when Phase 3 itself is idempotent.
+      panel.insertAdjacentElement("beforebegin", shell);
       emit("phase3_evaluate_flow_viewed", "discover");
     }
 
