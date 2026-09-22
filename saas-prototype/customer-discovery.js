@@ -607,6 +607,16 @@
       event.preventDefault();
       if (!state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) search(form);
     });
+    const identityInput = form?.querySelector?.('input[name="exactCardQuery"]');
+    identityInput?.addEventListener("input", () => {
+      const visibleQuery = normalizeIdentityQuery(identityInput.value);
+      if (state.identityAssist.active && visibleQuery !== normalizeIdentityQuery(state.identityAssist.query)) {
+        state.identityAssist.requestSerial += 1;
+        state.identityAssist.query = "";
+        state.identityAssist.results = [];
+        state.identityAssist.message = "";
+      }
+    });
     const findExactButton = state.main?.querySelector?.("[data-discovery-find-exact]");
     findExactButton?.addEventListener("click", () => {
       if (form && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) findExactCard(form);
