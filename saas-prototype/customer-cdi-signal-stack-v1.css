@@ -7,7 +7,7 @@
     radial-gradient(circle at 82% 0%,rgba(212,175,55,.09),transparent 32%),
     linear-gradient(160deg,rgba(14,18,24,.99),rgba(5,7,10,.99));
   box-shadow:0 24px 64px rgba(0,0,0,.30);
-  overflow:hidden;
+  overflow:visible;
 }
 .ff-cdi-verdict{
   display:grid;
