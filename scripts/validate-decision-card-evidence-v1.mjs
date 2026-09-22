@@ -65,6 +65,7 @@ check("024 presentation layer does not assign recommendation authority", !/recom
 check("025 customer-visible text floor is 14px or larger", !/font-size\s*:\s*(?:[0-9]|1[0-3])px/i.test(css));
 check("026 tablet responsiveness exists", css.includes("@media (max-width:1020px)"));
 check("027 phone responsiveness exists", css.includes("@media (max-width:640px)"));
+check("028 receipt open respects reduced-motion preference", js.includes("prefers-reduced-motion: reduce") && js.includes('behavior: reduceMotion ? "auto" : "smooth"'));
 
 console.log(`PASSED: ${passed}`);
 console.log(`FAILED: ${failures.length}`);
