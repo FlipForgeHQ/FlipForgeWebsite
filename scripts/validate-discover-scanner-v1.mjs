@@ -12,7 +12,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 
 check("001 scanner JavaScript exists", js.includes("ffDiscoverScannerV1"));
 check("002 scanner CSS exists", css.includes(".ff-discover-scanner-toolbar"));
-check("003 scanner runs only on Discover", js.includes("function onDiscover()") && js.includes("#/discover"));
+check("003 scanner runs only on Discover", js.includes("function onDiscover()") && js.includes("#\\/discover"));
 check("004 exact provider result cards remain source data", js.includes("customer-discovery-candidate:not(.customer-discovery-candidate-review)"));
 check("005 existing governed evaluation control is reused", js.includes('querySelector("[data-discovery-evaluate]")'));
 check("006 scanner never performs network requests", !/\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/.test(js));
@@ -20,7 +20,7 @@ check("007 scanner never persists browser state", !/localStorage|sessionStorage|
 check("008 scanner does not create decision authority", !/recommendation\s*=|decision\s*=|supportedValue\s*=|calibratedConfidence\s*=/.test(js));
 check("009 default sort preserves server rank", js.includes('sort: "rank"') && js.includes("return a.rank - b.rank"));
 check("010 view filters include ask evidence confidence source state and format", ["maxAsk","evidence","confidence","source","availability","format"].every(token => js.includes(token)));
-check("011 selection is explicit", js.includes("data.ffDiscoverSelect") && js.includes("aria-pressed"));
+check("011 selection is explicit", js.includes("dataset.ffDiscoverSelect") && js.includes("aria-pressed"));
 check("012 scanner does not auto-select first listing", !/records\s*\[\s*0\s*\].*selectRecord|selectRecord\([^,]+,\s*records\s*\[\s*0\s*\]/s.test(js));
 check("013 view-only boundary is explicit", js.includes("Filters and sorting only reorganize listings already returned by FlipForge."));
 check("014 server-owned values are not relabeled as browser decisions", js.includes("Server rank") && js.includes("Server-owned"));
