@@ -183,8 +183,8 @@
     window.addEventListener("hashchange", schedule);
     window.addEventListener("pageshow", schedule);
     window.addEventListener("resize", schedule);
-    window.setTimeout(schedule, 40);
-    window.setTimeout(schedule, 240);
+    // Navigation is canonical at source and then maintained by its observer.
+    // Avoid delayed passes that can visibly shift labels/order after route paint.
     schedule();
   }
 
