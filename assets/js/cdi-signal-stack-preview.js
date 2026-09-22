@@ -7,6 +7,7 @@
   const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
   const signals=[...stage.querySelectorAll("[data-signal]")];
   const stateButtons=[...document.querySelectorAll("[data-preview-state]")];
+  const guideButtons=[...stage.querySelectorAll("[data-guide-signal]")];
   const stackStatus=stage.querySelector("[data-stack-status]");
   signals.forEach((node,index)=>node.style.setProperty("--delay",`${index*170}ms`));
 
@@ -252,6 +253,18 @@
 
   signals.forEach(node=>{
     node.addEventListener("click",()=>renderDetail(node.dataset.signal));
+  });
+
+  guideButtons.forEach(button=>{
+    button.addEventListener("click",()=>{
+      const key=button.dataset.guideSignal;
+      const target=signals.find(node=>node.dataset.signal===key);
+      renderDetail(key);
+      if(target){
+        target.focus({preventScroll:true});
+        target.scrollIntoView({behavior:reduced?"auto":"smooth",block:"center"});
+      }
+    });
   });
 
   stateButtons.forEach(button=>{
