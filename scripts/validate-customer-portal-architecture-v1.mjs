@@ -5,6 +5,8 @@ const js = read("saas-prototype/customer-portal-architecture-v1.js");
 const css = read("saas-prototype/customer-portal-architecture-v1.css");
 const customer = read("saas-prototype/customer.html");
 const beta = read("saas-prototype/index.html");
+const parity = read("saas-prototype/customer-navigation-parity-v1.js");
+const shell = read("saas-prototype/customer-only-shell-v1.js");
 
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
@@ -25,12 +27,17 @@ check("013 full customer shell loads portal architecture CSS", customer.includes
 check("014 full customer shell loads portal architecture JS", customer.includes('customer-portal-architecture-v1.js'));
 check("015 limited beta preview does not load portal architecture", !beta.includes('customer-portal-architecture-v1.css') && !beta.includes('customer-portal-architecture-v1.js'));
 check("016 limited beta preview does not load full scanner", !beta.includes('customer-discover-scanner-v1.css') && !beta.includes('customer-discover-scanner-v1.js'));
+check("017 architecture loads before legacy navigation parity", customer.indexOf('customer-portal-architecture-v1.js') < customer.indexOf('customer-navigation-parity-v1.js'));
+check("018 legacy parity controller yields to portal architecture", parity.includes("if (window.FlipForgeCustomerPortalArchitectureV1) return;"));
+check("019 legacy shell navigation yields to portal architecture", shell.includes("function fullCustomerNavigation(nav)") && shell.includes("if (window.FlipForgeCustomerPortalArchitectureV1) return;"));
+check("020 legacy full-customer topbar yields to portal architecture", shell.includes("if (fullCustomerMode())") && shell.includes("if (window.FlipForgeCustomerPortalArchitectureV1) return;"));
+check("021 architecture mount is idempotent", js.includes("ffPortalContextSignature") && js.includes("signature === \"none\" || existing"));
 
 try {
   new Function(js);
-  check("017 portal architecture JavaScript parses", true);
+  check("022 portal architecture JavaScript parses", true);
 } catch {
-  check("017 portal architecture JavaScript parses", false);
+  check("022 portal architecture JavaScript parses", false);
 }
 
 const failures = checks.filter(row => !row.passed);
