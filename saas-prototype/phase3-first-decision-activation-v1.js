@@ -117,9 +117,16 @@
       primary.setAttribute("href", "#/discover");
       primary.textContent = "Evaluate first card";
     }
-    dashboard.querySelectorAll("[data-ff-p3-activation],[data-ff-p3-returning]").forEach(node => node.remove());
-    if (tracked <= 0) firstUseActivation(dashboard);
-    if (tracked > 0) returningHome(dashboard, tracked);
+    const first = dashboard.querySelector("[data-ff-p3-activation]");
+    const returning = dashboard.querySelector("[data-ff-p3-returning]");
+    if (tracked <= 0) {
+      if (returning) returning.remove();
+      if (!first) firstUseActivation(dashboard);
+    }
+    if (tracked > 0) {
+      if (first) first.remove();
+      if (!returning) returningHome(dashboard, tracked);
+    }
   }
 
   function evaluateStage(root) {
@@ -165,7 +172,7 @@
     const title = shell.querySelector("[data-ff-p3-evaluate-title]");
     const copy = shell.querySelector("[data-ff-p3-evaluate-copy]");
     const stage = evaluateStage(root);
-    intro.dataset.stage = stage;
+    if (intro.dataset.stage !== stage) intro.dataset.stage = stage;
 
     const messages = {
       identity: ["Verify the card first.", "Enter the exact card you are considering. FlipForge will not let uncertain identity silently become trusted price evidence."],
@@ -174,8 +181,8 @@
       handoff: ["Build the decision.", "The selected exact listing is moving through evidence, economics, risk, and the governed decision path."]
     };
     const current = messages[stage] || messages.identity;
-    title.textContent = current[0];
-    copy.textContent = current[1];
+    if (title.textContent !== current[0]) title.textContent = current[0];
+    if (copy.textContent !== current[1]) copy.textContent = current[1];
   }
 
   function decisionFrom(root) {
@@ -299,7 +306,7 @@
     if (!eligible()) return;
     bindEvents();
     const main = document.querySelector(MAIN);
-    if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true, characterData: true });
+    if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
     window.addEventListener("hashchange", () => window.setTimeout(schedule, 40));
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);
