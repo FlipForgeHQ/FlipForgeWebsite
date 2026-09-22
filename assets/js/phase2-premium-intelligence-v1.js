@@ -135,16 +135,71 @@
   }
 
   function buildProductReceipt(){
-    if(!/product\.html$/.test(path))return;
+    if(!/product\\.html$/.test(path))return;
     if(document.querySelector('.ff-phase2-product-receipt'))return;
     const anchor=document.querySelector('#identity-simulator')||document.querySelector('main>.section:nth-last-of-type(1)');
     if(!anchor)return;
+    const layers=[
+      ['identity','01','IDENTITY','Prove the exact card.','Release, set, card number, parallel, grade, and other identity fields must belong to the same card before evidence gets authority.'],
+      ['evidence','02','EVIDENCE','Show what counted — and what did not.','The receipt keeps trusted evidence separate from excluded or unresolved rows so confidence is inspectable instead of implied.'],
+      ['economics','03','ECONOMICS','Preserve the evaluated price context.','The evaluated ask and any supported value remain tied to the governed evidence state that existed when the decision was returned.'],
+      ['risk','04','RISK + UNCERTAINTY','Keep uncertainty visible.','Confidence, risk, thin evidence, identity conflicts, and unresolved conditions stay part of the reason trail rather than disappearing behind the call.'],
+      ['decision','05','DECISION','Keep the governed call beside the reason.','BUY, WATCH, VERIFY, or PASS remains the authoritative decision state; the receipt explains the context without creating a second recommendation.'],
+      ['receipt','06','TRACEBACK','Freeze the reason trail.','The Decision Receipt keeps identity, evidence, economics, uncertainty, decision context, and provenance together for later inspection.'],
+      ['outcome','07','OUTCOME','Compare later without rewriting the past.','T7, T14, and T30 review can be compared with the original receipt while the original decision remains historically intact.']
+    ];
     const section=document.createElement('section');
-    section.className='ff-phase2-product-receipt';
+    section.className='ff-phase2-product-receipt ff-phase3-product-receipt';
     section.setAttribute('aria-labelledby','ff-p2-product-receipt-title');
-    const labels=['Identity','Evidence','Economics','Risk','Decision','Receipt','Outcome'];
-    section.innerHTML='<div class="ff-phase2-product-receipt-head"><div><small>SIGNATURE PRODUCT OBJECT</small><h2 id="ff-p2-product-receipt-title">The Decision Receipt makes the reasoning tangible.</h2><p>FlipForge does not stop at a recommendation. The product preserves the reason trail so the decision can be inspected later.</p></div></div><div class="ff-phase2-product-receipt-shell"><div class="ff-phase2-product-receipt-meta"><strong>DECISION RECEIPT</strong><span>VERIFY</span></div><div class="ff-phase2-product-receipt-steps">'+labels.map((x,i)=>'<span><b>'+String(i+1).padStart(2,'0')+'</b>'+x+'</span>').join('')+'</div><div class="ff-phase2-product-receipt-actions"><a class="btn primary" href="decision-intelligence.html" data-ff-p2-receipt-cta>See Card Decision Intelligence</a><a class="btn" href="/app/#/discover" data-ff-p2-evaluate-cta>Evaluate a Card</a></div></div>';
+    section.innerHTML='<div class="ff-phase2-product-receipt-head"><div><small>PHASE 3 · SIGNATURE PRODUCT OBJECT</small><h2 id="ff-p2-product-receipt-title">The Decision Receipt makes the reasoning tangible.</h2><p>FlipForge preserves the reason trail so a decision can be inspected later — not just remembered after the outcome is known.</p></div><span class="ff-phase3-product-receipt-note">ILLUSTRATIVE ANATOMY · NO LIVE MARKET DATA</span></div>'+
+      '<div class="ff-phase2-product-receipt-shell ff-phase3-product-receipt-shell" data-ff-p3-product-receipt>'+
+        '<div class="ff-phase3-product-receipt-brand"><img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why."><div><span>DECISION RECEIPT</span><strong>VERIFY</strong><small>Example decision state</small></div></div>'+
+        '<div class="ff-phase3-product-receipt-layout">'+
+          '<div class="ff-phase3-product-receipt-tabs" role="tablist" aria-label="Decision Receipt layers">'+layers.map((layer,i)=>'<button type="button" role="tab" id="ff-p3-receipt-tab-'+i+'" aria-controls="ff-p3-receipt-panel" aria-selected="'+(i===0?'true':'false')+'" data-ff-p3-receipt-layer="'+layer[0]+'"><b>'+layer[1]+'</b><span>'+layer[2]+'</span></button>').join('')+'</div>'+
+          '<div class="ff-phase3-product-receipt-reveal" id="ff-p3-receipt-panel" role="tabpanel" aria-live="polite" aria-labelledby="ff-p3-receipt-tab-0" data-ff-p3-receipt-panel>'+
+            '<span data-ff-p3-receipt-number></span><small data-ff-p3-receipt-label></small><h3 data-ff-p3-receipt-title></h3><p data-ff-p3-receipt-copy></p>'+
+            '<div class="ff-phase3-product-receipt-stamp"><span>CARD DECISION INTELLIGENCE™</span><strong>Before you buy. Know Why.</strong></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="ff-phase3-product-receipt-support"><article><span>WHAT IT PRESERVES</span><p>Identity, governed evidence, economics, uncertainty, decision state, provenance, and the observation context stay together.</p></article><article><span>WHAT IT DOES NOT DO</span><p>It does not authorize a purchase, guarantee an outcome, invent evidence, or rewrite the original call after later events.</p></article></div>'+
+        '<div class="ff-phase2-product-receipt-actions"><a class="btn primary" href="decision-intelligence.html" data-ff-p2-receipt-cta>See Card Decision Intelligence</a><a class="btn" href="/app/#/discover" data-ff-p2-evaluate-cta>Evaluate a Card</a></div>'+
+      '</div>';
     anchor.before(section);
+    const tabs=[...section.querySelectorAll('[data-ff-p3-receipt-layer]')];
+    const panel=section.querySelector('[data-ff-p3-receipt-panel]');
+    const number=section.querySelector('[data-ff-p3-receipt-number]');
+    const label=section.querySelector('[data-ff-p3-receipt-label]');
+    const title=section.querySelector('[data-ff-p3-receipt-title]');
+    const copy=section.querySelector('[data-ff-p3-receipt-copy]');
+    const select=i=>{
+      const layer=layers[i];
+      tabs.forEach((tab,j)=>{
+        tab.setAttribute('aria-selected',j===i?'true':'false');
+        tab.setAttribute('tabindex',j===i?'0':'-1');
+      });
+      panel.setAttribute('aria-labelledby','ff-p3-receipt-tab-'+i);
+      panel.setAttribute('data-layer',layer[0]);
+      number.textContent=layer[1];
+      label.textContent=layer[2];
+      title.textContent=layer[3];
+      copy.textContent=layer[4];
+      emit('decision_receipt_layer_selected',layer[0]);
+    };
+    tabs.forEach((tab,i)=>{
+      tab.addEventListener('click',()=>select(i));
+      tab.addEventListener('keydown',event=>{
+        if(!['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End'].includes(event.key))return;
+        event.preventDefault();
+        let next=i;
+        if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(i+1)%tabs.length;
+        if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(i-1+tabs.length)%tabs.length;
+        if(event.key==='Home')next=0;
+        if(event.key==='End')next=tabs.length-1;
+        tabs[next].focus();
+        select(next);
+      });
+    });
+    select(0);
     section.querySelector('[data-ff-p2-receipt-cta]')?.addEventListener('click',()=>emit('decision_receipt_cta_clicked','product_receipt'));
     section.querySelector('[data-ff-p2-evaluate-cta]')?.addEventListener('click',()=>emit('evaluate_cta_clicked','product_receipt'));
   }
