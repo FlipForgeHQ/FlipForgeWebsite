@@ -14,6 +14,9 @@ check("preview is explicitly frozen and non-live", html.includes("Frozen sample 
 check("authoritative decision is visible before animation", html.includes('data-decision>VERIFY</strong>'));
 check("all four governed decision states are previewable", ["BUY","WATCH","VERIFY","PASS"].every(value => js.includes(`${value}:{`) || js.includes(`${value}: {`) || html.includes(`data-preview-state="${value}"`)));
 check("signal stack has four customer-facing layers", ["identity","evidence","economics","uncertainty"].every(value => html.includes(`data-signal="${value}"`)));
+check("first-time users receive a plain-language four-step guide", ["Confirm the exact card","Check trustworthy sales","Compare the price","Measure uncertainty"].every(value => html.includes(value)));
+check("beginner guide explains that FlipForge performs the checks", html.includes("You do not need to calculate anything or know our terminology."));
+check("beginner guide controls connect to the matching reason signal", html.includes("data-guide-signal=\"identity\"") && js.includes("guideButtons") && js.includes("renderDetail(key)") && js.includes("scrollIntoView"));
 check("Forge Heat is explicitly secondary", html.includes("Opportunity priority · not recommendation authority") && html.includes("Forge Heat ranks eligible saved opportunities"));
 check("Smart Opportunity authority is explicit", html.includes("Smart Opportunity remains the sole BUY / WATCH / VERIFY / PASS authority"));
 check("browser preview makes no network calls", !/\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket/i.test(js));
