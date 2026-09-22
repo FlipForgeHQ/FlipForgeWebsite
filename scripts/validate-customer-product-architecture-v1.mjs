@@ -9,7 +9,7 @@ const beta = read("saas-prototype/index.html");
 const checks = [];
 const check = (name, value) => checks.push({ name, passed: Boolean(value) });
 
-check("001 architecture is full-customer only", js.includes("FULL_CUSTOMER_PATH") && js.includes("/app/customer"));
+check("001 architecture is full-customer only", js.includes("const FULL_CUSTOMER_PATH") && js.includes("FULL_CUSTOMER_PATH.test(String(window.location.pathname") && js.includes('params.get("ffArchitecture") !== "1"'));
 check("002 architecture requires explicit preview feature flag", js.includes('params.get("ffArchitecture") !== "1"'));
 check("003 primary portal has five routes", ["dashboard","discover","opportunities","tracking","portfolio"].every(route => js.includes(`["${route}"`)));
 check("004 saved opportunities are relabeled Decisions", js.includes('["opportunities", "Decisions"]'));
