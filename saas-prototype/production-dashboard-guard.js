@@ -100,7 +100,10 @@
     const host = String(window.location.hostname || "");
     const path = String(window.location.pathname || "");
     const route = String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard";
-    return PRODUCTION_HOST.test(host) && APP_PATH.test(path) && route === "dashboard";
+    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
+      && APP_PATH.test(path)
+      && fullCustomerEntry()
+      && route === "dashboard";
   }
 
   function rendererFailureMarkup() {
