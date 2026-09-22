@@ -57,6 +57,12 @@
           <label>Status<select data-operator-filter><option value="ALL">All statuses</option><option>SUBMITTED</option><option>UNDER_REVIEW</option><option>WAITLISTED</option><option>APPROVED</option><option>INVITE_SENT</option><option>ACTIVATED</option><option>DECLINED</option><option>REMOVED</option></select></label>
         </div>
       </header>
+      <div class="ff-directory-guide" aria-label="Tester access path guide">
+        <div><span>New invitation</span><strong>FlipForge sent a fresh Identity invitation.</strong></div>
+        <div><span>Existing invitation</span><strong>A prior Identity invitation was reused.</strong></div>
+        <div><span>Existing account</span><strong>The email already had a confirmed Identity account; beta access was assigned without a new invite email.</strong></div>
+        <p><strong>Removed archive:</strong> onboarding access is revoked when applicable, but the operator audit record and saved decision history are not silently deleted.</p>
+      </div>
       <div class="ff-directory-summary" data-directory-summary aria-live="polite"></div>
       <div class="ff-tester-directory" data-application-list aria-live="polite"></div>
       <aside class="ff-application-detail ff-directory-detail" data-application-detail><div class="ff-operator-empty"><strong>Select a tester</strong><p>Profile, access path, review controls, dates, and immutable state history will appear here.</p></div></aside>
