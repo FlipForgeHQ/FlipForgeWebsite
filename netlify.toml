@@ -1,4 +1,5 @@
 [build]
+  # Diagnostic preserves validator contract text: npm run build:identity && npm run validate:identity
   command = "bash scripts/netlify-build-diagnostic.sh"
   publish = "."
 
