@@ -28,7 +28,7 @@ check("015 responsive table layout exists", css.includes("@media (max-width: 980
 check("016 reduced motion is respected", css.includes("prefers-reduced-motion"));
 check("017 customer shell loads scanner stylesheet", customer.includes('href="customer-discover-scanner-v1.css"'));
 check("018 customer shell loads scanner runtime", customer.includes('src="customer-discover-scanner-v1.js"'));
-check("019 legacy app shell loads scanner for parity", legacy.includes('href="customer-discover-scanner-v1.css"') && legacy.includes('src="customer-discover-scanner-v1.js"'));
+check("019 limited beta preview does not inherit full customer scanner", !legacy.includes('customer-discover-scanner-v1.css') && !legacy.includes('customer-discover-scanner-v1.js'));
 check("020 scanner loads after core Discover runtime", customer.indexOf('src="customer-discovery.js"') < customer.indexOf('src="customer-discover-scanner-v1.js"'));
 check("021 scanner validator is part of customer Discover validation", String(pkg.scripts["validate:customer-discovery"] || "").includes("validate-discover-scanner-v1.mjs"));
 
