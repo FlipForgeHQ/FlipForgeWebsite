@@ -64,6 +64,10 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["039c onboarding collapses secondary capability detail", beta.includes('class="private-beta-v2-details"') && beta.includes("What is available now") && beta.includes("Known beta limits")],
   ["039d onboarding presents four ordered first-decision stages", ["FIND", "EVALUATE", "UNDERSTAND", "REPORT"].every(value => beta.includes(`<span>${value}</span>`))],
   ["039e onboarding keeps feedback after the first-decision journey", beta.indexOf("private-beta-v2-feedback") > beta.indexOf("private-beta-v2-walkthrough")],
+  ["039f onboarding visualizes one persistent structured decision record", beta.includes("data-private-beta-record-system") && beta.includes("One evaluation becomes a structured decision record.")],
+  ["039g record system exposes identity evidence receipt and outcome history", ["IDENTITY RECORD", "EVIDENCE RECORD", "DECISION RECEIPT", "OUTCOME HISTORY"].every(value => beta.includes(value))],
+  ["039h record system keeps server and browser authority boundary explicit", beta.includes("server-backed SQLite") && beta.includes("browser does not become the authority")],
+  ["039i record system is visibly database-like and responsive", css.includes(".private-beta-record-stack") && css.includes(".private-beta-record-map") && css.includes("@media(max-width:700px)"))],
   ["040 feedback is restricted to active invited testers", beta.includes("!session.authenticated || !session.membershipActive")],
   ["041 feedback summary is required and bounded", beta.includes('maxlength="2000"') && beta.includes("summary.length > 2000")],
   ["042 expected feedback is bounded", beta.includes('maxlength="1200"')],
@@ -159,6 +163,7 @@ check("069 Beta Guide banner replaces prototype wording", betaRoute.bannerTitle.
 check("070 rendered guide contains no invited account email", !betaRoute.main.innerHTML.includes("tester@example.com"));
 check("071 rendered guide offers provider-backed Discover", betaRoute.main.innerHTML.includes("Start with Discover") && betaRoute.main.innerHTML.includes("Search one exact card"));
 check("072 rendered guide discloses connected-source scope", betaRoute.main.innerHTML.includes("Connected-source scope"));
+check("072a rendered guide shows persistent decision record system", betaRoute.main.innerHTML.includes("STRUCTURED DECISION RECORD") && betaRoute.main.innerHTML.includes("Decision Receipt") && betaRoute.main.innerHTML.includes("Day 7 / 14 / 30"));
 
 const productionBetaRoute = runtime({ hash: "#/beta-start", authenticated: true, membershipActive: true, healthStatus: "configured", bridgeEnabled: true, hostname: "goflipforge.com" });
 await new Promise(resolve => setTimeout(resolve, 20));
