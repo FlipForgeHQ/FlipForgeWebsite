@@ -8,6 +8,7 @@
   const OWNED_SELECTOR = "[data-flipforge-phase3-owned]";
   const ENHANCED_ATTRIBUTE = "data-flipforge-phase3-enhanced";
   const emitted = new Set();
+  const diagnostics = { observerCallbacks: 0, relevantObserverCallbacks: 0, applyRuns: 0 };
   let scheduled = false;
   let observer = null;
   let observedMain = null;
@@ -321,6 +322,7 @@
 
   function applyWithoutSelfObservation() {
     if (!eligible()) return;
+    diagnostics.applyRuns += 1;
     if (observer) observer.disconnect();
     try {
       enhanceDashboard();
@@ -342,7 +344,9 @@
   }
 
   function onObservedMutations(records) {
+    diagnostics.observerCallbacks += 1;
     if (!Array.isArray(records) || !records.some(mutationMatters)) return;
+    diagnostics.relevantObserverCallbacks += 1;
     schedule();
   }
 
@@ -364,7 +368,8 @@
     refresh: schedule,
     markerAttribute: ENHANCED_ATTRIBUTE,
     ownedSelector: OWNED_SELECTOR,
-    observedRoot: () => observedMain
+    observedRoot: () => observedMain,
+    diagnostics: () => Object.freeze({ ...diagnostics })
   });
   init();
 })();
