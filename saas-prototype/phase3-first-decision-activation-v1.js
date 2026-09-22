@@ -112,6 +112,11 @@
     if (!dashboard) return;
     const tracked = trackedCount(dashboard);
     if (tracked === null) return;
+    const primary = dashboard.querySelector(".ff-dashboard-head-actions .button-primary");
+    if (primary && tracked <= 0) {
+      primary.setAttribute("href", "#/discover");
+      primary.textContent = "Evaluate first card";
+    }
     dashboard.querySelectorAll("[data-ff-p3-activation],[data-ff-p3-returning]").forEach(node => node.remove());
     if (tracked <= 0) firstUseActivation(dashboard);
     else returningHome(dashboard, tracked);
