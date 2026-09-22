@@ -69,6 +69,11 @@ check("037 first-result education visual exists", css.includes(".ff-p3-result-gu
 check("038 mobile responsiveness exists", css.includes("@media(max-width:680px)"));
 check("039 reduced motion fallback exists", css.includes("@media(prefers-reduced-motion:reduce)"));
 check("040 customer text stays at readable sizes", !/font-size\s*:\s*(?:[0-9]|1[0-3])px/i.test(css));
+check("041 Phase 3 uses dedicated owned-node markers", js.includes("data-flipforge-phase3-owned") && js.includes("OWNED_SELECTOR"));
+check("042 enhanced surfaces use a stable dedicated marker", js.includes("data-flipforge-phase3-enhanced") && js.includes("ENHANCED_ATTRIBUTE"));
+check("043 observer callback filters irrelevant or self-owned mutations", js.includes("function mutationMatters(record)") && js.includes("nodeIsPhase3Owned(record.target)") && js.includes("records.some(mutationMatters)"));
+check("044 Phase 3 disconnects observer around its own synchronous DOM writes", js.includes("observer.disconnect()") && js.includes("applyWithoutSelfObservation") && js.includes("observeMain()"));
+check("045 observer no longer unconditionally schedules every mutation", !js.includes("new MutationObserver(schedule)") && js.includes("new MutationObserver(onObservedMutations)"));
 
 console.log("PASSED: " + passed);
 console.log("FAILED: " + failures.length);
