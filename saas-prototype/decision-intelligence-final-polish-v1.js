@@ -33,13 +33,13 @@
     if (!document.querySelector('link[data-ff-decision-card-evidence]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "decision-card-evidence-v1.css";
+      link.href = "decision-card-evidence-v1.css?v=20260922-signal-1";
       link.dataset.ffDecisionCardEvidence = "style";
       document.head.appendChild(link);
     }
     if (!window.FlipForgeDecisionCardEvidenceV1 && !document.querySelector('script[data-ff-decision-card-evidence]')) {
       const script = document.createElement("script");
-      script.src = "decision-card-evidence-v1.js";
+      script.src = "decision-card-evidence-v1.js?v=20260922-signal-1";
       script.dataset.ffDecisionCardEvidence = "runtime";
       document.body.appendChild(script);
     }
