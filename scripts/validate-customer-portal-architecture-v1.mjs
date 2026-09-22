@@ -12,7 +12,7 @@ const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
 check("001 portal architecture runtime exists", js.includes("FlipForgeCustomerPortalArchitectureV1"));
-check("002 runtime is full-customer path gated", js.includes("FULL_CUSTOMER_PATH") && js.includes("/app/customer"));
+check("002 runtime is full-customer path gated", js.includes("FULL_CUSTOMER_PATH") && js.includes("FULL_CUSTOMER_PATH.test") && js.includes("app\\/customer"));
 check("003 primary architecture is five destinations", ["dashboard","discover","opportunities","tracking","portfolio"].every(value => js.includes(value)) && js.includes('"Decisions"') && js.includes('"Monitor"'));
 check("004 Discover contextual tools are preserved", ["Manual Evaluate","Forge Heat","Market View"].every(value => js.includes(value)));
 check("005 saved decision workspace exists", js.includes("DECISION WORKSPACE"));
