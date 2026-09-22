@@ -4,7 +4,7 @@ Status: required pre-merge customer-app assurance
 
 ## Principle
 
-A customer-facing capability is not ready merely because it renders. Every customer route and every critical state must provide a usable next action, preserve Card Decision Intelligence authority boundaries, and fail closed without becoming a dead end.
+A customer-facing capability is not considered ready merely because it renders. Every customer route and every critical state must provide a usable next action, preserve Card Decision Intelligence authority boundaries, and fail closed without becoming a dead end.
 
 FlipForge deliberately separates two customer-facing product surfaces:
 
