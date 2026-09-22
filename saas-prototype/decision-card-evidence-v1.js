@@ -330,7 +330,7 @@
     let panel = model.root.querySelector("[data-ff-decision-card-evidence]");
     if (!panel) {
       panel = document.createElement("section");
-      panel.className = "ff-decision-card-evidence ff-dce-signal-experience";
+      panel.className = "ff-decision-card-evidence ff-dce-signal-experience ff-dce-passport-motion";
       panel.dataset.ffDecisionCardEvidence = "v2";
       model.anchor.insertAdjacentElement("afterend", panel);
     }
