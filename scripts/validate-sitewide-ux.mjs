@@ -19,6 +19,7 @@ const dealRefinement=read('assets/css/homepage-deal-refinement-v2.css');
 const dealProcess=read('assets/css/homepage-deal-live-process-v3.css');
 const dealJs=read('assets/js/homepage-deal-or-decoy-v1.js');
 const awardJs=read('assets/js/award-winning-v1.js');
+const siteJs=read('assets/js/site.js');
 const appIndex=read('saas-prototype/index.html');
 const appLayout=read('saas-prototype/customer-layout-system-v2.css');
 const guideCompact=read('saas-prototype/guided-mode-compact-v1.css');
@@ -151,6 +152,13 @@ requireText('beta notice grouping',awardJs,"grid.className='ff-beta-notice-grid'
 requireText('beta server form',beta,'action="/api/beta/applications"');
 requireText('beta step one',awardJs,'steps.slice(1)');
 requireText('beta step transition',awardJs,'setStep(1)');
+requireText('homepage returning tester sign in',homepage,'href="/production-auth.html" data-ff-marketing-sign-in>Sign In</a>');
+requireText('beta application returning tester sign in',beta,'data-ff-returning-beta-sign-in');
+requireText('beta application avoids duplicate applications',beta,'do not submit another application');
+requireText('shared marketing sign in uses production auth',siteJs,"link.href='/production-auth.html'");
+requireText('shared marketing sign in covers desktop navigation',siteJs,"document.querySelectorAll('.desktop-nav')");
+requireText('shared marketing sign in covers mobile navigation',siteJs,"document.querySelectorAll('.mobile-nav')");
+requireText('shared marketing sign in avoids duplicates',siteJs,"if(nav.querySelector('[data-ff-marketing-sign-in]'))return");
 
 for(const [label,text] of [['homepage',homepage],['product',product],['Evidence Lab',evidence],['Launch Plans',plans],['About',about],['Beta',beta]]){
   requireText(`${label} brand`,text,'FlipForge');
