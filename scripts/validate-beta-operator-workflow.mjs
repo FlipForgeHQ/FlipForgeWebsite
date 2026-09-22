@@ -82,6 +82,12 @@ const checks = [
   ["invitation uses server operator token", operatorSource.includes("getIdentityConfig") && operatorSource.includes("Bearer ${identity.token}")],
   ["invitation assigns one tenant role", operatorSource.includes("filter(role => !role.startsWith(TENANT_ROLE_PREFIX))") && coreSource.includes('ACTIVE_ROLE = "flipforge-active"')],
   ["activation sync is Identity-backed", operatorSource.includes("syncActivations") && operatorSource.includes("confirmedAt")],
+  ["activation path distinguishes new invitation from existing account", ["NEW_INVITATION", "EXISTING_INVITATION", "EXISTING_ACCOUNT"].every(value => operatorSource.includes(value)) && operatorClient.includes("activationPathLabel")],
+  ["operator onboarding directory is database-style and searchable", operatorHtml.includes("Tester directory") && operatorHtml.includes("data-operator-view") && operatorHtml.includes("Name, email, group, or focus") && operatorClient.includes("ff-directory-table")],
+  ["operator directory exposes active removed and all views", operatorHtml.includes('value="ACTIVE"') && operatorHtml.includes('value="REMOVED"') && operatorHtml.includes('value="ALL"') && operatorClient.includes('state.view==="REMOVED"')],
+  ["operator removal is explicit and audited", operatorClient.includes("data-remove-onboarding") && operatorSource.includes('action === "remove"') && operatorSource.includes("ONBOARDING_REMOVED") && coreSource.includes('"REMOVED"')],
+  ["operator removal revokes matching beta membership before archive", operatorSource.includes("revokeBetaMembership(reserved") && operatorSource.indexOf("revokeBetaMembership(reserved") < operatorSource.indexOf("finalizeRemoval(reserved") && operatorSource.includes("IDENTITY_MEMBERSHIP_MISMATCH")],
+  ["operator removal releases only the matching hashed email claim", operatorSource.includes("releaseApplicationEmailClaim") && operatorSource.includes("emailIndexKey(email)") && operatorSource.includes("entry?.data?.applicationId")],
   ["review state machine is explicit", ["SUBMITTED", "UNDER_REVIEW", "WAITLISTED", "APPROVED", "INVITE_SENT", "ACTIVATED", "DECLINED"].every(value => coreSource.includes(value))],
   ["feedback state machine is explicit", ["NEW", "UNDER_REVIEW", "RESOLVED"].every(value => coreSource.includes(value))],
   ["feedback summary denies accuracy meaning", coreSource.includes("TESTER_REPORTED_CHECKPOINTS_NOT_ACCURACY") && operatorHtml.includes("not product accuracy")],
@@ -251,9 +257,31 @@ assert.equal(identityUpdates[0].app_metadata.roles.filter(role => role.startsWit
 identityUsers[0].confirmedAt = "2026-08-23T03:05:00.000Z";
 response = await operator(operatorRequest());
 dashboard = await response.json();
-assert.equal(dashboard.applications[0].status, "ACTIVATED");
+application = dashboard.applications[0];
+assert.equal(application.status, "ACTIVATED");
+assert.equal(application.activationPath, "NEW_INVITATION");
+
+response = await operator(operatorRequest({ action: "remove", applicationId: application.id, expectedVersion: application.version }));
+assert.equal(response.status, 200);
+application = (await response.json()).application;
+assert.equal(application.status, "REMOVED");
+assert.equal(application.removalPreviousStatus, "ACTIVATED");
+assert.ok(application.removedAt);
+assert.ok(!identityUsers[0].roles.includes("flipforge-active"));
+assert.equal(identityUsers[0].roles.filter(role => role.startsWith("flipforge-tenant--")).length, 0);
+assert.ok(!identityUsers[0].appMetadata.flipforge);
+
+response = await operator(operatorRequest());
+dashboard = await response.json();
+assert.equal(dashboard.applicationSummary.total, 0);
+assert.equal(dashboard.applicationSummary.removed, 1);
+assert.equal(dashboard.applications.filter(item => item.status === "REMOVED").length, 1);
+
+assert.equal((await intake(appRequest(validApplication))).status, 202);
+assert.equal((await applicationStore.list({ prefix: "application/" })).blobs.length, 2);
+
 console.log = originalLog;
 assert.ok(operationLogs.every(line => !line.includes("tester@example.com") && !line.includes("Test Applicant") && !line.includes("never-log@example.com") && !line.includes("feedback@example.com") && !line.includes("original VERIFY")));
 
 if (failed) process.exit(1);
-console.log(`Beta operator workflow validation passed: ${checks.length + 42} checks.`);
+console.log(`Beta operator workflow validation passed: ${checks.length + 53} checks.`);

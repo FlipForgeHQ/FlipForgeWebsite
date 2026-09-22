@@ -36,6 +36,7 @@ If the role is added while the owner is signed in, sign out and back in so Netli
 | `INVITE_SENT` | Netlify Identity invitation sent and signed tenant membership assigned. |
 | `ACTIVATED` | Identity reports confirmation or sign-in for the invited account. |
 | `DECLINED` | Not selected for the current private beta. |
+| `REMOVED` | Removed from active onboarding. Matching beta membership is revoked when present; the operator audit record remains archived. |
 
 State transitions are server-enforced and atomically version-checked against the stored record. Conflicting browser sessions fail with `VERSION_CONFLICT` instead of overwriting a newer decision. Invitation processing first reserves that application version so review actions cannot race the Identity side effect. Every transition appends a timestamped history entry; records are not silently rewritten or deleted by the operator workspace.
 
@@ -51,8 +52,23 @@ The Send Identity Invitation action is intentionally separate from approval.
 6. The existing invitation callback asks the tester to choose a password of at least 15 characters and explicitly accept the Private Beta Terms.
 7. After the Terms receipt is recorded, the tester is sent to `/app/customer/#/beta-start` inside the full customer application.
 8. Invitation, Terms-recording, or role-assignment failures fail closed. The applicant is not reported as activated.
+9. The operator record stores the real access path as `NEW_INVITATION`, `EXISTING_INVITATION`, or `EXISTING_ACCOUNT` so an already-confirmed Identity account is not misrepresented as a newly invited tester.
 
 The invitation grants no billing, bid, purchase, sale, grading, evidence-acceptance, or transaction authority.
+
+## Tester directory and removal
+
+The operator workspace includes a searchable tester directory with active, removed, and all-record views. Each row exposes name, email, status, beta group, access path, submitted/invited/activated timestamps, and last update time. Selecting a row opens the complete application profile and immutable state history.
+
+**Remove from onboarding** is an operator-only action. It is not a destructive account-history delete:
+
+1. the application mutation is same-origin, operator-role gated, and version checked;
+2. if the application owns an Identity beta membership, FlipForge removes that tenant role and beta-active access before completing removal;
+3. the application moves to `REMOVED` and remains available in the removed archive for audit history;
+4. the hashed application email claim is released only when it still points to that exact application, allowing a deliberate fresh application later;
+5. saved decisions, evaluation history, and other tenant data are not deleted by this onboarding action.
+
+If the Identity membership no longer matches the application, removal fails closed rather than revoking unrelated access.
 
 ## Funnel reporting
 
@@ -98,3 +114,5 @@ The operator may move a feedback record through `NEW → UNDER_REVIEW → RESOLV
 8. Confirm the tester begins at `/app/customer/#/beta-start` and remains inside the same customer application throughout onboarding.
 9. Review the Decision Intelligence scorecard for comprehension signals from active testers; do not interpret those counts as accuracy.
 10. Use the in-product Private Beta Guide for the first exact-card loop and 7 / 14 / 30-day evidence review.
+11. Use the **Tester directory** for search, status/group lookup, activation-path verification, and archive review.
+12. Use **Remove from onboarding** only when you intend to revoke that tester's beta membership and archive the onboarding record.

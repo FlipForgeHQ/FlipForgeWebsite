@@ -60,6 +60,10 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["038b Discover search persistence is denied", beta.includes("searches are not saved")],
   ["039 tester walkthrough covers full customer loop", ["Search one exact card", "Submit one listing to Smart Opportunity", "Open Card Intelligence", "Challenge the Decision Traceback", "Compare two saved decisions", "Create a Decision Dossier", "Send focused feedback"].every(value => beta.includes(value))],
   ["039a feedback shortcut preserves the SPA route", beta.includes("data-private-beta-feedback-link") && beta.includes('querySelector("#beta-feedback")?.scrollIntoView') && !beta.includes('href="#beta-feedback"')],
+  ["039b onboarding has a single first-session mission", beta.includes("Evaluate one card from start to finish.") && beta.includes("Do not try to learn every FlipForge feature today.")],
+  ["039c onboarding collapses secondary capability detail", beta.includes('class="private-beta-v2-details"') && beta.includes("What is available now") && beta.includes("Known beta limits")],
+  ["039d onboarding presents four ordered first-decision stages", ["FIND", "EVALUATE", "UNDERSTAND", "REPORT"].every(value => beta.includes(`<span>${value}</span>`))],
+  ["039e onboarding keeps feedback after the first-decision journey", beta.indexOf("private-beta-v2-feedback") > beta.indexOf("private-beta-v2-walkthrough")],
   ["040 feedback is restricted to active invited testers", beta.includes("!session.authenticated || !session.membershipActive")],
   ["041 feedback summary is required and bounded", beta.includes('maxlength="2000"') && beta.includes("summary.length > 2000")],
   ["042 expected feedback is bounded", beta.includes('maxlength="1200"')],
@@ -150,7 +154,7 @@ const betaRoute = runtime({ hash: "#/beta-start", authenticated: true, membershi
 await new Promise(resolve => setTimeout(resolve, 20));
 check("066 Beta Guide renders for eligible preview", betaRoute.main.innerHTML.includes("Private Beta Guide") && betaRoute.main.innerHTML.includes("Tester walkthrough"));
 check("067 active session renders active tester state", betaRoute.main.innerHTML.includes("Active tester"));
-check("068 configured health renders available API", betaRoute.main.innerHTML.includes("Customer API") && betaRoute.main.innerHTML.includes("Available"));
+check("068 configured health renders available evaluation system", betaRoute.main.innerHTML.includes("Evaluation system") && betaRoute.main.innerHTML.includes("Available"));
 check("069 Beta Guide banner replaces prototype wording", betaRoute.bannerTitle.textContent === "PRIVATE BETA GUIDE" && betaRoute.bannerCopy.textContent.includes("Invitation only"));
 check("070 rendered guide contains no invited account email", !betaRoute.main.innerHTML.includes("tester@example.com"));
 check("071 rendered guide offers provider-backed Discover", betaRoute.main.innerHTML.includes("Start with Discover") && betaRoute.main.innerHTML.includes("Search one exact card"));
