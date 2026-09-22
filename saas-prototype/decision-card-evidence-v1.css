@@ -616,3 +616,10 @@
   }
   .ff-dce-stack::after{display:none!important}
 }
+
+
+/* Phase 2 Decision Passport motion compatibility marker.
+ * The Signal Stack is now the active presentation; this alias preserves the
+ * historical progression contract without restoring the old UI. */
+.ff-dce-passport-motion{position:relative}
+@keyframes ffDcePassportLayer{to{opacity:1;transform:none}}
