@@ -5,8 +5,12 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const MAIN = "#main-content";
+  const OWNED_SELECTOR = "[data-flipforge-phase3-owned]";
+  const ENHANCED_ATTRIBUTE = "data-flipforge-phase3-enhanced";
   const emitted = new Set();
   let scheduled = false;
+  let observer = null;
+  let observedMain = null;
 
   function eligible() {
     const host = String(window.location.hostname || "");
@@ -61,6 +65,7 @@
     const section = document.createElement("section");
     section.className = "ff-p3-activation ff-p3-enter";
     section.dataset.ffP3Activation = "";
+    section.dataset.flipforgePhase3Owned = "first-use";
     section.innerHTML = `
       <div class="ff-p3-activation-grid">
         <div>
@@ -79,6 +84,7 @@
         </div>
       </div>`;
     head.insertAdjacentElement("afterend", section);
+    root.setAttribute(ENHANCED_ATTRIBUTE, "dashboard:first-use");
     emit("phase3_first_use_shown", "dashboard_zero_saved");
   }
 
@@ -89,6 +95,7 @@
     const section = document.createElement("section");
     section.className = "ff-p3-returning ff-p3-enter";
     section.dataset.ffP3Returning = "";
+    section.dataset.flipforgePhase3Owned = "returning-home";
     section.innerHTML = `
       <div class="ff-p3-returning-head">
         <div><span class="ff-p3-kicker">CONTINUE YOUR INTELLIGENCE</span><h2>Your decisions are now the starting point.</h2></div>
@@ -101,6 +108,7 @@
         <a class="ff-p3-returning-card" href="#/portfolio" data-ff-p3-return="portfolio"><span>04</span><strong>Portfolio</strong><small>See your saved cards in a broader decision context.</small></a>
       </div>`;
     head.insertAdjacentElement("afterend", section);
+    root.setAttribute(ENHANCED_ATTRIBUTE, "dashboard:returning");
     emit("phase3_returning_home_shown", "dashboard_saved");
   }
 
@@ -113,7 +121,7 @@
     const tracked = trackedCount(dashboard);
     if (tracked === null) return;
     const primary = dashboard.querySelector(".ff-dashboard-head-actions .button-primary");
-    if (primary && tracked <= 0) {
+    if (primary && tracked <= 0 && (primary.getAttribute("href") !== "#/discover" || primary.textContent !== "Evaluate first card")) {
       primary.setAttribute("href", "#/discover");
       primary.textContent = "Evaluate first card";
     }
@@ -144,12 +152,14 @@
     const panel = form?.closest(".customer-discovery-search");
     if (!root || !form || !panel) return;
 
-    panel.classList.add("ff-p3-evaluate-card");
+    if (!panel.classList.contains("ff-p3-evaluate-card")) panel.classList.add("ff-p3-evaluate-card");
+    panel.setAttribute(ENHANCED_ATTRIBUTE, "evaluate");
     let shell = root.querySelector("[data-ff-p3-evaluate-shell]");
     if (!shell) {
       shell = document.createElement("section");
       shell.className = "ff-p3-evaluate-shell ff-p3-enter";
       shell.dataset.ffP3EvaluateShell = "";
+      shell.dataset.flipforgePhase3Owned = "evaluate-shell";
       shell.innerHTML = `
         <div class="ff-p3-evaluate-intro" data-ff-p3-evaluate-intro data-stage="identity">
           <div class="ff-p3-evaluate-copy">
@@ -214,6 +224,7 @@
     const guide = document.createElement("section");
     guide.className = "ff-p3-result-guide ff-p3-enter";
     guide.dataset.ffP3ResultGuide = "";
+    guide.dataset.flipforgePhase3Owned = "result-guide";
     guide.dataset.decision = decision;
     guide.innerHTML = `
       <div class="ff-p3-result-guide-head">
@@ -237,7 +248,9 @@
         <button class="button button-secondary" type="button" data-ff-p3-open-receipt>Open Decision Receipt</button>
         <a class="button button-secondary" href="#/discover" data-ff-p3-another-card>Evaluate another card</a>
       </div>`;
-    (summary || hero).insertAdjacentElement("afterend", guide);
+    const anchor = summary || hero;
+    anchor.insertAdjacentElement("afterend", guide);
+    anchor.setAttribute(ENHANCED_ATTRIBUTE, "result");
     emit("phase3_first_result_education_viewed", decision.toLowerCase());
     emit("phase3_evaluation_completed", "saved_decision_detail");
   }
@@ -285,12 +298,38 @@
     }, true);
   }
 
-  function apply() {
+  function nodeIsPhase3Owned(node) {
+    const element = node instanceof Element ? node : node?.parentElement;
+    return Boolean(element?.closest?.(OWNED_SELECTOR));
+  }
+
+  function mutationMatters(record) {
+    if (!record) return false;
+    if (nodeIsPhase3Owned(record.target)) return false;
+    if (record.type !== "childList") return true;
+    const changed = [...record.addedNodes, ...record.removedNodes];
+    if (!changed.length) return false;
+    return changed.some(node => !nodeIsPhase3Owned(node));
+  }
+
+  function observeMain() {
+    const main = document.querySelector(MAIN);
+    if (!main || !observer) return;
+    observedMain = main;
+    observer.observe(main, { childList: true, subtree: true });
+  }
+
+  function applyWithoutSelfObservation() {
     if (!eligible()) return;
-    enhanceDashboard();
-    enhanceEvaluate();
-    enhanceResult();
-    syncReceiptButton();
+    if (observer) observer.disconnect();
+    try {
+      enhanceDashboard();
+      enhanceEvaluate();
+      enhanceResult();
+      syncReceiptButton();
+    } finally {
+      if (observer) observeMain();
+    }
   }
 
   function schedule() {
@@ -298,15 +337,20 @@
     scheduled = true;
     window.requestAnimationFrame(() => {
       scheduled = false;
-      apply();
+      applyWithoutSelfObservation();
     });
+  }
+
+  function onObservedMutations(records) {
+    if (!Array.isArray(records) || !records.some(mutationMatters)) return;
+    schedule();
   }
 
   function init() {
     if (!eligible()) return;
     bindEvents();
-    const main = document.querySelector(MAIN);
-    if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
+    observer = new MutationObserver(onObservedMutations);
+    observeMain();
     window.addEventListener("hashchange", () => window.setTimeout(schedule, 40));
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);
@@ -316,6 +360,11 @@
     schedule();
   }
 
-  window.FlipForgePhase3Activation = Object.freeze({ refresh: schedule });
+  window.FlipForgePhase3Activation = Object.freeze({
+    refresh: schedule,
+    markerAttribute: ENHANCED_ATTRIBUTE,
+    ownedSelector: OWNED_SELECTOR,
+    observedRoot: () => observedMain
+  });
   init();
 })();
