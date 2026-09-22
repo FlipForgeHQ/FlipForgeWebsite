@@ -11,7 +11,7 @@ const routeSpecs = [
 ];
 
 const expectedHeading = {
-  dashboard: /^What card are you considering\?|^Dashboard$/i,
+  dashboard: /^What card are you considering\?|^Dashboard$|^Home$/i,
   discover: /^Discover$|^Evaluate/i,
   opportunities: /^Saved Decisions$/i,
   tracking: /^Tracking$/i,
