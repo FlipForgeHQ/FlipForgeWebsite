@@ -2,7 +2,7 @@
   "use strict";
 
   const main = document.querySelector("#main-content");
-  if (!main || !document.documentElement.classList.contains("ff-full-customer-app")) return;
+  if (!main || document.body?.dataset?.ffSurface !== "customer") return;
 
   const IDLE_MS = 96;
   const MAX_HOLD_MS = 700;
