@@ -101,7 +101,7 @@ try {
     const api = window.FlipForgePhase3Activation;
     if (!api?.diagnostics) return null;
     const main = document.querySelector("#main-content");
-    window.__ffP3MutationAudit = { callbacks: 0, ownedAdds: 0, ownedRemoves: 0, records: [] };
+    window.__ffP3MutationAudit = { callbacks: 0, ownedAdds: 0, ownedRemoves: 0, records: [], targets: {}, changes: {} };
     const observer = new MutationObserver(records => {
       const state = window.__ffP3MutationAudit;
       state.callbacks += 1;
@@ -110,7 +110,18 @@ try {
         const removed = [...record.removedNodes].filter(node => node instanceof Element && (node.matches?.("[data-flipforge-phase3-owned]") || node.querySelector?.("[data-flipforge-phase3-owned]"))).length;
         state.ownedAdds += added;
         state.ownedRemoves += removed;
-        state.records.push({ added, removed, target: record.target instanceof Element ? record.target.tagName : "node" });
+        const target = record.target instanceof Element ? record.target : record.target?.parentElement;
+        const targetSignature = target
+          ? [target.tagName, target.id ? "#" + target.id : "", target.className && typeof target.className === "string" ? "." + target.className.trim().replace(/\s+/g, ".").slice(0, 160) : "", [...target.attributes || []].filter(attr => /^data-ff|^data-discovery|^data-customer/.test(attr.name)).map(attr => "[" + attr.name + (attr.value ? "=" + attr.value : "") + "]").join("")].join("")
+          : "node";
+        state.targets[targetSignature] = (state.targets[targetSignature] || 0) + 1;
+        const changedNodes = [...record.addedNodes, ...record.removedNodes].map(node => {
+          if (node.nodeType === Node.TEXT_NODE) return "#text:" + String(node.nodeValue || "").trim().slice(0, 80);
+          if (!(node instanceof Element)) return node.nodeName || "node";
+          return [node.tagName, node.id ? "#" + node.id : "", node.className && typeof node.className === "string" ? "." + node.className.trim().replace(/\s+/g, ".").slice(0, 120) : "", String(node.textContent || "").trim().replace(/\s+/g, " ").slice(0, 80)].join("");
+        });
+        for (const signature of changedNodes) state.changes[signature] = (state.changes[signature] || 0) + 1;
+        if (state.records.length < 80) state.records.push({ added, removed, target: targetSignature, changedNodes });
       }
     });
     observer.observe(main, { childList: true, subtree: true });
@@ -147,6 +158,13 @@ try {
     snapshot.second = second;
     ticks.push(snapshot);
     console.log(`T+${second}s | observer=${snapshot.diagnostics?.observerCallbacks ?? "NA"} relevant=${snapshot.diagnostics?.relevantObserverCallbacks ?? "NA"} apply=${snapshot.diagnostics?.applyRuns ?? "NA"} ownedAdds=${snapshot.external?.ownedAdds ?? "NA"} ownedRemoves=${snapshot.external?.ownedRemoves ?? "NA"} shell=${snapshot.shellCount}`);
+    if (second === 1 || second === 10) {
+      const topTargets = Object.entries(snapshot.external?.targets || {}).sort((a,b) => b[1] - a[1]).slice(0,12);
+      const topChanges = Object.entries(snapshot.external?.changes || {}).sort((a,b) => b[1] - a[1]).slice(0,12);
+      console.log(`T+${second}s TOP TARGETS | ${JSON.stringify(topTargets)}`);
+      console.log(`T+${second}s TOP CHANGES | ${JSON.stringify(topChanges)}`);
+      if (second === 1) console.log(`T+1s FIRST RECORDS | ${JSON.stringify((snapshot.external?.records || []).slice(0,30))}`);
+    }
   }
 
   const first = ticks[0];
