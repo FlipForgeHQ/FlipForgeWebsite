@@ -55,8 +55,7 @@
     "validate:beta-operator": "node scripts/validate-beta-operator-current.mjs",
     "validate:customer-operator-split": "node scripts/validate-customer-operator-interface-split.mjs",
     "validate:decision-proof": "node scripts/validate-decision-proof-public-v1.mjs",
-    "validate:phase3-activation": "node scripts/validate-phase3-activation-v1.mjs",
-    "validate:cdi-signal-preview": "node scripts/validate-cdi-signal-stack-preview.mjs"
+    "validate:phase3-activation": "node scripts/validate-phase3-activation-v1.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "10.7.13",
