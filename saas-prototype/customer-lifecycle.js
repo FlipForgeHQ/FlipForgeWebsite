@@ -329,7 +329,12 @@
 
   function pageMarkup() {
     if (state.loading) return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Loading saved workflow", "Reading tenant-owned lifecycle facts through the approved same-origin gateway.")}<div class="staging-loading" role="status">Loading authoritative lifecycle state…</div></div>`;
-    if (state.error) return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Lifecycle unavailable", "The request failed closed without a browser-only fallback.")}${errorPanel(state.error)}</div>`;
+    if (state.error) {
+      const retryAction = state.route === "tracking"
+        ? '<button class="button button-primary" type="button" data-lifecycle-refresh data-ff-tracking-retry>Try tracking again</button>'
+        : "";
+      return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Lifecycle unavailable", "The request failed closed without a browser-only fallback.", retryAction)}${errorPanel(state.error)}</div>`;
+    }
     if (state.health?.data?.status !== "configured") {
       const title = state.route === "tracking" ? "Tracking" : state.route === "portfolio" ? "Portfolio" : "Alerts";
       return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", title, "Prepared for a controlled tenant-scoped private-beta session.")}${offlinePanel()}</div>`;
