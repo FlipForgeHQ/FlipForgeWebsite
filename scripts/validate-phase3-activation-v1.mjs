@@ -39,6 +39,9 @@ check("011 returning home exposes saved decisions", js.includes('href="#/opportu
 check("012 returning home exposes Outcome Intelligence", js.includes('href="#/tracking"'));
 check("013 returning home exposes Forge Heat", js.includes('href="#/forge-heat"'));
 check("014 returning home exposes Portfolio", js.includes('href="#/portfolio"'));
+check("014a zero-decision Home receives explicit simplified state", js.includes('dashboard.classList.add("ff-p3-zero-dashboard")') && js.includes("Evaluate your first card."));
+check("014b zero-decision Home hides empty analytics", css.includes(".ff-commercial-dashboard.ff-p3-zero-dashboard .ff-kpi-grid") && css.includes(".ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-main-grid") && css.includes("display:none!important"));
+check("014c first-session Home explains why advanced tools come later", js.includes("Saved-decision analytics, Outcome Intelligence, Portfolio, and other tools become useful after you have real decisions to work with."));
 
 check("015 real connected Discover form is the animated evaluate entry", js.includes('[data-customer-discovery-form]') && js.includes('routeName() !== "discover"'));
 check("016 evaluate flow visibly stages identity", js.includes('data-stage="identity"') && js.includes("identity-review"));

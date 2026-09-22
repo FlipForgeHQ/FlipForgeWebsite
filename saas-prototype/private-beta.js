@@ -174,79 +174,115 @@
     const liveProduction = productionHost();
     const displayName = session.fullName || "FlipForge tester";
 
-    return `<div class="page private-beta-page" data-private-beta-readiness>
-      <header class="page-heading">
-        <div><span class="eyebrow">Controlled customer testing</span><h1>Private Beta Guide</h1><p>Use one real path, understand the authority boundaries, and tell us exactly where the experience succeeds or fails.</p></div>
-        <div class="page-actions"><a class="button button-primary" href="#/discover" data-private-beta-start>Start with Discover</a><a class="button button-secondary" href="#/evaluate">Manual evaluate</a></div>
+    return `<div class="page private-beta-page private-beta-v2" data-private-beta-readiness>
+      <header class="private-beta-v2-header">
+        <div class="private-beta-v2-heading">
+          <span class="eyebrow">Private Beta Guide · First Session</span>
+          <h1>Welcome to FlipForge.</h1>
+          <p>Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust.</p>
+        </div>
+        <div class="private-beta-v2-header-actions">
+          <a class="button button-primary" href="#/discover" data-private-beta-start>Start with Discover</a>
+          <a class="button button-secondary" href="#/evaluate">Enter a listing manually</a>
+        </div>
       </header>
 
-      <div class="boundary-note"><strong>Beta boundary:</strong> Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</div>
-
-      <section class="panel private-beta-hero">
-        <div class="panel-body">
-          <div class="private-beta-hero-copy"><span class="eyebrow">Welcome, ${escapeHtml(displayName)}</span><h2>Find one card. Evaluate it. Follow the evidence.</h2><p>Use Discover to search currently connected active-listing sources or enter a listing manually. Then test whether FlipForge makes the reasoning behind the saved card decision clear, traceable, and useful before you buy.</p></div>
-          <div class="private-beta-progress"><span>First-run guide</span><strong>${introComplete ? "Completed" : "Ready"}</strong><small>This status is a non-sensitive browser preference only. It does not change your account, membership, evaluations, or entitlements.</small><button class="button button-secondary" type="button" data-private-beta-${introComplete ? "reset" : "complete"}>${introComplete ? "Show guide next time" : "Mark guide complete"}</button></div>
-        </div>
-      </section>
-
-      <section class="private-beta-status-grid" aria-label="Private beta status">
-        ${statusCard("Tester access", accessValue, accessDetail, accessTone)}
-        ${statusCard("Customer API", bridgeValue, bridgeDetail, bridgeTone, "data-private-beta-bridge")}
-        ${statusCard("Data authority", "SQLite saved", "Evaluations and tracked opportunities use the existing tenant-owned source of truth.", "ok")}
+      <section class="private-beta-v2-status" aria-label="Private beta readiness">
+        ${statusCard("Your access", accessValue, accessDetail, accessTone)}
+        ${statusCard("Evaluation system", bridgeValue, bridgeDetail, bridgeTone, "data-private-beta-bridge")}
+        ${statusCard("Saved decisions", "SQLite source of truth", "Your evaluations and tracked decisions stay tenant-owned and server-backed.", "ok")}
         ${statusCard("Customer access", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
       </section>
 
-      <div class="private-beta-grid">
-        <div class="stack">
-          <section class="panel">
-            <header class="panel-header"><div><h2>Tester walkthrough</h2><p>Use this sequence so feedback maps to the actual customer decision loop.</p></div></header>
-            <div class="panel-body private-beta-steps">
-              <div class="private-beta-step"><span class="private-beta-step-number">1</span><span class="private-beta-step-copy"><span>Discover</span><strong>Search one exact card</strong><small>Search approved connected active-listing sources. Discovery score ranks returned listings only; it is not BUY/WATCH/VERIFY/PASS and searches are not saved.</small></span><a class="button button-secondary" href="#/discover">Discover</a></div>
-              <div class="private-beta-step"><span class="private-beta-step-number">2</span><span class="private-beta-step-copy"><span>Evaluate</span><strong>Submit one listing to Smart Opportunity</strong><small>Choose a Discover result or enter the listing manually. The authoritative backend—not the browser—creates and saves the recommendation.</small></span><a class="button button-secondary" href="#/evaluate">Manual option</a></div>
-              <div class="private-beta-step"><span class="private-beta-step-number">3</span><span class="private-beta-step-copy"><span>Understand</span><strong>Open Card Intelligence</strong><small>Review the saved value gap, confidence, liquidity, risk, rank, evidence eligibility, and PSA context.</small></span><a class="button button-secondary" href="#/opportunities">Tracked cards</a></div>
-              <div class="private-beta-step"><span class="private-beta-step-number">4</span><span class="private-beta-step-copy"><span>Trace</span><strong>Challenge the Decision Traceback</strong><small>Confirm that identity, completed-sale evidence, market factors, and the final authority output tell one coherent story.</small></span><a class="button button-secondary" href="#/opportunities">Review</a></div>
-              <div class="private-beta-step"><span class="private-beta-step-number">5</span><span class="private-beta-step-copy"><span>Compare</span><strong>Compare two saved decisions</strong><small>Review returned factors side by side without asking the browser to rerank, rescore, or choose a winner.</small></span><a class="button button-secondary" href="#/compare">Compare</a></div>
-              <div class="private-beta-step"><span class="private-beta-step-number">6</span><span class="private-beta-step-copy"><span>Manage</span><strong>Review Evidence, PSA, and exit context — plus Portfolio</strong><small>Inspect saved evidence history, saved PSA requirements, evidence-gated Portfolio reference context, and exit-planning inputs without creating a new recommendation.</small></span><a class="button button-secondary" href="#/portfolio">Portfolio</a></div>
-              <div class="private-beta-step"><span class="private-beta-step-number">7</span><span class="private-beta-step-copy"><span>Export</span><strong>Create a Decision Dossier</strong><small>Package the saved decision, governed evidence, PSA context, and lifecycle history with a SHA-256 integrity manifest.</small></span><a class="button button-secondary" href="#/export">Export</a></div>
-              <div class="private-beta-step"><span class="private-beta-step-number">8</span><span class="private-beta-step-copy"><span>Report</span><strong>Send focused feedback</strong><small>Tell us what was clear, what was missing, and what would have changed your decision.</small></span><button class="button button-secondary" type="button" data-private-beta-feedback-link>Feedback</button></div>
+      <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
+        <div class="private-beta-v2-mission-copy">
+          <span class="private-beta-v2-number">01</span>
+          <div>
+            <span class="eyebrow">START HERE</span>
+            <h2 id="private-beta-mission-title">Evaluate one card from start to finish.</h2>
+            <p>Do not try to learn every FlipForge feature today. Use one card you genuinely understand, follow the evidence, read the decision, and open the Decision Receipt.</p>
+            <div class="private-beta-v2-mission-actions">
+              <a class="button button-primary" href="#/discover" data-private-beta-start>Find my first card</a>
+              <a class="button button-secondary" href="#/decision-intelligence">How Card Decision Intelligence works</a>
             </div>
-          </section>
-
-          <section class="panel" id="beta-feedback">
-            <header class="panel-header"><div><h2>Beta feedback</h2><p>Structured feedback enters the role-gated operator queue and stays separate from authoritative evaluation data.</p></div></header>
-            <div class="panel-body">${feedbackForm(session)}</div>
-          </section>
+          </div>
         </div>
-
-        <div class="stack">
-          <section class="panel">
-            <header class="panel-header"><div><h2>What is real now</h2><p>Current approved private-beta capabilities.</p></div></header>
-            <div class="panel-body private-beta-limit-list">
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Invitation and recovery</strong><small>Secure sign-in, activation, password recovery, session state, and profile updates.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Discover → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Provider-backed active-listing search, tenant-scoped reads/writes, and comparison use the proven same-origin staging gateway when enabled.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence-aware discovery boundary</strong><small>Discover may compare active asking costs with existing trusted completed-sale context, but active listings never become sold evidence and Discovery score never becomes a recommendation.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence and saved PSA context</strong><small>Returned authority state is displayed without browser-side acceptance, rescoring, or grade prediction.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence Center → PSA Advisor → Exit Review</strong><small>Saved evidence history, PSA requirements, and exit-planning inputs use tenant-scoped reads with no mock fallback.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tracking → Portfolio → Alerts</strong><small>Watch state, review timing, acquisition or pass outcomes, cost basis, evidence-supported Portfolio reference context, and in-app reminders use tenant-scoped SQLite lifecycle records and governed saved evidence.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence-gated Portfolio reference</strong><small>When exact identity is confirmed and at least three accepted exact completed sales include a sale no more than 30 days old, Portfolio can show a server-calculated evidence reference and unrealized reference comparison.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Decision Dossier audit export</strong><small>One complete tenant-owned decision package includes the saved authority output, evidence, PSA context, lifecycle history, and a SHA-256 payload digest.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tenant isolation</strong><small>Membership comes only from signed server roles; the browser cannot choose a tenant.</small></span></div>
-            </div>
-          </section>
-
-          <section class="panel">
-            <header class="panel-header"><div><h2>Known beta limits</h2><p>These are not hidden behind mock plan language.</p></div></header>
-            <div class="panel-body private-beta-limit-list">
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Connected-source scope</strong><small>Discover ranks listings returned by currently connected approved sources. It does not claim to search every marketplace or the entire card market.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Provider may be unavailable</strong><small>If the authorized active-listing source is not configured for a session, Discover shows an honest unavailable state with no sample fallback. Manual Evaluate remains available.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Current value and performance remain unavailable when evidence gates fail</strong><small>Portfolio does not invent a value for uncovered holdings. Eligible rows show evidence-supported reference value and unrealized reference performance only; fees, taxes, liquidation proceeds, and appraisal claims remain unavailable.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>External alert delivery is not connected</strong><small>Review reminders are in-app only. Email, SMS, push, and marketplace actions remain disabled.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Bridge may be offline</strong><small>The customer API can be disabled between approved testing sessions without affecting saved SQLite records.</small></span></div>
-              <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>No billing or transactions</strong><small>No paid limits, checkout, payment, purchase, listing, sale, or marketplace action is active.</small></span></div>
-            </div>
-          </section>
+        <div class="private-beta-v2-guide-state">
+          <span>First-run guide</span>
+          <strong>${introComplete ? "Completed" : "Ready"}</strong>
+          <small>This only controls whether this introduction opens automatically. It does not change your account or saved decisions.</small>
+          <button class="button button-secondary" type="button" data-private-beta-${introComplete ? "reset" : "complete"}>${introComplete ? "Show this guide next time" : "Don't show this guide automatically again"}</button>
         </div>
-      </div>
+      </section>
+
+      <section class="panel private-beta-v2-walkthrough">
+        <header class="panel-header">
+          <div>
+            <span class="eyebrow">YOUR FIRST DECISION</span>
+            <h2>Tester walkthrough</h2>
+            <p>Four stages. One card. Follow them in order.</p>
+          </div>
+        </header>
+        <div class="panel-body private-beta-v2-journey">
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">1</span>
+            <div><span>FIND</span><strong>Search one exact card</strong><p>Use Discover and choose the exact identity. Discovery score ranks returned active listings only; it is not BUY/WATCH/VERIFY/PASS and searches are not saved.</p></div>
+            <a class="button button-secondary" href="#/discover">Open Discover</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">2</span>
+            <div><span>EVALUATE</span><strong>Submit one listing to Smart Opportunity</strong><p>Choose a Discover result or enter the listing manually. The authoritative backend—not the browser—creates and saves the recommendation.</p></div>
+            <a class="button button-secondary" href="#/evaluate">Manual option</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">3</span>
+            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read Decision → Value → Risk → Why → Evidence. Then Challenge the Decision Traceback and open the Decision Receipt to see what the result preserves.</p></div>
+            <a class="button button-secondary" href="#/opportunities">Saved Decisions</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">4</span>
+            <div><span>REPORT</span><strong>Send focused feedback</strong><p>Tell us what was immediately clear, what made you hesitate, and what information you expected but could not find.</p></div>
+            <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="private-beta-v2-secondary" aria-label="Secondary beta information">
+        <details class="private-beta-v2-details">
+          <summary><span><strong>What is available now</strong><small>Open this when you want to explore beyond your first decision.</small></span><b aria-hidden="true">＋</b></summary>
+          <div class="private-beta-v2-details-body private-beta-limit-list">
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Discover → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Provider-backed active-listing search, tenant-scoped reads/writes, and comparison use the approved same-origin customer gateway when enabled.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence-aware discovery boundary</strong><small>Active listings never become sold evidence and Discovery score never becomes a recommendation.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence Center → PSA Advisor → Exit Review</strong><small>Saved evidence and PSA context remain server-owned; these tools do not add browser-side evidence acceptance, rescoring, grade prediction, or transaction authority.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tracking → Portfolio → Alerts</strong><small>Lifecycle state, cost basis, evidence-supported reference context, and in-app reminders use tenant-scoped saved records.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Compare two saved decisions</strong><small>Compare returned factors side by side without asking the browser to choose a winner.</small><a class="panel-link" href="#/compare">Open Compare →</a></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Create a Decision Dossier</strong><small>Export one complete saved decision with governed evidence, PSA context, lifecycle history, and integrity manifest.</small></span></div>
+          </div>
+        </details>
+
+        <details class="private-beta-v2-details">
+          <summary><span><strong>Known beta limits</strong><small>What FlipForge intentionally does not pretend to do.</small></span><b aria-hidden="true">＋</b></summary>
+          <div class="private-beta-v2-details-body private-beta-limit-list">
+            <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Connected-source scope</strong><small>Discover ranks listings returned by currently connected approved sources. It does not claim complete-market coverage.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Provider may be unavailable</strong><small>If the active-listing source is unavailable, Discover shows an honest unavailable state with no sample fallback. Manual Evaluate remains available.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Current value stays unavailable when evidence gates fail</strong><small>FlipForge does not invent a value for uncovered holdings or turn weak evidence into false precision.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>External alerts are not connected</strong><small>Review reminders are in-app only. Email, SMS, push, and marketplace actions remain disabled.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>No billing or transactions</strong><small>No paid limits, checkout, payment, purchase, listing, sale, or marketplace action is active.</small></span></div>
+          </div>
+        </details>
+      </section>
+
+      <aside class="private-beta-v2-boundary">
+        <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
+        <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
+      </aside>
+
+      <section class="panel private-beta-v2-feedback" id="beta-feedback">
+        <header class="panel-header">
+          <div><span class="eyebrow">AFTER YOU TRY ONE CARD</span><h2>Beta feedback</h2><p>Tell us where the experience was clear, confusing, incomplete, or unexpectedly useful.</p></div>
+        </header>
+        <div class="panel-body">${feedbackForm(session)}</div>
+      </section>
     </div>`;
   }
 
