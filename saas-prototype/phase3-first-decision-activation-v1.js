@@ -154,7 +154,9 @@
     if (!root || !form || !panel) return;
 
     if (!panel.classList.contains("ff-p3-evaluate-card")) panel.classList.add("ff-p3-evaluate-card");
-    panel.setAttribute(ENHANCED_ATTRIBUTE, "evaluate");
+    if (panel.getAttribute(ENHANCED_ATTRIBUTE) !== "evaluate") {
+      panel.setAttribute(ENHANCED_ATTRIBUTE, "evaluate");
+    }
     let shell = root.querySelector("[data-ff-p3-evaluate-shell]");
     if (!shell) {
       shell = document.createElement("section");
