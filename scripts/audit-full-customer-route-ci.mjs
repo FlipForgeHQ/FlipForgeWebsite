@@ -136,6 +136,55 @@ page.on("pageerror", error => pageErrors.push(String(error?.message || error)));
 
 const fail = message => { throw new Error(message); };
 
+async function renderedGeometry(page) {
+  return page.evaluate(() => {
+    const main = document.querySelector("#main-content");
+    const pageRoot = main?.firstElementChild || null;
+    const h1 = main?.querySelector("h1") || null;
+    const panel = main?.querySelector(".panel,[data-ff-di-v2-command],[data-commercial-dashboard-v2]") || null;
+    const pageRect = pageRoot?.getBoundingClientRect?.();
+    const h1Rect = h1?.getBoundingClientRect?.();
+    const panelRect = panel?.getBoundingClientRect?.();
+    const style = h1 ? getComputedStyle(h1) : null;
+    return {
+      route: window.location.hash,
+      mainWidth: main?.getBoundingClientRect?.().width || 0,
+      pageTop: pageRect?.top || 0,
+      pageWidth: pageRect?.width || 0,
+      h1Top: h1Rect?.top || 0,
+      h1Width: h1Rect?.width || 0,
+      h1Height: h1Rect?.height || 0,
+      h1FontSize: Number.parseFloat(style?.fontSize || "0") || 0,
+      panelTop: panelRect?.top || 0,
+      transitioning: main?.dataset?.ffRouteTransitioning === "true"
+    };
+  });
+}
+
+async function assertPostRevealGeometryStable(page, label) {
+  await page.waitForFunction(() => document.querySelector("#main-content")?.dataset?.ffRouteTransitioning !== "true", null, { timeout: 3000 });
+  const before = await renderedGeometry(page);
+  await page.waitForTimeout(420);
+  const after = await renderedGeometry(page);
+
+  const limits = {
+    mainWidth: 2,
+    pageTop: 2,
+    pageWidth: 2,
+    h1Top: 2,
+    h1Width: 3,
+    h1Height: 2,
+    h1FontSize: 0.1,
+    panelTop: 3
+  };
+  const moved = Object.entries(limits)
+    .filter(([key, limit]) => Math.abs((after[key] || 0) - (before[key] || 0)) > limit)
+    .map(([key]) => `${key} ${before[key]} -> ${after[key]}`);
+
+  if (before.transitioning || after.transitioning) fail(`${label}: route remained in transition`);
+  if (moved.length) fail(`${label}: post-reveal geometry changed: ${moved.join(", ")}`);
+}
+
 try {
   // The full customer account must be correct at render source. Disable the late
   // customer text normalizer here so the regression test cannot pass by masking
@@ -177,12 +226,15 @@ try {
   if (!/Customer App/i.test(state.title)) fail(`Customer document title is wrong: ${state.title}`);
   if (!state.nav.some(value => /Decision Intelligence/i.test(value))) fail("Decision Intelligence is not visible");
   if (!state.nav.some(value => /Outcome Intelligence/i.test(value))) fail("Outcome Intelligence is not visible");
+  await page.waitForSelector("[data-commercial-dashboard-v2]", { timeout: 10000 });
+  await assertPostRevealGeometryStable(page, "dashboard");
 
   await page.locator('.primary-nav a[data-route="decision-intelligence"]').click();
   await page.waitForFunction(() => window.location.hash === "#/decision-intelligence", null, { timeout: 10000 });
   await page.waitForSelector('.ff-di-page[data-decision-intelligence-source="server"]', { timeout: 10000 });
   await page.waitForSelector("[data-ff-di-v2-command]", { timeout: 10000 });
   await page.waitForSelector("section[data-ff-decision-card-evidence]", { timeout: 10000 });
+  await assertPostRevealGeometryStable(page, "decision intelligence");
 
   const decisionState = await page.evaluate(() => {
     const root = document.querySelector('.ff-di-page[data-decision-intelligence-source="server"]');
@@ -223,6 +275,7 @@ try {
   await page.locator('.primary-nav a[data-route="tracking"]').click();
   await page.waitForFunction(() => window.location.hash === "#/tracking", null, { timeout: 10000 });
   await page.waitForSelector("#main-content .customer-lifecycle-page", { timeout: 10000 });
+  await assertPostRevealGeometryStable(page, "outcome intelligence");
   const outcomeState = await page.evaluate(() => ({
     hash: window.location.hash,
     chip: document.querySelector(".prototype-chip")?.textContent?.trim() || "",
@@ -238,6 +291,7 @@ try {
   await page.waitForFunction(() => window.location.hash === "#/account", null, { timeout: 10000 });
   await page.waitForSelector("#main-content .customer-entitlements-page", { timeout: 10000 });
   await page.waitForTimeout(400);
+  await assertPostRevealGeometryStable(page, "account");
   const accountState = await page.evaluate(() => ({
     text: String(document.querySelector("#main-content")?.innerText || "").replace(/\s+/g, " ").trim(),
     sidebar: String(document.querySelector(".plan-card")?.innerText || "").replace(/\s+/g, " ").trim(),
@@ -258,7 +312,8 @@ try {
 
   await page.locator('.primary-nav a[data-route="dashboard"]').click();
   await page.waitForFunction(() => window.location.hash === "#/dashboard", null, { timeout: 10000 });
-  await page.waitForTimeout(600);
+  await page.waitForSelector("[data-commercial-dashboard-v2]", { timeout: 10000 });
+  await assertPostRevealGeometryStable(page, "dashboard return");
 
   await page.evaluate(() => {
     const link = document.createElement("a");
