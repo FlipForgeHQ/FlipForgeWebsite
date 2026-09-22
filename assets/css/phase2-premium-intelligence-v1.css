@@ -227,3 +227,128 @@ body.ff-phase2-ready main{overflow:clip}
   .ff-phase2-reveal,.ff-phase2-stagger>*,.ff-phase2-cdi-step,.ff-phase2-cdi-aperture,.ff-phase2-public .btn,.ff-phase2-public .nav-cta,.ff-phase2-public .card,.ff-phase2-public article{opacity:1!important;transform:none!important;transition:none!important;animation:none!important}
   .ff-phase2-evidence-stage::before{display:none}
 }
+
+/* Phase 3 — branded Decision Receipt anatomy */
+.ff-phase3-product-receipt{
+  position:relative;
+  overflow:hidden;
+  border-color:rgba(212,175,55,.31);
+  background:
+    radial-gradient(circle at 82% 10%,rgba(212,175,55,.10),transparent 26%),
+    linear-gradient(145deg,#07101a,#02060a 72%);
+}
+.ff-phase3-product-receipt::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:32px 32px;
+  mask-image:linear-gradient(to bottom,#000,transparent 78%);
+}
+.ff-phase3-product-receipt .ff-phase2-product-receipt-head{position:relative;z-index:1;align-items:flex-start}
+.ff-phase3-product-receipt-note{
+  flex:none;max-width:240px;padding:9px 11px;border:1px solid rgba(212,175,55,.22);border-radius:999px;
+  background:rgba(212,175,55,.045);color:#d7c27a;font-size:.65rem;font-weight:900;letter-spacing:.09em;text-align:center
+}
+.ff-phase3-product-receipt-shell{
+  position:relative;z-index:1;padding:0;border-color:rgba(255,255,255,.10);border-radius:20px;
+  background:
+    radial-gradient(circle at 94% 4%,rgba(212,175,55,.08),transparent 20%),
+    #04090e;
+}
+.ff-phase3-product-receipt-shell::before{width:6px}
+.ff-phase3-product-receipt-brand{
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding:20px 22px 18px 28px;border-bottom:1px solid rgba(255,255,255,.075)
+}
+.ff-phase3-product-receipt-brand img{display:block;width:min(300px,52%);height:auto}
+.ff-phase3-product-receipt-brand>div{display:grid;justify-items:end;gap:3px}
+.ff-phase3-product-receipt-brand span{font-size:.62rem;font-weight:900;letter-spacing:.14em;color:#8d98a5}
+.ff-phase3-product-receipt-brand strong{font-size:1.2rem;letter-spacing:.08em;color:var(--ff-p2-gold-soft)}
+.ff-phase3-product-receipt-brand small{font-size:.67rem;color:#6f7b88}
+
+.ff-phase3-product-receipt-layout{
+  display:grid;grid-template-columns:minmax(250px,.62fr) minmax(0,1.38fr);gap:14px;
+  padding:18px 22px 14px 28px
+}
+.ff-phase3-product-receipt-tabs{display:grid;gap:7px}
+.ff-phase3-product-receipt-tabs button{
+  display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;width:100%;min-height:52px;padding:9px 11px;
+  border:1px solid rgba(255,255,255,.075);border-radius:11px;background:rgba(255,255,255,.015);
+  color:#9ba6b3;text-align:left;cursor:pointer;
+  transition:transform .22s ease,border-color .22s ease,background .22s ease,color .22s ease
+}
+.ff-phase3-product-receipt-tabs button b{
+  display:grid;place-items:center;width:30px;height:30px;border:1px solid rgba(212,175,55,.22);border-radius:50%;
+  color:#d4af37;font-size:.63rem
+}
+.ff-phase3-product-receipt-tabs button span{font-size:.72rem;font-weight:850;letter-spacing:.08em}
+.ff-phase3-product-receipt-tabs button[aria-selected="true"]{
+  border-color:rgba(212,175,55,.38);background:rgba(212,175,55,.075);color:#fff;
+  box-shadow:inset 3px 0 0 #d4af37
+}
+.ff-phase3-product-receipt-tabs button:focus-visible{outline:2px solid #f0d184;outline-offset:2px}
+
+.ff-phase3-product-receipt-reveal{
+  position:relative;min-height:100%;padding:26px;border:1px solid rgba(212,175,55,.18);border-radius:16px;
+  background:linear-gradient(150deg,rgba(212,175,55,.052),rgba(255,255,255,.01));
+  overflow:hidden
+}
+.ff-phase3-product-receipt-reveal::after{
+  content:"";position:absolute;right:-70px;bottom:-70px;width:190px;height:190px;border:1px solid rgba(212,175,55,.10);border-radius:50%;
+  box-shadow:0 0 0 30px rgba(212,175,55,.025),0 0 0 60px rgba(212,175,55,.012)
+}
+.ff-phase3-product-receipt-reveal>span{display:block;color:#d4af37;font-size:.68rem;font-weight:900;letter-spacing:.13em}
+.ff-phase3-product-receipt-reveal>small{display:block;margin-top:15px;color:#9c8960;font-size:.65rem;font-weight:900;letter-spacing:.13em}
+.ff-phase3-product-receipt-reveal h3{margin:7px 0 9px;max-width:560px;font-size:clamp(1.45rem,2.8vw,2.4rem);line-height:1;letter-spacing:-.04em}
+.ff-phase3-product-receipt-reveal>p{max-width:650px;margin:0;color:#a4aeba;line-height:1.62}
+.ff-phase3-product-receipt-stamp{
+  position:relative;z-index:1;display:grid;gap:3px;margin-top:26px;padding-top:14px;border-top:1px solid rgba(255,255,255,.075)
+}
+.ff-phase3-product-receipt-stamp span{font-size:.62rem;font-weight:900;letter-spacing:.14em;color:#d4af37}
+.ff-phase3-product-receipt-stamp strong{font-size:.78rem;color:#d7dde4}
+
+.ff-phase3-product-receipt-support{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 22px 4px 28px
+}
+.ff-phase3-product-receipt-support article{
+  padding:14px 15px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.012)
+}
+.ff-phase3-product-receipt-support span{display:block;color:#d4af37;font-size:.62rem;font-weight:900;letter-spacing:.12em}
+.ff-phase3-product-receipt-support p{margin:7px 0 0;color:#8f9aa7;font-size:.76rem;line-height:1.5}
+.ff-phase3-product-receipt .ff-phase2-product-receipt-actions{padding:14px 22px 22px 28px;margin-top:0}
+
+/* Phase 4 — transition timing, responsive behavior, and reduced-motion fallback */
+.ff-phase3-product-receipt-reveal[data-layer]{
+  animation:ffP4ReceiptReveal .34s cubic-bezier(.2,.8,.2,1)
+}
+@keyframes ffP4ReceiptReveal{
+  from{opacity:.58;transform:translateY(5px)}
+  to{opacity:1;transform:none}
+}
+@media(hover:hover){
+  .ff-phase3-product-receipt-tabs button:hover{transform:translateX(2px);border-color:rgba(212,175,55,.25)}
+}
+@media(max-width:900px){
+  .ff-phase3-product-receipt .ff-phase2-product-receipt-head{display:grid}
+  .ff-phase3-product-receipt-note{max-width:none;width:fit-content}
+  .ff-phase3-product-receipt-layout{grid-template-columns:1fr}
+  .ff-phase3-product-receipt-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+  .ff-phase3-product-receipt{width:min(100% - 22px,1180px);margin:34px auto;padding:18px;border-radius:20px}
+  .ff-phase3-product-receipt-head h2{font-size:clamp(1.8rem,10vw,2.65rem)}
+  .ff-phase3-product-receipt-note{font-size:.6rem;line-height:1.3}
+  .ff-phase3-product-receipt-brand{display:grid;justify-items:start;padding:18px 16px 16px 22px}
+  .ff-phase3-product-receipt-brand img{width:min(245px,85%)}
+  .ff-phase3-product-receipt-brand>div{justify-items:start}
+  .ff-phase3-product-receipt-layout{padding:14px 14px 12px 20px}
+  .ff-phase3-product-receipt-tabs{grid-template-columns:1fr}
+  .ff-phase3-product-receipt-tabs button{min-height:48px}
+  .ff-phase3-product-receipt-reveal{padding:20px}
+  .ff-phase3-product-receipt-support{grid-template-columns:1fr;padding:0 14px 4px 20px}
+  .ff-phase3-product-receipt .ff-phase2-product-receipt-actions{padding:12px 14px 18px 20px}
+  .ff-phase3-product-receipt .ff-phase2-product-receipt-actions .btn{width:100%;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){
+  .ff-phase3-product-receipt-tabs button{transition:none!important}
+  .ff-phase3-product-receipt-reveal[data-layer]{animation:none!important;opacity:1!important;transform:none!important}
+}
