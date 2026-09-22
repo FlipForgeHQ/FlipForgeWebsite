@@ -7,6 +7,8 @@
   const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
   const signals=[...stage.querySelectorAll("[data-signal]")];
   const stateButtons=[...document.querySelectorAll("[data-preview-state]")];
+  const stackStatus=stage.querySelector("[data-stack-status]");
+  signals.forEach((node,index)=>node.style.setProperty("--delay",`${index*170}ms`));
 
   const fixtures={
     BUY:{
@@ -135,9 +137,18 @@
     setText("[data-detail-proof]",data.proof);
   }
 
+  function setStackStatus(value){
+    if(stackStatus)stackStatus.textContent=value;
+  }
+
   function finishImmediately(){
-    signals.forEach(node=>node.classList.add("is-in"));
+    signals.forEach(node=>{
+      node.classList.add("is-in");
+      node.classList.remove("is-active-step");
+    });
+    stage.dataset.building="false";
     stage.dataset.locked="true";
+    setStackStatus("4 signals · assembled");
   }
 
   let timers=[];
@@ -148,18 +159,46 @@
 
   function play(){
     clearTimers();
-    stage.dataset.locked="false";
-    signals.forEach(node=>node.classList.remove("is-in"));
     if(reduced){
+      stage.classList.remove("ff-cdi-motion-ready");
       finishImmediately();
       return;
     }
+
+    // Progressive enhancement: the stack is fully visible without this class.
+    // Only hide/reveal rows after the animation runtime is confirmed alive.
+    stage.classList.add("ff-cdi-motion-ready");
+    stage.dataset.locked="false";
+    stage.dataset.building="false";
+    signals.forEach(node=>{
+      node.classList.remove("is-in","is-active-step");
+    });
+    setStackStatus("Building reason trail…");
+
+    // If animation scheduling is interrupted, restore the complete readable stack.
+    timers.push(setTimeout(finishImmediately,2200));
+
+    // Force a committed reset frame so Replay is deterministic in every browser.
+    void stage.offsetWidth;
     requestAnimationFrame(()=>{
+      stage.dataset.building="true";
+      signals.forEach(node=>node.classList.add("is-in"));
+
       signals.forEach((node,index)=>{
-        const id=setTimeout(()=>node.classList.add("is-in"),120+index*180);
-        timers.push(id);
+        timers.push(setTimeout(()=>{
+          signals.forEach(value=>value.classList.remove("is-active-step"));
+          node.classList.add("is-active-step");
+          setStackStatus(`Signal ${index+1} of ${signals.length}`);
+        },90+index*170));
       });
-      timers.push(setTimeout(()=>{stage.dataset.locked="true";},120+signals.length*180+160));
+
+      timers.push(setTimeout(()=>{
+        signals.forEach(node=>node.classList.remove("is-active-step"));
+        stage.dataset.building="false";
+        stage.dataset.locked="true";
+        setStackStatus("4 signals · assembled");
+        clearTimers();
+      },90+(signals.length-1)*170+430));
     });
   }
 
