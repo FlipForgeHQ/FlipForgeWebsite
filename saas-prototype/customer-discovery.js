@@ -669,10 +669,10 @@
   }
 
   async function render(main) {
-    const renderSerial = state.renderSerial + 1;
-    state.renderSerial = renderSerial;
     state.main = main;
     state.evaluatingIndex = -1;
+    const renderSerial = state.renderSerial + 1;
+    state.renderSerial = renderSerial;
     state.error = null;
     state.notice = "";
     if (!eligibleHost()) return false;
