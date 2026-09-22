@@ -27,9 +27,7 @@ run_shell_step() {
   code=$?
   if [ "$code" -ne 0 ]; then
     printf 'COMMIT_REF: %s\nFAIL: %s\nEXIT_CODE: %s\n' "$commit_ref" "$label" "$code" > "$report"
-    if [ "$label" = "validate:identity" ]; then
-      grep '^FAIL |' /tmp/ff-netlify-diagnostic.log >> "$report" || true
-    fi
+    grep -E 'FAIL|Error|ENOENT|missing|CONTEXT|PASSED|FAILED|must |does not |Unable |unavailable' /tmp/ff-netlify-diagnostic.log | tail -n 20 >> "$report" || true
     exit 0
   fi
 }
