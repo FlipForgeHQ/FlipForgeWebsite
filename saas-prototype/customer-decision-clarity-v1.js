@@ -245,7 +245,7 @@
 
       simplifySavedState(root);
       promoteDecisionMeaning(root, decision, risk);
-      createWhyPanel(root, decision, facts, risk);
+      root.querySelector("[data-ff-decision-why]")?.remove();
       collapseAdvancedMetrics(root);
       renameDeepSections(root);
     } finally {
