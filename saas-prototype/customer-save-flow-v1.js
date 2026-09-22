@@ -90,7 +90,10 @@
       note.dataset.ffDiscoverPersistenceNote = "";
       search.insertAdjacentElement("afterend", note);
     }
-    note.innerHTML = `<span aria-hidden="true">✓</span><div><strong>Searches are temporary; evaluated decisions are saved.</strong> Use <strong>Discover a card</strong> anytime to clear the current Discover workspace and start fresh. Cards you already evaluated stay saved.</div>`;
+    if (note.dataset.ffDiscoverPersistenceReady !== "true") {
+      note.innerHTML = `<span aria-hidden="true">✓</span><div><strong>Searches are temporary; evaluated decisions are saved.</strong> Use <strong>Discover a card</strong> anytime to clear the current Discover workspace and start fresh. Cards you already evaluated stay saved.</div>`;
+      note.dataset.ffDiscoverPersistenceReady = "true";
+    }
   }
 
   function cleanKnownLimitations() {
