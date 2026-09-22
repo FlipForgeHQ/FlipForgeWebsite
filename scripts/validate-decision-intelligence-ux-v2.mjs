@@ -58,6 +58,15 @@ check("021 preview remains explicitly non-authoritative", js.includes("Preview m
 check("022 CSS has decision-specific verdict tones", css.includes('[data-decision="BUY"]') && css.includes('[data-decision="VERIFY"]') && css.includes('[data-decision="PASS"]'));
 check("023 CSS includes tablet responsiveness", css.includes("@media (max-width: 1020px)"));
 check("024 CSS includes phone responsiveness", css.includes("@media (max-width: 640px)"));
+check("025 Phase 3 receipt uses the official FlipForge logo asset", js.includes('/assets/brand/flipforge-logo-horizontal.svg'));
+check("026 Phase 3 receipt is a branded server-owned object", js.includes("data-ff-decision-receipt") && css.includes(".ff-di-v3-receipt-object") && js.includes("SERVER-OWNED RECORD"));
+check("027 Phase 3 receipt exposes six governed reveal layers", ["identity","evidence","economics","risk","decision","provenance"].every(layer => js.includes(`data-layer="${layer}"`)));
+check("028 Phase 3 receipt includes supporting preservation and change context", js.includes("WHAT THIS RECEIPT PRESERVES") && js.includes("WHAT WOULD CHANGE THE DECISION"));
+check("029 Phase 3 receipt keeps transaction and browser authority boundaries explicit", js.includes("does not authorize a purchase") && js.includes("accept evidence in the browser") && js.includes("calculate a new value"));
+check("030 Phase 3 receipt preserves compatibility values without exposing a second grid", js.includes("ff-di-v3-receipt-machine-values") && css.includes(".ff-di-v3-receipt-machine-values{display:none!important}"));
+check("031 Phase 4 receipt has staged reveal timing", css.includes("@keyframes ffDecisionReceiptLayerReveal") && css.includes("animation-delay:270ms"));
+check("032 Phase 4 receipt has narrow mobile behavior", css.includes("@media (max-width:760px)") && css.includes("@media (max-width:420px)"));
+check("033 Phase 4 receipt has reduced-motion fallback", css.includes("@media (prefers-reduced-motion:reduce)") && css.includes("animation:none!important"));
 
 console.log(`PASSED: ${passed}`);
 console.log(`FAILED: ${failures.length}`);
