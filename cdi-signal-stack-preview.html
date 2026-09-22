@@ -10,7 +10,7 @@
 <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
 <link rel="stylesheet" href="assets/css/brand-v2.css">
-<link rel="stylesheet" href="assets/css/cdi-signal-stack-preview.css?v=20260922-3">
+<link rel="stylesheet" href="assets/css/cdi-signal-stack-preview.css?v=20260922-4">
 </head>
 <body class="ff-cdi-preview-page">
 <a class="skip-link" href="#main">Skip to preview</a>
@@ -29,8 +29,8 @@
   <section class="ff-cdi-preview-intro">
     <div>
       <span class="eyebrow">SIGNATURE EXPERIENCE PREVIEW</span>
-      <h1>Watch the reasoning assemble.</h1>
-      <p>The decision is visible immediately. The strongest governed signals then assemble beneath it so the customer can see why the result exists—without waiting on animation or reading a report.</p>
+      <h1>See the decision. Then see why.</h1>
+      <p>FlipForge gives you the call first, then walks you through the four checks that support it—in plain language.</p>
     </div>
     <div class="ff-cdi-preview-state-picker" aria-label="Preview decision state">
       <span>Preview state</span>
@@ -47,8 +47,8 @@
     <section class="ff-cdi-new-user-guide" aria-labelledby="ff-cdi-new-user-heading">
       <div class="ff-cdi-new-user-copy">
         <span class="eyebrow">NEW TO FLIPFORGE?</span>
-        <h2 id="ff-cdi-new-user-heading">Here’s what FlipForge just checked for you.</h2>
-        <p>You do not need to calculate anything or know our terminology. FlipForge checks these four things, then gives you the decision. Tap a step only if you want to see why.</p>
+        <h2 id="ff-cdi-new-user-heading">New here? Start with the decision.</h2>
+        <p>You do not need to know FlipForge terminology. Read the decision below, then press <strong>Show me why</strong> to watch the four checks that produced the reason trail.</p>
       </div>
       <div class="ff-cdi-new-user-steps" aria-label="How FlipForge reaches a decision">
         <button type="button" data-guide-signal="identity">
@@ -87,14 +87,18 @@
             </div>
           </div>
           <div class="ff-cdi-verdict-actions">
-            <button type="button" class="button button-secondary" data-replay>Replay reasoning ↻</button>
-            <button type="button" class="ff-cdi-skip" data-skip>Show all now</button>
+            <button type="button" class="ff-cdi-tour-start" data-start-tour>
+              <span>START HERE</span>
+              <strong data-tour-label>Show me why FlipForge said VERIFY</strong>
+              <small>Watch the 4 checks · about 3 seconds</small>
+            </button>
+            <button type="button" class="ff-cdi-skip" data-skip hidden>Skip animation</button>
           </div>
         </div>
 
         <div class="ff-cdi-stack-head">
-          <div><span>WHY FLIPFORGE SAID THIS</span><strong>Tap any row to see the reason behind it</strong></div>
-          <span data-stack-status role="status" aria-live="polite">4 signals · ready</span>
+          <div><span>WHY FLIPFORGE SAID THIS</span><strong>Follow the four checks—or tap any step yourself</strong></div>
+          <span data-stack-status role="status" aria-live="polite">Ready · press Show me why</span>
         </div>
         <div class="ff-cdi-stack" aria-label="Decision signal stack">
           <button class="ff-cdi-signal" type="button" data-signal="identity" aria-pressed="true">
@@ -212,6 +216,6 @@
   </section>
 </main>
 
-<script src="assets/js/cdi-signal-stack-preview.js?v=20260922-3" defer></script>
+<script src="assets/js/cdi-signal-stack-preview.js?v=20260922-4" defer></script>
 </body>
 </html>
