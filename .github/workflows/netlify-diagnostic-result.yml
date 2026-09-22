@@ -1,0 +1,34 @@
+name: Netlify diagnostic result
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/netlify-build-diagnostic.sh"
+      - "netlify.toml"
+      - ".github/workflows/netlify-diagnostic-result.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  read-diagnostic:
+    if: startsWith(github.head_ref, 'diagnostic/netlify-preview-build-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read published diagnostic result
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          url="https://deploy-preview-${PR_NUMBER}--goflipforge.netlify.app/netlify-build-diagnostic.txt"
+          for attempt in $(seq 1 30); do
+            if result="$(curl --fail --silent --show-error --max-time 8 "$url" 2>/dev/null)"; then
+              printf '%s\n' "$result"
+              exit 0
+            fi
+            sleep 4
+          done
+          echo "Diagnostic report was not reachable."
+          exit 1
