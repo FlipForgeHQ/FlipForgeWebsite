@@ -140,21 +140,38 @@ async function renderedGeometry(page) {
   return page.evaluate(() => {
     const main = document.querySelector("#main-content");
     const pageRoot = main?.firstElementChild || null;
+    const heading = main?.querySelector(".page-heading") || null;
     const h1 = main?.querySelector("h1") || null;
+    const actions = heading?.querySelector(".page-actions") || null;
     const panel = main?.querySelector(".panel,[data-ff-di-v2-command],[data-commercial-dashboard-v2]") || null;
     const pageRect = pageRoot?.getBoundingClientRect?.();
+    const headingRect = heading?.getBoundingClientRect?.();
     const h1Rect = h1?.getBoundingClientRect?.();
+    const actionsRect = actions?.getBoundingClientRect?.();
     const panelRect = panel?.getBoundingClientRect?.();
-    const style = h1 ? getComputedStyle(h1) : null;
+    const h1Style = h1 ? getComputedStyle(h1) : null;
+    const headingStyle = heading ? getComputedStyle(heading) : null;
+    const actionsStyle = actions ? getComputedStyle(actions) : null;
     return {
       route: window.location.hash,
+      bodyClass: document.body.className,
+      htmlClass: document.documentElement.className,
       mainWidth: main?.getBoundingClientRect?.().width || 0,
       pageTop: pageRect?.top || 0,
       pageWidth: pageRect?.width || 0,
+      headingWidth: headingRect?.width || 0,
+      headingDisplay: headingStyle?.display || "",
+      h1Text: String(h1?.textContent || "").trim(),
       h1Top: h1Rect?.top || 0,
       h1Width: h1Rect?.width || 0,
       h1Height: h1Rect?.height || 0,
-      h1FontSize: Number.parseFloat(style?.fontSize || "0") || 0,
+      h1FontSize: Number.parseFloat(h1Style?.fontSize || "0") || 0,
+      actionsExists: Boolean(actions),
+      actionsDisplay: actionsStyle?.display || "",
+      actionsVisibility: actionsStyle?.visibility || "",
+      actionsAriaHidden: actions?.getAttribute("aria-hidden") || "",
+      actionsWidth: actionsRect?.width || 0,
+      actionsText: String(actions?.textContent || "").replace(/\s+/g," ").trim(),
       panelTop: panelRect?.top || 0,
       transitioning: main?.dataset?.ffRouteTransitioning === "true"
     };
@@ -182,7 +199,11 @@ async function assertPostRevealGeometryStable(page, label) {
     .map(([key]) => `${key} ${before[key]} -> ${after[key]}`);
 
   if (before.transitioning || after.transitioning) fail(`${label}: route remained in transition`);
-  if (moved.length) fail(`${label}: post-reveal geometry changed: ${moved.join(", ")}`);
+  if (moved.length) {
+    console.error("GEOMETRY_BEFORE", JSON.stringify(before));
+    console.error("GEOMETRY_AFTER", JSON.stringify(after));
+    fail(`${label}: post-reveal geometry changed: ${moved.join(", ")}`);
+  }
 }
 
 try {
