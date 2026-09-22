@@ -463,8 +463,8 @@
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);
     window.addEventListener("flipforge:identity-change", schedule);
-    window.setTimeout(schedule, 120);
-    window.setTimeout(schedule, 600);
+    // Initial render plus mutation/hash observers are sufficient. Blind delayed
+    // reruns used to rewrite visible geometry long after navigation completed.
     schedule();
   }
 
