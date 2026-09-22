@@ -74,6 +74,7 @@ check("042 enhanced surfaces use a stable dedicated marker", js.includes("data-f
 check("043 observer callback filters irrelevant or self-owned mutations", js.includes("function mutationMatters(record)") && js.includes("nodeIsPhase3Owned(record.target)") && js.includes("records.some(mutationMatters)"));
 check("044 Phase 3 disconnects observer around its own synchronous DOM writes", js.includes("observer.disconnect()") && js.includes("applyWithoutSelfObservation") && js.includes("observeMain()"));
 check("045 observer no longer unconditionally schedules every mutation", !js.includes("new MutationObserver(schedule)") && js.includes("new MutationObserver(onObservedMutations)"));
+check("046 Phase 3 evaluate rail is isolated from the shared Discover enhancement subtree", js.includes('panel.insertAdjacentElement("beforebegin", shell)') && !js.includes("panel.prepend(shell)"));
 
 console.log("PASSED: " + passed);
 console.log("FAILED: " + failures.length);
