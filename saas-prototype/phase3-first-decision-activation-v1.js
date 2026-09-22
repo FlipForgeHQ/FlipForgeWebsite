@@ -175,7 +175,7 @@
             <div class="ff-p3-evaluate-step" data-p3-step="receipt"><b>04</b><strong>Receipt</strong><small>Keep the reason trail.</small></div>
           </div>
         </div>`;
-      panel.insertAdjacentElement("beforebegin", shell);
+      panel.prepend(shell);
       emit("phase3_evaluate_flow_viewed", "discover");
     }
 
@@ -304,13 +304,29 @@
     return Boolean(element?.closest?.(OWNED_SELECTOR));
   }
 
+  function routeRelevantSelector() {
+    const route = routeName();
+    if (route === "dashboard") return "[data-commercial-dashboard-v2],.ff-commercial-dashboard,.ff-kpi-card,.ff-kpi-value";
+    if (route === "discover") return "[data-customer-discovery-form],.customer-discovery-search,.customer-discovery-identity-assist,.customer-discovery-results,[data-discovery-evaluate]";
+    if (route === "opportunities" && routeParts().length > 1) return "[data-ff-decision-summary],.customer-intelligence-hero,[data-ff-open-decision-receipt]";
+    return "";
+  }
+
+  function nodeTouchesSelector(node, selector) {
+    if (!selector) return false;
+    const element = node instanceof Element ? node : node?.parentElement;
+    if (!element) return false;
+    return Boolean(element.matches?.(selector) || element.closest?.(selector) || element.querySelector?.(selector));
+  }
+
   function mutationMatters(record) {
-    if (!record) return false;
-    if (nodeIsPhase3Owned(record.target)) return false;
-    if (record.type !== "childList") return true;
+    if (!record || nodeIsPhase3Owned(record.target)) return false;
+    const selector = routeRelevantSelector();
+    if (!selector) return false;
+    if (nodeTouchesSelector(record.target, selector)) return true;
+    if (record.type !== "childList") return false;
     const changed = [...record.addedNodes, ...record.removedNodes];
-    if (!changed.length) return false;
-    return changed.some(node => !nodeIsPhase3Owned(node));
+    return changed.some(node => !nodeIsPhase3Owned(node) && nodeTouchesSelector(node, selector));
   }
 
   function observeMain() {
