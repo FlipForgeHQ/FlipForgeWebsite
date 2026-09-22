@@ -5,108 +5,127 @@
   if(!stage)return;
 
   const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
-  const signals=[...stage.querySelectorAll("[data-signal]")];
-  const stateButtons=[...document.querySelectorAll("[data-preview-state]")];
-  const guideButtons=[...stage.querySelectorAll("[data-guide-signal]")];
+  const reasoning=stage.querySelector("[data-reasoning]");
+  const startButton=stage.querySelector("[data-start-tour]");
+  const startLabel=stage.querySelector("[data-tour-label]");
+  const skipButton=stage.querySelector("[data-skip]");
   const stackStatus=stage.querySelector("[data-stack-status]");
-  signals.forEach((node,index)=>node.style.setProperty("--delay",`${index*170}ms`));
+  const tourStep=stage.querySelector("[data-tour-step]");
+  const tourCaption=stage.querySelector("[data-tour-caption]");
+  const signals=[...stage.querySelectorAll("[data-signal]")];
+  const guideButtons=[...stage.querySelectorAll("[data-guide-signal]")];
+  const stateButtons=[...document.querySelectorAll("[data-preview-state]")];
+
+  signals.forEach((node,index)=>node.style.setProperty("--delay",`${index*340}ms`));
 
   const fixtures={
     BUY:{
       card:"2018 Panini Prizm Luka Dončić #280 · PSA 10",
       decision:"BUY",
-      label:"Current evidence supports the buy case",
-      copy:"Exact identity, qualified sold evidence, economics, and uncertainty all clear the current governed thresholds.",
-      confidence:89,confidenceCopy:"Strong evidence support",
+      label:"The buy case is supported",
+      copy:"The card is exact, the sales are strong, and the asking price sits below the evidence-backed value.",
+      confidence:89,confidenceCopy:"Strong support",
       risk:23,riskCopy:"Lower uncertainty",
-      heat:87,heatBand:"HIGH PRIORITY",heatCopy:"Forge Heat ranks this eligible saved opportunity near the top of the current qualified set.",
-      next:"Inspect seller quality, fees, shipping, and availability before taking any action.",
+      heat:87,heatBand:"High priority",
+      heatCopy:"This eligible saved opportunity ranks high in the current opportunity set.",
+      next:"Check seller quality, fees, shipping, and availability before taking action.",
+      evidenceAccepted:5,evidenceTotal:6,
+      spark:"4,25 17,21 30,22 43,16 56,14 68,10",
       signals:{
-        identity:{title:"Exact identity confirmed",detail:"2018 Prizm #280 · base · PSA 10",state:"LOCKED",heading:"Identity is clean.",body:"Year, product, card number, variant, and grade agree with the saved evaluation.",label:"IDENTITY PROOF",proof:"Year · product · number · variant · grade agree"},
-        evidence:{title:"5 of 6 candidates qualified",detail:"Five exact completed sales survived the evidence gate",state:"STRONG",heading:"The evidence base is broad enough to support value.",body:"Five unique exact-card completed sales qualified. One candidate was excluded before it could affect value.",label:"EVIDENCE PROOF",proof:"5 accepted exact sales · 1 excluded"},
-        economics:{title:"Ask $349 · Supported $402",detail:"Current ask is 13.2% below supported value",state:"+13.2%",heading:"The economics clear the current threshold.",body:"The saved all-in ask sits below the server-owned supported value with enough margin to qualify for stronger authority.",label:"ECONOMIC PROOF",proof:"$349 ask · $402 supported · +13.2% gap"},
-        uncertainty:{title:"Confidence 89 · Risk 23",detail:"High support with comparatively low uncertainty",state:"CLEAR",heading:"Uncertainty is not blocking the decision.",body:"Confidence remains high and risk remains below the current blocking range for this saved evaluation.",label:"UNCERTAINTY PROOF",proof:"Confidence 89 · Risk 23"}
+        identity:{title:"Exact card confirmed",detail:"Year, set, number, variant, and grade agree",state:"Exact match",caption:"First, FlipForge confirms the exact card so the wrong variant or grade cannot influence the decision."},
+        evidence:{title:"5 of 6 sales qualify",detail:"Five exact completed sales count; one comparison stays out",state:"5 good sales",caption:"Next, FlipForge keeps five trustworthy exact-card sales and removes the comparison that does not belong."},
+        economics:{title:"Asking price is 13% below value support",detail:"$349 ask compared with $402 of evidence-backed support",state:"13% below",caption:"Then FlipForge compares the asking price with the value supported by the qualified sales."},
+        uncertainty:{title:"89% confidence · lower uncertainty",detail:"The evidence is strong enough that uncertainty does not block the call",state:"Lower uncertainty",caption:"Finally, FlipForge measures how much uncertainty remains instead of hiding it behind the price."}
       },
       evidence:[
-        ["✓","2025-09-18 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-09-12 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-09-05 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-08-29 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-08-20 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["×","Silver parallel candidate","Variant mismatch","EXCLUDED"]
+        ["✓","2026-09-18 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-09-12 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-09-05 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-08-29 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-08-20 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["×","Silver parallel candidate","Different variant","Left out"]
       ]
     },
     WATCH:{
       card:"2020 Panini Prizm Joe Burrow #307 · PSA 9",
       decision:"WATCH",
-      label:"Interesting, but the edge is not strong enough yet",
-      copy:"Identity and evidence are usable, but current economics do not clear the stronger BUY threshold.",
-      confidence:78,confidenceCopy:"Good evidence support",
+      label:"Worth watching—not ready to buy",
+      copy:"The evidence is usable, but the current price advantage is too small for a stronger call.",
+      confidence:78,confidenceCopy:"Good support",
       risk:39,riskCopy:"Moderate uncertainty",
-      heat:66,heatBand:"WARM",heatCopy:"Forge Heat keeps this eligible opportunity visible, but Smart Opportunity remains WATCH.",
-      next:"Watch for a lower all-in ask or stronger exact-sale support.",
+      heat:66,heatBand:"Worth watching",
+      heatCopy:"This eligible saved opportunity remains visible, but it is not a top-priority setup.",
+      next:"Watch for a lower all-in price or stronger exact-sale support.",
+      evidenceAccepted:4,evidenceTotal:6,
+      spark:"4,21 17,20 30,18 43,19 56,15 68,15",
       signals:{
-        identity:{title:"Exact identity confirmed",detail:"2020 Prizm #307 · base · PSA 9",state:"LOCKED",heading:"Identity is not the issue.",body:"The card identity is sufficiently resolved for this saved evaluation.",label:"IDENTITY PROOF",proof:"Year · product · number · variant · grade agree"},
-        evidence:{title:"4 of 6 candidates qualified",detail:"Four exact completed sales survived qualification",state:"GOOD",heading:"Evidence is usable, not exceptional.",body:"Four exact completed sales support the current value context. Two candidates were excluded.",label:"EVIDENCE PROOF",proof:"4 accepted exact sales · 2 excluded"},
-        economics:{title:"Ask $92 · Supported $96",detail:"Current ask is only 4.2% below supported value",state:"+4.2%",heading:"Economics are the main limiter.",body:"The current gap is positive but does not clear the stronger governed threshold.",label:"ECONOMIC PROOF",proof:"$92 ask · $96 supported · +4.2% gap"},
-        uncertainty:{title:"Confidence 78 · Risk 39",detail:"Evidence quality is adequate for WATCH",state:"STABLE",heading:"Uncertainty is acceptable, but not decisive.",body:"Confidence and risk are compatible with WATCH, while economics remain the main reason stronger authority is withheld.",label:"UNCERTAINTY PROOF",proof:"Confidence 78 · Risk 39"}
+        identity:{title:"Exact card confirmed",detail:"Year, set, number, variant, and grade agree",state:"Exact match",caption:"First, FlipForge confirms that the listing and comparisons refer to the same exact card."},
+        evidence:{title:"4 of 6 sales qualify",detail:"Four exact sales count; two comparisons stay out",state:"4 good sales",caption:"Next, four trustworthy sales survive the evidence check while two mismatches are removed."},
+        economics:{title:"Price is only 4% below value support",detail:"$92 ask compared with $96 of evidence-backed support",state:"4% below",caption:"Then FlipForge sees a small price advantage—but not enough to support a stronger call."},
+        uncertainty:{title:"78% confidence · moderate uncertainty",detail:"The evidence is usable, but the edge remains limited",state:"Moderate",caption:"Finally, FlipForge keeps the remaining uncertainty visible so a small discount does not look stronger than it is."}
       },
       evidence:[
-        ["✓","2025-09-17 · Exact PSA 9 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-09-09 · Exact PSA 9 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-08-31 · Exact PSA 9 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-08-18 · Exact PSA 9 sale","Accepted exact completed sale","ACCEPTED"],
-        ["×","Raw-card candidate","Grade mismatch","EXCLUDED"],
-        ["×","Duplicate source","Canonical duplicate","EXCLUDED"]
+        ["✓","2026-09-17 · Exact PSA 9 sale","Exact completed sale","Counts"],
+        ["✓","2026-09-09 · Exact PSA 9 sale","Exact completed sale","Counts"],
+        ["✓","2026-08-31 · Exact PSA 9 sale","Exact completed sale","Counts"],
+        ["✓","2026-08-18 · Exact PSA 9 sale","Exact completed sale","Counts"],
+        ["×","Raw-card candidate","Wrong grade state","Left out"],
+        ["×","Duplicate source","Same sale counted twice","Left out"]
       ]
     },
     VERIFY:{
       card:"2022 Panini Prizm Brock Purdy #353 · PSA 10",
       decision:"VERIFY",
       label:"Verify before acting",
-      copy:"Evidence quality is not strong enough for a stronger governed decision.",
+      copy:"There are not enough trustworthy sales to support a stronger call yet.",
       confidence:61,confidenceCopy:"Moderate support",
-      risk:58,riskCopy:"Material uncertainty",
-      heat:null,heatBand:"WITHHELD",heatCopy:"Heat stays withheld when the saved decision does not clear its evidence gates.",
-      next:"Verify exact sold evidence before relying on price support.",
+      risk:58,riskCopy:"More uncertainty",
+      heat:null,heatBand:"Unavailable",
+      heatCopy:"Opportunity priority appears after the card clears the required evidence checks.",
+      next:"Verify more exact sales before relying on the price.",
+      evidenceAccepted:3,evidenceTotal:7,
+      spark:"4,25 17,18 30,23 43,16 56,21 68,19",
       signals:{
-        identity:{title:"Exact identity confirmed",detail:"Base card · PSA 10 · exact card number",state:"LOCKED",heading:"Identity is not the blocker.",body:"The exact card is established. The current limitation is downstream: too little qualified sold evidence survived the governed evidence gate.",label:"IDENTITY PROOF",proof:"Year · product · card number · parallel · grade agree"},
-        evidence:{title:"3 of 7 candidates qualified",detail:"Wrong parallels and duplicate evidence stayed out",state:"THIN",heading:"Evidence is the primary blocker.",body:"Only three candidates survived current exact-card evidence policy. Wrong parallels, autograph variants, and duplicate evidence remain excluded.",label:"EVIDENCE PROOF",proof:"3 accepted · 4 excluded by current evidence policy"},
-        economics:{title:"Supported value withheld",detail:"Exact sold evidence did not clear the value gate",state:"WITHHELD",heading:"FlipForge refuses false precision here.",body:"Because evidence support is not sufficient, the customer does not get a manufactured supported value.",label:"ECONOMIC PROOF",proof:"Supported Value withheld by governed evidence gate"},
-        uncertainty:{title:"Confidence 61 · Risk 58",detail:"Uncertainty remains too high for stronger authority",state:"REVIEW",heading:"Uncertainty reinforces VERIFY.",body:"Confidence and risk remain in a range that requires more verification before stronger authority is appropriate.",label:"UNCERTAINTY PROOF",proof:"Confidence 61 · Risk 58"}
+        identity:{title:"Exact card confirmed",detail:"Year, set, number, variant, and grade agree",state:"Exact match",caption:"First, FlipForge confirms the exact card. Identity is clear, so the problem is somewhere later in the chain."},
+        evidence:{title:"3 of 7 sales qualify",detail:"Four comparisons are rejected because they do not belong",state:"3 good sales",caption:"Next, only three of seven comparisons survive. Wrong variants, a duplicate, and an identity conflict stay out."},
+        economics:{title:"Price support is unavailable",detail:"Three trusted sales are not enough to support a reliable value",state:"No price support",caption:"Because the trustworthy sales are too limited, FlipForge does not manufacture a price estimate."},
+        uncertainty:{title:"61% confidence · more uncertainty",detail:"More checking is needed before stronger action",state:"More checking",caption:"The remaining uncertainty is high enough that FlipForge stops at VERIFY instead of pretending the case is stronger."}
       },
       evidence:[
-        ["✓","2025-09-16 · Exact base PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-09-04 · Exact base PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-08-24 · Exact base PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["×","Black & White Checker","Wrong parallel","EXCLUDED"],
-        ["×","Autograph listing","Wrong variant","EXCLUDED"],
-        ["×","Duplicate sold record","Canonical duplicate","EXCLUDED"],
-        ["×","Unverified listing identity","Identity conflict","EXCLUDED"]
+        ["✓","2026-09-16 · Exact base PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-09-04 · Exact base PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-08-24 · Exact base PSA 10 sale","Exact completed sale","Counts"],
+        ["×","Black & White Checker","Wrong parallel","Left out"],
+        ["×","Autograph listing","Wrong variant","Left out"],
+        ["×","Duplicate sold record","Same sale counted twice","Left out"],
+        ["×","Unverified listing identity","Card identity does not resolve cleanly","Left out"]
       ]
     },
     PASS:{
       card:"2023 Panini Prizm Victor Wembanyama #136 · PSA 10",
       decision:"PASS",
-      label:"Current setup does not justify stronger action",
-      copy:"Evidence is usable, but the saved all-in ask sits above the supported economic range.",
-      confidence:84,confidenceCopy:"Strong evidence support",
-      risk:34,riskCopy:"Moderate-low uncertainty",
-      heat:28,heatBand:"LOW PRIORITY",heatCopy:"Forge Heat keeps this eligible saved opportunity low in the qualified priority set.",
-      next:"Wait for meaningfully better economics or new qualifying evidence.",
+      label:"Pass at this price",
+      copy:"The evidence is strong enough to judge the deal, and the asking price is too high.",
+      confidence:84,confidenceCopy:"Strong support",
+      risk:34,riskCopy:"Lower uncertainty",
+      heat:28,heatBand:"Low priority",
+      heatCopy:"This eligible saved opportunity ranks low because the current price setup is weak.",
+      next:"Wait for meaningfully better pricing or new evidence.",
+      evidenceAccepted:5,evidenceTotal:6,
+      spark:"4,11 17,13 30,12 43,16 56,18 68,23",
       signals:{
-        identity:{title:"Exact identity confirmed",detail:"2023 Prizm #136 · base · PSA 10",state:"LOCKED",heading:"Identity is clear.",body:"The exact card is established and does not block the saved decision.",label:"IDENTITY PROOF",proof:"Year · product · number · variant · grade agree"},
-        evidence:{title:"5 of 6 candidates qualified",detail:"Evidence support is strong enough to evaluate economics",state:"STRONG",heading:"Evidence is not the problem.",body:"Five unique exact-card completed sales qualified, giving the economic comparison enough support.",label:"EVIDENCE PROOF",proof:"5 accepted exact sales · 1 excluded"},
-        economics:{title:"Ask $615 · Supported $548",detail:"Current ask is 12.2% above supported value",state:"-12.2%",heading:"Economics drive the PASS.",body:"The all-in ask exceeds the current evidence-supported value context by enough to block stronger authority.",label:"ECONOMIC PROOF",proof:"$615 ask · $548 supported · -12.2% gap"},
-        uncertainty:{title:"Confidence 84 · Risk 34",detail:"Quality is adequate; economics still fail",state:"CLEAR",heading:"Good confidence does not rescue weak economics.",body:"The evidence environment is relatively strong, but Smart Opportunity still returns PASS because the price setup does not qualify.",label:"UNCERTAINTY PROOF",proof:"Confidence 84 · Risk 34"}
+        identity:{title:"Exact card confirmed",detail:"Year, set, number, variant, and grade agree",state:"Exact match",caption:"First, FlipForge confirms the exact card so the price comparison starts from the right identity."},
+        evidence:{title:"5 of 6 sales qualify",detail:"Five exact completed sales support the comparison",state:"5 good sales",caption:"Next, five trustworthy sales give FlipForge enough evidence to judge the asking price."},
+        economics:{title:"Asking price is 12% above value support",detail:"$615 ask compared with $548 of evidence-backed support",state:"12% above",caption:"Then the price check shows the problem: the seller is asking materially more than the trusted sales support."},
+        uncertainty:{title:"84% confidence · lower uncertainty",detail:"The evidence is strong; the price is still the problem",state:"Lower uncertainty",caption:"Finally, good confidence confirms that this is not an uncertainty problem—the economics drive the PASS."}
       },
       evidence:[
-        ["✓","2025-09-19 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-09-10 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-09-01 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-08-25 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["✓","2025-08-14 · Exact PSA 10 sale","Accepted exact completed sale","ACCEPTED"],
-        ["×","Silver parallel candidate","Variant mismatch","EXCLUDED"]
+        ["✓","2026-09-19 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-09-10 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-09-01 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-08-25 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["✓","2026-08-14 · Exact PSA 10 sale","Exact completed sale","Counts"],
+        ["×","Silver parallel candidate","Different variant","Left out"]
       ]
     }
   };
@@ -122,34 +141,64 @@
     grid.innerHTML=rows.map(row=>`<div class="ff-cdi-evidence-row"><span aria-hidden="true">${row[0]}</span><div><strong>${row[1]}</strong><small>${row[2]}</small></div><span>${row[3]}</span></div>`).join("");
   }
 
+  function setEvidenceDots(accepted,total){
+    const dots=[...stage.querySelectorAll(".ff-cdi-visual-evidence i")];
+    dots.forEach((dot,index)=>{
+      dot.hidden=index>=total;
+      dot.classList.toggle("is-kept",index<accepted);
+      dot.classList.toggle("is-out",index>=accepted&&index<total);
+    });
+  }
+
+  function setSpark(points){
+    const line=stage.querySelector("[data-price-spark]");
+    const dot=stage.querySelector("[data-price-dot]");
+    if(line)line.setAttribute("points",points);
+    if(dot){
+      const last=points.trim().split(/\s+/).at(-1)?.split(",")||[];
+      if(last.length===2){
+        dot.setAttribute("cx",last[0]);
+        dot.setAttribute("cy",last[1]);
+      }
+    }
+  }
+
   function applySignal(key,data){
     setText(`[data-signal-title="${key}"]`,data.title);
     setText(`[data-signal-detail="${key}"]`,data.detail);
     setText(`[data-signal-state="${key}"]`,data.state);
   }
 
-  function renderDetail(key){
+  function setSelectedSignal(key){
+    signals.forEach(node=>node.setAttribute("aria-pressed",String(node.dataset.signal===key)));
+  }
+
+  function showSignalExplanation(key,index=null){
     const data=fixtures[stage.dataset.state]?.signals?.[key];
     if(!data)return;
-    signals.forEach(node=>node.setAttribute("aria-pressed",String(node.dataset.signal===key)));
-    setText("[data-detail-heading]",data.heading);
-    setText("[data-detail-body]",data.body);
-    setText("[data-detail-label]",data.label);
-    setText("[data-detail-proof]",data.proof);
+    setSelectedSignal(key);
+    const resolvedIndex=index??Math.max(0,signals.findIndex(node=>node.dataset.signal===key));
+    if(tourStep)tourStep.textContent=`STEP ${resolvedIndex+1} OF ${signals.length}`;
+    if(tourCaption)tourCaption.textContent=data.caption;
+  }
+
+  function updateVisuals(data){
+    setEvidenceDots(data.evidenceAccepted,data.evidenceTotal);
+    setSpark(data.spark);
+
+    const miniRing=stage.querySelector(".ff-cdi-mini-ring");
+    const miniRisk=stage.querySelector("[data-risk-mini]");
+    if(miniRing)miniRing.style.setProperty("--confidence",String(data.confidence));
+    if(miniRisk)miniRisk.style.setProperty("--risk",String(data.risk));
+
+    const confidenceMeter=stage.querySelector("[data-confidence-meter]");
+    const riskMeter=stage.querySelector("[data-risk-meter]");
+    if(confidenceMeter)confidenceMeter.style.setProperty("--meter",String(data.confidence));
+    if(riskMeter)riskMeter.style.setProperty("--meter",String(data.risk));
   }
 
   function setStackStatus(value){
     if(stackStatus)stackStatus.textContent=value;
-  }
-
-  function finishImmediately(){
-    signals.forEach(node=>{
-      node.classList.add("is-in");
-      node.classList.remove("is-active-step");
-    });
-    stage.dataset.building="false";
-    stage.dataset.locked="true";
-    setStackStatus("4 signals · assembled");
   }
 
   let timers=[];
@@ -158,28 +207,44 @@
     timers=[];
   }
 
+  function finishImmediately(){
+    clearTimers();
+    signals.forEach(node=>{
+      node.classList.add("is-in");
+      node.classList.remove("is-active-step");
+    });
+    stage.dataset.building="false";
+    stage.dataset.locked="true";
+    if(skipButton)skipButton.hidden=true;
+    setStackStatus("4 checks complete");
+    if(tourStep)tourStep.textContent="REASON TRAIL COMPLETE";
+    if(tourCaption)tourCaption.textContent="Tap any check to revisit the part of the reasoning you want to inspect.";
+    if(startLabel)startLabel.textContent="Replay reasoning";
+  }
+
   function play(){
     clearTimers();
+    if(!reasoning)return;
+
+    reasoning.hidden=false;
+    stage.dataset.locked="false";
+
     if(reduced){
       stage.classList.remove("ff-cdi-motion-ready");
       finishImmediately();
+      reasoning.scrollIntoView({behavior:"auto",block:"start"});
       return;
     }
 
-    // Progressive enhancement: the stack is fully visible without this class.
-    // Only hide/reveal rows after the animation runtime is confirmed alive.
     stage.classList.add("ff-cdi-motion-ready");
-    stage.dataset.locked="false";
     stage.dataset.building="false";
-    signals.forEach(node=>{
-      node.classList.remove("is-in","is-active-step");
-    });
-    setStackStatus("Building reason trail…");
+    signals.forEach(node=>node.classList.remove("is-in","is-active-step"));
+    setSelectedSignal("");
+    if(skipButton)skipButton.hidden=false;
+    setStackStatus("Building the reason trail…");
+    if(tourStep)tourStep.textContent="GETTING READY";
+    if(tourCaption)tourCaption.textContent="FlipForge is about to walk through the four checks behind this decision.";
 
-    // If animation scheduling is interrupted, restore the complete readable stack.
-    timers.push(setTimeout(finishImmediately,2200));
-
-    // Force a committed reset frame so Replay is deterministic in every browser.
     void stage.offsetWidth;
     requestAnimationFrame(()=>{
       stage.dataset.building="true";
@@ -189,93 +254,101 @@
         timers.push(setTimeout(()=>{
           signals.forEach(value=>value.classList.remove("is-active-step"));
           node.classList.add("is-active-step");
-          setStackStatus(`Signal ${index+1} of ${signals.length}`);
-        },90+index*170));
+          showSignalExplanation(node.dataset.signal,index);
+          setStackStatus(`Check ${index+1} of ${signals.length}`);
+        },120+index*340));
       });
 
       timers.push(setTimeout(()=>{
         signals.forEach(node=>node.classList.remove("is-active-step"));
         stage.dataset.building="false";
         stage.dataset.locked="true";
-        setStackStatus("4 signals · assembled");
+        if(skipButton)skipButton.hidden=true;
+        setStackStatus("4 checks complete");
+        if(tourStep)tourStep.textContent="DECISION EXPLAINED";
+        if(tourCaption)tourCaption.textContent="The four checks are complete. Tap any row for another look or open the full evidence below.";
+        if(startLabel)startLabel.textContent="Replay reasoning";
         clearTimers();
-      },90+(signals.length-1)*170+430));
+      },120+(signals.length-1)*340+620));
+
+      timers.push(setTimeout(finishImmediately,3400));
     });
+
+    reasoning.scrollIntoView({behavior:"smooth",block:"start"});
   }
 
-  function renderState(name,{replay=true}={}){
+  function openSpecificSignal(key){
+    if(!reasoning)return;
+    clearTimers();
+    reasoning.hidden=false;
+    stage.classList.remove("ff-cdi-motion-ready");
+    signals.forEach(node=>node.classList.add("is-in"));
+    stage.dataset.building="false";
+    stage.dataset.locked="true";
+    if(skipButton)skipButton.hidden=true;
+    const target=signals.find(node=>node.dataset.signal===key);
+    showSignalExplanation(key);
+    setStackStatus("Step opened");
+    if(target){
+      target.focus({preventScroll:true});
+      target.scrollIntoView({behavior:reduced?"auto":"smooth",block:"center"});
+    }
+  }
+
+  function renderState(name){
     const data=fixtures[name]||fixtures.VERIFY;
+    clearTimers();
     stage.dataset.state=name;
+    stage.dataset.building="false";
     stage.dataset.locked="false";
+    stage.classList.remove("ff-cdi-motion-ready");
+    if(reasoning)reasoning.hidden=true;
+    if(skipButton)skipButton.hidden=true;
 
     setText("[data-card-title]",data.card);
     setText("[data-decision]",data.decision);
     setText("[data-decision-label]",data.label);
     setText("[data-decision-copy]",data.copy);
-    setText("[data-confidence]",String(data.confidence));
+    setText("[data-tour-label]",`Show me why FlipForge said ${data.decision}`);
+    setText("[data-confidence]",`${data.confidence}%`);
     setText("[data-confidence-copy]",data.confidenceCopy);
-    setText("[data-risk]",String(data.risk));
+    setText("[data-risk]",`${data.risk} / 100`);
     setText("[data-risk-copy]",data.riskCopy);
-    setText("[data-heat]",data.heat==null?"—":String(data.heat));
+    setText("[data-heat]",data.heat==null?"—":`${data.heat} / 100`);
     setText("[data-heat-band]",data.heatBand);
     setText("[data-heat-copy]",data.heatCopy);
     setText("[data-next-action]",data.next);
     setText("[data-receipt-decision]",data.decision);
 
-    const confidenceRing=stage.querySelector('[data-ring="confidence"]');
-    const riskRing=stage.querySelector('[data-ring="risk"]');
-    if(confidenceRing){
-      confidenceRing.style.setProperty("--value",String(data.confidence));
-      confidenceRing.setAttribute("aria-label",`Confidence ${data.confidence} out of 100`);
-    }
-    if(riskRing){
-      riskRing.style.setProperty("--value",String(data.risk));
-      riskRing.setAttribute("aria-label",`Risk ${data.risk} out of 100`);
-    }
-
     const heat=stage.querySelector(".ff-cdi-heat");
-    const heatGauge=stage.querySelector(".ff-cdi-heat-gauge");
-    if(heat){
-      heat.dataset.heatState=data.heat==null?"withheld":"scored";
-      heat.style.setProperty("--heat",data.heat==null?"0%":`${data.heat}%`);
-    }
-    if(heatGauge)heatGauge.setAttribute("aria-label",data.heat==null?"Forge Heat withheld":`Forge Heat ${data.heat} out of 100`);
+    if(heat)heat.dataset.heatState=data.heat==null?"unavailable":"scored";
 
     Object.entries(data.signals).forEach(([key,value])=>applySignal(key,value));
+    updateVisuals(data);
     renderEvidence(data.evidence);
-    renderDetail("identity");
+    setSelectedSignal("");
+    setStackStatus("Ready");
+    if(tourStep)tourStep.textContent="STEP 1 OF 4";
+    if(tourCaption)tourCaption.textContent=data.signals.identity.caption;
 
     stateButtons.forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.previewState===name)));
-
-    if(replay)play();
-    else finishImmediately();
   }
 
   signals.forEach(node=>{
-    node.addEventListener("click",()=>renderDetail(node.dataset.signal));
+    node.addEventListener("click",()=>showSignalExplanation(node.dataset.signal));
   });
 
   guideButtons.forEach(button=>{
-    button.addEventListener("click",()=>{
-      const key=button.dataset.guideSignal;
-      const target=signals.find(node=>node.dataset.signal===key);
-      renderDetail(key);
-      if(target){
-        target.focus({preventScroll:true});
-        target.scrollIntoView({behavior:reduced?"auto":"smooth",block:"center"});
-      }
-    });
+    button.addEventListener("click",()=>openSpecificSignal(button.dataset.guideSignal));
   });
 
   stateButtons.forEach(button=>{
     button.addEventListener("click",()=>renderState(button.dataset.previewState));
   });
 
+  startButton?.addEventListener("click",play);
   stage.querySelector("[data-replay]")?.addEventListener("click",play);
-  stage.querySelector("[data-skip]")?.addEventListener("click",()=>{
-    clearTimers();
-    finishImmediately();
-  });
+  skipButton?.addEventListener("click",finishImmediately);
 
-  renderState("VERIFY",{replay:true});
+  renderState("VERIFY");
 })();
