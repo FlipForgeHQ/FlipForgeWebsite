@@ -253,10 +253,12 @@
   // Capture the customer's latest typed identity before any compatibility or
   // presentation observer can replace the form. The typed intent, not stale
   // rendered markup, owns the next identity-assist request.
-  document.addEventListener("input", event => {
-    const input = event.target?.closest?.('[data-customer-discovery-form] input[name="exactCardQuery"]');
-    if (input) captureIdentityIntent(input);
-  }, true);
+  if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+    document.addEventListener("input", event => {
+      const input = event.target?.closest?.('[data-customer-discovery-form] input[name="exactCardQuery"]');
+      if (input) captureIdentityIntent(input);
+    }, true);
+  }
 
   function readSearch(form) {
     const values = new FormData(form);
