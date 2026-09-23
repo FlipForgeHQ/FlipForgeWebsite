@@ -97,7 +97,6 @@
       else window.location.reload();
     });
     actions.appendChild(button);
-    page.dataset.ffTrackingCustomerUx = "v3";
 
     const error = page.querySelector(".staging-error");
     const code = String(error?.querySelector("strong")?.textContent || "");
