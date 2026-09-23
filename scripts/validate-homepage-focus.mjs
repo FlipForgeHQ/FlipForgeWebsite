@@ -86,7 +86,7 @@ check('058 no browser storage is introduced',['localStorage','sessionStorage','i
 check('059 reduced motion is respected',heroCss.includes('@media(prefers-reduced-motion:reduce)')&&dealCss.includes('@media(prefers-reduced-motion:reduce)')&&processCss.includes('@media(prefers-reduced-motion:reduce)')&&cdiCss.includes('@media(prefers-reduced-motion:reduce)')&&dealJs.includes('prefers-reduced-motion'));
 check('060 live processing is measured',dealJs.includes('flipforge_demo_processing_started'));
 check('061 premium landing attraction is loaded',index.includes('assets/css/homepage-motion-attraction-v1.css')&&index.includes('assets/js/homepage-motion-attraction-v1.js'));
-check('062 landing attraction uses approved product graphics',index.includes('<section class=\"ff-motion-attraction\"')&&['assets/images/flipforge-identity-first.webp','assets/images/flipforge-evidence-review.webp','assets/images/flipforge-approved-decision-visual.webp'].every(path=>index.includes(path)));
+check('062 landing attraction uses approved product graphics',index.includes('<section class=\"ff-motion-attraction\"')&&['assets/images/flipforge-identity-first.webp','assets/images/flipforge-evidence-review.webp','assets/images/before-after-flipforge.webp'].every(path=>index.includes(path)));
 check('063 landing attraction keeps approved mark without timed marketing copy',index.includes('assets/brand/flipforge-mark.svg')&&!/9-SECOND DECISION INTELLIGENCE/i.test(index));
 
 const failures=checks.filter(item=>!item.passed);
