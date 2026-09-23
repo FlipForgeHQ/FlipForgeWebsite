@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 
-const baseUrl = process.env.FLIPFORGE_HEAT_AUDIT_URL || "http://127.0.0.1:4173/app";
+const baseUrl = process.env.FLIPFORGE_HEAT_AUDIT_URL || "http://127.0.0.1:4173/app/customer";
 const viewports = [
   ["desktop", 1440, 1000],
   ["tablet", 900, 1100],
