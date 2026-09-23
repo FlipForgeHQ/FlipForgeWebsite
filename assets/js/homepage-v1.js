@@ -101,6 +101,7 @@
         <div class="ff-cdi-home-actions">
           <a class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a>
           <a class="decision-text-link" href="decision-intelligence.html">Explore the full system <span aria-hidden="true">→</span></a>
+          <a class="decision-text-link" href="pricing.html">Launch Plans <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </div>`
