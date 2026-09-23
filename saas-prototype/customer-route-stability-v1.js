@@ -49,7 +49,7 @@
       if (!page) return false;
       if (page.querySelector(".staging-error")) {
         return Boolean(page.querySelector("[data-ff-tracking-retry]"))
-          || page.dataset.ffTrackingCustomerUx === "v3";
+          && page.dataset.ffTrackingCustomerUx === "v3";
       }
       return page.dataset.ffTrackingCustomerUx === "v3";
     }
