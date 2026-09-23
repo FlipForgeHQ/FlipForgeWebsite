@@ -231,6 +231,33 @@
     );
   }
 
+  function captureIdentityIntent(input) {
+    if (!input || !state.main?.contains?.(input)) return;
+    const visibleQuery = normalizeIdentityQuery(input.value);
+    state.identityAssist.typedQuery = visibleQuery;
+    state.draft.exactCardQuery = visibleQuery;
+
+    if (state.identityAssist.active && visibleQuery !== normalizeIdentityQuery(state.identityAssist.query)) {
+      state.identityAssist.requestSerial += 1;
+      state.identityAssist.active = false;
+      state.identityAssist.busy = false;
+      state.identityAssist.query = "";
+      state.identityAssist.resultsQuery = "";
+      state.identityAssist.resultsSerial = 0;
+      state.identityAssist.results = [];
+      state.identityAssist.message = "";
+      state.main?.querySelector?.(".customer-discovery-identity-assist")?.remove();
+    }
+  }
+
+  // Capture the customer's latest typed identity before any compatibility or
+  // presentation observer can replace the form. The typed intent, not stale
+  // rendered markup, owns the next identity-assist request.
+  document.addEventListener("input", event => {
+    const input = event.target?.closest?.('[data-customer-discovery-form] input[name="exactCardQuery"]');
+    if (input) captureIdentityIntent(input);
+  }, true);
+
   function readSearch(form) {
     const values = new FormData(form);
     const exactCardQuery = normalizeIdentityQuery(values.get("exactCardQuery") || "");
@@ -431,6 +458,12 @@
       // overwrite it with a previous identity-assist query; doing so can carry a
       // stale server selection token into the next card search.
       draft = readSearch(form);
+      const typedIntent = normalizeIdentityQuery(state.identityAssist.typedQuery);
+      if (typedIntent && typedIntent !== draft.exactCardQuery) {
+        draft.exactCardQuery = typedIntent;
+        const input = form?.querySelector?.('input[name="exactCardQuery"]');
+        if (input && input.value !== typedIntent) input.value = typedIntent;
+      }
     } catch (error) {
       state.error = error;
       renderCurrent();
@@ -662,24 +695,7 @@
       if (!state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) search(form);
     });
     const identityInput = form?.querySelector?.('input[name="exactCardQuery"]');
-    identityInput?.addEventListener("input", () => {
-      const visibleQuery = normalizeIdentityQuery(identityInput.value);
-      state.identityAssist.typedQuery = visibleQuery;
-      state.draft.exactCardQuery = visibleQuery;
-      if (state.identityAssist.active && visibleQuery !== normalizeIdentityQuery(state.identityAssist.query)) {
-        state.identityAssist.requestSerial += 1;
-        state.identityAssist.active = false;
-        state.identityAssist.busy = false;
-        state.identityAssist.query = "";
-        state.identityAssist.resultsQuery = "";
-        state.identityAssist.resultsSerial = 0;
-        state.identityAssist.results = [];
-        state.identityAssist.message = "";
-        // Remove stale selection controls immediately without re-rendering the
-        // form the customer is actively typing in.
-        state.main?.querySelector?.(".customer-discovery-identity-assist")?.remove();
-      }
-    });
+    identityInput?.addEventListener("input", () => captureIdentityIntent(identityInput));
     const findExactButton = state.main?.querySelector?.("[data-discovery-find-exact]");
     findExactButton?.addEventListener("click", () => {
       if (form && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) findExactCard(form);
