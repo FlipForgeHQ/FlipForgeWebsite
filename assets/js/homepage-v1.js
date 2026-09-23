@@ -51,7 +51,6 @@
       {href:'product.html',label:'Product'},
       {href:'decision-intelligence.html',label:'Decision Intelligence'},
       {href:'learn.html',label:'Evidence Lab'},
-      {href:'pricing.html',label:'Launch Plans'},
       {href:'about.html',label:'About'},
       {href:'beta-application.html',label:'Request Beta Access',cta:true}
     ];
@@ -77,9 +76,9 @@
   const cdiHomeMarkup=()=>`
     <div class="ff-cdi-home-inner">
       <div class="ff-cdi-home-head">
-        <p class="ff-cdi-home-kicker">WHAT IS CARD DECISION INTELLIGENCE™?</p>
-        <h2>Data tells you what happened. FlipForge helps you decide what to do now.</h2>
-        <p>Card Decision Intelligence™ connects verified card identity, qualified evidence, market economics, uncertainty, decision reasoning, outcomes, and governance into one explainable system. <strong>It is the layer between sports-card data and the decision to spend.</strong></p>
+        <p class="ff-cdi-home-kicker">THE SYSTEM BEHIND THE CALL</p>
+        <h2>Every decision moves through the same governed path.</h2>
+        <p>First prove the card. Then qualify the evidence. Then test economics and risk. Only after those checks does FlipForge return BUY, WATCH, VERIFY, or PASS — with the reason trail preserved.</p>
       </div>
 
       <div class="ff-cdi-visual-proof" aria-label="FlipForge product intelligence examples">
@@ -88,26 +87,21 @@
         <figure><img src="assets/images/before-after-flipforge.webp" alt="FlipForge before-and-after decision view showing how evidence changes the call."><figcaption><span>03 · DECISION</span><strong>See how the evidence changes the decision.</strong></figcaption></figure>
       </div>
 
-      <div class="ff-cdi-contrast" aria-label="Difference between market data and Card Decision Intelligence">
-        <article><span>MARKET DATA</span><h3>What sold? What is listed? What moved?</h3><p>Useful context, but it still leaves the collector responsible for deciding which evidence belongs and what the risk means.</p></article>
-        <article><span>CARD DECISION INTELLIGENCE™</span><h3>What should I do — and why?</h3><p>FlipForge turns trusted context into BUY, WATCH, VERIFY, or PASS, while preserving the reason trail behind the call.</p></article>
+      <div class="ff-cdi-systems" aria-label="Four systems of Card Decision Intelligence">
+        <article class="ff-cdi-system-card"><span>A · KNOW THE CARD</span><h3>Prove the exact card.</h3><p>Release, card structure, exact identity, and identity trust are resolved before market evidence gets a vote.</p><div class="ff-cdi-system-layers"><small>Release</small><small>Taxonomy</small><small>Identity</small><small>Provenance + Trust</small></div></article>
+        <article class="ff-cdi-system-card"><span>B · KNOW THE MARKET</span><h3>Use evidence that belongs.</h3><p>Qualified evidence supports value, product and variant behavior, grade context, and scarcity observations.</p><div class="ff-cdi-system-layers"><small>Evidence</small><small>Economics</small><small>Product + Variant</small><small>Grade + Scarcity</small></div></article>
+        <article class="ff-cdi-system-card"><span>C · MAKE THE DECISION</span><h3>Make the call—and show why.</h3><p>Risk stays visible while FlipForge turns the surviving evidence into BUY, WATCH, VERIFY, or PASS and preserves the reason trail.</p><div class="ff-cdi-system-layers"><small>Risk + Uncertainty</small><small>Decision</small><small>Decision Receipt</small></div></article>
+        <article class="ff-cdi-system-card"><span>D · LEARN WHAT HAPPENED</span><h3>Measure whether it held up.</h3><p>Outcomes are measured against the original decision while unknowns, conflicts, and future changes stay governed.</p><div class="ff-cdi-system-layers"><small>Outcome</small><small>Governance + Continuous</small></div></article>
       </div>
 
-      <div class="ff-cdi-systems" aria-label="Four systems of Card Decision Intelligence">
-          <article class="ff-cdi-system-card"><span>A · KNOW THE CARD</span><h3>Prove the exact card.</h3><p>Release, card structure, exact identity, and identity trust are resolved before market evidence gets a vote.</p><div class="ff-cdi-system-layers"><small>Release</small><small>Taxonomy</small><small>Identity</small><small>Provenance + Trust</small></div></article>
-          <article class="ff-cdi-system-card"><span>B · KNOW THE MARKET</span><h3>Use evidence that belongs.</h3><p>Qualified evidence supports value, product and variant behavior, grade context, and scarcity observations.</p><div class="ff-cdi-system-layers"><small>Evidence</small><small>Economics</small><small>Product + Variant</small><small>Grade + Scarcity</small></div></article>
-          <article class="ff-cdi-system-card"><span>C · MAKE THE DECISION</span><h3>Make the call—and show why.</h3><p>Risk stays visible while FlipForge turns the surviving evidence into BUY, WATCH, VERIFY, or PASS and preserves the reason trail.</p><div class="ff-cdi-system-layers"><small>Risk + Uncertainty</small><small>Decision</small><small>Decision Receipt</small></div></article>
-          <article class="ff-cdi-system-card"><span>D · LEARN WHAT HAPPENED</span><h3>Measure whether it held up.</h3><p>Outcomes are measured against the original decision while unknowns, conflicts, and future changes stay governed.</p><div class="ff-cdi-system-layers"><small>Outcome</small><small>Governance + Continuous</small></div></article>
-        </div>
-
-        <div class="ff-cdi-home-footer">
+      <div class="ff-cdi-home-footer">
         <div class="ff-cdi-home-footer-copy"><span>FLIPFORGE = CARD DECISION INTELLIGENCE™</span><strong>Know the card. Know the market. Make the decision. Learn what happened.</strong></div>
         <div class="ff-cdi-home-actions">
-          <a class="decision-button decision-button-primary" href="decision-intelligence.html">Explore Decision Intelligence</a>
-          <a class="decision-button decision-button-secondary" href="beta-application.html">Request Beta Access</a>
+          <a class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a>
+          <a class="decision-text-link" href="decision-intelligence.html">Explore the full system <span aria-hidden="true">→</span></a>
         </div>
       </div>
-    </div>`;
+    </div>`
 
   const syncHomepagePositioning=()=>{
     if(!isHomepage())return;
