@@ -3,6 +3,34 @@
   gap: 18px;
 }
 
+/* Tracking fail-closed state must keep its heading geometry stable while
+ * presentation/accessibility layers finish. Reserve the retry-action column
+ * from first paint so title wrapping and the first panel never jump later. */
+@media (min-width: 901px) {
+  .ff-commercial-shell .customer-lifecycle-page .page-heading:has([data-ff-tracking-retry]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    align-items: end;
+  }
+
+  .ff-commercial-shell .customer-lifecycle-page .page-heading:has([data-ff-tracking-retry]) > div:first-child {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .ff-commercial-shell .customer-lifecycle-page .page-heading:has([data-ff-tracking-retry]) .page-actions {
+    width: 220px;
+    min-width: 220px;
+  }
+
+  .ff-commercial-shell .customer-lifecycle-page .page-heading:has([data-ff-tracking-retry]) .page-actions .button {
+    width: 100%;
+    min-width: 0;
+    font-size: 14px;
+  }
+}
+
 .customer-lifecycle-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(300px, .8fr);
