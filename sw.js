@@ -29,6 +29,7 @@ const SHELL=[
   '/assets/css/decision-intelligence-consumer-v2.css',
   '/assets/js/site.js',
   '/assets/js/homepage-v5.js',
+  '/assets/js/phase3-activation-events-v1.js',
   '/assets/js/homepage-v1.js',
   '/assets/js/homepage-deal-or-decoy-v1.js',
   '/assets/js/homepage-contender-v1.js',
