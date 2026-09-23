@@ -352,3 +352,203 @@ body.ff-phase2-ready main{overflow:clip}
   .ff-phase3-product-receipt-tabs button{transition:none!important}
   .ff-phase3-product-receipt-reveal[data-layer]{animation:none!important;opacity:1!important;transform:none!important}
 }
+
+/* === V5 PUBLIC PAGE COMPOSITION REFINEMENT === */
+body.ff-v5-product-page .page-hero{
+  position:relative;
+  overflow:hidden;
+  max-width:none;
+  padding-top:96px;
+  padding-bottom:88px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:
+    radial-gradient(circle at 78% 24%,rgba(212,175,55,.09),transparent 27%),
+    linear-gradient(180deg,rgba(255,255,255,.012),transparent);
+}
+body.ff-v5-product-page .page-hero:before{
+  content:"";
+  position:absolute;
+  left:max(24px,calc((100vw - 1180px)/2));
+  top:64px;
+  width:74px;
+  height:1px;
+  background:linear-gradient(90deg,#D4AF37,transparent);
+}
+body.ff-v5-product-page .page-hero h1{
+  max-width:930px;
+  letter-spacing:-.045em;
+  line-height:1.01;
+}
+body.ff-v5-product-page .page-hero .lead{max-width:850px}
+body.ff-v5-product-page .page-hero .buttons{margin-top:28px}
+body.ff-v5-product-page .ff-v5-brand-promise{
+  max-width:760px;
+  margin:24px auto 0;
+  padding-top:18px;
+  border-top:1px solid rgba(212,175,55,.22);
+  color:#f0ce68;
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:.01em;
+}
+body.ff-v5-product-page .ff-aw-proof-strip{
+  gap:0;
+  border-top:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:transparent;
+}
+body.ff-v5-product-page .ff-aw-proof-strip article{
+  position:relative;
+  min-height:220px;
+  border:0;
+  border-right:1px solid rgba(255,255,255,.07);
+  border-radius:0;
+  background:linear-gradient(180deg,rgba(212,175,55,.025),transparent 72%);
+}
+body.ff-v5-product-page .ff-aw-proof-strip article:last-child{border-right:0}
+body.ff-v5-product-page .ff-aw-proof-strip article:before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  width:64px;
+  height:2px;
+  background:linear-gradient(90deg,#D4AF37,transparent);
+}
+body.ff-v5-product-page .identity-layout{
+  overflow:hidden;
+  border:1px solid rgba(212,175,55,.16);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 82% 20%,rgba(212,175,55,.05),transparent 26%),
+    #070b10;
+  box-shadow:0 30px 90px rgba(0,0,0,.28);
+}
+body.ff-v5-product-page .identity-console,
+body.ff-v5-product-page .case-card{
+  border-color:rgba(255,255,255,.08);
+  background:transparent;
+}
+body.ff-v5-product-page .identity-option.active{
+  border-color:rgba(212,175,55,.46);
+  box-shadow:inset 0 -2px 0 #D4AF37;
+}
+body.ff-v5-product-page .ff-aw-customer-cta{
+  position:relative;
+  overflow:hidden;
+  border-color:rgba(212,175,55,.26);
+  background:
+    radial-gradient(circle at 85% 50%,rgba(212,175,55,.09),transparent 28%),
+    linear-gradient(120deg,#080d13,#05080c);
+  box-shadow:0 28px 80px rgba(0,0,0,.24);
+}
+body.ff-v5-product-page .ff-aw-customer-cta:before{
+  content:"";
+  position:absolute;
+  left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,transparent,#D4AF37,transparent);
+}
+
+/* Decision Intelligence: premium editorial hierarchy, less dashboard-like density. */
+body.ff-v5-decision-page .ff-dic-hero{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 78% 7%,rgba(212,175,55,.08),transparent 25%),
+    linear-gradient(180deg,#030609,#05080c);
+}
+body.ff-v5-decision-page .ff-dic-heading{
+  max-width:980px;
+}
+body.ff-v5-decision-page .ff-dic-heading h1{
+  max-width:940px;
+  letter-spacing:-.05em;
+  line-height:1;
+}
+body.ff-v5-decision-page .ff-dic-heading .lead{max-width:830px}
+body.ff-v5-decision-page .ff-dic-brand-line{
+  color:#e8c85f;
+  letter-spacing:.04em;
+}
+body.ff-v5-decision-page .ff-dic-category{
+  overflow:hidden;
+  gap:0;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:16px;
+  background:#070b10;
+}
+body.ff-v5-decision-page .ff-dic-category article{
+  min-height:150px;
+  border:0;
+  border-right:1px solid rgba(255,255,255,.07);
+  border-radius:0;
+  background:transparent;
+}
+body.ff-v5-decision-page .ff-dic-category article:last-child{border-right:0}
+body.ff-v5-decision-page .ff-dic-category .is-flipforge{
+  background:
+    radial-gradient(circle at 50% 100%,rgba(212,175,55,.1),transparent 55%),
+    rgba(212,175,55,.035);
+  box-shadow:inset 0 3px 0 rgba(212,175,55,.65);
+}
+body.ff-v5-decision-page .ff-dic-demo{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(212,175,55,.25);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 80% 15%,rgba(212,175,55,.06),transparent 26%),
+    #070b10;
+  box-shadow:0 38px 110px rgba(0,0,0,.36);
+}
+body.ff-v5-decision-page .ff-dic-demo:before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  left:14%;
+  right:14%;
+  top:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#D4AF37,transparent);
+}
+body.ff-v5-decision-page .ff-dic-receipt-card{
+  border-color:rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);
+}
+body.ff-v5-decision-page .ff-dic-receipt-card[data-accent="decision"]{
+  border-color:rgba(212,175,55,.32);
+  box-shadow:inset 3px 0 0 #D4AF37;
+}
+body.ff-v5-decision-page .ff-dic-system{
+  border-color:rgba(255,255,255,.075);
+  background:linear-gradient(180deg,#091018,#070b10);
+  transition:transform .2s ease,border-color .2s ease;
+}
+body.ff-v5-decision-page .ff-dic-system:hover{
+  transform:translateY(-3px);
+  border-color:rgba(212,175,55,.24);
+}
+body.ff-v5-decision-page .ff-dic-doctrine{
+  border-color:rgba(212,175,55,.18);
+  background:linear-gradient(120deg,rgba(212,175,55,.04),rgba(255,255,255,.01));
+}
+body.ff-v5-decision-page .ff-dic-inline-final{
+  border-color:rgba(212,175,55,.22);
+  background:
+    radial-gradient(circle at 84% 40%,rgba(212,175,55,.08),transparent 27%),
+    #070b10;
+}
+@media(max-width:900px){
+  body.ff-v5-product-page .ff-aw-proof-strip{display:grid;grid-template-columns:1fr}
+  body.ff-v5-product-page .ff-aw-proof-strip article{border-right:0;border-bottom:1px solid rgba(255,255,255,.07)}
+  body.ff-v5-product-page .ff-aw-proof-strip article:last-child{border-bottom:0}
+  body.ff-v5-decision-page .ff-dic-category{display:grid;grid-template-columns:1fr 1fr}
+  body.ff-v5-decision-page .ff-dic-category article:nth-child(2){border-right:0}
+  body.ff-v5-decision-page .ff-dic-category article{border-bottom:1px solid rgba(255,255,255,.07)}
+}
+@media(max-width:620px){
+  body.ff-v5-product-page .page-hero{padding-top:68px;padding-bottom:60px}
+  body.ff-v5-product-page .ff-v5-brand-promise{font-size:12px}
+  body.ff-v5-decision-page .ff-dic-category{grid-template-columns:1fr}
+  body.ff-v5-decision-page .ff-dic-category article{border-right:0}
+}
