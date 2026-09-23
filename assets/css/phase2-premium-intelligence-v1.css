@@ -552,3 +552,241 @@ body.ff-v5-decision-page .ff-dic-inline-final{
   body.ff-v5-decision-page .ff-dic-category{grid-template-columns:1fr}
   body.ff-v5-decision-page .ff-dic-category article{border-right:0}
 }
+
+/* === V5 SUPPORTING PUBLIC PAGES ===
+   Keep the cinematic homepage hierarchy while reducing card-grid fatigue and
+   source-matching the canonical shell to minimize first-load navigation shift. */
+body.ff-v5-evidence-page .page-hero,
+body.ff-v5-pricing-page .page-hero,
+body.ff-v5-about-page .page-hero{
+  position:relative;
+  overflow:hidden;
+  max-width:none;
+  padding-top:92px;
+  padding-bottom:80px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:
+    radial-gradient(circle at 78% 20%,rgba(212,175,55,.075),transparent 28%),
+    linear-gradient(180deg,#04070a,#05080c);
+}
+body.ff-v5-evidence-page .page-hero:before,
+body.ff-v5-pricing-page .page-hero:before,
+body.ff-v5-about-page .page-hero:before{
+  content:"";
+  position:absolute;
+  left:max(24px,calc((100vw - 1180px)/2));
+  top:60px;
+  width:76px;
+  height:1px;
+  background:linear-gradient(90deg,#D4AF37,transparent);
+}
+body.ff-v5-evidence-page .page-hero h1,
+body.ff-v5-pricing-page .page-hero h1,
+body.ff-v5-about-page .page-hero h1{
+  max-width:980px;
+  letter-spacing:-.05em;
+  line-height:1.01;
+}
+body.ff-v5-evidence-page .page-hero .lead,
+body.ff-v5-pricing-page .page-hero .lead,
+body.ff-v5-about-page .page-hero .lead{max-width:880px}
+
+/* Evidence Lab — editorial learning path, not a wall of cards. */
+body.ff-v5-evidence-page .ff-lab-directory{
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:#05080c;
+}
+body.ff-v5-evidence-page .ff-lab-directory a{
+  border-radius:0;
+  border-color:transparent;
+  background:transparent;
+}
+body.ff-v5-evidence-page .ff-lab-directory a:hover{
+  border-color:rgba(212,175,55,.26);
+  background:rgba(212,175,55,.025);
+}
+body.ff-v5-evidence-page .ff-lab-section{
+  position:relative;
+}
+body.ff-v5-evidence-page .ff-lab-grid{
+  gap:0;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:16px;
+  background:#070b10;
+}
+body.ff-v5-evidence-page .ff-lab-card{
+  min-height:220px;
+  border:0;
+  border-right:1px solid rgba(255,255,255,.065);
+  border-bottom:1px solid rgba(255,255,255,.065);
+  border-radius:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.012),transparent);
+}
+body.ff-v5-evidence-page .ff-lab-card:hover{
+  background:linear-gradient(180deg,rgba(212,175,55,.035),transparent);
+}
+body.ff-v5-evidence-page .ff-lab-card .ff-lab-number{
+  color:#d6b64c;
+}
+body.ff-v5-evidence-page .ff-lab-case{
+  overflow:hidden;
+  border-color:rgba(212,175,55,.24);
+  border-radius:16px;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(212,175,55,.06),transparent 28%),
+    #070b10;
+  box-shadow:0 28px 80px rgba(0,0,0,.25);
+}
+body.ff-v5-evidence-page .ff-lab-proof{
+  overflow:hidden;
+  gap:0;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:16px;
+  background:#070b10;
+}
+body.ff-v5-evidence-page .ff-lab-proof>div{
+  border:0;
+  border-right:1px solid rgba(255,255,255,.07);
+  border-radius:0;
+  background:transparent;
+}
+body.ff-v5-evidence-page .ff-lab-proof>div:last-child{border-right:0}
+body.ff-v5-evidence-page .ff-roadmap-note{
+  border-color:rgba(212,175,55,.2);
+  background:rgba(212,175,55,.025);
+}
+
+/* Launch Plans — premium commercial framing without pretending pricing is live. */
+body.ff-v5-pricing-page .ff-beta-notice{
+  border-top:0;
+  border-bottom:1px solid rgba(212,175,55,.18);
+  background:linear-gradient(90deg,rgba(212,175,55,.045),rgba(255,255,255,.008));
+}
+body.ff-v5-pricing-page .ff-aw-plans{
+  gap:12px;
+  align-items:stretch;
+}
+body.ff-v5-pricing-page .ff-aw-plan{
+  position:relative;
+  min-height:470px;
+  overflow:hidden;
+  border-color:rgba(255,255,255,.075);
+  background:linear-gradient(180deg,#091018,#06090d);
+  box-shadow:0 22px 70px rgba(0,0,0,.2);
+}
+body.ff-v5-pricing-page .ff-aw-plan:before{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,.45),transparent);
+}
+body.ff-v5-pricing-page .ff-aw-plan.featured{
+  transform:translateY(-8px);
+  border-color:rgba(212,175,55,.42);
+  background:
+    radial-gradient(circle at 50% 0,rgba(212,175,55,.09),transparent 34%),
+    linear-gradient(180deg,#0b1118,#06090d);
+  box-shadow:0 34px 90px rgba(0,0,0,.34),0 0 0 1px rgba(212,175,55,.08);
+}
+body.ff-v5-pricing-page .ff-aw-plan h3{
+  letter-spacing:-.04em;
+}
+body.ff-v5-pricing-page .ff-aw-plan ul{
+  border-top:1px solid rgba(255,255,255,.065);
+  padding-top:16px;
+}
+body.ff-v5-pricing-page .ff-aw-proof-strip{
+  gap:0;
+  overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+body.ff-v5-pricing-page .ff-aw-proof-strip article{
+  border:0;
+  border-right:1px solid rgba(255,255,255,.07);
+  border-radius:0;
+  background:linear-gradient(180deg,rgba(212,175,55,.02),transparent);
+}
+body.ff-v5-pricing-page .ff-aw-proof-strip article:last-child{border-right:0}
+body.ff-v5-pricing-page details.legal-card{
+  border-color:rgba(255,255,255,.075);
+  border-radius:16px;
+  background:#070b10;
+}
+body.ff-v5-pricing-page .ff-aw-customer-cta{
+  border-color:rgba(212,175,55,.24);
+  background:
+    radial-gradient(circle at 82% 45%,rgba(212,175,55,.08),transparent 28%),
+    #070b10;
+}
+
+/* About — make the origin story feel editorial rather than dashboard-like. */
+body.ff-v5-about-page .ff-aw-proof-strip{
+  gap:0;
+  overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:transparent;
+}
+body.ff-v5-about-page .ff-aw-proof-strip article{
+  min-height:205px;
+  border:0;
+  border-right:1px solid rgba(255,255,255,.07);
+  border-radius:0;
+  background:linear-gradient(180deg,rgba(212,175,55,.025),transparent);
+}
+body.ff-v5-about-page .ff-aw-proof-strip article:last-child{border-right:0}
+body.ff-v5-about-page .ff-aw-question-grid{
+  gap:0;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:16px;
+  background:#070b10;
+}
+body.ff-v5-about-page .ff-aw-question{
+  min-height:230px;
+  border:0;
+  border-right:1px solid rgba(255,255,255,.065);
+  border-bottom:1px solid rgba(255,255,255,.065);
+  border-radius:0;
+  background:transparent;
+  transition:background .2s ease,transform .2s ease;
+}
+body.ff-v5-about-page .ff-aw-question:hover{
+  background:rgba(212,175,55,.025);
+  transform:translateY(-2px);
+}
+body.ff-v5-about-page .ff-aw-customer-cta{
+  position:relative;
+  overflow:hidden;
+  border-color:rgba(212,175,55,.24);
+  background:
+    radial-gradient(circle at 82% 40%,rgba(212,175,55,.08),transparent 30%),
+    #070b10;
+}
+body.ff-v5-about-page .ff-aw-customer-cta:before{
+  content:"";
+  position:absolute;
+  left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,transparent,#D4AF37,transparent);
+}
+
+@media(max-width:900px){
+  body.ff-v5-evidence-page .ff-lab-proof{grid-template-columns:1fr}
+  body.ff-v5-evidence-page .ff-lab-proof>div{border-right:0;border-bottom:1px solid rgba(255,255,255,.07)}
+  body.ff-v5-pricing-page .ff-aw-plan.featured{transform:none}
+  body.ff-v5-pricing-page .ff-aw-proof-strip,
+  body.ff-v5-about-page .ff-aw-proof-strip{display:grid;grid-template-columns:1fr}
+  body.ff-v5-pricing-page .ff-aw-proof-strip article,
+  body.ff-v5-about-page .ff-aw-proof-strip article{border-right:0;border-bottom:1px solid rgba(255,255,255,.07)}
+}
+@media(max-width:620px){
+  body.ff-v5-evidence-page .page-hero,
+  body.ff-v5-pricing-page .page-hero,
+  body.ff-v5-about-page .page-hero{padding-top:66px;padding-bottom:58px}
+  body.ff-v5-evidence-page .ff-lab-grid,
+  body.ff-v5-about-page .ff-aw-question-grid{grid-template-columns:1fr}
+}
