@@ -82,6 +82,12 @@
         <p>Card Decision Intelligence™ connects verified card identity, qualified evidence, market economics, uncertainty, decision reasoning, outcomes, and governance into one explainable system. <strong>It is the layer between sports-card data and the decision to spend.</strong></p>
       </div>
 
+      <div class="ff-cdi-visual-proof" aria-label="FlipForge product intelligence examples">
+        <figure><img src="assets/images/flipforge-identity-first.webp" alt="FlipForge identity intelligence view for exact-card verification."><figcaption><span>01 · IDENTITY</span><strong>Prove the exact card before price evidence counts.</strong></figcaption></figure>
+        <figure><img src="assets/images/flipforge-evidence-review.webp" alt="FlipForge evidence review view for qualifying comparison records."><figcaption><span>02 · EVIDENCE</span><strong>Remove the comps that do not belong.</strong></figcaption></figure>
+        <figure><img src="assets/images/before-after-flipforge.webp" alt="FlipForge before-and-after decision view showing how evidence changes the call."><figcaption><span>03 · DECISION</span><strong>See how the evidence changes the decision.</strong></figcaption></figure>
+      </div>
+
       <div class="ff-cdi-contrast" aria-label="Difference between market data and Card Decision Intelligence">
         <article><span>MARKET DATA</span><h3>What sold? What is listed? What moved?</h3><p>Useful context, but it still leaves the collector responsible for deciding which evidence belongs and what the risk means.</p></article>
         <article><span>CARD DECISION INTELLIGENCE™</span><h3>What should I do — and why?</h3><p>FlipForge turns trusted context into BUY, WATCH, VERIFY, or PASS, while preserving the reason trail behind the call.</p></article>
@@ -110,37 +116,6 @@
     document.title='FlipForge™ | Card Decision Intelligence';
     const description=document.querySelector('meta[name="description"]');
     if(description)description.setAttribute('content','FlipForge is Card Decision Intelligence for sports cards—turning exact identity, qualified evidence, economics, risk, and outcomes into an explainable BUY, WATCH, VERIFY, or PASS decision.');
-
-    const copy=document.querySelector('.decision-hero-copy');
-    if(copy){
-      const eyebrow=copy.querySelector('.decision-eyebrow');
-      if(eyebrow)eyebrow.textContent='CARD DECISION INTELLIGENCE™';
-
-      const title=copy.querySelector('#decision-hero-title');
-      const titleTop=title?.querySelector('span');
-      const titleBottom=title?.querySelector('strong');
-      if(titleTop)titleTop.textContent='Before you buy.';
-      if(titleBottom)titleBottom.textContent='Know Why.';
-
-      const lead=copy.querySelector('.decision-lead');
-      if(lead)lead.textContent='FlipForge is Card Decision Intelligence™ for sports cards—turning exact identity, qualified evidence, supported value, risk, and market context into an explainable BUY, WATCH, VERIFY, or PASS decision.';
-
-      const cue=copy.querySelector('.decision-demo-cue');
-      if(cue)cue.innerHTML='<strong>Other tools show you data.</strong> FlipForge helps you decide what to do with it—and shows the reason trail behind the call.';
-
-      const actions=copy.querySelector('.decision-actions');
-      if(actions&&!actions.querySelector('[data-ff-cdi-primary]')){
-        const primary=document.createElement('a');
-        primary.className='decision-button decision-button-primary';
-        primary.href='decision-intelligence.html';
-        primary.dataset.ffCdiPrimary='true';
-        primary.textContent='Explore Decision Intelligence';
-        actions.insertBefore(primary,actions.firstChild);
-      }
-
-      const assurance=copy.querySelector('.decision-assurance');
-      if(assurance)assurance.textContent='Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome.';
-    }
 
     const resultStage=document.querySelector('[data-ff-result-stage]');
     if(resultStage&&!resultStage.querySelector('[data-ff-cdi-reveal]')){
