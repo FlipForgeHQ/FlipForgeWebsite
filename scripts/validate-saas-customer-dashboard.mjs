@@ -34,6 +34,7 @@ const gatewayMaxTimeoutMs = Number(files.gateway.match(/MAX_TIMEOUT_MS\s*=\s*(\d
   ["008 production Dashboard guard recognizes authoritative render", files.guard.includes('[data-commercial-dashboard-v2]')],
   ["009 production Dashboard guard exposes no prototype data dependency", !/FlipForgePrototypeData|data\.dashboard|data\.opportunities/.test(files.guard)],
   ["010 production Dashboard guard uses honest authoritative loading language", files.guard.includes("Loading tenant-owned FlipForge intelligence") && files.guard.includes("Loading authoritative dashboard data")],
+  ["010a browser authoritative timeout exceeds gateway maximum timeout", files.guard.includes("AUTHORITATIVE_FETCH_TIMEOUT_MS = 30000") && files.gateway.includes("const MAX_TIMEOUT_MS = 25000")],
   ["010a browser timeout exceeds the authoritative gateway maximum", browserTimeoutMs >= gatewayMaxTimeoutMs + 5000],
   ["011 legacy prototype Dashboard remains identifiable for non-production cleanup", files.legacyApp.includes("Prototype customer activity, not live telemetry") && files.legacyApp.includes("already-governed mock records")],
   ["012 commercial Dashboard uses fixed health path", files.dashboard.includes('health: "/api/v1/health"')],
