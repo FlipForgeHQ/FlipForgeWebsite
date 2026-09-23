@@ -64,7 +64,7 @@
         const invited=await postJson(OPERATOR_ENDPOINT,{action:"invite",applicationId:application.id,expectedVersion:Number(application.version)});
         if(!invited.response.ok){
           status.dataset.error="true";
-          status.textContent="Tester was added, but the invitation was not sent. Refresh, open the tester in Applications, and use Send Identity Invitation to retry.";
+          status.textContent="Tester was added, but the invitation was not sent. Refresh, open the tester in Applications, and use Reset stale Identity & send if this email already has an unactivated Identity account.";
           refreshButton()?.click();
           return;
         }
