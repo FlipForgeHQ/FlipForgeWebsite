@@ -32,11 +32,11 @@ const requireAll=(label,text,needles)=>needles.forEach(needle=>requireText(label
 
 requireAll('homepage CDI identity',homepage,[
   'CARD DECISION INTELLIGENCE™',
-  'Before you buy. Know Why.',
-  'FlipForge tests whether a sports-card deal is actually supported by the evidence, then shows you BUY, WATCH, VERIFY, or PASS — and why.',
-  'href="decision-intelligence.html">Decision Intelligence™</a>',
-  'href="decision-intelligence.html">Card Decision Intelligence™</a>',
-  'data-ff-cdi-primary="true">How Card Decision Intelligence works'
+  'Before you buy.',
+  'Know Why.',
+  'FlipForge turns a card’s identity, market evidence, and asking price into a clear decision — and shows you why.',
+  'href="decision-intelligence.html">Decision Intelligence</a>',
+  'data-ff-cdi-primary="true">See how the decision is made'
 ]);
 requireText('homepage primary beta CTA',homepage,'class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a>');
 forbidText('homepage hero taxonomy breadcrumb',homepage,'Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome.');
@@ -47,17 +47,17 @@ requireAll('homepage interactive proof',homepage,[
   'assets/images/flipforge-homepage-hero.webp',
   'Illustrative example · not live market data',
   'class="ff-deal-demo" id="deal-or-decoy"',
-  'Would you pay <span>$349</span> for this card?',
-  'YOUR ONLY TASK',
-  'Pick what you would do. FlipForge will show you what changes.',
+  'Would you pay <span>$349</span>?',
+  'TRY THE DECISION',
+  'Make the call you would make on the listing. Then watch FlipForge challenge it.',
   'data-ff-processing-stage',
-  '01 · EXACT CARD','02 · CHALLENGE 7 COMPARISONS','03 · SUPPORTED VALUE','04 · DECISION',
-  '5 of 7 comparisons were invalid.','24.0%','2.3%',
+  '01 · IDENTITY','02 · EVIDENCE','03 · ECONOMICS','04 · DECISION',
+  '5 of 7 comparisons were rejected.','24.0%','2.3%',
   'FlipForge says <span>VERIFY.</span>',
   '<dialog class="ff-evidence-dialog"','data-ff-open-evidence>See the evidence',
   'Controlled Private Beta.',
   'FlipForge does not guarantee profit or authorize transactions.',
-  'href="/app/#/discover" data-ff-deal-cta="evaluate_listing"',
+  'href="beta-application.html" data-ff-deal-cta="beta_access"',
   'assets/css/homepage-deal-or-decoy-v1.css',
   'assets/css/homepage-deal-live-process-v3.css',
   'assets/js/homepage-deal-or-decoy-v1.js'
@@ -67,10 +67,10 @@ for(const retired of ['assets/css/homepage-hero-film-v1.css','assets/js/homepage
 
 requireAll('homepage CDI reveal',homepage,[
   'assets/css/homepage-cdi-positioning-v1.css',
-  'YOU JUST USED CARD DECISION INTELLIGENCE™',
-  'FlipForge did more than find a different price.',
-  'Data tells you what happened. FlipForge helps you decide what to do now.',
-  'What should I do — and why?',
+  'WHAT JUST HAPPENED',
+  'That wasn’t a price lookup. That was Card Decision Intelligence™.',
+  'THE SYSTEM BEHIND THE CALL',
+  'Every decision moves through the same governed path.',
   'FLIPFORGE = CARD DECISION INTELLIGENCE™'
 ]);
 requireAll('homepage four-system CDI model',homepage,[
@@ -237,7 +237,8 @@ requireAll('Phase 4 receipt interaction behavior',phase2Js,[
   "panel.animate"
 ]);
 
-for(const page of [homepage,product,learn,beta,pricing])requireAll('marketing navigation',page,['>Evidence Lab</a>','>Launch Plans</a>','>About</a>','>Request Beta Access</a>']);
+requireAll('homepage marketing navigation',homepage,['>Product</a>','>Decision Intelligence</a>','>Evidence Lab</a>','>About</a>','>Request Beta Access</a>']);
+for(const page of [product,learn,beta,pricing])requireAll('marketing navigation',page,['>Evidence Lab</a>','>Launch Plans</a>','>About</a>','>Request Beta Access</a>']);
 
 for(const core of ['dashboard','discover','evaluate','opportunities','tracking','portfolio'])requireText('app core workflow',app,`data-route="${core}"`);
 requireText('app advanced analysis',app,'<details class="ff-advanced-nav">');
