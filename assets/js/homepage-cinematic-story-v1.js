@@ -76,6 +76,73 @@
     });
   }
 
+
+  const hero = document.querySelector("[data-ff-cinema-hero]");
+  if (hero) {
+    const heroStates = [
+      { key: "identity", kicker: "01 · IDENTITY INTELLIGENCE", title: "PROVE THE CARD", status: "IDENTITY VERIFIED", progress: "25%" },
+      { key: "evidence", kicker: "02 · EVIDENCE INTELLIGENCE", title: "TEST THE EVIDENCE", status: "5 REJECTED · 2 TRUSTED", progress: "50%" },
+      { key: "risk", kicker: "03 · RISK + ECONOMICS", title: "EXPOSE WHAT CHANGED", status: "UNCERTAINTY VISIBLE", progress: "75%" },
+      { key: "decision", kicker: "04 · DECISION INTELLIGENCE", title: "KEEP THE REASON", status: "VERIFY · RECEIPT LOCKED", progress: "100%" }
+    ];
+    const kicker = hero.querySelector("[data-ff-hero-kicker]");
+    const title = hero.querySelector("[data-ff-hero-title]");
+    const status = hero.querySelector("[data-ff-hero-status]");
+    const progress = hero.querySelector("[data-ff-hero-progress]");
+    const steps = [...hero.querySelectorAll("[data-ff-hero-step]")];
+    const stage = hero.querySelector(".ff-cinema-hero-stage");
+    let index = 0;
+    let timer = 0;
+    let heroVisible = true;
+
+    const renderHero = next => {
+      index = next % heroStates.length;
+      const state = heroStates[index];
+      hero.dataset.heroState = state.key;
+      if (kicker) kicker.textContent = state.kicker;
+      if (title) title.textContent = state.title;
+      if (status) status.textContent = state.status;
+      if (progress) progress.style.width = state.progress;
+      steps.forEach(step => step.classList.toggle("is-active", step.dataset.ffHeroStep === state.key));
+    };
+
+    const scheduleHero = () => {
+      window.clearTimeout(timer);
+      if (reduced || !heroVisible) return;
+      timer = window.setTimeout(() => {
+        renderHero((index + 1) % heroStates.length);
+        scheduleHero();
+      }, 2100);
+    };
+
+    renderHero(0);
+    if (!reduced) {
+      const heroObserver = new IntersectionObserver(entries => {
+        heroVisible = entries.some(entry => entry.isIntersecting);
+        if (heroVisible) scheduleHero();
+        else window.clearTimeout(timer);
+      }, { threshold: 0.12 });
+      heroObserver.observe(hero);
+      scheduleHero();
+    } else {
+      renderHero(3);
+    }
+
+    if (!reduced && stage && window.matchMedia?.("(pointer:fine)")?.matches) {
+      stage.addEventListener("pointermove", event => {
+        const rect = stage.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+        const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+        stage.style.setProperty("--hero-x", x.toFixed(3));
+        stage.style.setProperty("--hero-y", y.toFixed(3));
+      }, { passive: true });
+      stage.addEventListener("pointerleave", () => {
+        stage.style.setProperty("--hero-x", "0");
+        stage.style.setProperty("--hero-y", "0");
+      }, { passive: true });
+    }
+  }
+
   const links = root.querySelectorAll("[data-ff-cinema-cta]");
   links.forEach(link => {
     link.addEventListener("click", () => {
