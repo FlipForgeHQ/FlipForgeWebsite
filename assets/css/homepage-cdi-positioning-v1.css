@@ -140,8 +140,9 @@ html,body{max-width:100%;overflow-x:clip}
   display:block;
   width:100%;
   aspect-ratio:16/10;
-  object-fit:cover;
-  background:#08111b;
+  object-fit:contain;
+  padding:14px;
+  background:radial-gradient(circle at 50% 42%,rgba(240,181,58,.055),transparent 38%),#08111b;
 }
 .ff-cdi-visual-proof figcaption{
   padding:16px 17px 18px;
