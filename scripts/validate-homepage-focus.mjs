@@ -7,6 +7,8 @@ const mobileCss=read('assets/css/homepage-mobile-nav-v1.css');
 const dealCss=read('assets/css/homepage-deal-or-decoy-v1.css');
 const processCss=read('assets/css/homepage-deal-live-process-v3.css');
 const cdiCss=read('assets/css/homepage-cdi-positioning-v1.css');
+const cinematicCss=read('assets/css/homepage-cinematic-story-v1.css');
+const cinematicJs=read('assets/js/homepage-cinematic-story-v1.js');
 const navJs=read('assets/js/homepage-v1.js');
 const dealJs=read('assets/js/homepage-deal-or-decoy-v1.js');
 const netlify=read('netlify.toml');
@@ -87,6 +89,20 @@ check('059 reduced motion is respected',heroCss.includes('@media(prefers-reduced
 check('060 live processing is measured',dealJs.includes('flipforge_demo_processing_started'));
 check('061 premium landing attraction is loaded',index.includes('assets/css/homepage-motion-attraction-v1.css')&&index.includes('assets/js/homepage-motion-attraction-v1.js'));
 check('062 landing attraction uses the approved repository mark',index.includes('<section class=\"ff-motion-attraction\"')&&index.includes('assets/brand/flipforge-mark.svg'));
+check('063 cinematic visual system is loaded',index.includes('assets/css/homepage-cinematic-story-v1.css')&&index.includes('assets/js/homepage-cinematic-story-v1.js'));
+check('064 cinematic story uses five product moments',['identity','evidence','decision','product','outcome'].every(v=>index.includes('data-ff-cinema-panel="'+v+'"')));
+check('065 cinematic identity uses existing governed brand visual',index.includes('assets/images/flipforge-identity-first.webp')&&index.includes('IDENTITY VERIFIED'));
+check('066 cinematic evidence makes rejected versus trusted evidence visible',index.includes('5 REJECTED')&&index.includes('2 TRUSTED')&&index.includes('WRONG PARALLEL')&&index.includes('IDENTITY CONFLICT'));
+check('067 cinematic decision presents the Decision Receipt as a product object',index.includes('data-ff-cinema-receipt')&&index.includes('DECISION RECEIPT')&&index.includes('KEEP THE REASON.'));
+check('068 cinematic product reveal uses real repository product artwork',index.includes('assets/images/flipforge-homepage-dashboard.svg')&&index.includes('NOW RUN IT'));
+check('069 cinematic outcome preserves T0 then T7 T14 T30',index.includes('No hindsight rescoring')&&['T0','T7','T14','T30'].every(v=>index.includes('>'+v+'<')));
+check('070 cinematic close preserves locked slogan and category',index.includes('BEFORE YOU BUY.')&&index.includes('KNOW WHY.')&&index.includes('CARD DECISION INTELLIGENCE™'));
+check('071 cinematic visuals reserve aspect ratio and lazy-load below hero',index.includes('loading="lazy"')&&cinematicCss.includes('aspect-ratio:16/9'));
+check('072 cinematic motion is progressive and reduced-motion safe',cinematicJs.includes('IntersectionObserver')&&cinematicJs.includes('prefers-reduced-motion')&&cinematicCss.includes('@media(prefers-reduced-motion:reduce)'));
+check('073 cinematic layer interaction is keyboard accessible',cinematicJs.includes('event.key !== "Enter"')&&cinematicJs.includes('tabindex')&&cinematicCss.includes(':focus-visible'));
+check('074 cinematic layer adds no decision authority',!/(evaluateAndSave\(|saveEvidence\(|transactionAuthority\s*=|recommendation\s*=)/.test(cinematicJs));
+check('075 visual system uses locked brand palette',cinematicCss.includes('#030812')&&cinematicCss.includes('#0A101C')&&cinematicCss.includes('#D7B56D')&&cinematicCss.includes('#F0D9A2')&&cinematicCss.includes('#F7F7F4'));
+
 
 const failures=checks.filter(item=>!item.passed);
 console.log('FlipForge CDI-centered homepage validation');
