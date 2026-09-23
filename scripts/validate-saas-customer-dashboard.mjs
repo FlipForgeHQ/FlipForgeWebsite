@@ -64,6 +64,13 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["040 docs preserve zero transaction authority", files.docs.includes("No customer surface has transaction authority")]
 ].forEach(([name, condition]) => check(name, condition));
 
+const browserAuthoritativeTimeoutMs = Number(files.guard.match(/AUTHORITATIVE_FETCH_TIMEOUT_MS\s*=\s*(\d+)/)?.[1] || 0);
+const gatewayMaximumTimeoutMs = Number(files.gateway.match(/MAX_TIMEOUT_MS\s*=\s*(\d+)/)?.[1] || 0);
+check(
+  "040b browser authoritative timeout exceeds the server gateway ceiling",
+  browserAuthoritativeTimeoutMs > gatewayMaximumTimeoutMs && gatewayMaximumTimeoutMs > 0
+);
+
 function guardRuntime({ hostname = "goflipforge.com", pathname = "/app/", hash = "#/dashboard", initialHtml = "" } = {}) {
   let observerCallback = null;
   const main = {
