@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
 
-const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app";
+const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app/customer";
 const email = "prebeta-lifecycle-audit@flipforge.test";
 const reportDir = path.resolve("qa-artifacts/prebeta-saved-decision-lifecycle");
 const reportPath = path.join(reportDir, "saved-decision-lifecycle-audit.json");
