@@ -33,12 +33,13 @@ const requireAll=(label,text,needles)=>needles.forEach(needle=>requireText(label
 requireAll('homepage CDI identity',homepage,[
   'CARD DECISION INTELLIGENCE™',
   'Before you buy. Know Why.',
-  'FlipForge is Card Decision Intelligence™ for sports cards',
-  'Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome.',
+  'FlipForge tests whether a sports-card deal is actually supported by the evidence, then shows you BUY, WATCH, VERIFY, or PASS — and why.',
   'href="decision-intelligence.html">Decision Intelligence™</a>',
   'href="decision-intelligence.html">Card Decision Intelligence™</a>',
-  'data-ff-cdi-primary="true">Explore Decision Intelligence</a>'
+  'data-ff-cdi-primary="true">How Card Decision Intelligence works'
 ]);
+requireText('homepage primary beta CTA',homepage,'class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a>');
+forbidText('homepage hero taxonomy breadcrumb',homepage,'Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome.');
 forbidText('homepage retired brand descriptor',homepage,'FlipForge — Card Intelligence');
 forbidText('public category',`${homepage}\n${product}\n${learn}`,'CARD VALUE INTELLIGENCE');
 
