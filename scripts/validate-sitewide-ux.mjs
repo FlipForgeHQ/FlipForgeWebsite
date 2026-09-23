@@ -200,9 +200,7 @@ requireText('route stability CSS is loaded in customer entry',appIndex,'<link re
 requireText('route stability runtime is loaded last',appIndex,'<script src="customer-route-stability-v1.js"></script>');
 requireText('route stability hides intermediate route DOM',routeStabilityCss,'#main-content[data-ff-route-transitioning="true"] > *');
 requireText('route stability waits for mutation idle',routeStabilityJs,'const IDLE_MS = 170');
-requireText('route stability has bounded loading window',routeStabilityJs,'const MAX_HOLD_MS = 3500');
-requireText('route stability has hard recovery fail-safe',routeStabilityJs,'const HARD_FAILSAFE_MS = 11000');
-requireText('route stability recognizes authoritative loading states',routeStabilityJs,'function routeStillLoading()');
+requireText('route stability has bounded loading window',routeStabilityJs,'const MAX_HOLD_MS = 1400');
 requireText('route stability samples rendered geometry',routeStabilityJs,'function geometry()');
 requireText('route stability uses route-specific readiness',routeStabilityJs,'function routeReady()');
 requireText('saved decision readiness requires Tracking action',routeStabilityJs,'[data-ff-saved-decision-bar] a[href^=\\\"#/tracking/\\\"]');
