@@ -173,6 +173,45 @@ async function renderedGeometry(page) {
       actionsWidth: actionsRect?.width || 0,
       actionsText: String(actions?.textContent || "").replace(/\s+/g," ").trim(),
       panelTop: panelRect?.top || 0,
+      headingBox: (() => {
+        const node = main?.querySelector(".page-heading");
+        const rect = node?.getBoundingClientRect?.();
+        const style = node ? getComputedStyle(node) : null;
+        const p = node?.querySelector("p");
+        const pr = p?.getBoundingClientRect?.();
+        const ps = p ? getComputedStyle(p) : null;
+        return {
+          top: rect?.top || 0,
+          height: rect?.height || 0,
+          marginBottom: style?.marginBottom || "",
+          rowGap: style?.rowGap || "",
+          pHeight: pr?.height || 0,
+          pFontSize: ps?.fontSize || "",
+          pLineHeight: ps?.lineHeight || "",
+          pText: String(p?.textContent || "").replace(/\s+/g, " ").trim()
+        };
+      })(),
+      pageLayout: (() => {
+        const node = main?.firstElementChild;
+        const style = node ? getComputedStyle(node) : null;
+        return {
+          display: style?.display || "",
+          rowGap: style?.rowGap || "",
+          children: [...(node?.children || [])].slice(0, 8).map(child => {
+            const rect = child.getBoundingClientRect();
+            const cs = getComputedStyle(child);
+            return {
+              tag: child.tagName,
+              cls: child.className,
+              top: rect.top,
+              height: rect.height,
+              marginTop: cs.marginTop,
+              marginBottom: cs.marginBottom,
+              text: String(child.textContent || "").replace(/\s+/g, " ").trim().slice(0, 80)
+            };
+          })
+        };
+      })(),
       transitioning: main?.dataset?.ffRouteTransitioning === "true"
     };
   });
