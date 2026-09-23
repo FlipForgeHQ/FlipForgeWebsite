@@ -52,6 +52,7 @@
       {href:'decision-intelligence.html',label:'Decision Intelligence'},
       {href:'learn.html',label:'Evidence Lab'},
       {href:'about.html',label:'About'},
+      {href:'/production-auth.html',label:'Sign In',signIn:true},
       {href:'beta-application.html',label:'Request Beta Access',cta:true}
     ];
 
@@ -63,6 +64,7 @@
         link.href=item.href;
         link.textContent=item.label;
         if(item.cta&&!mobile)link.className='decision-nav-cta';
+        if(item.signIn)link.dataset.ffMarketingSignIn='true';
         fragment.appendChild(link);
       });
       nav.replaceChildren(fragment);
