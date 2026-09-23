@@ -1,0 +1,57 @@
+/* FlipForge customer route stability v1
+ * Presentation-only route transition owner.
+ * Keeps partially assembled route DOM from becoming visible while post-render
+ * adapters finish. Does not alter scoring, evidence, auth, persistence, or API data.
+ */
+
+body[data-ff-surface="customer"] #main-content {
+  position: relative;
+}
+
+body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"] {
+  min-height: var(--ff-route-lock-height, 320px) !important;
+  overflow: hidden !important;
+}
+
+body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"] > * {
+  visibility: hidden !important;
+}
+
+body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"]::before {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: 24px;
+  left: 28px;
+  right: 28px;
+  height: min(230px, calc(var(--ff-route-lock-height, 320px) - 48px));
+  min-height: 150px;
+  border: 1px solid rgba(226,189,66,.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, transparent 0, rgba(255,255,255,.035) 45%, rgba(255,255,255,.06) 50%, rgba(255,255,255,.035) 55%, transparent 100%) 0 0 / 220% 100%,
+    linear-gradient(rgba(226,189,66,.08), rgba(255,255,255,.018));
+  animation: ff-route-stability-sheen .8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes ff-route-stability-sheen {
+  from { background-position: 200% 0, 0 0; }
+  to { background-position: -20% 0, 0 0; }
+}
+
+@media(max-width:760px){
+  body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"]::before {
+    top: 14px;
+    left: 12px;
+    right: 12px;
+    min-height: 132px;
+    height: min(200px, calc(var(--ff-route-lock-height, 280px) - 28px));
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  body[data-ff-surface="customer"] #main-content[data-ff-route-transitioning="true"]::before {
+    animation: none !important;
+  }
+}

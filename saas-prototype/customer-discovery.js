@@ -36,6 +36,8 @@
       query: "",
       typedQuery: "",
       requestSerial: 0,
+      resultsQuery: "",
+      resultsSerial: 0,
       results: [],
       message: ""
     }
@@ -229,6 +231,35 @@
     );
   }
 
+  function captureIdentityIntent(input) {
+    if (!input || !state.main?.contains?.(input)) return;
+    const visibleQuery = normalizeIdentityQuery(input.value);
+    state.identityAssist.typedQuery = visibleQuery;
+    state.draft.exactCardQuery = visibleQuery;
+
+    if (state.identityAssist.active && visibleQuery !== normalizeIdentityQuery(state.identityAssist.query)) {
+      state.identityAssist.requestSerial += 1;
+      state.identityAssist.active = false;
+      state.identityAssist.busy = false;
+      state.identityAssist.query = "";
+      state.identityAssist.resultsQuery = "";
+      state.identityAssist.resultsSerial = 0;
+      state.identityAssist.results = [];
+      state.identityAssist.message = "";
+      state.main?.querySelector?.(".customer-discovery-identity-assist")?.remove();
+    }
+  }
+
+  // Capture the customer's latest typed identity before any compatibility or
+  // presentation observer can replace the form. The typed intent, not stale
+  // rendered markup, owns the next identity-assist request.
+  if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+    document.addEventListener("input", event => {
+      const input = event.target?.closest?.('[data-customer-discovery-form] input[name="exactCardQuery"]');
+      if (input) captureIdentityIntent(input);
+    }, true);
+  }
+
   function readSearch(form) {
     const values = new FormData(form);
     const exactCardQuery = normalizeIdentityQuery(values.get("exactCardQuery") || "");
@@ -360,6 +391,8 @@
     state.identityAssist.active = true;
     state.identityAssist.busy = true;
     state.identityAssist.query = requestedQuery;
+    state.identityAssist.resultsQuery = "";
+    state.identityAssist.resultsSerial = 0;
     state.identityAssist.results = [];
     state.identityAssist.message = "Looking for exact catalog identities…";
     renderCurrent();
@@ -369,7 +402,13 @@
         limit: 12
       });
       if (requestSerial !== state.identityAssist.requestSerial || requestedQuery !== state.identityAssist.query) return;
-      state.identityAssist.results = Array.isArray(data.results) ? data.results : [];
+      state.identityAssist.results = (Array.isArray(data.results) ? data.results : []).map(row => ({
+        ...row,
+        __ffIdentityQuery: requestedQuery,
+        __ffIdentitySerial: requestSerial
+      }));
+      state.identityAssist.resultsQuery = requestedQuery;
+      state.identityAssist.resultsSerial = requestSerial;
       const selectableCount = state.identityAssist.results.filter(row => row
         && row.exactCardCandidate === true
         && SAFE_SELECTION_TOKEN.test(String(row.selectionToken || ""))).length;
@@ -402,6 +441,8 @@
     }
     state.draft = { exactCardQuery: draft.exactCardQuery, targetMaxBuy: draft.targetMaxBuy, limit: String(draft.limit) };
     state.identityAssist.active = false;
+    state.identityAssist.resultsQuery = "";
+    state.identityAssist.resultsSerial = 0;
     state.identityAssist.results = [];
     state.identityAssist.message = "";
 
@@ -415,9 +456,16 @@
   async function findExactCard(form) {
     let draft;
     try {
+      // The visible form is the customer's current identity intent. Never
+      // overwrite it with a previous identity-assist query; doing so can carry a
+      // stale server selection token into the next card search.
       draft = readSearch(form);
-      const typedQuery = normalizeIdentityQuery(state.identityAssist.typedQuery);
-      if (typedQuery) draft.exactCardQuery = typedQuery;
+      const typedIntent = normalizeIdentityQuery(state.identityAssist.typedQuery);
+      if (typedIntent && typedIntent !== draft.exactCardQuery) {
+        draft.exactCardQuery = typedIntent;
+        const input = form?.querySelector?.('input[name="exactCardQuery"]');
+        if (input && input.value !== typedIntent) input.value = typedIntent;
+      }
     } catch (error) {
       state.error = error;
       renderCurrent();
@@ -427,14 +475,22 @@
     await suggestIdentity(draft);
   }
 
-  async function resolveIdentity(index, expectedQuery) {
+  async function resolveIdentity(index, expectedQuery, expectedSerial) {
     const ownedQuery = normalizeIdentityQuery(expectedQuery);
     const currentQuery = normalizeIdentityQuery(state.identityAssist.query);
+    const resultQuery = normalizeIdentityQuery(state.identityAssist.resultsQuery);
     const draftQuery = normalizeIdentityQuery(state.draft.exactCardQuery);
     const visibleQuery = currentVisibleIdentityQuery();
     const typedQuery = normalizeIdentityQuery(state.identityAssist.typedQuery);
+    const currentSerial = state.identityAssist.requestSerial;
+    const resultSerial = state.identityAssist.resultsSerial;
     if (!ownedQuery
+      || !Number.isInteger(expectedSerial)
+      || expectedSerial <= 0
+      || expectedSerial !== currentSerial
+      || expectedSerial !== resultSerial
       || ownedQuery !== currentQuery
+      || ownedQuery !== resultQuery
       || ownedQuery !== draftQuery
       || (typedQuery && ownedQuery !== typedQuery)
       || (visibleQuery && ownedQuery !== visibleQuery)) {
@@ -444,7 +500,15 @@
     }
     const row = state.identityAssist.results[Number(index)];
     const token = String(row?.selectionToken || "");
-    if (!row || row.exactCardCandidate !== true || !SAFE_SELECTION_TOKEN.test(token)) return;
+    if (!row
+      || row.__ffIdentityQuery !== ownedQuery
+      || row.__ffIdentitySerial !== expectedSerial
+      || row.exactCardCandidate !== true
+      || !SAFE_SELECTION_TOKEN.test(token)) {
+      state.identityAssist.message = "That identity choice is no longer current. Review the latest card options before continuing.";
+      renderCurrent();
+      return;
+    }
 
     state.error = null;
     state.notice = "";
@@ -467,6 +531,8 @@
       };
       state.draft.exactCardQuery = cardIdentity;
       state.identityAssist.active = false;
+      state.identityAssist.resultsQuery = "";
+      state.identityAssist.resultsSerial = 0;
       state.identityAssist.results = [];
       state.identityAssist.message = "";
       state.identityAssist.busy = false;
@@ -631,32 +697,18 @@
       if (!state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) search(form);
     });
     const identityInput = form?.querySelector?.('input[name="exactCardQuery"]');
-    identityInput?.addEventListener("input", () => {
-      const visibleQuery = normalizeIdentityQuery(identityInput.value);
-      state.identityAssist.typedQuery = visibleQuery;
-      state.draft.exactCardQuery = visibleQuery;
-      if (state.identityAssist.active && visibleQuery !== normalizeIdentityQuery(state.identityAssist.query)) {
-        state.identityAssist.requestSerial += 1;
-        state.identityAssist.active = false;
-        state.identityAssist.busy = false;
-        state.identityAssist.query = "";
-        state.identityAssist.results = [];
-        state.identityAssist.message = "";
-        // Remove stale selection controls immediately without re-rendering the
-        // form the customer is actively typing in.
-        state.main?.querySelector?.(".customer-discovery-identity-assist")?.remove();
-      }
-    });
+    identityInput?.addEventListener("input", () => captureIdentityIntent(identityInput));
     const findExactButton = state.main?.querySelector?.("[data-discovery-find-exact]");
     findExactButton?.addEventListener("click", () => {
       if (form && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) findExactCard(form);
     });
-    const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.query);
+    const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.resultsQuery);
+    const selectionOwnerSerial = state.identityAssist.resultsSerial;
     state.main?.querySelectorAll?.("[data-discovery-use-identity]").forEach(button => {
       button.addEventListener("click", () => {
         const index = Number.parseInt(button.dataset.discoveryUseIdentity || "-1", 10);
         if (Number.isInteger(index) && index >= 0 && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) {
-          resolveIdentity(index, selectionOwnerQuery);
+          resolveIdentity(index, selectionOwnerQuery, selectionOwnerSerial);
         }
       });
     });

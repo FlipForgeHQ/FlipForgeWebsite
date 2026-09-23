@@ -36,6 +36,87 @@
     return route || "dashboard";
   }
 
+  const MODERN_CUSTOMER_ROUTES = new Set([
+    "dashboard", "discover", "evaluate", "decision-intelligence", "evidence",
+    "opportunities", "tracking", "portfolio", "alerts", "forge-heat",
+    "market-view", "compare", "psa-advisor", "sell", "export", "account"
+  ]);
+
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
+  function eligibleAdapter(adapter, method = "render") {
+    try {
+      return Boolean(adapter
+        && typeof adapter[method] === "function"
+        && typeof adapter.isEligible === "function"
+        && adapter.isEligible());
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function modernRouteOwns(route) {
+    if (fullCustomerMode() && MODERN_CUSTOMER_ROUTES.has(route)) return true;
+    if (route === "beta-start") return Boolean(window.FlipForgePrivateBeta);
+    if (route === "decision-intelligence") return window.FlipForgeDecisionIntelligenceUxV2 === true;
+
+    switch (route) {
+      case "dashboard":
+        return eligibleAdapter(window.FlipForgeStagingReadAdapter, "renderCustomerDashboard");
+      case "discover":
+        return eligibleAdapter(window.FlipForgeCustomerDiscovery);
+      case "evaluate":
+        return eligibleAdapter(window.FlipForgeStagingEvaluationAdapter, "renderCustomer");
+      case "opportunities": {
+        const adapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
+        return eligibleAdapter(adapter, typeof adapter?.renderCustomer === "function" ? "renderCustomer" : "render");
+      }
+      case "tracking":
+      case "alerts": {
+        const adapter = window.FlipForgeCustomerLifecycle;
+        try {
+          return eligibleAdapter(adapter) && typeof adapter.handles === "function" && adapter.handles(route);
+        } catch (_) {
+          return false;
+        }
+      }
+      case "portfolio":
+        return eligibleAdapter(window.FlipForgeCustomerPortfolio);
+      case "account":
+        return eligibleAdapter(window.FlipForgeCustomerEntitlements);
+      case "forge-heat":
+        return eligibleAdapter(window.FlipForgeCustomerForgeHeat);
+      case "market-view":
+        return eligibleAdapter(window.FlipForgeCustomerMarketView);
+      case "compare":
+        return eligibleAdapter(window.FlipForgeCustomerCompare);
+      case "psa-advisor":
+        return eligibleAdapter(window.FlipForgeCustomerPsaAdvisor);
+      case "evidence":
+      case "sell": {
+        const adapter = window.FlipForgeCustomerManagement;
+        try {
+          return eligibleAdapter(adapter) && typeof adapter.handles === "function" && adapter.handles(route);
+        } catch (_) {
+          return false;
+        }
+      }
+      case "export": {
+        const adapter = window.FlipForgeCustomerExport;
+        try {
+          return eligibleAdapter(adapter) && typeof adapter.handles === "function" && adapter.handles(route);
+        } catch (_) {
+          return false;
+        }
+      }
+      default:
+        return false;
+    }
+  }
+
   function opportunityById(id) {
     return data.opportunities.find(item => item.id === id) || data.opportunities[0];
   }
@@ -492,6 +573,11 @@
     setActiveNavigation();
     closeNavigation();
 
+    // Full customer routes are owned by the server-backed/customer adapters that
+    // load later in this document. Painting the legacy prototype here first
+    // creates a visible intermediate page that is immediately replaced.
+    if (modernRouteOwns(route)) return;
+
     switch (route) {
       case "dashboard": renderDashboard(); break;
       case "discover": renderDiscover(); break;
@@ -547,5 +633,7 @@
   });
 
   window.addEventListener("hashchange", renderRoute);
-  renderRoute();
+  // Defer the initial legacy fallback until the document's modern route owners
+  // have had a chance to register. On full customer routes this becomes a no-op.
+  window.setTimeout(renderRoute, 0);
 })();

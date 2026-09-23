@@ -161,6 +161,7 @@
           return;
         }
         if (route === "dashboard"
+            && window.FlipForgeFullCustomerEntry !== true
             && adapter
             && typeof adapter.renderCustomerDashboard === "function"
             && adapter.isEligible()) {

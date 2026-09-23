@@ -573,7 +573,15 @@ try {
     const useExact = page.locator("#main-content .customer-discovery-identity-assist [data-discovery-use-identity]").first();
     await useExact.click();
     await poll(() => calls.resolve.length > resolveBefore, "Replacement identity did not resolve");
-    expect(calls.resolve.at(-1)?.selectionToken === identities.acuna10.token, "Old selection token survived after identity query changed");
+    {
+      const visible = await queryInput().inputValue().catch(() => "");
+      const actualToken = calls.resolve.at(-1)?.selectionToken || "";
+      const latestSearch = calls.search.at(-1) || {};
+      expect(
+        actualToken === identities.acuna10.token,
+        `Old selection token survived after identity query changed | visible=${JSON.stringify(visible)} | latestSearch=${JSON.stringify(latestSearch)} | resolvedTokenPrefix=${String(actualToken).slice(0, 8)}`
+      );
+    }
     await poll(() => calls.discover.at(-1)?.exactCardQuery === identities.acuna10.canonical, "Resolved Acuna identity did not reach Discover");
   });
 
