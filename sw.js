@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v19';
+const CACHE='flipforge-shell-v20';
 const SHELL=[
   '/',
   '/index.html',
@@ -18,6 +18,7 @@ const SHELL=[
   '/assets/css/homepage-visual-proof-v1.css',
   '/assets/css/homepage-proof-polish-v1.css',
   '/assets/css/homepage-decision-hero-v1.css',
+  '/assets/css/homepage-cinematic-story-v1.css',
   '/assets/css/homepage-scale-v1.css',
   '/assets/css/homepage-mobile-nav-v1.css',
   '/assets/css/homepage-deal-or-decoy-v1.css',
@@ -27,6 +28,7 @@ const SHELL=[
   '/assets/css/decision-proof-v1.css',
   '/assets/css/decision-intelligence-consumer-v2.css',
   '/assets/js/homepage-v1.js',
+  '/assets/js/homepage-cinematic-story-v1.js',
   '/assets/js/homepage-deal-or-decoy-v1.js',
   '/assets/js/homepage-contender-v1.js',
   '/assets/js/award-winning-v1.js',
@@ -36,6 +38,8 @@ const SHELL=[
   '/assets/images/flipforge-homepage-dashboard.svg',
   '/assets/images/flipforge-identity-first.webp',
   '/assets/images/flipforge-evidence-review.webp',
+  '/assets/images/before-after-flipforge.webp',
+  '/assets/images/how-flipforge-works.webp',
   '/assets/images/flipforge-grading-scenario.svg'
 ];
 

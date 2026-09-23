@@ -251,7 +251,7 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v19'","'/decision-proof.html'","'/assets/css/homepage-cdi-positioning-v1.css'","'/assets/css/decision-proof-v1.css'","'/assets/css/homepage-deal-or-decoy-v1.css'","'/assets/js/homepage-deal-or-decoy-v1.js'"]);
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v20'","'/decision-proof.html'","'/assets/css/homepage-cdi-positioning-v1.css'","'/assets/css/homepage-cinematic-story-v1.css'","'/assets/css/decision-proof-v1.css'","'/assets/css/homepage-deal-or-decoy-v1.css'","'/assets/js/homepage-deal-or-decoy-v1.js'","'/assets/js/homepage-cinematic-story-v1.js'"]);
 const publicCopy=`${homepage}\n${proofPage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true','CARD VALUE INTELLIGENCE'])forbidText('public safety',publicCopy,unsafe);
 for(const unsafeData of ['localStorage','sessionStorage','indexedDB'])forbidText('public static pages',publicCopy,unsafeData);

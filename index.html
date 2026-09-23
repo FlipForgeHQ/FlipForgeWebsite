@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="assets/css/brand-v2.css">
   <link rel="stylesheet" href="assets/css/homepage-decision-hero-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-motion-attraction-v1.css">
+  <link rel="stylesheet" href="assets/css/homepage-cinematic-story-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-mobile-nav-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-deal-or-decoy-v1.css">
   <link rel="stylesheet" href="assets/css/homepage-deal-refinement-v2.css">
@@ -31,7 +32,7 @@
   <link rel="stylesheet" href="assets/css/decision-proof-v1.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"FlipForge LLC","url":"https://goflipforge.com/","email":"support@goflipforge.com","logo":"https://goflipforge.com/assets/brand/flipforge-logo-horizontal.svg","slogan":"Before you buy. Know Why."},{"@type":"SoftwareApplication","name":"FlipForge","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Card Decision Intelligence for sports-card collectors: exact identity, evidence qualification, risk, supported value, explainable decisions, and outcome review."}]}</script>
 </head>
-<body>
+<body class="ff-cinematic-home">
   <a class="skip-link" href="#main">Skip to main content</a>
 
   <header class="decision-header">
@@ -66,7 +67,67 @@
   <div class="backdrop" aria-hidden="true"></div>
 
   <main id="main">
-    <section class="decision-hero" aria-labelledby="decision-hero-title">
+    <section class="ff-cinema-hero" data-ff-cinema-hero data-hero-state="identity" aria-labelledby="ff-cinema-hero-title">
+      <div class="ff-cinema-hero-ambient" aria-hidden="true"></div>
+      <div class="ff-cinema-hero-shell">
+        <div class="ff-cinema-hero-copy">
+          <p class="ff-cinema-hero-eyebrow">CARD DECISION INTELLIGENCE™</p>
+          <h1 id="ff-cinema-hero-title"><span>BEFORE YOU BUY.</span><strong>KNOW WHY.</strong></h1>
+          <p class="ff-cinema-hero-lead">FlipForge proves the exact card, tests the evidence, exposes uncertainty, and preserves the reason behind the decision.</p>
+          <div class="ff-cinema-hero-actions">
+            <a class="ff-cinema-hero-primary" href="#card-decision-story" data-ff-cinema-cta="hero_explore_decision">Watch FlipForge Decide</a>
+            <a class="ff-cinema-hero-secondary" href="beta-application.html" data-ff-cinema-cta="hero_beta_access">Request Beta Access</a>
+          </div>
+          <div class="ff-cinema-hero-path" aria-label="FlipForge decision path">
+            <span data-ff-hero-step="identity"><b>01</b>IDENTITY</span>
+            <span data-ff-hero-step="evidence"><b>02</b>EVIDENCE</span>
+            <span data-ff-hero-step="risk"><b>03</b>RISK</span>
+            <span data-ff-hero-step="decision"><b>04</b>DECISION</span>
+          </div>
+        </div>
+
+        <div class="ff-cinema-hero-stage" aria-label="Animated FlipForge Card Decision Intelligence demonstration">
+          <div class="ff-cinema-hero-art-stack" aria-hidden="true">
+            <img class="ff-cinema-hero-art" data-ff-hero-art="identity" src="assets/images/flipforge-identity-first.webp" width="1600" height="900" fetchpriority="high" decoding="async" alt="">
+            <img class="ff-cinema-hero-art" data-ff-hero-art="evidence" src="assets/images/flipforge-evidence-review.webp" width="1600" height="900" decoding="async" alt="">
+            <img class="ff-cinema-hero-art" data-ff-hero-art="risk" src="assets/images/before-after-flipforge.webp" width="1600" height="900" decoding="async" alt="">
+            <img class="ff-cinema-hero-art" data-ff-hero-art="decision" src="assets/images/how-flipforge-works.webp" width="1600" height="900" decoding="async" alt="">
+          </div>
+          <div class="ff-cinema-hero-grid" aria-hidden="true"></div>
+          <div class="ff-cinema-hero-beam" aria-hidden="true"></div>
+          <span class="ff-cinema-hero-corner tl" aria-hidden="true"></span>
+          <span class="ff-cinema-hero-corner tr" aria-hidden="true"></span>
+          <span class="ff-cinema-hero-corner bl" aria-hidden="true"></span>
+          <span class="ff-cinema-hero-corner br" aria-hidden="true"></span>
+
+          <div class="ff-cinema-hero-signal signal-identity">
+            <small>IDENTITY</small><strong>EXACT CARD LOCKED</strong><span>Release · set · # · parallel · grade</span>
+          </div>
+          <div class="ff-cinema-hero-signal signal-evidence">
+            <small>EVIDENCE</small><strong>5 REJECTED · 2 TRUSTED</strong><span>Only qualified evidence advances</span>
+          </div>
+          <div class="ff-cinema-hero-signal signal-risk">
+            <small>RISK + ECONOMICS</small><strong>UNCERTAINTY VISIBLE</strong><span>Supported value replaces the headline</span>
+          </div>
+          <div class="ff-cinema-hero-signal signal-decision">
+            <small>DECISION RECEIPT</small><strong>VERIFY</strong><span>Reason trail preserved</span>
+          </div>
+
+          <div class="ff-cinema-hero-core" aria-hidden="true">
+            <img src="assets/brand/flipforge-mark.svg" alt="">
+            <span>CARD DECISION INTELLIGENCE™</span>
+          </div>
+          <div class="ff-cinema-hero-status" aria-live="polite">
+            <small data-ff-hero-kicker>01 · IDENTITY INTELLIGENCE</small>
+            <strong data-ff-hero-title>PROVE THE CARD</strong>
+            <span data-ff-hero-status>IDENTITY VERIFIED</span>
+          </div>
+          <div class="ff-cinema-hero-progress" aria-hidden="true"><span data-ff-hero-progress></span></div>
+        </div>
+      </div>
+      <a class="ff-cinema-hero-scroll" href="#card-decision-story" aria-label="Continue to the FlipForge decision story"><span></span>SEE THE SYSTEM</a>
+    </section>
+    <section class="decision-hero ff-demo-section" aria-labelledby="deal-or-decoy-title">
       <div class="decision-hero-glow" aria-hidden="true"></div>
 
       <div class="decision-hero-copy">
@@ -309,7 +370,128 @@
       </section>
     </section>
 
-    <section class="ff-cdi-home" data-ff-cdi-home="true" aria-labelledby="ff-cdi-home-title">
+    <section class="ff-cinematic-story" id="card-decision-story" data-ff-cinematic-story aria-labelledby="ff-cinema-story-title">
+      <header class="ff-cinema-intro">
+        <small>CARD DECISION INTELLIGENCE™ · VISUAL SYSTEM</small>
+        <h2 id="ff-cinema-story-title">See the decision happen.</h2>
+        <p>FlipForge should not need a wall of copy to explain itself. Watch the system prove the card, cut away weak evidence, resolve the decision, and preserve the reason trail.</p>
+      </header>
+
+      <article class="ff-cinema-panel ff-cinema-identity" data-ff-cinema-panel="identity">
+        <div class="ff-cinema-copy">
+          <small>01 · IDENTITY LOCK</small>
+          <h3>FIRST, <em>PROVE THE CARD.</em></h3>
+          <p>Release, set, card number, parallel, grader, and grade must resolve to one exact identity before market evidence gets authority.</p>
+          <p class="ff-cinema-microline">No forced match · no silent substitution</p>
+        </div>
+        <div class="ff-cinema-visual">
+          <img src="assets/images/flipforge-identity-first.webp" width="1600" height="900" loading="lazy" decoding="async" alt="FlipForge identity verification visual">
+          <div class="ff-cinema-grid" aria-hidden="true"></div>
+          <span class="ff-cinema-corner tl" aria-hidden="true"></span><span class="ff-cinema-corner tr" aria-hidden="true"></span><span class="ff-cinema-corner bl" aria-hidden="true"></span><span class="ff-cinema-corner br" aria-hidden="true"></span>
+          <div class="ff-cinema-scan" aria-hidden="true"></div>
+          <div class="ff-cinema-id-chip chip-1"><small>RELEASE</small><strong>CONFIRMED</strong></div>
+          <div class="ff-cinema-id-chip chip-2"><small>CARD NUMBER</small><strong>EXACT</strong></div>
+          <div class="ff-cinema-id-chip chip-3"><small>PARALLEL</small><strong>RESOLVED</strong></div>
+          <div class="ff-cinema-id-chip chip-4"><small>GRADE</small><strong>PSA 10</strong></div>
+          <strong class="ff-cinema-id-status">IDENTITY VERIFIED</strong>
+        </div>
+      </article>
+
+      <article class="ff-cinema-panel ff-cinema-evidence" data-ff-cinema-panel="evidence">
+        <div class="ff-cinema-copy">
+          <small>02 · EVIDENCE FILTER</small>
+          <h3>THE PRICE LOOKED RIGHT. <em>THE EVIDENCE WASN’T.</em></h3>
+          <p>FlipForge keeps mismatches, duplicates, and identity conflicts visible—but strips them of exact-comp authority.</p>
+          <p class="ff-cinema-microline">More data ≠ better evidence</p>
+        </div>
+        <div class="ff-cinema-visual">
+          <img src="assets/images/flipforge-evidence-review.webp" width="1600" height="900" loading="lazy" decoding="async" alt="FlipForge evidence qualification visual">
+          <div class="ff-cinema-filter-line" aria-hidden="true"></div>
+          <div class="ff-cinema-comp c1 is-rejected" data-reason="WRONG PARALLEL"><b>COMP 01</b><span>Candidate sale</span></div>
+          <div class="ff-cinema-comp c2 is-rejected" data-reason="DUPLICATE"><b>COMP 02</b><span>Candidate sale</span></div>
+          <div class="ff-cinema-comp c3 is-rejected" data-reason="WRONG GRADE"><b>COMP 03</b><span>Candidate sale</span></div>
+          <div class="ff-cinema-comp c4 is-rejected" data-reason="IDENTITY CONFLICT"><b>COMP 04</b><span>Candidate sale</span></div>
+          <div class="ff-cinema-comp t1 is-trusted" data-reason="EXACT"><b>TRUSTED 01</b><span>Exact completed sale</span></div>
+          <div class="ff-cinema-comp t2 is-trusted" data-reason="EXACT"><b>TRUSTED 02</b><span>Exact completed sale</span></div>
+          <div class="ff-cinema-evidence-count"><b>5 REJECTED</b><span>→</span><strong>2 TRUSTED</strong></div>
+        </div>
+      </article>
+
+      <article class="ff-cinema-panel ff-cinema-decision" data-ff-cinema-panel="decision">
+        <div class="ff-cinema-copy">
+          <small>03 · DECISION LOCK</small>
+          <h3>MAKE THE DECISION. <em>KEEP THE REASON.</em></h3>
+          <p>Qualified evidence, economics, and visible uncertainty converge into one governed BUY, WATCH, VERIFY, or PASS state—with the reason trail attached.</p>
+          <p class="ff-cinema-microline">Decision Receipt · traceable by design</p>
+        </div>
+        <div class="ff-cinema-visual ff-cinema-decision-stage">
+          <img src="assets/images/before-after-flipforge.webp" width="1600" height="900" loading="lazy" decoding="async" alt="FlipForge decision intelligence visual">
+          <div class="ff-cinema-orbit o1" aria-hidden="true"></div><div class="ff-cinema-orbit o2" aria-hidden="true"></div>
+          <div class="ff-cinema-layer l1" data-ff-cinema-layer="identity"><small>01</small><strong>IDENTITY</strong></div>
+          <div class="ff-cinema-layer l2" data-ff-cinema-layer="evidence"><small>02</small><strong>EVIDENCE</strong></div>
+          <div class="ff-cinema-layer l3" data-ff-cinema-layer="economics"><small>03</small><strong>ECONOMICS</strong></div>
+          <div class="ff-cinema-layer r1" data-ff-cinema-layer="risk"><small>04</small><strong>RISK</strong></div>
+          <div class="ff-cinema-layer r2" data-ff-cinema-layer="decision"><small>05</small><strong>DECISION</strong></div>
+          <div class="ff-cinema-layer r3" data-ff-cinema-layer="outcome"><small>07</small><strong>OUTCOME</strong></div>
+          <div class="ff-cinema-receipt" data-ff-cinema-receipt>
+            <div class="ff-cinema-receipt-brand"><img src="assets/brand/flipforge-mark.svg" alt=""><span>FLIPFORGE</span></div>
+            <span class="ff-cinema-receipt-kicker">DECISION RECEIPT</span>
+            <h4>VERIFY</h4>
+            <div class="ff-cinema-receipt-grid">
+              <div><small>IDENTITY</small><strong>CONFIRMED</strong></div>
+              <div><small>EVIDENCE</small><strong>QUALIFIED</strong></div>
+              <div><small>RISK</small><strong>VISIBLE</strong></div>
+              <div><small>TRACE</small><strong class="gold">LOCKED</strong></div>
+            </div>
+          </div>
+          <strong class="ff-cinema-decision-pill">VERIFY</strong>
+        </div>
+      </article>
+
+      <article class="ff-cinema-panel ff-cinema-product" data-ff-cinema-panel="product">
+        <div class="ff-cinema-copy">
+          <small>04 · PRODUCT REVEAL</small>
+          <h3>NOW RUN IT <em>ON YOUR CARD.</em></h3>
+          <p>The cinematic story resolves into the actual FlipForge workflow: Discover → Evaluate → Decision Intelligence → Decision Receipt.</p>
+          <div class="ff-cinema-product-actions">
+            <a href="/app/#/discover" data-ff-cinema-cta="cinematic_evaluate_clicked">Evaluate a Card</a>
+            <a href="beta-application.html" data-ff-cinema-cta="cinematic_beta_access_clicked">Request Beta Access</a>
+          </div>
+        </div>
+        <div class="ff-cinema-visual ff-cinema-product-screen">
+          <img src="assets/images/flipforge-homepage-dashboard.svg" width="1600" height="900" loading="lazy" decoding="async" alt="FlipForge customer intelligence product interface">
+          <span class="ff-cinema-corner tl" aria-hidden="true"></span><span class="ff-cinema-corner tr" aria-hidden="true"></span><span class="ff-cinema-corner bl" aria-hidden="true"></span><span class="ff-cinema-corner br" aria-hidden="true"></span>
+        </div>
+      </article>
+
+      <article class="ff-cinema-panel ff-cinema-outcome" data-ff-cinema-panel="outcome">
+        <div class="ff-cinema-copy">
+          <small>05 · OUTCOME INTELLIGENCE</small>
+          <h3>THE DECISION DOESN’T END <em>AT DAY ZERO.</em></h3>
+          <p>T0 stays frozen. Later governed observations add context at T7, T14, and T30 without rewriting the original call.</p>
+          <p class="ff-cinema-microline">No hindsight rescoring</p>
+        </div>
+        <div class="ff-cinema-visual">
+          <img src="assets/images/flipforge-homepage-hero.webp" width="1600" height="900" loading="lazy" decoding="async" alt="FlipForge outcome intelligence visual">
+          <div class="ff-cinema-outcome-rail" aria-hidden="true"></div>
+          <div class="ff-cinema-outcome-point p0"><div><b>T0</b><small>FROZEN</small></div></div>
+          <div class="ff-cinema-outcome-point p1"><div><b>T7</b><small>OBSERVE</small></div></div>
+          <div class="ff-cinema-outcome-point p2"><div><b>T14</b><small>OBSERVE</small></div></div>
+          <div class="ff-cinema-outcome-point p3"><div><b>T30</b><small>REVIEW</small></div></div>
+          <p class="ff-cinema-outcome-caption">Measure what held up. Preserve what FlipForge actually knew when the decision was made.</p>
+        </div>
+      </article>
+
+      <footer class="ff-cinema-brand-close">
+        <img src="assets/brand/flipforge-mark.svg" width="74" height="74" alt="">
+        <small>CARD DECISION INTELLIGENCE™</small>
+        <h2><span>BEFORE YOU BUY.</span><strong>KNOW WHY.</strong></h2>
+        <p>Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome</p>
+        <a href="decision-intelligence.html" data-ff-cinema-cta="cinematic_explore_cdi_clicked">Explore the Decision</a>
+      </footer>
+    </section>
+
+    <section class="ff-cdi-home ff-cdi-home-compact" data-ff-cdi-home="true" aria-labelledby="ff-cdi-home-title">
       <div class="ff-cdi-home-inner">
         <div class="ff-cdi-home-head">
           <p class="ff-cdi-home-kicker">WHAT IS CARD DECISION INTELLIGENCE™?</p>
@@ -413,6 +595,7 @@
   <script src="assets/js/homepage-v1.js" defer></script>
   <script src="assets/js/homepage-deal-or-decoy-v1.js" defer></script>
   <script src="assets/js/homepage-motion-attraction-v1.js" defer></script>
+  <script src="assets/js/homepage-cinematic-story-v1.js" defer></script>
   <script src="assets/js/phase3-activation-events-v1.js" defer></script>
 </body>
 </html>
