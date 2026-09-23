@@ -5,25 +5,70 @@
   if (!main || document.body?.dataset?.ffSurface !== "customer") return;
 
   const IDLE_MS = 170;
-  const MAX_HOLD_MS = 3500;
-  const HARD_FAILSAFE_MS = 11000;
+  const MAX_HOLD_MS = 1400;
   const STABLE_FRAMES = 3;
   const GEOMETRY_TOLERANCE = 1.5;
   let idleTimer = 0;
   let maxTimer = 0;
   let generation = 0;
   let frameToken = 0;
-  let transitionStartedAt = 0;
 
   function internalRouteLink(target) {
     return target?.closest?.('a[href^="#/"]') || null;
   }
 
-  function routeStillLoading() {
-    return Boolean(
-      main.querySelector(".staging-loading,.ff-commercial-loading,[data-production-dashboard-guard]")
-      || /Loading (?:authoritative|saved|tenant-owned|customer|card intelligence|FlipForge)/i.test(String(main.textContent || ""))
-    );
+  function routeParts() {
+    return String(window.location.hash || "#/dashboard")
+      .replace(/^#\/?/, "")
+      .split(/[/?]/)
+      .filter(Boolean)
+      .map(value => {
+        try { return decodeURIComponent(value); } catch (_) { return value; }
+      });
+  }
+
+  function routeReady() {
+    const [route = "dashboard", id = ""] = routeParts();
+
+    if (route === "dashboard") {
+      return Boolean(
+        main.querySelector("[data-commercial-dashboard-v2]")
+        && !main.querySelector(".ff-commercial-loading,[data-production-dashboard-guard]")
+      );
+    }
+
+    if (route === "opportunities" && id) {
+      return Boolean(
+        main.querySelector(".customer-intelligence-hero")
+        && main.querySelector("[data-ff-saved-decision-bar] a[href^=\"#/tracking/\"]")
+      );
+    }
+
+    if (route === "tracking") {
+      const page = main.querySelector(".customer-lifecycle-page");
+      if (!page) return false;
+      if (page.querySelector(".staging-error")) {
+        return Boolean(page.querySelector("[data-ff-tracking-retry]"))
+          || page.dataset.ffTrackingCustomerUx === "v3";
+      }
+      return page.dataset.ffTrackingCustomerUx === "v3";
+    }
+
+    if (route === "decision-intelligence") {
+      return Boolean(
+        main.querySelector('.ff-di-page[data-decision-intelligence-source="server"]')
+        && main.querySelector("section[data-ff-decision-card-evidence]")
+      );
+    }
+
+    if (route === "beta-start") {
+      return Boolean(main.querySelector(".private-beta-record-system,.private-beta-shell,.private-beta-page"));
+    }
+
+    // Other customer routes can reveal once their final page shell exists and
+    // no explicit route loader owns the workspace.
+    return Boolean(main.firstElementChild)
+      && !main.querySelector(".staging-loading,.ff-commercial-loading,[data-production-dashboard-guard]");
   }
 
   function geometry() {
@@ -59,7 +104,6 @@
     generation += 1;
     frameToken += 1;
     const current = generation;
-    transitionStartedAt = Date.now();
     clearTimeout(idleTimer);
     clearTimeout(maxTimer);
 
@@ -68,13 +112,10 @@
     main.dataset.ffRouteTransitioning = "true";
     main.setAttribute("aria-busy", "true");
 
+    // Never make customer controls inaccessible for a long-running request.
+    // The veil is bounded; route-specific readiness below handles normal cases.
     maxTimer = window.setTimeout(() => {
-      if (current !== generation) return;
-      if (!routeStillLoading() || Date.now() - transitionStartedAt >= HARD_FAILSAFE_MS) {
-        reveal(current);
-        return;
-      }
-      scheduleReveal(current);
+      if (current === generation) reveal(current);
     }, MAX_HOLD_MS);
     scheduleReveal(current);
   }
@@ -103,12 +144,12 @@
         return;
       }
 
-      if (routeStillLoading()) {
+      if (!routeReady()) {
         stable = 0;
         previous = null;
         window.setTimeout(() => {
           if (current === generation && token === frameToken) window.requestAnimationFrame(sample);
-        }, 90);
+        }, 70);
         return;
       }
 
