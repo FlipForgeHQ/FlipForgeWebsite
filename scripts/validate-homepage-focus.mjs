@@ -102,6 +102,16 @@ check('072 cinematic motion is progressive and reduced-motion safe',cinematicJs.
 check('073 cinematic layer interaction is keyboard accessible',cinematicJs.includes('event.key !== "Enter"')&&cinematicJs.includes('tabindex')&&cinematicCss.includes(':focus-visible'));
 check('074 cinematic layer adds no decision authority',!/(evaluateAndSave\(|saveEvidence\(|transactionAuthority\s*=|recommendation\s*=)/.test(cinematicJs));
 check('075 visual system uses locked brand palette',cinematicCss.includes('#030812')&&cinematicCss.includes('#0A101C')&&cinematicCss.includes('#D7B56D')&&cinematicCss.includes('#F0D9A2')&&cinematicCss.includes('#F7F7F4'));
+check('076 cinematic experience owns the first homepage viewport',index.includes('class="ff-cinema-hero"')&&index.indexOf('class="ff-cinema-hero"')<index.indexOf('class="decision-hero ff-demo-section"'));
+check('077 locked slogan is the dominant cinematic hero message',index.includes('<span>BEFORE YOU BUY.</span><strong>KNOW WHY.</strong>'));
+check('078 premium hero cycles approved visual assets',['flipforge-identity-first.webp','flipforge-evidence-review.webp','before-after-flipforge.webp','how-flipforge-works.webp'].every(v=>index.includes(v)));
+check('079 legacy text hero is demoted to Deal Check support',cinematicCss.includes('.decision-hero.ff-demo-section>.decision-hero-copy')&&cinematicCss.includes('display:none!important')&&cinematicCss.includes('.decision-hero.ff-demo-section>.ff-deal-demo'));
+check('080 cinematic hero communicates the four-stage path',['data-ff-hero-step="identity"','data-ff-hero-step="evidence"','data-ff-hero-step="risk"','data-ff-hero-step="decision"'].every(v=>index.includes(v)));
+check('081 cinematic hero visibly animates intelligence stages',cinematicJs.includes('heroStates')&&cinematicJs.includes('hero.dataset.heroState')&&cinematicJs.includes('scheduleHero'));
+check('082 cinematic hero motion pauses offscreen',cinematicJs.includes('heroVisible')&&cinematicJs.includes('heroObserver'));
+check('083 cinematic hero uses priority loading only for first visual',index.includes('data-ff-hero-art="identity"')&&index.includes('fetchpriority="high"'));
+check('084 cinematic hero remains mobile-first responsive',cinematicCss.includes('@media(max-width:620px)')&&cinematicCss.includes('.ff-cinema-hero-stage{aspect-ratio:10/13'));
+
 
 
 const failures=checks.filter(item=>!item.passed);
