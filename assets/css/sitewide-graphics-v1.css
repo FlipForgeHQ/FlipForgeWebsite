@@ -407,3 +407,37 @@
   .ff-approved-data-summary>span:nth-child(2){border-right:0}
   .ff-approved-data-summary>span:nth-child(3),.ff-approved-data-summary>span:nth-child(4){border-bottom:0}
 }
+
+
+/* === MOBILE CINEMATIC CROPS ===
+   Preserve the approved compositions as hero-grade scenes instead of shrinking
+   desktop boards until their visual hierarchy becomes unreadable. */
+@media(max-width:700px){
+  .ff-approved-graphic{
+    background:#030507;
+  }
+  .ff-approved-graphic img{
+    width:100%;
+    max-width:none;
+    height:clamp(390px,118vw,540px);
+    object-fit:cover;
+  }
+  .ff-approved-hero img{object-position:66% 50%}
+  .ff-approved-evidence img,
+  .ff-approved-wide img{object-position:66% 50%}
+  .ff-approved-receipt img{object-position:63% 50%}
+  .ff-approved-storyboard img{object-position:50% 50%}
+}
+@media(min-width:701px){
+  .is-ready .ff-approved-graphic img{
+    animation:ffApprovedResolve .8s cubic-bezier(.2,.8,.2,1) both;
+    transform-origin:50% 50%;
+  }
+}
+@keyframes ffApprovedResolve{
+  from{opacity:.72;transform:scale(.988)}
+  to{opacity:1;transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+  .is-ready .ff-approved-graphic img{animation:none!important}
+}
