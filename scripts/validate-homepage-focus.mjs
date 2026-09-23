@@ -85,9 +85,9 @@ check('057 evidence dialog can close natively',dealJs.includes('evidenceDialog.c
 check('058 no browser storage is introduced',['localStorage','sessionStorage','indexedDB'].every(v=>!dealJs.includes(v)&&!navJs.includes(v)));
 check('059 reduced motion is respected',heroCss.includes('@media(prefers-reduced-motion:reduce)')&&dealCss.includes('@media(prefers-reduced-motion:reduce)')&&processCss.includes('@media(prefers-reduced-motion:reduce)')&&cdiCss.includes('@media(prefers-reduced-motion:reduce)')&&dealJs.includes('prefers-reduced-motion'));
 check('060 live processing is measured',dealJs.includes('flipforge_demo_processing_started'));
-check('061 premium landing attraction is loaded',index.includes('assets/css/homepage-motion-attraction-v1.css')&&index.includes('assets/js/homepage-motion-attraction-v1.js'));
-check('062 landing attraction uses approved product graphics',index.includes('<section class=\"ff-motion-attraction\"')&&['assets/images/flipforge-identity-first.webp','assets/images/flipforge-evidence-review.webp','assets/images/before-after-flipforge.webp'].every(path=>index.includes(path)));
-check('063 landing attraction keeps approved mark without timed marketing copy',index.includes('assets/brand/flipforge-mark.svg')&&!/9-SECOND DECISION INTELLIGENCE/i.test(index));
+check('061 hero leads directly into the interactive Deal Check',index.indexOf('class="ff-deal-demo" id="deal-or-decoy"')>index.indexOf('class="decision-hero-copy"')&&index.indexOf('class="ff-deal-demo" id="deal-or-decoy"')<index.indexOf('class="ff-cdi-home"'));
+check('062 approved product graphics moved to the CDI explainer',['assets/images/flipforge-identity-first.webp','assets/images/flipforge-evidence-review.webp','assets/images/before-after-flipforge.webp'].every(path=>index.includes(path))&&index.includes('class="ff-cdi-visual-proof"'));
+check('063 timed and abstract hero taxonomy treatments are absent',!/9-SECOND DECISION INTELLIGENCE/i.test(index)&&!index.includes('assets/css/homepage-motion-attraction-v1.css')&&!index.includes('assets/js/homepage-motion-attraction-v1.js')&&!index.includes('decision-assurance'));
 
 const failures=checks.filter(item=>!item.passed);
 console.log('FlipForge CDI-centered homepage validation');
