@@ -5,7 +5,7 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const APP_ROUTE_HASH = /^#\//;
-  const AUTHORITATIVE_FETCH_TIMEOUT_MS = 15000;
+  // Keep the browser timeout above the server gateway ceiling (25s). The browser\n  // must allow the gateway to return a governed success/failure instead of aborting\n  // a still-running authoritative request first.\n  const AUTHORITATIVE_FETCH_TIMEOUT_MS = 30000;
   const FULL_CUSTOMER_DASHBOARD_SCRIPT = "commercial-dashboard-v2.js";
   const FULL_CUSTOMER_DASHBOARD_STYLESHEET = "commercial-dashboard-v2.css";
   const main = document.querySelector("#main-content");
