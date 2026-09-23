@@ -1,0 +1,402 @@
+/* FlipForge Discover Scanner v1
+   Presentation-only scanner layer over authoritative Discover results.
+   It never recalculates server rank, evidence, confidence, Discovery score, or decisions. */
+
+.ff-discover-scanner-toolbar {
+  position: sticky;
+  top: 10px;
+  z-index: 6;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(213,173,83,.24);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(213,173,83,.055), rgba(255,255,255,.018)),
+    rgba(11,13,16,.96);
+  box-shadow: 0 18px 42px rgba(0,0,0,.24);
+  backdrop-filter: blur(16px);
+}
+
+.ff-discover-scanner-toolbar-copy {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.ff-discover-scanner-toolbar-copy h2 {
+  margin: 3px 0 5px;
+  font-size: clamp(17px, 1.5vw, 22px);
+}
+
+.ff-discover-scanner-toolbar-copy p,
+.ff-discover-scanner-boundary {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.ff-discover-scanner-count {
+  flex: 0 0 auto;
+  color: var(--gold-strong);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.ff-discover-scanner-filters {
+  display: grid;
+  grid-template-columns: minmax(130px,.8fr) repeat(5,minmax(120px,1fr)) minmax(150px,1.1fr) auto;
+  gap: 9px;
+  align-items: end;
+}
+
+.ff-discover-scanner-filters label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ff-discover-scanner-filters label > span {
+  color: var(--text-soft);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.ff-discover-scanner-filters input,
+.ff-discover-scanner-filters select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255,255,255,.025);
+  color: var(--text);
+  padding: 7px 9px;
+  font: inherit;
+  font-size: 11px;
+}
+
+.ff-discover-scanner-filters input:focus-visible,
+.ff-discover-scanner-filters select:focus-visible,
+.ff-discover-scanner-select:focus-visible {
+  outline: 2px solid var(--gold-strong);
+  outline-offset: 2px;
+}
+
+.ff-discover-scanner-reset {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.ff-discover-scanner-boundary {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.ff-discover-scanner-boundary strong {
+  color: var(--text);
+}
+
+.ff-discover-scanner-header,
+.ff-discover-scanner-row-grid {
+  display: grid;
+  grid-template-columns: 72px 72px minmax(250px,2.2fr) minmax(105px,.8fr) minmax(125px,1fr) minmax(115px,.9fr) minmax(130px,1fr) 88px;
+  gap: 0;
+  align-items: stretch;
+}
+
+.ff-discover-scanner-header {
+  margin-top: 2px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: rgba(255,255,255,.025);
+  overflow: hidden;
+}
+
+.ff-discover-scanner-header span {
+  padding: 9px 10px;
+  border-right: 1px solid var(--line);
+  color: var(--text-soft);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.ff-discover-scanner-header span:last-child {
+  border-right: 0;
+  text-align: right;
+}
+
+.ff-discover-scanner-body {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--line);
+  border-radius: 0 0 10px 10px;
+  background: var(--line);
+  overflow: clip;
+}
+
+.customer-discovery-results .customer-discovery-candidate.ff-discover-scanner-row {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: #101318;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.ff-discover-scanner-row[hidden] {
+  display: none !important;
+}
+
+.ff-discover-scanner-row-grid {
+  background: #101318;
+  transition: background .16s ease, box-shadow .16s ease;
+}
+
+.ff-discover-scanner-row:hover .ff-discover-scanner-row-grid {
+  background: #13171d;
+}
+
+.ff-discover-scanner-selected .ff-discover-scanner-row-grid {
+  background:
+    linear-gradient(90deg, rgba(213,173,83,.105), rgba(213,173,83,.025) 42%, transparent),
+    #13171d;
+  box-shadow: inset 3px 0 0 var(--gold-strong);
+}
+
+.ff-discover-scanner-cell {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 12px 10px;
+  border-right: 1px solid var(--line);
+}
+
+.ff-discover-scanner-cell:last-child {
+  border-right: 0;
+  text-align: right;
+  justify-items: end;
+}
+
+.ff-discover-scanner-cell strong {
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.ff-discover-scanner-cell small {
+  color: var(--text-soft);
+  font-size: 9px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ff-discover-scanner-title strong {
+  font-size: 12px;
+}
+
+.ff-discover-scanner-rank strong,
+.ff-discover-scanner-cell:last-child strong {
+  color: var(--gold-strong);
+}
+
+.ff-discover-scanner-select-cell {
+  align-items: center;
+  justify-items: center;
+}
+
+.ff-discover-scanner-select {
+  min-width: 50px;
+  min-height: 30px;
+  border: 1px solid rgba(213,173,83,.32);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  padding: 5px 9px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.ff-discover-scanner-selected .ff-discover-scanner-select {
+  background: var(--gold-strong);
+  border-color: var(--gold-strong);
+  color: #0b0d10;
+}
+
+.ff-discover-scanner-row > .panel-header {
+  display: none;
+}
+
+.ff-discover-scanner-row > .panel-body {
+  display: none;
+  border-top: 1px solid rgba(213,173,83,.2);
+  background: rgba(213,173,83,.025);
+  padding-top: 14px;
+}
+
+.ff-discover-scanner-row.ff-discover-scanner-selected > .panel-body {
+  display: block;
+}
+
+.ff-discover-scanner-row.ff-discover-scanner-selected .customer-discovery-metrics {
+  display: none;
+}
+
+.ff-discover-scanner-row.ff-discover-scanner-selected .customer-discovery-copy {
+  margin-top: 0;
+}
+
+.ff-discover-scanner-row.ff-discover-scanner-selected .customer-discovery-actions {
+  margin-top: 12px;
+}
+
+.ff-discover-scanner-row.ff-discover-scanner-selected .customer-discovery-actions [data-discovery-evaluate] {
+  min-width: 210px;
+}
+
+.ff-discover-scanner-empty {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  border: 1px dashed rgba(213,173,83,.3);
+  border-radius: 10px;
+  background: rgba(213,173,83,.035);
+}
+
+.ff-discover-scanner-empty[hidden] {
+  display: none;
+}
+
+.ff-discover-scanner-empty strong {
+  color: var(--text);
+}
+
+.ff-discover-scanner-empty span {
+  color: var(--text-soft);
+  font-size: 11px;
+}
+
+@media (max-width: 1320px) {
+  .ff-discover-scanner-filters {
+    grid-template-columns: repeat(4, minmax(130px,1fr));
+  }
+
+  .ff-discover-scanner-header,
+  .ff-discover-scanner-row-grid {
+    grid-template-columns: 66px 62px minmax(220px,2fr) 100px 115px 110px 120px 76px;
+  }
+}
+
+@media (max-width: 980px) {
+  .ff-discover-scanner-toolbar {
+    position: static;
+  }
+
+  .ff-discover-scanner-toolbar-copy {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .ff-discover-scanner-filters {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .ff-discover-scanner-header {
+    display: none;
+  }
+
+  .ff-discover-scanner-body {
+    gap: 10px;
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .customer-discovery-results .customer-discovery-candidate.ff-discover-scanner-row {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .ff-discover-scanner-row-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .ff-discover-scanner-cell {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 11px 12px;
+  }
+
+  .ff-discover-scanner-cell::before {
+    content: attr(data-label);
+    color: var(--text-soft);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .ff-discover-scanner-title {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .ff-discover-scanner-select-cell {
+    grid-column: 1 / -1;
+    justify-items: stretch;
+  }
+
+  .ff-discover-scanner-select {
+    width: 100%;
+  }
+
+  .ff-discover-scanner-cell:last-child {
+    text-align: left;
+    justify-items: start;
+  }
+}
+
+@media (max-width: 620px) {
+  .ff-discover-scanner-filters,
+  .ff-discover-scanner-row-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ff-discover-scanner-sort {
+    grid-column: auto;
+  }
+
+  .ff-discover-scanner-reset {
+    width: 100%;
+  }
+
+  .ff-discover-scanner-title,
+  .ff-discover-scanner-select-cell {
+    grid-column: auto;
+  }
+
+  .ff-discover-scanner-row.ff-discover-scanner-selected .customer-discovery-actions .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-discover-scanner-row-grid {
+    transition: none !important;
+  }
+}
