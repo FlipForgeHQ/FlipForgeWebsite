@@ -44,46 +44,6 @@
   background:linear-gradient(112deg,transparent 0 58%,rgba(255,255,255,.025) 62%,transparent 68%);
   pointer-events:none;
 }
-.ff-deal-mini-card{
-  width:64px;
-  aspect-ratio:.70;
-  border:6px solid #e9edf2;
-  border-radius:8px;
-  background:
-    radial-gradient(circle at 50% 42%,rgba(240,193,82,.88) 0 8%,transparent 9%),
-    linear-gradient(145deg,transparent 30%,rgba(108,196,255,.28) 31% 37%,transparent 38% 53%,rgba(238,184,74,.36) 54% 61%,transparent 62%),
-    linear-gradient(165deg,#162231 0%,#7f8a99 37%,#283545 63%,#101720 100%);
-  box-shadow:0 16px 34px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.18);
-}
-.ff-deal-mini-card::before{
-  inset:10px 3px 7px;
-  border-radius:2px;
-  background:
-    linear-gradient(110deg,transparent 0 36%,rgba(255,255,255,.23) 40%,transparent 45%),
-    linear-gradient(132deg,transparent 34%,rgba(230,170,53,.35) 35% 43%,transparent 44% 60%,rgba(143,194,255,.2) 61% 66%,transparent 67%);
-}
-.ff-deal-mini-card::after{
-  content:"307 · SILVER";
-  position:absolute;
-  left:3px;
-  right:3px;
-  bottom:2px;
-  padding:2px 2px 1px;
-  background:rgba(4,8,13,.78);
-  color:#e8ecf2;
-  font-size:.38rem;
-  font-weight:900;
-  letter-spacing:.03em;
-  text-align:center;
-}
-.ff-deal-mini-card span{
-  top:-3px;
-  left:-3px;
-  right:-3px;
-  padding:3px 4px 2px;
-  border-bottom:1px solid #d5dbe2;
-  font-size:.48rem;
-}
 .ff-deal-price-stack strong{color:#fff;text-shadow:0 5px 18px rgba(255,255,255,.08)}
 .ff-deal-discount{
   border-color:rgba(230,170,53,.46);
@@ -250,7 +210,6 @@
 
 /* Tablet: preserve hierarchy without blowing up the panel. */
 @media(max-width:1180px) and (min-width:761px){
-  .ff-deal-mini-card{width:58px}
   .ff-deal-result-heading{grid-template-columns:minmax(132px,.68fr) minmax(0,1.32fr)}
   .ff-deal-shift strong{font-size:4rem}
 }
@@ -266,8 +225,9 @@
   .decision-hero h1 span,.decision-hero h1 strong{font-size:clamp(2rem,10vw,2.8rem)}
   .decision-hero h1 strong{margin-top:2px}
   .decision-lead{margin-top:7px;font-size:.84rem;line-height:1.34}
-  .decision-demo-cue{display:none}
-  .decision-actions,.decision-assurance{display:none}
+  .decision-text-link{display:none}
+  .decision-actions{margin-top:10px}
+  .decision-actions .decision-button{min-height:38px;padding:0 13px;font-size:.75rem}
 
   .ff-deal-shell{border-radius:15px}
   .ff-deal-topbar{min-height:36px;padding:7px 10px}
@@ -278,9 +238,7 @@
   .ff-deal-question h2{font-size:1.36rem;line-height:1.02}
   .ff-deal-question>p:last-child{margin-top:3px;font-size:.68rem}
 
-  .ff-deal-listing{padding:8px;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;border-radius:10px}
-  .ff-deal-mini-card{width:39px;border-width:4px;border-radius:5px}
-  .ff-deal-mini-card span{font-size:.35rem}.ff-deal-mini-card::after{font-size:.28rem}
+  .ff-deal-listing{padding:8px;grid-template-columns:minmax(0,1fr) auto;gap:8px;border-radius:10px}
   .ff-deal-listing-copy h3{font-size:.67rem;line-height:1.2}
   .ff-deal-price-stack{min-width:61px}.ff-deal-price-stack strong{font-size:1.34rem}
   .ff-deal-discount{margin:7px 0;padding:7px 9px}
