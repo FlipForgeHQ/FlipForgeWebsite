@@ -338,3 +338,46 @@
   [data-ffg-reveal]{opacity:1!important;transform:none!important;transition:none!important}
   .is-ready .ffg-slab,.is-ready .ffg-receipt,.is-ready .ffg-stage-5,.is-ready .ffg-receipt-lock,.is-ready .ffg-beta-result{animation:none!important}
 }
+
+
+/* === APPROVED CINEMATIC RASTER ASSETS ===
+   Approved FlipForge compositions supplied for production use. */
+.ff-approved-graphic{
+  position:relative;
+  overflow:hidden;
+  margin:30px auto 0;
+  border:1px solid rgba(212,175,55,.24);
+  border-radius:18px;
+  background:#030507;
+  box-shadow:0 34px 96px rgba(0,0,0,.44),0 0 0 1px rgba(255,255,255,.018) inset;
+}
+.ff-approved-graphic:before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.028),transparent 26%,transparent 72%,rgba(212,175,55,.035));
+}
+.ff-approved-graphic img{display:block;width:100%;max-width:650px;height:auto;margin:0 auto}
+.ff-approved-graphic figcaption{
+  position:relative;z-index:3;margin:0;padding:10px 13px;
+  border-top:1px solid rgba(255,255,255,.055);
+  color:#77818b;background:#05080c;font-size:10px;line-height:1.45;letter-spacing:.025em;
+}
+.ff-approved-hero{width:min(100%,650px);margin:0 auto}
+.ff-approved-wide,.ff-approved-receipt,.ff-approved-storyboard{width:min(100%,760px)}
+.ff-approved-storyboard img{max-width:650px}
+.ff-approved-feature .ffg-heading{margin-bottom:24px}
+.ff-cinematic-workspace.ff-approved-hero-shell{
+  display:block;min-height:0;padding:0;border:0;background:transparent;box-shadow:none;
+}
+.ff-cinematic-workspace.ff-approved-hero-shell:before,
+.ff-cinematic-workspace.ff-approved-hero-shell:after{display:none}
+.ff-cinematic-workspace.ff-approved-hero-shell .ff-approved-graphic{height:auto;min-height:0}
+.value-intelligence .ff-approved-evidence{margin-top:34px;margin-bottom:34px}
+@media(max-width:700px){
+  .ff-approved-graphic{margin-top:22px;border-radius:12px}
+  .ff-approved-graphic figcaption{font-size:9px}
+  .ff-approved-wide,.ff-approved-receipt,.ff-approved-storyboard{width:100%}
+}
