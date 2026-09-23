@@ -64,7 +64,16 @@ self.addEventListener('activate',event=>{
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   if(event.request.mode==='navigate'){
-    event.respondWith(fetch(event.request).catch(()=>caches.match('/index.html').then(response=>response||caches.match('/'))));
+    event.respondWith((async()=>{
+      try{
+        const response=await fetch(event.request);
+        if(response&&response.status<500)return response;
+        const cached=await caches.match('/index.html')||await caches.match('/');
+        return cached||response;
+      }catch(_){
+        return (await caches.match('/index.html'))||(await caches.match('/'));
+      }
+    })());
     return;
   }
   if(event.request.destination==='script'||event.request.destination==='style'){

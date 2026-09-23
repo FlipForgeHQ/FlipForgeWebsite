@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const redirects = fs.readFileSync("_redirects", "utf8");
+const netlifyConfig = fs.readFileSync("netlify.toml", "utf8");
 const ebayPrivacy = fs.readFileSync("netlify/modern-functions/ebay-privacy.js", "utf8");
 const functionDir = "netlify/modern-functions";
 
@@ -41,6 +42,10 @@ check(!activeRules.some(rule => rule.includes("/api/ebay/privacy")), "eBay priva
 check(!activeRules.some(rule => rule.startsWith("/app/ ")), "redundant exact /app/ rule must remain unnecessary");
 check(!activeRules.some(rule => rule.includes("/saas-prototype/index.html")), "public app entry must never resolve to the legacy beta shell");
 check(!activeRules.some(rule => rule.startsWith("/app/customer//")), "customer app route must not contain duplicate slash rules");
+check(netlifyConfig.includes('package = "@netlify/plugin-lighthouse"'),
+  "Lighthouse plugin must be configured in netlify.toml so file-based settings override the UI default");
+check(netlifyConfig.includes('fail_deploy_on_score_thresholds = "true"'),
+  "Lighthouse must run before publish against the built static output to avoid live-deploy probe races");
 check(!activeRules.some(rule => /\/app\/customer\/?\s+\/app\/customer\/?\s+30[1278]/.test(rule)),
   "customer app must not use a canonical redirect that can loop with host path normalization");
 check(activeRules.indexOf("/app/customer/* /saas-prototype/:splat 200") < activeRules.indexOf("/app/* /app/customer/:splat 301"),

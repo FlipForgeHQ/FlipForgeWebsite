@@ -212,7 +212,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          body="$(curl -fsSL https://goflipforge.com/pricing.html)"
+          body="$(curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 --retry-max-time 30 https://goflipforge.com/pricing.html)"
           grep -Eqi 'Private Beta remains \$0|Private beta is not a paid subscription|No paid checkout' <<<"$body"
 
   section-j-security:
@@ -241,7 +241,7 @@ jobs:
         run: |
           set -euo pipefail
           for path in / /terms.html /privacy.html /operator-beta.html /app/; do
-            h="$(curl -fsSIL "https://goflipforge.com${path}")"
+            h="$(curl -fsSL -D - -o /dev/null --retry 8 --retry-all-errors --retry-delay 3 --retry-max-time 45 "https://goflipforge.com${path}")"
             grep -qi '^strict-transport-security:' <<<"$h"
             grep -qi '^x-content-type-options: *nosniff' <<<"$h"
             grep -qi '^x-frame-options:' <<<"$h"
@@ -264,7 +264,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          body="$(curl -fsSL https://goflipforge.com/api/v1/runtime-identity)"
+          body="$(curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 --retry-max-time 30 https://goflipforge.com/api/v1/runtime-identity)"
           grep -q '"runtimeBuildCommitVerified":true' <<<"$body"
           grep -q '"runtimeMode":"PRIVATE_HOSTED"' <<<"$body"
           grep -q '"transactionAuthority":false' <<<"$body"

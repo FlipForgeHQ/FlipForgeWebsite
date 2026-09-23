@@ -6,6 +6,17 @@
   directory = "netlify/modern-functions"
   node_bundler = "esbuild"
 
+# Run Lighthouse against the built static output before publish instead of the
+# just-published deploy permalink. This removes the post-deploy edge-propagation
+# race that intermittently surfaced as a false HTTP 500 in Netlify's Lighthouse
+# report while keeping the audit itself mandatory.
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+  [plugins.inputs]
+    fail_deploy_on_score_thresholds = "true"
+
+
 # Baseline browser hardening applies to every public, legal, app-entry, and support
 # route. SAMEORIGIN preserves anti-clickjacking protection while allowing approved
 # first-party interactive assets to render inside FlipForge pages. Sensitive top-level
