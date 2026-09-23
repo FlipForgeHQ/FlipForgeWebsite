@@ -114,9 +114,9 @@ requireText('homepage direct first action',homepage,'Would you pay <span>$349</s
 requireText('homepage proof path',homepage,'class="ff-deal-demo" id="deal-or-decoy"');
 requireText('homepage interactive proof',homepage,'assets/js/homepage-deal-or-decoy-v1.js');
 requireText('homepage processing stage',homepage,'data-ff-processing-stage');
-requireText('homepage live identity step',homepage,'01 · EXACT CARD');
-requireText('homepage live evidence step',homepage,'02 · CHALLENGE 7 COMPARISONS');
-requireText('homepage live value step',homepage,'03 · SUPPORTED VALUE');
+requireText('homepage live identity step',homepage,'01 · IDENTITY');
+requireText('homepage live evidence step',homepage,'02 · EVIDENCE');
+requireText('homepage live value step',homepage,'03 · ECONOMICS');
 requireText('homepage live decision step',homepage,'04 · DECISION');
 forbidText('homepage retired film stylesheet',homepage,'assets/css/homepage-hero-film-v1.css');
 forbidText('homepage retired film behavior',homepage,'assets/js/homepage-hero-film-v1.js');
