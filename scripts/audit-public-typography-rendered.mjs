@@ -154,7 +154,7 @@ try {
       if (!nearlyEqual(size, baselineSection, 0.15)) failures.push(`${viewport.name} ${label}: section title ${size}px differs from Product ${baselineSection}px`);
     }
 
-    const homeDisplay = await measure(page, '/', '.decision-hero h1 span');
+    const homeDisplay = await measure(page, '/', '.hero h1 span');
     if (homeDisplay.fontSize > viewport.homeDisplayMax) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px exceeds ${viewport.homeDisplayMax}px cap`);
     if (homeDisplay.fontSize < baselineTitle) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px is smaller than internal page title ${baselineTitle}px`);
     if (homeDisplay.fontSize - baselineTitle > 8.1) failures.push(`${viewport.name} Home: display is more than one scale step above internal page title (${homeDisplay.fontSize}px vs ${baselineTitle}px)`);

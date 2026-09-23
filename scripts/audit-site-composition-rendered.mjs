@@ -165,20 +165,22 @@ try{
   const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
   const page=await context.newPage();
   await page.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded'});
-  const choice=page.locator('button[data-ff-choice="VERIFY"]');
-  if(await choice.count()){
-    await choice.click();
-    await page.waitForSelector('[data-ff-result-stage]:not([hidden])',{timeout:6000}).catch(()=>failures.push('homepage interaction: result stage did not become visible'));
-    const reveal=page.locator('[data-ff-cdi-reveal]');
-    if(!(await reveal.isVisible().catch(()=>false)))failures.push('homepage interaction: CDI reveal not visible after decision');
-    const evidence=page.locator('[data-ff-open-evidence]');
-    if(await evidence.count()){
-      await evidence.click();
-      const dialog=page.locator('[data-ff-evidence-dialog]');
-      if(!(await dialog.evaluate(el=>el.open).catch(()=>false)))failures.push('homepage interaction: evidence dialog did not open');
-      await page.locator('[data-ff-close-evidence]').first().click().catch(()=>{});
-    }
-  }else failures.push('homepage interaction: VERIFY choice missing');
+  const parallel=page.locator('button[data-case="parallel"]');
+  if(await parallel.count()){
+    await parallel.click();
+    await page.waitForFunction(()=>document.querySelector('[data-title]')?.textContent?.includes('Wrong parallel.'),null,{timeout:3000})
+      .catch(()=>failures.push('homepage interaction: wrong-parallel state did not render'));
+    const rule=(await page.locator('[data-rule]').textContent().catch(()=>''))||'';
+    const effect=(await page.locator('[data-effect]').textContent().catch(()=>''))||'';
+    if(!/Blocked:/i.test(rule))failures.push('homepage interaction: wrong parallel was not blocked');
+    if(!/cannot influence supported value/i.test(effect))failures.push('homepage interaction: blocked comp still appears able to influence value');
+    const exact=page.locator('button[data-case="exact"]');
+    if(await exact.count()){
+      await exact.click();
+      await page.waitForFunction(()=>document.querySelector('[data-title]')?.textContent?.includes('This comparison belongs.'),null,{timeout:3000})
+        .catch(()=>failures.push('homepage interaction: exact-match state did not restore'));
+    }else failures.push('homepage interaction: exact-match control missing');
+  }else failures.push('homepage interaction: wrong-parallel control missing');
   await context.close();
 
   const mobile=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
