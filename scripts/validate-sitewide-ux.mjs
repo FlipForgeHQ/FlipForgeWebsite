@@ -204,6 +204,9 @@ requireText('route stability has bounded loading window',routeStabilityJs,'const
 requireText('route stability has hard recovery fail-safe',routeStabilityJs,'const HARD_FAILSAFE_MS = 11000');
 requireText('route stability recognizes authoritative loading states',routeStabilityJs,'function routeStillLoading()');
 requireText('route stability samples rendered geometry',routeStabilityJs,'function geometry()');
+requireText('route stability uses route-specific readiness',routeStabilityJs,'function routeReady()');
+requireText('saved decision readiness requires Tracking action',routeStabilityJs,'[data-ff-saved-decision-bar] a[href^=\\\"#/tracking/\\\"]');
+requireText('Tracking readiness waits for final customer polish',routeStabilityJs,'page.dataset.ffTrackingCustomerUx === "v3"');
 requireText('route stability requires consecutive stable frames',routeStabilityJs,'const STABLE_FRAMES = 3');
 requireText('route stability waits for loaded fonts',routeStabilityJs,'document.fonts.status !== "loaded"');
 forbidText('guided mode must not resize main content',guideCompact,'#main-content{padding-right:382px}');
