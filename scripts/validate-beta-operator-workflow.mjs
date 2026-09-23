@@ -79,6 +79,9 @@ const checks = [
   ["invitation requires approval and cohort", operatorSource.includes("APPLICATION_NOT_APPROVED") && operatorSource.includes("COHORT_REQUIRED")],
   ["invitation reserves state before the Identity side effect", operatorSource.includes("INVITATION_STARTED") && operatorSource.includes("INVITATION_IN_PROGRESS") && operatorSource.indexOf("reserveInvitation(current") < operatorSource.indexOf("inviteApplicant(reserved")],
   ["invitation rejects unconfirmed self-registration conflicts", operatorSource.includes("IDENTITY_ACCOUNT_CONFLICT") && operatorSource.includes("!activatedIdentity(identityUser) && !invitedIdentity(identityUser)")],
+  ["stale Identity recovery is explicit and server-owned", operatorSource.includes('action === "resend-invite"') && operatorSource.includes("identityAdmin.deleteUser(existingId)") && operatorSource.includes("IDENTITY_STALE_ACCOUNT_RESET")],
+  ["stale Identity recovery refuses activated or cross-record accounts", operatorSource.includes("IDENTITY_ALREADY_ACTIVATED") && operatorSource.includes("IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD")],
+  ["operator exposes reset and resend control", operatorClient.includes("data-reset-invite") && operatorClient.includes('action:"resend-invite"') && operatorClient.includes("Reset &amp; resend invitation")],
   ["invitation uses server operator token", operatorSource.includes("getIdentityConfig") && operatorSource.includes("Bearer ${identity.token}")],
   ["invitation assigns one tenant role", operatorSource.includes("filter(role => !role.startsWith(TENANT_ROLE_PREFIX))") && coreSource.includes('ACTIVE_ROLE = "flipforge-active"')],
   ["activation sync is Identity-backed", operatorSource.includes("syncActivations") && operatorSource.includes("confirmedAt")],
@@ -203,6 +206,11 @@ const identityAdmin = {
     user.roles = structuredClone(attributes.app_metadata.roles);
     return structuredClone(user);
   },
+  async deleteUser(id) {
+    const index = identityUsers.findIndex(value => value.id === id);
+    assert.ok(index >= 0);
+    identityUsers.splice(index, 1);
+  },
 };
 const inviteIdentity = async (email, fullName) => {
   const user = { id: "identity-user-1", email, invitedAt: fixedNow.toISOString(), roles: [], userMetadata: { full_name: fullName }, appMetadata: { provider: "email", roles: [] } };
@@ -246,15 +254,23 @@ assert.equal(response.status, 409);
 application = await applicationStore.get(applicationKeys[0]);
 assert.equal(application.status, "APPROVED");
 assert.equal(application.invitationAttempt, null);
-identityUsers.length = 0;
-response = await operator(operatorRequest({ action: "invite", applicationId: application.id, expectedVersion: application.version }));
+
+response = await operator(operatorRequest({ action: "resend-invite", applicationId: application.id, expectedVersion: application.version }));
 assert.equal(response.status, 200);
 application = (await response.json()).application;
 assert.equal(application.status, "INVITE_SENT");
+assert.equal(identityUsers.length, 1);
+assert.notEqual(identityUsers[0].id, "unconfirmed-self-registration");
+assert.ok(application.history.some(entry => entry.type === "IDENTITY_STALE_ACCOUNT_RESET"));
 assert.equal(identityUpdates.length, 1);
 assert.ok(identityUpdates[0].app_metadata.roles.includes("flipforge-active"));
 assert.equal(identityUpdates[0].app_metadata.roles.filter(role => role.startsWith("flipforge-tenant--")).length, 1);
+
 identityUsers[0].confirmedAt = "2026-08-23T03:05:00.000Z";
+response = await operator(operatorRequest({ action: "resend-invite", applicationId: application.id, expectedVersion: application.version }));
+assert.equal(response.status, 409);
+assert.equal(identityUsers.length, 1);
+application = await applicationStore.get(applicationKeys[0]);
 response = await operator(operatorRequest());
 dashboard = await response.json();
 application = dashboard.applications[0];
