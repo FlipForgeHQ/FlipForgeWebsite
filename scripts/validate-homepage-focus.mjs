@@ -36,7 +36,7 @@ check('023 film demonstrates exact identity',has(index,'00:05 — EXACT CARD'));
 check('024 film demonstrates evidence qualification',has(index,'00:12 — QUALIFIED EVIDENCE'));
 check('025 film demonstrates supported value',has(index,'00:20 — SUPPORTED VALUE'));
 check('026 price-vs-value positioning is explicit',has(index,'Price is an input.')&&has(index,'Value is the intelligence.'));
-check('027 descriptive lowercase card value intelligence is allowed',has(index,'card value intelligence'));
+check('027 retired Card Value Intelligence wording is absent',!/card value intelligence/i.test(index));
 check('028 formal CARD VALUE INTELLIGENCE identity is absent',!has(index,'CARD VALUE INTELLIGENCE'));
 check('029 wrong-card simulator remains interactive',has(index,'data-case="exact"')&&has(index,'data-case="parallel"')&&has(index,'data-case="grade"'));
 check('030 simulator states why evidence is blocked',has(index,'this evidence may support the decision.'));
