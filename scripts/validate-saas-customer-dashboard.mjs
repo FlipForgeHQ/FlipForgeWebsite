@@ -20,6 +20,8 @@ const files = {
 
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
+const browserTimeoutMs = Number(files.guard.match(/AUTHORITATIVE_FETCH_TIMEOUT_MS\s*=\s*(\d+)/)?.[1] || 0);
+const gatewayMaxTimeoutMs = Number(files.gateway.match(/MAX_TIMEOUT_MS\s*=\s*(\d+)/)?.[1] || 0);
 
 [
   ["001 customer Dashboard validator is registered", files.packageJson.scripts?.["validate:customer-dashboard"] === "node scripts/validate-saas-customer-dashboard.mjs"],
@@ -32,6 +34,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["008 production Dashboard guard recognizes authoritative render", files.guard.includes('[data-commercial-dashboard-v2]')],
   ["009 production Dashboard guard exposes no prototype data dependency", !/FlipForgePrototypeData|data\.dashboard|data\.opportunities/.test(files.guard)],
   ["010 production Dashboard guard uses honest authoritative loading language", files.guard.includes("Loading tenant-owned FlipForge intelligence") && files.guard.includes("Loading authoritative dashboard data")],
+  ["010a browser timeout exceeds the authoritative gateway maximum", browserTimeoutMs >= gatewayMaxTimeoutMs + 5000],
   ["011 legacy prototype Dashboard remains identifiable for non-production cleanup", files.legacyApp.includes("Prototype customer activity, not live telemetry") && files.legacyApp.includes("already-governed mock records")],
   ["012 commercial Dashboard uses fixed health path", files.dashboard.includes('health: "/api/v1/health"')],
   ["013 commercial Dashboard uses fixed dashboard path", files.dashboard.includes('dashboard: "/api/v1/dashboard"')],
