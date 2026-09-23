@@ -373,7 +373,11 @@
         limit: 12
       });
       if (requestSerial !== state.identityAssist.requestSerial || requestedQuery !== state.identityAssist.query) return;
-      state.identityAssist.results = Array.isArray(data.results) ? data.results : [];
+      state.identityAssist.results = (Array.isArray(data.results) ? data.results : []).map(row => ({
+        ...row,
+        __ffIdentityQuery: requestedQuery,
+        __ffIdentitySerial: requestSerial
+      }));
       state.identityAssist.resultsQuery = requestedQuery;
       state.identityAssist.resultsSerial = requestSerial;
       const selectableCount = state.identityAssist.results.filter(row => row
@@ -461,7 +465,15 @@
     }
     const row = state.identityAssist.results[Number(index)];
     const token = String(row?.selectionToken || "");
-    if (!row || row.exactCardCandidate !== true || !SAFE_SELECTION_TOKEN.test(token)) return;
+    if (!row
+      || row.__ffIdentityQuery !== ownedQuery
+      || row.__ffIdentitySerial !== expectedSerial
+      || row.exactCardCandidate !== true
+      || !SAFE_SELECTION_TOKEN.test(token)) {
+      state.identityAssist.message = "That identity choice is no longer current. Review the latest card options before continuing.";
+      renderCurrent();
+      return;
+    }
 
     state.error = null;
     state.notice = "";
