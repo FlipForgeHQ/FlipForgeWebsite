@@ -27,26 +27,26 @@ check('001 locked category remains CARD DECISION INTELLIGENCE',index.includes('C
 check('002 locked slogan remains exact',index.includes('Before you buy. Know Why.'));
 check('003 old descriptor remains forbidden',!index.includes('CARD VALUE INTELLIGENCE'));
 check('004 real locked logo asset is used',index.includes('assets/brand/flipforge-logo-horizontal.svg'));
-check('005 hero leads with the approved decision-first promise',index.includes('<span>Don’t buy the price.</span>')&&index.includes('<strong>Buy the reason.</strong>'));
-check('006 hero explains the product in plain language',index.includes('FlipForge tests whether a sports-card deal is actually supported by the evidence, then shows you BUY, WATCH, VERIFY, or PASS — and why.'));
-check('007 Decision Intelligence is top-level navigation',index.includes('href="decision-intelligence.html">Decision Intelligence™</a>')&&index.includes('href="decision-intelligence.html">Card Decision Intelligence™</a>'));
-check('008 hero has one primary beta CTA plus a plain-text CDI link',index.includes('class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a>')&&index.includes('class="decision-text-link" href="decision-intelligence.html" data-ff-cdi-primary="true">How Card Decision Intelligence works'));
-check('009 first interaction is already in the hero',index.includes('class="ff-deal-demo" id="deal-or-decoy"')&&index.includes('Would you pay <span>$349</span> for this card?'));
+check('005 hero leads with the locked brand promise',index.includes('<span>Before you buy.</span>')&&index.includes('<strong>Know Why.</strong>'));
+check('006 hero explains the product in one plain-language sentence',index.includes('FlipForge turns a card’s identity, market evidence, and asking price into a clear decision — and shows you why.'));
+check('007 Decision Intelligence is top-level navigation',index.includes('href="decision-intelligence.html">Decision Intelligence</a>'));
+check('008 hero has one primary beta CTA plus a plain-text demo link',index.includes('class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a>')&&index.includes('class="decision-text-link" href="#deal-or-decoy" data-ff-cdi-primary="true">See how the decision is made'));
+check('009 first interaction is already in the hero',index.includes('class="ff-deal-demo" id="deal-or-decoy"')&&index.includes('Would you pay <span>$349</span>?'));
 check('010 hero no longer requires a scroll CTA',!index.includes('Try the Deal Check')&&!index.includes('data-ff-see-action'));
 check('011 hero metadata uses verified WebP asset',index.includes(heroPath)&&fs.existsSync(heroPath)&&isWebP(heroBytes));
 check('012 example stays explicitly illustrative',index.includes('Illustrative example · not live market data'));
 check('013 unfinished MP4 is not referenced',!index.includes('flipforge-how-it-works-30s.mp4'));
-check('014 proof asks one explicit task',index.includes('YOUR ONLY TASK')&&index.includes('Pick what you would do. FlipForge will show you what changes.'));
+check('014 proof asks one explicit task',index.includes('TRY THE DECISION')&&index.includes('Make the call you would make on the listing. Then watch FlipForge challenge it.'));
 check('015 all four customer decisions are available',['BUY','WATCH','VERIFY','PASS'].every(v=>index.includes(`data-ff-choice="${v}"`)));
 check('016 proof exposes the evidence correction',index.includes('5 of 7 comparisons were invalid.')&&index.includes('24.0%')&&index.includes('2.3%'));
 check('017 evidence detail is optional and modal',index.includes('<dialog class="ff-evidence-dialog"')&&index.includes('data-ff-open-evidence>See the evidence'));
 check('018 no forced scrolling remains',!dealJs.includes('scrollIntoView'));
 check('019 one choice enters the live processing stage',dealJs.includes("demo.dataset.ffState='processing'")&&dealJs.includes('processingStage.hidden=false'));
-check('020 live sequence shows identity evidence value and decision',index.includes('01 · EXACT CARD')&&index.includes('02 · CHALLENGE 7 COMPARISONS')&&index.includes('03 · SUPPORTED VALUE')&&index.includes('04 · DECISION'));
-check('021 live sequence rejects weak comparisons visibly',dealJs.includes("setCompState(index,'reviewing')")&&dealJs.includes("comp.dataset.finalState||'rejected'"));
+check('020 live sequence shows identity evidence economics and decision',index.includes('01 · IDENTITY')&&index.includes('02 · EVIDENCE')&&index.includes('03 · ECONOMICS')&&index.includes('04 · DECISION'));
+check('021 live sequence explains weak comparison rejection without debug pills',dealJs.includes("evidenceKept.textContent='2'")&&dealJs.includes('5 removed: wrong parallel · duplicates · identity conflict')&&!index.includes('data-ff-live-comp'));
 check('022 live sequence recalculates to governed values',dealJs.includes("supportedValue.textContent='$357.20'")&&dealJs.includes("supportedDiscount.textContent='2.3%'"));
-check('023 result follows processing in the same component',dealJs.includes('schedule(token,3820,showResult)')&&dealJs.includes('resultStage.hidden=false'));
-check('024 reveal names the experience Card Decision Intelligence',index.includes('YOU JUST USED CARD DECISION INTELLIGENCE™')&&index.includes('FlipForge did more than find a different price.'));
+check('023 result follows processing in the same component',dealJs.includes('schedule(token,3600,showResult)')&&dealJs.includes('resultStage.hidden=false'));
+check('024 reveal names the experience Card Decision Intelligence',index.includes('WHAT JUST HAPPENED')&&index.includes('That wasn’t a price lookup. That was Card Decision Intelligence™.'));
 check('025 updated CDI model exposes four systems and thirteen governed layers',
   ['KNOW THE CARD','KNOW THE MARKET','MAKE THE DECISION','LEARN WHAT HAPPENED'].every(v=>index.includes(v))
   && ['Release','Taxonomy','Identity','Provenance + Trust','Evidence','Economics','Product + Variant','Grade + Scarcity','Risk + Uncertainty','Decision','Decision Receipt','Outcome','Governance + Continuous'].every(v=>index.includes(v)));
@@ -55,7 +55,7 @@ check('027 interaction uses progressive enhancement',dealJs.includes('document.s
 check('028 interaction is responsive',dealCss.includes('@media(max-width:760px)')&&dealCss.includes('.ff-deal-choices')&&processCss.includes('@media(max-width:760px)')&&cdiCss.includes('@media(max-width:520px)'));
 check('029 private-beta boundary stays explicit',index.includes('Controlled Private Beta.'));
 check('030 transaction and profit boundary stays explicit',index.includes('FlipForge does not guarantee profit or authorize transactions.'));
-check('031 commercial launch plans remain navigable',index.includes('href="pricing.html">Launch Plans</a>'));
+check('031 homepage primary navigation is beta-focused',!index.includes('href="pricing.html">Launch Plans</a>')&&index.includes('href="about.html">About</a>'));
 check('032 mobile menu markup remains accessible',index.includes('class="menu-toggle"')&&index.includes('aria-expanded="false"')&&index.includes('aria-controls="mobile-navigation"')&&index.includes('class="mobile-nav" id="mobile-navigation"')&&index.includes('class="backdrop" aria-hidden="true"'));
 check('033 mobile menu behavior remains loaded',index.includes('<script src="assets/js/homepage-v1.js" defer></script>'));
 check('034 mobile menu closes with Escape',navJs.includes("event.key==='Escape'"));
@@ -79,7 +79,7 @@ check('051 operator route remains explicitly unframeable',headerBlock('/operator
 check('052 retired hero film CSS is still not loaded',!index.includes('assets/css/homepage-hero-film-v1.css'));
 check('053 retired hero film JS is still not loaded',!index.includes('assets/js/homepage-hero-film-v1.js'));
 check('054 choice processing and result stay in one component',index.includes('data-ff-choice-stage')&&index.includes('data-ff-processing-stage')&&index.includes('data-ff-result-stage'));
-check('055 CTA to evaluate a real listing remains',index.includes('href="/app/#/discover" data-ff-deal-cta="evaluate_listing"'));
+check('055 result CTA returns to the beta funnel',index.includes('href="beta-application.html" data-ff-deal-cta="beta_access"'));
 check('056 replay remains available without page travel',index.includes('data-ff-replay>Try another choice')&&dealJs.includes('showChoices()'));
 check('057 evidence dialog can close natively',dealJs.includes('evidenceDialog.close'));
 check('058 no browser storage is introduced',['localStorage','sessionStorage','indexedDB'].every(v=>!dealJs.includes(v)&&!navJs.includes(v)));
