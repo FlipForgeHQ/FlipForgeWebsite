@@ -145,7 +145,7 @@
         <article><span>01</span><strong>Resolve the card</strong><small>Year, set, number, parallel, grader, and grade. If identity is ambiguous, FlipForge stops for an explicit choice instead of auto-picking the first match.</small></article>
         <article><span>02</span><strong>Challenge the evidence</strong><small>Exact matches count. Weak or mismatched records stay visible but do not quietly drive value.</small></article>
         <article><span>03</span><strong>Measure the setup</strong><small>Price, supported value, liquidity, downside, confidence, and grading economics stay connected.</small></article>
-        <article><span>04</span><strong>Understand the decision</strong><small>BUY CANDIDATE, WATCH, VERIFY, PASS, or grading guidance comes with a reason trail.</small></article>
+        <article><span>04</span><strong>Understand the decision</strong><small>BUY, WATCH, VERIFY, PASS, or grading guidance comes with a reason trail.</small></article>
       </div>
       <div class="ff-home-workflow-footer">
         <span><strong>Then track it.</strong> Saved decisions can be reviewed over 7 / 14 / 30 days to measure what held and what changed.</span>
