@@ -27,6 +27,7 @@ const sectionPages = [
 ];
 
 const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Request Beta Access'];
+const homeCanonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'About', 'Sign In', 'Request Beta Access'];
 const failures = [];
 const nearlyEqual = (a, b, tolerance = 0.75) => Math.abs(a - b) <= tolerance;
 const px = value => Number.parseFloat(value || 'NaN');
@@ -169,7 +170,7 @@ try {
     compareRect(viewport.name, 'Home brand', homeShell.brand, shellBaseline.brand, ['left', 'top', 'width', 'height']);
 
     if (!mobile) {
-      if (JSON.stringify(homeShell.labels) !== JSON.stringify(canonicalNav)) failures.push(`${viewport.name} Home: nav labels/order ${JSON.stringify(homeShell.labels)} do not match canonical ${JSON.stringify(canonicalNav)}`);
+      if (JSON.stringify(homeShell.labels) !== JSON.stringify(homeCanonicalNav)) failures.push(`${viewport.name} Home: nav labels/order ${JSON.stringify(homeShell.labels)} do not match homepage canonical ${JSON.stringify(homeCanonicalNav)}`);
       if (homeShell.clipped.length) failures.push(`${viewport.name} Home: clipped navigation ${homeShell.clipped.join(', ')}`);
       if (!nearlyEqual(homeShell.navFont, 13, 0.15)) failures.push(`${viewport.name} Home: nav font ${homeShell.navFont}px instead of 13px`);
       compareRect(viewport.name, 'Home CTA', homeShell.cta, shellBaseline.cta, ['top', 'width', 'height']);
