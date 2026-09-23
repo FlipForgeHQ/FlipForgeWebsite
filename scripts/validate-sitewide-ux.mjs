@@ -76,7 +76,7 @@ requireText('non-home explicit Home control',brandCss,'.site-header .brand::afte
 requireText('Home control is removed from footer brand',brandCss,'.footer .brand::after{content:none}');
 requireText('homepage uses shared Geist brand stylesheet',homepage,'assets/css/brand-v2.css');
 requireText('homepage uses shared Geist typeface',heroCss,'font-family:Geist,"Geist Sans",Arial,sans-serif');
-requireText('homepage uses shared desktop nav scale',heroCss,'font-size:13px;font-weight:650');
+requireText('homepage uses shared desktop navigation shell',homepage,'class="site-header"');
 
 const publicShellPages=[
   ['Product',product],

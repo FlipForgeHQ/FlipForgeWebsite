@@ -11,24 +11,13 @@ const failures=[];
 const check=(label,condition)=>{if(!condition)failures.push(label);};
 const includesAll=(text,needles)=>needles.every(needle=>text.includes(needle));
 
-check('homepage loads Decision Proof CSS',home.includes('assets/css/decision-proof-v1.css'));
 check('homepage keeps Decision Proof discoverable',home.includes('href="decision-proof.html"'));
-check('homepage section exists',home.includes('class="ff-decision-proof" id="decision-proof"'));
-check('homepage section uses governed snapshot date',home.includes('Proof100 checkpoint · September 18, 2026'));
-check('homepage core counts are present',includesAll(home,[
-  '<strong>100</strong><span>Frozen decisions</span>',
-  '<strong>42</strong><span>T7 decisions measurable</span>',
-  '<strong>58</strong><span>Awaiting sufficient evidence</span>',
-  '<strong>17</strong><span>Raw conservative signals reviewed</span>'
-]));
-check('homepage economic interpretation is explicit',includesAll(home,[
-  '17</b> Economically justified holds',
-  'Current economically eligible non-BUY review candidates',
-  'All 17 were not BUY-eligible under their authoritative Day-0 economics.'
-]));
-check('homepage unresolved records are not forced',home.includes('Unknown stays unknown.'));
-check('homepage proof CTA reaches dedicated page',home.includes('href="decision-proof.html">See the full Decision Proof</a>'));
-check('homepage public boundary blocks overclaiming',home.includes('not presented as a customer-facing accuracy score'));
+check('homepage compact Decision Proof section exists',home.includes('class="proof" id="decision-proof"'));
+check('homepage compact proof keeps frozen count',home.includes('<strong>100</strong><span>Frozen decisions</span>'));
+check('homepage compact proof keeps T7 count',home.includes('<strong>42</strong><span>Measurable at T7</span>'));
+check('homepage compact proof keeps conservative review count',home.includes('<strong>17</strong><span>Conservative signals reviewed</span>'));
+check('homepage proof CTA reaches dedicated page',home.includes('href="decision-proof.html">See the full Decision Proof →</a>'));
+check('homepage intentionally defers methodology detail',!home.includes('Proof100 checkpoint · September 18, 2026')&&!home.includes('Current economically eligible non-BUY review candidates'));
 
 check('dedicated page title exists',page.includes('<title>Decision Proof | FlipForge</title>'));
 check('dedicated page canonical exists',page.includes('https://goflipforge.com/decision-proof.html'));
@@ -64,7 +53,6 @@ check('FlipForge premium brand tokens are present',includesAll(css,[
   'background:linear-gradient(180deg,var(--ff-proof-gold-bright),var(--ff-proof-gold))'
 ]));
 check('generic blue-green analytics tokens are retired',!css.includes('--ff-proof-blue')&&!css.includes('--ff-proof-green'));
-check('homepage progress is semantically exposed',home.includes('role="progressbar"')&&home.includes('aria-valuenow="42"'));
 check('dedicated page progress is semantically exposed',page.includes('role="progressbar"')&&page.includes('aria-valuenow="42"'));
 check('premium proof page hero is present',page.includes('Proof, not hindsight.<strong>Freeze the decision before the outcome is known.</strong>'));
 check('CSS is responsive',css.includes('@media(max-width:680px)')&&css.includes('@media(max-width:980px)'));

@@ -50,7 +50,7 @@ jobs:
           grep -q "document.querySelector('.backdrop')" "$NAV_JS"
           grep -q "toggle.setAttribute('aria-expanded','true')" "$NAV_JS"
           grep -q "toggle.setAttribute('aria-expanded','false')" "$NAV_JS"
-          grep -q "event.key==='Escape'" "$NAV_JS"
+          grep -q "e.key==='Escape'" "$NAV_JS"
           grep -q "e.key==='Tab'&&menu.classList.contains('open')" "$NAV_JS"
           grep -q "document.body.classList.add('menu-open')" "$NAV_JS"
           grep -q "document.body.classList.remove('menu-open')" "$NAV_JS"
