@@ -113,8 +113,10 @@ async function conditionalFeedbackWrite(store, key, feedback, etag) {
   if (result?.modified === false) throw new Error("VERSION_CONFLICT");
 }
 
-function reserveInvitation(application, now) {
-  if (application.status !== "APPROVED") throw new Error("APPLICATION_NOT_APPROVED");
+function reserveInvitation(application, now, allowPendingReset = false) {
+  const statusAllowed = application.status === "APPROVED"
+    || (allowPendingReset && application.status === "INVITE_SENT");
+  if (!statusAllowed) throw new Error(allowPendingReset ? "APPLICATION_NOT_INVITABLE" : "APPLICATION_NOT_APPROVED");
   if (!normalizeCohort(application.cohort)) throw new Error("COHORT_REQUIRED");
   const existing = application.invitationAttempt;
   if (existing?.id) {
@@ -404,6 +406,50 @@ async function inviteApplicant(application, identityAdmin, inviteIdentity, now) 
   return next;
 }
 
+async function resetAndResendApplicant(application, identityAdmin, inviteIdentity, now) {
+  if (!["APPROVED", "INVITE_SENT"].includes(application.status)) throw new Error("APPLICATION_NOT_INVITABLE");
+  if (!normalizeCohort(application.cohort)) throw new Error("COHORT_REQUIRED");
+
+  const users = await listIdentityUsers(identityAdmin);
+  const existing = users.find(user => identityEmail(user) === application.applicant.email) || null;
+  if (existing) {
+    if (activatedIdentity(existing)) throw new Error("IDENTITY_ALREADY_ACTIVATED");
+
+    const existingId = String(existing.id || "");
+    if (!existingId) throw new Error("IDENTITY_USER_ID_MISSING");
+    const currentMetadata = existing.appMetadata || existing.app_metadata || {};
+    const membership = currentMetadata.flipforge || {};
+    const boundApplicationId = String(membership.betaApplicationId || "");
+    if (boundApplicationId && boundApplicationId !== String(application.id || "")) {
+      throw new Error("IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD");
+    }
+    if (application.identityUserId && String(application.identityUserId) !== existingId) {
+      throw new Error("IDENTITY_MEMBERSHIP_MISMATCH");
+    }
+
+    await identityAdmin.deleteUser(existingId);
+  }
+
+  const at = now.toISOString();
+  const resetBase = {
+    ...application,
+    status: "APPROVED",
+    identityUserId: null,
+    invitedAt: null,
+    activatedAt: null,
+    activationPath: null,
+    history: [
+      ...(application.history || []),
+      {
+        type: existing ? "IDENTITY_STALE_ACCOUNT_RESET" : "IDENTITY_INVITATION_REISSUE_REQUESTED",
+        at,
+        actor: "operator",
+      },
+    ],
+  };
+  return inviteApplicant(resetBase, identityAdmin, inviteIdentity, now);
+}
+
 function publicError(error) {
   const code = error instanceof Error ? error.message : "OPERATOR_OPERATION_FAILED";
   const clientErrors = new Set([
@@ -414,6 +460,10 @@ function publicError(error) {
     "APPLICATION_NOT_APPROVED",
     "COHORT_REQUIRED",
     "IDENTITY_ACCOUNT_CONFLICT",
+    "IDENTITY_ALREADY_ACTIVATED",
+    "IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD",
+    "IDENTITY_MEMBERSHIP_MISMATCH",
+    "APPLICATION_NOT_INVITABLE",
     "INVITATION_IN_PROGRESS",
     "INVALID_STATUS_TRANSITION",
     "INVALID_FEEDBACK_TRANSITION",
@@ -498,15 +548,18 @@ export function createBetaOperatorHandler({
           now: now(),
         });
         await conditionalApplicationWrite(applications, key, updated, currentEntry.etag);
-      } else if (action === "invite") {
+      } else if (action === "invite" || action === "resend-invite") {
         const invitationNow = now();
-        const reserved = reserveInvitation(current, invitationNow);
+        const resettingInvitation = action === "resend-invite";
+        const reserved = reserveInvitation(current, invitationNow, resettingInvitation);
         let reservationEtag = currentEntry.etag;
         if (reserved !== current) {
           reservationEtag = await conditionalApplicationWrite(applications, key, reserved, currentEntry.etag);
         }
         try {
-          updated = await inviteApplicant(reserved, identityAdmin, inviteIdentity, invitationNow);
+          updated = resettingInvitation
+            ? await resetAndResendApplicant(reserved, identityAdmin, inviteIdentity, invitationNow)
+            : await inviteApplicant(reserved, identityAdmin, inviteIdentity, invitationNow);
           await conditionalApplicationWrite(applications, key, updated, reservationEtag);
         } catch (error) {
           await clearInvitationReservation(applications, key, reserved, reservationEtag, now());
@@ -532,7 +585,13 @@ export function createBetaOperatorHandler({
 
       console.log(JSON.stringify({
         type: "flipforge_beta_operator_operation",
-        operation: action === "invite" ? "INVITATION_PROCESSED" : action === "remove" ? "ONBOARDING_REMOVED" : "APPLICATION_TRANSITIONED",
+        operation: action === "resend-invite"
+          ? "INVITATION_RESET_AND_RESENT"
+          : action === "invite"
+            ? "INVITATION_PROCESSED"
+            : action === "remove"
+              ? "ONBOARDING_REMOVED"
+              : "APPLICATION_TRANSITIONED",
         applicationId: updated.id,
         status: updated.status,
         occurredAt: updated.updatedAt,
