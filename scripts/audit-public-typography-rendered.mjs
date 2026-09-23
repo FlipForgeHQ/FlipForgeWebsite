@@ -2,8 +2,8 @@ import { chromium } from 'playwright';
 
 const baseUrl = process.env.FLIPFORGE_PUBLIC_AUDIT_URL || 'http://127.0.0.1:4173';
 const viewports = [
-  { name: 'desktop', width: 1440, height: 1000, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 54.1 },
-  { name: 'wide', width: 2048, height: 900, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 54.1 },
+  { name: 'desktop', width: 1440, height: 1000, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 80.1 },
+  { name: 'wide', width: 2048, height: 900, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 80.1 },
   { name: 'mobile', width: 390, height: 844, pageTitleMax: 40.1, sectionTitleMax: 30.1, homeDisplayMax: 44.1 }
 ];
 
@@ -26,7 +26,8 @@ const sectionPages = [
   ['About', '/about.html', '.section-head h2']
 ];
 
-const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Request Beta Access'];
+const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Sign In', 'Request Beta Access'];
+const homeCanonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'About', 'Sign In', 'Request Beta Access'];
 const failures = [];
 const nearlyEqual = (a, b, tolerance = 0.75) => Math.abs(a - b) <= tolerance;
 const px = value => Number.parseFloat(value || 'NaN');
@@ -53,7 +54,7 @@ async function measure(page, path, selector) {
 
 async function publicShellState(page, path, introSelector, headingSelector, mobile) {
   await goto(page, path);
-  await page.waitForSelector(path === '/' ? '.decision-header' : '.site-header', { state: 'visible' });
+  await page.waitForSelector('.site-header', { state: 'visible' });
   if (introSelector) await page.waitForSelector(introSelector, { state: 'visible' });
 
   return page.evaluate(({ introSelector, headingSelector, mobile, canonicalNav }) => {
@@ -153,10 +154,11 @@ try {
       if (!nearlyEqual(size, baselineSection, 0.15)) failures.push(`${viewport.name} ${label}: section title ${size}px differs from Product ${baselineSection}px`);
     }
 
-    const homeDisplay = await measure(page, '/', '.decision-hero h1 span');
+    const homeDisplay = await measure(page, '/', '.hero h1 span');
     if (homeDisplay.fontSize > viewport.homeDisplayMax) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px exceeds ${viewport.homeDisplayMax}px cap`);
     if (homeDisplay.fontSize < baselineTitle) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px is smaller than internal page title ${baselineTitle}px`);
-    if (homeDisplay.fontSize - baselineTitle > 8.1) failures.push(`${viewport.name} Home: display is more than one scale step above internal page title (${homeDisplay.fontSize}px vs ${baselineTitle}px)`);
+    const homeDisplayLiftMax = viewport.name === 'mobile' ? 10.1 : 34.1;
+    if (homeDisplay.fontSize - baselineTitle > homeDisplayLiftMax) failures.push(`${viewport.name} Home: display exceeds the approved cinematic hero scale (${homeDisplay.fontSize}px vs ${baselineTitle}px internal title)`);
 
     const homeShell = await publicShellState(page, '/', null, null, mobile);
     const shellStates = [];
@@ -169,7 +171,7 @@ try {
     compareRect(viewport.name, 'Home brand', homeShell.brand, shellBaseline.brand, ['left', 'top', 'width', 'height']);
 
     if (!mobile) {
-      if (JSON.stringify(homeShell.labels) !== JSON.stringify(canonicalNav)) failures.push(`${viewport.name} Home: nav labels/order ${JSON.stringify(homeShell.labels)} do not match canonical ${JSON.stringify(canonicalNav)}`);
+      if (JSON.stringify(homeShell.labels) !== JSON.stringify(homeCanonicalNav)) failures.push(`${viewport.name} Home: nav labels/order ${JSON.stringify(homeShell.labels)} do not match homepage canonical ${JSON.stringify(homeCanonicalNav)}`);
       if (homeShell.clipped.length) failures.push(`${viewport.name} Home: clipped navigation ${homeShell.clipped.join(', ')}`);
       if (!nearlyEqual(homeShell.navFont, 13, 0.15)) failures.push(`${viewport.name} Home: nav font ${homeShell.navFont}px instead of 13px`);
       compareRect(viewport.name, 'Home CTA', homeShell.cta, shellBaseline.cta, ['top', 'width', 'height']);

@@ -260,10 +260,12 @@ for (const htmlPath of htmlFiles) {
   if (html.includes('data-app-preview=') && html.includes('/app/#/dashboard')) failures.push('legacy beta App Preview link removed');
 
   if (path.basename(htmlPath) === 'index.html') {
-    if (!html.includes('assets/images/flipforge-homepage-dashboard.svg')) failures.push('homepage dashboard visual');
-    if (!html.includes('ff-home-focused')) failures.push('focused homepage class');
-    if (!html.includes('assets/css/marketing-v3.css')) failures.push('static marketing stylesheet');
-    if (!html.includes('assets/css/homepage-focus-v1.css')) failures.push('static homepage focus stylesheet');
+    if (!html.includes('assets/css/homepage-v5.css')) failures.push('homepage v5 stylesheet');
+    if (!html.includes('assets/js/homepage-v5.js')) failures.push('homepage v5 behavior');
+    if (!html.includes('ff-cinematic-workspace')) failures.push('cinematic decision workspace');
+    if (!html.includes('data-film')) failures.push('30-second product film');
+    if (!html.includes('id="value"')) failures.push('price-to-value positioning section');
+    if (!html.includes('assets/js/site.js')) failures.push('shared mobile navigation behavior');
     if (!html.includes('assets/js/section-navigation.js')) failures.push('deterministic section navigation');
   }
 

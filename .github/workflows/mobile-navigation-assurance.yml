@@ -31,27 +31,27 @@ jobs:
       - name: Parse navigation JavaScript
         run: |
           node --check assets/js/site.js
-          node --check assets/js/homepage-v1.js
+          node --check assets/js/homepage-v5.js
       - name: Validate mobile navigation contract
         shell: bash
         run: |
           set -euo pipefail
-          NAV_JS='assets/js/homepage-v1.js'
+          NAV_JS='assets/js/site.js'
 
           grep -q 'class="menu-toggle"' index.html
           grep -q 'aria-expanded="false"' index.html
           grep -q 'aria-controls="mobile-navigation"' index.html
           grep -q 'class="mobile-nav" id="mobile-navigation"' index.html
           grep -q 'class="backdrop" aria-hidden="true"' index.html
-          grep -q '<script src="assets/js/homepage-v1.js" defer></script>' index.html
+          grep -q '<script src="assets/js/site.js" defer></script>' index.html
 
           grep -q "document.querySelector('.menu-toggle')" "$NAV_JS"
           grep -q "document.querySelector('.mobile-nav')" "$NAV_JS"
           grep -q "document.querySelector('.backdrop')" "$NAV_JS"
           grep -q "toggle.setAttribute('aria-expanded','true')" "$NAV_JS"
           grep -q "toggle.setAttribute('aria-expanded','false')" "$NAV_JS"
-          grep -q "event.key==='Escape'" "$NAV_JS"
-          grep -q "event.key!=='Tab'" "$NAV_JS"
+          grep -q "e.key==='Escape'" "$NAV_JS"
+          grep -q "e.key==='Tab'&&menu.classList.contains('open')" "$NAV_JS"
           grep -q "document.body.classList.add('menu-open')" "$NAV_JS"
           grep -q "document.body.classList.remove('menu-open')" "$NAV_JS"
           grep -q "window.addEventListener('resize'" "$NAV_JS"
@@ -63,4 +63,4 @@ jobs:
           grep -Fq '@media(max-width:1000px)' assets/css/site.css
           grep -Fq '.menu-toggle{display:block}' assets/css/site.css
 
-          echo 'PASS: Mobile navigation is implemented directly in the lightweight homepage bundle and remains keyboard/accessibility aware.'
+          echo 'PASS: Mobile navigation is implemented directly in the shared site shell and remains keyboard/accessibility aware.'
