@@ -50,7 +50,7 @@ check('024 reveal names the experience Card Decision Intelligence',index.include
 check('025 updated CDI model exposes four systems and thirteen governed layers',
   ['KNOW THE CARD','KNOW THE MARKET','MAKE THE DECISION','LEARN WHAT HAPPENED'].every(v=>index.includes(v))
   && ['Release','Taxonomy','Identity','Provenance + Trust','Evidence','Economics','Product + Variant','Grade + Scarcity','Risk + Uncertainty','Decision','Decision Receipt','Outcome','Governance + Continuous'].every(v=>index.includes(v)));
-check('026 CDI differentiates data from decisions',index.includes('Data tells you what happened. FlipForge helps you decide what to do now.')&&index.includes('What should I do — and why?'));
+check('026 CDI explains the governed decision path after the demo',index.includes('THE SYSTEM BEHIND THE CALL')&&index.includes('Every decision moves through the same governed path.')&&index.includes('First prove the card. Then qualify the evidence. Then test economics and risk.'));
 check('027 interaction uses progressive enhancement',dealJs.includes('document.startViewTransition')&&dealJs.includes('showModal'));
 check('028 interaction is responsive',dealCss.includes('@media(max-width:760px)')&&dealCss.includes('.ff-deal-choices')&&processCss.includes('@media(max-width:760px)')&&cdiCss.includes('@media(max-width:520px)'));
 check('029 private-beta boundary stays explicit',index.includes('Controlled Private Beta.'));
