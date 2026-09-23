@@ -28,9 +28,9 @@ check('002 locked slogan remains exact',index.includes('Before you buy. Know Why
 check('003 old descriptor remains forbidden',!index.includes('CARD VALUE INTELLIGENCE'));
 check('004 real locked logo asset is used',index.includes('assets/brand/flipforge-logo-horizontal.svg'));
 check('005 hero leads with the approved decision-first promise',index.includes('<span>Don’t buy the price.</span>')&&index.includes('<strong>Buy the reason.</strong>'));
-check('006 hero explicitly defines FlipForge as CDI',index.includes('FlipForge is Card Decision Intelligence™ for sports cards'));
+check('006 hero explains the product in plain language',index.includes('FlipForge tests whether a sports-card deal is actually supported by the evidence, then shows you BUY, WATCH, VERIFY, or PASS — and why.'));
 check('007 Decision Intelligence is top-level navigation',index.includes('href="decision-intelligence.html">Decision Intelligence™</a>')&&index.includes('href="decision-intelligence.html">Card Decision Intelligence™</a>'));
-check('008 dedicated CDI CTA is in hero',index.includes('data-ff-cdi-primary="true">Explore Decision Intelligence</a>'));
+check('008 hero has one primary beta CTA plus a plain-text CDI link',index.includes('class="decision-button decision-button-primary" href="beta-application.html">Request Beta Access</a>')&&index.includes('class="decision-text-link" href="decision-intelligence.html" data-ff-cdi-primary="true">How Card Decision Intelligence works'));
 check('009 first interaction is already in the hero',index.includes('class="ff-deal-demo" id="deal-or-decoy"')&&index.includes('Would you pay <span>$349</span> for this card?'));
 check('010 hero no longer requires a scroll CTA',!index.includes('Try the Deal Check')&&!index.includes('data-ff-see-action'));
 check('011 hero metadata uses verified WebP asset',index.includes(heroPath)&&fs.existsSync(heroPath)&&isWebP(heroBytes));
