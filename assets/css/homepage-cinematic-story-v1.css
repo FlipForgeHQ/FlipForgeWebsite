@@ -363,14 +363,19 @@
   transform:perspective(1400px) rotateX(calc(var(--hero-y) * -1.3deg)) rotateY(calc(var(--hero-x) * 1.7deg));
   transition:transform .16s ease-out
 }
+.ff-cinema-hero-art-stack{position:absolute;inset:0;overflow:hidden}
 .ff-cinema-hero-art{
-  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.72;filter:saturate(.88) brightness(.7) contrast(1.08);
-  transform:scale(1.035);transition:opacity .55s ease,filter .55s ease,transform .7s cubic-bezier(.2,.8,.2,1)
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;
+  filter:saturate(.86) brightness(.66) contrast(1.1);transform:scale(1.055);
+  transition:opacity .65s ease,filter .65s ease,transform 1s cubic-bezier(.2,.8,.2,1)
 }
-.ff-cinema-hero[data-hero-state="identity"] .ff-cinema-hero-art{opacity:.79;filter:saturate(.9) brightness(.74) contrast(1.08);transform:scale(1.02)}
-.ff-cinema-hero[data-hero-state="evidence"] .ff-cinema-hero-art{opacity:.58;filter:saturate(.65) brightness(.62) contrast(1.15)}
-.ff-cinema-hero[data-hero-state="risk"] .ff-cinema-hero-art{opacity:.52;filter:saturate(.55) brightness(.58) contrast(1.18)}
-.ff-cinema-hero[data-hero-state="decision"] .ff-cinema-hero-art{opacity:.42;filter:saturate(.68) brightness(.55) contrast(1.2);transform:scale(1)}
+.ff-cinema-hero[data-hero-state="identity"] [data-ff-hero-art="identity"],
+.ff-cinema-hero[data-hero-state="evidence"] [data-ff-hero-art="evidence"],
+.ff-cinema-hero[data-hero-state="risk"] [data-ff-hero-art="risk"],
+.ff-cinema-hero[data-hero-state="decision"] [data-ff-hero-art="decision"]{
+  opacity:.8;filter:saturate(.96) brightness(.76) contrast(1.08);transform:scale(1.015)
+}
+.ff-cinema-hero[data-hero-state="decision"] [data-ff-hero-art="decision"]{opacity:.72;filter:saturate(.92) brightness(.7) contrast(1.12)}
 .ff-cinema-hero-grid{position:absolute;inset:0;z-index:2;pointer-events:none;background:
   linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
   linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:46px 46px;
