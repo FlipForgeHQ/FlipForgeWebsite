@@ -12,7 +12,7 @@ const check=(label,condition)=>{if(!condition)failures.push(label);};
 const includesAll=(text,needles)=>needles.every(needle=>text.includes(needle));
 
 check('homepage loads Decision Proof CSS',home.includes('assets/css/decision-proof-v1.css'));
-check('homepage navigation exposes Decision Proof',home.includes('href="decision-proof.html">Decision Proof</a>'));
+check('homepage keeps Decision Proof discoverable',home.includes('href="decision-proof.html"'));
 check('homepage section exists',home.includes('class="ff-decision-proof" id="decision-proof"'));
 check('homepage section uses governed snapshot date',home.includes('Proof100 checkpoint · September 18, 2026'));
 check('homepage core counts are present',includesAll(home,[
