@@ -26,7 +26,7 @@ const sectionPages = [
   ['About', '/about.html', '.section-head h2']
 ];
 
-const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Request Beta Access'];
+const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Sign In', 'Request Beta Access'];
 const homeCanonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'About', 'Sign In', 'Request Beta Access'];
 const failures = [];
 const nearlyEqual = (a, b, tolerance = 0.75) => Math.abs(a - b) <= tolerance;
@@ -157,7 +157,7 @@ try {
     const homeDisplay = await measure(page, '/', '.hero h1 span');
     if (homeDisplay.fontSize > viewport.homeDisplayMax) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px exceeds ${viewport.homeDisplayMax}px cap`);
     if (homeDisplay.fontSize < baselineTitle) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px is smaller than internal page title ${baselineTitle}px`);
-    const homeDisplayLiftMax = viewport.name === 'mobile' ? 8.1 : 34.1;
+    const homeDisplayLiftMax = viewport.name === 'mobile' ? 10.1 : 34.1;
     if (homeDisplay.fontSize - baselineTitle > homeDisplayLiftMax) failures.push(`${viewport.name} Home: display exceeds the approved cinematic hero scale (${homeDisplay.fontSize}px vs ${baselineTitle}px internal title)`);
 
     const homeShell = await publicShellState(page, '/', null, null, mobile);

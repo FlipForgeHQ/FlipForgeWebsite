@@ -29,18 +29,22 @@
       {path:'/learn',href:'/learn.html',label:'Evidence Lab'},
       {path:'/pricing',href:'/pricing.html',label:'Launch Plans'},
       {path:'/about',href:'/about.html',label:'About'},
+      {path:'/production-auth',href:'/production-auth.html',label:'Sign In',signIn:true},
       {path:'/beta-application',href:'/beta-application.html',label:'Request Beta Access',cta:true}
     ];
+    const homePrimaryNav=canonicalPrimaryNav.filter(item=>item.path!=='/pricing');
 
     const renderPrimaryNav=container=>{
       if(!container)return;
       const isDecisionHeader=container.classList.contains('decision-nav-links');
       const isMobile=container.classList.contains('mobile-nav');
       const fragment=document.createDocumentFragment();
-      canonicalPrimaryNav.forEach(item=>{
+      const items=currentPath==='/'?homePrimaryNav:canonicalPrimaryNav;
+      items.forEach(item=>{
         const link=document.createElement('a');
         link.href=item.href;
         link.textContent=item.label;
+        if(item.signIn)link.dataset.ffMarketingSignIn='true';
         if(item.cta&&!isMobile)link.classList.add(isDecisionHeader?'decision-nav-cta':'nav-cta');
         if(currentPath===item.path)link.setAttribute('aria-current','page');
         fragment.append(link);
