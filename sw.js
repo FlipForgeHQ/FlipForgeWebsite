@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v20';
+const CACHE='flipforge-shell-v21';
 const SHELL=[
   '/',
   '/index.html',
@@ -39,6 +39,10 @@ const SHELL=[
   '/assets/brand/flipforge-app-icon-dark.svg',
   '/assets/brand/flipforge-logo-horizontal.svg',
   '/assets/images/flipforge-homepage-hero.webp',
+  '/assets/images/ff-graphics-identity-lock-v1.webp',
+  '/assets/images/ff-graphics-evidence-filter-v1.webp',
+  '/assets/images/ff-graphics-decision-receipt-v1.webp',
+  '/assets/images/ff-graphics-storyboard-v1.webp',
   '/assets/images/flipforge-homepage-dashboard.svg',
   '/assets/images/flipforge-identity-first.webp',
   '/assets/images/flipforge-evidence-review.webp',
