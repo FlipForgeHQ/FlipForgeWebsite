@@ -241,7 +241,7 @@ jobs:
         run: |
           set -euo pipefail
           for path in / /terms.html /privacy.html /operator-beta.html /app/; do
-            h="$(curl -fsSIL --retry 5 --retry-all-errors --retry-delay 2 --retry-max-time 30 "https://goflipforge.com${path}")"
+            h="$(curl -fsSL -D - -o /dev/null --retry 8 --retry-all-errors --retry-delay 3 --retry-max-time 45 "https://goflipforge.com${path}")"
             grep -qi '^strict-transport-security:' <<<"$h"
             grep -qi '^x-content-type-options: *nosniff' <<<"$h"
             grep -qi '^x-frame-options:' <<<"$h"
