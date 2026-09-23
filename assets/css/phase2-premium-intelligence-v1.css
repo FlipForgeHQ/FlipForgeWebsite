@@ -790,3 +790,163 @@ body.ff-v5-about-page .ff-aw-customer-cta:before{
   body.ff-v5-evidence-page .ff-lab-grid,
   body.ff-v5-about-page .ff-aw-question-grid{grid-template-columns:1fr}
 }
+
+/* === V5 FAQ + PRIVATE BETA === */
+body.ff-v5-faq-page .page-hero,
+body.ff-v5-beta-page .page-hero{
+  position:relative;
+  overflow:hidden;
+  max-width:none;
+  padding-top:92px;
+  padding-bottom:78px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:
+    radial-gradient(circle at 78% 20%,rgba(212,175,55,.075),transparent 28%),
+    linear-gradient(180deg,#04070a,#05080c);
+}
+body.ff-v5-faq-page .page-hero:before,
+body.ff-v5-beta-page .page-hero:before{
+  content:"";
+  position:absolute;
+  left:max(24px,calc((100vw - 1180px)/2));
+  top:60px;
+  width:76px;
+  height:1px;
+  background:linear-gradient(90deg,#D4AF37,transparent);
+}
+body.ff-v5-faq-page .page-hero h1,
+body.ff-v5-beta-page .page-hero h1{
+  max-width:980px;
+  line-height:1.01;
+  letter-spacing:-.05em;
+}
+body.ff-v5-faq-page .page-hero .lead,
+body.ff-v5-beta-page .page-hero .lead{max-width:880px}
+
+/* FAQ: compact, editorial, easy to scan. */
+body.ff-v5-faq-page .ff-faq-intro{
+  border:1px solid rgba(212,175,55,.2);
+  border-radius:14px;
+  background:linear-gradient(90deg,rgba(212,175,55,.045),rgba(255,255,255,.01));
+}
+body.ff-v5-faq-page .faq-list{
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:16px;
+  background:#070b10;
+}
+body.ff-v5-faq-page .faq-item{
+  border:0;
+  border-bottom:1px solid rgba(255,255,255,.065);
+  border-radius:0;
+  background:transparent;
+}
+body.ff-v5-faq-page .faq-item:last-child{border-bottom:0}
+body.ff-v5-faq-page .faq-item button{
+  min-height:66px;
+  background:transparent;
+  transition:background .2s ease,color .2s ease;
+}
+body.ff-v5-faq-page .faq-item button:hover{
+  background:rgba(212,175,55,.025);
+}
+body.ff-v5-faq-page .faq-item button[aria-expanded="true"]{
+  color:#efce68;
+  background:rgba(212,175,55,.035);
+}
+body.ff-v5-faq-page .faq-answer{
+  background:linear-gradient(180deg,rgba(255,255,255,.01),transparent);
+}
+body.ff-v5-faq-page .callout{
+  border-color:rgba(212,175,55,.22);
+  background:
+    radial-gradient(circle at 82% 35%,rgba(212,175,55,.07),transparent 28%),
+    #070b10;
+}
+
+/* Beta: premium intake flow without changing submission behavior. */
+body.ff-v5-beta-page .section[aria-labelledby="returning-beta-title"]{
+  padding-top:34px;
+  padding-bottom:34px;
+}
+body.ff-v5-beta-page .section[aria-labelledby="returning-beta-title"] .callout{
+  border-color:rgba(212,175,55,.26);
+  background:
+    radial-gradient(circle at 84% 42%,rgba(212,175,55,.07),transparent 28%),
+    #070b10;
+}
+body.ff-v5-beta-page .ff-aw-proof-strip{
+  gap:0;
+  overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:transparent;
+}
+body.ff-v5-beta-page .ff-aw-proof-strip article{
+  min-height:205px;
+  border:0;
+  border-right:1px solid rgba(255,255,255,.07);
+  border-radius:0;
+  background:linear-gradient(180deg,rgba(212,175,55,.02),transparent);
+}
+body.ff-v5-beta-page .ff-aw-proof-strip article:last-child{border-right:0}
+body.ff-v5-beta-page .ff-beta-notice{
+  border-color:rgba(255,255,255,.065);
+  background:linear-gradient(90deg,rgba(212,175,55,.025),rgba(255,255,255,.008));
+}
+body.ff-v5-beta-page .ff-beta-layout{
+  gap:20px;
+  align-items:start;
+}
+body.ff-v5-beta-page .form-card{
+  overflow:hidden;
+  border-color:rgba(212,175,55,.18);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 85% 0,rgba(212,175,55,.045),transparent 25%),
+    #070b10;
+  box-shadow:0 30px 90px rgba(0,0,0,.28);
+}
+body.ff-v5-beta-page .ff-aw-beta-progress{
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.01);
+}
+body.ff-v5-beta-page .ff-aw-beta-step{
+  border:0;
+}
+body.ff-v5-beta-page .field input,
+body.ff-v5-beta-page .field select,
+body.ff-v5-beta-page .field textarea{
+  border-color:rgba(255,255,255,.1);
+  background:#080d13;
+}
+body.ff-v5-beta-page .field input:focus,
+body.ff-v5-beta-page .field select:focus,
+body.ff-v5-beta-page .field textarea:focus{
+  border-color:rgba(212,175,55,.55);
+  box-shadow:0 0 0 3px rgba(212,175,55,.07);
+}
+body.ff-v5-beta-page .case-card{
+  position:sticky;
+  top:104px;
+  border-color:rgba(212,175,55,.18);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 80% 0,rgba(212,175,55,.05),transparent 27%),
+    #070b10;
+  box-shadow:0 26px 75px rgba(0,0,0,.22);
+}
+body.ff-v5-beta-page .ff-beta-expectations article{
+  border-color:rgba(255,255,255,.065);
+  background:rgba(255,255,255,.01);
+}
+
+@media(max-width:900px){
+  body.ff-v5-beta-page .ff-aw-proof-strip{display:grid;grid-template-columns:1fr}
+  body.ff-v5-beta-page .ff-aw-proof-strip article{border-right:0;border-bottom:1px solid rgba(255,255,255,.07)}
+  body.ff-v5-beta-page .case-card{position:static}
+}
+@media(max-width:620px){
+  body.ff-v5-faq-page .page-hero,
+  body.ff-v5-beta-page .page-hero{padding-top:66px;padding-bottom:58px}
+}
