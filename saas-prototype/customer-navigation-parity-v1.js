@@ -1,6 +1,7 @@
 (() => {
   "use strict";
 
+  if (window.FlipForgeCustomerPortalArchitectureV1) return;
   if (window.FlipForgeCustomerNavigationParityV1) return;
   window.FlipForgeCustomerNavigationParityV1 = true;
 

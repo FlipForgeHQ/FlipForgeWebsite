@@ -2,10 +2,13 @@ import fs from "node:fs";
 
 const read = path => fs.readFileSync(path, "utf8");
 const customer = read("saas-prototype/customer.html");
+const portal = read("saas-prototype/customer-portal-architecture-v1.js");
+const portalCss = read("saas-prototype/customer-portal-architecture-v1.css");
 const parity = read("saas-prototype/customer-navigation-parity-v1.js");
 const whyView = read("saas-prototype/customer-why-decision-view-v1.js");
 const betaShell = read("saas-prototype/customer-only-shell-v1.js");
 const betaDocument = read("saas-prototype/index.html");
+const mobile = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 
 let passed = 0;
 let failed = 0;
@@ -20,83 +23,78 @@ const count = (text, token) => text.split(token).length - 1;
 const topLevelBlock = customer.match(/<nav class="primary-nav"[\s\S]*?<details class="ff-advanced-nav">/)?.[0] || "";
 const advancedBlock = customer.match(/<details class="ff-advanced-nav">[\s\S]*?<\/details>/)?.[0] || "";
 
-const requiredTopLevel = [
-  "dashboard",
-  "discover",
-  "evaluate",
-  "decision-intelligence",
-  "why-this-decision",
-  "evidence",
-  "opportunities",
-  "tracking",
-  "portfolio",
-  "alerts",
-  "forge-heat",
-  "market-view"
+const mountedDeepRoutes = [
+  "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision",
+  "evidence", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
 ];
-const requiredAdvanced = ["compare", "psa-advisor", "sell", "export"];
-
-for (const route of requiredTopLevel) {
-  check(count(topLevelBlock, `data-route="${route}"`) === 1, `full customer has exactly one top-level ${route} link`);
+for (const route of mountedDeepRoutes) {
+  check(count(topLevelBlock, `data-route="${route}"`) === 1, `underlying customer document keeps exactly one mounted ${route} route`);
 }
-check(customer.includes('href="#/decision-intelligence/why" data-route="why-this-decision"'), "Why This Decision is a Decision Intelligence subview");
-check(customer.includes('href="#/evidence" data-route="evidence"') && customer.includes("Evidence Review"), "Evidence Review promotes the existing evidence route");
-check(!advancedBlock.includes('data-route="why-this-decision"'), "Why This Decision is not duplicated in Advanced analysis");
-check(!advancedBlock.includes('data-route="evidence"'), "Evidence Review is not duplicated in Advanced analysis");
-for (const route of requiredAdvanced) {
-  check(count(advancedBlock, `data-route="${route}"`) === 1, `Advanced analysis retains exactly one ${route} link`);
+for (const route of ["compare", "psa-advisor", "sell", "export"]) {
+  check(count(advancedBlock, `data-route="${route}"`) === 1, `underlying customer document keeps exactly one deep ${route} route`);
 }
-check(customer.includes('<script src="mobile-navigation-stabilizer-v1.js"></script>'), "full customer document loads mobile navigation stabilizer");
-check(customer.includes('<script src="customer-navigation-parity-v1.js"></script>'), "full customer document loads parity controller");
-check(!betaDocument.includes('customer-navigation-parity-v1.js'), "legacy beta document does not load full-customer parity controller");
-check(!betaDocument.includes('customer-why-decision-view-v1.js'), "legacy beta document does not load focused Why presentation");
 
-check(parity.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "parity controller is hard-gated to /app/customer");
-check(parity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "parity controller exits outside full customer path");
-check(parity.includes('script.src = "customer-why-decision-view-v1.js"'), "full-customer controller owns focused Why presentation loading");
-for (const route of requiredTopLevel) {
-  check(parity.includes(`["${route}"`), `parity controller governs ${route}`);
+check(customer.includes('href="customer-portal-architecture-v1.css"'), "full customer loads portal architecture stylesheet");
+check(customer.includes('src="customer-portal-architecture-v1.js"'), "full customer loads portal architecture runtime");
+check(customer.indexOf('src="customer-portal-architecture-v1.js"') < customer.indexOf('src="customer-navigation-parity-v1.js"'), "portal architecture owns navigation before legacy parity compatibility");
+check(!betaDocument.includes("customer-portal-architecture-v1"), "limited Beta does not load full portal architecture");
+check(!betaDocument.includes("customer-discover-scanner-v1"), "limited Beta does not load full customer scanner");
+
+check(portal.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "portal architecture is hard-gated to /app/customer");
+check(portal.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "portal architecture exits outside full customer path");
+
+const fivePrimary = [
+  '["dashboard", "#/dashboard", "Home", "⌂"]',
+  '["discover", "#/discover", "Discover", "◇"]',
+  '["opportunities", "#/opportunities", "Decisions", "◆"]',
+  '["tracking", "#/tracking", "Monitor", "◷"]',
+  '["portfolio", "#/portfolio", "Portfolio", "◫"]'
+];
+for (const token of fivePrimary) check(portal.includes(token), `five-destination portal contains ${token}`);
+check(!portal.includes('["evaluate", "#/evaluate", "Evaluate a Card"'), "Manual Evaluate is not a sixth primary portal destination");
+check(portal.includes('"Manual Evaluate"') && portal.includes('"Forge Heat"') && portal.includes('"Market View"'), "Discover owns contextual Evaluate, Forge Heat and Market View");
+check(portal.includes('"Decision Monitor"') && portal.includes('"Review Alerts"'), "Monitor owns contextual tracking and alerts");
+check(portal.includes('"Saved Decisions"') && portal.includes('"Compare"'), "Decisions owns saved-list and compare context");
+
+for (const label of ["Decision", "Evidence", "Grade", "Monitor", "Exit", "Receipt"]) {
+  check(portal.includes(`"${label}"`), `Decision Workspace includes ${label}`);
 }
-check(parity.includes('route === "decision-intelligence" && subroute === "why"') && parity.includes('return "why-this-decision"'), "Why subview owns its active navigation state without new authority");
-check(parity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"])'), "Advanced analysis excludes promoted Evidence Review");
+for (const route of ["opportunities", "evidence", "psa-advisor", "tracking", "sell", "export"]) {
+  check(portal.includes(`#/${route}/\${encoded}`) || portal.includes(`#/${route}/`), `Decision Workspace preserves ${route} route`);
+}
+check(portal.includes("encodeURIComponent(id)"), "Decision Workspace encodes and preserves exact saved decision id");
+check(portal.includes('"decision-intelligence": "opportunities"') && portal.includes('evidence: "opportunities"'), "deep decision/evidence views map back to Decisions");
+check(portal.includes('alerts: "tracking"'), "Alerts maps back to Monitor");
 
-check(whyView.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "focused Why view is hard-gated to /app/customer");
-check(whyView.includes('parts[0] === "decision-intelligence" && parts[1] === "why"'), "focused Why view only activates on the Why subroute");
-check(whyView.includes('Why FlipForge made this decision.'), "focused Why view has explanation-first customer presentation");
-check(whyView.includes('Open full Decision Intelligence') && whyView.includes('Open Evidence Review'), "focused Why view preserves navigation back to governed analysis and evidence");
+check(portal.includes('script.src = "customer-why-decision-view-v1.js"'), "portal preserves focused Why compatibility route");
+check(whyView.includes('Why FlipForge made this decision.'), "focused Why view remains explanation-first");
+check(whyView.includes("Open full Decision Intelligence") && whyView.includes("Open Evidence Review"), "focused Why keeps governed handoffs");
+
+check(parity.includes("if (window.FlipForgeCustomerPortalArchitectureV1) return;"), "legacy navigation parity yields to portal architecture");
+check(betaShell.includes("if (window.FlipForgeCustomerPortalArchitectureV1) return;"), "legacy full-customer shell navigation yields to portal architecture");
+check(mobile.includes("if (fullCustomerMode() && window.FlipForgeCustomerPortalArchitectureV1) return;"), "mobile stabilizer yields to portal architecture");
+check(mobile.includes('html:not([data-ff-portal-architecture="v1"]) .primary-nav > a[data-ff-customer-core]'), "mobile force-visible CSS is disabled under portal architecture");
+check(mobile.includes('html.ff-full-customer-app:not([data-ff-portal-architecture="v1"]) .primary-nav > .ff-advanced-nav'), "mobile cannot resurrect Advanced sidebar under portal architecture");
+
+check(betaShell.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);'), "Beta retains intentionally limited four-route core");
+check(betaShell.includes('"decision-intelligence", "why-this-decision", "market-view", "forge-heat", "evaluate", "portfolio", "alerts"'), "Beta continues hiding full-portal routes");
+check(!betaDocument.includes("customer-navigation-parity-v1.js"), "Beta does not load full-customer legacy parity controller");
+check(!betaDocument.includes("customer-why-decision-view-v1.js"), "Beta does not load focused full-customer Why runtime directly");
+
+check(portalCss.includes(".ff-decision-workspace-nav"), "portal styles Decision Workspace navigation");
+check(portalCss.includes("@media (max-width: 860px)") && portalCss.includes("@media (max-width: 520px)"), "portal contextual navigation is responsive");
+check(portalCss.includes("prefers-reduced-motion"), "portal respects reduced motion");
 
 const forbiddenAuthorityTokens = [
-  "evaluateAndSave(",
-  "saveEvidence(",
-  "saveListing(",
-  "appendObservation(",
-  "fetch(",
-  "XMLHttpRequest",
-  "recommendation =",
-  "supportedValue =",
-  "transactionAuthority =",
-  'method: "POST"',
-  "method: 'POST'"
+  "evaluateAndSave(", "saveEvidence(", "saveListing(", "appendObservation(",
+  "fetch(", "XMLHttpRequest", "recommendation =", "supportedValue =",
+  "transactionAuthority =", 'method: "POST"', "method: 'POST'"
 ];
 for (const token of forbiddenAuthorityTokens) {
-  check(!parity.includes(token), `navigation parity creates no authority: ${token}`);
+  check(!portal.includes(token), `portal architecture creates no authority: ${token}`);
   check(!whyView.includes(token), `Why presentation creates no authority: ${token}`);
 }
 
-check(betaShell.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);'), "legacy shell helper keeps its intentionally simplified four-route core");
-check(betaShell.includes('"decision-intelligence", "why-this-decision", "market-view", "forge-heat", "evaluate", "portfolio", "alerts"'), "legacy shell helper explicitly hides full-customer Why and management routes from its own navigation");
-check(betaShell.includes('"compare", "psa-advisor", "evidence", "sell", "export"'), "legacy shell helper still hides advanced/evidence navigation while preserving internal route availability");
-check(betaShell.includes('"why-this-decision", "evidence"') || (betaShell.includes('"why-this-decision"') && betaShell.includes('"evidence"')), "legacy shell hide contract covers both promoted explanation surfaces");
-check(!betaShell.includes("customer-navigation-parity-v1"), "legacy shell helper has no dependency on the full-customer parity controller");
-check(!betaShell.includes("customer-why-decision-view-v1"), "legacy shell helper has no dependency on focused Why presentation");
-
-check(!topLevelBlock.includes('data-route="beta-start"') && !advancedBlock.includes('data-route="beta-start"'), "Private Beta onboarding stays out of customer primary and advanced navigation");
-check(customer.includes('href="private-beta.css"'), "full customer loads Private Beta Guide styles for in-shell onboarding");
-check(customer.includes('src="private-beta.js"'), "full customer loads Private Beta Guide runtime for canonical onboarding");
-check(customer.lastIndexOf('src="private-beta.js"') > customer.lastIndexOf('src="customer-navigation-parity-v1.js"'), "Private Beta Guide runtime loads after customer navigation presentation layers");
-check(!customer.includes('src="beta-session-v1.js"'), "full customer never loads legacy beta-session runtime");
-check(!customer.includes('src="beta-customer-flow-v2.js"'), "full customer never loads legacy separate beta-flow runtime");
-
-console.log(`\nCustomer Navigation Parity Contract\nPASSED: ${passed}\nFAILED: ${failed}`);
+console.log(`\nCustomer Portal Navigation Contract\nPASSED: ${passed}\nFAILED: ${failed}`);
 if (failures.length) failures.forEach(item => console.log(` - ${item}`));
 if (failed > 0) process.exit(1);

@@ -165,9 +165,13 @@ try {
     htmlFullCustomer: document.documentElement.classList.contains("ff-full-customer-app"),
     bodyFullCustomer: document.body.classList.contains("ff-full-customer-app"),
     title: document.title,
-    nav: [...document.querySelectorAll(".primary-nav a")]
-      .filter(link => !link.hidden && link.getAttribute("aria-hidden") !== "true")
-      .map(link => String(link.textContent || "").replace(/\s+/g, " ").trim())
+    portalArchitecture: document.documentElement.dataset.ffPortalArchitecture || "",
+    nav: [...document.querySelectorAll(".primary-nav > a[data-route]")]
+      .filter(link => !link.hidden && link.getAttribute("aria-hidden") !== "true" && getComputedStyle(link).display !== "none")
+      .map(link => ({
+        route: String(link.dataset.route || ""),
+        label: String(link.textContent || "").replace(/\s+/g, " ").trim().replace(/^[^A-Za-z0-9]+/, "")
+      }))
   }));
 
   if (state.pathname !== "/app/customer/") fail(`Expected customer pathname, got ${state.pathname}`);
@@ -175,10 +179,21 @@ try {
   if (state.bannerExists) fail("Customer route rendered a beta banner element");
   if (!state.htmlFullCustomer || !state.bodyFullCustomer) fail("Customer route is missing full-customer root state");
   if (!/Customer App/i.test(state.title)) fail(`Customer document title is wrong: ${state.title}`);
-  if (!state.nav.some(value => /Decision Intelligence/i.test(value))) fail("Decision Intelligence is not visible");
-  if (!state.nav.some(value => /Outcome Intelligence/i.test(value))) fail("Outcome Intelligence is not visible");
+  if (state.portalArchitecture !== "v1") fail(`Customer Portal architecture did not activate: ${state.portalArchitecture || "<missing>"}`);
+  const expectedPrimary = [
+    ["dashboard", "Home"],
+    ["discover", "Discover"],
+    ["opportunities", "Decisions"],
+    ["tracking", "Monitor"],
+    ["portfolio", "Portfolio"]
+  ];
+  if (JSON.stringify(state.nav) !== JSON.stringify(expectedPrimary.map(([route, label]) => ({ route, label })))) {
+    fail(`Customer Portal primary navigation is not the five-destination architecture: ${JSON.stringify(state.nav)}`);
+  }
 
-  await page.locator('.primary-nav a[data-route="decision-intelligence"]').click();
+  // Decision Intelligence remains a required governed route, but it is no longer
+  // a permanent sidebar destination in the compressed Customer Portal.
+  await page.evaluate(() => { window.location.hash = "#/decision-intelligence"; });
   await page.waitForFunction(() => window.location.hash === "#/decision-intelligence", null, { timeout: 10000 });
   await page.waitForSelector('.ff-di-page[data-decision-intelligence-source="server"]', { timeout: 10000 });
   await page.waitForSelector("[data-ff-di-v2-command]", { timeout: 10000 });
@@ -219,8 +234,40 @@ try {
   }
   if (decisionState.betaLearningLoaded) fail("Full customer route loaded beta-only CDI learning assets");
 
+  // A saved decision is the central portal object. Verify the exact record ID is
+  // carried through every contextual Decision Workspace view.
+  await page.evaluate(id => { window.location.hash = `#/opportunities/${id}`; }, proofId);
+  await page.waitForSelector("#main-content .ff-decision-workspace-nav", { timeout: 10000 });
+  const workspaceState = await page.evaluate(id => {
+    const nav = document.querySelector("#main-content .ff-decision-workspace-nav");
+    return {
+      labels: [...(nav?.querySelectorAll("a") || [])].map(link => String(link.textContent || "").trim()),
+      hrefs: [...(nav?.querySelectorAll("a") || [])].map(link => link.getAttribute("href") || ""),
+      primaryActive: [...document.querySelectorAll('.primary-nav > a[aria-current="page"]')].map(link => String(link.dataset.route || ""))
+    };
+  }, proofId);
+  const expectedWorkspaceLabels = ["Decision", "Evidence", "Grade", "Monitor", "Exit", "Receipt"];
+  const encodedProofId = encodeURIComponent(proofId);
+  const expectedWorkspaceHrefs = [
+    `#/opportunities/${encodedProofId}`,
+    `#/evidence/${encodedProofId}`,
+    `#/psa-advisor/${encodedProofId}`,
+    `#/tracking/${encodedProofId}`,
+    `#/sell/${encodedProofId}`,
+    `#/export/${encodedProofId}`
+  ];
+  if (JSON.stringify(workspaceState.labels) !== JSON.stringify(expectedWorkspaceLabels)) {
+    fail(`Decision Workspace labels are incomplete: ${JSON.stringify(workspaceState.labels)}`);
+  }
+  if (JSON.stringify(workspaceState.hrefs) !== JSON.stringify(expectedWorkspaceHrefs)) {
+    fail(`Decision Workspace did not preserve exact saved-decision identity: ${JSON.stringify(workspaceState.hrefs)}`);
+  }
+  if (JSON.stringify(workspaceState.primaryActive) !== JSON.stringify(["opportunities"])) {
+    fail(`Saved decision did not map to Decisions primary navigation: ${JSON.stringify(workspaceState.primaryActive)}`);
+  }
+
   // Outcome Intelligence must be a real customer route, not merely a navigation label.
-  await page.locator('.primary-nav a[data-route="tracking"]').click();
+  await page.locator('.primary-nav > a[data-route="tracking"]').click();
   await page.waitForFunction(() => window.location.hash === "#/tracking", null, { timeout: 10000 });
   await page.waitForSelector("#main-content .customer-lifecycle-page", { timeout: 10000 });
   const outcomeState = await page.evaluate(() => ({
@@ -282,7 +329,7 @@ try {
   if (seriousErrors.length) fail(`Browser syntax errors: ${seriousErrors.join(" | ")}`);
 
   console.log("Full customer browser audit passed");
-  console.log(JSON.stringify({ state, decisionState, outcomeState, accountState, authReturn }, null, 2));
+  console.log(JSON.stringify({ state, decisionState, workspaceState, outcomeState, accountState, authReturn }, null, 2));
 } finally {
   await browser.close();
 }

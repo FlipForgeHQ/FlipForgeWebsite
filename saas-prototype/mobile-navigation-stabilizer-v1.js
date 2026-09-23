@@ -32,8 +32,8 @@
     style.id = "ff-mobile-navigation-stabilizer-style";
     style.textContent = `
       @media (max-width:760px) {
-        .primary-nav > a[data-ff-customer-core],
-        .primary-nav > .ff-mobile-account-nav {
+        html:not([data-ff-portal-architecture="v1"]) .primary-nav > a[data-ff-customer-core],
+        html:not([data-ff-portal-architecture="v1"]) .primary-nav > .ff-mobile-account-nav {
           visibility:visible !important;
           opacity:1 !important;
           display:grid !important;
@@ -41,7 +41,7 @@
         html:not(.ff-full-customer-app) .primary-nav > .ff-advanced-nav {
           display:none !important;
         }
-        html.ff-full-customer-app .primary-nav > .ff-advanced-nav {
+        html.ff-full-customer-app:not([data-ff-portal-architecture="v1"]) .primary-nav > .ff-advanced-nav {
           display:block !important;
           visibility:visible !important;
           opacity:1 !important;
@@ -90,6 +90,7 @@
     if (!nav) return;
 
     ensureStyle();
+    if (fullCustomerMode() && window.FlipForgeCustomerPortalArchitectureV1) return;
     const routes = fullCustomerMode() ? FULL_CUSTOMER_ROUTES : PRIMARY_ROUTES;
     routes.forEach(route => restoreLink(nav.querySelector(`[data-route="${route}"]`)));
 

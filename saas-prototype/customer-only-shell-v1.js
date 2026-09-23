@@ -122,6 +122,7 @@
   }
 
   function fullCustomerNavigation(nav) {
+    if (window.FlipForgeCustomerPortalArchitectureV1) return;
     const labels = new Map([
       ["dashboard", "Home"],
       ["discover", "Discover"],
@@ -218,6 +219,7 @@
     const search = document.querySelector("#global-search-form");
 
     if (fullCustomerMode()) {
+      if (window.FlipForgeCustomerPortalArchitectureV1) return;
       showElement(search);
 
       const evaluate = document.querySelector("[data-ff-global-new-card]");
