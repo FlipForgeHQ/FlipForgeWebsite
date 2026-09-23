@@ -2,8 +2,8 @@ import { chromium } from 'playwright';
 
 const baseUrl = process.env.FLIPFORGE_PUBLIC_AUDIT_URL || 'http://127.0.0.1:4173';
 const viewports = [
-  { name: 'desktop', width: 1440, height: 1000, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 54.1 },
-  { name: 'wide', width: 2048, height: 900, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 54.1 },
+  { name: 'desktop', width: 1440, height: 1000, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 80.1 },
+  { name: 'wide', width: 2048, height: 900, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 80.1 },
   { name: 'mobile', width: 390, height: 844, pageTitleMax: 40.1, sectionTitleMax: 30.1, homeDisplayMax: 44.1 }
 ];
 
@@ -54,7 +54,7 @@ async function measure(page, path, selector) {
 
 async function publicShellState(page, path, introSelector, headingSelector, mobile) {
   await goto(page, path);
-  await page.waitForSelector(path === '/' ? '.decision-header' : '.site-header', { state: 'visible' });
+  await page.waitForSelector('.site-header', { state: 'visible' });
   if (introSelector) await page.waitForSelector(introSelector, { state: 'visible' });
 
   return page.evaluate(({ introSelector, headingSelector, mobile, canonicalNav }) => {
@@ -157,7 +157,8 @@ try {
     const homeDisplay = await measure(page, '/', '.hero h1 span');
     if (homeDisplay.fontSize > viewport.homeDisplayMax) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px exceeds ${viewport.homeDisplayMax}px cap`);
     if (homeDisplay.fontSize < baselineTitle) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px is smaller than internal page title ${baselineTitle}px`);
-    if (homeDisplay.fontSize - baselineTitle > 8.1) failures.push(`${viewport.name} Home: display is more than one scale step above internal page title (${homeDisplay.fontSize}px vs ${baselineTitle}px)`);
+    const homeDisplayLiftMax = viewport.name === 'mobile' ? 8.1 : 34.1;
+    if (homeDisplay.fontSize - baselineTitle > homeDisplayLiftMax) failures.push(`${viewport.name} Home: display exceeds the approved cinematic hero scale (${homeDisplay.fontSize}px vs ${baselineTitle}px internal title)`);
 
     const homeShell = await publicShellState(page, '/', null, null, mobile);
     const shellStates = [];
