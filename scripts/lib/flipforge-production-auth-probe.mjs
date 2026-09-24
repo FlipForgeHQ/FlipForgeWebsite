@@ -18,7 +18,7 @@ let currentUser = null;
 
 function safeReturnPath() {
   const requested = new URLSearchParams(window.location.search).get("return");
-  if (!requested || requested.startsWith("//")) return "/app/#/account";
+  if (!requested || requested.startsWith("//")) return "/app/customer/#/dashboard";
   try {
     const resolved = new URL(requested, window.location.origin);
     const normalizedPath = resolved.pathname === "/app" ? "/app/"
@@ -28,7 +28,7 @@ function safeReturnPath() {
     const pathAllowed = normalizedPath === "/app/"
       || normalizedPath === "/app/customer/"
       || normalizedPath === "/saas-prototype/";
-    if (resolved.origin !== window.location.origin || !pathAllowed) return "/app/#/account";
+    if (resolved.origin !== window.location.origin || !pathAllowed) return "/app/customer/#/dashboard";
     return `${normalizedPath}${resolved.search}${resolved.hash || "#/account"}`;
   } catch (_) {
     return "/app/#/account";
@@ -43,7 +43,7 @@ function setStatus(message, tone = "neutral") {
 function setSignedIn(user) {
   currentUser = user || null;
   signOutButton.hidden = !currentUser;
-  returnLink.hidden = !currentUser;
+  returnLink.hidden = true;
   returnLink.href = safeReturnPath();
   if (currentUser) setStatus(`Signed in as ${currentUser.email || "FlipForge user"}. Verifying beta access…`, "neutral");
   else setStatus("Sign in to continue to your FlipForge workspace.", "neutral");
