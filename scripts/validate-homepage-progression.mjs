@@ -88,8 +88,8 @@ requireAll('Decision Forge interactive story',homepage,[
 ]);
 requireAll('Decision Forge motion system',decisionForgeCss,[
   '.ff-decision-forge',
-  '@keyframes ffDfScan',
-  '.ff-df-receipt',
+  '.ff-df-scene',
+  '.ff-df-reveal-card',
   '@media(max-width:680px)',
   '@media(prefers-reduced-motion:reduce)'
 ]);
@@ -97,7 +97,7 @@ requireAll('Decision Forge behavior',decisionForgeJs,[
   "IntersectionObserver",
   "data-decision-forge",
   "prefers-reduced-motion: reduce",
-  "pointermove",
+  "data-forge-scene",
   "data-forge-why",
   "visibilitychange"
 ]);
