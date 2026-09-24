@@ -54,22 +54,18 @@ requireAll('homepage v5 hero proof',homepage,[
   'FLIPFORGE DECISION',
   '<b>VERIFY</b>'
 ]);
-requireAll('homepage v5 film',homepage,[
-  'id="film"',
-  '30-SECOND PRODUCT FILM',
-  '00:05 — EXACT CARD',
-  '00:12 — QUALIFIED EVIDENCE',
-  '00:20 — SUPPORTED VALUE',
-  'Price is an input.',
-  'Value is the intelligence.'
+requireAll('homepage concise differentiation',homepage,[
+  'id="why"',
+  'WHY FLIPFORGE',
+  'Not another price checker.',
+  'A decision system.',
+  'Know the exact card.',
+  'Trust qualified evidence.',
+  'Keep the reason.',
+  '<strong>100 frozen decisions</strong>',
+  'href="decision-proof.html">See the proof →'
 ]);
-requireAll('homepage v5 simulator',homepage,[
-  'id="sim"',
-  'data-case="exact"',
-  'data-case="parallel"',
-  'data-case="grade"',
-  'Choose the wrong card. Watch FlipForge stop it.'
-]);
+for(const retiredHomepageBlock of ['30-SECOND PRODUCT FILM','id="sim"','WHAT JUST HAPPENED?','WHAT IS FLIPFORGE?','id="decision-proof"'])forbidText('homepage retired overload',homepage,retiredHomepageBlock);
 
 requireAll('Decision Forge interactive story',homepage,[
   'id="decision-forge"',
@@ -103,21 +99,7 @@ requireAll('Decision Forge behavior',decisionForgeJs,[
 ]);
 for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('Decision Forge device storage',decisionForgeJs,store);
 forbidText('Decision Forge forced scrolling',decisionForgeJs,'scrollIntoView');
-requireAll('homepage v5 explanation',homepage,[
-  'WHAT JUST HAPPENED?',
-  'WHAT IS FLIPFORGE?',
-  '01 · CARD','02 · EVIDENCE','03 · VALUE','04 · DECISION'
-]);
-requireAll('homepage v5 Decision Proof',homepage,[
-  'id="decision-proof"',
-  '<strong>100</strong><span>Frozen decisions</span>',
-  '<strong>42</strong><span>Measurable at T7</span>',
-  'href="decision-proof.html">See the full Decision Proof →'
-]);
 requireAll('homepage v5 behavior',dealJs,[
-  "play.addEventListener('click'",
-  "progress.style.width=(t/30*100)+'%'",
-  "tabs.forEach(b=>b.addEventListener('click'",
   'IntersectionObserver'
 ]);
 for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('homepage device storage',dealJs,store);
