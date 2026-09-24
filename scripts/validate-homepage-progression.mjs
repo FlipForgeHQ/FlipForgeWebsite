@@ -81,8 +81,8 @@ requireAll('Decision Forge interactive story',homepage,[
   'data-forge-replay',
   'data-forge-toggle',
   'data-forge-why-button',
-  'FLIPFORGE DECISION RECEIPT',
-  '2 of 7 qualified',
+  'FLIPFORGE DECISION',
+  'Resolve → Qualify → Reject → Recalculate → Lock → Reveal',
   'assets/css/homepage-decision-forge-v1.css',
   'assets/js/homepage-decision-forge-v1.js'
 ]);
@@ -90,7 +90,7 @@ requireAll('Decision Forge motion system',decisionForgeCss,[
   '.ff-decision-forge',
   '.ff-df-scene',
   '.ff-df-reveal-card',
-  '@media(max-width:680px)',
+  '@media(max-width:700px)',
   '@media(prefers-reduced-motion:reduce)'
 ]);
 requireAll('Decision Forge behavior',decisionForgeJs,[
