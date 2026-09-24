@@ -62,7 +62,7 @@ check('049 deprecated slogan stays absent',!has(index,'Signal. Confidence. Advan
 check('050 forbidden former hero visual stays absent',!has(index,'flipforge-approved-decision-visual.webp'));
 check('051 old Deal Check runtime is not loaded',!has(index,'assets/js/homepage-deal-or-decoy-v1.js'));
 check('052 v5 shell is cached',has(sw,"'/assets/css/homepage-v5.css'")&&has(sw,"'/assets/js/homepage-v5.js'"));
-check('053 service worker version moved forward',has(sw,"const CACHE='flipforge-shell-v20'"));
+check('053 service worker version moved forward',has(sw,"const CACHE='flipforge-shell-v21'"));
 check('054 controlled-beta boundary is explicit',has(index,'Controlled Private Beta.'));
 check('055 transaction/profit boundary is explicit',has(index,'FlipForge does not guarantee profit or authorize transactions.'));
 check('056 Launch Plans remains discoverable without crowding hero nav',has(index,'href="pricing.html">Launch Plans</a>'));
