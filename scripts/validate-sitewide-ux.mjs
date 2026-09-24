@@ -117,7 +117,9 @@ requireText('homepage exact-card differentiation',homepage,'Know the exact card.
 requireText('homepage evidence differentiation',homepage,'Trust qualified evidence.');
 requireText('homepage reason differentiation',homepage,'Keep the reason.');
 requireText('homepage Decision Proof link',homepage,'See the proof →');
-for(const retiredHomepageBlock of ['30-SECOND PRODUCT FILM','id="sim"','WHAT JUST HAPPENED?','WHAT IS FLIPFORGE?','id="decision-proof"'])forbidText('homepage overload removed',homepage,retiredHomepageBlock);
+requireText('homepage 30-second product film',homepage,'id="film"');
+requireText('homepage 30-second film runtime',homepage,'data-film');
+for(const retiredHomepageBlock of ['id="sim"','WHAT JUST HAPPENED?','WHAT IS FLIPFORGE?','id="decision-proof"'])forbidText('homepage overload removed',homepage,retiredHomepageBlock);
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
 requireText('homepage transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
 requireText('homepage returning tester sign in',homepage,'href="/production-auth.html" data-ff-marketing-sign-in>Sign In</a>');
