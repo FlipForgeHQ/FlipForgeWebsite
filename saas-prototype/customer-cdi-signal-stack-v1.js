@@ -52,6 +52,22 @@
       .replace(/'/g, "&#039;");
   }
 
+  function numberFromText(value) {
+    const match = String(value || "").replace(/,/g, "").match(/-?\d+(?:\.\d+)?/);
+    return match ? Number(match[0]) : null;
+  }
+
+  function moneyFromText(value) {
+    const match = String(value || "").replace(/,/g, "").match(/\$?(-?\d+(?:\.\d+)?)/);
+    return match ? Number(match[1]) : null;
+  }
+
+  function clamp(value, min = 0, max = 100) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    return Math.max(min, Math.min(max, n));
+  }
+
   function decisionValue(root, mode) {
     const raw = mode === "decision-intelligence"
       ? text(root.querySelector(".ff-di-v2-decision"))
@@ -78,6 +94,8 @@
     const ask = values[0] || "Unavailable";
     const supported = values[1] || "Unavailable";
     return {
+      ask,
+      supported,
       value: supported,
       detail: "Ask " + ask + " · Supported " + supported
     };
@@ -89,9 +107,13 @@
 
     const exact = labeledStrong(command, ".ff-di-v2-gate", "Exact identity") || "Review needed";
     const sales = labeledStrong(command, ".ff-di-v2-gate", "Trusted completed sales") || "Unavailable";
+    const excluded = labeledStrong(command, ".ff-di-v2-gate", "Excluded evidence") || "";
     const support = labeledStrong(command, ".ff-di-v2-verdict-metrics > div", "Supported value") || "Unavailable";
     const confidence = labeledStrong(command, ".ff-di-v2-verdict-metrics > div", "Confidence") || "Unavailable";
     const risk = labeledStrong(command, ".ff-di-v2-verdict-metrics > div", "Risk") || "Unavailable";
+    const ask = labeledStrong(command, ".ff-di-v3-receipt-machine-values > div", "Evaluated ask")
+      || labeledStrong(command, ".ff-di-v2-receipt-grid > div", "Evaluated ask")
+      || "Unavailable";
     const reason = text(command.querySelector(".ff-di-v2-verdict-main p"));
     const identity = text(command.querySelector(".ff-di-v2-verdict-main h2")) || "Saved card";
     const evidenceHref = command.querySelector(".ff-di-v2-evidence-link")?.getAttribute("href") || "#/evidence";
@@ -102,10 +124,37 @@
       reason,
       evidenceHref,
       signals: [
-        { key: "exact", label: "Exact card", value: exact, caption: "Confirm the year, set, number, variant, and grade." },
-        { key: "sales", label: "Trustworthy sales", value: sales, caption: "Use only completed sales that match the exact card." },
-        { key: "price", label: "Price check", value: support, caption: "Compare the listing price with the value supported by accepted evidence." },
-        { key: "uncertainty", label: "Uncertainty", value: confidence + " confidence · " + risk + " risk", caption: "Keep uncertainty visible instead of turning thin evidence into false precision." }
+        {
+          key: "exact",
+          label: "Exact card",
+          value: exact,
+          caption: "Confirm the year, set, number, variant, and grade.",
+          verified: /verified|confirmed|exact/i.test(exact)
+        },
+        {
+          key: "sales",
+          label: "Trustworthy sales",
+          value: sales,
+          caption: "Use only completed sales that match the exact card.",
+          accepted: numberFromText(sales),
+          excluded: numberFromText(excluded)
+        },
+        {
+          key: "price",
+          label: "Price check",
+          value: support,
+          caption: "Compare the listing price with the value supported by accepted evidence.",
+          ask: moneyFromText(ask),
+          supported: moneyFromText(support)
+        },
+        {
+          key: "uncertainty",
+          label: "Uncertainty",
+          value: confidence + " confidence · " + risk + " risk",
+          caption: "Keep uncertainty visible instead of turning thin evidence into false precision.",
+          confidence: clamp(numberFromText(confidence)),
+          risk: clamp(numberFromText(risk))
+        }
       ]
     };
   }
@@ -129,31 +178,93 @@
       reason: text(root.querySelector(".ff-decision-meaning")),
       evidenceHref: "#/evidence/" + encodeURIComponent(routeParts()[1] || ""),
       signals: [
-        { key: "exact", label: "Exact card", value: exact, caption: "Confirm the saved card identity before relying on any comparison." },
-        { key: "sales", label: "Trustworthy sales", value: sales, caption: "See how many exact completed sales were allowed to support the decision." },
-        { key: "price", label: "Price check", value: price.value, caption: price.detail },
-        { key: "uncertainty", label: "Uncertainty", value: confidence + " confidence · " + risk + " risk", caption: "Use the saved confidence and risk together, not as a guarantee." }
+        {
+          key: "exact",
+          label: "Exact card",
+          value: exact,
+          caption: "Confirm the saved card identity before relying on any comparison.",
+          verified: !/review|unknown|unverified|conflict/i.test(exact)
+        },
+        {
+          key: "sales",
+          label: "Trustworthy sales",
+          value: sales,
+          caption: "See how many exact completed sales were allowed to support the decision.",
+          accepted: numberFromText(sales),
+          excluded: null
+        },
+        {
+          key: "price",
+          label: "Price check",
+          value: price.value,
+          caption: price.detail,
+          ask: moneyFromText(price.ask),
+          supported: moneyFromText(price.supported)
+        },
+        {
+          key: "uncertainty",
+          label: "Uncertainty",
+          value: confidence + " confidence · " + risk + " risk",
+          caption: "Use the saved confidence and risk together, not as a guarantee.",
+          confidence: clamp(numberFromText(confidence)),
+          risk: clamp(numberFromText(risk))
+        }
       ]
     };
   }
 
-  function signalVisual(key) {
-    if (key === "exact") {
-      return '<span class="ff-cdi-visual ff-cdi-visual-exact" aria-hidden="true"><i></i><i></i><i></i></span>';
+  function exactVisual(signal) {
+    const mark = signal.verified ? "✓" : "?";
+    const tone = signal.verified ? "good" : "review";
+    return '<span class="ff-cdi-visual ff-cdi-visual-exact" data-tone="' + tone + '" aria-hidden="true">' +
+      '<i>' + mark + '</i><i>' + mark + '</i><i>' + mark + '</i></span>';
+  }
+
+  function salesVisual(signal) {
+    const accepted = Number.isFinite(signal.accepted) ? Math.max(0, Math.round(signal.accepted)) : 0;
+    const excluded = Number.isFinite(signal.excluded) ? Math.max(0, Math.round(signal.excluded)) : 0;
+    const total = Math.max(accepted + excluded, accepted || 5);
+    const shown = Math.min(Math.max(total, 5), 8);
+    const dots = Array.from({ length: shown }, (_, index) => {
+      const cls = index < accepted ? "is-kept" : (index < accepted + excluded ? "is-out" : "is-neutral");
+      return '<i class="' + cls + '"></i>';
+    }).join("");
+    return '<span class="ff-cdi-visual ff-cdi-visual-sales" aria-hidden="true">' + dots + '</span>';
+  }
+
+  function priceVisual(signal) {
+    const ask = Number(signal.ask);
+    const supported = Number(signal.supported);
+    const validAsk = Number.isFinite(ask) && ask > 0;
+    const validSupported = Number.isFinite(supported) && supported > 0;
+    if (!validAsk && !validSupported) {
+      return '<span class="ff-cdi-visual ff-cdi-visual-price is-unavailable" aria-hidden="true"><i></i><i></i><b>—</b></span>';
     }
-    if (key === "sales") {
-      return '<span class="ff-cdi-visual ff-cdi-visual-sales" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>';
-    }
-    if (key === "price") {
-      return '<span class="ff-cdi-visual ff-cdi-visual-price" aria-hidden="true"><i></i><i></i><b></b></span>';
-    }
-    return '<span class="ff-cdi-visual ff-cdi-visual-uncertainty" aria-hidden="true"><i></i><b></b></span>';
+    const max = Math.max(validAsk ? ask : 0, validSupported ? supported : 0, 1);
+    const askHeight = validAsk ? Math.max(18, Math.round((ask / max) * 100)) : 0;
+    const supportedHeight = validSupported ? Math.max(18, Math.round((supported / max) * 100)) : 0;
+    return '<span class="ff-cdi-visual ff-cdi-visual-price" aria-hidden="true" style="--ask:' + askHeight + '%;--supported:' + supportedHeight + '%">' +
+      '<i data-kind="ask"></i><i data-kind="supported"></i><b></b></span>';
+  }
+
+  function uncertaintyVisual(signal) {
+    const confidence = Number.isFinite(signal.confidence) ? signal.confidence : 0;
+    const risk = Number.isFinite(signal.risk) ? signal.risk : 0;
+    return '<span class="ff-cdi-visual ff-cdi-visual-uncertainty" aria-hidden="true" style="--confidence:' + confidence + ';--risk:' + risk + '">' +
+      '<span class="ff-cdi-mini-ring"><i></i></span><span class="ff-cdi-mini-risk"><i></i></span></span>';
+  }
+
+  function signalVisual(signal) {
+    if (signal.key === "exact") return exactVisual(signal);
+    if (signal.key === "sales") return salesVisual(signal);
+    if (signal.key === "price") return priceVisual(signal);
+    return uncertaintyVisual(signal);
   }
 
   function signalMarkup(signal, index) {
     return '<article class="ff-cdi-signal" data-ff-cdi-signal="' + escapeHtml(signal.key) + '" data-step="' + String(index + 1) + '">' +
       '<div class="ff-cdi-signal-index">0' + String(index + 1) + '</div>' +
-      signalVisual(signal.key) +
+      signalVisual(signal) +
       '<div class="ff-cdi-signal-copy"><span>' + escapeHtml(signal.label) + '</span><strong>' + escapeHtml(signal.value) + '</strong><small>' + escapeHtml(signal.caption) + '</small></div>' +
       '<span class="ff-cdi-signal-state" aria-hidden="true">✓</span>' +
       '</article>';
@@ -165,12 +276,12 @@
     return '<section class="ff-cdi-stack" data-ff-cdi-stack data-decision="' + escapeHtml(decision) + '">' +
       '<header class="ff-cdi-verdict">' +
         '<div class="ff-cdi-verdict-copy">' +
-          '<span class="ff-cdi-kicker">CARD DECISION INTELLIGENCE</span>' +
+          '<span class="ff-cdi-kicker">FLIPFORGE SAYS</span>' +
           '<h2>' + escapeHtml(verdict.title) + '</h2>' +
           '<p>' + escapeHtml(reason) + '</p>' +
           '<div class="ff-cdi-meta"><span>' + escapeHtml(decision) + '</span><span>Decision engine · Smart Opportunity</span></div>' +
         '</div>' +
-        '<div class="ff-cdi-card-id"><span>Exact card</span><strong>' + escapeHtml(model.identity) + '</strong></div>' +
+        '<div class="ff-cdi-card-id"><span>Card under review</span><strong>' + escapeHtml(model.identity) + '</strong></div>' +
       '</header>' +
       '<div class="ff-cdi-start">' +
         '<button class="ff-cdi-start-button" type="button" data-ff-cdi-start><span>START HERE</span><strong>Show me why FlipForge said ' + escapeHtml(decision) + '</strong></button>' +
@@ -234,7 +345,7 @@
       stack.dataset.ffCdiSignature = signature;
       stack.innerHTML = stackMarkup(decision, model);
     }
-    root.dataset.ffCdiSignalStack = "v1";
+    root.dataset.ffCdiSignalStack = "v2";
     ensureDeepDisclosure(root, mode);
   }
 
@@ -286,9 +397,9 @@
     guide.className = "ff-cdi-evidence-guide";
     guide.dataset.ffCdiEvidenceGuide = "";
     guide.innerHTML =
-      '<article><span>01 · ACCEPTED</span><strong>Check trustworthy sales</strong><p>Exact completed sales that are eligible to support the saved decision.</p></article>' +
-      '<article><span>02</span><strong>Excluded</strong><p>Visible rows that fail an identity, sale-state, freshness, or authority check.</p></article>' +
-      '<article><span>03</span><strong>Why it matters</strong><p>Supported value should get stronger only when the evidence gets stronger.</p></article>';
+      '<article><span>01 · TRUSTED</span><strong>Check trustworthy sales</strong><p>Exact completed sales that can support the saved decision.</p></article>' +
+      '<article><span>02 · LEFT OUT</span><strong>See what did not count</strong><p>Wrong identities, sale states, stale rows, duplicates, or other ineligible evidence stay visible instead of disappearing.</p></article>' +
+      '<article><span>03 · WHY IT MATTERS</span><strong>Price support must be earned</strong><p>Supported value gets stronger only when the underlying evidence gets stronger.</p></article>';
     heading.insertAdjacentElement("afterend", guide);
   }
 
@@ -301,8 +412,54 @@
     const guide = document.createElement("div");
     guide.className = "ff-cdi-returning";
     guide.dataset.ffCdiReturning = "";
-    guide.innerHTML = '<strong>Reopen a saved decision.</strong><span>Pick a card to see the plain-language verdict first, then replay the four checks behind it.</span>';
+    guide.innerHTML = '<strong>Reopen a saved decision.</strong><span>Pick a card to see the plain-language verdict first, replay the four checks, then open the evidence or receipt only if you need more detail.</span>';
     heading.insertAdjacentElement("afterend", guide);
+  }
+
+  function outcomeGuide() {
+    const parts = routeParts();
+    if (parts[0] !== "tracking") return;
+    const root = document.querySelector("#main-content .page, #main-content .customer-lifecycle-page");
+    const heading = root?.querySelector(".page-heading");
+    if (!root || !heading) return;
+
+    const p = heading.querySelector("p");
+    if (p) p.textContent = "Start with the original decision, then see what changed at later checkpoints without rewriting the past.";
+
+    if (root.querySelector("[data-ff-cdi-outcome-guide]")) return;
+    const guide = document.createElement("section");
+    guide.className = "ff-cdi-outcome-guide";
+    guide.dataset.ffCdiOutcomeGuide = "";
+    guide.innerHTML =
+      '<header><span>OUTCOME INTELLIGENCE</span><strong>What happened after the decision?</strong><p>The original T0 decision stays fixed. Later checkpoints add context; they do not rewrite history.</p></header>' +
+      '<div class="ff-cdi-outcome-flow" aria-label="Outcome Intelligence checkpoints">' +
+        '<article data-state="baseline"><b>T0</b><strong>Original decision</strong><small>Lock the call and its reason trail.</small></article>' +
+        '<i aria-hidden="true">→</i>' +
+        '<article><b>T7</b><strong>First review</strong><small>See what changed one week later.</small></article>' +
+        '<i aria-hidden="true">→</i>' +
+        '<article><b>T14</b><strong>Reasoning check</strong><small>Ask whether the original reasoning still holds.</small></article>' +
+        '<i aria-hidden="true">→</i>' +
+        '<article><b>T30</b><strong>Outcome context</strong><small>Record what the later evidence showed.</small></article>' +
+      '</div>';
+    heading.insertAdjacentElement("afterend", guide);
+  }
+
+  function homeContinuity() {
+    const parts = routeParts();
+    if (parts[0] !== "dashboard") return;
+    const root = document.querySelector("#main-content .ff-commercial-dashboard");
+    const returning = root?.querySelector("[data-ff-p3-returning]");
+    if (!root || !returning) return;
+
+    const saved = returning.querySelector('[data-ff-p3-return="saved"] small');
+    const outcomes = returning.querySelector('[data-ff-p3-return="outcomes"] small');
+    const heat = returning.querySelector('[data-ff-p3-return="heat"] small');
+    const portfolio = returning.querySelector('[data-ff-p3-return="portfolio"] small');
+
+    if (saved) saved.textContent = "Open a card to see the verdict and replay its four checks.";
+    if (outcomes) outcomes.textContent = "See what changed after the original T0 decision.";
+    if (heat) heat.textContent = "Rank eligible saved opportunities after evidence qualifies them.";
+    if (portfolio) portfolio.textContent = "See owned cards and purchase context without invented market value.";
   }
 
   function apply() {
@@ -316,6 +473,8 @@
     }
     evidenceGuide();
     returningSavedGuide();
+    outcomeGuide();
+    homeContinuity();
   }
 
   function queue() {
@@ -348,13 +507,17 @@
         block: "center"
       });
     } else if (root?.querySelector(".ff-decision-card-evidence")) {
-      root.querySelector(".ff-decision-card-evidence").scrollIntoView({ behavior: "smooth", block: "center" });
+      root.querySelector(".ff-decision-card-evidence").scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "center"
+      });
     }
   });
 
   const main = document.getElementById("main-content");
   if (main) new MutationObserver(queue).observe(main, { childList: true, subtree: true });
   window.addEventListener("hashchange", queue);
+  window.addEventListener("pageshow", queue);
   window.addEventListener("load", queue, { once: true });
 
   window.FlipForgeCustomerCdiSignalStackV1 = Object.freeze({ apply: queue });
