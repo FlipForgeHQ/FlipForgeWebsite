@@ -84,8 +84,10 @@ check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOM
 check(shell.includes("T7, T14, and T30"), "customer home explains governed outcome checkpoints");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session renderer still stands down on full customer route");
 check(navigationParity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "navigation parity controller cannot run outside /app/customer");
-check(navigationParity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"])'), "promoted Evidence Review is not duplicated in Advanced analysis");
+check(navigationParity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"])'), "advanced customer navigation contains only supported routes");
+check(navigationParity.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])') && navigationParity.includes("guardUnsupportedCustomerRoute"), "unsupported Exit Review fails closed");
 check(mobileNav.includes('"decision-intelligence", "why-this-decision", "evidence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set");
+check(!customer.includes('data-route="sell"'), "customer document removes unsupported Exit Review");
 check(mobileNav.includes('parts[0] === "decision-intelligence" && parts[1] === "why"') && mobileNav.includes('return "why-this-decision"'), "mobile active navigation distinguishes Why This Decision from Decision Intelligence");
 check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish cannot overwrite customer identity");
 check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit cannot overwrite customer identity");
@@ -121,7 +123,7 @@ check(loginRedirect.includes('window.addEventListener("flipforge:identity-change
 check(loginRedirect.includes('@media(max-width:760px)'), "persistent sign-in has a mobile visibility contract");
 
 check(authRecoveryAudit.includes('const customerRoutes = ['), "auth recovery audit declares the complete customer route matrix");
-for (const route of ["dashboard", "discover", "evaluate", "decision-intelligence", "decision-intelligence/why", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "sell", "export"]) {
+for (const route of ["dashboard", "discover", "evaluate", "decision-intelligence", "decision-intelligence/why", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "export"]) {
   check(authRecoveryAudit.includes(`"${route}"`), `auth recovery audit covers ${route}`);
 }
 check(authRecoveryAudit.includes('{ name: "desktop", width: 1440, height: 900 }'), "auth recovery audit covers desktop");
