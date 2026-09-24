@@ -76,10 +76,10 @@ if (!index.includes('A decision you can not only trust, but understand.')) homep
 if (!index.includes('assets/css/homepage-v5.css')) homepageFailures.push('homepage v5 stylesheet');
 if (!index.includes('assets/js/homepage-v5.js')) homepageFailures.push('homepage v5 behavior');
 if (!index.includes('ff-cinematic-workspace')) homepageFailures.push('cinematic decision workspace');
-if (!index.includes('30-SECOND PRODUCT FILM')) homepageFailures.push('30-second product film');
+if (!index.includes('id="decision-forge"') || !index.includes('data-decision-forge')) homepageFailures.push('interactive Decision Forge');
 if (!index.includes('$357.20') || !index.includes('2.3% supported gap')) homepageFailures.push('supported-value proof');
-if (!index.includes('id="sim"') || !index.includes('data-case="parallel"')) homepageFailures.push('interactive identity proof');
-if (!index.includes('id="decision-proof"')) homepageFailures.push('compact Decision Proof');
+if (!index.includes('id="why"') || !index.includes('WHY FLIPFORGE')) homepageFailures.push('concise homepage differentiation section');
+if (!index.includes('href="decision-proof.html">See the proof →')) homepageFailures.push('Decision Proof link');
 if (!index.includes('Controlled Private Beta.')) homepageFailures.push('private beta boundary');
 if (!index.includes('FlipForge does not guarantee profit or authorize transactions.')) homepageFailures.push('transaction/profit boundary');
 if (retiredSloganVariant(index)) homepageFailures.push('retired slogan variant removed');

@@ -263,8 +263,8 @@ for (const htmlPath of htmlFiles) {
     if (!html.includes('assets/css/homepage-v5.css')) failures.push('homepage v5 stylesheet');
     if (!html.includes('assets/js/homepage-v5.js')) failures.push('homepage v5 behavior');
     if (!html.includes('ff-cinematic-workspace')) failures.push('cinematic decision workspace');
-    if (!html.includes('data-film')) failures.push('30-second product film');
-    if (!html.includes('id="value"')) failures.push('price-to-value positioning section');
+    if (!html.includes('id="decision-forge"') || !html.includes('data-decision-forge')) failures.push('interactive Decision Forge');
+    if (!html.includes('id="why"') || !html.includes('WHY FLIPFORGE')) failures.push('concise homepage differentiation section');
     if (!html.includes('assets/js/site.js')) failures.push('shared mobile navigation behavior');
     if (!html.includes('assets/js/section-navigation.js')) failures.push('deterministic section navigation');
   }

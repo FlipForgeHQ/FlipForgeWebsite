@@ -12,11 +12,11 @@ const check=(label,condition)=>{if(!condition)failures.push(label);};
 const includesAll=(text,needles)=>needles.every(needle=>text.includes(needle));
 
 check('homepage keeps Decision Proof discoverable',home.includes('href="decision-proof.html"'));
-check('homepage compact Decision Proof section exists',home.includes('class="proof" id="decision-proof"'));
-check('homepage compact proof keeps frozen count',home.includes('<strong>100</strong><span>Frozen decisions</span>'));
-check('homepage compact proof keeps T7 count',home.includes('<strong>42</strong><span>Measurable at T7</span>'));
-check('homepage compact proof keeps conservative review count',home.includes('<strong>17</strong><span>Conservative signals reviewed</span>'));
-check('homepage proof CTA reaches dedicated page',home.includes('href="decision-proof.html">See the full Decision Proof →</a>'));
+check('homepage uses concise Decision Proof teaser',home.includes('class="home-proof-line"'));
+check('homepage teaser keeps frozen count',home.includes('<strong>100 frozen decisions</strong>'));
+check('homepage teaser explains frozen-call methodology',home.includes('Original calls stay frozen and are reviewed against later evidence.'));
+check('homepage proof CTA reaches dedicated page',home.includes('href="decision-proof.html">See the proof →</a>'));
+check('homepage does not duplicate detailed proof metrics',!home.includes('<strong>42</strong><span>Measurable at T7</span>')&&!home.includes('<strong>17</strong><span>Conservative signals reviewed</span>'));
 check('homepage intentionally defers methodology detail',!home.includes('Proof100 checkpoint · September 18, 2026')&&!home.includes('Current economically eligible non-BUY review candidates'));
 
 check('dedicated page title exists',page.includes('<title>Decision Proof | FlipForge</title>'));
@@ -76,4 +76,4 @@ if(failures.length){
   failures.forEach(failure=>console.error('- '+failure));
   process.exit(1);
 }
-console.log('PASS: governed public Decision Proof section and methodology page validated.');
+console.log('PASS: concise homepage Decision Proof teaser and governed methodology page validated.');

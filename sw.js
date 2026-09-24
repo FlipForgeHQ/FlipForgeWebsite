@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v20';
+const CACHE='flipforge-shell-v21';
 const SHELL=[
   '/',
   '/index.html',
@@ -6,6 +6,7 @@ const SHELL=[
   '/assets/css/site.css',
   '/assets/css/brand-v2.css',
   '/assets/css/homepage-v5.css',
+  '/assets/css/homepage-decision-forge-v1.css',
   '/assets/css/sitewide-graphics-v1.css',
   '/assets/css/public-typography-contract-v1.css',
   '/assets/css/visual-sections.css',
@@ -30,6 +31,7 @@ const SHELL=[
   '/assets/css/decision-intelligence-consumer-v2.css',
   '/assets/js/site.js',
   '/assets/js/homepage-v5.js',
+  '/assets/js/homepage-decision-forge-v1.js',
   '/assets/js/sitewide-graphics-v1.js',
   '/assets/js/phase3-activation-events-v1.js',
   '/assets/js/homepage-v1.js',

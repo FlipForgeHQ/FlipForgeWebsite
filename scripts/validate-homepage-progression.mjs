@@ -17,6 +17,8 @@ const awardJs=read('assets/js/award-winning-v1.js');
 const navJs=read('assets/js/site.js');
 const dealJs=read('assets/js/homepage-v5.js');
 const heroCss=read('assets/css/homepage-v5.css');
+const decisionForgeCss=read('assets/css/homepage-decision-forge-v1.css');
+const decisionForgeJs=read('assets/js/homepage-decision-forge-v1.js');
 const dealCss=heroCss;
 const processCss=heroCss;
 const cdiCss=heroCss;
@@ -50,39 +52,54 @@ requireAll('homepage v5 hero proof',homepage,[
   '2 QUALIFIED',
   'EXACT CARD VERIFIED',
   'FLIPFORGE DECISION',
-  '<b>VERIFY</b>'
+  '<strong>VERIFY</strong>'
 ]);
-requireAll('homepage v5 film',homepage,[
-  'id="film"',
-  '30-SECOND PRODUCT FILM',
-  '00:05 — EXACT CARD',
-  '00:12 — QUALIFIED EVIDENCE',
-  '00:20 — SUPPORTED VALUE',
-  'Price is an input.',
-  'Value is the intelligence.'
+requireAll('homepage concise differentiation',homepage,[
+  'id="why"',
+  'WHY FLIPFORGE',
+  'Not another price checker.',
+  'A decision system.',
+  'Know the exact card.',
+  'Trust qualified evidence.',
+  'Keep the reason.',
+  '<strong>100 frozen decisions</strong>',
+  'href="decision-proof.html">See the proof →'
 ]);
-requireAll('homepage v5 simulator',homepage,[
-  'id="sim"',
-  'data-case="exact"',
-  'data-case="parallel"',
-  'data-case="grade"',
-  'Choose the wrong card. Watch FlipForge stop it.'
+for(const retiredHomepageBlock of ['30-SECOND PRODUCT FILM','id="sim"','WHAT JUST HAPPENED?','WHAT IS FLIPFORGE?','id="decision-proof"'])forbidText('homepage retired overload',homepage,retiredHomepageBlock);
+
+requireAll('Decision Forge interactive story',homepage,[
+  'id="decision-forge"',
+  'data-decision-forge',
+  'THE DECISION FORGE · INTERACTIVE WALKTHROUGH',
+  'Watch FlipForge',
+  'build the why.',
+  'data-forge-step',
+  'data-forge-replay',
+  'data-forge-toggle',
+  'data-forge-why-button',
+  'FLIPFORGE DECISION',
+  'Resolve → Qualify → Reject → Recalculate → Lock → Reveal',
+  'assets/css/homepage-decision-forge-v1.css',
+  'assets/js/homepage-decision-forge-v1.js'
 ]);
-requireAll('homepage v5 explanation',homepage,[
-  'WHAT JUST HAPPENED?',
-  'WHAT IS FLIPFORGE?',
-  '01 · CARD','02 · EVIDENCE','03 · VALUE','04 · DECISION'
+requireAll('Decision Forge motion system',decisionForgeCss,[
+  '.ff-decision-forge',
+  '.ff-df-scene',
+  '.ff-df-reveal-card',
+  '@media(max-width:700px)',
+  '@media(prefers-reduced-motion:reduce)'
 ]);
-requireAll('homepage v5 Decision Proof',homepage,[
-  'id="decision-proof"',
-  '<strong>100</strong><span>Frozen decisions</span>',
-  '<strong>42</strong><span>Measurable at T7</span>',
-  'href="decision-proof.html">See the full Decision Proof →'
+requireAll('Decision Forge behavior',decisionForgeJs,[
+  "IntersectionObserver",
+  "data-decision-forge",
+  "prefers-reduced-motion: reduce",
+  "data-forge-scene",
+  "data-forge-why",
+  "visibilitychange"
 ]);
+for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('Decision Forge device storage',decisionForgeJs,store);
+forbidText('Decision Forge forced scrolling',decisionForgeJs,'scrollIntoView');
 requireAll('homepage v5 behavior',dealJs,[
-  "play.addEventListener('click'",
-  "progress.style.width=(t/30*100)+'%'",
-  "tabs.forEach(b=>b.addEventListener('click'",
   'IntersectionObserver'
 ]);
 for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('homepage device storage',dealJs,store);
@@ -197,7 +214,7 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v20'","'/decision-proof.html'","'/assets/css/homepage-v5.css'","'/assets/js/homepage-v5.js'","'/assets/js/site.js'"]);
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v21'","'/decision-proof.html'","'/assets/css/homepage-v5.css'","'/assets/css/homepage-decision-forge-v1.css'","'/assets/js/homepage-v5.js'","'/assets/js/homepage-decision-forge-v1.js'","'/assets/js/site.js'"]);
 const publicCopy=`${homepage}\n${proofPage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true'])forbidText('public safety',publicCopy,unsafe);
 if(publicCopy.includes('CARD VALUE INTELLIGENCE'))failures.push('public safety: forbidden formal CARD VALUE INTELLIGENCE identity');
