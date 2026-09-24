@@ -41,7 +41,6 @@ const routes = [
   "psa-advisor",
   "evidence",
   "portfolio",
-  "sell",
   "alerts",
   "account"
 ];
