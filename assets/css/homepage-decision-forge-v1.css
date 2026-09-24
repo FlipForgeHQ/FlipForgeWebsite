@@ -145,15 +145,6 @@
    Keep the premium scenes visually connected. Large empty black gaps weaken
    continuity, so adjacent sections hand off within roughly one visual beat. */
 body .film-section{padding-bottom:52px}
-body .ff-decision-forge + .value-intelligence{padding-top:54px}
-body .value-intelligence{padding-bottom:58px}
-body .value-intelligence + .sim{padding-top:56px}
-body .sim{padding-bottom:58px}
-body .sim + .explain{padding-top:56px}
-body .explain{padding-bottom:58px}
-body .explain + .proof{padding-top:52px}
-body .proof{padding-bottom:56px}
-body .proof + .final{padding-top:58px}
 
 /* Product-connected stage choreography */
 .ff-decision-forge[data-step="0"] .ff-df-scene-identity,
@@ -175,8 +166,7 @@ body .proof + .final{padding-top:58px}
   .ff-df-reveal-card{width:min(360px,48%)}
 }
 @media(max-width:700px){
-  body .film-section{padding-bottom:38px}body .ff-decision-forge + .value-intelligence{padding-top:40px}body .value-intelligence{padding-bottom:42px}body .value-intelligence + .sim{padding-top:40px}body .sim{padding-bottom:42px}body .sim + .explain{padding-top:40px}body .explain{padding-bottom:42px}body .explain + .proof{padding-top:38px}body .proof{padding-bottom:40px}body .proof + .final{padding-top:42px}
-  .ff-decision-forge{padding:42px 0 40px}.ff-df-wrap{width:min(100% - 24px,1220px)}.ff-df-intro h2{font-size:clamp(38px,13vw,56px)}.ff-df-intro-copy{font-size:15px}
+  body .film-section{padding-bottom:38px}  .ff-decision-forge{padding:42px 0 40px}.ff-df-wrap{width:min(100% - 24px,1220px)}.ff-df-intro h2{font-size:clamp(38px,13vw,56px)}.ff-df-intro-copy{font-size:15px}
   .ff-df-shell{border-radius:16px}.ff-df-sequence-bar{display:block;padding:14px}.ff-df-controls{position:absolute;right:28px;margin-top:-37px}
   .ff-df-stage-nav{margin-top:13px;gap:4px}.ff-df-stage-button{padding:7px 5px;text-align:center}.ff-df-stage-button b{font-size:7px}.ff-df-stage-button span{font-size:7px}.ff-df-stage-button::after{display:none}
   .ff-df-stage-top{padding:22px 16px 18px}.ff-df-stage-top h3{font-size:27px}.ff-df-stage-copy{font-size:11px}
@@ -192,4 +182,117 @@ body .proof + .final{padding-top:58px}
 @media(prefers-reduced-motion:reduce){
   .ff-decision-forge *,.ff-decision-forge *::before,.ff-decision-forge *::after{animation:none!important;transition:none!important}
   .ff-df-scene{transform:none!important;filter:none!important}
+}
+
+
+/* === HOMEPAGE ESSENTIALS ===
+   The homepage now teases the product rather than teaching the whole system. */
+.home-essentials{
+  position:relative;
+  padding:82px 0 70px;
+  border-top:1px solid rgba(255,255,255,.055);
+  background:
+    radial-gradient(circle at 85% 14%,rgba(212,175,55,.055),transparent 28%),
+    #030507;
+}
+.home-essentials-wrap{width:min(1120px,calc(100% - 44px));margin:0 auto}
+.home-essentials-copy{max-width:820px}
+.home-essentials-copy h2{
+  margin:12px 0 0;
+  color:#fff;
+  font-size:clamp(42px,5.2vw,70px);
+  line-height:.96;
+  letter-spacing:-.052em;
+}
+.home-essentials-copy h2 span{display:block;color:#D4AF37}
+.home-essentials-copy>p:last-child{
+  max-width:720px;
+  margin:17px 0 0;
+  color:#9da6b0;
+  font-size:15px;
+  line-height:1.62;
+}
+.home-essentials-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
+  margin-top:36px;
+  border-block:1px solid rgba(255,255,255,.07);
+}
+.home-essentials-grid article{
+  min-height:150px;
+  padding:24px 26px;
+  border-right:1px solid rgba(255,255,255,.065);
+}
+.home-essentials-grid article:last-child{border-right:0}
+.home-essentials-grid span{
+  display:block;
+  color:#8d7940;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.13em;
+}
+.home-essentials-grid h3{
+  margin:23px 0 0;
+  color:#fff;
+  font-size:22px;
+  line-height:1.08;
+  letter-spacing:-.025em;
+}
+.home-essentials-grid p{
+  margin:7px 0 0;
+  color:#7d8791;
+  font-size:11px;
+  line-height:1.5;
+}
+.home-proof-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:30px;
+  padding:24px 0;
+  border-bottom:1px solid rgba(255,255,255,.065);
+}
+.home-proof-line>div{display:grid;grid-template-columns:auto auto 1fr;gap:12px 18px;align-items:baseline}
+.home-proof-line small{
+  color:#D4AF37;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.home-proof-line strong{color:#fff;font-size:13px}
+.home-proof-line span{color:#737d87;font-size:10px}
+.home-proof-line a,
+.home-deeper-links a{
+  color:#e0c05c;
+  text-decoration:none;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.06em;
+  white-space:nowrap;
+}
+.home-deeper-links{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding-top:20px;
+  color:#6f7983;
+  font-size:9px;
+}
+.home-deeper-links span{margin-right:auto;color:#8e98a2}
+
+body .home-essentials + .final{padding-top:72px}
+
+@media(max-width:800px){
+  .home-essentials{padding:58px 0 52px}
+  .home-essentials-wrap{width:min(100% - 28px,1120px)}
+  .home-essentials-grid{grid-template-columns:1fr;margin-top:26px}
+  .home-essentials-grid article{min-height:auto;padding:20px 6px;border-right:0;border-bottom:1px solid rgba(255,255,255,.055)}
+  .home-essentials-grid article:last-child{border-bottom:0}
+  .home-essentials-grid h3{margin-top:8px;font-size:20px}
+  .home-proof-line{display:grid;gap:14px}
+  .home-proof-line>div{display:grid;grid-template-columns:1fr;gap:5px}
+  .home-deeper-links{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+  .home-deeper-links span{grid-column:1/-1;margin:0}
+  body .home-essentials + .final{padding-top:54px}
 }
