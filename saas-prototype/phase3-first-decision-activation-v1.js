@@ -72,17 +72,18 @@
         <div class="ff-p3-home-zero-copy">
           <span class="ff-p3-kicker">START HERE · YOUR FIRST DECISION</span>
           <h2>Evaluate your first card.</h2>
-          <p>Start with one exact card you are genuinely considering. FlipForge will verify the identity, qualify the evidence, return the governed decision, and preserve the reason trail.</p>
+          <p>Start with one real card. FlipForge confirms the exact card, checks trustworthy sales, compares the price, measures uncertainty, and then explains the decision.</p>
           <div class="ff-p3-actions">
             <a class="button button-primary" href="#/discover" data-ff-p3-first-evaluate>Find a card to evaluate</a>
             <a class="button button-secondary" href="#/evaluate">Enter a listing manually</a>
           </div>
-          <a class="ff-p3-home-learn" href="#/decision-intelligence">New to FlipForge? See how Card Decision Intelligence works →</a>
+          <a class="ff-p3-home-learn" href="#/decision-intelligence">New to FlipForge? See the four checks →</a>
         </div>
         <div class="ff-p3-home-path" aria-label="Your first FlipForge decision">
-          <div class="ff-p3-first-step"><b>01</b><span><strong>Find the exact card</strong><small>Identity is verified before price evidence gets authority.</small></span></div>
-          <div class="ff-p3-first-step"><b>02</b><span><strong>Let the evidence earn its place</strong><small>Wrong, weak, or ineligible comparisons are kept from silently driving the result.</small></span></div>
-          <div class="ff-p3-first-step"><b>03</b><span><strong>Read the decision and receipt</strong><small>BUY, WATCH, VERIFY, or PASS—with the reasons and uncertainty preserved.</small></span></div>
+          <div class="ff-p3-first-step"><b>01</b><span><strong>Confirm the exact card</strong><small>Make sure the year, set, number, variant, and grade match.</small></span></div>
+          <div class="ff-p3-first-step"><b>02</b><span><strong>Check trustworthy sales</strong><small>Keep the comparisons that belong and leave the bad ones out.</small></span></div>
+          <div class="ff-p3-first-step"><b>03</b><span><strong>Compare price + uncertainty</strong><small>See whether the ask is supported and how sure the evidence really is.</small></span></div>
+          <div class="ff-p3-first-step"><b>04</b><span><strong>Read the decision + receipt</strong><small>BUY, WATCH, VERIFY, or PASS—with the reason trail preserved.</small></span></div>
         </div>
       </div>
       <div class="ff-p3-home-zero-footer">
@@ -190,10 +191,10 @@
             <p data-ff-p3-evaluate-copy>Enter the exact card you are considering. FlipForge will not let uncertain identity silently become trusted price evidence.</p>
           </div>
           <div class="ff-p3-evaluate-rail" aria-label="Evaluation progress">
-            <div class="ff-p3-evaluate-step" data-p3-step="identity"><b>01</b><strong>Identity</strong><small>Prove the card.</small></div>
-            <div class="ff-p3-evaluate-step" data-p3-step="evidence"><b>02</b><strong>Evidence</strong><small>Qualify what counts.</small></div>
-            <div class="ff-p3-evaluate-step" data-p3-step="decision"><b>03</b><strong>Decision</strong><small>Resolve the call.</small></div>
-            <div class="ff-p3-evaluate-step" data-p3-step="receipt"><b>04</b><strong>Receipt</strong><small>Keep the reason trail.</small></div>
+            <div class="ff-p3-evaluate-step" data-p3-step="identity"><b>01</b><strong>Exact card</strong><small>Confirm what it is.</small></div>
+            <div class="ff-p3-evaluate-step" data-p3-step="evidence"><b>02</b><strong>Trustworthy sales</strong><small>Keep what belongs.</small></div>
+            <div class="ff-p3-evaluate-step" data-p3-step="decision"><b>03</b><strong>Price + uncertainty</strong><small>Test the deal.</small></div>
+            <div class="ff-p3-evaluate-step" data-p3-step="receipt"><b>04</b><strong>Decision + receipt</strong><small>See the call and why.</small></div>
           </div>
         </div>`;
       // Keep the Phase 3 intelligence rail outside the Discover panel's
@@ -212,10 +213,10 @@
     if (intro.dataset.stage !== stage) intro.dataset.stage = stage;
 
     const messages = {
-      identity: ["Verify the card first.", "Enter the exact card you are considering. FlipForge will not let uncertain identity silently become trusted price evidence."],
-      "identity-review": ["Choose the exact identity.", "FlipForge found more than one plausible identity. Select the correct card before marketplace evidence can move downstream."],
-      evidence: ["Now test what deserves to count.", "Connected candidates are visible, but only exact eligible evidence can move into the governed evaluation."],
-      handoff: ["Build the decision.", "The selected exact listing is moving through evidence, economics, risk, and the governed decision path."]
+      identity: ["Confirm the exact card first.", "Enter the card you are considering. FlipForge checks the year, set, number, variant, and grade before price gets a vote."],
+      "identity-review": ["Choose the exact card.", "FlipForge found more than one plausible match. Pick the correct card before sales can influence the decision."],
+      evidence: ["Now check trustworthy sales.", "You can see the candidates, but only exact completed sales that pass the evidence checks can support the price case."],
+      handoff: ["Now test the deal.", "FlipForge is comparing the price, measuring uncertainty, and building the BUY, WATCH, VERIFY, or PASS decision."]
     };
     const current = messages[stage] || messages.identity;
     if (title.textContent !== current[0]) title.textContent = current[0];
@@ -244,7 +245,14 @@
     const root = document.querySelector(MAIN);
     const summary = root?.querySelector("[data-ff-decision-summary]");
     const hero = root?.querySelector(".customer-intelligence-hero");
-    if (!root || (!summary && !hero) || root.querySelector("[data-ff-p3-result-guide]")) return;
+    if (!root || (!summary && !hero)) return;
+
+    const existingGuide = root.querySelector("[data-ff-p3-result-guide]");
+    if (root.querySelector("[data-ff-cdi-stack-host]")) {
+      if (existingGuide) existingGuide.remove();
+      return;
+    }
+    if (existingGuide) return;
 
     const decision = decisionFrom(root);
     const [headline, explanation] = resultCopy(decision);
