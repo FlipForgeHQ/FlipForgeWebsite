@@ -287,14 +287,16 @@
         '<button class="ff-cdi-start-button" type="button" data-ff-cdi-start><span>START HERE</span><strong>Show me why FlipForge said ' + escapeHtml(decision) + '</strong></button>' +
         '<small>Watch the 4 checks assemble · about 3 seconds</small>' +
       '</div>' +
-      '<div class="ff-cdi-caption" role="status" aria-live="polite">Start with the decision. Open the four checks when you want the reason trail.</div>' +
-      '<div class="ff-cdi-signals" aria-label="Four checks behind this decision">' +
-        model.signals.map(signalMarkup).join("") +
-      '</div>' +
-      '<div class="ff-cdi-after" data-ff-cdi-after hidden>' +
-        '<a class="ff-cdi-secondary" href="' + escapeHtml(model.evidenceHref) + '">Open full evidence</a>' +
-        '<button class="ff-cdi-secondary" type="button" data-ff-cdi-receipt>Open Decision Receipt</button>' +
-        '<button class="ff-cdi-replay" type="button" data-ff-cdi-replay>Replay the 4 checks</button>' +
+      '<div class="ff-cdi-reasoning" data-ff-cdi-reasoning hidden>' +
+        '<div class="ff-cdi-caption" role="status" aria-live="polite">Start with the decision. Open the four checks when you want the reason trail.</div>' +
+        '<div class="ff-cdi-signals" aria-label="Four checks behind this decision">' +
+          model.signals.map(signalMarkup).join("") +
+        '</div>' +
+        '<div class="ff-cdi-after" data-ff-cdi-after hidden>' +
+          '<a class="ff-cdi-secondary" href="' + escapeHtml(model.evidenceHref) + '">Open full evidence</a>' +
+          '<button class="ff-cdi-secondary" type="button" data-ff-cdi-receipt>Open Decision Receipt</button>' +
+          '<button class="ff-cdi-replay" type="button" data-ff-cdi-replay>Replay the 4 checks</button>' +
+        '</div>' +
       '</div>' +
     '</section>';
   }
@@ -352,9 +354,11 @@
   function revealStack(stack, instant) {
     if (!stack || state.running.has(stack)) return;
     state.running.add(stack);
+    const reasoning = stack.querySelector("[data-ff-cdi-reasoning]");
     const rows = [...stack.querySelectorAll("[data-ff-cdi-signal]")];
     const caption = stack.querySelector(".ff-cdi-caption");
     const after = stack.querySelector("[data-ff-cdi-after]");
+    if (reasoning) reasoning.hidden = false;
     rows.forEach(row => row.classList.remove("is-live", "is-complete"));
     if (after) after.hidden = true;
 
@@ -502,6 +506,10 @@
     const receipt = root?.querySelector("[data-ff-decision-receipt], .ff-di-v2-receipt");
     if (receipt) {
       receipt.open = true;
+      receipt.classList.remove("ff-cdi-receipt-arrival");
+      void receipt.offsetWidth;
+      receipt.classList.add("ff-cdi-receipt-arrival");
+      window.setTimeout(() => receipt.classList.remove("ff-cdi-receipt-arrival"), 1100);
       receipt.scrollIntoView({
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
         block: "center"
