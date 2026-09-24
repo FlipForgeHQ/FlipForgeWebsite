@@ -17,6 +17,8 @@ const awardJs=read('assets/js/award-winning-v1.js');
 const navJs=read('assets/js/site.js');
 const dealJs=read('assets/js/homepage-v5.js');
 const heroCss=read('assets/css/homepage-v5.css');
+const decisionForgeCss=read('assets/css/homepage-decision-forge-v1.css');
+const decisionForgeJs=read('assets/js/homepage-decision-forge-v1.js');
 const dealCss=heroCss;
 const processCss=heroCss;
 const cdiCss=heroCss;
@@ -68,6 +70,39 @@ requireAll('homepage v5 simulator',homepage,[
   'data-case="grade"',
   'Choose the wrong card. Watch FlipForge stop it.'
 ]);
+
+requireAll('Decision Forge interactive story',homepage,[
+  'id="decision-forge"',
+  'data-decision-forge',
+  'THE DECISION FORGE · INTERACTIVE WALKTHROUGH',
+  'Watch FlipForge',
+  'build the why.',
+  'data-forge-step',
+  'data-forge-replay',
+  'data-forge-toggle',
+  'data-forge-why-button',
+  'FLIPFORGE DECISION RECEIPT',
+  '2 of 7 qualified',
+  'assets/css/homepage-decision-forge-v1.css',
+  'assets/js/homepage-decision-forge-v1.js'
+]);
+requireAll('Decision Forge motion system',decisionForgeCss,[
+  '.ff-decision-forge',
+  '@keyframes ffDfScan',
+  '.ff-df-receipt',
+  '@media(max-width:680px)',
+  '@media(prefers-reduced-motion:reduce)'
+]);
+requireAll('Decision Forge behavior',decisionForgeJs,[
+  "IntersectionObserver",
+  "data-decision-forge",
+  "prefers-reduced-motion: reduce",
+  "pointermove",
+  "data-forge-why",
+  "visibilitychange"
+]);
+for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('Decision Forge device storage',decisionForgeJs,store);
+forbidText('Decision Forge forced scrolling',decisionForgeJs,'scrollIntoView');
 requireAll('homepage v5 explanation',homepage,[
   'WHAT JUST HAPPENED?',
   'WHAT IS FLIPFORGE?',
@@ -197,7 +232,7 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v20'","'/decision-proof.html'","'/assets/css/homepage-v5.css'","'/assets/js/homepage-v5.js'","'/assets/js/site.js'"]);
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v21'","'/decision-proof.html'","'/assets/css/homepage-v5.css'","'/assets/css/homepage-decision-forge-v1.css'","'/assets/js/homepage-v5.js'","'/assets/js/homepage-decision-forge-v1.js'","'/assets/js/site.js'"]);
 const publicCopy=`${homepage}\n${proofPage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true'])forbidText('public safety',publicCopy,unsafe);
 if(publicCopy.includes('CARD VALUE INTELLIGENCE'))failures.push('public safety: forbidden formal CARD VALUE INTELLIGENCE identity');
