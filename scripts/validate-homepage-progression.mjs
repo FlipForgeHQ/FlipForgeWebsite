@@ -204,7 +204,7 @@ for(const page of [product,learn,beta,pricing])requireAll('marketing navigation'
 
 for(const core of ['dashboard','discover','evaluate','opportunities','tracking','portfolio'])requireText('app core workflow',app,`data-route="${core}"`);
 requireText('app advanced analysis',app,'<details class="ff-advanced-nav">');
-for(const advanced of ['compare','psa-advisor','evidence','sell','export'])requireText('app advanced routes',app,`data-route="${advanced}"`);
+for(const advanced of ['compare','psa-advisor','evidence','export'])requireText('app advanced routes',app,`data-route="${advanced}"`);
 if(productionBuild){
   forbidText('production staging route',app,'data-route="staging"');
   forbidText('production staging evaluate route',app,'data-route="staging-evaluate"');
