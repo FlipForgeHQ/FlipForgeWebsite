@@ -23,7 +23,7 @@ check('010 asking price is visible',has(index,'<strong>$349</strong>'));
 check('011 displayed market reference is visible',has(index,'$459.21'));
 check('012 supported value is visible',has(index,'$357.20'));
 check('013 supported gap remains visible',has(index,'2.3% supported gap'));
-check('014 decision remains VERIFY',has(index,'FLIPFORGE DECISION')&&has(index,'<b>VERIFY</b>'));
+check('014 decision remains VERIFY',has(index,'FLIPFORGE DECISION')&&has(index,'<strong>VERIFY</strong>'));
 check('015 candidate evidence is visible',has(index,'7 CANDIDATES')&&has(index,'2 QUALIFIED'));
 check('016 mismatch reasons remain concrete',has(index,'WRONG PARALLEL')&&has(index,'WRONG GRADE')&&has(index,'IDENTITY CONFLICT')&&has(index,'DUPLICATE'));
 check('017 exact card is verified',has(index,'EXACT CARD VERIFIED'));
