@@ -109,7 +109,7 @@ requireText('homepage supported value',homepage,'$357.20');
 requireText('homepage supported gap',homepage,'2.3% supported gap');
 requireText('homepage qualified evidence count',homepage,'2 QUALIFIED');
 requireText('homepage exact identity lock',homepage,'EXACT CARD VERIFIED');
-requireText('homepage decision',homepage,'<b>VERIFY</b>');
+requireText('homepage decision',homepage,'<strong>VERIFY</strong>');
 requireText('homepage Decision Forge',homepage,'id="decision-forge"');
 requireText('homepage concise differentiation',homepage,'id="why"');
 requireText('homepage price-checker distinction',homepage,'Not another price checker.');
