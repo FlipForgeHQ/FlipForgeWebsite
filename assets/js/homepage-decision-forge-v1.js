@@ -1,11 +1,9 @@
 (()=>{
   'use strict';
-
   const root=document.querySelector('[data-decision-forge]');
   if(!root)return;
 
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const coarse=window.matchMedia('(pointer: coarse)');
   const buttons=[...root.querySelectorAll('[data-forge-step]')];
   const replay=root.querySelector('[data-forge-replay]');
   const toggle=root.querySelector('[data-forge-toggle]');
@@ -13,111 +11,83 @@
   const heading=root.querySelector('[data-forge-heading]');
   const copy=root.querySelector('[data-forge-copy]');
   const status=root.querySelector('[data-forge-status]');
-  const card=root.querySelector('[data-forge-card]');
   const whyButton=root.querySelector('[data-forge-why-button]');
   const why=root.querySelector('[data-forge-why]');
-  const stages=[
-    {title:'Start with the card—not the price.',copy:'A listing enters the forge as a question. FlipForge does not let the asking price define the answer.',status:'Card received · price quarantined'},
-    {title:'Lock the exact identity.',copy:'Year, product, card number, parallel, grader, and grade must resolve before market evidence can influence value.',status:'Identity locked · exact card verified'},
-    {title:'Make every comp earn its place.',copy:'Candidate evidence is tested. Wrong parallel, wrong grade, duplicate, and identity-conflict rows are pushed out.',status:'7 candidates · 2 qualified'},
-    {title:'Rebuild the economics from what survived.',copy:'The displayed reference is separated from supported value. Only qualified completed-sale evidence informs the supported number.',status:'Evidence qualified · economics rebuilt'},
-    {title:'Make the call—and keep the reason.',copy:'The verdict arrives with its evidence trail attached, so the user can inspect why FlipForge stopped, watched, verified, or bought.',status:'Decision receipt assembled'}
-  ];
-  let step=0;
-  let playing=false;
-  let timer=null;
+  const scenes=[...root.querySelectorAll('[data-forge-scene]')];
 
-  const announce=()=>{
+  const stages=[
+    {title:'Start with the card—not the price.',copy:'A listing enters as a question. The asking price stays context until identity and evidence earn authority.',status:'Card received · price held as context',scene:'identity'},
+    {title:'Resolve the exact card.',copy:'Year, product, card number, parallel, grader, and grade must align before evidence can move downstream.',status:'Identity locked · exact card verified',scene:'identity'},
+    {title:'Qualify the evidence. Reject what does not belong.',copy:'Candidate comps are challenged. Wrong parallel, wrong grade, duplicate, and identity-conflict rows are removed from the case.',status:'7 candidates · 5 rejected · 2 qualified',scene:'evidence'},
+    {title:'Recalculate from the evidence that survived.',copy:'The displayed reference stops being the answer. Qualified completed-sale evidence rebuilds supported value.',status:'Supported value rebuilt · uncertainty visible',scene:'evidence'},
+    {title:'Lock the decision. Reveal the reason.',copy:'FlipForge returns the next move with the identity, evidence, economics, and reason trail preserved in the Decision Receipt.',status:'Decision locked · reason trail inspectable',scene:'receipt'}
+  ];
+
+  let step=0,playing=false,timer=null;
+
+  function stop(){
+    playing=false;
+    if(timer)window.clearInterval(timer);
+    timer=null;
+    if(toggle){toggle.textContent='Play';toggle.setAttribute('aria-label','Play Decision Forge sequence');}
+  }
+
+  function render(){
     root.dataset.step=String(step);
+    const stage=stages[step];
+    heading.textContent=stage.title;
+    copy.textContent=stage.copy;
+    status.textContent=stage.status;
+    progress.style.width=((step+1)/stages.length*100)+'%';
     buttons.forEach((button,index)=>{
       button.classList.toggle('is-active',index===step);
       button.classList.toggle('is-complete',index<step);
       button.setAttribute('aria-pressed',index===step?'true':'false');
     });
-    progress.style.width=((step+1)/stages.length*100)+'%';
-    heading.textContent=stages[step].title;
-    copy.textContent=stages[step].copy;
-    status.textContent=stages[step].status;
-    card.dataset.scan=step===1?'on':'off';
+    scenes.forEach(scene=>scene.classList.toggle('is-active',scene.dataset.forgeScene===stage.scene));
     if(step!==4){
-      why.classList.remove('is-open');
+      why?.classList.remove('is-open');
       whyButton?.setAttribute('aria-expanded','false');
+      const symbol=whyButton?.querySelector('span');
+      if(symbol)symbol.textContent='+';
     }
-  };
+  }
 
-  const stop=()=>{
-    playing=false;
-    if(timer)window.clearInterval(timer);
-    timer=null;
-    if(toggle){
-      toggle.textContent='Play';
-      toggle.setAttribute('aria-label','Play Decision Forge sequence');
-    }
-  };
-
-  const next=()=>{
+  function advance(){
     if(step>=stages.length-1){stop();return;}
     step+=1;
-    announce();
-  };
+    render();
+  }
 
-  const play=()=>{
-    if(reduced.matches){step=stages.length-1;announce();return;}
+  function play(){
+    if(reduced.matches){step=stages.length-1;render();return;}
     stop();
     playing=true;
     toggle.textContent='Pause';
     toggle.setAttribute('aria-label','Pause Decision Forge sequence');
-    timer=window.setInterval(next,2200);
-  };
+    timer=window.setInterval(advance,2400);
+  }
 
-  buttons.forEach((button,index)=>button.addEventListener('click',()=>{
-    stop();
-    step=index;
-    announce();
-  }));
-
-  replay?.addEventListener('click',()=>{
-    stop();
-    step=0;
-    announce();
-    if(!reduced.matches)window.setTimeout(play,350);
-  });
-
+  buttons.forEach((button,index)=>button.addEventListener('click',()=>{stop();step=index;render();}));
+  replay?.addEventListener('click',()=>{stop();step=0;render();if(!reduced.matches)window.setTimeout(play,450);});
   toggle?.addEventListener('click',()=>playing?stop():play());
-
   whyButton?.addEventListener('click',()=>{
     const open=!why.classList.contains('is-open');
     why.classList.toggle('is-open',open);
     whyButton.setAttribute('aria-expanded',open?'true':'false');
-    whyButton.querySelector('span').textContent=open?'−':'+';
+    const symbol=whyButton.querySelector('span');
+    if(symbol)symbol.textContent=open?'−':'+';
   });
 
-  if(card){
-    card.addEventListener('pointermove',event=>{
-      if(reduced.matches||coarse.matches)return;
-      const box=card.getBoundingClientRect();
-      const x=(event.clientX-box.left)/box.width-.5;
-      const y=(event.clientY-box.top)/box.height-.5;
-      card.style.setProperty('--tilt-x',(x*9).toFixed(2)+'deg');
-      card.style.setProperty('--tilt-y',(-y*7).toFixed(2)+'deg');
-    });
-    card.addEventListener('pointerleave',()=>{
-      card.style.setProperty('--tilt-x','0deg');
-      card.style.setProperty('--tilt-y','0deg');
-    });
-  }
-
   const observer=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
-        observer.disconnect();
-        if(!reduced.matches)window.setTimeout(play,650);
-      }
-    });
-  },{threshold:.34});
+    if(entries.some(entry=>entry.isIntersecting)){
+      observer.disconnect();
+      if(!reduced.matches)window.setTimeout(play,650);
+    }
+  },{threshold:.32});
   observer.observe(root);
 
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
-  reduced.addEventListener?.('change',event=>{if(event.matches){stop();step=stages.length-1;announce();}});
-  announce();
+  reduced.addEventListener?.('change',event=>{if(event.matches){stop();step=stages.length-1;render();}});
+  render();
 })();
