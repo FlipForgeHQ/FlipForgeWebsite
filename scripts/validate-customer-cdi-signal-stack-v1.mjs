@@ -61,6 +61,8 @@ check("028 uncertainty visual uses returned confidence and risk", js.includes("s
 check("029 mobile keeps signal visuals visible", css.includes("@media (max-width:480px)") && css.includes(".ff-cdi-visual{display:grid") && !css.includes(".ff-cdi-visual{display:none"));
 check("030 Outcome Intelligence receives T0 T7 T14 T30 continuity", js.includes("data-ff-cdi-outcome-guide") && ["T0","T7","T14","T30"].every(item => js.includes(item)));
 check("031 returning Home language points back to saved reasoning", js.includes("Open a card to see the verdict and replay its four checks.") && js.includes("See what changed after the original T0 decision."));
+check("032 reasoning stack stays collapsed until the customer asks for it", js.includes('data-ff-cdi-reasoning hidden') && css.includes(".ff-cdi-reasoning[hidden]{display:none!important}"));
+check("033 Decision Receipt handoff uses existing receipt and a presentation-only arrival cue", js.includes("ff-cdi-receipt-arrival") && css.includes("@keyframes ff-cdi-receipt-arrival") && js.includes("[data-ff-decision-receipt]"));
 
 console.log("PASSED: " + passed);
 console.log("FAILED: " + failures.length);
