@@ -23,10 +23,10 @@
 <body>
   <main>
     <div class="brand"><img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why."></div>
-    <div class="eyebrow">Invitation-only account access</div>
-    <h1>Sign in to FlipForge</h1>
-    <p>This isolated account page signs invited users into the production FlipForge app without exposing gateway credentials to the browser.</p>
-    <div class="notice">Public signup is not available. Tenant access is resolved server-side from Netlify-signed roles.</div>
+    <div class="eyebrow">PRIVATE BETA ACCESS</div>
+    <h1>Welcome back to FlipForge.</h1>
+    <p>Sign in with the email and password from your FlipForge invitation. We’ll verify your access and return you to the private workspace.</p>
+    <div class="notice"><strong>Already invited?</strong> Use the account you activated from your invitation email. New testers can request access from the private-beta application.</div>
 
     <form data-production-auth-form autocomplete="on">
       <label>Email
@@ -41,12 +41,11 @@
     <div class="status" data-production-auth-status>Initializing identity…</div>
     <div class="actions">
       <button data-production-auth-recovery type="button">Forgot password?</button>
-      <button data-production-auth-test type="button" disabled>Test account access</button>
       <button data-production-auth-signout type="button" hidden>Sign out</button>
-      <a class="button-link primary" data-production-auth-return href="/app/#/account" hidden>Continue to FlipForge</a>
+      <a class="button-link primary" data-production-auth-return href="/app/customer/#/beta-start" hidden>Continue to FlipForge</a>
     </div>
     <div class="result" data-production-auth-result></div>
-    <small>Authentication uses Netlify's secure same-origin Identity cookies. This page never displays or stores a raw JWT, FlipForge service token, or tenant ID.</small>
+    <small>Your account and workspace access are verified securely before FlipForge opens the private customer app. Need a new invitation because the original email was wrong or never activated? Contact FlipForge support.</small>
   </main>
   <script src="/assets/js/flipforge-production-auth-probe.js"></script>
 </body>
