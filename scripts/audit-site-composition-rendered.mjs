@@ -165,22 +165,26 @@ try{
   const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
   const page=await context.newPage();
   await page.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded'});
-  const parallel=page.locator('button[data-case="parallel"]');
-  if(await parallel.count()){
-    await parallel.click();
-    await page.waitForFunction(()=>document.querySelector('[data-title]')?.textContent?.includes('Wrong parallel.'),null,{timeout:3000})
-      .catch(()=>failures.push('homepage interaction: wrong-parallel state did not render'));
-    const rule=(await page.locator('[data-rule]').textContent().catch(()=>''))||'';
-    const effect=(await page.locator('[data-effect]').textContent().catch(()=>''))||'';
-    if(!/Blocked:/i.test(rule))failures.push('homepage interaction: wrong parallel was not blocked');
-    if(!/cannot influence supported value/i.test(effect))failures.push('homepage interaction: blocked comp still appears able to influence value');
-    const exact=page.locator('button[data-case="exact"]');
-    if(await exact.count()){
-      await exact.click();
-      await page.waitForFunction(()=>document.querySelector('[data-title]')?.textContent?.includes('This comparison belongs.'),null,{timeout:3000})
-        .catch(()=>failures.push('homepage interaction: exact-match state did not restore'));
-    }else failures.push('homepage interaction: exact-match control missing');
-  }else failures.push('homepage interaction: wrong-parallel control missing');
+  const forge=page.locator('[data-decision-forge]');
+  const forgeSteps=page.locator('[data-forge-step]');
+  if(await forge.count() && await forgeSteps.count()===5){
+    await forgeSteps.nth(2).click();
+    await page.waitForFunction(()=>document.querySelector('[data-decision-forge]')?.dataset.step==='2',null,{timeout:3000})
+      .catch(()=>failures.push('homepage interaction: Decision Forge qualify stage did not render'));
+    const qualifyStatus=(await page.locator('[data-forge-status]').textContent().catch(()=>''))||'';
+    if(!/5 rejected/i.test(qualifyStatus)||!/2 qualified/i.test(qualifyStatus))failures.push('homepage interaction: Decision Forge qualification evidence summary missing');
+
+    await forgeSteps.nth(4).click();
+    await page.waitForFunction(()=>document.querySelector('[data-decision-forge]')?.dataset.step==='4',null,{timeout:3000})
+      .catch(()=>failures.push('homepage interaction: Decision Forge reveal stage did not render'));
+    const whyButton=page.locator('[data-forge-why-button]');
+    if(await whyButton.count()){
+      await whyButton.click();
+      const expanded=await whyButton.getAttribute('aria-expanded');
+      const open=await page.locator('[data-forge-why]').evaluate(el=>el.classList.contains('is-open')).catch(()=>false);
+      if(expanded!=='true'||!open)failures.push('homepage interaction: Decision Forge reason trail did not open');
+    }else failures.push('homepage interaction: Decision Forge reason-trail control missing');
+  }else failures.push('homepage interaction: Decision Forge stage controls missing');
   await context.close();
 
   const mobile=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
