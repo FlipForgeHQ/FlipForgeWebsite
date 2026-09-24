@@ -65,7 +65,8 @@ requireAll('homepage concise differentiation',homepage,[
   '<strong>100 frozen decisions</strong>',
   'href="decision-proof.html">See the proof →'
 ]);
-for(const retiredHomepageBlock of ['30-SECOND PRODUCT FILM','id="sim"','WHAT JUST HAPPENED?','WHAT IS FLIPFORGE?','id="decision-proof"'])forbidText('homepage retired overload',homepage,retiredHomepageBlock);
+requireAll('homepage 30-second product film',homepage,['id="film"','data-film','30-SECOND PRODUCT FILM','href="#film"']);
+for(const retiredHomepageBlock of ['id="sim"','WHAT JUST HAPPENED?','WHAT IS FLIPFORGE?','id="decision-proof"'])forbidText('homepage retired overload',homepage,retiredHomepageBlock);
 
 requireAll('Decision Forge interactive story',homepage,[
   'id="decision-forge"',

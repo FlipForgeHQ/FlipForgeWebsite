@@ -77,6 +77,7 @@ if (!index.includes('assets/css/homepage-v5.css')) homepageFailures.push('homepa
 if (!index.includes('assets/js/homepage-v5.js')) homepageFailures.push('homepage v5 behavior');
 if (!index.includes('ff-cinematic-workspace')) homepageFailures.push('cinematic decision workspace');
 if (!index.includes('id="decision-forge"') || !index.includes('data-decision-forge')) homepageFailures.push('interactive Decision Forge');
+if (!index.includes('href="#film"') || !index.includes('id="film"') || !index.includes('data-film')) homepageFailures.push('30-second product film anchor and experience');
 if (!index.includes('$357.20') || !index.includes('2.3% supported gap')) homepageFailures.push('supported-value proof');
 if (!index.includes('id="why"') || !index.includes('WHY FLIPFORGE')) homepageFailures.push('concise homepage differentiation section');
 if (!index.includes('href="decision-proof.html">See the proof →')) homepageFailures.push('Decision Proof link');

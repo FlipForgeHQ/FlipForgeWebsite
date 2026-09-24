@@ -28,8 +28,8 @@ check('015 candidate evidence is visible',has(index,'7 CANDIDATES')&&has(index,'
 check('016 mismatch reasons remain concrete',has(index,'WRONG PARALLEL')&&has(index,'WRONG GRADE')&&has(index,'IDENTITY CONFLICT')&&has(index,'DUPLICATE'));
 check('017 exact card is verified',has(index,'EXACT CARD VERIFIED'));
 check('018 evidence-before-price story is explicit',has(index,'evidence before price'));
-check('019 Decision Forge follows the hero',index.indexOf('id="decision-forge"')>index.indexOf('class="wrap hero"'));
-check('020 Decision Forge is the sole deep homepage explainer',has(index,'data-decision-forge')&&has(index,'THE DECISION FORGE · INTERACTIVE WALKTHROUGH'));
+check('019 product film follows the hero',index.indexOf('id="film"')>index.indexOf('class="wrap hero"'));
+check('020 Decision Forge remains the interactive deep-dive after the 30-second film',has(index,'data-decision-forge')&&has(index,'THE DECISION FORGE · INTERACTIVE WALKTHROUGH')&&index.indexOf('id="decision-forge"')>index.indexOf('id="film"'));
 check('021 Decision Forge exposes five stages',(index.match(/data-forge-step/g)||[]).length===5);
 check('022 Decision Forge preserves inspectable reason trail',has(index,'data-forge-why-button')&&has(index,'Inspect the reason trail'));
 check('023 concise WHY FLIPFORGE bridge exists',has(index,'id="why"')&&has(index,'WHY FLIPFORGE'));
@@ -38,7 +38,7 @@ check('025 concise bridge keeps evidence point',has(index,'Trust qualified evide
 check('026 concise bridge keeps Decision Receipt point',has(index,'Keep the reason.')&&has(index,'Decision Receipt preserves the why.'));
 check('027 retired Card Value Intelligence wording is absent',!/card value intelligence/i.test(index));
 check('028 formal CARD VALUE INTELLIGENCE identity is absent',!has(index,'CARD VALUE INTELLIGENCE'));
-check('029 redundant product film is absent',!has(index,'30-SECOND PRODUCT FILM')&&!has(index,'data-film'));
+check('029 30-second product film is present and wired',has(index,'30-SECOND PRODUCT FILM')&&has(index,'data-film')&&has(index,'href="#film"'));
 check('030 redundant homepage simulator is absent',!has(index,'id="sim"')&&!has(index,'data-case="parallel"'));
 check('031 redundant WHAT JUST HAPPENED section is absent',!has(index,'WHAT JUST HAPPENED?'));
 check('032 redundant WHAT IS FLIPFORGE section is absent',!has(index,'WHAT IS FLIPFORGE?'));
