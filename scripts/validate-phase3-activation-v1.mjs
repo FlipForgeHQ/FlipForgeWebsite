@@ -42,6 +42,9 @@ check("014 returning home exposes Portfolio", js.includes('href="#/portfolio"'))
 check("014a zero-decision Home receives explicit simplified state", js.includes('dashboard.classList.add("ff-p3-zero-dashboard")') && js.includes("Evaluate your first card."));
 check("014b zero-decision Home hides empty analytics", css.includes(".ff-commercial-dashboard.ff-p3-zero-dashboard .ff-kpi-grid") && css.includes(".ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-main-grid") && css.includes("display:none!important"));
 check("014c first-session Home explains why advanced tools come later", js.includes("Saved-decision analytics, Outcome Intelligence, Portfolio, and other tools become useful after you have real decisions to work with."));
+check("014d first-session Home teaches the same four customer checks", ["Confirm the exact card","Check trustworthy sales","Compare price + uncertainty","Read the decision + receipt"].every(item => js.includes(item)));
+check("014e evaluate rail uses customer language rather than internal layer names", ["Exact card","Trustworthy sales","Price + uncertainty","Decision + receipt"].every(item => js.includes(item)));
+check("014f legacy result education yields to the integrated CDI Signal Stack", js.includes('root.querySelector("[data-ff-cdi-stack-host]")') && js.includes("existingGuide.remove()"));
 
 check("015 real connected Discover form is the animated evaluate entry", js.includes('[data-customer-discovery-form]') && js.includes('routeName() !== "discover"'));
 check("016 evaluate flow visibly stages identity", js.includes('data-stage="identity"') && js.includes("identity-review"));
