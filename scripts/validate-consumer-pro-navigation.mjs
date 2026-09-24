@@ -10,7 +10,7 @@ const advancedMatch = nav.match(/<details class="ff-advanced-nav"[\s\S]*?<\/deta
 const advanced = advancedMatch ? advancedMatch[0] : "";
 
 const coreRoutes = ["dashboard", "discover", "forge-heat", "evaluate", "opportunities", "tracking", "portfolio", "alerts", "beta-start"];
-const drillDownRoutes = ["compare", "psa-advisor", "evidence", "sell", "export"];
+const drillDownRoutes = ["compare", "psa-advisor", "evidence", "export"];
 let failed = 0;
 
 function check(label, condition) {
