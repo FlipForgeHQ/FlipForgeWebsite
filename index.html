@@ -156,104 +156,108 @@
   </section>
 
 
-  <section class="ff-decision-forge" id="decision-forge" data-decision-forge data-step="0" aria-labelledby="decision-forge-title">
+    <section class="ff-decision-forge" id="decision-forge" data-decision-forge data-step="0" aria-labelledby="decision-forge-title">
     <div class="ff-df-wrap">
       <div class="ff-df-intro">
         <div>
           <p class="ff-df-kicker">THE DECISION FORGE · INTERACTIVE WALKTHROUGH</p>
           <h2 id="decision-forge-title">Watch FlipForge <span>build the why.</span></h2>
         </div>
-        <p class="ff-df-intro-copy">This is the part a price guide cannot show. <strong>FlipForge verifies identity, challenges the evidence, rebuilds the economics, and keeps the reason attached to the call.</strong> Choose a stage or let the sequence play.</p>
+        <p class="ff-df-intro-copy">A price can look convincing before the evidence deserves it. <strong>Move through the same visual sequence FlipForge uses to turn a card into an explainable decision.</strong></p>
       </div>
 
       <div class="ff-df-shell">
-        <aside class="ff-df-sidebar" aria-label="Decision Forge stages">
-          <div class="ff-df-sidebar-head">
-            <img src="assets/brand/flipforge-app-icon-dark.svg" width="34" height="34" alt="">
-            <div><strong>DECISION FORGE</strong><small>Illustrative product sequence</small></div>
+        <header class="ff-df-sequence-bar">
+          <div class="ff-df-sequence-brand">
+            <img src="assets/brand/flipforge-app-icon-dark.svg" width="36" height="36" alt="">
+            <div><strong>DECISION FORGE</strong><small>Resolve → Qualify → Reject → Recalculate → Lock → Reveal</small></div>
           </div>
-          <div class="ff-df-stage-nav">
-            <button class="ff-df-stage-button is-active" type="button" data-forge-step aria-pressed="true"><span class="ff-df-stage-number">01</span><span class="ff-df-stage-label">Card enters</span><i class="ff-df-stage-state"></i></button>
-            <button class="ff-df-stage-button" type="button" data-forge-step aria-pressed="false"><span class="ff-df-stage-number">02</span><span class="ff-df-stage-label">Identity lock</span><i class="ff-df-stage-state"></i></button>
-            <button class="ff-df-stage-button" type="button" data-forge-step aria-pressed="false"><span class="ff-df-stage-number">03</span><span class="ff-df-stage-label">Evidence filter</span><i class="ff-df-stage-state"></i></button>
-            <button class="ff-df-stage-button" type="button" data-forge-step aria-pressed="false"><span class="ff-df-stage-number">04</span><span class="ff-df-stage-label">Economics</span><i class="ff-df-stage-state"></i></button>
-            <button class="ff-df-stage-button" type="button" data-forge-step aria-pressed="false"><span class="ff-df-stage-number">05</span><span class="ff-df-stage-label">Decision receipt</span><i class="ff-df-stage-state"></i></button>
+          <div class="ff-df-stage-nav" role="group" aria-label="Decision Forge stages">
+            <button class="ff-df-stage-button is-active" type="button" data-forge-step aria-pressed="true"><span>01</span><b>Card</b></button>
+            <button class="ff-df-stage-button" type="button" data-forge-step aria-pressed="false"><span>02</span><b>Resolve</b></button>
+            <button class="ff-df-stage-button" type="button" data-forge-step aria-pressed="false"><span>03</span><b>Qualify</b></button>
+            <button class="ff-df-stage-button" type="button" data-forge-step aria-pressed="false"><span>04</span><b>Recalculate</b></button>
+            <button class="ff-df-stage-button" type="button" data-forge-step aria-pressed="false"><span>05</span><b>Reveal</b></button>
           </div>
           <div class="ff-df-controls">
             <button class="ff-df-control" type="button" data-forge-replay>Replay</button>
             <button class="ff-df-control" type="button" data-forge-toggle aria-label="Play Decision Forge sequence">Play</button>
-            <div class="ff-df-progress" aria-hidden="true"><span data-forge-progress></span></div>
           </div>
-        </aside>
+        </header>
 
-        <div class="ff-df-stage">
-          <div class="ff-df-stage-top">
-            <div><span>WHAT FLIPFORGE IS DOING</span><h3 data-forge-heading>Start with the card—not the price.</h3></div>
-            <p class="ff-df-stage-copy" data-forge-copy>A listing enters the forge as a question. FlipForge does not let the asking price define the answer.</p>
+        <div class="ff-df-stage-top">
+          <div>
+            <span>WHAT FLIPFORGE IS DOING</span>
+            <h3 data-forge-heading>Start with the card—not the price.</h3>
           </div>
+          <p class="ff-df-stage-copy" data-forge-copy>A listing enters as a question. The asking price stays context until identity and evidence earn authority.</p>
+        </div>
 
-          <div class="ff-df-viewport">
-            <div class="ff-df-grid" aria-hidden="true"></div>
-            <div class="ff-df-beam" aria-hidden="true"></div>
-            <div class="ff-df-live-status"><i></i><span data-forge-status>Card received · price quarantined</span></div>
+        <div class="ff-df-viewport" aria-live="polite">
+          <div class="ff-df-frame-light" aria-hidden="true"></div>
 
-            <div class="ff-df-card" data-forge-card>
-              <div class="ff-df-card-face">
-                <div class="ff-df-card-mark"><img src="assets/brand/flipforge-app-icon-dark.svg" width="24" height="24" alt=""><small>IDENTITY INPUT</small></div>
-                <span class="ff-df-card-sport">NFL</span>
-                <div class="ff-df-player-silhouette" aria-hidden="true"></div>
-                <div class="ff-df-card-meta"><strong>Joe Burrow</strong><span>2020 PRIZM · #307 · SILVER · PSA 10</span></div>
-                <div class="ff-df-scan" aria-hidden="true"></div>
-              </div>
-            </div>
+          <figure class="ff-df-scene ff-df-scene-identity is-active" data-forge-scene="identity">
+            <img src="assets/images/ff-graphics-identity-lock-v1.webp" width="550" height="309" alt="Illustrative FlipForge identity-lock scene with a slabbed card and product decision signals." decoding="async">
+          </figure>
 
-            <div class="ff-df-identity" aria-hidden="true">
-              <div class="ff-df-id-chip"><small>YEAR / PRODUCT</small><strong>2020 Prizm</strong></div>
-              <div class="ff-df-id-chip"><small>CARD NUMBER</small><strong>#307</strong></div>
-              <div class="ff-df-id-chip"><small>PARALLEL</small><strong>Silver Prizm</strong></div>
-              <div class="ff-df-id-chip"><small>GRADE</small><strong>PSA 10</strong></div>
-            </div>
+          <figure class="ff-df-scene ff-df-scene-evidence" data-forge-scene="evidence">
+            <img src="assets/images/ff-graphics-evidence-filter-v1.webp" width="550" height="309" alt="Illustrative FlipForge evidence-filter scene showing mismatched comparisons rejected before supported value is calculated." loading="lazy" decoding="async">
+          </figure>
 
-            <div class="ff-df-evidence" aria-hidden="true">
-              <div class="ff-df-comp is-keep" data-comp="1"><b>COMP 01</b><small>EXACT · KEEP</small></div>
-              <div class="ff-df-comp is-reject" data-comp="2"><b>COMP 02</b><small>WRONG PARALLEL</small></div>
-              <div class="ff-df-comp is-reject" data-comp="3"><b>COMP 03</b><small>DUPLICATE</small></div>
-              <div class="ff-df-comp is-reject" data-comp="4"><b>COMP 04</b><small>WRONG GRADE</small></div>
-              <div class="ff-df-comp is-reject" data-comp="5"><b>COMP 05</b><small>IDENTITY CONFLICT</small></div>
-              <div class="ff-df-comp is-reject" data-comp="6"><b>COMP 06</b><small>WRONG PARALLEL</small></div>
-              <div class="ff-df-comp is-keep" data-comp="7"><b>COMP 07</b><small>EXACT · KEEP</small></div>
-            </div>
+          <figure class="ff-df-scene ff-df-scene-receipt" data-forge-scene="receipt">
+            <img src="assets/images/ff-graphics-decision-receipt-v1.webp" width="550" height="309" alt="Illustrative FlipForge Decision Receipt connecting identity, qualified evidence, supported value, uncertainty, and decision traceback." loading="lazy" decoding="async">
+          </figure>
 
-            <div class="ff-df-value-line" aria-hidden="true"></div>
-            <div class="ff-df-economics" aria-hidden="true">
-              <div class="ff-df-econ-box"><small>ASKING PRICE</small><strong>$349</strong></div>
-              <div class="ff-df-econ-box"><small>DISPLAYED REFERENCE</small><strong>$459.21</strong></div>
-              <div class="ff-df-econ-box is-supported"><small>SUPPORTED VALUE</small><strong>$357.20</strong></div>
-            </div>
+          <div class="ff-df-curtain" aria-hidden="true"></div>
 
-            <article class="ff-df-receipt" aria-label="Illustrative FlipForge Decision Receipt">
-              <div class="ff-df-receipt-head">
-                <div><small>FLIPFORGE DECISION RECEIPT</small><strong>2020 Prizm #307 · Silver · PSA 10</strong></div>
-                <div class="ff-df-verdict">VERIFY</div>
-              </div>
-              <div class="ff-df-receipt-body">
-                <div><span>IDENTITY</span><b>Exact card verified</b></div>
-                <div><span>EVIDENCE</span><b>2 of 7 qualified</b></div>
-                <div><span>SUPPORTED VALUE</span><b>$357.20</b></div>
-                <div><span>SUPPORTED GAP</span><b>2.3%</b></div>
-                <div class="ff-df-reason"><strong>Reason trail:</strong> five candidate comps were rejected before supported value was calculated. The asking price is close enough to supported value that further verification remains the governed next move.</div>
-              </div>
-              <button class="ff-df-why-button" type="button" data-forge-why-button aria-expanded="false"><span>+</span> Inspect why</button>
-              <div class="ff-df-why" data-forge-why><div><ul><li><strong>Identity:</strong> year, product, card number, parallel, grader, and grade align.</li><li><strong>Evidence:</strong> wrong-parallel, wrong-grade, duplicate, and identity-conflict rows were excluded.</li><li><strong>Economics:</strong> supported value is built from the surviving qualified evidence, not the displayed reference alone.</li></ul></div></div>
-            </article>
+          <div class="ff-df-live-status"><i></i><span data-forge-status>Card received · price held as context</span></div>
+
+          <div class="ff-df-identity-points" aria-hidden="true">
+            <div><small>YEAR / PRODUCT</small><strong>2020 Prizm</strong></div>
+            <div><small>CARD</small><strong>#307 Joe Burrow</strong></div>
+            <div><small>PARALLEL</small><strong>Silver Prizm</strong></div>
+            <div><small>GRADE</small><strong>PSA 10</strong></div>
           </div>
 
-          <div class="ff-df-caption"><strong>Illustrative walkthrough. Motion represents product logic; it does not simulate a live market feed.</strong><span>Hover the card on desktop · choose any numbered stage · inspect the final receipt</span></div>
+          <div class="ff-df-evidence-verdicts" aria-hidden="true">
+            <span class="is-keep">01 · EXACT</span>
+            <span class="is-reject">02 · WRONG PARALLEL</span>
+            <span class="is-reject">03 · DUPLICATE</span>
+            <span class="is-reject">04 · WRONG GRADE</span>
+            <span class="is-reject">05 · IDENTITY CONFLICT</span>
+            <span class="is-keep">07 · EXACT</span>
+          </div>
+
+          <div class="ff-df-economics" aria-hidden="true">
+            <div><small>ASKING PRICE</small><strong>$349</strong></div>
+            <i>→</i>
+            <div><small>DISPLAYED REFERENCE</small><strong>$459.21</strong></div>
+            <i>→</i>
+            <div class="is-supported"><small>SUPPORTED VALUE</small><strong>$357.20</strong></div>
+          </div>
+
+          <div class="ff-df-reveal-card">
+            <small>FLIPFORGE DECISION</small>
+            <strong>VERIFY</strong>
+            <p>Five candidate comps were rejected before supported value was calculated. The reason stays attached to the decision.</p>
+            <button class="ff-df-why-button" type="button" data-forge-why-button aria-expanded="false"><span>+</span> Inspect the reason trail</button>
+            <div class="ff-df-why" data-forge-why>
+              <div>
+                <p><b>Identity</b> Exact year, product, card number, parallel, grader, and grade.</p>
+                <p><b>Evidence</b> Wrong-parallel, wrong-grade, duplicate, and identity-conflict rows excluded.</p>
+                <p><b>Economics</b> Supported value rebuilt from the qualified evidence rather than the displayed reference alone.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ff-df-footer">
+          <div class="ff-df-progress" aria-hidden="true"><span data-forge-progress></span></div>
+          <p><strong>Illustrative walkthrough.</strong> Motion represents governed product logic—not a live market feed.</p>
         </div>
       </div>
     </div>
   </section>
-
 
   <section class="value-intelligence" id="value">
     <div class="wrap">
