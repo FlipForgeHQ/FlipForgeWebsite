@@ -167,7 +167,7 @@ body .film-section{padding-bottom:52px}
 }
 @media(max-width:700px){
   body .film-section{padding-bottom:38px}  .ff-decision-forge{padding:42px 0 40px}.ff-df-wrap{width:min(100% - 24px,1220px)}.ff-df-intro h2{font-size:clamp(38px,13vw,56px)}.ff-df-intro-copy{font-size:15px}
-  .ff-df-shell{border-radius:16px}.ff-df-sequence-bar{display:block;padding:14px}.ff-df-controls{position:absolute;right:28px;margin-top:-37px}
+  .ff-df-shell{border-radius:16px}.ff-df-sequence-bar{display:block;padding:14px}.ff-df-controls{position:static;margin:10px 0 0;display:flex;justify-content:flex-end;gap:6px}
   .ff-df-stage-nav{margin-top:13px;gap:4px}.ff-df-stage-button{padding:7px 5px;text-align:center}.ff-df-stage-button b{font-size:7px}.ff-df-stage-button span{font-size:7px}.ff-df-stage-button::after{display:none}
   .ff-df-stage-top{padding:22px 16px 18px}.ff-df-stage-top h3{font-size:27px}.ff-df-stage-copy{font-size:11px}
   .ff-df-viewport{height:640px;margin:10px;border-radius:12px}
