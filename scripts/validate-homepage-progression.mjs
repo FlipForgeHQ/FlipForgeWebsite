@@ -52,7 +52,7 @@ requireAll('homepage v5 hero proof',homepage,[
   '2 QUALIFIED',
   'EXACT CARD VERIFIED',
   'FLIPFORGE DECISION',
-  '<b>VERIFY</b>'
+  '<strong>VERIFY</strong>'
 ]);
 requireAll('homepage concise differentiation',homepage,[
   'id="why"',
