@@ -17,6 +17,7 @@ const activeRedirects = redirects
   .map(line => line.trim())
   .filter(line => line && !line.startsWith("#"));
 const customer = read("saas-prototype/customer.html");
+const capabilityBoundary = read("saas-prototype/customer-capability-boundary-v1.js");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const navigationParity = read("saas-prototype/customer-navigation-parity-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
@@ -88,6 +89,12 @@ check(navigationParity.includes('const ADVANCED_ROUTES = new Set(["compare", "ps
 check(navigationParity.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])') && navigationParity.includes("guardUnsupportedCustomerRoute"), "unsupported Exit Review fails closed");
 check(mobileNav.includes('"decision-intelligence", "why-this-decision", "evidence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set");
 check(!customer.includes('data-route="sell"'), "customer document removes unsupported Exit Review");
+check(customer.includes('src="customer-capability-boundary-v1.js"'), "customer document loads pre-router capability boundary");
+check(customer.indexOf('src="customer-capability-boundary-v1.js"') < customer.indexOf('src="app.js"'), "customer capability boundary loads before legacy app routing");
+check(capabilityBoundary.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])')
+        && capabilityBoundary.includes('const FALLBACK_HASH = "#/dashboard"')
+        && capabilityBoundary.includes('window.location.replace(FALLBACK_HASH)'),
+      "unsupported Exit Review fails closed before customer route rendering");
 check(mobileNav.includes('parts[0] === "decision-intelligence" && parts[1] === "why"') && mobileNav.includes('return "why-this-decision"'), "mobile active navigation distinguishes Why This Decision from Decision Intelligence");
 check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish cannot overwrite customer identity");
 check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit cannot overwrite customer identity");
