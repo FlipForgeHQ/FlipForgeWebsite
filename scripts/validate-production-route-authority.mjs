@@ -60,9 +60,8 @@ check("Tracking route is owned by lifecycle adapter", lifecycle.includes('const 
 check("Tracking lifecycle reads/writes stay server-owned", lifecycle.includes('"/api/v1/lifecycle"') && lifecycle.includes('/api/v1/lifecycle/${') && lifecycle.includes('credentials: "same-origin"'));
 check("Portfolio has a dedicated customer adapter before generic lifecycle handling", hook.includes('route === "portfolio"') && hook.indexOf('route === "portfolio"') < hook.indexOf("lifecycleAdapter.handles(route)"));
 check("Alerts has a server-owned lifecycle path", lifecycle.includes('"alerts"') && lifecycle.includes('"/api/v1/alerts"'));
-check("PSA Advisor is owned by customer management", management.includes('const ROUTES = new Set(["psa-advisor", "evidence", "sell", "portfolio", "alerts"])') && hook.includes("managementAdapter.handles(route)") && management.includes('/api/v1/psa-advisor/${encoded}'));
+check("PSA Advisor is owned by customer management", management.includes('"psa-advisor"') && hook.includes("managementAdapter.handles(route)") && management.includes('/api/v1/psa-advisor/${encoded}'));
 check("Evidence is owned by customer management", management.includes('"evidence"') && management.includes('/api/v1/evidence/${encoded}'));
-check("Exit Review is owned by customer management", management.includes('"sell"') && management.includes("sellView"));
 check("Compare is routed to the dedicated customer adapter", hook.includes('route === "compare"') && hook.includes("compareAdapter.render(main"));
 check("Forge Heat is routed to the dedicated customer adapter", hook.includes('route === "forge-heat"') && hook.includes("forgeHeatAdapter.render(main)"));
 check("Market View is routed to the dedicated customer adapter", hook.includes('route === "market-view"') && hook.includes("marketViewAdapter.render(main)"));
@@ -87,7 +86,6 @@ const sourceRoutes = [
   "compare",
   "psa-advisor",
   "evidence",
-  "sell",
   "export",
   "account"
 ];
@@ -95,6 +93,7 @@ const sourceRoutes = [
 for (const route of sourceRoutes) {
   check(`navigation route ${route} remains represented in production source`, index.includes(`data-route="${route}"`) || index.includes(`href="#/${route}`));
 }
+check("Exit Review is absent from customer production navigation", !index.includes('data-route="sell"'));
 
 const failures = results.filter(result => !result.passed);
 console.log("ProductionRouteAuthorityValidation");

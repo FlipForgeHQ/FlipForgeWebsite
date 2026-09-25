@@ -151,7 +151,13 @@
       showElement(advanced);
       advanced.removeAttribute("data-ff-customer-hide");
       advanced.open = false;
-      advanced.querySelectorAll("a[data-route]").forEach(showElement);
+      advanced.querySelectorAll("a[data-route]").forEach(link => {
+        if (String(link.dataset.route || "") === "sell") {
+          hideElement(link);
+          return;
+        }
+        showElement(link);
+      });
     }
 
     const orderedRoutes = [

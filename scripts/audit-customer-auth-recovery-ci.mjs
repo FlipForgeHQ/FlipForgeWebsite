@@ -16,7 +16,6 @@ const customerRoutes = [
   "compare",
   "psa-advisor",
   "evidence",
-  "sell",
   "export"
 ];
 

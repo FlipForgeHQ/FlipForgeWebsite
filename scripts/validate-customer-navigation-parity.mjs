@@ -34,7 +34,7 @@ const requiredTopLevel = [
   "forge-heat",
   "market-view"
 ];
-const requiredAdvanced = ["compare", "psa-advisor", "sell", "export"];
+const requiredAdvanced = ["compare", "psa-advisor", "export"];
 
 for (const route of requiredTopLevel) {
   check(count(topLevelBlock, `data-route="${route}"`) === 1, `full customer has exactly one top-level ${route} link`);
@@ -46,6 +46,7 @@ check(!advancedBlock.includes('data-route="evidence"'), "Evidence Review is not 
 for (const route of requiredAdvanced) {
   check(count(advancedBlock, `data-route="${route}"`) === 1, `Advanced analysis retains exactly one ${route} link`);
 }
+check(count(customer, 'data-route="sell"') === 0, "full customer omits unsupported Exit Review");
 check(customer.includes('<script src="mobile-navigation-stabilizer-v1.js"></script>'), "full customer document loads mobile navigation stabilizer");
 check(customer.includes('<script src="customer-navigation-parity-v1.js"></script>'), "full customer document loads parity controller");
 check(!betaDocument.includes('customer-navigation-parity-v1.js'), "legacy beta document does not load full-customer parity controller");
@@ -58,7 +59,8 @@ for (const route of requiredTopLevel) {
   check(parity.includes(`["${route}"`), `parity controller governs ${route}`);
 }
 check(parity.includes('route === "decision-intelligence" && subroute === "why"') && parity.includes('return "why-this-decision"'), "Why subview owns its active navigation state without new authority");
-check(parity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"])'), "Advanced analysis excludes promoted Evidence Review");
+check(parity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"])'), "Advanced analysis exposes only supported customer analysis routes");
+check(parity.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])') && parity.includes("guardUnsupportedCustomerRoute"), "unsupported Exit Review route fails closed to dashboard");
 
 check(whyView.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "focused Why view is hard-gated to /app/customer");
 check(whyView.includes('parts[0] === "decision-intelligence" && parts[1] === "why"'), "focused Why view only activates on the Why subroute");

@@ -21,8 +21,9 @@
     ["forge-heat", "#/forge-heat", "Forge Heat", "🔥"],
     ["market-view", "#/market-view", "Market View", "◫"]
   ];
-  const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"]);
+  const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"]);
   const TOP_LEVEL_ROUTES = new Set(ROUTES.map(([route]) => route));
+  const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"]);
   let scheduled = false;
 
   function routeParts() {
@@ -30,6 +31,13 @@
       .replace(/^#\/?/, "")
       .split(/[/?]/)
       .filter(Boolean);
+  }
+
+  function guardUnsupportedCustomerRoute() {
+    const [route = "dashboard"] = routeParts();
+    if (!UNSUPPORTED_CUSTOMER_ROUTES.has(route)) return false;
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#/dashboard`);
+    return true;
   }
 
   function activeNavigationRoute() {
@@ -113,7 +121,10 @@
         link.remove();
         return;
       }
-      if (!ADVANCED_ROUTES.has(route)) return;
+      if (!ADVANCED_ROUTES.has(route)) {
+        if (UNSUPPORTED_CUSTOMER_ROUTES.has(route)) link.remove();
+        return;
+      }
       if (link.hidden) link.hidden = false;
       if (link.hasAttribute("hidden")) link.removeAttribute("hidden");
       if (link.hasAttribute("aria-hidden")) link.removeAttribute("aria-hidden");
@@ -146,6 +157,7 @@
   }
 
   function apply() {
+    guardUnsupportedCustomerRoute();
     const nav = document.querySelector(".primary-nav");
     if (!nav) return;
 

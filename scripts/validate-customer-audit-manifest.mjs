@@ -4,7 +4,7 @@ const manifest = JSON.parse(fs.readFileSync("scripts/customer-audit-manifest.jso
 const recovery = fs.readFileSync("scripts/audit-customer-auth-recovery-ci.mjs", "utf8");
 
 if (manifest.surface !== "full-customer-app") throw new Error("Customer audit manifest surface changed");
-if (!Array.isArray(manifest.routes) || manifest.routes.length < 16) throw new Error("Customer audit manifest route coverage is incomplete");
+if (!Array.isArray(manifest.routes) || manifest.routes.length < 15) throw new Error("Customer audit manifest route coverage is incomplete");
 for (const route of manifest.routes) {
   if (!recovery.includes(`"${route}"`)) throw new Error(`Executable customer auth audit missing manifest route: ${route}`);
 }
