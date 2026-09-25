@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "surface": "full-customer-app",
   "routes": [
     "dashboard",
@@ -17,7 +17,6 @@
     "compare",
     "psa-advisor",
     "evidence",
-    "sell",
     "export"
   ],
   "requiredStates": [

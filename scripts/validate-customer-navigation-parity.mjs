@@ -34,7 +34,7 @@ const requiredTopLevel = [
   "forge-heat",
   "market-view"
 ];
-const requiredAdvanced = ["compare", "psa-advisor", "sell", "export"];
+const requiredAdvanced = ["compare", "psa-advisor", "export"];
 
 for (const route of requiredTopLevel) {
   check(count(topLevelBlock, `data-route="${route}"`) === 1, `full customer has exactly one top-level ${route} link`);
@@ -58,7 +58,9 @@ for (const route of requiredTopLevel) {
   check(parity.includes(`["${route}"`), `parity controller governs ${route}`);
 }
 check(parity.includes('route === "decision-intelligence" && subroute === "why"') && parity.includes('return "why-this-decision"'), "Why subview owns its active navigation state without new authority");
-check(parity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"])'), "Advanced analysis excludes promoted Evidence Review");
+check(parity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"])'), "Advanced analysis contains only governed customer surfaces");
+check(parity.includes('const WITHHELD_ROUTES = new Set(["sell"])') && parity.includes('window.location.hash = "#/tracking"'), "ungoverned Exit Review is withheld and direct access fails closed to Outcome Intelligence");
+check(!advancedBlock.includes('data-route="sell"') && !customer.includes('>Exit Review</a>'), "full customer navigation does not expose Exit Review");
 
 check(whyView.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "focused Why view is hard-gated to /app/customer");
 check(whyView.includes('parts[0] === "decision-intelligence" && parts[1] === "why"'), "focused Why view only activates on the Why subroute");

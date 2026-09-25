@@ -21,7 +21,8 @@
     ["forge-heat", "#/forge-heat", "Forge Heat", "🔥"],
     ["market-view", "#/market-view", "Market View", "◫"]
   ];
-  const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "sell", "export"]);
+  const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"]);
+  const WITHHELD_ROUTES = new Set(["sell"]);
   const TOP_LEVEL_ROUTES = new Set(ROUTES.map(([route]) => route));
   let scheduled = false;
 
@@ -113,6 +114,10 @@
         link.remove();
         return;
       }
+      if (WITHHELD_ROUTES.has(route)) {
+        link.remove();
+        return;
+      }
       if (!ADVANCED_ROUTES.has(route)) return;
       if (link.hidden) link.hidden = false;
       if (link.hasAttribute("hidden")) link.removeAttribute("hidden");
@@ -145,7 +150,15 @@
     }, true);
   }
 
+  function enforceWithheldRoute() {
+    const [route = "dashboard"] = routeParts();
+    if (!WITHHELD_ROUTES.has(route)) return false;
+    if (window.location.hash !== "#/tracking") window.location.hash = "#/tracking";
+    return true;
+  }
+
   function apply() {
+    if (enforceWithheldRoute()) return;
     const nav = document.querySelector(".primary-nav");
     if (!nav) return;
 

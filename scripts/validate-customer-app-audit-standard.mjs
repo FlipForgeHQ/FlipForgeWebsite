@@ -18,7 +18,7 @@ const standard = read("docs/CUSTOMER_APP_AUDIT_STANDARD.md");
 const workflow = read(".github/workflows/full-customer-app-assurance.yml");
 const recovery = read("scripts/audit-customer-auth-recovery-ci.mjs");
 
-const routes = ["dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "sell", "export"];
+const routes = ["dashboard", "discover", "evaluate", "decision-intelligence", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "export"];
 for (const route of routes) {
   if (!recovery.includes(`"${route}"`)) throw new Error(`Customer audit route missing: ${route}`);
 }

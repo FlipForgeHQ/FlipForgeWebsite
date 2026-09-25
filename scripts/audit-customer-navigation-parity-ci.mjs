@@ -22,7 +22,7 @@ const fullTopLevel = [
   "forge-heat",
   "market-view"
 ];
-const fullAdvanced = ["compare", "psa-advisor", "sell", "export"];
+const fullAdvanced = ["compare", "psa-advisor", "export"];
 const betaTopLevel = ["dashboard", "discover", "opportunities", "tracking"];
 const fullOnlyNav = [
   "evaluate", "decision-intelligence", "why-this-decision", "evidence",
@@ -192,6 +192,12 @@ try {
     if (semanticLabel(state.labels.evidence) !== "Evidence Review") fail(`${viewport.name}: Evidence Review label is missing or changed`, state);
     if (mobile && semanticLabel(state.labels.account) !== "Account") fail("mobile: full customer Account navigation is missing or changed", state);
     if (new Set(state.topLevelAll).size !== state.topLevelAll.length) fail(`${viewport.name}: full customer contains duplicate top-level route keys`, state);
+
+    await page.evaluate(() => { location.hash = "#/sell"; });
+    await page.waitForTimeout(500);
+    state = await shellState(page);
+    if (state.hash !== "#/tracking") fail(`${viewport.name}: Exit Review direct route was not withheld`, state);
+    if (state.advancedRoutes.includes("sell")) fail(`${viewport.name}: Exit Review leaked into Advanced analysis`, state);
 
     await page.evaluate(() => { location.hash = "#/decision-intelligence/why"; });
     await page.waitForTimeout(1300);
