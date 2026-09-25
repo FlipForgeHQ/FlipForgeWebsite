@@ -193,6 +193,12 @@ try {
     if (mobile && semanticLabel(state.labels.account) !== "Account") fail("mobile: full customer Account navigation is missing or changed", state);
     if (new Set(state.topLevelAll).size !== state.topLevelAll.length) fail(`${viewport.name}: full customer contains duplicate top-level route keys`, state);
 
+    await page.evaluate(() => { location.hash = "#/sell"; });
+    await page.waitForTimeout(350);
+    state = await shellState(page);
+    if (state.hash !== "#/dashboard") fail(`${viewport.name}: unsupported Exit Review did not fail closed before routing`, state);
+    if (state.advancedRoutes.includes("sell")) fail(`${viewport.name}: unsupported Exit Review leaked into Advanced analysis`, state);
+
     await page.evaluate(() => { location.hash = "#/decision-intelligence/why"; });
     await page.waitForTimeout(1300);
     state = await shellState(page);
