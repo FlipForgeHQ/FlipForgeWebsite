@@ -22,7 +22,7 @@ const fullTopLevel = [
   "forge-heat",
   "market-view"
 ];
-const fullAdvanced = ["compare", "psa-advisor", "sell", "export"];
+const fullAdvanced = ["compare", "psa-advisor", "export"];
 const betaTopLevel = ["dashboard", "discover", "opportunities", "tracking"];
 const fullOnlyNav = [
   "evaluate", "decision-intelligence", "why-this-decision", "evidence",
