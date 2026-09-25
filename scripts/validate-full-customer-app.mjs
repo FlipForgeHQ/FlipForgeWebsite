@@ -16,7 +16,7 @@ const activeRedirects = redirects
   .split(/\r?\n/)
   .map(line => line.trim())
   .filter(line => line && !line.startsWith("#"));
-const customer = read("saas-prototype/customer.html");
+const customer = read("saas-prototype/customer.html");\nconst capabilityBoundary = read("saas-prototype/customer-capability-boundary-v1.js");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const navigationParity = read("saas-prototype/customer-navigation-parity-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
@@ -59,6 +59,12 @@ check(customer.includes('data-route="forge-heat"') && customer.includes('data-ro
 check(customer.includes('src="customer-navigation-parity-v1.js"'), "customer document loads full-customer navigation parity controller");
 check(customer.includes('id="global-search-form"'), "customer document includes global search");
 check(customer.includes('class="icon-button notification-button"'), "customer document includes alerts access");
+check(customer.includes('src="customer-capability-boundary-v1.js"'), "customer document loads capability boundary");
+check(customer.indexOf('src="customer-capability-boundary-v1.js"') < customer.indexOf('src="app.js"'), "customer capability boundary loads before legacy app routing");
+check(capabilityBoundary.includes('const WITHHELD_ROUTES = new Set(["sell"])')
+        && capabilityBoundary.includes('window.location.replace(FALLBACK_HASH)')
+        && capabilityBoundary.includes('const FALLBACK_HASH = "#/tracking"'),
+      "Exit Review fails closed before customer route rendering");
 check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
 
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
