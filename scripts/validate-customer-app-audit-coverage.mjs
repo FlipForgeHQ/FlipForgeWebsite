@@ -20,7 +20,6 @@ const routePairs = [
   ["Compare", "compare"],
   ["PSA Advisor", "psa-advisor"],
   ["Evidence Review", "evidence"],
-  ["Exit Review", "sell"],
   ["Audit Export", "export"]
 ];
 
