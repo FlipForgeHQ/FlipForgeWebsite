@@ -16,7 +16,8 @@ const activeRedirects = redirects
   .split(/\r?\n/)
   .map(line => line.trim())
   .filter(line => line && !line.startsWith("#"));
-const customer = read("saas-prototype/customer.html");\nconst capabilityBoundary = read("saas-prototype/customer-capability-boundary-v1.js");
+const customer = read("saas-prototype/customer.html");
+const capabilityBoundary = read("saas-prototype/customer-capability-boundary-v1.js");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const navigationParity = read("saas-prototype/customer-navigation-parity-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
