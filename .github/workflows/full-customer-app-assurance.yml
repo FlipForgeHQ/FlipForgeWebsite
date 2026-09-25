@@ -5,6 +5,7 @@ on:
     paths:
       - '_redirects'
       - 'saas-prototype/customer.html'
+      - 'saas-prototype/customer-capability-boundary-v1.js'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-navigation-parity-v1.js'
       - 'saas-prototype/customer-why-decision-view-v1.js'
@@ -39,6 +40,7 @@ on:
     paths:
       - '_redirects'
       - 'saas-prototype/customer.html'
+      - 'saas-prototype/customer-capability-boundary-v1.js'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-navigation-parity-v1.js'
       - 'saas-prototype/customer-why-decision-view-v1.js'
