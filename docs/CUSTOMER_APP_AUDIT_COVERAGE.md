@@ -19,8 +19,9 @@ This matrix is a release-control index for the full customer app. It does not re
 | Account | Required | Required | Required | Required | Required | Required | Required | Required |
 | Compare | Required | Required | Required | Required | Required | Required | Required | Required |
 | PSA Advisor | Required | Required | Required | Required | Required | Required | Required | Required |
-| Exit Review | Required | Required | Required | Required | Required | Required | Required | Required |
 | Audit Export | Required | Required | Required | Required | Required | Required | Required | Required |
+
+Exit Review is intentionally withheld from the governed customer route matrix until a separate Exit / Position Intelligence customer contract is implemented and validated. Direct `#/sell` access must fail closed before legacy prototype content can render.
 
 ## Navigation-isolation coverage
 
