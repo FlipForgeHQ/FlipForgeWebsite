@@ -11,6 +11,18 @@ const focus = read("saas-prototype/guided-discover-focus-fix-v1.js");
 const guide = read("saas-prototype/guided-mode-v1.js");
 const discovery = read("saas-prototype/customer-discovery.js");
 const standard = read("docs/CUSTOMER_APP_AUDIT_STANDARD.md");
+const firstValue = read("saas-prototype/customer-first-value-v1.js");
+const decisionClarity = read("saas-prototype/customer-decision-clarity-v1.js");
+const cdi = read("saas-prototype/customer-cdi-signal-stack-v1.js");
+const whyView = read("saas-prototype/customer-why-decision-view-v1.js");
+const lifecycle = read("saas-prototype/customer-lifecycle.js");
+const management = read("saas-prototype/customer-management.js");
+const portfolio = read("saas-prototype/customer-portfolio.js");
+const compare = read("saas-prototype/customer-compare.js");
+const psa = read("saas-prototype/customer-psa-advisor.js");
+const marketView = read("saas-prototype/customer-market-view.js");
+const forgeHeat = read("saas-prototype/customer-forge-heat.js");
+const savedBridge = read("saas-prototype/customer-opportunities-bridge.js");
 
 let passed = 0;
 let failed = 0;
@@ -95,6 +107,39 @@ check(
   "Format guidance is concise and non-duplicative",
   entry.includes("Year · Set · Player · Card # · Grade (when known).")
 );
+
+// Evaluate
+check("Evaluate does not add a second three-step strip above the form", !firstValue.includes("installEvaluateFlow(root);"));
+check("Evaluate does not show the decision glossary before a decision exists", !firstValue.includes('["dashboard", "discover", "tracking", "forge-heat", "evaluate"]'));
+check("Evaluate panel uses a distinct Card and listing details heading", firstValue.includes('Card and listing details'));
+check("Evaluate removes the duplicate panel intro and status badge", firstValue.includes('panel.querySelector(".panel-header p")?.remove()') && firstValue.includes('panel.querySelector(".panel-header .staging-status")?.remove()'));
+check("Evaluate removes technical idempotency prose from the customer form", firstValue.includes('form.querySelector(".staging-form-note")?.remove()'));
+check("Evaluate keeps one governed trust disclosure", firstValue.includes("How FlipForge protects this decision"));
+
+// Decision Intelligence / Saved Decision
+check("CDI explanation CTA does not repeat START HERE", !cdi.includes("<span>START HERE</span><strong>Show me why"));
+check("CDI explanation uses one concise reason-trail caption", cdi.includes("Four checks behind this decision."));
+check("Saved Decision never renders both legacy Why and CDI Why owners", decisionClarity.includes('const interactiveWhy = root.querySelector("[data-ff-cdi-stack], [data-ff-cdi-stack-host]")') && decisionClarity.includes('root.querySelector("[data-ff-decision-why]")?.remove()'));
+check("Why This Decision suppresses duplicate full Decision Intelligence chrome", whyView.includes(".ff-di-controls") && whyView.includes(".ff-di-grid") && whyView.includes("display: none !important"));
+check("Why This Decision routes deeper evidence separately", whyView.includes("Open Evidence Review"));
+
+// Evidence / Outcomes / Saved list
+check("Evidence education is one progressive disclosure, not three coaching cards", cdi.includes('const guide = document.createElement("details")') && cdi.includes("How FlipForge filters evidence") && !cdi.includes("01 · TRUSTED"));
+check("Saved Decisions list does not add a redundant reopen-instruction strip", cdi.includes('document.querySelector("#main-content [data-ff-cdi-returning]")') && cdi.includes("root?.remove()"));
+check("Outcome Intelligence keeps checkpoints without a duplicate mini-hero", cdi.includes("ff-cdi-outcome-flow") && !cdi.includes("<header><span>OUTCOME INTELLIGENCE</span>"));
+check("Lifecycle authority notes are progressive disclosures", lifecycle.includes('<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary>'));
+check("Evidence and management authority notes are progressive disclosures", management.includes('<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary>'));
+
+// Portfolio / Compare / PSA / Market / Heat
+check("Portfolio value boundary is progressively disclosed", portfolio.includes('<details class="boundary-note ff-trust-note"><summary>What this value means</summary>'));
+check("Compare removes duplicate persistent top boundary", !compare.includes('<div class="boundary-note"><strong>Customer boundary:'));
+check("Compare retains one dedicated no-new-recommendation boundary", compare.includes("No new recommendation") && compare.includes("customer-compare-boundary"));
+check("PSA Advisor removes duplicate persistent top framework banner", !psa.includes('<div class="boundary-note"><strong>Decision framework:'));
+check("PSA Advisor retains saved-snapshot boundary detail", psa.includes("<strong>PSA boundary:</strong>"));
+check("Market View authority copy is progressively disclosed", marketView.includes('<details class="market-view-boundary ff-trust-note"><summary>How Market View stays governed</summary>'));
+check("Forge Heat qualification mechanics are progressively disclosed", forgeHeat.includes('<details class="forge-heat-intelligence-bar ff-trust-note">') && forgeHeat.includes("How a card becomes Heat-eligible"));
+check("Saved Decisions recovery diagnostics are progressively disclosed", savedBridge.includes('<details class="boundary-note ff-trust-note"><summary>Recovery details</summary>'));
+
 check(
   "Audit standard owns instruction hierarchy and redundancy rules",
   standard.includes("Instruction ownership and redundancy")
