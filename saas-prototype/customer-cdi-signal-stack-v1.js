@@ -284,11 +284,11 @@
         '<div class="ff-cdi-card-id"><span>Card under review</span><strong>' + escapeHtml(model.identity) + '</strong></div>' +
       '</header>' +
       '<div class="ff-cdi-start">' +
-        '<button class="ff-cdi-start-button" type="button" data-ff-cdi-start><span>START HERE</span><strong>Show me why FlipForge said ' + escapeHtml(decision) + '</strong></button>' +
+        '<button class="ff-cdi-start-button" type="button" data-ff-cdi-start><strong>See why FlipForge said ' + escapeHtml(decision) + '</strong></button>' +
         '<small>Watch the 4 checks assemble · about 3 seconds</small>' +
       '</div>' +
       '<div class="ff-cdi-reasoning" data-ff-cdi-reasoning hidden>' +
-        '<div class="ff-cdi-caption" role="status" aria-live="polite">Start with the decision. Open the four checks when you want the reason trail.</div>' +
+        '<div class="ff-cdi-caption" role="status" aria-live="polite">Four checks behind this decision.</div>' +
         '<div class="ff-cdi-signals" aria-label="Four checks behind this decision">' +
           model.signals.map(signalMarkup).join("") +
         '</div>' +
@@ -397,27 +397,17 @@
     if (p) p.textContent = "See what FlipForge could use, what it excluded, and why that matters to the saved decision.";
 
     if (root.querySelector("[data-ff-cdi-evidence-guide]")) return;
-    const guide = document.createElement("section");
+    const guide = document.createElement("details");
     guide.className = "ff-cdi-evidence-guide";
     guide.dataset.ffCdiEvidenceGuide = "";
     guide.innerHTML =
-      '<article><span>01 · TRUSTED</span><strong>Check trustworthy sales</strong><p>Exact completed sales that can support the saved decision.</p></article>' +
-      '<article><span>02 · LEFT OUT</span><strong>See what did not count</strong><p>Wrong identities, sale states, stale rows, duplicates, or other ineligible evidence stay visible instead of disappearing.</p></article>' +
-      '<article><span>03 · WHY IT MATTERS</span><strong>Price support must be earned</strong><p>Supported value gets stronger only when the underlying evidence gets stronger.</p></article>';
+      '<summary><strong>How FlipForge filters evidence</strong><span>Exact completed sales can support the decision; mismatched, stale, duplicate, or otherwise ineligible rows stay visible but do not strengthen it.</span></summary>';
     heading.insertAdjacentElement("afterend", guide);
   }
 
   function returningSavedGuide() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts[1]) return;
-    const root = document.querySelector("#main-content .customer-intelligence-page");
-    const heading = root?.querySelector(".page-heading");
-    if (!root || !heading || root.querySelector("[data-ff-cdi-returning]")) return;
-    const guide = document.createElement("div");
-    guide.className = "ff-cdi-returning";
-    guide.dataset.ffCdiReturning = "";
-    guide.innerHTML = '<strong>Reopen a saved decision.</strong><span>Pick a card to see the plain-language verdict first, replay the four checks, then open the evidence or receipt only if you need more detail.</span>';
-    heading.insertAdjacentElement("afterend", guide);
+    const root = document.querySelector("#main-content [data-ff-cdi-returning]");
+    root?.remove();
   }
 
   function outcomeGuide() {
@@ -435,7 +425,6 @@
     guide.className = "ff-cdi-outcome-guide";
     guide.dataset.ffCdiOutcomeGuide = "";
     guide.innerHTML =
-      '<header><span>OUTCOME INTELLIGENCE</span><strong>What happened after the decision?</strong><p>The original T0 decision stays fixed. Later checkpoints add context; they do not rewrite history.</p></header>' +
       '<div class="ff-cdi-outcome-flow" aria-label="Outcome Intelligence checkpoints">' +
         '<article data-state="baseline"><b>T0</b><strong>Original decision</strong><small>Lock the call and its reason trail.</small></article>' +
         '<i aria-hidden="true">→</i>' +
