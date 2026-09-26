@@ -93,19 +93,6 @@
     boundary.replaceWith(details);
   }
 
-  function installEvaluateFlow(root) {
-    if (root.querySelector("[data-ff-evaluate-flow]")) return;
-    const heading = root.querySelector(".customer-evaluation-page .page-heading");
-    if (!heading) return;
-    const flow = document.createElement("div");
-    flow.className = "ff-evaluate-flow";
-    flow.setAttribute("data-ff-evaluate-flow", "");
-    flow.innerHTML = `<div><span>1</span><strong>Card</strong><small>Confirm the exact card and listing</small></div>
-      <div><span>2</span><strong>Cost</strong><small>Enter the real all-in price</small></div>
-      <div><span>3</span><strong>Decision</strong><small>Get the saved FlipForge answer</small></div>`;
-    heading.insertAdjacentElement("afterend", flow);
-  }
-
   function renameField(form, name, label, hint = "") {
     const input = form.querySelector(`[name="${name}"]`);
     const wrapper = input?.closest("label");
