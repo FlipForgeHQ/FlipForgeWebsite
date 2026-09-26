@@ -28,6 +28,10 @@ for (const [label, route] of routePairs) {
   if (!audit.includes(`"${route}"`)) throw new Error(`Executable auth-recovery audit missing ${route}`);
 }
 
+if (matrix.includes("| Exit Review |")) throw new Error("Unsupported Exit Review returned to the governed customer coverage matrix");
+if (/^- Exit Review$/m.test(standard)) throw new Error("Unsupported Exit Review returned to governed route coverage");
+if (!standard.includes("Exit Review (`#/sell`) is intentionally unsupported")) throw new Error("Customer audit standard lost unsupported Exit Review boundary");
+
 for (const requirement of ["Anonymous 401", "Authenticated", "Desktop", "Mobile", "Blank-state guard", "Route return", "Authority guard"]) {
   if (!matrix.includes(requirement)) throw new Error(`Audit coverage dimension missing: ${requirement}`);
 }
