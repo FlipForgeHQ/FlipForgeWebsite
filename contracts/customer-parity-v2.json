@@ -4,41 +4,141 @@
   "intelligenceAuthority": "Java Core",
   "recommendationAuthority": "Smart Opportunity / Decision Intelligence",
   "gradingAuthority": "Existing PSA intelligence",
+  "sourceOfTruth": "SQLite",
   "transactionAuthority": false,
   "topLevelRoutes": [
-    {"route":"dashboard","label":"Home"},
-    {"route":"discover","label":"Discover"},
-    {"route":"evaluate","label":"Evaluate a Card"},
-    {"route":"decision-intelligence","label":"Decision Intelligence"},
-    {"route":"why-this-decision","label":"Why This Decision"},
-    {"route":"evidence","label":"Evidence Review"},
-    {"route":"opportunities","label":"Saved Decisions"},
-    {"route":"tracking","label":"Outcome Intelligence"},
-    {"route":"portfolio","label":"Portfolio"},
-    {"route":"alerts","label":"Alerts"},
-    {"route":"forge-heat","label":"Forge Heat"},
-    {"route":"market-view","label":"Market View"}
+    {
+      "route": "dashboard",
+      "href": "#/dashboard",
+      "label": "Home"
+    },
+    {
+      "route": "discover",
+      "href": "#/discover",
+      "label": "Discover"
+    },
+    {
+      "route": "evaluate",
+      "href": "#/evaluate",
+      "label": "Evaluate a Card"
+    },
+    {
+      "route": "decision-intelligence",
+      "href": "#/decision-intelligence",
+      "label": "Decision Intelligence"
+    },
+    {
+      "route": "why-this-decision",
+      "href": "#/decision-intelligence/why",
+      "label": "Why This Decision"
+    },
+    {
+      "route": "evidence",
+      "href": "#/evidence",
+      "label": "Evidence Review"
+    },
+    {
+      "route": "opportunities",
+      "href": "#/opportunities",
+      "label": "Saved Decisions"
+    },
+    {
+      "route": "tracking",
+      "href": "#/tracking",
+      "label": "Outcome Intelligence"
+    },
+    {
+      "route": "portfolio",
+      "href": "#/portfolio",
+      "label": "Portfolio"
+    },
+    {
+      "route": "alerts",
+      "href": "#/alerts",
+      "label": "Alerts"
+    },
+    {
+      "route": "forge-heat",
+      "href": "#/forge-heat",
+      "label": "Forge Heat"
+    },
+    {
+      "route": "market-view",
+      "href": "#/market-view",
+      "label": "Market View"
+    }
   ],
   "advancedRoutes": [
-    {"route":"compare","label":"Compare"},
-    {"route":"psa-advisor","label":"PSA Advisor"},
-    {"route":"export","label":"Export"}
+    {
+      "route": "compare",
+      "href": "#/compare",
+      "label": "Compare"
+    },
+    {
+      "route": "psa-advisor",
+      "href": "#/psa-advisor",
+      "label": "PSA Advisor"
+    },
+    {
+      "route": "export",
+      "href": "#/export",
+      "label": "Audit Export"
+    }
   ],
-  "decisionStates": ["BUY","WATCH","VERIFY","PASS"],
+  "decisionStates": [
+    "BUY",
+    "WATCH",
+    "VERIFY",
+    "PASS"
+  ],
   "cdiLayers": [
-    {"key":"identity","label":"Identity Intelligence"},
-    {"key":"evidence","label":"Evidence Intelligence"},
-    {"key":"economics","label":"Economic Intelligence"},
-    {"key":"risk","label":"Risk + Uncertainty Intelligence"},
-    {"key":"decision","label":"Decision Intelligence"},
-    {"key":"traceback","label":"Traceback Intelligence"},
-    {"key":"outcome","label":"Outcome Intelligence"}
+    {
+      "key": "identity",
+      "label": "Identity Intelligence"
+    },
+    {
+      "key": "evidence",
+      "label": "Evidence Intelligence"
+    },
+    {
+      "key": "economics",
+      "label": "Economic Intelligence"
+    },
+    {
+      "key": "risk",
+      "label": "Risk + Uncertainty Intelligence"
+    },
+    {
+      "key": "decision",
+      "label": "Decision Intelligence"
+    },
+    {
+      "key": "traceback",
+      "label": "Traceback Intelligence"
+    },
+    {
+      "key": "outcome",
+      "label": "Outcome Intelligence"
+    }
   ],
-  "outcomeCheckpoints": ["T0","T7","T14","T30"],
+  "outcomeCheckpoints": [
+    "T0",
+    "T7",
+    "T14",
+    "T30"
+  ],
   "customerOnlyBoundary": {
     "operatorControlsVisible": false,
     "rawProviderPayloadsVisible": false,
     "manualEvidenceMutationVisible": false,
     "recommendationRecalculationInBrowser": false
-  }
+  },
+  "intentionalSaasOnly": [
+    "authentication",
+    "account UI",
+    "billing",
+    "entitlements UI",
+    "browser/mobile shell mechanics",
+    "production session/bootstrap behavior"
+  ]
 }
