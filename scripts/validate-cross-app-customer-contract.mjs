@@ -4,7 +4,8 @@ const contract = JSON.parse(fs.readFileSync("contracts/customer-experience-contr
 const navJs = fs.readFileSync("saas-prototype/customer-navigation-parity-v1.js", "utf8");
 const customerHtml = fs.readFileSync("saas-prototype/customer.html", "utf8");
 const decisionCard = fs.readFileSync("saas-prototype/decision-card-evidence-v1.js", "utf8");
-const customerShell = fs.readFileSync("saas-prototype/customer-only-shell-v1.js", "utf8");\nconst appJs = fs.readFileSync("saas-prototype/app.js", "utf8");
+const customerShell = fs.readFileSync("saas-prototype/customer-only-shell-v1.js", "utf8");
+const appJs = fs.readFileSync("saas-prototype/app.js", "utf8");
 
 const failures = [];
 const check = (condition, message) => {
@@ -33,7 +34,7 @@ for (const item of advancedExpected) {
   const anchors = [...customerHtml.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/g)].map(match => match[0]);
   const anchor = anchors.find(value => value.includes(hrefNeedle) && value.includes(routeNeedle)) || "";
   check(Boolean(anchor), `Advanced customer route/href missing from customer shell: ${item.key} -> ${item.browserHref}`);
-  const renderedLabel = anchor.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  const renderedLabel = anchor.replace(/<span\b[^>]*>[\s\S]*?<\/span>/g, "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
   check(renderedLabel === item.label, `Advanced customer label drifted for ${item.key}: expected "${item.label}", got "${renderedLabel}"`);
 }
 
