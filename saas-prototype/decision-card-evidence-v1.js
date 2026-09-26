@@ -186,14 +186,14 @@
       </div>
 
       <details class="ff-dce-layers">
-        <summary><span><strong>View the 7 evidence layers</strong><small>Identity → Evidence → Economics → Risk → Decision → Receipt → Outcome</small></span><span aria-hidden="true">＋</span></summary>
+        <summary><span><strong>View the 7 evidence layers</strong><small>Identity → Evidence → Economics → Risk → Decision → Traceback → Outcome</small></span><span aria-hidden="true">＋</span></summary>
         <ol>
           <li data-cdi-layer="identity"><span class="ff-dce-number">01</span><div><strong>Identity Intelligence</strong><p>${escapeHtml(model.identity)}</p><small>Exact identity: ${escapeHtml(model.exactIdentity)}</small></div></li>
           <li data-cdi-layer="evidence"><span class="ff-dce-number">02</span><div><strong>Evidence Intelligence</strong><p>${escapeHtml(evidence.trusted)} · ${escapeHtml(evidence.excluded)}</p><small>Only authority-eligible exact completed-sale evidence can support value.</small><a href="${escapeHtml(model.evidenceHref)}">Open full evidence trail →</a></div></li>
           <li data-cdi-layer="economics"><span class="ff-dce-number">03</span><div><strong>Economic Intelligence</strong><p>${escapeHtml(model.ask)} ask · ${escapeHtml(model.supportedValue)} supported value</p><small>This surface presents server-owned economics and does not infer profit or recompute value.</small></div></li>
           <li data-cdi-layer="risk"><span class="ff-dce-number">04</span><div><strong>Risk + Uncertainty Intelligence</strong><p>${escapeHtml(model.risk)} · confidence ${escapeHtml(model.confidence)}</p><small>Unresolved evidence remains visible instead of being converted into false certainty.</small></div></li>
           <li data-cdi-layer="decision"><span class="ff-dce-number">05</span><div><strong>Decision Intelligence</strong><p>${escapeHtml(model.decision)} — ${escapeHtml(model.why)}</p><small>${escapeHtml(model.change)}</small></div></li>
-          <li data-cdi-layer="receipt"><span class="ff-dce-number">06</span><div><strong>Decision Traceback / Decision Receipt</strong><p>${escapeHtml(model.observed)}</p><small>The receipt preserves what the governed system knew and returned.</small>${receiptAction}</div></li>
+          <li data-cdi-layer="traceback"><span class="ff-dce-number">06</span><div><strong>Decision Traceback / Decision Receipt</strong><p>${escapeHtml(model.observed)}</p><small>The receipt preserves what the governed system knew and returned.</small>${receiptAction}</div></li>
           <li data-cdi-layer="outcome"><span class="ff-dce-number">07</span><div><strong>Outcome Intelligence</strong><p>Track what happened after the decision.</p><small>Use the governed Tracking workflow for 7 / 14 / 30 outcome review.</small><a href="${escapeHtml(model.trackingHref)}">Continue to Tracking →</a></div></li>
         </ol>
       </details>`;
