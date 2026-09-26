@@ -226,7 +226,7 @@
       } else if (mode === "identity") {
         coach.innerHTML = '<div><span>IDENTITY CHECK</span><h2>FlipForge found possible card matches.</h2><p>Choose <strong>Use this card</strong> when available. If a visible match is still review-only, choose <strong>Verify this match</strong> so FlipForge can retry with the exact details shown.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-secondary" data-ff-focus-card>Change what I entered</button></div>';
       } else {
-        coach.innerHTML = '<div><span>START HERE</span><h2>Enter one exact card.</h2><p>Type the card you want to evaluate in the Card identity box. Start with year, set, player and card number.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-primary" data-ff-focus-card>Show me the card box</button></div>';
+        coach.innerHTML = '<div><span>IDENTITY HELP</span><h2>Not sure which card you have?</h2><p>Use <strong>Find exact card</strong> when the set, parallel, variation, or card number is uncertain.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-secondary" data-ff-focus-card>Focus card entry</button></div>';
       }
     }
 
