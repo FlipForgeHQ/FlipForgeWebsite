@@ -174,7 +174,7 @@ configured.window.FlipForgeCustomerCompare.render(configured.main, "opp-b");
 await settle();
 check("058 configured Compare loads health list and comparison", configured.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/opportunities,/api/v1/compare?ids=opp-b%2Copp-a");
 check("059 preferred saved record is placed on the left", configured.main.innerHTML.includes('<option value="opp-b" selected>') && configured.main.innerHTML.includes("Saved opp-b"));
-check("060 comparison renders both authoritative decisions", configured.main.innerHTML.includes("Direct Comparison") && configured.main.innerHTML.includes("BUY") && configured.main.innerHTML.includes("WATCH"));
+check("060 comparison renders both authoritative decisions", configured.main.innerHTML.includes("Compare Saved Decisions") && configured.main.innerHTML.includes("BUY") && configured.main.innerHTML.includes("WATCH"));
 check("061 comparison renders identity relationship and boundary", configured.main.innerHTML.includes("Same exact-card identity") && configured.main.innerHTML.includes("No new recommendation"));
 check("062 comparison renders no prototype data or transaction action", !/Prototype Account|Place bid|Buy now|Checkout|Pay now/.test(configured.main.innerHTML));
 check("063 every configured request uses hardened same-origin GET", configured.calls.every(call => call.options.method === "GET" && call.options.credentials === "same-origin" && call.options.cache === "no-store" && call.options.redirect === "error"));
