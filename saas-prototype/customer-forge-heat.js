@@ -285,12 +285,13 @@
 
     return `<div class="forge-heat-shell">
       ${heading(data)}
-      <section class="forge-heat-intelligence-bar">
+      <details class="forge-heat-intelligence-bar ff-trust-note">
+        <summary>How a card becomes Heat-eligible</summary>
         <div><span>Identity</span><strong>Completed evaluation snapshot</strong></div>
         <div><span>Evidence gate</span><strong>≥ 3 exact trusted sales</strong></div>
         <div><span>Authority</span><strong>Smart Opportunity</strong></div>
         <div><span>Heat calculation</span><strong>Server-owned</strong></div>
-      </section>
+      </details>
       ${tabs()}
       <div class="forge-heat-tab-copy"><strong>${escapeHtml(state.tab === "top5" ? "Top 5" : state.tab === "hiddenGems" ? "Hidden Gems" : state.tab === "highestEdge" ? "Highest Edge" : "Heating Up")}</strong><span>${escapeHtml(tabDescription(state.tab))}</span></div>
       ${content}
