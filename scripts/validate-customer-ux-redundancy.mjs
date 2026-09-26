@@ -12,6 +12,7 @@ const guide = read("saas-prototype/guided-mode-v1.js");
 const discovery = read("saas-prototype/customer-discovery.js");
 const standard = read("docs/CUSTOMER_APP_AUDIT_STANDARD.md");
 const firstValue = read("saas-prototype/customer-first-value-v1.js");
+const firstValueCss = read("saas-prototype/customer-first-value-v1.css");
 const decisionClarity = read("saas-prototype/customer-decision-clarity-v1.js");
 const cdi = read("saas-prototype/customer-cdi-signal-stack-v1.js");
 const whyView = read("saas-prototype/customer-why-decision-view-v1.js");
@@ -109,7 +110,7 @@ check(
 );
 
 // Evaluate
-check("Evaluate does not add a second three-step strip above the form", !firstValue.includes("installEvaluateFlow(root);"));
+check("Evaluate has no second three-step strip implementation", !firstValue.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow"));
 check("Evaluate does not show the decision glossary before a decision exists", !firstValue.includes('["dashboard", "discover", "tracking", "forge-heat", "evaluate"]'));
 check("Evaluate panel uses a distinct Card and listing details heading", firstValue.includes('Card and listing details'));
 check("Evaluate removes the duplicate panel intro and status badge", firstValue.includes('panel.querySelector(".panel-header p")?.remove()') && firstValue.includes('panel.querySelector(".panel-header .staging-status")?.remove()'));
