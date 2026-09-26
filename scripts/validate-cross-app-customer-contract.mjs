@@ -7,47 +7,85 @@ const decisionCard = fs.readFileSync("saas-prototype/decision-card-evidence-v1.j
 const customerShell = fs.readFileSync("saas-prototype/customer-only-shell-v1.js", "utf8");
 const appJs = fs.readFileSync("saas-prototype/app.js", "utf8");
 
-const checks = [];
-const record = (name, pass, detail = null) => checks.push({name, pass: Boolean(pass), detail});
+const failures = [];
+const check = (condition, message) => {
+  if (!condition) failures.push(message);
+};
 
 const coreExpected = contract.navigation.filter(item => item.kind === "core");
 const advancedExpected = contract.navigation.filter(item => item.kind === "advanced");
-const routePattern = /\["([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"[^"]*"\]/g;
+
+// Only route tuples are valid here. The second field must be a real #/... href so
+// unrelated four-string arrays (MutationObserver attribute filters, etc.) cannot
+// masquerade as navigation and create false parity failures.
+const routePattern = /\["([^"]+)",\s*"(#\/[^"]+)",\s*"([^"]+)",\s*"[^"]*"\]/g;
 const actualCore = [...navJs.matchAll(routePattern)].map(match => ({
-  key: match[1], browserHref: match[2], label: match[3]
+  key: match[1],
+  browserHref: match[2],
+  label: match[3]
 }));
-const expectedCore = coreExpected.map(({key,browserHref,label}) => ({key,browserHref,label}));
-record("core navigation exact", JSON.stringify(actualCore) === JSON.stringify(expectedCore), {actualCore, expectedCore});
+
+check(
+  JSON.stringify(actualCore) === JSON.stringify(coreExpected.map(({key, browserHref, label}) => ({key, browserHref, label}))),
+  "Top-level customer navigation does not match the canonical cross-app contract"
+);
 
 const anchors = [...customerHtml.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/g)].map(match => match[0]);
 for (const item of advancedExpected) {
+  check(navJs.includes(`"${item.key}"`), `Advanced route key missing from browser navigation contract: ${item.key}`);
   const hrefNeedle = `href="${item.browserHref}"`;
   const routeNeedle = `data-route="${item.key}"`;
   const anchor = anchors.find(value => value.includes(hrefNeedle) && value.includes(routeNeedle)) || "";
-  const renderedLabel = anchor.replace(/<span\b[^>]*>[\s\S]*?<\/span>/g, "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-  record(`advanced route ${item.key}`, Boolean(anchor), {href:item.browserHref, found:Boolean(anchor)});
-  record(`advanced label ${item.key}`, renderedLabel === item.label, {expected:item.label, actual:renderedLabel});
+  check(Boolean(anchor), `Advanced customer route/href missing from customer shell: ${item.key} -> ${item.browserHref}`);
+  const renderedLabel = anchor
+    .replace(/<span\b[^>]*>[\s\S]*?<\/span>/g, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  check(
+    renderedLabel === item.label,
+    `Advanced customer label drifted for ${item.key}: expected "${item.label}", got "${renderedLabel}"`
+  );
 }
 
 const layerPattern = /data-cdi-layer="([^"]+)"[\s\S]*?<strong>([^<]+)<\/strong>/g;
 const actualLayers = [...decisionCard.matchAll(layerPattern)].map((match, index) => ({
-  number:index+1, key:match[1], label:match[2].trim()
+  number: index + 1,
+  key: match[1],
+  label: match[2].trim()
 }));
-record("seven CDI layers exact", JSON.stringify(actualLayers) === JSON.stringify(contract.cdiLayers), {actualLayers, expected:contract.cdiLayers});
+check(
+  JSON.stringify(actualLayers) === JSON.stringify(contract.cdiLayers),
+  "Seven CDI layers do not exactly match the canonical cross-app contract"
+);
 
 for (const checkpoint of contract.outcomeCheckpoints) {
-  record(`outcome checkpoint ${checkpoint}`, customerShell.includes(checkpoint));
+  check(customerShell.includes(checkpoint), `Customer shell is missing outcome checkpoint ${checkpoint}`);
 }
-record("category label", decisionCard.includes(contract.category), {expected:contract.category});
-const expectedStates = contract.decisionStates.join("/");
-record("decision authority states", appJs.includes(`Smart Opportunity remains the sole ${expectedStates} authority`), {expected:`Smart Opportunity remains the sole ${expectedStates} authority`});
-record("unsupported sell guard", navJs.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])'));
 
-const report = {
-  contractVersion: contract.contractVersion,
-  passed: checks.filter(x => x.pass).length,
-  failed: checks.filter(x => !x.pass).length,
-  checks
-};
-fs.writeFileSync("parity-debug.json", JSON.stringify(report, null, 2) + "\n");
-console.log(JSON.stringify(report, null, 2));
+check(
+  decisionCard.includes(contract.category),
+  "Decision Card is missing the canonical Card Decision Intelligence category label"
+);
+
+const expectedStates = contract.decisionStates.join("/");
+check(
+  appJs.includes(`Smart Opportunity remains the sole ${expectedStates} authority`),
+  `Customer app no longer preserves the canonical decision-state authority: ${expectedStates}`
+);
+
+check(
+  navJs.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])'),
+  "Unsupported customer route fail-closed guard is missing"
+);
+
+if (failures.length) {
+  console.error("Cross-app customer contract validation failed:");
+  failures.forEach(item => console.error(`- ${item}`));
+  process.exit(1);
+}
+
+console.log(`PASS: ${contract.contractVersion}`);
+console.log(`PASS: ${contract.navigation.length} customer routes`);
+console.log(`PASS: ${contract.cdiLayers.length} CDI layers`);
+console.log(`PASS: ${contract.outcomeCheckpoints.join(" / ")} outcome continuity`);
