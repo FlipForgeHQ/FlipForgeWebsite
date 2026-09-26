@@ -19,8 +19,11 @@ This matrix is a release-control index for the full customer app. It does not re
 | Account | Required | Required | Required | Required | Required | Required | Required | Required |
 | Compare | Required | Required | Required | Required | Required | Required | Required | Required |
 | PSA Advisor | Required | Required | Required | Required | Required | Required | Required | Required |
-| Exit Review | Required | Required | Required | Required | Required | Required | Required | Required |
 | Audit Export | Required | Required | Required | Required | Required | Required | Required | Required |
+
+## Unsupported customer capability coverage
+
+- `#/sell` / Exit Review is not a governed customer capability. Navigation must fail closed and no customer audit may count the legacy prototype as a supported route.
 
 ## Navigation-isolation coverage
 
