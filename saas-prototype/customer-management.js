@@ -172,7 +172,7 @@
   }
 
   function boundary(text) {
-    return `<div class="boundary-note"><strong>Authority boundary:</strong> ${escapeHtml(text)}</div>`;
+    return `<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary><p>${escapeHtml(text)}</p></details>`;
   }
 
   function errorPanel(error) {
