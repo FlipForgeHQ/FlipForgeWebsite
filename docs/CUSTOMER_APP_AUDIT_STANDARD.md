@@ -38,7 +38,6 @@ The governed customer route matrix includes:
 - Account
 - Compare
 - PSA Advisor
-- Exit Review
 - Audit Export
 
 ## Required customer navigation hierarchy
@@ -58,7 +57,9 @@ The full customer app must expose one continuous Card Decision Intelligence jour
 11. Forge Heat
 12. Market View
 
-Advanced Analysis may contain Compare, PSA Advisor, Exit Review, and Audit Export. A promoted top-level route must not also appear in Advanced Analysis.
+Advanced Analysis may contain Compare, PSA Advisor, and Audit Export. A promoted top-level route must not also appear in Advanced Analysis.
+
+Exit Review (`#/sell`) is intentionally unsupported on the governed full-customer surface until a separate server-owned exit/position-intelligence contract is implemented and validated. Direct customer navigation to that route must fail closed rather than expose the legacy prototype.
 
 Why This Decision is a presentation subview of the existing Decision Intelligence route and must not create a second recommendation, evidence, supported-value, or grading authority. Evidence Review must continue to use the existing governed evidence projection.
 
