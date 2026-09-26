@@ -320,6 +320,23 @@
   line-height: 1.5;
 }
 
+.market-view-boundary > summary {
+  cursor: pointer;
+  list-style: none;
+  color: #f1f1f1;
+  font-size: .9rem;
+  font-weight: 800;
+}
+
+.market-view-boundary > summary::-webkit-details-marker {
+  display: none;
+}
+
+.market-view-boundary > p {
+  margin: 10px 0 0;
+  color: var(--text-muted, #aaa);
+}
+
 .market-view-boundary strong {
   color: #f1f1f1;
 }
