@@ -1,0 +1,194 @@
+{
+  "contractVersion": "CUSTOMER_EXPERIENCE_CONTRACT_V1_2026_09_26",
+  "category": "CARD DECISION INTELLIGENCE™",
+  "primaryFlowKeys": [
+    "discover",
+    "evaluate",
+    "decision-intelligence",
+    "why-this-decision",
+    "evidence",
+    "opportunities",
+    "tracking"
+  ],
+  "navigation": [
+    {
+      "key": "dashboard",
+      "label": "Home",
+      "browserHref": "#/dashboard",
+      "devTarget": "Customer Home",
+      "kind": "core"
+    },
+    {
+      "key": "discover",
+      "label": "Discover",
+      "browserHref": "#/discover",
+      "devTarget": "Search and Discover",
+      "kind": "core"
+    },
+    {
+      "key": "evaluate",
+      "label": "Evaluate a Card",
+      "browserHref": "#/evaluate",
+      "devTarget": "Customer Evaluate",
+      "kind": "core"
+    },
+    {
+      "key": "decision-intelligence",
+      "label": "Decision Intelligence",
+      "browserHref": "#/decision-intelligence",
+      "devTarget": "Customer Decision Intelligence",
+      "kind": "core"
+    },
+    {
+      "key": "why-this-decision",
+      "label": "Why This Decision",
+      "browserHref": "#/decision-intelligence/why",
+      "devTarget": "Customer Why This Decision",
+      "kind": "core"
+    },
+    {
+      "key": "evidence",
+      "label": "Evidence Review",
+      "browserHref": "#/evidence",
+      "devTarget": "Customer Evidence Review",
+      "kind": "core"
+    },
+    {
+      "key": "opportunities",
+      "label": "Saved Decisions",
+      "browserHref": "#/opportunities",
+      "devTarget": "Customer Saved Decisions",
+      "kind": "core"
+    },
+    {
+      "key": "tracking",
+      "label": "Outcome Intelligence",
+      "browserHref": "#/tracking",
+      "devTarget": "Customer Tracking",
+      "kind": "core"
+    },
+    {
+      "key": "portfolio",
+      "label": "Portfolio",
+      "browserHref": "#/portfolio",
+      "devTarget": "Customer Portfolio",
+      "kind": "core"
+    },
+    {
+      "key": "alerts",
+      "label": "Alerts",
+      "browserHref": "#/alerts",
+      "devTarget": "Customer Alerts",
+      "kind": "core"
+    },
+    {
+      "key": "forge-heat",
+      "label": "Forge Heat",
+      "browserHref": "#/forge-heat",
+      "devTarget": "Customer Forge Heat",
+      "kind": "core"
+    },
+    {
+      "key": "market-view",
+      "label": "Market View",
+      "browserHref": "#/market-view",
+      "devTarget": "Customer Market View",
+      "kind": "core"
+    },
+    {
+      "key": "compare",
+      "label": "Compare",
+      "browserHref": "#/compare",
+      "devTarget": "Customer Compare",
+      "kind": "advanced"
+    },
+    {
+      "key": "psa-advisor",
+      "label": "PSA Advisor",
+      "browserHref": "#/psa-advisor",
+      "devTarget": "Customer PSA Advisor",
+      "kind": "advanced"
+    },
+    {
+      "key": "export",
+      "label": "Audit Export",
+      "browserHref": "#/export",
+      "devTarget": "Customer Decision Export",
+      "kind": "advanced"
+    }
+  ],
+  "decisionStates": [
+    "BUY",
+    "WATCH",
+    "VERIFY",
+    "PASS"
+  ],
+  "cdiLayers": [
+    {
+      "number": 1,
+      "key": "identity",
+      "label": "Identity Intelligence"
+    },
+    {
+      "number": 2,
+      "key": "evidence",
+      "label": "Evidence Intelligence"
+    },
+    {
+      "number": 3,
+      "key": "economics",
+      "label": "Economic Intelligence"
+    },
+    {
+      "number": 4,
+      "key": "risk",
+      "label": "Risk + Uncertainty Intelligence"
+    },
+    {
+      "number": 5,
+      "key": "decision",
+      "label": "Decision Intelligence"
+    },
+    {
+      "number": 6,
+      "key": "traceback",
+      "label": "Decision Traceback / Decision Receipt"
+    },
+    {
+      "number": 7,
+      "key": "outcome",
+      "label": "Outcome Intelligence"
+    }
+  ],
+  "outcomeCheckpoints": [
+    "T0",
+    "T7",
+    "T14",
+    "T30"
+  ],
+  "authority": {
+    "recommendation": "SMART_OPPORTUNITY",
+    "gradingGuidance": "EXISTING_PSA_INTELLIGENCE",
+    "sourceOfTruth": "SQLITE",
+    "browserRecommendationAuthority": false,
+    "transactionAuthority": false,
+    "silentSelfTrainingAuthority": false
+  },
+  "intentionalSaasOnly": [
+    "Account",
+    "authentication",
+    "billing",
+    "entitlements UI",
+    "browser/mobile shell mechanics",
+    "production session/bootstrap behavior"
+  ],
+  "customerForbidden": [
+    "Developer Control",
+    "Beta Completion",
+    "raw provider payloads",
+    "manual evidence import",
+    "replay controls",
+    "study-management controls",
+    "transaction authority"
+  ]
+}
