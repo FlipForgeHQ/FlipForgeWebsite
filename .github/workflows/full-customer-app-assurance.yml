@@ -7,6 +7,9 @@ on:
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-navigation-parity-v1.js'
+      - 'saas-prototype/decision-card-evidence-v1.js'
+      - 'contracts/customer-parity-v2.json'
+      - 'scripts/validate-cross-app-customer-contract.mjs'
       - 'saas-prototype/customer-why-decision-view-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
       - 'saas-prototype/customer-app-system-v2.css'
@@ -96,6 +99,7 @@ jobs:
           node scripts/validate-customer-app-audit-coverage.mjs
           node scripts/validate-customer-audit-manifest.mjs
           node scripts/validate-customer-navigation-parity.mjs
+          node scripts/validate-cross-app-customer-contract.mjs
           node scripts/validate-full-customer-app.mjs
       - name: Install Playwright Chromium
         run: |
