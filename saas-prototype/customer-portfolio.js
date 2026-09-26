@@ -230,7 +230,7 @@
   }
 
   function boundary(text) {
-    return `<div class="boundary-note"><strong>Value boundary:</strong> ${escapeHtml(text)}</div>`;
+    return `<details class="boundary-note ff-trust-note"><summary>What this value means</summary><p>${escapeHtml(text)}</p></details>`;
   }
 
   function pageHeading(actions = "") {

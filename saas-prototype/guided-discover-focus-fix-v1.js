@@ -4,7 +4,6 @@
   const MAIN_SELECTOR = "#main-content";
   const INPUT_SELECTOR = '[data-customer-discovery-form] input[name="exactCardQuery"]';
   const FORM_SELECTOR = "[data-customer-discovery-form]";
-  const HINT_ID = "ff-discover-direct-hint";
   const LEGACY_WELCOME_ID = "ff-guided-mode-welcome";
   const FULL_CUSTOMER_PATH = /^\/app\/customer\/?$/i;
   let busy = false;
@@ -31,18 +30,15 @@
     const style = document.createElement("style");
     style.id = "ff-discover-focus-fix-styles";
     style.textContent = `
-      #${HINT_ID}{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;margin:0 0 10px;padding:10px 14px;border:1px solid rgba(226,181,65,.9);border-radius:10px;background:rgba(226,181,65,.12);color:#f2cb67;font-weight:800;letter-spacing:.04em;box-shadow:0 0 0 1px rgba(226,181,65,.16),0 12px 32px rgba(0,0,0,.28)}
-      #${HINT_ID} span{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:999px;background:#d6a92f;color:#090d12;font-size:16px}
-      .ff-discover-direct-form{position:relative!important;outline:3px solid rgba(226,181,65,.9)!important;outline-offset:7px!important;border-radius:12px!important;box-shadow:0 0 0 8px rgba(226,181,65,.08),0 0 36px rgba(226,181,65,.22)!important}
-      .ff-discover-direct-input{border-color:#e0b63e!important;box-shadow:0 0 0 4px rgba(226,181,65,.2)!important;background:rgba(226,181,65,.055)!important}
-      @media (prefers-reduced-motion:no-preference){.ff-discover-direct-form{animation:ffDiscoverPulse 1.1s ease-in-out 2}@keyframes ffDiscoverPulse{0%,100%{outline-color:rgba(226,181,65,.55)}50%{outline-color:#f2cb67;box-shadow:0 0 0 11px rgba(226,181,65,.13),0 0 42px rgba(226,181,65,.3)}}}
+      .ff-discover-direct-input{
+        border-color:#e0b63e!important;
+        box-shadow:0 0 0 3px rgba(226,181,65,.14)!important;
+      }
     `;
     document.head.appendChild(style);
   }
 
   function clearDirectCue() {
-    document.getElementById(HINT_ID)?.remove();
-    document.querySelectorAll(".ff-discover-direct-form").forEach(node => node.classList.remove("ff-discover-direct-form"));
     document.querySelectorAll(".ff-discover-direct-input").forEach(node => node.classList.remove("ff-discover-direct-input"));
   }
 
@@ -101,7 +97,6 @@
       if (!input || routeName() !== "discover") return;
 
       const form = input.closest(FORM_SELECTOR) || input.form;
-      const label = input.closest("label") || input.parentElement;
       if (clear) {
         input.value = "";
         input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -113,13 +108,6 @@
       }
 
       if (routeName() !== "discover") return;
-      const hint = document.createElement("div");
-      hint.id = HINT_ID;
-      hint.setAttribute("role", "status");
-      hint.innerHTML = '<span aria-hidden="true">↓</span><strong>TYPE YOUR CARD HERE</strong> — start with year, set, player and card number.';
-      (form || label || input).insertAdjacentElement("beforebegin", hint);
-
-      form?.classList.add("ff-discover-direct-form");
       input.classList.add("ff-discover-direct-input");
       if (scroll) input.scrollIntoView({ behavior: "smooth", block: "center" });
       window.setTimeout(() => {
@@ -129,7 +117,6 @@
       }, 300);
 
       window.setTimeout(() => {
-        form?.classList.remove("ff-discover-direct-form");
         input.classList.remove("ff-discover-direct-input");
       }, 12000);
     } finally {

@@ -34,7 +34,7 @@ const checks = [
   ["decision clarity follows decision value risk why evidence hierarchy", ["Why FlipForge says", "Supported value", "Risk", "View evidence", "Decision details"].every(value => clarity.includes(value))],
   ["raw Card Intelligence metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, market factors and rank")],
   ["final decision risk is distinguished from the market risk factor", ["Decision risk", "Market risk factor", "final saved decision risk"].every(value => clarity.includes(value))],
-  ["Evaluate is reduced to card cost decision first-value flow", ["Confirm the exact card and listing", "Enter your real all-in cost", "Review and get the decision", "Get FlipForge decision"].every(value => firstValue.includes(value))],
+  ["Evaluate is reduced to card cost decision first-value flow", ["Card & listing", "All-in cost", "Confirm & evaluate", "Get FlipForge decision"].every(value => firstValue.includes(value)) && !firstValue.includes("installEvaluateFlow(root);")],
   ["Evaluate result leads with decision supported value cost risk why and next action", ["Your FlipForge decision", "Supported value", "All-in cost", "Risk", "Why", "What to do next"].every(value => firstValue.includes(value))],
   ["Evaluate raw result detail is progressively disclosed", firstValue.includes("data-ff-evaluate-result-details") && firstValue.includes("Raw scores, workflow status, requirements and authority notes")],
   ["Getting Started reduces first use to one four-step decision loop", ["Find the exact card", "Confirm the listing and real cost", "Read Decision → Value → Risk → Why", "Open the evidence"].every(value => firstValue.includes(value))],

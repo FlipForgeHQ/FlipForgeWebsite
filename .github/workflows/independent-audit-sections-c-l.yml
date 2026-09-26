@@ -282,6 +282,8 @@ jobs:
       - run: npm run validate:beta-acquisition
       - run: npm run validate:private-beta
       - run: npm run validate:sitewide-ux
+      - name: Block redundant customer instructions and competing hierarchy
+        run: node scripts/validate-customer-ux-redundancy.mjs
       - name: Terms/privacy/beta-data boundary checks
         shell: bash
         run: |
