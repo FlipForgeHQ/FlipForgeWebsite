@@ -316,7 +316,7 @@
         <div><span class="eyebrow">BROADER MARKET</span><h2>Broader market intelligence comes next.</h2><p>${escapeHtml(data.broaderMarket?.reason || "Governed market-wide scanner and history inputs are not active yet.")}</p><small>FlipForge will show broader volume, momentum, and market-index views only when the underlying data can support those claims.</small></div>
       </section>
 
-      <p class="market-view-boundary"><strong>Decision boundary:</strong> Market View summarizes your saved evaluations. Smart Opportunity still owns BUY/WATCH/VERIFY/PASS, and Forge Heat prioritizes qualified saved opportunities.</p>
+      <details class="market-view-boundary ff-trust-note"><summary>How Market View stays governed</summary><p>Market View summarizes your saved evaluations. Smart Opportunity still owns BUY/WATCH/VERIFY/PASS, and Forge Heat prioritizes qualified saved opportunities.</p></details>
     </div>`;
   }
 
