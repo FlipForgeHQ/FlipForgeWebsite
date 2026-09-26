@@ -82,9 +82,22 @@ The private-beta shell intentionally remains simpler. Full-customer-only navigat
 - Customer-route changes must trigger the Full Customer App Assurance workflow.
 - The same assurance must run again on `main` after merge.
 
+## Instruction ownership and redundancy
+
+Customer comprehension failures include visual duplication, not only missing text. Critical action areas must have **one persistent instruction owner**.
+
+- A primary input must not be preceded by multiple persistent versions of “start here,” “enter your card,” or equivalent instructions.
+- Guided Mode may focus or scroll to an existing control, but it must not create a second persistent instruction banner for the same action.
+- Presentation CSS must not inject instructional copy through pseudo-elements when the DOM already contains the same instruction.
+- Gold emphasis must communicate one hierarchy level at a time. Avoid nested emphasis borders, numbered callouts, and highlighted wrappers around an already-highlighted input.
+- A primary action and its fallback must be visually distinct. The fallback may not compete with the primary CTA.
+- Format examples and notation rules should use concise helper text or progressive disclosure rather than another callout.
+- Customer-facing changes that add, move, or restyle critical input instructions must pass the redundancy/hierarchy audit.
+
 ## Current automated gates
 
 - `scripts/validate-full-customer-app.mjs`
+- `scripts/validate-customer-ux-redundancy.mjs`
 - `scripts/validate-customer-navigation-parity.mjs`
 - `scripts/audit-full-customer-route-ci.mjs`
 - `scripts/audit-customer-auth-recovery-ci.mjs`
