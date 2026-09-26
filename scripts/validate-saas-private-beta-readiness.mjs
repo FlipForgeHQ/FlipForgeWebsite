@@ -68,6 +68,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["039g record system exposes identity evidence receipt and outcome history", ["IDENTITY RECORD", "EVIDENCE RECORD", "DECISION RECEIPT", "OUTCOME HISTORY"].every(value => beta.includes(value))],
   ["039h record system keeps server and browser authority boundary explicit", beta.includes("server-backed SQLite") && beta.includes("browser does not become the authority")],
   ["039i record system is visibly database-like and responsive", css.includes(".private-beta-record-stack") && css.includes(".private-beta-record-map") && css.includes("@media(max-width:700px)")],
+  ["039j health completion patches one status card instead of rerendering the guide", beta.includes("function updateBridgeStatus") && beta.includes("updateBridgeStatus(main, health)") && !beta.includes("main.innerHTML = pageMarkup(latestSession, health)")],
   ["040 feedback is restricted to active invited testers", beta.includes("!session.authenticated || !session.membershipActive")],
   ["041 feedback summary is required and bounded", beta.includes('maxlength="2000"') && beta.includes("summary.length > 2000")],
   ["042 expected feedback is bounded", beta.includes('maxlength="1200"')],

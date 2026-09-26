@@ -158,8 +158,6 @@
   function start() {
     installStyle();
     queueScan();
-    setTimeout(queueScan, 100);
-    setTimeout(queueScan, 400);
 
     const observer = new MutationObserver(() => queueScan());
 
@@ -172,11 +170,11 @@
 
     document.addEventListener("toggle", queueScan, true);
 
-    window.addEventListener("hashchange", () => {
-      queueScan();
-      setTimeout(queueScan, 80);
-      setTimeout(queueScan, 300);
-    });
+    // Route mutations already trigger the observer. Delayed 80–400ms rescans
+    // changed font metrics after a route had been revealed, producing visible
+    // heading/button reflow. Keep typography ownership synchronous with the
+    // actual DOM mutation lifecycle instead.
+    window.addEventListener("hashchange", queueScan);
     window.addEventListener("resize", queueScan, { passive: true });
     window.FlipForgeCustomerTypographyFloor = Object.freeze({
       minimumPx: MINIMUM_PX,

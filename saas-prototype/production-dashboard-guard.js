@@ -100,7 +100,10 @@
     const host = String(window.location.hostname || "");
     const path = String(window.location.pathname || "");
     const route = String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard";
-    return PRODUCTION_HOST.test(host) && APP_PATH.test(path) && route === "dashboard";
+    return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
+      && APP_PATH.test(path)
+      && fullCustomerEntry()
+      && route === "dashboard";
   }
 
   function rendererFailureMarkup() {
@@ -111,7 +114,7 @@
     if (!customerApp() || !fullCustomerEntry()) return;
     if (typeof document.querySelector !== "function" || typeof document.createElement !== "function" || !document.head) return;
 
-    if (!document.querySelector('[data-ff-commercial-dashboard-css]')) {
+    if (!document.querySelector('[data-ff-commercial-dashboard-css], link[href$="commercial-dashboard-v2.css"]')) {
       const stylesheet = document.createElement("link");
       stylesheet.rel = "stylesheet";
       stylesheet.href = FULL_CUSTOMER_DASHBOARD_STYLESHEET;

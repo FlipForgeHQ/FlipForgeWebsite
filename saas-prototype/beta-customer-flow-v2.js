@@ -462,7 +462,7 @@
     if (nav) new MutationObserver(scheduleApply).observe(nav, { childList: true, subtree: true });
     window.addEventListener("hashchange", () => {
       document.documentElement.classList.remove("ff-show-advanced");
-      window.setTimeout(scheduleApply, 70);
+      scheduleApply();
     });
     window.addEventListener("pageshow", scheduleApply);
     window.addEventListener("load", scheduleApply);
