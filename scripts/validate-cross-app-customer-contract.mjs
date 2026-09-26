@@ -28,8 +28,13 @@ check(
 
 for (const item of advancedExpected) {
   check(navJs.includes(`"${item.key}"`), `Advanced route key missing from browser navigation contract: ${item.key}`);
-  check(customerHtml.includes(`data-route="${item.key}"`), `Advanced customer route missing from customer shell: ${item.key}`);
-  check(customerHtml.includes(item.label), `Advanced customer label missing from customer shell: ${item.label}`);
+  const hrefNeedle = `href="${item.browserHref}"`;
+  const routeNeedle = `data-route="${item.key}"`;
+  const anchors = [...customerHtml.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/g)].map(match => match[0]);
+  const anchor = anchors.find(value => value.includes(hrefNeedle) && value.includes(routeNeedle)) || "";
+  check(Boolean(anchor), `Advanced customer route/href missing from customer shell: ${item.key} -> ${item.browserHref}`);
+  const renderedLabel = anchor.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  check(renderedLabel === item.label, `Advanced customer label drifted for ${item.key}: expected "${item.label}", got "${renderedLabel}"`);
 }
 
 const layerPattern = /data-cdi-layer="([^"]+)"[\s\S]*?<strong>([^<]+)<\/strong>/g;
