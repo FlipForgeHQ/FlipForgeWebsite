@@ -173,8 +173,8 @@
       .map(item => String(item || "").trim())
       .filter(Boolean);
     const psaBoundary = available
-      ? "Saved PSA context is read-only and is not recalculated in the browser. It provides grading context only and does not create a purchase recommendation or transaction authority."
-      : "Saved PSA context is incomplete. Verification is required, and FlipForge will not create population data, sold comps, value, confidence, a grade prediction, or purchase authorization to fill the gap.";
+      ? "Saved PSA context is read-only and is not recalculated in the browser. It provides grading context without predicting a grade and does not create a purchase recommendation or transaction authority."
+      : "Saved PSA context is incomplete. Verification is required. FlipForge fills no gaps without predicting a grade, inventing population data or sold comps, or creating purchase authorization.";
     const savedRecordReview = psa.authorityConflict
       ? "The saved PSA snapshot is more conservative than this saved Smart Opportunity decision. PSA Advisor does not override or recalculate that decision. Review the saved evidence and run a fresh evaluation after verification if updated context is needed."
       : "";
