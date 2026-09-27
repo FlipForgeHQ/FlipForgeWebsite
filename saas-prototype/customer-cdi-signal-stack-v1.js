@@ -406,6 +406,8 @@
   }
 
   function returningSavedGuide() {
+    const parts = routeParts();
+    if (parts[0] !== "opportunities" || parts[1]) return;
     const root = document.querySelector("#main-content [data-ff-cdi-returning]");
     root?.remove();
   }
