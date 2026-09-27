@@ -47,7 +47,7 @@ for (const [number, label] of [
   ["011", "Economic Intelligence"],
   ["012", "Risk + Uncertainty Intelligence"],
   ["013", "Decision Intelligence"],
-  ["014", "Decision Traceback / Decision Receipt"],
+  ["014", "Traceback Intelligence"],
   ["015", "Outcome Intelligence"]
 ]) {
   check(`${number} ${label} is present`, js.includes(label));
