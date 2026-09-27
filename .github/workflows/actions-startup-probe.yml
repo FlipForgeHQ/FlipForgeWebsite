@@ -1,0 +1,21 @@
+name: Actions Startup Probe
+
+on:
+  push:
+    branches:
+      - feat/cross-app-customer-parity-gate
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Native runner startup probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Prove runner execution
+        run: |
+          echo "ACTIONS_STARTUP_PROBE=PASS"
+          uname -a
