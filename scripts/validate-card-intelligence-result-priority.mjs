@@ -47,7 +47,7 @@ const checks = [
   ["legacy BUY CANDIDATE wording is absent from customer marketing", !product.includes("BUY CANDIDATE") && !faq.includes("BUY CANDIDATE")],
   ["technical traceback label is replaced by customer-facing decision details on product and FAQ", !product.includes(">Traceback<") && !faq.includes("What is decision traceback?") && product.includes("Decision details") && faq.includes("Decision details")],
   ["locked brand line uses exact capitalization", clarity.includes("Before you buy. Know Why.")],
-  ["clarity layouts are responsive", clarityCss.includes("@media (max-width: 900px)") && clarityCss.includes("@media (max-width: 650px)") && firstValueCss.includes("@media (max-width: 900px)") && firstValueCss.includes("@media (max-width: 720px)")]
+  ["clarity layouts are responsive", clarityCss.includes("@media (max-width: 900px)") && clarityCss.includes("@media (max-width: 650px)") && firstValueCss.includes("@media (max-width: 900px)") && firstValueCss.includes("@media (max-width: 560px)")]
 ];
 
 let failed = 0;
