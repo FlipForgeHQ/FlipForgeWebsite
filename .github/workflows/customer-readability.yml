@@ -5,6 +5,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/validate-customer-readability.mjs"
+      - "scripts/validate-customer-ux-redundancy.mjs"
       - "scripts/audit-customer-typography-ci.mjs"
       - ".github/workflows/customer-readability.yml"
       - ".github/workflows/saas-full-site-visual-qa.yml"
@@ -13,6 +14,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/validate-customer-readability.mjs"
+      - "scripts/validate-customer-ux-redundancy.mjs"
       - "scripts/audit-customer-typography-ci.mjs"
       - ".github/workflows/customer-readability.yml"
       - ".github/workflows/saas-full-site-visual-qa.yml"
@@ -30,3 +32,5 @@ jobs:
           node-version: "22"
       - name: Validate customer readability scale
         run: node scripts/validate-customer-readability.mjs
+      - name: Block redundant instructions and competing hierarchy
+        run: node scripts/validate-customer-ux-redundancy.mjs

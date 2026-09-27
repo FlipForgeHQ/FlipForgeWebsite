@@ -4,9 +4,14 @@ on:
   pull_request:
     paths:
       - '_redirects'
+      - 'saas-prototype/**'
+      - 'saas-prototype/**'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-navigation-parity-v1.js'
+      - 'saas-prototype/decision-card-evidence-v1.js'
+      - 'contracts/customer-parity-v2.json'
+      - 'scripts/validate-cross-app-customer-contract.mjs'
       - 'saas-prototype/customer-why-decision-view-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
       - 'saas-prototype/customer-app-system-v2.css'
@@ -24,6 +29,7 @@ on:
       - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
+      - 'scripts/validate-customer-ux-redundancy.mjs'
       - 'scripts/validate-customer-app-audit-standard.mjs'
       - 'scripts/validate-customer-app-audit-coverage.mjs'
       - 'scripts/validate-customer-app-audit-policy.mjs'
@@ -41,6 +47,9 @@ on:
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-navigation-parity-v1.js'
+      - 'saas-prototype/decision-card-evidence-v1.js'
+      - 'contracts/customer-parity-v2.json'
+      - 'scripts/validate-cross-app-customer-contract.mjs'
       - 'saas-prototype/customer-why-decision-view-v1.js'
       - 'saas-prototype/customer-only-shell-v1.css'
       - 'saas-prototype/customer-app-system-v2.css'
@@ -58,6 +67,7 @@ on:
       - 'scripts/lib/flipforge-production-auth-probe.mjs'
       - 'scripts/validate-netlify-rule-budget.mjs'
       - 'scripts/validate-full-customer-app.mjs'
+      - 'scripts/validate-customer-ux-redundancy.mjs'
       - 'scripts/validate-customer-app-audit-standard.mjs'
       - 'scripts/validate-customer-app-audit-coverage.mjs'
       - 'scripts/validate-customer-app-audit-policy.mjs'
@@ -96,6 +106,8 @@ jobs:
           node scripts/validate-customer-app-audit-coverage.mjs
           node scripts/validate-customer-audit-manifest.mjs
           node scripts/validate-customer-navigation-parity.mjs
+          node scripts/validate-cross-app-customer-contract.mjs
+          node scripts/validate-customer-ux-redundancy.mjs
           node scripts/validate-full-customer-app.mjs
       - name: Install Playwright Chromium
         run: |

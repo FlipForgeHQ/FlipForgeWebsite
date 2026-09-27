@@ -37,7 +37,7 @@ for (const [name, html] of [["canonical customer shell", customer], ["prototype 
 check("005 four plain-language checks are explicit", ["Exact card","Trustworthy sales","Price check","Uncertainty"].every(item => js.includes(item)));
 check("006 plain verdicts cover every governed decision state", ["Buy looks supported","Watch this one","Verify before acting","Pass at this price"].every(item => js.includes(item)));
 check("007 raw BUY WATCH VERIFY PASS status remains visible as metadata", ["BUY","WATCH","VERIFY","PASS"].every(item => js.includes(item)) && js.includes("Decision engine · Smart Opportunity"));
-check("008 primary teaching CTA is explicit", js.includes("Show me why FlipForge said ") && js.includes("Watch the 4 checks assemble · about 3 seconds"));
+check("008 primary teaching CTA is explicit without duplicate START HERE coaching", js.includes("See why FlipForge said ") && js.includes("Watch the 4 checks assemble · about 3 seconds") && !js.includes("<span>START HERE</span><strong>Show me why"));
 check("009 signal reveal uses approved 340ms stagger", js.includes("const STAGGER_MS = 340"));
 check("010 reduced-motion path completes without staged animation", js.includes('prefers-reduced-motion: reduce') && js.includes("rows.forEach(row => row.classList.add"));
 check("011 presentation layer performs no network activity", !/fetch\s*\(|XMLHttpRequest|WebSocket/i.test(js));
@@ -46,13 +46,13 @@ check("013 presentation layer does not assign recommendation authority", !/recom
 check("014 real Decision Intelligence route is covered", js.includes('parts[0] === "decision-intelligence"'));
 check("015 saved Decision detail route is covered", js.includes('parts[0] === "opportunities" && parts[1]'));
 check("016 returning Saved Decisions route is covered", js.includes('parts[0] !== "opportunities" || parts[1]'));
-check("017 Evidence detail gets plain-language orientation", js.includes("Check trustworthy sales") && js.includes("what FlipForge could use, what it excluded"));
+check("017 Evidence detail gets one progressive plain-language orientation", js.includes("How FlipForge filters evidence") && js.includes("what FlipForge could use, what it excluded") && js.includes('document.createElement("details")') && !js.includes("01 · TRUSTED"));
 check("018 full evidence stays on native route", js.includes("#/evidence/") && js.includes("Open full evidence"));
 check("019 existing Decision Receipt is opened rather than rebuilt", js.includes("[data-ff-decision-receipt]") && !js.includes("SERVER-OWNED RECORD"));
 check("020 deeper detail uses progressive disclosure", js.includes("Full evidence & Decision Receipt") && js.includes("Full evidence & saved decision detail"));
 check("021 tablet/mobile rules exist", css.includes("@media (max-width:760px)") && css.includes("@media (max-width:480px)"));
 check("022 reduced-motion CSS exists", css.includes("@media (prefers-reduced-motion:reduce)"));
-check("023 primary meaning stays white with gold accent", css.includes("color:#fff") && css.includes("color:#d4af37"));
+check("023 primary meaning stays white with gold accent", css.includes("color:#fff") && (css.includes("color:#d4af37") || css.includes("color:#f0ca58")));
 check("024 no theatrical headline sizing is introduced", !/font-size\s*:\s*(?:[5-9]\d|[1-9]\d{2,})px/i.test(css));
 check("025 real-data signal visuals cover exact card sales price and uncertainty", ["ff-cdi-visual-exact","ff-cdi-visual-sales","ff-cdi-visual-price","ff-cdi-visual-uncertainty"].every(item => js.includes(item) && css.includes(item)));
 check("026 price visual consumes returned ask/support rather than fake time series", js.includes("moneyFromText") && js.includes("signal.ask") && js.includes("signal.supported") && !js.includes("sparkline"));

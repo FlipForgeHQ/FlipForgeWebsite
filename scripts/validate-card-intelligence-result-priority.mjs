@@ -34,7 +34,7 @@ const checks = [
   ["decision clarity follows decision value risk why evidence hierarchy", ["Why FlipForge says", "Supported value", "Risk", "View evidence", "Decision details"].every(value => clarity.includes(value))],
   ["raw Card Intelligence metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, market factors and rank")],
   ["final decision risk is distinguished from the market risk factor", ["Decision risk", "Market risk factor", "final saved decision risk"].every(value => clarity.includes(value))],
-  ["Evaluate is reduced to card cost decision first-value flow", ["Confirm the exact card and listing", "Enter your real all-in cost", "Review and get the decision", "Get FlipForge decision"].every(value => firstValue.includes(value))],
+  ["Evaluate is reduced to card cost decision first-value flow", ["Card & listing", "All-in cost", "Confirm & evaluate", "Get FlipForge decision"].every(value => firstValue.includes(value)) && !firstValue.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow")],
   ["Evaluate result leads with decision supported value cost risk why and next action", ["Your FlipForge decision", "Supported value", "All-in cost", "Risk", "Why", "What to do next"].every(value => firstValue.includes(value))],
   ["Evaluate raw result detail is progressively disclosed", firstValue.includes("data-ff-evaluate-result-details") && firstValue.includes("Raw scores, workflow status, requirements and authority notes")],
   ["Getting Started reduces first use to one four-step decision loop", ["Find the exact card", "Confirm the listing and real cost", "Read Decision → Value → Risk → Why", "Open the evidence"].every(value => firstValue.includes(value))],
@@ -47,7 +47,7 @@ const checks = [
   ["legacy BUY CANDIDATE wording is absent from customer marketing", !product.includes("BUY CANDIDATE") && !faq.includes("BUY CANDIDATE")],
   ["technical traceback label is replaced by customer-facing decision details on product and FAQ", !product.includes(">Traceback<") && !faq.includes("What is decision traceback?") && product.includes("Decision details") && faq.includes("Decision details")],
   ["locked brand line uses exact capitalization", clarity.includes("Before you buy. Know Why.")],
-  ["clarity layouts are responsive", clarityCss.includes("@media (max-width: 900px)") && clarityCss.includes("@media (max-width: 650px)") && firstValueCss.includes("@media (max-width: 900px)") && firstValueCss.includes("@media (max-width: 720px)")]
+  ["clarity layouts are responsive", clarityCss.includes("@media (max-width: 900px)") && clarityCss.includes("@media (max-width: 650px)") && firstValueCss.includes("@media (max-width: 900px)") && firstValueCss.includes("@media (max-width: 560px)")]
 ];
 
 let failed = 0;

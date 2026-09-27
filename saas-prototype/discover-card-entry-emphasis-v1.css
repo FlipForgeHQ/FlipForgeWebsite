@@ -4,44 +4,11 @@
 }
 
 .customer-discovery-page.ff-discover-above-fold > .customer-discovery-search{
-  margin-top:0;
-}
-
-.customer-discovery-page.ff-discover-above-fold > [data-ff-discover-coach],
-.customer-discovery-page.ff-discover-above-fold > [data-ff-workflow-strip],
-.customer-discovery-page.ff-discover-above-fold > [data-ff-decision-key],
-.customer-discovery-page.ff-discover-above-fold > .boundary-note{
-  margin-top:.75rem;
-}
-
-.customer-discovery-search{
   position:relative;
   overflow:visible;
-  border:1px solid rgba(240,202,88,.34)!important;
-  background:
-    radial-gradient(circle at 0 0,rgba(240,202,88,.11),transparent 28%),
-    linear-gradient(145deg,rgba(212,175,55,.055),rgba(255,255,255,.018))!important;
-  box-shadow:0 0 0 1px rgba(212,175,55,.08),0 18px 50px rgba(0,0,0,.22)!important;
-}
-
-.customer-discovery-search::before{
-  content:"START HERE · ENTER YOUR CARD";
-  position:static;
-  display:inline-flex;
-  align-items:center;
-  box-sizing:border-box;
-  width:max-content;
-  max-width:calc(100% - 36px);
-  margin:14px 18px 0;
-  padding:6px 11px;
-  border:1px solid rgba(240,202,88,.72);
-  border-radius:999px;
-  background:rgba(227,184,63,.12);
-  color:#f0ca58;
-  font:950 10px/1 Inter,system-ui,sans-serif;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  box-shadow:none;
+  border:1px solid rgba(255,255,255,.10)!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.025),rgba(255,255,255,.012))!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.22)!important;
 }
 
 .customer-discovery-search.ff-guide-highlight{
@@ -78,45 +45,30 @@
 .customer-discovery-form > label:has(input[name="exactCardQuery"]){
   grid-column:1 / -1;
   position:relative;
-  gap:9px;
-  padding:14px;
-  border:1px solid rgba(240,202,88,.36);
-  border-radius:12px;
-  background:rgba(240,202,88,.055);
+  gap:8px;
+  padding:0;
+  border:0;
+  background:transparent;
 }
 
 .customer-discovery-form > label:has(input[name="exactCardQuery"]) > span{
-  color:#f0ca58!important;
+  color:#d7dee7!important;
   font-size:13px!important;
-  font-weight:950!important;
-  letter-spacing:.09em!important;
-}
-
-.customer-discovery-form > label:has(input[name="exactCardQuery"]) > span::before{
-  content:"1  ";
-  display:inline-grid;
-  place-items:center;
-  width:25px;
-  height:25px;
-  margin-right:8px;
-  border-radius:50%;
-  background:#e2b63f;
-  color:#070b10;
-  font-size:12px;
-  letter-spacing:0;
+  font-weight:800!important;
+  letter-spacing:.02em!important;
 }
 
 .customer-discovery-form input[name="exactCardQuery"]{
   min-height:66px!important;
   padding:15px 17px!important;
-  border:2px solid rgba(240,202,88,.7)!important;
+  border:1px solid rgba(255,255,255,.18)!important;
   border-radius:11px!important;
   background:#0b1119!important;
   color:#fff!important;
   font-size:18px!important;
   font-weight:700!important;
   letter-spacing:.005em;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 0 0 4px rgba(212,175,55,.055)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)!important;
 }
 
 .customer-discovery-form input[name="exactCardQuery"]::placeholder{
@@ -187,16 +139,6 @@
 
 @media(max-width:680px){
   .customer-discovery-page.ff-discover-above-fold > .page-heading{margin-bottom:.5rem}
-  .customer-discovery-search::before{
-    display:flex;
-    width:auto;
-    max-width:none;
-    margin:12px 12px 0;
-    font-size:9px;
-    line-height:1.25;
-    white-space:normal;
-    overflow-wrap:anywhere;
-  }
   .customer-discovery-form{grid-template-columns:1fr}
   .customer-discovery-form > label:has(input[name="exactCardQuery"]){grid-column:1}
   .customer-discovery-form input[name="exactCardQuery"]{min-height:62px!important;font-size:16px!important}

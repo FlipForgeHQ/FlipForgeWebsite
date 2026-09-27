@@ -56,7 +56,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["043 changed card input invalidates current identity-assist ownership", discovery.includes('identityInput?.addEventListener("input"') && discovery.includes("state.identityAssist.requestSerial += 1")],
   ["044 identity selection is bound to the query that rendered it", discovery.includes("const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.query)") && discovery.includes("resolveIdentity(index, selectionOwnerQuery)")],
   ["045 stale selection fails closed against current assist draft and visible query", discovery.includes("ownedQuery !== currentQuery") && discovery.includes("ownedQuery !== draftQuery") && discovery.includes("ownedQuery !== visibleQuery")],
-  ["046 Discover entry text rewrites are idempotent", entry.includes('labelText.textContent !== "CARD IDENTITY — ENTER THE CARD YOU WANT TO EVALUATE"') && entry.includes('searchButton.textContent !== "Search active listings"') && entry.includes('identifyButton.textContent !== "Find exact card"')],
+  ["046 Discover entry text rewrites are idempotent", entry.includes('labelText.textContent !== "Card"') && entry.includes('searchButton.textContent !== "Search active listings"') && entry.includes('identifyButton.textContent !== "Find exact card"')],
   ["047 Discover entry observer disconnects during owned writes", entry.includes("observer.disconnect()") && entry.includes("decorateWithoutSelfObservation") && entry.includes("observeMain()")],
   ["048 Guided Mode follows canonical search-first ordering", guide.includes('search.insertAdjacentElement("afterend", coach)') && !guide.includes('coach.insertAdjacentElement("afterend", search)')]
 ].forEach(([name, condition]) => check(name, condition));

@@ -206,7 +206,7 @@ try {
     "Economic Intelligence",
     "Risk + Uncertainty Intelligence",
     "Decision Intelligence",
-    "Decision Traceback / Decision Receipt",
+    "Traceback Intelligence",
     "Outcome Intelligence"
   ];
 

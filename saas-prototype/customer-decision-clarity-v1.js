@@ -245,7 +245,9 @@
 
       simplifySavedState(root);
       promoteDecisionMeaning(root, decision, risk);
-      createWhyPanel(root, decision, facts, risk);
+      const interactiveWhy = root.querySelector("[data-ff-cdi-stack], [data-ff-cdi-stack-host]");
+      if (interactiveWhy) root.querySelector("[data-ff-decision-why]")?.remove();
+      else createWhyPanel(root, decision, facts, risk);
       collapseAdvancedMetrics(root);
       renameDeepSections(root);
     } finally {

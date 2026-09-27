@@ -117,17 +117,17 @@
     if (!label) return;
 
     const labelText = label.querySelector(":scope > span");
-    if (labelText && labelText.textContent !== "CARD IDENTITY — ENTER THE CARD YOU WANT TO EVALUATE") {
-      labelText.textContent = "CARD IDENTITY — ENTER THE CARD YOU WANT TO EVALUATE";
+    if (labelText && labelText.textContent !== "Card") {
+      labelText.textContent = "Card";
     }
 
     input.placeholder = "Example: 2018 Topps Chrome Shohei Ohtani #150 PSA 9";
-    input.setAttribute("aria-label", "Card identity — start here");
+    input.setAttribute("aria-label", "Card");
 
     if (!label.querySelector(".ff-card-entry-helper")) {
       const helper = document.createElement("small");
       helper.className = "ff-card-entry-helper";
-      helper.textContent = "Not sure of the exact card? Find and confirm it first. Already know it? Search active listings.";
+      helper.textContent = "Year · Set · Player · Card # · Grade (when known).";
       input.insertAdjacentElement("afterend", helper);
     }
 

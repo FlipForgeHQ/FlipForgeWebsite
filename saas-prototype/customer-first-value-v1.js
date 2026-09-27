@@ -51,7 +51,7 @@
 
   function decisionKeyAllowed(root) {
     const route = routeName();
-    if (["dashboard", "discover", "tracking", "forge-heat", "evaluate"].includes(route)) return true;
+    if (["dashboard", "tracking", "forge-heat"].includes(route)) return true;
     if (route === "opportunities" && !root.querySelector(".customer-intelligence-hero")) return true;
     return false;
   }
@@ -91,19 +91,6 @@
     details.dataset.ffTrustConverted = "true";
     details.innerHTML = `<summary>How FlipForge protects this decision</summary><p>Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. The browser submits facts only; it cannot accept evidence, silently verify uncertain identity, predict a grade, or authorize a transaction.</p>`;
     boundary.replaceWith(details);
-  }
-
-  function installEvaluateFlow(root) {
-    if (root.querySelector("[data-ff-evaluate-flow]")) return;
-    const heading = root.querySelector(".customer-evaluation-page .page-heading");
-    if (!heading) return;
-    const flow = document.createElement("div");
-    flow.className = "ff-evaluate-flow";
-    flow.setAttribute("data-ff-evaluate-flow", "");
-    flow.innerHTML = `<div><span>1</span><strong>Card</strong><small>Confirm the exact card and listing</small></div>
-      <div><span>2</span><strong>Cost</strong><small>Enter the real all-in price</small></div>
-      <div><span>3</span><strong>Decision</strong><small>Get the saved FlipForge answer</small></div>`;
-    heading.insertAdjacentElement("afterend", flow);
   }
 
   function renameField(form, name, label, hint = "") {
@@ -151,24 +138,22 @@
       setText(heading.querySelector("p"), "Confirm the exact card, enter the real cost, and let FlipForge return the saved decision.");
     }
 
-    installEvaluateFlow(root);
     replaceBoundaryWithTrustNote(root);
 
     const panel = page.querySelector(".staging-evaluation-panel");
     if (panel) {
-      setText(panel.querySelector(".panel-header h2"), "Tell FlipForge what you're considering");
-      setText(panel.querySelector(".panel-header p"), "Confirm the exact card and listing, then enter what it will really cost you.");
-      const badge = panel.querySelector(".panel-header .staging-status");
-      if (badge && /write boundary/i.test(text(badge))) setText(badge, "Decision support");
+      setText(panel.querySelector(".panel-header h2"), "Card and listing details");
+      panel.querySelector(".panel-header p")?.remove();
+      panel.querySelector(".panel-header .staging-status")?.remove();
     }
 
     const form = page.querySelector("[data-staging-evaluation-form]");
     if (!form) return;
     const steps = [...form.querySelectorAll(".customer-intake-step")];
     const stepCopy = [
-      ["Confirm the exact card and listing", "Card number, parallel and grade/condition should match the card you actually mean."],
-      ["Enter your real all-in cost", "Price, shipping, buyer premium and tax can all change the decision."],
-      ["Review and get the decision", "FlipForge uses the saved engine result; the browser never chooses BUY/WATCH/VERIFY/PASS."]
+      ["Card & listing", "Use the exact listing and the card identity you actually mean."],
+      ["All-in cost", "Include the costs that affect what you would really pay."],
+      ["Confirm & evaluate", "FlipForge returns the saved decision from the governed engine."]
     ];
     steps.forEach((step, index) => {
       if (!stepCopy[index]) return;
@@ -188,8 +173,7 @@
     if (boundaryCheck) {
       setText(boundaryCheck, "I understand FlipForge provides decision support. It does not place bids or purchases, predict grades, or silently verify uncertain identity or evidence for me.");
     }
-    const note = form.querySelector(".staging-form-note");
-    if (note) setText(note, "Retry protection is automatic; an unchanged evaluation is not silently duplicated.");
+    form.querySelector(".staging-form-note")?.remove();
 
     const submit = form.querySelector('button[type="submit"]');
     if (submit && !/evaluating/i.test(text(submit))) setText(submit, "Get FlipForge decision");
