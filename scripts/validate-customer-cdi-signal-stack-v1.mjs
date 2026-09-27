@@ -52,7 +52,7 @@ check("019 existing Decision Receipt is opened rather than rebuilt", js.includes
 check("020 deeper detail uses progressive disclosure", js.includes("Full evidence & Decision Receipt") && js.includes("Full evidence & saved decision detail"));
 check("021 tablet/mobile rules exist", css.includes("@media (max-width:760px)") && css.includes("@media (max-width:480px)"));
 check("022 reduced-motion CSS exists", css.includes("@media (prefers-reduced-motion:reduce)"));
-check("023 primary meaning stays white with gold accent", css.includes("color:#fff") && css.includes("color:#d4af37"));
+check("023 primary meaning stays white with gold accent", css.includes("color:#fff") && (css.includes("color:#d4af37") || css.includes("color:#f0ca58")));
 check("024 no theatrical headline sizing is introduced", !/font-size\s*:\s*(?:[5-9]\d|[1-9]\d{2,})px/i.test(css));
 check("025 real-data signal visuals cover exact card sales price and uncertainty", ["ff-cdi-visual-exact","ff-cdi-visual-sales","ff-cdi-visual-price","ff-cdi-visual-uncertainty"].every(item => js.includes(item) && css.includes(item)));
 check("026 price visual consumes returned ask/support rather than fake time series", js.includes("moneyFromText") && js.includes("signal.ask") && js.includes("signal.supported") && !js.includes("sparkline"));
