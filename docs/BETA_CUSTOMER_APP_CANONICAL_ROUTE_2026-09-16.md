@@ -1,4 +1,4 @@
-# FlipForge Private Beta — Canonical Customer App Route
+# FlipForge Private Beta Canonical Route — Revised 2026-09-28
 
 Status: **ACTIVE PRODUCT CONTRACT**  
 Effective: **2026-09-16**
@@ -9,13 +9,13 @@ FlipForge Private Beta is not a separate customer productlication. Invited beta 
 
 Canonical customer product base:
 
-`/app/customer/`
+`/app/beta/`
 
 Canonical private-beta onboarding route:
 
 `/app/beta/#/beta-start`
 
-The retired pre-canonical beta-shell onboarding target must not be emitted by invitation, Terms-acceptance, onboarding, operator, launch, or support code. `/app` may remain only as a Netlify compatibility alias that canonicalizes to `/app/customer/`.
+The retired pre-canonical beta-shell onboarding target must not be emitted by invitation, Terms-acceptance, onboarding, operator, launch, or support code. `/app` may remain only as a Netlify compatibility alias that canonicalizes to `/app/beta/`.
 
 ## Activation contract
 
@@ -23,7 +23,7 @@ After an invited tester accepts the Private Beta Terms and the acceptance receip
 
 `/app/beta/#/beta-start`
 
-The `beta-start` guide renders inside the full customer shell. It is an onboarding route, not a separate beta UI.
+The `beta-start` guide renders inside the full Private Beta shell. It is an onboarding route, not a separate beta UI.
 
 ## Product boundary
 
