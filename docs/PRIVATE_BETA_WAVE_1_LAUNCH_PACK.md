@@ -9,7 +9,7 @@ Move FlipForge from internal readiness proof into controlled real-user validatio
 
 Wave 1 is intentionally small. The objective is to learn whether serious collectors understand the product, complete the exact-card decision loop, find the reasoning useful, and return to use it again.
 
-Private Beta is not a separate customer application. All invited testers use the definitive customer SaaS at `/app/customer/`, with onboarding at `/app/customer/#/beta-start`.
+Private Beta is not a separate customer application. All invited testers use the Private Beta SaaS at `/app/beta/`, with onboarding at `/app/beta/#/beta-start`.
 
 This document supplements the existing private-beta operating contracts:
 
@@ -18,7 +18,7 @@ This document supplements the existing private-beta operating contracts:
 - `docs/FOUNDER_SELECTED_BETA_TESTER_FLOW.md`
 - `docs/SAAS_PRIVATE_BETA_READINESS.md`
 - `docs/BETA_CUSTOMER_APP_CANONICAL_ROUTE_2026-09-16.md`
-- in-product `/app/customer/#/beta-start` Private Beta Guide
+- in-product `/app/beta/#/beta-start` Private Beta Guide
 
 It does not authorize billing, a public accuracy percentage, transactions, auto-buying, grade prediction, or production self-training.
 
@@ -52,7 +52,7 @@ Before the first invitation is sent, require all of the following:
 - temporary local presigned PUT/GET URL files have been deleted;
 - no public CardSight accuracy percentage is displayed or implied;
 - billing and transaction authority remain disabled;
-- invitation activation, Beta Terms completion, documentation, and support guidance all resolve to `/app/customer/#/beta-start` rather than a legacy beta-shell route.
+- invitation activation, Beta Terms completion, documentation, and support guidance all resolve to `/app/beta/#/beta-start` rather than a legacy beta-shell route.
 
 ## Founder-selected testers
 
@@ -64,7 +64,7 @@ Behind the scenes, FlipForge creates one deduplicated application-compatible rec
 
 Founder selection does not accept legal terms on the tester's behalf. Founder-selected membership remains `terms_pending` until the tester explicitly accepts the current FlipForge Private Beta Terms during invitation activation. The accepted Terms version and timestamp are recorded against the application-bound Identity membership before active beta access is granted.
 
-After successful activation and Terms recording, the tester is sent to `/app/customer/#/beta-start` inside the full customer application.
+After successful activation and Terms recording, the tester is sent to `/app/beta/#/beta-start` inside the Private Beta application.
 
 ## Invitation message
 
@@ -90,7 +90,7 @@ Founder, FlipForge
 
 Each tester should complete **one exact-card loop** before broad exploration:
 
-1. Open `/app/customer/#/beta-start` and review the Private Beta Guide.
+1. Open `/app/beta/#/beta-start` and review the Private Beta Guide.
 2. Search one exact card in Discover.
 3. Confirm that the returned identity matches year, set, player, card number, parallel/variation, grader, and grade.
 4. Select one real listing or enter one manually in Evaluate.
@@ -228,7 +228,7 @@ Public statistical claims require a separately governed metric definition, denom
 4. For public applicants only: review fit and move qualified applicants through UNDER_REVIEW → APPROVED with cohort `wave-1-sep-2026`, then send the Identity invitation.
 5. Tester accepts the Private Beta Terms during activation and creates the account password.
 6. Verify `INVITE_SENT`, Terms receipt, and later `ACTIVATED` states.
-7. Tester lands at `/app/customer/#/beta-start` inside the same full customer app and completes the first exact-card loop.
+7. Tester lands at `/app/beta/#/beta-start` inside the same Private Beta app and completes the first exact-card loop.
 8. Review new feedback daily; resolve blockers before expanding.
 9. Complete the Day-7 Wave 1 scorecard.
 10. Expand to 10 only when the Wave 1 decision rules support it.
