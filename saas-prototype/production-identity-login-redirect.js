@@ -30,12 +30,7 @@
   }
 
   function productionAuthUrl() {
-    const pathname = String(window.location.pathname || "/app/");
-    const normalizedPath = pathname === "/app/customer" ? "/app/customer/"
-      : pathname === "/app" ? "/app/"
-      : pathname;
-    const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`;
-    const params = new URLSearchParams({ return: returnPath });
+    const params = new URLSearchParams({ return: "/app/customer/#/beta-start" });
     if (authoritativeAuthenticationDenied && currentUser()) params.set("reauth", "1");
     return `/production-auth.html?${params.toString()}`;
   }
@@ -122,12 +117,12 @@
       link = document.createElement("a");
       link.id = SIGN_IN_ID;
       link.dataset.ffCustomerSignIn = "";
-      link.setAttribute("aria-label", "Sign in to FlipForge and return to this page");
+      link.setAttribute("aria-label", "Sign in to FlipForge Private Beta");
       document.body.appendChild(link);
     }
     const staleAuthenticatedSession = authoritativeAuthenticationDenied && Boolean(currentUser());
     const requiresSignIn = authoritativeAuthenticationDenied || !currentUser();
-    link.textContent = staleAuthenticatedSession ? "Restore FlipForge sign in" : "Sign in to FlipForge";
+    link.textContent = staleAuthenticatedSession ? "Restore Private Beta sign in" : "Private Beta Sign In";
     link.href = productionAuthUrl();
     link.hidden = !requiresSignIn;
     link.setAttribute("aria-hidden", requiresSignIn ? "false" : "true");
@@ -170,8 +165,8 @@
     const authLink = target.closest(PRODUCTION_AUTH_LINK);
     if (!launcher && !authLink) return;
 
-    // Keep every production sign-in handoff on the exact product surface the
-    // user was using. A server 401 always outranks stale browser identity.
+    // Private Beta is the only public production authentication destination before customer launch.
+    // A server 401 always outranks stale browser identity.
     event.preventDefault();
     event.stopImmediatePropagation();
     window.location.assign(productionAuthUrl());
