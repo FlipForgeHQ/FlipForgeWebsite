@@ -3,11 +3,16 @@
 
   if (window.__ffCustomerSurfaceNormalizationV1 === true) return;
 
-  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const REPLACEMENTS = [
     ["Private Beta Evaluation Allowance Reached", "Evaluation allowance reached"],
-        ["Beta Invitation", "Invitation"],
+    ["PRIVATE BETA", "EARLY ACCESS"],
+    ["Private Beta", "Early Access"],
+    ["Private beta", "Early access"],
+    ["private beta", "early access"],
+    ["Private-beta", "Early-access"],
+    ["private-beta", "early-access"],
+    ["Beta Invitation", "Invitation"],
     ["Unlimited during beta", "No monthly cap"],
     ["Unlimited beta", "No monthly cap"],
     ["Paid checkout, plan changes, and customer portal controls are intentionally deferred until Core Platform Beta Complete.", "Paid checkout, plan changes, and customer portal controls are not available yet."],
@@ -26,10 +31,6 @@
   ];
 
   let queued = false;
-
-  function productionHost() {
-    return PRODUCTION_HOST.test(String(window.location.hostname || ""));
-  }
 
   function fullCustomerMode() {
     return window.FlipForgeFullCustomerEntry === true
@@ -77,7 +78,7 @@
     normalizeVisibleText(document);
     normalizeCustomerLinks(document);
     const chip = document.querySelector(".prototype-chip");
-    if (chip) chip.textContent = productionHost() ? "PRIVATE BETA" : "CUSTOMER APP";
+    if (chip && chip.textContent?.trim() !== "CUSTOMER APP") chip.textContent = "CUSTOMER APP";
     document.querySelector(".prototype-banner")?.remove();
   }
 
