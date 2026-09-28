@@ -60,7 +60,7 @@
 
     const customer = fullCustomerMode();
     const prototypeChip = document.querySelector(".prototype-chip");
-    if (prototypeChip) prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW";
+    if (prototypeChip) prototypeChip.textContent = customer ? "PRIVATE BETA" : "SAAS PREVIEW";
 
     const planEyebrow = document.querySelector(".plan-card .eyebrow");
     if (planEyebrow && !customer) planEyebrow.textContent = "Preview plan";
@@ -69,7 +69,7 @@
     if (accountName && !customer) accountName.textContent = "Owner account";
 
     const profileMode = document.querySelector(".profile-copy small");
-    if (profileMode) profileMode.textContent = customer ? "Customer" : "Preview";
+    if (profileMode) profileMode.textContent = customer ? "Private Beta" : "Preview";
 
     const gradingPanel = panelByHeading(cockpit, "Grading value predictor");
     if (gradingPanel) {
