@@ -7,10 +7,10 @@ Effective: **2026-09-16**
 
 FlipForge Private Beta is an invited-access mode inside the definitive customer SaaS, not a separate beta application.
 
-Canonical customer app: `/app/customer/`  
-Canonical onboarding route: `/app/customer/#/beta-start`
+Canonical customer product: `/app/customer/`  
+Canonical onboarding route: `/app/beta/#/beta-start`
 
-All invitation, Terms-acceptance, onboarding, support, and follow-up guidance must point testers into that same customer application.
+All invitation, Terms-acceptance, onboarding, support, and follow-up guidance must point testers into that same customer productlication.
 
 ## Funnel events
 
@@ -47,7 +47,7 @@ Do not describe these counts as product accuracy, investment performance, unique
 2. Public applicants receive the normal selection-review flow; founder-selected testers may skip only that review step.
 3. Selected tester receives an invitation and activates authenticated access.
 4. Tester explicitly accepts the Private Beta Terms and creates the account password.
-5. Successful activation opens `/app/customer/#/beta-start` inside the full customer application.
+5. Successful activation opens `/app/beta/#/beta-start` inside the dedicated Private Beta application.
 6. Tester completes one exact-card loop: Discover → Evaluate → Decision Intelligence → Traceback → Compare → Track → Decision Dossier → focused feedback.
 7. Tester revisits the preserved decision at 7 / 14 / 30-day checkpoints where possible and submits the bounded outcome signal through the signed feedback endpoint.
 
@@ -61,9 +61,9 @@ Hi {{first_name}},
 
 You have been selected for the invitation-only FlipForge private beta. Your first goal is not to test every feature. It is to run one exact-card decision through identity, evidence, recommendation, and traceback, then tell us where the reasoning helped or failed.
 
-Activate your account using the invitation sent separately, accept the Private Beta Terms, then continue into the Private Beta Guide inside the FlipForge customer app.
+Activate your account using the invitation sent separately, accept the Private Beta Terms, then continue into the Private Beta Guide inside the FlipForge customer product.
 
-Your onboarding destination after activation is `/app/customer/#/beta-start`.
+Your onboarding destination after activation is `/app/beta/#/beta-start`.
 
 Prepare one case with the year, set, player, card number, parallel or insert, grader, grade, and the decision you are trying to make. Do not send passwords, access tokens, provider keys, tenant IDs, listing URLs, or private personal information in feedback.
 
