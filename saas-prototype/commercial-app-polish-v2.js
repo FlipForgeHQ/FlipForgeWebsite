@@ -221,11 +221,11 @@
     }
 
     const chip = document.querySelector(".prototype-chip");
-    if (chip) chip.textContent = production() ? "PRIVATE BETA" : customer ? "CUSTOMER PREVIEW" : "BETA PREVIEW";
+    if (chip) chip.textContent = customer ? (production() ? "PRIVATE BETA" : "CUSTOMER APP") : production() ? "PRIVATE BETA" : "BETA PREVIEW";
 
     const profileSmall = document.querySelector(".profile-button .profile-copy small");
     if (customer && profileSmall) {
-      profileSmall.textContent = "Private Beta";
+      profileSmall.textContent = production() ? "Private Beta" : "Customer";
     } else if (production() && profileSmall && /preview/i.test(profileSmall.textContent || "")) {
       profileSmall.textContent = "Private beta";
     }
@@ -236,7 +236,7 @@
       const strong = planCard.querySelector("strong");
       const small = planCard.querySelector("small");
       if (customer) {
-        if (eyebrow) eyebrow.textContent = "Private Beta account";
+        if (eyebrow) eyebrow.textContent = production() ? "Private Beta account" : "Customer account";
         if (strong) strong.textContent = "Plan & Usage";
         if (small) small.textContent = "Plan state and evaluation usage are loaded from your account.";
       } else {
@@ -248,7 +248,9 @@
 
     if (production()) {
       document.title = customer
-        ? "FlipForge | Private Beta — Card Decision Intelligence"
+        ? production()
+          ? "FlipForge | Private Beta — Card Decision Intelligence"
+          : "FlipForge | Customer App — Card Decision Intelligence"
         : "FlipForge | Card Decision Intelligence";
     }
     installApprovedBrandMark();
