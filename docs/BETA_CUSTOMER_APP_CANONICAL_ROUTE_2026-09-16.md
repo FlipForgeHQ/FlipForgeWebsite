@@ -5,9 +5,9 @@ Effective: **2026-09-16**
 
 ## Canonical model
 
-FlipForge Private Beta is not a separate customer productlication. Invited beta testers use the same definitive customer SaaS experience as all customer-facing product work.
+FlipForge Private Beta uses a dedicated invitation-only Private Beta surface. The future customer application remains unpublished and is not a public login destination before launch.
 
-Canonical customer product base:
+Canonical Private Beta application base:
 
 `/app/beta/`
 
@@ -23,15 +23,15 @@ After an invited tester accepts the Private Beta Terms and the acceptance receip
 
 `/app/beta/#/beta-start`
 
-The `beta-start` guide renders inside the full Private Beta shell. It is an onboarding route, not a separate beta UI.
+The `beta-start` guide renders inside the dedicated Private Beta shell. The future customer application remains separate and unpublished.
 
 ## Product boundary
 
 Beta access is controlled by signed Identity membership and tenant roles. Beta status changes access and capability availability; it does not create a second source of truth, second recommendation engine, second browser application, or separate beta product.
 
-## Customer-shell rule
+## Surface rule
 
-The definitive customer document must load the Private Beta Guide stylesheet and adapter so `#/beta-start` renders in-place. The beta Terms gate must also be present on the canonical customer product surface.
+The dedicated Private Beta document must load the Private Beta Guide stylesheet and adapter so `#/beta-start` renders in place. The customer document remains an internal DEV surface and must not be published through production routing.
 
 ## UI rule
 
@@ -39,14 +39,14 @@ Any capability unavailable during private beta must be clearly labeled as unavai
 
 ## Documentation rule
 
-All operator instructions, invitation callbacks, launch packs, readiness docs, customer onboarding material, and support guidance must refer to the same canonical customer product and onboarding route.
+All operator instructions, invitation callbacks, launch packs, readiness docs, onboarding material, and support guidance must refer to the same canonical Private Beta route.
 
 ## Regression rule
 
 Private-beta validation must fail if:
 
 - the retired beta-shell onboarding target reappears in invitation or Terms-completion code;
-- the customer product stops loading `private-beta.css` or `private-beta.js`;
-- the Terms-gate injector stops targeting `saas-prototype/customer.html`;
+- the Private Beta surface stops loading `private-beta.css` or `private-beta.js`;
+- invitation or Terms-completion code routes testers to `/app/customer/`;
 - canonical beta documentation stops naming `/app/beta/#/beta-start`;
-- any activation path implies a separate authoritative beta customer productlication.
+- any activation path exposes the unpublished customer application.
