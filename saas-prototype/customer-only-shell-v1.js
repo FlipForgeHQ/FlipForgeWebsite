@@ -85,21 +85,21 @@
 
     document.documentElement.classList.add("ff-full-customer-app");
     document.body?.classList.add("ff-full-customer-app");
-    document.title = "FlipForge | Customer App — Card Decision Intelligence";
+    document.title = "FlipForge | Private Beta — Card Decision Intelligence";
 
     const description = document.querySelector('meta[name="description"]');
     if (description) description.setAttribute(
       "content",
-      "FlipForge customer app for Card Decision Intelligence: discover, evaluate, understand, save, and track sports-card decisions."
+      "FlipForge Private Beta for invited testers: discover, evaluate, understand, save, and track sports-card decisions."
     );
 
     hideElement(document.querySelector(".prototype-banner"));
-    setText(document.querySelector(".prototype-chip"), "CUSTOMER APP");
+    setText(document.querySelector(".prototype-chip"), "PRIVATE BETA");
 
     const plan = document.querySelector(".sidebar-footer .plan-card");
     if (plan) {
       showElement(plan);
-      setText(plan.querySelector(".eyebrow"), "Customer account");
+      setText(plan.querySelector(".eyebrow"), "Private Beta account");
       setText(plan.querySelector("strong"), "Plan & Usage");
       const small = plan.querySelector("small");
       if (small) setText(small, "Plan state and evaluation usage are loaded from your account.");
@@ -108,7 +108,7 @@
     const accountSmall = document.querySelector(".account-link small");
     setText(accountSmall, "Account");
     const profileSmall = document.querySelector(".profile-copy small");
-    setText(profileSmall, "Customer");
+    setText(profileSmall, "Private Beta");
   }
 
   function markCustomerSurface() {
