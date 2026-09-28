@@ -4,6 +4,7 @@
   const core = window.FlipForgePrototypeData;
   const features = window.FlipForgeSaaSFeatureData;
   const main = document.querySelector("#main-content");
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   if (!core || !features || !main) return;
 
@@ -12,6 +13,10 @@
     currency: "USD",
     maximumFractionDigits: 0
   });
+
+  function productionHost() {
+    return PRODUCTION_HOST.test(String(window.location.hostname || ""));
+  }
 
   function fullCustomerMode() {
     return FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
@@ -60,7 +65,7 @@
 
     const customer = fullCustomerMode();
     const prototypeChip = document.querySelector(".prototype-chip");
-    if (prototypeChip) prototypeChip.textContent = customer ? "PRIVATE BETA" : "SAAS PREVIEW";
+    if (prototypeChip) prototypeChip.textContent = customer ? (productionHost() ? "PRIVATE BETA" : "CUSTOMER APP") : "SAAS PREVIEW";
 
     const planEyebrow = document.querySelector(".plan-card .eyebrow");
     if (planEyebrow && !customer) planEyebrow.textContent = "Preview plan";
@@ -69,7 +74,7 @@
     if (accountName && !customer) accountName.textContent = "Owner account";
 
     const profileMode = document.querySelector(".profile-copy small");
-    if (profileMode) profileMode.textContent = customer ? "Private Beta" : "Preview";
+    if (profileMode) profileMode.textContent = customer ? (productionHost() ? "Private Beta" : "Customer") : "Preview";
 
     const gradingPanel = panelByHeading(cockpit, "Grading value predictor");
     if (gradingPanel) {
