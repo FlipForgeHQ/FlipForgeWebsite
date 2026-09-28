@@ -7,7 +7,7 @@ const outputRoot = path.join(root, 'assets', 'images');
 const CURRENT_DESCRIPTOR = 'Card Decision Intelligence';
 const CURRENT_DESCRIPTOR_DISPLAY = 'CARD DECISION INTELLIGENCE';
 const CURRENT_LOCKUP_ALT = 'FlipForge — Card Decision Intelligence — Before you buy. Know Why.';
-const BETA_SIGNIN_URL = '/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start';
+const BETA_SIGNIN_URL = '/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
 
 const assets = [
   {
