@@ -113,6 +113,7 @@ jobs:
           node scripts/validate-customer-app-audit-coverage.mjs
           node scripts/validate-customer-audit-manifest.mjs
           node scripts/validate-customer-navigation-parity.mjs
+          node scripts/validate-saas-production-account.mjs
           node scripts/validate-cross-app-customer-contract.mjs
           node scripts/validate-customer-ux-redundancy.mjs
           node scripts/validate-full-customer-app.mjs
