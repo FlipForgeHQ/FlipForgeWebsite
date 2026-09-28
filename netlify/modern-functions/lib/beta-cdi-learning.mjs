@@ -12,6 +12,9 @@ const ALLOWED = Object.freeze({
     "OUTCOME",
     "NONE",
   ]),
+  surfacedImportant: new Set(["YES", "NO", "UNSURE"]),
+  decisionEffect: new Set(["CHANGED", "CONFIRMED", "NEITHER"]),
+  futureUse: new Set(["YES", "MAYBE", "NO"]),
 });
 
 function clean(value) {
@@ -34,18 +37,47 @@ export function validateCdiLearning(input) {
     nextStepClear: selected(input, "nextStepClear", ALLOWED.nextStepClear),
     evidenceImpact: selected(input, "evidenceImpact", ALLOWED.evidenceImpact),
     mostUsefulLayer: selected(input, "mostUsefulLayer", ALLOWED.mostUsefulLayer),
+    surfacedImportant: selected(input, "surfacedImportant", ALLOWED.surfacedImportant),
+    decisionEffect: selected(input, "decisionEffect", ALLOWED.decisionEffect),
+    futureUse: selected(input, "futureUse", ALLOWED.futureUse),
   };
 
-  const attempted = ["decisionUnderstood", "nextStepClear", "evidenceImpact", "mostUsefulLayer"]
-    .some(key => clean(input?.[key]).length > 0);
-  if (!attempted) return { ok: true, signals: null, errors: [] };
+  const comprehensionKeys = ["decisionUnderstood", "nextStepClear", "evidenceImpact", "mostUsefulLayer"];
+  const valueKeys = ["surfacedImportant", "decisionEffect", "futureUse"];
+  const attemptedComprehension = comprehensionKeys.some(key => clean(input?.[key]).length > 0);
+  const attemptedValue = valueKeys.some(key => clean(input?.[key]).length > 0);
+  if (!attemptedComprehension && !attemptedValue) return { ok: true, signals: null, errors: [] };
 
   const errors = [];
-  if (!raw.decisionUnderstood) errors.push("CDI_DECISION_UNDERSTANDING_INVALID");
-  if (!raw.nextStepClear) errors.push("CDI_NEXT_STEP_INVALID");
-  if (!raw.evidenceImpact) errors.push("CDI_EVIDENCE_IMPACT_INVALID");
-  if (!raw.mostUsefulLayer) errors.push("CDI_LAYER_INVALID");
-  return { ok: errors.length === 0, signals: raw, errors };
+  if (attemptedComprehension) {
+    if (!raw.decisionUnderstood) errors.push("CDI_DECISION_UNDERSTANDING_INVALID");
+    if (!raw.nextStepClear) errors.push("CDI_NEXT_STEP_INVALID");
+    if (!raw.evidenceImpact) errors.push("CDI_EVIDENCE_IMPACT_INVALID");
+    if (!raw.mostUsefulLayer) errors.push("CDI_LAYER_INVALID");
+  }
+  if (attemptedValue) {
+    if (!raw.surfacedImportant) errors.push("BETA_SURFACED_IMPORTANT_INVALID");
+    if (!raw.decisionEffect) errors.push("BETA_DECISION_EFFECT_INVALID");
+    if (!raw.futureUse) errors.push("BETA_FUTURE_USE_INVALID");
+  }
+
+  return {
+    ok: errors.length === 0,
+    signals: {
+      ...(attemptedComprehension ? {
+        decisionUnderstood: raw.decisionUnderstood,
+        nextStepClear: raw.nextStepClear,
+        evidenceImpact: raw.evidenceImpact,
+        mostUsefulLayer: raw.mostUsefulLayer,
+      } : {}),
+      ...(attemptedValue ? {
+        surfacedImportant: raw.surfacedImportant,
+        decisionEffect: raw.decisionEffect,
+        futureUse: raw.futureUse,
+      } : {}),
+    },
+    errors,
+  };
 }
 
 export function summarizeCdiLearning(records) {
@@ -62,20 +94,37 @@ export function summarizeCdiLearning(records) {
     OUTCOME: 0,
     NONE: 0,
   };
+  const surfacedImportant = { YES: 0, NO: 0, UNSURE: 0 };
+  const decisionEffect = { CHANGED: 0, CONFIRMED: 0, NEITHER: 0 };
+  const futureUse = { YES: 0, MAYBE: 0, NO: 0 };
 
   let responses = 0;
+  let valueResponses = 0;
   for (const record of records || []) {
     const signals = record?.feedback?.learning;
     if (!signals || typeof signals !== "object") continue;
-    if (!Object.hasOwn(decisionUnderstood, signals.decisionUnderstood)) continue;
-    if (!Object.hasOwn(nextStepClear, signals.nextStepClear)) continue;
-    if (!Object.hasOwn(evidenceImpact, signals.evidenceImpact)) continue;
-    if (!Object.hasOwn(mostUsefulLayer, signals.mostUsefulLayer)) continue;
-    responses += 1;
-    decisionUnderstood[signals.decisionUnderstood] += 1;
-    nextStepClear[signals.nextStepClear] += 1;
-    evidenceImpact[signals.evidenceImpact] += 1;
-    mostUsefulLayer[signals.mostUsefulLayer] += 1;
+
+    const comprehensionValid = Object.hasOwn(decisionUnderstood, signals.decisionUnderstood)
+      && Object.hasOwn(nextStepClear, signals.nextStepClear)
+      && Object.hasOwn(evidenceImpact, signals.evidenceImpact)
+      && Object.hasOwn(mostUsefulLayer, signals.mostUsefulLayer);
+    if (comprehensionValid) {
+      responses += 1;
+      decisionUnderstood[signals.decisionUnderstood] += 1;
+      nextStepClear[signals.nextStepClear] += 1;
+      evidenceImpact[signals.evidenceImpact] += 1;
+      mostUsefulLayer[signals.mostUsefulLayer] += 1;
+    }
+
+    const valueValid = Object.hasOwn(surfacedImportant, signals.surfacedImportant)
+      && Object.hasOwn(decisionEffect, signals.decisionEffect)
+      && Object.hasOwn(futureUse, signals.futureUse);
+    if (valueValid) {
+      valueResponses += 1;
+      surfacedImportant[signals.surfacedImportant] += 1;
+      decisionEffect[signals.decisionEffect] += 1;
+      futureUse[signals.futureUse] += 1;
+    }
   }
 
   const rankedLayers = Object.entries(mostUsefulLayer)
@@ -87,11 +136,15 @@ export function summarizeCdiLearning(records) {
 
   return {
     responses,
+    valueResponses,
     decisionUnderstood,
     nextStepClear,
     evidenceImpact,
     mostUsefulLayer,
+    surfacedImportant,
+    decisionEffect,
+    futureUse,
     topLayer,
-    countingBoundary: "TESTER_COMPREHENSION_NOT_PRODUCT_ACCURACY",
+    countingBoundary: "TESTER_COMPREHENSION_AND_PRODUCT_VALUE_NOT_PRODUCT_ACCURACY",
   };
 }
