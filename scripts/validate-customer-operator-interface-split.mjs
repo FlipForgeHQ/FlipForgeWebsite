@@ -22,7 +22,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 
 check("001 legacy prototype remains a non-authoritative customer-compatible surface", index.includes('data-ff-surface="customer"'));
 check("002 dedicated customer entry is explicitly marked as full customer", customer.includes('class="ff-full-customer-app"'));
-check("003 pre-launch customer code surface is visibly Private Beta", customer.includes('>PRIVATE BETA</span>') && !customer.includes('>CUSTOMER APP</span>'));
+check("003 DEV customer code surface remains distinctly CUSTOMER APP", customer.includes('>CUSTOMER APP</span>') && !customer.includes('>CUSTOMER BETA</span>'));
 check("004 definitive customer entry hosts the Private Beta Guide runtime", customer.includes('href="private-beta.css"') && customer.includes('src="private-beta.js"'));
 check("005 dedicated customer entry excludes legacy beta session runtime", !customer.includes('src="beta-session-v1.js"'));
 check("006 dedicated customer entry excludes legacy separate beta flow runtime", !customer.includes('src="beta-customer-flow-v2.js"'));
@@ -39,12 +39,13 @@ check("016 full customer CSS preserves advanced navigation", shellCss.includes("
 check("017 operator workspace remains a separate page", operator.includes("Private operations") || operator.includes("Sign in as Operator"));
 check("018 operator role remains server-defined", betaCore.includes('OPERATOR_ROLE = "flipforge-operator"'));
 check("019 active customer role remains server-defined", betaCore.includes('ACTIVE_ROLE = "flipforge-active"'));
-check("020 public app alias routes to Private Beta Sign In", hasRedirect("/app /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302"));
-check("021 full customer route serves dedicated customer document", hasRedirect("/app/customer /saas-prototype/customer.html 200") && hasRedirect("/app/customer/ /saas-prototype/customer.html 200"));
-check("022 customer assets remain isolated under /app/customer", hasRedirect("/app/customer/* /saas-prototype/:splat 200"));
-check("023 generic app routes cannot expose customer dashboard", hasRedirect("/app/* /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302"));
+check("020 public app alias routes to dedicated Private Beta Sign In", hasRedirect("/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302"));
+check("021 dedicated beta route serves beta document", hasRedirect("/app/beta /saas-prototype/index.html 200") && hasRedirect("/app/beta/ /saas-prototype/index.html 200"));
+check("022 beta assets remain isolated under /app/beta", hasRedirect("/app/beta/* /saas-prototype/:splat 200"));
+check("023 generic app routes cannot expose customer dashboard", hasRedirect("/app/* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302"));
 check("024 legacy /app beta-index route is inactive", !hasRedirect("/app /saas-prototype/index.html 200") && !hasRedirect("/app/ /saas-prototype/index.html 200"));
 check("025 legacy /app beta wildcard is inactive", !hasRedirect("/app/* /saas-prototype/:splat 200"));
+check("026 production customer route is unpublished", !redirectLines.some(rule => rule.startsWith("/app/customer")));
 
 for (const item of checks) console.log(`${item.passed ? "PASS" : "FAIL"} ${item.name}`);
 const failed = checks.filter(item => !item.passed);
