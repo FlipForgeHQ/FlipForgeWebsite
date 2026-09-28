@@ -168,6 +168,7 @@ try {
     signOutVisible: Boolean(document.querySelector("[data-ff-global-signout]")),
     signOutLabel: document.querySelector("[data-ff-global-signout] .profile-copy strong")?.textContent?.trim() || "",
     topRightAccountLink: Boolean(document.querySelector('.topbar-actions a[href="#/account"]')),
+    sidebarAccountLink: Boolean(document.querySelector('.sidebar-footer .account-link[href="#/account"]')),
     nav: [...document.querySelectorAll(".primary-nav a")]
       .filter(link => !link.hidden && link.getAttribute("aria-hidden") !== "true")
       .map(link => String(link.textContent || "").replace(/\s+/g, " ").trim())
@@ -181,6 +182,7 @@ try {
   if (!state.signOutVisible) fail("Persistent top-right Sign out control is missing");
   if (state.signOutLabel !== "Sign out") fail(`Expected top-right Sign out label, got ${state.signOutLabel || "<empty>"}`);
   if (state.topRightAccountLink) fail("Top-right account link returned; Account belongs in the sidebar and Sign out belongs in the header");
+  if (!state.sidebarAccountLink) fail("Sidebar Account link is missing");
   if (!state.nav.some(value => /Decision Intelligence/i.test(value))) fail("Decision Intelligence is not visible");
   if (!state.nav.some(value => /Outcome Intelligence/i.test(value))) fail("Outcome Intelligence is not visible");
 
