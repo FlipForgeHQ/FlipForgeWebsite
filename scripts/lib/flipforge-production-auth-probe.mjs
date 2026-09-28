@@ -3,7 +3,7 @@ import { getUser, login, logout, requestPasswordRecovery } from "@netlify/identi
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const hostAllowed = PRODUCTION_HOST.test(String(window.location.hostname || ""));
 const reauthRequested = new URLSearchParams(window.location.search).get("reauth") === "1";
-const PRIVATE_BETA_START = "/app/customer/#/beta-start";
+const PRIVATE_BETA_START = "/app/beta/#/beta-start";
 
 const form = document.querySelector("[data-production-auth-form]");
 const emailInput = document.querySelector("[data-production-auth-email]");
