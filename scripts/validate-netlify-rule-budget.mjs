@@ -40,7 +40,7 @@ expectedRules.forEach((rule, index) => {
 });
 check(!activeRules.some(rule => rule.includes("/api/ebay/privacy")), "eBay privacy must not consume a redirect rule");
 check(!activeRules.some(rule => rule.startsWith("/app/ ")), "redundant exact /app/ rule must remain unnecessary");
-check(!activeRules.some(rule => rule.includes("/saas-prototype/index.html")), "public app entry must never resolve to the legacy beta shell");
+check(activeRules.filter(rule => rule.includes("/saas-prototype/index.html")).every(rule => rule.startsWith("/app/beta")), "only the dedicated Private Beta route may resolve to the beta shell");
 check(!activeRules.some(rule => rule.startsWith("/app/customer")), "customer app route must remain unpublished before launch");
 check(netlifyConfig.includes('package = "@netlify/plugin-lighthouse"'),
   "Lighthouse plugin must be configured in netlify.toml so file-based settings override the UI default");
