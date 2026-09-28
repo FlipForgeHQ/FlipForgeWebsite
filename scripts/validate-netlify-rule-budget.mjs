@@ -12,11 +12,11 @@ const activeRules = redirects
   .filter(line => line && !line.startsWith("#"));
 
 const expectedRules = [
-  "/app /app/customer/ 301",
+  "/app /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302",
   "/app/customer /saas-prototype/customer.html 200",
   "/app/customer/ /saas-prototype/customer.html 200",
   "/app/customer/* /saas-prototype/:splat 200",
-  "/app/* /app/customer/:splat 301"
+  "/app/* /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302"
 ];
 
 const functionFiles = fs.readdirSync(functionDir)
@@ -48,8 +48,8 @@ check(netlifyConfig.includes('fail_deploy_on_score_thresholds = "true"'),
   "Lighthouse must run before publish against the built static output to avoid live-deploy probe races");
 check(!activeRules.some(rule => /\/app\/customer\/?\s+\/app\/customer\/?\s+30[1278]/.test(rule)),
   "customer app must not use a canonical redirect that can loop with host path normalization");
-check(activeRules.indexOf("/app/customer/* /saas-prototype/:splat 200") < activeRules.indexOf("/app/* /app/customer/:splat 301"),
-  "customer app wildcard must precede the generic app canonical redirect");
+check(activeRules.indexOf("/app/customer/* /saas-prototype/:splat 200") < activeRules.indexOf("/app/* /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302"),
+  "protected customer wildcard must precede the generic Private Beta sign-in redirect");
 check(ebayPrivacy.includes('path: "/api/ebay/privacy"'), "eBay privacy function must own /api/ebay/privacy through native function routing");
 check(ebayPrivacy.includes("export default async function ebayPrivacy"), "eBay privacy must use the modern Netlify function request/response contract");
 
