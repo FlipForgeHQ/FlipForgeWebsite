@@ -1,8 +1,8 @@
 import { chromium } from "playwright";
 
 const HOST = "http://goflipforge.com:4173";
-const CUSTOMER = `${HOST}/app/customer/#/dashboard`;
-const BETA_RETURN = "/app/customer/#/beta-start";
+const BETA = `${HOST}/app/beta/#/dashboard`;
+const BETA_RETURN = "/app/beta/#/beta-start";
 const fail = message => { throw new Error(message); };
 
 async function installIdentity(page, { authenticated, membershipActive }) {
@@ -98,14 +98,14 @@ async function auditAnonymous(browser) {
   await installGateway(page, 401);
 
   try {
-    await page.goto(CUSTOMER, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.goto(BETA, { waitUntil: "domcontentloaded", timeout: 30000 });
     await page.waitForURL(url => url.pathname === "/production-auth.html", { timeout: 10000 });
     const destination = new URL(page.url());
     if (destination.searchParams.get("return") !== BETA_RETURN) {
       fail(`anonymous customer URL did not fail closed to beta-start: ${destination.searchParams.get("return") || "<missing>"}`);
     }
     if (destination.searchParams.has("reauth")) fail("anonymous beta redirect incorrectly requested reauthentication");
-    console.log("PASS | anonymous production customer URL redirects to Private Beta Sign In");
+    console.log("PASS | anonymous production app URL redirects to Private Beta Sign In");
   } finally {
     await context.close();
   }
@@ -118,7 +118,7 @@ async function auditActiveBeta(browser) {
   await installGateway(page, 200);
 
   try {
-    await page.goto(CUSTOMER, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.goto(BETA, { waitUntil: "domcontentloaded", timeout: 30000 });
     await page.waitForFunction(() => window.__FlipForgePrivateBetaAccessVerified === true, null, { timeout: 10000 });
     await page.waitForSelector(".prototype-chip", { timeout: 10000 });
     const state = await page.evaluate(() => ({
@@ -129,7 +129,7 @@ async function auditActiveBeta(browser) {
       hiddenPending: document.documentElement.classList.contains("ff-private-beta-access-pending"),
       title: document.title
     }));
-    if (state.path !== "/app/customer/") fail(`active beta left protected customer code surface: ${state.path}`);
+    if (state.path !== "/app/beta/") fail(`active beta left protected beta surface: ${state.path}`);
     if (state.chip !== "PRIVATE BETA") fail(`production shell is not labeled PRIVATE BETA: ${state.chip || "<empty>"}`);
     if (state.mode !== "private-beta") fail(`production beta access mode missing: ${state.mode || "<empty>"}`);
     if (state.hiddenPending) fail("verified beta tester remained hidden behind access-pending state");
@@ -147,7 +147,7 @@ async function auditStaleSession(browser) {
   await installGateway(page, 401);
 
   try {
-    await page.goto(CUSTOMER, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.goto(BETA, { waitUntil: "domcontentloaded", timeout: 30000 });
     await page.waitForURL(url => url.pathname === "/production-auth.html", { timeout: 10000 });
     const destination = new URL(page.url());
     if (destination.searchParams.get("return") !== BETA_RETURN) {
