@@ -4,12 +4,12 @@
 
 This phase wraps the existing customer intelligence loop in a controlled private-beta experience. It does not create another application, recommendation engine, grading authority, database, or billing system.
 
-The definitive customer application is `/app/customer/`. Private Beta is an access/onboarding mode inside that application, not a separate beta UI. The canonical Private Beta onboarding route is `/app/customer/#/beta-start`.
+The dedicated Private Beta application is `/app/customer/`. Private Beta is an access/onboarding mode inside that application, a dedicated invitation-only beta surface. The canonical Private Beta onboarding route is `/app/beta/#/beta-start`.
 
 The customer path is now:
 
 1. accept an invitation and sign in;
-2. land in the canonical customer app Private Beta Guide at `/app/customer/#/beta-start`;
+2. land in the canonical customer app Private Beta Guide at `/app/beta/#/beta-start`;
 3. either search approved connected active-listing sources in Discover or enter one exact listing manually in Evaluate;
 4. explicitly submit the chosen listing to the existing authoritative Smart Opportunity evaluation endpoint;
 5. review the saved Card Intelligence and Decision Traceback;
@@ -21,7 +21,7 @@ Smart Opportunity remains the sole `BUY / WATCH / VERIFY / PASS` authority. Exis
 
 ## First-run guidance
 
-Authenticated users with an active, administrator-signed tenant membership are routed once to `#/beta-start` **inside `/app/customer/`** on `goflipforge.com` and eligible controlled previews. A successfully activated production invitation lands directly on `/app/customer/#/beta-start`.
+Authenticated users with an active, administrator-signed tenant membership are routed once to `#/beta-start` **inside `/app/beta/`** on `goflipforge.com` and eligible controlled previews. A successfully activated production invitation lands directly on `/app/beta/#/beta-start`.
 
 The customer shell loads the Private Beta Guide assets directly, so the onboarding route cannot fall through to a different beta shell or silently become the normal dashboard. Completing the introduction stores only the browser preference key `flipforge.privateBeta.onboarding.v1` with the value `complete`.
 
@@ -85,6 +85,6 @@ npm run validate:customer-portfolio
 npm run validate:private-beta
 ```
 
-Private-beta validation must fail if an invitation, Terms callback, customer shell, or beta documentation reintroduces the retired beta-shell onboarding destination. The only canonical tester destination is `/app/customer/#/beta-start`.
+Private-beta validation must fail if an invitation, Terms callback, customer shell, or beta documentation reintroduces the retired beta-shell onboarding destination. The only canonical tester destination is `/app/beta/#/beta-start`.
 
 The retained Identity, account lifecycle, customer intelligence, provider-backed Discover, evidence-gated Portfolio, gateway, tenant-isolation, staging-read, staging-evaluation, live-proof harness, activation-readiness, prototype, Decision Dossier, and visual suites must remain green.
