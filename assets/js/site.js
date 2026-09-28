@@ -47,7 +47,7 @@
     document.querySelectorAll('.desktop-nav').forEach(nav=>{
       if(nav.querySelector('[data-ff-marketing-sign-in]'))return;
       const link=document.createElement('a');
-      link.href='/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start';
+      link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
       link.dataset.ffMarketingSignIn='true';
       link.textContent='Beta Sign In';
       const cta=nav.querySelector('.nav-cta');
@@ -56,7 +56,7 @@
     document.querySelectorAll('.mobile-nav').forEach(nav=>{
       if(nav.querySelector('[data-ff-marketing-sign-in]'))return;
       const link=document.createElement('a');
-      link.href='/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start';
+      link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
       link.dataset.ffMarketingSignIn='true';
       link.textContent='Beta Sign In';
       const request=[...nav.querySelectorAll('a')].find(a=>/request (?:beta )?access/i.test(a.textContent||''));
@@ -64,7 +64,7 @@
     });
   };
   document.querySelectorAll('[data-ff-marketing-sign-in]').forEach(link=>{
-    link.href='/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start';
+    link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
     link.textContent='Beta Sign In';
     link.setAttribute('aria-label','Private Beta Sign In');
   });
