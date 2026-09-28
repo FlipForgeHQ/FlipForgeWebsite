@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
   const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);
@@ -15,10 +14,6 @@
   ]);
   const MAIN = "#main-content";
   let scheduled = false;
-
-  function productionHost() {
-    return PRODUCTION_HOST.test(String(window.location.hostname || ""));
-  }
 
   function fullCustomerMode() {
     return FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
@@ -90,25 +85,21 @@
 
     document.documentElement.classList.add("ff-full-customer-app");
     document.body?.classList.add("ff-full-customer-app");
-    document.title = productionHost()
-      ? "FlipForge | Private Beta — Card Decision Intelligence"
-      : "FlipForge | Customer App — Card Decision Intelligence";
+    document.title = "FlipForge | Customer App — Card Decision Intelligence";
 
     const description = document.querySelector('meta[name="description"]');
     if (description) description.setAttribute(
       "content",
-      productionHost()
-        ? "FlipForge Private Beta for invited testers: discover, evaluate, understand, save, and track sports-card decisions."
-        : "FlipForge customer app development surface for Card Decision Intelligence."
+      "FlipForge customer app for Card Decision Intelligence: discover, evaluate, understand, save, and track sports-card decisions."
     );
 
     hideElement(document.querySelector(".prototype-banner"));
-    setText(document.querySelector(".prototype-chip"), productionHost() ? "PRIVATE BETA" : "CUSTOMER APP");
+    setText(document.querySelector(".prototype-chip"), "CUSTOMER APP");
 
     const plan = document.querySelector(".sidebar-footer .plan-card");
     if (plan) {
       showElement(plan);
-      setText(plan.querySelector(".eyebrow"), productionHost() ? "Private Beta account" : "Customer account");
+      setText(plan.querySelector(".eyebrow"), "Customer account");
       setText(plan.querySelector("strong"), "Plan & Usage");
       const small = plan.querySelector("small");
       if (small) setText(small, "Plan state and evaluation usage are loaded from your account.");
@@ -117,7 +108,7 @@
     const accountSmall = document.querySelector(".account-link small");
     setText(accountSmall, "Account");
     const profileSmall = document.querySelector(".profile-copy small");
-    setText(profileSmall, productionHost() ? "Private Beta" : "Customer");
+    setText(profileSmall, "Customer");
   }
 
   function markCustomerSurface() {
