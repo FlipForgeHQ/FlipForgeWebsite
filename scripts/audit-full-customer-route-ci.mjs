@@ -99,10 +99,10 @@ function apiFixture(request) {
         readOnly: true,
         transactionAuthority: false,
         current: {
-          code: "PRIVATE_BETA",
-          name: "Private Beta",
-          accessState: "Private Beta Evaluation Allowance Reached",
-          entitlementSource: "Beta Invitation",
+          code: "EARLY_ACCESS",
+          name: "Early Access",
+          accessState: "Evaluation Allowance Reached",
+          entitlementSource: "Invitation",
           paidPlanActive: false
         },
         usage: {
