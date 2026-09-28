@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - '_redirects'
+      - 'production-auth.html'
+      - 'assets/js/site.js'
+      - 'scripts/validate-private-beta-public-access.mjs'
       - 'saas-prototype/**'
       - 'saas-prototype/**'
       - 'saas-prototype/customer.html'
@@ -44,6 +47,9 @@ on:
       - main
     paths:
       - '_redirects'
+      - 'production-auth.html'
+      - 'assets/js/site.js'
+      - 'scripts/validate-private-beta-public-access.mjs'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
       - 'saas-prototype/customer-navigation-parity-v1.js'
@@ -101,6 +107,7 @@ jobs:
       - name: Validate full customer app contracts and audit coverage
         run: |
           node scripts/validate-netlify-rule-budget.mjs
+          node scripts/validate-private-beta-public-access.mjs
           node scripts/validate-customer-app-audit-policy.mjs
           node scripts/validate-customer-app-audit-standard.mjs
           node scripts/validate-customer-app-audit-coverage.mjs
