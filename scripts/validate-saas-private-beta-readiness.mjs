@@ -18,7 +18,7 @@ const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
 [
-  ["001 private beta validator is registered", packageJson.scripts?.["validate:private-beta"] === "node scripts/validate-saas-private-beta-readiness.mjs"],
+  ["001 private beta validator is registered", packageJson.scripts?.["validate:private-beta"]?.includes("node scripts/validate-saas-private-beta-readiness.mjs") && packageJson.scripts?.["validate:private-beta"]?.includes("node scripts/validate-private-beta-public-access.mjs")],
   ["002 Netlify build runs private beta validation", netlify.includes("npm run validate:private-beta")],
   ["003 private beta adapter exists", exists("saas-prototype/private-beta.js")],
   ["004 private beta styles exist", exists("saas-prototype/private-beta.css")],
