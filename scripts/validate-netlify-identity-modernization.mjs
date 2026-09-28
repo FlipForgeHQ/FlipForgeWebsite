@@ -102,10 +102,10 @@ check("059 legacy beta-shell onboarding target is absent from Terms gate", !beta
 check("060 Terms gate injector targets canonical customer document", betaTermsInjector.includes('inject(path.join("saas-prototype", "customer.html"))'));
 check("061 canonical customer app loads beta guide stylesheet", customerApp.includes('href="private-beta.css"'));
 check("062 canonical customer app loads beta guide adapter last", customerApp.includes('src="private-beta.js"') && customerApp.lastIndexOf('src="private-beta.js"') > customerApp.lastIndexOf('src="customer-navigation-parity-v1.js"'));
-check("063 Netlify app alias canonicalizes to full customer app", redirects.includes("/app /app/customer/ 301") && redirects.includes("/app/* /app/customer/:splat 301"));
+check("063 Netlify app alias canonicalizes to dedicated Private Beta sign-in", redirects.includes("/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302") && redirects.includes("/app/beta/* /saas-prototype/:splat 200") && !redirects.includes("/app/customer /saas-prototype/customer.html 200"));
 check("064 all beta operating docs name canonical Private Beta onboarding route", betaDocs.every(source => source.includes("/app/beta/#/beta-start")));
 check("065 beta operating docs do not direct testers to legacy beta-shell route", betaDocs.every(source => !source.includes("`/app/#/beta-start`") && !source.includes(" /app/#/beta-start")));
-check("066 canonical beta contract denies a separate customer beta application", canonicalBetaDocs.includes("not a separate customer application") && canonicalBetaDocs.includes("onboarding route, not a separate beta UI"));
+check("066 canonical beta contract defines dedicated invitation-only beta surface and unpublished customer app", canonicalBetaDocs.includes("dedicated invitation-only Private Beta surface") && canonicalBetaDocs.includes("customer application remains unpublished"));
 check("067 production build validates the staging diagnostic strip rather than requiring preview assets", !productionBuild || (stagingReadIndex === -1 && !appIndex.includes('href="staging-browser.css"') && !appIndex.includes('data-route="staging"') && !appIndex.includes('data-route="staging-evaluate"')));
 
 const failures = checks.filter(item => !item.passed);
