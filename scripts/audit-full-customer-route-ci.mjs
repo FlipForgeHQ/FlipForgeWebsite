@@ -186,6 +186,15 @@ try {
   if (!state.nav.some(value => /Decision Intelligence/i.test(value))) fail("Decision Intelligence is not visible");
   if (!state.nav.some(value => /Outcome Intelligence/i.test(value))) fail("Outcome Intelligence is not visible");
 
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await page.waitForTimeout(120);
+  const compactSignOutTextVisible = await page.locator("[data-ff-global-signout] .profile-copy").evaluate(node => {
+    const style = window.getComputedStyle(node);
+    return style.display !== "none" && style.visibility !== "hidden";
+  });
+  if (!compactSignOutTextVisible) fail("Sign out text disappears at narrower desktop width");
+  await page.setViewportSize({ width: 1280, height: 720 });
+
   await page.locator('.primary-nav a[data-route="decision-intelligence"]').click();
   await page.waitForFunction(() => window.location.hash === "#/decision-intelligence", null, { timeout: 10000 });
   await page.waitForSelector('.ff-di-page[data-decision-intelligence-source="server"]', { timeout: 10000 });
