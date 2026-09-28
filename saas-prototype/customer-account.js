@@ -257,7 +257,7 @@
     const api = identityApi();
     const authUrl = `/production-auth.html?return=${encodeURIComponent(accountReturnPath())}`;
     if (!api) {
-      window.location.assign(authUrl);
+      window.location.replace(authUrl);
       return;
     }
 
