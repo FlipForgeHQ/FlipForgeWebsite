@@ -28,6 +28,7 @@ const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
 const productionDashboardGuard = read("saas-prototype/production-dashboard-guard.js");
 const loginRedirect = read("saas-prototype/production-identity-login-redirect.js");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
+const privateBetaGate = read("saas-prototype/private-beta-access-gate.js");
 const authRecoveryAudit = read("scripts/audit-customer-auth-recovery-ci.mjs");
 const fullCustomerWorkflow = read(".github/workflows/full-customer-app-assurance.yml");
 
@@ -35,12 +36,12 @@ check(activeRedirects.includes("/app/customer /saas-prototype/customer.html 200"
 check(activeRedirects.includes("/app/customer/ /saas-prototype/customer.html 200"), "customer trailing-slash route serves dedicated customer document");
 check(!activeRedirects.includes("/app/customer /app/customer/ 301"), "customer route avoids redirect loops");
 check(activeRedirects.includes("/app/customer/* /saas-prototype/:splat 200"), "customer assets stay under production app path");
-check(activeRedirects.indexOf("/app/customer/* /saas-prototype/:splat 200") < activeRedirects.indexOf("/app/* /app/customer/:splat 301"), "customer wildcard precedes generic app canonical redirect");
-check(activeRedirects.includes("/app /app/customer/ 301") && !activeRedirects.includes("/app /saas-prototype/index.html 200"), "public app entry resolves to the full customer app instead of the beta shell");
+check(activeRedirects.indexOf("/app/customer/* /saas-prototype/:splat 200") < activeRedirects.indexOf("/app/* /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302"), "protected customer wildcard precedes generic Private Beta sign-in redirect");
+check(activeRedirects.includes("/app /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302") && !activeRedirects.includes("/app /app/customer/ 301"), "public app entry resolves to Private Beta Sign In rather than customer dashboard");
 
 check(customer.includes('window.FlipForgeFullCustomerEntry=true'), "customer document hard-marks full customer entry before app scripts");
-check(customer.includes('>CUSTOMER APP</span>'), "customer document is statically labeled CUSTOMER APP");
-check(!customer.includes('>CUSTOMER BETA</span>'), "customer document contains no customer-beta chip");
+check(customer.includes('>PRIVATE BETA</span>'), "production customer document is statically labeled PRIVATE BETA");
+check(!customer.includes('>CUSTOMER APP</span>'), "production customer document does not present as launched CUSTOMER APP");
 check(!customer.includes('<div class="prototype-banner"'), "customer document contains no beta banner");
 check(customer.includes('src="private-beta.js"'), "customer document loads private-beta onboarding runtime in the canonical shell");
 check(!customer.includes('src="beta-session-v1.js"'), "customer document never loads beta-session runtime");
@@ -59,6 +60,8 @@ check(customer.includes('data-route="forge-heat"') && customer.includes('data-ro
 check(customer.includes('src="customer-navigation-parity-v1.js"'), "customer document loads full-customer navigation parity controller");
 check(customer.includes('id="global-search-form"'), "customer document includes global search");
 check(customer.includes('class="icon-button notification-button"'), "customer document includes alerts access");
+check(customer.indexOf('src="/assets/js/flipforge-identity.js"') < customer.indexOf('src="private-beta-access-gate.js"'), "identity loads before private beta access gate");
+check(customer.indexOf('src="private-beta-access-gate.js"') < customer.indexOf('src="mock-data.js"'), "private beta access gate loads before customer app/data runtime");
 check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
 
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
@@ -80,7 +83,7 @@ const lifecycleOrderValid = orderedRouteTokens.every(token => {
   return true;
 });
 check(lifecycleOrderValid, "canonical customer shell preserves CDI lifecycle ordering");
-check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell reinforces customer identity");
+check(shell.includes('productionHost() ? "PRIVATE BETA" : "CUSTOMER APP"'), "customer shell distinguishes production Private Beta from DEV Customer App");
 check(shell.includes("T7, T14, and T30"), "customer home explains governed outcome checkpoints");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session renderer still stands down on full customer route");
 check(navigationParity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "navigation parity controller cannot run outside /app/customer");
@@ -89,16 +92,16 @@ check(navigationParity.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["s
 check(mobileNav.includes('"decision-intelligence", "why-this-decision", "evidence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set");
 check(!customer.includes('data-route="sell"'), "customer document removes unsupported Exit Review");
 check(mobileNav.includes('parts[0] === "decision-intelligence" && parts[1] === "why"') && mobileNav.includes('return "why-this-decision"'), "mobile active navigation distinguishes Why This Decision from Decision Intelligence");
-check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish cannot overwrite customer identity");
-check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit cannot overwrite customer identity");
+check(commercialPolish.includes('customer ? (production() ? "PRIVATE BETA" : "CUSTOMER APP")'), "commercial polish distinguishes production Private Beta from DEV Customer App");
+check(cockpitFinalUx.includes('customer ? (productionHost() ? "PRIVATE BETA" : "CUSTOMER APP")'), "legacy cockpit preserves production/DEV mode identity");
 
 check(loginRedirect.includes('a[href^="/production-auth.html"]'), "customer login interceptor covers feature-level auth links");
-check(loginRedirect.includes('pathname === "/app/customer" ? "/app/customer/"'), "customer login interceptor normalizes customer pathname");
-check(loginRedirect.includes('const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`'), "customer login interceptor rebuilds auth return from current route");
+check(loginRedirect.includes('new URLSearchParams({ return: "/app/customer/#/beta-start" })'), "customer login interceptor always returns through beta-start");
+check(!loginRedirect.includes('hash || "#/account"'), "customer login interceptor cannot rebuild arbitrary customer return routes");
 check(loginRedirect.includes('if (!launcher && !authLink) return;'), "customer login interceptor handles launchers and feature auth links");
-check(authProbe.includes('resolved.pathname === "/app/customer" ? "/app/customer/"'), "production auth normalizes no-slash customer return");
-check(authProbe.includes('normalizedPath === "/app/customer/"'), "production sign-in may return to full customer app");
-check(authProbe.includes('resolved.origin !== window.location.origin || !pathAllowed'), "auth return remains same-origin and allowlisted");
+check(authProbe.includes('const PRIVATE_BETA_START = "/app/customer/#/beta-start";'), "production auth locks destination to beta-start");
+check(authProbe.includes("return PRIVATE_BETA_START;"), "production sign-in cannot return to arbitrary customer route");
+check(authProbe.includes("async function verifyAccess()") && authProbe.includes('fetch("/api/v1/entitlements"'), "production auth verifies authoritative beta access before continuing");
 check(authProbe.includes('reauthRequested'), "production auth page recognizes server-requested reauthentication");
 check(authProbe.includes('The app rejected this cached session'), "production auth explains stale-session recovery");
 
@@ -111,7 +114,7 @@ check(loginRedirect.includes('window.addEventListener("flipforge:authoritative-a
 check(loginRedirect.includes('const AUTH_PROBE_PATH = "/api/v1/entitlements"') && loginRedirect.includes('async function probeAuthoritativeSession()'), "cached identity is actively validated against authoritative entitlement endpoint");
 check(loginRedirect.includes('const SIGN_IN_ID = "ff-customer-sign-in-entry"'), "customer shell owns a persistent sign-in recovery control");
 check(loginRedirect.includes('link.dataset.ffCustomerSignIn = ""'), "persistent sign-in control has an auditable selector");
-check(loginRedirect.includes('"Sign in to FlipForge"') && loginRedirect.includes('"Restore FlipForge sign in"'), "persistent sign-in control uses clear normal and stale-session language");
+check(loginRedirect.includes('"Private Beta Sign In"') && loginRedirect.includes('"Restore Private Beta sign in"'), "persistent sign-in control uses Private Beta language");
 check(loginRedirect.includes('link.href = productionAuthUrl()'), "persistent sign-in control preserves the governed production auth handoff");
 check(loginRedirect.includes('setAuthoritativeAuthDenied(true)'), "server 401 records authoritative authentication denial");
 check(loginRedirect.includes('response.status === 401'), "customer shell retains redundant late 401 observation");
@@ -121,6 +124,10 @@ check(loginRedirect.includes('installAuthoritativeAuthObserver()'), "customer sh
 check(loginRedirect.includes('window.addEventListener("hashchange", ensureSignInControl)'), "persistent sign-in return updates as the customer changes routes");
 check(loginRedirect.includes('window.addEventListener("flipforge:identity-change", handleIdentityChange)') && loginRedirect.includes('if (currentUser()) probeAuthoritativeSession()'), "persistent sign-in reacts to identity changes by validating server authority");
 check(loginRedirect.includes('@media(max-width:760px)'), "persistent sign-in has a mobile visibility contract");
+check(privateBetaGate.includes("membershipActive"), "private beta gate requires active invited membership");
+check(privateBetaGate.includes('fetch("/api/v1/entitlements"'), "private beta gate verifies server entitlement");
+check(privateBetaGate.includes("window.location.replace(betaAuthUrl"), "failed customer entry is redirected to Private Beta Sign In");
+check(privateBetaGate.includes("window.__FlipForgePrivateBetaAccessVerified = true"), "successful beta gate publishes verified state");
 
 check(authRecoveryAudit.includes('const customerRoutes = ['), "auth recovery audit declares the complete customer route matrix");
 for (const route of ["dashboard", "discover", "evaluate", "decision-intelligence", "decision-intelligence/why", "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view", "account", "compare", "psa-advisor", "evidence", "export"]) {
