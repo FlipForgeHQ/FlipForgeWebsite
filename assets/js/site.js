@@ -47,22 +47,27 @@
     document.querySelectorAll('.desktop-nav').forEach(nav=>{
       if(nav.querySelector('[data-ff-marketing-sign-in]'))return;
       const link=document.createElement('a');
-      link.href='/production-auth.html';
+      link.href='/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start';
       link.dataset.ffMarketingSignIn='true';
-      link.textContent='Sign In';
+      link.textContent='Beta Sign In';
       const cta=nav.querySelector('.nav-cta');
       if(cta)nav.insertBefore(link,cta); else nav.appendChild(link);
     });
     document.querySelectorAll('.mobile-nav').forEach(nav=>{
       if(nav.querySelector('[data-ff-marketing-sign-in]'))return;
       const link=document.createElement('a');
-      link.href='/production-auth.html';
+      link.href='/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start';
       link.dataset.ffMarketingSignIn='true';
-      link.textContent='Sign In';
+      link.textContent='Beta Sign In';
       const request=[...nav.querySelectorAll('a')].find(a=>/request (?:beta )?access/i.test(a.textContent||''));
       if(request)nav.insertBefore(link,request); else nav.appendChild(link);
     });
   };
+  document.querySelectorAll('[data-ff-marketing-sign-in]').forEach(link=>{
+    link.href='/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start';
+    link.textContent='Beta Sign In';
+    link.setAttribute('aria-label','Private Beta Sign In');
+  });
   ensureReturningBetaSignIn();
 
   document.querySelectorAll('.faq-item button').forEach(btn=>{
