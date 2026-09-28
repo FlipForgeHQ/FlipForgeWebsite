@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>FlipForge Account Access</title>
+  <title>Private Beta Sign In | FlipForge</title>
   <style>
     :root{font-family:Geist,"Geist Sans",system-ui,sans-serif;background:#030812;color:#f2f2f2}
     *{box-sizing:border-box}html,body{max-width:100%;overflow-x:clip}body{margin:0;min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:24px;background:radial-gradient(circle at top,#12223a 0,#030812 52%)}
@@ -23,10 +23,10 @@
 <body>
   <main>
     <div class="brand"><img src="assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why."></div>
-    <div class="eyebrow">Invitation-only account access</div>
-    <h1>Sign in to FlipForge</h1>
-    <p>This isolated account page signs invited users into the production FlipForge app without exposing gateway credentials to the browser.</p>
-    <div class="notice">Public signup is not available. Tenant access is resolved server-side from Netlify-signed roles.</div>
+    <div class="eyebrow">PRIVATE BETA ACCESS</div>
+    <h1>Private Beta Sign In</h1>
+    <p>Use the account from your FlipForge Private Beta invitation. Customer access is not publicly available.</p>
+    <div class="notice"><strong>Invitation required.</strong> Only approved Private Beta testers with active access can continue. There is no public customer login or signup.</div>
 
     <form data-production-auth-form autocomplete="on">
       <label>Email
@@ -35,18 +35,17 @@
       <label>Password
         <input data-production-auth-password type="password" autocomplete="current-password" required>
       </label>
-      <button class="primary" data-production-auth-submit type="submit">Sign in</button>
+      <button class="primary" data-production-auth-submit type="submit">Sign in to Private Beta</button>
     </form>
 
     <div class="status" data-production-auth-status>Initializing identity…</div>
     <div class="actions">
       <button data-production-auth-recovery type="button">Forgot password?</button>
-      <button data-production-auth-test type="button" disabled>Test account access</button>
       <button data-production-auth-signout type="button" hidden>Sign out</button>
-      <a class="button-link primary" data-production-auth-return href="/app/#/account" hidden>Continue to FlipForge</a>
+      <a class="button-link primary" data-production-auth-return href="/app/customer/#/beta-start" hidden>Enter Private Beta</a>
     </div>
     <div class="result" data-production-auth-result></div>
-    <small>Authentication uses Netlify's secure same-origin Identity cookies. This page never displays or stores a raw JWT, FlipForge service token, or tenant ID.</small>
+    <small>FlipForge verifies your invited account and active beta membership before opening the private workspace. The customer product is not publicly available.</small>
   </main>
   <script src="/assets/js/flipforge-production-auth-probe.js"></script>
 </body>
