@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
 
-const base = process.env.FLIPFORGE_CHAOS_BASE_URL || "http://goflipforge.com:4173/app/customer/";
+const base = process.env.FLIPFORGE_CHAOS_BASE_URL || "http://127.0.0.1:4173/app/customer/";
 const workerCount = Math.max(1, Math.min(6, Number.parseInt(process.env.FLIPFORGE_STRESS_WORKERS || "3", 10) || 3));
 const roundsPerWorker = Math.max(20, Math.min(250, Number.parseInt(process.env.FLIPFORGE_STRESS_ROUNDS || "70", 10) || 70));
 const baseSeed = (Number.parseInt(process.env.FLIPFORGE_STRESS_SEED || "151515", 10) || 151515) >>> 0;
