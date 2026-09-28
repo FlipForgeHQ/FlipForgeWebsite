@@ -4,7 +4,7 @@ const read = path => fs.readFileSync(path, "utf8");
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 
-const BETA_AUTH = "/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start";
+const BETA_AUTH = "/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start";
 const publicPages = [
   "index.html",
   "product.html",
@@ -30,6 +30,7 @@ const redirects = read("_redirects");
 const authPage = read("production-auth.html");
 const authProbe = read("scripts/lib/flipforge-production-auth-probe.mjs");
 const appGate = read("saas-prototype/private-beta-access-gate.js");
+const beta = read("saas-prototype/index.html");
 const customer = read("saas-prototype/customer.html");
 const siteJs = read("assets/js/site.js");
 const buildAssets = read("scripts/build-assets.js");
@@ -39,30 +40,36 @@ const cockpitPolish = read("saas-prototype/cockpit-final-ux.js");
 
 check(redirects.includes(`/app ${BETA_AUTH} 302`), "generic /app must route to Private Beta Sign In");
 check(redirects.includes(`/app/* ${BETA_AUTH} 302`), "generic /app/* must route to Private Beta Sign In");
-check(!redirects.includes("/app /app/customer/ 301"), "generic /app must not expose the customer route");
-check(!redirects.includes("/app/* /app/customer/:splat 301"), "generic app wildcard must not expose customer routes");
+check(redirects.includes("/app/beta /saas-prototype/index.html 200"), "dedicated Private Beta route must serve the beta shell");
+check(redirects.includes("/app/beta/ /saas-prototype/index.html 200"), "Private Beta slash route must serve the beta shell");
+check(redirects.includes("/app/beta/* /saas-prototype/:splat 200"), "Private Beta assets must stay on the beta route");
+check(!redirects.includes("/app/customer /saas-prototype/customer.html 200"), "customer route must not be publicly served");
+check(!redirects.includes("/app/customer/ /saas-prototype/customer.html 200"), "customer slash route must not be publicly served");
+check(!redirects.includes("/app/customer/* /saas-prototype/:splat 200"), "customer assets must not be publicly routed");
 
 check(authPage.includes("<title>Private Beta Sign In | FlipForge</title>"), "auth page must be explicitly Private Beta");
 check(authPage.includes("Customer access is not publicly available."), "auth page must state customer access is not public");
 check(authPage.includes("There is no public customer login or signup."), "auth page must state no public customer login");
-check(authPage.includes('href="/app/customer/#/beta-start" hidden>Enter Private Beta</a>'), "auth continue action must enter beta-start");
+check(authPage.includes('href="/app/beta/#/beta-start" hidden>Enter Private Beta</a>'), "auth continue action must enter the dedicated beta shell");
 check(!authPage.includes("Test account access"), "developer account-test control must not be public");
 check(!authPage.includes("/app/#/account"), "auth page must not default to customer account");
 
-check(authProbe.includes('const PRIVATE_BETA_START = "/app/customer/#/beta-start";'), "auth probe must lock the post-login destination");
+check(authProbe.includes('const PRIVATE_BETA_START = "/app/beta/#/beta-start";'), "auth probe must lock the post-login destination to the dedicated beta shell");
 check(authProbe.includes("async function verifyAccess()"), "auth probe must verify server access before continuing");
 check(authProbe.includes('fetch("/api/v1/entitlements"'), "auth probe must use authoritative entitlements");
 check(authProbe.includes("returnLink.hidden = true"), "continue action must stay hidden until verification");
 check(!authProbe.includes('return "/app/#/account"'), "auth probe must not return to customer account");
 check(!authProbe.includes('normalizedPath === "/app/customer/"'), "auth probe must not allow arbitrary customer return routes");
 
-check(customer.includes("<title>FlipForge | Private Beta — Card Decision Intelligence</title>"), "app shell must present as Private Beta");
-check(customer.includes('<span class="prototype-chip">PRIVATE BETA</span>'), "app shell chip must say Private Beta");
-check(customer.includes('src="/assets/js/flipforge-identity.js"'), "customer shell must load identity before access gate");
-check(customer.includes('src="private-beta-access-gate.js"'), "customer shell must load fail-closed access gate");
-check(customer.indexOf('src="/assets/js/flipforge-identity.js"') < customer.indexOf('src="private-beta-access-gate.js"'), "identity must load before beta gate");
-check(customer.indexOf('src="private-beta-access-gate.js"') < customer.indexOf('src="mock-data.js"'), "beta gate must run before app/data runtimes");
-check(!customer.includes('<span class="prototype-chip">CUSTOMER APP</span>'), "production shell must not visibly present as launched customer app");
+check(beta.includes("<title>FlipForge | Private Beta — Card Decision Intelligence</title>"), "dedicated beta shell must present as Private Beta");
+check(beta.includes('<span class="prototype-chip">PRIVATE BETA</span>'), "beta shell chip must say Private Beta");
+check(beta.includes('src="/assets/js/flipforge-identity.js"'), "beta shell must load identity before access gate");
+check(beta.includes('src="private-beta-access-gate.js"'), "beta shell must load fail-closed access gate");
+check(beta.indexOf('src="/assets/js/flipforge-identity.js"') < beta.indexOf('src="private-beta-access-gate.js"'), "identity must load before beta gate");
+check(beta.indexOf('src="private-beta-access-gate.js"') < beta.indexOf('src="mock-data.js"'), "beta gate must run before app/data runtimes");
+check(customer.includes('<span class="prototype-chip">CUSTOMER APP</span>'), "DEV customer shell remains distinctly CUSTOMER APP");
+check(customer.includes('window.location.replace("/")'), "raw production customer document must redirect away before render");
+check(!customer.includes('src="private-beta-access-gate.js"'), "customer shell must not masquerade as the beta shell");
 
 check(appGate.includes("membershipActive"), "entry gate must require active invited membership");
 check(appGate.includes('fetch("/api/v1/entitlements"'), "entry gate must verify authoritative server access");
@@ -76,14 +83,15 @@ check(buildAssets.includes("Beta Sign In"), "generated public app links must be 
 check(siteJs.includes("Beta Sign In"), "runtime public sign-in must say Beta Sign In");
 check(siteJs.includes(BETA_AUTH), "runtime public sign-in must target beta-start auth");
 
-check(customerShell.includes('setText(document.querySelector(".prototype-chip"), "PRIVATE BETA")'), "customer shell runtime must preserve Private Beta label");
-check(commercialPolish.includes('production() ? "PRIVATE BETA"'), "commercial polish must preserve Private Beta label");
-check(cockpitPolish.includes('customer ? "PRIVATE BETA" : "SAAS PREVIEW"'), "legacy cockpit must not overwrite beta label");
+check(customerShell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "DEV customer shell runtime must preserve CUSTOMER APP label");
+check(commercialPolish.includes('customer ? "CUSTOMER APP"'), "customer polish must preserve customer identity in DEV");
+check(cockpitPolish.includes('customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit must preserve DEV customer identity");
 
 for (const page of publicPages) {
   const html = read(page);
   check(!html.includes('href="/app/#/dashboard"'), `${page} must not link directly to legacy app dashboard`);
   check(!html.includes('href="/app/customer/#/dashboard"'), `${page} must not link directly to customer dashboard`);
+  check(!html.includes('href="/app/customer/'), `${page} must not expose any customer-app link`);
   check(!html.includes('data-ff-marketing-sign-in>Sign In</a>'), `${page} must not expose generic customer Sign In`);
   if (html.includes("data-ff-marketing-sign-in")) {
     check(html.includes("Beta Sign In</a>"), `${page} marketing auth must be labeled Beta Sign In`);
