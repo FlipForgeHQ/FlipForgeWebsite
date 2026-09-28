@@ -3,6 +3,7 @@
 
   if (window.__ffCustomerSurfaceNormalizationV1 === true) return;
 
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
   const REPLACEMENTS = [
     ["Private Beta Evaluation Allowance Reached", "Evaluation allowance reached"],
@@ -25,6 +26,10 @@
   ];
 
   let queued = false;
+
+  function productionHost() {
+    return PRODUCTION_HOST.test(String(window.location.hostname || ""));
+  }
 
   function fullCustomerMode() {
     return window.FlipForgeFullCustomerEntry === true
@@ -72,7 +77,7 @@
     normalizeVisibleText(document);
     normalizeCustomerLinks(document);
     const chip = document.querySelector(".prototype-chip");
-    if (chip && chip.textContent?.trim() !== "PRIVATE BETA") chip.textContent = "PRIVATE BETA";
+    if (chip) chip.textContent = productionHost() ? "PRIVATE BETA" : "CUSTOMER APP";
     document.querySelector(".prototype-banner")?.remove();
   }
 
