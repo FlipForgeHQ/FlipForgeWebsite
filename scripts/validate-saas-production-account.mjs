@@ -59,6 +59,9 @@ check("038 Plan & Usage card is keyboard navigable", completion.includes('event.
 check("039 private beta raw access enums are customer-readable", completion.includes('PRIVATE_BETA_ACTIVE: "Private Beta Active"') && completion.includes('INVITATION_DEFAULT: "Beta Invitation"'));
 check("040 planned entitlement enum labels are customer-readable", completion.includes('UNLIMITED_SUBJECT_TO_REASONABLE_USE: "Unlimited (reasonable use)"') && completion.includes('NOT_INCLUDED: "Not included"'));
 check("041 provider-mapped evidence metric is named accurately", completion.includes('label.textContent = "Provider-mapped evidence"'));
+check("042 production account exposes a direct sign out control", account.includes("data-production-account-signout") && account.includes(">Sign out</button>"));
+check("043 production account signs out through the shared Identity client", account.includes("window.FlipForgeIdentity") && account.includes("await api.signOut()"));
+check("044 production account returns to secure auth after sign out", account.includes("window.location.replace(authUrl)") && account.includes("/production-auth.html?return="));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS production account validation");
