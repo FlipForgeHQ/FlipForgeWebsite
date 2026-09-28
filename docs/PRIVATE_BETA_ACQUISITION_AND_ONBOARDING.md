@@ -7,7 +7,7 @@ Effective: **2026-09-16**
 
 FlipForge Private Beta is an invited-access mode inside the definitive customer SaaS, not a separate beta application.
 
-Canonical customer product: `/app/customer/`  
+Canonical customer product: `/app/beta/`  
 Canonical onboarding route: `/app/beta/#/beta-start`
 
 All invitation, Terms-acceptance, onboarding, support, and follow-up guidance must point testers into that same customer productlication.
