@@ -4,9 +4,13 @@
 # /app /saas-prototype/index.html 200
 # /app/ /saas-prototype/index.html 200
 # /app/* /saas-prototype/:splat 200
-# The public /app alias is private-beta-only before customer launch. The customer code surface remains protected behind the beta access gate.
-/app /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302
-/app/customer /saas-prototype/customer.html 200
-/app/customer/ /saas-prototype/customer.html 200
-/app/customer/* /saas-prototype/:splat 200
-/app/* /production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start 302
+#
+# PRE-LAUNCH ACCESS BOUNDARY
+# /app and every non-beta /app/* route fail closed to invited Private Beta authentication.
+# /app/beta is the only production app surface currently exposed to invited testers.
+# /app/customer remains DEV-only and is not routed publicly before customer launch.
+/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302
+/app/beta /saas-prototype/index.html 200
+/app/beta/ /saas-prototype/index.html 200
+/app/beta/* /saas-prototype/:splat 200
+/app/* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302
