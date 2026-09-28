@@ -3,6 +3,7 @@ import { getUser, login, logout, requestPasswordRecovery } from "@netlify/identi
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const hostAllowed = PRODUCTION_HOST.test(String(window.location.hostname || ""));
 const reauthRequested = new URLSearchParams(window.location.search).get("reauth") === "1";
+const PRIVATE_BETA_START = "/app/customer/#/beta-start";
 
 const form = document.querySelector("[data-production-auth-form]");
 const emailInput = document.querySelector("[data-production-auth-email]");
@@ -10,7 +11,6 @@ const passwordInput = document.querySelector("[data-production-auth-password]");
 const signInButton = document.querySelector("[data-production-auth-submit]");
 const signOutButton = document.querySelector("[data-production-auth-signout]");
 const recoveryButton = document.querySelector("[data-production-auth-recovery]");
-const testButton = document.querySelector("[data-production-auth-test]");
 const returnLink = document.querySelector("[data-production-auth-return]");
 const status = document.querySelector("[data-production-auth-status]");
 const result = document.querySelector("[data-production-auth-result]");
@@ -18,22 +18,8 @@ const result = document.querySelector("[data-production-auth-result]");
 let currentUser = null;
 
 function safeReturnPath() {
-  const requested = new URLSearchParams(window.location.search).get("return");
-  if (!requested || requested.startsWith("//")) return "/app/#/account";
-  try {
-    const resolved = new URL(requested, window.location.origin);
-    const normalizedPath = resolved.pathname === "/app" ? "/app/"
-      : resolved.pathname === "/app/customer" ? "/app/customer/"
-      : resolved.pathname === "/saas-prototype" ? "/saas-prototype/"
-      : resolved.pathname;
-    const pathAllowed = normalizedPath === "/app/"
-      || normalizedPath === "/app/customer/"
-      || normalizedPath === "/saas-prototype/";
-    if (resolved.origin !== window.location.origin || !pathAllowed) return "/app/#/account";
-    return `${normalizedPath}${resolved.search}${resolved.hash || "#/account"}`;
-  } catch (_) {
-    return "/app/#/account";
-  }
+  // Private Beta is the only public authentication destination before customer launch.
+  return PRIVATE_BETA_START;
 }
 
 function setStatus(message, tone = "neutral") {
@@ -43,12 +29,11 @@ function setStatus(message, tone = "neutral") {
 
 function setSignedIn(user) {
   currentUser = user || null;
-  testButton.disabled = !currentUser;
   signOutButton.hidden = !currentUser;
-  returnLink.hidden = !currentUser;
+  returnLink.hidden = true;
   returnLink.href = safeReturnPath();
-  if (currentUser) setStatus(`Signed in as ${currentUser.email || "FlipForge user"}.`, "ok");
-  else setStatus("Not signed in.", "neutral");
+  if (currentUser) setStatus(`Signed in as ${currentUser.email || "FlipForge user"}. Verifying Private Beta access…`, "neutral");
+  else setStatus("Sign in with your invited Private Beta account.", "neutral");
 }
 
 async function withTimeout(promise, milliseconds = 8000) {
@@ -66,7 +51,6 @@ async function withTimeout(promise, milliseconds = 8000) {
 async function initialize() {
   if (!hostAllowed) {
     form.hidden = true;
-    testButton.hidden = true;
     signOutButton.hidden = true;
     recoveryButton.hidden = true;
     setStatus("Production account access is available only on goflipforge.com.", "error");
@@ -75,6 +59,7 @@ async function initialize() {
   try {
     const user = await withTimeout(getUser());
     setSignedIn(user);
+    if (user && !reauthRequested) await verifyAccess();
     if (reauthRequested) {
       if (user) {
         setStatus("The app rejected this cached session. Sign out, then sign in again to restore access.", "error");
@@ -103,6 +88,7 @@ form?.addEventListener("submit", async event => {
     const user = await withTimeout(login(email, password));
     passwordInput.value = "";
     setSignedIn(user);
+    await verifyAccess();
   } catch (error) {
     setStatus(error instanceof Error ? error.message : "Sign in failed.", "error");
   } finally {
@@ -145,10 +131,10 @@ signOutButton?.addEventListener("click", async () => {
   }
 });
 
-testButton?.addEventListener("click", async () => {
-  if (!currentUser || testButton.disabled) return;
-  testButton.disabled = true;
-  result.textContent = "Testing authenticated entitlement boundary…";
+async function verifyAccess() {
+  if (!currentUser) return false;
+  result.textContent = "Verifying active Private Beta membership…";
+  result.dataset.tone = "neutral";
   try {
     const correlationId = window.crypto?.randomUUID?.() || `production-${Date.now()}`;
     const response = await fetch("/api/v1/entitlements", {
@@ -158,18 +144,32 @@ testButton?.addEventListener("click", async () => {
       cache: "no-store",
       redirect: "error"
     });
-    const text = await response.text();
-    let payload = {};
-    try { payload = text ? JSON.parse(text) : {}; } catch (_) { payload = {}; }
-    const code = payload?.error?.code || (response.ok ? "OK" : "UNKNOWN");
-    result.textContent = `HTTP ${response.status} · ${code}`;
-    result.dataset.tone = response.ok ? "ok" : "error";
-  } catch (error) {
-    result.textContent = error instanceof Error ? error.message : "Boundary test failed.";
+
+    if (response.ok) {
+      result.textContent = "Private Beta access verified.";
+      result.dataset.tone = "ok";
+      setStatus(`Welcome back, ${currentUser.email || "FlipForge tester"}.`, "ok");
+      returnLink.href = PRIVATE_BETA_START;
+      returnLink.hidden = false;
+      return true;
+    }
+
+    if (response.status === 401) {
+      result.textContent = "Your beta sign-in session needs to be refreshed. Sign out, then sign in again.";
+    } else if (response.status === 403) {
+      result.textContent = "This account is signed in, but active Private Beta access is not enabled.";
+    } else {
+      result.textContent = "FlipForge could not verify Private Beta access. Try again or contact support.";
+    }
     result.dataset.tone = "error";
-  } finally {
-    testButton.disabled = !currentUser;
+    returnLink.hidden = true;
+    return false;
+  } catch (_) {
+    result.textContent = "FlipForge could not verify Private Beta access. Try again or contact support.";
+    result.dataset.tone = "error";
+    returnLink.hidden = true;
+    return false;
   }
-});
+}
 
 initialize();
