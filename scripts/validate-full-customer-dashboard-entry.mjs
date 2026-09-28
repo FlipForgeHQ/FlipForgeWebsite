@@ -20,7 +20,7 @@ check("005 full customer bootstrap loads authoritative Dashboard script", guard.
 check("006 full customer bootstrap loads authoritative Dashboard stylesheet", guard.includes('FULL_CUSTOMER_DASHBOARD_STYLESHEET = "commercial-dashboard-v2.css"') && guard.includes("document.head.appendChild(stylesheet)"));
 check("007 bootstrap refuses duplicate Dashboard assets", guard.includes("[data-ff-commercial-dashboard-js]") && guard.includes("[data-ff-commercial-dashboard-css]"));
 check("008 renderer load failure cannot leave endless loading guard", guard.includes("DASHBOARD_RENDERER_UNAVAILABLE") && guard.includes("rendererFailureMarkup"));
-check("009 customer asset route rewrites to SaaS prototype assets", redirects.includes("/app/customer/* /saas-prototype/:splat 200"));
+check("009 customer route remains unpublished while beta assets are routed", !redirects.includes("/app/customer/* /saas-prototype/:splat 200") && redirects.includes("/app/beta/* /saas-prototype/:splat 200"));
 check("010 production guard still recognizes authoritative renderer", guard.includes('[data-commercial-dashboard-v2]'));
 
 const failed = checks.filter(result => !result.passed);
