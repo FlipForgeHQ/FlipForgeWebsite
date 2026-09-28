@@ -6,6 +6,12 @@
   <meta name="color-scheme" content="dark">
   <meta name="description" content="FlipForge private-beta card decision intelligence platform.">
   <title>FlipForge | Private Beta — Card Decision Intelligence</title>
+  <script>
+    if (/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""))) {
+      document.documentElement.classList.add("ff-private-beta-access-pending");
+    }
+  </script>
+  <style>html.ff-private-beta-access-pending body{visibility:hidden}</style>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="brand.css">
   <link rel="stylesheet" href="shell-fixes.css">
