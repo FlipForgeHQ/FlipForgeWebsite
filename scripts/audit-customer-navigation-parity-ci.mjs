@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 
-const host = "http://goflipforge.com:4173";
+const host = "http://127.0.0.1:4173";
 const fullUrl = `${host}/app/customer/#/dashboard`;
 const betaUrl = `${host}/saas-prototype/#/dashboard`;
 
@@ -182,7 +182,7 @@ try {
     await page.waitForSelector(".primary-nav", { timeout: 10_000 });
     await page.waitForTimeout(1000);
     let state = await shellState(page);
-    if (state.chip !== "CUSTOMER APP") fail(`${viewport.name}: full customer shell lost CUSTOMER APP identity`, state);
+    if (state.chip !== "CUSTOMER APP") fail(`${viewport.name}: DEV customer shell lost CUSTOMER APP identity`, state);
     if (state.parity !== "v1") fail(`${viewport.name}: full customer parity controller did not apply`, state);
     if (!same(state.topLevelVisible, expectedFullVisible)) fail(`${viewport.name}: full customer top-level navigation is incomplete, duplicated, or out of order`, state);
     if (!same(state.coreVisible, fullTopLevel)) fail(`${viewport.name}: full customer core-route markers do not match the canonical hierarchy`, state);
