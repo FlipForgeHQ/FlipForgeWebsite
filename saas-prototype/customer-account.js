@@ -48,6 +48,11 @@
     return fullCustomerMode() ? "/app/customer/#/account" : "/app/#/account";
   }
 
+  function identityApi() {
+    const api = window.FlipForgeIdentity;
+    return api && typeof api.signOut === "function" ? api : null;
+  }
+
   function escapeHtml(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -242,12 +247,44 @@
       ? "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing will open after launch readiness review."
       : "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing launch resumes only after the core customer product reaches Beta Complete.";
 
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>${headingCopy}</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-refresh>Refresh</button></div></header><div class="boundary-note"><strong>Launch boundary:</strong> ${boundaryCopy}</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(currentAccessLabel(current))}</h2></div>${accessBadge}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(customerFacingText(current.accessState || "Unavailable"))}</dd></div><div><dt>Source</dt><dd>${escapeHtml(customerFacingText(current.entitlementSource || "Unavailable"))}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Production checkout</dt><dd>${fullCustomerMode() ? "Not available yet" : "Deferred by core-platform launch gate"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Usage is returned by the authoritative service. The browser cannot increase an allowance or create an entitlement.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>${plansTitle}</h2><p>${plansCopy}</p></div>${badge(billingBadge, "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>${safetyTitle}</strong><p>${safetyCopy}</p></div></section></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>${headingCopy}</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-refresh>Refresh</button><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><div class="boundary-note"><strong>Launch boundary:</strong> ${boundaryCopy}</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(currentAccessLabel(current))}</h2></div>${accessBadge}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(customerFacingText(current.accessState || "Unavailable"))}</dd></div><div><dt>Source</dt><dd>${escapeHtml(customerFacingText(current.entitlementSource || "Unavailable"))}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Production checkout</dt><dd>${fullCustomerMode() ? "Not available yet" : "Deferred by core-platform launch gate"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Usage is returned by the authoritative service. The browser cannot increase an allowance or create an entitlement.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>${plansTitle}</h2><p>${plansCopy}</p></div>${badge(billingBadge, "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>${safetyTitle}</strong><p>${safetyCopy}</p></div></section></div>`;
+  }
+
+  async function signOut() {
+    const button = state.main?.querySelector?.("[data-production-account-signout]");
+    if (!button || button.disabled) return;
+
+    const api = identityApi();
+    const authUrl = `/production-auth.html?return=${encodeURIComponent(accountReturnPath())}`;
+    if (!api) {
+      window.location.assign(authUrl);
+      return;
+    }
+
+    const originalLabel = button.textContent || "Sign out";
+    button.disabled = true;
+    button.textContent = "Signing out…";
+    button.removeAttribute("title");
+
+    try {
+      await api.signOut();
+      window.location.replace(authUrl);
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = "Sign out failed — retry";
+      button.title = error instanceof Error ? error.message : "Sign out failed.";
+      window.setTimeout(() => {
+        if (!button.isConnected || button.disabled) return;
+        button.textContent = originalLabel;
+      }, 3000);
+    }
   }
 
   function attachActions() {
     const refresh = state.main?.querySelector?.("[data-production-account-refresh]");
     if (refresh) refresh.addEventListener("click", load);
+    const signOutButton = state.main?.querySelector?.("[data-production-account-signout]");
+    if (signOutButton) signOutButton.addEventListener("click", signOut);
   }
 
   function renderState() {
