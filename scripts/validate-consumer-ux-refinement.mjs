@@ -10,7 +10,7 @@ function expect(condition, label) {
   checks.push({ condition: Boolean(condition), label });
 }
 
-expect(index.includes("FlipForge | Card Decision Intelligence"), "app title uses Card Decision Intelligence");
+expect(index.includes("FlipForge | Private Beta — Card Decision Intelligence"), "Private Beta app title uses Card Decision Intelligence");
 expect(index.includes("FlipForge private-beta card decision intelligence platform."), "meta description uses Card Decision Intelligence");
 expect(index.includes("<span class=\"brand-subtitle\">CARD DECISION INTELLIGENCE</span>"), "brand subtitle uses Card Decision Intelligence");
 expect(!index.includes("<span class=\"brand-subtitle\">CARD INTELLIGENCE</span>"), "retired Card Intelligence brand subtitle is absent");

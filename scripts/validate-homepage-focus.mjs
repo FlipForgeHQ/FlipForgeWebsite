@@ -48,7 +48,7 @@ check('035 concise Decision Proof line remains visible',has(index,'<strong>100 f
 check('036 Decision Proof remains one click away',has(index,'href="decision-proof.html">See the proof →'));
 check('037 deeper education is routed off homepage',has(index,'Want the deeper explanation?')&&has(index,'href="product.html">Product</a>')&&has(index,'href="learn.html">Evidence Lab</a>'));
 check('038 beta CTA remains primary',has(index,'href="beta-application.html">Request Beta Access</a>'));
-check('039 returning tester sign-in is present',has(index,'data-ff-marketing-sign-in>Sign In</a>'));
+check('039 returning tester beta sign-in is present',has(index,'data-ff-marketing-sign-in>Beta Sign In</a>'));
 check('040 accessible mobile menu markup remains',has(index,'class="menu-toggle"')&&has(index,'aria-controls="mobile-navigation"')&&has(index,'class="mobile-nav" id="mobile-navigation"'));
 check('041 shared mobile JS handles Escape',has(siteJs,"e.key==='Escape'"));
 check('042 shared mobile JS traps Tab',has(siteJs,"e.key==='Tab'&&menu.classList.contains('open')"));

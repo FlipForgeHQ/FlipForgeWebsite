@@ -7,7 +7,7 @@ Effective: **2026-09-16**
 
 This workflow turns the public beta application into a controlled operating queue. It does not create public signup, paid access, transaction authority, or a second product source of truth.
 
-Private Beta does **not** use a separate customer application. Activated testers use the definitive customer SaaS at `/app/customer/`; the canonical onboarding route is `/app/customer/#/beta-start`.
+Private Beta uses a dedicated invitation-only beta application. Activated testers use the Private Beta SaaS at `/app/beta/`; the canonical onboarding route is `/app/beta/#/beta-start`.
 
 Operator workspace: `/operator-beta.html` (not linked in public navigation and marked `noindex`).
 
@@ -50,7 +50,7 @@ The Send Identity Invitation action is intentionally separate from approval.
 4. The server assigns `flipforge-active` and exactly one `flipforge-tenant--<tenantId>` role plus matching `app_metadata.flipforge` membership.
 5. A pre-existing, unconfirmed self-registration that was not created by an Identity invitation is treated as an account conflict; no beta roles are granted.
 6. The existing invitation callback asks the tester to choose a password of at least 15 characters and explicitly accept the Private Beta Terms.
-7. After the Terms receipt is recorded, the tester is sent to `/app/customer/#/beta-start` inside the full customer application.
+7. After the Terms receipt is recorded, the tester is sent to `/app/beta/#/beta-start` inside the Private Beta application.
 8. Invitation, Terms-recording, or role-assignment failures fail closed. The applicant is not reported as activated.
 9. The operator record stores the real access path as `NEW_INVITATION`, `EXISTING_INVITATION`, or `EXISTING_ACCOUNT` so an already-confirmed Identity account is not misrepresented as a newly invited tester.
 
@@ -111,7 +111,7 @@ The operator may move a feedback record through `NEW → UNDER_REVIEW → RESOLV
 5. Confirm the email address and select **Send Identity Invitation**.
 6. Verify the record becomes `INVITE_SENT`; never promise access before that state.
 7. Refresh later to synchronize confirmed Identity accounts to `ACTIVATED`.
-8. Confirm the tester begins at `/app/customer/#/beta-start` and remains inside the same customer application throughout onboarding.
+8. Confirm the tester begins at `/app/beta/#/beta-start` and remains inside the same customer application throughout onboarding.
 9. Review the Decision Intelligence scorecard for comprehension signals from active testers; do not interpret those counts as accuracy.
 10. Use the in-product Private Beta Guide for the first exact-card loop and 7 / 14 / 30-day evidence review.
 11. Use the **Tester directory** for search, status/group lookup, activation-path verification, and archive review.

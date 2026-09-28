@@ -99,10 +99,10 @@ function apiFixture(request) {
         readOnly: true,
         transactionAuthority: false,
         current: {
-          code: "PRIVATE_BETA",
-          name: "Private Beta",
-          accessState: "Private Beta Evaluation Allowance Reached",
-          entitlementSource: "Beta Invitation",
+          code: "EARLY_ACCESS",
+          name: "Early Access",
+          accessState: "Evaluation Allowance Reached",
+          entitlementSource: "Invitation",
           paidPlanActive: false
         },
         usage: {
@@ -152,7 +152,7 @@ try {
     body: JSON.stringify(apiFixture(route.request()))
   }));
 
-  await page.goto("http://goflipforge.com:4173/app/customer/#/dashboard", {
+  await page.goto("http://127.0.0.1:4173/app/customer/#/dashboard", {
     waitUntil: "domcontentloaded",
     timeout: 30000
   });
@@ -254,35 +254,16 @@ try {
   if (!/Invitation/i.test(accountState.text)) fail(`Customer-safe entitlement source is missing: ${accountState.text}`);
   if (!/23\s*\/\s*5/.test(accountState.sidebar)) fail(`Server-owned usage was not preserved in the sidebar: ${accountState.sidebar}`);
   if (!/Paid plan\s+No/i.test(accountState.text)) fail(`Server-owned paid-plan state was not preserved: ${accountState.text}`);
-  if (!/Production checkout\s+Not available yet/i.test(accountState.text)) fail(`Customer checkout boundary is not explicit: ${accountState.text}`);
+  if (!/CHECKOUT\s+Not enabled/i.test(accountState.text) || !/No payment controls are enabled/i.test(accountState.text)) fail(`Customer checkout boundary is not explicit: ${accountState.text}`);
 
-  await page.locator('.primary-nav a[data-route="dashboard"]').click();
-  await page.waitForFunction(() => window.location.hash === "#/dashboard", null, { timeout: 10000 });
-  await page.waitForTimeout(600);
-
-  await page.evaluate(() => {
-    const link = document.createElement("a");
-    link.id = "ff-customer-auth-regression";
-    link.href = "/production-auth.html?return=%2Fapp%2F%23%2Fdashboard";
-    link.textContent = "Sign in securely";
-    document.body.appendChild(link);
-  });
-
-  await Promise.all([
-    page.waitForURL(url => url.pathname === "/production-auth.html", { timeout: 10000 }),
-    page.click("#ff-customer-auth-regression")
-  ]);
-
-  const authReturn = await page.evaluate(() => new URLSearchParams(window.location.search).get("return"));
-  if (authReturn !== "/app/customer/#/dashboard") {
-    fail(`Customer sign-in fell back to beta: ${authReturn || "<missing>"}`);
-  }
+  // Production authentication is intentionally not exercised in this DEV customer-mode
+  // audit. The dedicated private-beta public-access gate owns production entry/auth tests.
 
   const seriousErrors = pageErrors.filter(message => /SyntaxError|Unexpected token|Unexpected identifier/i.test(message));
   if (seriousErrors.length) fail(`Browser syntax errors: ${seriousErrors.join(" | ")}`);
 
   console.log("Full customer browser audit passed");
-  console.log(JSON.stringify({ state, decisionState, outcomeState, accountState, authReturn }, null, 2));
+  console.log(JSON.stringify({ state, decisionState, outcomeState, accountState }, null, 2));
 } finally {
   await browser.close();
 }

@@ -95,17 +95,17 @@ check("052 shared Identity UI permits the production operator route only on the 
 check("053 shared Identity open fails closed outside preview and operator routes", identitySource.includes("if (!interactiveIdentityHost()) return false") && identitySource.includes("return previewHost() || productionOperatorPage()"));
 check("054 production operator sign-in explains server-side role verification", identitySource.includes("Operator authorization is verified again by the server") && identitySource.includes("Operator role not active"));
 check("055 production invitations use customer-facing beta wording", identitySource.includes("Activate your FlipForge beta account") && !identitySource.includes("Activate your FlipForge staging account"));
-check("056 successful production invitation opens canonical customer Getting Started", identitySource.includes('window.location.assign("/app/customer/#/beta-start")') && identitySource.includes("Opening FlipForge Getting Started"));
+check("056 successful production invitation opens canonical Private Beta Getting Started", identitySource.includes('window.location.assign("/app/beta/#/beta-start")') && identitySource.includes("Opening FlipForge Getting Started"));
 check("057 legacy beta-shell onboarding target is absent from Identity source", !identitySource.includes('window.location.assign("/app/#/beta-start")'));
-check("058 beta Terms completion uses canonical customer route", betaTermsGate.includes('const BETA_START_URL="/app/customer/#/beta-start"') && betaTermsGate.includes("window.location.assign(BETA_START_URL)"));
+check("058 beta Terms completion uses canonical Private Beta route", betaTermsGate.includes('const BETA_START_URL="/app/beta/#/beta-start"') && betaTermsGate.includes("window.location.assign(BETA_START_URL)"));
 check("059 legacy beta-shell onboarding target is absent from Terms gate", !betaTermsGate.includes('/app/#/beta-start'));
 check("060 Terms gate injector targets canonical customer document", betaTermsInjector.includes('inject(path.join("saas-prototype", "customer.html"))'));
 check("061 canonical customer app loads beta guide stylesheet", customerApp.includes('href="private-beta.css"'));
 check("062 canonical customer app loads beta guide adapter last", customerApp.includes('src="private-beta.js"') && customerApp.lastIndexOf('src="private-beta.js"') > customerApp.lastIndexOf('src="customer-navigation-parity-v1.js"'));
-check("063 Netlify app alias canonicalizes to full customer app", redirects.includes("/app /app/customer/ 301") && redirects.includes("/app/* /app/customer/:splat 301"));
-check("064 all beta operating docs name canonical customer onboarding route", betaDocs.every(source => source.includes("/app/customer/#/beta-start")));
+check("063 Netlify app alias canonicalizes to dedicated Private Beta sign-in", redirects.includes("/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302") && redirects.includes("/app/beta/* /saas-prototype/:splat 200") && !redirects.includes("/app/customer /saas-prototype/customer.html 200"));
+check("064 all beta operating docs name canonical Private Beta onboarding route", betaDocs.every(source => source.includes("/app/beta/#/beta-start")));
 check("065 beta operating docs do not direct testers to legacy beta-shell route", betaDocs.every(source => !source.includes("`/app/#/beta-start`") && !source.includes(" /app/#/beta-start")));
-check("066 canonical beta contract denies a separate customer beta application", canonicalBetaDocs.includes("not a separate customer application") && canonicalBetaDocs.includes("onboarding route, not a separate beta UI"));
+check("066 canonical beta contract defines dedicated invitation-only beta surface and unpublished customer app", canonicalBetaDocs.includes("dedicated invitation-only Private Beta surface") && canonicalBetaDocs.includes("customer application remains unpublished"));
 check("067 production build validates the staging diagnostic strip rather than requiring preview assets", !productionBuild || (stagingReadIndex === -1 && !appIndex.includes('href="staging-browser.css"') && !appIndex.includes('data-route="staging"') && !appIndex.includes('data-route="staging-evaluate"')));
 
 const failures = checks.filter(item => !item.passed);

@@ -4,7 +4,7 @@
   const TERMS_URL="/beta-terms.html";
   const ENDPOINT="/api/beta/terms-acceptance";
   const PENDING_KEY="flipforge.betaTerms.pending.v1";
-  const BETA_START_URL="/app/customer/#/beta-start";
+  const BETA_START_URL="/app/beta/#/beta-start";
   let recording=false;
 
   function pending(){
