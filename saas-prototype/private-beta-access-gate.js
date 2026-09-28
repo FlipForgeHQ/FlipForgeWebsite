@@ -2,13 +2,13 @@
   "use strict";
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
-  const CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
-  const BETA_AUTH_URL = "/production-auth.html?return=%2Fapp%2Fcustomer%2F%23%2Fbeta-start";
+  const BETA_PATH = /^\/(?:app\/beta|saas-prototype)(?:\/|$)/i;
+  const BETA_AUTH_URL = "/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start";
   const BETA_START = "#/beta-start";
 
-  function productionCustomerSurface() {
+  function productionBetaSurface() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""))
-      && CUSTOMER_PATH.test(String(window.location.pathname || ""));
+      && BETA_PATH.test(String(window.location.pathname || ""));
   }
 
   function release() {
@@ -31,7 +31,7 @@
   }
 
   async function enforce() {
-    if (!productionCustomerSurface()) {
+    if (!productionBetaSurface()) {
       release();
       return;
     }
