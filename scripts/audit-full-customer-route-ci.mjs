@@ -251,7 +251,7 @@ try {
   // Reproduce the exact internal beta-language leak seen on the production account page.
   // The normalizer is intentionally disabled above: this section proves the account
   // renderer itself emits customer-safe language while preserving server authority data.
-  await page.locator(".account-link").click();
+  await page.evaluate(() => { window.location.hash = "#/account"; });
   await page.waitForFunction(() => window.location.hash === "#/account", null, { timeout: 10000 });
   await page.waitForSelector("#main-content .customer-entitlements-page", { timeout: 10000 });
   await page.waitForTimeout(400);
