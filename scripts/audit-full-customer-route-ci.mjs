@@ -254,7 +254,7 @@ try {
   if (!/Invitation/i.test(accountState.text)) fail(`Customer-safe entitlement source is missing: ${accountState.text}`);
   if (!/23\s*\/\s*5/.test(accountState.sidebar)) fail(`Server-owned usage was not preserved in the sidebar: ${accountState.sidebar}`);
   if (!/Paid plan\s+No/i.test(accountState.text)) fail(`Server-owned paid-plan state was not preserved: ${accountState.text}`);
-  if (!/Production checkout\s+Not available yet/i.test(accountState.text)) fail(`Customer checkout boundary is not explicit: ${accountState.text}`);
+  if (!/CHECKOUT\s+Not enabled/i.test(accountState.text) || !/No payment controls are enabled/i.test(accountState.text)) fail(`Customer checkout boundary is not explicit: ${accountState.text}`);
 
   // Production authentication is intentionally not exercised in this DEV customer-mode
   // audit. The dedicated private-beta public-access gate owns production entry/auth tests.
