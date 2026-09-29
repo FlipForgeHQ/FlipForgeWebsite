@@ -61,7 +61,8 @@
         <div><span>New invitation</span><strong>FlipForge sent a fresh Identity invitation.</strong></div>
         <div><span>Existing invitation</span><strong>A prior Identity invitation was reused.</strong></div>
         <div><span>Existing account</span><strong>The email already had a confirmed Identity account; beta access was assigned without a new invite email.</strong></div>
-        <p><strong>Removed archive:</strong> onboarding access is revoked when applicable, but the operator audit record and saved decision history are not silently deleted.</p>
+        <p><strong>Removed archive:</strong> use this for real testers when access should be revoked but the operator audit record should remain.</p>
+        <p><strong>Permanent test-user delete:</strong> use only for fake/test accounts. It deletes the onboarding record and the matching beta Identity account after exact-email confirmation.</p>
       </div>
       <div class="ff-directory-summary" data-directory-summary aria-live="polite"></div>
       <div class="ff-tester-directory" data-application-list aria-live="polite"></div>
@@ -105,7 +106,7 @@
 </main>
 
 <script src="/assets/js/flipforge-identity.js"></script>
-<script src="assets/js/beta-operator.js?v=20260922-directory-2" defer></script>
+<script src="assets/js/beta-operator.js?v=20260929-test-delete-1" defer></script>
 <script src="assets/js/beta-founder-select.js?v=wave1-20260904-2" defer></script>
 <script src="assets/js/beta-cdi-scorecard-operator-v1.js?v=20260911-1" defer></script>
 </body>
