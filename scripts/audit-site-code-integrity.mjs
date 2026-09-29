@@ -27,7 +27,7 @@ const pageHtmlFiles=htmlFiles.filter(file=>!fragmentPrefixes.some(prefix=>file.s
 const sourceFiles=files.filter(file=>/\.(?:js|mjs|css|html|toml|yml|yaml)$/.test(file));
 
 const protocol=/^(?:https?:|mailto:|tel:|data:|javascript:)/i;
-const routedPrefixes=['/app','/api/','/.netlify/'];
+const routedPrefixes=['/app','/owner','/api/','/.netlify/'];
 
 function tagAttr(html,tag,attr){
   const values=[];

@@ -8,9 +8,12 @@
   <title>FlipForge | Customer App — Card Decision Intelligence</title>
   <script>
   window.FlipForgeFullCustomerEntry=true;
-  if (/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""))) {
+  const ffProductionHost=/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""))
+    && !String(window.location.port || "");
+  const ffOwnerCustomerPath=/^\/owner\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  if (ffProductionHost) {
     document.documentElement.style.visibility = "hidden";
-    window.location.replace("/");
+    if (!ffOwnerCustomerPath) window.location.replace("/");
   }
 </script>
   <link rel="stylesheet" href="styles.css">
@@ -171,6 +174,7 @@
   <script src="identity-login-redirect.js"></script>
   <script src="production-identity-login-redirect.js"></script>
   <script src="/assets/js/flipforge-identity.js"></script>
+  <script src="/assets/js/owner-customer-gate.js?v=20260929-1"></script>
   <script src="cardsight-evidence-visibility.js"></script>
   <script src="price-intelligence.js"></script>
   <script src="staging-browser.js"></script>

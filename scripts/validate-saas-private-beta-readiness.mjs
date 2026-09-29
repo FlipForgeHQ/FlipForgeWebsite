@@ -83,7 +83,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["051 feedback failure cannot claim evaluation loss", beta.includes("Your evaluation data was not affected")],
   ["052 responsive private beta layout exists", css.includes("@media (max-width: 1050px)") && css.includes("@media (max-width: 650px)")],
   ["053 reduced motion is respected", css.includes("prefers-reduced-motion")],
-  ["054 docs prohibit a second application or engine", docs.includes("does not create another application, recommendation engine")],
+  ["054 docs define two SaaS experiences over one engine", docs.includes("two product experiences over the same engine") && docs.includes("Private Beta") && docs.includes("Customer") && docs.includes("not a DEV mode or third SaaS version")],
   ["055 docs define the single non-sensitive preference value", docs.includes("flipforge.privateBeta.onboarding.v1") && docs.includes("value `complete`")],
   ["056 docs define controlled production private-beta access", docs.includes("production private-beta path is active only for invited testers")],
   ["057 docs retain environment-gated customer API control", docs.includes("customer API can still be disabled between approved testing sessions")],

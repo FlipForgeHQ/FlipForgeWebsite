@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<title>Owner Hub | FlipForge</title>
+<meta name="description" content="Private FlipForge owner launchpad.">
+<meta name="theme-color" content="#030303">
+<link rel="icon" href="/assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/brand-v2.css">
+<link rel="stylesheet" href="/assets/css/owner-hub.css?v=20260929-1">
+</head>
+<body class="ff-owner-hub">
+<a class="ff-owner-skip" href="#owner-main">Skip to owner workspace</a>
+
+<main id="owner-main" class="ff-owner-shell">
+  <section class="ff-owner-access" data-owner-access aria-live="polite">
+    <img src="/assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why." class="ff-owner-logo">
+    <span class="ff-owner-brandline">FLIPFORGE™ · CARD DECISION INTELLIGENCE</span>
+    <span class="ff-owner-eyebrow">Private owner access</span>
+    <h1>FlipForge Owner Hub</h1>
+    <p>This page is not part of the public website. Sign in with a FlipForge operator account to open the controlled product surfaces.</p>
+    <button type="button" class="ff-owner-primary" data-owner-sign-in>Sign in as Operator</button>
+    <p class="ff-owner-status" data-owner-status></p>
+  </section>
+
+  <section class="ff-owner-workspace" data-owner-workspace hidden>
+    <header class="ff-owner-header">
+      <div>
+        <img src="/assets/brand/flipforge-logo-horizontal.svg" alt="FlipForge — Card Decision Intelligence — Before you buy. Know Why." class="ff-owner-logo">
+        <span class="ff-owner-brandline">FLIPFORGE™ · CARD DECISION INTELLIGENCE</span>
+        <span class="ff-owner-eyebrow">Operator-only launchpad</span>
+        <h1>Owner Hub</h1>
+        <p>One engine. Two SaaS experiences. One private control point.</p>
+      </div>
+      <div class="ff-owner-account">
+        <span>Signed in</span>
+        <strong data-owner-email>Operator</strong>
+        <button type="button" data-owner-sign-out>Sign out</button>
+      </div>
+    </header>
+
+    <section class="ff-owner-model" aria-label="FlipForge SaaS architecture">
+      <div><span>ENGINE</span><strong>FlipForge Decision Engine</strong><small>Shared authority for both SaaS experiences.</small></div>
+      <div class="ff-owner-arrow" aria-hidden="true">→</div>
+      <div><span>EXPERIENCES</span><strong>Private Beta · Customer</strong><small>No DEV mode exists in hosted SaaS.</small></div>
+    </section>
+
+    <section class="ff-owner-grid" aria-label="Owner destinations">
+      <article class="ff-owner-card ff-owner-card-primary">
+        <div class="ff-owner-card-head">
+          <span class="ff-owner-mode">PRIVATE BETA</span>
+          <span class="ff-owner-state live">LIVE</span>
+        </div>
+        <h2>Private Beta</h2>
+        <p>Open the exact invitation-only SaaS experience that beta testers use.</p>
+        <ul>
+          <li>Tester-facing product</li>
+          <li>Beta onboarding and guidance</li>
+          <li>Same FlipForge decision engine</li>
+        </ul>
+        <a class="ff-owner-action" href="/app/beta/#/beta-start">Open Private Beta</a>
+      </article>
+
+      <article class="ff-owner-card">
+        <div class="ff-owner-card-head">
+          <span class="ff-owner-mode">CUSTOMER</span>
+          <span class="ff-owner-state prelaunch">OWNER PREVIEW</span>
+        </div>
+        <h2>Customer Experience</h2>
+        <p>Open the real customer SaaS surface privately before public customer launch.</p>
+        <ul>
+          <li>Not linked from the public website</li>
+          <li>Operator-gated owner preview</li>
+          <li>Same underlying engine, customer presentation</li>
+        </ul>
+        <a class="ff-owner-action" href="/owner/customer/#/dashboard">Open Customer Experience</a>
+      </article>
+
+      <article class="ff-owner-card">
+        <div class="ff-owner-card-head">
+          <span class="ff-owner-mode">OPERATIONS</span>
+          <span class="ff-owner-state private">OWNER ONLY</span>
+        </div>
+        <h2>Beta Operations</h2>
+        <p>Manage invitations, tester access, removals, feedback, and beta operating state.</p>
+        <ul>
+          <li>Invite and manage testers</li>
+          <li>Review activation and feedback</li>
+          <li>Permanent deletion for fake test users</li>
+        </ul>
+        <a class="ff-owner-action" href="/operator-beta.html">Open Beta Operations</a>
+      </article>
+
+      <article class="ff-owner-card">
+        <div class="ff-owner-card-head">
+          <span class="ff-owner-mode">PUBLIC</span>
+          <span class="ff-owner-state live">LIVE</span>
+        </div>
+        <h2>Public Website</h2>
+        <p>View the same marketing site visitors see without exposing owner controls.</p>
+        <ul>
+          <li>Public marketing site</li>
+          <li>Beta application entry</li>
+          <li>No owner navigation exposed</li>
+        </ul>
+        <a class="ff-owner-action secondary" href="/">Open Public Website</a>
+      </article>
+    </section>
+
+    <section class="ff-owner-boundary">
+      <strong>Hosted SaaS boundary</strong>
+      <p>FlipForge SaaS has two product experiences only: <b>Private Beta</b> and <b>Customer</b>. The Owner Hub and Beta Operations are administrative controls, not additional product versions. Development remains outside the hosted SaaS.</p>
+    </section>
+  </section>
+</main>
+
+<script src="/assets/js/flipforge-identity.js"></script>
+<script src="/assets/js/owner-hub.js?v=20260929-1" defer></script>
+</body>
+</html>

@@ -46,6 +46,9 @@ check("023 generic app routes cannot expose customer dashboard", hasRedirect("/a
 check("024 legacy /app beta-index route is inactive", !hasRedirect("/app /saas-prototype/index.html 200") && !hasRedirect("/app/ /saas-prototype/index.html 200"));
 check("025 legacy /app beta wildcard is inactive", !hasRedirect("/app/* /saas-prototype/:splat 200"));
 check("026 production customer route is unpublished", !redirectLines.some(rule => rule.startsWith("/app/customer")));
+check("027 owner-only customer preview uses the definitive customer document", hasRedirect("/owner/customer /saas-prototype/customer.html 200") && hasRedirect("/owner/customer/ /saas-prototype/customer.html 200"));
+check("028 owner customer assets remain isolated under owner route", hasRedirect("/owner/customer/* /saas-prototype/:splat 200"));
+check("029 operator workspace routes back through Owner Hub", operator.includes('href="/owner">Owner Hub</a>'));
 
 for (const item of checks) console.log(`${item.passed ? "PASS" : "FAIL"} ${item.name}`);
 const failed = checks.filter(item => !item.passed);

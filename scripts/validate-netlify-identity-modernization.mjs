@@ -105,7 +105,7 @@ check("062 canonical customer app loads beta guide adapter last", customerApp.in
 check("063 Netlify app alias canonicalizes to dedicated Private Beta sign-in", redirects.includes("/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302") && redirects.includes("/app/beta/* /saas-prototype/:splat 200") && !redirects.includes("/app/customer /saas-prototype/customer.html 200"));
 check("064 all beta operating docs name canonical Private Beta onboarding route", betaDocs.every(source => source.includes("/app/beta/#/beta-start")));
 check("065 beta operating docs do not direct testers to legacy beta-shell route", betaDocs.every(source => !source.includes("`/app/#/beta-start`") && !source.includes(" /app/#/beta-start")));
-check("066 canonical beta contract defines dedicated invitation-only beta surface and unpublished customer app", canonicalBetaDocs.includes("dedicated invitation-only Private Beta surface") && canonicalBetaDocs.includes("customer application remains unpublished"));
+check("066 canonical beta contract defines dedicated beta plus private owner customer preview", canonicalBetaDocs.includes("dedicated invitation-only surface") && canonicalBetaDocs.includes("not a public login destination before launch") && canonicalBetaDocs.includes("/owner/customer/") && canonicalBetaDocs.includes("Hosted SaaS has no DEV mode"));
 check("067 production build validates the staging diagnostic strip rather than requiring preview assets", !productionBuild || (stagingReadIndex === -1 && !appIndex.includes('href="staging-browser.css"') && !appIndex.includes('data-route="staging"') && !appIndex.includes('data-route="staging-evaluate"')));
 
 const failures = checks.filter(item => !item.passed);

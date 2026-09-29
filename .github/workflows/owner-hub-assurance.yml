@@ -1,0 +1,42 @@
+name: Owner Hub Assurance
+
+on:
+  pull_request:
+    paths:
+      - "owner.html"
+      - "assets/css/owner-hub.css"
+      - "assets/js/owner-hub.js"
+      - "assets/js/owner-customer-gate.js"
+      - "operator-beta.html"
+      - "saas-prototype/customer.html"
+      - "scripts/lib/flipforge-identity-client.mjs"
+      - "scripts/validate-owner-hub.mjs"
+      - "scripts/validate-netlify-rule-budget.mjs"
+      - "_redirects"
+      - "netlify.toml"
+      - "docs/BETA_CUSTOMER_APP_CANONICAL_ROUTE_2026-09-16.md"
+      - "docs/CUSTOMER_OPERATOR_INTERFACE_SPLIT_V1.md"
+      - "docs/SAAS_PRIVATE_BETA_READINESS.md"
+      - ".github/workflows/owner-hub-assurance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Private owner routing and two-experience SaaS contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --no-audit --no-fund
+      - run: npm run build:identity
+      - run: npm run validate:identity
+      - run: node scripts/validate-netlify-rule-budget.mjs
+      - run: npm run validate:private-beta
+      - run: npm run validate:beta-operator
+      - run: node scripts/validate-owner-hub.mjs

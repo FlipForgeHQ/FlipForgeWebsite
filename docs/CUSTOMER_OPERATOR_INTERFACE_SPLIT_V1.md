@@ -1,42 +1,56 @@
-# FlipForge Customer / Operator Interface Split v1
+# FlipForge SaaS Surface and Operator Split v2
 
 ## Purpose
 
-FlipForge treats the definitive authenticated customer product and the private operator workspace as two separate interfaces over the same FlipForge intelligence system.
+FlipForge uses **one authoritative decision engine** with exactly **two hosted SaaS product experiences**:
 
-- Customer app: `/app/customer/`
-- Private Beta onboarding inside customer product: `/app/beta/#/beta-start`
-- Operator workspace: `/operator-beta.html`
+1. **Private Beta** — invitation-only tester experience at `/app/beta/`.
+2. **Customer** — the real customer experience, held from public launch until release.
 
-The `/app` path is only a compatibility alias that canonicalizes to `/app/customer/`. Private Beta does **not** create a separate customer product.
+The owner/operator tools are administrative controls, not a third product version. Hosted SaaS has no DEV mode; development remains outside the hosted product.
 
-This interface split does **not** create a second decision engine, a second evidence authority, or a second source of truth.
+## Canonical owner entry
 
-## Customer interface
+Private Owner Hub:
 
-The full customer product exposes the current Card Decision Intelligence workflow, including Home, Discover, Evaluate a Card, Decision Intelligence, Why This Decision, Evidence Review, Saved Decisions, Outcome Intelligence, Portfolio, Alerts, Forge Heat, Market View, and approved advanced-analysis routes.
+`/owner`
 
-Private Beta testers enter this same customer shell. Their signed membership controls beta access and capability availability. The `#/beta-start` route is a first-run guide rendered by `private-beta.js` inside the full customer shell; it is not an alternative beta application.
+The Owner Hub is operator-only, `noindex`, absent from public navigation, and provides one controlled launch point for:
 
-The first-session beta loop remains intentionally focused:
+- Private Beta: `/app/beta/#/beta-start`
+- Customer owner preview: `/owner/customer/#/dashboard`
+- Beta Operations: `/operator-beta.html`
+- Public website: `/`
 
-**Find card → Evaluate → Understand the evidence and decision → Save/Track → Feedback**
+## Private Beta
 
-The customer UI must clearly label beta-limited or unavailable capabilities rather than presenting dead controls that imply an authority or backend capability that is intentionally inactive.
+Private Beta is the invitation-only tester-facing SaaS experience. It uses the same FlipForge engine and authority boundaries as Customer, with beta-specific onboarding, capability limits, and feedback controls.
 
-## Operator interface
+Canonical onboarding route:
 
-The operator workspace remains separate at `/operator-beta.html`.
+`/app/beta/#/beta-start`
 
-Operator access continues to depend on the existing `flipforge-operator` role (or authorized admin role). Operator applicant reads and mutations remain re-authorized server-side.
+## Customer
 
-The customer product does not link to the operator workspace.
+The Customer experience is the real customer SaaS presentation. Before public launch, the public customer route remains unpublished.
+
+The owner may inspect the same customer document through:
+
+`/owner/customer/#/dashboard`
+
+That preview is not a DEV build and not a third SaaS version. It is an operator-gated view of the Customer experience.
+
+## Beta Operations
+
+Beta Operations remains separate at:
+
+`/operator-beta.html`
+
+It manages tester invitations, activation, access, removal/deletion of controlled test accounts, comprehension signals, and feedback. It is an owner tool, not a product version.
 
 ## Authority boundaries
 
-This interface split is presentation and access-surface work only.
-
-It does not change:
+This surface split does not change:
 
 - Smart Opportunity BUY/WATCH/VERIFY/PASS authority;
 - PSA grading-guidance authority;
@@ -47,20 +61,14 @@ It does not change:
 - transaction authority;
 - the canonical backend source of truth.
 
-## Canonical routing contract
+## Public boundary
 
-- `/app` → `/app/customer/`
-- `/app/customer/` serves the definitive customer document.
-- `/app/beta/#/beta-start` renders Private Beta onboarding inside that document.
-- `/app/#/beta-start` is legacy and must not be emitted by invitation, Terms-completion, onboarding, operator, or support flows.
-- `/operator-beta.html` remains the separate owner/operator interface.
+The public website must not link to the Owner Hub, Beta Operations, or the pre-launch Customer owner preview.
 
-## Validation
+The future public Customer route remains unpublished until launch. Private Beta remains invitation-only.
 
-Run:
+## Mental model
 
-```bash
-npm run validate:customer-operator-split
-```
+**FlipForge Engine → Private Beta or Customer**
 
-The validator confirms that the full customer product remains authoritative, the Private Beta Guide is mounted inside it, operator/customer roles remain server-defined, the operator workspace is not linked from the customer product, `/app` canonicalizes to `/app/customer/`, and the retired legacy beta-shell redirects do not return.
+Owner Hub and Beta Operations sit outside those two product experiences as private administrative controls.

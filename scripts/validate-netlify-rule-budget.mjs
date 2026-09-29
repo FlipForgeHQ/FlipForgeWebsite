@@ -12,6 +12,11 @@ const activeRules = redirects
   .filter(line => line && !line.startsWith("#"));
 
 const expectedRules = [
+  "/owner /owner.html 200",
+  "/owner/ /owner.html 200",
+  "/owner/customer /saas-prototype/customer.html 200",
+  "/owner/customer/ /saas-prototype/customer.html 200",
+  "/owner/customer/* /saas-prototype/:splat 200",
   "/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302",
   "/app/beta /saas-prototype/index.html 200",
   "/app/beta/ /saas-prototype/index.html 200",
@@ -42,6 +47,10 @@ check(!activeRules.some(rule => rule.includes("/api/ebay/privacy")), "eBay priva
 check(!activeRules.some(rule => rule.startsWith("/app/ ")), "redundant exact /app/ rule must remain unnecessary");
 check(activeRules.filter(rule => rule.includes("/saas-prototype/index.html")).every(rule => rule.startsWith("/app/beta")), "only the dedicated Private Beta route may resolve to the beta shell");
 check(!activeRules.some(rule => rule.startsWith("/app/customer")), "customer app route must remain unpublished before launch");
+check(activeRules.filter(rule => rule.startsWith("/owner/customer")).length === 3,
+  "customer preview may be exposed only through the dedicated owner/customer route");
+check(!activeRules.some(rule => rule.startsWith("/owner") && rule.includes(" 30")),
+  "owner routes must render in place rather than redirect into public navigation");
 check(netlifyConfig.includes('package = "@netlify/plugin-lighthouse"'),
   "Lighthouse plugin must be configured in netlify.toml so file-based settings override the UI default");
 check(netlifyConfig.includes('fail_deploy_on_score_thresholds = "true"'),

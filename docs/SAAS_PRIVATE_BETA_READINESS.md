@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This phase wraps the existing customer intelligence loop in a controlled private-beta experience. It does not create another application, recommendation engine, grading authority, database, or billing system.
+This phase wraps the existing FlipForge intelligence loop in a controlled private-beta experience. It does not create another recommendation engine, grading authority, database, or billing system.
 
-The dedicated Private Beta application is `/app/customer/`. Private Beta is an access/onboarding mode inside that application, a dedicated invitation-only beta surface. The canonical Private Beta onboarding route is `/app/beta/#/beta-start`.
+Hosted FlipForge SaaS has two product experiences over the same engine: **Private Beta** and **Customer**. The dedicated Private Beta application is `/app/beta/`; its canonical onboarding route is `/app/beta/#/beta-start`. The Customer experience remains unpublished to the public before launch and is available to the owner only through the operator-gated Owner Hub preview.
 
 The customer path is now:
 
@@ -54,7 +54,8 @@ The role-gated operator workspace reports feedback review state and checkpoint c
 
 - Invitation-only access; no public signup.
 - Production access is invitation-only and tenant-scoped; controlled deploy previews remain available for pre-promotion validation.
-- The canonical customer application is `/app/customer/`; no second beta customer application is authoritative.
+- Private Beta is canonical at `/app/beta/`; the Customer experience is a separate presentation over the same engine and remains unpublished to the public before launch.
+- The operator-only Customer preview at `/owner/customer/` is not a DEV mode or third SaaS version.
 - The customer API can still be disabled between approved testing sessions; no mock result replaces it and saved SQLite records remain authoritative.
 - Provider-backed Discover is a real customer path when both the private-beta bridge and the approved server-side active-listing provider are configured.
 - Discover currently searches approved connected active-listing sources only; it does not claim complete-market coverage.
