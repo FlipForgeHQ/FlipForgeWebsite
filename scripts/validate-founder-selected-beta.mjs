@@ -30,7 +30,7 @@ check("014 terms gate injects into public callback and app surfaces", injector.i
 check("015 founder UI defaults Wave 1 cohort", founderUi.includes('wave-1-sep-2026'));
 check("016 public applications remain separately reviewable", operator.includes("review public applications") && operator.includes("Tester directory") && operator.includes("UNDER_REVIEW") && operator.includes("WAITLISTED"));
 check("017 no payment or transaction authority is added", !founderFn.includes("checkout") && !termsFn.includes("checkout") && operator.includes("No billing or transaction authority is granted"));
-check("018 operator invite scripts are cache-busted", operator.includes('beta-operator.js?v=20260922-directory-2') && operator.includes('beta-founder-select.js?v=wave1-20260904-2'));
+check("018 operator invite scripts are cache-busted", operator.includes('beta-operator.js?v=20260929-test-delete-1') && operator.includes('beta-founder-select.js?v=wave1-20260904-2'));
 check("019 operator invite scripts are no-store", netlify.includes('for = "/assets/js/beta-operator.js"') && netlify.includes('for = "/assets/js/beta-founder-select.js"') && netlify.includes('for = "/assets/js/beta-invite-terms-gate.js"') && netlify.includes('Cache-Control = "no-store, max-age=0, must-revalidate"'));
 check("020 founder UI diagnoses deploy skew without bypassing fail-closed behavior", founderUi.includes("INVALID_BODY") && founderUi.includes("ORIGIN_NOT_ALLOWED") && founderUi.includes("Refresh & Sync") && founderUi.includes("failed safely"));
 
