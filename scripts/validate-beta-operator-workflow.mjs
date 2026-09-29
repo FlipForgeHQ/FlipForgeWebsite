@@ -91,6 +91,10 @@ const checks = [
   ["operator removal is explicit and audited", operatorClient.includes("data-remove-onboarding") && operatorSource.includes('action === "remove"') && operatorSource.includes("ONBOARDING_REMOVED") && coreSource.includes('"REMOVED"')],
   ["operator removal revokes matching beta membership before archive", operatorSource.includes("revokeBetaMembership(reserved") && operatorSource.indexOf("revokeBetaMembership(reserved") < operatorSource.indexOf("finalizeRemoval(reserved") && operatorSource.includes("IDENTITY_MEMBERSHIP_MISMATCH")],
   ["operator removal releases only the matching hashed email claim", operatorSource.includes("releaseApplicationEmailClaim") && operatorSource.includes("emailIndexKey(email)") && operatorSource.includes("entry?.data?.applicationId")],
+  ["permanent test-user delete is an explicit separate action", operatorClient.includes("data-delete-test-user") && operatorClient.includes('action:"delete-test-user"') && operatorClient.includes("PERMANENT TEST-USER DELETE") && operatorSource.includes('action === "delete-test-user"')],
+  ["permanent test-user delete requires exact-email confirmation", operatorClient.includes("Type the exact email to continue") && operatorSource.includes("DELETE_CONFIRMATION_MISMATCH") && operatorSource.includes("confirmedEmail !== expectedEmail")],
+  ["permanent test-user delete protects operator and cross-record accounts", operatorSource.includes("CANNOT_DELETE_CURRENT_OPERATOR") && operatorSource.includes("CANNOT_DELETE_OPERATOR_ACCOUNT") && operatorSource.includes("IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD")],
+  ["permanent test-user delete removes Identity and onboarding record", operatorSource.includes("permanentlyDeleteTestUser") && operatorSource.includes("identityAdmin.deleteUser") && operatorSource.includes("applicationStore.delete(applicationKey(application.id))") && docs.includes("Permanently delete test user")],
   ["review state machine is explicit", ["SUBMITTED", "UNDER_REVIEW", "WAITLISTED", "APPROVED", "INVITE_SENT", "ACTIVATED", "DECLINED"].every(value => coreSource.includes(value))],
   ["feedback state machine is explicit", ["NEW", "UNDER_REVIEW", "RESOLVED"].every(value => coreSource.includes(value))],
   ["feedback summary denies accuracy meaning", coreSource.includes("TESTER_REPORTED_CHECKPOINTS_NOT_ACCURACY") && operatorHtml.includes("not product accuracy")],
@@ -293,8 +297,27 @@ assert.equal(dashboard.applicationSummary.total, 0);
 assert.equal(dashboard.applicationSummary.removed, 1);
 assert.equal(dashboard.applications.filter(item => item.status === "REMOVED").length, 1);
 
+response = await operator(operatorRequest({ action: "delete-test-user", applicationId: application.id, expectedVersion: application.version, confirmEmail: "wrong@example.com" }));
+assert.equal(response.status, 409);
+assert.equal(identityUsers.length, 1);
+assert.equal((await applicationStore.list({ prefix: "application/" })).blobs.length, 1);
+
+response = await operator(operatorRequest({ action: "delete-test-user", applicationId: application.id, expectedVersion: application.version, confirmEmail: application.applicant.email }));
+assert.equal(response.status, 200);
+const deletedPayload = await response.json();
+assert.equal(deletedPayload.deleted, true);
+assert.equal(deletedPayload.identityDeleted, true);
+assert.equal(identityUsers.length, 0);
+assert.equal((await applicationStore.list({ prefix: "application/" })).blobs.length, 0);
+
+response = await operator(operatorRequest());
+dashboard = await response.json();
+assert.equal(dashboard.applicationSummary.total, 0);
+assert.equal(dashboard.applicationSummary.removed, 0);
+assert.equal(dashboard.applications.length, 0);
+
 assert.equal((await intake(appRequest(validApplication))).status, 202);
-assert.equal((await applicationStore.list({ prefix: "application/" })).blobs.length, 2);
+assert.equal((await applicationStore.list({ prefix: "application/" })).blobs.length, 1);
 
 console.log = originalLog;
 assert.ok(operationLogs.every(line => !line.includes("tester@example.com") && !line.includes("Test Applicant") && !line.includes("never-log@example.com") && !line.includes("feedback@example.com") && !line.includes("original VERIFY")));

@@ -70,6 +70,27 @@ The operator workspace includes a searchable tester directory with active, remov
 
 If the Identity membership no longer matches the application, removal fails closed rather than revoking unrelated access.
 
+## Permanent test-user deletion
+
+The operator workspace also exposes **Permanently delete test user** for fake, rehearsal, or QA accounts that should not remain in the beta directory.
+
+This is deliberately separate from **Remove from onboarding**:
+
+- **Remove from onboarding** is the normal action for a real tester. It revokes beta membership when applicable and preserves the operator audit record.
+- **Permanently delete test user** is only for fake/test accounts. It deletes the beta application/onboarding record and deletes the matching Netlify Identity user when one exists.
+
+Permanent deletion requires the operator to type the tester's exact email address and confirm the destructive action. The server independently verifies the signed operator role, same-origin request, record version, exact email confirmation, Identity email, and beta-record ownership before deleting anything.
+
+Permanent deletion fails closed when:
+
+- the selected email is the currently signed-in operator;
+- the Identity user has the FlipForge operator/admin role;
+- the Identity account is bound to another beta record or another beta tenant;
+- the record is in the middle of invitation or removal processing; or
+- the confirmation email does not exactly match the selected tester.
+
+This action does not authorize deletion of production customer data outside the beta onboarding/Identity boundary. Use it to clean up controlled test accounts, not as the normal offboarding path for real beta participants.
+
 ## Funnel reporting
 
 Anonymous conversion events are copied to the site-scoped `flipforge-conversion-events` store. Records contain only:

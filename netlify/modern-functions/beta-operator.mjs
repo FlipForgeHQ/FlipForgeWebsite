@@ -406,6 +406,42 @@ async function inviteApplicant(application, identityAdmin, inviteIdentity, now) 
   return next;
 }
 
+async function permanentlyDeleteTestUser(application, applicationStore, identityAdmin, operatorUser) {
+  const email = String(application?.applicant?.email || "").trim().toLowerCase();
+  if (!email) throw new Error("APPLICATION_EMAIL_MISSING");
+  if (identityEmail(operatorUser) === email) throw new Error("CANNOT_DELETE_CURRENT_OPERATOR");
+
+  const users = await listIdentityUsers(identityAdmin);
+  const identityUser = application.identityUserId
+    ? users.find(user => String(user?.id || "") === String(application.identityUserId || "")) || null
+    : users.find(user => identityEmail(user) === email) || null;
+
+  if (identityUser) {
+    if (identityEmail(identityUser) !== email) throw new Error("IDENTITY_MEMBERSHIP_MISMATCH");
+    if (operatorRoles(identityUser).includes("flipforge-operator") || String(identityUser.role || "") === "admin") {
+      throw new Error("CANNOT_DELETE_OPERATOR_ACCOUNT");
+    }
+
+    const currentMetadata = identityUser.appMetadata || identityUser.app_metadata || {};
+    const membership = currentMetadata.flipforge || {};
+    const boundApplicationId = String(membership.betaApplicationId || "");
+    if (boundApplicationId && boundApplicationId !== String(application.id || "")) {
+      throw new Error("IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD");
+    }
+
+    const expectedTenantRole = `${TENANT_ROLE_PREFIX}${application.tenantId || tenantIdFor(application)}`;
+    const otherTenantRoles = operatorRoles(identityUser)
+      .filter(role => role.startsWith(TENANT_ROLE_PREFIX) && role !== expectedTenantRole);
+    if (otherTenantRoles.length) throw new Error("IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD");
+
+    await identityAdmin.deleteUser(String(identityUser.id || ""));
+  }
+
+  await applicationStore.delete(applicationKey(application.id));
+  await releaseApplicationEmailClaim(applicationStore, application);
+  return { applicationId: application.id, identityDeleted: Boolean(identityUser) };
+}
+
 async function resetAndResendApplicant(application, identityAdmin, inviteIdentity, now) {
   if (!["APPROVED", "INVITE_SENT"].includes(application.status)) throw new Error("APPLICATION_NOT_INVITABLE");
   if (!normalizeCohort(application.cohort)) throw new Error("COHORT_REQUIRED");
@@ -463,6 +499,11 @@ function publicError(error) {
     "IDENTITY_ALREADY_ACTIVATED",
     "IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD",
     "IDENTITY_MEMBERSHIP_MISMATCH",
+    "IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD",
+    "CANNOT_DELETE_CURRENT_OPERATOR",
+    "CANNOT_DELETE_OPERATOR_ACCOUNT",
+    "DELETE_CONFIRMATION_MISMATCH",
+    "APPLICATION_EMAIL_MISSING",
     "APPLICATION_NOT_INVITABLE",
     "INVITATION_IN_PROGRESS",
     "INVALID_STATUS_TRANSITION",
@@ -538,7 +579,22 @@ export function createBetaOperatorHandler({
       if (Number(input?.expectedVersion) !== Number(current.version)) throw new Error("VERSION_CONFLICT");
 
       let updated;
-      if (action !== "remove" && current.removalAttempt?.id) throw new Error("REMOVAL_IN_PROGRESS");
+      if (!["remove", "delete-test-user"].includes(action) && current.removalAttempt?.id) throw new Error("REMOVAL_IN_PROGRESS");
+      if (action === "delete-test-user") {
+        const expectedEmail = String(current?.applicant?.email || "").trim().toLowerCase();
+        const confirmedEmail = String(input?.confirmEmail || "").trim().toLowerCase();
+        if (!expectedEmail || confirmedEmail !== expectedEmail) throw new Error("DELETE_CONFIRMATION_MISMATCH");
+        if (current.invitationAttempt?.id || current.removalAttempt?.id) throw new Error(current.invitationAttempt?.id ? "INVITATION_IN_PROGRESS" : "REMOVAL_IN_PROGRESS");
+        const deleted = await permanentlyDeleteTestUser(current, applications, identityAdmin, user);
+        console.log(JSON.stringify({
+          type: "flipforge_beta_operator_operation",
+          operation: "TEST_USER_PERMANENTLY_DELETED",
+          applicationId: deleted.applicationId,
+          identityDeleted: deleted.identityDeleted,
+          occurredAt: now().toISOString(),
+        }));
+        return reply(200, { authorized: true, deleted: true, ...deleted });
+      }
       if (action === "transition") {
         if (current.invitationAttempt?.id) throw new Error("INVITATION_IN_PROGRESS");
         updated = transitionApplication(current, {
