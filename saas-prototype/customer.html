@@ -8,7 +8,8 @@
   <title>FlipForge | Customer App — Card Decision Intelligence</title>
   <script>
   window.FlipForgeFullCustomerEntry=true;
-  const ffProductionHost=/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""));
+  const ffProductionHost=/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""))
+    && !String(window.location.port || "");
   const ffOwnerCustomerPath=/^\/owner\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
   if (ffProductionHost) {
     document.documentElement.style.visibility = "hidden";
