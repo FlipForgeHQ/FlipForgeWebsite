@@ -9,6 +9,15 @@
 # /app and every non-beta /app/* route fail closed to invited Private Beta authentication.
 # /app/beta is the only production app surface currently exposed to invited testers.
 # /app/customer remains DEV-only and is not routed publicly before customer launch.
+# PRIVATE OWNER HUB
+# Operator-only owner launchpad and customer preview. These routes are intentionally
+# absent from public navigation and are protected again in the browser by signed operator role.
+/owner /owner.html 200
+/owner/ /owner.html 200
+/owner/customer /saas-prototype/customer.html 200
+/owner/customer/ /saas-prototype/customer.html 200
+/owner/customer/* /saas-prototype/:splat 200
+
 /app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302
 /app/beta /saas-prototype/index.html 200
 /app/beta/ /saas-prototype/index.html 200
