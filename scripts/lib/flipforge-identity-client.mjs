@@ -12,7 +12,7 @@ import {
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
 const PRODUCTION_SITE_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const PRODUCTION_OPERATOR_HOST = /^(?:www\.)?goflipforge\.com$/i;
-const PRODUCTION_OPERATOR_PATH = /^\/operator-beta(?:\.html)?\/?$/i;
+const PRODUCTION_OPERATOR_PATH = /^(?:\/operator-beta(?:\.html)?\/?|\/owner(?:\.html|\/)?|\/owner\/customer(?:\/.*)?)$/i;
 const CALLBACK_HASH = /(?:^#|[&#])(invite_token|confirmation_token|recovery_token|email_change_token)=/i;
 const ROOT_ID = "flipforge-identity-root";
 const STYLE_ID = "flipforge-identity-style";
