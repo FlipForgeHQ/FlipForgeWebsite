@@ -5,7 +5,7 @@ Effective: **2026-09-16**
 
 ## Canonical model
 
-FlipForge Private Beta uses a dedicated invitation-only Private Beta surface. The future customer application remains unpublished and is not a public login destination before launch.
+FlipForge SaaS has two product experiences over the same FlipForge decision engine: **Private Beta** and **Customer**. Private Beta uses a dedicated invitation-only surface. The Customer experience remains unpublished to the public before launch, but the owner may inspect that same customer surface through the operator-gated Owner Hub.
 
 Canonical Private Beta application base:
 
@@ -23,15 +23,15 @@ After an invited tester accepts the Private Beta Terms and the acceptance receip
 
 `/app/beta/#/beta-start`
 
-The `beta-start` guide renders inside the dedicated Private Beta shell. The future customer application remains separate and unpublished.
+The `beta-start` guide renders inside the dedicated Private Beta shell. Customer remains a separate SaaS experience and is not a public login destination before launch.
 
 ## Product boundary
 
-Beta access is controlled by signed Identity membership and tenant roles. Beta status changes access and capability availability; it does not create a second source of truth, second recommendation engine, second browser application, or separate beta product.
+Beta access is controlled by signed Identity membership and tenant roles. Private Beta and Customer are two presentation/access experiences over the same authoritative FlipForge engine; neither creates a second recommendation engine, evidence authority, or source of truth.
 
 ## Surface rule
 
-The dedicated Private Beta document must load the Private Beta Guide stylesheet and adapter so `#/beta-start` renders in place. The customer document remains an internal DEV surface and must not be published through production routing.
+The dedicated Private Beta document must load the Private Beta Guide stylesheet and adapter so `#/beta-start` renders in place. The customer document must not be exposed through a public customer route before launch. Operator-only inspection is permitted through `/owner/customer/`, which reuses the real customer document and requires the signed operator role. Hosted SaaS has no DEV mode.
 
 ## UI rule
 
@@ -49,4 +49,5 @@ Private-beta validation must fail if:
 - the Private Beta surface stops loading `private-beta.css` or `private-beta.js`;
 - invitation or Terms-completion code routes testers to `/app/customer/`;
 - canonical beta documentation stops naming `/app/beta/#/beta-start`;
-- any activation path exposes the unpublished customer application.
+- any tester activation path exposes the unpublished customer application;
+- the owner-only customer preview becomes reachable from public navigation or without the operator gate.
