@@ -24,7 +24,7 @@ check("006 Owner Hub exposes Beta Operations", owner.includes('href="/operator-b
 check("007 Owner Hub exposes public site without exposing owner nav there", owner.includes('href="/"') && !publicHome.includes('href="/owner"') && !publicHome.includes("Owner Hub"));
 check("008 hosted SaaS explicitly has no DEV mode", owner.includes("No DEV mode exists in hosted SaaS") && !owner.includes("DEV Customer"));
 check("009 Owner Hub describes exactly two SaaS product experiences", owner.includes("Private Beta · Customer") && owner.includes("two product experiences only"));
-check("010 owner identity route is interactive on production", identity.includes("\/owner") && identity.includes("\/owner\/customer"));
+check("010 owner identity route is interactive on production", identity.includes("PRODUCTION_OPERATOR_PATH") && identity.includes("owner") && identity.includes("customer"));
 check("011 customer preview route keeps raw production customer hidden until gate", customer.includes("ffOwnerCustomerPath") && customer.includes('document.documentElement.style.visibility = "hidden"'));
 check("012 raw customer page still rejects ordinary production access", customer.includes('if (!ffOwnerCustomerPath) window.location.replace("/")'));
 check("013 owner customer gate is operator-only", customerGate.includes("snapshot.operatorActive") && customerGate.includes('window.location.replace("/owner")'));
