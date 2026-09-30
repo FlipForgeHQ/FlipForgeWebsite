@@ -1,5 +1,6 @@
 @import url("public-typography-contract-v1.css");
 @import url("public-shell-contract-v1.css");
+@import url("public-readability-contract-v1.css");
 /* FlipForge Brand Sheet v2.0 — locked cube, Geist Sans, palette, descriptor, and slogan. */
 @font-face{font-family:Geist;src:url("../fonts/geist-latin-wght-normal.woff2") format("woff2");font-style:normal;font-weight:100 900;font-display:swap}
 html,body,button,input,select,textarea{font-family:Geist,"Geist Sans",Arial,sans-serif}
