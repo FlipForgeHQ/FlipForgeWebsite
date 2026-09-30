@@ -38,20 +38,14 @@ try {
           return { r:+match[1], g:+match[2], b:+match[3], a:match[4] == null ? 1 : +match[4] };
         };
         const channel = value => {
-          const c = value / 255;
-          return c <= .04045 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4);
+          const v = value / 255;
+          return v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4);
         };
         const luminance = rgb => .2126 * channel(rgb.r) + .7152 * channel(rgb.g) + .0722 * channel(rgb.b);
         const contrast = (a,b) => {
           const l1 = luminance(a), l2 = luminance(b);
           return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);
         };
-        const visible = el => {
-          const style = getComputedStyle(el);
-          const box = el.getBoundingClientRect();
-          return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > .01 && box.width > 0 && box.height > 0;
-        };
-        const ownText = el => [...el.childNodes].filter(n => n.nodeType === Node.TEXT_NODE).map(n => n.textContent || '').join(' ').replace(/\s+/g,' ').trim();
         const backgroundFor = el => {
           let node = el;
           while (node && node !== document.documentElement) {
@@ -61,21 +55,44 @@ try {
           }
           return { r:5, g:8, b:12, a:1 };
         };
+        const visible = el => {
+          const style = getComputedStyle(el);
+          const box = el.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > .01 && box.width > 0 && box.height > 0;
+        };
 
-        const skip = el =>
-          el.closest('svg') ||
-          el.closest('.ffg-slab-label') ||
-          el.closest('.ffg-mini-card') ||
-          el.closest('input,textarea,select');
+        /* Audit explanatory/public-reading copy only. Micro-badges, controls, stage
+         * numbers, and CTA labels are governed by their component contracts and
+         * should not be forced into body-copy sizing. */
+        const selectors = [
+          '.ff-approved-graphic figcaption',
+          '.ff-approved-data-summary p',
+          '.lead',
+          '.section-copy',
+          '.ffg-heading p',
+          '.ffg-caption',
+          '.ffg-case-panel p',
+          '.ffg-beta-entry p',
+          '.ffg-beta-result p',
+          '.ffg-depth-plane p',
+          '.ff-df-stage-copy',
+          '.ff-df-footer p',
+          '.ff-df-reveal-card>p',
+          '.ff-df-why p',
+          '.ff-product-copy>p',
+          '.ff-founder-card p',
+          '.ff-mission-card p',
+          '.ff-page-vision p',
+          '.faq-answer',
+          '.ff-faq-intro',
+          '.ff-beta-notice p',
+          '.ff-pricing-boundaries p',
+          '.ff-beta-expectations p',
+          '.ff-lab-card p',
+          '.ff-lab-case p'
+        ];
 
-        const candidates = [...document.querySelectorAll('main#main *')].filter(el => {
-          if (!visible(el) || skip(el)) return false;
-          const text = ownText(el);
-          if (!text) return false;
-          const size = Number.parseFloat(getComputedStyle(el).fontSize || '0');
-          const cls = String(el.className || '');
-          return size <= 13.5 || /caption|small|meta|note|label|copy|status|summary|footer|helper|sub/i.test(cls);
-        });
+        const candidates = [...new Set(selectors.flatMap(selector => [...document.querySelectorAll(selector)]))].filter(visible);
 
         return candidates.map(el => {
           const style = getComputedStyle(el);
@@ -83,17 +100,17 @@ try {
           const bg = backgroundFor(el);
           const size = Number.parseFloat(style.fontSize || '0');
           const ratio = textColor ? contrast(textColor,bg) : 0;
-          const text = ownText(el).slice(0,100);
+          const text = (el.textContent || '').replace(/\s+/g,' ').trim().slice(0,120);
           const role = `${el.tagName.toLowerCase()}.${String(el.className || '').replace(/\s+/g,'.').slice(0,120)}`;
-          const minContrast = size <= 13.5 ? 7 : 4.5;
-          const minSize = /caption|figcaption|summary|copy|note|footer|helper/i.test(String(el.className || '')) || el.tagName === 'FIGCAPTION' ? 12 : 11;
+          const isCaption = el.matches('.ff-approved-graphic figcaption,.ff-approved-data-summary p,.ffg-caption');
+          const minSize = isCaption ? 13 : 12;
+          const minContrast = 7;
           const problems = [];
           if (size < minSize) problems.push(`font ${size}px < ${minSize}px`);
           if (ratio < minContrast) problems.push(`contrast ${ratio.toFixed(2)} < ${minContrast}`);
           return problems.length ? { role, text, size, ratio:Number(ratio.toFixed(2)), problems } : null;
-        }).filter(Boolean).slice(0,80);
+        }).filter(Boolean);
       });
-
       if (issues.length) {
         for (const issue of issues) {
           failures.push(`${viewport.name} ${label}: ${issue.role} "${issue.text}" — ${issue.problems.join(', ')}`);
