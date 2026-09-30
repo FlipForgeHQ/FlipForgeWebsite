@@ -219,18 +219,18 @@ try {
   if (!/Use exact match/i.test(exactButtonText)) failures.push(`verified identity action label was ${JSON.stringify(exactButtonText)}`);
   if (await assist.locator("[data-discovery-use-identity]").count() !== 1) failures.push("review-only alternate was incorrectly made directly selectable");
 
-  // When an exact match exists, review-only variants should stay collapsed by
-  // default. Expand them explicitly and prove they expose verification rather
-  // than a direct evaluation handoff.
+  // The most likely nearby variants should be visible immediately so the
+  // customer never has to hunt for identity alternatives. Only a long tail of
+  // additional variants may use progressive disclosure.
   const reviewButton = assist.locator("[data-ff-verify-review-match]").first();
-  const reviewInitiallyVisible = await reviewButton.isVisible().catch(() => false);
-  if (reviewInitiallyVisible) failures.push("review-only alternate was not progressively disclosed when an exact match was available");
+  if (!(await reviewButton.isVisible().catch(() => false))) {
+    failures.push("nearby review-only alternate is not immediately visible with an explicit verification control");
+  }
   const alternateToggle = assist.locator("[data-ff-toggle-identity-alternates]");
-  if (!(await alternateToggle.isVisible().catch(() => false))) {
-    failures.push("hidden review-only alternate has no progressive-disclosure control");
-  } else {
+  if (await alternateToggle.isVisible().catch(() => false)) {
     await alternateToggle.click();
-    if (!(await reviewButton.isVisible().catch(() => false))) failures.push("expanded review-only alternate has no explicit verification control");
+    const hiddenReview = assist.locator(".ff-identity-review-match").filter({ has: assist.locator("[data-ff-verify-review-match]") }).last();
+    if (!(await hiddenReview.isVisible().catch(() => false))) failures.push("additional identity variants did not expand when requested");
   }
 
   await exactButton.click();
