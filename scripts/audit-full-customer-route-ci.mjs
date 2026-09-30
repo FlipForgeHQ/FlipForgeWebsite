@@ -165,6 +165,10 @@ try {
     htmlFullCustomer: document.documentElement.classList.contains("ff-full-customer-app"),
     bodyFullCustomer: document.body.classList.contains("ff-full-customer-app"),
     title: document.title,
+    signOutVisible: Boolean(document.querySelector("[data-ff-global-signout]")),
+    signOutLabel: document.querySelector("[data-ff-global-signout] .profile-copy strong")?.textContent?.trim() || "",
+    topRightAccountLink: Boolean(document.querySelector('.topbar-actions a[href="#/account"]')),
+    sidebarAccountLink: Boolean(document.querySelector('.sidebar-footer .account-link[href="#/account"]')),
     nav: [...document.querySelectorAll(".primary-nav a")]
       .filter(link => !link.hidden && link.getAttribute("aria-hidden") !== "true")
       .map(link => String(link.textContent || "").replace(/\s+/g, " ").trim())
@@ -175,8 +179,21 @@ try {
   if (state.bannerExists) fail("Customer route rendered a beta banner element");
   if (!state.htmlFullCustomer || !state.bodyFullCustomer) fail("Customer route is missing full-customer root state");
   if (!/Customer App/i.test(state.title)) fail(`Customer document title is wrong: ${state.title}`);
+  if (!state.signOutVisible) fail("Persistent top-right Sign out control is missing");
+  if (state.signOutLabel !== "Sign out") fail(`Expected top-right Sign out label, got ${state.signOutLabel || "<empty>"}`);
+  if (state.topRightAccountLink) fail("Top-right account link returned; Account belongs in the sidebar and Sign out belongs in the header");
+  if (!state.sidebarAccountLink) fail("Sidebar Account link is missing");
   if (!state.nav.some(value => /Decision Intelligence/i.test(value))) fail("Decision Intelligence is not visible");
   if (!state.nav.some(value => /Outcome Intelligence/i.test(value))) fail("Outcome Intelligence is not visible");
+
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await page.waitForTimeout(120);
+  const compactSignOutTextVisible = await page.locator("[data-ff-global-signout] .profile-copy").evaluate(node => {
+    const style = window.getComputedStyle(node);
+    return style.display !== "none" && style.visibility !== "hidden";
+  });
+  if (!compactSignOutTextVisible) fail("Sign out text disappears at narrower desktop width");
+  await page.setViewportSize({ width: 1280, height: 720 });
 
   await page.locator('.primary-nav a[data-route="decision-intelligence"]').click();
   await page.waitForFunction(() => window.location.hash === "#/decision-intelligence", null, { timeout: 10000 });
@@ -234,7 +251,7 @@ try {
   // Reproduce the exact internal beta-language leak seen on the production account page.
   // The normalizer is intentionally disabled above: this section proves the account
   // renderer itself emits customer-safe language while preserving server authority data.
-  await page.locator(".profile-button").click();
+  await page.evaluate(() => { window.location.hash = "#/account"; });
   await page.waitForFunction(() => window.location.hash === "#/account", null, { timeout: 10000 });
   await page.waitForSelector("#main-content .customer-entitlements-page", { timeout: 10000 });
   await page.waitForTimeout(400);

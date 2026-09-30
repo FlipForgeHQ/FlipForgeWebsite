@@ -49,12 +49,12 @@
     if (!eligibleHost()) return;
     const displayName = session.fullName || (session.authenticated ? "Invited tester" : "Private beta");
     const access = session.membershipActive ? "Active tester" : session.authenticated ? "Access pending" : "Sign in required";
-    document.querySelectorAll(".account-link .avatar, .profile-button .avatar").forEach(element => {
+    document.querySelectorAll(".account-link .avatar, .profile-button:not([data-ff-global-signout]) .avatar").forEach(element => {
       element.textContent = initials(displayName);
     });
     const accountCopy = document.querySelector(".account-link span:nth-child(2)");
     if (accountCopy) accountCopy.innerHTML = `<strong>${escapeHtml(displayName)}</strong><small>${escapeHtml(access)}</small>`;
-    const profileCopy = document.querySelector(".profile-button .profile-copy");
+    const profileCopy = document.querySelector(".profile-button:not([data-ff-global-signout]) .profile-copy");
     if (profileCopy) profileCopy.innerHTML = `<strong>${escapeHtml(displayName)}</strong><small>${escapeHtml(access)}</small>`;
   }
 
