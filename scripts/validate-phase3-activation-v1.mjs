@@ -82,6 +82,9 @@ check("044 Phase 3 disconnects observer around its own synchronous DOM writes", 
 check("045 observer no longer unconditionally schedules every mutation", !js.includes("new MutationObserver(schedule)") && js.includes("new MutationObserver(onObservedMutations)"));
 check("046 Phase 3 evaluate rail is isolated from the shared Discover enhancement subtree", js.includes('panel.insertAdjacentElement("beforebegin", shell)') && !js.includes("panel.prepend(shell)"));
 check("047 Discover enhancement marker is written only when its stable value changes", js.includes('panel.getAttribute(ENHANCED_ATTRIBUTE) !== "evaluate"') && js.includes('panel.setAttribute(ENHANCED_ATTRIBUTE, "evaluate")'));
+check("048 Evaluate education collapses when results are actionable", js.includes('ff-p3-evaluate-shell--results-ready') && css.includes('.ff-p3-evaluate-shell--results-ready{display:none!important}'));
+check("049 Evaluate progress no longer draws a vertical gold line", css.includes('.ff-p3-evaluate-intro::after{display:none!important;content:none!important}'));
+
 
 console.log("PASSED: " + passed);
 console.log("FAILED: " + failures.length);

@@ -354,3 +354,12 @@
     transition: none !important;
   }
 }
+
+
+/* Results-first Evaluate UX: completed searches land on the actionable result,
+   not on provider diagnostics or instructional chrome. */
+.customer-discovery-results{scroll-margin-top:96px;outline:none}
+.customer-discovery-results:focus{outline:none}
+.customer-discovery-results .customer-discovery-summary{
+  position:relative;
+}

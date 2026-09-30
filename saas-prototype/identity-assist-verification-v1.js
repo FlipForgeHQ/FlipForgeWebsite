@@ -11,6 +11,7 @@
   const COLLAPSED_REVIEW_COUNT = 4;
   let queued = false;
   let activeDeclaredGrade = "";
+  let expandedIdentityQuery = "";
 
   function eligibleHost() {
     const host = String(window.location.hostname || "");
@@ -176,7 +177,10 @@
       const options = panel.querySelector(".customer-discovery-identity-options");
       options?.insertAdjacentElement("afterend", toggle);
     }
-    const expanded = panel.dataset.ffIdentityExpanded === "1";
+    const form = document.querySelector("#main-content [data-customer-discovery-form]");
+    const currentQuery = String(form?.querySelector('input[name="exactCardQuery"]')?.value || "").trim().replace(/\s+/g, " ");
+    const expanded = panel.dataset.ffIdentityExpanded === "1" || (currentQuery && expandedIdentityQuery === currentQuery);
+    if (expanded) panel.dataset.ffIdentityExpanded = "1";
     toggle.setAttribute("aria-expanded", String(expanded));
     toggle.textContent = expanded
       ? "Hide other variants"
@@ -232,7 +236,9 @@
         oldStatus?.replaceWith(actions);
       }
 
-      const expanded = panel.dataset.ffIdentityExpanded === "1";
+      const currentQuery = String(originalQuery || "").trim().replace(/\s+/g, " ");
+      const expanded = panel.dataset.ffIdentityExpanded === "1" || (currentQuery && expandedIdentityQuery === currentQuery);
+      if (expanded) panel.dataset.ffIdentityExpanded = "1";
       const shouldHide = hasSelectable ? !expanded : reviewIndex >= COLLAPSED_REVIEW_COUNT && !expanded;
       row.classList.toggle("ff-identity-hidden", shouldHide);
     });
@@ -333,7 +339,14 @@
     event.preventDefault();
     const panel = toggle.closest(".customer-discovery-identity-assist");
     if (!panel) return;
-    panel.dataset.ffIdentityExpanded = panel.dataset.ffIdentityExpanded === "1" ? "0" : "1";
+    const form = document.querySelector("#main-content [data-customer-discovery-form]");
+    const currentQuery = String(form?.querySelector('input[name="exactCardQuery"]')?.value || "").trim().replace(/\s+/g, " ");
+    const expanded = panel.dataset.ffIdentityExpanded !== "1";
+    panel.dataset.ffIdentityExpanded = expanded ? "1" : "0";
+    expandedIdentityQuery = expanded ? currentQuery : "";
+    panel.querySelectorAll(".ff-identity-review-match").forEach(row => {
+      row.classList.toggle("ff-identity-hidden", !expanded);
+    });
     decorate();
   }, true);
 

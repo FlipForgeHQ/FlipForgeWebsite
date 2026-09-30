@@ -61,31 +61,27 @@
 .ff-p3-returning-card small{display:block;margin-top:6px;color:#8e99a6;line-height:1.4}
 
 /* Animated real evaluate path */
-.ff-p3-evaluate-shell{margin-bottom:18px}
+.ff-p3-evaluate-shell{margin-bottom:10px}
+.ff-p3-evaluate-shell--results-ready{display:none!important}
 .ff-p3-evaluate-intro{
-  position:relative;overflow:hidden;padding:20px 22px;border:1px solid rgba(212,175,55,.22);border-radius:19px;
+  position:relative;overflow:hidden;padding:13px 15px;border:1px solid rgba(212,175,55,.22);border-radius:14px;
   background:linear-gradient(135deg,#07111b,#03070d)
 }
-.ff-p3-evaluate-intro::after{
-  content:"";position:absolute;top:0;bottom:0;width:2px;left:8%;
-  background:var(--ff-p3-gold);box-shadow:0 0 14px rgba(212,175,55,.6);
-  opacity:.72;transition:left .85s cubic-bezier(.2,.8,.2,1),opacity .3s ease
-}
-.ff-p3-evaluate-intro[data-stage="identity"]::after{left:18%}
-.ff-p3-evaluate-intro[data-stage="identity-review"]::after{left:36%}
-.ff-p3-evaluate-intro[data-stage="evidence"]::after{left:62%}
-.ff-p3-evaluate-intro[data-stage="handoff"]::after{left:84%}
+.ff-p3-evaluate-intro::after{display:none!important;content:none!important}
 .ff-p3-evaluate-copy{position:relative;z-index:2}
-.ff-p3-evaluate-copy small{color:var(--ff-p3-gold-soft);font-size:.68rem;font-weight:900;letter-spacing:.14em}
-.ff-p3-evaluate-copy h2{margin:7px 0 6px;font-size:clamp(1.55rem,3vw,2.55rem);letter-spacing:-.035em}
-.ff-p3-evaluate-copy p{margin:0;color:#9da8b5;line-height:1.55}
-.ff-p3-evaluate-rail{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+.ff-p3-evaluate-copy small{color:var(--ff-p3-gold-soft);font-size:.64rem;font-weight:900;letter-spacing:.12em}
+.ff-p3-evaluate-copy h2{margin:4px 0 3px;font-size:clamp(1.15rem,2vw,1.5rem);letter-spacing:-.025em}
+.ff-p3-evaluate-copy p{margin:0;color:#a7b1bd;font-size:.78rem;line-height:1.4}
+.ff-p3-evaluate-rail{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
 .ff-p3-evaluate-step{
-  min-height:74px;padding:11px 12px;border:1px solid var(--ff-p3-line);border-radius:12px;background:rgba(3,8,14,.78)
+  display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:7px;min-height:44px;
+  padding:7px 9px;border:1px solid var(--ff-p3-line);border-radius:10px;background:rgba(3,8,14,.78)
 }
-.ff-p3-evaluate-step b{display:block;color:#75818e;font-size:.6rem;letter-spacing:.11em}
-.ff-p3-evaluate-step strong{display:block;margin-top:7px;font-size:.78rem}
-.ff-p3-evaluate-step small{display:block;margin-top:4px;color:#707c89;font-size:.67rem}
+.ff-p3-evaluate-step b{display:block;color:#83909d;font-size:.58rem;letter-spacing:.1em}
+.ff-p3-evaluate-step strong{display:block;margin:0;font-size:.72rem}
+.ff-p3-evaluate-step small{display:none}
+.ff-p3-evaluate-shell--compact .ff-p3-evaluate-copy p{display:none}
+.ff-p3-evaluate-shell--compact .ff-p3-evaluate-rail{margin-top:7px}
 .ff-p3-evaluate-intro[data-stage="identity"] .ff-p3-evaluate-step[data-p3-step="identity"],
 .ff-p3-evaluate-intro[data-stage="identity-review"] .ff-p3-evaluate-step[data-p3-step="identity"],
 .ff-p3-evaluate-intro[data-stage="evidence"] .ff-p3-evaluate-step[data-p3-step="evidence"],
@@ -144,7 +140,7 @@
 }
 @media(prefers-reduced-motion:reduce){
   .ff-p3-enter{animation:none!important}
-  .ff-p3-evaluate-intro::after,.ff-p3-returning-card{transition:none!important}
+  .ff-p3-returning-card{transition:none!important}
 }
 
 /* First-session Home — suppress empty analytics until there is something to analyze */

@@ -211,6 +211,9 @@
     const copy = shell.querySelector("[data-ff-p3-evaluate-copy]");
     const stage = evaluateStage(root);
     if (intro.dataset.stage !== stage) intro.dataset.stage = stage;
+    shell.classList.toggle("ff-p3-evaluate-shell--compact", stage === "identity-review");
+    shell.classList.toggle("ff-p3-evaluate-shell--results-ready", stage === "evidence" || stage === "handoff");
+    shell.setAttribute("aria-hidden", stage === "evidence" || stage === "handoff" ? "true" : "false");
 
     const messages = {
       identity: ["Confirm the exact card first.", "Enter the card you are considering. FlipForge checks the year, set, number, variant, and grade before price gets a vote."],
