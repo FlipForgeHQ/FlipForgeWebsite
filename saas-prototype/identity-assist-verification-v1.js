@@ -9,6 +9,7 @@
   const CONTRACT_VERSION = "1.0";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const COLLAPSED_REVIEW_COUNT = 4;
+  const VISIBLE_REVIEW_WITH_EXACT = 2;
   let queued = false;
   let activeDeclaredGrade = "";
   let expandedIdentityQuery = "";
@@ -153,7 +154,7 @@
     const message = panel.querySelector(".customer-discovery-identity-message");
     if (!message) return;
     if (hasSelectable) {
-      message.innerHTML = `<strong>Exact card match found.</strong><span>FlipForge will not choose one for you. Use the highlighted exact match if it is the card you mean. Other possible variants must be explicitly selected and re-verified server-side before marketplace search.</span>`;
+      message.innerHTML = `<strong>Exact card match found.</strong><span>Use the highlighted exact match if it is the card you mean. Nearby variants are shown below with a separate <b>Select &amp; verify</b> action so you do not have to hunt for them.</span>`;
       message.classList.add("ff-identity-assist-explained", "ff-identity-exact-found");
       return;
     }
@@ -239,14 +240,15 @@
       const currentQuery = String(originalQuery || "").trim().replace(/\s+/g, " ");
       const expanded = panel.dataset.ffIdentityExpanded === "1" || (currentQuery && expandedIdentityQuery === currentQuery);
       if (expanded) panel.dataset.ffIdentityExpanded = "1";
-      const shouldHide = hasSelectable ? !expanded : reviewIndex >= COLLAPSED_REVIEW_COUNT && !expanded;
+      const visibleLimit = hasSelectable ? VISIBLE_REVIEW_WITH_EXACT : COLLAPSED_REVIEW_COUNT;
+      const shouldHide = reviewIndex >= visibleLimit && !expanded;
       row.classList.toggle("ff-identity-hidden", shouldHide);
     });
 
     panel.classList.toggle("ff-identity-has-selectable", hasSelectable);
     setMessage(panel, hasSelectable, reviewCount);
     ensureGradeNote(panel, originalQuery);
-    const visibleReviewCount = hasSelectable ? 0 : Math.min(reviewCount, COLLAPSED_REVIEW_COUNT);
+    const visibleReviewCount = Math.min(reviewCount, hasSelectable ? VISIBLE_REVIEW_WITH_EXACT : COLLAPSED_REVIEW_COUNT);
     ensureToggle(panel, Math.max(0, reviewCount - visibleReviewCount), hasSelectable);
   }
 
