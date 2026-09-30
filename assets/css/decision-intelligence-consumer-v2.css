@@ -28,7 +28,7 @@
 
 .ff-dic-category{margin-top:34px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .ff-dic-category article{min-height:128px;padding:18px;border:1px solid var(--dic-line);border-radius:16px;background:rgba(255,255,255,.018);display:flex;flex-direction:column;justify-content:center}
-.ff-dic-category span{color:#84909f;font-size:9px;font-weight:900;letter-spacing:.12em}
+.ff-dic-category span{color:#AEB7C1;font-size:9px;font-weight:900;letter-spacing:.12em}
 .ff-dic-category strong{margin-top:9px;font-size:17px;line-height:1.25}
 .ff-dic-category small{margin-top:8px;color:var(--dic-gold-soft);font-size:10px;font-weight:850;letter-spacing:.07em}
 .ff-dic-category .is-flipforge{border-color:rgba(212,175,55,.35);background:linear-gradient(180deg,rgba(212,175,55,.10),rgba(212,175,55,.035));box-shadow:0 18px 44px rgba(0,0,0,.2)}
@@ -66,7 +66,7 @@
 .ff-dic-shift{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:24px;padding-top:18px;border-top:1px solid var(--dic-line)}
 .ff-dic-shift strong{font-size:18px;color:var(--dic-warm)}
 .ff-dic-shift b{font-size:18px;color:var(--dic-gold-soft)}
-.ff-dic-shift span{color:#7f8b9a;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+.ff-dic-shift span{color:#AEB7C1;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
 
 .ff-dic-receipt{display:grid;gap:10px;align-content:start}
 .ff-dic-receipt-card{padding:16px;border:1px solid var(--dic-line);border-radius:16px;background:rgba(255,255,255,.022)}
@@ -91,7 +91,7 @@
 .ff-dic-replay{appearance:none;border:0;background:transparent;color:#d9dee6;font:inherit;font-size:12px;font-weight:800;cursor:pointer;padding:7px 0}
 .ff-dic-replay:hover{text-decoration:underline}
 
-.ff-dic-note{margin:12px auto 0;max-width:720px;text-align:center;color:#778493;font-size:11px;line-height:1.45}
+.ff-dic-note{margin:12px auto 0;max-width:720px;text-align:center;color:#AEB7C1;font-size:11px;line-height:1.45}
 
 .ff-dic-simple{padding:64px 22px 72px;border-top:1px solid rgba(255,255,255,.05)}
 .ff-dic-simple-head{text-align:center;max-width:760px;margin:0 auto 24px}
@@ -222,7 +222,7 @@
 .ff-dic-doctrine-flow small{display:block;margin-top:3px;color:#8f9baa;font-size:10px}
 .ff-dic-doctrine-flow i{color:var(--dic-gold-soft);font-style:normal;font-weight:900}
 .ff-dic-doctrine>p{margin:18px 0 6px;color:var(--dic-gold-soft);font-size:16px}
-.ff-dic-doctrine>small{display:block;max-width:760px;margin:0 auto;color:#7f8b9a;font-size:11px;line-height:1.45}
+.ff-dic-doctrine>small{display:block;max-width:760px;margin:0 auto;color:#AEB7C1;font-size:11px;line-height:1.45}
 .ff-dic-inline-final{margin-top:22px}
 
 @media(max-width:760px){
