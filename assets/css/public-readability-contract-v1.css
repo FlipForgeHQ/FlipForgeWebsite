@@ -83,8 +83,9 @@ html body main#main .ff-df-economics .is-supported strong{
 
 /* Minimum readable sizing for text that previously rendered at 7–10px. */
 html body main#main .ff-approved-graphic figcaption{
-  font-size:13px!important;
+  font-size:14px!important;
   line-height:1.5!important;
+  color:var(--ff-read-muted)!important;
 }
 html body main#main .ff-approved-data-summary small{
   font-size:11px!important;
@@ -96,8 +97,9 @@ html body main#main .ff-approved-data-summary b{
   line-height:1.4!important;
 }
 html body main#main .ff-approved-data-summary p{
-  font-size:13px!important;
+  font-size:14px!important;
   line-height:1.5!important;
+  color:var(--ff-read-muted)!important;
 }
 html body main#main .ffg-caption{
   font-size:13px!important;
@@ -141,5 +143,5 @@ html body main#main .ffg-case-fields .bad{color:#F0AAAA!important}
   html body main#main .ff-approved-data-summary strong,
   html body main#main .ff-approved-data-summary b,
   html body main#main .ff-approved-data-summary p,
-  html body main#main .ff-approved-graphic figcaption{font-size:13px!important}
+  html body main#main .ff-approved-graphic figcaption{font-size:14px!important}
 }
