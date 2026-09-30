@@ -363,6 +363,7 @@
     state.identityAssist.results = [];
     state.identityAssist.message = "Looking for exact catalog identities…";
     renderCurrent();
+    focusIdentityCheck();
     try {
       const data = await cardIntelligenceRequest(CARD_INTELLIGENCE_SEARCH_PATH, {
         query: requestedQuery,
@@ -384,6 +385,7 @@
       if (requestSerial === state.identityAssist.requestSerial) {
         state.identityAssist.busy = false;
         renderCurrent();
+        focusIdentityCheck();
       }
     }
   }
@@ -440,6 +442,7 @@
       || (visibleQuery && ownedQuery !== visibleQuery)) {
       state.identityAssist.message = "That identity choice is no longer current. Review the latest card options before continuing.";
       renderCurrent();
+      focusIdentityCheck();
       return;
     }
     const row = state.identityAssist.results[Number(index)];
@@ -537,7 +540,7 @@
   function identityAssistPanel() {
     if (!state.identityAssist.active) return "";
     const rows = Array.isArray(state.identityAssist.results) ? state.identityAssist.results : [];
-    return `<section class="panel customer-discovery-identity-assist" aria-label="Card identity options"><header class="panel-header"><div><span class="eyebrow">Card Intelligence identity assist</span><h2>Which card did you mean?</h2><p>Choose only if the card is correct. The selection token is re-verified server-side before the exact identity is allowed into Discover.</p></div></header><div class="panel-body">${state.identityAssist.message ? `<div class="customer-discovery-identity-message" role="status">${escapeHtml(state.identityAssist.message)}</div>` : ""}${rows.length ? `<div class="customer-discovery-identity-options">${rows.map(identityCandidate).join("")}</div>` : ""}<div class="boundary-note"><strong>Fail-closed identity boundary:</strong> FlipForge does not auto-select the first result, expose provider IDs, or run marketplace discovery until you explicitly choose a server-authorized exact candidate.</div></div></section>`;
+    return `<section class="panel customer-discovery-identity-assist" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${state.identityAssist.message ? `<div class="customer-discovery-identity-message" role="status">${escapeHtml(state.identityAssist.message)}</div>` : ""}${rows.length ? `<div class="customer-discovery-identity-options">${rows.map(identityCandidate).join("")}</div>` : ""}<div class="boundary-note"><strong>Fail-closed identity boundary:</strong> FlipForge does not auto-select the first result, expose provider IDs, or run marketplace discovery until you explicitly choose a server-authorized exact candidate.</div></div></section>`;
   }
 
   function providerPanel() {
@@ -620,8 +623,25 @@
       state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Find active listings across approved connected sources without treating asking prices as completed-sale evidence.</p></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Discover does not save or recommend a listing.</div><section class="panel"><div class="panel-body staging-empty"><strong>Discover is safely offline.</strong><p>The private-beta API bridge is disabled, so no provider search was attempted and no sample results were substituted.</p></div></section></div>`;
       return;
     }
-    state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Search approved active-listing sources, compare all-in asks against existing trusted evidence context, then explicitly evaluate the listing you want FlipForge to judge.</p></div><div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved opportunities</a><a class="button button-secondary" href="#/evaluate">Manual evaluate</a></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${errorPanel()}${state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}${searchPanel()}${identityAssistPanel()}${providerPanel()}${resultsPanel()}</div>`;
+    state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Search approved active-listing sources, compare all-in asks against existing trusted evidence context, then explicitly evaluate the listing you want FlipForge to judge.</p></div><div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved opportunities</a><a class="button button-secondary" href="#/evaluate">Manual evaluate</a></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${errorPanel()}${state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}${identityAssistPanel()}${searchPanel()}${providerPanel()}${resultsPanel()}</div>`;
     bindActions();
+  }
+
+  function focusIdentityCheck() {
+    if (!state.identityAssist.active) return;
+    const panel = state.main?.querySelector?.("#ff-discovery-identity-check");
+    if (!panel) return;
+    window.requestAnimationFrame(() => {
+      try { panel.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) { panel.scrollIntoView(); }
+      window.setTimeout(() => {
+        const firstChoice = panel.querySelector('[data-discovery-use-identity]:not([disabled])');
+        if (firstChoice) {
+          try { firstChoice.focus({ preventScroll: true }); } catch (_) { firstChoice.focus(); }
+        } else {
+          try { panel.focus({ preventScroll: true }); } catch (_) { panel.focus(); }
+        }
+      }, 220);
+    });
   }
 
   function bindActions() {
