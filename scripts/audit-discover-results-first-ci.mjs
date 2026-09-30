@@ -167,7 +167,11 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
     const metrics = await page.evaluate(() => {
       const results = document.querySelector("#ff-discovery-results");
       const search = document.querySelector(".customer-discovery-search");
-      const provider = [...document.querySelectorAll(".panel")].find(node => /Connected source status/i.test(node.textContent || ""));
+      const provider = [...document.querySelectorAll(".panel")].find(node => {
+        if (!/Connected source status/i.test(node.textContent || "")) return false;
+        const style = getComputedStyle(node);
+        return style.display !== "none" && style.visibility !== "hidden" && node.getClientRects().length > 0;
+      });
       const shell = document.querySelector("[data-ff-p3-evaluate-shell]");
       const rect = results?.getBoundingClientRect();
       const searchRect = search?.getBoundingClientRect();
