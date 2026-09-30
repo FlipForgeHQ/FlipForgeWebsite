@@ -134,16 +134,18 @@
   function highlightNode(node, label = "Do this next") {
     clearHighlight();
     if (!node) return false;
-    const target = node.matches?.("input,textarea,select,button,a")
-      ? node.closest("section,article,form,.panel") || node
-      : node;
+    const direct = node.matches?.("input,textarea,select,button,a[href]") ? node : null;
+    const actionable = direct || node.querySelector?.(
+      '[data-discovery-evaluate]:not([disabled]),[data-ff-show-why],[href^="#/tracking"],button.button-primary:not([disabled]),a.button-primary,input:not([disabled]),textarea:not([disabled]),select:not([disabled]),button:not([disabled]),a[href]'
+    );
+    const target = actionable || node;
     state.highlight = target;
     target.classList.add("ff-guide-highlight");
     target.dataset.guideLabel = label;
     try { target.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) { target.scrollIntoView(); }
     window.setTimeout(() => {
       if (state.highlight === target) clearHighlight();
-    }, 10000);
+    }, 8000);
     return true;
   }
 
@@ -375,12 +377,133 @@
     };
   }
 
+  function currentGuideStep() {
+    const route = routeName();
+    const parts = routeParts();
+    if (route === "discover") return "discover";
+    if (route === "evaluate") return "evaluate";
+    if (route === "opportunities" && parts.length > 1) return "understand";
+    if (route === "opportunities") return "understand";
+    if (route === "tracking") return "track";
+    return "";
+  }
+
+  function rememberDecisionFromRoute() {
+    const parts = routeParts();
+    if ((parts[0] === "opportunities" || parts[0] === "tracking") && parts[1]) {
+      write("lastDecisionId", parts[1]);
+      return parts[1];
+    }
+    return read("lastDecisionId", "");
+  }
+
+  function guideStepHref(step) {
+    const id = rememberDecisionFromRoute();
+    if (step === "discover") return "#/discover";
+    if (step === "evaluate") return "#/discover";
+    if (step === "understand") return id ? `#/opportunities/${encodeURIComponent(id)}` : "#/opportunities";
+    if (step === "track") return id ? `#/tracking/${encodeURIComponent(id)}` : "#/tracking";
+    return "#/dashboard";
+  }
+
+  function goToGuideStep(step) {
+    if (step === "discover") {
+      if (routeName() === "discover") focusDiscoverInput(false);
+      else window.location.hash = "#/discover";
+      return;
+    }
+    if (step === "evaluate") {
+      if (routeName() !== "discover") {
+        window.location.hash = "#/discover";
+        window.setTimeout(() => {
+          const target = genericTarget("discover", discoverHasCandidates() ? "candidate" : "");
+          if (!highlightNode(target, discoverHasCandidates() ? "Evaluate this listing" : "Enter the card first")) focusDiscoverInput(false);
+        }, 180);
+        return;
+      }
+      const target = genericTarget("discover", discoverHasCandidates() ? "candidate" : discoverHasIdentityAssist() ? "identity" : "");
+      if (!highlightNode(target, discoverHasCandidates() ? "Evaluate this listing" : discoverHasIdentityAssist() ? "Confirm the exact card" : "Enter the card first")) {
+        focusDiscoverInput(false);
+      }
+      return;
+    }
+    window.location.hash = guideStepHref(step);
+  }
+
+  function guideNavModel() {
+    const route = routeName();
+    const parts = routeParts();
+    const id = rememberDecisionFromRoute();
+
+    if (route === "dashboard" || route === "beta-start") {
+      return { back: null, next: { type: "new-card", label: "Next: choose a card →" } };
+    }
+    if (route === "discover") {
+      if (discoverHasCandidates()) {
+        return {
+          back: { type: "navigate", href: "#/dashboard", label: "← Back" },
+          next: { type: "guide-step", step: "evaluate", label: "Next: evaluate listing →" }
+        };
+      }
+      if (discoverHasIdentityAssist()) {
+        return {
+          back: { type: "navigate", href: "#/dashboard", label: "← Back" },
+          next: { type: "guide-step", step: "evaluate", label: "Next: confirm card →" }
+        };
+      }
+      return {
+        back: { type: "navigate", href: "#/dashboard", label: "← Back" },
+        next: { type: "focus-discover", label: "Next: enter the card →" }
+      };
+    }
+    if (route === "evaluate") {
+      return {
+        back: { type: "navigate", href: "#/discover", label: "← Back to card" },
+        next: { type: "highlight", label: "Next: complete evaluation →" }
+      };
+    }
+    if (route === "opportunities" && parts.length > 1) {
+      return {
+        back: { type: "navigate", href: "#/opportunities", label: "← Saved decisions" },
+        next: { type: "understand", label: "Next: track this card →" }
+      };
+    }
+    if (route === "opportunities") {
+      return {
+        back: { type: "navigate", href: "#/discover", label: "← Back to card" },
+        next: id
+          ? { type: "navigate", href: `#/opportunities/${encodeURIComponent(id)}`, label: "Next: open last decision →" }
+          : { type: "highlight", label: "Next: open a saved decision →" }
+      };
+    }
+    if (route === "tracking") {
+      return {
+        back: { type: "navigate", href: id ? `#/opportunities/${encodeURIComponent(id)}` : "#/opportunities", label: "← Back to decision" },
+        next: { type: "new-card", label: "Next: evaluate another card →" }
+      };
+    }
+    return {
+      back: { type: "navigate", href: "#/opportunities", label: "← Saved decisions" },
+      next: { type: "navigate", href: "#/discover", label: "Next: evaluate a card →" }
+    };
+  }
+
   function progressMarkup() {
     const steps = stepState();
-    const order = ["discover", "evaluate", "understand", "track"];
-    const completed = order.filter(step => steps.has(step)).length;
-    const current = Math.min(completed, 3);
-    return `<div class="ff-guide-progress"><div class="ff-guide-progress-top"><span>First-card path</span><span>${completed} / 4 complete</span></div><div class="ff-guide-track">${order.map((step,index)=>`<span data-done="${steps.has(step)}" data-current="${!steps.has(step) && index===current}"></span>`).join("")}</div></div>`;
+    const order = [
+      ["discover", "1", "Card"],
+      ["evaluate", "2", "Evaluate"],
+      ["understand", "3", "Why"],
+      ["track", "4", "Track"]
+    ];
+    const completed = order.filter(([step]) => steps.has(step)).length;
+    const current = currentGuideStep();
+    return `<div class="ff-guide-progress"><div class="ff-guide-progress-top"><span>First-card path</span><span>${completed} / 4 complete</span></div><div class="ff-guide-step-nav" role="navigation" aria-label="Guided Mode steps">${order.map(([step,number,label])=>`<button type="button" data-guide-step="${step}" data-done="${steps.has(step)}" data-current="${current===step}" aria-current="${current===step ? "step" : "false"}"><span>${number}</span><strong>${label}</strong></button>`).join("")}</div></div>`;
+  }
+
+  function guideNavMarkup() {
+    const nav = guideNavModel();
+    return `<div class="ff-guide-route-nav">${nav.back ? buttonMarkup(nav.back,true) : '<span></span>'}${nav.next ? buttonMarkup(nav.next) : ""}</div>`;
   }
 
   function buttonMarkup(action, secondary = false) {
@@ -410,7 +533,7 @@
         markup = '<button type="button" class="ff-guide-launcher" data-guide-open>Guide me</button>';
       } else {
         const model = guideModel();
-        markup = `<aside class="ff-guide-panel" aria-label="FlipForge Guided Mode"><div class="ff-guide-head"><div><span class="ff-guide-kicker">Guided Mode · On</span><strong>Your FlipForge guide</strong></div><button type="button" class="ff-guide-icon-button" data-guide-minimize aria-label="Minimize guide">−</button></div><div class="ff-guide-body"><span class="ff-guide-location">${model.location}</span><h2>${model.title}</h2><p>${model.copy}</p><div class="ff-guide-why"><strong>Why this matters:</strong> ${model.why}</div><div class="ff-guide-actions">${buttonMarkup(model.action)}${buttonMarkup(model.secondary,true)}${buttonMarkup(model.tertiary,true)}</div></div>${progressMarkup()}<div class="ff-guide-footer"><span>Decision support only · No transaction authority</span><button type="button" data-guide-toggle>Turn Guided Mode off</button></div></aside>`;
+        markup = `<aside class="ff-guide-panel" aria-label="FlipForge Guided Mode"><div class="ff-guide-head"><div><span class="ff-guide-kicker">Guided Mode · On</span><strong>Your FlipForge guide</strong></div><button type="button" class="ff-guide-icon-button" data-guide-minimize aria-label="Minimize guide">−</button></div>${progressMarkup()}<div class="ff-guide-body"><span class="ff-guide-location">${model.location}</span><h2>${model.title}</h2><p>${model.copy}</p><div class="ff-guide-why"><strong>Why this matters:</strong> ${model.why}</div><div class="ff-guide-actions">${buttonMarkup(model.action)}${buttonMarkup(model.secondary,true)}${buttonMarkup(model.tertiary,true)}</div>${guideNavMarkup()}</div><div class="ff-guide-footer"><span>Decision support only · No transaction authority</span><button type="button" data-guide-toggle>Turn Guided Mode off</button></div></aside>`;
       }
     }
     if (node.innerHTML !== markup) node.innerHTML = markup;
@@ -457,6 +580,10 @@
     if (type === "navigate") {
       const href = button.dataset.guideHref;
       if (href) window.location.hash = href.replace(/^#/, "");
+      return;
+    }
+    if (type === "guide-step") {
+      goToGuideStep(button.dataset.guideStep || "");
       return;
     }
     if (type === "new-card") {
@@ -528,6 +655,11 @@
         write("enabled", "off");
         clearHighlight();
         renderPanel();
+        return;
+      }
+      const step = event.target.closest("[data-guide-step]");
+      if (step) {
+        goToGuideStep(step.dataset.guideStep || "");
         return;
       }
       const action = event.target.closest("[data-guide-action]");
