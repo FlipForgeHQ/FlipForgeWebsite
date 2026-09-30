@@ -60,7 +60,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["047 Discover entry observer disconnects during owned writes", entry.includes("observer.disconnect()") && entry.includes("decorateWithoutSelfObservation") && entry.includes("observeMain()")],
   ["048 Guided Mode follows canonical search-first ordering", guide.includes('search.insertAdjacentElement("afterend", coach)') && !guide.includes('coach.insertAdjacentElement("afterend", search)')],
   ["049 required identity confirmation is promoted above card search", entry.includes('page.classList.toggle("ff-discover-identity-required", Boolean(identity))') && entry.includes('identity.insertAdjacentElement("afterend", search)')],
-  ["050 identity panel owns a direct change-card escape hatch", discovery.includes("data-discovery-change-identity-entry") && discovery.includes("changeIdentityEntryButton?.addEventListener")),
+  ["050 identity panel owns a direct change-card escape hatch", discovery.includes("data-discovery-change-identity-entry") && discovery.includes("changeIdentityEntryButton?.addEventListener")],
   ["051 identity panel is automatically surfaced when required", discovery.includes("function focusIdentityCheck()") && discovery.includes('panel.scrollIntoView({ behavior: "smooth", block: "start" })')]
 ].forEach(([name, condition]) => check(name, condition));
 
