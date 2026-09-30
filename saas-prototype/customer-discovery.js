@@ -644,8 +644,16 @@
         const topOffset = 96;
         const alreadyUseful = rect.top >= topOffset && rect.top <= Math.max(topOffset + 80, viewportHeight * 0.42);
         if (alreadyUseful) return;
-        const targetTop = Math.max(0, window.scrollY + rect.top - topOffset);
-        window.scrollTo({ top: targetTop, left: window.scrollX, behavior: "auto" });
+        const root = document.documentElement;
+        const previousScrollBehavior = root.style.scrollBehavior;
+        root.style.scrollBehavior = "auto";
+        try {
+          results.scrollIntoView({ behavior: "auto", block: "start", inline: "nearest" });
+        } finally {
+          window.requestAnimationFrame(() => {
+            root.style.scrollBehavior = previousScrollBehavior;
+          });
+        }
       });
     });
   }
