@@ -333,7 +333,11 @@
     event.preventDefault();
     const panel = toggle.closest(".customer-discovery-identity-assist");
     if (!panel) return;
-    panel.dataset.ffIdentityExpanded = panel.dataset.ffIdentityExpanded === "1" ? "0" : "1";
+    const expanded = panel.dataset.ffIdentityExpanded !== "1";
+    panel.dataset.ffIdentityExpanded = expanded ? "1" : "0";
+    panel.querySelectorAll(".ff-identity-review-match").forEach(row => {
+      row.classList.toggle("ff-identity-hidden", !expanded);
+    });
     decorate();
   }, true);
 
