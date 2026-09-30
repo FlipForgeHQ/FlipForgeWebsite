@@ -256,7 +256,7 @@ try {
   if (!/Paid plan\s+No/i.test(accountState.text)) fail(`Server-owned paid-plan state was not preserved: ${accountState.text}`);
   if (!/CHECKOUT\s+Not enabled/i.test(accountState.text) || !/No payment controls are enabled/i.test(accountState.text)) fail(`Customer checkout boundary is not explicit: ${accountState.text}`);
 
-  // Production authentication is intentionally not exercised in this DEV customer-mode
+  // Production authentication is intentionally not exercised in this isolated customer-surface
   // audit. The dedicated private-beta public-access gate owns production entry/auth tests.
 
   const seriousErrors = pageErrors.filter(message => /SyntaxError|Unexpected token|Unexpected identifier/i.test(message));
