@@ -51,9 +51,16 @@
 
     page.classList.add("ff-discover-above-fold");
 
-    // Search is the primary Discover job. Keep it immediately under the page
-    // heading so workflow education and decision terminology cannot bury it.
-    if (heading.nextElementSibling !== search) {
+    const identity = page.querySelector(":scope > .customer-discovery-identity-assist");
+    page.classList.toggle("ff-discover-identity-required", Boolean(identity));
+
+    // Card entry is normally the primary Discover job. When identity confirmation
+    // is active, that becomes the primary task and must sit directly below the
+    // page heading instead of being buried beneath search/results content.
+    if (identity) {
+      if (heading.nextElementSibling !== identity) heading.insertAdjacentElement("afterend", identity);
+      if (identity.nextElementSibling !== search) identity.insertAdjacentElement("afterend", search);
+    } else if (heading.nextElementSibling !== search) {
       heading.insertAdjacentElement("afterend", search);
     }
 
