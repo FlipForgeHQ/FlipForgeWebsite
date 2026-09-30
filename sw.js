@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v21';
+const CACHE='flipforge-shell-v22';
 const SHELL=[
   '/',
   '/index.html',
@@ -9,6 +9,7 @@ const SHELL=[
   '/assets/css/homepage-decision-forge-v1.css',
   '/assets/css/sitewide-graphics-v1.css',
   '/assets/css/public-typography-contract-v1.css',
+  '/assets/css/public-readability-contract-v1.css',
   '/assets/css/visual-sections.css',
   '/assets/css/marketing-v3.css',
   '/assets/css/marketing-density-v1.css',
