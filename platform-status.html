@@ -24,16 +24,16 @@
   <div class="wrap">
     <section class="hero" id="current">
       <div>
-        <div class="kicker">Platform Build Status · July 2026</div>
+        <div class="kicker">Platform Build Status · September 2026</div>
         <h1>Evidence first. Decisions explained.</h1>
         <p class="lead">FlipForge has evolved into a private-beta decision-support platform for sports-card evaluation. The current build combines discovery, exact-card identity, manual and authorized evidence review, scoring, PSA intelligence context, risk controls, and full decision traceback in one structured workflow.</p>
       </div>
       <aside class="status-card">
         <div class="status-pill"><span class="dot"></span> Private Beta Build Ready</div>
         <dl>
-          <div><dt>Product state</dt><dd>Private beta packaging complete</dd></div>
-          <div><dt>Application model</dt><dd>Shared engine · Beta + DEV workspaces</dd></div>
-          <div><dt>Source of truth</dt><dd>Local SQLite</dd></div>
+          <div><dt>Product state</dt><dd>Controlled Private Beta active</dd></div>
+          <div><dt>Application model</dt><dd>One engine · Private Beta + Customer</dd></div>
+          <div><dt>Source of truth</dt><dd>Authoritative SQLite · server-owned SaaS access</dd></div>
           <div><dt>Evidence model</dt><dd>Evidence-first with manual validation</dd></div>
           <div><dt>Scoring</dt><dd>Opportunity · Confidence · Liquidity · Risk</dd></div>
           <div><dt>Automation boundary</dt><dd>No auto-buying or marketplace action</dd></div>
@@ -51,8 +51,8 @@
         <article class="card"><span class="tag">Evidence</span><h3>Sold Comp Tracking</h3><p>Record, normalize, and review sold-comp evidence without inventing data or treating active asks as proven value.</p><ul class="feature-list"><li>Manual comp validation gate</li><li>Evidence trust status</li><li>Source and review history</li></ul></article>
         <article class="card"><span class="tag">Scoring</span><h3>Scoring Engine V2</h3><p>Separate calculators evaluate opportunity, confidence, liquidity, and risk instead of hiding the decision inside one unexplained number.</p><ul class="feature-list"><li>Confidence calculator</li><li>Liquidity calculator</li><li>Opportunity and risk scoring</li></ul></article>
         <article class="card"><span class="tag">Explainability</span><h3>Decision Traceback</h3><p>Review the evidence and scoring inputs that caused an item to advance, remain under review, or be blocked.</p><ul class="feature-list"><li>Audit trail</li><li>Decision packet context</li><li>Outcome and calibration review</li></ul></article>
-        <article class="card"><span class="tag">Architecture</span><h3>Beta + DEV Workspaces</h3><p>One shared application core supports a clean tester-facing Beta Mode and a separate owner/operator DEV Mode.</p><ul class="feature-list"><li>Clean customer workflow</li><li>Operator validation tools</li><li>Persistent mode settings</li></ul></article>
-        <article class="card"><span class="tag">Reliability</span><h3>SQLite Source of Truth</h3><p>Core evidence, scoring, review, and outcome records are persisted locally in SQLite. CSV remains an audit and export format—not the primary database.</p><ul class="feature-list"><li>Read-only operator inspection</li><li>Import preview</li><li>Evidence and outcome history</li></ul></article>
+        <article class="card"><span class="tag">Architecture</span><h3>Private Beta + Customer</h3><p>One authoritative FlipForge decision engine supports exactly two hosted SaaS experiences: invitation-only Private Beta and the real Customer experience.</p><ul class="feature-list"><li>Shared decision engine</li><li>Role-gated Private Beta access</li><li>Customer experience held private until launch</li></ul></article>
+        <article class="card"><span class="tag">Reliability</span><h3>SQLite Source of Truth</h3><p>Core evidence, scoring, review, and outcome records remain governed by the authoritative SQLite-backed service. The SaaS browser does not become the source of truth.</p><ul class="feature-list"><li>Tenant-scoped server reads</li><li>Governed evidence persistence</li><li>Evidence and outcome history</li></ul></article>
       </div>
     </section>
 
@@ -88,7 +88,7 @@
       <div class="timeline">
         <div class="timeline-row"><strong>Foundation</strong><p>Database hardening, evidence services, sold-comp tracking, review outcomes, traceback, product-tier gates, and source-of-truth controls.</p></div>
         <div class="timeline-row"><strong>Scoring V2</strong><p>Independent confidence, liquidity, opportunity, and risk calculators; sold-comp adjustments; audit trail; UI preview; beta readiness controls.</p></div>
-        <div class="timeline-row"><strong>FlipForge2 UI</strong><p>Shared application shell with separate Beta and DEV workspaces, operator hub, evidence validation, outcome review, local database inspection, and import preview.</p></div>
+        <div class="timeline-row"><strong>SaaS Experience</strong><p>Shared decision-engine authority with distinct Private Beta and Customer experiences, plus separate owner-only operational controls for access, validation, and feedback.</p></div>
         <div class="timeline-row"><strong>Private Beta</strong><p>Release-candidate checklist, walkthrough, known limitations, evidence warnings, feedback instructions, smoke tests, and Windows app-image packaging workflow.</p></div>
         <div class="timeline-row"><strong>PSA Intelligence</strong><p>Population foundation, scarcity and grade context, movement tracking, reconciliation, resolution status, decision-packet attachment, and validation bundles.</p></div>
         <div class="timeline-row"><strong>Next Focus</strong><p>Controlled beta usage, tester feedback, evidence quality measurement, outcome calibration, packaging refinement, and responsible expansion of authorized data sources.</p></div>
