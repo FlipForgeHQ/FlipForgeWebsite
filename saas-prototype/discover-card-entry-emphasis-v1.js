@@ -64,13 +64,24 @@
       heading.insertAdjacentElement("afterend", search);
     }
 
+    const results = page.querySelector(":scope > .customer-discovery-results");
+    const notice = page.querySelector(":scope > .customer-discovery-notice");
+    if (!identity && results) {
+      let resultAnchor = search;
+      if (notice) {
+        if (resultAnchor.nextElementSibling !== notice) resultAnchor.insertAdjacentElement("afterend", notice);
+        resultAnchor = notice;
+      }
+      if (resultAnchor.nextElementSibling !== results) resultAnchor.insertAdjacentElement("afterend", results);
+    }
+
     const coach = page.querySelector(":scope > [data-ff-discover-coach]");
     const workflow = page.querySelector(":scope > [data-ff-workflow-strip]");
     const decisionKey = page.querySelector(":scope > [data-ff-decision-key]");
     const boundary = [...page.querySelectorAll(":scope > .boundary-note")]
       .find(node => /decision framework|authority boundary/i.test(String(node.textContent || "")));
 
-    let anchor = search;
+    let anchor = !identity && results ? results : search;
     for (const node of [coach, workflow, decisionKey, boundary]) {
       if (!node || node === anchor) continue;
       if (anchor.nextElementSibling !== node) anchor.insertAdjacentElement("afterend", node);
