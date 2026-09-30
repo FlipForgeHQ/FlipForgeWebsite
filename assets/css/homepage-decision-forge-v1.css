@@ -34,11 +34,11 @@
 .ff-df-sequence-brand{display:flex;align-items:center;gap:11px;min-width:0}
 .ff-df-sequence-brand img{width:36px;height:36px;object-fit:contain}
 .ff-df-sequence-brand strong{display:block;color:#fff;font-size:12px;letter-spacing:.04em}
-.ff-df-sequence-brand small{display:block;margin-top:4px;color:#727b85;font-size:7px;font-weight:800;letter-spacing:.07em;white-space:nowrap}
+.ff-df-sequence-brand small{display:block;margin-top:4px;color:#AEB7C1;font-size:7px;font-weight:800;letter-spacing:.07em;white-space:nowrap}
 .ff-df-stage-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .ff-df-stage-button{
   appearance:none;position:relative;display:grid;gap:3px;padding:9px 10px;border:1px solid transparent;border-radius:9px;
-  background:transparent;color:#707984;text-align:left;cursor:pointer;transition:border-color .28s ease,background .28s ease,color .28s ease;
+  background:transparent;color:#AEB7C1;text-align:left;cursor:pointer;transition:border-color .28s ease,background .28s ease,color .28s ease;
 }
 .ff-df-stage-button::after{content:"";position:absolute;left:10px;right:10px;bottom:-15px;height:1px;background:transparent}
 .ff-df-stage-button span{font-size:8px;font-weight:900;letter-spacing:.12em}
@@ -95,7 +95,7 @@
   position:absolute;min-width:132px;padding:9px 11px;border-left:2px solid var(--df-gold);
   background:linear-gradient(90deg,rgba(3,7,11,.94),rgba(3,7,11,.66));box-shadow:0 14px 40px rgba(0,0,0,.26)
 }
-.ff-df-identity-points small{display:block;color:#7e8791;font-size:7px;font-weight:900;letter-spacing:.1em}
+.ff-df-identity-points small{display:block;color:#AEB7C1;font-size:7px;font-weight:900;letter-spacing:.1em}
 .ff-df-identity-points strong{display:block;margin-top:3px;color:#fff;font-size:10px}
 .ff-df-identity-points div:nth-child(1){left:5%;top:22%}.ff-df-identity-points div:nth-child(2){right:5%;top:22%}.ff-df-identity-points div:nth-child(3){left:5%;bottom:21%}.ff-df-identity-points div:nth-child(4){right:5%;bottom:21%}
 
@@ -112,8 +112,8 @@
   opacity:0;transform:translateY(16px);transition:opacity .45s ease,transform .55s cubic-bezier(.2,.8,.2,1)
 }
 .ff-df-economics div{padding:14px 16px;border:1px solid rgba(255,255,255,.085);background:rgba(3,7,11,.9);box-shadow:0 18px 46px rgba(0,0,0,.22)}
-.ff-df-economics small{display:block;color:#727c86;font-size:7px;font-weight:900;letter-spacing:.1em}.ff-df-economics strong{display:block;margin-top:5px;color:#fff;font-size:18px}
-.ff-df-economics i{color:#727c86;font-style:normal}
+.ff-df-economics small{display:block;color:#AEB7C1;font-size:7px;font-weight:900;letter-spacing:.1em}.ff-df-economics strong{display:block;margin-top:5px;color:#fff;font-size:18px}
+.ff-df-economics i{color:#AEB7C1;font-style:normal}
 .ff-df-economics .is-supported{border-color:rgba(212,175,55,.34);box-shadow:0 18px 46px rgba(0,0,0,.28),0 0 34px rgba(212,175,55,.06)}
 .ff-df-economics .is-supported strong{color:#edd177}
 
@@ -123,7 +123,7 @@
   background:linear-gradient(180deg,rgba(8,14,21,.96),rgba(3,7,11,.97));box-shadow:0 28px 80px rgba(0,0,0,.48),0 0 50px rgba(212,175,55,.055);
   transition:opacity .5s ease,transform .62s cubic-bezier(.2,.8,.2,1)
 }
-.ff-df-reveal-card>small{display:block;color:#78828c;font-size:7px;font-weight:900;letter-spacing:.12em}
+.ff-df-reveal-card>small{display:block;color:#AEB7C1;font-size:7px;font-weight:900;letter-spacing:.12em}
 .ff-df-reveal-card>strong{display:block;margin:7px 0 9px;color:#edd177;font-size:42px;letter-spacing:.075em}
 .ff-df-reveal-card>p{margin:0;color:#aab2bb;font-size:11px;line-height:1.6}
 .ff-df-why-button{
@@ -138,7 +138,7 @@
 .ff-df-footer{display:grid;grid-template-columns:minmax(220px,.42fr) minmax(0,1fr);gap:24px;align-items:center;padding:0 20px 14px}
 .ff-df-progress{height:2px;background:rgba(255,255,255,.055);overflow:hidden}
 .ff-df-progress span{display:block;height:100%;width:20%;background:linear-gradient(90deg,var(--df-deep),var(--df-gold));transition:width .46s cubic-bezier(.2,.8,.2,1)}
-.ff-df-footer p{margin:0;color:#737c86;font-size:9px;line-height:1.5}.ff-df-footer strong{color:#aeb5bd}
+.ff-df-footer p{margin:0;color:#AEB7C1;font-size:9px;line-height:1.5}.ff-df-footer strong{color:#aeb5bd}
 
 
 /* === HOMEPAGE CINEMATIC RHYTHM ===
@@ -237,7 +237,7 @@ body .film-section{padding-bottom:52px}
 .home-essentials-grid article:last-child{border-right:0}
 .home-essentials-grid span{
   display:block;
-  color:#8d7940;
+  color:#D4AF37;
   font-size:8px;
   font-weight:900;
   letter-spacing:.13em;
@@ -251,7 +251,7 @@ body .film-section{padding-bottom:52px}
 }
 .home-essentials-grid p{
   margin:7px 0 0;
-  color:#7d8791;
+  color:#AEB7C1;
   font-size:11px;
   line-height:1.5;
 }
@@ -271,7 +271,7 @@ body .film-section{padding-bottom:52px}
   letter-spacing:.12em;
 }
 .home-proof-line strong{color:#fff;font-size:13px}
-.home-proof-line span{color:#737d87;font-size:10px}
+.home-proof-line span{color:#AEB7C1;font-size:10px}
 .home-proof-line a,
 .home-deeper-links a{
   color:#e0c05c;
@@ -286,10 +286,10 @@ body .film-section{padding-bottom:52px}
   align-items:center;
   gap:16px;
   padding-top:20px;
-  color:#6f7983;
+  color:#AEB7C1;
   font-size:9px;
 }
-.home-deeper-links span{margin-right:auto;color:#8e98a2}
+.home-deeper-links span{margin-right:auto;color:#AEB7C1}
 
 body .home-essentials + .final{padding-top:72px}
 
