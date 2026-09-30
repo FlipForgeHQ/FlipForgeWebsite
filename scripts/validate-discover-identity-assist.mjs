@@ -137,7 +137,7 @@ const missingNumber = runtime('2018 Topps Chrome Shohei Ohtani PSA 9');
 await renderAndSubmit(missingNumber);
 check('001 missing-number query calls identity search', missingNumber.calls.some(c => c.url === '/api/v1/card-intelligence/search'));
 check('002 missing-number query does not call Discover first', !missingNumber.calls.some(c => c.url === '/api/v1/discover'));
-check('003 identity options render with declared PSA 9 context', missingNumber.main.identityButtons.length === 1 && /Which card did you mean\?/i.test(missingNumber.main.innerHTML) && /PSA 9 \(entered\)/.test(missingNumber.main.innerHTML));
+check('003 identity options render with declared PSA 9 context', missingNumber.main.identityButtons.length === 1 && /Confirm your exact card\./i.test(missingNumber.main.innerHTML) && /PSA 9 \(entered\)/.test(missingNumber.main.innerHTML));
 missingNumber.main.identityButtons[0].click();
 await wait(10);
 const resolveCall = missingNumber.calls.find(c => c.url === '/api/v1/card-intelligence/resolve');

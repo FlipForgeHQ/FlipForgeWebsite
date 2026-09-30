@@ -14,7 +14,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["001 Discover promotes the live card-entry panel", entry.includes("function promoteSearchPanel(main)") && entry.includes('page?.querySelector(":scope > .customer-discovery-search")')],
   ["002 Find exact card remains a top-level form action", entry.includes('identifyButton.textContent = "Find exact card"') && entry.includes('form?.querySelector("[data-discovery-find-exact]")')],
   ["003 Search active listings remains a top-level form action", entry.includes('searchButton.textContent = "Search active listings"') && entry.includes("form?.querySelector('button[type=\"submit\"]')")],
-  ["004 card entry is placed directly under the page heading", entry.includes('heading.insertAdjacentElement("afterend", search)')],
+  ["004 card entry is placed directly under the page heading unless identity confirmation is active", entry.includes('heading.insertAdjacentElement("afterend", search)') && entry.includes('heading.insertAdjacentElement("afterend", identity)')],
   ["005 Guided Mode education follows the card entry", entry.includes("const coach = page.querySelector") && entry.includes("for (const node of [coach, workflow, decisionKey, boundary])")],
   ["006 workflow education follows the card entry", entry.includes('page.querySelector(":scope > [data-ff-workflow-strip]")')],
   ["007 decision terminology cannot precede the card entry", entry.includes('page.querySelector(":scope > [data-ff-decision-key]")') && entry.includes("let anchor = search")],
@@ -58,7 +58,10 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["045 stale selection fails closed against current assist draft and visible query", discovery.includes("ownedQuery !== currentQuery") && discovery.includes("ownedQuery !== draftQuery") && discovery.includes("ownedQuery !== visibleQuery")],
   ["046 Discover entry text rewrites are idempotent", entry.includes('labelText.textContent !== "Card"') && entry.includes('searchButton.textContent !== "Search active listings"') && entry.includes('identifyButton.textContent !== "Find exact card"')],
   ["047 Discover entry observer disconnects during owned writes", entry.includes("observer.disconnect()") && entry.includes("decorateWithoutSelfObservation") && entry.includes("observeMain()")],
-  ["048 Guided Mode follows canonical search-first ordering", guide.includes('search.insertAdjacentElement("afterend", coach)') && !guide.includes('coach.insertAdjacentElement("afterend", search)')]
+  ["048 Guided Mode follows canonical search-first ordering", guide.includes('search.insertAdjacentElement("afterend", coach)') && !guide.includes('coach.insertAdjacentElement("afterend", search)')],
+  ["049 required identity confirmation is promoted above card search", entry.includes('page.classList.toggle("ff-discover-identity-required", Boolean(identity))') && entry.includes('identity.insertAdjacentElement("afterend", search)')],
+  ["050 identity panel owns a direct change-card escape hatch", discovery.includes("data-discovery-change-identity-entry") && discovery.includes("changeIdentityEntryButton?.addEventListener")],
+  ["051 identity panel is automatically surfaced when required", discovery.includes("function focusIdentityCheck()") && discovery.includes('panel.scrollIntoView({ behavior: "smooth", block: "start" })')]
 ].forEach(([name, condition]) => check(name, condition));
 
 const failures = results.filter(result => !result.passed);

@@ -2,6 +2,8 @@ import fs from 'node:fs';
 
 const layout = fs.readFileSync('saas-prototype/guided-mode-layout-fix-v1.css', 'utf8');
 const guide = fs.readFileSync('saas-prototype/guided-mode-v1.js', 'utf8');
+const guideCss = fs.readFileSync('saas-prototype/guided-mode-v1.css', 'utf8');
+const compactGuideCss = fs.readFileSync('saas-prototype/guided-mode-compact-v1.css', 'utf8');
 const focusFix = fs.readFileSync('saas-prototype/guided-discover-focus-fix-v1.js', 'utf8');
 const discover = fs.readFileSync('saas-prototype/customer-discovery.js', 'utf8');
 const failures = [];
@@ -15,6 +17,15 @@ requireText('welcome modal is hidden', layout, 'display: none !important');
 requireText('modal body lock is neutralized', layout, 'body.ff-guide-modal-open');
 requireText('workspace remains scrollable', layout, 'overflow: auto !important');
 requireText('contextual Guided Mode remains available', guide, 'window.FlipForgeGuidedMode = Object.freeze');
+requireText('Guided Mode exposes clickable path steps', guide, 'data-guide-step="${step}"');
+requireText('Guided Mode routes step clicks', guide, 'goToGuideStep(step.dataset.guideStep || "")');
+requireText('Guided Mode provides persistent Back and Next controls', guide, 'ff-guide-route-nav');
+requireText('Guided Mode can advance from a saved decision to tracking', guide, 'Next: track this card →');
+requireText('Guide highlights target actionable controls instead of whole panels', guide, 'const actionable = direct || node.querySelector?.');
+requireText('Guide highlight no longer draws an intrusive outline', guideCss, 'outline:none!important');
+requireText('Guide highlight label overlay is disabled', guideCss, '.ff-guide-highlight::after{display:none!important}');
+requireText('Mobile Guided Mode keeps progress out of the active task', compactGuideCss, '.ff-guide-progress{display:none!important}');
+requireText('Mobile Guided Mode keeps route navigation reachable', compactGuideCss, '.ff-guide-route-nav{position:sticky!important');
 requireText('runtime guard removes legacy modal node', focusFix, 'document.getElementById(LEGACY_WELCOME_ID)?.remove()');
 requireText('runtime guard removes modal body lock', focusFix, 'classList.remove("ff-guide-modal-open")');
 requireText('runtime guard watches late modal recreation', focusFix, 'new MutationObserver(() => neutralizeLegacyWelcome())');
@@ -34,4 +45,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: sign-in onboarding cannot cover Discover; automatic full-customer route entry preserves scroll position while explicit card-focus actions still surface the exact-card input.');
+console.log('PASS: Guided Mode stays search-first, exposes clickable steps plus persistent Back/Next navigation, and highlights actionable controls without drawing an intrusive page-wide outline.');

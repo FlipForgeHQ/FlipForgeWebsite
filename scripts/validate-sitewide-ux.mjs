@@ -169,6 +169,7 @@ requireText('mobile topbar grid',appLayout,'grid-template-columns:44px minmax(0,
 requireText('mobile guide height',guideCompact,'max-height:30vh!important');
 requireText('mobile guide secondary copy removed',guideCompact,'.ff-guide-why{display:none!important}');
 requireText('mobile guide progress removed',guideCompact,'.ff-guide-progress{display:none!important}');
+requireText('mobile guide route navigation remains sticky',guideCompact,'.ff-guide-route-nav{position:sticky!important');
 requireText('final app layout import',guideCompact,'customer-layout-system-v2.css?v=20260829-4');
 requireText('final phone shell import',guideCompact,'mobile-shell-v3.css?v=20260829-1');
 requireText('mobile shell owner',mobileShell,'final phone chrome owner');
