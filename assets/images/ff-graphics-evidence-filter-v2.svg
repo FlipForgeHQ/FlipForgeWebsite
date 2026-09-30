@@ -18,44 +18,51 @@
 <rect width="655" height="58" rx="12" fill="#0d1712" stroke="#6fb68b" stroke-opacity=".62"/>
 <text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">01</text>
 <text x="84" y="36" fill="#9eddb9" font-size="17" font-weight="900">EXACT</text>
-<text x="540" y="36" fill="#fff" font-size="18" font-weight="900">$351</text>
-<text x="628" y="36" fill="#9eddb9" text-anchor="end" font-size="16" font-weight="900">KEEP</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$351</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#153024" stroke="#9eddb9" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#9eddb9" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">KEEP</text>
 </g><g transform="translate(0 72)">
 <rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
 <text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">02</text>
 <text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">WRONG PARALLEL</text>
-<text x="540" y="36" fill="#fff" font-size="18" font-weight="900">$412</text>
-<text x="628" y="36" fill="#d99494" text-anchor="end" font-size="16" font-weight="900">REJECT</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$412</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
 </g><g transform="translate(0 144)">
 <rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
 <text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">03</text>
 <text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">DUPLICATE</text>
-<text x="540" y="36" fill="#fff" font-size="18" font-weight="900">$351</text>
-<text x="628" y="36" fill="#d99494" text-anchor="end" font-size="16" font-weight="900">REJECT</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$351</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
 </g><g transform="translate(0 216)">
 <rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
 <text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">04</text>
 <text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">WRONG GRADE</text>
-<text x="540" y="36" fill="#fff" font-size="18" font-weight="900">$328</text>
-<text x="628" y="36" fill="#d99494" text-anchor="end" font-size="16" font-weight="900">REJECT</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$328</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
 </g><g transform="translate(0 288)">
 <rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
 <text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">05</text>
 <text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">IDENTITY CONFLICT</text>
-<text x="540" y="36" fill="#fff" font-size="18" font-weight="900">$469</text>
-<text x="628" y="36" fill="#d99494" text-anchor="end" font-size="16" font-weight="900">REJECT</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$469</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
 </g><g transform="translate(0 360)">
 <rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
 <text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">06</text>
 <text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">WRONG PARALLEL</text>
-<text x="540" y="36" fill="#fff" font-size="18" font-weight="900">$389</text>
-<text x="628" y="36" fill="#d99494" text-anchor="end" font-size="16" font-weight="900">REJECT</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$389</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
 </g><g transform="translate(0 432)">
 <rect width="655" height="58" rx="12" fill="#0d1712" stroke="#6fb68b" stroke-opacity=".62"/>
 <text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">07</text>
 <text x="84" y="36" fill="#9eddb9" font-size="17" font-weight="900">EXACT</text>
-<text x="540" y="36" fill="#fff" font-size="18" font-weight="900">$363</text>
-<text x="628" y="36" fill="#9eddb9" text-anchor="end" font-size="16" font-weight="900">KEEP</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$363</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#153024" stroke="#9eddb9" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#9eddb9" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">KEEP</text>
 </g>
  </g>
 
