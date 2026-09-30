@@ -363,3 +363,9 @@
 .customer-discovery-results .customer-discovery-summary{
   position:relative;
 }
+
+
+/* Dynamic result stacks can gain decoration after the provider response.
+   Keep browser scroll anchoring from dragging the viewport as those cards settle. */
+.customer-discovery-page{overflow-anchor:none}
+.customer-discovery-results{overflow-anchor:none}

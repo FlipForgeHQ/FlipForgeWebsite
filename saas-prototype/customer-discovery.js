@@ -632,11 +632,29 @@
     if (!state.data || state.error || state.identityAssist.active) return;
     const results = state.main?.querySelector?.("#ff-discovery-results");
     if (!results) return;
+
+    // Do not animate this handoff. With large result sets, downstream decorators
+    // may still be measuring or enhancing dozens of cards. A smooth scroll keeps
+    // chasing a moving layout target and makes the page appear to scroll on its own.
     window.requestAnimationFrame(() => {
-      try { results.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) { results.scrollIntoView(); }
-      window.setTimeout(() => {
-        try { results.focus({ preventScroll: true }); } catch (_) { results.focus(); }
-      }, 180);
+      window.requestAnimationFrame(() => {
+        if (!results.isConnected || !state.data || state.error || state.identityAssist.active) return;
+        const rect = results.getBoundingClientRect();
+        const viewportHeight = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+        const topOffset = 96;
+        const alreadyUseful = rect.top >= topOffset && rect.top <= Math.max(topOffset + 80, viewportHeight * 0.42);
+        if (alreadyUseful) return;
+        const root = document.documentElement;
+        const previousScrollBehavior = root.style.scrollBehavior;
+        root.style.scrollBehavior = "auto";
+        try {
+          results.scrollIntoView({ behavior: "auto", block: "start", inline: "nearest" });
+        } finally {
+          window.requestAnimationFrame(() => {
+            root.style.scrollBehavior = previousScrollBehavior;
+          });
+        }
+      });
     });
   }
 

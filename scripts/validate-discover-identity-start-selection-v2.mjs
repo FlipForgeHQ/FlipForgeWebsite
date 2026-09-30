@@ -64,7 +64,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["051 identity panel is automatically surfaced when required", discovery.includes("function focusIdentityCheck()") && discovery.includes('panel.scrollIntoView({ behavior: "smooth", block: "start" })')],
   ["051a nearby identity variants are visible without an extra expansion step", verify.includes("VISIBLE_REVIEW_WITH_EXACT = 2") && verify.includes("hasSelectable ? VISIBLE_REVIEW_WITH_EXACT : COLLAPSED_REVIEW_COUNT")],
   ["051b identity review uses explicit card-number data instead of fragile display parsing", discovery.includes("data-ff-card-number") && verify.includes("dataset?.ffCardNumber")],
-  ["052 completed search automatically surfaces actionable results", discovery.includes("function focusDiscoverResults()") && discovery.includes('results.scrollIntoView({ behavior: "smooth", block: "start" })')],
+  ["052 completed search surfaces actionable results without animated scroll chasing", discovery.includes("function focusDiscoverResults()") && discovery.includes('root.style.scrollBehavior = "auto"') && discovery.includes('results.scrollIntoView({ behavior: "auto", block: "start", inline: "nearest" })') && !discovery.includes('results.scrollIntoView({ behavior: "smooth", block: "start" })')],
   ["053 result cards are promoted immediately after the search task", entry.includes('const results = page.querySelector(":scope > .customer-discovery-results")') && entry.includes('resultAnchor.insertAdjacentElement("afterend", results)')],
   ["054 provider diagnostics no longer precede completed results", discovery.includes('state.data ? `${resultsPanel()}${providerPanel()}`')]
 

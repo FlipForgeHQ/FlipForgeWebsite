@@ -31,11 +31,55 @@ function accountHash(value) {
   return (hash >>> 0).toString(36);
 }
 
+const resultItems = Array.from({ length: 50 }, (_, index) => ({
+  rank: index + 1,
+  discoveryScore: Math.max(40, 94 - index),
+  discoveryLabel: index === 0 ? "BEST_CONNECTED_CANDIDATE" : "CONNECTED_CANDIDATE",
+  providerDisplayName: "Authorized QA Marketplace",
+  marketplace: "EBAY",
+  matchQuality: "EXACT_MATCH",
+  title: `${query} · listing ${index + 1}`,
+  cardIdentityQuery: query,
+  listingUrl: `https://example.test/item/${index + 1}`,
+  allInAskCents: 52500 + (index * 100),
+  allInCostComplete: true,
+  listingAvailability: "AVAILABLE",
+  listingFreshness: "CURRENT",
+  activeListingOnly: true,
+  completedSaleEvidence: false,
+  transactionAuthority: false,
+  evaluationEligible: true,
+  sellerFeedbackScore: 999 - index,
+  condition: "Graded",
+  listingFormat: "BUY_IT_NOW",
+  pricePosition: "Within supported range",
+  nextAction: "Evaluate this listing with Smart Opportunity.",
+  evidence: {
+    trustedExactCompletedSaleCount: 4,
+    supported: true,
+    trustedEvidenceValueCents: 54000,
+    calibratedConfidence: 82,
+    risk: 28
+  },
+  evaluationRequest: {
+    externalListingId: `QA-${index + 1}`,
+    marketplace: "EBAY",
+    cardIdentity: query,
+    listingUrl: `https://example.test/item/${index + 1}`,
+    seller: `QA Seller ${index + 1}`,
+    itemPriceCents: 51500 + (index * 100),
+    shippingCents: 1000,
+    buyerPremiumCents: 0,
+    taxCents: 0,
+    listingFormat: "BUY_IT_NOW"
+  }
+}));
+
 const discoverData = {
   kind: "discover",
   readOnly: true,
   query,
-  requestedLimit: 25,
+  requestedLimit: 50,
   targetMaxBuyCents: 0,
   discoveryPersisted: false,
   evaluationRequiredToSave: true,
@@ -52,55 +96,13 @@ const discoverData = {
     providerCredentialsExposed: false,
     customerCanConfigureProvider: false
   },
-  candidateCount: 1,
-  exactCandidateCount: 1,
+  candidateCount: resultItems.length,
+  exactCandidateCount: resultItems.length,
   identityReviewCandidateCount: 0,
-  evidenceSupportedCount: 1,
+  evidenceSupportedCount: resultItems.length,
   evidenceSupportedBestAvailable: true,
-  coverageSummary: "1 exact active candidate",
-  items: [{
-    rank: 1,
-    discoveryScore: 94,
-    discoveryLabel: "BEST_CONNECTED_CANDIDATE",
-    providerDisplayName: "Authorized QA Marketplace",
-    marketplace: "EBAY",
-    matchQuality: "EXACT_MATCH",
-    title: query,
-    cardIdentityQuery: query,
-    listingUrl: "https://example.test/item/123",
-    allInAskCents: 52500,
-    allInCostComplete: true,
-    listingAvailability: "AVAILABLE",
-    listingFreshness: "CURRENT",
-    activeListingOnly: true,
-    completedSaleEvidence: false,
-    transactionAuthority: false,
-    evaluationEligible: true,
-    sellerFeedbackScore: 999,
-    condition: "Graded",
-    listingFormat: "BUY_IT_NOW",
-    pricePosition: "Within supported range",
-    nextAction: "Evaluate this listing with Smart Opportunity.",
-    evidence: {
-      trustedExactCompletedSaleCount: 4,
-      supported: true,
-      trustedEvidenceValueCents: 54000,
-      calibratedConfidence: 82,
-      risk: 28
-    },
-    evaluationRequest: {
-      externalListingId: "QA-123",
-      marketplace: "EBAY",
-      cardIdentity: query,
-      listingUrl: "https://example.test/item/123",
-      seller: "QA Seller",
-      itemPriceCents: 51500,
-      shippingCents: 1000,
-      buyerPremiumCents: 0,
-      taxCents: 0,
-      listingFormat: "BUY_IT_NOW"
-    }
-  }]
+  coverageSummary: `${resultItems.length} exact active candidates`,
+  items: resultItems
 };
 
 for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mobile",390,844]]) {
@@ -148,17 +150,28 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
     await page.goto(`${baseUrl}/#/discover`, { waitUntil: "domcontentloaded", timeout: 12000 });
     const form = page.locator("#main-content [data-customer-discovery-form]");
     await form.waitFor({ state: "visible", timeout: 8000 });
+    await page.evaluate(() => {
+      window.__ffScrollEvents = [];
+      window.addEventListener("scroll", () => {
+        window.__ffScrollEvents.push({ y: Math.round(window.scrollY), t: performance.now() });
+      }, { passive: true });
+    });
     await form.locator('input[name="exactCardQuery"]').fill(query);
+    await form.locator('select[name="limit"]').selectOption("50");
     await form.locator('button[type="submit"]').click();
 
     const results = page.locator("#ff-discovery-results");
     await results.waitFor({ state: "visible", timeout: 6000 });
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1100);
 
     const metrics = await page.evaluate(() => {
       const results = document.querySelector("#ff-discovery-results");
       const search = document.querySelector(".customer-discovery-search");
-      const provider = [...document.querySelectorAll(".panel")].find(node => /Connected source status/i.test(node.textContent || ""));
+      const provider = [...document.querySelectorAll(".panel")].find(node => {
+        if (!/Connected source status/i.test(node.textContent || "")) return false;
+        const style = getComputedStyle(node);
+        return style.display !== "none" && style.visibility !== "hidden" && node.getClientRects().length > 0;
+      });
       const shell = document.querySelector("[data-ff-p3-evaluate-shell]");
       const rect = results?.getBoundingClientRect();
       const searchRect = search?.getBoundingClientRect();
@@ -169,8 +182,9 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
         searchBottom: searchRect?.bottom ?? null,
         providerTop: providerRect?.top ?? null,
         shellVisible: shell ? getComputedStyle(shell).display !== "none" : false,
-        activeId: document.activeElement?.id || "",
-        viewportHeight: innerHeight
+        viewportHeight: innerHeight,
+        scrollY: Math.round(window.scrollY),
+        scrollEvents: Array.isArray(window.__ffScrollEvents) ? window.__ffScrollEvents.slice() : []
       };
     });
 
@@ -185,7 +199,15 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
       failures.push(`${name}: provider diagnostics still appear before actionable results`);
     }
     if (metrics.shellVisible) failures.push(`${name}: Phase 3 instruction shell remains visible after results are ready`);
-    if (metrics.activeId !== "ff-discovery-results") failures.push(`${name}: focus did not land on the result section after search`);
+    const events = metrics.scrollEvents || [];
+    const lateEvents = events.filter(event => event.t > (events[0]?.t || 0) + 350);
+    if (lateEvents.length > 1) {
+      failures.push(`${name}: viewport kept moving after the result handoff (${lateEvents.length} late scroll events across 50 cards)`);
+    }
+    const distinctPositions = [...new Set(events.map(event => event.y))];
+    if (distinctPositions.length > 3) {
+      failures.push(`${name}: result handoff produced ${distinctPositions.length} scroll positions instead of one stable jump`);
+    }
   } finally {
     await context.close();
     await browser.close();
@@ -195,5 +217,5 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
 console.log("FlipForge Discover results-first audit");
 console.log(`Failures: ${failures.length}`);
 failures.forEach(failure => console.log(`FAIL | ${failure}`));
-if (!failures.length) console.log("PASS | completed searches move directly to actionable results with no instructional or provider block in front of them");
+if (!failures.length) console.log("PASS | 50-result searches move once to actionable results and remain scroll-stable while result cards finish rendering");
 if (failures.length) process.exit(1);
