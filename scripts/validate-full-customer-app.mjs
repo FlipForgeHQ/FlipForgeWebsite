@@ -40,7 +40,7 @@ check(activeRedirects.includes("/app /production-auth.html?return=%2Fapp%2Fbeta%
 check(activeRedirects.indexOf("/app/beta/* /saas-prototype/:splat 200") < activeRedirects.indexOf("/app/* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302"), "beta wildcard precedes generic app fail-closed redirect");
 
 check(customer.includes('window.FlipForgeFullCustomerEntry=true'), "customer document hard-marks full customer entry before app scripts");
-check(customer.includes('>CUSTOMER APP</span>'), "DEV customer document remains statically labeled CUSTOMER APP");
+check(customer.includes('>CUSTOMER APP</span>'), "prelaunch customer document remains statically labeled CUSTOMER APP");
 check(customer.includes('window.location.replace("/")'), "raw production customer document redirects away before render");
 check(!customer.includes('<div class="prototype-banner"'), "customer document contains no beta banner");
 check(customer.includes('src="private-beta.js"'), "customer document loads private-beta onboarding runtime in the canonical shell");
@@ -94,8 +94,8 @@ check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : 
 check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit preserves DEV customer identity");
 
 check(loginRedirect.includes('a[href^="/production-auth.html"]'), "customer login interceptor covers feature-level auth links");
-check(loginRedirect.includes('pathname === "/app/customer" ? "/app/customer/"'), "DEV customer login interceptor still normalizes the customer pathname");
-check(loginRedirect.includes('const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`'), "DEV customer login interceptor still rebuilds local auth return");
+check(loginRedirect.includes('pathname === "/app/customer" ? "/app/customer/"'), "customer login interceptor still normalizes the customer pathname");
+check(loginRedirect.includes('const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`'), "customer login interceptor still rebuilds local auth return");
 check(loginRedirect.includes('if (!launcher && !authLink) return;'), "customer login interceptor handles launchers and feature auth links");
 check(authProbe.includes('const PRIVATE_BETA_START = "/app/beta/#/beta-start";'), "production auth locks destination to dedicated beta-start");
 check(authProbe.includes("return PRIVATE_BETA_START;"), "production sign-in cannot return to arbitrary customer route");
