@@ -22,7 +22,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 
 check("001 legacy prototype remains a non-authoritative customer-compatible surface", index.includes('data-ff-surface="customer"'));
 check("002 dedicated customer entry is explicitly marked as full customer", customer.includes('class="ff-full-customer-app"'));
-check("003 DEV customer code surface remains distinctly CUSTOMER APP", customer.includes('>CUSTOMER APP</span>') && !customer.includes('>CUSTOMER BETA</span>'));
+check("003 customer code surface remains distinctly CUSTOMER APP", customer.includes('>CUSTOMER APP</span>') && !customer.includes('>CUSTOMER BETA</span>'));
 check("004 definitive customer entry hosts the Private Beta Guide runtime", customer.includes('href="private-beta.css"') && customer.includes('src="private-beta.js"'));
 check("005 dedicated customer entry excludes legacy beta session runtime", !customer.includes('src="beta-session-v1.js"'));
 check("006 dedicated customer entry excludes legacy separate beta flow runtime", !customer.includes('src="beta-customer-flow-v2.js"'));
