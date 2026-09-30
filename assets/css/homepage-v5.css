@@ -42,8 +42,8 @@ header{
 /* HERO */
 .hero{
   min-height:760px;
-  display:grid;grid-template-columns:minmax(0,.92fr) minmax(600px,1.08fr);
-  gap:56px;align-items:center;padding:62px 0 74px
+  display:grid;grid-template-columns:minmax(0,.82fr) minmax(640px,1.18fr);
+  gap:38px;align-items:center;padding:62px 0 74px
 }
 .kicker{margin:0;color:#d9b84d;font-size:10px;font-weight:900;letter-spacing:.19em}
 .hero h1{
