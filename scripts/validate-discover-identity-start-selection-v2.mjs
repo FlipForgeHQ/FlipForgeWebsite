@@ -61,7 +61,11 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["048 Guided Mode follows canonical search-first ordering", guide.includes('search.insertAdjacentElement("afterend", coach)') && !guide.includes('coach.insertAdjacentElement("afterend", search)')],
   ["049 required identity confirmation is promoted above card search", entry.includes('page.classList.toggle("ff-discover-identity-required", Boolean(identity))') && entry.includes('identity.insertAdjacentElement("afterend", search)')],
   ["050 identity panel owns a direct change-card escape hatch", discovery.includes("data-discovery-change-identity-entry") && discovery.includes("changeIdentityEntryButton?.addEventListener")],
-  ["051 identity panel is automatically surfaced when required", discovery.includes("function focusIdentityCheck()") && discovery.includes('panel.scrollIntoView({ behavior: "smooth", block: "start" })')]
+  ["051 identity panel is automatically surfaced when required", discovery.includes("function focusIdentityCheck()") && discovery.includes('panel.scrollIntoView({ behavior: "smooth", block: "start" })')],
+  ["052 completed search automatically surfaces actionable results", discovery.includes("function focusDiscoverResults()") && discovery.includes('results.scrollIntoView({ behavior: "smooth", block: "start" })')],
+  ["053 result cards are promoted immediately after the search task", entry.includes('const results = page.querySelector(":scope > .customer-discovery-results")') && entry.includes('resultAnchor.insertAdjacentElement("afterend", results)')],
+  ["054 provider diagnostics no longer precede completed results", discovery.includes('state.data ? `${resultsPanel()}${providerPanel()}`')]
+
 ].forEach(([name, condition]) => check(name, condition));
 
 const failures = results.filter(result => !result.passed);
