@@ -165,6 +165,15 @@ body .film-section{padding-bottom:52px}
   .ff-df-stage-top{grid-template-columns:1fr;gap:10px;min-height:0}.ff-df-viewport{height:570px}
   .ff-df-reveal-card{width:min(360px,48%)}
 }
+@media(max-width:1120px) and (min-width:701px){
+  .ff-df-viewport{height:800px}
+  .ff-df-scene img{width:100%;height:clamp(330px,42vw,450px);object-fit:contain;object-position:50% 0;background:#030507}
+  .ff-df-scene-identity img,.ff-df-scene-evidence img,.ff-df-scene-receipt img{object-position:50% 0}
+  .ff-df-evidence-verdicts{left:4%;right:4%;top:calc(clamp(330px,42vw,450px) + 26px);bottom:auto}
+  .ff-df-economics{left:6%;right:6%;top:calc(clamp(330px,42vw,450px) + 28px);bottom:auto}
+  .ff-df-reveal-card{left:7%;right:7%;top:calc(clamp(330px,42vw,450px) + 28px);bottom:auto;width:auto;max-width:none;transform:translateY(18px)}
+  .ff-decision-forge[data-step="4"] .ff-df-reveal-card{transform:none}
+}
 @media(max-width:700px){
   body .film-section{padding-bottom:38px}  .ff-decision-forge{padding:42px 0 40px}.ff-df-wrap{width:min(100% - 24px,1220px)}.ff-df-intro h2{font-size:clamp(38px,13vw,56px)}.ff-df-intro-copy{font-size:15px}
   .ff-df-shell{border-radius:16px}.ff-df-sequence-bar{display:block;padding:14px}.ff-df-controls{position:static;margin:10px 0 0;display:flex;justify-content:flex-end;gap:6px}
