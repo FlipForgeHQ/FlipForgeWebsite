@@ -1,0 +1,145 @@
+/* FlipForge Public Readability Contract v1
+ * Brand-safe contrast and minimum readable text roles for every public surface.
+ * This file intentionally loads after the shared shell/type contracts so low-
+ * contrast page CSS cannot make explanatory text unreadable on black surfaces.
+ */
+:root{
+  --ff-read-primary:#F4F6F8;
+  --ff-read-secondary:#C8D0D8;
+  --ff-read-muted:#AEB7C1;
+  --ff-read-label:#B7C0C9;
+  --ff-read-gold:#E7C85F;
+}
+
+/* Long-form and explanatory copy: readable neutral, not blue-black gray. */
+html body.ff-marketing-v3 main#main .lead,
+html body.ff-marketing-v3 main#main .section-copy,
+html body.ff-marketing-page-v3 main#main .lead,
+html body.ff-marketing-page-v3 main#main .section-copy,
+html body.ff-marketing-page-v3 main#main .ff-product-copy>p,
+html body.ff-marketing-page-v3 main#main .ff-founder-card p,
+html body.ff-marketing-page-v3 main#main .ff-mission-card p,
+html body.ff-marketing-page-v3 main#main .ff-page-vision p,
+html body.ff-support-v3 main#main .lead,
+html body.ff-support-v3 main#main .section-copy,
+html body.ff-support-v3 main#main .faq-answer,
+html body.ff-support-v3 main#main .ff-faq-intro,
+html body.ff-support-v3 main#main .ff-beta-notice p,
+html body.ff-support-v3 main#main .ff-pricing-boundaries p,
+html body.ff-support-v3 main#main .ff-beta-expectations p,
+html body.ff-support-v3 main#main .ff-lab-card p,
+html body.ff-support-v3 main#main .ff-lab-case p,
+html body.ff-dic-page main#main .lead,
+html body.ff-dic-page main#main .ff-dic-simple-head p,
+html body.ff-dic-page main#main .ff-dic-story-copy,
+html body.ff-dic-page main#main .ff-dic-final p{
+  color:var(--ff-read-secondary)!important;
+}
+
+/* Secondary/support text remains subordinate, but never disappears into black. */
+html body main#main .ffg-heading p,
+html body main#main .ffg-caption,
+html body main#main .ffg-case-panel p,
+html body main#main .ffg-beta-entry p,
+html body main#main .ffg-beta-result p,
+html body main#main .ffg-depth-plane p,
+html body main#main .ff-approved-graphic figcaption,
+html body main#main .ff-approved-data-summary p,
+html body main#main .ff-df-stage-copy,
+html body main#main .ff-df-footer p,
+html body main#main .ff-df-reveal-card>p,
+html body main#main .ff-df-why p{
+  color:var(--ff-read-muted)!important;
+}
+
+/* Labels and metadata are allowed to be quieter, but not low contrast. */
+html body main#main .ff-approved-data-summary small,
+html body main#main .ffg-flow-stage small,
+html body main#main .ffg-receipt-row small,
+html body main#main .ffg-receipt-lock small,
+html body main#main .ffg-case-fields span,
+html body main#main .ffg-beta-entry small,
+html body main#main .ffg-beta-result small,
+html body main#main .ffg-core-node small,
+html body main#main .ffg-depth-plane small,
+html body main#main .ff-df-stage-top span,
+html body main#main .ff-df-identity-points small,
+html body main#main .ff-df-economics small,
+html body main#main .ff-df-reveal-card>small,
+html body main#main .ff-df-live-status{
+  color:var(--ff-read-label)!important;
+}
+
+/* Gold remains the FlipForge emphasis color, but use the brighter brand-safe gold
+ * for small text where the standard gold would lose clarity. */
+html body main#main .ff-approved-data-summary strong,
+html body main#main .ff-approved-data-summary b,
+html body main#main .ffg-flow-stage em,
+html body main#main .ffg-receipt-lock strong,
+html body main#main .ff-df-reveal-card>strong,
+html body main#main .ff-df-economics .is-supported strong{
+  color:var(--ff-read-gold)!important;
+}
+
+/* Minimum readable sizing for text that previously rendered at 7–10px. */
+html body main#main .ff-approved-graphic figcaption{
+  font-size:13px!important;
+  line-height:1.5!important;
+}
+html body main#main .ff-approved-data-summary small{
+  font-size:11px!important;
+  line-height:1.35!important;
+}
+html body main#main .ff-approved-data-summary strong,
+html body main#main .ff-approved-data-summary b{
+  font-size:13px!important;
+  line-height:1.4!important;
+}
+html body main#main .ff-approved-data-summary p{
+  font-size:13px!important;
+  line-height:1.5!important;
+}
+html body main#main .ffg-caption{
+  font-size:13px!important;
+  line-height:1.55!important;
+}
+html body main#main .ff-df-stage-copy,
+html body main#main .ff-df-reveal-card>p{
+  font-size:13px!important;
+}
+html body main#main .ff-df-footer p,
+html body main#main .ff-df-why p{
+  font-size:11px!important;
+}
+html body main#main .ff-df-live-status,
+html body main#main .ff-df-identity-points small,
+html body main#main .ff-df-economics small,
+html body main#main .ff-df-reveal-card>small{
+  font-size:11px!important;
+}
+
+/* Marketing/support microcopy that was commonly 8–10px. */
+html body.ff-marketing-page-v3 main#main .ff-workflow-strip small,
+html body.ff-marketing-page-v3 main#main .ff-product-points small,
+html body.ff-marketing-page-v3 main#main .ff-traceback-list small,
+html body.ff-marketing-page-v3 main#main .ff-story-beats small,
+html body.ff-marketing-page-v3 main#main .ff-vision-points small,
+html body.ff-support-v3 main#main .ff-roadmap-note,
+html body.ff-support-v3 main#main .ff-lab-directory a{
+  color:var(--ff-read-muted)!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+}
+
+/* Preserve semantic status colors; only raise their luminance where necessary. */
+html body main#main .ffg-status-chip{color:#B8E8CB!important}
+html body main#main .ffg-case-fields .ok{color:#B8E8CB!important}
+html body main#main .ffg-case-fields .bad{color:#F0AAAA!important}
+
+@media(max-width:700px){
+  html body main#main .ff-approved-data-summary small{font-size:11px!important}
+  html body main#main .ff-approved-data-summary strong,
+  html body main#main .ff-approved-data-summary b,
+  html body main#main .ff-approved-data-summary p,
+  html body main#main .ff-approved-graphic figcaption{font-size:13px!important}
+}
