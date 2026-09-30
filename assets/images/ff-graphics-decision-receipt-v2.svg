@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+<title id="t">FlipForge Decision Receipt visualization</title>
+<desc id="d">A premium decision receipt connecting exact identity, qualified evidence, supported value, confidence, risk, and the final VERIFY decision.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#020304"/><stop offset=".5" stop-color="#080d12"/><stop offset="1" stop-color="#020304"/></linearGradient>
+ <linearGradient id="gold"><stop stop-color="#F2D878"/><stop offset=".48" stop-color="#D4AF37"/><stop offset="1" stop-color="#966512"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#D4AF37" stop-opacity=".18"/><stop offset="1" stop-color="#D4AF37" stop-opacity="0"/></radialGradient>
+ <filter id="s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="28" stdDeviation="26" flood-opacity=".68"/></filter>
+</defs>
+<rect width="1600" height="900" rx="36" fill="url(#bg)"/>
+<circle cx="910" cy="448" r="430" fill="url(#glow)"/>
+<text x="90" y="94" fill="#D4AF37" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="900" letter-spacing="5">DECISION RECEIPT</text>
+<text x="90" y="144" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="42" font-weight="900">Keep the reason attached to the decision.</text>
+
+<g transform="translate(100 250)" font-family="Arial,Helvetica,sans-serif" filter="url(#s)">
+ <rect width="390" height="470" rx="30" fill="#060a0f" stroke="#313941" stroke-width="4"/>
+ <rect x="54" y="52" width="282" height="330" rx="18" fill="#1b232b" stroke="#d0d5d9" stroke-width="7"/>
+ <rect x="72" y="74" width="246" height="286" rx="10" fill="#0d141b"/>
+ <rect x="72" y="74" width="246" height="48" rx="10" fill="#f4f5f6"/>
+ <text x="92" y="106" fill="#15191d" font-size="22" font-weight="900">PSA 10</text>
+ <circle cx="292" cy="98" r="11" fill="#c91c1c"/>
+ <rect x="128" y="154" width="134" height="158" rx="58" fill="#2c3945"/>
+ <circle cx="195" cy="192" r="28" fill="#9ea7af"/>
+ <path d="M151 308q44-74 88 0" fill="#67737e"/>
+ <text x="195" y="414" fill="#D4AF37" text-anchor="middle" font-size="15" font-weight="900" letter-spacing="3">EXACT CARD VERIFIED</text>
+</g>
+
+<g transform="translate(565 190)" font-family="Arial,Helvetica,sans-serif" filter="url(#s)">
+ <rect x="44" y="44" width="855" height="570" rx="28" fill="#05080c" stroke="#202830"/>
+ <rect x="22" y="22" width="855" height="570" rx="28" fill="#060a0f" stroke="#282f36"/>
+ <rect width="855" height="570" rx="28" fill="#090e14" stroke="url(#gold)" stroke-opacity=".78" stroke-width="2"/>
+ <text x="38" y="52" fill="#8f7a36" font-size="13" font-weight="900" letter-spacing="3">FLIPFORGE · SAVED DECISION</text>
+ <text x="38" y="99" fill="#fff" font-size="34" font-weight="900">Decision Receipt</text>
+ <text x="690" y="96" fill="#F2D46B" font-size="30" font-weight="900" letter-spacing="4">VERIFY</text>
+ <path d="M38 124H817" stroke="#25303a"/>
+ <text x="38" y="158" fill="#68737d" font-size="12" font-weight="900" letter-spacing="2">IDENTITY</text>
+<text x="205" y="158" fill="#fff" font-size="16" font-weight="800">2020 Prizm · #307 · Silver · PSA 10</text>
+<text x="813" y="158" fill="#D4AF37" text-anchor="end" font-size="12" font-weight="900" letter-spacing="2">VERIFIED</text>
+<path d="M38 178H817" stroke="#1c252d"/><text x="38" y="216" fill="#68737d" font-size="12" font-weight="900" letter-spacing="2">EVIDENCE</text>
+<text x="205" y="216" fill="#fff" font-size="16" font-weight="800">2 qualified exact sales · 5 rejected</text>
+<text x="813" y="216" fill="#D4AF37" text-anchor="end" font-size="12" font-weight="900" letter-spacing="2">QUALIFIED</text>
+<path d="M38 236H817" stroke="#1c252d"/><text x="38" y="274" fill="#68737d" font-size="12" font-weight="900" letter-spacing="2">SUPPORTED VALUE</text>
+<text x="205" y="274" fill="#fff" font-size="16" font-weight="800">$357.20</text>
+<text x="813" y="274" fill="#D4AF37" text-anchor="end" font-size="12" font-weight="900" letter-spacing="2">CALCULATED</text>
+<path d="M38 294H817" stroke="#1c252d"/><text x="38" y="332" fill="#68737d" font-size="12" font-weight="900" letter-spacing="2">ASKING PRICE</text>
+<text x="205" y="332" fill="#fff" font-size="16" font-weight="800">$349.00</text>
+<text x="813" y="332" fill="#D4AF37" text-anchor="end" font-size="12" font-weight="900" letter-spacing="2">CONTEXT</text>
+<path d="M38 352H817" stroke="#1c252d"/><text x="38" y="390" fill="#68737d" font-size="12" font-weight="900" letter-spacing="2">UNCERTAINTY</text>
+<text x="205" y="390" fill="#fff" font-size="16" font-weight="800">Evidence depth still limited</text>
+<text x="813" y="390" fill="#d8a0a0" text-anchor="end" font-size="12" font-weight="900" letter-spacing="2">VISIBLE</text>
+<path d="M38 410H817" stroke="#1c252d"/><text x="38" y="448" fill="#68737d" font-size="12" font-weight="900" letter-spacing="2">DECISION TRACE</text>
+<text x="205" y="448" fill="#fff" font-size="16" font-weight="800">Identity → evidence → economics → VERIFY</text>
+<text x="813" y="448" fill="#D4AF37" text-anchor="end" font-size="12" font-weight="900" letter-spacing="2">LOCKED</text>
+<path d="M38 468H817" stroke="#1c252d"/>
+ <g transform="translate(38 494)">
+  <rect width="779" height="48" rx="10" fill="#15130c" stroke="#D4AF37" stroke-opacity=".42"/>
+  <text x="20" y="30" fill="#e7c85f" font-size="13" font-weight="900" letter-spacing="2">THE WHY STAYS INSPECTABLE AFTER THE DECISION.</text>
+ </g>
+</g>
+<path d="M505 472h46" stroke="#D4AF37" stroke-width="3"/><path d="m540 462 14 10-14 10" fill="none" stroke="#D4AF37" stroke-width="3"/>
+<text x="90" y="820" fill="#5e6973" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" letter-spacing="2">IDENTITY · EVIDENCE · VALUE · RISK · DECISION TRACE</text>
+<text x="1508" y="820" fill="#D4AF37" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="900" letter-spacing="3" text-anchor="end">FLIPFORGE</text>
+</svg>

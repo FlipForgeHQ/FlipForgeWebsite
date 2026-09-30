@@ -18,14 +18,14 @@
 
 .ff-aw-proof-strip{max-width:var(--ff-aw-max);margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--ff-aw-line);border-radius:20px;overflow:hidden;background:var(--ff-aw-line)}
 .ff-aw-proof-strip article{padding:24px;background:#070a10}
-.ff-aw-proof-strip span{display:block;color:#8a929e;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.ff-aw-proof-strip span{display:block;color:#AEB7C1;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
 .ff-aw-proof-strip strong{display:block;margin-top:10px;color:#fff;font-size:20px;line-height:1.25}
 .ff-aw-proof-strip p{margin:8px 0 0;color:#939ba6;font-size:13px;line-height:1.55}
 
 .ff-aw-question-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .ff-aw-question{position:relative;min-height:210px;padding:28px;border:1px solid var(--ff-aw-line);border-radius:20px;background:linear-gradient(160deg,rgba(255,255,255,.035),rgba(255,255,255,.008));overflow:hidden}
 .ff-aw-question::before{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:linear-gradient(180deg,transparent,var(--ff-aw-gold),transparent);opacity:.55}
-.ff-aw-question span{display:block;color:#9b8438;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.ff-aw-question span{display:block;color:#D4AF37;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
 .ff-aw-question h3{margin:32px 0 0;color:#fff;font-size:25px;line-height:1.16;letter-spacing:-.025em}
 .ff-aw-question p{margin:10px 0 0;color:#9ba2ad;line-height:1.65}
 
@@ -57,7 +57,7 @@
 .ff-aw-busted-head p{margin:0;color:#9ea6b1;line-height:1.6}
 .ff-aw-comp-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px}
 .ff-aw-comp-button{appearance:none;text-align:left;padding:18px;border:1px solid var(--ff-aw-line);border-radius:14px;background:#070b12;color:#fff;cursor:pointer}
-.ff-aw-comp-button span{display:block;color:#8e96a1;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.ff-aw-comp-button span{display:block;color:#AEB7C1;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
 .ff-aw-comp-button strong{display:block;margin-top:8px;font-size:17px;line-height:1.25}
 .ff-aw-comp-button:hover,.ff-aw-comp-button:focus-visible{border-color:rgba(216,182,74,.52);outline:none}
 .ff-aw-comp-button.is-selected{border-color:rgba(216,182,74,.75);background:rgba(216,182,74,.07)}
@@ -66,7 +66,7 @@
 
 /* Beta two-stage experience without changing the server contract. */
 .ff-aw-beta-progress{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 20px}
-.ff-aw-beta-progress span{padding:10px 12px;border:1px solid var(--ff-aw-line);border-radius:10px;color:#8f97a2;font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.ff-aw-beta-progress span{padding:10px 12px;border:1px solid var(--ff-aw-line);border-radius:10px;color:#AEB7C1;font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
 .ff-aw-beta-progress span:first-child{border-color:rgba(216,182,74,.35);color:#d9bd62;background:rgba(216,182,74,.05)}
 .ff-aw-beta-form-intro{margin:0 0 18px;padding:18px;border:1px solid var(--ff-aw-line);border-radius:14px;background:rgba(255,255,255,.02)}
 .ff-aw-beta-form-intro strong{display:block;color:#fff;font-size:18px}
@@ -78,7 +78,7 @@
 .ff-aw-plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .ff-aw-plan{padding:26px;border:1px solid var(--ff-aw-line);border-radius:20px;background:linear-gradient(180deg,#0a0d13,#050609)}
 .ff-aw-plan.featured{border-color:rgba(216,182,74,.34);box-shadow:0 22px 60px rgba(0,0,0,.24)}
-.ff-aw-plan span{color:#9b8438;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.ff-aw-plan span{color:#D4AF37;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
 .ff-aw-plan h3{margin:10px 0 0;color:#fff;font-size:28px}
 .ff-aw-plan p{color:#9ca4af;line-height:1.6}
 .ff-aw-plan ul{margin:22px 0 0;padding:0;list-style:none;display:grid;gap:10px}

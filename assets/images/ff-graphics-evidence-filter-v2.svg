@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+<title id="t">FlipForge evidence filter visualization</title>
+<desc id="d">A premium black and gold visual showing seven candidate comparable sales being filtered down to two qualified exact matches before supported value is calculated.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#020304"/><stop offset=".55" stop-color="#080d12"/><stop offset="1" stop-color="#020304"/></linearGradient>
+ <linearGradient id="gold"><stop stop-color="#F1D673"/><stop offset=".48" stop-color="#D4AF37"/><stop offset="1" stop-color="#9D6B12"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#D4AF37" stop-opacity=".18"/><stop offset="1" stop-color="#D4AF37" stop-opacity="0"/></radialGradient>
+ <filter id="s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="24" stdDeviation="22" flood-opacity=".65"/></filter>
+</defs>
+<rect width="1600" height="900" rx="36" fill="url(#bg)"/>
+<circle cx="800" cy="450" r="430" fill="url(#glow)"/>
+<text x="92" y="92" fill="#D4AF37" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="900" letter-spacing="5">QUALIFIED EVIDENCE</text>
+<text x="92" y="142" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="42" font-weight="900">Make every comp earn its place.</text>
+<text x="92" y="177" fill="#7d8790" font-family="Arial,Helvetica,sans-serif" font-size="18">Wrong parallel, wrong grade, duplicates, and identity conflicts are removed before value.</text>
+
+<g transform="translate(92 238)" font-family="Arial,Helvetica,sans-serif">
+ <g transform="translate(0 0)">
+<rect width="655" height="58" rx="12" fill="#0d1712" stroke="#6fb68b" stroke-opacity=".62"/>
+<text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">01</text>
+<text x="84" y="36" fill="#9eddb9" font-size="17" font-weight="900">EXACT</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$351</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#153024" stroke="#9eddb9" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#9eddb9" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">KEEP</text>
+</g><g transform="translate(0 72)">
+<rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
+<text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">02</text>
+<text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">WRONG PARALLEL</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$412</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
+</g><g transform="translate(0 144)">
+<rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
+<text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">03</text>
+<text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">DUPLICATE</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$351</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
+</g><g transform="translate(0 216)">
+<rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
+<text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">04</text>
+<text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">WRONG GRADE</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$328</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
+</g><g transform="translate(0 288)">
+<rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
+<text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">05</text>
+<text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">IDENTITY CONFLICT</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$469</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
+</g><g transform="translate(0 360)">
+<rect width="655" height="58" rx="12" fill="#0c1015" stroke="#703c3c" stroke-opacity=".42"/>
+<text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">06</text>
+<text x="84" y="36" fill="#d99494" font-size="17" font-weight="900">WRONG PARALLEL</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$389</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#2a1519" stroke="#d99494" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#d99494" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">REJECT</text>
+</g><g transform="translate(0 432)">
+<rect width="655" height="58" rx="12" fill="#0d1712" stroke="#6fb68b" stroke-opacity=".62"/>
+<text x="22" y="36" fill="#6f7982" font-size="14" font-weight="900">07</text>
+<text x="84" y="36" fill="#9eddb9" font-size="17" font-weight="900">EXACT</text>
+<text x="474" y="36" fill="#fff" text-anchor="end" font-size="18" font-weight="900">$363</text>
+<rect x="510" y="11" width="124" height="36" rx="9" fill="#153024" stroke="#9eddb9" stroke-opacity=".42"/>
+<text x="572" y="35" fill="#9eddb9" text-anchor="middle" font-size="13" font-weight="900" letter-spacing="1">KEEP</text>
+</g>
+ </g>
+
+<g transform="translate(842 246)" filter="url(#s)" font-family="Arial,Helvetica,sans-serif">
+ <rect width="666" height="490" rx="28" fill="#070b10" stroke="#D4AF37" stroke-opacity=".36" stroke-width="2"/>
+ <text x="38" y="54" fill="#927b34" font-size="14" font-weight="900" letter-spacing="3">EVIDENCE GATE</text>
+ <text x="38" y="100" fill="#fff" font-size="35" font-weight="900">7 candidates → 2 qualified</text>
+ <g transform="translate(38 138)">
+   <rect width="590" height="76" rx="14" fill="#0d1712" stroke="#6fb68b" stroke-opacity=".44"/>
+   <text x="22" y="31" fill="#739184" font-size="12" font-weight="900" letter-spacing="2">QUALIFIED EXACT SALES</text>
+   <text x="22" y="59" fill="#fff" font-size="22" font-weight="900">$351 · $363</text>
+ </g>
+ <g transform="translate(38 232)">
+   <rect width="590" height="76" rx="14" fill="#121014" stroke="#7d3f3f" stroke-opacity=".38"/>
+   <text x="22" y="31" fill="#897072" font-size="12" font-weight="900" letter-spacing="2">REJECTED BEFORE VALUE</text>
+   <text x="22" y="59" fill="#d9b0b0" font-size="18" font-weight="900">5 rows blocked</text>
+ </g>
+ <g transform="translate(38 334)">
+   <rect width="590" height="118" rx="16" fill="#17140c" stroke="url(#gold)" stroke-opacity=".85"/>
+   <text x="24" y="35" fill="#9e893f" font-size="12" font-weight="900" letter-spacing="2">SUPPORTED VALUE</text>
+   <text x="24" y="83" fill="#F2D46B" font-size="42" font-weight="900">$357.20</text>
+   <text x="290" y="82" fill="#8c969f" font-size="16" font-weight="700">from qualified evidence only</text>
+ </g>
+</g>
+<path d="M760 480h62" stroke="#D4AF37" stroke-width="3"/><path d="m812 470 14 10-14 10" fill="none" stroke="#D4AF37" stroke-width="3"/>
+<text x="92" y="820" fill="#5e6973" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" letter-spacing="2">BAD COMPS DO NOT GET A VOTE.</text>
+<text x="1508" y="820" fill="#D4AF37" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="900" letter-spacing="3" text-anchor="end">FLIPFORGE</text>
+</svg>
