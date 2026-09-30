@@ -169,10 +169,18 @@ async function auditSvgText(page, path) {
     };
     const svg = document.querySelector('svg');
     const svgRect = svg?.getBoundingClientRect();
+    const parents = new Map();
+    let parentSequence = 0;
+    const parentId = el => {
+      const parent = el.parentElement;
+      if (!parents.has(parent)) parents.set(parent, ++parentSequence);
+      return parents.get(parent);
+    };
     const items = [...document.querySelectorAll('text')].filter(visible).map((el, index) => {
       const b = el.getBoundingClientRect();
       return {
         index,
+        parentId: parentId(el),
         text: (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 60),
         left: b.left, right: b.right, top: b.top, bottom: b.bottom, width: b.width, height: b.height
       };
@@ -181,6 +189,7 @@ async function auditSvgText(page, path) {
     for (let i = 0; i < items.length; i++) {
       for (let j = i + 1; j < items.length; j++) {
         const a = items[i], b = items[j];
+        if (a.parentId !== b.parentId) continue;
         const iw = Math.min(a.right, b.right) - Math.max(a.left, b.left);
         const ih = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
         if (iw > 2 && ih > 2) collisions.push({ a: a.text, b: b.text, iw, ih });
