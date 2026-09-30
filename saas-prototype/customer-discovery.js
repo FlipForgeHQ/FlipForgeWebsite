@@ -540,7 +540,7 @@
   function identityAssistPanel() {
     if (!state.identityAssist.active) return "";
     const rows = Array.isArray(state.identityAssist.results) ? state.identityAssist.results : [];
-    return `<section class="panel customer-discovery-identity-assist" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${state.identityAssist.message ? `<div class="customer-discovery-identity-message" role="status">${escapeHtml(state.identityAssist.message)}</div>` : ""}${rows.length ? `<div class="customer-discovery-identity-options">${rows.map(identityCandidate).join("")}</div>` : ""}<div class="boundary-note"><strong>Fail-closed identity boundary:</strong> FlipForge does not auto-select the first result, expose provider IDs, or run marketplace discovery until you explicitly choose a server-authorized exact candidate.</div></div></section>`;
+    return `<section class="panel customer-discovery-identity-assist" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${state.identityAssist.message ? `<div class="customer-discovery-identity-message" role="status">${escapeHtml(state.identityAssist.message)}</div>` : ""}<div class="customer-discovery-identity-query"><span>Card entered</span><strong>${escapeHtml(state.identityAssist.query || state.draft.exactCardQuery || "Current card")}</strong></div>${rows.length ? `<div class="customer-discovery-identity-options">${rows.map(identityCandidate).join("")}</div>` : ""}<div class="customer-discovery-identity-actions"><button class="button button-secondary" type="button" data-discovery-change-identity-entry>Change card entry</button></div><div class="boundary-note"><strong>Fail-closed identity boundary:</strong> FlipForge does not auto-select the first result, expose provider IDs, or run marketplace discovery until you explicitly choose a server-authorized exact candidate.</div></div></section>`;
   }
 
   function providerPanel() {
@@ -667,6 +667,17 @@
         state.main?.querySelector?.(".customer-discovery-identity-assist")?.remove();
       }
     });
+    const changeIdentityEntryButton = state.main?.querySelector?.("[data-discovery-change-identity-entry]");
+    changeIdentityEntryButton?.addEventListener("click", () => {
+      const input = form?.querySelector?.('input[name="exactCardQuery"]');
+      if (!input) return;
+      try { input.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) { input.scrollIntoView(); }
+      window.setTimeout(() => {
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        input.select?.();
+      }, 180);
+    });
+
     const findExactButton = state.main?.querySelector?.("[data-discovery-find-exact]");
     findExactButton?.addEventListener("click", () => {
       if (form && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) findExactCard(form);
