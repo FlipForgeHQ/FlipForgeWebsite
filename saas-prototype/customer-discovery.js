@@ -535,7 +535,7 @@
       gradeLabel
     ].filter(Boolean).join(" · ");
     const selectable = row?.exactCardCandidate === true && SAFE_SELECTION_TOKEN.test(String(row.selectionToken || ""));
-    return `<article class="customer-discovery-identity-option"><div><strong>${escapeHtml(row.name || "Card identity candidate")}</strong><small>${escapeHtml(detail || row.type || "Catalog candidate")}</small></div>${selectable ? `<button class="button button-primary" type="button" data-discovery-use-identity="${index}" ${state.identityAssist.busy ? "disabled" : ""}>Use this card</button>` : `<span class="staging-status staging-status-verify">Review only</span>`}</article>`;
+    return `<article class="customer-discovery-identity-option"${row.cardNumber ? ` data-ff-card-number="${escapeHtml(row.cardNumber)}"` : ""}><div><strong>${escapeHtml(row.name || "Card identity candidate")}</strong><small>${escapeHtml(detail || row.type || "Catalog candidate")}</small></div>${selectable ? `<button class="button button-primary" type="button" data-discovery-use-identity="${index}" ${state.identityAssist.busy ? "disabled" : ""}>Use this card</button>` : `<span class="staging-status staging-status-verify">Review only</span>`}</article>`;
   }
 
   function identityAssistPanel() {
