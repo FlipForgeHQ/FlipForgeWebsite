@@ -170,13 +170,14 @@ body .film-section{padding-bottom:52px}
   .ff-df-shell{border-radius:16px}.ff-df-sequence-bar{display:block;padding:14px}.ff-df-controls{position:static;margin:10px 0 0;display:flex;justify-content:flex-end;gap:6px}
   .ff-df-stage-nav{margin-top:13px;gap:4px}.ff-df-stage-button{padding:7px 5px;text-align:center}.ff-df-stage-button b{font-size:7px}.ff-df-stage-button span{font-size:7px}.ff-df-stage-button::after{display:none}
   .ff-df-stage-top{padding:22px 16px 18px}.ff-df-stage-top h3{font-size:27px}.ff-df-stage-copy{font-size:11px}
-  .ff-df-viewport{height:640px;margin:10px;border-radius:12px}
-  .ff-df-scene img{height:100%;object-fit:cover}.ff-df-scene-identity img{object-position:66% 50%}.ff-df-scene-evidence img{object-position:66% 50%}.ff-df-scene-receipt img{object-position:63% 50%}
+  .ff-df-viewport{height:700px;margin:10px;border-radius:12px}
+  .ff-df-scene img{width:100%;height:220px;object-fit:contain;object-position:50% 0;background:#030507}
+  .ff-df-scene-identity img,.ff-df-scene-evidence img,.ff-df-scene-receipt img{object-position:50% 0}
   .ff-df-live-status{left:14px;top:14px;max-width:calc(100% - 28px);font-size:7px}
-  .ff-df-identity-points div{min-width:104px;padding:8px}.ff-df-identity-points div:nth-child(1){left:3%;top:18%}.ff-df-identity-points div:nth-child(2){right:3%;top:18%}.ff-df-identity-points div:nth-child(3){left:3%;bottom:17%}.ff-df-identity-points div:nth-child(4){right:3%;bottom:17%}
-  .ff-df-evidence-verdicts{grid-template-columns:1fr 1fr;left:3%;right:3%;bottom:3%}.ff-df-evidence-verdicts span{padding:7px 5px;font-size:6px}
-  .ff-df-economics{left:4%;right:4%;bottom:4%;grid-template-columns:1fr;gap:6px}.ff-df-economics i{display:none}.ff-df-economics div{display:flex;justify-content:space-between;align-items:center;padding:10px 11px}.ff-df-economics strong{font-size:14px;margin:0}
-  .ff-df-reveal-card{left:4%;right:4%;top:auto;bottom:4%;width:auto;transform:translateY(16px)}.ff-decision-forge[data-step="4"] .ff-df-reveal-card{transform:none}.ff-df-reveal-card>strong{font-size:34px}
+  .ff-df-identity-points div{min-width:104px;padding:8px}.ff-df-identity-points div:nth-child(1){left:3%;top:76px}.ff-df-identity-points div:nth-child(2){right:3%;top:76px}.ff-df-identity-points div:nth-child(3){left:3%;top:150px;bottom:auto}.ff-df-identity-points div:nth-child(4){right:3%;top:150px;bottom:auto}
+  .ff-df-evidence-verdicts{grid-template-columns:1fr 1fr;left:3%;right:3%;top:248px;bottom:auto}.ff-df-evidence-verdicts span{padding:8px 6px;font-size:7px}
+  .ff-df-economics{left:4%;right:4%;top:250px;bottom:auto;grid-template-columns:1fr;gap:8px}.ff-df-economics i{display:none}.ff-df-economics div{display:flex;justify-content:space-between;align-items:center;padding:11px 12px}.ff-df-economics strong{font-size:15px;margin:0}
+  .ff-df-reveal-card{left:4%;right:4%;top:250px;bottom:auto;width:auto;padding:18px;transform:translateY(16px)}.ff-decision-forge[data-step="4"] .ff-df-reveal-card{transform:none}.ff-df-reveal-card>strong{font-size:34px}
   .ff-df-footer{grid-template-columns:1fr;padding:4px 12px 15px;gap:8px}
 }
 @media(prefers-reduced-motion:reduce){
