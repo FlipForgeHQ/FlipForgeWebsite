@@ -508,7 +508,7 @@
 
   function buttonMarkup(action, secondary = false) {
     if (!action) return "";
-    return `<button type="button" class="ff-guide-action${secondary ? " secondary" : ""}" data-guide-action="${action.type}"${action.href ? ` data-guide-href="${action.href}"` : ""}${action.phase ? ` data-guide-phase="${action.phase}"` : ""}>${action.label}</button>`;
+    return `<button type="button" class="ff-guide-action${secondary ? " secondary" : ""}" data-guide-action="${action.type}"${action.href ? ` data-guide-href="${action.href}"` : ""}${action.phase ? ` data-guide-phase="${action.phase}"` : ""}${action.step ? ` data-guide-step="${action.step}"` : ""}>${action.label}</button>`;
   }
 
   function root() {
