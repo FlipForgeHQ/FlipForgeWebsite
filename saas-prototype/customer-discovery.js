@@ -346,6 +346,7 @@
     } finally {
       state.loading = false;
       renderCurrent();
+      focusDiscoverResults();
     }
   }
 
@@ -614,7 +615,7 @@
       ? `<details class="customer-discovery-identity-review"><summary>${identityReview.length} excluded provider result${identityReview.length === 1 ? "" : "s"} — identity not confirmed</summary><p>These results are visible for transparency, but they are not ranked with exact matches and cannot be evaluated as the searched card.</p>${identityReview.map(({ item, index }) => candidateCard(item, index, true)).join("")}</details>`
       : "";
     const exactLabel = `${exact.length} exact active candidate${exact.length === 1 ? "" : "s"}`;
-    return `<section class="customer-discovery-results" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Open “Why this result is ranked here” to review the server-owned ranking factors when available.</span></div>${exactResults}${identityReviewResults}</section>`;
+    return `<section class="customer-discovery-results" id="ff-discovery-results" tabindex="-1" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Open “Why this result is ranked here” to review the server-owned ranking factors when available.</span></div>${exactResults}${identityReviewResults}</section>`;
   }
 
   function renderCurrent() {
@@ -623,8 +624,20 @@
       state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Find active listings across approved connected sources without treating asking prices as completed-sale evidence.</p></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Discover does not save or recommend a listing.</div><section class="panel"><div class="panel-body staging-empty"><strong>Discover is safely offline.</strong><p>The private-beta API bridge is disabled, so no provider search was attempted and no sample results were substituted.</p></div></section></div>`;
       return;
     }
-    state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Search approved active-listing sources, compare all-in asks against existing trusted evidence context, then explicitly evaluate the listing you want FlipForge to judge.</p></div><div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved opportunities</a><a class="button button-secondary" href="#/evaluate">Manual evaluate</a></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${errorPanel()}${state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}${identityAssistPanel()}${searchPanel()}${providerPanel()}${resultsPanel()}</div>`;
+    state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Search approved active-listing sources, compare all-in asks against existing trusted evidence context, then explicitly evaluate the listing you want FlipForge to judge.</p></div><div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved opportunities</a><a class="button button-secondary" href="#/evaluate">Manual evaluate</a></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${errorPanel()}${state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}${identityAssistPanel()}${searchPanel()}${state.data ? `${resultsPanel()}${providerPanel()}` : `${providerPanel()}${resultsPanel()}`}</div>`;
     bindActions();
+  }
+
+  function focusDiscoverResults() {
+    if (!state.data || state.error || state.identityAssist.active) return;
+    const results = state.main?.querySelector?.("#ff-discovery-results");
+    if (!results) return;
+    window.requestAnimationFrame(() => {
+      try { results.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) { results.scrollIntoView(); }
+      window.setTimeout(() => {
+        try { results.focus({ preventScroll: true }); } catch (_) { results.focus(); }
+      }, 180);
+    });
   }
 
   function focusIdentityCheck() {
