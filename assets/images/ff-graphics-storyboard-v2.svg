@@ -14,7 +14,7 @@
  <rect width="320" height="470" rx="24" fill="#080d12" stroke="#25303a" stroke-opacity="1"/>
  <text x="26" y="48" fill="#6d7781" font-size="16" font-weight="900">01</text>
  <text x="26" y="82" fill="#D4AF37" font-size="14" font-weight="900" letter-spacing="2">IDENTITY LOCK</text>
- <text x="26" y="126" fill="#fff" font-size="24" font-weight="900">Exact card before price</text>
+ <text x="26" y="126" fill="#fff" font-size="21" font-weight="900">Exact card before price</text>
  <g transform="translate(26 164)">
    <rect width="268" height="200" rx="16" fill="#0d141b" stroke="#222c34"/>
    <rect x="65" y="28" width="138" height="150" rx="12" fill="#232d36" stroke="#d5dadd" stroke-width="6"/><rect x="77" y="39" width="114" height="24" rx="6" fill="#f4f5f6"/><text x="89" y="56" fill="#171b20" font-size="13" font-weight="900">PSA 10</text><rect x="101" y="79" width="66" height="70" rx="28" fill="#61707c"/>
@@ -25,7 +25,7 @@
  <rect width="320" height="470" rx="24" fill="#080d12" stroke="#25303a" stroke-opacity="1"/>
  <text x="26" y="48" fill="#6d7781" font-size="16" font-weight="900">02</text>
  <text x="26" y="82" fill="#D4AF37" font-size="14" font-weight="900" letter-spacing="2">EVIDENCE FILTER</text>
- <text x="26" y="126" fill="#fff" font-size="24" font-weight="900">Bad comps do not vote</text>
+ <text x="26" y="126" fill="#fff" font-size="21" font-weight="900">Bad comps do not vote</text>
  <g transform="translate(26 164)">
    <rect width="268" height="200" rx="16" fill="#0d141b" stroke="#222c34"/>
    <g font-size="11" font-weight="900"><rect x="20" y="22" width="228" height="28" rx="6" fill="#0a0f14" stroke="#9eddb9" stroke-opacity=".35"/><text x="34" y="41" fill="#9eddb9">EXACT</text><rect x="20" y="62" width="228" height="28" rx="6" fill="#0a0f14" stroke="#d99494" stroke-opacity=".35"/><text x="34" y="81" fill="#d99494">WRONG PARALLEL</text><rect x="20" y="102" width="228" height="28" rx="6" fill="#0a0f14" stroke="#d99494" stroke-opacity=".35"/><text x="34" y="121" fill="#d99494">DUPLICATE</text><rect x="20" y="142" width="228" height="28" rx="6" fill="#0a0f14" stroke="#9eddb9" stroke-opacity=".35"/><text x="34" y="161" fill="#9eddb9">EXACT</text></g>
@@ -36,7 +36,7 @@
  <rect width="320" height="470" rx="24" fill="#080d12" stroke="#25303a" stroke-opacity="1"/>
  <text x="26" y="48" fill="#6d7781" font-size="16" font-weight="900">03</text>
  <text x="26" y="82" fill="#D4AF37" font-size="14" font-weight="900" letter-spacing="2">SUPPORTED VALUE</text>
- <text x="26" y="126" fill="#fff" font-size="24" font-weight="900">Rebuild value from evidence</text>
+ <text x="26" y="126" fill="#fff" font-size="21" font-weight="900">Rebuild value from evidence</text>
  <g transform="translate(26 164)">
    <rect width="268" height="200" rx="16" fill="#0d141b" stroke="#222c34"/>
    <text x="22" y="54" fill="#68737d" font-size="11" font-weight="900" letter-spacing="2">DISPLAYED</text><text x="22" y="90" fill="#fff" font-size="26" font-weight="900">$459.21</text><path d="M22 112h224" stroke="#26313a"/><text x="22" y="142" fill="#987f32" font-size="11" font-weight="900" letter-spacing="2">SUPPORTED</text><text x="22" y="178" fill="#F2D46B" font-size="30" font-weight="900">$357.20</text>
@@ -47,7 +47,7 @@
  <rect width="320" height="470" rx="24" fill="#080d12" stroke="url(#gold)" stroke-opacity=".9"/>
  <text x="26" y="48" fill="#6d7781" font-size="16" font-weight="900">04</text>
  <text x="26" y="82" fill="#D4AF37" font-size="14" font-weight="900" letter-spacing="2">DECISION RECEIPT</text>
- <text x="26" y="126" fill="#fff" font-size="24" font-weight="900">Keep the reason attached</text>
+ <text x="26" y="126" fill="#fff" font-size="21" font-weight="900">Keep the reason attached</text>
  <g transform="translate(26 164)">
    <rect width="268" height="200" rx="16" fill="#0d141b" stroke="#222c34"/>
    <text x="22" y="52" fill="#8e7b39" font-size="11" font-weight="900" letter-spacing="2">FLIPFORGE DECISION</text><text x="22" y="104" fill="#F2D46B" font-size="36" font-weight="900" letter-spacing="4">VERIFY</text><text x="22" y="142" fill="#b4bbc1" font-size="12" font-weight="700">Price found.</text><text x="22" y="165" fill="#b4bbc1" font-size="12" font-weight="700">Evidence tested.</text>
