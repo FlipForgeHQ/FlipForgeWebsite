@@ -76,9 +76,9 @@
   content:"";position:absolute;left:11%;right:11%;bottom:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(212,175,55,.55),transparent);opacity:.45
 }
-.ff-df-scene{position:absolute;z-index:1;inset:0;margin:0;opacity:0;transform:scale(1.018);filter:brightness(.74);transition:opacity .62s ease,transform 1s cubic-bezier(.2,.8,.2,1),filter .62s ease}
+.ff-df-scene{position:absolute;z-index:1;inset:0;margin:0;opacity:0;transform:none;filter:brightness(.74);transition:opacity .62s ease,filter .62s ease}
 .ff-df-scene img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
-.ff-df-scene.is-active{opacity:1;transform:scale(1);filter:blur(0) brightness(.94)}
+.ff-df-scene.is-active{opacity:1;transform:none;filter:brightness(.94)}
 .ff-df-scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,4,7,.03),rgba(2,4,7,.12) 60%,rgba(2,4,7,.48));pointer-events:none}
 .ff-df-curtain{position:absolute;z-index:5;inset:0;pointer-events:none;background:linear-gradient(90deg,#030507 0 11%,transparent 28% 72%,#030507 89% 100%);opacity:.16;transition:opacity .5s ease}
 .ff-df-live-status{
@@ -149,13 +149,13 @@ body .film-section{padding-bottom:52px}
 /* Product-connected stage choreography */
 .ff-decision-forge[data-step="0"] .ff-df-scene-identity,
 .ff-decision-forge[data-step="1"] .ff-df-scene-identity{opacity:1}
-.ff-decision-forge[data-step="0"] .ff-df-scene-identity{transform:scale(1.035);filter:brightness(.76)}
+.ff-decision-forge[data-step="0"] .ff-df-scene-identity{transform:none;filter:brightness(.76)}
 .ff-decision-forge[data-step="1"] .ff-df-identity-points{opacity:1}
 .ff-decision-forge[data-step="2"] .ff-df-scene-evidence,
-.ff-decision-forge[data-step="3"] .ff-df-scene-evidence{opacity:1;transform:scale(1);filter:blur(0) brightness(.92)}
+.ff-decision-forge[data-step="3"] .ff-df-scene-evidence{opacity:1;transform:none;filter:brightness(.92)}
 .ff-decision-forge[data-step="2"] .ff-df-evidence-verdicts{opacity:1;transform:none}
 .ff-decision-forge[data-step="3"] .ff-df-economics{opacity:1;transform:none}
-.ff-decision-forge[data-step="4"] .ff-df-scene-receipt{opacity:1;transform:scale(1);filter:blur(0) brightness(.82)}
+.ff-decision-forge[data-step="4"] .ff-df-scene-receipt{opacity:1;transform:none;filter:brightness(.82)}
 .ff-decision-forge[data-step="4"] .ff-df-reveal-card{opacity:1;transform:translateY(-50%) translateX(0)}
 .ff-decision-forge[data-step="4"] .ff-df-curtain{opacity:.34}
 
