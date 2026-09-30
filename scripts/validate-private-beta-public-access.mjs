@@ -67,7 +67,7 @@ check(beta.includes('src="/assets/js/flipforge-identity.js"'), "beta shell must 
 check(beta.includes('src="private-beta-access-gate.js"'), "beta shell must load fail-closed access gate");
 check(beta.indexOf('src="/assets/js/flipforge-identity.js"') < beta.indexOf('src="private-beta-access-gate.js"'), "identity must load before beta gate");
 check(beta.indexOf('src="private-beta-access-gate.js"') < beta.indexOf('src="mock-data.js"'), "beta gate must run before app/data runtimes");
-check(customer.includes('<span class="prototype-chip">CUSTOMER APP</span>'), "DEV customer shell remains distinctly CUSTOMER APP");
+check(customer.includes('<span class="prototype-chip">CUSTOMER APP</span>'), "customer shell remains distinctly CUSTOMER APP");
 check(customer.includes('window.location.replace("/")'), "raw production customer document must redirect away before render");
 check(!customer.includes('src="private-beta-access-gate.js"'), "customer shell must not masquerade as the beta shell");
 
@@ -83,9 +83,9 @@ check(buildAssets.includes("Beta Sign In"), "generated public app links must be 
 check(siteJs.includes("Beta Sign In"), "runtime public sign-in must say Beta Sign In");
 check(siteJs.includes(BETA_AUTH), "runtime public sign-in must target beta-start auth");
 
-check(customerShell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "DEV customer shell runtime must preserve CUSTOMER APP label");
-check(commercialPolish.includes('customer ? "CUSTOMER APP"'), "customer polish must preserve customer identity in DEV");
-check(cockpitPolish.includes('customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit must preserve DEV customer identity");
+check(customerShell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell runtime must preserve CUSTOMER APP label");
+check(commercialPolish.includes('customer ? "CUSTOMER APP"'), "customer polish must preserve customer identity in the customer experience");
+check(cockpitPolish.includes('customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit must preserve customer identity");
 
 for (const page of publicPages) {
   const html = read(page);
