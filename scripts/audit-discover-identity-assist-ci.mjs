@@ -229,8 +229,8 @@ try {
   const alternateToggle = assist.locator("[data-ff-toggle-identity-alternates]");
   if (await alternateToggle.isVisible().catch(() => false)) {
     await alternateToggle.click();
-    const hiddenReview = assist.locator(".ff-identity-review-match").filter({ has: assist.locator("[data-ff-verify-review-match]") }).last();
-    if (!(await hiddenReview.isVisible().catch(() => false))) failures.push("additional identity variants did not expand when requested");
+    const expandedReview = assist.locator(".ff-identity-review-match [data-ff-verify-review-match]").last();
+    if (!(await expandedReview.isVisible().catch(() => false))) failures.push("additional identity variants did not expand when requested");
   }
 
   await exactButton.click();
