@@ -17,7 +17,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["004 card entry is placed directly under the page heading unless identity confirmation is active", entry.includes('heading.insertAdjacentElement("afterend", search)') && entry.includes('heading.insertAdjacentElement("afterend", identity)')],
   ["005 Guided Mode education follows the card entry", entry.includes("const coach = page.querySelector") && entry.includes("for (const node of [coach, workflow, decisionKey, boundary])")],
   ["006 workflow education follows the card entry", entry.includes('page.querySelector(":scope > [data-ff-workflow-strip]")')],
-  ["007 decision terminology cannot precede the card entry", entry.includes('page.querySelector(":scope > [data-ff-decision-key]")') && entry.includes("let anchor = search")],
+  ["007 decision terminology cannot precede the card entry", entry.includes('page.querySelector(":scope > [data-ff-decision-key]")') && entry.includes("let anchor = !identity && results ? results : search")],
   ["008 buried identity action is named consistently", !entry.includes("Help me identify it") && entry.includes('identifyButton.textContent = "Find exact card"')],
   ["009 review rows gain an explicit verification action", verify.includes("data-ff-verify-review-match") && verify.includes("Select &amp; verify")],
   ["010 only visible card-number rows receive review selection", verify.includes("rowHasCardNumber(row)") && verify.includes("if (!rowHasCardNumber(row)) return")],
