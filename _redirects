@@ -8,7 +8,7 @@
 # PRE-LAUNCH ACCESS BOUNDARY
 # /app and every non-beta /app/* route fail closed to invited Private Beta authentication.
 # /app/beta is the only production app surface currently exposed to invited testers.
-# /app/customer remains DEV-only and is not routed publicly before customer launch.
+# /app/customer remains unpublished to the public before customer launch; owner-only Customer preview uses /owner/customer.
 # PRIVATE OWNER HUB
 # Operator-only owner launchpad and customer preview. These routes are intentionally
 # absent from public navigation and are protected again in the browser by signed operator role.
