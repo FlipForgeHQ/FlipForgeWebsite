@@ -154,7 +154,7 @@
     const message = panel.querySelector(".customer-discovery-identity-message");
     if (!message) return;
     if (hasSelectable) {
-      message.innerHTML = `<strong>Exact card match found.</strong><span>Use the highlighted exact match if it is the card you mean. Nearby variants are shown below with a separate <b>Select &amp; verify</b> action so you do not have to hunt for them.</span>`;
+      message.innerHTML = `<strong>Exact card match found.</strong><span>FlipForge will not choose one for you. Use the highlighted exact match if it is the card you mean. Nearby variants are shown below with a separate <b>Select &amp; verify</b> action so you do not have to hunt for them.</span>`;
       message.classList.add("ff-identity-assist-explained", "ff-identity-exact-found");
       return;
     }
@@ -191,7 +191,9 @@
   }
 
   function rowHasCardNumber(row) {
-    return /(?:^|[·\s])#[A-Za-z0-9][A-Za-z0-9.-]*/.test(row.querySelector("div > small")?.textContent || "");
+    const explicit = String(row?.dataset?.ffCardNumber || "").trim();
+    if (explicit) return /^[A-Za-z0-9][A-Za-z0-9.-]*$/.test(explicit);
+    return /#[A-Za-z0-9][A-Za-z0-9.-]*/.test(String(row?.textContent || ""));
   }
 
   function decorate() {
