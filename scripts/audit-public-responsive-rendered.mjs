@@ -28,6 +28,7 @@ const viewports = [
   { name: 'phone-390', width: 390, height: 844 },
   { name: 'phone-430', width: 430, height: 932 },
   { name: 'tablet-768', width: 768, height: 1024 },
+  { name: 'tablet-900', width: 900, height: 760 },
   { name: 'tablet-1024', width: 1024, height: 900 },
   { name: 'desktop-1440', width: 1440, height: 1000 }
 ];
@@ -200,7 +201,7 @@ try {
     const page = await context.newPage();
 
     for (const [label, path] of pages) await auditPage(page, label, path, viewport);
-    if (viewport.width <= 430) await auditForgeMobile(page, viewport);
+    if (viewport.width <= 1120) await auditForgeMobile(page, viewport);
 
     console.log(`PASS candidate: ${viewport.name} rendered across ${pages.length} public pages`);
     await context.close();
@@ -220,4 +221,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: public pages are viewport-contained at six breakpoints; major graphics are vector, unbroken, and on-canvas; mobile Decision Forge panels do not cover their showcase art; showcase SVG text has no collisions.');
+console.log('PASS: public pages are viewport-contained at seven breakpoints; major graphics are vector, unbroken, and on-canvas; collapsed-nav Decision Forge panels do not cover their showcase art; showcase SVG text has no collisions.');
