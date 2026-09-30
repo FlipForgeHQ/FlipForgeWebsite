@@ -24,7 +24,7 @@ requireText('Guided Mode can advance from a saved decision to tracking', guide, 
 requireText('Guide highlights target actionable controls instead of whole panels', guide, 'const actionable = direct || node.querySelector?.');
 requireText('Guide highlight no longer draws an intrusive outline', guideCss, 'outline:none!important');
 requireText('Guide highlight label overlay is disabled', guideCss, '.ff-guide-highlight::after{display:none!important}');
-requireText('Mobile Guided Mode keeps step navigation visible', compactGuideCss, '.ff-guide-progress{display:block!important');
+requireText('Mobile Guided Mode keeps progress out of the active task', compactGuideCss, '.ff-guide-progress{display:none!important}');
 requireText('Mobile Guided Mode keeps route navigation reachable', compactGuideCss, '.ff-guide-route-nav{position:sticky!important');
 requireText('runtime guard removes legacy modal node', focusFix, 'document.getElementById(LEGACY_WELCOME_ID)?.remove()');
 requireText('runtime guard removes modal body lock', focusFix, 'classList.remove("ff-guide-modal-open")');
