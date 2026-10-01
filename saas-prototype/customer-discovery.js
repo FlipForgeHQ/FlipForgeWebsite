@@ -783,14 +783,6 @@
   }
 
   async function render(main) {
-    // A repeat render request for the Discover view that is already on screen (for example
-    // a guided-mode cue or a route re-application shortly after navigation) must not rebuild
-    // the form. Rebuilding replaces the input the customer may be typing into, so keystrokes
-    // land in a detached element and the next submit is empty. State is left untouched.
-    if (state.health && state.main === main && alreadyRenderedIn(main) && eligibleHost()) {
-      state.renderSerial += 1;
-      return true;
-    }
     state.main = main;
     state.evaluatingIndex = -1;
     const renderSerial = state.renderSerial + 1;
@@ -821,12 +813,6 @@
     if (renderSerial !== state.renderSerial || state.main !== main) return false;
     renderCurrent();
     return true;
-  }
-
-  function alreadyRenderedIn(main) {
-    if (!main || state.loading || state.identityAssist.busy) return false;
-    const form = main.querySelector?.("[data-customer-discovery-form]");
-    return Boolean(form && form.isConnected && main.querySelector?.(".customer-discovery-page"));
   }
 
   window.FlipForgeCustomerDiscovery = Object.freeze({ isEligible: eligibleHost, render });
