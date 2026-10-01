@@ -629,7 +629,7 @@
   function preserveTypedDraft() {
     const form = state.main?.querySelector?.("[data-customer-discovery-form]");
     if (!form || !state.renderedDraft) return null;
-    const active = document.activeElement;
+    const active = typeof document !== "undefined" ? document.activeElement : null;
     let focusedField = null;
     for (const field of DRAFT_FIELDS) {
       const control = form.elements?.namedItem?.(field);
