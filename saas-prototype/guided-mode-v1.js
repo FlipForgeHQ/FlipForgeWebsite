@@ -218,7 +218,8 @@
       coach = document.createElement("section");
       coach.className = "ff-discover-coach";
       coach.dataset.ffDiscoverCoach = "";
-      search.insertAdjacentElement("afterend", coach);
+      const results = page.querySelector(":scope > .customer-discovery-results");
+      (results || search).insertAdjacentElement("afterend", coach);
     }
 
     if (coach.dataset.mode !== mode) {
@@ -232,7 +233,11 @@
       }
     }
 
-    if (search.nextElementSibling !== coach) search.insertAdjacentElement("afterend", coach);
+    // The order below the search panel (search, notice, results, coach, ...) is owned by
+    // discover-card-entry-emphasis-v1.js. Re-asserting "coach directly below search" here
+    // made the two scripts swap the coach above and below the results continuously, so the
+    // results jumped up and down by the coach's height while the customer was reading them.
+    // The coach is positioned once, when created, and never moved afterwards.
     page.classList.toggle("ff-start-new-card", state.startingNewCard);
   }
 
