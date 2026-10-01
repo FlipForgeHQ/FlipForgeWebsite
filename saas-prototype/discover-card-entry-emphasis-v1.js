@@ -43,6 +43,24 @@
     document.body.appendChild(script);
   }
 
+  function keepSearchStationaryBelowHeading(heading, identity, search) {
+    const searchFollowsHeading = Boolean(heading.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING);
+    if (searchFollowsHeading) {
+      const strays = [];
+      for (let node = heading.nextElementSibling; node && node !== search; node = node.nextElementSibling) {
+        if (node !== identity) strays.push(node);
+      }
+      let anchor = search;
+      for (const node of strays) {
+        anchor.insertAdjacentElement("afterend", node);
+        anchor = node;
+      }
+    }
+    if (identity && search.previousElementSibling !== identity) search.insertAdjacentElement("beforebegin", identity);
+    const top = identity || search;
+    if (top.previousElementSibling !== heading) top.insertAdjacentElement("beforebegin", heading);
+  }
+
   function promoteSearchPanel(main) {
     const page = main?.querySelector(".customer-discovery-page");
     const heading = page?.querySelector(":scope > .page-heading");
@@ -57,12 +75,13 @@
     // Card entry is normally the primary Discover job. When identity confirmation
     // is active, that becomes the primary task and must sit directly below the
     // page heading instead of being buried beneath search/results content.
-    if (identity) {
-      if (heading.nextElementSibling !== identity) heading.insertAdjacentElement("afterend", identity);
-      if (identity.nextElementSibling !== search) identity.insertAdjacentElement("afterend", search);
-    } else if (heading.nextElementSibling !== search) {
-      heading.insertAdjacentElement("afterend", search);
-    }
+    //
+    // The search panel itself is never moved. Moving a node out of the document and
+    // back drops keyboard focus, so a customer typing while another enhancement inserts
+    // content above the panel (for example the Phase 3 evaluate rail) would lose
+    // keystrokes and submit an empty search. Instead, anything that lands between the
+    // heading and the panel is moved below the panel, which yields the same order.
+    keepSearchStationaryBelowHeading(heading, identity, search);
 
     const results = page.querySelector(":scope > .customer-discovery-results");
     const notice = page.querySelector(":scope > .customer-discovery-notice");
