@@ -244,6 +244,27 @@
     });
   }
 
+  // Presentation-only ordering guard: the saved decision (Card Intelligence hero) must be the first
+  // thing under the page heading. The decision summary and the blocks anchored to it (evidence passport,
+  // beta check) are injected asynchronously; if they were created before the hero existed they would
+  // otherwise sit above it and push the decision below the fold. No data, scoring or authority is touched.
+  function keepResultFirst(main) {
+    const hero = main?.querySelector(".customer-intelligence-hero");
+    const summary = main?.querySelector("[data-ff-decision-summary]");
+    if (!hero || !summary || summary.parentElement !== hero.parentElement) return;
+    if (hero.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING) return;
+    const group = [summary];
+    let next = summary.nextElementSibling;
+    while (next && next !== hero && next.matches("[data-ff-decision-card-evidence],[data-ff-beta-cdi-check]")) {
+      group.push(next);
+      next = next.nextElementSibling;
+    }
+    let anchor = hero;
+    const bar = hero.nextElementSibling;
+    if (bar && bar.matches("[data-ff-saved-decision-bar]")) anchor = bar;
+    anchor.after(...group);
+  }
+
   function decisionSummary() {
     const main = document.querySelector(MAIN);
     const parts = routeParts();
@@ -257,9 +278,12 @@
       summary = document.createElement("section");
       summary.className = "ff-decision-summary";
       summary.dataset.ffDecisionSummary = "";
-      const anchor = main.querySelector("[data-ff-saved-decision-bar]") || main.querySelector("[data-ff-workflow-strip]") || main.querySelector(".page-heading");
+      // The Card Intelligence hero is the result. Everything injected for this route must follow it,
+      // so prefer the hero over the heading/strip when the save bar has not been created yet.
+      const anchor = main.querySelector("[data-ff-saved-decision-bar]") || main.querySelector(".customer-intelligence-hero") || main.querySelector("[data-ff-workflow-strip]") || main.querySelector(".page-heading");
       anchor?.insertAdjacentElement("afterend", summary);
     }
+    keepResultFirst(main);
 
     const id = encodeURIComponent(parts[1]);
     const advancedHidden = document.documentElement.classList.contains("ff-guided-incomplete") && !document.documentElement.classList.contains("ff-show-advanced");

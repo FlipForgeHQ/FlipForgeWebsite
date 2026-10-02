@@ -4,6 +4,7 @@ const opportunities = fs.readFileSync(new URL("../saas-prototype/customer-opport
 const saveFlow = fs.readFileSync(new URL("../saas-prototype/customer-save-flow-v1.js", import.meta.url), "utf8");
 const saveFlowCss = fs.readFileSync(new URL("../saas-prototype/customer-save-flow-v1.css", import.meta.url), "utf8");
 const flowCss = fs.readFileSync(new URL("../saas-prototype/beta-customer-flow-v2.css", import.meta.url), "utf8");
+const betaFlow = fs.readFileSync(new URL("../saas-prototype/beta-customer-flow-v2.js", import.meta.url), "utf8");
 const clarity = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.js", import.meta.url), "utf8");
 const clarityCss = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.css", import.meta.url), "utf8");
 const firstValue = fs.readFileSync(new URL("../saas-prototype/customer-first-value-v1.js", import.meta.url), "utf8");
@@ -20,6 +21,8 @@ const checks = [
   ["detail header keeps only core actions", opportunities.includes("Saved decisions") && opportunities.includes(">Track</a>") && !opportunities.includes("PSA guidance</a><a class=\"button button-secondary\" href=\"#/tracking")],
   ["save confirmation waits for the Card Intelligence hero", saveFlow.includes('const hero = main.querySelector(".customer-intelligence-hero")') && saveFlow.includes("if (!hero)" )],
   ["save confirmation is placed after the result hero", saveFlow.includes('hero.insertAdjacentElement("afterend", bar)')],
+  ["decision summary anchors after the result hero before the heading or strip", /const anchor = main\.querySelector\("\[data-ff-saved-decision-bar\]"\) \|\| main\.querySelector\("\.customer-intelligence-hero"\) \|\| main\.querySelector\("\[data-ff-workflow-strip\]"\) \|\| main\.querySelector\("\.page-heading"\);/.test(betaFlow)],
+  ["an early-created summary and its evidence blocks are moved back below the result hero", betaFlow.includes("function keepResultFirst(main)") && betaFlow.includes("keepResultFirst(main);") && betaFlow.includes("[data-ff-decision-card-evidence],[data-ff-beta-cdi-check]") && betaFlow.includes("anchor.after(...group)")],
   ["saved-decision message keeps full row width above actions", saveFlowCss.includes(".ff-saved-decision-bar{") && saveFlowCss.includes("grid-template-columns:minmax(0,1fr)")],
   ["saved-decision actions use a bounded three-column desktop grid", saveFlowCss.includes("grid-template-columns:repeat(3,minmax(0,1fr))") && saveFlowCss.includes("white-space:normal")],
   ["saved-decision actions stack before narrow desktop copy can collapse", saveFlowCss.includes("@media(max-width:820px)") && saveFlowCss.includes(".ff-saved-decision-actions{grid-template-columns:1fr}")],
