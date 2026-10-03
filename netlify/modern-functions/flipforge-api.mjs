@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { getUser, refreshSession } from "@netlify/identity";
+import { getIdentityConfig, getUser } from "@netlify/identity";
 import legacyGateway from "../functions/flipforge-api.js";
 
 const legacyHandler = legacyGateway && legacyGateway.handler;
@@ -12,6 +12,10 @@ const MARKET_VIEW_UPSTREAM_PATH = "/api/v1/opportunities/__market-view-v1";
 const RUNTIME_IDENTITY_PATH = "/api/v1/runtime-identity";
 const RUNTIME_IDENTITY_TIMEOUT_MS = 5000;
 const IDENTITY_LOOKUP_TIMEOUT_MS = 5000;
+const SESSION_RENEWAL_STEP_TIMEOUT_MS = 2000;
+const SESSION_RENEWAL_MARGIN_SECONDS = 60;
+const NF_JWT_COOKIE = "nf_jwt";
+const NF_REFRESH_COOKIE = "nf_refresh";
 
 if (typeof legacyHandler !== "function") {
   throw new Error("FlipForge authoritative gateway core is unavailable.");
@@ -152,19 +156,88 @@ function identityFailureResponse(request, code, message) {
   });
 }
 
-async function identityUser() {
+function jwtExpirySeconds(token) {
+  try {
+    const part = String(token || "").split(".")[1];
+    if (!part) return null;
+    const payload = JSON.parse(Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"));
+    return Number.isFinite(payload?.exp) ? payload.exp : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function identityFetch(url, init) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SESSION_RENEWAL_STEP_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function identityEndpoint(request) {
+  const configured = getIdentityConfig()?.url;
+  return String(configured || new URL("/.netlify/identity", request.url).href).replace(/\/+$/, "");
+}
+
+// Access tokens expire after about an hour. When (and only when) the nf_jwt
+// cookie is missing or within the renewal margin, exchange the nf_refresh
+// cookie once, verify the new access token with Netlify Identity, and return
+// that verified user. Valid tokens cost no network call. A revoked, invalid or
+// already-rotated refresh token returns null: the request stays fail-closed
+// (401) and existing cookies are left alone, so a concurrent request that lost
+// a refresh race cannot erase the session another request just renewed.
+// Renewal never grants access by itself; tenant membership still comes only
+// from the Netlify-signed roles on the verified user.
+async function renewedSessionUser(request, context) {
+  const cookies = context?.cookies || globalThis.Netlify?.context?.cookies;
+  if (!cookies || typeof cookies.get !== "function") return null;
+  const refreshToken = cookies.get(NF_REFRESH_COOKIE);
+  if (!refreshToken) return null;
+  const accessToken = cookies.get(NF_JWT_COOKIE);
+  const expiresAt = accessToken ? jwtExpirySeconds(accessToken) : null;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (expiresAt !== null && expiresAt - nowSeconds > SESSION_RENEWAL_MARGIN_SECONDS) return null;
+
+  const identityUrl = identityEndpoint(request);
+  const tokenResponse = await identityFetch(`${identityUrl}/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: refreshToken }).toString()
+  });
+  if (!tokenResponse.ok) return null;
+  const tokens = await tokenResponse.json().catch(() => null);
+  const freshAccess = typeof tokens?.access_token === "string" ? tokens.access_token : "";
+  if (!freshAccess) return null;
+
+  const userResponse = await identityFetch(`${identityUrl}/user`, {
+    headers: { Authorization: `Bearer ${freshAccess}` }
+  });
+  if (!userResponse.ok) return null;
+  const verified = await userResponse.json().catch(() => null);
+  if (!verified || typeof verified.id !== "string" || !verified.id) return null;
+
+  if (typeof cookies.set === "function") {
+    cookies.set({ name: NF_JWT_COOKIE, value: freshAccess, httpOnly: false, secure: true, path: "/", sameSite: "Lax" });
+    if (typeof tokens.refresh_token === "string" && tokens.refresh_token) {
+      cookies.set({ name: NF_REFRESH_COOKIE, value: tokens.refresh_token, httpOnly: false, secure: true, path: "/", sameSite: "Lax" });
+    }
+  }
+  return verified;
+}
+
+async function identityUser(request, context) {
   let timeoutId;
   const lookup = (async () => {
-    // Access tokens expire after about an hour. Exchange the secure nf_refresh
-    // cookie for a fresh nf_jwt before verifying, so signed-in customers are not
-    // locked out with AUTHENTICATION_REQUIRED mid-session. A missing, revoked or
-    // invalid refresh token returns null and verification proceeds unchanged
-    // (still fail-closed); refresh never grants access by itself.
+    let renewed = null;
     try {
-      await refreshSession();
+      renewed = await renewedSessionUser(request, context);
     } catch (_) {
       // Network or configuration failure: fall through to normal verification.
     }
+    if (renewed) return renewed;
     return await getUser();
   })();
   const timeout = new Promise((_, reject) => {
@@ -289,7 +362,7 @@ async function runtimeIdentity(request) {
   }
 }
 
-export default async function flipForgeApi(request) {
+export default async function flipForgeApi(request, context) {
   const requestUrl = new URL(request.url);
   if (requestUrl.pathname === RUNTIME_IDENTITY_PATH) return runtimeIdentity(request);
 
@@ -304,7 +377,7 @@ export default async function flipForgeApi(request) {
   let user = null;
   if (!publicHealth) {
     try {
-      user = await identityUser();
+      user = await identityUser(request, context);
     } catch (error) {
       const timedOut = error?.code === "IDENTITY_LOOKUP_TIMEOUT";
       return identityFailureResponse(

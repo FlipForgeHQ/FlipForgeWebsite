@@ -5,6 +5,7 @@ import {
   login,
   logout,
   onAuthChange,
+  refreshSession,
   requestPasswordRecovery,
   updateUser
 } from "@netlify/identity";
@@ -18,6 +19,55 @@ const ROOT_ID = "flipforge-identity-root";
 const STYLE_ID = "flipforge-identity-style";
 const PASSWORD_MIN_LENGTH = 15;
 const PASSWORD_GUIDANCE = `Use a unique password with at least ${PASSWORD_MIN_LENGTH} characters. A password manager is recommended.`;
+
+// One shared session renewal per page. Access tokens expire after about an
+// hour; renewing in the browser before protected API calls means parallel
+// dashboard requests never race to rotate the same refresh token on the
+// server. refreshSession() is a local no-op while the token has more than a
+// minute left, so healthy sessions add no network latency.
+let sessionRenewal = null;
+
+function ensureFreshSession() {
+  if (!sessionRenewal) {
+    sessionRenewal = (async () => {
+      try {
+        return await refreshSession();
+      } catch (_) {
+        return null;
+      }
+    })().finally(() => {
+      sessionRenewal = null;
+    });
+  }
+  return sessionRenewal;
+}
+
+function protectedApiRequest(input) {
+  try {
+    const raw = typeof input === "string" || input instanceof URL ? String(input) : input?.url;
+    const url = new URL(String(raw || ""), window.location.origin);
+    return url.origin === window.location.origin
+      && url.pathname.startsWith("/api/v1/")
+      && url.pathname !== "/api/v1/health";
+  } catch (_) {
+    return false;
+  }
+}
+
+function installApiSessionRenewal() {
+  if (window.__flipForgeApiSessionRenewalV1 || typeof window.fetch !== "function") return;
+  window.__flipForgeApiSessionRenewalV1 = true;
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    if (protectedApiRequest(input)) await ensureFreshSession();
+    return nativeFetch(input, init);
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") ensureFreshSession();
+  });
+}
+
+installApiSessionRenewal();
 
 const state = {
   user: null,
@@ -136,6 +186,7 @@ function setAuthenticatedUser(nextUser, { renderIfChanged = true } = {}) {
 window.FlipForgeIdentity = Object.freeze({
   getUser: () => state.user,
   getSnapshot: () => identitySnapshot(),
+  ensureFreshSession: () => ensureFreshSession(),
   refresh: async () => {
     const nextUser = await getUser();
     setAuthenticatedUser(nextUser);
