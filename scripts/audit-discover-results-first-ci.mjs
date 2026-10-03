@@ -216,6 +216,6 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
 
 console.log("FlipForge Discover results-first audit");
 console.log(`Failures: ${failures.length}`);
-failures.forEach(failure => console.log(`FAIL | ${failure}`));
+failures.forEach(failure => { console.log(`FAIL | ${failure}`); console.log(`::error title=results-first::${failure}`); });
 if (!failures.length) console.log("PASS | 50-result searches move once to actionable results and remain scroll-stable while result cards finish rendering");
 if (failures.length) process.exit(1);
