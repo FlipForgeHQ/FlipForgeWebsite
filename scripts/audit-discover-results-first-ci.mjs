@@ -203,6 +203,23 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
         viewportHeight: innerHeight,
         scrollY: Math.round(window.scrollY),
         scrollEvents: Array.isArray(window.__ffScrollEvents) ? window.__ffScrollEvents.slice() : [],
+        between: (() => {
+          const out = [];
+          const searchEl = document.querySelector(".customer-discovery-search");
+          const resultsEl = document.querySelector("#ff-discovery-results");
+          if (!searchEl || !resultsEl) return "missing";
+          const sb = searchEl.getBoundingClientRect().bottom, rt = resultsEl.getBoundingClientRect().top;
+          document.querySelectorAll("#main-content *").forEach(el => {
+            const r = el.getBoundingClientRect();
+            if (r.height < 8 || r.top < sb - 2 || r.bottom > rt + 2) return;
+            if (el.parentElement && (() => { const pr = el.parentElement.getBoundingClientRect(); return pr.top >= sb - 2 && pr.bottom <= rt + 2; })()) return;
+            out.push(`${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""}.${String(el.className || "").replace(/\s+/g, ".").slice(0, 70)} h${Math.round(r.height)} [${(el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 60)}]`);
+          });
+          const ancestorsOfResults = [];
+          let n = resultsEl.previousElementSibling; let k = 0;
+          while (n && k < 6) { ancestorsOfResults.push(`${n.tagName.toLowerCase()}.${String(n.className || "").slice(0, 50)} h${Math.round(n.getBoundingClientRect().height)}`); n = n.previousElementSibling; k++; }
+          return `gap=${Math.round(rt - sb)} between=[${out.join(" | ")}] prevSiblings=[${ancestorsOfResults.join(" | ")}]`;
+        })(),
         scrollCalls: Array.isArray(window.__ffScrollCalls) ? window.__ffScrollCalls.slice() : [],
         searchClickT: window.__ffSearchClickT || 0
       };
@@ -223,6 +240,7 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
       const calls = (metrics.scrollCalls || []).filter(c => c.t >= (metrics.searchClickT || 0) - 50);
       const ev = (metrics.scrollEvents || []).map(e => `${e.y}@${Math.round(e.t)}`).join(",");
       const cl = calls.map(c => `t${c.t} y${c.y} ${c.kind}(${c.detail}) <= ${c.stack.replace(/\(<anonymous>[^)]*\)/g, "").replace(/obj\.<computed>\s*<-\s*/g, "")}`).join(" || ");
+      console.log(`::error title=gap-${name}::${metrics.between}`.slice(0, 4000));
       console.log(`::error title=trace-${name}::click=${metrics.searchClickT} top=${Math.round(metrics.resultTop)} events=[${ev}] CALLS: ${cl}`.slice(0, 8000));
     }
     const events = metrics.scrollEvents || [];
