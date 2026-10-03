@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { getUser } from "@netlify/identity";
+import { getUser, refreshSession } from "@netlify/identity";
 import legacyGateway from "../functions/flipforge-api.js";
 
 const legacyHandler = legacyGateway && legacyGateway.handler;
@@ -154,7 +154,19 @@ function identityFailureResponse(request, code, message) {
 
 async function identityUser() {
   let timeoutId;
-  const lookup = (async () => await getUser())();
+  const lookup = (async () => {
+    // Access tokens expire after about an hour. Exchange the secure nf_refresh
+    // cookie for a fresh nf_jwt before verifying, so signed-in customers are not
+    // locked out with AUTHENTICATION_REQUIRED mid-session. A missing, revoked or
+    // invalid refresh token returns null and verification proceeds unchanged
+    // (still fail-closed); refresh never grants access by itself.
+    try {
+      await refreshSession();
+    } catch (_) {
+      // Network or configuration failure: fall through to normal verification.
+    }
+    return await getUser();
+  })();
   const timeout = new Promise((_, reject) => {
     timeoutId = setTimeout(() => {
       const error = new Error("Netlify Identity lookup timed out.");

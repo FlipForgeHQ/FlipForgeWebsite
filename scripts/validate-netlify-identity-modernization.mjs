@@ -44,11 +44,13 @@ check("005 modern functions use esbuild", netlify.includes('node_bundler = "esbu
 check("006 tracked config does not activate SaaS bridge", !/FLIPFORGE_API_BRIDGE_ENABLED\s*=\s*["']?true/i.test(netlify));
 check("007 old redirect no longer invokes legacy SaaS function", !redirects.includes("/api/v1/* /.netlify/functions/flipforge-api"));
 check("008 eBay privacy route remains retained", redirects.includes("/api/ebay/privacy /.netlify/functions/ebay-privacy 200"));
-check("009 modern gateway imports current Identity verifier", modernGateway.includes('import { getUser } from "@netlify/identity"'));
+check("009 modern gateway imports current Identity verifier", modernGateway.includes('import { getUser, refreshSession } from "@netlify/identity"'));
 check("010 modern gateway retains existing authoritative gateway core", modernGateway.includes('import legacyGateway from "../functions/flipforge-api.js"'));
 check("011 modern gateway owns only API v1 custom path", modernGateway.includes('path: "/api/v1/*"'));
 check("012 modern gateway maps verified Identity user to retained contract", modernGateway.includes("app_metadata: appMetadata"));
 check("013 modern health reports cookie authentication transport", modernGateway.includes('authenticationTransport = "secure-same-origin-cookie"'));
+check("013b modern gateway renews expired access tokens from the refresh cookie before verification", modernGateway.includes('import { getUser, refreshSession } from "@netlify/identity";') && modernGateway.indexOf("await refreshSession();") > -1 && modernGateway.indexOf("await refreshSession();") < modernGateway.indexOf("return await getUser();"));
+check("013c session renewal failure stays fail-closed", modernGateway.includes("} catch (_) {\n      // Network or configuration failure: fall through to normal verification."));
 check("014 tenant membership comes from Netlify-signed roles", modernGateway.includes('TENANT_ROLE_PREFIX = "flipforge-tenant--"') && modernGateway.includes('ACTIVE_ROLE = "flipforge-active"'));
 check("015 tenant role requires exactly one tenant assignment", modernGateway.includes("tenantRoles.length !== 1"));
 check("016 tenant role suffix is validated with backend-compatible safe ID rules", modernGateway.includes("SAFE_TENANT_ID.test(tenantId)"));
