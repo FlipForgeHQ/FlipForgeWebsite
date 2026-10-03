@@ -35,6 +35,11 @@ requireText('Discover routes still surface the exact-card entry', focusFix, 'fun
 requireText('full customer route cue preserves governed scroll origin', focusFix, 'showExactCardEntry({ clear: false, scroll: !fullCustomerMode() })');
 requireText('Discover hash changes still surface the route cue', focusFix, 'window.setTimeout(() => showRouteCue(), 120)');
 requireText('explicit card-focus actions still scroll to the input', focusFix, 'showExactCardEntry({ clear: false, scroll: true })');
+requireText('automatic route cue is marked passive', focusFix, 'pendingPassiveSerial = engagementSerial;');
+requireText('submitted searches supersede a pending route cue', focusFix, 'if (event.target?.closest?.(FORM_SELECTOR)) engagementSerial += 1;');
+requireText('typed queries supersede a pending route cue', focusFix, 'if (event.isTrusted && event.target?.matches?.(INPUT_SELECTOR)) engagementSerial += 1;');
+requireText('superseded route cue never scrolls toward the input', focusFix, 'if (passiveCueSuperseded(passiveSince)) return;\n      input.classList.add("ff-discover-direct-input");');
+requireText('route cue stands down once results are on screen', focusFix, 'return Boolean(document.querySelector("#ff-discovery-results"));');
 requireText('explicit new-card actions still scroll to a cleared input', focusFix, 'showExactCardEntry({ clear: true, scroll: true })');
 requireText('Discover still owns the exact-card search form', discover, 'data-customer-discovery-form');
 requireText('Discover still exposes the card identity input', discover, 'name="exactCardQuery"');
