@@ -3,7 +3,7 @@
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const CORE_ROUTES = new Set(["dashboard", "discover", "evaluate", "opportunities", "tracking", "beta-start"]);
   const SUPPORTING_ROUTES = ["market-view", "forge-heat", "portfolio", "alerts"];
   const ADVANCED_ROUTES = new Set(["market-view", "forge-heat", "portfolio", "alerts", "compare", "psa-advisor", "evidence", "sell", "export"]);

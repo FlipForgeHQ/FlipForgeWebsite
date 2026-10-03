@@ -2,8 +2,8 @@
   "use strict";
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   const DECISION_CONTEXT_TIMEOUT_MS = 8000;
   const ENUM_LABELS = Object.freeze({
     PRIVATE_BETA_ACTIVE: "Private Beta Active",

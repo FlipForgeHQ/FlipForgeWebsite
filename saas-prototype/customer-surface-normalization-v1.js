@@ -3,7 +3,7 @@
 
   if (window.__ffCustomerSurfaceNormalizationV1 === true) return;
 
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   const REPLACEMENTS = [
     ["Private Beta Evaluation Allowance Reached", "Evaluation allowance reached"],
     ["PRIVATE BETA", "EARLY ACCESS"],

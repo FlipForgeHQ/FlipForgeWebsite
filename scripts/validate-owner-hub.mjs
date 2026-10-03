@@ -31,6 +31,16 @@ check("012 raw customer page still rejects ordinary production access", customer
 check("013 owner customer gate is operator-only", customerGate.includes("snapshot.operatorActive") && customerGate.includes('window.location.replace("/owner")'));
 check("013b owner customer gate waits for identity readiness before denying", customerGate.includes("snapshot.ready !== true") && customerGate.indexOf("snapshot.ready !== true") < customerGate.indexOf("!snapshot.authenticated"));
 check("013c identity snapshot reports readiness only after the first session lookup", read("scripts/lib/flipforge-identity-client.mjs").includes("ready: Boolean(state.ready)") && read("scripts/lib/flipforge-identity-client.mjs").includes("state.ready = true;\n  publishIdentityChange();"));
+{
+  const ownerAware = /\(\?:app\|saas-prototype\|owner\\\/customer\)/;
+  const legacyOnly = "const APP_PATH = /^\\/(?:app|saas-prototype)(?:\\/|$)/i;";
+  const appPathFiles = fs.readdirSync("saas-prototype").filter(name => name.endsWith(".js"))
+    .map(name => [name, read(`saas-prototype/${name}`)]).filter(([, src]) => src.includes("const APP_PATH"));
+  check("013d owner customer preview runs the real customer modules, not prototype data",
+    appPathFiles.length > 0 && appPathFiles.every(([, src]) => !src.includes(legacyOnly) && ownerAware.test(src))
+    && ["production-dashboard-guard.js", "customer-discovery.js", "customer-lifecycle.js", "customer-opportunities.js"]
+      .every(name => ownerAware.test(read(`saas-prototype/${name}`))));
+}
 check("014 owner customer mode banner is unmistakable", customerGate.includes("OWNER PREVIEW · CUSTOMER") && customerGate.includes("Real customer SaaS surface · not public"));
 check("015 customer owner preview uses same real customer document", redirects.includes("/owner/customer /saas-prototype/customer.html 200") && redirects.includes("/owner/customer/* /saas-prototype/:splat 200"));
 check("016 public customer route remains unpublished", !redirects.includes("/app/customer /saas-prototype/customer.html 200") && !redirects.includes("/app/customer/* /saas-prototype/:splat 200"));

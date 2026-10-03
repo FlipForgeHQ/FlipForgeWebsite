@@ -2,7 +2,7 @@
   "use strict";
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   const PRODUCTION_AUTH_LINK = 'a[href^="/production-auth.html"],a[href*="goflipforge.com/production-auth.html"]';
   const SIGN_IN_ID = "ff-customer-sign-in-entry";
   const STYLE_ID = "ff-customer-sign-in-entry-style";

@@ -5,9 +5,18 @@
   const INPUT_SELECTOR = '[data-customer-discovery-form] input[name="exactCardQuery"]';
   const FORM_SELECTOR = "[data-customer-discovery-form]";
   const LEGACY_WELCOME_ID = "ff-guided-mode-welcome";
-  const FULL_CUSTOMER_PATH = /^\/app\/customer\/?$/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer\/?$/i;
   let busy = false;
   let explicitDiscoverNavigation = false;
+  // Customer engagement on Discover (a submitted search or typed query). An automatic
+  // route cue resolves asynchronously; if the customer engaged meanwhile, the cue must
+  // not scroll or focus, or it fights the results handoff and the page drifts.
+  let engagementSerial = 0;
+  // Engagement count when the customer last arrived on Discover. The automatic cue
+  // is only for arrival: once the customer has typed or searched on this visit it
+  // never runs again until they navigate back to Discover.
+  let routeEntrySerial = 0;
+  let pendingPassiveSerial = null;
 
   function neutralizeLegacyWelcome() {
     document.getElementById(LEGACY_WELCOME_ID)?.remove();
@@ -86,7 +95,15 @@
     return null;
   }
 
+  function passiveCueSuperseded(passiveSince) {
+    if (passiveSince === null) return false;
+    if (passiveSince !== engagementSerial || engagementSerial !== routeEntrySerial) return true;
+    return Boolean(document.querySelector("#ff-discovery-results"));
+  }
+
   async function showExactCardEntry({ clear = false, scroll = true } = {}) {
+    const passiveSince = pendingPassiveSerial;
+    pendingPassiveSerial = null;
     if (busy) return;
     busy = true;
     try {
@@ -108,10 +125,12 @@
       }
 
       if (routeName() !== "discover") return;
+      if (passiveCueSuperseded(passiveSince)) return;
       input.classList.add("ff-discover-direct-input");
       if (scroll) input.scrollIntoView({ behavior: "smooth", block: "center" });
       window.setTimeout(() => {
         if (routeName() !== "discover" || !input.isConnected) return;
+        if (passiveCueSuperseded(passiveSince)) return;
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
         input.select?.();
       }, 300);
@@ -126,6 +145,9 @@
 
   function showRouteCue() {
     if (routeName() !== "discover") return Promise.resolve();
+    if (document.querySelector("#ff-discovery-results")) return Promise.resolve();
+    if (engagementSerial !== routeEntrySerial) return Promise.resolve();
+    pendingPassiveSerial = engagementSerial;
     return showExactCardEntry({ clear: false, scroll: !fullCustomerMode() });
   }
 
@@ -137,6 +159,14 @@
       }, 80);
     }
   }
+
+  document.addEventListener("submit", event => {
+    if (event.target?.closest?.(FORM_SELECTOR)) engagementSerial += 1;
+  }, true);
+
+  document.addEventListener("input", event => {
+    if (event.isTrusted && event.target?.matches?.(INPUT_SELECTOR)) engagementSerial += 1;
+  }, true);
 
   document.addEventListener("click", event => {
     const focusButton = event.target.closest('[data-ff-focus-card], [data-guide-action="focus-discover"]');
@@ -150,6 +180,7 @@
   }, true);
 
   window.addEventListener("hashchange", () => {
+    routeEntrySerial = engagementSerial;
     neutralizeLegacyWelcome();
     if (routeName() !== "discover") {
       clearDirectCue();

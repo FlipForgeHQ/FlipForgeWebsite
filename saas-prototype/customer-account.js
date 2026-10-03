@@ -4,8 +4,8 @@
   const CONTRACT_VERSION = "1.0";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   const READ_PATHS = new Set(["/api/v1/health", "/api/v1/entitlements"]);
 
   const state = {
@@ -45,7 +45,9 @@
   }
 
   function accountReturnPath() {
-    return fullCustomerMode() ? "/app/customer/#/account" : "/app/#/account";
+    return fullCustomerMode()
+      ? `${/^\/owner\/customer(?:\/|$)/i.test(String(window.location.pathname || "")) ? "/owner/customer/" : "/app/customer/"}#/account`
+      : "/app/#/account";
   }
 
   function identityApi() {

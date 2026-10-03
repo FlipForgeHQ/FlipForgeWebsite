@@ -14,7 +14,7 @@
   const SAFE_SELECTION_TOKEN = /^[0-9a-f]{64}$/i;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const MARKETPLACES = new Set(["EBAY", "COMC", "MYSLABS", "GOLDIN", "HERITAGE", "FANATICS_COLLECT", "DEALER", "CARD_SHOW", "FACEBOOK_GROUP", "OTHER"]);
   const DECISIONS = new Set(["BUY", "WATCH", "VERIFY", "PASS"]);
 

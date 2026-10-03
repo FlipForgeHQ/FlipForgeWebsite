@@ -29,7 +29,7 @@ const gatewayMaxTimeoutMs = Number(files.gateway.match(/MAX_TIMEOUT_MS\s*=\s*(\d
   ["003 production Dashboard guard exists", fs.existsSync(path.join(root, "saas-prototype/production-dashboard-guard.js"))],
   ["004 production Dashboard guard loads before legacy app router", files.index.includes('src="production-dashboard-guard.js"') && files.index.indexOf('src="production-dashboard-guard.js"') < files.index.indexOf('src="app.js"')],
   ["005 production Dashboard guard is production-host restricted", files.guard.includes('/^(?:www\\.)?goflipforge\\.com$/i')],
-  ["006 production Dashboard guard is app-path restricted", files.guard.includes('/^\\/(?:app|saas-prototype)(?:\\/|$)/i')],
+  ["006 production Dashboard guard is app-path restricted", files.guard.includes('/^\\/(?:app|saas-prototype|owner\\/customer)(?:\\/|$)/i')],
   ["007 production Dashboard guard is dashboard-route restricted", files.guard.includes('route === "dashboard"')],
   ["008 production Dashboard guard recognizes authoritative render", files.guard.includes('[data-commercial-dashboard-v2]')],
   ["009 production Dashboard guard exposes no prototype data dependency", !/FlipForgePrototypeData|data\.dashboard|data\.opportunities/.test(files.guard)],

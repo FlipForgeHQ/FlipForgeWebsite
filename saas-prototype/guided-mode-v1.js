@@ -3,7 +3,7 @@
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const ROOT_ID = "ff-guided-mode-root";
   const MODAL_ID = "ff-guided-mode-welcome";
   const VERSION = "v3";
@@ -213,12 +213,20 @@
     if (!state.startingNewCard && hasCandidates) mode = "results";
     else if (!state.startingNewCard && hasAssist) mode = "identity";
 
+    // Results-first: once exact results are on screen they sit directly under the
+    // search (and its notice). The coach then follows the results, matching
+    // discover-card-entry-emphasis-v1 promoteSearchPanel. Placing it above the
+    // results after the handoff pushed them down and broke the results-first jump.
+    const results = page.querySelector(":scope > .customer-discovery-results");
+    const resultsFirst = Boolean(results) && !hasAssist;
+
     let coach = page.querySelector("[data-ff-discover-coach]");
     if (!coach) {
       coach = document.createElement("section");
       coach.className = "ff-discover-coach";
       coach.dataset.ffDiscoverCoach = "";
-      search.insertAdjacentElement("afterend", coach);
+      if (resultsFirst) results.insertAdjacentElement("afterend", coach);
+      else search.insertAdjacentElement("afterend", coach);
     }
 
     if (coach.dataset.mode !== mode) {
@@ -232,7 +240,9 @@
       }
     }
 
-    if (search.nextElementSibling !== coach) search.insertAdjacentElement("afterend", coach);
+    if (resultsFirst) {
+      if (results.nextElementSibling !== coach) results.insertAdjacentElement("afterend", coach);
+    } else if (search.nextElementSibling !== coach) search.insertAdjacentElement("afterend", coach);
     page.classList.toggle("ff-start-new-card", state.startingNewCard);
   }
 

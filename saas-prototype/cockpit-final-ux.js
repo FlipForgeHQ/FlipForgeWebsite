@@ -4,7 +4,7 @@
   const core = window.FlipForgePrototypeData;
   const features = window.FlipForgeSaaSFeatureData;
   const main = document.querySelector("#main-content");
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   if (!core || !features || !main) return;
 
   const currency = new Intl.NumberFormat("en-US", {
