@@ -2,7 +2,7 @@
   "use strict";
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
-  const PRODUCTION_APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const PRODUCTION_APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
 
   function productionEligible() {
     return PRODUCTION_HOST.test(String(window.location.hostname || "")) &&

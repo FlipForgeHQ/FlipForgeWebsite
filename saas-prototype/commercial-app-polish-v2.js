@@ -2,8 +2,8 @@
   "use strict";
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
 
   function eligible() {
     return APP_PATH.test(String(window.location.pathname || ""));

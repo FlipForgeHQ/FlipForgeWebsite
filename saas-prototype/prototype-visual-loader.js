@@ -2,7 +2,7 @@
   "use strict";
 
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   const prototypeScripts = Object.freeze([
     "visual-intelligence.js",
     "cockpit-expansion.js"

@@ -2,7 +2,7 @@
   "use strict";
 
   const MOBILE_QUERY = "(max-width: 760px)";
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   const REPAIR_STYLE_ID = "ff-mobile-customer-dashboard-repair-v1";
 
   function fullCustomerMode() {

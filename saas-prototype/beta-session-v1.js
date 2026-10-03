@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const ENDPOINT = "/api/conversion-event";

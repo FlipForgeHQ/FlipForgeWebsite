@@ -3,7 +3,7 @@
 
   function fullCustomerMode() {
     return window.FlipForgeFullCustomerEntry === true
-      || /^\/app\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+      || /^\/(?:app|owner)\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
   }
 
   function loadRouteOwnershipAssets() {

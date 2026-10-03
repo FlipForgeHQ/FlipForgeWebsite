@@ -5,7 +5,7 @@
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
   const ROUTES = new Set(["psa-advisor", "evidence", "sell", "portfolio", "alerts"]);
   const FIXED_PATHS = new Set([

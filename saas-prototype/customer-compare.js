@@ -7,7 +7,7 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const ALLOWED_HOST = PREVIEW_HOST;
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const HEALTH_PATH = "/api/v1/health";
   const OPPORTUNITIES_PATH = "/api/v1/opportunities";
 
