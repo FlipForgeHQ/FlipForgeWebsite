@@ -58,6 +58,10 @@ check(authProbe.includes('const PRIVATE_BETA_START = "/app/beta/#/beta-start";')
 check(authProbe.includes("async function verifyAccess()"), "auth probe must verify server access before continuing");
 check(authProbe.includes('fetch("/api/v1/entitlements"'), "auth probe must use authoritative entitlements");
 check(authProbe.includes("returnLink.hidden = true"), "continue action must stay hidden until verification");
+check(authPage.includes('<a class="button-link" data-production-auth-owner href="/owner" hidden>Open Owner Hub</a>'), "operator Owner Hub link must be hidden by default");
+check(authProbe.includes('const OPERATOR_ROLE = "flipforge-operator";') && authProbe.includes("ownerLink.hidden = !isOperatorAccount(currentUser)"), "Owner Hub link must appear only for operator accounts");
+check(authProbe.includes("response.status === 403 && isOperatorAccount(currentUser)"), "operator accounts must be pointed to the Owner Hub instead of a dead end");
+check(!authProbe.includes("ownerLink.hidden = false"), "Owner Hub link must never be shown unconditionally");
 check(!authProbe.includes('return "/app/#/account"'), "auth probe must not return to customer account");
 check(!authProbe.includes('normalizedPath === "/app/customer/"'), "auth probe must not allow arbitrary customer return routes");
 
