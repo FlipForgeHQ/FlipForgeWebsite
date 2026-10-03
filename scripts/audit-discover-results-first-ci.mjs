@@ -118,6 +118,23 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
       localStorage.setItem(`flipforge.guidedMode.v3.${key}.steps`, "discover,evaluate,understand,track");
     }, { key });
 
+    await page.addInitScript(() => {
+      window.__ffScrollCalls = [];
+      const rec = (kind, detail) => {
+        try {
+          const stack = String(new Error().stack || "").split("\n").slice(2, 5).map(l => l.trim().replace(/^at /, "").replace(/https?:\/\/[^/]+\//, "")).join(" <- ");
+          window.__ffScrollCalls.push({ kind, detail: String(detail).slice(0, 60), y: Math.round(window.scrollY), t: Math.round(performance.now()), stack });
+        } catch (_) {}
+      };
+      const wrap = (obj, name) => { const orig = obj[name]; if (typeof orig !== "function") return; obj[name] = function (...args) { rec(name, JSON.stringify(args[0] ?? null) + (this && this.id ? "#" + this.id : (this && this.className ? "." + String(this.className).slice(0, 30) : ""))); return orig.apply(this, args); }; };
+      wrap(window, "scrollTo"); wrap(window, "scrollBy"); wrap(Element.prototype, "scrollIntoView"); wrap(Element.prototype, "scrollTo"); wrap(HTMLElement.prototype, "focus");
+      const desc = Object.getOwnPropertyDescriptor(Element.prototype, "scrollTop");
+      Object.defineProperty(Element.prototype, "scrollTop", { configurable: true, get() { return desc.get.call(this); }, set(v) { if (this === document.scrollingElement || this === document.documentElement || this === document.body) rec("scrollTop=", v); desc.set.call(this, v); } });
+      window.addEventListener("hashchange", () => rec("hashchange", location.hash));
+      window.addEventListener("resize", () => rec("resize", innerWidth));
+      window.addEventListener("load", () => rec("load", ""));
+    });
+
     await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
       status: 200,
       contentType: "text/javascript; charset=utf-8",
@@ -158,6 +175,7 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
     });
     await form.locator('input[name="exactCardQuery"]').fill(query);
     await form.locator('select[name="limit"]').selectOption("50");
+    await page.evaluate(() => { window.__ffSearchClickT = Math.round(performance.now()); });
     await form.locator('button[type="submit"]').click();
 
     const results = page.locator("#ff-discovery-results");
@@ -184,7 +202,9 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
         shellVisible: shell ? getComputedStyle(shell).display !== "none" : false,
         viewportHeight: innerHeight,
         scrollY: Math.round(window.scrollY),
-        scrollEvents: Array.isArray(window.__ffScrollEvents) ? window.__ffScrollEvents.slice() : []
+        scrollEvents: Array.isArray(window.__ffScrollEvents) ? window.__ffScrollEvents.slice() : [],
+        scrollCalls: Array.isArray(window.__ffScrollCalls) ? window.__ffScrollCalls.slice() : [],
+        searchClickT: window.__ffSearchClickT || 0
       };
     });
 
@@ -199,6 +219,11 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
       failures.push(`${name}: provider diagnostics still appear before actionable results`);
     }
     if (metrics.shellVisible) failures.push(`${name}: Phase 3 instruction shell remains visible after results are ready`);
+    {
+      const calls = (metrics.scrollCalls || []).filter(c => c.t >= (metrics.searchClickT || 0) - 50);
+      console.log(`::error title=scroll-trace-${name}::clickT=${metrics.searchClickT} events=${JSON.stringify((metrics.scrollEvents||[]).map(e=>[e.y,Math.round(e.t)])).slice(0,900)}`);
+      calls.slice(0, 18).forEach((c, i) => console.log(`::error title=scroll-call-${name}-${i}::t=${c.t} y=${c.y} ${c.kind}(${c.detail}) via ${c.stack}`));
+    }
     const events = metrics.scrollEvents || [];
     const lateEvents = events.filter(event => event.t > (events[0]?.t || 0) + 350);
     if (lateEvents.length > 1) {
