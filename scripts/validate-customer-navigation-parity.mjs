@@ -52,7 +52,7 @@ check(customer.includes('<script src="customer-navigation-parity-v1.js"></script
 check(!betaDocument.includes('customer-navigation-parity-v1.js'), "legacy beta document does not load full-customer parity controller");
 check(!betaDocument.includes('customer-why-decision-view-v1.js'), "legacy beta document does not load focused Why presentation");
 
-check(parity.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "parity controller is hard-gated to /app/customer");
+check(parity.includes('const FULL_CUSTOMER_PATH = /^\\/(?:app|owner)\\/customer(?:\\/|$)/i;'), "parity controller is hard-gated to the full customer route (/app/customer or owner preview)");
 check(parity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "parity controller exits outside full customer path");
 check(parity.includes('script.src = "customer-why-decision-view-v1.js"'), "full-customer controller owns focused Why presentation loading");
 for (const route of requiredTopLevel) {
@@ -62,7 +62,7 @@ check(parity.includes('route === "decision-intelligence" && subroute === "why"')
 check(parity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"])'), "Advanced analysis exposes only supported customer analysis routes");
 check(parity.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])') && parity.includes("guardUnsupportedCustomerRoute"), "unsupported Exit Review route fails closed to dashboard");
 
-check(whyView.includes('const FULL_CUSTOMER_PATH = /^\\/app\\/customer(?:\\/|$)/i;'), "focused Why view is hard-gated to /app/customer");
+check(whyView.includes('const FULL_CUSTOMER_PATH = /^\\/(?:app|owner)\\/customer(?:\\/|$)/i;'), "focused Why view is hard-gated to the full customer route (/app/customer or owner preview)");
 check(whyView.includes('parts[0] === "decision-intelligence" && parts[1] === "why"'), "focused Why view only activates on the Why subroute");
 check(whyView.includes('Why FlipForge made this decision.'), "focused Why view has explanation-first customer presentation");
 check(whyView.includes('Open full Decision Intelligence') && whyView.includes('Open Evidence Review'), "focused Why view preserves navigation back to governed analysis and evidence");
