@@ -48,7 +48,7 @@ jobs:
       - name: Build generated Identity bundles before validation
         run: npm run build:identity
       - name: Re-run signed Identity modernization contract
-        run: node scripts/validate-netlify-identity-modernization.mjs
+        run: node scripts/validate-netlify-identity-modernization.mjs && node scripts/validate-gateway-session-renewal.mjs
       - name: Re-run operator authorization and active-tester contract
         run: npm run validate:beta-operator
       - name: Re-run tenant spoofing and gateway isolation contract

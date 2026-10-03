@@ -16,7 +16,7 @@
     "validate:deploy-manifest": "node scripts/validate-deploy-manifest.mjs",
     "verify:live-production-parity": "node scripts/verify-live-production-parity.mjs",
     "validate:brand": "node scripts/validate-brand-assets.js",
-    "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs",
+    "validate:identity": "node scripts/validate-netlify-identity-modernization.mjs && node scripts/validate-gateway-session-renewal.mjs",
     "validate:paddle-live-payment-link": "node scripts/validate-paddle-live-payment-link.mjs",
     "validate:account-lifecycle": "node scripts/validate-saas-customer-account-lifecycle.mjs",
     "validate:customer-intelligence": "node scripts/validate-saas-customer-intelligence-loop.mjs",
