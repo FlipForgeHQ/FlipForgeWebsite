@@ -29,6 +29,8 @@ check("010 owner identity route is interactive on production", identity.includes
 check("011 customer preview route keeps raw production customer hidden until gate", customer.includes("ffOwnerCustomerPath") && customer.includes('document.documentElement.style.visibility = "hidden"'));
 check("012 raw customer page still rejects ordinary production access", customer.includes('if (!ffOwnerCustomerPath) window.location.replace("/")'));
 check("013 owner customer gate is operator-only", customerGate.includes("snapshot.operatorActive") && customerGate.includes('window.location.replace("/owner")'));
+check("013b owner customer gate waits for identity readiness before denying", customerGate.includes("snapshot.ready !== true") && customerGate.indexOf("snapshot.ready !== true") < customerGate.indexOf("!snapshot.authenticated"));
+check("013c identity snapshot reports readiness only after the first session lookup", read("scripts/lib/flipforge-identity-client.mjs").includes("ready: Boolean(state.ready)") && read("scripts/lib/flipforge-identity-client.mjs").includes("state.ready = true;\n  publishIdentityChange();"));
 check("014 owner customer mode banner is unmistakable", customerGate.includes("OWNER PREVIEW · CUSTOMER") && customerGate.includes("Real customer SaaS surface · not public"));
 check("015 customer owner preview uses same real customer document", redirects.includes("/owner/customer /saas-prototype/customer.html 200") && redirects.includes("/owner/customer/* /saas-prototype/:splat 200"));
 check("016 public customer route remains unpublished", !redirects.includes("/app/customer /saas-prototype/customer.html 200") && !redirects.includes("/app/customer/* /saas-prototype/:splat 200"));
