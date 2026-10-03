@@ -42,6 +42,11 @@ requireText('superseded route cue never scrolls toward the input', focusFix, 'if
 requireText('route cue stands down once results are on screen', focusFix, 'return Boolean(document.querySelector("#ff-discovery-results"));');
 requireText('route cue runs only before engagement on the current Discover visit', focusFix, 'if (engagementSerial !== routeEntrySerial) return Promise.resolve();');
 requireText('arriving on Discover starts a new engagement window', focusFix, 'routeEntrySerial = engagementSerial;');
+{
+  const guideSrc = fs.readFileSync('saas-prototype/guided-mode-v1.js', 'utf8');
+  requireText('coach follows results once exact results are on screen', guideSrc, 'if (results.nextElementSibling !== coach) results.insertAdjacentElement("afterend", coach);');
+  requireText('coach never re-inserts above results in results-first mode', guideSrc, 'const resultsFirst = Boolean(results) && !hasAssist;');
+}
 requireText('explicit new-card actions still scroll to a cleared input', focusFix, 'showExactCardEntry({ clear: true, scroll: true })');
 requireText('Discover still owns the exact-card search form', discover, 'data-customer-discovery-form');
 requireText('Discover still exposes the card identity input', discover, 'name="exactCardQuery"');
