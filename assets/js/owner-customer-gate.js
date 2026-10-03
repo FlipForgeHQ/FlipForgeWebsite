@@ -43,7 +43,9 @@
 
   const check = () => {
     const snapshot = window.FlipForgeIdentity?.getSnapshot?.();
-    if (!snapshot) return false;
+    // Wait until the identity client has finished restoring the session; before
+    // that, every visitor reads as signed out and would be bounced to /owner.
+    if (!snapshot || snapshot.ready !== true) return false;
     if (!snapshot.authenticated || !snapshot.operatorActive) {
       deny();
       return true;
@@ -61,9 +63,9 @@
   let attempts = 0;
   const timer = window.setInterval(() => {
     attempts += 1;
-    if (check() || attempts > 50) {
+    if (check() || attempts > 150) {
       window.clearInterval(timer);
-      if (attempts > 50) deny();
+      if (attempts > 150) deny();
     }
   }, 100);
 })();

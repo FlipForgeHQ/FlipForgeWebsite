@@ -4,6 +4,8 @@ const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const hostAllowed = PRODUCTION_HOST.test(String(window.location.hostname || ""));
 const reauthRequested = new URLSearchParams(window.location.search).get("reauth") === "1";
 const PRIVATE_BETA_START = "/app/beta/#/beta-start";
+const OWNER_HUB = "/owner";
+const OPERATOR_ROLE = "flipforge-operator";
 
 const form = document.querySelector("[data-production-auth-form]");
 const emailInput = document.querySelector("[data-production-auth-email]");
@@ -12,6 +14,7 @@ const signInButton = document.querySelector("[data-production-auth-submit]");
 const signOutButton = document.querySelector("[data-production-auth-signout]");
 const recoveryButton = document.querySelector("[data-production-auth-recovery]");
 const returnLink = document.querySelector("[data-production-auth-return]");
+const ownerLink = document.querySelector("[data-production-auth-owner]");
 const status = document.querySelector("[data-production-auth-status]");
 const result = document.querySelector("[data-production-auth-result]");
 
@@ -20,6 +23,24 @@ let currentUser = null;
 function safeReturnPath() {
   // Private Beta is the only public authentication destination before customer launch.
   return PRIVATE_BETA_START;
+}
+
+// Display-only hint. Mirrors the Owner Hub identity snapshot (flipforge-identity-client.mjs);
+// the Owner Hub and every operator API re-verify the role server-side, so this grants nothing.
+function isOperatorAccount(user) {
+  if (!user) return false;
+  const metadata = user.appMetadata || user.app_metadata || {};
+  const roles = [
+    ...(Array.isArray(user.roles) ? user.roles : []),
+    ...(Array.isArray(metadata.roles) ? metadata.roles : [])
+  ].map(value => String(value || "").trim());
+  return roles.includes(OPERATOR_ROLE) || String(user.role || "") === "admin";
+}
+
+function updateOwnerLink() {
+  if (!ownerLink) return;
+  ownerLink.href = OWNER_HUB;
+  ownerLink.hidden = !isOperatorAccount(currentUser);
 }
 
 function setStatus(message, tone = "neutral") {
@@ -32,6 +53,7 @@ function setSignedIn(user) {
   signOutButton.hidden = !currentUser;
   returnLink.hidden = true;
   returnLink.href = safeReturnPath();
+  updateOwnerLink();
   if (currentUser) setStatus(`Signed in as ${currentUser.email || "FlipForge user"}. Verifying Private Beta access…`, "neutral");
   else setStatus("Sign in with your invited Private Beta account.", "neutral");
 }
@@ -156,6 +178,8 @@ async function verifyAccess() {
 
     if (response.status === 401) {
       result.textContent = "Your beta sign-in session needs to be refreshed. Sign out, then sign in again.";
+    } else if (response.status === 403 && isOperatorAccount(currentUser)) {
+      result.textContent = "This is an operator account, not a Private Beta tester account. Open the Owner Hub for operator tools and the customer preview.";
     } else if (response.status === 403) {
       result.textContent = "This account is signed in, but active Private Beta access is not enabled.";
     } else {

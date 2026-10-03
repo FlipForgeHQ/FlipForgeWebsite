@@ -21,6 +21,9 @@ const PASSWORD_GUIDANCE = `Use a unique password with at least ${PASSWORD_MIN_LE
 
 const state = {
   user: null,
+  // False until the first session lookup finishes. Gates that redirect must wait
+  // for ready, because the snapshot reads "signed out" while the session restores.
+  ready: false,
   busy: false,
   message: "",
   error: "",
@@ -85,6 +88,7 @@ function identityFingerprint(user) {
 function identitySnapshot(user = state.user) {
   if (!user) {
     return Object.freeze({
+      ready: Boolean(state.ready),
       authenticated: false,
       email: "",
       fullName: "",
@@ -104,6 +108,7 @@ function identitySnapshot(user = state.user) {
   const membershipConfigured = tenantRoles.length === 1;
 
   return Object.freeze({
+    ready: Boolean(state.ready),
     authenticated: true,
     email: clean(user.email),
     fullName: clean(userMetadata.full_name),
@@ -501,6 +506,7 @@ async function initialize() {
   } catch (_) {
     // Initial login/logout calls still refresh state even if subscriptions are unavailable.
   }
+  state.ready = true;
   publishIdentityChange();
   render();
 }
