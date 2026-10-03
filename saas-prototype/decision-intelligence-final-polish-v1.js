@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   let scheduled = false;
 
   function fullCustomerMode() {

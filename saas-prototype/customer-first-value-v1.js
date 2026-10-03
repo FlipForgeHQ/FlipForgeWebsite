@@ -3,7 +3,7 @@
 
   if (window.FlipForgeCustomerFirstValueV1) return;
 
-  const APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+  const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const DECISION_COPY = Object.freeze({
     BUY: "The saved evidence supports this purchase at the evaluated price, within the stated risks and limits.",
     WATCH: "There may be an opportunity here, but the price or evidence is not strong enough yet.",

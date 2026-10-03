@@ -7,7 +7,7 @@ import {
 } from "@netlify/identity";
 
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
-const PRODUCTION_APP_PATH = /^\/(?:app|saas-prototype)(?:\/|$)/i;
+const PRODUCTION_APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
 const ROOT_ID = "flipforge-production-identity-root";
 const STYLE_ID = "flipforge-production-identity-style";
 const ACCOUNT_SIGN_OUT_ATTRIBUTE = "data-ff-production-account-signout";

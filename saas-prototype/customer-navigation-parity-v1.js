@@ -4,7 +4,7 @@
   if (window.FlipForgeCustomerNavigationParityV1) return;
   window.FlipForgeCustomerNavigationParityV1 = true;
 
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;
 
   const ROUTES = [

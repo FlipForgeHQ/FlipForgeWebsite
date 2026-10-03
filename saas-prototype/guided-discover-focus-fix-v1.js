@@ -5,7 +5,7 @@
   const INPUT_SELECTOR = '[data-customer-discovery-form] input[name="exactCardQuery"]';
   const FORM_SELECTOR = "[data-customer-discovery-form]";
   const LEGACY_WELCOME_ID = "ff-guided-mode-welcome";
-  const FULL_CUSTOMER_PATH = /^\/app\/customer\/?$/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer\/?$/i;
   let busy = false;
   let explicitDiscoverNavigation = false;
 

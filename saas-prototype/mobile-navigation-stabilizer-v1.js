@@ -3,7 +3,7 @@
 
   const MOBILE_QUERY = "(max-width: 760px)";
   const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"];
-  const FULL_CUSTOMER_PATH = /^\/app\/customer(?:\/|$)/i;
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   const FULL_CUSTOMER_ROUTES = [
     "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
     "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
