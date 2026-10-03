@@ -279,6 +279,7 @@ async function runScenario(name, fn) {
     scenarios.push({ name, status: "FAIL", durationMs: Date.now() - started, message });
     failures.push(`${name}: ${message}`);
     console.log(`FAIL | ${name} | ${message}`);
+    console.log(`::error::DIAG ${name} | ${String(message).replace(/\n/g," ").slice(0,900)}`);
   }
 }
 
