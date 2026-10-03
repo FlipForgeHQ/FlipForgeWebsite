@@ -221,8 +221,9 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
     if (metrics.shellVisible) failures.push(`${name}: Phase 3 instruction shell remains visible after results are ready`);
     {
       const calls = (metrics.scrollCalls || []).filter(c => c.t >= (metrics.searchClickT || 0) - 50);
-      console.log(`::error title=scroll-trace-${name}::clickT=${metrics.searchClickT} events=${JSON.stringify((metrics.scrollEvents||[]).map(e=>[e.y,Math.round(e.t)])).slice(0,900)}`);
-      calls.slice(0, 18).forEach((c, i) => console.log(`::error title=scroll-call-${name}-${i}::t=${c.t} y=${c.y} ${c.kind}(${c.detail}) via ${c.stack}`));
+      const ev = (metrics.scrollEvents || []).map(e => `${e.y}@${Math.round(e.t)}`).join(",");
+      const cl = calls.map(c => `t${c.t} y${c.y} ${c.kind}(${c.detail}) <= ${c.stack.replace(/\(<anonymous>[^)]*\)/g, "").replace(/obj\.<computed>\s*<-\s*/g, "")}`).join(" || ");
+      console.log(`::error title=trace-${name}::click=${metrics.searchClickT} top=${Math.round(metrics.resultTop)} events=[${ev}] CALLS: ${cl}`.slice(0, 8000));
     }
     const events = metrics.scrollEvents || [];
     const lateEvents = events.filter(event => event.t > (events[0]?.t || 0) + 350);
