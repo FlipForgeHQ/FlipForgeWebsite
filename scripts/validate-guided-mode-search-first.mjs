@@ -40,6 +40,8 @@ requireText('submitted searches supersede a pending route cue', focusFix, 'if (e
 requireText('typed queries supersede a pending route cue', focusFix, 'if (event.isTrusted && event.target?.matches?.(INPUT_SELECTOR)) engagementSerial += 1;');
 requireText('superseded route cue never scrolls toward the input', focusFix, 'if (passiveCueSuperseded(passiveSince)) return;\n      input.classList.add("ff-discover-direct-input");');
 requireText('route cue stands down once results are on screen', focusFix, 'return Boolean(document.querySelector("#ff-discovery-results"));');
+requireText('route cue runs only before engagement on the current Discover visit', focusFix, 'if (engagementSerial !== routeEntrySerial) return Promise.resolve();');
+requireText('arriving on Discover starts a new engagement window', focusFix, 'routeEntrySerial = engagementSerial;');
 requireText('explicit new-card actions still scroll to a cleared input', focusFix, 'showExactCardEntry({ clear: true, scroll: true })');
 requireText('Discover still owns the exact-card search form', discover, 'data-customer-discovery-form');
 requireText('Discover still exposes the card identity input', discover, 'name="exactCardQuery"');

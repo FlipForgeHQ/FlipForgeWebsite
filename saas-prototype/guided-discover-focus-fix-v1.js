@@ -12,6 +12,10 @@
   // route cue resolves asynchronously; if the customer engaged meanwhile, the cue must
   // not scroll or focus, or it fights the results handoff and the page drifts.
   let engagementSerial = 0;
+  // Engagement count when the customer last arrived on Discover. The automatic cue
+  // is only for arrival: once the customer has typed or searched on this visit it
+  // never runs again until they navigate back to Discover.
+  let routeEntrySerial = 0;
   let pendingPassiveSerial = null;
 
   function neutralizeLegacyWelcome() {
@@ -93,7 +97,7 @@
 
   function passiveCueSuperseded(passiveSince) {
     if (passiveSince === null) return false;
-    if (passiveSince !== engagementSerial) return true;
+    if (passiveSince !== engagementSerial || engagementSerial !== routeEntrySerial) return true;
     return Boolean(document.querySelector("#ff-discovery-results"));
   }
 
@@ -142,6 +146,7 @@
   function showRouteCue() {
     if (routeName() !== "discover") return Promise.resolve();
     if (document.querySelector("#ff-discovery-results")) return Promise.resolve();
+    if (engagementSerial !== routeEntrySerial) return Promise.resolve();
     pendingPassiveSerial = engagementSerial;
     return showExactCardEntry({ clear: false, scroll: !fullCustomerMode() });
   }
@@ -175,6 +180,7 @@
   }, true);
 
   window.addEventListener("hashchange", () => {
+    routeEntrySerial = engagementSerial;
     neutralizeLegacyWelcome();
     if (routeName() !== "discover") {
       clearDirectCue();
