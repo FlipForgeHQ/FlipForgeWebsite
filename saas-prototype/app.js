@@ -509,23 +509,38 @@
     return window.location.hash === hash && Boolean(main.querySelector(":scope > [data-ff-route-pending]"));
   }
 
+  let resignalledHash = "";
+
+  function renderRouteDidNotLoad() {
+    main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>This page didn't load</h1><p>FlipForge could not load this page. No sample data is shown in its place.</p></div></header><button class="button button-primary" type="button" onclick="window.location.reload()">Reload</button></div>`;
+  }
+
   function renderProductionRoutePlaceholder(route) {
     window.clearTimeout(unownedRouteTimer);
     main.innerHTML = `<div class="page" data-ff-route-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>`;
     const pendingHash = window.location.hash;
     const knownRoute = AUTHORITATIVE_CUSTOMER_ROUTES.has(route);
+
+    // The single re-signal below dispatches hashchange, which brings us back here.
+    // Do not start another cycle for that hash: wait once more, then stop.
+    if (resignalledHash === pendingHash) {
+      unownedRouteTimer = window.setTimeout(() => {
+        if (stillPending(pendingHash)) renderRouteDidNotLoad();
+      }, 8000);
+      return;
+    }
+    resignalledHash = "";
+
     unownedRouteTimer = window.setTimeout(() => {
       if (!stillPending(pendingHash)) return;
       if (!knownRoute) {
         main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>Page not available</h1><p>This address does not match a FlipForge page.</p></div></header><a class="button button-primary" href="#/dashboard">Go to Dashboard</a></div>`;
         return;
       }
-      // A real route whose renderer has not taken over yet: signal it once more.
+      // A real route whose renderer has not taken over yet (for example a tab that
+      // was hidden): signal it exactly once more.
+      resignalledHash = pendingHash;
       window.dispatchEvent(typeof HashChangeEvent === "function" ? new HashChangeEvent("hashchange") : new Event("hashchange"));
-      unownedRouteTimer = window.setTimeout(() => {
-        if (!stillPending(window.location.hash)) return;
-        main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>This page didn't load</h1><p>FlipForge could not load this page. No sample data is shown in its place.</p></div></header><button class="button button-primary" type="button" onclick="window.location.reload()">Reload</button></div>`;
-      }, 8000);
     }, 6000);
   }
 

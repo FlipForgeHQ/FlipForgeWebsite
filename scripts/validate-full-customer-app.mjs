@@ -46,6 +46,8 @@ check(prototypeRouter.includes("if (productionCustomerApp()) {\n      renderProd
   "prototype router never paints mock pages on the production customer app");
 check(prototypeRouter.includes("data-ff-route-unavailable") && !/data-ff-route-unavailable[^`]*prototype/i.test(prototypeRouter),
   "unowned production routes say the page is unavailable instead of showing prototype data");
+check(prototypeRouter.includes("if (resignalledHash === pendingHash) {") && prototypeRouter.includes("resignalledHash = pendingHash;"),
+  "a known route is re-signalled at most once before the page reports it did not load");
 check(customer.includes('>CUSTOMER APP</span>'), "prelaunch customer document remains statically labeled CUSTOMER APP");
 check(customer.includes('window.location.replace("/")'), "raw production customer document redirects away before render");
 check(!customer.includes('<div class="prototype-banner"'), "customer document contains no beta banner");
