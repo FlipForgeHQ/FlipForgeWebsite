@@ -55,11 +55,11 @@ html body.ff-home-visual-review .ff-ds-price{
 }
 html body.ff-home-visual-review .ff-ds-price small{color:#B7C0C9;font-size:11px;line-height:1.2;letter-spacing:.055em}
 html body.ff-home-visual-review .ff-ds-price strong{color:#fff;font-size:clamp(22px,2.1vw,30px);line-height:1}
-html body.ff-home-visual-review .ff-ds-price:nth-child(1){top:8%;left:7%;transform:rotate(-9deg)}
-html body.ff-home-visual-review .ff-ds-price:nth-child(2){top:4%;right:7%;transform:rotate(8deg)}
-html body.ff-home-visual-review .ff-ds-price:nth-child(3){top:35%;left:34%;z-index:2;transform:rotate(-3deg)}
-html body.ff-home-visual-review .ff-ds-price:nth-child(4){bottom:5%;left:5%;transform:rotate(8deg)}
-html body.ff-home-visual-review .ff-ds-price:nth-child(5){bottom:6%;right:8%;transform:rotate(-7deg)}
+html body.ff-home-visual-review .ff-ds-price:nth-child(1){--price-index:0;top:8%;left:7%;transform:rotate(-9deg)}
+html body.ff-home-visual-review .ff-ds-price:nth-child(2){--price-index:1;top:4%;right:7%;transform:rotate(8deg)}
+html body.ff-home-visual-review .ff-ds-price:nth-child(3){--price-index:2;top:35%;left:34%;z-index:2;transform:rotate(-3deg)}
+html body.ff-home-visual-review .ff-ds-price:nth-child(4){--price-index:3;bottom:5%;left:5%;transform:rotate(8deg)}
+html body.ff-home-visual-review .ff-ds-price:nth-child(5){--price-index:4;bottom:6%;right:8%;transform:rotate(-7deg)}
 html body.ff-home-visual-review .ff-ds-unanswered{text-align:center;margin:2px 22px 22px}
 html body.ff-home-visual-review .ff-ds-unanswered strong{font-size:clamp(22px,2.5vw,31px);line-height:1.15;letter-spacing:-.028em}
 html body.ff-home-visual-review .ff-ds-unanswered p{margin:11px 0 0;color:#C8D0D8;font-size:14px;line-height:1.5}
@@ -86,6 +86,12 @@ html body.ff-home-visual-review .ff-ds-pillar{
 }
 html body.ff-home-visual-review .ff-ds-pillar b{color:#D4AF37;font-size:11px;letter-spacing:.085em}
 html body.ff-home-visual-review .ff-ds-pillar span{font-size:12px;line-height:1.35;font-weight:700}
+html body.ff-home-visual-review .ff-ds-pillar:nth-child(1){--step-index:0}
+html body.ff-home-visual-review .ff-ds-pillar:nth-child(2){--step-index:1}
+html body.ff-home-visual-review .ff-ds-pillar:nth-child(3){--step-index:2}
+html body.ff-home-visual-review .ff-ds-filters span:nth-child(1){--filter-index:0}
+html body.ff-home-visual-review .ff-ds-filters span:nth-child(2){--filter-index:1}
+html body.ff-home-visual-review .ff-ds-filters span:nth-child(3){--filter-index:2}
 html body.ff-home-visual-review .ff-ds-filters{
   display:flex;justify-content:center;flex-wrap:wrap;gap:7px;max-width:540px;
 }
