@@ -54,13 +54,81 @@ function protectedApiRequest(input) {
   }
 }
 
+// Protected API requests currently in flight, and how many of them are waiting to
+// retry after losing a server-side session-renewal race.
+let protectedInFlight = 0;
+let raceRetriesWaiting = 0;
+const inFlightListeners = new Set();
+const RACE_SETTLE_TIMEOUT_MS = 10000;
+
+function notifyInFlight() {
+  for (const listener of [...inFlightListeners]) listener();
+}
+
+function otherRequestsSettled() {
+  return protectedInFlight - raceRetriesWaiting <= 0;
+}
+
+function waitForOtherRequests() {
+  if (otherRequestsSettled()) return Promise.resolve();
+  return new Promise(resolve => {
+    const done = () => {
+      if (!otherRequestsSettled()) return;
+      inFlightListeners.delete(done);
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      inFlightListeners.delete(done);
+      resolve();
+    }, RACE_SETTLE_TIMEOUT_MS);
+    inFlightListeners.add(done);
+  });
+}
+
+function replayableRequest(input, init) {
+  if (input && typeof input === "object" && !(input instanceof URL) && input.body) return false;
+  const body = init?.body;
+  return body === undefined || body === null || typeof body === "string" || body instanceof URLSearchParams;
+}
+
+// When parallel requests reach the gateway with an expired access token, the
+// first renews the session (rotating the refresh token) and the others can be
+// answered 401. Retry such a 401 exactly once, after every other in-flight
+// request has settled so the renewed cookie is in place. A genuine sign-out
+// still ends in 401: this never manufactures access.
+async function recoverFromSessionRenewalRace(args, response, refetch) {
+  try {
+    if (!response || response.status !== 401 || typeof refetch !== "function") return null;
+    if (!protectedApiRequest(args?.[0]) || !replayableRequest(args?.[0], args?.[1])) return null;
+    const payload = await response.clone().json().catch(() => null);
+    if (payload?.error?.code !== "AUTHENTICATION_REQUIRED") return null;
+    raceRetriesWaiting += 1;
+    try {
+      await waitForOtherRequests();
+    } finally {
+      raceRetriesWaiting -= 1;
+    }
+    return await refetch();
+  } catch (_) {
+    return null;
+  }
+}
+
 function installApiSessionRenewal() {
   if (window.__flipForgeApiSessionRenewalV1 || typeof window.fetch !== "function") return;
   window.__flipForgeApiSessionRenewalV1 = true;
   const nativeFetch = window.fetch.bind(window);
   window.fetch = async (input, init) => {
-    if (protectedApiRequest(input)) await ensureFreshSession();
-    return nativeFetch(input, init);
+    if (!protectedApiRequest(input)) return nativeFetch(input, init);
+    protectedInFlight += 1;
+    try {
+      await ensureFreshSession();
+      return await nativeFetch(input, init);
+    } finally {
+      protectedInFlight -= 1;
+      notifyInFlight();
+    }
   };
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") ensureFreshSession();
@@ -187,6 +255,7 @@ window.FlipForgeIdentity = Object.freeze({
   getUser: () => state.user,
   getSnapshot: () => identitySnapshot(),
   ensureFreshSession: () => ensureFreshSession(),
+  recoverFromSessionRenewalRace: (args, response, refetch) => recoverFromSessionRenewalRace(args, response, refetch),
   refresh: async () => {
     const nextUser = await getUser();
     setAuthenticatedUser(nextUser);

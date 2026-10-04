@@ -77,7 +77,15 @@
     window.__ffEarlyAuthoritativeAuthObserverInstalled = true;
     const nativeFetch = window.fetch.bind(window);
     window.fetch = async (...args) => {
-      const response = await fetchWithAuthoritativeTimeout(nativeFetch, args);
+      let response = await fetchWithAuthoritativeTimeout(nativeFetch, args);
+      if (response && response.status === 401 && authoritativeApiRequest(args[0])
+          && typeof window.FlipForgeIdentity?.recoverFromSessionRenewalRace === "function") {
+        // A parallel request may have just renewed the session; retry once with the
+        // renewed cookie before treating this as signed out.
+        const retried = await window.FlipForgeIdentity.recoverFromSessionRenewalRace(
+          args, response, () => fetchWithAuthoritativeTimeout(nativeFetch, args));
+        if (retried) response = retried;
+      }
       publishAuthoritativeAuthState(args[0], response);
       return response;
     };
