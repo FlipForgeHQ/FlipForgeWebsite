@@ -152,7 +152,7 @@ html body.ff-home-visual-review .hero-visual .ff-approved-hero figcaption{
   color:rgba(255,255,255,.72)!important;
   background:#090a0b;
 }
-/* One authoritative visual walkthrough instead of two competing pseudo-films. */
+/* The existing 30-second film and Decision Forge stay available; each gains a clearer hierarchy. */
 html body.ff-home-visual-review .ff-decision-forge{
   padding:104px 0 108px;
   border-block:1px solid rgba(212,175,55,.12);
@@ -408,5 +408,169 @@ html body.ff-home-visual-review .final p{
   }
   html body.ff-home-visual-review .hero-actions a:hover{
     transform:none;
+  }
+}
+
+
+/* Approved example data: retained for governance/CI, but rebuilt as legible panels. */
+html body.ff-home-visual-review .hero-visual .ff-approved-data-summary{
+  width:min(100%,1320px);
+  margin:17px auto 0;
+  border-radius:14px;
+  border-color:rgba(212,175,55,.17);
+  background:#08090a;
+  box-shadow:0 18px 50px rgba(0,0,0,.30);
+}
+html body.ff-home-visual-review .ff-approved-data-summary>span{
+  padding:20px 22px;
+  border-right-color:rgba(255,255,255,.085);
+}
+html body.ff-home-visual-review .ff-approved-data-summary small{
+  color:rgba(255,255,255,.72)!important;
+  font-size:12px!important;
+  font-weight:720;
+  letter-spacing:.10em;
+}
+html body.ff-home-visual-review .ff-approved-data-summary strong,
+html body.ff-home-visual-review .ff-approved-data-summary b{
+  color:#D4AF37!important;
+  font-size:clamp(15px,1.5vw,22px)!important;
+  line-height:1.32!important;
+  margin-top:8px;
+}
+html body.ff-home-visual-review .ff-approved-data-summary p{
+  padding:13px 22px;
+  text-align:center;
+  font-size:14px!important;
+  line-height:1.6!important;
+  color:rgba(255,255,255,.73)!important;
+}
+html body.ff-home-visual-review .film-section{
+  padding:82px 0 88px;
+  background:#020304;
+  border-top:1px solid rgba(212,175,55,.1);
+}
+html body.ff-home-visual-review .film-section .wrap{
+  width:min(1210px,calc(100% - 76px));
+}
+html body.ff-home-visual-review .film-section .section-head h2{
+  max-width:900px;
+  font-size:clamp(38px,4vw,60px);
+  line-height:1.06;
+  margin-top:14px;
+}
+html body.ff-home-visual-review .film-section .section-head p{
+  color:rgba(255,255,255,.75);
+  font-size:17px;
+  line-height:1.65;
+}
+html body.ff-home-visual-review .film{
+  width:min(1100px,100%);
+  margin:38px auto 0;
+  border-radius:20px;
+  overflow:hidden;
+  border-color:rgba(212,175,55,.20);
+  background:#08090b;
+}
+html body.ff-home-visual-review .film-head{
+  min-height:54px;
+  height:auto;
+  padding:12px 24px;
+  font-size:12px;
+}
+html body.ff-home-visual-review .film .screen{
+  min-height:520px;
+  background:radial-gradient(ellipse at 70% 20%,rgba(212,175,55,.07),transparent 62%),#050607;
+}
+html body.ff-home-visual-review .film .scene{
+  inset:36px;
+}
+html body.ff-home-visual-review .film .scene-label{
+  font-size:12px;
+  color:#D4AF37;
+}
+html body.ff-home-visual-review .film .scene h3{
+  line-height:1.08;
+}
+html body.ff-home-visual-review .film .scene p{
+  font-size:16px;
+  line-height:1.6;
+  color:rgba(255,255,255,.77);
+}
+html body.ff-home-visual-review .film .identity small,
+html body.ff-home-visual-review .film .valuebox small,
+html body.ff-home-visual-review .film .call small{
+  font-size:11px;
+}
+html body.ff-home-visual-review .film .identity b{
+  font-size:14px;
+}
+html body.ff-home-visual-review .film .comp small{
+  font-size:10px;
+}
+html body.ff-home-visual-review .film .confirm,
+html body.ff-home-visual-review .film .vo{
+  font-size:13px;
+}
+html body.ff-home-visual-review .film .vo b{
+  font-size:11px;
+}
+html body.ff-home-visual-review .film .controls{
+  height:64px;
+  padding:0 24px;
+}
+html body.ff-home-visual-review .film .play{
+  width:42px;
+  height:42px;
+}
+html body.ff-home-visual-review .film .time{
+  font-size:12px;
+}
+@media(max-width:700px){
+  html body.ff-home-visual-review .ff-approved-data-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  html body.ff-home-visual-review .ff-approved-data-summary>span{
+    padding:14px 13px;
+  }
+  html body.ff-home-visual-review .ff-approved-data-summary strong,
+  html body.ff-home-visual-review .ff-approved-data-summary b{
+    font-size:15px!important;
+    overflow-wrap:anywhere;
+  }
+  html body.ff-home-visual-review .ff-approved-data-summary p{
+    padding:12px;
+    text-align:left;
+  }
+  html body.ff-home-visual-review .film-section{
+    padding:54px 0 62px;
+  }
+  html body.ff-home-visual-review .film-section .wrap{
+    width:calc(100% - 32px);
+  }
+  html body.ff-home-visual-review .film .screen{
+    min-height:575px;
+    padding:18px;
+  }
+  html body.ff-home-visual-review .film .scene{
+    inset:20px;
+  }
+  html body.ff-home-visual-review .film .scene p{
+    font-size:14px;
+  }
+  html body.ff-home-visual-review .film .comp small{
+    font-size:9px;
+    overflow-wrap:anywhere;
+  }
+  html body.ff-home-visual-review .film .vo{
+    left:14px;
+    right:14px;
+    bottom:13px;
+    font-size:11px;
+  }
+  html body.ff-home-visual-review .film-head{
+    gap:12px;
+    font-size:10px;
+    flex-wrap:wrap;
   }
 }
