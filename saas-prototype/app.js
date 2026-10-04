@@ -487,10 +487,37 @@
     navToggle.setAttribute("aria-expanded", "false");
   }
 
+  // On the production customer app the authoritative renderers own every page.
+  // This prototype router must never paint mock pages there: it shows a neutral
+  // loading state, and if no authoritative renderer takes the route it says the
+  // page is unavailable instead of falling back to prototype data.
+  const PRODUCTION_CUSTOMER_HOST = /^(?:www\.)?goflipforge\.com$/i;
+  let unownedRouteTimer = 0;
+
+  function productionCustomerApp() {
+    return window.FlipForgeFullCustomerEntry === true
+      && PRODUCTION_CUSTOMER_HOST.test(String(window.location.hostname || ""));
+  }
+
+  function renderProductionRoutePlaceholder() {
+    window.clearTimeout(unownedRouteTimer);
+    main.innerHTML = `<div class="page" data-ff-route-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>`;
+    const pendingHash = window.location.hash;
+    unownedRouteTimer = window.setTimeout(() => {
+      if (window.location.hash !== pendingHash || !main.querySelector(":scope > [data-ff-route-pending]")) return;
+      main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>Page not available</h1><p>This address does not match a FlipForge page.</p></div></header><a class="button button-primary" href="#/dashboard">Go to Dashboard</a></div>`;
+    }, 6000);
+  }
+
   function renderRoute() {
     const [route, id] = routeParts();
     setActiveNavigation();
     closeNavigation();
+
+    if (productionCustomerApp()) {
+      renderProductionRoutePlaceholder();
+      return;
+    }
 
     switch (route) {
       case "dashboard": renderDashboard(); break;
