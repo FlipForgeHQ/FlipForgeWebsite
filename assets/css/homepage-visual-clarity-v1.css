@@ -39,7 +39,7 @@ html body.ff-home-visual-review .hero .kicker{
 html body.ff-home-visual-review main#main .hero h1{
   max-width:1040px;
   margin:0 auto;
-  font-size:clamp(54px,5.85vw,88px);
+  font-size:clamp(52px,5.1vw,76px);
   line-height:1.025;
   letter-spacing:-.052em;
   font-weight:760;
