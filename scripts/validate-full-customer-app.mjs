@@ -40,6 +40,12 @@ check(activeRedirects.includes("/app /production-auth.html?return=%2Fapp%2Fbeta%
 check(activeRedirects.indexOf("/app/beta/* /saas-prototype/:splat 200") < activeRedirects.indexOf("/app/* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302"), "beta wildcard precedes generic app fail-closed redirect");
 
 check(customer.includes('window.FlipForgeFullCustomerEntry=true'), "customer document hard-marks full customer entry before app scripts");
+const prototypeRouter = read("saas-prototype/app.js");
+check(prototypeRouter.includes("if (productionCustomerApp()) {\n      renderProductionRoutePlaceholder(route);\n      return;\n    }")
+  && prototypeRouter.indexOf("if (productionCustomerApp()) {") < prototypeRouter.indexOf("switch (route) {"),
+  "prototype router never paints mock pages on the production customer app");
+check(prototypeRouter.includes("data-ff-route-unavailable") && !/data-ff-route-unavailable[^`]*prototype/i.test(prototypeRouter),
+  "unowned production routes say the page is unavailable instead of showing prototype data");
 check(customer.includes('>CUSTOMER APP</span>'), "prelaunch customer document remains statically labeled CUSTOMER APP");
 check(customer.includes('window.location.replace("/")'), "raw production customer document redirects away before render");
 check(!customer.includes('<div class="prototype-banner"'), "customer document contains no beta banner");
