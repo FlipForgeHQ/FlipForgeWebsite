@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 920" role="img" aria-labelledby="title description">
+<title id="title">Illustrative collectible card in a transparent protective slab</title>
+<desc id="description">Invented black-and-gold sports-card artwork with a stylized athlete silhouette and an illustrative card identity label. Not a real graded or marketed card.</desc>
+<defs>
+  <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FCFEFF"/><stop offset=".18" stop-color="#596069"/><stop offset=".39" stop-color="#F5F9FC"/><stop offset=".72" stop-color="#404850"/><stop offset="1" stop-color="#F3F7FA"/></linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#EBF0F8" stop-opacity=".22"/><stop offset=".19" stop-color="#FAFDFF" stop-opacity=".055"/><stop offset=".51" stop-color="#DCE4ED" stop-opacity=".015"/><stop offset=".84" stop-color="#EDF6FF" stop-opacity=".19"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".07"/></linearGradient>
+  <linearGradient id="art" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151E25"/><stop offset=".36" stop-color="#04070B"/><stop offset=".68" stop-color="#17202A"/><stop offset="1" stop-color="#080B0D"/></linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#F3E2A6"/><stop offset=".3" stop-color="#D4AF37"/><stop offset=".74" stop-color="#8D651B"/><stop offset="1" stop-color="#F6D974"/></linearGradient>
+  <linearGradient id="label" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#F8FBFF"/><stop offset=".5" stop-color="#CCD0D3"/><stop offset="1" stop-color="#FCFEFF"/></linearGradient>
+  <radialGradient id="aurora"><stop stop-color="#D4AF37" stop-opacity=".35"/><stop offset="1" stop-color="#D4AF37" stop-opacity="0"/></radialGradient>
+  <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="7" dy="32" stdDeviation="24" flood-opacity=".5"/></filter>
+  <clipPath id="cardclip"><rect x="68" y="234" width="525" height="604" rx="9"/></clipPath>
+</defs>
+<ellipse cx="347" cy="460" rx="276" ry="401" fill="url(#aurora)" opacity=".37" filter="url(#blur)"/>
+<g filter="url(#shadow)">
+  <rect x="30" y="29" width="606" height="862" rx="30" fill="#14181E" stroke="#4E555E" stroke-width="3"/>
+  <rect x="36" y="35" width="594" height="849" rx="25" fill="#090C10" stroke="url(#edge)" stroke-width="11"/>
+  <rect x="50" y="49" width="566" height="820" rx="18" fill="url(#glass)" stroke="#D5D9DE" stroke-opacity=".31" stroke-width="3"/>
+  <rect x="62" y="63" width="542" height="158" rx="6" fill="url(#label)"/>
+  <path d="M62 65h542v13H62Z" fill="#0A0F16"/>
+  <path d="M62 78h542v7H62Z" fill="url(#gold)"/>
+  <text x="85" y="124" font-family="Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="3.4" fill="#14191F">ILLUSTRATIVE CARD</text>
+  <text x="85" y="157" font-family="Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="1.8" fill="#383F46">IDENTITY FIRST · NO LIVE DATA</text>
+  <text x="86" y="192" font-family="Arial,sans-serif" font-size="14" font-weight="600" letter-spacing="1.5" fill="#4F565F">SAMPLE   /   PARALLEL REVIEW   /   #001</text>
+  <path d="M516 99h70v91h-70Z" fill="#10151A" rx="4"/>
+  <path d="M530 114h44v60h-44Z" fill="none" stroke="#D4AF37" stroke-width="2" />
+  <path d="M552 123l17 10v20l-17 10-17-10v-20Z" fill="url(#gold)" opacity=".93"/>
+  <path d="M535 133l17 10 17-10m-17 10v20" fill="none" stroke="#070909" stroke-width="3"/>
+  <rect x="61" y="227" width="544" height="619" rx="11" fill="#060809" stroke="#E2EAEE" stroke-opacity=".26" stroke-width="3"/>
+  <g clip-path="url(#cardclip)">
+    <rect x="68" y="234" width="525" height="604" fill="url(#art)"/>
+    <circle cx="358" cy="525" r="280" fill="url(#aurora)" opacity=".72"/>
+    <g stroke="#D4AF37" fill="none">
+      <ellipse cx="355" cy="510" rx="230" ry="230" opacity=".16" stroke-width="3"/>
+      <ellipse cx="355" cy="510" rx="170" ry="170" opacity=".22" stroke-width="2"/>
+      <ellipse cx="355" cy="510" rx="100" ry="100" opacity=".27" stroke-width="2"/>
+      <path d="M64 448H596M64 586H596M250 228v610M458 228v610" opacity=".085" stroke-width="2"/>
+      <path d="M35 724l590-405M25 824l600-405" opacity=".18" stroke-width="4"/>
+    </g>
+    <g fill="#D4AF37" opacity=".45">
+      <circle cx="112" cy="313" r="3"/><circle cx="554" cy="357" r="3"/><circle cx="90" cy="601" r="2.8"/>
+      <circle cx="502" cy="729" r="2"/><circle cx="462" cy="264" r="2.5"/>
+    </g>
+    <!-- Stylized fictional athlete; not a real person or identifiable licensed card. -->
+    <g fill="#111922" stroke="url(#gold)" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M334 363c30-2 54-24 62-54 9-33-6-59-29-70-35-15-70 6-75 44-3 29 11 60 42 80Z"/>
+      <path d="M325 364c-35 6-67 38-83 79-15 40-14 83 3 127l49 65 37-39-13-86 32-30 17 97 53 51 39-41-55-73-8-98c-3-34-39-58-71-52Z"/>
+      <path d="M259 403l-74 79-76 19 12 45 109-12 92-74"/>
+      <path d="M389 406l81 65 82-3 4 44-114 19-67-49"/>
+      <path d="M286 625l-64 86-104 47 21 44 145-44 88-102"/>
+      <path d="M404 621l55 87 93 44-21 48-131-38-85-98"/>
+    </g>
+    <path d="M113 771h427" stroke="#D4AF37" opacity=".68" stroke-width="3"/>
+    <text x="330" y="805" text-anchor="middle" fill="#FBF9EF" font-family="Arial,sans-serif" font-weight="750" font-size="23" letter-spacing="4.5">THE EXACT CARD MATTERS</text>
+    <path d="M86 241h490" stroke="#F4DEA5" opacity=".57" stroke-width="3"/>
+  </g>
+  <rect x="44" y="43" width="578" height="832" rx="26" fill="none" stroke="#FFFFFF" stroke-opacity=".24" stroke-width="2"/>
+  <path d="M45 87C140 50 230 58 403 60M44 850l80 22" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-opacity=".24" stroke-linecap="round"/>
+  <path d="M602 100v700" fill="none" stroke="#FFFFFF" stroke-width="9" opacity=".11"/>
+</g>
+</svg>
