@@ -41,7 +41,7 @@ check(activeRedirects.indexOf("/app/beta/* /saas-prototype/:splat 200") < active
 
 check(customer.includes('window.FlipForgeFullCustomerEntry=true'), "customer document hard-marks full customer entry before app scripts");
 const prototypeRouter = read("saas-prototype/app.js");
-check(prototypeRouter.includes("if (productionCustomerApp()) {\n      renderProductionRoutePlaceholder();\n      return;\n    }")
+check(prototypeRouter.includes("if (productionCustomerApp()) {\n      renderProductionRoutePlaceholder(route);\n      return;\n    }")
   && prototypeRouter.indexOf("if (productionCustomerApp()) {") < prototypeRouter.indexOf("switch (route) {"),
   "prototype router never paints mock pages on the production customer app");
 check(prototypeRouter.includes("data-ff-route-unavailable") && !/data-ff-route-unavailable[^`]*prototype/i.test(prototypeRouter),

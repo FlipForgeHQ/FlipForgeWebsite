@@ -499,13 +499,33 @@
       && PRODUCTION_CUSTOMER_HOST.test(String(window.location.hostname || ""));
   }
 
-  function renderProductionRoutePlaceholder() {
+  const AUTHORITATIVE_CUSTOMER_ROUTES = new Set([
+    "dashboard", "discover", "evaluate", "opportunities", "tracking", "portfolio", "alerts", "account",
+    "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell", "export",
+    "decision-intelligence", "beta-start"
+  ]);
+
+  function stillPending(hash) {
+    return window.location.hash === hash && Boolean(main.querySelector(":scope > [data-ff-route-pending]"));
+  }
+
+  function renderProductionRoutePlaceholder(route) {
     window.clearTimeout(unownedRouteTimer);
     main.innerHTML = `<div class="page" data-ff-route-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>`;
     const pendingHash = window.location.hash;
+    const knownRoute = AUTHORITATIVE_CUSTOMER_ROUTES.has(route);
     unownedRouteTimer = window.setTimeout(() => {
-      if (window.location.hash !== pendingHash || !main.querySelector(":scope > [data-ff-route-pending]")) return;
-      main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>Page not available</h1><p>This address does not match a FlipForge page.</p></div></header><a class="button button-primary" href="#/dashboard">Go to Dashboard</a></div>`;
+      if (!stillPending(pendingHash)) return;
+      if (!knownRoute) {
+        main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>Page not available</h1><p>This address does not match a FlipForge page.</p></div></header><a class="button button-primary" href="#/dashboard">Go to Dashboard</a></div>`;
+        return;
+      }
+      // A real route whose renderer has not taken over yet: signal it once more.
+      window.dispatchEvent(typeof HashChangeEvent === "function" ? new HashChangeEvent("hashchange") : new Event("hashchange"));
+      unownedRouteTimer = window.setTimeout(() => {
+        if (!stillPending(window.location.hash)) return;
+        main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>This page didn't load</h1><p>FlipForge could not load this page. No sample data is shown in its place.</p></div></header><button class="button button-primary" type="button" onclick="window.location.reload()">Reload</button></div>`;
+      }, 8000);
     }, 6000);
   }
 
@@ -515,7 +535,7 @@
     closeNavigation();
 
     if (productionCustomerApp()) {
-      renderProductionRoutePlaceholder();
+      renderProductionRoutePlaceholder(route);
       return;
     }
 
