@@ -15,15 +15,16 @@
   }
   function clearPending(){try{localStorage.removeItem(PENDING_KEY)}catch{}}
 
+  // Styling is served from /assets/css/flipforge-identity-v1.css. Invitation emails
+  // land on the homepage, whose Content-Security-Policy (style-src 'self') blocks
+  // injected <style> elements.
   function ensureStyles(){
-    if(document.getElementById("ff-beta-terms-gate-style"))return;
-    const style=document.createElement("style");
-    style.id="ff-beta-terms-gate-style";
-    style.textContent=`
-      .ff-id-terms{display:grid;gap:7px;border:1px solid rgba(212,175,55,.3);border-radius:10px;background:rgba(212,175,55,.06);padding:11px 12px;margin:2px 0}.ff-id-terms label{display:flex!important;grid-template-columns:none!important;align-items:flex-start;gap:9px!important;font-size:12px!important;line-height:1.45;font-weight:700!important}.ff-id-terms input{width:auto!important;margin-top:2px}.ff-id-terms a{color:#d4af37;font-weight:900}.ff-id-terms-error{margin:0!important;color:#ff9aa5!important;font-size:11px!important}
-      .ff-terms-finalize{position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;background:rgba(3,8,18,.94);padding:24px;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f2f2f2}.ff-terms-finalize-card{width:min(520px,100%);border:1px solid rgba(212,175,55,.42);border-radius:16px;background:#07111f;padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.55)}.ff-terms-finalize-card h2{margin:0 0 8px}.ff-terms-finalize-card p{margin:0 0 14px;color:#b8c1cb;line-height:1.55}.ff-terms-finalize-actions{display:flex;gap:10px;flex-wrap:wrap}.ff-terms-finalize button{border:1px solid #d4af37;border-radius:9px;background:#d4af37;color:#030812;padding:10px 13px;font-weight:900;cursor:pointer}.ff-terms-finalize button[data-secondary]{background:transparent;color:#f2f2f2;border-color:#465365}
-    `;
-    document.head.appendChild(style);
+    if(document.getElementById("flipforge-identity-style")||document.querySelector('link[rel="stylesheet"][href$="/assets/css/flipforge-identity-v1.css"]'))return;
+    const link=document.createElement("link");
+    link.id="flipforge-identity-style";
+    link.rel="stylesheet";
+    link.href="/assets/css/flipforge-identity-v1.css";
+    document.head.appendChild(link);
   }
 
   function inviteForm(){return document.querySelector("[data-ff-identity-invite]")}
