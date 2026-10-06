@@ -223,6 +223,10 @@ if (!remoteBase) {
 await browser.close();
 
 for (const line of passes) console.log(`PASS ${line}`);
-for (const line of failures) console.log(`FAIL ${line}`);
+for (const line of failures) {
+  console.log(`FAIL ${line}`);
+  // Surface each failure as a check annotation so it is readable without the raw log.
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=Invite activation audit::${line.replace(/[\r\n]+/g, " ").slice(0, 900)}`);
+}
 console.log(`\nInvite activation audit (${remoteBase ? `remote ${remoteBase}` : "local production simulation"}): ${passes.length} passed, ${failures.length} failed`);
 process.exit(failures.length ? 1 : 0);
