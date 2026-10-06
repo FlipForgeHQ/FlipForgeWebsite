@@ -131,7 +131,7 @@ async function inspect(page) {
         const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
         return Boolean(hit) && (hit === link || link.contains(hit));
       }),
-      violations: (window.__cspViolations || []).slice(0, 5)
+      violations: (window.__cspViolations || []).slice(0, 10)
     };
   });
 }
@@ -146,7 +146,7 @@ for (const [label, viewport] of viewports) {
   await context.addInitScript(() => {
     window.__cspViolations = [];
     document.addEventListener("securitypolicyviolation", event => {
-      window.__cspViolations.push(`${event.violatedDirective} ${event.blockedURI || "inline"} from ${event.sourceFile || "document"}:${event.lineNumber || 0}`);
+      window.__cspViolations.push({ text: `${event.violatedDirective} ${event.blockedURI || "inline"} from ${event.sourceFile || "document"}:${event.lineNumber || 0}`, directive: event.violatedDirective, blockedURI: event.blockedURI || "", sourceFile: event.sourceFile || "", line: event.lineNumber || 0 });
     });
   });
   const page = await context.newPage();
@@ -159,6 +159,16 @@ for (const [label, viewport] of viewports) {
   } catch (_) {}
   await page.waitForTimeout(400);
   const info = await inspect(page);
+  // Netlify injects its deploy-preview collaboration toolbar (/.netlify/scripts/cdp and its
+  // markup) into preview HTML only; production never serves it. Exclude violations that can
+  // be traced to that injection, and nothing else.
+  let previewHtmlLines = [];
+  if (remoteBase) previewHtmlLines = (await (await page.request.get(`${base}/`)).text()).split("\n");
+  const netlifyToolbar = v => remoteBase && (/\/\.netlify\/scripts\//.test(v.sourceFile) || /(^|\.)netlify\.com(\/|$)/.test(String(v.blockedURI).replace(/^https?:\/\//, ""))
+    || (v.directive.startsWith("style-src") && /netlify/i.test(previewHtmlLines[v.line - 1] || "")));
+  const ownViolations = info.violations.filter(v => !netlifyToolbar(v)).map(v => v.text);
+  const toolbarViolations = info.violations.filter(netlifyToolbar).map(v => v.text);
+  if (toolbarViolations.length) console.log(`NOTE ${label}: ignored ${toolbarViolations.length} Netlify deploy-preview toolbar CSP report(s): ${toolbarViolations.join(" | ")}`);
   if (process.env.INVITE_AUDIT_SCREENSHOTS) await page.screenshot({ path: path.join(process.env.INVITE_AUDIT_SCREENSHOTS, `invite-${remoteBase ? "remote" : "local"}-${label}.png`) }).catch(() => {});
   const tag = `${label} ${viewport.width}x${viewport.height}`;
 
@@ -170,7 +180,7 @@ for (const [label, viewport] of viewports) {
   check(`015 ${tag}: Beta Terms consent is part of activation`, info.termsPresent);
   check(`016 ${tag}: Activate button reachable inside the dialog`, info.submitInViewport || (info.submitBox && info.dialogBox && info.submitBox.top < info.dialogBox.bottom + 1000), JSON.stringify(info.submitBox));
   check(`016b ${tag}: "Request Beta Access" cannot be clicked while activating`, !info.funnelClickable);
-  check(`017 ${tag}: no Content-Security-Policy violations`, info.violations.length === 0, info.violations.join(" | "));
+  check(`017 ${tag}: no Content-Security-Policy violations`, ownViolations.length === 0, ownViolations.join(" | "));
   check(`018 ${tag}: invitation token removed from the address bar`, !/invite_token/.test(info.hash), info.hash);
 
   if (!remoteBase) {
