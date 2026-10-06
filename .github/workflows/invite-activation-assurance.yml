@@ -1,0 +1,94 @@
+name: Invite Activation Assurance
+
+# Invitation emails land on https://goflipforge.com/#invite_token=<token>. The activation
+# dialog must be visible immediately on desktop and mobile under the real homepage
+# Content-Security-Policy, and a successful activation must open the Private Beta
+# workspace, never the public beta application funnel.
+
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "netlify.toml"
+      - "package.json"
+      - "assets/css/flipforge-identity-v1.css"
+      - "assets/js/beta-invite-terms-gate.js"
+      - "scripts/lib/flipforge-identity-client.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "scripts/inject-beta-invite-terms-gate.mjs"
+      - "scripts/audit-invite-activation-ci.mjs"
+      - ".github/workflows/invite-activation-assurance.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-simulation:
+    name: Invite activation under production host and CSP
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build Identity client and Beta Terms gate exactly as production does
+        run: |
+          npm run build:identity
+          node scripts/inject-beta-invite-terms-gate.mjs
+
+      - name: Install Playwright for browser QA
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Gate invite activation visibility and workspace handoff
+        run: node scripts/audit-invite-activation-ci.mjs
+
+  deploy-preview:
+    name: Invite activation on the Netlify deploy preview
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Wait for this commit's deploy preview
+        env:
+          PREVIEW_URL: https://deploy-preview-${{ github.event.pull_request.number }}--goflipforge.netlify.app
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          for attempt in $(seq 1 60); do
+            commit=$(curl --silent --fail "$PREVIEW_URL/deploy-meta.json?ci=$attempt" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).commitRef||"")}catch{console.log("")}})' || true)
+            if [ "$commit" = "$HEAD_SHA" ]; then echo "Deploy preview is serving $HEAD_SHA"; exit 0; fi
+            echo "Waiting for deploy preview (serving: ${commit:-none})"
+            sleep 15
+          done
+          echo "Deploy preview did not serve $HEAD_SHA within 15 minutes"
+          exit 1
+
+      - name: Install Playwright for browser QA
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Gate invite activation visibility on the real deploy preview
+        env:
+          INVITE_AUDIT_BASE_URL: https://deploy-preview-${{ github.event.pull_request.number }}--goflipforge.netlify.app
+        run: node scripts/audit-invite-activation-ci.mjs
