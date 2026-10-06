@@ -43,8 +43,18 @@
   }
 
   function numberOrNull(value) {
+    // Number(null) and Number("") are 0. A missing server value must stay missing:
+    // rendering it as $0 (and computing a Value Gap against it) presents a value the
+    // authoritative service never returned.
+    if (value === null || value === undefined) return null;
+    if (typeof value === "string" && value.trim() === "") return null;
+    if (typeof value !== "number" && typeof value !== "string") return null;
     const number = Number(value);
     return Number.isFinite(number) ? number : null;
+  }
+
+  function supportedValueText(value) {
+    return numberOrNull(value) === null ? "Not established" : money(value);
   }
 
   function safeNumber(value) {
@@ -230,7 +240,7 @@
             <p>${escapeHtml(identity)}</p>
             <div class="ff-decision-stats">
               <div><span>Ask</span><strong>${escapeHtml(money(ask))}</strong></div>
-              <div><span>Supported value</span><strong>${escapeHtml(money(supported))}</strong></div>
+              <div><span>Supported value</span><strong>${escapeHtml(supportedValueText(supported))}</strong></div>
               <div><span>Value gap</span><strong class="${gap !== null && gap > 0 ? "ff-positive" : ""}">${gap === null ? "—" : escapeHtml(money(gap))}</strong></div>
               <div><span>Exact accepted sales</span><strong>${exactSales === null ? "—" : escapeHtml(integer(exactSales))}</strong></div>
             </div>
@@ -280,7 +290,7 @@
       const href = SAFE_ID.test(id) ? `#/opportunities/${encodeURIComponent(id)}` : "#/opportunities";
       const title = item.title || item.cardIdentity || id || "Saved decision";
       const exactSales = numberOrNull(item.evidence && item.evidence.acceptedSales);
-      return `<tr><td><a href="${href}">${escapeHtml(title)}</a><br><small>${escapeHtml(item.cardIdentity || item.platform || "Saved record")}</small></td><td>${recommendationPill(item.recommendation)}</td><td>${escapeHtml(money(item.ask))}</td><td>${escapeHtml(money(item.supportedValue))}</td><td>${numberOrNull(item.confidence) === null ? "—" : `${Math.round(Number(item.confidence))}`}</td><td>${exactSales === null ? "—" : escapeHtml(integer(exactSales))}</td><td>${escapeHtml(item.mappingState || "UNKNOWN")}</td></tr>`;
+      return `<tr><td><a href="${href}">${escapeHtml(title)}</a><br><small>${escapeHtml(item.cardIdentity || item.platform || "Saved record")}</small></td><td>${recommendationPill(item.recommendation)}</td><td>${escapeHtml(money(item.ask))}</td><td>${escapeHtml(supportedValueText(item.supportedValue))}</td><td>${numberOrNull(item.confidence) === null ? "—" : `${Math.round(Number(item.confidence))}`}</td><td>${exactSales === null ? "—" : escapeHtml(integer(exactSales))}</td><td>${escapeHtml(item.mappingState || "UNKNOWN")}</td></tr>`;
     }).join("");
     return `<div class="ff-v2-table-wrap"><table class="ff-v2-table"><thead><tr><th>Card</th><th>Decision</th><th>Ask</th><th>Supported</th><th>Confidence</th><th>Exact sales</th><th>Mapping</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
@@ -319,7 +329,7 @@
       </header>
 
       <section class="ff-kpi-grid" aria-label="Authoritative dashboard metrics">
-        ${kpiCard("Tracked Decisions", integer(tracked), "Tenant-owned SQLite records")}
+        ${kpiCard("Tracked Decisions", integer(tracked), "Saved decisions in your account")}
         ${kpiCard("Evidence Ready", integer(evidenceReady), "Confirmed mapping with accepted sales", evidenceReady > 0 ? "good" : "neutral")}
         ${kpiCard("PSA Context", integer(populationReady), "Saved population context available")}
         ${kpiCard("Decision Confidence", focusConfidence === null ? "—" : `${Math.round(focusConfidence)}`, focus ? "Focused saved decision · not a synthetic ForgeScore" : "No saved decision available", focusConfidence !== null && focusConfidence >= 80 ? "good" : "neutral")}
@@ -400,7 +410,7 @@
       if (strong) strong.textContent = "Plan & Usage";
       if (small) small.textContent = "Plan state, evaluation usage, checkout availability, and billing access are server-owned.";
     }
-    if (productionHost()) document.title = "FlipForge | Card Intelligence";
+    if (productionHost()) document.title = "FlipForge | Card Decision Intelligence";
   }
 
   function showDashboardBanner() {

@@ -63,6 +63,10 @@ body.ff-commercial-shell {
 
 .ff-commercial-shell .primary-nav {
   gap: 2px;
+  /* The nav fills the sidebar height (flex: 1). Without this, a short nav (Private Beta
+     shows four links) stretches each grid row to ~167px on desktop. */
+  align-content: start;
+  grid-auto-rows: max-content;
 }
 
 .ff-commercial-shell .primary-nav a {
