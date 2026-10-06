@@ -6,6 +6,10 @@ const reauthRequested = new URLSearchParams(window.location.search).get("reauth"
 const PRIVATE_BETA_START = "/app/beta/#/beta-start";
 const OWNER_HUB = "/owner";
 const OPERATOR_ROLE = "flipforge-operator";
+const TERMS_PENDING_ROLE = "flipforge-terms-pending";
+// Must equal BETA_TERMS_VERSION in netlify/modern-functions/beta-terms-acceptance.mjs.
+const BETA_TERMS_VERSION = "2026-08-15";
+const TERMS_ENDPOINT = "/api/beta/terms-acceptance";
 
 const form = document.querySelector("[data-production-auth-form]");
 const emailInput = document.querySelector("[data-production-auth-email]");
@@ -17,6 +21,9 @@ const returnLink = document.querySelector("[data-production-auth-return]");
 const ownerLink = document.querySelector("[data-production-auth-owner]");
 const status = document.querySelector("[data-production-auth-status]");
 const result = document.querySelector("[data-production-auth-result]");
+const termsPanel = document.querySelector("[data-production-auth-terms]");
+const termsCheckbox = document.querySelector("[data-production-auth-terms-accept]");
+const termsButton = document.querySelector("[data-production-auth-terms-submit]");
 
 let currentUser = null;
 
@@ -37,6 +44,28 @@ function isOperatorAccount(user) {
   return roles.includes(OPERATOR_ROLE) || String(user.role || "") === "admin";
 }
 
+function rolesOf(user) {
+  if (!user) return [];
+  const metadata = user.appMetadata || user.app_metadata || {};
+  return [
+    ...(Array.isArray(user.roles) ? user.roles : []),
+    ...(Array.isArray(metadata.roles) ? metadata.roles : [])
+  ].map(value => String(value || "").trim());
+}
+
+function hideTerms() {
+  if (!termsPanel) return;
+  termsPanel.hidden = true;
+  if (termsCheckbox) termsCheckbox.checked = false;
+  if (termsButton) termsButton.disabled = true;
+}
+
+function showTerms() {
+  if (!termsPanel) return;
+  termsPanel.hidden = false;
+  if (termsButton) termsButton.disabled = !termsCheckbox?.checked;
+}
+
 function updateOwnerLink() {
   if (!ownerLink) return;
   ownerLink.href = OWNER_HUB;
@@ -54,6 +83,7 @@ function setSignedIn(user) {
   returnLink.hidden = true;
   returnLink.href = safeReturnPath();
   updateOwnerLink();
+  hideTerms();
   if (currentUser) setStatus(`Signed in as ${currentUser.email || "FlipForge user"}. Verifying Private Beta access…`, "neutral");
   else setStatus("Sign in with your invited Private Beta account.", "neutral");
 }
@@ -153,6 +183,41 @@ signOutButton?.addEventListener("click", async () => {
   }
 });
 
+termsCheckbox?.addEventListener("change", () => {
+  if (termsButton) termsButton.disabled = !termsCheckbox.checked;
+});
+
+termsButton?.addEventListener("click", async () => {
+  if (!hostAllowed || !currentUser || termsButton.disabled || !termsCheckbox?.checked) return;
+  termsButton.disabled = true;
+  result.textContent = "Saving your acceptance of the Private Beta Terms…";
+  result.dataset.tone = "neutral";
+  try {
+    const response = await fetch(TERMS_ENDPOINT, {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      redirect: "error",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accepted: true, termsVersion: BETA_TERMS_VERSION })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.activated === false) {
+      throw new Error(payload.reason || "TERMS_RECORD_FAILED");
+    }
+    hideTerms();
+    if (await verifyAccess()) {
+      setStatus("Private Beta Terms accepted. Opening your workspace…", "ok");
+      window.location.assign(PRIVATE_BETA_START);
+    }
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "TERMS_RECORD_FAILED";
+    result.textContent = `FlipForge could not save your Terms acceptance (${code}). Try again, or contact support@goflipforge.com.`;
+    result.dataset.tone = "error";
+    showTerms();
+  }
+});
+
 async function verifyAccess() {
   if (!currentUser) return false;
   result.textContent = "Verifying active Private Beta membership…";
@@ -180,6 +245,14 @@ async function verifyAccess() {
       result.textContent = "Your beta sign-in session needs to be refreshed. Sign out, then sign in again.";
     } else if (response.status === 403 && isOperatorAccount(currentUser)) {
       result.textContent = "This is an operator account, not a Private Beta tester account. Open the Owner Hub for operator tools and the customer preview.";
+    } else if (response.status === 403 && rolesOf(currentUser).includes(TERMS_PENDING_ROLE)) {
+      // Activated invitation whose Beta Terms acceptance was never recorded (for example the
+      // activation tab closed before it was saved). Offer the acceptance here instead of a dead end.
+      result.textContent = "Your invitation is activated, but the Private Beta Terms have not been accepted yet.";
+      result.dataset.tone = "neutral";
+      returnLink.hidden = true;
+      showTerms();
+      return false;
     } else if (response.status === 403) {
       result.textContent = "This account is signed in, but active Private Beta access is not enabled.";
     } else {
