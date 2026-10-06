@@ -151,7 +151,9 @@ const state = {
   inviteToken: "",
   recoveryMode: false,
   recoveryRequestOpen: false,
-  panelOpen: false
+  panelOpen: false,
+  // Set only from a server entitlements response (see noteServerMembership).
+  serverMembershipActive: false
 };
 
 function previewHost() {
@@ -233,7 +235,7 @@ function identitySnapshot(user = state.user) {
     authenticated: true,
     email: clean(user.email),
     fullName: clean(userMetadata.full_name),
-    membershipActive: roles.includes("flipforge-active") && membershipConfigured,
+    membershipActive: (roles.includes("flipforge-active") || state.serverMembershipActive === true) && membershipConfigured,
     membershipConfigured,
     operatorActive: roles.includes("flipforge-operator") || String(user.role || "") === "admin"
   });
@@ -248,6 +250,8 @@ function publishIdentityChange() {
 function setAuthenticatedUser(nextUser, { renderIfChanged = true } = {}) {
   const normalized = nextUser || null;
   if (identityFingerprint(state.user) === identityFingerprint(normalized)) return false;
+  // A different account (or sign-out) never inherits a server membership confirmation.
+  if (String(state.user?.id || "") !== String(normalized?.id || "")) state.serverMembershipActive = false;
   state.user = normalized;
   publishIdentityChange();
   if (renderIfChanged) render();
@@ -262,6 +266,19 @@ window.FlipForgeIdentity = Object.freeze({
   refresh: async () => {
     const nextUser = await getUser();
     setAuthenticatedUser(nextUser);
+    return identitySnapshot();
+  },
+  // Called by the Private Beta access gate after /api/v1/entitlements (which reads the
+  // session server-side) confirms active membership. The browser keeps the profile it
+  // received at sign-in, so roles granted later (flipforge-active after the Beta Terms are
+  // accepted) are not visible here until the next sign-in. Display-only: every FlipForge
+  // API re-verifies access on the server, so this flag grants nothing.
+  noteServerMembership: active => {
+    const next = active === true;
+    if (state.serverMembershipActive === next) return identitySnapshot();
+    state.serverMembershipActive = next;
+    publishIdentityChange();
+    render();
     return identitySnapshot();
   },
   open: () => {
@@ -384,15 +401,19 @@ function renderInvite(element) {
       await acceptInvite(state.inviteToken, password);
       state.inviteToken = "";
       setAuthenticatedUser(await getUser(), { renderIfChanged: false });
+      // When the invitation form recorded a Beta Terms acceptance, the Terms gate is now
+      // sending it to the server and opens the workspace itself once it is saved. Navigating
+      // away here could cancel that request and leave the account terms-pending.
+      const termsInFlight = Boolean(window.FlipForgeBetaTermsGate?.awaitingAcceptance?.());
       state.message = productionSiteHost()
-        ? "Account activated. Opening FlipForge Getting Started…"
+        ? termsInFlight ? "Account activated. Saving your Beta Terms acceptance…" : "Account activated. Opening FlipForge Getting Started…"
         : previewHost()
         ? "Account activated and signed in for this deploy preview."
         : "Account activated and signed in.";
       state.panelOpen = interactiveIdentityHost();
       // Activated testers go straight to the Private Beta workspace, never back
       // to the public application funnel on the page they landed on.
-      if (productionSiteHost()) window.location.assign("/app/beta/#/beta-start");
+      if (productionSiteHost() && !termsInFlight) window.location.assign("/app/beta/#/beta-start");
     } catch (error) {
       state.error = error instanceof Error ? error.message : "The invitation could not be accepted.";
     } finally {

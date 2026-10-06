@@ -15,6 +15,7 @@
     .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;min-width:0}button,.button-link{max-width:100%;border:1px solid #465365;border-radius:10px;background:#0b1727;color:#f2f2f2;padding:11px 14px;font:inherit;font-weight:800;cursor:pointer;text-decoration:none}button.primary,.button-link.primary{background:#d4af37;border-color:#d4af37;color:#030812}button:disabled{opacity:.5;cursor:not-allowed}
     .status,.result{min-width:0;margin-top:16px;padding:12px;border-radius:10px;background:#030812;border:1px solid #2f3a48;color:#c7d0da;overflow-wrap:anywhere}.status[data-tone="ok"],.result[data-tone="ok"]{border-color:#2e8b66;color:#9de4c5}.status[data-tone="error"],.result[data-tone="error"]{border-color:#a74c57;color:#ffb2bb}
     small{display:block;margin-top:18px;color:#8794a5;line-height:1.5}
+    .terms{display:grid;gap:12px;margin-top:16px;padding:14px;border:1px solid rgba(212,175,55,.35);border-radius:10px;background:rgba(212,175,55,.06)}.terms[hidden]{display:none}.terms h2{margin:0;font-size:17px}.terms p{margin:0}.terms label{display:flex;align-items:flex-start;gap:10px;font-weight:700;font-size:13px;line-height:1.45}.terms input{width:auto;margin-top:3px}.terms a{color:#d4af37;font-weight:900}
     @media(max-width:480px){body{padding:16px}main{padding:22px}.brand{width:min(290px,100%)}}
   </style>
 <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
@@ -46,6 +47,12 @@
       <a class="button-link" data-production-auth-owner href="/owner" hidden>Open Owner Hub</a>
     </div>
     <div class="result" data-production-auth-result></div>
+    <section class="terms" data-production-auth-terms hidden aria-labelledby="ff-terms-title">
+      <h2 id="ff-terms-title">One step left: accept the Private Beta Terms</h2>
+      <p>Your invitation is activated. FlipForge opens your workspace after you accept the Private Beta Terms.</p>
+      <label><input type="checkbox" data-production-auth-terms-accept><span>I have read and agree to the <a href="/beta-terms.html" target="_blank" rel="noopener">FlipForge Private Beta Terms</a>. I understand FlipForge is experimental decision support and does not guarantee a purchase outcome, profit, or grade.</span></label>
+      <div><button class="primary" type="button" data-production-auth-terms-submit disabled>Accept and open my workspace</button></div>
+    </section>
     <small>FlipForge verifies your invited account and active beta membership before opening the private workspace. The customer product is not publicly available.</small>
   </main>
   <script src="/assets/js/flipforge-production-auth-probe.js"></script>
