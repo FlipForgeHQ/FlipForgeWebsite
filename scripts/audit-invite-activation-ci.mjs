@@ -146,7 +146,7 @@ for (const [label, viewport] of viewports) {
   await context.addInitScript(() => {
     window.__cspViolations = [];
     document.addEventListener("securitypolicyviolation", event => {
-      window.__cspViolations.push(`${event.violatedDirective} ${event.blockedURI || "inline"}`);
+      window.__cspViolations.push(`${event.violatedDirective} ${event.blockedURI || "inline"} from ${event.sourceFile || "document"}:${event.lineNumber || 0}`);
     });
   });
   const page = await context.newPage();
