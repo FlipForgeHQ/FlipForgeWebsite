@@ -5,6 +5,7 @@ import {
   onAuthChange,
   requestPasswordRecovery
 } from "@netlify/identity";
+import { friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
 
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const PRODUCTION_APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
@@ -273,7 +274,7 @@ function render() {
       state.panelOpen = false;
       window.FlipForgeStagingReadAdapter?.refresh?.();
     } catch (error) {
-      state.error = error instanceof Error ? error.message : "Sign in failed.";
+      state.error = friendlyAuthError(error, "Sign in failed.");
     } finally {
       state.busy = false;
       render();
