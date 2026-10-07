@@ -661,7 +661,7 @@ async function initialize() {
       setAuthenticatedUser(await getUser(), { renderIfChanged: false });
     }
   } catch (error) {
-    state.error = error instanceof Error ? error.message : "Identity initialization failed.";
+    state.error = friendlyAuthError(error, "Identity initialization failed.");
   }
 
   try {

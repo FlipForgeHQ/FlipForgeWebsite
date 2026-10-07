@@ -288,7 +288,7 @@ async function initialize() {
   try {
     state.user = await getUser();
   } catch (error) {
-    state.error = error instanceof Error ? error.message : "Identity initialization failed.";
+    state.error = friendlyAuthError(error, "Identity initialization failed.");
   }
   try {
     onAuthChange((_event, user) => {

@@ -15,11 +15,12 @@ const checks = [
   ["008 rate limit → wait copy", /wait/i.test(f(E("Rate limit exceeded", 429)))],
   ["009 our own plain messages pass through unchanged", f(E("Private Beta access is not enabled for this account.")) === "Private Beta access is not enabled for this account."],
   ["010 raw protocol strings never pass through", ![f(E("unauthorized_client")), f(E('{"error":"x"}')), f(E(""))].some(t => /_|[{}]/.test(t))],
+  ["011b invalid/expired callback token (recovery or confirmation link) → expired-link copy", /expired or was already used/.test(f(E("Invalid token"), "Identity initialization failed.")) && /expired or was already used/.test(f(E("Token expired"), "Identity initialization failed."))],
   ["011 password-rule errors (422) are not mislabelled as a wrong password", !mismatch.test(f(E("Password should be at least 8 characters", 422)))]
 ];
-for (const [file, count] of [["scripts/lib/flipforge-production-signin.mjs", 1], ["scripts/lib/flipforge-identity-client.mjs", 3]]) {
+for (const [file, count] of [["scripts/lib/flipforge-production-signin.mjs", 2], ["scripts/lib/flipforge-identity-client.mjs", 4], ["scripts/lib/flipforge-production-auth-probe.mjs", 3]]) {
   const src = fs.readFileSync(file, "utf8");
-  checks.push([`012 ${file} routes ${count} auth error path(s) through friendlyAuthError`, (src.match(/friendlyAuthError\(error,/g) || []).length === count && !/state\.error = error instanceof Error \? error\.message : "Sign in failed\."/.test(src)]);
+  checks.push([`012 ${file} routes ${count} auth error path(s) through friendlyAuthError`, (src.match(/friendlyAuthError\(error,/g) || []).length === count && !/state\.error = error instanceof Error \? error\.message : "(?:Sign in failed|Identity initialization failed)\."/.test(src)]);
 }
 let failed = 0;
 for (const [name, ok] of checks) { console.log(`${ok ? "PASS" : "FAIL"} | ${name}`); if (!ok) failed++; }

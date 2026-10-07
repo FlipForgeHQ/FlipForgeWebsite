@@ -1,4 +1,5 @@
 import { getUser, login, logout, requestPasswordRecovery } from "@netlify/identity";
+import { friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
 
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const hostAllowed = PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -129,7 +130,7 @@ async function initialize() {
       emailInput?.focus();
     }
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Identity initialization failed.", "error");
+    setStatus(friendlyAuthError(error, "Identity initialization failed."), "error");
   }
 }
 
@@ -148,7 +149,7 @@ form?.addEventListener("submit", async event => {
     setSignedIn(user);
     await verifyAccess();
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Sign in failed.", "error");
+    setStatus(friendlyAuthError(error, "Sign in failed."), "error");
   } finally {
     signInButton.disabled = false;
   }
@@ -183,7 +184,7 @@ signOutButton?.addEventListener("click", async () => {
     result.textContent = "";
     if (reauthRequested) setStatus("Signed out. Sign in again to restore app access.", "neutral");
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Sign out failed.", "error");
+    setStatus(friendlyAuthError(error, "Sign out failed."), "error");
   } finally {
     signOutButton.disabled = false;
   }
