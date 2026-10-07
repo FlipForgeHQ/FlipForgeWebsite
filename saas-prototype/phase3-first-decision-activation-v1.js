@@ -52,10 +52,17 @@
   }
 
   function trackedCount(root) {
+    // Only a rendered authoritative snapshot carries the Tracked Decisions count.
+    // Loading and error states have no count; treating "no count" as 0 showed the
+    // first-use "Evaluate your first card" panel to returning customers whose data
+    // was still loading or failed to load.
+    if (root.querySelector(".ff-commercial-loading, .ff-commercial-error")) return null;
     const cards = [...root.querySelectorAll(".ff-kpi-card")];
     const card = cards.find(node => /Tracked Decisions/i.test(String(node.textContent || "")));
-    const value = card?.querySelector(".ff-kpi-value")?.textContent || "";
-    const parsed = Number(String(value).replace(/[^0-9.-]/g, ""));
+    if (!card) return null;
+    const value = String(card.querySelector(".ff-kpi-value")?.textContent || "").replace(/[^0-9.-]/g, "");
+    if (!value) return null;
+    const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
   }
 
@@ -106,7 +113,7 @@
     section.innerHTML = `
       <div class="ff-p3-returning-head">
         <div><span class="ff-p3-kicker">CONTINUE YOUR INTELLIGENCE</span><h2>Your decisions are now the starting point.</h2></div>
-        <p>${tracked} saved decision${tracked === 1 ? "" : "s"} in your tenant-owned workspace.</p>
+        <p>${tracked} saved decision${tracked === 1 ? "" : "s"} in your account.</p>
       </div>
       <div class="ff-p3-returning-grid">
         <a class="ff-p3-returning-card" href="#/opportunities" data-ff-p3-return="saved"><span>01</span><strong>Saved Decisions</strong><small>Reopen the exact cards you already evaluated.</small></a>
@@ -125,8 +132,16 @@
     if (!root) return;
     const dashboard = root.querySelector("[data-commercial-dashboard-v2]") || root.querySelector(".ff-commercial-dashboard");
     if (!dashboard) return;
+    const headingNode = dashboard.querySelector(".ff-dashboard-head h1");
+    if (headingNode && headingNode.textContent !== "Home") headingNode.textContent = "Home";
     const tracked = trackedCount(dashboard);
-    if (tracked === null) return;
+    if (tracked === null) {
+      // No authoritative count yet (loading/error): show neither first-use nor returning panels.
+      dashboard.querySelector("[data-ff-p3-activation]")?.remove();
+      dashboard.querySelector("[data-ff-p3-returning]")?.remove();
+      dashboard.classList.remove("ff-p3-zero-dashboard", "ff-p3-returning-dashboard");
+      return;
+    }
 
     const head = dashboard.querySelector(".ff-dashboard-head");
     const title = head?.querySelector("h1");
