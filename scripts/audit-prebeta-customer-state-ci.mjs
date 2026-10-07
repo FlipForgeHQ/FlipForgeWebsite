@@ -10,6 +10,26 @@ const failures = [];
 const scenarios = [];
 const calls = { search: [], resolve: [], discover: [], evaluation: [], api: [] };
 const transientAttempts = new Map();
+// Deterministic in-flight control: a held identity search is not answered until
+// the scenario releases it, so races are reproduced by state, not by timing.
+const searchHolds = [];
+
+function within(promise, message, timeoutMs = 6000) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), timeoutMs); })
+  ]).finally(() => clearTimeout(timer));
+}
+
+function holdIdentitySearch(match) {
+  const hold = { match, held: false, request: null };
+  hold.gate = new Promise(resolve => { hold.release = resolve; });
+  hold.answered = new Promise(resolve => { hold.markAnswered = resolve; });
+  hold.reached = new Promise(resolve => { hold.markReached = resolve; });
+  searchHolds.push(hold);
+  return hold;
+}
 
 const identities = {
   ohtani10: {
@@ -409,7 +429,15 @@ try {
 
     if (url.pathname === "/api/v1/card-intelligence/search" && method === "POST") {
       calls.search.push(body);
+      const hold = searchHolds.find(candidate => !candidate.held && candidate.match.test(String(body.query || "")));
+      if (hold) {
+        hold.held = true;
+        hold.request = request;
+        hold.markReached();
+        await hold.gate;
+      }
       await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: JSON.stringify(envelope(correlationId, identitySearchData(body.query))) });
+      hold?.markAnswered();
       return;
     }
 
@@ -575,6 +603,59 @@ try {
     await poll(() => calls.resolve.length > resolveBefore, "Replacement identity did not resolve");
     expect(calls.resolve.at(-1)?.selectionToken === identities.acuna10.token, "Old selection token survived after identity query changed");
     await poll(() => calls.discover.at(-1)?.exactCardQuery === identities.acuna10.canonical, "Resolved Acuna identity did not reach Discover");
+  });
+
+  await runScenario("changing identity while the lookup is still in flight re-arms Find exact card and ignores the stale response", async () => {
+    await resetDiscover();
+    const searchBefore = calls.search.length;
+    const resolveBefore = calls.resolve.length;
+    const discoverBefore = calls.discover.length;
+    const held = holdIdentitySearch(/Ohtani/i);
+    try {
+      // 1. Start a lookup and keep it in flight.
+      await fillQuery(identities.ohtani9.imperfect);
+      await findButton().click();
+      await within(held.reached, "First identity lookup was not issued");
+      expect(await findButton().isDisabled(), "Precondition: Find exact card should be disabled while the first lookup is in flight");
+
+      // 2. Change the identity while the first lookup is still unanswered.
+      await fillQuery(identities.acuna10.imperfect);
+
+      // 3/4/5. Old lookup is invalidated, the new identity is intact, and the
+      // controls re-arm without waiting for the stale response.
+      expect(await queryInput().inputValue() === identities.acuna10.imperfect, "New identity text was not kept after the query changed mid-lookup");
+      expect(await page.locator("#main-content .customer-discovery-identity-assist").count() === 0, "Stale identity-assist panel survived the query change");
+      await poll(async () => !(await findButton().isDisabled()) && !(await searchButton().isDisabled()), "Find exact card stayed disabled after the identity changed while a lookup was in flight", 3000);
+      expect(!/Resolving|Searching/i.test(await searchButton().innerText()), "Search button still shows the superseded lookup as in progress");
+
+      // 7. Let the superseded Ohtani response arrive and prove it changes nothing.
+      const staleDelivered = page.waitForEvent("requestfinished", { predicate: request => request === held.request, timeout: 5000 });
+      held.release();
+      await within(held.answered, "Held identity lookup was not answered after release");
+      await staleDelivered;
+      // Let the page's response handler run to completion before asserting.
+      await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)));
+      expect(await queryInput().inputValue() === identities.acuna10.imperfect, "Stale lookup response overwrote the new identity text");
+      expect(await page.locator("#main-content .customer-discovery-identity-assist").count() === 0, "Stale lookup response re-opened the old identity choices");
+      expect(!(await findButton().isDisabled()), "Stale lookup response disabled Find exact card again");
+
+      // 6. The new lookup and selection carry only the new identity.
+      await findButton().click();
+      await poll(() => calls.search.length >= searchBefore + 2, "Replacement identity lookup did not run");
+      expect(/Acuna/i.test(String(calls.search.at(-1)?.query || "")) && !/Ohtani/i.test(String(calls.search.at(-1)?.query || "")), "Replacement lookup carried the old identity");
+      const useExact = page.locator("#main-content .customer-discovery-identity-assist [data-discovery-use-identity]").first();
+      await useExact.waitFor({ state: "visible", timeout: 5000 });
+      const assistText = await page.locator("#main-content .customer-discovery-identity-assist").innerText();
+      expect(!/Ohtani/i.test(assistText), "Old Ohtani choices leaked into the new identity options");
+      await useExact.click();
+      await poll(() => calls.resolve.length > resolveBefore, "Replacement identity did not resolve");
+      expect(calls.resolve.slice(resolveBefore).every(call => call.selectionToken === identities.acuna10.token), "An old Ohtani selection token was resolved after the identity changed");
+      await poll(() => calls.discover.at(-1)?.exactCardQuery === identities.acuna10.canonical, "Resolved Acuna identity did not reach Discover");
+      expect(calls.discover.slice(discoverBefore).every(call => !/Ohtani|PSA 9/i.test(String(call.exactCardQuery || ""))), "Old identity or grade leaked into Discover");
+    } finally {
+      held.release();
+      searchHolds.splice(searchHolds.indexOf(held), 1);
+    }
   });
 
   await runScenario("transient provider failure can be corrected and retried", async () => {
