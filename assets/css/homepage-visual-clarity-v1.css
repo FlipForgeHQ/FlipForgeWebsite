@@ -1,0 +1,576 @@
+/* HOMEPAGE VISUAL CLARITY — REVIEW-ONLY
+   Scoped to ff-home-visual-review. Approved typeface, logo, colors, links and
+   product authority remain unchanged. Never affects /app, beta, or other pages. */
+html body.ff-home-visual-review{
+  background:
+    radial-gradient(ellipse 54% 18% at 50% 12%,rgba(212,175,55,.075),transparent 80%),
+    linear-gradient(180deg,#000 0%,#060708 43%,#000 100%);
+  color:#fff;
+}
+html body.ff-home-visual-review main#main{
+  overflow:hidden;
+}
+html body.ff-home-visual-review .wrap.hero{
+  box-sizing:border-box;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  width:min(1440px,calc(100% - 76px));
+  max-width:1440px;
+  min-height:0;
+  margin:0 auto;
+  padding:100px 0 112px;
+  gap:58px;
+  align-items:start;
+}
+html body.ff-home-visual-review .hero-copy{
+  position:relative;
+  width:min(1040px,100%);
+  margin:0 auto;
+  text-align:center;
+}
+html body.ff-home-visual-review .hero .kicker{
+  margin:0 auto 24px;
+  color:#D4AF37;
+  font-size:clamp(12px,1vw,14px);
+  font-weight:700;
+  letter-spacing:.21em;
+  line-height:1.5;
+}
+html body.ff-home-visual-review main#main .hero h1{
+  max-width:1040px;
+  margin:0 auto;
+  font-size:clamp(52px,5.1vw,76px);
+  line-height:1.025;
+  letter-spacing:-.052em;
+  font-weight:760;
+  text-wrap:balance;
+}
+html body.ff-home-visual-review main#main .hero h1 span{
+  display:block;
+  color:#D4AF37;
+  margin-top:10px;
+}
+html body.ff-home-visual-review .hero .lead{
+  max-width:730px;
+  margin:28px auto 0;
+  color:rgba(255,255,255,.80);
+  font-size:clamp(17px,1.55vw,21px);
+  line-height:1.65;
+  font-weight:420;
+}
+html body.ff-home-visual-review .hero .lead strong{
+  color:#fff;
+  font-weight:720;
+}
+html body.ff-home-visual-review .hero .promise{
+  max-width:680px;
+  margin:21px auto 0;
+  padding:0;
+  border:0;
+  color:rgba(255,255,255,.75);
+  font-size:16px;
+  font-weight:440;
+  line-height:1.58;
+}
+html body.ff-home-visual-review .hero-actions{
+  justify-content:center;
+  gap:18px;
+  margin-top:36px;
+}
+html body.ff-home-visual-review .hero-actions a{
+  min-height:56px;
+  padding:0 27px;
+  border-radius:9px;
+  font-size:14px;
+  font-weight:740;
+  letter-spacing:.008em;
+  text-transform:none;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+html body.ff-home-visual-review .hero-actions .primary{
+  color:#050505;
+  background:linear-gradient(130deg,#D4AF37,#B8860B);
+  box-shadow:0 14px 40px rgba(212,175,55,.14);
+}
+html body.ff-home-visual-review .hero-actions a:hover{
+  transform:translateY(-2px);
+}
+html body.ff-home-visual-review .hero-actions .video-link{
+  border-color:rgba(212,175,55,.35);
+  background:rgba(255,255,255,.018);
+  color:#fff;
+}
+html body.ff-home-visual-review .hero-actions .video-link i{
+  width:28px;height:28px;
+  border-color:rgba(212,175,55,.6);
+  color:#D4AF37;
+}
+html body.ff-home-visual-review .hero-proof{
+  justify-content:center;
+  gap:12px 26px;
+  margin:36px auto 0;
+  padding:0;
+  color:rgba(255,255,255,.73);
+  font-size:12px;
+  font-weight:620;
+  letter-spacing:.055em;
+}
+html body.ff-home-visual-review .hero-proof span:before{
+  width:5px;height:5px;margin:0 10px 2px 0;
+  background:#D4AF37;
+}
+html body.ff-home-visual-review .hero-visual.ff-approved-hero-shell{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  margin:0 auto;
+  padding:0;
+  overflow:visible;
+}
+html body.ff-home-visual-review .hero-visual .ff-approved-hero{
+  width:100%;
+  max-width:none;
+  margin:0;
+  overflow:hidden;
+  border:1px solid rgba(212,175,55,.33);
+  border-radius:22px;
+  background:#000;
+  box-shadow:0 45px 145px rgba(0,0,0,.68),0 0 96px rgba(212,175,55,.07);
+}
+html body.ff-home-visual-review .hero-visual .ff-approved-hero img{
+  display:block;
+  width:100%;
+  max-width:none;
+  height:auto;
+  object-fit:contain;
+}
+html body.ff-home-visual-review .hero-visual .ff-approved-hero figcaption{
+  padding:15px 26px;
+  text-align:center;
+  font-size:14px!important;
+  line-height:1.55!important;
+  color:rgba(255,255,255,.72)!important;
+  background:#090a0b;
+}
+/* The existing 30-second film and Decision Forge stay available; each gains a clearer hierarchy. */
+html body.ff-home-visual-review .ff-decision-forge{
+  padding:104px 0 108px;
+  border-block:1px solid rgba(212,175,55,.12);
+  background:radial-gradient(ellipse at 58% 8%,rgba(212,175,55,.07),transparent 62%),#040505;
+}
+html body.ff-home-visual-review .ff-df-wrap{
+  width:min(1320px,calc(100% - 76px));
+}
+html body.ff-home-visual-review .ff-df-intro{
+  align-items:end;
+  gap:55px;
+  margin-bottom:34px;
+}
+html body.ff-home-visual-review .ff-df-kicker{
+  font-size:12px;
+}
+html body.ff-home-visual-review .ff-df-intro h2{
+  font-size:clamp(44px,4.9vw,72px);
+  line-height:1.025;
+  letter-spacing:-.045em;
+}
+html body.ff-home-visual-review .ff-df-intro-copy{
+  font-size:17px;
+  line-height:1.7;
+  color:rgba(255,255,255,.78);
+}
+html body.ff-home-visual-review .ff-df-shell{
+  border-color:rgba(212,175,55,.24);
+  border-radius:22px;
+  box-shadow:0 30px 95px rgba(0,0,0,.50);
+}
+html body.ff-home-visual-review .ff-df-sequence-bar{
+  padding:20px 25px;
+  gap:22px;
+}
+html body.ff-home-visual-review .ff-df-stage-button{
+  min-height:54px;
+  padding:8px 12px;
+}
+html body.ff-home-visual-review .ff-df-stage-button span,
+html body.ff-home-visual-review .ff-df-stage-top span{
+  font-size:11px;
+}
+html body.ff-home-visual-review .ff-df-stage-button b{
+  font-size:12px;
+}
+html body.ff-home-visual-review .ff-df-sequence-brand small{
+  font-size:10px;
+  line-height:1.5;
+}
+html body.ff-home-visual-review .ff-df-controls .ff-df-control{
+  font-size:12px;
+  min-height:39px;
+  padding:8px 12px;
+}
+html body.ff-home-visual-review .ff-df-stage-copy{
+  color:rgba(255,255,255,.74)!important;
+  font-size:15px!important;
+  line-height:1.6;
+}
+html body.ff-home-visual-review .ff-df-stage-top{
+  padding:26px 32px;
+}
+html body.ff-home-visual-review .ff-df-live-status{
+  font-size:11px!important;
+}
+html body.ff-home-visual-review .ff-df-identity-points small,
+html body.ff-home-visual-review .ff-df-economics small,
+html body.ff-home-visual-review .ff-df-reveal-card>small{
+  font-size:11px!important;
+}
+html body.ff-home-visual-review .ff-df-identity-points strong{
+  font-size:13px;
+}
+html body.ff-home-visual-review .ff-df-evidence-verdicts span{
+  font-size:10px;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+html body.ff-home-visual-review .ff-df-reveal-card>p{
+  font-size:14px!important;
+}
+html body.ff-home-visual-review .ff-df-why-button{
+  font-size:12px;
+}
+html body.ff-home-visual-review .ff-df-why p,
+html body.ff-home-visual-review .ff-df-footer p{
+  font-size:13px!important;
+}
+/* Three calm promises, not a third dashboard. */
+html body.ff-home-visual-review .home-essentials{
+  padding:106px 0 102px;
+  background:#000;
+}
+html body.ff-home-visual-review .home-essentials-wrap{
+  width:min(1200px,calc(100% - 76px));
+}
+html body.ff-home-visual-review .home-essentials-copy h2{
+  font-size:clamp(44px,4.7vw,66px);
+  letter-spacing:-.042em;
+  line-height:1.07;
+}
+html body.ff-home-visual-review .home-essentials-copy>p:last-child{
+  max-width:650px;
+  color:rgba(255,255,255,.76);
+  font-size:18px;
+  line-height:1.7;
+}
+html body.ff-home-visual-review .home-essentials-grid article h3{
+  color:#fff;
+  font-size:clamp(20px,2vw,24px);
+  line-height:1.25;
+}
+html body.ff-home-visual-review .home-essentials-grid article p{
+  color:rgba(255,255,255,.77);
+  font-size:15px;
+  line-height:1.65;
+}
+html body.ff-home-visual-review .final{
+  padding:110px 0 76px;
+  border-top:1px solid rgba(212,175,55,.14);
+  background:radial-gradient(ellipse at 50% 0,rgba(212,175,55,.09),transparent 52%),#030303;
+}
+html body.ff-home-visual-review .final h2{
+  max-width:900px;
+  font-size:clamp(38px,4.3vw,66px);
+  line-height:1.08;
+}
+html body.ff-home-visual-review .final p{
+  color:rgba(255,255,255,.79);
+  font-size:18px;
+}
+@media(max-width:1050px){
+  html body.ff-home-visual-review .wrap.hero{
+    width:min(920px,calc(100% - 52px));
+    padding:78px 0 85px;
+    gap:40px;
+  }
+  html body.ff-home-visual-review main#main .hero h1{
+    font-size:clamp(49px,7vw,74px);
+  }
+  html body.ff-home-visual-review .ff-df-wrap,
+  html body.ff-home-visual-review .home-essentials-wrap{
+    width:calc(100% - 52px);
+  }
+  html body.ff-home-visual-review .ff-df-intro{
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+  html body.ff-home-visual-review .ff-df-intro-copy{
+    justify-self:start;
+    max-width:760px;
+  }
+}
+@media(max-width:700px){
+  html body.ff-home-visual-review .wrap.hero{
+    width:calc(100% - 32px);
+    padding:55px 0 58px;
+    gap:32px;
+  }
+  html body.ff-home-visual-review .hero .kicker{
+    font-size:11px;
+    margin-bottom:18px;
+    letter-spacing:.14em;
+  }
+  html body.ff-home-visual-review main#main .hero h1{
+    font-size:clamp(38px,9.5vw,53px);
+    line-height:1.07;
+    letter-spacing:-.04em;
+  }
+  html body.ff-home-visual-review .hero .lead{
+    font-size:16px;
+    line-height:1.6;
+    margin-top:22px;
+  }
+  html body.ff-home-visual-review .hero .promise{
+    font-size:14px;
+  }
+  html body.ff-home-visual-review .hero-actions{
+    gap:12px;
+    margin-top:28px;
+    align-items:stretch;
+  }
+  html body.ff-home-visual-review .hero-actions a{
+    width:100%;
+    min-height:50px;
+    font-size:14px;
+  }
+  html body.ff-home-visual-review .hero-proof{
+    margin-top:22px;
+    gap:8px 15px;
+    font-size:11px;
+    line-height:1.6;
+  }
+  html body.ff-home-visual-review .hero-visual .ff-approved-hero{
+    border-radius:15px;
+  }
+  html body.ff-home-visual-review .hero-visual .ff-approved-hero img{
+    height:clamp(310px,85vw,470px);
+    object-fit:cover;
+    object-position:center;
+    background:#030507;
+  }
+  html body.ff-home-visual-review .hero-visual .ff-approved-hero figcaption{
+    padding:12px 14px;
+    font-size:13px!important;
+  }
+  html body.ff-home-visual-review .ff-decision-forge,
+  html body.ff-home-visual-review .home-essentials{
+    padding:62px 0;
+  }
+  html body.ff-home-visual-review .ff-df-wrap,
+  html body.ff-home-visual-review .home-essentials-wrap{
+    width:calc(100% - 32px);
+  }
+  html body.ff-home-visual-review .ff-df-intro h2,
+  html body.ff-home-visual-review .home-essentials-copy h2{
+    font-size:clamp(36px,9vw,48px);
+  }
+  html body.ff-home-visual-review .ff-df-sequence-bar{
+    padding:14px 12px;
+    gap:10px;
+  }
+  html body.ff-home-visual-review .ff-df-stage-button{
+    padding:8px 3px;
+    min-height:44px;
+  }
+  html body.ff-home-visual-review .ff-df-stage-button b{
+    font-size:10px;
+  }
+  html body.ff-home-visual-review .ff-df-stage-button span{
+    font-size:10px;
+  }
+  html body.ff-home-visual-review .ff-df-stage-top{
+    padding:20px 16px;
+  }
+  html body.ff-home-visual-review .ff-df-evidence-verdicts span{
+    font-size:9px;
+    min-height:38px;
+  }
+  html body.ff-home-visual-review .ff-df-reveal-card{
+    padding:16px;
+  }
+  html body.ff-home-visual-review .final{
+    padding:72px 0 54px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body.ff-home-visual-review .hero-actions a{
+    transition:none;
+  }
+  html body.ff-home-visual-review .hero-actions a:hover{
+    transform:none;
+  }
+}
+
+
+/* Approved example data: retained for governance/CI, but rebuilt as legible panels. */
+html body.ff-home-visual-review .hero-visual .ff-approved-data-summary{
+  width:min(100%,1320px);
+  margin:17px auto 0;
+  border-radius:14px;
+  border-color:rgba(212,175,55,.17);
+  background:#08090a;
+  box-shadow:0 18px 50px rgba(0,0,0,.30);
+}
+html body.ff-home-visual-review .ff-approved-data-summary>span{
+  padding:20px 22px;
+  border-right-color:rgba(255,255,255,.085);
+}
+html body.ff-home-visual-review .ff-approved-data-summary small{
+  color:rgba(255,255,255,.72)!important;
+  font-size:12px!important;
+  font-weight:720;
+  letter-spacing:.10em;
+}
+html body.ff-home-visual-review .ff-approved-data-summary strong,
+html body.ff-home-visual-review .ff-approved-data-summary b{
+  color:#D4AF37!important;
+  font-size:clamp(15px,1.5vw,22px)!important;
+  line-height:1.32!important;
+  margin-top:8px;
+}
+html body.ff-home-visual-review .ff-approved-data-summary p{
+  padding:13px 22px;
+  text-align:center;
+  font-size:14px!important;
+  line-height:1.6!important;
+  color:rgba(255,255,255,.73)!important;
+}
+html body.ff-home-visual-review .film-section{
+  padding:82px 0 88px;
+  background:#020304;
+  border-top:1px solid rgba(212,175,55,.1);
+}
+html body.ff-home-visual-review .film-section .wrap{
+  width:min(1210px,calc(100% - 76px));
+}
+html body.ff-home-visual-review .film-section .section-head h2{
+  max-width:900px;
+  font-size:clamp(38px,4vw,60px);
+  line-height:1.06;
+  margin-top:14px;
+}
+html body.ff-home-visual-review .film-section .section-head p{
+  color:rgba(255,255,255,.75);
+  font-size:17px;
+  line-height:1.65;
+}
+html body.ff-home-visual-review .film{
+  width:min(1100px,100%);
+  margin:38px auto 0;
+  border-radius:20px;
+  overflow:hidden;
+  border-color:rgba(212,175,55,.20);
+  background:#08090b;
+}
+html body.ff-home-visual-review .film-head{
+  min-height:54px;
+  height:auto;
+  padding:12px 24px;
+  font-size:12px;
+}
+html body.ff-home-visual-review .film .screen{
+  min-height:520px;
+  background:radial-gradient(ellipse at 70% 20%,rgba(212,175,55,.07),transparent 62%),#050607;
+}
+html body.ff-home-visual-review .film .scene{
+  inset:36px;
+}
+html body.ff-home-visual-review .film .scene-label{
+  font-size:12px;
+  color:#D4AF37;
+}
+html body.ff-home-visual-review .film .scene h3{
+  line-height:1.08;
+}
+html body.ff-home-visual-review .film .scene p{
+  font-size:16px;
+  line-height:1.6;
+  color:rgba(255,255,255,.77);
+}
+html body.ff-home-visual-review .film .identity small,
+html body.ff-home-visual-review .film .valuebox small,
+html body.ff-home-visual-review .film .call small{
+  font-size:11px;
+}
+html body.ff-home-visual-review .film .identity b{
+  font-size:14px;
+}
+html body.ff-home-visual-review .film .comp small{
+  font-size:10px;
+}
+html body.ff-home-visual-review .film .confirm,
+html body.ff-home-visual-review .film .vo{
+  font-size:13px;
+}
+html body.ff-home-visual-review .film .vo b{
+  font-size:11px;
+}
+html body.ff-home-visual-review .film .controls{
+  height:64px;
+  padding:0 24px;
+}
+html body.ff-home-visual-review .film .play{
+  width:42px;
+  height:42px;
+}
+html body.ff-home-visual-review .film .time{
+  font-size:12px;
+}
+@media(max-width:700px){
+  html body.ff-home-visual-review .ff-approved-data-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  html body.ff-home-visual-review .ff-approved-data-summary>span{
+    padding:14px 13px;
+  }
+  html body.ff-home-visual-review .ff-approved-data-summary strong,
+  html body.ff-home-visual-review .ff-approved-data-summary b{
+    font-size:15px!important;
+    overflow-wrap:anywhere;
+  }
+  html body.ff-home-visual-review .ff-approved-data-summary p{
+    padding:12px;
+    text-align:left;
+  }
+  html body.ff-home-visual-review .film-section{
+    padding:54px 0 62px;
+  }
+  html body.ff-home-visual-review .film-section .wrap{
+    width:calc(100% - 32px);
+  }
+  html body.ff-home-visual-review .film .screen{
+    min-height:575px;
+    padding:18px;
+  }
+  html body.ff-home-visual-review .film .scene{
+    inset:20px;
+  }
+  html body.ff-home-visual-review .film .scene p{
+    font-size:14px;
+  }
+  html body.ff-home-visual-review .film .comp small{
+    font-size:9px;
+    overflow-wrap:anywhere;
+  }
+  html body.ff-home-visual-review .film .vo{
+    left:14px;
+    right:14px;
+    bottom:13px;
+    font-size:11px;
+  }
+  html body.ff-home-visual-review .film-head{
+    gap:12px;
+    font-size:10px;
+    flex-wrap:wrap;
+  }
+}
