@@ -129,6 +129,10 @@
   ]);
 
   const CUSTOMER_REPLACEMENTS = [
+    // Specific phrases first so the generic rules below never produce broken copy
+    // such as "Saved your account records" or "your saved to your account workspace".
+    [/\b(?:Saved|Tenant-owned) SQLite records\b/gi, "Saved decisions in your account"],
+    [/\byour (?:tenant-owned|saved) workspace\b/gi, "your account"],
     [/\btenant-owned\b/gi, "saved to your account"],
     [/\btenant-scoped\b/gi, "account-specific"],
     [/\bSQLite saved\b/gi, "saved to your account"],

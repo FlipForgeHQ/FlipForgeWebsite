@@ -168,7 +168,7 @@
 
     document.title = customer
       ? "FlipForge | Customer App — Card Decision Intelligence"
-      : isProduction ? "FlipForge | Card Intelligence" : "FlipForge Beta | Card Intelligence";
+      : isProduction ? "FlipForge | Card Decision Intelligence" : "FlipForge Beta | Card Decision Intelligence";
   }
 
   function humanizeServerEnums() {

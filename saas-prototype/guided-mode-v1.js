@@ -13,6 +13,7 @@
     session: null,
     enabled: true,
     minimized: false,
+    userOpened: false,
     mounted: false,
     startingNewCard: false,
     pendingNewCard: false,
@@ -97,6 +98,18 @@
     if (steps.has(step)) return;
     steps.add(step);
     write("steps", [...steps].join(","));
+  }
+
+  // A customer who already has saved decisions is not a first-time user, whatever the
+  // locally stored step progress says. On the Dashboard, show the compact "Guide me"
+  // launcher instead of a panel that covers the decision and says "Start with one card".
+  // Uses only the server-reported Tracked Decisions count rendered by the Dashboard.
+  function dashboardHasSavedDecisions() {
+    if (routeName() !== "dashboard") return false;
+    const cards = [...document.querySelectorAll("#main-content .ff-kpi-card")];
+    const card = cards.find(node => /Tracked Decisions/i.test(String(node.textContent || "")));
+    const value = String(card?.querySelector(".ff-kpi-value")?.textContent || "").replace(/[^0-9]/g, "");
+    return value !== "" && Number(value) > 0;
   }
 
   function firstRunComplete() {
@@ -539,7 +552,7 @@
 
     let markup = "";
     if (session.authenticated && session.membershipActive) {
-      if (!state.enabled || state.minimized) {
+      if (!state.enabled || state.minimized || (!state.userOpened && dashboardHasSavedDecisions())) {
         markup = '<button type="button" class="ff-guide-launcher" data-guide-open>Guide me</button>';
       } else {
         const model = guideModel();
@@ -619,13 +632,25 @@
     }
   }
 
+  // Debounced refresh with a ceiling. Other enhancements keep mutating #main-content
+  // for several seconds after a route renders; a pure 80ms debounce kept restarting and
+  // left the guide stale for ~5s (e.g. the full panel covering a returning customer's
+  // Dashboard on mobile). Refresh at most REFRESH_MAX_WAIT_MS after the first pending
+  // mutation; later mutations still schedule a trailing refresh.
+  const REFRESH_DEBOUNCE_MS = 80;
+  const REFRESH_MAX_WAIT_MS = 250;
   function scheduleRefresh() {
+    const now = Date.now();
+    if (state.observerTimer && now - state.observerFirstPending >= REFRESH_MAX_WAIT_MS) return;
+    if (!state.observerTimer) state.observerFirstPending = now;
     window.clearTimeout(state.observerTimer);
+    const elapsed = now - state.observerFirstPending;
     state.observerTimer = window.setTimeout(() => {
+      state.observerTimer = null;
       updateDiscoverCoach();
       injectGlobalNewCardButton();
       renderPanel();
-    }, 80);
+    }, Math.max(0, Math.min(REFRESH_DEBOUNCE_MS, REFRESH_MAX_WAIT_MS - elapsed)));
   }
 
   function bindEvents() {
@@ -649,6 +674,7 @@
       if (event.target.closest("[data-guide-open]")) {
         state.enabled = true;
         state.minimized = false;
+        state.userOpened = true;
         write("enabled", "on");
         renderPanel();
         return;
@@ -753,7 +779,7 @@
   }
 
   window.FlipForgeGuidedMode = Object.freeze({
-    open: () => { state.enabled = true; state.minimized = false; write("enabled", "on"); renderPanel(); },
+    open: () => { state.enabled = true; state.minimized = false; state.userOpened = true; write("enabled", "on"); renderPanel(); },
     restart: resetGuide,
     showWelcome: () => showWelcome(true),
     startNewCard: () => startNewCard(true),
