@@ -267,7 +267,7 @@ for (const htmlPath of htmlFiles) {
   if (path.basename(htmlPath) === 'index.html') {
     if (!html.includes('assets/css/homepage-v5.css')) failures.push('homepage v5 stylesheet');
     if (!html.includes('assets/js/homepage-v5.js')) failures.push('homepage v5 behavior');
-    if (!html.includes('ff-cinematic-workspace')) failures.push('cinematic decision workspace');
+    if (!html.includes('class="ffdv ffdv--hero"') || !html.includes('Illustrative product view')) failures.push('labelled illustrative decision visual hero');
     if (!html.includes('id="decision-forge"') || !html.includes('data-decision-forge')) failures.push('interactive Decision Forge');
     if (!html.includes('id="why"') || !html.includes('WHY FLIPFORGE')) failures.push('concise homepage differentiation section');
     if (!html.includes('assets/js/site.js')) failures.push('shared mobile navigation behavior');

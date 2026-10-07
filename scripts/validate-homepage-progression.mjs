@@ -34,25 +34,25 @@ const requireAll=(label,text,needles)=>needles.forEach(needle=>requireText(label
 
 requireAll('homepage v5 identity',homepage,[
   'CARD DECISION INTELLIGENCE™',
-  'The price is easy.',
-  'Knowing whether to trust it isn’t.',
-  'A decision you can not only trust, but understand.',
+  'Stop guessing.',
+  'Start deciding with <em>evidence.</em>',
+  'then explains the decision.',
   'Before you buy. Know Why.',
   'assets/css/homepage-v5.css',
   'assets/js/homepage-v5.js',
   'assets/js/site.js'
 ]);
-requireAll('homepage v5 hero proof',homepage,[
-  'ff-cinematic-workspace',
-  '<strong>$349</strong>',
-  '$459.21',
-  '$357.20',
-  '2.3% supported gap',
-  '7 CANDIDATES',
-  '2 QUALIFIED',
-  'EXACT CARD VERIFIED',
-  'FLIPFORGE DECISION',
-  '<strong>VERIFY</strong>'
+requireAll('homepage v6 hero proof',homepage,[
+  'class="ffdv ffdv--hero"',
+  '<span class="ffdv-label">Illustrative product view</span>',
+  '<span class="ffdv-verdict">WATCH</span>',
+  '<dt>Ask</dt><dd>$420</dd>',
+  '<dt>Max Buy</dt><dd>$398</dd>',
+  '<dt>Accepted</dt><dd>6</dd>',
+  'Exact identity · match confirmed',
+  'Evidence remains limited.',
+  'What would change it',
+  'Monitor price and evidence'
 ]);
 requireAll('homepage concise differentiation',homepage,[
   'id="why"',
@@ -65,7 +65,7 @@ requireAll('homepage concise differentiation',homepage,[
   '<strong>100 frozen decisions</strong>',
   'href="decision-proof.html">See the proof →'
 ]);
-requireAll('homepage 30-second product film',homepage,['id="film"','data-film','30-SECOND PRODUCT FILM','href="#film"']);
+requireAll('homepage 30-second product film',homepage,['id="film"','data-film','30-SECOND PRODUCT FILM']);
 for(const retiredHomepageBlock of ['id="sim"','WHAT JUST HAPPENED?','WHAT IS FLIPFORGE?','id="decision-proof"'])forbidText('homepage retired overload',homepage,retiredHomepageBlock);
 
 requireAll('Decision Forge interactive story',homepage,[
@@ -110,7 +110,7 @@ requireText('homepage mobile navigation markup',homepage,'class="mobile-nav" id=
 requireText('homepage mobile navigation behavior',homepage,'<script src="assets/js/site.js" defer></script>');
 requireText('mobile menu Escape',navJs,"e.key==='Escape'");
 requireText('mobile menu focus trap',navJs,"e.key==='Tab'&&menu.classList.contains('open')");
-requireText('homepage v5 responsive CSS',heroCss,'@media(max-width:620px)');
+requireText('homepage hero responsive CSS',read('assets/css/homepage-hero-v6.css'),'@media (max-width: 640px)');
 requireText('homepage v5 reduced motion CSS',heroCss,'@media(prefers-reduced-motion:reduce)');
 if(`${homepage}\n${product}\n${learn}`.includes('CARD VALUE INTELLIGENCE'))failures.push('public category: forbidden formal CARD VALUE INTELLIGENCE identity');
 

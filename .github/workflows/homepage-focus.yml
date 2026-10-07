@@ -9,16 +9,18 @@ on:
       - "sample-decision-dossier.html"
       - "netlify.toml"
       - "assets/js/homepage-v1.js"
-      - "assets/js/homepage-decision-story-v1.js"
       - "assets/js/marketing-v3.js"
       - "assets/js/site.js"
       - "assets/css/homepage-focus-v1.css"
-      - "assets/css/homepage-decision-story-v1.css"
+      - "assets/css/ff-decision-visual-v1.css"
+      - "assets/css/homepage-hero-v6.css"
+      - "assets/css/homepage-sections-v1.css"
+      - "assets/images/ff-fictional-slab-v1.svg"
       - "assets/css/decision-proof-v1.css"
       - "assets/css/sample-dossier-v1.css"
       - "assets/css/visual-sections.css"
       - "scripts/validate-homepage-focus.mjs"
-      - "scripts/validate-homepage-decision-story.mjs"
+      - "scripts/validate-homepage-hero-v6.mjs"
       - "scripts/validate-homepage-progression.mjs"
       - "scripts/validate-decision-proof-public-v1.mjs"
       - "scripts/validate-product-identity-simulator.mjs"
@@ -33,16 +35,18 @@ on:
       - "sample-decision-dossier.html"
       - "netlify.toml"
       - "assets/js/homepage-v1.js"
-      - "assets/js/homepage-decision-story-v1.js"
       - "assets/js/marketing-v3.js"
       - "assets/js/site.js"
       - "assets/css/homepage-focus-v1.css"
-      - "assets/css/homepage-decision-story-v1.css"
+      - "assets/css/ff-decision-visual-v1.css"
+      - "assets/css/homepage-hero-v6.css"
+      - "assets/css/homepage-sections-v1.css"
+      - "assets/images/ff-fictional-slab-v1.svg"
       - "assets/css/decision-proof-v1.css"
       - "assets/css/sample-dossier-v1.css"
       - "assets/css/visual-sections.css"
       - "scripts/validate-homepage-focus.mjs"
-      - "scripts/validate-homepage-decision-story.mjs"
+      - "scripts/validate-homepage-hero-v6.mjs"
       - "scripts/validate-homepage-progression.mjs"
       - "scripts/validate-decision-proof-public-v1.mjs"
       - "scripts/validate-product-identity-simulator.mjs"
@@ -66,12 +70,11 @@ jobs:
         run: |
           node --check assets/js/marketing-v3.js
           node --check assets/js/homepage-v1.js
-          node --check assets/js/homepage-decision-story-v1.js
           node --check assets/js/site.js
       - name: Validate focused marketing contract
         run: |
           node scripts/validate-homepage-focus.mjs
-          node scripts/validate-homepage-decision-story.mjs
+          node scripts/validate-homepage-hero-v6.mjs
           node scripts/validate-homepage-progression.mjs
           node scripts/validate-decision-proof-public-v1.mjs
           node scripts/validate-product-identity-simulator.mjs

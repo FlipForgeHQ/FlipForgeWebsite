@@ -1,0 +1,131 @@
+/* FLIPFORGE / HOMEPAGE SECTIONS v1
+   Below-the-hero chapter styling (film, Decision Forge, essentials, final CTA)
+   carried forward unchanged from the #475 signature stylesheet. The hero itself
+   is owned exclusively by homepage-hero-v6.css + ff-decision-visual-v1.css. */
+html body.ff-home-visual-review{
+  background:#010203;color:#fff;
+  font-family:Geist,"Geist Sans",Arial,sans-serif;
+}
+html body.ff-home-visual-review main#main{overflow:clip}
+/* Film behaves like a cinematic chapter, not another dashboard card. */
+html body.ff-home-visual-review .film-section{
+  padding:104px 0 111px;background:#050607;
+  border-top:1px solid rgba(212,175,55,.08);
+}
+html body.ff-home-visual-review .film-section .section-head{
+  display:grid;gap:0;
+}
+html body.ff-home-visual-review .film-section .section-head .kicker{
+  letter-spacing:.15em;font-size:11px;
+}
+html body.ff-home-visual-review .film-section .section-head h2{
+  margin:15px auto 0;max-width:860px;
+  font-size:clamp(38px,4vw,60px);line-height:1.075;letter-spacing:-.045em;
+}
+html body.ff-home-visual-review .film-section .section-head p:last-child{
+  color:#C8D0D8;font-size:17px;line-height:1.6;
+}
+html body.ff-home-visual-review .film{
+  max-width:1260px;margin:42px auto 0;
+  border:1px solid rgba(212,175,55,.2);
+  border-radius:0;overflow:hidden;
+  box-shadow:0 45px 100px rgba(0,0,0,.37);
+  background:#030405;
+}
+html body.ff-home-visual-review .film-head{
+  min-height:54px;height:auto;padding:13px 22px;font-size:12px;letter-spacing:.08em;
+}
+html body.ff-home-visual-review .film .screen{
+  min-height:545px;background:
+    radial-gradient(circle at 68% 52%,rgba(212,175,55,.11),transparent 39%),
+    linear-gradient(145deg,#080A0C,#030405);
+}
+html body.ff-home-visual-review .film .scene{inset:42px}
+html body.ff-home-visual-review .film .scene p{
+  color:#C8D0D8;font-size:16px;line-height:1.6;
+}
+html body.ff-home-visual-review .film .scene-label{font-size:12px;color:#D4AF37}
+html body.ff-home-visual-review .film .identity small,
+html body.ff-home-visual-review .film .valuebox small,
+html body.ff-home-visual-review .film .call small,
+html body.ff-home-visual-review .film .comp small{font-size:11px}
+html body.ff-home-visual-review .film .vo{font-size:13px}
+html body.ff-home-visual-review .film .vo b{font-size:11px}
+html body.ff-home-visual-review .film .controls{height:65px}
+html body.ff-home-visual-review .film .play{width:43px;height:43px}
+html body.ff-home-visual-review .film .time{font-size:12px}
+/* Decision Forge is the optional drill-down chapter, visually lighter and legible. */
+html body.ff-home-visual-review .ff-decision-forge{
+  background:#030405;padding:96px 0 105px;
+}
+html body.ff-home-visual-review .ff-df-wrap{width:min(1300px,calc(100% - 60px))}
+html body.ff-home-visual-review .ff-df-shell{
+  border-radius:0;background:#070809;border-color:rgba(212,175,55,.22);
+}
+html body.ff-home-visual-review .ff-df-stage-button span,
+html body.ff-home-visual-review .ff-df-stage-top span{font-size:11px}
+html body.ff-home-visual-review .ff-df-stage-button b{font-size:12px}
+html body.ff-home-visual-review .ff-df-stage-copy{
+  color:#C8D0D8!important;font-size:14px!important;line-height:1.6;
+}
+html body.ff-home-visual-review .ff-df-controls button{font-size:12px}
+html body.ff-home-visual-review .ff-df-evidence-verdicts span{font-size:10px}
+html body.ff-home-visual-review .ff-df-identity-points small,
+html body.ff-home-visual-review .ff-df-economics small,
+html body.ff-home-visual-review .ff-df-reveal-card>small{font-size:11px!important}
+html body.ff-home-visual-review .ff-df-reveal-card>p{font-size:14px!important}
+/* Pillars presented as editorial rhythm, not three boxed feature cards. */
+html body.ff-home-visual-review .home-essentials{
+  padding:105px 0 110px;background:#010203;
+}
+html body.ff-home-visual-review .home-essentials-copy h2{
+  font-size:clamp(40px,4.4vw,66px);line-height:1.07;
+}
+html body.ff-home-visual-review .home-essentials-copy>p:last-child{
+  color:#C8D0D8;font-size:17px;line-height:1.6;
+}
+html body.ff-home-visual-review .home-essentials-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;margin-top:44px;border-block:1px solid rgba(212,175,55,.22);
+}
+html body.ff-home-visual-review .home-essentials-grid article{
+  padding:36px 32px 32px;
+  border:0!important;border-right:1px solid rgba(212,175,55,.16)!important;
+  border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+html body.ff-home-visual-review .home-essentials-grid article:last-child{border-right:0!important}
+html body.ff-home-visual-review .home-essentials-grid article span{color:#D4AF37;font-size:12px}
+html body.ff-home-visual-review .home-essentials-grid article h3{font-size:clamp(21px,2vw,26px);color:#fff}
+html body.ff-home-visual-review .home-essentials-grid article p{font-size:15px;color:#C8D0D8}
+html body.ff-home-visual-review .final{
+  padding:110px 0 93px;background:radial-gradient(ellipse at 50% 0,rgba(212,175,55,.1),transparent 57%),#010203;
+  border-top:1px solid rgba(212,175,55,.16);
+}
+html body.ff-home-visual-review .final h2{
+  font-size:clamp(38px,4.2vw,62px);
+  line-height:1.08;
+}
+@media(max-width:850px){
+  html body.ff-home-visual-review .home-essentials-grid article{padding:24px 17px}
+}
+@media(max-width:620px){
+  html body.ff-home-visual-review .film-section{padding:64px 0 73px}
+  html body.ff-home-visual-review .film-section .wrap{width:calc(100% - 30px)}
+  html body.ff-home-visual-review .film .scene{inset:18px}
+  html body.ff-home-visual-review .film .screen{min-height:605px}
+  html body.ff-home-visual-review .film .scene p{font-size:14px}
+  html body.ff-home-visual-review .film .vo{font-size:11px;left:14px;right:14px}
+  html body.ff-home-visual-review .ff-decision-forge{padding:65px 0}
+  html body.ff-home-visual-review .ff-df-wrap{width:calc(100% - 30px)}
+  html body.ff-home-visual-review .home-essentials{padding:63px 0}
+  html body.ff-home-visual-review .home-essentials-grid{
+    grid-template-columns:1fr;margin-top:30px
+  }
+  html body.ff-home-visual-review .home-essentials-grid article{
+    border:0!important;border-bottom:1px solid rgba(212,175,55,.16)!important;
+    padding:22px 0;
+  }
+  html body.ff-home-visual-review .home-essentials-grid article:last-child{border:0!important}
+  html body.ff-home-visual-review .final{padding:68px 0}
+}
