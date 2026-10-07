@@ -307,7 +307,8 @@
     // evaluation ran, so never call it a new evaluation.
     let alreadyEvaluated = false;
     try {
-      const marker = JSON.parse(window.sessionStorage.getItem("flipforge.semanticReplayNotice") || "null");
+      const marker = window.FlipForgeSemanticReplay?.current?.()
+        || JSON.parse(window.sessionStorage.getItem("flipforge.semanticReplayNotice") || "null");
       alreadyEvaluated = Boolean(marker && marker.id === decodeURIComponent(parts[1]) && Date.now() - marker.at <= 30000);
     } catch (_) { alreadyEvaluated = false; }
     if (alreadyEvaluated) justSaved = false;

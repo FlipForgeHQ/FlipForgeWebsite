@@ -17,21 +17,26 @@
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:|-]{0,199}$/;
   const MESSAGE = "Already evaluated — this is your saved decision for this listing and price. No evaluation was used.";
 
+  // In-memory copy: works even when sessionStorage is blocked or full. Storage only adds reload survival.
+  let memoryMarker = null;
+
+  function fresh(marker) {
+    return Boolean(marker && typeof marker.id === "string" && SAFE_ID.test(marker.id)
+      && Number.isFinite(marker.at) && Date.now() - marker.at <= TTL_MS);
+  }
+
   function readMarker() {
+    if (fresh(memoryMarker)) return memoryMarker;
     try {
       const marker = JSON.parse(window.sessionStorage.getItem(KEY) || "null");
-      if (!marker || typeof marker.id !== "string" || !SAFE_ID.test(marker.id) || !Number.isFinite(marker.at)) return null;
-      if (Date.now() - marker.at > TTL_MS) {
-        window.sessionStorage.removeItem(KEY);
-        return null;
-      }
-      return marker;
-    } catch (_) {
-      return null;
-    }
+      if (fresh(marker)) return marker;
+      if (marker) window.sessionStorage.removeItem(KEY);
+    } catch (_) { /* storage unavailable: memory only */ }
+    return null;
   }
 
   function clearMarker() {
+    memoryMarker = null;
     try { window.sessionStorage.removeItem(KEY); } catch (_) { /* session only */ }
   }
 
@@ -64,13 +69,15 @@
   window.addEventListener("flipforge:semantic-replay", event => {
     const id = String(event?.detail?.opportunityId || "");
     if (!SAFE_ID.test(id)) return;
-    try {
-      window.sessionStorage.setItem(KEY, JSON.stringify({ id, at: Date.now() }));
-      // No new evaluation ran, so the saved decision page must not say "Evaluation complete".
-      window.sessionStorage.removeItem(PENDING_SAVE_KEY);
-    } catch (_) { /* session only */ }
+    memoryMarker = { id, at: Date.now() };
+    // Each storage step is independent so one failure cannot skip the other.
+    try { window.sessionStorage.setItem(KEY, JSON.stringify(memoryMarker)); } catch (_) { /* memory marker still applies */ }
+    // No new evaluation ran, so the saved decision page must not say "Evaluation complete".
+    try { window.sessionStorage.removeItem(PENDING_SAVE_KEY); } catch (_) { /* nothing stored to clear */ }
     watch();
   });
+
+  window.FlipForgeSemanticReplay = Object.freeze({ current: () => readMarker() });
 
   watch();
 })();
