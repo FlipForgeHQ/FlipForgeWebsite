@@ -90,6 +90,11 @@
     }finally{recording=false}
   }
 
+  // Lets the activation flow know a Terms acceptance from the invitation form is waiting to
+  // be saved, so it does not navigate away and cancel the request. This gate opens the
+  // workspace itself once the server has recorded the acceptance.
+  window.FlipForgeBetaTermsGate=Object.freeze({awaitingAcceptance:()=>Boolean(pending())});
+
   window.addEventListener("flipforge:identity-change",recordAcceptance);
   const observer=new MutationObserver(()=>{enhanceInvite();recordAcceptance()});
   observer.observe(document.documentElement,{childList:true,subtree:true});

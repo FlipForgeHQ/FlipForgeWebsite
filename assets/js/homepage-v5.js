@@ -7,10 +7,10 @@ if(film){
   const vo=film.querySelector('[data-vo]');
   const starts=[0,5,12,20,27];
   const voice=[
-    '“The price is easy. Knowing whether to trust it isn’t.”',
-    '“FlipForge first proves the exact card—before price evidence gets a vote.”',
-    '“Then it makes the comps earn their place. Evidence that does not belong is removed.”',
-    '“Price is only an input. Qualified evidence reveals supported value—and FlipForge says VERIFY.”',
+    '“More numbers. Still no answer. A price is not a decision.”',
+    '“Start with the exact card. Year, set, parallel, and grade must match.”',
+    '“See the source. Challenge each comparison. Reject evidence that does not belong.”',
+    '“Only qualified evidence informs supported value. Uncertainty stays visible. This example says VERIFY.”',
     '“FlipForge. Before you buy. Know Why.”'
   ];
   let timer=null,elapsed=0,running=false;

@@ -38,14 +38,24 @@
 
     try {
       const session = await window.FlipForgeIdentity?.refresh?.();
-      if (!session?.authenticated || !session?.membershipActive) {
+      if (!session?.authenticated) {
         window.location.replace(betaAuthUrl());
         return;
       }
 
+      // The server decides membership. The browser's stored profile is from sign-in time and
+      // can still say terms-pending after the account was promoted (Beta Terms accepted), which
+      // bounced newly activated testers between this page and the sign-in page.
       const response = await verifyServerAccess();
       if (!response.ok) {
         window.location.replace(betaAuthUrl({ reauth: response.status === 401 }));
+        return;
+      }
+      // Active invited membership: server-verified above, and the account must carry exactly
+      // one tenant role (membershipActive in the identity snapshot also requires that).
+      const confirmed = window.FlipForgeIdentity?.noteServerMembership?.(true);
+      if (confirmed && confirmed.membershipActive !== true) {
+        window.location.replace(betaAuthUrl());
         return;
       }
 

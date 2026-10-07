@@ -64,7 +64,13 @@
         const invited=await postJson(OPERATOR_ENDPOINT,{action:"invite",applicationId:application.id,expectedVersion:Number(application.version)});
         if(!invited.response.ok){
           status.dataset.error="true";
-          status.textContent="Tester was added, but the invitation was not sent. Refresh, open the tester in Applications, and use Reset stale Identity & send if this email already has an unactivated Identity account.";
+          const reason=String(invited.payload?.reason||"");
+          const seats=Number.isInteger(invited.payload?.seatLimit)?` (${invited.payload.seatsUsed} of ${invited.payload.seatLimit} seats used)`:"";
+          status.textContent=reason==="BETA_FULL"
+            ?`Beta full${seats}. No invitation was sent and no seat was reserved. The tester was saved as approved; remove an invited tester to free a seat, then send the invitation from Applications.`
+            :reason==="BETA_ADMISSION_UNAVAILABLE"
+              ?"The Private Beta seat could not be reserved, so no invitation was sent. The tester was saved as approved; retry from Applications in a moment."
+              :"Tester was added, but the invitation was not sent. Refresh, open the tester in Applications, and use Reset stale Identity & send if this email already has an unactivated Identity account.";
           refreshButton()?.click();
           return;
         }

@@ -22,8 +22,45 @@ import {
   transitionFeedback,
 } from "./lib/beta-operations-core.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
+import { BetaAdmissionError, admissionOperatorId, createAdmissionClient } from "./lib/beta-admission-client.mjs";
 
 const TERMS_PENDING_ROLE = "flipforge-terms-pending";
+
+// A Controlled Pro Beta seat is reserved on the backend before any invitation email is sent and released
+// when an invited tester is removed. The seat never grants access by itself (see beta-admission-client.mjs).
+function admissionTenantId(application) {
+  return application.tenantId || tenantIdFor(application);
+}
+
+function holdsBetaSeat(application) {
+  return Boolean(application.betaAdmission?.status === "ADMITTED"
+    || application.identityUserId
+    || ["INVITE_SENT", "ACTIVATED"].includes(application.removalAttempt?.previousStatus || application.status));
+}
+
+function withBetaAdmission(application, admission, now) {
+  const at = now.toISOString();
+  const required = admission.admissionRequired !== false;
+  return {
+    ...application,
+    betaAdmission: {
+      status: required ? "ADMITTED" : "NOT_REQUIRED",
+      tenantAuditKey: admission.tenantAuditKey || null,
+      reservedAt: required ? (application.betaAdmission?.reservedAt && !admission.created ? application.betaAdmission.reservedAt : at) : null,
+      seatsUsed: admission.admittedCount,
+      seatLimit: admission.maxTenants,
+    },
+    history: [
+      ...(application.history || []),
+      { type: required ? (admission.created ? "BETA_SEAT_RESERVED" : "BETA_SEAT_CONFIRMED") : "BETA_SEAT_NOT_REQUIRED", at, actor: "operator" },
+    ],
+  };
+}
+
+async function releaseBetaSeat(application, admissionClient, operatorId) {
+  if (!holdsBetaSeat(application)) return null;
+  return admissionClient.revoke(admissionTenantId(application), operatorId);
+}
 
 function reply(status, body) {
   return Response.json(body, {
@@ -509,7 +546,9 @@ function publicError(error) {
     "INVALID_STATUS_TRANSITION",
     "INVALID_FEEDBACK_TRANSITION",
     "VERSION_CONFLICT",
+    "BETA_FULL",
   ]);
+  if (code === "BETA_ADMISSION_UNAVAILABLE") return { status: 503, code };
   return clientErrors.has(code) ? { status: ["APPLICATION_NOT_FOUND", "FEEDBACK_NOT_FOUND"].includes(code) ? 404 : 409, code } : { status: 502, code: "OPERATOR_OPERATION_FAILED" };
 }
 
@@ -520,6 +559,7 @@ export function createBetaOperatorHandler({
   getUserFn = getUser,
   identityAdmin = admin,
   inviteIdentity = rawIdentityInvite,
+  admissionClient = createAdmissionClient(),
   now = () => new Date(),
 } = {}) {
   return async function betaOperator(request) {
@@ -585,6 +625,8 @@ export function createBetaOperatorHandler({
         const confirmedEmail = String(input?.confirmEmail || "").trim().toLowerCase();
         if (!expectedEmail || confirmedEmail !== expectedEmail) throw new Error("DELETE_CONFIRMATION_MISMATCH");
         if (current.invitationAttempt?.id || current.removalAttempt?.id) throw new Error(current.invitationAttempt?.id ? "INVITATION_IN_PROGRESS" : "REMOVAL_IN_PROGRESS");
+        // Release the backend seat first (fail closed): if it cannot be released, nothing is deleted.
+        await releaseBetaSeat(current, admissionClient, admissionOperatorId(user));
         const deleted = await permanentlyDeleteTestUser(current, applications, identityAdmin, user);
         console.log(JSON.stringify({
           type: "flipforge_beta_operator_operation",
@@ -612,12 +654,25 @@ export function createBetaOperatorHandler({
         if (reserved !== current) {
           reservationEtag = await conditionalApplicationWrite(applications, key, reserved, currentEntry.etag);
         }
+        let admission = null;
+        let invitationIssued = false;
         try {
+          // Reserve the Controlled Pro Beta seat BEFORE the Identity invitation email is sent.
+          // reserveInvitation above already limited this to APPROVED (or INVITE_SENT for a reset).
+          // BETA_FULL or BETA_ADMISSION_UNAVAILABLE stop here: no email and no role change.
+          admission = await admissionClient.admit(admissionTenantId(reserved), admissionOperatorId(user));
           updated = resettingInvitation
             ? await resetAndResendApplicant(reserved, identityAdmin, inviteIdentity, invitationNow)
             : await inviteApplicant(reserved, identityAdmin, inviteIdentity, invitationNow);
+          invitationIssued = true;
+          updated = withBetaAdmission(updated, admission, invitationNow);
           await conditionalApplicationWrite(applications, key, updated, reservationEtag);
         } catch (error) {
+          if (admission?.created && !invitationIssued) {
+            // No invitation went out: release only the seat this attempt created. A seat whose
+            // invitation was already issued is kept so the invited tester is never locked out.
+            await admissionClient.revoke(admissionTenantId(reserved), admissionOperatorId(user)).catch(() => {});
+          }
           await clearInvitationReservation(applications, key, reserved, reservationEtag, now());
           throw error;
         }
@@ -627,8 +682,18 @@ export function createBetaOperatorHandler({
         let reservationEtag = currentEntry.etag;
         if (reserved !== current) reservationEtag = await conditionalApplicationWrite(applications, key, reserved, currentEntry.etag);
         try {
+          // Release the backend seat first (fail closed). If the registry cannot be reached the removal
+          // stops before any Identity change, so the operator can retry; no seat is silently leaked.
+          const released = await releaseBetaSeat(reserved, admissionClient, admissionOperatorId(user));
           await revokeBetaMembership(reserved, identityAdmin);
           updated = finalizeRemoval(reserved, removalNow);
+          if (released) {
+            updated = {
+              ...updated,
+              betaAdmission: { ...(updated.betaAdmission || {}), status: "REVOKED", releasedAt: removalNow.toISOString() },
+              history: [...(updated.history || []), { type: released.changed ? "BETA_SEAT_RELEASED" : "BETA_SEAT_ALREADY_RELEASED", at: removalNow.toISOString(), actor: "operator" }],
+            };
+          }
           await conditionalApplicationWrite(applications, key, updated, reservationEtag);
           await releaseApplicationEmailClaim(applications, updated);
         } catch (error) {
@@ -655,8 +720,12 @@ export function createBetaOperatorHandler({
       return reply(200, { authorized: true, application: updated });
     } catch (error) {
       const mapped = publicError(error);
-      return reply(mapped.status, { authorized: true, reason: mapped.code });
+      const seats = error instanceof BetaAdmissionError && mapped.code === "BETA_FULL"
+        ? { seatsUsed: error.details?.admittedCount ?? null, seatLimit: error.details?.maxTenants ?? null }
+        : {};
+      return reply(mapped.status, { authorized: true, reason: mapped.code, ...seats });
     }
+
   };
 }
 

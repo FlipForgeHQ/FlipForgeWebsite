@@ -19,6 +19,12 @@ on:
       - "netlify/modern-functions/conversion-event.mjs"
       - "netlify/modern-functions/lib/beta-operations-core.mjs"
       - "scripts/validate-beta-operator-workflow.mjs"
+      - "scripts/validate-beta-operator-current.mjs"
+      - "scripts/validate-beta-seat-admission.mjs"
+      - "netlify/modern-functions/lib/beta-admission-client.mjs"
+      - "netlify/functions/flipforge-api.js"
+      - "assets/js/beta-founder-select.js"
+      - "scripts/lib/flipforge-production-auth-probe.mjs"
       - "docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md"
       - "docs/SAAS_PRIVATE_BETA_READINESS.md"
       - "scripts/validate-saas-private-beta-readiness.mjs"
@@ -46,6 +52,12 @@ on:
       - "netlify/modern-functions/conversion-event.mjs"
       - "netlify/modern-functions/lib/beta-operations-core.mjs"
       - "scripts/validate-beta-operator-workflow.mjs"
+      - "scripts/validate-beta-operator-current.mjs"
+      - "scripts/validate-beta-seat-admission.mjs"
+      - "netlify/modern-functions/lib/beta-admission-client.mjs"
+      - "netlify/functions/flipforge-api.js"
+      - "assets/js/beta-founder-select.js"
+      - "scripts/lib/flipforge-production-auth-probe.mjs"
       - "docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md"
       - "docs/SAAS_PRIVATE_BETA_READINESS.md"
       - "scripts/validate-saas-private-beta-readiness.mjs"
@@ -75,6 +87,7 @@ jobs:
           node --check netlify/modern-functions/beta-applications.mjs
           node --check netlify/modern-functions/beta-feedback.mjs
           node --check netlify/modern-functions/beta-operator.mjs
+          node --check netlify/modern-functions/lib/beta-admission-client.mjs
           node --check netlify/modern-functions/beta-retention.mjs
       - name: Validate beta operator workflow
         run: npm run build:identity && npm run validate:identity && npm run validate:beta-operator && npm run validate:private-beta

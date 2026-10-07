@@ -497,6 +497,11 @@
       const requestId = idempotencyKeyFor(payload);
       const result = await request(EVALUATION_PATH, { method: "POST", body: payload, idempotencyKey: requestId });
       if (!validateEvaluation(result.payload, result.correlationId, requestId)) throw makeError("DISCOVER_EVALUATION_CONTRACT_INVALID", "The authoritative evaluation response failed the tenant-owned Smart Opportunity contract.");
+      // Server semantic replay: this exact listing, card and ask already has a saved decision, so no
+      // evaluation was used. semantic-replay-notice-v1.js tells the customer on the saved decision page.
+      if (result.payload.data.semanticReplay === true) {
+        window.dispatchEvent(new CustomEvent("flipforge:semantic-replay", { detail: { opportunityId: result.payload.data.opportunityId } }));
+      }
       state.evaluatingIndex = -1;
       window.location.hash = `#/opportunities/${encodeURIComponent(result.payload.data.opportunityId)}`;
     } catch (error) {

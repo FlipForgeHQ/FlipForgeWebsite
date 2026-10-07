@@ -307,9 +307,19 @@
       try { window.sessionStorage.removeItem("flipforge.pendingEvaluationSave"); } catch (_) { /* session only */ }
     }
 
+    // Server semantic replay (set by customer-discovery.js): the saved decision was returned and no
+    // evaluation ran, so never call it a new evaluation.
+    let alreadyEvaluated = false;
+    try {
+      const marker = window.FlipForgeSemanticReplay?.current?.()
+        || JSON.parse(window.sessionStorage.getItem("flipforge.semanticReplayNotice") || "null");
+      alreadyEvaluated = Boolean(marker && marker.id === decodeURIComponent(parts[1]) && Date.now() - marker.at <= 30000);
+    } catch (_) { alreadyEvaluated = false; }
+    if (alreadyEvaluated) justSaved = false;
+
     if (!bar.classList.contains("ff-save-confirmed")) bar.classList.add("ff-save-confirmed");
     bar.classList.toggle("ff-just-saved", justSaved);
-    setText(bar.querySelector(".ff-saved-decision-copy strong"), justSaved ? "Evaluation complete & saved" : "Evaluation saved");
+    setText(bar.querySelector(".ff-saved-decision-copy strong"), alreadyEvaluated ? "Already evaluated — saved decision" : justSaved ? "Evaluation complete & saved" : "Evaluation saved");
     setText(bar.querySelector(".ff-saved-decision-copy small"), "This decision is saved to your account. Starting another card will not remove it.");
 
     const actions = bar.querySelector(".ff-saved-decision-actions");

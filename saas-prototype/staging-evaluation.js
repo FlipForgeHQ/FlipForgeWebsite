@@ -410,17 +410,24 @@
       ["All-in acquisition", moneyFromCents(data.normalizedRequest?.allInAskCents)],
       ["Tenant owned", data.tenantOwned === true ? "Yes" : "No"],
       ["Quota enforced", data.quotaEnforced === true ? "Yes" : "Server contract pending"],
-      ["Idempotent replay", data.idempotentReplay === true ? "Yes" : "No"]
+      ["Idempotent replay", data.semanticReplay === true ? "Yes — already evaluated" : data.idempotentReplay === true ? "Yes" : "No"]
     ];
     const opportunityId = String(data.opportunityId || "");
     const canOpen = SAFE_OPPORTUNITY_ID.test(opportunityId);
-    const resultTitle = customerSurface() ? "Authoritative decision saved" : "Authoritative staging result";
-    const resultDescription = customerSurface()
-      ? "The result is now a tenant-owned tracked record with its evidence and PSA context available in Card Intelligence."
-      : "Saved exactly through the existing Smart Opportunity and tenant ownership boundary.";
-    const openLabel = customerSurface() ? "Open Card Intelligence" : "Open saved record";
+    // Server-owned semantic replay: this exact listing, card and ask was already evaluated, so the
+    // saved decision was returned and no evaluation was used.
+    const alreadyEvaluated = data.semanticReplay === true;
+    const resultTitle = alreadyEvaluated
+      ? "Already evaluated — open saved decision"
+      : customerSurface() ? "Authoritative decision saved" : "Authoritative staging result";
+    const resultDescription = alreadyEvaluated
+      ? "You already evaluated this exact listing, card and price. This is your saved decision; no evaluation was used."
+      : customerSurface()
+        ? "The result is now a tenant-owned tracked record with its evidence and PSA context available in Card Intelligence."
+        : "Saved exactly through the existing Smart Opportunity and tenant ownership boundary.";
+    const openLabel = alreadyEvaluated ? "Open saved decision" : customerSurface() ? "Open Card Intelligence" : "Open saved record";
     const returnLabel = customerSurface() ? "Tracked cards" : "Return to staging list";
-    return `<section class="panel staging-evaluation-result" aria-live="polite"><header class="panel-header"><div><h2>${resultTitle}</h2><p>${resultDescription}</p></div><span class="staging-status staging-status-${escapeHtml(String(decision.recommendation || "unknown").toLowerCase())}">${escapeHtml(decision.recommendation || "UNKNOWN")}</span></header><div class="panel-body"><div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>${valueIntelligencePanel(data)}<div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(decision.reason || "No reason returned.")}</p><p><strong>Missing requirement:</strong> ${escapeHtml(decision.missingRequirement || "None returned.")}</p><p><strong>Next action:</strong> ${escapeHtml(decision.nextAction || "No next action returned.")}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This response persisted to SQLite and granted tenant ownership. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>${canOpen ? `<div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${returnLabel}</a><a class="button button-primary" href="${savedDetailRoute(opportunityId)}">${openLabel}</a></div>` : ""}</div></section>`;
+    return `<section class="panel staging-evaluation-result" aria-live="polite"${alreadyEvaluated ? " data-ff-semantic-replay-result" : ""}><header class="panel-header"><div><h2>${resultTitle}</h2><p>${resultDescription}</p></div><span class="staging-status staging-status-${escapeHtml(String(decision.recommendation || "unknown").toLowerCase())}">${escapeHtml(decision.recommendation || "UNKNOWN")}</span></header><div class="panel-body"><div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>${valueIntelligencePanel(data)}<div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(decision.reason || "No reason returned.")}</p><p><strong>Missing requirement:</strong> ${escapeHtml(decision.missingRequirement || "None returned.")}</p><p><strong>Next action:</strong> ${escapeHtml(decision.nextAction || "No next action returned.")}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This response persisted to SQLite and granted tenant ownership. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>${canOpen ? `<div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${returnLabel}</a><a class="button button-primary" href="${savedDetailRoute(opportunityId)}">${openLabel}</a></div>` : ""}</div></section>`;
   }
 
   function renderCurrent() {

@@ -1,0 +1,474 @@
+/* FLIPFORGE / SIGNATURE EXPERIENCE v1
+   Original visual treatment. Review-only homepage. No copy or motion from
+   other intelligence brands. This replaces earlier preview overrides. */
+html body.ff-home-visual-review{
+  background:#010203;color:#fff;
+  font-family:Geist,"Geist Sans",Arial,sans-serif;
+}
+html body.ff-home-visual-review main#main{overflow:clip}
+html body.ff-home-visual-review main#main .wrap.hero.ff-signature-hero{
+  box-sizing:border-box;
+  position:relative;
+  isolation:isolate;
+  width:100%;
+  max-width:none;
+  min-height:min(920px,calc(100svh - 90px));
+  margin:0;
+  padding:clamp(76px,7vw,120px) max(34px,calc((100vw - 1510px)/2)) 120px;
+  display:grid;
+  grid-template-columns:minmax(0,.90fr) minmax(0,1.10fr);
+  gap:clamp(20px,3vw,60px);
+  align-items:center;
+  background:
+    radial-gradient(ellipse 43% 65% at 77% 45%,rgba(212,175,55,.10),transparent 78%),
+    radial-gradient(ellipse 45% 55% at 105% 90%,rgba(133,116,64,.07),transparent 86%),
+    #010203;
+  overflow:hidden;
+}
+html body.ff-home-visual-review main#main .wrap.hero.ff-signature-hero:before{
+  content:"";position:absolute;pointer-events:none;z-index:-1;
+  inset:0;
+  background-image:linear-gradient(90deg,rgba(212,175,55,.035) 1px,transparent 1px),linear-gradient(rgba(212,175,55,.029) 1px,transparent 1px);
+  background-size:86px 86px;
+  mask-image:radial-gradient(ellipse at 74% 47%,#000,transparent 75%);
+}
+html body.ff-home-visual-review main#main .wrap.hero.ff-signature-hero:after{
+  content:"";position:absolute;bottom:0;left:6%;right:6%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,.66) 50%,transparent);
+}
+html body.ff-home-visual-review .ff-signature-hero .hero-copy{
+  z-index:2;position:relative;text-align:left;max-width:680px;margin:0;
+  align-self:center;
+}
+html body.ff-home-visual-review .ff-sig-triad{margin:0 0 22px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;color:#C8D0D8;font-size:12px;font-weight:780;letter-spacing:.085em}
+html body.ff-home-visual-review .ff-sig-triad span{color:#D4AF37;font-size:15px}
+html body.ff-home-visual-review .ff-signature-hero .kicker{
+  margin:0 0 29px;
+  color:#D4AF37;font-size:12px;
+  letter-spacing:.24em;font-weight:680;
+}
+html body.ff-home-visual-review main#main .ff-signature-hero h1{
+  max-width:780px;
+  margin:0;
+  font-size:clamp(52px,5vw,76px);
+  letter-spacing:-.065em;line-height:1.055;font-weight:760;
+  text-wrap:balance;
+}
+html body.ff-home-visual-review main#main .ff-signature-hero h1 span{
+  display:block;
+  margin-top:8px;
+  color:#D4AF37;
+}
+html body.ff-home-visual-review .ff-signature-hero .lead{
+  width:min(540px,100%);max-width:540px;
+  margin:30px 0 0;
+  font-size:clamp(17px,1.45vw,21px);
+  line-height:1.66;
+  color:#D2D7DD;font-weight:430;
+}
+html body.ff-home-visual-review .ff-signature-hero .lead strong{color:#fff;font-weight:690}
+html body.ff-home-visual-review .ff-signature-hero .promise{
+  margin:16px 0 0;padding:0;border:none;background:transparent;
+  color:#B7C0C9;font-size:15px;font-weight:490;line-height:1.6;
+}
+html body.ff-home-visual-review .ff-signature-hero .hero-actions{
+  margin:38px 0 0;display:flex;justify-content:flex-start;gap:15px;
+}
+html body.ff-home-visual-review .ff-signature-hero .hero-actions a{
+  min-height:56px;padding:0 25px;font-size:14px;letter-spacing:0;
+  border-radius:4px;text-transform:none;
+  font-weight:750;transition:transform .22s ease,background .22s ease;
+}
+html body.ff-home-visual-review .ff-signature-hero .hero-actions .primary{
+  background:#D4AF37;color:#070808;box-shadow:0 14px 40px rgba(212,175,55,.13);
+}
+html body.ff-home-visual-review .ff-signature-hero .hero-actions .video-link{
+  background:rgba(255,255,255,.017);color:#fff;
+  border:1px solid rgba(255,255,255,.29);
+}
+html body.ff-home-visual-review .ff-signature-hero .video-link i{
+  border:1px solid #D4AF37;color:#D4AF37;
+}
+html body.ff-home-visual-review .ff-signature-hero .hero-actions a:hover{transform:translateY(-2px)}
+html body.ff-home-visual-review .ff-signature-hero .hero-proof{
+  display:flex;justify-content:flex-start;
+  border-top:1px solid rgba(255,255,255,.13);
+  margin:48px 0 0;padding:19px 0 0;
+  gap:8px 19px;flex-wrap:wrap;
+  color:#B7C0C9;font-size:11px;font-weight:730;letter-spacing:.045em;
+}
+html body.ff-home-visual-review .ff-signature-hero .hero-proof span:before{
+  content:"";width:4px;height:4px;background:#D4AF37;margin:0 10px 2px 0;
+}
+/* Stage is intentionally NOT a bordered dashboard or templated marketing card. */
+html body.ff-home-visual-review .ff-signature-hero .hero-visual.ff-signature-visual{
+  display:block;position:relative;isolation:isolate;width:100%;
+  min-height:706px;margin:0;overflow:visible;
+  border:0;border-radius:0;background:none;box-shadow:none;padding:0;
+}
+html body.ff-home-visual-review .ff-signature-visual:before,
+html body.ff-home-visual-review .ff-signature-visual:after{content:none}
+html body.ff-home-visual-review .ff-signature-visual .ff-approved-graphic{
+  display:none;/* Previous tiny dashboard illustration replaced by a bespoke hero. */
+}
+html body.ff-home-visual-review .ff-signature-stage{
+  position:relative;width:100%;min-height:620px;
+  display:grid;align-items:center;justify-items:center;
+}
+html body.ff-home-visual-review .ff-sig-field{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 40% 43% at 50% 48%,rgba(212,175,55,.12),transparent 100%);
+}
+html body.ff-home-visual-review .ff-sig-ring{
+  position:absolute;left:50%;top:49%;
+  width:min(93%,640px);aspect-ratio:1;
+  border:1px solid rgba(212,175,55,.15);border-radius:50%;
+  transform:translate(-50%,-50%) rotateX(65deg);
+  box-shadow:0 0 60px rgba(212,175,55,.05);
+}
+html body.ff-home-visual-review .ff-sig-ring:nth-child(2){width:min(112%,820px);border-style:dashed;opacity:.6}
+html body.ff-home-visual-review .ff-sig-trace{
+  position:absolute;height:1px;
+  width:80%;left:10%;top:49%;
+  background:linear-gradient(90deg,transparent,#D4AF37 50%,transparent);opacity:.21;
+}
+html body.ff-home-visual-review .ff-sig-label{
+  position:absolute;left:2%;top:5%;margin:0;
+  font-size:10px;font-weight:740;color:#D2D7DD;letter-spacing:.16em;
+}
+html body.ff-home-visual-review .ff-sig-label:before{
+  content:"";display:inline-block;width:7px;height:7px;border-radius:50%;
+  margin-right:10px;background:#D4AF37;box-shadow:0 0 18px rgba(212,175,55,.6);
+}
+html body.ff-home-visual-review .ff-sig-card{
+  position:relative;z-index:4;
+  width:clamp(270px,57%,430px);
+  filter:drop-shadow(0 44px 43px rgba(0,0,0,.75));
+  transform:perspective(1300px) rotateY(-11deg) rotateZ(5deg);
+  transition:transform 1.2s cubic-bezier(.2,.75,.3,1),filter 1s ease;
+}
+html body.ff-home-visual-review .ff-sig-card img{display:block;width:100%;height:auto;max-width:none}
+html body.ff-home-visual-review .ff-sig-noscript{z-index:14;position:absolute;bottom:0;left:2%;right:2%;padding:12px 16px;background:#060809;color:#E5E5E5;font-size:13px;line-height:1.5}
+html body.ff-home-visual-review .ff-sig-scan{
+  position:absolute;z-index:6;top:10%;left:24%;width:52%;height:2px;
+  background:linear-gradient(90deg,transparent,#FCDEA6,#D4AF37,transparent);
+  box-shadow:0 0 20px rgba(212,175,55,.65);
+  opacity:0;
+}
+html body.ff-home-visual-review .ff-sig-evidence{
+  position:absolute;z-index:5;padding:11px 0;
+  min-width:163px;
+  color:#D2D7DD;font-size:11px;font-weight:730;
+  letter-spacing:.08em;text-transform:uppercase;
+  border-top:1px solid rgba(212,175,55,.34);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(90deg,rgba(1,2,3,.94),rgba(1,2,3,.62));
+  transform:translateY(12px);
+  opacity:.27;
+  transition:opacity .6s ease,transform .65s ease,color .6s ease;
+}
+html body.ff-home-visual-review .ff-sig-evidence:before{
+  content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+  vertical-align:middle;margin:0 10px 2px 5px;background:#D4AF37;
+}
+html body.ff-home-visual-review .ff-sig-evidence--a{left:1%;top:25%;text-align:left}
+html body.ff-home-visual-review .ff-sig-evidence--b{right:0;top:29%;text-align:right}
+html body.ff-home-visual-review .ff-sig-evidence--c{left:0;bottom:19%}
+html body.ff-home-visual-review .ff-sig-evidence--d{right:0;bottom:21%}
+html body.ff-home-visual-review .ff-sig-evidence.is-invalid{
+  color:#B7C0C9;text-decoration:line-through;text-decoration-color:#D37E7E;
+}
+html body.ff-home-visual-review .ff-sig-ticket{
+  position:absolute;z-index:9;
+  left:50%;bottom:3%;transform:translate(-50%,22px);
+  width:min(84%,455px);max-width:455px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:16px 18px;
+  border-top:1px solid #D4AF37;
+  border-bottom:1px solid rgba(212,175,55,.18);
+  background:linear-gradient(120deg,rgba(8,11,12,.98),rgba(4,6,8,.86));
+  box-shadow:0 20px 45px rgba(0,0,0,.44);
+  opacity:0;transition:opacity .7s ease,transform .7s ease;
+}
+html body.ff-home-visual-review .ff-sig-ticket small{
+  display:block;margin-bottom:5px;color:#C8D0D8;letter-spacing:.12em;font-size:10px;font-weight:760;
+}
+html body.ff-home-visual-review .ff-sig-ticket b{
+  color:#D4AF37;font-size:31px;line-height:1;letter-spacing:.06em;
+}
+html body.ff-home-visual-review .ff-sig-ticket span{
+  color:#D2D7DD;font-size:12px;text-align:right;max-width:145px;line-height:1.4;
+}
+html body.ff-home-visual-review .ff-sig-status{
+  position:absolute;z-index:8;left:2%;bottom:5%;
+  display:grid;gap:6px;text-align:left;
+}
+html body.ff-home-visual-review .ff-sig-status small{
+  color:#D4AF37;font-size:10px;letter-spacing:.15em;font-weight:750;
+}
+html body.ff-home-visual-review .ff-sig-status strong{
+  max-width:210px;color:#D2D7DD;font-size:14px;line-height:1.4;font-weight:660;
+}
+html body.ff-home-visual-review .ff-sig-controls{
+  position:absolute;z-index:12;right:0;top:4%;
+}
+html body.ff-home-visual-review .ff-sig-controls button{
+  cursor:pointer;min-height:44px;padding:10px 13px;
+  border:1px solid rgba(212,175,55,.3);
+  border-radius:4px;background:#050608;color:#E5E5E5;
+  font:inherit;font-size:12px;font-weight:700;
+}
+html body.ff-home-visual-review .ff-sig-controls button:hover{border-color:#D4AF37}
+html body.ff-home-visual-review .ff-sig-stage[data-phase="1"] .ff-sig-card{transform:perspective(1300px) rotateY(0deg) rotateZ(0deg) scale(1.07)}
+html body.ff-home-visual-review .ff-sig-stage[data-phase="1"] .ff-sig-evidence--a,
+html body.ff-home-visual-review .ff-sig-stage[data-phase="1"] .ff-sig-evidence--b,
+html body.ff-home-visual-review .ff-sig-stage[data-phase="2"] .ff-sig-evidence{
+  opacity:1;transform:translateY(0);
+}
+html body.ff-home-visual-review .ff-sig-stage[data-phase="2"] .ff-sig-card{transform:perspective(1300px) rotateY(5deg) rotateZ(-3deg) scale(.99)}
+html body.ff-home-visual-review .ff-sig-stage[data-phase="3"] .ff-sig-card{
+  transform:perspective(1300px) rotateY(-5deg) rotateZ(1deg) scale(.97);
+}
+html body.ff-home-visual-review .ff-sig-stage[data-phase="3"] .ff-sig-ticket{
+  opacity:1;transform:translate(-50%,0);
+}
+html body.ff-home-visual-review .ff-sig-stage[data-phase="3"] .ff-sig-evidence{
+  opacity:.45;transform:translateY(0);
+}
+html body.ff-home-visual-review .ff-sig-stage[data-phase="1"] .ff-sig-scan{animation:ffSigScan 2.6s ease-in-out 1}
+@keyframes ffSigScan{
+  0%{top:8%;opacity:0}14%{opacity:1}
+  78%{opacity:1}100%{top:85%;opacity:0}
+}
+html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary{
+  display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;
+  width:100%;max-width:none;gap:10px 16px;overflow:visible;
+  margin:0 auto;padding:10px 0 0;
+  border:0;border-top:1px solid rgba(212,175,55,.22);
+  border-radius:0;background:transparent;
+}
+html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary>span{
+  border:0;padding:8px 6px;flex:1 1 90px;
+}
+html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary small{
+  color:#AEB7C1!important;font-size:10px!important;line-height:1.3!important;
+  font-weight:700;
+}
+html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary b,
+html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary strong{
+  color:#D4AF37!important;font-size:12px!important;line-height:1.36!important;
+}
+html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary p{
+  display:block;flex:0 0 100%;
+  border:0;padding:4px 6px;
+  background:transparent;color:#B7C0C9!important;
+  font-size:11px!important;line-height:1.55!important;text-align:left;
+}
+html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary p:before{
+  content:"ILLUSTRATIVE EXAMPLE · ";color:#D4AF37;
+}
+/* Film behaves like a cinematic chapter, not another dashboard card. */
+html body.ff-home-visual-review .film-section{
+  padding:104px 0 111px;background:#050607;
+  border-top:1px solid rgba(212,175,55,.08);
+}
+html body.ff-home-visual-review .film-section .section-head{
+  display:grid;gap:0;
+}
+html body.ff-home-visual-review .film-section .section-head .kicker{
+  letter-spacing:.15em;font-size:11px;
+}
+html body.ff-home-visual-review .film-section .section-head h2{
+  margin:15px auto 0;max-width:860px;
+  font-size:clamp(38px,4vw,60px);line-height:1.075;letter-spacing:-.045em;
+}
+html body.ff-home-visual-review .film-section .section-head p:last-child{
+  color:#C8D0D8;font-size:17px;line-height:1.6;
+}
+html body.ff-home-visual-review .film{
+  max-width:1260px;margin:42px auto 0;
+  border:1px solid rgba(212,175,55,.2);
+  border-radius:0;overflow:hidden;
+  box-shadow:0 45px 100px rgba(0,0,0,.37);
+  background:#030405;
+}
+html body.ff-home-visual-review .film-head{
+  min-height:54px;height:auto;padding:13px 22px;font-size:12px;letter-spacing:.08em;
+}
+html body.ff-home-visual-review .film .screen{
+  min-height:545px;background:
+    radial-gradient(circle at 68% 52%,rgba(212,175,55,.11),transparent 39%),
+    linear-gradient(145deg,#080A0C,#030405);
+}
+html body.ff-home-visual-review .film .scene{inset:42px}
+html body.ff-home-visual-review .film .scene p{
+  color:#C8D0D8;font-size:16px;line-height:1.6;
+}
+html body.ff-home-visual-review .film .scene-label{font-size:12px;color:#D4AF37}
+html body.ff-home-visual-review .film .identity small,
+html body.ff-home-visual-review .film .valuebox small,
+html body.ff-home-visual-review .film .call small,
+html body.ff-home-visual-review .film .comp small{font-size:11px}
+html body.ff-home-visual-review .film .vo{font-size:13px}
+html body.ff-home-visual-review .film .vo b{font-size:11px}
+html body.ff-home-visual-review .film .controls{height:65px}
+html body.ff-home-visual-review .film .play{width:43px;height:43px}
+html body.ff-home-visual-review .film .time{font-size:12px}
+/* Decision Forge is the optional drill-down chapter, visually lighter and legible. */
+html body.ff-home-visual-review .ff-decision-forge{
+  background:#030405;padding:96px 0 105px;
+}
+html body.ff-home-visual-review .ff-df-wrap{width:min(1300px,calc(100% - 60px))}
+html body.ff-home-visual-review .ff-df-shell{
+  border-radius:0;background:#070809;border-color:rgba(212,175,55,.22);
+}
+html body.ff-home-visual-review .ff-df-stage-button span,
+html body.ff-home-visual-review .ff-df-stage-top span{font-size:11px}
+html body.ff-home-visual-review .ff-df-stage-button b{font-size:12px}
+html body.ff-home-visual-review .ff-df-stage-copy{
+  color:#C8D0D8!important;font-size:14px!important;line-height:1.6;
+}
+html body.ff-home-visual-review .ff-df-controls button{font-size:12px}
+html body.ff-home-visual-review .ff-df-evidence-verdicts span{font-size:10px}
+html body.ff-home-visual-review .ff-df-identity-points small,
+html body.ff-home-visual-review .ff-df-economics small,
+html body.ff-home-visual-review .ff-df-reveal-card>small{font-size:11px!important}
+html body.ff-home-visual-review .ff-df-reveal-card>p{font-size:14px!important}
+/* Pillars presented as editorial rhythm, not three boxed feature cards. */
+html body.ff-home-visual-review .home-essentials{
+  padding:105px 0 110px;background:#010203;
+}
+html body.ff-home-visual-review .home-essentials-copy h2{
+  font-size:clamp(40px,4.4vw,66px);line-height:1.07;
+}
+html body.ff-home-visual-review .home-essentials-copy>p:last-child{
+  color:#C8D0D8;font-size:17px;line-height:1.6;
+}
+html body.ff-home-visual-review .home-essentials-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;margin-top:44px;border-block:1px solid rgba(212,175,55,.22);
+}
+html body.ff-home-visual-review .home-essentials-grid article{
+  padding:36px 32px 32px;
+  border:0!important;border-right:1px solid rgba(212,175,55,.16)!important;
+  border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+html body.ff-home-visual-review .home-essentials-grid article:last-child{border-right:0!important}
+html body.ff-home-visual-review .home-essentials-grid article span{color:#D4AF37;font-size:12px}
+html body.ff-home-visual-review .home-essentials-grid article h3{font-size:clamp(21px,2vw,26px);color:#fff}
+html body.ff-home-visual-review .home-essentials-grid article p{font-size:15px;color:#C8D0D8}
+html body.ff-home-visual-review .final{
+  padding:110px 0 93px;background:radial-gradient(ellipse at 50% 0,rgba(212,175,55,.1),transparent 57%),#010203;
+  border-top:1px solid rgba(212,175,55,.16);
+}
+html body.ff-home-visual-review .final h2{
+  font-size:clamp(38px,4.2vw,62px);
+  line-height:1.08;
+}
+@media(min-width:1510px){
+  html body.ff-home-visual-review main#main .wrap.hero.ff-signature-hero{
+    padding-inline:max(34px,calc((100vw - 1510px)/2));
+  }
+}
+@media(max-width:1180px){
+  html body.ff-home-visual-review main#main .wrap.hero.ff-signature-hero{
+    min-height:0;padding:75px 26px 92px;
+    grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr);
+  }
+  html body.ff-home-visual-review main#main .ff-signature-hero h1{
+    font-size:clamp(44px,5vw,61px);
+  }
+  html body.ff-home-visual-review .ff-signature-hero .hero-visual.ff-signature-visual{min-height:610px}
+  html body.ff-home-visual-review .ff-signature-stage{min-height:530px}
+  html body.ff-home-visual-review .ff-sig-card{width:clamp(230px,59%,365px)}
+  html body.ff-home-visual-review .ff-sig-evidence{min-width:135px;font-size:10px}
+  html body.ff-home-visual-review .ff-sig-ticket{width:89%}
+}
+@media(max-width:850px){
+  html body.ff-home-visual-review main#main .wrap.hero.ff-signature-hero{
+    grid-template-columns:1fr;gap:15px;padding:70px 23px 72px;
+  }
+  html body.ff-home-visual-review .ff-signature-hero .hero-copy{
+    max-width:760px;
+  }
+  html body.ff-home-visual-review main#main .ff-signature-hero h1{
+    max-width:760px;font-size:clamp(44px,6vw,62px);
+  }
+  html body.ff-home-visual-review .ff-signature-hero .hero-proof{margin-top:30px}
+  html body.ff-home-visual-review .ff-signature-stage{min-height:615px}
+  html body.ff-home-visual-review .ff-sig-card{width:clamp(270px,42vw,395px)}
+  html body.ff-home-visual-review .ff-signature-hero .hero-visual.ff-signature-visual{min-height:0}
+  html body.ff-home-visual-review .home-essentials-grid article{padding:24px 17px}
+}
+@media(max-width:620px){
+  html body.ff-home-visual-review main#main .wrap.hero.ff-signature-hero{
+    padding:48px 16px 66px;gap:8px;
+  }
+  html body.ff-home-visual-review .ff-signature-hero .kicker{
+    font-size:11px;letter-spacing:.14em;margin-bottom:20px;
+  }
+  html body.ff-home-visual-review main#main .ff-signature-hero h1{
+    font-size:clamp(38px,9vw,52px);line-height:1.07;
+  }
+  html body.ff-home-visual-review .ff-signature-hero .lead{font-size:16px;margin-top:22px}
+  html body.ff-home-visual-review .ff-signature-hero .promise{font-size:14px}
+  html body.ff-home-visual-review .ff-signature-hero .hero-actions{margin-top:26px;gap:11px}
+  html body.ff-home-visual-review .ff-signature-hero .hero-actions a{
+    width:100%;font-size:14px;min-height:50px;
+  }
+  html body.ff-home-visual-review .ff-signature-hero .hero-proof{
+    font-size:10px;gap:9px 13px;
+  }
+  html body.ff-home-visual-review .ff-signature-stage{min-height:485px}
+  html body.ff-home-visual-review .ff-sig-card{width:clamp(235px,60vw,305px)}
+  html body.ff-home-visual-review .ff-sig-label{left:0;top:4%;font-size:9px}
+  html body.ff-home-visual-review .ff-sig-evidence{min-width:96px;font-size:9px;padding:8px 0}
+  html body.ff-home-visual-review .ff-sig-evidence--a{left:0;top:25%}
+  html body.ff-home-visual-review .ff-sig-evidence--b{right:0;top:29%}
+  html body.ff-home-visual-review .ff-sig-evidence--c{left:0;bottom:17%}
+  html body.ff-home-visual-review .ff-sig-evidence--d{right:0;bottom:19%}
+  html body.ff-home-visual-review .ff-sig-status{left:0;bottom:2%}
+  html body.ff-home-visual-review .ff-sig-status strong{font-size:11px;max-width:120px}
+  html body.ff-home-visual-review .ff-sig-ticket{width:74%;left:58%;bottom:3%;padding:10px}
+  html body.ff-home-visual-review .ff-sig-ticket b{font-size:24px}
+  html body.ff-home-visual-review .ff-sig-ticket span{font-size:10px;max-width:93px}
+  html body.ff-home-visual-review .ff-sig-controls{top:2%;right:0}
+  html body.ff-home-visual-review .ff-sig-controls button{font-size:11px}
+  html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:0;
+  }
+  html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary>span{
+    padding:11px 5px;border-bottom:1px solid rgba(255,255,255,.06)
+  }
+  html body.ff-home-visual-review .ff-signature-visual .ff-approved-data-summary p{
+    grid-column:1/-1;font-size:11px!important;
+  }
+  html body.ff-home-visual-review .film-section{padding:64px 0 73px}
+  html body.ff-home-visual-review .film-section .wrap{width:calc(100% - 30px)}
+  html body.ff-home-visual-review .film .scene{inset:18px}
+  html body.ff-home-visual-review .film .screen{min-height:605px}
+  html body.ff-home-visual-review .film .scene p{font-size:14px}
+  html body.ff-home-visual-review .film .vo{font-size:11px;left:14px;right:14px}
+  html body.ff-home-visual-review .ff-decision-forge{padding:65px 0}
+  html body.ff-home-visual-review .ff-df-wrap{width:calc(100% - 30px)}
+  html body.ff-home-visual-review .home-essentials{padding:63px 0}
+  html body.ff-home-visual-review .home-essentials-grid{
+    grid-template-columns:1fr;margin-top:30px
+  }
+  html body.ff-home-visual-review .home-essentials-grid article{
+    border:0!important;border-bottom:1px solid rgba(212,175,55,.16)!important;
+    padding:22px 0;
+  }
+  html body.ff-home-visual-review .home-essentials-grid article:last-child{border:0!important}
+  html body.ff-home-visual-review .final{padding:68px 0}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.ff-home-visual-review .ff-sig-scan{animation:none!important}
+  html body.ff-home-visual-review .ff-sig-card,
+  html body.ff-home-visual-review .ff-sig-evidence,
+  html body.ff-home-visual-review .ff-sig-ticket,
+  html body.ff-home-visual-review .ff-signature-hero .hero-actions a{transition:none!important}
+  html body.ff-home-visual-review .ff-signature-hero .hero-actions a:hover{transform:none}
+}

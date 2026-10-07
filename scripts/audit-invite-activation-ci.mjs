@@ -49,7 +49,23 @@ const testJwt = [
   b64url({ sub: "ci-invited-tester", email: "invited-tester@flipforge.test", exp: Math.floor(Date.now() / 1000) + 3600, app_metadata: { roles: [] }, user_metadata: { full_name: "CI Invited Tester" } }),
   "ci-signature"
 ].join(".");
-const testUser = { id: "ci-invited-tester", aud: "", role: "", email: "invited-tester@flipforge.test", confirmed_at: new Date().toISOString(), app_metadata: { provider: "email", roles: [] }, user_metadata: { full_name: "CI Invited Tester" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+const TERMS_DELAY_MS = 2000;
+const TENANT_ROLE = "flipforge-tenant--ci-tenant";
+const PENDING_ROLE = "flipforge-terms-pending";
+const ACTIVE_ROLE = "flipforge-active";
+
+// A fresh simulated account per browser context. It behaves like production: invited
+// accounts start terms-pending; the Terms endpoint is slow and only then promotes the
+// account; entitlements and /user always answer from the account's current state.
+function newAccount() {
+  return { roles: [TENANT_ROLE, PENDING_ROLE], termsStartedAt: 0, termsFinishedAt: 0, termsAborted: false };
+}
+function userRecord(account) {
+  return { id: "ci-invited-tester", aud: "", role: "", email: "invited-tester@flipforge.test", confirmed_at: new Date().toISOString(), invited_at: new Date().toISOString(), app_metadata: { provider: "email", roles: [...account.roles] }, user_metadata: { full_name: "CI Invited Tester" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+}
+function meta(correlationId) {
+  return { contractVersion: "1.0", engineVersion: "ci-invite", authority: "Smart Opportunity", gradingAuthority: "Existing PSA intelligence", correlationId, generatedAt: new Date().toISOString() };
+}
 
 function localFile(pathname) {
   let rel = decodeURIComponent(pathname);
@@ -61,11 +77,12 @@ function localFile(pathname) {
   return existsSync(file) ? file : null;
 }
 
-async function routeProduction(context, log) {
+async function routeProduction(context, log, account = newAccount()) {
   await context.route(/^https:\/\/(www\.)?goflipforge\.com\//, async route => {
     const request = route.request();
     const url = new URL(request.url());
     log.push(`${request.method()} ${url.pathname}`);
+    const correlationId = request.headers()["x-correlation-id"] || "ci";
     if (url.pathname.startsWith("/.netlify/identity/")) {
       const endpoint = url.pathname.slice("/.netlify/identity".length);
       if (endpoint === "/verify" && request.method() === "POST") {
@@ -78,18 +95,51 @@ async function routeProduction(context, log) {
           body: JSON.stringify({ access_token: testJwt, token_type: "bearer", expires_in: 3600, refresh_token: "ci-refresh-token" })
         });
       }
-      if (endpoint === "/user") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(testUser) });
+      if (endpoint === "/user") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(userRecord(account)) });
       if (endpoint === "/settings") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ external: {}, disable_signup: true, autoconfirm: false }) });
+      if (endpoint === "/logout") return route.fulfill({ status: 204, body: "" });
       return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
     }
-    if (url.pathname === "/api/beta/terms-acceptance") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, termsVersion: "ci" }) });
-    if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/.netlify/functions/")) return route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ reason: "CI_UNAUTHENTICATED" }) });
+    if (url.pathname === "/api/beta/terms-acceptance") {
+      account.termsStartedAt = Date.now();
+      await new Promise(resolve => setTimeout(resolve, TERMS_DELAY_MS));
+      try {
+        account.roles = [TENANT_ROLE, ACTIVE_ROLE];
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ accepted: true, activated: true, termsVersion: "2026-08-15" }) });
+        account.termsFinishedAt = Date.now();
+      } catch (_) {
+        // The page navigated away and cancelled the request before the server answered.
+        account.termsAborted = true;
+      }
+      return;
+    }
+    if (url.pathname === "/api/v1/health") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ meta: { contractVersion: "1.0", correlationId }, data: { status: "configured", bridgeEnabled: true } }) });
+    if (url.pathname === "/api/v1/entitlements") {
+      const active = account.roles.includes(ACTIVE_ROLE);
+      if (active && account.seat && account.seat !== "ADMITTED") {
+        // Active website membership, but no Controlled Pro Beta seat on the backend (gateway passes the reason).
+        return route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ error: { code: "ENTITLEMENT_ACCESS_DENIED", reason: account.seat, message: "seat", correlationId } }) });
+      }
+      return active
+        ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ meta: meta(correlationId), data: { kind: "entitlements", membershipActive: true, plan: { code: "PRIVATE_BETA" } } }) })
+        : route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ error: { code: "TENANT_MEMBERSHIP_INACTIVE", message: "The FlipForge tenant membership is not active.", correlationId } }) });
+    }
+    if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/.netlify/functions/")) return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ error: { code: "NOT_IN_CI_FIXTURE", correlationId } }) });
     const file = localFile(url.pathname);
     if (!file) return route.fulfill({ status: 404, body: "" });
     const headers = { "content-type": types[path.extname(file)] || "application/octet-stream" };
     if (url.pathname === "/" || url.pathname === "/index.html") headers["content-security-policy"] = homepageCsp;
     return route.fulfill({ status: 200, headers, body: readFileSync(file) });
   });
+}
+
+async function waitForWorkspaceAccess(page, timeout = 20000) {
+  try {
+    await page.waitForFunction(() => location.pathname.startsWith("/app/beta/") && location.hash === "#/beta-start" && window.__FlipForgePrivateBetaAccessVerified === true, null, { timeout });
+    return true;
+  } catch (_) {
+    return false;
+  }
 }
 
 async function inspect(page) {
@@ -142,7 +192,8 @@ const base = remoteBase || SITE;
 for (const [label, viewport] of viewports) {
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
   const log = [];
-  if (!remoteBase) await routeProduction(context, log);
+  const account = newAccount();
+  if (!remoteBase) await routeProduction(context, log, account);
   await context.addInitScript(() => {
     window.__cspViolations = [];
     document.addEventListener("securitypolicyviolation", event => {
@@ -151,7 +202,12 @@ for (const [label, viewport] of viewports) {
   });
   const page = await context.newPage();
   const navigations = [];
-  page.on("framenavigated", frame => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
+  let firstWorkspaceNavAt = 0;
+  page.on("framenavigated", frame => {
+    if (frame !== page.mainFrame()) return;
+    navigations.push(frame.url());
+    if (!firstWorkspaceNavAt && /\/app\/beta\//.test(frame.url())) firstWorkspaceNavAt = Date.now();
+  });
 
   await page.goto(`${base}/#invite_token=${TEST_TOKEN}`, { waitUntil: "domcontentloaded" });
   try {
@@ -189,20 +245,15 @@ for (const [label, viewport] of viewports) {
     await page.locator('#flipforge-identity-root input[name="confirmPassword"]').fill("ci-test-password-0123456789");
     await page.locator("#flipforge-identity-root [data-beta-terms-accept]").check();
     await page.locator('#flipforge-identity-root [data-ff-identity-invite] button[type="submit"]').click();
-    let landed = "";
-    try {
-      await page.waitForURL(url => url.pathname.startsWith("/app/beta/") && url.hash === "#/beta-start", { timeout: 15000 });
-      landed = page.url();
-    } catch (_) {
-      landed = page.url();
-    }
+    const workspaceOpened = await waitForWorkspaceAccess(page);
+    await page.waitForTimeout(1500);
+    const finalUrl = page.url();
     const termsPosted = log.some(line => line === "POST /api/beta/terms-acceptance");
-    // The workspace itself may then ask for sign-in when the CI stub denies entitlements;
-    // what matters is that activation hands off to the workspace entry, not the funnel.
-    const reachedWorkspace = navigations.some(url => /\/app\/beta\/#\/beta-start$/.test(url)) || /\/app\/beta\/#\/beta-start$/.test(landed);
-    check(`020 ${tag}: activation opens the Private Beta workspace`, reachedWorkspace, navigations.join(" -> "));
-    check(`021 ${tag}: Beta Terms acceptance recorded during activation`, termsPosted);
-    check(`022 ${tag}: never routed into the beta application funnel`, !navigations.some(url => /beta-application/i.test(url)), navigations.join(" -> "));
+    check(`020 ${tag}: activation opens the Private Beta workspace and the access gate admits the tester`, workspaceOpened && /\/app\/beta\/#\/beta-start$/.test(finalUrl), `${finalUrl} | ${navigations.join(" -> ")}`);
+    check(`021 ${tag}: Beta Terms acceptance sent during activation`, termsPosted);
+    check(`021b ${tag}: Terms request completed before leaving the activation page (${TERMS_DELAY_MS}ms server)`, account.termsFinishedAt > 0 && !account.termsAborted && (!firstWorkspaceNavAt || account.termsFinishedAt <= firstWorkspaceNavAt), `finished=${account.termsFinishedAt} aborted=${account.termsAborted} firstWorkspaceNav=${firstWorkspaceNavAt}`);
+    check(`021c ${tag}: account promoted to active`, account.roles.includes(ACTIVE_ROLE), account.roles.join(","));
+    check(`022 ${tag}: never routed into the beta application funnel or back to sign-in`, !navigations.some(url => /beta-application|production-auth/i.test(url)), navigations.join(" -> "));
   }
   await context.close();
 }
@@ -228,6 +279,67 @@ if (!remoteBase) {
   check("031 expired invitation offers Private Beta sign in", next.href.startsWith("/production-auth.html"), next.href);
   check("032 expired invitation never links to the beta application", !next.panelLinks.some(href => /beta-application/i.test(href)), next.panelLinks.join(", "));
   await context.close();
+}
+
+// Recovery: an activated account whose Terms acceptance was never recorded signs in later.
+// The sign-in page must offer the acceptance instead of a dead end, then open the workspace.
+if (!remoteBase) {
+  for (const [label, viewport] of [["desktop", { width: 1366, height: 860 }], ["mobile", { width: 390, height: 844 }]]) {
+    const context = await browser.newContext({ viewport });
+    const log = [];
+    const account = newAccount();
+    await routeProduction(context, log, account);
+    await context.addCookies([{ name: "nf_jwt", value: testJwt, domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }]);
+    const page = await context.newPage();
+    const navigations = [];
+    page.on("framenavigated", frame => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
+    await page.goto(`${SITE}/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("[data-production-auth-terms]:not([hidden])", { timeout: 10000 }).catch(() => {});
+    const before = await page.evaluate(() => {
+      const panel = document.querySelector("[data-production-auth-terms]");
+      const button = document.querySelector("[data-production-auth-terms-submit]");
+      const box = panel?.getBoundingClientRect();
+      return { shown: Boolean(panel && !panel.hidden), disabled: Boolean(button?.disabled), termsLink: document.querySelector("[data-production-auth-terms] a")?.getAttribute("href") || "", inView: Boolean(box && box.top < innerHeight), result: document.querySelector("[data-production-auth-result]")?.textContent || "" };
+    });
+    check(`040 ${label}: terms-pending account sees the Terms acceptance on the sign-in page`, before.shown, before.result);
+    check(`041 ${label}: accept button stays disabled until the Terms box is ticked`, before.disabled);
+    check(`042 ${label}: Terms link points to the Private Beta Terms`, before.termsLink === "/beta-terms.html", before.termsLink);
+    if (before.shown) {
+      await page.locator("[data-production-auth-terms-accept]").check();
+      await page.locator("[data-production-auth-terms-submit]").click();
+    }
+    const opened = await waitForWorkspaceAccess(page);
+    check(`043 ${label}: accepting opens the workspace and the access gate admits the tester`, opened, `${page.url()} | ${navigations.join(" -> ")}`);
+    check(`044 ${label}: account promoted to active by the server`, account.roles.includes(ACTIVE_ROLE), account.roles.join(","));
+    check(`045 ${label}: never routed to the beta application`, !navigations.some(url => /beta-application/i.test(url)), navigations.join(" -> "));
+    await context.close();
+  }
+}
+
+// Seat states: an activated tester whose backend seat is missing (or whose beta is full) sees a
+// specific state on the sign-in page, never the generic "not enabled" message or the application funnel.
+if (!remoteBase) {
+  for (const [seat, expected] of [["NOT_ADMITTED", /^Not admitted:/], ["BETA_FULL", /^Beta full:/]]) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const log = [];
+    const account = { ...newAccount(), roles: [TENANT_ROLE, ACTIVE_ROLE], seat };
+    await routeProduction(context, log, account);
+    await context.addCookies([{ name: "nf_jwt", value: testJwt, domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }]);
+    const page = await context.newPage();
+    const navigations = [];
+    page.on("framenavigated", frame => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
+    await page.goto(`${SITE}/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => /Not admitted|Beta full|not enabled/.test(document.querySelector("[data-production-auth-result]")?.textContent || ""), null, { timeout: 10000 }).catch(() => {});
+    const state = await page.evaluate(() => ({
+      result: document.querySelector("[data-production-auth-result]")?.textContent || "",
+      terms: !document.querySelector("[data-production-auth-terms]")?.hidden,
+      enter: !document.querySelector("[data-production-auth-return]")?.hidden,
+    }));
+    check(`050 ${seat}: sign-in shows the specific seat state`, expected.test(state.result) && !/not enabled/.test(state.result), state.result);
+    check(`051 ${seat}: no Terms panel and no workspace entry are offered`, !state.terms && !state.enter, JSON.stringify(state));
+    check(`052 ${seat}: never routed to the beta application`, !navigations.some(url => /beta-application/i.test(url)), navigations.join(" -> "));
+    await context.close();
+  }
 }
 
 await browser.close();
