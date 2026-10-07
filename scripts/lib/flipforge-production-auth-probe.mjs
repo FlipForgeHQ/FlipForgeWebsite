@@ -10,6 +10,12 @@ const TERMS_PENDING_ROLE = "flipforge-terms-pending";
 // Must equal BETA_TERMS_VERSION in netlify/modern-functions/beta-terms-acceptance.mjs.
 const BETA_TERMS_VERSION = "2026-08-15";
 const TERMS_ENDPOINT = "/api/beta/terms-acceptance";
+// Specific Controlled Pro Beta seat states returned by the gateway (error.reason, allowlisted server-side).
+const SEAT_MESSAGES = {
+  NOT_ADMITTED: "Not admitted: your invitation is active, but your Private Beta seat has not been reserved yet. Contact support@goflipforge.com and we will finish setting it up.",
+  BETA_FULL: "Beta full: the FlipForge Private Beta has no open seats right now. Contact support@goflipforge.com.",
+  ADMISSION_UNAVAILABLE: "FlipForge could not confirm your Private Beta seat right now. Try again in a moment."
+};
 
 const form = document.querySelector("[data-production-auth-form]");
 const emailInput = document.querySelector("[data-production-auth-email]");
@@ -254,7 +260,10 @@ async function verifyAccess() {
       showTerms();
       return false;
     } else if (response.status === 403) {
-      result.textContent = "This account is signed in, but active Private Beta access is not enabled.";
+      const payload = await response.json().catch(() => null);
+      const seatReason = String(payload?.error?.reason || "");
+      result.textContent = SEAT_MESSAGES[seatReason]
+        || "This account is signed in, but active Private Beta access is not enabled.";
     } else {
       result.textContent = "FlipForge could not verify Private Beta access. Try again or contact support.";
     }

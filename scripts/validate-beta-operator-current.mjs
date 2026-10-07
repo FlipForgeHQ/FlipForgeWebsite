@@ -26,6 +26,12 @@ try {
   const result = spawnSync(process.execPath, [tempPath.pathname], { stdio: "inherit", cwd: process.cwd() });
   if (result.error) throw result.error;
   process.exitCode = result.status ?? 1;
+  if (process.exitCode === 0) {
+    // Private Beta seat admission lifecycle (Owner Hub invite -> backend seat -> activation).
+    const seat = spawnSync(process.execPath, [new URL("./validate-beta-seat-admission.mjs", import.meta.url).pathname], { stdio: "inherit", cwd: process.cwd() });
+    if (seat.error) throw seat.error;
+    process.exitCode = seat.status ?? 1;
+  }
 } finally {
   fs.rmSync(tempPath, { force: true });
 }

@@ -116,6 +116,10 @@ async function routeProduction(context, log, account = newAccount()) {
     if (url.pathname === "/api/v1/health") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ meta: { contractVersion: "1.0", correlationId }, data: { status: "configured", bridgeEnabled: true } }) });
     if (url.pathname === "/api/v1/entitlements") {
       const active = account.roles.includes(ACTIVE_ROLE);
+      if (active && account.seat && account.seat !== "ADMITTED") {
+        // Active website membership, but no Controlled Pro Beta seat on the backend (gateway passes the reason).
+        return route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ error: { code: "ENTITLEMENT_ACCESS_DENIED", reason: account.seat, message: "seat", correlationId } }) });
+      }
       return active
         ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ meta: meta(correlationId), data: { kind: "entitlements", membershipActive: true, plan: { code: "PRIVATE_BETA" } } }) })
         : route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ error: { code: "TENANT_MEMBERSHIP_INACTIVE", message: "The FlipForge tenant membership is not active.", correlationId } }) });
@@ -308,6 +312,32 @@ if (!remoteBase) {
     check(`043 ${label}: accepting opens the workspace and the access gate admits the tester`, opened, `${page.url()} | ${navigations.join(" -> ")}`);
     check(`044 ${label}: account promoted to active by the server`, account.roles.includes(ACTIVE_ROLE), account.roles.join(","));
     check(`045 ${label}: never routed to the beta application`, !navigations.some(url => /beta-application/i.test(url)), navigations.join(" -> "));
+    await context.close();
+  }
+}
+
+// Seat states: an activated tester whose backend seat is missing (or whose beta is full) sees a
+// specific state on the sign-in page, never the generic "not enabled" message or the application funnel.
+if (!remoteBase) {
+  for (const [seat, expected] of [["NOT_ADMITTED", /^Not admitted:/], ["BETA_FULL", /^Beta full:/]]) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const log = [];
+    const account = { ...newAccount(), roles: [TENANT_ROLE, ACTIVE_ROLE], seat };
+    await routeProduction(context, log, account);
+    await context.addCookies([{ name: "nf_jwt", value: testJwt, domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }]);
+    const page = await context.newPage();
+    const navigations = [];
+    page.on("framenavigated", frame => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
+    await page.goto(`${SITE}/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => /Not admitted|Beta full|not enabled/.test(document.querySelector("[data-production-auth-result]")?.textContent || ""), null, { timeout: 10000 }).catch(() => {});
+    const state = await page.evaluate(() => ({
+      result: document.querySelector("[data-production-auth-result]")?.textContent || "",
+      terms: !document.querySelector("[data-production-auth-terms]")?.hidden,
+      enter: !document.querySelector("[data-production-auth-return]")?.hidden,
+    }));
+    check(`050 ${seat}: sign-in shows the specific seat state`, expected.test(state.result) && !/not enabled/.test(state.result), state.result);
+    check(`051 ${seat}: no Terms panel and no workspace entry are offered`, !state.terms && !state.enter, JSON.stringify(state));
+    check(`052 ${seat}: never routed to the beta application`, !navigations.some(url => /beta-application/i.test(url)), navigations.join(" -> "));
     await context.close();
   }
 }

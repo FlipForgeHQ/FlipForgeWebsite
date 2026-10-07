@@ -137,3 +137,14 @@ The operator may move a feedback record through `NEW → UNDER_REVIEW → RESOLV
 10. Use the in-product Private Beta Guide for the first exact-card loop and 7 / 14 / 30-day evidence review.
 11. Use the **Tester directory** for search, status/group lookup, activation-path verification, and archive review.
 12. Use **Remove from onboarding** only when you intend to revoke that tester's beta membership and archive the onboarding record.
+
+## Private Beta seats (Controlled Pro Beta admission)
+
+The backend admits only tenants that hold a Controlled Pro Beta seat (production cap: `FLIPFORGE_CONTROLLED_PRO_BETA_MAX_TENANTS`). The Owner Hub manages seats through the private operator route `POST /api/v1/operator/controlled-pro-beta/admissions` using the existing `FLIPFORGE_API_BASE_URL` and `FLIPFORGE_API_SERVICE_TOKEN`; no new setting is required.
+
+- **Invite / Reset & resend:** the seat is reserved before the Identity invitation email is sent. If the beta is full the invitation is blocked with **Beta full** (seats used / limit); nothing is sent and the tester stays Approved. If the seat service cannot be reached nothing is sent.
+- **A seat grants no access.** The tester still receives only the terms-pending role; activation and Beta Terms acceptance promote the account.
+- **Remove / Permanently delete test user:** the seat is released first. If it cannot be released, nothing changes and the operator can retry.
+- **Failed invitation:** a seat created by that attempt is released only if no invitation email went out.
+- Signed-in testers without a seat see **Not admitted**; if the configured cap is below the admitted count they see **Beta full**.
+- Testers invited before this change hold no seat until an operator re-sends their invitation (or runs the backend `admit` CLI).

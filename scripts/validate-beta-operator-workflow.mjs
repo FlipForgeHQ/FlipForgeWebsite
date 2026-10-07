@@ -222,16 +222,22 @@ const inviteIdentity = async (email, fullName) => {
   return structuredClone(user);
 };
 const operatorUser = { id: "operator-1", email: "owner@example.com", roles: ["flipforge-operator"] };
+// Controlled Pro Beta seat service stand-in (full seat lifecycle is covered by validate-beta-seat-admission.mjs).
+const seatCalls = [];
+const admissionClient = {
+  async admit(tenantId) { seatCalls.push(["admit", tenantId]); return { admissionRequired: true, created: true, gateEnabled: true, admittedCount: 1, maxTenants: 5, status: "ADMITTED", tenantAuditKey: "auditkey0001" }; },
+  async revoke(tenantId) { seatCalls.push(["revoke", tenantId]); return { found: true, changed: true }; },
+};
 const operatorRequest = body => new Request("https://goflipforge.com/api/beta/operator", {
   method: body ? "POST" : "GET",
   headers: { origin: "https://goflipforge.com", ...(body ? { "content-type": "application/json" } : {}) },
   body: body ? JSON.stringify(body) : undefined,
 });
-const anonymous = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => null, identityAdmin, inviteIdentity, now: () => fixedNow });
+const anonymous = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => null, identityAdmin, inviteIdentity, admissionClient, now: () => fixedNow });
 assert.equal((await anonymous(operatorRequest())).status, 401);
-const customer = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => ({ id: "customer", roles: ["flipforge-active"] }), identityAdmin, inviteIdentity, now: () => fixedNow });
+const customer = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => ({ id: "customer", roles: ["flipforge-active"] }), identityAdmin, inviteIdentity, admissionClient, now: () => fixedNow });
 assert.equal((await customer(operatorRequest())).status, 403);
-const operator = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => operatorUser, identityAdmin, inviteIdentity, now: () => fixedNow });
+const operator = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => operatorUser, identityAdmin, inviteIdentity, admissionClient, now: () => fixedNow });
 let response = await operator(operatorRequest());
 assert.equal(response.status, 200);
 let dashboard = await response.json();
@@ -285,6 +291,7 @@ response = await operator(operatorRequest({ action: "remove", applicationId: app
 assert.equal(response.status, 200);
 application = (await response.json()).application;
 assert.equal(application.status, "REMOVED");
+assert.ok(seatCalls.some(([action]) => action === "admit") && seatCalls.some(([action]) => action === "revoke"));
 assert.equal(application.removalPreviousStatus, "ACTIVATED");
 assert.ok(application.removedAt);
 assert.ok(!identityUsers[0].roles.includes("flipforge-active"));
