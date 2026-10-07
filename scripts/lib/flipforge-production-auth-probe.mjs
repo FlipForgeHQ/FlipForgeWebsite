@@ -1,4 +1,5 @@
 import { getUser, login, logout, requestPasswordRecovery } from "@netlify/identity";
+import { friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
 
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const hostAllowed = PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -6,6 +7,16 @@ const reauthRequested = new URLSearchParams(window.location.search).get("reauth"
 const PRIVATE_BETA_START = "/app/beta/#/beta-start";
 const OWNER_HUB = "/owner";
 const OPERATOR_ROLE = "flipforge-operator";
+const TERMS_PENDING_ROLE = "flipforge-terms-pending";
+// Must equal BETA_TERMS_VERSION in netlify/modern-functions/beta-terms-acceptance.mjs.
+const BETA_TERMS_VERSION = "2026-08-15";
+const TERMS_ENDPOINT = "/api/beta/terms-acceptance";
+// Specific Controlled Pro Beta seat states returned by the gateway (error.reason, allowlisted server-side).
+const SEAT_MESSAGES = {
+  NOT_ADMITTED: "Not admitted: your invitation is active, but your Private Beta seat has not been reserved yet. Contact support@goflipforge.com and we will finish setting it up.",
+  BETA_FULL: "Beta full: the FlipForge Private Beta has no open seats right now. Contact support@goflipforge.com.",
+  ADMISSION_UNAVAILABLE: "FlipForge could not confirm your Private Beta seat right now. Try again in a moment."
+};
 
 const form = document.querySelector("[data-production-auth-form]");
 const emailInput = document.querySelector("[data-production-auth-email]");
@@ -17,6 +28,9 @@ const returnLink = document.querySelector("[data-production-auth-return]");
 const ownerLink = document.querySelector("[data-production-auth-owner]");
 const status = document.querySelector("[data-production-auth-status]");
 const result = document.querySelector("[data-production-auth-result]");
+const termsPanel = document.querySelector("[data-production-auth-terms]");
+const termsCheckbox = document.querySelector("[data-production-auth-terms-accept]");
+const termsButton = document.querySelector("[data-production-auth-terms-submit]");
 
 let currentUser = null;
 
@@ -37,6 +51,28 @@ function isOperatorAccount(user) {
   return roles.includes(OPERATOR_ROLE) || String(user.role || "") === "admin";
 }
 
+function rolesOf(user) {
+  if (!user) return [];
+  const metadata = user.appMetadata || user.app_metadata || {};
+  return [
+    ...(Array.isArray(user.roles) ? user.roles : []),
+    ...(Array.isArray(metadata.roles) ? metadata.roles : [])
+  ].map(value => String(value || "").trim());
+}
+
+function hideTerms() {
+  if (!termsPanel) return;
+  termsPanel.hidden = true;
+  if (termsCheckbox) termsCheckbox.checked = false;
+  if (termsButton) termsButton.disabled = true;
+}
+
+function showTerms() {
+  if (!termsPanel) return;
+  termsPanel.hidden = false;
+  if (termsButton) termsButton.disabled = !termsCheckbox?.checked;
+}
+
 function updateOwnerLink() {
   if (!ownerLink) return;
   ownerLink.href = OWNER_HUB;
@@ -54,6 +90,7 @@ function setSignedIn(user) {
   returnLink.hidden = true;
   returnLink.href = safeReturnPath();
   updateOwnerLink();
+  hideTerms();
   if (currentUser) setStatus(`Signed in as ${currentUser.email || "FlipForge user"}. Verifying Private Beta access…`, "neutral");
   else setStatus("Sign in with your invited Private Beta account.", "neutral");
 }
@@ -93,7 +130,7 @@ async function initialize() {
       emailInput?.focus();
     }
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Identity initialization failed.", "error");
+    setStatus(friendlyAuthError(error, "Identity initialization failed."), "error");
   }
 }
 
@@ -112,7 +149,7 @@ form?.addEventListener("submit", async event => {
     setSignedIn(user);
     await verifyAccess();
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Sign in failed.", "error");
+    setStatus(friendlyAuthError(error, "Sign in failed."), "error");
   } finally {
     signInButton.disabled = false;
   }
@@ -147,9 +184,44 @@ signOutButton?.addEventListener("click", async () => {
     result.textContent = "";
     if (reauthRequested) setStatus("Signed out. Sign in again to restore app access.", "neutral");
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Sign out failed.", "error");
+    setStatus(friendlyAuthError(error, "Sign out failed."), "error");
   } finally {
     signOutButton.disabled = false;
+  }
+});
+
+termsCheckbox?.addEventListener("change", () => {
+  if (termsButton) termsButton.disabled = !termsCheckbox.checked;
+});
+
+termsButton?.addEventListener("click", async () => {
+  if (!hostAllowed || !currentUser || termsButton.disabled || !termsCheckbox?.checked) return;
+  termsButton.disabled = true;
+  result.textContent = "Saving your acceptance of the Private Beta Terms…";
+  result.dataset.tone = "neutral";
+  try {
+    const response = await fetch(TERMS_ENDPOINT, {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      redirect: "error",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accepted: true, termsVersion: BETA_TERMS_VERSION })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.activated === false) {
+      throw new Error(payload.reason || "TERMS_RECORD_FAILED");
+    }
+    hideTerms();
+    if (await verifyAccess()) {
+      setStatus("Private Beta Terms accepted. Opening your workspace…", "ok");
+      window.location.assign(PRIVATE_BETA_START);
+    }
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "TERMS_RECORD_FAILED";
+    result.textContent = `FlipForge could not save your Terms acceptance (${code}). Try again, or contact support@goflipforge.com.`;
+    result.dataset.tone = "error";
+    showTerms();
   }
 });
 
@@ -180,8 +252,19 @@ async function verifyAccess() {
       result.textContent = "Your beta sign-in session needs to be refreshed. Sign out, then sign in again.";
     } else if (response.status === 403 && isOperatorAccount(currentUser)) {
       result.textContent = "This is an operator account, not a Private Beta tester account. Open the Owner Hub for operator tools and the customer preview.";
+    } else if (response.status === 403 && rolesOf(currentUser).includes(TERMS_PENDING_ROLE)) {
+      // Activated invitation whose Beta Terms acceptance was never recorded (for example the
+      // activation tab closed before it was saved). Offer the acceptance here instead of a dead end.
+      result.textContent = "Your invitation is activated, but the Private Beta Terms have not been accepted yet.";
+      result.dataset.tone = "neutral";
+      returnLink.hidden = true;
+      showTerms();
+      return false;
     } else if (response.status === 403) {
-      result.textContent = "This account is signed in, but active Private Beta access is not enabled.";
+      const payload = await response.json().catch(() => null);
+      const seatReason = String(payload?.error?.reason || "");
+      result.textContent = SEAT_MESSAGES[seatReason]
+        || "This account is signed in, but active Private Beta access is not enabled.";
     } else {
       result.textContent = "FlipForge could not verify Private Beta access. Try again or contact support.";
     }

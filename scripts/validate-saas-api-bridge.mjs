@@ -33,7 +33,7 @@ function jsonBody(response) {
   return JSON.parse(response.body || "{}");
 }
 
-check("001 API v1 is owned by the single modern server-side function", files.modernGateway.includes('path: "/api/v1/*"') && files.modernGateway.includes('import { getUser } from "@netlify/identity"') && !files.redirects.includes("/api/v1/* /.netlify/functions/flipforge-api 200") && files.netlify.includes('directory = "netlify/modern-functions"'));
+check("001 API v1 is owned by the single modern server-side function", files.modernGateway.includes('path: "/api/v1/*"') && /import \{[^}]*\bgetUser\b[^}]*\} from "@netlify\/identity"/.test(files.modernGateway) && !files.redirects.includes("/api/v1/* /.netlify/functions/flipforge-api 200") && files.netlify.includes('directory = "netlify/modern-functions"'));
 check("002 gateway is disabled unless explicitly enabled", files.gateway.includes('FLIPFORGE_API_BRIDGE_ENABLED || ""') && files.gateway.includes('=== "true"'));
 check("003 upstream base URL comes from server environment", files.gateway.includes("process.env.FLIPFORGE_API_BASE_URL"));
 check("004 service token comes from server environment", files.gateway.includes("process.env.FLIPFORGE_API_SERVICE_TOKEN"));

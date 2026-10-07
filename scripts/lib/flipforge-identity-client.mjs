@@ -9,6 +9,7 @@ import {
   requestPasswordRecovery,
   updateUser
 } from "@netlify/identity";
+import { friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
 
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
 const PRODUCTION_SITE_HOST = /^(?:www\.)?goflipforge\.com$/i;
@@ -17,6 +18,9 @@ const PRODUCTION_OPERATOR_PATH = /^(?:\/operator-beta(?:\.html)?\/?|\/owner(?:\.
 const CALLBACK_HASH = /(?:^#|[&#])(invite_token|confirmation_token|recovery_token|email_change_token)=/i;
 const ROOT_ID = "flipforge-identity-root";
 const STYLE_ID = "flipforge-identity-style";
+const STYLESHEET_PATH = "/assets/css/flipforge-identity-v1.css";
+const PRODUCTION_BETA_START = "/app/beta/#/beta-start";
+const PRODUCTION_SIGN_IN = `/production-auth.html?return=${encodeURIComponent(PRODUCTION_BETA_START)}`;
 const PASSWORD_MIN_LENGTH = 15;
 const PASSWORD_GUIDANCE = `Use a unique password with at least ${PASSWORD_MIN_LENGTH} characters. A password manager is recommended.`;
 
@@ -148,7 +152,9 @@ const state = {
   inviteToken: "",
   recoveryMode: false,
   recoveryRequestOpen: false,
-  panelOpen: false
+  panelOpen: false,
+  // Set only from a server entitlements response (see noteServerMembership).
+  serverMembershipActive: false
 };
 
 function previewHost() {
@@ -230,7 +236,7 @@ function identitySnapshot(user = state.user) {
     authenticated: true,
     email: clean(user.email),
     fullName: clean(userMetadata.full_name),
-    membershipActive: roles.includes("flipforge-active") && membershipConfigured,
+    membershipActive: (roles.includes("flipforge-active") || state.serverMembershipActive === true) && membershipConfigured,
     membershipConfigured,
     operatorActive: roles.includes("flipforge-operator") || String(user.role || "") === "admin"
   });
@@ -245,6 +251,8 @@ function publishIdentityChange() {
 function setAuthenticatedUser(nextUser, { renderIfChanged = true } = {}) {
   const normalized = nextUser || null;
   if (identityFingerprint(state.user) === identityFingerprint(normalized)) return false;
+  // A different account (or sign-out) never inherits a server membership confirmation.
+  if (String(state.user?.id || "") !== String(normalized?.id || "")) state.serverMembershipActive = false;
   state.user = normalized;
   publishIdentityChange();
   if (renderIfChanged) render();
@@ -259,6 +267,19 @@ window.FlipForgeIdentity = Object.freeze({
   refresh: async () => {
     const nextUser = await getUser();
     setAuthenticatedUser(nextUser);
+    return identitySnapshot();
+  },
+  // Called by the Private Beta access gate after /api/v1/entitlements (which reads the
+  // session server-side) confirms active membership. The browser keeps the profile it
+  // received at sign-in, so roles granted later (flipforge-active after the Beta Terms are
+  // accepted) are not visible here until the next sign-in. Display-only: every FlipForge
+  // API re-verifies access on the server, so this flag grants nothing.
+  noteServerMembership: active => {
+    const next = active === true;
+    if (state.serverMembershipActive === next) return identitySnapshot();
+    state.serverMembershipActive = next;
+    publishIdentityChange();
+    render();
     return identitySnapshot();
   },
   open: () => {
@@ -296,21 +317,38 @@ function clearCallbackHash() {
   history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
 }
 
+// Panel styling lives in a same-origin stylesheet. Invitation and recovery emails
+// land on the homepage, whose Content-Security-Policy (style-src 'self') blocks
+// injected <style> elements; the activation form then rendered unstyled below the
+// footer and invited testers never saw it. The same-origin stylesheet is allowed.
+function stylesheetLink() {
+  return document.getElementById(STYLE_ID)
+    || document.querySelector(`link[rel="stylesheet"][href$="${STYLESHEET_PATH}"]`);
+}
+
 function ensureStyles() {
-  if (document.getElementById(STYLE_ID)) return;
-  const style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = `
-#${ROOT_ID}{position:fixed;right:18px;bottom:18px;z-index:2147483000;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f2f2f2}
-#${ROOT_ID} *{box-sizing:border-box}
-.ff-id-button{border:1px solid rgba(212,175,55,.72);border-radius:10px;background:#030812;color:#f2f2f2;padding:10px 14px;font-weight:800;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.28)}
-.ff-id-button:hover,.ff-id-button:focus-visible{border-color:#f0ca58;outline:none}
-.ff-id-panel{width:min(360px,calc(100vw - 32px));margin-bottom:10px;border:1px solid rgba(139,146,143,.5);border-radius:14px;background:#07111f;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.ff-id-panel h2{margin:0 0 6px;font-size:18px}.ff-id-panel p{margin:0 0 14px;color:#b8c1cb;font-size:13px;line-height:1.5}.ff-id-panel form{display:grid;gap:10px}.ff-id-panel label{display:grid;gap:5px;font-size:12px;font-weight:800}.ff-id-panel input{width:100%;border:1px solid #364252;border-radius:9px;background:#030812;color:#f2f2f2;padding:10px 11px;font:inherit}.ff-id-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}.ff-id-primary{background:#d4af37;color:#030812;border-color:#d4af37}.ff-id-secondary{border-color:#465365}.ff-id-status{margin-top:10px!important;color:#d4af37!important}.ff-id-error{margin-top:10px!important;color:#ff9aa5!important}.ff-id-user{display:grid;gap:8px}.ff-id-user strong{overflow-wrap:anywhere}.ff-id-note{font-size:11px!important;color:#8794a5!important}
-.ff-id-link{border:0;background:transparent;color:#d4af37;padding:2px 0;font:inherit;font-size:12px;font-weight:800;cursor:pointer;text-align:left}.ff-id-membership{display:inline-flex;width:max-content;border:1px solid #394657;border-radius:999px;padding:5px 9px;color:#b8c1cb;font-size:11px;font-weight:800}.ff-id-membership[data-active="true"]{border-color:#2e8b66;color:#9de4c5}
-@media(max-width:520px){#${ROOT_ID}{right:10px;bottom:10px}.ff-id-panel{width:calc(100vw - 20px)}}
-`;
-  document.head.appendChild(style);
+  if (stylesheetLink()) return;
+  const link = document.createElement("link");
+  link.id = STYLE_ID;
+  link.rel = "stylesheet";
+  link.href = STYLESHEET_PATH;
+  document.head.appendChild(link);
+}
+
+// Keep the panel out of view until its stylesheet has applied, so it never
+// flashes unstyled at the end of the page. If the stylesheet fails to load the
+// panel is still shown rather than hidden forever.
+function revealWhenStyled(element) {
+  const link = stylesheetLink();
+  if (!link || link.sheet) {
+    element.hidden = false;
+    return;
+  }
+  element.hidden = true;
+  const reveal = () => { element.hidden = false; };
+  link.addEventListener("load", reveal, { once: true });
+  link.addEventListener("error", reveal, { once: true });
+  window.setTimeout(reveal, 4000);
 }
 
 function validateNewPassword(password, confirmation) {
@@ -341,6 +379,7 @@ function renderInvite(element) {
         <div class="ff-id-actions"><button class="ff-id-button ff-id-primary" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "Activating…" : "Activate account"}</button></div>
       </form>
       ${state.error ? `<p class="ff-id-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
+      ${state.error && productionSiteHost() ? `<p><a class="ff-id-next" href="${PRODUCTION_SIGN_IN}" data-ff-identity-invite-signin>Already activated? Go to Private Beta sign in</a></p><p class="ff-id-note">If this invitation has expired, ask FlipForge to resend it. You do not need to apply again.</p>` : ""}
       <p class="ff-id-note">The invitation token stays in memory only and is removed from the address bar before the password is submitted. FlipForge does not store or log your password.</p>
     </section>`;
 
@@ -363,15 +402,21 @@ function renderInvite(element) {
       await acceptInvite(state.inviteToken, password);
       state.inviteToken = "";
       setAuthenticatedUser(await getUser(), { renderIfChanged: false });
+      // When the invitation form recorded a Beta Terms acceptance, the Terms gate is now
+      // sending it to the server and opens the workspace itself once it is saved. Navigating
+      // away here could cancel that request and leave the account terms-pending.
+      const termsInFlight = Boolean(window.FlipForgeBetaTermsGate?.awaitingAcceptance?.());
       state.message = productionSiteHost()
-        ? "Account activated. Opening FlipForge Getting Started…"
+        ? termsInFlight ? "Account activated. Saving your Beta Terms acceptance…" : "Account activated. Opening FlipForge Getting Started…"
         : previewHost()
         ? "Account activated and signed in for this deploy preview."
         : "Account activated and signed in.";
       state.panelOpen = interactiveIdentityHost();
-      if (productionSiteHost()) window.location.assign("/app/beta/#/beta-start");
+      // Activated testers go straight to the Private Beta workspace, never back
+      // to the public application funnel on the page they landed on.
+      if (productionSiteHost() && !termsInFlight) window.location.assign("/app/beta/#/beta-start");
     } catch (error) {
-      state.error = error instanceof Error ? error.message : "The invitation could not be accepted.";
+      state.error = friendlyAuthError(error, "The invitation could not be accepted.");
     } finally {
       state.busy = false;
       render();
@@ -418,9 +463,12 @@ function renderRecoveryPassword(element) {
         ? "Password updated. Checking the signed operator role."
         : previewHost()
         ? "Password updated. Your secure staging session is active."
+        : productionSiteHost()
+        ? "Password updated. Opening the Private Beta workspace…"
         : "Password updated. Open the approved FlipForge deploy preview to continue.";
+      if (productionSiteHost() && !productionOperatorPage()) window.location.assign("/app/beta/#/beta-start");
     } catch (error) {
-      state.error = error instanceof Error ? error.message : "The password could not be updated.";
+      state.error = friendlyAuthError(error, "The password could not be updated.");
     } finally {
       state.busy = false;
       render();
@@ -547,7 +595,7 @@ function renderPreview(element) {
         : "Signed in. Refresh Staging Data to load the authenticated tenant view.";
       window.FlipForgeStagingReadAdapter?.refresh?.();
     } catch (error) {
-      state.error = error instanceof Error ? error.message : "Sign in failed.";
+      state.error = friendlyAuthError(error, "Sign in failed.");
     } finally {
       state.busy = false;
       render();
@@ -580,6 +628,8 @@ function render() {
   }
   ensureStyles();
   const element = root();
+  revealWhenStyled(element);
+  element.dataset.ffMode = needsCallbackUi ? "invite" : state.recoveryMode ? "recovery" : "panel";
   if (needsCallbackUi) renderInvite(element);
   else if (state.recoveryMode) renderRecoveryPassword(element);
   else if (interactiveIdentityHost()) renderPreview(element);
@@ -611,7 +661,7 @@ async function initialize() {
       setAuthenticatedUser(await getUser(), { renderIfChanged: false });
     }
   } catch (error) {
-    state.error = error instanceof Error ? error.message : "Identity initialization failed.";
+    state.error = friendlyAuthError(error, "Identity initialization failed.");
   }
 
   try {

@@ -161,6 +161,19 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
   }
 
   if (status === 403 && upstreamCode === "ENTITLEMENT_ACCESS_DENIED") {
+    // Controlled Pro Beta seat states are passed through as a fixed, allowlisted reason so the
+    // signed-in tester sees "not admitted" or "beta full" instead of a generic denial.
+    const reason = payload && payload.error && typeof payload.error.reason === "string" ? payload.error.reason : "";
+    const seatMessages = {
+      NOT_ADMITTED: "This account has not been admitted to the FlipForge Private Beta yet.",
+      BETA_FULL: "The FlipForge Private Beta is full.",
+      ADMISSION_UNAVAILABLE: "Private Beta admission could not be verified right now."
+    };
+    if (Object.prototype.hasOwnProperty.call(seatMessages, reason)) {
+      const envelope = errorEnvelope("ENTITLEMENT_ACCESS_DENIED", seatMessages[reason], correlationId);
+      envelope.error.reason = reason;
+      return envelope;
+    }
     return errorEnvelope(
       "ENTITLEMENT_ACCESS_DENIED",
       "Your current FlipForge access does not permit a new evaluation.",

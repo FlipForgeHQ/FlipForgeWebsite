@@ -30,6 +30,7 @@
     notice: "",
     evaluationKeys: new Map(),
     draft: { exactCardQuery: "", targetMaxBuy: "", limit: "25" },
+    renderedDraft: null,
     identityAssist: {
       active: false,
       busy: false,
@@ -496,6 +497,11 @@
       const requestId = idempotencyKeyFor(payload);
       const result = await request(EVALUATION_PATH, { method: "POST", body: payload, idempotencyKey: requestId });
       if (!validateEvaluation(result.payload, result.correlationId, requestId)) throw makeError("DISCOVER_EVALUATION_CONTRACT_INVALID", "The authoritative evaluation response failed the tenant-owned Smart Opportunity contract.");
+      // Server semantic replay: this exact listing, card and ask already has a saved decision, so no
+      // evaluation was used. semantic-replay-notice-v1.js tells the customer on the saved decision page.
+      if (result.payload.data.semanticReplay === true) {
+        window.dispatchEvent(new CustomEvent("flipforge:semantic-replay", { detail: { opportunityId: result.payload.data.opportunityId } }));
+      }
       state.evaluatingIndex = -1;
       window.location.hash = `#/opportunities/${encodeURIComponent(result.payload.data.opportunityId)}`;
     } catch (error) {
@@ -618,8 +624,59 @@
     return `<section class="customer-discovery-results" id="ff-discovery-results" tabindex="-1" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Open “Why this result is ranked here” to review the server-owned ranking factors when available.</span></div>${exactResults}${identityReviewResults}</section>`;
   }
 
+  const DRAFT_FIELDS = ["exactCardQuery", "targetMaxBuy", "limit"];
+
+  // Re-renders (health completion, route re-application, guided-mode cues) rebuild the
+  // form from state.draft. Without this, text the customer typed but has not yet submitted
+  // is silently discarded, and an immediate submit then sends an empty, invalid search.
+  // Only fields the customer changed since the last render are adopted, so deliberate
+  // programmatic resets (for example clearing the query after a successful search) win.
+  function preserveTypedDraft() {
+    const form = state.main?.querySelector?.("[data-customer-discovery-form]");
+    if (!form || !state.renderedDraft) return null;
+    const active = typeof document !== "undefined" ? document.activeElement : null;
+    let focusedField = null;
+    for (const field of DRAFT_FIELDS) {
+      const control = form.elements?.namedItem?.(field);
+      if (!control || typeof control.value !== "string") continue;
+      if (control.value !== state.renderedDraft[field]) state.draft[field] = control.value;
+      if (control === active) {
+        focusedField = {
+          name: field,
+          start: typeof control.selectionStart === "number" ? control.selectionStart : null,
+          end: typeof control.selectionEnd === "number" ? control.selectionEnd : null
+        };
+      }
+    }
+    return focusedField;
+  }
+
+  function restoreTypedFocus(focusedField) {
+    if (!focusedField || state.loading) return;
+    const control = state.main?.querySelector?.(`[data-customer-discovery-form] [name="${focusedField.name}"]`);
+    if (!control) return;
+    try { control.focus({ preventScroll: true }); } catch (_) { control.focus(); }
+    if (focusedField.start !== null && typeof control.setSelectionRange === "function") {
+      try { control.setSelectionRange(focusedField.start, focusedField.end ?? focusedField.start); } catch (_) {}
+    }
+  }
+
   function renderCurrent() {
     if (!state.main) return;
+    const focusedField = preserveTypedDraft();
+    try {
+      renderCurrentMarkup();
+    } finally {
+      state.renderedDraft = {
+        exactCardQuery: String(state.draft.exactCardQuery ?? ""),
+        targetMaxBuy: String(state.draft.targetMaxBuy ?? ""),
+        limit: String(state.draft.limit ?? "")
+      };
+    }
+    restoreTypedFocus(focusedField);
+  }
+
+  function renderCurrentMarkup() {
     if (state.health && state.health.status !== "configured") {
       state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Find active listings across approved connected sources without treating asking prices as completed-sale evidence.</p></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Discover does not save or recommend a listing.</div><section class="panel"><div class="panel-body staging-empty"><strong>Discover is safely offline.</strong><p>The private-beta API bridge is disabled, so no provider search was attempted and no sample results were substituted.</p></div></section></div>`;
       return;
