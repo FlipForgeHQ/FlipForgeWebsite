@@ -75,8 +75,20 @@ function evaluationData(requestId) {
 }
 
 const browser = await chromium.launch({ headless: true, executablePath });
-async function newPage(viewport) {
+async function newPage(viewport, { storageWritesFail = false } = {}) {
   const context = await browser.newContext({ viewport });
+  if (storageWritesFail) {
+    // Quota exhausted at the moment the replay marker is written: that sessionStorage write throws.
+    await context.addInitScript(() => {
+      try {
+        const original = Storage.prototype.setItem;
+        Storage.prototype.setItem = function (key, value) {
+          if (this === window.sessionStorage && key === "flipforge.semanticReplayNotice") throw new DOMException("Quota exceeded", "QuotaExceededError");
+          return original.call(this, key, value);
+        };
+      } catch (_) {}
+    });
+  }
   await context.addInitScript(() => {
     try {
       localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete");
@@ -168,10 +180,39 @@ async function manualEvaluate(label, viewport) {
   }
 }
 
+async function storageFailureHandoff(label, viewport) {
+  semanticReplay = true;
+  const { context, page } = await newPage(viewport, { storageWritesFail: true });
+  try {
+    await page.goto(`${baseUrl}/#/discover`, { waitUntil: "domcontentloaded" });
+    const input = page.locator('#main-content [data-customer-discovery-form] input[name="exactCardQuery"]');
+    await input.waitFor({ state: "visible", timeout: 10000 });
+    await input.fill(QUERY);
+    await page.locator("#main-content [data-customer-discovery-form]").evaluate(form => form.requestSubmit());
+    const evaluate = page.locator("#main-content [data-discovery-evaluate]").first();
+    await evaluate.waitFor({ state: "visible", timeout: 10000 });
+    // Production's click capture marks a pending save before the response arrives.
+    await page.evaluate(() => sessionStorage.setItem("flipforge.pendingEvaluationSave", "1"));
+    await evaluate.evaluate(button => button.click());
+    await page.waitForFunction(() => /#\/opportunities\/EBAY-QA-OHTANI-150$/.test(location.hash), null, { timeout: 10000 });
+    await page.waitForTimeout(2500);
+    const pendingSave = await page.evaluate(() => { try { return sessionStorage.getItem("flipforge.pendingEvaluationSave"); } catch (_) { return null; } });
+    const bar = page.locator("#main-content [data-ff-saved-decision-bar]");
+    const barText = (await bar.count()) ? await bar.first().innerText() : "";
+    check(`D4 ${label}: when sessionStorage writes fail, the saved decision still opens and never claims a new evaluation`,
+      pendingSave !== "1" && !/Evaluation complete/i.test(barText), `pendingEvaluationSave=${pendingSave}; bar=${barText.slice(0, 80) || "absent"}`);
+  } catch (error) {
+    check(`D4 ${label}: storage-failure handoff completed`, false, String(error?.message || error).slice(0, 300));
+  } finally {
+    await context.close();
+  }
+}
+
 for (const [label, viewport] of [["desktop", { width: 1366, height: 900 }], ["mobile", { width: 390, height: 844 }]]) {
   await discoverHandoff(label, viewport, true);
   await discoverHandoff(label, viewport, false);
   await manualEvaluate(label, viewport);
+  await storageFailureHandoff(label, viewport);
 }
 await browser.close();
 check("X1 every evaluation request carried an Idempotency-Key (normal retries unchanged)", evaluationCalls.length >= 6 && evaluationCalls.every(Boolean), String(evaluationCalls.length));
