@@ -230,8 +230,11 @@
     const missing = resultCopy(panel, "Missing requirement");
     const next = resultCopy(panel, "Next action") || "Open Card Intelligence and review the evidence before acting.";
 
-    setText(panel.querySelector(".panel-header h2"), "Your FlipForge decision");
-    setText(panel.querySelector(".panel-header p"), "Read the answer first. Open Card Intelligence when you want the evidence behind it.");
+    // A server semantic replay keeps its "Already evaluated" header: no new evaluation ran.
+    if (!panel.hasAttribute("data-ff-semantic-replay-result")) {
+      setText(panel.querySelector(".panel-header h2"), "Your FlipForge decision");
+      setText(panel.querySelector(".panel-header p"), "Read the answer first. Open Card Intelligence when you want the evidence behind it.");
+    }
 
     const summary = document.createElement("div");
     summary.className = "ff-evaluate-result-summary";
