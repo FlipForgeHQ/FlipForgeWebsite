@@ -215,7 +215,7 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v21'","'/decision-proof.html'","'/assets/css/homepage-v5.css'","'/assets/css/homepage-decision-forge-v1.css'","'/assets/js/homepage-v5.js'","'/assets/js/homepage-decision-forge-v1.js'","'/assets/js/site.js'"]);
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v22'","'/decision-proof.html'","'/assets/css/homepage-v5.css'","'/assets/css/homepage-decision-forge-v1.css'","'/assets/js/homepage-v5.js'","'/assets/js/homepage-decision-forge-v1.js'","'/assets/js/site.js'"]);
 const publicCopy=`${homepage}\n${proofPage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true'])forbidText('public safety',publicCopy,unsafe);
 if(publicCopy.includes('CARD VALUE INTELLIGENCE'))failures.push('public safety: forbidden formal CARD VALUE INTELLIGENCE identity');
