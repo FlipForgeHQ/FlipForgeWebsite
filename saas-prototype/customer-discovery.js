@@ -521,6 +521,22 @@
     return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(state.error.code || "DISCOVER_UNAVAILABLE")}</strong><p>${escapeHtml(state.error.message)}</p><small>${escapeHtml(guidance)}</small></div></section>`;
   }
 
+  // Mirror the busy state that searchPanel() renders onto the live form
+  // controls without replacing the form element.
+  function syncSearchControls(form) {
+    const busy = state.loading || state.identityAssist.busy;
+    const submit = form?.querySelector?.('button[type="submit"]');
+    const findExact = form?.querySelector?.("[data-discovery-find-exact]");
+    if (submit) {
+      submit.disabled = busy;
+      // Only replace a busy label; leave any idle label the page already shows.
+      if (busy || /Searching…|Resolving…/.test(submit.textContent || "")) {
+        submit.textContent = state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : "Search active listings";
+      }
+    }
+    if (findExact) findExact.disabled = busy;
+  }
+
   function searchPanel() {
     const busy = state.loading || state.identityAssist.busy;
     return `<section class="panel customer-discovery-search"><header class="panel-header"><div><h2>Search connected active listings</h2><p>Enter the card you want FlipForge to evaluate. If you are unsure of the exact identity, use Find exact card.</p></div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form"><label><span>Card</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="2018 Topps Chrome Shohei Ohtani #150 PSA 9" autocomplete="off"></label><label><span>Target max buy</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label><label><span>Results</span><select name="limit">${[10,25,50].map(value => `<option value="${value}"${String(value) === state.draft.limit ? " selected" : ""}>${value}</option>`).join("")}</select></label><div class="customer-discovery-search-actions"><button class="button button-primary" type="submit" ${busy ? "disabled" : ""}>${state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : "Search active listings"}</button><button class="button button-secondary" type="button" data-discovery-find-exact ${busy ? "disabled" : ""}>Find exact card</button></div></form><details class="customer-discovery-search-help"><summary>How card entry works</summary><small>Examples: <strong>#150</strong>, <strong>No. 150</strong>, and <strong>No 150</strong> are treated as the same card-number notation. FlipForge never silently chooses among multiple identities.</small></details></div></section>`;
@@ -753,6 +769,10 @@
         // Remove stale selection controls immediately without re-rendering the
         // form the customer is actively typing in.
         state.main?.querySelector?.(".customer-discovery-identity-assist")?.remove();
+        // The superseded lookup's completion is ignored (its serial is stale),
+        // so it will never re-render the form. Re-arm the controls that the
+        // in-flight lookup disabled, in place, so typing and focus are kept.
+        syncSearchControls(form);
       }
     });
     const changeIdentityEntryButton = state.main?.querySelector?.("[data-discovery-change-identity-entry]");
