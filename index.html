@@ -15,6 +15,11 @@
 <meta property="og:image" content="https://goflipforge.com/assets/images/flipforge-homepage-hero.webp">
 <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
 <link rel="manifest" href="site.webmanifest">
+<link rel="preload" href="assets/css/public-typography-contract-v1.css" as="style">
+<link rel="preload" href="assets/css/public-shell-contract-v1.css" as="style">
+<link rel="preload" href="assets/css/public-readability-contract-v1.css" as="style">
+<link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/images/ff-graphics-identity-lock-v2.svg" as="image" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
 <link rel="stylesheet" href="assets/css/brand-v2.css">
 <link rel="stylesheet" href="assets/css/homepage-v5.css">
@@ -217,15 +222,15 @@
           <div class="ff-df-frame-light" aria-hidden="true"></div>
 
           <figure class="ff-df-scene ff-df-scene-identity is-active" data-forge-scene="identity">
-            <img src="assets/images/ff-graphics-identity-lock-v2.svg" width="1600" height="900" alt="Illustrative FlipForge identity-lock scene with a slabbed card and product decision signals." decoding="async">
+            <img src="assets/images/ff-graphics-identity-lock-v2.svg" width="1600" height="900" alt="Illustrative FlipForge identity-lock scene with a slabbed card and product decision signals." loading="lazy" decoding="async" fetchpriority="low">
           </figure>
 
           <figure class="ff-df-scene ff-df-scene-evidence" data-forge-scene="evidence">
-            <img src="assets/images/ff-graphics-evidence-filter-v2.svg" width="1600" height="900" alt="Illustrative FlipForge evidence-filter scene showing mismatched comparisons rejected before supported value is calculated." loading="lazy" decoding="async">
+            <img src="assets/images/ff-graphics-evidence-filter-v2.svg" width="1600" height="900" alt="Illustrative FlipForge evidence-filter scene showing mismatched comparisons rejected before supported value is calculated." loading="lazy" decoding="async" fetchpriority="low">
           </figure>
 
           <figure class="ff-df-scene ff-df-scene-receipt" data-forge-scene="receipt">
-            <img src="assets/images/ff-graphics-decision-receipt-v2.svg" width="1600" height="900" alt="Illustrative FlipForge Decision Receipt connecting identity, qualified evidence, supported value, uncertainty, and decision traceback." loading="lazy" decoding="async">
+            <img src="assets/images/ff-graphics-decision-receipt-v2.svg" width="1600" height="900" alt="Illustrative FlipForge Decision Receipt connecting identity, qualified evidence, supported value, uncertainty, and decision traceback." loading="lazy" decoding="async" fetchpriority="low">
           </figure>
 
           <div class="ff-df-curtain" aria-hidden="true"></div>
