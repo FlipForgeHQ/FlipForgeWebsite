@@ -159,7 +159,7 @@
     if(link.closest(".footer"))return"footer";
     if(link.closest(".ff-dossier-spotlight"))return"sample-spotlight";
     if(link.closest(".ff-evidence"))return"evidence";
-    if(link.closest(".page-hero,.hero,.decision-hero,.ff-dic-hero"))return"hero";
+    if(link.closest(".page-hero,.hero,.ffh,.decision-hero,.ff-dic-hero"))return"hero";
     return"page";
   };
 

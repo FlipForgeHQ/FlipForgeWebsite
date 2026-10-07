@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v21';
+const CACHE='flipforge-shell-v22';
 const SHELL=[
   '/',
   '/index.html',
@@ -8,6 +8,9 @@ const SHELL=[
   '/assets/css/homepage-v5.css',
   '/assets/css/homepage-decision-forge-v1.css',
   '/assets/css/sitewide-graphics-v1.css',
+  '/assets/css/homepage-sections-v1.css',
+  '/assets/css/ff-decision-visual-v1.css',
+  '/assets/css/homepage-hero-v6.css',
   '/assets/css/public-typography-contract-v1.css',
   '/assets/css/public-readability-contract-v1.css',
   '/assets/css/visual-sections.css',
@@ -41,6 +44,7 @@ const SHELL=[
   '/assets/js/award-winning-v1.js',
   '/assets/brand/flipforge-app-icon-dark.svg',
   '/assets/brand/flipforge-logo-horizontal.svg',
+  '/assets/images/ff-fictional-slab-v1.svg',
   '/assets/images/flipforge-homepage-hero.webp',
   '/assets/images/ff-graphics-identity-lock-v2.svg',
   '/assets/images/ff-graphics-evidence-filter-v2.svg',

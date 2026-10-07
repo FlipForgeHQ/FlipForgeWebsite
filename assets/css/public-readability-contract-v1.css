@@ -44,7 +44,6 @@ html body main#main .ffg-beta-entry p,
 html body main#main .ffg-beta-result p,
 html body main#main .ffg-depth-plane p,
 html body main#main .ff-approved-graphic figcaption,
-html body main#main .ff-approved-data-summary p,
 html body main#main .ff-df-stage-copy,
 html body main#main .ff-df-footer p,
 html body main#main .ff-df-reveal-card>p,
@@ -53,7 +52,6 @@ html body main#main .ff-df-why p{
 }
 
 /* Labels and metadata are allowed to be quieter, but not low contrast. */
-html body main#main .ff-approved-data-summary small,
 html body main#main .ffg-flow-stage small,
 html body main#main .ffg-receipt-row small,
 html body main#main .ffg-receipt-lock small,
@@ -72,8 +70,6 @@ html body main#main .ff-df-live-status{
 
 /* Gold remains the FlipForge emphasis color, but use the brighter brand-safe gold
  * for small text where the standard gold would lose clarity. */
-html body main#main .ff-approved-data-summary strong,
-html body main#main .ff-approved-data-summary b,
 html body main#main .ffg-flow-stage em,
 html body main#main .ffg-receipt-lock strong,
 html body main#main .ff-df-reveal-card>strong,
@@ -83,20 +79,6 @@ html body main#main .ff-df-economics .is-supported strong{
 
 /* Minimum readable sizing for text that previously rendered at 7–10px. */
 html body main#main .ff-approved-graphic figcaption{
-  font-size:14px!important;
-  line-height:1.5!important;
-  color:var(--ff-read-muted)!important;
-}
-html body main#main .ff-approved-data-summary small{
-  font-size:11px!important;
-  line-height:1.35!important;
-}
-html body main#main .ff-approved-data-summary strong,
-html body main#main .ff-approved-data-summary b{
-  font-size:13px!important;
-  line-height:1.4!important;
-}
-html body main#main .ff-approved-data-summary p{
   font-size:14px!important;
   line-height:1.5!important;
   color:var(--ff-read-muted)!important;
@@ -139,9 +121,5 @@ html body main#main .ffg-case-fields .ok{color:#B8E8CB!important}
 html body main#main .ffg-case-fields .bad{color:#F0AAAA!important}
 
 @media(max-width:700px){
-  html body main#main .ff-approved-data-summary small{font-size:11px!important}
-  html body main#main .ff-approved-data-summary strong,
-  html body main#main .ff-approved-data-summary b,
-  html body main#main .ff-approved-data-summary p,
   html body main#main .ff-approved-graphic figcaption{font-size:14px!important}
 }

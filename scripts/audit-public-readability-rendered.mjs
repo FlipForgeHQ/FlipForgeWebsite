@@ -66,7 +66,7 @@ try {
          * should not be forced into body-copy sizing. */
         const selectors = [
           '.ff-approved-graphic figcaption',
-          '.ff-approved-data-summary p',
+          '.ffh-lead',
           '.lead',
           '.section-copy',
           '.ffg-heading p',
@@ -102,7 +102,7 @@ try {
           const ratio = textColor ? contrast(textColor,bg) : 0;
           const text = (el.textContent || '').replace(/\s+/g,' ').trim().slice(0,120);
           const role = `${el.tagName.toLowerCase()}.${String(el.className || '').replace(/\s+/g,'.').slice(0,120)}`;
-          const isCaption = el.matches('.ff-approved-graphic figcaption,.ff-approved-data-summary p,.ffg-caption');
+          const isCaption = el.matches('.ff-approved-graphic figcaption,.ffg-caption');
           const minSize = isCaption ? 13 : 12;
           const minContrast = 7;
           const problems = [];

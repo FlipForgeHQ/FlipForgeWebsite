@@ -1,0 +1,283 @@
+/* FlipForge Decision Visual System v1 (ffdv)
+ * The marketing expression of the Dashboard V3 product-interface identity (Brand Authority V3 §11–15):
+ * DECISION → ECONOMICS → EVIDENCE → UNCERTAINTY → ACTION.
+ * Reusable for the website hero, feature sections, social frames and video stills.
+ * Every value rendered with this system on public pages is an illustrative fixture and must sit inside a
+ * component that shows the visible "Illustrative product view" label (.ffdv-label).
+ * Scoped entirely under .ffdv so no legacy homepage layer can reach it. No JavaScript.
+ */
+.ffdv {
+  --ffdv-page: #050607;
+  --ffdv-panel: #0B0D10;
+  --ffdv-panel-2: #121418;
+  --ffdv-rule: #2A2E33;
+  --ffdv-text: #F4F4F2;
+  --ffdv-silver: #888F98;
+  --ffdv-silver-2: #A9AFB6;
+  --ffdv-gold: #D4AF37;
+  --ffdv-gold-deep: #B8860B;
+  /* Decision-state semantics (Brand Authority V3 §12). WATCH = champagne/amber-gold. */
+  --ffdv-buy: #5FB58A;
+  --ffdv-watch: #E2B84B;
+  --ffdv-verify: #E58A4E;
+  --ffdv-pass: #E06A64;
+  position: relative;
+  margin: 0;
+  color: var(--ffdv-text);
+  font-family: Geist, "Geist Sans", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Product frame ---------- */
+.ffdv-frame {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: 12px;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 38%),
+    linear-gradient(160deg, #0E1013 0%, #08090B 62%, #0B0C0E 100%);
+  border: 1px solid #23272C;
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 48px 90px -40px rgba(0, 0, 0, 0.95),
+    0 22px 60px -30px rgba(212, 175, 55, 0.22);
+}
+.ffdv-frame::before { /* restrained champagne edge on the leading and top edges */
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(115deg, rgba(212, 175, 55, 0.75), rgba(212, 175, 55, 0.08) 28%, rgba(255, 255, 255, 0) 55%, rgba(184, 134, 11, 0.35));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.ffdv-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ffdv-rule);
+}
+.ffdv-head > div { display: flex; align-items: center; gap: 10px; }
+.ffdv-mark { display: block; width: 22px; height: 22px; }
+.ffdv-head-sub {
+  display: block;
+  color: var(--ffdv-silver);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+.ffdv-label {
+  flex: none;
+  padding: 5px 9px;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 999px;
+  color: var(--ffdv-gold);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: rgba(212, 175, 55, 0.06);
+}
+
+/* ---------- Shared section treatment ---------- */
+.ffdv-section {
+  position: relative;
+  padding: 11px 13px;
+  border: 1px solid var(--ffdv-rule);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.005));
+}
+.ffdv-kicker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 9px;
+  color: var(--ffdv-gold);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.ffdv-kicker::before {
+  content: "";
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.8;
+}
+.ffdv-note { margin: 0; color: var(--ffdv-silver-2); font-size: 12.5px; line-height: 1.45; }
+
+/* ---------- Identity column ---------- */
+.ffdv-identity { display: grid; gap: 10px; align-content: start; }
+.ffdv-id { display: grid; gap: 10px; }
+.ffdv-card {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 14px 10px 12px;
+  border-radius: 10px;
+  background:
+    radial-gradient(80% 60% at 50% 35%, rgba(212, 175, 55, 0.14), rgba(212, 175, 55, 0) 70%),
+    linear-gradient(180deg, #111418, #08090B);
+  border: 1px solid var(--ffdv-rule);
+}
+.ffdv-card img { display: block; width: 100%; max-width: 136px; height: auto; filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.7)); }
+.ffdv-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ffdv-buy);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.ffdv-match::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background:
+    linear-gradient(currentColor, currentColor) 5px 3px / 1.5px 6px no-repeat,
+    linear-gradient(currentColor, currentColor) 3px 7px / 3px 1.5px no-repeat;
+  transform: rotate(40deg);
+}
+.ffdv-title { margin: 6px 0 8px; font-size: 15px; font-weight: 750; line-height: 1.25; letter-spacing: -0.01em; }
+.ffdv-attrs { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.ffdv-attrs li {
+  padding: 3px 7px;
+  border: 1px solid var(--ffdv-rule);
+  border-radius: 5px;
+  color: var(--ffdv-silver-2);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+/* ---------- Intelligence column ---------- */
+.ffdv-stack { display: grid; gap: 10px; align-content: start; }
+
+.ffdv-decision { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 14px; }
+.ffdv-decision .ffdv-kicker { grid-column: 1 / -1; margin-bottom: 2px; }
+.ffdv-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 12px;
+  border: 1px solid rgba(226, 184, 75, 0.55);
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(226, 184, 75, 0.14), rgba(226, 184, 75, 0.04));
+  color: var(--ffdv-watch);
+  font-size: clamp(26px, 2.5vw, 34px);
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.ffdv-verdict::before { /* watch glyph: an eye, never colour alone */
+  content: "";
+  width: 22px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 75% 15%;
+  transform: rotate(45deg) scale(0.86);
+  box-shadow: inset 0 0 0 3px #0B0D10, inset 0 0 0 7px currentColor;
+}
+.ffdv-verdict-why { margin: 0; color: var(--ffdv-silver-2); font-size: 12.5px; line-height: 1.4; }
+
+.ffdv-economics dl { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; }
+.ffdv-economics div { padding: 2px 10px 0; border-left: 1px solid var(--ffdv-rule); }
+.ffdv-economics div:first-child { padding-left: 0; border-left: 0; }
+.ffdv-economics dt { color: var(--ffdv-silver); font-size: 9.5px; font-weight: 650; letter-spacing: 0.1em; white-space: nowrap; text-transform: uppercase; }
+.ffdv-economics dd { margin: 4px 0 0; font-size: 21px; font-weight: 750; letter-spacing: -0.01em; }
+.ffdv-economics .is-boundary dd { color: var(--ffdv-gold); }
+.ffdv-economics .is-boundary { box-shadow: inset 2px 0 0 var(--ffdv-gold); border-left-color: transparent; }
+
+.ffdv-evidence-bar { display: flex; gap: 3px; height: 6px; margin: 2px 0 10px; }
+.ffdv-evidence-bar span { border-radius: 2px; }
+.ffdv-evidence-bar .a { flex: 6; background: var(--ffdv-gold); }
+.ffdv-evidence-bar .r { flex: 2; background: var(--ffdv-silver); }
+.ffdv-evidence-bar .x { flex: 4; background: repeating-linear-gradient(135deg, #3A3F45 0 3px, #22262B 3px 6px); }
+.ffdv-counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; }
+.ffdv-counts div { display: grid; gap: 2px; }
+.ffdv-counts dt { color: var(--ffdv-silver); font-size: 9.5px; font-weight: 650; letter-spacing: 0.14em; text-transform: uppercase; }
+.ffdv-counts dd { margin: 0; font-size: 20px; font-weight: 800; }
+.ffdv-counts .a dd { color: var(--ffdv-gold); }
+.ffdv-reasons { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0 0; padding: 0; list-style: none; }
+.ffdv-reasons li {
+  padding: 3px 7px;
+  border: 1px dashed #3A3F45;
+  border-radius: 5px;
+  color: var(--ffdv-silver-2);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-decoration: line-through;
+  text-decoration-color: rgba(224, 106, 100, 0.65);
+}
+
+.ffdv-meter { height: 4px; margin: 2px 0 9px; border-radius: 3px; background: #22262B; overflow: hidden; }
+.ffdv-meter span { display: block; width: 46%; height: 100%; background: linear-gradient(90deg, var(--ffdv-gold-deep), var(--ffdv-gold)); }
+.ffdv-uncertainty strong, .ffdv-action strong { display: block; margin-bottom: 4px; font-size: 13.5px; font-weight: 700; }
+
+.ffdv-action { border-color: rgba(212, 175, 55, 0.4); background: linear-gradient(180deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.015)); }
+.ffdv-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 9px 11px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  border-radius: 8px;
+  color: var(--ffdv-text);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.ffdv-next::after { content: "→"; color: var(--ffdv-gold); font-weight: 600; }
+.ffdv-change { margin: 0; padding-top: 9px; border-top: 1px solid var(--ffdv-rule); }
+.ffdv-change b { display: block; margin-bottom: 3px; color: var(--ffdv-gold); font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; white-space: nowrap; text-transform: uppercase; }
+.ffdv-change span { color: var(--ffdv-silver-2); font-size: 12px; line-height: 1.45; }
+
+.ffdv-footnote {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  color: var(--ffdv-silver);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Compact (mobile) composition: decision → identity → evidence/uncertainty → action ---------- */
+@media (max-width: 640px) {
+  .ffdv-frame { grid-template-columns: 1fr; gap: 10px; padding: 16px 14px 14px; }
+  .ffdv-identity { display: contents; }
+  .ffdv-id { order: 2; grid-template-columns: 74px 1fr; align-items: center; gap: 12px; }
+  .ffdv-card { padding: 7px; }
+  .ffdv-card img { max-width: 60px; filter: none; }
+  .ffdv-stack { display: contents; }
+  .ffdv-decision { order: 1; }
+  .ffdv-economics { order: 3; }
+  .ffdv-evidence { order: 4; }
+    .ffdv-uncertainty { order: 5; }
+  .ffdv-action { order: 6; }
+  .ffdv-footnote { order: 7; }
+  .ffdv-economics dl { grid-template-columns: repeat(2, 1fr); }
+  .ffdv-economics .is-context { display: none; }
+  .ffdv-economics div:nth-child(3) { padding-left: 10px; }
+  .ffdv-economics dd { font-size: 17px; }
+  .ffdv-decision { grid-template-columns: 1fr; gap: 8px; }
+  .ffdv-verdict { font-size: 30px; justify-self: start; }
+  .ffdv-head-sub { display: none; }
+}
