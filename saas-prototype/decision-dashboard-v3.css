@@ -150,6 +150,30 @@
 .ffv3-boundary { display: grid; gap: 8px; margin-top: 10px; }
 .ffv3-boundary .ffv3-tag { justify-self: start; }
 .ffv3-next-copy { font-size: 15px; }
+
+/* Key uncertainty (first server-reported unknown) and reason disclosure */
+.ffv3-key-unknown { margin-top: 6px !important; color: var(--ffv3-white); font-size: 13px; }
+.ffv3-key-unknown span { color: var(--ffv3-gold); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; margin-right: 6px; }
+.ffv3-link { display: none; margin-top: 4px; padding: 0; border: 0; background: none; color: var(--ffv3-gold); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.ffv3-link:focus-visible { outline: 2px solid var(--ffv3-gold); outline-offset: 2px; }
+
+/* Decision evidence leads; current saved sales are secondary */
+.ffv3-evidence-lead { display: grid; gap: 2px; margin-bottom: 10px; padding: 10px 12px; border: 1px solid var(--ffv3-line); border-left: 3px solid var(--ffv3-gold); border-radius: 8px; background: var(--ffv3-inset); }
+.ffv3-evidence-label { color: var(--ffv3-silver); font-size: 12px; }
+.ffv3-evidence-lead strong { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ffv3-evidence-lead small { color: var(--ffv3-silver); font-size: 12px; }
+
+/* ⑧ Decision lifecycle */
+.ffv3-lifecycle-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ffv3-lifecycle .ffv3-source { overflow-wrap: break-word; }
+
+/* ⑨ Secondary analytics: deliberately quiet, always after the decision experience */
+.ffv3-analytics { margin-top: 16px; padding: 12px; border: 1px solid var(--ffv3-line); border-radius: 12px; }
+.ffv3-mix { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 10px; }
+.ffv3-mix li { display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.ffv3-mix b { font-weight: 600; }
+.ffv3-analytics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ffv3-analytics .ffv3-fact dd { font-weight: 600; }
 .ffv3-next-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
 /* States */
@@ -169,7 +193,7 @@
 .ffv3-skeleton-row { padding: 6px 0; border-bottom: 1px solid var(--ffv3-line); }
 
 @media (max-width: 1199px) {
-  .ffv3-why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ffv3-why-grid, .ffv3-lifecycle-grid, .ffv3-analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
   .ffv3-root { padding: 10px 12px 24px; }
@@ -185,5 +209,12 @@
   .ffv3-modeled-row { grid-template-columns: 96px minmax(0, 1fr); }
   .ffv3-modeled-row em { grid-column: 2; }
   .ffv3-dossier { padding: 12px; }
+  /* First screen: verdict → card → key uncertainty → economics. The command bar stays compact;
+     long governed reasons are clamped behind an explicit, accessible disclosure. */
+  .ffv3-command-stats { display: grid; grid-template-columns: repeat(3, minmax(0, auto)); gap: 4px 14px; }
+  .ffv3-command-stats .ffv3-fact dd { font-size: 14px; }
+  .ffv3-reason.is-clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .ffv3-link { display: inline; }
+  .ffv3-lifecycle-grid, .ffv3-analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) { .ffv3-root * { scroll-behavior: auto !important; } }

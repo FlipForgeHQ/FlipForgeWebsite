@@ -79,6 +79,48 @@ export function g1Items() {
   ];
 }
 
+/*
+ * Sanitized production-shaped fixture. Fictional card and values; the SCHEMA and the edge cases
+ * mirror the governed read model verified in production on 2026-10-08:
+ *  - governed WATCH from GOVERNED_SNAPSHOT, guardrail applied, not capped, gate VERIFY_REQUIRED
+ *  - governed exact comp count (62) differs from current saved accepted sales (40)
+ *  - governed confidence/risk differ from item-level values (governed must win)
+ *  - negative modeled economics; snapshotCount 2 with snapshot/receipt versions
+ *  - no structured exclusion data (only prose in the reason), partial provider context,
+ *    unconfirmed mapping, no population data, no transaction authority
+ */
+export const PRODUCTION_SHAPED_ID = "EBAY-ext-qa0000000000000000000000000000000000000000000000000000000000ff";
+
+export function productionShapedItem() {
+  const gd = governed({
+    recommendation: "WATCH", baseRecommendation: "WATCH", guardrailApplied: true, profitabilityCappedBuy: false,
+    profitabilityGateStatus: "VERIFY_REQUIRED", allInAskCents: 75995, maximumBuyPriceCents: 60879,
+    expectedNetProfitCents: -5520, conservativeNetProfitCents: -9779, stressNetProfitCents: -15116,
+    expectedRoiBasisPoints: -726, conservativeRoiBasisPoints: -1287, stressRoiBasisPoints: -1989,
+    supportedValueStatus: "ESTABLISHED", supportedValueCents: 85000, exactTrustedCompCount: 62, confidence: 83, risk: 70,
+    reason: "WATCH is based on an all-in ask of $759.95, a trusted exact median of $850.00, and 62 accepted exact comps. 438 near-match candidates were excluded from direct value evidence. Evidence quality is ready for final review. Population is supply context only; it is not sold evidence, price proof, slab authentication, or transaction authority.",
+    nextAction: "Track the listing and wait for a better price or stronger evidence.",
+    missingRequirement: "None - evidence is ready for review",
+    whatWouldChange: ["Track the listing and wait for a better price or stronger evidence."], whatWouldChangeSource: "DECISION_RECEIPT",
+    evaluatedAt: "2026-10-06T23:54:50.493244019Z", snapshotCount: 2,
+    snapshotVersion: "v7.00+v14.83+v16.05+v16.06", receiptVersion: "v1.4.0", workflowStatus: "ACTIVE_WATCHLIST",
+    recommendationAuthorityChanged: false, modeledEstimate: true, profitGuaranteed: false, transactionAuthority: false
+  });
+  return {
+    id: PRODUCTION_SHAPED_ID, databaseId: 369, platform: "EBAY",
+    title: "2019 Prism Series J. Carver #48 Silver PSA 9", cardIdentity: "2019 Prism Series J. Carver #48 Silver PSA 9",
+    recommendation: "WATCH", baseRecommendation: "WATCH", recommendationSource: "GOVERNED_SNAPSHOT",
+    ask: 759.95, supportedValue: 850, supportedValueCents: 85000, supportedValueStatus: "ESTABLISHED", supportedValueStatusReason: null,
+    // Item-level values deliberately differ from the governed snapshot.
+    confidence: 55, risk: 20, liquidity: 75, rank: 72, evidenceCount: 62, discountPercent: 10.59,
+    mappingState: "NOT_CONFIRMED", contextStatus: "PARTIAL_CONTEXT", workflowStatus: "ACTIVE_WATCHLIST",
+    observedAt: "2026-10-06T23:54:44.991749091Z", changeSummary: "NO PRICE CHANGE",
+    evidence: { acceptedSales: 40, earliestSaleDate: "2026-05-24T01:06:00Z", latestSaleDate: "2026-10-03T03:13:01Z", marketplaces: ["CARDSIGHT_EBAY"], averagePrice: 847.24 },
+    population: { displayOnly: true, available: false, scarcityStatus: "UNKNOWN", freshnessStatus: "UNAVAILABLE", message: "No confirmed exact-card provider mapping is saved." },
+    governedDecision: gd
+  };
+}
+
 export function envelope(correlationId, data, extra = {}) {
   return {
     meta: {
@@ -213,6 +255,54 @@ function runChecks() {
   check("S23 bridge disabled: offline, no sample data", offline.includes("Decision data is offline.") && !offline.includes("data-ffv3-select"));
   check("S24 error/loading states carry no first-use content", [e401, e403, e5xx, offline, loading].every(markup => !/Evaluate your first card|four checks/i.test(markup)));
 
+  /* ---------------- P: production-shaped governed authority ---------------- */
+  const prod = productionShapedItem();
+  const prodSnapshot = snapshotFor([prod, ...items]);
+  const prodView = api.viewFromSnapshot(prodSnapshot, PRODUCTION_SHAPED_ID, "ready", { [PRODUCTION_SHAPED_ID]: detailData(prod) });
+  const prodHtml = api.markupForView(prodView);
+  const prodDossier = prodHtml.slice(prodHtml.indexOf('data-ffv3-section="dossier"'), prodHtml.indexOf('data-ffv3-section="ledger"'));
+  const prodText = visibleText(prodDossier).replace(/\s+/g, " ");
+  const prodModel = api.decisionModel(prod, null);
+  check("P01 decision evidence is the governed count (62 exact comps), labelled as decision evidence",
+    /data-ffv3-decision-evidence[\s\S]*?Decision evidence[\s\S]*?62 exact comps/.test(prodDossier));
+  check("P02 current saved sales (40) shown separately, never as the decision evidence",
+    /data-ffv3-current-sales[\s\S]*?Current saved sales[\s\S]*?<dd>40<\/dd>/.test(prodDossier)
+      && !/data-ffv3-decision-evidence[\s\S]{0,400}?\b40 exact comp/.test(prodDossier) && prodDossier.includes("data-ffv3-evidence-differs"));
+  check("P03 decision evidence precedes current saved sales", prodDossier.indexOf("data-ffv3-decision-evidence") < prodDossier.indexOf("data-ffv3-current-sales"));
+  const prodRow = (prodHtml.match(new RegExp(`data-ffv3-select="${PRODUCTION_SHAPED_ID}"[\\s\\S]*?</button>`)) || [""])[0];
+  check("P04 ledger row shows decision comps (62), not current saved sales (40)", /data-ffv3-row-evidence="decision"[\s\S]*?Decision comps<\/small><b>62</.test(prodRow) && !/Saved sales<\/small><b>40/.test(prodRow));
+  check("P05 governed confidence/risk win over item-level values", prodModel.confidence === 83 && prodModel.risk === 70
+    && /Confidence[\s\S]*?<strong>83<\/strong>/.test(prodDossier) && /Risk[\s\S]*?<strong>70<\/strong>/.test(prodDossier)
+    && !/<strong>55<\/strong>/.test(prodDossier) && !/<strong>20<\/strong>/.test(prodDossier));
+  const noSnapshot = api.decisionModel({ ...prod, recommendationSource: "BASE_SMART_OPPORTUNITY", governedDecision: { available: false, status: "NO_GOVERNED_SNAPSHOT" } }, null);
+  check("P06 without a governed snapshot, item-level confidence/risk are the fallback", noSnapshot.confidence === 55 && noSnapshot.risk === 20 && noSnapshot.decisionEvidenceCount === null);
+  check("P07 no structured exclusion count invented from reason prose",
+    !prodDossier.includes("data-ffv3-excluded") && !/Excluded evidence/.test(prodDossier)
+      && (prodText.match(/438/g) || []).length === 1 && !/near-match/.test(source));
+  check("P08 governed WATCH shown; no BUY verdict rendered for this decision", /data-ffv3-section="verdict"[\s\S]*?data-verdict="watch"/.test(prodDossier) && !/data-verdict="buy"/.test(prodDossier));
+  check("P09 no fake zero: no $0, no '0 comps', no '0 ROI'", !/\$0(?![\d,])/.test(prodText) && !/\b0 (?:exact )?comps?\b/i.test(prodText) && !/ROI 0(?:\.0)?%/.test(prodText));
+  check("P10 modeled economics labelled 'Modeled estimate' with negative values intact", prodDossier.includes(">Modeled estimate<") && prodText.includes("-$55") && prodText.includes("-$98") && prodText.includes("-$151"));
+  check("P11 ⑧ lifecycle: latest governed decision, 2 immutable snapshots, versions, observation, price change",
+    /data-ffv3-section="lifecycle"/.test(prodDossier) && /data-ffv3-lifecycle-evaluated[\s\S]*?Oct 6, 2026, 11:54 PM UTC/.test(prodDossier)
+      && /data-ffv3-lifecycle-count[\s\S]*?2 immutable snapshots/.test(prodDossier)
+      && /data-ffv3-lifecycle-versions[^>]*>Snapshot v7\.00\+v14\.83\+v16\.05\+v16\.06 · Receipt v1\.4\.0/.test(prodDossier)
+      && prodText.includes("No price change") && prodText.includes("On your watchlist"));
+  check("P12 ⑧ lifecycle never fabricates per-snapshot history", !/snapshot (?:1|2) of|previous decision|earlier decision was/i.test(prodText) && !/\/api\/v1\/lifecycle/.test(source));
+  const noSnapshotHtml = api.dossierMarkup({ ...noSnapshot }, "ready");
+  check("P13 ⑧ lifecycle without a governed snapshot says so and invents no count", noSnapshotHtml.includes("No governed snapshot recorded") && /data-ffv3-lifecycle-count[\s\S]*?Not established/.test(noSnapshotHtml));
+  const analytics = prodHtml.slice(prodHtml.indexOf('data-ffv3-section="analytics"'));
+  check("P14 ⑨ analytics sits after the ledger + dossier layout", prodHtml.indexOf('data-ffv3-section="analytics"') > prodHtml.indexOf('data-ffv3-section="ledger"') && prodHtml.indexOf('data-ffv3-section="analytics"') > prodHtml.indexOf('data-ffv3-section="dossier"'));
+  const mixCount = verdict => Number((analytics.match(new RegExp(`data-verdict-count="${verdict}">[\\s\\S]*?<b>(\\d+)</b>`)) || [])[1]);
+  check("P15 ⑨ verdict counts equal the server verdicts returned", mixCount("watch") === 2 && mixCount("verify") === 1 && mixCount("pass") === 1 && mixCount("buy") === 0,
+    ["buy", "watch", "verify", "pass"].map(v => `${v}:${mixCount(v)}`).join(" "));
+  check("P16 ⑨ analytics has no ranking, priority, urgency, top-opportunity or trend language",
+    !/\b(?:rank|ranking|priority|urgent|urgency|top opportunit|best deal|trend|hot)\b/i.test(visibleText(analytics)));
+  check("P17 key uncertainty is the first server-reported unknown", /data-ffv3-key-unknown[^>]*><span>Key uncertainty<\/span> Identity still needs confirmation/.test(prodDossier)
+    || /data-ffv3-key-unknown[^>]*><span>Key uncertainty<\/span> Mapping not confirmed/.test(prodDossier));
+  check("P18 long governed reason is clamped behind an accessible disclosure", /class="ffv3-reason is-clamped"/.test(prodDossier) && /data-ffv3-reason-toggle aria-expanded="false" aria-controls="ffv3-reason-/.test(prodDossier));
+  check("P19 dossier ends with ⑧ lifecycle after ⑦ next action", prodDossier.indexOf('data-ffv3-section="next-action"') < prodDossier.indexOf('data-ffv3-section="lifecycle"'));
+  check("P20 no transaction affordances", !/buy now|place bid|checkout|make offer|add to cart/i.test(prodText));
+
   check("S25 G1 contract detection", api.isG1Contract({ data: { governedDecisionReadModelVersion: G1 } }) && !api.isG1Contract({ data: {} }));
   check("S26 renderer source performs no sort/rank on items", !/\.sort\s*\(|\.toSorted\s*\(|\.reverse\s*\(/.test(source));
   check("S27 renderer fetches only allowlisted endpoints", (() => {
@@ -266,7 +356,7 @@ function runChecks() {
 
   for (const line of passes) console.log(`PASS ${line}`);
   for (const line of failures) console.log(`FAIL ${line}`);
-  console.log(`Dashboard V3 Slice 2 static contract: ${passes.length}/${passes.length + failures.length} passed.`);
+  console.log(`Dashboard V3 static contract: ${passes.length}/${passes.length + failures.length} passed.`);
   if (failures.length) process.exit(1);
 }
 

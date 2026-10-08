@@ -1,11 +1,11 @@
-// Rendered audit for Dashboard V3 Slice 2 (behind the flag): Decision Command Center +
-// Decision Dossier sections 2-7. Requires the local SaaS server (node saas-prototype/serve.mjs)
+// Rendered audit for Dashboard V3 (behind the flag): Decision Command Center, Decision Dossier
+// sections 2-7, Decision Lifecycle (8) and Secondary Analytics (9). Requires the local SaaS server (node saas-prototype/serve.mjs)
 // on FLIPFORGE_LAYOUT_AUDIT_URL. Screenshots for owner visual review are written to
 // FLIPFORGE_V3_SCREENSHOT_DIR (default: artifacts/dashboard-v3).
 import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
-import { FIXTURE_IDS, g1Items, envelope, opportunitiesData, dashboardData, detailData } from "./validate-decision-dashboard-v3.mjs";
+import { FIXTURE_IDS, g1Items, envelope, opportunitiesData, dashboardData, detailData, productionShapedItem, PRODUCTION_SHAPED_ID } from "./validate-decision-dashboard-v3.mjs";
 
 const baseUrl = (process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app").replace(/\/$/, "");
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined;
@@ -205,7 +205,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1200, height: 800
   check("M02 order: command bar → dossier → ledger", commandBar && dossier && ledger && commandBar.y < dossier.y && dossier.y < ledger.y);
   const sectionOrder = await page.$$eval('[data-ffv3-section="dossier"] > section', nodes => nodes.map(node => node.getAttribute("data-ffv3-section")));
   check("M03 dossier sections in order verdict → economics → why → unknowns → change → next action",
-    JSON.stringify(sectionOrder) === JSON.stringify(["verdict", "economics", "why", "unknowns", "change", "next-action"]), sectionOrder.join(","));
+    JSON.stringify(sectionOrder) === JSON.stringify(["verdict", "economics", "why", "unknowns", "change", "next-action", "lifecycle"]), sectionOrder.join(","));
   await page.screenshot({ path: path.join(screenshotDir, "dashboard-v3-mobile-390x844.png") });
   await page.click(`[data-ffv3-select="${FIXTURE_IDS.verify}"]`);
   await page.waitForFunction(id => document.querySelector('[data-ffv3-section="dossier"]')?.getAttribute("data-ffv3-selected") === id, FIXTURE_IDS.verify);
@@ -239,6 +239,55 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1200, height: 800
   const refreshTop = await page.evaluate(() => { const r = document.querySelector("[data-ffv3-refresh]")?.getBoundingClientRect(); return r ? Math.round(r.top) : -1; });
   check("M13 skip link not visible over the V3 command bar at page top", skipTop <= 0 || refreshTop < 0 || skipTop <= refreshTop, `skip bottom ${skipTop}px, refresh top ${refreshTop}px`);
   await page.screenshot({ path: path.join(screenshotDir, "dashboard-v3-mobile-390x844-verify.png"), fullPage: true });
+  await context.close();
+}
+
+/* Production-shaped governed decision (sanitized fixture): authority, lifecycle, analytics, first screen */
+async function readyProduction(page) {
+  await page.waitForSelector('[data-decision-dashboard-v3][data-ffv3-state="ready"]', { timeout: 15000 });
+  await page.waitForSelector('[data-ffv3-section="dossier"] [data-ffv3-section="why"] .ffv3-note', { timeout: 15000 }).catch(() => {});
+}
+const productionItems = () => [productionShapedItem(), ...g1Items()];
+for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180 }, { width: 390, height: 844 }]) {
+  const label = `${viewport.width}x${viewport.height}`;
+  const { context, page } = await open(viewport, { items: productionItems() });
+  await readyProduction(page);
+  const dossierText = (await page.locator('[data-ffv3-section="dossier"]').innerText()).replace(/\s+/g, " ");
+  check(`R01 ${label} governed WATCH, decision evidence 62 leads, current saved sales 40 separate`,
+    (await textOf(page, '[data-ffv3-section="verdict"] .ffv3-verdict-word')).trim() === "WATCH"
+      && /Decision evidence 62 exact comps/.test(dossierText) && /Current saved sales 40/.test(dossierText));
+  check(`R02 ${label} governed confidence 83 / risk 70 rendered`, /Confidence 83/.test(dossierText) && /Risk 70/.test(dossierText) && !/Confidence 55|Risk 20/.test(dossierText));
+  check(`R03 ${label} lifecycle shows latest governed decision and 2 immutable snapshots`, /Decision history 2 immutable snapshots/.test(dossierText) && /Latest governed decision Oct 6, 2026/.test(dossierText));
+  check(`R04 ${label} no fake zero, no structured exclusion count`, !/\$0(?![\d,])/.test(dossierText) && (await page.locator("[data-ffv3-excluded]").count()) === 0);
+  const analytics = await box(page, '[data-ffv3-section="analytics"]');
+  const dossier = await box(page, '[data-ffv3-section="dossier"]');
+  const ledger = await box(page, '[data-ffv3-section="ledger"]');
+  check(`R05 ${label} secondary analytics below ledger and dossier`, analytics && dossier && ledger && analytics.y >= dossier.y + dossier.height - 1 && analytics.y >= ledger.y + ledger.height - 1);
+  if (viewport.width === 390) {
+    const firstScreen = await page.evaluate(() => {
+      const bottom = selector => { const node = document.querySelector(selector); if (!node) return null; const r = node.getBoundingClientRect(); return Math.round(r.bottom); };
+      const fontSize = selector => { const node = document.querySelector(selector); return node ? parseFloat(getComputedStyle(node).fontSize) : 0; };
+      return {
+        verdict: bottom('[data-ffv3-section="verdict"] .ffv3-verdict-word'), card: bottom(".ffv3-dossier-title"),
+        key: bottom("[data-ffv3-key-unknown]"), econ: bottom('[data-ffv3-section="economics"] .ffv3-econ-grid'),
+        minText: Math.min(fontSize("[data-ffv3-key-unknown]"), fontSize(".ffv3-reason"), fontSize('.ffv3-econ-grid .ffv3-fact dt')),
+        height: window.innerHeight
+      };
+    });
+    check("R06 390x844 first screen: verdict → card → key uncertainty → Ask/Supported/Max Buy",
+      firstScreen.verdict && firstScreen.card && firstScreen.key && firstScreen.econ && firstScreen.verdict < firstScreen.card && firstScreen.card < firstScreen.key
+        && firstScreen.key < firstScreen.econ && firstScreen.econ <= firstScreen.height, JSON.stringify(firstScreen));
+    check("R07 390x844 first screen keeps readable text (>= 12px)", firstScreen.minText >= 12, String(firstScreen.minText));
+    await page.screenshot({ path: path.join(screenshotDir, "dashboard-v3-production-shaped-mobile-390x844.png") });
+    await page.click("[data-ffv3-reason-toggle]");
+    check("R08 390x844 reason disclosure expands accessibly", (await page.getAttribute("[data-ffv3-reason-toggle]", "aria-expanded")) === "true"
+      && !(await page.locator("[data-ffv3-reason]").getAttribute("class")).includes("is-clamped"));
+    await page.screenshot({ path: path.join(screenshotDir, "dashboard-v3-production-shaped-mobile-390x844-full.png"), fullPage: true });
+  } else {
+    await page.screenshot({ path: path.join(screenshotDir, `dashboard-v3-production-shaped-${label}.png`) });
+    await page.screenshot({ path: path.join(screenshotDir, `dashboard-v3-production-shaped-${label}-full.png`), fullPage: true });
+  }
+  check(`R09 ${label} selected dossier is the production-shaped decision`, (await page.getAttribute('[data-ffv3-section="dossier"]', "data-ffv3-selected")) === PRODUCTION_SHAPED_ID);
   await context.close();
 }
 
@@ -326,5 +375,5 @@ await stateCheck("T08 pre-G1 backend falls back to V2", { g1: false }, async pag
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);
-console.log(`Dashboard V3 Slice 2 rendered audit: ${passes.length}/${passes.length + failures.length} passed. Screenshots: ${screenshotDir}`);
+console.log(`Dashboard V3 rendered audit: ${passes.length}/${passes.length + failures.length} passed. Screenshots: ${screenshotDir}`);
 if (failures.length) process.exit(1);
