@@ -170,14 +170,16 @@ for (const scenario of scenarios) {
   check(`${label}: no customer text below 14px`, state.small.length === 0, state.small.slice(0, 4).join("; "));
   check(`${label}: no horizontal overflow`, state.overflow <= 0, `${state.overflow}px`);
   const clearance = await launcherClearance(page);
-  check(`${label}: Guide me present and covers nothing`, clearance.present && clearance.hits.length === 0, `${clearance.rect || "absent"} ${clearance.hits.slice(0, 4).join("; ")}`);
+  // V3 suppresses the launcher on its dashboard by design (Visual Lock V1 §5.4, #488); V2 keeps it.
+  if (v3) check(`${label}: Guide me suppressed on the V3 dashboard`, !clearance.present, clearance.rect || "absent");
+  else check(`${label}: Guide me present and covers nothing`, clearance.present && clearance.hits.length === 0, `${clearance.rect || "absent"} ${clearance.hits.slice(0, 4).join("; ")}`);
   await page.screenshot({ path: path.join(screenshotDir, scenario.file) });
   check(`${label}: navigation intact`, await navigationIntact(page, mobile));
   {
     await page.evaluate(() => window.scrollTo({ top: 600, behavior: "instant" }));
     await page.waitForTimeout(200);
     const scrolled = await launcherClearance(page);
-    check(`${label}: Guide me covers nothing after scrolling`, scrolled.present && scrolled.hits.length === 0, scrolled.hits.slice(0, 4).join("; "));
+    check(`${label}: Guide me covers nothing after scrolling`, v3 ? !scrolled.present : scrolled.present && scrolled.hits.length === 0, scrolled.hits.slice(0, 4).join("; "));
   }
   await context.close();
 }
