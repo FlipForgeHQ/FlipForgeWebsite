@@ -1,7 +1,9 @@
 /*
- * FlipForge Dashboard V3 — Slice 2 renderer (behind the flag).
+ * FlipForge Dashboard V3 renderer (behind the flag).
  *
- * Decision Command Center (①) + Decision Dossier sections ②–⑦.
+ * Decision Command Center (①), Decision Dossier sections ②–⑦, Decision
+ * Lifecycle (⑧, latest governed snapshot facts only) and Secondary Analytics
+ * (⑨, server metrics and counts of server verdicts, below the dossier).
  *
  * Activation (all three required, otherwise V2 renders):
  *   1. ?dashboard=v3  OR  localStorage["flipforge.dashboard.renderer"] === "v3"
@@ -18,7 +20,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "dashboard-v3-slice2";
+  const VERSION = "dashboard-v3-slice2.1";
   const CONTRACT_VERSION = "1.0";
   const G1_PREFIX = "governed-decision-read";
   const RENDERER_KEY = "flipforge.dashboard.renderer";
@@ -39,6 +41,7 @@
   const NOT_ESTABLISHED = "Not established";
   const NOT_CALCULATED = "Not calculated for this decision";
   const DASH = "—";
+  const REASON_CLAMP_CHARACTERS = 180;
 
   /* ------------------------------------------------------------------ *
    * Pure helpers (exported for the static contract validator)
@@ -100,6 +103,12 @@
     return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
   }
 
+  function dateTimeText(value) {
+    const date = value ? new Date(value) : null;
+    if (!date || Number.isNaN(date.getTime())) return DASH;
+    return `${date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}, ${date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "UTC" })} UTC`;
+  }
+
   function freshnessText(value, now = Date.now()) {
     const date = value ? new Date(value) : null;
     if (!date || Number.isNaN(date.getTime())) return "Freshness not reported";
@@ -129,6 +138,16 @@
   });
   const SOURCE_LABELS = Object.freeze({
     DECISION_RECEIPT: "Decision receipt"
+  });
+  const WORKFLOW_LABELS = Object.freeze({
+    ACTIVE_WATCHLIST: "On your watchlist",
+    READY_FOR_OPERATOR_REVIEW: "Ready for your review",
+    MANUAL_VERIFICATION: "Needs manual verification",
+    PASS: "Passed"
+  });
+  const CHANGE_LABELS = Object.freeze({
+    "NO PRICE CHANGE": "No price change",
+    NO_PRICE_CHANGE: "No price change"
   });
   const BASIS_LABELS = Object.freeze({
     DIRECT_EXACT_SOLD: "Exact completed sales of this card",
@@ -198,20 +217,30 @@
       expectedRoiBp: numberOrNull(governed.expectedRoiBasisPoints),
       conservativeRoiBp: numberOrNull(governed.conservativeRoiBasisPoints),
       stressRoiBp: numberOrNull(governed.stressRoiBasisPoints),
-      acceptedSales: numberOrNull(evidence.acceptedSales),
-      trustedExactComps: numberOrNull(governed.exactTrustedCompCount),
+      // Evidence counts. The governed snapshot count is the evidence behind THIS decision;
+      // evidence.acceptedSales is the current saved completed-sale evidence and can differ.
+      decisionEvidenceCount: governedAvailable ? numberOrNull(governed.exactTrustedCompCount) : null,
+      currentSavedSales: numberOrNull(evidence.acceptedSales),
       excludedCount: numberOrNull(evidence.excludedSales ?? evidence.excludedCount),
       excludedReasons: Array.isArray(evidence.exclusionReasons) ? evidence.exclusionReasons.map(text).filter(Boolean) : [],
       earliestSaleDate: text(evidence.earliestSaleDate),
       latestSaleDate: text(evidence.latestSaleDate),
       evidenceFreshnessStatus: text(evidence.freshnessStatus).toUpperCase(),
       mappingState: text(source.mappingState).toUpperCase(),
-      confidence: numberOrNull(source.confidence ?? governed.confidence),
+      // Governed confidence/risk lead; item-level values are used only when the governed value is unavailable.
+      confidence: governedAvailable && numberOrNull(governed.confidence) !== null ? numberOrNull(governed.confidence) : numberOrNull(source.confidence),
+      risk: governedAvailable && numberOrNull(governed.risk) !== null ? numberOrNull(governed.risk) : numberOrNull(source.risk),
       liquidity: numberOrNull(source.liquidity),
-      risk: numberOrNull(source.risk ?? governed.risk),
       supportedValueBasis: valueIntelligence ? text(valueIntelligence.basis) : "",
       supportedValueExplanation: valueIntelligence ? text(valueIntelligence.explanation) : "",
-      priceTransitions: priceIntelligence && Array.isArray(priceIntelligence.transitions) ? priceIntelligence.transitions : []
+      priceTransitions: priceIntelligence && Array.isArray(priceIntelligence.transitions) ? priceIntelligence.transitions : [],
+      // ⑧ Lifecycle facts, exactly as served (no history is reconstructed).
+      snapshotCount: governedAvailable ? numberOrNull(governed.snapshotCount) : null,
+      snapshotVersion: governedAvailable ? text(governed.snapshotVersion) : "",
+      receiptVersion: governedAvailable ? text(governed.receiptVersion) : "",
+      observedAt: text(source.observedAt),
+      changeSummary: text(source.changeSummary),
+      workflowStatus: text(source.workflowStatus)
     };
   }
 
@@ -228,7 +257,8 @@
     if (model.supportedStatus === "NOT_ESTABLISHED") {
       unknowns.push({ key: "supported", tag: "Supported value not established", text: model.supportedStatusReason ? `${labelFor(SUPPORTED_REASON_LABELS, model.supportedStatusReason)}.` : "The server did not establish a supported value for this card." });
     }
-    if (model.acceptedSales === 0) {
+    const evidenceCount = model.decisionEvidenceCount !== null ? model.decisionEvidenceCount : model.currentSavedSales;
+    if (evidenceCount === 0) {
       unknowns.push({ key: "sales", tag: "No accepted exact sales", text: "No completed sale was accepted as exact evidence for this card." });
     }
     if (model.mappingState && model.mappingState !== "CONFIRMED") {
@@ -237,7 +267,7 @@
     if (model.excludedCount !== null && model.excludedCount > 0) {
       unknowns.push({ key: "excluded", tag: "Excluded evidence present", text: `${integerText(model.excludedCount)} sale${model.excludedCount === 1 ? "" : "s"} excluded by the server.` });
     }
-    if (model.acceptedSales !== null && model.acceptedSales > 0 && !model.latestSaleDate) {
+    if (model.currentSavedSales !== null && model.currentSavedSales > 0 && !model.latestSaleDate) {
       unknowns.push({ key: "undated", tag: "Undated evidence", text: "Accepted sales were returned without completed-sale dates." });
     } else if (model.evidenceFreshnessStatus && /STALE/.test(model.evidenceFreshnessStatus)) {
       unknowns.push({ key: "stale", tag: "Stale evidence", text: `Evidence freshness: ${humanize(model.evidenceFreshnessStatus).toLowerCase()}.` });
@@ -288,7 +318,9 @@
         <span class="ffv3-row-grid">
           <span><small>Ask</small><b>${escapeHtml(moneyFromCents(model.askCents, DASH))}</b></span>
           <span><small>Supported</small><b>${escapeHtml(supported)}</b></span>
-          <span><small>Exact sales</small><b>${escapeHtml(integerText(model.acceptedSales))}</b></span>
+          ${model.decisionEvidenceCount !== null
+            ? `<span data-ffv3-row-evidence="decision"><small>Decision comps</small><b>${escapeHtml(integerText(model.decisionEvidenceCount))}</b></span>`
+            : `<span data-ffv3-row-evidence="current"><small>Saved sales</small><b>${escapeHtml(integerText(model.currentSavedSales))}</b></span>`}
           <span><small>Confidence</small><b>${escapeHtml(scoreText(model.confidence))}</b></span>
           <span><small>Risk</small><b>${escapeHtml(scoreText(model.risk))}</b></span>
         </span>
@@ -307,6 +339,9 @@
 
   /* ② Verdict */
   function verdictMarkup(model) {
+    const keyUnknown = unknownsOf(model)[0] || null;
+    const reason = model.reason || "The server did not return a governed reason for this decision.";
+    const longReason = reason.length > REASON_CLAMP_CHARACTERS;
     const sourceTag = model.governedAvailable
       ? '<span class="ffv3-tag" data-tag="source">Governed decision</span>'
       : '<span class="ffv3-tag" data-tag="source">No governed snapshot</span>';
@@ -314,8 +349,10 @@
       <p class="ffv3-verdict-word" data-verdict="${escapeHtml(model.verdict.toLowerCase())}">${escapeHtml(model.verdict)}</p>
       <div class="ffv3-verdict-line">${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail" data-ffv3-guardrail>Held by margin-of-safety rule</span>' : ""}${sourceTag}</div>
       <h2 class="ffv3-dossier-title">${escapeHtml(model.title)}</h2>
-      <p class="ffv3-identity">${escapeHtml(model.identity ? `Exact identity: ${model.identity}` : "Exact identity not reported")}</p>
-      <p class="ffv3-reason">${escapeHtml(model.reason || "The server did not return a governed reason for this decision.")}</p>
+      ${model.identity && model.identity === model.title ? "" : `<p class="ffv3-identity">${escapeHtml(model.identity ? `Exact identity: ${model.identity}` : "Exact identity not reported")}</p>`}
+      ${keyUnknown ? `<p class="ffv3-key-unknown" data-ffv3-key-unknown><span>Key uncertainty</span> ${escapeHtml(keyUnknown.tag)}</p>` : ""}
+      <p class="ffv3-reason${longReason ? " is-clamped" : ""}" id="ffv3-reason-${escapeHtml(model.id)}" data-ffv3-reason>${escapeHtml(reason)}</p>
+      ${longReason ? `<button type="button" class="ffv3-link" data-ffv3-reason-toggle aria-expanded="false" aria-controls="ffv3-reason-${escapeHtml(model.id)}">Read full reason</button>` : ""}
     </section>`;
   }
 
@@ -357,19 +394,29 @@
         ? `<p class="ffv3-note">Supported-value basis: ${escapeHtml(labelFor(BASIS_LABELS, model.supportedValueBasis) || "Not reported")}${model.supportedValueExplanation ? `. ${escapeHtml(model.supportedValueExplanation)}` : ""}</p>`
         : '<p class="ffv3-note">Supported-value basis was not reported for this decision.</p>';
     }
+    // Structured exclusion data is shown only when the server supplies it; it is never parsed from prose.
     const excluded = model.excludedCount === null
-      ? "Not reported in this view"
-      : `${integerText(model.excludedCount)}${model.excludedReasons.length ? ` · ${model.excludedReasons.join("; ")}` : ""}`;
+      ? ""
+      : fact("Excluded evidence", `${integerText(model.excludedCount)}${model.excludedReasons.length ? ` · ${model.excludedReasons.join("; ")}` : ""}`, " data-ffv3-excluded");
+    const decisionEvidence = model.decisionEvidenceCount !== null
+      ? `${integerText(model.decisionEvidenceCount)} exact comp${model.decisionEvidenceCount === 1 ? "" : "s"}`
+      : NOT_ESTABLISHED;
     return `<section class="ffv3-why" data-ffv3-section="why">
       <header class="ffv3-section-head"><h3>Why FlipForge reached the decision</h3></header>
+      <div class="ffv3-evidence-lead" data-ffv3-decision-evidence>
+        <span class="ffv3-evidence-label">Decision evidence</span>
+        <strong>${escapeHtml(decisionEvidence)}</strong>
+        <small>${escapeHtml(model.decisionEvidenceCount !== null ? "Recorded in the governed decision snapshot." : "No governed snapshot recorded an evidence count.")}</small>
+      </div>
       <dl class="ffv3-why-grid">
+        ${fact("Current saved sales", integerText(model.currentSavedSales), " data-ffv3-current-sales")}
+        ${fact("Saved sale dates", model.earliestSaleDate || model.latestSaleDate ? `${dateText(model.earliestSaleDate)} – ${dateText(model.latestSaleDate)}` : DASH)}
         ${fact("Exact identity", model.identity || DASH)}
         ${fact("Mapping state", labelFor(MAPPING_LABELS, model.mappingState) || DASH)}
-        ${fact("Accepted exact sales", integerText(model.acceptedSales))}
-        ${fact("Trusted exact comps (governed)", integerText(model.trustedExactComps))}
-        ${fact("Excluded evidence", excluded)}
-        ${fact("Completed-sale dates", model.earliestSaleDate || model.latestSaleDate ? `${dateText(model.earliestSaleDate)} – ${dateText(model.latestSaleDate)}` : DASH)}
+        ${excluded}
       </dl>
+      ${model.decisionEvidenceCount !== null && model.currentSavedSales !== null && model.decisionEvidenceCount !== model.currentSavedSales
+        ? '<p class="ffv3-note" data-ffv3-evidence-differs>Current saved sales can differ from the evidence recorded when this decision was made. The decision stands on its recorded evidence.</p>' : ""}
       <div class="ffv3-bars">${bar("Confidence", model.confidence, "gold")}${bar("Liquidity", model.liquidity, "silver")}${bar("Risk", model.risk, "silver")}</div>
       ${basis}
     </section>`;
@@ -417,10 +464,50 @@
     </section>`;
   }
 
+  /* ⑧ Decision Lifecycle: the latest governed snapshot and its count. Earlier snapshots are not
+     reconstructed in the browser; only what the server reports is shown. */
+  function lifecycleMarkup(model) {
+    const snapshots = model.snapshotCount === null
+      ? NOT_ESTABLISHED
+      : `${integerText(model.snapshotCount)} immutable snapshot${model.snapshotCount === 1 ? "" : "s"}`;
+    const versions = [model.snapshotVersion ? `Snapshot ${model.snapshotVersion}` : "", model.receiptVersion ? `Receipt ${model.receiptVersion}` : ""].filter(Boolean).join(" · ");
+    return `<section class="ffv3-lifecycle" data-ffv3-section="lifecycle">
+      <header class="ffv3-section-head"><h3>Decision lifecycle</h3></header>
+      <dl class="ffv3-lifecycle-grid">
+        ${fact("Latest governed decision", model.governedAvailable && model.evaluatedAt ? dateTimeText(model.evaluatedAt) : "No governed snapshot recorded", " data-ffv3-lifecycle-evaluated")}
+        ${fact("Decision history", snapshots, " data-ffv3-lifecycle-count")}
+        ${fact("Workflow", labelFor(WORKFLOW_LABELS, model.workflowStatus) || DASH)}
+        ${fact("Latest listing observation", model.observedAt ? dateTimeText(model.observedAt) : DASH)}
+        ${fact("Price since saved", labelFor(CHANGE_LABELS, model.changeSummary) || DASH)}
+      </dl>
+      <p class="ffv3-note">History is immutable. This view shows the latest governed snapshot and how many exist; earlier snapshots are not rebuilt here.</p>
+      ${versions ? `<small class="ffv3-source" data-ffv3-lifecycle-versions>${escapeHtml(versions)}</small>` : ""}
+    </section>`;
+  }
+
   function dossierMarkup(model, detailState) {
     return `<article class="ffv3-dossier" data-ffv3-section="dossier" data-ffv3-selected="${escapeHtml(model.id)}" tabindex="-1" aria-label="Decision dossier">
-      ${verdictMarkup(model)}${economicsMarkup(model)}${whyMarkup(model, detailState)}${unknownsMarkup(model)}${changeMarkup(model, detailState)}${nextActionMarkup(model)}
+      ${verdictMarkup(model)}${economicsMarkup(model)}${whyMarkup(model, detailState)}${unknownsMarkup(model)}${changeMarkup(model, detailState)}${nextActionMarkup(model)}${lifecycleMarkup(model)}
     </article>`;
+  }
+
+  /* ⑨ Secondary analytics: server metrics and plain counts of the verdicts the server returned.
+     No ranking, scoring, urgency, trend or "top opportunity". Always below the decision experience. */
+  function analyticsMarkup(view) {
+    const counts = Object.fromEntries(VERDICTS.map(verdict => [verdict, view.models.filter(model => model.verdict === verdict).length]));
+    const other = view.models.length - VERDICTS.reduce((sum, verdict) => sum + counts[verdict], 0);
+    const mix = VERDICTS.map(verdict => `<li data-verdict-count="${verdict.toLowerCase()}">${verdictBadge(verdict)}<b>${escapeHtml(integerText(counts[verdict]))}</b></li>`).join("")
+      + (other > 0 ? `<li data-verdict-count="other"><span class="ffv3-verdict">Other</span><b>${escapeHtml(integerText(other))}</b></li>` : "");
+    return `<section class="ffv3-analytics" data-ffv3-section="analytics" aria-label="Secondary analytics">
+      <header class="ffv3-section-head"><h2>Secondary analytics</h2><small>Counts of saved decisions returned by the server</small></header>
+      <ul class="ffv3-mix">${mix}</ul>
+      <dl class="ffv3-analytics-grid">
+        ${fact("Tracked decisions", integerText(view.tracked))}
+        ${fact("Needs verification", integerText(view.needsVerification))}
+        ${fact("Evidence ready", integerText(view.evidenceReady))}
+        ${fact("Population context available", integerText(view.populationContextAvailable))}
+      </dl>
+    </section>`;
   }
 
   function rootOpen(state, extra = "") {
@@ -435,6 +522,7 @@
         <div class="ffv3-dossier-slot" data-ffv3-dossier-slot>${dossierMarkup(selected, view.detailState)}</div>
         <div class="ffv3-ledger-slot">${ledgerMarkup(view.models, selected.id)}</div>
       </div>
+      ${analyticsMarkup(view)}
     </div>`;
   }
 
@@ -504,6 +592,8 @@
       detailState,
       tracked: metrics.trackedOpportunities,
       needsVerification: metrics.needsVerification,
+      evidenceReady: metrics.evidenceReady,
+      populationContextAvailable: metrics.populationContextAvailable,
       freshness: freshnessText(dashboard.meta && dashboard.meta.generatedAt || opportunities.meta && opportunities.meta.generatedAt)
     };
   }
@@ -663,6 +753,17 @@
     reconcileEvaluateAction();
     main.querySelectorAll("[data-ffv3-refresh]").forEach(node => node.addEventListener("click", () => load(true)));
     main.querySelectorAll("[data-ffv3-select]").forEach(node => node.addEventListener("click", () => select(node.getAttribute("data-ffv3-select"), true)));
+    bindDossier();
+  }
+
+  function bindDossier() {
+    main.querySelectorAll("[data-ffv3-reason-toggle]").forEach(button => button.addEventListener("click", () => {
+      const reason = main.querySelector("[data-ffv3-reason]");
+      if (!reason) return;
+      const expanded = reason.classList.toggle("is-clamped") === false;
+      button.setAttribute("aria-expanded", expanded ? "true" : "false");
+      button.textContent = expanded ? "Show less" : "Read full reason";
+    }));
   }
 
   function currentView() {
@@ -688,6 +789,7 @@
     const model = view.models.find(entry => entry.id === view.selectedId);
     if (!model) return;
     slot.innerHTML = dossierMarkup(model, view.detailState);
+    bindDossier();
     main.querySelectorAll("[data-ffv3-select]").forEach(node => {
       const selected = node.getAttribute("data-ffv3-select") === view.selectedId;
       node.setAttribute("aria-pressed", selected ? "true" : "false");

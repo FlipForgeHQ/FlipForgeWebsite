@@ -114,6 +114,14 @@
     return value !== "" && Number(value) > 0;
   }
 
+  // Dashboard V3 suppresses the floating "Guide me" launcher (Visual Lock V1 §5.4) so it never
+  // covers the decision. Uses V3's own activation state: the renderer claim, the kill switch and
+  // the rendered V3 root. V2, the kill-switch fallback and every other route keep the launcher.
+  function dashboardV3Active() {
+    return routeName() === "dashboard" && window.FlipForgeDashboardRenderer === "v3" && !window.FlipForgeDashboardV3Disabled
+      && Boolean(document.querySelector("#main-content [data-decision-dashboard-v3]"));
+  }
+
   function firstRunComplete() {
     const steps = stepState();
     return ["discover", "evaluate", "understand", "track"].every(step => steps.has(step));
@@ -555,7 +563,7 @@
     let markup = "";
     if (session.authenticated && session.membershipActive) {
       if (!state.enabled || state.minimized || (!state.userOpened && dashboardHasSavedDecisions())) {
-        markup = '<button type="button" class="ff-guide-launcher" data-guide-open>Guide me</button>';
+        markup = dashboardV3Active() ? "" : '<button type="button" class="ff-guide-launcher" data-guide-open>Guide me</button>';
       } else {
         const model = guideModel();
         markup = `<aside class="ff-guide-panel" aria-label="FlipForge Guided Mode"><div class="ff-guide-head"><div><span class="ff-guide-kicker">Guided Mode · On</span><strong>Your FlipForge guide</strong></div><button type="button" class="ff-guide-icon-button" data-guide-minimize aria-label="Minimize guide">−</button></div>${progressMarkup()}<div class="ff-guide-body"><span class="ff-guide-location">${model.location}</span><h2>${model.title}</h2><p>${model.copy}</p><div class="ff-guide-why"><strong>Why this matters:</strong> ${model.why}</div><div class="ff-guide-actions">${buttonMarkup(model.action)}${buttonMarkup(model.secondary,true)}${buttonMarkup(model.tertiary,true)}</div></div>${guideNavMarkup()}<div class="ff-guide-footer"><span>Decision support only · No transaction authority</span><button type="button" data-guide-toggle>Turn Guided Mode off</button></div></aside>`;
