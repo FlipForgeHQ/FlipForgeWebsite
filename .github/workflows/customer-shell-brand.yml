@@ -1,0 +1,82 @@
+name: Customer Shell Brand Assurance
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-customer-shell-brand-ci.mjs"
+      - "scripts/validate-decision-dashboard-v3.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "package.json"
+      - ".github/workflows/customer-shell-brand.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-customer-shell-brand-ci.mjs"
+      - "scripts/validate-decision-dashboard-v3.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "package.json"
+      - ".github/workflows/customer-shell-brand.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: customer-shell-brand-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  customer-shell-brand:
+    name: Customer shell brand alignment (V2 default + V3 flagged)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-customer-shell-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-customer-shell-server.log
+          exit 1
+
+      - name: Customer shell brand Playwright audit
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          FLIPFORGE_SHELL_SCREENSHOT_DIR: artifacts/customer-shell
+        run: node scripts/audit-customer-shell-brand-ci.mjs
+
+      - name: Upload owner-review screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: customer-shell-brand-screenshots
+          path: artifacts/customer-shell
+          if-no-files-found: warn
+          retention-days: 14

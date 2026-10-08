@@ -24,7 +24,8 @@
     mark.innerHTML = '<img src="/assets/brand/flipforge-mark.svg" alt="" aria-hidden="true">';
 
     const name = document.querySelector(".brand-name");
-    if (name) name.textContent = "FLIPFORGE™";
+    // FLIP white / FORGE gold, as in the official horizontal lockup; the ™ comes from final-brand-lock.css.
+    if (name && !name.querySelector(".brand-forge")) name.innerHTML = 'FLIP<span class="brand-forge">FORGE</span>';
     const subtitle = document.querySelector(".brand-subtitle");
     if (subtitle) subtitle.textContent = "CARD DECISION INTELLIGENCE";
   }
