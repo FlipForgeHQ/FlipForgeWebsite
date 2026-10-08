@@ -235,6 +235,8 @@
   .ffv3-command-stats .ffv3-fact dd { font-size: 14px; }
   .ffv3-reason.is-clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .ffv3-link { display: inline; }
+  /* Section headings wrap instead of clipping inside the 390px dossier (wording and type scale unchanged). */
+  .ffv3-section-head h2, .ffv3-section-head h3 { white-space: normal; }
   .ffv3-lifecycle-grid, .ffv3-analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) { .ffv3-root * { scroll-behavior: auto !important; } }

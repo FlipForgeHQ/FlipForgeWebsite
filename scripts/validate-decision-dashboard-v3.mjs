@@ -357,6 +357,11 @@ function runChecks() {
   check("V03 production guard recognizes V3 root", guard.includes('main.querySelector("[data-decision-dashboard-v3]")'));
   check("V04 build injects V3 before V2", /injectDashboardV3\(appIndex\);\s*\ninjectCommercialDashboard\(appIndex\);/.test(build));
   check("V05 route ownership accepts V3 dashboard root", ownership.includes('dashboard: ".customer-dashboard-page, [data-decision-dashboard-v3]"'));
+  check("V07 guided mode suppresses only the launcher, only while V3 renders the Dashboard (renderer claim + kill switch + V3 root)",
+    /function dashboardV3Active\(\)\s*\{[^}]*routeName\(\) === "dashboard"[^}]*window\.FlipForgeDashboardRenderer === "v3"[^}]*!window\.FlipForgeDashboardV3Disabled[^}]*#main-content \[data-decision-dashboard-v3\]/.test(guided)
+    && /markup = dashboardV3Active\(\) \? "" : '<button type="button" class="ff-guide-launcher" data-guide-open>Guide me<\/button>';/.test(guided)
+    && (guided.match(/dashboardV3Active\(\)/g) || []).length === 2);
+  check("C11 mobile section headings wrap (no clipping) below 560px", /@media \(max-width: 560px\)[\s\S]*\.ffv3-section-head h2, \.ffv3-section-head h3 \{ white-space: normal; \}/.test(cssRules));
   check("V06 guided mode reads V3 tracked count", guided.includes("[data-decision-dashboard-v3][data-ffv3-tracked]"));
 
   for (const line of passes) console.log(`PASS ${line}`);

@@ -377,6 +377,69 @@ await stateCheck("T08 pre-G1 backend falls back to V2", { g1: false }, async pag
   await context.close();
 }
 
+/* Guided Mode launcher: suppressed only while V3 renders the Dashboard (Visual Lock V1 §5.4) */
+const LAUNCHER = "#ff-guided-mode-root .ff-guide-launcher";
+const launcherVisible = page => page.waitForSelector(LAUNCHER, { state: "visible", timeout: 6000 }).then(() => true, () => false);
+const launcherCount = async page => { await page.waitForTimeout(1500); return page.locator(LAUNCHER).count(); };
+for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180 }, { width: 390, height: 844 }]) {
+  const label = `${viewport.width}x${viewport.height}`;
+  const { context, page } = await open(viewport, { items: productionItems() });
+  await readyProduction(page);
+  check(`G01 ${label} V3 active: Guide me launcher absent`, (await launcherCount(page)) === 0);
+  const obstructed = await page.evaluate(() => {
+    const root = document.querySelector("[data-decision-dashboard-v3]");
+    const fixed = [...document.querySelectorAll("body *")].filter(node => !root.contains(node) && getComputedStyle(node).position === "fixed"
+      && node.getClientRects().length && getComputedStyle(node).visibility !== "hidden");
+    const content = [...root.querySelectorAll(".ffv3-dossier h2, .ffv3-dossier h3, .ffv3-fact, .ffv3-econ-grid dd, .ffv3-tag, .ffv3-btn, .ffv3-evidence-lead")];
+    const hits = [];
+    for (const f of fixed) {
+      const a = f.getBoundingClientRect();
+      if (a.width < 2 || a.height < 2 || a.top <= 0 && a.bottom >= innerHeight && a.width < 300) continue; // ignore full-height side rails
+      for (const c of content) {
+        const b = c.getBoundingClientRect();
+        if (b.width && b.height && !(b.right <= a.left || b.left >= a.right || b.bottom <= a.top || b.top >= a.bottom)) { hits.push(`${f.id || f.className}`); break; }
+      }
+    }
+    return [...new Set(hits)];
+  });
+  check(`G02 ${label} no fixed overlay covers V3 dossier content in the first screen`, obstructed.length === 0, obstructed.join(", "));
+  // Other screens keep their normal Guided Mode (the same panel/launcher V2 users get there).
+  await page.evaluate(() => { window.location.hash = "#/tracking"; });
+  const restored = await page.waitForSelector("#ff-guided-mode-root .ff-guide-launcher, #ff-guided-mode-root .ff-guide-panel", { state: "visible", timeout: 6000 }).then(() => true, () => false);
+  check(`G03 ${label} leaving the V3 Dashboard restores normal Guided Mode on other screens`, restored);
+  await context.close();
+}
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  const label = `${viewport.width}x${viewport.height}`;
+  {
+    const { context, page } = await open(viewport, {}, { url: V2_URL });
+    await page.waitForSelector("[data-commercial-dashboard-v2] .ff-kpi-card", { timeout: 15000 });
+    check(`G04 ${label} V2 default: Guide me launcher unchanged (present)`, await launcherVisible(page));
+    await context.close();
+  }
+  {
+    const { context, page } = await open(viewport, {}, { init: () => { window.FlipForgeDashboardV3Disabled = true; } });
+    await page.waitForSelector("[data-commercial-dashboard-v2] .ff-kpi-card", { timeout: 15000 });
+    check(`G05 ${label} kill switch: V2 renders and the launcher is restored`, (await page.locator("[data-decision-dashboard-v3]").count()) === 0 && await launcherVisible(page));
+    await context.close();
+  }
+}
+
+/* Mobile section headings wrap instead of clipping */
+{
+  const { context, page } = await open({ width: 390, height: 844 }, { items: productionItems() });
+  await readyProduction(page);
+  const clipped = await page.evaluate(() => [...document.querySelectorAll("[data-decision-dashboard-v3] .ffv3-section-head h2, [data-decision-dashboard-v3] .ffv3-section-head h3")]
+    .filter(node => node.getClientRects().length).filter(node => {
+      const r = node.getBoundingClientRect();
+      const box = node.closest("section, .ffv3-analytics, .ffv3-ledger").getBoundingClientRect();
+      return node.scrollWidth > node.clientWidth + 1 || r.right > box.right + 1 || r.right > window.innerWidth;
+    }).map(node => node.textContent.trim()));
+  const why = await page.evaluate(() => { const h = document.querySelector('[data-ffv3-section="why"] .ffv3-section-head h3'); return h ? getComputedStyle(h).whiteSpace : ""; });
+  check("H01 390x844 every section heading fits its panel (wraps, no clipping)", clipped.length === 0 && why === "normal", clipped.join(" | ") || why);
+  await context.close();
+}
+
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);
