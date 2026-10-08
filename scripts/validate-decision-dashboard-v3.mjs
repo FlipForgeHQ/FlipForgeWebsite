@@ -105,7 +105,11 @@ export function dashboardData(items, { g1 = true, needsVerification = 1 } = {}) 
 export function detailData(source) {
   return {
     kind: "opportunity", readOnly: true, governedDecisionReadModelVersion: G1,
-    opportunity: { ...source, valueIntelligence: { basis: "DIRECT_EXACT_SOLD", explanation: "Supported value is backed by trusted exact completed-sale evidence.", recommendationAuthority: false } },
+    // Internally consistent per state: a decision without an established supported value
+    // never carries a direct exact-sold basis.
+    opportunity: { ...source, valueIntelligence: source.supportedValueStatus === "NOT_ESTABLISHED"
+      ? { basis: "NO_EXACT_EVIDENCE", explanation: "No supported value is established without accepted exact completed-sale evidence.", directSupportedValueCents: null, recommendationAuthority: false }
+      : { basis: "DIRECT_EXACT_SOLD", explanation: "Supported value is backed by trusted exact completed-sale evidence.", directSupportedValueCents: source.supportedValueCents, recommendationAuthority: false } },
     priceIntelligence: {
       kind: "counterfactual-price-intelligence", readOnly: true, thresholdsInvented: false, changesRecommendationAuthority: false,
       transitions: source.id === FIXTURE_IDS.capped ? [{ allInAskCents: 60800, recommendation: "BUY" }] : []
@@ -167,7 +171,8 @@ function runChecks() {
   const verifyHtml = api.markupForView(verifyView);
   const verifyDossier = verifyHtml.slice(verifyHtml.indexOf('data-ffv3-section="dossier"'), verifyHtml.indexOf('data-ffv3-section="ledger"'));
   check("S09 VERIFY with no supported value shows 'Not established', never $0", verifyDossier.includes("Not established") && !/\$0(?![\d,])/.test(verifyDossier));
-  check("S10 null economics render 'Not calculated for this decision'", (verifyDossier.match(/Not calculated for this decision/g) || []).length >= 6);
+  const notCalculated = (verifyDossier.match(/Not calculated for this decision/g) || []).length;
+  check("S10 null economics say 'Not calculated for this decision' without repetition", notCalculated >= 1 && notCalculated <= 2 && verifyDossier.includes("data-ffv3-modeled-unavailable"), `${notCalculated} occurrence(s)`);
   check("S11 VERIFY framed as intelligence outcome", verifyDossier.includes("FlipForge needs exact completed-sale evidence for this card before it will commit."));
   check("S12 unknowns derive from server facts (supported, sales, mapping)", ['data-unknown="supported"', 'data-unknown="sales"', 'data-unknown="mapping"'].every(token => verifyDossier.includes(token)));
 
@@ -179,7 +184,14 @@ function runChecks() {
   const detailedHtml = api.markupForView(detailed);
   check("S14 'Read-only price check' labels server price boundary", /data-ffv3-price-check[\s\S]*?Read-only price check/.test(detailedHtml));
   check("S15 governed whatWouldChange shown before price boundary", detailedHtml.indexOf("An all-in ask at or below") < detailedHtml.indexOf("Read-only price check"));
-  check("S16 supported-value basis from lazy-loaded detail", detailedHtml.includes("DIRECT_EXACT_SOLD"));
+  check("S16 supported-value basis from lazy-loaded detail, as display label", detailedHtml.includes("Exact completed sales of this card") && !detailedHtml.includes("DIRECT_EXACT_SOLD"));
+  const verifyDetail = detailData(items[1]);
+  check("S16b VERIFY fixture is internally consistent", verifyDetail.opportunity.valueIntelligence.basis !== "DIRECT_EXACT_SOLD" && !/backed by trusted exact/i.test(verifyDetail.opportunity.valueIntelligence.explanation));
+  const visibleText = markup => markup.replace(/<[^>]+>/g, " ");
+  const verifyDetailedHtml = api.markupForView(api.viewFromSnapshot(snapshot, items[1].id, "ready", { [items[1].id]: verifyDetail }));
+  check("S16c no raw server enum codes in rendered decision text", [detailedHtml, verifyDetailedHtml, passHtml].every(markup => !/\b[A-Z]{2,}(?:_[A-Z0-9]+)+\b/.test(visibleText(markup))));
+  check("S16d unknown enums fall back to neutral sentence case", api.humanize("PARTIAL_CONTEXT") === "Partial context");
+  check("S16e V3 Evaluate action is marked for shell de-duplication", /data-ffv3-evaluate/.test(html) && /function reconcileEvaluateAction/.test(source));
 
   const failed = api.markupForView(api.viewFromSnapshot(snapshot, items[0].id, "failed", {}));
   check("S17 partial evidence failure keeps verdict/economics/next action", failed.includes("data-ffv3-evidence-unavailable") && failed.includes('data-ffv3-section="economics"') && failed.includes('data-ffv3-section="next-action"'));
@@ -214,10 +226,14 @@ function runChecks() {
   check("S31 Re-evaluate uses the normal Evaluate path", /href="#\/evaluate" data-ffv3-action="re-evaluate"/.test(source) && !/\/api\/v1\/evaluations/.test(source));
 
   const cssRules = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  check("C01 CSS: no gradients, no blue, no neon", !/gradient\(/i.test(cssRules) && !/\bblue\b|\bcyan\b|\bmagenta\b|#0{2}[0-9a-f]{2}ff|#[0-9a-f]{4}ff\b/i.test(cssRules));
+  const blueish = [...cssRules.matchAll(/#([0-9a-f]{6})\b/gi)].map(match => match[1]).filter(hex => {
+    const [r, g, b] = [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16));
+    return b > r + 40 && b > g + 20;
+  });
+  check("C01 CSS: no gradients, no blue, no neon", !/gradient\(/i.test(cssRules) && !/\b(?:blue|cyan|magenta|aqua|fuchsia)\b/i.test(cssRules) && blueish.length === 0, blueish.join(","));
   check("C02 CSS: Geist Sans", /font-family:\s*"Geist Sans"/.test(css));
   check("C03 CSS: confidence bar gold, other factor bars silver", /\.ffv3-bar-fill\s*\{[^}]*var\(--ffv3-silver\)/.test(css) && /data-tone="gold"\]\s*\.ffv3-bar-fill\s*\{[^}]*var\(--ffv3-gold\)/.test(css));
-  check("C04 CSS: desktop 34% ledger + sticky dossier, mobile dossier first", /min-width:\s*1200px[\s\S]*minmax\(0,\s*34%\)[\s\S]*position:\s*sticky/.test(css) && /grid-template-areas:\s*"dossier"\s*"ledger"/.test(css));
+  check("C04 CSS: desktop 34% ledger + sticky dossier, mobile dossier first", /min-width:\s*1200px[\s\S]*minmax\(\d+px,\s*34%\)[\s\S]*position:\s*sticky/.test(css) && /grid-template-areas:\s*"dossier"\s*"ledger"/.test(css));
   const contrast = (foreground, background) => {
     const luminance = hex => {
       const channels = [1, 3, 5].map(index => parseInt(hex.slice(index, index + 2), 16) / 255)
@@ -228,8 +244,18 @@ function runChecks() {
     return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
   };
   const token = name => (css.match(new RegExp(`--ffv3-${name}:\\s*(#[0-9a-f]{6})`, "i")) || [])[1];
-  const ratios = ["buy", "watch", "verify", "pass"].map(name => [name, contrast(token(name), token("panel")), contrast(token(name), token("charcoal"))]);
-  check("C05 semantic colors meet WCAG AA on charcoal", ratios.every(([, panel, charcoal]) => panel >= 4.5 && charcoal >= 4.5), ratios.map(([name, panel]) => `${name}:${panel.toFixed(2)}`).join(" "));
+  const ratios = ["buy", "watch", "verify", "pass"].map(name => [name, contrast(token(name), token("panel")), contrast(token(name), token("root"))]);
+  const brandTokens = { white: "#ffffff", silver: "#888f98", gold: "#d4af37", "deep-gold": "#b8860b", line: "#2a2e33" };
+  check("C06 locked Brand Sheet v2.1 token values", Object.entries(brandTokens).every(([name, value]) => (token(name) || "").toLowerCase() === value)
+    && !/#d4b16a|#b8913d|#f3f1ec|#b9bdc3|#8f939a|#141414|#1c1c1c/i.test(cssRules));
+  const inRange = (hex, low, high) => { const value = parseInt(hex.slice(1), 16); return value >= parseInt(low, 16) && value <= parseInt(high, 16); };
+  check("C07 black-first surface (root #000000–#0A0B0D, panels #0B0D10–#121418)", inRange(token("root"), "000000", "0a0b0d") && inRange(token("panel"), "0b0d10", "121418") && inRange(token("inset"), "0b0d10", "121418"));
+  check("C08 heading weights: verdict Black 40/44, card title Bold 24, page heading Bold+",
+    /\.ffv3-verdict-word\s*\{[^}]*font-size:\s*40px;[^}]*line-height:\s*44px;[^}]*font-weight:\s*900/.test(cssRules)
+    && /\.ffv3-dossier-title\s*\{[^}]*font-size:\s*24px;[^}]*font-weight:\s*700/.test(cssRules)
+    && /\.ffv3-command-title h1\s*\{[^}]*font-weight:\s*(?:700|800|900)/.test(cssRules));
+  check("C09 no mid-word breaking on values", !/overflow-wrap:\s*anywhere|word-break:\s*break-all/.test(cssRules));
+  check("C05 semantic colors meet WCAG AA on the V3 black surface", ratios.every(([, panel, charcoal]) => panel >= 4.5 && charcoal >= 4.5), ratios.map(([name, panel]) => `${name}:${panel.toFixed(2)}`).join(" "));
 
   check("V01 V2 stand-down guard present in every V2 render path", (v2.match(/if \(window\.FlipForgeDashboardRenderer === "v3"\) return;/g) || []).length >= 4);
   check("V02 V2 remains the default renderer (not deleted)", /data-commercial-dashboard-v2/.test(v2) && /queueMicrotask\(apply\)/.test(v2));

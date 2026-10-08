@@ -117,6 +117,38 @@
     return VERDICTS.includes(label) ? label : "UNKNOWN";
   }
 
+  /* Display copy for known server enums. Labels only: the underlying server fact is unchanged. */
+  const MAPPING_LABELS = Object.freeze({
+    CONFIRMED: "Exact identity confirmed",
+    NOT_CONFIRMED: "Identity still needs confirmation",
+    UNCONFIRMED: "Identity still needs confirmation"
+  });
+  const SUPPORTED_REASON_LABELS = Object.freeze({
+    NO_EXACT_EVIDENCE: "No accepted exact sales",
+    NO_SUPPORTED_VALUE: "No supported value was established"
+  });
+  const SOURCE_LABELS = Object.freeze({
+    DECISION_RECEIPT: "Decision receipt"
+  });
+  const BASIS_LABELS = Object.freeze({
+    DIRECT_EXACT_SOLD: "Exact completed sales of this card",
+    NO_EXACT_EVIDENCE: "No accepted exact sales"
+  });
+
+  /** Neutral fallback for an unknown enum: sentence case, no added meaning. */
+  function humanize(value) {
+    const raw = text(value);
+    if (!raw) return "";
+    if (!/^[A-Z0-9]+(?:_[A-Z0-9]+)*$/.test(raw)) return raw;
+    const words = raw.toLowerCase().split("_").join(" ");
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+
+  function labelFor(map, value) {
+    const raw = text(value).toUpperCase();
+    return raw ? (map[raw] || humanize(raw)) : "";
+  }
+
   function isG1Contract(payload) {
     const version = payload && payload.data && payload.data.governedDecisionReadModelVersion;
     return typeof version === "string" && version.startsWith(G1_PREFIX);
@@ -194,13 +226,13 @@
       unknowns.push({ key: "verify", tag: "Needs verification", text: `FlipForge needs ${need} before it will commit.` });
     }
     if (model.supportedStatus === "NOT_ESTABLISHED") {
-      unknowns.push({ key: "supported", tag: "Supported value not established", text: model.supportedStatusReason ? `Server reason: ${model.supportedStatusReason}.` : "The server did not establish a supported value for this card." });
+      unknowns.push({ key: "supported", tag: "Supported value not established", text: model.supportedStatusReason ? `${labelFor(SUPPORTED_REASON_LABELS, model.supportedStatusReason)}.` : "The server did not establish a supported value for this card." });
     }
     if (model.acceptedSales === 0) {
       unknowns.push({ key: "sales", tag: "No accepted exact sales", text: "No completed sale was accepted as exact evidence for this card." });
     }
     if (model.mappingState && model.mappingState !== "CONFIRMED") {
-      unknowns.push({ key: "mapping", tag: "Mapping not confirmed", text: `Exact identity mapping state: ${model.mappingState}.` });
+      unknowns.push({ key: "mapping", tag: "Mapping not confirmed", text: `${labelFor(MAPPING_LABELS, model.mappingState)}.` });
     }
     if (model.excludedCount !== null && model.excludedCount > 0) {
       unknowns.push({ key: "excluded", tag: "Excluded evidence present", text: `${integerText(model.excludedCount)} sale${model.excludedCount === 1 ? "" : "s"} excluded by the server.` });
@@ -208,7 +240,7 @@
     if (model.acceptedSales !== null && model.acceptedSales > 0 && !model.latestSaleDate) {
       unknowns.push({ key: "undated", tag: "Undated evidence", text: "Accepted sales were returned without completed-sale dates." });
     } else if (model.evidenceFreshnessStatus && /STALE/.test(model.evidenceFreshnessStatus)) {
-      unknowns.push({ key: "stale", tag: "Stale evidence", text: `Server freshness status: ${model.evidenceFreshnessStatus}.` });
+      unknowns.push({ key: "stale", tag: "Stale evidence", text: `Evidence freshness: ${humanize(model.evidenceFreshnessStatus).toLowerCase()}.` });
     }
     if (model.verdict !== "VERIFY" && model.missingRequirement && !/^none\b/i.test(model.missingRequirement)) {
       unknowns.push({ key: "missing", tag: "Missing requirement", text: model.missingRequirement });
@@ -243,7 +275,7 @@
         ${fact("Needs verification", integerText(view.needsVerification), ' data-ffv3-needs-verification')}
         ${fact("Freshness", view.freshness)}
       </dl>
-      <div class="ffv3-command-actions"><button type="button" class="ffv3-btn ffv3-btn-quiet" data-ffv3-refresh>Refresh</button><a class="ffv3-btn ffv3-btn-gold" href="#/evaluate">Evaluate a card</a></div>
+      <div class="ffv3-command-actions"><button type="button" class="ffv3-btn ffv3-btn-quiet" data-ffv3-refresh>Refresh</button><a class="ffv3-btn ffv3-btn-gold" href="#/evaluate" data-ffv3-evaluate>Evaluate a card</a></div>
     </header>`;
   }
 
@@ -279,7 +311,8 @@
       ? '<span class="ffv3-tag" data-tag="source">Governed decision</span>'
       : '<span class="ffv3-tag" data-tag="source">No governed snapshot</span>';
     return `<section class="ffv3-dossier-verdict" data-ffv3-section="verdict">
-      <div class="ffv3-verdict-line">${verdictBadge(model.verdict)}${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail" data-ffv3-guardrail>Held by margin-of-safety rule</span>' : ""}${sourceTag}</div>
+      <p class="ffv3-verdict-word" data-verdict="${escapeHtml(model.verdict.toLowerCase())}">${escapeHtml(model.verdict)}</p>
+      <div class="ffv3-verdict-line">${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail" data-ffv3-guardrail>Held by margin-of-safety rule</span>' : ""}${sourceTag}</div>
       <h2 class="ffv3-dossier-title">${escapeHtml(model.title)}</h2>
       <p class="ffv3-identity">${escapeHtml(model.identity ? `Exact identity: ${model.identity}` : "Exact identity not reported")}</p>
       <p class="ffv3-reason">${escapeHtml(model.reason || "The server did not return a governed reason for this decision.")}</p>
@@ -290,19 +323,24 @@
   function economicsMarkup(model) {
     const supported = model.supportedCents === null ? NOT_ESTABLISHED : moneyFromCents(model.supportedCents, NOT_ESTABLISHED);
     const gapCents = model.askCents !== null && model.supportedCents !== null ? model.supportedCents - model.askCents : null;
-    const modeled = (label, netCents, roiBp) => `<div class="ffv3-modeled-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(moneyFromCents(netCents, NOT_CALCULATED))}</strong><em>${escapeHtml(roiBp === null ? NOT_CALCULATED : `ROI ${percentFromBasisPoints(roiBp, NOT_CALCULATED)}`)}</em></div>`;
+    const gridMissing = [model.askCents, gapCents, model.maxBuyCents].some(value => value === null);
+    const modeledValues = [model.expectedNetCents, model.conservativeNetCents, model.stressNetCents, model.expectedRoiBp, model.conservativeRoiBp, model.stressRoiBp];
+    const modeledAvailable = modeledValues.some(value => value !== null);
+    const modeled = (label, netCents, roiBp) => `<div class="ffv3-modeled-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(moneyFromCents(netCents, DASH))}</strong><em>${escapeHtml(roiBp === null ? DASH : `ROI ${percentFromBasisPoints(roiBp, DASH)}`)}</em></div>`;
+    const modeledBody = modeledAvailable
+      ? `${modeled("Expected", model.expectedNetCents, model.expectedRoiBp)}${modeled("Conservative", model.conservativeNetCents, model.conservativeRoiBp)}${modeled("Stress", model.stressNetCents, model.stressRoiBp)}`
+      : `<p class="ffv3-note" data-ffv3-modeled-unavailable>${NOT_CALCULATED}.</p>`;
     return `<section class="ffv3-economics" data-ffv3-section="economics">
       <header class="ffv3-section-head"><h3>Decision economics</h3></header>
       <dl class="ffv3-econ-grid">
-        ${fact("Ask", moneyFromCents(model.askCents, NOT_CALCULATED))}
+        ${fact("Ask", moneyFromCents(model.askCents, DASH))}
         ${fact("Supported value", supported)}
-        ${fact("Value gap", gapCents === null ? NOT_CALCULATED : moneyFromCents(gapCents, NOT_CALCULATED))}
-        ${fact("Max Buy", moneyFromCents(model.maxBuyCents, NOT_CALCULATED))}
+        ${fact("Value gap", gapCents === null ? DASH : moneyFromCents(gapCents, DASH))}
+        ${fact("Max Buy", moneyFromCents(model.maxBuyCents, DASH))}
       </dl>
+      ${gridMissing ? `<p class="ffv3-legend" data-ffv3-econ-legend>— ${NOT_CALCULATED}</p>` : ""}
       <div class="ffv3-modeled"><div class="ffv3-modeled-head"><span>Modeled net economics</span><span class="ffv3-tag" data-tag="modeled">Modeled estimate</span></div>
-        ${modeled("Expected", model.expectedNetCents, model.expectedRoiBp)}
-        ${modeled("Conservative", model.conservativeNetCents, model.conservativeRoiBp)}
-        ${modeled("Stress", model.stressNetCents, model.stressRoiBp)}
+        ${modeledBody}
       </div>
     </section>`;
   }
@@ -316,7 +354,7 @@
       basis = '<p class="ffv3-note" data-ffv3-evidence-loading>Loading evidence detail for this decision…</p>';
     } else {
       basis = model.supportedValueBasis || model.supportedValueExplanation
-        ? `<p class="ffv3-note">Supported-value basis: ${escapeHtml(model.supportedValueBasis || DASH)}${model.supportedValueExplanation ? ` — ${escapeHtml(model.supportedValueExplanation)}` : ""}</p>`
+        ? `<p class="ffv3-note">Supported-value basis: ${escapeHtml(labelFor(BASIS_LABELS, model.supportedValueBasis) || "Not reported")}${model.supportedValueExplanation ? `. ${escapeHtml(model.supportedValueExplanation)}` : ""}</p>`
         : '<p class="ffv3-note">Supported-value basis was not reported for this decision.</p>';
     }
     const excluded = model.excludedCount === null
@@ -326,7 +364,7 @@
       <header class="ffv3-section-head"><h3>Why FlipForge reached the decision</h3></header>
       <dl class="ffv3-why-grid">
         ${fact("Exact identity", model.identity || DASH)}
-        ${fact("Mapping state", model.mappingState || DASH)}
+        ${fact("Mapping state", labelFor(MAPPING_LABELS, model.mappingState) || DASH)}
         ${fact("Accepted exact sales", integerText(model.acceptedSales))}
         ${fact("Trusted exact comps (governed)", integerText(model.trustedExactComps))}
         ${fact("Excluded evidence", excluded)}
@@ -356,7 +394,7 @@
   /* ⑥ What would change the decision */
   function changeMarkup(model, detailState) {
     const governed = model.whatWouldChange.length
-      ? `<ul class="ffv3-list">${model.whatWouldChange.map(entry => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>${model.whatWouldChangeSource ? `<small class="ffv3-source">Source: ${escapeHtml(model.whatWouldChangeSource)}</small>` : ""}`
+      ? `<ul class="ffv3-list">${model.whatWouldChange.map(entry => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>${model.whatWouldChangeSource ? `<small class="ffv3-source">Source: ${escapeHtml(labelFor(SOURCE_LABELS, model.whatWouldChangeSource))}</small>` : ""}`
       : "";
     const transitions = detailState === "ready" ? model.priceTransitions.map(transitionMarkup).filter(Boolean) : [];
     const boundary = transitions.length
@@ -479,6 +517,7 @@
     isG1Contract,
     decisionModel,
     unknownsOf,
+    humanize,
     viewFromSnapshot,
     markupForView,
     loadingMarkup,
@@ -607,7 +646,21 @@
     return payload;
   }
 
+  function shellEvaluateVisible() {
+    const shell = document.querySelector("[data-ff-global-new-card]");
+    if (!shell || typeof shell.getClientRects !== "function" || !shell.getClientRects().length) return false;
+    const style = typeof window.getComputedStyle === "function" ? window.getComputedStyle(shell) : null;
+    return !style || (style.visibility !== "hidden" && style.display !== "none");
+  }
+
+  // One obvious Evaluate action: the shell's topbar action wins when it is visible.
+  function reconcileEvaluateAction() {
+    const own = main.querySelector("[data-ffv3-evaluate]");
+    if (own) own.hidden = shellEvaluateVisible();
+  }
+
   function bindRoot() {
+    reconcileEvaluateAction();
     main.querySelectorAll("[data-ffv3-refresh]").forEach(node => node.addEventListener("click", () => load(true)));
     main.querySelectorAll("[data-ffv3-select]").forEach(node => node.addEventListener("click", () => select(node.getAttribute("data-ffv3-select"), true)));
   }
@@ -652,6 +705,10 @@
       const dossier = main.querySelector("[data-ffv3-dossier-slot]");
       if (dossier && typeof dossier.scrollIntoView === "function") dossier.scrollIntoView({ block: "start", behavior: "instant" });
     }
+    // Move keyboard/screen-reader focus to the swapped dossier so the newly shown decision is
+    // announced, without a second scroll jump.
+    const target = main.querySelector('[data-ffv3-section="dossier"]');
+    if (userInitiated && target && typeof target.focus === "function") target.focus({ preventScroll: true });
   }
 
   async function loadDetail(id) {
