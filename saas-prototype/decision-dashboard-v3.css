@@ -1,5 +1,7 @@
 /*
- * FlipForge Dashboard V3 — Slice 2 (behind the flag).
+ * FlipForge Dashboard V3 — Slice 2.1 (behind the flag). Owner-selected treatment C, "FlipForge Hybrid":
+ * premium decision hero (large verdict + economics, prominent key uncertainty), restrained panels,
+ * compact ruled evidence/lifecycle/analytics below. 5-second comprehension first, power-user depth second.
  * Visual lock: Geist Sans; black-first surface; white/silver; champagne gold and deep gold.
  * Semantic color appears only on the verdict badge, state tag and thin row rule.
  * No gradients, no blue, no neon, no rainbow charts. Confidence bar gold, other factor bars silver.
@@ -17,8 +19,9 @@
 .ffv3-root {
   --ffv3-black: #000000;
   --ffv3-root: #07080a;
-  --ffv3-panel: #101216;
-  --ffv3-inset: #0b0d10;
+  --ffv3-panel: #0b0d10;
+  --ffv3-inset: #0e1013;
+  --ffv3-hero: #121418;
   --ffv3-line: #2a2e33;
   --ffv3-white: #ffffff;
   --ffv3-silver: #888f98;
@@ -78,19 +81,20 @@
 .ffv3-section-head small { color: var(--ffv3-silver); font-size: 12px; }
 
 /* Ledger */
-.ffv3-ledger { background: var(--ffv3-panel); border: 1px solid var(--ffv3-line); border-radius: 12px; padding: 12px; }
-.ffv3-rows { display: grid; gap: 8px; }
-.ffv3-row { border-left: 3px solid var(--ffv3-line); border-radius: 8px; background: var(--ffv3-inset); }
+.ffv3-ledger { background: var(--ffv3-panel); border: 1px solid var(--ffv3-line); border-radius: 8px; padding: 0; overflow: hidden; }
+.ffv3-ledger > .ffv3-section-head { padding: 12px 14px 6px; margin-bottom: 0; }
+.ffv3-rows { display: grid; gap: 0; }
+.ffv3-row { border-left: 3px solid var(--ffv3-line); border-top: 1px solid var(--ffv3-line); border-radius: 0; background: transparent; }
 .ffv3-row[data-verdict="buy"] { border-left-color: var(--ffv3-buy); }
 .ffv3-row[data-verdict="watch"] { border-left-color: var(--ffv3-watch); }
 .ffv3-row[data-verdict="verify"] { border-left-color: var(--ffv3-verify); }
 .ffv3-row[data-verdict="pass"] { border-left-color: var(--ffv3-pass); }
-.ffv3-row.is-selected { outline: 1px solid var(--ffv3-gold); }
-.ffv3-row-button { display: grid; gap: 4px; width: 100%; padding: 10px 12px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ffv3-row.is-selected { background: var(--ffv3-hero); box-shadow: inset 0 0 0 1px var(--ffv3-deep-gold); }
+.ffv3-row-button { display: grid; gap: 4px; width: 100%; padding: 10px 14px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .ffv3-row-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 .ffv3-row-title { font-weight: 700; font-size: 15px; }
 .ffv3-row-identity, .ffv3-row-fresh { color: var(--ffv3-silver); font-size: 12px; }
-.ffv3-row-next { color: var(--ffv3-white); font-size: 15px; }
+.ffv3-row-next { color: var(--ffv3-white); font-size: 14px; }
 .ffv3-row-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; }
 .ffv3-row-grid small { display: block; color: var(--ffv3-silver); font-size: 12px; }
 .ffv3-row-grid b { display: block; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: normal; word-break: normal; hyphens: none; }
@@ -106,31 +110,39 @@
 .ffv3-tag[data-tag="modeled"], .ffv3-tag[data-tag="readonly"] { color: var(--ffv3-gold); border-color: var(--ffv3-deep-gold); }
 
 /* Dossier */
-.ffv3-dossier { display: grid; gap: 12px; background: var(--ffv3-panel); border: 1px solid var(--ffv3-line); border-radius: 12px; padding: 16px; }
-.ffv3-dossier > section + section { border-top: 1px solid var(--ffv3-line); padding-top: 12px; }
-.ffv3-verdict-word { font-size: 40px; line-height: 44px; font-weight: 900; letter-spacing: .02em; color: var(--ffv3-silver); }
+.ffv3-dossier { display: grid; gap: 0; background: var(--ffv3-panel); border: 1px solid var(--ffv3-line); border-radius: 8px; padding: 0; overflow: hidden; }
+.ffv3-dossier > section { padding: 14px 18px; }
+.ffv3-dossier > section + section { border-top: 1px solid var(--ffv3-line); }
+/* Decision hero: verdict + economics read as one card */
+.ffv3-dossier > [data-ffv3-section="verdict"], .ffv3-dossier > [data-ffv3-section="economics"] { background: var(--ffv3-hero); }
+.ffv3-dossier > [data-ffv3-section="verdict"] { padding-top: 20px; border-top: 2px solid var(--ffv3-gold); }
+.ffv3-dossier > [data-ffv3-section="economics"] { padding-bottom: 18px; }
+.ffv3-verdict-word { font-size: 52px; line-height: 54px; font-weight: 900; letter-spacing: .01em; color: var(--ffv3-silver); }
 .ffv3-verdict-word[data-verdict="buy"] { color: var(--ffv3-buy); }
 .ffv3-verdict-word[data-verdict="watch"] { color: var(--ffv3-watch); }
 .ffv3-verdict-word[data-verdict="verify"] { color: var(--ffv3-verify); }
 .ffv3-verdict-word[data-verdict="pass"] { color: var(--ffv3-pass); }
 .ffv3-verdict-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
-.ffv3-dossier-title { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.ffv3-dossier-title { font-size: 26px; font-weight: 700; letter-spacing: -.015em; }
 .ffv3-identity { color: var(--ffv3-silver); font-size: 12px; }
-.ffv3-reason { margin-top: 6px !important; color: var(--ffv3-white); font-size: 15px; }
+.ffv3-reason { margin-top: 8px !important; max-width: 72ch; color: var(--ffv3-white); font-size: 16px; }
 
 .ffv3-fact dt { color: var(--ffv3-silver); font-size: 12px; }
 .ffv3-fact dd { font-size: 15px; font-weight: 600; overflow-wrap: normal; word-break: normal; }
-.ffv3-econ-grid .ffv3-fact dd { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ffv3-econ-grid .ffv3-fact dd { font-size: 28px; letter-spacing: -.015em; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ffv3-legend { margin-top: 6px !important; color: var(--ffv3-silver); font-size: 12px; }
-.ffv3-econ-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ffv3-econ-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .ffv3-modeled { margin-top: 10px; display: grid; gap: 4px; }
 .ffv3-modeled-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--ffv3-silver); font-size: 12px; }
 .ffv3-modeled-row { display: grid; grid-template-columns: 120px 140px minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 15px; font-variant-numeric: tabular-nums; }
 .ffv3-modeled-row span { color: var(--ffv3-silver); }
 .ffv3-modeled-row em { font-style: normal; color: var(--ffv3-silver); }
 
-.ffv3-why-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.ffv3-why-grid .ffv3-fact dd { font-size: 15px; }
+.ffv3-why-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 16px; }
+.ffv3-why-grid .ffv3-fact dd { font-size: 14px; }
+/* Compact, ruled facts below the decision hero */
+.ffv3-why-grid > .ffv3-fact, .ffv3-lifecycle-grid > .ffv3-fact, .ffv3-analytics-grid > .ffv3-fact { padding: 7px 0; border-top: 1px solid var(--ffv3-line); }
+.ffv3-lifecycle-grid .ffv3-fact dd, .ffv3-analytics-grid .ffv3-fact dd { font-size: 14px; }
 .ffv3-bars { display: grid; gap: 6px; margin-top: 10px; }
 .ffv3-bar { display: grid; grid-template-columns: 90px minmax(0, 1fr) 36px; gap: 10px; align-items: center; font-size: 15px; }
 .ffv3-bar-label { font-size: 12px; }
@@ -143,7 +155,9 @@
 
 .ffv3-note { margin-top: 8px !important; color: var(--ffv3-silver); font-size: 15px; }
 .ffv3-unknowns, .ffv3-list { display: grid; gap: 8px; }
-.ffv3-unknowns li { display: grid; gap: 4px; font-size: 15px; color: var(--ffv3-white); }
+.ffv3-unknowns { gap: 0 !important; }
+.ffv3-unknowns li { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); align-items: baseline; gap: 4px 12px; padding: 8px 0; border-top: 1px solid var(--ffv3-line); font-size: 15px; color: var(--ffv3-white); }
+.ffv3-unknowns li:first-child { border-top: 0; padding-top: 2px; }
 .ffv3-unknowns li .ffv3-tag { justify-self: start; }
 .ffv3-list li { font-size: 15px; color: var(--ffv3-white); }
 .ffv3-source { display: block; margin-top: 6px; color: var(--ffv3-silver); font-size: 12px; }
@@ -152,27 +166,29 @@
 .ffv3-next-copy { font-size: 15px; }
 
 /* Key uncertainty (first server-reported unknown) and reason disclosure */
-.ffv3-key-unknown { margin-top: 6px !important; color: var(--ffv3-white); font-size: 13px; }
+.ffv3-key-unknown { margin-top: 12px !important; padding: 8px 12px; border-left: 2px solid var(--ffv3-gold); background: var(--ffv3-inset); color: var(--ffv3-white); font-size: 15px; font-weight: 600; }
 .ffv3-key-unknown span { color: var(--ffv3-gold); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; margin-right: 6px; }
 .ffv3-link { display: none; margin-top: 4px; padding: 0; border: 0; background: none; color: var(--ffv3-gold); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.ffv3-root p.ffv3-key-unknown { padding: 8px 12px; } /* outranks the .ffv3-root p reset */
+.ffv3-root .ffv3-dossier-verdict button.ffv3-link { margin: 4px 0 0; padding: 2px 0 !important; min-height: 24px; } /* a shell !important button padding would otherwise indent the disclosure */
 .ffv3-link:focus-visible { outline: 2px solid var(--ffv3-gold); outline-offset: 2px; }
 
 /* Decision evidence leads; current saved sales are secondary */
-.ffv3-evidence-lead { display: grid; gap: 2px; margin-bottom: 10px; padding: 10px 12px; border: 1px solid var(--ffv3-line); border-left: 3px solid var(--ffv3-gold); border-radius: 8px; background: var(--ffv3-inset); }
+.ffv3-evidence-lead { display: grid; gap: 2px; margin-bottom: 10px; padding: 10px 12px; border: 1px solid var(--ffv3-line); border-left: 3px solid var(--ffv3-gold); border-radius: 4px; background: var(--ffv3-inset); }
 .ffv3-evidence-label { color: var(--ffv3-silver); font-size: 12px; }
 .ffv3-evidence-lead strong { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ffv3-evidence-lead small { color: var(--ffv3-silver); font-size: 12px; }
 
 /* ⑧ Decision lifecycle */
-.ffv3-lifecycle-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ffv3-lifecycle-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 16px; }
 .ffv3-lifecycle .ffv3-source { overflow-wrap: break-word; }
 
 /* ⑨ Secondary analytics: deliberately quiet, always after the decision experience */
-.ffv3-analytics { margin-top: 16px; padding: 12px; border: 1px solid var(--ffv3-line); border-radius: 12px; }
+.ffv3-analytics { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--ffv3-line); border-radius: 8px; }
 .ffv3-mix { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 10px; }
 .ffv3-mix li { display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
 .ffv3-mix b { font-weight: 600; }
-.ffv3-analytics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ffv3-analytics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 16px; }
 .ffv3-analytics .ffv3-fact dd { font-weight: 600; }
 .ffv3-next-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
@@ -199,16 +215,20 @@
   .ffv3-root { padding: 10px 12px 24px; }
   .ffv3-command-bar { gap: 8px 14px; padding: 4px 0 10px; margin-bottom: 10px; }
   .ffv3-command-title h1 { font-size: 22px; }
-  .ffv3-verdict-word { font-size: 34px; line-height: 38px; }
+  .ffv3-verdict-word { font-size: 40px; line-height: 44px; }
   .ffv3-dossier-title { font-size: 21px; }
-  .ffv3-econ-grid .ffv3-fact dd { font-size: 20px; }
+  .ffv3-econ-grid .ffv3-fact dd { font-size: 22px; }
+  .ffv3-reason { font-size: 15px; }
+  .ffv3-dossier > section { padding: 12px 14px; }
+  .ffv3-dossier > [data-ffv3-section="verdict"] { padding-top: 16px; }
+  .ffv3-key-unknown { font-size: 14px; }
   .ffv3-command-actions { width: 100%; }
   .ffv3-command-actions .ffv3-btn { flex: 1 1 0; }
   .ffv3-econ-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ffv3-why-grid { grid-template-columns: minmax(0, 1fr); }
+  .ffv3-why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ffv3-unknowns li { grid-template-columns: minmax(0, 1fr); }
   .ffv3-modeled-row { grid-template-columns: 96px minmax(0, 1fr); }
   .ffv3-modeled-row em { grid-column: 2; }
-  .ffv3-dossier { padding: 12px; }
   /* First screen: verdict → card → key uncertainty → economics. The command bar stays compact;
      long governed reasons are clamped behind an explicit, accessible disclosure. */
   .ffv3-command-stats { display: grid; grid-template-columns: repeat(3, minmax(0, auto)); gap: 4px 14px; }

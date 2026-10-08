@@ -166,7 +166,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1200, height: 800
   const brand = await brandProbe(page);
   check(`B01 ${label} Geist Sans on the V3 root`, /Geist Sans/.test(brand.font || "") && brand.geistLoaded, brand.font);
   check(`B02 ${label} black-first surface and white primary text`, brand.background === "rgb(7, 8, 10)" && brand.color === "rgb(255, 255, 255)", `${brand.background} ${brand.color}`);
-  check(`B03 ${label} verdict Black 40/44, card title Bold 24, page heading Bold+`, brand.verdict === "40px/44px/900" && brand.title === "24px/700" && Number(brand.heading) >= 700, `${brand.verdict} ${brand.title} ${brand.heading}`);
+  check(`B03 ${label} verdict Black 52/54, card title Bold 26 (treatment C), page heading Bold+`, brand.verdict === "52px/54px/900" && brand.title === "26px/700" && Number(brand.heading) >= 700, `${brand.verdict} ${brand.title} ${brand.heading}`);
   // V3 CSS declares kickers at 11px; the existing customer typography floor (14px minimum,
   // customer-typography-floor-v1.js) may raise them in the app shell. Both are accepted here.
   check(`B04 ${label} section kickers Semibold uppercase gold (11px declared, shell floor <= 14px)`, /^(?:11|14)px\/600\/rgb\(212, 175, 55\)\/uppercase$/.test(brand.kicker || ""), brand.kicker);
@@ -259,9 +259,14 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
   check(`R02 ${label} governed confidence 83 / risk 70 rendered`, /Confidence 83/.test(dossierText) && /Risk 70/.test(dossierText) && !/Confidence 55|Risk 20/.test(dossierText));
   check(`R03 ${label} lifecycle shows latest governed decision and 2 immutable snapshots`, /Decision history 2 immutable snapshots/.test(dossierText) && /Latest governed decision Oct 6, 2026/.test(dossierText));
   check(`R04 ${label} no fake zero, no structured exclusion count`, !/\$0(?![\d,])/.test(dossierText) && (await page.locator("[data-ffv3-excluded]").count()) === 0);
-  const analytics = await box(page, '[data-ffv3-section="analytics"]');
-  const dossier = await box(page, '[data-ffv3-section="dossier"]');
-  const ledger = await box(page, '[data-ffv3-section="ledger"]');
+  // Measure all three in one layout pass after lazy per-record calls settle (avoids a measure-while-loading race).
+  await page.waitForLoadState("networkidle").catch(() => {});
+  const { analytics, dossier, ledger } = await page.evaluate(() => Object.fromEntries(["analytics", "dossier", "ledger"].map(key => {
+    const node = document.querySelector(`[data-ffv3-section="${key}"]`);
+    if (!node) return [key, null];
+    const r = node.getBoundingClientRect();
+    return [key, { y: r.top, height: r.height }];
+  })));
   check(`R05 ${label} secondary analytics below ledger and dossier`, analytics && dossier && ledger && analytics.y >= dossier.y + dossier.height - 1 && analytics.y >= ledger.y + ledger.height - 1);
   if (viewport.width === 390) {
     const firstScreen = await page.evaluate(() => {

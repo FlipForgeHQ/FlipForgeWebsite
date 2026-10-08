@@ -340,10 +340,15 @@ function runChecks() {
     && !/#d4b16a|#b8913d|#f3f1ec|#b9bdc3|#8f939a|#141414|#1c1c1c/i.test(cssRules));
   const inRange = (hex, low, high) => { const value = parseInt(hex.slice(1), 16); return value >= parseInt(low, 16) && value <= parseInt(high, 16); };
   check("C07 black-first surface (root #000000–#0A0B0D, panels #0B0D10–#121418)", inRange(token("root"), "000000", "0a0b0d") && inRange(token("panel"), "0b0d10", "121418") && inRange(token("inset"), "0b0d10", "121418"));
-  check("C08 heading weights: verdict Black 40/44, card title Bold 24, page heading Bold+",
-    /\.ffv3-verdict-word\s*\{[^}]*font-size:\s*40px;[^}]*line-height:\s*44px;[^}]*font-weight:\s*900/.test(cssRules)
-    && /\.ffv3-dossier-title\s*\{[^}]*font-size:\s*24px;[^}]*font-weight:\s*700/.test(cssRules)
+  check("C08 heading weights: verdict Black 52/54, card title Bold 26 (owner-selected treatment C), page heading Bold+",
+    /\.ffv3-verdict-word\s*\{[^}]*font-size:\s*52px;[^}]*line-height:\s*54px;[^}]*font-weight:\s*900/.test(cssRules)
+    && /\.ffv3-dossier-title\s*\{[^}]*font-size:\s*26px;[^}]*font-weight:\s*700/.test(cssRules)
     && /\.ffv3-command-title h1\s*\{[^}]*font-weight:\s*(?:700|800|900)/.test(cssRules));
+  check("C10 treatment C: decision hero (verdict + economics) on hero token with gold rule, key uncertainty gold-ruled, compact ruled facts",
+    inRange(token("hero"), "0b0d10", "121418")
+    && /\[data-ffv3-section="verdict"\][^{]*\{[^}]*border-top:\s*2px solid var\(--ffv3-gold\)/.test(cssRules)
+    && /\.ffv3-key-unknown\s*\{[^}]*border-left:\s*2px solid var\(--ffv3-gold\)/.test(cssRules)
+    && /\.ffv3-why-grid > \.ffv3-fact, \.ffv3-lifecycle-grid > \.ffv3-fact, \.ffv3-analytics-grid > \.ffv3-fact\s*\{[^}]*border-top/.test(cssRules));
   check("C09 no mid-word breaking on values", !/overflow-wrap:\s*anywhere|word-break:\s*break-all/.test(cssRules));
   check("C05 semantic colors meet WCAG AA on the V3 black surface", ratios.every(([, panel, charcoal]) => panel >= 4.5 && charcoal >= 4.5), ratios.map(([name, panel]) => `${name}:${panel.toFixed(2)}`).join(" "));
 
