@@ -9,7 +9,7 @@
   const REPAIR_COOLDOWN_MS = 120;
 
   const expectedPageByRoute = Object.freeze({
-    dashboard: ".customer-dashboard-page",
+    dashboard: ".customer-dashboard-page, [data-decision-dashboard-v3]",
     discover: ".customer-discovery-page",
     evaluate: ".customer-evaluation-page",
     opportunities: ".customer-intelligence-page",
@@ -215,6 +215,7 @@
 
   function pageOwnershipMatches() {
     const route = routeName();
+    if (route === "discover" && window.__ffStagingRouteHookOwnsDiscover === true) return true;
     const expected = expectedPageByRoute[route];
     if (!expected) return true;
 

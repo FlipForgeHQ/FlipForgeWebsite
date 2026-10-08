@@ -309,6 +309,7 @@
   }
 
   function renderSnapshot(snapshot) {
+    if (window.FlipForgeDashboardRenderer === "v3") return;
     if (!main || routeName() !== "dashboard") return;
     const dashboard = snapshot.dashboard || {};
     const opportunities = snapshot.opportunities || {};
@@ -356,11 +357,13 @@
   }
 
   function renderLoading() {
+    if (window.FlipForgeDashboardRenderer === "v3") return;
     if (!main || routeName() !== "dashboard") return;
     main.innerHTML = `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>Loading tenant-owned FlipForge intelligence.</p></div></header><div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div></div>`;
   }
 
   function renderError(error) {
+    if (window.FlipForgeDashboardRenderer === "v3") return;
     if (!main || routeName() !== "dashboard") return;
     main.innerHTML = `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>FlipForge fails closed when the authenticated customer intelligence path is unavailable.</p></div><div class="ff-dashboard-head-actions"><button class="button button-secondary" type="button" data-commercial-dashboard-refresh>↻ Retry</button></div></header>${errorMarkup(error)}</div>`;
     const refresh = main.querySelector("[data-commercial-dashboard-refresh]");
@@ -368,6 +371,7 @@
   }
 
   async function loadDashboard(force = false) {
+    if (window.FlipForgeDashboardRenderer === "v3") return;
     if (!appEligible() || routeName() !== "dashboard" || !main) return;
     const current = ++generation;
     if (!force && lastSnapshot) {
@@ -433,6 +437,10 @@
     showDashboardBanner();
     loadDashboard(false);
   }
+
+  // Dashboard V3 (Slice 2, behind the flag) hands the route back here when the
+  // backend does not carry the G1 governed-decision contract.
+  window.FlipForgeDashboardV2Reload = () => loadDashboard(true);
 
   window.addEventListener("hashchange", () => queueMicrotask(apply));
   window.addEventListener("flipforge:identity-change", () => {

@@ -106,6 +106,8 @@
   // Uses only the server-reported Tracked Decisions count rendered by the Dashboard.
   function dashboardHasSavedDecisions() {
     if (routeName() !== "dashboard") return false;
+    const v3 = document.querySelector("#main-content [data-decision-dashboard-v3][data-ffv3-tracked]");
+    if (v3) return Number(v3.getAttribute("data-ffv3-tracked")) > 0;
     const cards = [...document.querySelectorAll("#main-content .ff-kpi-card")];
     const card = cards.find(node => /Tracked Decisions/i.test(String(node.textContent || "")));
     const value = String(card?.querySelector(".ff-kpi-value")?.textContent || "").replace(/[^0-9]/g, "");

@@ -8,6 +8,8 @@
   const AUTHORITATIVE_FETCH_TIMEOUT_MS = 30000;
   const FULL_CUSTOMER_DASHBOARD_SCRIPT = "commercial-dashboard-v2.js";
   const FULL_CUSTOMER_DASHBOARD_STYLESHEET = "commercial-dashboard-v2.css";
+  const DASHBOARD_V3_SCRIPT = "decision-dashboard-v3.js";
+  const DASHBOARD_V3_STYLESHEET = "decision-dashboard-v3.css";
   const main = document.querySelector("#main-content");
   if (!main) return;
 
@@ -127,13 +129,29 @@
       document.head.appendChild(stylesheet);
     }
 
+    // Dashboard V3 (behind the flag) must evaluate before V2 so it can claim the route.
+    if (!document.querySelector('[data-ff-dashboard-v3-css]')) {
+      const v3Stylesheet = document.createElement("link");
+      v3Stylesheet.rel = "stylesheet";
+      v3Stylesheet.href = DASHBOARD_V3_STYLESHEET;
+      v3Stylesheet.setAttribute("data-ff-dashboard-v3-css", "");
+      document.head.appendChild(v3Stylesheet);
+    }
+    if (!document.querySelector('[data-ff-dashboard-v3-js]')) {
+      const v3Script = document.createElement("script");
+      v3Script.src = DASHBOARD_V3_SCRIPT;
+      v3Script.async = false;
+      v3Script.setAttribute("data-ff-dashboard-v3-js", "");
+      document.head.appendChild(v3Script);
+    }
+
     if (!document.querySelector('[data-ff-commercial-dashboard-js]')) {
       const script = document.createElement("script");
       script.src = FULL_CUSTOMER_DASHBOARD_SCRIPT;
       script.async = false;
       script.setAttribute("data-ff-commercial-dashboard-js", "");
       script.addEventListener("error", () => {
-        if (!productionDashboard() || main.querySelector("[data-commercial-dashboard-v2]")) return;
+        if (!productionDashboard() || main.querySelector("[data-commercial-dashboard-v2], [data-decision-dashboard-v3]")) return;
         main.innerHTML = rendererFailureMarkup();
       }, { once: true });
       document.head.appendChild(script);
@@ -147,6 +165,7 @@
   function enforce() {
     if (!productionDashboard() || applying) return;
     if (main.querySelector("[data-commercial-dashboard-v2]")) return;
+    if (main.querySelector("[data-decision-dashboard-v3]")) return;
     if (main.querySelector("[data-production-dashboard-guard]")) return;
     applying = true;
     main.innerHTML = guardedMarkup();

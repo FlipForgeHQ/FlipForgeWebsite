@@ -19,6 +19,8 @@ const productionSignInScriptTag = '<script src="/assets/js/flipforge-production-
 const productionEntitlementsScriptTag = '<script src="production-customer-entitlements.js"></script>';
 const commercialDashboardStylesheetTag = '<link rel="stylesheet" href="commercial-dashboard-v2.css">';
 const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"></script>';
+const dashboardV3StylesheetTag = '<link rel="stylesheet" href="decision-dashboard-v3.css">';
+const dashboardV3ScriptTag = '<script src="decision-dashboard-v3.js"></script>';
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
 const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
 const mobileNavigationStabilizerScriptTag = '<script src="mobile-navigation-stabilizer-v1.js"></script>';
@@ -92,6 +94,23 @@ function injectCommercialDashboard(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
+// Dashboard V3 (Slice 2) renders only behind its flag. Its script must evaluate before
+// commercial-dashboard-v2.js so it can claim the Dashboard route; V2 stays the default.
+function injectDashboardV3(htmlPath) {
+  if (!fs.existsSync(htmlPath)) throw new Error(`Dashboard V3 target missing: ${path.relative(root, htmlPath)}`);
+  let html = fs.readFileSync(htmlPath, "utf8");
+  html = injectStylesheetBeforeReadability(html, dashboardV3StylesheetTag, "Dashboard V3", htmlPath);
+  if (!html.includes('decision-dashboard-v3.js')) {
+    if (html.includes(commercialDashboardScriptTag)) {
+      html = html.replace(commercialDashboardScriptTag, `${dashboardV3ScriptTag}\n  ${commercialDashboardScriptTag}`);
+    } else {
+      if (!html.includes("</body>")) throw new Error(`Dashboard V3 body marker missing in ${path.relative(root, htmlPath)}`);
+      html = html.replace("</body>", `  ${dashboardV3ScriptTag}\n</body>`);
+    }
+  }
+  fs.writeFileSync(htmlPath, html, "utf8");
+}
+
 function injectCommercialAppPolish(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Commercial app polish target missing: ${path.relative(root, htmlPath)}`);
   let html = fs.readFileSync(htmlPath, "utf8");
@@ -140,6 +159,7 @@ injectBefore(appIndex, '<script src="staging-browser.js"></script>');
 injectProductionSignInBefore(appIndex, '<script src="staging-browser.js"></script>');
 injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-portal.js"></script>');
 
+injectDashboardV3(appIndex);
 injectCommercialDashboard(appIndex);
 injectCommercialAppPolish(appIndex);
 injectMobileNavigationStabilizer(appIndex);
@@ -154,6 +174,7 @@ console.log(`Built FlipForge Netlify Identity client (${identityBytes} bytes).`)
 console.log(`Built FlipForge production Identity sign-in (${productionSignInBytes} bytes).`);
 console.log(`Built FlipForge isolated production auth probe (${productionAuthProbeBytes} bytes).`);
 console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`);
+console.log("Injected FlipForge Dashboard V3 (flagged) assets before commercial dashboard v2.");
 console.log("Injected FlipForge commercial dashboard v2 assets before customer readability.");
 console.log("Injected FlipForge commercial app polish v2 assets before customer readability.");
 console.log("Injected FlipForge mobile navigation stabilizer after route presentation scripts.");
