@@ -1,0 +1,85 @@
+name: Dashboard V3 Slice 2 Assurance
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/validate-decision-dashboard-v3.mjs"
+      - "scripts/audit-decision-dashboard-v3-ci.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "package.json"
+      - ".github/workflows/decision-dashboard-v3.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/**"
+      - "scripts/validate-decision-dashboard-v3.mjs"
+      - "scripts/audit-decision-dashboard-v3-ci.mjs"
+      - "scripts/build-identity-client.mjs"
+      - "package.json"
+      - ".github/workflows/decision-dashboard-v3.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: decision-dashboard-v3-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dashboard-v3:
+    name: V3 renderer behind the flag (static contract + Playwright audit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Dashboard V3 static contract
+        run: node scripts/validate-decision-dashboard-v3.mjs
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-dashboard-v3-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-dashboard-v3-server.log
+          exit 1
+
+      - name: Dashboard V3 Playwright audit
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          FLIPFORGE_V3_SCREENSHOT_DIR: artifacts/dashboard-v3
+        run: node scripts/audit-decision-dashboard-v3-ci.mjs
+
+      - name: Upload owner-review screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dashboard-v3-slice2-screenshots
+          path: artifacts/dashboard-v3
+          if-no-files-found: warn
+          retention-days: 14
