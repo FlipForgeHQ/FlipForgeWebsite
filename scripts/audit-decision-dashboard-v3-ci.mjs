@@ -453,6 +453,9 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
   check(`FOCUS00 ${label} default is Decision with full record collapsed`,
     (await page.getAttribute('[data-ffv3-focus-tab="decision"]', "aria-selected")) === "true"
     && (await page.locator(".ff-focus-full-record:not([open])").count()) === 1);
+  check(`FOCUS16 ${label} next step appears once in initial buyer view`,
+    (await page.locator('[data-ffv3-section="verdict"] [data-ffv3-key-unknown]').count()) === 1
+    && (await page.locator(".ff-focus-body .ff-focus-action").count()) === 0);
   await page.screenshot({path:path.join(screenshotDir, `dashboard-v3-focus-INITIAL-${label}.png`), fullPage:true});
   await page.screenshot({path:path.join(screenshotDir, `dashboard-v3-focus-FIRST-SCREEN-${label}.png`)});
   check(`FOCUS01 ${label} opt-in V3 shows source-driven three tabs`,
@@ -528,6 +531,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
   check("FOCUS14 full customer advanced destinations stay reachable via More Tools",
     (await page.locator('[data-ffv3-focus-tools] a[href="#/portfolio"]').count()) === 1
     && (await page.locator('[data-ffv3-focus-tools] a[href="#/forge-heat"]').count()) === 1);
+  const menuOrder = await page.locator('[data-ffv3-focus-tools]').evaluate(node => getComputedStyle(node).order);
+  check("FOCUS17 More Tools follows core navigation in visual order", Number(menuOrder) >= 99, String(menuOrder));
   const disallowed = requests.filter(value => !ALLOWED.some(rule => rule.test(value.replace(/^GET /, ""))));
   check("FOCUS15 full customer mode makes no extra provider calls",
     disallowed.length === 0, disallowed.join(", "));
