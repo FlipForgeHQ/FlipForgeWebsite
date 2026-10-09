@@ -256,7 +256,7 @@
   function unknownsOf(model) {
     const unknowns = [];
     if (model.profitabilityCappedBuy) {
-      unknowns.push({ key: "capped", tag: "Profit protection applied", text: "The saved decision did not meet the required margin of safety, even if some profit scenarios were positive." });
+      unknowns.push({ key: "capped", tag: "Profit protection applied", text: "The asking price leaves too little cushion to protect your profit if prices drop, even though some profit scenarios were positive." });
     }
     if (model.verdict === "VERIFY") {
       const need = model.missingRequirement && !/^none\b/i.test(model.missingRequirement) ? model.missingRequirement : "additional verification";
@@ -270,7 +270,7 @@
       unknowns.push({ key: "sales", tag: "No accepted exact sales", text: "No completed sale was accepted as exact evidence for this card." });
     }
     if (model.mappingState && model.mappingState !== "CONFIRMED") {
-      unknowns.push({ key: "mapping", tag: "Mapping not confirmed", text: `${labelFor(MAPPING_LABELS, model.mappingState)}.` });
+      unknowns.push({ key: "mapping", tag: "Card match not confirmed", text: `${labelFor(MAPPING_LABELS, model.mappingState)}.` });
     }
     if (model.excludedCount !== null && model.excludedCount > 0) {
       unknowns.push({ key: "excluded", tag: "Excluded evidence present", text: `${integerText(model.excludedCount)} sale${model.excludedCount === 1 ? "" : "s"} excluded by the server.` });
@@ -439,7 +439,7 @@
         ${fact("Current saved sales", integerText(model.currentSavedSales), " data-ffv3-current-sales")}
         ${fact("Saved sale dates", model.earliestSaleDate || model.latestSaleDate ? `${dateText(model.earliestSaleDate)} – ${dateText(model.latestSaleDate)}` : DASH)}
         ${fact("Exact identity", model.identity || DASH)}
-        ${fact("Mapping state", labelFor(MAPPING_LABELS, model.mappingState) || DASH)}
+        ${fact("Card match", labelFor(MAPPING_LABELS, model.mappingState) || DASH)}
         ${excluded}
       </dl>
       ${model.decisionEvidenceCount !== null && model.currentSavedSales !== null && model.decisionEvidenceCount !== model.currentSavedSales
