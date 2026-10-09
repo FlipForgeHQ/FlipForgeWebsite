@@ -1,0 +1,197 @@
+/*
+ * FlipForge Customer Shell Brand Alignment v1 — presentation only.
+ * Aligns the persistent customer shell (banner, sidebar, topbar, shell CTA, Guide me launcher)
+ * with the locked Brand Sheet v2.1 and the Dashboard V3 surface:
+ *   root #07080A · navigation surfaces #0B0D10 · rules #2A2E33
+ *   white #FFFFFF · silver #888F98 · gold #D4AF37 · deep gold #B8860B
+ * No blue tint, no neon, no decorative gradients. Loaded last so it wins over earlier shell layers.
+ * Never changes routes, actions, guide workflow, recommendations or data.
+ */
+:root {
+  --ff-shell-root: #07080a;
+  --ff-shell-surface: #0b0d10;
+  --ff-shell-raised: #121418;
+  --ff-shell-rule: #2a2e33;
+  --ff-shell-white: #ffffff;
+  --ff-shell-silver: #888f98;
+  --ff-shell-gold: #d4af37;
+  --ff-shell-deep-gold: #b8860b;
+}
+
+/* Black-first page and workspace */
+body.ff-commercial-shell,
+body.ff-commercial-shell .app-shell[data-ff-interface="customer"],
+body.ff-commercial-shell .app-shell[data-ff-interface="customer"] .workspace {
+  background-color: var(--ff-shell-root) !important;
+  background-image: none !important;
+  color: var(--ff-shell-white);
+}
+
+/* Private Beta banner */
+body.ff-commercial-shell .prototype-banner {
+  background: #000000 !important;
+  color: var(--ff-shell-silver) !important;
+  border-color: var(--ff-shell-rule) !important;
+}
+body.ff-commercial-shell .prototype-banner strong { color: var(--ff-shell-gold) !important; }
+body.ff-commercial-shell .prototype-banner span { color: var(--ff-shell-silver) !important; }
+
+/* Sidebar */
+.app-shell[data-ff-interface="customer"] .sidebar {
+  background-color: var(--ff-shell-surface) !important;
+  background-image: none !important;
+  border-color: var(--ff-shell-rule) !important;
+  box-shadow: none !important;
+}
+.app-shell[data-ff-interface="customer"] .sidebar-footer,
+.app-shell[data-ff-interface="customer"] .sidebar .ff-core-nav {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+.app-shell[data-ff-interface="customer"] .sidebar a,
+.app-shell[data-ff-interface="customer"] .sidebar summary,
+.app-shell[data-ff-interface="customer"] .sidebar strong,
+.app-shell[data-ff-interface="customer"] .sidebar .forge-nav-state {
+  color: var(--ff-shell-white) !important;
+}
+.app-shell[data-ff-interface="customer"] .sidebar small,
+.app-shell[data-ff-interface="customer"] .sidebar .ff-advanced-hint,
+.app-shell[data-ff-interface="customer"] .sidebar .usage-row {
+  color: var(--ff-shell-silver) !important;
+}
+.app-shell[data-ff-interface="customer"] .sidebar .ff-nav-icon,
+.app-shell[data-ff-interface="customer"] .sidebar .ff-nav-icon svg { color: var(--ff-shell-silver) !important; }
+.app-shell[data-ff-interface="customer"] .sidebar a.active .ff-nav-icon,
+.app-shell[data-ff-interface="customer"] .sidebar a[aria-current="page"] .ff-nav-icon,
+.app-shell[data-ff-interface="customer"] .sidebar a.active .ff-nav-icon svg,
+.app-shell[data-ff-interface="customer"] .sidebar a[aria-current="page"] .ff-nav-icon svg { color: var(--ff-shell-gold) !important; }
+.app-shell[data-ff-interface="customer"] .sidebar .ff-core-nav,
+.app-shell[data-ff-interface="customer"] .sidebar .plan-card {
+  border-color: var(--ff-shell-rule) !important;
+}
+.app-shell[data-ff-interface="customer"] .sidebar a.active,
+.app-shell[data-ff-interface="customer"] .sidebar a[aria-current="page"] {
+  background-color: var(--ff-shell-raised) !important;
+  background-image: none !important;
+  border-color: var(--ff-shell-gold) !important;
+  color: var(--ff-shell-gold) !important;
+  box-shadow: none !important;
+}
+.app-shell[data-ff-interface="customer"] .sidebar .prototype-chip {
+  background: transparent !important;
+  color: var(--ff-shell-gold) !important;
+  border-color: var(--ff-shell-deep-gold) !important;
+}
+
+/* Wordmark: FLIP white / FORGE gold, descriptor gold (colors of the official horizontal lockup) */
+.app-shell[data-ff-interface="customer"] .brand-name { color: var(--ff-shell-white) !important; }
+.app-shell[data-ff-interface="customer"] .brand-name .brand-forge,
+.app-shell[data-ff-interface="customer"] .brand-name::after,
+.app-shell[data-ff-interface="customer"] .brand-subtitle { color: var(--ff-shell-gold) !important; }
+
+/* Topbar */
+.app-shell[data-ff-interface="customer"] .topbar {
+  background-color: var(--ff-shell-root) !important;
+  background-image: none !important;
+  border-color: var(--ff-shell-rule) !important;
+  box-shadow: none !important;
+}
+.app-shell[data-ff-interface="customer"] .topbar .global-search,
+.app-shell[data-ff-interface="customer"] .topbar .global-search input,
+.app-shell[data-ff-interface="customer"] .topbar .icon-button,
+.app-shell[data-ff-interface="customer"] .topbar .date-button:not(.ff-global-new-card),
+.app-shell[data-ff-interface="customer"] .topbar .profile-button {
+  background-color: var(--ff-shell-surface) !important;
+  background-image: none !important;
+  border-color: var(--ff-shell-rule) !important;
+  color: var(--ff-shell-white) !important;
+  box-shadow: none !important;
+}
+.app-shell[data-ff-interface="customer"] .topbar .global-search input::placeholder { color: var(--ff-shell-silver) !important; }
+.app-shell[data-ff-interface="customer"] .topbar .global-search > span,
+.app-shell[data-ff-interface="customer"] .sidebar .ff-mobile-account-nav span,
+.app-shell[data-ff-interface="customer"] .topbar kbd,
+.app-shell[data-ff-interface="customer"] .topbar .profile-copy small { color: var(--ff-shell-silver) !important; }
+.app-shell[data-ff-interface="customer"] .topbar .profile-copy,
+.app-shell[data-ff-interface="customer"] .topbar .profile-copy strong { color: var(--ff-shell-white) !important; }
+.app-shell[data-ff-interface="customer"] .topbar .avatar {
+  background: var(--ff-shell-gold) !important;
+  color: #000000 !important;
+}
+
+/* Shell Evaluate CTA: flat gold, no gradient, no glow. Destination and behavior unchanged. */
+.app-shell[data-ff-interface="customer"] .topbar .ff-global-new-card {
+  background: var(--ff-shell-gold) !important;
+  background-image: none !important;
+  border: 1px solid var(--ff-shell-gold) !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+.app-shell[data-ff-interface="customer"] .topbar .ff-global-new-card:hover,
+.app-shell[data-ff-interface="customer"] .topbar .ff-global-new-card:focus-visible {
+  background: var(--ff-shell-deep-gold) !important;
+  border-color: var(--ff-shell-deep-gold) !important;
+  color: #000000 !important;
+}
+.app-shell[data-ff-interface="customer"] .topbar .ff-global-new-card:focus-visible {
+  outline: 2px solid var(--ff-shell-white) !important;
+  outline-offset: 2px !important;
+}
+
+/* Guide me launcher: flat, black/gold, and parked where it cannot cover page content. */
+body.ff-commercial-shell .ff-guide-launcher {
+  background: var(--ff-shell-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--ff-shell-deep-gold) !important;
+  color: var(--ff-shell-white) !important;
+  box-shadow: none !important;
+}
+body.ff-commercial-shell .ff-guide-launcher::before {
+  background: var(--ff-shell-gold) !important;
+  background-image: none !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+body.ff-commercial-shell .ff-guide-launcher:hover,
+body.ff-commercial-shell .ff-guide-launcher:focus-visible { border-color: var(--ff-shell-gold) !important; }
+
+/* Desktop/laptop (persistent sidebar): bottom of the sidebar's empty navigation area. */
+@media (min-width: 761px) {
+  body.ff-commercial-shell .ff-guide-launcher {
+    left: 18px !important;
+    right: auto !important;
+    bottom: 18px !important;
+    top: auto !important;
+    width: 208px !important;
+    max-width: 208px !important;
+    justify-content: flex-start !important;
+  }
+}
+
+/* Mobile (drawer navigation): compact icon button in the topbar row, beside search. It is
+ * positioned against the page (not the viewport), so it scrolls away with the topbar and never
+ * floats over content. */
+@media (max-width: 760px) {
+  .app-shell[data-ff-interface="customer"] .topbar { padding-right: 58px !important; }
+  body.ff-commercial-shell .ff-guide-launcher {
+    position: absolute !important;
+    top: 7px !important;
+    right: 9px !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    padding-left: 7px !important;
+    justify-content: flex-start !important;
+    color: transparent !important;
+    gap: 0 !important;
+  }
+  body.ff-commercial-shell .ff-guide-launcher::before { margin: 0 !important; flex: 0 0 24px !important; width: 24px !important; height: 24px !important; }
+}
