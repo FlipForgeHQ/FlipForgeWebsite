@@ -26,6 +26,13 @@
     return window.FlipForgeFullCustomerEntry === true;
   }
 
+  function dedicatedPrivateBetaEntry() {
+    // Private Beta is a hash-router SPA, even when the customer-mode flag is
+    // absent. Its post-login / beta-start route changes MUST NOT reload the
+    // document, or successful sign-in can appear as an endless same-page loop.
+    return /^\/app\/beta(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
   function authoritativeApiRequest(input) {
     try {
       const raw = typeof input === "string" ? input : input?.url || String(input || "");
@@ -177,7 +184,7 @@
     // forced reload here tears down a route after the authoritative renderer has
     // already painted it and can leave #main-content empty under route churn.
     // Keep the legacy reload recovery only for non-full-customer app surfaces.
-    if (!customerApp() || fullCustomerEntry() || routeReloading) return;
+    if (!customerApp() || fullCustomerEntry() || dedicatedPrivateBetaEntry() || routeReloading) return;
     if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
     routeReloading = true;
     if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
@@ -191,7 +198,7 @@
   function handleRouteClick(event) {
     // Same-hash reload recovery is also legacy-only. Full customer navigation
     // must remain inside the SPA so the route-ownership guard can arbitrate it.
-    if (!customerApp() || fullCustomerEntry() || routeReloading || !isPlainLeftClick(event)) return;
+    if (!customerApp() || fullCustomerEntry() || dedicatedPrivateBetaEntry() || routeReloading || !isPlainLeftClick(event)) return;
     const link = event.target?.closest?.('a[href^="#/"]');
     if (!link) return;
     const targetHash = String(link.getAttribute("href") || "");
