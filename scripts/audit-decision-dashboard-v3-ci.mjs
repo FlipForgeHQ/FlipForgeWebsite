@@ -516,18 +516,18 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
  * local preview server, using synthetic G1 API contracts and no live account.
  */
 {
-  const CUSTOMER_FOCUS_URL = `${baseUrl.replace(/\\/app$/, "")}/app/customer/?dashboard=v3&focus=1#/dashboard`;
+  const CUSTOMER_FOCUS_URL = `${baseUrl.endsWith("/app") ? baseUrl.slice(0, -4) : baseUrl}/app/customer/?dashboard=v3&focus=1#/dashboard`;
   const { context, page, requests } = await open({width:1440,height:900}, {}, {url:CUSTOMER_FOCUS_URL});
   await readyV3(page);
   check("FOCUS12 full customer route renders opt-in decision tabs",
-    (await page.locator('[data-ffv3-focus="true"]')).count() === 1
-    && (await page.locator('[data-ffv3-focus-tab="decision"]')).count() === 1);
+    (await page.locator('[data-ffv3-focus="true"]').count()) === 1
+    && (await page.locator('[data-ffv3-focus-tab="decision"]').count()) === 1);
   check("FOCUS13 full customer navigation retains Discover and Evaluate",
-    (await page.locator('.primary-nav a[data-route="discover"]')).count() === 1
-    && (await page.locator('.primary-nav a[data-route="evaluate"]')).count() === 1);
+    (await page.locator('.primary-nav a[data-route="discover"]').count()) === 1
+    && (await page.locator('.primary-nav a[data-route="evaluate"]').count()) === 1);
   check("FOCUS14 full customer advanced destinations stay reachable via More Tools",
-    (await page.locator('[data-ffv3-focus-tools] a[href="#/portfolio"]')).count() === 1
-    && (await page.locator('[data-ffv3-focus-tools] a[href="#/forge-heat"]')).count() === 1);
+    (await page.locator('[data-ffv3-focus-tools] a[href="#/portfolio"]').count()) === 1
+    && (await page.locator('[data-ffv3-focus-tools] a[href="#/forge-heat"]').count()) === 1);
   const disallowed = requests.filter(value => !ALLOWED.some(rule => rule.test(value.replace(/^GET /, ""))));
   check("FOCUS15 full customer mode makes no extra provider calls",
     disallowed.length === 0, disallowed.join(", "));
