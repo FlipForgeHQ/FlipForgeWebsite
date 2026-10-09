@@ -27,10 +27,13 @@
   }
 
   function dedicatedPrivateBetaEntry() {
-    // Private Beta is a hash-router SPA, even when the customer-mode flag is
-    // absent. Its post-login / beta-start route changes MUST NOT reload the
-    // document, or successful sign-in can appear as an endless same-page loop.
-    return /^\/app\/beta(?:\/|$)/i.test(String(window.location.pathname || ""));
+    // Beta onboarding is a hash-router SPA: route changes after signing in must
+    // never force a full-document reload. Cover both the canonical beta URL
+    // and the legacy prototype entry on Netlify review hosts (e.g. PR #495).
+    const path = String(window.location.pathname || "");
+    const host = String(window.location.hostname || "");
+    return /^\/app\/beta(?:\/|$)/i.test(path)
+      || (PREVIEW_HOST.test(host) && /^\/saas-prototype(?:\/|$)/i.test(path));
   }
 
   function authoritativeApiRequest(input) {
