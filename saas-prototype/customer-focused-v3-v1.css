@@ -108,6 +108,7 @@ html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .prima
 html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > a[data-route="market-view"],
 html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > .ff-advanced-nav {display:none!important}
 html[data-ff-customer-focus="1"] .primary-nav > .ff-focus-tools {
+  order:100; /* The customer nav normalizer may reinsert core route links later. */
   display:block;border-top:1px solid #2a2e33;padding:8px 6px;margin-top:8px;color:#e0e4e8;
 }
 html[data-ff-customer-focus="1"] .ff-focus-tools > summary {cursor:pointer;padding:10px 12px;font-size:14px;font-weight:650}
