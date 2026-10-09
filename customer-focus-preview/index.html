@@ -63,15 +63,15 @@
           </div>
           <div class="dashboard-grid">
             <section class="decision-column" aria-label="Selected card decision">
-              <div class="decision-card" id="decision-card">
+              <div class="decision-card" id="decision-card" data-verdict="watch">
                 <div class="decision-topline"><span>SELECTED DECISION</span><span class="receipt-icon">ILLUSTRATIVE EXAMPLE</span></div>
-                <div class="decision-heading"><div><p class="verdict-label" id="verdict-label">WATCH</p><h2 id="card-title">Sample card · PSA 10</h2><p class="card-subtitle" id="card-subtitle">Illustrative example · no live listing</p></div><div class="identity-tile" aria-hidden="true"><span>◇</span><strong>IDENTITY<br>CHECK</strong></div></div>
+                <div class="decision-heading"><div><p class="verdict-label" id="verdict-label" data-verdict="WATCH">WATCH</p><h2 id="card-title">Sample card · PSA 10</h2><p class="card-subtitle" id="card-subtitle">Illustrative example · no live listing</p></div><div class="identity-tile" aria-hidden="true"><span>◇</span><strong>IDENTITY<br>CHECK</strong></div></div>
                 <div class="verdict-summary" id="verdict-summary">Asking price exceeds the modeled buying limit.</div>
                 <div class="price-grid">
                   <div class="price-tile"><span>ALL-IN ASK</span><strong id="ask-price">$640.00</strong></div>
                   <div class="price-tile primary"><span>MAX BUY</span><strong id="max-buy">$608.79</strong></div>
                 </div>
-                <div class="price-difference" id="price-difference"><span class="difference-mark" aria-hidden="true">↗</span>$31.21 above Max Buy</div>
+                <div class="price-difference" id="price-difference" role="status"><span class="difference-mark" aria-hidden="true">↗</span>$31.21 above Max Buy</div>
                 <div class="next-move"><span>NEXT STEP</span><p id="next-move">Wait or revisit if the asking price improves.</p></div>
                 <button class="evidence-peek" type="button" data-open-evidence aria-controls="panel-evidence" aria-label="Open the Evidence tab for this example decision"><span>SALE EVIDENCE</span><strong id="evidence-peek">12 accepted sales</strong><span class="evidence-open">View evidence →</span></button>
                 <div class="tab-area">
@@ -88,7 +88,7 @@
                   <section class="tab-panel" role="tabpanel" id="panel-evidence" aria-labelledby="tab-evidence" tabindex="0" hidden>
                     <div class="evidence-stats"><div><span>EXACT SALES AT DECISION</span><strong id="accepted-sales">12</strong></div><div><span>EXCLUDED SALES</span><strong id="excluded-sales">Unavailable</strong></div></div>
                     <div class="evidence-checks" aria-label="Example evidence status">
-                      <div><span>Card identity</span><strong id="identity-state">Exact match confirmed</strong></div>
+                      <div><span>Card identity</span><strong id="identity-state" data-identity="confirmed">Exact match confirmed</strong></div>
                       <div><span>Sale dates &amp; prices</span><strong>Not connected</strong></div>
                       <div><span>Exclusion reasons</span><strong>Not connected</strong></div>
                     </div>
@@ -105,7 +105,7 @@
               </div>
             </section>
             <aside class="saved-column" aria-label="Example saved decisions">
-              <div class="saved-head"><div><span>YOUR WORKLIST</span><h3>Saved Decisions</h3></div><span class="saved-count">03</span></div>
+              <div class="saved-head"><div><span>ILLUSTRATIVE EXAMPLES</span><h3>Decisions</h3></div><span class="saved-count">04</span></div>
               <div id="decision-list" class="decision-list"></div>
 
             </aside>
