@@ -194,3 +194,8 @@ body.ff-commercial-shell .ff-guide-launcher:focus-visible { border-color: var(--
   }
   body.ff-commercial-shell .ff-guide-launcher::before { margin: 0 !important; flex: 0 0 24px !important; width: 24px !important; height: 24px !important; }
 }
+
+/* The phone shell hides the Private Beta banner <=760px; its topbar starts at page top. */
+@media (max-width: 760px) {
+  body.ff-commercial-shell .ff-guide-launcher { top: 7px !important; }
+}
