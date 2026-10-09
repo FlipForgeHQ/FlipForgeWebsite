@@ -41,6 +41,16 @@ function requestCandidates(urlPath) {
     return contained(prototypeRoot, candidate) ? [candidate, join(prototypeRoot, "customer.html")] : [];
   }
 
+  // Netlify rewrites /app/beta/* assets directly to /saas-prototype/*.
+  // Mirror that mapping in local browser audits; otherwise beta/*.js is
+  // answered with index.html and a dead beta screen looks like an app bug.
+  if (relative === "app/beta") return [join(prototypeRoot, "index.html")];
+  if (relative.startsWith("app/beta/")) {
+    const nested = relative.slice("app/beta/".length) || "index.html";
+    const candidate = resolve(join(prototypeRoot, nested));
+    return contained(prototypeRoot, candidate) ? [candidate, join(prototypeRoot, "index.html")] : [];
+  }
+
   for (const prefix of ["app", "saas-prototype"]) {
     if (relative === prefix) return [join(prototypeRoot, "index.html")];
     if (relative.startsWith(`${prefix}/`)) {

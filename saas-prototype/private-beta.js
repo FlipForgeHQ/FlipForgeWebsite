@@ -7,6 +7,7 @@
   const ONBOARDING_KEY = "flipforge.privateBeta.onboarding.v1";
   const ONBOARDING_VALUE = "complete";
   const FEEDBACK_ENDPOINT = "/api/beta/feedback";
+  let firstRunNavigationHandled = false;
 
   function productionHost() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -428,6 +429,9 @@
 
   async function render() {
     if (!eligibleHost() || !onBetaRoute()) return false;
+    // The guide was reached. A later identity/session refresh must not
+    // pull an explicit Evaluate or Discover click back to beta-start.
+    firstRunNavigationHandled = true;
     const main = document.querySelector("#main-content");
     if (!main) return false;
     const session = identitySnapshot();
@@ -447,12 +451,19 @@
   }
 
   function maybeStartFirstRun() {
-    if (!eligibleHost() || preferenceComplete() || onBetaRoute()) return;
+    if (!eligibleHost() || preferenceComplete() || firstRunNavigationHandled) return;
+    if (onBetaRoute()) {
+      firstRunNavigationHandled = true;
+      return;
+    }
     const route = routeName();
     if (route === "staging" || route === "staging-evaluate") return;
     const session = identitySnapshot();
     syncShell(session);
     if (session.authenticated && session.membershipActive) {
+      // Onboarding is an initial entry, not a permanent route enforcement
+      // rule. Take the customer to the guide at most once per page session.
+      firstRunNavigationHandled = true;
       window.location.hash = "#/beta-start";
     }
   }

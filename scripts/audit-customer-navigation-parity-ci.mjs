@@ -233,6 +233,69 @@ try {
     await context.close();
   }
 
+  // Production-path beta user journey. Previous parity checks asserted only
+  // nav labels; a real Evaluate click may change the hash yet fail to mount
+  // its governed card-entry screen.
+  for (const viewport of viewports) {
+    const context = await browser.newContext({ viewport: {width:viewport.width,height:viewport.height} });
+    const page = await context.newPage();
+    const pageErrors = [];
+    page.on("pageerror", e => pageErrors.push(String(e?.message || e)));
+    await page.addInitScript(() => {
+      localStorage.removeItem("flipforge.privateBeta.onboarding.v1");
+    });
+    await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
+      status:200,contentType:"application/javascript",
+      body:`const snapshot=Object.freeze({ready:true,authenticated:true,email:"qa@example.invalid",fullName:"Beta QA",membershipActive:true,membershipConfigured:true,operatorActive:false});
+      window.FlipForgeIdentity=Object.freeze({getSnapshot:()=>snapshot,getUser:()=>({email:"qa@example.invalid"}),
+        refresh:async()=>snapshot,noteServerMembership:()=>snapshot,ensureFreshSession:async()=>snapshot});
+      window.dispatchEvent(new CustomEvent("flipforge:identity-change",{detail:snapshot}));`
+    }));
+    await page.route("**/api/v1/**", route => route.fulfill({
+      status:200,contentType:"application/json; charset=utf-8",body:JSON.stringify(fixture(route.request()))
+    }));
+    try {
+      await page.goto("http://goflipforge.com:4173/app/beta/#/beta-start", {waitUntil:"domcontentloaded",timeout:30000});
+      await page.waitForFunction(() => window.__FlipForgePrivateBetaAccessVerified === true);
+      await page.locator('[data-private-beta-start]').first().waitFor({state:"visible",timeout:12000});
+      await page.evaluate(() => {window.__ffBetaEvaluateDocumentMarker = true;});
+      await page.locator('[data-private-beta-start]').first().click();
+      await page.waitForFunction(() => window.location.hash === "#/discover", null, {timeout:6000});
+      await page.locator("#main-content [data-customer-discovery-form]").waitFor({state:"visible",timeout:10000});
+      // Require a stable rendered card-entry page after the other hash listeners
+      // and mobile decorators have had time to settle. A form seen for just one
+      // frame is not a usable evaluation workflow.
+      await page.waitForTimeout(900);
+      const state=await page.evaluate(() => ({hash:location.hash,heading:document.querySelector("#main-content h1")?.textContent?.trim(),
+        form:!!document.querySelector("#main-content [data-customer-discovery-form]"),url:location.pathname,
+        mainMarkup:String(document.querySelector("#main-content")?.innerHTML||"").slice(0,600),
+        routeOwned:Boolean(window.FlipForgeCustomerRouteRenderer?.applyCurrentRoute)}));
+      if (!state.form || state.hash !== "#/discover") fail(`${viewport.name}: Evaluate CTA did not open card entry`,state);
+      if(!(await page.evaluate(() => window.__ffBetaEvaluateDocumentMarker === true))) fail(`${viewport.name}: Evaluate click reloaded the beta document`);
+
+      await page.evaluate(() => {window.location.hash="#/beta-start";});
+      await page.locator('[data-private-beta-start]').first().waitFor({state:"visible",timeout:10000});
+      // The sidebar route is a valid first-session entry too. Keep onboarding
+      // incomplete and simulate a later identity-refresh notification after
+      // selection: a healthy app MUST NOT hijack the chosen Evaluate route.
+      await page.evaluate(() => localStorage.removeItem("flipforge.privateBeta.onboarding.v1"));
+      const nav=page.locator('.primary-nav a[data-route="discover"]');
+      if(viewport.name==="mobile") {
+        await page.locator('[data-nav-toggle]').click();
+      }
+      await nav.click();
+      await page.waitForFunction(() => location.hash === "#/discover", null, {timeout:6000});
+      await page.locator("#main-content [data-customer-discovery-form]").waitFor({state:"visible",timeout:10000});
+      await page.evaluate(() => window.dispatchEvent(new CustomEvent("flipforge:identity-change",{detail:window.FlipForgeIdentity?.getSnapshot?.()})));
+      await page.waitForTimeout(350);
+      const postIdentity = await page.evaluate(() => ({hash:location.hash,form:!!document.querySelector("#main-content [data-customer-discovery-form]")}));
+      if(postIdentity.hash !== "#/discover" || !postIdentity.form) fail(`${viewport.name}: identity refresh hijacked Evaluate route back to onboarding`,postIdentity);
+      const serious=pageErrors.filter(x=>/SyntaxError|ReferenceError|TypeError|Maximum call stack/i.test(x));
+      if(serious.length) fail(`${viewport.name}: Evaluate entry produced runtime error`, serious);
+      console.log(`PASS | ${viewport.name} signed-in beta welcome CTA and Evaluate nav open card-entry form`);
+    } finally {await context.close();}
+  }
+
   console.log("PASS: full customer CDI navigation is complete, explanation-focused, deduplicated, mobile-safe, and isolated from private beta navigation.");
 } finally {
   await browser.close();
