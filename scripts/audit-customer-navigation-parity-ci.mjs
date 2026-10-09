@@ -240,11 +240,7 @@ try {
     const context = await browser.newContext({ viewport: {width:viewport.width,height:viewport.height} });
     const page = await context.newPage();
     const pageErrors = [];
-    const fullNavigations = [];
     page.on("pageerror", e => pageErrors.push(String(e?.message || e)));
-    page.on("framenavigated", frame => {
-      if (frame === page.mainFrame()) fullNavigations.push(frame.url());
-    });
     await page.addInitScript(() => {
       localStorage.removeItem("flipforge.privateBeta.onboarding.v1");
     });
@@ -262,17 +258,21 @@ try {
       await page.goto("http://goflipforge.com:4173/app/beta/#/beta-start", {waitUntil:"domcontentloaded",timeout:30000});
       await page.waitForFunction(() => window.__FlipForgePrivateBetaAccessVerified === true);
       await page.locator('[data-private-beta-start]').first().waitFor({state:"visible",timeout:12000});
-      const beforeNavigations=fullNavigations.length;
+      await page.evaluate(() => {window.__ffBetaEvaluateDocumentMarker = true;});
       await page.locator('[data-private-beta-start]').first().click();
       await page.waitForFunction(() => window.location.hash === "#/discover", null, {timeout:6000});
       await page.locator("#main-content [data-customer-discovery-form]").waitFor({state:"visible",timeout:10000});
       const state=await page.evaluate(() => ({hash:location.hash,heading:document.querySelector("#main-content h1")?.textContent?.trim(),
         form:!!document.querySelector("#main-content [data-customer-discovery-form]"),url:location.pathname}));
       if (!state.form || state.hash !== "#/discover") fail(`${viewport.name}: Evaluate CTA did not open card entry`,state);
-      if(fullNavigations.length>beforeNavigations+1) fail(`${viewport.name}: Evaluate click unexpectedly reloaded beta document`,fullNavigations);
+      if(!(await page.evaluate(() => window.__ffBetaEvaluateDocumentMarker === true))) fail(`${viewport.name}: Evaluate click reloaded the beta document`);
 
       await page.evaluate(() => {window.location.hash="#/beta-start";});
       await page.locator('[data-private-beta-start]').first().waitFor({state:"visible",timeout:10000});
+      // The sidebar route is a valid first-session entry too. Keep onboarding
+      // incomplete and simulate a later identity-refresh notification after
+      // selection: a healthy app MUST NOT hijack the chosen Evaluate route.
+      await page.evaluate(() => localStorage.removeItem("flipforge.privateBeta.onboarding.v1"));
       const nav=page.locator('.primary-nav a[data-route="discover"]');
       if(viewport.name==="mobile") {
         await page.locator('[data-nav-toggle]').click();
@@ -280,6 +280,10 @@ try {
       await nav.click();
       await page.waitForFunction(() => location.hash === "#/discover", null, {timeout:6000});
       await page.locator("#main-content [data-customer-discovery-form]").waitFor({state:"visible",timeout:10000});
+      await page.evaluate(() => window.dispatchEvent(new CustomEvent("flipforge:identity-change",{detail:window.FlipForgeIdentity?.getSnapshot?.()})));
+      await page.waitForTimeout(350);
+      const postIdentity = await page.evaluate(() => ({hash:location.hash,form:!!document.querySelector("#main-content [data-customer-discovery-form]")}));
+      if(postIdentity.hash !== "#/discover" || !postIdentity.form) fail(`${viewport.name}: identity refresh hijacked Evaluate route back to onboarding`,postIdentity);
       const serious=pageErrors.filter(x=>/SyntaxError|ReferenceError|TypeError|Maximum call stack/i.test(x));
       if(serious.length) fail(`${viewport.name}: Evaluate entry produced runtime error`, serious);
       console.log(`PASS | ${viewport.name} signed-in beta welcome CTA and Evaluate nav open card-entry form`);
