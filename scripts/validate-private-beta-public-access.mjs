@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { runInNewContext } from "node:vm";
 
 const read = path => fs.readFileSync(path, "utf8");
 const failures = [];
@@ -37,6 +38,107 @@ const buildAssets = read("scripts/build-assets.js");
 const customerShell = read("saas-prototype/customer-only-shell-v1.js");
 const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
 const cockpitPolish = read("saas-prototype/cockpit-final-ux.js");
+const betaGuide = read("saas-prototype/private-beta.js");
+const betaTermsGate = read("assets/js/beta-invite-terms-gate.js");
+
+const dashboardGuard = read("saas-prototype/production-dashboard-guard.js");
+function guardReloadsAfterSignIn(pathname, { fullCustomer = false, hostname = "goflipforge.com" } = {}) {
+  let reloads = 0;
+  const callbacks = {};
+  const navClickListeners = {};
+  const main = { querySelector: () => null, innerHTML: "" };
+  const link = { href: "", rel: "", type: "" };
+  const document = {
+    querySelector(selector) {
+      if (selector === "#main-content") return main;
+      if (selector === 'link[rel~="icon"]') return link;
+      return null;
+    },
+    createElement: () => ({ setAttribute() {}, addEventListener() {} }),
+    head: { appendChild() {} },
+    addEventListener(type, callback) { navClickListeners[type] = callback; }
+  };
+  const window = {
+    location: { hostname, pathname, hash: "#/discover",
+      href: `https://${hostname}${pathname}#/discover`,
+      reload() { reloads += 1; }
+    },
+    FlipForgeFullCustomerEntry: fullCustomer,
+    addEventListener(type, callback) { callbacks[type] = callback; }
+  };
+  class MutationObserver { observe() {} }
+  runInNewContext(dashboardGuard, {
+    window, document, MutationObserver, queueMicrotask: callback => callback(),
+    URL, AbortController, CustomEvent: class {}, Object, String, RegExp
+  }, { timeout: 1000 });
+  // Reproduce the route change triggered by sign-in/onboarding followed by
+  // clicking the current route again, both of which previously reloaded beta.
+  window.location.hash = "#/beta-start";
+  callbacks.hashchange?.({ stopImmediatePropagation() {} });
+  navClickListeners.click?.({
+    button: 0, target: { closest: () => ({ getAttribute: () => "#/beta-start" }) },
+    preventDefault() {}, stopImmediatePropagation() {}
+  });
+  return reloads;
+}
+check(guardReloadsAfterSignIn("/app/beta/") === 0,
+  "Private Beta onboarding and same-route click cannot reload the document after sign-in");
+check(guardReloadsAfterSignIn("/app/beta") === 0,
+  "Private Beta canonical no-slash route cannot reload after sign-in");
+check(guardReloadsAfterSignIn("/owner/customer/", { fullCustomer: true }) === 0,
+  "Full customer shell continues to use SPA navigation without reloading");
+check(guardReloadsAfterSignIn("/saas-prototype/", {hostname:"deploy-preview-495--goflipforge.netlify.app"}) === 0,
+  "exact PR #495 preview /saas-prototype/#/beta-start cannot reload after sign-in");
+check(guardReloadsAfterSignIn("/saas-prototype", {hostname:"deploy-preview-495--goflipforge.netlify.app"}) === 0,
+  "preview prototype without trailing slash cannot reload during onboarding");
+check(guardReloadsAfterSignIn("/saas-prototype/", {hostname:"goflipforge.com"}) === 1,
+  "prototype reload recovery stays unchanged on production host");
+check(guardReloadsAfterSignIn("/app/") === 1,
+  "Non-beta legacy app route retains existing one-time recovery behavior");
+
+
+// Exercise the real production guide script with a signed-in test snapshot.
+// This protects against sign-in loops caused by beta onboarding taking over
+// the owner/customer route, or repeated jumps when localStorage is unavailable.
+function guideNavigation(pathname, { hostname = "goflipforge.com", blockedStorage = false } = {}) {
+  const location = { hostname, pathname, hash: "#/discover" };
+  const window = {
+    location,
+    localStorage: {
+      getItem() { if (blockedStorage) throw new Error("storage blocked"); return null; },
+      setItem() {},
+      removeItem() {}
+    },
+    FlipForgeIdentity: { getSnapshot: () => ({ authenticated: true, membershipActive: true }) },
+    requestAnimationFrame: callback => callback(),
+    addEventListener() {}
+  };
+  const document = { querySelectorAll: () => [], querySelector: () => null };
+  runInNewContext(betaGuide, { window, document }, { timeout: 1000 });
+  return {
+    eligible: window.FlipForgePrivateBeta.isEligible(),
+    redirected: location.hash === "#/beta-start",
+    finalHash: location.hash
+  };
+}
+check(!guideNavigation("/owner/customer/").eligible && !guideNavigation("/owner/customer/").redirected,
+  "signed-in owner customer preview must never be hijacked by Private Beta onboarding");
+check(!guideNavigation("/app/customer/").eligible && !guideNavigation("/app/customer/").redirected,
+  "signed-in full customer route must never redirect to beta-start");
+check(!guideNavigation("/owner/").eligible && !guideNavigation("/owner/").redirected,
+  "operator Owner Hub must not enter beta onboarding");
+check(guideNavigation("/app/beta/").eligible && guideNavigation("/app/beta/").redirected,
+  "dedicated Private Beta route retains intended first-run onboarding");
+check(!guideNavigation("/app/beta/", { blockedStorage: true }).redirected,
+  "blocked browser storage must not force endless onboarding redirects after sign-in");
+check(!guideNavigation("/app/customer/", { hostname:"deploy-preview-495--goflipforge.netlify.app" }).redirected,
+  "preview customer route must not be redirected to beta-start");
+check(guideNavigation("/app/", { hostname:"localhost" }).eligible,
+  "local preview retains legacy beta rehearsal entry");
+check(betaTermsGate.includes('!/^\\/app\\/beta\\/?$/i.test') 
+    && !betaTermsGate.includes('!=="/app/customer/"'),
+  "Terms acceptance must avoid redundant navigation when already at beta-start");
+
 
 check(redirects.includes(`/app ${BETA_AUTH} 302`), "generic /app must route to Private Beta Sign In");
 check(redirects.includes(`/app/* ${BETA_AUTH} 302`), "generic /app/* must route to Private Beta Sign In");

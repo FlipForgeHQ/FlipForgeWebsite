@@ -26,6 +26,16 @@
     return window.FlipForgeFullCustomerEntry === true;
   }
 
+  function dedicatedPrivateBetaEntry() {
+    // Beta onboarding is a hash-router SPA: route changes after signing in must
+    // never force a full-document reload. Cover both the canonical beta URL
+    // and the legacy prototype entry on Netlify review hosts (e.g. PR #495).
+    const path = String(window.location.pathname || "");
+    const host = String(window.location.hostname || "");
+    return /^\/app\/beta(?:\/|$)/i.test(path)
+      || (PREVIEW_HOST.test(host) && /^\/saas-prototype(?:\/|$)/i.test(path));
+  }
+
   function authoritativeApiRequest(input) {
     try {
       const raw = typeof input === "string" ? input : input?.url || String(input || "");
@@ -177,7 +187,7 @@
     // forced reload here tears down a route after the authoritative renderer has
     // already painted it and can leave #main-content empty under route churn.
     // Keep the legacy reload recovery only for non-full-customer app surfaces.
-    if (!customerApp() || fullCustomerEntry() || routeReloading) return;
+    if (!customerApp() || fullCustomerEntry() || dedicatedPrivateBetaEntry() || routeReloading) return;
     if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
     routeReloading = true;
     if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
@@ -191,7 +201,7 @@
   function handleRouteClick(event) {
     // Same-hash reload recovery is also legacy-only. Full customer navigation
     // must remain inside the SPA so the route-ownership guard can arbitrate it.
-    if (!customerApp() || fullCustomerEntry() || routeReloading || !isPlainLeftClick(event)) return;
+    if (!customerApp() || fullCustomerEntry() || dedicatedPrivateBetaEntry() || routeReloading || !isPlainLeftClick(event)) return;
     const link = event.target?.closest?.('a[href^="#/"]');
     if (!link) return;
     const targetHash = String(link.getAttribute("href") || "");
