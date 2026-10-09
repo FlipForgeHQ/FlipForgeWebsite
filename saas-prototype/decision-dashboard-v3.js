@@ -527,8 +527,7 @@
     return `<section class="ff-focus-body" aria-label="Decision summary">
       <h3>Why ${escapeHtml(model.verdict)}?</h3>
       <p class="ff-focus-reason">${escapeHtml(reason)}</p>
-      ${primary ? `<p class="ff-focus-caution"><b>${escapeHtml(primary.tag)}</b> · ${escapeHtml(primary.text)}</p>` : ""}
-      ${model.nextAction ? `<p class="ff-focus-action"><span>Next step</span><strong>${escapeHtml(model.nextAction)}</strong></p>` : ""}
+      ${primary && primary.key !== "capped" ? `<p class="ff-focus-caution"><b>${escapeHtml(primary.tag)}</b> · ${escapeHtml(primary.text)}</p>` : ""}
     </section>`;
   }
 
