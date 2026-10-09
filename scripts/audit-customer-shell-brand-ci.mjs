@@ -125,6 +125,25 @@ async function launcherClearance(page) {
   });
 }
 
+async function drawerLauncherPlacement(page) {
+  return page.evaluate(() => {
+    const launcher = document.querySelector(".ff-guide-launcher");
+    const topbar = document.querySelector(".topbar");
+    const banner = document.querySelector(".prototype-banner");
+    if (!launcher || !topbar || !banner) return { present: false };
+    const l = launcher.getBoundingClientRect();
+    const t = topbar.getBoundingClientRect();
+    const b = banner.getBoundingClientRect();
+    return {
+      present: true,
+      clearBanner: l.top >= b.bottom,
+      withinTopbar: l.top >= t.top && l.bottom <= t.bottom && l.right <= t.right && l.left >= t.left,
+      absolute: getComputedStyle(launcher).position === "absolute",
+      description: `launcher(${Math.round(l.left)},${Math.round(l.top)},${Math.round(l.right)},${Math.round(l.bottom)}) bannerBottom=${Math.round(b.bottom)} topbar(${Math.round(t.left)},${Math.round(t.top)},${Math.round(t.right)},${Math.round(t.bottom)})`
+    };
+  });
+}
+
 async function navigationIntact(page, mobile) {
   if (!mobile) {
     return page.evaluate(() => ["Home", "Evaluate a Card", "Saved Decisions", "Tracking"].every(label =>
@@ -144,6 +163,7 @@ async function navigationIntact(page, mobile) {
 
 const scenarios = [
   { label: "V2 desktop 1440x900", viewport: { width: 1440, height: 900 }, v3: false, mobile: false, file: "shell-v2-desktop-1440x900.png" },
+  { label: "V2 tablet 820x1180", viewport: { width: 820, height: 1180 }, v3: false, mobile: true, file: "shell-v2-tablet-820x1180.png" },
   { label: "V2 mobile 390x844", viewport: { width: 390, height: 844 }, v3: false, mobile: true, file: "shell-v2-mobile-390x844.png" },
   { label: "V3 desktop 1440x900", viewport: { width: 1440, height: 900 }, v3: true, mobile: false, file: "shell-v3-desktop-1440x900.png" },
   { label: "V3 laptop 1200x800", viewport: { width: 1200, height: 800 }, v3: true, mobile: false, file: "shell-v3-laptop-1200x800.png" },
@@ -173,6 +193,11 @@ for (const scenario of scenarios) {
   // V3 suppresses the launcher on its dashboard by design (Visual Lock V1 §5.4, #488); V2 keeps it.
   if (v3) check(`${label}: Guide me suppressed on the V3 dashboard`, !clearance.present, clearance.rect || "absent");
   else check(`${label}: Guide me present and covers nothing`, clearance.present && clearance.hits.length === 0, `${clearance.rect || "absent"} ${clearance.hits.slice(0, 4).join("; ")}`);
+  if (!v3 && viewport.width <= 900) {
+    const placement = await drawerLauncherPlacement(page);
+    check(`${label}: Guide me is below beta banner and inside drawer-mode topbar`,
+      placement.present && placement.absolute && placement.clearBanner && placement.withinTopbar, placement.description || "missing");
+  }
   await page.screenshot({ path: path.join(screenshotDir, scenario.file) });
   check(`${label}: navigation intact`, await navigationIntact(page, mobile));
   {

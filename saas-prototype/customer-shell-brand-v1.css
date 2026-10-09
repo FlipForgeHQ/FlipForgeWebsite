@@ -157,8 +157,8 @@ body.ff-commercial-shell .ff-guide-launcher::before {
 body.ff-commercial-shell .ff-guide-launcher:hover,
 body.ff-commercial-shell .ff-guide-launcher:focus-visible { border-color: var(--ff-shell-gold) !important; }
 
-/* Desktop/laptop (persistent sidebar): bottom of the sidebar's empty navigation area. */
-@media (min-width: 761px) {
+/* Only >= 901px has a persistent sidebar; below that the drawer is off-canvas. */
+@media (min-width: 901px) {
   body.ff-commercial-shell .ff-guide-launcher {
     left: 18px !important;
     right: auto !important;
@@ -170,14 +170,13 @@ body.ff-commercial-shell .ff-guide-launcher:focus-visible { border-color: var(--
   }
 }
 
-/* Mobile (drawer navigation): compact icon button in the topbar row, beside search. It is
- * positioned against the page (not the viewport), so it scrolls away with the topbar and never
- * floats over content. */
-@media (max-width: 760px) {
+/* Drawer navigation (<= 900px): launcher is appended to body, not inside the topbar.
+ * Offset below the 32px Private Beta banner, next to search; it scrolls away with the page. */
+@media (max-width: 900px) {
   .app-shell[data-ff-interface="customer"] .topbar { padding-right: 58px !important; }
   body.ff-commercial-shell .ff-guide-launcher {
     position: absolute !important;
-    top: 7px !important;
+    top: 39px !important;
     right: 9px !important;
     bottom: auto !important;
     left: auto !important;
@@ -194,4 +193,9 @@ body.ff-commercial-shell .ff-guide-launcher:focus-visible { border-color: var(--
     gap: 0 !important;
   }
   body.ff-commercial-shell .ff-guide-launcher::before { margin: 0 !important; flex: 0 0 24px !important; width: 24px !important; height: 24px !important; }
+}
+
+/* The phone shell hides the Private Beta banner <=760px; its topbar starts at page top. */
+@media (max-width: 760px) {
+  body.ff-commercial-shell .ff-guide-launcher { top: 7px !important; }
 }
