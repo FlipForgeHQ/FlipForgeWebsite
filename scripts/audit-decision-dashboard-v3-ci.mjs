@@ -169,7 +169,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1200, height: 800
   check(`B03 ${label} verdict Black 52/54, card title Bold 26 (treatment C), page heading Bold+`, brand.verdict === "52px/54px/900" && brand.title === "26px/700" && Number(brand.heading) >= 700, `${brand.verdict} ${brand.title} ${brand.heading}`);
   // V3 CSS declares kickers at 11px; the existing customer typography floor (14px minimum,
   // customer-typography-floor-v1.js) may raise them in the app shell. Both are accepted here.
-  check(`B04 ${label} section kickers Semibold uppercase gold (11px declared, shell floor <= 14px)`, /^(?:11|14)px\/600\/rgb\(212, 175, 55\)\/uppercase$/.test(brand.kicker || ""), brand.kicker);
+  check(`B04 ${label} section kickers Semibold uppercase silver (11px declared, shell floor <= 14px)`, /^(?:11|14)px\/600\/rgb\(136, 143, 152\)\/uppercase$/.test(brand.kicker || ""), brand.kicker);
   check(`B05 ${label} no raw server enum codes`, !RAW_ENUM.test(await page.locator("[data-decision-dashboard-v3]").innerText()));
   check(`B06 ${label} 'Not established' never breaks mid-word`, (await midWordBreaks(page, "established")) === 0);
   check(`B07 ${label} exactly one visible Evaluate action in the header area`, (await visibleEvaluateActions(page)) === 1, String(await visibleEvaluateActions(page)));
@@ -255,8 +255,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
   const dossierText = (await page.locator('[data-ffv3-section="dossier"]').innerText()).replace(/\s+/g, " ");
   check(`R01 ${label} governed WATCH, decision evidence 62 leads, current saved sales 40 separate`,
     (await textOf(page, '[data-ffv3-section="verdict"] .ffv3-verdict-word')).trim() === "WATCH"
-      && /Decision evidence 62 exact comps/.test(dossierText) && /Current saved sales 40/.test(dossierText));
-  check(`R02 ${label} governed confidence 83 / risk 70 rendered`, /Confidence 83/.test(dossierText) && /Risk 70/.test(dossierText) && !/Confidence 55|Risk 20/.test(dossierText));
+      && /Exact sales used for this decision 62 exact sales/.test(dossierText) && /Current saved sales 40/.test(dossierText));
+  check(`R02 ${label} governed confidence 83 / risk 70 rendered`, /Confidence score 83\/100/.test(dossierText) && /Risk score 70\/100/.test(dossierText) && !/Confidence score 55|Risk score 20/.test(dossierText));
   check(`R03 ${label} lifecycle shows latest governed decision and 2 immutable snapshots`, /Decision history 2 immutable snapshots/.test(dossierText) && /Latest governed decision Oct 6, 2026/.test(dossierText));
   check(`R04 ${label} no fake zero, no structured exclusion count`, !/\$0(?![\d,])/.test(dossierText) && (await page.locator("[data-ffv3-excluded]").count()) === 0);
   // Measure all three in one layout pass after lazy per-record calls settle (avoids a measure-while-loading race).

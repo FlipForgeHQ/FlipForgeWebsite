@@ -20,7 +20,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "dashboard-v3-slice2.1";
+  const VERSION = "dashboard-v3-buyer-clarity.1";
   const CONTRACT_VERSION = "1.0";
   const G1_PREFIX = "governed-decision-read";
   const RENDERER_KEY = "flipforge.dashboard.renderer";
@@ -75,6 +75,14 @@
     return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(number / 100);
   }
 
+  // The buyer-facing ask/limit comparison must not round $608.79 up to $609.
+  function exactMoneyFromCents(cents, missing = DASH) {
+    const number = numberOrNull(cents);
+    return number === null ? missing : new Intl.NumberFormat("en-US", {
+      style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2
+    }).format(number / 100);
+  }
+
   function moneyFromDollars(dollars, missing) {
     const number = numberOrNull(dollars);
     if (number === null) return missing;
@@ -94,7 +102,7 @@
 
   function scoreText(value) {
     const number = numberOrNull(value);
-    return number === null ? DASH : String(Math.round(number));
+    return number === null ? DASH : (number >= 0 && number <= 100 ? `${Math.round(number)}/100` : String(Math.round(number)));
   }
 
   function dateText(value) {
@@ -248,7 +256,7 @@
   function unknownsOf(model) {
     const unknowns = [];
     if (model.profitabilityCappedBuy) {
-      unknowns.push({ key: "capped", tag: "Held by margin-of-safety rule", text: "The engine's base result was BUY; the profitability and margin-of-safety guardrail held it at the governed verdict." });
+      unknowns.push({ key: "capped", tag: "Profit protection applied", text: "The saved decision did not meet the required margin of safety, even if some profit scenarios were positive." });
     }
     if (model.verdict === "VERIFY") {
       const need = model.missingRequirement && !/^none\b/i.test(model.missingRequirement) ? model.missingRequirement : "additional verification";
@@ -296,10 +304,26 @@
     return SAFE_ID.test(id) ? `#/opportunities/${encodeURIComponent(id)}` : "#/opportunities";
   }
 
+  // Read-only explanation of a saved WATCH price threshold: never changes a verdict or Max Buy.
+  function priceSummaryMarkup(model) {
+    if (model.verdict !== "WATCH" || model.askCents === null || model.maxBuyCents === null || model.askCents <= model.maxBuyCents) return "";
+    return `<p class="ffv3-price-signal" data-ffv3-price-signal>At this price, the listing is <strong>${escapeHtml(exactMoneyFromCents(model.askCents - model.maxBuyCents))} above your modeled Max Buy.</strong></p>`;
+  }
+
+  // Snapshot-backed count and separately attributed current exclusion details. Never invent sale rows.
+  function evidencePreviewMarkup(model) {
+    const count = model.decisionEvidenceCount;
+    const accepted = count === null ? "Exact-sale count not established" : `${integerText(count)} exact sale${count === 1 ? "" : "s"} used for this saved decision`;
+    const excluded = model.excludedCount === null
+      ? "Excluded-sale details are unavailable in this view"
+      : `${integerText(model.excludedCount)} excluded from current saved sales${model.excludedReasons.length ? ` · ${model.excludedReasons.join("; ")}` : ""}`;
+    return `<div class="ffv3-evidence-preview" data-ffv3-evidence-preview><span>Evidence behind the decision</span><strong>${escapeHtml(accepted)}</strong><small>${escapeHtml(excluded)}</small></div>`;
+  }
+
   /* ① Decision Command Center — server order, display only. */
   function commandBarMarkup(view) {
     return `<header class="ffv3-command-bar" data-ffv3-section="command-bar">
-      <div class="ffv3-command-title"><span class="ffv3-kicker">Decision Command Center</span><h1>Dashboard</h1></div>
+      <div class="ffv3-command-title"><span class="ffv3-kicker">Your decisions</span><h1>Dashboard</h1></div>
       <dl class="ffv3-command-stats">
         ${fact("Tracked decisions", integerText(view.tracked))}
         ${fact("Needs verification", integerText(view.needsVerification), ' data-ffv3-needs-verification')}
@@ -313,14 +337,14 @@
     const supported = model.supportedCents === null ? NOT_ESTABLISHED : moneyFromCents(model.supportedCents, NOT_ESTABLISHED);
     return `<li class="ffv3-row${selected ? " is-selected" : ""}" data-verdict="${escapeHtml(model.verdict.toLowerCase())}">
       <button type="button" class="ffv3-row-button" data-ffv3-select="${escapeHtml(model.id)}" aria-pressed="${selected ? "true" : "false"}">
-        <span class="ffv3-row-head">${verdictBadge(model.verdict)}${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail">Guardrail</span>' : ""}<span class="ffv3-row-title">${escapeHtml(model.title)}</span></span>
+        <span class="ffv3-row-head">${verdictBadge(model.verdict)}${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail">Profit protection</span>' : ""}<span class="ffv3-row-title">${escapeHtml(model.title)}</span></span>
         ${model.identity && model.identity !== model.title ? `<span class="ffv3-row-identity">${escapeHtml(model.identity)}</span>` : ""}
         <span class="ffv3-row-grid">
           <span><small>Ask</small><b>${escapeHtml(moneyFromCents(model.askCents, DASH))}</b></span>
           <span><small>Supported</small><b>${escapeHtml(supported)}</b></span>
           ${model.decisionEvidenceCount !== null
-            ? `<span data-ffv3-row-evidence="decision"><small>Decision comps</small><b>${escapeHtml(integerText(model.decisionEvidenceCount))}</b></span>`
-            : `<span data-ffv3-row-evidence="current"><small>Saved sales</small><b>${escapeHtml(integerText(model.currentSavedSales))}</b></span>`}
+            ? `<span data-ffv3-row-evidence="decision"><small>Exact sales at decision</small><b>${escapeHtml(integerText(model.decisionEvidenceCount))}</b></span>`
+            : `<span data-ffv3-row-evidence="current"><small>Current saved sales</small><b>${escapeHtml(integerText(model.currentSavedSales))}</b></span>`}
           <span><small>Confidence</small><b>${escapeHtml(scoreText(model.confidence))}</b></span>
           <span><small>Risk</small><b>${escapeHtml(scoreText(model.risk))}</b></span>
         </span>
@@ -332,7 +356,7 @@
 
   function ledgerMarkup(models, selectedId) {
     return `<section class="ffv3-ledger" data-ffv3-section="ledger" aria-label="Saved decisions in server order">
-      <header class="ffv3-section-head"><h2>Saved decisions</h2><small>Server order preserved</small></header>
+      <header class="ffv3-section-head"><h2>Saved decisions</h2></header>
       <ol class="ffv3-rows">${models.map(model => ledgerRowMarkup(model, model.id === selectedId)).join("")}</ol>
     </section>`;
   }
@@ -340,50 +364,50 @@
   /* ② Verdict */
   function verdictMarkup(model) {
     const keyUnknown = unknownsOf(model)[0] || null;
-    const reason = model.reason || "The server did not return a governed reason for this decision.";
-    const longReason = reason.length > REASON_CLAMP_CHARACTERS;
+    const nextStep = model.nextAction;
     const sourceTag = model.governedAvailable
-      ? '<span class="ffv3-tag" data-tag="source">Governed decision</span>'
-      : '<span class="ffv3-tag" data-tag="source">No governed snapshot</span>';
+      ? '<span class="ffv3-tag" data-tag="source">Saved decision</span>'
+      : '<span class="ffv3-tag" data-tag="source">Saved evidence unavailable</span>';
     return `<section class="ffv3-dossier-verdict" data-ffv3-section="verdict">
       <p class="ffv3-verdict-word" data-verdict="${escapeHtml(model.verdict.toLowerCase())}">${escapeHtml(model.verdict)}</p>
-      <div class="ffv3-verdict-line">${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail" data-ffv3-guardrail>Held by margin-of-safety rule</span>' : ""}${sourceTag}</div>
+      <div class="ffv3-verdict-line">${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail" data-ffv3-guardrail>Profit protection applied</span>' : ""}${sourceTag}</div>
       <h2 class="ffv3-dossier-title">${escapeHtml(model.title)}</h2>
+      ${priceSummaryMarkup(model)}
       ${model.identity && model.identity === model.title ? "" : `<p class="ffv3-identity">${escapeHtml(model.identity ? `Exact identity: ${model.identity}` : "Exact identity not reported")}</p>`}
-      ${keyUnknown ? `<p class="ffv3-key-unknown" data-ffv3-key-unknown><span>Key uncertainty</span> ${escapeHtml(keyUnknown.tag)}</p>` : ""}
-      <p class="ffv3-reason${longReason ? " is-clamped" : ""}" id="ffv3-reason-${escapeHtml(model.id)}" data-ffv3-reason>${escapeHtml(reason)}</p>
-      ${longReason ? `<button type="button" class="ffv3-link" data-ffv3-reason-toggle aria-expanded="false" aria-controls="ffv3-reason-${escapeHtml(model.id)}">Read full reason</button>` : ""}
+      ${nextStep ? `<p class="ffv3-key-unknown" data-ffv3-key-unknown><span>Next step</span> ${escapeHtml(nextStep)}</p>` : keyUnknown ? `<p class="ffv3-key-unknown" data-ffv3-key-unknown><span>What to know</span> ${escapeHtml(keyUnknown.tag)}</p>` : ""}
     </section>`;
   }
 
-  /* ③ Decision Economics */
+  /* ③ Decision Economics: buyer-led, display-only arithmetic from the saved ask and Max Buy. */
   function economicsMarkup(model) {
-    const supported = model.supportedCents === null ? NOT_ESTABLISHED : moneyFromCents(model.supportedCents, NOT_ESTABLISHED);
-    const gapCents = model.askCents !== null && model.supportedCents !== null ? model.supportedCents - model.askCents : null;
-    const gridMissing = [model.askCents, gapCents, model.maxBuyCents].some(value => value === null);
-    const modeledValues = [model.expectedNetCents, model.conservativeNetCents, model.stressNetCents, model.expectedRoiBp, model.conservativeRoiBp, model.stressRoiBp];
-    const modeledAvailable = modeledValues.some(value => value !== null);
-    const modeled = (label, netCents, roiBp) => `<div class="ffv3-modeled-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(moneyFromCents(netCents, DASH))}</strong><em>${escapeHtml(roiBp === null ? DASH : `ROI ${percentFromBasisPoints(roiBp, DASH)}`)}</em></div>`;
-    const modeledBody = modeledAvailable
-      ? `${modeled("Expected", model.expectedNetCents, model.expectedRoiBp)}${modeled("Conservative", model.conservativeNetCents, model.conservativeRoiBp)}${modeled("Stress", model.stressNetCents, model.stressRoiBp)}`
-      : `<p class="ffv3-note" data-ffv3-modeled-unavailable>${NOT_CALCULATED}.</p>`;
+    const supported = model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
+    const delta = model.askCents !== null && model.maxBuyCents !== null ? model.askCents - model.maxBuyCents : null;
+    const deltaLabel = delta === null ? "Price versus Max Buy" : delta === 0 ? "At Max Buy" : delta > 0 ? "Above Max Buy" : "Below Max Buy";
+    const deltaAmount = delta === null ? DASH : exactMoneyFromCents(Math.abs(delta));
+    const missing = [model.askCents, model.maxBuyCents].some(value => value === null);
     return `<section class="ffv3-economics" data-ffv3-section="economics">
-      <header class="ffv3-section-head"><h3>Decision economics</h3></header>
+      <header class="ffv3-section-head"><h3>What the numbers say</h3></header>
       <dl class="ffv3-econ-grid">
-        ${fact("Ask", moneyFromCents(model.askCents, DASH))}
+        ${fact("All-in ask", exactMoneyFromCents(model.askCents))}
+        ${fact("Modeled Max Buy", exactMoneyFromCents(model.maxBuyCents))}
+        ${fact(deltaLabel, deltaAmount)}
         ${fact("Supported value", supported)}
-        ${fact("Value gap", gapCents === null ? DASH : moneyFromCents(gapCents, DASH))}
-        ${fact("Max Buy", moneyFromCents(model.maxBuyCents, DASH))}
       </dl>
-      ${gridMissing ? `<p class="ffv3-legend" data-ffv3-econ-legend>— ${NOT_CALCULATED}</p>` : ""}
-      <div class="ffv3-modeled"><div class="ffv3-modeled-head"><span>Modeled net economics</span><span class="ffv3-tag" data-tag="modeled">Modeled estimate</span></div>
-        ${modeledBody}
-      </div>
+      ${missing ? `<p class="ffv3-legend" data-ffv3-econ-legend>— ${NOT_CALCULATED}</p>` : ""}
+      ${evidencePreviewMarkup(model)}
     </section>`;
   }
 
   /* ④ Why FlipForge reached the decision */
   function whyMarkup(model, detailState) {
+    const reason = model.reason || "A saved decision explanation was not provided.";
+    const longReason = reason.length > REASON_CLAMP_CHARACTERS;
+    const modeledValues = [model.expectedNetCents, model.conservativeNetCents, model.stressNetCents, model.expectedRoiBp, model.conservativeRoiBp, model.stressRoiBp];
+    const modeledAvailable = modeledValues.some(value => value !== null);
+    const modeled = (label, netCents, roiBp) => `<div class="ffv3-modeled-row" data-outcome="${netCents !== null && netCents < 0 ? "negative" : "neutral"}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(moneyFromCents(netCents, DASH))}</strong><em>${escapeHtml(roiBp === null ? DASH : `ROI ${percentFromBasisPoints(roiBp, DASH)}`)}</em></div>`;
+    const modeledBody = modeledAvailable
+      ? `${modeled("Base case", model.expectedNetCents, model.expectedRoiBp)}${modeled("Cautious case", model.conservativeNetCents, model.conservativeRoiBp)}${modeled("Downside scenario", model.stressNetCents, model.stressRoiBp)}`
+      : `<p class="ffv3-note" data-ffv3-modeled-unavailable>${NOT_CALCULATED}.</p>`;
     let basis;
     if (detailState === "failed") {
       basis = '<p class="ffv3-note" data-ffv3-evidence-unavailable>Evidence detail is unavailable right now. The verdict, economics and next action above remain usable.</p>';
@@ -397,16 +421,19 @@
     // Structured exclusion data is shown only when the server supplies it; it is never parsed from prose.
     const excluded = model.excludedCount === null
       ? ""
-      : fact("Excluded evidence", `${integerText(model.excludedCount)}${model.excludedReasons.length ? ` · ${model.excludedReasons.join("; ")}` : ""}`, " data-ffv3-excluded");
+      : fact("Excluded sales", `${integerText(model.excludedCount)}${model.excludedReasons.length ? ` · ${model.excludedReasons.join("; ")}` : ""}`, " data-ffv3-excluded");
     const decisionEvidence = model.decisionEvidenceCount !== null
-      ? `${integerText(model.decisionEvidenceCount)} exact comp${model.decisionEvidenceCount === 1 ? "" : "s"}`
+      ? `${integerText(model.decisionEvidenceCount)} exact sale${model.decisionEvidenceCount === 1 ? "" : "s"}`
       : NOT_ESTABLISHED;
     return `<section class="ffv3-why" data-ffv3-section="why">
-      <header class="ffv3-section-head"><h3>Why FlipForge reached the decision</h3></header>
+      <header class="ffv3-section-head"><h3>Why this decision?</h3></header>
+      <div class="ffv3-modeled"><div class="ffv3-modeled-head"><span>Estimated profit after costs</span><span class="ffv3-tag" data-tag="modeled">Modeled estimate</span></div>${modeledBody}</div>
+      <p class="ffv3-reason${longReason ? " is-clamped" : ""}" id="ffv3-reason-${escapeHtml(model.id)}" data-ffv3-reason>${escapeHtml(reason)}</p>
+      ${longReason ? `<button type="button" class="ffv3-link" data-ffv3-reason-toggle aria-expanded="false" aria-controls="ffv3-reason-${escapeHtml(model.id)}">Read full reason</button>` : ""}
       <div class="ffv3-evidence-lead" data-ffv3-decision-evidence>
-        <span class="ffv3-evidence-label">Decision evidence</span>
+        <span class="ffv3-evidence-label">Exact sales used for this decision</span>
         <strong>${escapeHtml(decisionEvidence)}</strong>
-        <small>${escapeHtml(model.decisionEvidenceCount !== null ? "Recorded in the governed decision snapshot." : "No governed snapshot recorded an evidence count.")}</small>
+        <small>${escapeHtml(model.decisionEvidenceCount !== null ? "Recorded when the decision was saved; current sales may differ." : "No governed snapshot recorded an evidence count.")}</small>
       </div>
       <dl class="ffv3-why-grid">
         ${fact("Current saved sales", integerText(model.currentSavedSales), " data-ffv3-current-sales")}
@@ -417,7 +444,7 @@
       </dl>
       ${model.decisionEvidenceCount !== null && model.currentSavedSales !== null && model.decisionEvidenceCount !== model.currentSavedSales
         ? '<p class="ffv3-note" data-ffv3-evidence-differs>Current saved sales can differ from the evidence recorded when this decision was made. The decision stands on its recorded evidence.</p>' : ""}
-      <div class="ffv3-bars">${bar("Confidence", model.confidence, "gold")}${bar("Liquidity", model.liquidity, "silver")}${bar("Risk", model.risk, "silver")}</div>
+      <div class="ffv3-bars">${bar("Confidence score", model.confidence, "gold")}${bar("Liquidity", model.liquidity, "silver")}${bar("Risk score", model.risk, "silver")}</div>
       ${basis}
     </section>`;
   }
@@ -428,7 +455,7 @@
     const body = unknowns.length
       ? `<ul class="ffv3-unknowns">${unknowns.map(entry => `<li data-unknown="${entry.key}"><span class="ffv3-tag" data-tag="${entry.key === "capped" ? "guardrail" : "unknown"}">${escapeHtml(entry.tag)}</span><span>${escapeHtml(entry.text)}</span></li>`).join("")}</ul>`
       : '<p class="ffv3-note">The server reported no open uncertainty items for this decision.</p>';
-    return `<section class="ffv3-unknown" data-ffv3-section="unknowns"><header class="ffv3-section-head"><h3>What FlipForge does not know</h3></header>${body}</section>`;
+    return `<section class="ffv3-unknown" data-ffv3-section="unknowns"><header class="ffv3-section-head"><h3>What still needs verification</h3></header>${body}</section>`;
   }
 
   function transitionMarkup(entry) {
@@ -529,7 +556,7 @@
   function loadingMarkup() {
     const line = width => `<span class="ffv3-skeleton-line" style="width:${width}%"></span>`;
     return `${rootOpen("loading", ' aria-busy="true"')}
-      <header class="ffv3-command-bar" data-ffv3-section="command-bar"><div class="ffv3-command-title"><span class="ffv3-kicker">Decision Command Center</span><h1>Dashboard</h1></div><p class="ffv3-status" role="status">Loading saved decisions…</p></header>
+      <header class="ffv3-command-bar" data-ffv3-section="command-bar"><div class="ffv3-command-title"><span class="ffv3-kicker">Your decisions</span><h1>Dashboard</h1></div><p class="ffv3-status" role="status">Loading saved decisions…</p></header>
       <div class="ffv3-layout">
         <div class="ffv3-dossier-slot"><article class="ffv3-dossier ffv3-skeleton" data-ffv3-skeleton="dossier">${line(30)}${line(80)}${line(55)}<div class="ffv3-skeleton-block"></div>${line(70)}${line(60)}</article></div>
         <div class="ffv3-ledger-slot"><section class="ffv3-ledger ffv3-skeleton" data-ffv3-skeleton="ledger">${[0, 1, 2].map(() => `<div class="ffv3-skeleton-row">${line(40)}${line(85)}</div>`).join("")}</section></div>

@@ -201,7 +201,7 @@ function runChecks() {
     const order = [...html.matchAll(/data-ffv3-select="([^"]+)"/g)].map(match => match[1]);
     return JSON.stringify(order) === JSON.stringify(items.map(entry => entry.id));
   })());
-  check("S04 capped BUY renders governed WATCH plus guardrail tag", /data-ffv3-section="verdict"[\s\S]*?data-verdict="watch"[\s\S]*?data-ffv3-guardrail[^>]*>Held by margin-of-safety rule/.test(html));
+  check("S04 capped BUY renders governed WATCH plus guardrail tag", /data-ffv3-section="verdict"[\s\S]*?data-verdict="watch"[\s\S]*?data-ffv3-guardrail[^>]*>Profit protection applied/.test(html));
   check("S05 capped dossier lists margin-of-safety hold under unknowns", /data-unknown="capped"/.test(html));
   check("S06 'Modeled estimate' label present on modeled economics", html.includes(">Modeled estimate<"));
   check("S07 Breakeven and Sell number absent", !/breakeven/i.test(html) && !/sell number/i.test(html) && !/breakeven|sell number/i.test(source));
@@ -263,16 +263,16 @@ function runChecks() {
   const prodDossier = prodHtml.slice(prodHtml.indexOf('data-ffv3-section="dossier"'), prodHtml.indexOf('data-ffv3-section="ledger"'));
   const prodText = visibleText(prodDossier).replace(/\s+/g, " ");
   const prodModel = api.decisionModel(prod, null);
-  check("P01 decision evidence is the governed count (62 exact comps), labelled as decision evidence",
-    /data-ffv3-decision-evidence[\s\S]*?Decision evidence[\s\S]*?62 exact comps/.test(prodDossier));
+  check("P01 the saved decision carries 62 exact sales, separately from current saved sales",
+    /data-ffv3-decision-evidence[\s\S]*?Exact sales used for this decision[\s\S]*?62 exact sales/.test(prodDossier));
   check("P02 current saved sales (40) shown separately, never as the decision evidence",
     /data-ffv3-current-sales[\s\S]*?Current saved sales[\s\S]*?<dd>40<\/dd>/.test(prodDossier)
       && !/data-ffv3-decision-evidence[\s\S]{0,400}?\b40 exact comp/.test(prodDossier) && prodDossier.includes("data-ffv3-evidence-differs"));
   check("P03 decision evidence precedes current saved sales", prodDossier.indexOf("data-ffv3-decision-evidence") < prodDossier.indexOf("data-ffv3-current-sales"));
   const prodRow = (prodHtml.match(new RegExp(`data-ffv3-select="${PRODUCTION_SHAPED_ID}"[\\s\\S]*?</button>`)) || [""])[0];
-  check("P04 ledger row shows decision comps (62), not current saved sales (40)", /data-ffv3-row-evidence="decision"[\s\S]*?Decision comps<\/small><b>62</.test(prodRow) && !/Saved sales<\/small><b>40/.test(prodRow));
+  check("P04 ledger row shows decision comps (62), not current saved sales (40)", /data-ffv3-row-evidence="decision"[\s\S]*?Exact sales at decision<\/small><b>62</.test(prodRow) && !/Saved sales<\/small><b>40/.test(prodRow));
   check("P05 governed confidence/risk win over item-level values", prodModel.confidence === 83 && prodModel.risk === 70
-    && /Confidence[\s\S]*?<strong>83<\/strong>/.test(prodDossier) && /Risk[\s\S]*?<strong>70<\/strong>/.test(prodDossier)
+    && /Confidence score[\s\S]*?<strong>83\/100<\/strong>/.test(prodDossier) && /Risk score[\s\S]*?<strong>70\/100<\/strong>/.test(prodDossier)
     && !/<strong>55<\/strong>/.test(prodDossier) && !/<strong>20<\/strong>/.test(prodDossier));
   const noSnapshot = api.decisionModel({ ...prod, recommendationSource: "BASE_SMART_OPPORTUNITY", governedDecision: { available: false, status: "NO_GOVERNED_SNAPSHOT" } }, null);
   check("P06 without a governed snapshot, item-level confidence/risk are the fallback", noSnapshot.confidence === 55 && noSnapshot.risk === 20 && noSnapshot.decisionEvidenceCount === null);
@@ -297,11 +297,43 @@ function runChecks() {
     ["buy", "watch", "verify", "pass"].map(v => `${v}:${mixCount(v)}`).join(" "));
   check("P16 ⑨ analytics has no ranking, priority, urgency, top-opportunity or trend language",
     !/\b(?:rank|ranking|priority|urgent|urgency|top opportunit|best deal|trend|hot)\b/i.test(visibleText(analytics)));
-  check("P17 key uncertainty is the first server-reported unknown", /data-ffv3-key-unknown[^>]*><span>Key uncertainty<\/span> Identity still needs confirmation/.test(prodDossier)
-    || /data-ffv3-key-unknown[^>]*><span>Key uncertainty<\/span> Mapping not confirmed/.test(prodDossier));
+  check("P17 primary next step is governed nextAction, not guessed browser advice",
+    /data-ffv3-key-unknown[^>]*><span>Next step<\/span> Track the listing and wait for a better price or stronger evidence\./.test(prodDossier));
   check("P18 long governed reason is clamped behind an accessible disclosure", /class="ffv3-reason is-clamped"/.test(prodDossier) && /data-ffv3-reason-toggle aria-expanded="false" aria-controls="ffv3-reason-/.test(prodDossier));
   check("P19 dossier ends with ⑧ lifecycle after ⑦ next action", prodDossier.indexOf('data-ffv3-section="next-action"') < prodDossier.indexOf('data-ffv3-section="lifecycle"'));
   check("P20 no transaction affordances", !/buy now|place bid|checkout|make offer|add to cart/i.test(prodText));
+  /* Buyer clarity: display-only math; the governed verdict and evidence remain authoritative. */
+  check("B01 WATCH lead shows precise cents and no rounded Max Buy",
+    html.includes("data-ffv3-price-signal") && html.includes("$31.21 above your modeled Max Buy")
+    && html.includes("<dt>All-in ask</dt><dd>$640.00</dd>")
+    && html.includes("<dt>Modeled Max Buy</dt><dd>$608.79</dd>")
+    && !html.includes("<dt>Value gap</dt>"));
+  check("B02 evidence preview comes directly after economics, ahead of deeper analysis",
+    html.includes("data-ffv3-evidence-preview") && html.includes("12 exact sales used for this saved decision")
+    && html.indexOf("data-ffv3-evidence-preview") < html.indexOf("data-ffv3-section=\"why\"")
+    && html.indexOf("data-ffv3-evidence-preview") < html.indexOf("Estimated profit after costs"));
+  check("B03 preview does not invent exclusions or mix current with snapshot sales",
+    prodDossier.includes("62 exact sales used for this saved decision")
+    && prodDossier.includes("Excluded-sale details are unavailable in this view")
+    && !prodDossier.includes("438 excluded from current saved sales"));
+  check("B04 negative outcome explicitly marked and scenario names understandable",
+    html.includes('data-outcome="negative"') && html.includes("Downside scenario")
+    && html.includes("Base case") && html.includes("Cautious case")
+    && /\.ffv3-modeled-row\[data-outcome="negative"\] strong/.test(css));
+  check("B04b saved next action is visible ahead of economics and sourced from the saved decision",
+    html.indexOf("<span>Next step</span>") > html.indexOf("ffv3-verdict-line")
+    && html.indexOf("<span>Next step</span>") < html.indexOf("data-ffv3-section=\"economics\"")
+    && html.includes("Track the listing and wait for a better price or stronger evidence."));
+  check("B05 scaled model scores visible but no invented high/moderate rating",
+    html.includes("82/100") && html.includes("35/100")
+    && !/Confidence:\s*High|Risk:\s*Moderate/i.test(html));
+  check("B06 user interface has no developer ordering text or unconditional buy command",
+    !html.includes("Server order preserved") && !html.includes("Buy at $609 or less"));
+  check("B07 verify cannot invent a supported value, Max Buy, or price gap",
+    verifyDossier.includes("<dt>Modeled Max Buy</dt><dd>—</dd>")
+    && !verifyDossier.includes("data-ffv3-price-signal")
+    && verifyDossier.includes("Exact-sale count") === false);
+
 
   check("S25 G1 contract detection", api.isG1Contract({ data: { governedDecisionReadModelVersion: G1 } }) && !api.isG1Contract({ data: {} }));
   check("S26 renderer source performs no sort/rank on items", !/\.sort\s*\(|\.toSorted\s*\(|\.reverse\s*\(/.test(source));

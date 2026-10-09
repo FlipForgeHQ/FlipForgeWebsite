@@ -46,7 +46,7 @@
 .ffv3-root h1, .ffv3-root h2, .ffv3-root h3, .ffv3-root p, .ffv3-root dl, .ffv3-root dd, .ffv3-root ol, .ffv3-root ul { margin: 0; padding: 0; }
 .ffv3-root ol, .ffv3-root ul { list-style: none; }
 
-.ffv3-kicker { display: block; color: var(--ffv3-gold); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.ffv3-kicker { display: block; color: var(--ffv3-silver); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 
 /* ① Command bar */
 .ffv3-command-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 10px 0 14px; border-bottom: 1px solid var(--ffv3-line); margin-bottom: 14px; }
@@ -77,7 +77,7 @@
 
 .ffv3-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .ffv3-section-head { flex-wrap: wrap; }
-.ffv3-section-head h2, .ffv3-section-head h3 { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ffv3-gold); white-space: nowrap; }
+.ffv3-section-head h2, .ffv3-section-head h3 { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ffv3-silver); white-space: nowrap; }
 .ffv3-section-head small { color: var(--ffv3-silver); font-size: 12px; }
 
 /* Ledger */
@@ -115,8 +115,8 @@
 .ffv3-dossier > section + section { border-top: 1px solid var(--ffv3-line); }
 /* Decision hero: verdict + economics read as one card */
 .ffv3-dossier > [data-ffv3-section="verdict"], .ffv3-dossier > [data-ffv3-section="economics"] { background: var(--ffv3-hero); }
-.ffv3-dossier > [data-ffv3-section="verdict"] { padding-top: 20px; border-top: 2px solid var(--ffv3-gold); }
-.ffv3-dossier > [data-ffv3-section="economics"] { padding-bottom: 18px; }
+.ffv3-dossier > [data-ffv3-section="verdict"] { padding-top: 14px; border-top: 2px solid var(--ffv3-gold); }
+.ffv3-dossier > [data-ffv3-section="economics"] { padding-bottom: 12px; }
 .ffv3-verdict-word { font-size: 52px; line-height: 54px; font-weight: 900; letter-spacing: .01em; color: var(--ffv3-silver); }
 .ffv3-verdict-word[data-verdict="buy"] { color: var(--ffv3-buy); }
 .ffv3-verdict-word[data-verdict="watch"] { color: var(--ffv3-watch); }
@@ -132,11 +132,12 @@
 .ffv3-econ-grid .ffv3-fact dd { font-size: 28px; letter-spacing: -.015em; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ffv3-legend { margin-top: 6px !important; color: var(--ffv3-silver); font-size: 12px; }
 .ffv3-econ-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.ffv3-modeled { margin-top: 10px; display: grid; gap: 4px; }
+.ffv3-modeled { margin-top: 6px; display: grid; gap: 2px; }
 .ffv3-modeled-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--ffv3-silver); font-size: 12px; }
-.ffv3-modeled-row { display: grid; grid-template-columns: 120px 140px minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 15px; font-variant-numeric: tabular-nums; }
+.ffv3-modeled-row { display: grid; grid-template-columns: 155px 140px minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 14px; line-height: 1.24; font-variant-numeric: tabular-nums; }
 .ffv3-modeled-row span { color: var(--ffv3-silver); }
 .ffv3-modeled-row em { font-style: normal; color: var(--ffv3-silver); }
+.ffv3-modeled-row[data-outcome="negative"] strong { color: var(--ffv3-pass); }
 
 .ffv3-why-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 16px; }
 .ffv3-why-grid .ffv3-fact dd { font-size: 14px; }
@@ -144,7 +145,7 @@
 .ffv3-why-grid > .ffv3-fact, .ffv3-lifecycle-grid > .ffv3-fact, .ffv3-analytics-grid > .ffv3-fact { padding: 7px 0; border-top: 1px solid var(--ffv3-line); }
 .ffv3-lifecycle-grid .ffv3-fact dd, .ffv3-analytics-grid .ffv3-fact dd { font-size: 14px; }
 .ffv3-bars { display: grid; gap: 6px; margin-top: 10px; }
-.ffv3-bar { display: grid; grid-template-columns: 90px minmax(0, 1fr) 36px; gap: 10px; align-items: center; font-size: 15px; }
+.ffv3-bar { display: grid; grid-template-columns: 112px minmax(0, 1fr) 58px; gap: 10px; align-items: center; font-size: 15px; }
 .ffv3-bar-label { font-size: 12px; }
 .ffv3-bar-label { color: var(--ffv3-silver); }
 .ffv3-bar strong { font-variant-numeric: tabular-nums; }
@@ -167,11 +168,28 @@
 
 /* Key uncertainty (first server-reported unknown) and reason disclosure */
 .ffv3-key-unknown { margin-top: 12px !important; padding: 8px 12px; border-left: 2px solid var(--ffv3-gold); background: var(--ffv3-inset); color: var(--ffv3-white); font-size: 15px; font-weight: 600; }
-.ffv3-key-unknown span { color: var(--ffv3-gold); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; margin-right: 6px; }
+.ffv3-key-unknown span { color: var(--ffv3-silver); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; margin-right: 6px; }
 .ffv3-link { display: none; margin-top: 4px; padding: 0; border: 0; background: none; color: var(--ffv3-gold); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .ffv3-root p.ffv3-key-unknown { padding: 8px 12px; } /* outranks the .ffv3-root p reset */
-.ffv3-root .ffv3-dossier-verdict button.ffv3-link { margin: 4px 0 0; padding: 2px 0 !important; min-height: 24px; } /* a shell !important button padding would otherwise indent the disclosure */
+.ffv3-root .ffv3-dossier button.ffv3-link { margin: 4px 0 0; padding: 2px 0 !important; min-height: 24px; } /* a shell !important button padding would otherwise indent the disclosure */
 .ffv3-link:focus-visible { outline: 2px solid var(--ffv3-gold); outline-offset: 2px; }
+
+/* The buyer sees the price limit and the next action before secondary analysis. */
+.ffv3-price-signal { margin-top: 5px !important; font-size: 17px; line-height: 1.38; color: var(--ffv3-white); }
+.ffv3-price-signal strong { font-weight: 750; }
+.ffv3-hero-next { margin-top: 9px !important; font-size: 14px; color: var(--ffv3-white); }
+.ffv3-hero-next b { color: var(--ffv3-silver); font-weight: 700; }
+.ffv3-econ-grid .ffv3-fact:nth-child(2) dd { color: var(--ffv3-gold); }
+.ffv3-econ-grid .ffv3-fact:nth-child(4) dd { color: var(--ffv3-white); font-size: 18px; font-weight: 600; }
+.ffv3-evidence-preview { display: grid; gap: 3px; margin-top: 14px; padding: 12px 14px; border: 1px solid var(--ffv3-line); background: var(--ffv3-inset); border-radius: 6px; }
+.ffv3-evidence-preview > span { font-size: 11px; font-weight: 650; letter-spacing: .08em; color: var(--ffv3-silver); text-transform: uppercase; }
+.ffv3-evidence-preview > strong { font-size: 16px; font-weight: 720; color: var(--ffv3-white); }
+.ffv3-evidence-preview > small { color: var(--ffv3-silver); font-size: 12px; line-height: 1.4; }
+@media (max-width: 560px) {
+  .ffv3-price-signal { font-size: 15px; }
+  .ffv3-evidence-preview { padding: 10px 12px; margin-top: 10px; }
+  .ffv3-econ-grid .ffv3-fact:nth-child(4) dd { font-size: 16px; }
+}
 
 /* Decision evidence leads; current saved sales are secondary */
 .ffv3-evidence-lead { display: grid; gap: 2px; margin-bottom: 10px; padding: 10px 12px; border: 1px solid var(--ffv3-line); border-left: 3px solid var(--ffv3-gold); border-radius: 4px; background: var(--ffv3-inset); }
@@ -227,7 +245,7 @@
   .ffv3-econ-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ffv3-why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ffv3-unknowns li { grid-template-columns: minmax(0, 1fr); }
-  .ffv3-modeled-row { grid-template-columns: 96px minmax(0, 1fr); }
+  .ffv3-modeled-row { grid-template-columns: 128px minmax(0, 1fr); }
   .ffv3-modeled-row em { grid-column: 2; }
   /* First screen: verdict → card → key uncertainty → economics. The command bar stays compact;
      long governed reasons are clamped behind an explicit, accessible disclosure. */
