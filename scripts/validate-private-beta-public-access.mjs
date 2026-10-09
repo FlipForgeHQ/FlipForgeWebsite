@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { runInNewContext } from "node:vm";
 
 const read = path => fs.readFileSync(path, "utf8");
 const failures = [];
@@ -102,6 +103,50 @@ for (const page of publicPages) {
     check(html.includes(BETA_AUTH), `${page} marketing auth must enter beta-start`);
   }
 }
+
+// Real guard script regression for the exact looping preview page supplied by
+// the founder: /saas-prototype/#/beta-start on deploy-preview-495.
+function fullPageReloads(hostname, pathname) {
+  const listeners = {};
+  const main = { querySelector() {return null;}, innerHTML:"" };
+  const document = {
+    querySelector(selector) {
+      if(selector === "#main-content") return main;
+      if(selector === 'link[rel~="icon"]') return {href:""};
+      return null;
+    },
+    addEventListener(name, fn) {listeners[name]=fn;},
+    createElement() {return {setAttribute() {}, addEventListener() {}};},
+    head:{appendChild(){}}
+  };
+  let count=0;
+  const window={
+    location:{hostname, pathname, hash:"#/discover",
+      href:`https://${hostname}${pathname}#/discover`,
+      reload(){count++;}
+    },
+    FlipForgeFullCustomerEntry:false,
+    addEventListener(name, fn){listeners[name]=fn;}
+  };
+  class MutationObserver {observe(){}}
+  runInNewContext(read("saas-prototype/production-dashboard-guard.js"),
+    {window, document, MutationObserver, queueMicrotask:fn=>fn(), URL, AbortController,
+     CustomEvent:class{}, Object, String, RegExp}, {timeout:1000});
+  window.location.hash="#/beta-start";
+  listeners.hashchange?.({stopImmediatePropagation(){}});
+  listeners.click?.({button:0,
+    target:{closest:()=>({getAttribute:()=>"#/beta-start"})},
+    preventDefault(){},stopImmediatePropagation(){}});
+  return count;
+}
+check(fullPageReloads("deploy-preview-495--goflipforge.netlify.app", "/saas-prototype/")===0,
+  "PR495 preview beta-start must not full-page reload on onboarding or same route click");
+check(fullPageReloads("deploy-preview-495--goflipforge.netlify.app", "/saas-prototype")===0,
+  "PR495 prototype path without slash must preserve SPA navigation");
+check(fullPageReloads("goflipforge.com", "/app/beta/")===0,
+  "dedicated production beta route must not full-page reload");
+check(fullPageReloads("goflipforge.com", "/saas-prototype/")===1,
+  "non-preview legacy prototype recovery stays unchanged");
 
 console.log("PrivateBetaPublicAccessValidation");
 console.log(`PASSED: ${40 + publicPages.length * 4 - failures.length}`);

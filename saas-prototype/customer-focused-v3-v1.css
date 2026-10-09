@@ -1,0 +1,128 @@
+/*
+ * FlipForge Focused Dashboard V3 — owner preview only.
+ * Only applied to ?dashboard=v3&focus=1 on an authenticated G1 read model.
+ * No prices, scores, verdicts, records, or routing are invented or modified.
+ * Palette is an extension of locked Brand v2.1; no decorative charts/glows.
+ */
+.ffv3-root[data-ffv3-focus="true"] {
+  --ff-focus-buy:#60c99f;
+  --ff-focus-watch:#d4af37;
+  --ff-focus-verify:#adc4d7;
+  --ff-focus-pass:#ef8d92;
+  --ff-focus-info:#7dbdc7;
+}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-layout {
+  grid-template-columns:minmax(0,1fr);
+  grid-template-areas:"dossier" "ledger";
+}
+@media (min-width:1200px) {
+  .ffv3-root[data-ffv3-focus="true"] .ffv3-layout {
+    grid-template-columns:minmax(0,1.65fr) minmax(280px,.85fr);
+    grid-template-areas:"dossier ledger";
+    gap:20px;
+  }
+  .ffv3-root[data-ffv3-focus="true"] .ffv3-dossier-slot {position:static}
+}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-command-bar {padding-bottom:10px}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-command-title h1 {letter-spacing:-.03em}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-dossier {border-color:#343a40}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-dossier > [data-ffv3-section="verdict"] {border-top-color:var(--ffv3-gold)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict-word {font-size:clamp(38px,4vw,54px);line-height:1.06}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict-word[data-verdict="buy"],
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict[data-verdict="buy"] {color:var(--ff-focus-buy)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict-word[data-verdict="watch"],
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict[data-verdict="watch"] {color:var(--ff-focus-watch)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict-word[data-verdict="verify"],
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict[data-verdict="verify"] {color:var(--ff-focus-verify)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict-word[data-verdict="pass"],
+.ffv3-root[data-ffv3-focus="true"] .ffv3-verdict[data-verdict="pass"] {color:var(--ff-focus-pass)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row[data-verdict="buy"] {border-left-color:var(--ff-focus-buy)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row[data-verdict="watch"] {border-left-color:var(--ff-focus-watch)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row[data-verdict="verify"] {border-left-color:var(--ff-focus-verify)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row[data-verdict="pass"] {border-left-color:var(--ff-focus-pass)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-dossier > [data-ffv3-section="verdict"]:has(.ffv3-verdict-word[data-verdict="buy"]) {border-top-color:var(--ff-focus-buy)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-dossier > [data-ffv3-section="verdict"]:has(.ffv3-verdict-word[data-verdict="verify"]) {border-top-color:var(--ff-focus-verify)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-dossier > [data-ffv3-section="verdict"]:has(.ffv3-verdict-word[data-verdict="pass"]) {border-top-color:var(--ff-focus-pass)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row-grid > span:nth-child(2),
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row-grid > span:nth-child(4),
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row-grid > span:nth-child(5),
+.ffv3-root[data-ffv3-focus="true"] .ffv3-row-next {display:none}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-evidence-preview {
+  border-left:3px solid var(--ff-focus-info);
+  padding:10px 12px;
+  margin-top:10px;
+}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-econ-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-econ-grid > :nth-child(4) {display:none}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-econ-grid .ffv3-fact dd {font-size:clamp(20px,2.7vw,29px)}
+.ffv3-root[data-ffv3-focus="true"] .ffv3-econ-grid .ffv3-fact:nth-child(2) dd {color:var(--ffv3-gold)}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-evidence-jump {
+  width:100%;display:flex;align-items:center;justify-content:flex-end;
+  min-height:38px;padding:8px 18px;border:0;border-top:1px solid var(--ffv3-line);
+  color:#9fd3da;background:#0c1215;font:inherit;font-size:13px;font-weight:650;cursor:pointer;
+}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-evidence-jump:hover {background:#112027}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-evidence-jump:focus-visible {outline:2px solid var(--ffv3-gold);outline-offset:-2px}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-tabs {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  background:#0d0f11;border-top:1px solid var(--ffv3-line);border-bottom:1px solid var(--ffv3-line);
+}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-tabs > button {
+  min-height:46px;padding:10px 6px;border:0;border-bottom:2px solid transparent;
+  color:#aeb6be;background:transparent;font:inherit;font-size:14px;font-weight:700;cursor:pointer;
+}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-tabs > button[aria-selected="true"] {border-bottom-color:var(--ffv3-gold);color:#fff}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-tabs > button[data-ffv3-focus-tab="evidence"][aria-selected="true"] {border-bottom-color:var(--ff-focus-info)}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-tabs > button:focus-visible {outline:2px solid var(--ffv3-gold);outline-offset:-3px}
+.ffv3-root[data-ffv3-focus="true"] [data-ffv3-focus-panel][hidden] {display:none}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-body {padding:16px 18px 20px;display:grid;gap:12px}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-body h3 {font-size:16px;letter-spacing:-.01em}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-reason,
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-provenance {font-size:14px;color:#c5cbd1;line-height:1.55}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-caution {font-size:13px;line-height:1.5;color:#b9c2c9}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-caution b {color:var(--ff-focus-verify)}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-action {border-left:2px solid var(--ffv3-gold);background:#191c20;padding:10px 12px;display:grid;gap:4px}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-action span {font-size:11px;color:#bbc2cb;text-transform:uppercase;letter-spacing:.08em}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-action strong {font-size:14px}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-facts {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-facts .ffv3-fact {padding:10px;border:1px solid #343a40;border-radius:6px;background:#11151a}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-outcomes {display:grid;gap:0}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-outcome {display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--ffv3-line);font-variant-numeric:tabular-nums}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-outcome span {color:#bcc4cc}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-outcome strong {color:#f6f6f5}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-outcome[data-negative="true"] strong {color:var(--ff-focus-pass)}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-outcome small {color:#aab2b9;min-width:56px;text-align:right}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-full-record {border-top:1px solid var(--ffv3-line)}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-full-record > summary {padding:14px 18px;cursor:pointer;color:#cdd3d9;font-size:13px;font-weight:650}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-full-record > section {padding:16px 18px;border-top:1px solid var(--ffv3-line)}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-secondary {margin-top:14px;border:1px solid var(--ffv3-line);border-radius:8px}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-secondary > summary {padding:12px 14px;color:#c8ced3;font-size:13px;cursor:pointer}
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-secondary .ffv3-analytics {border:0;margin-top:0}
+html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > a[data-route="decision-intelligence"],
+html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > a[data-route="why-this-decision"],
+html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > a[data-route="evidence"],
+html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > a[data-route="portfolio"],
+html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > a[data-route="alerts"],
+html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > a[data-route="forge-heat"],
+html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > a[data-route="market-view"],
+html[data-ff-customer-focus="1"] .app-shell[data-ff-interface="customer"] .primary-nav > .ff-advanced-nav {display:none!important}
+html[data-ff-customer-focus="1"] .primary-nav > .ff-focus-tools {
+  order:100; /* The customer nav normalizer may reinsert core route links later. */
+  display:block;border-top:1px solid #2a2e33;padding:8px 6px;margin-top:8px;color:#e0e4e8;
+}
+html[data-ff-customer-focus="1"] .ff-focus-tools > summary {cursor:pointer;padding:10px 12px;font-size:14px;font-weight:650}
+html[data-ff-customer-focus="1"] .ff-focus-tool-links {display:grid;gap:3px;padding:4px 10px 10px}
+html[data-ff-customer-focus="1"] .ff-focus-tool-links a {display:block;padding:8px 10px;border-radius:6px;font-size:13px;color:#bdc5cc;text-decoration:none}
+html[data-ff-customer-focus="1"] .ff-focus-tool-links a:hover,
+html[data-ff-customer-focus="1"] .ff-focus-tool-links a:focus-visible {color:#fff;background:#1b2025}
+@media (max-width:560px) {
+  .ffv3-root[data-ffv3-focus="true"] .ffv3-econ-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ffv3-root[data-ffv3-focus="true"] .ff-focus-facts {grid-template-columns:1fr}
+  .ffv3-root[data-ffv3-focus="true"] .ff-focus-body {padding:13px 14px 18px}
+  .ffv3-root[data-ffv3-focus="true"] .ff-focus-outcome {grid-template-columns:1fr auto;gap:5px 10px}
+  .ffv3-root[data-ffv3-focus="true"] .ff-focus-outcome small {grid-column:2}
+}
+@media (prefers-reduced-motion:reduce) {
+  .ffv3-root[data-ffv3-focus="true"] * {scroll-behavior:auto!important;transition:none!important}
+}

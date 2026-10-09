@@ -43,6 +43,13 @@
   const DASH = "—";
   const REASON_CLAMP_CHARACTERS = 180;
 
+  // Focused customer experience is an explicit preview-only opt-in layered on
+  // top of the existing V3 + G1 governed-data gates. No localStorage persistence.
+  function focusRequested() {
+    const query = typeof window !== "undefined" && window.location ? String(window.location.search || "") : "";
+    return /(?:^\?|&)dashboard=v3(?:&|$)/.test(query) && /(?:^\?|&)focus=1(?:&|$)/.test(query);
+  }
+
   /* ------------------------------------------------------------------ *
    * Pure helpers (exported for the static contract validator)
    * ------------------------------------------------------------------ */
@@ -512,7 +519,81 @@
     </section>`;
   }
 
+  /* Presentation-only buyer focus: source-owned facts; detail stays reachable. */
+  function focusDecisionMarkup(model) {
+    const reason = model.reason || "A saved decision explanation was not reported.";
+    const uncertainties = unknownsOf(model);
+    const primary = uncertainties.length ? uncertainties[0] : null;
+    return `<section class="ff-focus-body" aria-label="Decision summary">
+      <h3>Why ${escapeHtml(model.verdict)}?</h3>
+      <p class="ff-focus-reason">${escapeHtml(reason)}</p>
+      ${primary && primary.key !== "capped" ? `<p class="ff-focus-caution"><b>${escapeHtml(primary.tag)}</b> · ${escapeHtml(primary.text)}</p>` : ""}
+    </section>`;
+  }
+
+  function focusEvidenceMarkup(model) {
+    const accepted = model.decisionEvidenceCount === null ? NOT_ESTABLISHED : integerText(model.decisionEvidenceCount);
+    const excluded = model.excludedCount === null ? "Unavailable" : integerText(model.excludedCount);
+    const range = model.earliestSaleDate || model.latestSaleDate
+      ? `${dateText(model.earliestSaleDate)} – ${dateText(model.latestSaleDate)}`
+      : "Not reported";
+    const mapping = labelFor(MAPPING_LABELS, model.mappingState) || "Not reported";
+    return `<section class="ff-focus-body" aria-label="Evidence at decision">
+      <h3>Evidence behind this decision</h3>
+      <dl class="ff-focus-facts">
+        ${fact("Exact sales at decision", accepted)}
+        ${fact("Current saved sales", integerText(model.currentSavedSales))}
+        ${fact("Excluded current sales", excluded)}
+        ${fact("Card match", mapping)}
+        ${fact("Saved sale date range", range)}
+      </dl>
+      <p class="ff-focus-provenance">Decision evidence is recorded at save time. Current sales may differ; individual sale rows and exclusions appear only when provided by the server.</p>
+    </section>`;
+  }
+
+  function focusEconomicsMarkup(model) {
+    const cases = [
+      ["Base case", model.expectedNetCents, model.expectedRoiBp],
+      ["Cautious case", model.conservativeNetCents, model.conservativeRoiBp],
+      ["Downside", model.stressNetCents, model.stressRoiBp]
+    ];
+    return `<section class="ff-focus-body" aria-label="Modeled decision economics">
+      <h3>Estimated profit after costs</h3>
+      <div class="ff-focus-outcomes">${cases.map(([name, cents, roi]) =>
+        `<div class="ff-focus-outcome" data-negative="${cents !== null && cents < 0 ? "true" : "false"}"><span>${escapeHtml(name)}</span>
+          <strong>${escapeHtml(exactMoneyFromCents(cents, NOT_CALCULATED))}</strong>
+          <small>${escapeHtml(roi === null ? "" : `ROI ${percentFromBasisPoints(roi, DASH)}`)}</small></div>`
+      ).join("")}</div>
+      <p class="ff-focus-provenance">These are saved model estimates, not guaranteed outcomes or actual sale proceeds.</p>
+    </section>`;
+  }
+
+  function focusedDossierMarkup(model, detailState) {
+    return `<article class="ffv3-dossier ff-focus-dossier" data-ffv3-section="dossier" data-ffv3-selected="${escapeHtml(model.id)}" tabindex="-1" aria-label="Saved card decision">
+      ${verdictMarkup(model)}
+      ${economicsMarkup(model)}
+      <button type="button" class="ff-focus-evidence-jump" data-ffv3-focus-evidence>View saved evidence →</button>
+      <div class="ff-focus-tabs" role="tablist" aria-label="Explore saved decision">
+        <button type="button" role="tab" data-ffv3-focus-tab="decision" id="ff-focus-tab-decision" aria-selected="true" aria-controls="ff-focus-panel-decision" tabindex="0">Decision</button>
+        <button type="button" role="tab" data-ffv3-focus-tab="evidence" id="ff-focus-tab-evidence" aria-selected="false" aria-controls="ff-focus-panel-evidence" tabindex="-1">Evidence</button>
+        <button type="button" role="tab" data-ffv3-focus-tab="economics" id="ff-focus-tab-economics" aria-selected="false" aria-controls="ff-focus-panel-economics" tabindex="-1">Economics</button>
+      </div>
+      <div data-ffv3-focus-panel="decision" id="ff-focus-panel-decision" role="tabpanel" aria-labelledby="ff-focus-tab-decision">${focusDecisionMarkup(model)}</div>
+      <div data-ffv3-focus-panel="evidence" id="ff-focus-panel-evidence" role="tabpanel" aria-labelledby="ff-focus-tab-evidence" hidden>${focusEvidenceMarkup(model)}</div>
+      <div data-ffv3-focus-panel="economics" id="ff-focus-panel-economics" role="tabpanel" aria-labelledby="ff-focus-tab-economics" hidden>${focusEconomicsMarkup(model)}</div>
+      <details class="ff-focus-full-record">
+        <summary>Full decision record</summary>
+        ${whyMarkup(model, detailState)}
+        ${unknownsMarkup(model)}
+        ${changeMarkup(model, detailState)}
+        ${nextActionMarkup(model)}
+        ${lifecycleMarkup(model)}
+      </details>
+    </article>`;
+  }
+
   function dossierMarkup(model, detailState) {
+    if (focusRequested()) return focusedDossierMarkup(model, detailState);
     return `<article class="ffv3-dossier" data-ffv3-section="dossier" data-ffv3-selected="${escapeHtml(model.id)}" tabindex="-1" aria-label="Decision dossier">
       ${verdictMarkup(model)}${economicsMarkup(model)}${whyMarkup(model, detailState)}${unknownsMarkup(model)}${changeMarkup(model, detailState)}${nextActionMarkup(model)}${lifecycleMarkup(model)}
     </article>`;
@@ -543,13 +624,14 @@
 
   function readyMarkup(view) {
     const selected = view.models.find(model => model.id === view.selectedId) || view.models[0];
-    return `${rootOpen("ready", ` data-ffv3-tracked="${escapeHtml(numberOrNull(view.tracked) ?? view.models.length)}"`)}
+    const rootExtra = ` data-ffv3-tracked="${escapeHtml(numberOrNull(view.tracked) ?? view.models.length)}"` + (focusRequested() ? ' data-ffv3-focus="true"' : "");
+    return `${rootOpen("ready", rootExtra)}
       ${commandBarMarkup(view)}
       <div class="ffv3-layout">
         <div class="ffv3-dossier-slot" data-ffv3-dossier-slot>${dossierMarkup(selected, view.detailState)}</div>
         <div class="ffv3-ledger-slot">${ledgerMarkup(view.models, selected.id)}</div>
       </div>
-      ${analyticsMarkup(view)}
+      ${focusRequested() ? `<details class="ff-focus-secondary"><summary>Account overview</summary>${analyticsMarkup(view)}</details>` : analyticsMarkup(view)}
     </div>`;
   }
 
@@ -679,6 +761,7 @@
   window.FlipForgeDashboardRenderer = "v3";
 
   let generation = 0;
+  let focusedTab = "decision";
   let snapshot = null;
   let selectedId = "";
   const details = Object.create(null);
@@ -783,7 +866,87 @@
     bindDossier();
   }
 
+  const FOCUS_TABS = Object.freeze(["decision", "evidence", "economics"]);
+
+  function activateFocusedTab(name, moveFocus = false) {
+    if (!FOCUS_TABS.includes(name)) return;
+    focusedTab = name;
+    main.querySelectorAll("[data-ffv3-focus-tab]").forEach(tab => {
+      const active = tab.dataset.ffv3FocusTab === name;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+      if (active && moveFocus) tab.focus();
+    });
+    main.querySelectorAll("[data-ffv3-focus-panel]").forEach(panel => {
+      panel.hidden = panel.dataset.ffv3FocusPanel !== name;
+    });
+  }
+
+  // Keep the existing route-bearing links untouched. The focus menu uses links
+  // without data-route so the legacy nav normalizer cannot detach/reorder them.
+  function focusChrome(enabled) {
+    const nav = document.querySelector(".primary-nav");
+    if (!nav) return;
+    const prior = nav.querySelector("[data-ffv3-focus-tools]");
+    if (!enabled) {
+      if (prior) prior.remove();
+      document.documentElement.removeAttribute("data-ff-customer-focus");
+      return;
+    }
+    if (!prior) {
+      const details = document.createElement("details");
+      details.dataset.ffv3FocusTools = "";
+      details.className = "ff-focus-tools";
+      const summary = document.createElement("summary");
+      summary.textContent = "More Tools";
+      details.append(summary);
+      const links = document.createElement("div");
+      links.className = "ff-focus-tool-links";
+      const routes = new Map([
+        ["decision-intelligence", "Decision Intelligence"],
+        ["why-this-decision", "Why This Decision"],
+        ["evidence", "Evidence Review"],
+        ["portfolio", "Portfolio"],
+        ["alerts", "Alerts"],
+        ["forge-heat", "Forge Heat"],
+        ["market-view", "Market View"],
+        ["compare", "Compare"],
+        ["psa-advisor", "PSA Advisor"],
+        ["export", "Audit Export"]
+      ]);
+      for (const [route, name] of routes) {
+        const original = nav.querySelector(`a[data-route="${route}"]`);
+        if (!original || original.hidden || original.getAttribute("aria-hidden") === "true") continue;
+        const link = document.createElement("a");
+        link.href = original.getAttribute("href") || "#/dashboard";
+        link.textContent = name;
+        link.dataset.ffv3FocusLink = route;
+        links.append(link);
+      }
+      if (links.children.length) {
+        details.append(links);
+        nav.append(details);
+      }
+    }
+    document.documentElement.setAttribute("data-ff-customer-focus", "1");
+  }
+
   function bindDossier() {
+    main.querySelectorAll("[data-ffv3-focus-tab]").forEach(tab => {
+      tab.addEventListener("click", () => activateFocusedTab(tab.dataset.ffv3FocusTab));
+      tab.addEventListener("keydown", event => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        const current = FOCUS_TABS.indexOf(tab.dataset.ffv3FocusTab);
+        const next = event.key === "Home" ? 0 : event.key === "End" ? FOCUS_TABS.length - 1
+          : (current + (event.key === "ArrowRight" ? 1 : -1) + FOCUS_TABS.length) % FOCUS_TABS.length;
+        activateFocusedTab(FOCUS_TABS[next], true);
+      });
+    });
+    main.querySelectorAll("[data-ffv3-focus-evidence]").forEach(button =>
+      button.addEventListener("click", () => activateFocusedTab("evidence", true))
+    );
+    if (focusRequested()) activateFocusedTab(focusedTab);
     main.querySelectorAll("[data-ffv3-reason-toggle]").forEach(button => button.addEventListener("click", () => {
       const reason = main.querySelector("[data-ffv3-reason]");
       if (!reason) return;
@@ -804,6 +967,7 @@
     selectedId = view.selectedId;
     if (view.models.length && !detailStates[selectedId]) view.detailState = "loading";
     main.innerHTML = markupForView(view);
+    focusChrome(focusRequested() && view.models.length > 0);
     bindRoot();
     if (selectedId) loadDetail(selectedId);
   }
@@ -828,6 +992,7 @@
   function select(id, userInitiated) {
     if (!snapshot || !id) return;
     selectedId = id;
+    if (focusRequested()) focusedTab = "decision";
     renderDossierOnly();
     loadDetail(id);
     if (userInitiated && typeof window.matchMedia === "function" && window.matchMedia(MOBILE_QUERY).matches) {
@@ -857,6 +1022,7 @@
   }
 
   function fallBackToV2() {
+    focusChrome(false);
     window.FlipForgeDashboardRenderer = "v2";
     if (main.querySelector("[data-decision-dashboard-v3]")) main.innerHTML = "";
     if (typeof window.FlipForgeDashboardV2Reload === "function") window.FlipForgeDashboardV2Reload();
@@ -896,6 +1062,7 @@
 
   function apply() {
     if (!active()) {
+      focusChrome(false);
       generation += 1;
       return;
     }

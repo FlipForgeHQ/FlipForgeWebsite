@@ -440,6 +440,107 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   await context.close();
 }
 
+/* Focused customer option — always off unless both explicit flags and G1 are present. */
+const FOCUS_URL = `${baseUrl}/?dashboard=v3&focus=1#/dashboard`;
+for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180 }, { width: 390, height: 844 }]) {
+  const label = `${viewport.width}x${viewport.height}`;
+  const { context, page, requests } = await open(viewport, {}, { url: FOCUS_URL });
+  await readyV3(page);
+  await page.waitForSelector('[data-ffv3-focus="true"]');
+  // Owner-review capture of the ACTUAL first view: Decision tab selected,
+  // evidence visible, Full decision record closed, scroll at start.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  check(`FOCUS00 ${label} default is Decision with full record collapsed`,
+    (await page.getAttribute('[data-ffv3-focus-tab="decision"]', "aria-selected")) === "true"
+    && (await page.locator(".ff-focus-full-record:not([open])").count()) === 1);
+  check(`FOCUS16 ${label} next step appears once in initial buyer view`,
+    (await page.locator('[data-ffv3-section="verdict"] [data-ffv3-key-unknown]').count()) === 1
+    && (await page.locator(".ff-focus-body .ff-focus-action").count()) === 0);
+  await page.screenshot({path:path.join(screenshotDir, `dashboard-v3-focus-INITIAL-${label}.png`), fullPage:true});
+  await page.screenshot({path:path.join(screenshotDir, `dashboard-v3-focus-FIRST-SCREEN-${label}.png`)});
+  check(`FOCUS01 ${label} opt-in V3 shows source-driven three tabs`,
+    (await page.locator("[data-ffv3-focus-tab]").count()) === 3
+    && (await page.locator('[data-ffv3-focus-panel="decision"]:visible').count()) === 1);
+  check(`FOCUS02 ${label} WATCH model and Max Buy stay authoritative`,
+    (await textOf(page, ".ffv3-verdict-word")).trim() === "WATCH"
+    && (await textOf(page, '[data-ffv3-section="economics"]')).includes("$608.79"));
+  check(`FOCUS03 ${label} compact navigation never creates unauthorized links`,
+    (await page.locator('.primary-nav > a[data-route="dashboard"]').count()) === 1
+    && (await page.locator('[data-ffv3-focus-tools]').count()) <= 1
+    && (await page.locator('[data-ffv3-focus-tools] a[href="#/evidence"]').count()) <= 1);
+  await page.locator("[data-ffv3-focus-evidence]").click();
+  check(`FOCUS04 ${label} evidence jump opens source-backed evidence tab`,
+    (await page.getAttribute('[data-ffv3-focus-tab="evidence"]', "aria-selected")) === "true"
+    && (await page.locator('[data-ffv3-focus-panel="evidence"]:visible').count()) === 1
+    && (await textOf(page, '[data-ffv3-focus-panel="evidence"]')).includes("12"));
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({path:path.join(screenshotDir, `dashboard-v3-focus-EVIDENCE-${label}.png`), fullPage:true});
+  await page.locator('[data-ffv3-focus-tab="economics"]').click();
+  check(`FOCUS05 ${label} economics are modeled not invented`,
+    (await page.locator('[data-ffv3-focus-panel="economics"]:visible').count()) === 1
+    && (await textOf(page, '[data-ffv3-focus-panel="economics"]')).includes("Downside")
+    && (await textOf(page, '[data-ffv3-focus-panel="economics"]')).includes("-$41.00"));
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({path:path.join(screenshotDir, `dashboard-v3-focus-ECONOMICS-${label}.png`), fullPage:true});
+  await page.locator(".ff-focus-full-record summary").click();
+  check(`FOCUS06 ${label} entire saved decision record remains accessible`,
+    (await page.locator('.ff-focus-full-record[open] [data-ffv3-section="lifecycle"]').count()) === 1
+    && (await page.locator('.ff-focus-full-record[open] [data-ffv3-section="unknowns"]').count()) === 1);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  check(`FOCUS07 ${label} no horizontal overflow`, overflow <= 1, String(overflow));
+  const disallowed = requests.filter(value => !ALLOWED.some(rule => rule.test(value.replace(/^GET /, ""))));
+  check(`FOCUS08 ${label} no new network/providercalls`, disallowed.length === 0, disallowed.join(", "));
+  await page.screenshot({ path: path.join(screenshotDir, `dashboard-v3-focus-${label}.png`), fullPage: true });
+  await page.evaluate(() => { window.location.hash = "#/tracking"; });
+  await page.waitForFunction(() => !document.documentElement.hasAttribute("data-ff-customer-focus"));
+  check(`FOCUS09 ${label} focus chrome removed when leaving the dashboard`,
+    (await page.locator("[data-ffv3-focus-tools]").count()) === 0);
+  await context.close();
+}
+{
+  const { context, page } = await open({ width: 390, height: 844 }, { g1: false }, { url: FOCUS_URL });
+  await page.waitForSelector("[data-commercial-dashboard-v2]", { timeout: 15000 });
+  check("FOCUS10 missing G1 falls back to V2 with no focus navigation",
+    (await page.locator("[data-ffv3-focus-tools]").count()) === 0
+    && (await page.locator('[data-ffv3-focus="true"]').count()) === 0);
+  await context.close();
+}
+{
+  const { context, page } = await open({ width: 390, height: 844 }, {}, { url: V3_URL });
+  await readyV3(page);
+  check("FOCUS11 normal V3 remains unchanged without focus=1",
+    (await page.locator("[data-ffv3-focus-tab]").count()) === 0
+    && (await page.locator("[data-ffv3-focus-tools]").count()) === 0);
+  await context.close();
+}
+
+/* Validate the full customer-shell route as well as the beta-shaped /app shell.
+ * The public app/customer URL is NOT published by Netlify; this is only the
+ * local preview server, using synthetic G1 API contracts and no live account.
+ */
+{
+  const CUSTOMER_FOCUS_URL = `${baseUrl.endsWith("/app") ? baseUrl.slice(0, -4) : baseUrl}/app/customer/?dashboard=v3&focus=1#/dashboard`;
+  const { context, page, requests } = await open({width:1440,height:900}, {}, {url:CUSTOMER_FOCUS_URL});
+  await readyV3(page);
+  check("FOCUS12 full customer route renders opt-in decision tabs",
+    (await page.locator('[data-ffv3-focus="true"]').count()) === 1
+    && (await page.locator('[data-ffv3-focus-tab="decision"]').count()) === 1);
+  check("FOCUS13 full customer navigation retains Discover and Evaluate",
+    (await page.locator('.primary-nav a[data-route="discover"]').count()) === 1
+    && (await page.locator('.primary-nav a[data-route="evaluate"]').count()) === 1);
+  check("FOCUS14 full customer advanced destinations stay reachable via More Tools",
+    (await page.locator('[data-ffv3-focus-tools] a[href="#/portfolio"]').count()) === 1
+    && (await page.locator('[data-ffv3-focus-tools] a[href="#/forge-heat"]').count()) === 1);
+  const menuOrder = await page.locator('[data-ffv3-focus-tools]').evaluate(node => getComputedStyle(node).order);
+  check("FOCUS17 More Tools follows core navigation in visual order", Number(menuOrder) >= 99, String(menuOrder));
+  const disallowed = requests.filter(value => !ALLOWED.some(rule => rule.test(value.replace(/^GET /, ""))));
+  check("FOCUS15 full customer mode makes no extra provider calls",
+    disallowed.length === 0, disallowed.join(", "));
+  await page.evaluate(() => window.scrollTo(0,0));
+  await page.screenshot({path:path.join(screenshotDir, "dashboard-v3-focus-FULL-CUSTOMER-1440.png"), fullPage:true});
+  await context.close();
+}
+
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);
