@@ -105,14 +105,14 @@
     if (pageHeading) {
       setText(pageHeading.querySelector(".eyebrow"), "Evaluate");
       setText(pageHeading.querySelector("h1"), "Evaluate a Card");
-      setText(pageHeading.querySelector("p"), "Enter the card you are considering. FlipForge will find the best match, evaluate it, and explain the decision.");
+      setText(pageHeading.querySelector("p"), "Enter your card, find a listing for sale, then choose which listing FlipForge should evaluate.");
       hideNode(pageHeading.querySelector(".page-actions"));
     }
 
     const heading = panel.querySelector("h2");
     const intro = panel.querySelector(".panel-header p");
-    if (heading && heading.textContent !== "Evaluate one card") heading.textContent = "Evaluate one card";
-    const introCopy = "Start with the exact card you are considering. Include the year, set, player, card number, parallel, grader and grade when you know them.";
+    if (heading && heading.textContent !== "Find listings for your card") heading.textContent = "Find listings for your card";
+    const introCopy = "Enter the year, player, set and card number when known. Search listings when you know the version, or check the card identity first if you are unsure.";
     if (intro && intro.textContent !== introCopy) intro.textContent = introCopy;
 
     const cardLabel = form.querySelector('input[name="exactCardQuery"]')?.closest("label");
@@ -131,14 +131,31 @@
     }
 
     const submit = form.querySelector('button[type="submit"]');
-    if (submit && !submit.disabled && !/Searching|Resolving/i.test(String(submit.textContent || "")) && submit.textContent !== "Find this card") {
-      submit.textContent = "Find this card";
+    // One primary action: listings; no identity is silently declared confirmed.
+    if (submit && !submit.disabled && !/Searching|Resolving/i.test(String(submit.textContent || "")) && submit.textContent !== "Search listings") {
+      submit.textContent = "Search listings";
+    }
+    if (submit) {
+      submit.setAttribute("aria-label", "Search active listings for the card entered");
+      submit.title = "Find listings currently for sale. You'll choose one before FlipForge evaluates it.";
     }
     const exact = form.querySelector("[data-discovery-find-exact]");
-    if (exact && !exact.disabled && exact.textContent !== "Help me find the exact card") exact.textContent = "Help me find the exact card";
+    if (exact && !exact.disabled && exact.textContent !== "Check card identity") exact.textContent = "Check card identity";
+    if (exact) {
+      exact.setAttribute("aria-label", "Check card identity before searching listings");
+      exact.title = "Use this if you are unsure of the parallel, variation, or card number. No listing search or evaluation starts yet.";
+    }
+    const actions = form.querySelector(".customer-discovery-search-actions");
+    if (actions && !form.querySelector("[data-ff-beta-identity-hint]")) {
+      const hint = document.createElement("p");
+      hint.dataset.ffBetaIdentityHint = "";
+      hint.className = "ff-beta-identity-hint";
+      hint.textContent = "Not sure which version of the card you have? Check card identity first. Otherwise, search listings.";
+      actions.insertAdjacentElement("afterend", hint);
+    }
 
     const help = panel.querySelector(".customer-discovery-search-help");
-    const helpCopy = "Best results: <strong>year · set · player · card number · parallel · grader · grade</strong>. If you do not know every detail, FlipForge can help you identify the exact card first.";
+    const helpCopy = "For accurate results, include <strong>year · set · player · card number · parallel · grader · grade</strong> when known. Checking identity only helps confirm the card; searching finds listings for sale.";
     if (help && help.innerHTML !== helpCopy) help.innerHTML = helpCopy;
 
     hideTechnicalSectionByHeading(/^Connected source status$/i);
