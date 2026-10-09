@@ -262,8 +262,14 @@ try {
       await page.locator('[data-private-beta-start]').first().click();
       await page.waitForFunction(() => window.location.hash === "#/discover", null, {timeout:6000});
       await page.locator("#main-content [data-customer-discovery-form]").waitFor({state:"visible",timeout:10000});
+      // Require a stable rendered card-entry page after the other hash listeners
+      // and mobile decorators have had time to settle. A form seen for just one
+      // frame is not a usable evaluation workflow.
+      await page.waitForTimeout(900);
       const state=await page.evaluate(() => ({hash:location.hash,heading:document.querySelector("#main-content h1")?.textContent?.trim(),
-        form:!!document.querySelector("#main-content [data-customer-discovery-form]"),url:location.pathname}));
+        form:!!document.querySelector("#main-content [data-customer-discovery-form]"),url:location.pathname,
+        mainMarkup:String(document.querySelector("#main-content")?.innerHTML||"").slice(0,600),
+        routeOwned:Boolean(window.FlipForgeCustomerRouteRenderer?.applyCurrentRoute)}));
       if (!state.form || state.hash !== "#/discover") fail(`${viewport.name}: Evaluate CTA did not open card entry`,state);
       if(!(await page.evaluate(() => window.__ffBetaEvaluateDocumentMarker === true))) fail(`${viewport.name}: Evaluate click reloaded the beta document`);
 
