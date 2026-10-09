@@ -573,6 +573,7 @@
     return `<article class="ffv3-dossier ff-focus-dossier" data-ffv3-section="dossier" data-ffv3-selected="${escapeHtml(model.id)}" tabindex="-1" aria-label="Saved card decision">
       ${verdictMarkup(model)}
       ${economicsMarkup(model)}
+      <button type="button" class="ff-focus-evidence-jump" data-ffv3-focus-evidence>View saved evidence →</button>
       <div class="ff-focus-tabs" role="tablist" aria-label="Explore saved decision">
         <button type="button" role="tab" data-ffv3-focus-tab="decision" id="ff-focus-tab-decision" aria-selected="true" aria-controls="ff-focus-panel-decision" tabindex="0">Decision</button>
         <button type="button" role="tab" data-ffv3-focus-tab="evidence" id="ff-focus-tab-evidence" aria-selected="false" aria-controls="ff-focus-panel-evidence" tabindex="-1">Evidence</button>
@@ -761,6 +762,7 @@
   window.FlipForgeDashboardRenderer = "v3";
 
   let generation = 0;
+  let focusedTab = "decision";
   let snapshot = null;
   let selectedId = "";
   const details = Object.create(null);
@@ -865,7 +867,87 @@
     bindDossier();
   }
 
+  const FOCUS_TABS = Object.freeze(["decision", "evidence", "economics"]);
+
+  function activateFocusedTab(name, moveFocus = false) {
+    if (!FOCUS_TABS.includes(name)) return;
+    focusedTab = name;
+    main.querySelectorAll("[data-ffv3-focus-tab]").forEach(tab => {
+      const active = tab.dataset.ffv3FocusTab === name;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+      if (active && moveFocus) tab.focus();
+    });
+    main.querySelectorAll("[data-ffv3-focus-panel]").forEach(panel => {
+      panel.hidden = panel.dataset.ffv3FocusPanel !== name;
+    });
+  }
+
+  // Keep the existing route-bearing links untouched. The focus menu uses links
+  // without data-route so the legacy nav normalizer cannot detach/reorder them.
+  function focusChrome(enabled) {
+    const nav = document.querySelector(".primary-nav");
+    if (!nav) return;
+    const prior = nav.querySelector("[data-ffv3-focus-tools]");
+    if (!enabled) {
+      if (prior) prior.remove();
+      document.documentElement.removeAttribute("data-ff-customer-focus");
+      return;
+    }
+    if (!prior) {
+      const details = document.createElement("details");
+      details.dataset.ffv3FocusTools = "";
+      details.className = "ff-focus-tools";
+      const summary = document.createElement("summary");
+      summary.textContent = "More Tools";
+      details.append(summary);
+      const links = document.createElement("div");
+      links.className = "ff-focus-tool-links";
+      const routes = new Map([
+        ["decision-intelligence", "Decision Intelligence"],
+        ["why-this-decision", "Why This Decision"],
+        ["evidence", "Evidence Review"],
+        ["portfolio", "Portfolio"],
+        ["alerts", "Alerts"],
+        ["forge-heat", "Forge Heat"],
+        ["market-view", "Market View"],
+        ["compare", "Compare"],
+        ["psa-advisor", "PSA Advisor"],
+        ["export", "Audit Export"]
+      ]);
+      for (const [route, name] of routes) {
+        const original = nav.querySelector(`a[data-route="${route}"]`);
+        if (!original || original.hidden || original.getAttribute("aria-hidden") === "true") continue;
+        const link = document.createElement("a");
+        link.href = original.getAttribute("href") || "#/dashboard";
+        link.textContent = name;
+        link.dataset.ffv3FocusLink = route;
+        links.append(link);
+      }
+      if (links.children.length) {
+        details.append(links);
+        nav.append(details);
+      }
+    }
+    document.documentElement.setAttribute("data-ff-customer-focus", "1");
+  }
+
   function bindDossier() {
+    main.querySelectorAll("[data-ffv3-focus-tab]").forEach(tab => {
+      tab.addEventListener("click", () => activateFocusedTab(tab.dataset.ffv3FocusTab));
+      tab.addEventListener("keydown", event => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        const current = FOCUS_TABS.indexOf(tab.dataset.ffv3FocusTab);
+        const next = event.key === "Home" ? 0 : event.key === "End" ? FOCUS_TABS.length - 1
+          : (current + (event.key === "ArrowRight" ? 1 : -1) + FOCUS_TABS.length) % FOCUS_TABS.length;
+        activateFocusedTab(FOCUS_TABS[next], true);
+      });
+    });
+    main.querySelectorAll("[data-ffv3-focus-evidence]").forEach(button =>
+      button.addEventListener("click", () => activateFocusedTab("evidence", true))
+    );
+    if (focusRequested()) activateFocusedTab(focusedTab);
     main.querySelectorAll("[data-ffv3-reason-toggle]").forEach(button => button.addEventListener("click", () => {
       const reason = main.querySelector("[data-ffv3-reason]");
       if (!reason) return;
@@ -886,6 +968,7 @@
     selectedId = view.selectedId;
     if (view.models.length && !detailStates[selectedId]) view.detailState = "loading";
     main.innerHTML = markupForView(view);
+    focusChrome(focusRequested() && view.models.length > 0);
     bindRoot();
     if (selectedId) loadDetail(selectedId);
   }
@@ -910,6 +993,7 @@
   function select(id, userInitiated) {
     if (!snapshot || !id) return;
     selectedId = id;
+    if (focusRequested()) focusedTab = "decision";
     renderDossierOnly();
     loadDetail(id);
     if (userInitiated && typeof window.matchMedia === "function" && window.matchMedia(MOBILE_QUERY).matches) {
@@ -939,6 +1023,7 @@
   }
 
   function fallBackToV2() {
+    focusChrome(false);
     window.FlipForgeDashboardRenderer = "v2";
     if (main.querySelector("[data-decision-dashboard-v3]")) main.innerHTML = "";
     if (typeof window.FlipForgeDashboardV2Reload === "function") window.FlipForgeDashboardV2Reload();
@@ -978,6 +1063,7 @@
 
   function apply() {
     if (!active()) {
+      focusChrome(false);
       generation += 1;
       return;
     }
