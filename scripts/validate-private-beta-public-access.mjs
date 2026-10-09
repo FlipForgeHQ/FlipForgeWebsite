@@ -41,6 +41,56 @@ const cockpitPolish = read("saas-prototype/cockpit-final-ux.js");
 const betaGuide = read("saas-prototype/private-beta.js");
 const betaTermsGate = read("assets/js/beta-invite-terms-gate.js");
 
+const dashboardGuard = read("saas-prototype/production-dashboard-guard.js");
+function guardReloadsAfterSignIn(pathname, { fullCustomer = false } = {}) {
+  let reloads = 0;
+  const callbacks = {};
+  const navClickListeners = {};
+  const main = { querySelector: () => null, innerHTML: "" };
+  const link = { href: "", rel: "", type: "" };
+  const document = {
+    querySelector(selector) {
+      if (selector === "#main-content") return main;
+      if (selector === 'link[rel~="icon"]') return link;
+      return null;
+    },
+    createElement: () => ({ setAttribute() {}, addEventListener() {} }),
+    head: { appendChild() {} },
+    addEventListener(type, callback) { navClickListeners[type] = callback; }
+  };
+  const window = {
+    location: { hostname: "goflipforge.com", pathname, hash: "#/discover",
+      href: `https://goflipforge.com${pathname}#/discover`,
+      reload() { reloads += 1; }
+    },
+    FlipForgeFullCustomerEntry: fullCustomer,
+    addEventListener(type, callback) { callbacks[type] = callback; }
+  };
+  class MutationObserver { observe() {} }
+  runInNewContext(dashboardGuard, {
+    window, document, MutationObserver, queueMicrotask: callback => callback(),
+    URL, AbortController, CustomEvent: class {}, Object, String, RegExp
+  }, { timeout: 1000 });
+  // Reproduce the route change triggered by sign-in/onboarding followed by
+  // clicking the current route again, both of which previously reloaded beta.
+  window.location.hash = "#/beta-start";
+  callbacks.hashchange?.({ stopImmediatePropagation() {} });
+  navClickListeners.click?.({
+    button: 0, target: { closest: () => ({ getAttribute: () => "#/beta-start" }) },
+    preventDefault() {}, stopImmediatePropagation() {}
+  });
+  return reloads;
+}
+check(guardReloadsAfterSignIn("/app/beta/") === 0,
+  "Private Beta onboarding and same-route click cannot reload the document after sign-in");
+check(guardReloadsAfterSignIn("/app/beta") === 0,
+  "Private Beta canonical no-slash route cannot reload after sign-in");
+check(guardReloadsAfterSignIn("/owner/customer/", { fullCustomer: true }) === 0,
+  "Full customer shell continues to use SPA navigation without reloading");
+check(guardReloadsAfterSignIn("/app/") === 1,
+  "Non-beta legacy app route retains existing one-time recovery behavior");
+
+
 // Exercise the real production guide script with a signed-in test snapshot.
 // This protects against sign-in loops caused by beta onboarding taking over
 // the owner/customer route, or repeated jumps when localStorage is unavailable.
