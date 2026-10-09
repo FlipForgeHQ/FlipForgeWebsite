@@ -307,7 +307,7 @@
   // Read-only explanation of a saved WATCH price threshold: never changes a verdict or Max Buy.
   function priceSummaryMarkup(model) {
     if (model.verdict !== "WATCH" || model.askCents === null || model.maxBuyCents === null || model.askCents <= model.maxBuyCents) return "";
-    return `<p class="ffv3-price-signal" data-ffv3-price-signal>At this price, the listing is <strong>${escapeHtml(exactMoneyFromCents(model.askCents - model.maxBuyCents))} above your modeled Max Buy.</strong></p>`;
+    return `<p class="ffv3-price-signal" data-ffv3-price-signal data-ffv3-over-max>At this price, you would pay <strong>${escapeHtml(exactMoneyFromCents(model.askCents - model.maxBuyCents))} more than your modeled Max Buy.</strong></p>`;
   }
 
   // Snapshot-backed count and separately attributed current exclusion details. Never invent sale rows.
@@ -315,7 +315,7 @@
     const count = model.decisionEvidenceCount;
     const accepted = count === null ? "Exact-sale count not established" : `${integerText(count)} exact sale${count === 1 ? "" : "s"} used for this saved decision`;
     const excluded = model.excludedCount === null
-      ? "Excluded-sale details are unavailable in this view"
+      ? "Which sales were left out, and why, is not shown in this view yet"
       : `${integerText(model.excludedCount)} excluded from current saved sales${model.excludedReasons.length ? ` · ${model.excludedReasons.join("; ")}` : ""}`;
     return `<div class="ffv3-evidence-preview" data-ffv3-evidence-preview><span>Evidence behind the decision</span><strong>${escapeHtml(accepted)}</strong><small>${escapeHtml(excluded)}</small></div>`;
   }
@@ -341,7 +341,7 @@
         ${model.identity && model.identity !== model.title ? `<span class="ffv3-row-identity">${escapeHtml(model.identity)}</span>` : ""}
         <span class="ffv3-row-grid">
           <span><small>Ask</small><b>${escapeHtml(moneyFromCents(model.askCents, DASH))}</b></span>
-          <span><small>Supported</small><b>${escapeHtml(supported)}</b></span>
+          <span><small>Sale value</small><b>${escapeHtml(supported)}</b></span>
           ${model.decisionEvidenceCount !== null
             ? `<span data-ffv3-row-evidence="decision"><small>Exact sales at decision</small><b>${escapeHtml(integerText(model.decisionEvidenceCount))}</b></span>`
             : `<span data-ffv3-row-evidence="current"><small>Current saved sales</small><b>${escapeHtml(integerText(model.currentSavedSales))}</b></span>`}
@@ -382,20 +382,28 @@
   function economicsMarkup(model) {
     const supported = model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
     const delta = model.askCents !== null && model.maxBuyCents !== null ? model.askCents - model.maxBuyCents : null;
-    const deltaLabel = delta === null ? "Price versus Max Buy" : delta === 0 ? "At Max Buy" : delta > 0 ? "Above Max Buy" : "Below Max Buy";
+    const deltaLabel = delta === null ? "Price versus Max Buy" : delta === 0 ? "At Max Buy" : delta > 0 ? "Over your Max Buy" : "Under your Max Buy";
     const deltaAmount = delta === null ? DASH : exactMoneyFromCents(Math.abs(delta));
+    const deltaState = delta === null ? "" : delta > 0 ? ' data-ffv3-delta="over"' : delta < 0 ? ' data-ffv3-delta="under"' : ' data-ffv3-delta="at"';
     const missing = [model.askCents, model.maxBuyCents].some(value => value === null);
     return `<section class="ffv3-economics" data-ffv3-section="economics">
       <header class="ffv3-section-head"><h3>What the numbers say</h3></header>
       <dl class="ffv3-econ-grid">
         ${fact("All-in ask", exactMoneyFromCents(model.askCents))}
         ${fact("Modeled Max Buy", exactMoneyFromCents(model.maxBuyCents))}
-        ${fact(deltaLabel, deltaAmount)}
-        ${fact("Supported value", supported)}
+        ${fact(deltaLabel, deltaAmount, deltaState)}
+        ${fact("Recent exact-sale value", supported)}
       </dl>
       ${missing ? `<p class="ffv3-legend" data-ffv3-econ-legend>— ${NOT_CALCULATED}</p>` : ""}
       ${evidencePreviewMarkup(model)}
     </section>`;
+  }
+
+  // Qualitative only: the saved read model does not supply the cost components, so no numbers are shown or derived here.
+  function costNoteMarkup(model) {
+    return model.supportedCents !== null && model.maxBuyCents !== null && model.supportedCents > model.maxBuyCents
+      ? '<p class="ffv3-legend" data-ffv3-cost-note>Recent exact-sale value is before selling costs. Max Buy is lower because FlipForge subtracts estimated selling fees and shipping, a minimum profit, and a cushion for a price drop. A line-by-line breakdown is not available in this view yet.</p>'
+      : "";
   }
 
   /* ④ Why FlipForge reached the decision */
@@ -427,6 +435,7 @@
       : NOT_ESTABLISHED;
     return `<section class="ffv3-why" data-ffv3-section="why">
       <header class="ffv3-section-head"><h3>Why this decision?</h3></header>
+      ${costNoteMarkup(model)}
       <div class="ffv3-modeled"><div class="ffv3-modeled-head"><span>Estimated profit after costs</span><span class="ffv3-tag" data-tag="modeled">Modeled estimate</span></div>${modeledBody}</div>
       <p class="ffv3-reason${longReason ? " is-clamped" : ""}" id="ffv3-reason-${escapeHtml(model.id)}" data-ffv3-reason>${escapeHtml(reason)}</p>
       ${longReason ? `<button type="button" class="ffv3-link" data-ffv3-reason-toggle aria-expanded="false" aria-controls="ffv3-reason-${escapeHtml(model.id)}">Read full reason</button>` : ""}
@@ -445,6 +454,7 @@
       ${model.decisionEvidenceCount !== null && model.currentSavedSales !== null && model.decisionEvidenceCount !== model.currentSavedSales
         ? '<p class="ffv3-note" data-ffv3-evidence-differs>Current saved sales can differ from the evidence recorded when this decision was made. The decision stands on its recorded evidence.</p>' : ""}
       <div class="ffv3-bars">${bar("Confidence score", model.confidence, "gold")}${bar("Liquidity", model.liquidity, "silver")}${bar("Risk score", model.risk, "silver")}</div>
+      <p class="ffv3-legend" data-ffv3-score-legend>Scores run 0–100. Higher confidence means stronger evidence. Higher liquidity means easier to sell. Higher risk means more risk.</p>
       ${basis}
     </section>`;
   }
