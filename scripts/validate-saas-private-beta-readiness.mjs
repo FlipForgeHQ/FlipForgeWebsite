@@ -143,6 +143,20 @@ check("061 active first-run tester is routed to Beta Guide", firstRun.window.loc
 const productionFirstRun = runtime({ hash: "#/dashboard", authenticated: true, membershipActive: true, hostname: "goflipforge.com" });
 check("061a active production tester is routed to Beta Guide", productionFirstRun.window.location.hash === "#/beta-start");
 
+// Authentication refreshes can arrive after the user explicitly selects
+// Evaluate. First-run onboarding is allowed once, never a recurring hijack.
+const guideThenEvaluate = runtime({ hash: "#/beta-start", authenticated: true, membershipActive: true });
+guideThenEvaluate.window.location.hash = "#/discover";
+guideThenEvaluate.listeners["flipforge:identity-change"]?.();
+check("061b identity refresh cannot hijack Evaluate after Beta Guide",
+  guideThenEvaluate.window.location.hash === "#/discover");
+
+const redirectedThenEvaluate = runtime({ hash: "#/dashboard", authenticated: true, membershipActive: true });
+redirectedThenEvaluate.window.location.hash = "#/discover";
+redirectedThenEvaluate.listeners["flipforge:identity-change"]?.();
+check("061c first-run guide redirect is performed only once per session",
+  redirectedThenEvaluate.window.location.hash === "#/discover");
+
 const signedOut = runtime({ hash: "#/dashboard", authenticated: false, membershipActive: false });
 check("062 signed-out visitor is not redirected", signedOut.window.location.hash === "#/dashboard");
 
