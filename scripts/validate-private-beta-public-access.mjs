@@ -42,7 +42,7 @@ const betaGuide = read("saas-prototype/private-beta.js");
 const betaTermsGate = read("assets/js/beta-invite-terms-gate.js");
 
 const dashboardGuard = read("saas-prototype/production-dashboard-guard.js");
-function guardReloadsAfterSignIn(pathname, { fullCustomer = false } = {}) {
+function guardReloadsAfterSignIn(pathname, { fullCustomer = false, hostname = "goflipforge.com" } = {}) {
   let reloads = 0;
   const callbacks = {};
   const navClickListeners = {};
@@ -59,8 +59,8 @@ function guardReloadsAfterSignIn(pathname, { fullCustomer = false } = {}) {
     addEventListener(type, callback) { navClickListeners[type] = callback; }
   };
   const window = {
-    location: { hostname: "goflipforge.com", pathname, hash: "#/discover",
-      href: `https://goflipforge.com${pathname}#/discover`,
+    location: { hostname, pathname, hash: "#/discover",
+      href: `https://${hostname}${pathname}#/discover`,
       reload() { reloads += 1; }
     },
     FlipForgeFullCustomerEntry: fullCustomer,
@@ -87,6 +87,12 @@ check(guardReloadsAfterSignIn("/app/beta") === 0,
   "Private Beta canonical no-slash route cannot reload after sign-in");
 check(guardReloadsAfterSignIn("/owner/customer/", { fullCustomer: true }) === 0,
   "Full customer shell continues to use SPA navigation without reloading");
+check(guardReloadsAfterSignIn("/saas-prototype/", {hostname:"deploy-preview-495--goflipforge.netlify.app"}) === 0,
+  "exact PR #495 preview /saas-prototype/#/beta-start cannot reload after sign-in");
+check(guardReloadsAfterSignIn("/saas-prototype", {hostname:"deploy-preview-495--goflipforge.netlify.app"}) === 0,
+  "preview prototype without trailing slash cannot reload during onboarding");
+check(guardReloadsAfterSignIn("/saas-prototype/", {hostname:"goflipforge.com"}) === 1,
+  "prototype reload recovery stays unchanged on production host");
 check(guardReloadsAfterSignIn("/app/") === 1,
   "Non-beta legacy app route retains existing one-time recovery behavior");
 
