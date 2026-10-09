@@ -14,7 +14,18 @@
 
   function eligibleHost() {
     const hostname = String(window.location.hostname || "");
-    return PREVIEW_HOST.test(hostname) || PRODUCTION_HOST.test(hostname);
+    const pathname = String(window.location.pathname || "");
+    // The beta guide is included in both HTML shells for historical reasons.
+    // Only the dedicated /app/beta route owns its post-sign-in onboarding jump.
+    // NEVER take over /owner/customer or /app/customer after authentication.
+    if (/^\/app\/beta(?:\/|$)/i.test(pathname)) {
+      return PREVIEW_HOST.test(hostname) || PRODUCTION_HOST.test(hostname);
+    }
+    // Keep the old local/preview beta rehearsal entry working without granting
+    // onboarding route authority to the full customer or owner surfaces.
+    return PREVIEW_HOST.test(hostname)
+      && /^\/(?:app|saas-prototype)(?:\/|$)/i.test(pathname)
+      && !/^\/app\/customer(?:\/|$)/i.test(pathname);
   }
 
   function routeName() {
@@ -62,7 +73,10 @@
     try {
       return window.localStorage.getItem(ONBOARDING_KEY) === ONBOARDING_VALUE;
     } catch (_) {
-      return false;
+      // This is an optional onboarding preference, not an access decision.
+      // If browser storage is blocked, do not force a repeat beta-start jump
+      // on every navigation after a successful sign-in.
+      return true;
     }
   }
 
