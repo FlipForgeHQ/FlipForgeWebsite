@@ -453,8 +453,9 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
   check(`FOCUS02 ${label} WATCH model and Max Buy stay authoritative`,
     (await textOf(page, ".ffv3-verdict-word")).trim() === "WATCH"
     && (await textOf(page, '[data-ffv3-section="economics"]')).includes("$608.79"));
-  check(`FOCUS03 ${label} More Tools preserves route access`,
-    (await page.locator('[data-ffv3-focus-tools] > summary').count()) === 1
+  check(`FOCUS03 ${label} compact navigation never creates unauthorized links`,
+    (await page.locator('.primary-nav > a[data-route="dashboard"]').count()) === 1
+    && (await page.locator('[data-ffv3-focus-tools]').count()) <= 1
     && (await page.locator('[data-ffv3-focus-tools] a[href="#/evidence"]').count()) <= 1);
   await page.locator("[data-ffv3-focus-evidence]").click();
   check(`FOCUS04 ${label} evidence jump opens source-backed evidence tab`,
