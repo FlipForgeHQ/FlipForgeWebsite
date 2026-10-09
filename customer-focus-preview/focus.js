@@ -4,6 +4,7 @@
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
   const scenarios = Object.freeze([
+    {id:"buy",verdict:"BUY",title:"Illustrative Card D · PSA 9",subtitle:"Fictional exact-card example · no real listing",short:"Sample Card D",ask:"$360.00",max:"$385.00",difference:"$25.00 below Max Buy",summary:"This fictional example meets the modeled buying requirements.",next:"Review the exact listing and evidence before purchasing.",evidence:"8 exact sales",accepted:"8",excluded:"Unavailable",identity:"Exact match confirmed",confidence:"86/100",risk:"24/100",why:"The illustrative BUY verdict comes from the example decision. The price difference alone does not determine a BUY.",base:"+$65",cautious:"+$28",downside:"−$18",supported:"$455.00"},
     {id:"watch",verdict:"WATCH",title:"Illustrative Card A · PSA 10",subtitle:"Sample exact-card identity · fictional evaluation",short:"Sample Card A",ask:"$640.00",max:"$608.79",difference:"$31.21 above Max Buy",summary:"Asking price exceeds the modeled buying limit.",next:"Wait or revisit if the asking price improves.",evidence:"12 exact sales",accepted:"12",excluded:"Unavailable",identity:"Exact match confirmed",confidence:"82/100",risk:"35/100",why:"The asking price is above the modeled limit. A positive supported value alone does not make this a BUY.",base:"+$82",cautious:"+$24",downside:"−$41",supported:"$812.50"},
     {id:"verify",verdict:"VERIFY",title:"Illustrative Card B · PSA 9",subtitle:"Identity confirmation still required · fictional evaluation",short:"Sample Card B",ask:"$425.00",max:"Not established",difference:"Buying limit withheld until the identity is verified",summary:"Not enough verified evidence for a buying recommendation.",next:"Confirm the exact parallel and grade before deciding.",evidence:"Exact sales not established",accepted:"Not established",excluded:"Unavailable",identity:"Needs confirmation",confidence:"—",risk:"—",why:"FlipForge has not established an exact match. It withholds a supported value and buying limit rather than filling gaps.",base:"Not calculated",cautious:"Not calculated",downside:"Not calculated",supported:"Not established"},
     {id:"pass",verdict:"PASS",title:"Illustrative Card C · PSA 10",subtitle:"Conservative outcome is unfavorable · fictional evaluation",short:"Sample Card C",ask:"$940.00",max:"$790.00",difference:"$150.00 above Max Buy",summary:"The asking price exceeds the modeled limit.",next:"Pass on this listing at the current price.",evidence:"3 exact sales",accepted:"3",excluded:"Unavailable",identity:"Exact match confirmed",confidence:"63/100",risk:"71/100",why:"The modeled downside does not justify the current cost. The saved verdict remains PASS.",base:"+$25",cautious:"−$46",downside:"−$118",supported:"$865.00"}
@@ -18,8 +19,11 @@
     activeScenario=id;
     setText("verdict-label",card.verdict);
     $("#verdict-label").dataset.verdict=card.verdict;
+    $("#decision-card").dataset.verdict=card.verdict.toLowerCase();
+    $("#price-difference").dataset.verdict=card.verdict.toLowerCase();
+    $("#identity-state").dataset.identity=card.identity==="Exact match confirmed"?"confirmed":"unverified";
     for(const [key,v] of [["card-title",card.title],["card-subtitle",card.subtitle],["ask-price",card.ask],["max-buy",card.max],["price-difference",card.difference],["verdict-summary",card.summary],["next-move",card.next],["evidence-peek",card.evidence],["confidence",card.confidence],["risk",card.risk],["decision-reason",card.why],["accepted-sales",card.accepted],["excluded-sales",card.excluded],["identity-state",card.identity],["econ-base",card.base],["econ-cautious",card.cautious],["econ-downside",card.downside],["supported-value",card.supported]]){
-      if(key==="price-difference"){const el=$("#price-difference");el.replaceChildren();const s=document.createElement("span");s.className="difference-mark";s.textContent="↗";el.append(s,document.createTextNode(v));}
+      if(key==="price-difference"){const el=$("#price-difference");el.replaceChildren();const s=document.createElement("span");s.className="difference-mark";s.textContent=card.verdict==="BUY"?"↘":card.verdict==="VERIFY"?"○":"↗";el.append(s,document.createTextNode(v));}
       else setText(key,v);
     }
     $$(".scenario-line").forEach(el=>el.classList.toggle("negative",el.querySelector("strong")?.textContent.trim().startsWith("−")));
@@ -34,7 +38,7 @@
     $$("[role=tabpanel]").forEach(p=>p.hidden=p.id!==`panel-${name}`);
   };
   const renderLists=()=>{
-    const rows=scenarios.map(c=>`<button type="button" data-scenario="${c.id}" aria-pressed="false" class="saved-item"><span class="saved-item-body"><span class="saved-item-kicker">${c.verdict}</span><span class="saved-item-title">${c.short}</span><span class="saved-item-sub">Ask ${c.ask} · Illustrative</span></span><span class="saved-item-arrow" aria-hidden="true">↗</span></button>`).join("");
+    const rows=scenarios.map(c=>`<button type="button" data-scenario="${c.id}" aria-pressed="false" class="saved-item" data-verdict="${c.verdict.toLowerCase()}"><span class="saved-item-body"><span class="saved-item-kicker">${c.verdict}</span><span class="saved-item-title">${c.short}</span><span class="saved-item-sub">Ask ${c.ask} · Illustrative</span></span><span class="saved-item-arrow" aria-hidden="true">↗</span></button>`).join("");
     $("#decision-list").innerHTML=rows;
     $("#saved-grid").innerHTML=rows;
     $$("[data-scenario]").forEach(el=>el.addEventListener("click",()=>{openCard(el.dataset.scenario);if(!$("[data-page=home]").hidden && el.closest("#decision-list")) return;location.hash="#home";}));
