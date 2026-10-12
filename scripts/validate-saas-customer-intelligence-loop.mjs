@@ -31,7 +31,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["008 Card Intelligence has a Decision Traceback", files.readAdapter.includes("Card Intelligence") && files.readAdapter.includes("Decision Traceback")],
   ["009 traceback covers identity evidence factors and authority", ["1 · Identity", "2 · Evidence", "3 · Market factors", "4 · Authority output"].every(value => files.readAdapter.includes(value))],
   ["010 evidence chain renders only returned linked evidence", files.readAdapter.includes("linkedEvidenceTable") && files.readAdapter.includes("evidence?.linkedEvidence")],
-  ["011 evidence exclusions remain visible", files.readAdapter.includes("visibleButAuthorityIneligible") && files.readAdapter.includes("authority-ineligible")],
+  ["011 evidence exclusions remain visible", files.readAdapter.includes("visibleButAuthorityIneligible") && files.readAdapter.includes("not counted now")],
   ["012 saved PSA context is read without grade prediction", files.readAdapter.includes("Saved PSA guidance") && files.readAdapter.includes("no grade is predicted here")],
   ["013 customer Evaluate is guided into three sections", ["Listing and exact card identity", "Complete acquisition cost", "Confirm the authority boundary"].every(value => files.evaluationAdapter.includes(value))],
   ["014 evaluation result opens Card Intelligence", files.evaluationAdapter.includes("Open Card Intelligence") && files.evaluationAdapter.includes('"#/opportunities/"')],
@@ -121,7 +121,7 @@ readState.window.FlipForgeStagingReadAdapter.renderCustomer(detailMain, "EBAY-ca
 await settle();
 check("033 Card Intelligence loads detail evidence and PSA", readState.calls.slice(-3).map(call => call.url).join(",") === "/api/v1/opportunities/EBAY-card-001,/api/v1/evidence/EBAY-card-001,/api/v1/psa-advisor/EBAY-card-001");
 check("034 Card Intelligence renders saved recommendation and factors", detailMain.innerHTML.includes("Card Intelligence") && detailMain.innerHTML.includes("Decision Traceback") && detailMain.innerHTML.includes("BUY_READY_CANDIDATE"));
-check("035 Card Intelligence renders evidence eligibility", detailMain.innerHTML.includes("Exact match") && detailMain.innerHTML.includes("Eligible") && detailMain.innerHTML.includes("4 accepted"));
+check("035 Card Intelligence renders evidence eligibility", detailMain.innerHTML.includes("Exact match") && detailMain.innerHTML.includes("Counted now") && detailMain.innerHTML.includes("4 accepted"));
 check("036 Card Intelligence renders saved PSA without recalculation", detailMain.innerHTML.includes("SAVED_GUIDANCE_AVAILABLE") && detailMain.innerHTML.includes("Recalculated") && detailMain.innerHTML.includes(">No<"));
 check("037 Card Intelligence exposes no transaction action", !/Place bid|Buy now|Checkout|Pay now/.test(detailMain.innerHTML));
 
