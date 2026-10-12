@@ -49,7 +49,7 @@ check("012 runtime uses GET only", js.includes('method: "GET"') && !/method\s*:\
 check("013 runtime introduces no browser persistence", !/\blocalStorage\b|\bsessionStorage\b/.test(js));
 check("014 runtime consumes authorityEligible instead of accepting evidence", js.includes("authorityEligible") && !/\.accepted\s*=|authorityEligible\s*=\s*true/.test(js));
 check("015 runtime consumes server rejectionReason", js.includes("rejectionReason"));
-check("016 Evidence Integrity is first-class copy", js.includes("EVIDENCE INTEGRITY") && js.includes("What FlipForge trusted — and rejected"));
+check("016 Evidence Integrity is first-class copy", js.includes("EVIDENCE INTEGRITY") && js.includes("What FlipForge counted — and what it did not") && js.includes("Held for review (not rejected)"));
 check("017 Decision Receipt is present", js.includes("Decision Receipt"));
 check("018 what-changes guidance is present", js.includes("WHAT CHANGES THIS DECISION?"));
 check("019 supported value can be explicitly withheld", js.includes('"WITHHELD"') && js.includes('"Withheld"'));

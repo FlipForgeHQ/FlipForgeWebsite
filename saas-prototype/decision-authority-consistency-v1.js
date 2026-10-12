@@ -214,7 +214,7 @@
         setCellLabel(cells[3], "Exact match", "Identity key match");
         setCellLabel(cells[3], "Mismatch", "Identity key differs");
         setCellLabel(cells[4], "Eligible", "Current eligible");
-        setCellLabel(cells[4], "Ineligible", "Currently ineligible");
+        setCellLabel(cells[4], "Ineligible", "Not counted now");
       });
     }
 
@@ -245,7 +245,7 @@
     if (!page || page.dataset.ffEvidenceExperience === "v2") return;
 
     const accepted = metricValue(main, "Accepted exact sales");
-    const ineligible = metricValue(main, "Visible but ineligible");
+    const ineligible = metricValue(main, "Not counted now") ?? metricValue(main, "Visible but ineligible");
     const ledgerEvents = metricValue(main, "Ledger events");
     const candidates = metricValue(main, "Manual candidates");
     if (accepted === null || ineligible === null) return;
@@ -260,8 +260,8 @@
     if (h1) h1.textContent = "Why FlipForge trusts this decision";
     if (intro) {
       intro.textContent = cardLabel
-        ? `See what FlipForge trusted, what it excluded, and what remains audit-only for ${cardLabel}.`
-        : "See what FlipForge trusted, what it excluded, and what remains audit-only for this saved decision.";
+        ? `See what FlipForge counts now, what it did not count and why, and what remains audit-only for ${cardLabel}.`
+        : "See what FlipForge counts now, what it did not count and why, and what remains audit-only for this saved decision.";
     }
 
     const boundary = page.querySelector(".boundary-note");
@@ -281,9 +281,9 @@
       addMetricContext(metricArticles[0], "Exact completed sales currently allowed to support value.");
     }
     if (metricArticles[1]) {
-      metricArticles[1].querySelector("span").textContent = "Excluded from authority";
+      metricArticles[1].querySelector("span").textContent = "Not counted now";
       metricArticles[1].dataset.tone = "excluded";
-      addMetricContext(metricArticles[1], "Visible for transparency, but not allowed to support value.");
+      addMetricContext(metricArticles[1], "Visible for transparency. Includes excluded, held-for-review and not-used rows; see the breakdown below.");
     }
     if (metricArticles[2]) {
       metricArticles[2].querySelector("span").textContent = "Audit events";
@@ -301,7 +301,7 @@
       <div class="ff-evidence-proof-copy">
         <span class="ff-evidence-kicker">THE PROOF</span>
         <h2>${accepted} exact completed sale${accepted === 1 ? "" : "s"} currently support this card.</h2>
-        <p>FlipForge did not treat every historical row as a comp. It kept <strong>${ineligible}</strong> linked row${ineligible === 1 ? "" : "s"} visible for auditability while excluding them from current value authority.</p>
+        <p>FlipForge did not treat every historical row as a comp. It kept <strong>${ineligible}</strong> linked row${ineligible === 1 ? "" : "s"} visible for auditability that ${ineligible === 1 ? "is" : "are"} not counted now. Only rows marked Excluded were checked and failed a rule.</p>
         <div class="ff-evidence-principle"><strong>More data is not automatically better evidence.</strong><span>FlipForge is designed to show its work—and to show what it refused to use.</span></div>
       </div>
       <div class="ff-evidence-funnel" aria-label="Evidence qualification summary">
@@ -318,9 +318,9 @@
         </article>
         <span class="ff-evidence-funnel-arrow" aria-hidden="true">+</span>
         <article data-tone="excluded">
-          <span>Excluded now</span>
+          <span>Not counted now</span>
           <strong>${ineligible}</strong>
-          <small>Visible, but no value authority</small>
+          <small>Excluded, held or not used</small>
         </article>
       </div>`;
     if (selectorPanel) selectorPanel.insertAdjacentElement("afterend", proof);
@@ -388,7 +388,7 @@
     if (title && title.textContent !== "See what FlipForge trusted—and what it refused to use.") {
       title.textContent = "See what FlipForge trusted—and what it refused to use.";
     }
-    const copy = "Start with the trusted-vs-excluded summary. Open the candidate pool or full audit trail only if you want deeper forensic detail.";
+    const copy = "Start with the counted-vs-not-counted summary. Open the candidate pool or full audit trail only if you want deeper forensic detail.";
     if (copyNode && copyNode.textContent !== copy) copyNode.textContent = copy;
     if (whyNode) {
       const expected = "Why this matters: A decision is more trustworthy when you can inspect both the evidence and the exclusions.";

@@ -1,0 +1,42 @@
+name: Evidence Status Labels
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/evidence-authority-split-v1.js"
+      - "saas-prototype/decision-authority-consistency-v1.js"
+      - "saas-prototype/decision-intelligence-ux-v2.js"
+      - "saas-prototype/customer-management.js"
+      - "saas-prototype/customer-opportunities.js"
+      - "saas-prototype/staging-browser.js"
+      - "scripts/audit-evidence-status-labels-ci.mjs"
+      - "scripts/validate-native-evidence-links.mjs"
+      - "scripts/validate-decision-intelligence-ux-v2.mjs"
+      - ".github/workflows/evidence-status-labels.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-status-labels:
+    name: Only server-excluded sales are labelled Excluded
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate evidence and decision wording
+        run: |
+          node scripts/validate-native-evidence-links.mjs
+          node scripts/validate-decision-intelligence-ux-v2.mjs
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Render the evidence page against the server status contract
+        run: node scripts/audit-evidence-status-labels-ci.mjs

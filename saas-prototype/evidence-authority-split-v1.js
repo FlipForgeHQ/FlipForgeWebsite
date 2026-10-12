@@ -45,22 +45,57 @@
       pattern.test(String(section.querySelector("h2")?.textContent || ""))) || null;
   }
 
-  function trustedTable(items) {
-    if (!items.length) {
-      return '<div class="staging-empty"><strong>No current authority-eligible exact completed sales were returned.</strong><p>FlipForge will not substitute candidate or historically linked rows.</p></div>';
-    }
-    return `<div class="table-wrap"><table data-ff-trusted-evidence-table><thead><tr><th>Source</th><th>Amount</th><th>Sale date</th><th>Identity key</th><th>Current authority</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")}</small></td><td>${money(item.amount)}</td><td>${escapeHtml(item.soldAt || item.recordedAt || "Unavailable")}</td><td>${item.identityMatch === true ? badge("Identity key match", "ok") : badge("Identity key differs", "warn")}</td><td>${badge("Current eligible", "buy")}</td></tr>`).join("")}</tbody></table></div>`;
+  // Current admission status from the server (#866). Only EXCLUDED means "checked and failed a rule".
+  const STATUS = {
+    ADMITTED: { label: "Counted now", tone: "buy", meaning: "Counted towards the current price." },
+    EXCLUDED: { label: "Excluded", tone: "pass", meaning: "Checked against its sale record and failed a current evidence rule." },
+    HELD: { label: "Held for review", tone: "warn", meaning: "Not counted and not rejected: it could not be checked yet or needs review." },
+    NOT_USED: { label: "Not used", tone: "neutral", meaning: "Outside the current price: rejected at its original review, recorded for a different card, or the same sale as another row." },
+    NOT_REPORTED: { label: "Not counted", tone: "neutral", meaning: "Not counted towards the current price. This server did not report a detailed status." }
+  };
+  const NOT_COUNTED_ORDER = ["EXCLUDED", "HELD", "NOT_USED", "NOT_REPORTED"];
+
+  function statusOf(item) {
+    const reported = String(item?.currentAdmissionStatus || "").toUpperCase();
+    if (STATUS[reported]) return reported;
+    return item?.authorityEligible === true ? "ADMITTED" : "NOT_REPORTED";
   }
 
-  function excludedTable(items) {
+  function dateOnly(value) {
+    const text = String(value || "").trim();
+    return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : (text || "Unavailable");
+  }
+
+  function reasonText(item, status) {
+    const reason = String(item?.rejectionReason || "").trim();
+    if (reason) return reason;
+    const codes = Array.isArray(item?.currentAdmissionReasons) ? item.currentAdmissionReasons.join(", ") : "";
+    return codes ? `${STATUS[status].meaning} (${codes})` : STATUS[status].meaning;
+  }
+
+  function trustedTable(items) {
     if (!items.length) {
-      return '<div class="staging-empty"><strong>No linked rows are currently excluded.</strong></div>';
+      return '<div class="staging-empty"><strong>No sales are counted towards the current price.</strong><p>FlipForge will not substitute candidate or historically linked rows.</p></div>';
     }
-    return `<div class="table-wrap"><table data-ff-excluded-evidence-table><thead><tr><th>Source</th><th>Amount</th><th>Sale date</th><th>Identity key</th><th>Why excluded</th></tr></thead><tbody>${items.map(item => {
-      const reason = String(item.rejectionReason || "").trim()
-        || "This linked row does not satisfy the current exact-comparable authority rules.";
-      return `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")}</small></td><td>${money(item.amount)}</td><td>${escapeHtml(item.soldAt || item.recordedAt || "Unavailable")}</td><td>${item.identityMatch === true ? badge("Identity key match", "neutral") : badge("Identity key differs", "warn")}</td><td><strong>Excluded from value authority</strong><small>${escapeHtml(reason)}</small></td></tr>`;
-    }).join("")}</tbody></table></div>`;
+    return `<div class="table-wrap"><table data-ff-trusted-evidence-table><thead><tr><th>Source</th><th>Amount</th><th>Sale date</th><th>Identity key</th><th>Current status</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")} · provider-reported</small></td><td>${money(item.amount)}</td><td>${escapeHtml(dateOnly(item.soldAt || item.recordedAt))}</td><td>${item.identityMatch === true ? badge("Identity key match", "ok") : badge("Identity key differs", "warn")}</td><td>${badge(STATUS.ADMITTED.label, STATUS.ADMITTED.tone)}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+
+  function notCountedTable(items, status) {
+    const info = STATUS[status];
+    return `<div class="ff-evidence-status-group" data-ff-evidence-status="${escapeHtml(status)}"><h3>${escapeHtml(info.label)} <span>${items.length}</span></h3><p>${escapeHtml(info.meaning)}</p><div class="table-wrap"><table data-ff-excluded-evidence-table data-ff-status-table="${escapeHtml(status)}"><thead><tr><th>Source</th><th>Amount</th><th>Sale date</th><th>Identity key</th><th>Why</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")}</small></td><td>${money(item.amount)}</td><td>${escapeHtml(dateOnly(item.soldAt || item.recordedAt))}</td><td>${item.identityMatch === true ? badge("Identity key match", "neutral") : badge("Identity key differs", "warn")}</td><td>${badge(info.label, info.tone)}<small>${escapeHtml(reasonText(item, status))}</small></td></tr>`).join("")}</tbody></table></div></div>`;
+  }
+
+  function notCountedMarkup(groups) {
+    const present = NOT_COUNTED_ORDER.filter(status => groups[status].length);
+    if (!present.length) {
+      return '<div class="staging-empty"><strong>Every linked sale is counted towards the current price.</strong></div>';
+    }
+    return present.map(status => notCountedTable(groups[status], status)).join("");
+  }
+
+  function decisionTimeMarkup(decision) {
+    if (!decision || decision.available !== true) return "";
+    return `<section class="panel ff-evidence-decision-time" data-ff-decision-time-section><header class="panel-header"><div><h2>The saved decision</h2><p>Recorded when this decision was saved. Later evidence-rule changes never rewrite it.</p></div></header><div class="panel-body"><div class="ff-evidence-decision-time-grid"><article><span>Recommendation</span><strong>${escapeHtml(String(decision.recommendation || "Unavailable"))}</strong></article><article><span>Ask at the time</span><strong>${money(decision.askPrice)}</strong></article><article><span>Supported value at the time</span><strong>${money(decision.supportedValue)}</strong></article><article><span>Sales behind it</span><strong>${escapeHtml(String(decision.salesCountAtDecision ?? "Unavailable"))}</strong></article><article><span>Decision saved</span><strong>${escapeHtml(dateOnly(decision.evaluatedAt))}</strong></article></div></div></section>`;
   }
 
   function renderSplit(data) {
@@ -75,10 +110,22 @@
     const trustedCount = Number(data.acceptedExactCompletedSales);
     const excludedCount = Number(data.visibleButAuthorityIneligible);
 
+    const groups = { EXCLUDED: [], HELD: [], NOT_USED: [], NOT_REPORTED: [] };
+    for (const item of excluded) {
+      const status = statusOf(item);
+      (groups[status] || groups.NOT_REPORTED).push(item);
+    }
+    const reported = data.currentAdmission && typeof data.currentAdmission === "object" ? data.currentAdmission : null;
+
     if (!Number.isFinite(trustedCount)
         || !Number.isFinite(excludedCount)
         || trusted.length !== trustedCount
-        || excluded.length !== excludedCount) {
+        || excluded.length !== excludedCount
+        || trusted.some(item => statusOf(item) !== "ADMITTED")
+        || (reported && (Number(reported.admitted) !== trusted.length
+          || Number(reported.excluded) !== groups.EXCLUDED.length
+          || Number(reported.held) !== groups.HELD.length
+          || Number(reported.notUsed) !== groups.NOT_USED.length))) {
       page.dataset.ffEvidenceAuthoritySplit = "invalid";
       return;
     }
@@ -88,10 +135,20 @@
     const trustedCopy = trustedSection.querySelector(".panel-header p");
     const trustedBody = trustedSection.querySelector(".panel-body");
     if (trustedCopy) {
-      trustedCopy.textContent = `${trustedCount} current authority-eligible exact completed sale${trustedCount === 1 ? "" : "s"} support this saved decision.`;
+      trustedCopy.textContent = `${trustedCount} exact completed sale${trustedCount === 1 ? " is" : "s are"} counted under today's evidence rules. Sale prices are reported by our data provider and have not been independently confirmed.`;
     }
     if (trustedBody) trustedBody.innerHTML = trustedTable(trusted);
     trustedSection.dataset.ffTrustedOnly = "true";
+
+    let decisionSection = page.querySelector("[data-ff-decision-time-section]");
+    const decisionHtml = decisionTimeMarkup(data.decisionTime);
+    if (decisionHtml) {
+      if (!decisionSection) {
+        trustedSection.insertAdjacentHTML("beforebegin", decisionHtml);
+      } else {
+        decisionSection.outerHTML = decisionHtml;
+      }
+    }
 
     let excludedSection = page.querySelector("[data-ff-excluded-evidence-section]");
     if (!excludedSection) {
@@ -100,7 +157,9 @@
       excludedSection.dataset.ffExcludedEvidenceSection = "";
       trustedSection.insertAdjacentElement("afterend", excludedSection);
     }
-    excludedSection.innerHTML = `<header class="panel-header"><div><h2>What FlipForge excluded — and why</h2><p>${excludedCount} linked historical row${excludedCount === 1 ? "" : "s"} remain visible for transparency but have no current value authority.</p></div></header><div class="panel-body">${excludedTable(excluded)}</div>`;
+    const summary = NOT_COUNTED_ORDER.filter(status => groups[status].length)
+      .map(status => `${groups[status].length} ${STATUS[status].label.toLowerCase()}`).join(" · ");
+    excludedSection.innerHTML = `<header class="panel-header"><div><h2>What FlipForge did not count — and why</h2><p>${excludedCount} linked row${excludedCount === 1 ? " is" : "s are"} visible for transparency but not counted now${summary ? ` (${escapeHtml(summary)})` : ""}. Only rows marked Excluded were checked and failed a rule.</p></div></header><div class="panel-body">${notCountedMarkup(groups)}</div>`;
 
     page.dataset.ffEvidenceAuthoritySplit = "true";
   }

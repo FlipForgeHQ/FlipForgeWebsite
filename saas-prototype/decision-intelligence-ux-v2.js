@@ -87,7 +87,7 @@
   function normalizeReason(reason) {
     const raw = String(reason || "").trim();
     const text = raw.toLowerCase();
-    if (!raw) return "Other current evidence exclusion";
+    if (!raw) return "Not counted (no detailed reason reported)";
     if (/wrong parallel|parallel|variation|refractor|silver prizm|checker|autograph|auto/.test(text)) return "Wrong parallel / variation";
     if (/wrong grade|grade mismatch/.test(text)) return "Wrong grade";
     if (/wrong grader|grader mismatch/.test(text)) return "Wrong grader";
@@ -109,7 +109,15 @@
     const counts = new Map();
     for (const item of linked) {
       if (item?.authorityEligible === true) continue;
-      const label = normalizeReason(item?.rejectionReason);
+      const status = String(item?.currentAdmissionStatus || "").toUpperCase();
+      const codes = Array.isArray(item?.currentAdmissionReasons)
+        ? item.currentAdmissionReasons.map(code => String(code).replace(/_/g, " ").toLowerCase()).join(", ")
+        : "";
+      // Only a checked, failed row is grouped under its failure reason; held and unused rows are never called rejections.
+      const label = status === "HELD" ? "Held for review (not rejected)"
+        : status === "NOT_USED" ? "Not used for the current price"
+        : status === "EXCLUDED" ? `Excluded: ${normalizeReason(codes || item?.rejectionReason)}`
+        : normalizeReason(item?.rejectionReason);
       counts.set(label, (counts.get(label) || 0) + 1);
     }
     return [...counts.entries()]
@@ -132,7 +140,7 @@
       ["Exact identity", mapping === "CONFIRMED" ? "Verified" : "Needs review", mapping === "CONFIRMED" ? "good" : "warn"],
       ["Trusted completed sales", accepted > 0 ? `${accepted} accepted` : "None accepted", accepted > 0 ? "good" : "warn"],
       ["Value authority", accepted > 0 && supported > 0 ? "Available" : "Withheld", accepted > 0 && supported > 0 ? "good" : "warn"],
-      ["Excluded evidence", excluded > 0 ? `${excluded} visible` : "None", excluded > 0 ? "context" : "good"]
+      ["Not counted now", excluded > 0 ? `${excluded} visible` : "None", excluded > 0 ? "context" : "good"]
     ];
     return `<div class="ff-di-v2-gates">${gates.map(([label, value, tone]) => `
       <div class="ff-di-v2-gate" data-tone="${tone}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>`;
@@ -146,7 +154,7 @@
     const topReason = breakdown[0];
 
     if (decision === "VERIFY" && accepted === 0) {
-      if (topReason) return `No completed sale currently satisfies the exact-card evidence standard. The largest exclusion group is ${topReason[0].toLowerCase()} (${topReason[1]} row${topReason[1] === 1 ? "" : "s"}).`;
+      if (topReason) return `No completed sale currently satisfies the exact-card evidence standard. The largest not-counted group is ${topReason[0].toLowerCase()} (${topReason[1]} row${topReason[1] === 1 ? "" : "s"}).`;
       return "No completed sale currently satisfies the exact-card evidence standard, so FlipForge withholds supported value instead of manufacturing certainty.";
     }
     if (supported <= 0 || accepted === 0) {
@@ -175,7 +183,7 @@
   function reasonListMarkup(evidence) {
     const breakdown = reasonBreakdown(evidence);
     if (!breakdown.length) {
-      return `<div class="ff-di-v2-reason-empty"><strong>No current exclusions to explain.</strong><span>All linked rows shown here are currently authority-eligible or no excluded rows are linked.</span></div>`;
+      return `<div class="ff-di-v2-reason-empty"><strong>Nothing to explain.</strong><span>Every linked row is counted now, or no other rows are linked.</span></div>`;
     }
     return `<div class="ff-di-v2-reasons">${breakdown.map(([label, count]) => `
       <div><span>${escapeHtml(label)}</span><strong>${count}</strong></div>`).join("")}</div>`;
@@ -189,7 +197,11 @@
     const mapping = String(detail?.mappingState || "UNKNOWN").toUpperCase();
     const identityState = mapping === "CONFIRMED" ? "Verified exact identity" : "Identity review required";
     const supportedLabel = accepted > 0 && supported > 0 ? money(supported) : "Withheld";
-    const observed = escapeHtml(detail?.observedAt || "Unavailable");
+    const decisionTime = evidence?.decisionTime && evidence.decisionTime.available === true ? evidence.decisionTime : null;
+    const atDecision = decisionTime && Number.isFinite(Number(decisionTime.salesCountAtDecision))
+      ? `${Number(decisionTime.salesCountAtDecision)} sales`
+      : "Saved sales";
+    const observed = escapeHtml(String(decisionTime?.evaluatedAt || detail?.observedAt || "Unavailable").slice(0, 10));
     const engine = escapeHtml(meta?.engineVersion || "Server-owned");
     const authority = escapeHtml(meta?.authority || "Smart Opportunity");
     const change = escapeHtml(whatChangesCopy(detail, evidence));
@@ -218,7 +230,7 @@
         <section class="ff-di-v3-receipt-identity" aria-label="Receipt identity">
           <span>EXACT CARD</span>
           <h4>${escapeHtml(detail?.cardIdentity || "Unavailable")}</h4>
-          <p>${escapeHtml(identityState)} · observed ${observed}</p>
+          <p>${escapeHtml(identityState)} · decision saved ${observed}</p>
         </section>
 
         <div class="ff-di-v3-receipt-layers" aria-label="Decision Receipt layers">
@@ -228,7 +240,7 @@
           </article>
           <article class="ff-di-v3-receipt-layer" data-layer="evidence">
             <span class="ff-di-v3-receipt-layer-number">02</span>
-            <div><small>EVIDENCE</small><strong>${accepted} trusted · ${excluded} excluded</strong><p>Only authority-eligible exact completed sales are allowed to support value.</p></div>
+            <div><small>EVIDENCE</small><strong>${atDecision} at decision · ${accepted} counted now · ${excluded} not counted now</strong><p>The saved value used the sales available when it was saved. Today's count uses today's evidence rules. Sale prices are provider-reported and not independently confirmed.</p></div>
           </article>
           <article class="ff-di-v3-receipt-layer" data-layer="economics">
             <span class="ff-di-v3-receipt-layer-number">03</span>
@@ -288,7 +300,7 @@
     const heroTitle = root.querySelector(".ff-di-hero-copy h1");
     const heroCopy = root.querySelector(".ff-di-hero-copy p");
     if (heroTitle && heroTitle.textContent !== "Know why before you buy.") heroTitle.textContent = "Know why before you buy.";
-    const heroMessage = "FlipForge shows what it trusted, what it rejected, why value was allowed or withheld, and what would need to change before the decision changes.";
+    const heroMessage = "FlipForge shows what it counted, what it did not count and why, why value was allowed or withheld, and what would need to change before the decision changes.";
     if (heroCopy && heroCopy.textContent !== heroMessage) heroCopy.textContent = heroMessage;
 
     let command = root.querySelector("[data-ff-di-v2-command]");
@@ -336,7 +348,7 @@
 
       <div class="ff-di-v2-intelligence-grid">
         <article class="ff-di-v2-integrity">
-          <header><div><span class="ff-di-v2-kicker">EVIDENCE INTEGRITY</span><h3>What FlipForge trusted — and rejected</h3></div><strong>${accepted} trusted · ${excluded} excluded</strong></header>
+          <header><div><span class="ff-di-v2-kicker">EVIDENCE INTEGRITY</span><h3>What FlipForge counted — and what it did not</h3></div><strong>${accepted} counted now · ${excluded} not counted now</strong></header>
           ${evidenceGateMarkup(detail, evidence)}
           ${reasonListMarkup(evidence)}
           <a class="ff-di-v2-evidence-link" href="#/evidence/${encodeURIComponent(state.activeId)}">Open full evidence trail →</a>
