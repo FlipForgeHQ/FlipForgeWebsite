@@ -79,4 +79,15 @@
   .ff-about-editorial .ab-close-actions .btn{flex:1 1 100%;text-align:center}
 }
 @media (prefers-reduced-motion:reduce){.ff-about-editorial *{transition:none!important;animation:none!important}}
-@media print{.ff-about-editorial main{background:#fff}.ff-about-editorial .ab-hero h1,.ff-about-editorial h2,.ff-about-editorial h3,.ff-about-editorial .ab-principle-lines li,.ff-about-editorial blockquote{color:#000}}
+/* Print / PDF: white page, so every text, label, rule and button colour switches to dark ink. */
+@media print{
+  .ff-phase2-reveal,.ff-phase2-stagger>*{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}
+  .skip-link{display:none!important}
+  :root{--ff-read-primary:#000;--ff-read-secondary:#222;--ff-read-muted:#444;--ff-read-label:#444;--ff-read-gold:#5c4300}
+  .ff-about-editorial{--ab-gold:#7a5a00;--ab-gold-deep:#5c4300;--ab-ink:#000;--ab-body:#222;--ab-muted:#444;--ab-rule:rgba(0,0,0,.35);--ab-line:rgba(0,0,0,.18)}
+  .ff-about-editorial main,.ff-about-editorial .ab-principle,.ff-about-editorial .page-hero{background:#fff!important;box-shadow:none!important}
+  html body.ff-about-editorial main *,html body.ff-about-editorial main .page-hero .lead{color:#222!important;border-color:rgba(0,0,0,.18)!important;background-image:none!important;text-shadow:none!important}
+  html body.ff-about-editorial main .ab-hero h1,html body.ff-about-editorial main h2,html body.ff-about-editorial main h3,html body.ff-about-editorial main .ab-principle-lines li,html body.ff-about-editorial main blockquote,html body.ff-about-editorial main strong{color:#000!important}
+  html body.ff-about-editorial main .ab-hero-second,html body.ff-about-editorial main .ab-principle-lines strong,html body.ff-about-editorial main .ab-ledger li::before{color:#5c4300!important}
+  html body.ff-about-editorial main .button,html body.ff-about-editorial main a.button{background:#fff!important;color:#000!important;border:1px solid #000!important}
+}
