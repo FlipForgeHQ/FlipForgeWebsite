@@ -62,6 +62,13 @@ check("041 provider-mapped evidence metric is named accurately", completion.incl
 check("042 production account exposes a direct sign out control", account.includes("data-production-account-signout") && account.includes(">Sign out</button>"));
 check("043 production account signs out through the shared Identity client", account.includes("window.FlipForgeIdentity") && account.includes("await api.signOut()"));
 check("044 production account returns to secure auth after sign out", account.includes("window.location.replace(authUrl)") && account.includes("/production-auth.html?return="));
+check("045 sign out is offered while account state is loading, offline or failed (never trapped signed in)",
+  ["loadingView", "offlineView", "errorView"].every(fn => {
+    const start = account.indexOf(`function ${fn}(`);
+    const end = account.indexOf("\n  }\n", start);
+    return start >= 0 && account.slice(start, end).includes("data-production-account-signout");
+  })
+  && (account.match(/innerHTML = (?:loadingView|errorView\(state\.error\)|offlineView)\(?\)?;\n\s*attachActions\(\);/g) || []).length === 3);
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS production account validation");
