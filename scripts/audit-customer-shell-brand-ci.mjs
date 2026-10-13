@@ -256,6 +256,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
   check(`${label}: original card input is preserved`, ui.inputName === "exactCardQuery");
   /* Guided Mode starts minimized on phones; key controls are never covered. Desktop/tablet keep the open guide. */
   await page.waitForTimeout(700);
+  // Review screenshot of the default state, before any Guide me tap below.
+  await page.screenshot({ path: path.join(screenshotDir, `beta-card-entry-${viewport.width}x${viewport.height}.png`) });
   const guide = await page.evaluate(() => {
     const unobstructed = selector => {
       const node = document.querySelector(selector);
@@ -298,7 +300,6 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
   } else {
     check(`${label}: Guided Mode opens by default on desktop and tablet (unchanged)`, guide.panel, JSON.stringify(guide));
   }
-  await page.screenshot({ path: path.join(screenshotDir, `beta-card-entry-${viewport.width}x${viewport.height}.png`) });
   await context.close();
 }
 
