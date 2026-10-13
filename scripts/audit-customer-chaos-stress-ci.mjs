@@ -305,7 +305,8 @@ async function assertHealthy(page, expectedRoute, worker, action, mutationThresh
       overflow: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
       scrollY: window.scrollY,
       readyState: document.readyState,
-      visualSystemLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-app-system-v2.css")))
+      visualSystemLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-app-system-v2.css")
+        || String(sheet.ownerNode?.getAttribute?.("data-ff-css-bundle-sources") || "").split(" ").includes("customer-app-system-v2.css")))
     };
   }, expectedRoute);
 
