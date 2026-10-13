@@ -209,6 +209,55 @@ for (const scenario of scenarios) {
   await context.close();
 }
 
+/* Private Beta: prove the user sees two different jobs, not two "find card" buttons.
+ * Browser-only fixture: no CardSight or live listing calls. */
+for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180 }, { width: 390, height: 844 }]) {
+  const label = `Beta card entry ${viewport.width}x${viewport.height}`;
+  const { context, page } = await open(viewport, false);
+  await page.evaluate(() => { window.location.hash = "#/discover"; });
+  await page.waitForSelector("[data-customer-discovery-form] [data-discovery-find-exact]", { timeout: 10000 });
+  await page.waitForFunction(() => {
+    const form = document.querySelector("[data-customer-discovery-form]");
+    return form?.querySelector('button[type="submit"]')?.textContent?.trim() === "Search listings"
+      && form?.querySelector("[data-discovery-find-exact]")?.textContent?.trim() === "Check card identity";
+  }, { timeout: 8000 });
+  const ui = await page.evaluate(() => {
+    const form = document.querySelector("[data-customer-discovery-form]");
+    const primary = form?.querySelector('button[type="submit"]');
+    const identity = form?.querySelector("[data-discovery-find-exact]");
+    const hint = form?.querySelector("[data-ff-beta-identity-hint]");
+    const input = form?.querySelector('[name="exactCardQuery"]');
+    const secondaryStyles = identity && getComputedStyle(identity);
+    return {
+      primary: primary?.textContent?.trim(),
+      identity: identity?.textContent?.trim(),
+      primaryType: primary?.type,
+      secondaryType: identity?.type,
+      primaryClass: primary?.className,
+      secondaryClass: identity?.className,
+      hint: hint?.textContent?.trim(),
+      hintCount: form?.querySelectorAll("[data-ff-beta-identity-hint]").length,
+      secondaryBackground: secondaryStyles?.backgroundColor,
+      secondaryUnderline: secondaryStyles?.textDecorationLine,
+      inputName: input?.name,
+      identityTitle: identity?.title,
+      copy: document.querySelector(".customer-discovery-search .panel-header h2")?.textContent?.trim()
+    };
+  });
+  check(`${label}: listing search clearly primary`,
+    ui.primary === "Search listings" && ui.primaryType === "submit" && ui.primaryClass?.includes("button-primary"), ui.primary);
+  check(`${label}: identity is optional, distinct and not a submit action`,
+    ui.identity === "Check card identity" && ui.secondaryType === "button"
+      && ui.secondaryClass?.includes("button-secondary") && /unsure|parallel|variation/i.test(ui.identityTitle || ""), ui.identity);
+  check(`${label}: concise explanation and subdued helper appear once`,
+    ui.copy === "Find listings for your card" && ui.hintCount === 1
+      && ui.hint?.includes("Not sure which version")
+      && ui.secondaryUnderline?.includes("underline"), ui.hint);
+  check(`${label}: original card input is preserved`, ui.inputName === "exactCardQuery");
+  await page.screenshot({ path: path.join(screenshotDir, `beta-card-entry-${viewport.width}x${viewport.height}.png`) });
+  await context.close();
+}
+
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);

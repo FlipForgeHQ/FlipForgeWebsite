@@ -63,6 +63,11 @@ const checks = [
   ["beta session telemetry payload contains only event page and placement", betaSession.includes("const body = JSON.stringify({ event, page: PAGE, placement: PLACEMENT });")],
   ["beta session presentation files are loaded last", appIndex.includes('href="beta-session-v1.css"') && /customer-only-shell-v1\.js[\s\S]*beta-session-v1\.js[\s\S]*<\/body>/.test(appIndex)],
   ["beta session hides technical provider status and result-count control", betaSession.includes("Connected source status") && betaSession.includes("ffBetaHiddenControl") && betaSessionCss.includes("ff-beta-hidden-control")],
+  ["beta primary action is explicit about searching listings", betaSession.includes('submit.textContent = "Search listings"') && betaSession.includes('Search active listings for the card entered') && !betaSession.includes('submit.textContent = "Find this card"')],
+  ["identity assistant is labeled as optional identity verification", betaSession.includes('exact.textContent = "Check card identity"') && betaSession.includes('exact.setAttribute("aria-label", "Check card identity before searching listings")') && betaSession.includes("Not sure which version of the card you have?")],
+  ["identity action is visually secondary and does not replace form submission", betaSessionCss.includes('.customer-discovery-search-actions [data-discovery-find-exact]') && betaSessionCss.includes('background: transparent !important') && betaSession.includes('form.querySelector(\'button[type="submit"]\')')],
+  ["beta form shows one persistent identity hint without duplicating it on rerender", betaSession.includes('!form.querySelector("[data-ff-beta-identity-hint]")') && betaSession.includes('actions.insertAdjacentElement("afterend", hint)')],
+
   ["privacy policy discloses limited events", privacy.includes("Website measurement") && privacy.includes("does not set analytics cookies") && privacy.includes("create a visitor identifier")],
   ["operating contract defines funnel", docs.includes("Application completion proxy") && docs.includes("These are directional interaction counts, not unique visitors")],
   ["operator templates exist", docs.includes("Your FlipForge private-beta invitation") && docs.includes("FlipForge day-7 evidence check")],
