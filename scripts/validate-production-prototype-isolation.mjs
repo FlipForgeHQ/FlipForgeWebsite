@@ -163,6 +163,11 @@ check("041 real built app matches current deployment context", productionBuild
   ? realStagingTokensAbsent && realRequiredCustomerRuntimePresent
   : realPreviewDiagnosticsPresent);
 check("042 production built app retains customer evaluation/router authority path", !productionBuild || (index.includes('<script src="staging-evaluation.js"></script>') && index.includes('<script src="staging-route-hook.js"></script>')));
+const prototypeApp = read("saas-prototype/app.js");
+check("043 prototype dashboard carries no personal name", !/Good evening, Todd|\bTodd\b/.test(prototypeApp));
+check("044 production Decision Intelligence never falls through to the prototype dashboard",
+  /PRODUCTION_CUSTOMER_HOST\.test\([^)]*\)\)\s*\n?\s*&& route === "decision-intelligence"\) \{\s*renderProductionRoutePlaceholder\(route\);/.test(prototypeApp)
+  && prototypeApp.indexOf('route === "decision-intelligence") {') < prototypeApp.indexOf("switch (route) {"));
 
 const failures = results.filter(result => !result.passed);
 console.log("ProductionPrototypeIsolationValidation");

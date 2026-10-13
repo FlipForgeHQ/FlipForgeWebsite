@@ -187,7 +187,7 @@
 
   function renderDashboard() {
     main.innerHTML = `<div class="page">
-      ${pageHeading("Customer intelligence workspace", "Good evening, Todd", "See what deserves attention, why the evidence supports it, and what still needs verification before you act.", `<a class="button button-secondary" href="#/compare">Compare cards</a><a class="button button-primary" href="#/evaluate">Evaluate a card</a>`)}
+      ${pageHeading("Customer intelligence workspace", "Your saved decisions", "See what deserves attention, why the evidence supports it, and what still needs verification before you act.", `<a class="button button-secondary" href="#/compare">Compare cards</a><a class="button button-primary" href="#/evaluate">Evaluate a card</a>`)}
       ${renderMetrics()}
       <div class="dashboard-grid">
         <div class="stack">
@@ -550,6 +550,16 @@
     closeNavigation();
 
     if (productionCustomerApp()) {
+      renderProductionRoutePlaceholder(route);
+      return;
+    }
+
+    // Decision Intelligence has no prototype page of its own, so on the production host it must not fall through to
+    // the prototype dashboard. It gets the honest pending placeholder: the authoritative renderer paints over it, or
+    // it ends in "This page didn't load. No sample data". (Live /app/beta/#/decision-intelligence showed the
+    // prototype greeting on 2026-10-13.)
+    if (PRODUCTION_CUSTOMER_HOST.test(String(window.location.hostname || ""))
+      && route === "decision-intelligence") {
       renderProductionRoutePlaceholder(route);
       return;
     }

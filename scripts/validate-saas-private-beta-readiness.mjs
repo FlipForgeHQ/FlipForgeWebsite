@@ -104,14 +104,14 @@ function makeStorage(initial = {}) {
   };
 }
 
-function runtime({ hash, authenticated, membershipActive, healthStatus = "disabled", bridgeEnabled = false, storage = makeStorage(), hostname = "deploy-preview-32--goflipforge.netlify.app" }) {
+function runtime({ hash, authenticated, membershipActive, healthStatus = "disabled", bridgeEnabled = false, storage = makeStorage(), hostname = "deploy-preview-32--goflipforge.netlify.app", pathname = "/app/beta/" }) {
   const main = { innerHTML: "", focus() {} };
   const bannerTitle = { textContent: "NON-PRODUCTION PROTOTYPE" };
   const bannerCopy = { textContent: "Mock responses only" };
   const banner = { querySelector(selector) { return selector === "strong" ? bannerTitle : selector === "span" ? bannerCopy : null; } };
   const listeners = {};
   const window = {
-    location: { hostname, hash },
+    location: { hostname, pathname, hash },
     localStorage: storage,
     FlipForgeIdentity: {
       getSnapshot: () => ({ authenticated, email: authenticated ? "tester@example.com" : "", fullName: authenticated ? "Beta Tester" : "", membershipActive, membershipConfigured: membershipActive })
