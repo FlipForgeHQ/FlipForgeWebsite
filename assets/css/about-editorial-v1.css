@@ -1,0 +1,82 @@
+/* FlipForge About — editorial layout (v1).
+   Scoped to .ff-about-editorial. Locked palette (BRAND_VISUAL_LOCKED.md v2.1):
+   black #000, white #fff, silver #8B8F98, gold #D4AF37, deep gold #B8860B. Typography: Geist (site.css). */
+.ff-about-editorial{--ab-gold:#D4AF37;--ab-gold-deep:#B8860B;--ab-ink:#f5f5f4;--ab-body:#c3c8d0;--ab-muted:#9aa1ab;--ab-rule:rgba(212,175,55,.32);--ab-line:rgba(255,255,255,.09);--ab-measure:68ch;--ab-max:1120px}
+.ff-about-editorial main{background:#000}
+
+/* Hero */
+.ff-about-editorial .ab-hero{max-width:var(--ab-max);margin:0 auto;padding:96px 24px 72px}
+/* Title and lead sizes come from the shared public type scale (audit-public-typography-rendered). */
+.ff-about-editorial .ab-hero h1{max-width:18ch;margin:0;color:var(--ab-ink)}
+.ff-about-editorial .ab-hero h1 .ab-hero-second{display:block;color:var(--ab-gold)}
+.ff-about-editorial .ab-hero-close{margin:28px 0 0;color:var(--ab-ink);font-size:clamp(1.35rem,2.4vw,1.85rem);font-weight:500;letter-spacing:-.02em}
+.ff-about-editorial .ab-lead{max-width:var(--ab-measure);margin:24px 0 0;color:var(--ab-body)}
+
+/* Principle statement */
+.ff-about-editorial .ab-principle{border-top:1px solid var(--ab-line);border-bottom:1px solid var(--ab-line);background:linear-gradient(180deg,rgba(212,175,55,.045),rgba(0,0,0,0))}
+.ff-about-editorial .ab-principle-inner{max-width:var(--ab-max);margin:0 auto;padding:72px 24px;display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:48px;align-items:start}
+.ff-about-editorial .ab-label{margin:0;color:var(--ab-muted);font-size:.8125rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding-top:.6em;border-top:1px solid var(--ab-rule)}
+.ff-about-editorial .ab-principle-lines{margin:0;padding:0;list-style:none}
+.ff-about-editorial .ab-principle-lines li{color:var(--ab-ink);font-size:clamp(1.6rem,3.4vw,2.6rem);font-weight:600;line-height:1.18;letter-spacing:-.03em}
+.ff-about-editorial .ab-principle-lines li+li{margin-top:.35em}
+.ff-about-editorial .ab-principle-lines strong{color:var(--ab-gold);font-weight:600}
+
+/* Editorial sections */
+.ff-about-editorial .ab-section{max-width:var(--ab-max);margin:0 auto;padding:88px 24px 0;display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:48px}
+.ff-about-editorial .ab-section .section-head{display:block;margin:0 0 24px}
+.ff-about-editorial .ab-section h2{max-width:22ch;margin:0;color:var(--ab-ink)}
+.ff-about-editorial .ab-prose p{max-width:var(--ab-measure);margin:0 0 1.1em;color:var(--ab-body);font-size:1.0625rem;line-height:1.75}
+.ff-about-editorial .ab-prose p:last-child{margin-bottom:0}
+.ff-about-editorial .ab-prose strong{color:var(--ab-ink);font-weight:600}
+
+/* Numbered commitments: one continuous ledger, not cards */
+.ff-about-editorial .ab-ledger{margin:8px 0 0;padding:0;list-style:none;counter-reset:ab}
+.ff-about-editorial .ab-ledger li{counter-increment:ab;display:grid;grid-template-columns:3.25rem minmax(0,1fr);gap:20px;padding:28px 0;border-top:1px solid var(--ab-line)}
+.ff-about-editorial .ab-ledger li:last-child{border-bottom:1px solid var(--ab-line)}
+.ff-about-editorial .ab-ledger li::before{content:counter(ab,decimal-leading-zero);color:var(--ab-gold);font-size:.9375rem;font-weight:600;letter-spacing:.08em;font-variant-numeric:tabular-nums;padding-top:.3em}
+.ff-about-editorial .ab-ledger h3{margin:0 0 8px;color:var(--ab-ink);font-size:clamp(1.2rem,1.9vw,1.45rem);font-weight:600;letter-spacing:-.015em}
+.ff-about-editorial .ab-ledger p{max-width:var(--ab-measure);margin:0;color:var(--ab-body);font-size:1.0625rem;line-height:1.7}
+
+/* Boundaries */
+.ff-about-editorial .ab-boundaries{margin:0;padding:0;list-style:none}
+.ff-about-editorial .ab-boundaries li{position:relative;max-width:var(--ab-measure);padding:14px 0 14px 28px;color:var(--ab-body);font-size:1.0625rem;line-height:1.6;border-top:1px solid var(--ab-line)}
+.ff-about-editorial .ab-boundaries li:last-child{border-bottom:1px solid var(--ab-line)}
+.ff-about-editorial .ab-boundaries li::before{content:"";position:absolute;left:2px;top:1.45em;width:12px;height:1px;background:var(--ab-gold)}
+
+/* Outcome review timeline (inline, text only) */
+.ff-about-editorial .ab-timeline{display:flex;flex-wrap:wrap;gap:0;margin:28px 0 0;padding:0;list-style:none;border-top:1px solid var(--ab-rule)}
+.ff-about-editorial .ab-timeline li{flex:1 1 180px;padding:18px 20px 0 0}
+.ff-about-editorial .ab-timeline b{display:block;color:var(--ab-gold);font-size:.8125rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.ff-about-editorial .ab-timeline span{display:block;margin-top:6px;color:var(--ab-ink);font-size:1.0625rem;font-weight:500}
+
+/* Status note */
+.ff-about-editorial .ab-prose .ab-status,.ff-about-editorial .ab-status{max-width:var(--ab-measure);margin:32px 0 0;padding:20px 22px;border-left:2px solid var(--ab-gold);background:rgba(255,255,255,.025);color:var(--ab-body);font-size:1rem;line-height:1.65}
+.ff-about-editorial .ab-status strong{color:var(--ab-ink)}
+
+/* Close */
+.ff-about-editorial .ab-close{max-width:var(--ab-max);margin:0 auto;padding:104px 24px 112px;text-align:left}
+.ff-about-editorial .ab-close-rule{width:56px;height:2px;margin:0 0 32px;background:var(--ab-gold);border:0}
+.ff-about-editorial .ab-close-label{display:inline-block;margin:0 0 18px;font-weight:600}
+.ff-about-editorial .ab-close-objective{max-width:var(--ab-measure);margin:0 0 32px;color:var(--ab-body);font-size:1.0625rem;line-height:1.75}
+.ff-about-editorial .ab-close blockquote{margin:0;max-width:20ch;color:var(--ab-ink);font-size:clamp(2rem,4.6vw,3.6rem);font-weight:600;line-height:1.06;letter-spacing:-.04em}
+.ff-about-editorial .ab-close blockquote span{display:block;color:var(--ab-gold)}
+.ff-about-editorial .ab-close-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:40px}
+.ff-about-editorial .ab-close-actions .btn{width:auto;margin-top:0}
+.ff-about-editorial .ab-close .ab-tagline{margin:28px 0 0;color:var(--ab-muted);font-size:.9375rem;letter-spacing:.02em}
+
+.ff-about-editorial a:focus-visible{outline:2px solid var(--ab-gold);outline-offset:3px;border-radius:4px}
+
+@media (max-width:860px){
+  .ff-about-editorial .ab-hero{padding:64px 18px 48px}
+  .ff-about-editorial .ab-principle-inner,.ff-about-editorial .ab-section{grid-template-columns:minmax(0,1fr);gap:18px}
+  .ff-about-editorial .ab-principle-inner{padding:52px 18px}
+  .ff-about-editorial .ab-section{padding:64px 18px 0}
+  .ff-about-editorial .ab-label{max-width:max-content}
+  .ff-about-editorial .ab-close{padding:76px 18px 84px}
+}
+@media (max-width:480px){
+  .ff-about-editorial .ab-ledger li{grid-template-columns:2.5rem minmax(0,1fr);gap:12px}
+  .ff-about-editorial .ab-close-actions .btn{flex:1 1 100%;text-align:center}
+}
+@media (prefers-reduced-motion:reduce){.ff-about-editorial *{transition:none!important;animation:none!important}}
+@media print{.ff-about-editorial main{background:#fff}.ff-about-editorial .ab-hero h1,.ff-about-editorial h2,.ff-about-editorial h3,.ff-about-editorial .ab-principle-lines li,.ff-about-editorial blockquote{color:#000}}
