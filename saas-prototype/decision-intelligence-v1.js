@@ -596,7 +596,22 @@
     render();
   }
 
-  window.addEventListener("hashchange", () => window.requestAnimationFrame(activate));
-  window.addEventListener("pageshow", () => window.requestAnimationFrame(activate));
-  window.requestAnimationFrame(activate);
+  // Start on the next animation frame or a short timer, whichever comes first. Chrome delivers no animation frames to a
+  // background tab, so a frame-only start never loaded this page there and left the previous screen showing.
+  let activationQueued = false;
+  function scheduleActivate() {
+    if (activationQueued) return;
+    activationQueued = true;
+    const run = () => {
+      if (!activationQueued) return;
+      activationQueued = false;
+      activate();
+    };
+    window.requestAnimationFrame(run);
+    window.setTimeout(run, 50);
+  }
+
+  window.addEventListener("hashchange", scheduleActivate);
+  window.addEventListener("pageshow", scheduleActivate);
+  scheduleActivate();
 })();
