@@ -204,7 +204,25 @@ function runChecks() {
   check("S04 capped BUY renders governed WATCH plus guardrail tag", /data-ffv3-section="verdict"[\s\S]*?data-verdict="watch"[\s\S]*?data-ffv3-guardrail[^>]*>Profit protection applied/.test(html));
   check("S05 capped dossier lists margin-of-safety hold under unknowns", /data-unknown="capped"/.test(html));
   check("S06 'Modeled estimate' label present on modeled economics", html.includes(">Modeled estimate<"));
-  check("S07 Breakeven and Sell number absent", !/breakeven/i.test(html) && !/sell number/i.test(html) && !/breakeven|sell number/i.test(source));
+  /* S07 (Oct 13): the default dossier still shows no break-even and no browser "sell number" anywhere. Break-even is
+   * allowed only in the opt-in focused Economics tab, as exact arithmetic on saved server values (F04/F05). */
+  check("S07 default dossier has no break-even; no sell number anywhere", !/break-?even/i.test(html) && !/sell number/i.test(html) && !/sell number/i.test(source));
+  window.location.search = "?dashboard=v3&focus=1";
+  const focusHtml = api.markupForView(api.viewFromSnapshot(snapshot, "", "ready", {}));
+  const noSnapshotAsk = g1Items();
+  noSnapshotAsk[0].governedDecision.allInAskCents = null;
+  noSnapshotAsk[0].ask = 640;
+  const focusNoAskHtml = api.markupForView(api.viewFromSnapshot(snapshotFor(noSnapshotAsk), "", "ready", {}));
+  window.location.search = "";
+  check("F04 focused break-even equals saved all-in ask plus saved base-case profit ($640.00 + $55.20)",
+    focusHtml.includes("<dt>Break-even price (base case)</dt><dd>$695.20</dd>") && focusHtml.includes("<dt>Risk score</dt><dd>35/100</dd>")
+    && !/sell number/i.test(focusHtml));
+  check("F05 no break-even is computed when the saved profit did not use a snapshot ask",
+    focusNoAskHtml.includes("data-ffv3-breakeven") && !focusNoAskHtml.includes("$695.20")
+    && /<dt>Break-even price \(base case\)<\/dt><dd>[^<$]*<\/dd>/.test(focusNoAskHtml));
+  check("F06 focused evidence tab links to the per-sale evidence page and uses not-counted wording",
+    focusHtml.includes(`href="#/evidence/${FIXTURE_IDS.capped}"`) && focusHtml.includes("counted, excluded, held or not used")
+    && !focusHtml.includes("Excluded current sales"));
   const classTokens = markup => [...markup.matchAll(/class="([^"]*)"/g)].flatMap(match => match[1].split(/\s+/).filter(Boolean));
   const V2_CLASS = /^(?:ff-commercial|ff-kpi|ff-v2|ff-dashboard|ff-decision-spotlight|ff-recommendation-pill|ff-factor|ff-distribution|ff-donut|ff-attention|ff-market)|^(?:page|button|button-primary|button-secondary)$/;
   check("S08 V3 root carries no V2 classes", classTokens(html).length > 0 && classTokens(html).every(token => token.startsWith("ffv3-") || token === "is-selected") && !classTokens(html).some(token => V2_CLASS.test(token)));
@@ -304,17 +322,29 @@ function runChecks() {
   check("P20 no transaction affordances", !/buy now|place bid|checkout|make offer|add to cart/i.test(prodText));
   /* Buyer clarity: display-only math; the governed verdict and evidence remain authoritative. */
   check("B01 WATCH lead shows precise cents and no rounded Max Buy",
-    html.includes("data-ffv3-price-signal") && html.includes("$31.21 above your modeled Max Buy")
+    html.includes("data-ffv3-price-signal") && html.includes("$31.21 more than your modeled Max Buy")
     && html.includes("<dt>All-in ask</dt><dd>$640.00</dd>")
     && html.includes("<dt>Modeled Max Buy</dt><dd>$608.79</dd>")
     && !html.includes("<dt>Value gap</dt>"));
+  /* Financial transparency (Oct 9): wording and emphasis only; no browser-derived cost components. */
+  check("F01 amount over Max Buy is labelled as an overpayment and marked negative",
+    html.includes('data-ffv3-delta="over"><dt>Over your Max Buy</dt><dd>$31.21</dd>')
+    && !html.includes("Above Max Buy")
+    && /\.ffv3-fact\[data-ffv3-delta="over"\] dd \{ color: var\(--ffv3-pass\)/.test(css)
+    && /\.ffv3-price-signal\[data-ffv3-over-max\] strong \{ color: var\(--ffv3-pass\)/.test(css));
+  check("F02 sale value is labelled as before costs, with a qualitative note and no invented cost figures",
+    html.includes("<dt>Exact-sale value (before costs)</dt>") && html.includes("data-ffv3-cost-note")
+    && !/data-ffv3-cost-note>[^<]*\$\d/.test(html) && !/data-ffv3-cost-note>[^<]*\d+(\.\d+)?%/.test(html));
+  check("F03 score direction legend uses engine definitions and keeps server values",
+    html.includes("data-ffv3-score-legend") && html.includes("Higher risk means a greater chance of losing money.")
+    && /Risk score[\s\S]*?<strong>70\/100<\/strong>/.test(prodDossier));
   check("B02 evidence preview comes directly after economics, ahead of deeper analysis",
     html.includes("data-ffv3-evidence-preview") && html.includes("12 exact sales used for this saved decision")
     && html.indexOf("data-ffv3-evidence-preview") < html.indexOf("data-ffv3-section=\"why\"")
     && html.indexOf("data-ffv3-evidence-preview") < html.indexOf("Estimated profit after costs"));
   check("B03 preview does not invent exclusions or mix current with snapshot sales",
     prodDossier.includes("62 exact sales used for this saved decision")
-    && prodDossier.includes("Excluded-sale details are unavailable in this view")
+    && prodDossier.includes("Which sales were left out, and why, is not shown in this view yet")
     && !prodDossier.includes("438 excluded from current saved sales"));
   check("B04 negative outcome explicitly marked and scenario names understandable",
     html.includes('data-outcome="negative"') && html.includes("Downside scenario")

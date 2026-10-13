@@ -126,3 +126,5 @@ html[data-ff-customer-focus="1"] .ff-focus-tool-links a:focus-visible {color:#ff
 @media (prefers-reduced-motion:reduce) {
   .ffv3-root[data-ffv3-focus="true"] * {scroll-behavior:auto!important;transition:none!important}
 }
+.ffv3-root[data-ffv3-focus="true"] .ff-focus-evidence-link {display:inline-block;margin-top:12px;color:var(--ffv3-gold,#d4af37);font-weight:650;text-underline-offset:4px}
+.ffv3-root[data-ffv3-focus="true"] [data-ffv3-breakeven] {margin-top:14px}

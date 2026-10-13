@@ -375,19 +375,19 @@
     if (route === "discover") {
       const error = main.querySelector('.customer-discovery-page .staging-error[role="alert"]');
       if (error) {
-        setRecovery("discover-error", error, recoveryHtml("The search didn't finish. Nothing was saved.", "Go back to the card box, confirm the exact identity, and try again. If the card number or parallel is uncertain, use Find exact card first.", '<button class="button button-primary" type="button" data-ff-focus-card>Show me the card box</button><button class="button button-secondary" type="button" data-ff-find-exact>Find exact card</button>'));
+        setRecovery("discover-error", error, recoveryHtml("The search didn't finish. Nothing was saved.", "Go back to the card box, confirm the exact identity, and try again. If the card number or parallel is uncertain, use Check card identity first.", '<button class="button button-primary" type="button" data-ff-focus-card>Show me the card box</button><button class="button button-secondary" type="button" data-ff-find-exact>Check card identity</button>'));
         return;
       }
 
       const identity = main.querySelector(".customer-discovery-identity-assist");
       if (identity && /No selectable exact identity|No selectable|Add a year, set, player, card number/i.test(identity.textContent || "")) {
-        setRecovery("identity-missing", identity, recoveryHtml("FlipForge needs a little more card detail.", "Add the year, set, player, and card number first. Add the parallel, insert, grader, and grade when you know them. Then try Find exact card again.", '<button class="button button-primary" type="button" data-ff-focus-card>Take me back to the card box</button>'));
+        setRecovery("identity-missing", identity, recoveryHtml("FlipForge needs a little more card detail.", "Add the year, set, player, and card number first. Add the parallel, insert, grader, and grade when you know them. Then try Check card identity again.", '<button class="button button-primary" type="button" data-ff-focus-card>Take me back to the card box</button>'));
         return;
       }
 
       const empty = [...main.querySelectorAll(".staging-empty")].find(node => /No active candidate|No connected listing|No active candidates/i.test(node.textContent || ""));
       if (empty) {
-        setRecovery("discover-empty", empty, recoveryHtml("No matching active listing came back yet.", "That does not mean the card is bad. Tighten the identity with the exact card number, parallel or grade, or use Find exact card before searching again.", '<button class="button button-primary" type="button" data-ff-focus-card>Refine this card</button><button class="button button-secondary" type="button" data-ff-find-exact>Find exact card</button>'));
+        setRecovery("discover-empty", empty, recoveryHtml("No matching active listing came back yet.", "That does not mean the card is bad. Tighten the identity with the exact card number, parallel or grade, or use Check card identity before searching again.", '<button class="button button-primary" type="button" data-ff-focus-card>Refine this card</button><button class="button button-secondary" type="button" data-ff-find-exact>Check card identity</button>'));
         return;
       }
       clearRecovery();

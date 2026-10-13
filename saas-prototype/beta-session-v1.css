@@ -158,6 +158,37 @@ html.ff-beta-session-v1 .customer-discovery-search-actions .button-primary {
   min-width: 180px;
 }
 
+/* Clear customer choice: search is the primary gold CTA; identity help is a quiet opt-in. */
+html.ff-beta-session-v1 .customer-discovery-search-actions [data-discovery-find-exact] {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #c5ccd4 !important;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  padding: 10px 4px !important;
+  text-align: left;
+  justify-content: flex-start;
+}
+html.ff-beta-session-v1 .customer-discovery-search-actions [data-discovery-find-exact]:hover,
+html.ff-beta-session-v1 .customer-discovery-search-actions [data-discovery-find-exact]:focus-visible {
+  color: #ffffff !important;
+  text-decoration-color: #d4af37;
+}
+html.ff-beta-session-v1 .customer-discovery-form .ff-beta-identity-hint {
+  grid-column: 1 / -1;
+  margin: 0 0 4px !important;
+  font-size: 14px !important;
+  line-height: 1.5;
+  color: #aeb7c2;
+}
+
 html.ff-beta-session-v1 .customer-discovery-search-help {
   display: block;
   margin-top: 12px;
