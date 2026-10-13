@@ -216,6 +216,7 @@ function runChecks() {
   window.location.search = "";
   check("F04 focused break-even equals saved all-in ask plus saved base-case profit ($640.00 + $55.20)",
     focusHtml.includes("<dt>Break-even price (base case)</dt><dd>$695.20</dd>") && focusHtml.includes("<dt>Risk score</dt><dd>35/100</dd>")
+    && /data-ffv3-breakeven>\s*<div class="ffv3-fact"[^>]*><dt>Exact-sale value \(before costs\)<\/dt><dd>\$812\.50<\/dd>/.test(focusHtml)
     && !/sell number/i.test(focusHtml));
   check("F05 no break-even is computed when the saved profit did not use a snapshot ask",
     focusNoAskHtml.includes("data-ffv3-breakeven") && !focusNoAskHtml.includes("$695.20")

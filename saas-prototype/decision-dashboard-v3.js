@@ -571,10 +571,13 @@
     const breakEven = model.askFromSnapshot && model.askCents !== null && model.expectedNetCents !== null
       ? model.askCents + model.expectedNetCents : null;
     const risk = model.risk === null ? NOT_ESTABLISHED : `${integerText(model.risk)}/100`;
+    const supported = model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
     return `<dl class="ff-focus-facts" data-ffv3-breakeven>
+        ${fact("Exact-sale value (before costs)", supported)}
         ${fact("Break-even price (base case)", breakEven === null || breakEven <= 0 ? NOT_CALCULATED : exactMoneyFromCents(breakEven))}
         ${fact("Risk score", risk)}
       </dl>
+      ${costNoteMarkup(model)}
       ${breakEven !== null && breakEven > 0 ? '<p class="ffv3-legend">Paying more than the break-even price loses money even if the card sells at the base-case value. Max Buy is lower because it also keeps a minimum profit and a cushion for a price drop.</p>' : ""}`;
   }
 
