@@ -1,0 +1,107 @@
+name: App Stylesheet Bundle Assurance
+
+# The deploy build bundles the app shells' stylesheets (scripts/build-app-css-bundle.mjs) after every validator.
+# This workflow proves the bundle applies exactly the same CSS, then runs the customer browser audits against the
+# bundled build that Netlify actually ships.
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/build-app-css-bundle.mjs"
+      - "scripts/audit-app-css-bundle-ci.mjs"
+      - "netlify.toml"
+      - "package.json"
+      - ".github/workflows/app-css-bundle.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "saas-prototype/**"
+      - "scripts/build-app-css-bundle.mjs"
+      - "scripts/audit-app-css-bundle-ci.mjs"
+      - "netlify.toml"
+      - "package.json"
+      - ".github/workflows/app-css-bundle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-css-bundle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app-css-bundle:
+    name: Bundled stylesheets are equivalent and the bundled app works
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Bundle is CSS-equivalent (ordered rule lists identical, both shells)
+        run: node scripts/audit-app-css-bundle-ci.mjs
+
+      - name: Apply the deploy bundle step to the working tree
+        run: node scripts/build-app-css-bundle.mjs
+
+      - name: Start production-path app server on the bundled build
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-css-bundle-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/customer/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-css-bundle-server.log
+          exit 1
+
+      - name: Bundled build - full customer route and sign-in return
+        run: node scripts/audit-full-customer-route-ci.mjs
+
+      - name: Bundled build - Dashboard V3 rendered audit
+        env:
+          FLIPFORGE_V3_SCREENSHOT_DIR: artifacts/css-bundle/dashboard-v3
+        run: node scripts/audit-decision-dashboard-v3-ci.mjs
+
+      - name: Bundled build - customer shell brand audit
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          FLIPFORGE_SHELL_SCREENSHOT_DIR: artifacts/css-bundle/customer-shell
+        run: node scripts/audit-customer-shell-brand-ci.mjs
+
+      - name: Bundled build - mobile navigation and Guided Mode
+        run: |
+          node scripts/audit-mobile-navigation-ci.mjs
+          node scripts/audit-mobile-guided-mode-ci.mjs
+
+      - name: Bundled build - customer chaos stress (known regression seed)
+        env:
+          FLIPFORGE_STRESS_WORKERS: "3"
+          FLIPFORGE_STRESS_ROUNDS: "70"
+          FLIPFORGE_STRESS_SEED: "608381750"
+        run: npm run audit:customer-chaos-stress
+
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/flipforge-css-bundle-server.log || true
