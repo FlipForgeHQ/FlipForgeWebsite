@@ -56,6 +56,7 @@ jobs:
         run: |
           ! grep -q 'src="staging-browser.js"' saas-prototype/index.html
           ! grep -q 'href="staging-browser.css"' saas-prototype/index.html
+          ! grep -Eq 'data-ff-css-bundle-sources="([^"]* )?staging-browser\.css( |")' saas-prototype/index.html
           ! grep -q 'data-route="staging"' saas-prototype/index.html
           ! grep -q 'data-route="staging-evaluate"' saas-prototype/index.html
 
@@ -103,7 +104,7 @@ jobs:
       - name: Assert deploy-preview diagnostics remain available
         run: |
           grep -q 'src="staging-browser.js"' saas-prototype/index.html
-          grep -q 'href="staging-browser.css"' saas-prototype/index.html
+          grep -Eq 'href="staging-browser.css"|data-ff-css-bundle-sources="([^"]* )?staging-browser\.css( |")' saas-prototype/index.html
           grep -q 'data-route="staging"' saas-prototype/index.html
           grep -q 'data-route="staging-evaluate"' saas-prototype/index.html
 
