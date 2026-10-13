@@ -103,3 +103,5 @@ body.ff-marketing-page-v3 .callout{border-radius:15px;background:linear-gradient
   .ff-product-section{padding:52px 19px}
   .ff-page-vision-inner{padding:30px 21px}
 }
+/* Phones and small tablets: the decorative hero arc lands behind the headline and lead copy and lowers their contrast. Desktop is unchanged. */
+@media (max-width:760px){body.ff-marketing-page-v3 .page-hero:after{display:none}}
