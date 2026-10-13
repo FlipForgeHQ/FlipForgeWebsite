@@ -578,7 +578,7 @@
         ${fact("Risk score", risk)}
       </dl>
       ${costNoteMarkup(model)}
-      ${breakEven !== null && breakEven > 0 ? '<p class="ffv3-legend">Paying more than the break-even price loses money even if the card sells at the base-case value. Max Buy is lower because it also keeps a minimum profit and a cushion for a price drop.</p>' : ""}`;
+      ${breakEven !== null && breakEven > 0 ? '<p class="ffv3-legend">Paying more than the break-even price loses money even if the card sells at the base-case value.</p>' : ""}`;
   }
 
   function focusEconomicsMarkup(model) {
