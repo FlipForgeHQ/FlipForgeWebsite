@@ -79,6 +79,9 @@ jobs:
       - name: Bundled build - full customer route and sign-in return
         run: node scripts/audit-full-customer-route-ci.mjs
 
+      - name: Bundled build - customer shell parity across full customer routes
+        run: node scripts/audit-customer-shell-parity-ci.mjs
+
       - name: Bundled build - Dashboard V3 rendered audit
         env:
           FLIPFORGE_V3_SCREENSHOT_DIR: artifacts/css-bundle/dashboard-v3

@@ -17,6 +17,10 @@ const bundled = path.join(work, "bundled");
 fs.cpSync(path.join(root, "saas-prototype"), plain, { recursive: true });
 fs.cpSync(path.join(root, "saas-prototype"), bundled, { recursive: true });
 for (const dir of [plain, bundled]) for (const name of fs.readdirSync(dir)) if (/^app-css-bundle-.*\.css$/.test(name)) fs.rmSync(path.join(dir, name));
+if (fs.readdirSync(path.join(root, "saas-prototype")).some(name => /^app-css-bundle-.*\.css$/.test(name))) {
+  console.error("FAIL saas-prototype/ is already bundled. Run this audit before scripts/build-app-css-bundle.mjs (as the workflow does).");
+  process.exit(1);
+}
 const bundler = path.join(root, "scripts/build-app-css-bundle.mjs");
 const firstRun = execFileSync(process.execPath, [bundler, "--app-dir", bundled], { encoding: "utf8" }).trim();
 
