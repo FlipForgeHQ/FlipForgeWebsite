@@ -565,20 +565,29 @@
     </section>`;
   }
 
-  // Break-even is exact arithmetic on two saved server values: the snapshot all-in ask plus the
-  // base-case profit after costs. Shown only when the server's profit used that same ask.
+  // Break-even Buy Price: the most a buyer could pay for zero modeled profit in the base case. It is exact arithmetic on
+  // two saved server values, all-in ask + base-case profit after costs, which equals the engine's modeled net selling
+  // proceeds (ProfitabilityGuardrailService: expectedProfit = expectedNetExit - acquisition, acquisition = allInAskCents).
+  // Shown only when the saved profit used that same snapshot ask. It is NOT the resale price needed to break even, and it
+  // is never Max Buy: Max Buy also keeps the required minimum profit and price-drop cushion, so it is always lower.
+  function breakEvenBuyCents(model) {
+    if (!model.askFromSnapshot || model.askCents === null || model.expectedNetCents === null) return null;
+    const value = model.askCents + model.expectedNetCents;
+    return value > 0 ? value : null;
+  }
+
   function breakEvenMarkup(model) {
-    const breakEven = model.askFromSnapshot && model.askCents !== null && model.expectedNetCents !== null
-      ? model.askCents + model.expectedNetCents : null;
+    const breakEven = breakEvenBuyCents(model);
     const risk = model.risk === null ? NOT_ESTABLISHED : `${integerText(model.risk)}/100`;
     const supported = model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
+    const explain = breakEven === null ? "" : `<p class="ffv3-legend" data-ffv3-breakeven-explainer>Break-even Buy Price is the most you could pay and make $0 profit if the card sells at the base-case value, after FlipForge's estimated selling fees, shipping and reserves. It is not the price the card has to resell for. Pay more than this and the base case loses money.${model.maxBuyCents !== null ? ` Your Max Buy (${escapeHtml(exactMoneyFromCents(model.maxBuyCents))}) is lower because it also keeps a minimum profit and a cushion for a price drop.` : ""}</p>`;
     return `<dl class="ff-focus-facts" data-ffv3-breakeven>
         ${fact("Exact-sale value (before costs)", supported)}
-        ${fact("Break-even price (base case)", breakEven === null || breakEven <= 0 ? NOT_CALCULATED : exactMoneyFromCents(breakEven))}
+        ${fact("Break-even Buy Price", breakEven === null ? NOT_CALCULATED : exactMoneyFromCents(breakEven), ' data-ffv3-breakeven-buy')}
         ${fact("Risk score", risk)}
       </dl>
       ${costNoteMarkup(model)}
-      ${breakEven !== null && breakEven > 0 ? '<p class="ffv3-legend">Paying more than the break-even price loses money even if the card sells at the base-case value.</p>' : ""}`;
+      ${explain}`;
   }
 
   function focusEconomicsMarkup(model) {

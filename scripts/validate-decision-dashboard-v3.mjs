@@ -214,13 +214,27 @@ function runChecks() {
   noSnapshotAsk[0].ask = 640;
   const focusNoAskHtml = api.markupForView(api.viewFromSnapshot(snapshotFor(noSnapshotAsk), "", "ready", {}));
   window.location.search = "";
-  check("F04 focused break-even equals saved all-in ask plus saved base-case profit ($640.00 + $55.20)",
-    focusHtml.includes("<dt>Break-even price (base case)</dt><dd>$695.20</dd>") && focusHtml.includes("<dt>Risk score</dt><dd>35/100</dd>")
+  check("F04 Break-even Buy Price equals saved all-in ask plus saved base-case profit ($640.00 + $55.20 = modeled net selling proceeds)",
+    focusHtml.includes('data-ffv3-breakeven-buy><dt>Break-even Buy Price</dt><dd>$695.20</dd>') && focusHtml.includes("<dt>Risk score</dt><dd>35/100</dd>")
     && /data-ffv3-breakeven>\s*<div class="ffv3-fact"[^>]*><dt>Exact-sale value \(before costs\)<\/dt><dd>\$812\.50<\/dd>/.test(focusHtml)
     && !/sell number/i.test(focusHtml));
-  check("F05 no break-even is computed when the saved profit did not use a snapshot ask",
+  check("F05 no Break-even Buy Price when the saved profit did not use a snapshot ask",
     focusNoAskHtml.includes("data-ffv3-breakeven") && !focusNoAskHtml.includes("$695.20")
-    && /<dt>Break-even price \(base case\)<\/dt><dd>[^<$]*<\/dd>/.test(focusNoAskHtml));
+    && !focusNoAskHtml.includes("data-ffv3-breakeven-explainer")
+    && /<dt>Break-even Buy Price<\/dt><dd>[^<$]*<\/dd>/.test(focusNoAskHtml));
+  check("F07 Break-even Buy Price is explained as a purchase ceiling for $0 profit, not a resale price, and never as Max Buy",
+    /data-ffv3-breakeven-explainer>Break-even Buy Price is the most you could pay and make \$0 profit/.test(focusHtml)
+    && focusHtml.includes("It is not the price the card has to resell for.")
+    && focusHtml.includes("Your Max Buy ($608.79) is lower because it also keeps a minimum profit and a cushion for a price drop.")
+    && !/Break-even[^<]*Max Buy<\/dt>|Max Buy[^<]*Break-even<\/dt>/.test(focusHtml)
+    && !/<dt>Break-even price/i.test(focusHtml));
+  check("F08 every fixture with a Break-even Buy Price shows it above Max Buy (Max Buy keeps profit and cushion)",
+    g1Items().every(entry => {
+      const g = entry.governedDecision;
+      if (g.allInAskCents === null || g.expectedNetProfitCents === null || g.maximumBuyPriceCents === null) return true;
+      const breakEven = g.allInAskCents + g.expectedNetProfitCents;
+      return breakEven <= 0 || breakEven > g.maximumBuyPriceCents;
+    }));
   check("F06 focused evidence tab links to the per-sale evidence page and uses not-counted wording",
     focusHtml.includes(`href="#/evidence/${FIXTURE_IDS.capped}"`) && focusHtml.includes("counted, excluded, held or not used")
     && !focusHtml.includes("Excluded current sales"));
