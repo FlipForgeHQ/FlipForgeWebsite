@@ -46,6 +46,10 @@ try {
   }));
 
   await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded", timeout: 10_000 });
+  // Phones start minimized (founder direction, 2026-10-13): only the launcher shows until the customer taps it.
+  await page.waitForSelector(".ff-guide-launcher", { state: "visible", timeout: 7000 });
+  if (await page.locator(".ff-guide-panel").count()) failures.push("guide panel opened by default on a phone; it must start minimized");
+  await page.click(".ff-guide-launcher");
   await page.waitForSelector(".ff-guide-panel", { state: "visible", timeout: 7000 });
   await page.waitForTimeout(250);
 

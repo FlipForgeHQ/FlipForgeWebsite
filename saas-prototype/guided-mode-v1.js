@@ -765,9 +765,20 @@
     new MutationObserver(scheduleRefresh).observe(main, { childList: true, subtree: true });
   }
 
+  // Phones start with the guide minimized to its launcher so the card box, Search listings, Check card identity and
+  // the main navigation stay visible. Tapping "Guide me" opens the full guide. Desktop and tablet are unchanged.
+  function phoneViewport() {
+    try {
+      return typeof window.matchMedia === "function" && window.matchMedia("(max-width: 640px)").matches;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function init() {
     if (!eligibleHost() || state.mounted) return;
     state.mounted = true;
+    if (phoneViewport() && !state.userOpened) state.minimized = true;
     bindEvents();
     observeMain();
     syncSession();

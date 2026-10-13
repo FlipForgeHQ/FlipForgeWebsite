@@ -254,6 +254,50 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
       && ui.hint?.includes("Not sure which version")
       && ui.secondaryUnderline?.includes("underline"), ui.hint);
   check(`${label}: original card input is preserved`, ui.inputName === "exactCardQuery");
+  /* Guided Mode starts minimized on phones; key controls are never covered. Desktop/tablet keep the open guide. */
+  await page.waitForTimeout(700);
+  const guide = await page.evaluate(() => {
+    const unobstructed = selector => {
+      const node = document.querySelector(selector);
+      if (!node) return "missing";
+      node.scrollIntoView({ block: "center" });
+      const box = node.getBoundingClientRect();
+      if (!box.width || !box.height) return "hidden";
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return hit === node || node.contains(hit) ? "clear" : `covered by ${hit?.className || hit?.tagName}`;
+    };
+    return {
+      panel: Boolean(document.querySelector(".ff-guide-panel")),
+      launcher: Boolean(document.querySelector(".ff-guide-launcher")),
+      search: unobstructed('[data-customer-discovery-form] button[type="submit"]'),
+      identity: unobstructed("[data-customer-discovery-form] [data-discovery-find-exact]"),
+      menu: "pending"
+    };
+  });
+  if (viewport.width <= 900) {
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForTimeout(300);
+    guide.menu = await page.evaluate(() => {
+      const node = document.querySelector("[data-nav-toggle]");
+      if (!node) return "missing";
+      const box = node.getBoundingClientRect();
+      if (!box.width || !box.height) return "hidden";
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return hit === node || node.contains(hit) ? "clear" : `covered by ${hit ? String(hit.className || hit.tagName) : "nothing (off-screen)"}`;
+    });
+  } else {
+    guide.menu = "clear";
+  }
+  if (viewport.width <= 640) {
+    check(`${label}: Guided Mode starts minimized on phones (launcher only)`, !guide.panel && guide.launcher, JSON.stringify(guide));
+    check(`${label}: Search listings, Check card identity and menu are not covered`,
+      guide.search === "clear" && guide.identity === "clear" && guide.menu === "clear", JSON.stringify(guide));
+    await page.click(".ff-guide-launcher");
+    await page.waitForTimeout(300);
+    check(`${label}: tapping Guide me opens the full guide`, await page.locator(".ff-guide-panel").count() === 1);
+  } else {
+    check(`${label}: Guided Mode opens by default on desktop and tablet (unchanged)`, guide.panel, JSON.stringify(guide));
+  }
   await page.screenshot({ path: path.join(screenshotDir, `beta-card-entry-${viewport.width}x${viewport.height}.png`) });
   await context.close();
 }
