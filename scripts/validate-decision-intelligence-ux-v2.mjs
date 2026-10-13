@@ -49,7 +49,7 @@ check("012 runtime uses GET only", js.includes('method: "GET"') && !/method\s*:\
 check("013 runtime introduces no browser persistence", !/\blocalStorage\b|\bsessionStorage\b/.test(js));
 check("014 runtime consumes authorityEligible instead of accepting evidence", js.includes("authorityEligible") && !/\.accepted\s*=|authorityEligible\s*=\s*true/.test(js));
 check("015 runtime consumes server rejectionReason", js.includes("rejectionReason"));
-check("016 Evidence Integrity is first-class copy", js.includes("EVIDENCE INTEGRITY") && js.includes("What FlipForge trusted — and rejected"));
+check("016 Evidence Integrity is first-class copy", js.includes("EVIDENCE INTEGRITY") && js.includes("What FlipForge counted — and what it did not") && js.includes("Held for review (not rejected)"));
 check("017 Decision Receipt is present", js.includes("Decision Receipt"));
 check("018 what-changes guidance is present", js.includes("WHAT CHANGES THIS DECISION?"));
 check("019 supported value can be explicitly withheld", js.includes('"WITHHELD"') && js.includes('"Withheld"'));
@@ -67,6 +67,7 @@ check("030 Phase 3 receipt preserves compatibility values without exposing a sec
 check("031 Phase 4 receipt has staged reveal timing", css.includes("@keyframes ffDecisionReceiptLayerReveal") && css.includes("animation-delay:270ms"));
 check("032 Phase 4 receipt has narrow mobile behavior", css.includes("@media (max-width:760px)") && css.includes("@media (max-width:420px)"));
 check("033 Phase 4 receipt has reduced-motion fallback", css.includes("@media (prefers-reduced-motion:reduce)") && css.includes("animation:none!important"));
+check("034 receipt says \"decision saved\" only for a server decisionTime and keeps \"observed\" otherwise", js.includes('decisionTime?.evaluatedAt ? `decision saved ${observed}` : `observed ${observed}`') && !js.includes('· decision saved ${observed}'));
 
 console.log(`PASSED: ${passed}`);
 console.log(`FAILED: ${failures.length}`);
