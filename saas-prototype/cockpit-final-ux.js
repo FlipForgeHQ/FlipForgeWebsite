@@ -36,6 +36,13 @@
     );
   }
 
+  // Write text only when it differs. An unconditional textContent write is a
+  // DOM mutation even when the text is unchanged, and other customer scripts
+  // observe the document, so redundant writes feed a cross-observer loop.
+  function setText(node, text) {
+    if (node && node.textContent !== text) node.textContent = text;
+  }
+
   function replaceLeafText(root, from, to) {
     root.querySelectorAll("span, small, p, strong").forEach(node => {
       if (node.children.length === 0 && node.textContent.trim() === from) node.textContent = to;
@@ -60,29 +67,30 @@
 
     const customer = fullCustomerMode();
     const prototypeChip = document.querySelector(".prototype-chip");
-    if (prototypeChip) prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW";
+    const chipLabel = customer ? "CUSTOMER APP" : "SAAS PREVIEW";
+    if (prototypeChip && prototypeChip.textContent !== chipLabel) prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW";
 
     const planEyebrow = document.querySelector(".plan-card .eyebrow");
-    if (planEyebrow && !customer) planEyebrow.textContent = "Preview plan";
+    if (!customer) setText(planEyebrow, "Preview plan");
 
     const accountName = document.querySelector(".account-link strong");
-    if (accountName && !customer) accountName.textContent = "Owner account";
+    if (!customer) setText(accountName, "Owner account");
 
     const profileMode = document.querySelector(".profile-copy small");
-    if (profileMode) profileMode.textContent = customer ? "Customer" : "Preview";
+    setText(profileMode, customer ? "Customer" : "Preview");
 
     const gradingPanel = panelByHeading(cockpit, "Grading value predictor");
     if (gradingPanel) {
       const title = gradingPanel.querySelector("h3");
       const description = gradingPanel.querySelector("header p");
-      if (title) title.textContent = "Grading value scenarios";
-      if (description) description.textContent = "Net value by saved PSA outcome lane.";
+      setText(title, "Grading value scenarios");
+      setText(description, "Net value by saved PSA outcome lane.");
     }
 
     const opportunityPanel = panelByHeading(cockpit, "Opportunity map");
     if (opportunityPanel) {
       const title = opportunityPanel.querySelector("h3");
-      if (title) title.textContent = "Opportunity confidence map";
+      setText(title, "Opportunity confidence map");
     }
   }
 
@@ -233,15 +241,27 @@
     }
   }
 
-  const observer = new MutationObserver(() => requestAnimationFrame(applyFinalUx));
+  // Coalesce: at most one pass per animation frame, however many mutation
+  // batches or events arrive before it runs.
+  let scheduled = false;
+  function scheduleFinalUx() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      applyFinalUx();
+    });
+  }
+
+  const observer = new MutationObserver(scheduleFinalUx);
   observer.observe(main, { childList: true, subtree: true });
 
   window.addEventListener("hashchange", () => {
     const page = main.querySelector(".page");
     if (page) delete page.dataset.finalNavigationReset;
-    requestAnimationFrame(applyFinalUx);
+    scheduleFinalUx();
   });
-  window.addEventListener("pageshow", () => requestAnimationFrame(applyFinalUx));
-  window.addEventListener("load", () => requestAnimationFrame(applyFinalUx));
-  requestAnimationFrame(applyFinalUx);
+  window.addEventListener("pageshow", scheduleFinalUx);
+  window.addEventListener("load", scheduleFinalUx);
+  scheduleFinalUx();
 })();

@@ -204,18 +204,18 @@
   }
 
   function loadingView() {
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Loading your tenant-scoped access and evaluation usage…</p></div></header><div class="staging-loading" role="status">Loading account state…</div></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Loading your tenant-scoped access and evaluation usage…</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><div class="staging-loading" role="status">Loading account state…</div></div>`;
   }
 
   function offlineView() {
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Access and usage stay server-owned.</p></div></header><section class="panel"><div class="panel-body staging-empty"><strong>This account workspace is safely offline.</strong><p>The production customer gateway is not configured, so no tenant plan request was attempted and no sample subscription was substituted.</p></div></section></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Access and usage stay server-owned.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><section class="panel"><div class="panel-body staging-empty"><strong>This account workspace is safely offline.</strong><p>The production customer gateway is not configured, so no tenant plan request was attempted and no sample subscription was substituted.</p></div></section></div>`;
   }
 
   function errorView(error) {
     const signIn = error?.status === 401
       ? `<a class="button button-primary" href="/production-auth.html?return=${encodeURIComponent(accountReturnPath())}">Sign in securely</a>`
       : "";
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Account state could not be loaded.</p></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "ACCOUNT_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "The account workspace is unavailable.")}</p><small>No sample subscription or browser-invented allowance was shown.</small>${signIn}</div></section></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Account state could not be loaded.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "ACCOUNT_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "The account workspace is unavailable.")}</p><small>No sample subscription or browser-invented allowance was shown.</small>${signIn}</div></section></div>`;
   }
 
   function mainView(payload) {
@@ -282,6 +282,8 @@
     }
   }
 
+  // Sign out is offered in every account state, including loading, offline and error, so a customer is never
+  // trapped signed in when the account service is unavailable (it needs only the identity client).
   function attachActions() {
     const refresh = state.main?.querySelector?.("[data-production-account-refresh]");
     if (refresh) refresh.addEventListener("click", load);
@@ -293,14 +295,17 @@
     if (!state.main) return;
     if (state.loading) {
       state.main.innerHTML = loadingView();
+      attachActions();
       return;
     }
     if (state.error) {
       state.main.innerHTML = errorView(state.error);
+      attachActions();
       return;
     }
     if (state.health?.data?.status !== "configured") {
       state.main.innerHTML = offlineView();
+      attachActions();
       return;
     }
     state.main.innerHTML = mainView(state.entitlements);

@@ -84,7 +84,7 @@
       await window.FlipForgeIdentity?.refresh?.().catch?.(()=>{});
       clearPending();
       document.querySelector("[data-beta-terms-finalize]")?.remove();
-      if(String(window.location.pathname||"")!=="/app/customer/"||String(window.location.hash||"")!=="#/beta-start")window.location.assign(BETA_START_URL);
+      if(!/^\/app\/beta\/?$/i.test(String(window.location.pathname||""))||String(window.location.hash||"")!=="#/beta-start")window.location.assign(BETA_START_URL);
     }catch(error){
       overlay("Your account invitation was accepted, but FlipForge could not yet finish the Beta Terms receipt and access promotion. Retry before continuing. No payment or transaction authority was created.",true);
     }finally{recording=false}
