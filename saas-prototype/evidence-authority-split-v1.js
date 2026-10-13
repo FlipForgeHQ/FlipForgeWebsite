@@ -98,6 +98,19 @@
     return `<section class="panel ff-evidence-decision-time" data-ff-decision-time-section><header class="panel-header"><div><h2>The saved decision</h2><p>Recorded when this decision was saved. Later evidence-rule changes never rewrite it.</p></div></header><div class="panel-body"><div class="ff-evidence-decision-time-grid"><article><span>Recommendation</span><strong>${escapeHtml(String(decision.recommendation || "Unavailable"))}</strong></article><article><span>Ask at the time</span><strong>${money(decision.askPrice)}</strong></article><article><span>Supported value at the time</span><strong>${money(decision.supportedValue)}</strong></article><article><span>Sales behind it</span><strong>${escapeHtml(String(decision.salesCountAtDecision ?? "Unavailable"))}</strong></article><article><span>Decision saved</span><strong>${escapeHtml(dateOnly(decision.evaluatedAt))}</strong></article></div></div></section>`;
   }
 
+  // Counts that disagree with the rows must not be shown at all: hide every evidence element on the page and
+  // show one plain notice instead. Idempotent, so re-renders by other scripts are hidden again.
+  function failClosed(page) {
+    page.dataset.ffEvidenceAuthoritySplit = "invalid";
+    const keep = el => el.matches(".page-heading, .boundary-note, .customer-management-select-panel, [data-ff-evidence-invalid-notice]");
+    for (const child of [...page.children]) {
+      if (!keep(child)) child.hidden = true;
+    }
+    if (!page.querySelector("[data-ff-evidence-invalid-notice]")) {
+      page.insertAdjacentHTML("beforeend", '<section class="panel staging-warning" data-ff-evidence-invalid-notice><div class="panel-body"><strong>Evidence temporarily unavailable</strong><p>The sale counts for this card did not check out, so FlipForge is not showing them. Nothing about the saved decision has changed. Please try again shortly.</p></div></section>');
+    }
+  }
+
   function renderSplit(data) {
     const id = evidenceId();
     if (!id || !data || String(data.opportunityId || "") !== id) return;
@@ -126,7 +139,7 @@
           || Number(reported.excluded) !== groups.EXCLUDED.length
           || Number(reported.held) !== groups.HELD.length
           || Number(reported.notUsed) !== groups.NOT_USED.length))) {
-      page.dataset.ffEvidenceAuthoritySplit = "invalid";
+      failClosed(page);
       return;
     }
 

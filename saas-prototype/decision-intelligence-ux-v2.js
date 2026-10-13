@@ -202,6 +202,8 @@
       ? `${Number(decisionTime.salesCountAtDecision)} sales`
       : "Saved sales";
     const observed = escapeHtml(String(decisionTime?.evaluatedAt || detail?.observedAt || "Unavailable").slice(0, 10));
+    // Only a server-reported decisionTime is a save date; older responses keep the listing observation label.
+    const savedLabel = decisionTime?.evaluatedAt ? `decision saved ${observed}` : `observed ${observed}`;
     const engine = escapeHtml(meta?.engineVersion || "Server-owned");
     const authority = escapeHtml(meta?.authority || "Smart Opportunity");
     const change = escapeHtml(whatChangesCopy(detail, evidence));
@@ -230,7 +232,7 @@
         <section class="ff-di-v3-receipt-identity" aria-label="Receipt identity">
           <span>EXACT CARD</span>
           <h4>${escapeHtml(detail?.cardIdentity || "Unavailable")}</h4>
-          <p>${escapeHtml(identityState)} · decision saved ${observed}</p>
+          <p>${escapeHtml(identityState)} · ${savedLabel}</p>
         </section>
 
         <div class="ff-di-v3-receipt-layers" aria-label="Decision Receipt layers">

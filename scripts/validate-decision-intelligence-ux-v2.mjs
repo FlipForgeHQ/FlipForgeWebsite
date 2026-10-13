@@ -67,6 +67,7 @@ check("030 Phase 3 receipt preserves compatibility values without exposing a sec
 check("031 Phase 4 receipt has staged reveal timing", css.includes("@keyframes ffDecisionReceiptLayerReveal") && css.includes("animation-delay:270ms"));
 check("032 Phase 4 receipt has narrow mobile behavior", css.includes("@media (max-width:760px)") && css.includes("@media (max-width:420px)"));
 check("033 Phase 4 receipt has reduced-motion fallback", css.includes("@media (prefers-reduced-motion:reduce)") && css.includes("animation:none!important"));
+check("034 receipt says \"decision saved\" only for a server decisionTime and keeps \"observed\" otherwise", js.includes('decisionTime?.evaluatedAt ? `decision saved ${observed}` : `observed ${observed}`') && !js.includes('· decision saved ${observed}'));
 
 console.log(`PASSED: ${passed}`);
 console.log(`FAILED: ${failures.length}`);

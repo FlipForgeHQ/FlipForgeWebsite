@@ -120,8 +120,17 @@ try {
   const bad = response(linked);
   bad.currentAdmission.excluded = 7;
   page = await render(browser, bad);
-  const badState = await page.evaluate(() => document.querySelector(".customer-management-page").dataset.ffEvidenceAuthoritySplit);
-  check("status-count disagreement fails closed", badState === "invalid");
+  const badState = await page.evaluate(() => {
+    const root = document.querySelector(".customer-management-page");
+    const visible = el => el && !el.closest("[hidden]");
+    return {
+      split: root.dataset.ffEvidenceAuthoritySplit,
+      notice: visible(root.querySelector("[data-ff-evidence-invalid-notice]")),
+      evidenceVisible: [...root.querySelectorAll("section.panel")].filter(s => !s.matches("[data-ff-evidence-invalid-notice]") && visible(s)).length
+    };
+  });
+  check("status-count disagreement fails closed", badState.split === "invalid");
+  check("a count disagreement hides every evidence panel and shows a notice", badState.notice === true && badState.evidenceVisible === 0);
   await page.close();
 } finally {
   await browser.close();
