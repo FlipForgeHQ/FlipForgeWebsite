@@ -165,8 +165,10 @@ async function measure(page, route, viewport) {
       scrollWidth: document.documentElement.scrollWidth,
       innerWidth: window.innerWidth,
       horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
-      visualSystemLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-app-system-v2.css"))),
-      titleParityLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-title-parity-v1.css")))
+      visualSystemLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-app-system-v2.css")
+        || String(sheet.ownerNode?.getAttribute?.("data-ff-css-bundle-sources") || "").split(" ").includes("customer-app-system-v2.css"))),
+      titleParityLoaded: Boolean([...document.styleSheets].find(sheet => String(sheet.href || "").includes("customer-title-parity-v1.css")
+        || String(sheet.ownerNode?.getAttribute?.("data-ff-css-bundle-sources") || "").split(" ").includes("customer-title-parity-v1.css")))
     };
   }, { route, viewport });
 }

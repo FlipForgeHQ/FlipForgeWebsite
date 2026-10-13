@@ -241,13 +241,20 @@
     if (copy.textContent !== current[1]) copy.textContent = current[1];
   }
 
+  // The saved, server-returned verdict only: the hero status (the same source decision-authority-consistency-v1.js
+  // uses), or the summary pill when its whole text is one verdict. Never scrape page text: legends, keys and
+  // explainers on the page name every verdict. Unknown means no guide yet, not a guessed verdict.
   function decisionFrom(root) {
-    const direct = root.querySelector(".ff-decision-summary-pill,[data-decision]");
-    const text = String(direct?.textContent || direct?.getAttribute?.("data-decision") || "").toUpperCase();
-    for (const decision of ["BUY","WATCH","VERIFY","PASS"]) if (text.includes(decision)) return decision;
-    const all = String(root.textContent || "").toUpperCase();
-    for (const decision of ["VERIFY","WATCH","PASS","BUY"]) if (all.includes(decision)) return decision;
-    return "VERIFY";
+    const exact = node => {
+      const value = String(node?.textContent || "").trim().toUpperCase();
+      return ["BUY", "WATCH", "VERIFY", "PASS"].includes(value) ? value : "";
+    };
+    const hero = root.querySelector(".customer-intelligence-hero");
+    for (const node of hero ? hero.querySelectorAll(".staging-status,[data-recommendation]") : []) {
+      const value = exact(node);
+      if (value) return value;
+    }
+    return exact(root.querySelector("[data-ff-decision-summary] .ff-decision-summary-pill"));
   }
 
   function resultCopy(decision) {
@@ -270,9 +277,15 @@
       if (existingGuide) existingGuide.remove();
       return;
     }
-    if (existingGuide) return;
-
     const decision = decisionFrom(root);
+    if (!decision) {
+      if (existingGuide) existingGuide.remove();
+      return;
+    }
+    if (existingGuide) {
+      if (existingGuide.dataset.decision === decision) return;
+      existingGuide.remove();
+    }
     const [headline, explanation] = resultCopy(decision);
     const guide = document.createElement("section");
     guide.className = "ff-p3-result-guide ff-p3-enter";

@@ -209,6 +209,100 @@ for (const scenario of scenarios) {
   await context.close();
 }
 
+/* Private Beta: prove the user sees two different jobs, not two "find card" buttons.
+ * Browser-only fixture: no CardSight or live listing calls. */
+for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180 }, { width: 390, height: 844 }]) {
+  const label = `Beta card entry ${viewport.width}x${viewport.height}`;
+  const { context, page } = await open(viewport, false);
+  await page.evaluate(() => { window.location.hash = "#/discover"; });
+  await page.waitForSelector("[data-customer-discovery-form] [data-discovery-find-exact]", { timeout: 10000 });
+  await page.waitForFunction(() => {
+    const form = document.querySelector("[data-customer-discovery-form]");
+    return form?.querySelector('button[type="submit"]')?.textContent?.trim() === "Search listings"
+      && form?.querySelector("[data-discovery-find-exact]")?.textContent?.trim() === "Check card identity";
+  }, { timeout: 8000 });
+  const ui = await page.evaluate(() => {
+    const form = document.querySelector("[data-customer-discovery-form]");
+    const primary = form?.querySelector('button[type="submit"]');
+    const identity = form?.querySelector("[data-discovery-find-exact]");
+    const hint = form?.querySelector("[data-ff-beta-identity-hint]");
+    const input = form?.querySelector('[name="exactCardQuery"]');
+    const secondaryStyles = identity && getComputedStyle(identity);
+    return {
+      primary: primary?.textContent?.trim(),
+      identity: identity?.textContent?.trim(),
+      primaryType: primary?.type,
+      secondaryType: identity?.type,
+      primaryClass: primary?.className,
+      secondaryClass: identity?.className,
+      hint: hint?.textContent?.trim(),
+      hintCount: form?.querySelectorAll("[data-ff-beta-identity-hint]").length,
+      secondaryBackground: secondaryStyles?.backgroundColor,
+      secondaryUnderline: secondaryStyles?.textDecorationLine,
+      inputName: input?.name,
+      identityTitle: identity?.title,
+      copy: document.querySelector(".customer-discovery-search .panel-header h2")?.textContent?.trim()
+    };
+  });
+  check(`${label}: listing search clearly primary`,
+    ui.primary === "Search listings" && ui.primaryType === "submit" && ui.primaryClass?.includes("button-primary"), ui.primary);
+  check(`${label}: identity is optional, distinct and not a submit action`,
+    ui.identity === "Check card identity" && ui.secondaryType === "button"
+      && ui.secondaryClass?.includes("button-secondary") && /unsure|parallel|variation/i.test(ui.identityTitle || ""), ui.identity);
+  check(`${label}: concise explanation and subdued helper appear once`,
+    ui.copy === "Find listings for your card" && ui.hintCount === 1
+      && ui.hint?.includes("Not sure which version")
+      && ui.secondaryUnderline?.includes("underline"), ui.hint);
+  check(`${label}: original card input is preserved`, ui.inputName === "exactCardQuery");
+  /* Guided Mode starts minimized on phones; key controls are never covered. Desktop/tablet keep the open guide. */
+  await page.waitForTimeout(700);
+  // Review screenshot of the default state, before any Guide me tap below.
+  await page.screenshot({ path: path.join(screenshotDir, `beta-card-entry-${viewport.width}x${viewport.height}.png`) });
+  const guide = await page.evaluate(() => {
+    const unobstructed = selector => {
+      const node = document.querySelector(selector);
+      if (!node) return "missing";
+      node.scrollIntoView({ block: "center" });
+      const box = node.getBoundingClientRect();
+      if (!box.width || !box.height) return "hidden";
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return hit === node || node.contains(hit) ? "clear" : `covered by ${hit?.className || hit?.tagName}`;
+    };
+    return {
+      panel: Boolean(document.querySelector(".ff-guide-panel")),
+      launcher: Boolean(document.querySelector(".ff-guide-launcher")),
+      search: unobstructed('[data-customer-discovery-form] button[type="submit"]'),
+      identity: unobstructed("[data-customer-discovery-form] [data-discovery-find-exact]"),
+      menu: "pending"
+    };
+  });
+  if (viewport.width <= 900) {
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForTimeout(300);
+    guide.menu = await page.evaluate(() => {
+      const node = document.querySelector("[data-nav-toggle]");
+      if (!node) return "missing";
+      const box = node.getBoundingClientRect();
+      if (!box.width || !box.height) return "hidden";
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return hit === node || node.contains(hit) ? "clear" : `covered by ${hit ? String(hit.className || hit.tagName) : "nothing (off-screen)"}`;
+    });
+  } else {
+    guide.menu = "clear";
+  }
+  if (viewport.width <= 640) {
+    check(`${label}: Guided Mode starts minimized on phones (launcher only)`, !guide.panel && guide.launcher, JSON.stringify(guide));
+    check(`${label}: Search listings, Check card identity and menu are not covered`,
+      guide.search === "clear" && guide.identity === "clear" && guide.menu === "clear", JSON.stringify(guide));
+    await page.click(".ff-guide-launcher");
+    await page.waitForTimeout(300);
+    check(`${label}: tapping Guide me opens the full guide`, await page.locator(".ff-guide-panel").count() === 1);
+  } else {
+    check(`${label}: Guided Mode opens by default on desktop and tablet (unchanged)`, guide.panel, JSON.stringify(guide));
+  }
+  await context.close();
+}
+
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);
