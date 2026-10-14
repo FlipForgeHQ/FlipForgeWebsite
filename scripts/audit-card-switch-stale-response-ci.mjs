@@ -11,7 +11,8 @@
 //   - nothing from another card (title, verdict, price) may appear after the target card has loaded, including when
 //     slower responses for cards the customer left arrive later, out of order, or fail.
 // Scenarios: out-of-order arrival, three overlapping requests, abandoned failure, failure of the current card, slow
-// current card after a loaded one, and rapid switching among BUY/WATCH/VERIFY/PASS with out-of-order delays.
+// current card after a loaded one, rapid switching among BUY/WATCH/VERIFY/PASS with out-of-order delays, and switching
+// across renderers (slow Dashboard -> card, slow card -> Dashboard).
 // Synthetic fixtures only: no network, no provider calls.
 import { chromium } from "playwright";
 
@@ -47,7 +48,9 @@ const opportunity = id => ({
 // Per-scenario server behavior: delay (ms) and failure for the record endpoints of a given card.
 const behavior = new Map();
 const setBehavior = (id, value) => behavior.set(id, value);
-const clearBehavior = () => behavior.clear();
+const clearBehavior = () => { behavior.clear(); listDelayMs = 0; };
+// Delay for the Dashboard / list endpoints (another renderer paints those routes into the same #main-content).
+let listDelayMs = 0;
 
 function envelope(correlationId, data) {
   return {
@@ -98,8 +101,9 @@ async function newSession() {
     let seenAt = 0;
     const sample = () => {
       const id = routeId();
-      if (id !== seenId) { seenId = id; seenAt = performance.now(); }
-      if (id) {
+      const routeKey = String(location.hash || "").replace(/^#\/?/, "").split("?")[0];
+      if (routeKey !== seenId) { seenId = routeKey; seenAt = performance.now(); }
+      {
         const hero = document.querySelector("#main-content .customer-intelligence-hero");
         const shown = hero && hero.getClientRects().length ? {
           title: String(hero.querySelector("h2")?.textContent || "").trim(),
@@ -107,12 +111,13 @@ async function newSession() {
           ask: String(hero.querySelector(".customer-value-summary strong")?.textContent || "").trim()
         } : null;
         const error = /We couldn.t complete that request|took too long to load|did not finish loading/i.test(document.querySelector("#main-content")?.textContent || "");
-        const key = `${id}|${shown ? shown.title + "|" + shown.verdict + "|" + shown.ask : "none"}|${error}`;
+        const key = `${routeKey}|${shown ? shown.title + "|" + shown.verdict + "|" + shown.ask : "none"}|${error}`;
         if (key !== last) {
           last = key;
           window.__ffFrames.push({
             at: Math.round(performance.now()),
             id,
+            route: routeKey,
             since: Math.round(performance.now() - seenAt),
             renderer: [...(document.querySelector("#main-content > *")?.attributes || [])].map(a => a.name).filter(n => n.startsWith("data-")).join(" "),
             shown,
@@ -137,6 +142,9 @@ async function newSession() {
   await page.route("**/api/v1/**", async route => {
     const url = new URL(route.request().url());
     const correlationId = route.request().headers()["x-correlation-id"] || "saved-verdict-loading-audit";
+    if (listDelayMs && ["/api/v1/health", "/api/v1/dashboard", "/api/v1/opportunities"].includes(url.pathname)) {
+      await new Promise(resolve => setTimeout(resolve, listDelayMs));
+    }
     if (url.pathname === "/api/v1/health") return json(route, 200, envelope(correlationId, { status: "configured" }));
     if (url.pathname === "/api/v1/opportunities") {
       return json(route, 200, envelope(correlationId, { kind: "opportunities", items: ids.map(opportunity), count: ids.length, sourceOfTruth: "SQLite", transactionAuthority: false }));
@@ -168,8 +176,9 @@ async function newSession() {
 const frames = page => page.evaluate(() => window.__ffFrames.splice(0));
 const GRACE_MS = 50;
 // A frame is wrong when a card is on screen that is not the card in the URL (after the router's grace period).
-const foreign = list => list.filter(f => f.shown && f.shown.title !== cards[f.id]?.title && f.since > GRACE_MS);
-const describe = list => list.slice(0, 4).map(f => `URL ${f.id} showed "${f.shown?.title}" ${f.shown?.verdict} ${f.shown?.ask} ${f.since} ms after the URL changed [${f.renderer}]`).join("; ");
+// A card on screen that is not the card in the URL - including any card while the URL is not a card route.
+const foreign = list => list.filter(f => f.shown && (!f.id || f.shown.title !== cards[f.id]?.title) && f.since > GRACE_MS);
+const describe = list => list.slice(0, 4).map(f => `URL ${f.route || "(none)"} showed "${f.shown?.title}" ${f.shown?.verdict} ${f.shown?.ask} ${f.since} ms after the URL changed [${f.renderer}]`).join("; ");
 const go = (page, id) => page.evaluate(target => { location.hash = `#/opportunities/${target}`; }, id);
 async function onScreen(page) {
   return page.evaluate(() => {
@@ -308,6 +317,43 @@ try {
     const seen = await frames(page);
     check("C6 rapid switching among BUY/WATCH/VERIFY/PASS with out-of-order responses: the card on screen always belongs to the URL",
       foreign(seen).length === 0 && finals.every(Boolean), `${describe(foreign(seen))} finals=${finals}`);
+    await context.close();
+  }
+
+  // C7: across renderers - a slow Dashboard response must not replace a card opened meanwhile.
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    listDelayMs = 6000;
+    await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+    await go(page, "qa-verdict-watch");
+    await waitCard(page, "qa-verdict-watch");
+    await page.waitForTimeout(7500); // the slow Dashboard responses arrive
+    const seen = await frames(page);
+    const shown = await onScreen(page);
+    const lost = seen.filter(f => f.id === "qa-verdict-watch" && f.at > (seen.find(x => x.shown && x.id === "qa-verdict-watch")?.at ?? Infinity) && !f.shown);
+    check("C7 slow Dashboard, then open WATCH: the late Dashboard response never replaces the WATCH card",
+      foreign(seen).length === 0 && lost.length === 0 && isCard(shown, "qa-verdict-watch"), `${describe(foreign(seen))} lost=${lost.length} final=${JSON.stringify(shown)}`);
+    await context.close();
+  }
+
+  // C8: across renderers - a slow card response must not paint over the Dashboard the customer went back to.
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+    setBehavior("qa-verdict-buy", { delayMs: 5000 });
+    await frames(page);
+    await go(page, "qa-verdict-buy");
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => { location.hash = "#/dashboard"; });
+    await page.waitForTimeout(6000); // the abandoned BUY response arrives
+    const seen = await frames(page);
+    const onDashboard = await page.evaluate(() => ({ hash: location.hash, card: Boolean(document.querySelector("#main-content .customer-intelligence-hero")) }));
+    check("C8 slow BUY, then back to Dashboard: the late BUY response never paints over the Dashboard",
+      foreign(seen).length === 0 && !onDashboard.card && onDashboard.hash === "#/dashboard", `${describe(foreign(seen))} ${JSON.stringify(onDashboard)}`);
     await context.close();
   }
 } catch (error) {

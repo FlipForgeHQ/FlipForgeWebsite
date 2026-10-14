@@ -14,6 +14,9 @@
   // response for the card they left (or an earlier failure) must never replace the card they are now viewing.
   let loadSerial = 0;
   const STALE = Symbol("stale-card-intelligence-load");
+  // The route in the address bar. Other routes (Dashboard, Tracking...) are painted by other renderers into the same
+  // #main-content, so a load may only write or paint while the address bar is still on the route it was started for.
+  function routeKey() { return String(window.location.hash || "").replace(/^#\/?/, "").split("?")[0]; }
   // The card id in the address bar, or "" off a Card Intelligence route.
   function routeCardId() {
     const match = String(window.location.hash || "").match(/^#\/?opportunities\/([^/?#]+)/);
@@ -206,7 +209,7 @@
     }
   }
 
-  async function loadDetailDirect(serial) {
+  async function loadDetailDirect(serial, route) {
     if (!SAFE_ID.test(state.requestedId)) {
       throw Object.assign(new Error("The requested saved-card identifier is invalid."), { code: "INVALID_OPPORTUNITY_ID" });
     }
@@ -214,7 +217,7 @@
     const encoded = encodeURIComponent(state.selectedId);
     const requests = [["detail", `/api/v1/opportunities/${encoded}`], ["evidence", `/api/v1/evidence/${encoded}`], ["psa", `/api/v1/psa-advisor/${encoded}`]];
     const settled = await Promise.allSettled(requests.map(([, path]) => request(path)));
-    if (serial !== loadSerial) throw STALE; // the customer has moved on; this response belongs to another card
+    if (serial !== loadSerial || routeKey() !== route) throw STALE; // the customer has moved on; not this screen's data
     settled.forEach((result, index) => {
       const key = requests[index][0];
       if (result.status === "fulfilled") state[key] = result.value;
@@ -223,14 +226,14 @@
     validateDetailPayloads();
   }
 
-  async function loadList(serial) {
+  async function loadList(serial, route) {
     state.selectedId = "";
     const health = await request("/api/v1/health");
-    if (serial !== loadSerial) throw STALE;
+    if (serial !== loadSerial || routeKey() !== route) throw STALE;
     state.health = health;
     if (state.health?.data?.status !== "configured") return;
     const [dashboard, opportunities] = await Promise.all([request("/api/v1/dashboard"), request("/api/v1/opportunities")]);
-    if (serial !== loadSerial) throw STALE;
+    if (serial !== loadSerial || routeKey() !== route) throw STALE;
     [state.dashboard, state.opportunities] = [dashboard, opportunities];
     if (state.opportunities?.data?.kind !== "opportunities" || !Array.isArray(state.opportunities?.data?.items)) {
       throw Object.assign(new Error("The saved opportunity list failed the customer contract."), { code: "OPPORTUNITIES_LIST_INVALID" });
@@ -239,6 +242,7 @@
 
   async function load() {
     const serial = ++loadSerial;
+    const route = routeKey();
     state.loading = true;
     state.health = null;
     state.dashboard = null;
@@ -251,13 +255,13 @@
     state.selectedId = state.requestedId;
     renderCurrent();
     try {
-      if (state.requestedId) await loadDetailDirect(serial);
-      else await loadList(serial);
+      if (state.requestedId) await loadDetailDirect(serial, route);
+      else await loadList(serial, route);
     } catch (error) {
-      if (error === STALE || serial !== loadSerial) return; // a newer load owns state and the screen
+      if (error === STALE || serial !== loadSerial || routeKey() !== route) return; // a newer load or route owns the screen
       state.error = error;
     }
-    if (serial !== loadSerial) return;
+    if (serial !== loadSerial || routeKey() !== route) return;
     state.loading = false;
     renderCurrent();
   }

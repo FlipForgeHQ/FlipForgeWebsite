@@ -25,8 +25,11 @@
   };
 
   let currentMain = null;
-  // Only the newest load may write state or paint (preview/local renderer; same guard as customer-opportunities.js).
+  // Only the newest load may write state or paint, and only while the address bar is still on the route it was started
+  // for: Dashboard and Card Intelligence are painted by different renderers into the same #main-content (preview/local
+  // renderer; same guard as customer-opportunities.js).
   let loadSerial = 0;
+  function routeKey() { return String(window.location.hash || "").replace(/^#\/?/, "").split("?")[0]; }
   let currentId = "";
   let currentSurface = "staging";
 
@@ -174,13 +177,15 @@
 
   async function loadBase() {
     const serial = ++loadSerial;
+    const route = routeKey();
+    const current = () => serial === loadSerial && routeKey() === route;
     state.loading = true;
     state.error = null;
     clearDetail();
     renderCurrent();
     try {
       const health = await request(READ_PATHS.health);
-      if (serial !== loadSerial) return;
+      if (!current()) return;
       state.health = health;
       const data = state.health && state.health.data;
       const configured = data && data.status === "configured";
@@ -193,13 +198,13 @@
         request(READ_PATHS.dashboard),
         request(READ_PATHS.opportunities)
       ]);
-      if (serial !== loadSerial) return;
+      if (!current()) return;
       [state.dashboard, state.opportunities] = [dashboard, opportunities];
     } catch (error) {
-      if (serial !== loadSerial) return;
+      if (!current()) return;
       state.error = error;
     } finally {
-      if (serial === loadSerial) {
+      if (current()) {
         state.loading = false;
         renderCurrent();
       }
@@ -208,6 +213,7 @@
 
   async function loadDetail(id) {
     const serial = ++loadSerial;
+    const route = routeKey();
     clearDetail();
     state.error = null;
     state.loading = true;
@@ -230,7 +236,7 @@
       ["psa", `/api/v1/psa-advisor/${encoded}`]
     ];
     const results = await Promise.allSettled(requests.map(([, path]) => request(path)));
-    if (serial !== loadSerial) return; // the customer has moved to another card
+    if (serial !== loadSerial || routeKey() !== route) return; // the customer has moved to another card or route
     results.forEach((result, index) => {
       const key = requests[index][0];
       if (result.status === "fulfilled") state[key] = result.value;
