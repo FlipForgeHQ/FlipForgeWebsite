@@ -10,6 +10,7 @@ on:
       - "saas-prototype/**"
       - "scripts/build-app-css-bundle.mjs"
       - "scripts/audit-app-css-bundle-ci.mjs"
+      - "scripts/audit-saved-verdict-loading-ci.mjs"
       - "netlify.toml"
       - "package.json"
       - ".github/workflows/app-css-bundle.yml"
@@ -20,6 +21,7 @@ on:
       - "saas-prototype/**"
       - "scripts/build-app-css-bundle.mjs"
       - "scripts/audit-app-css-bundle-ci.mjs"
+      - "scripts/audit-saved-verdict-loading-ci.mjs"
       - "netlify.toml"
       - "package.json"
       - ".github/workflows/app-css-bundle.yml"
@@ -92,6 +94,11 @@ jobs:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
           FLIPFORGE_SHELL_SCREENSHOT_DIR: artifacts/css-bundle/customer-shell
         run: node scripts/audit-customer-shell-brand-ci.mjs
+
+      - name: Bundled build - saved verdict while loading (Private Beta path)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
+        run: node scripts/audit-saved-verdict-loading-ci.mjs
 
       - name: Bundled build - mobile navigation and Guided Mode
         run: |

@@ -135,12 +135,16 @@
     return Boolean(document.querySelector("#main-content .customer-discovery-identity-assist"));
   }
 
+  // The saved verdict from the Card Intelligence hero only (rendered from the saved record, absent while loading).
+  // Never page text: legends name every verdict. Unknown keeps the neutral "Start with the decision" copy.
   function currentRecommendation() {
-    const main = document.querySelector("#main-content");
-    if (!main) return "";
-    const text = String(main.textContent || "");
-    const match = text.match(/\b(BUY|WATCH|VERIFY|PASS)\b/i);
-    return match ? match[1].toUpperCase() : "";
+    const hero = document.querySelector("#main-content .customer-intelligence-hero");
+    if (!hero) return "";
+    for (const node of hero.querySelectorAll(".staging-status,[data-recommendation]")) {
+      const value = String(node.textContent || "").trim().toUpperCase();
+      if (["BUY", "WATCH", "VERIFY", "PASS"].includes(value)) return value;
+    }
+    return "";
   }
 
   function clearHighlight() {
@@ -346,7 +350,8 @@
 
     if (route === "opportunities" && parts.length > 1) {
       markStep("evaluate");
-      const recommendation = currentRecommendation() || "decision";
+      const known = currentRecommendation();
+      const recommendation = known || "decision";
       const copy = {
         VERIFY: "VERIFY means FlipForge does not yet have enough trustworthy support for a stronger call.",
         WATCH: "WATCH means the card may be worth monitoring, but the current price or evidence does not support moving further yet.",
@@ -355,7 +360,7 @@
       }[recommendation] || "Start with the decision, then read why FlipForge reached it.";
       return {
         location: "Card Intelligence · Step 3",
-        title: `Start here: ${recommendation}.`,
+        title: known ? `Start here: ${recommendation}.` : "Loading your saved decision.",
         copy,
         why: recommendation === "VERIFY" ? "Find what is missing before doing anything else." : "Understand the reason before moving on.",
         action: { type: "highlight", label: recommendation === "VERIFY" ? "Show me what is missing" : "Show me why" },
@@ -762,10 +767,24 @@
     });
   }
 
+  // The panel title names the saved verdict ("Start here: WATCH."). It must change in the same frame as the card on the
+  // page, not after the refresh debounce: when a customer switches cards the previous verdict otherwise stays on screen
+  // for ~100 ms over a loading page or a different card. Mutation callbacks run before the next paint.
+  function syncVerdictNow() {
+    const title = document.querySelector(`#${ROOT_ID} .ff-guide-panel h2`);
+    if (!title) return;
+    const shown = (String(title.textContent || "").match(/Start here:\s*(BUY|WATCH|VERIFY|PASS)\b/i) || [])[1]?.toUpperCase() || "";
+    const expected = routeName() === "opportunities" && routeParts().length > 1 ? currentRecommendation() : "";
+    if (shown && shown !== expected) renderPanel();
+  }
+
   function observeMain() {
     const main = document.querySelector("#main-content");
     if (!main) return;
-    new MutationObserver(scheduleRefresh).observe(main, { childList: true, subtree: true });
+    new MutationObserver(() => {
+      syncVerdictNow();
+      scheduleRefresh();
+    }).observe(main, { childList: true, subtree: true });
   }
 
   // Phones start with the guide minimized to its launcher so the card box, Search listings, Check card identity and
