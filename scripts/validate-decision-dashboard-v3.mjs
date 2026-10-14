@@ -222,6 +222,13 @@ function runChecks() {
     focusNoAskHtml.includes("data-ffv3-breakeven") && !focusNoAskHtml.includes("$695.20")
     && !focusNoAskHtml.includes("data-ffv3-breakeven-explainer")
     && /<dt>Break-even Buy Price<\/dt><dd>[^<$]*<\/dd>/.test(focusNoAskHtml));
+  const pipeItems = g1Items();
+  pipeItems[0].id = "EBAY-v1|117425668889|0";
+  window.location.search = "?dashboard=v3&focus=1";
+  const pipeHtml = api.markupForView(api.viewFromSnapshot(snapshotFor(pipeItems), "", "ready", {}));
+  window.location.search = "";
+  check("F09 evidence link kept for governed eBay Browse IDs containing |",
+    pipeHtml.includes('href="#/evidence/EBAY-v1%7C117425668889%7C0"') && pipeHtml.includes("data-ffv3-evidence-page"));
   check("F07 Break-even Buy Price is explained as a purchase ceiling for $0 profit, not a resale price, and never as Max Buy",
     /data-ffv3-breakeven-explainer>Break-even Buy Price is the most you could pay and make \$0 profit/.test(focusHtml)
     && focusHtml.includes("It is not the price the card has to resell for.")

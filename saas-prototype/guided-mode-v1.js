@@ -581,6 +581,9 @@
     const session = syncSession();
     if (!session.authenticated || !session.membershipActive) return;
     if (!force && welcomeSeen()) return;
+    // Phones start minimized: the automatic first-visit welcome would cover the card box, so it waits until the
+    // customer taps "Guide me" (or asks for Getting Started). Desktop and tablet are unchanged.
+    if (!force && phoneViewport() && state.minimized && !state.userOpened) return;
     if (document.getElementById(MODAL_ID)) return;
     const wrapper = document.createElement("div");
     wrapper.id = MODAL_ID;

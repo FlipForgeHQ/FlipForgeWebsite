@@ -28,6 +28,9 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+  // Evidence-page links accept every governed opportunity ID, including eBay Browse IDs such as EBAY-v1|117425668889|0
+  // (same rule as bulk-evaluation SAFE_OPPORTUNITY_ID). The ID is URI-encoded into the route.
+  const EVIDENCE_LINK_ID = /^[A-Za-z0-9][A-Za-z0-9._:|-]{0,199}$/;
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const MOBILE_QUERY = "(max-width: 560px)";
   const PATHS = Object.freeze({
@@ -561,7 +564,7 @@
         ${fact("Saved sale date range", range)}
       </dl>
       <p class="ff-focus-provenance">Decision evidence is recorded at save time. Current sales may differ; individual sale rows and exclusions appear only when provided by the server.</p>
-      ${SAFE_ID.test(model.id) ? `<a class="ff-focus-evidence-link" href="#/evidence/${encodeURIComponent(model.id)}" data-ffv3-evidence-page>See each sale: counted, excluded, held or not used →</a>` : ""}
+      ${EVIDENCE_LINK_ID.test(model.id) ? `<a class="ff-focus-evidence-link" href="#/evidence/${encodeURIComponent(model.id)}" data-ffv3-evidence-page>See each sale: counted, excluded, held or not used →</a>` : ""}
     </section>`;
   }
 
