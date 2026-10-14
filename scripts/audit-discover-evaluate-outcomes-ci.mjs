@@ -114,8 +114,15 @@ async function newPage(viewport, { storageWritesFail = false } = {}) {
     if (url.pathname === "/api/v1/health") return json(200, envelope(correlationId, { status: "configured" }));
     if (url.pathname === "/api/v1/discover") return json(200, envelope(correlationId, discoverData()));
     if (url.pathname === "/api/v1/entitlements") {
+      if (entitlementsMode === "stall") await new Promise(r => setTimeout(r, 4000));
       if (entitlementsMode === "fail") return json(503, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } });
-      const beta = entitlementsMode === "beta";
+      const beta = entitlementsMode !== "monthly";
+      if (entitlementsMode === "available") return json(200, envelope(correlationId, {
+        kind: "entitlements", readOnly: true,
+        current: { code: "PRIVATE_BETA", accessState: "PRIVATE_BETA_ACTIVE", evaluationAllowanceScope: "PRIVATE_BETA_LIFETIME", effectiveEvaluationLimit: 50 },
+        usage: { evaluationAllowanceScope: "PRIVATE_BETA_LIFETIME", completedEvaluations: 5, inProgressReservations: 0, admissionUsage: 5,
+          evaluationAllowanceLimit: 50, remainingEvaluations: 45, evaluationAllowedNow: true }
+      }));
       return json(200, envelope(correlationId, {
         kind: "entitlements", readOnly: true,
         current: { code: beta ? "PRIVATE_BETA" : "SCOUT", accessState: beta ? "PRIVATE_BETA_EVALUATION_ALLOWANCE_REACHED" : "MONTHLY_EVALUATION_LIMIT_REACHED",
@@ -133,6 +140,10 @@ async function newPage(viewport, { storageWritesFail = false } = {}) {
       if (mode === "expired") return json(401, { error: { code: "AUTHENTICATION_REQUIRED", message: "Sign in with an invited FlipForge account.", correlationId } });
       if (mode === "denied") return json(403, { error: { code: "ENTITLEMENT_ACCESS_DENIED", message: "Your current FlipForge access does not permit a new evaluation.", correlationId } });
       if (mode === "server") return json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "The authoritative service is unavailable.", correlationId } });
+      // The gateway sent the request on, then its upstream call timed out: the evaluation may already be saved.
+      if (mode === "gateway-timeout") return json(503, { error: { code: "UPSTREAM_TIMEOUT", message: "The authoritative FlipForge service timed out.", correlationId } });
+      // A definite rejection by FlipForge: nothing was evaluated or saved.
+      if (mode === "rejected") return json(422, { error: { code: "EVALUATION_REQUEST_INVALID", message: "This listing could not be evaluated.", correlationId } });
       if (mode === "timeout") { await new Promise(r => setTimeout(r, 35000)); return route.abort("timedout").catch(() => {}); }
       if (mode === "network") return route.abort("failed");
     }
@@ -157,7 +168,15 @@ const EXPECT = {
   // Restoring sign-in returns the customer to this same Discover page (never a different route).
   expired: { title: /Sign in again/, linkPattern: new RegExp(`^/production-auth\\.html\\?return=${encodeURIComponent(`${new URL(baseUrl).pathname.replace(/\/?$/, "/")}#/discover`).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) },
   denied: { title: /can't run evaluations/, link: "#/account" },
-  server: { title: /couldn't be completed/ },
+  // Gateway/upstream failures after the request was sent on: outcome unknown (Codex P1 on 8daa884).
+  server: { title: /couldn't confirm this evaluation/, unknownOutcome: true, link: "#/opportunities" },
+  "gateway-timeout": { title: /No answer from FlipForge yet/, unknownOutcome: true, link: "#/opportunities" },
+  rejected: { title: /couldn't be completed/ },
+  // 429 while the allowance lookup stalls: the neutral limit alert shows at once, then names the allowance in place.
+  "limit-stalled": { title: /Evaluation limit reached/, body: /No new evaluation was created/, link: "#/account", disablesEvaluate: true,
+    enrichedTitle: /You\u2019ve reached your Private Beta evaluation allowance\./, enrichedBody: /You have used 5 of 5/ },
+  // 429, then the allowance becomes available again: a new search re-checks it and lifts the block (Codex P2).
+  "limit-restored": { title: /You\u2019ve reached your Private Beta evaluation allowance\./, link: "#/account", disablesEvaluate: true, restoredAfter: true },
   // Outcome unknown: the server may have saved it. Must not claim nothing was saved; must point to saved decisions.
   network: { title: /Connection lost/, unknownOutcome: true, link: "#/opportunities" },
   timeout: { title: /No answer from FlipForge yet/, unknownOutcome: true, link: "#/opportunities" }
@@ -166,6 +185,7 @@ const EXPECT = {
 async function run(label, viewport, modes, entitlements = "beta") {
   entitlementsMode = entitlements;
   evalModes = modes.map(mode => mode.startsWith("limit") ? "limit" : mode);
+  const clickedAt = [];
   const expectFor = mode => EXPECT[mode];
   const { context, page } = await newPage(viewport);
   let loads = 0; page.on("load", () => { loads += 1; });
@@ -183,6 +203,7 @@ async function run(label, viewport, modes, entitlements = "beta") {
       const expect = expectFor(mode);
       await evaluate.scrollIntoViewIfNeeded();
       await evaluate.click({ timeout: 5000 });
+      clickedAt[attempt] = Date.now();
       if (expect.saved) {
         await page.waitForFunction(() => /#\/opportunities\/EBAY-QA-OHTANI-150$/.test(location.hash), null, { timeout: 15000 });
         await page.waitForFunction(() => /PSA 9/.test(document.querySelector("#main-content .customer-intelligence-hero h2")?.textContent || ""), null, { timeout: 15000 });
@@ -195,6 +216,8 @@ async function run(label, viewport, modes, entitlements = "beta") {
         continue;
       }
       await page.waitForSelector("#main-content [data-discovery-evaluate-error]", { timeout: mode === "timeout" ? 45000 : 10000 });
+      const alertAfterMs = Date.now() - clickedAt[attempt];
+      if (mode === "limit-stalled") check(`${label} (${mode}): the limit alert appears without waiting for the allowance lookup`, alertAfterMs < 2000, `${alertAfterMs} ms`);
       await page.waitForTimeout(300);
       const early = await page.evaluate(() => {
         const r = document.querySelector("#main-content [data-discovery-evaluate-error]")?.getBoundingClientRect();
@@ -231,8 +254,21 @@ async function run(label, viewport, modes, entitlements = "beta") {
         JSON.stringify({ inView: state.inView, nearButton: state.nearButton, focused: state.focused, text: state.text.slice(0, 120) }));
       check(`${label} attempt ${attempt + 1} (${mode}): offers the next step`, linkOk, state.links.join(","));
       check(`${label} attempt ${attempt + 1} (${mode}): no second, off-screen copy of the error`, !state.pageLevelErrorShown);
+      if (expect.enrichedTitle) {
+        await page.waitForTimeout(4000);
+        const enriched = await page.evaluate(() => {
+          const alert = document.querySelector("#main-content [data-discovery-evaluate-error]");
+          const r = alert?.getBoundingClientRect();
+          return { text: alert ? alert.innerText.replace(/\s+/g, " ") : "", focused: document.activeElement === alert,
+            inView: Boolean(r && r.top >= 0 && r.bottom <= innerHeight && r.height > 0), hash: location.hash };
+        });
+        check(`${label} (${mode}): once the lookup answers, the same alert names the allowance and keeps focus and position`,
+          expect.enrichedTitle.test(enriched.text) && expect.enrichedBody.test(enriched.text) && enriched.focused && enriched.inView
+            && enriched.hash === "#/discover" && loads === loadsAtStart, JSON.stringify(enriched).slice(0, 220));
+      }
       if (expect.disablesEvaluate) {
         check(`${label} (${mode}): Evaluate is disabled once the limit is reached`, state.buttonDisabled === true);
+        if (expect.restoredAfter) entitlementsMode = "available";
         // Search again: the disabled button must still be explained, with the way forward.
         await page.locator("#main-content [data-customer-discovery-form] input[name=\"exactCardQuery\"]").fill(QUERY);
         await page.locator("#main-content [data-customer-discovery-form]").evaluate(form => form.requestSubmit());
@@ -242,8 +278,13 @@ async function run(label, viewport, modes, entitlements = "beta") {
           const button = document.querySelector("#main-content [data-discovery-evaluate]");
           return { disabled: Boolean(button && button.disabled), note: note ? note.innerText : "", link: note?.querySelector('a[href="#/account"]') ? true : false };
         });
-        check(`${label} (${mode}): after a new search the disabled Evaluate is still explained, with Plan & Usage`,
-          after.disabled && /no evaluations left/.test(after.note) && after.link, JSON.stringify(after));
+        if (expect.restoredAfter) {
+          check(`${label} (${mode}): after the allowance is restored, a new search re-checks it and Evaluate is available again`,
+            !after.disabled && !after.note, JSON.stringify(after));
+        } else {
+          check(`${label} (${mode}): after a new search the disabled Evaluate is still explained, with Plan & Usage`,
+            after.disabled && /no evaluations left/.test(after.note) && after.link, JSON.stringify(after));
+        }
       }
     }
   } catch (error) {
@@ -257,7 +298,9 @@ const cases = [
   ["monthly plan limit reached (429)", ["limit-monthly"], "monthly"], ["limit reached, entitlements unavailable (429)", ["limit-unknown"], "fail"],
   ["expired session (401)", ["expired"]],
   ["access denied (403)", ["denied"]], ["server error (502)", ["server"]], ["network failure", ["network"]],
-  ["recovery: 502 then success", ["server", "success"]], ["timeout", ["timeout"]]
+  ["recovery: 502 then success", ["server", "success"]], ["timeout", ["timeout"]],
+  ["gateway upstream timeout (503 UPSTREAM_TIMEOUT)", ["gateway-timeout"]], ["definite rejection (422)", ["rejected"]],
+  ["limit reached, allowance lookup slow (429)", ["limit-stalled"], "stall"], ["limit reached, then allowance restored (429)", ["limit-restored"]]
 ];
 for (const [name, modes, entitlements] of cases) {
   for (const [vpName, vp] of [["desktop", desktop], ["mobile", mobile]]) await run(`${name} ${vpName}`, vp, modes, entitlements);

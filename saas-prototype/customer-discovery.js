@@ -402,6 +402,7 @@
     state.notice = "";
     state.evaluationError = null;
     state.data = null;
+    revalidateLimit();
     let draft;
     try {
       draft = readSearch(form);
@@ -499,9 +500,12 @@
     state.evaluationError = null;
     state.evaluatingIndex = index;
     renderCurrent();
+    // Whether the evaluation request left the browser. Before that, nothing can have been evaluated or saved.
+    let dispatched = false;
     try {
       const payload = safeEvaluationRequest(item);
       const requestId = idempotencyKeyFor(payload);
+      dispatched = true;
       const result = await request(EVALUATION_PATH, { method: "POST", body: payload, idempotencyKey: requestId });
       if (!validateEvaluation(result.payload, result.correlationId, requestId)) throw makeError("DISCOVER_EVALUATION_CONTRACT_INVALID", "The authoritative evaluation response failed the tenant-owned Smart Opportunity contract.");
       // Server semantic replay: this exact listing, card and ask already has a saved decision, so no
@@ -514,15 +518,41 @@
     } catch (error) {
       // Show the failure beside the button that started it. The page-level error panel sits above the results and is
       // moved below them by the Discover layout, so a customer scrolled to the listing saw nothing happen.
-      if (error?.code === "EVALUATION_LIMIT_REACHED" || error?.status === 429) {
-        state.evaluationLimitReached = true;
-        error.allowance = await allowanceSnapshot();
-      }
-      state.evaluationError = { index, error };
+      if (error && typeof error === "object") error.dispatched = dispatched;
+      const limitReached = error?.code === "EVALUATION_LIMIT_REACHED" || error?.status === 429;
+      if (limitReached) state.evaluationLimitReached = true;
+      const shown = { index, error };
+      state.evaluationError = shown;
       state.evaluatingIndex = -1;
       renderCurrent();
       revealEvaluationError();
+      // Show the limit message at once; name the allowance (and usage) when the read-only lookup answers.
+      if (limitReached) enrichLimitAlert(shown);
     }
+  }
+
+  async function enrichLimitAlert(shown) {
+    const allowance = await allowanceSnapshot();
+    if (!allowance || state.evaluationError !== shown) return;
+    shown.error.allowance = allowance;
+    const node = state.main?.querySelector?.("[data-discovery-evaluate-error]");
+    if (!node) return;
+    // Update the alert in place so it keeps its position and focus.
+    const template = document.createElement("template");
+    template.innerHTML = evaluationErrorMarkup(shown.error);
+    const fresh = template.content.firstElementChild;
+    if (fresh) node.innerHTML = fresh.innerHTML;
+  }
+
+  // The allowance block is cached for the session; re-check it with the server (read-only) so it lifts as soon as
+  // evaluations are available again (monthly reset, plan or allowance change). Keeps the block if the check fails.
+  async function revalidateLimit() {
+    if (!state.evaluationLimitReached) return;
+    const allowance = await allowanceSnapshot();
+    if (!allowance || allowance.allowedNow !== true || !state.evaluationLimitReached) return;
+    state.evaluationLimitReached = false;
+    if (state.evaluationError && (state.evaluationError.error?.status === 429 || state.evaluationError.error?.code === "EVALUATION_LIMIT_REACHED")) state.evaluationError = null;
+    if (!state.loading && state.evaluatingIndex < 0) renderCurrent();
   }
 
   function revealEvaluationError() {
@@ -580,7 +610,10 @@
         privateBeta: scope === "PRIVATE_BETA_LIFETIME" || state === "PRIVATE_BETA_EVALUATION_ALLOWANCE_REACHED",
         monthly: scope === "UTC_CALENDAR_MONTH" || state === "MONTHLY_EVALUATION_LIMIT_REACHED",
         used: number(usage.completedEvaluations),
-        limit: number(usage.evaluationAllowanceLimit ?? usage.monthlyEvaluationLimit)
+        limit: number(usage.evaluationAllowanceLimit ?? usage.monthlyEvaluationLimit),
+        allowedNow: typeof usage.evaluationAllowedNow === "boolean"
+          ? usage.evaluationAllowedNow
+          : Number.isInteger(usage.remainingEvaluations) ? usage.remainingEvaluations > 0 : null
       };
     } catch (_) {
       return null;
@@ -598,8 +631,24 @@
     return `/production-auth.html?${new URLSearchParams({ return: returnPath }).toString()}`;
   }
 
-  // Plain-language failure with the next step. Nothing is evaluated or saved when an evaluation fails, and retrying
-  // the same listing is safe (the request carries the same idempotency key).
+  // Gateway failures that happen before the evaluation is sent upstream: nothing can have been saved.
+  const NOT_DISPATCHED_CODES = new Set(["BRIDGE_DISABLED", "UPSTREAM_NOT_CONFIGURED"]);
+
+  // Only a definite rejection (the request never left the browser, the gateway refused it before sending it on, or
+  // FlipForge answered with a 4xx) proves nothing was saved. A timeout, a lost connection, any 5xx (including the
+  // gateway's UPSTREAM_TIMEOUT / UPSTREAM_UNAVAILABLE after it sent the request on), 408/409 or an unreadable success
+  // leaves the outcome unknown.
+  function outcomeUnknown(error) {
+    if (error?.dispatched === false) return false;
+    const code = String(error?.code || "");
+    const status = Number(error?.status || 0);
+    if (NOT_DISPATCHED_CODES.has(code)) return false;
+    if (status >= 400 && status < 500 && status !== 408 && status !== 409) return false;
+    return true;
+  }
+
+  // Plain-language failure with the next step. "Nothing was saved" is said only for a definite rejection
+  // (see outcomeUnknown); retrying the same listing is safe (the request carries the same idempotency key).
   function evaluationErrorMarkup(error) {
     const code = String(error?.code || "");
     const status = Number(error?.status || 0);
@@ -624,11 +673,14 @@
       title = "This account can't run evaluations";
       body = `${error?.message || "Your current FlipForge access does not permit a new evaluation."} This listing was not evaluated and nothing was saved.`;
       actions = link("#/account", "View Plan & Usage");
-    } else if (code === "CUSTOMER_API_TIMEOUT" || error?.name === "TimeoutError"
-      || error instanceof TypeError || /failed to fetch|network/i.test(String(error?.message || ""))) {
+    } else if (outcomeUnknown(error)) {
       // The request may have reached FlipForge before the answer was lost, so the outcome is unknown: never claim
       // nothing was saved. Retrying reuses the same idempotency key and returns the saved decision if one exists.
-      title = code === "CUSTOMER_API_TIMEOUT" || error?.name === "TimeoutError" ? "No answer from FlipForge yet" : "Connection lost";
+      title = code === "CUSTOMER_API_TIMEOUT" || error?.name === "TimeoutError" || code === "UPSTREAM_TIMEOUT"
+        ? "No answer from FlipForge yet"
+        : error instanceof TypeError || /failed to fetch|network/i.test(String(error?.message || ""))
+          ? "Connection lost"
+          : "FlipForge couldn't confirm this evaluation";
       body = "We couldn't confirm whether this evaluation finished. If it did, it is in your saved decisions. Trying again is safe: it returns the same decision and will not create a duplicate or use another evaluation.";
       actions = link("#/opportunities", "Open saved decisions");
     } else {
@@ -939,6 +991,7 @@
   async function render(main) {
     state.main = main;
     state.evaluatingIndex = -1;
+    revalidateLimit();
     const renderSerial = state.renderSerial + 1;
     state.renderSerial = renderSerial;
     state.error = null;
