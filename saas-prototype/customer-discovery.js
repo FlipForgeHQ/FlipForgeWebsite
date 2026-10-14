@@ -514,8 +514,11 @@
     } catch (error) {
       // Show the failure beside the button that started it. The page-level error panel sits above the results and is
       // moved below them by the Discover layout, so a customer scrolled to the listing saw nothing happen.
+      if (error?.code === "EVALUATION_LIMIT_REACHED" || error?.status === 429) {
+        state.evaluationLimitReached = true;
+        error.allowance = await allowanceSnapshot();
+      }
       state.evaluationError = { index, error };
-      if (error?.code === "EVALUATION_LIMIT_REACHED" || error?.status === 429) state.evaluationLimitReached = true;
       state.evaluatingIndex = -1;
       renderCurrent();
       revealEvaluationError();
@@ -563,6 +566,27 @@
     timer = window.setTimeout(settled, 150);
   }
 
+  // Read-only: which allowance was reached (Private Beta lifetime allowance or a calendar-month plan limit) and the
+  // server-reported usage. Never changes access; on any failure the message stays neutral.
+  async function allowanceSnapshot() {
+    try {
+      const result = await request("/api/v1/entitlements");
+      const data = result?.payload?.data || {};
+      const usage = data.usage || {};
+      const scope = String(usage.evaluationAllowanceScope || data.current?.evaluationAllowanceScope || "");
+      const state = String(data.current?.accessState || "");
+      const number = value => (Number.isInteger(value) && value >= 0 ? value : null);
+      return {
+        privateBeta: scope === "PRIVATE_BETA_LIFETIME" || state === "PRIVATE_BETA_EVALUATION_ALLOWANCE_REACHED",
+        monthly: scope === "UTC_CALENDAR_MONTH" || state === "MONTHLY_EVALUATION_LIMIT_REACHED",
+        used: number(usage.completedEvaluations),
+        limit: number(usage.evaluationAllowanceLimit ?? usage.monthlyEvaluationLimit)
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
   function restoreSignInUrl() {
     const path = String(window.location.pathname || "/app/beta/");
     const returnPath = `${path}${window.location.search || ""}${window.location.hash || "#/discover"}`;
@@ -579,8 +603,13 @@
     let body;
     let actions = "";
     if (code === "EVALUATION_LIMIT_REACHED" || status === 429) {
-      title = "Evaluation limit reached";
-      body = "This account can't run another evaluation right now, so this listing was not evaluated and nothing was saved. Your existing saved decisions are unchanged.";
+      const allowance = error?.allowance || null;
+      const usage = allowance && allowance.used !== null && allowance.limit !== null
+        ? ` You have used ${allowance.used} of ${allowance.limit}.` : "";
+      title = allowance?.privateBeta
+        ? "You\u2019ve reached your Private Beta evaluation allowance."
+        : allowance?.monthly ? "You\u2019ve reached this month\u2019s evaluation limit." : "Evaluation limit reached";
+      body = `No new evaluation was created for this listing and nothing was saved.${usage} Your existing saved decisions are unchanged.`;
       actions = link("#/account", "View Plan & Usage") + link("#/opportunities", "Open saved decisions");
     } else if (status === 401 || code === "AUTHENTICATION_REQUIRED") {
       title = "Sign in again to evaluate";

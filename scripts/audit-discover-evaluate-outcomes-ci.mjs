@@ -15,6 +15,7 @@ const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined;
 const QUERY = "2018 Topps Chrome Shohei Ohtani #150 PSA 9";
 let semanticReplay = false;
 let evalModes = ["success"];
+let entitlementsMode = "beta"; // which allowance the read-only entitlements response reports after a 429
 const evaluationCalls = [];
 
 function envelope(correlationId, data) {
@@ -112,6 +113,17 @@ async function newPage(viewport, { storageWritesFail = false } = {}) {
     const json = (status, body) => route.fulfill({ status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
     if (url.pathname === "/api/v1/health") return json(200, envelope(correlationId, { status: "configured" }));
     if (url.pathname === "/api/v1/discover") return json(200, envelope(correlationId, discoverData()));
+    if (url.pathname === "/api/v1/entitlements") {
+      if (entitlementsMode === "fail") return json(503, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } });
+      const beta = entitlementsMode === "beta";
+      return json(200, envelope(correlationId, {
+        kind: "entitlements", readOnly: true,
+        current: { code: beta ? "PRIVATE_BETA" : "SCOUT", accessState: beta ? "PRIVATE_BETA_EVALUATION_ALLOWANCE_REACHED" : "MONTHLY_EVALUATION_LIMIT_REACHED",
+          evaluationAllowanceScope: beta ? "PRIVATE_BETA_LIFETIME" : "UTC_CALENDAR_MONTH", effectiveEvaluationLimit: beta ? 5 : 25 },
+        usage: { evaluationAllowanceScope: beta ? "PRIVATE_BETA_LIFETIME" : "UTC_CALENDAR_MONTH", completedEvaluations: beta ? 5 : 25,
+          inProgressReservations: 0, admissionUsage: beta ? 5 : 25, evaluationAllowanceLimit: beta ? 5 : 25, remainingEvaluations: 0, evaluationAllowedNow: false }
+      }));
+    }
     if (url.pathname === "/api/v1/evaluations") {
       evaluationCalls.push(request.headers()["idempotency-key"]);
       const mode = evalModes.length > 1 ? evalModes.shift() : evalModes[0];
@@ -139,7 +151,9 @@ const check = (name, condition, detail = "") => (condition ? passes : failures).
 
 const EXPECT = {
   success: { saved: true },
-  limit: { title: /Evaluation limit reached/, link: "#/account", disablesEvaluate: true },
+  limit: { title: /You\u2019ve reached your Private Beta evaluation allowance\./, body: /No new evaluation was created.*You have used 5 of 5/, link: "#/account", disablesEvaluate: true },
+  "limit-monthly": { title: /You\u2019ve reached this month\u2019s evaluation limit\./, body: /No new evaluation was created.*You have used 25 of 25/, link: "#/account", disablesEvaluate: true },
+  "limit-unknown": { title: /Evaluation limit reached/, body: /No new evaluation was created/, link: "#/account", disablesEvaluate: true },
   // Restoring sign-in returns the customer to this same Discover page (never a different route).
   expired: { title: /Sign in again/, linkPattern: new RegExp(`^/production-auth\\.html\\?return=${encodeURIComponent(`${new URL(baseUrl).pathname.replace(/\/?$/, "/")}#/discover`).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) },
   denied: { title: /can't run evaluations/, link: "#/account" },
@@ -148,8 +162,10 @@ const EXPECT = {
   timeout: { title: /didn't finish/ }
 };
 
-async function run(label, viewport, modes) {
-  evalModes = modes.slice();
+async function run(label, viewport, modes, entitlements = "beta") {
+  entitlementsMode = entitlements;
+  evalModes = modes.map(mode => mode.startsWith("limit") ? "limit" : mode);
+  const expectFor = mode => EXPECT[mode];
   const { context, page } = await newPage(viewport);
   let loads = 0; page.on("load", () => { loads += 1; });
   try {
@@ -163,7 +179,7 @@ async function run(label, viewport, modes) {
     const loadsAtStart = loads;
     for (let attempt = 0; attempt < modes.length; attempt += 1) {
       const mode = modes[attempt];
-      const expect = EXPECT[mode];
+      const expect = expectFor(mode);
       await evaluate.scrollIntoViewIfNeeded();
       await evaluate.click({ timeout: 5000 });
       if (expect.saved) {
@@ -206,7 +222,8 @@ async function run(label, viewport, modes) {
       check(`${label} attempt ${attempt + 1} (${mode}): stays on Discover with no reload or route change`, state.hash === "#/discover" && loads === loadsAtStart, `${state.hash} reloads=${loads - loadsAtStart}`);
       check(`${label} attempt ${attempt + 1} (${mode}): the alert is on screen beside the button within 300 ms`, early);
       check(`${label} attempt ${attempt + 1} (${mode}): a visible, focused alert beside the button explains it (after the page settles)`,
-        state.inView && state.nearButton && state.focused && state.role === "alert" && expect.title.test(state.text) && /not evaluated|Nothing was saved|nothing was saved/.test(state.text),
+        state.inView && state.nearButton && state.focused && state.role === "alert" && expect.title.test(state.text)
+          && /not evaluated|Nothing was saved|nothing was saved/.test(state.text) && (!expect.body || expect.body.test(state.text)),
         JSON.stringify({ inView: state.inView, nearButton: state.nearButton, focused: state.focused, text: state.text.slice(0, 120) }));
       check(`${label} attempt ${attempt + 1} (${mode}): offers the next step`, linkOk, state.links.join(","));
       check(`${label} attempt ${attempt + 1} (${mode}): no second, off-screen copy of the error`, !state.pageLevelErrorShown);
@@ -219,12 +236,14 @@ async function run(label, viewport, modes) {
 
 const desktop = { width: 1440, height: 900 }; const mobile = { width: 390, height: 844 };
 const cases = [
-  ["success", ["success"]], ["limit reached (429)", ["limit"]], ["expired session (401)", ["expired"]],
+  ["success", ["success"]], ["Private Beta allowance reached (429)", ["limit"]],
+  ["monthly plan limit reached (429)", ["limit-monthly"], "monthly"], ["limit reached, entitlements unavailable (429)", ["limit-unknown"], "fail"],
+  ["expired session (401)", ["expired"]],
   ["access denied (403)", ["denied"]], ["server error (502)", ["server"]], ["network failure", ["network"]],
   ["recovery: 502 then success", ["server", "success"]], ["timeout", ["timeout"]]
 ];
-for (const [name, modes] of cases) {
-  for (const [vpName, vp] of [["desktop", desktop], ["mobile", mobile]]) await run(`${name} ${vpName}`, vp, modes);
+for (const [name, modes, entitlements] of cases) {
+  for (const [vpName, vp] of [["desktop", desktop], ["mobile", mobile]]) await run(`${name} ${vpName}`, vp, modes, entitlements);
 }
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);
