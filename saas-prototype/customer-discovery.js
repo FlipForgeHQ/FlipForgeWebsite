@@ -587,6 +587,11 @@
     }
   }
 
+  // While the evaluation allowance is used up, every Evaluate button stays disabled; say why on each card.
+  function allowanceNoteMarkup() {
+    return `<p class="customer-discovery-allowance-note" data-discovery-allowance-note>Evaluate is unavailable: this account has no evaluations left. <a href="#/account">View Plan &amp; Usage</a></p>`;
+  }
+
   function restoreSignInUrl() {
     const path = String(window.location.pathname || "/app/beta/");
     const returnPath = `${path}${window.location.search || ""}${window.location.hash || "#/discover"}`;
@@ -619,12 +624,13 @@
       title = "This account can't run evaluations";
       body = `${error?.message || "Your current FlipForge access does not permit a new evaluation."} This listing was not evaluated and nothing was saved.`;
       actions = link("#/account", "View Plan & Usage");
-    } else if (code === "CUSTOMER_API_TIMEOUT" || error?.name === "TimeoutError") {
-      title = "The evaluation didn't finish";
-      body = "FlipForge did not respond in time. Nothing was saved. Try again in a moment; retrying this listing will not create a duplicate.";
-    } else if (error instanceof TypeError || /failed to fetch|network/i.test(String(error?.message || ""))) {
-      title = "Connection lost";
-      body = "FlipForge couldn't be reached, so this listing was not evaluated. Check your connection and try again.";
+    } else if (code === "CUSTOMER_API_TIMEOUT" || error?.name === "TimeoutError"
+      || error instanceof TypeError || /failed to fetch|network/i.test(String(error?.message || ""))) {
+      // The request may have reached FlipForge before the answer was lost, so the outcome is unknown: never claim
+      // nothing was saved. Retrying reuses the same idempotency key and returns the saved decision if one exists.
+      title = code === "CUSTOMER_API_TIMEOUT" || error?.name === "TimeoutError" ? "No answer from FlipForge yet" : "Connection lost";
+      body = "We couldn't confirm whether this evaluation finished. If it did, it is in your saved decisions. Trying again is safe: it returns the same decision and will not create a duplicate or use another evaluation.";
+      actions = link("#/opportunities", "Open saved decisions");
     } else {
       title = "The evaluation couldn't be completed";
       body = `${error?.message || "FlipForge could not complete this evaluation."} Nothing was saved. You can try again.`;
@@ -742,7 +748,7 @@
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : ""}${boundary}</div></article>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
   }
 
   function resultsPanel() {

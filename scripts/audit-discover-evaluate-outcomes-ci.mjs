@@ -158,8 +158,9 @@ const EXPECT = {
   expired: { title: /Sign in again/, linkPattern: new RegExp(`^/production-auth\\.html\\?return=${encodeURIComponent(`${new URL(baseUrl).pathname.replace(/\/?$/, "/")}#/discover`).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) },
   denied: { title: /can't run evaluations/, link: "#/account" },
   server: { title: /couldn't be completed/ },
-  network: { title: /Connection lost/ },
-  timeout: { title: /didn't finish/ }
+  // Outcome unknown: the server may have saved it. Must not claim nothing was saved; must point to saved decisions.
+  network: { title: /Connection lost/, unknownOutcome: true, link: "#/opportunities" },
+  timeout: { title: /No answer from FlipForge yet/, unknownOutcome: true, link: "#/opportunities" }
 };
 
 async function run(label, viewport, modes, entitlements = "beta") {
@@ -223,11 +224,27 @@ async function run(label, viewport, modes, entitlements = "beta") {
       check(`${label} attempt ${attempt + 1} (${mode}): the alert is on screen beside the button within 300 ms`, early);
       check(`${label} attempt ${attempt + 1} (${mode}): a visible, focused alert beside the button explains it (after the page settles)`,
         state.inView && state.nearButton && state.focused && state.role === "alert" && expect.title.test(state.text)
-          && /not evaluated|Nothing was saved|nothing was saved/.test(state.text) && (!expect.body || expect.body.test(state.text)),
+          && (expect.unknownOutcome
+            ? /couldn't confirm whether this evaluation finished/.test(state.text) && !/nothing was saved|not evaluated/i.test(state.text)
+            : /not evaluated|Nothing was saved|nothing was saved/.test(state.text))
+          && (!expect.body || expect.body.test(state.text)),
         JSON.stringify({ inView: state.inView, nearButton: state.nearButton, focused: state.focused, text: state.text.slice(0, 120) }));
       check(`${label} attempt ${attempt + 1} (${mode}): offers the next step`, linkOk, state.links.join(","));
       check(`${label} attempt ${attempt + 1} (${mode}): no second, off-screen copy of the error`, !state.pageLevelErrorShown);
-      if (expect.disablesEvaluate) check(`${label} (${mode}): Evaluate is disabled once the limit is reached`, state.buttonDisabled === true);
+      if (expect.disablesEvaluate) {
+        check(`${label} (${mode}): Evaluate is disabled once the limit is reached`, state.buttonDisabled === true);
+        // Search again: the disabled button must still be explained, with the way forward.
+        await page.locator("#main-content [data-customer-discovery-form] input[name=\"exactCardQuery\"]").fill(QUERY);
+        await page.locator("#main-content [data-customer-discovery-form]").evaluate(form => form.requestSubmit());
+        await page.waitForTimeout(2500);
+        const after = await page.evaluate(() => {
+          const note = document.querySelector("#main-content [data-discovery-allowance-note]");
+          const button = document.querySelector("#main-content [data-discovery-evaluate]");
+          return { disabled: Boolean(button && button.disabled), note: note ? note.innerText : "", link: note?.querySelector('a[href="#/account"]') ? true : false };
+        });
+        check(`${label} (${mode}): after a new search the disabled Evaluate is still explained, with Plan & Usage`,
+          after.disabled && /no evaluations left/.test(after.note) && after.link, JSON.stringify(after));
+      }
     }
   } catch (error) {
     check(`${label}: completed`, false, String(error.message).split("\n")[0]);
