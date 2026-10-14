@@ -1,0 +1,91 @@
+name: Frame-Exact Card Stress
+
+# Repeated stress runs of the frame-exact saved-card audits across the full environment matrix:
+# app path (/app/beta, /app) x Navigation API (on, off) x viewport (desktop, mobile) x repeat.
+# Every rendered frame is sampled pre-paint (scripts/lib/prepaint-frame-recorder.mjs); a single frame showing the wrong
+# card or a verdict that does not match the card on screen fails the run. Server delays are real time (not mocked away).
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/lib/prepaint-frame-recorder.mjs"
+      - "scripts/audit-prepaint-recorder-selftest-ci.mjs"
+      - "scripts/audit-card-switch-stale-response-ci.mjs"
+      - "scripts/audit-saved-verdict-loading-ci.mjs"
+      - ".github/workflows/frame-exact-card-stress.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frame-exact-card-stress-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stress:
+    name: ${{ matrix.path }} nav-api=${{ matrix.navigation }} ${{ matrix.viewport }} run ${{ matrix.repeat }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        path: ["app/beta", "app"]
+        navigation: ["on", "off"]
+        viewport: ["desktop", "mobile"]
+        repeat: [1, 2, 3]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/frame-stress-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/frame-stress-server.log
+          exit 1
+
+      - name: Recorder self-test (samples after the page's pre-paint work, no skipped frames)
+        env:
+          FLIPFORGE_NAVIGATION_API: ${{ matrix.navigation }}
+          FLIPFORGE_VIEWPORT: ${{ matrix.viewport }}
+        run: node scripts/audit-prepaint-recorder-selftest-ci.mjs
+
+      - name: Card switching - every frame shows the card in the address bar
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/${{ matrix.path }}
+          FLIPFORGE_NAVIGATION_API: ${{ matrix.navigation }}
+          FLIPFORGE_VIEWPORT: ${{ matrix.viewport }}
+        run: node scripts/audit-card-switch-stale-response-ci.mjs
+
+      - name: Saved verdict while loading - every frame's verdict matches the card on screen
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/${{ matrix.path }}
+          FLIPFORGE_NAVIGATION_API: ${{ matrix.navigation }}
+          FLIPFORGE_VIEWPORT: ${{ matrix.viewport }}
+        run: node scripts/audit-saved-verdict-loading-ci.mjs
+
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/frame-stress-server.log || true

@@ -17,6 +17,10 @@
 // checks prove the surfaces do show the right verdict once the record arrives, so a pass is not vacuous.
 // Synthetic fixtures only: no network, no provider calls.
 import { chromium } from "playwright";
+import {
+  prepaintRecorderInit, drainFrames, CARD_FRAME_SAMPLE, frameViolations, describeViolations,
+  matrixFromEnv, launchOptions, newMatrixContext, assertNavigationApi
+} from "./lib/prepaint-frame-recorder.mjs";
 
 const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app";
 const email = "saved-verdict-loading-audit@flipforge.test";
@@ -72,13 +76,35 @@ const json = (route, status, body) => route.fulfill({ status, contentType: "appl
 
 const passes = [];
 const failures = [];
-const check = (name, ok, detail = "") => (ok ? passes : failures).push(detail ? `${name} [${detail}]` : name);
+let lastLabel = "";
+const check = (name, ok, detail = "") => {
+  lastLabel = name.split(/[:(]/)[0].trim();
+  (ok ? passes : failures).push(detail ? `${name} [${detail}]` : name);
+};
+// Every frame recorded since the session started: correct card identity and matching saved verdict, none skipped.
+const moneyText = value => `$${Number(value).toLocaleString("en-US")}`;
+let navigationChecked = false;
+async function strictFrames(page) {
+  if (!navigationChecked) {
+    await assertNavigationApi(page, matrix.navigationApi);
+    navigationChecked = true;
+  }
+  const rec = await drainFrames(page);
+  const bad = frameViolations(rec.frames, cards, moneyText);
+  const label = `${lastLabel} - every frame (pre-paint, ${rec.frames.length} frames)`;
+  check(`${label}: correct card identity and saved verdict in every frame, no frame skipped`,
+    rec.frames.length > 30 && bad.length === 0 && rec.skipped.length === 0 && rec.errors.length === 0,
+    `${describeViolations(bad)}${rec.skipped.length ? ` skipped=${rec.skipped.length}` : ""}${rec.errors.length ? ` errors=${rec.errors[0]}` : ""}`);
+}
 
-const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
+const matrix = matrixFromEnv();
+const browser = await chromium.launch(launchOptions());
 
 async function newSession() {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await newMatrixContext(browser, matrix);
   const page = await context.newPage();
+  // Strict pre-paint recorder: every rendered frame is sampled after the page's own pre-paint work.
+  await page.addInitScript(`(${prepaintRecorderInit.toString()})(${JSON.stringify({ sampleSource: CARD_FRAME_SAMPLE })});`);
   await page.addInitScript(({ email }) => {
     localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete");
     // Guided Mode on and opened, so its panel title is one of the surfaces under test.
@@ -245,6 +271,7 @@ try {
     const after = await surfacesAfterLoad(page);
     check(`S1 ${verdict}: once loaded, the decision panel and Guided Mode say ${verdict} (reading guide says ${verdict} or has handed over to the panel)`,
       after.panel === verdict && after.guided === verdict && (after.guide === verdict || after.guide === "REPLACED") && (!after.pill || after.pill === verdict), JSON.stringify(after));
+    await strictFrames(page);
     await context.close();
   }
 
@@ -262,6 +289,7 @@ try {
     const after = await surfacesAfterLoad(page);
     check("S2 Ohtani PSA 9: after load the decision panel and Guided Mode say WATCH", after.panel === "WATCH" && after.guided === "WATCH"
       && (after.guide === "WATCH" || after.guide === "REPLACED") && (!after.pill || after.pill === "WATCH"), JSON.stringify(after));
+    await strictFrames(page);
     await context.close();
   }
 
@@ -282,6 +310,7 @@ try {
     const state = await midLoadSurfaces(page);
     check(`S3 failed request (${delayMs ? "after 10.5 s" : "immediate"}): no verdict is claimed anywhere and no guide is shown`,
       seen.length === 0 && !state.hero && !state.guide && !state.summaryShown, `${describe(seen)} ${JSON.stringify(state)}`);
+    await strictFrames(page);
     await context.close();
   }
 
@@ -319,6 +348,7 @@ try {
     }
     seen = await claims(page);
     check("S4c rapid switching through all four verdicts: every claim matches the card on screen in every frame", offScreen(seen).length === 0, describe(offScreen(seen)));
+    await strictFrames(page);
     await context.close();
   }
 } catch (error) {
@@ -327,6 +357,7 @@ try {
   await browser.close();
 }
 
+console.log(`Matrix: ${baseUrl} | navigation API ${matrix.navigationApi ? "on" : "off"} | ${matrix.viewport}`);
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);
 console.log(`Saved verdict loading audit: ${passes.length}/${passes.length + failures.length} passed.`);

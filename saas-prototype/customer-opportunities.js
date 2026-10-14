@@ -275,5 +275,52 @@
     return true;
   }
 
+  // Same-frame clearing on route change. The address bar changes synchronously, but routers react on "hashchange",
+  // which the browser queues as a separate task - so it can paint one frame showing the previous card (title, verdict,
+  // price) under the new card's address. The Navigation API "navigate" event (where available) and "popstate" (always;
+  // for back/forward it fires in the same task that updates the address) run before that paint: if a saved card is on
+  // screen and the address is leaving it, clear it now - the next card's loading state, or a neutral placeholder for
+  // other routes - and mark any in-flight load stale. The route's renderer then paints as usual.
+  function cardIdFromRoute(route) {
+    const match = String(route || "").match(/^opportunities\/([^/?#]+)/);
+    if (!match) return "";
+    try { return decodeURIComponent(match[1]); } catch (_) { return match[1]; }
+  }
+  function routeFromUrl(url) {
+    try { return String(new URL(url, window.location.href).hash || "").replace(/^#\/?/, "").split("?")[0]; } catch (_) { return ""; }
+  }
+  let shownRoute = routeKey();
+  function leaveCardNow(fromRoute, toRoute) {
+    shownRoute = toRoute;
+    if (!eligibleHost() || fromRoute === toRoute) return;
+    const main = document.querySelector("#main-content");
+    if (!main || !main.querySelector(".customer-intelligence-hero")) return;
+    const nextId = cardIdFromRoute(toRoute);
+    if (nextId && nextId === cardIdFromRoute(fromRoute)) return;
+    loadSerial += 1; // whatever was loading belonged to the screen being left
+    state.detail = null;
+    state.evidence = null;
+    state.psa = null;
+    state.error = null;
+    state.partialErrors = [];
+    if (nextId && SAFE_ID.test(nextId)) {
+      state.main = main;
+      state.requestedId = nextId;
+      state.selectedId = nextId;
+      state.loading = true;
+      main.innerHTML = `<div class="page customer-intelligence-page">${pageHeading("Card Intelligence", "Loading the saved decision and its evidence.", `<a class="button button-secondary" href="#/opportunities">Back to opportunities</a>`)}<div class="staging-loading" role="status">Loading card intelligence…</div></div>`;
+    } else {
+      main.innerHTML = `<div class="page" data-ff-route-transition><div class="staging-loading" role="status">Loading…</div></div>`;
+    }
+  }
+  if (window.navigation && typeof window.navigation.addEventListener === "function") {
+    window.navigation.addEventListener("navigate", event => {
+      if (!event.destination || !event.destination.sameDocument) return;
+      leaveCardNow(routeKey(), routeFromUrl(event.destination.url));
+    });
+  }
+  window.addEventListener("popstate", () => leaveCardNow(shownRoute, routeKey()));
+  window.addEventListener("hashchange", () => leaveCardNow(shownRoute, routeKey()));
+
   window.FlipForgeCustomerOpportunities = Object.freeze({ isEligible: eligibleHost, render, refresh: load });
 })();

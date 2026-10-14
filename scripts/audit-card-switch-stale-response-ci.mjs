@@ -15,6 +15,10 @@
 // across renderers (slow Dashboard -> card, slow card -> Dashboard).
 // Synthetic fixtures only: no network, no provider calls.
 import { chromium } from "playwright";
+import {
+  prepaintRecorderInit, drainFrames, CARD_FRAME_SAMPLE, frameViolations, describeViolations,
+  matrixFromEnv, launchOptions, newMatrixContext, assertNavigationApi
+} from "./lib/prepaint-frame-recorder.mjs";
 
 const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app";
 const email = "saved-verdict-loading-audit@flipforge.test";
@@ -72,13 +76,35 @@ const json = (route, status, body) => route.fulfill({ status, contentType: "appl
 
 const passes = [];
 const failures = [];
-const check = (name, ok, detail = "") => (ok ? passes : failures).push(detail ? `${name} [${detail}]` : name);
+let lastLabel = "";
+const check = (name, ok, detail = "") => {
+  lastLabel = name.split(/[:(]/)[0].trim();
+  (ok ? passes : failures).push(detail ? `${name} [${detail}]` : name);
+};
+// Every frame recorded since the session started: correct card identity and matching saved verdict, none skipped.
+const moneyText = value => `$${Number(value).toLocaleString("en-US")}`;
+let navigationChecked = false;
+async function strictFrames(page) {
+  if (!navigationChecked) {
+    await assertNavigationApi(page, matrix.navigationApi);
+    navigationChecked = true;
+  }
+  const rec = await drainFrames(page);
+  const bad = frameViolations(rec.frames, cards, moneyText);
+  const label = `${lastLabel} - every frame (pre-paint, ${rec.frames.length} frames)`;
+  check(`${label}: correct card identity and saved verdict in every frame, no frame skipped`,
+    rec.frames.length > 30 && bad.length === 0 && rec.skipped.length === 0 && rec.errors.length === 0,
+    `${describeViolations(bad)}${rec.skipped.length ? ` skipped=${rec.skipped.length}` : ""}${rec.errors.length ? ` errors=${rec.errors[0]}` : ""}`);
+}
 
-const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
+const matrix = matrixFromEnv();
+const browser = await chromium.launch(launchOptions());
 
 async function newSession() {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await newMatrixContext(browser, matrix);
   const page = await context.newPage();
+  // Strict pre-paint recorder: every rendered frame is sampled after the page's own pre-paint work.
+  await page.addInitScript(`(${prepaintRecorderInit.toString()})(${JSON.stringify({ sampleSource: CARD_FRAME_SAMPLE })});`);
   await page.addInitScript(({ email }) => {
     localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete");
     // Guided Mode on and opened, so its panel title is one of the surfaces under test.
@@ -210,6 +236,7 @@ try {
     const shown = await onScreen(page);
     check("C1 out-of-order: the late BUY response never replaces the WATCH card (title, verdict and price stay WATCH's)",
       foreign(seen).length === 0 && isCard(shown, "qa-verdict-watch"), `${describe(foreign(seen))} final=${JSON.stringify(shown)}`);
+    await strictFrames(page);
     await context.close();
   }
 
@@ -233,6 +260,7 @@ try {
     const shown = await onScreen(page);
     check("C2 overlapping requests (BUY 8 s, PASS 4 s, VERIFY fast): VERIFY stays on screen as both late responses arrive",
       foreign(seen).length === 0 && isCard(shown, "qa-verdict-verify"), `${describe(foreign(seen))} final=${JSON.stringify(shown)}`);
+    await strictFrames(page);
     await context.close();
   }
 
@@ -254,6 +282,7 @@ try {
     const errorShown = seen.some(f => f.id === "qa-verdict-pass" && f.error);
     check("C3 abandoned request fails late: PASS card stays, no error from the other card",
       foreign(seen).length === 0 && isCard(shown, "qa-verdict-pass") && !errorShown, `${describe(foreign(seen))} error=${errorShown} final=${JSON.stringify(shown)}`);
+    await strictFrames(page);
     await context.close();
   }
 
@@ -272,6 +301,7 @@ try {
     const shown = await onScreen(page);
     check("C4 current card fails: an error is shown and the previous BUY card's details are gone",
       foreign(seen).length === 0 && shown === null, `${describe(foreign(seen))} final=${JSON.stringify(shown)}`);
+    await strictFrames(page);
     await context.close();
   }
 
@@ -290,6 +320,7 @@ try {
     const seen = await frames(page);
     check("C5 slow WATCH after a loaded BUY: no BUY title, verdict or price while WATCH loads; then WATCH",
       foreign(seen).length === 0 && mid === null && isCard(await onScreen(page), "qa-verdict-watch"), `${describe(foreign(seen))} at5s=${JSON.stringify(mid)}`);
+    await strictFrames(page);
     await context.close();
   }
 
@@ -317,6 +348,7 @@ try {
     const seen = await frames(page);
     check("C6 rapid switching among BUY/WATCH/VERIFY/PASS with out-of-order responses: the card on screen always belongs to the URL",
       foreign(seen).length === 0 && finals.every(Boolean), `${describe(foreign(seen))} finals=${finals}`);
+    await strictFrames(page);
     await context.close();
   }
 
@@ -335,6 +367,7 @@ try {
     const lost = seen.filter(f => f.id === "qa-verdict-watch" && f.at > (seen.find(x => x.shown && x.id === "qa-verdict-watch")?.at ?? Infinity) && !f.shown);
     check("C7 slow Dashboard, then open WATCH: the late Dashboard response never replaces the WATCH card",
       foreign(seen).length === 0 && lost.length === 0 && isCard(shown, "qa-verdict-watch"), `${describe(foreign(seen))} lost=${lost.length} final=${JSON.stringify(shown)}`);
+    await strictFrames(page);
     await context.close();
   }
 
@@ -354,6 +387,7 @@ try {
     const onDashboard = await page.evaluate(() => ({ hash: location.hash, card: Boolean(document.querySelector("#main-content .customer-intelligence-hero")) }));
     check("C8 slow BUY, then back to Dashboard: the late BUY response never paints over the Dashboard",
       foreign(seen).length === 0 && !onDashboard.card && onDashboard.hash === "#/dashboard", `${describe(foreign(seen))} ${JSON.stringify(onDashboard)}`);
+    await strictFrames(page);
     await context.close();
   }
 } catch (error) {
@@ -362,6 +396,7 @@ try {
   await browser.close();
 }
 
+console.log(`Matrix: ${baseUrl} | navigation API ${matrix.navigationApi ? "on" : "off"} | ${matrix.viewport}`);
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);
 console.log(`Card switch stale-response audit: ${passes.length}/${passes.length + failures.length} passed.`);

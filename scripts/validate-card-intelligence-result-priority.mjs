@@ -21,6 +21,10 @@ const checks = [
   ["stale card responses are discarded before they touch state", opportunities.includes("if (serial !== loadSerial || routeKey() !== route) throw STALE;")
     && opportunities.includes("if (error === STALE || serial !== loadSerial || routeKey() !== route) return;")],
   ["detail paints only the requested card that is still in the address bar", opportunities.includes("routeCardId() === state.selectedId")],
+  // The previous card is cleared before the browser can paint under the new address (navigate / popstate run before
+  // the queued hashchange), with or without the Navigation API.
+  ["previous card is cleared in the same frame as the address change", opportunities.includes("function leaveCardNow(fromRoute, toRoute)")
+    && opportunities.includes('window.navigation.addEventListener("navigate"') && opportunities.includes('window.addEventListener("popstate", () => leaveCardNow(')],
   ["detail fast path loads decision evidence and PSA", ["/api/v1/opportunities/${encoded}", "/api/v1/evidence/${encoded}", "/api/v1/psa-advisor/${encoded}"].every(value => opportunities.includes(value))],
   ["detail header keeps only core actions", opportunities.includes("Saved decisions") && opportunities.includes(">Track</a>") && !opportunities.includes("PSA guidance</a><a class=\"button button-secondary\" href=\"#/tracking")],
   ["save confirmation waits for the Card Intelligence hero", saveFlow.includes('const hero = main.querySelector(".customer-intelligence-hero")') && saveFlow.includes("if (!hero)" )],
