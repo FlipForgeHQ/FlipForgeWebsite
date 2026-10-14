@@ -10,6 +10,16 @@
   const FIXED_PATHS = new Set(["/api/v1/health", "/api/v1/dashboard", "/api/v1/opportunities"]);
 
   const state = { main: null, requestedId: "", selectedId: "", loading: false, health: null, dashboard: null, opportunities: null, detail: null, evidence: null, psa: null, error: null, partialErrors: [] };
+  // Every load gets a serial. Only the newest load may write state or paint: when a customer switches cards, a slower
+  // response for the card they left (or an earlier failure) must never replace the card they are now viewing.
+  let loadSerial = 0;
+  const STALE = Symbol("stale-card-intelligence-load");
+  // The card id in the address bar, or "" off a Card Intelligence route.
+  function routeCardId() {
+    const match = String(window.location.hash || "").match(/^#\/?opportunities\/([^/?#]+)/);
+    if (!match) return "";
+    try { return decodeURIComponent(match[1]); } catch (_) { return match[1]; }
+  }
 
   function productionHost() { return PRODUCTION_HOST.test(String(window.location.hostname || "")); }
   function eligibleHost() {
@@ -138,7 +148,9 @@
     return `<div class="table-wrap"><table><thead><tr><th>Evidence source</th><th>Amount</th><th>Sale date</th><th>Identity</th><th>Authority</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")}</small></td><td>${money(item.amount)}</td><td>${escapeHtml(item.soldAt || item.recordedAt || "Unavailable")}</td><td>${item.identityMatch === true ? badge("Exact match", "ok") : badge("Mismatch", "warn")}</td><td>${item.authorityEligible === true ? badge("Counted now", "buy") : ({ EXCLUDED: badge("Excluded", "pass"), HELD: badge("Held for review", "warn"), NOT_USED: badge("Not used", "neutral") }[String(item.currentAdmissionStatus || "").toUpperCase()] || badge("Not counted", "neutral"))}</td></tr>`).join("")}</tbody></table></div>`;
   }
   function detailView() {
-    const item = state.detail?.data?.opportunity;
+    const loaded = state.detail?.data?.opportunity;
+    // Display only the record for the card that was requested and is still in the address bar.
+    const item = loaded && String(loaded.id || "") === state.selectedId && routeCardId() === state.selectedId ? loaded : null;
     if (!item) return `<div class="page customer-intelligence-page">${pageHeading("Card Intelligence", "Loading the saved decision and its evidence.", `<a class="button button-secondary" href="#/opportunities">Back to opportunities</a>`)}${state.loading ? `<div class="staging-loading" role="status">Loading card intelligence…</div>` : ""}${errorPanel(state.error)}</div>`;
     const evidence = state.evidence?.data || {};
     const psa = state.psa?.data || {};
@@ -174,6 +186,9 @@
   function validateDetailPayloads() {
     const returned = state.detail?.data?.opportunity;
     if (!returned || String(returned.id || "") !== state.selectedId) {
+      state.detail = null;
+      state.evidence = null;
+      state.psa = null;
       throw state.partialErrors.find(entry => entry.key === "detail")?.error
         || Object.assign(new Error("The saved Card Intelligence record is unavailable."), { code: "OPPORTUNITY_DETAIL_INVALID" });
     }
@@ -191,7 +206,7 @@
     }
   }
 
-  async function loadDetailDirect() {
+  async function loadDetailDirect(serial) {
     if (!SAFE_ID.test(state.requestedId)) {
       throw Object.assign(new Error("The requested saved-card identifier is invalid."), { code: "INVALID_OPPORTUNITY_ID" });
     }
@@ -199,6 +214,7 @@
     const encoded = encodeURIComponent(state.selectedId);
     const requests = [["detail", `/api/v1/opportunities/${encoded}`], ["evidence", `/api/v1/evidence/${encoded}`], ["psa", `/api/v1/psa-advisor/${encoded}`]];
     const settled = await Promise.allSettled(requests.map(([, path]) => request(path)));
+    if (serial !== loadSerial) throw STALE; // the customer has moved on; this response belongs to another card
     settled.forEach((result, index) => {
       const key = requests[index][0];
       if (result.status === "fulfilled") state[key] = result.value;
@@ -207,17 +223,22 @@
     validateDetailPayloads();
   }
 
-  async function loadList() {
+  async function loadList(serial) {
     state.selectedId = "";
-    state.health = await request("/api/v1/health");
+    const health = await request("/api/v1/health");
+    if (serial !== loadSerial) throw STALE;
+    state.health = health;
     if (state.health?.data?.status !== "configured") return;
-    [state.dashboard, state.opportunities] = await Promise.all([request("/api/v1/dashboard"), request("/api/v1/opportunities")]);
+    const [dashboard, opportunities] = await Promise.all([request("/api/v1/dashboard"), request("/api/v1/opportunities")]);
+    if (serial !== loadSerial) throw STALE;
+    [state.dashboard, state.opportunities] = [dashboard, opportunities];
     if (state.opportunities?.data?.kind !== "opportunities" || !Array.isArray(state.opportunities?.data?.items)) {
       throw Object.assign(new Error("The saved opportunity list failed the customer contract."), { code: "OPPORTUNITIES_LIST_INVALID" });
     }
   }
 
   async function load() {
+    const serial = ++loadSerial;
     state.loading = true;
     state.health = null;
     state.dashboard = null;
@@ -230,14 +251,15 @@
     state.selectedId = state.requestedId;
     renderCurrent();
     try {
-      if (state.requestedId) await loadDetailDirect();
-      else await loadList();
+      if (state.requestedId) await loadDetailDirect(serial);
+      else await loadList(serial);
     } catch (error) {
+      if (error === STALE || serial !== loadSerial) return; // a newer load owns state and the screen
       state.error = error;
-    } finally {
-      state.loading = false;
-      renderCurrent();
     }
+    if (serial !== loadSerial) return;
+    state.loading = false;
+    renderCurrent();
   }
 
   function render(main, id = "") {

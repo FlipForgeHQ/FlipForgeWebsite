@@ -25,6 +25,8 @@
   };
 
   let currentMain = null;
+  // Only the newest load may write state or paint (preview/local renderer; same guard as customer-opportunities.js).
+  let loadSerial = 0;
   let currentId = "";
   let currentSurface = "staging";
 
@@ -171,12 +173,15 @@
   }
 
   async function loadBase() {
+    const serial = ++loadSerial;
     state.loading = true;
     state.error = null;
     clearDetail();
     renderCurrent();
     try {
-      state.health = await request(READ_PATHS.health);
+      const health = await request(READ_PATHS.health);
+      if (serial !== loadSerial) return;
+      state.health = health;
       const data = state.health && state.health.data;
       const configured = data && data.status === "configured";
       if (!configured) {
@@ -184,19 +189,25 @@
         state.opportunities = null;
         return;
       }
-      [state.dashboard, state.opportunities] = await Promise.all([
+      const [dashboard, opportunities] = await Promise.all([
         request(READ_PATHS.dashboard),
         request(READ_PATHS.opportunities)
       ]);
+      if (serial !== loadSerial) return;
+      [state.dashboard, state.opportunities] = [dashboard, opportunities];
     } catch (error) {
+      if (serial !== loadSerial) return;
       state.error = error;
     } finally {
-      state.loading = false;
-      renderCurrent();
+      if (serial === loadSerial) {
+        state.loading = false;
+        renderCurrent();
+      }
     }
   }
 
   async function loadDetail(id) {
+    const serial = ++loadSerial;
     clearDetail();
     state.error = null;
     state.loading = true;
@@ -219,11 +230,18 @@
       ["psa", `/api/v1/psa-advisor/${encoded}`]
     ];
     const results = await Promise.allSettled(requests.map(([, path]) => request(path)));
+    if (serial !== loadSerial) return; // the customer has moved to another card
     results.forEach((result, index) => {
       const key = requests[index][0];
       if (result.status === "fulfilled") state[key] = result.value;
       else state.partialErrors.push({ key, error: result.reason });
     });
+    // Display only the record for the card that was requested.
+    if (state.detail && String(state.detail?.data?.opportunity?.id || "") !== state.selectedId) {
+      state.detail = null;
+      state.evidence = null;
+      state.psa = null;
+    }
     if (!state.detail) {
       state.error = state.partialErrors.find(item => item.key === "detail")?.error
         || new Error("Opportunity detail is unavailable.");
