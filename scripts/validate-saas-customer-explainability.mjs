@@ -45,7 +45,7 @@ check("028 underlying Card Intelligence still uses existing PSA authority", oppo
 check("029 underlying Card Intelligence still uses same-origin credentials", opportunities.includes('credentials: "same-origin"'));
 check("030 underlying Card Intelligence still disables cache", opportunities.includes('cache: "no-store"'));
 check("031 underlying Card Intelligence still rejects redirects", opportunities.includes('redirect: "error"'));
-check("032 underlying evidence contract remains tenant-protected", opportunities.includes("async function loadDetailDirect(serial)") && !/X-FlipForge-(?:Tenant|User)-Id/i.test(opportunities) && gateway.includes("[TENANT_HEADER]: tenant.tenantId") && gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN"));
+check("032 underlying evidence contract remains tenant-protected", opportunities.includes("async function loadDetailDirect(serial, route)") && !/X-FlipForge-(?:Tenant|User)-Id/i.test(opportunities) && gateway.includes("[TENANT_HEADER]: tenant.tenantId") && gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN"));
 check("033 metric help text is visibly styled", css.includes(".customer-metric-help"));
 check("034 supported value note is visibly styled", css.includes(".customer-supported-value-note"));
 check("035 explainer panel has dedicated styling", css.includes(".customer-intelligence-explainer"));
