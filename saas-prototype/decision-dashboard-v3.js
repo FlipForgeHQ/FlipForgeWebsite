@@ -28,6 +28,9 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+  // Evidence-page links accept every governed opportunity ID, including eBay Browse IDs such as EBAY-v1|117425668889|0
+  // (same rule as bulk-evaluation SAFE_OPPORTUNITY_ID). The ID is URI-encoded into the route.
+  const EVIDENCE_LINK_ID = /^[A-Za-z0-9][A-Za-z0-9._:|-]{0,199}$/;
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const MOBILE_QUERY = "(max-width: 560px)";
   const PATHS = Object.freeze({
@@ -205,6 +208,8 @@
       : numberOrNull(source.supportedValueCents ?? governed.supportedValueCents);
     // Ask: the governed all-in ask when the snapshot recorded it; otherwise the saved listing ask.
     const askCents = numberOrNull(governed.allInAskCents) ?? (numberOrNull(source.ask) === null ? null : Math.round(Number(source.ask) * 100));
+    // The server's profit figures use the snapshot all-in ask as the purchase cost; only then is break-even exact.
+    const askFromSnapshot = numberOrNull(governed.allInAskCents) !== null;
 
     return {
       id: text(source.id),
@@ -222,6 +227,7 @@
       whatWouldChangeSource: text(governed.whatWouldChangeSource),
       evaluatedAt: text(governed.evaluatedAt),
       askCents,
+      askFromSnapshot,
       supportedCents,
       supportedStatus,
       supportedStatusReason: text(source.supportedValueStatusReason),
@@ -263,7 +269,7 @@
   function unknownsOf(model) {
     const unknowns = [];
     if (model.profitabilityCappedBuy) {
-      unknowns.push({ key: "capped", tag: "Profit protection applied", text: "The saved decision did not meet the required margin of safety, even if some profit scenarios were positive." });
+      unknowns.push({ key: "capped", tag: "Profit protection applied", text: "The asking price leaves too little cushion to protect your profit if prices drop, even though some profit scenarios were positive." });
     }
     if (model.verdict === "VERIFY") {
       const need = model.missingRequirement && !/^none\b/i.test(model.missingRequirement) ? model.missingRequirement : "additional verification";
@@ -277,10 +283,10 @@
       unknowns.push({ key: "sales", tag: "No accepted exact sales", text: "No completed sale was accepted as exact evidence for this card." });
     }
     if (model.mappingState && model.mappingState !== "CONFIRMED") {
-      unknowns.push({ key: "mapping", tag: "Mapping not confirmed", text: `${labelFor(MAPPING_LABELS, model.mappingState)}.` });
+      unknowns.push({ key: "mapping", tag: "Card match not confirmed", text: `${labelFor(MAPPING_LABELS, model.mappingState)}.` });
     }
     if (model.excludedCount !== null && model.excludedCount > 0) {
-      unknowns.push({ key: "excluded", tag: "Excluded evidence present", text: `${integerText(model.excludedCount)} sale${model.excludedCount === 1 ? "" : "s"} excluded by the server.` });
+      unknowns.push({ key: "excluded", tag: "Some sales not counted now", text: `${integerText(model.excludedCount)} saved sale${model.excludedCount === 1 ? " is" : "s are"} not counted now (excluded, held for review or not used). The evidence page shows each one.` });
     }
     if (model.currentSavedSales !== null && model.currentSavedSales > 0 && !model.latestSaleDate) {
       unknowns.push({ key: "undated", tag: "Undated evidence", text: "Accepted sales were returned without completed-sale dates." });
@@ -314,7 +320,7 @@
   // Read-only explanation of a saved WATCH price threshold: never changes a verdict or Max Buy.
   function priceSummaryMarkup(model) {
     if (model.verdict !== "WATCH" || model.askCents === null || model.maxBuyCents === null || model.askCents <= model.maxBuyCents) return "";
-    return `<p class="ffv3-price-signal" data-ffv3-price-signal>At this price, the listing is <strong>${escapeHtml(exactMoneyFromCents(model.askCents - model.maxBuyCents))} above your modeled Max Buy.</strong></p>`;
+    return `<p class="ffv3-price-signal" data-ffv3-price-signal data-ffv3-over-max>At this price, you would pay <strong>${escapeHtml(exactMoneyFromCents(model.askCents - model.maxBuyCents))} more than your modeled Max Buy.</strong></p>`;
   }
 
   // Snapshot-backed count and separately attributed current exclusion details. Never invent sale rows.
@@ -322,8 +328,8 @@
     const count = model.decisionEvidenceCount;
     const accepted = count === null ? "Exact-sale count not established" : `${integerText(count)} exact sale${count === 1 ? "" : "s"} used for this saved decision`;
     const excluded = model.excludedCount === null
-      ? "Excluded-sale details are unavailable in this view"
-      : `${integerText(model.excludedCount)} excluded from current saved sales${model.excludedReasons.length ? ` · ${model.excludedReasons.join("; ")}` : ""}`;
+      ? "Which sales were left out, and why, is not shown in this view yet"
+      : `${integerText(model.excludedCount)} saved sale${model.excludedCount === 1 ? "" : "s"} not counted now${model.excludedReasons.length ? ` · ${model.excludedReasons.join("; ")}` : ""}`;
     return `<div class="ffv3-evidence-preview" data-ffv3-evidence-preview><span>Evidence behind the decision</span><strong>${escapeHtml(accepted)}</strong><small>${escapeHtml(excluded)}</small></div>`;
   }
 
@@ -348,7 +354,7 @@
         ${model.identity && model.identity !== model.title ? `<span class="ffv3-row-identity">${escapeHtml(model.identity)}</span>` : ""}
         <span class="ffv3-row-grid">
           <span><small>Ask</small><b>${escapeHtml(moneyFromCents(model.askCents, DASH))}</b></span>
-          <span><small>Supported</small><b>${escapeHtml(supported)}</b></span>
+          <span><small>Sale value</small><b>${escapeHtml(supported)}</b></span>
           ${model.decisionEvidenceCount !== null
             ? `<span data-ffv3-row-evidence="decision"><small>Exact sales at decision</small><b>${escapeHtml(integerText(model.decisionEvidenceCount))}</b></span>`
             : `<span data-ffv3-row-evidence="current"><small>Current saved sales</small><b>${escapeHtml(integerText(model.currentSavedSales))}</b></span>`}
@@ -389,20 +395,28 @@
   function economicsMarkup(model) {
     const supported = model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
     const delta = model.askCents !== null && model.maxBuyCents !== null ? model.askCents - model.maxBuyCents : null;
-    const deltaLabel = delta === null ? "Price versus Max Buy" : delta === 0 ? "At Max Buy" : delta > 0 ? "Above Max Buy" : "Below Max Buy";
+    const deltaLabel = delta === null ? "Price versus Max Buy" : delta === 0 ? "At Max Buy" : delta > 0 ? "Over your Max Buy" : "Under your Max Buy";
     const deltaAmount = delta === null ? DASH : exactMoneyFromCents(Math.abs(delta));
+    const deltaState = delta === null ? "" : delta > 0 ? ' data-ffv3-delta="over"' : delta < 0 ? ' data-ffv3-delta="under"' : ' data-ffv3-delta="at"';
     const missing = [model.askCents, model.maxBuyCents].some(value => value === null);
     return `<section class="ffv3-economics" data-ffv3-section="economics">
       <header class="ffv3-section-head"><h3>What the numbers say</h3></header>
       <dl class="ffv3-econ-grid">
         ${fact("All-in ask", exactMoneyFromCents(model.askCents))}
         ${fact("Modeled Max Buy", exactMoneyFromCents(model.maxBuyCents))}
-        ${fact(deltaLabel, deltaAmount)}
-        ${fact("Supported value", supported)}
+        ${fact(deltaLabel, deltaAmount, deltaState)}
+        ${fact("Exact-sale value (before costs)", supported)}
       </dl>
       ${missing ? `<p class="ffv3-legend" data-ffv3-econ-legend>— ${NOT_CALCULATED}</p>` : ""}
       ${evidencePreviewMarkup(model)}
     </section>`;
+  }
+
+  // Qualitative only: the saved read model does not supply the cost components, so no numbers are shown or derived here.
+  function costNoteMarkup(model) {
+    return model.supportedCents !== null && model.maxBuyCents !== null && model.supportedCents > model.maxBuyCents
+      ? '<p class="ffv3-legend" data-ffv3-cost-note>Exact-sale value is what comparable completed sales support, before selling costs. Max Buy is lower because FlipForge subtracts estimated selling fees and shipping, a minimum profit, and a cushion for a price drop. A line-by-line breakdown is not available in this view yet.</p>'
+      : "";
   }
 
   /* ④ Why FlipForge reached the decision */
@@ -434,6 +448,7 @@
       : NOT_ESTABLISHED;
     return `<section class="ffv3-why" data-ffv3-section="why">
       <header class="ffv3-section-head"><h3>Why this decision?</h3></header>
+      ${costNoteMarkup(model)}
       <div class="ffv3-modeled"><div class="ffv3-modeled-head"><span>Estimated profit after costs</span><span class="ffv3-tag" data-tag="modeled">Modeled estimate</span></div>${modeledBody}</div>
       <p class="ffv3-reason${longReason ? " is-clamped" : ""}" id="ffv3-reason-${escapeHtml(model.id)}" data-ffv3-reason>${escapeHtml(reason)}</p>
       ${longReason ? `<button type="button" class="ffv3-link" data-ffv3-reason-toggle aria-expanded="false" aria-controls="ffv3-reason-${escapeHtml(model.id)}">Read full reason</button>` : ""}
@@ -446,12 +461,13 @@
         ${fact("Current saved sales", integerText(model.currentSavedSales), " data-ffv3-current-sales")}
         ${fact("Saved sale dates", model.earliestSaleDate || model.latestSaleDate ? `${dateText(model.earliestSaleDate)} – ${dateText(model.latestSaleDate)}` : DASH)}
         ${fact("Exact identity", model.identity || DASH)}
-        ${fact("Mapping state", labelFor(MAPPING_LABELS, model.mappingState) || DASH)}
+        ${fact("Card match", labelFor(MAPPING_LABELS, model.mappingState) || DASH)}
         ${excluded}
       </dl>
       ${model.decisionEvidenceCount !== null && model.currentSavedSales !== null && model.decisionEvidenceCount !== model.currentSavedSales
         ? '<p class="ffv3-note" data-ffv3-evidence-differs>Current saved sales can differ from the evidence recorded when this decision was made. The decision stands on its recorded evidence.</p>' : ""}
       <div class="ffv3-bars">${bar("Confidence score", model.confidence, "gold")}${bar("Liquidity", model.liquidity, "silver")}${bar("Risk score", model.risk, "silver")}</div>
+      <p class="ffv3-legend" data-ffv3-score-legend>Scores run 0–100. Higher confidence means stronger evidence. Higher liquidity means easier to sell. Higher risk means a greater chance of losing money.</p>
       ${basis}
     </section>`;
   }
@@ -543,12 +559,38 @@
       <dl class="ff-focus-facts">
         ${fact("Exact sales at decision", accepted)}
         ${fact("Current saved sales", integerText(model.currentSavedSales))}
-        ${fact("Excluded current sales", excluded)}
+        ${fact("Not counted now", excluded)}
         ${fact("Card match", mapping)}
         ${fact("Saved sale date range", range)}
       </dl>
       <p class="ff-focus-provenance">Decision evidence is recorded at save time. Current sales may differ; individual sale rows and exclusions appear only when provided by the server.</p>
+      ${EVIDENCE_LINK_ID.test(model.id) ? `<a class="ff-focus-evidence-link" href="#/evidence/${encodeURIComponent(model.id)}" data-ffv3-evidence-page>See each sale: counted, excluded, held or not used →</a>` : ""}
     </section>`;
+  }
+
+  // Break-even Buy Price: the most a buyer could pay for zero modeled profit in the base case. It is exact arithmetic on
+  // two saved server values, all-in ask + base-case profit after costs, which equals the engine's modeled net selling
+  // proceeds (ProfitabilityGuardrailService: expectedProfit = expectedNetExit - acquisition, acquisition = allInAskCents).
+  // Shown only when the saved profit used that same snapshot ask. It is NOT the resale price needed to break even, and it
+  // is never Max Buy: Max Buy also keeps the required minimum profit and price-drop cushion, so it is always lower.
+  function breakEvenBuyCents(model) {
+    if (!model.askFromSnapshot || model.askCents === null || model.expectedNetCents === null) return null;
+    const value = model.askCents + model.expectedNetCents;
+    return value > 0 ? value : null;
+  }
+
+  function breakEvenMarkup(model) {
+    const breakEven = breakEvenBuyCents(model);
+    const risk = model.risk === null ? NOT_ESTABLISHED : `${integerText(model.risk)}/100`;
+    const supported = model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
+    const explain = breakEven === null ? "" : `<p class="ffv3-legend" data-ffv3-breakeven-explainer>Break-even Buy Price is the most you could pay and make $0 profit if the card sells at the base-case value, after FlipForge's estimated selling fees, shipping and reserves. It is not the price the card has to resell for. Pay more than this and the base case loses money.${model.maxBuyCents !== null ? ` Your Max Buy (${escapeHtml(exactMoneyFromCents(model.maxBuyCents))}) is lower because it also keeps a minimum profit and a cushion for a price drop.` : ""}</p>`;
+    return `<dl class="ff-focus-facts" data-ffv3-breakeven>
+        ${fact("Exact-sale value (before costs)", supported)}
+        ${fact("Break-even Buy Price", breakEven === null ? NOT_CALCULATED : exactMoneyFromCents(breakEven), ' data-ffv3-breakeven-buy')}
+        ${fact("Risk score", risk)}
+      </dl>
+      ${costNoteMarkup(model)}
+      ${explain}`;
   }
 
   function focusEconomicsMarkup(model) {
@@ -564,6 +606,7 @@
           <strong>${escapeHtml(exactMoneyFromCents(cents, NOT_CALCULATED))}</strong>
           <small>${escapeHtml(roi === null ? "" : `ROI ${percentFromBasisPoints(roi, DASH)}`)}</small></div>`
       ).join("")}</div>
+      ${breakEvenMarkup(model)}
       <p class="ff-focus-provenance">These are saved model estimates, not guaranteed outcomes or actual sale proceeds.</p>
     </section>`;
   }

@@ -46,6 +46,10 @@ try {
   }));
 
   await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded", timeout: 10_000 });
+  // Phones start minimized (founder direction, 2026-10-13): only the launcher shows until the customer taps it.
+  await page.waitForSelector(".ff-guide-launcher", { state: "visible", timeout: 7000 });
+  if (await page.locator(".ff-guide-panel").count()) failures.push("guide panel opened by default on a phone; it must start minimized");
+  await page.click(".ff-guide-launcher");
   await page.waitForSelector(".ff-guide-panel", { state: "visible", timeout: 7000 });
   await page.waitForTimeout(250);
 
@@ -82,6 +86,46 @@ try {
   await page.waitForSelector(".ff-guide-panel", { state: "visible", timeout: 3000 });
 } finally {
   await context.close();
+}
+
+// First visit (welcome not yet seen): Guided Mode itself must not open its automatic welcome screen over the card box
+// on a phone. In the shipped shells guided-discover-focus-fix-v1.js also removes that legacy welcome screen, which would
+// hide a regression here, so this check blocks that script and tests guided-mode-v1.js on its own. The desktop control
+// run proves the check can see the welcome screen when Guided Mode opens it, so a phone pass is not vacuous.
+async function firstVisitWelcome(viewport) {
+  const visit = await browser.newContext({ viewport });
+  const visitPage = await visit.newPage();
+  try {
+    await visitPage.addInitScript(() => localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete"));
+    await visitPage.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
+      status: 200,
+      contentType: "text/javascript; charset=utf-8",
+      body: `window.FlipForgeIdentity = Object.freeze({
+        getUser: () => ({ email: "${email}" }),
+        getSnapshot: () => ({ authenticated: true, email: "${email}", fullName: "Mobile QA", membershipActive: true, membershipConfigured: true })
+      });`
+    }));
+    await visitPage.route("**/guided-discover-focus-fix-v1.js", route => route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: "(() => {})();" }));
+    await visitPage.route("**/assets/js/flipforge-production-signin.js", route => route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: "(() => {})();" }));
+    await visitPage.route("**/api/v1/**", route => route.fulfill({
+      status: 200,
+      contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({ meta: { contractVersion: "1.0", engineVersion: "guided-mode-qa", correlationId: "guided-mode-qa", generatedAt: "2026-08-29T20:00:00Z", evidenceFreshness: "QA_FIXTURE", limitations: [] }, data: { metrics: { trackedOpportunities: 0, evidenceReady: 0, populationContextAvailable: 0, needsVerification: 0 }, items: [] } })
+    }));
+    await visitPage.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded", timeout: 10_000 });
+    await visitPage.waitForFunction(() => Boolean(window.FlipForgeGuidedMode), null, { timeout: 7000 });
+    await visitPage.waitForTimeout(2000); // past the automatic first-visit welcome timer
+    return await visitPage.evaluate(() => Boolean(document.getElementById("ff-guided-mode-welcome")));
+  } finally {
+    await visit.close();
+  }
+}
+try {
+  const desktopWelcome = await firstVisitWelcome({ width: 1440, height: 900 });
+  if (!desktopWelcome) failures.push("control: desktop first visit showed no welcome screen, so the phone check below cannot be trusted");
+  const phoneWelcome = await firstVisitWelcome({ width, height });
+  if (phoneWelcome) failures.push("first-time phone visitor got the welcome screen over the card box; phones must start minimized");
+} finally {
   await browser.close();
 }
 
@@ -89,5 +133,5 @@ console.log("FlipForge mobile Guided Mode audit");
 console.log(`Viewport: ${width}x${height}`);
 console.log(`Failures: ${failures.length}`);
 failures.forEach(failure => console.log(`FAIL | ${failure}`));
-if (!failures.length) console.log("PASS | compact guide size, primary action, minimize, off, reopen, and task visibility");
+if (!failures.length) console.log("PASS | compact guide size, primary action, minimize, off, reopen, task visibility, and no first-visit welcome over the card box on phones");
 if (failures.length) process.exit(1);

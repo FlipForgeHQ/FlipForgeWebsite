@@ -259,7 +259,8 @@
       } else if (mode === "identity") {
         coach.innerHTML = '<div><span>IDENTITY CHECK</span><h2>FlipForge found possible card matches.</h2><p>Choose <strong>Use this card</strong> when available. If a visible match is still review-only, choose <strong>Verify this match</strong> so FlipForge can retry with the exact details shown.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-secondary" data-ff-focus-card>Change what I entered</button></div>';
       } else {
-        coach.innerHTML = '<div><span>IDENTITY HELP</span><h2>Not sure which card you have?</h2><p>Use <strong>Find exact card</strong> when the set, parallel, variation, or card number is uncertain.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-secondary" data-ff-focus-card>Focus card entry</button></div>';
+        const assistLabel = document.documentElement.classList.contains("ff-beta-session-v1") ? "Check card identity" : "Find exact card";
+        coach.innerHTML = `<div><span>IDENTITY HELP</span><h2>Not sure which card version you have?</h2><p>Use <strong>${assistLabel}</strong> before searching listings if the set, parallel, variation, or card number is uncertain.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-secondary" data-ff-focus-card>Focus card entry</button></div>`;
       }
     }
 
@@ -580,6 +581,9 @@
     const session = syncSession();
     if (!session.authenticated || !session.membershipActive) return;
     if (!force && welcomeSeen()) return;
+    // Phones start minimized: the automatic first-visit welcome would cover the card box, so it waits until the
+    // customer taps "Guide me" (or asks for Getting Started). Desktop and tablet are unchanged.
+    if (!force && phoneViewport() && state.minimized && !state.userOpened) return;
     if (document.getElementById(MODAL_ID)) return;
     const wrapper = document.createElement("div");
     wrapper.id = MODAL_ID;
@@ -764,9 +768,20 @@
     new MutationObserver(scheduleRefresh).observe(main, { childList: true, subtree: true });
   }
 
+  // Phones start with the guide minimized to its launcher so the card box, Search listings, Check card identity and
+  // the main navigation stay visible. Tapping "Guide me" opens the full guide. Desktop and tablet are unchanged.
+  function phoneViewport() {
+    try {
+      return typeof window.matchMedia === "function" && window.matchMedia("(max-width: 640px)").matches;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function init() {
     if (!eligibleHost() || state.mounted) return;
     state.mounted = true;
+    if (phoneViewport() && !state.userOpened) state.minimized = true;
     bindEvents();
     observeMain();
     syncSession();

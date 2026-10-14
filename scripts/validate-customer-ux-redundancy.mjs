@@ -83,7 +83,7 @@ check(
 check(
   "Guided Mode provides secondary identity help instead of repeating primary entry instructions",
   guide.includes("IDENTITY HELP")
-    && guide.includes("Not sure which card you have?")
+    && guide.includes("Not sure which card version you have?")
     && guide.includes("Find exact card")
     && !guide.includes("<span>START HERE</span><h2>Enter one exact card.</h2>")
 );

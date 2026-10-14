@@ -177,6 +177,8 @@
 /* The buyer sees the price limit and the next action before secondary analysis. */
 .ffv3-price-signal { margin-top: 5px !important; font-size: 17px; line-height: 1.38; color: var(--ffv3-white); }
 .ffv3-price-signal strong { font-weight: 750; }
+.ffv3-price-signal[data-ffv3-over-max] strong { color: var(--ffv3-pass); }
+.ffv3-fact[data-ffv3-delta="over"] dd { color: var(--ffv3-pass); }
 .ffv3-hero-next { margin-top: 9px !important; font-size: 14px; color: var(--ffv3-white); }
 .ffv3-hero-next b { color: var(--ffv3-silver); font-weight: 700; }
 .ffv3-econ-grid .ffv3-fact:nth-child(2) dd { color: var(--ffv3-gold); }

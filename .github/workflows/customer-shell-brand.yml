@@ -5,6 +5,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/audit-customer-shell-brand-ci.mjs"
+      - "scripts/audit-result-guide-verdict-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -15,6 +16,7 @@ on:
     paths:
       - "saas-prototype/**"
       - "scripts/audit-customer-shell-brand-ci.mjs"
+      - "scripts/audit-result-guide-verdict-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -71,6 +73,9 @@ jobs:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
           FLIPFORGE_SHELL_SCREENSHOT_DIR: artifacts/customer-shell
         run: node scripts/audit-customer-shell-brand-ci.mjs
+
+      - name: Result guide explains the saved verdict only
+        run: node scripts/audit-result-guide-verdict-ci.mjs
 
       - name: Upload owner-review screenshots
         if: always()
