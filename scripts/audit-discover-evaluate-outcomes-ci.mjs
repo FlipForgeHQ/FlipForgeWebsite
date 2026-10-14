@@ -228,6 +228,10 @@ for (const [name, modes] of cases) {
 }
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);
-for (const line of failures) console.log(`FAIL ${line}`);
+for (const line of failures) {
+  console.log(`FAIL ${line}`);
+  // In GitHub Actions, also surface each failure as an annotation (readable from the check run).
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=Discover evaluate outcomes (${new URL(baseUrl).pathname})::${line.replace(/\r?\n/g, " ").slice(0, 900)}`);
+}
 console.log(`Discover evaluate outcomes audit: ${passes.length}/${passes.length + failures.length} passed.`);
 if (failures.length) process.exit(1);
