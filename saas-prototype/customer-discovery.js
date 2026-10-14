@@ -26,6 +26,9 @@
     data: null,
     loading: false,
     evaluatingIndex: -1,
+    // The failed evaluation, shown inline beside the button that started it (see evaluationErrorMarkup).
+    evaluationError: null,
+    evaluationLimitReached: false,
     error: null,
     notice: "",
     evaluationKeys: new Map(),
@@ -195,7 +198,9 @@
     const payload = await parseResponse(response);
     if (!response.ok) {
       const upstream = payload?.error || {};
-      throw makeError(upstream.code || "DISCOVER_REQUEST_FAILED", upstream.message || `FlipForge request failed with status ${response.status}.`, response.status);
+      const error = makeError(upstream.code || "DISCOVER_REQUEST_FAILED", upstream.message || `FlipForge request failed with status ${response.status}.`, response.status);
+      error.correlationId = String(upstream.correlationId || requestCorrelationId);
+      throw error;
     }
     return { payload, correlationId: requestCorrelationId };
   }
@@ -395,6 +400,7 @@
   async function search(form) {
     state.error = null;
     state.notice = "";
+    state.evaluationError = null;
     state.data = null;
     let draft;
     try {
@@ -490,6 +496,7 @@
     const item = state.data.items[index];
     state.error = null;
     state.notice = "";
+    state.evaluationError = null;
     state.evaluatingIndex = index;
     renderCurrent();
     try {
@@ -505,10 +512,96 @@
       state.evaluatingIndex = -1;
       window.location.hash = `#/opportunities/${encodeURIComponent(result.payload.data.opportunityId)}`;
     } catch (error) {
-      state.error = error;
+      // Show the failure beside the button that started it. The page-level error panel sits above the results and is
+      // moved below them by the Discover layout, so a customer scrolled to the listing saw nothing happen.
+      state.evaluationError = { index, error };
+      if (error?.code === "EVALUATION_LIMIT_REACHED" || error?.status === 429) state.evaluationLimitReached = true;
       state.evaluatingIndex = -1;
       renderCurrent();
+      revealEvaluationError();
     }
+  }
+
+  function revealEvaluationError() {
+    const alert = () => state.main?.querySelector?.("[data-discovery-evaluate-error]");
+    const reveal = ({ scroll }) => {
+      const node = alert();
+      if (!node) return;
+      if (scroll) { try { node.scrollIntoView({ block: "center", behavior: "instant" }); } catch (_) { node.scrollIntoView(); } }
+      try { node.focus({ preventScroll: true }); } catch (_) {}
+    };
+    reveal({ scroll: true });
+    // The first layout pass runs right after this render; re-check once it has run.
+    const afterFirstPass = () => window.setTimeout(() => {
+      const node = alert();
+      if (!node) return;
+      const rect = node.getBoundingClientRect();
+      if (rect.top < 0 || rect.bottom > window.innerHeight || document.activeElement === document.body) reveal({ scroll: rect.top < 0 || rect.bottom > window.innerHeight });
+    }, 0);
+    if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(afterFirstPass); else afterFirstPass();
+    // Discover layout enhancements react to the re-render and move sections within the page for a short while;
+    // moving a node drops its focus and can shift it out of view. Once the page has stopped rearranging, bring the
+    // alert back into view and give it focus again - but only if focus fell to nothing (never take it from a control
+    // the customer has since chosen).
+    if (typeof MutationObserver !== "function" || !state.main) return;
+    let timer = 0;
+    const started = Date.now();
+    const observer = new MutationObserver(() => {
+      window.clearTimeout(timer);
+      // Ongoing unrelated updates must not postpone this forever: settle at the latest after 1.5 s.
+      timer = window.setTimeout(settled, Date.now() - started > 1500 ? 0 : 150);
+    });
+    const settled = () => {
+      observer.disconnect();
+      const node = alert();
+      const active = document.activeElement;
+      if (!node || (active && active !== document.body && active !== node && !node.contains(active))) return;
+      const rect = node.getBoundingClientRect();
+      reveal({ scroll: rect.top < 0 || rect.bottom > window.innerHeight });
+    };
+    observer.observe(state.main, { childList: true, subtree: true });
+    timer = window.setTimeout(settled, 150);
+  }
+
+  function restoreSignInUrl() {
+    const path = String(window.location.pathname || "/app/beta/");
+    const returnPath = `${path}${window.location.search || ""}${window.location.hash || "#/discover"}`;
+    return `/production-auth.html?${new URLSearchParams({ return: returnPath }).toString()}`;
+  }
+
+  // Plain-language failure with the next step. Nothing is evaluated or saved when an evaluation fails, and retrying
+  // the same listing is safe (the request carries the same idempotency key).
+  function evaluationErrorMarkup(error) {
+    const code = String(error?.code || "");
+    const status = Number(error?.status || 0);
+    const link = (href, label) => `<a class="button button-secondary" href="${escapeHtml(href)}">${escapeHtml(label)}</a>`;
+    let title;
+    let body;
+    let actions = "";
+    if (code === "EVALUATION_LIMIT_REACHED" || status === 429) {
+      title = "Evaluation limit reached";
+      body = "This account can't run another evaluation right now, so this listing was not evaluated and nothing was saved. Your existing saved decisions are unchanged.";
+      actions = link("#/account", "View Plan & Usage") + link("#/opportunities", "Open saved decisions");
+    } else if (status === 401 || code === "AUTHENTICATION_REQUIRED") {
+      title = "Sign in again to evaluate";
+      body = "Your FlipForge sign-in has expired, so this listing was not evaluated. Sign in again and you will come back to this page.";
+      actions = link(restoreSignInUrl(), "Restore sign in");
+    } else if (status === 403) {
+      title = "This account can't run evaluations";
+      body = `${error?.message || "Your current FlipForge access does not permit a new evaluation."} This listing was not evaluated and nothing was saved.`;
+      actions = link("#/account", "View Plan & Usage");
+    } else if (code === "CUSTOMER_API_TIMEOUT" || error?.name === "TimeoutError") {
+      title = "The evaluation didn't finish";
+      body = "FlipForge did not respond in time. Nothing was saved. Try again in a moment; retrying this listing will not create a duplicate.";
+    } else if (error instanceof TypeError || /failed to fetch|network/i.test(String(error?.message || ""))) {
+      title = "Connection lost";
+      body = "FlipForge couldn't be reached, so this listing was not evaluated. Check your connection and try again.";
+    } else {
+      title = "The evaluation couldn't be completed";
+      body = `${error?.message || "FlipForge could not complete this evaluation."} Nothing was saved. You can try again.`;
+    }
+    const reference = error?.correlationId ? `<small>Reference: ${escapeHtml(error.correlationId)}</small>` : "";
+    return `<div class="staging-error customer-discovery-evaluate-error" role="alert" tabindex="-1" data-discovery-evaluate-error data-error-code="${escapeHtml(code || String(status || "ERROR"))}"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(body)}</p>${actions ? `<div class="customer-intelligence-actions">${actions}</div>` : ""}${reference}</div>`;
   }
 
   function errorPanel() {
@@ -594,7 +687,8 @@
     const evaluateDisabled = identityReview
       || !exactIdentity
       || item.evaluationEligible !== true
-      || state.evaluatingIndex >= 0;
+      || state.evaluatingIndex >= 0
+      || state.evaluationLimitReached;
     const sellerFeedback = Number(item.sellerFeedbackScore);
     const rankingContext = [
       Number.isFinite(sellerFeedback) && sellerFeedback >= 0
@@ -619,7 +713,7 @@
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${boundary}</div></article>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : ""}${boundary}</div></article>`;
   }
 
   function resultsPanel() {
