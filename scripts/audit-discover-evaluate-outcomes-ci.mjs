@@ -115,9 +115,19 @@ async function newPage(viewport, { storageWritesFail = false } = {}) {
     if (url.pathname === "/api/v1/discover") return json(200, envelope(correlationId, discoverData()));
     if (url.pathname === "/api/v1/entitlements") {
       if (entitlementsMode === "stall") await new Promise(r => setTimeout(r, 4000));
+      if (entitlementsMode === "available-slow") await new Promise(r => setTimeout(r, 3000));
+      // Limit reached partly by an in-progress reservation: 4 completed + 1 reserved of 5.
+      if (entitlementsMode === "reserved" || entitlementsMode === "reserved-noadmission") {
+        const usage = { evaluationAllowanceScope: "PRIVATE_BETA_LIFETIME", completedEvaluations: 4, inProgressReservations: 1,
+          evaluationAllowanceLimit: 5, remainingEvaluations: 0, evaluationAllowedNow: false };
+        if (entitlementsMode === "reserved") usage.admissionUsage = 5;
+        return json(200, envelope(correlationId, { kind: "entitlements", readOnly: true,
+          current: { code: "PRIVATE_BETA", accessState: "PRIVATE_BETA_EVALUATION_ALLOWANCE_REACHED", evaluationAllowanceScope: "PRIVATE_BETA_LIFETIME", effectiveEvaluationLimit: 5 },
+          usage }));
+      }
       if (entitlementsMode === "fail") return json(503, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } });
       const beta = entitlementsMode !== "monthly";
-      if (entitlementsMode === "available") return json(200, envelope(correlationId, {
+      if (entitlementsMode === "available" || entitlementsMode === "available-slow") return json(200, envelope(correlationId, {
         kind: "entitlements", readOnly: true,
         current: { code: "PRIVATE_BETA", accessState: "PRIVATE_BETA_ACTIVE", evaluationAllowanceScope: "PRIVATE_BETA_LIFETIME", effectiveEvaluationLimit: 50 },
         usage: { evaluationAllowanceScope: "PRIVATE_BETA_LIFETIME", completedEvaluations: 5, inProgressReservations: 0, admissionUsage: 5,
@@ -135,7 +145,8 @@ async function newPage(viewport, { storageWritesFail = false } = {}) {
       evaluationCalls.push(request.headers()["idempotency-key"]);
       const mode = evalModes.length > 1 ? evalModes.shift() : evalModes[0];
       if (mode === "success") return json(200, envelope(correlationId, evaluationData(request.headers()["idempotency-key"])));
-      if (mode === "limit") return route.fulfill({ status: 429, contentType: "application/json; charset=utf-8", headers: { "Retry-After": "1468800" },
+      if (mode === "limit-slow") await new Promise(r => setTimeout(r, 3000));
+      if (mode === "limit" || mode === "limit-slow") return route.fulfill({ status: 429, contentType: "application/json; charset=utf-8", headers: { "Retry-After": "1468800" },
         body: JSON.stringify({ error: { code: "EVALUATION_LIMIT_REACHED", message: "Your monthly evaluation limit has been reached.", correlationId } }) });
       if (mode === "expired") return json(401, { error: { code: "AUTHENTICATION_REQUIRED", message: "Sign in with an invited FlipForge account.", correlationId } });
       if (mode === "denied") return json(403, { error: { code: "ENTITLEMENT_ACCESS_DENIED", message: "Your current FlipForge access does not permit a new evaluation.", correlationId } });
@@ -156,6 +167,9 @@ async function newPage(viewport, { storageWritesFail = false } = {}) {
 }
 
 
+// Local legacy /app reloads the document on every route change (production-dashboard-guard.js cleanRouteTransition);
+// production redirects /app to sign-in. /app/beta and /owner/customer keep the document.
+const LEGACY_RELOADING_PATH = /^\/app\/?$/.test(new URL(baseUrl).pathname);
 const passes = [];
 const failures = [];
 const check = (name, condition, detail = "") => (condition ? passes : failures).push(detail ? `${name} [${detail}]` : name);
@@ -175,6 +189,9 @@ const EXPECT = {
   // 429 while the allowance lookup stalls: the neutral limit alert shows at once, then names the allowance in place.
   "limit-stalled": { title: /Evaluation limit reached/, body: /No new evaluation was created/, link: "#/account", disablesEvaluate: true,
     enrichedTitle: /You\u2019ve reached your Private Beta evaluation allowance\./, enrichedBody: /You have used 5 of 5/ },
+  // The usage line counts in-progress reservations (server admissionUsage, else completed + reserved) (Codex P2).
+  "limit-reserved": { title: /You\u2019ve reached your Private Beta evaluation allowance\./, body: /You have used 5 of 5, including 1 still in progress\./, link: "#/account", disablesEvaluate: true },
+  "limit-reserved-noadmission": { title: /You\u2019ve reached your Private Beta evaluation allowance\./, body: /You have used 5 of 5, including 1 still in progress\./, link: "#/account", disablesEvaluate: true },
   // 429, then the allowance becomes available again: a new search re-checks it and lifts the block (Codex P2).
   "limit-restored": { title: /You\u2019ve reached your Private Beta evaluation allowance\./, link: "#/account", disablesEvaluate: true, restoredAfter: true },
   // Outcome unknown: the server may have saved it. Must not claim nothing was saved; must point to saved decisions.
@@ -211,8 +228,10 @@ async function run(label, viewport, modes, entitlements = "beta") {
           title: document.querySelector("#main-content .customer-intelligence-hero h2")?.textContent.trim(),
           verdict: document.querySelector("#main-content .customer-intelligence-hero .staging-status")?.textContent.trim()
         }));
+        // Opening the saved decision is a route change; only the legacy /app path reloads the document on route changes.
+        const reloadsAllowed = LEGACY_RELOADING_PATH ? 1 : 0;
         check(`${label} attempt ${attempt + 1} (${mode}): opens the correct saved decision`,
-          card.title === QUERY && card.verdict === "WATCH" && loads === loadsAtStart, `${JSON.stringify(card)} reloads=${loads - loadsAtStart}`);
+          card.title === QUERY && card.verdict === "WATCH" && loads - loadsAtStart <= reloadsAllowed, `${JSON.stringify(card)} reloads=${loads - loadsAtStart}`);
         continue;
       }
       await page.waitForSelector("#main-content [data-discovery-evaluate-error]", { timeout: mode === "timeout" ? 45000 : 10000 });
@@ -239,6 +258,8 @@ async function run(label, viewport, modes, entitlements = "beta") {
           text: alert.innerText.replace(/\s+/g, " "),
           links: [...alert.querySelectorAll("a[href]")].map(a => a.getAttribute("href")),
           buttonDisabled: button.disabled,
+          // Guided Mode's recovery coach must not add search/"nothing saved" copy to an evaluation alert.
+          coach: (document.querySelector("#main-content [data-ff-recovery]")?.innerText || "").replace(/\s+/g, " "),
           pageLevelErrorShown: Boolean(document.querySelector("#main-content > .page > .staging-error:not([data-discovery-evaluate-error])"))
         };
       });
@@ -254,6 +275,8 @@ async function run(label, viewport, modes, entitlements = "beta") {
         JSON.stringify({ inView: state.inView, nearButton: state.nearButton, focused: state.focused, text: state.text.slice(0, 120) }));
       check(`${label} attempt ${attempt + 1} (${mode}): offers the next step`, linkOk, state.links.join(","));
       check(`${label} attempt ${attempt + 1} (${mode}): no second, off-screen copy of the error`, !state.pageLevelErrorShown);
+      check(`${label} attempt ${attempt + 1} (${mode}): no other guidance on the page contradicts the alert (no search-failure or "nothing saved" coach)`,
+        !/didn't finish|nothing (new )?was saved/i.test(state.coach), state.coach.slice(0, 160));
       if (expect.enrichedTitle) {
         await page.waitForTimeout(4000);
         const enriched = await page.evaluate(() => {
@@ -292,6 +315,77 @@ async function run(label, viewport, modes, entitlements = "beta") {
   } finally { await context.close(); }
 }
 
+// A late answer must never draw Discover over the route the customer moved to (Codex P2 on cfaa126).
+async function runNavigateAway(label, viewport, variant) {
+  entitlementsMode = variant === "enrich" ? "stall" : "beta";
+  evalModes = [variant === "evaluate" ? "limit-slow" : "limit"];
+  const { context, page } = await newPage(viewport);
+  let loads = 0; page.on("load", () => { loads += 1; });
+  const goto = hash => page.evaluate(h => { location.hash = h; }, hash);
+  const DISCOVER_MARKUP = ".customer-discovery-page, [data-customer-discovery-form], [data-discovery-evaluate-error]";
+  // Watch every DOM change while Plan & Usage is the route: Discover markup appearing even for one mutation is a failure
+  // (route ownership may put the account page back afterwards, which would hide it from an end-state check).
+  const watchAccount = () => page.evaluate(selector => {
+    window.__discoverOverAccount = 0;
+    const main = document.querySelector("#main-content");
+    const observer = new MutationObserver(() => {
+      if (location.hash === "#/account" && main.querySelector(selector)) window.__discoverOverAccount += 1;
+    });
+    observer.observe(main, { childList: true, subtree: true });
+    window.__stopAccountWatch = () => observer.disconnect();
+  }, DISCOVER_MARKUP);
+  const accountIntact = () => page.evaluate(selector => {
+    window.__stopAccountWatch?.();
+    const main = document.querySelector("#main-content");
+    return { hash: location.hash, discover: Boolean(main.querySelector(selector)), drawnOver: window.__discoverOverAccount ?? -1,
+      account: /Plan\s*&\s*Usage/.test(main.querySelector("h1")?.textContent || "") };
+  }, DISCOVER_MARKUP);
+  try {
+    await page.goto(`${baseUrl}/#/discover`, { waitUntil: "load" });
+    const input = page.locator('#main-content [data-customer-discovery-form] input[name="exactCardQuery"]');
+    await input.waitFor({ state: "visible", timeout: 10000 });
+    await input.fill(QUERY);
+    await page.locator("#main-content [data-customer-discovery-form]").evaluate(form => form.requestSubmit());
+    const evaluate = page.locator("#main-content [data-discovery-evaluate]").first();
+    await evaluate.waitFor({ state: "visible", timeout: 10000 });
+    const loadsAtStart = loads;
+    await evaluate.scrollIntoViewIfNeeded();
+    await evaluate.click({ timeout: 5000 });
+    if (variant === "evaluate") {
+      await goto("#/account"); // the 429 answers 3 s later
+    } else if (variant === "enrich") {
+      await page.waitForSelector("#main-content [data-discovery-evaluate-error]", { timeout: 10000 });
+      await goto("#/account"); // the allowance lookup answers ~4 s later
+    } else {
+      await page.waitForSelector("#main-content [data-discovery-evaluate-error]", { timeout: 10000 });
+      await goto("#/account");
+      await page.waitForTimeout(1500);
+      entitlementsMode = "available-slow";
+      await goto("#/discover"); // entering Discover re-checks the allowance (answers 3 s later)...
+      await page.waitForFunction(() => Boolean(document.querySelector("#main-content .customer-discovery-page")), null, { timeout: 10000 });
+      await goto("#/account"); // ...but the customer has already moved on
+    }
+    await page.waitForFunction(() => /Plan\s*&\s*Usage/.test(document.querySelector("#main-content h1")?.textContent || "")
+      && !document.querySelector("#main-content .customer-discovery-page"), null, { timeout: 10000 });
+    await watchAccount();
+    await page.waitForTimeout(5500);
+    const after = await accountIntact();
+    check(`${label}: after the late answer, Plan & Usage is still shown and Discover never redraws over it`,
+      after.hash === "#/account" && after.account && !after.discover && after.drawnOver === 0 && loads === loadsAtStart, `${JSON.stringify(after)} reloads=${loads - loadsAtStart}`);
+    // Back on Discover, the state from that late answer is shown correctly.
+    await goto("#/discover");
+    await page.waitForFunction(() => Boolean(document.querySelector("#main-content [data-discovery-evaluate]")), null, { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(variant === "revalidate" ? 4000 : 1000);
+    const back = await page.evaluate(() => ({ disabled: document.querySelector("#main-content [data-discovery-evaluate]")?.disabled ?? null,
+      note: Boolean(document.querySelector("#main-content [data-discovery-allowance-note]")) }));
+    const expectedDisabled = variant !== "revalidate";
+    check(`${label}: returning to Discover shows the current allowance (${expectedDisabled ? "still blocked" : "available again"})`,
+      back.disabled === expectedDisabled, JSON.stringify(back));
+  } catch (error) {
+    check(`${label}: completed`, false, String(error.message).split("\n")[0]);
+  } finally { await context.close(); }
+}
+
 const desktop = { width: 1440, height: 900 }; const mobile = { width: 390, height: 844 };
 const cases = [
   ["success", ["success"]], ["Private Beta allowance reached (429)", ["limit"]],
@@ -300,10 +394,22 @@ const cases = [
   ["access denied (403)", ["denied"]], ["server error (502)", ["server"]], ["network failure", ["network"]],
   ["recovery: 502 then success", ["server", "success"]], ["timeout", ["timeout"]],
   ["gateway upstream timeout (503 UPSTREAM_TIMEOUT)", ["gateway-timeout"]], ["definite rejection (422)", ["rejected"]],
-  ["limit reached, allowance lookup slow (429)", ["limit-stalled"], "stall"], ["limit reached, then allowance restored (429)", ["limit-restored"]]
+  ["limit reached, allowance lookup slow (429)", ["limit-stalled"], "stall"], ["limit reached, then allowance restored (429)", ["limit-restored"]],
+  ["limit reached with a reservation in progress (429)", ["limit-reserved"], "reserved"],
+  ["limit reached with a reservation, no admissionUsage field (429)", ["limit-reserved-noadmission"], "reserved-noadmission"]
 ];
 for (const [name, modes, entitlements] of cases) {
   for (const [vpName, vp] of [["desktop", desktop], ["mobile", mobile]]) await run(`${name} ${vpName}`, vp, modes, entitlements);
+}
+// The local legacy /app path reloads the whole document on every route change (production-dashboard-guard.js
+// cleanRouteTransition; production redirects /app to sign-in), so a late answer has no page left to draw over there.
+// The race is checked on the routes that keep the document across navigation (/app/beta, /owner/customer).
+const legacyReloadingPath = LEGACY_RELOADING_PATH;
+if (legacyReloadingPath) console.log("NOTE navigate-away races not applicable on legacy /app (route changes reload the document); checked on /app/beta.");
+for (const [vpName, vp] of legacyReloadingPath ? [] : [["desktop", desktop], ["mobile", mobile]]) {
+  await runNavigateAway(`navigate away before the 429 answers ${vpName}`, vp, "evaluate");
+  await runNavigateAway(`navigate away before the allowance lookup answers ${vpName}`, vp, "enrich");
+  await runNavigateAway(`navigate away before the allowance re-check answers ${vpName}`, vp, "revalidate");
 }
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);

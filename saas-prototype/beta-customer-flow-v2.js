@@ -379,7 +379,9 @@
     const route = routeName();
 
     if (route === "discover") {
-      const error = main.querySelector('.customer-discovery-page .staging-error[role="alert"]');
+      // An evaluation alert (data-discovery-evaluate-error) states its own outcome and next step; this coach is for
+      // search failures only and must never add "Nothing was saved" to an evaluation whose outcome may be unknown.
+      const error = main.querySelector('.customer-discovery-page .staging-error[role="alert"]:not([data-discovery-evaluate-error])');
       if (error) {
         setRecovery("discover-error", error, recoveryHtml("The search didn't finish. Nothing was saved.", "Go back to the card box, confirm the exact identity, and try again. If the card number or parallel is uncertain, use Check card identity first.", '<button class="button button-primary" type="button" data-ff-focus-card>Show me the card box</button><button class="button button-secondary" type="button" data-ff-find-exact>Check card identity</button>'));
         return;
@@ -403,7 +405,7 @@
     if (route === "evaluate") {
       const error = main.querySelector('.staging-error[role="alert"],.consumer-state-error');
       if (error) {
-        setRecovery("evaluate-error", error, recoveryHtml("The evaluation couldn't complete. Nothing new was saved.", "Review the card identity and listing facts, then try again. If you are unsure about the card, return to Discover instead of guessing.", '<a class="button button-primary" href="#/discover">Return to Discover</a><button class="button button-secondary" type="button" data-ff-new-card>Start a different card</button>'));
+        setRecovery("evaluate-error", error, recoveryHtml("The evaluation didn't complete here.", "If it finished on FlipForge's side, it is in your saved decisions. Review the card identity and listing facts, then try again. If you are unsure about the card, return to Discover instead of guessing.", '<a class="button button-primary" href="#/discover">Return to Discover</a><button class="button button-secondary" type="button" data-ff-new-card>Start a different card</button>'));
         return;
       }
     }

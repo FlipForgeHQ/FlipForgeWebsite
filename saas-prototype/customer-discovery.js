@@ -29,6 +29,8 @@
     // The failed evaluation, shown inline beside the button that started it (see evaluationErrorMarkup).
     evaluationError: null,
     evaluationLimitReached: false,
+    // Bumped by every allowance re-check and every new limit response; a re-check applies only if it is still the latest.
+    limitCheckSerial: 0,
     error: null,
     notice: "",
     evaluationKeys: new Map(),
@@ -520,10 +522,15 @@
       // moved below them by the Discover layout, so a customer scrolled to the listing saw nothing happen.
       if (error && typeof error === "object") error.dispatched = dispatched;
       const limitReached = error?.code === "EVALUATION_LIMIT_REACHED" || error?.status === 429;
-      if (limitReached) state.evaluationLimitReached = true;
+      if (limitReached) {
+        state.evaluationLimitReached = true;
+        // A re-check started before this answer must not lift the block it just reported.
+        state.limitCheckSerial += 1;
+      }
       const shown = { index, error };
       state.evaluationError = shown;
       state.evaluatingIndex = -1;
+      if (!discoverOwnsSurface()) return;
       renderCurrent();
       revealEvaluationError();
       // Show the limit message at once; name the allowance (and usage) when the read-only lookup answers.
@@ -535,6 +542,7 @@
     const allowance = await allowanceSnapshot();
     if (!allowance || state.evaluationError !== shown) return;
     shown.error.allowance = allowance;
+    if (!discoverOwnsSurface()) return;
     const node = state.main?.querySelector?.("[data-discovery-evaluate-error]");
     if (!node) return;
     // Update the alert in place so it keeps its position and focus.
@@ -548,8 +556,11 @@
   // evaluations are available again (monthly reset, plan or allowance change). Keeps the block if the check fails.
   async function revalidateLimit() {
     if (!state.evaluationLimitReached) return;
+    const serial = state.limitCheckSerial + 1;
+    state.limitCheckSerial = serial;
     const allowance = await allowanceSnapshot();
-    if (!allowance || allowance.allowedNow !== true || !state.evaluationLimitReached) return;
+    if (serial !== state.limitCheckSerial || !state.evaluationLimitReached) return;
+    if (!allowance || allowance.allowedNow !== true) return;
     state.evaluationLimitReached = false;
     if (state.evaluationError && (state.evaluationError.error?.status === 429 || state.evaluationError.error?.code === "EVALUATION_LIMIT_REACHED")) state.evaluationError = null;
     if (!state.loading && state.evaluatingIndex < 0) renderCurrent();
@@ -606,10 +617,16 @@
       const scope = String(usage.evaluationAllowanceScope || data.current?.evaluationAllowanceScope || "");
       const state = String(data.current?.accessState || "");
       const number = value => (Number.isInteger(value) && value >= 0 ? value : null);
+      // The limit is enforced on admission usage (completed plus in-progress reservations), so report that, as Plan &
+      // Usage does: the server's admissionUsage, else completed + reservations.
+      const completed = number(usage.completedEvaluations);
+      const inProgress = number(usage.inProgressReservations) ?? 0;
+      const admission = number(usage.admissionUsage) ?? (completed === null ? null : completed + inProgress);
       return {
         privateBeta: scope === "PRIVATE_BETA_LIFETIME" || state === "PRIVATE_BETA_EVALUATION_ALLOWANCE_REACHED",
         monthly: scope === "UTC_CALENDAR_MONTH" || state === "MONTHLY_EVALUATION_LIMIT_REACHED",
-        used: number(usage.completedEvaluations),
+        used: admission,
+        inProgress,
         limit: number(usage.evaluationAllowanceLimit ?? usage.monthlyEvaluationLimit),
         allowedNow: typeof usage.evaluationAllowedNow === "boolean"
           ? usage.evaluationAllowedNow
@@ -658,8 +675,10 @@
     let actions = "";
     if (code === "EVALUATION_LIMIT_REACHED" || status === 429) {
       const allowance = error?.allowance || null;
+      const inProgress = allowance && allowance.inProgress > 0
+        ? `, including ${allowance.inProgress} still in progress` : "";
       const usage = allowance && allowance.used !== null && allowance.limit !== null
-        ? ` You have used ${allowance.used} of ${allowance.limit}.` : "";
+        ? ` You have used ${allowance.used} of ${allowance.limit}${inProgress}.` : "";
       title = allowance?.privateBeta
         ? "You\u2019ve reached your Private Beta evaluation allowance."
         : allowance?.monthly ? "You\u2019ve reached this month\u2019s evaluation limit." : "Evaluation limit reached";
@@ -858,8 +877,16 @@
     }
   }
 
+  // Discover owns #main-content only while the address names the Discover route. Requests that finish after the
+  // customer has moved to another route (search, identity assist, evaluation failure, allowance checks) update state
+  // only; they never draw Discover over the other page. The next Discover render shows the current state.
+  function discoverOwnsSurface() {
+    const route = String(window.location.hash || "").replace(/^#\/?/, "").split(/[/?]/)[0];
+    return Boolean(state.main && state.main.isConnected !== false && route === "discover");
+  }
+
   function renderCurrent() {
-    if (!state.main) return;
+    if (!state.main || !discoverOwnsSurface()) return;
     const focusedField = preserveTypedDraft();
     try {
       renderCurrentMarkup();
