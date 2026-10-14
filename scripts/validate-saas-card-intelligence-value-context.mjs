@@ -23,8 +23,8 @@ check("009 browser does not derive analog endpoints", !/reference(?:Low|Midpoint
 check("010 list view remains based on saved supported value only", source.includes("supportedValueText(item)") && !source.includes("valueIntelligencePanel(item) ?"));
 check("011 production detail rejects invalid value authority", source.includes("VALUE_INTELLIGENCE_CONTRACT_INVALID"));
 check("012 shared contextual panel stylesheet is loaded", index.includes('href="staging-evaluation.css"') && evaluationCss.includes(".staging-value-intelligence"));
-check("013 saved detail has a direct tenant-protected fast path", source.includes("async function loadDetailDirect()") && source.includes("if (state.requestedId) await loadDetailDirect()"));
-const detailFastPathSource = source.split("async function loadDetailDirect()")[1]?.split("async function loadList()")[0] || "";
+check("013 saved detail has a direct tenant-protected fast path", source.includes("async function loadDetailDirect(serial)") && source.includes("if (state.requestedId) await loadDetailDirect(serial)"));
+const detailFastPathSource = source.split("async function loadDetailDirect(serial)")[1]?.split("async function loadList(serial)")[0] || "";
 check("014 detail fast path does not require the saved-opportunity list first", detailFastPathSource.length > 0 && !detailFastPathSource.includes('request("/api/v1/opportunities")'));
 
 function makeMain() {
