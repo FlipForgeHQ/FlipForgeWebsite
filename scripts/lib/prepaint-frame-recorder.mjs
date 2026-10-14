@@ -11,14 +11,43 @@
 // delivery samples that frame. If a tick finds the previous frame unsampled, that frame was skipped and is counted, so
 // an audit can require zero skipped frames.
 //
+// Full page loads (reloads, direct links) are covered: on "pagehide" the recorder writes its unread frames and counters
+// to sessionStorage synchronously, and the next document's recorder carries them forward before its first frame, so an
+// audit drains every frame of every document. Each frame carries its document number; skipped-frame accounting is per
+// document (a frame pending when its document unloads was never painted by that document and is not a skip).
+//
 // The page-side function is serialized with Function.prototype.toString and injected via page.addInitScript, so it must
 // stay self-contained. `sampleSource` is the body of a function (no arguments) that returns a plain JSON-safe object
 // describing the frame; it runs pre-paint on every frame.
 
 export function prepaintRecorderInit({ sampleSource }) {
   const sample = new Function(sampleSource);
-  const rec = { frames: [], rafTicks: 0, sampledTicks: 0, skipped: [], errors: [], startedAt: performance.now() };
+  const CARRY_KEY = "__ffPrepaintCarry";
+  let carried = { frames: [], rafTicks: 0, sampledTicks: 0, skipped: [], errors: [], documents: 0 };
+  try {
+    const raw = window.sessionStorage.getItem(CARRY_KEY);
+    if (raw) { carried = JSON.parse(raw); window.sessionStorage.removeItem(CARRY_KEY); }
+  } catch (_) {}
+  const rec = {
+    frames: [], rafTicks: 0, sampledTicks: 0, skipped: [], errors: [], startedAt: performance.now(),
+    document: (carried.documents || 0) + 1, carried
+  };
   window.__ffPrepaint = rec;
+  window.addEventListener("pagehide", () => {
+    try {
+      const c = rec.carried;
+      window.sessionStorage.setItem(CARRY_KEY, JSON.stringify({
+        frames: c.frames.concat(rec.frames),
+        rafTicks: c.rafTicks + rec.rafTicks,
+        sampledTicks: c.sampledTicks + rec.sampledTicks,
+        skipped: c.skipped.concat(rec.skipped),
+        errors: c.errors.concat(rec.errors),
+        documents: rec.document
+      }));
+    } catch (error) {
+      rec.errors.push(`pagehide carry failed: ${String(error && error.message || error)}`);
+    }
+  });
   let sentinel = null;
   let pending = 0;
   let pendingTs = 0;
@@ -32,9 +61,10 @@ export function prepaintRecorderInit({ sampleSource }) {
     try {
       const data = sample();
       data.frame = frame;
+      data.document = rec.document;
       // The frame clock: every requestAnimationFrame callback in this frame received this same timestamp.
       data.rafTs = pendingTs;
-      data.t = Math.round(performance.now() - rec.startedAt);
+      data.t = Math.round(performance.timeOrigin + performance.now()); // wall clock, ordered across documents
       rec.frames.push(data);
     } catch (error) {
       rec.errors.push(`frame ${frame}: ${String(error && error.message || error)}`);
@@ -54,7 +84,7 @@ export function prepaintRecorderInit({ sampleSource }) {
   function tick(ts) {
     rec.rafTicks += 1;
     // The previous frame never reached the pre-paint delivery: record it as skipped.
-    if (pending) rec.skipped.push(pending);
+    if (pending) rec.skipped.push(`document ${rec.document} frame ${pending}`);
     ensureSentinel();
     if (sentinel) {
       // Keep the sentinel attached even if the page rewrites documentElement children.
@@ -69,14 +99,33 @@ export function prepaintRecorderInit({ sampleSource }) {
   requestAnimationFrame(tick);
 }
 
-// Drain recorded frames from the page. Returns { frames, rafTicks, sampledTicks, skipped, errors }.
+// Drain recorded frames from the page, including frames carried over from earlier documents of this tab.
+// Returns { frames, rafTicks, sampledTicks, skipped, errors, documents }. Retries if a page load is in progress.
 export async function drainFrames(page) {
-  return page.evaluate(() => {
-    const rec = window.__ffPrepaint;
-    if (!rec) return { frames: [], rafTicks: 0, sampledTicks: 0, skipped: [], errors: ["recorder not installed"] };
-    const out = { frames: rec.frames.splice(0), rafTicks: rec.rafTicks, sampledTicks: rec.sampledTicks, skipped: rec.skipped.slice(), errors: rec.errors.slice() };
-    return out;
-  });
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await page.evaluate(() => {
+        const rec = window.__ffPrepaint;
+        if (!rec) return { frames: [], rafTicks: 0, sampledTicks: 0, skipped: [], errors: ["recorder not installed"], documents: 0 };
+        const c = rec.carried;
+        const out = {
+          frames: c.frames.concat(rec.frames.splice(0)),
+          rafTicks: c.rafTicks + rec.rafTicks,
+          sampledTicks: c.sampledTicks + rec.sampledTicks,
+          skipped: c.skipped.concat(rec.skipped),
+          errors: c.errors.concat(rec.errors),
+          documents: rec.document
+        };
+        rec.carried = { frames: [], rafTicks: 0, sampledTicks: 0, skipped: [], errors: [], documents: rec.document - 1 };
+        rec.rafTicks = 0; rec.sampledTicks = 0; rec.skipped = []; rec.errors = [];
+        return out;
+      });
+    } catch (error) {
+      if (attempt >= 20 || !/Execution context was destroyed|navigation|Target closed|Cannot find context/i.test(String(error && error.message))) throw error;
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
+      await page.waitForTimeout(100);
+    }
+  }
 }
 
 // Common environment matrix knobs, read from the environment so CI can fan out:
@@ -139,11 +188,26 @@ export const CARD_FRAME_SAMPLE = `
   const visible = node => Boolean(node && node.isConnected && !node.closest("[hidden]") && node.getClientRects().length
     && getComputedStyle(node).visibility !== "hidden" && Number(getComputedStyle(node).opacity) > 0.01);
   const heroNode = main && main.querySelector(".customer-intelligence-hero");
-  const hero = heroNode && visible(heroNode) ? {
-    title: String(heroNode.querySelector("h2") && heroNode.querySelector("h2").textContent || "").trim(),
-    verdict: String(heroNode.querySelector(".staging-status") && heroNode.querySelector(".staging-status").textContent || "").trim().toUpperCase(),
-    ask: String(heroNode.querySelector(".customer-value-summary strong") && heroNode.querySelector(".customer-value-summary strong").textContent || "").trim()
-  } : null;
+  let hero = null;
+  if (heroNode && visible(heroNode)) {
+    const values = [...heroNode.querySelectorAll(".customer-value-summary > strong")].map(n => String(n.textContent || "").trim());
+    // Evidence count shown for this card: the hero's accepted-sales line, or the page's "Accepted exact sales" figure.
+    let evidence = null;
+    const small = String(heroNode.querySelector(".customer-value-summary small") && heroNode.querySelector(".customer-value-summary small").textContent || "");
+    const heroCount = small.match(/(\d+) accepted exact completed sale/);
+    if (heroCount) evidence = Number(heroCount[1]);
+    else if (main) {
+      const cell = [...main.querySelectorAll(".staging-key-grid > div")].find(n => /^Accepted exact sales$/.test(String(n.querySelector("span") && n.querySelector("span").textContent || "").trim()));
+      if (cell && visible(cell)) evidence = Number(String(cell.querySelector("strong") && cell.querySelector("strong").textContent || "").trim());
+    }
+    hero = {
+      title: String(heroNode.querySelector("h2") && heroNode.querySelector("h2").textContent || "").trim(),
+      verdict: String(heroNode.querySelector(".staging-status") && heroNode.querySelector(".staging-status").textContent || "").trim().toUpperCase(),
+      ask: values[0] || "",
+      supported: values[1] || "",
+      evidence
+    };
+  }
   const claims = [];
   const VERDICT = /^(BUY|WATCH|VERIFY|PASS)$/;
   if (main) {
@@ -170,11 +234,31 @@ export const CARD_FRAME_SAMPLE = `
   const guideTitle = document.querySelector("#ff-guided-mode-root .ff-guide-panel h2");
   const guided = String(guideTitle && guideTitle.textContent || "").match(/Start here:\\s*(BUY|WATCH|VERIFY|PASS)\\b/i);
   if (guided && visible(guideTitle)) claims.push(["Guided Mode", guided[1].toUpperCase()]);
+  // Dashboard V3 (opt-in): the card panel on screen and the row marked as selected.
+  let v3 = null;
+  const dossier = main && main.querySelector('[data-ffv3-section="dossier"]');
+  if (dossier && visible(dossier)) {
+    const dt = String(dossier.innerText || "");
+    const lines = dt.split(String.fromCharCode(10)).map(line => line.trim()).filter(Boolean);
+    const money = label => { const i = lines.indexOf(label); const v = i >= 0 ? lines[i + 1] : ""; return /^[$][0-9,]+[.][0-9]{2}$/.test(v || "") ? v : null; };
+    const pressed = main.querySelector('[data-ffv3-select][aria-pressed="true"]');
+    const used = dt.match(/([0-9]+) exact sales? used/);
+    v3 = {
+      id: String(dossier.getAttribute("data-ffv3-selected") || ""),
+      text: dt.slice(0, 4000),
+      verdict: (lines.find(line => /^(BUY|WATCH|VERIFY|PASS)$/.test(line)) || ""),
+      ask: money("All-in ask"),
+      maxBuy: money("Modeled Max Buy"),
+      evidence: used ? Number(used[1]) : null,
+      pressed: pressed ? String(pressed.getAttribute("data-ffv3-select") || "") : ""
+    };
+  }
   const text = main ? String(main.textContent || "") : "";
   return {
     route,
     id,
     hero,
+    v3,
     claims,
     loading: /Loading card intelligence/i.test(text),
     error: /We couldn.t complete that request|took too long to load|did not finish loading/i.test(text)
@@ -182,7 +266,8 @@ export const CARD_FRAME_SAMPLE = `
 `;
 
 // Strict per-frame rules. A single violating frame is a failure.
-//   1. A card on screen must be the card in the address bar: same title, same saved verdict, same ask.
+//   1. A card on screen must be the card in the address bar: same title (card identity incl. grade), same saved
+//      verdict, same asking price, same supported value and - where shown - the same evidence count.
 //      (Off a card route, no card may be on screen.)
 //   2. Every visible verdict claim must equal the saved verdict of the card on screen; with no card on screen, no
 //      verdict may be claimed.
@@ -192,8 +277,25 @@ export function frameViolations(frames, cards, money) {
     const card = f.id ? cards[f.id] : null;
     if (f.hero) {
       if (!card) out.push({ f, why: `a card ("${f.hero.title}" ${f.hero.verdict}) is on screen while the URL is "${f.route}"` });
-      else if (f.hero.title !== card.title || f.hero.verdict !== card.recommendation || f.hero.ask !== money(card.ask)) {
-        out.push({ f, why: `URL card ${f.id} but screen shows "${f.hero.title}" ${f.hero.verdict} ${f.hero.ask}` });
+      else if (f.hero.title !== card.title || f.hero.verdict !== card.recommendation || f.hero.ask !== money(card.ask)
+        || f.hero.supported !== money(card.supportedValue) || (f.hero.evidence !== null && f.hero.evidence !== card.acceptedSales)) {
+        out.push({ f, why: `URL card ${f.id} but screen shows "${f.hero.title}" ${f.hero.verdict} ask ${f.hero.ask} supported ${f.hero.supported} evidence ${f.hero.evidence}` });
+      }
+    }
+    if (f.v3) {
+      const c = cards[f.v3.id];
+      const titles = Object.values(cards).map(x => x.title);
+      // Card identity in the panel: exactly this card's title, no other card's.
+      const showsOwnTitle = c && f.v3.text.includes(c.title);
+      const otherTitle = titles.find(t => !c || (t !== c.title && f.v3.text.includes(t) && !c.title.includes(t)));
+      const cents = v => `$${(Number(v)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (!c) out.push({ f, why: `V3 panel shows unknown card "${f.v3.id}"` });
+      else if (!showsOwnTitle || otherTitle || f.v3.verdict !== c.recommendation
+        || (f.v3.ask !== null && f.v3.ask !== cents(c.ask))
+        || (c.maxBuy !== undefined && f.v3.maxBuy !== null && f.v3.maxBuy !== cents(c.maxBuy))
+        || (f.v3.evidence !== null && f.v3.evidence !== c.acceptedSales)
+        || (f.v3.pressed && f.v3.pressed !== f.v3.id)) {
+        out.push({ f, why: `V3 panel for ${f.v3.id}: title ${showsOwnTitle ? "ok" : "missing"}${otherTitle ? ` + "${otherTitle}"` : ""}, ${f.v3.verdict}, ask ${f.v3.ask}, Max Buy ${f.v3.maxBuy}, evidence ${f.v3.evidence}, selected row ${f.v3.pressed}` });
       }
     }
     for (const [surface, verdict] of f.claims) {

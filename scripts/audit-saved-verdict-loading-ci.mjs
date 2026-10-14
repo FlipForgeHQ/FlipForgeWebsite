@@ -103,6 +103,23 @@ const browser = await chromium.launch(launchOptions());
 async function newSession() {
   const context = await newMatrixContext(browser, matrix);
   const page = await context.newPage();
+  // Full page loads are a real navigation path (direct links; the local /app surface also reloads the document on
+  // route changes - production redirects /app to sign-in). A read that a page load interrupts is retried in the new
+  // document; the recorder carries every frame across documents.
+  for (const method of ["evaluate", "waitForFunction"]) {
+    const raw = page[method].bind(page);
+    page[method] = async (...args) => {
+      for (let attempt = 0; ; attempt += 1) {
+        try {
+          return await raw(...args);
+        } catch (error) {
+          if (attempt >= 20 || !/Execution context was destroyed|Cannot find context|most likely because of a navigation/i.test(String(error && error.message))) throw error;
+          await page.waitForLoadState("domcontentloaded").catch(() => {});
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+    };
+  }
   // Strict pre-paint recorder: every rendered frame is sampled after the page's own pre-paint work.
   await page.addInitScript(`(${prepaintRecorderInit.toString()})(${JSON.stringify({ sampleSource: CARD_FRAME_SAMPLE })});`);
   await page.addInitScript(({ email }) => {
@@ -223,6 +240,14 @@ async function heroVerdict(page, id, timeout = SLOW_MS + 6000) {
 }
 
 async function surfacesAfterLoad(page) {
+  // Guided Mode starts minimized on phones after every document load (#501); on a surface that reloads the document
+  // the panel opened earlier is gone. Open it so its verdict is checked, never skipped.
+  await page.evaluate(async () => {
+    if (!document.querySelector("#ff-guided-mode-root .ff-guide-panel") && window.FlipForgeGuidedMode) {
+      window.FlipForgeGuidedMode.open();
+      await new Promise(resolve => setTimeout(resolve, 400));
+    }
+  });
   return page.evaluate(() => {
     const guide = document.querySelector("#main-content [data-ff-p3-result-guide]");
     const pill = document.querySelector("#main-content [data-ff-decision-summary] .ff-decision-summary-pill");

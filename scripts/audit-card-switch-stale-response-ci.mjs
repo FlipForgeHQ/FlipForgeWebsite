@@ -26,10 +26,10 @@ const SLOW_MS = 10_500;
 const VERDICTS = ["BUY", "WATCH", "VERIFY", "PASS"];
 
 const cards = {
-  "qa-verdict-buy": { title: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", recommendation: "BUY", ask: 1215, supportedValue: 1675, acceptedSales: 227 },
-  "qa-verdict-watch": { title: "2018 Topps Chrome Shohei Ohtani #150 PSA 9", recommendation: "WATCH", ask: 760, supportedValue: 850, acceptedSales: 40 },
-  "qa-verdict-verify": { title: "2018 Topps Update Ronald Acuna Jr. #US250 PSA 10", recommendation: "VERIFY", ask: 310, supportedValue: 295, acceptedSales: 2 },
-  "qa-verdict-pass": { title: "2018 Prizm Luka Doncic #280 PSA 10", recommendation: "PASS", ask: 220, supportedValue: 199, acceptedSales: 9 }
+  "qa-verdict-buy": { title: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", recommendation: "BUY", ask: 1215, supportedValue: 1675, acceptedSales: 227, maxBuy: 1266.92 },
+  "qa-verdict-watch": { title: "2018 Topps Chrome Shohei Ohtani #150 PSA 9", recommendation: "WATCH", ask: 760, supportedValue: 850, acceptedSales: 40, maxBuy: 608.79 },
+  "qa-verdict-verify": { title: "2018 Topps Update Ronald Acuna Jr. #US250 PSA 10", recommendation: "VERIFY", ask: 310, supportedValue: 295, acceptedSales: 2, maxBuy: 241.5 },
+  "qa-verdict-pass": { title: "2018 Prizm Luka Doncic #280 PSA 10", recommendation: "PASS", ask: 220, supportedValue: 199, acceptedSales: 9, maxBuy: 151.2 }
 };
 const ids = Object.keys(cards);
 const opportunity = id => ({
@@ -46,8 +46,22 @@ const opportunity = id => ({
   observedAt: "2026-10-06T23:54:44Z",
   platform: "EBAY",
   mappingState: "CONFIRMED",
-  evidence: { acceptedSales: cards[id].acceptedSales }
+  evidence: { acceptedSales: cards[id].acceptedSales },
+  // Governed snapshot (G1 read model) for the opt-in Dashboard V3: all-in ask, Max Buy and the evidence count behind
+  // the decision. Each card has distinct values so a mixed-up frame is detectable.
+  supportedValueCents: Math.round(cards[id].supportedValue * 100),
+  governedDecision: {
+    available: true,
+    allInAskCents: Math.round(cards[id].ask * 100),
+    maximumBuyPriceCents: Math.round(cards[id].maxBuy * 100),
+    supportedValueCents: Math.round(cards[id].supportedValue * 100),
+    exactTrustedCompCount: cards[id].acceptedSales,
+    expectedNetProfitCents: Math.round((cards[id].maxBuy - cards[id].ask) * 100),
+    reason: `Synthetic governed reason for ${cards[id].recommendation}.`,
+    nextAction: "Synthetic next step."
+  }
 });
+const G1_VERSION = "governed-decision-read-v1";
 
 // Per-scenario server behavior: delay (ms) and failure for the record endpoints of a given card.
 const behavior = new Map();
@@ -103,6 +117,23 @@ const browser = await chromium.launch(launchOptions());
 async function newSession() {
   const context = await newMatrixContext(browser, matrix);
   const page = await context.newPage();
+  // Full page loads are a real navigation path (direct links; the local /app surface also reloads the document on
+  // route changes - production redirects /app to sign-in). A read that a page load interrupts is retried in the new
+  // document; the recorder carries every frame across documents.
+  for (const method of ["evaluate", "waitForFunction"]) {
+    const raw = page[method].bind(page);
+    page[method] = async (...args) => {
+      for (let attempt = 0; ; attempt += 1) {
+        try {
+          return await raw(...args);
+        } catch (error) {
+          if (attempt >= 20 || !/Execution context was destroyed|Cannot find context|most likely because of a navigation/i.test(String(error && error.message))) throw error;
+          await page.waitForLoadState("domcontentloaded").catch(() => {});
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+    };
+  }
   // Strict pre-paint recorder: every rendered frame is sampled after the page's own pre-paint work.
   await page.addInitScript(`(${prepaintRecorderInit.toString()})(${JSON.stringify({ sampleSource: CARD_FRAME_SAMPLE })});`);
   await page.addInitScript(({ email }) => {
@@ -173,10 +204,10 @@ async function newSession() {
     }
     if (url.pathname === "/api/v1/health") return json(route, 200, envelope(correlationId, { status: "configured" }));
     if (url.pathname === "/api/v1/opportunities") {
-      return json(route, 200, envelope(correlationId, { kind: "opportunities", items: ids.map(opportunity), count: ids.length, sourceOfTruth: "SQLite", transactionAuthority: false }));
+      return json(route, 200, envelope(correlationId, { kind: "opportunities", governedDecisionReadModelVersion: G1_VERSION, items: ids.map(opportunity), count: ids.length, sourceOfTruth: "SQLite", transactionAuthority: false }));
     }
     if (url.pathname === "/api/v1/dashboard") {
-      return json(route, 200, envelope(correlationId, { metrics: { trackedOpportunities: ids.length, evidenceReady: 0, populationContextAvailable: 0, needsVerification: 1 }, items: ids.map(opportunity) }));
+      return json(route, 200, envelope(correlationId, { kind: "dashboard", governedDecisionReadModelVersion: G1_VERSION, metrics: { trackedOpportunities: ids.length, evidenceReady: 0, populationContextAvailable: 0, needsVerification: 1 }, items: ids.map(opportunity) }));
     }
     const record = url.pathname.match(/^\/api\/v1\/(opportunities|evidence|psa-advisor)\/([^/]+)$/);
     if (record) {
@@ -387,6 +418,102 @@ try {
     const onDashboard = await page.evaluate(() => ({ hash: location.hash, card: Boolean(document.querySelector("#main-content .customer-intelligence-hero")) }));
     check("C8 slow BUY, then back to Dashboard: the late BUY response never paints over the Dashboard",
       foreign(seen).length === 0 && !onDashboard.card && onDashboard.hash === "#/dashboard", `${describe(foreign(seen))} ${JSON.stringify(onDashboard)}`);
+    await strictFrames(page);
+    await context.close();
+  }
+
+  // C9: every navigation mechanism, with slow responses so each one leaves a card on screen while the next loads:
+  // direct link (full page load), hash navigation, a real in-app link click, a list-row click, back, forward, and rapid
+  // back/forward/hash interleaving. Every frame across every document is checked.
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    for (const id of ids) setBehavior(id, { delayMs: 1500 });
+    const mechanisms = [];
+    await page.goto(`${baseUrl}/#/opportunities/qa-verdict-buy`, { waitUntil: "domcontentloaded" }); // direct link
+    await waitCard(page, "qa-verdict-buy");
+    mechanisms.push("direct link");
+    await go(page, "qa-verdict-watch"); // hash navigation
+    await waitCard(page, "qa-verdict-watch");
+    mechanisms.push("hash");
+    // A real in-app link: the page's own "back to saved decisions" link, then a saved-decision row or card link.
+    const listLink = page.locator('#main-content a[href="#/opportunities"]').first();
+    if (await listLink.count()) {
+      await listLink.click({ timeout: 8000 }).catch(async error => {
+        const diag = await page.evaluate(() => [...document.querySelectorAll('#main-content a[href="#/opportunities"]')].map(a => {
+          const r = a.getBoundingClientRect(); const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+          return `${a.textContent.trim()}|${Math.round(r.width)}x${Math.round(r.height)}@${Math.round(r.y)}|top=${top === a || a.contains(top) ? "self" : (top && (top.id || top.className || top.tagName))}`;
+        }).join(" ; "));
+        throw new Error(`in-app link not clickable: ${diag} :: ${String(error.message).split("\n")[0]}`);
+      });
+      mechanisms.push("in-app link");
+    } else {
+      await page.evaluate(() => { location.hash = "#/opportunities"; });
+    }
+    await page.waitForFunction(() => /^#\/opportunities$/.test(location.hash), null, { timeout: 10_000 });
+    const row = page.locator('#main-content [data-customer-opportunity="qa-verdict-verify"], #main-content a[href="#/opportunities/qa-verdict-verify"]').first();
+    await row.waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
+    if (await row.count()) {
+      await row.click();
+      mechanisms.push("list row / card link click");
+    } else {
+      // No list on this surface: an anchor added to the page is still a real link-click navigation.
+      await page.evaluate(() => {
+        const a = document.createElement("a"); a.href = "#/opportunities/qa-verdict-verify"; a.id = "qa-link"; a.textContent = "open";
+        a.style.cssText = "position:fixed;top:0;left:0;z-index:99999"; document.body.append(a);
+      });
+      await page.click("#qa-link");
+      mechanisms.push("injected link click");
+    }
+    await waitCard(page, "qa-verdict-verify");
+    await page.goBack(); // back -> list
+    await page.goBack(); // back -> WATCH (slow): previous card must clear before paint
+    await waitCard(page, "qa-verdict-watch");
+    mechanisms.push("back");
+    await page.goForward();
+    await page.goForward(); // forward -> VERIFY
+    await waitCard(page, "qa-verdict-verify");
+    mechanisms.push("forward");
+    // Rapid interleaving of back, forward and hash changes; settle on PASS.
+    for (let i = 0; i < 3; i += 1) {
+      await page.goBack({ waitUntil: "commit" }).catch(() => {});
+      await go(page, "qa-verdict-buy");
+      await page.goBack({ waitUntil: "commit" }).catch(() => {});
+      await page.goForward({ waitUntil: "commit" }).catch(() => {});
+    }
+    await go(page, "qa-verdict-pass");
+    await waitCard(page, "qa-verdict-pass");
+    await page.waitForTimeout(2000); // every abandoned response arrives
+    mechanisms.push("rapid back/forward/hash");
+    check(`C9 navigation mechanisms (${mechanisms.join(", ")}): ends on the card in the address bar`,
+      isCard(await onScreen(page), "qa-verdict-pass") && mechanisms.length >= 7, mechanisms.join(","));
+    await strictFrames(page);
+    await context.close();
+  }
+
+  // C10: Dashboard V3 (opt-in) and its focused view - in-page card selection with out-of-order detail responses. The
+  // card panel must always show the selected card's title, verdict, all-in ask, Max Buy and evidence count.
+  for (const focus of [false, true]) {
+    const { context, page } = await newSession();
+    clearBehavior();
+    const delays = { "qa-verdict-buy": 1800, "qa-verdict-watch": 300, "qa-verdict-verify": 1200, "qa-verdict-pass": 0 };
+    for (const [id, delayMs] of Object.entries(delays)) setBehavior(id, { delayMs });
+    await page.goto(`${baseUrl}/?dashboard=v3${focus ? "&focus=1" : ""}#/dashboard`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('[data-ffv3-select="qa-verdict-pass"]', { timeout: 20_000 });
+    let finals = [];
+    for (let round = 0; round < 3; round += 1) {
+      for (const id of ["qa-verdict-buy", "qa-verdict-watch", "qa-verdict-verify", "qa-verdict-pass"]) {
+        await page.click(`[data-ffv3-select="${id}"]`);
+        await page.waitForTimeout(150);
+      }
+      const target = ["qa-verdict-watch", "qa-verdict-buy", "qa-verdict-verify"][round];
+      await page.click(`[data-ffv3-select="${target}"]`);
+      await page.waitForTimeout(2200);
+      finals.push(await page.evaluate(id => document.querySelector('[data-ffv3-section="dossier"]')?.getAttribute("data-ffv3-selected") === id, target));
+    }
+    const shown = await page.evaluate(() => Boolean(document.querySelector('[data-ffv3-section="dossier"]')));
+    check(`C10 Dashboard V3${focus ? " focused view" : ""}: rapid card selection with out-of-order details ends on the selected card`,
+      shown && finals.every(Boolean), `finals=${finals}`);
     await strictFrames(page);
     await context.close();
   }

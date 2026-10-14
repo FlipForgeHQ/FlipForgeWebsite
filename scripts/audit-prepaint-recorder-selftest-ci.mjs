@@ -62,6 +62,8 @@ const html = `<!doctype html><html><body><div id="swap" data-n="0"></div><script
   // Busy main thread and route changes, like the app under load.
   setInterval(() => { const end = performance.now() + 30; while (performance.now() < end) {} }, 200);
   setInterval(() => { location.hash = "#/opportunities/x" + (n % 7); }, 90);
+  // One full page reload mid-test (like a direct link or a legacy route reload): frames must carry across documents.
+  if (!sessionStorage.getItem("selftestReloaded")) setTimeout(() => { sessionStorage.setItem("selftestReloaded", "1"); location.reload(); }, 4000);
 </script></body></html>`;
 await page.route("http://prepaint-selftest.local/**", route => route.fulfill({ status: 200, contentType: "text/html", body: html }));
 await page.goto("http://prepaint-selftest.local/app/", { waitUntil: "domcontentloaded" });
@@ -76,14 +78,19 @@ const stale = frames.filter(f => !(f.ts === f.rafTs && f.a === f.b && f.b === f.
 check(`recorded >= 600 frames (${frames.length})`, frames.length >= 600);
 check("every frame was sampled after the page's rAF callbacks, their microtasks and mutation observers in the SAME frame (frame clock matches, all markers equal)",
   stale.length === 0, stale.slice(0, 3).map(f => JSON.stringify(f)).join(" "));
-check("no skipped frames: every rAF tick reached the pre-paint sample",
-  rec.skipped.length === 0 && rec.rafTicks - rec.sampledTicks <= 1, `ticks=${rec.rafTicks} sampled=${rec.sampledTicks} skipped=${rec.skipped.length}`);
-const consecutive = frames.every((f, i) => i === 0 || f.frame === frames[i - 1].frame + 1);
-check("frame numbers are consecutive (one sample per rendered frame, none missing)", consecutive);
+check("no skipped frames in either document: every rAF tick reached the pre-paint sample",
+  rec.skipped.length === 0 && rec.rafTicks - rec.sampledTicks <= 2, `ticks=${rec.rafTicks} sampled=${rec.sampledTicks} skipped=${rec.skipped.length}`);
+// Within each document the frame numbers are consecutive (frame numbering restarts in a new document).
+const consecutive = frames.every((f, i) => i === 0 || f.document !== frames[i - 1].document || f.frame === frames[i - 1].frame + 1);
+check("frame numbers are consecutive within each document (one sample per rendered frame, none missing)", consecutive);
+const documents = [...new Set(frames.map(f => f.document))];
+const perDocument = documents.map(d => frames.filter(f => f.document === d).length);
+check(`frames from both documents are kept across the full page reload (documents ${documents.join(",")}: ${perDocument.join(" + ")} frames)`,
+  documents.length === 2 && perDocument.every(count => count >= 200) && rec.documents === 2, `documents=${rec.documents}`);
 check("recorder raised no errors", rec.errors.length === 0, rec.errors.slice(0, 2).join("; "));
 
 // Contrast: a naive sampler registered first in the frame reads the DOM before the page's callbacks run.
-const naive = await page.evaluate(() => window.__naive);
+const naive = await page.evaluate(() => window.__naive); // second document's contrast sampler
 check(`contrast: a first-in-frame rAF sampler reads the DOM before the page's work (stale on ${naive.early}/${naive.seen} frames); the pre-paint recorder on 0`,
   naive.early > 0 && stale.length === 0, JSON.stringify(naive));
 
