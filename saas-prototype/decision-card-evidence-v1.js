@@ -73,8 +73,8 @@
     const hero = root?.querySelector(".customer-intelligence-hero");
     if (!root || !summary || !hero) return null;
 
-    const decision = text(summary.querySelector(".ff-decision-summary-pill"))
-      || text(hero.querySelector(".staging-status"))
+    // The hero status is the saved verdict; the summary pill is derived from it and never consulted first.
+    const decision = ["BUY", "WATCH", "VERIFY", "PASS"].find(value => value === text(hero.querySelector(".staging-status")).toUpperCase())
       || "UNKNOWN";
     const identity = text(hero.querySelector(".customer-hero-title h2")) || "Saved card";
     const identityDetail = text(hero.querySelector(".customer-hero-copy > p"));

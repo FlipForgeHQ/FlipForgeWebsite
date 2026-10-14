@@ -51,7 +51,10 @@ check("016 evaluate flow visibly stages identity", js.includes('data-stage="iden
 check("017 evaluate flow visibly stages evidence", js.includes('data-p3-step="evidence"') && js.includes('return "evidence"'));
 check("018 governed evaluation starts only from native candidate control", js.includes("[data-discovery-evaluate]") && js.includes("phase3_governed_evaluation_started"));
 
-check("019 saved result education reads existing decision", js.includes("function decisionFrom(root)") && js.includes(".ff-decision-summary-pill"));
+// The saved verdict comes from the Card Intelligence hero (rendered from the saved record) only - never the injected
+// summary pill, which once scraped "BUY" from a legend while a saved WATCH loaded (2026-10-13).
+check("019 saved result education reads the saved decision from the hero only", js.includes("function decisionFrom(root)")
+  && js.includes('root.querySelector(".customer-intelligence-hero")') && !js.includes(".ff-decision-summary-pill"));
 check("020 saved result education does not assign recommendation authority", !/recommendation\s*=|authorityEligible\s*=\s*true/i.test(js));
 check("021 result education routes to native Evidence", js.includes("data-ff-p3-open-evidence") && js.includes("#/evidence/"));
 check("022 Decision Receipt proxy opens existing governed receipt", js.includes("[data-ff-open-decision-receipt]") && js.includes("native.click()"));

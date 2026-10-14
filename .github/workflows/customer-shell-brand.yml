@@ -6,6 +6,7 @@ on:
       - "saas-prototype/**"
       - "scripts/audit-customer-shell-brand-ci.mjs"
       - "scripts/audit-result-guide-verdict-ci.mjs"
+      - "scripts/audit-saved-verdict-loading-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -17,6 +18,7 @@ on:
       - "saas-prototype/**"
       - "scripts/audit-customer-shell-brand-ci.mjs"
       - "scripts/audit-result-guide-verdict-ci.mjs"
+      - "scripts/audit-saved-verdict-loading-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -34,7 +36,7 @@ jobs:
   customer-shell-brand:
     name: Customer shell brand alignment (V2 default + V3 flagged)
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
@@ -76,6 +78,18 @@ jobs:
 
       - name: Result guide explains the saved verdict only
         run: node scripts/audit-result-guide-verdict-ci.mjs
+
+      # Full app shell, every script: no surface may name a verdict other than the saved one, including during
+      # 10.5 s loads, failed requests and card switches (2026-10-13 BUY-on-WATCH regression).
+      - name: Saved verdict while loading - Private Beta path (/app/beta)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
+        run: node scripts/audit-saved-verdict-loading-ci.mjs
+
+      - name: Saved verdict while loading - customer app path (/app)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: node scripts/audit-saved-verdict-loading-ci.mjs
 
       - name: Upload owner-review screenshots
         if: always()

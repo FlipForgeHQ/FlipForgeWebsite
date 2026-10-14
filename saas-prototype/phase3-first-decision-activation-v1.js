@@ -241,9 +241,10 @@
     if (copy.textContent !== current[1]) copy.textContent = current[1];
   }
 
-  // The saved, server-returned verdict only: the hero status (the same source decision-authority-consistency-v1.js
-  // uses), or the summary pill when its whole text is one verdict. Never scrape page text: legends, keys and
-  // explainers on the page name every verdict. Unknown means no guide yet, not a guessed verdict.
+  // The saved, server-returned verdict only: the Card Intelligence hero status, which is rendered from the saved
+  // record and removed while a card loads (the same source decision-authority-consistency-v1.js uses). Never page
+  // text, legends, the injected decision summary or placeholders: during loading those can name a verdict the saved
+  // record does not have. Unknown means no guide yet, not a guessed verdict.
   function decisionFrom(root) {
     const exact = node => {
       const value = String(node?.textContent || "").trim().toUpperCase();
@@ -254,7 +255,7 @@
       const value = exact(node);
       if (value) return value;
     }
-    return exact(root.querySelector("[data-ff-decision-summary] .ff-decision-summary-pill"));
+    return "";
   }
 
   function resultCopy(decision) {

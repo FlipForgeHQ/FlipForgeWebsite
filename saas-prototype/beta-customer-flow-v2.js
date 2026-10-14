@@ -34,7 +34,11 @@
   }
 
   function setHtml(node, value) {
-    if (node && node.innerHTML !== value) node.innerHTML = value;
+    if (!node) return;
+    const template = document.createElement("template");
+    template.innerHTML = value;
+    const normalized = template.innerHTML;
+    if (node.innerHTML !== normalized) node.innerHTML = normalized;
   }
 
   function guidedProgress() {
@@ -209,16 +213,17 @@
     strip.dataset.ffWorkflowSignature = signature;
   }
 
+  // The saved, server-returned verdict only: the Card Intelligence hero status, rendered from the saved record and
+  // absent while a card loads. Never page text: legends and explainers name every verdict, so scraping them showed
+  // BUY on a saved WATCH card while it loaded. Unknown means the summary stays hidden, not a guessed verdict.
   function recommendation() {
-    const main = document.querySelector(MAIN);
-    if (!main) return "";
-    const nodes = [...main.querySelectorAll(".status-pill,.customer-intelligence-hero [data-recommendation],.customer-intelligence-hero strong")];
-    for (const node of nodes) {
+    const hero = document.querySelector(MAIN)?.querySelector(".customer-intelligence-hero");
+    if (!hero) return "";
+    for (const node of hero.querySelectorAll(".staging-status,[data-recommendation]")) {
       const text = String(node.textContent || "").trim().toUpperCase();
       if (["BUY", "WATCH", "VERIFY", "PASS"].includes(text)) return text;
     }
-    const match = String(main.textContent || "").match(/\b(BUY|WATCH|VERIFY|PASS)\b/i);
-    return match ? match[1].toUpperCase() : "";
+    return "";
   }
 
   function decisionCopy(rec, text) {
@@ -291,8 +296,9 @@
 
     const id = encodeURIComponent(parts[1]);
     const advancedHidden = document.documentElement.classList.contains("ff-guided-incomplete") && !document.documentElement.classList.contains("ff-show-advanced");
-    const html = `<div class="ff-decision-summary-main"><div class="ff-decision-summary-kicker"><span class="ff-decision-summary-pill">${rec || "DECISION"}</span><span>Start here</span></div><h2>${copy.title}</h2><p>${copy.reason}</p><p class="ff-decision-next"><strong>What you should do next:</strong> ${copy.next}</p></div><div class="ff-decision-summary-actions"><button type="button" class="button button-primary" data-ff-show-why>Show me why →</button><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button type="button" class="button button-secondary" data-ff-new-card>+ Start another card</button><button type="button" class="button button-secondary ff-advanced-toggle" data-ff-toggle-advanced>${advancedHidden ? "Show advanced intelligence" : "Hide advanced intelligence"}</button></div>`;
+    const html = `<div class="ff-decision-summary-main"><div class="ff-decision-summary-kicker"><span class="ff-decision-summary-pill">${rec || "DECISION"}</span><span>Start here</span></div><h2>${copy.title}</h2><p>${copy.reason}</p><p class="ff-decision-next"><strong>What you should do next:</strong> ${copy.next}</p></div><div class="ff-decision-summary-actions"><a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Show me why →</a><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button type="button" class="button button-secondary" data-ff-new-card>+ Start another card</button><button type="button" class="button button-secondary ff-advanced-toggle" data-ff-toggle-advanced>${advancedHidden ? "Show advanced intelligence" : "Hide advanced intelligence"}</button></div>`;
     setHtml(summary, html);
+    summary.hidden = !rec;
   }
 
   function enhanceSaveConfirmation() {
@@ -324,7 +330,7 @@
 
     const actions = bar.querySelector(".ff-saved-decision-actions");
     const id = encodeURIComponent(parts[1]);
-    setHtml(actions, `<button class="button button-primary" type="button" data-ff-show-why>Understand this decision →</button><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button class="button button-secondary" type="button" data-ff-new-card>+ Start another card</button>`);
+    setHtml(actions, `<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Understand this decision →</a><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button class="button button-secondary" type="button" data-ff-new-card>+ Start another card</button>`);
   }
 
   function ensurePrimaryNewCard() {
