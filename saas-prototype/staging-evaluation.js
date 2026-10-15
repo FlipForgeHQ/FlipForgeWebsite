@@ -24,6 +24,21 @@
     "OTHER"
   ]);
 
+  // Shared across every evaluation surface (Discover, manual Evaluate, bulk CSV) for the life of the page: the
+  // server answered PROVIDER_BUDGET_EXHAUSTED, i.e. this account's hard provider budget is spent. Account-wide and
+  // definite, so no surface submits another evaluation until the page is reloaded.
+  const providerBudget = window.__flipforgeProviderBudget || (window.__flipforgeProviderBudget = { exhausted: false });
+  function markProviderBudgetExhausted() {
+    if (providerBudget.exhausted) return;
+    providerBudget.exhausted = true;
+    try { window.dispatchEvent(new CustomEvent("flipforge:provider-budget-exhausted")); } catch (_) {}
+  }
+  const PROVIDER_BUDGET_STOP_ERROR = Object.freeze({
+    code: "PROVIDER_BUDGET_EXHAUSTED",
+    status: 422,
+    message: "FlipForge stopped before finishing because this account's data-provider budget has been reached. No decision was saved and no evaluation was used."
+  });
+
   const state = {
     submitting: false,
     result: null,
@@ -318,6 +333,12 @@
     state.draft = readDraft(form);
     state.error = null;
     state.result = null;
+    if (providerBudget.exhausted) {
+      // Never send a request that is certain to be refused account-wide.
+      state.error = PROVIDER_BUDGET_STOP_ERROR;
+      renderCurrent();
+      return;
+    }
     let payload;
     try {
       payload = payloadFromDraft(state.draft);
@@ -338,6 +359,7 @@
     } catch (error) {
       state.error = error;
       if (allowanceError(error)) describeAllowance(error);
+      if (error?.code === "PROVIDER_BUDGET_EXHAUSTED") markProviderBudgetExhausted();
     } finally {
       state.submitting = false;
       // The customer may have left while the request was in flight; the outcome is kept in state and shown when
@@ -462,6 +484,8 @@
     const membershipError = ["TENANT_MEMBERSHIP_REQUIRED", "TENANT_MEMBERSHIP_INACTIVE", "TENANT_MEMBERSHIP_INVALID"].includes(String(error.code || ""));
     const guidance = error.status === 401
       ? (customerSurface() ? "Sign in with an invited FlipForge private-beta account." : "A configured authentication provider and signed-in preview user are required.")
+      : error.code === "PROVIDER_BUDGET_EXHAUSTED"
+        ? "Evaluation is unavailable from this page until it is reloaded. Your existing saved decisions are unchanged."
       : error.code === "ENTITLEMENT_ACCESS_DENIED" || (error.status === 403 && !membershipError)
           ? "The server-owned plan/access state does not permit a new evaluation. Open Plan & Usage for the current entitlement state; billing and customer plan changes are not connected here."
           : membershipError
@@ -497,7 +521,7 @@
     const boundaryCopy = customerSurface()
       ? "I understand FlipForge provides decision support. This request does not verify evidence or identity, predict a grade, authorize a bid or purchase, or call a marketplace provider."
       : "I understand this is staging decision support. It does not verify evidence or identity, predict a grade, authorize a bid or purchase, or call a marketplace provider.";
-    return `<section class="panel staging-evaluation-panel"><header class="panel-header"><div><h2>${heading}</h2><p>${description}</p></div><span class="staging-status staging-status-verify">Write boundary</span></header><form class="panel-body staging-evaluation-form" data-staging-evaluation-form novalidate><div class="customer-intake-step"><span>1</span><div><strong>Listing and exact card identity</strong><small>Describe the specific card and the listing you are considering.</small></div></div><div class="staging-form-grid">${field("externalListingId", "External listing ID", { required: true, maxLength: 180, placeholder: "e.g. 123456789012" })}<label class="staging-field"><span>Marketplace *</span><select name="marketplace" required>${marketplaceOptions}</select><small>Used to form the tenant-owned saved opportunity ID.</small></label><label class="staging-field staging-field-wide"><span>Exact card identity *</span><textarea name="cardIdentity" required maxlength="500" rows="3" placeholder="Year, set, player, card number, parallel, grade/condition">${escapeHtml(state.draft.cardIdentity)}</textarea><small>Identity remains NEEDS_VERIFICATION; this request cannot verify it.</small></label>${field("listingUrl", "Listing URL", { required: true, type: "url", maxLength: 2048, placeholder: "https://..." })}${field("seller", "Seller", { maxLength: 300, placeholder: "Optional" })}</div><div class="customer-intake-step"><span>2</span><div><strong>Complete acquisition cost</strong><small>Include every known cost so the authoritative service receives the real all-in ask.</small></div></div><div class="staging-form-grid">${field("itemPrice", "Item price", { required: true, inputMode: "decimal", placeholder: "0.00" })}${field("shipping", "Shipping", { inputMode: "decimal", placeholder: "0.00" })}${field("buyerPremium", "Buyer premium", { inputMode: "decimal", placeholder: "0.00" })}${field("tax", "Tax", { inputMode: "decimal", placeholder: "0.00" })}${field("listingFormat", "Listing format", { maxLength: 100, placeholder: "Fixed price, auction, offer..." })}${field("endsAt", "Ends at", { maxLength: 100, placeholder: "Optional ISO timestamp" })}</div><div class="customer-intake-step"><span>3</span><div><strong>Confirm the authority boundary</strong><small>The browser submits facts; it never chooses the recommendation.</small></div></div><label class="staging-boundary-check"><input type="checkbox" name="acknowledgeBoundary" value="yes"${state.draft.acknowledgeBoundary ? " checked" : ""}><span>${boundaryCopy}</span></label><div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${listLabel}</a><button class="button button-primary" type="submit"${state.submitting ? " disabled" : ""}>${state.submitting ? "Evaluating…" : submitLabel}</button></div><small class="staging-form-note">An idempotency key is generated and held only in memory. Retrying an unchanged form reuses that key; changing the payload generates a new key.</small></form></section>`;
+    return `<section class="panel staging-evaluation-panel"><header class="panel-header"><div><h2>${heading}</h2><p>${description}</p></div><span class="staging-status staging-status-verify">Write boundary</span></header><form class="panel-body staging-evaluation-form" data-staging-evaluation-form novalidate><div class="customer-intake-step"><span>1</span><div><strong>Listing and exact card identity</strong><small>Describe the specific card and the listing you are considering.</small></div></div><div class="staging-form-grid">${field("externalListingId", "External listing ID", { required: true, maxLength: 180, placeholder: "e.g. 123456789012" })}<label class="staging-field"><span>Marketplace *</span><select name="marketplace" required>${marketplaceOptions}</select><small>Used to form the tenant-owned saved opportunity ID.</small></label><label class="staging-field staging-field-wide"><span>Exact card identity *</span><textarea name="cardIdentity" required maxlength="500" rows="3" placeholder="Year, set, player, card number, parallel, grade/condition">${escapeHtml(state.draft.cardIdentity)}</textarea><small>Identity remains NEEDS_VERIFICATION; this request cannot verify it.</small></label>${field("listingUrl", "Listing URL", { required: true, type: "url", maxLength: 2048, placeholder: "https://..." })}${field("seller", "Seller", { maxLength: 300, placeholder: "Optional" })}</div><div class="customer-intake-step"><span>2</span><div><strong>Complete acquisition cost</strong><small>Include every known cost so the authoritative service receives the real all-in ask.</small></div></div><div class="staging-form-grid">${field("itemPrice", "Item price", { required: true, inputMode: "decimal", placeholder: "0.00" })}${field("shipping", "Shipping", { inputMode: "decimal", placeholder: "0.00" })}${field("buyerPremium", "Buyer premium", { inputMode: "decimal", placeholder: "0.00" })}${field("tax", "Tax", { inputMode: "decimal", placeholder: "0.00" })}${field("listingFormat", "Listing format", { maxLength: 100, placeholder: "Fixed price, auction, offer..." })}${field("endsAt", "Ends at", { maxLength: 100, placeholder: "Optional ISO timestamp" })}</div><div class="customer-intake-step"><span>3</span><div><strong>Confirm the authority boundary</strong><small>The browser submits facts; it never chooses the recommendation.</small></div></div><label class="staging-boundary-check"><input type="checkbox" name="acknowledgeBoundary" value="yes"${state.draft.acknowledgeBoundary ? " checked" : ""}><span>${boundaryCopy}</span></label><div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${listLabel}</a><button class="button button-primary" type="submit"${state.submitting || providerBudget.exhausted ? " disabled" : ""}>${state.submitting ? "Evaluating…" : submitLabel}</button></div><small class="staging-form-note">An idempotency key is generated and held only in memory. Retrying an unchanged form reuses that key; changing the payload generates a new key.</small></form></section>`;
   }
 
   function valueIntelligencePanel(data) {
@@ -550,7 +574,7 @@
       ? "Give FlipForge the listing facts and complete acquisition cost. The existing backend returns, saves, and tracks the governed decision."
       : "Submit one authenticated, tenant-scoped manual opportunity to the authoritative FlipForge evaluation endpoint.";
     const action = customerSurface() ? "Tracked opportunities" : "Staging data";
-    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${errorPanel(state.error)}${evaluationForm()}${resultPanel()}</div>`;
+    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${errorPanel(state.error || (providerBudget.exhausted ? PROVIDER_BUDGET_STOP_ERROR : null))}${evaluationForm()}${resultPanel()}</div>`;
     bindActions();
   }
 

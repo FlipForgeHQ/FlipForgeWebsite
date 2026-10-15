@@ -27,11 +27,18 @@
     rows: [],
     running: false,
     error: "",
-    acknowledged: false,
-    // Account-wide, server-side and definite: once a provider-budget refusal is seen, no further bulk evaluation
-    // is submitted from this page (new uploads included) until it is reloaded.
-    providerBudgetExhausted: false
+    acknowledged: false
   };
+
+  // Shared across every evaluation surface (Discover, manual Evaluate, bulk CSV) for the life of the page: the
+  // server answered PROVIDER_BUDGET_EXHAUSTED, i.e. this account's hard provider budget is spent. Account-wide and
+  // definite, so no surface submits another evaluation until the page is reloaded.
+  const providerBudget = window.__flipforgeProviderBudget || (window.__flipforgeProviderBudget = { exhausted: false });
+  function markProviderBudgetExhausted() {
+    if (providerBudget.exhausted) return;
+    providerBudget.exhausted = true;
+    try { window.dispatchEvent(new CustomEvent("flipforge:provider-budget-exhausted")); } catch (_) {}
+  }
 
   const PROVIDER_BUDGET_STOP = "Bulk evaluation is unavailable: this account's data-provider budget has been reached. Completed rows remain saved; nothing more will be sent from this page.";
 
@@ -341,7 +348,7 @@
             <input type="file" accept=".csv,text/csv" data-bulk-file hidden ${state.running ? "disabled" : ""}>
           </label>
           <button class="button button-secondary" type="button" data-bulk-template ${state.running ? "disabled" : ""}>Download template</button>
-          <button class="button button-primary" type="button" data-bulk-run ${(!state.rows.length || state.running || !state.acknowledged || state.providerBudgetExhausted) ? "disabled" : ""}>${state.running ? "Evaluating…" : `Evaluate ${state.rows.length || "CSV"}`}</button>
+          <button class="button button-primary" type="button" data-bulk-run ${(!state.rows.length || state.running || !state.acknowledged || providerBudget.exhausted) ? "disabled" : ""}>${state.running ? "Evaluating…" : `Evaluate ${state.rows.length || "CSV"}`}</button>
         </div>
         <p class="bulk-file">${state.fileName ? `<strong>${escapeHtml(state.fileName)}</strong> · ${escapeHtml(progressText())}` : "Required columns: externalListingId, cardIdentity, listingUrl, itemPrice. Marketplace defaults to EBAY."}</p>
         <label class="bulk-ack"><input type="checkbox" data-bulk-ack ${state.acknowledged ? "checked" : ""} ${state.running ? "disabled" : ""}> <span>I understand each CSV row is a separate governed evaluation, uses plan allowance, cannot verify evidence or identity, and does not authorize a purchase.</span></label>
@@ -393,8 +400,18 @@
     document.head.appendChild(style);
   }
 
+  // Another surface hit the budget stop: show it here too if the bulk panel is on screen.
+  if (typeof window.addEventListener === "function") {
+    window.addEventListener("flipforge:provider-budget-exhausted", () => {
+      if (!state.running && document.querySelector("[data-bulk-evaluation]")) {
+        state.error = PROVIDER_BUDGET_STOP;
+        renderPanel();
+      }
+    });
+  }
+
   async function handleFile(file) {
-    state.error = state.providerBudgetExhausted ? PROVIDER_BUDGET_STOP : "";
+    state.error = providerBudget.exhausted ? PROVIDER_BUDGET_STOP : "";
     state.rows = [];
     state.fileName = "";
     if (!file) return renderPanel();
@@ -442,7 +459,7 @@
 
   async function runBatch() {
     if (state.running || !state.acknowledged || !state.rows.length) return;
-    if (state.providerBudgetExhausted) {
+    if (providerBudget.exhausted) {
       state.error = PROVIDER_BUDGET_STOP;
       return renderPanel();
     }
@@ -473,7 +490,7 @@
         row.status = "ERROR";
         row.message = `${error.code ? `${error.code}: ` : ""}${error.message || "Evaluation failed."}`;
         if (error.code === "PROVIDER_BUDGET_EXHAUSTED") {
-          state.providerBudgetExhausted = true;
+          markProviderBudgetExhausted();
           // Account-wide and definite: every remaining row would be refused the same way, so stop here.
           row.message = "Stopped: this account's data-provider budget has been reached. No decision was saved for this row and no evaluation was used.";
           state.error = "Batch stopped because this account's data-provider budget has been reached. Completed rows remain saved; rows not yet submitted were not sent.";
