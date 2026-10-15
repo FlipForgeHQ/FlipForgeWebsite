@@ -47,7 +47,7 @@ body.ff-guide-modal-open {
  * >=1480px: the panel is 330px wide (guided-mode-compact-v1.css) at 18px from the edge; reserve it plus a gap. */
 @media (min-width: 1480px) {
   body:has(.ff-guide-panel) #main-content,
-  body.ff-full-customer-app:has(.ff-guide-panel) #main-content {
+  body.ff-full-customer-app:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content {
     padding-right: 382px !important;
   }
 }
@@ -55,7 +55,7 @@ body.ff-guide-modal-open {
 /* 1180-1479px: keep the side panel (310px) and reserve its column the same way. */
 @media (min-width: 1180px) and (max-width: 1479px) {
   body:has(.ff-guide-panel) #main-content,
-  body.ff-full-customer-app:has(.ff-guide-panel) #main-content {
+  body.ff-full-customer-app:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content {
     padding-right: calc(min(310px, 100vw - 28px) + 42px) !important;
   }
 }
@@ -75,7 +75,7 @@ body.ff-guide-modal-open {
   }
 
   body:has(.ff-guide-panel) #main-content,
-  body.ff-full-customer-app:has(.ff-guide-panel) #main-content {
+  body.ff-full-customer-app:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content {
     padding-bottom: calc(34vh + 36px) !important;
   }
 }
@@ -84,7 +84,7 @@ body.ff-guide-modal-open {
  * opens it, it is a 30vh bottom sheet (guided-mode-compact-v1.css); give the workspace the same bottom room. */
 @media (max-width: 760px) {
   body:has(.ff-guide-panel) #main-content,
-  body.ff-full-customer-app:has(.ff-guide-panel) #main-content {
+  body.ff-full-customer-app:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content {
     padding-bottom: calc(30vh + 28px) !important;
   }
 }
