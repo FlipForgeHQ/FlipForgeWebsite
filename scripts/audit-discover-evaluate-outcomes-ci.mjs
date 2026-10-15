@@ -157,6 +157,7 @@ async function newPage(viewport, { storageWritesFail = false } = {}) {
       // The gateway sent the request on, then its upstream call timed out: the evaluation may already be saved.
       if (mode === "gateway-timeout") return json(503, { error: { code: "UPSTREAM_TIMEOUT", message: "The authoritative FlipForge service timed out.", correlationId } });
       // A definite rejection by FlipForge: nothing was evaluated or saved.
+      if (mode === "budget") return json(422, { error: { code: "PROVIDER_BUDGET_EXHAUSTED", message: "FlipForge stopped before finishing because this account's data-provider budget has been reached. No decision was saved and no evaluation was used.", correlationId } });
       if (mode === "rejected") return json(422, { error: { code: "EVALUATION_REQUEST_INVALID", message: "This listing could not be evaluated.", correlationId } });
       if (mode === "timeout") { await new Promise(r => setTimeout(r, 35000)); return route.abort("timedout").catch(() => {}); }
       if (mode === "network") return route.abort("failed");
@@ -191,6 +192,9 @@ const EXPECT = {
   rejected: { title: /couldn't be completed/ },
   // Only EVALUATION_LIMIT_REACHED is the allowance: another 429 must not claim it, disable Evaluate or look it up.
   "rate-limited": { title: /couldn't be completed/, notAllowance: true },
+  // Hard provider budget reached: a definite outcome with its own wording, and no invitation to retry.
+  budget: { title: /Evaluation stopped before it finished/, definite: /No decision was saved and no evaluation was used/,
+    noRetry: true, link: "#/opportunities", disablesEvaluate: true, budgetNote: true },
   // 429 while the allowance lookup stalls: the neutral limit alert shows at once, then names the allowance in place.
   "limit-stalled": { title: /Evaluation limit reached/, body: /No new evaluation was created/, link: "#/account", disablesEvaluate: true,
     enrichedTitle: /You\u2019ve reached your Private Beta evaluation allowance\./, enrichedBody: /You have used 5 of 5/ },
@@ -275,7 +279,8 @@ async function run(label, viewport, modes, entitlements = "beta") {
         state.inView && state.nearButton && state.focused && state.role === "alert" && expect.title.test(state.text)
           && (expect.unknownOutcome
             ? /couldn't confirm whether this evaluation finished/.test(state.text) && !/nothing was saved|not evaluated/i.test(state.text)
-            : /not evaluated|Nothing was saved|nothing was saved/.test(state.text))
+            : (expect.definite || /not evaluated|Nothing was saved|nothing was saved/).test(state.text))
+          && (!expect.noRetry || !/try again/i.test(state.text))
           && (!expect.body || expect.body.test(state.text)),
         JSON.stringify({ inView: state.inView, nearButton: state.nearButton, focused: state.focused, text: state.text.slice(0, 120) }));
       check(`${label} attempt ${attempt + 1} (${mode}): offers the next step`, linkOk, state.links.join(","));
@@ -310,7 +315,10 @@ async function run(label, viewport, modes, entitlements = "beta") {
           const button = document.querySelector("#main-content [data-discovery-evaluate]");
           return { disabled: Boolean(button && button.disabled), note: note ? note.innerText : "", link: note?.querySelector('a[href="#/account"]') ? true : false };
         });
-        if (expect.restoredAfter) {
+        if (expect.budgetNote) {
+          check(`${label} (${mode}): after a new search Evaluate stays disabled and says the provider budget was reached`,
+            after.disabled && /data-provider budget has been reached/.test(after.note), JSON.stringify(after));
+        } else if (expect.restoredAfter) {
           check(`${label} (${mode}): after the allowance is restored, a new search re-checks it and Evaluate is available again`,
             !after.disabled && !after.note, JSON.stringify(after));
         } else {
@@ -404,6 +412,7 @@ const cases = [
   ["recovery: 502 then success", ["server", "success"]], ["timeout", ["timeout"]],
   ["gateway upstream timeout (503 UPSTREAM_TIMEOUT)", ["gateway-timeout"]], ["definite rejection (422)", ["rejected"]],
   ["rate limit that is not the allowance (429 RATE_LIMITED)", ["rate-limited"]],
+  ["provider budget reached (422 PROVIDER_BUDGET_EXHAUSTED)", ["budget"]],
   ["limit reached, allowance lookup slow (429)", ["limit-stalled"], "stall"], ["limit reached, then allowance restored (429)", ["limit-restored"]],
   ["limit reached with a reservation in progress (429)", ["limit-reserved"], "reserved"],
   ["limit reached with a reservation, no admissionUsage field (429)", ["limit-reserved-noadmission"], "reserved-noadmission"]

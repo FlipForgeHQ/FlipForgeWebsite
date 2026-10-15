@@ -162,6 +162,15 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
     );
   }
 
+  if (status === 422 && upstreamCode === "PROVIDER_BUDGET_EXHAUSTED") {
+    // Hard provider budget reached: the request stopped before anything was saved. Definite outcome.
+    return errorEnvelope(
+      "PROVIDER_BUDGET_EXHAUSTED",
+      "FlipForge stopped before finishing because this account's data-provider budget has been reached. No decision was saved and no evaluation was used.",
+      correlationId
+    );
+  }
+
   if (status === 403 && upstreamCode === "ENTITLEMENT_ACCESS_DENIED") {
     // Controlled Pro Beta seat states are passed through as a fixed, allowlisted reason so the
     // signed-in tester sees "not admitted" or "beta full" instead of a generic denial.

@@ -94,6 +94,15 @@ try {
         headers: { "content-type": "application/json", "retry-after": "86400" }
       });
     }
+    if (mode === "budget") {
+      return new Response(JSON.stringify({
+        error: {
+          code: "PROVIDER_BUDGET_EXHAUSTED",
+          message: "backend budget detail that must not be copied verbatim",
+          correlationId: requestCorrelation
+        }
+      }), { status: 422, headers: { "content-type": "application/json" } });
+    }
     return new Response(JSON.stringify({
       error: {
         code: "ENTITLEMENT_ACCESS_DENIED",
@@ -132,6 +141,17 @@ try {
   check("029 entitlement denial strips backend message", !denied.body.includes("backend entitlement detail"));
   check("030 entitlement browser response hides tenant", !denied.body.includes(rawTenant));
   check("031 entitlement browser response hides service token", !denied.body.includes(serviceToken));
+
+  mode = "budget";
+  const budget = await handler(evaluationEvent("quota-budget-01"), context);
+  const budgetBody = JSON.parse(budget.body);
+  check("034 provider budget refusal remains HTTP 422", budget.statusCode === 422);
+  check("035 provider budget refusal preserves stable code", budgetBody?.error?.code === "PROVIDER_BUDGET_EXHAUSTED");
+  check("036 provider budget refusal says nothing was saved and no evaluation was used",
+    /No decision was saved and no evaluation was used\./.test(budgetBody?.error?.message || ""));
+  check("037 provider budget refusal strips backend message", !budget.body.includes("backend budget detail"));
+  check("038 provider budget browser response hides tenant and token", !budget.body.includes(rawTenant) && !budget.body.includes(serviceToken));
+  mode = "access";
 
   const inactiveContext = {
     clientContext: {

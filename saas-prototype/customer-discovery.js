@@ -47,6 +47,16 @@
     }
   };
 
+  // Shared across every evaluation surface (Discover, manual Evaluate, bulk CSV) for the life of the page: the
+  // server answered PROVIDER_BUDGET_EXHAUSTED, i.e. this account's hard provider budget is spent. Account-wide and
+  // definite, so no surface submits another evaluation until the page is reloaded.
+  const providerBudget = window.__flipforgeProviderBudget || (window.__flipforgeProviderBudget = { exhausted: false });
+  function markProviderBudgetExhausted() {
+    if (providerBudget.exhausted) return;
+    providerBudget.exhausted = true;
+    try { window.dispatchEvent(new CustomEvent("flipforge:provider-budget-exhausted")); } catch (_) {}
+  }
+
   function eligibleHost() {
     const host = String(window.location.hostname || "");
     return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
@@ -524,6 +534,7 @@
       // Only the server's EVALUATION_LIMIT_REACHED means the allowance is used up; any other 429 (e.g. a gateway rate
       // limit) is an ordinary refusal and must not disable Evaluate or claim the allowance is reached.
       const limitReached = error?.code === "EVALUATION_LIMIT_REACHED";
+      if (error?.code === "PROVIDER_BUDGET_EXHAUSTED") markProviderBudgetExhausted();
       if (limitReached) {
         state.evaluationLimitReached = true;
         // A re-check started before this answer must not lift the block it just reported.
@@ -644,6 +655,11 @@
     return `<p class="customer-discovery-allowance-note" data-discovery-allowance-note>Evaluate is unavailable: this account has no evaluations left. <a href="#/account">View Plan &amp; Usage</a></p>`;
   }
 
+  // While the provider budget is spent, every Evaluate button stays disabled; say why on each card.
+  function providerBudgetNoteMarkup() {
+    return `<p class="customer-discovery-allowance-note" data-discovery-allowance-note data-discovery-budget-note>Evaluate is unavailable: this account's data-provider budget has been reached. Your existing saved decisions are unchanged. <a href="#/opportunities">Open saved decisions</a></p>`;
+  }
+
   function restoreSignInUrl() {
     const path = String(window.location.pathname || "/app/beta/");
     const returnPath = `${path}${window.location.search || ""}${window.location.hash || "#/discover"}`;
@@ -686,6 +702,11 @@
         : allowance?.monthly ? "You\u2019ve reached this month\u2019s evaluation limit." : "Evaluation limit reached";
       body = `No new evaluation was created for this listing and nothing was saved.${usage} Your existing saved decisions are unchanged.`;
       actions = link("#/account", "View Plan & Usage") + link("#/opportunities", "Open saved decisions");
+    } else if (code === "PROVIDER_BUDGET_EXHAUSTED") {
+      // Definite outcome: the server stopped before saving anything. Retrying cannot help until the budget changes.
+      title = "Evaluation stopped before it finished";
+      body = "This account's data-provider budget has been reached, so FlipForge stopped before making a decision. No decision was saved and no evaluation was used. Your existing saved decisions are unchanged.";
+      actions = link("#/opportunities", "Open saved decisions") + link("#/account", "View Plan & Usage");
     } else if (status === 401 || code === "AUTHENTICATION_REQUIRED") {
       title = "Sign in again to evaluate";
       body = "Your FlipForge sign-in has expired, so this listing was not evaluated. Sign in again and you will come back to this page.";
@@ -796,7 +817,8 @@
       || !exactIdentity
       || item.evaluationEligible !== true
       || state.evaluatingIndex >= 0
-      || state.evaluationLimitReached;
+      || state.evaluationLimitReached
+      || providerBudget.exhausted;
     const sellerFeedback = Number(item.sellerFeedbackScore);
     const rankingContext = [
       Number.isFinite(sellerFeedback) && sellerFeedback >= 0
@@ -821,7 +843,7 @@
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index && (!providerBudget.exhausted || state.evaluationError.error?.code === "PROVIDER_BUDGET_EXHAUSTED") ? evaluationErrorMarkup(state.evaluationError.error) : providerBudget.exhausted ? providerBudgetNoteMarkup() : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
   }
 
   function resultsPanel() {
@@ -1049,6 +1071,15 @@
     if (renderSerial !== state.renderSerial || state.main !== main) return false;
     renderCurrent();
     return true;
+  }
+
+  // Another surface (manual or bulk evaluate) hit the budget stop: redraw Discover if it is on screen.
+  if (typeof window.addEventListener === "function") {
+    window.addEventListener("flipforge:provider-budget-exhausted", () => {
+      // An older per-card error (e.g. a retryable 5xx) no longer applies: the budget stop explains the card now.
+      if (state.evaluationError && state.evaluationError.error?.code !== "PROVIDER_BUDGET_EXHAUSTED") state.evaluationError = null;
+      if (!state.loading && state.evaluatingIndex < 0) renderCurrent();
+    });
   }
 
   window.FlipForgeCustomerDiscovery = Object.freeze({ isEligible: eligibleHost, render });

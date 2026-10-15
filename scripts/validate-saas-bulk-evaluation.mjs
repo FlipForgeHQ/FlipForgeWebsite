@@ -47,6 +47,14 @@ check("032 same marketplace boundary is retained", ["EBAY", "COMC", "MYSLABS", "
 check("033 money uses integer cents", bulk.includes("BigInt(whole) * 100n"));
 check("034 HTTP(S) listing URL required", bulk.includes('url.protocol === "http:"') && bulk.includes('url.protocol === "https:"'));
 check("035 batch is sequential", bulk.includes("for (const row of state.rows)") && bulk.includes("await submitRow(row)"));
+check("041 provider budget refusal stops remaining rows", /error\.code === "PROVIDER_BUDGET_EXHAUSTED"\) \{[\s\S]{0,600}?break;/.test(bulk)
+  && bulk.indexOf('error.code === "PROVIDER_BUDGET_EXHAUSTED"') < bulk.indexOf("error.status === 401 || error.status === 403 || error.status === 429"));
+check("042 provider budget stop says nothing was saved for the row", bulk.includes("No decision was saved for this row and no evaluation was used"));
+check("043 provider budget stop is shared page-wide", bulk.includes("window.__flipforgeProviderBudget") && bulk.includes("markProviderBudgetExhausted();"));
+check("044 Run stays disabled after a provider budget stop", /data-bulk-run \$\{\([^}]*providerBudget\.exhausted\)/.test(bulk));
+check("045 runBatch refuses to submit after a provider budget stop", /if \(providerBudget\.exhausted\) return renderPanel\(\);/.test(bulk)
+  && /for \(const row of state\.rows\) \{[\s\S]{0,200}?if \(providerBudget\.exhausted\) break;/.test(bulk));
+check("046 the budget stop has its own notice that CSV errors cannot replace", /providerBudget\.exhausted \? `<div class="bulk-error" role="alert" data-bulk-budget-stop>/.test(bulk));
 check("036 auth quota failures stop remaining rows", bulk.includes("error.status === 401") && bulk.includes("error.status === 403") && bulk.includes("error.status === 429") && bulk.includes("break;"));
 check("037 explicit authority acknowledgement required", bulk.includes("state.acknowledged") && bulk.includes("does not authorize a purchase"));
 check("038 template download exists", bulk.includes("flipforge-bulk-evaluate-template.csv"));
