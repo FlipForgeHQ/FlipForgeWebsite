@@ -463,6 +463,12 @@
       } catch (error) {
         row.status = "ERROR";
         row.message = `${error.code ? `${error.code}: ` : ""}${error.message || "Evaluation failed."}`;
+        if (error.code === "PROVIDER_BUDGET_EXHAUSTED") {
+          // Account-wide and definite: every remaining row would be refused the same way, so stop here.
+          row.message = "Stopped: this account's data-provider budget has been reached. No decision was saved for this row and no evaluation was used.";
+          state.error = "Batch stopped because this account's data-provider budget has been reached. Completed rows remain saved; rows not yet submitted were not sent.";
+          break;
+        }
         if (error.status === 401 || error.status === 403 || error.status === 429) {
           state.error = "Batch stopped because account access or evaluation allowance requires attention. Completed rows remain saved.";
           break;
