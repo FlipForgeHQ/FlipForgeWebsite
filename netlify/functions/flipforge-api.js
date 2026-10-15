@@ -153,9 +153,11 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
   }
 
   if (status === 429 && upstreamCode === "EVALUATION_LIMIT_REACHED") {
+    // Scope-neutral: the same code is returned for a monthly plan limit and for the Private Beta lifetime allowance,
+    // which never resets. The browser names the allowance from GET /api/v1/entitlements.
     return errorEnvelope(
       "EVALUATION_LIMIT_REACHED",
-      "Your monthly evaluation limit has been reached.",
+      "Your evaluation allowance has been reached. No new evaluation was created.",
       correlationId
     );
   }

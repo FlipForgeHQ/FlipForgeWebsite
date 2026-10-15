@@ -111,7 +111,7 @@ try {
   const limitedBody = JSON.parse(limited.body);
   check("015 quota response remains HTTP 429", limited.statusCode === 429);
   check("016 quota response preserves stable code", limitedBody?.error?.code === "EVALUATION_LIMIT_REACHED");
-  check("017 quota response uses gateway-safe message", limitedBody?.error?.message === "Your monthly evaluation limit has been reached.");
+  check("017 quota response uses gateway-safe, scope-neutral message", limitedBody?.error?.message === "Your evaluation allowance has been reached. No new evaluation was created.");
   check("018 quota response preserves safe Retry-After", limited.headers?.["Retry-After"] === "86400");
   check("019 quota response remains no-store", String(limited.headers?.["Cache-Control"] || "").includes("no-store"));
   check("020 gateway makes one upstream quota call", upstreamCalls.length === 1);
