@@ -403,10 +403,9 @@
   // Another surface hit the budget stop: show it here too if the bulk panel is on screen.
   if (typeof window.addEventListener === "function") {
     window.addEventListener("flipforge:provider-budget-exhausted", () => {
-      if (!state.running && document.querySelector("[data-bulk-evaluation]")) {
-        state.error = PROVIDER_BUDGET_STOP;
-        renderPanel();
-      }
+      // Record the stop even mid-batch: runBatch checks the shared flag before every row.
+      state.error = PROVIDER_BUDGET_STOP;
+      if (document.querySelector("[data-bulk-evaluation]")) renderPanel();
     });
   }
 
@@ -473,6 +472,11 @@
     renderPanel();
 
     for (const row of state.rows) {
+      if (providerBudget.exhausted) {
+        // Another surface (or an earlier row) hit the account-wide budget stop: send nothing more.
+        state.error = PROVIDER_BUDGET_STOP;
+        break;
+      }
       row.status = "RUNNING";
       row.message = "Submitting authoritative evaluation…";
       renderPanel();

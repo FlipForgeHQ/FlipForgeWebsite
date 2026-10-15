@@ -574,7 +574,7 @@
       ? "Give FlipForge the listing facts and complete acquisition cost. The existing backend returns, saves, and tracks the governed decision."
       : "Submit one authenticated, tenant-scoped manual opportunity to the authoritative FlipForge evaluation endpoint.";
     const action = customerSurface() ? "Tracked opportunities" : "Staging data";
-    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${errorPanel(state.error || (providerBudget.exhausted ? PROVIDER_BUDGET_STOP_ERROR : null))}${evaluationForm()}${resultPanel()}</div>`;
+    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${(() => { const shown = state.error || (providerBudget.exhausted ? PROVIDER_BUDGET_STOP_ERROR : null); const html = errorPanel(shown); return shown && shown.code === "PROVIDER_BUDGET_EXHAUSTED" ? html.replace('class="panel staging-error"', 'class="panel staging-error" data-provider-budget-stop') : html; })()}${evaluationForm()}${resultPanel()}</div>`;
     bindActions();
   }
 
@@ -604,6 +604,26 @@
     if (!customerEligibleHost()) return false;
     renderCurrent();
     return true;
+  }
+
+  // Another surface (Discover or bulk) hit the account-wide budget stop while the manual form is on screen: disable
+  // its Evaluate button and show the explanation in place. No full redraw, so typed values and the bulk panel on the
+  // same page (possibly mid-batch) are left untouched.
+  if (typeof window.addEventListener === "function") {
+    window.addEventListener("flipforge:provider-budget-exhausted", () => {
+      const form = currentMain?.querySelector?.("[data-staging-evaluation-form]");
+      if (!form) return;
+      const submit = form.querySelector('.staging-form-actions button[type="submit"]');
+      if (submit) submit.disabled = true;
+      const page = form.closest(".staging-evaluation-page");
+      if (page && !page.querySelector("[data-provider-budget-stop]")) {
+        const template = document.createElement("template");
+        template.innerHTML = errorPanel(PROVIDER_BUDGET_STOP_ERROR).replace('class="panel staging-error"', 'class="panel staging-error" data-provider-budget-stop');
+        const panel = template.content.firstElementChild;
+        const anchor = page.querySelector(".boundary-note");
+        if (panel && anchor) anchor.insertAdjacentElement("afterend", panel);
+      }
+    });
   }
 
   function reset() {

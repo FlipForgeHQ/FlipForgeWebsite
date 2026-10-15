@@ -40,6 +40,7 @@ function discoverData() {
     evidenceSupportedBestAvailable: true, coverageSummary: "Synthetic exact result.", items: [item] };
 }
 const csv = "externalListingId,marketplace,cardIdentity,listingUrl,itemPrice\nbulk-1,EBAY," + QUERY + ",https://www.ebay.com/itm/900000000011,700.00";
+const slowCsv = "externalListingId,marketplace,cardIdentity,listingUrl,itemPrice\n" + [1, 2, 3].map(n => `slow-${n},EBAY,${QUERY},https://www.ebay.com/itm/90000000002${n},700.00`).join("\n");
 
 const browser = await chromium.launch({ headless: true, executablePath });
 
@@ -64,7 +65,12 @@ async function newPage() {
     if (url.pathname === "/api/v1/health") return json(200, envelope(correlationId, { status: "configured" }));
     if (url.pathname === "/api/v1/discover") return json(200, envelope(correlationId, discoverData()));
     if (url.pathname === "/api/v1/evaluations") {
-      calls.push(JSON.parse(request.postData() || "{}").externalListingId);
+      const id = JSON.parse(request.postData() || "{}").externalListingId;
+      calls.push(id);
+      // "slow-*" rows: a slow ordinary failure, so a running batch would move on to its next row.
+      if (String(id).startsWith("slow-")) {
+        return new Promise(resolve => setTimeout(resolve, 2500)).then(() => json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } }));
+      }
       return json(422, { error: { code: "PROVIDER_BUDGET_EXHAUSTED", message: "FlipForge stopped before finishing because this account's data-provider budget has been reached. No decision was saved and no evaluation was used.", correlationId } });
     }
     return json(404, { error: { code: "QA_NOT_MOCKED", message: url.pathname, correlationId } });
@@ -169,6 +175,62 @@ const manualState = page => page.evaluate(() => {
     check("B: no page reload", loads() === loadsAtStart);
   } catch (error) {
     check("B: completed", false, String(error.message).split("\n")[0]);
+  } finally {
+    await context.close();
+  }
+}
+
+// Scenario C: bulk is refused while the manual form (same page) has typed values.
+{
+  const { context, page, calls, loads } = await newPage();
+  try {
+    await page.goto(`${baseUrl}/#/evaluate`, { waitUntil: "load" });
+    const loadsAtStart = loads();
+    await openManual(page);
+    await fillManual(page, "typed-before-bulk");
+    await page.waitForSelector("#main-content [data-bulk-file]", { state: "attached", timeout: 10000 });
+    await page.setInputFiles("#main-content [data-bulk-file]", { name: "bulk-first.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+    await page.locator("#main-content [data-bulk-ack]").check();
+    await page.locator("#main-content [data-bulk-run]").click();
+    await page.waitForFunction(() => !/Evaluating/.test(document.querySelector("#main-content [data-bulk-run]")?.textContent || ""), null, { timeout: 15000 });
+    await page.waitForTimeout(300);
+    const manual = await manualState(page);
+    const typed = await page.inputValue('#main-content [data-staging-evaluation-form] [name="externalListingId"]');
+    check("C: after a bulk refusal the manual Evaluate button is disabled without navigating", manual.submitDisabled === true, JSON.stringify(manual).slice(0, 160));
+    check("C: the manual form explains the stop in place", /data-provider budget has been reached/.test(manual.error));
+    check("C: the customer's typed manual values are kept", typed === "typed-before-bulk", typed);
+    await page.evaluate(() => document.querySelector("#main-content [data-staging-evaluation-form]")?.requestSubmit());
+    await page.waitForTimeout(400);
+    check("C: only the one bulk request was ever sent", calls.length === 1 && calls[0] === "bulk-1", JSON.stringify(calls));
+    check("C: no page reload", loads() === loadsAtStart);
+  } catch (error) {
+    check("C: completed", false, String(error.message).split("\n")[0]);
+  } finally {
+    await context.close();
+  }
+}
+
+// Scenario D: a bulk batch is mid-flight when the manual form is refused; the batch must not send its next row.
+{
+  const { context, page, calls } = await newPage();
+  try {
+    await page.goto(`${baseUrl}/#/evaluate`, { waitUntil: "load" });
+    await openManual(page);
+    await page.waitForSelector("#main-content [data-bulk-file]", { state: "attached", timeout: 10000 });
+    await page.setInputFiles("#main-content [data-bulk-file]", { name: "slow.csv", mimeType: "text/csv", buffer: Buffer.from(slowCsv) });
+    await page.locator("#main-content [data-bulk-ack]").check();
+    await page.locator("#main-content [data-bulk-run]").click();
+    await page.waitForFunction(() => /Evaluating/.test(document.querySelector("#main-content [data-bulk-run]")?.textContent || ""), null, { timeout: 5000 });
+    await fillManual(page, "manual-during-bulk");
+    await page.evaluate(() => document.querySelector("#main-content [data-staging-evaluation-form]")?.requestSubmit());
+    await page.waitForFunction(() => !/Evaluating/.test(document.querySelector("#main-content [data-bulk-run]")?.textContent || ""), null, { timeout: 20000 });
+    await page.waitForTimeout(500);
+    const panel = await page.evaluate(() => document.querySelector("#main-content [data-bulk-evaluation]")?.innerText.replace(/\s+/g, " ") || "");
+    check("D: the running batch stops before its next row once another surface is refused",
+      calls.includes("slow-1") && calls.includes("manual-during-bulk") && !calls.includes("slow-2") && !calls.includes("slow-3"), JSON.stringify(calls));
+    check("D: the bulk panel explains why the batch stopped", /data-provider budget has been reached/.test(panel), panel.slice(0, 160));
+  } catch (error) {
+    check("D: completed", false, String(error.message).split("\n")[0]);
   } finally {
     await context.close();
   }
