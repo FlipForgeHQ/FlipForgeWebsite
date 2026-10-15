@@ -194,7 +194,11 @@
     try {
       const [markedHash, markedAt] = String(window.sessionStorage.getItem(reloadKey) || "").split("|");
       window.sessionStorage.removeItem(reloadKey);
-      if (markedHash === String(window.location.hash || "") && Date.now() - Number(markedAt) < 4000) return;
+      if (markedHash === String(window.location.hash || "") && Date.now() - Number(markedAt) < 4000) {
+        // Duplicate event for a route this document was just loaded for: swallow it so nothing re-renders the route either.
+        if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+        return;
+      }
       window.sessionStorage.setItem(reloadKey, `${window.location.hash}|${Date.now()}`);
     } catch (_) { /* storage unavailable: reload as before */ }
     routeReloading = true;
