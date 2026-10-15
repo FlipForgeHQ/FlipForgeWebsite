@@ -309,10 +309,19 @@ async function clickToOnce(page, hash) {
 }
 const describe = list => list.slice(0, 3).map(f => `${f.gap ? "[before hashchange delivered] " : "[after hashchange delivered] "}${f.route}: ${f.problems.join("; ")} at ${f.at}ms for ${f.until - f.at}ms / ${f.frames} frame(s)`).join(" | ");
 async function showsCard(page, id, timeout = 15_000) {
-  await page.waitForFunction(({ expected }) => {
+  const wait = () => page.waitForFunction(({ expected }) => {
     const hero = document.querySelector("#main-content .customer-intelligence-hero");
     return Boolean(hero) && String(hero.querySelector("h2")?.textContent || "").trim() === expected.title;
   }, { expected: cards[id] }, { timeout });
+  // The card must be on screen in the document that stays: if a reload replaced the document that first showed it, wait again.
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await wait();
+    const loadsBefore = await evalStable(page, () => Number(window.sessionStorage.getItem("__ffDocLoads") || 0));
+    await settleDocument(page);
+    const loadsAfter = await evalStable(page, () => Number(window.sessionStorage.getItem("__ffDocLoads") || 0));
+    if (loadsAfter === loadsBefore) return;
+  }
+  await wait();
 }
 // The legacy (non-production) shell reloads the document on a route change, and some engines take ~100 ms after hashchange to
 // unload the old document while it keeps rendering. A final-state check must be read from the document that stays, so wait
