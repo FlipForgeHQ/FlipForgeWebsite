@@ -19,11 +19,13 @@ const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173
 const email = "card-switching-audit@flipforge.test";
 // Browser engine, device and Navigation API mode, so one audit covers: Chromium (Chrome, Edge, Chrome Android), Firefox,
 // WebKit (Safari), a phone-sized touch device, and the fallback path used by browsers without the Navigation API.
+const localOrigin = (process.env.FF_AUDIT_LOCAL_ORIGIN || "http://127.0.0.1:4173").replace(/\/$/, "");
+const productionHost = new URL(baseUrl).hostname === "goflipforge.com";
 const engineName = process.env.FF_AUDIT_ENGINE || "chromium";
 const engine = { chromium, firefox, webkit }[engineName];
 const deviceName = process.env.FF_AUDIT_DEVICE || "";
 const disableNavigationApi = process.env.FF_AUDIT_NO_NAVIGATION_API === "1";
-const runLabel = `${engineName}${deviceName ? ` / ${deviceName}` : ""}${disableNavigationApi ? " / Navigation API disabled (fallback path)" : ""}`;
+const runLabel = `${engineName}${deviceName ? ` / ${deviceName}` : ""}${productionHost ? " / production host emulated" : ""}${disableNavigationApi ? " / Navigation API disabled (fallback path)" : ""}`;
 
 const cards = {
   "qa-switch-buy": { title: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", recommendation: "BUY", ask: 1215, supportedValue: 1675, acceptedSales: 227 },
@@ -81,29 +83,65 @@ const check = (name, ok, detail = "") => (ok ? passes : failures).push(detail ? 
 const browser = await engine.launch({ headless: true, ...(engineName === "chromium" && process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
 
 async function newSession() {
-  const context = await browser.newContext(deviceName ? { ...devices[deviceName] } : { viewport: { width: 1440, height: 900 } });
+  const context = await browser.newContext({ ...(deviceName ? { ...devices[deviceName] } : { viewport: { width: 1440, height: 900 } }), ignoreHTTPSErrors: true });
+  if (productionHost) {
+    // Production-host emulation: the page is loaded as https://goflipforge.com/... (the real hostname, so every
+    // production-only branch of the app runs) while the bytes come from this checkout's local server.
+    await context.route(/^https:\/\/goflipforge\.com\//, async route => {
+      const url = new URL(route.request().url());
+      const response = await route.fetch({ url: `${localOrigin}${url.pathname}${url.search}` });
+      await route.fulfill({ response });
+    });
+  }
   const page = await context.newPage();
   await page.addInitScript(({ cardTable, noNavigationApi }) => {
     if (noNavigationApi) { try { Object.defineProperty(window, "navigation", { value: undefined, configurable: true }); } catch (_) { /* property not configurable */ } }
     localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete");
     const usdText = value => `$${Number(value).toLocaleString("en-US")}`;
+    // The legacy /app shell replaces the whole document on a route change, so everything the recorder has seen survives
+    // in sessionStorage across reloads and is written out again on pagehide; nothing seen before a reload is lost.
+    const stored = key => { try { return JSON.parse(window.sessionStorage.getItem(key) || "null"); } catch (_) { return null; } };
+    const persist = () => { try {
+      window.sessionStorage.setItem("__ffForeign", JSON.stringify(window.__ffForeign));
+      window.sessionStorage.setItem("__ffCounters", JSON.stringify([window.__ffOrderViolations, window.__ffCanaryFrames, window.__ffSampledFrames]));
+    } catch (_) { /* storage unavailable */ } };
     window.__ffFrames = [];
-    window.__ffForeign = [];
+    window.__ffForeign = stored("__ffForeign") || [];
     // First hashchange listener on the window: marks the moment the browser tells the app the route changed.
     window.__ffDispatchedHash = String(location.hash || "");
     window.addEventListener("hashchange", () => { window.__ffDispatchedHash = String(location.hash || ""); }, true);
     const seen = new Set();
-    // What the customer sees is the page AFTER every requestAnimationFrame callback of the frame has run (they run
-    // before the frame is drawn). So this recorder samples after the page's own pre-paint callbacks, not before them:
-    // it is re-armed from a timer, which queues it behind every callback the page armed during the previous frame.
-    // A canary armed first proves this ordering held in every frame (callbacks in one frame share one timestamp), and
-    // two counters prove no frame was skipped.
+    // What the customer sees is the page AFTER every requestAnimationFrame callback of the frame has run (they all run
+    // before the frame is drawn). The recorder therefore owns the page's requestAnimationFrame: every callback the page
+    // registers is queued and run, in registration order, by ONE native callback per frame, and the sample is taken
+    // immediately after the last of them - whatever order the page's own callbacks (re)armed in. Nothing else can run
+    // between that point and the draw. Two independent checks prove it: a page-level canary (registered through the page's
+    // own requestAnimationFrame, every frame) must have run before every sample in the same frame, and an untouched native
+    // callback chain counts every frame the browser produced, so any frame the recorder skipped shows as lost coverage.
+    const nativeRaf = window.requestAnimationFrame.bind(window);
+    const pageQueue = new Map();
+    let nextCallbackId = 1;
+    let flushArmed = false;
     let canaryStamp = -1;
-    window.__ffOrderViolations = 0;
-    window.__ffCanaryFrames = 0;
-    window.__ffSampledFrames = 0;
-    const canary = stamp => { canaryStamp = stamp; window.__ffCanaryFrames += 1; requestAnimationFrame(canary); };
-    requestAnimationFrame(canary);
+    const counters = stored("__ffCounters") || [0, 0, 0];
+    window.__ffOrderViolations = counters[0];
+    window.__ffCanaryFrames = counters[1];
+    window.__ffSampledFrames = counters[2];
+    window.addEventListener("pagehide", persist);
+    const armFlush = () => { if (!flushArmed) { flushArmed = true; nativeRaf(flush); } };
+    const flush = stamp => {
+      flushArmed = false;
+      const batch = [...pageQueue];
+      pageQueue.clear();
+      for (const [, callback] of batch) { try { callback(stamp); } catch (error) { window.setTimeout(() => { throw error; }, 0); } }
+      sample(stamp);
+    };
+    window.requestAnimationFrame = callback => { const id = nextCallbackId++; pageQueue.set(id, callback); armFlush(); return id; };
+    window.cancelAnimationFrame = id => { pageQueue.delete(id); };
+    const nativeFrames = () => { window.__ffCanaryFrames += 1; nativeRaf(nativeFrames); };
+    nativeRaf(nativeFrames);
+    const canary = stamp => { canaryStamp = stamp; window.requestAnimationFrame(canary); };
+    window.requestAnimationFrame(canary);
     const sample = stamp => {
       window.__ffSampledFrames += 1;
       if (canaryStamp !== stamp) window.__ffOrderViolations += 1;
@@ -112,6 +150,20 @@ async function newSession() {
       const routeId = match ? decodeURIComponent(match[1]) : "";
       const route = String(location.hash || "#/dashboard");
       const hero = main?.querySelector(".customer-intelligence-hero");
+      const problems = [];
+      if (routeId && main) {
+        // Whatever else is painted on a card page - the built-in prototype sample record, a verdict badge with no card, or
+        // the name of any other card - is another card's identity on this card's URL.
+        const text = main.textContent || "";
+        if (/Prototype saved record|OPPORTUNITY DETAIL/i.test(text)) problems.push("a prototype sample record is painted");
+        if (!hero) {
+          const badge = [...main.querySelectorAll(".staging-status")].map(node => node.textContent.trim().toUpperCase()).find(value => /^(BUY|WATCH|VERIFY|PASS)$/.test(value));
+          if (badge) problems.push(`verdict ${badge} shown with no card`);
+        }
+        for (const [otherId, other] of Object.entries(cardTable)) {
+          if (otherId !== routeId && text.includes(other.title)) problems.push(`text of another card "${other.title}"`);
+        }
+      }
       if (hero) {
         const status = String(hero.querySelector(".staging-status")?.textContent || "").trim().toUpperCase();
         const title = String(hero.querySelector("h2")?.textContent || "").trim();
@@ -119,7 +171,6 @@ async function newSession() {
         const evidenceLabel = [...main.querySelectorAll(".staging-key-grid div")].find(node => /Accepted exact sales/i.test(node.querySelector("span")?.textContent || ""));
         const accepted = evidenceLabel ? Number(String(evidenceLabel.querySelector("strong")?.textContent || "").replace(/[^0-9]/g, "")) : null;
         const expected = cardTable[routeId];
-        const problems = [];
         if (!routeId) problems.push("a card page is painted on a non-card route");
         else if (!expected) problems.push("a card page is painted for an unknown card");
         else {
@@ -128,18 +179,18 @@ async function newSession() {
           if (ask !== usdText(expected.ask)) problems.push(`price ${ask}`);
           if (accepted !== null && accepted !== expected.acceptedSales) problems.push(`evidence count ${accepted}`);
         }
-        if (problems.length) {
-          // "gap": the URL has changed but the browser has not yet delivered hashchange to the app.
-          const gap = String(location.hash || "") !== window.__ffDispatchedHash;
-          const key = `${gap ? "gap" : "app"}|${route}|${problems.join(",")}`;
-          const now = Math.round(performance.now());
-          if (!seen.has(key)) { seen.add(key); window.__ffForeign.push({ at: now, until: now, frames: 1, gap, route, problems }); }
-          else { const entry = window.__ffForeign.find(item => `${item.gap ? "gap" : "app"}|${item.route}|${item.problems.join(",")}` === key); if (entry) { entry.until = now; entry.frames += 1; } }
-        }
       }
-      window.setTimeout(() => requestAnimationFrame(sample), 0);
+      if (problems.length) {
+        // "gap": the URL has changed but the browser has not yet delivered hashchange to the app.
+        const gap = String(location.hash || "") !== window.__ffDispatchedHash;
+        const key = `${gap ? "gap" : "app"}|${route}|${problems.join(",")}`;
+        const now = Math.round(performance.now());
+        if (!seen.has(key)) { seen.add(key); window.__ffForeign.push({ at: now, until: now, frames: 1, gap, route, problems }); }
+        else { const entry = window.__ffForeign.find(item => `${item.gap ? "gap" : "app"}|${item.route}|${item.problems.join(",")}` === key); if (entry) { entry.until = now; entry.frames += 1; } }
+      }
+      if (window.__ffSampledFrames % 10 === 0) persist();
+      window.setTimeout(armFlush, 0);
     };
-    requestAnimationFrame(sample);
   }, { cardTable: cards, noNavigationApi: disableNavigationApi });
 
   await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
@@ -147,7 +198,10 @@ async function newSession() {
     contentType: "text/javascript; charset=utf-8",
     body: `window.FlipForgeIdentity = Object.freeze({
       getUser: () => ({ email: "${email}" }),
-      getSnapshot: () => ({ authenticated: true, email: "${email}", fullName: "Switching Audit", membershipActive: true, membershipConfigured: true })
+      getSnapshot: () => ({ authenticated: true, email: "${email}", fullName: "Switching Audit", membershipActive: true, membershipConfigured: true }),
+      // The production-host private-beta access gate asks the identity layer to refresh and confirm membership.
+      refresh: async () => ({ authenticated: true, email: "${email}", fullName: "Switching Audit", membershipActive: true, membershipConfigured: true }),
+      noteServerMembership: () => ({ authenticated: true, membershipActive: true, membershipConfigured: true })
     });`
   }));
   await page.route("**/assets/js/flipforge-production-signin.js", route => route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: "(() => {})();" }));
@@ -155,6 +209,7 @@ async function newSession() {
     const url = new URL(route.request().url());
     const correlationId = route.request().headers()["x-correlation-id"] || "card-switching-audit";
     if (url.pathname === "/api/v1/health") return json(route, 200, envelope(correlationId, { status: "configured" }));
+    if (url.pathname === "/api/v1/entitlements") return json(route, 200, envelope(correlationId, { kind: "entitlements", membershipActive: true, plan: "PRIVATE_BETA", transactionAuthority: false }));
     if (url.pathname === "/api/v1/opportunities") {
       return json(route, 200, envelope(correlationId, { kind: "opportunities", items: ids.map(opportunity), count: ids.length, sourceOfTruth: "SQLite", transactionAuthority: false }));
     }
@@ -182,6 +237,7 @@ async function newSession() {
   const realClose = context.close.bind(context);
   context.close = async () => {
     try {
+      await page.evaluate(() => window.dispatchEvent(new Event("pagehide"))).catch(() => {});
       const frames = await page.evaluate(() => ({ violations: window.__ffOrderViolations, canary: window.__ffCanaryFrames, sampled: window.__ffSampledFrames }));
       recorderHealth.violations += frames.violations; recorderHealth.canary += frames.canary; recorderHealth.sampled += frames.sampled;
     } catch (_) { /* page already gone */ }
@@ -190,20 +246,40 @@ async function newSession() {
   return { context, page };
 }
 
-const go = (page, hash) => page.evaluate(target => { location.hash = target; }, hash);
+// Full-page reloads (the legacy /app shell) destroy the execution context mid-call; retry across them.
+async function evalStable(page, fn, arg) {
+  for (let attempt = 0; ; attempt += 1) {
+    try { return await page.evaluate(fn, arg); } catch (error) {
+      if (attempt >= 6 || !/Execution context was destroyed|Cannot find context|Target closed|navigat/i.test(String(error.message))) throw error;
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
+      await page.waitForTimeout(150);
+    }
+  }
+}
+const go = (page, hash) => evalStable(page, target => { location.hash = target; }, hash);
 // Strict by default. In a browser WITHOUT the Navigation API a script that assigns location.hash cannot be intercepted
 // before the browser paints once, so those pre-hashchange frames are counted and reported as a limitation (never
 // hidden); frames after hashchange, and every real link click or Back/Forward, are always strict.
 let limitationFrames = 0;
 async function foreign(page, { scripted = true } = {}) {
-  const all = await page.evaluate(() => window.__ffForeign.slice());
-  if (!scripted || await page.evaluate(() => Boolean(window.navigation))) return all;
+  // Flush the recorder first so a pending reload cannot hide frames seen just before it.
+  const all = await evalStable(page, () => { window.dispatchEvent(new Event("pagehide")); return window.__ffForeign.slice(); });
+  if (!scripted || await evalStable(page, () => Boolean(window.navigation))) return all;
   const gaps = all.filter(f => f.gap);
   limitationFrames += gaps.length;
   return all.filter(f => !f.gap);
 }
 // A real, user-style click on an in-page link to a hash route.
 async function clickTo(page, hash) {
+  for (let attempt = 0; ; attempt += 1) {
+    try { await clickToOnce(page, hash); return; } catch (error) {
+      if (attempt >= 4 || !/Execution context was destroyed|Cannot find context|navigat|detached|Timeout/i.test(String(error.message))) throw error;
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
+      await page.waitForTimeout(200);
+    }
+  }
+}
+async function clickToOnce(page, hash) {
   await page.evaluate(target => {
     let link = document.getElementById("__ffAuditLink");
     if (!link) {
@@ -211,7 +287,7 @@ async function clickTo(page, hash) {
       link.id = "__ffAuditLink";
       link.textContent = "audit link";
       link.style.cssText = "position:fixed;left:4px;top:4px;z-index:2147483647;padding:10px 14px;background:#fff;color:#000";
-      document.body.appendChild(link);
+      (document.body || document.documentElement).appendChild(link);
     }
     link.setAttribute("href", target);
   }, hash);
@@ -224,7 +300,7 @@ async function showsCard(page, id, timeout = 15_000) {
     return Boolean(hero) && String(hero.querySelector("h2")?.textContent || "").trim() === expected.title;
   }, { expected: cards[id] }, { timeout });
 }
-const snapshot = page => page.evaluate(() => {
+const snapshot = page => evalStable(page, () => {
   const main = document.querySelector("#main-content");
   return {
     hero: Boolean(main?.querySelector(".customer-intelligence-hero")),
@@ -429,6 +505,36 @@ try {
     check("J Dashboard -> card: the requested card appears", view.title === cards[PASS].title && view.verdict === "PASS", JSON.stringify(view));
     const bad = await foreign(page, { scripted: false });
     check("J Dashboard round trips: no frame ever showed a card on the Dashboard or another card's details", bad.length === 0, describe(bad));
+    clearBehavior();
+    await context.close();
+  }
+
+  // K. Realistic worst case: a 10.5 s response (the slowest load seen in production) for a card the customer abandons at
+  // 3 s, both by link click and by Back, while the next card loads at once. The late response must change nothing.
+  {
+    const { context, page } = await newSession();
+    await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1200);
+    setBehavior(WATCH, { delayMs: 10_500 });
+    await clickTo(page, `#/opportunities/${WATCH}`);
+    await page.waitForTimeout(3000);
+    const loadingView = await snapshot(page);
+    check("K 3 s into a 10.5 s load: a clear loading state and no card", loadingView.loading && !loadingView.hero, JSON.stringify(loadingView));
+    await clickTo(page, `#/opportunities/${BUY}`);
+    await showsCard(page, BUY);
+    await page.waitForTimeout(8200); // the abandoned 10.5 s WATCH response arrives at ~10.5 s
+    let view = await snapshot(page);
+    check("K 10.5 s response for an abandoned card (link click): BUY stays, WATCH never appears", view.title === cards[BUY].title && view.verdict === "BUY", JSON.stringify(view));
+    setBehavior(PASS, { delayMs: 10_500 });
+    await clickTo(page, `#/opportunities/${PASS}`);
+    await page.waitForTimeout(3000);
+    await page.goBack(); // back to BUY while the 10.5 s PASS request is in flight
+    await showsCard(page, BUY);
+    await page.waitForTimeout(8200);
+    view = await snapshot(page);
+    check("K 10.5 s response for an abandoned card (Back): BUY stays, PASS never appears", view.title === cards[BUY].title && view.verdict === "BUY", JSON.stringify(view));
+    const bad = await foreign(page, { scripted: false });
+    check("K 10.5 s delays: no frame ever showed another card's decision, price or evidence", bad.length === 0, describe(bad));
     clearBehavior();
     await context.close();
   }
