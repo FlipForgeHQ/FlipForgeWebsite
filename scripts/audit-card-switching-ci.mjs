@@ -107,6 +107,15 @@ async function newSession() {
     } catch (_) { /* storage unavailable */ } };
     window.__ffFrames = [];
     window.__ffForeign = stored("__ffForeign") || [];
+    try { window.sessionStorage.setItem("__ffDocLoads", String(Number(window.sessionStorage.getItem("__ffDocLoads") || 0) + 1)); } catch (_) { /* diagnostics only */ }
+    // Diagnostics only (never asserted): a small cross-document trace of what #main-content held and when, shown with any failing snapshot.
+    {
+      const log = what => { try { const list = JSON.parse(window.sessionStorage.getItem("__ffTrace") || "[]"); list.push(`${Date.now() % 100000}|d${window.sessionStorage.getItem("__ffDocLoads")}|${location.hash.slice(0, 28)}|${what}`); window.sessionStorage.setItem("__ffTrace", JSON.stringify(list.slice(-30))); } catch (_) { /* diagnostics only */ } };
+      log("doc-start");
+      window.addEventListener("hashchange", () => log("hashchange"), true);
+      window.addEventListener("pagehide", () => log("pagehide"), true);
+      new MutationObserver(records => { for (const record of records) { if (record.target && record.target.id === "main-content") { const main = record.target; log(`main:${String(main.querySelector("h1,h2,[role=status]")?.textContent || main.textContent || "").replace(/\s+/g, " ").trim().slice(0, 30)}`); break; } } }).observe(document, { childList: true, subtree: true });
+    }
     // Test hook for scenario L2: while set, hashchange/popstate are not delivered to the page, reproducing a browser that has
     // already changed the URL (Back/Forward) but has not yet told the app, for as many frames as the scenario wants.
     for (const type of ["hashchange", "popstate"]) window.addEventListener(type, event => { if (window.__ffSwallowNavigationEvents) event.stopImmediatePropagation(); }, true);
@@ -162,6 +171,11 @@ async function newSession() {
         // the name of any other card - is another card's identity on this card's URL.
         const text = main.textContent || "";
         if (/Prototype saved record|OPPORTUNITY DETAIL/i.test(text)) problems.push("a prototype sample record is painted");
+        if (!hero && main.children.length) {
+          // On a card's URL the only things that may be on screen are that card, or a neutral loading / recovery / error state.
+          const neutral = main.querySelector('[data-ff-route-pending], [data-saved-intelligence-recovery], [data-card-intelligence-recovery], [data-saved-intelligence-recovery-error], [data-card-intelligence-recovery-error], .staging-error, .staging-loading, .ff-commercial-loading, [role="status"], [role="alert"]') || /Loading|Opening|could not|unavailable/i.test(text);
+          if (!neutral) problems.push(`another page is on screen under the card URL ("${String(main.querySelector("h1")?.textContent || text).trim().slice(0, 50)}")`);
+        }
         if (!hero) {
           const badge = [...main.querySelectorAll(".staging-status")].map(node => node.textContent.trim().toUpperCase()).find(value => /^(BUY|WATCH|VERIFY|PASS)$/.test(value));
           if (badge) problems.push(`verdict ${badge} shown with no card`);
@@ -309,7 +323,12 @@ const snapshot = page => evalStable(page, () => {
     error: Boolean(main?.querySelector(".staging-error")),
     loading: /Loading card intelligence/i.test(main?.textContent || ""),
     heading: String(main?.querySelector("h1")?.textContent || "").trim(),
-    hash: location.hash
+    hash: location.hash,
+    // Diagnostics only (never asserted): how many documents this tab has loaded, how old this one is, and what is in #main-content.
+    loads: Number(window.sessionStorage.getItem("__ffDocLoads") || 0),
+    docAgeMs: Math.round(performance.now()),
+    mainHead: String(main?.innerHTML || "").replace(/\s+/g, " ").slice(0, 140),
+    trace: (window.sessionStorage.getItem("__ffTrace") || "").slice(-1500)
   };
 });
 

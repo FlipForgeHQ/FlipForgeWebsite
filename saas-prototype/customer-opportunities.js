@@ -370,7 +370,7 @@
       if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (link.target && link.target !== "_self") return;
       const href = String(link.getAttribute("href") || "");
-      if (href.charAt(0) === "#") leaveCurrentCard(href);
+      if (href.charAt(0) === "#") { leaveCurrentCard(href); showPendingCard(href); }
     }, true);
   }
 
