@@ -67,6 +67,7 @@ async function newPage({ discoverEvaluationFails = false } = {}) {
     if (url.pathname === "/api/v1/evaluations") {
       const id = JSON.parse(request.postData() || "{}").externalListingId;
       calls.push(id);
+      if (id === "manual-502") return json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } });
       if (discoverEvaluationFails && id === "QA-OHTANI-150" && calls.filter(value => value === id).length === 1) {
         return json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } });
       }
@@ -87,10 +88,20 @@ async function newPage({ discoverEvaluationFails = false } = {}) {
 async function searchDiscover(page) {
   await page.evaluate(() => { location.hash = "#/discover"; });
   const input = page.locator('#main-content [data-customer-discovery-form] input[name="exactCardQuery"]');
-  await input.waitFor({ state: "visible", timeout: 10000 });
-  await input.fill(QUERY);
-  await page.locator("#main-content [data-customer-discovery-form]").evaluate(form => form.requestSubmit());
-  await page.locator("#main-content [data-discovery-evaluate]").first().waitFor({ state: "visible", timeout: 10000 });
+  const evaluate = page.locator("#main-content [data-discovery-evaluate]").first();
+  // Discover can still be finishing its first render when the form appears, which resets typed text. A search
+  // never sends an evaluation, so typing and submitting again until results show cannot affect what is tested.
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    await input.waitFor({ state: "visible", timeout: 10000 });
+    await input.fill(QUERY);
+    await page.locator("#main-content [data-customer-discovery-form]").evaluate(form => form.requestSubmit());
+    try {
+      await evaluate.waitFor({ state: "visible", timeout: 5000 });
+      return;
+    } catch (error) {
+      if (attempt === 3) throw error;
+    }
+  }
 }
 
 async function openManual(page) {
@@ -266,6 +277,32 @@ const manualState = page => page.evaluate(() => {
     check("E: two requests in total (the failed Discover one and the refused manual one)", calls.length === 2, JSON.stringify(calls));
   } catch (error) {
     check("E: completed", false, String(error.message).split("\n")[0]);
+  } finally {
+    await context.close();
+  }
+}
+
+// Scenario F: an older manual-form error must not hide the budget stop that Discover reported later.
+{
+  const { context, page, calls } = await newPage();
+  try {
+    await page.goto(`${baseUrl}/#/evaluate`, { waitUntil: "load" });
+    await openManual(page);
+    await fillManual(page, "manual-502");
+    await page.evaluate(() => document.querySelector("#main-content [data-staging-evaluation-form]")?.requestSubmit());
+    await page.waitForSelector("#main-content .staging-error", { timeout: 10000 });
+    await searchDiscover(page);
+    await page.locator("#main-content [data-discovery-evaluate]").first().click();
+    await page.waitForSelector("#main-content [data-discovery-evaluate-error]", { timeout: 10000 });
+    await openManual(page);
+    await page.waitForTimeout(400);
+    const manual = await manualState(page);
+    const errors = await page.evaluate(() => [...document.querySelectorAll("#main-content .staging-error")].map(node => node.innerText.replace(/\s+/g, " ")));
+    check("F: back on manual Evaluate the budget stop is shown, not the stale retryable error", manual.submitDisabled === true
+      && errors.length === 1 && /data-provider budget has been reached/.test(errors[0]), JSON.stringify(errors).slice(0, 220));
+    check("F: two requests in total (the failed manual one and the refused Discover one)", calls.length === 2, JSON.stringify(calls));
+  } catch (error) {
+    check("F: completed", false, String(error.message).split("\n")[0]);
   } finally {
     await context.close();
   }
