@@ -148,6 +148,9 @@ async function newPage(viewport, { storageWritesFail = false } = {}) {
       if (mode === "limit-slow") await new Promise(r => setTimeout(r, 3000));
       if (mode === "limit" || mode === "limit-slow") return route.fulfill({ status: 429, contentType: "application/json; charset=utf-8", headers: { "Retry-After": "1468800" },
         body: JSON.stringify({ error: { code: "EVALUATION_LIMIT_REACHED", message: "Your monthly evaluation limit has been reached.", correlationId } }) });
+      // A 429 that is not the evaluation allowance (e.g. an edge/gateway rate limit): an ordinary definite refusal.
+      if (mode === "rate-limited") return route.fulfill({ status: 429, contentType: "application/json; charset=utf-8", headers: { "Retry-After": "30" },
+        body: JSON.stringify({ error: { code: "RATE_LIMITED", message: "Too many requests. Try again shortly.", correlationId } }) });
       if (mode === "expired") return json(401, { error: { code: "AUTHENTICATION_REQUIRED", message: "Sign in with an invited FlipForge account.", correlationId } });
       if (mode === "denied") return json(403, { error: { code: "ENTITLEMENT_ACCESS_DENIED", message: "Your current FlipForge access does not permit a new evaluation.", correlationId } });
       if (mode === "server") return json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "The authoritative service is unavailable.", correlationId } });
@@ -186,6 +189,8 @@ const EXPECT = {
   server: { title: /couldn't confirm this evaluation/, unknownOutcome: true, link: "#/opportunities" },
   "gateway-timeout": { title: /No answer from FlipForge yet/, unknownOutcome: true, link: "#/opportunities" },
   rejected: { title: /couldn't be completed/ },
+  // Only EVALUATION_LIMIT_REACHED is the allowance: another 429 must not claim it, disable Evaluate or look it up.
+  "rate-limited": { title: /couldn't be completed/, notAllowance: true },
   // 429 while the allowance lookup stalls: the neutral limit alert shows at once, then names the allowance in place.
   "limit-stalled": { title: /Evaluation limit reached/, body: /No new evaluation was created/, link: "#/account", disablesEvaluate: true,
     enrichedTitle: /You\u2019ve reached your Private Beta evaluation allowance\./, enrichedBody: /You have used 5 of 5/ },
@@ -288,6 +293,10 @@ async function run(label, viewport, modes, entitlements = "beta") {
         check(`${label} (${mode}): once the lookup answers, the same alert names the allowance and keeps focus and position`,
           expect.enrichedTitle.test(enriched.text) && expect.enrichedBody.test(enriched.text) && enriched.focused && enriched.inView
             && enriched.hash === "#/discover" && loads === loadsAtStart, JSON.stringify(enriched).slice(0, 220));
+      }
+      if (expect.notAllowance) {
+        check(`${label} (${mode}): a non-allowance 429 never claims the allowance or disables Evaluate`,
+          state.buttonDisabled === false && !/allowance|evaluation limit|Plan & Usage/i.test(state.text), JSON.stringify({ disabled: state.buttonDisabled, text: state.text.slice(0, 160) }));
       }
       if (expect.disablesEvaluate) {
         check(`${label} (${mode}): Evaluate is disabled once the limit is reached`, state.buttonDisabled === true);
@@ -394,6 +403,7 @@ const cases = [
   ["access denied (403)", ["denied"]], ["server error (502)", ["server"]], ["network failure", ["network"]],
   ["recovery: 502 then success", ["server", "success"]], ["timeout", ["timeout"]],
   ["gateway upstream timeout (503 UPSTREAM_TIMEOUT)", ["gateway-timeout"]], ["definite rejection (422)", ["rejected"]],
+  ["rate limit that is not the allowance (429 RATE_LIMITED)", ["rate-limited"]],
   ["limit reached, allowance lookup slow (429)", ["limit-stalled"], "stall"], ["limit reached, then allowance restored (429)", ["limit-restored"]],
   ["limit reached with a reservation in progress (429)", ["limit-reserved"], "reserved"],
   ["limit reached with a reservation, no admissionUsage field (429)", ["limit-reserved-noadmission"], "reserved-noadmission"]
