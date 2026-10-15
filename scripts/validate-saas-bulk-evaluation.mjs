@@ -50,6 +50,10 @@ check("035 batch is sequential", bulk.includes("for (const row of state.rows)") 
 check("041 provider budget refusal stops remaining rows", /error\.code === "PROVIDER_BUDGET_EXHAUSTED"\) \{[\s\S]{0,600}?break;/.test(bulk)
   && bulk.indexOf('error.code === "PROVIDER_BUDGET_EXHAUSTED"') < bulk.indexOf("error.status === 401 || error.status === 403 || error.status === 429"));
 check("042 provider budget stop says nothing was saved for the row", bulk.includes("No decision was saved for this row and no evaluation was used"));
+check("043 provider budget stop persists across uploads", bulk.includes("state.providerBudgetExhausted = true")
+  && /handleFile\(file\) \{\s*state\.error = state\.providerBudgetExhausted \? PROVIDER_BUDGET_STOP/.test(bulk));
+check("044 Run stays disabled after a provider budget stop", /data-bulk-run \$\{\([^}]*state\.providerBudgetExhausted\)/.test(bulk));
+check("045 runBatch refuses to submit after a provider budget stop", /if \(state\.providerBudgetExhausted\) \{\s*state\.error = PROVIDER_BUDGET_STOP;\s*return renderPanel\(\);/.test(bulk));
 check("036 auth quota failures stop remaining rows", bulk.includes("error.status === 401") && bulk.includes("error.status === 403") && bulk.includes("error.status === 429") && bulk.includes("break;"));
 check("037 explicit authority acknowledgement required", bulk.includes("state.acknowledged") && bulk.includes("does not authorize a purchase"));
 check("038 template download exists", bulk.includes("flipforge-bulk-evaluate-template.csv"));

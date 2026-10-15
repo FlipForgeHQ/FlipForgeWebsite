@@ -27,8 +27,13 @@
     rows: [],
     running: false,
     error: "",
-    acknowledged: false
+    acknowledged: false,
+    // Account-wide, server-side and definite: once a provider-budget refusal is seen, no further bulk evaluation
+    // is submitted from this page (new uploads included) until it is reloaded.
+    providerBudgetExhausted: false
   };
+
+  const PROVIDER_BUDGET_STOP = "Bulk evaluation is unavailable: this account's data-provider budget has been reached. Completed rows remain saved; nothing more will be sent from this page.";
 
   function eligibleHost() {
     const host = String(window.location.hostname || "");
@@ -336,7 +341,7 @@
             <input type="file" accept=".csv,text/csv" data-bulk-file hidden ${state.running ? "disabled" : ""}>
           </label>
           <button class="button button-secondary" type="button" data-bulk-template ${state.running ? "disabled" : ""}>Download template</button>
-          <button class="button button-primary" type="button" data-bulk-run ${(!state.rows.length || state.running || !state.acknowledged) ? "disabled" : ""}>${state.running ? "Evaluating…" : `Evaluate ${state.rows.length || "CSV"}`}</button>
+          <button class="button button-primary" type="button" data-bulk-run ${(!state.rows.length || state.running || !state.acknowledged || state.providerBudgetExhausted) ? "disabled" : ""}>${state.running ? "Evaluating…" : `Evaluate ${state.rows.length || "CSV"}`}</button>
         </div>
         <p class="bulk-file">${state.fileName ? `<strong>${escapeHtml(state.fileName)}</strong> · ${escapeHtml(progressText())}` : "Required columns: externalListingId, cardIdentity, listingUrl, itemPrice. Marketplace defaults to EBAY."}</p>
         <label class="bulk-ack"><input type="checkbox" data-bulk-ack ${state.acknowledged ? "checked" : ""} ${state.running ? "disabled" : ""}> <span>I understand each CSV row is a separate governed evaluation, uses plan allowance, cannot verify evidence or identity, and does not authorize a purchase.</span></label>
@@ -389,7 +394,7 @@
   }
 
   async function handleFile(file) {
-    state.error = "";
+    state.error = state.providerBudgetExhausted ? PROVIDER_BUDGET_STOP : "";
     state.rows = [];
     state.fileName = "";
     if (!file) return renderPanel();
@@ -437,6 +442,10 @@
 
   async function runBatch() {
     if (state.running || !state.acknowledged || !state.rows.length) return;
+    if (state.providerBudgetExhausted) {
+      state.error = PROVIDER_BUDGET_STOP;
+      return renderPanel();
+    }
     if (state.rows.some(row => row.status === "ERROR")) {
       state.error = "Correct CSV row errors and upload the file again before evaluating.";
       return renderPanel();
@@ -464,6 +473,7 @@
         row.status = "ERROR";
         row.message = `${error.code ? `${error.code}: ` : ""}${error.message || "Evaluation failed."}`;
         if (error.code === "PROVIDER_BUDGET_EXHAUSTED") {
+          state.providerBudgetExhausted = true;
           // Account-wide and definite: every remaining row would be refused the same way, so stop here.
           row.message = "Stopped: this account's data-provider budget has been reached. No decision was saved for this row and no evaluation was used.";
           state.error = "Batch stopped because this account's data-provider budget has been reached. Completed rows remain saved; rows not yet submitted were not sent.";

@@ -9,6 +9,7 @@ on:
       - "scripts/audit-saved-verdict-loading-ci.mjs"
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
+      - "scripts/audit-bulk-provider-budget-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -23,6 +24,7 @@ on:
       - "scripts/audit-saved-verdict-loading-ci.mjs"
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
+      - "scripts/audit-bulk-provider-budget-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -116,6 +118,11 @@ jobs:
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-evaluate-page-allowance-ci.mjs
+
+      - name: Bulk evaluation stops on a provider-budget refusal - Private Beta path (/app/beta)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
+        run: node scripts/audit-bulk-provider-budget-ci.mjs
 
       - name: Upload owner-review screenshots
         if: always()
