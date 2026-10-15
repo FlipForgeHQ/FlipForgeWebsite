@@ -341,6 +341,7 @@
         <span class="bulk-count">${state.rows.length ? `${state.rows.length}/${MAX_ROWS}` : `0/${MAX_ROWS}`}</span>
       </header>
       <div class="panel-body bulk-body">
+        ${providerBudget.exhausted ? `<div class="bulk-error" role="alert" data-bulk-budget-stop><strong>Evaluation stopped</strong><span>${escapeHtml(PROVIDER_BUDGET_STOP)}</span></div>` : ""}
         ${state.error ? `<div class="bulk-error" role="alert"><strong>CSV problem</strong><span>${escapeHtml(state.error)}</span></div>` : ""}
         <div class="bulk-actions">
           <label class="button button-secondary bulk-upload-button">
@@ -403,14 +404,13 @@
   // Another surface hit the budget stop: show it here too if the bulk panel is on screen.
   if (typeof window.addEventListener === "function") {
     window.addEventListener("flipforge:provider-budget-exhausted", () => {
-      // Record the stop even mid-batch: runBatch checks the shared flag before every row.
-      state.error = PROVIDER_BUDGET_STOP;
+      // The stop notice reads the shared flag (and runBatch checks it before every row), so just redraw.
       if (document.querySelector("[data-bulk-evaluation]")) renderPanel();
     });
   }
 
   async function handleFile(file) {
-    state.error = providerBudget.exhausted ? PROVIDER_BUDGET_STOP : "";
+    state.error = ""; // CSV problems only; the budget stop has its own notice that later uploads cannot replace
     state.rows = [];
     state.fileName = "";
     if (!file) return renderPanel();
@@ -458,10 +458,7 @@
 
   async function runBatch() {
     if (state.running || !state.acknowledged || !state.rows.length) return;
-    if (providerBudget.exhausted) {
-      state.error = PROVIDER_BUDGET_STOP;
-      return renderPanel();
-    }
+    if (providerBudget.exhausted) return renderPanel();
     if (state.rows.some(row => row.status === "ERROR")) {
       state.error = "Correct CSV row errors and upload the file again before evaluating.";
       return renderPanel();
@@ -472,11 +469,8 @@
     renderPanel();
 
     for (const row of state.rows) {
-      if (providerBudget.exhausted) {
-        // Another surface (or an earlier row) hit the account-wide budget stop: send nothing more.
-        state.error = PROVIDER_BUDGET_STOP;
-        break;
-      }
+      // Another surface (or an earlier row) hit the account-wide budget stop: send nothing more.
+      if (providerBudget.exhausted) break;
       row.status = "RUNNING";
       row.message = "Submitting authoritative evaluation…";
       renderPanel();
@@ -497,7 +491,6 @@
           markProviderBudgetExhausted();
           // Account-wide and definite: every remaining row would be refused the same way, so stop here.
           row.message = "Stopped: this account's data-provider budget has been reached. No decision was saved for this row and no evaluation was used.";
-          state.error = "Batch stopped because this account's data-provider budget has been reached. Completed rows remain saved; rows not yet submitted were not sent.";
           break;
         }
         if (error.status === 401 || error.status === 403 || error.status === 429) {

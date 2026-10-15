@@ -77,6 +77,16 @@ try {
   await page.locator("#main-content [data-bulk-run]").click({ force: true }).catch(() => {});
   await page.waitForTimeout(500);
   check("no further evaluation request is sent after the stop", evaluationCalls.length === 1, JSON.stringify(evaluationCalls));
+
+  // A rejected upload (missing required columns) must not hide why Run is disabled.
+  await page.setInputFiles("#main-content [data-bulk-file]", { name: "broken.csv", mimeType: "text/csv", buffer: Buffer.from("foo,bar\n1,2") });
+  await page.waitForTimeout(500);
+  const afterBroken = await page.evaluate(() => ({
+    budget: document.querySelector("#main-content [data-bulk-budget-stop]")?.innerText.replace(/\s+/g, " ") || "",
+    runDisabled: document.querySelector("#main-content [data-bulk-run]")?.disabled === true
+  }));
+  check("after a rejected CSV upload the budget stop is still explained (CSV errors cannot replace it)",
+    /data-provider budget has been reached/.test(afterBroken.budget) && afterBroken.runDisabled, JSON.stringify(afterBroken));
   check("no page reload during the bulk stop", loads === loadsAtStart);
 } catch (error) {
   check("bulk provider budget audit completed", false, String(error.message).split("\n")[0]);

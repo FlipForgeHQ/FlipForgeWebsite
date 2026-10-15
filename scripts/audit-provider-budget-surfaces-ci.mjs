@@ -44,7 +44,7 @@ const slowCsv = "externalListingId,marketplace,cardIdentity,listingUrl,itemPrice
 
 const browser = await chromium.launch({ headless: true, executablePath });
 
-async function newPage() {
+async function newPage({ discoverEvaluationFails = false } = {}) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await context.addInitScript(() => {
     try {
@@ -67,6 +67,9 @@ async function newPage() {
     if (url.pathname === "/api/v1/evaluations") {
       const id = JSON.parse(request.postData() || "{}").externalListingId;
       calls.push(id);
+      if (discoverEvaluationFails && id === "QA-OHTANI-150" && calls.filter(value => value === id).length === 1) {
+        return json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } });
+      }
       // "slow-*" rows: a slow ordinary failure, so a running batch would move on to its next row.
       if (String(id).startsWith("slow-")) {
         return new Promise(resolve => setTimeout(resolve, 2500)).then(() => json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } }));
@@ -231,6 +234,38 @@ const manualState = page => page.evaluate(() => {
     check("D: the bulk panel explains why the batch stopped", /data-provider budget has been reached/.test(panel), panel.slice(0, 160));
   } catch (error) {
     check("D: completed", false, String(error.message).split("\n")[0]);
+  } finally {
+    await context.close();
+  }
+}
+
+// Scenario E: an older Discover error must not hide the budget stop that another surface reported later.
+{
+  const { context, page, calls } = await newPage({ discoverEvaluationFails: true });
+  try {
+    await page.goto(`${baseUrl}/#/discover`, { waitUntil: "load" });
+    await searchDiscover(page);
+    await page.locator("#main-content [data-discovery-evaluate]").first().click();
+    await page.waitForSelector("#main-content [data-discovery-evaluate-error]", { timeout: 10000 });
+    const first = await page.locator("#main-content [data-discovery-evaluate-error]").innerText();
+    check("E: Discover first shows the ordinary (retryable) failure", /couldn't confirm this evaluation/i.test(first), first.slice(0, 80));
+    await openManual(page);
+    await fillManual(page, "manual-after-discover-error");
+    await page.evaluate(() => document.querySelector("#main-content [data-staging-evaluation-form]")?.requestSubmit());
+    await page.waitForSelector("#main-content .staging-error", { timeout: 10000 });
+    await page.evaluate(() => { location.hash = "#/discover"; });
+    await page.waitForSelector("#main-content [data-discovery-evaluate]", { timeout: 10000 });
+    await page.waitForTimeout(400);
+    const discover = await page.evaluate(() => ({
+      disabled: document.querySelector("#main-content [data-discovery-evaluate]")?.disabled === true,
+      note: document.querySelector("#main-content [data-discovery-budget-note]")?.innerText || "",
+      staleAlert: document.querySelector("#main-content [data-discovery-evaluate-error]")?.innerText || ""
+    }));
+    check("E: back on Discover the budget note replaces the stale retryable error", discover.disabled
+      && /data-provider budget has been reached/.test(discover.note) && !/try again|couldn't confirm/i.test(discover.staleAlert), JSON.stringify(discover).slice(0, 220));
+    check("E: two requests in total (the failed Discover one and the refused manual one)", calls.length === 2, JSON.stringify(calls));
+  } catch (error) {
+    check("E: completed", false, String(error.message).split("\n")[0]);
   } finally {
     await context.close();
   }
