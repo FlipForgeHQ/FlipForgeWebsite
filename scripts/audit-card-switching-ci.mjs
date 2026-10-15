@@ -314,7 +314,25 @@ async function showsCard(page, id, timeout = 15_000) {
     return Boolean(hero) && String(hero.querySelector("h2")?.textContent || "").trim() === expected.title;
   }, { expected: cards[id] }, { timeout });
 }
-const snapshot = page => evalStable(page, () => {
+// The legacy (non-production) shell reloads the document on a route change, and some engines take ~100 ms after hashchange to
+// unload the old document while it keeps rendering. A final-state check must be read from the document that stays, so wait
+// until no new document has loaded for 400 ms. Only the wait is relaxed: every assertion on the state is unchanged, and the
+// frame recorder (which persists across reloads) still checks every frame of every document.
+async function settleDocument(page) {
+  let last = -1;
+  let since = Date.now();
+  for (let i = 0; i < 100; i += 1) {
+    const loads = await evalStable(page, () => Number(window.sessionStorage.getItem("__ffDocLoads") || 0));
+    if (loads !== last) { last = loads; since = Date.now(); }
+    if (Date.now() - since >= 400) return;
+    await page.waitForTimeout(80);
+  }
+}
+const snapshot = async (page, { settle = true } = {}) => {
+  if (settle) await settleDocument(page);
+  return takeSnapshot(page);
+};
+const takeSnapshot = page => evalStable(page, () => {
   const main = document.querySelector("#main-content");
   return {
     hero: Boolean(main?.querySelector(".customer-intelligence-hero")),
@@ -361,7 +379,7 @@ try {
     setBehavior(VERIFY, { delayMs: 2000 });
     await go(page, `#/opportunities/${PASS}`);
     await page.waitForTimeout(1000);
-    const mid = await snapshot(page);
+    const mid = await snapshot(page, { settle: false });
     check("B overlapping: right after leaving a loaded BUY card, the BUY card is gone (neutral loading state)", !mid.hero && mid.loading, JSON.stringify(mid));
     await go(page, `#/opportunities/${VERIFY}`);
     await showsCard(page, VERIFY);
@@ -583,7 +601,7 @@ try {
     setBehavior(WATCH, { delayMs: 10_500 });
     await clickTo(page, `#/opportunities/${WATCH}`);
     await page.waitForTimeout(3000);
-    const loadingView = await snapshot(page);
+    const loadingView = await snapshot(page, { settle: false });
     check("K 3 s into a 10.5 s load: a clear loading state and no card", loadingView.loading && !loadingView.hero, JSON.stringify(loadingView));
     await clickTo(page, `#/opportunities/${BUY}`);
     await showsCard(page, BUY);
