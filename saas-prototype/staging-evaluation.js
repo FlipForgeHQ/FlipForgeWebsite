@@ -340,14 +340,24 @@
       if (allowanceError(error)) describeAllowance(error);
     } finally {
       state.submitting = false;
-      renderCurrent();
+      // The customer may have left while the request was in flight; the outcome is kept in state and shown when
+      // they come back to Evaluate.
+      if (evaluationOwnsSurface()) renderCurrent();
     }
   }
 
-  // 429 EVALUATION_LIMIT_REACHED: the server refused the request before creating anything, so nothing was evaluated,
-  // saved or charged against the allowance.
+  // currentMain is the app's shared content area. Once another route has drawn into it, a late answer must never
+  // draw the Evaluate page over that route. Only this page renders the evaluation form, so its presence is the test.
+  function evaluationOwnsSurface() {
+    return Boolean(currentMain && currentMain.isConnected !== false
+      && currentMain.querySelector?.("[data-staging-evaluation-form]"));
+  }
+
+  // Only the server's EVALUATION_LIMIT_REACHED (429) means the evaluation allowance is used up: the request was
+  // refused before anything was created, so nothing was evaluated, saved or charged against the allowance. Any other
+  // 429 (for example a gateway rate limit) is a different failure and keeps the generic error panel.
   function allowanceError(error) {
-    return error?.code === "EVALUATION_LIMIT_REACHED" || Number(error?.status) === 429;
+    return error?.code === "EVALUATION_LIMIT_REACHED";
   }
 
   // Read-only: which allowance was reached (Private Beta lifetime allowance or a calendar-month plan limit) and the
@@ -382,12 +392,20 @@
     }
   }
 
-  // Show the limit message at once; name the allowance (and usage) when the read-only lookup answers.
+  // Show the limit message at once; name the allowance (and usage) when the read-only lookup answers. The answer only
+  // updates the alert that is on screen, in place: it never redraws the page, so it cannot replace another route the
+  // customer moved to, or reset form fields edited since. If they left, the named allowance is kept for their return.
   async function describeAllowance(error) {
     const allowance = await allowanceSnapshot();
     if (!allowance || state.error !== error) return;
     error.allowance = allowance;
-    renderCurrent();
+    if (!evaluationOwnsSurface()) return;
+    const node = currentMain.querySelector("[data-evaluation-allowance-reached]");
+    if (!node) return;
+    const template = document.createElement("template");
+    template.innerHTML = allowancePanel(error);
+    const fresh = template.content.firstElementChild;
+    if (fresh) node.replaceWith(fresh);
   }
 
   function allowancePanel(error) {

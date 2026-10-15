@@ -76,7 +76,11 @@ async function newPage(viewport) {
     }
     if (url.pathname === "/api/v1/evaluations") {
       evaluationCalls.push(request.headers()["idempotency-key"]);
-      if (evalMode === "limit") return json(429, { error: { code: "EVALUATION_LIMIT_REACHED", message: "Your monthly evaluation limit has been reached.", correlationId } }, { "Retry-After": "1468800" });
+      if (evalMode === "limit-slow") await new Promise(r => setTimeout(r, 3000));
+      if (evalMode === "limit" || evalMode === "limit-slow") return json(429, { error: { code: "EVALUATION_LIMIT_REACHED", message: "Your monthly evaluation limit has been reached.", correlationId } }, { "Retry-After": "1468800" });
+      // A 429 that is not the allowance: a gateway/edge rate limit with its own code, or no error body at all.
+      if (evalMode === "rate-limited") return json(429, { error: { code: "RATE_LIMITED", message: "Too many requests. Try again shortly.", correlationId } }, { "Retry-After": "30" });
+      if (evalMode === "rate-limited-bare") return route.fulfill({ status: 429, headers: { "Retry-After": "30" }, contentType: "text/plain", body: "" });
       if (evalMode === "denied") return json(403, { error: { code: "ENTITLEMENT_ACCESS_DENIED", message: "Your current FlipForge access does not permit a new evaluation.", correlationId } });
     }
     // Every other read the shell makes gets an empty, valid-looking answer; nothing reaches a real service.
@@ -178,6 +182,132 @@ for (const viewport of [{ width: 1280, height: 900, name: "desktop" }, { width: 
     } finally {
       await context.close();
     }
+  }
+}
+
+// --- A 429 without the allowance code is not an allowance message --------------------------------------------------
+for (const mode of ["rate-limited", "rate-limited-bare"]) {
+  evalMode = mode;
+  entitlementsMode = "beta";
+  entitlementCalls = 0;
+  const label = `generic 429 (${mode})`;
+  const { context, page } = await newPage({ width: 1280, height: 900 });
+  try {
+    await page.goto(`${baseUrl}/#/evaluate`, { waitUntil: "load" });
+    const form = await fillForm(page);
+    await form.evaluate(node => node.requestSubmit());
+    await page.waitForSelector("#main-content .staging-error[role=alert]", { timeout: 10000 });
+    await page.waitForTimeout(800);
+    const seen = await page.evaluate(() => ({
+      allowancePanel: Boolean(document.querySelector("#main-content [data-evaluation-allowance-reached]")),
+      text: document.querySelector("#main-content .staging-error[role=alert]")?.innerText.replace(/\s+/g, " ") || "",
+      hash: location.hash
+    }));
+    check(`${label}: is not shown as an allowance message`, !seen.allowancePanel && !/allowance|evaluation limit|No new evaluation was created/i.test(seen.text), seen.text);
+    check(`${label}: still shows an error on the Evaluate page`, seen.text.length > 0 && seen.hash === "#/evaluate", seen.text);
+    check(`${label}: does not look up the allowance`, entitlementCalls === 0, `${entitlementCalls}`);
+  } catch (error) {
+    check(`${label}: completed without error`, false, String(error?.message || error).slice(0, 300));
+  } finally {
+    await context.close();
+  }
+}
+
+// Local legacy /app reloads the document on every route change (production-dashboard-guard.js cleanRouteTransition);
+// /app/beta keeps the document. After a reload nothing late can arrive, and the in-memory outcome is gone by design.
+const LEGACY_RELOADING_PATH = /^\/app\/?$/.test(new URL(baseUrl).pathname);
+
+// --- Late answers never draw Evaluate over a route the customer moved to ---------------------------------------------
+for (const scenario of [
+  // The 429 arrives at once; the read-only allowance lookup answers 4 s later, after the customer has left.
+  { label: "leave while the allowance lookup is pending", eval: "limit", ent: "stall", leaveAfterAlert: true, waitMs: 5500 },
+  // The 429 itself arrives 3 s after the customer has left.
+  { label: "leave while the evaluation request is in flight", eval: "limit-slow", ent: "beta", leaveAfterAlert: false, waitMs: 4500 }
+]) {
+  for (const destination of ["#/opportunities", "#/account"]) {
+    evalMode = scenario.eval;
+    entitlementsMode = scenario.ent;
+    entitlementCalls = 0;
+    const label = `${scenario.label} -> ${destination}`;
+    const { context, page } = await newPage({ width: 1280, height: 900 });
+    let loads = 0; page.on("load", () => { loads += 1; });
+    try {
+      await page.goto(`${baseUrl}/#/evaluate`, { waitUntil: "load" });
+      const form = await fillForm(page);
+      const loadsAtStart = loads;
+      await form.evaluate(node => node.requestSubmit());
+      if (scenario.leaveAfterAlert) await page.waitForSelector("#main-content [data-evaluation-allowance-reached]", { timeout: 10000 });
+      else await page.waitForTimeout(300);
+      await page.evaluate(hash => { location.hash = hash; }, destination);
+      await page.waitForFunction(() => !document.querySelector("#main-content .staging-evaluation-page"), null, { timeout: 5000 });
+      // The route-ownership guard repairs a wrong page within milliseconds, so watch for Evaluate being drawn at any
+      // moment after the customer left, not just at the end.
+      await page.evaluate(() => {
+        window.__evaluateRedrawnAfterLeaving = false;
+        const watch = () => {
+          if (document.querySelector("#main-content .staging-evaluation-page, #main-content [data-evaluation-allowance-reached]")) {
+            window.__evaluateRedrawnAfterLeaving = true;
+          }
+        };
+        new MutationObserver(watch).observe(document.documentElement, { childList: true, subtree: true });
+      });
+      await page.waitForTimeout(scenario.waitMs);
+      const after = await page.evaluate(() => ({
+        hash: location.hash,
+        redrawnAtAnyMoment: window.__evaluateRedrawnAfterLeaving === true,
+        evaluatePage: Boolean(document.querySelector("#main-content .staging-evaluation-page")),
+        allowanceAlert: Boolean(document.querySelector("[data-evaluation-allowance-reached]"))
+      }));
+      check(`${label}: the late answer never draws Evaluate over the new page, even briefly`,
+        !after.redrawnAtAnyMoment && !after.evaluatePage && !after.allowanceAlert, JSON.stringify(after));
+      check(`${label}: the customer stays where they went`, after.hash === destination
+        && loads - loadsAtStart <= (LEGACY_RELOADING_PATH ? 1 : 0), `hash=${after.hash} reloads=${loads - loadsAtStart}`);
+      if (LEGACY_RELOADING_PATH) continue;
+      // Coming back shows the outcome they missed, with the allowance named.
+      await page.evaluate(() => { location.hash = "#/evaluate"; });
+      await page.waitForSelector("#main-content [data-evaluation-allowance-reached]", { timeout: 10000 });
+      const back = await page.evaluate(() => document.querySelector("#main-content [data-evaluation-allowance-reached] strong")?.textContent.trim() || "");
+      check(`${label}: returning to Evaluate shows the named allowance`, /Private Beta evaluation allowance/.test(back), back);
+      // Plan & Usage reads entitlements itself, so the single-lookup check only applies to the other destination.
+      if (destination === "#/opportunities") check(`${label}: still exactly one allowance lookup`, entitlementCalls === 1, `${entitlementCalls}`);
+    } catch (error) {
+      check(`${label}: completed without error`, false, String(error?.message || error).slice(0, 300));
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+// --- The late allowance answer updates the alert in place and keeps fields edited after the refusal -------------------
+{
+  evalMode = "limit";
+  entitlementsMode = "stall";
+  entitlementCalls = 0;
+  const label = "in-place allowance update";
+  const { context, page } = await newPage({ width: 1280, height: 900 });
+  try {
+    await page.goto(`${baseUrl}/#/evaluate`, { waitUntil: "load" });
+    const form = await fillForm(page);
+    await form.evaluate(node => node.requestSubmit());
+    await page.waitForSelector("#main-content [data-evaluation-allowance-reached]", { timeout: 10000 });
+    await page.evaluate(() => {
+      const field = document.querySelector('#main-content [data-staging-evaluation-form] input[name="seller"]');
+      field.value = "Edited after the refusal";
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.waitForFunction(() => /Private Beta evaluation allowance/.test(document.querySelector("#main-content [data-evaluation-allowance-reached] strong")?.textContent || ""), null, { timeout: 8000 });
+    const seen = await page.evaluate(() => ({
+      seller: document.querySelector('#main-content [data-staging-evaluation-form] input[name="seller"]')?.value || "",
+      alerts: document.querySelectorAll("#main-content [data-evaluation-allowance-reached]").length,
+      ownsEvaluate: Boolean(document.querySelector("#main-content .staging-evaluation-page"))
+    }));
+    check(`${label}: names the allowance once the lookup answers`, true);
+    check(`${label}: keeps a field edited after the refusal`, seen.seller === "Edited after the refusal", seen.seller);
+    check(`${label}: exactly one alert on the page`, seen.alerts === 1 && seen.ownsEvaluate, JSON.stringify(seen));
+  } catch (error) {
+    check(`${label}: completed without error`, false, String(error?.message || error).slice(0, 300));
+  } finally {
+    await context.close();
   }
 }
 
