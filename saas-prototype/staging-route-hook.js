@@ -28,6 +28,58 @@
     return raw.split(/[/?]/).filter(Boolean);
   }
 
+  // PRE-PAINT IDENTITY GUARD — a route change must never expose the saved
+  // BUY/WATCH/PASS for the card the customer just left, even for one frame.
+  // Network-response serial guards alone cannot protect the interval between
+  // location.hash changing and the later hashchange event.
+  function protectSavedCard(nextHash = String(window.location.hash || "")) {
+    if (!main) return;
+    const shown = main.querySelector(".customer-intelligence-hero");
+    if (!shown) return;
+    const match = String(nextHash).match(/^#\\/?opportunities\\/([^/?#]+)/);
+    let requestedId = "";
+    if (match) {
+      try { requestedId = decodeURIComponent(match[1]); }
+      catch (_) { requestedId = match[1]; }
+    }
+    // The element is annotated by both the production customer renderer and
+    // the local preview renderer. Missing annotation is never trusted.
+    if (requestedId && shown.dataset.ffCardId === requestedId) return;
+    main.innerHTML = '<div class="page customer-intelligence-page"><div class="staging-loading" role="status">Loading the saved decision</div></div>';
+  }
+
+  // Navigation API's navigate event fires before a same-document fragment
+  // navigation commits. The synchronous clear keeps old verdicts out of the
+  // first frame whose address bar names another card.
+  if (window.navigation && typeof window.navigation.addEventListener === "function") {
+    window.navigation.addEventListener("navigate", event => {
+      try {
+        const destination = new URL(event.destination.url);
+        if (destination.origin === window.location.origin
+            && destination.pathname === window.location.pathname) {
+          protectSavedCard(destination.hash);
+        }
+      } catch (_) { /* Older browser fallback: hashchange + pre-paint guard. */ }
+    });
+  }
+
+  // Browsers without Navigation API: reconcile before each paint. This is
+  // presentation-only and performs no provider calls or decision recomputation.
+  let lastPaintHash = String(window.location.hash || "");
+  function protectBeforePaint() {
+    const hash = String(window.location.hash || "");
+    if (hash !== lastPaintHash) {
+      lastPaintHash = hash;
+      protectSavedCard(hash);
+    }
+    window.requestAnimationFrame(protectBeforePaint);
+  }
+  window.requestAnimationFrame(protectBeforePaint);
+  window.addEventListener("hashchange", () => {
+    lastPaintHash = String(window.location.hash || "");
+    protectSavedCard(lastPaintHash);
+  });
+
   function restoreBanner() {
     if (bannerTitle) bannerTitle.textContent = originalTitle;
     if (bannerCopy) bannerCopy.textContent = originalCopy;
