@@ -521,7 +521,9 @@
       // Show the failure beside the button that started it. The page-level error panel sits above the results and is
       // moved below them by the Discover layout, so a customer scrolled to the listing saw nothing happen.
       if (error && typeof error === "object") error.dispatched = dispatched;
-      const limitReached = error?.code === "EVALUATION_LIMIT_REACHED" || error?.status === 429;
+      // Only the server's EVALUATION_LIMIT_REACHED means the allowance is used up; any other 429 (e.g. a gateway rate
+      // limit) is an ordinary refusal and must not disable Evaluate or claim the allowance is reached.
+      const limitReached = error?.code === "EVALUATION_LIMIT_REACHED";
       if (limitReached) {
         state.evaluationLimitReached = true;
         // A re-check started before this answer must not lift the block it just reported.
@@ -562,7 +564,7 @@
     if (serial !== state.limitCheckSerial || !state.evaluationLimitReached) return;
     if (!allowance || allowance.allowedNow !== true) return;
     state.evaluationLimitReached = false;
-    if (state.evaluationError && (state.evaluationError.error?.status === 429 || state.evaluationError.error?.code === "EVALUATION_LIMIT_REACHED")) state.evaluationError = null;
+    if (state.evaluationError && state.evaluationError.error?.code === "EVALUATION_LIMIT_REACHED") state.evaluationError = null;
     if (!state.loading && state.evaluatingIndex < 0) renderCurrent();
   }
 
@@ -673,7 +675,7 @@
     let title;
     let body;
     let actions = "";
-    if (code === "EVALUATION_LIMIT_REACHED" || status === 429) {
+    if (code === "EVALUATION_LIMIT_REACHED") {
       const allowance = error?.allowance || null;
       const inProgress = allowance && allowance.inProgress > 0
         ? `, including ${allowance.inProgress} still in progress` : "";

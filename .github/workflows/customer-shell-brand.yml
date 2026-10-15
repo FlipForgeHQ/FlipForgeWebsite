@@ -112,7 +112,7 @@ jobs:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-evaluate-page-allowance-ci.mjs
 
-      - name: Evaluate page allowance message - customer app path (/app)
+      - name: Evaluate page allowance message - customer app path (/app; late-answer races reload the page here, checked on /app/beta)
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-evaluate-page-allowance-ci.mjs

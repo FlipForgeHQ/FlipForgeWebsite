@@ -342,7 +342,35 @@
       state.submitting = false;
       // The customer may have left while the request was in flight; the outcome is kept in state and shown when
       // they come back to Evaluate.
-      if (evaluationOwnsSurface()) renderCurrent();
+      if (evaluationOwnsSurface()) {
+        renderCurrent();
+        if (state.error) revealError();
+      }
+    }
+  }
+
+  // The error panel is drawn above the form, so after a click on the (lower) submit button it can be off screen,
+  // most of all on a phone. Bring it into view and move focus to it so the outcome is seen and announced.
+  function revealError() {
+    const reveal = () => {
+      if (!evaluationOwnsSurface()) return false;
+      const alert = currentMain.querySelector?.('.staging-error[role="alert"]');
+      if (!alert) return false;
+      if (!alert.hasAttribute?.("tabindex")) alert.setAttribute?.("tabindex", "-1");
+      try { alert.scrollIntoView?.({ block: "center", behavior: "instant" }); } catch (_) { alert.scrollIntoView?.(); }
+      try { alert.focus?.({ preventScroll: true }); } catch (_) {}
+      return true;
+    };
+    if (!reveal()) return;
+    // Route guidance may still adjust the page right after a render; settle once more, without taking focus from a
+    // control the customer has since chosen.
+    if (typeof window.setTimeout === "function") {
+      window.setTimeout(() => {
+        const active = document.activeElement;
+        const alert = currentMain?.querySelector?.('.staging-error[role="alert"]');
+        if (!alert || (active && active !== document.body && active !== alert && !alert.contains?.(active))) return;
+        reveal();
+      }, 150);
     }
   }
 
@@ -361,7 +389,8 @@
   }
 
   // Read-only: which allowance was reached (Private Beta lifetime allowance or a calendar-month plan limit) and the
-  // server-reported usage. Never changes access; on any failure the message stays neutral. Same reading as Discover.
+  // server-reported usage. Never changes access; on any failure the message stays neutral. Same reading as Discover
+  // (customer-discovery.js allowanceSnapshot).
   async function allowanceSnapshot() {
     try {
       const response = await fetch("/api/v1/entitlements", {
@@ -385,7 +414,10 @@
         monthly: scope === "UTC_CALENDAR_MONTH" || accessState === "MONTHLY_EVALUATION_LIMIT_REACHED",
         used: number(usage.admissionUsage) ?? (completed === null ? null : completed + inProgress),
         inProgress,
-        limit: number(usage.evaluationAllowanceLimit ?? usage.monthlyEvaluationLimit)
+        limit: number(usage.evaluationAllowanceLimit ?? usage.monthlyEvaluationLimit),
+        allowedNow: typeof usage.evaluationAllowedNow === "boolean"
+          ? usage.evaluationAllowedNow
+          : Number.isInteger(usage.remainingEvaluations) ? usage.remainingEvaluations > 0 : null
       };
     } catch (_) {
       return null;
@@ -397,7 +429,9 @@
   // customer moved to, or reset form fields edited since. If they left, the named allowance is kept for their return.
   async function describeAllowance(error) {
     const allowance = await allowanceSnapshot();
-    if (!allowance || state.error !== error) return;
+    // If evaluations are available again (a reservation was released or the allowance changed), never claim the
+    // allowance is reached or print a usage line under it: the neutral message stays.
+    if (!allowance || allowance.allowedNow === true || state.error !== error) return;
     error.allowance = allowance;
     if (!evaluationOwnsSurface()) return;
     const node = currentMain.querySelector("[data-evaluation-allowance-reached]");
@@ -405,7 +439,8 @@
     const template = document.createElement("template");
     template.innerHTML = allowancePanel(error);
     const fresh = template.content.firstElementChild;
-    if (fresh) node.replaceWith(fresh);
+    // Swap the contents, not the element, so the alert keeps its position and focus.
+    if (fresh) node.innerHTML = fresh.innerHTML;
   }
 
   function allowancePanel(error) {

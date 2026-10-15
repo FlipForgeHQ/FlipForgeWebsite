@@ -31,6 +31,13 @@ function envelope(correlationId, data) {
 }
 
 function entitlements(correlationId) {
+  if (entitlementsMode === "available") {
+    // Evaluations are available again by the time the lookup answers (a reservation released, or the allowance raised).
+    return envelope(correlationId, { kind: "entitlements", readOnly: true,
+      current: { code: "PRIVATE_BETA", accessState: "PRIVATE_BETA_ACTIVE", evaluationAllowanceScope: "PRIVATE_BETA_LIFETIME", effectiveEvaluationLimit: 5 },
+      usage: { evaluationAllowanceScope: "PRIVATE_BETA_LIFETIME", completedEvaluations: 4, inProgressReservations: 0, admissionUsage: 4,
+        evaluationAllowanceLimit: 5, remainingEvaluations: 1, evaluationAllowedNow: true } });
+  }
   const beta = entitlementsMode !== "monthly";
   const reserved = entitlementsMode === "reserved";
   const usage = {
@@ -115,6 +122,8 @@ const CASES = [
     title: /^Evaluation limit reached$/, body: /No new evaluation was created for this listing and nothing was saved\./ },
   { label: "allowance lookup stalls", eval: "limit", ent: "stall",
     title: /^Evaluation limit reached$/, body: /No new evaluation was created/, enrichedTitle: /^You’ve reached your Private Beta evaluation allowance\.$/ },
+  { label: "evaluations available again when the lookup answers", eval: "limit", ent: "available",
+    title: /^Evaluation limit reached$/, body: /^(?!.*You have used).*No new evaluation was created for this listing and nothing was saved\./ },
   { label: "403 unchanged", eval: "denied", ent: "beta", nonLimit: true }
 ];
 
@@ -133,7 +142,13 @@ for (const viewport of [{ width: 1280, height: 900, name: "desktop" }, { width: 
       const loadsAtStart = loads;
       const hashAtStart = await page.evaluate(() => location.hash);
       const clickedAt = Date.now();
-      await form.evaluate(node => node.requestSubmit());
+      // A real customer action on the submit button, not a programmatic submit. On a phone, a tap. On desktop the Guided
+      // Mode panel is docked over the right-hand column where the button sits (pre-existing, tracked separately), so the
+      // button is used from the keyboard there: focus it and press Enter. Either way the page is left scrolled to the
+      // button, below the alert.
+      const submit = form.locator('.staging-form-actions button[type="submit"]');
+      if (viewport.width > 600) { await submit.focus(); await page.keyboard.press("Enter"); }
+      else await submit.click({ timeout: 5000 });
       await page.waitForSelector("#main-content .staging-error[role=alert]", { timeout: 10000 });
       const alertAfterMs = Date.now() - clickedAt;
       if (testCase.nonLimit) {
@@ -152,7 +167,11 @@ for (const viewport of [{ width: 1280, height: 900, name: "desktop" }, { width: 
           links: [...alert.querySelectorAll("a[href]")].map(a => [a.getAttribute("href"), a.textContent.trim()]),
           hash: location.hash,
           identityKept: form?.querySelector('textarea[name="cardIdentity"]')?.value || "",
-          savedDecisionShown: Boolean(document.querySelector("#main-content .customer-intelligence-hero, #main-content [data-staging-evaluation-result]"))
+          savedDecisionShown: Boolean(document.querySelector("#main-content .customer-intelligence-hero, #main-content [data-staging-evaluation-result]")),
+          inView: (() => { const r = alert.getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight; })(),
+          focused: document.activeElement === alert,
+          contradictingCoach: (() => { const coach = document.querySelector("#main-content [data-ff-recovery]");
+            return coach ? coach.innerText.replace(/\s+/g, " ") : ""; })()
         } : null;
       });
       const first = await read();
@@ -175,6 +194,9 @@ for (const viewport of [{ width: 1280, height: 900, name: "desktop" }, { width: 
       check(`${label}: stays on the Evaluate page (no reload, no route change)`, loads === loadsAtStart && settled.hash === hashAtStart, `loads=${loads - loadsAtStart} hash=${settled.hash}`);
       check(`${label}: keeps what the customer typed`, settled.identityKept === IDENTITY, settled.identityKept);
       check(`${label}: no evaluation result is invented`, settled.savedDecisionShown === false);
+      check(`${label}: the alert is on screen after the click`, settled.inView, JSON.stringify({ inView: settled.inView }));
+      check(`${label}: focus moves to the alert`, settled.focused);
+      check(`${label}: no recovery card contradicts the allowance message`, !/didn.t complete|try again/i.test(settled.contradictingCoach), settled.contradictingCoach);
       check(`${label}: exactly one evaluation request was sent`, evaluationCalls.length - callsBefore === 1, `${evaluationCalls.length - callsBefore}`);
       check(`${label}: allowance lookup is read-only and single`, entitlementCalls === 1, `${entitlementCalls}`);
     } catch (error) {
@@ -295,13 +317,14 @@ for (const scenario of [
       field.value = "Edited after the refusal";
       field.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    await page.waitForFunction(() => /Private Beta evaluation allowance/.test(document.querySelector("#main-content [data-evaluation-allowance-reached] strong")?.textContent || ""), null, { timeout: 8000 });
+    const named = await page.waitForFunction(() => /Private Beta evaluation allowance/.test(document.querySelector("#main-content [data-evaluation-allowance-reached] strong")?.textContent || ""), null, { timeout: 8000 })
+      .then(() => true, () => false);
     const seen = await page.evaluate(() => ({
       seller: document.querySelector('#main-content [data-staging-evaluation-form] input[name="seller"]')?.value || "",
       alerts: document.querySelectorAll("#main-content [data-evaluation-allowance-reached]").length,
       ownsEvaluate: Boolean(document.querySelector("#main-content .staging-evaluation-page"))
     }));
-    check(`${label}: names the allowance once the lookup answers`, true);
+    check(`${label}: names the allowance once the lookup answers`, named);
     check(`${label}: keeps a field edited after the refusal`, seen.seller === "Edited after the refusal", seen.seller);
     check(`${label}: exactly one alert on the page`, seen.alerts === 1 && seen.ownsEvaluate, JSON.stringify(seen));
   } catch (error) {
