@@ -686,6 +686,11 @@
         : allowance?.monthly ? "You\u2019ve reached this month\u2019s evaluation limit." : "Evaluation limit reached";
       body = `No new evaluation was created for this listing and nothing was saved.${usage} Your existing saved decisions are unchanged.`;
       actions = link("#/account", "View Plan & Usage") + link("#/opportunities", "Open saved decisions");
+    } else if (code === "PROVIDER_BUDGET_EXHAUSTED") {
+      // Definite outcome: the server stopped before saving anything. Retrying cannot help until the budget changes.
+      title = "Evaluation stopped before it finished";
+      body = "This account's data-provider budget has been reached, so FlipForge stopped before making a decision. No decision was saved and no evaluation was used. Your existing saved decisions are unchanged.";
+      actions = link("#/opportunities", "Open saved decisions") + link("#/account", "View Plan & Usage");
     } else if (status === 401 || code === "AUTHENTICATION_REQUIRED") {
       title = "Sign in again to evaluate";
       body = "Your FlipForge sign-in has expired, so this listing was not evaluated. Sign in again and you will come back to this page.";
