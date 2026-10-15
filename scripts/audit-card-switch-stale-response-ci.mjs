@@ -99,7 +99,16 @@ async function newSession() {
     // hashchange event is dispatched).
     let seenId = "";
     let seenAt = 0;
-    const sample = () => {
+    let lastSampleTime = null;
+    window.__ffSampling = { count: 0, maxVisibleGapMs: 0, largeVisibleGaps: 0 };
+    const sample = (frameTime) => {
+      if (lastSampleTime !== null && document.visibilityState === "visible") {
+        const gap = frameTime - lastSampleTime;
+        window.__ffSampling.maxVisibleGapMs = Math.max(window.__ffSampling.maxVisibleGapMs, gap);
+        if (gap > 125) window.__ffSampling.largeVisibleGaps += 1;
+      }
+      lastSampleTime = frameTime;
+      window.__ffSampling.count += 1;
       const id = routeId();
       const routeKey = String(location.hash || "").replace(/^#\/?/, "").split("?")[0];
       if (routeKey !== seenId) { seenId = routeKey; seenAt = performance.now(); }
@@ -127,7 +136,10 @@ async function newSession() {
       }
       requestAnimationFrame(sample);
     };
-    requestAnimationFrame(sample);
+    // Install the recorder after the application's own pre-paint callback.
+    // The previous addInitScript rAF ran before the guard and could sample
+    // stale DOM that would be removed before the browser displayed a frame.
+    window.addEventListener("load", () => requestAnimationFrame(sample), { once: true });
   }, { email });
 
   await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
@@ -174,7 +186,7 @@ async function newSession() {
 }
 
 const frames = page => page.evaluate(() => window.__ffFrames.splice(0));
-const GRACE_MS = 50;
+const GRACE_MS = 0; // Every painted frame must belong to the URL's exact card.
 // A frame is wrong when a card is on screen that is not the card in the URL (after the router's grace period).
 // A card on screen that is not the card in the URL - including any card while the URL is not a card route.
 const foreign = list => list.filter(f => f.shown && (!f.id || f.shown.title !== cards[f.id]?.title) && f.since > GRACE_MS);
@@ -359,7 +371,30 @@ try {
 } catch (error) {
   failures.push(`audit did not complete: ${error.message.split("\n")[0]}`);
 } finally {
-  await browser.close();
+  // C9: transition out of a loaded BUY must clear its verdict by the first
+// animation frame after a WATCH navigation, even while the new card is delayed.
+{
+  const { context, page } = await newSession();
+  clearBehavior();
+  await page.goto(`${baseUrl}/#/opportunities/qa-verdict-buy`, { waitUntil: "load" });
+  await waitCard(page, "qa-verdict-buy");
+  setBehavior("qa-verdict-watch", { delayMs: 4000 });
+  const immediatelyVisible = await page.evaluate(async () => {
+    location.hash = "#/opportunities/qa-verdict-watch";
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    const hero = document.querySelector("#main-content .customer-intelligence-hero");
+    return hero && hero.getClientRects().length ? {
+      title: hero.querySelector("h2")?.textContent?.trim(),
+      verdict: hero.querySelector(".staging-status")?.textContent?.trim()
+    } : null;
+  });
+  check("C9 first prepaint frame after BUY to WATCH has no previous BUY card",
+    !immediatelyVisible || immediatelyVisible.title !== cards["qa-verdict-buy"].title,
+    JSON.stringify(immediatelyVisible));
+  await context.close();
+}
+
+await browser.close();
 }
 
 for (const line of passes) console.log(`PASS ${line}`);
