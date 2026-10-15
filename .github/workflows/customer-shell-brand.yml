@@ -124,6 +124,11 @@ jobs:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-guided-mode-clearance-ci.mjs
 
+      - name: Guided Mode never covers primary controls - real full customer shell (/app/customer)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/customer
+        run: node scripts/audit-guided-mode-clearance-ci.mjs
+
       - name: Upload owner-review screenshots
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
