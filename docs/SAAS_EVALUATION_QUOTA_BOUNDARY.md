@@ -10,7 +10,7 @@ The browser does not calculate, grant, extend, reset, or override evaluation all
 
 The Netlify gateway preserves only two explicit, customer-safe upstream evaluation admission outcomes:
 
-- `429 EVALUATION_LIMIT_REACHED` — the authoritative server says the bounded monthly evaluation allowance is full;
+- `429 EVALUATION_LIMIT_REACHED` — the authoritative server says the tenant's evaluation allowance is full (a plan's monthly limit, or the Private Beta lifetime allowance when it is configured). The gateway message is scope-neutral: "Your evaluation allowance has been reached. No new evaluation was created.";
 - `403 ENTITLEMENT_ACCESS_DENIED` — the authoritative server says the current tenant entitlement does not permit a new evaluation.
 
 All other unrecognized upstream rejections continue through the generic safe rejection envelope.
@@ -30,11 +30,11 @@ The customer Evaluate screen now distinguishes:
 - authentication failure;
 - Netlify signed-membership failure;
 - server-owned entitlement denial;
-- server-owned monthly quota exhaustion;
+- server-owned allowance exhaustion (recognized only by the `EVALUATION_LIMIT_REACHED` code; any other 429 is an ordinary refusal);
 - idempotency conflict;
 - other safe failures.
 
-Quota exhaustion directs the tester to **Plan & Usage** to review server-owned usage.
+Quota exhaustion says no new evaluation was created, names the allowance from a read-only `GET /api/v1/entitlements` ("You've reached your Private Beta evaluation allowance." or this month's limit), and links to **Plan & Usage** and saved decisions. A late answer never redraws the page over another route.
 
 There is no browser override, fake result, automatic upgrade, checkout action, or payment control.
 
@@ -56,7 +56,7 @@ If an older compatible entitlement response lacks reservation fields, the UI saf
 
 ## Private Beta
 
-**Private Beta remains unbounded** by Scout / Collector / Pro commercial monthly limits during the current invitation-only beta.
+**Private Beta remains unbounded** by Scout / Collector / Pro commercial monthly limits during the current invitation-only beta. It may instead have a server-owned **lifetime** allowance (`FLIPFORGE_PRIVATE_BETA_EVALUATION_LIMIT`, with optional per-tenant `FLIPFORGE_PRIVATE_BETA_EVALUATION_LIMIT_TENANT_OVERRIDES`) that never resets; see FlipForge2 `docs/saas/SAAS_EVALUATION_QUOTA_ENFORCEMENT.md`.
 
 Private Beta is still not represented as a paid plan.
 

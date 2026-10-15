@@ -16,8 +16,12 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
 check("001 gateway preserves evaluation limit code", gatewaySource.includes('status === 429 && upstreamCode === "EVALUATION_LIMIT_REACHED"'));
 check("002 gateway preserves entitlement access code", gatewaySource.includes('status === 403 && upstreamCode === "ENTITLEMENT_ACCESS_DENIED"'));
 check("003 gateway validates Retry-After as numeric", gatewaySource.includes('safeRetryAfter') && gatewaySource.includes('"Retry-After"'));
-check("004 customer evaluate recognizes evaluation limit", evaluationAdapter.includes('error.code === "EVALUATION_LIMIT_REACHED"') && evaluationAdapter.includes("error.status === 429"));
-check("005 customer evaluate points to Plan and Usage", evaluationAdapter.includes("Open Plan & Usage to review current usage"));
+check("004 customer evaluate recognizes the evaluation limit by its authoritative code only",
+  evaluationAdapter.includes('return error?.code === "EVALUATION_LIMIT_REACHED";')
+  && !/allowanceError[\s\S]{0,200}status\)? ?=== ?429/.test(evaluationAdapter));
+check("005 customer evaluate links to Plan and Usage and says nothing was created", evaluationAdapter.includes('href="#/account">View Plan &amp; Usage</a>')
+  && evaluationAdapter.includes("No new evaluation was created for this listing and nothing was saved.")
+  && evaluationAdapter.includes("You\\u2019ve reached your Private Beta evaluation allowance."));
 check("006 entitlement 403 is not treated as membership failure", evaluationAdapter.includes('error.code === "ENTITLEMENT_ACCESS_DENIED"') && evaluationAdapter.includes("!membershipError"));
 check("007 Plan and Usage renders reservations", entitlementAdapter.includes("inProgressReservations") && entitlementAdapter.includes("In progress reserved"));
 check("008 Plan and Usage renders admission usage", entitlementAdapter.includes("admissionUsage") && entitlementAdapter.includes("Admission usage"));
@@ -109,7 +113,7 @@ try {
   const limitedBody = JSON.parse(limited.body);
   check("015 quota response remains HTTP 429", limited.statusCode === 429);
   check("016 quota response preserves stable code", limitedBody?.error?.code === "EVALUATION_LIMIT_REACHED");
-  check("017 quota response uses gateway-safe message", limitedBody?.error?.message === "Your monthly evaluation limit has been reached.");
+  check("017 quota response uses gateway-safe, scope-neutral message", limitedBody?.error?.message === "Your evaluation allowance has been reached. No new evaluation was created.");
   check("018 quota response preserves safe Retry-After", limited.headers?.["Retry-After"] === "86400");
   check("019 quota response remains no-store", String(limited.headers?.["Cache-Control"] || "").includes("no-store"));
   check("020 gateway makes one upstream quota call", upstreamCalls.length === 1);

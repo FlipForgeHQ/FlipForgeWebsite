@@ -337,20 +337,132 @@
       state.result = await submitEvaluation(payload, state.idempotencyKey);
     } catch (error) {
       state.error = error;
+      if (allowanceError(error)) describeAllowance(error);
     } finally {
       state.submitting = false;
-      renderCurrent();
+      // The customer may have left while the request was in flight; the outcome is kept in state and shown when
+      // they come back to Evaluate.
+      if (evaluationOwnsSurface()) {
+        renderCurrent();
+        if (state.error) revealError();
+      }
     }
+  }
+
+  // The error panel is drawn above the form, so after a click on the (lower) submit button it can be off screen,
+  // most of all on a phone. Bring it into view and move focus to it so the outcome is seen and announced.
+  function revealError() {
+    const reveal = () => {
+      if (!evaluationOwnsSurface()) return false;
+      const alert = currentMain.querySelector?.('.staging-error[role="alert"]');
+      if (!alert) return false;
+      if (!alert.hasAttribute?.("tabindex")) alert.setAttribute?.("tabindex", "-1");
+      try { alert.scrollIntoView?.({ block: "center", behavior: "instant" }); } catch (_) { alert.scrollIntoView?.(); }
+      try { alert.focus?.({ preventScroll: true }); } catch (_) {}
+      return true;
+    };
+    if (!reveal()) return;
+    // Route guidance may still adjust the page right after a render; settle once more, without taking focus from a
+    // control the customer has since chosen.
+    if (typeof window.setTimeout === "function") {
+      window.setTimeout(() => {
+        const active = document.activeElement;
+        const alert = currentMain?.querySelector?.('.staging-error[role="alert"]');
+        if (!alert || (active && active !== document.body && active !== alert && !alert.contains?.(active))) return;
+        reveal();
+      }, 150);
+    }
+  }
+
+  // currentMain is the app's shared content area. Once another route has drawn into it, a late answer must never
+  // draw the Evaluate page over that route. Only this page renders the evaluation form, so its presence is the test.
+  function evaluationOwnsSurface() {
+    return Boolean(currentMain && currentMain.isConnected !== false
+      && currentMain.querySelector?.("[data-staging-evaluation-form]"));
+  }
+
+  // Only the server's EVALUATION_LIMIT_REACHED (429) means the evaluation allowance is used up: the request was
+  // refused before anything was created, so nothing was evaluated, saved or charged against the allowance. Any other
+  // 429 (for example a gateway rate limit) is a different failure and keeps the generic error panel.
+  function allowanceError(error) {
+    return error?.code === "EVALUATION_LIMIT_REACHED";
+  }
+
+  // Read-only: which allowance was reached (Private Beta lifetime allowance or a calendar-month plan limit) and the
+  // server-reported usage. Never changes access; on any failure the message stays neutral. Same reading as Discover
+  // (customer-discovery.js allowanceSnapshot).
+  async function allowanceSnapshot() {
+    try {
+      const response = await fetch("/api/v1/entitlements", {
+        method: "GET",
+        headers: { Accept: "application/json", "X-Correlation-Id": correlationId() },
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "error"
+      });
+      if (!response.ok) return null;
+      const payload = await parseResponse(response);
+      const data = payload?.data || {};
+      const usage = data.usage || {};
+      const scope = String(usage.evaluationAllowanceScope || data.current?.evaluationAllowanceScope || "");
+      const accessState = String(data.current?.accessState || "");
+      const number = value => (Number.isInteger(value) && value >= 0 ? value : null);
+      const completed = number(usage.completedEvaluations);
+      const inProgress = number(usage.inProgressReservations) ?? 0;
+      return {
+        privateBeta: scope === "PRIVATE_BETA_LIFETIME" || accessState === "PRIVATE_BETA_EVALUATION_ALLOWANCE_REACHED",
+        monthly: scope === "UTC_CALENDAR_MONTH" || accessState === "MONTHLY_EVALUATION_LIMIT_REACHED",
+        used: number(usage.admissionUsage) ?? (completed === null ? null : completed + inProgress),
+        inProgress,
+        limit: number(usage.evaluationAllowanceLimit ?? usage.monthlyEvaluationLimit),
+        allowedNow: typeof usage.evaluationAllowedNow === "boolean"
+          ? usage.evaluationAllowedNow
+          : Number.isInteger(usage.remainingEvaluations) ? usage.remainingEvaluations > 0 : null
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Show the limit message at once; name the allowance (and usage) when the read-only lookup answers. The answer only
+  // updates the alert that is on screen, in place: it never redraws the page, so it cannot replace another route the
+  // customer moved to, or reset form fields edited since. If they left, the named allowance is kept for their return.
+  async function describeAllowance(error) {
+    const allowance = await allowanceSnapshot();
+    // If evaluations are available again (a reservation was released or the allowance changed), never claim the
+    // allowance is reached or print a usage line under it: the neutral message stays.
+    if (!allowance || allowance.allowedNow === true || state.error !== error) return;
+    error.allowance = allowance;
+    if (!evaluationOwnsSurface()) return;
+    const node = currentMain.querySelector("[data-evaluation-allowance-reached]");
+    if (!node) return;
+    const template = document.createElement("template");
+    template.innerHTML = allowancePanel(error);
+    const fresh = template.content.firstElementChild;
+    // Swap the contents, not the element, so the alert keeps its position and focus.
+    if (fresh) node.innerHTML = fresh.innerHTML;
+  }
+
+  function allowancePanel(error) {
+    const allowance = error.allowance || null;
+    const inProgress = allowance && allowance.inProgress > 0 ? `, including ${allowance.inProgress} still in progress` : "";
+    const usage = allowance && allowance.used !== null && allowance.limit !== null
+      ? ` You have used ${allowance.used} of ${allowance.limit}${inProgress}.` : "";
+    const title = allowance?.privateBeta
+      ? "You\u2019ve reached your Private Beta evaluation allowance."
+      : allowance?.monthly ? "You\u2019ve reached this month\u2019s evaluation limit." : "Evaluation limit reached";
+    const body = `No new evaluation was created for this listing and nothing was saved.${usage} Your existing saved decisions are unchanged.`;
+    const reference = error.correlationId ? `<small>Reference: ${escapeHtml(error.correlationId)}</small>` : "";
+    return `<section class="panel staging-error" role="alert" data-evaluation-allowance-reached><div class="panel-body"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(body)}</p><div class="customer-intelligence-actions"><a class="button button-primary" href="#/account">View Plan &amp; Usage</a><a class="button button-secondary" href="${savedListRoute()}">Open saved decisions</a></div>${reference}</div></section>`;
   }
 
   function errorPanel(error) {
     if (!error) return "";
+    if (allowanceError(error)) return allowancePanel(error);
     const membershipError = ["TENANT_MEMBERSHIP_REQUIRED", "TENANT_MEMBERSHIP_INACTIVE", "TENANT_MEMBERSHIP_INVALID"].includes(String(error.code || ""));
     const guidance = error.status === 401
       ? (customerSurface() ? "Sign in with an invited FlipForge private-beta account." : "A configured authentication provider and signed-in preview user are required.")
-      : error.code === "EVALUATION_LIMIT_REACHED" || error.status === 429
-        ? "The server-owned monthly allowance is exhausted. Open Plan & Usage to review current usage. No browser override or mock evaluation is available."
-        : error.code === "ENTITLEMENT_ACCESS_DENIED" || (error.status === 403 && !membershipError)
+      : error.code === "ENTITLEMENT_ACCESS_DENIED" || (error.status === 403 && !membershipError)
           ? "The server-owned plan/access state does not permit a new evaluation. Open Plan & Usage for the current entitlement state; billing and customer plan changes are not connected here."
           : membershipError
             ? "The signed-in account does not have an active FlipForge tenant membership."
