@@ -92,6 +92,8 @@
   }
 
   function consolidateAccountNavigation() {
+    // Account stays in the sidebar; the persistent top-right control owns Sign out.
+    if (document.querySelector("[data-ff-global-signout]")) return;
     document.querySelector(".sidebar-footer .account-link")?.remove();
     const profile = document.querySelector(".profile-button .profile-copy");
     if (!profile) return;

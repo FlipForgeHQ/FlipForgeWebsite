@@ -35,6 +35,40 @@
     return routeParts()[0] || "dashboard";
   }
 
+  function signOutReturnPath() {
+    return fullCustomerMode() ? "/app/customer/#/dashboard" : "/app/#/dashboard";
+  }
+
+  function bindGlobalSignOut() {
+    const button = document.querySelector("[data-ff-global-signout]");
+    if (!button || button.dataset.ffGlobalSignoutBound === "true") return;
+
+    button.dataset.ffGlobalSignoutBound = "true";
+    button.addEventListener("click", async () => {
+      if (button.disabled) return;
+
+      const label = button.querySelector(".profile-copy strong");
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      if (label) label.textContent = "Signing out…";
+
+      try {
+        const identity = window.FlipForgeIdentity;
+        if (!identity || typeof identity.signOut !== "function") {
+          throw new Error("Secure sign out is unavailable. Refresh the app and try again.");
+        }
+        await identity.signOut();
+        const authUrl = `/production-auth.html?return=${encodeURIComponent(signOutReturnPath())}`;
+        window.location.replace(authUrl);
+      } catch (error) {
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+        if (label) label.textContent = "Sign out";
+        button.title = String(error?.message || "Sign out failed. Try again.");
+      }
+    });
+  }
+
   function replaceTextNode(anchor, value) {
     if (!anchor) return;
     const node = [...anchor.childNodes].find(item =>
@@ -440,6 +474,7 @@
     markCustomerSurface();
     simplifyNavigation();
     simplifyTopbar();
+    bindGlobalSignOut();
     customerHome();
     renameSavedDecisions();
     simplifyBetaGuide();
