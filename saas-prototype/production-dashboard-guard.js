@@ -190,6 +190,13 @@
     if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
     routeReloading = true;
     if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+    // The previous document keeps painting until the reloaded one is ready. Never let it show the page we are leaving under
+    // a saved card's URL: put a neutral loading state there for the duration of the reload.
+    if (/^#\/?opportunities\/[^/?#]+/.test(String(window.location.hash || "")) && main && !main.querySelector("[data-ff-route-pending]")) {
+      applying = true;
+      main.innerHTML = '<div class="page" data-ff-route-pending data-ff-opportunity-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>';
+      applying = false;
+    }
     if (typeof window.location?.reload === "function") window.location.reload();
   }
 

@@ -129,8 +129,11 @@ async function newSession() {
     window.__ffSampledFrames = counters[2];
     window.addEventListener("pagehide", persist);
     const armFlush = () => { if (!flushArmed) { flushArmed = true; nativeRaf(flush); } };
+    // Test hook for scenario L only: while set, the page's callbacks and the sampler are not run for this frame (and the frame
+    // is not counted by either counter), modelling a navigation whose hashchange and render both complete between two frames.
     const flush = stamp => {
       flushArmed = false;
+      if (window.__ffHoldFrames) { window.setTimeout(armFlush, 4); return; }
       const batch = [...pageQueue];
       pageQueue.clear();
       for (const [, callback] of batch) { try { callback(stamp); } catch (error) { window.setTimeout(() => { throw error; }, 0); } }
@@ -138,7 +141,7 @@ async function newSession() {
     };
     window.requestAnimationFrame = callback => { const id = nextCallbackId++; pageQueue.set(id, callback); armFlush(); return id; };
     window.cancelAnimationFrame = id => { pageQueue.delete(id); };
-    const nativeFrames = () => { window.__ffCanaryFrames += 1; nativeRaf(nativeFrames); };
+    const nativeFrames = () => { if (!window.__ffHoldFrames) window.__ffCanaryFrames += 1; nativeRaf(nativeFrames); };
     nativeRaf(nativeFrames);
     const canary = stamp => { canaryStamp = stamp; window.requestAnimationFrame(canary); };
     window.requestAnimationFrame(canary);
@@ -257,17 +260,11 @@ async function evalStable(page, fn, arg) {
   }
 }
 const go = (page, hash) => evalStable(page, target => { location.hash = target; }, hash);
-// Strict by default. In a browser WITHOUT the Navigation API a script that assigns location.hash cannot be intercepted
-// before the browser paints once, so those pre-hashchange frames are counted and reported as a limitation (never
-// hidden); frames after hashchange, and every real link click or Back/Forward, are always strict.
-let limitationFrames = 0;
-async function foreign(page, { scripted = true } = {}) {
+// Strict always: every frame is checked, whether the route changed through a link click, Back/Forward or a script assigning
+// location.hash (browsers without the Navigation API included). Nothing is filtered out or reported as a limitation.
+async function foreign(page) {
   // Flush the recorder first so a pending reload cannot hide frames seen just before it.
-  const all = await evalStable(page, () => { window.dispatchEvent(new Event("pagehide")); return window.__ffForeign.slice(); });
-  if (!scripted || await evalStable(page, () => Boolean(window.navigation))) return all;
-  const gaps = all.filter(f => f.gap);
-  limitationFrames += gaps.length;
-  return all.filter(f => !f.gap);
+  return evalStable(page, () => { window.dispatchEvent(new Event("pagehide")); return window.__ffForeign.slice(); });
 }
 // A real, user-style click on an in-page link to a hash route.
 async function clickTo(page, hash) {
@@ -459,7 +456,7 @@ try {
     await showsCard(page, VERIFY);
     view = await snapshot(page);
     check("H Forward to the slow card: VERIFY is shown once it loads", view.title === cards[VERIFY].title && view.verdict === "VERIFY", JSON.stringify(view));
-    const bad = await foreign(page, { scripted: false });
+    const bad = await foreign(page);
     check("H Back/Forward: no frame ever showed another card's decision, price or evidence", bad.length === 0, describe(bad));
     clearBehavior();
     await context.close();
@@ -478,7 +475,7 @@ try {
     await showsCard(page, clicks[clicks.length - 1]);
     await page.waitForTimeout(3500);
     const view = await snapshot(page);
-    const bad = await foreign(page, { scripted: false });
+    const bad = await foreign(page);
     check("I rapid link clicks (with a slow and a failing card): the card in the URL is on screen after every response has arrived", view.title === cards[VERIFY].title && view.verdict === "VERIFY" && !view.error, JSON.stringify(view));
     check("I rapid link clicks: no frame ever showed another card's decision, price or evidence", bad.length === 0, describe(bad));
     await context.close();
@@ -503,9 +500,34 @@ try {
     await showsCard(page, PASS);
     view = await snapshot(page);
     check("J Dashboard -> card: the requested card appears", view.title === cards[PASS].title && view.verdict === "PASS", JSON.stringify(view));
-    const bad = await foreign(page, { scripted: false });
+    const bad = await foreign(page);
     check("J Dashboard round trips: no frame ever showed a card on the Dashboard or another card's details", bad.length === 0, describe(bad));
     clearBehavior();
+    await context.close();
+  }
+
+  // L. Leaving a loaded card for another page that shares the generic page classes (PSA Advisor): the destination must stay
+  // on screen (an earlier guard treated the shared class as proof the card still owned the screen and replaced PSA Advisor
+  // with the old card's loading view), and Back must return to the card.
+  {
+    const { context, page } = await newSession();
+    await page.goto(`${baseUrl}/#/opportunities/${BUY}`, { waitUntil: "domcontentloaded" });
+    await showsCard(page, BUY);
+    // Hold the frame clock, navigate, wait until PSA Advisor has rendered, then let frames run: the card's pre-paint guard now
+    // runs AFTER the destination painted itself, which is the order that used to overwrite the destination.
+    await page.evaluate(() => { window.__ffHoldFrames = true; });
+    await go(page, "#/psa-advisor");
+    await page.waitForFunction(() => /PSA Advisor/.test(document.querySelector("#main-content h1")?.textContent || ""), null, { timeout: 15_000 }).catch(() => {});
+    await page.evaluate(() => { window.__ffHoldFrames = false; });
+    await page.waitForTimeout(2000);
+    let view = await snapshot(page);
+    check("L card -> PSA Advisor: PSA Advisor stays on screen (the card's guard does not overwrite another renderer's page)", /PSA Advisor/i.test(String(view.heading || "")) && !view.hero && view.hash === "#/psa-advisor", JSON.stringify(view));
+    await page.goBack();
+    await showsCard(page, BUY);
+    view = await snapshot(page);
+    check("L PSA Advisor -> Back: the card is shown again", view.title === cards[BUY].title && view.verdict === "BUY", JSON.stringify(view));
+    const bad = await foreign(page);
+    check("L card <-> PSA Advisor: no frame ever showed a card under the wrong route or another card's details", bad.length === 0, describe(bad));
     await context.close();
   }
 
@@ -533,7 +555,7 @@ try {
     await page.waitForTimeout(8200);
     view = await snapshot(page);
     check("K 10.5 s response for an abandoned card (Back): BUY stays, PASS never appears", view.title === cards[BUY].title && view.verdict === "BUY", JSON.stringify(view));
-    const bad = await foreign(page, { scripted: false });
+    const bad = await foreign(page);
     check("K 10.5 s delays: no frame ever showed another card's decision, price or evidence", bad.length === 0, describe(bad));
     clearBehavior();
     await context.close();
@@ -562,6 +584,5 @@ try {
 
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);
-if (limitationFrames) console.log(`LIMITATION ${limitationFrames} pre-hashchange frame(s) from scripted location.hash changes in this browser (no Navigation API); not counted as failures, reported so they are not hidden.`);
 console.log(`Card switching audit [${runLabel}]: ${passes.length}/${passes.length + failures.length} passed.`);
 if (failures.length) process.exit(1);

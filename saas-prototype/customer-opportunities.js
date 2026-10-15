@@ -175,7 +175,11 @@
     return `<div class="page customer-intelligence-page">${pageHeading("Card Intelligence", "Decision first. Open deeper evidence only when you need it.", actions)}<section class="panel customer-intelligence-hero"><div class="panel-body"><div class="customer-hero-copy"><span class="eyebrow">${escapeHtml(item.platform || "Saved marketplace record")}</span><div class="customer-hero-title">${badge(item.recommendation || "UNKNOWN", String(item.recommendation || "unknown").toLowerCase())}<h2>${escapeHtml(title)}</h2></div>${display.identity ? `<p>${escapeHtml(display.identity)}</p>` : ""}<div class="customer-tracked-state"><span class="check-mark ok">✓</span><span><strong>Tracked in SQLite</strong><small>Tenant-owned saved record · ${escapeHtml(item.observedAt || "Observation time unavailable")}</small></span></div></div><div class="customer-value-summary"><span>Current ask</span><strong>${money(ask)}</strong><span>Supported value</span><strong${supportedAvailable ? " class=\"value-positive\"" : ""}>${escapeHtml(supportedValueText(item, acceptedSales))}</strong><small>${supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)} · ${gapPercent.toFixed(1)}% saved value gap` : "No accepted exact completed-sale evidence supports a value yet."}</small></div></div></section>${valueIntelligencePanel(item)}<div class="customer-intelligence-metrics"><article><span>Confidence</span><strong>${safeNumber(item.confidence)}/100</strong></article><article><span>Liquidity</span><strong>${safeNumber(item.liquidity)}/100</strong></article><article><span>Risk</span><strong>${safeNumber(item.risk)}/100</strong></article><article><span>Rank</span><strong>${safeNumber(item.rank)}/100</strong></article></div><div class="customer-intelligence-grid"><div class="stack"><section class="panel"><header class="panel-header"><div><h2>Decision Traceback</h2><p>A readable path through the saved authority inputs. No browser-side scoring.</p></div>${badge(item.recommendation || "UNKNOWN", String(item.recommendation || "unknown").toLowerCase())}</header><div class="panel-body customer-traceback">${tracebackStep("1 · Provider catalog link", catalogLinked ? "CardSight catalog linked" : "CardSight catalog link pending", catalogLinkDetail, catalogLinked ? "ok" : "warn")}${tracebackStep("2 · Evidence", evidenceReady ? `${acceptedSales} accepted exact completed sale${acceptedSales === 1 ? "" : "s"}` : "No accepted exact completed sales", `${ineligible} visible record${ineligible === 1 ? " is" : "s are"} not counted now (excluded, held for review or not used). Active asks never become sold evidence.`, evidenceReady ? "ok" : "warn")}${tracebackStep("3 · Market factors", `Liquidity ${safeNumber(item.liquidity)} · Risk ${safeNumber(item.risk)} · Rank ${safeNumber(item.rank)}`, item.changeSummary || "Saved factors are displayed exactly as returned by Smart Opportunity.", "neutral")}${tracebackStep("4 · Authority output", item.recommendation || "UNKNOWN", `Workflow: ${item.workflowStatus || "UNKNOWN"}. ${item.authorityBoundary || "Smart Opportunity remains authoritative."}`, "neutral")}</div></section><section class="panel"><header class="panel-header"><div><h2>Evidence Chain</h2><p>Linked completed-sale evidence from the saved ledger, and what is not counted now and why.</p></div><span class="staging-status ${evidenceReady ? "staging-status-ok" : "staging-status-warn"}">${acceptedSales} accepted</span></header><div class="panel-body">${linkedEvidenceTable(evidence)}</div></section></div><div class="stack"><section class="panel"><header class="panel-header"><div><h2>Evidence readiness</h2><p>What can and cannot support this saved decision.</p></div></header><div class="panel-body staging-key-grid"><div><span>Accepted exact sales</span><strong>${acceptedSales}</strong></div><div><span>Not counted now</span><strong>${ineligible}</strong></div><div><span>Average accepted price</span><strong>${acceptedSales > 0 ? money(item.evidence?.averagePrice) : "Unavailable"}</strong></div><div><span>Latest accepted sale</span><strong>${escapeHtml(item.evidence?.latestSaleDate || "Unavailable")}</strong></div><div><span>Provider catalog link</span><strong>${catalogLinked ? "Linked" : "Pending"}</strong></div><div><span>Evidence freshness</span><strong>${escapeHtml(meta.evidenceFreshness || "Unavailable")}</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>Saved PSA guidance</h2><p>Existing PSA intelligence only; no grade is predicted here.</p></div>${badge(psaAvailable ? "Available" : "Insufficient context", psaAvailable ? "ok" : "warn")}</header><div class="panel-body staging-key-grid"><div><span>Guidance status</span><strong>${escapeHtml(psa.guidanceStatus || "Unavailable")}</strong></div><div><span>Readiness</span><strong>${escapeHtml(snapshot.readinessStatus || "Unavailable")}</strong></div><div><span>PSA 10 population</span><strong>${safeNumber(psa.populationContext?.psa10Population)}</strong></div><div><span>PSA 9 population</span><strong>${safeNumber(psa.populationContext?.psa9Population)}</strong></div><div><span>Manual verification</span><strong>${snapshot.manualVerificationRequired === true ? "Required" : "Not returned"}</strong></div><div><span>Recalculated</span><strong>${psa.recalculated === true ? "Yes" : "No"}</strong></div></div>${psa.authorityConflict ? `<div class="boundary-note"><strong>Authority conflict:</strong> ${escapeHtml(psa.authorityConflict)}</div>` : ""}</section><section class="panel customer-decision-boundary"><div class="panel-body"><span class="eyebrow">Before you buy. Know why.</span><h2>${escapeHtml(item.recommendation || "UNKNOWN")} is decision support</h2><p>${escapeHtml(decisionBoundaryMessage)}</p><small>No bid, checkout, payment, evidence acceptance, or grade prediction is authorized.</small></div></section></div></div>${state.partialErrors.length ? `<section class="panel staging-warning"><div class="panel-body"><strong>Some saved context is unavailable.</strong><ul>${state.partialErrors.filter(entry => entry.key !== "detail").map(entry => `<li>${escapeHtml(entry.key.toUpperCase())}: ${escapeHtml(entry.error?.code || entry.error?.message || "Unavailable")}</li>`).join("")}</ul><small>No replacement or fabricated data was shown.</small></div></section>` : ""}</div>`;
   }
 
-  function renderCurrent() { if (!state.main) return; state.main.innerHTML = state.selectedId ? detailView() : listView(); bindActions(); if (state.selectedId && state.detail) startRouteGuard(); }
+  // The page element this renderer last painted. Another renderer replacing #main-content (PSA Advisor, Evidence, ...) can
+  // reuse the same generic page classes, so ownership is decided by this element's identity, never by a shared class.
+  let renderedPage = null;
+  function ownsScreen() { return Boolean(renderedPage && state.main && state.main.firstElementChild === renderedPage); }
+  function renderCurrent() { if (!state.main) return; state.main.innerHTML = state.selectedId ? detailView() : listView(); bindActions(); if (state.selectedId && state.detail) startRouteGuard(); renderedPage = state.main.firstElementChild || null; }
   function bindActions() {
     if (!state.main) return;
     state.main.querySelectorAll?.("[data-customer-opportunity]").forEach(row => {
@@ -293,9 +297,9 @@
       guardFrame = 0;
       if (!state.main || !state.selectedId || !state.detail) return;
       if (routeCardId() !== state.selectedId) {
-        const ownsScreen = Boolean(state.main.querySelector?.(".customer-intelligence-page"));
+        const ownedBefore = ownsScreen();
         leaveCurrentCard(String(window.location.hash || ""));
-        if (!ownsScreen) return;
+        if (!ownedBefore) return;
       }
       guardFrame = window.requestAnimationFrame(tick);
     };
@@ -307,22 +311,39 @@
     if (destinationHash === `#/opportunities/${encodeURIComponent(state.selectedId)}`) return;
     loadSerial += 1;
     const leftId = state.selectedId;
-    const ownsScreen = Boolean(state.main.querySelector?.(".customer-intelligence-page"));
+    const ownedBefore = ownsScreen();
     state.detail = null;
     state.evidence = null;
     state.psa = null;
     state.error = null;
     state.partialErrors = [];
     state.loading = true;
-    if (!ownsScreen) return; // another renderer already replaced the card page: nothing of ours to clear
+    if (!ownedBefore) return; // another renderer already replaced the card page: nothing of ours to clear
     renderCurrent();
     // If nothing takes over (the navigation was cancelled), reload the card the address bar still names.
     window.setTimeout(() => {
       if (routeCardId() === leftId && state.selectedId === leftId && state.main && state.detail === null && state.loading) load();
     }, 600);
   }
+  // Arriving at a saved card from any other page (Back/Forward, a link): until the route renderer runs, the page that was on
+  // screen must not stay visible under the card's URL, so a neutral loading state takes its place in the same task.
+  function showPendingCard(destinationHash) {
+    const match = String(destinationHash || "").match(/^#\/?opportunities\/([^/?#]+)/);
+    if (!match) return;
+    let id = match[1];
+    try { id = decodeURIComponent(id); } catch (_) { /* keep raw id */ }
+    const main = state.main || document.querySelector("#main-content");
+    if (!main) return;
+    if (state.detail && state.selectedId === id && main.firstElementChild === renderedPage) return; // that card is already on screen
+    if (main.querySelector("[data-ff-route-pending]")) return;
+    main.innerHTML = '<div class="page" data-ff-route-pending data-ff-opportunity-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>';
+  }
   if (window.navigation && typeof window.navigation.addEventListener === "function") {
-    window.navigation.addEventListener("navigate", event => leaveCurrentCard(hashOf(event?.destination?.url)));
+    window.navigation.addEventListener("navigate", event => {
+      const destination = hashOf(event?.destination?.url);
+      leaveCurrentCard(destination);
+      showPendingCard(destination);
+    });
   } else if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener("click", event => {
       const link = event.target && typeof event.target.closest === "function" ? event.target.closest("a[href]") : null;
