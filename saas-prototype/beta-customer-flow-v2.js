@@ -403,9 +403,11 @@
     }
 
     if (route === "evaluate") {
-      // The allowance alert (data-evaluation-allowance-reached) is definite and states its own next steps (Plan &
-      // Usage, saved decisions). This coach's "didn't complete here ... try again" would contradict it.
-      const error = main.querySelector('.staging-error[role="alert"]:not([data-evaluation-allowance-reached]),.consumer-state-error:not([data-evaluation-allowance-reached])');
+      // The allowance alert (data-evaluation-allowance-reached) and the provider-budget stop (data-provider-budget-stop)
+      // are definite and state their own next steps. This coach's "didn't complete here ... if it finished ... try again"
+      // would contradict them.
+      const definite = ":not([data-evaluation-allowance-reached]):not([data-provider-budget-stop])";
+      const error = main.querySelector(`.staging-error[role="alert"]${definite},.consumer-state-error${definite}`);
       if (error) {
         setRecovery("evaluate-error", error, recoveryHtml("The evaluation didn't complete here.", "If it finished on FlipForge's side, it is in your saved decisions. Review the card identity and listing facts, then try again. If you are unsure about the card, return to Discover instead of guessing.", '<a class="button button-primary" href="#/discover">Return to Discover</a><button class="button button-secondary" type="button" data-ff-new-card>Start a different card</button>'));
         return;

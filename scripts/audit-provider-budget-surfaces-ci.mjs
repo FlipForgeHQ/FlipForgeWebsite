@@ -189,6 +189,9 @@ const manualState = page => page.evaluate(() => {
     const manual = await manualState(page);
     check("B: manual refusal keeps submit disabled", manual.submitDisabled === true, JSON.stringify(manual));
     check("B: manual refusal explains the stop", /No decision was saved and no evaluation was used/.test(manual.error) && /until it is reloaded/.test(manual.error), manual.error.slice(0, 200));
+    // The Evaluate route's recovery coach ("didn't complete ... if it finished ... try again") must not contradict the stop.
+    const coach = await page.evaluate(() => document.querySelector("#main-content [data-ff-recovery]")?.innerText.replace(/\s+/g, " ") || "");
+    check("B: no recovery coach contradicts the budget stop", !/didn.t complete|if it finished|try again/i.test(coach), coach.slice(0, 160));
     await page.evaluate(() => document.querySelector("#main-content [data-staging-evaluation-form]")?.requestSubmit());
     await page.waitForTimeout(400);
     await searchDiscover(page);
