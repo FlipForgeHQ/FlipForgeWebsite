@@ -36,7 +36,7 @@
     if (!main) return;
     const shown = main.querySelector(".customer-intelligence-hero");
     if (!shown) return;
-    const match = String(nextHash).match(/^#\\/?opportunities\\/([^/?#]+)/);
+    const match = String(nextHash).match(/^#\/?opportunities\/([^/?#]+)/);
     let requestedId = "";
     if (match) {
       try { requestedId = decodeURIComponent(match[1]); }
