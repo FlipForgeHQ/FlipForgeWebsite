@@ -68,5 +68,9 @@ const coverageOk = results.length === expected;
 mkdirSync("artifacts/card-switching", { recursive: true });
 writeFileSync(`artifacts/card-switching/${label}.json`, JSON.stringify({ label, base, paths, modes, reps, expectedRuns: expected, executedRuns: results.length, failedRuns: failed.length, seconds: Math.round((Date.now() - started) / 1000), results }, null, 2));
 console.log(`MATRIX ${label}: executed ${results.length}/${expected} runs (${paths.length} paths x ${modes.length} navigation modes x ${reps} repetitions), ${failed.length} failed, ${Math.round((Date.now() - started) / 1000)}s.`);
+if (process.env.GITHUB_ACTIONS) {
+  const kinds = [...new Set(results.map(record => record.configuration))].join("; ");
+  console.log(`::${failed.length || !coverageOk ? "error" : "notice"} title=Card switching coverage ${label}::executed ${results.length}/${expected} runs (${paths.length} paths x ${modes.length} modes x ${reps} reps), ${failed.length} failed, ${results.reduce((sum, record) => sum + record.passed, 0)}/${results.reduce((sum, record) => sum + record.total, 0)} checks passed. Configurations: ${kinds}`);
+}
 if (!coverageOk) console.log(`FAIL coverage: expected ${expected} runs, executed ${results.length}.`);
 process.exit(failed.length || !coverageOk ? 1 : 0);
