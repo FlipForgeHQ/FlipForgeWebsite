@@ -72,9 +72,13 @@
       lastPaintHash = hash;
       protectSavedCard(hash);
     }
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(protectBeforePaint);
+    }
+  }
+  if (typeof window.requestAnimationFrame === "function") {
     window.requestAnimationFrame(protectBeforePaint);
   }
-  window.requestAnimationFrame(protectBeforePaint);
   window.addEventListener("hashchange", () => {
     lastPaintHash = String(window.location.hash || "");
     protectSavedCard(lastPaintHash);
