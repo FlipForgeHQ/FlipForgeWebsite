@@ -67,6 +67,18 @@ async function newPage({ discoverEvaluationFails = false } = {}) {
     if (url.pathname === "/api/v1/evaluations") {
       const id = JSON.parse(request.postData() || "{}").externalListingId;
       calls.push(id);
+      if (id === "manual-slow-ok") {
+        const headers = request.headers();
+        return new Promise(resolve => setTimeout(resolve, 2500)).then(() => json(200, { meta: { contractVersion: "1.0", engineVersion: "provider-budget-surfaces-audit",
+          authority: "Smart Opportunity", gradingAuthority: "Existing PSA intelligence", correlationId: headers["x-correlation-id"],
+          generatedAt: "2026-10-07T02:00:00Z", evidenceFreshness: "QA_FIXTURE", limitations: [] },
+          data: { kind: "evaluation", requestId: headers["idempotency-key"], opportunityId: "EBAY-QA-MANUAL-1", persistedToSqlite: true, tenantOwned: true,
+            requestCanVerifyEvidence: false, requestCanVerifyIdentity: false, evidenceAcceptedByRequest: false, psaRecalculated: false,
+            transactionAuthorized: false, providerCredentialsExposed: false,
+            decision: { recommendation: "WATCH", supportedValueCents: 85000, exactTrustedCompCount: 3, confidence: 80, risk: 40, reason: "QA", missingRequirement: "", nextAction: "Review." },
+            normalizedRequest: { allInAskCents: 70000 },
+            tenantIsolation: { enforced: true, idempotencyScope: "TENANT", opportunityOwnership: "GRANTED_ON_COMPLETION", defaultAccess: "DENY" } } }));
+      }
       if (id === "manual-502") return json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } });
       if (discoverEvaluationFails && id === "QA-OHTANI-150" && calls.filter(value => value === id).length === 1) {
         return json(502, { error: { code: "UPSTREAM_UNAVAILABLE", message: "Unavailable.", correlationId } });
@@ -139,8 +151,9 @@ const manualState = page => page.evaluate(() => {
     await openManual(page);
     const manual = await manualState(page);
     check("A: manual Evaluate opened after the stop has submit disabled", manual.submitDisabled === true, JSON.stringify(manual));
-    check("A: manual Evaluate explains the provider budget stop", /data-provider budget has been reached/.test(manual.error)
-      && /No decision was saved and no evaluation was used/.test(manual.error) && /until it is reloaded/.test(manual.error), manual.error.slice(0, 160));
+    // The stop came from Discover, not from this page's own request: neutral wording, no claim about a request.
+    check("A: manual Evaluate explains the stop neutrally (further evaluations unavailable)", /data-provider budget has been reached/.test(manual.error)
+      && /further evaluations are unavailable/.test(manual.error) && !/No decision was saved/.test(manual.error), manual.error.slice(0, 200));
     await fillManual(page, "manual-after-discover");
     await page.evaluate(() => document.querySelector("#main-content [data-staging-evaluation-form]")?.requestSubmit());
     await page.waitForTimeout(600);
@@ -277,6 +290,37 @@ const manualState = page => page.evaluate(() => {
     check("E: two requests in total (the failed Discover one and the refused manual one)", calls.length === 2, JSON.stringify(calls));
   } catch (error) {
     check("E: completed", false, String(error.message).split("\n")[0]);
+  } finally {
+    await context.close();
+  }
+}
+
+// Scenario G: a manual request already in flight completes after bulk (same page) reports the stop.
+{
+  const { context, page, calls } = await newPage();
+  try {
+    await page.goto(`${baseUrl}/#/evaluate`, { waitUntil: "load" });
+    await openManual(page);
+    await fillManual(page, "manual-slow-ok");
+    await page.evaluate(() => document.querySelector("#main-content [data-staging-evaluation-form]")?.requestSubmit());
+    await page.waitForSelector("#main-content [data-bulk-file]", { state: "attached", timeout: 10000 });
+    await page.setInputFiles("#main-content [data-bulk-file]", { name: "during-manual.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+    await page.locator("#main-content [data-bulk-ack]").check();
+    await page.locator("#main-content [data-bulk-run]").click();
+    await page.waitForSelector("#main-content .staging-evaluation-result", { timeout: 15000 });
+    await page.waitForTimeout(400);
+    const view = await page.evaluate(() => ({
+      result: document.querySelector("#main-content .staging-evaluation-result")?.innerText.replace(/\s+/g, " ") || "",
+      errors: [...document.querySelectorAll("#main-content .staging-error")].map(node => node.innerText.replace(/\s+/g, " ")),
+      submitDisabled: document.querySelector('#main-content [data-staging-evaluation-form] .staging-form-actions button[type="submit"]')?.disabled === true
+    }));
+    check("G: the in-flight manual evaluation's saved result is shown", /WATCH/.test(view.result), view.result.slice(0, 120));
+    check("G: nothing on the page claims that no decision was saved", !view.errors.some(text => /No decision was saved/.test(text)), JSON.stringify(view.errors).slice(0, 220));
+    check("G: the neutral stop is explained and further manual evaluations are disabled", view.submitDisabled
+      && view.errors.some(text => /further evaluations are unavailable/.test(text)), JSON.stringify(view.errors).slice(0, 220));
+    check("G: requests: the manual one and the single refused bulk row", calls.length === 2 && calls.includes("manual-slow-ok") && calls.includes("bulk-1"), JSON.stringify(calls));
+  } catch (error) {
+    check("G: completed", false, String(error.message).split("\n")[0]);
   } finally {
     await context.close();
   }

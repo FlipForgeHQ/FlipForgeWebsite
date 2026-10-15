@@ -657,7 +657,7 @@
 
   // While the provider budget is spent, every Evaluate button stays disabled; say why on each card.
   function providerBudgetNoteMarkup() {
-    return `<p class="customer-discovery-allowance-note" data-discovery-allowance-note data-discovery-budget-note>Evaluate is unavailable: this account's data-provider budget has been reached. No decision was saved. <a href="#/opportunities">Open saved decisions</a></p>`;
+    return `<p class="customer-discovery-allowance-note" data-discovery-allowance-note data-discovery-budget-note>Evaluate is unavailable: this account's data-provider budget has been reached. Your existing saved decisions are unchanged. <a href="#/opportunities">Open saved decisions</a></p>`;
   }
 
   function restoreSignInUrl() {

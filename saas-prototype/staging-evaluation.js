@@ -36,7 +36,10 @@
   const PROVIDER_BUDGET_STOP_ERROR = Object.freeze({
     code: "PROVIDER_BUDGET_EXHAUSTED",
     status: 422,
-    message: "FlipForge stopped before finishing because this account's data-provider budget has been reached. No decision was saved and no evaluation was used."
+    // Shown when the stop was reported by another surface (or this page reloads into it): it says nothing about
+    // any particular request, which may even have completed. A refusal of this page's own request shows the
+    // server's definite wording instead (state.error).
+    message: "This account's data-provider budget has been reached, so further evaluations are unavailable from this page until it is reloaded. Your existing saved decisions are unchanged."
   });
 
   const state = {
