@@ -194,7 +194,7 @@ const EXPECT = {
   "rate-limited": { title: /couldn't be completed/, notAllowance: true },
   // Hard provider budget reached: a definite outcome with its own wording, and no invitation to retry.
   budget: { title: /Evaluation stopped before it finished/, definite: /No decision was saved and no evaluation was used/,
-    noRetry: true, link: "#/opportunities" },
+    noRetry: true, link: "#/opportunities", disablesEvaluate: true, budgetNote: true },
   // 429 while the allowance lookup stalls: the neutral limit alert shows at once, then names the allowance in place.
   "limit-stalled": { title: /Evaluation limit reached/, body: /No new evaluation was created/, link: "#/account", disablesEvaluate: true,
     enrichedTitle: /You\u2019ve reached your Private Beta evaluation allowance\./, enrichedBody: /You have used 5 of 5/ },
@@ -315,7 +315,10 @@ async function run(label, viewport, modes, entitlements = "beta") {
           const button = document.querySelector("#main-content [data-discovery-evaluate]");
           return { disabled: Boolean(button && button.disabled), note: note ? note.innerText : "", link: note?.querySelector('a[href="#/account"]') ? true : false };
         });
-        if (expect.restoredAfter) {
+        if (expect.budgetNote) {
+          check(`${label} (${mode}): after a new search Evaluate stays disabled and says the provider budget was reached`,
+            after.disabled && /data-provider budget has been reached/.test(after.note), JSON.stringify(after));
+        } else if (expect.restoredAfter) {
           check(`${label} (${mode}): after the allowance is restored, a new search re-checks it and Evaluate is available again`,
             !after.disabled && !after.note, JSON.stringify(after));
         } else {

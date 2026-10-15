@@ -29,6 +29,9 @@
     // The failed evaluation, shown inline beside the button that started it (see evaluationErrorMarkup).
     evaluationError: null,
     evaluationLimitReached: false,
+    // Set when the server stopped an evaluation because this account's hard provider budget is spent. Nothing on
+    // the client can check that budget, so Evaluate stays unavailable until the page is reloaded.
+    providerBudgetExhausted: false,
     // Bumped by every allowance re-check and every new limit response; a re-check applies only if it is still the latest.
     limitCheckSerial: 0,
     error: null,
@@ -524,6 +527,7 @@
       // Only the server's EVALUATION_LIMIT_REACHED means the allowance is used up; any other 429 (e.g. a gateway rate
       // limit) is an ordinary refusal and must not disable Evaluate or claim the allowance is reached.
       const limitReached = error?.code === "EVALUATION_LIMIT_REACHED";
+      if (error?.code === "PROVIDER_BUDGET_EXHAUSTED") state.providerBudgetExhausted = true;
       if (limitReached) {
         state.evaluationLimitReached = true;
         // A re-check started before this answer must not lift the block it just reported.
@@ -642,6 +646,11 @@
   // While the evaluation allowance is used up, every Evaluate button stays disabled; say why on each card.
   function allowanceNoteMarkup() {
     return `<p class="customer-discovery-allowance-note" data-discovery-allowance-note>Evaluate is unavailable: this account has no evaluations left. <a href="#/account">View Plan &amp; Usage</a></p>`;
+  }
+
+  // While the provider budget is spent, every Evaluate button stays disabled; say why on each card.
+  function providerBudgetNoteMarkup() {
+    return `<p class="customer-discovery-allowance-note" data-discovery-allowance-note data-discovery-budget-note>Evaluate is unavailable: this account's data-provider budget has been reached. No decision was saved. <a href="#/opportunities">Open saved decisions</a></p>`;
   }
 
   function restoreSignInUrl() {
@@ -801,7 +810,8 @@
       || !exactIdentity
       || item.evaluationEligible !== true
       || state.evaluatingIndex >= 0
-      || state.evaluationLimitReached;
+      || state.evaluationLimitReached
+      || state.providerBudgetExhausted;
     const sellerFeedback = Number(item.sellerFeedbackScore);
     const rankingContext = [
       Number.isFinite(sellerFeedback) && sellerFeedback >= 0
@@ -826,7 +836,7 @@
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Trusted exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.providerBudgetExhausted ? providerBudgetNoteMarkup() : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
   }
 
   function resultsPanel() {
