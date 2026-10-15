@@ -338,6 +338,26 @@
     if (main.querySelector("[data-ff-route-pending]")) return;
     main.innerHTML = '<div class="page" data-ff-route-pending data-ff-opportunity-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>';
   }
+  // Arrival guard (browsers without the Navigation API): on Back/Forward the address bar can already name a saved card while
+  // the page we came from is still on screen, for one frame, until the browser delivers hashchange. Each frame, before it is
+  // drawn, compare the card the URL names with the card (or route) #main-content was last painted for; when they differ the
+  // old screen is replaced by a neutral loading state, which the route renderer then replaces as usual.
+  let paintedForCard = routeCardId();
+  function startArrivalGuard() {
+    if (typeof document === "undefined" || typeof document.querySelector !== "function") return;
+    const main = document.querySelector("#main-content");
+    if (!main || !eligibleHost() || typeof window.requestAnimationFrame !== "function") return;
+    if (typeof MutationObserver === "function") new MutationObserver(() => { paintedForCard = routeCardId(); }).observe(main, { childList: true });
+    const tick = () => {
+      const id = routeCardId();
+      if (id && id !== paintedForCard) {
+        paintedForCard = id;
+        showPendingCard(String(window.location.hash || ""));
+      }
+      window.requestAnimationFrame(tick);
+    };
+    window.requestAnimationFrame(tick);
+  }
   if (window.navigation && typeof window.navigation.addEventListener === "function") {
     window.navigation.addEventListener("navigate", event => {
       const destination = hashOf(event?.destination?.url);
@@ -353,6 +373,8 @@
       if (href.charAt(0) === "#") leaveCurrentCard(href);
     }, true);
   }
+
+  startArrivalGuard();
 
   window.FlipForgeCustomerOpportunities = Object.freeze({ isEligible: eligibleHost, render, refresh: load });
 })();

@@ -107,6 +107,9 @@ async function newSession() {
     } catch (_) { /* storage unavailable */ } };
     window.__ffFrames = [];
     window.__ffForeign = stored("__ffForeign") || [];
+    // Test hook for scenario L2: while set, hashchange/popstate are not delivered to the page, reproducing a browser that has
+    // already changed the URL (Back/Forward) but has not yet told the app, for as many frames as the scenario wants.
+    for (const type of ["hashchange", "popstate"]) window.addEventListener(type, event => { if (window.__ffSwallowNavigationEvents) event.stopImmediatePropagation(); }, true);
     // First hashchange listener on the window: marks the moment the browser tells the app the route changed.
     window.__ffDispatchedHash = String(location.hash || "");
     window.addEventListener("hashchange", () => { window.__ffDispatchedHash = String(location.hash || ""); }, true);
@@ -528,6 +531,27 @@ try {
     check("L PSA Advisor -> Back: the card is shown again", view.title === cards[BUY].title && view.verdict === "BUY", JSON.stringify(view));
     const bad = await foreign(page);
     check("L card <-> PSA Advisor: no frame ever showed a card under the wrong route or another card's details", bad.length === 0, describe(bad));
+    await context.close();
+  }
+
+  // L2. The same Back navigation when the browser is slow to tell the app (URL changed, hashchange/popstate not yet delivered):
+  // for 600 ms of frames the page being left must not stay on screen under the card's URL.
+  {
+    const { context, page } = await newSession();
+    await page.goto(`${baseUrl}/#/opportunities/${BUY}`, { waitUntil: "domcontentloaded" });
+    await showsCard(page, BUY);
+    await go(page, "#/psa-advisor");
+    await page.waitForFunction(() => /PSA Advisor/.test(document.querySelector("#main-content h1")?.textContent || ""), null, { timeout: 15_000 }).catch(() => {});
+    await page.waitForTimeout(500);
+    await page.evaluate(() => { window.__ffSwallowNavigationEvents = true; });
+    await page.goBack();
+    await page.waitForTimeout(600);
+    const bad = await foreign(page);
+    check("L2 Back to a card while the browser has not yet delivered hashchange: no frame shows the page being left under the card URL", bad.length === 0, describe(bad));
+    await page.evaluate(() => { window.__ffSwallowNavigationEvents = false; window.dispatchEvent(new PopStateEvent("popstate")); window.dispatchEvent(new HashChangeEvent("hashchange")); }).catch(() => {});
+    await showsCard(page, BUY);
+    const view = await snapshot(page);
+    check("L2 once the events arrive the card is shown", view.title === cards[BUY].title && view.verdict === "BUY", JSON.stringify(view));
     await context.close();
   }
 
