@@ -160,6 +160,64 @@ for (const viewport of VIEWPORTS) {
       if (opened) await openGuideIfMinimized(page);
       const search = await landing(page, '#main-content [data-customer-discovery-form] button[type="submit"]', "center");
       check(`${label}: Discover search button reachable`, search.found && search.onControl && !search.coveredByGuide, JSON.stringify(search));
+      // Regression: at persistent-sidebar tablet widths, the guide sheet
+      // must remain entirely within the workspace instead of covering navigation.
+      if (opened && viewport.width >= 901 && viewport.width <= 1179) {
+        const navClear = await page.evaluate(() => {
+          const nav = document.querySelector(".sidebar");
+          const guide = document.querySelector(".ff-guide-panel");
+          if (!nav || !guide) return { found: false };
+          const sidebarRight = nav.getBoundingClientRect().right;
+          const guideLeft = guide.getBoundingClientRect().left;
+          return { found: true, clear: guideLeft >= sidebarRight + 6, sidebarRight, guideLeft };
+        });
+        check(`${label}: guide never covers persistent sidebar`,
+          navClear.found && navClear.clear, JSON.stringify(navClear));
+      }
+
+      // Regression: a tablet navigation drawer opened by the customer must
+      // take precedence over the coach, as phone navigation already does.
+      if (opened && viewport.width >= 761 && viewport.width <= 900) {
+        const drawerState = await page.evaluate(() => {
+          const shell = document.querySelector(".app-shell");
+          document.body.classList.add("ff-mobile-nav-open");
+          if (shell) shell.dataset.navOpen = "true";
+          const panel = document.querySelector(".ff-guide-panel");
+          const hidden = Boolean(panel && getComputedStyle(panel).display === "none");
+          if (shell) shell.dataset.navOpen = "false";
+          document.body.classList.remove("ff-mobile-nav-open");
+          return { panel: Boolean(panel), hidden };
+        });
+        check(`${label}: open navigation drawer hides overlapping guide`,
+          drawerState.panel && drawerState.hidden, JSON.stringify(drawerState));
+      }
+
+      // The full customer shell loads its own later !important padding rules.
+      // Simulate that exact cascade and verify the guide clearance still wins.
+      if (opened) {
+        const precedence = await page.evaluate(() => {
+          const style = document.createElement("style");
+          style.textContent = "body.ff-full-customer-app #main-content{padding:20px 20px 40px!important}";
+          document.head.append(style);
+          document.body.classList.add("ff-full-customer-app");
+          const main = document.querySelector("#main-content");
+          const computed = main ? getComputedStyle(main) : null;
+          const bottom = computed ? parseFloat(computed.paddingBottom) : 0;
+          const right = computed ? parseFloat(computed.paddingRight) : 0;
+          document.body.classList.remove("ff-full-customer-app");
+          style.remove();
+          return { bottom, right };
+        });
+        const expectedBottom = viewport.width < 761 ? viewport.height * .30 + 28
+          : viewport.width <= 1179 ? viewport.height * .34 + 36 : 0;
+        const expectedRight = viewport.width >= 1480 ? 382
+          : viewport.width >= 1180 ? Math.min(310, viewport.width - 28) + 42 : 0;
+        check(`${label}: full-shell !important padding retains guide clearance`,
+          (expectedBottom === 0 || precedence.bottom >= expectedBottom - 2)
+          && (expectedRight === 0 || precedence.right >= expectedRight - 2),
+          JSON.stringify({ ...precedence, expectedBottom, expectedRight }));
+      }
+
       // The guide itself still works: it can be minimized and reopened.
       if (opened) {
         const minimize = page.locator(".ff-guide-panel [data-guide-minimize]");
