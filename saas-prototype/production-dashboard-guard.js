@@ -188,8 +188,28 @@
     // Keep the legacy reload recovery only for non-full-customer app surfaces.
     if (!customerApp() || fullCustomerEntry() || betaSpaEntry() || routeReloading) return;
     if (!APP_ROUTE_HASH.test(String(window.location.hash || ""))) return;
+    // Some browsers (Firefox) deliver the hashchange of a history traversal a second time to the document that the first one
+    // reloaded. That document already was loaded for this route: reloading it again would only blank it for a moment.
+    const reloadKey = "ffLegacyRouteReloadedFor";
+    try {
+      const [markedHash, markedAt] = String(window.sessionStorage.getItem(reloadKey) || "").split("|");
+      window.sessionStorage.removeItem(reloadKey);
+      if (markedHash === String(window.location.hash || "") && Date.now() - Number(markedAt) < 4000) {
+        // Duplicate event for a route this document was just loaded for: swallow it so nothing re-renders the route either.
+        if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+        return;
+      }
+      window.sessionStorage.setItem(reloadKey, `${window.location.hash}|${Date.now()}`);
+    } catch (_) { /* storage unavailable: reload as before */ }
     routeReloading = true;
     if (event && typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+    // The previous document keeps painting until the reloaded one is ready. Never let it show the page we are leaving under
+    // a saved card's URL: put a neutral loading state there for the duration of the reload.
+    if (/^#\/?opportunities\/[^/?#]+/.test(String(window.location.hash || "")) && main && !main.querySelector("[data-ff-route-pending]")) {
+      applying = true;
+      main.innerHTML = '<div class="page" data-ff-route-pending data-ff-opportunity-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>';
+      applying = false;
+    }
     if (typeof window.location?.reload === "function") window.location.reload();
   }
 

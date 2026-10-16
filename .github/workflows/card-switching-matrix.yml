@@ -1,0 +1,114 @@
+name: Card Switching Matrix
+
+# A saved-card page may only ever show the card in its URL. This runs the frame-by-frame card-switching audit
+# (scripts/audit-card-switching-ci.mjs, real 3-6 s and 10.5 s response delays) across the configurations below, repeated,
+# because the failures it hunts (a single wrong frame) are intermittent. Nothing here is shortened or retried away:
+#   - every job runs paths (/app/beta, local /app, and /app/beta loaded as the real goflipforge.com hostname) x navigation
+#     modes x FF_MATRIX_REPS repetitions;
+#   - the driver fails the job if it executed a different number of runs than that product;
+#   - validate-card-switching-ci-coverage.mjs fails the job if this workflow is edited to drop a configuration,
+#     lower the repetitions, or enable retries.
+# Chromium covers Chrome, Edge and Chrome on Android (Pixel 7 emulation) with the Navigation API enabled and disabled.
+# Firefox and WebKit (Safari) run the engines' own behaviour: whichever of them lacks the Navigation API exercises the
+# fallback path natively.
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-card-switching-ci.mjs"
+      - "scripts/run-card-switching-matrix.mjs"
+      - "scripts/validate-card-switching-ci-coverage.mjs"
+      - "package.json"
+      - ".github/workflows/card-switching-matrix.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: card-switching-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  card-switching:
+    name: Card switching ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: chromium desktop
+            engine: chromium
+            device: ""
+            nav_modes: "api,fallback"
+          - name: chromium mobile (Pixel 7)
+            engine: chromium
+            device: "Pixel 7"
+            nav_modes: "api,fallback"
+          - name: firefox desktop
+            engine: firefox
+            device: ""
+            nav_modes: "api"
+          - name: webkit desktop
+            engine: webkit
+            device: ""
+            nav_modes: "api"
+          - name: webkit mobile (iPhone 14)
+            engine: webkit
+            device: "iPhone 14"
+            nav_modes: "api"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Matrix coverage cannot be weakened
+        run: node scripts/validate-card-switching-ci-coverage.mjs
+
+      - name: Install Playwright browsers
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps ${{ matrix.engine }}
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-card-switching-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-card-switching-server.log
+          exit 1
+
+      - name: Card switching audit - /app/beta and /app, repeated
+        env:
+          FF_AUDIT_ENGINE: ${{ matrix.engine }}
+          FF_AUDIT_DEVICE: ${{ matrix.device }}
+          FF_MATRIX_NAV_MODES: ${{ matrix.nav_modes }}
+          FF_MATRIX_PATHS: "/app/beta,/app,https://goflipforge.com/app/beta"
+          FF_MATRIX_REPS: "5"
+        run: node scripts/run-card-switching-matrix.mjs
+
+      - name: Upload run-by-run results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: card-switching-${{ matrix.engine }}-${{ matrix.device == '' && 'desktop' || 'mobile' }}
+          path: artifacts/card-switching
+          if-no-files-found: warn
+          retention-days: 14

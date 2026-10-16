@@ -217,6 +217,13 @@
   }
 
   function renderOpportunityDetail(id) {
+    // An address that is not one of the built-in sample records must never be answered with a different card (the first
+    // sample record, "Ohtani Chrome Refractor PSA 10 - BUY", used to be painted here under any saved-card URL until the
+    // saved-decision renderer took over). Show the neutral pending state; the authoritative renderer paints over it.
+    if (!data.opportunities.some(sample => sample.id === id)) {
+      main.innerHTML = `<div class="page" data-ff-route-pending data-ff-opportunity-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>`;
+      return;
+    }
     const item = opportunityById(id);
     main.innerHTML = `<div class="page">
       ${pageHeading("Opportunity detail", item.player, "Understand the existing decision, supporting factors and unresolved risk before taking an outside action.", `<a class="button button-secondary" href="#/compare?left=${item.id}">Compare</a><button class="button button-primary" type="button" data-toast="Saved to the prototype watchlist.">Track card</button>`)}

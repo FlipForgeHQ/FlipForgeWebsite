@@ -7,6 +7,7 @@ on:
       - "scripts/audit-customer-shell-brand-ci.mjs"
       - "scripts/audit-result-guide-verdict-ci.mjs"
       - "scripts/audit-saved-verdict-loading-ci.mjs"
+      - "scripts/audit-card-switch-stale-response-ci.mjs"
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
       - "scripts/audit-guided-mode-clearance-ci.mjs"
@@ -22,6 +23,7 @@ on:
       - "scripts/audit-customer-shell-brand-ci.mjs"
       - "scripts/audit-result-guide-verdict-ci.mjs"
       - "scripts/audit-saved-verdict-loading-ci.mjs"
+      - "scripts/audit-card-switch-stale-response-ci.mjs"
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
       - "scripts/audit-guided-mode-clearance-ci.mjs"
@@ -96,6 +98,17 @@ jobs:
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-saved-verdict-loading-ci.mjs
+
+      # No previous saved-card verdict may survive navigation to another card.
+      - name: Card switching never shows another card - Private Beta path (/app/beta)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
+        run: node scripts/audit-card-switch-stale-response-ci.mjs
+
+      - name: Card switching never shows another card - customer app path (/app)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: node scripts/audit-card-switch-stale-response-ci.mjs
 
       # Discover -> Evaluate: every server outcome reaches the saved decision or shows a visible, actionable error
       # beside the button, with no reload or route change (2026-10-14 evaluation-limit incident).
