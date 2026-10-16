@@ -1,5 +1,6 @@
 import { getUser, login, logout, requestPasswordRecovery } from "@netlify/identity";
 import { friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
+import { serverSessionStatus, syncServerSessionCookie } from "./flipforge-server-session.mjs";
 
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const hostAllowed = PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -194,9 +195,34 @@ termsCheckbox?.addEventListener("change", () => {
   if (termsButton) termsButton.disabled = !termsCheckbox.checked;
 });
 
+// The browser snapshot is not proof that the server will authenticate this account: confirm
+// the cookie the server reads belongs to the signed-in account and has not expired.
+function serverSessionReady(userId) {
+  if (!userId) return false;
+  try {
+    syncServerSessionCookie(userId);
+    return serverSessionStatus(userId) === "ok";
+  } catch (_) {
+    return false;
+  }
+}
+
+function requireSignInAgain(message) {
+  hideTerms();
+  result.textContent = message;
+  result.dataset.tone = "error";
+  returnLink.hidden = true;
+  setStatus("Sign out, then sign in again to accept the Private Beta Terms.", "error");
+}
+
 termsButton?.addEventListener("click", async () => {
   if (!hostAllowed || !currentUser || termsButton.disabled || !termsCheckbox?.checked) return;
   termsButton.disabled = true;
+  const consentingUserId = String(currentUser.id || "");
+  if (!serverSessionReady(consentingUserId)) {
+    requireSignInAgain("Your sign-in needs to be refreshed before the Private Beta Terms can be saved. Nothing was recorded.");
+    return;
+  }
   result.textContent = "Saving your acceptance of the Private Beta Terms…";
   result.dataset.tone = "neutral";
   try {
@@ -206,9 +232,13 @@ termsButton?.addEventListener("click", async () => {
       cache: "no-store",
       redirect: "error",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accepted: true, termsVersion: BETA_TERMS_VERSION })
+      body: JSON.stringify({ accepted: true, termsVersion: BETA_TERMS_VERSION, identityUserId: consentingUserId })
     });
     const payload = await response.json().catch(() => ({}));
+    if (response.status === 401 || payload.reason === "TERMS_ACCOUNT_MISMATCH") {
+      requireSignInAgain("FlipForge did not accept this browser's sign-in for the account shown. Nothing was recorded.");
+      return;
+    }
     if (!response.ok || payload.activated === false) {
       throw new Error(payload.reason || "TERMS_RECORD_FAILED");
     }
@@ -227,6 +257,8 @@ termsButton?.addEventListener("click", async () => {
 
 async function verifyAccess() {
   if (!currentUser) return false;
+  // Align the server cookie with the signed-in account before asking the server.
+  try { syncServerSessionCookie(String(currentUser.id || "")); } catch (_) {}
   result.textContent = "Verifying active Private Beta membership…";
   result.dataset.tone = "neutral";
   try {
