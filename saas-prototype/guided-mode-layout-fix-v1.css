@@ -36,3 +36,75 @@ body.ff-guide-modal-open {
     overflow: auto;
   }
 }
+
+/* Workspace clearance v2 (2026-10-15). The open guide is a fixed panel that covered the right-hand column of the
+ * workspace, where the Evaluate submit button sits (at 1280x900 a mouse click on "Evaluate and save" landed on the
+ * guide's route navigation). The reservations above (and in guided-mode-compact-v1.css) never applied:
+ * customer-layout-system-v2.css sets "#main-content{padding:...!important}", which beats a non-important rule of
+ * any specificity. These rules are !important so their more specific selector wins. Presentation only: the guide's
+ * content, steps and actions are unchanged, and no evaluation behaviour changes.
+ *
+ * >=1480px: the panel is 330px wide (guided-mode-compact-v1.css) at 18px from the edge; reserve it plus a gap. */
+@media (min-width: 1480px) {
+  body:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content,
+  body.ff-full-customer-app:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content {
+    padding-right: 382px !important;
+  }
+}
+
+/* 1180-1479px: keep the side panel (310px) and reserve its column the same way. */
+@media (min-width: 1180px) and (max-width: 1479px) {
+  body:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content,
+  body.ff-full-customer-app:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content {
+    padding-right: calc(min(310px, 100vw - 28px) + 42px) !important;
+  }
+}
+
+/* 761-1179px: a reserved side column would leave too little room for the workspace, so the open guide docks as a
+ * bottom sheet (as on phones) and the workspace gets matching bottom room, so its last controls scroll clear of it. */
+@media (min-width: 761px) and (max-width: 1179px) {
+  /* !important: customer-layout-system-v2.css forces ".ff-guide-panel{max-height:calc(100vh - 28px)!important}". */
+  body:has(.ff-guide-panel) .ff-guide-panel {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    top: auto !important;
+    width: auto !important;
+    max-height: 34vh !important;
+    overflow: auto !important;
+  }
+
+  body:has(.ff-guide-panel) #main-content,
+  body.ff-full-customer-app:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content {
+    padding-bottom: calc(34vh + 36px) !important;
+  }
+}
+
+/* Phones: the guide starts minimized to its launcher (82px of bottom room is already reserved). When the customer
+ * opens it, it is a 30vh bottom sheet (guided-mode-compact-v1.css); give the workspace the same bottom room. */
+@media (max-width: 760px) {
+  body:has(.ff-guide-panel) #main-content,
+  body.ff-full-customer-app:has(.ff-guide-panel):has(#main-content [data-staging-evaluation-form], #main-content [data-customer-discovery-form]) #main-content {
+    padding-bottom: calc(30vh + 28px) !important;
+  }
+}
+
+/* The 761-1179px bottom sheet must not obscure the sidebar.
+ * Between 901px and 1179px the customer sidebar remains docked; confine
+ * the guide to the workspace, never across the sidebar's account/navigation.
+ */
+@media (min-width: 901px) and (max-width: 1179px) {
+  body:has(.ff-guide-panel) .ff-guide-panel {
+    left: calc(var(--ff-app-sidebar-width, 272px) + 12px) !important;
+  }
+}
+
+/* At drawer widths, navigation must take precedence over the guide. This
+ * mirrors the existing <=760px behavior at the tablet breakpoint as well.
+ */
+@media (min-width: 761px) and (max-width: 900px) {
+  body.ff-mobile-nav-open .ff-guide-panel,
+  body:has(.app-shell[data-nav-open="true"]) .ff-guide-panel {
+    display: none !important;
+  }
+}
