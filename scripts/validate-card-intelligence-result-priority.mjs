@@ -15,8 +15,12 @@ const product = fs.readFileSync(new URL("../product.html", import.meta.url), "ut
 const faq = fs.readFileSync(new URL("../faq.html", import.meta.url), "utf8");
 
 const checks = [
-  ["saved detail has a direct detail fast path", opportunities.includes("async function loadDetailDirect()")],
-  ["saved detail chooses direct path before list loading", opportunities.includes("if (state.requestedId) await loadDetailDirect();")],
+  ["saved detail has a direct detail fast path", opportunities.includes("async function loadDetailDirect(serial, route)")],
+  ["saved detail chooses direct path before list loading", opportunities.includes("if (state.requestedId) await loadDetailDirect(serial, route);")],
+  // A response for a card the customer left must never paint (2026-10-13 card-switch defect).
+  ["stale card responses are discarded before they touch state", opportunities.includes("if (serial !== loadSerial || routeKey() !== route) throw STALE;")
+    && opportunities.includes("if (error === STALE || serial !== loadSerial || routeKey() !== route) return;")],
+  ["detail paints only the requested card that is still in the address bar", opportunities.includes("routeCardId() === state.selectedId")],
   ["detail fast path loads decision evidence and PSA", ["/api/v1/opportunities/${encoded}", "/api/v1/evidence/${encoded}", "/api/v1/psa-advisor/${encoded}"].every(value => opportunities.includes(value))],
   ["detail header keeps only core actions", opportunities.includes("Saved decisions") && opportunities.includes(">Track</a>") && !opportunities.includes("PSA guidance</a><a class=\"button button-secondary\" href=\"#/tracking")],
   ["save confirmation waits for the Card Intelligence hero", saveFlow.includes('const hero = main.querySelector(".customer-intelligence-hero")') && saveFlow.includes("if (!hero)" )],
