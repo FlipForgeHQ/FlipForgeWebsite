@@ -34,10 +34,6 @@
   // location.hash changing and the later hashchange event.
   function protectSavedCard(nextHash = String(window.location.hash || "")) {
     if (!main) return;
-    // An in-document anchor (for example the keyboard "Skip to main content"
-    // link) is not a customer-route change. Never erase the active card for it.
-    const fragment = String(nextHash || "");
-    if (/^#[^/]+$/.test(fragment) && document.getElementById(fragment.slice(1))) return;
     const shown = main.querySelector(".customer-intelligence-hero");
     if (!shown) return;
     const match = String(nextHash).match(/^#\/?opportunities\/([^/?#]+)/);
@@ -52,32 +48,10 @@
     main.innerHTML = '<div class="page customer-intelligence-page"><div class="staging-loading" role="status">Loading the saved decision</div></div>';
   }
 
-  // IN-PAGE ANCHORS ARE NOT ROUTES. The keyboard "Skip to main content" link (href="#main-content") would otherwise put a
-  // fragment in the address bar that every hashchange renderer reads as a route: the shell repainted the Dashboard over the
-  // saved card, pending card loads were discarded as "route changed", and Refresh failed. Activating such a link moves focus
-  // to its target (what the link is for) and leaves the address bar, the card and its in-flight load untouched.
-  document.addEventListener("click", event => {
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const link = event.target && typeof event.target.closest === "function" ? event.target.closest('a[href^="#"]') : null;
-    if (!link || (link.target && link.target !== "_self")) return;
-    const fragment = String(link.getAttribute("href") || "");
-    if (!/^#[^/?]+$/.test(fragment)) return;
-    let id = fragment.slice(1);
-    try { id = decodeURIComponent(id); } catch (_) { /* keep raw id */ }
-    const target = document.getElementById(id);
-    if (!target) return;
-    event.preventDefault();
-    if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
-    if (typeof target.focus === "function") target.focus();
-    if (typeof target.scrollIntoView === "function") target.scrollIntoView({ block: "start" });
-  }, true);
-
   // Navigation API's navigate event fires before a same-document fragment
   // navigation commits. The synchronous clear keeps old verdicts out of the
   // first frame whose address bar names another card.
-  const hasNavigationEvents = Boolean(window.navigation
-    && typeof window.navigation.addEventListener === "function");
-  if (hasNavigationEvents) {
+  if (window.navigation && typeof window.navigation.addEventListener === "function") {
     window.navigation.addEventListener("navigate", event => {
       try {
         const destination = new URL(event.destination.url);
@@ -102,9 +76,7 @@
       window.requestAnimationFrame(protectBeforePaint);
     }
   }
-  // The Navigation API is already pre-paint; avoid a permanent per-frame
-  // polling loop there. Keep the loop only for browsers missing that API.
-  if (!hasNavigationEvents && typeof window.requestAnimationFrame === "function") {
+  if (typeof window.requestAnimationFrame === "function") {
     window.requestAnimationFrame(protectBeforePaint);
   }
   window.addEventListener("hashchange", () => {
