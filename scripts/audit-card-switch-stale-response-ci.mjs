@@ -368,11 +368,8 @@ try {
       foreign(seen).length === 0 && !onDashboard.card && onDashboard.hash === "#/dashboard", `${describe(foreign(seen))} ${JSON.stringify(onDashboard)}`);
     await context.close();
   }
-} catch (error) {
-  failures.push(`audit did not complete: ${error.message.split("\n")[0]}`);
-} finally {
   // C9: transition out of a loaded BUY must clear its verdict by the first
-// animation frame after a WATCH navigation, even while the new card is delayed.
+  // animation frame after a WATCH navigation, even while the new card is delayed.
 {
   const { context, page } = await newSession();
   clearBehavior();
@@ -394,7 +391,40 @@ try {
   await context.close();
 }
 
-await browser.close();
+  // C10: the accessible Skip to main content fragment must NOT remove
+  // a saved verdict or turn the card into a permanent loading placeholder.
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    await page.goto(`${baseUrl}/#/opportunities/qa-verdict-watch`, { waitUntil: "load" });
+    await waitCard(page, "qa-verdict-watch");
+    await page.evaluate(() => {
+      const skip = document.querySelector('a.skip-link[href="#main-content"]');
+      if (!skip) throw new Error("Missing keyboard skip link");
+      skip.click();
+    });
+    await page.waitForTimeout(250);
+    const afterSkip = await page.evaluate(() => ({
+      hash: location.hash,
+      hasMain: Boolean(document.querySelector("#main-content")),
+      title: document.querySelector("#main-content .customer-intelligence-hero h2")?.textContent?.trim() || "",
+      verdict: document.querySelector("#main-content .customer-intelligence-hero .staging-status")?.textContent?.trim() || "",
+      loading: /Loading the saved decision/i.test(document.querySelector("#main-content")?.textContent || "")
+    }));
+    check("C10 keyboard skip-link keeps the existing WATCH decision visible",
+      afterSkip.hash === "#main-content"
+        && afterSkip.hasMain
+        && afterSkip.title === cards["qa-verdict-watch"].title
+        && afterSkip.verdict === "WATCH"
+        && !afterSkip.loading,
+      JSON.stringify(afterSkip));
+    await context.close();
+  }
+
+} catch (error) {
+  failures.push(`audit did not complete: ${String(error?.message || error).split("\n")[0]}`);
+} finally {
+  await browser.close();
 }
 
 for (const line of passes) console.log(`PASS ${line}`);
