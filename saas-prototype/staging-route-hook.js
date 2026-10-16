@@ -34,6 +34,10 @@
   // location.hash changing and the later hashchange event.
   function protectSavedCard(nextHash = String(window.location.hash || "")) {
     if (!main) return;
+    // An in-document anchor (for example the keyboard "Skip to main content"
+    // link) is not a customer-route change. Never erase the active card for it.
+    const fragment = String(nextHash || "");
+    if (/^#[^/]+$/.test(fragment) && document.getElementById(fragment.slice(1))) return;
     const shown = main.querySelector(".customer-intelligence-hero");
     if (!shown) return;
     const match = String(nextHash).match(/^#\/?opportunities\/([^/?#]+)/);
@@ -51,7 +55,9 @@
   // Navigation API's navigate event fires before a same-document fragment
   // navigation commits. The synchronous clear keeps old verdicts out of the
   // first frame whose address bar names another card.
-  if (window.navigation && typeof window.navigation.addEventListener === "function") {
+  const hasNavigationEvents = Boolean(window.navigation
+    && typeof window.navigation.addEventListener === "function");
+  if (hasNavigationEvents) {
     window.navigation.addEventListener("navigate", event => {
       try {
         const destination = new URL(event.destination.url);
@@ -76,7 +82,9 @@
       window.requestAnimationFrame(protectBeforePaint);
     }
   }
-  if (typeof window.requestAnimationFrame === "function") {
+  // The Navigation API is already pre-paint; avoid a permanent per-frame
+  // polling loop there. Keep the loop only for browsers missing that API.
+  if (!hasNavigationEvents && typeof window.requestAnimationFrame === "function") {
     window.requestAnimationFrame(protectBeforePaint);
   }
   window.addEventListener("hashchange", () => {
