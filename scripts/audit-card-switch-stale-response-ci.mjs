@@ -99,7 +99,16 @@ async function newSession() {
     // hashchange event is dispatched).
     let seenId = "";
     let seenAt = 0;
-    const sample = () => {
+    let lastSampleTime = null;
+    window.__ffSampling = { count: 0, maxVisibleGapMs: 0, largeVisibleGaps: 0 };
+    const sample = (frameTime) => {
+      if (lastSampleTime !== null && document.visibilityState === "visible") {
+        const gap = frameTime - lastSampleTime;
+        window.__ffSampling.maxVisibleGapMs = Math.max(window.__ffSampling.maxVisibleGapMs, gap);
+        if (gap > 125) window.__ffSampling.largeVisibleGaps += 1;
+      }
+      lastSampleTime = frameTime;
+      window.__ffSampling.count += 1;
       const id = routeId();
       const routeKey = String(location.hash || "").replace(/^#\/?/, "").split("?")[0];
       if (routeKey !== seenId) { seenId = routeKey; seenAt = performance.now(); }
@@ -127,7 +136,10 @@ async function newSession() {
       }
       requestAnimationFrame(sample);
     };
-    requestAnimationFrame(sample);
+    // Install the recorder after the application's own pre-paint callback.
+    // The previous addInitScript rAF ran before the guard and could sample
+    // stale DOM that would be removed before the browser displayed a frame.
+    window.addEventListener("load", () => requestAnimationFrame(sample), { once: true });
   }, { email });
 
   await page.route("**/assets/js/flipforge-identity.js", route => route.fulfill({
@@ -174,7 +186,7 @@ async function newSession() {
 }
 
 const frames = page => page.evaluate(() => window.__ffFrames.splice(0));
-const GRACE_MS = 50;
+const GRACE_MS = 0; // Every painted frame must belong to the URL's exact card.
 // A frame is wrong when a card is on screen that is not the card in the URL (after the router's grace period).
 // A card on screen that is not the card in the URL - including any card while the URL is not a card route.
 const foreign = list => list.filter(f => f.shown && (!f.id || f.shown.title !== cards[f.id]?.title) && f.since > GRACE_MS);
@@ -356,8 +368,115 @@ try {
       foreign(seen).length === 0 && !onDashboard.card && onDashboard.hash === "#/dashboard", `${describe(foreign(seen))} ${JSON.stringify(onDashboard)}`);
     await context.close();
   }
+  // C9: transition out of a loaded BUY must clear its verdict by the first
+  // animation frame after a WATCH navigation, even while the new card is delayed.
+{
+  const { context, page } = await newSession();
+  clearBehavior();
+  await page.goto(`${baseUrl}/#/opportunities/qa-verdict-buy`, { waitUntil: "load" });
+  await waitCard(page, "qa-verdict-buy");
+  setBehavior("qa-verdict-watch", { delayMs: 4000 });
+  // The legacy /app shell reloads the document on a route change, which can destroy this evaluation's context. The first
+  // frame's card is therefore written to sessionStorage from inside that frame (it survives the reload) and read afterwards:
+  // a document that unloaded before painting any frame simply never recorded one.
+  await page.evaluate(() => {
+    sessionStorage.removeItem("__c9");
+    location.hash = "#/opportunities/qa-verdict-watch";
+    requestAnimationFrame(() => {
+      const hero = document.querySelector("#main-content .customer-intelligence-hero");
+      sessionStorage.setItem("__c9", JSON.stringify(hero && hero.getClientRects().length ? {
+        title: hero.querySelector("h2")?.textContent?.trim(),
+        verdict: hero.querySelector(".staging-status")?.textContent?.trim()
+      } : null));
+    });
+  }).catch(error => { if (!/Execution context was destroyed|navigat/i.test(String(error.message))) throw error; });
+  await page.waitForTimeout(600);
+  let immediatelyVisible = null;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try { immediatelyVisible = await page.evaluate(() => JSON.parse(sessionStorage.getItem("__c9") || "null")); break; }
+    catch (error) { if (!/Execution context was destroyed|navigat/i.test(String(error.message))) throw error; await page.waitForTimeout(200); }
+  }
+  check("C9 first prepaint frame after BUY to WATCH has no previous BUY card",
+    !immediatelyVisible || immediatelyVisible.title !== cards["qa-verdict-buy"].title,
+    JSON.stringify(immediatelyVisible));
+  await context.close();
+}
+
+  // C10: the accessible Skip to main content fragment must NOT remove
+  // a saved verdict or turn the card into a permanent loading placeholder.
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    await page.goto(`${baseUrl}/#/opportunities/qa-verdict-watch`, { waitUntil: "load" });
+    await waitCard(page, "qa-verdict-watch");
+    await page.evaluate(() => {
+      const skip = document.querySelector('a.skip-link[href="#main-content"]');
+      if (!skip) throw new Error("Missing keyboard skip link");
+      skip.click();
+    });
+    await page.waitForTimeout(250);
+    const afterSkip = await page.evaluate(() => ({
+      hash: location.hash,
+      hasMain: Boolean(document.querySelector("#main-content")),
+      mainFocused: document.activeElement === document.querySelector("#main-content"),
+      title: document.querySelector("#main-content .customer-intelligence-hero h2")?.textContent?.trim() || "",
+      verdict: document.querySelector("#main-content .customer-intelligence-hero .staging-status")?.textContent?.trim() || "",
+      loading: /Loading the saved decision/i.test(document.querySelector("#main-content")?.textContent || "")
+    }));
+    check("C10 keyboard skip-link moves focus to main and keeps the existing WATCH decision (and the card route) visible",
+      afterSkip.hash === "#/opportunities/qa-verdict-watch"
+        && afterSkip.mainFocused
+        && afterSkip.hasMain
+        && afterSkip.title === cards["qa-verdict-watch"].title
+        && afterSkip.verdict === "WATCH"
+        && !afterSkip.loading,
+      JSON.stringify(afterSkip));
+    await context.close();
+  }
+
+  // C11: the keyboard skip link is activated BEFORE the card has finished loading. The in-flight load must survive the
+  // fragment and the card must still appear (it used to be discarded, leaving a permanent loading placeholder).
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    setBehavior("qa-verdict-watch", { delayMs: 3000 });
+    await page.goto(`${baseUrl}/#/opportunities/qa-verdict-watch`, { waitUntil: "load" });
+    await page.waitForFunction(() => /Loading/i.test(document.querySelector("#main-content")?.textContent || ""), null, { timeout: 10_000 });
+    await page.evaluate(() => {
+      const skip = document.querySelector('a.skip-link[href="#main-content"]');
+      if (!skip) throw new Error("Missing keyboard skip link");
+      skip.click();
+    });
+    const hashAfter = await page.evaluate(() => location.hash);
+    await waitCard(page, "qa-verdict-watch", 20_000).catch(() => {});
+    const shown = await onScreen(page);
+    check("C11 skip link activated while the card is still loading: the WATCH decision still arrives",
+      hashAfter === "#/opportunities/qa-verdict-watch" && isCard(shown, "qa-verdict-watch"), JSON.stringify({ hashAfter, shown }));
+    await context.close();
+  }
+
+  // C12: Refresh after the skip link has been used must reload the same card, not fail because the address bar holds a fragment.
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    await page.goto(`${baseUrl}/#/opportunities/qa-verdict-watch`, { waitUntil: "load" });
+    await waitCard(page, "qa-verdict-watch");
+    await page.evaluate(() => document.querySelector('a.skip-link[href="#main-content"]').click());
+    await page.waitForTimeout(250);
+    setBehavior("qa-verdict-watch", { delayMs: 1500 });
+    await page.evaluate(() => document.querySelector("[data-customer-opportunities-refresh]")?.click());
+    await page.waitForTimeout(300);
+    const during = await page.evaluate(() => ({ hash: location.hash, loading: /Loading/i.test(document.querySelector("#main-content")?.textContent || "") }));
+    await waitCard(page, "qa-verdict-watch", 15_000).catch(() => {});
+    const shown = await onScreen(page);
+    const error = await page.evaluate(() => Boolean(document.querySelector("#main-content .staging-error")));
+    check("C12 Refresh after skip-link navigation reloads the same WATCH card (no error, no stuck loading)",
+      isCard(shown, "qa-verdict-watch") && !error, JSON.stringify({ during, shown, error }));
+    await context.close();
+  }
+
 } catch (error) {
-  failures.push(`audit did not complete: ${error.message.split("\n")[0]}`);
+  failures.push(`audit did not complete: ${String(error?.message || error).split("\n")[0]}`);
 } finally {
   await browser.close();
 }
