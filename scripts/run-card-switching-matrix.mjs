@@ -59,7 +59,7 @@ for (let rep = 1; rep <= reps; rep += 1) {
       console.log(`${record.ok ? "PASS" : "FAIL"} rep ${rep}/${reps} ${path} nav=${mode} [${record.configuration}] ${record.passed}/${record.total} in ${record.seconds}s${limitation ? ` | ${limitation}` : ""}`);
       for (const line of failLines) console.log(`  ${line}`);
       if (process.env.GITHUB_ACTIONS) for (const line of failLines.slice(0, 6)) console.log(`::error title=Card switching ${label} rep ${rep} ${path} nav=${mode}::${line.replace(/[\r\n%]/g, " ").slice(0, 2600)}`);
-      if (!summary) console.log(`  audit produced no summary (exit ${child.status}): ${output.slice(-500).replace(/\n/g, " | ")}`);
+      if (!summary) console.log(`  audit produced no summary (exit ${child.status}): ${output.slice(-1800).replace(/\n/g, " | ")}`);
     }
   }
 }

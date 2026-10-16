@@ -335,6 +335,9 @@
     const main = state.main || document.querySelector("#main-content");
     if (!main) return;
     if (state.detail && state.selectedId === id && main.firstElementChild === renderedPage) return; // that card is already on screen
+    paintPending(main);
+  }
+  function paintPending(main) {
     if (main.querySelector("[data-ff-route-pending]")) return;
     main.innerHTML = '<div class="page" data-ff-route-pending data-ff-opportunity-pending><div class="ff-commercial-loading" role="status">Loading…</div></div>';
   }
@@ -347,9 +350,16 @@
     if (typeof document === "undefined" || typeof document.querySelector !== "function") return;
     const main = document.querySelector("#main-content");
     if (!main || !eligibleHost() || typeof window.requestAnimationFrame !== "function") return;
-    if (typeof MutationObserver === "function") new MutationObserver(() => { paintedForCard = routeCardId(); }).observe(main, { childList: true });
+    // A saved card can also be painted by the recovery bridge, which this module does not own. Remember which card the URL named
+    // when any saved-card hero was painted, so that card is cleared the moment the URL stops naming it.
+    let heroOwner = "";
+    if (typeof MutationObserver === "function") new MutationObserver(() => { paintedForCard = routeCardId(); heroOwner = main.querySelector(".customer-intelligence-hero") ? routeCardId() : ""; }).observe(main, { childList: true });
     const tick = () => {
       const id = routeCardId();
+      if (heroOwner && id !== heroOwner && main.querySelector(".customer-intelligence-hero")) {
+        heroOwner = "";
+        paintPending(main);
+      }
       if (id && id !== paintedForCard) {
         paintedForCard = id;
         showPendingCard(String(window.location.hash || ""));

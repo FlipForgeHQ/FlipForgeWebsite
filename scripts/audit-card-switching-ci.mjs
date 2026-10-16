@@ -15,6 +15,7 @@
 // Synthetic fixtures only: no network, no provider calls.
 import { chromium, firefox, webkit, devices } from "playwright";
 
+process.on("unhandledRejection", error => { console.log(`FAIL audit crashed with an unhandled error: ${String(error?.stack || error).replace(/\n/g, " | ").slice(0, 1800)}`); process.exit(1); });
 const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app";
 const email = "card-switching-audit@flipforge.test";
 // Browser engine, device and Navigation API mode, so one audit covers: Chromium (Chrome, Edge, Chrome Android), Firefox,
@@ -56,7 +57,8 @@ const opportunity = id => ({
 // Server behavior for the next request(s) of a card: delay (ms) and failure.
 const behavior = new Map();
 const setBehavior = (id, value) => behavior.set(id, value);
-const clearBehavior = () => behavior.clear();
+const served = new Map();
+const clearBehavior = () => { behavior.clear(); served.clear(); };
 
 function envelope(correlationId, data) {
   return {
@@ -173,7 +175,7 @@ async function newSession() {
         if (/Prototype saved record|OPPORTUNITY DETAIL/i.test(text)) problems.push("a prototype sample record is painted");
         if (!hero && main.children.length) {
           // On a card's URL the only things that may be on screen are that card, or a neutral loading / recovery / error state.
-          const neutral = main.querySelector('[data-ff-route-pending], [data-saved-intelligence-recovery], [data-card-intelligence-recovery], [data-saved-intelligence-recovery-error], [data-card-intelligence-recovery-error], .staging-error, .staging-loading, .ff-commercial-loading, [role="status"], [role="alert"]') || /Loading|Opening|could not|unavailable/i.test(text);
+          const neutral = main.querySelector('[data-ff-route-pending], [data-saved-intelligence-recovery], [data-card-intelligence-recovery], [data-saved-intelligence-recovery-error], [data-card-intelligence-recovery-error], .staging-error, .staging-loading, .ff-commercial-loading');
           if (!neutral) problems.push(`another page is on screen under the card URL ("${String(main.querySelector("h1")?.textContent || text).trim().slice(0, 50)}")`);
         }
         if (!hero) {
@@ -241,7 +243,11 @@ async function newSession() {
       const [, kind, encoded] = record;
       const id = decodeURIComponent(encoded);
       const plan = behavior.get(id) || {};
-      if (plan.delayMs) await new Promise(resolve => setTimeout(resolve, plan.delayMs));
+      const servedKey = `${kind}:${id}`;
+      const servedBefore = served.get(servedKey) || 0;
+      served.set(servedKey, servedBefore + 1);
+      // slowFirst: only the first N requests for this record are delayed, so a later retry (the recovery bridge) answers fast.
+      if (plan.delayMs && (!plan.slowFirst || (kind === "opportunities" && servedBefore < plan.slowFirst))) await new Promise(resolve => setTimeout(resolve, plan.delayMs));
       if (plan.fail || !cards[id]) {
         return json(route, plan.fail ? 503 : 404, { error: { code: plan.fail ? "SERVICE_UNAVAILABLE" : "RESOURCE_NOT_FOUND", message: "Synthetic failure.", correlationId } }).catch(() => {});
       }
@@ -598,6 +604,26 @@ try {
     await showsCard(page, BUY);
     const view = await snapshot(page);
     check("L2 once the events arrive the card is shown", view.title === cards[BUY].title && view.verdict === "BUY", JSON.stringify(view));
+    await context.close();
+  }
+
+  // M. A card painted by the recovery bridge (the module's own request is still pending when the bridge's answers first) is
+  // not owned by the card module, yet it must leave the screen the moment the URL moves on, before any hashchange is delivered.
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    setBehavior(BUY, { delayMs: 9000, slowFirst: 1 });
+    await page.goto(`${baseUrl}/#/opportunities/${BUY}`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#main-content [data-card-intelligence-recovery]", { timeout: 20_000 }).catch(() => {});
+    const recovered = await page.evaluate(() => Boolean(document.querySelector("#main-content [data-card-intelligence-recovery]")));
+    check("M the recovery bridge painted the card while the first request was still pending", recovered, "the bridge did not render the card");
+    await page.evaluate(() => { window.__ffSwallowNavigationEvents = true; });
+    await go(page, "#/psa-advisor");
+    await page.waitForTimeout(600);
+    const bad = await foreign(page);
+    check("M recovered card, URL moves on before hashchange is delivered: the card never stays under the new URL", bad.length === 0, describe(bad));
+    await page.evaluate(() => { window.__ffSwallowNavigationEvents = false; window.dispatchEvent(new PopStateEvent("popstate")); window.dispatchEvent(new HashChangeEvent("hashchange")); }).catch(() => {});
+    clearBehavior();
     await context.close();
   }
 
