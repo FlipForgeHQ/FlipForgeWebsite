@@ -52,6 +52,26 @@
     main.innerHTML = '<div class="page customer-intelligence-page"><div class="staging-loading" role="status">Loading the saved decision</div></div>';
   }
 
+  // IN-PAGE ANCHORS ARE NOT ROUTES. The keyboard "Skip to main content" link (href="#main-content") would otherwise put a
+  // fragment in the address bar that every hashchange renderer reads as a route: the shell repainted the Dashboard over the
+  // saved card, pending card loads were discarded as "route changed", and Refresh failed. Activating such a link moves focus
+  // to its target (what the link is for) and leaves the address bar, the card and its in-flight load untouched.
+  document.addEventListener("click", event => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target && typeof event.target.closest === "function" ? event.target.closest('a[href^="#"]') : null;
+    if (!link || (link.target && link.target !== "_self")) return;
+    const fragment = String(link.getAttribute("href") || "");
+    if (!/^#[^/?]+$/.test(fragment)) return;
+    let id = fragment.slice(1);
+    try { id = decodeURIComponent(id); } catch (_) { /* keep raw id */ }
+    const target = document.getElementById(id);
+    if (!target) return;
+    event.preventDefault();
+    if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+    if (typeof target.focus === "function") target.focus();
+    if (typeof target.scrollIntoView === "function") target.scrollIntoView({ block: "start" });
+  }, true);
+
   // Navigation API's navigate event fires before a same-document fragment
   // navigation commits. The synchronous clear keeps old verdicts out of the
   // first frame whose address bar names another card.

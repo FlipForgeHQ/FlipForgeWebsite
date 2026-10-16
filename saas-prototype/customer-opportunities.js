@@ -16,10 +16,26 @@
   const STALE = Symbol("stale-card-intelligence-load");
   // The route in the address bar. Other routes (Dashboard, Tracking...) are painted by other renderers into the same
   // #main-content, so a load may only write or paint while the address bar is still on the route it was started for.
-  function routeKey() { return String(window.location.hash || "").replace(/^#\/?/, "").split("?")[0]; }
+  // An in-page anchor such as the keyboard "Skip to main content" link (#main-content) changes location.hash but is not a
+  // route change: the card, its pending load and its Refresh action all stay on the route that was last navigated to.
+  let lastRouteHash = String(window.location.hash || "");
+  function isAnchorHash(hash) {
+    const fragment = String(hash || "");
+    if (!/^#[^/?]+$/.test(fragment)) return false;
+    let id = fragment.slice(1);
+    try { id = decodeURIComponent(id); } catch (_) { /* keep raw id */ }
+    return typeof document !== "undefined" && typeof document.getElementById === "function" && Boolean(document.getElementById(id));
+  }
+  function currentRouteHash() {
+    const hash = String(window.location.hash || "");
+    if (isAnchorHash(hash)) return lastRouteHash;
+    lastRouteHash = hash;
+    return hash;
+  }
+  function routeKey() { return currentRouteHash().replace(/^#\/?/, "").split("?")[0]; }
   // The card id in the address bar, or "" off a Card Intelligence route.
   function routeCardId() {
-    const match = String(window.location.hash || "").match(/^#\/?opportunities\/([^/?#]+)/);
+    const match = currentRouteHash().match(/^#\/?opportunities\/([^/?#]+)/);
     if (!match) return "";
     try { return decodeURIComponent(match[1]); } catch (_) { return match[1]; }
   }
