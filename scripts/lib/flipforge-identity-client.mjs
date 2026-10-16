@@ -10,6 +10,7 @@ import {
   updateUser
 } from "@netlify/identity";
 import { friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
+import { serverSessionStatus, syncServerSessionCookie } from "./flipforge-server-session.mjs";
 
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
 const PRODUCTION_SITE_HOST = /^(?:www\.)?goflipforge\.com$/i;
@@ -38,6 +39,13 @@ function ensureFreshSession() {
         return await refreshSession();
       } catch (_) {
         return null;
+      } finally {
+        // A restored session can be renewed in the browser without the server cookie being
+        // rewritten; bring the cookie the server reads back in line with the signed-in account.
+        try {
+          const userId = String(state.user?.id || "");
+          if (userId) syncServerSessionCookie(userId);
+        } catch (_) {}
       }
     })().finally(() => {
       sessionRenewal = null;
@@ -259,8 +267,24 @@ function setAuthenticatedUser(nextUser, { renderIfChanged = true } = {}) {
   return true;
 }
 
+// Confirms the server will authenticate the signed-in account, not merely the browser.
+// A browser identity snapshot is never treated as proof of server authentication.
+// Returns { ok: true } or { ok: false, reason } with reason one of SIGNED_OUT,
+// ACCOUNT_CHANGED, or the cookie state (missing, expired, other-account).
+async function establishServerSession(expectedUserId) {
+  const userId = String(state.user?.id || "");
+  if (!userId) return { ok: false, reason: "SIGNED_OUT" };
+  if (expectedUserId && userId !== String(expectedUserId)) return { ok: false, reason: "ACCOUNT_CHANGED" };
+  await ensureFreshSession();
+  if (String(state.user?.id || "") !== userId) return { ok: false, reason: "ACCOUNT_CHANGED" };
+  syncServerSessionCookie(userId);
+  const status = serverSessionStatus(userId);
+  return status === "ok" ? { ok: true } : { ok: false, reason: status };
+}
+
 window.FlipForgeIdentity = Object.freeze({
   getUser: () => state.user,
+  establishServerSession: expectedUserId => establishServerSession(expectedUserId),
   getSnapshot: () => identitySnapshot(),
   ensureFreshSession: () => ensureFreshSession(),
   recoverFromSessionRenewalRace: (args, response, refetch) => recoverFromSessionRenewalRace(args, response, refetch),
@@ -391,6 +415,7 @@ function renderInvite(element) {
     const confirmPassword = clean(form.get("confirmPassword"));
     const passwordError = validateNewPassword(password, confirmPassword);
     if (passwordError) {
+      window.FlipForgeBetaTermsGate?.discardActivationConsent?.();
       state.error = passwordError;
       render();
       return;
@@ -398,26 +423,38 @@ function renderInvite(element) {
     state.busy = true;
     state.error = "";
     render();
+    const termsGate = window.FlipForgeBetaTermsGate;
+    let activated = false;
     try {
       await acceptInvite(state.inviteToken, password);
+      activated = true;
       state.inviteToken = "";
-      setAuthenticatedUser(await getUser(), { renderIfChanged: false });
-      // When the invitation form recorded a Beta Terms acceptance, the Terms gate is now
-      // sending it to the server and opens the workspace itself once it is saved. Navigating
-      // away here could cancel that request and leave the account terms-pending.
-      const termsInFlight = Boolean(window.FlipForgeBetaTermsGate?.awaitingAcceptance?.());
-      state.message = productionSiteHost()
-        ? termsInFlight ? "Account activated. Saving your Beta Terms acceptance…" : "Account activated. Opening FlipForge Getting Started…"
+      const activatedUser = await getUser();
+      setAuthenticatedUser(activatedUser, { renderIfChanged: false });
+      // The Beta Terms consent given on this form belongs only to the account that was just
+      // activated. The gate submits it once, bound to that account's id, after confirming the
+      // server session; it navigates nowhere itself and never retries on its own.
+      const terms = typeof termsGate?.completeActivation === "function"
+        ? await termsGate.completeActivation(String(activatedUser?.id || ""))
+        : { status: "NO_CONSENT" };
+      const proceed = terms?.status === "RECORDED" || terms?.status === "NO_CONSENT";
+      state.message = !proceed
+        ? "Account activated. Finish the Beta Terms step to open your workspace."
+        : productionSiteHost()
+        ? "Account activated. Opening FlipForge Getting Started…"
         : previewHost()
         ? "Account activated and signed in for this deploy preview."
         : "Account activated and signed in.";
       state.panelOpen = interactiveIdentityHost();
-      // Activated testers go straight to the Private Beta workspace, never back
-      // to the public application funnel on the page they landed on.
-      if (productionSiteHost() && !termsInFlight) window.location.assign("/app/beta/#/beta-start");
+      // Activated testers go straight to the Private Beta workspace, never back to the public
+      // application funnel. Without a recorded Terms acceptance the workspace access gate sends
+      // them to the explicit Terms acceptance on the sign-in page.
+      if (productionSiteHost() && proceed) window.location.assign("/app/beta/#/beta-start");
     } catch (error) {
       state.error = friendlyAuthError(error, "The invitation could not be accepted.");
     } finally {
+      // A failed activation never leaves consent behind for any later account.
+      if (!activated) termsGate?.discardActivationConsent?.();
       state.busy = false;
       render();
     }

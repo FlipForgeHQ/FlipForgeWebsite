@@ -126,6 +126,15 @@ export function createBetaTermsAcceptanceHandler({
     if (input?.accepted !== true || String(input?.termsVersion || "") !== BETA_TERMS_VERSION) {
       return reply(400, { accepted: false, reason: "TERMS_ACCEPTANCE_REQUIRED" });
     }
+    // Consent is bound to the account the tester saw when accepting. A session that belongs to
+    // any other account (for example a stale cookie from an earlier sign-in) records nothing.
+    const consentingUserId = String(input?.identityUserId || "").trim();
+    if (!consentingUserId) {
+      return reply(400, { accepted: false, reason: "TERMS_ACCOUNT_BINDING_REQUIRED" });
+    }
+    if (consentingUserId !== userIdOf(user)) {
+      return reply(409, { accepted: false, reason: "TERMS_ACCOUNT_MISMATCH" });
+    }
 
     const metadata = appMetadata(user);
     const signedMembership = metadata.flipforge || {};

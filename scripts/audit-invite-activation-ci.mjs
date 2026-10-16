@@ -44,11 +44,22 @@ const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", "
 function b64url(value) {
   return Buffer.from(JSON.stringify(value)).toString("base64url");
 }
-const testJwt = [
-  b64url({ alg: "HS256", typ: "JWT" }),
-  b64url({ sub: "ci-invited-tester", email: "invited-tester@flipforge.test", exp: Math.floor(Date.now() / 1000) + 3600, app_metadata: { roles: [] }, user_metadata: { full_name: "CI Invited Tester" } }),
-  "ci-signature"
-].join(".");
+function jwtFor(sub, email, expOffsetSeconds = 3600) {
+  return [
+    b64url({ alg: "HS256", typ: "JWT" }),
+    b64url({ sub, email, exp: Math.floor(Date.now() / 1000) + expOffsetSeconds, app_metadata: { roles: [] }, user_metadata: { full_name: "CI Tester" } }),
+    "ci-signature"
+  ].join(".");
+}
+const testJwt = jwtFor("ci-invited-tester", "invited-tester@flipforge.test");
+const OTHER_ID = "ci-other-active-tester";
+function jwtClaims(token) {
+  try { return JSON.parse(Buffer.from(String(token || "").split(".")[1], "base64url").toString("utf8")); } catch (_) { return null; }
+}
+function cookieValue(header, name) {
+  const match = new RegExp(`(?:^|;\\s*)${name}=([^;]*)`).exec(String(header || ""));
+  return match ? decodeURIComponent(match[1]) : "";
+}
 const TERMS_DELAY_MS = 2000;
 const TENANT_ROLE = "flipforge-tenant--ci-tenant";
 const PENDING_ROLE = "flipforge-terms-pending";
@@ -57,8 +68,8 @@ const ACTIVE_ROLE = "flipforge-active";
 // A fresh simulated account per browser context. It behaves like production: invited
 // accounts start terms-pending; the Terms endpoint is slow and only then promotes the
 // account; entitlements and /user always answer from the account's current state.
-function newAccount() {
-  return { roles: [TENANT_ROLE, PENDING_ROLE], termsStartedAt: 0, termsFinishedAt: 0, termsAborted: false };
+function newAccount(options = {}) {
+  return { roles: [TENANT_ROLE, PENDING_ROLE], termsStartedAt: 0, termsFinishedAt: 0, termsAborted: false, termsCalls: 0, termsRecorded: 0, termsBodies: [], termsFailures: 0, terms401: false, verifyAccessOffset: 3600, ...options };
 }
 function userRecord(account) {
   return { id: "ci-invited-tester", aud: "", role: "", email: "invited-tester@flipforge.test", confirmed_at: new Date().toISOString(), invited_at: new Date().toISOString(), app_metadata: { provider: "email", roles: [...account.roles] }, user_metadata: { full_name: "CI Invited Tester" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
@@ -88,22 +99,50 @@ async function routeProduction(context, log, account = newAccount()) {
       if (endpoint === "/verify" && request.method() === "POST") {
         const body = request.postDataJSON?.() || {};
         if (body.token !== TEST_TOKEN) return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ code: 404, msg: "User not found" }) });
+        const issued = jwtFor("ci-invited-tester", "invited-tester@flipforge.test", account.verifyAccessOffset);
         return route.fulfill({
           status: 200,
           contentType: "application/json",
-          headers: { "set-cookie": `nf_jwt=${testJwt}; Path=/; Secure; SameSite=Lax` },
-          body: JSON.stringify({ access_token: testJwt, token_type: "bearer", expires_in: 3600, refresh_token: "ci-refresh-token" })
+          headers: account.noServerCookie ? {} : { "set-cookie": `nf_jwt=${issued}; Path=/; Secure; SameSite=Lax` },
+          body: JSON.stringify({ access_token: issued, token_type: "bearer", expires_in: 3600, refresh_token: "ci-refresh-token" })
         });
       }
-      if (endpoint === "/user") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(userRecord(account)) });
+      if (endpoint === "/token" && request.method() === "POST") {
+        // Refresh-token grant, as Netlify Identity answers it: a fresh access token for the same account.
+        return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ access_token: jwtFor("ci-invited-tester", "invited-tester@flipforge.test"), token_type: "bearer", expires_in: 3600, refresh_token: "ci-refresh-token-rotated" }) });
+      }
+      if (endpoint === "/user") {
+        const bearer = jwtClaims(String((await request.allHeaders()).authorization || "").replace(/^Bearer\s+/i, ""));
+        if (bearer?.sub === OTHER_ID) {
+          return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...userRecord(account), id: OTHER_ID, email: "other-tester@flipforge.test", app_metadata: { provider: "email", roles: [TENANT_ROLE, ACTIVE_ROLE] } }) });
+        }
+        return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(userRecord(account)) });
+      }
       if (endpoint === "/settings") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ external: {}, disable_signup: true, autoconfirm: false }) });
       if (endpoint === "/logout") return route.fulfill({ status: 204, body: "" });
       return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
     }
     if (url.pathname === "/api/beta/terms-acceptance") {
+      // Authenticates exactly like the production function: from the nf_jwt cookie only.
+      account.termsCalls += 1;
+      const headers = await request.allHeaders();
+      const claims = jwtClaims(cookieValue(headers.cookie, "nf_jwt"));
+      const body = request.postDataJSON?.() || {};
+      account.termsBodies.push({ identityUserId: body.identityUserId || "", cookieSub: claims?.sub || "" });
+      if (account.terms401 || !claims || !(claims.exp > Math.floor(Date.now() / 1000))) {
+        return route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ accepted: false, reason: "AUTHENTICATION_REQUIRED" }) });
+      }
+      if (String(body.identityUserId || "") !== String(claims.sub || "")) {
+        return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ accepted: false, reason: "TERMS_ACCOUNT_MISMATCH" }) });
+      }
+      if (account.termsFailures > 0) {
+        account.termsFailures -= 1;
+        return route.fulfill({ status: 502, contentType: "application/json", body: JSON.stringify({ accepted: false, reason: "TERMS_RECEIPT_WRITE_FAILED" }) });
+      }
       account.termsStartedAt = Date.now();
       await new Promise(resolve => setTimeout(resolve, TERMS_DELAY_MS));
       try {
+        if (!account.roles.includes(ACTIVE_ROLE)) account.termsRecorded += 1;
         account.roles = [TENANT_ROLE, ACTIVE_ROLE];
         await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ accepted: true, activated: true, termsVersion: "2026-08-15" }) });
         account.termsFinishedAt = Date.now();
@@ -338,6 +377,229 @@ if (!remoteBase) {
     check(`050 ${seat}: sign-in shows the specific seat state`, expected.test(state.result) && !/not enabled/.test(state.result), state.result);
     check(`051 ${seat}: no Terms panel and no workspace entry are offered`, !state.terms && !state.enter, JSON.stringify(state));
     check(`052 ${seat}: never routed to the beta application`, !navigations.some(url => /beta-application/i.test(url)), navigations.join(" -> "));
+    await context.close();
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Activation safety (2026-10-16). Production showed a failed invitation leaving a Terms marker in
+// browser storage that was later applied to a different signed-in account, an HTTP 401 retried
+// about four times a second indefinitely, and a page that looked signed in while the server
+// cookie had expired. Each scenario below fails on the code that shipped before this fix.
+// ---------------------------------------------------------------------------------------------
+if (!remoteBase) {
+  const LEGACY_KEY = "flipforge.betaTerms.pending.v1";
+  const otherJwt = jwtFor(OTHER_ID, "other-tester@flipforge.test");
+  const termsPosts = log => log.filter(line => line === "POST /api/beta/terms-acceptance").length;
+  const storedTermsKeys = page => page.evaluate(() => {
+    try { return Object.keys(localStorage).filter(key => /beta.?terms/i.test(key)); } catch (_) { return ["<storage unavailable>"]; }
+  });
+  async function submitActivation(page, token) {
+    await page.goto(`${SITE}/#invite_token=${token}`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#flipforge-identity-root [data-ff-identity-invite]", { state: "visible", timeout: 10000 }).catch(() => {});
+    await page.locator('#flipforge-identity-root input[name="password"]').fill("ci-test-password-0123456789");
+    await page.locator('#flipforge-identity-root input[name="confirmPassword"]').fill("ci-test-password-0123456789");
+    await page.locator("#flipforge-identity-root [data-beta-terms-accept]").check();
+    await page.locator('#flipforge-identity-root [data-ff-identity-invite] button[type="submit"]').click();
+  }
+  const overlayState = page => page.evaluate(() => {
+    const root = document.querySelector("[data-beta-terms-finalize]");
+    return { state: root?.dataset.state || "", text: root?.textContent || "", retry: Boolean(root?.querySelector("[data-beta-terms-retry]")), signin: Boolean(root?.querySelector("[data-beta-terms-signin]")) };
+  });
+
+  // 060 A failed invitation cannot transfer Terms consent to another account.
+  {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const log = [];
+    const account = newAccount();
+    await routeProduction(context, log, account);
+    const page = await context.newPage();
+    await submitActivation(page, "ci-expired-invitation-token");
+    await page.waitForSelector("#flipforge-identity-root .ff-id-error", { timeout: 10000 }).catch(() => {});
+    const keysAfterFailure = await storedTermsKeys(page);
+    // A different, already-active account signs in on the same browser and opens FlipForge.
+    await context.addCookies([{ name: "nf_jwt", value: otherJwt, domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }]);
+    await page.goto(`${SITE}/`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+    await page.goto(`${SITE}/app/beta/#/beta-start`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+    check("060 failed invitation leaves no Terms consent in browser storage", keysAfterFailure.length === 0, keysAfterFailure.join(","));
+    check("061 another account signing in afterwards triggers no Terms request", termsPosts(log) === 0, `posts=${termsPosts(log)}`);
+    await context.close();
+  }
+
+  // 062 A Terms marker left by an earlier version is removed and never used for whoever is signed in.
+  {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const log = [];
+    await routeProduction(context, log, newAccount());
+    await context.addCookies([{ name: "nf_jwt", value: otherJwt, domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }]);
+    await context.addInitScript(key => {
+      try { if (!sessionStorage.getItem("ci-seeded")) { localStorage.setItem(key, JSON.stringify({ termsVersion: "2026-08-15", acceptedAt: new Date().toISOString() })); sessionStorage.setItem("ci-seeded", "1"); } } catch (_) {}
+    }, LEGACY_KEY);
+    const page = await context.newPage();
+    await page.goto(`${SITE}/`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+    await page.goto(`${SITE}/app/beta/#/beta-start`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+    const keys = await storedTermsKeys(page);
+    check("062 legacy account-independent Terms marker is purged", keys.length === 0, keys.join(","));
+    check("063 legacy marker never records consent for the signed-in account", termsPosts(log) === 0, `posts=${termsPosts(log)}`);
+    await context.close();
+  }
+
+  // 064 HTTP 401 stops immediately: one request, no automatic retry, sign-in path offered.
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const log = [];
+    const account = newAccount({ terms401: true });
+    await routeProduction(context, log, account);
+    const page = await context.newPage();
+    const navigations = [];
+    page.on("framenavigated", frame => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
+    await submitActivation(page, TEST_TOKEN);
+    await page.waitForSelector("[data-beta-terms-finalize][data-state=signin]", { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(6000);
+    const shown = await overlayState(page);
+    check("064 HTTP 401 sends exactly one Terms request (no retry loop)", termsPosts(log) === 1, `posts=${termsPosts(log)}`);
+    check("065 HTTP 401 directs the tester to sign in again, with no automatic or Retry path", shown.state === "signin" && shown.signin && !shown.retry, JSON.stringify(shown));
+    check("066 HTTP 401 never opens the workspace or records consent", account.termsRecorded === 0 && !navigations.some(url => /\/app\/beta\//.test(url)), navigations.join(" -> "));
+    await context.close();
+  }
+
+  // 067 Any other failure stops after one request; Retry is manual; the correct account records once.
+  {
+    const context = await browser.newContext({ viewport: { width: 1366, height: 860 } });
+    const log = [];
+    const account = newAccount({ termsFailures: 1 });
+    await routeProduction(context, log, account);
+    const page = await context.newPage();
+    await submitActivation(page, TEST_TOKEN);
+    await page.waitForSelector("[data-beta-terms-finalize][data-state=retry]", { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(5000);
+    const postsBeforeRetry = termsPosts(log);
+    const shown = await overlayState(page);
+    check("067 a failed Terms request is not retried automatically", postsBeforeRetry === 1, `posts=${postsBeforeRetry}`);
+    check("068 failure shows a clear error with a manual Retry", shown.state === "retry" && shown.retry && /Retry/.test(shown.text), JSON.stringify(shown));
+    await page.locator("[data-beta-terms-retry]").click({ timeout: 5000 }).catch(() => {});
+    const opened = await waitForWorkspaceAccess(page);
+    await page.waitForTimeout(1500);
+    check("069 manual Retry records the activated account's acceptance and opens the workspace", opened && account.roles.includes(ACTIVE_ROLE), page.url());
+    check("070 consent recorded exactly once, bound to the activated account", account.termsRecorded === 1 && account.termsBodies.every(b => b.identityUserId === "ci-invited-tester"), JSON.stringify({ recorded: account.termsRecorded, bodies: account.termsBodies }));
+    check("071 workspace load after acceptance sends no further Terms request", termsPosts(log) === 2, `posts=${termsPosts(log)}`);
+    await context.close();
+  }
+
+  // 072 Reloading or changing accounts after a failure cannot silently record consent.
+  {
+    const context = await browser.newContext({ viewport: { width: 1366, height: 860 } });
+    const log = [];
+    const account = newAccount({ termsFailures: 99 });
+    await routeProduction(context, log, account);
+    const page = await context.newPage();
+    await submitActivation(page, TEST_TOKEN);
+    await page.waitForSelector("[data-beta-terms-finalize][data-state=retry]", { timeout: 10000 }).catch(() => {});
+    // Change account on the same page: the activated account signs out and a different, active
+    // account's session is restored, then Retry is pressed.
+    await page.evaluate(() => window.FlipForgeIdentity?.signOut?.().catch?.(() => {}));
+    await context.addCookies([{ name: "nf_jwt", value: otherJwt, domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }]);
+    const switchedTo = await page.evaluate(async () => { await window.FlipForgeIdentity?.refresh?.(); return String(window.FlipForgeIdentity?.getUser?.()?.id || ""); });
+    const postsBeforeSwitchRetry = termsPosts(log);
+    if (await page.locator("[data-beta-terms-retry]").count()) await page.locator("[data-beta-terms-retry]").click({ timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(1500);
+    const switched = await overlayState(page);
+    check("072 after switching to a different account, Retry sends nothing", switchedTo === OTHER_ID && termsPosts(log) === postsBeforeSwitchRetry, `switchedTo=${switchedTo} before=${postsBeforeSwitchRetry} after=${termsPosts(log)}`);
+    check("072b the tester is told the account changed and must accept Terms on the activated account", switched.state === "signin" && /account changed/i.test(switched.text), JSON.stringify(switched));
+    // Reload: in-memory consent is gone; another account signs in; nothing is sent.
+    await context.addCookies([{ name: "nf_jwt", value: otherJwt, domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }]);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3000);
+    check("073 reload with a different signed-in account records nothing", termsPosts(log) === postsBeforeSwitchRetry && account.termsRecorded === 0, `posts=${termsPosts(log)} recorded=${account.termsRecorded}`);
+    await context.close();
+  }
+
+  // 074 Missing server session at activation fails safely: the browser cannot hold the session
+  // cookie the server reads, so nothing is sent and the tester is asked to sign in again.
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const log = [];
+    const account = newAccount({ noServerCookie: true });
+    await routeProduction(context, log, account);
+    await context.addInitScript(() => {
+      const descriptor = Object.getOwnPropertyDescriptor(Document.prototype, "cookie");
+      Object.defineProperty(document, "cookie", {
+        configurable: true,
+        get() { return descriptor.get.call(document); },
+        set(value) { if (!/^\s*nf_(jwt|refresh)=/.test(String(value))) descriptor.set.call(document, value); }
+      });
+    });
+    const page = await context.newPage();
+    await submitActivation(page, TEST_TOKEN);
+    await page.waitForSelector("[data-beta-terms-finalize][data-state=signin]", { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(3000);
+    const shown = await overlayState(page);
+    check("074 missing server session sends no Terms request", termsPosts(log) === 0 && account.termsRecorded === 0, `posts=${termsPosts(log)}`);
+    check("075 missing server session offers sign in again (not an account-change message)", shown.state === "signin" && shown.signin && !shown.retry && /not signed in|not valid/.test(shown.text), JSON.stringify(shown));
+    await context.close();
+  }
+
+  // 080 An access token that is already expired at activation is renewed before the request, so the
+  // activated account still records exactly once (renewal, not the browser snapshot, proves the session).
+  {
+    const context = await browser.newContext({ viewport: { width: 1366, height: 860 } });
+    const log = [];
+    const account = newAccount({ verifyAccessOffset: -600 });
+    await routeProduction(context, log, account);
+    const page = await context.newPage();
+    await submitActivation(page, TEST_TOKEN);
+    const opened = await waitForWorkspaceAccess(page);
+    check("080 expired token at activation is renewed, then the activated account records once", opened && account.termsRecorded === 1 && account.termsBodies.length === 1 && account.termsBodies[0].cookieSub === "ci-invited-tester", JSON.stringify(account.termsBodies));
+    await context.close();
+  }
+
+  // 076 A session restored from an expired cookie (the production disagreement) is aligned with the
+  // server before the explicit Terms acceptance on the sign-in page, so the correct account records once.
+  {
+    const context = await browser.newContext({ viewport: { width: 1366, height: 860 } });
+    const log = [];
+    const account = newAccount();
+    await routeProduction(context, log, account);
+    await context.addCookies([
+      { name: "nf_jwt", value: jwtFor("ci-invited-tester", "invited-tester@flipforge.test", -600), domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" },
+      { name: "nf_refresh", value: "ci-refresh-token", domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }
+    ]);
+    const page = await context.newPage();
+    await page.goto(`${SITE}/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("[data-production-auth-terms]:not([hidden])", { timeout: 10000 }).catch(() => {});
+    const termsShown = await page.evaluate(() => !document.querySelector("[data-production-auth-terms]")?.hidden);
+    if (termsShown) {
+      await page.locator("[data-production-auth-terms-accept]").check();
+      await page.locator("[data-production-auth-terms-submit]").click();
+    }
+    const opened = await waitForWorkspaceAccess(page);
+    check("076 restored session: explicit Terms acceptance reaches the server as the signed-in account", termsShown && account.termsRecorded === 1 && account.termsBodies.every(b => b.identityUserId === b.cookieSub && b.cookieSub === "ci-invited-tester"), JSON.stringify({ termsShown, bodies: account.termsBodies }));
+    check("077 restored session: workspace opens after acceptance", opened, page.url());
+    await context.close();
+  }
+
+  // 078 Sign-in page with a session the server rejects: one attempt, then sign in again; nothing recorded.
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const log = [];
+    const account = newAccount({ terms401: true });
+    await routeProduction(context, log, account);
+    await context.addCookies([{ name: "nf_jwt", value: testJwt, domain: "goflipforge.com", path: "/", secure: true, sameSite: "Lax" }]);
+    const page = await context.newPage();
+    await page.goto(`${SITE}/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("[data-production-auth-terms]:not([hidden])", { timeout: 10000 }).catch(() => {});
+    if (await page.evaluate(() => !document.querySelector("[data-production-auth-terms]")?.hidden)) {
+      await page.locator("[data-production-auth-terms-accept]").check();
+      await page.locator("[data-production-auth-terms-submit]").click();
+    }
+    await page.waitForTimeout(3000);
+    const after = await page.evaluate(() => ({ result: document.querySelector("[data-production-auth-result]")?.textContent || "", termsHidden: Boolean(document.querySelector("[data-production-auth-terms]")?.hidden), signOut: !document.querySelector("[data-production-auth-signout]")?.hidden }));
+    check("078 sign-in page: HTTP 401 sends one request and records nothing", termsPosts(log) === 1 && account.termsRecorded === 0, `posts=${termsPosts(log)}`);
+    check("079 sign-in page: HTTP 401 asks to sign in again (sign-out offered)", /sign/i.test(after.result) && after.termsHidden && after.signOut, JSON.stringify(after));
     await context.close();
   }
 }
