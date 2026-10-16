@@ -56,7 +56,7 @@
   // fragment in the address bar that every hashchange renderer reads as a route: the shell repainted the Dashboard over the
   // saved card, pending card loads were discarded as "route changed", and Refresh failed. Activating such a link moves focus
   // to its target (what the link is for) and leaves the address bar, the card and its in-flight load untouched.
-  document.addEventListener("click", event => {
+  if (typeof document.addEventListener === "function") document.addEventListener("click", event => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = event.target && typeof event.target.closest === "function" ? event.target.closest('a[href^="#"]') : null;
     if (!link || (link.target && link.target !== "_self")) return;
