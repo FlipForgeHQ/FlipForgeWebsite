@@ -10,6 +10,7 @@ on:
       - "scripts/audit-card-switch-stale-response-ci.mjs"
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
+      - "scripts/audit-guided-mode-clearance-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -25,6 +26,7 @@ on:
       - "scripts/audit-card-switch-stale-response-ci.mjs"
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
+      - "scripts/audit-guided-mode-clearance-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -129,6 +131,16 @@ jobs:
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-evaluate-page-allowance-ci.mjs
+
+      - name: Guided Mode never covers primary controls - Private Beta path (/app/beta)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
+        run: node scripts/audit-guided-mode-clearance-ci.mjs
+
+      - name: Guided Mode never covers primary controls - real full customer shell (/app/customer)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/customer
+        run: node scripts/audit-guided-mode-clearance-ci.mjs
 
       - name: Upload owner-review screenshots
         if: always()
