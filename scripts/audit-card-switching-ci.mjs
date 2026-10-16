@@ -627,6 +627,32 @@ try {
     await context.close();
   }
 
+  // N. Keyboard skip link ("Skip to main content", href="#main-content") activated while a card is still loading, and Refresh
+  // afterwards: an in-page anchor is not a route. The URL stays on the card, no other page or card is ever painted, and the
+  // pending load still completes for the card that asked for it.
+  {
+    const { context, page } = await newSession();
+    clearBehavior();
+    await page.goto(`${baseUrl}/#/opportunities/${BUY}`, { waitUntil: "domcontentloaded" });
+    await showsCard(page, BUY);
+    setBehavior(WATCH, { delayMs: 3000 });
+    await clickTo(page, `#/opportunities/${WATCH}`);
+    await page.waitForTimeout(600);
+    await page.evaluate(() => document.querySelector('a.skip-link[href="#main-content"]')?.click());
+    await showsCard(page, WATCH);
+    let view = await snapshot(page);
+    check("N skip link activated while a card is loading: the URL stays on the card and the card still loads", view.hash === `#/opportunities/${WATCH}` && view.title === cards[WATCH].title && view.verdict === "WATCH", JSON.stringify(view));
+    setBehavior(WATCH, { delayMs: 1500 });
+    await page.evaluate(() => document.querySelector("[data-customer-opportunities-refresh]")?.click());
+    await showsCard(page, WATCH);
+    view = await snapshot(page);
+    check("N Refresh after skip-link navigation reloads the same card", view.hash === `#/opportunities/${WATCH}` && view.title === cards[WATCH].title && view.verdict === "WATCH" && !view.loading, JSON.stringify(view));
+    const bad = await foreign(page);
+    check("N skip link + Refresh: no frame ever showed another page, card or card's details", bad.length === 0, describe(bad));
+    clearBehavior();
+    await context.close();
+  }
+
   // K. Realistic worst case: a 10.5 s response (the slowest load seen in production) for a card the customer abandons at
   // 3 s, both by link click and by Back, while the next card loads at once. The late response must change nothing.
   {

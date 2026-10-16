@@ -324,6 +324,7 @@
   function hashOf(url) { try { return new URL(String(url || ""), window.location.href).hash; } catch (_) { return ""; } }
   function leaveCurrentCard(destinationHash) {
     if (!state.main || !state.selectedId || !state.detail) return; // no card is on screen
+    if (isAnchorHash(destinationHash)) return; // an in-page anchor (skip link) is not a route change
     if (destinationHash === `#/opportunities/${encodeURIComponent(state.selectedId)}`) return;
     loadSerial += 1;
     const leftId = state.selectedId;
@@ -344,6 +345,7 @@
   // Arriving at a saved card from any other page (Back/Forward, a link): until the route renderer runs, the page that was on
   // screen must not stay visible under the card's URL, so a neutral loading state takes its place in the same task.
   function showPendingCard(destinationHash) {
+    if (isAnchorHash(destinationHash)) return;
     const match = String(destinationHash || "").match(/^#\/?opportunities\/([^/?#]+)/);
     if (!match) return;
     let id = match[1];
