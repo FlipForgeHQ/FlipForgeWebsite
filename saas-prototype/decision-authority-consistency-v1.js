@@ -87,7 +87,7 @@
       why: "Understand the reason before moving on."
     };
     return {
-      copy: "VERIFY means FlipForge does not yet have enough trustworthy support for a stronger call.",
+      copy: "VERIFY means FlipForge does not yet have enough matching evidence for a stronger call.",
       why: "Find what is missing before doing anything else."
     };
   }
@@ -134,7 +134,7 @@
     };
     const identity = /identity needs verification|mapping\s*(?:not confirmed|NOT_CONFIRMED)|provider UUID mapping remains unconfirmed/i.test(pageText);
     const evidence = /no accepted exact completed sales|0 accepted|no exact sales|evidence-supported value is unavailable/i.test(pageText);
-    let reason = "FlipForge does not yet have enough trustworthy support for a stronger decision.";
+    let reason = "FlipForge does not yet have enough matching evidence for a stronger decision.";
     if (identity && evidence) reason = "The exact card identity still needs confirmation, and there is not enough exact completed-sale evidence yet.";
     else if (identity) reason = "The exact card identity still needs confirmation before FlipForge can support a stronger decision.";
     else if (evidence) reason = "There is not enough exact completed-sale evidence yet to support a value or stronger decision.";
@@ -201,7 +201,7 @@
     const page = main.querySelector(".customer-management-page");
     if (!page) return;
 
-    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge trusted/i);
+    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge (?:trusted|counted)/i);
     const candidateSection = sectionByHeading(page, /Manual evidence candidates|Saved evidence candidate pool|What FlipForge reviewed/i);
 
     const linkedTable = linkedSection?.querySelector("table");
@@ -276,7 +276,7 @@
     const metrics = page.querySelector(".customer-management-metrics");
     const metricArticles = metrics ? [...metrics.querySelectorAll("article")] : [];
     if (metricArticles[0]) {
-      metricArticles[0].querySelector("span").textContent = "Trusted sales";
+      metricArticles[0].querySelector("span").textContent = "Matched sales";
       metricArticles[0].dataset.tone = "trusted";
       addMetricContext(metricArticles[0], "Exact completed sales currently allowed to support value.");
     }
@@ -312,7 +312,7 @@
         </article>
         <span class="ff-evidence-funnel-arrow" aria-hidden="true">→</span>
         <article data-tone="trusted">
-          <span>Trusted now</span>
+          <span>Counted now</span>
           <strong>${accepted}</strong>
           <small>Current exact completed sales</small>
         </article>
@@ -326,14 +326,14 @@
     if (selectorPanel) selectorPanel.insertAdjacentElement("afterend", proof);
     else if (heading) heading.insertAdjacentElement("afterend", proof);
 
-    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge trusted/i);
+    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge (?:trusted|counted)/i);
     const candidateSection = sectionByHeading(page, /What FlipForge reviewed but did not use|Saved evidence candidate pool|Manual evidence candidates/i);
     const historySection = sectionByHeading(page, /Evidence history|Full audit trail/i);
 
     if (linkedSection) {
       const linkedHeading = linkedSection.querySelector("h2");
       const linkedCopy = linkedSection.querySelector(".panel-header p");
-      if (linkedHeading) linkedHeading.textContent = "What FlipForge trusted";
+      if (linkedHeading) linkedHeading.textContent = "What FlipForge counted";
       if (linkedCopy) linkedCopy.textContent = `${accepted} linked completed sale${accepted === 1 ? "" : "s"} currently satisfy the exact-comparable rules required to support this saved decision.`;
       linkedSection.classList.add("ff-evidence-trusted-section");
     }
@@ -385,8 +385,8 @@
 
     panel.dataset.ffGuideEvidenceStep = id;
     if (location && location.textContent !== "Evidence · Step 3") location.textContent = "Evidence · Step 3";
-    if (title && title.textContent !== "See what FlipForge trusted—and what it refused to use.") {
-      title.textContent = "See what FlipForge trusted—and what it refused to use.";
+    if (title && title.textContent !== "See what FlipForge counted—and what it refused to use.") {
+      title.textContent = "See what FlipForge counted—and what it refused to use.";
     }
     const copy = "Start with the counted-vs-not-counted summary. Open the candidate pool or full audit trail only if you want deeper forensic detail.";
     if (copyNode && copyNode.textContent !== copy) copyNode.textContent = copy;

@@ -6,7 +6,7 @@
   const DECISION_COPY = Object.freeze({
     BUY: "The saved evidence supports this purchase at the evaluated price, within the stated risks and limits.",
     WATCH: "There may be an opportunity here, but the price or evidence is not strong enough yet.",
-    VERIFY: "There is not enough trustworthy evidence yet to make this purchase confidently.",
+    VERIFY: "There is not enough matching evidence yet to make this purchase confidently.",
     PASS: "The current evidence does not justify this purchase at the evaluated price.",
     UNKNOWN: "FlipForge has not returned a customer-facing decision for this saved record."
   });

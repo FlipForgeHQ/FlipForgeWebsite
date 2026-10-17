@@ -124,6 +124,9 @@ check("031 Why It Matters renders from server facts", markup.includes("The evide
 check("032 governed decision change is visible", markup.includes("VERIFY") && markup.includes("Decision changed"));
 check("033 inspect-next routing labels render", markup.includes("Evidence Review") && markup.includes("Decision Intelligence") && markup.includes("Decision Receipt"));
 check("034 customer boundary is visible", markup.includes("Review prompt only") && markup.includes("No recommendation"));
+check("034a stored VERIFIED evidence state is shown as strong reported-sale evidence, never as verified",
+  markup.includes("Evidence Quality changed from THIN to Strong (reported sales).") && !markup.includes("to VERIFIED"));
+check("034b Collection Signals state the payment limitation", markup.includes("FlipForge does not confirm payment or settlement"));
 
 const legacyMarkup = api.renderMarkup({ kind: "alerts", configured: true, items: [] });
 check("035 older backend fails soft without inventing signals",

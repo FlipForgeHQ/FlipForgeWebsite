@@ -15,7 +15,7 @@
     },
     VERIFY: {
       title: "Verify before acting",
-      reason: "There are not enough trustworthy sales to support a stronger call yet."
+      reason: "There are not enough matched exact sales to support a stronger call yet."
     },
     PASS: {
       title: "Pass at this price",
@@ -76,10 +76,13 @@
     return Object.prototype.hasOwnProperty.call(VERDICTS, decision) ? decision : "UNKNOWN";
   }
 
+  // Read, never shown: pages rendered by an earlier build still carry the legacy gate heading.
+  const ACCEPTED_GATE_LABELS = ["Matched exact sales", "Trusted completed sales"];
+
   function labeledStrong(scope, selector, label) {
-    const target = String(label || "").toLowerCase();
+    const targets = (Array.isArray(label) ? label : [label]).map(value => String(value || "").toLowerCase());
     const row = [...scope.querySelectorAll(selector)]
-      .find(node => text(node.querySelector("span")).toLowerCase() === target);
+      .find(node => targets.includes(text(node.querySelector("span")).toLowerCase()));
     return row ? text(row.querySelector("strong")) : "";
   }
 
@@ -106,7 +109,7 @@
     if (!command) return null;
 
     const exact = labeledStrong(command, ".ff-di-v2-gate", "Exact identity") || "Review needed";
-    const sales = labeledStrong(command, ".ff-di-v2-gate", "Trusted completed sales") || "Unavailable";
+    const sales = labeledStrong(command, ".ff-di-v2-gate", ACCEPTED_GATE_LABELS) || "Unavailable";
     const excluded = labeledStrong(command, ".ff-di-v2-gate", "Excluded evidence") || "";
     const support = labeledStrong(command, ".ff-di-v2-verdict-metrics > div", "Supported value") || "Unavailable";
     const confidence = labeledStrong(command, ".ff-di-v2-verdict-metrics > div", "Confidence") || "Unavailable";
@@ -133,7 +136,7 @@
         },
         {
           key: "sales",
-          label: "Trustworthy sales",
+          label: "Matched sales",
           value: sales,
           caption: "Use only completed sales that match the exact card.",
           accepted: numberFromText(sales),
@@ -187,7 +190,7 @@
         },
         {
           key: "sales",
-          label: "Trustworthy sales",
+          label: "Matched sales",
           value: sales,
           caption: "See how many exact completed sales were allowed to support the decision.",
           accepted: numberFromText(sales),

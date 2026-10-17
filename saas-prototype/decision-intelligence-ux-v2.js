@@ -138,7 +138,7 @@
     const supported = safeNumber(detail?.supportedValue);
     const gates = [
       ["Exact identity", mapping === "CONFIRMED" ? "Verified" : "Needs review", mapping === "CONFIRMED" ? "good" : "warn"],
-      ["Trusted completed sales", accepted > 0 ? `${accepted} accepted` : "None accepted", accepted > 0 ? "good" : "warn"],
+      ["Matched exact sales", accepted > 0 ? `${accepted} accepted` : "None accepted", accepted > 0 ? "good" : "warn"],
       ["Value authority", accepted > 0 && supported > 0 ? "Available" : "Withheld", accepted > 0 && supported > 0 ? "good" : "warn"],
       ["Not counted now", excluded > 0 ? `${excluded} visible` : "None", excluded > 0 ? "context" : "good"]
     ];
@@ -242,7 +242,7 @@
           </article>
           <article class="ff-di-v3-receipt-layer" data-layer="evidence">
             <span class="ff-di-v3-receipt-layer-number">02</span>
-            <div><small>EVIDENCE</small><strong>${atDecision} at decision · ${accepted} counted now · ${excluded} not counted now</strong><p>The saved value used the sales available when it was saved. Today's count uses today's evidence rules. Sale prices are provider-reported and not independently confirmed.</p></div>
+            <div><small>EVIDENCE</small><strong>${atDecision} at decision · ${accepted} counted now · ${excluded} not counted now</strong><p>The saved value used the sales available when it was saved. Today's count uses today's evidence rules. Sale prices are provider-reported and not independently confirmed. FlipForge matches each sale to the exact card but does not confirm payment or settlement.</p></div>
           </article>
           <article class="ff-di-v3-receipt-layer" data-layer="economics">
             <span class="ff-di-v3-receipt-layer-number">03</span>
@@ -380,7 +380,7 @@
     const command = document.createElement("section");
     command.className = "ff-di-v2-command ff-di-v2-preview";
     command.dataset.ffDiV2Command = "";
-    command.innerHTML = `<article class="ff-di-v2-verdict"><div class="ff-di-v2-verdict-main"><span class="ff-di-v2-kicker">DECISION INTELLIGENCE UX V2</span><strong class="ff-di-v2-decision">PREVIEW</strong><h2>Evidence integrity becomes the product story.</h2><p>Production will show what FlipForge trusted, what it excluded, why value was available or withheld, and what would need to change before the decision changes.</p></div></article>`;
+    command.innerHTML = `<article class="ff-di-v2-verdict"><div class="ff-di-v2-verdict-main"><span class="ff-di-v2-kicker">DECISION INTELLIGENCE UX V2</span><strong class="ff-di-v2-decision">PREVIEW</strong><h2>Evidence integrity becomes the product story.</h2><p>Production will show what FlipForge counted, what it excluded, why value was available or withheld, and what would need to change before the decision changes.</p></div></article>`;
     controls.insertAdjacentElement("afterend", command);
   }
 

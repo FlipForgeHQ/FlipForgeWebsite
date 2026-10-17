@@ -1,0 +1,32 @@
+name: Source-Truth Terminology
+
+# Customer text must never claim or imply that a sale is verified, confirmed, trusted or payment-confirmed.
+# FlipForge shows reported sale records matched to the exact card; it does not confirm payment or settlement.
+# Runs on every pull request (no path filter) so new copy anywhere on the site or in the app is checked.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-truth-terminology:
+    name: No verified, confirmed or trusted sale claims in customer text
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate source-truth terminology and payment-limitation disclosures
+        run: node scripts/validate-source-truth-terminology.mjs
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Legacy evidence headings are still read (current and legacy labels)
+        run: node scripts/audit-legacy-evidence-labels-ci.mjs

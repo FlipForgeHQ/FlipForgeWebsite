@@ -70,7 +70,7 @@ function heatEnvelope(correlationId) {
           snapshotAgeDays: 0,
           whyHot: [
             "Supported value is 30.6% above the saved all-in ask.",
-            "24 exact trusted completed sales support the decision context.",
+            "24 matched exact-card sales support the decision context.",
             "Forge Confidence is 93/100.",
             "Opportunity Risk is 21/100."
           ],

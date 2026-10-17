@@ -113,8 +113,13 @@
     return text ? text.toLowerCase().replace(/(^|\s)\S/g, char => char.toUpperCase()) : "Review";
   }
 
+  // Source-truth wording: the historical VERIFIED state means strong reported-sale evidence, never payment confirmation.
+  function customerEvidenceWording(text) {
+    return String(text).replace(/\bVERIFIED\b/g, "Strong (reported sales)");
+  }
+
   function signalMarkup(signal) {
-    const changes = safeArray(signal?.whatChanged).filter(Boolean);
+    const changes = safeArray(signal?.whatChanged).filter(Boolean).map(customerEvidenceWording);
     const inspectNext = safeArray(signal?.inspectNext).filter(Boolean);
     const severity = severityTone(signal?.severity);
     const decision = signal?.governedDecision ? String(signal.governedDecision) : "No saved decision supplied";
@@ -176,7 +181,7 @@
         </div>
       </section>
       <section class="panel ff-collection-signals-panel">
-        <header class="panel-header"><div><span class="eyebrow">Smarter alerts</span><h2>Collection Signals</h2><p>What changed, why it matters, whether the governed decision changed, and what to inspect next.</p></div><span class="ff-ci-summary-state">${safeNumber(data.collectionSignalCount ?? signals.length)} grouped</span></header>
+        <header class="panel-header"><div><span class="eyebrow">Smarter alerts</span><h2>Collection Signals</h2><p>What changed, why it matters, whether the governed decision changed, and what to inspect next. Evidence quality describes reported sales matched to each card; FlipForge does not confirm payment or settlement.</p></div><span class="ff-ci-summary-state">${safeNumber(data.collectionSignalCount ?? signals.length)} grouped</span></header>
         <div class="panel-body">
           ${signals.length ? `<div class="ff-collection-signals">${signals.map(signalMarkup).join("")}</div>` : `<div class="staging-empty ff-ci-empty"><strong>${noMaterialChange ? "No material changes in the last 24 hours." : "No Collection Signal cards are available."}</strong><p>FlipForge does not turn ordinary single-tick market movement into noise. When a governed threshold is crossed, the evidence-backed change will appear here.</p></div>`}
           <div class="ff-ci-delivery-note"><strong>In-app intelligence only.</strong><span>Email, SMS, push, marketplace actions, and transaction delivery remain disabled.</span></div>
