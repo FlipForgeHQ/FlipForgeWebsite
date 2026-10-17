@@ -10,6 +10,19 @@
   const FIXED_PATHS = new Set(["/api/v1/health", "/api/v1/dashboard", "/api/v1/opportunities"]);
 
   const state = { main: null, requestedId: "", selectedId: "", loading: false, health: null, dashboard: null, opportunities: null, detail: null, evidence: null, psa: null, error: null, partialErrors: [] };
+  // Every load gets a serial. Only the newest load may write state or paint: when a customer switches cards, a slower
+  // response for the card they left (or an earlier failure) must never replace the card they are now viewing.
+  let loadSerial = 0;
+  const STALE = Symbol("stale-card-intelligence-load");
+  // The route in the address bar. Other routes (Dashboard, Tracking...) are painted by other renderers into the same
+  // #main-content, so a load may only write or paint while the address bar is still on the route it was started for.
+  function routeKey() { return String(window.location.hash || "").replace(/^#\/?/, "").split("?")[0]; }
+  // The card id in the address bar, or "" off a Card Intelligence route.
+  function routeCardId() {
+    const match = String(window.location.hash || "").match(/^#\/?opportunities\/([^/?#]+)/);
+    if (!match) return "";
+    try { return decodeURIComponent(match[1]); } catch (_) { return match[1]; }
+  }
 
   function productionHost() { return PRODUCTION_HOST.test(String(window.location.hostname || "")); }
   function eligibleHost() {
@@ -138,7 +151,9 @@
     return `<div class="table-wrap"><table><thead><tr><th>Evidence source</th><th>Amount</th><th>Sale date</th><th>Identity</th><th>Authority</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")}</small></td><td>${money(item.amount)}</td><td>${escapeHtml(item.soldAt || item.recordedAt || "Unavailable")}</td><td>${item.identityMatch === true ? badge("Exact match", "ok") : badge("Mismatch", "warn")}</td><td>${item.authorityEligible === true ? badge("Counted now", "buy") : ({ EXCLUDED: badge("Excluded", "pass"), HELD: badge("Held for review", "warn"), NOT_USED: badge("Not used", "neutral") }[String(item.currentAdmissionStatus || "").toUpperCase()] || badge("Not counted", "neutral"))}</td></tr>`).join("")}</tbody></table></div>`;
   }
   function detailView() {
-    const item = state.detail?.data?.opportunity;
+    const loaded = state.detail?.data?.opportunity;
+    // Display only the record for the card that was requested and is still in the address bar.
+    const item = loaded && String(loaded.id || "") === state.selectedId && routeCardId() === state.selectedId ? loaded : null;
     if (!item) return `<div class="page customer-intelligence-page">${pageHeading("Card Intelligence", "Loading the saved decision and its evidence.", `<a class="button button-secondary" href="#/opportunities">Back to opportunities</a>`)}${state.loading ? `<div class="staging-loading" role="status">Loading card intelligence…</div>` : ""}${errorPanel(state.error)}</div>`;
     const evidence = state.evidence?.data || {};
     const psa = state.psa?.data || {};
@@ -157,7 +172,7 @@
     const display = cardDisplay(item);
     const title = display.title;
     const actions = `<a class="button button-secondary" href="#/opportunities">Saved decisions</a><a class="button button-secondary" href="#/tracking/${encodeURIComponent(item.id)}">Track</a><button class="button button-secondary" type="button" data-customer-opportunities-refresh>Refresh</button>`;
-    return `<div class="page customer-intelligence-page">${pageHeading("Card Intelligence", "Decision first. Open deeper evidence only when you need it.", actions)}<section class="panel customer-intelligence-hero"><div class="panel-body"><div class="customer-hero-copy"><span class="eyebrow">${escapeHtml(item.platform || "Saved marketplace record")}</span><div class="customer-hero-title">${badge(item.recommendation || "UNKNOWN", String(item.recommendation || "unknown").toLowerCase())}<h2>${escapeHtml(title)}</h2></div>${display.identity ? `<p>${escapeHtml(display.identity)}</p>` : ""}<div class="customer-tracked-state"><span class="check-mark ok">✓</span><span><strong>Tracked in SQLite</strong><small>Tenant-owned saved record · ${escapeHtml(item.observedAt || "Observation time unavailable")}</small></span></div></div><div class="customer-value-summary"><span>Current ask</span><strong>${money(ask)}</strong><span>Supported value</span><strong${supportedAvailable ? " class=\"value-positive\"" : ""}>${escapeHtml(supportedValueText(item, acceptedSales))}</strong><small>${supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)} · ${gapPercent.toFixed(1)}% saved value gap` : "No accepted exact completed-sale evidence supports a value yet."}</small></div></div></section>${valueIntelligencePanel(item)}<div class="customer-intelligence-metrics"><article><span>Confidence</span><strong>${safeNumber(item.confidence)}/100</strong></article><article><span>Liquidity</span><strong>${safeNumber(item.liquidity)}/100</strong></article><article><span>Risk</span><strong>${safeNumber(item.risk)}/100</strong></article><article><span>Rank</span><strong>${safeNumber(item.rank)}/100</strong></article></div><div class="customer-intelligence-grid"><div class="stack"><section class="panel"><header class="panel-header"><div><h2>Decision Traceback</h2><p>A readable path through the saved authority inputs. No browser-side scoring.</p></div>${badge(item.recommendation || "UNKNOWN", String(item.recommendation || "unknown").toLowerCase())}</header><div class="panel-body customer-traceback">${tracebackStep("1 · Provider catalog link", catalogLinked ? "CardSight catalog linked" : "CardSight catalog link pending", catalogLinkDetail, catalogLinked ? "ok" : "warn")}${tracebackStep("2 · Evidence", evidenceReady ? `${acceptedSales} accepted exact completed sale${acceptedSales === 1 ? "" : "s"}` : "No accepted exact completed sales", `${ineligible} visible record${ineligible === 1 ? " is" : "s are"} not counted now (excluded, held for review or not used). Active asks never become sold evidence.`, evidenceReady ? "ok" : "warn")}${tracebackStep("3 · Market factors", `Liquidity ${safeNumber(item.liquidity)} · Risk ${safeNumber(item.risk)} · Rank ${safeNumber(item.rank)}`, item.changeSummary || "Saved factors are displayed exactly as returned by Smart Opportunity.", "neutral")}${tracebackStep("4 · Authority output", item.recommendation || "UNKNOWN", `Workflow: ${item.workflowStatus || "UNKNOWN"}. ${item.authorityBoundary || "Smart Opportunity remains authoritative."}`, "neutral")}</div></section><section class="panel"><header class="panel-header"><div><h2>Evidence Chain</h2><p>Linked completed-sale evidence from the saved ledger, and what is not counted now and why.</p></div><span class="staging-status ${evidenceReady ? "staging-status-ok" : "staging-status-warn"}">${acceptedSales} accepted</span></header><div class="panel-body">${linkedEvidenceTable(evidence)}</div></section></div><div class="stack"><section class="panel"><header class="panel-header"><div><h2>Evidence readiness</h2><p>What can and cannot support this saved decision.</p></div></header><div class="panel-body staging-key-grid"><div><span>Accepted exact sales</span><strong>${acceptedSales}</strong></div><div><span>Not counted now</span><strong>${ineligible}</strong></div><div><span>Average accepted price</span><strong>${acceptedSales > 0 ? money(item.evidence?.averagePrice) : "Unavailable"}</strong></div><div><span>Latest accepted sale</span><strong>${escapeHtml(item.evidence?.latestSaleDate || "Unavailable")}</strong></div><div><span>Provider catalog link</span><strong>${catalogLinked ? "Linked" : "Pending"}</strong></div><div><span>Evidence freshness</span><strong>${escapeHtml(meta.evidenceFreshness || "Unavailable")}</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>Saved PSA guidance</h2><p>Existing PSA intelligence only; no grade is predicted here.</p></div>${badge(psaAvailable ? "Available" : "Insufficient context", psaAvailable ? "ok" : "warn")}</header><div class="panel-body staging-key-grid"><div><span>Guidance status</span><strong>${escapeHtml(psa.guidanceStatus || "Unavailable")}</strong></div><div><span>Readiness</span><strong>${escapeHtml(snapshot.readinessStatus || "Unavailable")}</strong></div><div><span>PSA 10 population</span><strong>${safeNumber(psa.populationContext?.psa10Population)}</strong></div><div><span>PSA 9 population</span><strong>${safeNumber(psa.populationContext?.psa9Population)}</strong></div><div><span>Manual verification</span><strong>${snapshot.manualVerificationRequired === true ? "Required" : "Not returned"}</strong></div><div><span>Recalculated</span><strong>${psa.recalculated === true ? "Yes" : "No"}</strong></div></div>${psa.authorityConflict ? `<div class="boundary-note"><strong>Authority conflict:</strong> ${escapeHtml(psa.authorityConflict)}</div>` : ""}</section><section class="panel customer-decision-boundary"><div class="panel-body"><span class="eyebrow">Before you buy. Know why.</span><h2>${escapeHtml(item.recommendation || "UNKNOWN")} is decision support</h2><p>${escapeHtml(decisionBoundaryMessage)}</p><small>No bid, checkout, payment, evidence acceptance, or grade prediction is authorized.</small></div></section></div></div>${state.partialErrors.length ? `<section class="panel staging-warning"><div class="panel-body"><strong>Some saved context is unavailable.</strong><ul>${state.partialErrors.filter(entry => entry.key !== "detail").map(entry => `<li>${escapeHtml(entry.key.toUpperCase())}: ${escapeHtml(entry.error?.code || entry.error?.message || "Unavailable")}</li>`).join("")}</ul><small>No replacement or fabricated data was shown.</small></div></section>` : ""}</div>`;
+    return `<div class="page customer-intelligence-page">${pageHeading("Card Intelligence", "Decision first. Open deeper evidence only when you need it.", actions)}<section class="panel customer-intelligence-hero" data-ff-card-id="${escapeHtml(String(item.id || ""))}"><div class="panel-body"><div class="customer-hero-copy"><span class="eyebrow">${escapeHtml(item.platform || "Saved marketplace record")}</span><div class="customer-hero-title">${badge(item.recommendation || "UNKNOWN", String(item.recommendation || "unknown").toLowerCase())}<h2>${escapeHtml(title)}</h2></div>${display.identity ? `<p>${escapeHtml(display.identity)}</p>` : ""}<div class="customer-tracked-state"><span class="check-mark ok">✓</span><span><strong>Tracked in SQLite</strong><small>Tenant-owned saved record · ${escapeHtml(item.observedAt || "Observation time unavailable")}</small></span></div></div><div class="customer-value-summary"><span>Current ask</span><strong>${money(ask)}</strong><span>Supported value</span><strong${supportedAvailable ? " class=\"value-positive\"" : ""}>${escapeHtml(supportedValueText(item, acceptedSales))}</strong><small>${supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)} · ${gapPercent.toFixed(1)}% saved value gap` : "No accepted exact completed-sale evidence supports a value yet."}</small></div></div></section>${valueIntelligencePanel(item)}<div class="customer-intelligence-metrics"><article><span>Confidence</span><strong>${safeNumber(item.confidence)}/100</strong></article><article><span>Liquidity</span><strong>${safeNumber(item.liquidity)}/100</strong></article><article><span>Risk</span><strong>${safeNumber(item.risk)}/100</strong></article><article><span>Rank</span><strong>${safeNumber(item.rank)}/100</strong></article></div><div class="customer-intelligence-grid"><div class="stack"><section class="panel"><header class="panel-header"><div><h2>Decision Traceback</h2><p>A readable path through the saved authority inputs. No browser-side scoring.</p></div>${badge(item.recommendation || "UNKNOWN", String(item.recommendation || "unknown").toLowerCase())}</header><div class="panel-body customer-traceback">${tracebackStep("1 · Provider catalog link", catalogLinked ? "CardSight catalog linked" : "CardSight catalog link pending", catalogLinkDetail, catalogLinked ? "ok" : "warn")}${tracebackStep("2 · Evidence", evidenceReady ? `${acceptedSales} accepted exact completed sale${acceptedSales === 1 ? "" : "s"}` : "No accepted exact completed sales", `${ineligible} visible record${ineligible === 1 ? " is" : "s are"} not counted now (excluded, held for review or not used). Active asks never become sold evidence.`, evidenceReady ? "ok" : "warn")}${tracebackStep("3 · Market factors", `Liquidity ${safeNumber(item.liquidity)} · Risk ${safeNumber(item.risk)} · Rank ${safeNumber(item.rank)}`, item.changeSummary || "Saved factors are displayed exactly as returned by Smart Opportunity.", "neutral")}${tracebackStep("4 · Authority output", item.recommendation || "UNKNOWN", `Workflow: ${item.workflowStatus || "UNKNOWN"}. ${item.authorityBoundary || "Smart Opportunity remains authoritative."}`, "neutral")}</div></section><section class="panel"><header class="panel-header"><div><h2>Evidence Chain</h2><p>Linked completed-sale evidence from the saved ledger, and what is not counted now and why.</p></div><span class="staging-status ${evidenceReady ? "staging-status-ok" : "staging-status-warn"}">${acceptedSales} accepted</span></header><div class="panel-body">${linkedEvidenceTable(evidence)}</div></section></div><div class="stack"><section class="panel"><header class="panel-header"><div><h2>Evidence readiness</h2><p>What can and cannot support this saved decision.</p></div></header><div class="panel-body staging-key-grid"><div><span>Accepted exact sales</span><strong>${acceptedSales}</strong></div><div><span>Not counted now</span><strong>${ineligible}</strong></div><div><span>Average accepted price</span><strong>${acceptedSales > 0 ? money(item.evidence?.averagePrice) : "Unavailable"}</strong></div><div><span>Latest accepted sale</span><strong>${escapeHtml(item.evidence?.latestSaleDate || "Unavailable")}</strong></div><div><span>Provider catalog link</span><strong>${catalogLinked ? "Linked" : "Pending"}</strong></div><div><span>Evidence freshness</span><strong>${escapeHtml(meta.evidenceFreshness || "Unavailable")}</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>Saved PSA guidance</h2><p>Existing PSA intelligence only; no grade is predicted here.</p></div>${badge(psaAvailable ? "Available" : "Insufficient context", psaAvailable ? "ok" : "warn")}</header><div class="panel-body staging-key-grid"><div><span>Guidance status</span><strong>${escapeHtml(psa.guidanceStatus || "Unavailable")}</strong></div><div><span>Readiness</span><strong>${escapeHtml(snapshot.readinessStatus || "Unavailable")}</strong></div><div><span>PSA 10 population</span><strong>${safeNumber(psa.populationContext?.psa10Population)}</strong></div><div><span>PSA 9 population</span><strong>${safeNumber(psa.populationContext?.psa9Population)}</strong></div><div><span>Manual verification</span><strong>${snapshot.manualVerificationRequired === true ? "Required" : "Not returned"}</strong></div><div><span>Recalculated</span><strong>${psa.recalculated === true ? "Yes" : "No"}</strong></div></div>${psa.authorityConflict ? `<div class="boundary-note"><strong>Authority conflict:</strong> ${escapeHtml(psa.authorityConflict)}</div>` : ""}</section><section class="panel customer-decision-boundary"><div class="panel-body"><span class="eyebrow">Before you buy. Know why.</span><h2>${escapeHtml(item.recommendation || "UNKNOWN")} is decision support</h2><p>${escapeHtml(decisionBoundaryMessage)}</p><small>No bid, checkout, payment, evidence acceptance, or grade prediction is authorized.</small></div></section></div></div>${state.partialErrors.length ? `<section class="panel staging-warning"><div class="panel-body"><strong>Some saved context is unavailable.</strong><ul>${state.partialErrors.filter(entry => entry.key !== "detail").map(entry => `<li>${escapeHtml(entry.key.toUpperCase())}: ${escapeHtml(entry.error?.code || entry.error?.message || "Unavailable")}</li>`).join("")}</ul><small>No replacement or fabricated data was shown.</small></div></section>` : ""}</div>`;
   }
 
   function renderCurrent() { if (!state.main) return; state.main.innerHTML = state.selectedId ? detailView() : listView(); bindActions(); }
@@ -174,6 +189,9 @@
   function validateDetailPayloads() {
     const returned = state.detail?.data?.opportunity;
     if (!returned || String(returned.id || "") !== state.selectedId) {
+      state.detail = null;
+      state.evidence = null;
+      state.psa = null;
       throw state.partialErrors.find(entry => entry.key === "detail")?.error
         || Object.assign(new Error("The saved Card Intelligence record is unavailable."), { code: "OPPORTUNITY_DETAIL_INVALID" });
     }
@@ -191,7 +209,7 @@
     }
   }
 
-  async function loadDetailDirect() {
+  async function loadDetailDirect(serial, route) {
     if (!SAFE_ID.test(state.requestedId)) {
       throw Object.assign(new Error("The requested saved-card identifier is invalid."), { code: "INVALID_OPPORTUNITY_ID" });
     }
@@ -199,6 +217,7 @@
     const encoded = encodeURIComponent(state.selectedId);
     const requests = [["detail", `/api/v1/opportunities/${encoded}`], ["evidence", `/api/v1/evidence/${encoded}`], ["psa", `/api/v1/psa-advisor/${encoded}`]];
     const settled = await Promise.allSettled(requests.map(([, path]) => request(path)));
+    if (serial !== loadSerial || routeKey() !== route) throw STALE; // the customer has moved on; not this screen's data
     settled.forEach((result, index) => {
       const key = requests[index][0];
       if (result.status === "fulfilled") state[key] = result.value;
@@ -207,17 +226,23 @@
     validateDetailPayloads();
   }
 
-  async function loadList() {
+  async function loadList(serial, route) {
     state.selectedId = "";
-    state.health = await request("/api/v1/health");
+    const health = await request("/api/v1/health");
+    if (serial !== loadSerial || routeKey() !== route) throw STALE;
+    state.health = health;
     if (state.health?.data?.status !== "configured") return;
-    [state.dashboard, state.opportunities] = await Promise.all([request("/api/v1/dashboard"), request("/api/v1/opportunities")]);
+    const [dashboard, opportunities] = await Promise.all([request("/api/v1/dashboard"), request("/api/v1/opportunities")]);
+    if (serial !== loadSerial || routeKey() !== route) throw STALE;
+    [state.dashboard, state.opportunities] = [dashboard, opportunities];
     if (state.opportunities?.data?.kind !== "opportunities" || !Array.isArray(state.opportunities?.data?.items)) {
       throw Object.assign(new Error("The saved opportunity list failed the customer contract."), { code: "OPPORTUNITIES_LIST_INVALID" });
     }
   }
 
   async function load() {
+    const serial = ++loadSerial;
+    const route = routeKey();
     state.loading = true;
     state.health = null;
     state.dashboard = null;
@@ -230,14 +255,15 @@
     state.selectedId = state.requestedId;
     renderCurrent();
     try {
-      if (state.requestedId) await loadDetailDirect();
-      else await loadList();
+      if (state.requestedId) await loadDetailDirect(serial, route);
+      else await loadList(serial, route);
     } catch (error) {
+      if (error === STALE || serial !== loadSerial || routeKey() !== route) return; // a newer load or route owns the screen
       state.error = error;
-    } finally {
-      state.loading = false;
-      renderCurrent();
     }
+    if (serial !== loadSerial || routeKey() !== route) return;
+    state.loading = false;
+    renderCurrent();
   }
 
   function render(main, id = "") {
