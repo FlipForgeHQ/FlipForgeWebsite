@@ -9,6 +9,7 @@
     "build:deploy-manifest": "node scripts/write-deploy-manifest.mjs",
     "build:marketing": "node scripts/marketing/build-marketing.mjs && node scripts/marketing/build-campaigns.mjs",
     "validate:marketing": "node scripts/marketing/validate-marketing.mjs",
+    "validate:source-truth-terminology": "node scripts/validate-source-truth-terminology.mjs",
     "export:marketing": "node scripts/marketing/export-marketing-pdf.mjs all",
     "marketing:all": "npm run build:marketing && npm run validate:marketing",
     "audit:site-code": "node scripts/audit-site-code-integrity.mjs",

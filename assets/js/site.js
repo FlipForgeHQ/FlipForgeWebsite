@@ -100,7 +100,7 @@
       state:'EVIDENCE BLOCKED',
       stateClass:'red',
       checks:[
-        ['good','✓','Sale status reviewed','A completed sale still must match the target card.'],
+        ['good','✓','Sale record matched to card','A reported sale still must match the target card.'],
         ['bad','!','Parallel mismatch found','Base and Refractor values cannot be combined.'],
         ['neutral','→','Evidence effect','The record stays visible in traceback but out of supported value.']
       ]
@@ -232,7 +232,7 @@
   const outcomes={
     buy:{badge:'BUY',badgeClass:'green',title:'Supported opportunity, not an automatic purchase.',cause:'Validated evidence supports a favorable relationship between asking price and supported value.',support:'Exact identity, usable completed sales, acceptable liquidity, and visible risk.',change:'A different parallel, weak listing condition, fees, or new market evidence.',next:'Confirm the exact listing, condition, seller details, and total acquisition cost.'},
     watch:{badge:'WATCH',badgeClass:'amber',title:'Interesting, but not ready for action.',cause:'The card or market is worth tracking, but the current price or evidence is not strong enough.',support:'Usable identity and some market support without a decisive margin.',change:'A better entry price, stronger completed sales, or improved liquidity.',next:'Track price movement and wait for better evidence or a better setup.'},
-    verify:{badge:'VERIFY',badgeClass:'blue',title:'The decision depends on missing proof.',cause:'Identity, evidence quality, sale status, or listing details remain unresolved.',support:'Some information aligns, but the uncertainty is decision-critical.',change:'Authoritative identity proof, better photos, or a corrected evidence record.',next:'Resolve the named uncertainty before using the card or comp in a decision.'},
+    verify:{badge:'VERIFY',badgeClass:'blue',title:'The decision depends on missing proof.',cause:'Identity, evidence quality, sale record details, or listing details remain unresolved.',support:'Some information aligns, but the uncertainty is decision-critical.',change:'Authoritative identity proof, better photos, or a corrected evidence record.',next:'Resolve the named uncertainty before using the card or comp in a decision.'},
     pass:{badge:'PASS',badgeClass:'red',title:'The current setup does not justify the risk.',cause:'Price, evidence quality, liquidity, downside, or uncertainty outweighs the supported opportunity.',support:'The evidence explains why the card is not attractive at the current terms.',change:'A meaningfully lower price or a stronger market/evidence profile.',next:'Avoid forcing the purchase; preserve the reason and revisit only if conditions change.'},
     grade:{badge:'GRADE',badgeClass:'green',title:'Probability-weighted grading economics are favorable.',cause:'Realistic grade outcomes support enough expected upside after grading cost and raw value.',support:'Condition assumptions, grade probabilities, costs, and downside are all visible.',change:'Lower grade odds, higher fees, longer turnaround, or weaker resale values.',next:'Inspect condition carefully and confirm all-in submission and selling costs.'}
   };

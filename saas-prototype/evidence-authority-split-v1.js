@@ -143,12 +143,12 @@
       return;
     }
 
-    const trustedSection = sectionByHeading(page, /^What FlipForge trusted$/i);
+    const trustedSection = sectionByHeading(page, /^What FlipForge (?:trusted|counted)$/i);
     if (!trustedSection) return;
     const trustedCopy = trustedSection.querySelector(".panel-header p");
     const trustedBody = trustedSection.querySelector(".panel-body");
     if (trustedCopy) {
-      trustedCopy.textContent = `${trustedCount} exact completed sale${trustedCount === 1 ? " is" : "s are"} counted under today's evidence rules. Sale prices are reported by our data provider and have not been independently confirmed.`;
+      trustedCopy.textContent = `${trustedCount} exact completed sale${trustedCount === 1 ? " is" : "s are"} counted under today's evidence rules. Sale prices are reported by our data provider and have not been independently confirmed. FlipForge matches each sale to the exact card but does not confirm payment or settlement.`;
     }
     if (trustedBody) trustedBody.innerHTML = trustedTable(trusted);
     trustedSection.dataset.ffTrustedOnly = "true";

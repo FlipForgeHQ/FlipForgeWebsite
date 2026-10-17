@@ -698,7 +698,7 @@
         <p>FlipForge runs four checks before it commits to a decision.</p>
         <ol class="ffv3-checks">
           <li><b>01</b><span><strong>Confirm the exact card</strong><small>Year, set, number, variant and grade must match.</small></span></li>
-          <li><b>02</b><span><strong>Check trustworthy sales</strong><small>Only exact completed sales are accepted as evidence.</small></span></li>
+          <li><b>02</b><span><strong>Check matched sales</strong><small>Only exact completed sales are accepted as evidence.</small></span></li>
           <li><b>03</b><span><strong>Compare price + uncertainty</strong><small>See whether the ask is supported and how sure the evidence is.</small></span></li>
           <li><b>04</b><span><strong>Read the decision + receipt</strong><small>BUY, WATCH, VERIFY or PASS with the reason trail preserved.</small></span></li>
         </ol>

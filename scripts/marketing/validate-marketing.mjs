@@ -44,7 +44,7 @@ check("thirteen CDI layer names locked", JSON.stringify(cdi.layers.map(item=>ite
 ]));
 const outcomeLayer = cdi.layers.find(item => item.key === "outcome");
 check("T0/T7/T14/T30 outcome language exists", outcomeLayer?.publicCopy.includes("T0") && outcomeLayer?.publicCopy.includes("T7") && outcomeLayer?.publicCopy.includes("T14") && outcomeLayer?.publicCopy.includes("T30"));
-check("evidence-only product doctrine locked", cdi.doctrine?.rule === "Product knowledge supplies context. Market evidence supplies truth.");
+check("evidence-only product doctrine locked", cdi.doctrine?.rule === "Product knowledge supplies context. Market evidence supplies the reported prices.");
 check("positioning preserves decision-engine category", positioning.categoryStatement.includes("Card Decision Intelligence™"));
 check("positioning rejects price-guide framing", positioning.notA.includes("price guide"));
 check("proof-point policy blocks premature accuracy claims", proof.claimPolicy.toLowerCase().includes("accuracy") && proof.claimPolicy.toLowerCase().includes("authorization"));
