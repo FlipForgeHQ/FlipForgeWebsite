@@ -14,7 +14,7 @@ jobs:
   source-truth-terminology:
     name: No verified, confirmed or trusted sale claims in customer text
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -24,3 +24,9 @@ jobs:
           node-version: 24
       - name: Validate source-truth terminology and payment-limitation disclosures
         run: node scripts/validate-source-truth-terminology.mjs
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Legacy evidence headings are still read (current and legacy labels)
+        run: node scripts/audit-legacy-evidence-labels-ci.mjs

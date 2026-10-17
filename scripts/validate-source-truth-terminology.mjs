@@ -78,6 +78,14 @@ function walk(dir, out) {
   return out;
 }
 
+// Legacy headings that compatibility lookups READ from pages rendered by an earlier build. They are never shown:
+// each may appear only on a `*_LABELS = [...]` lookup-constant line in the named file.
+export const LEGACY_LOOKUP_LABELS = {
+  "saas-prototype/decision-card-evidence-v1.js": ["Trusted sales", "Trusted completed sales"],
+  "saas-prototype/customer-cdi-signal-stack-v1.js": ["Trusted completed sales"],
+};
+const LOOKUP_CONSTANT_LINE = /^\s*const [A-Z_]+_LABELS = \[.*\];\s*$/;
+
 const checks = [];
 const check = (name, ok) => checks.push([name, Boolean(ok)]);
 const read = rel => fs.readFileSync(path.join(ROOT, rel), "utf8");
@@ -102,12 +110,27 @@ check(`scanned customer-visible sources (${files.length} files)`, files.length >
 const violations = [];
 for (const rel of files) {
   const lines = read(rel).split(/\r?\n/);
+  const legacy = LEGACY_LOOKUP_LABELS[rel] || [];
   lines.forEach((line, index) => {
-    const claim = firstProhibitedClaim(line);
+    let scanned = line;
+    if (legacy.length && LOOKUP_CONSTANT_LINE.test(line)) {
+      for (const label of legacy) scanned = scanned.split(JSON.stringify(label)).join('""');
+    }
+    const claim = firstProhibitedClaim(scanned);
     if (claim) violations.push(`${rel}:${index + 1} claims "${claim}"`);
   });
 }
 check("no customer-visible text claims verified, confirmed, trusted or payment-confirmed sales", violations.length === 0);
+
+// 2b. Every legacy lookup label is still used (no stale allowance) and only on a lookup-constant line.
+for (const [rel, labels] of Object.entries(LEGACY_LOOKUP_LABELS)) {
+  const lines = read(rel).split(/\r?\n/);
+  for (const label of labels) {
+    const hits = lines.filter(line => line.includes(JSON.stringify(label)));
+    check(`legacy lookup label "${label}" in ${rel} is read only through a lookup constant`,
+      hits.length > 0 && hits.every(line => LOOKUP_CONSTANT_LINE.test(line)));
+  }
+}
 
 // 3. Payment limitation is disclosed where customers see sale-based evidence.
 const disclosure = /does not confirm payment or settlement|not confirm that the buyer paid/i;
