@@ -34,7 +34,7 @@
           <div><dt>Product state</dt><dd>Controlled Private Beta active</dd></div>
           <div><dt>Application model</dt><dd>One engine · Private Beta + Customer</dd></div>
           <div><dt>Source of truth</dt><dd>Authoritative SQLite · server-owned SaaS access</dd></div>
-          <div><dt>Evidence model</dt><dd>Evidence-first with manual validation</dd></div>
+          <div><dt>Evidence model</dt><dd>Evidence-first with manual review</dd></div>
           <div><dt>Scoring</dt><dd>Opportunity · Confidence · Liquidity · Risk</dd></div>
           <div><dt>Automation boundary</dt><dd>No auto-buying or marketplace action</dd></div>
         </dl>
@@ -48,7 +48,7 @@
       <p class="section-copy">The platform is built around the full decision path: discover a candidate, prove the card identity, review the evidence, measure opportunity and risk, then explain the recommendation.</p>
       <div class="grid">
         <article class="card"><span class="tag">Discovery</span><h3>Opportunity Review</h3><p>Capture and evaluate candidate cards using active listing context, structured identity, asking price, grade, and supporting evidence.</p><ul class="feature-list"><li>Card opportunity entry</li><li>Active listing signal review</li><li>Watch, verify, pass, and candidate states</li></ul></article>
-        <article class="card"><span class="tag">Evidence</span><h3>Sold Comp Tracking</h3><p>Record, normalize, and review sold-comp evidence without inventing data or treating active asks as proven value.</p><ul class="feature-list"><li>Manual comp validation gate</li><li>Evidence trust status</li><li>Source and review history</li></ul></article>
+        <article class="card"><span class="tag">Evidence</span><h3>Sold Comp Tracking</h3><p>Record, normalize, and review sold-comp evidence without inventing data or treating active asks as proven value.</p><ul class="feature-list"><li>Manual comp review gate</li><li>Evidence admission status</li><li>Source and review history</li></ul></article>
         <article class="card"><span class="tag">Scoring</span><h3>Scoring Engine V2</h3><p>Separate calculators evaluate opportunity, confidence, liquidity, and risk instead of hiding the decision inside one unexplained number.</p><ul class="feature-list"><li>Confidence calculator</li><li>Liquidity calculator</li><li>Opportunity and risk scoring</li></ul></article>
         <article class="card"><span class="tag">Explainability</span><h3>Decision Traceback</h3><p>Review the evidence and scoring inputs that caused an item to advance, remain under review, or be blocked.</p><ul class="feature-list"><li>Audit trail</li><li>Decision packet context</li><li>Outcome and calibration review</li></ul></article>
         <article class="card"><span class="tag">Architecture</span><h3>Private Beta + Customer</h3><p>One authoritative FlipForge decision engine supports exactly two hosted SaaS experiences: invitation-only Private Beta and the real Customer experience.</p><ul class="feature-list"><li>Shared decision engine</li><li>Role-gated Private Beta access</li><li>Customer experience held private until launch</li></ul></article>
@@ -76,7 +76,7 @@
       <h2>What the current build does—and refuses to pretend it does.</h2>
       <div class="boundary">
         <div class="boundary-grid">
-          <div class="does"><h3>FlipForge Does</h3><ul><li>Organize sports-card opportunities and evidence</li><li>Track manual and authorized sold-comp evidence</li><li>Separate active asking prices from validated market support</li><li>Score confidence, liquidity, opportunity, and risk</li><li>Explain decisions with traceback and audit context</li><li>Support review outcomes and future calibration</li><li>Add PSA population and grade context where evidence exists</li></ul></div>
+          <div class="does"><h3>FlipForge Does</h3><ul><li>Organize sports-card opportunities and evidence</li><li>Track manual and authorized sold-comp evidence</li><li>Separate active asking prices from reported sold-price support</li><li>Score confidence, liquidity, opportunity, and risk</li><li>Explain decisions with traceback and audit context</li><li>Support review outcomes and future calibration</li><li>Add PSA population and grade context where evidence exists</li></ul></div>
           <div class="doesnt"><h3>FlipForge Does Not</h3><ul><li>Scrape protected marketplaces or grading services</li><li>Create fake comps or population records</li><li>Guarantee profit or future card value</li><li>Automatically purchase, bid, message, or list cards</li><li>Treat a BUY_READY_CANDIDATE state as final financial advice</li><li>Resell raw third-party data as a standalone feed</li><li>Replace the user's independent judgment</li></ul></div>
         </div>
       </div>

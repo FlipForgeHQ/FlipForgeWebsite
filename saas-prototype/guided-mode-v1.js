@@ -353,7 +353,7 @@
       const known = currentRecommendation();
       const recommendation = known || "decision";
       const copy = {
-        VERIFY: "VERIFY means FlipForge does not yet have enough trustworthy support for a stronger call.",
+        VERIFY: "VERIFY means FlipForge does not yet have enough matching evidence for a stronger call.",
         WATCH: "WATCH means the card may be worth monitoring, but the current price or evidence does not support moving further yet.",
         PASS: "PASS means the current evidence and context do not support the opportunity.",
         BUY: "BUY is decision support only. Read the evidence and risk before acting outside FlipForge."

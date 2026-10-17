@@ -82,7 +82,7 @@
       .filter((node) => !node.classList.contains("ff-decision-next"));
     const why = text(reasonParagraphs[0]) || "FlipForge preserved the server-owned decision.";
     const change = text(summary.querySelector(".ff-decision-next")) || "Material new evidence or price/risk changes require a fresh evaluation.";
-    const accepted = numericFromPage(root, ["Accepted exact sales", "Trusted sales"]);
+    const accepted = numericFromPage(root, ["Accepted exact sales", "Matched sales"]);
     const excluded = numericFromPage(root, ["Visible but ineligible", "Excluded from authority"]);
     const ask = summaryValue(root, "Current ask");
     const supportedValue = summaryValue(root, "Supported value");
@@ -126,7 +126,7 @@
       identity: text(verdict.querySelector(".ff-di-v2-verdict-main h2")) || "Saved opportunity",
       why: text(verdict.querySelector(".ff-di-v2-verdict-main p")) || "FlipForge preserved the server-owned decision.",
       change: text(command.querySelector(".ff-di-v2-change h3")) || "Material new evidence or price/risk changes require a fresh evaluation.",
-      accepted: labeledValue(command, ".ff-di-v2-gate", "Trusted completed sales"),
+      accepted: labeledValue(command, ".ff-di-v2-gate", "Matched exact sales"),
       excluded: labeledValue(command, ".ff-di-v2-gate", "Excluded evidence"),
       ask: labeledValue(command, ".ff-di-v2-receipt-grid > div", "Evaluated ask"),
       supportedValue: labeledValue(verdict, ".ff-di-v2-verdict-metrics > div", "Supported value"),

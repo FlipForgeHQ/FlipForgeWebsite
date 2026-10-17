@@ -178,7 +178,7 @@
         <div class="forge-heat-identity">
           <span class="forge-heat-kicker">${escapeHtml(item.marketplace || "Saved evaluation")} · ${escapeHtml(item.recommendation)}</span>
           <h3>${escapeHtml(item.cardIdentity)}</h3>
-          <p>Evaluated ${escapeHtml(item.evaluatedAt || "Unavailable")} · ${escapeHtml(item.acceptedExactSales)} exact trusted sales</p>
+          <p>Evaluated ${escapeHtml(item.evaluatedAt || "Unavailable")} · ${escapeHtml(item.acceptedExactSales)} matched exact sales</p>
         </div>
         <div class="forge-heat-score" aria-label="Forge Heat ${escapeHtml(item.heat)} out of 100">
           <strong>${escapeHtml(item.heat)}</strong>
@@ -288,7 +288,7 @@
       <details class="forge-heat-intelligence-bar ff-trust-note">
         <summary>How a card becomes Heat-eligible</summary>
         <div><span>Identity</span><strong>Completed evaluation snapshot</strong></div>
-        <div><span>Evidence gate</span><strong>≥ 3 exact trusted sales</strong></div>
+        <div><span>Evidence gate</span><strong>≥ 3 matched exact sales</strong></div>
         <div><span>Authority</span><strong>Smart Opportunity</strong></div>
         <div><span>Heat calculation</span><strong>Server-owned</strong></div>
       </details>
