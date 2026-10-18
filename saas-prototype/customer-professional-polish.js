@@ -82,6 +82,13 @@
     if (node && node.textContent !== value) node.textContent = value;
   }
 
+  // In the full customer app (/app/customer, /owner/customer) customer-only-shell-v1.js owns navigation order and
+  // core-platform-completion-v1.js owns the account caption ("Customer"). Overriding either here alternated with
+  // those owners every animation frame, so this script defers to them there.
+  function fullCustomerApp() {
+    return /^\/(?:app|owner)\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
   function addBrandTagline() {
     const copy = document.querySelector(".brand-copy");
     if (!copy || copy.querySelector(".brand-tagline")) return;
@@ -96,7 +103,7 @@
     const profile = document.querySelector(".profile-button .profile-copy");
     if (!profile) return;
     setText(profile.querySelector("strong"), "Account");
-    setText(profile.querySelector("small"), "Plan & Usage");
+    if (!fullCustomerApp()) setText(profile.querySelector("small"), "Plan & Usage");
   }
 
   function installNavigationIcons() {
@@ -116,12 +123,15 @@
 
     nav.querySelectorAll(".ff-nav-group-label").forEach(node => node.remove());
 
+    // Never un-hide a link the beta shell deliberately hid (aria-hidden="true"): on the Private Beta shell the original
+    // Alerts link is relocated into Advanced Intelligence, and un-hiding it here fought customer-only-shell-v1.js
+    // every animation frame (mobile flicker).
     const alerts = nav.querySelector('[data-route="alerts"]');
-    if (alerts && alerts.hidden) alerts.hidden = false;
+    if (alerts && alerts.hidden && alerts.getAttribute("aria-hidden") !== "true") alerts.hidden = false;
 
     const heat = nav.querySelector('[data-route="forge-heat"]');
     const opportunities = nav.querySelector('[data-route="opportunities"]');
-    if (heat && opportunities && heat.previousElementSibling !== opportunities) {
+    if (!fullCustomerApp() && heat && opportunities && heat.previousElementSibling !== opportunities) {
       opportunities.insertAdjacentElement("afterend", heat);
     }
 
