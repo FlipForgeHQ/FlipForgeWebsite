@@ -9,7 +9,7 @@ import {
   requestPasswordRecovery,
   updateUser
 } from "@netlify/identity";
-import { friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
+import { AUTH_FLOWS, friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
 
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
 const PRODUCTION_SITE_HOST = /^(?:www\.)?goflipforge\.com$/i;
@@ -416,7 +416,7 @@ function renderInvite(element) {
       // to the public application funnel on the page they landed on.
       if (productionSiteHost() && !termsInFlight) window.location.assign("/app/beta/#/beta-start");
     } catch (error) {
-      state.error = friendlyAuthError(error, "The invitation could not be accepted.");
+      state.error = friendlyAuthError(error, "The invitation could not be accepted.", AUTH_FLOWS.INVITATION);
     } finally {
       state.busy = false;
       render();
@@ -468,7 +468,7 @@ function renderRecoveryPassword(element) {
         : "Password updated. Open the approved FlipForge deploy preview to continue.";
       if (productionSiteHost() && !productionOperatorPage()) window.location.assign("/app/beta/#/beta-start");
     } catch (error) {
-      state.error = friendlyAuthError(error, "The password could not be updated.");
+      state.error = friendlyAuthError(error, "The password could not be updated.", AUTH_FLOWS.PASSWORD_RESET);
     } finally {
       state.busy = false;
       render();
@@ -595,7 +595,7 @@ function renderPreview(element) {
         : "Signed in. Refresh Staging Data to load the authenticated tenant view.";
       window.FlipForgeStagingReadAdapter?.refresh?.();
     } catch (error) {
-      state.error = friendlyAuthError(error, "Sign in failed.");
+      state.error = friendlyAuthError(error, "Sign in failed.", AUTH_FLOWS.SIGN_IN);
     } finally {
       state.busy = false;
       render();
@@ -661,7 +661,7 @@ async function initialize() {
       setAuthenticatedUser(await getUser(), { renderIfChanged: false });
     }
   } catch (error) {
-    state.error = friendlyAuthError(error, "Identity initialization failed.");
+    state.error = friendlyAuthError(error, "Identity initialization failed.", hadCallback ? AUTH_FLOWS.EMAIL_LINK : AUTH_FLOWS.SIGN_IN);
   }
 
   try {
