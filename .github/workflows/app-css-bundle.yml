@@ -11,6 +11,7 @@ on:
       - "scripts/build-app-css-bundle.mjs"
       - "scripts/audit-app-css-bundle-ci.mjs"
       - "scripts/audit-saved-verdict-loading-ci.mjs"
+      - "scripts/audit-card-switch-stale-response-ci.mjs"
       - "netlify.toml"
       - "package.json"
       - ".github/workflows/app-css-bundle.yml"
@@ -22,6 +23,7 @@ on:
       - "scripts/build-app-css-bundle.mjs"
       - "scripts/audit-app-css-bundle-ci.mjs"
       - "scripts/audit-saved-verdict-loading-ci.mjs"
+      - "scripts/audit-card-switch-stale-response-ci.mjs"
       - "netlify.toml"
       - "package.json"
       - ".github/workflows/app-css-bundle.yml"
@@ -99,6 +101,11 @@ jobs:
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-saved-verdict-loading-ci.mjs
+
+      - name: Bundled build - card switching never shows another card (Private Beta path)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
+        run: node scripts/audit-card-switch-stale-response-ci.mjs
 
       - name: Bundled build - mobile navigation and Guided Mode
         run: |

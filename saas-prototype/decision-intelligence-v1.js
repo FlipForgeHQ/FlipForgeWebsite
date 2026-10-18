@@ -450,9 +450,16 @@
       <div class="ff-di-authority"><strong>Authority preserved</strong><span>Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the sole grading-guidance authority. Decision Intelligence performs read-only same-origin GET requests only; it cannot accept evidence, predict a grade, recalculate a recommendation, persist a hypothetical result, bid, checkout, buy, sell, or authorize any transaction.</span></div>
     </div>`;
 
+    // Same active-route rule as customer-navigation-parity-v1.js (the "why" sub-page belongs to Why This Decision
+    // when that link exists), written only when it differs. Previously the two scripts disagreed and the result
+    // depended on which re-ran last during the shell's constant re-render loop.
+    const subroute = String(window.location.hash || "").replace(/^#\/?/, "").split(/[/?]/)[1] || "";
+    const activeRoute = subroute === "why" && document.querySelector('[data-route="why-this-decision"]')
+      ? "why-this-decision" : "decision-intelligence";
     document.querySelectorAll("[data-route]").forEach(link => {
-      if (link.dataset.route === "decision-intelligence") link.setAttribute("aria-current", "page");
-      else link.removeAttribute("aria-current");
+      if (link.dataset.route === activeRoute) {
+        if (link.getAttribute("aria-current") !== "page") link.setAttribute("aria-current", "page");
+      } else if (link.hasAttribute("aria-current")) link.removeAttribute("aria-current");
     });
 
     const primarySelector = document.querySelector("#ff-di-primary");
