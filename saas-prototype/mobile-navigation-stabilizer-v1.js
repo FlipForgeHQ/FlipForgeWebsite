@@ -50,13 +50,23 @@
     document.head.appendChild(style);
   }
 
+  // Writes only when a value actually differs: re-setting an attribute to the same value still notifies
+  // MutationObservers, and this script observes these attributes, so unconditional writes looped every frame.
+  function setHidden(node, hidden) {
+    if (hidden) {
+      if (!node.hasAttribute("hidden")) node.hidden = true;
+      if (node.getAttribute("aria-hidden") !== "true") node.setAttribute("aria-hidden", "true");
+    } else {
+      if (node.hasAttribute("hidden")) node.removeAttribute("hidden");
+      if (node.hasAttribute("aria-hidden")) node.removeAttribute("aria-hidden");
+    }
+  }
+
   function restoreLink(link) {
     if (!link) return;
-    link.hidden = false;
-    link.removeAttribute("hidden");
-    link.removeAttribute("aria-hidden");
+    setHidden(link, false);
     if (link.getAttribute("tabindex") === "-1") link.removeAttribute("tabindex");
-    link.classList.remove("ff-nav-relocated");
+    if (link.classList.contains("ff-nav-relocated")) link.classList.remove("ff-nav-relocated");
   }
 
   function ensureAccountLink(nav) {
@@ -79,8 +89,9 @@
   function syncActiveRoute(nav) {
     const current = activeRoute();
     nav.querySelectorAll("[data-route]").forEach(link => {
-      if (link.getAttribute("data-route") === current) link.setAttribute("aria-current", "page");
-      else link.removeAttribute("aria-current");
+      if (link.getAttribute("data-route") === current) {
+        if (link.getAttribute("aria-current") !== "page") link.setAttribute("aria-current", "page");
+      } else if (link.hasAttribute("aria-current")) link.removeAttribute("aria-current");
     });
   }
 
@@ -96,23 +107,19 @@
     nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
       const route = String(link.dataset.route || "");
       if (!routes.includes(route) && route !== "account") {
-        link.hidden = true;
-        link.setAttribute("aria-hidden", "true");
-        link.tabIndex = -1;
-        link.removeAttribute("data-ff-customer-core");
+        setHidden(link, true);
+        if (link.getAttribute("tabindex") !== "-1") link.tabIndex = -1;
+        if (link.hasAttribute("data-ff-customer-core")) link.removeAttribute("data-ff-customer-core");
       }
     });
 
     const advanced = nav.querySelector(".ff-advanced-nav");
     if (advanced) {
       if (fullCustomerMode()) {
-        advanced.hidden = false;
-        advanced.removeAttribute("hidden");
-        advanced.removeAttribute("aria-hidden");
+        setHidden(advanced, false);
       } else {
-        advanced.open = false;
-        advanced.hidden = true;
-        advanced.setAttribute("aria-hidden", "true");
+        if (advanced.open) advanced.open = false;
+        setHidden(advanced, true);
       }
     }
 

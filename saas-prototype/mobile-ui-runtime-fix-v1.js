@@ -741,6 +741,13 @@
     return Boolean(a && b && a === b);
   }
 
+  // Write only when a value differs; this runs on every DOM change, so unconditional writes kept the page busy.
+  function setDuplicateHidden(node, duplicate) {
+    if (node.hidden !== duplicate) node.hidden = duplicate;
+    const aria = duplicate ? "true" : "false";
+    if (node.getAttribute("aria-hidden") !== aria) node.setAttribute("aria-hidden", aria);
+  }
+
   function normalizeDashboardIdentity() {
     const dashboard = document.querySelector("[data-commercial-dashboard-v2]");
     if (!dashboard) return;
@@ -750,8 +757,7 @@
     const spotlightIdentity = spotlight?.querySelector(":scope > p");
     if (spotlightTitle && spotlightIdentity) {
       const duplicate = sameIdentity(spotlightTitle.textContent, spotlightIdentity.textContent);
-      spotlightIdentity.hidden = duplicate;
-      spotlightIdentity.setAttribute("aria-hidden", duplicate ? "true" : "false");
+      setDuplicateHidden(spotlightIdentity, duplicate);
     }
 
     dashboard.querySelectorAll(".ff-v2-table").forEach(table => {
@@ -769,8 +775,7 @@
         const identity = cells[0]?.querySelector("small");
         if (title && identity) {
           const duplicate = sameIdentity(title.textContent, identity.textContent);
-          identity.hidden = duplicate;
-          identity.setAttribute("aria-hidden", duplicate ? "true" : "false");
+          setDuplicateHidden(identity, duplicate);
         }
       });
     });

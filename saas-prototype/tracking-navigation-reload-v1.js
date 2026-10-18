@@ -366,7 +366,8 @@
 
     const heading = page.querySelector(".page-heading");
     setText(heading?.querySelector(".eyebrow"), "Decision follow-up");
-    setText(heading?.querySelector("p"), "Choose what happens next with this saved card: keep watching, schedule a review, record ownership, or close it out.");
+    // Same sentence as beta-session-v1.js: two different sentences for this one subtitle alternated every frame (mobile flicker).
+    setText(heading?.querySelector("p"), "Choose what happens next with this saved card: keep watching, set a review date, record ownership, or close it out.");
 
     const boundary = page.querySelector(".boundary-note");
     if (boundary) {

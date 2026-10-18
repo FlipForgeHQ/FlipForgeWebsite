@@ -65,10 +65,11 @@
     const planCard = document.querySelector(".plan-card");
     if (!planCard) return;
 
-    planCard.classList.add("ff-plan-card-link");
-    planCard.setAttribute("role", "link");
-    planCard.setAttribute("tabindex", "0");
-    planCard.setAttribute("aria-label", "Open Plan & Usage");
+    // Write only when a value differs (attribute re-writes re-trigger the shell's MutationObservers).
+    if (!planCard.classList.contains("ff-plan-card-link")) planCard.classList.add("ff-plan-card-link");
+    if (planCard.getAttribute("role") !== "link") planCard.setAttribute("role", "link");
+    if (planCard.getAttribute("tabindex") !== "0") planCard.setAttribute("tabindex", "0");
+    if (planCard.getAttribute("aria-label") !== "Open Plan & Usage") planCard.setAttribute("aria-label", "Open Plan & Usage");
 
     if (planCard.dataset.planUsageNavigationBound === "true") return;
 
@@ -100,11 +101,11 @@
 
     if (banner) {
       if (customer) {
-        banner.hidden = true;
-        banner.setAttribute("aria-hidden", "true");
+        if (!banner.hidden) banner.hidden = true;
+        if (banner.getAttribute("aria-hidden") !== "true") banner.setAttribute("aria-hidden", "true");
       } else {
-        banner.hidden = false;
-        banner.removeAttribute("aria-hidden");
+        if (banner.hidden) banner.hidden = false;
+        if (banner.hasAttribute("aria-hidden")) banner.removeAttribute("aria-hidden");
         const title = banner.querySelector("strong");
         const copy = banner.querySelector("span");
         if (title && title.textContent !== "PRIVATE BETA") title.textContent = "PRIVATE BETA";
@@ -166,9 +167,10 @@
       if (shortcut.textContent !== desired) shortcut.textContent = desired;
     }
 
-    document.title = customer
+    const wantedTitle = customer
       ? "FlipForge | Customer App — Card Decision Intelligence"
       : isProduction ? "FlipForge | Card Decision Intelligence" : "FlipForge Beta | Card Decision Intelligence";
+    if (document.title !== wantedTitle) document.title = wantedTitle;
   }
 
   function humanizeServerEnums() {
