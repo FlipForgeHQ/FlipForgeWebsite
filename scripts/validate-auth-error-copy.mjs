@@ -16,6 +16,8 @@ const checks = [
   ["009 our own plain messages pass through unchanged", f(E("Private Beta access is not enabled for this account.")) === "Private Beta access is not enabled for this account."],
   ["010 raw protocol strings never pass through", ![f(E("unauthorized_client")), f(E('{"error":"x"}')), f(E(""))].some(t => /_|[{}]/.test(t))],
   ["011b invalid/expired callback token (recovery or confirmation link) → expired-link copy", /expired or was already used/.test(f(E("Invalid token"), "Identity initialization failed.")) && /expired or was already used/.test(f(E("Token expired"), "Identity initialization failed."))],
+  ["013 an already-used invitation link ('User not found', 404) → already-used copy with the sign-in route, never the raw text",
+    (t => /expired or was already used/.test(t) && /sign in to Private Beta/.test(t) && !/user not found/i.test(t))(f(E("User not found", 404), "The invitation could not be accepted."))],
   ["011 password-rule errors (422) are not mislabelled as a wrong password", !mismatch.test(f(E("Password should be at least 8 characters", 422)))]
 ];
 for (const [file, count] of [["scripts/lib/flipforge-production-signin.mjs", 2], ["scripts/lib/flipforge-identity-client.mjs", 4], ["scripts/lib/flipforge-production-auth-probe.mjs", 3]]) {

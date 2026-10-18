@@ -9,8 +9,10 @@ const RULES = [
     "That email and password don't match. Check both, or use \"Forgot password?\" to reset it."],
   [/email not confirmed|not confirmed|confirm(?:ation)? required/i,
     "This account isn't activated yet. Open the invitation email from FlipForge and finish activation first."],
-  [/(?:token|link).*(?:expired|invalid|not found)|invalid token|expired/i,
-    "This link has expired or was already used. Ask the FlipForge team for a new invitation."],
+  // Identity answers "User not found" (HTTP 404) when an invitation or recovery link's token was already used or has
+  // expired: the token no longer matches a pending user. It is about the link, never the account.
+  [/(?:token|link).*(?:expired|invalid|not found)|invalid token|expired|\buser not found\b/i,
+    "This link has expired or was already used. If you already set your password, sign in to Private Beta. Otherwise ask the FlipForge team for a new invitation."],
   [/too many|rate limit|429/i,
     "Too many sign-in attempts. Wait a minute, then try again."],
   [/timed out|network|failed to fetch|load failed|offline|5\d\d\b/i,
