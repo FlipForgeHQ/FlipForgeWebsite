@@ -14,6 +14,11 @@ on:
       - "assets/css/flipforge-identity-v1.css"
       - "assets/js/beta-invite-terms-gate.js"
       - "scripts/lib/flipforge-identity-client.mjs"
+      - "scripts/lib/flipforge-server-session.mjs"
+      - "scripts/lib/flipforge-production-auth-probe.mjs"
+      - "production-auth.html"
+      - "netlify/modern-functions/beta-terms-acceptance.mjs"
+      - "scripts/validate-beta-terms-account-binding.mjs"
       - "scripts/build-identity-client.mjs"
       - "scripts/inject-beta-invite-terms-gate.mjs"
       - "scripts/audit-invite-activation-ci.mjs"
@@ -46,6 +51,9 @@ jobs:
         run: |
           npm run build:identity
           node scripts/inject-beta-invite-terms-gate.mjs
+
+      - name: Gate Beta Terms account binding and server-session agreement
+        run: node scripts/validate-beta-terms-account-binding.mjs
 
       - name: Install Playwright for browser QA
         run: |
