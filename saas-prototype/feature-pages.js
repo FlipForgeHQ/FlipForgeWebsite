@@ -189,7 +189,13 @@
     });
   }
 
+  // These pages are built entirely from sample data (feature-data.js). On the production host every customer view is
+  // owned by an authoritative renderer, so they never render there - including the Private Beta workspace at
+  // /app/beta, where Discover's sample listings were written into the live page on each visit (found 2026-10-18).
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
+
   function renderFeatureRoute() {
+    if (PRODUCTION_HOST.test(String(window.location.hostname || ""))) return;
     const route = currentRoute();
     if (!featureRoutes.has(route)) return;
     if (window.FlipForgeCustomerManagement
