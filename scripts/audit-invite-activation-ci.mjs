@@ -17,6 +17,7 @@
 import { chromium } from "playwright";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import path from "node:path";
+import { CREDENTIALS_MISMATCH, LINK_EXPIRED_OR_USED } from "./lib/flipforge-auth-error-copy.mjs";
 
 const root = process.cwd();
 const remoteBase = String(process.env.INVITE_AUDIT_BASE_URL || "").replace(/\/$/, "");
@@ -57,11 +58,15 @@ const ACTIVE_ROLE = "flipforge-active";
 // A fresh simulated account per browser context. It behaves like production: invited
 // accounts start terms-pending; the Terms endpoint is slow and only then promotes the
 // account; entitlements and /user always answer from the account's current state.
+const ACCOUNT_EMAIL = "invited-tester@flipforge.test";
+const LEGACY_WORDING_EMAIL = "legacy-wording@flipforge.test";
+const EXPIRED_TOKEN = "ci-expired-invitation-token";
+const EXPIRED_WORDING_TOKEN = "ci-expired-invitation-token-wording";
 function newAccount() {
-  return { roles: [TENANT_ROLE, PENDING_ROLE], termsStartedAt: 0, termsFinishedAt: 0, termsAborted: false };
+  return { roles: [TENANT_ROLE, PENDING_ROLE], termsStartedAt: 0, termsFinishedAt: 0, termsAborted: false, inviteUsed: false, password: "", signInAttempts: [] };
 }
 function userRecord(account) {
-  return { id: "ci-invited-tester", aud: "", role: "", email: "invited-tester@flipforge.test", confirmed_at: new Date().toISOString(), invited_at: new Date().toISOString(), app_metadata: { provider: "email", roles: [...account.roles] }, user_metadata: { full_name: "CI Invited Tester" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+  return { id: "ci-invited-tester", aud: "", role: "", email: ACCOUNT_EMAIL, confirmed_at: new Date().toISOString(), invited_at: new Date().toISOString(), app_metadata: { provider: "email", roles: [...account.roles] }, user_metadata: { full_name: "CI Invited Tester" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
 }
 function meta(correlationId) {
   return { contractVersion: "1.0", engineVersion: "ci-invite", authority: "Smart Opportunity", gradingAuthority: "Existing PSA intelligence", correlationId, generatedAt: new Date().toISOString() };
@@ -87,13 +92,31 @@ async function routeProduction(context, log, account = newAccount()) {
       const endpoint = url.pathname.slice("/.netlify/identity".length);
       if (endpoint === "/verify" && request.method() === "POST") {
         const body = request.postDataJSON?.() || {};
-        if (body.token !== TEST_TOKEN) return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ code: 404, msg: "User not found" }) });
+        // Like GoTrue: an invitation token is single-use. Once used, or for an unknown/expired token, the token no
+        // longer matches a pending user and Identity answers 404 "User not found".
+        if (body.token === EXPIRED_WORDING_TOKEN) return route.fulfill({ status: 422, contentType: "application/json", body: JSON.stringify({ code: 422, msg: "Invite token has expired" }) });
+        if (body.token !== TEST_TOKEN || account.inviteUsed) return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ code: 404, msg: "User not found" }) });
+        account.inviteUsed = true;
+        account.password = String(body.password || "");
         return route.fulfill({
           status: 200,
           contentType: "application/json",
           headers: { "set-cookie": `nf_jwt=${testJwt}; Path=/; Secure; SameSite=Lax` },
           body: JSON.stringify({ access_token: testJwt, token_type: "bearer", expires_in: 3600, refresh_token: "ci-refresh-token" })
         });
+      }
+      if (endpoint === "/token" && request.method() === "POST") {
+        // Password sign-in. GoTrue answers a wrong password and an unknown email identically (400 invalid_grant),
+        // so the response never reveals whether an account exists.
+        const form = new URLSearchParams(request.postData() || "");
+        if (form.get("grant_type") !== "password") return route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "unsupported_grant_type" }) });
+        const username = String(form.get("username") || "").toLowerCase();
+        const ok = Boolean(account.password) && username === ACCOUNT_EMAIL && form.get("password") === account.password;
+        account.signInAttempts.push({ username, ok });
+        if (ok) return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ access_token: testJwt, token_type: "bearer", expires_in: 3600, refresh_token: "ci-refresh-token" }) });
+        // An alternate Identity wording for an unknown account, to prove sign-in never reads it as a used invitation.
+        if (username === LEGACY_WORDING_EMAIL) return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ code: 404, msg: "User not found" }) });
+        return route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "invalid_grant", error_description: "No user found with that email, or password invalid." }) });
       }
       if (endpoint === "/user") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(userRecord(account)) });
       if (endpoint === "/settings") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ external: {}, disable_signup: true, autoconfirm: false }) });
@@ -258,27 +281,117 @@ for (const [label, viewport] of viewports) {
   await context.close();
 }
 
-// Expired or invalid invitation: the tester must be pointed to sign-in, never to a new application.
+// One simulated account through its whole life: activate the invitation, open the same link again,
+// open expired links, then sign in on the Private Beta sign-in page. Link errors must explain the link
+// and point to sign-in; sign-in errors must never be explained as an expired or used invitation.
 if (!remoteBase) {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  await routeProduction(context, []);
-  const page = await context.newPage();
-  await page.goto(`${SITE}/#invite_token=ci-expired-invitation-token`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#flipforge-identity-root [data-ff-identity-invite]", { state: "visible", timeout: 10000 }).catch(() => {});
-  await page.locator('#flipforge-identity-root input[name="password"]').fill("ci-test-password-0123456789");
-  await page.locator('#flipforge-identity-root input[name="confirmPassword"]').fill("ci-test-password-0123456789");
-  await page.locator("#flipforge-identity-root [data-beta-terms-accept]").check();
-  await page.locator('#flipforge-identity-root [data-ff-identity-invite] button[type="submit"]').click();
-  await page.waitForSelector("#flipforge-identity-root [data-ff-identity-invite-signin]", { timeout: 10000 }).catch(() => {});
-  const next = await page.evaluate(() => {
-    const link = document.querySelector("#flipforge-identity-root [data-ff-identity-invite-signin]");
-    const panelLinks = [...document.querySelectorAll("#flipforge-identity-root a")].map(a => a.getAttribute("href") || "");
-    return { href: link?.getAttribute("href") || "", panelLinks, error: document.querySelector("#flipforge-identity-root .ff-id-error")?.textContent || "" };
-  });
-  check("030 expired invitation shows an error", Boolean(next.error), next.error);
-  check("031 expired invitation offers Private Beta sign in", next.href.startsWith("/production-auth.html"), next.href);
-  check("032 expired invitation never links to the beta application", !next.panelLinks.some(href => /beta-application/i.test(href)), next.panelLinks.join(", "));
-  await context.close();
+  const account = newAccount();
+  const log = [];
+  const PASSWORD = "ci-test-password-0123456789";
+  const viewport = { width: 390, height: 844 };
+
+  // Opens an invitation link in a fresh browser (no session), submits the activation form, and reports the outcome.
+  async function useInvitation(token) {
+    const context = await browser.newContext({ viewport });
+    await routeProduction(context, log, account);
+    const page = await context.newPage();
+    const navigations = [];
+    page.on("framenavigated", frame => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
+    await page.goto(`${SITE}/#invite_token=${token}`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#flipforge-identity-root [data-ff-identity-invite]", { state: "visible", timeout: 10000 }).catch(() => {});
+    await page.locator('#flipforge-identity-root input[name="password"]').fill(PASSWORD);
+    await page.locator('#flipforge-identity-root input[name="confirmPassword"]').fill(PASSWORD);
+    await page.locator("#flipforge-identity-root [data-beta-terms-accept]").check();
+    await page.locator('#flipforge-identity-root [data-ff-identity-invite] button[type="submit"]').click();
+    const admitted = token === TEST_TOKEN && !account.inviteUsedBefore ? await waitForWorkspaceAccess(page) : false;
+    if (!admitted) await page.waitForSelector("#flipforge-identity-root [data-ff-identity-invite-signin]", { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(500);
+    const state = admitted ? null : await page.evaluate(() => ({
+      error: document.querySelector("#flipforge-identity-root .ff-id-error")?.textContent?.trim() || "",
+      signin: document.querySelector("#flipforge-identity-root [data-ff-identity-invite-signin]")?.getAttribute("href") || "",
+      panelLinks: [...document.querySelectorAll("#flipforge-identity-root a")].map(a => a.getAttribute("href") || "")
+    }));
+    await context.close();
+    return { admitted, state, navigations };
+  }
+
+  // 1. First use of the invitation activates the account and admits the tester (Terms accepted during activation).
+  const first = await useInvitation(TEST_TOKEN);
+  account.inviteUsedBefore = true;
+  check("030 first use of the invitation activates the account and opens the workspace", first.admitted && account.inviteUsed && account.roles.includes(ACTIVE_ROLE), `${account.roles.join(",")} | ${first.navigations.join(" -> ")}`);
+  const activePassword = account.password;
+  const activeRoles = account.roles.join(",");
+
+  // 2. The same invitation link opened again (Identity: 404 "User not found").
+  const reused = await useInvitation(TEST_TOKEN);
+  check("031 previously used invitation link explains the link was already used", reused.state?.error === LINK_EXPIRED_OR_USED, reused.state?.error);
+  check("032 previously used invitation link never shows the raw Identity text", !/user not found/i.test(reused.state?.error || ""), reused.state?.error);
+  check("033 previously used invitation link offers Private Beta sign in", (reused.state?.signin || "").startsWith("/production-auth.html"), reused.state?.signin);
+  check("034 previously used invitation link never links to the beta application or opens the workspace",
+    !reused.state?.panelLinks.some(href => /beta-application/i.test(href)) && !reused.navigations.some(url => /\/app\/beta\//.test(url)), `${reused.state?.panelLinks.join(", ")} | ${reused.navigations.join(" -> ")}`);
+  check("035 reusing the link does not change the activated account (password, roles)", account.password === activePassword && account.roles.join(",") === activeRoles, account.roles.join(","));
+
+  // 3. Expired invitation links, in both Identity wordings.
+  for (const [label, token] of [["404 User not found", EXPIRED_TOKEN], ["'Invite token has expired'", EXPIRED_WORDING_TOKEN]]) {
+    const expired = await useInvitation(token);
+    check(`036 expired invitation link (${label}) explains the link has expired or was already used`, expired.state?.error === LINK_EXPIRED_OR_USED, expired.state?.error);
+    check(`037 expired invitation link (${label}) offers Private Beta sign in and never the beta application`,
+      (expired.state?.signin || "").startsWith("/production-auth.html") && !expired.state?.panelLinks.some(href => /beta-application/i.test(href)), `${expired.state?.signin} | ${expired.state?.panelLinks.join(", ")}`);
+  }
+  check("038 failed link attempts leave the activated account unchanged", account.password === activePassword && account.roles.join(",") === activeRoles, account.roles.join(","));
+
+  // 4. Sign in on the Private Beta sign-in page in a fresh browser (no session).
+  for (const [label, signInViewport] of [["desktop", { width: 1366, height: 860 }], ["mobile", viewport]]) {
+    const context = await browser.newContext({ viewport: signInViewport });
+    await routeProduction(context, log, account);
+    const page = await context.newPage();
+    const navigations = [];
+    page.on("framenavigated", frame => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
+    await page.goto(`${SITE}/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => /Sign in with your invited/.test(document.querySelector("[data-production-auth-status]")?.textContent || ""), null, { timeout: 10000 }).catch(() => {});
+    const attemptsBefore = account.signInAttempts.length;
+    const signIn = async (email, password) => {
+      await page.locator("[data-production-auth-email]").fill(email);
+      await page.locator("[data-production-auth-password]").fill(password);
+      await page.locator("[data-production-auth-submit]").click();
+      await page.waitForFunction(() => {
+        const status = document.querySelector("[data-production-auth-status]");
+        const button = document.querySelector("[data-production-auth-submit]");
+        return !button?.disabled && ["error", "ok"].includes(status?.dataset.tone);
+      }, null, { timeout: 10000 }).catch(() => {});
+      return page.evaluate(() => ({
+        status: document.querySelector("[data-production-auth-status]")?.textContent?.trim() || "",
+        tone: document.querySelector("[data-production-auth-status]")?.dataset.tone || "",
+        result: document.querySelector("[data-production-auth-result]")?.textContent?.trim() || "",
+        enter: !document.querySelector("[data-production-auth-return]")?.hidden,
+        enterHref: document.querySelector("[data-production-auth-return]")?.getAttribute("href") || "",
+        sessionActive: !document.querySelector("[data-production-auth-signout]")?.hidden
+      }));
+    };
+    const notLinkCopy = text => !/expired or was already used|invitation/i.test(text);
+
+    const wrongPassword = await signIn(ACCOUNT_EMAIL, "not-the-password-0000");
+    check(`060 ${label}: incorrect sign-in credentials show the email/password mismatch`, wrongPassword.status === CREDENTIALS_MISMATCH && wrongPassword.tone === "error", wrongPassword.status);
+    check(`061 ${label}: incorrect credentials are never explained as an expired or used invitation link`, notLinkCopy(wrongPassword.status) && notLinkCopy(wrongPassword.result), `${wrongPassword.status} | ${wrongPassword.result}`);
+
+    const unknown = await signIn("not-invited@flipforge.test", PASSWORD);
+    check(`062 ${label}: unknown sign-in account shows the same mismatch copy (never reveals whether an account exists)`, unknown.status === CREDENTIALS_MISMATCH && unknown.status === wrongPassword.status, unknown.status);
+    check(`063 ${label}: unknown sign-in account is never explained as an expired or used invitation link`, notLinkCopy(unknown.status) && notLinkCopy(unknown.result), `${unknown.status} | ${unknown.result}`);
+
+    const legacy = await signIn(LEGACY_WORDING_EMAIL, PASSWORD);
+    check(`064 ${label}: unknown account reported as 404 "User not found" still shows the mismatch, never the link explanation`, legacy.status === CREDENTIALS_MISMATCH && notLinkCopy(legacy.status), legacy.status);
+    check(`065 ${label}: failed sign-ins grant no access (no workspace entry, no session, no navigation)`,
+      [wrongPassword, unknown, legacy].every(s => !s.enter && !s.sessionActive) && !navigations.some(url => /\/app\/beta\//.test(url)), navigations.join(" -> "));
+
+    const success = await signIn(ACCOUNT_EMAIL, PASSWORD);
+    check(`066 ${label}: successful sign-in after activation verifies Private Beta access`, success.tone === "ok" && /^Welcome back/.test(success.status) && success.result === "Private Beta access verified." && success.enter && success.enterHref === "/app/beta/#/beta-start", JSON.stringify(success));
+    if (success.enter) await page.locator("[data-production-auth-return]").click();
+    const opened = await waitForWorkspaceAccess(page);
+    check(`067 ${label}: entering after sign-in opens the workspace and the access gate admits the tester`, opened, `${page.url()} | ${navigations.join(" -> ")}`);
+    const attempts = account.signInAttempts.slice(attemptsBefore);
+    check(`068 ${label}: each sign-in reached Identity once (3 rejected, then 1 accepted)`, attempts.length === 4 && attempts.filter(a => a.ok).length === 1 && attempts[3].ok, JSON.stringify(attempts));
+    await context.close();
+  }
 }
 
 // Recovery: an activated account whose Terms acceptance was never recorded signs in later.
