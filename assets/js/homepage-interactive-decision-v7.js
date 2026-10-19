@@ -43,8 +43,86 @@
     uncertainty.setAttribute('aria-pressed', String(unresolved));
     uncertainty.textContent = unresolved ? 'Evidence unresolved — VERIFY' : 'Test unresolved evidence';
   }
+
+  // A single, silent nine-second product story plays only after the hero enters view.
+  // This is not a media file or a real evaluation. Input always takes precedence.
+  const storyPause = get('[data-story-pause]');
+  const storyReplay = get('[data-story-replay]');
+  const storyTry = get('[data-story-try]');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let storyObserver = null;
+  let storyInterrupted = false;
+  let storyAutoPaused = false;
+  function launchStory() {
+    if (reducedMotion.matches) return;
+    if (storyObserver) { storyObserver.disconnect(); storyObserver = null; }
+    storyInterrupted = false;
+    storyAutoPaused = false;
+    root.classList.remove('ffdemo-story-manual', 'ffdemo-story-paused', 'ffdemo-story-playing');
+    // Restart CSS choreography and sync the real decision numbers to the visual story.
+    void root.offsetWidth;
+    input.value = '425';
+    unresolved = false;
+    render();
+    root.classList.add('ffdemo-story-playing');
+    storyPause.disabled = false;
+    storyPause.textContent = 'Pause';
+    storyPause.setAttribute('aria-label', 'Pause the guided example');
+  }
+  function takeControl() {
+    storyInterrupted = true;
+    storyAutoPaused = false;
+    if (storyObserver) { storyObserver.disconnect(); storyObserver = null; }
+    root.classList.remove('ffdemo-story-playing', 'ffdemo-story-paused');
+    root.classList.add('ffdemo-story-manual');
+    storyPause.disabled = true;
+  }
+  storyPause.addEventListener('click', () => {
+    if (!root.classList.contains('ffdemo-story-playing')) return;
+    const paused = root.classList.toggle('ffdemo-story-paused');
+    storyPause.textContent = paused ? 'Play' : 'Pause';
+    storyPause.setAttribute('aria-label', paused ? 'Resume the guided example' : 'Pause the guided example');
+    storyAutoPaused = false;
+  });
+  storyReplay.addEventListener('click', () => {
+    if (reducedMotion.matches) {
+      takeControl();
+      input.value = String(initial);
+      unresolved = false;
+      render();
+    } else launchStory();
+  });
+  storyTry.addEventListener('click', () => {
+    takeControl();
+    input.focus();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && root.classList.contains('ffdemo-story-playing') && !root.classList.contains('ffdemo-story-paused')) {
+      root.classList.add('ffdemo-story-paused');
+      storyPause.textContent = 'Play';
+      storyAutoPaused = true;
+    } else if (!document.hidden && storyAutoPaused && !storyInterrupted) {
+      root.classList.remove('ffdemo-story-paused');
+      storyPause.textContent = 'Pause';
+      storyAutoPaused = false;
+    }
+  });
+  reducedMotion.addEventListener?.('change', () => {
+    if (reducedMotion.matches) takeControl();
+  });
+  storyPause.disabled = true;
+  if (!reducedMotion.matches && 'IntersectionObserver' in window) {
+    storyObserver = new IntersectionObserver(entries => {
+      if (!storyInterrupted && !document.hidden && entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= .2)) {
+        launchStory();
+      }
+    }, {threshold: [.2]});
+    storyObserver.observe(root);
+  }
+
+  input.addEventListener('input', takeControl);
   input.addEventListener('input', render);
-  uncertainty.addEventListener('click', () => { unresolved = !unresolved; render(); });
-  reset.addEventListener('click', () => { input.value = String(initial); unresolved = false; render(); input.focus({preventScroll: true}); });
+  uncertainty.addEventListener('click', () => { takeControl(); unresolved = !unresolved; render(); });
+  reset.addEventListener('click', () => { takeControl(); input.value = String(initial); unresolved = false; render(); input.focus({preventScroll: true}); });
   render();
 })();
