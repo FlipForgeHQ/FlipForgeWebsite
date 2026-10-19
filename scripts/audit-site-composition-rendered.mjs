@@ -197,6 +197,38 @@ try{
   }else failures.push('homepage: interactive Max Buy demo or slider missing');
   await context.close();
 
+
+  // The product-led hero must visibly begin its film-like story in normal motion.
+  const cinematicContext=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
+  const cinematicPage=await cinematicContext.newPage();
+  await cinematicPage.goto(BASE+'/index.html',{waitUntil:'domcontentloaded'});
+  await cinematicPage.waitForFunction(
+    ()=>document.querySelector('[data-ffdemo]')?.classList.contains('ffdemo-story-playing'),
+    null,{timeout:3500}
+  ).catch(()=>failures.push('homepage cinematic: guided decision must start automatically when visible'));
+  const actualStory=await cinematicPage.evaluate(()=>{
+    const d=document.querySelector('[data-ffdemo]');
+    return {ask:d?.querySelector('[data-asking]')?.value,
+            verdict:d?.querySelector('.ffdemo-verdict[data-verdict]')?.textContent?.trim(),
+            active:d?.classList.contains('ffdemo-story-playing')};
+  });
+  if(actualStory.active && (actualStory.ask!=='425'||actualStory.verdict!=='PASS'))
+    failures.push('homepage cinematic: automatic sequence must show an illustrative $425 PASS scenario');
+  if(actualStory.active){
+    await cinematicPage.locator('[data-story-pause]').click();
+    if(!await cinematicPage.locator('[data-ffdemo]').evaluate(el=>el.classList.contains('ffdemo-story-paused')))
+      failures.push('homepage cinematic: pause control does not pause the text sequence');
+    await cinematicPage.locator('[data-story-replay]').click();
+    if(!await cinematicPage.locator('[data-ffdemo]').evaluate(el=>el.classList.contains('ffdemo-story-playing')&&!el.classList.contains('ffdemo-story-paused')))
+      failures.push('homepage cinematic: replay does not restart the decision story');
+    await cinematicPage.locator('[data-asking]').evaluate(el=>{
+      el.value='310';el.dispatchEvent(new Event('input',{bubbles:true}));
+    });
+    if(await cinematicPage.locator('[data-ffdemo]').evaluate(el=>el.classList.contains('ffdemo-story-playing')))
+      failures.push('homepage cinematic: manual input must cancel automatic captions');
+  }
+  await cinematicContext.close();
+
   const mobile=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   const mobilePage=await mobile.newPage();
   await mobilePage.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded'});
