@@ -20,6 +20,20 @@ check('sign-in and beta access grouped on desktop',html.includes('class="ffdemo-
 check('sign-in routes preserved',html.includes('data-ff-marketing-sign-in') && html.includes('production-auth.html'));
 check('accessible controls',html.includes('aria-pressed="false"') && html.includes('aria-describedby="ffdemo-range-help ffdemo-range-caption"'));
 check('responsive and reduced motion supported',css.includes('@media(max-width:750px)') && css.includes('@media(prefers-reduced-motion:reduce)'));
+check('nine-second product film has four explicit financial beats',[
+ 'SEE THE PRODUCT IN ACTION',
+ '$425 ASKING PRICE.',
+ '$360 MAX BUY.',
+ '$65 TOO HIGH.',
+ 'PASS. KNOW WHY.',
+ 'CHANGE THE PRICE.'
+].every(value=>html.includes(value)));
+check('autoplay begins on intersection and shares decision numbers',js.includes('new IntersectionObserver(')&&js.includes("input.value = '425'")&&js.includes('root.classList.add(\'ffdemo-story-playing\')'));
+check('customer input immediately cancels launch animation',js.includes("input.addEventListener('input', takeControl)")&&js.includes("root.classList.remove('ffdemo-story-playing', 'ffdemo-story-paused')"));
+check('autoplay is once, resumable and replayable',js.includes('storyObserver.disconnect()')&&js.includes("storyPause.addEventListener('click'")&&js.includes("storyReplay.addEventListener('click'"));
+check('reduced motion and offscreen visibility honored',js.includes("prefers-reduced-motion: reduce")&&js.includes('document.hidden')&&css.includes('prefers-reduced-motion:reduce'));
+check('cinematic type entrance, gold contrast and mobile fit',css.includes('ffdemo-cine-stage')&&css.includes('@keyframes ffdemo-cine-stage')&&css.includes('.ffdemo-cine-frame strong')&&css.includes('@media(max-width:600px)'));
+check('no automatic video downloads, audio, provider or storage calls',!/(audio\.play|video\.play|fetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB)/.test(js));
 check('only one hero experience',!html.includes('data-decision-forge') && !html.includes('data-film'));
 check('no data storage or provider fetch',!/(localStorage|sessionStorage|indexedDB|fetch\s*\(|XMLHttpRequest)/.test(js));
 const errors=assertions.filter(x=>!x.ok);
