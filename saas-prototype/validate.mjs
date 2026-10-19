@@ -132,8 +132,9 @@ check("081 sidebar remains sticky during long dashboard pages", /\.sidebar\s*,\s
 check("082 sidebar navigation retains its own vertical scroll area", files.shell.includes(".primary-nav") && files.shell.includes("flex: 1 1 auto") && files.shell.includes("min-height: 0"));
 
 check("083 feature stylesheet loads after shell fixes", files.index.indexOf('href="feature-pages.css"') > files.index.indexOf('href="shell-fixes.css"'));
-check("084 feature data loads after core mock data", files.index.indexOf('src="feature-data.js"') > files.index.indexOf('src="mock-data.js"'));
-check("085 feature data loads before the base router", files.index.indexOf('src="feature-data.js"') < files.index.indexOf('src="app.js"'));
+// The Private Beta shell is a live customer view: it must never load prototype sample data (mock-data.js, feature-data.js).
+check("084 Private Beta shell loads no core mock data", !files.index.includes('src="mock-data.js"'));
+check("085 Private Beta shell loads no feature mock data", !files.index.includes('src="feature-data.js"'));
 check("086 feature route renderer loads after the base router", files.index.indexOf('src="feature-pages.js"') > files.index.indexOf('src="app.js"'));
 check("087 compare guard remains last", files.index.indexOf('src="route-guard.js"') > files.index.indexOf('src="feature-pages.js"'));
 

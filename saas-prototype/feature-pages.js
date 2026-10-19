@@ -5,6 +5,9 @@
   const coreData = window.FlipForgePrototypeData;
   const main = document.querySelector("#main-content");
   const toastRegion = document.querySelector(".toast-region");
+  // The Private Beta workspace loads no sample data, so there is nothing to render; it never falls back to these pages.
+  if (!featureData || !coreData || !main || window.FlipForgePrivateBetaEntry === true
+    || /^\/app\/beta(?:\/|$)/i.test(String(window.location.pathname || ""))) return;
   const featureRoutes = new Set(["discover", "portfolio", "sell", "alerts", "account"]);
   const alertState = new Map(featureData.alerts.rules.map(rule => [rule.id, rule.active]));
 

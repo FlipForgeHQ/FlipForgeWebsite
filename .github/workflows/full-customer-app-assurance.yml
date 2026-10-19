@@ -10,6 +10,7 @@ on:
       - 'saas-prototype/**'
       - 'scripts/audit-decision-intelligence-route-ci.mjs'
       - 'scripts/audit-live-view-integrity-ci.mjs'
+      - 'scripts/audit-beta-no-sample-content-ci.mjs'
       - 'saas-prototype/**'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
@@ -54,6 +55,7 @@ on:
       - 'scripts/validate-private-beta-public-access.mjs'
       - 'scripts/audit-decision-intelligence-route-ci.mjs'
       - 'scripts/audit-live-view-integrity-ci.mjs'
+      - 'scripts/audit-beta-no-sample-content-ci.mjs'
       - 'saas-prototype/decision-intelligence-v1.js'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
@@ -97,7 +99,7 @@ jobs:
   validate:
     name: Customer app critical journey, identity and authority boundary
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -146,6 +148,8 @@ jobs:
         run: node scripts/audit-decision-intelligence-route-ci.mjs
       - name: Audit live views never contain sample records or another card's decision (intermediate DOM, request order, painted frames)
         run: node scripts/audit-live-view-integrity-ci.mjs
+      - name: Audit Private Beta never shows prototype sample records during load (50 ms samples for 5 s; unknown routes say "Page not available")
+        run: node scripts/audit-beta-no-sample-content-ci.mjs
       - name: Audit customer and beta navigation separation
         run: node scripts/audit-customer-navigation-parity-ci.mjs
       - name: Audit visual parity across full customer routes
