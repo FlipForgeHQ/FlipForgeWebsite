@@ -180,18 +180,19 @@ try{
     await page.locator('.ffdemo-why summary').click();
     if(!await page.locator('.ffdemo-why').evaluate(el=>el.open))failures.push('homepage: rationale details must be expandable');
     const navStatus=await page.evaluate(()=>{
-      const group=document.querySelector('.ffdemo-nav-actions');
-      const sign=group?.querySelector('.ffdemo-sign-in');
-      const beta=group?.querySelector('.ffdemo-join');
-      const rect=el=>el?el.getBoundingClientRect():null;
-      const a=rect(sign),b=rect(beta);
-      return { grouped:Boolean(group&&sign&&beta&&group.closest('nav.desktop-nav')),
+      const nav=document.querySelector('.site-header nav.desktop-nav');
+      const sign=nav?.querySelector('a[data-ff-marketing-sign-in]');
+      const beta=nav?.querySelector('a.nav-cta[href*="beta-application"]');
+      const a=sign?.getBoundingClientRect(), b=beta?.getBoundingClientRect();
+      return {
+        adjacent:Boolean(sign&&beta&&sign.nextElementSibling===beta),
         gap:a&&b?Number((b.left-a.right).toFixed(1)):null,
         labels:[sign?.textContent?.trim(),beta?.textContent?.trim()],
-        header:document.querySelector('.site-header')?.outerHTML?.slice(0,950) };
+        header:document.querySelector('.site-header')?.outerHTML?.slice(0,950)
+      };
     });
-    if(!navStatus.grouped||navStatus.gap==null||navStatus.gap<0||navStatus.gap>24){
-      failures.push('homepage desktop: Sign In and Beta Access must sit together in the desktop header '+JSON.stringify(navStatus));
+    if(!navStatus.adjacent||navStatus.gap==null||navStatus.gap<0||navStatus.gap>24){
+      failures.push('homepage desktop: Sign In and Beta Access must be adjacent and close '+JSON.stringify(navStatus));
     }
   }else failures.push('homepage: interactive Max Buy demo or slider missing');
   await context.close();
