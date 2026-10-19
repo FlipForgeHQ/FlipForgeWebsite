@@ -169,14 +169,14 @@ try{
   const slider=page.locator('[data-asking]');
   if(await demo.count() && await slider.count()){
     await slider.evaluate(el=>{el.value='310';el.dispatchEvent(new Event('input',{bubbles:true}));});
-    if((await page.locator('[data-verdict]').textContent())?.trim()!=='BUY')failures.push('homepage: a $310 asking price must yield illustrative BUY');
+    if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='BUY')failures.push('homepage: a $310 asking price must yield illustrative BUY');
     if((await page.locator('[data-price-gap]').textContent())?.trim()!=='−$50')failures.push('homepage: $310 must be $50 below $360 Max Buy');
     await slider.evaluate(el=>{el.value='395';el.dispatchEvent(new Event('input',{bubbles:true}));});
-    if((await page.locator('[data-verdict]').textContent())?.trim()!=='PASS')failures.push('homepage: $395 exceeds illustrative Max Buy by more than $20');
+    if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='PASS')failures.push('homepage: $395 exceeds illustrative Max Buy by more than $20');
     await page.locator('[data-uncertainty]').click();
-    if((await page.locator('[data-verdict]').textContent())?.trim()!=='VERIFY')failures.push('homepage: unresolved evidence must force VERIFY');
+    if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='VERIFY')failures.push('homepage: unresolved evidence must force VERIFY');
     await page.locator('[data-reset]').click();
-    if((await page.locator('[data-verdict]').textContent())?.trim()!=='WATCH')failures.push('homepage: reset restores illustrative WATCH');
+    if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='WATCH')failures.push('homepage: reset restores illustrative WATCH');
     await page.locator('.ffdemo-why summary').click();
     if(!await page.locator('.ffdemo-why').evaluate(el=>el.open))failures.push('homepage: rationale details must be expandable');
     const actions=page.locator('.desktop-nav .ffdemo-nav-actions');
