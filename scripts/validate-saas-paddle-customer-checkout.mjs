@@ -79,6 +79,8 @@ function checkoutEvent(overrides = {}) {
 function upstreamEnvelope(correlationId, plan = "COLLECTOR") {
   return {
     meta: {
+      runtimeBuildCommit: "a".repeat(40),
+      runtimeBuildCommitVerified: true,
       contractVersion: "1.0",
       engineVersion: "v-test+v15.10",
       authority: "Smart Opportunity",
@@ -121,6 +123,7 @@ function upstreamError(status, code, rawMessage, retryAfter = null) {
 
 try {
   process.env.FLIPFORGE_API_BRIDGE_ENABLED = "true";
+  process.env.FLIPFORGE_APPROVED_BACKEND_COMMITS = "a".repeat(40);
   process.env.FLIPFORGE_API_BASE_URL = "https://private-backend.invalid";
   process.env.FLIPFORGE_API_SERVICE_TOKEN = "server-only-checkout-token-never-for-browser";
   process.env.CONTEXT = "deploy-preview";
