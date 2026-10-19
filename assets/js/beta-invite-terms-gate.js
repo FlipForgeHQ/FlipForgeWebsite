@@ -56,7 +56,16 @@
     markPending();
   },true);
 
-  function overlay(message,error=false){
+  // Sign-in returns to the beta workspace, where this gate runs again and finishes the
+  // receipt with the saved acceptance (the Terms checkbox was already ticked).
+  const SIGN_IN_URL=`/production-auth.html?return=${encodeURIComponent(BETA_START_URL)}&reauth=1`;
+  const SAFE_REASON=/^[A-Z0-9_]{1,64}$/;
+  // After a failed attempt only an explicit Retry (or a fresh page load) tries again. The
+  // gate also runs on every DOM mutation, including its own overlay, so automatic retries
+  // would loop against the endpoint.
+  let halted=false;
+
+  function overlay(message,{error=false,signIn=false,reason=""}={}){
     ensureStyles();
     let root=document.querySelector("[data-beta-terms-finalize]");
     if(!root){
@@ -65,28 +74,49 @@
       root.dataset.betaTermsFinalize="";
       document.body.appendChild(root);
     }
-    root.innerHTML=`<section class="ff-terms-finalize-card" role="status"><h2>${error?"Beta Terms confirmation needs attention":"Finalizing your beta access"}</h2><p>${message}</p>${error?'<div class="ff-terms-finalize-actions"><button type="button" data-beta-terms-retry>Retry</button><button type="button" data-secondary data-beta-terms-signout>Sign out</button></div>':""}</section>`;
-    root.querySelector("[data-beta-terms-retry]")?.addEventListener("click",recordAcceptance);
+    const code=SAFE_REASON.test(reason)?`<p class="ff-terms-finalize-code">Reference: ${reason}</p>`:"";
+    const actions=!error?"":signIn
+      ?`<div class="ff-terms-finalize-actions"><a href="${SIGN_IN_URL}" data-beta-terms-signin>Sign in to finish</a><button type="button" data-secondary data-beta-terms-signout>Sign out</button></div>`
+      :'<div class="ff-terms-finalize-actions"><button type="button" data-beta-terms-retry>Retry</button><button type="button" data-secondary data-beta-terms-signout>Sign out</button></div>';
+    root.innerHTML=`<section class="ff-terms-finalize-card" role="status"><h2>${error?"Beta Terms confirmation needs attention":"Finalizing your beta access"}</h2><p>${message}</p>${code}${actions}</section>`;
+    root.querySelector("[data-beta-terms-retry]")?.addEventListener("click",()=>{halted=false;recordAcceptance({explicit:true})});
     root.querySelector("[data-beta-terms-signout]")?.addEventListener("click",async()=>{await window.FlipForgeIdentity?.signOut?.();window.location.assign("/")});
   }
 
-  async function recordAcceptance(){
+  function needsSignIn(){
+    overlay("Your Beta Terms acceptance is saved on this device, but your session needs to be confirmed before FlipForge can record it. Sign in with the password you just created to finish. No payment or transaction authority was created.",{error:true,signIn:true});
+  }
+
+  async function recordAcceptance({explicit=false}={}){
     const intent=pending();
-    if(!intent||recording)return;
+    if(!intent||recording||halted)return;
     const snapshot=window.FlipForgeIdentity?.getSnapshot?.();
-    if(!snapshot?.authenticated)return;
+    if(!snapshot?.authenticated){
+      // An explicit Retry with no session cannot succeed; route to sign-in instead of
+      // leaving a button that silently does nothing.
+      if(explicit){halted=true;needsSignIn()}
+      return;
+    }
     recording=true;
     overlay("Recording your acceptance of the Private Beta Terms before the workspace opens.");
+    let reason="TERMS_RECORD_FAILED";
+    let status=0;
     try{
+      await window.FlipForgeIdentity?.ensureFreshSession?.();
       const response=await fetch(ENDPOINT,{method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",headers:{"Content-Type":"application/json"},body:JSON.stringify({accepted:true,termsVersion:TERMS_VERSION})});
+      status=response.status;
       const payload=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(payload.reason||"TERMS_RECORD_FAILED");
+      if(SAFE_REASON.test(String(payload.reason||"")))reason=payload.reason;
+      if(!response.ok)throw new Error(reason);
       await window.FlipForgeIdentity?.refresh?.().catch?.(()=>{});
       clearPending();
       document.querySelector("[data-beta-terms-finalize]")?.remove();
       if(!/^\/app\/beta\/?$/i.test(String(window.location.pathname||""))||String(window.location.hash||"")!=="#/beta-start")window.location.assign(BETA_START_URL);
+      else window.location.reload();
     }catch(error){
-      overlay("Your account invitation was accepted, but FlipForge could not yet finish the Beta Terms receipt and access promotion. Retry before continuing. No payment or transaction authority was created.",true);
+      halted=true;
+      if(status===401){needsSignIn();return}
+      overlay("Your account invitation was accepted, but FlipForge could not yet finish the Beta Terms receipt and access promotion. Retry before continuing. No payment or transaction authority was created.",{error:true,reason});
     }finally{recording=false}
   }
 
@@ -95,7 +125,7 @@
   // workspace itself once the server has recorded the acceptance.
   window.FlipForgeBetaTermsGate=Object.freeze({awaitingAcceptance:()=>Boolean(pending())});
 
-  window.addEventListener("flipforge:identity-change",recordAcceptance);
+  window.addEventListener("flipforge:identity-change",()=>recordAcceptance());
   const observer=new MutationObserver(()=>{enhanceInvite();recordAcceptance()});
   observer.observe(document.documentElement,{childList:true,subtree:true});
   document.addEventListener("DOMContentLoaded",()=>{enhanceInvite();recordAcceptance()},{once:true});
