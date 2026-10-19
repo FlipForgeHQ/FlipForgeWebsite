@@ -165,13 +165,20 @@ async function auditDecisionMobile(page, viewport) {
     failures.push(`${viewport.name} Home: the Why explanation does not expand`);
   if(viewport.width<=1120){
     await page.locator('.menu-toggle').click();
-    const actions=page.locator('.ffdemo-mobile-actions');
-    if(await actions.count()!==1)failures.push(`${viewport.name} Home: Sign In and Beta Access mobile pair missing`);
-    else{
-      const links=await actions.locator('a').allTextContents();
-      if(links.length!==2||!links[0].includes('Sign In')||!links[1].includes('Request Beta Access'))
-        failures.push(`${viewport.name} Home: Sign In must be directly before Beta Access`);
-    }
+    const nav=await page.evaluate(()=>{
+      const links=[...document.querySelectorAll('.mobile-nav a')];
+      const sign=links.find(el=>el.hasAttribute('data-ff-marketing-sign-in'));
+      const join=links.find(el=>el.getAttribute('href')?.includes('beta-application'));
+      const a=sign?.getBoundingClientRect(),b=join?.getBoundingClientRect();
+      return {
+        present:Boolean(sign&&join),
+        labels:[sign?.textContent?.trim(),join?.textContent?.trim()],
+        gap:a&&b?Number((b.top-a.bottom).toFixed(1)):null,
+        aligned:a&&b?Math.abs(a.left-b.left)<=3:null
+      };
+    });
+    if(!nav.present||nav.gap==null||nav.gap<0||nav.gap>20||!nav.aligned)
+      failures.push(`${viewport.name} Home: mobile Sign In and Beta Access must be prominent and next to each other (${JSON.stringify(nav)})`);
   }
 }
 
