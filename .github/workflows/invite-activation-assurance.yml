@@ -17,6 +17,12 @@ on:
       - "scripts/build-identity-client.mjs"
       - "scripts/inject-beta-invite-terms-gate.mjs"
       - "scripts/audit-invite-activation-ci.mjs"
+      - "production-auth.html"
+      - "assets/css/flipforge-password-visibility-v1.css"
+      - "scripts/lib/password-visibility.mjs"
+      - "scripts/lib/flipforge-production-auth-probe.mjs"
+      - "scripts/lib/flipforge-production-signin.mjs"
+      - "scripts/audit-password-visibility-ci.mjs"
       - ".github/workflows/invite-activation-assurance.yml"
   push:
     branches: [main]
@@ -54,6 +60,9 @@ jobs:
 
       - name: Gate invite activation visibility and workspace handoff
         run: node scripts/audit-invite-activation-ci.mjs
+
+      - name: Gate the show/hide password button on sign-in and invitation forms
+        run: node scripts/audit-password-visibility-ci.mjs
 
   deploy-preview:
     name: Invite activation on the Netlify deploy preview
