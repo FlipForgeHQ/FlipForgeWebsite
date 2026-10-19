@@ -87,7 +87,7 @@
       why: "Understand the reason before moving on."
     };
     return {
-      copy: "VERIFY means FlipForge does not yet have enough trustworthy support for a stronger call.",
+      copy: "VERIFY means FlipForge does not yet have enough matching evidence for a stronger call.",
       why: "Find what is missing before doing anything else."
     };
   }
@@ -117,6 +117,13 @@
   }
 
   function copyFor(decision, pageText) {
+    // A legacy result (saved before current evidence rules) keeps its saved recommendation as historical and never
+    // gets current-support copy. Marked by customer-trust-display-v1.js from the server's evidenceProvenanceStatus.
+    if (document.querySelector("#main-content [data-ff-legacy-result]")) return {
+      title: "Saved before current evidence rules.",
+      reason: `Saved recommendation: ${decision}. It is not presented as currently supported.`,
+      next: "Evaluate the card again for a result under current evidence rules."
+    };
     if (decision === "BUY") return {
       title: "The evaluated price clears the current decision checks.",
       reason: "FlipForge found enough support for a BUY decision at the evaluated price.",
@@ -134,7 +141,7 @@
     };
     const identity = /identity needs verification|mapping\s*(?:not confirmed|NOT_CONFIRMED)|provider UUID mapping remains unconfirmed/i.test(pageText);
     const evidence = /no accepted exact completed sales|0 accepted|no exact sales|evidence-supported value is unavailable/i.test(pageText);
-    let reason = "FlipForge does not yet have enough trustworthy support for a stronger decision.";
+    let reason = "FlipForge does not yet have enough matching evidence for a stronger decision.";
     if (identity && evidence) reason = "The exact card identity still needs confirmation, and there is not enough exact completed-sale evidence yet.";
     else if (identity) reason = "The exact card identity still needs confirmation before FlipForge can support a stronger decision.";
     else if (evidence) reason = "There is not enough exact completed-sale evidence yet to support a value or stronger decision.";
@@ -153,6 +160,13 @@
       return Number.isFinite(value) ? value : null;
     }
     return null;
+  }
+
+  // Evidence tables omit the price and date columns when the API withholds them, so columns are found by heading.
+  function columnIndex(table, names, fallback) {
+    const headers = [...table.querySelectorAll("thead th")].map(th => String(th.textContent || "").trim());
+    const found = headers.findIndex(label => names.includes(label));
+    return found >= 0 ? found : (headers.length === 5 ? fallback : -1);
   }
 
   function setCellLabel(cell, from, to) {
@@ -201,20 +215,22 @@
     const page = main.querySelector(".customer-management-page");
     if (!page) return;
 
-    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge trusted/i);
+    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge (?:trusted|counted)/i);
     const candidateSection = sectionByHeading(page, /Manual evidence candidates|Saved evidence candidate pool|What FlipForge reviewed/i);
 
     const linkedTable = linkedSection?.querySelector("table");
     if (linkedTable) {
       const headers = linkedTable.querySelectorAll("thead th");
-      if (headers[3] && headers[3].textContent !== "Identity key") headers[3].textContent = "Identity key";
-      if (headers[4] && headers[4].textContent !== "Current authority") headers[4].textContent = "Current authority";
+      const identityAt = columnIndex(linkedTable, ["Identity", "Identity key"], 3);
+      const authorityAt = columnIndex(linkedTable, ["Authority", "Current authority"], 4);
+      if (headers[identityAt] && headers[identityAt].textContent !== "Identity key") headers[identityAt].textContent = "Identity key";
+      if (headers[authorityAt] && headers[authorityAt].textContent !== "Current authority") headers[authorityAt].textContent = "Current authority";
       linkedTable.querySelectorAll("tbody tr").forEach(row => {
         const cells = row.querySelectorAll("td");
-        setCellLabel(cells[3], "Exact match", "Identity key match");
-        setCellLabel(cells[3], "Mismatch", "Identity key differs");
-        setCellLabel(cells[4], "Eligible", "Current eligible");
-        setCellLabel(cells[4], "Ineligible", "Not counted now");
+        setCellLabel(cells[identityAt], "Exact match", "Identity key match");
+        setCellLabel(cells[identityAt], "Mismatch", "Identity key differs");
+        setCellLabel(cells[authorityAt], "Eligible", "Current eligible");
+        setCellLabel(cells[authorityAt], "Ineligible", "Not counted now");
       });
     }
 
@@ -229,11 +245,13 @@
       const table = candidateSection.querySelector("table");
       if (table) {
         const headers = table.querySelectorAll("thead th");
-        if (headers[3] && headers[3].textContent !== "Stored source confidence") headers[3].textContent = "Stored source confidence";
-        if (headers[4] && headers[4].textContent !== "Link state") headers[4].textContent = "Link state";
+        const confidenceAt = columnIndex(table, ["Match confidence", "Stored source confidence"], 3);
+        const stateAt = columnIndex(table, ["State", "Link state"], 4);
+        if (headers[confidenceAt] && headers[confidenceAt].textContent !== "Stored source confidence") headers[confidenceAt].textContent = "Stored source confidence";
+        if (headers[stateAt] && headers[stateAt].textContent !== "Link state") headers[stateAt].textContent = "Link state";
         table.querySelectorAll("tbody tr").forEach(row => {
           const cells = row.querySelectorAll("td");
-          setCellLabel(cells[4], "Linked", "Historically linked");
+          setCellLabel(cells[stateAt], "Linked", "Historically linked");
         });
       }
     }
@@ -257,7 +275,9 @@
     const h1 = heading?.querySelector("h1");
     const intro = heading?.querySelector("p");
     if (eyebrow) eyebrow.textContent = "Evidence behind this decision";
-    if (h1) h1.textContent = "Why FlipForge trusts this decision";
+    // A legacy result is not presented as currently supported (customer-trust-display-v1.js marks it).
+    const legacy = Boolean(page.querySelector("[data-ff-legacy-result]"));
+    if (h1) h1.textContent = legacy ? "Evidence behind this saved decision" : "Why FlipForge trusts this decision";
     if (intro) {
       intro.textContent = cardLabel
         ? `See what FlipForge counts now, what it did not count and why, and what remains audit-only for ${cardLabel}.`
@@ -276,7 +296,7 @@
     const metrics = page.querySelector(".customer-management-metrics");
     const metricArticles = metrics ? [...metrics.querySelectorAll("article")] : [];
     if (metricArticles[0]) {
-      metricArticles[0].querySelector("span").textContent = "Trusted sales";
+      metricArticles[0].querySelector("span").textContent = "Matched sales";
       metricArticles[0].dataset.tone = "trusted";
       addMetricContext(metricArticles[0], "Exact completed sales currently allowed to support value.");
     }
@@ -300,7 +320,7 @@
     proof.innerHTML = `
       <div class="ff-evidence-proof-copy">
         <span class="ff-evidence-kicker">THE PROOF</span>
-        <h2>${accepted} exact completed sale${accepted === 1 ? "" : "s"} currently support this card.</h2>
+        <h2>${legacy ? "Saved before current evidence rules. This result is not presented as currently supported." : `${accepted} exact completed sale${accepted === 1 ? "" : "s"} currently support this card.`}</h2>
         <p>FlipForge did not treat every historical row as a comp. It kept <strong>${ineligible}</strong> linked row${ineligible === 1 ? "" : "s"} visible for auditability that ${ineligible === 1 ? "is" : "are"} not counted now. Only rows marked Excluded were checked and failed a rule.</p>
         <div class="ff-evidence-principle"><strong>More data is not automatically better evidence.</strong><span>FlipForge is designed to show its work—and to show what it refused to use.</span></div>
       </div>
@@ -312,7 +332,7 @@
         </article>
         <span class="ff-evidence-funnel-arrow" aria-hidden="true">→</span>
         <article data-tone="trusted">
-          <span>Trusted now</span>
+          <span>Counted now</span>
           <strong>${accepted}</strong>
           <small>Current exact completed sales</small>
         </article>
@@ -326,15 +346,17 @@
     if (selectorPanel) selectorPanel.insertAdjacentElement("afterend", proof);
     else if (heading) heading.insertAdjacentElement("afterend", proof);
 
-    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge trusted/i);
+    const linkedSection = sectionByHeading(page, /Linked evidence|What FlipForge (?:trusted|counted)/i);
     const candidateSection = sectionByHeading(page, /What FlipForge reviewed but did not use|Saved evidence candidate pool|Manual evidence candidates/i);
     const historySection = sectionByHeading(page, /Evidence history|Full audit trail/i);
 
     if (linkedSection) {
       const linkedHeading = linkedSection.querySelector("h2");
       const linkedCopy = linkedSection.querySelector(".panel-header p");
-      if (linkedHeading) linkedHeading.textContent = "What FlipForge trusted";
-      if (linkedCopy) linkedCopy.textContent = `${accepted} linked completed sale${accepted === 1 ? "" : "s"} currently satisfy the exact-comparable rules required to support this saved decision.`;
+      if (linkedHeading) linkedHeading.textContent = "What FlipForge counted";
+      if (linkedCopy) linkedCopy.textContent = legacy
+        ? `${accepted} linked completed sale${accepted === 1 ? " is" : "s are"} listed for this saved decision. It was saved before current evidence rules and is not presented as currently supported.`
+        : `${accepted} linked completed sale${accepted === 1 ? "" : "s"} currently satisfy the exact-comparable rules required to support this saved decision.`;
       linkedSection.classList.add("ff-evidence-trusted-section");
     }
 
@@ -385,8 +407,8 @@
 
     panel.dataset.ffGuideEvidenceStep = id;
     if (location && location.textContent !== "Evidence · Step 3") location.textContent = "Evidence · Step 3";
-    if (title && title.textContent !== "See what FlipForge trusted—and what it refused to use.") {
-      title.textContent = "See what FlipForge trusted—and what it refused to use.";
+    if (title && title.textContent !== "See what FlipForge counted—and what it refused to use.") {
+      title.textContent = "See what FlipForge counted—and what it refused to use.";
     }
     const copy = "Start with the counted-vs-not-counted summary. Open the candidate pool or full audit trail only if you want deeper forensic detail.";
     if (copyNode && copyNode.textContent !== copy) copyNode.textContent = copy;

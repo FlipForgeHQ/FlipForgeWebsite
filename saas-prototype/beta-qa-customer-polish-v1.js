@@ -240,7 +240,7 @@
 
   function polishCardIntelligence(main) {
     if (routeName() !== "opportunities") return;
-    replaceText(main, "CardSight catalog link pending", "Provider catalog reference unavailable");
+    replaceText(main, "Catalog link pending", "Provider catalog reference unavailable");
   }
 
   function apply() {

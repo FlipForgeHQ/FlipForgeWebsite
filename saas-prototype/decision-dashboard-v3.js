@@ -231,6 +231,9 @@
       supportedCents,
       supportedStatus,
       supportedStatusReason: text(source.supportedValueStatusReason),
+      // Saved before current evidence rules (server marker); the value is not presented as currently supported.
+      legacy: legacyRecord(source),
+      legacyNotice: text(source.legacyNotice),
       maxBuyCents: numberOrNull(governed.maximumBuyPriceCents),
       expectedNetCents: numberOrNull(governed.expectedNetProfitCents),
       conservativeNetCents: numberOrNull(governed.conservativeNetProfitCents),
@@ -265,9 +268,19 @@
     };
   }
 
+  /** Server legacy marker: evidenceProvenanceStatus other than a CURRENT value, or the companion support fields. */
+  function legacyRecord(source) {
+    const status = text(source && source.evidenceProvenanceStatus);
+    if (status) return !/^CURRENT(?:_|$)/i.test(status);
+    return Boolean(source) && (source.currentlySupported === false || text(source.supportedValueStatus).toUpperCase() === "LEGACY_NOT_CURRENTLY_SUPPORTED");
+  }
+
   /** Uncertainty statements built only from server facts. No thresholds. */
   function unknownsOf(model) {
     const unknowns = [];
+    if (model.legacy) {
+      unknowns.push({ key: "legacy", tag: "Legacy result — saved before current evidence rules", text: model.legacyNotice || "This result was saved before current evidence rules and is not presented as currently supported." });
+    }
     if (model.profitabilityCappedBuy) {
       unknowns.push({ key: "capped", tag: "Profit protection applied", text: "The asking price leaves too little cushion to protect your profit if prices drop, even though some profit scenarios were positive." });
     }
@@ -698,7 +711,7 @@
         <p>FlipForge runs four checks before it commits to a decision.</p>
         <ol class="ffv3-checks">
           <li><b>01</b><span><strong>Confirm the exact card</strong><small>Year, set, number, variant and grade must match.</small></span></li>
-          <li><b>02</b><span><strong>Check trustworthy sales</strong><small>Only exact completed sales are accepted as evidence.</small></span></li>
+          <li><b>02</b><span><strong>Check matched sales</strong><small>Only exact completed sales are accepted as evidence.</small></span></li>
           <li><b>03</b><span><strong>Compare price + uncertainty</strong><small>See whether the ask is supported and how sure the evidence is.</small></span></li>
           <li><b>04</b><span><strong>Read the decision + receipt</strong><small>BUY, WATCH, VERIFY or PASS with the reason trail preserved.</small></span></li>
         </ol>

@@ -6,7 +6,7 @@
   const DECISION_COPY = Object.freeze({
     BUY: "The saved evidence supports this purchase at the evaluated price, within the stated risks and limits.",
     WATCH: "There may be an opportunity here, but the price or evidence is not strong enough yet.",
-    VERIFY: "There is not enough trustworthy evidence yet to make this purchase confidently.",
+    VERIFY: "There is not enough matching evidence yet to make this purchase confidently.",
     PASS: "The current evidence does not justify this purchase at the evaluated price.",
     UNKNOWN: "FlipForge has not returned a customer-facing decision for this saved record."
   });
@@ -43,12 +43,36 @@
     return article ? text(article.querySelector("strong")) : "";
   }
 
-  function riskDisplay(raw) {
-    const score = Number.parseFloat(String(raw || "").replace(/[^0-9.]/g, ""));
-    if (!Number.isFinite(score)) return { label: "Unavailable", score: "" };
+  // Decision risk as the API returned it for this saved card (governedDecision.risk, else risk). Display only.
+  // It used to be scraped from the metric text: "35/100" with every non-digit removed became 35100, which was
+  // clamped to 100 and shown as "High — 100/100" for a saved risk of 35.
+  function savedRecord(root) {
+    const hero = root.querySelector(".customer-intelligence-hero");
+    return window.FlipForgeTrustDisplay?.recordFor(hero) || null;
+  }
+
+  function riskBand(score) {
+    if (window.FlipForgeTrustDisplay) return window.FlipForgeTrustDisplay.riskBand(score);
     const bounded = Math.max(0, Math.min(100, score));
-    const label = bounded >= 70 ? "High" : bounded >= 35 ? "Moderate" : "Low";
-    return { label, score: `${Math.round(bounded)}/100` };
+    return bounded >= 70 ? "High" : bounded >= 35 ? "Moderate" : "Low";
+  }
+
+  function riskDisplay(root) {
+    const record = savedRecord(root);
+    let score = null;
+    if (record) {
+      score = window.FlipForgeTrustDisplay.riskValue(record);
+    } else {
+      // No saved record registered: read only a whole "N/100" score; anything else is unavailable.
+      const match = String(metric(root, "Decision risk") || metric(root, "Risk")).match(/^\s*(\d+(?:\.\d+)?)\s*\/\s*100\s*$/);
+      score = match ? Number(match[1]) : null;
+    }
+    if (score === null || !Number.isFinite(score)) return { label: "Unavailable", score: "" };
+    return { label: riskBand(score), score: `${score}/100` };
+  }
+
+  function legacyRecord(root) {
+    return Boolean(root.querySelector(".customer-intelligence-hero [data-ff-legacy-result]"));
   }
 
   function valueFacts(root) {
@@ -89,19 +113,21 @@
     const hero = root.querySelector(".customer-intelligence-hero");
     if (!hero) return;
 
-    const valueReason = facts.supported && facts.supported !== "Unavailable"
+    const valueReason = legacyRecord(root)
+      ? "Value: not currently supported. This result was saved before current evidence rules."
+      : facts.supported && facts.supported !== "Unavailable"
       ? `Value: supported value is ${facts.supported} against a ${facts.ask} listing price.`
       : "Value: no supported value is shown without accepted exact completed-sale evidence.";
     const evidenceReason = `Evidence: ${evidenceFact(root)}`;
     const riskReason = risk.score
-      ? `Decision risk: ${risk.label} (${risk.score}). This is the final saved decision risk; deeper market-factor values are inputs, not replacements for this score.`
-      : "Decision risk: the final saved decision risk is unavailable for this record.";
+      ? `Decision risk: ${risk.label} (${risk.score}). This is the saved decision risk; deeper market-factor values are inputs, not replacements for this score.`
+      : "Decision risk: the saved decision risk is unavailable for this record.";
 
     const panel = document.createElement("section");
     panel.className = "panel ff-decision-why";
     panel.setAttribute("data-ff-decision-why", "");
     panel.innerHTML = `<div class="panel-body">
-      <div class="ff-why-head"><span class="eyebrow">Why</span><h2>Why FlipForge says ${escapeHtml(decision)}</h2></div>
+      <div class="ff-why-head"><span class="eyebrow">Why</span><h2>${legacyRecord(root) ? `Why FlipForge saved ${escapeHtml(decision)}` : `Why FlipForge says ${escapeHtml(decision)}`}</h2></div>
       <ul class="ff-why-list">
         <li>${escapeHtml(valueReason)}</li>
         <li>${escapeHtml(evidenceReason)}</li>
@@ -137,7 +163,10 @@
       meaning.className = "ff-decision-meaning";
       copy.querySelector(".customer-hero-title")?.insertAdjacentElement("afterend", meaning);
     }
-    setText(meaning, DECISION_COPY[decision] || DECISION_COPY.UNKNOWN);
+    // A legacy result keeps its saved recommendation visible as historical, without current-support copy.
+    setText(meaning, legacyRecord(root)
+      ? `Saved recommendation: ${decision}. ${window.FlipForgeTrustDisplay?.LEGACY_HISTORICAL || "It is not presented as currently supported."}`
+      : (DECISION_COPY[decision] || DECISION_COPY.UNKNOWN));
 
     let riskChip = copy.querySelector(".ff-risk-summary");
     if (!riskChip) {
@@ -145,7 +174,7 @@
       riskChip.className = "ff-risk-summary";
       meaning.insertAdjacentElement("afterend", riskChip);
     }
-    const markup = `<span>Decision risk</span><strong>${escapeHtml(risk.label)}</strong>${risk.score ? `<small>${escapeHtml(risk.score)} final saved decision risk</small>` : ""}`;
+    const markup = `<span>Decision risk</span><strong>${escapeHtml(risk.label)}</strong>${risk.score ? `<small>${escapeHtml(risk.score)} saved decision risk</small>` : ""}`;
     if (riskChip.innerHTML !== markup) riskChip.innerHTML = markup;
   }
 
@@ -164,8 +193,8 @@
       setText(marketTitle, text(marketTitle).replace(/\bRisk\b/i, "Market risk factor"));
     }
     const marketDetail = marketStep?.querySelector("p");
-    const distinction = "Market risk is one saved input; the final saved decision risk is shown at the top.";
-    if (marketDetail && !/final saved decision risk/i.test(text(marketDetail))) {
+    const distinction = "Market risk is one saved input; the saved decision risk is shown at the top.";
+    if (marketDetail && !/saved decision risk is shown at the top/i.test(text(marketDetail))) {
       setText(marketDetail, `${text(marketDetail)} ${distinction}`.trim());
     }
   }
@@ -236,7 +265,7 @@
       if (!hero) return;
 
       const decision = decisionLabel(root);
-      const risk = riskDisplay(metric(root, "Decision risk") || metric(root, "Risk"));
+      const risk = riskDisplay(root);
       const facts = valueFacts(root);
       clarifyRiskSemantics(root);
 

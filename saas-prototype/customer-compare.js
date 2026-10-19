@@ -195,10 +195,30 @@
     return `<section class="panel customer-compare-identity ${same ? "same" : "different"}"><div class="panel-body"><span class="check-mark ${same ? "ok" : "warn"}">${same ? "✓" : "!"}</span><div><span class="eyebrow">Identity relationship</span><h2>${same ? "Same exact-card identity" : "Different exact-card identities"}</h2><p>${same ? "These saved records describe the same exact card identity. Compare their saved listing context and governed outputs without treating active asks as sold evidence." : "These records are not the same exact card. Use the side-by-side view for decision context only—not as interchangeable comp evidence."}</p></div></div></section>`;
   }
 
+  // Shared display helpers (customer-trust-display-v1.js). Display only: values are shown as the API returned them.
+  function trust() { return window.FlipForgeTrustDisplay || null; }
+  function scoreText(value) { return trust() ? trust().scoreText(value) : (value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? "Unavailable" : `${Number(value)}/100`); }
+  function riskScore(item) { return trust() ? trust().riskValue(item) : item?.risk; }
+  function legacyMarkup(item) {
+    const display = trust();
+    if (!display) return "";
+    const listed = state.opportunities.find(candidate => String(candidate?.id || "") === String(item?.id || "")) || null;
+    return display.isLegacy(item) ? display.legacyMarkup(item) : display.legacyMarkup(listed);
+  }
+
+  // A missing value (for example a legacy result, whose value is not currently supported) is "Unavailable", never $0.
+  function supportedText(item) {
+    return trust() ? trust().moneyOrUnavailable(item?.supportedValue) : money(item?.supportedValue);
+  }
+  function discountText(item) {
+    const value = item?.discountPercent;
+    return value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? "Unavailable" : `${Number(value).toFixed(1)}%`;
+  }
+
   function savedCard(item, label) {
     const id = String(item?.id || "");
     const title = item?.title || item?.cardIdentity || id;
-    return `<article class="customer-compare-card"><header><span>${escapeHtml(label)}</span>${badge(item?.recommendation || "UNKNOWN", String(item?.recommendation || "unknown").toLowerCase())}</header><h2>${escapeHtml(title)}</h2><p>${escapeHtml(item?.cardIdentity || "Saved exact-card identity")}</p><div class="customer-compare-card-metrics"><div><span>Ask</span><strong>${money(item?.ask)}</strong></div><div><span>Supported</span><strong>${money(item?.supportedValue)}</strong></div></div>${SAFE_ID.test(id) ? `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(id)}">Open Card Intelligence</a>` : ""}</article>`;
+    return `<article class="customer-compare-card"><header><span>${escapeHtml(label)}</span>${badge(item?.recommendation || "UNKNOWN", String(item?.recommendation || "unknown").toLowerCase())}</header><h2>${escapeHtml(title)}</h2><p>${escapeHtml(item?.cardIdentity || "Saved exact-card identity")}</p>${legacyMarkup(item)}<div class="customer-compare-card-metrics"><div><span>Ask</span><strong>${money(item?.ask)}</strong></div><div><span>Supported</span><strong>${escapeHtml(supportedText(item))}</strong>${trust() ? trust().legacySavedValuesMarkup(item) : ""}</div></div>${SAFE_ID.test(id) ? `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(id)}">Open Card Intelligence</a>` : ""}</article>`;
   }
 
   function comparisonTable(items) {
@@ -206,11 +226,11 @@
     const rows = [
       ["Saved decision", badge(left.recommendation || "UNKNOWN", String(left.recommendation || "unknown").toLowerCase()), badge(right.recommendation || "UNKNOWN", String(right.recommendation || "unknown").toLowerCase())],
       ["Current ask", money(left.ask), money(right.ask)],
-      ["Supported value", money(left.supportedValue), money(right.supportedValue)],
-      ["Saved discount", `${safeNumber(left.discountPercent).toFixed(1)}%`, `${safeNumber(right.discountPercent).toFixed(1)}%`],
-      ["Confidence", `${safeNumber(left.confidence)}/100`, `${safeNumber(right.confidence)}/100`],
+      ["Supported value", escapeHtml(supportedText(left)), escapeHtml(supportedText(right))],
+      ["Saved discount", discountText(left), discountText(right)],
+      ["Confidence", escapeHtml(scoreText(left.confidence)), escapeHtml(scoreText(right.confidence))],
       ["Liquidity", `${safeNumber(left.liquidity)}/100`, `${safeNumber(right.liquidity)}/100`],
-      ["Risk", `${safeNumber(left.risk)}/100`, `${safeNumber(right.risk)}/100`],
+      ["Risk", escapeHtml(scoreText(riskScore(left))), escapeHtml(scoreText(riskScore(right)))],
       ["Rank", `${safeNumber(left.rank)}/100`, `${safeNumber(right.rank)}/100`],
       ["Accepted completed sales", String(safeNumber(left.evidence?.acceptedSales)), String(safeNumber(right.evidence?.acceptedSales))],
       ["Mapping state", escapeHtml(left.mappingState || "UNKNOWN"), escapeHtml(right.mappingState || "UNKNOWN")],
@@ -242,10 +262,17 @@
     bindActions();
   }
 
+  // The card the customer is working on (remembered by tracking-context-v1.js), used only when the address names no
+  // card and only if this tenant's list contains it. Read through the shared display helper; never throws.
+  function rememberedActiveId(ids) {
+    try { return window.FlipForgeTrustDisplay?.activeCardId(ids) || ""; } catch (_) { return ""; }
+  }
+
+  // Card A: the card named by the route, else the remembered active card, else the previous choice, else the first.
   function selectInitial(preferredLeftId) {
     const ids = state.opportunities.map(item => String(item.id));
     const preferred = SAFE_ID.test(preferredLeftId) && ids.includes(preferredLeftId) ? preferredLeftId : "";
-    state.leftId = preferred || (ids.includes(state.leftId) ? state.leftId : ids[0] || "");
+    state.leftId = preferred || rememberedActiveId(ids) || (ids.includes(state.leftId) ? state.leftId : ids[0] || "");
     state.rightId = ids.includes(state.rightId) && state.rightId !== state.leftId
       ? state.rightId
       : ids.find(id => id !== state.leftId) || "";

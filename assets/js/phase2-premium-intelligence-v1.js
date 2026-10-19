@@ -97,7 +97,7 @@
   const failures=[
     ['wrong-parallel','WRONG PARALLEL','Same player and product. Different card market.','Target: Silver parallel','Candidate: White Sparkle parallel','Reject the candidate from exact-comp authority.'],
     ['thin-comp','THIN COMP','One exact sale is still one observation.','1 exact completed sale','No corroborating exact sales','Keep confidence and liquidity risk visible.'],
-    ['stale-comp','STALE COMP','A real sale can become weak evidence when timing changes relevance.','Older completed sale','Current market context moved','Treat as context, not unquestioned authority.'],
+    ['stale-comp','STALE COMP','A reported sale can become weak evidence when timing changes relevance.','Older completed sale','Current market context moved','Treat as context, not unquestioned authority.'],
     ['identity-conflict','IDENTITY CONFLICT','A card number, insert, or set conflict means the identity is not settled.','Requested identity','Provider context disagrees','Fail closed and VERIFY instead of guessing.'],
     ['one-comp','ONE-COMP RISK','A single clean comp can support context without pretending the market is deep.','Exact evidence found','Evidence depth remains thin','Preserve uncertainty in the decision.'],
     ['best-grade','BEST-CASE GRADE','A top-grade headline should not erase realistic grading outcomes.','PSA 10 scenario','Lower-grade economics differ','Keep grading economics separate from wishful value.']
@@ -141,7 +141,7 @@
     if(!anchor)return;
     const layers=[
       ['identity','01','IDENTITY','Prove the exact card.','Release, set, card number, parallel, grade, and other identity fields must belong to the same card before evidence gets authority.'],
-      ['evidence','02','EVIDENCE','Show what counted — and what did not.','The receipt keeps trusted evidence separate from excluded or unresolved rows so confidence is inspectable instead of implied.'],
+      ['evidence','02','EVIDENCE','Show what counted — and what did not.','The receipt keeps counted evidence separate from excluded or unresolved rows so confidence is inspectable instead of implied.'],
       ['economics','03','ECONOMICS','Preserve the evaluated price context.','The evaluated ask and any supported value remain tied to the governed evidence state that existed when the decision was returned.'],
       ['risk','04','RISK + UNCERTAINTY','Keep uncertainty visible.','Confidence, risk, thin evidence, identity conflicts, and unresolved conditions stay part of the reason trail rather than disappearing behind the call.'],
       ['decision','05','DECISION','Keep the governed call beside the reason.','BUY, WATCH, VERIFY, or PASS remains the authoritative decision state; the receipt explains the context without creating a second recommendation.'],

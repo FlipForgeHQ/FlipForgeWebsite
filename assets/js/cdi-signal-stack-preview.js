@@ -60,7 +60,7 @@
       spark:"4,21 17,20 30,18 43,19 56,15 68,15",
       signals:{
         identity:{title:"Exact card confirmed",detail:"Year, set, number, variant, and grade agree",state:"Exact match",caption:"First, FlipForge confirms that the listing and comparisons refer to the same exact card."},
-        evidence:{title:"4 of 6 sales qualify",detail:"Four exact sales count; two comparisons stay out",state:"4 good sales",caption:"Next, four trustworthy sales survive the evidence check while two mismatches are removed."},
+        evidence:{title:"4 of 6 sales qualify",detail:"Four exact sales count; two comparisons stay out",state:"4 good sales",caption:"Next, four matched exact sales survive the evidence check while two mismatches are removed."},
         economics:{title:"Price is only 4% below value support",detail:"$92 ask compared with $96 of evidence-backed support",state:"4% below",caption:"Then FlipForge sees a small price advantage—but not enough to support a stronger call."},
         uncertainty:{title:"78% confidence · moderate uncertainty",detail:"The evidence is usable, but the edge remains limited",state:"Moderate",caption:"Finally, FlipForge keeps the remaining uncertainty visible so a small discount does not look stronger than it is."}
       },
@@ -77,7 +77,7 @@
       card:"2022 Panini Prizm Brock Purdy #353 · PSA 10",
       decision:"VERIFY",
       label:"Verify before acting",
-      copy:"There are not enough trustworthy sales to support a stronger call yet.",
+      copy:"There are not enough matched exact sales to support a stronger call yet.",
       confidence:61,confidenceCopy:"Moderate support",
       risk:58,riskCopy:"More uncertainty",
       heat:null,heatBand:"Unavailable",
@@ -88,7 +88,7 @@
       signals:{
         identity:{title:"Exact card confirmed",detail:"Year, set, number, variant, and grade agree",state:"Exact match",caption:"First, FlipForge confirms the exact card. Identity is clear, so the problem is somewhere later in the chain."},
         evidence:{title:"3 of 7 sales qualify",detail:"Four comparisons are rejected because they do not belong",state:"3 good sales",caption:"Next, only three of seven comparisons survive. Wrong variants, a duplicate, and an identity conflict stay out."},
-        economics:{title:"Price support is unavailable",detail:"Three trusted sales are not enough to support a reliable value",state:"No price support",caption:"Because the trustworthy sales are too limited, FlipForge does not manufacture a price estimate."},
+        economics:{title:"Price support is unavailable",detail:"Three matched sales are not enough to support a reliable value",state:"No price support",caption:"Because the matched sales are too limited, FlipForge does not manufacture a price estimate."},
         uncertainty:{title:"61% confidence · more uncertainty",detail:"More checking is needed before stronger action",state:"More checking",caption:"The remaining uncertainty is high enough that FlipForge stops at VERIFY instead of pretending the case is stronger."}
       },
       evidence:[
@@ -115,8 +115,8 @@
       spark:"4,11 17,13 30,12 43,16 56,18 68,23",
       signals:{
         identity:{title:"Exact card confirmed",detail:"Year, set, number, variant, and grade agree",state:"Exact match",caption:"First, FlipForge confirms the exact card so the price comparison starts from the right identity."},
-        evidence:{title:"5 of 6 sales qualify",detail:"Five exact completed sales support the comparison",state:"5 good sales",caption:"Next, five trustworthy sales give FlipForge enough evidence to judge the asking price."},
-        economics:{title:"Asking price is 12% above value support",detail:"$615 ask compared with $548 of evidence-backed support",state:"12% above",caption:"Then the price check shows the problem: the seller is asking materially more than the trusted sales support."},
+        evidence:{title:"5 of 6 sales qualify",detail:"Five exact completed sales support the comparison",state:"5 good sales",caption:"Next, five matched exact sales give FlipForge enough evidence to judge the asking price."},
+        economics:{title:"Asking price is 12% above value support",detail:"$615 ask compared with $548 of evidence-backed support",state:"12% above",caption:"Then the price check shows the problem: the seller is asking materially more than the matched sales support."},
         uncertainty:{title:"84% confidence · lower uncertainty",detail:"The evidence is strong; the price is still the problem",state:"Lower uncertainty",caption:"Finally, good confidence confirms that this is not an uncertainty problem—the economics drive the PASS."}
       },
       evidence:[

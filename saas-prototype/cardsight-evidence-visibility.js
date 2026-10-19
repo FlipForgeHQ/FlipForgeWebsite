@@ -44,7 +44,8 @@
     const summary = data?.evidenceEnrichment;
     const opportunityId = cleanText(data?.opportunityId, 200);
     if (!summary || !SAFE_ID.test(opportunityId)) return null;
-    if (String(summary.provider || "").toUpperCase() !== "CARDSIGHT") return null;
+    // The API now names the provider neutrally ("DATA_PROVIDER"); older responses used the internal code.
+    if (!["CARDSIGHT", "DATA_PROVIDER"].includes(String(summary.provider || "").toUpperCase())) return null;
 
     const status = String(summary.status || "").toUpperCase();
     if (!SAFE_STATUS.test(status)) return null;
@@ -67,7 +68,8 @@
       rejectedRows: safeInteger(summary.rejectedRows),
       fixedPriceRowsCanSupportValue: summary.fixedPriceRowsCanSupportValue === true,
       historicalCompletedSalesOnly: summary.historicalCompletedSalesOnly === true,
-      message: cleanText(summary.message).replace(/\bqualified for governed evidence\b/gi, "passed FlipForge's evidence checks")
+      // Customer wording only: the provider is never named to customers.
+      message: cleanText(summary.message).replace(/\bqualified for governed evidence\b/gi, "passed FlipForge's evidence checks").replace(/card[\s_-]?sight/gi, "our data provider")
     };
   }
 
@@ -75,11 +77,21 @@
     const combined = [row?.sourceName, row?.sourceMarketplace, row?.source, row?.provider]
       .map(value => String(value || "").toUpperCase())
       .join(" ");
-    return combined.includes("CARDSIGHT");
+    return combined.includes("CARDSIGHT") || combined.includes("DATA_PROVIDER") || combined.includes("(DATA PROVIDER)");
   }
 
   function normalizeEvidenceSnapshot(opportunityId, data) {
     if (!SAFE_ID.test(opportunityId) || !data || typeof data !== "object") return null;
+    // New API: provider rows are never listed; providerEvidenceSummary carries their counts.
+    const providerSummary = data.providerEvidenceSummary && typeof data.providerEvidenceSummary === "object" ? data.providerEvidenceSummary : null;
+    if (providerSummary) {
+      return {
+        opportunityId,
+        acceptedExactCompletedSales: safeInteger(data.acceptedExactCompletedSales),
+        cardSightRows: safeInteger(providerSummary.storedRowsLinked),
+        acceptedCardSightRows: safeInteger(providerSummary.storedRowsAdmittedNow)
+      };
+    }
     const rows = Array.isArray(data.linkedEvidence) ? data.linkedEvidence : [];
     const cardSightRows = rows.filter(isCardSightEvidence);
     return {
@@ -145,18 +157,18 @@
   }
 
   function statusExplanation(summary) {
-    if (!summary) return "Current evidence is shown below. A fresh evaluation will also show whether CardSight historical pricing was attempted and how many rows qualified.";
+    if (!summary) return "Current evidence is shown below. A fresh evaluation will also show whether historical pricing from our data provider was checked and how many rows qualified.";
     const completedScope = summary.fixedPriceRowsCanSupportValue
       ? "historical completed-sale records, including auction and fixed-price sales"
       : "historical auction records";
-    if (summary.status === "ENRICHED") return `CardSight ${completedScope} were checked before Smart Opportunity ran. Only rows that passed FlipForge exact-evidence rules were allowed to support value.`;
-    if (summary.status === "REVIEW_REQUIRED") return "CardSight returned historical records, but one or more trust gates prevented automatic acceptance. Those rows did not silently become value-supporting evidence.";
-    if (summary.status === "NO_EXACT_SALES") return `CardSight was checked, but no recent ${summary.fixedPriceRowsCanSupportValue ? "historical completed sale" : "historical auction sale"} met FlipForge's exact-evidence standard for this card.`;
-    if (summary.status === "PROVIDER_NOT_CONFIGURED") return "CardSight was not configured for this runtime when the evaluation ran. No substitute sold comps were invented.";
-    if (summary.status === "PROVIDER_UNAVAILABLE") return "CardSight could not be reached for this evaluation. FlipForge continued only with previously governed evidence and invented nothing.";
+    if (summary.status === "ENRICHED") return `Reported ${completedScope} from our data provider were checked before Smart Opportunity ran. Only rows that passed FlipForge exact-evidence rules were allowed to support value.`;
+    if (summary.status === "REVIEW_REQUIRED") return "Our data provider returned historical records, but one or more evidence checks prevented automatic acceptance. Those rows did not silently become value-supporting evidence.";
+    if (summary.status === "NO_EXACT_SALES") return `Our data provider was checked, but no recent ${summary.fixedPriceRowsCanSupportValue ? "historical completed sale" : "historical auction sale"} met FlipForge's exact-evidence standard for this card.`;
+    if (summary.status === "PROVIDER_NOT_CONFIGURED") return "Historical pricing from our data provider was not configured when the evaluation ran. No substitute sold comps were invented.";
+    if (summary.status === "PROVIDER_UNAVAILABLE") return "Our data provider could not be reached for this evaluation. FlipForge continued only with previously governed evidence and invented nothing.";
     return summary.attempted
-      ? "CardSight historical pricing was checked under FlipForge's governed sold-evidence rules."
-      : "CardSight historical pricing was not attempted for this evaluation.";
+      ? "Historical pricing from our data provider was checked under FlipForge's sold-evidence rules."
+      : "Historical pricing from our data provider was not checked for this evaluation.";
   }
 
   function metric(label, value) {
@@ -197,11 +209,11 @@
           metric("Newly persisted", summary.newlyPersistedRows),
           metric("Review required", summary.reviewRows),
           metric("Rejected", summary.rejectedRows),
-          metric("Saved CardSight accepted sales", currentAccepted),
+          metric("Saved accepted sales from our data provider", currentAccepted),
           metric("All saved exact accepted sales", totalAccepted)
         ].join("")
       : [
-          metric("Saved CardSight accepted sales", currentAccepted),
+          metric("Saved accepted sales from our data provider", currentAccepted),
           metric("All saved exact accepted sales", totalAccepted)
         ].join("");
 
@@ -210,11 +222,11 @@
     const boundary = summary?.fixedPriceRowsCanSupportValue === true
       ? "Historical completed sales, including fixed-price completed sales, may support value only after FlipForge exact-evidence checks. Active listings and asking prices cannot support value."
       : "Fixed-price asks and active listings cannot support value.";
-    const markup = `<section class="panel cardsight-evidence-panel" data-cardsight-evidence-panel data-cardsight-evidence-signature="${escapeHtml(signature)}" aria-label="CardSight sold evidence status">
+    const markup = `<section class="panel cardsight-evidence-panel" data-cardsight-evidence-panel data-cardsight-evidence-signature="${escapeHtml(signature)}" aria-label="Reported sale evidence status">
       <header class="panel-header">
         <div>
           <span class="eyebrow">Historical sold evidence</span>
-          <h2>CardSight sold evidence</h2>
+          <h2>Reported sale evidence</h2>
           <p>${escapeHtml(statusExplanation(summary))}</p>
         </div>
         <span class="staging-status staging-status-${escapeHtml(tone)}">${escapeHtml(status.replaceAll("_", " "))}</span>
@@ -222,7 +234,7 @@
       <div class="panel-body">
         <div class="cardsight-evidence-grid">${metrics}</div>
         ${providerMessage}
-        <p class="cardsight-evidence-boundary"><strong>Evidence boundary:</strong> ${escapeHtml(boundary)} CardSight never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the sole decision authority.</p>
+        <p class="cardsight-evidence-boundary"><strong>Evidence boundary:</strong> ${escapeHtml(boundary)} Our data provider never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the sole decision authority.</p>
       </div>
     </section>`;
     return { signature, markup };

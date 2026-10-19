@@ -227,10 +227,17 @@
   }
 
   function decisionCopy(rec, text) {
+    // A legacy result (saved before current evidence rules) keeps its saved recommendation as historical and never
+    // gets current-support copy. Marked by customer-trust-display-v1.js from the server's evidenceProvenanceStatus.
+    if (document.querySelector("#main-content [data-ff-legacy-result]")) return {
+      title: "Saved before current evidence rules.",
+      reason: `Saved recommendation: ${rec}. It is not presented as currently supported.`,
+      next: "Evaluate the card again for a result under current evidence rules."
+    };
     if (rec === "VERIFY") {
       const identity = /identity needs verification|mapping\s*(?:not confirmed|NOT_CONFIRMED)|no confirmed .*context/i.test(text);
       const evidence = /no accepted exact completed sales|0 accepted|no exact sales|evidence-supported value is unavailable/i.test(text);
-      let reason = "FlipForge does not yet have enough trustworthy support for a stronger decision.";
+      let reason = "FlipForge does not yet have enough matching evidence for a stronger decision.";
       if (identity && evidence) reason = "The exact card identity still needs confirmation, and there is not enough exact completed-sale evidence yet.";
       else if (identity) reason = "The exact card identity still needs confirmation before FlipForge can support a stronger decision.";
       else if (evidence) reason = "There is not enough exact completed-sale evidence yet to support a value or stronger decision.";

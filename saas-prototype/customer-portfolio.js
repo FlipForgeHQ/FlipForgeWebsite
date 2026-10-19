@@ -262,7 +262,8 @@
       ACCEPTED_SALE_DATE_IN_FUTURE: "Invalid future sale date",
       ACCEPTED_SALE_DATE_INVALID: "Accepted sale date unavailable",
       ACCEPTED_SALE_VALUE_UNAVAILABLE: "Accepted sale value unavailable",
-      SAVED_OPPORTUNITY_CONTEXT_NOT_FOUND: "Saved evidence context unavailable"
+      SAVED_OPPORTUNITY_CONTEXT_NOT_FOUND: "Saved evidence context unavailable",
+      PROVIDER_STORED_HISTORY_NOT_RETAINED: "Earlier reported-sale history is not used for current values"
     };
     return labels[status] || status.replaceAll("_", " ").toLowerCase();
   }

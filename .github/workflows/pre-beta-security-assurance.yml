@@ -102,10 +102,24 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  provider-disclosure:
+    name: Gateway never discloses provider sale-level data (rollback read isolation)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate gateway provider disclosure filter against old and guard-aware backend builds
+        run: |
+          node --check netlify/functions/provider-disclosure-filter.js
+          node --check netlify/functions/flipforge-api.js
+          node scripts/validate-gateway-provider-disclosure.mjs
+
   security-gate:
     name: Pre-Beta Security gate
     if: ${{ always() }}
-    needs: [secrets, dependencies, codeql]
+    needs: [secrets, dependencies, codeql, provider-disclosure]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every security job to pass
@@ -115,3 +129,4 @@ jobs:
           test "${{ needs.secrets.result }}" = "success"
           test "${{ needs.dependencies.result }}" = "success"
           test "${{ needs.codeql.result }}" = "success"
+          test "${{ needs.provider-disclosure.result }}" = "success"

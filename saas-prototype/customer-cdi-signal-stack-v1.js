@@ -15,7 +15,7 @@
     },
     VERIFY: {
       title: "Verify before acting",
-      reason: "There are not enough trustworthy sales to support a stronger call yet."
+      reason: "There are not enough matched exact sales to support a stronger call yet."
     },
     PASS: {
       title: "Pass at this price",
@@ -76,10 +76,13 @@
     return Object.prototype.hasOwnProperty.call(VERDICTS, decision) ? decision : "UNKNOWN";
   }
 
+  // Read, never shown: pages rendered by an earlier build still carry the legacy gate heading.
+  const ACCEPTED_GATE_LABELS = ["Matched exact sales", "Trusted completed sales"];
+
   function labeledStrong(scope, selector, label) {
-    const target = String(label || "").toLowerCase();
+    const targets = (Array.isArray(label) ? label : [label]).map(value => String(value || "").toLowerCase());
     const row = [...scope.querySelectorAll(selector)]
-      .find(node => text(node.querySelector("span")).toLowerCase() === target);
+      .find(node => targets.includes(text(node.querySelector("span")).toLowerCase()));
     return row ? text(row.querySelector("strong")) : "";
   }
 
@@ -106,7 +109,7 @@
     if (!command) return null;
 
     const exact = labeledStrong(command, ".ff-di-v2-gate", "Exact identity") || "Review needed";
-    const sales = labeledStrong(command, ".ff-di-v2-gate", "Trusted completed sales") || "Unavailable";
+    const sales = labeledStrong(command, ".ff-di-v2-gate", ACCEPTED_GATE_LABELS) || "Unavailable";
     const excluded = labeledStrong(command, ".ff-di-v2-gate", "Excluded evidence") || "";
     const support = labeledStrong(command, ".ff-di-v2-verdict-metrics > div", "Supported value") || "Unavailable";
     const confidence = labeledStrong(command, ".ff-di-v2-verdict-metrics > div", "Confidence") || "Unavailable";
@@ -133,7 +136,7 @@
         },
         {
           key: "sales",
-          label: "Trustworthy sales",
+          label: "Matched sales",
           value: sales,
           caption: "Use only completed sales that match the exact card.",
           accepted: numberFromText(sales),
@@ -187,7 +190,7 @@
         },
         {
           key: "sales",
-          label: "Trustworthy sales",
+          label: "Matched sales",
           value: sales,
           caption: "See how many exact completed sales were allowed to support the decision.",
           accepted: numberFromText(sales),
@@ -271,8 +274,12 @@
   }
 
   function stackMarkup(decision, model) {
-    const verdict = VERDICTS[decision] || VERDICTS.UNKNOWN;
-    const reason = model.reason || verdict.reason;
+    // A legacy result (saved before current evidence rules) keeps its saved recommendation visible as historical and
+    // never gets current-support copy such as "Buy looks supported".
+    const verdict = model.legacy
+      ? { title: "Saved " + decision + " (historical)", reason: window.FlipForgeTrustDisplay?.LEGACY_HISTORICAL || "It is not presented as currently supported." }
+      : (VERDICTS[decision] || VERDICTS.UNKNOWN);
+    const reason = model.legacy ? verdict.reason : (model.reason || verdict.reason);
     return '<section class="ff-cdi-stack" data-ff-cdi-stack data-decision="' + escapeHtml(decision) + '">' +
       '<header class="ff-cdi-verdict">' +
         '<div class="ff-cdi-verdict-copy">' +
@@ -332,7 +339,8 @@
     if (!model) return;
 
     const decision = decisionValue(root, mode);
-    const signature = JSON.stringify([decision, model.identity, model.reason, model.evidenceHref, model.signals]);
+    model.legacy = Boolean((mode === "decision-intelligence" ? model.command : root).querySelector("[data-ff-legacy-result]"));
+    const signature = JSON.stringify([decision, model.legacy, model.identity, model.reason, model.evidenceHref, model.signals]);
     let stack = root.querySelector(":scope > [data-ff-cdi-stack-host]");
     if (!stack) {
       const anchor = mode === "decision-intelligence"

@@ -178,7 +178,7 @@
         <div class="forge-heat-identity">
           <span class="forge-heat-kicker">${escapeHtml(item.marketplace || "Saved evaluation")} · ${escapeHtml(item.recommendation)}</span>
           <h3>${escapeHtml(item.cardIdentity)}</h3>
-          <p>Evaluated ${escapeHtml(item.evaluatedAt || "Unavailable")} · ${escapeHtml(item.acceptedExactSales)} exact trusted sales</p>
+          <p>Evaluated ${escapeHtml(item.evaluatedAt || "Unavailable")} · ${escapeHtml(item.acceptedExactSales)} matched exact sales</p>
         </div>
         <div class="forge-heat-score" aria-label="Forge Heat ${escapeHtml(item.heat)} out of 100">
           <strong>${escapeHtml(item.heat)}</strong>
@@ -190,7 +190,7 @@
         <div><span>All-in ask</span><strong>${moneyCents(item.allInAskCents)}</strong></div>
         <div><span>Supported value</span><strong>${moneyCents(item.supportedValueCents)}</strong></div>
         <div><span>Supported-value gap</span><strong>${signedMoneyCents(item.supportedValueGapCents)} <small>${signedPercent(item.supportedValueGapPct)}</small></strong></div>
-        <div><span>Forge Confidence</span><strong>${escapeHtml(item.confidence)}/100</strong></div>
+        <div><span>Forge Confidence</span><strong>${item.confidence === null || item.confidence === undefined || item.confidence === "" || !Number.isFinite(Number(item.confidence)) ? "Unavailable" : `${escapeHtml(item.confidence)}/100`}</strong></div>
         <div><span>Opportunity Risk</span><strong>${escapeHtml(item.risk)}/100</strong></div>
         <div><span>Exact evidence</span><strong>${escapeHtml(item.acceptedExactSales)} sales</strong></div>
       </div>
@@ -267,6 +267,7 @@
         <div><span>Evaluations considered</span><strong>${escapeHtml(summary.latestEvaluationsConsidered ?? 0)}</strong></div>
         <div><span>Heat eligible</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
         <div><span>Surfaced</span><strong>${escapeHtml(summary.surfaced ?? 0)}</strong></div>
+        ${Number(summary.legacyDerivedExcluded) > 0 ? `<div data-ff-legacy-excluded><span>Legacy results not scored</span><strong>${escapeHtml(summary.legacyDerivedExcluded)}</strong></div>` : ""}
         <div><span>Engine</span><strong>V1</strong></div>
       </div>` : ""}
     </header>`;
@@ -288,7 +289,7 @@
       <details class="forge-heat-intelligence-bar ff-trust-note">
         <summary>How a card becomes Heat-eligible</summary>
         <div><span>Identity</span><strong>Completed evaluation snapshot</strong></div>
-        <div><span>Evidence gate</span><strong>≥ 3 exact trusted sales</strong></div>
+        <div><span>Evidence gate</span><strong>≥ 3 matched exact sales</strong></div>
         <div><span>Authority</span><strong>Smart Opportunity</strong></div>
         <div><span>Heat calculation</span><strong>Server-owned</strong></div>
       </details>

@@ -146,6 +146,20 @@
     return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error.code || "PSA_GUIDANCE_UNAVAILABLE")}</strong><p>${escapeHtml(error.message)}</p><small>No mock PSA score, population value, grade prediction, or browser-generated recommendation was substituted.</small>${signIn}</div></section>`;
   }
 
+  // The card the customer is working on (remembered by tracking-context-v1.js), used only when the address names no
+  // card and only if this tenant's list contains it. Read through the shared display helper; never throws.
+  function rememberedActiveId(ids) {
+    try { return window.FlipForgeTrustDisplay?.activeCardId(ids) || ""; } catch (_) { return ""; }
+  }
+
+  function legacyMarkup() {
+    const display = window.FlipForgeTrustDisplay;
+    if (!display) return "";
+    const item = state.opportunities.find(candidate => String(candidate?.id || "") === state.selectedId) || null;
+    const psa = state.psa?.data || null;
+    return display.isLegacy(psa) ? display.legacyMarkup(psa) : display.legacyMarkup(item);
+  }
+
   function optionMarkup() {
     return state.opportunities.map(item => {
       const id = String(item?.id || "");
@@ -179,7 +193,7 @@
       ? "The saved PSA snapshot is more conservative than this saved Smart Opportunity decision. PSA Advisor does not override or recalculate that decision. Review the saved evidence and run a fresh evaluation after verification if updated context is needed."
       : "";
 
-    return `<section class="panel"><header class="panel-header"><div><h2>${escapeHtml(psa.cardIdentity || "Saved PSA guidance")}</h2><p>Saved grading context from FlipForge's existing PSA intelligence authority.</p></div>${badge(available ? "Saved guidance available" : "Insufficient saved context", available ? "ok" : "warn")}</header><div class="panel-body"><div class="staging-key-grid"><div><span>Guidance status</span><strong>${escapeHtml(psa.guidanceStatus || "Unavailable")}</strong></div><div><span>PSA intelligence score</span><strong>${scoreReturned ? `${safeNumber(snapshot.latestPsaScore)}/100` : "Unavailable"}</strong></div><div><span>PSA impact</span><strong>${escapeHtml(snapshot.latestPsaImpact || "Unavailable")}</strong></div><div><span>Readiness</span><strong>${escapeHtml(snapshot.readinessStatus || "Unavailable")}</strong></div><div><span>PSA 10 population</span><strong>${population.available === true ? safeNumber(population.psa10Population) : "Unavailable"}</strong></div><div><span>PSA 9 population</span><strong>${population.available === true ? safeNumber(population.psa9Population) : "Unavailable"}</strong></div><div><span>Manual verification</span><strong>${snapshot.manualVerificationRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Fresh comp evidence</span><strong>${snapshot.freshCompEvidenceRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Additional population snapshot</span><strong>${snapshot.additionalSnapshotRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Recalculated in browser</span><strong>${psa.recalculated === false ? "No" : "Invalid response"}</strong></div></div><div class="boundary-note"><strong>PSA boundary:</strong> ${escapeHtml(psaBoundary)}</div>${savedRecordReview ? `<div class="boundary-note"><strong>Saved-record review:</strong> ${escapeHtml(savedRecordReview)}</div>` : ""}<div class="customer-intelligence-actions"><a class="button button-secondary" href="#/opportunities/${encodeURIComponent(psa.opportunityId || state.selectedId)}">Open Card Intelligence</a><a class="button button-secondary" href="#/evidence/${encodeURIComponent(psa.opportunityId || state.selectedId)}">Review evidence</a></div>${limitations.length ? `<details><summary>Known limitations</summary><ul>${limitations.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>` : ""}</div></section>`;
+    return `<section class="panel"><header class="panel-header"><div><h2>${escapeHtml(psa.cardIdentity || "Saved PSA guidance")}</h2><p>Saved grading context from FlipForge's existing PSA intelligence authority.</p>${legacyMarkup()}</div>${badge(available ? "Saved guidance available" : "Insufficient saved context", available ? "ok" : "warn")}</header><div class="panel-body"><div class="staging-key-grid"><div><span>Guidance status</span><strong>${escapeHtml(psa.guidanceStatus || "Unavailable")}</strong></div><div><span>PSA intelligence score</span><strong>${scoreReturned ? `${safeNumber(snapshot.latestPsaScore)}/100` : "Unavailable"}</strong></div><div><span>PSA impact</span><strong>${escapeHtml(snapshot.latestPsaImpact || "Unavailable")}</strong></div><div><span>Readiness</span><strong>${escapeHtml(snapshot.readinessStatus || "Unavailable")}</strong></div><div><span>PSA 10 population</span><strong>${population.available === true ? safeNumber(population.psa10Population) : "Unavailable"}</strong></div><div><span>PSA 9 population</span><strong>${population.available === true ? safeNumber(population.psa9Population) : "Unavailable"}</strong></div><div><span>Manual verification</span><strong>${snapshot.manualVerificationRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Fresh comp evidence</span><strong>${snapshot.freshCompEvidenceRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Additional population snapshot</span><strong>${snapshot.additionalSnapshotRequired === true ? "Required" : "Not required by saved snapshot"}</strong></div><div><span>Recalculated in browser</span><strong>${psa.recalculated === false ? "No" : "Invalid response"}</strong></div></div><div class="boundary-note"><strong>PSA boundary:</strong> ${escapeHtml(psaBoundary)}</div>${savedRecordReview ? `<div class="boundary-note"><strong>Saved-record review:</strong> ${escapeHtml(savedRecordReview)}</div>` : ""}<div class="customer-intelligence-actions"><a class="button button-secondary" href="#/opportunities/${encodeURIComponent(psa.opportunityId || state.selectedId)}">Open Card Intelligence</a><a class="button button-secondary" href="#/evidence/${encodeURIComponent(psa.opportunityId || state.selectedId)}">Review evidence</a></div>${limitations.length ? `<details><summary>Known limitations</summary><ul>${limitations.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>` : ""}</div></section>`;
   }
 
   function pageMarkup() {
@@ -218,7 +232,9 @@
       state.opportunities = items.filter(item => SAFE_ID.test(String(item?.id || "")));
       if (!state.opportunities.length) return;
       const ids = state.opportunities.map(item => String(item.id));
-      if (!ids.includes(state.selectedId)) state.selectedId = ids[0];
+      if (!SAFE_ID.test(String(preferredId || "")) || !ids.includes(state.selectedId)) {
+        state.selectedId = rememberedActiveId(ids) || (ids.includes(state.selectedId) ? state.selectedId : ids[0]);
+      }
       state.psa = await request(`/api/v1/psa-advisor/${encodeURIComponent(state.selectedId)}`);
       const data = state.psa?.data;
       if (!data || data.kind !== "psa-advisor" || String(data.opportunityId || "") !== state.selectedId || data.recalculated !== false) {

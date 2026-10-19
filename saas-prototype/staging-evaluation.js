@@ -85,6 +85,12 @@
       .replace(/'/g, "&#039;");
   }
 
+  // Display only: a score the API did not return is "Unavailable", never 0/100. A real 0 stays 0.
+  function scoreOrUnavailable(value) {
+    if (value === null || value === undefined || value === "" || !Number.isFinite(Number(value))) return "Unavailable";
+    return `${Number(value)}/100`;
+  }
+
   function safeNumber(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : 0;
@@ -505,7 +511,7 @@
     if (!value || value.basis !== "ANALOG_REFERENCE_RANGE") return "";
     if (safeNumber(value.referenceHighCents) <= 0 || safeNumber(value.analogCompletedSaleCount) <= 0) return "";
     const range = `${moneyFromCents(value.referenceLowCents)} – ${moneyFromCents(value.referenceHighCents)}`;
-    return `<section class="staging-value-intelligence" aria-label="Value intelligence context"><div class="staging-value-intelligence-head"><div><span class="eyebrow">Value intelligence</span><h3>Observed analog reference range</h3></div><span class="staging-value-context-badge">Context only</span></div><div class="staging-value-intelligence-grid"><div><span>Observed range</span><strong>${escapeHtml(range)}</strong></div><div><span>Reference midpoint</span><strong>${escapeHtml(moneyFromCents(value.referenceMidpointCents))}</strong></div><div><span>Analog completed sales</span><strong>${escapeHtml(safeNumber(value.analogCompletedSaleCount))}</strong></div><div><span>Confidence band</span><strong>${escapeHtml(value.confidenceBand || "UNKNOWN")}</strong></div></div><p>${escapeHtml(value.explanation || "Governed analog completed-sale context is available.")}</p><div class="boundary-note"><strong>Not a supported value:</strong> This observed range is contextual only. Exact trusted evidence is still required before it can become supported value, and this range does not change the Smart Opportunity recommendation.</div></section>`;
+    return `<section class="staging-value-intelligence" aria-label="Value intelligence context"><div class="staging-value-intelligence-head"><div><span class="eyebrow">Value intelligence</span><h3>Observed analog reference range</h3></div><span class="staging-value-context-badge">Context only</span></div><div class="staging-value-intelligence-grid"><div><span>Observed range</span><strong>${escapeHtml(range)}</strong></div><div><span>Reference midpoint</span><strong>${escapeHtml(moneyFromCents(value.referenceMidpointCents))}</strong></div><div><span>Analog completed sales</span><strong>${escapeHtml(safeNumber(value.analogCompletedSaleCount))}</strong></div><div><span>Confidence band</span><strong>${escapeHtml(value.confidenceBand || "UNKNOWN")}</strong></div></div><p>${escapeHtml(value.explanation || "Governed analog completed-sale context is available.")}</p><div class="boundary-note"><strong>Not a supported value:</strong> This observed range is contextual only. Matched exact sales are still required before it can become supported value, and this range does not change the Smart Opportunity recommendation.</div></section>`;
   }
 
   function resultPanel() {
@@ -515,9 +521,9 @@
     const values = [
       ["Decision", decision.recommendation || "UNKNOWN"],
       ["Supported value", moneyFromCents(decision.supportedValueCents)],
-      ["Trusted exact comps", safeNumber(decision.exactTrustedCompCount)],
-      ["Confidence", `${safeNumber(decision.confidence)}/100`],
-      ["Risk", `${safeNumber(decision.risk)}/100`],
+      ["Matched exact comps", safeNumber(decision.exactTrustedCompCount)],
+      ["Confidence", scoreOrUnavailable(decision.confidence)],
+      ["Risk", scoreOrUnavailable(decision.risk)],
       ["Workflow status", decision.workflowStatus || "UNKNOWN"],
       ["All-in acquisition", moneyFromCents(data.normalizedRequest?.allInAskCents)],
       ["Tenant owned", data.tenantOwned === true ? "Yes" : "No"],

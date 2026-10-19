@@ -236,7 +236,7 @@
       const id = SAFE_ID.test(String(item.opportunityId || "")) ? String(item.opportunityId) : "";
       return `<article class="market-view-value-row">
         <div class="market-view-rank">${escapeHtml(item.rank)}</div>
-        <div class="market-view-value-identity"><strong>${escapeHtml(item.cardIdentity)}</strong><span>${escapeHtml(item.savedRecommendation || "Saved decision")} · ${escapeHtml(item.exactTrustedSales)} exact trusted sales</span></div>
+        <div class="market-view-value-identity"><strong>${escapeHtml(item.cardIdentity)}</strong><span>${escapeHtml(item.savedRecommendation || "Saved decision")} · ${escapeHtml(item.exactTrustedSales)} matched exact sales</span></div>
         <div class="market-view-value-numbers"><strong>${signedPercent(item.supportedValueGapPct)}</strong><span>${moneyCents(item.allInAskCents)} → ${moneyCents(item.supportedValueCents)}</span></div>
         ${id ? `<a class="button button-secondary" href="#/opportunities/${escapeHtml(id)}">Open</a>` : ""}
       </article>`;
@@ -279,6 +279,7 @@
         ${metric("Supported upside", number(summary.positiveSupportedValueGap), supportedUpsideDetail(summary))}
         ${metric("Fresh evaluations", number(summary.freshWithin30Days), `${percent(summary.freshnessPct)} evaluated within 30 days`)}
       </section>
+      ${Number(summary.legacyDerivedDecisions) > 0 ? `<p class="market-view-legacy-note" data-ff-legacy-derived role="note">${escapeHtml(number(summary.legacyDerivedDecisions))} saved decision${Number(summary.legacyDerivedDecisions) === 1 ? " was" : "s were"} saved before current evidence rules. Their values are not presented as currently supported.</p>` : ""}
 
       <section class="market-view-grid">
         <article class="market-view-panel">
@@ -289,7 +290,7 @@
         <article class="market-view-panel">
           <header><span class="eyebrow">EVIDENCE HEALTH</span><h2>How strong is the evidence behind these decisions?</h2><p>Stronger exact-match evidence gives the overall picture more weight.</p></header>
           <div class="market-view-health-grid">
-            <div><span>Strong evidence</span><strong>${percent(evidence.strongEvidencePct)}</strong><small>${number(evidence.strongEvidenceCards)} cards with 3+ exact trusted sales</small></div>
+            <div><span>Strong evidence</span><strong>${percent(evidence.strongEvidencePct)}</strong><small>${number(evidence.strongEvidenceCards)} cards with 3+ matched exact sales</small></div>
             <div><span>Avg exact sales</span><strong>${number(evidence.averageExactTrustedSales, 1)}</strong><small>Across evaluated cards</small></div>
             <div><span>Avg confidence</span><strong>${number(evidence.averageConfidence, 1)}/100</strong><small>Saved decision confidence</small></div>
             <div><span>Avg risk</span><strong>${number(evidence.averageRisk, 1)}/100</strong><small>Saved opportunity risk</small></div>

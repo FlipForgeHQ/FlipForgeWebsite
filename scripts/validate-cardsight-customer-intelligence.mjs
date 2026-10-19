@@ -29,7 +29,8 @@ check(source.includes('[name="cardIdentity"]'), "resolved identity targets exist
 check(!source.includes("/api/v1/evaluations"), "identity assist does not submit an evaluation");
 check(source.includes('dispatchEvent(new Event("input"') && source.includes('dispatchEvent(new Event("change"'),
   "resolved identity uses normal form events");
-check(source.includes("Provider IDs and raw CardSight responses stay server-side"), "customer identity boundary is visible");
+check(source.includes("Provider IDs and raw data-provider responses stay server-side"), "customer identity boundary is visible");
+check(!/CardSight/.test(source.replace(/\/\/.*$/gm, "")), "identity assist never names the data provider to customers");
 check(css.includes("@media (max-width: 720px)"), "mobile layout is defined");
 check(css.includes(".card-intelligence-result"), "identity-result styling exists");
 

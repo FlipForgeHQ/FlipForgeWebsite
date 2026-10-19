@@ -172,7 +172,8 @@ check(beta.includes('<span class="prototype-chip">PRIVATE BETA</span>'), "beta s
 check(beta.includes('src="/assets/js/flipforge-identity.js"'), "beta shell must load identity before access gate");
 check(beta.includes('src="private-beta-access-gate.js"'), "beta shell must load fail-closed access gate");
 check(beta.indexOf('src="/assets/js/flipforge-identity.js"') < beta.indexOf('src="private-beta-access-gate.js"'), "identity must load before beta gate");
-check(beta.indexOf('src="private-beta-access-gate.js"') < beta.indexOf('src="mock-data.js"'), "beta gate must run before app/data runtimes");
+check(beta.indexOf('src="private-beta-access-gate.js"') < beta.indexOf('src="app.js"'), "beta gate must run before app runtimes");
+check(!beta.includes('src="mock-data.js"') && !beta.includes('src="feature-data.js"'), "beta shell must never load prototype sample data");
 check(customer.includes('<span class="prototype-chip">CUSTOMER APP</span>'), "customer shell remains distinctly CUSTOMER APP");
 check(customer.includes('window.location.replace("/")'), "raw production customer document must redirect away before render");
 check(!customer.includes('src="private-beta-access-gate.js"'), "customer shell must not masquerade as the beta shell");

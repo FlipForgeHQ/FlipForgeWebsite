@@ -7,7 +7,7 @@
   const DECISION_COPY = Object.freeze({
     BUY: "The saved evidence supports this purchase at the evaluated price, within the stated risks and limits.",
     WATCH: "There may be an opportunity here, but the price or evidence is not strong enough yet.",
-    VERIFY: "There is not enough trustworthy evidence yet to make this purchase confidently.",
+    VERIFY: "There is not enough matching evidence yet to make this purchase confidently.",
     PASS: "The current evidence does not justify this purchase at the evaluated price."
   });
   const state = { scheduled: false, applying: false };
@@ -31,13 +31,16 @@
     return Object.prototype.hasOwnProperty.call(DECISION_COPY, normalized) ? normalized : "";
   }
 
+  // Display only. The result grid shows the saved risk as "N/100"; read exactly that number. Removing every non-digit
+  // turned "35/100" into 35100, which was clamped and shown as "High — 100/100". Anything else is "Unavailable".
   function riskLabel(raw) {
-    const score = Number.parseFloat(String(raw || "").replace(/[^0-9.]/g, ""));
+    const match = String(raw || "").match(/^\s*(\d+(?:\.\d+)?)\s*\/\s*100\s*$/);
+    const score = match ? Number(match[1]) : NaN;
     if (!Number.isFinite(score)) return { label: "Unavailable", score: "" };
     const bounded = Math.max(0, Math.min(100, score));
     return {
       label: bounded >= 70 ? "High" : bounded >= 35 ? "Moderate" : "Low",
-      score: `${Math.round(bounded)}/100`
+      score: `${score}/100`
     };
   }
 

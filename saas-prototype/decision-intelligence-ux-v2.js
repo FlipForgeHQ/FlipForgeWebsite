@@ -125,10 +125,21 @@
   }
 
   function riskLabel(score) {
+    if (score === null || score === undefined || score === "" || !Number.isFinite(Number(score))) return "Unavailable";
     const value = safeNumber(score);
     if (value >= 70) return "High";
     if (value >= 35) return "Moderate";
     return "Low";
+  }
+
+  // Display only: scores as the API returned them; a missing score is "Unavailable", never 0/100.
+  function scoreText(value) {
+    if (window.FlipForgeTrustDisplay) return window.FlipForgeTrustDisplay.scoreText(value);
+    return value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? "Unavailable" : `${Number(value)}/100`;
+  }
+
+  function savedRisk(detail) {
+    return window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.riskValue(detail) : detail?.risk;
   }
 
   function evidenceGateMarkup(detail, evidence) {
@@ -137,8 +148,8 @@
     const mapping = String(detail?.mappingState || "UNKNOWN").toUpperCase();
     const supported = safeNumber(detail?.supportedValue);
     const gates = [
-      ["Exact identity", mapping === "CONFIRMED" ? "Verified" : "Needs review", mapping === "CONFIRMED" ? "good" : "warn"],
-      ["Trusted completed sales", accepted > 0 ? `${accepted} accepted` : "None accepted", accepted > 0 ? "good" : "warn"],
+      ["Exact identity", mapping === "CONFIRMED" ? "Exact match" : "Needs review", mapping === "CONFIRMED" ? "good" : "warn"],
+      ["Matched exact sales", accepted > 0 ? `${accepted} accepted` : "None accepted", accepted > 0 ? "good" : "warn"],
       ["Value authority", accepted > 0 && supported > 0 ? "Available" : "Withheld", accepted > 0 && supported > 0 ? "good" : "warn"],
       ["Not counted now", excluded > 0 ? `${excluded} visible` : "None", excluded > 0 ? "context" : "good"]
     ];
@@ -195,7 +206,7 @@
     const supported = safeNumber(detail?.supportedValue);
     const decision = String(detail?.recommendation || "UNKNOWN").toUpperCase();
     const mapping = String(detail?.mappingState || "UNKNOWN").toUpperCase();
-    const identityState = mapping === "CONFIRMED" ? "Verified exact identity" : "Identity review required";
+    const identityState = mapping === "CONFIRMED" ? "Exact card matched" : "Identity review required";
     const supportedLabel = accepted > 0 && supported > 0 ? money(supported) : "Withheld";
     const decisionTime = evidence?.decisionTime && evidence.decisionTime.available === true ? evidence.decisionTime : null;
     const atDecision = decisionTime && Number.isFinite(Number(decisionTime.salesCountAtDecision))
@@ -242,7 +253,7 @@
           </article>
           <article class="ff-di-v3-receipt-layer" data-layer="evidence">
             <span class="ff-di-v3-receipt-layer-number">02</span>
-            <div><small>EVIDENCE</small><strong>${atDecision} at decision · ${accepted} counted now · ${excluded} not counted now</strong><p>The saved value used the sales available when it was saved. Today's count uses today's evidence rules. Sale prices are provider-reported and not independently confirmed.</p></div>
+            <div><small>EVIDENCE</small><strong>${atDecision} at decision · ${accepted} counted now · ${excluded} not counted now</strong><p>The saved value used the sales available when it was saved. Today's count uses today's evidence rules. Sale prices are provider-reported and not independently confirmed. FlipForge matches each sale to the exact card but does not confirm payment or settlement.</p></div>
           </article>
           <article class="ff-di-v3-receipt-layer" data-layer="economics">
             <span class="ff-di-v3-receipt-layer-number">03</span>
@@ -250,7 +261,7 @@
           </article>
           <article class="ff-di-v3-receipt-layer" data-layer="risk">
             <span class="ff-di-v3-receipt-layer-number">04</span>
-            <div><small>RISK + UNCERTAINTY</small><strong>${safeNumber(detail?.risk)}/100 risk · ${safeNumber(detail?.confidence)}/100 confidence</strong><p>Uncertainty remains visible rather than being converted into false precision.</p></div>
+            <div><small>RISK + UNCERTAINTY</small><strong>${escapeHtml(scoreText(savedRisk(detail)))} risk · ${escapeHtml(scoreText(detail?.confidence))} confidence</strong><p>Uncertainty remains visible rather than being converted into false precision.</p></div>
           </article>
           <article class="ff-di-v3-receipt-layer" data-layer="decision">
             <span class="ff-di-v3-receipt-layer-number">05</span>
@@ -323,8 +334,9 @@
       state.activeId,
       decision,
       supported,
-      safeNumber(detail.confidence),
-      safeNumber(detail.risk),
+      scoreText(detail.confidence),
+      scoreText(savedRisk(detail)),
+      detail.evidenceProvenanceStatus || "",
       accepted,
       excluded,
       String(detail.changeSummary || ""),
@@ -336,15 +348,16 @@
     command.innerHTML = `
       <article class="ff-di-v2-verdict" data-decision="${escapeHtml(decision)}">
         <div class="ff-di-v2-verdict-main">
-          <span class="ff-di-v2-kicker">CURRENT DECISION</span>
+          <span class="ff-di-v2-kicker">${window.FlipForgeTrustDisplay?.isLegacy(detail) ? "SAVED DECISION (HISTORICAL)" : "CURRENT DECISION"}</span>
           <strong class="ff-di-v2-decision">${escapeHtml(decision)}</strong>
           <h2>${escapeHtml(detail.cardIdentity || "Saved opportunity")}</h2>
+          ${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(detail) : ""}
           <p>${escapeHtml(whyStoppedCopy(detail, evidence))}</p>
         </div>
         <div class="ff-di-v2-verdict-metrics">
           <div><span>Supported value</span><strong>${escapeHtml(supportedLabel)}</strong></div>
-          <div><span>Confidence</span><strong>${safeNumber(detail.confidence)}/100</strong></div>
-          <div><span>Risk</span><strong>${riskLabel(detail.risk)} · ${safeNumber(detail.risk)}/100</strong></div>
+          <div><span>Confidence</span><strong>${escapeHtml(scoreText(detail.confidence))}</strong></div>
+          <div><span>Risk</span><strong>${riskLabel(savedRisk(detail))} · ${escapeHtml(scoreText(savedRisk(detail)))}</strong></div>
         </div>
       </article>
 
@@ -380,7 +393,7 @@
     const command = document.createElement("section");
     command.className = "ff-di-v2-command ff-di-v2-preview";
     command.dataset.ffDiV2Command = "";
-    command.innerHTML = `<article class="ff-di-v2-verdict"><div class="ff-di-v2-verdict-main"><span class="ff-di-v2-kicker">DECISION INTELLIGENCE UX V2</span><strong class="ff-di-v2-decision">PREVIEW</strong><h2>Evidence integrity becomes the product story.</h2><p>Production will show what FlipForge trusted, what it excluded, why value was available or withheld, and what would need to change before the decision changes.</p></div></article>`;
+    command.innerHTML = `<article class="ff-di-v2-verdict"><div class="ff-di-v2-verdict-main"><span class="ff-di-v2-kicker">DECISION INTELLIGENCE UX V2</span><strong class="ff-di-v2-decision">PREVIEW</strong><h2>Evidence integrity becomes the product story.</h2><p>Production will show what FlipForge counted, what it excluded, why value was available or withheld, and what would need to change before the decision changes.</p></div></article>`;
     controls.insertAdjacentElement("afterend", command);
   }
 

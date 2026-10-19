@@ -130,7 +130,12 @@
     const data = payload?.data;
     const opportunity = data?.opportunity;
     const raw = data?.priceIntelligence;
-    const normalized = normalizePriceIntelligence(opportunity, raw)
+    // A legacy result (saved before current evidence rules) gets no price scenario: the API returns
+    // {available: false, status: "LEGACY_NOT_CURRENTLY_SUPPORTED"} and nothing is calculated here.
+    const legacyUnavailable = raw && typeof raw === "object" && raw.available === false
+      && String(raw.status || "").toUpperCase() === "LEGACY_NOT_CURRENTLY_SUPPORTED";
+    const normalized = (legacyUnavailable ? unavailableSnapshot(opportunity, "LEGACY_NOT_CURRENTLY_SUPPORTED") : null)
+      || normalizePriceIntelligence(opportunity, raw)
       || unavailableSnapshot(
         opportunity,
         raw && typeof raw === "object"
@@ -192,7 +197,10 @@
 
   function buildUnavailablePanel(snapshot) {
     const safetyRejected = snapshot.reason === "SAFETY_CONTRACT_NOT_SATISFIED";
-    const explanation = safetyRejected
+    const legacy = snapshot.reason === "LEGACY_NOT_CURRENTLY_SUPPORTED";
+    const explanation = legacy
+      ? "Price thresholds are not shown for a result saved before current evidence rules. Its value is not presented as currently supported."
+      : safetyRejected
       ? "Price Intelligence was returned, but the response did not satisfy FlipForge's read-only safety contract. No threshold was displayed."
       : "The current backend response did not return governed Price Intelligence for this saved opportunity. No WATCH or BUY threshold was invented.";
     const signature = `UNAVAILABLE|${snapshot.reason}|${snapshot.currentRecommendation}`;

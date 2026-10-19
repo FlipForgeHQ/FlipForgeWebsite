@@ -21,7 +21,10 @@ requireText('Guided Mode exposes clickable path steps', guide, 'data-guide-step=
 requireText('Guided Mode routes step clicks', guide, 'goToGuideStep(step.dataset.guideStep || "")');
 requireText('Guided Mode provides persistent Back and Next controls', guide, 'ff-guide-route-nav');
 requireText('Guided Mode can advance from a saved decision to tracking', guide, 'Next: track this card →');
-requireText('Guide highlights target actionable controls instead of whole panels', guide, 'const actionable = direct || node.querySelector?.');
+requireText('Guide highlights target actionable controls instead of whole panels', guide, 'const actionable = direct || [...(node.querySelectorAll?.(');
+// Never a hidden, file or zero-size control (the Bulk CSV panel's hidden file input was highlighted on Evaluate).
+requireText('Guide never highlights hidden, file or zero-size controls', guide, '.find(usableControl)');
+requireText('Guide reads the manual evaluation form before any other panel on Evaluate', guide, 'return main.querySelector("[data-staging-evaluation-form]")');
 requireText('Guide highlight no longer draws an intrusive outline', guideCss, 'outline:none!important');
 requireText('Guide highlight label overlay is disabled', guideCss, '.ff-guide-highlight::after{display:none!important}');
 requireText('Mobile Guided Mode keeps progress out of the active task', compactGuideCss, '.ff-guide-progress{display:none!important}');

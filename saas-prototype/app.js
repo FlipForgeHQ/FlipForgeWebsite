@@ -499,11 +499,40 @@
       && PRODUCTION_CUSTOMER_HOST.test(String(window.location.hostname || ""));
   }
 
+  // Every app entry on the production host is a live customer view, including the Private Beta workspace at
+  // /app/beta, which does not set FlipForgeFullCustomerEntry. There the prototype renderers below wrote sample records
+  // from mock-data.js (for example the "Ohtani Chrome Refractor PSA 10" BUY) into #main-content on every route change,
+  // and the authoritative renderer replaced them moments later (found live on 2026-10-18). Sample data must never
+  // enter a live customer view, not even for an instant that is never painted.
+  function liveCustomerHost() {
+    return PRODUCTION_CUSTOMER_HOST.test(String(window.location.hostname || ""));
+  }
+
+  // The Private Beta workspace (/app/beta, served by saas-prototype/index.html) is a live customer view on every host,
+  // including deploy previews. It no longer loads mock-data.js or feature-data.js, so `data` is absent there; the path
+  // and the explicit flag are kept as a second guard in case a sample-data script is ever added back. Unknown routes
+  // such as #/saved-decisions used to fall through to the prototype dashboard ($18,420 portfolio, sample BUY rows),
+  // which was visible for about a second during load before Getting Started replaced it.
+  const PRIVATE_BETA_PATH = /^\/app\/beta(?:\/|$)/i;
+  function prototypePagesDisabled() {
+    return !data
+      || liveCustomerHost()
+      || window.FlipForgePrivateBetaEntry === true
+      || PRIVATE_BETA_PATH.test(String(window.location.pathname || ""));
+  }
+
   const AUTHORITATIVE_CUSTOMER_ROUTES = new Set([
     "dashboard", "discover", "evaluate", "opportunities", "tracking", "portfolio", "alerts", "account",
     "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell", "export",
     "decision-intelligence", "beta-start"
   ]);
+  // Routes some renderer owns in a live view. Staging routes exist only on deploy previews and keep their own renderer.
+  const LIVE_VIEW_ROUTES = new Set([...AUTHORITATIVE_CUSTOMER_ROUTES, "staging", "staging-evaluate"]);
+
+  function renderRouteNotAvailable() {
+    window.clearTimeout(unownedRouteTimer);
+    main.innerHTML = `<div class="page" data-ff-route-unavailable data-ff-route-not-found><header class="page-heading"><div><h1>Page not available</h1><p>This address does not match a FlipForge page.</p></div></header><a class="button button-primary" href="#/dashboard">Home</a></div>`;
+  }
 
   function stillPending(hash) {
     return window.location.hash === hash && Boolean(main.querySelector(":scope > [data-ff-route-pending]"));
@@ -564,6 +593,19 @@
       return;
     }
 
+    // Any other route on the production host: the same neutral placeholder instead of a prototype page. The
+    // authoritative renderer for the route replaces it in this same hashchange dispatch. Focus and scroll reset as the
+    // prototype pages did, so navigation in the workspace behaves as before.
+    // The Private Beta workspace on any host, and any other entry without sample data, behaves the same way. An address
+    // that matches no FlipForge page says so at once, with a link Home; it never falls back to a prototype page.
+    if (liveCustomerHost() || prototypePagesDisabled()) {
+      if (LIVE_VIEW_ROUTES.has(route)) renderProductionRoutePlaceholder(route);
+      else renderRouteNotAvailable();
+      main.focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "instant" });
+      return;
+    }
+
     switch (route) {
       case "dashboard": renderDashboard(); break;
       case "discover": renderDiscover(); break;
@@ -595,6 +637,11 @@
   searchForm.addEventListener("submit", event => {
     event.preventDefault();
     const term = searchInput.value.trim().toLowerCase();
+    // Live views never search the prototype's sample records.
+    if (prototypePagesDisabled()) {
+      window.location.hash = "#/opportunities";
+      return;
+    }
     if (!term) {
       showToast("Enter a player, card, set or listing to search the prototype.");
       return;
@@ -608,7 +655,9 @@
     }
   });
 
-  document.querySelector(".date-button").addEventListener("click", () => showToast("Date filtering is display-only in the prototype."));
+  document.querySelector(".date-button").addEventListener("click", () => {
+    if (!prototypePagesDisabled()) showToast("Date filtering is display-only in the prototype.");
+  });
 
   document.addEventListener("keydown", event => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {

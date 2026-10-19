@@ -15,7 +15,7 @@ check("001 adapter reads server valueIntelligence only", adapterSource.includes(
 check("002 analog basis is explicit", adapterSource.includes('value.basis !== "ANALOG_REFERENCE_RANGE"'));
 check("003 analog range is labeled context only", adapterSource.includes("Context only"));
 check("004 analog range is explicitly not supported value", adapterSource.includes("Not a supported value"));
-check("005 exact evidence remains required", adapterSource.includes("Exact trusted evidence is still required"));
+check("005 exact evidence remains required", adapterSource.includes("Matched exact sales are still required"));
 check("006 Smart Opportunity remains recommendation authority", adapterSource.includes("does not change the Smart Opportunity recommendation"));
 check("007 response fails closed on recommendation authority", adapterSource.includes("valueIntelligence.recommendationAuthority === false"));
 check("008 response fails closed on price adjustment authority", adapterSource.includes("valueIntelligence.priceAdjustmentApplied === false"));
@@ -90,7 +90,7 @@ function envelope(correlationId, requestId, valueIntelligence) {
         confidence: 25,
         risk: 90,
         reason: "Exact trusted sold evidence is still missing.",
-        missingRequirement: "Trusted exact sold evidence is required.",
+        missingRequirement: "Matched exact sold evidence is required.",
         nextAction: "Verify identity and gather exact completed-sale evidence."
       },
       valueIntelligence,

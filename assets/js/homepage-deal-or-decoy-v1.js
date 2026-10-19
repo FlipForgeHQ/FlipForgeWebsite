@@ -107,7 +107,7 @@
 
   const finalizeProcessingVisuals=()=>{
     mark(identityCard,'complete');
-    if(identityState)identityState.textContent='VERIFIED';
+    if(identityState)identityState.textContent='EXACT MATCH';
     mark(evidenceCard,'complete');
     if(evidenceState)evidenceState.textContent='2 QUALIFIED';
     if(evidenceKept)evidenceKept.textContent='2';
@@ -156,7 +156,7 @@
 
     schedule(token,700,()=>{
       mark(identityCard,'complete');
-      if(identityState)identityState.textContent='VERIFIED';
+      if(identityState)identityState.textContent='EXACT MATCH';
       mark(evidenceCard,'active');
       setProcessCopy(2,'STEP 2 OF 4 · EVIDENCE','Seven candidate comparisons found. Testing which ones actually belong…','7 FOUND');
     });

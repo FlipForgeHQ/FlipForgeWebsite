@@ -158,13 +158,25 @@
     state.highlight = null;
   }
 
+  // A control the customer can actually use: never a hidden element, a file picker or something with no size (the
+  // Bulk CSV panel's hidden <input type=file> was highlighted instead of the manual evaluation form).
+  function usableControl(node) {
+    if (!node || node.hidden || node.closest?.("[hidden]")) return false;
+    if (String(node.getAttribute?.("type") || "").toLowerCase() === "file") return false;
+    if (String(node.getAttribute?.("type") || "").toLowerCase() === "hidden") return false;
+    const rect = node.getBoundingClientRect?.();
+    if (rect && (rect.width <= 0 || rect.height <= 0)) return false;
+    const style = window.getComputedStyle?.(node);
+    return !(style && (style.display === "none" || style.visibility === "hidden"));
+  }
+
   function highlightNode(node, label = "Do this next") {
     clearHighlight();
     if (!node) return false;
-    const direct = node.matches?.("input,textarea,select,button,a[href]") ? node : null;
-    const actionable = direct || node.querySelector?.(
+    const direct = node.matches?.("input,textarea,select,button,a[href]") && usableControl(node) ? node : null;
+    const actionable = direct || [...(node.querySelectorAll?.(
       '[data-discovery-evaluate]:not([disabled]),[data-ff-show-why],[href^="#/tracking"],button.button-primary:not([disabled]),a.button-primary,input:not([disabled]),textarea:not([disabled]),select:not([disabled]),button:not([disabled]),a[href]'
-    );
+    ) || [])].find(usableControl) || null;
     const target = actionable || node;
     state.highlight = target;
     target.classList.add("ff-guide-highlight");
@@ -282,7 +294,13 @@
       if (phase === "identity") return main.querySelector(".customer-discovery-identity-assist");
       return main.querySelector(".customer-discovery-search, [data-customer-discovery-form]");
     }
-    if (route === "evaluate") return main.querySelector("[data-staging-evaluation-form], .staging-evaluation-panel, .panel");
+    // The manual evaluation form first, then its panel, then any panel; one query at a time so document order cannot
+    // pick the Bulk CSV panel that comes before it.
+    if (route === "evaluate") {
+      return main.querySelector("[data-staging-evaluation-form]")
+        || main.querySelector(".staging-evaluation-panel")
+        || main.querySelector(".panel");
+    }
     if (route === "opportunities" && routeParts().length > 1) {
       const headings = [...main.querySelectorAll("h1,h2,h3,strong")];
       const heading = headings.find(node => /Decision Traceback|How to read this decision|Why FlipForge says this/i.test(String(node.textContent || "")));
@@ -353,7 +371,7 @@
       const known = currentRecommendation();
       const recommendation = known || "decision";
       const copy = {
-        VERIFY: "VERIFY means FlipForge does not yet have enough trustworthy support for a stronger call.",
+        VERIFY: "VERIFY means FlipForge does not yet have enough matching evidence for a stronger call.",
         WATCH: "WATCH means the card may be worth monitoring, but the current price or evidence does not support moving further yet.",
         PASS: "PASS means the current evidence and context do not support the opportunity.",
         BUY: "BUY is decision support only. Read the evidence and risk before acting outside FlipForge."
@@ -537,7 +555,7 @@
     ];
     const completed = order.filter(([step]) => steps.has(step)).length;
     const current = currentGuideStep();
-    return `<div class="ff-guide-progress"><div class="ff-guide-progress-top"><span>First-card path</span><span>${completed} / 4 complete</span></div><div class="ff-guide-step-nav" role="navigation" aria-label="Guided Mode steps">${order.map(([step,number,label])=>`<button type="button" data-guide-step="${step}" data-done="${steps.has(step)}" data-current="${current===step}" aria-current="${current===step ? "step" : "false"}"><span>${number}</span><strong>${label}</strong></button>`).join("")}</div></div>`;
+    return `<div class="ff-guide-progress"><div class="ff-guide-progress-top"><span>First-card path</span><span>${completed} / 4 complete</span></div><div class="ff-guide-step-nav" role="navigation" aria-label="Guided Mode steps">${order.map(([step,number,label])=>`<button type="button" data-guide-step="${step}" data-done="${steps.has(step)}" data-current="${current===step}" aria-current="${current===step ? "step" : "false"}" aria-label="Step ${number} of ${order.length}: ${label}${steps.has(step) ? " (done)" : current === step ? " (current)" : ""}"><span>${number}</span><strong>${label}</strong></button>`).join("")}</div></div>`;
   }
 
   function guideNavMarkup() {

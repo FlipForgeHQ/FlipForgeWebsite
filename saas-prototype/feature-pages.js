@@ -5,6 +5,9 @@
   const coreData = window.FlipForgePrototypeData;
   const main = document.querySelector("#main-content");
   const toastRegion = document.querySelector(".toast-region");
+  // The Private Beta workspace loads no sample data, so there is nothing to render; it never falls back to these pages.
+  if (!featureData || !coreData || !main || window.FlipForgePrivateBetaEntry === true
+    || /^\/app\/beta(?:\/|$)/i.test(String(window.location.pathname || ""))) return;
   const featureRoutes = new Set(["discover", "portfolio", "sell", "alerts", "account"]);
   const alertState = new Map(featureData.alerts.rules.map(rule => [rule.id, rule.active]));
 
@@ -189,7 +192,13 @@
     });
   }
 
+  // These pages are built entirely from sample data (feature-data.js). On the production host every customer view is
+  // owned by an authoritative renderer, so they never render there - including the Private Beta workspace at
+  // /app/beta, where Discover's sample listings were written into the live page on each visit (found 2026-10-18).
+  const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
+
   function renderFeatureRoute() {
+    if (PRODUCTION_HOST.test(String(window.location.hostname || ""))) return;
     const route = currentRoute();
     if (!featureRoutes.has(route)) return;
     if (window.FlipForgeCustomerManagement

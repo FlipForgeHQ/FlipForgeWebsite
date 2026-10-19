@@ -41,7 +41,7 @@
           ${select("decisionUnderstood", "Did you understand the decision?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
           ${select("nextStepClear", "Did you know what to do next?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
           ${select("evidenceImpact", "What did the evidence do to your confidence?", [["INCREASED", "Increased it"], ["NO_CHANGE", "No change"], ["DECREASED", "Decreased it"], ["NOT_VIEWED", "I did not view the evidence"]])}
-          ${select("mostUsefulLayer", "What helped most?", [["IDENTITY", "Exact card identity"], ["EVIDENCE", "Trusted vs. excluded evidence"], ["ECONOMICS", "Price and supported value"], ["RISK_UNCERTAINTY", "Risk and uncertainty"], ["DECISION", "Why FlipForge made the call"], ["RECEIPT", "Decision Receipt / traceback"], ["OUTCOME", "Tracking what happens next"], ["NONE", "Nothing yet"]])}
+          ${select("mostUsefulLayer", "What helped most?", [["IDENTITY", "Exact card identity"], ["EVIDENCE", "Counted vs. excluded evidence"], ["ECONOMICS", "Price and supported value"], ["RISK_UNCERTAINTY", "Risk and uncertainty"], ["DECISION", "Why FlipForge made the call"], ["RECEIPT", "Decision Receipt / traceback"], ["OUTCOME", "Tracking what happens next"], ["NONE", "Nothing yet"]])}
         </div>
         <label class="ff-beta-cdi-note"><span>Anything confusing? <small>Optional</small></span><textarea name="note" maxlength="600" placeholder="Tell us where you hesitated or what you expected to see."></textarea></label>
         <div class="ff-beta-cdi-actions"><button class="button button-secondary" type="submit">Send beta check</button><p data-ff-beta-cdi-message role="status" aria-live="polite"></p></div>

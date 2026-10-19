@@ -1,0 +1,83 @@
+/* Shared customer trust display: legacy-result notice and disabled buttons. Display only. */
+
+/* Disabled buttons must look unavailable (for example "Evaluate CSV" before a file is chosen). */
+.button:disabled,
+.button[disabled] {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.ff-legacy-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(246, 169, 22, .38);
+  border-radius: 10px;
+  background: rgba(246, 169, 22, .08);
+  color: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ff-legacy-result .ff-legacy-badge {
+  color: #f6c35a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+
+.ff-legacy-result .ff-legacy-notice {
+  color: rgba(235, 238, 242, .82);
+}
+
+.ff-legacy-result-compact {
+  display: flex;
+  margin: 6px 0 0;
+  padding: 3px 8px;
+}
+
+.ff-legacy-result-compact .ff-legacy-badge {
+  font-size: 11px;
+}
+
+.ff-evidence-withheld-note {
+  margin: 0 0 8px;
+  color: rgba(235, 238, 242, .72);
+  font-size: 13px;
+}
+
+.ff-legacy-result-compact .ff-legacy-notice {
+  font-size: 12px;
+}
+
+.ff-legacy-saved-values {
+  display: block;
+  margin-top: 4px;
+  color: #f6c35a;
+  font-size: 12px;
+}
+
+.ff-provider-evidence-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(235, 238, 242, .14);
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ff-provider-evidence-summary span,
+.ff-provider-evidence-summary p {
+  margin: 0;
+  color: rgba(235, 238, 242, .72);
+}
+
+.ff-provider-evidence-reasons {
+  margin: 0;
+  padding-left: 18px;
+}
