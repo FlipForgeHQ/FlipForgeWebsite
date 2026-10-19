@@ -1,0 +1,32 @@
+name: Containment Gateway Assurance
+
+on:
+  pull_request:
+    paths:
+      - 'netlify/functions/flipforge-api.js'
+      - 'netlify/functions/flipforge-containment-release-gate.js'
+      - 'scripts/validate-containment-gateway.test.cjs'
+      - '.github/workflows/containment-gateway-assurance.yml'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'netlify/functions/flipforge-api.js'
+      - 'netlify/functions/flipforge-containment-release-gate.js'
+      - 'scripts/validate-containment-gateway.test.cjs'
+      - '.github/workflows/containment-gateway-assurance.yml'
+      - 'package.json'
+
+permissions:
+  contents: read
+
+jobs:
+  containment-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify fail-closed rollback and approved generation
+        run: node --test scripts/validate-containment-gateway.test.cjs

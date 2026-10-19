@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { checkBackendGeneration } = require("./flipforge-containment-release-gate");
 
 const CONTRACT_VERSION = "1.0";
 const DEFAULT_TIMEOUT_MS = 20000;
@@ -635,6 +636,21 @@ exports.handler = async function handler(event, context) {
         errorEnvelope("UPSTREAM_CONTRACT_INVALID", "The authoritative response did not satisfy the FlipForge contract.", correlationId),
         correlationId
       );
+    }
+
+    // Independent of the backend's serializer: an old or unknown Render build
+    // cannot expose persisted provider sales after rollback. Approved commits are
+    // explicit, full-length SHAs. An absent allowlist intentionally blocks traffic.
+    const generation = checkBackendGeneration(payload, process.env.FLIPFORGE_APPROVED_BACKEND_COMMITS);
+    if (!generation.ok) {
+      console.error(JSON.stringify({
+        event: "FLIPFORGE_BACKEND_CONTAINMENT_GATE_REJECTED",
+        correlationId, method, path, reason: generation.reason
+      }));
+      return jsonResponse(event, 503,
+        errorEnvelope("BACKEND_CONTAINMENT_NOT_APPROVED",
+          "FlipForge evidence safety verification is unavailable.", correlationId),
+        correlationId);
     }
 
     console.info(

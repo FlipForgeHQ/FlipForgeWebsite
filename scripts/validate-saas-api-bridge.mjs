@@ -80,6 +80,7 @@ const environmentNames = [
   "FLIPFORGE_API_BRIDGE_ENABLED",
   "FLIPFORGE_API_BASE_URL",
   "FLIPFORGE_API_SERVICE_TOKEN",
+  "FLIPFORGE_APPROVED_BACKEND_COMMITS",
   "FLIPFORGE_API_ALLOWED_ORIGINS",
   "FLIPFORGE_API_TIMEOUT_MS",
   "FLIPFORGE_API_MAX_RESPONSE_BYTES",
@@ -111,6 +112,8 @@ function event(method, pathName, overrides = {}) {
 
 try {
   clearBridgeEnvironment();
+  // Deterministic approved backend generation for this synthetic fixture only.
+  process.env.FLIPFORGE_APPROVED_BACKEND_COMMITS = "a".repeat(40);
   // The retained core is tested directly with deterministic function-context
   // fixtures. The modern adapter is separately validated for getUser(), cookie
   // transport, custom routing, and legacy-contract mapping.
@@ -173,6 +176,8 @@ try {
     return new Response(
       JSON.stringify({
         meta: {
+          runtimeBuildCommit: "a".repeat(40),
+          runtimeBuildCommitVerified: true,
           contractVersion: "1.0",
           engineVersion: "test-engine",
           authority: "Smart Opportunity",

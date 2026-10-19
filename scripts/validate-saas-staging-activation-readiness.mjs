@@ -72,6 +72,8 @@ function errorCode(response) {
 function envelope(correlationId, data) {
   return {
     meta: {
+      runtimeBuildCommit: "a".repeat(40),
+      runtimeBuildCommitVerified: true,
       contractVersion: "1.0",
       engineVersion: "staging-activation-readiness-fixture",
       authority: "Smart Opportunity",
@@ -90,6 +92,7 @@ const environmentNames = [
   "FLIPFORGE_API_BRIDGE_ENABLED",
   "FLIPFORGE_API_BASE_URL",
   "FLIPFORGE_API_SERVICE_TOKEN",
+  "FLIPFORGE_APPROVED_BACKEND_COMMITS",
   "FLIPFORGE_API_ALLOWED_ORIGINS",
   "FLIPFORGE_API_TIMEOUT_MS",
   "FLIPFORGE_API_MAX_RESPONSE_BYTES",
@@ -189,6 +192,8 @@ check("059 excessive response size is rejected", inspectStagingEnvironment({ CON
 
 try {
   clearEnvironment();
+  // Deterministic approved backend generation for this synthetic fixture only.
+  process.env.FLIPFORGE_APPROVED_BACKEND_COMMITS = "a".repeat(40);
   console.info = () => {};
   console.warn = () => {};
   console.error = () => {};
