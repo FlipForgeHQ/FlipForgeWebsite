@@ -14,6 +14,7 @@ const environmentNames = [
   "FLIPFORGE_API_BRIDGE_ENABLED",
   "FLIPFORGE_API_BASE_URL",
   "FLIPFORGE_API_SERVICE_TOKEN",
+  "FLIPFORGE_APPROVED_BACKEND_COMMITS",
   "FLIPFORGE_API_ALLOWED_ORIGINS",
   "FLIPFORGE_API_TIMEOUT_MS",
   "FLIPFORGE_API_MAX_RESPONSE_BYTES",
@@ -80,6 +81,8 @@ function userContext(tenantId, access = "active", overrides = {}) {
 function validEnvelope(correlationId, data = { kind: "dashboard" }) {
   return {
     meta: {
+      runtimeBuildCommit: "a".repeat(40),
+      runtimeBuildCommitVerified: true,
       contractVersion: "1.0",
       engineVersion: "tenant-gateway-validation",
       authority: "Smart Opportunity",
@@ -111,6 +114,8 @@ check("011 gateway contains no transaction execution route", !/auto-buy|placeBid
 
 try {
   clearEnvironment();
+  // Deterministic approved backend generation for this synthetic fixture only.
+  process.env.FLIPFORGE_APPROVED_BACKEND_COMMITS = "a".repeat(40);
   console.info = (...values) => logs.push(values.join(" "));
   console.warn = (...values) => logs.push(values.join(" "));
   console.error = (...values) => logs.push(values.join(" "));
