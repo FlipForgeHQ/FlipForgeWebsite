@@ -11,6 +11,7 @@ on:
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
       - "scripts/audit-guided-mode-clearance-ci.mjs"
+      - "scripts/audit-customer-shell-settles-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -27,6 +28,7 @@ on:
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
       - "scripts/audit-guided-mode-clearance-ci.mjs"
+      - "scripts/audit-customer-shell-settles-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
       - "package.json"
@@ -109,6 +111,18 @@ jobs:
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-card-switch-stale-response-ci.mjs
+
+      # Shell stability: after load, every screen must stop changing (2026-10-18 mobile flicker: shell scripts
+      # re-wrote watched nav attributes every frame, ~3,700-6,200 DOM changes per second).
+      - name: Customer shell settles after load - Private Beta path (/app/beta)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
+        run: node scripts/audit-customer-shell-settles-ci.mjs
+
+      - name: Customer shell settles after load - customer app path (/app)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: node scripts/audit-customer-shell-settles-ci.mjs
 
       # Discover -> Evaluate: every server outcome reaches the saved decision or shows a visible, actionable error
       # beside the button, with no reload or route change (2026-10-14 evaluation-limit incident).

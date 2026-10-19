@@ -394,7 +394,8 @@
     if (!root || !heading) return;
 
     const p = heading.querySelector("p");
-    if (p) p.textContent = "See what FlipForge could use, what it excluded, and why that matters to the saved decision.";
+    const evidenceCopy = "See what FlipForge could use, what it excluded, and why that matters to the saved decision.";
+    if (p && p.textContent !== evidenceCopy) p.textContent = evidenceCopy;
 
     if (root.querySelector("[data-ff-cdi-evidence-guide]")) return;
     const guide = document.createElement("details");
@@ -419,8 +420,8 @@
     const heading = root?.querySelector(".page-heading");
     if (!root || !heading) return;
 
-    const p = heading.querySelector("p");
-    if (p) p.textContent = "Start with the original decision, then see what changed at later checkpoints without rewriting the past.";
+    // The Tracking subtitle belongs to tracking-navigation-reload-v1.js (single presentation owner, PR #210).
+    // Rewriting it here alternated with that owner every animation frame (mobile flicker), so it is left alone.
 
     if (root.querySelector("[data-ff-cdi-outcome-guide]")) return;
     const guide = document.createElement("section");
@@ -451,10 +452,13 @@
     const heat = returning.querySelector('[data-ff-p3-return="heat"] small');
     const portfolio = returning.querySelector('[data-ff-p3-return="portfolio"] small');
 
-    if (saved) saved.textContent = "Open a card to see the verdict and replay its four checks.";
-    if (outcomes) outcomes.textContent = "See what changed after the original T0 decision.";
-    if (heat) heat.textContent = "Rank eligible saved opportunities after evidence qualifies them.";
-    if (portfolio) portfolio.textContent = "See owned cards and purchase context without invented market value.";
+    // Write only when the text differs: assigning textContent replaces the node even for identical text, which
+    // re-triggered this script's own MutationObserver every frame.
+    const put = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
+    put(saved, "Open a card to see the verdict and replay its four checks.");
+    put(outcomes, "See what changed after the original T0 decision.");
+    put(heat, "Rank eligible saved opportunities after evidence qualifies them.");
+    put(portfolio, "See owned cards and purchase context without invented market value.");
   }
 
   function apply() {
