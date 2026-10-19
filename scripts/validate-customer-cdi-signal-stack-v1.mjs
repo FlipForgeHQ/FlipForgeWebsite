@@ -34,7 +34,7 @@ for (const [name, html] of [["canonical customer shell", customer], ["prototype 
   check("004 " + name + " loads CDI runtime after UX v2", html.indexOf('src="customer-cdi-signal-stack-v1.js"') > html.indexOf('src="decision-intelligence-ux-v2.js"'));
 }
 
-check("005 four plain-language checks are explicit", ["Exact card","Trustworthy sales","Price check","Uncertainty"].every(item => js.includes(item)));
+check("005 four plain-language checks are explicit", ["Exact card","Matched sales","Price check","Uncertainty"].every(item => js.includes(item)));
 check("006 plain verdicts cover every governed decision state", ["Buy looks supported","Watch this one","Verify before acting","Pass at this price"].every(item => js.includes(item)));
 check("007 raw BUY WATCH VERIFY PASS status remains visible as metadata", ["BUY","WATCH","VERIFY","PASS"].every(item => js.includes(item)) && js.includes("Decision engine · Smart Opportunity"));
 check("008 primary teaching CTA is explicit without duplicate START HERE coaching", js.includes("See why FlipForge said ") && js.includes("Watch the 4 checks assemble · about 3 seconds") && !js.includes("<span>START HERE</span><strong>Show me why"));

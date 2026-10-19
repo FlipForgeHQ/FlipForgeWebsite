@@ -18,7 +18,7 @@
     {
       "key": "know-market",
       "name": "Know the Market",
-      "purpose": "Use qualified evidence to establish what the market actually supports.",
+      "purpose": "Use qualified evidence to establish what reported sales support.",
       "layers": [
         "evidence",
         "economic",
@@ -145,7 +145,7 @@
     "risk": "Risk establishes what remains unknown.",
     "decision": "Decision Intelligence determines what the evidence justifies.",
     "outcome": "Outcomes determine whether the reasoning held up.",
-    "rule": "Product knowledge supplies context. Market evidence supplies truth."
+    "rule": "Product knowledge supplies context. Market evidence supplies the reported prices."
   },
   "locked": true
 }

@@ -16,7 +16,7 @@ check("repeated authority jargon is removed from the page", !/SERVER-OWNED|not r
 check("plain-language verdict appears before technical decision metadata", html.indexOf("data-decision-label") > -1 && html.indexOf("data-decision-label") < html.indexOf("data-decision>VERIFY"));
 check("plain-language verdict is the primary heading", html.includes('<h2 id="ff-cdi-decision-title" data-decision-label>Verify before acting</h2>'));
 check("status chips avoid old internal states", !/>LOCKED<|>THIN<|>WITHHELD<|>STABLE<|>REVIEW</.test(visibleSource));
-check("four beginner checks remain", ["Confirm the exact card","Check trustworthy sales","Compare the price","Measure uncertainty"].every(value => html.includes(value)));
+check("four beginner checks remain", ["Confirm the exact card","Check matched sales","Compare the price","Measure uncertainty"].every(value => html.includes(value)));
 check("primary first-time action is explicit", html.includes("data-start-tour") && html.includes("Show me why FlipForge said VERIFY"));
 check("detailed reasoning is hidden until interaction", html.includes('data-reasoning hidden'));
 check("redundant Why This Decision recap is removed", !html.includes("ff-cdi-explainer") && !html.includes("WHY THIS DECISION"));

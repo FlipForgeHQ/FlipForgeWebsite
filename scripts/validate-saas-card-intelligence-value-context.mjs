@@ -17,7 +17,7 @@ check("003 price adjustment authority must remain false", source.includes("value
 check("004 analog value basis is explicit", source.includes('value.basis !== "ANALOG_REFERENCE_RANGE"'));
 check("005 saved context is labeled context only", source.includes("Context only"));
 check("006 analog range is explicitly not supported value", source.includes("Not a supported value"));
-check("007 exact evidence remains required", source.includes("Exact trusted evidence is still required"));
+check("007 exact evidence remains required", source.includes("Matched exact sales are still required"));
 check("008 Smart Opportunity recommendation remains unchanged", source.includes("does not change the Smart Opportunity recommendation"));
 check("009 browser does not derive analog endpoints", !/reference(?:Low|Midpoint|High)Cents\s*=/.test(source));
 check("010 list view remains based on saved supported value only", source.includes("supportedValueText(item)") && !source.includes("valueIntelligencePanel(item) ?"));

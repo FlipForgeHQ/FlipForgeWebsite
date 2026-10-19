@@ -48,7 +48,7 @@ check('exhibit has direct user-controlled stages', exhibitJs.includes('data-ff-d
 check('updated public model presents four systems', ['KNOW THE CARD','KNOW THE MARKET','MAKE THE DECISION','LEARN WHETHER IT HELD UP'].every(label => page.includes(label)));
 check('updated public model exposes thirteen governed layers', ['Release Intelligence','Taxonomy Intelligence','Identity Intelligence','Identity Provenance + Trust','Evidence Intelligence','Market + Economic Intelligence','Product + Variant Intelligence','Grade + Scarcity Intelligence','Risk + Uncertainty Intelligence','Decision Intelligence','Decision Traceback / Receipt','Outcome Intelligence','Governance + Continuous Intelligence'].every(label => page.includes(label)));
 check('identity fail-closed rule is public and explicit', page.includes('Unknown or conflicting identity fails closed'));
-check('evidence-only product doctrine is public and explicit', page.includes('Product knowledge supplies context. Market evidence supplies truth.'));
+check('evidence-only product doctrine is public and explicit', page.includes('Product knowledge supplies context. Market evidence supplies the reported prices.'));
 check('Decision Intelligence page stays highly focused', sectionCount(page) <= 3);
 check('Product page stays compact', sectionCount(product) <= 6);
 check('Product uses current Card Decision Intelligence branding', product.includes('CARD DECISION INTELLIGENCE') && product.includes('Card Decision Intelligence'));

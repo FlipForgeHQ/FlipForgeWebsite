@@ -79,7 +79,7 @@
         <div class="ff-p3-home-zero-copy">
           <span class="ff-p3-kicker">START HERE · YOUR FIRST DECISION</span>
           <h2>Evaluate your first card.</h2>
-          <p>Start with one real card. FlipForge confirms the exact card, checks trustworthy sales, compares the price, measures uncertainty, and then explains the decision.</p>
+          <p>Start with one real card. FlipForge confirms the exact card, checks matched sales, compares the price, measures uncertainty, and then explains the decision.</p>
           <div class="ff-p3-actions">
             <a class="button button-primary" href="#/discover" data-ff-p3-first-evaluate>Find a card to evaluate</a>
             <a class="button button-secondary" href="#/evaluate">Enter a listing manually</a>
@@ -88,7 +88,7 @@
         </div>
         <div class="ff-p3-home-path" aria-label="Your first FlipForge decision">
           <div class="ff-p3-first-step"><b>01</b><span><strong>Confirm the exact card</strong><small>Make sure the year, set, number, variant, and grade match.</small></span></div>
-          <div class="ff-p3-first-step"><b>02</b><span><strong>Check trustworthy sales</strong><small>Keep the comparisons that belong and leave the bad ones out.</small></span></div>
+          <div class="ff-p3-first-step"><b>02</b><span><strong>Check matched sales</strong><small>Keep the comparisons that belong and leave the bad ones out.</small></span></div>
           <div class="ff-p3-first-step"><b>03</b><span><strong>Compare price + uncertainty</strong><small>See whether the ask is supported and how sure the evidence really is.</small></span></div>
           <div class="ff-p3-first-step"><b>04</b><span><strong>Read the decision + receipt</strong><small>BUY, WATCH, VERIFY, or PASS—with the reason trail preserved.</small></span></div>
         </div>
@@ -203,11 +203,11 @@
           <div class="ff-p3-evaluate-copy">
             <small>CARD DECISION INTELLIGENCE™ · LIVE EVALUATE FLOW</small>
             <h2 data-ff-p3-evaluate-title>Verify the card first.</h2>
-            <p data-ff-p3-evaluate-copy>Enter the exact card you are considering. FlipForge will not let uncertain identity silently become trusted price evidence.</p>
+            <p data-ff-p3-evaluate-copy>Enter the exact card you are considering. FlipForge will not let uncertain identity silently become counted price evidence.</p>
           </div>
           <div class="ff-p3-evaluate-rail" aria-label="Evaluation progress">
             <div class="ff-p3-evaluate-step" data-p3-step="identity"><b>01</b><strong>Exact card</strong><small>Confirm what it is.</small></div>
-            <div class="ff-p3-evaluate-step" data-p3-step="evidence"><b>02</b><strong>Trustworthy sales</strong><small>Keep what belongs.</small></div>
+            <div class="ff-p3-evaluate-step" data-p3-step="evidence"><b>02</b><strong>Matched sales</strong><small>Keep what belongs.</small></div>
             <div class="ff-p3-evaluate-step" data-p3-step="decision"><b>03</b><strong>Price + uncertainty</strong><small>Test the deal.</small></div>
             <div class="ff-p3-evaluate-step" data-p3-step="receipt"><b>04</b><strong>Decision + receipt</strong><small>See the call and why.</small></div>
           </div>
@@ -233,7 +233,7 @@
     const messages = {
       identity: ["Confirm the exact card first.", "Enter the card you are considering. FlipForge checks the year, set, number, variant, and grade before price gets a vote."],
       "identity-review": ["Choose the exact card.", "FlipForge found more than one plausible match. Pick the correct card before sales can influence the decision."],
-      evidence: ["Now check trustworthy sales.", "You can see the candidates, but only exact completed sales that pass the evidence checks can support the price case."],
+      evidence: ["Now check matched sales.", "You can see the candidates, but only exact completed sales that pass the evidence checks can support the price case."],
       handoff: ["Now test the deal.", "FlipForge is comparing the price, measuring uncertainty, and building the BUY, WATCH, VERIFY, or PASS decision."]
     };
     const current = messages[stage] || messages.identity;

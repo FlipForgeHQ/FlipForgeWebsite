@@ -20,9 +20,15 @@
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
+  // Headings are read, never shown. Pages rendered by an earlier build (cached script, older backend) still carry the
+  // legacy headings, so each lookup accepts the current label and the label it replaced.
+  const ACCEPTED_SALES_LABELS = ["Accepted exact sales", "Matched sales", "Trusted sales"];
+  const ACCEPTED_GATE_LABELS = ["Matched exact sales", "Trusted completed sales"];
+
   function labeledValue(root, selector, wantedLabel) {
+    const wanted = Array.isArray(wantedLabel) ? wantedLabel : [wantedLabel];
     const rows = [...root.querySelectorAll(selector)];
-    const match = rows.find((row) => text(row.querySelector("span")) === wantedLabel);
+    const match = rows.find((row) => wanted.includes(text(row.querySelector("span"))));
     return match ? text(match.querySelector("strong")) : "Unavailable";
   }
 
@@ -82,7 +88,7 @@
       .filter((node) => !node.classList.contains("ff-decision-next"));
     const why = text(reasonParagraphs[0]) || "FlipForge preserved the server-owned decision.";
     const change = text(summary.querySelector(".ff-decision-next")) || "Material new evidence or price/risk changes require a fresh evaluation.";
-    const accepted = numericFromPage(root, ["Accepted exact sales", "Trusted sales"]);
+    const accepted = numericFromPage(root, ACCEPTED_SALES_LABELS);
     const excluded = numericFromPage(root, ["Visible but ineligible", "Excluded from authority"]);
     const ask = summaryValue(root, "Current ask");
     const supportedValue = summaryValue(root, "Supported value");
@@ -126,7 +132,7 @@
       identity: text(verdict.querySelector(".ff-di-v2-verdict-main h2")) || "Saved opportunity",
       why: text(verdict.querySelector(".ff-di-v2-verdict-main p")) || "FlipForge preserved the server-owned decision.",
       change: text(command.querySelector(".ff-di-v2-change h3")) || "Material new evidence or price/risk changes require a fresh evaluation.",
-      accepted: labeledValue(command, ".ff-di-v2-gate", "Trusted completed sales"),
+      accepted: labeledValue(command, ".ff-di-v2-gate", ACCEPTED_GATE_LABELS),
       excluded: labeledValue(command, ".ff-di-v2-gate", "Excluded evidence"),
       ask: labeledValue(command, ".ff-di-v2-receipt-grid > div", "Evaluated ask"),
       supportedValue: labeledValue(verdict, ".ff-di-v2-verdict-metrics > div", "Supported value"),
