@@ -11,6 +11,7 @@ on:
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
       - "scripts/audit-guided-mode-clearance-ci.mjs"
+      - "scripts/audit-guided-mode-evaluation-target-ci.mjs"
       - "scripts/audit-customer-shell-settles-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
@@ -28,6 +29,7 @@ on:
       - "scripts/audit-discover-evaluate-outcomes-ci.mjs"
       - "scripts/audit-evaluate-page-allowance-ci.mjs"
       - "scripts/audit-guided-mode-clearance-ci.mjs"
+      - "scripts/audit-guided-mode-evaluation-target-ci.mjs"
       - "scripts/audit-customer-shell-settles-ci.mjs"
       - "scripts/validate-decision-dashboard-v3.mjs"
       - "scripts/build-identity-client.mjs"
@@ -155,6 +157,11 @@ jobs:
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/customer
         run: node scripts/audit-guided-mode-clearance-ci.mjs
+
+      - name: Guided Mode on Evaluate highlights the manual form's first field, never a hidden Bulk CSV control (/app/beta)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
+        run: node scripts/audit-guided-mode-evaluation-target-ci.mjs
 
       - name: Upload owner-review screenshots
         if: always()
