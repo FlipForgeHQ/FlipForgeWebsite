@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const disclosureFilter = require("./provider-disclosure-filter");
 
 const CONTRACT_VERSION = "1.0";
 const DEFAULT_TIMEOUT_MS = 20000;
@@ -375,6 +376,10 @@ async function readLimitedJson(response, maxBytes) {
   }
 }
 
+function filteredBackendPayload(payload, path, strict) {
+  return disclosureFilter.filterBackendPayload(payload, { path, strict });
+}
+
 function healthPayload(correlationId) {
   return {
     meta: {
@@ -637,6 +642,23 @@ exports.handler = async function handler(event, context) {
       );
     }
 
+    // Rollback read isolation: no provider sale-level field or provider name reaches the browser, whichever
+    // backend build served this response. Only a build whose envelope states a verified database storage guard gets
+    // standard filtering; every pre-containment build (which never sends the field) is filtered strictly.
+    const containmentAware = disclosureFilter.containmentAwareMeta(payload.meta);
+    const filtered = filteredBackendPayload(payload, path, !containmentAware);
+    if (!filtered.ok) {
+      return jsonResponse(
+        event,
+        filtered.withheld ? 503 : 502,
+        filtered.withheld
+          ? errorEnvelope("TEMPORARILY_UNAVAILABLE", "This view is temporarily unavailable. Please try again later.", correlationId)
+          : errorEnvelope("UPSTREAM_CONTRACT_INVALID", "The authoritative response did not satisfy the FlipForge contract.", correlationId),
+        correlationId
+      );
+    }
+    const safePayload = filtered.payload;
+
     console.info(
       JSON.stringify({
         event: "FLIPFORGE_API_REQUEST_COMPLETED",
@@ -644,11 +666,12 @@ exports.handler = async function handler(event, context) {
         method,
         path,
         upstreamStatus: upstreamResponse.status,
+        disclosureMode: containmentAware ? "STANDARD" : "STRICT_PRE_CONTAINMENT",
         durationMs: Date.now() - startedAt
       })
     );
 
-    return jsonResponse(event, 200, payload, correlationId);
+    return jsonResponse(event, 200, safePayload, correlationId);
   } catch (error) {
     const timedOut = error && error.name === "AbortError";
     const code = timedOut ? "UPSTREAM_TIMEOUT" : error && error.code ? error.code : "UPSTREAM_UNAVAILABLE";
