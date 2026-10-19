@@ -165,26 +165,27 @@ try{
   const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
   const page=await context.newPage();
   await page.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded'});
-  const forge=page.locator('[data-decision-forge]');
-  const forgeSteps=page.locator('[data-forge-step]');
-  if(await forge.count() && await forgeSteps.count()===5){
-    await forgeSteps.nth(2).click();
-    await page.waitForFunction(()=>document.querySelector('[data-decision-forge]')?.dataset.step==='2',null,{timeout:3000})
-      .catch(()=>failures.push('homepage interaction: Decision Forge qualify stage did not render'));
-    const qualifyStatus=(await page.locator('[data-forge-status]').textContent().catch(()=>''))||'';
-    if(!/5 rejected/i.test(qualifyStatus)||!/2 qualified/i.test(qualifyStatus))failures.push('homepage interaction: Decision Forge qualification evidence summary missing');
-
-    await forgeSteps.nth(4).click();
-    await page.waitForFunction(()=>document.querySelector('[data-decision-forge]')?.dataset.step==='4',null,{timeout:3000})
-      .catch(()=>failures.push('homepage interaction: Decision Forge reveal stage did not render'));
-    const whyButton=page.locator('[data-forge-why-button]');
-    if(await whyButton.count()){
-      await whyButton.click();
-      const expanded=await whyButton.getAttribute('aria-expanded');
-      const open=await page.locator('[data-forge-why]').evaluate(el=>el.classList.contains('is-open')).catch(()=>false);
-      if(expanded!=='true'||!open)failures.push('homepage interaction: Decision Forge reason trail did not open');
-    }else failures.push('homepage interaction: Decision Forge reason-trail control missing');
-  }else failures.push('homepage interaction: Decision Forge stage controls missing');
+  const demo=page.locator('[data-ffdemo]');
+  const slider=page.locator('[data-asking]');
+  if(await demo.count() && await slider.count()){
+    await slider.evaluate(el=>{el.value='310';el.dispatchEvent(new Event('input',{bubbles:true}));});
+    if((await page.locator('[data-verdict]').textContent())?.trim()!=='BUY')failures.push('homepage: a $310 asking price must yield illustrative BUY');
+    if((await page.locator('[data-price-gap]').textContent())?.trim()!=='−$50')failures.push('homepage: $310 must be $50 below $360 Max Buy');
+    await slider.evaluate(el=>{el.value='395';el.dispatchEvent(new Event('input',{bubbles:true}));});
+    if((await page.locator('[data-verdict]').textContent())?.trim()!=='PASS')failures.push('homepage: $395 exceeds illustrative Max Buy by more than $20');
+    await page.locator('[data-uncertainty]').click();
+    if((await page.locator('[data-verdict]').textContent())?.trim()!=='VERIFY')failures.push('homepage: unresolved evidence must force VERIFY');
+    await page.locator('[data-reset]').click();
+    if((await page.locator('[data-verdict]').textContent())?.trim()!=='WATCH')failures.push('homepage: reset restores illustrative WATCH');
+    await page.locator('.ffdemo-why summary').click();
+    if(!await page.locator('.ffdemo-why').evaluate(el=>el.open))failures.push('homepage: rationale details must be expandable');
+    const actions=page.locator('.desktop-nav .ffdemo-nav-actions');
+    if(await actions.count()){
+      const sign=await actions.locator('.ffdemo-sign-in').boundingBox();
+      const beta=await actions.locator('.ffdemo-join').boundingBox();
+      if(!sign||!beta||Math.abs(beta.x-(sign.x+sign.width))>24)failures.push('homepage desktop: Sign In not adjacent to Beta Access');
+    }else failures.push('homepage desktop: Sign In and Beta Access not grouped');
+  }else failures.push('homepage: interactive Max Buy demo or slider missing');
   await context.close();
 
   const mobile=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
