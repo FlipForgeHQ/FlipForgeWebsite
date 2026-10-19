@@ -57,19 +57,21 @@
     if (node && node.innerHTML !== value) node.innerHTML = value;
   }
 
+  // Write only when a value differs: re-setting an attribute to the same value still notifies every
+  // MutationObserver watching it, and several shell scripts watch these attributes (mobile re-render loop).
   function hideElement(node) {
     if (!node) return;
     if (!node.hidden) node.hidden = true;
-    node.setAttribute("aria-hidden", "true");
+    if (node.getAttribute("aria-hidden") !== "true") node.setAttribute("aria-hidden", "true");
     if (node.tabIndex !== -1) node.tabIndex = -1;
-    node.removeAttribute("data-ff-customer-core");
+    if (node.hasAttribute("data-ff-customer-core")) node.removeAttribute("data-ff-customer-core");
   }
 
   function showElement(node) {
     if (!node) return;
     if (node.hidden) node.hidden = false;
-    node.removeAttribute("hidden");
-    node.removeAttribute("aria-hidden");
+    if (node.hasAttribute("hidden")) node.removeAttribute("hidden");
+    if (node.hasAttribute("aria-hidden")) node.removeAttribute("aria-hidden");
     if (node.getAttribute("tabindex") === "-1") node.removeAttribute("tabindex");
   }
 
@@ -85,7 +87,7 @@
 
     document.documentElement.classList.add("ff-full-customer-app");
     document.body?.classList.add("ff-full-customer-app");
-    document.title = "FlipForge | Customer App — Card Decision Intelligence";
+    if (document.title !== "FlipForge | Customer App — Card Decision Intelligence") document.title = "FlipForge | Customer App — Card Decision Intelligence";
 
     const description = document.querySelector('meta[name="description"]');
     if (description) description.setAttribute(
@@ -149,8 +151,8 @@
     const advanced = nav.querySelector(".ff-advanced-nav");
     if (advanced) {
       showElement(advanced);
-      advanced.removeAttribute("data-ff-customer-hide");
-      advanced.open = false;
+      if (advanced.hasAttribute("data-ff-customer-hide")) advanced.removeAttribute("data-ff-customer-hide");
+      if (advanced.open) advanced.open = false;
       advanced.querySelectorAll("a[data-route]").forEach(link => {
         if (String(link.dataset.route || "") === "sell") {
           hideElement(link);
