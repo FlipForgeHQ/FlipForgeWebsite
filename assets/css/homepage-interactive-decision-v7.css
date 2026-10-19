@@ -1,5 +1,46 @@
 
 /* Premium Max Buy decision demo — public, isolated, no network/provider access. */
+/* The shared production header canonicalizer may flatten the authoring-time action
+   wrappers. Style the authoritative, adjacent links as well as the source markup. */
+.ffdemo-page .desktop-nav > a[data-ff-marketing-sign-in]{
+  padding:10px 13px;
+  border:1px solid rgba(255,255,255,.36);
+  border-radius:8px;
+  background:rgba(255,255,255,.045);
+  color:#fff;
+  white-space:nowrap;
+}
+.ffdemo-page .desktop-nav > a[data-ff-marketing-sign-in] + a.nav-cta{
+  margin-left:-10px;
+  padding:10px 13px;
+  background:linear-gradient(145deg,#efd47e,#D4AF37);
+  color:#141006!important;
+  border:1px solid #D4AF37;
+  border-radius:8px;
+  white-space:nowrap;
+}
+.ffdemo-page .mobile-nav > a[data-ff-marketing-sign-in]{
+  order:-2;
+  border:1px solid rgba(212,175,55,.5);
+  border-radius:8px;
+  padding:12px 15px;
+  margin-bottom:7px;
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  text-align:center;
+}
+.ffdemo-page .mobile-nav > a[href*="beta-application"]{
+  order:-1;
+  border:1px solid #D4AF37;
+  background:linear-gradient(145deg,#efd47e,#D4AF37);
+  color:#141006!important;
+  border-radius:8px;
+  padding:12px 15px;
+  margin-bottom:12px;
+  font-weight:850;
+  text-align:center;
+}
+
 .ffdemo-page{background:#020304;color:#f7f6f3}
 .ffdemo-page main{min-height:auto;overflow:hidden}
 .ffdemo-page .site-header{background:rgba(3,4,5,.96)}
