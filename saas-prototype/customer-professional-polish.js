@@ -33,8 +33,8 @@
     ["Subscription and usage data stays server-owned.", "Subscription and usage update automatically."],
     ["Access and usage stay server-owned.", "Access and usage update automatically."],
     ["Review server-owned access, evaluation usage, and the planned commercial tiers for this tenant.", "Review your access, evaluation usage, and available plan details."],
-    ["Server-owned", "Verified"],
-    ["server-owned", "verified"],
+    // No pair may introduce "verified", "confirmed" or "trusted": reported sales and saved evidence are never
+    // described that way (a global "Server-owned" -> "Verified" rewrite was removed).
     ["tenant-scoped", "account-specific"],
     ["Tenant-owned saved intelligence", "Saved intelligence"],
     ["Tenant-owned saved record", "Saved record"],

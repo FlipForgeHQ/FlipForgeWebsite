@@ -190,7 +190,7 @@
         <div><span>All-in ask</span><strong>${moneyCents(item.allInAskCents)}</strong></div>
         <div><span>Supported value</span><strong>${moneyCents(item.supportedValueCents)}</strong></div>
         <div><span>Supported-value gap</span><strong>${signedMoneyCents(item.supportedValueGapCents)} <small>${signedPercent(item.supportedValueGapPct)}</small></strong></div>
-        <div><span>Forge Confidence</span><strong>${escapeHtml(item.confidence)}/100</strong></div>
+        <div><span>Forge Confidence</span><strong>${item.confidence === null || item.confidence === undefined || item.confidence === "" || !Number.isFinite(Number(item.confidence)) ? "Unavailable" : `${escapeHtml(item.confidence)}/100`}</strong></div>
         <div><span>Opportunity Risk</span><strong>${escapeHtml(item.risk)}/100</strong></div>
         <div><span>Exact evidence</span><strong>${escapeHtml(item.acceptedExactSales)} sales</strong></div>
       </div>
@@ -267,6 +267,7 @@
         <div><span>Evaluations considered</span><strong>${escapeHtml(summary.latestEvaluationsConsidered ?? 0)}</strong></div>
         <div><span>Heat eligible</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
         <div><span>Surfaced</span><strong>${escapeHtml(summary.surfaced ?? 0)}</strong></div>
+        ${Number(summary.legacyDerivedExcluded) > 0 ? `<div data-ff-legacy-excluded><span>Legacy results not scored</span><strong>${escapeHtml(summary.legacyDerivedExcluded)}</strong></div>` : ""}
         <div><span>Engine</span><strong>V1</strong></div>
       </div>` : ""}
     </header>`;

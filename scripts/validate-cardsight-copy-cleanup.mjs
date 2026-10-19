@@ -5,11 +5,12 @@ const source = fs.readFileSync(new URL('../saas-prototype/cardsight-evidence-vis
 const checks = [
   [
     'normalizes the governed-evidence provider sentence before customer-language rewriting',
-    /qualified for governed evidence[\\s\\S]*passed FlipForge's evidence checks/.test(source)
+    /qualified for governed evidence[\s\S]*passed FlipForge's evidence checks/.test(source)
   ],
   [
-    'retains the current-authority CardSight accepted-sales labels',
-    source.includes('Saved CardSight accepted sales') && source.includes('All saved exact accepted sales')
+    'retains the current-authority accepted-sales labels without naming the data provider',
+    source.includes('Saved accepted sales from our data provider') && source.includes('All saved exact accepted sales')
+      && !source.includes('Saved CardSight accepted sales') && !source.includes('<h2>CardSight sold evidence</h2>')
   ],
   [
     'does not alter evidence authority booleans',

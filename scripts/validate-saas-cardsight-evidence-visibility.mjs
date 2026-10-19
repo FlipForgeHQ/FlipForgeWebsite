@@ -30,7 +30,11 @@ requireText(index, 'href="cardsight-evidence-visibility.css"', "visibility style
 requireText(index, 'src="cardsight-evidence-visibility.js"', "visibility script is not loaded");
 requireText(js, 'url.pathname === "/api/v1/evaluations"', "evaluation response is not observed");
 requireText(js, '/^\\/api\\/v1\\/evidence\\/([^/?#]+)$/', "current evidence response is not observed");
-requireText(js, 'String(summary.provider || "").toUpperCase() !== "CARDSIGHT"', "provider identity is not constrained to CardSight");
+// The provider identity stays constrained to the one data provider: the internal code or the API's neutral code.
+requireText(js, '!["CARDSIGHT", "DATA_PROVIDER"].includes(String(summary.provider || "").toUpperCase())', "provider identity is not constrained to the data provider");
+// New API shape: provider rows are counted through providerEvidenceSummary, never listed.
+requireText(js, 'data.providerEvidenceSummary', "provider evidence summary counts are not read");
+reject(js.replace(/\/\/.*$/gm, ""), /<h2>CardSight|Saved CardSight|CardSight never supplies/, "the data provider is named to customers");
 requireText(js, 'typeof summary.fixedPriceRowsCanSupportValue !== "boolean"', "fixed-price completed-sale capability is not explicitly validated");
 requireText(js, 'summary.fixedPriceRowsCanSupportValue === true && summary.historicalCompletedSalesOnly !== true', "historical-completed-sale boundary is not enforced");
 requireText(js, 'summary.activeListingsCanSupportValue !== false', "active-listing evidence boundary is not enforced");

@@ -31,13 +31,16 @@
     return Object.prototype.hasOwnProperty.call(DECISION_COPY, normalized) ? normalized : "";
   }
 
+  // Display only. The result grid shows the saved risk as "N/100"; read exactly that number. Removing every non-digit
+  // turned "35/100" into 35100, which was clamped and shown as "High — 100/100". Anything else is "Unavailable".
   function riskLabel(raw) {
-    const score = Number.parseFloat(String(raw || "").replace(/[^0-9.]/g, ""));
+    const match = String(raw || "").match(/^\s*(\d+(?:\.\d+)?)\s*\/\s*100\s*$/);
+    const score = match ? Number(match[1]) : NaN;
     if (!Number.isFinite(score)) return { label: "Unavailable", score: "" };
     const bounded = Math.max(0, Math.min(100, score));
     return {
       label: bounded >= 70 ? "High" : bounded >= 35 ? "Moderate" : "Low",
-      score: `${Math.round(bounded)}/100`
+      score: `${score}/100`
     };
   }
 

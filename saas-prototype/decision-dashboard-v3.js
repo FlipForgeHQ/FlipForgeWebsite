@@ -231,6 +231,9 @@
       supportedCents,
       supportedStatus,
       supportedStatusReason: text(source.supportedValueStatusReason),
+      // Saved before current evidence rules (server marker); the value is not presented as currently supported.
+      legacy: legacyRecord(source),
+      legacyNotice: text(source.legacyNotice),
       maxBuyCents: numberOrNull(governed.maximumBuyPriceCents),
       expectedNetCents: numberOrNull(governed.expectedNetProfitCents),
       conservativeNetCents: numberOrNull(governed.conservativeNetProfitCents),
@@ -265,9 +268,19 @@
     };
   }
 
+  /** Server legacy marker: evidenceProvenanceStatus other than a CURRENT value, or the companion support fields. */
+  function legacyRecord(source) {
+    const status = text(source && source.evidenceProvenanceStatus);
+    if (status) return !/^CURRENT(?:_|$)/i.test(status);
+    return Boolean(source) && (source.currentlySupported === false || text(source.supportedValueStatus).toUpperCase() === "LEGACY_NOT_CURRENTLY_SUPPORTED");
+  }
+
   /** Uncertainty statements built only from server facts. No thresholds. */
   function unknownsOf(model) {
     const unknowns = [];
+    if (model.legacy) {
+      unknowns.push({ key: "legacy", tag: "Legacy result — saved before current evidence rules", text: model.legacyNotice || "This result was saved before current evidence rules and is not presented as currently supported." });
+    }
     if (model.profitabilityCappedBuy) {
       unknowns.push({ key: "capped", tag: "Profit protection applied", text: "The asking price leaves too little cushion to protect your profit if prices drop, even though some profit scenarios were positive." });
     }

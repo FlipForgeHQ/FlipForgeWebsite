@@ -140,6 +140,12 @@
     return item?.title || item?.cardIdentity || id || "Saved decision";
   }
 
+  // The card the customer is working on (remembered by tracking-context-v1.js), used only when the address names no
+  // card and only if this tenant's list contains it. Read through the shared display helper; never throws.
+  function rememberedActiveId(ids) {
+    try { return window.FlipForgeTrustDisplay?.activeCardId(ids) || ""; } catch (_) { return ""; }
+  }
+
   function chooseId() {
     const ids = opportunityItems().map(item => String(item.id));
     if (state.requestedId) {
@@ -148,7 +154,7 @@
       }
       return state.requestedId;
     }
-    return ids[0] || "";
+    return rememberedActiveId(ids) || ids[0] || "";
   }
 
   function validateSources(opportunityId, sources) {
@@ -282,6 +288,9 @@
       ["opportunity", "confidence", item.confidence ?? ""],
       ["opportunity", "liquidity", item.liquidity ?? ""],
       ["opportunity", "risk", item.risk ?? ""],
+      ...(typeof item.evidenceProvenanceStatus === "string" && item.evidenceProvenanceStatus.trim()
+        ? [["opportunity", "evidence_provenance_status", item.evidenceProvenanceStatus], ["opportunity", "legacy_notice", item.legacyNotice || ""]]
+        : []),
       ["evidence", "accepted_exact_completed_sales", evidence.acceptedExactCompletedSales ?? ""],
       ["evidence", "visible_but_authority_ineligible", evidence.visibleButAuthorityIneligible ?? ""],
       ["psa", "guidance_status", psa.guidanceStatus || ""],
@@ -334,6 +343,18 @@
     return `<label class="customer-export-selector"><span>Saved decision</span><select data-customer-export-select>${items.map(item => `<option value="${escapeHtml(item.id)}" ${String(item.id) === state.selectedId ? "selected" : ""}>${escapeHtml(item.title || item.cardIdentity || item.id)}</option>`).join("")}</select></label>`;
   }
 
+  // Legacy results (saved before current evidence rules) are labelled with the server's notice. Records without the
+  // server field show nothing extra.
+  function legacyMarkup() {
+    const display = window.FlipForgeTrustDisplay;
+    if (!display || !state.selectedId) return "";
+    const saved = state.sources?.opportunity?.data?.opportunity || null;
+    const listed = opportunityItems().find(item => String(item.id) === state.selectedId) || null;
+    const evidence = state.sources?.evidence?.data || null;
+    const legacy = [saved, evidence, listed].find(record => display.isLegacy(record));
+    return legacy ? display.legacyMarkup(legacy) : "";
+  }
+
   function sourceChecklist() {
     const sources = state.sources;
     const rows = [
@@ -363,7 +384,7 @@
       ${errorPanel()}
       ${state.notice ? `<div class="customer-export-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}
       <section class="panel"><div class="panel-body">${selector()}</div></section>
-      ${state.selectedId ? `<div class="customer-export-grid"><section class="panel"><header class="panel-header"><div><h2>Complete source set</h2><p>${escapeHtml(titleFor(state.selectedId))}</p></div>${badge(state.sources ? "Complete" : "Unavailable", state.sources ? "ok" : "warn")}</header><div class="panel-body">${sourceChecklist()}</div></section><section class="panel"><header class="panel-header"><div><h2>Integrity manifest</h2><p>SHA-256 covers the deterministic JSON payload. It detects changes; it is not a digital signature.</p></div>${badge(prepared ? "Prepared" : "Not prepared", prepared ? "ok" : "neutral")}</header><div class="panel-body customer-export-manifest"><div><span>Schema</span><strong>${EXPORT_SCHEMA_VERSION}</strong></div><div><span>Partial export</span><strong>No</strong></div><div><span>Browser storage</span><strong>None</strong></div><div><span>Transaction authority</span><strong>None</strong></div>${digest ? `<div class="customer-export-digest"><span>Payload SHA-256</span><code>${escapeHtml(digest)}</code></div>` : ""}</div></section></div><section class="panel customer-export-actions"><header class="panel-header"><div><h2>Prepare and download</h2><p>Preparation happens in memory. Downloads remain on this device unless the tester shares them.</p></div></header><div class="panel-body"><button class="button button-primary" type="button" data-customer-export-prepare ${state.preparing || !state.sources ? "disabled" : ""}>${state.preparing ? "Preparing…" : "Prepare complete dossier"}</button><button class="button button-secondary" type="button" data-customer-export-json ${prepared ? "" : "disabled"}>Download JSON dossier</button><button class="button button-secondary" type="button" data-customer-export-csv ${prepared ? "" : "disabled"}>Download CSV manifest</button><small>JSON contains the complete governed source set. CSV is a human-readable summary plus lifecycle-event rows and the same integrity digest.</small></div></section>` : ""}
+      ${state.selectedId ? `<div class="customer-export-grid"><section class="panel"><header class="panel-header"><div><h2>Complete source set</h2><p>${escapeHtml(titleFor(state.selectedId))}</p>${legacyMarkup()}</div>${badge(state.sources ? "Complete" : "Unavailable", state.sources ? "ok" : "warn")}</header><div class="panel-body">${sourceChecklist()}</div></section><section class="panel"><header class="panel-header"><div><h2>Integrity manifest</h2><p>SHA-256 covers the deterministic JSON payload. It detects changes; it is not a digital signature.</p></div>${badge(prepared ? "Prepared" : "Not prepared", prepared ? "ok" : "neutral")}</header><div class="panel-body customer-export-manifest"><div><span>Schema</span><strong>${EXPORT_SCHEMA_VERSION}</strong></div><div><span>Partial export</span><strong>No</strong></div><div><span>Browser storage</span><strong>None</strong></div><div><span>Transaction authority</span><strong>None</strong></div>${digest ? `<div class="customer-export-digest"><span>Payload SHA-256</span><code>${escapeHtml(digest)}</code></div>` : ""}</div></section></div><section class="panel customer-export-actions"><header class="panel-header"><div><h2>Prepare and download</h2><p>Preparation happens in memory. Downloads remain on this device unless the tester shares them.</p></div></header><div class="panel-body"><button class="button button-primary" type="button" data-customer-export-prepare ${state.preparing || !state.sources ? "disabled" : ""}>${state.preparing ? "Preparing…" : "Prepare complete dossier"}</button><button class="button button-secondary" type="button" data-customer-export-json ${prepared ? "" : "disabled"}>Download JSON dossier</button><button class="button button-secondary" type="button" data-customer-export-csv ${prepared ? "" : "disabled"}>Download CSV manifest</button><small>JSON contains the complete governed source set. CSV is a human-readable summary plus lifecycle-event rows and the same integrity digest.</small></div></section>` : ""}
     </div>`;
   }
 

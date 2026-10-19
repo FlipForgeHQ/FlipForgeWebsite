@@ -37,11 +37,12 @@
   }
 
   function summaryValue(root, wantedLabel) {
+    const wanted = Array.isArray(wantedLabel) ? wantedLabel : [wantedLabel];
     const summary = root.querySelector(".customer-value-summary");
     if (!summary) return "Unavailable";
     const nodes = [...summary.children];
     for (let index = 0; index < nodes.length; index += 1) {
-      if (text(nodes[index]) !== wantedLabel) continue;
+      if (!wanted.includes(text(nodes[index]))) continue;
       const next = nodes[index + 1];
       if (next?.tagName === "STRONG") return text(next);
     }
@@ -64,11 +65,21 @@
     return "Unavailable";
   }
 
-  function exactIdentityState(root) {
+  // Identity state of the saved card. The card is matched to the exact catalog entry; it is never described as
+  // "verified" (that word is reserved and never applied to identity or to reported sales).
+  function exactIdentityState(root, record) {
+    if (record) return String(record.mappingState || "").toUpperCase() === "CONFIRMED" ? "Exact match" : "Needs review";
     const page = text(root);
-    if (/CardSight catalog linked|mapping\s*(?:state\s*)?CONFIRMED|exact identity[^.]{0,30}(?:verified|confirmed)/i.test(page)) return "Verified";
     if (/catalog link pending|identity needs verification|mapping\s*(?:not confirmed|NOT_CONFIRMED)/i.test(page)) return "Needs review";
+    if (/catalog linked|mapping\s*(?:state\s*)?CONFIRMED|exact identity[^.]{0,30}(?:verified|confirmed)/i.test(page)) return "Exact match";
     return "Review exact identity";
+  }
+
+  // Risk and confidence come from the saved record the page loaded (governedDecision.risk first), never from text.
+  function scoreFromRecord(record, kind) {
+    const display = window.FlipForgeTrustDisplay;
+    if (!display || !record) return null;
+    return display.scoreText(kind === "risk" ? display.riskValue(record) : display.confidenceValue(record));
   }
 
   function opportunityModel() {
@@ -90,10 +101,13 @@
     const change = text(summary.querySelector(".ff-decision-next")) || "Material new evidence or price/risk changes require a fresh evaluation.";
     const accepted = numericFromPage(root, ACCEPTED_SALES_LABELS);
     const excluded = numericFromPage(root, ["Visible but ineligible", "Excluded from authority"]);
-    const ask = summaryValue(root, "Current ask");
+    // customer-decision-clarity-v1.js renames "Current ask" to "Listing price" and "Risk" to "Decision risk";
+    // both labels are accepted, and the saved record is read first.
+    const record = window.FlipForgeTrustDisplay?.recordFor(hero) || null;
+    const ask = summaryValue(root, ["Listing price", "Current ask"]);
     const supportedValue = summaryValue(root, "Supported value");
-    const confidence = metricValue(root, "Confidence");
-    const risk = metricValue(root, "Risk");
+    const confidence = scoreFromRecord(record, "confidence") || metricValue(root, "Confidence");
+    const risk = scoreFromRecord(record, "risk") || metricValue(root, ["Decision risk", "Risk"]);
     const observed = text(hero.querySelector(".customer-tracked-state small")) || "Saved server observation";
     const id = encodeURIComponent(parts[1]);
 
@@ -110,7 +124,7 @@
       supportedValue,
       confidence,
       risk,
-      exactIdentity: exactIdentityState(root),
+      exactIdentity: exactIdentityState(root, record),
       observed,
       evidenceHref: `#/evidence/${id}`,
       trackingHref: `#/tracking/${id}`,
@@ -182,7 +196,7 @@
           <h3>Evidence behind this decision</h3>
           <p>The decision stays first. Expand the seven layers when you want the proof behind it.</p>
         </div>
-        <span class="ff-dce-state">Server-owned evidence</span>
+        <span class="ff-dce-state">Saved evidence</span>
       </header>
 
       <div class="ff-dce-summary" aria-label="Decision Card evidence summary">

@@ -85,6 +85,12 @@
       .replace(/'/g, "&#039;");
   }
 
+  // Display only: a score the API did not return is "Unavailable", never 0/100. A real 0 stays 0.
+  function scoreOrUnavailable(value) {
+    if (value === null || value === undefined || value === "" || !Number.isFinite(Number(value))) return "Unavailable";
+    return `${Number(value)}/100`;
+  }
+
   function safeNumber(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : 0;
@@ -516,8 +522,8 @@
       ["Decision", decision.recommendation || "UNKNOWN"],
       ["Supported value", moneyFromCents(decision.supportedValueCents)],
       ["Matched exact comps", safeNumber(decision.exactTrustedCompCount)],
-      ["Confidence", `${safeNumber(decision.confidence)}/100`],
-      ["Risk", `${safeNumber(decision.risk)}/100`],
+      ["Confidence", scoreOrUnavailable(decision.confidence)],
+      ["Risk", scoreOrUnavailable(decision.risk)],
       ["Workflow status", decision.workflowStatus || "UNKNOWN"],
       ["All-in acquisition", moneyFromCents(data.normalizedRequest?.allInAskCents)],
       ["Tenant owned", data.tenantOwned === true ? "Yes" : "No"],

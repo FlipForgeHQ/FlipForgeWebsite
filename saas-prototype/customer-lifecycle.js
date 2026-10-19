@@ -76,6 +76,11 @@
     const number = Number(value);
     return Number.isFinite(number) ? number : 0;
   }
+  // Display only: a score the saved snapshot did not record is "Unavailable", never 0. A real 0 stays 0.
+  function timelineScore(value) {
+    if (value === null || value === undefined || value === "" || !Number.isFinite(Number(value))) return "Unavailable";
+    return `${Number(value)}%`;
+  }
 
   function moneyFromCents(value) {
     if (value === null || value === undefined || value === "") return "Not recorded";
@@ -272,7 +277,7 @@
     const wouldChangeMarkup = wouldChange.length
       ? `<details class="customer-decision-timeline-conditions"><summary>What would change this decision?</summary><ul>${wouldChange.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>`
       : "";
-    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div><span>${escapeHtml(entry?.evaluatedAt || "Time unavailable")}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${moneyFromCents(entry?.supportedValueCents)}</strong></span><span><small>Confidence</small><strong>${safeNumber(entry?.confidence)}%</strong></span><span><small>Risk</small><strong>${safeNumber(entry?.risk)}%</strong></span><span><small>Evidence</small><strong>${escapeHtml(entry?.evidenceQuality || "Unavailable")}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
+    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(entry?.evaluatedAt || "Time unavailable")}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : moneyFromCents(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(entry?.evidenceQuality || "Unavailable")}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
   }
 
   function decisionTimelineMarkup() {

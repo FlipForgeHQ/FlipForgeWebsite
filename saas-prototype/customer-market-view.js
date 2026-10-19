@@ -279,6 +279,7 @@
         ${metric("Supported upside", number(summary.positiveSupportedValueGap), supportedUpsideDetail(summary))}
         ${metric("Fresh evaluations", number(summary.freshWithin30Days), `${percent(summary.freshnessPct)} evaluated within 30 days`)}
       </section>
+      ${Number(summary.legacyDerivedDecisions) > 0 ? `<p class="market-view-legacy-note" data-ff-legacy-derived role="note">${escapeHtml(number(summary.legacyDerivedDecisions))} saved decision${Number(summary.legacyDerivedDecisions) === 1 ? " was" : "s were"} saved before current evidence rules. Their values are not presented as currently supported.</p>` : ""}
 
       <section class="market-view-grid">
         <article class="market-view-panel">

@@ -33,6 +33,11 @@
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
+  // Shared display helpers (customer-trust-display-v1.js). Display only: values are shown as the API returned them.
+  function trust() { return window.FlipForgeTrustDisplay || null; }
+  function scoreText(value) { return trust() ? trust().scoreText(value) : (value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? "Unavailable" : `${Number(value)}/100`); }
+  function legacyMarkup(item, options) { return trust() ? trust().legacyMarkup(item, options) : ""; }
+
   function money(value) {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -239,7 +244,7 @@
         ? money(item.supportedValue)
         : "Unavailable";
       const recommendation = String(item.recommendation || "UNKNOWN");
-      return `<tr><td><a href="#/opportunities/${encodeURIComponent(id)}"><strong>${escapeHtml(title)}</strong></a>${identity && identity !== title ? `<small>${escapeHtml(identity)}</small>` : ""}</td><td><span class="staging-status staging-status-${decisionTone(recommendation)}">${escapeHtml(recommendation)}</span></td><td>${money(item.ask)}</td><td>${escapeHtml(supported)}</td><td>${safeNumber(item.confidence)}/100</td><td>${acceptedSales}</td></tr>`;
+      return `<tr><td><a href="#/opportunities/${encodeURIComponent(id)}"><strong>${escapeHtml(title)}</strong></a>${identity && identity !== title ? `<small>${escapeHtml(identity)}</small>` : ""}${legacyMarkup(item, { compact: true })}</td><td><span class="staging-status staging-status-${decisionTone(recommendation)}">${escapeHtml(recommendation)}</span></td><td>${money(item.ask)}</td><td>${escapeHtml(supported)}</td><td>${escapeHtml(scoreText(item.confidence))}</td><td>${acceptedSales}</td></tr>`;
     }).join("")}</tbody></table></div>`;
   }
 
@@ -313,8 +318,10 @@
       ? money(item.supportedValue)
       : "Unavailable";
     const mapping = String(item.mappingState || "").toUpperCase() === "CONFIRMED"
-      ? "CardSight catalog linked"
-      : "CardSight catalog link pending";
+      ? "Catalog linked"
+      : "Catalog link pending";
+    trust()?.remember(item);
+    const riskScore = trust() ? trust().riskValue(item) : item.risk;
 
     main.innerHTML = `<div class="page customer-intelligence-page" data-card-intelligence-recovery>
       <header class="page-heading">
@@ -322,8 +329,8 @@
         <div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved decisions</a><a class="button button-secondary" href="#/tracking/${encodeURIComponent(item.id)}">Track</a><button class="button button-secondary" type="button" data-card-intelligence-retry>Refresh full intelligence</button></div>
       </header>
       <details class="boundary-note ff-trust-note"><summary>Recovery details</summary><p>The authoritative saved Smart Opportunity decision is shown now instead of blocking on optional downstream context. No browser-side recommendation was calculated.</p></details>
-      <section class="panel customer-intelligence-hero"><div class="panel-body"><div class="customer-hero-copy"><span class="eyebrow">${escapeHtml(item.platform || "Saved marketplace record")}</span><div class="customer-hero-title"><span class="staging-status staging-status-${decisionTone(recommendation)}">${escapeHtml(recommendation)}</span><h2>${escapeHtml(title)}</h2></div>${identity && identity !== title ? `<p>${escapeHtml(identity)}</p>` : ""}<div class="customer-tracked-state"><span class="check-mark ok">✓</span><span><strong>Decision saved</strong><small>${escapeHtml(item.observedAt || "Saved observation")}</small></span></div></div><div class="customer-value-summary"><span>Current ask</span><strong>${money(item.ask)}</strong><span>Supported value</span><strong>${escapeHtml(supported)}</strong><small>${acceptedSales > 0 ? `${acceptedSales} accepted exact completed sale${acceptedSales === 1 ? "" : "s"}` : "No accepted exact completed-sale evidence supports a value yet."}</small></div></div></section>
-      <div class="customer-intelligence-metrics"><article><span>Confidence</span><strong>${safeNumber(item.confidence)}/100</strong></article><article><span>Liquidity</span><strong>${safeNumber(item.liquidity)}/100</strong></article><article><span>Risk</span><strong>${safeNumber(item.risk)}/100</strong></article><article><span>Rank</span><strong>${safeNumber(item.rank)}/100</strong></article></div>
+      <section class="panel customer-intelligence-hero" data-ff-card-id="${escapeHtml(String(item.id || ""))}"><div class="panel-body"><div class="customer-hero-copy"><span class="eyebrow">${escapeHtml(item.platform || "Saved marketplace record")}</span><div class="customer-hero-title"><span class="staging-status staging-status-${decisionTone(recommendation)}">${escapeHtml(recommendation)}</span><h2>${escapeHtml(title)}</h2></div>${identity && identity !== title ? `<p>${escapeHtml(identity)}</p>` : ""}${legacyMarkup(item)}<div class="customer-tracked-state"><span class="check-mark ok">✓</span><span><strong>Decision saved</strong><small>${escapeHtml(item.observedAt || "Saved observation")}</small></span></div></div><div class="customer-value-summary"><span>Current ask</span><strong>${money(item.ask)}</strong><span>Supported value</span><strong>${escapeHtml(supported)}</strong><small>${acceptedSales > 0 ? `${acceptedSales} accepted exact completed sale${acceptedSales === 1 ? "" : "s"}` : "No accepted exact completed-sale evidence supports a value yet."}</small></div></div></section>
+      <div class="customer-intelligence-metrics"><article><span>Confidence</span><strong>${escapeHtml(scoreText(item.confidence))}</strong></article><article><span>Liquidity</span><strong>${safeNumber(item.liquidity)}/100</strong></article><article><span>Risk</span><strong>${escapeHtml(scoreText(riskScore))}</strong></article><article><span>Rank</span><strong>${safeNumber(item.rank)}/100</strong></article></div>
       <section class="panel"><header class="panel-header"><div><h2>Decision available</h2><p>The core saved decision loaded successfully. Full Evidence/PSA detail is still being requested by the normal Card Intelligence renderer.</p></div></header><div class="panel-body staging-key-grid"><div><span>Decision</span><strong>${escapeHtml(recommendation)}</strong></div><div><span>Accepted exact sales</span><strong>${acceptedSales}</strong></div><div><span>Provider catalog link</span><strong>${escapeHtml(mapping)}</strong></div><div><span>Execution authority</span><strong>None</strong></div></div></section>
     </div>`;
 

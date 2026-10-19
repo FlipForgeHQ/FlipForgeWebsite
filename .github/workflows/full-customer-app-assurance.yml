@@ -11,6 +11,7 @@ on:
       - 'scripts/audit-decision-intelligence-route-ci.mjs'
       - 'scripts/audit-live-view-integrity-ci.mjs'
       - 'scripts/audit-beta-no-sample-content-ci.mjs'
+      - 'scripts/audit-customer-trust-display-ci.mjs'
       - 'saas-prototype/**'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
@@ -56,6 +57,7 @@ on:
       - 'scripts/audit-decision-intelligence-route-ci.mjs'
       - 'scripts/audit-live-view-integrity-ci.mjs'
       - 'scripts/audit-beta-no-sample-content-ci.mjs'
+      - 'scripts/audit-customer-trust-display-ci.mjs'
       - 'saas-prototype/decision-intelligence-v1.js'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
@@ -150,6 +152,8 @@ jobs:
         run: node scripts/audit-live-view-integrity-ci.mjs
       - name: Audit Private Beta never shows prototype sample records during load (50 ms samples for 5 s; unknown routes say "Page not available")
         run: node scripts/audit-beta-no-sample-content-ci.mjs
+      - name: Audit customer trust display (saved risk and confidence, legacy results, no provider name or verified sales, active card)
+        run: node scripts/audit-customer-trust-display-ci.mjs
       - name: Audit customer and beta navigation separation
         run: node scripts/audit-customer-navigation-parity-ci.mjs
       - name: Audit visual parity across full customer routes

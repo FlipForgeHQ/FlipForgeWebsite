@@ -32,12 +32,31 @@
     select.dataset.ffEvidenceLabels = "true";
   }
 
+  // Any raw source or evidence-type code still on the page gets the same generic customer wording as the renderers:
+  // anything with EBAY is "eBay (reported sale)", SOLD_COMP* is "Reported completed sale", provider names become
+  // "our data provider". The provider is never named and a reported sale is never called verified.
+  function customerSource(value) {
+    const raw = String(value || "").trim();
+    if (window.FlipForgeTrustDisplay) return window.FlipForgeTrustDisplay.sourceLabel(raw);
+    if (/EBAY/i.test(raw)) return "eBay (reported sale)";
+    if (/^SOLD_COMP/i.test(raw)) return "Reported completed sale";
+    return raw.replace(/card[\s_-]?sight/gi, "our data provider");
+  }
+
   function friendlySourceCell(cell) {
     if (!cell) return;
     const source = cell.querySelector("strong");
     const type = cell.querySelector("small");
-    if (String(source?.textContent || "").trim() === "CARDSIGHT_EBAY") setText(source, "CardSight / eBay");
-    if (String(type?.textContent || "").trim() === "SOLD_COMP") setText(type, "Completed sale");
+    const sourceText = String(source?.textContent || "").trim();
+    if (/^[A-Z0-9_]+$/.test(sourceText) || /card[\s_-]?sight/i.test(sourceText)) {
+      const label = customerSource(sourceText);
+      setText(source, /^our /.test(label) ? `O${label.slice(1)}` : label);
+    }
+    const typeText = String(type?.textContent || "").trim();
+    const code = typeText.split(" · ")[0];
+    if (/^[A-Z0-9_]+$/.test(code) || /card[\s_-]?sight/i.test(code)) {
+      setText(type, [customerSource(code), ...typeText.split(" · ").slice(1)].join(" · "));
+    }
   }
 
   function polishTimeline(main) {

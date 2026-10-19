@@ -22,8 +22,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Validate source-truth terminology and payment-limitation disclosures
+      - name: Validate source-truth terminology and payment-limitation disclosures (also no provider name, no verified or trusted labels, no rewrite tables that add them)
         run: node scripts/validate-source-truth-terminology.mjs
+      - name: Validate customer trust display helpers (saved risk and confidence, legacy results, source wording, withheld prices)
+        run: node scripts/validate-customer-trust-display.mjs
       - name: Install Playwright Chromium
         run: |
           npm install --no-save --no-package-lock playwright@1.55.0

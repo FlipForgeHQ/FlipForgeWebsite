@@ -388,8 +388,13 @@
         : "No selectable exact identity was returned. Add a year, set, player, card number, or parallel and try again.";
     } catch (error) {
       if (requestSerial !== state.identityAssist.requestSerial) return;
-      state.error = error;
-      state.identityAssist.message = "";
+      // With the data provider suspended, identity assist reports unavailable: a neutral state, not an error.
+      if (Number(error?.status) === 503 || /SUSPENDED|PROVIDER_UNAVAILABLE|PROVIDER_EVIDENCE_UNAVAILABLE|CARD_INTELLIGENCE_UNAVAILABLE/i.test(String(error?.code || ""))) {
+        state.identityAssist.message = "Provider evidence is currently unavailable. You can still search with the exact card identity you typed.";
+      } else {
+        state.error = error;
+        state.identityAssist.message = "";
+      }
     } finally {
       if (requestSerial === state.identityAssist.requestSerial) {
         state.identityAssist.busy = false;

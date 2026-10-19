@@ -56,6 +56,17 @@
       && data.smartOpportunityRecalculated === false;
   }
 
+  // With the data provider suspended, identity assist reports unavailable. That is a neutral state, not an error.
+  const PROVIDER_UNAVAILABLE_MESSAGE = "Provider evidence is currently unavailable. You can still type the exact card identity in the form.";
+  function providerUnavailable(error) {
+    const code = String(error?.code || "").toUpperCase();
+    return error?.providerUnavailable === true || Number(error?.status) === 503
+      || /SUSPENDED|PROVIDER_UNAVAILABLE|PROVIDER_EVIDENCE_UNAVAILABLE|CARD_INTELLIGENCE_UNAVAILABLE|UPSTREAM_UNAVAILABLE/.test(code);
+  }
+  function unavailableData(data) {
+    return data && typeof data === "object" && (data.available === false || /SUSPENDED|UNAVAILABLE/i.test(String(data.status || data.providerStatus || "")));
+  }
+
   async function api(path, body) {
     const requestCorrelationId = correlationId();
     const response = await fetch(path, {
@@ -82,6 +93,9 @@
       error.status = response.status;
       throw error;
     }
+    if (payload && payload.data && unavailableData(payload.data)) {
+      throw Object.assign(new Error(PROVIDER_UNAVAILABLE_MESSAGE), { providerUnavailable: true });
+    }
     if (!validEnvelope(payload, requestCorrelationId)) {
       throw new Error("Card intelligence response failed the FlipForge authority boundary.");
     }
@@ -93,7 +107,7 @@
       .filter(Boolean).join(" · ");
     const selectable = row.exactCardCandidate === true && typeof row.selectionToken === "string" && row.selectionToken.length > 0;
     return `<article class="card-intelligence-result">
-      <div><strong>${escapeHtml(row.name || "Unknown card")}</strong><small>${escapeHtml(detail || row.type || "CardSight result")}</small></div>
+      <div><strong>${escapeHtml(row.name || "Unknown card")}</strong><small>${escapeHtml(detail || "Catalog result")}</small></div>
       ${selectable ? `<button class="button button-secondary" type="button" data-card-intelligence-resolve="search" data-result-index="${index}">Use this card</button>` : `<span class="staging-status staging-status-verify">Review</span>`}
     </article>`;
   }
@@ -104,7 +118,7 @@
     const selectable = row.exactCardCandidate === true && typeof row.selectionToken === "string" && row.selectionToken.length > 0;
     const confidence = String(row.confidence || "UNKNOWN").toUpperCase();
     return `<article class="card-intelligence-result">
-      <div><strong>${escapeHtml(row.name || "Detected card")}</strong><small>${escapeHtml(detail || "Identity candidate")}</small><small>CardSight identity confidence: ${escapeHtml(confidence)}</small></div>
+      <div><strong>${escapeHtml(row.name || "Detected card")}</strong><small>${escapeHtml(detail || "Identity candidate")}</small><small>Identity match confidence: ${escapeHtml(confidence)}</small></div>
       ${selectable ? `<button class="button button-secondary" type="button" data-card-intelligence-resolve="photo" data-result-index="${index}">Use this card</button>` : `<span class="staging-status staging-status-verify">Verify identity</span>`}
     </article>`;
   }
@@ -119,7 +133,7 @@
     const message = state.message ? `<div class="card-intelligence-message" role="status">${escapeHtml(state.message)}</div>` : "";
 
     state.panel.innerHTML = `<div class="card-intelligence-heading">
-        <div><span class="eyebrow">CardSight identity assist · Preview</span><strong>Find the exact card faster</strong><small>Search by card details or upload a photo. This assists identity only; Smart Opportunity still makes the decision.</small></div>
+        <div><span class="eyebrow">Card identity assist · Preview</span><strong>Find the exact card faster</strong><small>Search by card details or upload a photo. This assists identity only; Smart Opportunity still makes the decision.</small></div>
       </div>
       <div class="card-intelligence-tabs" role="tablist" aria-label="Card identity method">
         <button type="button" class="button ${state.mode === "search" ? "button-primary" : "button-secondary"}" data-card-intelligence-mode="search">Search Card</button>
@@ -128,11 +142,11 @@
       ${state.mode === "search" ? `<form data-card-intelligence-search class="card-intelligence-search">
         <label><span>Player, year, set, card number, or parallel</span><div class="card-intelligence-inline"><input type="search" name="query" maxlength="300" required placeholder="2018 Topps Update Shohei Ohtani US1"><button type="submit" class="button button-secondary"${state.busy ? " disabled" : ""}>${state.busy ? "Searching…" : "Find card"}</button></div></label>
       </form>` : `<form data-card-intelligence-photo class="card-intelligence-photo">
-        <label><span>Card photo</span><input type="file" name="cardPhoto" accept="image/jpeg,image/png,image/webp" required><small>JPEG, PNG, or WebP · maximum 4 MB. The image is sent only to the authenticated server route for CardSight detection/identification.</small></label>
+        <label><span>Card photo</span><input type="file" name="cardPhoto" accept="image/jpeg,image/png,image/webp" required><small>JPEG, PNG, or WebP · maximum 4 MB. The image is sent only to FlipForge's authenticated server route for card detection and identification.</small></label>
         <button type="submit" class="button button-secondary"${state.busy ? " disabled" : ""}>${state.busy ? "Identifying…" : "Identify card"}</button>
       </form>`}
       ${error}${message}${resultMarkup}
-      <div class="boundary-note"><strong>Identity boundary:</strong> Provider IDs and raw CardSight responses stay server-side. Selecting a result only fills the exact-card identity field; it does not accept evidence, predict a grade, recalculate Smart Opportunity, or authorize a transaction.</div>`;
+      <div class="boundary-note"><strong>Identity boundary:</strong> Provider IDs and raw data-provider responses stay server-side. Selecting a result only fills the exact-card identity field; it does not accept evidence, predict a grade, recalculate Smart Opportunity, or authorize a transaction.</div>`;
     bindPanel();
   }
 
@@ -153,9 +167,10 @@
     try {
       const data = await api(SEARCH_PATH, { query: String(query || "").trim(), limit: 12 });
       state.searchResults = Array.isArray(data.results) ? data.results : [];
-      state.message = state.searchResults.length ? `${state.searchResults.length} CardSight result${state.searchResults.length === 1 ? "" : "s"} found.` : "No CardSight matches were returned.";
+      state.message = state.searchResults.length ? `${state.searchResults.length} catalog result${state.searchResults.length === 1 ? "" : "s"} found.` : "No catalog matches were returned.";
     } catch (error) {
-      state.error = error.message || "Card search is unavailable.";
+      if (providerUnavailable(error)) state.message = PROVIDER_UNAVAILABLE_MESSAGE;
+      else state.error = error.message || "Card search is unavailable.";
     } finally {
       state.busy = false;
       renderPanel();
@@ -198,9 +213,10 @@
       state.photoCandidates = Array.isArray(data.candidates) ? data.candidates : [];
       state.message = state.photoCandidates.length
         ? `${state.photoCandidates.length} identity candidate${state.photoCandidates.length === 1 ? "" : "s"} returned.`
-        : "A card was detected, but CardSight did not return an exact identity candidate.";
+        : "A card was detected, but no exact identity candidate was returned.";
     } catch (error) {
-      state.error = error.message || "Photo identification is unavailable.";
+      if (providerUnavailable(error)) state.message = PROVIDER_UNAVAILABLE_MESSAGE;
+      else state.error = error.message || "Photo identification is unavailable.";
     } finally {
       state.busy = false;
       renderPanel();
@@ -226,11 +242,12 @@
       identityField.dispatchEvent(new Event("input", { bubbles: true }));
       identityField.dispatchEvent(new Event("change", { bubbles: true }));
       state.message = data.highConfidence === true
-        ? "Exact CardSight identity verified and copied into the evaluation form."
+        ? "Exact catalog identity matched and copied into the evaluation form."
         : "Catalog identity resolved and copied into the form. Review it before evaluation.";
       identityField.focus({ preventScroll: false });
     } catch (error) {
-      state.error = error.message || "The selected card could not be resolved.";
+      if (providerUnavailable(error)) state.message = PROVIDER_UNAVAILABLE_MESSAGE;
+      else state.error = error.message || "The selected card could not be resolved.";
     } finally {
       state.busy = false;
       renderPanel();
@@ -253,7 +270,8 @@
       if (!state.busy) {
         const input = photoForm.querySelector('input[name="cardPhoto"]');
         identify(input && input.files ? input.files[0] : null).catch(error => {
-          state.error = error.message || "Photo identification is unavailable.";
+          if (providerUnavailable(error)) state.message = PROVIDER_UNAVAILABLE_MESSAGE;
+          else state.error = error.message || "Photo identification is unavailable.";
           state.busy = false;
           renderPanel();
         });

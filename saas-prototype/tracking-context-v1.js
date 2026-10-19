@@ -65,6 +65,25 @@
     }
   }
 
+  // Advanced analysis links (PSA Advisor, Evidence, Audit Export) follow the card in view, the same way the Tracking
+  // link does: on a page for one saved card they open that card instead of the first card in the list. Elsewhere they
+  // stay generic, and each page then prefers the remembered active card if this tenant still has it.
+  const ADVANCED_CARD_ROUTES = ["psa-advisor", "evidence", "export"];
+  const CARD_CONTEXT_ROUTES = ["opportunities", "evidence", "tracking", "psa-advisor", "export"];
+
+  function keepAdvancedNavInContext() {
+    const [route, rawId = ""] = routeParts();
+    const id = CARD_CONTEXT_ROUTES.includes(route) && SAFE_ID.test(rawId) ? rawId : "";
+    for (const target of ADVANCED_CARD_ROUTES) {
+      const nav = document.querySelector(`.ff-advanced-nav [data-route="${target}"]`);
+      if (!nav) continue;
+      const href = id ? `#/${target}/${encodeURIComponent(id)}` : `#/${target}`;
+      if (nav.getAttribute("href") !== href) nav.setAttribute("href", href);
+      if (id) nav.dataset.ffCardContext = id;
+      else delete nav.dataset.ffCardContext;
+    }
+  }
+
   function restoreGenericTrackingRoute() {
     const [route, id = ""] = routeParts();
     if (route !== "tracking" || id) return false;
@@ -178,6 +197,7 @@
   function sync() {
     queued = false;
     keepTrackingNavInContext();
+    keepAdvancedNavInContext();
     if (restoreGenericTrackingRoute()) return;
     const main = document.querySelector(MAIN);
     verifyExactTracking(main);

@@ -27,6 +27,7 @@
   }
 
   function money(value) {
+    if (value === null || value === undefined || value === "") return "Unavailable";
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return "Unavailable";
     return new Intl.NumberFormat("en-US", {
@@ -73,15 +74,40 @@
     return codes ? `${STATUS[status].meaning} (${codes})` : STATUS[status].meaning;
   }
 
+  // Shared table (customer-trust-display-v1.js): customer source wording, and no blank, "undefined" or "$0" cells when
+  // the API withholds individual sale prices or dates.
+  function sharedTable(items, options) {
+    return window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.evidenceTable(items, options) : "";
+  }
+
   function trustedTable(items) {
     if (!items.length) {
       return '<div class="staging-empty"><strong>No sales are counted towards the current price.</strong><p>FlipForge will not substitute candidate or historically linked rows.</p></div>';
     }
+    const shared = sharedTable(items, {
+      tableAttributes: "data-ff-trusted-evidence-table",
+      sourceSuffix: "provider-reported",
+      identityHeading: "Identity key",
+      statusHeading: "Current status",
+      identityCell: item => item.identityMatch === true ? badge("Identity key match", "ok") : badge("Identity key differs", "warn"),
+      statusCell: () => badge(STATUS.ADMITTED.label, STATUS.ADMITTED.tone)
+    });
+    if (shared) return shared;
     return `<div class="table-wrap"><table data-ff-trusted-evidence-table><thead><tr><th>Source</th><th>Amount</th><th>Sale date</th><th>Identity key</th><th>Current status</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")} · provider-reported</small></td><td>${money(item.amount)}</td><td>${escapeHtml(dateOnly(item.soldAt || item.recordedAt))}</td><td>${item.identityMatch === true ? badge("Identity key match", "ok") : badge("Identity key differs", "warn")}</td><td>${badge(STATUS.ADMITTED.label, STATUS.ADMITTED.tone)}</td></tr>`).join("")}</tbody></table></div>`;
   }
 
   function notCountedTable(items, status) {
     const info = STATUS[status];
+    const shared = sharedTable(items, {
+      tableAttributes: `data-ff-excluded-evidence-table data-ff-status-table="${escapeHtml(status)}"`,
+      identityHeading: "Identity key",
+      statusHeading: "Why",
+      identityCell: item => item.identityMatch === true ? badge("Identity key match", "neutral") : badge("Identity key differs", "warn"),
+      statusCell: item => `${badge(info.label, info.tone)}<small>${escapeHtml(reasonText(item, status))}</small>`
+    });
+    if (shared) {
+      return `<div class="ff-evidence-status-group" data-ff-evidence-status="${escapeHtml(status)}"><h3>${escapeHtml(info.label)} <span>${items.length}</span></h3><p>${escapeHtml(info.meaning)}</p>${shared}</div>`;
+    }
     return `<div class="ff-evidence-status-group" data-ff-evidence-status="${escapeHtml(status)}"><h3>${escapeHtml(info.label)} <span>${items.length}</span></h3><p>${escapeHtml(info.meaning)}</p><div class="table-wrap"><table data-ff-excluded-evidence-table data-ff-status-table="${escapeHtml(status)}"><thead><tr><th>Source</th><th>Amount</th><th>Sale date</th><th>Identity key</th><th>Why</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")}</small></td><td>${money(item.amount)}</td><td>${escapeHtml(dateOnly(item.soldAt || item.recordedAt))}</td><td>${item.identityMatch === true ? badge("Identity key match", "neutral") : badge("Identity key differs", "warn")}</td><td>${badge(info.label, info.tone)}<small>${escapeHtml(reasonText(item, status))}</small></td></tr>`).join("")}</tbody></table></div></div>`;
   }
 
@@ -95,6 +121,13 @@
 
   function decisionTimeMarkup(decision) {
     if (!decision || decision.available !== true) return "";
+    // A legacy decision (saved before current evidence rules) has no current supported value; the value it was saved
+    // with is shown only as "Saved value at the time (legacy)".
+    const display = window.FlipForgeTrustDisplay;
+    if (display?.isLegacy(decision)) {
+      const saved = display.legacySavedValues(decision);
+      return `<section class="panel ff-evidence-decision-time" data-ff-decision-time-section><header class="panel-header"><div><h2>The saved decision</h2><p>Recorded when this decision was saved. Later evidence-rule changes never rewrite it.</p>${display.legacyMarkup(decision)}</div></header><div class="panel-body"><div class="ff-evidence-decision-time-grid"><article><span>Recommendation (historical)</span><strong>${escapeHtml(String(decision.recommendation || "Unavailable"))}</strong></article><article><span>Ask at the time</span><strong>${money(decision.askPrice)}</strong></article><article><span>Saved value at the time (legacy)</span><strong>${saved.supported === null ? "Unavailable" : money(saved.supported)}</strong></article><article><span>Sales behind it</span><strong>${escapeHtml(String(decision.salesCountAtDecision ?? "Unavailable"))}</strong></article><article><span>Decision saved</span><strong>${escapeHtml(dateOnly(decision.evaluatedAt))}</strong></article></div></div></section>`;
+    }
     return `<section class="panel ff-evidence-decision-time" data-ff-decision-time-section><header class="panel-header"><div><h2>The saved decision</h2><p>Recorded when this decision was saved. Later evidence-rule changes never rewrite it.</p></div></header><div class="panel-body"><div class="ff-evidence-decision-time-grid"><article><span>Recommendation</span><strong>${escapeHtml(String(decision.recommendation || "Unavailable"))}</strong></article><article><span>Ask at the time</span><strong>${money(decision.askPrice)}</strong></article><article><span>Supported value at the time</span><strong>${money(decision.supportedValue)}</strong></article><article><span>Sales behind it</span><strong>${escapeHtml(String(decision.salesCountAtDecision ?? "Unavailable"))}</strong></article><article><span>Decision saved</span><strong>${escapeHtml(dateOnly(decision.evaluatedAt))}</strong></article></div></div></section>`;
   }
 
@@ -129,16 +162,31 @@
       (groups[status] || groups.NOT_REPORTED).push(item);
     }
     const reported = data.currentAdmission && typeof data.currentAdmission === "object" ? data.currentAdmission : null;
+    // New API: rows from our data provider are counted but never listed (no price, date or link leaves the server);
+    // providerEvidenceSummary carries their counts and reasons. Listed rows are checked against the counts without them.
+    const provider = window.FlipForgeTrustDisplay?.providerSummary(data) || null;
+    const providerAdmitted = provider ? provider.admitted : 0;
+    const providerNotCounted = provider ? provider.notCounted : 0;
+    const listedTrustedCount = trustedCount - providerAdmitted;
+    const listedExcludedCount = excludedCount - providerNotCounted;
+    const reportedConsistent = !reported || (provider
+      ? Number(reported.admitted) - providerAdmitted === trusted.length
+        && Number(reported.excluded) >= groups.EXCLUDED.length
+        && Number(reported.held) >= groups.HELD.length
+        && Number(reported.notUsed) >= groups.NOT_USED.length
+        && Number(reported.excluded) + Number(reported.held) + Number(reported.notUsed) - providerNotCounted
+          === groups.EXCLUDED.length + groups.HELD.length + groups.NOT_USED.length + groups.NOT_REPORTED.length
+      : Number(reported.admitted) === trusted.length
+        && Number(reported.excluded) === groups.EXCLUDED.length
+        && Number(reported.held) === groups.HELD.length
+        && Number(reported.notUsed) === groups.NOT_USED.length);
 
     if (!Number.isFinite(trustedCount)
         || !Number.isFinite(excludedCount)
-        || trusted.length !== trustedCount
-        || excluded.length !== excludedCount
+        || trusted.length !== listedTrustedCount
+        || excluded.length !== listedExcludedCount
         || trusted.some(item => statusOf(item) !== "ADMITTED")
-        || (reported && (Number(reported.admitted) !== trusted.length
-          || Number(reported.excluded) !== groups.EXCLUDED.length
-          || Number(reported.held) !== groups.HELD.length
-          || Number(reported.notUsed) !== groups.NOT_USED.length))) {
+        || !reportedConsistent) {
       failClosed(page);
       return;
     }
@@ -148,9 +196,15 @@
     const trustedCopy = trustedSection.querySelector(".panel-header p");
     const trustedBody = trustedSection.querySelector(".panel-body");
     if (trustedCopy) {
-      trustedCopy.textContent = `${trustedCount} exact completed sale${trustedCount === 1 ? " is" : "s are"} counted under today's evidence rules. Sale prices are reported by our data provider and have not been independently confirmed. FlipForge matches each sale to the exact card but does not confirm payment or settlement.`;
+      // The API's own price-status label describes price support when it is returned.
+      const priceStatus = window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.priceStatusLabel(data) : "";
+      const priceCopy = priceStatus ? `${priceStatus.replace(/\.$/, "")}.` : "Sale prices are reported by our data provider and have not been independently confirmed.";
+      trustedCopy.textContent = `${trustedCount} exact completed sale${trustedCount === 1 ? " is" : "s are"} counted under today's evidence rules. ${priceCopy} FlipForge matches each sale to the exact card but does not confirm payment or settlement.`;
     }
-    if (trustedBody) trustedBody.innerHTML = trustedTable(trusted);
+    const providerMarkup = window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.providerSummaryMarkup(data) : "";
+    // The provider summary sits with the counted rows when some of its rows count now, otherwise with the rows not counted.
+    const providerWithCounted = Boolean(providerMarkup) && providerAdmitted > 0;
+    if (trustedBody) trustedBody.innerHTML = `${providerWithCounted ? providerMarkup : ""}${trusted.length || !providerWithCounted ? trustedTable(trusted) : ""}`;
     trustedSection.dataset.ffTrustedOnly = "true";
 
     let decisionSection = page.querySelector("[data-ff-decision-time-section]");
@@ -172,7 +226,9 @@
     }
     const summary = NOT_COUNTED_ORDER.filter(status => groups[status].length)
       .map(status => `${groups[status].length} ${STATUS[status].label.toLowerCase()}`).join(" · ");
-    excludedSection.innerHTML = `<header class="panel-header"><div><h2>What FlipForge did not count — and why</h2><p>${excludedCount} linked row${excludedCount === 1 ? " is" : "s are"} visible for transparency but not counted now${summary ? ` (${escapeHtml(summary)})` : ""}. Only rows marked Excluded were checked and failed a rule.</p></div></header><div class="panel-body">${notCountedMarkup(groups)}</div>`;
+    // Rows from our data provider appear only as counts and reasons, never as an empty sale table.
+    const listedNotCounted = NOT_COUNTED_ORDER.some(status => groups[status].length);
+    excludedSection.innerHTML = `<header class="panel-header"><div><h2>What FlipForge did not count — and why</h2><p>${excludedCount} linked row${excludedCount === 1 ? " is" : "s are"} visible for transparency but not counted now${summary ? ` (${escapeHtml(summary)})` : ""}. Only rows marked Excluded were checked and failed a rule.</p></div></header><div class="panel-body">${providerWithCounted ? "" : providerMarkup}${listedNotCounted || !providerMarkup || providerWithCounted ? notCountedMarkup(groups) : ""}</div>`;
 
     page.dataset.ffEvidenceAuthoritySplit = "true";
   }

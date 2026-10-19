@@ -40,7 +40,9 @@ const checks = [
   ["first-value layer uses the same BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => firstValue.includes(value))],
   ["decision clarity follows decision value risk why evidence hierarchy", ["Why FlipForge says", "Supported value", "Risk", "View evidence", "Decision details"].every(value => clarity.includes(value))],
   ["raw Card Intelligence metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, market factors and rank")],
-  ["final decision risk is distinguished from the market risk factor", ["Decision risk", "Market risk factor", "final saved decision risk"].every(value => clarity.includes(value))],
+  // The saved decision risk is distinguished from the market risk factor, without calling it "final" (2026-10-19).
+  ["saved decision risk is distinguished from the market risk factor", ["Decision risk", "Market risk factor", "saved decision risk"].every(value => clarity.includes(value)) && !clarity.includes("final saved decision risk")],
+  ["decision risk is read from the saved record, never scraped from page text", clarity.includes("window.FlipForgeTrustDisplay.riskValue(record)") && !clarity.includes('replace(/[^0-9.]/g, "")')],
   ["Evaluate is reduced to card cost decision first-value flow", ["Card & listing", "All-in cost", "Confirm & evaluate", "Get FlipForge decision"].every(value => firstValue.includes(value)) && !firstValue.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow")],
   ["Evaluate result leads with decision supported value cost risk why and next action", ["Your FlipForge decision", "Supported value", "All-in cost", "Risk", "Why", "What to do next"].every(value => firstValue.includes(value))],
   ["Evaluate raw result detail is progressively disclosed", firstValue.includes("data-ff-evaluate-result-details") && firstValue.includes("Raw scores, workflow status, requirements and authority notes")],

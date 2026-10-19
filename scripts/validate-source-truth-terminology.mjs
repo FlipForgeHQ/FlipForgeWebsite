@@ -15,6 +15,7 @@
 // not scanned as claims.
 import fs from "node:fs";
 import path from "node:path";
+import { extractStringFragments } from "./lib/js-string-fragments.mjs";
 
 const ROOT = process.cwd();
 
@@ -144,6 +145,127 @@ check("evaluation evidence panel states the payment limitation", disclosure.test
 check("Collection alerts state the payment limitation", disclosure.test(read("saas-prototype/collection-intelligence-alerts-v1.js")));
 check("Collection alerts never show the stored VERIFIED state as a claim",
   read("saas-prototype/collection-intelligence-alerts-v1.js").includes('replace(/\\bVERIFIED\\b/g, "Strong (reported sales)")'));
+
+// 4. The data provider is never named to customers, and no customer-readable string (including runtime text
+//    replacement tables) calls reported sales or saved evidence verified, confirmed or trusted.
+//    JS: only string literals and template text are customer text; comments, identifiers, regular expressions, CSS
+//    classes, data attributes and all-caps enum codes compared against API data are internal. HTML: comments,
+//    scripts, styles and non-visible attributes are internal; text and visible attributes (alt, title, aria-label,
+//    placeholder, meta content) are customer text.
+const PROVIDER_WORD = /[A-Za-z0-9_-]*card[\s_-]?sight[A-Za-z0-9_-]*/gi;
+export function providerNameIn(fragment) {
+  const text = String(fragment ?? "");
+  for (const match of text.matchAll(PROVIDER_WORD)) {
+    const token = match[0];
+    // Internal: a CSS class, data attribute or selector (cardsight-evidence-panel), an enum code (CARDSIGHT_EBAY),
+    // or a string that is nothing but a lookup key ("CARDSIGHT").
+    if (/[-_]/.test(token.replace(/card[\s_-]?sight/i, "")) || /^card[_-]sight/i.test(token) && /[-_]/.test(token)) continue;
+    if (text.trim() === token && /^[A-Z0-9_]+$/.test(token)) continue;
+    return token;
+  }
+  return "";
+}
+
+const TRUST_LABEL = /^(?:Verified|VERIFIED|Trusted|TRUSTED|TRUSTED NOW|Trusted now|Verified evidence|Server-verified)$/;
+const TRUST_WORDING = [
+  /\bverified\s+(?:evidence|exact\s+identity|exact\s+card)\b/i,
+  /\btrusted\s+now\b/i,
+  /\bwhat\s+flipforge\s+trusted\b/i
+];
+export function trustWordingIn(fragment) {
+  const text = String(fragment ?? "").trim();
+  if (TRUST_LABEL.test(text)) return text;
+  const claim = firstProhibitedClaim(text);
+  if (claim) return claim;
+  for (const pattern of TRUST_WORDING) {
+    const match = text.match(pattern);
+    if (match) return match[0];
+  }
+  return "";
+}
+
+// A runtime replacement (a pair in a *REPLACEMENTS table, a .replace/.replaceAll/replaceText target) must not
+// introduce the words. Pairs are read only inside replacement tables; other two-string arrays are data, not rewrites.
+const INTRODUCED = /\b(?:verified|confirmed|trusted|trustworthy)\b/i;
+const STRING = String.raw`(?:"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|\x60(?:[^\x60\\]|\\.)*\x60)`;
+const PAIR = new RegExp(String.raw`\[\s*(${STRING})\s*,\s*(${STRING})\s*\]`, "g");
+const REPLACE_CALL = new RegExp(String.raw`\b(?:replace|replaceAll|replaceText)\s*\(([^;]*?),\s*(${STRING})\s*\)`, "g");
+const unquote = literal => literal.slice(1, -1);
+export function introducedTrustWords(source) {
+  const found = [];
+  const tables = [...String(source).matchAll(/\b(?:const|let|var)\s+[A-Za-z_$]*(?:REPLACEMENTS|Replacements|replacements)\s*=\s*\[([\s\S]*?)\n\s*\];/g)].map(match => match[1]).join("\n");
+  for (const match of tables.matchAll(PAIR)) {
+    const from = unquote(match[1]);
+    const to = unquote(match[2]);
+    if (INTRODUCED.test(to) && !INTRODUCED.test(from)) found.push(`["${from}", "${to}"]`);
+  }
+  for (const match of String(source).matchAll(REPLACE_CALL)) {
+    const to = unquote(match[2]);
+    if (!INTRODUCED.test(to)) continue;
+    const from = match[1].match(new RegExp(STRING, "g"))?.map(unquote).join(" ") || match[1];
+    if (!INTRODUCED.test(from)) found.push(`replace(..., "${to}")`);
+  }
+  return found;
+}
+
+function htmlCustomerText(html) {
+  const visible = [];
+  const stripped = String(html)
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, (_, code) => { for (const fragment of extractStringFragments(code)) visible.push(fragment.text); return " "; })
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, tag => {
+      for (const attr of tag.matchAll(/\s(?:alt|title|aria-label|placeholder|content|value)\s*=\s*("([^"]*)"|'([^']*)')/gi)) visible.push(attr[2] ?? attr[3] ?? "");
+      return " ";
+    });
+  return [stripped, ...visible];
+}
+
+// 4a. The fragment rules keep internal names legal and catch customer wording.
+for (const internal of ["CARDSIGHT", "CARDSIGHT_EBAY", "cardsight-evidence-panel", '<section class="panel cardsight-evidence-panel" data-cardsight-evidence-panel>', "[data-cardsight-evidence-panel]"]) {
+  check(`internal provider identifier stays legal: ${internal}`, providerNameIn(internal) === "");
+}
+for (const visible of ["CardSight sold evidence", "Saved CardSight accepted sales", "No CardSight matches were returned.", "Card Sight", "cardsight", "CARDSIGHT returned rows"]) {
+  check(`customer provider name is caught: ${visible}`, providerNameIn(visible) !== "");
+}
+for (const label of ["Verified", "Verified evidence", "TRUSTED NOW", "What FlipForge trusted", "Verified exact identity"]) {
+  check(`trust label is caught: ${label}`, trustWordingIn(label) !== "");
+}
+check("replacement pair introducing \"Verified\" is caught", introducedTrustWords('const COPY_REPLACEMENTS = [\n  ["Server-owned", "Verified"]\n];').length === 1);
+check("replacement call introducing \"verified\" is caught", introducedTrustWords('x.replace(/server-owned/g, "verified");').length === 1);
+check("replacement keeping an existing word is legal", introducedTrustWords('["Not confirmed", "Identity not confirmed"]').length === 0);
+
+// 4b. Scan every customer-visible source.
+const providerViolations = [];
+const trustViolations = [];
+const replacementViolations = [];
+for (const rel of files) {
+  const source = read(rel);
+  const ext = path.extname(rel);
+  if (ext === ".js") {
+    const legacy = LEGACY_LOOKUP_LABELS[rel] || [];
+    for (const fragment of extractStringFragments(source)) {
+      const provider = providerNameIn(fragment.text);
+      if (provider) providerViolations.push(`${rel}:${fragment.line} names "${provider}"`);
+      if (legacy.includes(fragment.text)) continue; // read-only lookup labels, checked in 2b
+      const trust = trustWordingIn(fragment.text);
+      if (trust) trustViolations.push(`${rel}:${fragment.line} says "${trust}"`);
+    }
+    for (const pair of introducedTrustWords(source)) replacementViolations.push(`${rel}: ${pair}`);
+  } else if (ext === ".html") {
+    for (const text of htmlCustomerText(source)) {
+      const provider = providerNameIn(text);
+      if (provider) providerViolations.push(`${rel} names "${provider}"`);
+    }
+  } else {
+    const provider = providerNameIn(source);
+    if (provider) providerViolations.push(`${rel} names "${provider}"`);
+  }
+}
+check("no customer-readable text names the data provider (CardSight)", providerViolations.length === 0);
+check("no customer-readable string labels identity, evidence or sales as verified or trusted", trustViolations.length === 0);
+check("no runtime text replacement introduces verified, confirmed or trusted wording", replacementViolations.length === 0);
+violations.push(...providerViolations, ...trustViolations, ...replacementViolations);
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);

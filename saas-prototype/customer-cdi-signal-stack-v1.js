@@ -274,8 +274,12 @@
   }
 
   function stackMarkup(decision, model) {
-    const verdict = VERDICTS[decision] || VERDICTS.UNKNOWN;
-    const reason = model.reason || verdict.reason;
+    // A legacy result (saved before current evidence rules) keeps its saved recommendation visible as historical and
+    // never gets current-support copy such as "Buy looks supported".
+    const verdict = model.legacy
+      ? { title: "Saved " + decision + " (historical)", reason: window.FlipForgeTrustDisplay?.LEGACY_HISTORICAL || "It is not presented as currently supported." }
+      : (VERDICTS[decision] || VERDICTS.UNKNOWN);
+    const reason = model.legacy ? verdict.reason : (model.reason || verdict.reason);
     return '<section class="ff-cdi-stack" data-ff-cdi-stack data-decision="' + escapeHtml(decision) + '">' +
       '<header class="ff-cdi-verdict">' +
         '<div class="ff-cdi-verdict-copy">' +
@@ -335,7 +339,8 @@
     if (!model) return;
 
     const decision = decisionValue(root, mode);
-    const signature = JSON.stringify([decision, model.identity, model.reason, model.evidenceHref, model.signals]);
+    model.legacy = Boolean((mode === "decision-intelligence" ? model.command : root).querySelector("[data-ff-legacy-result]"));
+    const signature = JSON.stringify([decision, model.legacy, model.identity, model.reason, model.evidenceHref, model.signals]);
     let stack = root.querySelector(":scope > [data-ff-cdi-stack-host]");
     if (!stack) {
       const anchor = mode === "decision-intelligence"
