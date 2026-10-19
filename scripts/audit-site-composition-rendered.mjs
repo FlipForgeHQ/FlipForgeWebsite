@@ -179,12 +179,20 @@ try{
     if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='WATCH')failures.push('homepage: reset restores illustrative WATCH');
     await page.locator('.ffdemo-why summary').click();
     if(!await page.locator('.ffdemo-why').evaluate(el=>el.open))failures.push('homepage: rationale details must be expandable');
-    const actions=page.locator('.desktop-nav .ffdemo-nav-actions');
-    if(await actions.count()){
-      const sign=await actions.locator('.ffdemo-sign-in').boundingBox();
-      const beta=await actions.locator('.ffdemo-join').boundingBox();
-      if(!sign||!beta||Math.abs(beta.x-(sign.x+sign.width))>24)failures.push('homepage desktop: Sign In not adjacent to Beta Access');
-    }else failures.push('homepage desktop: Sign In and Beta Access not grouped');
+    const navStatus=await page.evaluate(()=>{
+      const group=document.querySelector('.ffdemo-nav-actions');
+      const sign=group?.querySelector('.ffdemo-sign-in');
+      const beta=group?.querySelector('.ffdemo-join');
+      const rect=el=>el?el.getBoundingClientRect():null;
+      const a=rect(sign),b=rect(beta);
+      return { grouped:Boolean(group&&sign&&beta&&group.closest('nav.desktop-nav')),
+        gap:a&&b?Number((b.left-a.right).toFixed(1)):null,
+        labels:[sign?.textContent?.trim(),beta?.textContent?.trim()],
+        header:document.querySelector('.site-header')?.outerHTML?.slice(0,950) };
+    });
+    if(!navStatus.grouped||navStatus.gap==null||navStatus.gap<0||navStatus.gap>24){
+      failures.push('homepage desktop: Sign In and Beta Access must sit together in the desktop header '+JSON.stringify(navStatus));
+    }
   }else failures.push('homepage: interactive Max Buy demo or slider missing');
   await context.close();
 
