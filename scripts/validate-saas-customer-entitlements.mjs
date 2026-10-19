@@ -44,6 +44,8 @@ const correlationId = "customer-entitlements-validation";
 
 try {
   process.env.FLIPFORGE_API_BRIDGE_ENABLED = "true";
+  // Deterministic approved backend generation for this synthetic fixture only.
+  process.env.FLIPFORGE_APPROVED_BACKEND_COMMITS = "a".repeat(40);
   process.env.FLIPFORGE_API_BASE_URL = "https://private-backend.invalid";
   process.env.FLIPFORGE_API_SERVICE_TOKEN = serviceToken;
   process.env.CONTEXT = "deploy-preview";
@@ -54,6 +56,8 @@ try {
     const requestCorrelation = options?.headers?.["X-Correlation-Id"];
     const payload = {
       meta: {
+        runtimeBuildCommit: "a".repeat(40),
+        runtimeBuildCommitVerified: true,
         contractVersion: "1.0",
         engineVersion: "SmartOpportunity+entitlement-v15.11",
         authority: "Smart Opportunity",
