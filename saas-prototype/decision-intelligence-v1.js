@@ -73,6 +73,32 @@
     return currency.format(safeNumber(value));
   }
 
+  // Scores exactly as saved: null when the API returned none (never 0). Risk prefers the governed decision's risk,
+  // the same value the card, list and compare pages show.
+  function scoreOrNull(value) {
+    if (value === null || value === undefined || value === "" || typeof value === "boolean") return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function savedRisk(item) {
+    const trust = window.FlipForgeTrustDisplay;
+    if (trust && typeof trust.riskValue === "function") return trust.riskValue(item);
+    const governedRisk = scoreOrNull(item?.governedDecision?.risk);
+    return governedRisk !== null ? governedRisk : scoreOrNull(item?.risk);
+  }
+
+  function savedConfidence(item) {
+    const trust = window.FlipForgeTrustDisplay;
+    if (trust && typeof trust.confidenceValue === "function") return trust.confidenceValue(item);
+    return scoreOrNull(item?.confidence);
+  }
+
+  function scoreLabel(value) {
+    const parsed = scoreOrNull(value);
+    return parsed === null ? "Unavailable" : `${parsed}/100`;
+  }
+
   function moneyOrUnavailable(value, available = true) {
     return available ? money(value) : "Unavailable";
   }
@@ -180,9 +206,9 @@
       ask: safeNumber(item?.ask),
       supported: supportedValue,
       supportedAvailable,
-      confidence: safeNumber(item?.confidence),
-      liquidity: safeNumber(item?.liquidity),
-      risk: safeNumber(item?.risk),
+      confidence: savedConfidence(item),
+      liquidity: scoreOrNull(item?.liquidity),
+      risk: savedRisk(item),
       rank: safeNumber(item?.rank),
       evidence: acceptedSales,
       identity: item?.cardIdentity ? "Saved exact identity" : "Unavailable",
@@ -248,8 +274,8 @@
     ];
     return `<div class="ff-di-factor-list">${factors.map(([label, value, color]) => `
       <div class="ff-di-factor">
-        <div class="ff-di-factor-head"><span>${escapeHtml(label)}</span><strong>${safeNumber(value)}/100</strong></div>
-        <div class="ff-di-track"><span style="--ff-width:${Math.max(0, Math.min(100, safeNumber(value)))}%;--ff-color:${color}"></span></div>
+        <div class="ff-di-factor-head"><span>${escapeHtml(label)}</span><strong>${escapeHtml(scoreLabel(value))}</strong></div>
+        <div class="ff-di-track"${scoreOrNull(value) === null ? ' data-unavailable="true"' : ""}><span style="--ff-width:${scoreOrNull(value) === null ? 0 : Math.max(0, Math.min(100, scoreOrNull(value)))}%;--ff-color:${color}"></span></div>
       </div>`).join("")}</div>`;
   }
 
@@ -353,9 +379,9 @@
         <div><span>Ask</span><strong>${money(row.ask)}</strong></div>
         <div><span>Supported</span><strong>${moneyOrUnavailable(row.supported, row.supportedAvailable)}</strong></div>
         <div><span>Value gap</span><strong>${row.supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)}` : "Withheld"}</strong></div>
-        <div><span>Confidence</span><strong>${safeNumber(row.confidence)}/100</strong></div>
-        <div><span>Liquidity</span><strong>${safeNumber(row.liquidity)}/100</strong></div>
-        <div><span>Risk</span><strong>${safeNumber(row.risk)}/100</strong></div>
+        <div><span>Confidence</span><strong>${escapeHtml(scoreLabel(row.confidence))}</strong></div>
+        <div><span>Liquidity</span><strong>${escapeHtml(scoreLabel(row.liquidity))}</strong></div>
+        <div><span>Risk</span><strong>${escapeHtml(scoreLabel(row.risk))}</strong></div>
         <div><span>Evidence</span><strong>${safeNumber(row.evidence)}</strong></div>
         <div><span>Identity</span><strong>${escapeHtml(row.cardIdentity ? "Saved" : "Unavailable")}</strong></div>
       </div>

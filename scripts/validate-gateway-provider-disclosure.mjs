@@ -103,6 +103,9 @@ const fixtures = {
     }]
   }),
   "/api/v1/evaluations": () => ({
+    semanticReplay: true,
+    decision: { recommendation: "BUY", exactTrustedCompCount: 1, supportedValueCents: 9800 },
+    profitability: { maximumBuyPriceCents: 8100, expectedNetProfitCents: 900, exactTrustedCompCount: 1 },
     evidenceEnrichment: {
       provider: "CARDSIGHT", message: "CardSight historical pricing is not connected.",
       ledgerProjectionMessage: "0 governed CardSight completed sale(s) projected; status CARDSIGHT_SUSPENDED_V1."
@@ -118,8 +121,8 @@ const limitations = ["CardSight sale evidence is governed.", "Status CARDSIGHT_S
 for (const strict of [true, false]) {
   for (const [route, data] of Object.entries(fixtures)) {
     const result = filter.filterBackendPayload(envelope("cid", OLD_COMMIT, data(), limitations), { path: route, strict });
-    if (strict && route === "/api/v1/portfolio") {
-      check("strict /api/v1/portfolio: withheld entirely", result.ok === false && result.withheld === true);
+    if (strict && (route === "/api/v1/portfolio" || route.startsWith("/api/v1/evidence/"))) {
+      check(`strict ${route}: withheld entirely`, result.ok === false && result.withheld === true);
       continue;
     }
     check(`${strict ? "strict" : "standard"} ${route}: filter accepts envelope`, result.ok);
@@ -196,6 +199,17 @@ for (const strict of [true, false]) {
   check("filter is idempotent on sanitized payloads", JSON.stringify(twice.data) === JSON.stringify(already.data));
   check("meta names the gateway filter", twice.meta.gatewayDisclosureFilter === filter.VERSION);
   check("limitations neutral", twice.meta.limitations === undefined || twice.meta.limitations.every(l => !/card\s*sight/i.test(l)));
+}
+
+{
+  const strictEval = filter.filterBackendPayload(envelope("cid", OLD_COMMIT, fixtures["/api/v1/evaluations"]()),
+    { path: "/api/v1/evaluations", strict: true }).payload.data;
+  check("evaluation strict: a replayed one-sale decision's value and Max Buy are withheld",
+    strictEval.decision.supportedValueCents === null && strictEval.profitability.maximumBuyPriceCents === null &&
+    strictEval.decision.recommendation === "BUY" && strictEval.decision.saleDetailsWithheld === true);
+  const standardEval = filter.filterBackendPayload(envelope("cid", NEW_COMMIT, fixtures["/api/v1/evaluations"]()),
+    { path: "/api/v1/evaluations", strict: false }).payload.data;
+  check("evaluation standard: values from a guard-aware build are not altered", standardEval.decision.supportedValueCents === 9800);
 }
 
 check("non-object body fails closed", filter.filterBackendPayload([1, 2]).ok === false &&
@@ -286,13 +300,13 @@ try {
       const method = route === "/api/v1/discover" || route === "/api/v1/evaluations" ? "POST" : "GET";
       const response = await handler(gatewayEvent(method, route), {});
       const body = JSON.parse(response.body || "{}");
-      const withheldRoute = scenario.expectStrict && route === "/api/v1/portfolio";
+      const withheldRoute = scenario.expectStrict && (route === "/api/v1/portfolio" || route.startsWith("/api/v1/evidence/"));
       check(`gateway [${scenario.name}] ${route}: ${withheldRoute ? "503 withheld" : "200"}`,
         response.statusCode === (withheldRoute ? 503 : 200), `status ${response.statusCode} ${response.body && response.body.slice(0, 200)}`);
       const leaks = filter.violations(body);
       check(`gateway [${scenario.name}] ${route}: no provider sale field or name`, leaks.length === 0, leaks.join("; "));
       if (withheldRoute) {
-        check(`gateway [${scenario.name}] ${route}: withheld body carries no value`, !/9800|valueCents/.test(response.body) &&
+        check(`gateway [${scenario.name}] ${route}: withheld body carries no value`, !/9800|valueCents|ebay\.com|dealer\./.test(response.body) &&
           body.error && body.error.code === "TEMPORARILY_UNAVAILABLE");
       } else {
         check(`gateway [${scenario.name}] ${route}: mode ${scenario.expectStrict ? "strict" : "standard"}`,

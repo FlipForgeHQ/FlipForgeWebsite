@@ -43,7 +43,19 @@ const SALE_LEVEL_KEYS = new Set([
 const LINEAGE_LINK_KEYS = new Set(["supportingSourceUrls", "windowSourceUrls", "sourceUrls"]);
 const LINEAGE_SALE_KEYS = new Set(["earliestSaleDate", "latestSaleDate", "windowSales", "supportingSales", "sales"]);
 
-const STRICT_WITHHELD_ROUTES = [/^\/api\/v1\/portfolio$/];
+// On a pre-containment build these pages carry stored provider sale rows the gateway cannot always recognise (rows
+// projected with a marketplace source name and the provider marker only in their unsent notes), or totals built from
+// stored provider sales; they are withheld entirely until a containment-aware build answers.
+const STRICT_WITHHELD_ROUTES = [/^\/api\/v1\/portfolio$/, /^\/api\/v1\/evidence\//];
+
+const SINGLE_SALE_COUNT_KEYS = ["exactTrustedCompCount", "acceptedExactSales", "acceptedSales",
+  "acceptedExactCompletedSales", "analogCompletedSaleCount", "exactTrustedSales", "trustedExactCompletedSaleCount",
+  "acceptedEvidenceCount", "windowSaleCount"];
+const SINGLE_SALE_VALUE_KEYS = ["supportedValue", "supportedValueCents", "averagePrice", "valueCents",
+  "referenceValueCents", "observedSupportedValueCents", "trustedEvidenceValueCents", "directSupportedValueCents",
+  "referenceLowCents", "referenceMidpointCents", "referenceHighCents", "maximumBuyPriceCents", "maxBuyPriceCents",
+  "expectedNetProfitCents", "conservativeNetProfitCents", "stressNetProfitCents", "supportedValueGapCents",
+  "supportedValueGapPct", "discountPercent", "supportedValueChangePercent", "supportedValueChangeCents"];
 
 const PROVIDER = /card[\s_-]*sight/i;
 const PROVIDER_GLOBAL = /card[\s_-]*sight/gi;
@@ -237,6 +249,10 @@ function strictWithhold(value) {
   }
   // Discover evidence built on one trusted sale.
   if (countOf(value.trustedExactCompletedSaleCount) === 1) nullify("trustedEvidenceValueCents");
+  // Any value block that states it rests on exactly one sale: that value is the sale's price.
+  if (SINGLE_SALE_COUNT_KEYS.some(key => countOf(value[key]) === 1)) {
+    SINGLE_SALE_VALUE_KEYS.forEach(nullify);
+  }
   // Any remaining sale-date pair from stored history.
   if (Object.prototype.hasOwnProperty.call(value, "acceptedExactCompletedSales")) {
     ["earliestSaleDate", "latestSaleDate"].forEach(nullify);

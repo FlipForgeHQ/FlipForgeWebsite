@@ -160,8 +160,9 @@ function fixture(f) {
 
 // ---------- session ----------
 const browser = await chromium.launch({ executablePath, args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"] });
-async function open(route, f = BASE, { active = "", storageThrows = false, wait = 4500, expandAll = true, host = "goflipforge.com" } = {}) {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
+async function open(route, f = BASE, { active = "", storageThrows = false, wait = 4500, expandAll = true, host = "goflipforge.com", device = null } = {}) {
+  const context = await browser.newContext(device || { viewport: { width: 1440, height: 900 } });
   await context.addInitScript(() => { try { localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete"); } catch (_) {} });
   if (active) await context.addInitScript(id => { try { sessionStorage.setItem("flipforge.trackingContext.v1", id); } catch (_) {} }, active);
   if (storageThrows) await context.addInitScript(() => {
@@ -383,6 +384,44 @@ try {
         const emptyTables = await s.page.evaluate(() => [...document.querySelectorAll("#main-content table")].filter(t => !t.querySelector("tbody tr")).length);
         check("T8 Evidence (new shape, legacy): no empty sale table; counts and reasons instead", emptyTables === 0 && /0 counted now · 3 not counted/.test(s.text), `${emptyTables} empty tables`);
       }
+      await s.context.close();
+    }
+  }
+  // T9: Decision Intelligence (live page) shows the saved governed risk and never turns a missing score into 0/100,
+  // on desktop and phone widths.
+  {
+    const diScores = page => page.evaluate(() => ({
+      factors: [...document.querySelectorAll(".ff-di-factor-head")].map(n => n.innerText.replace(/\s+/g, " ").trim()),
+      compare: [...document.querySelectorAll(".ff-di-compare-metrics > div")].map(n => n.innerText.replace(/\s+/g, " ").trim())
+        .filter(t => /^(Risk|Confidence)\b/.test(t))
+    }));
+    for (const [label, device] of [["desktop", null], ["phone", PHONE]]) {
+      const governedOnly = await open("decision-intelligence", { ...BASE, risk: null, governedRisk: 35, confidence: null, governedConfidence: null }, { device });
+      const a = await diScores(governedOnly.page);
+      const all = [...a.factors, ...a.compare];
+      check(`T9 Decision Intelligence (${label}): risk is the saved governed risk (35/100)`, all.filter(t => /^Risk/.test(t)).length > 0 && all.filter(t => /^Risk/.test(t)).every(t => t === "Risk 35/100"), JSON.stringify(all));
+      check(`T9 Decision Intelligence (${label}): a missing confidence reads Unavailable, never 0/100`, all.filter(t => /^Confidence/.test(t)).length > 0 && all.filter(t => /^Confidence/.test(t)).every(t => t === "Confidence Unavailable"), JSON.stringify(all));
+      check(`T9 Decision Intelligence (${label}): no page errors`, governedOnly.errors.length === 0, governedOnly.errors.join(" | "));
+      await governedOnly.context.close();
+      const none = await open("decision-intelligence", { ...BASE, risk: null, governedRisk: null, confidence: 0, governedConfidence: 0 }, { device });
+      const b = await diScores(none.page);
+      const allB = [...b.factors, ...b.compare];
+      check(`T9 Decision Intelligence (${label}): no saved risk at all reads Unavailable; a real confidence of 0 stays 0/100`,
+        allB.filter(t => /^Risk/.test(t)).every(t => t === "Risk Unavailable") && allB.filter(t => /^Confidence/.test(t)).every(t => t === "Confidence 0/100") && allB.length > 0, JSON.stringify(allB));
+      await none.context.close();
+    }
+  }
+  // T10: legacy notices and provider-neutral wording at phone width (FlipForge2#885 shape).
+  {
+    const legacy = { ...BASE, shape: "new", legacy: true };
+    for (const [name, route] of PAGES.filter(([n]) => ["Saved Decisions", "card detail", "Compare"].includes(n))) {
+      const s = await open(route, legacy, { device: PHONE });
+      check(`T10 ${name} (phone, legacy): legacy badge and the server's legacyNotice are shown`, s.text.includes(LEGACY_BADGE) && s.text.includes(LEGACY_NOTICE));
+      const found = prohibitedIn(s.text);
+      check(`T10 ${name} (phone): no provider name, raw code, verified sales, "undefined" or NaN`, found.length === 0, found.join("; "));
+      const overflow = await s.page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      check(`T10 ${name} (phone): no horizontal page overflow`, overflow <= 1, `${overflow}px`);
+      check(`T10 ${name} (phone): no page errors`, s.errors.length === 0, s.errors.join(" | "));
       await s.context.close();
     }
   }
