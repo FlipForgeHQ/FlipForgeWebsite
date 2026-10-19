@@ -499,6 +499,15 @@
       && PRODUCTION_CUSTOMER_HOST.test(String(window.location.hostname || ""));
   }
 
+  // Every app entry on the production host is a live customer view, including the Private Beta workspace at
+  // /app/beta, which does not set FlipForgeFullCustomerEntry. There the prototype renderers below wrote sample records
+  // from mock-data.js (for example the "Ohtani Chrome Refractor PSA 10" BUY) into #main-content on every route change,
+  // and the authoritative renderer replaced them moments later (found live on 2026-10-18). Sample data must never
+  // enter a live customer view, not even for an instant that is never painted.
+  function liveCustomerHost() {
+    return PRODUCTION_CUSTOMER_HOST.test(String(window.location.hostname || ""));
+  }
+
   const AUTHORITATIVE_CUSTOMER_ROUTES = new Set([
     "dashboard", "discover", "evaluate", "opportunities", "tracking", "portfolio", "alerts", "account",
     "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell", "export",
@@ -561,6 +570,16 @@
     if (PRODUCTION_CUSTOMER_HOST.test(String(window.location.hostname || ""))
       && route === "decision-intelligence") {
       renderProductionRoutePlaceholder(route);
+      return;
+    }
+
+    // Any other route on the production host: the same neutral placeholder instead of a prototype page. The
+    // authoritative renderer for the route replaces it in this same hashchange dispatch. Focus and scroll reset as the
+    // prototype pages did, so navigation in the workspace behaves as before.
+    if (liveCustomerHost()) {
+      renderProductionRoutePlaceholder(route);
+      main.focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "instant" });
       return;
     }
 

@@ -490,7 +490,24 @@
     select?.addEventListener("change", () => {
       if (!activeGeneration(generation, route)) return;
       const id = String(select.value || "");
-      if (SAFE_ID.test(id)) window.location.hash = `#/tracking/${encodeURIComponent(id)}`;
+      if (!SAFE_ID.test(id)) return;
+      // The native select already names the newly chosen card. Clear the previous card's saved decision in this same
+      // task, before the browser can paint, so no frame shows the new card's name over the old card's details. The
+      // generation bump also retires any response still in flight for the card being left. The hashchange render
+      // then loads the chosen card.
+      state.generation += 1;
+      state.loading = true;
+      state.notice = "";
+      resetData();
+      renderCurrent(state.generation, route);
+      const nextHash = `#/tracking/${encodeURIComponent(id)}`;
+      if (window.location.hash === nextHash) {
+        // No hashchange will follow; load the chosen card directly.
+        state.requestedId = id;
+        load(state.generation, route);
+      } else {
+        window.location.hash = nextHash;
+      }
     });
     state.main.querySelector("[data-lifecycle-form]")?.addEventListener("submit", event => {
       event.preventDefault();
