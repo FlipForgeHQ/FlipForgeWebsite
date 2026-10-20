@@ -181,6 +181,7 @@
   }
   window.FlipForgeGuidedEntryV1 = Object.freeze({ compose: queryFromFields });
   function schedule() {
+    document.documentElement?.classList?.toggle?.("ff-guided-discover-active", betaDiscover());
     if (queued) return;
     queued = true;
     requestAnimationFrame(() => { queued = false; mount(); });
