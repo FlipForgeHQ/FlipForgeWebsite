@@ -41,6 +41,8 @@ assert.match(compose(card,{numbered:"yes",denominator:"25",serial:"0"}).error,/p
 assert.match(compose(card,{numbered:"yes",denominator:"25.5",serial:""}).error,/positive whole number/);
 assert.match(compose("",{numbered:"yes",denominator:"25"}).error,/enter the card/i);
 assert.equal(parseNumbering("2018/19 Upper Deck #100"),null,"Season is not serial number");
+assert.equal(parseNumbering(card+" /25").serial,"","PSA 9 before /25 must not be misread as individual serial 9");
+assert.equal(parseNumbering(card+" 01/25").serial,"1","Adjacent ordinal identifies individual serial");
 assert.equal(parseNumbering("Numbered to 99").denominator,"99");
 assert.equal(parseNumbering("1/1").serial,"1");
 assert.equal(parseNumbering("1/25").denominator,"25");
