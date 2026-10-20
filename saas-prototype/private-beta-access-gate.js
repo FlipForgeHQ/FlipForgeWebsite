@@ -43,6 +43,12 @@
         return;
       }
 
+      // A freshly invited tester is still terms-pending on the server, so the entitlements check
+      // below would bounce them to sign-in and cancel the Beta Terms receipt in flight. The Terms
+      // gate owns this state: it reloads this page once the receipt is recorded, or shows its own
+      // recovery prompt. The workspace itself stays hidden until then.
+      if (window.FlipForgeBetaTermsGate?.awaitingAcceptance?.()) return;
+
       // The server decides membership. The browser's stored profile is from sign-in time and
       // can still say terms-pending after the account was promoted (Beta Terms accepted), which
       // bounced newly activated testers between this page and the sign-in page.
