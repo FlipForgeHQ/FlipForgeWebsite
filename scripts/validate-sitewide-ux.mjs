@@ -40,7 +40,8 @@ for(const legal of ['privacy.html','terms.html','beta-terms.html']){
 }
 requireText('auth preserves preview-only routing',read('production-auth.html'),'data-production-auth-preview-redirect');
 requireText('auth retains native form guard',read('production-auth.html'),'form[hidden]{display:none}');
-requireText('published homepage design stays locked',read('index.html'),'PRICES TELL YOU');
+// Founder decision (2026-10-20): the v10 cinematic homepage rebuild replaces the earlier homepage lock.
+requireText('approved v10 homepage design stays in place',read('index.html'),'<span>Before</span> <span>you buy.</span> <span>Know Why.</span>');
 requireText('governed decision page remains intact',read('decision-intelligence.html'),'id="decision-benefits"');
 
 const marketingPages=read('assets/css/marketing-pages-v3.css');
