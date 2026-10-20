@@ -45,6 +45,20 @@ assert.ok(entry.includes("loadGuidedEntry()")&&entry.includes("discover-guided-e
   "Existing discover entry loads builder without removing identity checker");
 assert.ok(css.includes(".ff-guided-entry-grid")&&css.includes('a[data-route="discover"]'),
   "Responsive controls and Discover prominence are styled");
+assert.ok(src.includes('data-ff-guided-field="year"') === false &&
+  src.includes('selectInput("year", yearOptions())') &&
+  src.includes('selectInput("brand"') &&
+  src.includes('selectInput("grader"') &&
+  src.includes('selectInput("grade"'), "Guided menus for year, brand, grader, grade remain native selection boxes");
+assert.ok(src.includes('data-ff-guided-visible') && !src.includes('data-ff-guided-details'),
+  "Guide controls appear immediately and are not hidden by a collapsed details panel");
+assert.ok(src.includes("removeBuilder()") && src.includes('event.target?.matches?.(ROOT + " [data-customer-discovery-form]")'),
+  "Form clears guided fields at results handoff");
+const guideSrc = read("saas-prototype/guided-mode-v1.js");
+assert.ok(guideSrc.includes('phoneViewport() || privateBetaSurface()') &&
+  guideSrc.includes('!force && privateBetaSurface() && !state.userOpened'),
+  "Default Private Beta help is minimized; the welcome popup is explicit-only");
+
 assert.ok(shell.includes('["discover", "Discover"]') &&
   shell.includes('href="#/discover">Discover a card') &&
   beta.includes('setText(pageHeading.querySelector("h1"), "Discover a Card")'),
