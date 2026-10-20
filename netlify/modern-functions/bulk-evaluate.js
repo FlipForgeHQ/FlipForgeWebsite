@@ -1,3 +1,28 @@
+const crypto = require("crypto");
+
+// The page is served by a function, so the site's netlify.toml header rules do not apply to it. Send its own
+// Content-Security-Policy: only this page's inline script (by hash) and same-origin scripts may run, it cannot be
+// framed by another site, and it can call only same-origin APIs.
+function pageSecurityHeaders(html) {
+  const hashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+    .map(match => `'sha256-${crypto.createHash("sha256").update(match[1], "utf8").digest("base64")}'`);
+  return {
+    "Content-Security-Policy": [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      `script-src 'self' ${hashes.join(" ")}`,
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob:",
+      "connect-src 'self'",
+      "form-action 'self'"
+    ].join("; "),
+    "X-Frame-Options": "DENY",
+    "Cross-Origin-Opener-Policy": "same-origin"
+  };
+}
+
 exports.handler = async function handler(event) {
   if (event.httpMethod !== "GET") {
     return {
@@ -88,7 +113,8 @@ for(const r of rows){if(r.status!=="READY")continue;r.status="RUNNING";r.detail=
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
-      "Referrer-Policy": "same-origin"
+      "Referrer-Policy": "same-origin",
+      ...pageSecurityHeaders(html)
     },
     body: html
   };
