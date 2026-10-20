@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-const source = fs.readFileSync(new URL('../saas-prototype/cardsight-evidence-visibility.js', import.meta.url), 'utf8');
+const source = fs.readFileSync(new URL('../saas-prototype/provider-evidence-visibility.js', import.meta.url), 'utf8');
 
 const checks = [
   [

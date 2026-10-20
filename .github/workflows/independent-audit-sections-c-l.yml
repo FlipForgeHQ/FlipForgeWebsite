@@ -123,7 +123,7 @@ jobs:
       - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with: { node-version: 24, cache: npm }
       - run: npm ci
-      - run: npm run validate:cardsight-evidence-visibility
+      - run: npm run validate:provider-evidence-visibility
       - run: npm run validate:customer-management
       - run: node saas-prototype/validate-decision-intelligence.mjs
       - name: PSA authority boundary remains explicit

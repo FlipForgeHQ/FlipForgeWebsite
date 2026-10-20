@@ -144,7 +144,6 @@
   // Admission reasons and provider states in customer wording (codes are never shown raw).
   const REASON_LABELS = Object.freeze({
     PROVIDER_STORED_HISTORY_NOT_RETAINED: "Past sale records from our data provider are not kept",
-    CARDSIGHT_STORED_HISTORY_NOT_RETAINED: "Past sale records from our data provider are not kept",
     STORED_HISTORY_NOT_RETAINED: "Past sale records from our data provider are not kept",
     NOT_USED: "Not used",
     EXCLUDED: "Excluded",
