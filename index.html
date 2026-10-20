@@ -32,18 +32,21 @@
     <div class="ffdemo-copy">
       <p class="ffdemo-eyebrow">CARD DECISION INTELLIGENCE™ · BEFORE YOU BUY. KNOW WHY.</p>
       <h1 id="ffdemo-headline">THE PRICE <em>ISN'T</em> THE DECISION.</h1>
-      <figure class="ffdemo-hero-art" aria-label="Illustrative fictional sports card beside a seller asking price of 425 dollars, compared with a FlipForge modeled Max Buy of 360 dollars.">
-        <div class="ffdemo-hero-art-bg" aria-hidden="true"></div>
-        <img class="ffdemo-hero-slab" src="assets/images/ff-fictional-slab-v1.svg" alt="Fictional graded sports card, J. Carver Silver" width="150" height="210" fetchpriority="high">
-        <div class="ffdemo-hero-art-numbers">
-          <div class="ffdemo-hero-art-line"><span>SELLER'S ASK</span><strong data-hero-ask>$425</strong></div>
-          <div class="ffdemo-hero-art-rule"><span></span><small>PRICE VS. THRESHOLD</small><span></span></div>
-          <div class="ffdemo-hero-art-line"><span>MODELED MAX BUY</span><strong>$360</strong></div>
+      <div class="ffdemo-spread" role="group" aria-label="Illustrative asking price compared with Max Buy">
+        <div class="ffdemo-spread-header"><span>DECISION SIGNAL / 001</span><span>PRICE SUPPORT</span></div>
+        <div class="ffdemo-spread-numbers">
+          <div><small>SELLER'S ASK</small><strong data-hero-ask>$425</strong></div>
+          <span class="ffdemo-spread-versus" aria-hidden="true">≠</span>
+          <div><small>FLIPFORGE MAX BUY</small><strong>$360</strong></div>
         </div>
-        <div class="ffdemo-hero-art-gap"><small>PRICE GAP</small><strong data-hero-gap>+$65</strong></div>
-        <span class="ffdemo-hero-art-disclaimer">FICTIONAL CARD · ILLUSTRATIVE ONLY</span>
-      </figure>
-      <p class="ffdemo-lead">A listing price is only a starting point. <strong>See whether the evidence supports paying it.</strong></p>
+        <div class="ffdemo-spread-chart" aria-hidden="true">
+          <div class="ffdemo-spread-track"></div>
+          <span class="ffdemo-spread-cap ffdemo-spread-cap-max"><i></i><small>THRESHOLD</small></span>
+          <span class="ffdemo-spread-cap ffdemo-spread-cap-ask" data-hero-position><i></i><small>ASK</small></span>
+        </div>
+        <div class="ffdemo-spread-footer"><span data-hero-gap-state>ABOVE BUY LIMIT</span><strong data-hero-gap>+$65</strong><small>ILLUSTRATIVE · NO LIVE SALES</small></div>
+      </div>
+      <p class="ffdemo-lead">Know what to pay, what could remain after costs, and <strong>why the evidence supports—or rejects—the deal.</strong></p>
       <div class="ffdemo-hero-actions">
         <a class="ffdemo-action-primary" href="beta-application.html">Request Private Beta Access <span aria-hidden="true">↗</span></a>
         <a class="ffdemo-action-secondary" href="#try-decision">Watch the decision play out <span aria-hidden="true">↓</span></a>
@@ -78,9 +81,10 @@
           <h2 id="ffdemo-console-heading">TRY IT — ADJUST THE PRICE <span aria-hidden="true">↔</span></h2>
           <p>Change the asking price. See how the decision changes.</p>
         </div>
-        <div class="ffdemo-identity">
-          <img src="assets/images/ff-fictional-slab-v1.svg" alt="" width="68" height="94" loading="eager" decoding="async">
-          <div><strong>J. CARVER · #48 SILVER</strong><span>Fictional Series · Grade 9 · Illustrative scenario</span></div>
+        <div class="ffdemo-identity ffdemo-identity--terminal">
+          <div class="ffdemo-identity-index" aria-hidden="true">01</div>
+          <div><strong>EXACT-CARD MATCH REQUIRED</strong><span>Illustrative identity / Series · #048 · Silver · Grade 9</span></div>
+          <span class="ffdemo-identity-state">INPUT ASSUMPTION</span>
         </div>
         <div class="ffdemo-price-label"><label for="ffdemo-asking">ASKING PRICE <small>What the seller is showing</small></label><output id="ffdemo-asking-value" for="ffdemo-asking" data-ask-value>$375</output></div>
         <input id="ffdemo-asking" data-asking type="range" min="240" max="520" step="5" value="375" aria-describedby="ffdemo-range-help ffdemo-range-caption">
@@ -128,7 +132,15 @@
     <p class="ffdemo-eyebrow">THE EVIDENCE HAS TO EARN ITS PLACE</p>
     <div class="ffdemo-evidence-heading"><h2 id="ffdemo-evidence-heading">Same listing price.<br><em>Different buying decision.</em></h2><p>Year, set, parallel and grade must match. A seller’s number alone cannot tell you what a card is worth paying for.</p></div>
     <div class="ffdemo-evidence-grid">
-      <article class="ffdemo-evidence-card"><div class="ffdemo-evidence-art ffdemo-art-identity" aria-hidden="true"><div class="ffdemo-art-card ffdemo-art-card-silver"><img src="assets/images/ff-fictional-slab-v1.svg" alt="" loading="lazy" width="66" height="93"><span>SILVER · #48</span></div><strong class="ffdemo-art-ne">≠</strong><div class="ffdemo-art-card ffdemo-art-card-base"><span class="ffdemo-art-slab-top">FICTIONAL SERIES</span><div class="ffdemo-art-base-picture"></div><span>BASE · #48</span></div></div><span>01 / IDENTITY</span><strong>Right card. Right grade.</strong><p>A base card, a scarce parallel and a different grade are not interchangeable.</p></article>
+      <article class="ffdemo-evidence-card"><div class="ffdemo-evidence-art ffdemo-art-identity-check" aria-hidden="true">
+            <div class="ffdemo-check-title">EXACT-CARD COMPARISON <span>ILLUSTRATIVE</span></div>
+            <div class="ffdemo-check-grid">
+              <div class="ffdemo-check-data"><small>CARD TO BUY</small><strong>#048 / SILVER</strong><span>GRADE 9</span></div>
+              <div class="ffdemo-check-versus">≠</div>
+              <div class="ffdemo-check-data"><small>CANDIDATE COMP</small><strong>#048 / BASE</strong><span>GRADE 9</span></div>
+            </div>
+            <div class="ffdemo-check-denied">PARALLEL MISMATCH <strong>EXCLUDE</strong></div>
+          </div><span>01 / IDENTITY</span><strong>Right card. Right grade.</strong><p>A base card, a scarce parallel and a different grade are not interchangeable.</p></article>
       <article class="ffdemo-evidence-card"><div class="ffdemo-evidence-art ffdemo-art-filter" aria-hidden="true"><div class="ffdemo-art-filter-row"><span>EXACT IDENTITY</span><b class="ffdemo-art-accept">MATCH</b></div><div class="ffdemo-art-filter-row"><span>DIFFERENT PARALLEL</span><b class="ffdemo-art-reject">EXCLUDE</b></div><div class="ffdemo-art-filter-row"><span>OUTCOME UNCLEAR</span><b class="ffdemo-art-hold">HOLD</b></div><div class="ffdemo-art-filter-track"><i></i></div></div><span>02 / EVIDENCE</span><strong>Not every comp qualifies.</strong><p>Review exact matches, source context and what has been excluded or held.</p></article>
       <article class="ffdemo-evidence-card"><div class="ffdemo-evidence-art ffdemo-art-economics" aria-hidden="true"><div class="ffdemo-art-econ-row"><span>ASKING PRICE</span><strong>$425</strong></div><div class="ffdemo-art-econ-bar ffdemo-art-econ-ask"><span></span></div><div class="ffdemo-art-econ-row"><span>MODELED MAX BUY</span><strong>$360</strong></div><div class="ffdemo-art-econ-bar ffdemo-art-econ-max"><span></span></div><div class="ffdemo-art-econ-gap">+$65 ABOVE THRESHOLD</div></div><span>03 / DECISION</span><strong>Risk stays visible.</strong><p>Max Buy and the reasoning matter more than any single advertised price.</p></article>
     </div>
