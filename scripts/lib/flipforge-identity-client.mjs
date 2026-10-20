@@ -150,6 +150,8 @@ const state = {
   message: "",
   error: "",
   inviteToken: "",
+  // True between acceptInvite() and the cookie-backed login() that follows it.
+  activatingInvite: false,
   recoveryMode: false,
   recoveryRequestOpen: false,
   panelOpen: false,
@@ -398,9 +400,21 @@ function renderInvite(element) {
     state.busy = true;
     state.error = "";
     render();
+    // @netlify/identity acceptInvite() (1.2.0, still true in 2.0.0) signs the browser in but,
+    // unlike login(), never writes the nf_jwt / nf_refresh session cookies. Its LOGIN event
+    // used to reach the Beta Terms gate, which posted the Terms receipt with no session cookie
+    // (401), and the getUser() call below then saw no cookie and cleared the session, leaving
+    // an un-retryable "Beta Terms confirmation needs attention" dead end. Hold identity events
+    // until a cookie-backed session exists, then publish exactly once.
+    state.activatingInvite = true;
     try {
-      await acceptInvite(state.inviteToken, password);
+      const invited = await acceptInvite(state.inviteToken, password);
       state.inviteToken = "";
+      const invitedEmail = clean(invited?.email);
+      if (!invitedEmail) throw new Error("INVITED_ACCOUNT_EMAIL_MISSING");
+      // login() writes the secure session cookies that server functions authenticate with.
+      await login(invitedEmail, password);
+      state.activatingInvite = false;
       setAuthenticatedUser(await getUser(), { renderIfChanged: false });
       // When the invitation form recorded a Beta Terms acceptance, the Terms gate is now
       // sending it to the server and opens the workspace itself once it is saved. Navigating
@@ -418,6 +432,16 @@ function renderInvite(element) {
     } catch (error) {
       state.error = friendlyAuthError(error, "The invitation could not be accepted.", AUTH_FLOWS.INVITATION);
     } finally {
+      if (state.activatingInvite) {
+        // Activation stopped part-way (for example the password was set but sign-in failed).
+        // Publish whatever cookie-backed session exists so gates never act on a stale user.
+        state.activatingInvite = false;
+        try {
+          setAuthenticatedUser(await getUser(), { renderIfChanged: false });
+        } catch (_) {
+          setAuthenticatedUser(null, { renderIfChanged: false });
+        }
+      }
       state.busy = false;
       render();
     }
@@ -671,6 +695,9 @@ async function initialize() {
       // destroys focused form controls and makes the login fields impossible
       // to type into. Only rebuild the UI when the signed identity or roles
       // actually change.
+      // During invitation activation the library announces a sign-in before any session
+      // cookie exists; the invite handler publishes the cookie-backed user itself.
+      if (state.activatingInvite) return;
       setAuthenticatedUser(user || null);
     });
   } catch (_) {
