@@ -180,6 +180,7 @@
   const main = document.querySelector(ROOT);
   if (main) new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
   // A search should own the page immediately, not fight a late-inserted builder.
+  if (typeof document.addEventListener === "function") {
   document.addEventListener("submit", event => {
     if (event.target?.matches?.(ROOT + " [data-customer-discovery-form]")) handedOff = true;
   }, true);
@@ -187,6 +188,7 @@
     if (event.target?.closest?.(ROOT + " [data-customer-discovery-form] button[type='submit'], " +
       ROOT + " [data-customer-discovery-form] [data-discovery-find-exact]")) handedOff = true;
   }, true);
+  }
   window.addEventListener("hashchange", () => {
     if (!betaDiscover()) handedOff = false;
     schedule();
