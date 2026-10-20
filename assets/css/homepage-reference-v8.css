@@ -49,7 +49,7 @@ body.ff8-page{background:#040607;color:#fff;font-family:Geist,"Geist Sans",Inter
 .ff8-card-backdrop-a{width:192px;height:290px;right:67%;top:84px;transform:rotate(15deg);background:linear-gradient(0deg,rgba(2,5,6,.9),rgba(15,19,21,.5)),url("https://images.unsplash.com/photo-1587565221090-7b8497f86d9e?auto=format&fit=crop&w=420&q=60") center/cover}
 .ff8-card-backdrop-b{width:206px;height:300px;right:-13%;top:130px;transform:rotate(-13deg);background:linear-gradient(0deg,rgba(2,5,6,.86),rgba(17,20,22,.4)),url("https://images.unsplash.com/photo-1587565221090-7b8497f86d9e?auto=format&fit=crop&w=420&q=60") right center/cover}
 .ff8-page .ffdemo-console.ff8-phone{position:relative;margin:38px 7% 0 auto;width:min(465px,94%);height:auto;min-height:695px;max-height:745px;overflow:hidden;background:#05090b;border-radius:42px;border:7px solid #434c53;box-shadow:0 0 0 3px #12181a,0 48px 100px rgba(0,0,0,.83),0 0 65px rgba(0,0,0,.55);transform:rotate(9deg);transform-origin:center top;z-index:2}
-.ff8-phone-edge{position:relative;height:100%;overflow:auto;scrollbar-width:thin;scrollbar-color:#5f6366 #0c1012;padding-top:11px}
+.ff8-phone-edge{position:relative;height:730px;max-height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#5f6366 #0c1012;overscroll-behavior:contain;padding-top:11px}
 .ff8-phone-speaker{height:7px;width:74px;border-radius:99px;background:#333e44;margin:-4px auto 6px;box-shadow:inset 0 0 3px #000}
 .ff8-page .ffdemo-console-head{padding:10px 18px 12px;border-bottom:1px solid #283034;display:flex;align-items:center;gap:9px}
 .ff8-page .ffdemo-console-brand{font-size:14px;letter-spacing:.05em}
@@ -226,7 +226,7 @@ body.ff8-page{background:#040607;color:#fff;font-family:Geist,"Geist Sans",Inter
  .ff8-hero-trust>span{grid-template-columns:1fr;max-width:30%;text-align:left;row-gap:3px}
  .ff8-hero-trust i{grid-row:auto;margin-bottom:5px}
  .ff8-hero-product{min-height:570px}
- .ff8-page .ffdemo-console.ff8-phone{min-height:590px;max-height:690px}
+ .ff8-page .ffdemo-console.ff8-phone{min-height:590px;max-height:690px}.ff8-phone-edge{height:680px}
  .ff8-page .ffdemo-cine-stage{height:113px}
  .ff8-page .ffdemo-cine-frame strong{font-size:25px}
  .ff8-page .ffdemo-console-main{padding:11px}
