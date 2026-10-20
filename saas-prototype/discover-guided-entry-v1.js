@@ -153,7 +153,7 @@
     panel.setAttribute("aria-label","Guided card identification");
     panel.innerHTML = render();
     const details = panel.querySelector("[data-ff-guided-details]");
-    if (details) details.open = window.matchMedia("(min-width: 721px)").matches;
+    if (details) details.open = window.matchMedia("(min-width: 1101px)").matches;
     form.insertAdjacentElement("beforebegin", panel);
     const manual = document.createElement("p");
     manual.className = "ff-guided-manual-label";
