@@ -114,10 +114,8 @@ requireAll('Launch Plans progressive disclosure',pricing,['Planned Launch Struct
 for(const amount of ['$14.99','$29.99','$149','$299'])forbidText('Launch Plans unpublished pricing',pricing,amount);
 
 requireAll('Phase 2 premium public rollout',phase2Js,[
-  'buildCdiTheater()',
   'buildEvidenceTheater()',
   'buildProductReceipt()',
-  'cdi_layer_viewed',
   'evidence_failure_selected',
   'decision_receipt_cta_clicked',
   'phase2_beta_cta_clicked'
@@ -140,7 +138,7 @@ requireAll('Decision Intelligence early 13 checkpoint index',decisionPage,[
   'KNOW THE MARKET',
   'MAKE THE DECISION',
   'LEARN WHETHER IT HELD UP',
-  'href="#thirteen-deep-dive"',
+  'href="#decision-benefits"',
   'assets/css/decision-intelligence-checkpoint-first-v3.css'
 ]);
 const labels=[
@@ -151,9 +149,21 @@ const labels=[
 ];
 if((decisionPage.match(/class="ff-di-check-number"/g)||[]).length!==13)failures.push('Decision Intelligence must present all 13 governed checkpoints upfront');
 for(const [i,label] of labels.entries())requireText('Decision Intelligence checkpoint '+String(i).padStart(2,'0'),decisionPage,label);
-if(!(decisionPage.indexOf('id="checks"')<decisionPage.indexOf('class="ff-dic-category"')))failures.push('13-layer overview must precede market categories');
+if(!(decisionPage.indexOf('id="checks"')<decisionPage.indexOf('id="decision-benefits"')))failures.push('13-layer overview must precede customer decision benefits');
 if(!(decisionPage.indexOf('id="checks"')<decisionPage.indexOf('data-ff-dic-demo')))failures.push('13-layer overview must precede interactive demo');
-requireText('interactive deep dive anchor',phase2Js,"shell.id='thirteen-deep-dive'");
+requireAll('Customer-first applied intelligence',decisionPage,[
+ 'id="decision-benefits"',
+ 'Avoid the wrong card.',
+ 'Don\'t trust every comp.',
+ 'Know what you can pay.',
+ 'Act—or know why to wait.',
+ 'decision-intelligence-decision-benefits-v4.css',
+ 'The best decision isn\'t always'
+]);
+if(decisionPage.includes('ff-dic-model')||decisionPage.includes('ff-dic-layer-list'))failures.push('Remove repeated public 13-layer model at page bottom');
+if(phase2Js.includes('buildCdiTheater()'))failures.push('Do not inject a second 13-layer scroll theater into public page');
+if(!(decisionPage.indexOf('id="decision-benefits"')<decisionPage.indexOf('data-ff-dic-demo')))failures.push('Show actionable customer value before the illustration');
+
 
 requireAll('Phase 2 customer Decision Receipt',decisionCardCss,[
   'Phase 2 Decision Passport motion',

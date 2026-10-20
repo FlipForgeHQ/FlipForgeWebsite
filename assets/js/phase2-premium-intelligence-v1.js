@@ -30,73 +30,6 @@
     reveal.forEach(el=>io.observe(el));
   }
 
-  const systemFor=(n)=>n<=3?'card':n<=7?'market':n<=10?'decision':'learn';
-  const layerCopy={
-    0:['Release Intelligence','Confirm the real release before any checklist assumption.'],
-    1:['Taxonomy Intelligence','Know which card structures and variants are valid for that release.'],
-    2:['Identity Intelligence','Resolve the exact card instead of accepting a near match.'],
-    3:['Identity Provenance + Trust','Preserve why each identity field can be trusted.'],
-    4:['Evidence Intelligence','Decide which market observations deserve authority.'],
-    5:['Market + Economic Intelligence','Translate qualified evidence into supported economics.'],
-    6:['Product + Variant Intelligence','Keep product and variant behavior evidence-grounded.'],
-    7:['Grade + Scarcity Intelligence','Use grade and scarcity context without inventing certainty.'],
-    8:['Risk + Uncertainty Intelligence','Keep thin, stale, conflicting, or incomplete evidence visible.'],
-    9:['Decision Intelligence','Resolve to BUY, WATCH, VERIFY, or PASS.'],
-    10:['Decision Traceback / Receipt','Preserve what was used, rejected, and why.'],
-    11:['Outcome Intelligence','Review what happened later without rewriting the original decision.'],
-    12:['Governance + Continuous Intelligence','Version change, preserve boundaries, and improve only when evidence supports it.']
-  };
-
-  function buildCdiTheater(){
-    if(!/decision-intelligence\.html$/.test(path))return;
-    const model=document.querySelector('.ff-dic-model');
-    const section=model?.closest('.ff-dic-simple');
-    if(!model||!section||document.querySelector('.ff-phase2-cdi-theater'))return;
-    const shell=document.createElement('section');
-    shell.className='ff-phase2-cdi-theater';
-    shell.id='thirteen-deep-dive';
-    shell.dataset.system='card';
-    shell.setAttribute('aria-labelledby','ff-phase2-cdi-title');
-    const steps=Object.keys(layerCopy).map(Number).map(n=>{
-      const [title,copy]=layerCopy[n];
-      return '<article class="ff-phase2-cdi-step" data-layer-number="'+String(n).padStart(2,'0')+'" data-layer="'+n+'" tabindex="0"><small>'+systemFor(n).toUpperCase()+'</small><h3>'+title+'</h3><p>'+copy+'</p></article>';
-    }).join('');
-    shell.innerHTML='<div class="ff-phase2-cdi-theater-head"><div><small>THE GOVERNED DECISION ENGINE</small><h2 id="ff-phase2-cdi-title">One decision. Thirteen checkpoints.</h2></div><p>Scroll the system. Every layer can preserve uncertainty or stop authority from moving downstream.</p></div><div class="ff-phase2-cdi-grid"><aside class="ff-phase2-cdi-sticky"><div class="ff-phase2-cdi-aperture"><div class="ff-phase2-cdi-core"><img src="assets/brand/flipforge-mark.svg" alt=""></div></div><div class="ff-phase2-cdi-status"><small data-ff-p2-cdi-kicker>LAYER 00 · KNOW THE CARD</small><strong data-ff-p2-cdi-title>Release Intelligence</strong><p data-ff-p2-cdi-copy>Confirm the real release before any checklist assumption.</p><div class="ff-phase2-cdi-progress"><span data-ff-p2-cdi-progress></span></div></div></aside><div class="ff-phase2-cdi-steps">'+steps+'</div></div>';
-    const receipt=document.querySelector('.ff-approved-feature');
-    if(receipt)receipt.before(shell);
-    else section.before(shell);
-    const cards=[...shell.querySelectorAll('.ff-phase2-cdi-step')];
-    const title=shell.querySelector('[data-ff-p2-cdi-title]');
-    const copy=shell.querySelector('[data-ff-p2-cdi-copy]');
-    const kicker=shell.querySelector('[data-ff-p2-cdi-kicker]');
-    const progress=shell.querySelector('[data-ff-p2-cdi-progress]');
-    let last=-1;
-    const activate=n=>{
-      if(last===n)return;
-      last=n;
-      const data=layerCopy[n];
-      cards.forEach((c,i)=>c.classList.toggle('is-active',i===n));
-      shell.dataset.system=systemFor(n);
-      title.textContent=data[0];
-      copy.textContent=data[1];
-      kicker.textContent='LAYER '+String(n).padStart(2,'0')+' · '+({card:'KNOW THE CARD',market:'KNOW THE MARKET',decision:'MAKE THE DECISION',learn:'LEARN WHAT HAPPENED'}[systemFor(n)]);
-      progress.style.width=((n+1)/13*100)+'%';
-      emit('cdi_layer_viewed','layer_'+String(n).padStart(2,'0'));
-    };
-    cards.forEach((card,i)=>{
-      card.addEventListener('click',()=>activate(i));
-      card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(i)}});
-    });
-    if(!reduced){
-      const observer=new IntersectionObserver(entries=>{
-        const hit=entries.filter(x=>x.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
-        if(hit)activate(Number(hit.target.dataset.layer));
-      },{threshold:[.25,.5,.75],rootMargin:'-28% 0px -48% 0px'});
-      cards.forEach(c=>observer.observe(c));
-    }
-    activate(0);
-  }
-
   const failures=[
     ['wrong-parallel','WRONG PARALLEL','Same player and product. Different card market.','Target: Silver parallel','Candidate: White Sparkle parallel','Reject the candidate from exact-comp authority.'],
     ['thin-comp','THIN COMP','One exact sale is still one observation.','1 exact completed sale','No corroborating exact sales','Keep confidence and liquidity risk visible.'],
@@ -211,7 +144,6 @@
     section.querySelector('[data-ff-p2-evaluate-cta]')?.addEventListener('click',()=>emit('evaluate_cta_clicked','product_receipt'));
   }
 
-  buildCdiTheater();
   buildEvidenceTheater();
   buildProductReceipt();
 
