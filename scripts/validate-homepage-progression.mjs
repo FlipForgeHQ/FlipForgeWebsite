@@ -32,45 +32,44 @@ const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(
 const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toLowerCase()))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 const requireAll=(label,text,needles)=>needles.forEach(needle=>requireText(label,text,needle));
 
-requireAll('homepage interactive Max Buy identity',homepage,[
- 'CARD DECISION INTELLIGENCE™',
- "THE PRICE <em>ISN'T</em> THE DECISION.",
- 'Before you buy. Know Why.',
+requireAll('homepage premium performance layout',homepage,[
+ "DON'T JUST",
+ 'KNOW THE DEAL.',
+ 'class="ff8-hero-photo"',
+ 'ff8-phone',
+ 'ff8-proof-visual',
+ 'ff8-method-layout',
+ 'ff8-step-grid',
+ 'ff8-benefits-layout',
+ 'assets/css/homepage-reference-v8.css'
+]);
+requireAll('homepage illustration and decision honesty',homepage,[
  'data-ffdemo',
- 'TRY IT — ADJUST THE PRICE',
  'FLIPFORGE MAX BUY',
  'PRICE GAP',
- 'POTENTIAL PROFIT',
- 'ILLUSTRATIVE ROI',
  'WHY THIS DECISION?',
  'data-uncertainty',
  'data-reset',
- 'class="ffdemo-nav-actions"',
- 'class="ffdemo-mobile-actions"',
- 'assets/css/homepage-interactive-decision-v7.css',
- 'assets/js/homepage-interactive-decision-v7.js'
-]);
-requireAll('homepage concise evidence and trust',homepage,[
- 'THE EVIDENCE HAS TO EARN ITS PLACE',
- 'Right card. Right grade.',
- 'Not every comp qualifies.',
- 'Risk stays visible.',
- '<strong>100 frozen decisions</strong>',
- 'href="decision-proof.html">See the proof →'
-]);
-requireAll('homepage scoped audience and primary conversion',homepage,[
- 'COLLECTORS','FLIPPERS','DEALERS',
- 'href="beta-application.html">Request Private Beta Access',
+ 'NO REAL SALE DATA',
+ 'NO GUARANTEED RETURN',
  'Controlled Private Beta.',
  'FlipForge does not guarantee profit or authorize transactions.'
 ]);
+requireAll('homepage conversion and proof continuity',homepage,[
+ 'class="ffdemo-nav-actions"',
+ 'class="ffdemo-mobile-actions"',
+ 'href="beta-application.html">Request Private Beta Access',
+ '<strong>100 frozen decisions</strong>',
+ 'href="decision-proof.html">See the proof →',
+ 'assets/js/homepage-interactive-decision-v7.js'
+]);
 const demoCss=read('assets/css/homepage-interactive-decision-v7.css');
+const redesignCss=read('assets/css/homepage-reference-v8.css');
 const demoJs=read('assets/js/homepage-interactive-decision-v7.js');
-requireText('interactive demo mobile',demoCss,'@media(max-width:750px)');
-requireText('interactive demo reduced motion',demoCss,'@media(prefers-reduced-motion:reduce)');
 requireText('interactive demo responds to input',demoJs,"addEventListener('input', render)");
-requireText('interactive demo supports VERIFY',demoJs,"unknown ? 'VERIFY'");
-requireText('interactive demo formula',demoJs,'assumedResale - sellingFees - fulfillment - ask');
+requireText('full mobile layout',redesignCss,'@media(max-width:760px)');
+requireText('full reduced motion support',redesignCss,'prefers-reduced-motion:reduce');
+requireText('hero imagery deep contrast',redesignCss,'.ff8-hero-photo');
 for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('interactive demo device storage',demoJs,store);
 forbidText('interactive demo provider calls',demoJs,'fetch(');
 for(const old of ['data-decision-forge','data-film','id="sim"','id="decision-proof"'])forbidText('retired homepage visual overload',homepage,old);

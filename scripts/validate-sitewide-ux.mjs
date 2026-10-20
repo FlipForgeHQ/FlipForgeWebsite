@@ -105,11 +105,13 @@ requireText('homepage v7 decision stylesheet',homepage,'assets/css/homepage-inte
 requireText('homepage v7 demo runtime',homepage,'assets/js/homepage-interactive-decision-v7.js');
 requireText('homepage shared mobile behavior',homepage,'assets/js/site.js');
 requireText('homepage prominent demo',homepage,'data-ffdemo');
-requireText('homepage hero headline',homepage,"THE PRICE <em>ISN'T</em> THE DECISION.");
+requireText('homepage hero headline',homepage,"DON'T JUST");
+requireText('reference-quality layout',homepage,'assets/css/homepage-reference-v8.css');
+requireText('real product display',homepage,'class="ff8-phone"');
 requireText('homepage asking price and max buy contrast',homepage,'FLIPFORGE MAX BUY');
 requireText('homepage price gap contrast',homepage,'PRICE GAP');
 requireText('homepage decision proof link',homepage,'See the proof →');
-requireText('homepage illustrative label',homepage,'INTERACTIVE · ILLUSTRATIVE');
+requireText('homepage illustrative label',homepage,'ILLUSTRATIVE DEMO');
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
 requireText('homepage profit boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
 requireText('homepage returning tester sign in',homepage,'href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" data-ff-marketing-sign-in>Beta Sign In</a>');

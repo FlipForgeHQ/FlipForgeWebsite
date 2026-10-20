@@ -34,7 +34,7 @@ body.ff8-page{background:#040607;color:#fff;font-family:Geist,"Geist Sans",Inter
 .ff8-hero:after{pointer-events:none;content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 65% 95% at 65% 50%,transparent 18%,rgba(0,0,0,.24) 85%)}
 .ff8-hero-layout{display:grid;grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);gap:clamp(15px,2.8vw,50px);align-items:start;min-height:640px}
 .ff8-hero-copy{position:relative;z-index:3;padding:clamp(43px,5vw,79px) 0 34px;max-width:710px}
-.ff8-hero-copy h1{font-size:clamp(45px,5.15vw,83px);font-weight:950;line-height:.995;letter-spacing:-.065em;margin:0 0 17px;text-shadow:0 8px 48px rgba(0,0,0,.65)}
+.ff8-hero-copy h1{font-size:clamp(45px,5.15vw,78px);font-weight:950;line-height:.995;letter-spacing:-.065em;margin:0 0 17px;text-shadow:0 8px 48px rgba(0,0,0,.65)}
 .ff8-hero-copy h1 em{font-style:normal;color:var(--ff8-gold);white-space:nowrap}
 .ff8-hero-sub{max-width:510px;color:#f0f0ed;font-size:clamp(17px,1.65vw,23px);line-height:1.43;margin:0 0 27px;text-shadow:0 2px 12px rgba(0,0,0,.8)}
 .ff8-hero-actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
@@ -220,7 +220,7 @@ body.ff8-page{background:#040607;color:#fff;font-family:Geist,"Geist Sans",Inter
  .ff8-benefits-grid{margin-top:15px}
 }
 @media(max-width:430px){
- .ff8-hero-copy h1{font-size:clamp(38px,10vw,49px)}
+ .ff8-hero-copy h1{font-size:44px}
  .ff8-hero-sub{font-size:16px}
  .ff8-page .ffdemo-action-primary,.ff8-page .ffdemo-action-secondary{flex:1 1 auto}
  .ff8-hero-trust>span{grid-template-columns:1fr;max-width:30%;text-align:left;row-gap:3px}
