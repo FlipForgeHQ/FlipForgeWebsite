@@ -12,7 +12,7 @@ check('approved slogan headline',has(html,'<h1 id="ff10-hero-title"')&&has(html,
 check('one orchestrated hero moment',has(js,"hero.classList.add('ff10-armed')")&&has(js,'io.disconnect()')&&has(css,'.ff10-armed.ff10-locked'));
 check('hero first, positioning second, interactive demo kept',at('ff10-hero')<at('id="price-vs-proof"')&&at('id="price-vs-proof"')<at('id="evidence"')&&at('data-ffdemo')>0&&at('data-ffdemo')<at('class="ff10-final"'));
 check('large card imagery and real decision UI',has(html,'class="ff10-slab"')&&has(html,'ff10-hero@2x.webp')&&has(css,'.ff10-panel{'));
-check('light dark page rhythm',(o=>o.every(c=>has(html,'class="'+c+'"'))&&o.every((c,i)=>i===0||at('class="'+o[i-1]+'"')<at('class="'+c+'"')))(['ff10-hero','ff10-question ff10-light','ff10-evidence','ff10-identity ff10-light','ff10-steps','ff10-demo ff10-light','ff10-final','ff10-film']));
+check('light dark page rhythm',(o=>o.every(c=>has(html,'class="'+c+'"'))&&o.every((c,i)=>i===0||at('class="'+o[i-1]+'"')<at('class="'+c+'"')))(['ff10-hero','ff10-question ff10-light','ff10-evidence','ff10-identity ff10-light','ff10-steps','ff10-demo ff10-light','ff10-final']));
 check('large financial proof readout',has(html,'class="ff10-readout"')&&has(css,'.ff10-read strong{font-size:clamp(40px'));
 check('four actually visual steps',['ff10-sv-identity','ff10-sv-evidence','ff10-sv-max','ff10-sv-verdict'].every(v=>has(html,v)));
 check('exact-card identity comparison',has(html,'ff10-compare-match')&&has(html,'ff10-compare-miss')&&has(html,'ff10-base.webp'));

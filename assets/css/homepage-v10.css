@@ -287,6 +287,10 @@
 .ff10-final-row p{font-size:18px;line-height:1.55;color:rgba(255,255,255,.78);max-width:30em}
 .ff10-fine{margin-top:28px!important;font-size:13px;color:var(--s-ink)}
 .ff10-final .ff10-fine{color:var(--s)}
+.ff10-signature{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:clamp(56px,7vw,96px)}
+.ff10-signature img{display:block}
+.ff10-signature span:first-of-type{font-weight:700;font-size:15px;letter-spacing:.32em;color:var(--w)}
+.ff10-signature span:last-of-type{font-weight:600;font-size:12px;letter-spacing:.34em;color:var(--g)}
 .ff10-final .ff10-display span,.ff10-final .ff10-display{color:var(--w)}
 
 .ff10 .footer{background:var(--k);border-top-color:var(--line-d)}

@@ -32,7 +32,6 @@ const SHELL=[
   '/assets/js/site.js',
   '/assets/css/homepage-v10.css',
   '/assets/js/homepage-v10.js',
-  '/assets/js/homepage-film-v1.js',
   '/assets/images/ff10-hero.webp',
   '/assets/images/ff10-silver.webp',
   '/assets/images/ff10-base.webp',
