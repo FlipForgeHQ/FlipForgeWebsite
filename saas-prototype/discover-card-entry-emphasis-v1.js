@@ -48,13 +48,13 @@
     if (!document.querySelector('link[data-ff-guided-entry]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "discover-guided-entry-v1.css?v=20261020-6";
+      link.href = "discover-guided-entry-v1.css?v=20261020-7";
       link.dataset.ffGuidedEntry = "";
       document.head.appendChild(link);
     }
     if (!document.querySelector('script[data-ff-guided-entry]')) {
       const script = document.createElement("script");
-      script.src = "discover-guided-entry-v1.js?v=20261020-6";
+      script.src = "discover-guided-entry-v1.js?v=20261020-7";
       script.defer = true;
       script.dataset.ffGuidedEntry = "";
       document.body.appendChild(script);
