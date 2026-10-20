@@ -34,7 +34,11 @@ check('autoplay is once, resumable and replayable',js.includes('storyObserver.di
 check('reduced motion and offscreen visibility honored',js.includes("prefers-reduced-motion: reduce")&&js.includes('document.hidden')&&css.includes('prefers-reduced-motion:reduce'));
 check('cinematic type entrance, gold contrast and mobile fit',css.includes('ffdemo-cine-stage')&&css.includes('@keyframes ffdemo-cine-stage')&&css.includes('.ffdemo-cine-frame strong')&&css.includes('@media(max-width:600px)'));
 check('no automatic video downloads, audio, provider or storage calls',!/(audio\.play|video\.play|fetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB)/.test(js));
-check('only one hero experience',!html.includes('data-decision-forge') && !html.includes('data-film'));
+check('hero has physical fictional card and price comparison art',html.includes('class="ffdemo-hero-art"')&&html.includes('data-hero-ask')&&html.includes('data-hero-gap')&&html.includes('ff-fictional-slab-v1.svg'));
+check('financial artwork follows slider input',js.includes("document.querySelector('[data-hero-ask]')")&&js.includes("document.querySelector('[data-hero-gap]')"));
+check('three illustration-led evidence cards',html.includes('ffdemo-art-identity')&&html.includes('ffdemo-art-filter')&&html.includes('ffdemo-art-economics'));
+check('artwork responsive at phone and tablet widths',css.includes('@media(max-width:750px)')&&css.includes('@media(max-width:1080px)'));
+check('one hero experience',!html.includes('data-decision-forge') && !html.includes('data-film'));
 check('no data storage or provider fetch',!/(localStorage|sessionStorage|indexedDB|fetch\s*\(|XMLHttpRequest)/.test(js));
 const errors=assertions.filter(x=>!x.ok);
 if(errors.length){for(const x of errors)console.error('FAIL: '+x.msg);process.exit(1)}

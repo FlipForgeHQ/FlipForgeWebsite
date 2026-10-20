@@ -31,6 +31,10 @@
     const outcome = calculation(ask, unresolved);
     get('[data-ask-value]').textContent = simple(ask);
     get('[data-price-gap]').textContent = (outcome.gap > 0 ? '+' : outcome.gap < 0 ? '−' : '') + simple(Math.abs(outcome.gap));
+    const heroAsk = document.querySelector('[data-hero-ask]');
+    const heroGap = document.querySelector('[data-hero-gap]');
+    if (heroAsk) heroAsk.textContent = simple(ask);
+    if (heroGap) heroGap.textContent = (outcome.gap>0 ? '+' : outcome.gap<0 ? '−' : '') + simple(Math.abs(outcome.gap));
     get('[data-price-gap-explain]').textContent = outcome.gap > 0 ? 'Asking price above Max Buy' : outcome.gap < 0 ? 'Asking price below Max Buy' : 'Asking price meets Max Buy';
     get('[data-profit]').textContent = money(outcome.profit);
     get('[data-roi]').textContent = (outcome.roi >= 0 ? '+' : '−') + Math.abs(outcome.roi).toFixed(1) + '%';
