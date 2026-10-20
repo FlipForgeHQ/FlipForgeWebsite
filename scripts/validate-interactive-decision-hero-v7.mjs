@@ -5,7 +5,8 @@ const js=fs.readFileSync('assets/js/homepage-interactive-decision-v7.js','utf8')
 const out=[];
 const check=(label,ok)=>out.push({label,ok});
 check('one semantic H1',(html.match(/<h1\b/g)||[]).length===1);
-check('approved performance-led headline',html.includes("DON'T JUST")&&html.includes('KNOW THE DEAL.'));
+check('approved performance-led headline',html.includes('PRICES TELL YOU')&&html.includes('FLIPFORGE TELLS YOU WHY.'));
+check('24-second trust gap film dominates hero',html.includes('data-ff9-film')&&html.includes('ff9-film-headline'));
 check('hero first and interactive product adjacent',html.indexOf('ff8-hero')<html.indexOf('data-ffdemo')&&html.indexOf('data-ffdemo')<html.indexOf('<section class="ff8-proof"'));
 check('photographic treatment and real screen art direction',html.includes('ff8-hero-photo')&&html.includes('ff8-phone')&&css.includes('.ff8-phone'));
 check('light dark page rhythm',html.includes('ff8-proof')&&html.includes('ff8-method')&&html.includes('ff8-benefits')&&css.includes('#f5f4f0'));
@@ -23,6 +24,7 @@ check('no provider calls',!/(fetch\s*\(|XMLHttpRequest)/.test(js));
 check('no browser storage',!/(localStorage|sessionStorage|indexedDB)/.test(js));
 check('no risk-free promises',html.includes('NO GUARANTEED RETURN')&&html.includes('FlipForge does not guarantee profit'));
 check('five-beat silent demo',html.includes('$425 ASKING PRICE.')&&html.includes('$360 MAX BUY.')&&html.includes('$65 TOO HIGH.')&&html.includes('PASS. KNOW WHY.')&&html.includes('CHANGE THE PRICE.'));
+check('marketing film play pause replay and reduced-motion check',html.includes('data-ff9-replay')&&html.includes('data-ff9-play')&&html.includes('data-ff9-progress'));
 check('autoplay human control and reduced motion',js.includes('IntersectionObserver')&&js.includes("storyPause.addEventListener('click'")&&js.includes('prefers-reduced-motion: reduce'));
 check('clear focus route',html.includes('aria-describedby="ffdemo-range-help ffdemo-range-caption"')&&html.includes('aria-pressed="false"'));
 check('responsive phone and section design',css.includes('@media(max-width:760px)')&&css.includes('@media(max-width:430px)'));

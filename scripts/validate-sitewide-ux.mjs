@@ -105,7 +105,9 @@ requireText('homepage v7 decision stylesheet',homepage,'assets/css/homepage-inte
 requireText('homepage v7 demo runtime',homepage,'assets/js/homepage-interactive-decision-v7.js');
 requireText('homepage shared mobile behavior',homepage,'assets/js/site.js');
 requireText('homepage prominent demo',homepage,'data-ffdemo');
-requireText('homepage hero headline',homepage,"DON'T JUST");
+requireText('homepage hero headline',homepage,'PRICES TELL YOU');
+requireText('homepage film player',homepage,'data-ff9-film');
+requireText('homepage film controller',homepage,'homepage-cinematic-film-v9.js');
 requireText('reference-quality layout',homepage,'assets/css/homepage-reference-v8.css');
 requireText('real product display',homepage,'ff8-phone" id="try-decision"');
 requireText('homepage asking price and max buy contrast',homepage,'FLIPFORGE MAX BUY');

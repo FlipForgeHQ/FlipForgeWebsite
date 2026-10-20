@@ -34,7 +34,7 @@
    if(index!==current||force){
      const data=stages[index];current=index;
      root.removeAttribute('data-ff9-active');
-     stage.dataset.ff9Stage=String(index);
+     stage.dataset.ff9Stage=String(index);root.dataset.ff9Stage=String(index);
      kicker.textContent=data.k;
      headline.innerHTML=data.h; // hard-coded trusted local strings only
      sub.textContent=data.s;

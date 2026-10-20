@@ -33,8 +33,8 @@ const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toL
 const requireAll=(label,text,needles)=>needles.forEach(needle=>requireText(label,text,needle));
 
 requireAll('homepage premium performance layout',homepage,[
- "DON'T JUST",
- 'KNOW THE DEAL.',
+ 'PRICES TELL YOU',
+ 'FLIPFORGE TELLS YOU WHY.',
  'class="ff8-hero-photo"',
  'ff8-phone',
  'ff8-proof-visual',
@@ -60,10 +60,14 @@ requireAll('homepage conversion and proof continuity',homepage,[
  'class="ffdemo-mobile-actions"',
  'href="beta-application.html">Request Private Beta Access',
  '<strong>100 frozen decisions</strong>',
+ 'assets/js/homepage-cinematic-film-v9.js',
  'href="decision-proof.html">See the proof →',
  'assets/js/homepage-interactive-decision-v7.js'
 ]);
 const demoCss=read('assets/css/homepage-interactive-decision-v7.css');
+const filmJs=read('assets/js/homepage-cinematic-film-v9.js');
+requireText('cinematic no-provider intro',filmJs,'No external media, provider calls');
+requireText('controlled silent 24-second storyboard',filmJs,'const full=24000');
 const redesignCss=read('assets/css/homepage-reference-v8.css');
 const demoJs=read('assets/js/homepage-interactive-decision-v7.js');
 requireText('interactive demo responds to input',demoJs,"addEventListener('input', render)");
@@ -175,7 +179,7 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v23'","'/decision-proof.html'","'/assets/css/homepage-interactive-decision-v7.css'","'/assets/js/homepage-interactive-decision-v7.js'","'/assets/js/site.js'"]);
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v24'","'/decision-proof.html'","'/assets/css/homepage-interactive-decision-v7.css'","'/assets/js/homepage-interactive-decision-v7.js'","'/assets/js/site.js'"]);
 const publicCopy=`${homepage}\n${proofPage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true'])forbidText('public safety',publicCopy,unsafe);
 if(publicCopy.includes('CARD VALUE INTELLIGENCE'))failures.push('public safety: forbidden formal CARD VALUE INTELLIGENCE identity');
