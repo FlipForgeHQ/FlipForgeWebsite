@@ -22,8 +22,9 @@
 
   function parseNumbering(query) {
     const text = String(query || "");
-    // 01/25, /25, numbered to 25. Exclude year-season forms such as 2018/19.
-    const full = /(^|[\s(])(\d{1,5})\s*\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    // 01/25, /25, numbered to 25. Do not mistake the grade in "PSA 9 /25" for serial #9.
+    // Require the ordinal and slash to be adjacent; exclude 2018/19 season forms.
+    const full = /(^|[\s(])(\d{1,5})\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
     let match;
     while ((match = full.exec(text)) !== null) {
       const serial = Number(match[2]), denominator = Number(match[3]);
