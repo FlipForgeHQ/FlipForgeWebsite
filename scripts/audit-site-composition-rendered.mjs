@@ -165,6 +165,22 @@ try{
   const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
   const page=await context.newPage();
   await page.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded'});
+  // The new film is the primary upper-right marketing experience; it is playable,
+  // user-pausable and independent from the illustrative Max Buy calculator.
+  const film=page.locator('[data-ff9-film]');
+  if(await film.count()!==1)failures.push('homepage: primary marketing film is missing');
+  else {
+    const intro=await film.locator('[data-ff9-headline]').textContent();
+    if(!intro?.includes('FIVE APPS.'))failures.push('homepage film: opening message must introduce the competing-price problem');
+    await film.locator('[data-ff9-play]').click();
+    await page.waitForTimeout(270);
+    const measured=await film.locator('[data-ff9-bar]').evaluate(el=>parseFloat(el.style.width)||0);
+    if(measured<=0)failures.push('homepage film: Play must move progress');
+    await film.locator('[data-ff9-play]').click();
+    if(!await film.evaluate(el=>el.hasAttribute('data-ff9-paused')))failures.push('homepage film: pause state missing');
+    await film.locator('[data-ff9-replay]').click();
+    if(await film.evaluate(el=>el.hasAttribute('data-ff9-paused')))failures.push('homepage film: Replay must restart playback');
+  }
   const demo=page.locator('[data-ffdemo]');
   const slider=page.locator('[data-asking]');
   if(await demo.count() && await slider.count()){
@@ -202,6 +218,7 @@ try{
   const cinematicContext=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
   const cinematicPage=await cinematicContext.newPage();
   await cinematicPage.goto(BASE+'/index.html',{waitUntil:'domcontentloaded'});
+  await cinematicPage.locator('[data-ffdemo]').scrollIntoViewIfNeeded();
   await cinematicPage.waitForFunction(
     ()=>document.querySelector('[data-ffdemo]')?.classList.contains('ffdemo-story-playing'),
     null,{timeout:3500}
