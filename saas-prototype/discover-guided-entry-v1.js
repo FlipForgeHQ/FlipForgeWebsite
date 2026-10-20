@@ -40,6 +40,7 @@
   }
   function render() {
     return [
+      '<details class="ff-guided-entry-details" data-ff-guided-details><summary>Build a card with guided selections</summary>',
       '<div class="ff-guided-entry-header"><div><span class="ff-guided-entry-step">STEP 1 / IDENTIFY</span>',
       '<h3>Build your card search</h3>',
       '<p>Choose the details you know. FlipForge will then show candidate cards to verify — it will not guess which parallel or grade you own.</p>',
@@ -64,7 +65,8 @@
       '<div class="ff-guided-entry-footer"><button class="button button-primary" type="button" data-ff-guided-confirm>',
       'Find &amp; verify matching cards →</button>',
       '<p>The choices create a search request only. Identity confirmation is required before listing search; no grading or sale evidence is inferred.</p></div>',
-      '<p class="ff-guided-entry-status" role="status" aria-live="polite" data-ff-guided-status></p>'
+      '<p class="ff-guided-entry-status" role="status" aria-live="polite" data-ff-guided-status></p>',
+      '</details>'
     ].join("");
   }
   function toggleGrading(panel) {
@@ -146,6 +148,8 @@
     panel.dataset.ffGuidedEntry = "";
     panel.setAttribute("aria-label","Guided card identification");
     panel.innerHTML = render();
+    const details = panel.querySelector("[data-ff-guided-details]");
+    if (details) details.open = window.matchMedia("(min-width: 721px)").matches;
     form.insertAdjacentElement("beforebegin", panel);
     const manual = document.createElement("p");
     manual.className = "ff-guided-manual-label";
