@@ -62,6 +62,8 @@ function addDashboard(main){
  const root=main.querySelector('[data-commercial-dashboard-v2],.ffv3-root');
  if(!root||root.querySelector('[data-ffguided-home]'))return;
  const v2=root.matches('[data-commercial-dashboard-v2]');
+ if(v2&&!root.querySelector('.ff-kpi-grid,.ff-dashboard-main-grid'))return; // keep login/error states distinct
+ if(!v2&&!['ready','empty'].includes(root.getAttribute('data-ffv3-state')))return;
  const panel=document.createElement('section');panel.className='ffguided-home';panel.dataset.ffguidedHome='';panel.setAttribute('aria-label','Start a card decision');
  panel.innerHTML='<div class="ffguided-home-copy"><span>START HERE</span><h2>What card are you considering?</h2>'+
   '<p>Discover the exact card, check the relevant evidence and understand your next move.</p>'+
@@ -69,9 +71,9 @@ function addDashboard(main){
   '<div class="ffguided-home-steps"><div><b>01</b><span>Discover the exact card</span></div>'+
   '<div><b>02</b><span>Check the evidence</span></div><div><b>03</b><span>Understand the decision</span></div></div>'+
   '<div class="ffguided-home-footer"><a href="#/opportunities">Saved Decisions →</a>'+
-  (v2?'<button type="button" data-ffguided-more aria-expanded="false">Show full dashboard ↓</button>':'')+'</div>';
+  '<button type="button" data-ffguided-more aria-expanded="false">Show full dashboard ↓</button></div>';
  root.prepend(panel);
- if(v2){
+ {
   root.dataset.ffguidedFocus='simple';
   const more=panel.querySelector('[data-ffguided-more]');
   more.addEventListener('click',()=>{const open=root.dataset.ffguidedFocus==='full';root.dataset.ffguidedFocus=open?'simple':'full';

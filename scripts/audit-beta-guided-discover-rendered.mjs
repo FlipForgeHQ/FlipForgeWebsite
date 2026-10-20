@@ -28,6 +28,16 @@ try{
  assert.equal(await dashboard.locator('.ff-commercial-dashboard').getAttribute('data-ffguided-focus'),'full');
  await dashboard.close();
 
+
+ const v3=await scene('<div class="ffv3-root" data-decision-dashboard-v3 data-ffv3-state="ready"><header class="ffv3-command-bar">Decision</header>'+
+ '<div class="ffv3-layout">Actual server dossier and ledger</div><section class="ffv3-analytics">Secondary metrics</section></div>');
+ await v3.locator('[data-ffguided-home]').waitFor();
+ assert.equal(await v3.locator('.ffv3-root').getAttribute('data-ffguided-focus'),'simple');
+ await v3.locator('[data-ffguided-more]').click();
+ assert.equal(await v3.locator('.ffv3-root').getAttribute('data-ffguided-focus'),'full');
+ assert.equal(await v3.locator('.ffv3-layout').count(),1,'governed dossier must remain in the DOM');
+ await v3.close();
+
  const form='<div class="customer-discovery-page"><form data-customer-discovery-form>'+
  '<label>Card<input name="exactCardQuery" type="search" required></label>'+
  '<button type="button" data-discovery-find-exact>Find exact card</button>'+
