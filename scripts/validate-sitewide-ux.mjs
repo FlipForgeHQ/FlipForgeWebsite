@@ -107,7 +107,7 @@ requireText('homepage shared mobile behavior',homepage,'assets/js/site.js');
 requireText('homepage prominent demo',homepage,'data-ffdemo');
 requireText('homepage hero headline',homepage,"DON'T JUST");
 requireText('reference-quality layout',homepage,'assets/css/homepage-reference-v8.css');
-requireText('real product display',homepage,'class="ff8-phone"');
+requireText('real product display',homepage,'ff8-phone" id="try-decision"');
 requireText('homepage asking price and max buy contrast',homepage,'FLIPFORGE MAX BUY');
 requireText('homepage price gap contrast',homepage,'PRICE GAP');
 requireText('homepage decision proof link',homepage,'See the proof →');
