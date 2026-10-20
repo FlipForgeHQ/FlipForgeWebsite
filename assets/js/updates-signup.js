@@ -58,7 +58,7 @@
       wire(form);
       // Result of a no-JavaScript post, returned as ?updates=ok|invalid
       const result = new URLSearchParams(window.location.search).get("updates");
-      if (result === "ok" || result === "invalid") say(form, result);
+      if (result === "ok" || result === "invalid" || result === "busy") say(form, result);
     });
   }
 

@@ -1,7 +1,7 @@
 // "Stay in touch" email list: behaviour of the signup and operator export functions, plus the
 // page wiring and disclosures. Runs in the Netlify build.
 import fs from "node:fs";
-import { createUpdatesSignupHandler, config as signupConfig } from "../netlify/modern-functions/updates-signup.mjs";
+import { createUpdatesSignupHandler, config as signupConfig, RATE_LIMIT, RATE_WINDOW_MS } from "../netlify/modern-functions/updates-signup.mjs";
 import { createUpdatesSubscribersHandler, config as exportConfig } from "../netlify/modern-functions/updates-subscribers.mjs";
 import { UPDATES_CONSENT_TEXT, csvCell } from "../netlify/modern-functions/lib/updates-core.mjs";
 
@@ -62,7 +62,24 @@ r = await signup(post({ email: "form@example.com", consent: "on", source: "artic
 check("no-JavaScript form post stores and returns to the article", r.status === 303 && r.headers.get("location") === "/price-is-not-proof.html?updates=ok#stay-in-touch" && store.records.size === 2);
 r = await signup(post({ email: "bad", source: "home" }, { json: false }));
 check("invalid no-JavaScript post returns to the homepage with a message", r.status === 303 && r.headers.get("location") === "/?updates=invalid#stay-in-touch");
-check("signup endpoint is rate limited", signupConfig.path === "/api/updates" && signupConfig.rateLimit?.windowLimit === 5);
+check("signup endpoint uses no platform rate-limit rule (plan allows two, reserved elsewhere)", signupConfig.path === "/api/updates" && !signupConfig.rateLimit);
+{
+  const rateStore = new MemoryStore();
+  let t = new Date("2026-10-20T16:00:00Z");
+  const limited = createUpdatesSignupHandler({ store: rateStore, now: () => t });
+  const ctx = ip => ({ ip });
+  const statuses = [];
+  for (let i = 0; i < RATE_LIMIT + 1; i += 1) statuses.push((await limited(post({ email: `r${i}@example.com`, consent: true }), ctx("203.0.113.9"))).status);
+  check(`connection is limited to ${RATE_LIMIT} signups per window`, statuses.slice(0, RATE_LIMIT).every(s => s === 202) && statuses[RATE_LIMIT] === 429);
+  check("another connection is not affected", (await limited(post({ email: "other@example.com", consent: true }), ctx("198.51.100.4"))).status === 202);
+  t = new Date(t.getTime() + RATE_WINDOW_MS);
+  check("the limit resets after the window", (await limited(post({ email: "later@example.com", consent: true }), ctx("203.0.113.9"))).status === 202);
+  check("connection addresses are stored only as hashes", [...rateStore.records.keys()].filter(k => k.startsWith("rate/")).every(k => /^rate\/[0-9a-f]{64}\.json$/.test(k)) && ![...rateStore.records.keys()].some(k => k.includes("203.0.113")));
+  const formPost = () => limited(new Request(`${ORIGIN}/api/updates`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", Origin: ORIGIN }, body: "email=f%40example.com&consent=on&source=home" }), ctx("192.0.2.77"));
+  let last;
+  for (let i = 0; i < RATE_LIMIT + 1; i += 1) last = await formPost();
+  check("a limited no-JavaScript post returns with a busy message", last.status === 303 && last.headers.get("location") === "/?updates=busy#stay-in-touch");
+}
 
 await store.setJSON("email/" + "f".repeat(64) + ".json", { email: "=cmd()@example.com", subscribedAt: "2026-10-22T00:00:00.000Z", source: "home", consentVersion: "2026-10-20" });
 const operator = { id: "op", appMetadata: { roles: ["flipforge-operator"] } };

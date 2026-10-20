@@ -46,6 +46,32 @@ async function parseBody(request) {
   return Object.fromEntries(new URLSearchParams(raw).entries());
 }
 
+// The Netlify plan allows two platform rate-limit rules, both reserved for other public intake endpoints,
+// so this endpoint throttles itself: at most RATE_LIMIT signups per connection per RATE_WINDOW_MS.
+// Connection addresses are stored only as a SHA-256 hash, one small record per address.
+export const RATE_LIMIT = 5;
+export const RATE_WINDOW_MS = 180_000;
+
+function clientAddress(request, context) {
+  return String(context?.ip || request.headers.get("x-nf-client-connection-ip") || "").trim();
+}
+
+async function hashed(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`flipforge-updates:${value}`));
+  return [...new Uint8Array(digest)].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+
+async function overLimit(store, address, now) {
+  if (!address) return false;
+  const key = `rate/${await hashed(address)}.json`;
+  const current = await store.get(key, { type: "json" }).catch(() => null);
+  const start = Number(current?.windowStart || 0);
+  const fresh = !start || now.getTime() - start >= RATE_WINDOW_MS;
+  const count = fresh ? 1 : Number(current?.count || 0) + 1;
+  await store.setJSON(key, { windowStart: fresh ? now.getTime() : start, count }).catch(() => {});
+  return count > RATE_LIMIT;
+}
+
 function back(source, status) {
   const target = UPDATES_SOURCES[source] || UPDATES_SOURCES.home;
   const [path, hash] = target.split("#");
@@ -53,7 +79,7 @@ function back(source, status) {
 }
 
 export function createUpdatesSignupHandler({ store, now = () => new Date() } = {}) {
-  return async function updatesSignup(request) {
+  return async function updatesSignup(request, context) {
     if (request.method !== "POST") return reply(405, { accepted: false, reason: "METHOD_NOT_ALLOWED" });
     if (!sameOrigin(request)) return reply(403, { accepted: false, reason: "ORIGIN_NOT_ALLOWED" });
 
@@ -66,6 +92,10 @@ export function createUpdatesSignupHandler({ store, now = () => new Date() } = {
     }
 
     const json = wantsJson(request);
+    const targetStore = store || betaRuntimeStore(UPDATES_STORE_NAME, request);
+    if (await overLimit(targetStore, clientAddress(request, context), now())) {
+      return json ? reply(429, { accepted: false, reason: "RATE_LIMITED" }) : back(input?.source, "busy");
+    }
     // Bots get the same answer as people, so the trap is not an oracle. Nothing is stored.
     if (String(input?.bot_field || "").trim()) return json ? reply(202, { accepted: true }) : back(input?.source, "ok");
 
@@ -74,7 +104,6 @@ export function createUpdatesSignupHandler({ store, now = () => new Date() } = {
       return json ? reply(400, { accepted: false, reason: "SIGNUP_INVALID", fields: validation.errors }) : back(validation.source, "invalid");
     }
 
-    const targetStore = store || betaRuntimeStore(UPDATES_STORE_NAME, request);
     const key = await updatesKey(validation.email);
     // An address already on the list gets the same answer: the response never reveals who subscribed.
     await targetStore.setJSON(key, subscriberRecord(validation, now()), { onlyIfNew: true });
@@ -87,9 +116,4 @@ export default createUpdatesSignupHandler();
 
 export const config = {
   path: "/api/updates",
-  rateLimit: {
-    windowLimit: 5,
-    windowSize: 180,
-    aggregateBy: ["ip", "domain"],
-  },
 };
