@@ -5,6 +5,44 @@ const failures=[];
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.includes(needle))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 
+// Whole-public-site v10 is one branded experience, not isolated hero experiments.
+// Proof methodology, identity, beta terms and privacy copy remain unchanged.
+const completeStyle=read('assets/css/site-complete-v10.css');
+for(const feature of ['.ff10-feature','.ff10-graphic','.ff10-trust-graphic','.ff10-evidence-graphic','.ff10-plans-graphic','.ff10-beta-graphic','.ff10-faq-graphic','.ff10-auth','@media(prefers-reduced-motion:reduce)']){
+  requireText('complete public-site visual system',completeStyle,feature);
+}
+const completeRoutes=[
+  ['about.html','ff10-about'],['learn.html','ff10-learn'],['pricing.html','ff10-plans'],
+  ['beta-application.html','ff10-beta'],['faq.html','ff10-faq'],
+  ['beta-onboarding.html','ff10-onboarding'],['thank-you.html','ff10-received'],
+  ['data-use.html','ff10-legal'],['privacy.html','ff10-legal'],['terms.html','ff10-legal'],
+  ['refund.html','ff10-legal'],['beta-terms.html','ff10-legal'],['404.html','ff10-missing'],
+  ['decision-proof.html','ff10-proof'],['sample-decision-dossier.html','ff10-dossier'],
+  ['partner-disclosure.html','ff10-disclosure'],['platform-status.html','ff10-status'],
+  ['connect/index.html','ff10-connect'],['production-auth.html','ff10-auth']
+];
+for(const [route,cls] of completeRoutes){
+  const html=read(route);
+  requireText('brand integration '+route,html,cls);
+  requireText('shared design stylesheet '+route,html,'site-complete-v10.css');
+}
+for(const [route,marker] of [
+  ['about.html','ff10-trust-graphic'],['learn.html','ff10-evidence-graphic'],
+  ['pricing.html','ff10-plans-graphic'],['beta-application.html','ff10-beta-graphic'],
+  ['faq.html','ff10-faq-graphic']
+]){
+ const html=read(route);
+ requireText('bespoke editorial visual '+route,html,marker);
+ requireText('return home '+route,html,'class="ff10-breadcrumb"');
+}
+for(const legal of ['privacy.html','terms.html','beta-terms.html']){
+ requireText('trust document home '+legal,read(legal),'class="ff10-breadcrumb"');
+}
+requireText('auth preserves preview-only routing',read('production-auth.html'),'data-production-auth-preview-redirect');
+requireText('auth retains native form guard',read('production-auth.html'),'form[hidden]{display:none}');
+requireText('published homepage design stays locked',read('index.html'),'PRICES TELL YOU');
+requireText('governed decision page remains intact',read('decision-intelligence.html'),'id="decision-benefits"');
+
 const marketingPages=read('assets/css/marketing-pages-v3.css');
 const marketingSupport=read('assets/css/marketing-support-v3.css');
 const density=read('assets/css/marketing-density-v1.css');
