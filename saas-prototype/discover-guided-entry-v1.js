@@ -59,7 +59,7 @@
     if (numbered === "no" && existing) {
       return { error: "Your search already contains serial numbering. Choose Numbered or correct your search." };
     }
-    if (numbered !== "yes") return { query: source, needsVerification: false };
+    if (numbered !== "yes") return { query: source, needsVerification: Boolean(existing) };
     if (denominatorText && (!NUMBER.test(denominatorText) || Number(denominatorText) === 0)) {
       return { error: "Enter the print run as a positive whole number, such as 25 or 50." };
     }
@@ -170,18 +170,20 @@
     if (!section) return;
     const result = prepare(form,section);
     if (result.error) { event.preventDefault(); event.stopImmediatePropagation(); return; }
+    const verify = result.needsVerification ? form.querySelector("[data-discovery-find-exact]") : null;
+    if (result.needsVerification && (!verify || verify.disabled)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      showMessage(section,"Exact-card confirmation is unavailable. The numbered card has not been verified.");
+      return;
+    }
     searchHandedOff = true;
     section.remove();
     if (result.needsVerification) {
-      // Numbered versions must go through the existing candidate-selection gate first.
+      // Printed numbering must go through server-owned candidate selection first.
       event.preventDefault();
       event.stopImmediatePropagation();
-      const verify = form.querySelector("[data-discovery-find-exact]");
-      if (verify && !verify.disabled) verify.click();
-      else {
-        searchHandedOff = false;
-        schedule();
-      }
+      verify.click();
     }
   }
   function onClick(event) {
