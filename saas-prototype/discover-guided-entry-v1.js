@@ -5,7 +5,7 @@
   const ROOT = "#main-content";
   const FORM = ROOT + " [data-customer-discovery-form]";
   const QUERY = 'input[name="exactCardQuery"]';
-  const NUMBER = /^[1-9][0-9]{0,4}$/;
+  const NUMBER = /^\d{1,5}$/;
   const MAX_QUERY = 500;
   let scheduled = false;
   let searchHandedOff = false;
@@ -60,10 +60,10 @@
       return { error: "Your search already contains serial numbering. Choose Numbered or correct your search." };
     }
     if (numbered !== "yes") return { query: source, needsVerification: false };
-    if (denominatorText && !NUMBER.test(denominatorText)) {
+    if (denominatorText && (!NUMBER.test(denominatorText) || Number(denominatorText) === 0)) {
       return { error: "Enter the print run as a positive whole number, such as 25 or 50." };
     }
-    if (serialText && !NUMBER.test(serialText)) {
+    if (serialText && (!NUMBER.test(serialText) || Number(serialText) === 0)) {
       return { error: "The card's individual serial must be a positive whole number." };
     }
     const denominator = denominatorText ? Number(denominatorText) : Number(existing?.denominator || 0);
