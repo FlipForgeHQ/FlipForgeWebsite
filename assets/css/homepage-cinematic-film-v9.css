@@ -79,7 +79,7 @@
 .ff9-dock-copy h2 em{font-style:normal;color:#d5b364}
 .ff9-dock-copy>p:not(.ffdemo-eyebrow){color:#cbd2d4;line-height:1.58;font-size:clamp(16px,1.4vw,19px)}
 .ff9-dock-action{display:inline-flex;align-items:center;gap:18px;margin-top:14px;padding:15px 18px;border:1px solid rgba(218,183,94,.7);border-radius:8px;color:#edcf80;font-size:13px;font-weight:850}
-.ff9-dock-copy .ff9-smallprint{color:#9fa9ad!important;font-size:11px!important;margin-top:17px}
+.ff9-dock-copy .ff9-smallprint{color:#9fa9ad!important;font-size:12px!important;margin-top:17px}
 .ff8-page .ff9-demo-dock .ff8-hero-product{height:auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:3px 0 24px}
 .ff8-page .ff9-demo-dock .ffdemo-console.ff8-phone{margin:0 auto;width:min(460px,96%);min-height:0;max-height:775px;transform:rotate(2.3deg)}
 .ff9-demo-dock .ff8-card-backdrop{display:none}
