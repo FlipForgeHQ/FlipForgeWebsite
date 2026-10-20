@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="assets/css/phase2-premium-intelligence-v1.css">
 <link rel="stylesheet" href="assets/css/sitewide-graphics-v1.css">
 <link rel="stylesheet" href="assets/css/site-complete-v10.css">
+<link rel="stylesheet" href="assets/css/updates-signup-v1.css">
 </head>
 <body class="ff-marketing-page-v3 ff-support-v3 ff-v5-evidence-page ff10-design ff10-learn">
 <a class="skip-link" href="#main">Skip to main content</a>
@@ -33,7 +34,13 @@
   <p class="lead">A sports-card decision can look data-driven and still rest on the wrong parallel, a stale sale, one thin comp, or a best-case grade assumption. Evidence Lab teaches you what deserves confidence—and what does not.</p>
   <div class="buttons"><a class="btn primary" href="#busted-comp">Start with Busted Comp</a><a class="btn" href="product.html#identity-simulator">Try the identity challenge</a></div>
 </section>
-<div class="ff10-feature ff10-evidence-feature" role="region" aria-label="Illustrative evidence authority filtering"><div class="ff10-feature-story"><span class="ff10-feature-kicker">THE FILTER BEFORE THE ANSWER</span><h2>Not every comp<br><em>earns a vote.</em></h2><p>Price matters only after identity, sale provenance, and relevance pass review. The wrong comparison can make a risky deal look safe.</p><a class="ff10-feature-link" href="#busted-comp">TEST A BUSTED COMP <span aria-hidden="true">↗</span></a></div><div class="ff10-graphic ff10-evidence-graphic"><div class="ff10-evidence-header"><span>ILLUSTRATIVE REVIEW</span><strong>AUTHORITY GATE</strong></div><div class="ff10-evidence-row"><span>EXACT MATCH / OUTCOME DOCUMENTED</span><b class="ff10-yes">QUALIFY</b></div><div class="ff10-evidence-row"><span>OUTCOME CANNOT BE VERIFIED</span><b class="ff10-wait">HOLD</b></div><div class="ff10-evidence-row"><span>DIFFERENT PARALLEL OR GRADE</span><b class="ff10-no">EXCLUDE</b></div><div class="ff10-evidence-foot"><span>REASONS PRESERVED</span><span>NO INVENTED SALES</span></div></div></div>
+<section class="ff-lab-section" aria-labelledby="featured-article-heading">
+  <div class="callout">
+    <div><p class="kicker">NEW IN THE LAB</p><h3 id="featured-article-heading">Price is not proof.</h3><p>Asking prices, unpaid sales, wrong parallels, buyer’s premiums and fees: what a price can’t tell you, with a worked example.</p></div>
+    <div class="buttons"><a class="btn primary" href="price-is-not-proof.html">Read the article</a></div>
+  </div>
+</section>
+<div class="ff10-feature ff10-evidence-feature" role="region" aria-label="Illustrative evidence authority filtering"><div class="ff10-feature-story"><span class="ff10-feature-kicker">THE FILTER BEFORE THE ANSWER</span><h2>Not every comp<br><em>earns a vote.</em></h2><p>Price matters only after identity, sale provenance, and relevance pass review. The wrong comparison can make a risky deal look safe.</p><a class="ff10-feature-link" href="#busted-comp">TEST A BUSTED COMP <span aria-hidden="true">↗</span></a></div><div class="ff10-graphic ff10-evidence-graphic"><div class="ff10-evidence-header"><span>ILLUSTRATIVE REVIEW</span><strong>AUTHORITY GATE</strong></div><div class="ff10-evidence-row"><span>EXACT MATCH / REPORTED SALE</span><b class="ff10-yes">QUALIFY</b></div><div class="ff10-evidence-row"><span>SALE NOT CONFIRMED AS COMPLETED</span><b class="ff10-wait">HOLD</b></div><div class="ff10-evidence-row"><span>DIFFERENT PARALLEL OR GRADE</span><b class="ff10-no">EXCLUDE</b></div><div class="ff10-evidence-foot"><span>REASONS PRESERVED</span><span>NO INVENTED SALES</span></div></div></div>
 
 <section class="ffg-section ff-approved-feature" aria-labelledby="ffg-lab-title" data-ffg-reveal>
   <div class="ffg-wrap">
@@ -124,6 +131,17 @@
     <div><h3 style="margin-bottom:4px">See the rules work on a real example.</h3><p>Try the identity challenge, then use FlipForge on your own listing when you are ready.</p></div>
     <div class="buttons"><a class="btn" href="product.html#identity-simulator">Try the Challenge</a><a class="btn primary" href="beta-application.html">Request Beta Access</a></div>
   </div>
+  <div class="ff-updates" id="stay-in-touch">
+      <div class="ff-updates-copy"><h3>Not ready to apply?</h3><p>Get a short monthly note on spotting misleading card prices, plus FlipForge beta updates.</p></div>
+      <form class="ff-updates-form" data-ff-updates action="/api/updates" method="post">
+        <input type="hidden" name="source" value="evidence-lab">
+        <div class="ff-updates-trap" aria-hidden="true"><label>Leave this field empty<input type="text" name="bot_field" tabindex="-1" autocomplete="off"></label></div>
+        <label class="ff-updates-email"><span class="ff-updates-sr">Email address</span><input type="email" name="email" required maxlength="254" autocomplete="email" placeholder="you@example.com"></label>
+        <button type="submit">Stay in touch</button>
+        <label class="ff-updates-consent"><input type="checkbox" name="consent" required><span>Email me a short monthly note on spotting misleading card prices, plus FlipForge beta updates. Unsubscribe anytime. See the <a href="privacy.html#email-updates">Privacy Policy</a>.</span></label>
+        <p class="ff-updates-status" data-ff-updates-status role="status" aria-live="polite"></p>
+      </form>
+    </div>
 </section>
 </main>
 
@@ -133,5 +151,6 @@
 <script src="assets/js/conversion-events.js" defer></script>
 <script src="assets/js/phase2-premium-intelligence-v1.js" defer></script>
 <script src="assets/js/sitewide-graphics-v1.js" defer></script>
+<script src="assets/js/updates-signup.js" defer></script>
 </body>
 </html>

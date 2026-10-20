@@ -270,7 +270,7 @@ for (const htmlPath of htmlFiles) {
     if (!html.includes('assets/js/homepage-v10.js')) failures.push('interactive demo runtime');
     if (!html.includes('Max Buy') || !html.includes('Price gap') || !html.includes('data-price-gap')) failures.push('asking price versus Max Buy distinction');
     if (!html.includes('class="ffdemo-nav-actions"') || !html.includes('class="ffdemo-mobile-actions"')) failures.push('paired sign-in and Private Beta access');
-    if (!html.includes('class="ff10-proof"') || !html.includes('href="decision-proof.html">See the proof')) failures.push('preserve public proof methodology entry');
+    if (!html.includes('class="ff10-proof"') || !html.includes('href="decision-proof.html">How proof works')) failures.push('preserve public proof methodology entry');
     if (!html.includes('assets/js/site.js')) failures.push('shared mobile navigation behavior');
     if (html.includes('data-film') || html.includes('data-decision-forge')) failures.push('homepage should have only one signature demonstration');
   }

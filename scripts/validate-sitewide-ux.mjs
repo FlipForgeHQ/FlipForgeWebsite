@@ -149,7 +149,7 @@ requireText('homepage one orchestrated hero',homepage,'data-ff10-hero');
 requireText('real product display',homepage,'class="ff10-panel"');
 requireText('homepage asking price and max buy contrast',homepage,'Max Buy $360');
 requireText('homepage price gap contrast',homepage,'data-price-gap');
-requireText('homepage decision proof link',homepage,'href="decision-proof.html">See the proof');
+requireText('homepage decision proof link',homepage,'href="decision-proof.html">How proof works');
 requireText('homepage illustrative label',homepage,'<span class="ff10-chip">Illustrative</span>');
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
 requireText('homepage profit boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');

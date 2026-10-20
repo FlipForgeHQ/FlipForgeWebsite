@@ -325,6 +325,9 @@
 .ff10-promise{margin-top:clamp(48px,6vw,88px)!important;max-width:24em;font-weight:700;letter-spacing:-.03em;line-height:1.12;font-size:clamp(28px,3.2vw,52px);color:var(--s)}
 .ff10-promise span{color:var(--s-ink)}
 .ff10-promise strong{color:var(--k);font-weight:800}
+.ff10-readmore{margin-top:20px!important;font-size:17px;font-weight:700}
+.ff10-readmore a{color:var(--k);text-decoration:underline;text-decoration-color:var(--g);text-decoration-thickness:2px;text-underline-offset:5px}
+.ff10-readmore a:hover{text-decoration-color:var(--k)}
 .ff10-moat{margin-top:clamp(48px,6vw,88px);padding-top:28px;border-top:2px solid var(--k)}
 .ff10-moat h3{margin:0;font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--s-ink)}
 .ff10-moat ol{list-style:none;margin:24px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;counter-reset:moat}

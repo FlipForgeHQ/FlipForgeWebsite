@@ -33,7 +33,7 @@ check('clear focus route',has(html,'aria-describedby="ff10-range-help"')&&has(ht
 check('responsive phone and section design',has(css,'@media(max-width:760px)')&&has(css,'@media(max-width:1100px)'));
 check('legally cautious imagery',has(html,'Invented for illustration; not a real card, player, set or grading company.')&&!has(html,'images.unsplash.com'));
 check('no prohibited stock-looking original slab',!has(html,'ff-fictional-slab-v1.svg'));
-check('frozen proof lineage retained',has(html,'100 frozen decisions')&&has(html,'decision-proof.html'));
+check('frozen proof lineage retained (Proof100 count withdrawn 2026-10-20)',has(html,'<strong>Frozen decisions</strong>')&&has(html,'decision-proof.html')&&!has(html,'100 frozen decisions'));
 const failed=out.filter(x=>!x.ok);
 if(failed.length){failed.forEach(x=>console.error('FAIL: '+x.label));process.exit(1)}
 console.log('PASS: '+out.length+' premium homepage + evidence integrity checks.');

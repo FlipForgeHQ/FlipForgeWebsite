@@ -1,0 +1,25 @@
+/* FlipForge "stay in touch" signup. Dark by default; .ff10-light ancestors switch it to light.
+ * Locked palette only: black, white, silver #8B8F98, gold #D4AF37, deep gold #B8860B. */
+.ff-updates{--fu-ink:#fff;--fu-muted:rgba(255,255,255,.72);--fu-line:rgba(255,255,255,.22);--fu-field:rgba(255,255,255,.06);--fu-accent:#D4AF37;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px 48px;align-items:start;
+  margin-top:clamp(40px,5vw,64px);padding:clamp(22px,2.6vw,32px);border:1px solid var(--fu-line);border-radius:14px;color:var(--fu-ink);text-align:left}
+.ff10-light .ff-updates{--fu-ink:#000;--fu-muted:#5E626B;--fu-line:rgba(0,0,0,.14);--fu-field:#fff;--fu-accent:#B8860B}
+.ff-updates h3{margin:0 0 6px;font-size:clamp(20px,1.8vw,24px);font-weight:800;letter-spacing:-.02em;line-height:1.15;color:var(--fu-ink)}
+.ff-updates-copy p{margin:0;font-size:16px;line-height:1.5;color:var(--fu-muted)}
+.ff-updates-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px}
+.ff-updates-email input{width:100%;min-height:52px;padding:0 16px;border:1px solid var(--fu-line);border-radius:8px;background:var(--fu-field);
+  color:var(--fu-ink);font:inherit;font-size:16px}
+.ff-updates-email input::placeholder{color:var(--fu-muted)}
+.ff-updates-email input:focus-visible,.ff-updates-consent input:focus-visible,.ff-updates-form button:focus-visible{outline:3px solid var(--fu-accent);outline-offset:2px}
+.ff-updates-form button{min-height:52px;padding:0 22px;border:0;border-radius:8px;background:#D4AF37;color:#000;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+.ff-updates-form button:hover{background:#E2C251}
+.ff-updates-form button:disabled{opacity:.6;cursor:progress}
+.ff-updates-consent{grid-column:1/-1;display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;color:var(--fu-muted)}
+.ff-updates-consent input{flex:none;width:18px;height:18px;margin:2px 0 0;accent-color:#D4AF37}
+.ff-updates-consent a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.ff-updates-status{grid-column:1/-1;margin:0;min-height:1.4em;font-size:14px;font-weight:600;color:var(--fu-ink)}
+.ff-updates-status[data-state="invalid"],.ff-updates-status[data-state="busy"],.ff-updates-status[data-state="error"]{color:var(--fu-accent)}
+.ff-updates-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.ff-updates-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:820px){.ff-updates{grid-template-columns:1fr}}
+@media(max-width:480px){.ff-updates-form{grid-template-columns:1fr}.ff-updates-form button{width:100%}}
