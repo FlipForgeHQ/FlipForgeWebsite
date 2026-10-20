@@ -40,11 +40,7 @@
 @media(max-width:560px){.ffguided-home{padding:18px 15px}.ffguided-home-cta{width:100%;display:flex!important}.ffguided-home-steps>div{font-size:13px}.ffguided-grid{grid-template-columns:1fr}.ffguided-entry{padding:12px}.ffguided-entry summary small{flex-basis:100%}}
 @media(prefers-reduced-motion:reduce){.ffguided-home *, .ffguided-entry *{scroll-behavior:auto!important;transition:none!important}}
 
-/* Dashboard V3: keep the actual decision dossier/ledger; collapse only secondary
-   account analytics and redundant empty-state teaching until requested. */
-.ffv3-root[data-ffguided-focus="simple"]>.ffv3-analytics,
-.ffv3-root[data-ffguided-focus="simple"]>.ff-focus-secondary,
-.ffv3-root[data-ffguided-focus="simple"]>.ffv3-empty{display:none!important}
+/* Dashboard V3 keeps its certified above-fold decision layout unchanged. */
 
 /* Maintain the 14px visible-text minimum in the new customer teaching surfaces. */
 .ffguided-home-copy>span,

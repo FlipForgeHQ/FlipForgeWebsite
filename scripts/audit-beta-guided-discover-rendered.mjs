@@ -31,11 +31,10 @@ try{
 
  const v3=await scene('<div class="ffv3-root" data-decision-dashboard-v3 data-ffv3-state="ready"><header class="ffv3-command-bar">Decision</header>'+
  '<div class="ffv3-layout">Actual server dossier and ledger</div><section class="ffv3-analytics">Secondary metrics</section></div>');
- await v3.locator('[data-ffguided-home]').waitFor();
- assert.equal(await v3.locator('.ffv3-root').getAttribute('data-ffguided-focus'),'simple');
- await v3.locator('[data-ffguided-more]').click();
- assert.equal(await v3.locator('.ffv3-root').getAttribute('data-ffguided-focus'),'full');
- assert.equal(await v3.locator('.ffv3-layout').count(),1,'governed dossier must remain in the DOM');
+ await v3.waitForTimeout(160);
+ assert.equal(await v3.locator('[data-ffguided-home]').count(),0,'no large hero may push a governed V3 decision below the fold');
+ assert.equal(await v3.locator('.ffv3-layout').count(),1,'governed V3 dossier must remain unchanged');
+ assert.equal(await v3.locator('.primary-nav a[data-route="discover"]').getAttribute('href'),'#/discover','Discover remains directly accessible in the primary navigation');
  await v3.close();
 
  const form='<div class="customer-discovery-page"><form data-customer-discovery-form>'+

@@ -61,9 +61,10 @@ function addDashboard(main){
  if(route()!=='dashboard')return;
  const root=main.querySelector('[data-commercial-dashboard-v2],.ffv3-root');
  if(!root||root.querySelector('[data-ffguided-home]'))return;
- const v2=root.matches('[data-commercial-dashboard-v2]');
- if(v2&&!root.querySelector('.ff-kpi-grid,.ff-dashboard-main-grid'))return; // keep login/error states distinct
- if(!v2&&!['ready','empty'].includes(root.getAttribute('data-ffv3-state')))return;
+ // Preserve the governed V3 command bar, dossier and first-screen economics exactly.
+ // Discover remains highlighted in the persistent nav and existing topbar action.
+ if(!root.matches('[data-commercial-dashboard-v2]'))return;
+ if(!root.querySelector('.ff-kpi-grid,.ff-dashboard-main-grid'))return; // keep login/error states distinct
  const panel=document.createElement('section');panel.className='ffguided-home';panel.dataset.ffguidedHome='';panel.setAttribute('aria-label','Start a card decision');
  panel.innerHTML='<div class="ffguided-home-copy"><span>START HERE</span><h2>What card are you considering?</h2>'+
   '<p>Discover the exact card, check the relevant evidence and understand your next move.</p>'+
