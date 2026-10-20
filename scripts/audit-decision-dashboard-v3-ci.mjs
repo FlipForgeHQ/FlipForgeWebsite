@@ -372,7 +372,7 @@ async function readyV2WithExpandedDetails(page) {
 /* Activation flag */
 {
   const { context, page } = await open({ width: 1200, height: 800 }, {}, { url: V2_URL });
-  await page.waitForSelector("[data-commercial-dashboard-v2] .ff-kpi-card", { timeout: 15000 });
+  await readyV2WithExpandedDetails(page);
   check("F01 without the flag V2 stays the default renderer", (await page.locator("[data-decision-dashboard-v3]").count()) === 0);
   await context.close();
 }
@@ -384,7 +384,7 @@ async function readyV2WithExpandedDetails(page) {
 }
 {
   const { context, page } = await open({ width: 1200, height: 800 }, {}, { init: () => { window.FlipForgeDashboardV3Disabled = true; } });
-  await page.waitForSelector("[data-commercial-dashboard-v2] .ff-kpi-card", { timeout: 15000 });
+  await readyV2WithExpandedDetails(page);
   check("F03 FlipForgeDashboardV3Disabled forces V2", (await page.locator("[data-decision-dashboard-v3]").count()) === 0);
   await context.close();
 }
@@ -425,13 +425,13 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   const label = `${viewport.width}x${viewport.height}`;
   {
     const { context, page } = await open(viewport, {}, { url: V2_URL });
-    await page.waitForSelector("[data-commercial-dashboard-v2] .ff-kpi-card", { timeout: 15000 });
+    await readyV2WithExpandedDetails(page);
     check(`G04 ${label} V2 default: Guide me launcher unchanged (present)`, await launcherVisible(page));
     await context.close();
   }
   {
     const { context, page } = await open(viewport, {}, { init: () => { window.FlipForgeDashboardV3Disabled = true; } });
-    await page.waitForSelector("[data-commercial-dashboard-v2] .ff-kpi-card", { timeout: 15000 });
+    await readyV2WithExpandedDetails(page);
     check(`G05 ${label} kill switch: V2 renders and the launcher is restored`, (await page.locator("[data-decision-dashboard-v3]").count()) === 0 && await launcherVisible(page));
     await context.close();
   }
