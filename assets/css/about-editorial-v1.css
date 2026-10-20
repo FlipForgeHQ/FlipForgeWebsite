@@ -94,3 +94,6 @@
 .ff-about-editorial .ab-founder-sign{display:flex;flex-direction:column;gap:2px;margin-top:28px;padding-left:16px;border-left:2px solid var(--ab-gold)}
 .ff-about-editorial .ab-founder-sign strong{color:var(--ab-ink);font-weight:700}
 .ff-about-editorial .ab-founder-sign span{color:var(--ab-muted);font-size:.9375rem}
+.ff-about-editorial .ab-founder-sign-top{margin:0 0 24px}
+.ff-about-editorial .ab-founder-close{margin-top:28px;color:var(--ab-ink)}
+.ff-about-editorial .ab-founder-close strong{color:var(--ab-gold)}
