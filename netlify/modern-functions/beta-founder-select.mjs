@@ -9,6 +9,7 @@ import {
   normalizeCohort,
   normalizeEmail,
 } from "./lib/beta-operations-core.mjs";
+import { productionOnly } from "./lib/production-deploy-guard.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -155,7 +156,7 @@ export function createFounderSelectedHandler({ store, getUserFn = getUser, now =
   };
 }
 
-export default createFounderSelectedHandler();
+export default productionOnly(createFounderSelectedHandler());
 
 export const config = {
   path: "/api/beta/founder-select",
