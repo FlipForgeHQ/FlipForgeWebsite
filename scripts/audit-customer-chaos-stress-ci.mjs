@@ -325,7 +325,15 @@ async function assertHealthy(page, expectedRoute, worker, action, mutationThresh
   const samples = [await mutationDelta(page)];
   while (samples.at(-1) > mutationThreshold && samples.length < STORM_WINDOWS) samples.push(await mutationDelta(page));
   if (samples.length >= STORM_WINDOWS && samples.every(count => count > mutationThreshold)) {
-    throw new Error(`worker ${worker}: ${action} detected a DOM mutation storm on ${expectedRoute}: ${samples.join(", ")} mutations per 220ms window (threshold ${mutationThreshold})`);
+    // Name the busiest mutation sources over one more window so the loop can be located from the report.
+    const topSources = await evaluateStable(page, async () => {
+      const sources = window.__ffChaosStress?.sources;
+      if (!sources) return "";
+      sources.clear();
+      await new Promise(resolve => setTimeout(resolve, 220));
+      return [...sources.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([key, count]) => `${key}=${count}`).join("; ");
+    });
+    throw new Error(`worker ${worker}: ${action} detected a DOM mutation storm on ${expectedRoute}: ${samples.join(", ")} mutations per 220ms window (threshold ${mutationThreshold}); top sources: ${topSources}`);
   }
   if (samples.length > 1) settledBursts.push({ worker, action, route: expectedRoute, samples, threshold: mutationThreshold });
 
@@ -387,8 +395,20 @@ async function runWorker(browser, workerIndex, seed) {
     window.__ffChaosStress = { mutations: 0 };
     const attach = () => {
       if (!document.documentElement || window.__ffChaosStress.observing) return;
+      const sources = window.__ffChaosStress.sources = new Map();
+      const describe = node => {
+        const el = node && node.nodeType === 1 ? node : node?.parentElement;
+        if (!el) return "?";
+        const id = el.id ? `#${el.id}` : "";
+        const cls = typeof el.className === "string" && el.className ? `.${el.className.trim().split(/\s+/).slice(0, 2).join(".")}` : "";
+        return `${el.tagName.toLowerCase()}${id}${cls}`;
+      };
       const observer = new MutationObserver(records => {
         window.__ffChaosStress.mutations += records.length;
+        for (const record of records) {
+          const key = `${record.type}:${describe(record.target)}${record.attributeName ? `[${record.attributeName}]` : ""}`;
+          if (sources.size < 400 || sources.has(key)) sources.set(key, (sources.get(key) || 0) + 1);
+        }
       });
       observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
       window.__ffChaosStress.observing = true;
