@@ -103,16 +103,16 @@
 
     const pageHeading = main.querySelector(".page-heading");
     if (pageHeading) {
-      setText(pageHeading.querySelector(".eyebrow"), "Evaluate");
-      setText(pageHeading.querySelector("h1"), "Evaluate a Card");
-      setText(pageHeading.querySelector("p"), "Enter your card, find a listing for sale, then choose which listing FlipForge should evaluate.");
+      setText(pageHeading.querySelector(".eyebrow"), "Discover");
+      setText(pageHeading.querySelector("h1"), "Discover a Card");
+      setText(pageHeading.querySelector("p"), "Find and confirm your exact card first. Then select a listing for FlipForge to evaluate.");
       hideNode(pageHeading.querySelector(".page-actions"));
     }
 
     const heading = panel.querySelector("h2");
     const intro = panel.querySelector(".panel-header p");
     if (heading && heading.textContent !== "Find listings for your card") heading.textContent = "Find listings for your card";
-    const introCopy = "Enter the year, player, set and card number when known. Search listings when you know the version, or check the card identity first if you are unsure.";
+    const introCopy = "Use guided selections or the exact-card search field. Confirm the card version before you choose a listing.";
     if (intro && intro.textContent !== introCopy) intro.textContent = introCopy;
 
     const cardLabel = form.querySelector('input[name="exactCardQuery"]')?.closest("label");
