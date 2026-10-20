@@ -47,28 +47,62 @@ async function parseBody(request) {
 }
 
 // The Netlify plan allows two platform rate-limit rules, both reserved for other public intake endpoints,
-// so this endpoint throttles itself: at most RATE_LIMIT signups per connection per RATE_WINDOW_MS.
-// Connection addresses are stored only as a SHA-256 hash, one small record per address.
+// so this endpoint throttles itself: at most RATE_LIMIT submissions per connection per RATE_WINDOW_MS.
+// The connection address is never stored. It is hashed with a random salt that changes every day; each
+// day's salt and its counters are deleted after RATE_RETENTION_DAYS, so old hashes cannot be reversed.
 export const RATE_LIMIT = 5;
 export const RATE_WINDOW_MS = 180_000;
+export const RATE_RETENTION_DAYS = 2;
 
 function clientAddress(request, context) {
   return String(context?.ip || request.headers.get("x-nf-client-connection-ip") || "").trim();
 }
 
-async function hashed(value) {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`flipforge-updates:${value}`));
-  return [...new Uint8Array(digest)].map(v => v.toString(16).padStart(2, "0")).join("");
+function hex(bytes) {
+  return [...new Uint8Array(bytes)].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256(value) {
+  return hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)));
+}
+
+async function daySalt(store, day) {
+  const key = `rate-salt/${day}.json`;
+  const existing = await store.get(key, { type: "json" }).catch(() => null);
+  if (existing?.salt) return existing.salt;
+  await store.setJSON(key, { salt: hex(crypto.getRandomValues(new Uint8Array(32))) }, { onlyIfNew: true }).catch(() => {});
+  const settled = await store.get(key, { type: "json" }).catch(() => null);
+  return settled?.salt || "";
+}
+
+async function forgetOldDays(store, today) {
+  const cutoff = new Date(`${today}T00:00:00Z`).getTime() - (RATE_RETENTION_DAYS - 1) * 86_400_000;
+  try {
+    for await (const page of store.list({ prefix: "rate-salt/", paginate: true })) {
+      for (const blob of page.blobs || []) {
+        const day = blob.key.slice("rate-salt/".length, -".json".length);
+        if (new Date(`${day}T00:00:00Z`).getTime() >= cutoff) continue;
+        for await (const old of store.list({ prefix: `rate/${day}/`, paginate: true })) {
+          for (const counter of old.blobs || []) await store.delete(counter.key).catch(() => {});
+        }
+        await store.delete(blob.key).catch(() => {});
+      }
+    }
+  } catch { /* housekeeping only */ }
 }
 
 async function overLimit(store, address, now) {
   if (!address) return false;
-  const key = `rate/${await hashed(address)}.json`;
+  const day = now.toISOString().slice(0, 10);
+  const salt = await daySalt(store, day);
+  if (!salt) return false;
+  const key = `rate/${day}/${await sha256(`${salt}:${address}`)}.json`;
   const current = await store.get(key, { type: "json" }).catch(() => null);
   const start = Number(current?.windowStart || 0);
   const fresh = !start || now.getTime() - start >= RATE_WINDOW_MS;
   const count = fresh ? 1 : Number(current?.count || 0) + 1;
   await store.setJSON(key, { windowStart: fresh ? now.getTime() : start, count }).catch(() => {});
+  if (fresh) await forgetOldDays(store, day);
   return count > RATE_LIMIT;
 }
 

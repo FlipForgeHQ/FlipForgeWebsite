@@ -1,7 +1,7 @@
 // "Stay in touch" email list: behaviour of the signup and operator export functions, plus the
 // page wiring and disclosures. Runs in the Netlify build.
 import fs from "node:fs";
-import { createUpdatesSignupHandler, config as signupConfig, RATE_LIMIT, RATE_WINDOW_MS } from "../netlify/modern-functions/updates-signup.mjs";
+import { createUpdatesSignupHandler, config as signupConfig, RATE_LIMIT, RATE_WINDOW_MS, RATE_RETENTION_DAYS } from "../netlify/modern-functions/updates-signup.mjs";
 import { createUpdatesSubscribersHandler, config as exportConfig } from "../netlify/modern-functions/updates-subscribers.mjs";
 import { UPDATES_CONSENT_TEXT, csvCell } from "../netlify/modern-functions/lib/updates-core.mjs";
 
@@ -74,7 +74,13 @@ check("signup endpoint uses no platform rate-limit rule (plan allows two, reserv
   check("another connection is not affected", (await limited(post({ email: "other@example.com", consent: true }), ctx("198.51.100.4"))).status === 202);
   t = new Date(t.getTime() + RATE_WINDOW_MS);
   check("the limit resets after the window", (await limited(post({ email: "later@example.com", consent: true }), ctx("203.0.113.9"))).status === 202);
-  check("connection addresses are stored only as hashes", [...rateStore.records.keys()].filter(k => k.startsWith("rate/")).every(k => /^rate\/[0-9a-f]{64}\.json$/.test(k)) && ![...rateStore.records.keys()].some(k => k.includes("203.0.113")));
+  check("connection addresses are stored only as daily-salted hashes", [...rateStore.records.keys()].filter(k => k.startsWith("rate/")).every(k => /^rate\/\d{4}-\d{2}-\d{2}\/[0-9a-f]{64}\.json$/.test(k))
+    && ![...rateStore.records.keys()].some(k => k.includes("203.0.113")) && /^[0-9a-f]{64}$/.test(rateStore.records.get("rate-salt/2026-10-20.json")?.salt || ""));
+  t = new Date(Date.parse("2026-10-20T16:00:00Z") + RATE_RETENTION_DAYS * 86_400_000);
+  await limited(post({ email: "cleanup@example.com", consent: true }), ctx("203.0.113.50"));
+  const keysNow = [...rateStore.records.keys()];
+  check(`salts and counters older than ${RATE_RETENTION_DAYS} days are deleted`, !keysNow.some(k => k.startsWith("rate/2026-10-20/") || k === "rate-salt/2026-10-20.json")
+    && keysNow.some(k => k.startsWith("rate-salt/2026-10-22")));
   const formPost = () => limited(new Request(`${ORIGIN}/api/updates`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", Origin: ORIGIN }, body: "email=f%40example.com&consent=on&source=home" }), ctx("192.0.2.77"));
   let last;
   for (let i = 0; i < RATE_LIMIT + 1; i += 1) last = await formPost();
@@ -112,6 +118,7 @@ for (const [page, source] of [["index.html", "home"], ["learn.html", "evidence-l
 }
 const privacy = read("privacy.html");
 check("Privacy Policy discloses email updates and how to unsubscribe", privacy.includes('id="email-updates"') && /unsubscribe at any time/i.test(privacy) && /not sold/i.test(privacy));
+check("Privacy Policy discloses the salted connection hash and its deletion", /daily-salted hash of the connection \(IP\) address/.test(privacy) && /deleted within two days/.test(privacy));
 check("Owner Hub offers the export and removal", read("owner.html").includes('href="/api/updates/subscribers" download') && read("owner.html").includes("data-ff-owner-unsubscribe"));
 
 const failed = results.filter(([, ok]) => !ok);
