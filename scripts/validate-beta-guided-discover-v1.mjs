@@ -24,7 +24,7 @@ assert.equal(compose(card).query,card);
 assert.equal(compose(card,{numbered:"unknown"}).needsVerification,false);
 assert.equal(compose(card+" /25",{numbered:"unknown"}).needsVerification,true,"Typed serial run must be verified even if menu was not changed");
 assert.equal(compose(card,{numbered:"no"}).query,card);
-assert.equal(compose(card,{numbered:"yes",denominator:"25",serial:"01"}).query,card+" 01/25");
+assert.equal(compose(card,{numbered:"yes",denominator:"25",serial:"01"}).query,card+" 01/25", JSON.stringify(compose(card,{numbered:"yes",denominator:"25",serial:"01"})));
 assert.equal(compose(card,{numbered:"yes",denominator:"50",serial:""}).query,card+" /50");
 assert.equal(compose(card,{numbered:"yes",denominator:"1",serial:"1"}).query,card+" 1/1");
 assert.equal(compose(card+" /25",{numbered:"yes",denominator:"25",serial:""}).query,card+" /25");
