@@ -38,6 +38,7 @@
 .ff10-trust-graphic span{color:#dcbf81;font-size:10px;font-weight:850;letter-spacing:.085em}
 .ff10-trust-graphic strong{color:#fff;font-size:clamp(11px,1vw,15px);letter-spacing:.015em}
 .ff10-trust-graphic i{height:3px;width:100%;background:linear-gradient(90deg,#cf9d42,rgba(207,157,66,.12));border-radius:4px}
+.ff10-evidence-graphic{gap:0;align-content:center;background:radial-gradient(ellipse 68% 88% at 100% 0,rgba(203,153,61,.13),transparent 80%),linear-gradient(150deg,#1a262c,#04090c)}
 .ff10-evidence-header,.ff10-evidence-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:9px;font-weight:900;letter-spacing:.11em;color:#bdc8cf}
 .ff10-evidence-header{padding:0 0 19px;border-bottom:1px solid #495158}
 .ff10-evidence-header strong{color:#eccc82}
