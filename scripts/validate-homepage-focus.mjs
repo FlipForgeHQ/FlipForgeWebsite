@@ -11,7 +11,7 @@ check('WHOOP-like photo-led hero and split contrast',has(home,'ff8-hero-photo')&
 check('one homepage headline',(home.match(/<h1\b/g)||[]).length===1);
 check('official logo and descriptor',has(home,'assets/brand/flipforge-logo-horizontal.svg')&&has(home,'CARD DECISION INTELLIGENCE™'));
 check('slogan',has(home,'Before you buy. Know Why.'));
-check('financial positioning',has(home,"THE PRICE <em>ISN'T</em> THE DECISION."));
+check('financial positioning',has(home,"DON'T JUST")&&has(home,'KNOW THE DEAL.'));
 check('hero interaction',has(home,'data-ffdemo')&&has(home,'id="try-decision"'));
 check('visible interaction cue',has(home,'TRY IT — ADJUST THE PRICE')&&has(home,'ILLUSTRATIVE DEMO'));
 check('slider labels',has(home,'ASKING PRICE')&&has(home,'What the seller is showing'));
