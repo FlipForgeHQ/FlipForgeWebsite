@@ -586,6 +586,14 @@ for (const result of results) {
   console.log(`${result.status} | worker=${result.worker} seed=${result.seed} viewport=${result.viewport} final=${result.finalRoute}${result.message ? ` | ${result.message}` : ""}`);
 }
 if (failed.length) {
+  // Surface each failure as a GitHub annotation so it is readable from the check run without downloading logs.
+  if (process.env.GITHUB_ACTIONS === "true") {
+    const clean = value => String(value ?? "").replace(/[\r\n]+/g, " ").replace(/%/g, "%25").slice(0, 900);
+    for (const result of failed) {
+      const recent = (result.history || []).slice(-4).map(entry => `r${entry.round} ${entry.action || "step"}->${entry.target || ""}:${entry.status || ""}`).join(" > ");
+      console.log(`::error title=Customer chaos worker ${result.worker} (seed ${result.seed}, ${result.viewport})::${clean(result.message)} | route=${clean(result.finalRoute)} | recent=${clean(recent)}`);
+    }
+  }
   console.log("Reproduce with the printed base seed and the same worker/round settings.");
   process.exit(1);
 }

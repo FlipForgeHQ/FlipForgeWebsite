@@ -14,7 +14,18 @@ check('positioning headline with the locked slogan directly beneath',/<h1 id="ff
 check('price question vs FlipForge question',['id="price-vs-proof"','“It sold for $500.”','“What does the evidence support, and what should I pay?”','Genuine sale prices are important evidence.','Decision intelligence decides what to do with it.'].every(t=>has(html,t)));
 check('five things a price tool cannot easily copy',(m=>m&&(m[0].match(/<li>/g)||[]).length===5&&['decision-proof.html','#evidence','#identity','#demo'].every(t=>m[0].includes('href="'+t+'"')))(html.match(/<div class="ff10-moat">[\s\S]*?<\/ol>/)));
 check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html));
-check('internal D24 audit stays off the public page',!/\bD24\b|\b756\b|525 of/.test(html));
+// Internal audit details stay off the public page. Rather than list the internal figures here (this file is public),
+// every number of three or more digits the homepage shows (text and readable attributes) must be an approved public
+// figure, and no internal finding label (a letter plus digits such as an audit defect ID) may appear. A new number
+// on the homepage needs a deliberate addition to this list.
+const PUBLIC_HOMEPAGE_NUMBERS=new Set(['024','140','240','360','425','460','490','500','505','512','520','610','630','780','1200','2019','2026']);
+const readable=(src=>{const body=src.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi,' ');
+  const attrs=[...body.matchAll(/\s(?:content|alt|title|aria-label|placeholder|value)="([^"]*)"/gi)].map(m=>m[1]).join(' ');
+  return (body.replace(/<[^>]+>/g,' ')+' '+attrs).replace(/&[a-z#0-9]+;/gi,' ').replace(/#[0-9a-f]{3,8}\b/gi,' ');})(html);
+const unapprovedNumbers=[...new Set(readable.match(/\b\d{3,}\b/g)||[])].filter(n=>!PUBLIC_HOMEPAGE_NUMBERS.has(n));
+check('internal audit details stay off the public page (only approved public figures; no internal finding labels)',
+  unapprovedNumbers.length===0&&!/\b[A-Z]\d{1,3}\b/.test(readable.replace(/\b(?:H[1-6]|T(?:7|14|30)|Q[1-4])\b/g,'')));
+if(unapprovedNumbers.length)console.log('  unapproved homepage numbers:',unapprovedNumbers.join(', '));
 check('primary supporting statement',has(html,'A price tells you what someone asked or paid. FlipForge shows what it actually proves, and what you should pay.'));
 check('link previews carry the positioning',has(html,'<meta property="og:title" content="Price is not proof. | FlipForge™">')&&has(html,'name="twitter:card" content="summary_large_image"')&&has(html,'assets/images/flipforge-share-price-is-not-proof.jpg'));
 check('product shown in the hero',has(html,'class="ff10-panel"')&&has(html,'Max Buy')&&has(html,'Price gap')&&has(html,'data-ff10-sync="verdict"'));
