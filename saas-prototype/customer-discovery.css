@@ -60,6 +60,38 @@
 .customer-discovery-search-help strong {
   color: var(--text);
 }
+.customer-discovery-search-help[data-ff-entry-guide] {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(240, 202, 88, .28);
+  border-radius: 10px;
+  background: rgba(240, 202, 88, .05);
+}
+
+.ff-entry-guide-title {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.ff-entry-guide-list {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.ff-entry-guide-list li::marker {
+  color: rgba(240, 202, 88, .9);
+}
+
+.customer-discovery-search-help[data-ff-entry-guide] small {
+  display: block;
+  color: var(--text-soft);
+}
 
 .customer-discovery-identity-assist {
   scroll-margin-top: 96px;
