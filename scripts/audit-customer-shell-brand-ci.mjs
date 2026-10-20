@@ -146,7 +146,7 @@ async function drawerLauncherPlacement(page) {
 
 async function navigationIntact(page, mobile) {
   if (!mobile) {
-    return page.evaluate(() => ["Home", "Evaluate a Card", "Saved Decisions", "Tracking"].every(label =>
+    return page.evaluate(() => ["Home", "Discover", "Saved Decisions", "Tracking"].every(label =>
       [...document.querySelectorAll(".sidebar a")].some(link => link.textContent.trim().startsWith(label) && link.getClientRects().length)));
   }
   const menu = page.locator(".menu-button");
