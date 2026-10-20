@@ -54,8 +54,8 @@
 .ffguided-actions [role="status"]{font-size:14px!important}
 @media(max-width:560px){.ffguided-home-steps>div{font-size:14px!important}}
 
-/* Keep the first mobile viewport focused and usable: guided input opens on demand. */
-@media(max-width:640px){
+/* Keep mobile and tablet search controls in view: full structured entry opens on demand. */
+@media(max-width:960px){
  .ffguided-entry:not([open]){padding:12px 14px;border-color:rgba(238,204,121,.75);background:rgba(212,175,55,.08)}
  .ffguided-entry:not([open]) summary{min-height:53px;align-content:center}
  .ffguided-entry:not([open]) summary strong{color:#f5d78f}
