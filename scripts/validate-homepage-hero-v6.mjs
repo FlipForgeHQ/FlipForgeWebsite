@@ -15,7 +15,7 @@ check('no fake card or brochure art',!html.includes('ff-fictional-slab-v1.svg')&
 check('photo-led visual product hero',html.includes('ff8-hero-photo')&&html.includes('ff8-phone')&&html.includes('ff8-proof-report'));
 check('price threshold and decision tied to slider',js.includes('ask - maxBuy')&&js.includes("get('[data-price-gap]')"));
 check('product-led interface without fabricated provider feeds',html.includes('ff8-step-visual')&&!html.includes('data-provider-feed'));
-check('visible example disclaimer',html.includes('INTERACTIVE · ILLUSTRATIVE')&&html.includes('NO REAL SALE DATA'));
+check('visible example disclaimer',html.includes('ILLUSTRATIVE DEMO')&&html.includes('NO REAL SALE DATA'));
 check('explicit economics',html.includes('Max Buy = $500 − $60 − $15 − $65 = $360'));
 check('no guaranteed profit',html.includes('NO GUARANTEED RETURN'));
 check('range control and hint',html.includes('type="range"')&&html.includes('Drag the gold slider'));
