@@ -322,8 +322,11 @@
   .ff10-actions .ff10-btn{flex:1 1 100%}
   .ff10-stage{margin:56px auto 0;width:min(78vw,340px)}
   .ff10-slab img{-webkit-box-reflect:unset}
-  .ff10-id-tags{display:flex;flex-wrap:wrap;justify-content:center;position:static;margin-top:22px;gap:8px}
-  .ff10-panel{position:relative;left:auto;bottom:auto;width:calc(100vw - 2*var(--gut));margin:-60px 0 0 50%;transform:translateX(-50%)}
+  /* Grid keeps the corner brackets measured against the card image; the chips get their own row. */
+  .ff10-slab{display:grid}
+  .ff10-slab>img,.ff10-slab .ff10-lock{grid-area:1/1/2/2}
+  .ff10-id-tags{grid-area:2/1;display:flex;flex-wrap:wrap;justify-content:center;position:static;margin-top:22px;gap:8px}
+  .ff10-panel{position:relative;left:auto;bottom:auto;width:calc(100vw - 2*var(--gut));margin:20px 0 0 50%;transform:translateX(-50%)}
   .ff10-armed .ff10-panel{transform:translate(-50%,26px)}
   .ff10-armed.ff10-locked .ff10-panel{transform:translateX(-50%)}
   .ff10-hero-note{margin-top:16px}
