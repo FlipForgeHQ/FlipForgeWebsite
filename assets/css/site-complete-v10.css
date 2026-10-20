@@ -116,3 +116,26 @@
 @media(max-width:760px){.ff10-design main>.page-hero{margin:12px 13px 0;border-radius:13px;padding-left:22px;padding-right:22px}.ff10-design .ff10-breadcrumb{top:11px;left:20px;font-size:10px}.ff10-design .ff10-feature{margin:13px 13px 45px;padding:23px 17px;border-radius:13px}.ff10-design .ff10-feature-story h2{font-size:clamp(33px,7vw,46px)}.ff10-design .ff10-feature-story p{font-size:14px}.ff10-graphic{padding:17px;min-height:240px}.ff10-trust-graphic>div{grid-template-columns:80px minmax(0,1fr) 19px;gap:7px}.ff10-trust-graphic span,.ff10-faq-graphic span{font-size:8px}.ff10-trust-graphic strong,.ff10-faq-graphic strong{font-size:11px}.ff10-faq-graphic>div{grid-template-columns:100px minmax(0,1fr) 17px}.ff10-design .ff-lab-directory a{font-size:11px}.ff10-legal main>.page-hero,.ff10-missing main>.page-hero{padding-top:75px}.ff10-legal .legal-card{padding:20px}}
 @media(max-width:400px){.ff10-evidence-row span{font-size:9px}.ff10-evidence-row b{flex-basis:71px;font-size:9px}.ff10-plans-future b{font-size:9px}.ff10-beta-step{grid-template-columns:42px 1fr;gap:11px}.ff10-beta-step>span{width:36px;height:36px}.ff10-beta-step strong{font-size:12px}.ff10-beta-step small{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.ff10-design *, .ff10-design *:before,.ff10-design *:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Production beta sign-in: keep host verification, credentials and terms flows untouched. */
+body.ff10-auth{display:grid;min-height:100dvh;place-items:center;padding:32px 18px;background:radial-gradient(ellipse 55% 65% at 78% 14%,rgba(189,135,40,.17),transparent 68%),radial-gradient(ellipse 44% 55% at 5% 90%,rgba(65,78,83,.2),transparent 72%),#030608;color:#f6f5f1}
+.ff10-auth main{position:relative;overflow:hidden;width:100%;max-width:640px;padding:clamp(27px,4.2vw,48px);border:1px solid rgba(229,190,104,.53);border-top:3px solid #e6c578;border-radius:16px;background:radial-gradient(ellipse at 96% 0,rgba(193,145,50,.14),transparent 65%),linear-gradient(160deg,#131d22,#070c10 83%);box-shadow:0 34px 106px rgba(0,0,0,.6)}
+.ff10-auth main::before{position:absolute;content:"";width:310px;height:310px;border-radius:50%;border:1px solid rgba(239,204,123,.15);right:-170px;top:-170px;box-shadow:0 0 0 48px rgba(231,189,96,.023);pointer-events:none}
+.ff10-auth .ff10-auth-home{position:relative;z-index:2;display:inline-flex;align-items:center;min-height:32px;padding:6px 10px;border-radius:7px;border:1px solid rgba(223,184,96,.35);color:#e7c984;font-size:12px;font-weight:800;text-decoration:none;margin-bottom:25px}
+.ff10-auth .ff10-auth-home:hover{background:rgba(209,166,67,.15);color:#fff}
+.ff10-auth .brand{display:block;margin-bottom:22px;width:min(330px,100%)}
+.ff10-auth .brand img{max-width:100%;width:100%;height:auto;filter:drop-shadow(0 0 16px rgba(226,177,80,.08))}
+.ff10-auth .eyebrow{color:#edce8b;font-size:11px;letter-spacing:.15em}
+.ff10-auth h1{color:#fff;font-size:clamp(30px,4vw,41px);line-height:1.09;letter-spacing:-.045em;margin:12px 0}
+.ff10-auth p{color:#c1cbd0;line-height:1.6}
+.ff10-auth .notice{padding:16px;border-color:rgba(230,193,110,.45);background:rgba(214,171,81,.075);color:#e2e6e7}
+.ff10-auth label{color:#f4f6f6;font-size:13px}
+.ff10-auth input{min-height:52px;border-color:#52616b;background:#030608;color:#fff}
+.ff10-auth input:focus{border-color:#e8c982;box-shadow:0 0 0 3px rgba(232,201,130,.1)}
+.ff10-auth button.primary,.ff10-auth .button-link.primary,.ff10-auth .preview-sign-in a{background:linear-gradient(100deg,#f2d891,#cba147);color:#080c0e;border:1px solid #e4c478;border-radius:8px;min-height:48px;font-size:14px;font-weight:900}
+.ff10-auth button.primary:hover,.ff10-auth .button-link.primary:hover,.ff10-auth .preview-sign-in a:hover{filter:brightness(1.08)}
+.ff10-auth .status,.ff10-auth .result{border-color:rgba(219,185,111,.23);background:#05090c;color:#becad0}
+.ff10-auth .preview-sign-in{border-color:rgba(219,185,111,.6);background:rgba(211,160,60,.075)}
+.ff10-auth .preview-sign-in[hidden],.ff10-auth form[hidden],.ff10-auth .terms[hidden]{display:none!important}
+.ff10-auth .terms{border-color:rgba(214,175,96,.48);background:rgba(214,175,96,.04)}
+@media(max-width:480px){body.ff10-auth{padding:13px}.ff10-auth main{padding:24px 20px}.ff10-auth .ff10-auth-home{font-size:11px;margin-bottom:18px}}
