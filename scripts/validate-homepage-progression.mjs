@@ -104,6 +104,9 @@ forbidText('Decision Proof page retired runtime JS',proofPage,'assets/js/decisio
 
 requireAll('Product customer-first summary',product,['CARD DECISION INTELLIGENCE','Know whether the evidence supports the card before you spend.','Exact card','Supported value','Clear next move','More than a comp check','Risk + liquidity','Grading economics','Decision Intelligence']);
 requireText('Product Decision Intelligence navigation',product,'decision-intelligence.html');
+requireAll('Explicit Home path from Product and Decision Intelligence',product,['class="ff-back-home"','href="index.html">← Home','aria-current="page">Product','assets/css/marketing-home-breadcrumb-v1.css']);
+requireAll('Explicit Home path from Decision Intelligence',decisionPage,['class="ff-back-home"','href="index.html">← Home','aria-current="page">Decision Intelligence','assets/css/marketing-home-breadcrumb-v1.css']);
+
 requireAll('Product identity proof',product,['id="identity-simulator"','See it work','Choose the wrong card and watch FlipForge stop it.','Bad evidence stops before price gets a vote.','Supported value is not allowed to update from the mismatch','Illustrative product simulation.']);
 for(const overload of ['Five questions before confidence','One decision language','Grade-premium intelligence','Decision receipt','id="grade-form"'])forbidText('Product overload removed',product,overload);
 
