@@ -91,27 +91,27 @@
     node.textContent = message;
     node.setAttribute("role", error ? "alert" : "status");
   }
-  function queryFromFields() {
-    const year = state.year;
-    const brand = state.brand === "Other" ? state.otherBrand.trim() : state.brand;
-    const product = state.product.trim();
-    const player = state.player.trim();
-    const number = state.cardNumber.trim().replace(/^#/, "");
-    const parallel = state.parallel.trim();
+  function queryFromFields(draft = state) {
+    const year = draft.year;
+    const brand = draft.brand === "Other" ? draft.otherBrand.trim() : draft.brand;
+    const product = draft.product.trim();
+    const player = draft.player.trim();
+    const number = draft.cardNumber.trim().replace(/^#/, "");
+    const parallel = draft.parallel.trim();
     if (!year || !brand || !product || !player) {
       return { error:"Choose a year and brand, then enter the product/set and player before continuing." };
     }
     if (number && !CARD_NUMBER.test(number)) {
       return { error:"Check the card number. Use only letters, numbers, periods or hyphens (without spaces or #)." };
     }
-    if (state.condition === "graded" && (!state.grader || !state.grade)) {
+    if (draft.condition === "graded" && (!draft.grader || !draft.grade)) {
       return { error:"Choose the grading company and grade, or select Raw / not graded." };
     }
-    if (state.condition === "graded" && state.grader === "Other") {
+    if (draft.condition === "graded" && draft.grader === "Other") {
       return { error:"For other grading companies, use Quick Search so your exact label is preserved." };
     }
     const bits = [year,brand,product,player,number ? "#" + number : "",parallel,
-      state.condition === "graded" ? state.grader + " " + state.grade : ""].filter(Boolean);
+      draft.condition === "graded" ? draft.grader + " " + draft.grade : ""].filter(Boolean);
     const query = bits.join(" ").replace(/\s+/g," ").trim();
     return query.length <= 500 ? { query } : { error:"Card description exceeds the 500-character limit." };
   }
@@ -157,6 +157,7 @@
     toggleGrading(panel);
     panel.querySelector("[data-ff-guided-confirm]")?.addEventListener("click", () => checkIdentity(panel));
   }
+  window.FlipForgeGuidedEntryV1 = Object.freeze({ compose: queryFromFields });
   function schedule() {
     if (queued) return;
     queued = true;
