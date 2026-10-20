@@ -12,6 +12,9 @@ const USER_HEADER = "X-FlipForge-User-Id";
 const IDEMPOTENCY_HEADER = "Idempotency-Key";
 const SAFE_TENANT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/;
 const SAFE_IDEMPOTENCY_KEY = /^[A-Za-z0-9._-]{8,100}$/;
+// A client correlation id is echoed in the response and forwarded to the backend logs, so only a short token of
+// safe characters is accepted; anything else is replaced with a fresh server-generated id.
+const SAFE_CORRELATION_ID = /^[A-Za-z0-9._:-]{1,128}$/;
 const CHECKOUT_PATH = "/api/v1/billing/paddle/checkout";
 
 const ROUTES = [
@@ -67,6 +70,11 @@ function headerValues(event, name) {
 function header(event, name) {
   const values = headerValues(event, name);
   return values.length > 0 ? values[0] : null;
+}
+
+function requestCorrelationId(event) {
+  const candidate = String(header(event, "x-correlation-id") || "").trim();
+  return SAFE_CORRELATION_ID.test(candidate) ? candidate : crypto.randomUUID();
 }
 
 function integerFromEnv(name, fallback, maximum) {
@@ -452,7 +460,7 @@ function requestIdempotency(event, method, path) {
 
 exports.handler = async function handler(event, context) {
   const startedAt = Date.now();
-  const correlationId = header(event, "x-correlation-id") || crypto.randomUUID();
+  const correlationId = requestCorrelationId(event);
   const method = String((event && event.httpMethod) || "GET").toUpperCase();
   const path = normalizedApiPath(event);
 
