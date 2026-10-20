@@ -45,6 +45,8 @@ try{
  const discover=await scene(form);
  await discover.evaluate(()=>{location.hash='#/discover';});
  await discover.locator('[data-ffguided]').waitFor();
+ const guided=discover.locator('[data-ffguided]');
+ if(!await guided.evaluate(node=>node.open))await guided.locator('summary').click();
  assert.equal(await discover.locator('[data-ffguided]').count(),1);
  await discover.locator('[data-ffguided-build]').click();
  assert.match(await discover.locator('[data-ffguided-message]').textContent(),/Choose a release year/);

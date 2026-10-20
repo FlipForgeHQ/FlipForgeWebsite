@@ -43,7 +43,7 @@ function addGuided(main){
  if(route()!=='discover')return;
  const form=main.querySelector(FORM),query=form?.querySelector('input[name="exactCardQuery"]');
  if(!query||form.querySelector('[data-ffguided]'))return;
- const details=document.createElement('details');details.className='ffguided-entry';details.dataset.ffguided='';details.open=true;details.innerHTML=guidedMarkup();
+ const details=document.createElement('details');details.className='ffguided-entry';details.dataset.ffguided='';details.open=!window.matchMedia('(max-width:640px)').matches;details.innerHTML=guidedMarkup();
  form.insertBefore(details,form.firstElementChild);
  const remember=event=>{const f=event.target.closest('[data-ffguided-field]');if(!f)return;values[f.dataset.ffguidedField]=f.value;
  if(f.dataset.ffguidedField==='maker'){const extra=details.querySelector('.ffguided-other');if(extra)extra.hidden=f.value!=='Other';}};
