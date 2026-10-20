@@ -19,8 +19,8 @@
 .ff-di-check-index-top h2{margin:0!important;color:#fff;font-size:clamp(19px,2.1vw,29px)!important;font-weight:900;letter-spacing:-.04em;line-height:1.16;text-wrap:balance}
 .ff-di-check-index-top h2 strong{color:#f2d990;font-size:clamp(37px,3.4vw,52px);line-height:1;letter-spacing:-.075em;margin-right:6px;vertical-align:-4px}
 .ff-di-index-label{text-align:right;color:#a5b0b6;font-size:9px;line-height:1.5;font-weight:850;letter-spacing:.08em;flex:0 0 auto}
-.ff-di-check-families{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px 0 0}
-.ff-di-check-family{position:relative;min-width:0;display:flex;flex-direction:column;border:1px solid rgba(225,225,225,.12);border-radius:8px;padding:11px 10px 9px;background:linear-gradient(155deg,rgba(35,44,51,.61),rgba(8,13,16,.7));overflow:hidden}
+.ff-di-check-families{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:12px 0 0}
+.ff-di-check-family{position:relative;min-width:0;min-height:248px;display:flex;flex-direction:column;border:1px solid rgba(225,225,225,.12);border-radius:8px;padding:11px 10px 9px;background:linear-gradient(155deg,rgba(35,44,51,.61),rgba(8,13,16,.7));overflow:hidden}
 .ff-di-check-family::before{content:"";position:absolute;top:0;left:0;height:2px;width:100%;background:linear-gradient(90deg,#d7b66b,rgba(215,182,107,.04));opacity:.8}
 .ff-di-check-family[data-ff-di-family="D"]::before{background:linear-gradient(90deg,#afbdc1,transparent)}
 .ff-di-check-family-head{display:flex;gap:8px;align-items:center;min-height:31px;margin-bottom:8px}
@@ -45,12 +45,13 @@
 .ff-v5-decision-page .ff-phase2-cdi-theater{scroll-margin-top:88px;margin-top:52px}
 .ff-v5-decision-page .ff-dic-simple{scroll-margin-top:88px}
 @media(max-width:1020px){
+ .ff-di-check-families{grid-template-columns:repeat(2,minmax(0,1fr))}
  .ff-di-first-frame{grid-template-columns:1fr;gap:24px}
  .ff-v5-decision-page .ff-di-first-frame .ff-dic-heading{max-width:850px}
  .ff-v5-decision-page .ff-di-first-frame .ff-dic-heading h1{max-width:17ch}
  .ff-di-check-index{max-width:850px;width:100%;margin:auto}
  .ff-di-check-families{gap:12px}
- .ff-di-check-family{padding:14px}
+ .ff-di-check-family{min-height:0;padding:14px}
  .ff-di-check-list li{font-size:12px}
 }
 @media(max-width:620px){
@@ -64,7 +65,7 @@
  .ff-di-check-index-top h2 strong{font-size:38px}
  .ff-di-index-label{font-size:7px;white-space:nowrap}
  .ff-di-check-families{gap:6px}
- .ff-di-check-family{padding:9px 7px 8px}
+ .ff-di-check-family{min-height:0;padding:9px 7px 8px}
  .ff-di-check-family-head{gap:6px;align-items:flex-start;min-height:39px}
  .ff-di-check-letter{flex-basis:23px;width:23px;height:23px}
  .ff-di-check-category{font-size:7px}
