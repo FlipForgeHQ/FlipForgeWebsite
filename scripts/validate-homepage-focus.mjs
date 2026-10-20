@@ -35,7 +35,7 @@ check('strong CTA',has(html,'href="beta-application.html">Request Beta Access')&
 check('paired login join desktop',has(html,'class="ffdemo-nav-actions"')&&has(html,'class="ffdemo-sign-in"'));
 check('paired login join mobile',has(html,'class="ffdemo-mobile-actions"'));
 check('production beta sign-in',has(html,'/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start'));
-check('proof methodology preserved',has(html,'<strong>100 frozen decisions</strong>')&&has(html,'href="decision-proof.html">See the proof'));
+check('proof methodology preserved',has(html,'<strong>Frozen decisions</strong>')&&has(html,'href="decision-proof.html">How proof works'));
 check('marketable decision assets visible',['Max Buy','Price gap','Profit at this price','BUY','WATCH','VERIFY','PASS','Not every price counts.','One wrong parallel can ruin the entire comp.'].every(t=>has(html,t)));
 check('one unmistakable interactive demo',(html.match(/data-ffdemo\b/g)||[]).length===1&&!has(html,'data-film')&&!has(html,'data-decision-forge')&&!has(html,'data-ff9-film'));
 check('responsive CSS',has(css,'@media(max-width:760px)')&&has(css,'@media(min-width:761px) and (max-width:1100px)'));

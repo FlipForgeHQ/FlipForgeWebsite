@@ -64,8 +64,8 @@ requireAll('homepage conversion and proof continuity',homepage,[
  'class="ffdemo-nav-actions"',
  'class="ffdemo-mobile-actions"',
  'href="beta-application.html">Request Beta Access',
- '<strong>100 frozen decisions</strong>',
- 'href="decision-proof.html">See the proof',
+ '<strong>Frozen decisions</strong>',
+ 'href="decision-proof.html">How proof works',
  'assets/js/homepage-v10.js'
 ]);
 const redesignCss=read('assets/css/homepage-v10.css');
@@ -82,7 +82,7 @@ for(const old of ['data-decision-forge','data-film','id="sim"','id="decision-pro
 
 requireAll('Decision Proof methodology page',proofPage,[
   '<title>Decision Proof | FlipForge</title>',
-  'Snapshot: September 18, 2026',
+  'Proof100 results are withdrawn while we re-audit them.',
   '01 · Raw outcome signal',
   '02 · Economic interpretation',
   '03 · Policy-review candidate',
@@ -90,15 +90,16 @@ requireAll('Decision Proof methodology page',proofPage,[
   '<strong>T7</strong>',
   '<strong>T14</strong>',
   '<strong>T30</strong>',
-  'T14, T30, then Proof1000'
+  'Freeze a new cohort'
 ]);
+// Founder review 2026-10-20: Proof100 results are withdrawn for re-audit; the withdrawn figures must not return.
+for(const withdrawn of ['Snapshot: September 18, 2026','17/17','42 measurable','58 unresolved','100 frozen decisions'])forbidText('withdrawn Proof100 figure',proofPage+homepage,withdrawn);
 requireAll('Decision Proof premium brand',proofCss,[
   '--ff-proof-black:#05070a',
   '--ff-proof-gold:#d7b56d',
   '--ff-proof-gold-bright:#f0d79c'
 ]);
 for(const retiredColor of ['--ff-proof-blue','--ff-proof-green'])forbidText('Decision Proof retired analytics palette',proofCss,retiredColor);
-requireText('Decision Proof page semantic progress',proofPage,'role="progressbar" aria-label="Proof100 T7 evidence coverage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42"');
 requireText('Decision Proof responsive CSS',proofCss,'@media(max-width:680px)');
 requireText('Decision Proof reduced motion CSS',proofCss,'@media(prefers-reduced-motion:reduce)');
 forbidText('Decision Proof page inline style',proofPage,'style="');

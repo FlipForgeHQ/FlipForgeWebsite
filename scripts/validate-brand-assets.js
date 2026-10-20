@@ -93,7 +93,7 @@ if (!index.includes('Price gap') || !index.includes('data-price-gap')) homepageF
 if (!index.includes('class="ffdemo-nav-actions"') || !index.includes('class="ffdemo-mobile-actions"')) homepageFailures.push('paired beta and login actions');
 if (!index.includes('data-reset') || !index.includes('data-uncertainty')) homepageFailures.push('demo test and reset affordances');
 if (index.includes('data-decision-forge') || index.includes('data-film')) homepageFailures.push('retired duplicate homepage demos');
-if (!index.includes('href="decision-proof.html">See the proof')) homepageFailures.push('Decision Proof link');
+if (!index.includes('href="decision-proof.html">How proof works')) homepageFailures.push('Decision Proof link');
 if (!index.includes('Controlled Private Beta.')) homepageFailures.push('private beta boundary');
 if (!index.includes('FlipForge does not guarantee profit or authorize transactions.')) homepageFailures.push('transaction/profit boundary');
 if (retiredSloganVariant(index)) homepageFailures.push('retired slogan variant removed');
