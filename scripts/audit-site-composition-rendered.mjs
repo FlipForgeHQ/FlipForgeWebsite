@@ -165,36 +165,33 @@ try{
   const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
   const page=await context.newPage();
   await page.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded'});
-  // The new film is the primary upper-right marketing experience; it is playable,
-  // user-pausable and independent from the illustrative Max Buy calculator.
-  const film=page.locator('[data-ff9-film]');
-  if(await film.count()!==1)failures.push('homepage: primary marketing film is missing');
-  else {
-    const intro=await film.locator('[data-ff9-headline]').textContent();
-    if(!intro?.includes('FIVE APPS.'))failures.push('homepage film: opening message must introduce the competing-price problem');
-    await film.locator('[data-ff9-play]').click();
-    await page.waitForTimeout(270);
-    const measured=await film.locator('[data-ff9-bar]').evaluate(el=>parseFloat(el.style.width)||0);
-    if(measured<=0)failures.push('homepage film: Play must move progress');
-    await film.locator('[data-ff9-play]').click();
-    if(!await film.evaluate(el=>el.hasAttribute('data-ff9-paused')))failures.push('homepage film: pause state missing');
-    await film.locator('[data-ff9-replay]').click();
-    if(await film.evaluate(el=>el.hasAttribute('data-ff9-paused')))failures.push('homepage film: Replay must restart playback');
-  }
+  // v10: the hero is one orchestrated lock-on (corner brackets, identity, decision panel). With reduced
+  // motion it must render in its final state immediately, with the illustrative $425 PASS scenario.
+  const heroState=await page.evaluate(()=>{
+    const hero=document.querySelector('[data-ff10-hero]');
+    return {locked:hero?.classList.contains('ff10-locked'),
+            verdict:hero?.querySelector('[data-ff10-sync="verdict"]')?.textContent?.trim(),
+            ask:hero?.querySelector('[data-ff10-sync="ask"]')?.textContent?.trim(),
+            panelOpacity:hero?getComputedStyle(hero.querySelector('.ff10-panel')).opacity:null};
+  });
+  if(!heroState.locked)failures.push('homepage hero: reduced motion must show the final locked state immediately '+JSON.stringify(heroState));
+  if(heroState.verdict!=='PASS'||heroState.ask!=='$425')failures.push('homepage hero: illustrative scenario must open at $425 PASS '+JSON.stringify(heroState));
+  if(heroState.panelOpacity!=='1')failures.push('homepage hero: decision panel must be visible with reduced motion '+JSON.stringify(heroState));
   const demo=page.locator('[data-ffdemo]');
   const slider=page.locator('[data-asking]');
   if(await demo.count() && await slider.count()){
     await slider.evaluate(el=>{el.value='310';el.dispatchEvent(new Event('input',{bubbles:true}));});
-    if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='BUY')failures.push('homepage: a $310 asking price must yield illustrative BUY');
+    if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='BUY')failures.push('homepage: a $310 asking price must yield illustrative BUY');
+    if((await page.locator('[data-ff10-hero] [data-ff10-sync="verdict"]').textContent())?.trim()!=='BUY')failures.push('homepage: hero decision panel must mirror the demo');
     if((await page.locator('[data-price-gap]').textContent())?.trim()!=='−$50')failures.push('homepage: $310 must be $50 below $360 Max Buy');
     await slider.evaluate(el=>{el.value='395';el.dispatchEvent(new Event('input',{bubbles:true}));});
-    if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='PASS')failures.push('homepage: $395 exceeds illustrative Max Buy by more than $20');
+    if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='PASS')failures.push('homepage: $395 exceeds illustrative Max Buy by more than $20');
     await page.locator('[data-uncertainty]').click();
-    if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='VERIFY')failures.push('homepage: unresolved evidence must force VERIFY');
+    if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='VERIFY')failures.push('homepage: unresolved evidence must force VERIFY');
     await page.locator('[data-reset]').click();
-    if((await page.locator('.ffdemo-verdict[data-verdict]').textContent())?.trim()!=='WATCH')failures.push('homepage: reset restores illustrative WATCH');
-    await page.locator('.ffdemo-why summary').click();
-    if(!await page.locator('.ffdemo-why').evaluate(el=>el.open))failures.push('homepage: rationale details must be expandable');
+    if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='PASS'||(await page.locator('[data-ask-value]').textContent())?.trim()!=='$425')failures.push('homepage: reset restores the illustrative $425 PASS');
+    await page.locator('.ff10-math summary').click();
+    if(!await page.locator('.ff10-math').evaluate(el=>el.open))failures.push('homepage: Max Buy calculation must be expandable');
     const navStatus=await page.evaluate(()=>{
       const nav=document.querySelector('.site-header nav.desktop-nav');
       const sign=nav?.querySelector('a[data-ff-marketing-sign-in]');
@@ -214,36 +211,20 @@ try{
   await context.close();
 
 
-  // The product-led hero must visibly begin its film-like story in normal motion.
+  // In normal motion the hero lock-on plays once when visible and settles on the decision panel.
   const cinematicContext=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
   const cinematicPage=await cinematicContext.newPage();
   await cinematicPage.goto(BASE+'/index.html',{waitUntil:'domcontentloaded'});
-  await cinematicPage.locator('[data-ffdemo]').scrollIntoViewIfNeeded();
-  await cinematicPage.waitForFunction(
-    ()=>document.querySelector('[data-ffdemo]')?.classList.contains('ffdemo-story-playing'),
-    null,{timeout:3500}
-  ).catch(()=>failures.push('homepage cinematic: guided decision must start automatically when visible'));
-  const actualStory=await cinematicPage.evaluate(()=>{
-    const d=document.querySelector('[data-ffdemo]');
-    return {ask:d?.querySelector('[data-asking]')?.value,
-            verdict:d?.querySelector('.ffdemo-verdict[data-verdict]')?.textContent?.trim(),
-            active:d?.classList.contains('ffdemo-story-playing')};
+  await cinematicPage.waitForFunction(()=>document.querySelector('[data-ff10-hero]')?.classList.contains('ff10-locked'),null,{timeout:3500})
+    .catch(()=>failures.push('homepage cinematic: hero lock-on must start automatically when visible'));
+  await cinematicPage.waitForTimeout(2600);
+  const settled=await cinematicPage.evaluate(()=>{
+    const hero=document.querySelector('[data-ff10-hero]');
+    const panel=hero?.querySelector('.ff10-panel');
+    return {armed:hero?.classList.contains('ff10-armed'),opacity:panel?getComputedStyle(panel).opacity:null,
+            verdict:hero?.querySelector('[data-ff10-sync="verdict"]')?.textContent?.trim()};
   });
-  if(actualStory.active && (actualStory.ask!=='425'||actualStory.verdict!=='PASS'))
-    failures.push('homepage cinematic: automatic sequence must show an illustrative $425 PASS scenario');
-  if(actualStory.active){
-    await cinematicPage.locator('[data-story-pause]').click();
-    if(!await cinematicPage.locator('[data-ffdemo]').evaluate(el=>el.classList.contains('ffdemo-story-paused')))
-      failures.push('homepage cinematic: pause control does not pause the text sequence');
-    await cinematicPage.locator('[data-story-replay]').click();
-    if(!await cinematicPage.locator('[data-ffdemo]').evaluate(el=>el.classList.contains('ffdemo-story-playing')&&!el.classList.contains('ffdemo-story-paused')))
-      failures.push('homepage cinematic: replay does not restart the decision story');
-    await cinematicPage.locator('[data-asking]').evaluate(el=>{
-      el.value='310';el.dispatchEvent(new Event('input',{bubbles:true}));
-    });
-    if(await cinematicPage.locator('[data-ffdemo]').evaluate(el=>el.classList.contains('ffdemo-story-playing')))
-      failures.push('homepage cinematic: manual input must cancel automatic captions');
-  }
+  if(!settled.armed||settled.opacity!=='1'||settled.verdict!=='PASS')failures.push('homepage cinematic: lock-on must settle on the visible $425 PASS panel '+JSON.stringify(settled));
   await cinematicContext.close();
 
   const mobile=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});

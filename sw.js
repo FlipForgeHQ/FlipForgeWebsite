@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v24';
+const CACHE='flipforge-shell-v25';
 const SHELL=[
   '/',
   '/index.html',
@@ -30,6 +30,11 @@ const SHELL=[
   '/assets/css/decision-proof-v1.css',
   '/assets/css/decision-intelligence-consumer-v2.css',
   '/assets/js/site.js',
+  '/assets/css/homepage-v10.css',
+  '/assets/js/homepage-v10.js',
+  '/assets/images/ff10-hero.webp',
+  '/assets/images/ff10-silver.webp',
+  '/assets/images/ff10-base.webp',
   '/assets/js/homepage-interactive-decision-v7.js',
   '/assets/js/homepage-cinematic-film-v9.js',
   '/assets/css/homepage-reference-v8.css',

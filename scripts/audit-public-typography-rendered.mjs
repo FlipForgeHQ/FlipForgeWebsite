@@ -2,9 +2,11 @@ import { chromium } from 'playwright';
 
 const baseUrl = process.env.FLIPFORGE_PUBLIC_AUDIT_URL || 'http://127.0.0.1:4173';
 const viewports = [
-  { name: 'desktop', width: 1440, height: 1000, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 80.1 },
-  { name: 'wide', width: 2048, height: 900, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 80.1 },
-  { name: 'mobile', width: 390, height: 844, pageTitleMax: 40.1, sectionTitleMax: 30.1, homeDisplayMax: 44.1 }
+  // homeDisplayMax raised for the v10 homepage rebuild: the founder-approved direction calls for an oversized,
+  // cinematic slogan headline. Internal page title and section caps are unchanged.
+  { name: 'desktop', width: 1440, height: 1000, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 120.1 },
+  { name: 'wide', width: 2048, height: 900, pageTitleMax: 48.1, sectionTitleMax: 36.1, homeDisplayMax: 120.1 },
+  { name: 'mobile', width: 390, height: 844, pageTitleMax: 40.1, sectionTitleMax: 30.1, homeDisplayMax: 72.1 }
 ];
 
 // Compatibility marker for the existing static gate: ['Evidence Lab', '/learn.html']
@@ -154,10 +156,10 @@ try {
       if (!nearlyEqual(size, baselineSection, 0.15)) failures.push(`${viewport.name} ${label}: section title ${size}px differs from Product ${baselineSection}px`);
     }
 
-    const homeDisplay = await measure(page, '/', '.ff8-hero-copy h1');
+    const homeDisplay = await measure(page, '/', '#ff10-hero-title');
     if (homeDisplay.fontSize > viewport.homeDisplayMax) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px exceeds ${viewport.homeDisplayMax}px cap`);
     if (homeDisplay.fontSize < baselineTitle) failures.push(`${viewport.name} Home: display ${homeDisplay.fontSize}px is smaller than internal page title ${baselineTitle}px`);
-    const homeDisplayLiftMax = viewport.name === 'mobile' ? 10.1 : 34.1;
+    const homeDisplayLiftMax = viewport.name === 'mobile' ? 34.1 : 72.1;
     if (homeDisplay.fontSize - baselineTitle > homeDisplayLiftMax) failures.push(`${viewport.name} Home: display exceeds the approved cinematic hero scale (${homeDisplay.fontSize}px vs ${baselineTitle}px internal title)`);
 
     const homeShell = await publicShellState(page, '/', null, null, mobile);

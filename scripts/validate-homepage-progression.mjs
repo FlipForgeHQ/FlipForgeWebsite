@@ -32,51 +32,52 @@ const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(
 const forbidText=(label,text,needle)=>{if(text.toLowerCase().includes(needle.toLowerCase()))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 const requireAll=(label,text,needles)=>needles.forEach(needle=>requireText(label,text,needle));
 
+// v10 cinematic rebuild: locked slogan as the hero, one orchestrated lock-on, product-led sections.
 requireAll('homepage premium performance layout',homepage,[
- 'PRICES TELL YOU',
- 'FLIPFORGE TELLS YOU WHY.',
- 'class="ff8-hero-photo"',
- 'ff8-phone',
- 'ff8-proof-visual',
- 'ff8-method-layout',
- 'ff8-step-grid',
- 'ff8-benefits-layout',
- 'assets/css/homepage-reference-v8.css'
+ '<span>Before</span> <span>you buy.</span> <span>Know Why.</span>',
+ 'data-ff10-hero',
+ 'class="ff10-slab"',
+ 'class="ff10-panel"',
+ 'id="demo"',
+ 'id="how-it-works"',
+ 'id="identity"',
+ 'id="evidence"',
+ 'class="ff10-final ff10-light"',
+ 'assets/css/homepage-v10.css'
 ]);
 requireAll('homepage illustration and decision honesty',homepage,[
  'data-ffdemo',
- 'FLIPFORGE MAX BUY',
- 'PRICE GAP',
- 'WHY THIS DECISION?',
+ 'Max Buy',
+ 'Price gap',
+ 'How Max Buy is calculated',
  'data-uncertainty',
  'data-reset',
  'NO REAL SALE DATA',
  'NO GUARANTEED RETURN',
+ 'Illustrative prices for a fictional card.',
+ 'Invented for illustration; not a real card, player, set or grading company.',
  'Controlled Private Beta.',
  'FlipForge does not guarantee profit or authorize transactions.'
 ]);
 requireAll('homepage conversion and proof continuity',homepage,[
  'class="ffdemo-nav-actions"',
  'class="ffdemo-mobile-actions"',
- 'href="beta-application.html">Request Private Beta Access',
+ 'href="beta-application.html">Request Beta Access',
  '<strong>100 frozen decisions</strong>',
- 'assets/js/homepage-cinematic-film-v9.js',
- 'href="decision-proof.html">See the proof →',
- 'assets/js/homepage-interactive-decision-v7.js'
+ 'href="decision-proof.html">See the proof',
+ 'assets/js/homepage-v10.js'
 ]);
-const demoCss=read('assets/css/homepage-interactive-decision-v7.css');
-const filmJs=read('assets/js/homepage-cinematic-film-v9.js');
-requireText('cinematic no-provider intro',filmJs,'No external media, provider calls');
-requireText('controlled silent 24-second storyboard',filmJs,'const full=24000');
-const redesignCss=read('assets/css/homepage-reference-v8.css');
-const demoJs=read('assets/js/homepage-interactive-decision-v7.js');
-requireText('interactive demo responds to input',demoJs,"addEventListener('input', render)");
+const redesignCss=read('assets/css/homepage-v10.css');
+const demoJs=read('assets/js/homepage-v10.js');
+requireText('interactive demo has no external media or provider calls',demoJs,'No external media, no provider calls, no device storage.');
+requireText('interactive demo responds to input',demoJs,"input.addEventListener('input', render)");
 requireText('full mobile layout',redesignCss,'@media(max-width:760px)');
 requireText('full reduced motion support',redesignCss,'prefers-reduced-motion:reduce');
-requireText('hero imagery deep contrast',redesignCss,'.ff8-hero-photo');
+requireText('locked palette only',redesignCss,'--k:#000000; --w:#FFFFFF; --s:#8B8F98; --g:#D4AF37; --dg:#B8860B;');
+for(const offPalette of ['#59d796','#f27670','#f1b94c','lime','#00ff'])forbidText('homepage off-palette colour',redesignCss,offPalette);
 for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('interactive demo device storage',demoJs,store);
 forbidText('interactive demo provider calls',demoJs,'fetch(');
-for(const old of ['data-decision-forge','data-film','id="sim"','id="decision-proof"'])forbidText('retired homepage visual overload',homepage,old);
+for(const old of ['data-decision-forge','data-film','id="sim"','id="decision-proof"','data-ff9-film','images.unsplash.com'])forbidText('retired homepage visual overload',homepage,old);
 
 requireAll('Decision Proof methodology page',proofPage,[
   '<title>Decision Proof | FlipForge</title>',
@@ -216,7 +217,7 @@ if(productionBuild){
   requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v24'","'/decision-proof.html'","'/assets/css/homepage-interactive-decision-v7.css'","'/assets/js/homepage-interactive-decision-v7.js'","'/assets/js/site.js'"]);
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v25'","'/decision-proof.html'","'/assets/css/homepage-v10.css'","'/assets/js/homepage-v10.js'","'/assets/js/site.js'"]);
 const publicCopy=`${homepage}\n${proofPage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true'])forbidText('public safety',publicCopy,unsafe);
 if(publicCopy.includes('CARD VALUE INTELLIGENCE'))failures.push('public safety: forbidden formal CARD VALUE INTELLIGENCE identity');

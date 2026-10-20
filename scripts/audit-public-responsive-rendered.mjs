@@ -136,11 +136,12 @@ async function auditDecisionMobile(page, viewport) {
       return {left:b.left,right:b.right,width:b.width};
     };
     return {
-      panel:rect('.ffdemo-console'),
-      ask:rect('.ffdemo-price-label'),
+      panel:rect('[data-ffdemo] .ff10-wrap'),
+      ask:rect('.ff10-meter-top'),
       slider:rect('[data-asking]'),
-      metrics:rect('.ffdemo-metrics'),
-      decision:rect('.ffdemo-decision-row'),
+      metrics:rect('.ff10-readout'),
+      decision:rect('.ff10-read-verdict'),
+      heroPanel:rect('.ff10-panel'),
       viewport:innerWidth
     };
   });
@@ -151,7 +152,7 @@ async function auditDecisionMobile(page, viewport) {
   }
 
   await slider.evaluate(el=>{el.value='310';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  const output=panel.locator('.ffdemo-verdict[data-verdict]');
+  const output=panel.locator('.ff10-verdict[data-verdict]');
   if((await output.textContent())?.trim()!=='BUY')failures.push(`${viewport.name} Home: $310 scenario must show BUY`);
   if((await panel.locator('[data-price-gap]').textContent())?.trim()!=='−$50')failures.push(`${viewport.name} Home: $310 scenario must show $50 below Max Buy`);
   await slider.evaluate(el=>{el.value='395';el.dispatchEvent(new Event('input',{bubbles:true}));});
@@ -159,10 +160,10 @@ async function auditDecisionMobile(page, viewport) {
   await panel.locator('[data-uncertainty]').click();
   if((await output.textContent())?.trim()!=='VERIFY')failures.push(`${viewport.name} Home: unresolved evidence must force VERIFY`);
   await panel.locator('[data-reset]').click();
-  if((await output.textContent())?.trim()!=='WATCH')failures.push(`${viewport.name} Home: reset should restore WATCH`);
-  await panel.locator('.ffdemo-why summary').click();
-  if(!await panel.locator('.ffdemo-why').evaluate(el=>el.open))
-    failures.push(`${viewport.name} Home: the Why explanation does not expand`);
+  if((await output.textContent())?.trim()!=='PASS')failures.push(`${viewport.name} Home: reset should restore the $425 PASS scenario`);
+  await panel.locator('.ff10-math summary').click();
+  if(!await panel.locator('.ff10-math').evaluate(el=>el.open))
+    failures.push(`${viewport.name} Home: the Max Buy calculation does not expand`);
   if(viewport.width<=1120){
     await page.locator('.menu-toggle').click();
     const nav=await page.evaluate(()=>{
