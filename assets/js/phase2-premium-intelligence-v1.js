@@ -54,6 +54,7 @@
     if(!model||!section||document.querySelector('.ff-phase2-cdi-theater'))return;
     const shell=document.createElement('section');
     shell.className='ff-phase2-cdi-theater';
+    shell.id='thirteen-deep-dive';
     shell.dataset.system='card';
     shell.setAttribute('aria-labelledby','ff-phase2-cdi-title');
     const steps=Object.keys(layerCopy).map(Number).map(n=>{
@@ -61,7 +62,9 @@
       return '<article class="ff-phase2-cdi-step" data-layer-number="'+String(n).padStart(2,'0')+'" data-layer="'+n+'" tabindex="0"><small>'+systemFor(n).toUpperCase()+'</small><h3>'+title+'</h3><p>'+copy+'</p></article>';
     }).join('');
     shell.innerHTML='<div class="ff-phase2-cdi-theater-head"><div><small>THE GOVERNED DECISION ENGINE</small><h2 id="ff-phase2-cdi-title">One decision. Thirteen checkpoints.</h2></div><p>Scroll the system. Every layer can preserve uncertainty or stop authority from moving downstream.</p></div><div class="ff-phase2-cdi-grid"><aside class="ff-phase2-cdi-sticky"><div class="ff-phase2-cdi-aperture"><div class="ff-phase2-cdi-core"><img src="assets/brand/flipforge-mark.svg" alt=""></div></div><div class="ff-phase2-cdi-status"><small data-ff-p2-cdi-kicker>LAYER 00 · KNOW THE CARD</small><strong data-ff-p2-cdi-title>Release Intelligence</strong><p data-ff-p2-cdi-copy>Confirm the real release before any checklist assumption.</p><div class="ff-phase2-cdi-progress"><span data-ff-p2-cdi-progress></span></div></div></aside><div class="ff-phase2-cdi-steps">'+steps+'</div></div>';
-    section.before(shell);
+    const receipt=document.querySelector('.ff-approved-feature');
+    if(receipt)receipt.before(shell);
+    else section.before(shell);
     const cards=[...shell.querySelectorAll('.ff-phase2-cdi-step')];
     const title=shell.querySelector('[data-ff-p2-cdi-title]');
     const copy=shell.querySelector('[data-ff-p2-cdi-copy]');

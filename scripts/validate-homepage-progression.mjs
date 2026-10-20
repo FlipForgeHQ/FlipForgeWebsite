@@ -132,6 +132,29 @@ for(const [label,page] of [['Decision Intelligence',decisionPage],['Evidence Lab
   requireText(`Phase 2 ${label} stylesheet`,page,'assets/css/phase2-premium-intelligence-v1.css');
   requireText(`Phase 2 ${label} runtime`,page,'assets/js/phase2-premium-intelligence-v1.js');
 }
+requireAll('Decision Intelligence early 13 checkpoint index',decisionPage,[
+  'id="checks"',
+  'class="ff-di-check-index"',
+  '13</strong> intelligence checkpoints.',
+  'KNOW THE CARD',
+  'KNOW THE MARKET',
+  'MAKE THE DECISION',
+  'LEARN WHETHER IT HELD UP',
+  'href="#thirteen-deep-dive"',
+  'assets/css/decision-intelligence-checkpoint-first-v3.css'
+]);
+const labels=[
+  'Release Intelligence','Taxonomy Intelligence','Identity Intelligence','Identity Provenance + Trust',
+  'Evidence Intelligence','Market + Economic Intelligence','Product + Variant Intelligence','Grade + Scarcity Intelligence',
+  'Risk + Uncertainty Intelligence','Decision Intelligence','Decision Traceback / Receipt',
+  'Outcome Intelligence','Governance + Continuous Intelligence'
+];
+if((decisionPage.match(/class="ff-di-check-number"/g)||[]).length!==13)failures.push('Decision Intelligence must present all 13 governed checkpoints upfront');
+for(const [i,label] of labels.entries())requireText('Decision Intelligence checkpoint '+String(i).padStart(2,'0'),decisionPage,label);
+if(!(decisionPage.indexOf('id="checks"')<decisionPage.indexOf('class="ff-dic-category"')))failures.push('13-layer overview must precede market categories');
+if(!(decisionPage.indexOf('id="checks"')<decisionPage.indexOf('data-ff-dic-demo')))failures.push('13-layer overview must precede interactive demo');
+requireText('interactive deep dive anchor',phase2Js,"shell.id='thirteen-deep-dive'");
+
 requireAll('Phase 2 customer Decision Receipt',decisionCardCss,[
   'Phase 2 Decision Passport motion',
   '.ff-dce-passport-motion',
