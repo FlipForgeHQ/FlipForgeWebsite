@@ -41,10 +41,10 @@
   }
   function render() {
     return [
-      '<details class="ff-guided-entry-details" data-ff-guided-details><summary>Build a card with guided selections</summary>',
+      '<div class="ff-guided-entry-visible" data-ff-guided-visible>',
       '<div class="ff-guided-entry-header"><div><span class="ff-guided-entry-step">STEP 1 / IDENTIFY</span>',
-      '<h3>Build your card search</h3>',
-      '<p>Choose the details you know. FlipForge will then show candidate cards to verify — it will not guess which parallel or grade you own.</p>',
+      '<h3>Choose your card details</h3>',
+      '<p>Start with the selection boxes below. Set, player, card number and variation remain exact-entry fields until verified checklists are connected.</p>',
       '</div><span class="ff-guided-entry-step">Guided entry · Beta</span></div>',
       '<div class="ff-guided-entry-grid">',
       field("Year", "year", selectInput("year", yearOptions()), "Release year; not a verified checklist match."),
@@ -67,7 +67,7 @@
       'Find &amp; verify matching cards →</button>',
       '<p>The choices create a search request only. Identity confirmation is required before listing search; no grading or sale evidence is inferred.</p></div>',
       '<p class="ff-guided-entry-status" role="status" aria-live="polite" data-ff-guided-status></p>',
-      '</details>'
+      '</div>'
     ].join("");
   }
   function toggleGrading(panel) {
@@ -76,9 +76,12 @@
     if (other) other.hidden = state.brand !== "Other";
     const grader = panel.querySelector("[data-ff-guided-grader]");
     const grade = panel.querySelector("[data-ff-guided-grade]");
-    if (grader) grader.hidden = !isGraded;
-    if (grade) grade.hidden = !isGraded;
+    if (grader) grader.hidden = false;
+    if (grade) grade.hidden = false;
+    const graderSelect = panel.querySelector('[data-ff-guided-field="grader"]');
+    if (graderSelect) graderSelect.disabled = !isGraded;
     const gradeSelect = panel.querySelector('[data-ff-guided-field="grade"]');
+    if (gradeSelect) gradeSelect.disabled = !isGraded;
     if (gradeSelect) {
       const half = gradeSelect.querySelector('option[value="9.5"]');
       if (half) half.disabled = state.grader === "PSA";
@@ -124,6 +127,11 @@
     const query = bits.join(" ").replace(/\s+/g," ").trim();
     return query.length <= 500 ? { query } : { error:"Card description exceeds the 500-character limit." };
   }
+  function removeBuilder() {
+    const main = document.querySelector(ROOT);
+    main?.querySelector("[data-ff-guided-entry]")?.remove();
+    main?.querySelector("[data-ff-guided-manual-label]")?.remove();
+  }
   function checkIdentity(panel) {
     const outcome = queryFromFields();
     if (outcome.error) return status(panel,outcome.error,true);
@@ -134,6 +142,7 @@
       return status(panel,"The identity check is currently unavailable. The form below remains available.",true);
     }
     handedOff = true;
+    removeBuilder();
     input.value = outcome.query;
     // Existing discovery code must invalidate any earlier candidate before new confirmation.
     input.dispatchEvent(new Event("input", {bubbles:true}));
@@ -152,12 +161,11 @@
     panel.dataset.ffGuidedEntry = "";
     panel.setAttribute("aria-label","Guided card identification");
     panel.innerHTML = render();
-    const details = panel.querySelector("[data-ff-guided-details]");
-    if (details) details.open = false; // Expand by explicit choice; never delay results with layout shifts.
     form.insertAdjacentElement("beforebegin", panel);
     const manual = document.createElement("p");
     manual.className = "ff-guided-manual-label";
-    manual.textContent = "Or use Quick Search: enter the exact card description below.";
+    manual.dataset.ffGuidedManualLabel = "";
+    manual.textContent = "Already know the exact card? Use Quick Search below.";
     form.insertAdjacentElement("beforebegin", manual);
     for (const element of panel.querySelectorAll("[data-ff-guided-field]")) {
       const key = element.dataset.ffGuidedField;
@@ -182,11 +190,21 @@
   // A search should own the page immediately, not fight a late-inserted builder.
   if (typeof document.addEventListener === "function") {
   document.addEventListener("submit", event => {
-    if (event.target?.matches?.(ROOT + " [data-customer-discovery-form]")) handedOff = true;
+    if (event.target?.matches?.(ROOT + " [data-customer-discovery-form]")) {
+      handedOff = true;
+      removeBuilder();
+    }
   }, true);
   document.addEventListener("click", event => {
     if (event.target?.closest?.(ROOT + " [data-customer-discovery-form] button[type='submit'], " +
-      ROOT + " [data-customer-discovery-form] [data-discovery-find-exact]")) handedOff = true;
+      ROOT + " [data-customer-discovery-form] [data-discovery-find-exact]")) {
+      handedOff = true;
+      removeBuilder();
+    }
+    if (event.target?.closest?.("[data-ff-new-card]")) {
+      handedOff = false;
+      schedule();
+    }
   }, true);
   }
   window.addEventListener("hashchange", () => {
