@@ -99,7 +99,7 @@ check("052 no direct network fetch exists", !/\bfetch\s*\(/.test(browserCode));
 check("053 no XMLHttpRequest exists", !/XMLHttpRequest/.test(browserCode));
 check("054 no WebSocket exists", !/\bWebSocket\b/.test(browserCode));
 check("055 no browser-stored secrets exist", !/localStorage|sessionStorage|indexedDB/i.test(browserCode));
-check("056 no CardSight key variable exists", !/CARDSIGHT(?:AI)?_API_KEY/i.test(browserCode));
+check("056 no provider API key variable exists", !/[A-Z0-9]+_API_KEY/i.test(browserCode));
 check("057 no authorization header exists", !/Authorization\s*:/i.test(browserCode));
 check("058 no external script or stylesheet dependency exists", !/<(?:script|link)[^>]+https?:\/\//i.test(files.index));
 

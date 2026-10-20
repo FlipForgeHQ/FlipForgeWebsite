@@ -171,7 +171,7 @@ export function providerNameIn(fragment) {
   const text = String(fragment ?? "");
   for (const match of text.matchAll(PROVIDER_WORD)) {
     const token = match[0];
-    // Internal: a CSS class, data attribute or selector (cardsight-evidence-panel), an enum code (CARDSIGHT_EBAY),
+    // Internal: a CSS class, data attribute or selector (provider-evidence-panel), an enum code (CARDSIGHT_EBAY),
     // or a string that is nothing but a lookup key ("CARDSIGHT").
     if (/[-_]/.test(token.replace(/card[\s_-]?sight/i, "")) || /^card[_-]sight/i.test(token) && /[-_]/.test(token)) continue;
     if (text.trim() === token && /^[A-Z0-9_]+$/.test(token)) continue;
@@ -236,7 +236,7 @@ function htmlCustomerText(html) {
 }
 
 // 4a. The fragment rules keep internal names legal and catch customer wording.
-for (const internal of ["CARDSIGHT", "CARDSIGHT_EBAY", "cardsight-evidence-panel", '<section class="panel cardsight-evidence-panel" data-cardsight-evidence-panel>', "[data-cardsight-evidence-panel]"]) {
+for (const internal of ["CARDSIGHT", "CARDSIGHT_EBAY", "provider-evidence-panel", '<section class="panel provider-evidence-panel" data-provider-evidence-panel>', "[data-provider-evidence-panel]"]) {
   check(`internal provider identifier stays legal: ${internal}`, providerNameIn(internal) === "");
 }
 for (const visible of ["CardSight sold evidence", "Saved CardSight accepted sales", "No CardSight matches were returned.", "Card Sight", "cardsight", "CARDSIGHT returned rows"]) {

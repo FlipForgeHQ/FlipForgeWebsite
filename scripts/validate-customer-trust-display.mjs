@@ -107,7 +107,7 @@ const cardIntelligence = read("saas-prototype/customer-card-intelligence.js");
 const discovery = read("saas-prototype/customer-discovery.js");
 check("identity assist shows a neutral unavailable state when the provider is suspended (Evaluate)", cardIntelligence.includes("Provider evidence is currently unavailable") && cardIntelligence.includes("if (providerUnavailable(error)) state.message = PROVIDER_UNAVAILABLE_MESSAGE;"));
 check("identity assist shows a neutral unavailable state when the provider is suspended (Discover)", discovery.includes("Provider evidence is currently unavailable") && discovery.includes("Number(error?.status) === 503"));
-const visibility = read("saas-prototype/cardsight-evidence-visibility.js");
+const visibility = read("saas-prototype/provider-evidence-visibility.js");
 check("evidence visibility reads the neutral provider code and the provider summary", visibility.includes('"DATA_PROVIDER"') && visibility.includes("data.providerEvidenceSummary"));
 const price = read("saas-prototype/price-intelligence.js");
 check("price intelligence shows a legacy result as not currently supported (no safety-contract error)", price.includes('"LEGACY_NOT_CURRENTLY_SUPPORTED"') && price.includes("Price thresholds are not shown for a result saved before current evidence rules"));

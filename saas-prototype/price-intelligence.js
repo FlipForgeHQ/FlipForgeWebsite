@@ -350,9 +350,9 @@
     const panel = holder.firstElementChild;
     if (!panel) return;
 
-    const cardSightPanel = document.querySelector("[data-cardsight-evidence-panel]");
+    const providerPanel = document.querySelector("[data-provider-evidence-panel]");
     if (existing) existing.replaceWith(panel);
-    else if (cardSightPanel) cardSightPanel.insertAdjacentElement("beforebegin", panel);
+    else if (providerPanel) providerPanel.insertAdjacentElement("beforebegin", panel);
     else hero.insertAdjacentElement("afterend", panel);
     reconcileHistoricalDisplay(snapshot);
   }

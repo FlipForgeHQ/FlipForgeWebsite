@@ -1,6 +1,6 @@
 // Dependency-free extraction of the text a script can show: string literals and the static parts of template
 // literals. Comments, regular-expression literals and code (identifiers, property names) are skipped, so internal
-// names such as cardSightRows or a `// CardSight` comment are never reported as customer text.
+// names such as providerRows or a `// CardSight` comment are never reported as customer text.
 //
 // extractStringFragments(source) -> [{ text, line, kind: "string" | "template" }]
 const REGEX_PREFIX_KEYWORDS = new Set(["return", "typeof", "case", "do", "else", "in", "of", "new", "delete", "void", "throw", "instanceof", "yield", "await"]);

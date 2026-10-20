@@ -2,8 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
-const jsPath = path.join(root, "saas-prototype", "cardsight-evidence-visibility.js");
-const cssPath = path.join(root, "saas-prototype", "cardsight-evidence-visibility.css");
+const jsPath = path.join(root, "saas-prototype", "provider-evidence-visibility.js");
+const cssPath = path.join(root, "saas-prototype", "provider-evidence-visibility.css");
 const indexPath = path.join(root, "saas-prototype", "index.html");
 
 function read(file) {
@@ -12,11 +12,11 @@ function read(file) {
 }
 
 function requireText(text, needle, label) {
-  if (!text.includes(needle)) throw new Error(`CardSight evidence visibility validation failed: ${label}`);
+  if (!text.includes(needle)) throw new Error(`Provider evidence visibility validation failed: ${label}`);
 }
 
 function reject(text, pattern, label) {
-  if (pattern.test(text)) throw new Error(`CardSight evidence visibility validation failed: ${label}`);
+  if (pattern.test(text)) throw new Error(`Provider evidence visibility validation failed: ${label}`);
 }
 
 const js = read(jsPath);
@@ -26,12 +26,14 @@ const index = read(indexPath);
 // Syntax must be valid in the Node parser before browser QA runs.
 new Function(js);
 
-requireText(index, 'href="cardsight-evidence-visibility.css"', "visibility stylesheet is not loaded");
-requireText(index, 'src="cardsight-evidence-visibility.js"', "visibility script is not loaded");
+requireText(index, 'href="provider-evidence-visibility.css"', "visibility stylesheet is not loaded");
+requireText(index, 'src="provider-evidence-visibility.js"', "visibility script is not loaded");
 requireText(js, 'url.pathname === "/api/v1/evaluations"', "evaluation response is not observed");
 requireText(js, '/^\\/api\\/v1\\/evidence\\/([^/?#]+)$/', "current evidence response is not observed");
-// The provider identity stays constrained to the one data provider: the internal code or the API's neutral code.
-requireText(js, '!["CARDSIGHT", "DATA_PROVIDER"].includes(String(summary.provider || "").toUpperCase())', "provider identity is not constrained to the data provider");
+// The provider identity stays constrained to the API's neutral code (the gateway rewrites the provider name), and the
+// browser code never spells the provider's name.
+requireText(js, 'String(summary.provider || "").toUpperCase() !== "DATA_PROVIDER"', "provider identity is not constrained to the data provider");
+reject(js, /card\s*sight/i, "the browser code names the data provider");
 // New API shape: provider rows are counted through providerEvidenceSummary, never listed.
 requireText(js, 'data.providerEvidenceSummary', "provider evidence summary counts are not read");
 reject(js.replace(/\/\/.*$/gm, ""), /<h2>CardSight|Saved CardSight|CardSight never supplies/, "the data provider is named to customers");
@@ -43,12 +45,12 @@ requireText(js, 'summary.transactionAuthority !== false', "transaction-authority
 requireText(js, 'including fixed-price completed sales', "completed fixed-price evidence disclosure is missing");
 requireText(js, 'Active listings and asking prices cannot support value', "active-ask exclusion disclosure is missing");
 requireText(js, 'Smart Opportunity remains the sole decision authority', "Smart Opportunity authority disclosure is missing");
-requireText(js, 'data-cardsight-evidence-signature', "stable render signature is missing");
-requireText(css, '.cardsight-evidence-grid', "responsive evidence metrics styling is missing");
+requireText(js, 'data-provider-evidence-signature', "stable render signature is missing");
+requireText(css, '.provider-evidence-grid', "responsive evidence metrics styling is missing");
 
 // This layer is display-only. It must not persist tenant intelligence or submit writes.
 reject(js, /\blocalStorage\b|\bsessionStorage\b/, "browser persistence was introduced");
 reject(js, /method\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i, "a write request was introduced");
 reject(js, /recommendation\s*=|supportedValue\s*=|confidence\s*=|risk\s*=/, "browser-side decision mutation was introduced");
 
-console.log("CardSight evidence visibility validation passed.");
+console.log("Provider evidence visibility validation passed.");
