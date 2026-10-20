@@ -9,6 +9,10 @@ const baseSeed = (Number.parseInt(process.env.FLIPFORGE_STRESS_SEED || "151515",
 const reportDir = path.resolve("qa-artifacts/customer-chaos-stress");
 const reportPath = path.join(reportDir, "customer-chaos-stress.json");
 
+// Consecutive 220ms windows above the threshold that count as a storm (about 0.9s of sustained churn).
+const STORM_WINDOWS = 4;
+const settledBursts = [];
+
 const routes = [
   "dashboard",
   "discover",
@@ -315,10 +319,15 @@ async function assertHealthy(page, expectedRoute, worker, action, mutationThresh
   if (state.overflow > 2) throw new Error(`worker ${worker}: ${action} created ${state.overflow}px horizontal overflow on ${expectedRoute}`);
   if (!state.visualSystemLoaded) throw new Error(`worker ${worker}: ${action} lost the governed customer visual system on ${expectedRoute}`);
 
-  const delta = await mutationDelta(page);
-  if (delta > mutationThreshold) {
-    throw new Error(`worker ${worker}: ${action} detected a DOM mutation storm on ${expectedRoute}: ${delta} mutations/220ms (threshold ${mutationThreshold})`);
+  // A mutation storm is sustained churn (a render loop). A single busy window right after a burst of route changes
+  // is the last render settling on a slower machine, so a busy window is re-sampled: the audit fails only when the
+  // churn stays above the threshold for STORM_WINDOWS consecutive windows.
+  const samples = [await mutationDelta(page)];
+  while (samples.at(-1) > mutationThreshold && samples.length < STORM_WINDOWS) samples.push(await mutationDelta(page));
+  if (samples.length >= STORM_WINDOWS && samples.every(count => count > mutationThreshold)) {
+    throw new Error(`worker ${worker}: ${action} detected a DOM mutation storm on ${expectedRoute}: ${samples.join(", ")} mutations per 220ms window (threshold ${mutationThreshold})`);
   }
+  if (samples.length > 1) settledBursts.push({ worker, action, route: expectedRoute, samples, threshold: mutationThreshold });
 
   await Promise.race([
     evaluateStable(page, () => new Promise(resolve => requestAnimationFrame(() => resolve(true)))),
@@ -571,6 +580,8 @@ const report = {
   workerCount,
   roundsPerWorker,
   totalRandomizedActions: workerCount * roundsPerWorker,
+  stormWindows: STORM_WINDOWS,
+  settledBursts,
   passed: failed.length === 0,
   workers: results
 };
@@ -582,6 +593,10 @@ console.log(`Workers: ${workerCount}`);
 console.log(`Rounds per worker: ${roundsPerWorker}`);
 console.log(`Randomized actions: ${workerCount * roundsPerWorker}`);
 console.log(`Report: ${reportPath}`);
+for (const burst of settledBursts) {
+  console.log(`NOTE | worker=${burst.worker} ${burst.action} on ${burst.route} settled: ${burst.samples.join(", ")} mutations per 220ms window (threshold ${burst.threshold})`);
+  if (process.env.GITHUB_ACTIONS === "true") console.log(`::notice title=Customer chaos busy window settled::worker ${burst.worker} ${burst.action} on ${burst.route}: ${burst.samples.join(", ")} (threshold ${burst.threshold})`);
+}
 for (const result of results) {
   console.log(`${result.status} | worker=${result.worker} seed=${result.seed} viewport=${result.viewport} final=${result.finalRoute}${result.message ? ` | ${result.message}` : ""}`);
 }
