@@ -69,6 +69,16 @@
     link.setAttribute('aria-label','Private Beta Sign In');
   });
   ensureReturningBetaSignIn();
+  const isWebsiteDeployPreview=/(?:^|\.)netlify\.app$/i.test(location.hostname);
+  const productionBetaSignIn='https://goflipforge.com/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
+  const routePreviewBetaSignIn=()=>{
+    if(!isWebsiteDeployPreview)return;
+    document.querySelectorAll('a[href*="production-auth.html"]').forEach(link=>{
+      link.href=productionBetaSignIn;
+      link.title='Sign in on the live FlipForge website';
+    });
+  };
+  routePreviewBetaSignIn();
 
   document.querySelectorAll('.faq-item button').forEach(btn=>{
     btn.addEventListener('click',()=>{

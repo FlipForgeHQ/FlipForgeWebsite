@@ -5,6 +5,45 @@ const failures=[];
 const requireText=(label,text,needle)=>{if(!text.includes(needle))failures.push(`${label}: missing ${JSON.stringify(needle)}`);};
 const forbidText=(label,text,needle)=>{if(text.includes(needle))failures.push(`${label}: forbidden ${JSON.stringify(needle)}`);};
 
+// Whole-public-site v10 is one branded experience, not isolated hero experiments.
+// Proof methodology, identity, beta terms and privacy copy remain unchanged.
+const completeStyle=read('assets/css/site-complete-v10.css');
+for(const feature of ['.ff10-feature','.ff10-graphic','.ff10-trust-graphic','.ff10-evidence-graphic','.ff10-plans-graphic','.ff10-beta-graphic','.ff10-faq-graphic','.ff10-auth','@media(prefers-reduced-motion:reduce)']){
+  requireText('complete public-site visual system',completeStyle,feature);
+}
+const completeRoutes=[
+  ['about.html','ff10-about'],['learn.html','ff10-learn'],['pricing.html','ff10-plans'],
+  ['beta-application.html','ff10-beta'],['faq.html','ff10-faq'],
+  ['beta-onboarding.html','ff10-onboarding'],['thank-you.html','ff10-received'],
+  ['data-use.html','ff10-legal'],['privacy.html','ff10-legal'],['terms.html','ff10-legal'],
+  ['refund.html','ff10-legal'],['beta-terms.html','ff10-legal'],['404.html','ff10-missing'],
+  ['decision-proof.html','ff10-proof'],['sample-decision-dossier.html','ff10-dossier'],
+  ['partner-disclosure.html','ff10-disclosure'],['platform-status.html','ff10-status'],
+  ['connect/index.html','ff10-connect'],['production-auth.html','ff10-auth']
+];
+for(const [route,cls] of completeRoutes){
+  const html=read(route);
+  requireText('brand integration '+route,html,cls);
+  requireText('shared design stylesheet '+route,html,'site-complete-v10.css');
+}
+for(const [route,marker] of [
+  ['about.html','ff10-trust-graphic'],['learn.html','ff10-evidence-graphic'],
+  ['pricing.html','ff10-plans-graphic'],['beta-application.html','ff10-beta-graphic'],
+  ['faq.html','ff10-faq-graphic']
+]){
+ const html=read(route);
+ requireText('bespoke editorial visual '+route,html,marker);
+ requireText('return home '+route,html,'class="ff10-breadcrumb"');
+}
+for(const legal of ['privacy.html','terms.html','beta-terms.html']){
+ requireText('trust document home '+legal,read(legal),'class="ff10-breadcrumb"');
+}
+requireText('auth preserves preview-only routing',read('production-auth.html'),'data-production-auth-preview-redirect');
+requireText('auth retains native form guard',read('production-auth.html'),'form[hidden]{display:none}');
+// Founder decision (2026-10-20): the v10 cinematic homepage rebuild replaces the earlier homepage lock.
+requireText('approved v10 homepage design stays in place',read('index.html'),'<span>Before</span> <span>you buy.</span> <span>Know Why.</span>');
+requireText('governed decision page remains intact',read('decision-intelligence.html'),'id="decision-benefits"');
+
 const marketingPages=read('assets/css/marketing-pages-v3.css');
 const marketingSupport=read('assets/css/marketing-support-v3.css');
 const density=read('assets/css/marketing-density-v1.css');
@@ -101,36 +140,30 @@ for(const [label,text] of publicShellPages){
   requireText(`${label} explicit route home`,text,'class="brand" href="index.html"');
 }
 
-requireText('homepage v5 stylesheet',homepage,'assets/css/homepage-v5.css');
-requireText('homepage v5 behavior',homepage,'assets/js/homepage-v5.js');
+requireText('homepage v10 stylesheet',homepage,'assets/css/homepage-v10.css');
+requireText('homepage v10 runtime',homepage,'assets/js/homepage-v10.js');
 requireText('homepage shared mobile behavior',homepage,'assets/js/site.js');
-requireText('homepage decision visual hero',homepage,'class="ffdv ffdv--hero"');
-requireText('homepage illustrative label',homepage,'Illustrative product view');
-requireText('homepage hero headline',homepage,'Stop guessing.');
-requireText('homepage exact identity',homepage,'Exact identity');
-requireText('homepage single WATCH decision',homepage,'<span class="ffdv-verdict">WATCH</span>');
-requireText('homepage next action',homepage,'Monitor price and evidence');
-requireText('homepage Decision Forge',homepage,'id="decision-forge"');
-requireText('homepage concise differentiation',homepage,'id="why"');
-requireText('homepage price-checker distinction',homepage,'Not another price checker.');
-requireText('homepage exact-card differentiation',homepage,'Know the exact card.');
-requireText('homepage evidence differentiation',homepage,'Trust qualified evidence.');
-requireText('homepage reason differentiation',homepage,'Keep the reason.');
-requireText('homepage Decision Proof link',homepage,'See the proof →');
-requireText('homepage 30-second product film',homepage,'id="film"');
-requireText('homepage 30-second film runtime',homepage,'data-film');
-for(const retiredHomepageBlock of ['id="sim"','WHAT JUST HAPPENED?','WHAT IS FLIPFORGE?','id="decision-proof"'])forbidText('homepage overload removed',homepage,retiredHomepageBlock);
+requireText('homepage prominent demo',homepage,'data-ffdemo');
+requireText('homepage hero headline',homepage,'<span>Know Why.</span>');
+requireText('homepage one orchestrated hero',homepage,'data-ff10-hero');
+requireText('real product display',homepage,'class="ff10-panel"');
+requireText('homepage asking price and max buy contrast',homepage,'Max Buy $360');
+requireText('homepage price gap contrast',homepage,'data-price-gap');
+requireText('homepage decision proof link',homepage,'href="decision-proof.html">See the proof');
+requireText('homepage illustrative label',homepage,'<span class="ff10-chip">Illustrative</span>');
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
-requireText('homepage transaction boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
+requireText('homepage profit boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
 requireText('homepage returning tester sign in',homepage,'href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" data-ff-marketing-sign-in>Beta Sign In</a>');
-requireText('homepage hero responsive',heroV6Css,'@media (max-width: 640px)');
-requireText('decision visual mobile composition',decisionVisualCss,'@media (max-width: 640px)');
-requireText('homepage hero motion gated',heroV6Css,'@media (prefers-reduced-motion: no-preference)');
-requireText('homepage v5 reduced motion',heroCss,'@media(prefers-reduced-motion:reduce)');
-requireText('homepage reveal progressive enhancement',dealJs,'IntersectionObserver');
-forbidText('homepage forced scroll behavior',dealJs,'scrollIntoView');
-for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('homepage device storage',dealJs,store);
-for(const old of ['assets/js/homepage-deal-or-decoy-v1.js','assets/css/homepage-deal-or-decoy-v1.css','assets/images/flipforge-approved-decision-visual.webp','Signal. Confidence. Advantage.'])forbidText('homepage retired surface',homepage,old);
+requireText('homepage paired login and beta actions',homepage,'class="ffdemo-nav-actions"');
+requireText('homepage mobile paired actions',homepage,'class="ffdemo-mobile-actions"');
+const homeDemoCss=read('assets/css/homepage-v10.css');
+const homeDemoJs=read('assets/js/homepage-v10.js');
+requireText('homepage responsive demo',homeDemoCss,'@media(max-width:760px)');
+requireText('homepage reduced motion',homeDemoCss,'@media(prefers-reduced-motion:reduce)');
+requireText('homepage instant price input',homeDemoJs,"input.addEventListener('input', render)");
+forbidText('homepage unauthorized provider access',homeDemoJs,'fetch(');
+for(const store of ['localStorage','sessionStorage','indexedDB'])forbidText('homepage device storage',homeDemoJs,store);
+for(const legacy of ['data-decision-forge','data-film','assets/js/homepage-deal-or-decoy-v1.js'])forbidText('homepage duplicate experience',homepage,legacy);
 
 requireText('beta start action',awardJs,'Start application');
 requireText('beta apply anchor',awardJs,"applySection.id='apply'");
@@ -145,6 +178,16 @@ requireText('shared marketing sign in uses production auth',siteJs,"link.href='/
 requireText('shared marketing sign in covers desktop navigation',siteJs,"document.querySelectorAll('.desktop-nav')");
 requireText('shared marketing sign in covers mobile navigation',siteJs,"document.querySelectorAll('.mobile-nav')");
 requireText('shared marketing sign in avoids duplicates',siteJs,"if(nav.querySelector('[data-ff-marketing-sign-in]'))return");
+requireText('shared navigation routes deploy previews to production sign-in',siteJs,'routePreviewBetaSignIn();');
+const conversionJs=read('assets/js/conversion-events.js');
+requireText('normalized preview sign-in points to live production',conversionJs,'Sign in on the live FlipForge website');
+const authHtml=read('production-auth.html');
+const authProbe=read('scripts/lib/flipforge-production-auth-probe.mjs');
+requireText('preview sign-in forms are really hidden even with grid CSS',authHtml,'form[hidden]{display:none}');
+requireText('preview sign-in explains live-only account',authHtml,'data-production-auth-preview-redirect hidden');
+requireText('preview probe preserves existing access boundary',authProbe,'if (!hostAllowed)');
+requireText('preview probe unhides safe sign-in link',authProbe,'previewRedirect.hidden = false');
+
 
 for(const [label,text] of [['homepage',homepage],['product',product],['Evidence Lab',evidence],['Launch Plans',plans],['About',about],['Beta',beta]]){
   requireText(`${label} brand`,text,'FlipForge');
