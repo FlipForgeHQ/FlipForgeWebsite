@@ -1,217 +1,227 @@
-/* DEV draft: guided entry composes an explicit customer query, not an authoritative card. */
+/* Private Beta Discover: search first, serial-number detail only when relevant.
+ * This is a query helper, not an identity/evidence/pricing authority. */
 (() => {
   "use strict";
   const ROOT = "#main-content";
-  const CARD_NUMBER = /^[A-Za-z0-9][A-Za-z0-9.-]{0,19}$/;
-  const BRANDS = ["Topps","Panini","Upper Deck","Bowman","Donruss","Fleer","Leaf","O-Pee-Chee","Score"];
-  const GRADERS = ["PSA","SGC","BGS","CGC","TAG"];
-  const state = {
-    year:"", brand:"", otherBrand:"", product:"", player:"",
-    cardNumber:"", parallel:"", condition:"raw", grader:"", grade:""
-  };
-  let queued = false;
-  let handedOff = false; // Never reinsert the entry form after a listing/identity request starts.
+  const FORM = ROOT + " [data-customer-discovery-form]";
+  const QUERY = 'input[name="exactCardQuery"]';
+  const NUMBER = /^[1-9][0-9]{0,4}$/;
+  const MAX_QUERY = 500;
+  let scheduled = false;
+  let searchHandedOff = false;
+  let routeActive = false;
+  const draft = { numbered: "unknown", denominator: "", serial: "" };
+
   function betaDiscover() {
     const path = String(window.location.pathname || "");
     const hash = String(window.location.hash || "#/dashboard");
-    return /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i.test(path)
-      && !/^\/(?:app|owner)\/customer(?:\/|$)/i.test(path)
-      && /^#\/?discover(?:[/?]|$)/.test(hash);
+    return /^\/(?:app|saas-prototype)(?:\/|$)/i.test(path)
+      && !/^\/app\/customer(?:\/|$)/i.test(path)
+      && /^#\/?discover(?:[/?]|$)/i.test(hash);
   }
-  function yearOptions() {
-    const currentYear = new Date().getFullYear();
-    let values = '<option value="">Choose year</option>';
-    for (let year=currentYear;year>=1880;year--) values += '<option value="' + year + '">' + year + '</option>';
-    return values;
+
+  function parseNumbering(query) {
+    const text = String(query || "");
+    // 01/25, /25, numbered to 25. Exclude year-season forms such as 2018/19.
+    const full = /(^|[\s(])(\d{1,5})\s*\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    let match;
+    while ((match = full.exec(text)) !== null) {
+      const serial = Number(match[2]), denominator = Number(match[3]);
+      if (/^(?:19|20)\d{2}$/.test(match[2]) && match[3].length === 2) continue;
+      if (serial > 0 && denominator > 0 && serial <= denominator) {
+        const prefix = match[1];
+        return { denominator: String(denominator), serial: String(serial), start: match.index + prefix.length,
+          end: match.index + match[0].length, token: match[0].slice(prefix.length) };
+      }
+    }
+    const suffix = /(^|[\s(])\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    while ((match = suffix.exec(text)) !== null) {
+      if (Number(match[2]) > 0) {
+        const prefix = match[1];
+        return { denominator: String(Number(match[2])), serial: "", start: match.index + prefix.length,
+          end: match.index + match[0].length, token: match[0].slice(prefix.length) };
+      }
+    }
+    const words = /\bnumbered\s+to\s+(\d{1,5})\b/i.exec(text);
+    if (words && Number(words[1]) > 0) return { denominator:String(Number(words[1])), serial:"", start:words.index, end:words.index + words[0].length, token:words[0] };
+    return null;
   }
-  function options(items, placeholder) {
-    return '<option value="">' + placeholder + '</option>' +
-      items.map(item => '<option value="' + item + '">' + item + '</option>').join("");
+
+  function compose(query, selection = draft) {
+    const source = String(query || "").trim().replace(/\s+/g, " ");
+    if (!source) return { error: "Enter the card you want to find first." };
+    if (source.length > MAX_QUERY) return { error: "The search is too long. Shorten it before searching." };
+    const numbered = selection.numbered || "unknown";
+    const denominatorText = String(selection.denominator || "").trim();
+    const serialText = String(selection.serial || "").trim();
+    const existing = parseNumbering(source);
+    if (!["unknown", "yes", "no"].includes(numbered)) return { error:"Choose whether the card is numbered." };
+    if (numbered === "no" && existing) {
+      return { error: "Your search already contains serial numbering. Choose Numbered or correct your search." };
+    }
+    if (numbered !== "yes") return { query: source, needsVerification: false };
+    if (denominatorText && !NUMBER.test(denominatorText)) {
+      return { error: "Enter the print run as a positive whole number, such as 25 or 50." };
+    }
+    if (serialText && !NUMBER.test(serialText)) {
+      return { error: "The card's individual serial must be a positive whole number." };
+    }
+    const denominator = denominatorText ? Number(denominatorText) : Number(existing?.denominator || 0);
+    const serial = serialText ? Number(serialText) : Number(existing?.serial || 0);
+    if (!denominator) return { error: "Enter the print run shown after the slash, such as 25 in 01/25." };
+    if (serial && serial > denominator) return { error: "The individual serial cannot exceed the print run." };
+    if (existing && Number(existing.denominator) !== denominator) {
+      return { error: "The print run you selected conflicts with the one in the search. Correct the mismatch before continuing." };
+    }
+    if (existing?.serial && serialText && Number(existing.serial) !== serial) {
+      return { error: "The individual serial conflicts with the number in the search. Confirm what is printed on the card." };
+    }
+    let composed = source;
+    if (!existing) composed += " " + (serialText ? serialText + "/" : "/") + denominator;
+    else if (serialText && !existing.serial) {
+      composed = source.slice(0, existing.start) + serialText + "/" + denominator + source.slice(existing.end);
+    }
+    if (composed.length > MAX_QUERY) return { error: "The complete card search exceeds 500 characters. Shorten the description." };
+    return { query: composed, needsVerification: true, denominator:String(denominator),
+      serial: serialText || existing?.serial || "" };
   }
-  function field(label, key, control, hint) {
-    return '<label class="ff-guided-field"><span>' + label + '</span>' + control +
-      (hint ? '<small>' + hint + '</small>' : '') + '</label>';
-  }
-  function textInput(key, placeholder, length) {
-    return '<input type="text" autocomplete="off" data-ff-guided-field="' + key +
-      '" maxlength="' + length + '" placeholder="' + placeholder + '">';
-  }
-  function selectInput(key, html) {
-    return '<select data-ff-guided-field="' + key + '">' + html + '</select>';
-  }
+
   function render() {
     return [
-      '<div class="ff-guided-entry-visible" data-ff-guided-visible>',
-      '<div class="ff-guided-entry-header"><div><span class="ff-guided-entry-step">STEP 1 / IDENTIFY</span>',
-      '<h3>Choose your card details</h3>',
-      '<p>Start with the selection boxes below. Set, player, card number and variation remain exact-entry fields until verified checklists are connected.</p>',
-      '</div><span class="ff-guided-entry-step">Guided entry · Beta</span></div>',
-      '<div class="ff-guided-entry-grid">',
-      field("Year", "year", selectInput("year", yearOptions()), "Release year; not a verified checklist match."),
-      field("Brand / manufacturer", "brand", selectInput("brand", options(BRANDS.concat("Other"), "Choose brand")), "Common brand hints; not an exhaustive catalog."),
-      '<label class="ff-guided-field" data-ff-guided-other-brand hidden><span>Other brand</span>' +
-        textInput("otherBrand", "Enter brand exactly", 65) + '</label>',
-      field("Product / set", "product", textInput("product", "e.g. Chrome, Series 1", 100), "Do not guess an insert or subset."),
-      field("Player / subject", "player", textInput("player", "Name on the card", 95), ""),
-      field("Card number", "cardNumber", textInput("cardNumber", "e.g. 150, US1, PC-19", 20), "Use the printed number if known; leave blank to review candidates."),
-      field("Parallel / variation", "parallel", textInput("parallel", "Base, Silver, Refractor, etc.", 70), "Leave blank rather than assuming base."),
-      field("Condition", "condition", selectInput("condition",
-        '<option value="raw">Raw / not graded</option><option value="graded">Professionally graded</option>'), ""),
-      '<label class="ff-guided-field" data-ff-guided-grader hidden><span>Grading company</span>' +
-        selectInput("grader", options(GRADERS.concat("Other"), "Choose grader")) + '</label>',
-      '<label class="ff-guided-field" data-ff-guided-grade hidden><span>Grade</span>' +
-        selectInput("grade", options(["6","7","8","9","9.5","10"], "Choose grade")) +
-        '<small>Common grade filters. For other grades, use Quick Search below.</small></label>',
+      '<div class="ff-serial-head">',
+      '<label class="ff-serial-choice" for="ff-serial-status">Serial-numbered card? <span class="ff-serial-optional">Optional</span></label>',
+      '<select id="ff-serial-status" data-ff-serial-status aria-label="Is this card serial numbered?">',
+      '<option value="unknown">Not sure</option><option value="no">No</option><option value="yes">Yes — e.g. /25, /50, 1/1</option></select>',
       '</div>',
-      '<div class="ff-guided-entry-footer"><button class="button button-primary" type="button" data-ff-guided-confirm>',
-      'Find &amp; verify matching cards →</button>',
-      '<p>The choices create a search request only. Identity confirmation is required before listing search; no grading or sale evidence is inferred.</p></div>',
-      '<p class="ff-guided-entry-status" role="status" aria-live="polite" data-ff-guided-status></p>',
-      '</div>'
+      '<div class="ff-serial-fields" data-ff-serial-fields hidden>',
+      '<label><span>Print run (out of)</span><input data-ff-serial-denominator inputmode="numeric" type="text" maxlength="5" placeholder="25"></label>',
+      '<label><span>Serial # (optional)</span><input data-ff-serial-ordinal inputmode="numeric" type="text" maxlength="5" placeholder="01"></label>',
+      '</div>',
+      '<p class="ff-serial-hint" data-ff-serial-hint>Search first. Choose Yes only if the card is numbered; FlipForge will confirm the exact version before using sales evidence.</p>',
+      '<p class="ff-serial-error" role="alert" aria-live="polite" data-ff-serial-error hidden></p>'
     ].join("");
   }
-  function toggleGrading(panel) {
-    const isGraded = state.condition === "graded";
-    const other = panel.querySelector("[data-ff-guided-other-brand]");
-    if (other) other.hidden = state.brand !== "Other";
-    const grader = panel.querySelector("[data-ff-guided-grader]");
-    const grade = panel.querySelector("[data-ff-guided-grade]");
-    if (grader) grader.hidden = false;
-    if (grade) grade.hidden = false;
-    const graderSelect = panel.querySelector('[data-ff-guided-field="grader"]');
-    if (graderSelect) graderSelect.disabled = !isGraded;
-    const gradeSelect = panel.querySelector('[data-ff-guided-field="grade"]');
-    if (gradeSelect) gradeSelect.disabled = !isGraded;
-    if (gradeSelect) {
-      const half = gradeSelect.querySelector('option[value="9.5"]');
-      if (half) half.disabled = state.grader === "PSA";
-      if (state.grader === "PSA" && state.grade === "9.5") {
-        state.grade = "";
-        gradeSelect.value = "";
+
+  function showMessage(section, message) {
+    const error = section?.querySelector("[data-ff-serial-error]");
+    if (!error) return;
+    error.textContent = message || "";
+    error.hidden = !message;
+  }
+  function updateFields(section) {
+    section.querySelector("[data-ff-serial-fields]").hidden = draft.numbered !== "yes";
+    const hint = section.querySelector("[data-ff-serial-hint]");
+    if (hint) hint.textContent = draft.numbered === "yes"
+      ? "Use 25 for /25, or 50 for /50. The individual serial (such as 01) is optional. This is a matching detail, not a price multiplier."
+      : "Search first. FlipForge will ask you to confirm the exact parallel and print run when needed.";
+  }
+
+  function prepare(form, section) {
+    const input = form?.querySelector(QUERY);
+    if (!input) return { error:"The card search is unavailable." };
+    const result = compose(input.value);
+    if (result.error) { showMessage(section,result.error); return result; }
+    showMessage(section,"");
+    if (input.value !== result.query) {
+      input.value = result.query;
+      // Invalidates any stale identity selection in the existing Discover service.
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+    }
+    return result;
+  }
+
+  function mount() {
+    if (!betaDiscover() || searchHandedOff) return;
+    const form = document.querySelector(FORM);
+    const main = document.querySelector(ROOT);
+    if (!form || !main || main.querySelector("#ff-discovery-results,.customer-discovery-identity-assist")) return;
+    if (form.querySelector("[data-ff-serial-refinement]")) return;
+    const input = form.querySelector(QUERY);
+    if (!input) return;
+    const section = document.createElement("section");
+    section.className = "ff-serial-refinement";
+    section.dataset.ffSerialRefinement = "";
+    section.setAttribute("aria-label","Optional serial-number details");
+    section.innerHTML = render();
+    input.closest("label")?.insertAdjacentElement("afterend",section);
+    const select = section.querySelector("[data-ff-serial-status]");
+    const denominator = section.querySelector("[data-ff-serial-denominator]");
+    const serial = section.querySelector("[data-ff-serial-ordinal]");
+    select.value = draft.numbered;
+    denominator.value = draft.denominator;
+    serial.value = draft.serial;
+    select.addEventListener("change", () => {
+      draft.numbered = select.value;
+      if (draft.numbered !== "yes") { draft.denominator = ""; draft.serial = ""; }
+      denominator.value = draft.denominator;
+      serial.value = draft.serial;
+      updateFields(section);
+      showMessage(section,"");
+    });
+    denominator.addEventListener("input", () => { draft.denominator = denominator.value; showMessage(section,""); });
+    serial.addEventListener("input", () => { draft.serial = serial.value; showMessage(section,""); });
+    updateFields(section);
+  }
+
+  function onSubmit(event) {
+    if (!betaDiscover() || !event.target?.matches?.(FORM)) return;
+    const form = event.target;
+    const section = form.querySelector("[data-ff-serial-refinement]");
+    if (!section) return;
+    const result = prepare(form,section);
+    if (result.error) { event.preventDefault(); event.stopImmediatePropagation(); return; }
+    searchHandedOff = true;
+    section.remove();
+    if (result.needsVerification) {
+      // Numbered versions must go through the existing candidate-selection gate first.
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const verify = form.querySelector("[data-discovery-find-exact]");
+      if (verify && !verify.disabled) verify.click();
+      else {
+        searchHandedOff = false;
+        schedule();
       }
     }
   }
-  function status(panel, message, error = false) {
-    const node = panel.querySelector("[data-ff-guided-status]");
-    if (!node) return;
-    node.textContent = message;
-    node.setAttribute("role", error ? "alert" : "status");
-  }
-  function queryFromFields(draft = state) {
-    const year = draft.year;
-    const brand = draft.brand === "Other" ? draft.otherBrand.trim() : draft.brand;
-    const product = draft.product.trim();
-    const player = draft.player.trim();
-    const number = draft.cardNumber.trim().replace(/^#/, "");
-    const parallel = draft.parallel.trim();
-    if (!year || !brand || !product || !player) {
-      return { error:"Choose a year and brand, then enter the product/set and player before continuing." };
-    }
-    if (number && !CARD_NUMBER.test(number)) {
-      return { error:"Check the card number. Use only letters, numbers, periods or hyphens (without spaces or #)." };
-    }
-    if (draft.condition === "graded" && (!draft.grader || !draft.grade)) {
-      return { error:"Choose the grading company and grade, or select Raw / not graded." };
-    }
-    if (draft.condition === "graded" && draft.grader === "Other") {
-      return { error:"For other grading companies, use Quick Search so your exact label is preserved." };
-    }
-    if (draft.condition === "graded" && draft.grader === "PSA" && draft.grade === "9.5") {
-      return { error:"PSA 9.5 is not a supported grade choice. Check the grading label." };
-    }
-    if (draft.condition === "graded" && (!GRADERS.includes(draft.grader) || !["6","7","8","9","9.5","10"].includes(draft.grade))) {
-      return { error:"The grading combination is not supported in Guided Entry. Use Quick Search." };
-    }
-    const bits = [year,brand,product,player,number ? "#" + number : "",parallel,
-      draft.condition === "graded" ? draft.grader + " " + draft.grade : ""].filter(Boolean);
-    const query = bits.join(" ").replace(/\s+/g," ").trim();
-    return query.length <= 500 ? { query } : { error:"Card description exceeds the 500-character limit." };
-  }
-  function removeBuilder() {
-    const main = document.querySelector(ROOT);
-    main?.querySelector("[data-ff-guided-entry]")?.remove();
-    main?.querySelector("[data-ff-guided-manual-label]")?.remove();
-  }
-  function checkIdentity(panel) {
-    const outcome = queryFromFields();
-    if (outcome.error) return status(panel,outcome.error,true);
-    const form = document.querySelector(ROOT + ' [data-customer-discovery-form]');
-    const input = form?.querySelector('input[name="exactCardQuery"]');
-    const verify = form?.querySelector("[data-discovery-find-exact]");
-    if (!input || !verify || verify.disabled) {
-      return status(panel,"The identity check is currently unavailable. The form below remains available.",true);
-    }
-    handedOff = true;
-    removeBuilder();
-    input.value = outcome.query;
-    // Existing discovery code must invalidate any earlier candidate before new confirmation.
-    input.dispatchEvent(new Event("input", {bubbles:true}));
-    status(panel,"Searching for identity candidates. Confirm the exact version in the next step.");
-    verify.click();
-  }
-  function mount() {
-    if (!betaDiscover() || handedOff) return;
-    const main = document.querySelector(ROOT);
-    if (main?.querySelector(".customer-discovery-results,.customer-discovery-identity-assist")) return;
-    const form = document.querySelector(ROOT + " [data-customer-discovery-form]");
-    const panelBody = form?.parentElement;
-    if (!form || !panelBody || panelBody.querySelector("[data-ff-guided-entry]")) return;
-    const panel = document.createElement("section");
-    panel.className = "ff-guided-entry";
-    panel.dataset.ffGuidedEntry = "";
-    panel.setAttribute("aria-label","Guided card identification");
-    panel.innerHTML = render();
-    form.insertAdjacentElement("beforebegin", panel);
-    const manual = document.createElement("p");
-    manual.className = "ff-guided-manual-label";
-    manual.dataset.ffGuidedManualLabel = "";
-    manual.textContent = "Already know the exact card? Use Quick Search below.";
-    form.insertAdjacentElement("beforebegin", manual);
-    for (const element of panel.querySelectorAll("[data-ff-guided-field]")) {
-      const key = element.dataset.ffGuidedField;
-      if (state[key]) element.value = state[key];
-      element.addEventListener(element.tagName === "SELECT" ? "change" : "input", () => {
-        state[key] = element.value;
-        toggleGrading(panel);
-        status(panel,"");
-      });
-    }
-    toggleGrading(panel);
-    panel.querySelector("[data-ff-guided-confirm]")?.addEventListener("click", () => checkIdentity(panel));
-  }
-  window.FlipForgeGuidedEntryV1 = Object.freeze({ compose: queryFromFields });
-  function schedule() {
-    document.documentElement?.classList?.toggle?.("ff-guided-discover-active", betaDiscover());
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(() => { queued = false; mount(); });
-  }
-  const main = document.querySelector(ROOT);
-  if (main) new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
-  // A search should own the page immediately, not fight a late-inserted builder.
-  if (typeof document.addEventListener === "function") {
-  document.addEventListener("submit", event => {
-    if (event.target?.matches?.(ROOT + " [data-customer-discovery-form]")) {
-      handedOff = true;
-      removeBuilder();
-    }
-  }, true);
-  document.addEventListener("click", event => {
-    if (event.target?.closest?.(ROOT + " [data-customer-discovery-form] button[type='submit'], " +
-      ROOT + " [data-customer-discovery-form] [data-discovery-find-exact]")) {
-      handedOff = true;
-      removeBuilder();
+  function onClick(event) {
+    if (!betaDiscover()) return;
+    const target = event.target?.closest?.(FORM + " [data-discovery-find-exact]");
+    if (target) {
+      const form = target.closest("[data-customer-discovery-form]");
+      const section = form?.querySelector("[data-ff-serial-refinement]");
+      if (!section) return;
+      const result = prepare(form,section);
+      if (result.error) { event.preventDefault(); event.stopImmediatePropagation(); return; }
+      searchHandedOff = true;
+      section.remove();
     }
     if (event.target?.closest?.("[data-ff-new-card]")) {
-      handedOff = false;
+      searchHandedOff = false;
+      draft.numbered = "unknown"; draft.denominator = ""; draft.serial = "";
       schedule();
     }
-  }, true);
   }
-  window.addEventListener("hashchange", () => {
-    if (!betaDiscover()) handedOff = false;
-    schedule();
-  });
+  function schedule() {
+    const active = betaDiscover();
+    document.documentElement?.classList?.toggle?.("ff-guided-discover-active",active);
+    if (!active && routeActive) {
+      searchHandedOff = false;
+      draft.numbered = "unknown"; draft.denominator = ""; draft.serial = "";
+    }
+    routeActive = active;
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => { scheduled = false; mount(); });
+  }
+  window.FlipForgeGuidedEntryV1 = Object.freeze({ compose, parseNumbering });
+  const main = document.querySelector(ROOT);
+  if (main) new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
+  if (typeof document.addEventListener === "function") {
+    document.addEventListener("submit",onSubmit,true);
+    document.addEventListener("click",onClick,true);
+  }
+  window.addEventListener("hashchange",schedule);
   window.addEventListener("pageshow",schedule);
   schedule();
 })();
