@@ -32,7 +32,7 @@ check('paired login join desktop',has(home,'class="ffdemo-nav-actions"')&&has(ho
 check('paired login join mobile',has(home,'class="ffdemo-mobile-actions"'));
 check('production beta sign-in',has(home,'/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start'));
 check('proof methodology preserved',has(home,'<strong>100 frozen decisions</strong>')&&has(home,'href="decision-proof.html">See the proof →'));
-check('audiences without unverified feature claims',['MAX BUY','EXACT IDENTITY','CLEAR DECISIONS'].every(s=>has(home,s)));
+check('audiences without unverified feature claims',['QUALIFIED EVIDENCE','EXACT IDENTITY','A CLEAR WHY'].every(s=>has(home,s)));
 check('original decision demo separate from marketing film',has(home,'data-ff9-film')&&has(home,'data-ffdemo'));
 check('one unmistakable interactive demo',!has(home,'data-film')&&!has(home,'data-decision-forge'));
 check('responsive CSS',has(css,'@media(max-width:750px)'));
