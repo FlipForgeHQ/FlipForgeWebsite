@@ -88,10 +88,9 @@ try {
   await context.close();
 }
 
-// First visit (welcome not yet seen): Guided Mode itself must not open its automatic welcome screen over the card box
-// on a phone. In the shipped shells guided-discover-focus-fix-v1.js also removes that legacy welcome screen, which would
-// hide a regression here, so this check blocks that script and tests guided-mode-v1.js on its own. The desktop control
-// run proves the check can see the welcome screen when Guided Mode opens it, so a phone pass is not vacuous.
+// Private Beta starts without an automatic welcome overlay on any viewport. The customer can
+// request Guide me explicitly, and a dedicated beta-start route remains available for onboarding.
+// Block legacy focus-fix here so we test Guided Mode's own welcome policy directly.
 async function firstVisitWelcome(viewport) {
   const visit = await browser.newContext({ viewport });
   const visitPage = await visit.newPage();
@@ -122,7 +121,7 @@ async function firstVisitWelcome(viewport) {
 }
 try {
   const desktopWelcome = await firstVisitWelcome({ width: 1440, height: 900 });
-  if (!desktopWelcome) failures.push("control: desktop first visit showed no welcome screen, so the phone check below cannot be trusted");
+  if (desktopWelcome) failures.push("first-time desktop visitor got an unwanted welcome overlay; guide must be opt-in");
   const phoneWelcome = await firstVisitWelcome({ width, height });
   if (phoneWelcome) failures.push("first-time phone visitor got the welcome screen over the card box; phones must start minimized");
 } finally {
@@ -133,5 +132,5 @@ console.log("FlipForge mobile Guided Mode audit");
 console.log(`Viewport: ${width}x${height}`);
 console.log(`Failures: ${failures.length}`);
 failures.forEach(failure => console.log(`FAIL | ${failure}`));
-if (!failures.length) console.log("PASS | compact guide size, primary action, minimize, off, reopen, task visibility, and no first-visit welcome over the card box on phones");
+if (!failures.length) console.log("PASS | compact opt-in guide, reversible minimize/off, and no automatic welcome overlay on desktop or phone");
 if (failures.length) process.exit(1);
