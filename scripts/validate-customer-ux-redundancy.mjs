@@ -100,7 +100,7 @@ check("Discover primary action is Search active listings", searchPanel.includes(
 check("Find exact card remains visibly secondary", searchPanel.includes('class="button button-secondary"') && searchPanel.includes(">Find exact card</button>"));
 // Founder direction 2026-10-20: the card-entry guide is open by default (no expand step) in both apps.
 check("Card-entry guide is visible without expanding", searchPanel.includes('<div class="customer-discovery-search-help" data-ff-entry-guide') && !searchPanel.includes("<details class=\"customer-discovery-search-help\""));
-check("Card-entry guide explains two-year seasons", searchPanel.includes("Type it as printed (2025-26) or just the first year (2025). Both find the same card."));
+check("Card-entry guide explains two-year seasons without promising identical results", searchPanel.includes("Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.") && !/Both find the same card|all mean the same card/.test(searchPanel));
 check(
   "Decorator preserves concise Card label after rerenders",
   entry.includes('labelText.textContent !== "Card"')
