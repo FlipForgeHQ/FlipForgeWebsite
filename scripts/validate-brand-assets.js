@@ -80,7 +80,8 @@ const homepageFailures = [];
 if (!index.includes('assets/brand/flipforge-logo-horizontal.svg')) homepageFailures.push('approved horizontal logo lockup');
 if (!index.includes(OFFICIAL_SLOGAN)) homepageFailures.push('locked slogan');
 if (!index.includes(CURRENT_DESCRIPTOR_DISPLAY)) homepageFailures.push('Card Decision Intelligence descriptor');
-if (!/<h1 id="ff10-hero-title"[^>]*><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/h1>/.test(index)) homepageFailures.push('locked slogan as the hero headline');
+// Founder decision 2026-10-20: "Price is not proof." leads; the locked slogan sits directly beneath the headline.
+if (!/<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(index)) homepageFailures.push('locked slogan directly beneath the positioning headline');
 if (!index.includes('data-ff10-hero') || !index.includes('class="ff10-panel"')) homepageFailures.push('single orchestrated hero with the decision panel');
 if (!index.includes('data-ffdemo') || !index.includes('Max Buy')) homepageFailures.push('illustrative interactive Max Buy comparison');
 if (!index.includes('assets/css/homepage-v10.css')) homepageFailures.push('interactive landing stylesheet');

@@ -9,7 +9,12 @@ const has=(s,t)=>s.includes(t);
 const at=t=>html.indexOf(t);
 check('one homepage headline',(html.match(/<h1\b/g)||[]).length===1);
 check('official logo and descriptor',has(html,'assets/brand/flipforge-logo-horizontal.svg')&&has(html,'CARD DECISION INTELLIGENCE'));
-check('locked slogan is the hero headline',has(html,'<span>Before</span> <span>you buy.</span> <span>Know Why.</span>')&&has(html,'Before you buy. Know Why.'));
+// Founder decision 2026-10-20: "Price is not proof." is the headline; the locked slogan sits directly beneath it.
+check('positioning headline with the locked slogan directly beneath',/<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(html)&&has(html,'Before you buy. Know Why.'));
+check('price question vs FlipForge question',['id="price-vs-proof"','“It sold for $500.”','“What does the evidence support, and what should I pay?”','Genuine sale prices are important evidence.','Decision intelligence decides what to do with it.'].every(t=>has(html,t)));
+check('five things a price tool cannot easily copy',(m=>m&&(m[0].match(/<li>/g)||[]).length===5&&['decision-proof.html','#evidence','#identity','#demo'].every(t=>m[0].includes('href="'+t+'"')))(html.match(/<div class="ff10-moat">[\s\S]*?<\/ol>/)));
+check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html));
+check('internal D24 audit stays off the public page',!/\bD24\b|\b756\b|525 of/.test(html));
 check('primary supporting statement',has(html,'FlipForge checks the card, challenges the evidence, and explains the decision before you spend.'));
 check('product shown in the hero',has(html,'class="ff10-panel"')&&has(html,'Max Buy')&&has(html,'Price gap')&&has(html,'data-ff10-sync="verdict"'));
 check('hero interaction route',has(html,'href="#demo">Try the price demo')&&has(html,'id="demo"')&&has(html,'data-ffdemo'));

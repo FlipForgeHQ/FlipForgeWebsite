@@ -42,7 +42,8 @@ requireAll('homepage premium performance layout',homepage,[
  'id="how-it-works"',
  'id="identity"',
  'id="evidence"',
- 'class="ff10-final ff10-light"',
+ 'class="ff10-question ff10-light"',
+ 'class="ff10-final"',
  'assets/css/homepage-v10.css'
 ]);
 requireAll('homepage illustration and decision honesty',homepage,[

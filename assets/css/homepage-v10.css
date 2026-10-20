@@ -51,14 +51,17 @@
   background:
     radial-gradient(60% 70% at 82% 46%,rgba(212,175,55,.16),rgba(212,175,55,0) 62%),
     var(--k)}
-.ff10-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) clamp(280px,27vw,390px);grid-template-rows:auto auto auto auto 1fr;column-gap:clamp(24px,4vw,64px);align-items:start}
+.ff10-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) clamp(280px,27vw,390px);grid-template-rows:auto auto auto auto auto 1fr;column-gap:clamp(24px,4vw,64px);align-items:start}
 .ff10-hero-copy{display:contents}
-.ff10-hero-title{grid-column:1;grid-row:1;font-size:min(7.4vw,116px);position:relative;z-index:1;text-wrap:nowrap}
-.ff10-hero-title span:nth-child(3){display:block;color:var(--g)}
-.ff10-hero .ff10-lede{grid-column:1;grid-row:2;margin-top:clamp(28px,3vw,44px)}
-.ff10-hero .ff10-actions{grid-column:1;grid-row:3;margin-top:32px}
-.ff10-hero-note{grid-column:1;grid-row:4;margin-top:20px!important;font-size:14px;color:var(--s)}
-.ff10-verdict-key{grid-column:1;grid-row:5;align-self:end;margin-bottom:clamp(60px,8vw,140px);padding-top:22px;border-top:1px solid var(--line-d);max-width:520px}
+/* The positioning is the headline; the locked brand line sits directly beneath it. */
+.ff10-hero-title{grid-column:1;grid-row:1;font-size:min(9.2vw,120px);position:relative;z-index:1;text-wrap:nowrap}
+.ff10-hero-title span:nth-child(2){display:block;color:var(--g)}
+.ff10-hero-brand{grid-column:1;grid-row:2;margin-top:clamp(18px,1.8vw,28px)!important;font-weight:700;letter-spacing:-.02em;line-height:1.1;font-size:clamp(24px,2.5vw,38px);color:var(--w)}
+.ff10-hero-brand span:nth-child(3){color:var(--g)}
+.ff10-hero .ff10-lede{grid-column:1;grid-row:3;margin-top:clamp(22px,2.4vw,34px)}
+.ff10-hero .ff10-actions{grid-column:1;grid-row:4;margin-top:32px}
+.ff10-hero-note{grid-column:1;grid-row:5;margin-top:20px!important;font-size:14px;color:var(--s)}
+.ff10-verdict-key{grid-column:1;grid-row:6;align-self:end;margin-bottom:clamp(60px,8vw,140px);padding-top:22px;border-top:1px solid var(--line-d);max-width:520px}
 .ff10-verdict-key p{font-size:14px;color:var(--s)}
 .ff10-verdict-key ul{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;padding:0;list-style:none}
 .ff10-verdict-key li{padding:7px 12px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.22);font-weight:900;font-size:15px;letter-spacing:-.01em;color:rgba(255,255,255,.75)}
@@ -280,15 +283,63 @@
    ====================================================================== */
 .ff10-final{padding:var(--pad) 0 clamp(72px,8vw,120px)}
 .ff10-final .ff10-display{font-size:clamp(48px,8.4vw,136px);max-width:11em}
-.ff10-final-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px 48px;margin-top:clamp(40px,5vw,72px);padding-top:32px;border-top:2px solid var(--k)}
-.ff10-final-row p{font-size:18px;line-height:1.55;color:var(--s-ink);max-width:30em}
+.ff10-final-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px 48px;margin-top:clamp(40px,5vw,72px);padding-top:32px;border-top:2px solid rgba(255,255,255,.22)}
+.ff10-final-row p{font-size:18px;line-height:1.55;color:rgba(255,255,255,.78);max-width:30em}
 .ff10-fine{margin-top:28px!important;font-size:13px;color:var(--s-ink)}
+.ff10-final .ff10-fine{color:var(--s)}
+.ff10-final .ff10-display span,.ff10-final .ff10-display{color:var(--w)}
 
 .ff10 .footer{background:var(--k);border-top-color:var(--line-d)}
 
 /* ======================================================================
    Responsive
    ====================================================================== */
+/* ======================================================================
+   2. THE POSITIONING: the price question vs the FlipForge question
+   ====================================================================== */
+.ff10-question{padding:var(--pad) 0}
+.ff10-question-head{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px 64px;align-items:end}
+.ff10-question-head .ff10-lede{max-width:26em}
+.ff10-versus{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(16px,2vw,28px);margin-top:clamp(48px,6vw,88px);align-items:stretch}
+.ff10-q{border-radius:16px;padding:clamp(26px,3vw,44px);display:flex;flex-direction:column;gap:clamp(18px,2vw,28px)}
+.ff10-q-price{border:1px solid var(--line-l);background:var(--w)}
+.ff10-q-ff{background:var(--k);color:var(--w);box-shadow:0 30px 70px rgba(0,0,0,.22);position:relative;overflow:hidden}
+.ff10-q-ff::after{content:"";position:absolute;right:-18%;top:-40%;width:70%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(212,175,55,.22),rgba(212,175,55,0));pointer-events:none}
+.ff10-q-label{font-size:12px!important;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--s-ink)}
+.ff10-q-ff .ff10-q-label{color:var(--g)}
+.ff10-q-quote{font-weight:800;letter-spacing:-.035em;line-height:1.02;font-size:clamp(30px,3.3vw,54px)}
+.ff10-q-price .ff10-q-quote{color:var(--s-ink)}
+.ff10-q-tells{margin-top:auto;padding-top:18px;border-top:1px solid var(--line-l)}
+.ff10-q-ff .ff10-q-tells{border-top-color:var(--line-d);position:relative;z-index:1}
+.ff10-q-tells>span{display:block;font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--s-ink);margin-bottom:10px}
+.ff10-q-ff .ff10-q-tells>span{color:var(--s)}
+.ff10-q-tells p{font-size:19px;color:var(--k)}
+.ff10-q-tells ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px}
+.ff10-q-tells li{display:flex;gap:10px;align-items:baseline;font-size:17px;font-weight:600;line-height:1.35}
+.ff10-q-tells li::before{content:"";flex:none;width:12px;height:7px;border-left:2px solid var(--g);border-bottom:2px solid var(--g);transform:rotate(-45deg) translateY(-3px)}
+.ff10-promise{margin-top:clamp(48px,6vw,88px)!important;max-width:24em;font-weight:700;letter-spacing:-.03em;line-height:1.12;font-size:clamp(28px,3.2vw,52px);color:var(--s)}
+.ff10-promise span{color:var(--s-ink)}
+.ff10-promise strong{color:var(--k);font-weight:800}
+.ff10-moat{margin-top:clamp(48px,6vw,88px);padding-top:28px;border-top:2px solid var(--k)}
+.ff10-moat h3{margin:0;font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--s-ink)}
+.ff10-moat ol{list-style:none;margin:24px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;counter-reset:moat}
+.ff10-moat li{counter-increment:moat}
+.ff10-moat a{display:flex;flex-direction:column;gap:8px;height:100%;color:inherit;text-decoration:none}
+.ff10-moat a::before{content:counter(moat,decimal-leading-zero);font-weight:800;font-size:15px;color:var(--dg);letter-spacing:.02em}
+.ff10-moat strong{font-size:19px;line-height:1.2;letter-spacing:-.015em}
+.ff10-moat span{font-size:15px;line-height:1.45;color:var(--s-ink)}
+.ff10-moat a:hover strong,.ff10-moat a:focus-visible strong{text-decoration:underline;text-decoration-color:var(--g);text-decoration-thickness:2px;text-underline-offset:4px}
+@media(max-width:1100px){
+  .ff10-question-head{grid-template-columns:1fr}
+  .ff10-versus{grid-template-columns:1fr}
+  .ff10-moat ol{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:32px}
+}
+@media(max-width:600px){
+  .ff10-q-tells ul{grid-template-columns:1fr}
+  .ff10-moat ol{grid-template-columns:1fr;row-gap:24px}
+}
+
 /* 7. Brand film: closing beat, black band, edges feathered into the page */
 .ff10-film{background:#000;color:var(--w);padding:clamp(28px,4vw,64px) 0 clamp(40px,5vw,72px);text-align:center;overflow:hidden}
 .ff10-film-frame{width:min(1180px,100%);margin-inline:auto;aspect-ratio:16/9;-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent 100%);mask-image:radial-gradient(closest-side,#000 62%,transparent 100%)}
@@ -313,7 +364,7 @@
 }
 @media(min-width:761px) and (max-width:1100px){
   .ff10-hero-grid{display:block}
-  .ff10-hero-title{font-size:11vw}
+  .ff10-hero-title{font-size:min(13vw,120px)}
   .ff10-hero .ff10-lede{max-width:34em}
   .ff10-stage{width:min(44%,380px);margin:64px 0 0 3%}
   .ff10-panel{left:calc(100% - 48px);top:16%;width:min(380px,50vw)}
@@ -322,7 +373,9 @@
 @media(max-width:760px){
   .ff10-hero{padding-top:28px}
   .ff10-hero-grid{display:block}
-  .ff10-hero-title{font-size:clamp(48px,16vw,92px);text-wrap:wrap}
+  /* "NOT PROOF." is 5.5x the font size wide: size it to the screen so it always stays on one line. */
+  .ff10-hero-title{font-size:min(100px,calc((100vw - 40px) / 5.9));text-wrap:nowrap}
+  .ff10-hero-brand{font-size:clamp(22px,6.4vw,30px)}
   .ff10-hero-title span{display:block}
   .ff10-hero .ff10-lede{margin-top:24px}
   .ff10-hero .ff10-actions{margin-top:28px}

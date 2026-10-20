@@ -9,7 +9,8 @@ const has=(s,t)=>s.includes(t);
 const at=t=>html.indexOf(t);
 check('exactly one H1',(html.match(/<h1\b/g)||[]).length===1);
 check('single decision demo',(html.match(/data-ffdemo\b/g)||[]).length===1&&!has(html,'data-decision-forge'));
-check('demo directly follows the hero',at('data-ff10-hero')<at('data-ffdemo')&&at('data-ffdemo')<at('id="how-it-works"'));
+// Founder decision 2026-10-20: the page is led by "Price is not proof"; the positioning follows the hero and the demo comes before the final call to action.
+check('positioning-led section order',(o=>o.every(t=>at(t)>=0)&&o.every((t,i)=>i===0||at(o[i-1])<at(t)))(['data-ff10-hero','id="price-vs-proof"','id="evidence"','id="identity"','id="how-it-works"','data-ffdemo','class="ff10-final"']));
 check('premium official palette',has(css,'#D4AF37')&&has(css,'#B8860B')&&has(css,'#8B8F98'));
 check('Geist typography',has(css,'Geist'));
 check('no retired slab art or stock photography',!has(html,'ff-fictional-slab-v1.svg')&&!has(html,'images.unsplash.com'));
