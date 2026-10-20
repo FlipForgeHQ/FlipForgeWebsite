@@ -141,6 +141,16 @@ requireText('shared marketing sign in uses production auth',siteJs,"link.href='/
 requireText('shared marketing sign in covers desktop navigation',siteJs,"document.querySelectorAll('.desktop-nav')");
 requireText('shared marketing sign in covers mobile navigation',siteJs,"document.querySelectorAll('.mobile-nav')");
 requireText('shared marketing sign in avoids duplicates',siteJs,"if(nav.querySelector('[data-ff-marketing-sign-in]'))return");
+requireText('shared navigation routes deploy previews to production sign-in',siteJs,'routePreviewBetaSignIn();');
+const conversionJs=read('assets/js/conversion-events.js');
+requireText('normalized preview sign-in points to live production',conversionJs,'Sign in on the live FlipForge website');
+const authHtml=read('production-auth.html');
+const authProbe=read('scripts/lib/flipforge-production-auth-probe.mjs');
+requireText('preview sign-in forms are really hidden even with grid CSS',authHtml,'form[hidden]{display:none}');
+requireText('preview sign-in explains live-only account',authHtml,'data-production-auth-preview-redirect hidden');
+requireText('preview probe preserves existing access boundary',authProbe,'if (!hostAllowed)');
+requireText('preview probe unhides safe sign-in link',authProbe,'previewRedirect.hidden = false');
+
 
 for(const [label,text] of [['homepage',homepage],['product',product],['Evidence Lab',evidence],['Launch Plans',plans],['About',about],['Beta',beta]]){
   requireText(`${label} brand`,text,'FlipForge');

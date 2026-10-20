@@ -19,6 +19,7 @@ const SEAT_MESSAGES = {
 };
 
 const form = document.querySelector("[data-production-auth-form]");
+const previewRedirect = document.querySelector("[data-production-auth-preview-redirect]");
 const emailInput = document.querySelector("[data-production-auth-email]");
 const passwordInput = document.querySelector("[data-production-auth-password]");
 const signInButton = document.querySelector("[data-production-auth-submit]");
@@ -110,6 +111,9 @@ async function withTimeout(promise, milliseconds = 8000) {
 async function initialize() {
   if (!hostAllowed) {
     form.hidden = true;
+    if (emailInput) emailInput.value = "";
+    if (passwordInput) passwordInput.value = "";
+    if (previewRedirect) previewRedirect.hidden = false;
     signOutButton.hidden = true;
     recoveryButton.hidden = true;
     setStatus("Production account access is available only on goflipforge.com.", "error");
