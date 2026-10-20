@@ -10,6 +10,7 @@
     cardNumber:"", parallel:"", condition:"raw", grader:"", grade:""
   };
   let queued = false;
+  let handedOff = false; // Never reinsert the entry form after a listing/identity request starts.
   function betaDiscover() {
     const path = String(window.location.pathname || "");
     const hash = String(window.location.hash || "#/dashboard");
@@ -132,6 +133,7 @@
     if (!input || !verify || verify.disabled) {
       return status(panel,"The identity check is currently unavailable. The form below remains available.",true);
     }
+    handedOff = true;
     input.value = outcome.query;
     // Existing discovery code must invalidate any earlier candidate before new confirmation.
     input.dispatchEvent(new Event("input", {bubbles:true}));
@@ -139,7 +141,9 @@
     verify.click();
   }
   function mount() {
-    if (!betaDiscover()) return;
+    if (!betaDiscover() || handedOff) return;
+    const main = document.querySelector(ROOT);
+    if (main?.querySelector(".customer-discovery-results,.customer-discovery-identity-assist")) return;
     const form = document.querySelector(ROOT + " [data-customer-discovery-form]");
     const panelBody = form?.parentElement;
     if (!form || !panelBody || panelBody.querySelector("[data-ff-guided-entry]")) return;
@@ -175,7 +179,18 @@
   }
   const main = document.querySelector(ROOT);
   if (main) new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
-  window.addEventListener("hashchange",schedule);
+  // A search should own the page immediately, not fight a late-inserted builder.
+  document.addEventListener("submit", event => {
+    if (event.target?.matches?.(ROOT + " [data-customer-discovery-form]")) handedOff = true;
+  }, true);
+  document.addEventListener("click", event => {
+    if (event.target?.closest?.(ROOT + " [data-customer-discovery-form] button[type='submit'], " +
+      ROOT + " [data-customer-discovery-form] [data-discovery-find-exact]")) handedOff = true;
+  }, true);
+  window.addEventListener("hashchange", () => {
+    if (!betaDiscover()) handedOff = false;
+    schedule();
+  });
   window.addEventListener("pageshow",schedule);
   schedule();
 })();
