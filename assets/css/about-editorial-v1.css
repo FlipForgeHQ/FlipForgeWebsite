@@ -97,3 +97,29 @@
 .ff-about-editorial .ab-founder-sign-top{margin:0 0 24px}
 .ff-about-editorial .ab-founder-close{margin-top:28px;color:var(--ab-ink)}
 .ff-about-editorial .ab-founder-close strong{color:var(--ab-gold)}
+
+
+/* Founder discovery: reuse the existing editorial grid and brand system.
+   A restrained left-rail panel sits beside the original, unchanged founder story. */
+.ff-about-editorial .ab-founder-jump{margin:22px 0 0}
+.ff-about-editorial .ab-founder-jump a{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;color:var(--ab-gold);font-weight:650;font-size:.94rem;letter-spacing:.025em;text-decoration:none;border-bottom:1px solid var(--ab-rule)}
+.ff-about-editorial .ab-founder-jump a:hover{color:var(--ab-ink);border-bottom-color:var(--ab-ink)}
+.ff-about-editorial .ab-founder-feature{padding-top:68px;scroll-margin-top:105px;align-items:start}
+.ff-about-editorial .ab-founder-feature .ab-prose{min-width:0}
+.ff-about-editorial .ab-founder-panel{position:sticky;top:100px;min-width:0;padding:24px 20px 25px;border:1px solid var(--ab-rule);border-radius:12px;background:linear-gradient(155deg,rgba(212,175,55,.10),rgba(255,255,255,.016) 54%,rgba(0,0,0,.25));box-shadow:0 14px 40px rgba(0,0,0,.20)}
+.ff-about-editorial .ab-founder-panel-eyebrow{margin:0 0 23px;color:var(--ab-gold);font-weight:750;font-size:.69rem;letter-spacing:.12em;line-height:1.5}
+.ff-about-editorial .ab-founder-panel .ab-founder-sign{margin:0;padding:0 0 0 13px}
+.ff-about-editorial .ab-founder-panel .ab-founder-sign strong{display:block;font-size:1.3rem;line-height:1.25;letter-spacing:-.025em}
+.ff-about-editorial .ab-founder-panel .ab-founder-sign span{display:block;margin-top:7px;font-size:.82rem;line-height:1.45}
+.ff-about-editorial .ab-founder-panel .ab-founder-panel-summary{margin:22px 0 0;font-size:.87rem;line-height:1.65;color:var(--ab-body)}
+.ff-about-editorial .ab-founder-feature .ab-prose .ab-founder-close{margin-top:28px}
+@media (max-width:860px){
+ .ff-about-editorial .ab-founder-feature{padding-top:54px}
+ .ff-about-editorial .ab-founder-panel{position:static;max-width:100%;padding:20px 21px;margin-bottom:4px}
+ .ff-about-editorial .ab-founder-panel .ab-founder-sign{display:flex;flex-direction:column}
+ .ff-about-editorial .ab-founder-panel .ab-founder-panel-summary{max-width:44ch}
+}
+@media print{
+ .ff-about-editorial .ab-founder-panel{position:static;background:#fff!important;box-shadow:none!important;border:1px solid #777}
+ .ff-about-editorial .ab-founder-panel-eyebrow,.ff-about-editorial .ab-founder-jump a{color:#5c4300!important}
+}
