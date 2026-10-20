@@ -110,6 +110,12 @@
     if (draft.condition === "graded" && draft.grader === "Other") {
       return { error:"For other grading companies, use Quick Search so your exact label is preserved." };
     }
+    if (draft.condition === "graded" && draft.grader === "PSA" && draft.grade === "9.5") {
+      return { error:"PSA 9.5 is not a supported grade choice. Check the grading label." };
+    }
+    if (draft.condition === "graded" && (!GRADERS.includes(draft.grader) || !["6","7","8","9","9.5","10"].includes(draft.grade))) {
+      return { error:"The grading combination is not supported in Guided Entry. Use Quick Search." };
+    }
     const bits = [year,brand,product,player,number ? "#" + number : "",parallel,
       draft.condition === "graded" ? draft.grader + " " + draft.grade : ""].filter(Boolean);
     const query = bits.join(" ").replace(/\s+/g," ").trim();
