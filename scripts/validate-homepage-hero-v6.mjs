@@ -11,7 +11,10 @@ check('single decision demo',(html.match(/data-ffdemo\b/g)||[]).length===1&&!htm
 check('immediate demo beside hero',html.indexOf('data-ffdemo')>html.indexOf('<section class="ffdemo-hero"')&&html.indexOf('data-ffdemo')<html.indexOf('<section class="ffdemo-evidence"'));
 check('premium official palette',css.includes('#D4AF37')&&css.includes('#B8860B'));
 check('Geist typography',css.includes('font-family:Geist'));
-check('no oversized hero-generated image',html.includes('assets/images/ff-fictional-slab-v1.svg'));
+check('no fake card or brochure art',!html.includes('ff-fictional-slab-v1.svg')&&!html.includes('ffdemo-hero-slab'));
+check('decision-first interactive graphics',html.includes('ffdemo-spread-chart')&&html.includes('data-hero-position')&&html.includes('ffdemo-art-identity-check'));
+check('visual threshold stays tied to slider',js.includes("document.querySelector('[data-hero-position]')")&&js.includes('ABOVE BUY LIMIT'));
+check('premium terminal style',css.includes('.ffdemo-spread')&&css.includes('.ffdemo-check-data'));
 check('visible example disclaimer',html.includes('INTERACTIVE · ILLUSTRATIVE')&&html.includes('NO REAL SALE DATA'));
 check('explicit economics',html.includes('Max Buy = $500 − $60 − $15 − $65 = $360'));
 check('no guaranteed profit',html.includes('NO GUARANTEED RETURN'));
