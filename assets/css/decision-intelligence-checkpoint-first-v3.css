@@ -3,9 +3,8 @@
 .ff-v5-decision-page .ff-dic-hero{background:
  radial-gradient(ellipse 55% 65% at 76% 10%,rgba(198,151,66,.12),transparent 76%),
  linear-gradient(180deg,#05090d,#030609 87%);
- padding-top:clamp(86px,8.5vw,114px);
  padding-bottom:58px}
-.ff-v5-decision-page .ff-dic-wrap{width:min(1280px,100%)}
+
 .ff-di-first-frame{display:grid;grid-template-columns:minmax(0,.83fr) minmax(0,1.17fr);gap:clamp(20px,3vw,48px);align-items:center;margin:0 auto 22px;max-width:1240px}
 .ff-v5-decision-page .ff-di-first-frame .ff-dic-heading{margin:0;text-align:left;max-width:none;align-self:center}
 .ff-v5-decision-page .ff-di-first-frame .ff-dic-heading .kicker{font-size:11px;letter-spacing:.17em;font-weight:850;color:#dfc57b}
@@ -14,7 +13,7 @@
 .ff-v5-decision-page .ff-di-first-frame .ff-dic-hero-actions{justify-content:flex-start;margin-top:25px;gap:10px}
 .ff-v5-decision-page .ff-di-first-frame .ff-dic-brand-line{color:#e6c87f!important;font-size:12px!important;margin-top:17px!important}
 .ff-v5-decision-page .ff-di-first-frame .ff-dic-heading::after{margin:21px 0 0;width:180px;background:linear-gradient(90deg,#cba44b,transparent)}
-.ff-di-check-index{padding:16px;border:1px solid rgba(224,192,116,.54);border-top:2px solid #e6c780;border-radius:14px;background:radial-gradient(ellipse at top right,rgba(206,161,66,.14),transparent 61%),linear-gradient(165deg,#10171d,#080e12 70%);box-shadow:0 22px 64px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.065);min-width:0}
+.ff-di-check-index{width:min(1080px,100%);margin:24px auto 0;padding:16px;border:1px solid rgba(224,192,116,.54);border-top:2px solid #e6c780;border-radius:14px;background:radial-gradient(ellipse at top right,rgba(206,161,66,.14),transparent 61%),linear-gradient(165deg,#10171d,#080e12 70%);box-shadow:0 22px 64px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.065);min-width:0}
 .ff-di-check-index-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 5px 13px;border-bottom:1px solid rgba(242,224,180,.2)}
 .ff-di-overline{display:block;color:#e5cf95;font-size:9px;line-height:1.4;font-weight:920;letter-spacing:.14em;margin-bottom:5px}
 .ff-di-check-index-top h2{margin:0!important;color:#fff;font-size:clamp(19px,2.1vw,29px)!important;font-weight:900;letter-spacing:-.04em;line-height:1.16;text-wrap:balance}
@@ -55,7 +54,7 @@
  .ff-di-check-list li{font-size:12px}
 }
 @media(max-width:620px){
- .ff-v5-decision-page .ff-dic-hero{padding-top:86px;padding-left:14px;padding-right:14px}
+ .ff-v5-decision-page .ff-dic-hero{padding-left:14px;padding-right:14px}
  .ff-di-first-frame{gap:22px}
  .ff-v5-decision-page .ff-di-first-frame .ff-dic-heading h1{font-size:clamp(36px,8.7vw,43px);max-width:18ch}
  .ff-v5-decision-page .ff-di-first-frame .ff-dic-heading .lead{font-size:15px;line-height:1.55}
