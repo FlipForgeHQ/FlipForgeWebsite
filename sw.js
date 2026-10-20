@@ -1,4 +1,4 @@
-const CACHE='flipforge-shell-v25';
+const CACHE='flipforge-shell-v26';
 const SHELL=[
   '/',
   '/index.html',
@@ -32,6 +32,7 @@ const SHELL=[
   '/assets/js/site.js',
   '/assets/css/homepage-v10.css',
   '/assets/js/homepage-v10.js',
+  '/assets/js/homepage-film-v1.js',
   '/assets/images/ff10-hero.webp',
   '/assets/images/ff10-silver.webp',
   '/assets/images/ff10-base.webp',
@@ -72,6 +73,8 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
+  // Video streams with byte ranges; let the browser fetch it directly (Safari cannot play range responses via a worker).
+  if(event.request.destination==='video'||event.request.headers.has('range'))return;
   if(event.request.mode==='navigate'){
     event.respondWith((async()=>{
       try{

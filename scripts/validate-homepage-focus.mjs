@@ -36,7 +36,7 @@ check('responsive CSS',has(css,'@media(max-width:760px)')&&has(css,'@media(min-w
 check('reduced motion CSS',has(css,'@media(prefers-reduced-motion:reduce)')&&has(js,"matchMedia('(prefers-reduced-motion: reduce)')"));
 check('keyboard/focus states',has(html,'aria-describedby="ff10-range-help"')&&has(html,'aria-pressed="false"')&&has(css,':focus-visible'));
 check('navigation mobile Escape key',has(site,"e.key==='Escape'"));
-check('new service worker cache',has(sw,"const CACHE='flipforge-shell-v25'")&&has(sw,"'/assets/js/homepage-v10.js'"));
+check('new service worker cache',has(sw,"const CACHE='flipforge-shell-v26'")&&has(sw,"'/assets/js/homepage-v10.js'"));
 check('no old duplicate interaction loaded',!has(html,'homepage-decision-forge-v1.js')&&!has(html,'homepage-v5.js')&&!has(html,'homepage-interactive-decision-v7.js'));
 check('no public sales provider exposure',!has(html,'CardSight'));
 check('official transactions boundary',has(html,'FlipForge does not guarantee profit or authorize transactions.'));

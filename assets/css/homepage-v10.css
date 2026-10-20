@@ -283,16 +283,23 @@
 .ff10-final-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px 48px;margin-top:clamp(40px,5vw,72px);padding-top:32px;border-top:2px solid var(--k)}
 .ff10-final-row p{font-size:18px;line-height:1.55;color:var(--s-ink);max-width:30em}
 .ff10-fine{margin-top:28px!important;font-size:13px;color:var(--s-ink)}
-.ff10-signature{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:clamp(56px,7vw,96px)}
-.ff10-signature img{display:block}
-.ff10-signature span:first-of-type{font-weight:700;font-size:15px;letter-spacing:.32em}
-.ff10-signature span:last-of-type{font-weight:600;font-size:12px;letter-spacing:.34em;color:var(--dg)}
 
 .ff10 .footer{background:var(--k);border-top-color:var(--line-d)}
 
 /* ======================================================================
    Responsive
    ====================================================================== */
+/* 7. Brand film: closing beat, black band, edges feathered into the page */
+.ff10-film{background:#000;color:var(--w);padding:clamp(28px,4vw,64px) 0 clamp(40px,5vw,72px);text-align:center;overflow:hidden}
+.ff10-film-frame{width:min(1180px,100%);margin-inline:auto;aspect-ratio:16/9;-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent 100%);mask-image:radial-gradient(closest-side,#000 62%,transparent 100%)}
+.ff10-film-video{display:block;width:100%;height:100%;object-fit:cover;background:#000}
+.ff10-film-replay{display:inline-flex;align-items:center;gap:10px;margin-top:4px;padding:10px 16px;border:1px solid rgba(212,175,55,.45);border-radius:999px;background:transparent;color:var(--g);font-family:inherit;font-weight:600;font-size:14px;line-height:1;letter-spacing:.02em;cursor:pointer;transition:background .2s,border-color .2s}
+.ff10-film-replay::before{content:"";width:0;height:0;border-left:9px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent}
+.ff10-film-replay:hover{background:rgba(212,175,55,.1);border-color:var(--g)}
+.ff10-film-replay:focus-visible{outline:3px solid rgba(212,175,55,.45);outline-offset:3px}
+.ff10-film-replay[hidden]{display:none}
+@media(max-width:900px){.ff10-film-frame{aspect-ratio:4/3}}
+@media(max-width:600px){.ff10-film-frame{aspect-ratio:1/1;-webkit-mask-image:radial-gradient(closest-side,#000 72%,transparent 100%);mask-image:radial-gradient(closest-side,#000 72%,transparent 100%)}}
 @media(max-width:1100px){
   .ff10-id-tags{display:none}
   .ff10-step-list{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:48px}
