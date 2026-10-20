@@ -8,59 +8,64 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = name => fs.readFileSync(path.join(root, name), "utf8");
 const src = read("saas-prototype/discover-guided-entry-v1.js");
 const css = read("saas-prototype/discover-guided-entry-v1.css");
-const entry = read("saas-prototype/discover-card-entry-emphasis-v1.js");
+const loader = read("saas-prototype/discover-card-entry-emphasis-v1.js");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
 const beta = read("saas-prototype/beta-session-v1.js");
-const window = { location:{pathname:"/app/",hash:"#/dashboard"},addEventListener(){} };
-const document = {querySelector(){return null;}};
-const sandbox = { window,document,requestAnimationFrame(callback){callback();},MutationObserver:class{observe(){}}, console,Date,RegExp };
+const guide = read("saas-prototype/guided-mode-v1.js");
+const window = { location:{pathname:"/app/beta/",hash:"#/dashboard"},addEventListener(){} };
+const document = {querySelector(){return null;},documentElement:{classList:{toggle(){}}}};
+const sandbox = { window,document,requestAnimationFrame(cb){cb()},MutationObserver:class{observe(){}},console,Date,RegExp };
 vm.runInNewContext(src,sandbox,{filename:"discover-guided-entry-v1.js"});
-const compose = window.FlipForgeGuidedEntryV1?.compose;
-assert.equal(typeof compose,"function","Guided composer available for deterministic tests");
-const basic = {
-  year:"2018",brand:"Topps",otherBrand:"",product:"Chrome",player:"Shohei Ohtani",
-  cardNumber:"150",parallel:"Refractor",condition:"graded",grader:"PSA",grade:"9"
-};
-assert.equal(compose(basic).query,"2018 Topps Chrome Shohei Ohtani #150 Refractor PSA 9");
-assert.equal(compose({...basic,condition:"raw",grade:"",grader:""}).query,"2018 Topps Chrome Shohei Ohtani #150 Refractor");
-assert.equal(compose({...basic,cardNumber:""}).query,"2018 Topps Chrome Shohei Ohtani Refractor PSA 9");
-assert.equal(compose({...basic,cardNumber:"US1"}).query,"2018 Topps Chrome Shohei Ohtani #US1 Refractor PSA 9");
-assert.match(compose({...basic,cardNumber:"150 / 250"}).error,/card number/i);
-assert.match(compose({...basic,grader:"PSA",grade:"9.5"}).error,/PSA 9.5/i);
-assert.match(compose({...basic,brand:"Other",otherBrand:""}).error,/brand/i);
-assert.match(compose({...basic,condition:"graded",grader:"Other"}).error,/Quick Search/i);
-assert.match(compose({...basic,product:""}).error,/product\/set/i);
-assert.match(compose({...basic,player:""}).error,/player/i);
-assert.ok(src.includes("verify.click()")&&src.includes('input.dispatchEvent(new Event("input", {bubbles:true}))'),
-  "Identity candidate search reuses existing verification and invalidates stale selections");
-assert.ok(src.includes("if (!input || !verify || verify.disabled)"),
-  "Unavailable verification remains fail-closed");
+const {compose,parseNumbering} = window.FlipForgeGuidedEntryV1 || {};
+assert.equal(typeof compose,"function");
+assert.equal(typeof parseNumbering,"function");
+const card = "2018 Topps Chrome Shohei Ohtani #150 PSA 9";
+assert.equal(compose(card).query,card);
+assert.equal(compose(card,{numbered:"unknown"}).needsVerification,false);
+assert.equal(compose(card,{numbered:"no"}).query,card);
+assert.equal(compose(card,{numbered:"yes",denominator:"25",serial:"01"}).query,card+" 01/25");
+assert.equal(compose(card,{numbered:"yes",denominator:"50",serial:""}).query,card+" /50");
+assert.equal(compose(card,{numbered:"yes",denominator:"1",serial:"1"}).query,card+" 1/1");
+assert.equal(compose(card+" /25",{numbered:"yes",denominator:"25",serial:""}).query,card+" /25");
+assert.equal(compose(card+" /25",{numbered:"yes",denominator:"25",serial:"01"}).query,card+" 01/25");
+assert.equal(compose(card+" 1/25",{numbered:"yes",denominator:"25",serial:"1"}).query,card+" 1/25");
+assert.equal(compose(card+" numbered to 25",{numbered:"yes",denominator:"25",serial:""}).query,card+" numbered to 25");
+assert.match(compose(card+" /50",{numbered:"yes",denominator:"25",serial:""}).error,/conflicts/);
+assert.match(compose(card+" 4/25",{numbered:"yes",denominator:"25",serial:"1"}).error,/conflicts/);
+assert.match(compose(card+" /25",{numbered:"no"}).error,/contains serial/);
+assert.match(compose(card,{numbered:"yes",denominator:"25",serial:"26"}).error,/cannot exceed/);
+assert.match(compose(card,{numbered:"yes",denominator:"",serial:""}).error,/print run/);
+assert.match(compose(card,{numbered:"yes",denominator:"0",serial:""}).error,/positive whole number/);
+assert.match(compose(card,{numbered:"yes",denominator:"25",serial:"0"}).error,/positive whole number/);
+assert.match(compose(card,{numbered:"yes",denominator:"25.5",serial:""}).error,/positive whole number/);
+assert.match(compose("",{numbered:"yes",denominator:"25"}).error,/enter the card/i);
+assert.equal(parseNumbering("2018/19 Upper Deck #100"),null,"Season is not serial number");
+assert.equal(parseNumbering("Numbered to 99").denominator,"99");
+assert.equal(parseNumbering("1/1").serial,"1");
+assert.equal(parseNumbering("1/25").denominator,"25");
+assert.equal(parseNumbering("/50").denominator,"50");
+assert.ok(src.includes("data-ff-serial-refinement") && src.includes("data-ff-serial-status") &&
+  src.includes("data-ff-serial-denominator") && src.includes("data-ff-serial-ordinal"),"Serial controls mount beside search");
+assert.ok(src.includes('input.closest("label")?.insertAdjacentElement("afterend",section)'),
+  "Search input remains the primary entry surface");
+assert.ok(!src.includes("BRANDS =") && !src.includes("Choose your card details"),
+  "Eight-field builder has been removed");
+assert.ok(src.includes("verify.click()") && src.includes('event.stopImmediatePropagation()'),
+  "Numbered search invokes existing identity gate and blocks unsafe submit");
+assert.ok(src.includes('input.dispatchEvent(new Event("input",{bubbles:true}))'),
+  "New composed query invalidates stale identity selection");
 assert.ok(!/\/api\/v1\/evaluations|\/api\/v1\/discover|\/api\/v1\/card-intelligence\/resolve/.test(src),
-  "Composer does not call listings/evaluation or resolve candidates itself");
-assert.ok(!/localStorage|sessionStorage|indexedDB/.test(src),
-  "Draft personal entry data is not persisted by the builder");
-assert.ok(src.includes('!/^\\/(?:app|owner)\\/customer'),
-  "Full customer application is left unchanged");
-assert.ok(entry.includes("loadGuidedEntry()")&&entry.includes("discover-guided-entry-v1.js"),
-  "Existing discover entry loads builder without removing identity checker");
-assert.ok(css.includes(".ff-guided-entry-grid")&&css.includes('a[data-route="discover"]'),
-  "Responsive controls and Discover prominence are styled");
-assert.ok(src.includes('data-ff-guided-field="year"') === false &&
-  src.includes('selectInput("year", yearOptions())') &&
-  src.includes('selectInput("brand"') &&
-  src.includes('selectInput("grader"') &&
-  src.includes('selectInput("grade"'), "Guided menus for year, brand, grader, grade remain native selection boxes");
-assert.ok(src.includes('data-ff-guided-visible') && !src.includes('data-ff-guided-details'),
-  "Guide controls appear immediately and are not hidden by a collapsed details panel");
-assert.ok(src.includes("removeBuilder()") && src.includes('event.target?.matches?.(ROOT + " [data-customer-discovery-form]")'),
-  "Form clears guided fields at results handoff");
-const guideSrc = read("saas-prototype/guided-mode-v1.js");
-assert.ok(guideSrc.includes('phoneViewport() || privateBetaSurface()') &&
-  guideSrc.includes('!force && privateBetaSurface() && !state.userOpened'),
-  "Default Private Beta help is minimized; the welcome popup is explicit-only");
-
+  "No new data, pricing, evaluation, or resolver authority");
+assert.ok(!/localStorage|sessionStorage|indexedDB/.test(src),"No user entry is persisted by helper");
+assert.ok(css.includes(".ff-serial-refinement")&&css.includes('a[data-route="discover"]'),
+  "Compact styling and Discover prominence");
+assert.ok(loader.includes("loadGuidedEntry()")&&loader.includes("discover-guided-entry-v1.js"),
+  "Discover integration kept");
+assert.ok(guide.includes('phoneViewport() || privateBetaSurface()') &&
+  guide.includes('!force && privateBetaSurface() && !state.userOpened'),
+  "Private Beta popup remains optional");
 assert.ok(shell.includes('["discover", "Discover"]') &&
   shell.includes('href="#/discover">Discover a card') &&
   beta.includes('setText(pageHeading.querySelector("h1"), "Discover a Card")'),
-  "Beta dashboard, navigation and Discover heading use same plain-language name");
-console.log("PASS: beta Discover guided entry, naming and exact-identity safety");
+  "Dashboard and Discover naming agree");
+console.log("PASS: search-first serial-number refinement and governed identity handoff");
