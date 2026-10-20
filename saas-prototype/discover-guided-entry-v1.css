@@ -1,3 +1,5 @@
+/* Card-entry navigation must not trigger long smooth-scroll chases. */
+html.ff-guided-discover-active{scroll-behavior:auto!important}
 /* DEV draft: first-card guided entry. Scoped to Discover; never changes result or evidence logic. */
 body[data-ff-surface="customer"] .ff-guided-entry{
   margin:0 0 12px;padding:clamp(14px,2vw,20px);
