@@ -15,7 +15,8 @@ check('price question vs FlipForge question',['id="price-vs-proof"','“It sold 
 check('five things a price tool cannot easily copy',(m=>m&&(m[0].match(/<li>/g)||[]).length===5&&['decision-proof.html','#evidence','#identity','#demo'].every(t=>m[0].includes('href="'+t+'"')))(html.match(/<div class="ff10-moat">[\s\S]*?<\/ol>/)));
 check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html));
 check('internal D24 audit stays off the public page',!/\bD24\b|\b756\b|525 of/.test(html));
-check('primary supporting statement',has(html,'FlipForge checks the card, challenges the evidence, and explains the decision before you spend.'));
+check('primary supporting statement',has(html,'A price tells you what someone asked or paid. FlipForge shows what it actually proves, and what you should pay.'));
+check('link previews carry the positioning',has(html,'<meta property="og:title" content="Price is not proof. | FlipForge™">')&&has(html,'name="twitter:card" content="summary_large_image"')&&has(html,'assets/images/flipforge-share-price-is-not-proof.jpg'));
 check('product shown in the hero',has(html,'class="ff10-panel"')&&has(html,'Max Buy')&&has(html,'Price gap')&&has(html,'data-ff10-sync="verdict"'));
 check('hero interaction route',has(html,'href="#demo">Try the price demo')&&has(html,'id="demo"')&&has(html,'data-ffdemo'));
 check('slider label and hint',has(html,'<label for="ff10-ask">Asking price</label>')&&has(html,'Drag the handle or use your arrow keys.'));

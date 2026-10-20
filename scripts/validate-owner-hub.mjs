@@ -48,7 +48,7 @@ check("017 Owner Hub has no public redirect or marketing CTA", !publicHome.inclu
 check("018 operator page returns to Owner Hub", operator.includes('href="/owner">Owner Hub</a>') && !operator.includes('href="/app/#/dashboard">Customer App</a>'));
 check("019 owner routes are no-store and noindex", netlify.includes('for = "/owner"') && netlify.includes('X-Robots-Tag = "noindex, nofollow, noarchive, nosnippet"') && netlify.includes('for = "/owner/customer/*"'));
 check("020 Owner Hub responsive stylesheet exists", ownerCss.includes("@media(max-width:820px)") && ownerCss.includes(".ff-owner-grid"));
-check("021 public platform status uses only Private Beta + Customer model", platformStatus.includes("One engine · Private Beta + Customer") && platformStatus.includes("Private Beta + Customer") && !platformStatus.includes("Beta + DEV") && !platformStatus.includes("DEV Mode"));
+check("021 retired platform status page is noindex and forwards to Product", platformStatus.includes('<meta name="robots" content="noindex,follow" />') && platformStatus.includes('url=product.html') && !platformStatus.includes("Beta + DEV") && !platformStatus.includes("DEV Customer"));
 check("022 routing comments do not describe a hosted DEV customer", !redirects.includes("DEV-only") && redirects.includes("owner-only Customer preview uses /owner/customer"));
 
 const failed = checks.filter(([, ok]) => !ok);
