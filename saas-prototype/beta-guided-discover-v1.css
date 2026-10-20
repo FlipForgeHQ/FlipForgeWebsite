@@ -45,3 +45,15 @@
 .ffv3-root[data-ffguided-focus="simple"]>.ffv3-analytics,
 .ffv3-root[data-ffguided-focus="simple"]>.ff-focus-secondary,
 .ffv3-root[data-ffguided-focus="simple"]>.ffv3-empty{display:none!important}
+
+/* Maintain the 14px visible-text minimum in the new customer teaching surfaces. */
+.ffguided-home-copy>span,
+.ffguided-home-steps b,
+.ffguided-home-footer a,
+.ffguided-home-footer button,
+.ffguided-entry summary>span,
+.ffguided-entry summary small,
+.ffguided-fields>p,
+.ffguided-grid label,
+.ffguided-actions [role="status"]{font-size:14px!important}
+@media(max-width:560px){.ffguided-home-steps>div{font-size:14px!important}}
