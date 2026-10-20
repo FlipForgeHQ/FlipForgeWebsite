@@ -158,6 +158,7 @@ requireAll('Customer-first applied intelligence',decisionPage,[
  'Know what you can pay.',
  'Act—or know why to wait.',
  'decision-intelligence-decision-benefits-v4.css',
+ 'ff-di-benefits-intro ff-dic-simple-head',
  'The best decision isn\'t always'
 ]);
 if(decisionPage.includes('ff-dic-model')||decisionPage.includes('ff-dic-layer-list'))failures.push('Remove repeated public 13-layer model at page bottom');

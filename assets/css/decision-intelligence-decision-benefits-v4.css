@@ -1,9 +1,9 @@
 /* Decision Intelligence: customer value follows the single 13-checkpoint map.
    Four visual consequences — not another technical architecture repeat. */
 .ff-v5-decision-page .ff-di-benefits{scroll-margin-top:92px;position:relative;margin:44px auto 30px;padding:clamp(22px,3.3vw,40px);background:#f3f1ec;color:#121718;border:1px solid #e2dbcc;border-radius:19px;box-shadow:0 30px 85px rgba(0,0,0,.2)}
-.ff-di-benefits-intro{display:grid;grid-template-columns:1.3fr .7fr;align-items:end;gap:24px;margin-bottom:23px}
+.ff-di-benefits-intro.ff-dic-simple-head{display:grid;grid-template-columns:1.3fr .7fr;align-items:end;gap:24px;margin:0 0 23px;text-align:left;max-width:none}
 .ff-di-benefits-kicker{display:block;color:#a07a33;font-size:10px;font-weight:900;letter-spacing:.17em;line-height:1.4}
-.ff-di-benefits-intro h2{color:#101519;font-size:clamp(32px,4.1vw,52px);line-height:1.03;letter-spacing:-.052em;margin:12px 0 0;font-weight:930}
+.ff-di-benefits-intro h2{color:#101519;line-height:1.03;letter-spacing:-.052em;margin:12px 0 0;font-weight:930}
 .ff-di-benefits-intro h2 em{color:#9b742c;font-style:normal}
 .ff-di-benefits-intro>p{margin:0 0 5px;font-size:clamp(15px,1.4vw,18px);font-weight:500;color:#4e5558;line-height:1.48}
 .ff-di-benefits-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
@@ -52,6 +52,6 @@
 .ff-di-close-choice .ff-dic-final-actions{display:flex;justify-content:flex-start;gap:10px}
 .ff-di-close-choice>small{display:block;margin-top:17px;color:#9eafb5;font-size:10px}
 @media(max-width:1090px){.ff-di-benefits-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ff-di-benefit-screen{height:143px}.ff-di-benefit h3{font-size:20px}.ff-di-benefit>p{font-size:13px}.ff-di-benefit-compare strong{font-size:14px}.ff-di-benefit-filter span{font-size:11px}}
-@media(max-width:760px){.ff-di-benefits-intro{grid-template-columns:1fr;gap:12px}.ff-di-benefits-intro h2{font-size:clamp(31px,7vw,42px)}.ff-di-benefits-intro>p{font-size:15px}.ff-di-close-grid{grid-template-columns:1fr;gap:18px}.ff-di-close h2{font-size:clamp(38px,7.5vw,54px)}.ff-di-close-choice{padding:22px}}
+@media(max-width:760px){.ff-di-benefits-intro{grid-template-columns:1fr;gap:12px}.ff-di-benefits-intro>p{font-size:15px}.ff-di-close-grid{grid-template-columns:1fr;gap:18px}.ff-di-close h2{font-size:clamp(38px,7.5vw,54px)}.ff-di-close-choice{padding:22px}}
 @media(max-width:520px){.ff-v5-decision-page .ff-di-benefits{margin-top:30px;padding:19px 12px;border-radius:12px}.ff-di-benefits-grid{grid-template-columns:1fr;gap:11px}.ff-di-benefit{padding:13px 15px 18px}.ff-di-benefit-screen{height:129px;margin:12px 0 13px}.ff-di-benefit h3{font-size:20px}.ff-di-benefit-compare strong{font-size:14px}.ff-di-benefits-trust{font-size:11px!important}.ff-di-close-grid{padding:0}.ff-di-close-choice .ff-dic-final-actions{display:grid;grid-template-columns:1fr}.ff-di-close-choice .ff-dic-final-actions .btn{justify-content:center}}
 @media(prefers-reduced-motion:reduce){.ff-di-benefits *, .ff-di-close *{animation:none!important;transition:none!important}}
