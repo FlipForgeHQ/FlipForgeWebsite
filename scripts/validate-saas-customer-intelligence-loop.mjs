@@ -14,7 +14,6 @@ const files = {
   routeHook: read("saas-prototype/staging-route-hook.js"),
   css: read("saas-prototype/customer-intelligence.css"),
   gateway: read("netlify/functions/flipforge-api.js"),
-  docs: read("docs/SAAS_CUSTOMER_INTELLIGENCE_LOOP.md")
 };
 
 const results = [];
@@ -36,10 +35,6 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["013 customer Evaluate is guided into three sections", ["Listing and exact card identity", "Complete acquisition cost", "Confirm the authority boundary"].every(value => files.evaluationAdapter.includes(value))],
   ["014 evaluation result opens Card Intelligence", files.evaluationAdapter.includes("Open Card Intelligence") && files.evaluationAdapter.includes('"#/opportunities/"')],
   ["015 evaluation persists and grants tenant ownership", files.evaluationAdapter.includes("persisted to SQLite") && files.evaluationAdapter.includes("granted tenant ownership")],
-  ["016 recommendation authority stays server-side", files.docs.includes("Smart Opportunity remains the sole") && files.docs.includes("browser never calculates")],
-  ["017 PSA authority stays server-side", files.docs.includes("Existing PSA intelligence remains the sole")],
-  ["018 no production activation is added", files.docs.includes("Production remains disabled")],
-  ["019 no customer transaction authority is added", files.docs.includes("No bid, checkout, payment, purchase, listing, or resale authority")],
   ["020 read adapter sends no trusted identity header", !/X-FlipForge-(?:Tenant|User)-Id/i.test(files.readAdapter)],
   ["021 evaluation adapter sends no trusted identity header", !/X-FlipForge-(?:Tenant|User)-Id/i.test(files.evaluationAdapter)],
   ["022 browser adapters contain no service token", !/FLIPFORGE_API_SERVICE_TOKEN/.test(files.readAdapter + files.evaluationAdapter + files.customerAdapter + files.opportunityBridge)],

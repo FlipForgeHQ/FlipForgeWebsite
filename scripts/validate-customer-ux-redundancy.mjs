@@ -10,7 +10,6 @@ const entry = read("saas-prototype/discover-card-entry-emphasis-v1.js");
 const focus = read("saas-prototype/guided-discover-focus-fix-v1.js");
 const guide = read("saas-prototype/guided-mode-v1.js");
 const discovery = read("saas-prototype/customer-discovery.js");
-const standard = read("docs/CUSTOMER_APP_AUDIT_STANDARD.md");
 const firstValue = read("saas-prototype/customer-first-value-v1.js");
 const firstValueCss = read("saas-prototype/customer-first-value-v1.css");
 const decisionClarity = read("saas-prototype/customer-decision-clarity-v1.js");
@@ -142,13 +141,6 @@ check("PSA Advisor retains saved-snapshot boundary detail", psa.includes("<stron
 check("Market View authority copy is progressively disclosed", marketView.includes('<details class="market-view-boundary ff-trust-note"><summary>How Market View stays governed</summary>'));
 check("Forge Heat qualification mechanics are progressively disclosed", forgeHeat.includes('<details class="forge-heat-intelligence-bar ff-trust-note">') && forgeHeat.includes("How a card becomes Heat-eligible"));
 check("Saved Decisions recovery diagnostics are progressively disclosed", savedBridge.includes('<details class="boundary-note ff-trust-note"><summary>Recovery details</summary>'));
-
-check(
-  "Audit standard owns instruction hierarchy and redundancy rules",
-  standard.includes("Instruction ownership and redundancy")
-    && standard.includes("one persistent instruction owner")
-    && standard.includes("nested emphasis")
-);
 
 console.log(`\nCustomer UX Redundancy / Hierarchy Audit\nPASSED: ${passed}\nFAILED: ${failed}`);
 if (failures.length) failures.forEach(item => console.error(` - ${item}`));

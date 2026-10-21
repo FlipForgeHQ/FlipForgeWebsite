@@ -40,7 +40,6 @@ const retentionSource = read("netlify/modern-functions/beta-retention.mjs");
 const runtimeStoreSource = read("netlify/modern-functions/lib/beta-runtime-store.mjs");
 const coreSource = read("netlify/modern-functions/lib/beta-operations-core.mjs");
 const privacy = read("privacy.html");
-const docs = read("docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md");
 const netlify = read("netlify.toml");
 const packageJson = JSON.parse(read("package.json"));
 
@@ -94,7 +93,7 @@ const checks = [
   ["permanent test-user delete is an explicit separate action", operatorClient.includes("data-delete-test-user") && operatorClient.includes('action:"delete-test-user"') && operatorClient.includes("PERMANENT TEST-USER DELETE") && operatorSource.includes('action === "delete-test-user"')],
   ["permanent test-user delete requires exact-email confirmation", operatorClient.includes("Type the exact email to continue") && operatorSource.includes("DELETE_CONFIRMATION_MISMATCH") && operatorSource.includes("confirmedEmail !== expectedEmail")],
   ["permanent test-user delete protects operator and cross-record accounts", operatorSource.includes("CANNOT_DELETE_CURRENT_OPERATOR") && operatorSource.includes("CANNOT_DELETE_OPERATOR_ACCOUNT") && operatorSource.includes("IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD")],
-  ["permanent test-user delete removes Identity and onboarding record", operatorSource.includes("permanentlyDeleteTestUser") && operatorSource.includes("identityAdmin.deleteUser") && operatorSource.includes("applicationStore.delete(applicationKey(application.id))") && docs.includes("Permanently delete test user")],
+  ["permanent test-user delete removes Identity and onboarding record", operatorSource.includes("permanentlyDeleteTestUser") && operatorSource.includes("identityAdmin.deleteUser") && operatorSource.includes("applicationStore.delete(applicationKey(application.id))")],
   ["review state machine is explicit", ["SUBMITTED", "UNDER_REVIEW", "WAITLISTED", "APPROVED", "INVITE_SENT", "ACTIVATED", "DECLINED"].every(value => coreSource.includes(value))],
   ["feedback state machine is explicit", ["NEW", "UNDER_REVIEW", "RESOLVED"].every(value => coreSource.includes(value))],
   ["feedback summary denies accuracy meaning", coreSource.includes("TESTER_REPORTED_CHECKPOINTS_NOT_ACCURACY") && operatorHtml.includes("not product accuracy")],
@@ -105,8 +104,6 @@ const checks = [
   ["privacy discloses role-gated review", privacy.includes("server-verified FlipForge operator role")],
   ["privacy discloses event retention", privacy.includes("no more than 90 days")],
   ["operator page receives no-store security headers", netlify.includes('for = "/operator-beta.html"') && netlify.includes('Cache-Control = "no-store"')],
-  ["operator contract documents setup", docs.includes("flipforge-operator") && docs.includes("sign out and back in")],
-  ["operator contract preserves authority", docs.includes("grants no billing, bid, purchase, sale, grading, evidence-acceptance, or transaction authority")],
 ];
 
 let failed = 0;

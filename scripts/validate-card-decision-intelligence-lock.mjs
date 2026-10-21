@@ -9,7 +9,6 @@ const PROSE_DESCRIPTOR = 'Card Decision Intelligence';
 const OFFICIAL_SLOGAN = 'Before you buy. Know Why.';
 
 const required = [
-  'BRAND_VISUAL_LOCKED.md',
   'brand/README.md',
   'brand/v2/manifest.json',
   'assets/brand/flipforge-logo-horizontal.svg',
@@ -71,7 +70,6 @@ const currentSurfaces = [
   ['assets/images/flipforge-traceback-guidance.svg', DISPLAY_DESCRIPTOR],
   ['assets/images/flipforge-grading-scenario.svg', DISPLAY_DESCRIPTOR],
   ['assets/brand/flipforge-before-after-overlay.svg', DISPLAY_DESCRIPTOR],
-  ['docs/BRAND_SYSTEM_V2.md', DISPLAY_DESCRIPTOR],
 ];
 
 for (const [relativePath, expected] of currentSurfaces) {

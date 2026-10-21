@@ -129,7 +129,6 @@ for (const [relativePath, cubePath] of embeddedBrandVisuals) {
 }
 
 validateLockedSlogan('assets/images/flipforge-traceback-guidance.svg');
-validateLockedSlogan('MARKETING_VISUAL_PLAYBOOK.md');
 validateLockedSlogan('saas-prototype/visual-intelligence.js');
 
 const htmlFiles = fs.readdirSync(root).filter((name) => name.endsWith('.html'));

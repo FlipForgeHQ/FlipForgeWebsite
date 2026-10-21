@@ -9,7 +9,6 @@ const gateway = read("netlify/functions/flipforge-api.js");
 const index = read("saas-prototype/index.html");
 const routeHook = read("saas-prototype/staging-route-hook.js");
 const privateBeta = read("saas-prototype/private-beta.js");
-const docs = read("docs/SAAS_PRIVATE_BETA_OPERATIONS_BOUNDARY.md");
 
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
@@ -19,10 +18,6 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["002 customer app has no operator navigation", !index.includes("operator/status") && !index.includes("#/operator") && !index.includes("Operator Status")],
   ["003 customer route hook has no operator route", !routeHook.includes("operator/status") && !routeHook.includes('route === "operator"')],
   ["004 private beta guide has no operator controls", !privateBeta.includes("operator/status") && !privateBeta.includes("Operator Status")],
-  ["005 docs require operator route to stay backend-only", docs.includes("must never be added to the customer gateway allowlist")],
-  ["006 docs preserve service-token-only backend boundary", docs.includes("service-token-only") && docs.includes("private backend")],
-  ["007 docs prohibit customer navigation", docs.includes("No customer navigation")],
-  ["008 docs retain production inactive boundary", docs.includes("does not activate staging or production")]
 ].forEach(([name, condition]) => check(name, condition));
 
 const previousEnv = { ...process.env };

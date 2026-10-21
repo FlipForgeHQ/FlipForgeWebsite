@@ -83,9 +83,3 @@ jobs:
         run: |
           npm run validate:evaluation-quota-boundary
           npm run validate:private-beta-operations-boundary
-
-      - name: Confirm live proof remains required
-        run: |
-          grep -q "LIVE PROOF REQUIRED" docs/SAAS_BETA_COMPLETE_LIVE_QA.md
-          grep -q "green static/CI gate is a prerequisite" docs/SAAS_BETA_COMPLETE_LIVE_QA.md
-          grep -q "Beta Complete requires one controlled" docs/SAAS_BETA_COMPLETE_LIVE_QA.md

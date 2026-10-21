@@ -38,7 +38,7 @@ jobs:
         run: node scripts/validate-consumer-ux-refinement.mjs
       - name: Retain consumer navigation contract
         run: node scripts/validate-consumer-pro-navigation.mjs
-      - name: Retain CardSight customer identity contract
-        run: node scripts/validate-cardsight-customer-intelligence.mjs
+      - name: Retain data-provider customer identity contract
+        run: node scripts/validate-provider-customer-intelligence.mjs
       - name: Retain customer intelligence authority boundary
         run: npm run validate:customer-intelligence

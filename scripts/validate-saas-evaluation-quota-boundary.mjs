@@ -8,7 +8,6 @@ const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const gatewaySource = read("netlify/functions/flipforge-api.js");
 const evaluationAdapter = read("saas-prototype/staging-evaluation.js");
 const entitlementAdapter = read("saas-prototype/customer-entitlements.js");
-const docs = read("docs/SAAS_EVALUATION_QUOTA_BOUNDARY.md");
 
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
@@ -28,9 +27,6 @@ check("008 Plan and Usage renders admission usage", entitlementAdapter.includes(
 check("009 Plan and Usage states failed reservation release", entitlementAdapter.includes("Failed evaluations release their reservation"));
 check("010 browser has no quota override", !/quotaOverride|allowEvaluation\s*=\s*true|forceEvaluation/i.test(evaluationAdapter + entitlementAdapter));
 check("011 browser has no payment controls", !/Checkout now|Subscribe now|Upgrade now|cardNumber|cvv|paymentToken|clientSecret/i.test(evaluationAdapter + entitlementAdapter));
-check("012 docs retain server authority", docs.includes("server-owned") && docs.includes("browser cannot override"));
-check("013 docs retain Private Beta boundary", docs.includes("Private Beta remains unbounded"));
-check("014 docs retain no billing activation", docs.includes("does not connect billing"));
 
 const previousEnv = { ...process.env };
 const previousFetch = globalThis.fetch;

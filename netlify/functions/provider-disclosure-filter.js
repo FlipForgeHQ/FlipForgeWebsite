@@ -4,7 +4,7 @@
  * Gateway-side provider disclosure filter (rollback read isolation).
  *
  * Mirrors the backend SaaSCustomerDisclosureGuard (customer-disclosure-v1) and the gateway specification in
- * FlipForge2 docs/compliance/CARDSIGHT_ROLLBACK_READ_ISOLATION.md section 3. It runs on every backend JSON body
+ * the FlipForge2 compliance document on rollback read isolation (docs/compliance/), section 3. It runs on every backend JSON body
  * before the browser sees it, whichever backend build served it, so a backend rollback to a pre-containment build
  * cannot hand a customer an individual provider sale's price, date, link, title or row id, or the provider's name.
  *

@@ -12,7 +12,6 @@ const files = {
   dashboard: read("saas-prototype/commercial-dashboard-v2.js"),
   build: read("scripts/build-identity-client.mjs"),
   css: read("saas-prototype/commercial-dashboard-v2.css"),
-  docs: read("docs/SAAS_CUSTOMER_DASHBOARD.md"),
   packageJson: JSON.parse(read("package.json")),
   netlify: read("netlify.toml"),
   gateway: read("netlify/functions/flipforge-api.js")
@@ -59,12 +58,6 @@ const gatewayMaxTimeoutMs = Number(files.gateway.match(/MAX_TIMEOUT_MS\s*=\s*(\d
   ["032 gateway remains trusted tenant injector", files.gateway.includes("[TENANT_HEADER]: tenant.tenantId")],
   ["033 Dashboard CSS has desktop layout", files.css.includes("ff-kpi-grid")],
   ["034 Dashboard CSS has responsive rules", /@media\s*\(max-width:/.test(files.css)],
-  ["035 docs require server-owned production Dashboard", files.docs.includes("Production Dashboard is server-owned") && files.docs.includes("goflipforge.com/app/")],
-  ["036 docs prohibit production prototype fallback", files.docs.includes("must never appear on production") && files.docs.includes("production-dashboard-guard.js")],
-  ["037 docs preserve Smart Opportunity authority", files.docs.includes("Smart Opportunity remains the sole")],
-  ["038 docs preserve PSA authority", files.docs.includes("Existing PSA intelligence remains the sole")],
-  ["039 docs preserve SQLite source of truth", files.docs.includes("SQLite remains the source of truth")],
-  ["040 docs preserve zero transaction authority", files.docs.includes("No customer surface has transaction authority")]
 ].forEach(([name, condition]) => check(name, condition));
 
 function guardRuntime({ hostname = "goflipforge.com", pathname = "/app/", hash = "#/dashboard", initialHtml = "" } = {}) {

@@ -116,7 +116,7 @@ jobs:
         run: grep -Rqs 'Smart Opportunity' saas-prototype
 
   section-f-evidence-psa:
-    name: F1-F6 Evidence / CardSight / PSA
+    name: F1-F6 Evidence / Data provider / PSA
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262

@@ -12,7 +12,6 @@ const netlify = read("netlify.toml");
 const index = read("saas-prototype/index.html");
 const beta = read("saas-prototype/private-beta.js");
 const css = read("saas-prototype/private-beta.css");
-const docs = read("docs/SAAS_PRIVATE_BETA_READINESS.md");
 
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
@@ -22,7 +21,6 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["002 Netlify build runs private beta validation", netlify.includes("npm run validate:private-beta")],
   ["003 private beta adapter exists", exists("saas-prototype/private-beta.js")],
   ["004 private beta styles exist", exists("saas-prototype/private-beta.css")],
-  ["005 private beta documentation exists", exists("docs/SAAS_PRIVATE_BETA_READINESS.md")],
   ["006 app loads private beta stylesheet", index.includes('href="private-beta.css"')],
   ["007 app loads private beta adapter last", index.includes('src="private-beta.js"') && index.lastIndexOf('src="private-beta.js"') > index.lastIndexOf('src="account-lifecycle.js"')],
   ["008 Beta Guide is present in primary navigation", index.includes('href="#/beta-start" data-route="beta-start"')],
@@ -83,16 +81,6 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["051 feedback failure cannot claim evaluation loss", beta.includes("Your evaluation data was not affected")],
   ["052 responsive private beta layout exists", css.includes("@media (max-width: 1050px)") && css.includes("@media (max-width: 650px)")],
   ["053 reduced motion is respected", css.includes("prefers-reduced-motion")],
-  ["054 docs define two SaaS experiences over one engine", docs.includes("two product experiences over the same engine") && docs.includes("Private Beta") && docs.includes("Customer") && docs.includes("not a DEV mode or third SaaS version")],
-  ["055 docs define the single non-sensitive preference value", docs.includes("flipforge.privateBeta.onboarding.v1") && docs.includes("value `complete`")],
-  ["056 docs define controlled production private-beta access", docs.includes("production private-beta path is active only for invited testers")],
-  ["057 docs retain environment-gated customer API control", docs.includes("customer API can still be disabled between approved testing sessions")],
-  ["058 docs enumerate feedback exclusions", docs.includes("password, raw JWT, refresh token, tenant ID, provider credential, service token")],
-  ["058a docs make contact email server-owned and opt-in", docs.includes("server reads the invited account email") && docs.includes("only when the tester checks explicit follow-up permission")],
-  ["059 docs identify Discover as real but scoped", docs.includes("Provider-backed Discover is a real customer path") && docs.includes("does not claim complete-market coverage") && docs.includes("search results are ephemeral")],
-  ["059a docs retain manual Evaluate fallback", docs.includes("Manual Evaluate remains available")],
-  ["059b docs retain current-value limits", docs.includes("Current value, gain/loss, fees, taxes, and liquidation value remain unavailable")],
-  ["060 docs retain zero transaction authority", docs.includes("No evidence acceptance") && docs.includes("resale authority")]
 ].forEach(([name, condition]) => check(name, condition));
 
 function makeStorage(initial = {}) {

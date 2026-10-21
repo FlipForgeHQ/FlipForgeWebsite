@@ -1,6 +1,6 @@
 // Rollback read isolation: the website gateway never hands the browser an individual provider sale's price, date,
 // link, title or row id, or the provider's name, whichever backend build answers. Fixtures mirror the pre-containment
-// read paths listed in FlipForge2 docs/compliance/CARDSIGHT_ROLLBACK_READ_ISOLATION.md section 2.
+// read paths listed in the FlipForge2 compliance document on rollback read isolation (docs/compliance/), section 2.
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

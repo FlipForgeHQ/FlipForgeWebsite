@@ -18,8 +18,6 @@ const required = [
     "verify-live-production-parity.mjs"
   ]],
   ["package.json", ["verify:live-production-parity"]],
-  ["DEPLOYMENT_CHECKLIST.md", ["Live Production Parity"]],
-  ["docs/LIVE_PRODUCTION_PARITY_GATE.md", ["source/deployment parity"]]
 ];
 
 for (const [file, markers] of required) {

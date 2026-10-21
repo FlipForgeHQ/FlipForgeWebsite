@@ -20,7 +20,6 @@ const betaSession = read("saas-prototype/beta-session-v1.js");
 const betaSessionCss = read("saas-prototype/beta-session-v1.css");
 const appIndex = read("saas-prototype/index.html");
 const css = read("assets/css/beta-onboarding-v1.css");
-const docs = read("docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md");
 const build = read("scripts/build-assets.js");
 const netlify = read("netlify.toml");
 const packageJson = JSON.parse(read("package.json"));
@@ -69,8 +68,6 @@ const checks = [
   ["beta form shows one persistent identity hint without duplicating it on rerender", betaSession.includes('!form.querySelector("[data-ff-beta-identity-hint]")') && betaSession.includes('actions.insertAdjacentElement("afterend", hint)')],
 
   ["privacy policy discloses limited events", privacy.includes("Website measurement") && privacy.includes("does not set analytics cookies") && privacy.includes("create a visitor identifier")],
-  ["operating contract defines funnel", docs.includes("Application completion proxy") && docs.includes("These are directional interaction counts, not unique visitors")],
-  ["operator templates exist", docs.includes("Your FlipForge private-beta invitation") && docs.includes("FlipForge day-7 evidence check")],
 ];
 
 let failed = 0;

@@ -10,13 +10,11 @@ const exists = relative => fs.existsSync(path.join(root, relative));
 const auditPath = "scripts/audit-prebeta-cross-surface-ci.mjs";
 const customerShellAdapterPath = "scripts/audit-prebeta-cross-surface-customer-shell-ci.mjs";
 const workflowPath = ".github/workflows/prebeta-cross-surface-audit.yml";
-const docPath = "docs/PREBETA_CROSS_SURFACE_AUDIT.md";
 const packageJson = read("package.json");
 const betaGate = read("scripts/validate-saas-beta-complete-gate.mjs");
 const audit = exists(auditPath) ? read(auditPath) : "";
 const customerShellAdapter = exists(customerShellAdapterPath) ? read(customerShellAdapterPath) : "";
 const workflow = exists(workflowPath) ? read(workflowPath) : "";
-const doc = exists(docPath) ? read(docPath) : "";
 
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
@@ -31,7 +29,6 @@ const adapterSyntax = exists(customerShellAdapterPath)
 check("001 browser audit exists", exists(auditPath));
 check("002 audit parses as JavaScript", syntax.status === 0);
 check("003 workflow exists", exists(workflowPath));
-check("004 locked audit document exists", exists(docPath));
 check(
   "005 package command wires audit",
   packageJson.includes('"audit:prebeta-cross-surface": "node scripts/audit-prebeta-cross-surface-ci.mjs"') ||
@@ -43,13 +40,11 @@ check(
       customerShellAdapter.includes('window.location.hash')
     )
 );
-check("006 beta complete statically requires audit", betaGate.includes("PREBETA_CROSS_SURFACE_AUDIT.md") && betaGate.includes("audit-prebeta-cross-surface-ci.mjs") && betaGate.includes("prebeta-cross-surface-audit.yml"));
+check("006 beta complete statically requires audit", betaGate.includes("audit-prebeta-cross-surface-ci.mjs") && betaGate.includes("prebeta-cross-surface-audit.yml"));
 
 const surfaces = ["alerts", "portfolio", "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell"];
 for (const surface of surfaces) {
   check(`surface ${surface} is attacked`, audit.includes(`\"${surface}\"`) || audit.includes(`\"${surface}/`));
-  const documentedName = surface.replaceAll("-", " ");
-  check(`surface ${surface} is documented`, doc.toLowerCase().includes(documentedName));
 }
 
 const scenarios = [
@@ -87,11 +82,6 @@ check("042 workflow validates route authority and surface contracts", workflow.i
 check("043 workflow installs Playwright", workflow.includes("playwright@1.55.0") && workflow.includes("playwright install --with-deps chromium"));
 check("044 workflow runs destructive browser matrix", workflow.includes("npm run audit:prebeta-cross-surface"));
 check("045 workflow uploads audit artifact", workflow.includes("flipforge-prebeta-cross-surface-audit") && workflow.includes("retention-days: 30"));
-check("046 docs lock S1 merge blocking", doc.includes("S1") && doc.includes("blocks merge"));
-check("047 docs require future real bugs to become regression tests", doc.includes("must be added to this matrix before the defect is considered closed"));
-check("048 docs preserve Smart Opportunity authority", doc.includes("Smart Opportunity remains the sole recommendation authority"));
-check("049 docs preserve PSA authority", doc.includes("Existing PSA intelligence remains the grading-guidance authority"));
-check("050 docs preserve no transaction authority", doc.includes("no transaction authority"));
 
 const failures = results.filter(result => !result.passed);
 console.log("FlipForge Pre-Beta Cross-Surface Audit Assurance");

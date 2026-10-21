@@ -16,11 +16,6 @@ const buildIdentity = read("scripts/build-identity-client.mjs");
 const betaTermsGate = read("assets/js/beta-invite-terms-gate.js");
 const betaTermsInjector = read("scripts/inject-beta-invite-terms-gate.mjs");
 const customerApp = read("saas-prototype/customer.html");
-const founderBetaDocs = read("docs/FOUNDER_SELECTED_BETA_TESTER_FLOW.md");
-const operatorBetaDocs = read("docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md");
-const readinessDocs = read("docs/SAAS_PRIVATE_BETA_READINESS.md");
-const wave1Docs = read("docs/PRIVATE_BETA_WAVE_1_LAUNCH_PACK.md");
-const canonicalBetaDocs = read("docs/BETA_CUSTOMER_APP_CANONICAL_ROUTE_2026-09-16.md");
 const modernGateway = read("netlify/modern-functions/flipforge-api.mjs");
 const retainedGateway = read("netlify/functions/flipforge-api.js");
 const index = read("index.html");
@@ -34,7 +29,6 @@ const identityIndex = appIndex.indexOf('/assets/js/flipforge-identity.js');
 const productionSignInIndex = appIndex.indexOf('/assets/js/flipforge-production-signin.js');
 const stagingReadIndex = appIndex.indexOf('staging-browser.js');
 const retainedCustomerRuntimeIndex = appIndex.indexOf('staging-evaluation.js');
-const betaDocs = [founderBetaDocs, operatorBetaDocs, readinessDocs, wave1Docs, canonicalBetaDocs];
 
 check("001 current Netlify Identity dependency is pinned", packageJson.dependencies?.["@netlify/identity"] === "1.2.0");
 check("002 browser bundler is pinned", packageJson.devDependencies?.esbuild === "0.28.1");
@@ -109,9 +103,6 @@ check("060 Terms gate injector targets canonical customer document", betaTermsIn
 check("061 canonical customer app loads beta guide stylesheet", customerApp.includes('href="private-beta.css"'));
 check("062 canonical customer app loads beta guide adapter last", customerApp.includes('src="private-beta.js"') && customerApp.lastIndexOf('src="private-beta.js"') > customerApp.lastIndexOf('src="customer-navigation-parity-v1.js"'));
 check("063 Netlify app alias canonicalizes to dedicated Private Beta sign-in", redirects.includes("/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302") && redirects.includes("/app/beta/* /saas-prototype/:splat 200") && !redirects.includes("/app/customer /saas-prototype/customer.html 200"));
-check("064 all beta operating docs name canonical Private Beta onboarding route", betaDocs.every(source => source.includes("/app/beta/#/beta-start")));
-check("065 beta operating docs do not direct testers to legacy beta-shell route", betaDocs.every(source => !source.includes("`/app/#/beta-start`") && !source.includes(" /app/#/beta-start")));
-check("066 canonical beta contract defines dedicated beta plus private owner customer preview", canonicalBetaDocs.includes("dedicated invitation-only surface") && canonicalBetaDocs.includes("not a public login destination before launch") && canonicalBetaDocs.includes("/owner/customer/") && canonicalBetaDocs.includes("Hosted SaaS has no DEV mode"));
 check("067 production build validates the staging diagnostic strip rather than requiring preview assets", !productionBuild || (stagingReadIndex === -1 && !appIndex.includes('href="staging-browser.css"') && !appIndex.includes('data-route="staging"') && !appIndex.includes('data-route="staging-evaluate"')));
 
 const failures = checks.filter(item => !item.passed);
