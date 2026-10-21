@@ -228,7 +228,7 @@
     const cockpit = page?.querySelector(":scope > .cockpit-expansion");
     if (!page || !cockpit) return;
 
-    page.classList.add("cockpit-final-ux");
+    if (!page.classList.contains("cockpit-final-ux")) page.classList.add("cockpit-final-ux");
     cleanPreviewCopy(page, cockpit);
     collapseSelectedAnalysis(page);
     enhanceMarketChart(cockpit);

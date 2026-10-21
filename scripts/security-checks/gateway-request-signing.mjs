@@ -10,7 +10,7 @@ import crypto from "node:crypto";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const signing = require("../netlify/functions/request-signing.js");
+const signing = require("../../netlify/functions/request-signing.js");
 const failures = [];
 const passes = [];
 const check = (condition, message) => (condition ? passes : failures).push(message);
@@ -75,7 +75,7 @@ globalThis.fetch = async (url, init = {}) => {
 process.env.FLIPFORGE_API_BRIDGE_ENABLED = "true";
 process.env.FLIPFORGE_API_BASE_URL = "https://backend.invalid";
 process.env.FLIPFORGE_API_SERVICE_TOKEN = "service-token-for-validation-only-0000";
-const { handler: gateway } = require("../netlify/functions/flipforge-api.js");
+const { handler: gateway } = require("../../netlify/functions/flipforge-api.js");
 const user = { app_metadata: { flipforge: { access: "active", tenantId: "beta-signing-check" } } };
 const clientSigning = { "x-flipforge-timestamp": "1", "x-flipforge-nonce": "attacker-nonce-0000000001", "x-flipforge-signature": `v1=${"a".repeat(64)}` };
 const event = (method, path, { query = "", body = "", headers = {} } = {}) => ({
@@ -124,11 +124,11 @@ check(weak.statusCode === 503 && calls.length === 0, "a weak signing secret fail
 // Runtime-identity probe and seat-admission client.
 process.env.FLIPFORGE_API_SIGNING_SECRET = SECRET;
 calls.length = 0;
-const { default: modernGateway } = await import("../netlify/modern-functions/flipforge-api.mjs");
+const { default: modernGateway } = await import("../../netlify/modern-functions/flipforge-api.mjs");
 const identity = await modernGateway(new Request("https://goflipforge.com/api/v1/runtime-identity"), {});
 check(identity.status === 200 && calls.length === 1, `runtime-identity probe succeeds with signing on (${identity.status})`);
 if (calls[0]) verifyCall(calls[0], "runtime-identity GET /api/v1/health");
-const { createAdmissionClient } = await import("../netlify/modern-functions/lib/beta-admission-client.mjs");
+const { createAdmissionClient } = await import("../../netlify/modern-functions/lib/beta-admission-client.mjs");
 calls.length = 0;
 await createAdmissionClient().admit("beta-signing-check", "owner-hub:validator");
 check(calls.length === 1, "seat-admission client sent one request");
