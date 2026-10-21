@@ -26,6 +26,17 @@
     return String(node?.textContent || "").replace(/\s+/g, " ").trim();
   }
 
+  // text() returns decoded characters. Anything read back from the page is server data that the
+  // original renderer escaped, so it must be escaped again before it is placed in new markup.
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   function exactDecision(value) {
     const normalized = String(value || "").trim().toUpperCase();
     return Object.prototype.hasOwnProperty.call(DECISION_COPY, normalized) ? normalized : "";
@@ -243,17 +254,17 @@
     summary.className = "ff-evaluate-result-summary";
     summary.setAttribute("data-ff-evaluate-result-summary", "");
     const missingMarkup = missing && !/^none returned\.?$/i.test(missing)
-      ? `<div class="ff-evaluate-caution"><span>Still needed</span><strong>${missing}</strong></div>`
+      ? `<div class="ff-evaluate-caution"><span>Still needed</span><strong>${escapeHtml(missing)}</strong></div>`
       : "";
-    summary.innerHTML = `<div class="ff-evaluate-answer"><span>Decision</span><strong>${decision}</strong><p>${DECISION_COPY[decision]}</p></div>
+    summary.innerHTML = `<div class="ff-evaluate-answer"><span>Decision</span><strong>${escapeHtml(decision)}</strong><p>${escapeHtml(DECISION_COPY[decision])}</p></div>
       <div class="ff-evaluate-result-facts">
-        <div><span>Supported value</span><strong>${supported}</strong></div>
-        <div><span>All-in cost</span><strong>${allIn}</strong></div>
-        <div><span>Risk</span><strong>${risk.label}</strong><small>${risk.score ? `${risk.score} saved score` : "Saved score unavailable"}</small></div>
+        <div><span>Supported value</span><strong>${escapeHtml(supported)}</strong></div>
+        <div><span>All-in cost</span><strong>${escapeHtml(allIn)}</strong></div>
+        <div><span>Risk</span><strong>${escapeHtml(risk.label)}</strong><small>${escapeHtml(risk.score ? `${risk.score} saved score` : "Saved score unavailable")}</small></div>
       </div>
-      <div class="ff-evaluate-why"><span>Why</span><strong>${reason}</strong></div>
+      <div class="ff-evaluate-why"><span>Why</span><strong>${escapeHtml(reason)}</strong></div>
       ${missingMarkup}
-      <div class="ff-evaluate-next"><span>What to do next</span><strong>${next}</strong></div>`;
+      <div class="ff-evaluate-next"><span>What to do next</span><strong>${escapeHtml(next)}</strong></div>`;
     const body = panel.querySelector(".panel-body");
     if (body) body.insertAdjacentElement("afterbegin", summary);
     collapseEvaluationDetail(panel);
