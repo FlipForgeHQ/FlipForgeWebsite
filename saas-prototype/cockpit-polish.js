@@ -95,6 +95,20 @@
     setTimeout(reset, 220);
   }
 
+  function setText(element, value) {
+    if (element && element.textContent !== value) element.textContent = value;
+  }
+
+  let polishQueued = false;
+  function queuePolish() {
+    if (polishQueued) return;
+    polishQueued = true;
+    requestAnimationFrame(() => {
+      polishQueued = false;
+      applyPolish();
+    });
+  }
+
   function applyPolish() {
     if (activeRoute() !== "dashboard") return;
 
@@ -103,14 +117,13 @@
     const heading = cockpit?.querySelector(":scope > .cockpit-section-heading");
     if (!page || !cockpit || !heading) return;
 
-    page.classList.add("cockpit-polished");
+    // Write only when something differs: an unconditional write is itself a DOM mutation, which re-triggers the
+    // observer below and keeps the dashboard re-rendering in a loop.
+    if (!page.classList.contains("cockpit-polished")) page.classList.add("cockpit-polished");
 
-    const title = heading.querySelector("h2");
-    const description = heading.querySelector("p");
-    const chip = heading.querySelector(".cockpit-stage-chip");
-    if (title) title.textContent = "FlipForge Intelligence Cockpit";
-    if (description) description.textContent = "Discover, evaluate, validate, compare, track, and act from one evidence-first workspace.";
-    if (chip) chip.textContent = "Staging owner review";
+    setText(heading.querySelector("h2"), "FlipForge Intelligence Cockpit");
+    setText(heading.querySelector("p"), "Discover, evaluate, validate, compare, track, and act from one evidence-first workspace.");
+    setText(heading.querySelector(".cockpit-stage-chip"), "Staging owner review");
 
     if (!cockpit.querySelector(":scope > .cockpit-kpi-strip")) {
       heading.insertAdjacentHTML("afterend", kpiStrip());
@@ -119,14 +132,14 @@
     forceNavigationTop(page);
   }
 
-  const observer = new MutationObserver(() => requestAnimationFrame(applyPolish));
+  const observer = new MutationObserver(queuePolish);
   observer.observe(main, { childList: true, subtree: true });
 
   window.addEventListener("hashchange", () => {
     const page = main.querySelector(".page");
     if (page) delete page.dataset.cockpitNavReset;
-    requestAnimationFrame(applyPolish);
+    queuePolish();
   });
-  window.addEventListener("pageshow", () => requestAnimationFrame(applyPolish));
-  requestAnimationFrame(applyPolish);
+  window.addEventListener("pageshow", queuePolish);
+  queuePolish();
 })();

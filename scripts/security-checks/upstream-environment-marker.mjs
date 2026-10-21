@@ -14,7 +14,7 @@ globalThis.fetch = async url => {
 };
 globalThis.netlifyIdentityContext = { url: "https://identity.invalid/.netlify/identity" };
 
-const { default: gateway, upstreamEnvironment } = await import("../netlify/modern-functions/flipforge-api.mjs");
+const { default: gateway, upstreamEnvironment } = await import("../../netlify/modern-functions/flipforge-api.mjs");
 
 function setEnv({ bridge = "true", base = BASE, token = TOKEN, label } = {}) {
   process.env.FLIPFORGE_API_BRIDGE_ENABLED = bridge;

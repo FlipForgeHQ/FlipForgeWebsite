@@ -11,7 +11,7 @@ import {
   LOCAL_OVERRIDE_ENV,
   LOCAL_OVERRIDE_VALUE,
   privilegedFunctionAllowed,
-} from "../netlify/modern-functions/lib/production-deploy-guard.mjs";
+} from "../../netlify/modern-functions/lib/production-deploy-guard.mjs";
 
 const failures = [];
 const passes = [];
