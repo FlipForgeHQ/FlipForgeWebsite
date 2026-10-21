@@ -183,3 +183,13 @@
   .ff-directory-guide{grid-template-columns:1fr}
   .ff-directory-guide p{grid-column:auto}
 }
+/* Tester access badges: large, filled and plain-language so each tester's access is obvious at a glance. */
+.ff-access-badge{display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:100%;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:800;line-height:1.2;white-space:nowrap;border:1px solid transparent}
+.ff-access-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.ff-access-badge.has-access{background:rgba(110,214,160,.16);border-color:rgba(110,214,160,.55);color:#8ee0b8}
+.ff-access-badge.invited,.ff-access-badge.approved{background:rgba(212,175,55,.16);border-color:rgba(212,175,55,.6);color:#f0d27a}
+.ff-access-badge.review,.ff-access-badge.waitlisted{background:rgba(240,180,90,.12);border-color:rgba(240,180,90,.5);color:#f3c27a}
+.ff-access-badge.declined,.ff-access-badge.removed{background:rgba(240,140,150,.1);border-color:rgba(240,140,150,.45);color:#ffb4bb}
+.ff-access-badge.other{background:rgba(255,255,255,.06);border-color:#4a4d53;color:#d7dbe0}
+.ff-access-status{display:block;margin-top:5px;color:var(--op-muted);font-size:11px;letter-spacing:.03em}
+
