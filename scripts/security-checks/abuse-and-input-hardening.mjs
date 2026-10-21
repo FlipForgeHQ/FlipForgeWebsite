@@ -8,7 +8,7 @@ import {
   FEEDBACK_RATE_LIMIT,
   FEEDBACK_RATE_WINDOW_MS,
   createBetaFeedbackHandler,
-} from "../netlify/modern-functions/beta-feedback.mjs";
+} from "../../netlify/modern-functions/beta-feedback.mjs";
 
 const require = createRequire(import.meta.url);
 const failures = [];
@@ -56,7 +56,7 @@ currentUser = { app_metadata: tester("x").app_metadata };
 check((await submit()).status === 429, "a session without a user id or email cannot bypass the throttle");
 
 // Gateway correlation id.
-const { handler: gateway } = require("../netlify/functions/flipforge-api.js");
+const { handler: gateway } = require("../../netlify/functions/flipforge-api.js");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 async function healthCorrelation(value) {
   const result = await gateway({

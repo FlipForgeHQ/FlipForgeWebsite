@@ -117,6 +117,16 @@
     dashboard.dataset.ffPresentationNormalized = "true";
   }
 
+  // Values read back from rendered text are decoded; escape them again before building markup.
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   function safeExternalUrl(value) {
     try {
       const parsed = new URL(String(value || ""), window.location.href);
@@ -174,8 +184,8 @@
         <span class="ff-source-listing-icon" aria-hidden="true">↗</span>
         <span class="ff-source-listing-copy">
           <small>Original marketplace listing</small>
-          <strong>${marketplace}</strong>
-          <span>${hostname} · Direct source link</span>
+          <strong>${escapeHtml(marketplace)}</strong>
+          <span>${escapeHtml(hostname)} · Direct source link</span>
         </span>
         <span class="ff-source-listing-verified">SOURCE</span>`;
       actions.before(strip);
