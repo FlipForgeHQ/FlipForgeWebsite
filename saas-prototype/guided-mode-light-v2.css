@@ -1,0 +1,36 @@
+/* Guided Mode v2 — light theme (founder decision 2026-10-21): a white help card with gold accents that stands apart
+   from the dark workspace, with clear Minimize and Close controls at the top right. Loads after the v1 guide styles. */
+.ff-guide-panel{background:#fbfaf6;color:#0b0f16;border-color:rgba(184,134,11,.55);box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.ff-guide-head{border-bottom-color:rgba(11,15,22,.09)}
+.ff-guide-kicker{color:#8a6500}
+.ff-guide-head strong,.ff-guide-body h2{color:#0b0f16}
+.ff-guide-icon-button{border-color:rgba(11,15,22,.16);background:#fff;color:#3c4452}
+.ff-guide-icon-button:hover,.ff-guide-icon-button:focus-visible{color:#0b0f16;border-color:#b8860b}
+.ff-guide-location{border-color:rgba(11,15,22,.14);color:#4a5260}
+.ff-guide-body>p{color:#3f4754}
+.ff-guide-why{background:rgba(212,175,55,.14);border-left-color:#b8860b;color:#2b313b}
+.ff-guide-why strong{color:#0b0f16}
+.ff-guide-action.secondary{border-color:rgba(11,15,22,.18);background:#fff;color:#0b0f16}
+.ff-guide-action.secondary:hover,.ff-guide-action.secondary:focus-visible{border-color:#b8860b}
+.ff-guide-progress{border-bottom-color:rgba(11,15,22,.08)}
+.ff-guide-progress-top{color:#5a6270}
+.ff-guide-step-nav button{border-color:rgba(11,15,22,.12);background:#fff;color:#5a6270}
+.ff-guide-step-nav button span{background:rgba(11,15,22,.07)}
+.ff-guide-step-nav button[data-done="true"]{border-color:rgba(184,134,11,.45);color:#8a6500}
+.ff-guide-step-nav button[data-current="true"]{border-color:#b8860b;background:rgba(212,175,55,.16);color:#0b0f16}
+.ff-guide-step-nav button:hover,.ff-guide-step-nav button:focus-visible{border-color:#b8860b;color:#0b0f16}
+.ff-guide-route-nav{background:rgba(251,250,246,.97);border-top-color:rgba(11,15,22,.09)}
+.ff-guide-footer{border-top-color:rgba(11,15,22,.08);color:#5a6270}
+.ff-guide-footer button{color:#3c4452}
+.ff-guide-footer button:hover,.ff-guide-footer button:focus-visible{color:#8a6500}
+
+/* Header controls: Minimize (−) folds the guide into the corner launcher; Close (×) turns Guided Mode off. */
+.ff-guide-head-actions{display:flex;gap:6px;flex:none}
+.ff-guide-panel .ff-guide-icon-button{width:34px;height:34px;display:grid;place-items:center;padding:0;font-size:18px;line-height:1;font-weight:700}
+.ff-guide-panel .ff-guide-close{border-color:rgba(11,15,22,.28);color:#0b0f16}
+.ff-guide-panel .ff-guide-close:hover,.ff-guide-panel .ff-guide-close:focus-visible{background:#0b0f16;border-color:#0b0f16;color:#fff;outline:none}
+.ff-guide-panel .ff-guide-icon-button:focus-visible{box-shadow:0 0 0 3px rgba(212,175,55,.45)}
+
+/* Corner launcher matches the light card, so a minimized or closed guide is easy to bring back. */
+.ff-guide-launcher{background:#fbfaf6;color:#0b0f16;border-color:#b8860b}
+.ff-guide-launcher:hover,.ff-guide-launcher:focus-visible{border-color:#8a6500;box-shadow:0 0 0 3px rgba(212,175,55,.35),0 18px 54px rgba(0,0,0,.42)}
