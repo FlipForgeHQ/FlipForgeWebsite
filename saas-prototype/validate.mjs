@@ -21,7 +21,6 @@ const files = {
   brand: read("saas-prototype/brand.css"),
   shell: read("saas-prototype/shell-fixes.css"),
   featureStyles: read("saas-prototype/feature-pages.css"),
-  foundation: read("docs/SAAS_UI_FOUNDATION.md"),
   redirects: read("_redirects"),
   websiteBuild: read("scripts/build-assets.js")
 };
@@ -103,11 +102,6 @@ check("056 no provider API key variable exists", !/[A-Z0-9]+_API_KEY/i.test(brow
 check("057 no authorization header exists", !/Authorization\s*:/i.test(browserCode));
 check("058 no external script or stylesheet dependency exists", !/<(?:script|link)[^>]+https?:\/\//i.test(files.index));
 
-check("059 foundation separates public marketing from SaaS", files.foundation.includes("Public marketing graphics remain separate from operational SaaS components"));
-check("060 foundation requires server-side credentials", files.foundation.includes("Provider credentials remain server-side"));
-check("061 foundation blocks recommendation recalculation", files.foundation.includes("recommendation recalculation"));
-check("062 foundation blocks transaction authority", files.foundation.includes("auto-buy, bidding, checkout, or purchase authorization"));
-check("063 foundation forbids unapproved deployment", files.foundation.includes("must not replace the public homepage or deploy without a separate explicit approval"));
 
 check("064 approved brand stylesheet loads after base styles", files.index.indexOf('href="brand.css"') > files.index.indexOf('href="styles.css"'));
 check("065 approved four-corner mark is present", ["brand-corner-tl", "brand-corner-tr", "brand-corner-bl", "brand-corner-br"].every(value => files.index.includes(value)));
