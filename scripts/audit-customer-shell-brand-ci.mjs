@@ -210,7 +210,7 @@ for (const scenario of scenarios) {
 }
 
 /* Private Beta: prove the user sees two different jobs, not two "find card" buttons.
- * Browser-only fixture: no CardSight or live listing calls. */
+ * Browser-only fixture: no data-provider or live listing calls. */
 for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180 }, { width: 390, height: 844 }]) {
   const label = `Beta card entry ${viewport.width}x${viewport.height}`;
   const { context, page } = await open(viewport, false);

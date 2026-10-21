@@ -1,7 +1,5 @@
 import fs from "node:fs";
 
-const matrix = fs.readFileSync("docs/CUSTOMER_APP_AUDIT_COVERAGE.md", "utf8");
-const standard = fs.readFileSync("docs/CUSTOMER_APP_AUDIT_STANDARD.md", "utf8");
 const audit = fs.readFileSync("scripts/audit-customer-auth-recovery-ci.mjs", "utf8");
 
 const routePairs = [
@@ -24,20 +22,10 @@ const routePairs = [
 ];
 
 for (const [label, route] of routePairs) {
-  if (!matrix.includes(`| ${label} |`)) throw new Error(`Audit coverage matrix missing ${label}`);
   if (!audit.includes(`"${route}"`)) throw new Error(`Executable auth-recovery audit missing ${route}`);
 }
 
-if (matrix.includes("| Exit Review |")) throw new Error("Unsupported Exit Review returned to the governed customer coverage matrix");
-if (/^- Exit Review$/m.test(standard)) throw new Error("Unsupported Exit Review returned to governed route coverage");
-if (!standard.includes("Exit Review (`#/sell`) is intentionally unsupported")) throw new Error("Customer audit standard lost unsupported Exit Review boundary");
+// The coverage matrix and audit standard documents now live in the private repository (docs/website-internal/);
+// the executable audit coverage above is what this repository enforces.
 
-for (const requirement of ["Anonymous 401", "Authenticated", "Desktop", "Mobile", "Blank-state guard", "Route return", "Authority guard"]) {
-  if (!matrix.includes(requirement)) throw new Error(`Audit coverage dimension missing: ${requirement}`);
-}
-
-if (!standard.includes("A customer-facing capability is not considered ready merely because it renders")) {
-  throw new Error("Customer audit standard lost readiness principle");
-}
-
-console.log(`Customer audit coverage matrix validated for ${routePairs.length} routes.`);
+console.log(`Customer audit route coverage validated for ${routePairs.length} routes.`);

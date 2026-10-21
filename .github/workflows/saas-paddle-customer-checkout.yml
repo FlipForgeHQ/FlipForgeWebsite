@@ -43,7 +43,6 @@ jobs:
           set -euo pipefail
           gateway=netlify/functions/flipforge-api.js
           ui=saas-prototype/customer-entitlements.js
-          docs=docs/SAAS_PADDLE_CUSTOMER_CHECKOUT.md
 
           grep -q 'billing\\/paddle\\/checkout' "$gateway"
           ! grep -q 'billing\\/paddle\\/webhook' "$gateway"
@@ -55,6 +54,5 @@ jobs:
           grep -q 'paidAccessActivated === false' "$ui"
           grep -q 'webhookRequiredForPaidActivation === true' "$ui"
           grep -q 'transactionAuthority === false' "$ui"
-          grep -q 'Production billing' "$docs"
 
           ! grep -Eiq 'FLIPFORGE_PADDLE_(API_KEY|WEBHOOK_SECRET|COLLECTOR_MONTHLY_PRICE_ID|PRO_MONTHLY_PRICE_ID)|price_id|flipforge_billing_ref|cardNumber|cvv|bankAccount|paymentToken' "$ui"

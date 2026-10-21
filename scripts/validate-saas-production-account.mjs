@@ -12,7 +12,6 @@ const preview = read("saas-prototype/customer-entitlements.js");
 const routeHook = read("saas-prototype/staging-route-hook.js");
 const completion = read("saas-prototype/core-platform-completion-v1.js");
 const gateway = read("netlify/functions/flipforge-api.js");
-const plan = read("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md");
 
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
@@ -51,7 +50,6 @@ check("030 bridge retains preview adapter", bridge.includes("previewAdapter.rend
 check("031 preview adapter still retains checkout code", preview.includes('const CHECKOUT_PATH = "/api/v1/billing/paddle/checkout"'));
 check("032 preview adapter remains preview constrained", preview.includes("PREVIEW_HOST") && preview.includes("deploy-preview"));
 check("033 gateway still allowlists entitlement reads", /method:\s*"GET"[\s\S]{0,100}entitlements/.test(gateway));
-check("034 core plan still defers Paddle until Beta Complete", plan.includes("Paddle checkout") && plan.includes("deferred until"));
 check("035 production account introduces no transaction controls", !/Place bid|Buy now|Pay now|Accept offer|Create listing|Upgrade now/i.test(account));
 check("036 sidebar reports usage rather than mislabeling completed count as allowance", account.includes('row[0].textContent = "Evaluation usage"') && account.includes('`${admissionUsage} used · Unlimited beta`'));
 check("037 Plan & Usage card is pointer navigable", completion.includes('planCard.addEventListener("click"') && completion.includes('window.location.hash = "#/account"'));

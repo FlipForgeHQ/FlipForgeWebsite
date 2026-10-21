@@ -9,12 +9,10 @@ const exists = relative => fs.existsSync(path.join(root, relative));
 
 const auditPath = "scripts/audit-prebeta-saved-decision-lifecycle-ci.mjs";
 const workflowPath = ".github/workflows/prebeta-saved-decision-lifecycle-audit.yml";
-const docsPath = "docs/PREBETA_SAVED_DECISION_LIFECYCLE_AUDIT.md";
 const packagePath = "package.json";
 
 const audit = exists(auditPath) ? read(auditPath) : "";
 const workflow = exists(workflowPath) ? read(workflowPath) : "";
-const docs = exists(docsPath) ? read(docsPath) : "";
 const packageJson = exists(packagePath) ? JSON.parse(read(packagePath)) : {};
 
 const requiredScenarios = [
@@ -35,7 +33,6 @@ const requiredScenarios = [
 
 const checks = [
   ["saved-decision lifecycle browser audit exists", exists(auditPath)],
-  ["saved-decision lifecycle audit documentation exists", exists(docsPath)],
   ["saved-decision lifecycle CI workflow exists", exists(workflowPath)],
   ["package exposes saved-decision lifecycle audit command", packageJson?.scripts?.["audit:prebeta-saved-decision-lifecycle"] === "node scripts/audit-prebeta-saved-decision-lifecycle-ci.mjs"],
   ["all locked lifecycle scenarios remain in the browser audit", requiredScenarios.every(name => audit.includes(name))],
@@ -47,8 +44,6 @@ const checks = [
   ["workflow validates lifecycle and export contracts before browser attacks", workflow.includes("npm run validate:customer-lifecycle") && workflow.includes("npm run validate:customer-export")],
   ["workflow runs saved-decision lifecycle browser matrix", workflow.includes("npm run audit:prebeta-saved-decision-lifecycle")],
   ["workflow uploads saved-decision lifecycle artifact", workflow.includes("flipforge-prebeta-saved-decision-lifecycle-audit") && workflow.includes("retention-days: 30")],
-  ["documentation makes S1 lifecycle-state failures release-blocking", docs.includes("S1 failures block merge/release") && docs.includes("navigation-race")],
-  ["documentation preserves Smart Opportunity and zero transaction authority", docs.includes("Smart Opportunity remains the recommendation authority") && docs.includes("No lifecycle or export path gains transaction authority")]
 ];
 
 let failures = 0;

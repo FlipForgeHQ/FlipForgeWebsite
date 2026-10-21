@@ -15,8 +15,6 @@ const css = read("saas-prototype/customer-compare.css");
 const hook = read("saas-prototype/staging-route-hook.js");
 const guard = read("saas-prototype/route-guard.js");
 const beta = read("saas-prototype/private-beta.js");
-const betaDocs = read("docs/SAAS_PRIVATE_BETA_READINESS.md");
-const docs = read("docs/SAAS_CUSTOMER_COMPARE.md");
 const gateway = read("netlify/functions/flipforge-api.js");
 const readAdapter = read("saas-prototype/staging-browser.js");
 
@@ -28,7 +26,6 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["002 Netlify build runs customer Compare validation", netlify.includes("npm run validate:customer-compare")],
   ["003 customer Compare adapter exists", exists("saas-prototype/customer-compare.js")],
   ["004 customer Compare styles exist", exists("saas-prototype/customer-compare.css")],
-  ["005 customer Compare documentation exists", exists("docs/SAAS_CUSTOMER_COMPARE.md")],
   ["006 app loads customer Compare stylesheet", index.includes('href="customer-compare.css"')],
   ["007 app loads customer Compare adapter before route hook", index.indexOf('src="customer-compare.js"') > index.indexOf('src="staging-evaluation.js"') && index.indexOf('src="customer-compare.js"') < index.indexOf('src="staging-route-hook.js"')],
   ["008 deploy-preview route hook replaces mock Compare", hook.includes('route === "compare"') && hook.includes("compareAdapter.render(main")],
@@ -72,11 +69,6 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["046 gateway already allowlists Compare", gateway.includes('pattern: /^\\/api\\/v1\\/compare$/')],
   ["047 private Beta guide now includes Compare", beta.includes("Compare two saved decisions") && beta.includes("Traceback → Compare → Track")],
   ["048 Compare remains a real route in the current customer loop", beta.includes("Discover → Evaluate → Intelligence → Traceback → Compare → Track") && beta.includes("Evidence Center → PSA Advisor → Exit Review") && beta.includes("Provider may be unavailable") && !beta.includes("Dashboard, Discover, Compare, Portfolio")],
-  ["049 private Beta docs mark Compare server-backed", betaDocs.includes("Decision Traceback, Compare, Evidence Center") && !betaDocs.includes("Dashboard, Discover, Compare, Portfolio")],
-  ["050 Compare docs prohibit another engine", docs.includes("does not create another recommendation engine")],
-  ["051 Compare docs retain SQLite authority", docs.includes("SQLite remains the source of truth")],
-  ["052 Compare docs retain no-winner boundary", docs.includes("does not rerank, rescore, select a winner")],
-  ["053 Compare docs retain production-disabled boundary", docs.includes("Production remains disabled")],
   ["054 responsive comparison layout exists", css.includes("@media (max-width: 900px)") && css.includes("@media (max-width: 680px)")],
   ["055 reduced motion is respected", css.includes("prefers-reduced-motion")]
 ].forEach(([name, condition]) => check(name, condition));

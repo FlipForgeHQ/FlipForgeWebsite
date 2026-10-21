@@ -14,7 +14,6 @@ const authPage = read("staging-auth.html");
 const appIndex = read("saas-prototype/index.html");
 const account = read("saas-prototype/account-lifecycle.js");
 const accountCss = read("saas-prototype/account-lifecycle.css");
-const documentation = read("docs/SAAS_CUSTOMER_ACCOUNT_LIFECYCLE.md");
 
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
@@ -23,7 +22,6 @@ check("001 account lifecycle validator is registered", packageJson.scripts?.["va
 check("002 Netlify build runs account lifecycle validation", netlify.includes("npm run validate:account-lifecycle"));
 check("003 account lifecycle adapter exists", exists("saas-prototype/account-lifecycle.js"));
 check("004 account lifecycle styles exist", exists("saas-prototype/account-lifecycle.css"));
-check("005 account lifecycle documentation exists", exists("docs/SAAS_CUSTOMER_ACCOUNT_LIFECYCLE.md"));
 check("006 Identity client imports password recovery", identity.includes("requestPasswordRecovery"));
 check("007 Identity client imports self-service user updates", identity.includes("updateUser"));
 check("008 public signup remains absent", !identity.includes("signup("));
@@ -58,11 +56,6 @@ check("036 isolated probe uses generic recovery response", probe.includes("If th
 check("037 app loads account lifecycle stylesheet", appIndex.includes('href="account-lifecycle.css"'));
 check("038 app loads account lifecycle adapter", appIndex.includes('src="account-lifecycle.js"'));
 check("039 account styles include responsive layout", accountCss.includes("@media(max-width:980px)"));
-check("040 docs retain Smart Opportunity authority", documentation.includes("Smart Opportunity"));
-check("041 docs retain existing PSA authority", documentation.includes("Existing PSA intelligence"));
-check("042 docs prohibit public signup", documentation.includes("Public signup remains disabled"));
-check("043 docs prohibit billing activation", documentation.includes("Billing and paid entitlement authority remain unavailable"));
-check("044 docs prohibit production activation", documentation.includes("Production customer activation remains unavailable"));
 check("045 no customer credential field was added", !/API key|service token input|provider password/i.test(account));
 
 const failures = checks.filter(item => !item.passed);

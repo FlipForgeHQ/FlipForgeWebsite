@@ -46,12 +46,9 @@ jobs:
           set -euo pipefail
           adapter=saas-prototype/customer-entitlements.js
           router=saas-prototype/staging-route-hook.js
-          docs=docs/SAAS_CUSTOMER_SUBSCRIPTION_ENTITLEMENTS.md
 
           grep -q '/api/v1/entitlements' "$adapter"
           grep -q 'route === "account"' "$router"
-          grep -q 'billing is not connected' "$docs"
-          grep -q 'read-only' "$docs"
 
           ! grep -Eiq 'method:[[:space:]].*(POST|PUT|PATCH|DELETE)' "$adapter"
           ! grep -Eiq 'X-FlipForge-Tenant-Id|X-FlipForge-User-Id|cardNumber|cvv|paymentToken|clientSecret|Checkout now|Subscribe now|Upgrade now' "$adapter"

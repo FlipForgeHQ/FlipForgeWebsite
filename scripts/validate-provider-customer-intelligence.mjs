@@ -12,8 +12,8 @@ check(source.includes("/api/v1/card-intelligence/search"), "Card Finder uses Fli
 check(source.includes("/api/v1/card-intelligence/detect"), "photo preflight uses FlipForge detect route");
 check(source.includes("/api/v1/card-intelligence/identify"), "photo identification uses FlipForge identify route");
 check(source.includes("/api/v1/card-intelligence/resolve"), "identity resolution uses FlipForge resolve route");
-check(!source.includes("https://api.cardsight.ai"), "browser never calls CardSight directly");
-check(!source.includes("X-API-Key"), "browser contains no CardSight API-key header");
+check(!source.includes("https://api.cardsight.ai"), "browser never calls the data provider directly");
+check(!source.includes("X-API-Key"), "browser contains no data-provider API-key header");
 check(source.includes("MAX_IMAGE_BYTES = 4_000_000"), "browser enforces four-megabyte image cap");
 check(source.includes("image/jpeg") && source.includes("image/png") && source.includes("image/webp"),
   "browser limits photos to JPEG PNG and WebP");
@@ -50,5 +50,5 @@ check(gateway.includes("CARD_INTELLIGENCE_IMAGE_REQUEST_BYTES = 5_750_000"), "ga
 check(gateway.includes("cardIntelligenceImagePath(path)"), "larger request allowance is limited to photo routes");
 
 const failed = results.filter(value => !value).length;
-console.log(`CardSight customer-intelligence static assurance: ${results.length - failed} passed, ${failed} failed.`);
+console.log(`Data-provider customer-intelligence static assurance: ${results.length - failed} passed, ${failed} failed.`);
 if (failed) process.exit(1);

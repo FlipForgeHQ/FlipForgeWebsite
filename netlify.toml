@@ -179,7 +179,7 @@
 # exposing environment secrets. The Paddle client-side token is injected only at build
 # time; server API keys and webhook secrets remain outside browser assets. The SaaS API
 # bridge remains environment-gated and disabled until separately authorized. Customer-
-# facing CardSight evidence, Price Intelligence, and Market View contracts must pass
+# facing data-provider evidence, Price Intelligence, and Market View contracts must pass
 # their static safety gates before production publishing can complete. Homepage CSP and
 # isolation headers are intentionally scoped to / and /index.html so customer app routes
 # keep their existing Identity, Paddle, and API integration policies unchanged. Sitewide

@@ -46,7 +46,6 @@ jobs:
           gateway=netlify/functions/flipforge-api.js
           evaluation=saas-prototype/staging-evaluation.js
           entitlements=saas-prototype/customer-entitlements.js
-          docs=docs/SAAS_EVALUATION_QUOTA_BOUNDARY.md
 
           grep -q 'EVALUATION_LIMIT_REACHED' "$gateway"
           grep -q 'ENTITLEMENT_ACCESS_DENIED' "$gateway"
@@ -55,6 +54,5 @@ jobs:
           grep -q 'No new evaluation was created for this listing and nothing was saved.' "$evaluation"
           grep -q 'inProgressReservations' "$entitlements"
           grep -q 'admissionUsage' "$entitlements"
-          grep -q 'browser cannot override' "$docs"
 
           ! grep -Eiq 'quotaOverride|forceEvaluation|allowEvaluation[[:space:]]*=[[:space:]]*true|Checkout now|Subscribe now|Upgrade now|cardNumber|cvv|paymentToken|clientSecret' "$evaluation" "$entitlements"

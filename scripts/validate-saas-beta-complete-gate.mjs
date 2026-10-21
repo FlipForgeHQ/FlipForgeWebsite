@@ -6,8 +6,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const exists = relative => fs.existsSync(path.join(root, relative));
 
-const plan = read("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md");
-const liveQa = read("docs/SAAS_BETA_COMPLETE_LIVE_QA.md");
 const index = read("saas-prototype/index.html");
 const discovery = read("saas-prototype/customer-discovery.js");
 const discoverEmphasis = read("saas-prototype/discover-card-entry-emphasis-v1.js");
@@ -33,16 +31,6 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
 const before = (left, right) => index.indexOf(left) >= 0 && index.indexOf(left) < index.indexOf(right);
 const coreAdapters = [discovery, evaluation, opportunities, compare, lifecycle, management, portfolio, exportAdapter, account];
 
-check("001 locked completion plan exists", exists("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md") && plan.includes("LOCKED PRODUCT PRIORITY"));
-check("002 live Beta Complete QA checklist exists", exists("docs/SAAS_BETA_COMPLETE_LIVE_QA.md") && liveQa.includes("LIVE PROOF REQUIRED"));
-check("003 live QA explicitly says CI alone is insufficient", liveQa.includes("green static/CI gate is a prerequisite") && liveQa.includes("Beta Complete requires one controlled"));
-check("004 live QA requires signed-in production session", liveQa.includes("signed-in production customer session") && liveQa.includes("goflipforge.com/app/"));
-check("005 live QA contains all ten numbered workflow steps", Array.from({ length: 10 }, (_, index) => `## ${index + 1}.`).every(marker => liveQa.includes(marker)));
-check("006 final decision requires exact main commit CI", liveQa.includes("exact `main` commit") && liveQa.includes("SaaS Beta Complete Gate"));
-check("007 final decision requires production deploy", liveQa.includes("Netlify production deploy") && liveQa.includes("successful"));
-check("008 final decision blocks severe workflow defects", liveQa.includes("Severity 1") && liveQa.includes("Severity 2"));
-check("009 billing remains deferred in locked plan", plan.includes("paid-billing launch work") && plan.includes("deferred until"));
-check("010 live QA keeps billing out of scope", liveQa.includes("Paid checkout and customer portal activation are out of scope"));
 
 check("011 Discover customer adapter loads before route hook", before('src="customer-discovery.js"', 'src="staging-route-hook.js"'));
 check("012 Evaluate adapter loads before route hook", before('src="staging-evaluation.js"', 'src="staging-route-hook.js"'));
@@ -93,12 +81,10 @@ check("052 discovery has responsive breakpoints", discoveryCss.includes("@media 
 check("053 lifecycle has responsive behavior", lifecycleCss.includes("@media") && lifecycleCss.includes("max-width"));
 check("054 customer intelligence respects reduced motion", customerCss.includes("prefers-reduced-motion"));
 check("055 discovery respects reduced motion", discoveryCss.includes("prefers-reduced-motion"));
-check("056 live QA includes desktop tablet mobile", ["desktop viewport", "tablet viewport", "mobile viewport"].every(value => liveQa.includes(value)));
 
 check("057 static core-production validator exists", exists("scripts/validate-saas-core-production-loop.mjs"));
 check("058 explainability validator exists", exists("scripts/validate-saas-customer-explainability.mjs"));
 check("059 production account validator exists", exists("scripts/validate-saas-production-account.mjs"));
-check("060 live QA protects secret handling", ["service tokens", "provider credentials", "raw JWTs", "tenant IDs"].every(value => liveQa.includes(value)));
 
 check("061 Discover exact-card action is unmistakable", discoverEmphasis.includes('searchButton.textContent = "Search active listings"') && discoverEmphasis.includes('identifyButton.textContent = "Find exact card"') && discoverEmphasis.includes("function promoteSearchPanel(main)") && discoverEmphasis.includes("keepSearchStationaryBelowHeading(heading, identity, search)"));
 // The search panel must never be moved: moving a focused input drops keyboard focus and loses typed text.
@@ -116,7 +102,6 @@ check("071 visual QA executes imperfect-identity resolution gate", fullSiteVisua
 
 check("072 destructive cross-surface browser audit exists", exists("scripts/audit-prebeta-cross-surface-ci.mjs"));
 check("073 destructive cross-surface audit workflow exists", exists(".github/workflows/prebeta-cross-surface-audit.yml"));
-check("074 destructive cross-surface audit policy exists", exists("docs/PREBETA_CROSS_SURFACE_AUDIT.md"));
 check("075 destructive cross-surface assurance exists", exists("scripts/validate-prebeta-cross-surface-audit.mjs"));
 check("076 destructive cross-surface audit covers all remaining customer surfaces", ["alerts", "portfolio", "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell"].every(route => read("scripts/audit-prebeta-cross-surface-ci.mjs").includes(`\"${route}`)));
 

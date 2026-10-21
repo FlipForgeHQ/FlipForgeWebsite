@@ -17,7 +17,6 @@ const files = {
   netlify: read("netlify.toml"),
   redirects: read("_redirects"),
   contract: read("contracts/flipforge-saas-api-v1.schema.json"),
-  docs: read("docs/SAAS_API_BRIDGE.md"),
   prototypeIndex: read("saas-prototype/index.html"),
   prototypeApp: read("saas-prototype/app.js"),
   prototypeData: read("saas-prototype/mock-data.js")
@@ -69,9 +68,6 @@ check("028 schema requires authority provenance", requiredMeta.includes("authori
 check("029 schema requires generated timestamp and correlation ID", requiredMeta.includes("generatedAt") && requiredMeta.includes("correlationId"));
 check("030 schema fixes Smart Opportunity as recommendation authority", contract.properties?.meta?.properties?.authority?.const === "Smart Opportunity");
 check("031 schema fixes existing PSA intelligence as grading authority", contract.properties?.meta?.properties?.gradingAuthority?.const === "Existing PSA intelligence");
-check("032 documentation states the gateway is not the recommendation engine", files.docs.includes("The gateway is not the recommendation engine"));
-check("033 documentation forbids direct desktop SQLite access", files.docs.includes("must not open a desktop SQLite file directly"));
-check("034 documentation requires separate production approval", files.docs.includes("separate owner approval before any production activation"));
 check("035 live prototype remains explicitly mock-backed", files.prototypeData.includes("Local mock responses shaped like future read-only API contracts"));
 check("036 browser application still contains no direct fetch call", !/\bfetch\s*\(/.test(`${files.prototypeIndex}\n${files.prototypeApp}\n${files.prototypeData}`));
 check("037 no service token identifier exists in browser files", !/FLIPFORGE_API_SERVICE_TOKEN/.test(`${files.prototypeIndex}\n${files.prototypeApp}\n${files.prototypeData}`));

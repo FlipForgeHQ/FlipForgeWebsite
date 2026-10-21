@@ -9,12 +9,10 @@ const exists = relative => fs.existsSync(path.join(root, relative));
 
 const auditPath = "scripts/audit-prebeta-customer-state-ci.mjs";
 const workflowPath = ".github/workflows/prebeta-customer-state-audit.yml";
-const docsPath = "docs/PREBETA_CUSTOMER_STATE_AUDIT.md";
 const packagePath = "package.json";
 
 const audit = exists(auditPath) ? read(auditPath) : "";
 const workflow = exists(workflowPath) ? read(workflowPath) : "";
-const docs = exists(docsPath) ? read(docsPath) : "";
 const packageJson = exists(packagePath) ? JSON.parse(read(packagePath)) : {};
 
 const requiredScenarios = [
@@ -35,7 +33,6 @@ const requiredScenarios = [
 
 const checks = [
   ["destructive browser audit exists", exists(auditPath)],
-  ["audit documentation exists", exists(docsPath)],
   ["dedicated CI workflow exists", exists(workflowPath)],
   ["package exposes audit command", packageJson?.scripts?.["audit:prebeta-customer-state"] === "node scripts/audit-prebeta-customer-state-ci.mjs"],
   ["all locked destructive scenarios remain in the browser audit", requiredScenarios.every(name => audit.includes(name))],
@@ -45,8 +42,6 @@ const checks = [
   ["workflow runs deterministic Discover validation first", workflow.includes("npm run validate:customer-discovery")],
   ["workflow runs destructive browser matrix", workflow.includes("npm run audit:prebeta-customer-state")],
   ["workflow uploads the audit artifact", workflow.includes("flipforge-prebeta-customer-state-audit") && workflow.includes("retention-days: 30")],
-  ["documentation defines blocking severity", docs.includes("Any S1 failure blocks merge/release") && docs.includes("Any reproducible S2 workflow failure blocks beta expansion")],
-  ["documentation requires regression capture for real bugs", docs.includes("add the exact reproduction sequence to this matrix before closing the defect")]
 ];
 
 let failures = 0;
