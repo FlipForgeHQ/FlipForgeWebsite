@@ -22,7 +22,7 @@
     const visualLayer = page?.querySelector(":scope > .visual-intelligence-layer");
     if (!page || !heading || !cockpit || !visualLayer) return;
 
-    page.classList.add("dashboard-cockpit-primary");
+    if (!page.classList.contains("dashboard-cockpit-primary")) page.classList.add("dashboard-cockpit-primary");
 
     // Make the complete cockpit the dashboard rather than an appendix.
     if (heading.nextElementSibling !== cockpit) heading.after(cockpit);
@@ -50,8 +50,9 @@
         child.classList.contains("dashboard-grid") ||
         child.classList.contains("boundary-note")
       ) {
-        child.classList.add("cockpit-legacy-dashboard-block");
-        child.setAttribute("aria-hidden", "true");
+        // Only write when needed: repeated writes are DOM mutations that re-trigger the observer below.
+        if (!child.classList.contains("cockpit-legacy-dashboard-block")) child.classList.add("cockpit-legacy-dashboard-block");
+        if (child.getAttribute("aria-hidden") !== "true") child.setAttribute("aria-hidden", "true");
       }
     });
 

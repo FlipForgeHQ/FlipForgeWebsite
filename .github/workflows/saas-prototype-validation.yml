@@ -38,6 +38,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
     name: Validate isolated SaaS prototype
@@ -162,18 +166,9 @@ jobs:
           console.log(`Verified App Preview and Card Decision Intelligence across ${htmlFiles.length} website pages.`);
           NODE
           node scripts/validate-netlify-rule-budget.mjs
-          grep -q '^/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302
-          ! grep -q '^/api/ebay/privacy ' _redirects
-          ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
- _redirects
-          grep -q '^/app/beta/\* /saas-prototype/:splat 200
-          ! grep -q '^/api/ebay/privacy ' _redirects
-          ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
- _redirects
-          grep -q '^/app/\* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302
-          ! grep -q '^/api/ebay/privacy ' _redirects
-          ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
- _redirects
+          grep -q '^/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302$' _redirects
+          grep -q '^/app/beta/\* /saas-prototype/:splat 200$' _redirects
+          grep -q '^/app/\* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302$' _redirects
           ! grep -q '^/app/customer' _redirects
           ! grep -q '^/api/ebay/privacy ' _redirects
           ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
