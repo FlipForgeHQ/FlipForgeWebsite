@@ -38,6 +38,31 @@ async function parseBody(request) {
   return JSON.parse(raw || "{}");
 }
 
+// The plan's two platform rate-limit rules are reserved for public intake, so feedback throttles itself per
+// signed-in tester: at most FEEDBACK_RATE_LIMIT submissions per FEEDBACK_RATE_WINDOW_MS. The counter is keyed by a
+// SHA-256 of the Identity user id (or email) under rate/, outside the feedback/ prefix the Owner Hub lists.
+export const FEEDBACK_RATE_LIMIT = 10;
+export const FEEDBACK_RATE_WINDOW_MS = 600_000;
+
+async function sha256(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function overFeedbackLimit(store, user, now) {
+  const userId = String(user?.id || user?.sub || "").trim();
+  const email = String(user?.email || "").trim().toLowerCase();
+  const subject = userId ? `id:${userId}` : email ? `email:${email}` : "";
+  if (!subject) return true;
+  const key = `rate/${await sha256(`beta-feedback:${subject}`)}.json`;
+  const current = await store.get(key, { type: "json" }).catch(() => null);
+  const start = Number(current?.windowStart || 0);
+  const fresh = !start || now.getTime() - start >= FEEDBACK_RATE_WINDOW_MS || now.getTime() < start;
+  const count = fresh ? 1 : Number(current?.count || 0) + 1;
+  await store.setJSON(key, { windowStart: fresh ? now.getTime() : start, count }).catch(() => {});
+  return count > FEEDBACK_RATE_LIMIT;
+}
+
 export function createBetaFeedbackHandler({ store, getUserFn = getUser, now = () => new Date() } = {}) {
   return async function betaFeedback(request) {
     if (request.method !== "POST") return reply(405, { accepted: false, reason: "METHOD_NOT_ALLOWED" });
@@ -65,11 +90,15 @@ export function createBetaFeedbackHandler({ store, getUserFn = getUser, now = ()
       });
     }
 
+    const targetStore = store || betaRuntimeStore(FEEDBACK_STORE_NAME, request);
+    if (await overFeedbackLimit(targetStore, user, now())) {
+      return reply(429, { accepted: false, reason: "RATE_LIMITED" });
+    }
+
     const feedback = learningValidation.signals
       ? { ...validation.feedback, learning: learningValidation.signals }
       : validation.feedback;
     const record = createFeedback(feedback, now());
-    const targetStore = store || betaRuntimeStore(FEEDBACK_STORE_NAME, request);
     await targetStore.setJSON(feedbackKey(record.id), record, {
       metadata: {
         schemaVersion: record.schemaVersion,
