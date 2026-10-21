@@ -7,6 +7,7 @@ import {
   normalizeEmail,
   operatorRoles,
 } from "./lib/beta-operations-core.mjs";
+import { productionOnly } from "./lib/production-deploy-guard.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 
 export const BETA_TERMS_VERSION = "2026-08-15";
@@ -250,7 +251,7 @@ export function createBetaTermsAcceptanceHandler({
   };
 }
 
-export default createBetaTermsAcceptanceHandler();
+export default productionOnly(createBetaTermsAcceptanceHandler());
 
 export const config = {
   path: "/api/beta/terms-acceptance",
