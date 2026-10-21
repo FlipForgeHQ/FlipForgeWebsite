@@ -6,6 +6,10 @@ import {
   requestPasswordRecovery
 } from "@netlify/identity";
 import { AUTH_FLOWS, friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
+import { watchPasswordInputs } from "./password-visibility.mjs";
+
+// Show/hide button on every password field (display only; fields return to hidden on submit).
+watchPasswordInputs();
 
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const PRODUCTION_APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;

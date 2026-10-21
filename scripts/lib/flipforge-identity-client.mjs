@@ -10,6 +10,10 @@ import {
   updateUser
 } from "@netlify/identity";
 import { AUTH_FLOWS, friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
+import { watchPasswordInputs } from "./password-visibility.mjs";
+
+// Show/hide button on every password field (display only; fields return to hidden on submit).
+watchPasswordInputs();
 
 const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
 const PRODUCTION_SITE_HOST = /^(?:www\.)?goflipforge\.com$/i;
