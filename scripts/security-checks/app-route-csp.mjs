@@ -94,7 +94,7 @@ for (const file of runtimeSources) {
 }
 
 // Function-rendered Bulk Evaluate page.
-const { handler: bulkEvaluate } = require("../netlify/modern-functions/bulk-evaluate.js");
+const { handler: bulkEvaluate } = require("../../netlify/modern-functions/bulk-evaluate.js");
 const page = await bulkEvaluate({ httpMethod: "GET" });
 const pagePolicy = directives(String(page.headers?.["Content-Security-Policy"] || ""));
 const pageScript = pagePolicy.get("script-src") || [];
