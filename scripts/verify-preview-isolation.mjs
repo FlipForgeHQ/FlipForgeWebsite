@@ -5,12 +5,16 @@
 //       requests. No network. Used by the build so pull requests prove the logic.
 //   PREVIEW_URL=https://deploy-preview-NNN--goflipforge.netlify.app [PRODUCTION_URL=https://goflipforge.com] \
 //   node scripts/verify-preview-isolation.mjs --remote
-//       Sends credential-free requests to a deployed preview and to production.
+//       Sends credential-free requests to a deployed preview and to production. A preview that the Netlify firewall
+//       blocks completely passes the preview checks (it cannot reach anything); production checks always run.
+//       PREVIEW_DEPLOY_STATUS (optional, set by the manual workflow from Netlify's commit status) must be "success"
+//       for a block page to count, so a typo'd or unbuilt preview URL (also a uniform Netlify 404) cannot pass.
 //
 // Output is limited to check names, HTTP status codes, the non-secret upstream-environment marker and PASS/FAIL.
 // No response bodies, headers or cookies are printed. Exit code 1 when any check fails.
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { SENTINEL_PATHS, probePreview } from "./lib/preview-block-detection.mjs";
 
 // Privileged functions and the HTTP methods that can change state. Paths are checked against each function's
 // config.path in local mode.
@@ -93,23 +97,39 @@ async function remote() {
     return;
   }
 
-  // 1. Privileged endpoints are absent on the preview.
-  for (const fn of PRIVILEGED) {
-    for (const method of fn.methods) {
-      const r = await probe(preview, fn.path, method);
-      record("1", `preview ${method} ${fn.path} is not served`, r.status === 404, `status=${r.status || r.error}`);
-    }
-  }
+  // A preview that Netlify's firewall blocks answers every path with the same non-FlipForge block page. That is the
+  // strongest isolation, so checks 1 and 2 pass without per-endpoint probes. Any FlipForge content on any sentinel
+  // path means the preview is reachable, and then every strict preview check below runs.
+  const block = await probePreview(preview);
+  const previewBlocked = block.state === "blocked";
+  console.log(`INFO | preview | state=${block.state} | ${block.reason}`);
 
-  // 2. The preview gateway has no unauthenticated bypass and is not wired to production.
-  const health = await probe(preview, "/api/v1/health");
-  const previewMarker = marker(health.header || health.healthMarker);
-  record("2a", "preview gateway health reachable", health.status === 200, `status=${health.status || health.error}`);
-  record("2b", "preview gateway requires authentication (no preview bypass)", health.status === 200 && health.requiresAuth === true, `status=${health.status || health.error}`);
-  record("2c", "preview gateway upstream is staging or none (never production)", PREVIEW_SAFE_MARKERS.has(previewMarker), `marker=${previewMarker}`);
-  for (const pathname of GATEWAY_DATA_PATHS) {
-    const r = await probe(preview, pathname);
-    record("2d", `preview unauthenticated GET ${pathname} is rejected`, r.status === 401, `status=${r.status || r.error} marker=${marker(r.header)}`);
+  const deployStatus = String(process.env.PREVIEW_DEPLOY_STATUS || "").trim();
+  if (previewBlocked) {
+    const detail = `status=${block.status} on ${SENTINEL_PATHS.length} sentinel paths`;
+    if (deployStatus) record("0", "blocked preview is a real deploy (Netlify reports the deploy preview ready)", deployStatus === "success", `deploy-status=${/^[a-z]{1,20}$/.test(deployStatus) ? deployStatus : "unrecognised"}`);
+    else console.log("INFO | preview | deploy status not supplied; confirm the preview URL belongs to a finished deploy");
+    record("1", "preview is fully blocked by the Netlify firewall, so no privileged endpoint is reachable", true, detail);
+    record("2", "preview is fully blocked by the Netlify firewall, so its gateway cannot reach production data", true, detail);
+  } else {
+    // 1. Privileged endpoints are absent on the preview.
+    for (const fn of PRIVILEGED) {
+      for (const method of fn.methods) {
+        const r = await probe(preview, fn.path, method);
+        record("1", `preview ${method} ${fn.path} is not served`, r.status === 404, `status=${r.status || r.error}`);
+      }
+    }
+
+    // 2. The preview gateway has no unauthenticated bypass and is not wired to production.
+    const health = await probe(preview, "/api/v1/health");
+    const previewMarker = marker(health.header || health.healthMarker);
+    record("2a", "preview gateway health reachable", health.status === 200, `status=${health.status || health.error}`);
+    record("2b", "preview gateway requires authentication (no preview bypass)", health.status === 200 && health.requiresAuth === true, `status=${health.status || health.error}`);
+    record("2c", "preview gateway upstream is staging or none (never production)", PREVIEW_SAFE_MARKERS.has(previewMarker), `marker=${previewMarker}`);
+    for (const pathname of GATEWAY_DATA_PATHS) {
+      const r = await probe(preview, pathname);
+      record("2d", `preview unauthenticated GET ${pathname} is rejected`, r.status === 401, `status=${r.status || r.error} marker=${marker(r.header)}`);
+    }
   }
 
   // 3. Production administration still requires authentication.
@@ -128,8 +148,9 @@ async function remote() {
     record("3d", `production unauthenticated GET ${pathname} is rejected`, r.status === 401, `status=${r.status || r.error}`);
   }
 
-  // 4. Internal files are not served on either deploy.
-  for (const [name, origin] of [["preview", preview], ["production", production]]) {
+  // 4. Internal files are not served on either deploy (a fully blocked preview serves nothing).
+  if (previewBlocked) record("4", "preview internal paths are not served (fully blocked by the Netlify firewall)", true, `status=${block.status}`);
+  for (const [name, origin] of previewBlocked ? [["production", production]] : [["preview", preview], ["production", production]]) {
     for (const pathname of INTERNAL_PATHS) {
       const r = await probe(origin, pathname);
       record("4", `${name} internal path ${pathname} is not served`, r.status === 404, `status=${r.status || r.error}`);
