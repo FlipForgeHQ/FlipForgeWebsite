@@ -83,7 +83,7 @@
     account.dataset.route = "account";
     account.className = "ff-mobile-account-nav";
     account.setAttribute("aria-label", "Account: Plan & Usage and sign-out");
-    account.innerHTML = '<span class="avatar ff-mobile-account-avatar" aria-hidden="true" data-ff-account-initials></span><span class="ff-mobile-account-copy"><strong>Account</strong><small>Plan &amp; Usage</small></span>';
+    account.innerHTML = '<span class="avatar ff-mobile-account-avatar" aria-hidden="true" data-ff-account-initials></span><span class="ff-mobile-account-copy"><strong>Account</strong><span class="ff-mobile-account-sub">Plan &amp; Usage</span></span>';
     syncAccountInitials(account);
     nav.appendChild(account);
     return account;
@@ -106,7 +106,7 @@
       alerts.className = "ff-mobile-account-nav ff-mobile-alerts-nav";
       alerts.setAttribute("data-ff-mobile-alerts", "");
       alerts.setAttribute("aria-label", "Alerts: review reminders for your saved cards");
-      alerts.innerHTML = '<span class="ff-mobile-alerts-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17h10l-1.5-2V10a3.5 3.5 0 0 0-7 0v5Z"/><path d="M10 20h4"/></svg></span><span class="ff-mobile-account-copy"><strong>Alerts</strong><small>Review reminders</small></span>';
+      alerts.innerHTML = '<span class="ff-mobile-alerts-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17h10l-1.5-2V10a3.5 3.5 0 0 0-7 0v5Z"/><path d="M10 20h4"/></svg></span><span class="ff-mobile-account-copy"><strong>Alerts</strong><span class="ff-mobile-account-sub">Review reminders</span></span>';
     }
     if (alerts.nextElementSibling !== account) nav.insertBefore(alerts, account);
     const current = activeRoute() === "alerts";

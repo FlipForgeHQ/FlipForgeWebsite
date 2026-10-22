@@ -123,7 +123,7 @@ const onlyShell = read("saas-prototype/customer-only-shell-v1.js");
 check("043 beta top bar no longer hides Saved Decisions / Alerts behind aria-hidden", !onlyShell.includes("hideElement(saved)") && !onlyShell.includes("hideElement(alerts)"));
 const stabilizer = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 check("044 phone drawer Account entry shows initials + visible Account label", stabilizer.includes('data-ff-account-initials></span><span class="ff-mobile-account-copy"><strong>Account</strong>') && !stabilizer.includes("●</span>Account"));
-check("045 phone drawer carries a labelled Alerts entry", stabilizer.includes("<strong>Alerts</strong><small>Review reminders</small>") && stabilizer.includes('alerts.href = "#/alerts";'));
+check("045 phone drawer carries a labelled Alerts entry", stabilizer.includes('<strong>Alerts</strong><span class="ff-mobile-account-sub">Review reminders</span>') && stabilizer.includes('alerts.href = "#/alerts";'));
 check("046 Guided Mode Minimize and Close have visible words", read("saas-prototype/guided-mode-v1.js").includes('<span class="ff-guide-control-label">Minimize</span>') && read("saas-prototype/guided-mode-v1.js").includes('<span class="ff-guide-control-label">Close</span>'));
 check("047 Compare swap has a visible word", read("saas-prototype/customer-compare.js").includes('<span class="ff-swap-label">Swap</span>'));
 

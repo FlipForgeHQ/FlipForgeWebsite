@@ -157,7 +157,7 @@ html body .topbar [data-ff-labeled-control="menu"]{
   }
   html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy{display:grid!important;gap:1px!important;min-width:0!important}
   html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy strong{display:block!important;font-size:15px!important;line-height:1.2!important;font-weight:800!important;color:#fff!important}
-  html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy small{display:block!important;font-size:12px!important;line-height:1.25!important;color:#a8a8a8!important}
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy .ff-mobile-account-sub{display:block!important;font-size:12px!important;line-height:1.25!important;color:#a8a8a8!important}
 }
 
 /* Drawer-only entries never duplicate the top bar on wider screens. */
