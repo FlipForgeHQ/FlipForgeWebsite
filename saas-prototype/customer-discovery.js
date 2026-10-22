@@ -100,6 +100,28 @@
     return Number(cents);
   }
 
+  // The beta feedback form only exists on the invited Private Beta app. Customer and
+  // owner surfaces keep the plain wording without a request control.
+  function evidenceRequestAvailable() {
+    try {
+      return Boolean(window.FlipForgePrivateBeta?.isEligible?.() && window.FlipForgePrivateBeta?.requestFeedback);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // The feedback form asks testers not to send card identities or listing URLs, so the
+  // request is deliberately generic. The tester can tick the follow-up consent box if they
+  // want the FlipForge team to ask which card it was.
+  function requestEvidence() {
+    if (!evidenceRequestAvailable()) return;
+    window.FlipForgePrivateBeta.requestFeedback({
+      category: "evidence",
+      summary: "I found a card in Discover that has no sold-price evidence yet, and I'd like FlipForge to add some so it can show a value.",
+      expected: "A value for the card, backed by sold-price evidence."
+    });
+  }
+
   function validHttpUrl(value) {
     try {
       const parsed = new URL(String(value || ""));
@@ -822,11 +844,23 @@
     const eyebrow = identityReview
       ? `Excluded provider result · ${escapeHtml(item.providerDisplayName || item.marketplace || "Authorized source")}`
       : `Rank ${escapeHtml(item.rank || index + 1)} · ${escapeHtml(item.providerDisplayName || item.marketplace || "Authorized source")}`;
+    // Zero matched sales is the normal beta state, not an error. Say plainly why there is
+    // no value instead of the bare "Evidence required", and offer the one action a tester
+    // has: ask the FlipForge team for evidence through the existing beta feedback form.
+    // Without sold evidence there is nothing to position the ask against; say so plainly.
+    const rawPricePosition = String(item.pricePosition || "").trim();
+    const pricePositionText = !evidence.supported && (!rawPricePosition || /^evidence required\.?$/i.test(rawPricePosition))
+      ? "Not available until there is sold-price evidence"
+      : rawPricePosition || "Evidence required";
+    const soldSaleCount = Number(evidence.trustedExactCompletedSaleCount) || 0;
+    const soldContextMetric = evidence.supported
+      ? `<div><span>Matched exact sold context</span><strong>${escapeHtml(soldSaleCount)} ${soldSaleCount === 1 ? "sale" : "sales"}</strong><small>${moneyFromCents(evidence.trustedEvidenceValueCents)} median context</small></div>`
+      : `<div class="customer-discovery-no-sold-data"><span>Sold-price evidence</span><strong>${soldSaleCount > 0 ? `${escapeHtml(soldSaleCount)} matched, not enough yet` : "None yet"}</strong><small>The beta isn't using outside sold-price data yet, so FlipForge won't guess a value from asking prices.</small>${!identityReview && evidenceRequestAvailable() ? `<button class="customer-discovery-evidence-request" type="button" data-discovery-request-evidence="${index}">Request evidence for this card</button>` : ""}</div>`;
     const blockReason = item.evaluationBlockReason || "Exact listing identity is required before evaluation.";
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Matched exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div>${soldContextMetric}<div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(pricePositionText)}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
   }
 
   function resultsPanel() {
@@ -1012,6 +1046,12 @@
         if (Number.isInteger(index) && index >= 0 && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) {
           resolveIdentity(index, selectionOwnerQuery);
         }
+      });
+    });
+    state.main?.querySelectorAll?.("[data-discovery-request-evidence]").forEach(button => {
+      button.addEventListener("click", () => {
+        const index = Number.parseInt(button.dataset.discoveryRequestEvidence || "-1", 10);
+        if (Number.isInteger(index) && index >= 0) requestEvidence();
       });
     });
     state.main?.querySelectorAll?.("[data-discovery-evaluate]").forEach(button => {

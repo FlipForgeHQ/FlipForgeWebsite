@@ -8,6 +8,11 @@
   const ONBOARDING_VALUE = "complete";
   const FEEDBACK_ENDPOINT = "/api/beta/feedback";
   let firstRunNavigationHandled = false;
+  // A feedback draft handed over by another screen (for example "Request evidence for
+  // this card" in Discover). Held only in memory for this page session, applied to the
+  // form when the guide renders, and cleared once the guide has rendered with it.
+  let pendingFeedbackDraft = null;
+  const FEEDBACK_DRAFT_CATEGORIES = new Set(["workflow", "decision-explanation", "evidence", "psa-guidance", "accessibility", "bug"]);
 
   function productionHost() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -350,6 +355,13 @@
     </div>`;
   }
 
+  function scrollToFeedback() {
+    const section = document.querySelector("#beta-feedback");
+    if (!section) return;
+    section.scrollIntoView({ behavior: "instant", block: "start" });
+    document.querySelector("[data-private-beta-feedback] [name='summary']")?.focus({ preventScroll: true });
+  }
+
   function setMessage(text, tone = "neutral") {
     const message = document.querySelector("[data-private-beta-message]");
     if (!message) return;
@@ -371,6 +383,27 @@
     } catch (_) {
       return { error: true };
     }
+  }
+
+  function applyPendingFeedbackDraft() {
+    const draft = pendingFeedbackDraft;
+    const form = document.querySelector("[data-private-beta-feedback]");
+    if (!draft || !form) return false;
+    if (draft.category && form.elements.category) form.elements.category.value = draft.category;
+    if (draft.summary && form.elements.summary) form.elements.summary.value = draft.summary;
+    if (draft.expected && form.elements.expected) form.elements.expected.value = draft.expected;
+    return true;
+  }
+
+  function requestFeedback(draft = {}) {
+    const category = FEEDBACK_DRAFT_CATEGORIES.has(String(draft.category || "")) ? String(draft.category) : "workflow";
+    pendingFeedbackDraft = Object.freeze({
+      category,
+      summary: String(draft.summary || "").slice(0, 2000),
+      expected: String(draft.expected || "").slice(0, 1200)
+    });
+    if (onBetaRoute()) render();
+    else window.location.hash = `#/${ROUTE}`;
   }
 
   function bind(session) {
@@ -454,13 +487,23 @@
     main.innerHTML = pageMarkup(session, null);
     bind(session);
     main.focus({ preventScroll: true });
-    window.scrollTo({ top: 0, behavior: "instant" });
+    if (applyPendingFeedbackDraft()) scrollToFeedback();
+    else window.scrollTo({ top: 0, behavior: "instant" });
 
     const health = await loadHealth();
     if (!onBetaRoute()) return true;
     const latestSession = identitySnapshot();
+    const summaryField = document.querySelector("[data-private-beta-feedback] [name='summary']");
+    const typedSummary = summaryField ? summaryField.value : "";
     main.innerHTML = pageMarkup(latestSession, health);
     bind(latestSession);
+    if (applyPendingFeedbackDraft()) {
+      // Keep anything the tester already typed while the status check was loading.
+      const field = document.querySelector("[data-private-beta-feedback] [name='summary']");
+      if (field && typedSummary) field.value = typedSummary;
+      scrollToFeedback();
+      pendingFeedbackDraft = null;
+    }
     return true;
   }
 
@@ -485,6 +528,7 @@
   window.FlipForgePrivateBeta = Object.freeze({
     isEligible: eligibleHost,
     render,
+    requestFeedback,
     preferenceComplete
   });
 
