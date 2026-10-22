@@ -257,11 +257,11 @@
       if (evaluate.innerHTML !== wanted) evaluate.innerHTML = wanted;
     }
 
-    const saved = document.querySelector('.topbar-actions a[href="#/opportunities"]');
-    hideElement(saved);
-
-    const alerts = document.querySelector(".notification-button");
-    hideElement(alerts);
+    // Customer Navigation & Access UX: Saved Decisions and Alerts are labelled controls (icon + text). They used to be
+    // hidden here, but a shell stylesheet kept Alerts painted as an unlabelled diamond that was aria-hidden and
+    // unfocusable. Both are now real, reachable controls; the stylesheet decides which fit at each width.
+    showElement(document.querySelector('.topbar-actions a[href="#/opportunities"]'));
+    showElement(document.querySelector(".notification-button"));
 
     const profile = document.querySelector(".profile-button");
     if (profile) {

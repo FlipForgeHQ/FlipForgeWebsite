@@ -255,6 +255,12 @@
   async function signOut() {
     const button = state.main?.querySelector?.("[data-production-account-signout]");
     if (!button || button.disabled) return;
+    // One sign-out flow for every control (top bar, drawer, this page): identity sign-out, per-account browser data
+    // cleared, other tabs told, workspace removed. See account-sign-out-v1.js.
+    if (window.FlipForgeSignOut && typeof window.FlipForgeSignOut.signOut === "function") {
+      await window.FlipForgeSignOut.signOut();
+      return;
+    }
 
     const api = identityApi();
     const authUrl = `/production-auth.html?return=${encodeURIComponent(accountReturnPath())}`;

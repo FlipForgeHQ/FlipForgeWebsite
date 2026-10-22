@@ -106,7 +106,10 @@ check(loginRedirect.includes('pathname === "/app/customer" ? "/app/customer/"'),
 check(loginRedirect.includes('const returnPath = `${normalizedPath}${window.location.search}${window.location.hash || "#/account"}`'), "customer login interceptor still rebuilds local auth return");
 check(loginRedirect.includes('if (!launcher && !authLink) return;'), "customer login interceptor handles launchers and feature auth links");
 check(authProbe.includes('const PRIVATE_BETA_START = "/app/beta/#/beta-start";'), "production auth locks destination to dedicated beta-start");
-check(authProbe.includes("return PRIVATE_BETA_START;"), "production sign-in cannot return to arbitrary customer route");
+// Deep links inside the Private Beta workspace survive sign-in; nothing else can be a return destination.
+check(authProbe.includes("const PRIVATE_BETA_RETURN = /^\\/app\\/beta\\/#\\/[a-z][a-z0-9-]{0,40}(?:\\/[A-Za-z0-9_~-][A-Za-z0-9._~-]{0,127}){0,3}$/;")
+  && authProbe.includes("if (PRIVATE_BETA_RETURN.test(requested)) return requested;")
+  && authProbe.includes("return PRIVATE_BETA_START;"), "production sign-in returns only to an allowlisted Private Beta route (default beta-start)");
 check(authProbe.includes("async function verifyAccess()") && authProbe.includes('fetch("/api/v1/entitlements"'), "production auth verifies authoritative beta access before continuing");
 check(authProbe.includes('reauthRequested'), "production auth page recognizes server-requested reauthentication");
 check(authProbe.includes('The app rejected this cached session'), "production auth explains stale-session recovery");

@@ -1,0 +1,161 @@
+/* FlipForge public access actions v1.
+ * One grouped access control on every public page: "Request Beta Access" is the primary (gold) action and
+ * "Already invited? Sign in" is the secondary text link beside it (desktop) or directly below it (menu).
+ * Verified states ("Open Dashboard", "Check Access Status") reuse the same primary slot.
+ */
+
+/* Desktop: a compact group separated from the page links. */
+html body .site-header .desktop-nav [data-ff-access="desktop"],
+/* Desktop: a compact group separated from the page links. */
+html body .decision-header .decision-nav-links [data-ff-access="desktop"]{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:14px!important;
+  margin:0 0 0 4px!important;
+  padding:0 0 0 18px!important;
+  border:0!important;
+  border-left:1px solid rgba(212,175,55,.26)!important;
+  background:transparent!important;
+  white-space:nowrap!important;
+}
+html body .site-header .desktop-nav [data-ff-access] [data-ff-access-sign-in],
+html body .decision-header .decision-nav-links [data-ff-access] [data-ff-access-sign-in]{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  min-height:44px!important;
+  height:44px!important;
+  padding:0 2px!important;
+  border:0!important;
+  border-radius:8px!important;
+  background:transparent!important;
+  color:#aeb6c1!important;
+  font-size:13px!important;
+  font-weight:600!important;
+  box-shadow:none!important;
+}
+html body .site-header .desktop-nav [data-ff-access] .ff-access-signin-action,
+html body .mobile-nav [data-ff-access] .ff-access-signin-action,
+html body .decision-header .decision-nav-links [data-ff-access] .ff-access-signin-action{
+  color:#f0ca58!important;
+  font-weight:800!important;
+  text-decoration:underline!important;
+  text-decoration-thickness:1px!important;
+  text-underline-offset:4px!important;
+}
+html body .site-header .desktop-nav [data-ff-access] [data-ff-access-sign-in]:hover,
+html body .site-header .desktop-nav [data-ff-access] [data-ff-access-sign-in]:focus-visible,
+html body .decision-header .decision-nav-links [data-ff-access] [data-ff-access-sign-in]:hover,
+html body .decision-header .decision-nav-links [data-ff-access] [data-ff-access-sign-in]:focus-visible{color:#fff!important}
+html body .site-header .desktop-nav [data-ff-access] [data-ff-access-primary],
+html body .decision-header .decision-nav-links [data-ff-access] [data-ff-access-primary]{
+  min-height:44px!important;
+  height:44px!important;
+  padding:0 18px!important;
+  border:1px solid rgba(212,175,55,.58)!important;
+  border-radius:10px!important;
+  background:linear-gradient(180deg,#efb441 0%,#d89a2a 100%)!important;
+  color:#080b10!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  box-shadow:0 10px 28px rgba(212,175,55,.12)!important;
+}
+html body .site-header .desktop-nav [data-ff-access] [data-ff-access-primary]:hover,
+html body .decision-header .decision-nav-links [data-ff-access] [data-ff-access-primary]:hover{filter:brightness(1.06)}
+
+/* Menu (tablet and phone): the access group is the first block, primary on top, sign-in right below it. */
+html body .mobile-nav [data-ff-access="mobile"]{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:4px!important;
+  margin:0 0 8px!important;
+  padding:6px 4px 10px!important;
+  border:0!important;
+  border-bottom:1px solid rgba(255,255,255,.1)!important;
+  grid-template-columns:none!important;
+}
+html body .mobile-nav [data-ff-access] [data-ff-access-primary]{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:48px!important;
+  padding:0 16px!important;
+  border:1px solid #d4af37!important;
+  border-radius:10px!important;
+  background:linear-gradient(180deg,#efb441 0%,#d89a2a 100%)!important;
+  color:#080b10!important;
+  font-size:15px!important;
+  font-weight:800!important;
+  text-align:center!important;
+}
+html body .mobile-nav [data-ff-access] [data-ff-access-primary]:hover,
+html body .mobile-nav [data-ff-access] [data-ff-access-primary]:focus-visible{background:linear-gradient(180deg,#f3c35a 0%,#dfa536 100%)!important;color:#080b10!important}
+html body .mobile-nav [data-ff-access] [data-ff-access-sign-in]{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  min-height:44px!important;
+  padding:0 12px!important;
+  border:0!important;
+  background:transparent!important;
+  color:#c3cad3!important;
+  font-size:14px!important;
+  font-weight:600!important;
+  text-align:center!important;
+}
+html body .mobile-nav [data-ff-access] [data-ff-access-sign-in]:hover,
+html body .mobile-nav [data-ff-access] [data-ff-access-sign-in]:focus-visible{background:rgba(212,175,55,.08)!important;color:#fff!important}
+
+/* Visible keyboard focus on every access control. */
+html body [data-ff-access] a:focus-visible,
+html body [data-ff-access-footer]:focus-visible{
+  outline:2px solid #f0ca58!important;
+  outline-offset:3px!important;
+  border-radius:8px!important;
+}
+
+/* A verified session hides the sign-in link; [hidden] must win over the shell's display rules. */
+html body .site-header [data-ff-access] [data-ff-access-sign-in][hidden],
+html body .mobile-nav [data-ff-access] [data-ff-access-sign-in][hidden],
+html body .decision-header [data-ff-access] [data-ff-access-sign-in][hidden]{display:none!important}
+
+@media (prefers-reduced-motion:reduce){
+  html body [data-ff-access] a{transition:none!important}
+}
+
+/* Verified states: "Sign out" beside the primary action (desktop) or below it (menu). */
+html body .site-header .desktop-nav [data-ff-access] [data-ff-access-sign-out],
+html body .decision-header .decision-nav-links [data-ff-access] [data-ff-access-sign-out]{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:44px!important;
+  padding:0 4px!important;
+  border:0!important;
+  background:transparent!important;
+  color:#e7eaee!important;
+  font:inherit!important;
+  font-size:13px!important;
+  font-weight:700!important;
+  text-decoration:underline!important;
+  text-underline-offset:4px!important;
+  cursor:pointer!important;
+}
+html body .mobile-nav [data-ff-access] [data-ff-access-sign-out]{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:44px!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  color:#eef1f5!important;
+  font:inherit!important;
+  font-size:14px!important;
+  font-weight:700!important;
+  cursor:pointer!important;
+}
+html body [data-ff-access] [data-ff-access-sign-out]:hover,
+html body [data-ff-access] [data-ff-access-sign-out]:focus-visible{color:#f0ca58!important}
+html body [data-ff-access] [data-ff-access-sign-out]:focus-visible{outline:2px solid #f0ca58!important;outline-offset:3px!important;border-radius:8px!important}

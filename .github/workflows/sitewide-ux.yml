@@ -25,6 +25,19 @@ on:
       - "assets/images/ff-graphics-*.svg"
       - "assets/js/award-winning-v1.js"
       - "assets/js/conversion-events.js"
+      - "assets/js/site.js"
+      - "assets/js/access-state-v1.js"
+      - "assets/js/homepage-v1.js"
+      - "scripts/lib/public-access-nav.cjs"
+      - "scripts/build-assets.js"
+      - "scripts/validate-customer-navigation-access.mjs"
+      - "scripts/validate-account-sign-out.mjs"
+      - "saas-prototype/account-sign-out-v1.js"
+      - "scripts/lib/flipforge-production-auth-probe.mjs"
+      - "sw.js"
+      - "saas-prototype/customer-navigation-labels-v1.css"
+      - "saas-prototype/mobile-navigation-stabilizer-v1.js"
+      - "saas-prototype/private-beta-access-gate.js"
       - "saas-prototype/index.html"
       - "saas-prototype/phase3-first-decision-activation-v1.js"
       - "saas-prototype/phase3-first-decision-activation-v1.css"
@@ -64,6 +77,19 @@ on:
       - "assets/images/ff-graphics-*.svg"
       - "assets/js/award-winning-v1.js"
       - "assets/js/conversion-events.js"
+      - "assets/js/site.js"
+      - "assets/js/access-state-v1.js"
+      - "assets/js/homepage-v1.js"
+      - "scripts/lib/public-access-nav.cjs"
+      - "scripts/build-assets.js"
+      - "scripts/validate-customer-navigation-access.mjs"
+      - "scripts/validate-account-sign-out.mjs"
+      - "saas-prototype/account-sign-out-v1.js"
+      - "scripts/lib/flipforge-production-auth-probe.mjs"
+      - "sw.js"
+      - "saas-prototype/customer-navigation-labels-v1.css"
+      - "saas-prototype/mobile-navigation-stabilizer-v1.js"
+      - "saas-prototype/private-beta-access-gate.js"
       - "saas-prototype/index.html"
       - "saas-prototype/phase3-first-decision-activation-v1.js"
       - "saas-prototype/phase3-first-decision-activation-v1.css"
@@ -97,6 +123,8 @@ jobs:
         run: |
           node --check assets/js/award-winning-v1.js
           node --check assets/js/conversion-events.js
+          node --check assets/js/access-state-v1.js
+          node --check assets/js/site.js
       - name: Validate Decision Intelligence public contract
         run: node scripts/validate-decision-intelligence-public-page.mjs
       - name: Validate static sitewide UX contracts

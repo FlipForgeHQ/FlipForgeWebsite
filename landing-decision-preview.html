@@ -26,6 +26,7 @@
       .decision-hero h1,.decision-hero h1 span,.decision-hero h1 strong{max-width:100%;overflow-wrap:anywhere}
     }
   </style>
+<link rel="stylesheet" href="assets/css/access-actions-v1.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -40,17 +41,16 @@
         <a href="learn.html">Evidence Lab</a>
         <a href="pricing.html">Launch Plans</a>
         <a href="about.html">About</a>
-        <a class="decision-nav-cta" href="beta-application.html">Request Beta Access</a>
+        <div class="ff-access" data-ff-access="desktop" data-ff-access-state="signed-out" role="group" aria-label="Private Beta access"><a class="ff-access-signin" data-ff-access-sign-in data-ff-marketing-sign-in href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" aria-label="Already invited? Sign in to the FlipForge Private Beta"><span class="ff-access-signin-lead">Already invited?</span> <span class="ff-access-signin-action">Sign in</span></a><a class="decision-nav-cta ff-access-primary" data-ff-access-primary href="beta-application.html">Request Beta Access</a></div>
       </nav>
       <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-navigation"><span></span></button>
     </div>
   </header>
-  <nav class="mobile-nav" id="mobile-navigation" aria-label="Mobile navigation">
+  <nav class="mobile-nav" id="mobile-navigation" aria-label="Mobile navigation"><div class="ff-access ff-access-mobile" data-ff-access="mobile" data-ff-access-state="signed-out" role="group" aria-label="Private Beta access"><a class="ff-access-primary" data-ff-access-primary href="beta-application.html">Request Beta Access</a><a class="ff-access-signin" data-ff-access-sign-in data-ff-marketing-sign-in href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" aria-label="Already invited? Sign in to the FlipForge Private Beta"><span class="ff-access-signin-lead">Already invited?</span> <span class="ff-access-signin-action">Sign in</span></a></div>
     <a href="product.html">Product</a>
     <a href="learn.html">Evidence Lab</a>
     <a href="pricing.html">Launch Plans</a>
     <a href="about.html">About</a>
-    <a href="beta-application.html">Request Beta Access</a>
   </nav>
   <div class="backdrop" aria-hidden="true"></div>
 
@@ -113,5 +113,6 @@
       });
     })();
   </script>
+<script src="assets/js/access-state-v1.js" defer></script>
 </body>
 </html>

@@ -74,6 +74,10 @@ self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   // Video streams with byte ranges; let the browser fetch it directly (Safari cannot play range responses via a worker).
   if(event.request.destination==='video'||event.request.headers.has('range'))return;
+  // Signed-in data is never served from or written to this cache: API, Identity and app routes always go to the network,
+  // so nothing from a previous session can reappear after sign-out.
+  const requestPath=new URL(event.request.url).pathname;
+  if(/^\/(?:api|\.netlify|app|owner|saas-prototype)(?:\/|$)/.test(requestPath))return;
   if(event.request.mode==='navigate'){
     event.respondWith((async()=>{
       try{

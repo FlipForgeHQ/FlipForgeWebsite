@@ -143,14 +143,17 @@ jobs:
             if (hasHeader && (html.includes('FlipForge — Card Intelligence') || html.includes('FlipForge Card Intelligence'))) {
               failures.push(`${name}: retired Card Intelligence brand descriptor remains`);
             }
-            if (hasHeader && !html.includes('data-app-preview="desktop"')) {
-              failures.push(`${name}: desktop App Preview link is missing`);
+            if (hasHeader && !html.includes('data-ff-access="desktop"')) {
+              failures.push(`${name}: desktop access group (Request Beta Access + Already invited? Sign in) is missing`);
             }
-            if (hasMobileNavigation && !html.includes('data-app-preview="mobile"')) {
-              failures.push(`${name}: mobile App Preview link is missing`);
+            if (hasMobileNavigation && !html.includes('data-ff-access="mobile"')) {
+              failures.push(`${name}: mobile access group is missing`);
             }
-            if (hasFooterLinks && !html.includes('data-app-preview="footer"')) {
-              failures.push(`${name}: footer App Preview link is missing`);
+            if (hasFooterLinks && !html.includes('data-ff-access-footer')) {
+              failures.push(`${name}: footer invited sign-in link is missing`);
+            }
+            if (hasHeader && (html.includes('data-app-preview=') || html.includes('Beta Sign In'))) {
+              failures.push(`${name}: retired separate Beta Sign In link remains`);
             }
           }
 

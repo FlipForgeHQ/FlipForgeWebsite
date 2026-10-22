@@ -51,22 +51,31 @@
       {href:'product.html',label:'Product'},
       {href:'decision-intelligence.html',label:'Decision Intelligence'},
       {href:'learn.html',label:'Evidence Lab'},
-      {href:'about.html',label:'About'},
-      {href:'/production-auth.html',label:'Sign In',signIn:true},
-      {href:'beta-application.html',label:'Request Beta Access',cta:true}
+      {href:'about.html',label:'About'}
     ];
 
+    // The grouped access control (Request Beta Access + "Already invited? Sign in") is owned by the static page
+    // and assets/js/access-state-v1.js; keep it intact instead of rendering a separate "Sign In" link.
     const render=(nav,{mobile=false}={})=>{
       if(!nav)return;
       const fragment=document.createDocumentFragment();
+      const access=nav.querySelector('[data-ff-access]');
+      if(access)access.remove();
       canonical.forEach(item=>{
         const link=document.createElement('a');
         link.href=item.href;
         link.textContent=item.label;
-        if(item.cta&&!mobile)link.className='decision-nav-cta';
-        if(item.signIn)link.dataset.ffMarketingSignIn='true';
         fragment.appendChild(link);
       });
+      if(access){
+        if(mobile)fragment.prepend(access);else fragment.appendChild(access);
+      }else{
+        const request=document.createElement('a');
+        request.href='beta-application.html';
+        request.textContent='Request Beta Access';
+        if(!mobile)request.className='decision-nav-cta';
+        fragment.appendChild(request);
+      }
       nav.replaceChildren(fragment);
       dedupeRouteLinks(nav);
     };

@@ -126,8 +126,8 @@ check("075 Netlify exposes the app root", files.redirects.includes("/app /saas-p
 check("076 Netlify exposes the trailing-slash app root", files.redirects.includes("/app/ /saas-prototype/index.html 200"));
 check("077 Netlify rewrites app assets to the isolated prototype", files.redirects.includes("/app/* /saas-prototype/:splat 200"));
 check("078 website build replaces the deprecated tagline with the current descriptor", files.websiteBuild.includes("'Signal. Confidence. Advantage.'") && files.websiteBuild.includes("'Card Decision Intelligence'"));
-check("079 website build adds desktop and mobile App Preview links", files.websiteBuild.includes('data-app-preview=\"desktop\"') && files.websiteBuild.includes('data-app-preview=\"mobile\"'));
-check("080 website build adds a footer App Preview link", files.websiteBuild.includes('data-app-preview=\"footer\"'));
+check("079 website build normalizes the grouped desktop and mobile access control", files.websiteBuild.includes("normalizePublicAccess") && !files.websiteBuild.includes('data-app-preview=\"desktop\" href'));
+check("080 website build validates the footer access link", files.websiteBuild.includes("auditPublicAccess") && !files.websiteBuild.includes('data-app-preview=\"footer\" href'));
 check("081 sidebar remains sticky during long dashboard pages", /\.sidebar\s*,\s*\.topbar\s*\{[\s\S]*?position:\s*sticky/.test(files.shell) && /\.sidebar\s*\{[\s\S]*?align-self:\s*start/.test(files.shell));
 check("082 sidebar navigation retains its own vertical scroll area", files.shell.includes(".primary-nav") && files.shell.includes("flex: 1 1 auto") && files.shell.includes("min-height: 0"));
 

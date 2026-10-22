@@ -162,6 +162,11 @@
     }));
 
     document.querySelectorAll("[data-account-signout]").forEach(button => button.addEventListener("click", async () => {
+      if (window.FlipForgeSignOut && typeof window.FlipForgeSignOut.signOut === "function") {
+        // Shared flow: identity sign-out, per-account browser data cleared, workspace removed, other tabs told.
+        await window.FlipForgeSignOut.signOut();
+        return;
+      }
       button.disabled = true;
       message("Signing out…");
       try {

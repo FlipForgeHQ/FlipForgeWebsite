@@ -2,7 +2,8 @@ import { chromium } from "playwright";
 
 const HOST = "http://goflipforge.com:4173";
 const BETA = `${HOST}/app/beta/#/dashboard`;
-const BETA_RETURN = "/app/beta/#/beta-start";
+// Deep links survive sign-in: the gate returns the tester to the exact Private Beta route they opened.
+const BETA_RETURN = "/app/beta/#/dashboard";
 const fail = message => { throw new Error(message); };
 
 async function installIdentity(page, { authenticated, membershipActive }) {
@@ -102,7 +103,7 @@ async function auditAnonymous(browser) {
     await page.waitForURL(url => url.pathname === "/production-auth.html", { timeout: 10000 });
     const destination = new URL(page.url());
     if (destination.searchParams.get("return") !== BETA_RETURN) {
-      fail(`anonymous customer URL did not fail closed to beta-start: ${destination.searchParams.get("return") || "<missing>"}`);
+      fail(`anonymous customer URL did not fail closed to sign-in with its deep link: ${destination.searchParams.get("return") || "<missing>"}`);
     }
     if (destination.searchParams.has("reauth")) fail("anonymous beta redirect incorrectly requested reauthentication");
     console.log("PASS | anonymous production app URL redirects to Private Beta Sign In");
@@ -151,7 +152,7 @@ async function auditStaleSession(browser) {
     await page.waitForURL(url => url.pathname === "/production-auth.html", { timeout: 10000 });
     const destination = new URL(page.url());
     if (destination.searchParams.get("return") !== BETA_RETURN) {
-      fail(`stale session did not return through beta-start: ${destination.searchParams.get("return") || "<missing>"}`);
+      fail(`stale session did not keep its deep link through sign-in: ${destination.searchParams.get("return") || "<missing>"}`);
     }
     if (destination.searchParams.get("reauth") !== "1") fail("stale session did not request reauthentication");
     console.log("PASS | stale cached beta identity fails closed and requires reauthentication");
