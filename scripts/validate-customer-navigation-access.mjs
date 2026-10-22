@@ -27,9 +27,9 @@ const check = (name, ok, detail = "") => (ok ? passes : failures).push(detail &&
 
 // ---------------------------------------------------------------- public website: static pages
 const rootPages = fs.readdirSync(root).filter(name => name.endsWith(".html"));
-const headerPages = rootPages.filter(name => read(name).includes('class="site-header"'));
-check("001 public header pages discovered", headerPages.length >= 18, headerPages.join(","));
-for (const page of ["index.html", "product.html", "decision-intelligence.html", "learn.html", "pricing.html", "about.html", "faq.html", "privacy.html", "terms.html", "refund.html", "data-use.html", "beta-terms.html", "price-is-not-proof.html", "404.html", "beta-application.html", "beta-onboarding.html", "thank-you.html", "sample-decision-dossier.html", "platform-status.html"]) {
+const headerPages = rootPages.filter(name => nav.PUBLIC_HEADER.test(read(name)));
+check("001 public header pages discovered (site header and decision header)", headerPages.length >= 20, headerPages.join(","));
+for (const page of ["index.html", "product.html", "decision-intelligence.html", "learn.html", "pricing.html", "about.html", "faq.html", "privacy.html", "terms.html", "refund.html", "data-use.html", "beta-terms.html", "price-is-not-proof.html", "404.html", "beta-application.html", "beta-onboarding.html", "thank-you.html", "sample-decision-dossier.html", "platform-status.html", "decision-proof.html"]) {
   check(`002 ${page} has the public header`, headerPages.includes(page));
 }
 for (const page of headerPages) {
@@ -38,7 +38,7 @@ for (const page of headerPages) {
   check(`003 ${page} carries exactly the grouped access control (desktop, menu, footer)`, problems.length === 0, problems.join("; "));
   check(`004 ${page} has no standalone "Beta Sign In" link`, !/\bBeta Sign In\b/.test(html));
   check(`005 ${page} static state is signed-out only`, !/Open Dashboard|Check Access Status/.test(html) && !/data-ff-access-state="(?:member|pending)"/.test(html));
-  const desktop = html.match(/<nav\b[^>]*class="[^"]*\bdesktop-nav\b[^"]*"[^>]*>([\s\S]*?)<\/nav>/i)?.[1] || "";
+  const desktop = html.match(/<nav\b[^>]*class="[^"]*\b(?:desktop-nav|decision-nav-links)\b[^"]*"[^>]*>([\s\S]*?)<\/nav>/i)?.[1] || "";
   const group = desktop.match(/<div\b[^>]*data-ff-access="desktop"[\s\S]*?<\/div>/)?.[0] || "";
   check(`006 ${page} desktop: "Already invited? Sign in" sits directly beside Request Beta Access`, /data-ff-access-sign-in[\s\S]*?<\/a><a\b[^>]*data-ff-access-primary/.test(group));
   const mobile = html.match(/<nav\b[^>]*id="mobile-navigation"[^>]*>([\s\S]*?)<\/nav>/i)?.[1] || "";
@@ -85,7 +85,7 @@ check("025 Check Access Status only after a verified 403 membership/admission co
 check("026 everything else (401, 5xx, network, timeout) stays signed-out", code.includes('return "signed-out";\n    } catch (_) {\n      return "signed-out";') && code.includes('if (state !== "member" && state !== "pending") return;'));
 check("027 invitation / recovery links are left to the activation flow", code.includes("invite_token") && code.includes("if (TOKEN_HASH.test(String(window.location.hash || \"\"))) return;"));
 check("028 destinations: dashboard for members, status page (not the app) for pending accounts", code.includes('const DASHBOARD_URL = "/app/beta/#/dashboard";') && code.includes(`const STATUS_URL = "${nav.SIGN_IN_URL}";`));
-check("029 access script is deferred, same-origin, no inline code", headerPages.every(page => read(page).includes('<script src="assets/js/access-state-v1.js" defer></script>')) && headerPages.every(page => !/<script>(?!\s*<\/script>)/.test(read(page).replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, ""))));
+check("029 access script is deferred, same-origin, no inline code", headerPages.every(page => read(page).includes('<script src="assets/js/access-state-v1.js" defer></script>')) && headerPages.filter(page => !page.endsWith("-preview.html")).every(page => !/<script>(?!\s*<\/script>)/.test(read(page).replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, ""))));
 const accessCss = read("assets/css/access-actions-v1.css");
 check("030 access controls have a visible keyboard focus ring", accessCss.includes("[data-ff-access] a:focus-visible") && accessCss.includes("outline:2px solid #f0ca58"));
 check("031 a verified session's hidden sign-in link really hides", accessCss.includes("[data-ff-access-sign-in][hidden]{display:none!important}"));

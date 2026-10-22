@@ -24,10 +24,9 @@ function primaryLink(className, current) {
 
 // The homepage keeps its paired-action class names (ffdemo-*) so its existing styling hooks and validators stay
 // meaningful; every other page uses the shared ff-access-* names. Behaviour and copy are identical.
-function desktopGroup({ home = false, current = false } = {}) {
-  return home
-    ? `<div class="ffdemo-nav-actions" data-ff-access="desktop" data-ff-access-state="signed-out" role="group" aria-label="${GROUP_ARIA}">${signInLink('ffdemo-sign-in')}${primaryLink('nav-cta ffdemo-join', current)}</div>`
-    : `<div class="ff-access" data-ff-access="desktop" data-ff-access-state="signed-out" role="group" aria-label="${GROUP_ARIA}">${signInLink('ff-access-signin')}${primaryLink('nav-cta ff-access-primary', current)}</div>`;
+function desktopGroup({ home = false, current = false, decision = false } = {}) {
+  if (home) return `<div class="ffdemo-nav-actions" data-ff-access="desktop" data-ff-access-state="signed-out" role="group" aria-label="${GROUP_ARIA}">${signInLink('ffdemo-sign-in')}${primaryLink('nav-cta ffdemo-join', current)}</div>`;
+  return `<div class="ff-access" data-ff-access="desktop" data-ff-access-state="signed-out" role="group" aria-label="${GROUP_ARIA}">${signInLink('ff-access-signin')}${primaryLink(`${decision ? 'decision-nav-cta' : 'nav-cta'} ff-access-primary`, current)}</div>`;
 }
 
 function mobileGroup({ home = false, current = false } = {}) {
@@ -80,11 +79,17 @@ function ensureAssets(html) {
 }
 
 // Idempotent: a page that already carries the canonical groups only has retired links stripped.
+// Public pages use one of two headers: the shared .site-header (.desktop-nav) or the editorial .decision-header
+// (.decision-nav-links, e.g. decision-proof.html). Both get the same grouped access control.
+const PUBLIC_HEADER = /class="(?:site-header|decision-header)"/;
+const DESKTOP_NAV = /(<nav\b[^>]*class="[^"]*\b(?:desktop-nav|decision-nav-links)\b[^"]*"[^>]*>)([\s\S]*?)(<\/nav>)/i;
+
 function normalizePublicAccess(html, { fileName = '' } = {}) {
-  if (!/class="site-header"/.test(html)) return html;
+  if (!PUBLIC_HEADER.test(html)) return html;
   const home = fileName === 'index.html';
-  let next = html.replace(/(<nav\b[^>]*class="[^"]*\bdesktop-nav\b[^"]*"[^>]*>)([\s\S]*?)(<\/nav>)/i,
-    (m, open, inner, close) => `${open}${normalizeDesktopNav(inner, { home })}${close}`);
+  const decision = !/class="site-header"/.test(html);
+  let next = html.replace(DESKTOP_NAV,
+    (m, open, inner, close) => `${open}${normalizeDesktopNav(inner, { home, decision })}${close}`);
   next = next.replace(/(<nav\b[^>]*id="mobile-navigation"[^>]*>)([\s\S]*?)(<\/nav>)/i,
     (m, open, inner, close) => `${open}${normalizeMobileNav(inner, { home })}${close}`);
   if (/class="[^"]*\bfooter-links\b/.test(next)) next = normalizeFooter(next);
@@ -94,8 +99,8 @@ function normalizePublicAccess(html, { fileName = '' } = {}) {
 // Returns a list of problems; an empty list means the page carries exactly the approved access experience.
 function auditPublicAccess(html, fileName = '') {
   const problems = [];
-  if (!/class="site-header"/.test(html)) return problems;
-  const desktop = html.match(/<nav\b[^>]*class="[^"]*\bdesktop-nav\b[^"]*"[^>]*>([\s\S]*?)<\/nav>/i)?.[1] || '';
+  if (!PUBLIC_HEADER.test(html)) return problems;
+  const desktop = html.match(DESKTOP_NAV)?.[2] || '';
   const mobile = html.match(/<nav\b[^>]*id="mobile-navigation"[^>]*>([\s\S]*?)<\/nav>/i)?.[1] || '';
   const footer = html.match(SITE_FOOTER)?.[0] || '';
   const count = (text, pattern) => (text.match(pattern) || []).length;
@@ -124,6 +129,6 @@ function auditPublicAccess(html, fileName = '') {
 }
 
 module.exports = {
-  SIGN_IN_URL, REQUEST_URL, SIGN_IN_ARIA, GROUP_ARIA, SIGN_IN_TEXT, ACCESS_STYLESHEET, ACCESS_SCRIPT,
+  PUBLIC_HEADER, SIGN_IN_URL, REQUEST_URL, SIGN_IN_ARIA, GROUP_ARIA, SIGN_IN_TEXT, ACCESS_STYLESHEET, ACCESS_SCRIPT,
   desktopGroup, mobileGroup, footerLink, normalizePublicAccess, auditPublicAccess
 };

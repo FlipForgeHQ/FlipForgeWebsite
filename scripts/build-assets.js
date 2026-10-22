@@ -206,7 +206,12 @@ for (const htmlPath of htmlFiles) {
   const html = fs.readFileSync(htmlPath, 'utf8');
   const hasHeader = html.includes('class="site-header"');
 
-  if (!hasHeader) continue;
+  if (!hasHeader) {
+    // Editorial pages with the decision header (e.g. decision-proof.html) carry the same grouped access control.
+    const accessProblems = auditPublicAccess(html, path.basename(htmlPath));
+    if (accessProblems.length) throw new Error(`${path.basename(htmlPath)} failed public access validation: ${accessProblems.join(', ')}`);
+    continue;
+  }
 
   const failures = [];
   if (!html.includes('assets/brand/flipforge-logo-horizontal.svg')) failures.push('approved horizontal logo lockup');
