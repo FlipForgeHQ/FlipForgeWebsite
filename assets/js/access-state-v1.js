@@ -9,6 +9,7 @@
 // - 403 with a membership/admission code (signed in, not active) -> "Check Access Status" (status page, not the app)
 // - anything else (401, other 403, 5xx, network, timeout)     -> stays signed-out
 // - At most one request per page view, kept in memory only. No email address is ever sent or looked up.
+// - A verified state also shows "Sign out", which hands off to the sign-in page's existing Identity logout.
 (() => {
   "use strict";
 
@@ -68,6 +69,19 @@
     return verification;
   }
 
+  // Signing out happens on the sign-in page, which owns the Identity client and its logout. This page only records a
+  // one-time intent in this tab so that page can tell a real click from a link planted on another site.
+  const SIGN_OUT_URL = "/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start&signout=1";
+  function requestSignOut(event) {
+    event.preventDefault();
+    try {
+      window.sessionStorage.setItem("flipforge.signOutIntent", window.crypto?.randomUUID?.() || String(Date.now()));
+    } catch (_) {
+      // Without the intent the sign-in page shows its own Sign out button instead.
+    }
+    window.location.assign(SIGN_OUT_URL);
+  }
+
   function applyGroup(group, state) {
     const copy = COPY[state];
     if (!copy) return;
@@ -80,6 +94,17 @@
       primary.removeAttribute("aria-current");
     }
     if (signIn) signIn.hidden = true;
+    if (!group.querySelector("[data-ff-access-sign-out]")) {
+      const signOut = document.createElement("button");
+      signOut.type = "button";
+      signOut.className = "ff-access-signout";
+      signOut.setAttribute("data-ff-access-sign-out", "");
+      signOut.setAttribute("aria-label", "Sign out of FlipForge");
+      signOut.textContent = "Sign out";
+      signOut.addEventListener("click", requestSignOut);
+      if (group.getAttribute("data-ff-access") === "mobile") group.appendChild(signOut);
+      else group.insertBefore(signOut, primary || null);
+    }
     group.setAttribute("data-ff-access-state", state);
   }
 

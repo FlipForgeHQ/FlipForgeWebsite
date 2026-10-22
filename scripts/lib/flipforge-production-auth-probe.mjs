@@ -4,6 +4,15 @@ import { AUTH_FLOWS, friendlyAuthError } from "./flipforge-auth-error-copy.mjs";
 const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
 const hostAllowed = PRODUCTION_HOST.test(String(window.location.hostname || ""));
 const reauthRequested = new URLSearchParams(window.location.search).get("reauth") === "1";
+// Sign-out arrives here two ways: the app already signed out and sends ?signed_out=1 (confirmation only), or a public
+// page asks this page to sign out with ?signout=1. The second only acts when the public page set a one-time intent in
+// this tab's sessionStorage first, so a link from another site cannot sign anyone out.
+const signedOutNotice = new URLSearchParams(window.location.search).get("signed_out") === "1";
+const signOutRequested = new URLSearchParams(window.location.search).get("signout") === "1";
+const SIGN_OUT_INTENT_KEY = "flipforge.signOutIntent";
+const SIGNED_OUT_BROADCAST_KEY = "flipforge.session.signedOutAt";
+// Same rule as saas-prototype/account-sign-out-v1.js: per-account UI data under "flipforge." keys is cleared on sign-out.
+const SIGN_OUT_KEEP_KEYS = ["flipforge.betaTerms.pending.v1", "flipforge.dashboard.renderer", SIGNED_OUT_BROADCAST_KEY];
 const PRIVATE_BETA_START = "/app/beta/#/beta-start";
 const OWNER_HUB = "/owner";
 const OPERATOR_ROLE = "flipforge-operator";
@@ -119,6 +128,38 @@ async function withTimeout(promise, milliseconds = 8000) {
   }
 }
 
+function clearAccountState({ broadcast = true } = {}) {
+  for (const store of [window.localStorage, window.sessionStorage]) {
+    try {
+      const keys = [];
+      for (let index = 0; index < store.length; index += 1) keys.push(store.key(index));
+      keys.filter(key => key && key.startsWith("flipforge.") && !SIGN_OUT_KEEP_KEYS.includes(key)).forEach(key => store.removeItem(key));
+    } catch (_) {
+      // Storage unavailable: nothing was stored there either.
+    }
+  }
+  if (!broadcast) return;
+  try { window.localStorage.setItem(SIGNED_OUT_BROADCAST_KEY, String(Date.now())); } catch (_) { /* other tabs re-check on their next request */ }
+}
+
+function consumeSignOutIntent() {
+  try {
+    const intent = window.sessionStorage.getItem(SIGN_OUT_INTENT_KEY);
+    window.sessionStorage.removeItem(SIGN_OUT_INTENT_KEY);
+    return Boolean(intent);
+  } catch (_) {
+    return false;
+  }
+}
+
+async function signOutSession() {
+  await withTimeout(logout());
+  clearAccountState();
+  setSignedIn(null);
+  result.textContent = "";
+  setStatus("You are signed out of FlipForge.", "ok");
+}
+
 async function initialize() {
   if (!hostAllowed) {
     form.hidden = true;
@@ -131,8 +172,19 @@ async function initialize() {
     return;
   }
   try {
-    const user = await withTimeout(getUser());
+    let user = await withTimeout(getUser());
+    if (signOutRequested && consumeSignOutIntent() && user) {
+      await signOutSession();
+      user = null;
+      history.replaceState(null, "", `${window.location.pathname}?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start&signed_out=1`);
+      return;
+    }
     setSignedIn(user);
+    if (!user && (signedOutNotice || signOutRequested)) {
+      // The app signed out just before navigating here; drop anything its scripts wrote while the page was unloading.
+      clearAccountState({ broadcast: false });
+      setStatus("You are signed out of FlipForge.", "ok");
+    }
     if (user && !reauthRequested) await verifyAccess();
     if (reauthRequested) {
       if (user) {
@@ -194,9 +246,7 @@ recoveryButton?.addEventListener("click", async () => {
 signOutButton?.addEventListener("click", async () => {
   signOutButton.disabled = true;
   try {
-    await withTimeout(logout());
-    setSignedIn(null);
-    result.textContent = "";
+    await signOutSession();
     if (reauthRequested) setStatus("Signed out. Sign in again to restore app access.", "neutral");
   } catch (error) {
     setStatus(friendlyAuthError(error, "Sign out failed.", AUTH_FLOWS.SIGN_IN), "error");

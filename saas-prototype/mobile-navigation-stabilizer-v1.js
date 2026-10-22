@@ -115,6 +115,22 @@
     return alerts;
   }
 
+  // Sign out sits directly under Account in the phone drawer (account-sign-out-v1.js runs the flow).
+  function ensureSignOut(nav, account) {
+    let button = nav.querySelector("[data-ff-mobile-sign-out]");
+    if (!button) {
+      button = document.createElement("button");
+      button.type = "button";
+      button.className = "ff-mobile-signout-nav";
+      button.setAttribute("data-ff-sign-out", "");
+      button.setAttribute("data-ff-mobile-sign-out", "");
+      button.setAttribute("aria-label", "Sign out of FlipForge");
+      button.innerHTML = '<span class="ff-mobile-alerts-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h4"/><path d="M14 8l4 4-4 4"/><path d="M18 12H9"/></svg></span><span class="ff-sign-out-label">Sign out</span>';
+    }
+    if (account.nextElementSibling !== button) account.insertAdjacentElement("afterend", button);
+    return button;
+  }
+
   function syncActiveRoute(nav) {
     const current = activeRoute();
     nav.querySelectorAll("[data-route]").forEach(link => {
@@ -156,6 +172,7 @@
     restoreLink(account);
     syncAccountInitials(account);
     ensureAlertsLink(nav, account);
+    ensureSignOut(nav, account);
     syncActiveRoute(nav);
   }
 

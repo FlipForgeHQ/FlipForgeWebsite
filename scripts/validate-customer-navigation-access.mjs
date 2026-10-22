@@ -77,7 +77,7 @@ const access = read("assets/js/access-state-v1.js");
 const code = access.replace(/\/\/.*$/gm, "");
 check("019 verified state uses the same-origin gateway entitlements check", code.includes('const ENTITLEMENTS_PATH = "/api/v1/entitlements";') && code.includes("fetch(ENTITLEMENTS_PATH") && code.includes('credentials: "same-origin"') && code.includes('cache: "no-store"') && code.includes('redirect: "error"'));
 check("020 exactly one network call, memoized in memory per page view", (code.match(/fetch\(/g) || []).length === 1 && code.includes("if (!verification) verification = verifyServerSession();"));
-check("021 browser storage is never consulted", !/localStorage|sessionStorage|indexedDB|caches\./.test(code));
+check("021 browser storage is never consulted for access (only a one-time sign-out intent is written)", !/localStorage|indexedDB|caches\.|getItem/.test(code) && (code.match(/sessionStorage/g) || []).length === 1 && code.includes('window.sessionStorage.setItem("flipforge.signOutIntent"'));
 check("022 no email address is sent or looked up", !/email(?!_change_token)/i.test(code) && !/method:\s*"POST"/.test(code) && !/body:/.test(code));
 check("023 the session cookie is only a hint for whether to ask the server", code.includes("if (!sessionHint()) return;") && code.includes("const state = await verifiedState();") && code.indexOf("if (!sessionHint()) return;") < code.indexOf("const state = await verifiedState();"));
 check("024 Open Dashboard only after a verified 200 with a data object", /if \(response\.status === 200\) \{\s*return payload && typeof payload === "object" && payload\.data && typeof payload\.data === "object" \? "member" : "signed-out";/.test(code));

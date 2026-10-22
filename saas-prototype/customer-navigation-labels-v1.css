@@ -34,9 +34,10 @@ html body .topbar [data-ff-labeled-control] .ff-control-label{
   white-space:nowrap!important;
 }
 
-/* Saved Decisions and Alerts: text + icon buttons with the same height as the other topbar actions. */
+/* Saved Decisions, Alerts and Sign out: text + icon buttons with the same height as the other topbar actions. */
 html body .topbar .topbar-actions [data-ff-labeled-control="saved-decisions"],
-html body .topbar .topbar-actions [data-ff-labeled-control="alerts"]{
+html body .topbar .topbar-actions [data-ff-labeled-control="alerts"],
+html body .topbar .topbar-actions [data-ff-labeled-control="sign-out"]{
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -49,6 +50,21 @@ html body .topbar .topbar-actions [data-ff-labeled-control="alerts"]{
   white-space:nowrap!important;
   text-decoration:none!important;
 }
+
+/* Sign out sits right after Account at every width the top bar shows its actions. */
+html body .topbar .topbar-actions [data-ff-labeled-control="sign-out"]{
+  cursor:pointer!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  background:transparent!important;
+  color:#e8e8e8!important;
+  font:inherit!important;
+}
+html body .topbar .topbar-actions [data-ff-labeled-control="sign-out"]:hover,
+html body .topbar .topbar-actions [data-ff-labeled-control="sign-out"]:focus-visible{border-color:#d4af37!important;color:#fff!important}
+html body .topbar .topbar-actions [data-ff-labeled-control="sign-out"][disabled]{opacity:.7!important;cursor:progress!important}
+
+/* While access is being (re)checked or after sign-out, nothing in the workspace is visible (customer shell too). */
+html.ff-private-beta-access-pending body{visibility:hidden!important}
 
 /* Account: initials avatar + visible "Account" label. */
 html body .topbar .topbar-actions [data-ff-labeled-control="account"]{
@@ -111,6 +127,7 @@ html body .topbar [data-ff-labeled-control="menu"]{
   }
   html body .topbar .topbar-actions .ff-global-new-card{display:none!important}
   html body .topbar .topbar-actions [data-ff-labeled-control="account"]{display:inline-flex!important}
+  html body .topbar .topbar-actions [data-ff-labeled-control="sign-out"]{display:inline-flex!important}
 }
 
 /* Phone: the top bar is Menu + search only; Account and Alerts are labelled entries in the drawer. */
@@ -157,12 +174,35 @@ html body .topbar [data-ff-labeled-control="menu"]{
   }
   html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy{display:grid!important;gap:1px!important;min-width:0!important}
   html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy strong{display:block!important;font-size:15px!important;line-height:1.2!important;font-weight:800!important;color:#fff!important}
+  html body .sidebar .primary-nav > button.ff-mobile-signout-nav{
+    display:grid!important;
+    grid-template-columns:32px minmax(0,1fr)!important;
+    align-items:center!important;
+    gap:10px!important;
+    width:100%!important;
+    min-height:48px!important;
+    margin:4px 0 0!important;
+    padding:0 12px!important;
+    border:1px solid rgba(255,255,255,.16)!important;
+    border-radius:10px!important;
+    background:transparent!important;
+    color:#fff!important;
+    font:inherit!important;
+    font-size:15px!important;
+    font-weight:800!important;
+    text-align:left!important;
+    cursor:pointer!important;
+  }
+  html body .sidebar .primary-nav > button.ff-mobile-signout-nav .ff-mobile-alerts-icon{display:inline-grid!important;place-items:center!important;width:30px!important;height:30px!important;color:#f0ca58!important}
+  html body .sidebar .primary-nav > button.ff-mobile-signout-nav svg{width:19px!important;height:19px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+  html body .sidebar .primary-nav > button.ff-mobile-signout-nav:focus-visible{outline:2px solid #f0ca58!important;outline-offset:2px!important}
   html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy .ff-mobile-account-sub{display:block!important;font-size:12px!important;line-height:1.25!important;color:#a8a8a8!important}
 }
 
 /* Drawer-only entries never duplicate the top bar on wider screens. */
 @media (min-width:761px){
-  html body .sidebar .primary-nav > a.ff-mobile-account-nav{display:none!important}
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav,
+  html body .sidebar .primary-nav > button.ff-mobile-signout-nav{display:none!important}
 }
 
 /* Guided Mode header: Minimize and Close carry visible words, not just − and ×. */
