@@ -110,15 +110,41 @@
     }
   }
 
-  // The feedback form asks testers not to send card identities or listing URLs, so the
-  // request is deliberately generic. The tester can tick the follow-up consent box if they
-  // want the FlipForge team to ask which card it was.
-  function requestEvidence() {
+  // A card evidence request carries only the card identity this exact-match search was run
+  // with (and the year, card number and grade written in it). It never carries the listing
+  // link, seller, price, sale records or provider data. The tester reviews and can correct
+  // every field on the feedback form before anything is sent.
+  function cardReferenceFor(item) {
+    if (!item || String(item.matchQuality || "") !== "EXACT_MATCH") return null;
+    const identity = normalizeIdentityQuery(item.cardIdentityQuery || state.data?.query || "").slice(0, 200);
+    if (identity.length < 6) return null;
+    const year = identity.match(/\b((?:18|19|20)\d{2})(?:\s*-\s*(\d{2}))?\b/);
+    const number = identity.match(/#\s*([A-Za-z0-9][A-Za-z0-9.\-/]{0,23})/);
+    const declared = declaredGradeContext(identity);
+    const raw = !declared.grader && /\b(?:raw|ungraded)\b/i.test(identity);
+    return {
+      identity,
+      year: year ? (year[2] ? `${year[1]}-${year[2]}` : year[1]) : "",
+      player: "",
+      set: "",
+      cardNumber: number ? number[1].replace(/[.-]+$/, "") : "",
+      parallel: "",
+      grader: declared.grader || (raw ? "RAW" : ""),
+      grade: declared.grade || ""
+    };
+  }
+
+  function requestEvidence(index) {
     if (!evidenceRequestAvailable()) return;
+    const items = Array.isArray(state.data?.items) ? state.data.items : [];
+    const cardReference = cardReferenceFor(items[index]);
     window.FlipForgePrivateBeta.requestFeedback({
       category: "evidence",
-      summary: "I found a card in Discover that has no sold-price evidence yet, and I'd like FlipForge to add some so it can show a value.",
-      expected: "A value for the card, backed by sold-price evidence."
+      summary: cardReference
+        ? "Please add sold-price evidence for the card below so FlipForge can show a value for it."
+        : "I found a card in Discover that has no sold-price evidence yet, and I'd like FlipForge to add some so it can show a value.",
+      expected: "A value for the card, backed by sold-price evidence.",
+      cardReference
     });
   }
 
@@ -847,15 +873,23 @@
     // Zero matched sales is the normal beta state, not an error. Say plainly why there is
     // no value instead of the bare "Evidence required", and offer the one action a tester
     // has: ask the FlipForge team for evidence through the existing beta feedback form.
-    // Without sold evidence there is nothing to position the ask against; say so plainly.
+    // Without enough sold evidence there is nothing to position the ask against. Two different
+    // states, worded differently: no qualified sale at all, or some qualified sales that are
+    // still below the minimum FlipForge needs before it shows a value.
+    const soldSaleCount = Math.max(0, Number.parseInt(evidence.trustedExactCompletedSaleCount, 10) || 0);
+    const saleWord = count => `${count} qualified ${count === 1 ? "sale" : "sales"}`;
     const rawPricePosition = String(item.pricePosition || "").trim();
     const pricePositionText = !evidence.supported && (!rawPricePosition || /^evidence required\.?$/i.test(rawPricePosition))
-      ? "Not available until there is sold-price evidence"
+      ? (soldSaleCount > 0 ? "Not available until there are enough qualified sales" : "Not available until there is sold-price evidence")
       : rawPricePosition || "Evidence required";
-    const soldSaleCount = Number(evidence.trustedExactCompletedSaleCount) || 0;
+    const requestControl = !identityReview && evidenceRequestAvailable()
+      ? `<button class="customer-discovery-evidence-request" type="button" data-discovery-request-evidence="${index}">Request evidence for this card</button>`
+      : "";
     const soldContextMetric = evidence.supported
       ? `<div><span>Matched exact sold context</span><strong>${escapeHtml(soldSaleCount)} ${soldSaleCount === 1 ? "sale" : "sales"}</strong><small>${moneyFromCents(evidence.trustedEvidenceValueCents)} median context</small></div>`
-      : `<div class="customer-discovery-no-sold-data"><span>Sold-price evidence</span><strong>${soldSaleCount > 0 ? `${escapeHtml(soldSaleCount)} matched, not enough yet` : "None yet"}</strong><small>The beta isn't using outside sold-price data yet, so FlipForge won't guess a value from asking prices.</small>${!identityReview && evidenceRequestAvailable() ? `<button class="customer-discovery-evidence-request" type="button" data-discovery-request-evidence="${index}">Request evidence for this card</button>` : ""}</div>`;
+      : soldSaleCount > 0
+        ? `<div class="customer-discovery-no-sold-data" data-sold-evidence-state="below-threshold"><span>Sold-price evidence</span><strong>${escapeHtml(saleWord(soldSaleCount))} · not enough yet</strong><small>${escapeHtml(saleWord(soldSaleCount))} of this exact card passed FlipForge's evidence checks. That's below the minimum it needs, so no value is shown.</small>${requestControl}</div>`
+        : `<div class="customer-discovery-no-sold-data" data-sold-evidence-state="none"><span>Sold-price evidence</span><strong>No qualified sales yet</strong><small>No sale of this exact card has passed FlipForge's evidence checks. The beta isn't using outside sold-price data yet, so FlipForge won't guess a value from asking prices.</small>${requestControl}</div>`;
     const blockReason = item.evaluationBlockReason || "Exact listing identity is required before evaluation.";
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
@@ -1051,7 +1085,7 @@
     state.main?.querySelectorAll?.("[data-discovery-request-evidence]").forEach(button => {
       button.addEventListener("click", () => {
         const index = Number.parseInt(button.dataset.discoveryRequestEvidence || "-1", 10);
-        if (Number.isInteger(index) && index >= 0) requestEvidence();
+        if (Number.isInteger(index) && index >= 0) requestEvidence(index);
       });
     });
     state.main?.querySelectorAll?.("[data-discovery-evaluate]").forEach(button => {

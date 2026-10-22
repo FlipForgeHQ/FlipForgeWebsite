@@ -157,6 +157,91 @@ export function createApplication(applicant, now = new Date()) {
   };
 }
 
+// Card evidence requests (from "Request evidence for this card" in Discover) carry a minimal,
+// tester-reviewed card reference so the request is actionable. Only these identity fields are
+// accepted. Listing links, seller data, prices, sale records, provider records and account
+// identifiers are refused, never silently dropped, so a client cannot widen what is stored.
+export const CARD_EVIDENCE_REQUEST_TYPE = "CARD_EVIDENCE";
+export const CARD_REFERENCE_FIELDS = Object.freeze(["identity", "year", "player", "set", "cardNumber", "parallel", "grader", "grade"]);
+const CARD_REFERENCE_META_FIELDS = Object.freeze(["source", "edited"]);
+const CARD_REFERENCE_SOURCES = new Set(["DISCOVER_EXACT_SEARCH"]);
+const CARD_REFERENCE_LIMITS = Object.freeze({ identity: 200, year: 7, player: 80, set: 120, cardNumber: 24, parallel: 80, grader: 8, grade: 9 });
+export const CARD_REFERENCE_GRADERS = Object.freeze(["PSA", "BGS", "SGC", "CGC", "CSG", "TAG", "BCCG", "RAW"]);
+export const CARD_REFERENCE_GRADES = Object.freeze(["10", "9.5", "9", "8.5", "8", "7.5", "7", "6.5", "6", "5.5", "5", "4.5", "4", "3.5", "3", "2.5", "2", "1.5", "1", "AUTHENTIC"]);
+const CARD_YEAR = /^(?:18|19|20)\d{2}(?:-\d{2})?$/;
+const CARD_NUMBER = /^[A-Za-z0-9][A-Za-z0-9.\-/]{0,23}$/;
+// URLs, domains, email addresses, long digit runs (item, order, phone or account numbers),
+// markup, and money amounts are not card identity and are refused.
+const CARD_REFERENCE_UNSAFE = [
+  /[a-z][a-z0-9+.-]*:\/\//i,
+  /\bwww\./i,
+  /\b[a-z0-9-]+\.(?:com|net|org|io|co|us|uk|ca|de|ly|app|shop|store|me|gg)\b/i,
+  /@/,
+  /\d{9,}/,
+  /[<>{}\\`]/,
+  /[$€£¥]/,
+];
+
+function cardReferenceUnsafe(value) {
+  return CARD_REFERENCE_UNSAFE.some(pattern => pattern.test(value));
+}
+
+function plainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype;
+}
+
+export function validateCardReference(input, category) {
+  const errors = [];
+  const requestTypeRaw = cleanSingleLine(input?.requestType, 40);
+  const hasReference = input?.cardReference !== undefined && input?.cardReference !== null;
+  if (!requestTypeRaw && !hasReference) return { ok: true, requestType: "", cardReference: null, errors };
+  if (requestTypeRaw !== CARD_EVIDENCE_REQUEST_TYPE) return { ok: false, requestType: "", cardReference: null, errors: ["REQUEST_TYPE_INVALID"] };
+  if (category !== "evidence") errors.push("CARD_EVIDENCE_CATEGORY_INVALID");
+  const raw = input?.cardReference;
+  if (!plainObject(raw)) return { ok: false, requestType: "", cardReference: null, errors: [...errors, "CARD_REFERENCE_REQUIRED"] };
+
+  const allowed = new Set([...CARD_REFERENCE_FIELDS, ...CARD_REFERENCE_META_FIELDS]);
+  if (Object.keys(raw).some(key => !allowed.has(key))) errors.push("CARD_REFERENCE_FIELD_NOT_ALLOWED");
+
+  const reference = {};
+  let malformed = false;
+  let unsafe = false;
+  for (const field of CARD_REFERENCE_FIELDS) {
+    const value = raw[field];
+    if (value === undefined || value === null) { reference[field] = ""; continue; }
+    if (typeof value !== "string") { malformed = true; reference[field] = ""; continue; }
+    // Over-long values are refused rather than truncated, so a cut-off value is never stored.
+    const full = cleanSingleLine(value, 4_096);
+    if (full.length > CARD_REFERENCE_LIMITS[field]) malformed = true;
+    const cleaned = full.slice(0, CARD_REFERENCE_LIMITS[field]);
+    if (cleaned.length && cardReferenceUnsafe(cleaned)) unsafe = true;
+    reference[field] = cleaned;
+  }
+  if (malformed) errors.push("CARD_REFERENCE_VALUE_INVALID");
+  if (unsafe) errors.push("CARD_REFERENCE_UNSAFE_CONTENT");
+
+  reference.grader = reference.grader.toUpperCase();
+  reference.grade = reference.grade.toUpperCase();
+  if (reference.identity.length < 6 || !/[A-Za-z]/.test(reference.identity)) errors.push("CARD_REFERENCE_IDENTITY_REQUIRED");
+  if (reference.year && !CARD_YEAR.test(reference.year)) errors.push("CARD_REFERENCE_YEAR_INVALID");
+  if (reference.cardNumber && !CARD_NUMBER.test(reference.cardNumber.replace(/^#/, ""))) errors.push("CARD_REFERENCE_CARD_NUMBER_INVALID");
+  reference.cardNumber = reference.cardNumber.replace(/^#/, "");
+  if (reference.grader && !CARD_REFERENCE_GRADERS.includes(reference.grader)) errors.push("CARD_REFERENCE_GRADER_INVALID");
+  if (reference.grade && !CARD_REFERENCE_GRADES.includes(reference.grade)) errors.push("CARD_REFERENCE_GRADE_INVALID");
+  if (reference.grade && (!reference.grader || reference.grader === "RAW")) errors.push("CARD_REFERENCE_GRADE_WITHOUT_GRADER");
+
+  const source = cleanSingleLine(raw.source, 40);
+  if (!CARD_REFERENCE_SOURCES.has(source)) errors.push("CARD_REFERENCE_SOURCE_INVALID");
+  if (raw.edited !== undefined && typeof raw.edited !== "boolean") errors.push("CARD_REFERENCE_VALUE_INVALID");
+  reference.source = CARD_REFERENCE_SOURCES.has(source) ? source : "";
+  reference.edited = raw.edited === true;
+
+  const unique = [...new Set(errors)];
+  return unique.length
+    ? { ok: false, requestType: "", cardReference: null, errors: unique }
+    : { ok: true, requestType: CARD_EVIDENCE_REQUEST_TYPE, cardReference: reference, errors: [] };
+}
+
 export function isActiveTester(user) {
   const roles = operatorRoles(user);
   const tenantRoles = roles.filter(role => role.startsWith(TENANT_ROLE_PREFIX));
@@ -189,14 +274,25 @@ export function validateFeedback(input, user) {
   if (feedback.category === "outcome-review" && feedback.checkpoint === "GENERAL") errors.push("OUTCOME_CHECKPOINT_REQUIRED");
   if (feedback.category === "outcome-review" && !feedback.outcome) errors.push("OUTCOME_STATE_REQUIRED");
   if (!feedback.contactAllowed) feedback.contactEmail = null;
+  const card = validateCardReference(input, feedback.category);
+  errors.push(...card.errors);
+  if (card.ok && card.cardReference) {
+    feedback.requestType = card.requestType;
+    feedback.cardReference = card.cardReference;
+  }
   return { ok: errors.length === 0, feedback, errors };
 }
+
+// Feedback record schema: v1 = category, rating, summary, expected, route, checkpoint, outcome,
+// contact fields (and optional CDI learning signals). v2 adds the optional requestType and
+// cardReference of a card evidence request. Records without a card reference stay v1.
+export const FEEDBACK_SCHEMA_VERSION_CARD_REFERENCE = 2;
 
 export function createFeedback(feedback, now = new Date()) {
   const id = crypto.randomUUID();
   const at = now.toISOString();
   return {
-    schemaVersion: 1,
+    schemaVersion: feedback?.cardReference ? FEEDBACK_SCHEMA_VERSION_CARD_REFERENCE : 1,
     id,
     version: 1,
     status: "NEW",
@@ -335,8 +431,10 @@ export function feedbackSummary(records) {
     if (Object.hasOwn(byCheckpoint, record.feedback?.checkpoint)) byCheckpoint[record.feedback.checkpoint] += 1;
     if (Object.hasOwn(byOutcome, record.feedback?.outcome)) byOutcome[record.feedback.outcome] += 1;
   }
+  const cardEvidenceRequests = records.filter(record => record.feedback?.requestType === CARD_EVIDENCE_REQUEST_TYPE).length;
   return {
     total: records.length,
+    cardEvidenceRequests,
     outcomeCheckpoints: byCheckpoint.DAY_7 + byCheckpoint.DAY_14 + byCheckpoint.DAY_30,
     byStatus,
     byCheckpoint,

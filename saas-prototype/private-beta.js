@@ -12,6 +12,21 @@
   // this card" in Discover). Held only in memory for this page session, applied to the
   // form when the guide renders, and cleared once the guide has rendered with it.
   let pendingFeedbackDraft = null;
+  // The card reference of an evidence request: only confirmed card-identity fields, held in
+  // memory while the tester reviews them, cleared on send, on removal, or on leaving the guide.
+  let activeCardReference = null;
+  const CARD_REFERENCE_SOURCE = "DISCOVER_EXACT_SEARCH";
+  const CARD_REFERENCE_TEXT_FIELDS = Object.freeze([
+    ["identity", "Card", 200],
+    ["year", "Year", 7],
+    ["player", "Player", 80],
+    ["set", "Set", 120],
+    ["cardNumber", "Card number", 24],
+    ["parallel", "Parallel or variation", 80]
+  ]);
+  const CARD_REFERENCE_GRADERS = Object.freeze(["PSA", "BGS", "SGC", "CGC", "CSG", "TAG", "BCCG", "RAW"]);
+  const CARD_REFERENCE_GRADES = Object.freeze(["10", "9.5", "9", "8.5", "8", "7.5", "7", "6.5", "6", "5.5", "5", "4.5", "4", "3.5", "3", "2.5", "2", "1.5", "1", "AUTHENTIC"]);
+  const CARD_REFERENCE_UNSAFE = [/[a-z][a-z0-9+.-]*:\/\//i, /\bwww\./i, /\b[a-z0-9-]+\.(?:com|net|org|io|co|us|uk|ca|de|ly|app|shop|store|me|gg)\b/i, /@/, /\d{9,}/, /[<>{}\\`]/, /[$€£¥]/];
   const FEEDBACK_DRAFT_CATEGORIES = new Set(["workflow", "decision-explanation", "evidence", "psa-guidance", "accessibility", "bug"]);
 
   function productionHost() {
@@ -130,6 +145,84 @@
     if (copy) copy.textContent = "Invitation only · Controlled customer intelligence · No billing or transaction authority";
   }
 
+  function cleanCardValue(value, max) {
+    return String(value ?? "").normalize("NFKC").replace(/[\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+  }
+
+  // Accepts only the card-identity fields; anything else a caller passes is dropped here and
+  // refused by the server.
+  function normalizeCardReference(input) {
+    if (!input || typeof input !== "object") return null;
+    const fields = {};
+    for (const [name, , max] of CARD_REFERENCE_TEXT_FIELDS) fields[name] = cleanCardValue(input[name], max);
+    fields.cardNumber = fields.cardNumber.replace(/^#/, "");
+    const grader = cleanCardValue(input.grader, 8).toUpperCase();
+    const grade = cleanCardValue(input.grade, 9).toUpperCase();
+    fields.grader = CARD_REFERENCE_GRADERS.includes(grader) ? grader : "";
+    fields.grade = fields.grader && fields.grader !== "RAW" && CARD_REFERENCE_GRADES.includes(grade) ? grade : "";
+    if (fields.identity.length < 6) return null;
+    return { prefill: Object.freeze({ ...fields }), current: { ...fields } };
+  }
+
+  function cardFieldStatus(name) {
+    const prefill = activeCardReference?.prefill?.[name] || "";
+    const current = activeCardReference?.current?.[name] || "";
+    if (!current) return ["missing", name === "identity" ? "Required" : "Not in your search · add it if you know it"];
+    if (current !== prefill) return ["edited", "Edited by you"];
+    return ["search", "From your Discover search"];
+  }
+
+  function cardStatusChip(name) {
+    const [tone, text] = cardFieldStatus(name);
+    return `<small class="private-beta-card-chip" data-card-chip="${name}" data-tone="${tone}">${escapeHtml(text)}</small>`;
+  }
+
+  function cardReferenceMarkup() {
+    if (!activeCardReference) return "";
+    const current = activeCardReference.current;
+    const textInputs = CARD_REFERENCE_TEXT_FIELDS.map(([name, label, max]) => `<label class="private-beta-card-field${name === "identity" ? " private-beta-card-field-wide" : ""}"><span>${escapeHtml(label)}</span>${cardStatusChip(name)}<input name="card-${name}" data-card-field="${name}" maxlength="${max}" autocomplete="off" spellcheck="false" value="${escapeHtml(current[name])}"${name === "identity" ? ' aria-required="true"' : ""}></label>`).join("");
+    const graderOptions = [["", "Not stated"], ...CARD_REFERENCE_GRADERS.map(value => [value, value === "RAW" ? "Raw (ungraded)" : value])]
+      .map(([value, label]) => `<option value="${value}"${current.grader === value ? " selected" : ""}>${escapeHtml(label)}</option>`).join("");
+    const gradeOptions = [["", "Not stated"], ...CARD_REFERENCE_GRADES.map(value => [value, value === "AUTHENTIC" ? "Authentic" : value])]
+      .map(([value, label]) => `<option value="${value}"${current.grade === value ? " selected" : ""}>${escapeHtml(label)}</option>`).join("");
+    return `<fieldset class="private-beta-card-reference" data-card-reference>
+        <legend>Card for this evidence request</legend>
+        <p class="private-beta-card-intro">Check these details before you send. Fix anything that's wrong and add what's missing if you know it. Only the card fields below are sent: no listing link, seller, price, or sale details.</p>
+        <div class="private-beta-card-grid">
+          ${textInputs}
+          <label class="private-beta-card-field"><span>Grader</span>${cardStatusChip("grader")}<select name="card-grader" data-card-field="grader">${graderOptions}</select></label>
+          <label class="private-beta-card-field"><span>Grade</span>${cardStatusChip("grade")}<select name="card-grade" data-card-field="grade">${gradeOptions}</select></label>
+        </div>
+        <button class="private-beta-card-remove" type="button" data-card-reference-remove>Don't include card details</button>
+      </fieldset>`;
+  }
+
+  function syncCardReferenceFromForm() {
+    if (!activeCardReference) return;
+    document.querySelectorAll("[data-card-reference] [data-card-field]").forEach(input => {
+      const name = input.dataset.cardField;
+      const field = CARD_REFERENCE_TEXT_FIELDS.find(([key]) => key === name);
+      activeCardReference.current[name] = input.tagName === "SELECT"
+        ? String(input.value || "")
+        : cleanCardValue(input.value, field ? field[2] : 80);
+    });
+  }
+
+  // Mirrors the server rules so the tester sees a specific message before sending.
+  function cardReferenceProblem(reference) {
+    const labelFor = name => (CARD_REFERENCE_TEXT_FIELDS.find(([key]) => key === name) || [name, name])[1];
+    if (reference.identity.length < 6 || !/[A-Za-z]/.test(reference.identity)) return ["identity", "Enter the card (year, set, player and card number) before sending."];
+    for (const [name] of CARD_REFERENCE_TEXT_FIELDS) {
+      if (reference[name] && CARD_REFERENCE_UNSAFE.some(pattern => pattern.test(reference[name]))) {
+        return [name, `${labelFor(name)} can only hold card details. Remove links, email addresses, long ID numbers, or prices.`];
+      }
+    }
+    if (reference.year && !/^(?:18|19|20)\d{2}(?:-\d{2})?$/.test(reference.year)) return ["year", "Enter the year as 2023 or a season as 2025-26."];
+    if (reference.cardNumber && !/^[A-Za-z0-9][A-Za-z0-9.\-/]{0,23}$/.test(reference.cardNumber.replace(/^#/, ""))) return ["cardNumber", "Enter the card number as printed, for example 1, US50 or BCP-12."];
+    if (reference.grade && (!reference.grader || reference.grader === "RAW")) return ["grade", "Choose the grader for this grade, or clear the grade for a raw card."];
+    return null;
+  }
+
   function feedbackForm(session) {
     const signedIn = session.authenticated && session.membershipActive;
     return `<form class="private-beta-feedback-form" data-private-beta-feedback>
@@ -174,6 +267,7 @@
           </select>
         </label>
       </div>
+      ${cardReferenceMarkup()}
       <label>What happened?
         <textarea name="summary" maxlength="2000" required placeholder="Describe the workflow, wording, or behavior that helped or blocked you."></textarea>
       </label>
@@ -181,7 +275,7 @@
         <textarea name="expected" maxlength="1200" placeholder="Optional: describe what a clearer or better outcome would look like."></textarea>
       </label>
       <label class="private-beta-consent"><input type="checkbox" name="contactAllowed" value="yes"><span>FlipForge may include my invited account email with this feedback and follow up about it.</span></label>
-      <p class="private-beta-feedback-note">For an outcome review, choose Day 7, 14, or 30 and an outcome signal. Do not paste passwords, access tokens, provider keys, tenant IDs, card listing URLs, card identities, or other sensitive data. This form records tester feedback—not a new evaluation or accuracy claim.</p>
+      <p class="private-beta-feedback-note">For an outcome review, choose Day 7, 14, or 30 and an outcome signal. Do not paste passwords, access tokens, provider keys, tenant IDs, card listing URLs, seller details, or other sensitive data. Send card identities only in the reviewed card fields of an evidence request. This form records tester feedback—not a new evaluation or accuracy claim.</p>
       <div class="page-actions"><button class="button button-primary" type="submit" ${signedIn ? "" : "disabled"}>Send beta feedback</button></div>
       <p class="private-beta-message" data-private-beta-message role="status" aria-live="polite">${signedIn ? "" : "Sign in with an active invitation before sending feedback."}</p>
     </form>`;
@@ -402,6 +496,7 @@
       summary: String(draft.summary || "").slice(0, 2000),
       expected: String(draft.expected || "").slice(0, 1200)
     });
+    activeCardReference = category === "evidence" ? normalizeCardReference(draft.cardReference) : null;
     if (onBetaRoute()) render();
     else window.location.hash = `#/${ROUTE}`;
   }
@@ -421,6 +516,27 @@
 
     document.querySelector("[data-private-beta-feedback-link]")?.addEventListener("click", () => {
       document.querySelector("#beta-feedback")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    document.querySelectorAll("[data-card-reference] [data-card-field]").forEach(input => {
+      const update = () => {
+        syncCardReferenceFromForm();
+        const name = input.dataset.cardField;
+        const chip = document.querySelector(`[data-card-chip="${name}"]`);
+        if (!chip) return;
+        const [tone, text] = cardFieldStatus(name);
+        chip.dataset.tone = tone;
+        chip.textContent = text;
+      };
+      input.addEventListener("input", update);
+      input.addEventListener("change", update);
+    });
+
+    document.querySelector("[data-card-reference-remove]")?.addEventListener("click", () => {
+      activeCardReference = null;
+      document.querySelector("[data-card-reference]")?.remove();
+      setMessage("Card details removed. This will be sent as general evidence feedback.");
+      document.querySelector("[data-private-beta-feedback] [name='summary']")?.focus();
     });
 
     document.querySelector("[data-private-beta-feedback]")?.addEventListener("submit", async event => {
@@ -454,8 +570,32 @@
       });
       payload.route = routeName();
 
+      // An evidence request carries only the card fields the tester has just reviewed.
+      syncCardReferenceFromForm();
+      const cardReference = activeCardReference ? { ...activeCardReference.current } : null;
+      if (cardReference) {
+        if (payload.category !== "evidence") {
+          setMessage("A card evidence request uses the Evidence feedback type. Choose Evidence, or remove the card details.", "error");
+          form.elements.category?.focus();
+          return;
+        }
+        const problem = cardReferenceProblem(cardReference);
+        if (problem) {
+          setMessage(problem[1], "error");
+          form.querySelector(`[data-card-field="${problem[0]}"]`)?.focus();
+          return;
+        }
+        const prefill = activeCardReference.prefill;
+        payload.requestType = "CARD_EVIDENCE";
+        payload.cardReference = {
+          ...cardReference,
+          source: CARD_REFERENCE_SOURCE,
+          edited: Object.keys(cardReference).some(name => cardReference[name] !== prefill[name])
+        };
+      }
+
       button.disabled = true;
-      setMessage("Sending beta feedback…");
+      setMessage(cardReference ? "Sending evidence request…" : "Sending beta feedback…");
       try {
         const response = await fetch(FEEDBACK_ENDPOINT, {
           method: "POST",
@@ -463,11 +603,25 @@
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify(payload)
         });
-        if (!response.ok) throw new Error("Feedback endpoint rejected the submission.");
+        if (!response.ok) {
+          const body = await response.json().catch(() => null);
+          const fields = Array.isArray(body?.fields) ? body.fields : [];
+          const error = new Error("Feedback endpoint rejected the submission.");
+          error.cardReferenceRejected = fields.some(code => /^CARD_(?:REFERENCE|EVIDENCE)_/.test(String(code)));
+          throw error;
+        }
         form.reset();
-        setMessage("Feedback received. Thank you for testing the reasoning—not just the result.", "ok");
-      } catch (_) {
-        setMessage("Feedback could not be sent. Your evaluation data was not affected; try again later.", "error");
+        if (cardReference) {
+          activeCardReference = null;
+          form.querySelector("[data-card-reference]")?.remove();
+          setMessage("Evidence request received. The FlipForge team reviews each request. It doesn't change any saved decision.", "ok");
+        } else {
+          setMessage("Feedback received. Thank you for testing the reasoning—not just the result.", "ok");
+        }
+      } catch (error) {
+        setMessage(error?.cardReferenceRejected
+          ? "The card details weren't accepted. Check them for links, email addresses or ID numbers, then send again."
+          : "Feedback could not be sent. Your evaluation data was not affected; try again later.", "error");
       } finally {
         button.disabled = false;
       }
@@ -493,6 +647,7 @@
     const health = await loadHealth();
     if (!onBetaRoute()) return true;
     const latestSession = identitySnapshot();
+    syncCardReferenceFromForm();
     const summaryField = document.querySelector("[data-private-beta-feedback] [name='summary']");
     const typedSummary = summaryField ? summaryField.value : "";
     main.innerHTML = pageMarkup(latestSession, health);
@@ -532,7 +687,13 @@
     preferenceComplete
   });
 
-  window.addEventListener("hashchange", () => window.requestAnimationFrame(render));
+  window.addEventListener("hashchange", () => {
+    if (!onBetaRoute()) {
+      activeCardReference = null;
+      pendingFeedbackDraft = null;
+    }
+    window.requestAnimationFrame(render);
+  });
   window.addEventListener("flipforge:identity-change", () => {
     window.requestAnimationFrame(() => {
       syncShell();
