@@ -2,6 +2,7 @@
 import { getUser } from "@netlify/identity";
 import { isOperator, normalizeEmail } from "./lib/beta-operations-core.mjs";
 import { UPDATES_STORE_NAME, csvCell, updatesKey } from "./lib/updates-core.mjs";
+import { productionOnly } from "./lib/production-deploy-guard.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 
 const HEADERS = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow" };
@@ -58,7 +59,7 @@ export function createUpdatesSubscribersHandler({ store, getUserFn = getUser, no
   };
 }
 
-export default createUpdatesSubscribersHandler();
+export default productionOnly(createUpdatesSubscribersHandler());
 
 export const config = {
   path: "/api/updates/subscribers",
