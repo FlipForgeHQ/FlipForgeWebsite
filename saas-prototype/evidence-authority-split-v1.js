@@ -111,10 +111,13 @@
     return `<div class="ff-evidence-status-group" data-ff-evidence-status="${escapeHtml(status)}"><h3>${escapeHtml(info.label)} <span>${items.length}</span></h3><p>${escapeHtml(info.meaning)}</p><div class="table-wrap"><table data-ff-excluded-evidence-table data-ff-status-table="${escapeHtml(status)}"><thead><tr><th>Source</th><th>Amount</th><th>Sale date</th><th>Identity key</th><th>Why</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(item.sourceName || "Saved source")}</strong><small>${escapeHtml(item.type || "Unknown type")}</small></td><td>${money(item.amount)}</td><td>${escapeHtml(dateOnly(item.soldAt || item.recordedAt))}</td><td>${item.identityMatch === true ? badge("Identity key match", "neutral") : badge("Identity key differs", "warn")}</td><td>${badge(info.label, info.tone)}<small>${escapeHtml(reasonText(item, status))}</small></td></tr>`).join("")}</tbody></table></div></div>`;
   }
 
-  function notCountedMarkup(groups) {
+  function notCountedMarkup(groups, countedCount) {
     const present = NOT_COUNTED_ORDER.filter(status => groups[status].length);
     if (!present.length) {
-      return '<div class="staging-empty"><strong>Every linked sale is counted towards the current price.</strong></div>';
+      // With nothing linked at all, "every linked sale is counted" would contradict "no sales are counted".
+      return countedCount > 0
+        ? '<div class="staging-empty"><strong>Every linked sale is counted towards the current price.</strong></div>'
+        : '<div class="staging-empty"><strong>Nothing was set aside.</strong><p>No sales are linked to this card yet, so there is nothing to exclude.</p></div>';
     }
     return present.map(status => notCountedTable(groups[status], status)).join("");
   }
@@ -128,7 +131,7 @@
       const saved = display.legacySavedValues(decision);
       return `<section class="panel ff-evidence-decision-time" data-ff-decision-time-section><header class="panel-header"><div><h2>The saved decision</h2><p>Recorded when this decision was saved. Later evidence-rule changes never rewrite it.</p>${display.legacyMarkup(decision)}</div></header><div class="panel-body"><div class="ff-evidence-decision-time-grid"><article><span>Recommendation (historical)</span><strong>${escapeHtml(String(decision.recommendation || "Unavailable"))}</strong></article><article><span>Ask at the time</span><strong>${money(decision.askPrice)}</strong></article><article><span>Saved value at the time (legacy)</span><strong>${saved.supported === null ? "Unavailable" : money(saved.supported)}</strong></article><article><span>Sales behind it</span><strong>${escapeHtml(String(decision.salesCountAtDecision ?? "Unavailable"))}</strong></article><article><span>Decision saved</span><strong>${escapeHtml(dateOnly(decision.evaluatedAt))}</strong></article></div></div></section>`;
     }
-    return `<section class="panel ff-evidence-decision-time" data-ff-decision-time-section><header class="panel-header"><div><h2>The saved decision</h2><p>Recorded when this decision was saved. Later evidence-rule changes never rewrite it.</p></div></header><div class="panel-body"><div class="ff-evidence-decision-time-grid"><article><span>Recommendation</span><strong>${escapeHtml(String(decision.recommendation || "Unavailable"))}</strong></article><article><span>Ask at the time</span><strong>${money(decision.askPrice)}</strong></article><article><span>Supported value at the time</span><strong>${money(decision.supportedValue)}</strong></article><article><span>Sales behind it</span><strong>${escapeHtml(String(decision.salesCountAtDecision ?? "Unavailable"))}</strong></article><article><span>Decision saved</span><strong>${escapeHtml(dateOnly(decision.evaluatedAt))}</strong></article></div></div></section>`;
+    return `<section class="panel ff-evidence-decision-time" data-ff-decision-time-section><header class="panel-header"><div><h2>The saved decision</h2><p>Recorded when this decision was saved. Later evidence-rule changes never rewrite it.</p></div></header><div class="panel-body"><div class="ff-evidence-decision-time-grid"><article><span>Recommendation</span><strong>${escapeHtml(String(decision.recommendation || "Unavailable"))}</strong></article><article><span>Ask at the time</span><strong>${money(decision.askPrice)}</strong></article><article><span>Supported value at the time</span><strong>${Number(decision.supportedValue) > 0 ? money(decision.supportedValue) : Number(decision.salesCountAtDecision) === 0 ? "None (no qualifying sales)" : "Not established"}</strong></article><article><span>Sales behind it</span><strong>${escapeHtml(String(decision.salesCountAtDecision ?? "Unavailable"))}</strong></article><article><span>Decision saved</span><strong>${escapeHtml(dateOnly(decision.evaluatedAt))}</strong></article></div></div></section>`;
   }
 
   // Counts that disagree with the rows must not be shown at all: hide every evidence element on the page and
@@ -228,7 +231,7 @@
       .map(status => `${groups[status].length} ${STATUS[status].label.toLowerCase()}`).join(" · ");
     // Rows from our data provider appear only as counts and reasons, never as an empty sale table.
     const listedNotCounted = NOT_COUNTED_ORDER.some(status => groups[status].length);
-    excludedSection.innerHTML = `<header class="panel-header"><div><h2>What FlipForge did not count — and why</h2><p>${excludedCount} linked row${excludedCount === 1 ? " is" : "s are"} visible for transparency but not counted now${summary ? ` (${escapeHtml(summary)})` : ""}. Only rows marked Excluded were checked and failed a rule.</p></div></header><div class="panel-body">${providerWithCounted ? "" : providerMarkup}${listedNotCounted || !providerMarkup || providerWithCounted ? notCountedMarkup(groups) : ""}</div>`;
+    excludedSection.innerHTML = `<header class="panel-header"><div><h2>What FlipForge did not count — and why</h2><p>${excludedCount > 0 ? `${excludedCount} linked row${excludedCount === 1 ? " is" : "s are"} visible for transparency but not counted now${summary ? ` (${escapeHtml(summary)})` : ""}. Only rows marked Excluded were checked and failed a rule.` : trustedCount > 0 ? "No linked row was set aside." : "No linked rows to review."}</p></div></header><div class="panel-body">${providerWithCounted ? "" : providerMarkup}${listedNotCounted || !providerMarkup || providerWithCounted ? notCountedMarkup(groups, trustedCount) : ""}</div>`;
 
     page.dataset.ffEvidenceAuthoritySplit = "true";
   }
