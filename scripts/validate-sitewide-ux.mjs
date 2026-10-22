@@ -153,7 +153,10 @@ requireText('homepage decision proof link',homepage,'href="decision-proof.html">
 requireText('homepage illustrative label',homepage,'<span class="ff10-chip">Illustrative</span>');
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
 requireText('homepage profit boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
-requireText('homepage returning tester sign in',homepage,'href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" data-ff-marketing-sign-in>Beta Sign In</a>');
+// Customer Navigation & Access UX: one grouped access control. "Already invited? Sign in" sits with the primary
+// Request Beta Access action; the separate "Beta Sign In" link is retired.
+requireText('homepage invited tester sign in',homepage,'data-ff-access-sign-in data-ff-marketing-sign-in href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" aria-label="Already invited? Sign in to the FlipForge Private Beta"><span class="ff-access-signin-lead">Already invited?</span> <span class="ff-access-signin-action">Sign in</span></a>');
+forbidText('homepage retired separate sign-in link',homepage,'Beta Sign In');
 requireText('homepage paired login and beta actions',homepage,'class="ffdemo-nav-actions"');
 requireText('homepage mobile paired actions',homepage,'class="ffdemo-mobile-actions"');
 const homeDemoCss=read('assets/css/homepage-v10.css');
@@ -171,13 +174,12 @@ requireText('beta notice grouping',awardJs,"grid.className='ff-beta-notice-grid'
 requireText('beta server form',beta,'action="/api/beta/applications"');
 requireText('beta step one',awardJs,'steps.slice(1)');
 requireText('beta step transition',awardJs,'setStep(1)');
-requireText('homepage returning tester sign in',homepage,'href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" data-ff-marketing-sign-in>Beta Sign In</a>');
 requireText('beta application returning tester sign in',beta,'data-ff-returning-beta-sign-in');
+requireText('beta application returning tester sign in copy',beta,'>Already invited? Sign in</a>');
 requireText('beta application avoids duplicate applications',beta,'do not submit another application');
-requireText('shared marketing sign in uses production auth',siteJs,"link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start'");
-requireText('shared marketing sign in covers desktop navigation',siteJs,"document.querySelectorAll('.desktop-nav')");
-requireText('shared marketing sign in covers mobile navigation',siteJs,"document.querySelectorAll('.mobile-nav')");
-requireText('shared marketing sign in avoids duplicates',siteJs,"if(nav.querySelector('[data-ff-marketing-sign-in]'))return");
+// site.js must not inject or relabel a separate sign-in link any more; the access group is static and verified.
+forbidText('shared navigation does not inject a separate sign-in link',siteJs,"link.textContent='Beta Sign In'");
+forbidText('shared navigation does not inject a separate sign-in link',siteJs,'ensureReturningBetaSignIn');
 requireText('shared navigation routes deploy previews to production sign-in',siteJs,'routePreviewBetaSignIn();');
 const conversionJs=read('assets/js/conversion-events.js');
 requireText('normalized preview sign-in points to live production',conversionJs,'Sign in on the live FlipForge website');

@@ -28,10 +28,41 @@
       {path:'/decision-intelligence',href:'/decision-intelligence.html',label:'Decision Intelligence'},
       {path:'/learn',href:'/learn.html',label:'Evidence Lab'},
       {path:'/pricing',href:'/pricing.html',label:'Launch Plans'},
-      {path:'/about',href:'/about.html',label:'About'},
-      {path:'/production-auth',href:'/production-auth.html',label:'Sign In',signIn:true},
-      {path:'/beta-application',href:'/beta-application.html',label:'Request Beta Access',cta:true}
+      {path:'/about',href:'/about.html',label:'About'}
     ];
+    // Access actions are one grouped control owned by the static page (see scripts/lib/public-access-nav.cjs):
+    // Request Beta Access (primary) + "Already invited? Sign in" with the exact Private Beta return URL.
+    // They are preserved, never re-rendered as a separate competing "Sign In" link.
+    const SIGN_IN_URL='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
+    const buildAccessGroup=(isMobile,isDecisionHeader)=>{
+      const group=document.createElement('div');
+      group.className=isMobile?'ff-access ff-access-mobile':'ff-access';
+      group.dataset.ffAccess=isMobile?'mobile':'desktop';
+      group.dataset.ffAccessState='signed-out';
+      group.setAttribute('role','group');
+      group.setAttribute('aria-label','Private Beta access');
+      const signIn=document.createElement('a');
+      signIn.className='ff-access-signin';
+      signIn.href=SIGN_IN_URL;
+      signIn.dataset.ffAccessSignIn='';
+      signIn.dataset.ffMarketingSignIn='';
+      signIn.setAttribute('aria-label','Already invited? Sign in to the FlipForge Private Beta');
+      const lead=document.createElement('span');
+      lead.className='ff-access-signin-lead';
+      lead.textContent='Already invited?';
+      const action=document.createElement('span');
+      action.className='ff-access-signin-action';
+      action.textContent='Sign in';
+      signIn.append(lead,' ',action);
+      const primary=document.createElement('a');
+      primary.className=isMobile?'ff-access-primary':`${isDecisionHeader?'decision-nav-cta':'nav-cta'} ff-access-primary`;
+      primary.href='beta-application.html';
+      primary.dataset.ffAccessPrimary='';
+      primary.textContent='Request Beta Access';
+      if(currentPath==='/beta-application')primary.setAttribute('aria-current','page');
+      if(isMobile)group.append(primary,signIn);else group.append(signIn,primary);
+      return group;
+    };
     const homePrimaryNav=canonicalPrimaryNav.filter(item=>item.path!=='/pricing');
 
     const renderPrimaryNav=container=>{
@@ -40,15 +71,16 @@
       const isMobile=container.classList.contains('mobile-nav');
       const fragment=document.createDocumentFragment();
       const items=currentPath==='/'?homePrimaryNav:canonicalPrimaryNav;
+      const accessGroup=container.querySelector('[data-ff-access]')||buildAccessGroup(isMobile,isDecisionHeader);
+      accessGroup.remove();
       items.forEach(item=>{
         const link=document.createElement('a');
         link.href=item.href;
         link.textContent=item.label;
-        if(item.signIn)link.dataset.ffMarketingSignIn='true';
-        if(item.cta&&!isMobile)link.classList.add(isDecisionHeader?'decision-nav-cta':'nav-cta');
         if(currentPath===item.path)link.setAttribute('aria-current','page');
         fragment.append(link);
       });
+      if(isMobile)fragment.prepend(accessGroup);else fragment.append(accessGroup);
       container.replaceChildren(fragment);
     };
 
@@ -93,10 +125,6 @@
       }
     });
 
-    document.querySelectorAll('[data-app-preview]').forEach(link=>{
-      link.textContent='Private Beta App';
-      link.setAttribute('aria-label','Open Private Beta App');
-    });
 
     document.querySelectorAll('.footer p strong').forEach(label=>{
       const text=label.textContent.trim().replace(/™/g,'');
@@ -172,7 +200,11 @@
   };
 
   document.querySelectorAll('a[href$="beta-application.html"],a[href="/beta-application"]').forEach(link=>{
-    link.addEventListener("click",()=>emit("beta_cta_clicked",placementFor(link)));
+    link.addEventListener("click",()=>{
+      // A verified member/applicant's access action no longer points at the application form.
+      if(!/beta-application/.test(link.getAttribute("href")||""))return;
+      emit("beta_cta_clicked",placementFor(link));
+    });
   });
   document.querySelectorAll('a[href="sample-decision-dossier.html"]').forEach(link=>{
     link.addEventListener("click",()=>emit("sample_dossier_clicked",placementFor(link)));
@@ -183,7 +215,7 @@
   document.querySelectorAll('a[href="decision-intelligence.html"],a[href="/decision-intelligence"],a[href="/decision-intelligence.html"]').forEach(link=>{
     link.addEventListener("click",()=>emit("decision_intelligence_clicked",placementFor(link)));
   });
-  document.querySelectorAll("[data-app-preview]").forEach(link=>{
+  document.querySelectorAll("[data-ff-access-sign-in],[data-ff-access-footer]").forEach(link=>{
     link.addEventListener("click",()=>emit("app_preview_clicked",placementFor(link)));
   });
   document.querySelectorAll("[data-onboarding-guide]").forEach(link=>{

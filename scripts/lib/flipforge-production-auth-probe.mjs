@@ -35,8 +35,19 @@ const termsButton = document.querySelector("[data-production-auth-terms-submit]"
 
 let currentUser = null;
 
+// Private Beta is the only public authentication destination before customer launch. A deep link inside the Private
+// Beta workspace (for example /app/beta/#/opportunities/<id>, sent by the app's access gate) is honoured so the
+// tester returns where they started; every other value, including other origins, paths or protocols, falls back to
+// Getting Started. The workspace itself re-verifies membership server-side on arrival.
+const PRIVATE_BETA_RETURN = /^\/app\/beta\/#\/[a-z][a-z0-9-]{0,40}(?:\/[A-Za-z0-9_~-][A-Za-z0-9._~-]{0,127}){0,3}$/;
 function safeReturnPath() {
-  // Private Beta is the only public authentication destination before customer launch.
+  let requested = "";
+  try {
+    requested = String(new URLSearchParams(window.location.search).get("return") || "");
+  } catch (_) {
+    requested = "";
+  }
+  if (PRIVATE_BETA_RETURN.test(requested)) return requested;
   return PRIVATE_BETA_START;
 }
 
@@ -247,7 +258,7 @@ async function verifyAccess() {
       result.textContent = "Private Beta access verified.";
       result.dataset.tone = "ok";
       setStatus(`Welcome back, ${currentUser.email || "FlipForge tester"}.`, "ok");
-      returnLink.href = PRIVATE_BETA_START;
+      returnLink.href = safeReturnPath();
       returnLink.hidden = false;
       return true;
     }

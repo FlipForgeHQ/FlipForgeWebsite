@@ -1,0 +1,197 @@
+/* Customer Navigation & Access UX v1 — no unexplained icon-only controls in the app shell.
+ *
+ * Top bar, every width it is shown at:
+ *   [☰ Menu] (drawer widths)  [search]  [+ Evaluate a card] [Saved Decisions] [Alerts] [(IT) Account]
+ * - Alerts (formerly an unlabelled diamond that was aria-hidden and unfocusable) is a bell icon + "Alerts" label.
+ * - The initials circle always sits next to a visible "Account" label (and "Plan & Usage" where there is room).
+ * - Controls that do not fit at a width move to the sidebar/drawer, where they already have text labels.
+ * Loaded last so it settles the shell's earlier, conflicting topbar rules.
+ */
+
+html body .topbar [data-ff-labeled-control] .ff-control-icon{
+  display:inline-grid!important;
+  place-items:center!important;
+  flex:0 0 auto!important;
+  width:18px!important;
+  height:18px!important;
+  font-size:15px!important;
+  line-height:1!important;
+}
+html body .topbar [data-ff-labeled-control] .ff-control-svg{
+  width:18px!important;
+  height:18px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:1.8!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+html body .topbar [data-ff-labeled-control] .ff-control-label{
+  display:inline!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  letter-spacing:.01em!important;
+  white-space:nowrap!important;
+}
+
+/* Saved Decisions and Alerts: text + icon buttons with the same height as the other topbar actions. */
+html body .topbar .topbar-actions [data-ff-labeled-control="saved-decisions"],
+html body .topbar .topbar-actions [data-ff-labeled-control="alerts"]{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  width:auto!important;
+  min-width:0!important;
+  height:40px!important;
+  padding:0 12px!important;
+  border-radius:10px!important;
+  white-space:nowrap!important;
+  text-decoration:none!important;
+}
+
+/* Account: initials avatar + visible "Account" label. */
+html body .topbar .topbar-actions [data-ff-labeled-control="account"]{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  width:auto!important;
+  padding:4px 12px 4px 5px!important;
+}
+html body .topbar .topbar-actions [data-ff-labeled-control="account"] .profile-copy{
+  display:grid!important;
+  gap:1px!important;
+  text-align:left!important;
+}
+html body .topbar .topbar-actions [data-ff-labeled-control="account"] .profile-copy strong{
+  font-size:12px!important;
+  font-weight:800!important;
+}
+
+/* Keyboard focus is always visible on the labelled controls. */
+html body .topbar [data-ff-labeled-control]:focus-visible,
+html body .topbar .ff-global-new-card:focus-visible,
+html body .primary-nav > .ff-mobile-account-nav:focus-visible{
+  outline:2px solid #f0ca58!important;
+  outline-offset:2px!important;
+}
+
+/* The menu button reads "Menu" wherever it is shown. */
+html body .topbar [data-ff-labeled-control="menu"]{
+  grid-auto-flow:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  width:auto!important;
+  min-width:44px!important;
+  padding:0 12px!important;
+}
+
+/* Laptop / tablet landscape (sidebar visible): Evaluate and Saved Decisions are in the sidebar with labels;
+   the top bar keeps labelled Alerts and Account. */
+@media (max-width:1180px){
+  html body .topbar .topbar-actions [data-ff-labeled-control="saved-decisions"]{display:none!important}
+  html body .topbar .topbar-actions [data-ff-labeled-control="account"] .profile-copy small{display:none!important}
+}
+
+/* Tablet portrait (drawer navigation): one row — Menu, search, Alerts, Account. */
+@media (min-width:761px) and (max-width:900px){
+  html body .topbar{
+    display:grid!important;
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+    align-items:center!important;
+    gap:10px!important;
+  }
+  html body .topbar .topbar-actions{
+    display:flex!important;
+    align-items:center!important;
+    gap:8px!important;
+    grid-column:auto!important;
+    grid-row:auto!important;
+  }
+  html body .topbar .topbar-actions .ff-global-new-card{display:none!important}
+  html body .topbar .topbar-actions [data-ff-labeled-control="account"]{display:inline-flex!important}
+}
+
+/* Phone: the top bar is Menu + search only; Account and Alerts are labelled entries in the drawer. */
+@media (max-width:760px){
+  html body .topbar{grid-template-columns:auto minmax(0,1fr)!important}
+  html body .topbar [data-ff-labeled-control="menu"]{width:auto!important;min-width:44px!important;padding:0 10px!important}
+  html body .topbar [data-ff-labeled-control="menu"] .ff-control-label{font-size:12px!important}
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav{
+    display:grid!important;
+    grid-template-columns:32px minmax(0,1fr)!important;
+    grid-template-rows:auto!important;
+    min-height:52px!important;
+    align-items:center!important;
+    gap:10px!important;
+  }
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-avatar{
+    display:inline-grid!important;
+    place-items:center!important;
+    width:30px!important;
+    min-width:30px!important;
+    height:30px!important;
+    border-radius:50%!important;
+    overflow:visible!important;
+    background:#d4af37!important;
+    color:#0b0b0b!important;
+    font-size:11px!important;
+    font-weight:900!important;
+  }
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-alerts-icon{
+    display:inline-grid!important;
+    place-items:center!important;
+    width:30px!important;
+    height:30px!important;
+    color:#f0ca58!important;
+  }
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-alerts-icon svg{
+    width:19px!important;
+    height:19px!important;
+    fill:none!important;
+    stroke:currentColor!important;
+    stroke-width:1.8!important;
+    stroke-linecap:round!important;
+    stroke-linejoin:round!important;
+  }
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy{display:grid!important;gap:1px!important;min-width:0!important}
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy strong{display:block!important;font-size:15px!important;line-height:1.2!important;font-weight:800!important;color:#fff!important}
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav .ff-mobile-account-copy small{display:block!important;font-size:12px!important;line-height:1.25!important;color:#a8a8a8!important}
+}
+
+/* Drawer-only entries never duplicate the top bar on wider screens. */
+@media (min-width:761px){
+  html body .sidebar .primary-nav > a.ff-mobile-account-nav{display:none!important}
+}
+
+/* Guided Mode header: Minimize and Close carry visible words, not just − and ×. */
+html body .ff-guide-panel .ff-guide-icon-button.ff-guide-labeled{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  width:auto!important;
+  min-width:0!important;
+  height:32px!important;
+  padding:0 9px!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+html body .ff-guide-panel .ff-guide-icon-button.ff-guide-labeled > span[aria-hidden="true"]{font-size:15px!important;line-height:1!important}
+html body .ff-guide-panel .ff-guide-head-actions{display:flex!important;flex-wrap:nowrap!important;gap:6px!important;flex:0 0 auto!important}
+
+/* Compare: the swap control says "Swap". */
+html body .swap-button.ff-swap-labeled{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  width:auto!important;
+  min-width:44px!important;
+  padding:0 12px!important;
+  white-space:nowrap!important;
+}
+html body .swap-button.ff-swap-labeled .ff-swap-label{font-size:12px!important;font-weight:800!important}

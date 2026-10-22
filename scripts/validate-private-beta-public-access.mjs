@@ -186,9 +186,12 @@ check(appGate.includes('document.documentElement.classList.remove("ff-private-be
 
 check(buildAssets.includes("const BETA_SIGNIN_URL"), "build generator must own a Private Beta sign-in URL");
 check(!buildAssets.includes("const CUSTOMER_APP_URL"), "build generator must not inject a public customer app URL");
-check(buildAssets.includes("Beta Sign In"), "generated public app links must be Beta Sign In");
-check(siteJs.includes("Beta Sign In"), "runtime public sign-in must say Beta Sign In");
-check(siteJs.includes(BETA_AUTH), "runtime public sign-in must target beta-start auth");
+// Customer Navigation & Access UX: the build normalizes one grouped access control instead of injecting
+// separate "Beta Sign In" links, and site.js no longer adds or relabels a sign-in link at runtime.
+check(buildAssets.includes("normalizePublicAccess") && buildAssets.includes("auditPublicAccess"), "build generator must normalize and audit the grouped public access control");
+check(!buildAssets.includes('data-app-preview="desktop" href'), "build generator must not inject a separate desktop sign-in link");
+check(!siteJs.includes("link.textContent='Beta Sign In'"), "runtime must not inject a separate Beta Sign In link");
+check(siteJs.includes(BETA_AUTH), "preview sign-in routing must still target beta-start auth");
 
 check(customerShell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell runtime must preserve CUSTOMER APP label");
 check(commercialPolish.includes('customer ? "CUSTOMER APP"'), "customer polish must preserve customer identity in the customer experience");
@@ -201,7 +204,8 @@ for (const page of publicPages) {
   check(!html.includes('href="/app/customer/'), `${page} must not expose any customer-app link`);
   check(!html.includes('data-ff-marketing-sign-in>Sign In</a>'), `${page} must not expose generic customer Sign In`);
   if (html.includes("data-ff-marketing-sign-in")) {
-    check(html.includes("Beta Sign In</a>"), `${page} marketing auth must be labeled Beta Sign In`);
+    check(html.includes('<span class="ff-access-signin-action">Sign in</span></a>') && html.includes("Already invited?"), `${page} marketing auth must read "Already invited? Sign in"`);
+    check(!html.includes("Beta Sign In"), `${page} must not show a separate Beta Sign In link`);
     check(html.includes(BETA_AUTH), `${page} marketing auth must enter beta-start`);
   }
 }

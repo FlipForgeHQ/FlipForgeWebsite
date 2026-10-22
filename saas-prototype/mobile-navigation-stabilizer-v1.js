@@ -76,14 +76,43 @@
       return account;
     }
 
+    // The drawer's Account entry shows the same initials avatar as the desktop Account control, with a visible
+    // "Account" label, so the circle is never an unexplained icon.
     account = document.createElement("a");
     account.href = "#/account";
     account.dataset.route = "account";
     account.className = "ff-mobile-account-nav";
-    account.setAttribute("aria-label", "Open account");
-    account.innerHTML = '<span aria-hidden="true">●</span>Account';
+    account.setAttribute("aria-label", "Account: Plan & Usage and sign-out");
+    account.innerHTML = '<span class="avatar ff-mobile-account-avatar" aria-hidden="true" data-ff-account-initials></span><span class="ff-mobile-account-copy"><strong>Account</strong><small>Plan &amp; Usage</small></span>';
+    syncAccountInitials(account);
     nav.appendChild(account);
     return account;
+  }
+
+  function syncAccountInitials(account) {
+    const target = account?.querySelector("[data-ff-account-initials]");
+    if (!target) return;
+    const source = String(document.querySelector(".profile-button .avatar")?.textContent || "").trim();
+    if (source && target.textContent !== source) target.textContent = source;
+  }
+
+  // Alerts lives in the desktop/tablet top bar; on phones the top bar has no room, so the drawer carries a labelled
+  // Alerts entry next to Account. It has no data-route, so route-visibility rules for the core list never hide it.
+  function ensureAlertsLink(nav, account) {
+    let alerts = nav.querySelector("[data-ff-mobile-alerts]");
+    if (!alerts) {
+      alerts = document.createElement("a");
+      alerts.href = "#/alerts";
+      alerts.className = "ff-mobile-account-nav ff-mobile-alerts-nav";
+      alerts.setAttribute("data-ff-mobile-alerts", "");
+      alerts.setAttribute("aria-label", "Alerts: review reminders for your saved cards");
+      alerts.innerHTML = '<span class="ff-mobile-alerts-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17h10l-1.5-2V10a3.5 3.5 0 0 0-7 0v5Z"/><path d="M10 20h4"/></svg></span><span class="ff-mobile-account-copy"><strong>Alerts</strong><small>Review reminders</small></span>';
+    }
+    if (alerts.nextElementSibling !== account) nav.insertBefore(alerts, account);
+    const current = activeRoute() === "alerts";
+    if (current && alerts.getAttribute("aria-current") !== "page") alerts.setAttribute("aria-current", "page");
+    if (!current && alerts.hasAttribute("aria-current")) alerts.removeAttribute("aria-current");
+    return alerts;
   }
 
   function syncActiveRoute(nav) {
@@ -125,6 +154,8 @@
 
     const account = ensureAccountLink(nav);
     restoreLink(account);
+    syncAccountInitials(account);
+    ensureAlertsLink(nav, account);
     syncActiveRoute(nav);
   }
 

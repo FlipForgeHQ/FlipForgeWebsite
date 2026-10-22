@@ -167,19 +167,21 @@ async function auditDecisionMobile(page, viewport) {
   if(viewport.width<=1120){
     await page.locator('.menu-toggle').click();
     const nav=await page.evaluate(()=>{
-      const links=[...document.querySelectorAll('.mobile-nav a')];
-      const sign=links.find(el=>el.hasAttribute('data-ff-marketing-sign-in'));
-      const join=links.find(el=>el.getAttribute('href')?.includes('beta-application'));
-      const a=sign?.getBoundingClientRect(),b=join?.getBoundingClientRect();
+      // One grouped access block at the top of the menu: Request Beta Access, then "Already invited? Sign in".
+      const group=document.querySelector('.mobile-nav [data-ff-access="mobile"]');
+      const sign=group?.querySelector('a[data-ff-access-sign-in]');
+      const join=group?.querySelector('a[data-ff-access-primary][href*="beta-application"]');
+      const a=join?.getBoundingClientRect(),b=sign?.getBoundingClientRect();
+      const first=document.querySelector('.mobile-nav')?.firstElementChild===group;
       return {
-        present:Boolean(sign&&join),
-        labels:[sign?.textContent?.trim(),join?.textContent?.trim()],
+        present:Boolean(sign&&join&&first),
+        labels:[join?.textContent?.trim(),sign?.textContent?.trim()],
         gap:a&&b?Number((b.top-a.bottom).toFixed(1)):null,
-        aligned:a&&b?Math.abs(a.left-b.left)<=3:null
+        aligned:a&&b?Math.abs((a.left+a.width/2)-(b.left+b.width/2))<=3:null
       };
     });
     if(!nav.present||nav.gap==null||nav.gap<0||nav.gap>20||!nav.aligned)
-      failures.push(`${viewport.name} Home: mobile Sign In and Beta Access must be prominent and next to each other (${JSON.stringify(nav)})`);
+      failures.push(`${viewport.name} Home: mobile Request Beta Access and "Already invited? Sign in" must be one grouped block at the top of the menu (${JSON.stringify(nav)})`);
   }
 }
 

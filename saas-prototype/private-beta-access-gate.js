@@ -5,6 +5,10 @@
   const BETA_PATH = /^\/(?:app\/beta|saas-prototype)(?:\/|$)/i;
   const BETA_AUTH_URL = "/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start";
   const BETA_START = "#/beta-start";
+  // Deep links survive sign-in: a signed-out or expired visitor opening /app/beta/#/opportunities/<id> is sent to
+  // sign-in with that exact in-workspace route as the return destination. Only a plain hash route inside the Private
+  // Beta workspace qualifies (the sign-in page re-checks the same allowlist); anything else returns to Getting Started.
+  const RETURN_ROUTE = /^#\/[a-z][a-z0-9-]{0,40}(?:\/[A-Za-z0-9_~-][A-Za-z0-9._~-]{0,127}){0,3}$/;
 
   function productionBetaSurface() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""))
@@ -16,7 +20,11 @@
   }
 
   function betaAuthUrl({ reauth = false } = {}) {
-    return reauth ? `${BETA_AUTH_URL}&reauth=1` : BETA_AUTH_URL;
+    const hash = String(window.location.hash || "");
+    const base = RETURN_ROUTE.test(hash) && hash !== BETA_START
+      ? `/production-auth.html?return=${encodeURIComponent(`/app/beta/${hash}`)}`
+      : BETA_AUTH_URL;
+    return reauth ? `${base}&reauth=1` : base;
   }
 
   async function verifyServerAccess() {

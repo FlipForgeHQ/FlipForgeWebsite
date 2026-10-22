@@ -71,6 +71,7 @@
   <link rel="stylesheet" href="customer-shell-brand-v1.css">
   <link rel="stylesheet" href="customer-focused-v3-v1.css">
   <link rel="stylesheet" href="customer-trust-display-v1.css">
+  <link rel="stylesheet" href="customer-navigation-labels-v1.css">
 </head>
 <body data-ff-surface="customer">
   <!-- Retained non-production validation boundary: NON-PRODUCTION PROTOTYPE · Mock responses only · No purchase authority · Billing is not connected · Private beta · Invitation only · Not active. Production customer language and billing state are replaced by authenticated server-owned runtime data. -->
@@ -146,7 +147,7 @@
 
     <section class="workspace">
       <header class="topbar">
-        <button class="icon-button menu-button" type="button" data-nav-toggle aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded="false">☰</button>
+        <button class="icon-button menu-button" type="button" data-nav-toggle data-ff-labeled-control="menu" aria-label="Open navigation menu" aria-controls="primary-navigation" aria-expanded="false"><span class="ff-control-icon" aria-hidden="true">☰</span><span class="ff-control-label">Menu</span></button>
         <form class="global-search" role="search" id="global-search-form">
           <label class="sr-only" for="global-search">Search cards or saved decisions</label>
           <span aria-hidden="true">⌕</span>
@@ -155,9 +156,9 @@
         </form>
         <div class="topbar-actions">
           <a class="date-button ff-global-new-card ff-primary-new-card" data-ff-global-new-card href="#/discover" aria-label="Evaluate a card"><span aria-hidden="true">＋</span> Evaluate a card</a>
-          <a class="date-button" href="#/opportunities" aria-label="Open saved decisions"><span aria-hidden="true">◷</span> Saved Decisions</a>
-          <a class="icon-button notification-button" href="#/alerts" aria-label="Alerts"><span aria-hidden="true">♢</span></a>
-          <a class="profile-button" href="#/account" aria-label="Open account">
+          <a class="date-button ff-topbar-saved" href="#/opportunities" data-ff-labeled-control="saved-decisions" aria-label="Saved Decisions: cards you evaluated and saved"><span class="ff-control-icon" aria-hidden="true"><svg class="ff-control-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 17 10 12l3 3 6-8"/><path d="M15 7h4v4"/></svg></span><span class="ff-control-label">Saved Decisions</span></a>
+          <a class="icon-button notification-button" href="#/alerts" data-ff-labeled-control="alerts" aria-label="Alerts: review reminders for your saved cards"><span class="ff-control-icon" aria-hidden="true"><svg class="ff-control-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17h10l-1.5-2V10a3.5 3.5 0 0 0-7 0v5Z"/><path d="M10 20h4"/></svg></span><span class="ff-control-label">Alerts</span></a>
+          <a class="profile-button" href="#/account" data-ff-labeled-control="account" aria-label="Account: Plan &amp; Usage and sign-out">
             <span class="avatar" aria-hidden="true">FF</span>
             <span class="profile-copy"><strong>Account</strong><small>Private beta</small></span>
           </a>

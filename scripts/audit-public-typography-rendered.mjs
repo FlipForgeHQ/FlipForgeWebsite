@@ -28,8 +28,9 @@ const sectionPages = [
   ['About', '/about.html', '.section-head h2']
 ];
 
-const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Sign In', 'Request Beta Access'];
-const homeCanonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'About', 'Sign In', 'Request Beta Access'];
+// The access group is one control: "Already invited? Sign in" beside the primary Request Beta Access action.
+const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Already invited? Sign in', 'Request Beta Access'];
+const homeCanonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'About', 'Already invited? Sign in', 'Request Beta Access'];
 const failures = [];
 const nearlyEqual = (a, b, tolerance = 0.75) => Math.abs(a - b) <= tolerance;
 const px = value => Number.parseFloat(value || 'NaN');

@@ -43,32 +43,8 @@
     window.addEventListener('resize',()=>{if(innerWidth>1000)closeMenu();});
   }
 
-  const ensureReturningBetaSignIn=()=>{
-    document.querySelectorAll('.desktop-nav').forEach(nav=>{
-      if(nav.querySelector('[data-ff-marketing-sign-in]'))return;
-      const link=document.createElement('a');
-      link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
-      link.dataset.ffMarketingSignIn='true';
-      link.textContent='Beta Sign In';
-      const cta=nav.querySelector('.nav-cta');
-      if(cta)nav.insertBefore(link,cta); else nav.appendChild(link);
-    });
-    document.querySelectorAll('.mobile-nav').forEach(nav=>{
-      if(nav.querySelector('[data-ff-marketing-sign-in]'))return;
-      const link=document.createElement('a');
-      link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
-      link.dataset.ffMarketingSignIn='true';
-      link.textContent='Beta Sign In';
-      const request=[...nav.querySelectorAll('a')].find(a=>/request (?:beta )?access/i.test(a.textContent||''));
-      if(request)nav.insertBefore(link,request); else nav.appendChild(link);
-    });
-  };
-  document.querySelectorAll('[data-ff-marketing-sign-in]').forEach(link=>{
-    link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
-    link.textContent='Beta Sign In';
-    link.setAttribute('aria-label','Private Beta Sign In');
-  });
-  ensureReturningBetaSignIn();
+  // The access controls (Request Beta Access + "Already invited? Sign in") are part of the static page and are
+  // owned by assets/js/access-state-v1.js. This file no longer injects or relabels a separate sign-in link.
   const isWebsiteDeployPreview=/(?:^|\.)netlify\.app$/i.test(location.hostname);
   const productionBetaSignIn='https://goflipforge.com/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
   const routePreviewBetaSignIn=()=>{
