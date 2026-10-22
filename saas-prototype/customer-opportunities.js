@@ -124,8 +124,19 @@
     return `<section class="staging-value-intelligence" aria-label="Saved value intelligence context"><div class="staging-value-intelligence-head"><div><span class="eyebrow">Value intelligence</span><h3>Observed analog reference range</h3></div><span class="staging-value-context-badge">Context only</span></div><div class="staging-value-intelligence-grid"><div><span>Observed range</span><strong>${escapeHtml(range)}</strong></div><div><span>Reference midpoint</span><strong>${escapeHtml(moneyFromCents(value.referenceMidpointCents))}</strong></div><div><span>Analog completed sales</span><strong>${safeNumber(value.analogCompletedSaleCount)}</strong></div><div><span>Confidence band</span><strong>${escapeHtml(value.confidenceBand || "UNKNOWN")}</strong></div></div><p>${escapeHtml(value.explanation || "Governed analog completed-sale context is available for this saved card.")}</p><div class="boundary-note"><strong>Not a supported value:</strong> This observed range is saved read-only context. Matched exact sales are still required before it can become supported value, and it does not change the Smart Opportunity recommendation.</div></section>`;
   }
   function pageHeading(title, description, actions = "") { return `<header class="page-heading"><div><span class="eyebrow">Tenant-owned saved intelligence</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p></div>${actions ? `<div class="page-actions">${actions}</div>` : ""}</header>`; }
+  // A saved decision that is not in the signed-in account: the gateway answers 404 RESOURCE_NOT_FOUND, or the id is not
+  // in this account's list. Plain customer wording only; what the account can open is decided by the server as before.
+  function notInAccount(error) {
+    return String(error?.code || "") === "RESOURCE_NOT_FOUND";
+  }
+
+  function notInAccountPanel() {
+    return `<section class="panel ff-not-in-account" role="status" data-ff-not-in-account><div class="panel-body staging-empty"><strong>This decision isn’t in your account</strong><p>It may belong to a different account, or the link may be out of date. Open Saved Decisions to see your own decisions.</p><div class="ff-not-in-account-actions"><a class="button button-primary" href="#/opportunities">Open Saved Decisions</a></div></div></section>`;
+  }
+
   function errorPanel(error) {
     if (!error) return "";
+    if (notInAccount(error)) return notInAccountPanel();
     const guidance = error.status === 401 ? "Sign in with an invited FlipForge private-beta account." : error.status === 403 ? "The signed-in account needs an active FlipForge tenant membership." : "No mock record or browser-generated recommendation was substituted.";
     const returnPath = state.selectedId ? `/app/#/opportunities/${encodeURIComponent(state.selectedId)}` : "/app/#/opportunities";
     const signIn = error.status === 401 ? `<div class="customer-intelligence-actions"><a class="button button-primary" href="${productionHost() ? `/production-auth.html?return=${encodeURIComponent(returnPath)}` : `/staging-auth.html?returnTo=${encodeURIComponent(returnPath.replace(/^\/app/, "/saas-prototype"))}`}">Sign in securely</a></div>` : "";
@@ -165,7 +176,7 @@
     const loaded = state.detail?.data?.opportunity;
     // Display only the record for the card that was requested and is still in the address bar.
     const item = loaded && String(loaded.id || "") === state.selectedId && routeCardId() === state.selectedId ? loaded : null;
-    if (!item) return `<div class="page customer-intelligence-page">${pageHeading("Card Intelligence", "Loading the saved decision and its evidence.", `<a class="button button-secondary" href="#/opportunities">Back to opportunities</a>`)}${state.loading ? `<div class="staging-loading" role="status">Loading card intelligence…</div>` : ""}${errorPanel(state.error)}</div>`;
+    if (!item) return `<div class="page customer-intelligence-page">${pageHeading("Card Intelligence", !state.loading && notInAccount(state.error) ? "Only decisions saved in your account open here." : "Loading the saved decision and its evidence.", `<a class="button button-secondary" href="#/opportunities">Back to opportunities</a>`)}${state.loading ? `<div class="staging-loading" role="status">Loading card intelligence…</div>` : ""}${errorPanel(state.error)}</div>`;
     const evidence = state.evidence?.data || {};
     const psa = state.psa?.data || {};
     const snapshot = psa.savedPsaSnapshot || {};

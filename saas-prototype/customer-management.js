@@ -175,6 +175,16 @@
     return `<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary><p>${escapeHtml(text)}</p></details>`;
   }
 
+  // A saved decision that is not in the signed-in account: the gateway answers 404 RESOURCE_NOT_FOUND, or the id is not
+  // in this account's list. Plain customer wording only; what the account can open is decided by the server as before.
+  function notInAccount(error) {
+    return String(error?.code || "") === "RESOURCE_NOT_FOUND";
+  }
+
+  function notInAccountPanel() {
+    return `<section class="panel ff-not-in-account" role="status" data-ff-not-in-account><div class="panel-body staging-empty"><strong>This decision isn’t in your account</strong><p>It may belong to a different account, or the link may be out of date. Open Saved Decisions to see your own decisions.</p><div class="ff-not-in-account-actions"><a class="button button-primary" href="#/opportunities">Open Saved Decisions</a></div></div></section>`;
+  }
+
   function errorPanel(error) {
     if (!error) return "";
     const signIn = error.status === 401
@@ -308,6 +318,9 @@
     if (state.loading) {
       return `<div class="page customer-management-page">${pageHeading("Private beta customer workspace", "Loading saved intelligence", "Reading only tenant-owned data from the approved same-origin gateway.")}${loadingPanel("Loading authoritative customer context…")}</div>`;
     }
+    if (state.error && notInAccount(state.error)) {
+      return `<div class="page customer-management-page">${pageHeading("Saved decision", "Decision not available", "Only decisions saved in your account open here.")}${notInAccountPanel()}</div>`;
+    }
     if (state.error) {
       return `<div class="page customer-management-page">${pageHeading("Private beta customer workspace", "Customer workspace unavailable", "The request failed closed without a mock fallback.")}${errorPanel(state.error)}</div>`;
     }
@@ -368,7 +381,7 @@
     const ids = opportunityItems().map(item => String(item.id));
     if (state.requestedId) {
       if (!SAFE_ID.test(state.requestedId) || !ids.includes(state.requestedId)) {
-        throw Object.assign(new Error("The requested tracked card was not returned for this tenant."), {
+        throw Object.assign(new Error("The requested saved decision is not in this account."), {
           code: "RESOURCE_NOT_FOUND",
           status: 404
         });
