@@ -40,7 +40,7 @@ check("017 operator workspace remains a separate page", operator.includes("Priva
 check("018 operator role remains server-defined", betaCore.includes('OPERATOR_ROLE = "flipforge-operator"'));
 check("019 active customer role remains server-defined", betaCore.includes('ACTIVE_ROLE = "flipforge-active"'));
 check("020 public app alias routes to dedicated Private Beta Sign In", hasRedirect("/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302"));
-check("021 dedicated beta route serves beta document", hasRedirect("/app/beta /saas-prototype/index.html 200") && hasRedirect("/app/beta/ /saas-prototype/index.html 200"));
+check("021 dedicated beta route serves beta document", hasRedirect("/app/beta /app/beta/ 301") && hasRedirect("/app/beta/ /saas-prototype/index.html 200"));
 check("022 beta assets remain isolated under /app/beta", hasRedirect("/app/beta/* /saas-prototype/:splat 200"));
 check("023 generic app routes cannot expose customer dashboard", hasRedirect("/app/* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302"));
 check("024 legacy /app beta-index route is inactive", !hasRedirect("/app /saas-prototype/index.html 200") && !hasRedirect("/app/ /saas-prototype/index.html 200"));
