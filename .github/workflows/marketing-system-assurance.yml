@@ -8,6 +8,7 @@ on:
       - 'package.json'
       - 'netlify.toml'
       - '.github/workflows/marketing-system-assurance.yml'
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches: [main]
     paths:
@@ -16,6 +17,7 @@ on:
       - 'package.json'
       - 'netlify.toml'
       - '.github/workflows/marketing-system-assurance.yml'
+      - "scripts/ci/install-playwright-chromium.sh"
   workflow_dispatch:
 
 permissions:
@@ -58,9 +60,7 @@ jobs:
           grep -q 'Outcome Intelligence' marketing-preview/card-decision-intelligence/index.html
           grep -q '24% off can become 2.3%' marketing-preview/campaigns/deal-or-decoy/index.html
       - name: Install Chromium for rendered marketing QA
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Audit marketing previews at desktop and mobile widths
         run: node scripts/marketing/audit-marketing-preview-ci.mjs
       - name: Retain marketing QA evidence

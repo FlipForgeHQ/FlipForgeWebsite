@@ -13,6 +13,7 @@ on:
       - "scripts/validate-native-evidence-links.mjs"
       - "scripts/validate-decision-intelligence-ux-v2.mjs"
       - ".github/workflows/evidence-status-labels.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   workflow_dispatch:
 
 permissions:
@@ -35,8 +36,6 @@ jobs:
           node scripts/validate-native-evidence-links.mjs
           node scripts/validate-decision-intelligence-ux-v2.mjs
       - name: Install Playwright Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Render the evidence page against the server status contract
         run: node scripts/audit-evidence-status-labels-ci.mjs

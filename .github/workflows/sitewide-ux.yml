@@ -38,6 +38,7 @@ on:
       - "scripts/audit-public-responsive-rendered.mjs"
       - "scripts/audit-public-readability-rendered.mjs"
       - ".github/workflows/sitewide-ux.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches:
       - main
@@ -77,6 +78,7 @@ on:
       - "scripts/audit-public-responsive-rendered.mjs"
       - "scripts/audit-public-readability-rendered.mjs"
       - ".github/workflows/sitewide-ux.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
 
 permissions:
   contents: read
@@ -102,9 +104,7 @@ jobs:
       - name: Validate static sitewide UX contracts
         run: npm run validate:sitewide-ux
       - name: Install Chromium for rendered typography audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start local public site
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/flipforge-sitewide-ux.log 2>&1 &
