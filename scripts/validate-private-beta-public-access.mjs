@@ -142,7 +142,7 @@ check(betaTermsGate.includes('!/^\\/app\\/beta\\/?$/i.test')
 
 check(redirects.includes(`/app ${BETA_AUTH} 302`), "generic /app must route to Private Beta Sign In");
 check(redirects.includes(`/app/* ${BETA_AUTH} 302`), "generic /app/* must route to Private Beta Sign In");
-check(redirects.includes("/app/beta /saas-prototype/index.html 200"), "dedicated Private Beta route must serve the beta shell");
+check(redirects.split(/\r?\n/).map(line => line.trim()).includes("/app/beta /app/beta/ 301"), "slashless Private Beta entry must redirect to the canonical beta route");
 check(redirects.includes("/app/beta/ /saas-prototype/index.html 200"), "Private Beta slash route must serve the beta shell");
 check(redirects.includes("/app/beta/* /saas-prototype/:splat 200"), "Private Beta assets must stay on the beta route");
 check(!redirects.includes("/app/customer /saas-prototype/customer.html 200"), "customer route must not be publicly served");
