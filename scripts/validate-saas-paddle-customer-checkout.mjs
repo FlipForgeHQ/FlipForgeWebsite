@@ -3,6 +3,9 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
+// The gateway may send the body as a string, or as exact bytes when request signing is enabled.
+const bodyText = body => (body instanceof Uint8Array ? Buffer.from(body).toString("utf8") : body);
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const gateway = read("netlify/functions/flipforge-api.js");
@@ -164,7 +167,7 @@ try {
   check("017 signed active tenant can request checkout", success.statusCode === 200 && successBody?.data?.kind === "paddle-checkout");
   check("018 checkout reaches exactly one upstream call", calls.length === 1);
   check("019 gateway forwards exact checkout path", calls[0]?.url === `https://private-backend.invalid${CHECKOUT_PATH}`);
-  check("020 gateway forwards POST and original plan-only body", calls[0]?.options?.method === "POST" && calls[0]?.options?.body === JSON.stringify({ planCode: "COLLECTOR" }));
+  check("020 gateway forwards POST and original plan-only body", calls[0]?.options?.method === "POST" && bodyText(calls[0]?.options?.body) === JSON.stringify({ planCode: "COLLECTOR" }));
   check("021 gateway injects server service token", calls[0]?.options?.headers?.Authorization === `Bearer ${process.env.FLIPFORGE_API_SERVICE_TOKEN}`);
   check("022 gateway injects signed tenant context", calls[0]?.options?.headers?.["X-FlipForge-Tenant-Id"] === "tenant-checkout-alpha");
   check("023 gateway forwards customer checkout idempotency key", calls[0]?.options?.headers?.["Idempotency-Key"] === "checkout-request-0001");
