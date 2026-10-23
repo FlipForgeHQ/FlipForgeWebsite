@@ -541,7 +541,9 @@
   let resignalledHash = "";
 
   function renderRouteDidNotLoad() {
-    main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>This page didn't load</h1><p>FlipForge could not load this page. No sample data is shown in its place.</p></div></header><button class="button button-primary" type="button" onclick="window.location.reload()">Reload</button></div>`;
+    main.innerHTML = `<div class="page" data-ff-route-unavailable><header class="page-heading"><div><h1>This page didn't load</h1><p>FlipForge could not load this page. No sample data is shown in its place.</p></div></header><button class="button button-primary" type="button" data-ff-route-reload>Reload</button></div>`;
+    // No inline handler: the app routes' Content-Security-Policy does not allow inline script.
+    main.querySelector("[data-ff-route-reload]")?.addEventListener("click", () => window.location.reload());
   }
 
   function renderProductionRoutePlaceholder(route) {
