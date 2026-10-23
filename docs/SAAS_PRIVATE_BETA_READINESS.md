@@ -45,8 +45,9 @@ The customer application posts a bounded JSON payload to the same-origin `POST /
 - the current application route;
 - a general, Day 7, Day 14, or Day 30 checkpoint; and
 - an optional tester-reported outcome signal: original reasoning still supported, original reasoning needs revision, or evidence remains insufficient.
+- for a card evidence request only (`requestType: "CARD_EVIDENCE"`, Evidence category): a `cardReference` holding the card identity the tester searched and reviewed, plus optional year, player, set, card number, parallel, grader and grade. The tester sees, can correct, and can remove every field before sending.
 
-The server reads the invited account email from the signed Identity session only when the tester checks explicit follow-up permission. The browser never submits an email address, password, raw JWT, refresh token, tenant ID, provider credential, service token, listing URL, card identity, evaluation payload, or saved opportunity ID. Tester guidance explicitly tells users not to paste sensitive or card-specific data into feedback.
+The server reads the invited account email from the signed Identity session only when the tester checks explicit follow-up permission. The browser never submits an email address, password, raw JWT, refresh token, tenant ID, provider credential, service token, listing URL, seller, price, sale record, evaluation payload, or saved opportunity ID. A card identity is submitted only inside the reviewed `cardReference` of a card evidence request; the server refuses any other card-reference field and any value that looks like a link, email address, long ID number or price. Tester guidance explicitly tells users not to paste sensitive or card-specific data into feedback.
 
 The role-gated operator workspace reports feedback review state and checkpoint counts. These signals do not mutate the saved evaluation, recalculate a recommendation, prove product accuracy, or represent market performance.
 

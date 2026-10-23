@@ -95,6 +95,26 @@
 
       <article class="ff-owner-card">
         <div class="ff-owner-card-head">
+          <span class="ff-owner-mode">AUDIENCE</span>
+          <span class="ff-owner-state private">OWNER ONLY</span>
+        </div>
+        <h2>Email List</h2>
+        <p>People who asked for the monthly note from the homepage, Evidence Lab or the Price Is Not Proof article.</p>
+        <ul>
+          <li>Download as CSV with signup date and source</li>
+          <li>Consent wording and version kept per address</li>
+          <li>Unsubscribe requests: remove the address</li>
+        </ul>
+        <a class="ff-owner-action" href="/api/updates/subscribers" download>Download Email List (CSV)</a>
+        <form class="ff-owner-unsubscribe" data-ff-owner-unsubscribe>
+          <label for="ff-owner-unsubscribe-email">Remove an address (unsubscribe request)</label>
+          <div><input id="ff-owner-unsubscribe-email" type="email" name="email" required maxlength="254" autocomplete="off" placeholder="name@example.com"><button type="submit">Remove</button></div>
+          <p data-ff-owner-unsubscribe-status role="status" aria-live="polite"></p>
+        </form>
+      </article>
+
+      <article class="ff-owner-card">
+        <div class="ff-owner-card-head">
           <span class="ff-owner-mode">PUBLIC</span>
           <span class="ff-owner-state live">LIVE</span>
         </div>
@@ -118,5 +138,6 @@
 
 <script src="/assets/js/flipforge-identity.js"></script>
 <script src="/assets/js/owner-hub.js?v=20260929-1" defer></script>
+<script src="/assets/js/owner-email-list.js" defer></script>
 </body>
 </html>

@@ -860,6 +860,8 @@
   .ff-proof-footer-inner{align-items:flex-start;flex-direction:column}
 }
 
+.ff-proof-page-section>.ff-proof-page-wrap>p+p{margin-top:14px}
+
 @media(prefers-reduced-motion:reduce){
   .ff-proof-progress-track span,
   .ff-proof-button{transition:none!important}

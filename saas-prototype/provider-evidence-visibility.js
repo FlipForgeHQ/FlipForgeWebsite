@@ -45,7 +45,8 @@
     const opportunityId = cleanText(data?.opportunityId, 200);
     if (!summary || !SAFE_ID.test(opportunityId)) return null;
     // The API now names the provider neutrally ("DATA_PROVIDER"); older responses used the internal code.
-    if (!["CARDSIGHT", "DATA_PROVIDER"].includes(String(summary.provider || "").toUpperCase())) return null;
+    // The gateway (netlify/functions/provider-disclosure-filter.js) rewrites the provider name to DATA_PROVIDER.
+    if (String(summary.provider || "").toUpperCase() !== "DATA_PROVIDER") return null;
 
     const status = String(summary.status || "").toUpperCase();
     if (!SAFE_STATUS.test(status)) return null;
@@ -73,11 +74,11 @@
     };
   }
 
-  function isCardSightEvidence(row) {
+  function isProviderEvidence(row) {
     const combined = [row?.sourceName, row?.sourceMarketplace, row?.source, row?.provider]
       .map(value => String(value || "").toUpperCase())
       .join(" ");
-    return combined.includes("CARDSIGHT") || combined.includes("DATA_PROVIDER") || combined.includes("(DATA PROVIDER)");
+    return combined.includes("DATA_PROVIDER") || combined.includes("(DATA PROVIDER)");
   }
 
   function normalizeEvidenceSnapshot(opportunityId, data) {
@@ -88,17 +89,17 @@
       return {
         opportunityId,
         acceptedExactCompletedSales: safeInteger(data.acceptedExactCompletedSales),
-        cardSightRows: safeInteger(providerSummary.storedRowsLinked),
-        acceptedCardSightRows: safeInteger(providerSummary.storedRowsAdmittedNow)
+        providerRows: safeInteger(providerSummary.storedRowsLinked),
+        acceptedProviderRows: safeInteger(providerSummary.storedRowsAdmittedNow)
       };
     }
     const rows = Array.isArray(data.linkedEvidence) ? data.linkedEvidence : [];
-    const cardSightRows = rows.filter(isCardSightEvidence);
+    const providerRows = rows.filter(isProviderEvidence);
     return {
       opportunityId,
       acceptedExactCompletedSales: safeInteger(data.acceptedExactCompletedSales),
-      cardSightRows: cardSightRows.length,
-      acceptedCardSightRows: cardSightRows.filter(row => row?.authorityEligible === true).length
+      providerRows: providerRows.length,
+      acceptedProviderRows: providerRows.filter(row => row?.authorityEligible === true).length
     };
   }
 
@@ -131,7 +132,7 @@
     }
   }
 
-  window.fetch = function flipForgeCardSightVisibleFetch(input, init) {
+  window.fetch = function flipForgeProviderVisibleFetch(input, init) {
     return originalFetch(input, init).then(response => {
       inspectResponse(input, init, response).catch(() => {});
       return response;
@@ -172,7 +173,7 @@
   }
 
   function metric(label, value) {
-    return `<div class="cardsight-evidence-metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+    return `<div class="provider-evidence-metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
   }
 
   function panelSignature(summary, evidence) {
@@ -186,8 +187,8 @@
       summary?.reviewRows ?? "x",
       summary?.rejectedRows ?? "x",
       summary?.fixedPriceRowsCanSupportValue === true ? 1 : 0,
-      evidence?.cardSightRows ?? "x",
-      evidence?.acceptedCardSightRows ?? "x",
+      evidence?.providerRows ?? "x",
+      evidence?.acceptedProviderRows ?? "x",
       evidence?.acceptedExactCompletedSales ?? "x"
     ].join("|");
   }
@@ -199,7 +200,7 @@
 
     const status = summary?.status || "CURRENT_EVIDENCE";
     const tone = statusTone(status);
-    const currentAccepted = evidence ? evidence.acceptedCardSightRows : "—";
+    const currentAccepted = evidence ? evidence.acceptedProviderRows : "—";
     const totalAccepted = evidence ? evidence.acceptedExactCompletedSales : "—";
     const metrics = summary
       ? [
@@ -218,11 +219,11 @@
         ].join("");
 
     const signature = panelSignature(summary, evidence);
-    const providerMessage = summary?.message ? `<p class="cardsight-evidence-provider-message">${escapeHtml(summary.message)}</p>` : "";
+    const providerMessage = summary?.message ? `<p class="provider-evidence-provider-message">${escapeHtml(summary.message)}</p>` : "";
     const boundary = summary?.fixedPriceRowsCanSupportValue === true
       ? "Historical completed sales, including fixed-price completed sales, may support value only after FlipForge exact-evidence checks. Active listings and asking prices cannot support value."
       : "Fixed-price asks and active listings cannot support value.";
-    const markup = `<section class="panel cardsight-evidence-panel" data-cardsight-evidence-panel data-cardsight-evidence-signature="${escapeHtml(signature)}" aria-label="Reported sale evidence status">
+    const markup = `<section class="panel provider-evidence-panel" data-provider-evidence-panel data-provider-evidence-signature="${escapeHtml(signature)}" aria-label="Reported sale evidence status">
       <header class="panel-header">
         <div>
           <span class="eyebrow">Historical sold evidence</span>
@@ -232,9 +233,9 @@
         <span class="staging-status staging-status-${escapeHtml(tone)}">${escapeHtml(status.replaceAll("_", " "))}</span>
       </header>
       <div class="panel-body">
-        <div class="cardsight-evidence-grid">${metrics}</div>
+        <div class="provider-evidence-grid">${metrics}</div>
         ${providerMessage}
-        <p class="cardsight-evidence-boundary"><strong>Evidence boundary:</strong> ${escapeHtml(boundary)} Our data provider never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the sole decision authority.</p>
+        <p class="provider-evidence-boundary"><strong>Evidence boundary:</strong> ${escapeHtml(boundary)} Our data provider never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the sole decision authority.</p>
       </div>
     </section>`;
     return { signature, markup };
@@ -243,7 +244,7 @@
   function render() {
     renderQueued = false;
     const opportunityId = routeOpportunityId();
-    const existing = document.querySelector("[data-cardsight-evidence-panel]");
+    const existing = document.querySelector("[data-provider-evidence-panel]");
     if (!opportunityId) {
       existing?.remove();
       return;
@@ -256,7 +257,7 @@
       existing?.remove();
       return;
     }
-    if (existing?.dataset.cardsightEvidenceSignature === built.signature) return;
+    if (existing?.dataset.providerEvidenceSignature === built.signature) return;
 
     const holder = document.createElement("div");
     holder.innerHTML = built.markup;

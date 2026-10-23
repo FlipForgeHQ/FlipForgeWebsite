@@ -112,6 +112,14 @@
     }
   };
   normalizeMarketingShell();
+  // On Netlify previews, never direct returning testers to a preview-origin login.
+  if(/(?:^|\.)netlify\.app$/i.test(location.hostname)){
+    const productionBetaSignIn='https://goflipforge.com/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
+    document.querySelectorAll('a[href*="production-auth.html"]').forEach(link=>{
+      link.href=productionBetaSignIn;
+      link.title='Sign in on the live FlipForge website';
+    });
+  }
   enforceReadabilityFloor();
 
   const endpoint="/api/conversion-event";

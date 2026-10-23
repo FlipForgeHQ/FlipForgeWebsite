@@ -265,13 +265,14 @@ for (const htmlPath of htmlFiles) {
   if (html.includes('data-app-preview=') && !html.includes('Beta Sign In')) failures.push('public app preview is private-beta sign-in only');
 
   if (path.basename(htmlPath) === 'index.html') {
-    if (!html.includes('assets/css/homepage-v5.css')) failures.push('homepage v5 stylesheet');
-    if (!html.includes('assets/js/homepage-v5.js')) failures.push('homepage v5 behavior');
-    if (!html.includes('class="ffdv ffdv--hero"') || !html.includes('Illustrative product view')) failures.push('labelled illustrative decision visual hero');
-    if (!html.includes('id="decision-forge"') || !html.includes('data-decision-forge')) failures.push('interactive Decision Forge');
-    if (!html.includes('id="why"') || !html.includes('WHY FLIPFORGE')) failures.push('concise homepage differentiation section');
+    if (!html.includes('id="demo"') || !html.includes('data-ffdemo')) failures.push('prominent interactive Max Buy demo');
+    if (!html.includes('assets/css/homepage-v10.css')) failures.push('interactive demo stylesheet');
+    if (!html.includes('assets/js/homepage-v10.js')) failures.push('interactive demo runtime');
+    if (!html.includes('Max Buy') || !html.includes('Price gap') || !html.includes('data-price-gap')) failures.push('asking price versus Max Buy distinction');
+    if (!html.includes('class="ffdemo-nav-actions"') || !html.includes('class="ffdemo-mobile-actions"')) failures.push('paired sign-in and Private Beta access');
+    if (!html.includes('class="ff10-proof"') || !html.includes('href="decision-proof.html">How proof works')) failures.push('preserve public proof methodology entry');
     if (!html.includes('assets/js/site.js')) failures.push('shared mobile navigation behavior');
-    if (!html.includes('assets/js/section-navigation.js')) failures.push('deterministic section navigation');
+    if (html.includes('data-film') || html.includes('data-decision-forge')) failures.push('homepage should have only one signature demonstration');
   }
 
   if (failures.length) {

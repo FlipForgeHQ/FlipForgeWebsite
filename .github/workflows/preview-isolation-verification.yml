@@ -1,0 +1,48 @@
+name: Preview Isolation Verification (manual)
+
+# Manual check that a deployed preview cannot reach production administration or production data, and that
+# production administration still requires authentication. Sends only credential-free requests and prints only
+# check names, status codes and the non-secret upstream-environment marker.
+on:
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: "Deploy preview origin, e.g. https://deploy-preview-123--goflipforge.netlify.app"
+        required: true
+        type: string
+      production_url:
+        description: "Production origin"
+        required: false
+        default: "https://goflipforge.com"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-isolation-verification
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Preview cannot reach production administration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Local logic (function modules, no network)
+        run: node scripts/verify-preview-isolation.mjs --local
+      - name: Deployed preview and production (no credentials)
+        env:
+          PREVIEW_URL: ${{ inputs.preview_url }}
+          PRODUCTION_URL: ${{ inputs.production_url }}
+        run: node scripts/verify-preview-isolation.mjs --remote

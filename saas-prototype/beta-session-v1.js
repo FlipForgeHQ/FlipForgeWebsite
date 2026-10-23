@@ -154,9 +154,8 @@
       actions.insertAdjacentElement("afterend", hint);
     }
 
-    const help = panel.querySelector(".customer-discovery-search-help");
-    const helpCopy = "For accurate results, include <strong>year · set · player · card number · parallel · grader · grade</strong> when known. Checking identity only helps confirm the card; searching finds listings for sale.";
-    if (help && help.innerHTML !== helpCopy) help.innerHTML = helpCopy;
+    // The card-entry guide (what to type, two-year seasons, card-number notation) now renders open in
+    // customer-discovery.js for both the Private Beta and customer apps; the beta no longer rewrites it.
 
     hideTechnicalSectionByHeading(/^Connected source status$/i);
     main.querySelectorAll(".customer-discovery-identity-assist .boundary-note").forEach(hideNode);

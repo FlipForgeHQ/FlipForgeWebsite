@@ -1,17 +1,13 @@
-const CACHE='flipforge-shell-v22';
+const CACHE='flipforge-shell-v26';
 const SHELL=[
   '/',
   '/index.html',
   '/decision-proof.html',
   '/assets/css/site.css',
   '/assets/css/brand-v2.css',
-  '/assets/css/homepage-v5.css',
-  '/assets/css/homepage-decision-forge-v1.css',
-  '/assets/css/sitewide-graphics-v1.css',
-  '/assets/css/homepage-sections-v1.css',
-  '/assets/css/ff-decision-visual-v1.css',
-  '/assets/css/homepage-hero-v6.css',
-  '/assets/css/public-typography-contract-v1.css',
+        '/assets/css/homepage-sections-v1.css',
+  '/assets/css/homepage-interactive-decision-v7.css',
+      '/assets/css/public-typography-contract-v1.css',
   '/assets/css/public-readability-contract-v1.css',
   '/assets/css/visual-sections.css',
   '/assets/css/marketing-v3.css',
@@ -34,10 +30,16 @@ const SHELL=[
   '/assets/css/decision-proof-v1.css',
   '/assets/css/decision-intelligence-consumer-v2.css',
   '/assets/js/site.js',
-  '/assets/js/homepage-v5.js',
-  '/assets/js/homepage-decision-forge-v1.js',
-  '/assets/js/sitewide-graphics-v1.js',
-  '/assets/js/phase3-activation-events-v1.js',
+  '/assets/css/homepage-v10.css',
+  '/assets/js/homepage-v10.js',
+  '/assets/images/ff10-hero.webp',
+  '/assets/images/ff10-silver.webp',
+  '/assets/images/ff10-base.webp',
+  '/assets/js/homepage-interactive-decision-v7.js',
+  '/assets/js/homepage-cinematic-film-v9.js',
+  '/assets/css/homepage-reference-v8.css',
+  '/assets/css/homepage-cinematic-film-v9.css',
+        '/assets/js/phase3-activation-events-v1.js',
   '/assets/js/homepage-v1.js',
   '/assets/js/homepage-deal-or-decoy-v1.js',
   '/assets/js/homepage-contender-v1.js',
@@ -70,6 +72,8 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
+  // Video streams with byte ranges; let the browser fetch it directly (Safari cannot play range responses via a worker).
+  if(event.request.destination==='video'||event.request.headers.has('range'))return;
   if(event.request.mode==='navigate'){
     event.respondWith((async()=>{
       try{

@@ -21,6 +21,7 @@ import {
   transitionApplication,
   transitionFeedback,
 } from "./lib/beta-operations-core.mjs";
+import { productionOnly } from "./lib/production-deploy-guard.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 import { BetaAdmissionError, admissionOperatorId, createAdmissionClient } from "./lib/beta-admission-client.mjs";
 
@@ -729,7 +730,7 @@ export function createBetaOperatorHandler({
   };
 }
 
-export default createBetaOperatorHandler();
+export default productionOnly(createBetaOperatorHandler());
 
 // Netlify's current project tier permits two code-based rate-limit rules.
 // Operator access remains authenticated, operator-role gated, same-origin for writes,
