@@ -14,6 +14,7 @@ on:
       - "package.json"
       - "docs/PREBETA_SAVED_DECISION_LIFECYCLE_AUDIT.md"
       - ".github/workflows/prebeta-saved-decision-lifecycle-audit.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches:
       - main
@@ -29,6 +30,7 @@ on:
       - "package.json"
       - "docs/PREBETA_SAVED_DECISION_LIFECYCLE_AUDIT.md"
       - ".github/workflows/prebeta-saved-decision-lifecycle-audit.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   workflow_dispatch:
 
 permissions:
@@ -63,9 +65,7 @@ jobs:
           node scripts/validate-prebeta-saved-decision-lifecycle-audit.mjs
 
       - name: Install Playwright Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
 
       - name: Start local SaaS preview at production app path
         run: |

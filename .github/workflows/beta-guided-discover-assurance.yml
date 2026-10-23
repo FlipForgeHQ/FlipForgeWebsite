@@ -9,6 +9,7 @@ on:
       - 'scripts/validate-beta-guided-discover-v1.mjs'
       - 'scripts/audit-beta-guided-discover-rendered.mjs'
       - '.github/workflows/beta-guided-discover-assurance.yml'
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches: [main]
     paths:
@@ -38,8 +39,6 @@ jobs:
       - name: Validate exact-card composition and no provider/storage access
         run: node scripts/validate-beta-guided-discover-v1.mjs
       - name: Install Chromium for isolated UI rehearsal
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Rehearse desktop and mobile controls without customer credentials
         run: node scripts/audit-beta-guided-discover-rendered.mjs

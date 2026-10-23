@@ -17,6 +17,7 @@ on:
       - "scripts/build-identity-client.mjs"
       - "package.json"
       - ".github/workflows/customer-shell-brand.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches:
       - main
@@ -35,6 +36,7 @@ on:
       - "scripts/build-identity-client.mjs"
       - "package.json"
       - ".github/workflows/customer-shell-brand.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   workflow_dispatch:
 
 permissions:
@@ -66,9 +68,7 @@ jobs:
         run: npm run build:identity
 
       - name: Install Playwright Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
 
       - name: Start production-path app server
         run: |

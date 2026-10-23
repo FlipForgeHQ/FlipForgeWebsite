@@ -46,6 +46,7 @@ on:
       - 'docs/CUSTOMER_APP_AUDIT_COVERAGE.md'
       - 'docs/CUSTOMER_APP_AUDIT_POLICY.md'
       - '.github/workflows/full-customer-app-assurance.yml'
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches:
       - main
@@ -92,6 +93,7 @@ on:
       - 'docs/CUSTOMER_APP_AUDIT_COVERAGE.md'
       - 'docs/CUSTOMER_APP_AUDIT_POLICY.md'
       - '.github/workflows/full-customer-app-assurance.yml'
+      - "scripts/ci/install-playwright-chromium.sh"
   workflow_dispatch:
 
 permissions:
@@ -127,9 +129,7 @@ jobs:
           node scripts/validate-customer-ux-redundancy.mjs
           node scripts/validate-full-customer-app.mjs
       - name: Install Playwright Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path app server
         run: |
           node saas-prototype/serve.mjs > /tmp/flipforge-full-customer-server.log 2>&1 &
