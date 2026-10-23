@@ -9,6 +9,7 @@ on:
       - 'saas-prototype/index.html'
       - 'scripts/audit-forge-heat-consumer-ui.mjs'
       - '.github/workflows/forge-heat-consumer-visual-qa.yml'
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches: [main]
     paths:
@@ -18,6 +19,7 @@ on:
       - 'saas-prototype/index.html'
       - 'scripts/audit-forge-heat-consumer-ui.mjs'
       - '.github/workflows/forge-heat-consumer-visual-qa.yml'
+      - "scripts/ci/install-playwright-chromium.sh"
 
 permissions:
   contents: read
@@ -36,9 +38,7 @@ jobs:
       - name: Build production app assets
         run: npm run build:identity
       - name: Install Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path preview
         run: |
           node saas-prototype/serve.mjs > /tmp/flipforge-heat-ui.log 2>&1 &

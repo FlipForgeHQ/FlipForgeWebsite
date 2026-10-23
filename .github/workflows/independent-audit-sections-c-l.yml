@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/independent-audit-sections-c-l.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
       - ".github/workflows/pre-beta-security-assurance.yml"
       - "package.json"
       - "package-lock.json"
@@ -61,9 +62,7 @@ jobs:
       - run: npm run build:identity
       - run: npm run validate:customer-discovery
       - name: Install Playwright Chromium for destructive browser audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path SaaS audit server
         shell: bash
         run: |
@@ -96,9 +95,7 @@ jobs:
       - run: npm run validate:price-intelligence
       - run: npm run validate:card-intelligence-result-priority
       - name: Install Playwright Chromium for cross-surface audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path SaaS audit server
         shell: bash
         run: |
@@ -149,9 +146,7 @@ jobs:
       - run: npm run validate:customer-lifecycle
       - run: npm run validate:customer-export
       - name: Install Playwright Chromium for lifecycle attack audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path SaaS audit server
         shell: bash
         run: |
@@ -176,9 +171,7 @@ jobs:
       - run: npm run build:identity
       - run: node saas-prototype/validate-decision-intelligence.mjs
       - name: Install Playwright Chromium for Forge Heat visual audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path SaaS audit server
         shell: bash
         run: |

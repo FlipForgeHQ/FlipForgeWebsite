@@ -84,7 +84,8 @@ check("039 report is machine-readable JSON", audit.includes("cross-surface-audit
 check("040 report enumerates all eight surfaces", audit.includes('surfaces: ["alerts", "portfolio", "forge-heat", "market-view", "compare", "psa-advisor", "evidence", "sell"]'));
 check("041 workflow builds production app assets", workflow.includes("npm run build:identity"));
 check("042 workflow validates route authority and surface contracts", workflow.includes("validate:production-route-authority") && workflow.includes("validate:customer-management") && workflow.includes("validate:customer-portfolio") && workflow.includes("validate:customer-compare") && workflow.includes("validate:market-view"));
-check("043 workflow installs Playwright", workflow.includes("playwright@1.55.0") && workflow.includes("playwright install --with-deps chromium"));
+const playwrightInstaller = exists("scripts/ci/install-playwright-chromium.sh") ? read("scripts/ci/install-playwright-chromium.sh") : "";
+check("043 workflow installs Playwright", workflow.includes("bash scripts/ci/install-playwright-chromium.sh") && playwrightInstaller.includes('PLAYWRIGHT_VERSION="1.55.0"') && playwrightInstaller.includes("install chromium"));
 check("044 workflow runs destructive browser matrix", workflow.includes("npm run audit:prebeta-cross-surface"));
 check("045 workflow uploads audit artifact", workflow.includes("flipforge-prebeta-cross-surface-audit") && workflow.includes("retention-days: 30"));
 check("046 docs lock S1 merge blocking", doc.includes("S1") && doc.includes("blocks merge"));

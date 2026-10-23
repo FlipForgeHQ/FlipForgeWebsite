@@ -27,8 +27,6 @@ jobs:
       - name: Validate customer trust display helpers (saved risk and confidence, legacy results, source wording, withheld prices)
         run: node scripts/validate-customer-trust-display.mjs
       - name: Install Playwright Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Legacy evidence headings are still read (current and legacy labels)
         run: node scripts/audit-legacy-evidence-labels-ci.mjs

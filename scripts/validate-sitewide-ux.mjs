@@ -110,7 +110,8 @@ requireText('rendered typography audit covers public section-title equivalence',
 requireText('rendered typography audit covers desktop and mobile',renderedTypographyAudit,"{ name: 'desktop', width: 1440");
 requireText('rendered typography audit covers mobile viewport',renderedTypographyAudit,"{ name: 'mobile', width: 390");
 requireText('sitewide workflow triggers on every public CSS change',workflow,'- "assets/css/**"');
-requireText('sitewide workflow installs Playwright',workflow,'playwright@1.55.0');
+requireText('sitewide workflow installs Playwright',workflow,'bash scripts/ci/install-playwright-chromium.sh');
+requireText('shared Playwright installer pins 1.55.0',read('scripts/ci/install-playwright-chromium.sh'),'PLAYWRIGHT_VERSION="1.55.0"');
 requireText('sitewide workflow starts local public site',workflow,'python3 -m http.server 4173');
 requireText('sitewide workflow executes rendered typography audit',workflow,'node scripts/audit-public-typography-rendered.mjs');
 requireText('non-home explicit Home control',brandCss,'.site-header .brand::after{content:"HOME"');

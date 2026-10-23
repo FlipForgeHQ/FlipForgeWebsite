@@ -1,5 +1,6 @@
-// Blocked deploy previews (Netlify Firewall Traffic Rule on unpublished deploys) are reported as a skip or a pass,
-// never mistaken for a reachable preview, and a partially reachable preview is never reported as blocked.
+// Blocked deploy previews (Netlify Firewall Traffic Rule on unpublished deploys) are reported as skipped, never as
+// tested or passed, never mistaken for a reachable preview, and a partially reachable preview is never reported as
+// blocked. Production checks stay required, and an unbuilt or failed preview deploy still fails.
 // Local only: every HTTP answer below comes from a stubbed fetch; nothing is sent over the network.
 import fs from "node:fs";
 import os from "node:os";
@@ -108,20 +109,22 @@ function runVerifier(scenario, extraEnv = {}) {
   return { status: result.status, out: `${result.stdout}${result.stderr}` };
 }
 
-let r = runVerifier("blocked+good");
-check(r.status === 0 && /state=blocked/.test(r.out), "verify --remote: fully blocked preview + healthy production -> PASS");
-check(/PASS \| 1 \| preview is fully blocked/.test(r.out) && /PASS \| 2 \| preview is fully blocked/.test(r.out), "verify --remote: blocked preview passes 'preview cannot reach production administration'");
+let r = runVerifier("blocked+good", { PREVIEW_DEPLOY_STATUS: "success" });
+check(r.status === 0 && /state=blocked/.test(r.out) && /PASS \| 0 \|/.test(r.out), "verify --remote: blocked preview + Netlify status success + healthy production -> exit 0");
+check(/SKIP \| 1 \| preview privileged endpoints not tested/.test(r.out) && /SKIP \| 2 \| preview gateway not tested/.test(r.out) && /SKIP \| 4 \| preview internal paths not tested/.test(r.out), "verify --remote: blocked preview checks are reported as SKIP");
+check(!/PASS \| (1|2|2[a-d]) \|/.test(r.out) && !/PASS \| 4 \| preview/.test(r.out), "verify --remote: no preview check is reported as PASS when the preview is blocked");
+check(/skipped \(not tested\)/.test(r.out) && /Preview checks were SKIPPED/.test(r.out), "verify --remote: summary states the preview checks were skipped and not tested");
 check(/PASS \| 3 \| production GET \/api\/beta\/operator requires authentication/.test(r.out) && /PASS \| 3b \|/.test(r.out) && /PASS \| 3d \|/.test(r.out) && /PASS \| 4 \| production internal path/.test(r.out), "verify --remote: production checks still run when the preview is blocked");
-check(!/FAIL/.test(r.out), "verify --remote: no FAIL lines for blocked preview + healthy production");
+check(!/FAIL/.test(r.out), "verify --remote: no FAIL lines for blocked preview + successful deploy + healthy production");
 
-r = runVerifier("blocked+good", { PREVIEW_DEPLOY_STATUS: "success" });
-check(r.status === 0 && /PASS \| 0 \|/.test(r.out), "verify --remote: blocked preview with Netlify status success -> PASS");
+r = runVerifier("blocked+good");
+check(r.status === 1 && /FAIL \| 0 \|.*deploy-status=not supplied/.test(r.out), "verify --remote: blocked page without a Netlify deploy status -> FAIL (could be a failed or unbuilt deploy)");
 for (const status of ["missing", "pending", "failure"]) {
   r = runVerifier("blocked+good", { PREVIEW_DEPLOY_STATUS: status });
   check(r.status === 1 && /FAIL \| 0 \|/.test(r.out), `verify --remote: blocked page with Netlify status ${status} -> FAIL (could be an unbuilt preview)`);
 }
 
-r = runVerifier("blocked+broken");
+r = runVerifier("blocked+broken", { PREVIEW_DEPLOY_STATUS: "success" });
 check(r.status === 1 && /FAIL \| 3 \| production GET \/api\/beta\/operator/.test(r.out), "verify --remote: blocked preview + broken production -> FAIL");
 
 r = runVerifier("partial+good");
@@ -183,7 +186,12 @@ fs.writeFileSync(path.join(bin, "sleep"), "#!/bin/sh\nexit 0\n", { mode: 0o755 }
 const workflowReadable = stepIndex >= 0 && runIndex > stepIndex && body.length > 5 && waitText.includes("$(seq 1 60)");
 check(workflowReadable, "workflow wait step found");
 check(workflow.some(line => /^\s+name: Invite activation on the Netlify deploy preview\s*$/.test(line)), "deploy-preview job name unchanged");
-check(workflow.filter(line => /if: steps\.preview\.outputs\.blocked != 'true'/.test(line)).length === 2, "browser steps are skipped only when the preview is blocked");
+const inviteJobAt = workflow.findIndex(line => /^\s+name: Invite activation on the Netlify deploy preview\s*$/.test(line));
+const inviteJob = workflow.slice(inviteJobAt, inviteJobAt + 8).join("\n");
+check(/needs: deploy-preview-reachability/.test(inviteJob) && /if: github\.event_name == 'pull_request' && needs\.deploy-preview-reachability\.outputs\.blocked == 'false'/.test(inviteJob), "invite activation job runs only when the reachability job reports blocked=false (a blocked preview shows the job as Skipped)");
+check(!workflow.some(line => /steps\.preview\.outputs\.blocked/.test(line) && /^\s+if:/.test(line)), "no step-level skip: the invite activation job is either fully run or skipped as a whole");
+check(workflow.some(line => /^\s+blocked: \$\{\{ steps\.preview\.outputs\.blocked \}\}\s*$/.test(line)) && stepIndex < inviteJobAt, "reachability job exports the blocked output from the wait step");
+check(workflow.some(line => /^\s+name: Invite activation under production host and CSP\s*$/.test(line)) && !workflow.slice(0, stepIndex).some(line => /needs: deploy-preview-reachability/.test(line)), "production-simulation job is unchanged and does not depend on the preview");
 
 function runWait(scenario, deployStatus, extraEnv = {}) {
   const output = path.join(tmp, `out-${Math.random().toString(16).slice(2)}`);
@@ -199,19 +207,26 @@ function runWait(scenario, deployStatus, extraEnv = {}) {
       HEAD_SHA: SHA,
       REPOSITORY: "example/example",
       GITHUB_OUTPUT: output,
+      GITHUB_STEP_SUMMARY: `${output}.summary`,
       FF_STUB_SCENARIO: scenario,
       FF_STUB_DEPLOY_STATUS: deployStatus,
       ...extraEnv,
     },
   });
-  return { status: result.status, out: `${result.stdout}${result.stderr}`, outputs: fs.readFileSync(output, "utf8") };
+  const summaryFile = `${output}.summary`;
+  return { status: result.status, out: `${result.stdout}${result.stderr}`, outputs: fs.readFileSync(output, "utf8"), summary: fs.existsSync(summaryFile) ? fs.readFileSync(summaryFile, "utf8") : "" };
 }
 if (workflowReadable) {
   const notice = "::notice title=Deploy preview blocked::Deploy preview blocked by Netlify firewall — preview checks skipped; production-simulation job still runs";
   r = runWait("blocked+good", "success");
   check(r.status === 0 && r.out.includes(notice) && /^blocked=true$/m.test(r.outputs), "CI wait: blocked preview + Netlify ready -> exit 0 with the skip notice");
+  check(/SKIPPED \(not tested\)/.test(r.summary) && /did not pass/.test(r.summary), "CI wait: blocked preview writes an explicit 'skipped, not tested' job summary");
   r = runWait("reachable+good", "success", { FF_STUB_COMMIT: SHA });
   check(r.status === 0 && !r.out.includes("::notice") && /^blocked=false$/m.test(r.outputs), "CI wait: reachable preview serving the commit -> browser checks run");
+  r = runWait("blocked+good", "failure");
+  check(r.status === 1 && !r.out.includes("::notice") && !/blocked=true/.test(r.outputs), "CI wait: uniform 404 with a failed Netlify deploy -> fails, not a skip");
+  r = runWait("down+good", "success");
+  check(r.status === 1 && !r.out.includes("::notice") && !/blocked=true/.test(r.outputs), "CI wait: network failure -> fails, not a skip");
   r = runWait("blocked+good", "pending");
   check(r.status === 1 && !r.out.includes("::notice") && !/blocked=true/.test(r.outputs), "CI wait: uniform 404 while Netlify has not reported the preview ready -> not a skip (fails as before)");
   r = runWait("partial+good", "success");

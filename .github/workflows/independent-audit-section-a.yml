@@ -8,6 +8,7 @@ on:
       - "assets/js/conversion-events.js"
       - "scripts/audit-independent-section-a-*.mjs"
       - ".github/workflows/independent-audit-section-a.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   workflow_dispatch:
 
 permissions:
@@ -46,9 +47,7 @@ jobs:
         with:
           node-version: 24
       - name: Install Playwright for independent browser audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start local public site
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/flipforge-section-a.log 2>&1 &

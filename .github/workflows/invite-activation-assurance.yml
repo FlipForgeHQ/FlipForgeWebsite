@@ -20,6 +20,7 @@ on:
       - "scripts/check-preview-reachability.mjs"
       - "scripts/lib/preview-block-detection.mjs"
       - ".github/workflows/invite-activation-assurance.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches: [main]
   workflow_dispatch:
@@ -50,21 +51,26 @@ jobs:
           node scripts/inject-beta-invite-terms-gate.mjs
 
       - name: Install Playwright for browser QA
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
 
       - name: Gate invite activation visibility and workspace handoff
         run: node scripts/audit-invite-activation-ci.mjs
 
-  deploy-preview:
-    name: Invite activation on the Netlify deploy preview
+  # With a Netlify Firewall Traffic Rule on unpublished deploys, every preview answers with the same block page.
+  # This job only decides whether the preview can be tested. A blocked preview makes the invite activation job
+  # below SKIPPED (never passed); the production-simulation job above still runs. A preview that serves any
+  # FlipForge content is never treated as blocked (scripts/lib/preview-block-detection.mjs). An unbuilt or failed
+  # deploy, a network failure or a partially reachable preview fails this job exactly as before.
+  deploy-preview-reachability:
+    name: Deploy preview reachability (Netlify)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
       statuses: read
+    outputs:
+      blocked: ${{ steps.preview.outputs.blocked }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -74,9 +80,6 @@ jobs:
         with:
           node-version: 24
 
-      # With a Netlify Firewall Traffic Rule on unpublished deploys, every preview answers with the same block page.
-      # That is reported as a skip, not a failure: the production-simulation job still runs. A preview that serves
-      # any FlipForge content is never treated as blocked (scripts/lib/preview-block-detection.mjs).
       - name: Wait for this commit's deploy preview
         id: preview
         env:
@@ -102,6 +105,9 @@ jobs:
             # this commit's deploy preview as ready (so the page is not the "not found" answer for an unbuilt preview).
             if [ "$blocked_streak" -ge 3 ] && [ "$deployed" = "success" ]; then
               echo "::notice title=Deploy preview blocked::Deploy preview blocked by Netlify firewall — preview checks skipped; production-simulation job still runs"
+              if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+                printf '%s\n' "### Deploy preview checks SKIPPED (not tested)" "" "The Netlify firewall blocks this deploy preview, so **Invite activation on the Netlify deploy preview** was skipped. It was not tested and did not pass. The production-simulation job still runs." >> "$GITHUB_STEP_SUMMARY"
+              fi
               echo "blocked=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
@@ -111,14 +117,26 @@ jobs:
           echo "Deploy preview did not serve $HEAD_SHA within 15 minutes"
           exit 1
 
+  deploy-preview:
+    name: Invite activation on the Netlify deploy preview
+    needs: deploy-preview-reachability
+    # Runs only when the preview is serving this commit. A blocked preview shows this job as Skipped, not passed.
+    if: github.event_name == 'pull_request' && needs.deploy-preview-reachability.outputs.blocked == 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install Playwright for browser QA
-        if: steps.preview.outputs.blocked != 'true'
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
 
       - name: Gate invite activation visibility on the real deploy preview
-        if: steps.preview.outputs.blocked != 'true'
         env:
           INVITE_AUDIT_BASE_URL: https://deploy-preview-${{ github.event.pull_request.number }}--goflipforge.netlify.app
         run: node scripts/audit-invite-activation-ci.mjs

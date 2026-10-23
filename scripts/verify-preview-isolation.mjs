@@ -5,12 +5,13 @@
 //       requests. No network. Used by the build so pull requests prove the logic.
 //   PREVIEW_URL=https://deploy-preview-NNN--goflipforge.netlify.app [PRODUCTION_URL=https://goflipforge.com] \
 //   node scripts/verify-preview-isolation.mjs --remote
-//       Sends credential-free requests to a deployed preview and to production. A preview that the Netlify firewall
-//       blocks completely passes the preview checks (it cannot reach anything); production checks always run.
-//       PREVIEW_DEPLOY_STATUS (optional, set by the manual workflow from Netlify's commit status) must be "success"
-//       for a block page to count, so a typo'd or unbuilt preview URL (also a uniform Netlify 404) cannot pass.
+//       Sends credential-free requests to a deployed preview and to production. When the Netlify firewall blocks the
+//       preview completely, the preview checks are reported as SKIP (not tested, not passed); production checks always
+//       run and are always required. A block page counts only when PREVIEW_DEPLOY_STATUS (set by the manual workflow
+//       from Netlify's commit status) is "success", so a typo'd, unbuilt or failed preview deploy (also a uniform
+//       Netlify 404) fails.
 //
-// Output is limited to check names, HTTP status codes, the non-secret upstream-environment marker and PASS/FAIL.
+// Output is limited to check names, HTTP status codes, the non-secret upstream-environment marker and PASS/FAIL/SKIP.
 // No response bodies, headers or cookies are printed. Exit code 1 when any check fails.
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -37,9 +38,15 @@ const PREVIEW_SAFE_MARKERS = new Set(["staging", "none"]);
 const MARKER = /^(staging|production|none|unlabeled)$/;
 
 const results = [];
+const skipped = [];
 function record(id, label, pass, detail = "") {
   results.push({ id, label, pass });
   console.log(`${pass ? "PASS" : "FAIL"} | ${id} | ${label}${detail ? ` | ${detail}` : ""}`);
+}
+// A check that could not be run. It is neither a pass nor a failure and is never counted as passed.
+function skip(id, label, detail = "") {
+  skipped.push({ id, label });
+  console.log(`SKIP | ${id} | ${label}${detail ? ` | ${detail}` : ""}`);
 }
 function marker(value) {
   const text = String(value || "");
@@ -48,7 +55,9 @@ function marker(value) {
 
 function finish(mode) {
   const failed = results.filter(item => !item.pass).length;
-  console.log(`\nPreviewIsolationVerification (${mode}): ${results.length - failed}/${results.length} passed`);
+  const skipNote = skipped.length ? `, ${skipped.length} skipped (not tested)` : "";
+  console.log(`\nPreviewIsolationVerification (${mode}): ${results.length - failed}/${results.length} passed${skipNote}`);
+  if (skipped.length) console.log("Preview checks were SKIPPED: the preview is blocked by the Netlify firewall and was not tested.");
   if (failed) process.exitCode = 1;
 }
 
@@ -97,9 +106,9 @@ async function remote() {
     return;
   }
 
-  // A preview that Netlify's firewall blocks answers every path with the same non-FlipForge block page. That is the
-  // strongest isolation, so checks 1 and 2 pass without per-endpoint probes. Any FlipForge content on any sentinel
-  // path means the preview is reachable, and then every strict preview check below runs.
+  // A preview that Netlify's firewall blocks answers every path with the same non-FlipForge block page. Its checks
+  // cannot run, so they are reported as SKIP, never PASS. Any FlipForge content on any sentinel path means the
+  // preview is reachable, and then every strict preview check below runs.
   const block = await probePreview(preview);
   const previewBlocked = block.state === "blocked";
   console.log(`INFO | preview | state=${block.state} | ${block.reason}`);
@@ -107,10 +116,10 @@ async function remote() {
   const deployStatus = String(process.env.PREVIEW_DEPLOY_STATUS || "").trim();
   if (previewBlocked) {
     const detail = `status=${block.status} on ${SENTINEL_PATHS.length} sentinel paths`;
-    if (deployStatus) record("0", "blocked preview is a real deploy (Netlify reports the deploy preview ready)", deployStatus === "success", `deploy-status=${/^[a-z]{1,20}$/.test(deployStatus) ? deployStatus : "unrecognised"}`);
-    else console.log("INFO | preview | deploy status not supplied; confirm the preview URL belongs to a finished deploy");
-    record("1", "preview is fully blocked by the Netlify firewall, so no privileged endpoint is reachable", true, detail);
-    record("2", "preview is fully blocked by the Netlify firewall, so its gateway cannot reach production data", true, detail);
+    // Required: an unbuilt, failed or mistyped preview also answers with a uniform Netlify 404.
+    record("0", "blocked preview is a successful deploy (Netlify reports the deploy preview ready)", deployStatus === "success", `deploy-status=${/^[a-z]{1,20}$/.test(deployStatus) ? deployStatus : deployStatus ? "unrecognised" : "not supplied"}`);
+    skip("1", "preview privileged endpoints not tested: preview blocked by the Netlify firewall", detail);
+    skip("2", "preview gateway not tested: preview blocked by the Netlify firewall", detail);
   } else {
     // 1. Privileged endpoints are absent on the preview.
     for (const fn of PRIVILEGED) {
@@ -148,8 +157,8 @@ async function remote() {
     record("3d", `production unauthenticated GET ${pathname} is rejected`, r.status === 401, `status=${r.status || r.error}`);
   }
 
-  // 4. Internal files are not served on either deploy (a fully blocked preview serves nothing).
-  if (previewBlocked) record("4", "preview internal paths are not served (fully blocked by the Netlify firewall)", true, `status=${block.status}`);
+  // 4. Internal files are not served on either deploy (a blocked preview cannot be tested; production always is).
+  if (previewBlocked) skip("4", "preview internal paths not tested: preview blocked by the Netlify firewall", `status=${block.status}`);
   for (const [name, origin] of previewBlocked ? [["production", production]] : [["preview", preview], ["production", production]]) {
     for (const pathname of INTERNAL_PATHS) {
       const r = await probe(origin, pathname);
