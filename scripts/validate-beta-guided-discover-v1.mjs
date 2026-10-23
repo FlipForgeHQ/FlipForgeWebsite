@@ -21,7 +21,8 @@ assert.equal(typeof compose,'function');
 const valid={year:'2018',maker:'Topps',other:'',set:'Chrome',player:'Shohei Ohtani',number:'No. 150',parallel:'',grader:'PSA',grade:'9'};
 assert.equal(compose(valid).query,'2018 Topps Chrome Shohei Ohtani #150 PSA 9');
 assert.equal(compose({...valid,number:'PC-19',maker:'Other',other:'Upper Deck',grader:'',grade:'',parallel:'Silver'}).query,'2018 Upper Deck Chrome Shohei Ohtani #PC-19 Silver');
-for(const overrides of [{year:''},{year:'198A'},{maker:''},{set:''},{player:''},{number:'?'},{grader:'PSA',grade:''},{grader:'',grade:'9'}]){
+assert.equal(compose({...valid,year:'2025-26',maker:'Panini',set:'Prizm',player:'Cooper Flagg',number:'1',grade:'10'}).query,'2025-26 Panini Prizm Cooper Flagg #1 PSA 10');
+for(const overrides of [{year:''},{year:'198A'},{year:'2025-27'},{year:'1700'},{maker:''},{set:''},{player:''},{number:'?'},{grader:'PSA',grade:''},{grader:'',grade:'9'}]){
  assert.ok(compose({...valid,...overrides}).error,'invalid composition must fail without guessing: '+JSON.stringify(overrides));
 }
 assert.ok(!js.includes('type="submit" data-ffguided-build'),'guided builder must not auto-search or evaluate');
