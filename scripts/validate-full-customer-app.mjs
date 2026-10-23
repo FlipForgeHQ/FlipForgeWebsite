@@ -32,7 +32,7 @@ const privateBetaGate = read("saas-prototype/private-beta-access-gate.js");
 const authRecoveryAudit = read("scripts/audit-customer-auth-recovery-ci.mjs");
 const fullCustomerWorkflow = read(".github/workflows/full-customer-app-assurance.yml");
 
-check(activeRedirects.includes("/app/beta /saas-prototype/index.html 200"), "production exposes the dedicated Private Beta route");
+check(activeRedirects.includes("/app/beta /app/beta/ 301"), "production canonicalizes slashless Private Beta entry before loading assets");
 check(activeRedirects.includes("/app/beta/ /saas-prototype/index.html 200"), "production exposes the Private Beta slash route");
 check(activeRedirects.includes("/app/beta/* /saas-prototype/:splat 200"), "Private Beta assets remain isolated under /app/beta");
 check(!activeRedirects.some(rule => rule.startsWith("/app/customer")), "customer app is not publicly routed before launch");
