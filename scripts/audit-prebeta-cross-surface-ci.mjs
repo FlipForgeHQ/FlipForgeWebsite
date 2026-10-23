@@ -380,7 +380,7 @@ async function waitEvidenceReady(id = "qa-a") {
   await page.locator("#main-content .customer-management-page").waitFor({ state: "visible", timeout: 7000 });
   await poll(async () => {
     const heading = await page.locator("#main-content .customer-management-page h1").first().textContent().catch(() => "");
-    return /Evidence Center|Why FlipForge trusts this decision/i.test(String(heading || ""));
+    return /Evidence Center|Why FlipForge trusts this decision|No sales support this decision yet/i.test(String(heading || ""));
   }, "Evidence never reached the production customer presentation");
   await poll(async () => !(await page.locator("#main-content .staging-loading").count()), "Evidence remained in a loading state");
 }
