@@ -208,6 +208,16 @@
     return `<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary><p>${escapeHtml(text)}</p></details>`;
   }
 
+  // A saved decision that is not in the signed-in account: the gateway answers 404 RESOURCE_NOT_FOUND, or the id is not
+  // in this account's list. Plain customer wording only; what the account can open is decided by the server as before.
+  function notInAccount(error) {
+    return String(error?.code || "") === "RESOURCE_NOT_FOUND";
+  }
+
+  function notInAccountPanel() {
+    return `<section class="panel ff-not-in-account" role="status" data-ff-not-in-account><div class="panel-body staging-empty"><strong>This decision isn’t in your account</strong><p>It may belong to a different account, or the link may be out of date. Open Saved Decisions to see your own decisions.</p><div class="ff-not-in-account-actions"><a class="button button-primary" href="#/opportunities">Open Saved Decisions</a></div></div></section>`;
+  }
+
   function errorPanel(error) {
     const signIn = error?.status === 401
       ? `<a class="button button-primary" href="${productionHost() ? `/production-auth.html?return=${encodeURIComponent(`/app/#/${state.route}`)}` : `/staging-auth.html?returnTo=${encodeURIComponent(`/saas-prototype/#/${state.route}`)}`}">Sign in securely</a>`
@@ -334,6 +344,7 @@
 
   function pageMarkup() {
     if (state.loading) return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Loading saved workflow", "Reading tenant-owned lifecycle facts through the approved same-origin gateway.")}<div class="staging-loading" role="status">Loading authoritative lifecycle state…</div></div>`;
+    if (state.error && notInAccount(state.error)) return `<div class="page customer-lifecycle-page">${pageHeading("Decision follow-up", "Tracking", "Follow up on decisions saved in your account.")}${notInAccountPanel()}</div>`;
     if (state.error) return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Lifecycle unavailable", "The request failed closed without a browser-only fallback.")}${errorPanel(state.error)}</div>`;
     if (state.health?.data?.status !== "configured") {
       const title = state.route === "tracking" ? "Tracking" : state.route === "portfolio" ? "Portfolio" : "Alerts";
@@ -358,7 +369,7 @@
     const ids = lifecycleItems().map(item => String(item.opportunityId));
     if (state.requestedId) {
       if (!SAFE_ID.test(state.requestedId) || !ids.includes(state.requestedId)) {
-        throw Object.assign(new Error("The requested lifecycle record was not returned for this tenant."), {
+        throw Object.assign(new Error("The requested saved decision is not in this account."), {
           code: "RESOURCE_NOT_FOUND",
           status: 404
         });
