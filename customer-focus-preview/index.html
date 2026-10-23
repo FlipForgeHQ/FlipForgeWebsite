@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#07080a">
+  <meta name="description" content="FlipForge customer experience concept. Interactive, illustrative preview. Not connected to live evaluations.">
+  <title>FlipForge — Focused Customer Experience Preview</title>
+  <link rel="icon" href="/brand/v2/master/FlipForge_Icon_Transparent_DarkBG.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./focus.css">
+  <script src="./focus.js" defer></script>
+</head>
+<body>
+  <div class="prototype-notice"><span class="notice-dot" aria-hidden="true"></span><strong>INTERACTIVE PREVIEW</strong><span>Illustrative figures · No live market data · No account activity</span></div>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar" aria-label="Customer navigation">
+      <div class="brand-area">
+        <a class="brand" href="#home" aria-label="FlipForge home">
+          <img src="/brand/v2/master/FlipForge_Icon_Transparent_DarkBG.svg" alt="" width="50" height="50">
+          <span class="brand-word"><span class="brand-name">FLIP<span>FORGE</span></span><small>CARD DECISION INTELLIGENCE</small></span>
+        </a>
+        <div class="brand-line">Before you buy. Know Why.</div>
+      </div>
+      <nav class="primary-nav" aria-label="Primary">
+        <div class="nav-label">YOUR WORKSPACE</div>
+        <a class="nav-link is-active" data-nav="home" href="#home" aria-current="page"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <a class="nav-link" data-nav="discover" href="#discover"><span class="nav-icon" aria-hidden="true">◇</span>Discover</a>
+        <a class="nav-link" data-nav="evaluate" href="#evaluate"><span class="nav-icon" aria-hidden="true">◎</span>Evaluate</a>
+        <a class="nav-link" data-nav="saved" href="#saved"><span class="nav-icon" aria-hidden="true">▤</span>Saved Decisions</a>
+        <a class="nav-link" data-nav="tracking" href="#tracking"><span class="nav-icon" aria-hidden="true">◷</span>Tracking</a>
+        <details class="more-tools" id="more-tools">
+          <summary><span class="nav-icon" aria-hidden="true">⋯</span>More Tools <span class="more-chevron" aria-hidden="true">⌄</span></summary>
+          <div class="more-links">
+            <span class="more-group">DISCOVERY</span>
+            <a href="#forge-heat" data-nav="forge-heat">Forge Heat</a>
+            <a href="#market" data-nav="market">Market View</a>
+            <a href="#alerts" data-nav="alerts">Alerts</a>
+            <span class="more-group">ANALYSIS &amp; RECORDS</span>
+            <a href="#portfolio" data-nav="portfolio">Portfolio</a>
+            <a href="#compare" data-nav="compare">Compare Cards</a>
+            <a href="#psa" data-nav="psa">PSA Advisor</a>
+            <a href="#export" data-nav="export">Audit Export</a>
+          </div>
+        </details>
+      </nav>
+      <div class="sidebar-footer"><div><strong>Design preview</strong><small>No live evaluations or account changes.</small></div></div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="menu-toggle" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">☰</button>
+        <span class="topbar-path"><span class="topbar-root">FLIPFORGE</span><span class="path-slash">/</span><span id="current-page-label">Home</span></span>
+        <span class="header-preview">DESIGN PREVIEW</span>
+        <a href="#evaluate" class="top-cta" data-nav="evaluate"><span aria-hidden="true">＋</span> Evaluate a card</a>
+        <div class="account-mark" aria-label="Illustrative account">FF</div>
+      </header>
+      <main id="main" tabindex="-1">
+        <section class="page-view" data-page="home">
+          <div class="page-heading">
+            <div><div class="overline">DECISION WORKSPACE</div><h1>Know your next move<span>.</span></h1></div>
+          </div>
+          <div class="dashboard-grid">
+            <section class="decision-column" aria-label="Selected card decision">
+              <div class="decision-card" id="decision-card" data-verdict="watch">
+                <div class="decision-topline"><span>SELECTED DECISION</span><span class="receipt-icon">ILLUSTRATIVE EXAMPLE</span></div>
+                <div class="decision-heading"><div><p class="verdict-label" id="verdict-label" data-verdict="WATCH">WATCH</p><h2 id="card-title">Sample card · PSA 10</h2><p class="card-subtitle" id="card-subtitle">Illustrative example · no live listing</p></div><div class="identity-tile" aria-hidden="true"><span>◇</span><strong>IDENTITY<br>CHECK</strong></div></div>
+                <div class="verdict-summary" id="verdict-summary">Asking price exceeds the modeled buying limit.</div>
+                <div class="price-grid">
+                  <div class="price-tile"><span>ALL-IN ASK</span><strong id="ask-price">$640.00</strong></div>
+                  <div class="price-tile primary"><span>MAX BUY</span><strong id="max-buy">$608.79</strong></div>
+                </div>
+                <div class="price-difference" id="price-difference" role="status"><span class="difference-mark" aria-hidden="true">↗</span>$31.21 above Max Buy</div>
+                <div class="next-move"><span>NEXT STEP</span><p id="next-move">Wait or revisit if the asking price improves.</p></div>
+                <button class="evidence-peek" type="button" data-open-evidence aria-controls="panel-evidence" aria-label="Open the Evidence tab for this example decision"><span>SALE EVIDENCE</span><strong id="evidence-peek">12 accepted sales</strong><span class="evidence-open">View evidence →</span></button>
+                <div class="tab-area">
+                  <div class="tabs" role="tablist" aria-label="Decision details">
+                    <button role="tab" aria-selected="true" id="tab-decision" aria-controls="panel-decision" tabindex="0" data-tab="decision">Decision</button>
+                    <button role="tab" aria-selected="false" id="tab-evidence" aria-controls="panel-evidence" tabindex="-1" data-tab="evidence">Evidence</button>
+                    <button role="tab" aria-selected="false" id="tab-economics" aria-controls="panel-economics" tabindex="-1" data-tab="economics">Economics</button>
+                  </div>
+                  <section class="tab-panel" role="tabpanel" id="panel-decision" aria-labelledby="tab-decision" tabindex="0">
+                    <h3>Why WATCH?</h3><p id="decision-reason">The asking price is above the modeled limit. A positive supported value alone does not make this a BUY.</p>
+                    <div class="mini-facts"><div><span>CONFIDENCE</span><strong id="confidence">82/100</strong></div><div><span>RISK</span><strong id="risk">35/100</strong></div></div>
+                    <details class="quiet-details"><summary>What else will I be able to see? <span>⌄</span></summary><div class="record-description">In the customer app: your saved receipt, source evidence, exact-card match, and decision history. This preview is not connected to those records.</div></details>
+                  </section>
+                  <section class="tab-panel" role="tabpanel" id="panel-evidence" aria-labelledby="tab-evidence" tabindex="0" hidden>
+                    <div class="evidence-stats"><div><span>EXACT SALES AT DECISION</span><strong id="accepted-sales">12</strong></div><div><span>EXCLUDED SALES</span><strong id="excluded-sales">Unavailable</strong></div></div>
+                    <div class="evidence-checks" aria-label="Example evidence status">
+                      <div><span>Card identity</span><strong id="identity-state" data-identity="confirmed">Exact match confirmed</strong></div>
+                      <div><span>Sale dates &amp; prices</span><strong>Not connected</strong></div>
+                      <div><span>Exclusion reasons</span><strong>Not connected</strong></div>
+                    </div>
+                    <p class="source-disclosure">Individual sales will only appear with verified source records.</p>
+                  </section>
+                  <section class="tab-panel" role="tabpanel" id="panel-economics" aria-labelledby="tab-economics" tabindex="0" hidden>
+                    <h3>Estimated profit after costs</h3><p class="tab-intro">Example scenarios, not market predictions.</p>
+                    <div class="scenario-line"><span>Base case</span><strong id="econ-base">+$82</strong></div>
+                    <div class="scenario-line"><span>Cautious case</span><strong id="econ-cautious">+$24</strong></div>
+                    <div class="scenario-line negative"><span>Downside scenario</span><strong id="econ-downside">−$41</strong></div>
+                    <div class="secondary-fact"><span>Supported value (illustrative)</span><strong id="supported-value">$812.50</strong></div>
+                  </section>
+                </div>
+              </div>
+            </section>
+            <aside class="saved-column" aria-label="Example saved decisions">
+              <div class="saved-head"><div><span>ILLUSTRATIVE EXAMPLES</span><h3>Decisions</h3></div><span class="saved-count">04</span></div>
+              <div id="decision-list" class="decision-list"></div>
+
+            </aside>
+          </div>
+        </section>
+
+        <section class="page-view" data-page="discover" hidden>
+          <div class="page-heading alt"><div class="overline">DISCOVER</div><h1>Find the card<span>.</span></h1><p class="page-subhead">Search by player, set or card number.</p></div>
+          <div class="placeholder-pane"><span class="pane-overline">DISCOVER / CONCEPT SCREEN</span><div class="search-placeholder">⌕ <span>Search player, year, set or card number</span><kbd>PREVIEW</kbd></div><p>This is a navigation and layout preview. Search results are intentionally not connected to live listings.</p><button class="secondary-cta" type="button" data-go="evaluate">Continue to Evaluate <span>→</span></button></div>
+        </section>
+        <section class="page-view" data-page="evaluate" hidden>
+          <div class="page-heading alt"><div class="overline">EVALUATE</div><h1>Know the buy<span>.</span></h1><p class="page-subhead">Confirm the exact card and asking price.</p></div>
+          <div class="placeholder-pane"><span class="pane-overline">EVALUATE / CONCEPT SCREEN</span><div class="step-row"><span>01</span><strong>Exact identity</strong><small>Year · Set · Number · Parallel · Grade</small></div><div class="step-row"><span>02</span><strong>Asking price</strong><small>All-in cost including known fees</small></div><div class="step-row"><span>03</span><strong>Decision</strong><small>Verdict · Max Buy · Evidence</small></div><button class="secondary-cta" type="button" data-go="home">See sample decision <span>→</span></button></div>
+        </section>
+        <section class="page-view" data-page="saved" hidden><div class="page-heading alt"><div class="overline">SAVED DECISIONS</div><h1>Saved Decisions<span>.</span></h1><p class="page-subhead">Return to what the evidence supported when you made the decision.</p></div><div class="placeholder-pane"><span class="pane-overline">SAVED DECISIONS / PREVIEW</span><p>Select an example to view its decision, evidence, and economics together.</p><div id="saved-grid" class="saved-grid"></div></div></section>
+        <section class="page-view" data-page="tracking" hidden><div class="page-heading alt"><div class="overline">TRACKING</div><h1>Watch what changes<span>.</span></h1><p class="page-subhead">Your original decision stays preserved.</p></div><div class="placeholder-pane"><span class="pane-overline">TRACKING / CONCEPT SCREEN</span><div class="step-row"><span>◷</span><strong>Saved decision</strong><small>Original verdict and receipt remain unchanged</small></div><div class="step-row"><span>↗</span><strong>New observation</strong><small>Only source-backed changes are displayed</small></div><div class="step-row"><span>◇</span><strong>Re-evaluate</strong><small>A new evaluation creates a new decision, not a rewrite</small></div></div></section>
+        <section class="page-view" data-page="tool" hidden><div class="page-heading alt"><div class="overline">POWER TOOLS / ON DEMAND</div><h1 id="tool-title">More Tools<span>.</span></h1><p class="page-subhead">Professional capabilities remain available without crowding the everyday workflow.</p></div><div class="placeholder-pane"><span class="pane-overline">LOCATION PREVIEW</span><p id="tool-description">This module remains available from More Tools. The preview does not run any analysis or modify account data.</p><button class="secondary-cta" type="button" data-go="home">Back to the decision <span>→</span></button></div></section>
+      </main>
+    </div>
+  </div>
+  <div class="mobile-scrim" hidden></div>
+</body>
+</html>
