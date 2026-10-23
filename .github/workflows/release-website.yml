@@ -1,0 +1,92 @@
+name: Release Website
+
+# Release batching (docs/WEBSITE_RELEASE_BATCHING.md): Netlify builds production from the `release` branch,
+# and this workflow moves `release` forward to tested commits on main. That gives one paid production
+# deploy per release instead of one per merge.
+#
+# Inert until the founder enables it: every run exits without changes unless the repository variable
+# WEBSITE_RELEASE_BATCHING is "enabled".
+on:
+  schedule:
+    # Weekdays 22:17 UTC (6:17 PM EDT / 5:17 PM EST). GitHub may start scheduled runs late.
+    - cron: '17 22 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "manual = release now; emergency = urgent fix, same safety checks"
+        type: choice
+        options: [manual, emergency]
+        default: manual
+      ref:
+        description: "Commit on main to release (default: latest main)"
+        type: string
+        default: main
+      reason:
+        description: "Why this release is needed now (required)"
+        type: string
+        required: true
+      dry_run:
+        description: "Check everything but do not move the release branch"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  checks: read
+
+concurrency:
+  group: release-website
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release tested main to production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Release batching switch
+        id: gate
+        env:
+          BATCHING: ${{ vars.WEBSITE_RELEASE_BATCHING }}
+        run: |
+          if [ "$BATCHING" = "enabled" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Release batching off::WEBSITE_RELEASE_BATCHING is not enabled; production still deploys from main on every merge. Nothing was released."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          node-version: 24
+
+      - name: Move release forward to the tested commit
+        id: release
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_KIND: ${{ github.event_name == 'schedule' && 'scheduled' || inputs.kind }}
+          RELEASE_REF: ${{ github.event_name == 'schedule' && 'main' || inputs.ref }}
+          RELEASE_REASON: ${{ inputs.reason }}
+          RELEASE_DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/ci/release-website.mjs
+
+      # A push made with the workflow token does not start other workflows, so production parity for the
+      # released commit is verified here.
+      - name: Verify Netlify production serves the released commit
+        if: steps.release.outputs.released == 'true'
+        env:
+          EXPECTED_COMMIT_REF: ${{ steps.release.outputs.sha }}
+          EXPECTED_PRODUCTION_BRANCH: release
+          LIVE_PARITY_MAX_ATTEMPTS: "40"
+          LIVE_PARITY_RETRY_MS: "20000"
+        run: node scripts/verify-live-production-parity.mjs

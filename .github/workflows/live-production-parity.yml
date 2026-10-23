@@ -16,6 +16,9 @@ concurrency:
 jobs:
   verify-live-production:
     name: Verify Netlify production serves exact main commit
+    # Under release batching (docs/WEBSITE_RELEASE_BATCHING.md) merges to main no longer deploy; the
+    # Release Website workflow verifies each released commit instead. Until it is enabled, this runs as before.
+    if: vars.WEBSITE_RELEASE_BATCHING != 'enabled'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
 
