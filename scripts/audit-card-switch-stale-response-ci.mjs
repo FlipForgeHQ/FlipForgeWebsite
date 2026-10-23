@@ -379,15 +379,26 @@ try {
   await page.goto(`${baseUrl}/#/opportunities/qa-verdict-buy`, { waitUntil: "load" });
   await waitCard(page, "qa-verdict-buy");
   setBehavior("qa-verdict-watch", { delayMs: 4000 });
-  const immediatelyVisible = await page.evaluate(async () => {
-    location.hash = "#/opportunities/qa-verdict-watch";
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    const hero = document.querySelector("#main-content .customer-intelligence-hero");
-    return hero && hero.getClientRects().length ? {
-      title: hero.querySelector("h2")?.textContent?.trim(),
-      verdict: hero.querySelector(".staging-status")?.textContent?.trim()
-    } : null;
-  });
+  // The legacy /app surface (never served in production: /app redirects to sign-in) keeps a document-reload
+  // recovery on hash routes. A reload replaces the document, so the previous BUY card cannot be painted into the
+  // next frame; record that instead of failing on the destroyed evaluation context. Any other surface must not reload.
+  const legacyAppSurface = /\/app\/?$/.test(new URL(baseUrl).pathname);
+  let immediatelyVisible = null;
+  try {
+    immediatelyVisible = await page.evaluate(async () => {
+      location.hash = "#/opportunities/qa-verdict-watch";
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      const hero = document.querySelector("#main-content .customer-intelligence-hero");
+      return hero && hero.getClientRects().length ? {
+        title: hero.querySelector("h2")?.textContent?.trim(),
+        verdict: hero.querySelector(".staging-status")?.textContent?.trim()
+      } : null;
+    });
+  } catch (error) {
+    if (!legacyAppSurface || !/Execution context was destroyed/i.test(String(error?.message || ""))) throw error;
+    await page.waitForLoadState("load").catch(() => {});
+    immediatelyVisible = { documentReloaded: true };
+  }
   check("C9 first prepaint frame after BUY to WATCH has no previous BUY card",
     !immediatelyVisible || immediatelyVisible.title !== cards["qa-verdict-buy"].title,
     JSON.stringify(immediatelyVisible));
