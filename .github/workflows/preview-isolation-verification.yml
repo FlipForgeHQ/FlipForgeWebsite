@@ -43,8 +43,9 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Local logic (function modules, no network)
         run: node scripts/verify-preview-isolation.mjs --local
-      # A preview blocked by the Netlify firewall passes the preview checks only when Netlify reports that deploy
-      # preview as ready, so a mistyped or unbuilt preview URL cannot pass on Netlify's uniform "not found" page.
+      # A preview blocked by the Netlify firewall is accepted (preview checks reported as skipped) only when Netlify
+      # reports that deploy preview as ready. The status is looked up only for goflipforge deploy-preview URLs, so a
+      # mistyped site, an unbuilt preview or a failed deploy cannot borrow another preview's status and fails.
       - name: Netlify deploy status for the preview
         id: deploy
         env:
@@ -52,7 +53,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          number=$(printf '%s' "$PREVIEW_URL" | sed -n 's#^https://deploy-preview-\([0-9]\{1,6\}\)--[a-z0-9-]*\.netlify\.app/\{0,1\}$#\1#p')
+          number=$(printf '%s' "$PREVIEW_URL" | sed -n 's#^https://deploy-preview-\([0-9]\{1,6\}\)--goflipforge\.netlify\.app/\{0,1\}$#\1#p')
           status=""
           if [ -n "$number" ]; then
             sha=$(gh api "repos/$REPOSITORY/pulls/$number" --jq .head.sha 2>/dev/null || true)
