@@ -17,6 +17,8 @@ on:
       - "scripts/build-identity-client.mjs"
       - "scripts/inject-beta-invite-terms-gate.mjs"
       - "scripts/audit-invite-activation-ci.mjs"
+      - "scripts/check-preview-reachability.mjs"
+      - "scripts/lib/preview-block-detection.mjs"
       - ".github/workflows/invite-activation-assurance.yml"
       - "scripts/ci/install-playwright-chromium.sh"
   push:
@@ -54,11 +56,21 @@ jobs:
       - name: Gate invite activation visibility and workspace handoff
         run: node scripts/audit-invite-activation-ci.mjs
 
-  deploy-preview:
-    name: Invite activation on the Netlify deploy preview
+  # With a Netlify Firewall Traffic Rule on unpublished deploys, every preview answers with the same block page.
+  # This job only decides whether the preview can be tested. A blocked preview makes the invite activation job
+  # below SKIPPED (never passed); the production-simulation job above still runs. A preview that serves any
+  # FlipForge content is never treated as blocked (scripts/lib/preview-block-detection.mjs). An unbuilt or failed
+  # deploy, a network failure or a partially reachable preview fails this job exactly as before.
+  deploy-preview-reachability:
+    name: Deploy preview reachability (Netlify)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: read
+      statuses: read
+    outputs:
+      blocked: ${{ steps.preview.outputs.blocked }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -69,18 +81,57 @@ jobs:
           node-version: 24
 
       - name: Wait for this commit's deploy preview
+        id: preview
         env:
           PREVIEW_URL: https://deploy-preview-${{ github.event.pull_request.number }}--goflipforge.netlify.app
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
         run: |
+          blocked_streak=0
           for attempt in $(seq 1 60); do
-            commit=$(curl --silent --fail "$PREVIEW_URL/deploy-meta.json?ci=$attempt" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).commitRef||"")}catch{console.log("")}})' || true)
-            if [ "$commit" = "$HEAD_SHA" ]; then echo "Deploy preview is serving $HEAD_SHA"; exit 0; fi
-            echo "Waiting for deploy preview (serving: ${commit:-none})"
+            probe=$(node scripts/check-preview-reachability.mjs "$PREVIEW_URL" "$HEAD_SHA" || true)
+            state=$(printf '%s\n' "$probe" | sed -n 's/^state=//p')
+            serving=$(printf '%s\n' "$probe" | sed -n 's/^serving=//p')
+            commit=$(printf '%s\n' "$probe" | sed -n 's/^commit=//p')
+            if [ "$serving" = "true" ]; then
+              echo "Deploy preview is serving $HEAD_SHA"
+              echo "blocked=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [ "$state" = "blocked" ]; then blocked_streak=$((blocked_streak + 1)); else blocked_streak=0; fi
+            deployed=$(gh api "repos/$REPOSITORY/commits/$HEAD_SHA/status" --jq '[.statuses[] | select(.context | test("deploy-preview")) | .state] | first // ""' 2>/dev/null || true)
+            # Blocked: the same non-FlipForge block page on every sentinel path for 3 probes in a row, and Netlify reports
+            # this commit's deploy preview as ready (so the page is not the "not found" answer for an unbuilt preview).
+            if [ "$blocked_streak" -ge 3 ] && [ "$deployed" = "success" ]; then
+              echo "::notice title=Deploy preview blocked::Deploy preview blocked by Netlify firewall — preview checks skipped; production-simulation job still runs"
+              if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+                printf '%s\n' "### Deploy preview checks SKIPPED (not tested)" "" "The Netlify firewall blocks this deploy preview, so **Invite activation on the Netlify deploy preview** was skipped. It was not tested and did not pass. The production-simulation job still runs." >> "$GITHUB_STEP_SUMMARY"
+              fi
+              echo "blocked=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Waiting for deploy preview (state: ${state:-unknown}, serving: ${commit:-none})"
             sleep 15
           done
           echo "Deploy preview did not serve $HEAD_SHA within 15 minutes"
           exit 1
+
+  deploy-preview:
+    name: Invite activation on the Netlify deploy preview
+    needs: deploy-preview-reachability
+    # Runs only when the preview is serving this commit. A blocked preview shows this job as Skipped, not passed.
+    if: github.event_name == 'pull_request' && needs.deploy-preview-reachability.outputs.blocked == 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
       - name: Install Playwright for browser QA
         run: bash scripts/ci/install-playwright-chromium.sh

@@ -5,12 +5,17 @@
 //       requests. No network. Used by the build so pull requests prove the logic.
 //   PREVIEW_URL=https://deploy-preview-NNN--goflipforge.netlify.app [PRODUCTION_URL=https://goflipforge.com] \
 //   node scripts/verify-preview-isolation.mjs --remote
-//       Sends credential-free requests to a deployed preview and to production.
+//       Sends credential-free requests to a deployed preview and to production. When the Netlify firewall blocks the
+//       preview completely, the preview checks are reported as SKIP (not tested, not passed); production checks always
+//       run and are always required. A block page counts only when PREVIEW_DEPLOY_STATUS (set by the manual workflow
+//       from Netlify's commit status) is "success", so a typo'd, unbuilt or failed preview deploy (also a uniform
+//       Netlify 404) fails.
 //
-// Output is limited to check names, HTTP status codes, the non-secret upstream-environment marker and PASS/FAIL.
+// Output is limited to check names, HTTP status codes, the non-secret upstream-environment marker and PASS/FAIL/SKIP.
 // No response bodies, headers or cookies are printed. Exit code 1 when any check fails.
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { SENTINEL_PATHS, probePreview } from "./lib/preview-block-detection.mjs";
 
 // Privileged functions and the HTTP methods that can change state. Paths are checked against each function's
 // config.path in local mode.
@@ -33,9 +38,15 @@ const PREVIEW_SAFE_MARKERS = new Set(["staging", "none"]);
 const MARKER = /^(staging|production|none|unlabeled)$/;
 
 const results = [];
+const skipped = [];
 function record(id, label, pass, detail = "") {
   results.push({ id, label, pass });
   console.log(`${pass ? "PASS" : "FAIL"} | ${id} | ${label}${detail ? ` | ${detail}` : ""}`);
+}
+// A check that could not be run. It is neither a pass nor a failure and is never counted as passed.
+function skip(id, label, detail = "") {
+  skipped.push({ id, label });
+  console.log(`SKIP | ${id} | ${label}${detail ? ` | ${detail}` : ""}`);
 }
 function marker(value) {
   const text = String(value || "");
@@ -44,7 +55,9 @@ function marker(value) {
 
 function finish(mode) {
   const failed = results.filter(item => !item.pass).length;
-  console.log(`\nPreviewIsolationVerification (${mode}): ${results.length - failed}/${results.length} passed`);
+  const skipNote = skipped.length ? `, ${skipped.length} skipped (not tested)` : "";
+  console.log(`\nPreviewIsolationVerification (${mode}): ${results.length - failed}/${results.length} passed${skipNote}`);
+  if (skipped.length) console.log("Preview checks were SKIPPED: the preview is blocked by the Netlify firewall and was not tested.");
   if (failed) process.exitCode = 1;
 }
 
@@ -93,23 +106,39 @@ async function remote() {
     return;
   }
 
-  // 1. Privileged endpoints are absent on the preview.
-  for (const fn of PRIVILEGED) {
-    for (const method of fn.methods) {
-      const r = await probe(preview, fn.path, method);
-      record("1", `preview ${method} ${fn.path} is not served`, r.status === 404, `status=${r.status || r.error}`);
-    }
-  }
+  // A preview that Netlify's firewall blocks answers every path with the same non-FlipForge block page. Its checks
+  // cannot run, so they are reported as SKIP, never PASS. Any FlipForge content on any sentinel path means the
+  // preview is reachable, and then every strict preview check below runs.
+  const block = await probePreview(preview);
+  const previewBlocked = block.state === "blocked";
+  console.log(`INFO | preview | state=${block.state} | ${block.reason}`);
 
-  // 2. The preview gateway has no unauthenticated bypass and is not wired to production.
-  const health = await probe(preview, "/api/v1/health");
-  const previewMarker = marker(health.header || health.healthMarker);
-  record("2a", "preview gateway health reachable", health.status === 200, `status=${health.status || health.error}`);
-  record("2b", "preview gateway requires authentication (no preview bypass)", health.status === 200 && health.requiresAuth === true, `status=${health.status || health.error}`);
-  record("2c", "preview gateway upstream is staging or none (never production)", PREVIEW_SAFE_MARKERS.has(previewMarker), `marker=${previewMarker}`);
-  for (const pathname of GATEWAY_DATA_PATHS) {
-    const r = await probe(preview, pathname);
-    record("2d", `preview unauthenticated GET ${pathname} is rejected`, r.status === 401, `status=${r.status || r.error} marker=${marker(r.header)}`);
+  const deployStatus = String(process.env.PREVIEW_DEPLOY_STATUS || "").trim();
+  if (previewBlocked) {
+    const detail = `status=${block.status} on ${SENTINEL_PATHS.length} sentinel paths`;
+    // Required: an unbuilt, failed or mistyped preview also answers with a uniform Netlify 404.
+    record("0", "blocked preview is a successful deploy (Netlify reports the deploy preview ready)", deployStatus === "success", `deploy-status=${/^[a-z]{1,20}$/.test(deployStatus) ? deployStatus : deployStatus ? "unrecognised" : "not supplied"}`);
+    skip("1", "preview privileged endpoints not tested: preview blocked by the Netlify firewall", detail);
+    skip("2", "preview gateway not tested: preview blocked by the Netlify firewall", detail);
+  } else {
+    // 1. Privileged endpoints are absent on the preview.
+    for (const fn of PRIVILEGED) {
+      for (const method of fn.methods) {
+        const r = await probe(preview, fn.path, method);
+        record("1", `preview ${method} ${fn.path} is not served`, r.status === 404, `status=${r.status || r.error}`);
+      }
+    }
+
+    // 2. The preview gateway has no unauthenticated bypass and is not wired to production.
+    const health = await probe(preview, "/api/v1/health");
+    const previewMarker = marker(health.header || health.healthMarker);
+    record("2a", "preview gateway health reachable", health.status === 200, `status=${health.status || health.error}`);
+    record("2b", "preview gateway requires authentication (no preview bypass)", health.status === 200 && health.requiresAuth === true, `status=${health.status || health.error}`);
+    record("2c", "preview gateway upstream is staging or none (never production)", PREVIEW_SAFE_MARKERS.has(previewMarker), `marker=${previewMarker}`);
+    for (const pathname of GATEWAY_DATA_PATHS) {
+      const r = await probe(preview, pathname);
+      record("2d", `preview unauthenticated GET ${pathname} is rejected`, r.status === 401, `status=${r.status || r.error} marker=${marker(r.header)}`);
+    }
   }
 
   // 3. Production administration still requires authentication.
@@ -128,8 +157,9 @@ async function remote() {
     record("3d", `production unauthenticated GET ${pathname} is rejected`, r.status === 401, `status=${r.status || r.error}`);
   }
 
-  // 4. Internal files are not served on either deploy.
-  for (const [name, origin] of [["preview", preview], ["production", production]]) {
+  // 4. Internal files are not served on either deploy (a blocked preview cannot be tested; production always is).
+  if (previewBlocked) skip("4", "preview internal paths not tested: preview blocked by the Netlify firewall", `status=${block.status}`);
+  for (const [name, origin] of previewBlocked ? [["production", production]] : [["preview", preview], ["production", production]]) {
     for (const pathname of INTERNAL_PATHS) {
       const r = await probe(origin, pathname);
       record("4", `${name} internal path ${pathname} is not served`, r.status === 404, `status=${r.status || r.error}`);
