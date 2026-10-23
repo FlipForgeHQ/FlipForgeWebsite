@@ -10,6 +10,11 @@
     // Private Beta workspace: a live customer view on every host. It loads no prototype sample data.
     window.FlipForgePrivateBetaEntry = true;
     if (/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""))) {
+      // The beta loads its files by relative path, which only resolve under /app/beta/. Move the exact slashless
+      // entry to the canonical address before the page renders; /app/beta/ never matches, so this cannot loop.
+      if (window.location.pathname === "/app/beta") {
+        window.location.replace("/app/beta/" + window.location.search + window.location.hash);
+      }
       document.documentElement.classList.add("ff-private-beta-access-pending");
     }
   </script>

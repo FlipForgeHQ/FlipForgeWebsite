@@ -144,6 +144,11 @@ check(redirects.includes(`/app ${BETA_AUTH} 302`), "generic /app must route to P
 check(redirects.includes(`/app/* ${BETA_AUTH} 302`), "generic /app/* must route to Private Beta Sign In");
 check(redirects.includes("/app/beta /saas-prototype/index.html 200"), "dedicated Private Beta route must serve the beta shell");
 check(redirects.includes("/app/beta/ /saas-prototype/index.html 200"), "Private Beta slash route must serve the beta shell");
+// A slashless /app/beta resolves the beta's relative assets under /app/ (sign-in redirects, blank page). The beta page
+// moves exactly that address to /app/beta/ on the production host. A redirect rule cannot do this on Netlify, which
+// matches rules regardless of a trailing slash, so it must not be added to _redirects.
+check(beta.includes('if (window.location.pathname === "/app/beta") {') && beta.includes('window.location.replace("/app/beta/" + window.location.search + window.location.hash);'), "slashless Private Beta entry must move to /app/beta/ keeping query and hash");
+check(!/\/app\/beta\s+\/app\/beta\/\s+30[12]/.test(redirects), "_redirects must not redirect /app/beta to /app/beta/ (Netlify ignores the trailing slash, so it would loop)");
 check(redirects.includes("/app/beta/* /saas-prototype/:splat 200"), "Private Beta assets must stay on the beta route");
 check(!redirects.includes("/app/customer /saas-prototype/customer.html 200"), "customer route must not be publicly served");
 check(!redirects.includes("/app/customer/ /saas-prototype/customer.html 200"), "customer slash route must not be publicly served");
