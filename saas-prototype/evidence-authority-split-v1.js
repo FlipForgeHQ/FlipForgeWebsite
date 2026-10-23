@@ -211,7 +211,10 @@
       // The API's own price-status label describes price support when it is returned.
       const priceStatus = window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.priceStatusLabel(data) : "";
       const priceCopy = priceStatus ? `${priceStatus.replace(/\.$/, "")}.` : "Sale prices are reported by our data provider and have not been independently confirmed.";
-      trustedCopy.textContent = `${trustedCount} exact completed sale${trustedCount === 1 ? " is" : "s are"} counted under today's evidence rules. ${priceCopy} FlipForge matches each sale to the exact card but does not confirm payment or settlement.`;
+      // With nothing counted, sale-price provenance and payment caveats describe sales that are not there.
+      trustedCopy.textContent = trustedCount > 0
+        ? `${trustedCount} exact completed sale${trustedCount === 1 ? " is" : "s are"} counted under today's evidence rules. ${priceCopy} FlipForge matches each sale to the exact card but does not confirm payment or settlement.`
+        : "No exact completed sales are counted under today's evidence rules.";
     }
     const providerMarkup = window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.providerSummaryMarkup(data) : "";
     // The provider summary sits with the counted rows when some of its rows count now, otherwise with the rows not counted.
