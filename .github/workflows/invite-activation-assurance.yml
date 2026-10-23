@@ -18,6 +18,7 @@ on:
       - "scripts/inject-beta-invite-terms-gate.mjs"
       - "scripts/audit-invite-activation-ci.mjs"
       - ".github/workflows/invite-activation-assurance.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches: [main]
   workflow_dispatch:
@@ -48,9 +49,7 @@ jobs:
           node scripts/inject-beta-invite-terms-gate.mjs
 
       - name: Install Playwright for browser QA
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
 
       - name: Gate invite activation visibility and workspace handoff
         run: node scripts/audit-invite-activation-ci.mjs
@@ -84,9 +83,7 @@ jobs:
           exit 1
 
       - name: Install Playwright for browser QA
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
 
       - name: Gate invite activation visibility on the real deploy preview
         env:

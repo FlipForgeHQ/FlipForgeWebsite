@@ -16,6 +16,7 @@ on:
       - "package.json"
       - "docs/PREBETA_CROSS_SURFACE_AUDIT.md"
       - ".github/workflows/prebeta-cross-surface-audit.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches:
       - main
@@ -33,6 +34,7 @@ on:
       - "package.json"
       - "docs/PREBETA_CROSS_SURFACE_AUDIT.md"
       - ".github/workflows/prebeta-cross-surface-audit.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   workflow_dispatch:
 
 permissions:
@@ -70,9 +72,7 @@ jobs:
           node scripts/validate-prebeta-cross-surface-audit.mjs
 
       - name: Install Playwright Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
 
       - name: Start local SaaS preview at production app path
         run: |
