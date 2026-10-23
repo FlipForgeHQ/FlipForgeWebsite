@@ -277,7 +277,8 @@
     if (eyebrow) eyebrow.textContent = "Evidence behind this decision";
     // A legacy result is not presented as currently supported (customer-trust-display-v1.js marks it).
     const legacy = Boolean(page.querySelector("[data-ff-legacy-result]"));
-    if (h1) h1.textContent = legacy ? "Evidence behind this saved decision" : "Why FlipForge trusts this decision";
+    // "Trusts" only when counted sales actually back the decision; with none, say so plainly.
+    if (h1) h1.textContent = legacy ? "Evidence behind this saved decision" : accepted > 0 ? "Why FlipForge trusts this decision" : "No sales support this decision yet";
     if (intro) {
       intro.textContent = cardLabel
         ? `See what FlipForge counts now, what it did not count and why, and what remains audit-only for ${cardLabel}.`
@@ -320,8 +321,8 @@
     proof.innerHTML = `
       <div class="ff-evidence-proof-copy">
         <span class="ff-evidence-kicker">THE PROOF</span>
-        <h2>${legacy ? "Saved before current evidence rules. This result is not presented as currently supported." : `${accepted} exact completed sale${accepted === 1 ? "" : "s"} currently support this card.`}</h2>
-        <p>FlipForge did not treat every historical row as a comp. It kept <strong>${ineligible}</strong> linked row${ineligible === 1 ? "" : "s"} visible for auditability that ${ineligible === 1 ? "is" : "are"} not counted now. Only rows marked Excluded were checked and failed a rule.</p>
+        <h2>${legacy ? "Saved before current evidence rules. This result is not presented as currently supported." : accepted > 0 ? `${accepted} exact completed sale${accepted === 1 ? "" : "s"} currently support${accepted === 1 ? "s" : ""} this card.` : "No exact completed sales support this card yet."}</h2>
+        <p>${ineligible > 0 ? `FlipForge did not treat every historical row as a comp. It kept <strong>${ineligible}</strong> linked row${ineligible === 1 ? "" : "s"} visible for auditability that ${ineligible === 1 ? "is" : "are"} not counted now. Only rows marked Excluded were checked and failed a rule.` : accepted > 0 ? "Every linked sale for this card is counted; none was set aside." : "No sales are linked to this card yet, so there is nothing to count or set aside. FlipForge will not fill the gap with asking prices or loosely matched sales."}</p>
         <div class="ff-evidence-principle"><strong>More data is not automatically better evidence.</strong><span>FlipForge is designed to show its work—and to show what it refused to use.</span></div>
       </div>
       <div class="ff-evidence-funnel" aria-label="Evidence qualification summary">
