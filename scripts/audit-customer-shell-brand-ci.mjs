@@ -273,7 +273,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
     const unobstructed = selector => {
       const node = document.querySelector(selector);
       if (!node) return "missing";
-      node.scrollIntoView({ block: "center" });
+      // The app uses smooth scrolling; measure after an instant scroll, not mid-animation.
+      node.scrollIntoView({ block: "center", behavior: "instant" });
       const box = node.getBoundingClientRect();
       if (!box.width || !box.height) return "hidden";
       const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
