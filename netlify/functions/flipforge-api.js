@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const disclosureFilter = require("./provider-disclosure-filter");
+const requestSigning = require("./request-signing");
 
 const CONTRACT_VERSION = "1.0";
 const DEFAULT_TIMEOUT_MS = 20000;
@@ -544,6 +545,17 @@ exports.handler = async function handler(event, context) {
     );
   }
 
+  // Optional gateway request signing. Unset secret: unchanged unsigned behaviour. Weak secret: fail closed.
+  const signing = requestSigning.signingConfig();
+  if (!signing.ok) {
+    return jsonResponse(
+      event,
+      503,
+      errorEnvelope("UPSTREAM_NOT_CONFIGURED", "The authoritative FlipForge service is not configured.", correlationId),
+      correlationId
+    );
+  }
+
   const idempotency = requestIdempotency(event, method, path);
   if (!idempotency.ok) {
     return jsonResponse(
@@ -596,11 +608,26 @@ exports.handler = async function handler(event, context) {
       [TENANT_HEADER]: tenant.tenantId,
       ...(idempotency.value ? { [IDEMPOTENCY_HEADER]: idempotency.value } : {})
     };
+    // Headers are built only from server-side values above; client X-FlipForge-* headers are never forwarded.
+    const sendsBody = method === "POST" || method === "PUT";
+    let upstreamBody = sendsBody ? body : undefined;
+    if (signing.enabled) {
+      // Sign the exact bytes that are sent.
+      upstreamBody = sendsBody ? requestSigning.bodyBytes(body) : undefined;
+      Object.assign(upstreamHeaders, requestSigning.signingHeaders({
+        secret: signing.secret,
+        method,
+        url: upstreamUrl,
+        tenantId: tenant.tenantId,
+        idempotencyKey: idempotency.value,
+        body: upstreamBody
+      }));
+    }
 
     const upstreamResponse = await fetch(upstreamUrl, {
       method,
       headers: upstreamHeaders,
-      body: method === "POST" || method === "PUT" ? body : undefined,
+      body: upstreamBody,
       signal: controller.signal,
       redirect: "error"
     });

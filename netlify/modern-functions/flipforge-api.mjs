@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { getIdentityConfig, getUser } from "@netlify/identity";
 import legacyGateway from "../functions/flipforge-api.js";
+import requestSigning from "../functions/request-signing.js";
 
 const legacyHandler = legacyGateway && legacyGateway.handler;
 const TENANT_ROLE_PREFIX = "flipforge-tenant--";
@@ -359,12 +360,18 @@ async function runtimeIdentity(request) {
   }
 
   try {
-    const response = await fetch(`${baseUrl}/api/v1/health`, {
+    const signing = requestSigning.signingConfig();
+    if (!signing.ok) throw new Error("REQUEST_SIGNING_MISCONFIGURED");
+    const healthUrl = `${baseUrl}/api/v1/health`;
+    const response = await fetch(healthUrl, {
       method: "GET",
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${serviceToken}`,
-        "X-Correlation-Id": correlationId
+        "X-Correlation-Id": correlationId,
+        ...(signing.enabled
+          ? requestSigning.signingHeaders({ secret: signing.secret, method: "GET", url: healthUrl, tenantId: "", idempotencyKey: "", body: "" })
+          : {})
       },
       redirect: "error",
       cache: "no-store",
