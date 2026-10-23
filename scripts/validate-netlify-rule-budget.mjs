@@ -18,7 +18,7 @@ const expectedRules = [
   "/owner/customer/ /saas-prototype/customer.html 200",
   "/owner/customer/* /saas-prototype/:splat 200",
   "/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302",
-  "/app/beta /saas-prototype/index.html 200",
+  "/app/beta /app/beta/ 301",
   "/app/beta/ /saas-prototype/index.html 200",
   "/app/beta/* /saas-prototype/:splat 200",
   "/app/* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302"
