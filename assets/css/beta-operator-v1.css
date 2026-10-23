@@ -193,3 +193,4 @@
 .ff-access-badge.other{background:rgba(255,255,255,.06);border-color:#4a4d53;color:#d7dbe0}
 .ff-access-status{display:block;margin-top:5px;color:var(--op-muted);font-size:11px;letter-spacing:.03em}
 
+.ff-card-reference{border:1px solid rgba(212,175,55,.45);border-radius:10px;background:rgba(212,175,55,.05);padding:14px;margin:0 0 14px}.ff-card-reference h4{margin:0 0 6px;color:var(--op-gold);font-size:11px;text-transform:uppercase;letter-spacing:.12em}.ff-card-identity{margin:0 0 12px;font-size:16px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}.ff-card-reference .ff-detail-grid{margin-bottom:0}.ff-card-reference .ff-feedback-boundary{margin-bottom:0}.ff-card-missing{color:var(--op-muted);font-style:normal;font-weight:600}

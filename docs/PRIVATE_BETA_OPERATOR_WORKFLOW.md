@@ -111,6 +111,14 @@ Feedback may identify a general session or a Day 7, Day 14, or Day 30 checkpoint
 
 Wave 1 also includes a short Card Decision Intelligence comprehension check on the real saved-decision screen. It records four allowlisted learning signals only: whether the tester understood the decision, whether the next step was clear, how viewing evidence affected confidence, and which CDI layer was most useful. The check does not include card identity, listing URL, account ID, recommendation inputs, or transaction data. Its operator scorecard is an aggregate comprehension view, not an accuracy or performance metric.
 
+### Card evidence requests
+
+"Request evidence for this card" on a Discover exact-match result opens the feedback form with the Evidence type and a card reference prefilled from the exact identity the tester searched (year, card number and grade are read from that identity when written in it). The tester reviews, corrects, completes or removes the card fields before sending. The request never includes the listing link, seller, price, sale records, provider records or account identifiers.
+
+Storage contract (`flipforge-beta-feedback`, key `feedback/<uuid>`): records with a card reference are schema version 2 and add `feedback.requestType = "CARD_EVIDENCE"` and `feedback.cardReference = { identity, year, player, set, cardNumber, parallel, grader, grade, source: "DISCOVER_EXACT_SEARCH", edited }`. All other records stay schema version 1. The server accepts only those fields, requires the Evidence category and a card identity of at least six characters, validates year, card number, grader and grade formats, and refuses links, domains, email addresses, runs of nine or more digits, markup and currency amounts. The record stores no tenant ID, and no email unless the tester grants follow-up. Logs record only that a card reference was stored, never the card.
+
+The operator queue labels these as card evidence requests and shows the card fields, noting missing ones. A request is not evidence: it adds no sale and changes no saved decision. Testers cannot read feedback records; only the server-verified operator role on production can.
+
 The operator may move a feedback record through `NEW → UNDER_REVIEW → RESOLVED`, with version-checked updates and an append-only review history. Follow-up email is visible only when the tester explicitly grants permission; otherwise no tester email is stored with the feedback record.
 
 ## Privacy and security boundaries

@@ -76,6 +76,7 @@ export function createBetaFeedbackHandler({ store, getUserFn = getUser, now = ()
         status: record.status,
         category: record.feedback.category,
         checkpoint: record.feedback.checkpoint,
+        requestType: record.feedback.requestType || "",
         submittedAt: record.submittedAt,
       },
       onlyIfNew: true,
@@ -88,6 +89,8 @@ export function createBetaFeedbackHandler({ store, getUserFn = getUser, now = ()
       category: record.feedback.category,
       checkpoint: record.feedback.checkpoint,
       cdiLearning: Boolean(record.feedback.learning),
+      // Never log the card reference itself; only whether one was stored.
+      cardEvidenceRequest: Boolean(record.feedback.cardReference),
       occurredAt: record.submittedAt,
     }));
     return reply(202, { accepted: true, status: "AWAITING_OPERATOR_REVIEW" });

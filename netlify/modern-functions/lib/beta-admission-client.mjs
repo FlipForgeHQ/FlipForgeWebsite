@@ -10,6 +10,8 @@
 // A reserved seat grants no access by itself. The tester's Identity still carries only the
 // terms-pending role until activation and Beta Terms acceptance.
 
+import requestSigning from "../../functions/request-signing.js";
+
 export const ADMISSION_ROUTE = "/api/v1/operator/controlled-pro-beta/admissions";
 export const OPERATOR_HEADER = "X-FlipForge-Operator-Id";
 const SAFE_OPERATOR = /^[A-Za-z0-9][A-Za-z0-9._@:-]{0,99}$/;
@@ -43,9 +45,15 @@ export function createAdmissionClient({
     if (!SAFE_TENANT.test(String(tenantId || ""))) throw new BetaAdmissionError("BETA_ADMISSION_UNAVAILABLE", { cause: "TENANT_INVALID" });
     const operator = SAFE_OPERATOR.test(String(operatorId || "")) ? operatorId : "owner-hub";
 
+    const signing = requestSigning.signingConfig(env);
+    if (!signing.ok) throw new BetaAdmissionError("BETA_ADMISSION_UNAVAILABLE", { cause: "SIGNING_MISCONFIGURED" });
+    const url = `${baseUrl}${ADMISSION_ROUTE}`;
+    const requestJson = JSON.stringify({ action, tenantId });
+    const body = signing.enabled ? requestSigning.bodyBytes(requestJson) : requestJson;
+
     let response;
     try {
-      response = await fetchFn(`${baseUrl}${ADMISSION_ROUTE}`, {
+      response = await fetchFn(url, {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -53,8 +61,12 @@ export function createAdmissionClient({
           Authorization: `Bearer ${token}`,
           [OPERATOR_HEADER]: operator,
           "X-Correlation-Id": correlationId(),
+          // Operator routes carry no tenant header, so the signature binds an empty tenant.
+          ...(signing.enabled
+            ? requestSigning.signingHeaders({ secret: signing.secret, method: "POST", url, tenantId: "", idempotencyKey: "", body })
+            : {}),
         },
-        body: JSON.stringify({ action, tenantId }),
+        body,
         redirect: "error",
         signal: AbortSignal.timeout(timeoutMs),
       });
