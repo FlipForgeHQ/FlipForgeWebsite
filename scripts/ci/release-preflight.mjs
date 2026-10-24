@@ -16,13 +16,26 @@ import fs from "node:fs";
 
 export const SCRATCH = "release-preflight";
 const REQUIRED_RULES = ["deletion", "non_fast_forward", "update"];
+// Option A (no App configured): the workflow token pushes, so `release` must NOT restrict updates.
+const REQUIRED_RULES_OPTION_A = ["deletion", "non_fast_forward"];
 
 const results = [];
 const record = (id, ok, detail) => results.push({ id, ok: Boolean(ok), detail });
 
-export function missingRules(ruleTypes) {
+export function missingRules(ruleTypes, required = REQUIRED_RULES) {
   const present = new Set((ruleTypes || []).map(rule => rule?.type).filter(Boolean));
-  return REQUIRED_RULES.filter(type => !present.has(type));
+  return required.filter(type => !present.has(type));
+}
+
+/** Option A: deletion and force pushes blocked, updates NOT restricted (the workflow token must be able to fast-forward). */
+export function optionAProblems(ruleTypes) {
+  const problems = missingRules(ruleTypes, REQUIRED_RULES_OPTION_A).map(type => `missing: ${type}`);
+  if ((ruleTypes || []).some(rule => rule?.type === "update")) problems.push("Restrict updates is on: the workflow token would be refused");
+  return problems;
+}
+
+export function releasePermissionsOk(releaseWorkflow) {
+  return /permissions:\s*\n\s*contents: write/.test(releaseWorkflow);
 }
 
 export function parityStillActive(parityWorkflow, batching) {
@@ -55,8 +68,46 @@ function pushWith(token, repo, refspec) {
   return { ok: result.status === 0, out: `${result.stdout}${result.stderr}`.replace(/x-access-token:[^@\s]+/g, "x-access-token:***") };
 }
 
+// Option A preflight (no App configured): read-only. Nothing is pushed; the push behaviour of Option A was proven on
+// 2026-10-23 with a throwaway branch (docs/WEBSITE_RELEASE_BATCHING.md).
+async function optionA({ GITHUB_TOKEN, repo, BATCHING }) {
+  const liveUrl = process.env.LIVE_URL || "https://goflipforge.com/deploy-meta.json";
+  const parity = fs.readFileSync(".github/workflows/live-production-parity.yml", "utf8");
+  record("P1 batching is off and the main-merge parity check still runs", parityStillActive(parity, BATCHING),
+    `WEBSITE_RELEASE_BATCHING=${BATCHING || "(unset)"}`);
+  try {
+    const manifest = await (await fetch(liveUrl, { headers: { "Cache-Control": "no-cache" } })).json();
+    record("P2 production is still built from main", manifest.branch === "main" && manifest.production === true,
+      `branch=${manifest.branch}, commit=${String(manifest.commitRef).slice(0, 12)}`);
+  } catch (error) {
+    record("P2 production is still built from main", false, `deploy-meta unreadable: ${error.name}`);
+  }
+  record("P3 no release App is configured, so releases push with the workflow token (Option A)", true,
+    "WEBSITE_RELEASE_APP_ID unset");
+  const release = fs.readFileSync(".github/workflows/release-website.yml", "utf8");
+  record("P5 the release workflow token may push (contents: write)", releasePermissionsOk(release), "release-website.yml permissions");
+  const rules = await api(GITHUB_TOKEN, "GET", `/repos/${repo}/rules/branches/release`);
+  const problems = rules.status === 200 ? optionAProblems(rules.json) : ["rules unreadable"];
+  record("P4 'release' blocks deletion and force pushes, and does not restrict updates", problems.length === 0,
+    problems.length ? problems.join("; ") : "deletion and force pushes blocked; updates allowed");
+  const releaseRef = await api(GITHUB_TOKEN, "GET", `/repos/${repo}/git/ref/heads/release`);
+  record("P7 the real release branch was not touched", true,
+    releaseRef.status === 200 ? `release=${releaseRef.json.object.sha.slice(0, 12)}` : "release branch does not exist yet");
+  finish("Option A (workflow token)");
+}
+
+function finish(mode) {
+  const lines = ["### Release batching preflight", "", `Mode: ${mode}`, "", "| Check | Result | Detail |", "| --- | --- | --- |",
+    ...results.map(r => `| ${r.id} | ${r.ok ? "PASS" : "**FAIL**"} | ${r.detail} |`), "",
+    "Nothing was enabled: batching, the parity check, Netlify and the `release` branch are unchanged."];
+  if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
+  for (const r of results) console.log(`${r.ok ? "::notice" : "::error"} title=${r.id.split(" ")[0]}::${r.ok ? "PASS" : "FAIL"}: ${r.id} (${r.detail})`);
+  if (results.some(r => !r.ok)) process.exitCode = 1;
+}
+
 async function main() {
-  const { APP_TOKEN, GITHUB_TOKEN, GITHUB_REPOSITORY: repo, BATCHING = "" } = process.env;
+  const { APP_TOKEN, GITHUB_TOKEN, GITHUB_REPOSITORY: repo, BATCHING = "", APP_ID = "" } = process.env;
+  if (!APP_ID.trim()) return optionA({ GITHUB_TOKEN, repo, BATCHING });
   const liveUrl = process.env.LIVE_URL || "https://goflipforge.com/deploy-meta.json";
   if (!repo || !GITHUB_TOKEN) throw new Error("GITHUB_REPOSITORY and GITHUB_TOKEN are required.");
 
@@ -120,12 +171,7 @@ async function main() {
   record("P7 the real release branch was not touched", afterSha === releaseSha,
     releaseSha ? `release=${releaseSha.slice(0, 12)}` : "release branch does not exist yet");
 
-  const lines = ["### Release batching preflight", "", "| Check | Result | Detail |", "| --- | --- | --- |",
-    ...results.map(r => `| ${r.id} | ${r.ok ? "PASS" : "**FAIL**"} | ${r.detail} |`), "",
-    "Nothing was enabled: batching, the parity check, Netlify and the `release` branch are unchanged."];
-  if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
-  for (const r of results) console.log(`${r.ok ? "::notice" : "::error"} title=${r.id.split(" ")[0]}::${r.ok ? "PASS" : "FAIL"}: ${r.id} (${r.detail})`);
-  if (results.some(r => !r.ok)) process.exitCode = 1;
+  finish("Option B (GitHub App)");
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

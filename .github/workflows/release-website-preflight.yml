@@ -24,6 +24,7 @@ jobs:
     steps:
       - name: Release credential (GitHub App)
         id: app
+        if: vars.WEBSITE_RELEASE_APP_ID != ''
         continue-on-error: true
         uses: actions/create-github-app-token@v2
         with:
@@ -46,6 +47,7 @@ jobs:
           APP_TOKEN: ${{ steps.app.outputs.token }}
           GITHUB_TOKEN: ${{ github.token }}
           BATCHING: ${{ vars.WEBSITE_RELEASE_BATCHING }}
+          APP_ID: ${{ vars.WEBSITE_RELEASE_APP_ID }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

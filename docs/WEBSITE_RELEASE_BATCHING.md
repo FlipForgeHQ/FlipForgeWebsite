@@ -68,6 +68,13 @@ The `release` branch is never rewound. A rollback is a Netlify republish or a fo
 
 ## Controlled production activation
 
+> **Decision, 2026-10-24: start with Option A (no key).** The release App's private key could not be regenerated from the GitHub settings page, so the founder chose the tested no-key setup. For Option A:
+> - the **protect release** ruleset keeps **Restrict deletions** and **Block force pushes** but **not** Restrict updates;
+> - the variable `WEBSITE_RELEASE_APP_ID` is deleted from the `website-release` environment;
+> - the preflight then runs its read-only Option A checks, and every release pushes with the workflow token.
+>
+> Moving to Option B later only needs a valid App key, the App ID variable and Restrict updates turned back on.
+
 **Status, 2026-10-24.**
 - **Done:** #556 is merged and inert. The `website-release` environment allows `main` only; this was tested, and a job from another branch was refused. The private App **FlipForge website release** is installed on this repository only.
 - **Still off:** batching. Netlify still builds production from `main`.
