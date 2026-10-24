@@ -47,7 +47,10 @@
     NOT_REALIZED_SALE_REVERSED: "Sale reversed"
   };
 
-  const state = { opportunityId: "", data: null, error: null, notice: "", busy: false, formOpen: false, clientId: "", generation: 0 };
+  // featureOff: the service answered 404 for this route; stay unmounted for the rest of this page load so the
+  // panel never re-mounts and re-requests in a loop.
+  const state = { opportunityId: "", data: null, error: null, notice: "", busy: false, formOpen: false, clientId: "",
+    generation: 0, featureOff: false, requests: 0 };
 
   function eligibleHost() {
     const host = String(window.location.hostname || "");
@@ -90,6 +93,7 @@
     const verb = String(method).toUpperCase();
     if (!["GET", "POST", "PUT"].includes(verb)) throw new Error("The sales panel allows GET, POST and PUT only.");
     const correlationId = uuid();
+    state.requests += 1;
     const response = await fetch(safePath, {
       method: verb,
       headers: { Accept: "application/json", "X-Correlation-Id": correlationId,
@@ -240,7 +244,8 @@
     } catch (error) {
       if (generation !== state.generation) return;
       if (error.status === 404 && error.code !== "RESOURCE_NOT_FOUND") {
-        panel()?.remove(); // Feature off on this service: no panel at all.
+        state.featureOff = true; // Feature off on this service: no panel at all, and no further requests.
+        panel()?.remove();
         return;
       }
       state.error = error;
@@ -373,7 +378,7 @@
   }
 
   function mount() {
-    if (!eligibleHost()) return;
+    if (!eligibleHost() || state.featureOff) return;
     const form = document.querySelector("[data-lifecycle-form]");
     if (!form || panel()) return;
     const select = document.querySelector("[data-lifecycle-select]");
@@ -407,5 +412,5 @@
   window.addEventListener("hashchange", schedule);
   schedule();
 
-  window.FlipForgeReportedSales = Object.freeze({ isEligible: eligibleHost, mount });
+  window.FlipForgeReportedSales = Object.freeze({ isEligible: eligibleHost, mount, requestCount: () => state.requests });
 })();

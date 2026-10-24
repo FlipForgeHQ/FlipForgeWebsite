@@ -49,6 +49,12 @@ for (const shell of ["index.html", "customer.html"]) {
 const json = (route, status, body) => route.fulfill({ status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
 const withCorrelation = (body, correlationId) => ({ ...body, meta: { ...body.meta, correlationId } });
 
+process.on("unhandledRejection", error => {
+  console.log(`::error title=reported-sales-audit::${String(error?.message || error).split("\n")[0]}`);
+  if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Customer reported sales\n\nCrashed: ${String(error?.message || error).split("\n")[0]}\n\nPassed before the crash: ${passes.length}. Failed: ${failures.join("; ") || "none"}\n`);
+  process.exit(1);
+});
+
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
 
 async function session({ viewport = { width: 1440, height: 1000 }, mode = "on" } = {}) {
@@ -151,6 +157,8 @@ const text = async (page, selector) => (await page.locator(selector).innerText()
     && put?.body.expectedVersion === 1 && /\/rs_[0-9a-f-]{36}$/.test(put?.path || ""));
   check("B17 reduced result is shown after the refund", /\$1,317\.50/.test(await text(page, "[data-reported-sales-panel]")));
   check("B18 no page errors or browser dialogs", errors.length === 0, errors.join(" | "));
+  const used = await page.evaluate(() => window.FlipForgeReportedSales?.requestCount?.() ?? -1);
+  check("B19 the panel makes a bounded number of requests (no reload loop)", used > 0 && used <= 12, `requests=${used}`);
   await context.close();
 }
 
@@ -159,8 +167,11 @@ const text = async (page, selector) => (await page.locator(selector).innerText()
   const { context, page, writes } = await session({ mode: "off" });
   await page.waitForSelector("[data-lifecycle-form]", { timeout: 30000 });
   await page.waitForTimeout(2000);
-  check("C1 feature off: no Sales panel", await page.locator("[data-reported-sales-panel]").count() === 0);
+  check("C1 feature off: no Sales panel", await page.locator("[data-reported-sales-panel]").count() === 0,
+    (await text(page, "[data-reported-sales-panel]")).slice(0, 300));
   check("C2 feature off: lifecycle form untouched and nothing written", await page.locator("[data-lifecycle-form]").count() === 1 && writes.length === 0);
+  const requests = await page.evaluate(() => window.FlipForgeReportedSales?.requestCount?.() ?? -1);
+  check("C3 feature off: the panel asked once and stopped (no request loop)", requests === 1, `requests=${requests}`);
   await context.close();
 }
 
@@ -186,7 +197,7 @@ for (const mode of ["tampered", "data-use"]) {
 await browser.close();
 
 console.log(`Customer reported sales audit: ${passes.length} passed, ${failures.length} failed.`);
-for (const failure of failures) console.log(`FAIL ${failure}`);
+for (const failure of failures) console.log(`FAIL ${failure}\n::error title=reported-sales-audit::${failure}`);
 if (process.env.GITHUB_STEP_SUMMARY) {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Customer reported sales\n\n${passes.length} passed, ${failures.length} failed.\n${failures.map(f => `- FAIL ${f}`).join("\n")}\n`);
 }
