@@ -43,8 +43,8 @@ jobs:
     name: Release tested main to production
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    # Option B (docs/WEBSITE_RELEASE_BATCHING.md): the deploy key lives in this environment, which only main may use.
-    # Without the secret, checkout falls back to the workflow token (Option A).
+    # Option B (docs/WEBSITE_RELEASE_BATCHING.md): the release GitHub App's key lives in this environment, which only
+    # main may use. Without the App configured, the workflow token is used (Option A).
     environment: website-release
     steps:
       - name: Release batching switch
@@ -59,11 +59,23 @@ jobs:
             echo "::notice title=Release batching off::WEBSITE_RELEASE_BATCHING is not enabled; production still deploys from main on every merge. Nothing was released."
           fi
 
+      # Short-lived token (expires within an hour) for the private "FlipForge Website Release" App: contents write on
+      # this repository only. Skipped when the App is not configured.
+      - name: Release credential (GitHub App)
+        id: app
+        if: steps.gate.outputs.enabled == 'true' && vars.WEBSITE_RELEASE_APP_ID != ''
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.WEBSITE_RELEASE_APP_ID }}
+          private-key: ${{ secrets.WEBSITE_RELEASE_APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+
       - uses: actions/checkout@v4
         if: steps.gate.outputs.enabled == 'true'
         with:
           fetch-depth: 0
-          ssh-key: ${{ secrets.WEBSITE_RELEASE_DEPLOY_KEY }}
+          token: ${{ steps.app.outputs.token || github.token }}
 
       - uses: actions/setup-node@v4
         if: steps.gate.outputs.enabled == 'true'
@@ -79,6 +91,7 @@ jobs:
           RELEASE_REF: ${{ github.event_name == 'schedule' && 'main' || inputs.ref }}
           RELEASE_REASON: ${{ inputs.reason }}
           RELEASE_DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+          RELEASE_PUSH_CREDENTIAL: ${{ steps.app.outputs.token != '' && 'GitHub App (Option B)' || 'workflow token (Option A)' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

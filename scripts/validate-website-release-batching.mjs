@@ -97,9 +97,13 @@ check(pushCalls.length === 1 && pushCalls.every(line => !/--force|"-f"|"\+/.test
   "R12 the release script has one push, fast-forward only (no force, no + refspec)");
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/release-website.yml"), "utf8");
 check(/WEBSITE_RELEASE_BATCHING/.test(workflow) && /enabled=false/.test(workflow) && /if: steps\.gate\.outputs\.enabled == 'true'/.test(workflow), "R13 the workflow is inert unless WEBSITE_RELEASE_BATCHING is enabled");
-check(/environment: website-release/.test(workflow) && /ssh-key: \$\{\{ secrets\.WEBSITE_RELEASE_DEPLOY_KEY \}\}/.test(workflow)
-  && !/secrets\.WEBSITE_RELEASE_DEPLOY_KEY[^}]*\}\}[\s\S]*secrets\.WEBSITE_RELEASE_DEPLOY_KEY/.test(workflow),
-  "R17 the deploy key is read once, only from the main-only website-release environment");
+check(/environment: website-release/.test(workflow)
+  && /uses: actions\/create-github-app-token@v2/.test(workflow)
+  && /private-key: \$\{\{ secrets\.WEBSITE_RELEASE_APP_PRIVATE_KEY \}\}/.test(workflow)
+  && /permission-contents: write/.test(workflow)
+  && /token: \$\{\{ steps\.app\.outputs\.token \|\| github\.token \}\}/.test(workflow)
+  && (workflow.match(/WEBSITE_RELEASE_APP_PRIVATE_KEY/g) || []).length === 1,
+  "R17 the release App key is read once, only from the main-only website-release environment, for contents write");
 check(/Pushed with: \$\{pushVia\}/.test(source) && !/--force|-f /.test(source.replace(/No --force/g, "")),
   "R18 the release summary names the push credential and the script never force-pushes");
 check(/EXPECTED_PRODUCTION_BRANCH: release/.test(workflow) && /verify-live-production-parity\.mjs/.test(workflow), "R14 each release is verified live on the release branch");

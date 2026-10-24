@@ -115,7 +115,7 @@ async function main() {
     return;
   }
 
-  const pushVia = tryGit("remote", "get-url", "origin").out.startsWith("git@") ? "deploy key (Option B)" : "workflow token (Option A)";
+  const pushVia = (process.env.RELEASE_PUSH_CREDENTIAL || "workflow token (Option A)").trim();
   console.log(`Pushing with: ${pushVia}`);
   // Fast-forward push. No --force: the remote refuses anything that would rewrite release.
   git("push", "origin", `${target}:refs/heads/release`);
