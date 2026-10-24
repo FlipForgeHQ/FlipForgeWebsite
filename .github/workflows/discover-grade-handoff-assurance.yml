@@ -14,6 +14,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Validate server-confirmed slab-grade handoff
         run: node scripts/validate-discovery-grade-handoff.mjs

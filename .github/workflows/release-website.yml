@@ -64,20 +64,20 @@ jobs:
       - name: Release credential (GitHub App)
         id: app
         if: steps.gate.outputs.enabled == 'true' && vars.WEBSITE_RELEASE_APP_ID != ''
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.WEBSITE_RELEASE_APP_ID }}
           private-key: ${{ secrets.WEBSITE_RELEASE_APP_PRIVATE_KEY }}
           repositories: ${{ github.event.repository.name }}
           permission-contents: write
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.gate.outputs.enabled == 'true'
         with:
           fetch-depth: 0
           token: ${{ steps.app.outputs.token || github.token }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7.1.0
         if: steps.gate.outputs.enabled == 'true'
         with:
           node-version: 24
