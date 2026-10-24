@@ -59,8 +59,14 @@ function assertProductionParity(manifest, expected) {
   if (manifest.context !== "production" || manifest.production !== true) {
     throw new Error("Live manifest is not a production deployment.");
   }
-  if (manifest.branch !== "main") {
-    throw new Error(`Live production branch is ${manifest.branch || "<empty>"}; expected main.`);
+  // Production is built from main today; with release batching it is built from the release branch
+  // (docs/WEBSITE_RELEASE_BATCHING.md). Only these two branches are ever accepted.
+  const expectedBranch = String(process.env.EXPECTED_PRODUCTION_BRANCH || "main").trim();
+  if (!["main", "release"].includes(expectedBranch)) {
+    throw new Error(`EXPECTED_PRODUCTION_BRANCH must be main or release, not ${expectedBranch}.`);
+  }
+  if (manifest.branch !== expectedBranch) {
+    throw new Error(`Live production branch is ${manifest.branch || "<empty>"}; expected ${expectedBranch}.`);
   }
   if (String(manifest.commitRef).toLowerCase() !== expected) {
     const error = new Error(`Live production is ${manifest.commitRef}; expected ${expected}.`);
