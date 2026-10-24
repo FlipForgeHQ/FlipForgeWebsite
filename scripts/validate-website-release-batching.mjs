@@ -130,6 +130,15 @@ check(missingRules([{ type: "deletion" }, { type: "non_fast_forward" }, { type: 
   && parityStillActive(parity, "") && !parityStillActive(parity, "enabled"),
   "R22 the preflight fails unless all three branch rules are active and the main-merge parity check is still on");
 
+const { optionAProblems, releasePermissionsOk } = await import(pathToFileURL(path.join(root, "scripts/ci/release-preflight.mjs")).href);
+const optionASource = preflight.slice(preflight.indexOf("async function optionA("), preflight.indexOf("function finish("));
+check(optionAProblems([{ type: "deletion" }, { type: "non_fast_forward" }]).length === 0
+  && optionAProblems([{ type: "deletion" }, { type: "non_fast_forward" }, { type: "update" }]).length === 1
+  && optionAProblems([{ type: "deletion" }]).length === 1
+  && releasePermissionsOk(workflow) && /if \(!APP_ID\.trim\(\)\) return optionA/.test(preflight)
+  && !/pushWith\(/.test(optionASource) && /if: vars\.WEBSITE_RELEASE_APP_ID != ''/.test(preflightWorkflow),
+  "R23 without an App the preflight runs read-only Option A checks: deletion and force pushes blocked, updates not restricted");
+
 fs.rmSync(tmp, { recursive: true, force: true });
 for (const failure of failures) console.error(`FAIL | ${failure}`);
 console.log(`WebsiteReleaseBatching: ${passes.length}/${passes.length + failures.length} checks passed`);
