@@ -66,35 +66,85 @@ The safety checks still apply in an emergency. If the required checks cannot pas
 
 The `release` branch is never rewound. A rollback is a Netlify republish or a forward revert, never a force-push.
 
-## Rollout (founder, after review)
+## Controlled production activation
 
-1. Merge this pull request. It is inert until steps 2–5.
-2. In GitHub, create the `release` branch at the current `main` commit (for example, from the branches page). Alternatively, the first run of the workflow creates it.
-3. **Protect `release` before it becomes the production branch.** Today only `main` has rules (ruleset "Protect website main"). Without protection, anyone with write access could push unreviewed code straight to production. GitHub does **not** offer "GitHub Actions" as a ruleset bypass on this repository (checked 2026-10-23), so choose one of these:
-   - **Option B, recommended: a private GitHub App (one secret, needs founder approval).** Deploy keys are switched off for the FlipForgeHQ organization (checked 2026-10-23), and GitHub recommends Apps instead.
-     1. In the organization settings, create the private App **FlipForge Website Release**:
-        - **Repository permissions → Contents:** read and write. Everything else: no access.
-        - **Webhook:** off.
-        - **Install:** only on this account, and only on **FlipForgeWebsite**.
-     2. Create the environment **`website-release`**: Settings → Environments. Under **Deployment branches**, choose **Selected branches** and add the single rule `main`.
-     3. In that environment, add the secret **`WEBSITE_RELEASE_APP_PRIVATE_KEY`** (the App's `.pem` private key) and the variable **`WEBSITE_RELEASE_APP_ID`** (the App ID, which is not secret).
-     4. Create the ruleset for `release`: **Restrict deletions**, **Block force pushes** and **Restrict updates**. Bypass list: the **FlipForge Website Release** App only.
+**Status, 2026-10-24.**
+- **Done:** #556 is merged and inert. The `website-release` environment allows `main` only; this was tested, and a job from another branch was refused. The private App **FlipForge website release** is installed on this repository only.
+- **Still off:** batching. Netlify still builds production from `main`.
 
-     Each run gets a token that expires within an hour. Only this workflow, running from `main`, can obtain one. A workflow on any other branch cannot read the environment secret, and a person pushing directly is refused.
-   - **Option A, no secret: deletions and force pushes blocked.** Create the ruleset for `release` with **Restrict deletions** and **Block force pushes**, and no bypass. Do **not** tick Restrict updates, because the workflow token would then be refused too.
+Option B (the GitHub App) is the chosen design. Option A, below, is kept only as a documented fallback.
 
-     The release script still only moves `release` forward to commits on `main`. But anyone with write access to the repository, or a workflow on any branch, could also move it forward to unreviewed code. Today that is only the founder and Claude sessions.
+### Stage 1: preflight (no production change)
 
-   **Tested 2026-10-23** on a throwaway branch `release-probe` with Option A's ruleset:
-   - the workflow token moved the branch forward to `main`: **allowed**;
-   - a force push that rewinds it: **refused**;
-   - deleting the branch: **refused**;
-   - a force push from a normal account: **refused**;
-   - a push of a commit that is not on `main`, from a workflow on another branch: **allowed**. This is the gap Option B closes.
-   - deploy keys: **disabled by the organization**, so Option B uses a GitHub App instead.
-4. In GitHub, go to **Settings → Secrets and variables → Actions → Variables** and add the repository variable `WEBSITE_RELEASE_BATCHING` = `enabled`. This is a plain variable, not a secret.
-5. In Netlify, go to **Project configuration → Build & deploy → Branches and deploy contexts**. Set the **Production branch** to `release`, and set **Branch deploys** to *None*. Keep **Deploy previews** on.
-6. Run **Release Website** once with kind `manual`, reason "first release", and `dry_run` on. Then run it again without the dry run, and confirm the verify step passes.
-7. After one billing cycle, compare production deploy credits with this table.
+1. **Founder: create the ruleset.** Settings → Rules → Rulesets → New branch ruleset, named **Protect release**.
+   - **Enforcement:** Active.
+   - **Bypass list:** the **FlipForge website release** App, set to *Always allow*. Nothing else.
+   - **Targets:** include by pattern `release`, and include by pattern `release-preflight`.
+   - **Rules:** Restrict deletions, Restrict updates, Block force pushes. Nothing else.
 
-No build hooks are needed. With Option A the workflow pushes with the repository's own workflow token (`contents: write`). With Option B it pushes with a short-lived GitHub App token created from the `website-release` environment. The run summary says which one was used.
+   No production effect: Netlify does not build `release` yet.
+2. **Merge the preflight pull request** (founder approval). It adds a manual-only workflow. Nothing runs on its own.
+3. **Founder: run the preflight.** Go to Actions → **Release Website Preflight** → *Run workflow* on `main`. Every check must pass:
+
+| Check | What it proves |
+| --- | --- |
+| P1 | Batching is off and the main-merge parity check still runs |
+| P2 | Live production is still built from `main` (deploy-meta.json) |
+| P3 | The App token is created from the environment secret and reaches only this repository |
+| P4 | `release` and `release-preflight` both block deletion, force pushes and updates |
+| P5 | The App can fast-forward the protected scratch branch (bypass works) |
+| P6 | The ordinary workflow token is refused (updates really are restricted) |
+| P7 | The real `release` branch was not touched |
+
+The preflight then deletes `release-preflight`, using the App. It changes no variable or Netlify setting. If a check fails, fix it and run the preflight again. Nothing needs undoing.
+
+### Stage 2: activation (one sitting, about 30 minutes, founder present, ideally a quiet hour)
+
+| Step | Action | Production effect | Verify |
+| --- | --- | --- | --- |
+| A1 | Netlify → Project configuration → Branches and deploy contexts. **Check, before changing anything**, that *Branch deploys* is **None**. If it is not, set it to None first. | None | Screenshot of the setting |
+| A2 | The founder creates the branch `release` from `main` on GitHub's Branches page. Creation is not restricted. | None (Netlify does not build it) | The `release` commit equals the live `main` commit |
+| A3 | Netlify: set **Production branch** to `release`. | **One production deploy of the same commit already live** (about 15 credits; content identical) | deploy-meta.json shows `branch: release` and the same `commitRef`. Smoke test: home page, sign-in page, signed-in dashboard, Saved Decisions, one Discover search |
+| A4 | GitHub → Variables: `WEBSITE_RELEASE_BATCHING` = `enabled`. | Merges to `main` stop deploying. The main-merge parity job is skipped by design. | The next merge shows no Netlify production deploy |
+| A5 | Actions → **Release Website**: kind `manual`, reason "activation check", `dry_run` on. | None | Summary: "Nothing to release" (release equals main), credential "GitHub App (Option B)" |
+| A6 | First real release, after the next merge to `main`: run **Release Website** without the dry run. Or let the weekday 22:17 UTC schedule do it. | One production deploy containing the batched merges | The workflow's verify step passes. deploy-meta.json shows `branch: release` and the released commit. Repeat the A3 smoke test |
+
+### Immediate rollback
+
+Choose by symptom. Each option is independent of the others.
+
+1. **A bad release is live.** In Netlify → Deploys, open the previous production deploy and choose **Publish deploy**. It is live in under a minute, with no build and no credits. Then revert on `main` and run an emergency release.
+2. **Stop batching entirely.**
+   1. Set the variable `WEBSITE_RELEASE_BATCHING` to `disabled`.
+   2. In Netlify, set the production branch back to `main`.
+
+   **Caution:** `main` may contain merges that were not yet released. Switching back deploys them. If that is not wanted, do option 1 first.
+3. **The App or its key is suspect.** In the App's settings, delete its private key, or uninstall the App. Releases then stop, because the next run cannot get a token. Production keeps serving the last release. Then do option 2 if needed.
+
+### Risks and how each is covered
+
+- **A release deploys untested code.** The script only releases commits that are on `main` and that have passed all 4 required checks. It refuses anything else.
+- **Someone moves `release` directly.** Updates are restricted, and only the App can bypass. Only a workflow running from `main` can obtain the App's key; this was tested.
+- **Branch deploys cost credits.** A1 confirms *Branch deploys = None* before any branch is created.
+- **The verify step runs before Netlify finishes.** It retries for up to about 13 minutes before failing.
+- **Rollback ships unreleased work.** The caution under rollback option 2 covers this.
+
+### Option A (fallback, not chosen)
+
+A ruleset on `release` with **Restrict deletions** and **Block force pushes** only, no bypass, pushed with the ordinary workflow token. It needs no secret. But anyone with write access, or a workflow on any branch, could move `release` forward to unreviewed code.
+
+**Tested 2026-10-23** on the throwaway branch `release-probe`:
+
+| Test | Result |
+| --- | --- |
+| Workflow token fast-forwards to `main` | Allowed |
+| Force push that rewinds | Refused |
+| Deletion | Refused |
+| Force push from a normal account | Refused |
+| A workflow on another branch pushes a commit that is not on `main` | **Allowed (the gap)** |
+
+Two further facts shaped the choice:
+- "GitHub Actions" is not offered as a ruleset bypass, and deploy keys are disabled for the organization. That is why Option B uses a GitHub App.
+- **Tested 2026-10-24:** a job from a non-`main` branch was refused access to the `website-release` environment (run 40053904513).
+
+With Option B the workflow pushes with a short-lived GitHub App token. The run summary names the credential used. No build hooks are needed.
