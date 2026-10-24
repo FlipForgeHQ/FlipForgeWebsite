@@ -13,6 +13,8 @@ on:
       - ".github/workflows/saas-beta-complete-gate.yml"
       - ".github/workflows/release-website.yml"
       - "scripts/ci/release-website.mjs"
+      - ".github/workflows/release-website-preflight.yml"
+      - "scripts/ci/release-preflight.mjs"
       - "scripts/validate-website-release-batching.mjs"
       - "docs/WEBSITE_RELEASE_BATCHING.md"
 

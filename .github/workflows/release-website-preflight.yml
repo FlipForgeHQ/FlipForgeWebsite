@@ -1,0 +1,52 @@
+name: Release Website Preflight
+
+# Release batching preflight (docs/WEBSITE_RELEASE_BATCHING.md, "Controlled production activation").
+# Manual only. Verifies the release GitHub App and the protected-branch rules on the scratch branch
+# `release-preflight`. It never enables batching, never changes a variable, never touches Netlify or the
+# `release` branch, and leaves today's main-merge production parity check running.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write # used only to prove that an ordinary workflow token is REFUSED on the protected scratch branch
+
+concurrency:
+  group: release-website
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Preflight release App and branch protection
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    if: github.ref == 'refs/heads/main'
+    environment: website-release
+    steps:
+      - name: Release credential (GitHub App)
+        id: app
+        continue-on-error: true
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.WEBSITE_RELEASE_APP_ID }}
+          private-key: ${{ secrets.WEBSITE_RELEASE_APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run preflight checks
+        env:
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          BATCHING: ${{ vars.WEBSITE_RELEASE_BATCHING }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/ci/release-preflight.mjs

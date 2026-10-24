@@ -112,6 +112,24 @@ check(/if: vars\.WEBSITE_RELEASE_BATCHING != 'enabled'/.test(parity), "R15 the m
 const verifier = fs.readFileSync(path.join(root, "scripts/verify-live-production-parity.mjs"), "utf8");
 check(/\["main", "release"\]\.includes\(expectedBranch\)/.test(verifier), "R16 the live verifier accepts only main or release as the production branch");
 
+// Preflight (manual only): proves the App and the rules on a scratch branch without enabling anything.
+const preflightWorkflow = fs.readFileSync(path.join(root, ".github/workflows/release-website-preflight.yml"), "utf8");
+const preflight = fs.readFileSync(path.join(root, "scripts/ci/release-preflight.mjs"), "utf8");
+const triggers = preflightWorkflow.split(/^on:\s*$/m)[1]?.split(/^\S/m)[0] || "";
+check(/workflow_dispatch:/.test(triggers) && !/schedule:|push:|pull_request/.test(triggers)
+  && /if: github\.ref == 'refs\/heads\/main'/.test(preflightWorkflow) && /environment: website-release/.test(preflightWorkflow),
+  "R19 the preflight runs only when started by hand, only from main, only in the website-release environment");
+check(!/refs\/heads\/release[`'"]/.test(preflight) && /refs\/heads\/\$\{SCRATCH\}/.test(preflight) && /SCRATCH = "release-preflight"/.test(preflight),
+  "R20 the preflight pushes only to the scratch branch release-preflight, never to release");
+check(!/actions\/variables|api\.netlify\.com|"PATCH"|"PUT"/i.test(preflight)
+  && /:refs\/heads\/\$\{SCRATCH\}/.test(preflight) && /persist-credentials: false/.test(preflightWorkflow),
+  "R21 the preflight changes no variable or Netlify setting, deletes its scratch branch and keeps no stored credentials");
+const { missingRules, parityStillActive } = await import(pathToFileURL(path.join(root, "scripts/ci/release-preflight.mjs")).href);
+check(missingRules([{ type: "deletion" }, { type: "non_fast_forward" }, { type: "update" }]).length === 0
+  && missingRules([{ type: "deletion" }]).join(",") === "non_fast_forward,update"
+  && parityStillActive(parity, "") && !parityStillActive(parity, "enabled"),
+  "R22 the preflight fails unless all three branch rules are active and the main-merge parity check is still on");
+
 fs.rmSync(tmp, { recursive: true, force: true });
 for (const failure of failures) console.error(`FAIL | ${failure}`);
 console.log(`WebsiteReleaseBatching: ${passes.length}/${passes.length + failures.length} checks passed`);
