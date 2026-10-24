@@ -70,13 +70,28 @@ The `release` branch is never rewound. A rollback is a Netlify republish or a fo
 
 1. Merge this pull request. It is inert until steps 2–5.
 2. In GitHub, create the `release` branch at the current `main` commit (for example, from the branches page). Alternatively, the first run of the workflow creates it.
-3. **Protect `release` before it becomes the production branch.** Today only `main` has rules (ruleset "Protect website main"). Without protection, anyone with write access could push unreviewed code straight to production. In GitHub, go to **Settings → Rules → Rulesets → New branch ruleset**:
-   - target `release`;
-   - turn on **Restrict deletions**, **Block force pushes** and **Restrict updates**;
-   - add **GitHub Actions** as the only bypass actor, so that only the Release Website workflow can move the branch.
+3. **Protect `release` before it becomes the production branch.** Today only `main` has rules (ruleset "Protect website main"). Without protection, anyone with write access could push unreviewed code straight to production. GitHub does **not** offer "GitHub Actions" as a ruleset bypass on this repository (checked 2026-10-23), so choose one of these:
+   - **Option B, recommended: a deploy key (one secret, needs founder approval).**
+     1. Create an SSH key pair.
+     2. Add the public half as a **deploy key with write access**: Settings → Deploy keys.
+     3. Create the environment **`website-release`**: Settings → Environments. Under **Deployment branches**, choose **Selected branches** and allow only `main`.
+     4. Store the private half there as the environment secret **`WEBSITE_RELEASE_DEPLOY_KEY`**.
+     5. Create the ruleset for `release`: **Restrict deletions**, **Block force pushes** and **Restrict updates**. Bypass list: **Deploy keys** only.
+
+     With this option, only this workflow, running from `main`, can move `release`. A workflow on any other branch cannot read the environment secret. A person pushing directly is refused.
+   - **Option A, no secret: deletions and force pushes blocked.** Create the ruleset for `release` with **Restrict deletions** and **Block force pushes**, and no bypass. Do **not** tick Restrict updates, because the workflow token would then be refused too.
+
+     The release script still only moves `release` forward to commits on `main`. But anyone with write access to the repository, or a workflow on any branch, could also move it forward to unreviewed code. Today that is only the founder and Claude sessions.
+
+   **Tested 2026-10-23** on a throwaway branch `release-probe` with Option A's ruleset:
+   - the workflow token moved the branch forward to `main`: **allowed**;
+   - a force push that rewinds it: **refused**;
+   - deleting the branch: **refused**;
+   - a force push from a normal account: **refused**;
+   - a push of a commit that is not on `main`, from a workflow on another branch: **allowed**. This is the gap Option B closes.
 4. In GitHub, go to **Settings → Secrets and variables → Actions → Variables** and add the repository variable `WEBSITE_RELEASE_BATCHING` = `enabled`. This is a plain variable, not a secret.
 5. In Netlify, go to **Project configuration → Build & deploy → Branches and deploy contexts**. Set the **Production branch** to `release`, and set **Branch deploys** to *None*. Keep **Deploy previews** on.
 6. Run **Release Website** once with kind `manual`, reason "first release", and `dry_run` on. Then run it again without the dry run, and confirm the verify step passes.
 7. After one billing cycle, compare production deploy credits with this table.
 
-No secrets or build hooks are needed. The workflow pushes with the repository's own workflow token (`contents: write`).
+No build hooks are needed. With Option A the workflow pushes with the repository's own workflow token (`contents: write`). With Option B it pushes with the deploy key from the `website-release` environment. The run summary says which one was used.

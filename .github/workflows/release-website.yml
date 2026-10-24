@@ -43,6 +43,9 @@ jobs:
     name: Release tested main to production
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    # Option B (docs/WEBSITE_RELEASE_BATCHING.md): the deploy key lives in this environment, which only main may use.
+    # Without the secret, checkout falls back to the workflow token (Option A).
+    environment: website-release
     steps:
       - name: Release batching switch
         id: gate
@@ -60,6 +63,7 @@ jobs:
         if: steps.gate.outputs.enabled == 'true'
         with:
           fetch-depth: 0
+          ssh-key: ${{ secrets.WEBSITE_RELEASE_DEPLOY_KEY }}
 
       - uses: actions/setup-node@v4
         if: steps.gate.outputs.enabled == 'true'

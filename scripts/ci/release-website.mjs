@@ -115,6 +115,8 @@ async function main() {
     return;
   }
 
+  const pushVia = tryGit("remote", "get-url", "origin").out.startsWith("git@") ? "deploy key (Option B)" : "workflow token (Option A)";
+  console.log(`Pushing with: ${pushVia}`);
   // Fast-forward push. No --force: the remote refuses anything that would rewrite release.
   git("push", "origin", `${target}:refs/heads/release`);
   output("released", "true");
@@ -123,6 +125,8 @@ async function main() {
     `### Website release: \`${target.slice(0, 12)}\` (${kind})`,
     "",
     reason ? `Reason: ${reason}` : "Scheduled daily release.",
+    "",
+    `Pushed with: ${pushVia}.`,
     "",
     `Merges in this release: ${batched}. One production deploy instead of ${batched} (about ${Math.max(0, batched - 1) * 15} credits saved).`,
     "",
