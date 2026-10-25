@@ -27,7 +27,7 @@ check("011 Terms acceptance promotes founder-selected membership", termsFn.inclu
 check("012 terms receipt uses versioned conditional write", termsFn.includes('BETA_TERMS_VERSION = "2026-08-15"') && termsFn.includes("onlyIfMatch: etag"));
 check("013 invitation acceptance is persisted for retry before workspace use", termsGate.includes("PENDING_KEY") && termsGate.includes("/api/beta/terms-acceptance") && termsGate.includes("Finalizing your beta access"));
 check("014 terms gate injects into public callback and app surfaces", injector.includes('inject("index.html")') && injector.includes('saas-prototype'));
-check("015 founder UI defaults Wave 1 cohort", founderUi.includes('wave-1-sep-2026'));
+check("015 founder UI asks for each tester's start date (defaults to today) and sends it as the beta group", founderUi.includes('name="startDate" type="date"') && founderUi.includes("value=\"${esc(todayLocal())}\"") && founderUi.includes('cohort:startCohort(data.get("startDate"))') && !founderUi.includes("wave-1-sep-2026"));
 check("016 public applications remain separately reviewable", operator.includes("review public applications") && operator.includes("Tester directory") && operator.includes("UNDER_REVIEW") && operator.includes("WAITLISTED"));
 check("017 no payment or transaction authority is added", !founderFn.includes("checkout") && !termsFn.includes("checkout") && operator.includes("No billing or transaction authority is granted"));
 check("018 operator invite scripts are cache-busted", operator.includes('beta-operator.js?v=20261022-card-evidence') && operator.includes('beta-founder-select.js?v=20261006-beta-seat-1'));
