@@ -419,3 +419,94 @@
   .ff10 *,.ff10 *::before,.ff10 *::after{transition:none!important;animation:none!important}
   .ff10 .ff10-armed .ff10-lock,.ff10 .ff10-armed .ff10-id-tags li,.ff10 .ff10-armed .ff10-panel,.ff10 .ff10-armed .ff10-panel .ff10-verdict{opacity:1}
 }
+
+/* ======================================================================
+   THE FLIPFORGE DIFFERENCE: decision, permanent record, outcome, report card.
+   Illustrative only: invented card, no performance figures until verified outcomes exist.
+   ====================================================================== */
+.ff10-diff{position:relative;padding:var(--pad) 0;border-top:1px solid var(--line-d);
+  background:radial-gradient(55% 60% at 88% 30%,rgba(212,175,55,.13),rgba(212,175,55,0) 64%),var(--k)}
+.ff10-diff-head{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,4vw,64px);align-items:end}
+.ff10-diff-head .ff10-display span{display:block;color:var(--g)}
+.ff10-diff-list{list-style:none;margin:clamp(56px,7vw,104px) 0 0;padding:0;position:relative}
+.ff10-diff-list::before{content:"";position:absolute;left:27px;top:28px;bottom:28px;width:1px;
+  background:linear-gradient(var(--g),rgba(212,175,55,.15))}
+.ff10-diff-step{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(24px,4vw,72px);
+  align-items:center;padding:clamp(28px,3.4vw,48px) 0;border-bottom:1px solid var(--line-d)}
+.ff10-diff-step:last-child{border-bottom:0}
+.ff10-diff-copy{position:relative;padding-left:88px}
+.ff10-diff-n{position:absolute;left:0;top:-6px;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;
+  border:2px solid var(--g);background:var(--k);color:var(--g);font-weight:800;font-size:24px;box-shadow:0 0 0 6px var(--k)}
+.ff10-diff-copy h3{margin:0 0 10px;font-size:clamp(24px,2.3vw,34px);line-height:1.05;letter-spacing:-.025em;text-transform:uppercase;font-weight:800}
+.ff10-diff-copy p{color:rgba(255,255,255,.78);font-size:clamp(16px,1.25vw,18px);max-width:28em}
+
+.ff10-diff-panel{position:relative;border:1px solid rgba(212,175,55,.38);border-radius:14px;padding:clamp(18px,2vw,26px);
+  background:linear-gradient(160deg,#121316,#08090a);box-shadow:0 24px 70px rgba(0,0,0,.55);font-size:15px}
+.ff10-diff-tag{position:absolute;top:14px;right:14px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--s);
+  border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:3px 9px}
+.ff10-gold{color:var(--g)}
+.ff10-diff-panel dl{margin:0}
+.ff10-diff-panel dt{color:rgba(255,255,255,.62)}
+.ff10-diff-panel dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+
+.ff10-diff-card{display:flex;gap:14px;align-items:center;padding-right:96px}
+.ff10-diff-card img{width:52px;height:auto;border-radius:4px;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+.ff10-diff-card b{display:block;font-size:16px;letter-spacing:-.01em}
+.ff10-diff-card em{font-style:normal;color:rgba(255,255,255,.62);font-size:14px}
+.ff10-diff-verdict{display:flex;align-items:center;justify-content:space-between;margin:16px 0 14px;padding:12px 16px;border-radius:10px;
+  background:linear-gradient(90deg,rgba(212,175,55,.2),rgba(212,175,55,.04));border:1px solid rgba(212,175,55,.5)}
+.ff10-diff-verdict small{font-size:14px;color:rgba(255,255,255,.75)}
+.ff10-diff-verdict strong{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--g)}
+.ff10-diff-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ff10-diff-stats div{border:1px solid var(--line-d);border-radius:8px;padding:9px 10px}
+.ff10-diff-stats dt{font-size:12px}
+.ff10-diff-stats dd{font-size:16px;margin-top:2px}
+
+.ff10-diff-record ul,.ff10-diff-report ul{list-style:none;margin:0;padding:0}
+.ff10-diff-record li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-d)}
+.ff10-diff-record li:first-child{padding-top:2px}
+.ff10-diff-record li:last-child{border-bottom:0;padding-bottom:0}
+.ff10-diff-record i{width:18px;height:18px;flex:none;border-radius:50%;border:2px solid var(--g);position:relative}
+.ff10-diff-record i::after{content:"";position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid var(--g);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ff10-diff-record span{flex:1;color:rgba(255,255,255,.78)}
+.ff10-diff-record b{font-weight:700;text-align:right}
+.ff10-diff-record ul{padding-right:96px}
+
+.ff10-diff-sold-head,.ff10-diff-report-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-right:96px}
+.ff10-diff-sold-head strong,.ff10-diff-report-head strong{font-size:18px;text-transform:uppercase;letter-spacing:.02em}
+.ff10-diff-sold-head span{font-size:12px;color:var(--k);background:var(--s);border-radius:999px;padding:3px 10px;font-weight:700}
+.ff10-diff-sold dl div{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line-d)}
+.ff10-diff-sold dl .ff10-diff-return{border-bottom:0;padding-top:14px}
+.ff10-diff-return dt{color:var(--w);font-weight:700;font-size:17px}
+.ff10-diff-return dd{color:var(--g);font-size:24px}
+
+.ff10-diff-report-head{padding-right:0;justify-content:space-between}
+.ff10-diff-report-head span{white-space:nowrap;font-size:12px;color:var(--g);border:1px solid rgba(212,175,55,.5);border-radius:999px;padding:3px 10px;font-weight:700}
+.ff10-diff-report ul{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ff10-diff-report li{border:1px solid var(--line-d);border-radius:8px;padding:12px}
+.ff10-diff-report li span{display:block;font-size:13px;color:rgba(255,255,255,.7)}
+.ff10-diff-report li b{display:block;margin-top:6px;font-size:26px;color:var(--s)}
+.ff10-diff-report p{margin-top:14px!important;font-size:13px;color:var(--s);letter-spacing:.04em}
+
+.ff10-diff-note{margin-top:clamp(32px,4vw,48px)!important;max-width:52em;font-size:14px;color:var(--s)}
+
+@media (max-width:900px){
+  .ff10-diff-head{grid-template-columns:1fr}
+  .ff10-diff-step{grid-template-columns:1fr;gap:20px}
+  .ff10-diff-copy{padding-left:72px}
+  .ff10-diff-n{width:48px;height:48px;font-size:20px;top:-4px}
+  .ff10-diff-list::before{left:23px}
+  .ff10-diff-panel{margin-left:72px}
+}
+@media (max-width:560px){
+  .ff10-diff-panel{margin-left:0}
+  .ff10-diff-list::before{display:none}
+  .ff10-diff-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ff10-diff-report ul{grid-template-columns:1fr}
+  .ff10-diff-report li{display:flex;justify-content:space-between;align-items:center}
+  .ff10-diff-report li b{margin:0;font-size:20px}
+  .ff10-diff-tag{position:static;display:inline-block;margin-bottom:12px}
+  .ff10-diff-panel{display:flex;flex-direction:column}
+  .ff10-diff-panel>.ff10-diff-tag{order:-1;align-self:flex-start}
+  .ff10-diff-card,.ff10-diff-record ul,.ff10-diff-sold-head{padding-right:0}
+}
