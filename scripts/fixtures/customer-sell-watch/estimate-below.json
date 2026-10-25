@@ -1,0 +1,78 @@
+{
+  "data": {
+    "configured": true,
+    "marketComparisonDisplayed": false,
+    "policyVersion": "sell-watch-hosted-v1",
+    "sourceOfTruth": "SQLite",
+    "transactionAuthority": false,
+    "acquisitionDecisionAffected": false,
+    "kind": "sell-watch-estimate",
+    "authority": "POSITION_REVIEW_PROMPT_ONLY",
+    "estimate": {
+      "taxesIncluded": false,
+      "costs": {
+        "commissionBps": 1325,
+        "fixedFeeCents": 30,
+        "otherCostCents": 0,
+        "channel": "MARKETPLACE",
+        "paymentProcessingBps": 290,
+        "channelName": "Marketplace",
+        "label": "Marketplace",
+        "source": "CUSTOMER_ENTERED",
+        "insuranceCents": 0,
+        "version": 1,
+        "shippingCents": 600,
+        "updatedAt": "2026-10-25T21:03:48.562320243Z"
+      },
+      "comparison": {
+        "differenceCents": -38280,
+        "differenceBps": -3151,
+        "direction": "BELOW_WHAT_YOU_PAID"
+      },
+      "acquisitionCostCents": 121500,
+      "breakdown": {
+        "fixedFeeCents": 30,
+        "otherCostCents": 0,
+        "grossCents": 100000,
+        "totalCostsCents": 16780,
+        "netCents": 83220,
+        "paymentProcessingCents": 2900,
+        "insuranceCents": 0,
+        "commissionCents": 13250,
+        "shippingCents": 600
+      },
+      "channel": "MARKETPLACE",
+      "message": "At $1,000.00 through marketplace, you would keep about $832.20 after your selling costs. That is $382.80 (31.5%) less than you paid.",
+      "opportunityId": "opp-ohtani-psa10",
+      "priceSource": "CUSTOMER_ENTERED_PRICE",
+      "stored": false,
+      "channelName": "Marketplace",
+      "priceCents": 100000,
+      "status": "NET_ESTIMATE_AVAILABLE"
+    },
+    "tenantScoped": true,
+    "marketComparisonStatus": "NO_LICENSED_SOURCE_ACTIVE",
+    "repositoryVersion": "v1.0.0"
+  },
+  "meta": {
+    "engineVersion": "sell-watch+sell-watch-hosted-v1",
+    "evidenceFreshness": "CUSTOMER_WORKFLOW_FACTS",
+    "runtimeBuildCommitVerified": false,
+    "providerEvidenceMode": "PROVIDER_SALES_OFF",
+    "runtimeBuildIdentityVersion": "v1.0",
+    "contractVersion": "1.0",
+    "evidenceStorageGuard": "NOT_INSTALLED",
+    "authority": "Smart Opportunity",
+    "generatedAt": "2026-10-25T21:03:48.646998880Z",
+    "runtimeBuildCommit": "unknown",
+    "correlationId": "rec",
+    "gradingAuthority": "Existing PSA intelligence",
+    "limitations": [
+      "Sell Watch shows context for cards you own. It gives no instruction about what to do with a card.",
+      "Selling costs are the ones you enter. FlipForge does not supply or assume your fees.",
+      "An estimate uses the price you type in. It is not a valuation, an offer or a market value, and taxes are not included.",
+      "Recent-sales comparisons are not shown: FlipForge has no licensed source of completed-sale records active.",
+      "Sell Watch never rescores, reranks or changes a saved FlipForge decision, and authorizes no transaction."
+    ]
+  }
+}

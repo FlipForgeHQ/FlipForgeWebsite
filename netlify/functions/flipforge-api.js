@@ -33,6 +33,10 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+$/ },
   { method: "POST", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+$/ },
   { method: "PUT", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+\/rs_[0-9a-f-]{36}$/ },
+  { method: "GET", pattern: /^\/api\/v1\/sell-watch$/ },
+  { method: "GET", pattern: /^\/api\/v1\/sell-watch\/[A-Za-z0-9][A-Za-z0-9._:-]*$/ },
+  { method: "PUT", pattern: /^\/api\/v1\/sell-watch\/costs\/(?:MARKETPLACE|AUCTION_HOUSE|CONSIGNMENT|DEALER_DIRECT|PRIVATE_SALE|OTHER)$/ },
+  { method: "POST", pattern: /^\/api\/v1\/sell-watch\/[A-Za-z0-9][A-Za-z0-9._:-]*\/estimate$/ },
   { method: "GET", pattern: /^\/api\/v1\/account$/ },
   { method: "GET", pattern: /^\/api\/v1\/entitlements$/ },
   { method: "POST", pattern: /^\/api\/v1\/discover$/ },
@@ -170,6 +174,22 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
     return errorEnvelope(
       "REPORTED_SALE_ID_REUSED",
       "This sale form was already submitted with different details. Reopen Mark as Sold to try again.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "SELL_WATCH_COSTS_VERSION_CONFLICT") {
+    return errorEnvelope(
+      "SELL_WATCH_COSTS_VERSION_CONFLICT",
+      "Your saved selling costs changed. Refresh before saving again.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "SELL_WATCH_CARD_NOT_OWNED") {
+    return errorEnvelope(
+      "SELL_WATCH_CARD_NOT_OWNED",
+      "Sell Watch works on cards you own. Mark this card as owned first.",
       correlationId
     );
   }
