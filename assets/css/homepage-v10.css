@@ -419,3 +419,13 @@
   .ff10 *,.ff10 *::before,.ff10 *::after{transition:none!important;animation:none!important}
   .ff10 .ff10-armed .ff10-lock,.ff10 .ff10-armed .ff10-id-tags li,.ff10 .ff10-armed .ff10-panel,.ff10 .ff10-armed .ff10-panel .ff10-verdict{opacity:1}
 }
+
+/* ======================================================================
+   THE FLIPFORGE DIFFERENCE: founder-approved poster (invented card, no performance figures).
+   ====================================================================== */
+.ff10-diff{padding:clamp(56px,7vw,112px) 0;border-top:1px solid var(--line-d);
+  background:radial-gradient(60% 50% at 50% 40%,rgba(212,175,55,.12),rgba(212,175,55,0) 70%),var(--k)}
+.ff10-diff-poster{margin:0 auto;width:min(680px,100%)}
+.ff10-diff-poster img{display:block;width:100%;height:auto;border-radius:16px;
+  box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 1px rgba(212,175,55,.28)}
+@media (max-width:560px){.ff10-diff-poster img{border-radius:10px}}
