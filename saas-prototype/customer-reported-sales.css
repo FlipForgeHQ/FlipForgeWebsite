@@ -1,0 +1,66 @@
+.ff-reported-sales .panel-body {
+  display: grid;
+  gap: 14px;
+}
+
+.ff-reported-sale {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-raised, #15181d);
+}
+
+.ff-reported-sale header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ff-reported-sale small {
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.ff-reported-sale-flags {
+  margin: 0;
+  padding-left: 18px;
+  color: #f1d38a;
+  font-size: 12px;
+}
+
+.ff-reported-sale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ff-reported-sale-refund {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.ff-reported-sale-refund input {
+  min-height: 38px;
+  width: 140px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised, #15181d);
+  color: var(--text, #f7f7f7);
+  padding: 6px 10px;
+  font: inherit;
+}
+
+.value-negative {
+  color: #f19a8a;
+}
+
+.ff-reported-sales-empty {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 13px;
+}

@@ -29,6 +29,10 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/lifecycle$/ },
   { method: "GET", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
   { method: "PUT", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
+  { method: "GET", pattern: /^\/api\/v1\/reported-sales$/ },
+  { method: "GET", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+$/ },
+  { method: "POST", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+$/ },
+  { method: "PUT", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+\/rs_[0-9a-f-]{36}$/ },
   { method: "GET", pattern: /^\/api\/v1\/account$/ },
   { method: "GET", pattern: /^\/api\/v1\/entitlements$/ },
   { method: "POST", pattern: /^\/api\/v1\/discover$/ },
@@ -150,6 +154,22 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
     return errorEnvelope(
       "LIFECYCLE_VERSION_CONFLICT",
       "The saved lifecycle record changed. Refresh before submitting another update.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "REPORTED_SALE_VERSION_CONFLICT") {
+    return errorEnvelope(
+      "REPORTED_SALE_VERSION_CONFLICT",
+      "This sale changed. Refresh before submitting another update.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "REPORTED_SALE_ID_REUSED") {
+    return errorEnvelope(
+      "REPORTED_SALE_ID_REUSED",
+      "This sale form was already submitted with different details. Reopen Mark as Sold to try again.",
       correlationId
     );
   }
