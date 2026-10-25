@@ -3,11 +3,10 @@ name: Workflow Security Assurance
 on:
   pull_request:
     branches: [main]
+  # Every push to main: the website release gate (scripts/ci/release-website.mjs) requires this check on the exact
+  # commit being released, so it must exist on every main commit, not only on commits that change workflows.
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/**"
-      - "scripts/validate-workflow-action-refs.mjs"
 
 permissions:
   contents: read
