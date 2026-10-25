@@ -7,6 +7,8 @@ on:
       - "saas-prototype/customer-sell-watch.css"
       - "saas-prototype/customer-reported-sales.js"
       - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/customer-lifecycle-display.js"
+      - "saas-prototype/tracking-navigation-reload-v1.js"
       - "saas-prototype/index.html"
       - "saas-prototype/customer.html"
       - "netlify/functions/flipforge-api.js"

@@ -55,7 +55,7 @@
       "acquiredAt": "2026-09-13T00:00:00Z",
       "marketComparison": {
         "displayed": false,
-        "coreResult": "NO_MATCHED_SALES",
+        "evaluated": true,
         "status": "NO_LICENSED_SOURCE_ACTIVE"
       }
     }
@@ -69,14 +69,14 @@
     "contractVersion": "1.0",
     "evidenceStorageGuard": "NOT_INSTALLED",
     "authority": "Smart Opportunity",
-    "generatedAt": "2026-10-25T20:48:59.914133512Z",
+    "generatedAt": "2026-10-25T21:03:48.539569313Z",
     "runtimeBuildCommit": "unknown",
     "correlationId": "rec",
     "gradingAuthority": "Existing PSA intelligence",
     "limitations": [
-      "Sell Watch shows context for cards you own. It does not tell you to sell, hold, list or keep a card.",
+      "Sell Watch shows context for cards you own. It gives no instruction about what to do with a card.",
       "Selling costs are the ones you enter. FlipForge does not supply or assume your fees.",
-      "An estimate uses the price you type in. It is not an appraisal, an offer or a market value, and taxes are not included.",
+      "An estimate uses the price you type in. It is not a valuation, an offer or a market value, and taxes are not included.",
       "Recent-sales comparisons are not shown: FlipForge has no licensed source of completed-sale records active.",
       "Sell Watch never rescores, reranks or changes a saved FlipForge decision, and authorizes no transaction."
     ]

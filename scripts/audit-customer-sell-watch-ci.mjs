@@ -38,9 +38,15 @@ const routeLines = gateway.split("\n").filter(line => line.includes("sell-watch"
 check("G1 gateway allows exactly four Sell Watch routes", routeLines.length === 4, routeLines.join(" | "));
 check("G2 gateway allows GET list and card, PUT costs by channel, POST estimate",
   gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/sell-watch$/ }')
-  && gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/sell-watch\\/[A-Za-z0-9._:-]+$/ }')
+  && gateway.includes('{ method: "GET", pattern: /^\\/api\\/v1\\/sell-watch\\/[A-Za-z0-9][A-Za-z0-9._:-]*$/ }')
   && gateway.includes('{ method: "PUT", pattern: /^\\/api\\/v1\\/sell-watch\\/costs\\/(?:MARKETPLACE|AUCTION_HOUSE|CONSIGNMENT|DEALER_DIRECT|PRIVATE_SALE|OTHER)$/ }')
-  && gateway.includes('{ method: "POST", pattern: /^\\/api\\/v1\\/sell-watch\\/[A-Za-z0-9._:-]+\\/estimate$/ }'));
+  && gateway.includes('{ method: "POST", pattern: /^\\/api\\/v1\\/sell-watch\\/[A-Za-z0-9][A-Za-z0-9._:-]*\\/estimate$/ }'));
+const sellWatchRoutes = [...gateway.matchAll(/\{ method: "(GET|PUT|POST)", pattern: (\/\^\\\/api\\\/v1\\\/sell-watch[^\n]*?\$\/) \}/g)]
+  .map(([, method, source]) => ({ method, re: new RegExp(source.slice(1, -1)) }));
+const allowed = (method, p) => sellWatchRoutes.some(route => route.method === method && route.re.test(p));
+check("G7 gateway refuses dot segments that could change the upstream path", sellWatchRoutes.length === 4
+  && !allowed("POST", "/api/v1/sell-watch/../estimate") && !allowed("GET", "/api/v1/sell-watch/..")
+  && !allowed("GET", "/api/v1/sell-watch/.") && allowed("POST", `/api/v1/sell-watch/${OPP}/estimate`));
 check("G3 gateway never allows DELETE on Sell Watch", !routeLines.some(line => line.includes('"DELETE"')));
 check("G4 gateway maps both Sell Watch conflict codes", gateway.includes('upstreamCode === "SELL_WATCH_COSTS_VERSION_CONFLICT"')
   && gateway.includes('upstreamCode === "SELL_WATCH_CARD_NOT_OWNED"'));
@@ -107,6 +113,10 @@ async function session({ viewport = { width: 1440, height: 1000 }, mode = "on", 
       if (request.method() !== "GET") writes.push({ method: request.method(), path: url.pathname, body: JSON.parse(request.postData() || "{}") });
       let body;
       if (request.method() === "PUT" && url.pathname === "/api/v1/sell-watch/costs/MARKETPLACE") {
+        if (mode === "conflict") {
+          costsSaved = true; // saved meanwhile in another window
+          return json(route, 409, { error: { code: "SELL_WATCH_COSTS_VERSION_CONFLICT", message: "Your saved selling costs changed. Refresh before saving again.", correlationId } });
+        }
         costsSaved = true;
         body = sw("costs-saved");
       } else if (request.method() === "POST" && url.pathname === `/api/v1/sell-watch/${OPP}/estimate`) {
@@ -182,9 +192,26 @@ const P = "[data-sell-watch-panel]";
   check("B12 no page errors or browser dialogs", errors.length === 0, errors.join(" | "));
   const used = await page.evaluate(() => window.FlipForgeSellWatch?.requestCount?.() ?? -1);
   check("B13 the panel makes a bounded number of requests (no reload loop)", used > 0 && used <= 10, `requests=${used}`);
+  const before = await page.evaluate(() => window.FlipForgeSellWatch?.requestCount?.() ?? -1);
   await page.selectOption("[data-lifecycle-select]", OTHER);
-  await page.waitForTimeout(2500);
-  check("B14 a card that is not owned gets no Sell Watch panel", await page.locator(P).count() === 0);
+  await page.waitForTimeout(3000);
+  const after = await page.evaluate(() => window.FlipForgeSellWatch?.requestCount?.() ?? -1);
+  check("B14 a card that is not owned shows no Sell Watch panel", await page.locator(`${P}:not([hidden])`).count() === 0);
+  check("B15 and asks about it once, not in a loop", after - before <= 2, `requests after switching=${after - before}`);
+  await context.close();
+}
+
+// 1b. A save conflict (costs changed in another window) reloads the saved costs instead of leaving the form stuck.
+{
+  const { context, page, writes } = await session({ mode: "conflict" });
+  await page.waitForSelector(`${P}:not([hidden]) [data-sell-watch-costs-form]`, { timeout: 30000 });
+  const f = `${P} [data-sell-watch-costs-form]`;
+  await page.fill(`${f} [name=commissionBps]`, "10");
+  await page.click(`${f} button[type=submit]`);
+  await page.waitForFunction(sel => /changed in another window/.test(document.querySelector(sel)?.innerText || ""), P, { timeout: 20000 }).catch(() => {});
+  const shown = await text(page, P);
+  check("B16 a save conflict reloads the saved costs and says so", writes.length === 1 && /changed in another window/.test(shown)
+    && /13\.25% commission/.test(shown) && await page.locator(`${P} [data-sell-watch-price-form]`).count() === 1, shown.slice(0, 300));
   await context.close();
 }
 

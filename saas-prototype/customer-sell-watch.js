@@ -190,7 +190,7 @@
       + `<div class="staging-key-grid"><div><span>You paid</span><strong>${escapeHtml(money(state.card.acquisitionCostCents))}</strong></div></div>`
       + `<label class="customer-management-selector ff-sell-watch-channel"><span>Selling through</span><select data-sell-watch-channel>${channelOptions}</select></label>`
       + costs + priceForm + estimateMarkup()
-      + `<small class="ff-sell-watch-note">Uses your price and your costs. Not an appraisal, an offer or a market value. Taxes are not included. Sell Watch never changes a FlipForge decision.</small>`
+      + `<small class="ff-sell-watch-note">Uses your price and your costs. Not a valuation, an offer or a market value. Taxes are not included. Sell Watch never changes a FlipForge decision.</small>`
       + `</div>`;
   }
 
@@ -209,7 +209,7 @@
     node.innerHTML = panelMarkup();
     node.querySelectorAll("form [name]").forEach(field => {
       const key = keyOf(field);
-      if (Object.prototype.hasOwnProperty.call(typed, key) && typed[key] !== "") field.value = typed[key];
+      if (Object.prototype.hasOwnProperty.call(typed, key)) field.value = typed[key];
     });
     bind(node);
   }
@@ -231,7 +231,14 @@
       const payload = await request(`/api/v1/sell-watch/${encodeURIComponent(card)}`);
       if (generation !== state.generation) return;
       if (!apply(payload)) {
-        panel()?.remove(); // Not an owned card: Sell Watch is for cards you own.
+        // Not an owned card: Sell Watch is for cards you own. Keep an empty, hidden placeholder so the page watcher
+        // does not mount (and request) again; the lifecycle page re-renders it away when the card changes.
+        const node = panel();
+        if (node) {
+          node.innerHTML = "";
+          node.hidden = true;
+          node.setAttribute("data-sell-watch-state", "not-owned");
+        }
         return;
       }
       if (!profileFor(state.channel)) {
@@ -265,6 +272,14 @@
     } catch (error) {
       if (!sameCard(epoch, card)) return;
       state.error = error;
+      if (error.code === "SELL_WATCH_COSTS_VERSION_CONFLICT") {
+        // The saved costs changed elsewhere (another tab): reload them so the next save uses the current version.
+        state.editing = false;
+        state.busy = false;
+        state.generation += 1;
+        await load(state.generation);
+        state.error = Object.assign(new Error("Your saved costs changed in another window. They are shown below; edit them again if needed."), { code: error.code });
+      }
     } finally {
       if (sameCard(epoch, card)) {
         state.busy = false;
@@ -366,7 +381,9 @@
     const anchor = document.querySelector("[data-reported-sales-panel]") || grid;
     anchor.insertAdjacentHTML("afterend", `<section class="panel ff-sell-watch" ${PANEL} data-opportunity-id="${escapeHtml(id)}" hidden></section>`);
     const node = panel();
-    load(state.generation).then(() => { if (panel() === node) node.hidden = false; });
+    load(state.generation).then(() => {
+      if (panel() === node && node.getAttribute("data-sell-watch-state") !== "not-owned") node.hidden = false;
+    });
   }
 
   let scheduled = false;
