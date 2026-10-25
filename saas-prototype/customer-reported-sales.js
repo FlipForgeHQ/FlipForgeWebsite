@@ -50,7 +50,11 @@
   // featureOff: the service answered 404 for this route; stay unmounted for the rest of this page load so the
   // panel never re-mounts and re-requests in a loop.
   const state = { opportunityId: "", data: null, error: null, notice: "", busy: false, formOpen: false, clientId: "",
-    generation: 0, featureOff: false, requests: 0 };
+    generation: 0, featureOff: false, requests: 0, cardEpoch: 0 };
+  // cardEpoch changes only when the tracked card changes. A save started for one card never updates another
+  // card's panel: every write captures the card and its epoch, and a late response for a card the customer has
+  // left is ignored (its state, its error and its busy flag).
+  const sameCard = (epoch, card) => epoch === state.cardEpoch && card === state.opportunityId;
 
   function eligibleHost() {
     const host = String(window.location.hostname || "");
@@ -284,19 +288,29 @@
       const acquired = String(formData.get("acquiredAt") || "");
       if (cost !== null) body.acquisitionCostCents = cost;
       if (acquired) body.acquiredAt = acquired;
+      const card = state.opportunityId;
+      const epoch = state.cardEpoch;
       state.busy = true;
       paint();
-      state.data = await request(`/api/v1/reported-sales/${encodeURIComponent(state.opportunityId)}`, "POST", body);
+      let saved;
+      try {
+        saved = await request(`/api/v1/reported-sales/${encodeURIComponent(card)}`, "POST", body);
+      } catch (error) {
+        if (!sameCard(epoch, card)) return;
+        throw error;
+      } finally {
+        if (sameCard(epoch, card)) state.busy = false;
+      }
+      if (!sameCard(epoch, card)) return;
+      state.data = saved;
       state.formOpen = false;
       state.error = null;
       state.notice = "Sale saved. It shows as user reported until it can be verified.";
       refreshLifecycle();
     } catch (error) {
       state.error = error;
-    } finally {
-      state.busy = false;
-      paint();
     }
+    paint();
   }
 
   async function act(reportId, version, action) {
@@ -328,17 +342,24 @@
       }
     } else return;
     body.expectedVersion = Number(version);
+    const card = state.opportunityId;
+    const epoch = state.cardEpoch;
     state.busy = true;
     try {
-      state.data = await request(`/api/v1/reported-sales/${encodeURIComponent(state.opportunityId)}/${encodeURIComponent(reportId)}`, "PUT", body);
+      const updated = await request(`/api/v1/reported-sales/${encodeURIComponent(card)}/${encodeURIComponent(reportId)}`, "PUT", body);
+      if (!sameCard(epoch, card)) return;
+      state.data = updated;
       state.error = null;
       state.notice = "Sale updated.";
       refreshLifecycle();
     } catch (error) {
+      if (!sameCard(epoch, card)) return;
       state.error = error;
     } finally {
-      state.busy = false;
-      paint();
+      if (sameCard(epoch, card)) {
+        state.busy = false;
+        paint();
+      }
     }
   }
 
@@ -390,6 +411,8 @@
       state.data = null;
       state.formOpen = false;
       state.notice = "";
+      state.busy = false;
+      state.cardEpoch += 1;
     }
     state.opportunityId = id;
     state.error = null;

@@ -23,6 +23,9 @@ const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173
 const email = "reported-sales-audit@flipforge.test";
 const fixture = name => JSON.parse(fs.readFileSync(path.join(root, "scripts/fixtures/customer-reported-sales", `${name}.json`), "utf8"));
 const OPP = "opp-ohtani-psa10";
+const OTHER = "opp-lebron-psa9";
+// The same recorded fixture, re-addressed to the second tracked card.
+const forCard = (body, card) => card === OPP ? body : JSON.parse(JSON.stringify(body).split(OPP).join(card));
 
 const passes = [];
 const failures = [];
@@ -57,12 +60,12 @@ process.on("unhandledRejection", error => {
 
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
 
-async function session({ viewport = { width: 1440, height: 1000 }, mode = "on" } = {}) {
+async function session({ viewport = { width: 1440, height: 1000 }, mode = "on", postDelayMs = 0 } = {}) {
   const context = await browser.newContext({ viewport });
   const page = await context.newPage();
   const writes = [];
   const errors = [];
-  let sales = fixture("sales-empty");
+  const sales = new Map([[OPP, fixture("sales-empty")], [OTHER, forCard(fixture("sales-empty"), OTHER)]]);
   page.on("pageerror", error => errors.push(error.message));
   page.on("dialog", dialog => { errors.push(`dialog: ${dialog.type()}`); dialog.dismiss(); });
   await page.addInitScript(({ email }) => {
@@ -85,13 +88,20 @@ async function session({ viewport = { width: 1440, height: 1000 }, mode = "on" }
     if (url.pathname === "/api/v1/health") return json(route, 200, { meta: { contractVersion: "1.0", correlationId }, data: { status: "configured" } });
     if (url.pathname === "/api/v1/opportunities") return json(route, 200, withCorrelation(fixture("opportunities"), correlationId));
     if (url.pathname === "/api/v1/lifecycle") return json(route, 200, withCorrelation(fixture("lifecycle-list"), correlationId));
-    if (url.pathname === `/api/v1/lifecycle/${OPP}`) return json(route, 200, withCorrelation(fixture("lifecycle-detail"), correlationId));
+    const lifecycleCard = url.pathname.match(/^\/api\/v1\/lifecycle\/([^/]+)$/);
+    if (lifecycleCard && [OPP, OTHER].includes(decodeURIComponent(lifecycleCard[1]))) {
+      return json(route, 200, withCorrelation(forCard(fixture("lifecycle-detail"), decodeURIComponent(lifecycleCard[1])), correlationId));
+    }
     if (url.pathname.startsWith("/api/v1/reported-sales/")) {
       if (mode === "off") return json(route, 404, { error: { code: "UPSTREAM_REJECTED", message: "The authoritative FlipForge service rejected the request.", correlationId } });
+      const card = decodeURIComponent(url.pathname.split("/")[4] || "");
       if (request.method() !== "GET") writes.push({ method: request.method(), path: url.pathname, body: JSON.parse(request.postData() || "{}") });
-      if (request.method() === "POST") sales = fixture("sales-after-sale");
-      if (request.method() === "PUT") sales = fixture("sales-after-refund");
-      let body = withCorrelation(sales, correlationId);
+      if (request.method() === "POST") {
+        if (postDelayMs) await new Promise(resolve => setTimeout(resolve, postDelayMs));
+        sales.set(card, forCard(fixture("sales-after-sale"), card));
+      }
+      if (request.method() === "PUT") sales.set(card, forCard(fixture("sales-after-refund"), card));
+      let body = withCorrelation(sales.get(card) || fixture("sales-empty"), correlationId);
       if (mode === "tampered") body = { ...body, data: { ...body.data, label: "VERIFIED" } };
       if (mode === "data-use") body = { ...body, data: { ...body.data, dataUseEnabled: true } };
       return json(route, 200, body);
@@ -159,6 +169,43 @@ const text = async (page, selector) => (await page.locator(selector).innerText()
   check("B18 no page errors or browser dialogs", errors.length === 0, errors.join(" | "));
   const used = await page.evaluate(() => window.FlipForgeReportedSales?.requestCount?.() ?? -1);
   check("B19 the panel makes a bounded number of requests (no reload loop)", used > 0 && used <= 12, `requests=${used}`);
+  await context.close();
+}
+
+// 1b. A save that finishes after the customer switched cards never touches the other card's panel.
+{
+  const { context, page, writes, errors } = await session({ postDelayMs: 3000 });
+  await page.waitForSelector("[data-reported-sales-panel] [data-reported-sale-open]", { timeout: 30000 });
+  await page.click("[data-reported-sale-open]");
+  const f = "[data-reported-sale-form]";
+  await page.fill(`${f} [name=salePrice]`, "1650");
+  await page.fill(`${f} [name=saleDate]`, "2026-10-20");
+  await page.click(`${f} button[type=submit]`);
+  await page.waitForFunction(() => /Saving/i.test(document.querySelector("[data-reported-sales-panel]")?.innerText || ""), null, { timeout: 5000 }).catch(() => {});
+  await page.selectOption("[data-lifecycle-select]", OTHER);
+  await page.waitForSelector(`[data-reported-sales-panel][data-opportunity-id="${OTHER}"]`, { timeout: 20000 });
+  // Watch the second card's panel continuously: the first card's sale must never appear in it, even briefly.
+  await page.evaluate(other => {
+    window.__ffOtherPanelLeaks = 0;
+    const look = () => {
+      const node = document.querySelector(`[data-reported-sales-panel][data-opportunity-id="${other}"]`);
+      if (node && /\$1,650/.test(node.textContent || "")) window.__ffOtherPanelLeaks += 1;
+    };
+    new MutationObserver(look).observe(document.body, { childList: true, subtree: true, characterData: true });
+    setInterval(look, 25);
+  }, OTHER);
+  await page.waitForTimeout(4500); // the first card's save finishes in the meantime
+  const other = await text(page, `[data-reported-sales-panel][data-opportunity-id="${OTHER}"]`);
+  check("S1 the save went to the first card", writes.some(w => w.method === "POST" && w.path === `/api/v1/reported-sales/${OPP}`));
+  const leaks = await page.evaluate(() => window.__ffOtherPanelLeaks);
+  check("S2 the second card's panel never shows the first card's sale, even briefly", leaks === 0 && !/\$1,650/.test(other)
+    && /No sale recorded/i.test(other), `leaks=${leaks} ${other.slice(0, 120)}`);
+  check("S3 the second card's panel is not stuck saving and can open its own form", !/Saving/i.test(other)
+    && await page.locator(`[data-reported-sales-panel][data-opportunity-id="${OTHER}"] [data-reported-sale-open]`).count() === 1);
+  await page.click(`[data-reported-sales-panel][data-opportunity-id="${OTHER}"] [data-reported-sale-open]`);
+  await page.waitForTimeout(3500);
+  check("S4 a late response does not close the second card's open form", await page.locator(`[data-reported-sales-panel][data-opportunity-id="${OTHER}"] [data-reported-sale-form]`).count() === 1);
+  check("S5 no page errors during the switch", errors.length === 0, errors.join(" | "));
   await context.close();
 }
 
