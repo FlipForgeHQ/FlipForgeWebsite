@@ -1,0 +1,75 @@
+name: Customer Portfolio and Forge Heat States
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/customer-portfolio.js"
+      - "saas-prototype/customer-portfolio.css"
+      - "saas-prototype/customer-forge-heat.js"
+      - "saas-prototype/customer-forge-heat.css"
+      - "saas-prototype/customer-professional-polish.js"
+      - "saas-prototype/forge-heat-control-room-v2.js"
+      - "saas-prototype/staging-route-hook.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer.html"
+      - "scripts/audit-portfolio-forge-heat-states-ci.mjs"
+      - "scripts/validate-saas-customer-portfolio.mjs"
+      - ".github/workflows/customer-portfolio-forge-heat-states.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  states:
+    name: Portfolio and Forge Heat customer states
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-states-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-states-server.log
+          exit 1
+
+      - name: Portfolio and Forge Heat states audit
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: node scripts/audit-portfolio-forge-heat-states-ci.mjs
+
+      - name: Portfolio and Forge Heat regressions
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          FLIPFORGE_HEAT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: |
+          node scripts/validate-saas-customer-portfolio.mjs
+          node scripts/audit-forge-heat-consumer-ui.mjs
+          node scripts/audit-customer-sell-watch-ci.mjs

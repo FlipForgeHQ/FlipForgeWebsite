@@ -269,7 +269,9 @@
 
     const route = routeName();
     root.querySelectorAll(".staging-empty, .consumer-state-empty, .forge-heat-empty").forEach(state => {
-      if (/No qualifying opportunities yet/i.test(state.textContent || "")) {
+      // A Forge Heat page with no evaluations at all keeps its own "evaluate a card" copy: the threshold wording
+      // below only fits evaluations that were scored and did not qualify.
+      if (/No qualifying opportunities yet/i.test(state.textContent || "") && state.getAttribute("data-forge-heat-empty") !== "none-evaluated") {
         setText(state.querySelector("strong"), "No opportunity reaches the Forge Heat surface threshold yet.");
         setText(state.querySelector("p"), "Forge Heat scores eligible decisions first, then surfaces only those with a score of 60 or higher.");
       }

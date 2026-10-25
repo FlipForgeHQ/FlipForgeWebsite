@@ -208,13 +208,61 @@
     </article>`;
   }
 
-  function emptyState(tab) {
-    const copy = tab === "hiddenGems"
+  // Plain-language versions of the server's reasons a saved evaluation was not ranked. The server decides; the browser
+  // only groups and counts the reasons it was given. Unknown reasons are shown under "Other".
+  const REASON_GROUPS = [
+    ["legacy", "Based on earlier sales FlipForge no longer uses", reason => /^LEGACY:/.test(reason)],
+    ["sales", "Fewer than 3 exactly matched completed sales", reason => /exact (trusted )?completed sales are required/i.test(reason)],
+    ["decision", "The decision is not BUY or WATCH", reason => /^Smart Opportunity is /i.test(reason)],
+    ["value", "No evidence-supported value", reason => /Evidence-supported value is unavailable/i.test(reason)],
+    ["gap", "Supported value is not above the asking price", reason => /does not exceed the all-in ask/i.test(reason)],
+    ["ask", "No asking price was saved", reason => /positive all-in ask is required/i.test(reason)],
+    ["confidence", "Confidence is below the minimum", reason => /Confidence is below/i.test(reason)],
+    ["risk", "Risk is above the maximum", reason => /Risk exceeds/i.test(reason)],
+    ["identity", "The exact card is not identified", reason => /identity is unavailable/i.test(reason)],
+    ["age", "Evaluated more than 30 days ago", reason => /freshness window/i.test(reason)]
+  ];
+
+  function unscoredReasons(item) {
+    if (!item || typeof item !== "object") return [];
+    const reasons = Array.isArray(item.reasons) ? item.reasons.filter(reason => typeof reason === "string") : [];
+    return item.evidenceProvenanceStatus === "LEGACY_PROVIDER_DERIVED" || item.legacyNotice ? ["LEGACY:", ...reasons] : reasons;
+  }
+
+  function reasonSummary(data) {
+    const preview = safeArray(data?.unscoredPreview).filter(item => item && typeof item === "object");
+    if (!preview.length) return "";
+    const counts = new Map();
+    for (const item of preview) {
+      const groups = new Set();
+      for (const reason of unscoredReasons(item)) {
+        const group = REASON_GROUPS.find(([, , matches]) => matches(reason));
+        groups.add(group ? group[1] : "Other");
+      }
+      if (!groups.size) groups.add("Other");
+      // A legacy result is explained by that alone.
+      const labels = groups.has(REASON_GROUPS[0][1]) ? [REASON_GROUPS[0][1]] : [...groups];
+      for (const label of labels) counts.set(label, (counts.get(label) || 0) + 1);
+    }
+    const order = [...REASON_GROUPS.map(([, label]) => label), "Other"];
+    const rows = [...counts.entries()].sort((a, b) => b[1] - a[1] || order.indexOf(a[0]) - order.indexOf(b[0]));
+    const total = Number(data?.summary?.unscored);
+    const scope = Number.isFinite(total) && total > preview.length
+      ? `Your ${preview.length} most recent of ${total} evaluations that were not ranked`
+      : `Your ${preview.length} evaluation${preview.length === 1 ? "" : "s"} that ${preview.length === 1 ? "was" : "were"} not ranked`;
+    return `<div class="forge-heat-why" data-forge-heat-why><span class="forge-heat-section-label">Why nothing qualifies yet</span><p>${escapeHtml(scope)}, by reason. A card can have more than one reason.</p><ul>${rows.map(([label, count]) => `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(count)}</strong></li>`).join("")}</ul></div>`;
+  }
+
+  function emptyState(tab, data) {
+    const considered = Number(data?.summary?.latestEvaluationsConsidered);
+    const copy = considered === 0
+      ? "Forge Heat ranks the cards you evaluate. Evaluate a card to start."
+      : tab === "hiddenGems"
       ? "No current saved evaluation satisfies the Hidden Gem evidence, confidence, risk, and Heat thresholds."
       : tab === "highestEdge"
         ? "No saved BUY/WATCH evaluation currently has enough evidence and positive supported-value gap to surface."
         : "No saved evaluation currently clears the Forge Heat V1 gates.";
-    return `<section class="forge-heat-empty"><strong>No qualifying opportunities yet.</strong><p>${escapeHtml(copy)}</p><a class="button button-primary" href="#/discover">Discover cards</a></section>`;
+    return `<section class="forge-heat-empty"${considered === 0 ? ' data-forge-heat-empty="none-evaluated"' : ""}><strong>No qualifying opportunities yet.</strong><p>${escapeHtml(copy)}</p>${considered === 0 ? "" : reasonSummary(data)}<a class="button button-primary" href="#/discover">Discover cards</a></section>`;
   }
 
   function historyBuilding(data) {
@@ -282,7 +330,7 @@
       ? historyBuilding(data)
       : safeArray(selected).length
         ? `<div class="forge-heat-list">${safeArray(selected).map(opportunityCard).join("")}</div>`
-        : emptyState(state.tab);
+        : emptyState(state.tab, data);
 
     return `<div class="forge-heat-shell">
       ${heading(data)}
