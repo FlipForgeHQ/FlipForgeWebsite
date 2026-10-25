@@ -3,19 +3,10 @@ name: Independent Audit — Sections C-L
 on:
   pull_request:
     branches: [main]
+  # Every push to main: the website release gate (scripts/ci/release-website.mjs) requires the C-L gate on the exact
+  # commit being released, so it must exist on every main commit, not only on commits touching the paths above.
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/independent-audit-sections-c-l.yml"
-      - "scripts/ci/install-playwright-chromium.sh"
-      - ".github/workflows/pre-beta-security-assurance.yml"
-      - "package.json"
-      - "package-lock.json"
-      - "scripts/**"
-      - "saas-prototype/**"
-      - "netlify/**"
-      - "*.html"
-      - "netlify.toml"
 
 permissions:
   contents: read
