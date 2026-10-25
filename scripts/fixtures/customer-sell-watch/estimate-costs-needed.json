@@ -1,0 +1,51 @@
+{
+  "data": {
+    "configured": true,
+    "marketComparisonDisplayed": false,
+    "policyVersion": "sell-watch-hosted-v1",
+    "sourceOfTruth": "SQLite",
+    "transactionAuthority": false,
+    "acquisitionDecisionAffected": false,
+    "kind": "sell-watch-estimate",
+    "authority": "POSITION_REVIEW_PROMPT_ONLY",
+    "estimate": {
+      "taxesIncluded": false,
+      "costs": null,
+      "comparison": null,
+      "acquisitionCostCents": 121500,
+      "breakdown": null,
+      "channel": "MARKETPLACE",
+      "message": "Save your marketplace selling costs to see what you would keep at this price.",
+      "opportunityId": "opp-ohtani-psa10",
+      "priceSource": "CUSTOMER_ENTERED_PRICE",
+      "stored": false,
+      "channelName": "Marketplace",
+      "priceCents": 150000,
+      "status": "SELLING_COSTS_NEEDED"
+    },
+    "tenantScoped": true,
+    "marketComparisonStatus": "NO_LICENSED_SOURCE_ACTIVE",
+    "repositoryVersion": "v1.0.0"
+  },
+  "meta": {
+    "engineVersion": "sell-watch+sell-watch-hosted-v1",
+    "evidenceFreshness": "CUSTOMER_WORKFLOW_FACTS",
+    "runtimeBuildCommitVerified": false,
+    "providerEvidenceMode": "PROVIDER_SALES_OFF",
+    "runtimeBuildIdentityVersion": "v1.0",
+    "contractVersion": "1.0",
+    "evidenceStorageGuard": "NOT_INSTALLED",
+    "authority": "Smart Opportunity",
+    "generatedAt": "2026-10-25T20:48:59.931448719Z",
+    "runtimeBuildCommit": "unknown",
+    "correlationId": "rec",
+    "gradingAuthority": "Existing PSA intelligence",
+    "limitations": [
+      "Sell Watch shows context for cards you own. It does not tell you to sell, hold, list or keep a card.",
+      "Selling costs are the ones you enter. FlipForge does not supply or assume your fees.",
+      "An estimate uses the price you type in. It is not an appraisal, an offer or a market value, and taxes are not included.",
+      "Recent-sales comparisons are not shown: FlipForge has no licensed source of completed-sale records active.",
+      "Sell Watch never rescores, reranks or changes a saved FlipForge decision, and authorizes no transaction."
+    ]
+  }
+}

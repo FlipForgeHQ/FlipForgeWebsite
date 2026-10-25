@@ -1,0 +1,96 @@
+{
+  "data": {
+    "configured": true,
+    "policyVersion": "sell-watch-hosted-v1",
+    "sourceOfTruth": "SQLite",
+    "transactionAuthority": false,
+    "saved": {
+      "commissionBps": 1325,
+      "fixedFeeCents": 30,
+      "otherCostCents": 0,
+      "channel": "MARKETPLACE",
+      "paymentProcessingBps": 290,
+      "channelName": "Marketplace",
+      "label": "Marketplace",
+      "source": "CUSTOMER_ENTERED",
+      "insuranceCents": 0,
+      "version": 1,
+      "shippingCents": 600,
+      "updatedAt": "2026-10-25T20:48:59.934350836Z"
+    },
+    "kind": "sell-watch-costs",
+    "tenantScoped": true,
+    "costProfiles": [{
+      "commissionBps": 1325,
+      "fixedFeeCents": 30,
+      "otherCostCents": 0,
+      "channel": "MARKETPLACE",
+      "paymentProcessingBps": 290,
+      "channelName": "Marketplace",
+      "label": "Marketplace",
+      "source": "CUSTOMER_ENTERED",
+      "insuranceCents": 0,
+      "version": 1,
+      "shippingCents": 600,
+      "updatedAt": "2026-10-25T20:48:59.934350836Z"
+    }],
+    "repositoryVersion": "v1.0.0",
+    "marketComparisonDisplayed": false,
+    "acquisitionDecisionAffected": false,
+    "channels": [
+      {
+        "channel": "MARKETPLACE",
+        "costsSaved": true,
+        "channelName": "Marketplace"
+      },
+      {
+        "channel": "AUCTION_HOUSE",
+        "costsSaved": false,
+        "channelName": "Auction house"
+      },
+      {
+        "channel": "CONSIGNMENT",
+        "costsSaved": false,
+        "channelName": "Consignment"
+      },
+      {
+        "channel": "DEALER_DIRECT",
+        "costsSaved": false,
+        "channelName": "Dealer"
+      },
+      {
+        "channel": "PRIVATE_SALE",
+        "costsSaved": false,
+        "channelName": "Private sale"
+      },
+      {
+        "channel": "OTHER",
+        "costsSaved": false,
+        "channelName": "Other"
+      }
+    ],
+    "authority": "POSITION_REVIEW_PROMPT_ONLY",
+    "marketComparisonStatus": "NO_LICENSED_SOURCE_ACTIVE"
+  },
+  "meta": {
+    "engineVersion": "sell-watch+sell-watch-hosted-v1",
+    "evidenceFreshness": "CUSTOMER_WORKFLOW_FACTS",
+    "runtimeBuildCommitVerified": false,
+    "providerEvidenceMode": "PROVIDER_SALES_OFF",
+    "runtimeBuildIdentityVersion": "v1.0",
+    "contractVersion": "1.0",
+    "evidenceStorageGuard": "NOT_INSTALLED",
+    "authority": "Smart Opportunity",
+    "generatedAt": "2026-10-25T20:48:59.941714827Z",
+    "runtimeBuildCommit": "unknown",
+    "correlationId": "rec",
+    "gradingAuthority": "Existing PSA intelligence",
+    "limitations": [
+      "Sell Watch shows context for cards you own. It does not tell you to sell, hold, list or keep a card.",
+      "Selling costs are the ones you enter. FlipForge does not supply or assume your fees.",
+      "An estimate uses the price you type in. It is not an appraisal, an offer or a market value, and taxes are not included.",
+      "Recent-sales comparisons are not shown: FlipForge has no licensed source of completed-sale records active.",
+      "Sell Watch never rescores, reranks or changes a saved FlipForge decision, and authorizes no transaction."
+    ]
+  }
+}
