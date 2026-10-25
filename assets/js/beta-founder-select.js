@@ -68,7 +68,9 @@
           status.dataset.error="true";
           const reason=String(invited.payload?.reason||"");
           const seats=Number.isInteger(invited.payload?.seatLimit)?` (${invited.payload.seatsUsed} of ${invited.payload.seatLimit} seats used)`:"";
-          status.textContent=reason==="BETA_FULL"
+          status.textContent=reason==="OPERATOR_ACCOUNT_HAS_ACCESS"
+            ?"This email is an operator account. It already has full Private Beta access and does not need an invitation or the Beta Terms step. No invitation was sent and its access is unchanged."
+            :reason==="BETA_FULL"
             ?`Beta full${seats}. No invitation was sent and no seat was reserved. The tester was saved as approved; remove an invited tester to free a seat, then send the invitation from Applications.`
             :reason==="BETA_ADMISSION_UNAVAILABLE"
               ?"The Private Beta seat could not be reserved, so no invitation was sent. The tester was saved as approved; retry from Applications in a moment."

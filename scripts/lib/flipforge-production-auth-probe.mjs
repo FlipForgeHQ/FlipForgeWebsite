@@ -69,7 +69,8 @@ function hideTerms() {
 }
 
 function showTerms() {
-  if (!termsPanel) return;
+  // Founder and operator accounts are never asked to accept the Private Beta Terms.
+  if (!termsPanel || isOperatorAccount(currentUser)) return;
   termsPanel.hidden = false;
   if (termsButton) termsButton.disabled = !termsCheckbox?.checked;
 }
@@ -256,7 +257,7 @@ async function verifyAccess() {
       result.textContent = "Your beta sign-in session needs to be refreshed. Sign out, then sign in again.";
     } else if (response.status === 403 && isOperatorAccount(currentUser)) {
       result.textContent = "This is an operator account, not a Private Beta tester account. Open the Owner Hub for operator tools and the customer preview.";
-    } else if (response.status === 403 && rolesOf(currentUser).includes(TERMS_PENDING_ROLE)) {
+    } else if (response.status === 403 && !isOperatorAccount(currentUser) && rolesOf(currentUser).includes(TERMS_PENDING_ROLE)) {
       // Activated invitation whose Beta Terms acceptance was never recorded (for example the
       // activation tab closed before it was saved). Offer the acceptance here instead of a dead end.
       result.textContent = "Your invitation is activated, but the Private Beta Terms have not been accepted yet.";
