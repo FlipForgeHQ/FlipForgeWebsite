@@ -20,7 +20,8 @@
     portfolio: null,
     opportunities: null,
     sellWatch: null,
-    error: null
+    error: null,
+    generation: 0
   };
 
   function productionHost() {
@@ -401,7 +402,23 @@
     state.main.querySelector("[data-customer-portfolio-refresh]")?.addEventListener("click", load);
   }
 
+  // Sell Watch is optional: Portfolio renders as soon as its own reads finish, and the Sell Watch section is added
+  // when (and if) its response arrives. A response from an earlier load is ignored.
+  async function loadSellWatch(generation) {
+    try {
+      const watch = await request("/api/v1/sell-watch");
+      if (generation !== state.generation) return;
+      state.sellWatch = validSellWatch(watch) ? watch : null;
+    } catch (_) {
+      // Sell Watch switched off (404) or unavailable: Portfolio shows no Sell Watch section; nothing else changes.
+      if (generation !== state.generation) return;
+      state.sellWatch = null;
+    }
+    if (state.sellWatch && !state.loading && !state.error) renderCurrent();
+  }
+
   async function load() {
+    const generation = ++state.generation;
     state.loading = true;
     state.error = null;
     state.health = null;
@@ -422,22 +439,18 @@
       if (!validOpportunities(opportunities)) {
         throw Object.assign(new Error("The tracked-card list failed the Portfolio display contract."), { code: "PORTFOLIO_OPPORTUNITIES_INVALID" });
       }
+      if (generation !== state.generation) return;
       state.portfolio = portfolio;
       state.opportunities = opportunities;
-      if (Number(portfolio.data.count) > 0) {
-        try {
-          const watch = await request("/api/v1/sell-watch");
-          state.sellWatch = validSellWatch(watch) ? watch : null;
-        } catch (_) {
-          // Sell Watch switched off (404) or unavailable: Portfolio shows no Sell Watch section; nothing else changes.
-          state.sellWatch = null;
-        }
-      }
+      if (Number(portfolio.data.count) > 0) loadSellWatch(generation);
     } catch (error) {
+      if (generation !== state.generation) return;
       state.error = error;
     } finally {
-      state.loading = false;
-      renderCurrent();
+      if (generation === state.generation) {
+        state.loading = false;
+        renderCurrent();
+      }
     }
   }
 

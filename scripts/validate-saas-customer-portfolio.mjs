@@ -150,6 +150,7 @@ function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", path
     if (url === "/api/v1/portfolio") return response(envelope(correlationId, payload));
     if (url === "/api/v1/opportunities") return response(envelope(correlationId, opportunities));
     if (url === "/api/v1/sell-watch") {
+      if (watch === "pending") return new Promise(() => {});
       if (watch === "off") return response({ error: { code: "UPSTREAM_REJECTED", message: "Route not enabled." } }, 404);
       const data = JSON.parse(JSON.stringify(sellWatch));
       if (watch === "tampered") data.marketComparisonDisplayed = true;
@@ -250,6 +251,12 @@ check("060 values available with Sell Watch: reference still shown and each card
 // The existing negated disclaimer (check 031) is the one place these words may appear.
 const disclaimer = "not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction";
 check("061 no instruction wording in Portfolio copy", !/\b(should|recommend(ed)?|sell now|hold this|list it|guaranteed)\b/i.test((q + liveOn.main.innerHTML).split(disclaimer).join("")));
+
+const pending = runtime({ mutate: paused, watch: "pending" });
+pending.window.FlipForgeCustomerPortfolio.render(pending.main);
+await settle();
+check("062 a slow Sell Watch read never holds up Portfolio: holdings render without it", pending.main.innerHTML.includes("Card values are paused")
+  && pending.main.innerHTML.includes("$525.00") && !pending.main.innerHTML.includes("Loading tenant-owned Portfolio context"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer Portfolio production validation");
