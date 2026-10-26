@@ -170,42 +170,108 @@
     return values.map(value => `<li>${escapeHtml(value)}</li>`).join("");
   }
 
-  function opportunityCard(item) {
-    const id = SAFE_ID.test(String(item.opportunityId || "")) ? item.opportunityId : "";
-    return `<article class="forge-heat-card">
-      <div class="forge-heat-card-head">
-        <div class="forge-heat-rank" aria-label="Rank ${escapeHtml(item.rank)}">${escapeHtml(item.rank)}</div>
-        <div class="forge-heat-identity">
-          <span class="forge-heat-kicker">${escapeHtml(item.marketplace || "Saved evaluation")} · ${escapeHtml(item.recommendation)}</span>
-          <h3>${escapeHtml(item.cardIdentity)}</h3>
-          <p>Evaluated ${escapeHtml(item.evaluatedAt || "Unavailable")} · ${escapeHtml(item.acceptedExactSales)} matched exact sales</p>
+  // What the customer would keep at the supported value after their own saved selling costs (from Sell Watch). The
+  // server computes every figure; rows that are not exactly as expected are not shown.
+  const AFTER_COST_CHANNELS = ["MARKETPLACE", "AUCTION_HOUSE", "CONSIGNMENT", "DEALER", "PRIVATE_SALE", "OTHER"];
+  function afterCostRows(item) {
+    if (!Array.isArray(item?.afterYourCosts)) return [];
+    return item.afterYourCosts.filter(row => row && typeof row === "object"
+      && AFTER_COST_CHANNELS.includes(row.channel) && typeof row.channelName === "string" && row.channelName.trim()
+      && row.atPriceCents === item.supportedValueCents
+      && [row.keepCents, row.yourCostsCents, row.differenceFromAskCents].every(Number.isSafeInteger)
+      && row.yourCostsCents >= 0 && row.keepCents + row.yourCostsCents === row.atPriceCents
+      && row.differenceFromAskCents === row.keepCents - item.allInAskCents);
+  }
+
+  function afterCostsBlock(item) {
+    const rows = afterCostRows(item);
+    if (!rows.length) return "";
+    return `<div class="forge-heat-after-costs" data-forge-heat-after-costs><span class="forge-heat-section-label">After your selling costs</span><ul>${rows.map(row =>
+      `<li><strong>${escapeHtml(row.channelName)}:</strong> at the supported value of ${moneyCents(row.atPriceCents)}, you would keep ${moneyCents(row.keepCents)} after ${moneyCents(row.yourCostsCents)} of your costs, ${row.differenceFromAskCents >= 0 ? `${moneyCents(row.differenceFromAskCents)} more` : `${moneyCents(-row.differenceFromAskCents)} less`} than the all-in ask.</li>`
+    ).join("")}</ul><small>From the costs you saved in Sell Watch. For reference only: Heat and the decision do not use it.</small></div>`;
+  }
+
+  // The ranked view ("control room"), rendered from the server's data. It replaces forge-heat-control-room-v2.js,
+  // which rebuilt this view by reading the text of rendered cards back out of the page.
+  function heatTone(heat) {
+    const n = Number(heat);
+    if (!Number.isFinite(n)) return "neutral";
+    if (n >= 90) return "white";
+    if (n >= 80) return "hot";
+    if (n >= 70) return "heating";
+    if (n >= 60) return "warm";
+    return "cool";
+  }
+
+  function factors(items) {
+    const values = safeArray(items).filter(value => typeof value === "string" && value.trim());
+    return values.length ? values : ["No additional factor was reported."];
+  }
+
+  function confidenceText(item) {
+    return item.confidence === null || item.confidence === undefined || item.confidence === "" || !Number.isFinite(Number(item.confidence))
+      ? "Unavailable" : `${item.confidence}/100`;
+  }
+
+  function firstAfterCosts(item) {
+    const row = afterCostRows(item)[0];
+    if (!row) return "—";
+    return `${row.differenceFromAskCents >= 0 ? "+" : "−"}${moneyCents(Math.abs(row.differenceFromAskCents))} vs ask <small>${escapeHtml(row.channelName)}</small>`;
+  }
+
+  function controlRoom(items) {
+    const rows = safeArray(items);
+    const lead = rows[0];
+    const withCosts = rows.some(item => afterCostRows(item).length);
+    const gap = item => `${signedMoneyCents(item.supportedValueGapCents)} ${signedPercent(item.supportedValueGapPct)}`;
+    const id = item => SAFE_ID.test(String(item.opportunityId || "")) ? item.opportunityId : "";
+    return `<section class="ff-heat-control-room" data-ff-heat-control-room-source="data" aria-label="Forge Heat ranked opportunity intelligence">
+      <div class="ff-heat-console-head">
+        <div><span class="eyebrow">LIVE RANKING · GOVERNED SAVED EVALUATIONS</span><h2>🔥 Forge Heat — ${escapeHtml(rows.length > 5 ? "Top Opportunities" : `Top ${rows.length}`)}</h2></div>
+        <span class="ff-heat-live-dot">LIVE</span>
+      </div>
+      <div class="ff-heat-console-grid">
+        <div class="ff-heat-table-wrap">
+          <table class="ff-heat-table">
+            <thead><tr><th>Rank</th><th>Card</th><th>Heat</th><th>Ask</th><th>Supported</th><th>Value Gap</th>${withCosts ? "<th>After your costs</th>" : ""}<th>Confidence</th><th>Evidence</th><th>Risk</th></tr></thead>
+            <tbody>${rows.map(item => `<tr>
+              <td class="ff-heat-rank-cell">#${escapeHtml(item.rank)}</td>
+              <td><strong>${escapeHtml(item.cardIdentity)}</strong><small>${escapeHtml(item.recommendation)}</small></td>
+              <td><span class="ff-heat-score-pill" data-tone="${heatTone(item.heat)}">🔥 ${escapeHtml(item.heat)}</span></td>
+              <td>${moneyCents(item.allInAskCents)}</td><td>${moneyCents(item.supportedValueCents)}</td><td class="ff-heat-positive">${escapeHtml(gap(item))}</td>
+              ${withCosts ? `<td>${firstAfterCosts(item)}</td>` : ""}
+              <td>${escapeHtml(confidenceText(item))}</td><td>${escapeHtml(item.acceptedExactSales)} sales</td><td>${escapeHtml(item.risk)}/100</td>
+            </tr>`).join("")}</tbody>
+          </table>
         </div>
-        <div class="forge-heat-score" aria-label="Forge Heat ${escapeHtml(item.heat)} out of 100">
-          <strong>${escapeHtml(item.heat)}</strong>
-          <span>${escapeHtml(bandLabel(item.heatBand))}</span>
-        </div>
+        <aside class="ff-heat-band-panel">
+          <span class="eyebrow">HEAT SCORE</span><strong>Evidence-adjusted rank</strong><small>0–100 presentation of backend-returned Forge Heat.</small>
+          <div class="ff-heat-bands">
+            <div><b>90–100</b><span>WHITE HOT 🔥🔥🔥</span></div>
+            <div><b>80–89</b><span>HOT 🔥🔥</span></div>
+            <div><b>70–79</b><span>HEATING UP 🔥</span></div>
+            <div><b>60–69</b><span>WARM</span></div>
+            <div><b>&lt;60</b><span>LOWER HEAT</span></div>
+          </div>
+        </aside>
       </div>
-
-      <div class="forge-heat-metrics">
-        <div><span>All-in ask</span><strong>${moneyCents(item.allInAskCents)}</strong></div>
-        <div><span>Supported value</span><strong>${moneyCents(item.supportedValueCents)}</strong></div>
-        <div><span>Supported-value gap</span><strong>${signedMoneyCents(item.supportedValueGapCents)} <small>${signedPercent(item.supportedValueGapPct)}</small></strong></div>
-        <div><span>Forge Confidence</span><strong>${item.confidence === null || item.confidence === undefined || item.confidence === "" || !Number.isFinite(Number(item.confidence)) ? "Unavailable" : `${escapeHtml(item.confidence)}/100`}</strong></div>
-        <div><span>Opportunity Risk</span><strong>${escapeHtml(item.risk)}/100</strong></div>
-        <div><span>Exact evidence</span><strong>${escapeHtml(item.acceptedExactSales)} sales</strong></div>
+      <div class="ff-heat-deep-grid">
+        <article class="ff-heat-deep-dive">
+          <span class="eyebrow">DEEP DIVE TRACEBACK · #${escapeHtml(lead.rank)}</span>
+          <h3>${escapeHtml(lead.cardIdentity)}</h3>
+          <div class="ff-heat-deep-metrics"><div><span>Value gap</span><strong>${escapeHtml(gap(lead))}</strong></div><div><span>Confidence</span><strong>${escapeHtml(confidenceText(lead))}</strong></div><div><span>Risk</span><strong>${escapeHtml(lead.risk)}/100</strong></div><div><span>Evidence</span><strong>${escapeHtml(lead.acceptedExactSales)} sales</strong></div></div>
+          ${afterCostsBlock(lead)}
+          ${id(lead) ? `<a class="button button-secondary" href="#/opportunities/${escapeHtml(id(lead))}">Open Smart Opportunity decision →</a>` : ""}
+        </article>
+        <article class="ff-heat-gates">
+          <span class="eyebrow">QUALIFICATION TRACE</span><h3>Why it surfaced</h3><ul>${factors(lead.whyHot).map(value => `<li>${escapeHtml(value)}</li>`).join("")}</ul>
+        </article>
+        <article class="ff-heat-cool">
+          <span class="eyebrow">RISK CHECK</span><h3>What could cool it</h3><ul>${factors(lead.couldCool).map(value => `<li>${escapeHtml(value)}</li>`).join("")}</ul>
+        </article>
       </div>
-
-      <div class="forge-heat-reason-grid">
-        <section><span class="forge-heat-section-label">Why it qualifies</span><ul>${list(item.whyHot)}</ul></section>
-        <section><span class="forge-heat-section-label">What could cool it</span><ul>${list(item.couldCool)}</ul></section>
-        <section><span class="forge-heat-section-label">What invalidates it</span><ul>${list(item.invalidates)}</ul></section>
-      </div>
-
-      <div class="forge-heat-card-foot">
-        <span>Forge Heat ranks the opportunity. Smart Opportunity owns the ${escapeHtml(item.recommendation)} decision.</span>
-        ${id ? `<a class="button button-secondary" href="#/opportunities/${escapeHtml(id)}">Open decision →</a>` : ""}
-      </div>
-    </article>`;
+      <div class="ff-heat-authority-strip"><strong>Smart Opportunity remains the decision authority.</strong><span>Forge Heat ranks qualified saved evaluations; it does not create a second BUY/WATCH/VERIFY/PASS authority or authorize transactions.${withCosts ? " Amounts after your selling costs are for reference only." : " It does not estimate profit."}</span></div>
+    </section>`;
   }
 
   // Plain-language versions of the server's reasons a saved evaluation was not ranked. The server decides; the browser
@@ -367,14 +433,14 @@
     const selected = state.tab === "hiddenGems" ? data.hiddenGems
       : state.tab === "highestEdge" ? data.highestEdge
         : data.top5;
+    const ranked = state.tab !== "heatingUp" && safeArray(selected).length > 0;
     const content = state.tab === "heatingUp"
       ? historyBuilding(data)
-      : safeArray(selected).length
-        ? `<div class="forge-heat-list">${safeArray(selected).map(opportunityCard).join("")}</div>`
-        : emptyState(state.tab, data);
+      : ranked ? "" : emptyState(state.tab, data);
 
-    return `<div class="forge-heat-shell">
+    return `<div class="forge-heat-shell"${ranked ? ' data-ff-heat-control-room="true"' : ""}>
       ${heading(data)}
+      ${ranked ? `${controlRoom(selected)}${tabs()}` : ""}
       <details class="forge-heat-intelligence-bar ff-trust-note">
         <summary>How a card becomes Heat-eligible</summary>
         <div><span>Identity</span><strong>Completed evaluation snapshot</strong></div>
@@ -382,11 +448,19 @@
         <div><span>Authority</span><strong>Smart Opportunity</strong></div>
         <div><span>Heat calculation</span><strong>Server-owned</strong></div>
       </details>
-      ${tabs()}
+      ${ranked ? "" : tabs()}
       <div class="forge-heat-tab-copy"><strong>${escapeHtml(state.tab === "top5" ? "Top 5" : state.tab === "hiddenGems" ? "Hidden Gems" : state.tab === "highestEdge" ? "Highest Edge" : "Heating Up")}</strong><span>${escapeHtml(tabDescription(state.tab))}</span></div>
       ${content}
-      <section class="forge-heat-roadmap-boundary"><strong>What V1 does not fake</strong><p>Momentum, price stability, governed scarcity, configurable selling-cost economics, market-wide scanning, and historical Heat performance remain unavailable until their server-side inputs are implemented and validated.</p></section>
+      ${costsNote(data)}
+      <section class="forge-heat-roadmap-boundary"><strong>What V1 does not fake</strong><p>Momentum, price stability, governed scarcity, ${data?.componentAvailability?.netEconomics?.available === true ? "" : "configurable selling-cost economics, "}market-wide scanning, and historical Heat performance remain unavailable until their server-side inputs are implemented and validated.</p></section>
     </div>`;
+  }
+
+  // Sell Watch is on but no selling costs are saved yet: say how to see amounts after costs (the server's own words).
+  function costsNote(data) {
+    const net = data?.componentAvailability?.netEconomics;
+    if (!net || net.available !== false || net.affectsHeat !== false || typeof net.reason !== "string" || !net.reason.trim()) return "";
+    return `<p class="forge-heat-costs-note" data-forge-heat-costs-note>${escapeHtml(net.reason)}</p>`;
   }
 
   function loading() {

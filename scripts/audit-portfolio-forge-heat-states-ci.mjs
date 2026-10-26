@@ -66,17 +66,17 @@ const R = {
   gap: "Evidence-supported value does not exceed the all-in ask.",
   age: "The saved evaluation is outside the Forge Heat V1 freshness window."
 };
-function heat({ considered, unscored, ranked = false, reasonCounts = null }) {
+function heat({ considered, unscored, ranked = false, reasonCounts = null, afterYourCosts = null, netEconomics = null }) {
   const top = ranked ? [{ rank: 1, requestId: "req-heat-1", opportunityId: "opp-heat-1", cardIdentity: "2020 Prizm Justin Herbert #325 PSA 10",
     recommendation: "BUY", heat: 84, heatBand: "HOT", confidence: 82, risk: 30, acceptedExactSales: 6, allInAskCents: 30000,
     supportedValueCents: 36000, supportedValueGapCents: 6000, supportedValueGapPct: 20, whyHot: ["Six matched sales."], couldCool: [],
-    invalidates: [], transactionAuthority: false, evaluatedAt: "2026-10-20T00:00:00Z" }] : [];
+    invalidates: [], transactionAuthority: false, evaluatedAt: "2026-10-20T00:00:00Z", ...(afterYourCosts ? { afterYourCosts } : {}) }] : [];
   return { kind: "forge-heat", heatVersion: "FORGE_HEAT_V1", serviceVersion: "audit", proFeature: true, locked: false,
     access: { allowed: true, currentPlan: "PRIVATE_BETA", requiredPlan: "PRO", privateBetaPreview: true, accessState: "ACTIVE" },
     authority: { recommendationAuthority: "Smart Opportunity", gradingAuthority: "Existing PSA intelligence",
       forgeHeatRecommendationAuthority: false, clientComputed: false, transactionAuthority: false },
     scope: { code: "SAVED_EVALUATED_UNIVERSE", marketWide: false, continuousMarketScannerActive: false, description: "Audit." },
-    componentAvailability: { momentum: { available: false, reason: "Heat history is not yet sufficient." } },
+    componentAvailability: { momentum: { available: false, reason: "Heat history is not yet sufficient." }, ...(netEconomics ? { netEconomics } : {}) },
     top5: top, hiddenGems: [], highestEdge: top,
     summary: { latestEvaluationsConsidered: considered, heatEligible: top.length, surfaced: top.length, unscored: unscored.length,
       legacyDerivedExcluded: unscored.filter(u => u.legacy).length, ...(reasonCounts ? { unscoredReasonCounts: reasonCounts } : {}) },
@@ -204,6 +204,54 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   const t = await text(page, "[data-forge-heat-why]");
   check("F10 a count larger than the number not ranked is ignored: the preview grouping is shown instead",
     /Your 7 evaluations that were not ranked/.test(t) && !/999/.test(t), t);
+  await context.close();
+}
+// 4c. Forge Heat with ranked cards and saved selling costs: what would be kept after them, for reference only.
+{
+  // Herbert: ask $300.00, supported $360.00. Marketplace 13.25% + 2.9% + $0.30 on $360.00 = $58.44 of costs.
+  const rows = [
+    { channel: "MARKETPLACE", channelName: "Marketplace", atPriceCents: 36000, yourCostsCents: 5844, keepCents: 30156, differenceFromAskCents: 156, costsVersion: 2 },
+    { channel: "DEALER", channelName: "Dealer", atPriceCents: 36000, yourCostsCents: 9000, keepCents: 27000, differenceFromAskCents: -3000, costsVersion: 1 },
+    // Inconsistent figures (kept + costs is not the supported value): never shown.
+    { channel: "OTHER", channelName: "Other", atPriceCents: 36000, yourCostsCents: 1, keepCents: 99999, differenceFromAskCents: 69999, costsVersion: 1 }
+  ];
+  const net = { available: true, affectsHeat: false, basis: "SUPPORTED_VALUE_AFTER_YOUR_SAVED_COSTS", description: "Reference." };
+  const { context, page, errors } = await session("#/forge-heat", { heatData: heat({ considered: 9, unscored: mixed, ranked: true, afterYourCosts: rows, netEconomics: net }) });
+  await page.waitForSelector("[data-forge-heat-after-costs]", { timeout: 30000 });
+  const t = await text(page, "[data-forge-heat-after-costs]");
+  check("F11 ranked card shows what would be kept after each saved channel's costs", /Marketplace: at the supported value of \$360\.00, you would keep \$301\.56 after \$58\.44 of your costs, \$1\.56 more than the all-in ask/.test(t)
+    && /Dealer: .*you would keep \$270\.00 after \$90\.00 of your costs, \$30\.00 less than the all-in ask/.test(t), t);
+  check("F12 figures that do not add up are not shown", !/Other:/.test(t) && !/999/.test(t), t);
+  check("F13 marked as reference only; Heat and the decision unchanged", /For reference only: Heat and the decision do not use it/.test(t)
+    && /84/.test(await text(page, ".ff-heat-score-pill")));
+  const boundary = await text(page, ".forge-heat-roadmap-boundary");
+  check("F14 the V1 boundary no longer lists selling-cost economics as unavailable", !/selling-cost economics/.test(boundary), boundary);
+  const table = await text(page, ".ff-heat-table");
+  check("F18 the ranked view is rendered from the server's data, with an After your costs column", await page.locator('[data-ff-heat-control-room-source="data"]').count() === 1
+    && /After your costs/i.test(table) && /\+\$1\.56 vs ask Marketplace/.test(table), table);
+  check("F19 the DOM-reading control-room script is no longer loaded", await page.evaluate(() =>
+    ![...document.scripts].some(script => /forge-heat-control-room-v2\.js/.test(script.src))));
+  check("F20 the ranked view appears once (no duplicated card list)", await page.locator(".ff-heat-control-room").count() === 1
+    && await page.locator(".forge-heat-card").count() === 0);
+  check("F15 no page errors with amounts after costs", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
+{
+  const net = { available: false, affectsHeat: false, reason: "Save your selling costs in Sell Watch to see what you would keep after them." };
+  const { context, page } = await session("#/forge-heat", { heatData: heat({ considered: 9, unscored: mixed, ranked: true, netEconomics: net }) });
+  await page.waitForSelector(".forge-heat-shell .ff-heat-control-room", { timeout: 30000 });
+  check("F16 Sell Watch on but no saved costs: no amounts, and a note on how to see them",
+    await page.locator("[data-forge-heat-after-costs]").count() === 0
+    && /Save your selling costs in Sell Watch/.test(await text(page, "[data-forge-heat-costs-note]")));
+  await context.close();
+}
+{
+  const { context, page } = await session("#/forge-heat", { heatData: heat({ considered: 9, unscored: mixed, ranked: true }) });
+  await page.waitForSelector(".forge-heat-shell .ff-heat-control-room", { timeout: 30000 });
+  check("F17 older backend (no net economics): no amounts, no note, boundary unchanged",
+    await page.locator("[data-forge-heat-after-costs], [data-forge-heat-costs-note]").count() === 0
+    && /selling-cost economics/.test(await text(page, ".forge-heat-roadmap-boundary"))
+    && !/After your costs/i.test(await text(page, ".ff-heat-table")));
   await context.close();
 }
 // 5. Forge Heat, no evaluations yet.
