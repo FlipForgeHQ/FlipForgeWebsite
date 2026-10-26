@@ -8,7 +8,6 @@ on:
       - "saas-prototype/customer-forge-heat.js"
       - "saas-prototype/customer-forge-heat.css"
       - "saas-prototype/customer-professional-polish.js"
-      - "saas-prototype/forge-heat-control-room-v2.js"
       - "saas-prototype/staging-route-hook.js"
       - "saas-prototype/index.html"
       - "saas-prototype/customer.html"
