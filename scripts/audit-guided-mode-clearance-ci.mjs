@@ -10,7 +10,15 @@
 // performs that real click. Controlled
 // responses only: every evaluation is answered locally; no provider, no paid evaluation, no production data.
 // Requires the local SaaS server (node saas-prototype/serve.mjs) on FLIPFORGE_LAYOUT_AUDIT_URL.
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const fixture = (dir, name) => JSON.parse(fs.readFileSync(path.join(root, "scripts/fixtures", dir, `${name}.json`), "utf8"));
+const OPP = "opp-ohtani-psa10";
+const withCorrelation = (body, correlationId) => ({ ...body, meta: { ...body.meta, correlationId } });
 
 const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app/beta";
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined;
@@ -41,13 +49,20 @@ async function newPage(viewport) {
     const url = new URL(request.url());
     const correlationId = request.headers()["x-correlation-id"] || "guide-audit";
     const json = (status, body) => route.fulfill({ status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
-    if (url.pathname === "/api/v1/health") return json(200, { meta: { correlationId }, data: { status: "configured" } });
+    if (url.pathname === "/api/v1/health") return json(200, { meta: { contractVersion: "1.0", correlationId }, data: { status: "configured" } });
     if (url.pathname === "/api/v1/evaluations") {
       evaluationCalls.push(request.method());
       // Answered locally; the click reaching the server is what is being checked.
       return json(429, { error: { code: "EVALUATION_LIMIT_REACHED", message: "Your evaluation allowance has been reached. No new evaluation was created.", correlationId } });
     }
     if (url.pathname === "/api/v1/discover") return json(503, { error: { code: "UPSTREAM_UNAVAILABLE", message: "QA: discovery not mocked.", correlationId } });
+    // Saved-card pages (2026-10-26): an owned card with Sell Watch costs, so Tracking shows the Sales and Sell Watch
+    // panels in the right-hand column the guide used to cover.
+    if (url.pathname === "/api/v1/opportunities") return json(200, withCorrelation(fixture("customer-reported-sales", "opportunities"), correlationId));
+    if (url.pathname === "/api/v1/lifecycle") return json(200, withCorrelation(fixture("customer-reported-sales", "lifecycle-list"), correlationId));
+    if (url.pathname === `/api/v1/lifecycle/${OPP}`) return json(200, withCorrelation(fixture("customer-reported-sales", "lifecycle-detail"), correlationId));
+    if (url.pathname === `/api/v1/reported-sales/${OPP}`) return json(200, withCorrelation(fixture("customer-reported-sales", "sales-empty"), correlationId));
+    if (url.pathname === `/api/v1/sell-watch/${OPP}`) return json(200, withCorrelation(fixture("customer-sell-watch", "card-with-costs"), correlationId));
     return json(404, { error: { code: "QA_NOT_MOCKED", message: url.pathname, correlationId } });
   });
   return { context, page: await context.newPage(), evaluationCalls };
@@ -231,6 +246,72 @@ for (const viewport of VIEWPORTS) {
     } finally {
       await context.close();
     }
+  }
+}
+
+// Every other page (2026-10-26): with the guide open on a laptop or desktop screen, the page's content must stay
+// clear of the guide, and the Sell Watch price box on a tracked card must take a real click.
+const PAGES = [
+  ["Dashboard", "#/dashboard"], ["Saved decisions", "#/opportunities"], ["Tracking with Sell Watch", `#/tracking/${OPP}`],
+  ["Portfolio", "#/portfolio"], ["Forge Heat", "#/forge-heat"], ["Market view", "#/market-view"]
+];
+for (const viewport of [{ width: 1600, height: 900 }, { width: 1440, height: 900 }, { width: 1280, height: 800 }, { width: 1180, height: 820 }]) {
+  const label = `${viewport.width}x${viewport.height} guide open`;
+  const { context, page } = await newPage(viewport);
+  try {
+    await page.goto(`${baseUrl}/#/dashboard`, { waitUntil: "load" });
+    await page.waitForTimeout(1200);
+    for (const [name, hash] of PAGES) {
+      await page.evaluate(h => { location.hash = h; }, hash);
+      await page.waitForTimeout(1600);
+      // Opened explicitly, as a customer would from the launcher (the guide may start hidden on some pages).
+      await page.evaluate(() => window.FlipForgeGuidedMode?.open?.());
+      await openGuideIfMinimized(page);
+      await page.waitForTimeout(400);
+      const box = await page.evaluate(() => {
+        const guide = document.querySelector(".ff-guide-panel");
+        const main = document.querySelector("#main-content");
+        if (!guide || !main) return { guide: Boolean(guide), main: Boolean(main) };
+        const g = guide.getBoundingClientRect();
+        const m = main.getBoundingClientRect();
+        const contentRight = m.right - parseFloat(getComputedStyle(main).paddingRight);
+        // The page's own blocks: the page container's children and grandchildren that are on screen.
+        let widest = 0;
+        let widestName = "";
+        const page = main.firstElementChild;
+        for (const node of page ? [page, ...page.children, ...[...page.children].flatMap(child => [...child.children])] : []) {
+          const r = node.getBoundingClientRect();
+          if (r.width <= 0 || r.height <= 0 || r.bottom < 0 || r.top > innerHeight) continue;
+          if (r.right > widest) { widest = r.right; widestName = `${node.tagName.toLowerCase()}.${String(node.className).slice(0, 40)}`; }
+        }
+        return { guide: true, main: true, guideLeft: Math.round(g.left), contentRight: Math.round(contentRight), widest: Math.round(widest),
+          widestName, overflowX: document.documentElement.scrollWidth > innerWidth + 1 };
+      });
+      check(`${label}: ${name} content stays clear of the open guide`, box.guide && box.main && box.contentRight <= box.guideLeft - 4
+        && box.widest <= box.guideLeft - 4, JSON.stringify(box));
+      check(`${label}: ${name} has no sideways scroll`, box.guide && !box.overflowX, JSON.stringify(box));
+      if (hash.startsWith("#/tracking/")) {
+        await page.waitForSelector("[data-sell-watch-panel]:not([hidden]) [data-sell-watch-price-form]", { timeout: 15000 });
+        const price = await landing(page, '[data-sell-watch-panel] [data-sell-watch-price-form] [name="price"]', "center");
+        check(`${label}: Sell Watch price box takes a real click with the guide open`, price.found && price.inViewport && price.onControl
+          && !price.coveredByGuide, JSON.stringify(price));
+        const panel = await page.evaluate(() => {
+          const r = document.querySelector("[data-sell-watch-panel]")?.getBoundingClientRect();
+          return { right: Math.round(r?.right || 0), guideLeft: Math.round(document.querySelector(".ff-guide-panel")?.getBoundingClientRect().left || 0) };
+        });
+        check(`${label}: the Sell Watch panel sits entirely beside the guide`, panel.right > 0 && panel.right <= panel.guideLeft - 4, JSON.stringify(panel));
+      }
+    }
+    // Minimized: the reserved column is released and pages use their full width again.
+    const minimize = page.locator(".ff-guide-panel [data-guide-minimize]");
+    if (await minimize.count()) await minimize.first().click();
+    await page.waitForTimeout(400);
+    const released = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector("#main-content")).paddingRight));
+    check(`${label}: minimizing the guide releases its column`, released < 120, `paddingRight=${released}`);
+  } catch (error) {
+    check(`${label}: other pages completed without error`, false, String(error?.message || error).split("\n")[0].slice(0, 220));
+  } finally {
+    await context.close();
   }
 }
 
