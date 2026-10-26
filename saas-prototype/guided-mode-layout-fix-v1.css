@@ -60,6 +60,24 @@ body.ff-guide-modal-open {
   }
 }
 
+/* Workspace clearance v3 (2026-10-26). The reservations above applied only to Evaluate and Discover, so on every
+ * other page (Tracking with its Sell Watch panel, Portfolio, Forge Heat, Dashboard, Saved Decisions...) the open guide
+ * still covered the right-hand column on laptop and desktop screens. Reserve the guide's column on every page while
+ * the panel is open. Minimized or closed, nothing is reserved and pages use their full width. Presentation only. */
+@media (min-width: 1480px) {
+  body:has(.ff-guide-panel) #main-content,
+  body.ff-full-customer-app:has(.ff-guide-panel) #main-content {
+    padding-right: 382px !important;
+  }
+}
+
+@media (min-width: 1180px) and (max-width: 1479px) {
+  body:has(.ff-guide-panel) #main-content,
+  body.ff-full-customer-app:has(.ff-guide-panel) #main-content {
+    padding-right: calc(min(310px, 100vw - 28px) + 42px) !important;
+  }
+}
+
 /* 761-1179px: a reserved side column would leave too little room for the workspace, so the open guide docks as a
  * bottom sheet (as on phones) and the workspace gets matching bottom room, so its last controls scroll clear of it. */
 @media (min-width: 761px) and (max-width: 1179px) {

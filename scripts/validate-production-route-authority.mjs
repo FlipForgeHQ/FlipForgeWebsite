@@ -40,8 +40,17 @@ const requiredScripts = [
   "staging-route-hook.js"
 ];
 
+// commercial-dashboard-v2.js is added to the production app by the build (scripts/build-identity-client.mjs), not
+// written into the source index.html. CI runs this check after that build, where the tag is present; run on its own,
+// before the build, the check confirms the build will add it instead of reporting a false failure.
+const build = read("scripts/build-identity-client.mjs");
+const injectedAtBuild = {
+  "commercial-dashboard-v2.js": build.includes(`const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"></script>';`)
+    && build.includes("injectCommercialDashboard(appIndex);")
+};
+
 for (const script of requiredScripts) {
-  check(`production app retains ${script}`, index.includes(`<script src="${script}"></script>`));
+  check(`production app retains ${script}`, index.includes(`<script src="${script}"></script>`) || injectedAtBuild[script] === true);
 }
 
 check("Dashboard has a dedicated production prototype guard", dashboardGuard.includes("PRODUCTION_HOST") && dashboardGuard.includes("[data-commercial-dashboard-v2]") && dashboardGuard.includes("[data-production-dashboard-guard]"));
