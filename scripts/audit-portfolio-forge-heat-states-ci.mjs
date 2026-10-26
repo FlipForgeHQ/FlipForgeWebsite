@@ -281,6 +281,38 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
     && !/After your costs/i.test(await text(page, ".ff-heat-table")));
   await context.close();
 }
+// 4d. Each reason opens to the saved cards it affects; each card opens its saved decision (display only).
+{
+  const many = Array.from({ length: 30 }, () => ({ reasons: [R.sales] }));
+  const cards = n => Array.from({ length: n }, (_, i) => ({ opportunityId: `opp-why-${i}`, cardIdentity: `Synthetic why card ${i}`, evaluatedAt: "2026-10-01T00:00:00Z" }));
+  const counts = [
+    { code: "THIN_EXACT_EVIDENCE", count: 30, cards: cards(25), cardsNotListed: 5 },
+    { code: "LEGACY_DERIVED_EXCLUDED", count: 2, cards: [{ opportunityId: "opp-legacy-1", cardIdentity: "Legacy card", evaluatedAt: "2026-09-01T00:00:00Z" },
+      { opportunityId: "../../evil", cardIdentity: "<img src=x onerror=alert(1)>", evaluatedAt: "x" }], cardsNotListed: 0 },
+    { code: "DECISION_NOT_BUY_OR_WATCH", count: 1 }
+  ];
+  const { context, page, errors } = await session("#/forge-heat", { heatData: heat({ considered: 30, unscored: many, reasonCounts: counts }) });
+  await page.waitForSelector("[data-forge-heat-why-reason]", { timeout: 30000 });
+  check("F21 reasons with cards open to show them; a reason without cards stays a plain row",
+    await page.locator("[data-forge-heat-why-reason]").count() === 2
+    && /The decision is not BUY or WATCH 1/.test(await text(page, "[data-forge-heat-why]")));
+  await page.locator("[data-forge-heat-why-reason] summary").first().click();
+  await page.waitForTimeout(200);
+  const opened = await text(page, "[data-forge-heat-why-reason][open]");
+  check("F22 an opened reason lists its cards by name and says how many more there are", /Synthetic why card 0/.test(opened)
+    && /Synthetic why card 24/.test(opened) && /and 5 more/.test(opened) && !/Synthetic why card 25/.test(opened), opened.slice(0, 200));
+  const legacy = page.locator("[data-forge-heat-why-reason]").nth(1);
+  await legacy.locator("summary").click();
+  await page.waitForTimeout(200);
+  const legacyText = await legacy.innerText();
+  check("F23 a malformed card entry is not shown or linked, and is counted as not listed", /Legacy card/.test(legacyText)
+    && !/onerror|evil/.test(await legacy.innerHTML()) && /and 1 more/.test(legacyText), legacyText);
+  await page.locator('[data-forge-heat-why-card]').first().click();
+  await page.waitForTimeout(400);
+  check("F24 a card link opens that card's saved decision", await page.evaluate(() => location.hash) === "#/opportunities/opp-why-0");
+  check("F25 no page errors or dialogs with card links", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
 // 5. Forge Heat, no evaluations yet.
 {
   const { context, page } = await session("#/forge-heat", { heatData: heat({ considered: 0, unscored: [] }) });
