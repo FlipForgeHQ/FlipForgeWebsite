@@ -152,3 +152,25 @@
     animation: none !important;
   }
 }
+
+.customer-portfolio-paused .panel-body,
+.customer-portfolio-sell-watch .panel-body {
+  display: grid;
+  gap: 10px;
+}
+
+.customer-portfolio-paused p,
+.customer-portfolio-sell-watch p {
+  margin: 0;
+  max-width: 760px;
+  line-height: 1.55;
+}
+
+.customer-portfolio-sell-watch small {
+  color: var(--text-soft, #9fa5b0);
+  font-size: 12px;
+}
+
+.customer-portfolio-table td .button {
+  white-space: nowrap;
+}

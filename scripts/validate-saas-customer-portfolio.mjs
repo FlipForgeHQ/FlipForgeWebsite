@@ -114,7 +114,29 @@ const portfolio = {
   items: [{ opportunityId: "opp-fresh", acquisitionCostCents: 52500, referenceValue: reference, referencePerformance: performance }]
 };
 
-function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", mutate = null, unauthorized = false } = {}) {
+// Sell Watch overview as returned by the hosted service (FlipForge2 SaaSSellWatchService), trimmed to what Portfolio reads.
+const sellWatch = { kind: "sell-watch", configured: true, tenantScoped: true, authority: "POSITION_REVIEW_PROMPT_ONLY",
+  transactionAuthority: false, acquisitionDecisionAffected: false, marketComparisonDisplayed: false,
+  marketComparisonStatus: "NO_LICENSED_SOURCE_ACTIVE", count: 1, costBasisAvailableCount: 1,
+  items: [{ opportunityId: "opp-fresh", acquisitionCostCents: 52500, quantity: 1, costBasisStatus: "NET_ESTIMATE_AVAILABLE",
+    marketComparison: { displayed: false, status: "NO_LICENSED_SOURCE_ACTIVE", evaluated: true } }],
+  costProfiles: [{ channel: "MARKETPLACE", channelName: "Marketplace", commissionBps: 1325, version: 1 }],
+  channels: [{ channel: "MARKETPLACE", channelName: "Marketplace", costsSaved: true }] };
+
+function paused(data) {
+  for (const item of data.items) {
+    item.referenceValue = { ...item.referenceValue, available: false, status: "PROVIDER_STORED_HISTORY_NOT_RETAINED", valueCents: null,
+      acceptedExactCompletedSales: 0, latestSaleAgeDays: null, latestSaleDate: null };
+    item.referencePerformance = { ...item.referencePerformance, available: false, status: "REFERENCE_VALUE_UNAVAILABLE",
+      referenceValueCents: null, referenceDeltaCents: null, referenceDeltaPercent: null };
+    item.acquiredAt = "2026-09-13T00:00:00Z";
+  }
+  Object.assign(data, { referenceValueAvailableCount: 0, performanceAvailableCount: 0, completeReferenceCoverage: false,
+    completePerformanceCoverage: false, coveredReferenceValueCents: 0, coveredCostBasisCents: 0, coveredReferenceDeltaCents: 0,
+    completePortfolioReferenceValueCents: null, completePortfolioReferenceDeltaCents: null });
+}
+
+function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", mutate = null, unauthorized = false, watch = "off" } = {}) {
   const calls = [];
   let uuid = 0;
   const window = { location: { hostname, pathname, hash: "#/portfolio" }, crypto: { randomUUID: () => `portfolio-${++uuid}` } };
@@ -127,6 +149,13 @@ function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", path
     if (unauthorized) return response({ error: { code: "AUTHENTICATION_REQUIRED", message: "Authentication required." } }, 401);
     if (url === "/api/v1/portfolio") return response(envelope(correlationId, payload));
     if (url === "/api/v1/opportunities") return response(envelope(correlationId, opportunities));
+    if (url === "/api/v1/sell-watch") {
+      if (watch === "pending") return new Promise(() => {});
+      if (watch === "off") return response({ error: { code: "UPSTREAM_REJECTED", message: "Route not enabled." } }, 404);
+      const data = JSON.parse(JSON.stringify(sellWatch));
+      if (watch === "tampered") data.marketComparisonDisplayed = true;
+      return response(envelope(correlationId, data));
+    }
     throw new Error(`Unexpected request: ${url}`);
   };
   const context = vm.createContext({ window, fetch, Response, Intl, Map, Number, String, Object, Array, Math, Date, RegExp, Promise, Set, Error, console, setTimeout, clearTimeout, queueMicrotask, encodeURIComponent });
@@ -140,7 +169,7 @@ const preview = runtime();
 check("033 preview app is eligible", preview.window.FlipForgeCustomerPortfolio.isEligible());
 check("034 preview Portfolio render activates", preview.window.FlipForgeCustomerPortfolio.render(preview.main) === true);
 await settle();
-check("035 preview flow reads health Portfolio opportunities", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/portfolio,/api/v1/opportunities");
+check("035 preview flow reads health Portfolio opportunities, then Sell Watch", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/portfolio,/api/v1/opportunities,/api/v1/sell-watch");
 check("036 evidence reference value renders", preview.main.innerHTML.includes("$700.00"));
 check("037 customer cost basis renders", preview.main.innerHTML.includes("$525.00"));
 check("038 server reference delta renders", preview.main.innerHTML.includes("+$175.00") && preview.main.innerHTML.includes("+33.33%"));
@@ -185,6 +214,49 @@ contaminated.window.FlipForgeCustomerPortfolio.render(contaminated.main);
 await settle();
 check("048 active-listing contamination fails closed", contaminated.main.innerHTML.includes("PORTFOLIO_REFERENCE_CONTRACT_INVALID"));
 check("049 contaminated reference never renders", !contaminated.main.innerHTML.includes("$700.00"));
+
+check("050 Sell Watch switched off: no Sell Watch section or column", !preview.main.innerHTML.includes("data-portfolio-sell-watch") && !preview.main.innerHTML.includes("Check a price"));
+check("051 the reference wording no longer says fees are excluded as if they were counted", !adapter.includes("Fees, taxes, shipping, insurance, liquidity discounts, and transaction timing are excluded")
+  && preview.main.innerHTML.includes("does not subtract selling fees"));
+check("052 the old evidence claim is gone from the heading", !adapter.includes("fresh governed completed-sale evidence"));
+
+const pausedOff = runtime({ mutate: paused });
+pausedOff.window.FlipForgeCustomerPortfolio.render(pausedOff.main);
+await settle();
+const p = pausedOff.main.innerHTML;
+check("053 paused values: one clear paused message instead of per-row Unavailable", p.includes("Card values are paused") && p.includes("data-portfolio-values-paused")
+  && !p.includes("Unavailable") && !p.includes("Partial coverage") && !p.includes("Coverage-aware totals"));
+check("054 paused values: holdings and what was paid still shown", p.includes("Ohtani Chrome PSA 10") && p.includes("$525.00") && p.includes("2026-09-13") && p.includes("Total paid"));
+check("055 paused values without Sell Watch: no Check a price", !p.includes("Check a price") && !p.includes("data-portfolio-sell-watch"));
+
+const pausedOn = runtime({ mutate: paused, watch: "on" });
+pausedOn.window.FlipForgeCustomerPortfolio.render(pausedOn.main);
+await settle();
+const q = pausedOn.main.innerHTML;
+check("056 paused values with Sell Watch: saved channels shown", q.includes("data-portfolio-sell-watch") && q.includes("Selling costs saved for: <strong>Marketplace</strong>"));
+check("057 paused values with Sell Watch: each card links to Check a price on its tracked card", q.includes('href="#/tracking/opp-fresh">Check a price</a>'));
+check("058 Sell Watch read is GET-only like every Portfolio read", pausedOn.calls.every(call => call.options.method === "GET"));
+
+const tampered = runtime({ mutate: paused, watch: "tampered" });
+tampered.window.FlipForgeCustomerPortfolio.render(tampered.main);
+await settle();
+check("059 a Sell Watch response claiming a displayed comparison is ignored; Portfolio still renders", !tampered.main.innerHTML.includes("data-portfolio-sell-watch")
+  && tampered.main.innerHTML.includes("Card values are paused"));
+
+const liveOn = runtime({ watch: "on" });
+liveOn.window.FlipForgeCustomerPortfolio.render(liveOn.main);
+await settle();
+check("060 values available with Sell Watch: reference still shown and each card links to Check a price", liveOn.main.innerHTML.includes("$700.00")
+  && liveOn.main.innerHTML.includes("Check a price") && liveOn.main.innerHTML.includes("use Check a price on a card"));
+// The existing negated disclaimer (check 031) is the one place these words may appear.
+const disclaimer = "not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction";
+check("061 no instruction wording in Portfolio copy", !/\b(should|recommend(ed)?|sell now|hold this|list it|guaranteed)\b/i.test((q + liveOn.main.innerHTML).split(disclaimer).join("")));
+
+const pending = runtime({ mutate: paused, watch: "pending" });
+pending.window.FlipForgeCustomerPortfolio.render(pending.main);
+await settle();
+check("062 a slow Sell Watch read never holds up Portfolio: holdings render without it", pending.main.innerHTML.includes("Card values are paused")
+  && pending.main.innerHTML.includes("$525.00") && !pending.main.innerHTML.includes("Loading tenant-owned Portfolio context"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer Portfolio production validation");

@@ -7,7 +7,10 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
-  const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities"]);
+  const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities", "/api/v1/sell-watch"]);
+  // Reference values from earlier reported-sale history are no longer used. When every holding reports this status,
+  // card values are paused as a whole, not missing card by card.
+  const PAUSED_STATUS = "PROVIDER_STORED_HISTORY_NOT_RETAINED";
   const REFERENCE_METHOD = "AVERAGE_ACCEPTED_EXACT_COMPLETED_SALES";
 
   const state = {
@@ -16,7 +19,9 @@
     health: null,
     portfolio: null,
     opportunities: null,
-    error: null
+    sellWatch: null,
+    error: null,
+    generation: 0
   };
 
   function productionHost() {
@@ -212,6 +217,29 @@
       && performanceCount === data.performanceAvailableCount;
   }
 
+  // Sell Watch (owned cards: your selling costs and what you would keep at your price). Optional: when the service has
+  // it switched off, or the response is not a valid Sell Watch response, Portfolio simply shows no Sell Watch section.
+  function validSellWatch(payload) {
+    const data = payload?.data;
+    return Boolean(data) && data.kind === "sell-watch" && data.transactionAuthority === false
+      && data.acquisitionDecisionAffected === false && data.marketComparisonDisplayed === false
+      && data.authority === "POSITION_REVIEW_PROMPT_ONLY" && Array.isArray(data.items) && Array.isArray(data.costProfiles);
+  }
+
+  function sellWatchData() {
+    return validSellWatch(state.sellWatch) ? state.sellWatch.data : null;
+  }
+
+  function valuesPaused(data) {
+    return Number(data?.count) > 0 && data.referenceValueAvailableCount === 0
+      && data.items.every(item => item?.referenceValue?.status === PAUSED_STATUS);
+  }
+
+  function dateOnly(value) {
+    const text = String(value || "");
+    return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : "";
+  }
+
   function validOpportunities(payload) {
     return payload?.data?.kind === "opportunities" && Array.isArray(payload?.data?.items);
   }
@@ -234,7 +262,7 @@
   }
 
   function pageHeading(actions = "") {
-    return `<header class="page-heading"><div><span class="eyebrow">Tenant-owned holdings</span><h1>Portfolio</h1><p>Compare customer-entered cost basis with fresh governed completed-sale evidence where FlipForge has enough exact-card support.</p></div>${actions ? `<div class="page-actions">${actions}</div>` : ""}</header>`;
+    return `<header class="page-heading"><div><span class="eyebrow">Your cards</span><h1>Portfolio</h1><p>The cards you own and what you paid. Where FlipForge has at least 3 recent, exactly matched completed sales, it also shows an evidence reference.</p></div>${actions ? `<div class="page-actions">${actions}</div>` : ""}</header>`;
   }
 
   function loadingPanel() {
@@ -268,12 +296,42 @@
     return labels[status] || status.replaceAll("_", " ").toLowerCase();
   }
 
+  function cardTitle(item, opportunities) {
+    const saved = opportunities.get(String(item.opportunityId)) || {};
+    return { title: saved.title || saved.cardIdentity || item.opportunityId, identity: saved.cardIdentity || item.opportunityId };
+  }
+
+  function priceLink(item) {
+    return `<a class="button button-secondary" href="#/tracking/${encodeURIComponent(String(item.opportunityId))}">Check a price</a>`;
+  }
+
+  // Card values paused: one plain explanation instead of "Unavailable" on every row and a partial-coverage warning.
+  function pausedPanel(watch) {
+    return `<section class="panel customer-portfolio-paused" data-portfolio-values-paused><header class="panel-header"><div><h2>Card values are paused</h2><p>Your cards and what you paid are not affected.</p></div>${badge("Paused", "neutral")}</header><div class="panel-body"><p>FlipForge shows a card value only when it has at least 3 recent, exactly matched completed sales from sources it is cleared to use. It is moving to licensed sales data, so card values are paused for now rather than shown from sales it no longer uses.</p>${watch ? `<p>You can still see what you would keep at a price you choose, after your own selling costs: open a card with <strong>Check a price</strong>.</p>` : ""}</div></section>`;
+  }
+
+  function pausedRows(data, watch) {
+    const opportunities = opportunityMap();
+    return `<section class="panel"><header class="panel-header"><div><h2>Owned cards</h2><p>What you entered when you marked each card as owned.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Bought</th>${watch ? "<th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
+      const { title, identity } = cardTitle(item, opportunities);
+      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(identity)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td><span>${escapeHtml(dateOnly(item.acquiredAt) || "Not entered")}</span></td>${watch ? `<td>${priceLink(item)}</td>` : ""}</tr>`;
+    }).join("")}</tbody></table></div></section>`;
+  }
+
+  function sellWatchPanel(watch) {
+    const saved = safeArray(watch.costProfiles).map(profile => String(profile.channelName || profile.channel || "")).filter(Boolean);
+    const costs = saved.length
+      ? `Selling costs saved for: <strong>${escapeHtml(saved.join(", "))}</strong>.`
+      : "No selling costs saved yet. Add them the first time you check a price on a card.";
+    return `<section class="panel customer-portfolio-sell-watch" data-portfolio-sell-watch><header class="panel-header"><div><h2>Sell Watch</h2><p>See what you would keep at a price you choose, after your own selling costs, compared with what you paid.</p></div></header><div class="panel-body"><p>${costs}</p><small>Uses your price and your costs. Not a valuation, an offer or a market value. Taxes are not included.</small></div></section>`;
+  }
+
   function portfolioRows(data) {
     const opportunities = opportunityMap();
     if (!data.items.length) {
       return `<section class="panel"><div class="panel-body staging-empty"><strong>No owned holdings yet.</strong><p>Mark a tenant-owned tracked opportunity as acquired before it appears in Portfolio.</p><a class="button button-primary" href="#/tracking">Open Tracking</a></div></section>`;
     }
-    return `<section class="panel"><header class="panel-header"><div><h2>Owned holdings</h2><p>Reference values are shown only when exact completed-sale coverage and freshness gates pass.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Holding</th><th>Cost basis</th><th>Evidence reference</th><th>Reference performance</th><th>Evidence gate</th></tr></thead><tbody>${data.items.map(item => {
+    return `<section class="panel"><header class="panel-header"><div><h2>Owned holdings</h2><p>Reference values are shown only when exact completed-sale coverage and freshness gates pass.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Evidence reference</th><th>Reference vs. what you paid</th><th>Evidence gate</th>${sellWatchData() ? "<th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
       const saved = opportunities.get(String(item.opportunityId)) || {};
       const reference = item.referenceValue || {};
       const performance = item.referencePerformance || {};
@@ -283,12 +341,16 @@
         : `<strong>Unavailable</strong><small>${escapeHtml(referenceStatus(reference))}</small>`;
       const performanceCell = performance.available
         ? `<strong>${escapeHtml(signedMoneyCents(performance.referenceDeltaCents))}</strong><small>${escapeHtml(signedPercent(performance.referenceDeltaPercent))} vs. cost basis</small>`
-        : `<strong>Unavailable</strong><small>${escapeHtml(performance.status || "Reference or cost basis unavailable")}</small>`;
+        : `<strong>Unavailable</strong><small>${escapeHtml(reference.available ? "What you paid is needed" : "Needs an evidence reference")}</small>`;
       const gate = reference.available
         ? `${reference.acceptedExactCompletedSales} accepted exact sales · newest ${reference.latestSaleAgeDays} day${reference.latestSaleAgeDays === 1 ? "" : "s"} old`
         : `${reference.acceptedExactCompletedSales || 0} accepted exact sales · ${referenceStatus(reference)}`;
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(saved.cardIdentity || item.opportunityId)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Customer-entered</small></td><td>${referenceCell}</td><td>${performanceCell}</td><td><span>${escapeHtml(gate)}</span><small>Active asks excluded</small></td></tr>`;
+      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(saved.cardIdentity || item.opportunityId)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td>${referenceCell}</td><td>${performanceCell}</td><td><span>${escapeHtml(gate)}</span><small>Active asks excluded</small></td>${sellWatchData() ? `<td>${priceLink(item)}</td>` : ""}</tr>`;
     }).join("")}</tbody></table></div></section>`;
+  }
+
+  function pausedSummary(data) {
+    return `<section class="customer-portfolio-metrics"><article><span>Owned cards</span><strong>${escapeHtml(data.count)}</strong></article><article><span>Total paid</span><strong>${escapeHtml(moneyCents(data.totalCostBasisCents))}</strong></article><article><span>Card values</span><strong>Paused</strong></article></section>`;
   }
 
   function summary(data) {
@@ -317,7 +379,7 @@
       : completePerformance
       ? signedMoneyCents(data.completePortfolioReferenceDeltaCents)
       : "Unavailable until every holding has reference + cost basis";
-    return `<div class="customer-portfolio-grid"><section class="panel"><header class="panel-header"><div><h2>Coverage-aware totals</h2><p>FlipForge never extrapolates uncovered holdings.</p></div>${badge(coverageLabel, coverageTone)}</header><div class="panel-body customer-portfolio-key-grid"><div><span>Whole-portfolio reference</span><strong>${escapeHtml(totalReference)}</strong></div><div><span>Whole-portfolio reference delta</span><strong>${escapeHtml(totalDelta)}</strong></div><div><span>Covered reference subtotal</span><strong>${escapeHtml(moneyCents(data.coveredReferenceValueCents))}</strong></div><div><span>Covered cost basis</span><strong>${escapeHtml(moneyCents(data.coveredCostBasisCents))}</strong></div><div><span>Covered reference delta</span><strong>${escapeHtml(signedMoneyCents(data.coveredReferenceDeltaCents))}</strong></div><div><span>Method</span><strong>Accepted exact completed-sale average</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>What this number is not</h2><p>The evidence reference is intentionally narrower than a generic market-price claim.</p></div></header><div class="panel-body customer-portfolio-boundaries"><div><span>✓</span><p><strong>Completed sales only</strong><small>At least 3 accepted exact sales; newest sale must be 30 days old or less.</small></p></div><div><span>×</span><p><strong>No active asks</strong><small>Current listings and fixed-price asks do not become completed-sale evidence.</small></p></div><div><span>×</span><p><strong>No appraisal or liquidation promise</strong><small>Fees, taxes, shipping, insurance, liquidity discounts, and transaction timing are excluded.</small></p></div></div></section></div>`;
+    return `<div class="customer-portfolio-grid"><section class="panel"><header class="panel-header"><div><h2>Coverage-aware totals</h2><p>FlipForge never extrapolates uncovered holdings.</p></div>${badge(coverageLabel, coverageTone)}</header><div class="panel-body customer-portfolio-key-grid"><div><span>Whole-portfolio reference</span><strong>${escapeHtml(totalReference)}</strong></div><div><span>Whole-portfolio reference delta</span><strong>${escapeHtml(totalDelta)}</strong></div><div><span>Covered reference subtotal</span><strong>${escapeHtml(moneyCents(data.coveredReferenceValueCents))}</strong></div><div><span>Covered cost basis</span><strong>${escapeHtml(moneyCents(data.coveredCostBasisCents))}</strong></div><div><span>Covered reference delta</span><strong>${escapeHtml(signedMoneyCents(data.coveredReferenceDeltaCents))}</strong></div><div><span>Method</span><strong>Accepted exact completed-sale average</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>What this number is not</h2><p>The evidence reference is intentionally narrower than a generic market-price claim.</p></div></header><div class="panel-body customer-portfolio-boundaries"><div><span>✓</span><p><strong>Completed sales only</strong><small>At least 3 accepted exact sales; newest sale must be 30 days old or less.</small></p></div><div><span>×</span><p><strong>No active asks</strong><small>Current listings and fixed-price asks do not become completed-sale evidence.</small></p></div><div><span>×</span><p><strong>Not an appraisal or what you would receive</strong><small>The reference is an average of completed sales. It does not subtract selling fees, taxes or shipping.${sellWatchData() ? " To see what you would keep after your own selling costs, use Check a price on a card." : ""}</small></p></div></div></section></div>`;
   }
 
   function pageMarkup() {
@@ -327,7 +389,11 @@
     if (state.health?.data?.status !== "configured") return `<div class="page customer-portfolio-page">${pageHeading(actions)}${offlinePanel()}</div>`;
     const data = state.portfolio?.data;
     if (!data) return `<div class="page customer-portfolio-page">${pageHeading(actions)}${errorPanel({ code: "PORTFOLIO_CONTRACT_INVALID", message: "Portfolio data was not returned." })}</div>`;
-    return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${coveragePanel(data)}${portfolioRows(data)}</div>`;
+    const watch = sellWatchData();
+    if (valuesPaused(data)) {
+      return `<div class="page customer-portfolio-page" data-portfolio-state="paused">${pageHeading(actions)}${pausedSummary(data)}${pausedPanel(watch)}${watch ? sellWatchPanel(watch) : ""}${pausedRows(data, watch)}</div>`;
+    }
+    return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${coveragePanel(data)}${watch && data.count > 0 ? sellWatchPanel(watch) : ""}${portfolioRows(data)}</div>`;
   }
 
   function renderCurrent() {
@@ -336,12 +402,29 @@
     state.main.querySelector("[data-customer-portfolio-refresh]")?.addEventListener("click", load);
   }
 
+  // Sell Watch is optional: Portfolio renders as soon as its own reads finish, and the Sell Watch section is added
+  // when (and if) its response arrives. A response from an earlier load is ignored.
+  async function loadSellWatch(generation) {
+    try {
+      const watch = await request("/api/v1/sell-watch");
+      if (generation !== state.generation) return;
+      state.sellWatch = validSellWatch(watch) ? watch : null;
+    } catch (_) {
+      // Sell Watch switched off (404) or unavailable: Portfolio shows no Sell Watch section; nothing else changes.
+      if (generation !== state.generation) return;
+      state.sellWatch = null;
+    }
+    if (state.sellWatch && !state.loading && !state.error) renderCurrent();
+  }
+
   async function load() {
+    const generation = ++state.generation;
     state.loading = true;
     state.error = null;
     state.health = null;
     state.portfolio = null;
     state.opportunities = null;
+    state.sellWatch = null;
     renderCurrent();
     try {
       state.health = await request("/api/v1/health");
@@ -356,13 +439,18 @@
       if (!validOpportunities(opportunities)) {
         throw Object.assign(new Error("The tracked-card list failed the Portfolio display contract."), { code: "PORTFOLIO_OPPORTUNITIES_INVALID" });
       }
+      if (generation !== state.generation) return;
       state.portfolio = portfolio;
       state.opportunities = opportunities;
+      if (Number(portfolio.data.count) > 0) loadSellWatch(generation);
     } catch (error) {
+      if (generation !== state.generation) return;
       state.error = error;
     } finally {
-      state.loading = false;
-      renderCurrent();
+      if (generation === state.generation) {
+        state.loading = false;
+        renderCurrent();
+      }
     }
   }
 
