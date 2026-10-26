@@ -229,7 +229,48 @@
     return item.evidenceProvenanceStatus === "LEGACY_PROVIDER_DERIVED" || item.legacyNotice ? ["LEGACY:", ...reasons] : reasons;
   }
 
+  // The server's own counts over every evaluation that was not ranked (newer backends). Each code maps to the same
+  // plain-language label as the preview grouping below; a code this page does not know is counted under "Other".
+  const REASON_CODES = {
+    LEGACY_DERIVED_EXCLUDED: "legacy",
+    THIN_EXACT_EVIDENCE: "sales",
+    DECISION_NOT_BUY_OR_WATCH: "decision",
+    SUPPORTED_VALUE_UNAVAILABLE: "value",
+    SUPPORTED_VALUE_NOT_ABOVE_ASK: "gap",
+    ASK_MISSING: "ask",
+    LOW_CONFIDENCE: "confidence",
+    HIGH_RISK: "risk",
+    CARD_IDENTITY_MISSING: "identity",
+    OUTSIDE_FRESHNESS_WINDOW: "age"
+  };
+
+  function serverReasonRows(data) {
+    const total = Number(data?.summary?.unscored);
+    const counts = data?.summary?.unscoredReasonCounts;
+    if (!Array.isArray(counts) || !counts.length || !Number.isInteger(total) || total <= 0) return null;
+    const rows = new Map();
+    for (const entry of counts) {
+      const count = Number(entry?.count);
+      // Malformed counts fall back to the preview grouping rather than showing numbers that cannot be right.
+      if (!entry || typeof entry.code !== "string" || !Number.isInteger(count) || count <= 0 || count > total) return null;
+      const group = REASON_GROUPS.find(([key]) => key === REASON_CODES[entry.code]);
+      const label = group ? group[1] : "Other";
+      rows.set(label, (rows.get(label) || 0) + count);
+    }
+    const order = [...REASON_GROUPS.map(([, label]) => label), "Other"];
+    return { total, rows: [...rows.entries()].sort((a, b) => b[1] - a[1] || order.indexOf(a[0]) - order.indexOf(b[0])) };
+  }
+
+  function reasonList(scope, rows) {
+    return `<div class="forge-heat-why" data-forge-heat-why><span class="forge-heat-section-label">Why nothing qualifies yet</span><p>${escapeHtml(scope)}, by reason. A card can have more than one reason.</p><ul>${rows.map(([label, count]) => `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(count)}</strong></li>`).join("")}</ul></div>`;
+  }
+
   function reasonSummary(data) {
+    const server = serverReasonRows(data);
+    if (server) {
+      const scope = `All ${server.total} of your evaluation${server.total === 1 ? "" : "s"} that ${server.total === 1 ? "was" : "were"} not ranked`;
+      return reasonList(scope, server.rows).replace("data-forge-heat-why>", 'data-forge-heat-why data-forge-heat-why-source="server">');
+    }
     const preview = safeArray(data?.unscoredPreview).filter(item => item && typeof item === "object");
     if (!preview.length) return "";
     const counts = new Map();
@@ -250,7 +291,7 @@
     const scope = Number.isFinite(total) && total > preview.length
       ? `Your ${preview.length} most recent of ${total} evaluations that were not ranked`
       : `Your ${preview.length} evaluation${preview.length === 1 ? "" : "s"} that ${preview.length === 1 ? "was" : "were"} not ranked`;
-    return `<div class="forge-heat-why" data-forge-heat-why><span class="forge-heat-section-label">Why nothing qualifies yet</span><p>${escapeHtml(scope)}, by reason. A card can have more than one reason.</p><ul>${rows.map(([label, count]) => `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(count)}</strong></li>`).join("")}</ul></div>`;
+    return reasonList(scope, rows);
   }
 
   function emptyState(tab, data) {

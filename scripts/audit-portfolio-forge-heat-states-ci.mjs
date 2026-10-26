@@ -66,7 +66,7 @@ const R = {
   gap: "Evidence-supported value does not exceed the all-in ask.",
   age: "The saved evaluation is outside the Forge Heat V1 freshness window."
 };
-function heat({ considered, unscored, ranked = false }) {
+function heat({ considered, unscored, ranked = false, reasonCounts = null }) {
   const top = ranked ? [{ rank: 1, requestId: "req-heat-1", opportunityId: "opp-heat-1", cardIdentity: "2020 Prizm Justin Herbert #325 PSA 10",
     recommendation: "BUY", heat: 84, heatBand: "HOT", confidence: 82, risk: 30, acceptedExactSales: 6, allInAskCents: 30000,
     supportedValueCents: 36000, supportedValueGapCents: 6000, supportedValueGapPct: 20, whyHot: ["Six matched sales."], couldCool: [],
@@ -79,7 +79,7 @@ function heat({ considered, unscored, ranked = false }) {
     componentAvailability: { momentum: { available: false, reason: "Heat history is not yet sufficient." } },
     top5: top, hiddenGems: [], highestEdge: top,
     summary: { latestEvaluationsConsidered: considered, heatEligible: top.length, surfaced: top.length, unscored: unscored.length,
-      legacyDerivedExcluded: unscored.filter(u => u.legacy).length },
+      legacyDerivedExcluded: unscored.filter(u => u.legacy).length, ...(reasonCounts ? { unscoredReasonCounts: reasonCounts } : {}) },
     unscoredPreview: unscored.slice(0, 10).map((u, i) => ({ requestId: `req-u-${i}`, opportunityId: `opp-u-${i}`,
       cardIdentity: `Synthetic card ${i}`, recommendation: "WATCH", evaluatedAt: "2026-10-01T00:00:00Z", heatAvailable: false,
       reasons: u.reasons, ...(u.legacy ? { evidenceProvenanceStatus: "LEGACY_PROVIDER_DERIVED", legacyNotice: "Earlier reported-sale history." } : {}) })) };
@@ -180,6 +180,30 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   check("F3 the most common reason is listed first", /^WHY NOTHING QUALIFIES YET .*? Fewer than 3 exactly matched completed sales 4/i.test(t), t.slice(0, 160));
   check("F4 no page errors", errors.length === 0, errors.join(" | "));
   await page.locator(".forge-heat-empty").screenshot({ path: process.env.STATES_SHOT_DIR ? `${process.env.STATES_SHOT_DIR}/heat-why.png` : "/dev/null" }).catch(() => {});
+  await context.close();
+}
+// 4b. Forge Heat, nothing qualifies, newer backend: the server's counts over every unscored evaluation are used.
+{
+  const many = Array.from({ length: 25 }, () => ({ reasons: [R.sales] }));
+  const counts = [{ code: "THIN_EXACT_EVIDENCE", count: 20 }, { code: "LEGACY_DERIVED_EXCLUDED", count: 3 },
+    { code: "DECISION_NOT_BUY_OR_WATCH", count: 2 }, { code: "SOMETHING_NEW", count: 1 }];
+  const { context, page, errors } = await session("#/forge-heat", { heatData: heat({ considered: 25, unscored: many, reasonCounts: counts }) });
+  await page.waitForSelector("[data-forge-heat-why]", { timeout: 30000 });
+  const t = await text(page, "[data-forge-heat-why]");
+  check("F7 server counts: scope covers every evaluation that was not ranked", /All 25 of your evaluations that were not ranked/.test(t)
+    && await page.locator('[data-forge-heat-why-source="server"]').count() === 1, t);
+  check("F8 server counts are shown as given, not limited to the 10 in the preview", /Fewer than 3 exactly matched completed sales 20/.test(t)
+    && /Based on earlier sales FlipForge no longer uses 3/.test(t) && /The decision is not BUY or WATCH 2/.test(t) && /Other 1/.test(t), t);
+  check("F9 no page errors with server counts", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
+{
+  const bad = [{ code: "THIN_EXACT_EVIDENCE", count: 999 }];
+  const { context, page } = await session("#/forge-heat", { heatData: heat({ considered: 9, unscored: mixed, reasonCounts: bad }) });
+  await page.waitForSelector("[data-forge-heat-why]", { timeout: 30000 });
+  const t = await text(page, "[data-forge-heat-why]");
+  check("F10 a count larger than the number not ranked is ignored: the preview grouping is shown instead",
+    /Your 7 evaluations that were not ranked/.test(t) && !/999/.test(t), t);
   await context.close();
 }
 // 5. Forge Heat, no evaluations yet.
