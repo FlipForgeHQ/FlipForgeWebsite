@@ -16,7 +16,7 @@
       "insuranceCents": 0,
       "version": 1,
       "shippingCents": 600,
-      "updatedAt": "2026-10-25T21:03:48.562320243Z"
+      "updatedAt": "2026-10-26T02:12:56.169790277Z"
     },
     "kind": "sell-watch-costs",
     "tenantScoped": true,
@@ -32,7 +32,7 @@
       "insuranceCents": 0,
       "version": 1,
       "shippingCents": 600,
-      "updatedAt": "2026-10-25T21:03:48.562320243Z"
+      "updatedAt": "2026-10-26T02:12:56.169790277Z"
     }],
     "repositoryVersion": "v1.0.0",
     "marketComparisonDisplayed": false,
@@ -81,7 +81,7 @@
     "contractVersion": "1.0",
     "evidenceStorageGuard": "NOT_INSTALLED",
     "authority": "Smart Opportunity",
-    "generatedAt": "2026-10-25T21:03:48.572130316Z",
+    "generatedAt": "2026-10-26T02:12:56.183357012Z",
     "runtimeBuildCommit": "unknown",
     "correlationId": "rec",
     "gradingAuthority": "Existing PSA intelligence",

@@ -22,7 +22,7 @@
         "insuranceCents": 0,
         "version": 1,
         "shippingCents": 600,
-        "updatedAt": "2026-10-25T21:03:48.562320243Z"
+        "updatedAt": "2026-10-26T02:12:56.169790277Z"
       },
       "comparison": {
         "differenceCents": 3645,
@@ -63,7 +63,7 @@
     "contractVersion": "1.0",
     "evidenceStorageGuard": "NOT_INSTALLED",
     "authority": "Smart Opportunity",
-    "generatedAt": "2026-10-25T21:03:48.634021668Z",
+    "generatedAt": "2026-10-26T02:12:56.223681197Z",
     "runtimeBuildCommit": "unknown",
     "correlationId": "rec",
     "gradingAuthority": "Existing PSA intelligence",

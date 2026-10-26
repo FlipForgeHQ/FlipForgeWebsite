@@ -177,9 +177,15 @@
     const profile = profileFor(state.channel);
     const channelOptions = CHANNELS.map(channel => `<option value="${channel}" ${channel === state.channel ? "selected" : ""}>`
       + `${escapeHtml(CHANNEL_LABELS[channel])}${profileFor(channel) ? " (costs saved)" : ""}</option>`).join("");
+    // Break-even price from the server: the lowest price at which the customer keeps what they paid, after the saved
+    // costs for this channel. Shown only when it matches the saved costs version on screen.
+    const breakEven = profile ? (Array.isArray(state.card.breakEven) ? state.card.breakEven : [])
+      .find(entry => entry && entry.channel === state.channel && Number(entry.costsVersion) === Number(profile.version)
+        && Number.isSafeInteger(entry.priceCents)) : null;
     const costs = profile && !state.editing
       ? `<div class="ff-sell-watch-saved"><p><strong>Your ${escapeHtml(CHANNEL_LABELS[state.channel].toLowerCase())} costs:</strong> ${escapeHtml(costsSummary(profile))}.</p>`
         + `<button class="button button-secondary" type="button" data-sell-watch-edit>Edit costs</button></div>`
+        + (breakEven ? `<p class="ff-sell-watch-break-even" data-sell-watch-break-even><strong>Break-even price: ${escapeHtml(money(breakEven.priceCents))}</strong> <span>the lowest price at which you would keep what you paid, after these costs.</span></p>` : "")
       : costsFormMarkup(profile);
     const priceForm = profile
       ? `<form class="customer-lifecycle-form ff-sell-watch-price" data-sell-watch-price-form><div class="customer-lifecycle-fields">`
@@ -268,7 +274,7 @@
     state.busy = true;
     paint();
     try {
-      const payload = await work(card);
+      const payload = await work(card, () => sameCard(epoch, card));
       if (!sameCard(epoch, card)) return;
       apply(payload);
       state.error = null;
@@ -307,12 +313,17 @@
     }
     const channel = state.channel;
     state.notice = "";
-    run(async card => {
+    run(async (card, stillThisCard) => {
       const saved = await request(`/api/v1/sell-watch/costs/${channel}`, "PUT", body);
+      // The customer may have opened another card while the save was in flight: never apply this card's
+      // response to it (run() discards the final payload too).
+      if (!stillThisCard()) return null;
       state.editing = false;
       state.estimate = null;
       state.notice = `Your ${CHANNEL_LABELS[channel].toLowerCase()} costs are saved.`;
-      return saved;
+      apply(saved);
+      // Reload the card so its break-even price reflects the costs just saved.
+      return request(`/api/v1/sell-watch/${encodeURIComponent(card)}`);
     });
   }
 

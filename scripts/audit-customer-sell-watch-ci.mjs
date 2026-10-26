@@ -77,6 +77,8 @@ async function session({ viewport = { width: 1440, height: 1000 }, mode = "on", 
   const writes = [];
   const errors = [];
   let costsSaved = false;
+  let releaseSave = null;
+  const saveHeld = new Promise(resolve => { releaseSave = resolve; });
   page.on("pageerror", error => errors.push(error.message));
   page.on("dialog", dialog => { errors.push(`dialog: ${dialog.type()}`); dialog.dismiss(); });
   await page.addInitScript(({ email }) => {
@@ -117,6 +119,7 @@ async function session({ viewport = { width: 1440, height: 1000 }, mode = "on", 
           costsSaved = true; // saved meanwhile in another window
           return json(route, 409, { error: { code: "SELL_WATCH_COSTS_VERSION_CONFLICT", message: "Your saved selling costs changed. Refresh before saving again.", correlationId } });
         }
+        if (mode === "switch") await saveHeld; // the customer opens another card while this save is in flight // the customer opens another card while this save is in flight
         costsSaved = true;
         body = sw("costs-saved");
       } else if (request.method() === "POST" && url.pathname === `/api/v1/sell-watch/${OPP}/estimate`) {
@@ -125,7 +128,12 @@ async function session({ viewport = { width: 1440, height: 1000 }, mode = "on", 
       } else if (request.method() === "GET" && url.pathname === `/api/v1/sell-watch/${OPP}`) {
         body = costsSaved ? sw("card-with-costs") : sw("card-no-costs");
       } else if (request.method() === "GET" && url.pathname === `/api/v1/sell-watch/${OTHER}`) {
-        body = forCard(sw("card-not-owned"), OTHER);
+        if (mode === "switch") {
+          // In this mode the other card is owned too, and its costs were saved later (version 3, 10% commission).
+          body = forCard(sw("card-with-costs"), OTHER);
+          body.data.costProfiles = body.data.costProfiles.map(p => ({ ...p, version: 3, commissionBps: 1000 }));
+          body.data.card.breakEven = (body.data.card.breakEven || []).map(b => ({ ...b, costsVersion: 3 }));
+        } else body = forCard(sw("card-not-owned"), OTHER);
       } else {
         return json(route, 404, { error: { code: "RESOURCE_NOT_FOUND", message: "Not in this fixture.", correlationId } });
       }
@@ -137,7 +145,7 @@ async function session({ viewport = { width: 1440, height: 1000 }, mode = "on", 
     return json(route, 404, { error: { code: "RESOURCE_NOT_FOUND", message: "Not in this fixture.", correlationId } });
   });
   await page.goto(`${baseUrl}/#/tracking/${OPP}`, { waitUntil: "load" });
-  return { context, page, writes, errors };
+  return { context, page, writes, errors, releaseSave };
 }
 
 const text = async (page, selector) => (await page.locator(selector).innerText().catch(() => "")).replace(/\s+/g, " ");
@@ -173,6 +181,8 @@ const P = "[data-sell-watch-panel]";
   const saved = await text(page, P);
   check("B7 saved costs are summarized and marked on the channel", /13\.25% commission, 2\.9% payment processing, \$0\.30 fixed fee, \$6\.00 shipping/.test(saved)
     && /Marketplace \(costs saved\)/.test(saved), saved.slice(0, 400));
+  check("B18 after saving costs the break-even price from the server is shown", /Break-even price: \$1,456\.53/.test(saved)
+    && /lowest price at which you would keep what you paid/.test(saved), saved.slice(0, 500));
   await page.fill(`${P} [data-sell-watch-price-form] [name=price]`, "1500");
   await page.click(`${P} [data-sell-watch-price-form] button[type=submit]`);
   await page.waitForSelector(`${P} [data-sell-watch-result]`, { timeout: 20000 });
@@ -203,6 +213,39 @@ const P = "[data-sell-watch-panel]";
   const after = await page.evaluate(() => window.FlipForgeSellWatch?.requestCount?.() ?? -1);
   check("B14 a card that is not owned shows no Sell Watch panel", await page.locator(`${P}:not([hidden])`).count() === 0);
   check("B15 and asks about it once, not in a loop", after - before <= 2, `requests after switching=${after - before}`);
+  await context.close();
+}
+
+// 1a. Saving costs on one card and opening another before the save returns: the card now shown keeps its own newer
+// saved costs and version. (Tracking currently reloads the page on a card change, which already drops the late save;
+// the panel's own card guard covers an in-page change too.)
+{
+  const { context, page, writes, errors, releaseSave } = await session({ mode: "switch" });
+  await page.waitForSelector(`${P}:not([hidden]) [data-sell-watch-costs-form]`, { timeout: 30000 });
+  const f = `${P} [data-sell-watch-costs-form]`;
+  await page.fill(`${f} [name=commissionBps]`, "13.25");
+  await page.fill(`${f} [name=paymentProcessingBps]`, "2.9");
+  await page.click(`${f} button[type=submit]`);
+  await page.waitForTimeout(300);
+  check("B19 the save is in flight when the customer opens another card", writes.some(w => w.method === "PUT"));
+  await page.selectOption("[data-lifecycle-select]", OTHER);
+  await page.waitForFunction(sel => /10% commission/.test(document.querySelector(sel)?.innerText || ""), P, { timeout: 20000 });
+  releaseSave();
+  await page.waitForTimeout(1500);
+  const shown = await text(page, P);
+  check("B20 the first card's late save does not overwrite the costs shown for the card now open", /10% commission/.test(shown)
+    && !/13\.25% commission/.test(shown) && !/costs are saved/i.test(shown), shown.slice(0, 400));
+  // The costs kept for the open card are what the next save is checked against: editing them must start from its own
+  // version-3 costs, not the first card's late version-1 response.
+  await page.click(`${P} [data-sell-watch-edit]`);
+  await page.waitForSelector(`${P} [data-sell-watch-costs-form]`, { timeout: 20000 });
+  const commission = await page.inputValue(`${P} [data-sell-watch-costs-form] [name=commissionBps]`);
+  await page.click(`${P} [data-sell-watch-costs-form] button[type=submit]`);
+  await page.waitForTimeout(1500);
+  const second = writes.filter(w => w.method === "PUT")[1];
+  check("B21 editing the open card starts from its own saved costs and version", commission === "10" && second?.body.expectedVersion === 3,
+    `commission=${commission} expectedVersion=${second?.body.expectedVersion}`);
+  check("B22 no page errors or browser dialogs while switching cards mid-save", errors.length === 0, errors.join(" | "));
   await context.close();
 }
 
