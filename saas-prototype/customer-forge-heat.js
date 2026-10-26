@@ -321,10 +321,38 @@
       if (!entry || typeof entry.code !== "string" || !Number.isInteger(count) || count <= 0 || count > total) return null;
       const group = REASON_GROUPS.find(([key]) => key === REASON_CODES[entry.code]);
       const label = group ? group[1] : "Other";
-      rows.set(label, (rows.get(label) || 0) + count);
+      const row = rows.get(label) || { count: 0, cards: [], notListed: 0, ids: new Set() };
+      row.count += count;
+      // The saved cards this reason affects (newer backends). Only well-formed entries are shown; the rest are
+      // counted under "and N more" so the list never claims to be complete when it is not.
+      const listed = Array.isArray(entry.cards) ? entry.cards : [];
+      let shown = 0;
+      for (const card of listed) {
+        const id = String(card?.opportunityId || "");
+        const name = typeof card?.cardIdentity === "string" ? card.cardIdentity.trim() : "";
+        if (!SAFE_ID.test(id) || row.ids.has(id)) continue;
+        row.ids.add(id);
+        row.cards.push({ id, name: name || "Saved card" });
+        shown += 1;
+      }
+      const notListed = Number(entry.cardsNotListed);
+      row.notListed += Math.max(0, count - shown, Number.isInteger(notListed) && notListed > 0 ? notListed : 0);
+      rows.set(label, row);
     }
     const order = [...REASON_GROUPS.map(([, label]) => label), "Other"];
-    return { total, rows: [...rows.entries()].sort((a, b) => b[1] - a[1] || order.indexOf(a[0]) - order.indexOf(b[0])) };
+    return { total, rows: [...rows.entries()].sort((a, b) => b[1].count - a[1].count || order.indexOf(a[0]) - order.indexOf(b[0])) };
+  }
+
+  // A reason with its cards: each opens that card's saved decision. Display only; nothing here changes Heat.
+  function serverReasonList(scope, rows) {
+    const item = ([label, row]) => {
+      const head = `<span>${escapeHtml(label)}</span><strong>${escapeHtml(row.count)}</strong>`;
+      if (!row.cards.length) return `<li>${head}</li>`;
+      const more = row.notListed > 0 ? `<li class="forge-heat-why-more">and ${escapeHtml(row.notListed)} more</li>` : "";
+      return `<li class="forge-heat-why-reason"><details data-forge-heat-why-reason><summary>${head}</summary><ul class="forge-heat-why-cards">${row.cards.map(card =>
+        `<li><a href="#/opportunities/${encodeURIComponent(card.id)}" data-forge-heat-why-card>${escapeHtml(card.name)}</a></li>`).join("")}${more}</ul></details></li>`;
+    };
+    return `<div class="forge-heat-why" data-forge-heat-why data-forge-heat-why-source="server"><span class="forge-heat-section-label">Why nothing qualifies yet</span><p>${escapeHtml(scope)}, by reason. A card can have more than one reason. Open a reason to see its cards.</p><ul>${rows.map(item).join("")}</ul></div>`;
   }
 
   function reasonList(scope, rows) {
@@ -335,7 +363,7 @@
     const server = serverReasonRows(data);
     if (server) {
       const scope = `All ${server.total} of your evaluation${server.total === 1 ? "" : "s"} that ${server.total === 1 ? "was" : "were"} not ranked`;
-      return reasonList(scope, server.rows).replace("data-forge-heat-why>", 'data-forge-heat-why data-forge-heat-why-source="server">');
+      return serverReasonList(scope, server.rows);
     }
     const preview = safeArray(data?.unscoredPreview).filter(item => item && typeof item === "object");
     if (!preview.length) return "";

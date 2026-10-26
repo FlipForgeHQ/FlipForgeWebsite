@@ -114,10 +114,32 @@ try {
   {
     const { context, page } = await session({ onboardingComplete: true });
     await page.goto(`${HOSTS[1][1]}#/dashboard`, { waitUntil: "load" });
-    await page.evaluate(sample => { const d = document.createElement("div"); d.textContent = `Portfolio value $${sample}`; document.querySelector("#main-content").appendChild(d); setTimeout(() => d.remove(), 150); }, MOCK_STRINGS[0]);
-    await page.waitForTimeout(400);
-    const r = await read(page);
-    check("C0 control: a prototype string shown for 150 ms is caught by the 50 ms sampler and the insertion recorder", r.hits.length >= 1 && r.inserted.length >= 1, `${r.hits.length} samples, ${r.inserted.length} insertions`);
+    // The control must test the sampler, not race the app: on a slow runner the Dashboard's own render (after its data
+    // arrives) can replace #main-content inside the 150 ms window and wipe the test string before the first tick. Wait
+    // for the page to settle, and discard an attempt the app wiped early (it says nothing about the sampler).
+    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForTimeout(800);
+    let r = { hits: [], inserted: [] };
+    let valid = 0;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await read(page); // clear anything recorded before this attempt
+      const wiped = await page.evaluate(async sample => {
+        const d = document.createElement("div");
+        d.textContent = `Portfolio value $${sample}`;
+        document.querySelector("#main-content").appendChild(d);
+        await new Promise(resolve => setTimeout(resolve, 150));
+        const removedByApp = !d.isConnected;
+        d.remove();
+        return removedByApp;
+      }, MOCK_STRINGS[0]);
+      await page.waitForTimeout(250);
+      r = await read(page);
+      if (wiped) continue;
+      valid += 1;
+      break;
+    }
+    check("C0 control: a prototype string shown for 150 ms is caught by the 50 ms sampler and the insertion recorder",
+      valid === 1 && r.hits.length >= 1 && r.inserted.length >= 1, `${r.hits.length} samples, ${r.inserted.length} insertions, valid attempts ${valid}`);
     await context.close();
   }
 

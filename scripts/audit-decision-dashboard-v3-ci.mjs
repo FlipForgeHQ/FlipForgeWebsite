@@ -5,6 +5,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
+const reportCrash = error => {
+  console.log(`::error title=dashboard-v3 crash::${String(error?.message || error).split("\n")[0].slice(0, 400)}`);
+  process.exit(1);
+};
+process.on("unhandledRejection", reportCrash);
+process.on("uncaughtException", reportCrash);
 import { FIXTURE_IDS, g1Items, envelope, opportunitiesData, dashboardData, detailData, productionShapedItem, PRODUCTION_SHAPED_ID } from "./validate-decision-dashboard-v3.mjs";
 
 const baseUrl = (process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app").replace(/\/$/, "");
@@ -556,5 +562,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
 await browser.close();
 for (const line of passes) console.log(`PASS ${line}`);
 for (const line of failures) console.log(`FAIL ${line}`);
+// Each failure also as a GitHub annotation, readable from the check run without downloading logs.
+if (process.env.GITHUB_ACTIONS) for (const line of failures.slice(0, 10)) console.log(`::error title=dashboard-v3::${String(line).replace(/[\r\n]+/g, " ").slice(0, 400)}`);
 console.log(`Dashboard V3 rendered audit: ${passes.length}/${passes.length + failures.length} passed. Screenshots: ${screenshotDir}`);
 if (failures.length) process.exit(1);
