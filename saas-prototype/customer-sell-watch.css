@@ -86,3 +86,13 @@
 .ff-sell-watch .value-negative {
   color: #f19a8a;
 }
+
+.ff-sell-watch-break-even {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ff-sell-watch-break-even span {
+  color: var(--text-soft, #9fa5b0);
+}

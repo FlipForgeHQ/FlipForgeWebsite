@@ -173,6 +173,8 @@ const P = "[data-sell-watch-panel]";
   const saved = await text(page, P);
   check("B7 saved costs are summarized and marked on the channel", /13\.25% commission, 2\.9% payment processing, \$0\.30 fixed fee, \$6\.00 shipping/.test(saved)
     && /Marketplace \(costs saved\)/.test(saved), saved.slice(0, 400));
+  check("B18 after saving costs the break-even price from the server is shown", /Break-even price: \$1,456\.53/.test(saved)
+    && /lowest price at which you would keep what you paid/.test(saved), saved.slice(0, 500));
   await page.fill(`${P} [data-sell-watch-price-form] [name=price]`, "1500");
   await page.click(`${P} [data-sell-watch-price-form] button[type=submit]`);
   await page.waitForSelector(`${P} [data-sell-watch-result]`, { timeout: 20000 });

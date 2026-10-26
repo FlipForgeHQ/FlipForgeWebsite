@@ -119,9 +119,21 @@ const sellWatch = { kind: "sell-watch", configured: true, tenantScoped: true, au
   transactionAuthority: false, acquisitionDecisionAffected: false, marketComparisonDisplayed: false,
   marketComparisonStatus: "NO_LICENSED_SOURCE_ACTIVE", count: 1, costBasisAvailableCount: 1,
   items: [{ opportunityId: "opp-fresh", acquisitionCostCents: 52500, quantity: 1, costBasisStatus: "NET_ESTIMATE_AVAILABLE",
+    breakEven: [{ channel: "MARKETPLACE", channelName: "Marketplace", priceCents: 62753, costsVersion: 1 }],
     marketComparison: { displayed: false, status: "NO_LICENSED_SOURCE_ACTIVE", evaluated: true } }],
   costProfiles: [{ channel: "MARKETPLACE", channelName: "Marketplace", commissionBps: 1325, version: 1 }],
   channels: [{ channel: "MARKETPLACE", channelName: "Marketplace", costsSaved: true }] };
+
+// Mark as Sold list as returned by FlipForge2 SaaSCustomerReportedSaleService.list(), trimmed to what Portfolio reads.
+const sales = { kind: "reported-sales", label: "USER_REPORTED", dataUseEnabled: false, transactionAuthority: false,
+  count: 2, realizedWithCompleteFeesCount: 1, realizedProfitWithCompleteFeesCents: 20250, needsReviewCount: 0,
+  items: [
+    { reportId: "rs_1", opportunityId: "opp-fresh", cardIdentity: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", reviewStatus: "PENDING_VERIFICATION",
+      sale: { salePriceCents: 165000, saleDate: "2026-10-20" },
+      profitLoss: { status: "REALIZED", netProceedsCents: 141750, realizedProfitCents: 20250, realizedReturnPercent: 16.67, feesComplete: true } },
+    { reportId: "rs_2", opportunityId: "opp-gone", cardIdentity: "Withdrawn card", reviewStatus: "WITHDRAWN",
+      sale: { salePriceCents: 9900, saleDate: "2026-10-01" },
+      profitLoss: { status: "REALIZED", netProceedsCents: 9000, realizedProfitCents: 4000, realizedReturnPercent: 80, feesComplete: true } }] };
 
 function paused(data) {
   for (const item of data.items) {
@@ -136,7 +148,7 @@ function paused(data) {
     completePortfolioReferenceValueCents: null, completePortfolioReferenceDeltaCents: null });
 }
 
-function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", mutate = null, unauthorized = false, watch = "off" } = {}) {
+function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", mutate = null, unauthorized = false, watch = "off", sold = "off" } = {}) {
   const calls = [];
   let uuid = 0;
   const window = { location: { hostname, pathname, hash: "#/portfolio" }, crypto: { randomUUID: () => `portfolio-${++uuid}` } };
@@ -149,6 +161,12 @@ function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", path
     if (unauthorized) return response({ error: { code: "AUTHENTICATION_REQUIRED", message: "Authentication required." } }, 401);
     if (url === "/api/v1/portfolio") return response(envelope(correlationId, payload));
     if (url === "/api/v1/opportunities") return response(envelope(correlationId, opportunities));
+    if (url === "/api/v1/reported-sales") {
+      if (sold === "off") return response({ error: { code: "UPSTREAM_REJECTED", message: "Route not enabled." } }, 404);
+      const data = JSON.parse(JSON.stringify(sales));
+      if (sold === "tampered") data.label = "VERIFIED";
+      return response(envelope(correlationId, data));
+    }
     if (url === "/api/v1/sell-watch") {
       if (watch === "pending") return new Promise(() => {});
       if (watch === "off") return response({ error: { code: "UPSTREAM_REJECTED", message: "Route not enabled." } }, 404);
@@ -169,7 +187,7 @@ const preview = runtime();
 check("033 preview app is eligible", preview.window.FlipForgeCustomerPortfolio.isEligible());
 check("034 preview Portfolio render activates", preview.window.FlipForgeCustomerPortfolio.render(preview.main) === true);
 await settle();
-check("035 preview flow reads health Portfolio opportunities, then Sell Watch", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/portfolio,/api/v1/opportunities,/api/v1/sell-watch");
+check("035 preview flow reads health Portfolio opportunities, then Sell Watch and recorded sales", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/portfolio,/api/v1/opportunities,/api/v1/sell-watch,/api/v1/reported-sales");
 check("036 evidence reference value renders", preview.main.innerHTML.includes("$700.00"));
 check("037 customer cost basis renders", preview.main.innerHTML.includes("$525.00"));
 check("038 server reference delta renders", preview.main.innerHTML.includes("+$175.00") && preview.main.innerHTML.includes("+33.33%"));
@@ -257,6 +275,33 @@ pending.window.FlipForgeCustomerPortfolio.render(pending.main);
 await settle();
 check("062 a slow Sell Watch read never holds up Portfolio: holdings render without it", pending.main.innerHTML.includes("Card values are paused")
   && pending.main.innerHTML.includes("$525.00") && !pending.main.innerHTML.includes("Loading tenant-owned Portfolio context"));
+
+check("063 break-even price from the server shown per card with its channel", q.includes("$627.53") && q.includes("Break-even price")
+  && q.includes("lowest price at which you would keep what you paid"));
+check("064 Mark as Sold off: no Sold cards section", !q.includes("data-portfolio-realized"));
+
+const soldOn = runtime({ mutate: paused, watch: "on", sold: "on" });
+soldOn.window.FlipForgeCustomerPortfolio.render(soldOn.main);
+await settle();
+const r = soldOn.main.innerHTML;
+check("065 Sold cards: server realized total, sale, what was kept and profit shown, labelled user reported", r.includes("data-portfolio-realized")
+  && r.includes("+$202.50") && r.includes("$1,650.00") && r.includes("$1,417.50") && r.includes("+16.67%") && r.includes("User reported")
+  && r.includes("1 sale with all fees entered"));
+check("066 Sold cards: a withdrawn report is not shown", !r.includes("Withdrawn card") && r.includes("<strong>1</strong>"));
+const soldTampered = runtime({ mutate: paused, watch: "on", sold: "tampered" });
+soldTampered.window.FlipForgeCustomerPortfolio.render(soldTampered.main);
+await settle();
+check("067 a sales response claiming verification is ignored", !soldTampered.main.innerHTML.includes("data-portfolio-realized")
+  && soldTampered.main.innerHTML.includes("Card values are paused"));
+const soldOnly = runtime({ sold: "on", mutate(data) {
+  Object.assign(data, { count: 0, totalCostBasisCents: 0, referenceValueAvailableCount: 0, performanceAvailableCount: 0,
+    completeReferenceCoverage: false, completePerformanceCoverage: false, coveredReferenceValueCents: 0, coveredCostBasisCents: 0,
+    coveredReferenceDeltaCents: 0, completePortfolioReferenceValueCents: null, completePortfolioReferenceDeltaCents: null, items: [] });
+} });
+soldOnly.window.FlipForgeCustomerPortfolio.render(soldOnly.main);
+await settle();
+check("068 sold cards still show when nothing is owned any more", soldOnly.main.innerHTML.includes("data-portfolio-realized")
+  && soldOnly.main.innerHTML.includes("No holdings yet"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer Portfolio production validation");

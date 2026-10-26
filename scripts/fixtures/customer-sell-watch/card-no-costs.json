@@ -47,6 +47,7 @@
     "authority": "POSITION_REVIEW_PROMPT_ONLY",
     "marketComparisonStatus": "NO_LICENSED_SOURCE_ACTIVE",
     "card": {
+      "breakEven": [],
       "opportunityId": "opp-ohtani-psa10",
       "costBasisStatus": "NET_ESTIMATE_AVAILABLE",
       "cardIdentity": "2018 Topps Chrome #150 Shohei Ohtani PSA 10",
@@ -69,7 +70,7 @@
     "contractVersion": "1.0",
     "evidenceStorageGuard": "NOT_INSTALLED",
     "authority": "Smart Opportunity",
-    "generatedAt": "2026-10-25T21:03:48.539569313Z",
+    "generatedAt": "2026-10-26T02:12:56.148118914Z",
     "runtimeBuildCommit": "unknown",
     "correlationId": "rec",
     "gradingAuthority": "Existing PSA intelligence",

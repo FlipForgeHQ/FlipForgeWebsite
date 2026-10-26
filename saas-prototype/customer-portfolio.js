@@ -7,7 +7,7 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
-  const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities", "/api/v1/sell-watch"]);
+  const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities", "/api/v1/sell-watch", "/api/v1/reported-sales"]);
   // Reference values from earlier reported-sale history are no longer used. When every holding reports this status,
   // card values are paused as a whole, not missing card by card.
   const PAUSED_STATUS = "PROVIDER_STORED_HISTORY_NOT_RETAINED";
@@ -20,6 +20,7 @@
     portfolio: null,
     opportunities: null,
     sellWatch: null,
+    sales: null,
     error: null,
     generation: 0
   };
@@ -226,6 +227,18 @@
       && data.authority === "POSITION_REVIEW_PROMPT_ONLY" && Array.isArray(data.items) && Array.isArray(data.costProfiles);
   }
 
+  // Sales the customer recorded with Mark as Sold. Optional like Sell Watch: shown only for a valid response that keeps
+  // the "user reported" label and no data use; the server computes every figure.
+  function validSales(payload) {
+    const data = payload?.data;
+    return Boolean(data) && data.kind === "reported-sales" && data.label === "USER_REPORTED" && data.dataUseEnabled === false
+      && data.transactionAuthority === false && Array.isArray(data.items);
+  }
+
+  function salesData() {
+    return validSales(state.sales) ? state.sales.data : null;
+  }
+
   function sellWatchData() {
     return validSellWatch(state.sellWatch) ? state.sellWatch.data : null;
   }
@@ -301,6 +314,44 @@
     return { title: saved.title || saved.cardIdentity || item.opportunityId, identity: saved.cardIdentity || item.opportunityId };
   }
 
+  // Break-even prices come from the server (Sell Watch): the lowest price that keeps what was paid after the
+  // customer's own saved costs for each channel.
+  function breakEvenCell(item, watch) {
+    const card = safeArray(watch?.items).find(entry => String(entry?.opportunityId) === String(item.opportunityId));
+    // An older service sends no breakEven at all: show nothing rather than ask for costs the customer may have saved.
+    if (!card || !Array.isArray(card.breakEven)) return `<span>—</span>`;
+    const rows = card.breakEven.filter(entry => Number.isSafeInteger(entry?.priceCents) && entry.priceCents >= 0);
+    if (!rows.length) return `<span>Save your selling costs to see it</span>`;
+    return rows.map(entry => `<span class="customer-portfolio-break-even"><strong>${escapeHtml(moneyCents(entry.priceCents))}</strong><small>${escapeHtml(entry.channelName || entry.channel)}</small></span>`).join("");
+  }
+
+  const SALE_STATUS = {
+    REALIZED: "Realized",
+    REALIZED_FEES_INCOMPLETE: "Realized (some fees not entered)",
+    COST_BASIS_UNAVAILABLE: "What you paid not entered",
+    NOT_REALIZED_SALE_PENDING: "Sale pending",
+    NOT_REALIZED_SALE_REVERSED: "Sale reversed"
+  };
+
+  function realizedPanel(sales) {
+    const opportunities = opportunityMap();
+    const items = safeArray(sales.items).filter(item => item && item.reviewStatus !== "WITHDRAWN");
+    if (!items.length) return "";
+    const total = Number.isSafeInteger(sales.realizedProfitWithCompleteFeesCents) ? sales.realizedProfitWithCompleteFeesCents : null;
+    const counted = Number.isSafeInteger(sales.realizedWithCompleteFeesCount) ? sales.realizedWithCompleteFeesCount : 0;
+    const rows = items.map(item => {
+      const sale = item.sale || {};
+      const pl = item.profitLoss || {};
+      const saved = opportunities.get(String(item.opportunityId)) || {};
+      const title = saved.title || item.cardIdentity || saved.cardIdentity || item.opportunityId;
+      const profit = Number.isSafeInteger(pl.realizedProfitCents)
+        ? `<strong class="${pl.realizedProfitCents >= 0 ? "value-positive" : "value-negative"}">${escapeHtml(signedMoneyCents(pl.realizedProfitCents))}</strong>${pl.realizedReturnPercent === null || pl.realizedReturnPercent === undefined ? "" : `<small>${escapeHtml(signedPercent(pl.realizedReturnPercent))}</small>`}`
+        : `<strong>Not available</strong>`;
+      return `<tr><td><strong>${escapeHtml(title)}</strong><small>User reported</small></td><td><strong>${escapeHtml(moneyCents(sale.salePriceCents))}</strong><small>${escapeHtml(sale.saleDate || "")}</small></td><td><strong>${escapeHtml(moneyCents(pl.netProceedsCents))}</strong><small>${pl.feesComplete ? "After the fees you entered" : "Some fees not entered"}</small></td><td>${profit}</td><td><span>${escapeHtml(SALE_STATUS[pl.status] || String(pl.status || "").replaceAll("_", " ").toLowerCase())}</span></td></tr>`;
+    }).join("");
+    return `<section class="panel customer-portfolio-realized" data-portfolio-realized><header class="panel-header"><div><h2>Sold cards</h2><p>Sales you recorded with Mark as Sold. Profit is what you kept after the fees you entered, minus what you paid.</p></div>${badge("User reported", "neutral")}</header><div class="panel-body"><div class="customer-portfolio-key-grid"><div><span>Realized profit</span><strong>${total === null ? "Unavailable" : escapeHtml(signedMoneyCents(total))}</strong><small>${escapeHtml(counted)} sale${counted === 1 ? "" : "s"} with all fees entered</small></div><div><span>Sales recorded</span><strong>${escapeHtml(items.length)}</strong></div></div></div><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>Sold for</th><th>You kept</th><th>Profit or loss</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  }
+
   function priceLink(item) {
     return `<a class="button button-secondary" href="#/tracking/${encodeURIComponent(String(item.opportunityId))}">Check a price</a>`;
   }
@@ -312,9 +363,9 @@
 
   function pausedRows(data, watch) {
     const opportunities = opportunityMap();
-    return `<section class="panel"><header class="panel-header"><div><h2>Owned cards</h2><p>What you entered when you marked each card as owned.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Bought</th>${watch ? "<th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
+    return `<section class="panel"><header class="panel-header"><div><h2>Owned cards</h2><p>What you entered when you marked each card as owned.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Bought</th>${watch ? "<th>Break-even price</th><th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
       const { title, identity } = cardTitle(item, opportunities);
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(identity)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td><span>${escapeHtml(dateOnly(item.acquiredAt) || "Not entered")}</span></td>${watch ? `<td>${priceLink(item)}</td>` : ""}</tr>`;
+      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(identity)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td><span>${escapeHtml(dateOnly(item.acquiredAt) || "Not entered")}</span></td>${watch ? `<td>${breakEvenCell(item, watch)}</td><td>${priceLink(item)}</td>` : ""}</tr>`;
     }).join("")}</tbody></table></div></section>`;
   }
 
@@ -323,7 +374,7 @@
     const costs = saved.length
       ? `Selling costs saved for: <strong>${escapeHtml(saved.join(", "))}</strong>.`
       : "No selling costs saved yet. Add them the first time you check a price on a card.";
-    return `<section class="panel customer-portfolio-sell-watch" data-portfolio-sell-watch><header class="panel-header"><div><h2>Sell Watch</h2><p>See what you would keep at a price you choose, after your own selling costs, compared with what you paid.</p></div></header><div class="panel-body"><p>${costs}</p><small>Uses your price and your costs. Not a valuation, an offer or a market value. Taxes are not included.</small></div></section>`;
+    return `<section class="panel customer-portfolio-sell-watch" data-portfolio-sell-watch><header class="panel-header"><div><h2>Sell Watch</h2><p>See what you would keep at a price you choose, after your own selling costs, compared with what you paid.</p></div></header><div class="panel-body"><p>${costs}</p>${saved.length ? "<p>The break-even price is the lowest price at which you would keep what you paid, after your saved costs for that channel.</p>" : ""}<small>Uses your price and your costs. Not a valuation, an offer or a market value. Taxes are not included.</small></div></section>`;
   }
 
   function portfolioRows(data) {
@@ -345,7 +396,7 @@
       const gate = reference.available
         ? `${reference.acceptedExactCompletedSales} accepted exact sales · newest ${reference.latestSaleAgeDays} day${reference.latestSaleAgeDays === 1 ? "" : "s"} old`
         : `${reference.acceptedExactCompletedSales || 0} accepted exact sales · ${referenceStatus(reference)}`;
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(saved.cardIdentity || item.opportunityId)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td>${referenceCell}</td><td>${performanceCell}</td><td><span>${escapeHtml(gate)}</span><small>Active asks excluded</small></td>${sellWatchData() ? `<td>${priceLink(item)}</td>` : ""}</tr>`;
+      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(saved.cardIdentity || item.opportunityId)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td>${referenceCell}</td><td>${performanceCell}</td><td><span>${escapeHtml(gate)}</span><small>Active asks excluded</small></td>${sellWatchData() ? `<td>${breakEvenCell(item, sellWatchData())}${priceLink(item)}</td>` : ""}</tr>`;
     }).join("")}</tbody></table></div></section>`;
   }
 
@@ -390,10 +441,12 @@
     const data = state.portfolio?.data;
     if (!data) return `<div class="page customer-portfolio-page">${pageHeading(actions)}${errorPanel({ code: "PORTFOLIO_CONTRACT_INVALID", message: "Portfolio data was not returned." })}</div>`;
     const watch = sellWatchData();
+    const sales = salesData();
+    const realized = sales ? realizedPanel(sales) : "";
     if (valuesPaused(data)) {
-      return `<div class="page customer-portfolio-page" data-portfolio-state="paused">${pageHeading(actions)}${pausedSummary(data)}${pausedPanel(watch)}${watch ? sellWatchPanel(watch) : ""}${pausedRows(data, watch)}</div>`;
+      return `<div class="page customer-portfolio-page" data-portfolio-state="paused">${pageHeading(actions)}${pausedSummary(data)}${pausedPanel(watch)}${watch ? sellWatchPanel(watch) : ""}${pausedRows(data, watch)}${realized}</div>`;
     }
-    return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${coveragePanel(data)}${watch && data.count > 0 ? sellWatchPanel(watch) : ""}${portfolioRows(data)}</div>`;
+    return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${coveragePanel(data)}${watch && data.count > 0 ? sellWatchPanel(watch) : ""}${portfolioRows(data)}${realized}</div>`;
   }
 
   function renderCurrent() {
@@ -417,6 +470,19 @@
     if (state.sellWatch && !state.loading && !state.error) renderCurrent();
   }
 
+  async function loadSales(generation) {
+    try {
+      const sales = await request("/api/v1/reported-sales");
+      if (generation !== state.generation) return;
+      state.sales = validSales(sales) ? sales : null;
+    } catch (_) {
+      // Mark as Sold switched off (404) or unavailable: no Sold cards section; nothing else changes.
+      if (generation !== state.generation) return;
+      state.sales = null;
+    }
+    if (state.sales && !state.loading && !state.error) renderCurrent();
+  }
+
   async function load() {
     const generation = ++state.generation;
     state.loading = true;
@@ -425,6 +491,7 @@
     state.portfolio = null;
     state.opportunities = null;
     state.sellWatch = null;
+    state.sales = null;
     renderCurrent();
     try {
       state.health = await request("/api/v1/health");
@@ -443,6 +510,7 @@
       state.portfolio = portfolio;
       state.opportunities = opportunities;
       if (Number(portfolio.data.count) > 0) loadSellWatch(generation);
+      loadSales(generation);
     } catch (error) {
       if (generation !== state.generation) return;
       state.error = error;
