@@ -150,6 +150,7 @@ function paused(data) {
 
 function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", mutate = null, unauthorized = false, watch = "off", sold = "off" } = {}) {
   const calls = [];
+  const gates = [];
   let uuid = 0;
   const window = { location: { hostname, pathname, hash: "#/portfolio" }, crypto: { randomUUID: () => `portfolio-${++uuid}` } };
   const payload = JSON.parse(JSON.stringify(portfolio));
@@ -162,6 +163,7 @@ function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", path
     if (url === "/api/v1/portfolio") return response(envelope(correlationId, payload));
     if (url === "/api/v1/opportunities") return response(envelope(correlationId, opportunities));
     if (url === "/api/v1/reported-sales") {
+      if (sold === "gated") return new Promise(resolve => gates.push(() => resolve(response(envelope(correlationId, JSON.parse(JSON.stringify(sales)))))));
       if (sold === "off") return response({ error: { code: "UPSTREAM_REJECTED", message: "Route not enabled." } }, 404);
       const data = JSON.parse(JSON.stringify(sales));
       if (sold === "tampered") data.label = "VERIFIED";
@@ -169,6 +171,7 @@ function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", path
     }
     if (url === "/api/v1/sell-watch") {
       if (watch === "pending") return new Promise(() => {});
+      if (watch === "gated") return new Promise(resolve => gates.push(() => resolve(response(envelope(correlationId, JSON.parse(JSON.stringify(sellWatch)))))));
       if (watch === "off") return response({ error: { code: "UPSTREAM_REJECTED", message: "Route not enabled." } }, 404);
       const data = JSON.parse(JSON.stringify(sellWatch));
       if (watch === "tampered") data.marketComparisonDisplayed = true;
@@ -178,7 +181,10 @@ function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", path
   };
   const context = vm.createContext({ window, fetch, Response, Intl, Map, Number, String, Object, Array, Math, Date, RegExp, Promise, Set, Error, console, setTimeout, clearTimeout, queueMicrotask, encodeURIComponent });
   new vm.Script(adapter, { filename: "customer-portfolio.js" }).runInContext(context);
-  return { window, calls, main: { innerHTML: "", querySelector() { return null; } } };
+  // A stand-in for the shared #main-content element: it knows which page is currently painted into it.
+  const main = { innerHTML: "", isConnected: true,
+    querySelector(selector) { return selector === ".customer-portfolio-page" && this.innerHTML.includes("customer-portfolio-page") ? {} : null; } };
+  return { window, calls, gates, main };
 }
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 15));
@@ -302,6 +308,35 @@ soldOnly.window.FlipForgeCustomerPortfolio.render(soldOnly.main);
 await settle();
 check("068 sold cards still show when nothing is owned any more", soldOnly.main.innerHTML.includes("data-portfolio-realized")
   && soldOnly.main.innerHTML.includes("No holdings yet"));
+
+// The route hook paints every page into the same element; Portfolio is never told the customer left.
+const TRACKING = '<div class="page customer-tracking-page">Tracking</div>';
+const leftDuringSales = runtime({ sold: "gated" });
+leftDuringSales.window.FlipForgeCustomerPortfolio.render(leftDuringSales.main);
+await settle();
+leftDuringSales.main.innerHTML = TRACKING;
+leftDuringSales.gates.splice(0).forEach(release => release());
+await settle();
+check("069 a sales response arriving after the customer left Portfolio does not repaint over the page they are on",
+  leftDuringSales.main.innerHTML === TRACKING);
+const leftDuringWatch = runtime({ mutate: paused, watch: "gated", sold: "gated" });
+leftDuringWatch.window.FlipForgeCustomerPortfolio.render(leftDuringWatch.main);
+await settle();
+leftDuringWatch.main.innerHTML = TRACKING;
+leftDuringWatch.gates.splice(0).forEach(release => release());
+await settle();
+check("070 a Sell Watch response arriving after the customer left Portfolio does not repaint either",
+  leftDuringWatch.main.innerHTML === TRACKING);
+leftDuringWatch.window.FlipForgeCustomerPortfolio.refresh();
+await settle();
+check("071 an outside refresh while another page is shown does nothing", leftDuringWatch.main.innerHTML === TRACKING);
+const stayed = runtime({ mutate: paused, watch: "gated", sold: "gated" });
+stayed.window.FlipForgeCustomerPortfolio.render(stayed.main);
+await settle();
+stayed.gates.splice(0).forEach(release => release());
+await settle();
+check("072 while the customer stays on Portfolio, late Sell Watch and sales responses are still added",
+  stayed.main.innerHTML.includes("data-portfolio-sell-watch") && stayed.main.innerHTML.includes("data-portfolio-realized"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer Portfolio production validation");

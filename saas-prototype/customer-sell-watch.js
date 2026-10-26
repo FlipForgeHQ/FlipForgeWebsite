@@ -274,7 +274,7 @@
     state.busy = true;
     paint();
     try {
-      const payload = await work(card);
+      const payload = await work(card, () => sameCard(epoch, card));
       if (!sameCard(epoch, card)) return;
       apply(payload);
       state.error = null;
@@ -313,8 +313,11 @@
     }
     const channel = state.channel;
     state.notice = "";
-    run(async card => {
+    run(async (card, stillThisCard) => {
       const saved = await request(`/api/v1/sell-watch/costs/${channel}`, "PUT", body);
+      // The customer may have opened another card while the save was in flight: never apply this card's
+      // response to it (run() discards the final payload too).
+      if (!stillThisCard()) return null;
       state.editing = false;
       state.estimate = null;
       state.notice = `Your ${CHANNEL_LABELS[channel].toLowerCase()} costs are saved.`;

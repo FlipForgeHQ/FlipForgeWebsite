@@ -449,10 +449,20 @@
     return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${coveragePanel(data)}${watch && data.count > 0 ? sellWatchPanel(watch) : ""}${portfolioRows(data)}${realized}</div>`;
   }
 
-  function renderCurrent() {
+  // The route hook renders every page into the same element and does not tell Portfolio when the customer leaves,
+  // so a response that arrives after they have moved on must not repaint Portfolio over the page they are on.
+  function stillMounted() {
+    return Boolean(state.main?.isConnected && state.main.querySelector(".customer-portfolio-page"));
+  }
+
+  function renderCurrent({ mount = false } = {}) {
     if (!state.main) return;
+    if (!mount && !stillMounted()) {
+      state.generation += 1; // abandon the loads still in flight
+      return;
+    }
     state.main.innerHTML = pageMarkup();
-    state.main.querySelector("[data-customer-portfolio-refresh]")?.addEventListener("click", load);
+    state.main.querySelector("[data-customer-portfolio-refresh]")?.addEventListener("click", () => load());
   }
 
   // Sell Watch is optional: Portfolio renders as soon as its own reads finish, and the Sell Watch section is added
@@ -483,7 +493,8 @@
     if (state.sales && !state.loading && !state.error) renderCurrent();
   }
 
-  async function load() {
+  async function load({ mount = false } = {}) {
+    if (!mount && !stillMounted()) return;
     const generation = ++state.generation;
     state.loading = true;
     state.error = null;
@@ -492,7 +503,7 @@
     state.opportunities = null;
     state.sellWatch = null;
     state.sales = null;
-    renderCurrent();
+    renderCurrent({ mount });
     try {
       state.health = await request("/api/v1/health");
       if (state.health?.data?.status !== "configured") return;
@@ -525,13 +536,13 @@
   function render(main) {
     if (!eligibleHost()) return false;
     state.main = main;
-    load();
+    load({ mount: true });
     return true;
   }
 
   window.FlipForgeCustomerPortfolio = Object.freeze({
     isEligible: eligibleHost,
     render,
-    refresh: load
+    refresh: () => load()
   });
 })();
