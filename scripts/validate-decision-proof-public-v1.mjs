@@ -15,7 +15,7 @@ check('homepage keeps Decision Proof discoverable',home.includes('href="decision
 check('homepage uses concise Decision Proof teaser',home.includes('class="ff10-proof"'));
 // Founder review 2026-10-20: Proof100 results are withdrawn for re-audit (frozen on a build later found to have a data-quality defect).
 check('homepage teaser names frozen decisions without the withdrawn count',home.includes('<strong>Frozen decisions</strong>')&&!home.includes('100 frozen decisions'));
-check('homepage teaser explains frozen-call methodology',home.includes('Every saved decision stays frozen and is checked against later evidence at 7, 14 and 30 days.'));
+check('homepage teaser explains frozen-call methodology',home.includes('Every saved decision stays frozen. Saved decisions can be reviewed at Days 7, 14 and 30. Outcomes are recorded only when the original Day-0 baseline and sufficient permitted follow-up evidence are available.') && !home.includes('checked against later evidence at 7, 14 and 30 days'));
 check('homepage proof CTA reaches dedicated page',home.includes('href="decision-proof.html">How proof works</a>'));
 check('homepage does not duplicate detailed proof metrics',!home.includes('<strong>42</strong><span>Measurable at T7</span>')&&!home.includes('<strong>17</strong><span>Conservative signals reviewed</span>'));
 check('homepage intentionally defers methodology detail',!home.includes('Proof100 checkpoint · September 18, 2026')&&!home.includes('Current economically eligible non-BUY review candidates'));
