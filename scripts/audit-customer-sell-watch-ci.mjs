@@ -189,6 +189,11 @@ const P = "[data-sell-watch-panel]";
   check("B10 a lower price shows the shortfall", /less than you paid/.test(await text(page, `${P} [data-sell-watch-result]`)));
   const wording = (await text(page, P)).replace(/Sell Watch/g, "");
   check("B11 the panel gives no instruction or claim", !INSTRUCTION.test(wording), (wording.match(INSTRUCTION) || [""])[0]);
+  // The lifecycle form re-renders the page after a save (for example a new purchase cost): the panel reloads its card
+  // facts and must not keep showing a comparison computed from the old ones.
+  await page.evaluate(sel => document.querySelector(sel)?.remove(), P);
+  await page.waitForSelector(`${P}:not([hidden]) [data-sell-watch-price-form]`, { timeout: 20000 });
+  check("B17 reloading the card's facts drops the earlier estimate", await page.locator(`${P} [data-sell-watch-result]`).count() === 0);
   check("B12 no page errors or browser dialogs", errors.length === 0, errors.join(" | "));
   const used = await page.evaluate(() => window.FlipForgeSellWatch?.requestCount?.() ?? -1);
   check("B13 the panel makes a bounded number of requests (no reload loop)", used > 0 && used <= 10, `requests=${used}`);

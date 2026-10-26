@@ -219,7 +219,10 @@
     if (Array.isArray(data.costProfiles)) state.profiles = data.costProfiles;
     if (data.kind === "sell-watch-opportunity") {
       if (!data.owned) return false;
+      // The card's facts (what was paid) or the saved costs may have changed since the last check: an estimate
+      // computed from the old facts is dropped, never shown beside the new ones.
       state.card = data.card;
+      state.estimate = null;
     }
     if (data.kind === "sell-watch-estimate") state.estimate = data.estimate;
     return true;
