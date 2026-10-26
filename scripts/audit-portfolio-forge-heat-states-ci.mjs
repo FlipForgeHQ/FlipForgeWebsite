@@ -54,9 +54,16 @@ const sellWatch = { kind: "sell-watch", configured: true, tenantScoped: true, au
   transactionAuthority: false, acquisitionDecisionAffected: false, marketComparisonDisplayed: false,
   marketComparisonStatus: "NO_LICENSED_SOURCE_ACTIVE", count: 2, costBasisAvailableCount: 2,
   items: holdings.map(([id, cost]) => ({ opportunityId: id, acquisitionCostCents: cost, quantity: 1, costBasisStatus: "NET_ESTIMATE_AVAILABLE",
+    breakEven: [{ channel: "MARKETPLACE", channelName: "Marketplace", priceCents: Math.ceil(cost * 1.2), costsVersion: 2 }],
     marketComparison: { displayed: false, status: "NO_LICENSED_SOURCE_ACTIVE", evaluated: true } })),
   costProfiles: [{ channel: "MARKETPLACE", channelName: "Marketplace", version: 2 }, { channel: "AUCTION_HOUSE", channelName: "Auction house", version: 1 }],
   channels: [] };
+
+const sales = { kind: "reported-sales", label: "USER_REPORTED", dataUseEnabled: false, transactionAuthority: false, count: 1,
+  realizedWithCompleteFeesCount: 1, realizedProfitWithCompleteFeesCents: 20250, needsReviewCount: 0,
+  items: [{ reportId: "rs_audit", opportunityId: "opp-sold-1", cardIdentity: "2019 Prizm Zion Williamson #248 PSA 10", reviewStatus: "PENDING_VERIFICATION",
+    sale: { salePriceCents: 165000, saleDate: "2026-10-20" },
+    profitLoss: { status: "REALIZED", netProceedsCents: 141750, realizedProfitCents: 20250, realizedReturnPercent: 16.67, feesComplete: true } }] };
 
 // Reasons copied verbatim from FlipForge2 SaaSForgeHeatService.score() and the legacy marker it adds.
 const R = {
@@ -97,7 +104,7 @@ process.on("unhandledRejection", error => {
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
 const json = (route, status, body) => route.fulfill({ status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
 
-async function session(hash, { viewport = { width: 1440, height: 1000 }, watch = "on", heatData = null } = {}) {
+async function session(hash, { viewport = { width: 1440, height: 1000 }, watch = "on", heatData = null, sold = "off" } = {}) {
   const context = await browser.newContext({ viewport });
   const page = await context.newPage();
   const errors = [];
@@ -124,6 +131,7 @@ async function session(hash, { viewport = { width: 1440, height: 1000 }, watch =
       if (watch === "off") return json(route, 404, { error: { code: "UPSTREAM_REJECTED", message: "Off in this audit.", correlationId } });
       return json(route, 200, { meta: meta(correlationId), data: sellWatch });
     }
+    if (url.pathname === "/api/v1/reported-sales" && sold === "on") return json(route, 200, { meta: meta(correlationId), data: sales });
     if (url.pathname === "/api/v1/forge-heat" && heatData) return json(route, 200, { meta: meta(correlationId), data: heatData });
     return json(route, 404, { error: { code: "RESOURCE_NOT_FOUND", message: "Not in this fixture.", correlationId } });
   });
@@ -149,6 +157,25 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   await page.locator(".customer-portfolio-page").screenshot({ path: process.env.STATES_SHOT_DIR ? `${process.env.STATES_SHOT_DIR}/portfolio-paused.png` : "/dev/null" }).catch(() => {});
   await context.close();
 }
+// 1b. Portfolio with break-even prices and a recorded sale.
+{
+  const { context, page, errors } = await session("#/portfolio", { sold: "on" });
+  await page.waitForSelector("[data-portfolio-realized]", { timeout: 30000 });
+  const t = await text(page, ".customer-portfolio-page");
+  check("P10 break-even price per card from the server", /Break-even price/i.test(t) && /\$1,458\.00/.test(t) && /\$576\.00/.test(t), t.slice(0, 200));
+  check("P11 Sold cards: realized profit, sale and what was kept, labelled user reported", /Sold cards/.test(t) && /\+\$202\.50/.test(t)
+    && /\$1,650\.00/.test(t) && /\$1,417\.50/.test(t) && /User reported/i.test(t));
+  check("P12 no page errors", errors.length === 0, errors.join(" | "));
+  await page.locator(".customer-portfolio-page").screenshot({ path: process.env.STATES_SHOT_DIR ? `${process.env.STATES_SHOT_DIR}/portfolio-sold.png` : "/dev/null" }).catch(() => {});
+  await context.close();
+}
+{
+  const { context, page } = await session("#/portfolio", { sold: "on", viewport: { width: 390, height: 844 } });
+  await page.waitForSelector("[data-portfolio-realized]", { timeout: 30000 });
+  check("P13 no horizontal overflow on a phone with sold cards", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await context.close();
+}
+
 // 2. Portfolio, Sell Watch off.
 {
   const { context, page } = await session("#/portfolio", { watch: "off" });

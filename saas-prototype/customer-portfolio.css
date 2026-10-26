@@ -174,3 +174,14 @@
 .customer-portfolio-table td .button {
   white-space: nowrap;
 }
+
+.customer-portfolio-break-even {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.customer-portfolio-realized .panel-body {
+  display: grid;
+  gap: 10px;
+}
