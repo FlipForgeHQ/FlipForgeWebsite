@@ -1,0 +1,2445 @@
+{
+  "generatedAt": "2026-10-27T13:53:02.255Z",
+  "baseUrl": "http://127.0.0.1:4188",
+  "routes": [
+    "/index.html",
+    "/404.html",
+    "/about.html",
+    "/beta-application.html",
+    "/beta-onboarding.html",
+    "/beta-terms.html",
+    "/cdi-signal-stack-preview.html",
+    "/customer-evaluate-ux-preview.html",
+    "/customer-journey-preview.html",
+    "/data-use.html",
+    "/decision-intelligence.html",
+    "/decision-proof.html",
+    "/faq.html",
+    "/font-options.html",
+    "/landing-decision-preview.html",
+    "/learn.html",
+    "/operator-beta.html",
+    "/owner.html",
+    "/partner-disclosure.html",
+    "/phase7-day0-run.html",
+    "/platform-status.html",
+    "/price-is-not-proof.html",
+    "/pricing.html",
+    "/privacy.html",
+    "/product.html",
+    "/production-auth.html",
+    "/refund.html",
+    "/sample-decision-dossier.html",
+    "/staging-auth.html",
+    "/terms.html",
+    "/thank-you.html",
+    "/website-preview.html",
+    "/connect/",
+    "/saas-prototype/index.html",
+    "/saas-prototype/customer.html"
+  ],
+  "results": [
+    {
+      "route": "/index.html",
+      "viewport": "mobile-360",
+      "width": 360,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6011
+      }
+    },
+    {
+      "route": "/index.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6011
+      }
+    },
+    {
+      "route": "/index.html",
+      "viewport": "tablet-768",
+      "width": 768,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6172
+      }
+    },
+    {
+      "route": "/index.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6172
+      }
+    },
+    {
+      "route": "/index.html",
+      "viewport": "nav-1119",
+      "width": 1119,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1119,
+        "clientWidth": 1119,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6219
+      }
+    },
+    {
+      "route": "/index.html",
+      "viewport": "nav-1121",
+      "width": 1121,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1121,
+        "clientWidth": 1121,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6219
+      }
+    },
+    {
+      "route": "/index.html",
+      "viewport": "desktop-1280",
+      "width": 1280,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6219
+      }
+    },
+    {
+      "route": "/index.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6219
+      }
+    },
+    {
+      "route": "/index.html",
+      "viewport": "wide-1920",
+      "width": 1920,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1920,
+        "clientWidth": 1920,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
+        "mainText": 6219
+      }
+    },
+    {
+      "route": "/404.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Page Not Found | FlipForge",
+        "mainText": 159
+      }
+    },
+    {
+      "route": "/404.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Page Not Found | FlipForge",
+        "mainText": 159
+      }
+    },
+    {
+      "route": "/404.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Page Not Found | FlipForge",
+        "mainText": 159
+      }
+    },
+    {
+      "route": "/about.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "About | FlipForge Card Decision Intelligence",
+        "mainText": 5593
+      }
+    },
+    {
+      "route": "/about.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "About | FlipForge Card Decision Intelligence",
+        "mainText": 5593
+      }
+    },
+    {
+      "route": "/about.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "About | FlipForge Card Decision Intelligence",
+        "mainText": 5593
+      }
+    },
+    {
+      "route": "/beta-application.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Access | FlipForge Card Decision Intelligence",
+        "mainText": 3867
+      }
+    },
+    {
+      "route": "/beta-application.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Access | FlipForge Card Decision Intelligence",
+        "mainText": 3872
+      }
+    },
+    {
+      "route": "/beta-application.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Access | FlipForge Card Decision Intelligence",
+        "mainText": 3872
+      }
+    },
+    {
+      "route": "/beta-onboarding.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Onboarding | FlipForge Card Decision Intelligence",
+        "mainText": 3901
+      }
+    },
+    {
+      "route": "/beta-onboarding.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Onboarding | FlipForge Card Decision Intelligence",
+        "mainText": 3901
+      }
+    },
+    {
+      "route": "/beta-onboarding.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Onboarding | FlipForge Card Decision Intelligence",
+        "mainText": 3901
+      }
+    },
+    {
+      "route": "/beta-terms.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Terms | FlipForge",
+        "mainText": 2264
+      }
+    },
+    {
+      "route": "/beta-terms.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Terms | FlipForge",
+        "mainText": 2264
+      }
+    },
+    {
+      "route": "/beta-terms.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Private Beta Terms | FlipForge",
+        "mainText": 2264
+      }
+    },
+    {
+      "route": "/cdi-signal-stack-preview.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Signal Stack Preview | FlipForge Card Decision Intelligence",
+        "mainText": 1107
+      }
+    },
+    {
+      "route": "/cdi-signal-stack-preview.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Signal Stack Preview | FlipForge Card Decision Intelligence",
+        "mainText": 1107
+      }
+    },
+    {
+      "route": "/cdi-signal-stack-preview.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Signal Stack Preview | FlipForge Card Decision Intelligence",
+        "mainText": 1107
+      }
+    },
+    {
+      "route": "/customer-evaluate-ux-preview.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": "visible",
+        "title": "FlipForge — Customer Evaluate UX Preview",
+        "mainText": 803
+      }
+    },
+    {
+      "route": "/customer-evaluate-ux-preview.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": "visible",
+        "title": "FlipForge — Customer Evaluate UX Preview",
+        "mainText": 774
+      }
+    },
+    {
+      "route": "/customer-evaluate-ux-preview.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": "visible",
+        "title": "FlipForge — Customer Evaluate UX Preview",
+        "mainText": 774
+      }
+    },
+    {
+      "route": "/customer-journey-preview.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Customer Journey Preview",
+        "mainText": 246
+      }
+    },
+    {
+      "route": "/customer-journey-preview.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Customer Journey Preview",
+        "mainText": 457
+      }
+    },
+    {
+      "route": "/customer-journey-preview.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Customer Journey Preview",
+        "mainText": 457
+      }
+    },
+    {
+      "route": "/data-use.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Data Use | FlipForge",
+        "mainText": 2764
+      }
+    },
+    {
+      "route": "/data-use.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Data Use | FlipForge",
+        "mainText": 2764
+      }
+    },
+    {
+      "route": "/data-use.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Data Use | FlipForge",
+        "mainText": 2764
+      }
+    },
+    {
+      "route": "/decision-intelligence.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Decision Intelligence | FlipForge",
+        "mainText": 4226
+      }
+    },
+    {
+      "route": "/decision-intelligence.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Decision Intelligence | FlipForge",
+        "mainText": 4393
+      }
+    },
+    {
+      "route": "/decision-intelligence.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Decision Intelligence | FlipForge",
+        "mainText": 4393
+      }
+    },
+    {
+      "route": "/decision-proof.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Decision Proof | FlipForge",
+        "mainText": 3381
+      }
+    },
+    {
+      "route": "/decision-proof.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Decision Proof | FlipForge",
+        "mainText": 3381
+      }
+    },
+    {
+      "route": "/decision-proof.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Decision Proof | FlipForge",
+        "mainText": 3381
+      }
+    },
+    {
+      "route": "/faq.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "FAQ | FlipForge Card Decision Intelligence",
+        "mainText": 1816
+      }
+    },
+    {
+      "route": "/faq.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "FAQ | FlipForge Card Decision Intelligence",
+        "mainText": 1816
+      }
+    },
+    {
+      "route": "/faq.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "FAQ | FlipForge Card Decision Intelligence",
+        "mainText": 1816
+      }
+    },
+    {
+      "route": "/font-options.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [
+        "failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Font Options",
+        "mainText": 2802
+      }
+    },
+    {
+      "route": "/font-options.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [
+        "failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Font Options",
+        "mainText": 2802
+      }
+    },
+    {
+      "route": "/font-options.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [
+        "failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Font Options",
+        "mainText": 2802
+      }
+    },
+    {
+      "route": "/landing-decision-preview.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "FlipForge™ | Before you buy. Know Why.",
+        "mainText": 1167
+      }
+    },
+    {
+      "route": "/landing-decision-preview.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "FlipForge™ | Before you buy. Know Why.",
+        "mainText": 1167
+      }
+    },
+    {
+      "route": "/landing-decision-preview.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "FlipForge™ | Before you buy. Know Why.",
+        "mainText": 1167
+      }
+    },
+    {
+      "route": "/learn.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Evidence Lab | FlipForge Card Decision Intelligence",
+        "mainText": 6371
+      }
+    },
+    {
+      "route": "/learn.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Evidence Lab | FlipForge Card Decision Intelligence",
+        "mainText": 6371
+      }
+    },
+    {
+      "route": "/learn.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Evidence Lab | FlipForge Card Decision Intelligence",
+        "mainText": 6371
+      }
+    },
+    {
+      "route": "/operator-beta.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Beta Operations | FlipForge Card Decision Intelligence",
+        "mainText": 192
+      }
+    },
+    {
+      "route": "/operator-beta.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Beta Operations | FlipForge Card Decision Intelligence",
+        "mainText": 192
+      }
+    },
+    {
+      "route": "/operator-beta.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Beta Operations | FlipForge Card Decision Intelligence",
+        "mainText": 192
+      }
+    },
+    {
+      "route": "/owner.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Owner Hub | FlipForge",
+        "mainText": 230
+      }
+    },
+    {
+      "route": "/owner.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Owner Hub | FlipForge",
+        "mainText": 230
+      }
+    },
+    {
+      "route": "/owner.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Owner Hub | FlipForge",
+        "mainText": 230
+      }
+    },
+    {
+      "route": "/partner-disclosure.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Partner Disclosure | FlipForge",
+        "mainText": 772
+      }
+    },
+    {
+      "route": "/partner-disclosure.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Partner Disclosure | FlipForge",
+        "mainText": 772
+      }
+    },
+    {
+      "route": "/partner-disclosure.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Partner Disclosure | FlipForge",
+        "mainText": 772
+      }
+    },
+    {
+      "route": "/phase7-day0-run.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Phase 7 Day-0 Run",
+        "mainText": 5059
+      }
+    },
+    {
+      "route": "/phase7-day0-run.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Phase 7 Day-0 Run",
+        "mainText": 5059
+      }
+    },
+    {
+      "route": "/phase7-day0-run.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Phase 7 Day-0 Run",
+        "mainText": 5059
+      }
+    },
+    {
+      "route": "/platform-status.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Product | FlipForge Card Decision Intelligence",
+        "mainText": 2851
+      }
+    },
+    {
+      "route": "/platform-status.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Product | FlipForge Card Decision Intelligence",
+        "mainText": 2851
+      }
+    },
+    {
+      "route": "/platform-status.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Product | FlipForge Card Decision Intelligence",
+        "mainText": 2851
+      }
+    },
+    {
+      "route": "/price-is-not-proof.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price Is Not Proof | FlipForge Evidence Lab",
+        "mainText": 7330
+      }
+    },
+    {
+      "route": "/price-is-not-proof.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price Is Not Proof | FlipForge Evidence Lab",
+        "mainText": 7330
+      }
+    },
+    {
+      "route": "/price-is-not-proof.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Price Is Not Proof | FlipForge Evidence Lab",
+        "mainText": 7330
+      }
+    },
+    {
+      "route": "/pricing.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Launch Plans | FlipForge Card Decision Intelligence",
+        "mainText": 3718
+      }
+    },
+    {
+      "route": "/pricing.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Launch Plans | FlipForge Card Decision Intelligence",
+        "mainText": 3720
+      }
+    },
+    {
+      "route": "/pricing.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Launch Plans | FlipForge Card Decision Intelligence",
+        "mainText": 3720
+      }
+    },
+    {
+      "route": "/privacy.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Privacy Policy | FlipForge Card Decision Intelligence",
+        "mainText": 6530
+      }
+    },
+    {
+      "route": "/privacy.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Privacy Policy | FlipForge Card Decision Intelligence",
+        "mainText": 6530
+      }
+    },
+    {
+      "route": "/privacy.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Privacy Policy | FlipForge Card Decision Intelligence",
+        "mainText": 6530
+      }
+    },
+    {
+      "route": "/product.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Product | FlipForge Card Decision Intelligence",
+        "mainText": 2851
+      }
+    },
+    {
+      "route": "/product.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Product | FlipForge Card Decision Intelligence",
+        "mainText": 2851
+      }
+    },
+    {
+      "route": "/product.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Product | FlipForge Card Decision Intelligence",
+        "mainText": 2851
+      }
+    },
+    {
+      "route": "/production-auth.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Private Beta Sign In | FlipForge",
+        "mainText": 537
+      }
+    },
+    {
+      "route": "/production-auth.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Private Beta Sign In | FlipForge",
+        "mainText": 537
+      }
+    },
+    {
+      "route": "/production-auth.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Private Beta Sign In | FlipForge",
+        "mainText": 537
+      }
+    },
+    {
+      "route": "/refund.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Refund Policy | FlipForge",
+        "mainText": 2626
+      }
+    },
+    {
+      "route": "/refund.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Refund Policy | FlipForge",
+        "mainText": 2626
+      }
+    },
+    {
+      "route": "/refund.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Refund Policy | FlipForge",
+        "mainText": 2626
+      }
+    },
+    {
+      "route": "/sample-decision-dossier.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Sample Decision Dossier | FlipForge Card Decision Intelligence",
+        "mainText": 2996
+      }
+    },
+    {
+      "route": "/sample-decision-dossier.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Sample Decision Dossier | FlipForge Card Decision Intelligence",
+        "mainText": 2996
+      }
+    },
+    {
+      "route": "/sample-decision-dossier.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Sample Decision Dossier | FlipForge Card Decision Intelligence",
+        "mainText": 2996
+      }
+    },
+    {
+      "route": "/staging-auth.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Account Access",
+        "mainText": 584
+      }
+    },
+    {
+      "route": "/staging-auth.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Account Access",
+        "mainText": 584
+      }
+    },
+    {
+      "route": "/staging-auth.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Account Access",
+        "mainText": 584
+      }
+    },
+    {
+      "route": "/terms.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Terms of Use | FlipForge",
+        "mainText": 4157
+      }
+    },
+    {
+      "route": "/terms.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Terms of Use | FlipForge",
+        "mainText": 4157
+      }
+    },
+    {
+      "route": "/terms.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Terms of Use | FlipForge",
+        "mainText": 4157
+      }
+    },
+    {
+      "route": "/thank-you.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Application Received | FlipForge Card Decision Intelligence",
+        "mainText": 1385
+      }
+    },
+    {
+      "route": "/thank-you.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Application Received | FlipForge Card Decision Intelligence",
+        "mainText": 1385
+      }
+    },
+    {
+      "route": "/thank-you.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 1,
+        "closedMobileVisibility": "hidden",
+        "title": "Application Received | FlipForge Card Decision Intelligence",
+        "mainText": 1385
+      }
+    },
+    {
+      "route": "/website-preview.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Website Change Preview",
+        "mainText": 8471
+      }
+    },
+    {
+      "route": "/website-preview.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Website Change Preview",
+        "mainText": 8471
+      }
+    },
+    {
+      "route": "/website-preview.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge Website Change Preview",
+        "mainText": 8471
+      }
+    },
+    {
+      "route": "/connect/",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Connect with FlipForge | Card Decision Intelligence",
+        "mainText": 910
+      }
+    },
+    {
+      "route": "/connect/",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Connect with FlipForge | Card Decision Intelligence",
+        "mainText": 910
+      }
+    },
+    {
+      "route": "/connect/",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "Connect with FlipForge | Card Decision Intelligence",
+        "mainText": 910
+      }
+    },
+    {
+      "route": "/saas-prototype/index.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [
+        "main content unexpectedly sparse (8 chars)",
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Card Decision Intelligence",
+        "mainText": 8
+      }
+    },
+    {
+      "route": "/saas-prototype/index.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [
+        "main content unexpectedly sparse (8 chars)",
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Card Decision Intelligence",
+        "mainText": 8
+      }
+    },
+    {
+      "route": "/saas-prototype/index.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [
+        "main content unexpectedly sparse (8 chars)",
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Card Decision Intelligence",
+        "mainText": 8
+      }
+    },
+    {
+      "route": "/saas-prototype/customer.html",
+      "viewport": "mobile-390",
+      "width": 390,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Customer App — Card Decision Intelligence",
+        "mainText": 165
+      }
+    },
+    {
+      "route": "/saas-prototype/customer.html",
+      "viewport": "tablet-1024",
+      "width": 1024,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Customer App — Card Decision Intelligence",
+        "mainText": 165
+      }
+    },
+    {
+      "route": "/saas-prototype/customer.html",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "failures": [
+        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+      ],
+      "metrics": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "duplicateIds": [],
+        "navDuplicates": [],
+        "clipped": [],
+        "headerOverlaps": [],
+        "badImages": [],
+        "duplicateStyles": [],
+        "duplicateScripts": [],
+        "cdiCount": 0,
+        "closedMobileVisibility": null,
+        "title": "FlipForge | Customer App — Card Decision Intelligence",
+        "mainText": 165
+      }
+    }
+  ],
+  "failures": [
+    "/font-options.html @ mobile-390: failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]",
+    "/font-options.html @ tablet-1024: failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]",
+    "/font-options.html @ desktop-1440: failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]",
+    "/operator-beta.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/operator-beta.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/operator-beta.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/owner.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/owner.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/owner.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/production-auth.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]",
+    "/production-auth.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]",
+    "/production-auth.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]",
+    "/staging-auth.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]",
+    "/staging-auth.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]",
+    "/staging-auth.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]",
+    "/saas-prototype/index.html @ mobile-390: main content unexpectedly sparse (8 chars)",
+    "/saas-prototype/index.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/saas-prototype/index.html @ tablet-1024: main content unexpectedly sparse (8 chars)",
+    "/saas-prototype/index.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/saas-prototype/index.html @ desktop-1440: main content unexpectedly sparse (8 chars)",
+    "/saas-prototype/index.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/saas-prototype/customer.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/saas-prototype/customer.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
+    "/saas-prototype/customer.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+  ]
+}
