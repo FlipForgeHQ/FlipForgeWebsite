@@ -29,6 +29,7 @@
 <link rel="stylesheet" href="assets/css/homepage-v10.css">
 <link rel="stylesheet" href="assets/css/homepage-audiences-v1.css">
 <link rel="stylesheet" href="assets/css/homepage-challenge-v1.css">
+<link rel="stylesheet" href="assets/css/homepage-app-showcase-v1.css">
 <link rel="stylesheet" href="assets/css/updates-signup-v1.css">
 </head>
 <body class="ff10">
@@ -477,6 +478,95 @@
   </div>
 </section>
 
+<!-- 6b. Inside the real app (dark): Discover, Evaluate, Decision Receipt. Real FlipForge app screens, fictional card. -->
+<section class="ff10-app" id="inside-the-app" aria-labelledby="ff10-app-title" data-ff-app>
+  <div class="ff10-wrap">
+    <div class="ff10-app-head">
+      <h2 id="ff10-app-title" class="ff10-display ff10-display-md">Inside the app. <span>The reasoning, on screen.</span></h2>
+      <div>
+        <p class="ff10-lede">One card, three screens. When the evidence isn’t enough, FlipForge says so instead of guessing a value.</p>
+        <p class="ff10-app-badge">Real FlipForge app · fictional card and illustrative data</p>
+      </div>
+    </div>
+
+    <div class="ff10-app-tabs" role="tablist" aria-label="Inside the FlipForge app">
+      <button class="ff10-app-tab" type="button" role="tab" id="ff10-app-tab-discover" aria-controls="ff10-app-panel-discover" aria-selected="true" data-app-tab="discover"><span class="ff10-app-tab-n">01</span><strong>Discover</strong><small>Find the exact listing</small></button>
+      <button class="ff10-app-tab" type="button" role="tab" id="ff10-app-tab-evaluate" aria-controls="ff10-app-panel-evaluate" aria-selected="false" tabindex="-1" data-app-tab="evaluate"><span class="ff10-app-tab-n">02</span><strong>Evaluate</strong><small>Get the decision</small></button>
+      <button class="ff10-app-tab" type="button" role="tab" id="ff10-app-tab-receipt" aria-controls="ff10-app-panel-receipt" aria-selected="false" tabindex="-1" data-app-tab="receipt"><span class="ff10-app-tab-n">03</span><strong>Decision Receipt</strong><small>Keep the reason trail</small></button>
+    </div>
+
+    <div class="ff10-app-panels">
+      <div class="ff10-app-panel" role="tabpanel" id="ff10-app-panel-discover" aria-labelledby="ff10-app-tab-discover" data-app-panel="discover">
+        <div class="ff10-app-lead">
+          <p class="ff10-app-eyebrow">01 · Discover</p>
+          <h3 class="ff10-app-headline">Search for the exact card.</h3>
+          <p class="ff10-app-copy">Discover lines up listings against the card you asked for: number, parallel and serial. An asking price stays an asking price.</p>
+          <ul class="ff10-app-points">
+            <li><strong>Exact match first.</strong> The listing names the same card, parallel and print run.</li>
+            <li><strong>No qualified sales yet.</strong> FlipForge won’t guess a value from asking prices.</li>
+            <li><strong>Next action: evaluate before you buy.</strong></li>
+          </ul>
+        </div>
+        <figure class="ff10-app-shot">
+          <div class="ff10-app-window" tabindex="0" role="region" aria-label="Discover screen. Scroll to see all of it.">
+            <picture>
+              <source media="(max-width:760px)" srcset="assets/images/ff-app-discover-m.webp" width="692" height="2466">
+              <img src="assets/images/ff-app-discover.webp" width="1400" height="1074" loading="lazy" decoding="async"
+                alt="FlipForge Discover result for a fictional 2019 Meridian Series #48 J. Carver Silver /99 listing: all-in ask $425, no qualified sales yet, confidence 15 out of 100, risk 90 out of 100, and an Evaluate with Smart Opportunity button.">
+            </picture>
+          </div>
+          <figcaption>Discover · fictional listing</figcaption>
+        </figure>
+      </div>
+
+      <div class="ff10-app-panel" role="tabpanel" id="ff10-app-panel-evaluate" aria-labelledby="ff10-app-tab-evaluate" data-app-panel="evaluate">
+        <div class="ff10-app-lead">
+          <p class="ff10-app-eyebrow">02 · Evaluate</p>
+          <h3 class="ff10-app-headline">Get a decision, not a guess.</h3>
+          <p class="ff10-app-copy">The decision engine checks the card, the sales, the price and the uncertainty. Here no sale of this exact card passed the checks, so the answer is VERIFY.</p>
+          <ul class="ff10-app-points">
+            <li><strong>Exact card:</strong> identity needs review.</li>
+            <li><strong>Price check:</strong> $425 ask, supported value withheld.</li>
+            <li><strong>Uncertainty:</strong> 15/100 confidence, 90/100 risk.</li>
+          </ul>
+        </div>
+        <figure class="ff10-app-shot">
+          <div class="ff10-app-window" tabindex="0" role="region" aria-label="Evaluate screen. Scroll to see all of it.">
+            <picture>
+              <source media="(max-width:760px)" srcset="assets/images/ff-app-evaluate-m.webp" width="692" height="2898">
+              <img src="assets/images/ff-app-evaluate.webp" width="1400" height="1341" loading="lazy" decoding="async"
+                alt="FlipForge decision screen: Verify before acting. There is not enough matching evidence yet to make this purchase confidently. Four checks: exact card, matched sales, price check with supported value unavailable, and uncertainty at 15 out of 100 confidence and 90 out of 100 risk.">
+            </picture>
+          </div>
+          <figcaption>Evaluate · decision from the real engine</figcaption>
+        </figure>
+      </div>
+
+      <div class="ff10-app-panel" role="tabpanel" id="ff10-app-panel-receipt" aria-labelledby="ff10-app-tab-receipt" data-app-panel="receipt">
+        <div class="ff10-app-lead">
+          <p class="ff10-app-eyebrow">03 · Decision Receipt</p>
+          <h3 class="ff10-app-headline">Keep the reason trail.</h3>
+          <p class="ff10-app-copy">Every evaluation is saved as a Decision Receipt: identity, evidence, economics, risk, decision and traceback, exactly as they were returned.</p>
+          <ul class="ff10-app-points">
+            <li><strong>0 sales counted at decision time,</strong> so no value is shown.</li>
+            <li><strong>The decision and the model version</strong> that produced it stay together.</li>
+            <li><strong>Later events don’t rewrite it.</strong> You can always see why.</li>
+          </ul>
+        </div>
+        <figure class="ff10-app-shot ff10-app-shot-receipt">
+          <div class="ff10-app-window" tabindex="0" role="region" aria-label="Decision Receipt. Scroll to read all of it.">
+            <img src="assets/images/ff-app-receipt.webp" width="620" height="4494" loading="lazy" decoding="async"
+              alt="FlipForge Decision Receipt for the fictional card: decision VERIFY; identity review required; 0 sales at decision; $425 ask with supported value withheld; 90 out of 100 risk and 15 out of 100 confidence; traceback to the Smart Opportunity engine version.">
+          </div>
+          <figcaption>Decision Receipt · scroll to read</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <p class="ff10-app-note">Screens from the FlipForge private beta app. The card, listing, seller and sales history are invented for this page; the Discover listing is illustrative, and the decision and Decision Receipt were produced by FlipForge’s decision engine with no market data providers connected. No real sales, sellers or customer records are shown. FlipForge is decision support and does not guarantee profit.</p>
+  </div>
+</section>
+
 <!-- 7. Final call to action (dark) -->
 
 <section class="ff10-final" aria-labelledby="ff10-final-title">
@@ -514,6 +604,7 @@
 <script src="assets/js/homepage-v10.js" defer></script>
 <script src="assets/js/homepage-audiences-v1.js" defer></script>
 <script src="assets/js/homepage-challenge-v1.js" defer></script>
+<script src="assets/js/homepage-app-showcase-v1.js" defer></script>
 <script src="assets/js/updates-signup.js" defer></script>
 <script src="assets/js/section-navigation.js" defer></script>
 </body>
