@@ -97,14 +97,14 @@
   .ff10-aud-panel{grid-template-columns:1fr}
 }
 @media(max-width:760px){
-  /* The selector scrolls inside itself; the page never scrolls sideways. */
-  .ff10-aud-tabs{display:flex;gap:4px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-    margin-inline:calc(-1 * var(--gut));padding-inline:var(--gut);border-bottom:0}
-  .ff10-aud-tabs::-webkit-scrollbar{display:none}
-  .ff10-aud-tab{flex:0 0 auto;scroll-snap-align:start;padding:14px 16px;border:1px solid var(--line-d);border-radius:999px;column-gap:8px}
+  /* All five choices stay visible on a phone: two per row, the fifth across the full width. */
+  .ff10-aud-tabs{display:flex;flex-wrap:wrap;gap:8px;border-bottom:0}
+  .ff10-aud-tab{flex:1 1 calc(50% - 4px);display:flex;align-items:center;justify-content:center;min-height:52px;
+    padding:10px 12px;border:1px solid var(--line-d);border-radius:10px;text-align:center}
+  .ff10-aud-tab:last-child{flex-basis:100%}
   .ff10-aud-tab::after{display:none}
   .ff10-aud-tab-n,.ff10-aud-tab small{display:none}
-  .ff10-aud-tab strong{font-size:16px;white-space:nowrap}
+  .ff10-aud-tab strong{font-size:16px;line-height:1.2}
   .ff10-aud-tab[aria-selected="true"]{background:var(--g);border-color:var(--g);color:var(--k)}
   .ff10-aud-signal{column-gap:14px}
   .ff10-aud-visual{max-width:none}
