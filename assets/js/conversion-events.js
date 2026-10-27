@@ -162,6 +162,15 @@
     fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body,credentials:"same-origin",cache:"no-store",redirect:"error",keepalive:true}).catch(()=>{});
   };
 
+  // Homepage experiences report counts only (which audience, which call, whether finished): no personal data.
+  const experienceEvents=new Set(["audience_selected","challenge_answered","challenge_completed","demo_interacted","beta_cta_clicked"]);
+  const experiencePlacement=/^(audience-(flipper|investor|collector|dealer|grading)|challenge(-(buy|investigate|pass))?|demo)$/;
+  document.addEventListener("ff:conversion",event=>{
+    const detail=event.detail||{};
+    if(!experienceEvents.has(detail.event)||!experiencePlacement.test(String(detail.placement||"")))return;
+    emit(detail.event,detail.placement,detail.event==="demo_interacted");
+  });
+
   const placementFor=link=>{
     if(link.closest(".site-header,.decision-header,.mobile-nav"))return"navigation";
     if(link.closest(".footer"))return"footer";

@@ -17,6 +17,10 @@ const EVENT_NAMES = new Set([
   "decision_explanation_viewed",
   "decision_saved",
   "tracking_viewed",
+  "audience_selected",
+  "challenge_answered",
+  "challenge_completed",
+  "demo_interacted",
 ]);
 
 const PAGE_NAMES = new Set([
@@ -46,6 +50,16 @@ const PLACEMENTS = new Set([
   "onboarding",
   "workflow",
   "page",
+  "audience-flipper",
+  "audience-investor",
+  "audience-collector",
+  "audience-dealer",
+  "audience-grading",
+  "challenge",
+  "challenge-buy",
+  "challenge-investigate",
+  "challenge-pass",
+  "demo",
   "unknown",
 ]);
 

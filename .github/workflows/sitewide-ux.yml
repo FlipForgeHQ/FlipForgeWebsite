@@ -37,6 +37,11 @@ on:
       - "scripts/audit-public-typography-rendered.mjs"
       - "scripts/audit-public-responsive-rendered.mjs"
       - "scripts/audit-public-readability-rendered.mjs"
+      - "scripts/audit-homepage-experiences-rendered.mjs"
+      - "assets/js/homepage-audiences-v1.js"
+      - "assets/js/homepage-challenge-v1.js"
+      - "assets/css/homepage-audiences-v1.css"
+      - "assets/css/homepage-challenge-v1.css"
       - ".github/workflows/sitewide-ux.yml"
       - "scripts/ci/install-playwright-chromium.sh"
   push:
@@ -77,6 +82,11 @@ on:
       - "scripts/audit-public-typography-rendered.mjs"
       - "scripts/audit-public-responsive-rendered.mjs"
       - "scripts/audit-public-readability-rendered.mjs"
+      - "scripts/audit-homepage-experiences-rendered.mjs"
+      - "assets/js/homepage-audiences-v1.js"
+      - "assets/js/homepage-challenge-v1.js"
+      - "assets/css/homepage-audiences-v1.css"
+      - "assets/css/homepage-challenge-v1.css"
       - ".github/workflows/sitewide-ux.yml"
       - "scripts/ci/install-playwright-chromium.sh"
 
@@ -120,5 +130,7 @@ jobs:
         run: node scripts/audit-public-responsive-rendered.mjs
       - name: Validate public text readability and contrast
         run: node scripts/audit-public-readability-rendered.mjs
+      - name: Rendered homepage experiences (audience selector, Decision Challenge, Beta pre-selection)
+        run: node scripts/audit-homepage-experiences-rendered.mjs
       - name: Audit Phase 3 DOM mutation stability for 10 seconds
         run: node scripts/audit-phase3-mutation-stability-ci.mjs
