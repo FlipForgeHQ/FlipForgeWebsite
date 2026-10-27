@@ -7,6 +7,15 @@ const PAGE = 'index.html';
 const START = '<!-- ff-audiences:start (generated from marketing/content/audience-messaging.json by scripts/build-homepage-audiences.mjs; edit the JSON, not this block) -->';
 const END = '<!-- ff-audiences:end -->';
 
+// The illustrations reuse the existing "How it works" artwork for a fictional card; no new art is introduced.
+const lock = '<span class="ff10-lock ff10-lock-tl"></span><span class="ff10-lock ff10-lock-tr"></span><span class="ff10-lock ff10-lock-bl"></span><span class="ff10-lock ff10-lock-br"></span>';
+const VISUALS = {
+  identity: `<div class="ff10-step-visual ff10-sv-identity ff10-aud-visual"><img src="assets/images/ff10-silver.webp" width="640" height="896" alt="" loading="lazy" decoding="async">${lock}</div>`,
+  evidence: '<div class="ff10-step-visual ff10-sv-evidence ff10-aud-visual"><i></i><i class="ff10-keep"></i><i></i><i></i><i class="ff10-keep"></i><i></i><i class="ff10-keep"></i><i></i><b>3 of 8 count</b></div>',
+  maxbuy: '<div class="ff10-step-visual ff10-sv-max ff10-aud-visual"><div class="ff10-wf ff10-wf-resale"><em>Resale</em><b>$500</b><i></i></div><div class="ff10-wf ff10-wf-cost"><em>Fees, shipping</em><b>−$75</b><i></i></div><div class="ff10-wf ff10-wf-margin"><em>Your margin</em><b>−$65</b><i></i></div><div class="ff10-wf ff10-wf-max"><em>Max Buy</em><b>$360</b><i></i></div></div>',
+  verdict: '<div class="ff10-step-visual ff10-sv-verdict ff10-aud-visual"><span>BUY</span><span>WATCH</span><span>VERIFY</span><span class="ff10-on">PASS</span></div>'
+};
+
 const esc = value => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 export function render(data) {
@@ -30,6 +39,7 @@ export function render(data) {
     const h = a.homepage;
     for (const key of stageKeys) if (!h.signals[key]) throw new Error(`Audience ${a.key} is missing the ${key} signal.`);
     for (const key of h.focus) if (!stageKeys.includes(key)) throw new Error(`Audience ${a.key} focuses on unknown stage ${key}.`);
+    if (!VISUALS[h.visual]) throw new Error(`Audience ${a.key} has an unknown illustration ${h.visual}.`);
     const signals = home.framework.map((stage, i) => {
       const focus = h.focus.includes(stage.key);
       return `            <li class="ff10-aud-signal${focus ? ' ff10-aud-focus' : ''}" data-stage="${stage.key}"><span class="ff10-step-n">${i + 1}</span><div><strong>${esc(stage.name)}${focus ? ' <em class="ff10-aud-key">Key signal</em>' : ''}</strong><p>${esc(h.signals[stage.key])}</p></div></li>`;
@@ -40,13 +50,15 @@ export function render(data) {
           <h3 class="ff10-aud-headline">${esc(h.headline)}</h3>
           <div class="ff10-aud-question"><span>The decision</span><p>“${esc(h.question)}”</p></div>
           <div class="ff10-aud-problem"><span>The problem</span><p>${esc(a.pain)}</p></div>
+          <figure class="ff10-aud-figure" aria-hidden="true">${VISUALS[h.visual]}<figcaption>Illustrative · fictional card</figcaption></figure>
         </div>
         <div class="ff10-aud-frame">
           <p class="ff10-aud-frame-label">The FlipForge framework <em>Decision signals for ${esc(h.label.toLowerCase())}</em></p>
           <ol class="ff10-aud-signals">
 ${signals}
           </ol>
-          <div class="ff10-aud-why"><span>Why it matters</span><p>${esc(h.why)}</p></div>
+          <div class="ff10-aud-why"><span>How FlipForge helps</span><p>${esc(h.why)}</p></div>
+          <div class="ff10-aud-actions"><a class="ff10-btn ff10-btn-gold" href="beta-application.html?goal=${a.key}#apply-heading" data-aud-cta="${a.key}">${esc(h.cta)}</a><a class="ff10-btn ff10-btn-line" href="#demo" data-aud-demo="${a.key}">Try the decision challenge</a></div>
         </div>
       </article>`;
   }).join('\n');
@@ -63,6 +75,10 @@ ${tabs}
     </div>
     <div class="ff10-aud-panels">
 ${panels}
+    </div>
+    <div class="ff10-aud-close">
+      <p class="ff10-aud-closing">${esc(home.closing)}</p>
+      <p class="ff10-aud-sign">Before you buy. Know Why.</p>
     </div>
     <p class="ff10-aud-note">${esc(home.disclosure)}</p>
   </div>

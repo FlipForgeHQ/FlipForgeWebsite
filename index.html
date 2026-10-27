@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="assets/css/brand-v2.css">
 <link rel="stylesheet" href="assets/css/homepage-v10.css">
 <link rel="stylesheet" href="assets/css/homepage-audiences-v1.css">
+<link rel="stylesheet" href="assets/css/homepage-challenge-v1.css">
 <link rel="stylesheet" href="assets/css/updates-signup-v1.css">
 </head>
 <body class="ff10">
@@ -245,104 +246,118 @@
     </div>
     <div class="ff10-aud-tabs" role="tablist" aria-label="Choose how you approach cards">
       <button type="button" class="ff10-aud-tab" role="tab" id="ff10-aud-tab-flipper" aria-controls="ff10-aud-panel-flipper" aria-selected="true" tabindex="0" data-aud-tab="flipper"><span class="ff10-aud-tab-n">01</span><strong>Flippers</strong><small>Protect the margin</small></button>
-      <button type="button" class="ff10-aud-tab" role="tab" id="ff10-aud-tab-investor" aria-controls="ff10-aud-panel-investor" aria-selected="false" tabindex="-1" data-aud-tab="investor"><span class="ff10-aud-tab-n">02</span><strong>Investors</strong><small>Hold with a record</small></button>
+      <button type="button" class="ff10-aud-tab" role="tab" id="ff10-aud-tab-investor" aria-controls="ff10-aud-panel-investor" aria-selected="false" tabindex="-1" data-aud-tab="investor"><span class="ff10-aud-tab-n">02</span><strong>Investors</strong><small>Commit with evidence</small></button>
       <button type="button" class="ff10-aud-tab" role="tab" id="ff10-aud-tab-collector" aria-controls="ff10-aud-panel-collector" aria-selected="false" tabindex="-1" data-aud-tab="collector"><span class="ff10-aud-tab-n">03</span><strong>Collectors</strong><small>Own the right card</small></button>
       <button type="button" class="ff10-aud-tab" role="tab" id="ff10-aud-tab-dealer" aria-controls="ff10-aud-panel-dealer" aria-selected="false" tabindex="-1" data-aud-tab="dealer"><span class="ff10-aud-tab-n">04</span><strong>Dealers</strong><small>Buy consistently</small></button>
-      <button type="button" class="ff10-aud-tab" role="tab" id="ff10-aud-tab-grading" aria-controls="ff10-aud-panel-grading" aria-selected="false" tabindex="-1" data-aud-tab="grading"><span class="ff10-aud-tab-n">05</span><strong>Grading-focused buyers</strong><small>Pay for the grade</small></button>
+      <button type="button" class="ff10-aud-tab" role="tab" id="ff10-aud-tab-grading" aria-controls="ff10-aud-panel-grading" aria-selected="false" tabindex="-1" data-aud-tab="grading"><span class="ff10-aud-tab-n">05</span><strong>Grading-focused buyers</strong><small>Look past the label</small></button>
     </div>
     <div class="ff10-aud-panels">
       <article class="ff10-aud-panel" role="tabpanel" id="ff10-aud-panel-flipper" aria-labelledby="ff10-aud-tab-flipper" tabindex="0" data-aud-panel="flipper">
         <div class="ff10-aud-lead">
           <p class="ff10-aud-eyebrow">Flippers · Protect the margin</p>
-          <h3 class="ff10-aud-headline">Test the margin before you chase it.</h3>
-          <div class="ff10-aud-question"><span>The decision</span><p>“After fees, shipping and the margin I want to keep, is there still a deal at this price?”</p></div>
+          <h3 class="ff10-aud-headline">Find the margin before the mistake.</h3>
+          <div class="ff10-aud-question"><span>The decision</span><p>“Is this actually a profitable opportunity after the costs and uncertainty?”</p></div>
           <div class="ff10-aud-problem"><span>The problem</span><p>An apparent spread disappears fast when comps are wrong, liquidity is weak, or costs are ignored.</p></div>
+          <figure class="ff10-aud-figure" aria-hidden="true"><div class="ff10-step-visual ff10-sv-max ff10-aud-visual"><div class="ff10-wf ff10-wf-resale"><em>Resale</em><b>$500</b><i></i></div><div class="ff10-wf ff10-wf-cost"><em>Fees, shipping</em><b>−$75</b><i></i></div><div class="ff10-wf ff10-wf-margin"><em>Your margin</em><b>−$65</b><i></i></div><div class="ff10-wf ff10-wf-max"><em>Max Buy</em><b>$360</b><i></i></div></div><figcaption>Illustrative · fictional card</figcaption></figure>
         </div>
         <div class="ff10-aud-frame">
           <p class="ff10-aud-frame-label">The FlipForge framework <em>Decision signals for flippers</em></p>
           <ol class="ff10-aud-signals">
             <li class="ff10-aud-signal" data-stage="identity"><span class="ff10-step-n">1</span><div><strong>Lock the exact card</strong><p>Exact parallel and grade, so the spread is measured against the card you would actually resell.</p></div></li>
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count <em class="ff10-aud-key">Key signal</em></strong><p>Asking prices and stale sales are set aside, and a thin market is flagged.</p></div></li>
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy <em class="ff10-aud-key">Key signal</em></strong><p>Max Buy after your fees, shipping and target margin, with the gap to the asking price.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count <em class="ff10-aud-key">Key signal</em></strong><p>Only qualified sales count. Asking prices and stale sales are set aside, and a thin market is flagged as liquidity risk.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy <em class="ff10-aud-key">Key signal</em></strong><p>Max Buy after your selling fees, shipping and target margin, and the cushion between it and the asking price. A break-even price for cards you own.</p></div></li>
             <li class="ff10-aud-signal" data-stage="decision"><span class="ff10-step-n">4</span><div><strong>Get the decision, and the why</strong><p>PASS when the margin is not there. WATCH when the cushion is thin.</p></div></li>
           </ol>
-          <div class="ff10-aud-why"><span>Why it matters</span><p>A spread only exists after costs, and only while buyers are still there. FlipForge shows both before you commit capital.</p></div>
+          <div class="ff10-aud-why"><span>How FlipForge helps</span><p>A spread only exists after costs, and only while buyers are still there. FlipForge shows both before you commit capital.</p></div>
+          <div class="ff10-aud-actions"><a class="ff10-btn ff10-btn-gold" href="beta-application.html?goal=flipper#apply-heading" data-aud-cta="flipper">Apply as a flipper</a><a class="ff10-btn ff10-btn-line" href="#demo" data-aud-demo="flipper">Try the decision challenge</a></div>
         </div>
       </article>
       <article class="ff10-aud-panel" role="tabpanel" id="ff10-aud-panel-investor" aria-labelledby="ff10-aud-tab-investor" tabindex="0" data-aud-panel="investor">
         <div class="ff10-aud-lead">
-          <p class="ff10-aud-eyebrow">Investors · Hold with a record</p>
-          <h3 class="ff10-aud-headline">See the reasoning, not just the trend.</h3>
-          <div class="ff10-aud-question"><span>The decision</span><p>“What does the evidence support today, and can I review this decision later?”</p></div>
+          <p class="ff10-aud-eyebrow">Investors · Commit with evidence</p>
+          <h3 class="ff10-aud-headline">Understand what supports the opportunity.</h3>
+          <div class="ff10-aud-question"><span>The decision</span><p>“Does the available evidence justify committing capital?”</p></div>
           <div class="ff10-aud-problem"><span>The problem</span><p>A chart can show what happened without telling you whether today’s opportunity is defensible.</p></div>
+          <figure class="ff10-aud-figure" aria-hidden="true"><div class="ff10-step-visual ff10-sv-evidence ff10-aud-visual"><i></i><i class="ff10-keep"></i><i></i><i></i><i class="ff10-keep"></i><i></i><i class="ff10-keep"></i><i></i><b>3 of 8 count</b></div><figcaption>Illustrative · fictional card</figcaption></figure>
         </div>
         <div class="ff10-aud-frame">
           <p class="ff10-aud-frame-label">The FlipForge framework <em>Decision signals for investors</em></p>
           <ol class="ff10-aud-signals">
             <li class="ff10-aud-signal" data-stage="identity"><span class="ff10-step-n">1</span><div><strong>Lock the exact card</strong><p>The exact card is locked, so every later review looks at the same card.</p></div></li>
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count <em class="ff10-aud-key">Key signal</em></strong><p>Qualifying sales, how thin the market is, and the risk that remains are shown side by side.</p></div></li>
-            <li class="ff10-aud-signal" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy</strong><p>Max Buy at your own costs. For cards you own, a break-even price for each selling channel.</p></div></li>
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="decision"><span class="ff10-step-n">4</span><div><strong>Get the decision, and the why <em class="ff10-aud-key">Key signal</em></strong><p>Saved decisions stay frozen with their evidence and can be reviewed at Days 7, 14 and 30.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count <em class="ff10-aud-key">Key signal</em></strong><p>Evidence quality first: which sales qualify, how many there are, and how thin the market is.</p></div></li>
+            <li class="ff10-aud-signal" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy</strong><p>A supported value built only from qualified sales, and Max Buy at your own costs.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="decision"><span class="ff10-step-n">4</span><div><strong>Get the decision, and the why <em class="ff10-aud-key">Key signal</em></strong><p>Risk and uncertainty stay visible. Saved decisions are frozen and can be reviewed at Days 7, 14 and 30.</p></div></li>
           </ol>
-          <div class="ff10-aud-why"><span>Why it matters</span><p>A long hold starts with one purchase. A frozen, explained decision shows later what you knew and why you acted. FlipForge does not forecast returns.</p></div>
+          <div class="ff10-aud-why"><span>How FlipForge helps</span><p>Committing capital starts with what the evidence supports today and a record of why you acted. FlipForge does not forecast appreciation or returns.</p></div>
+          <div class="ff10-aud-actions"><a class="ff10-btn ff10-btn-gold" href="beta-application.html?goal=investor#apply-heading" data-aud-cta="investor">Apply as an investor</a><a class="ff10-btn ff10-btn-line" href="#demo" data-aud-demo="investor">Try the decision challenge</a></div>
         </div>
       </article>
       <article class="ff10-aud-panel" role="tabpanel" id="ff10-aud-panel-collector" aria-labelledby="ff10-aud-tab-collector" tabindex="0" data-aud-panel="collector">
         <div class="ff10-aud-lead">
           <p class="ff10-aud-eyebrow">Collectors · Own the right card</p>
-          <h3 class="ff10-aud-headline">Inspect the decision before you buy.</h3>
-          <div class="ff10-aud-question"><span>The decision</span><p>“Is this the exact card I want, and is the price supported for it?”</p></div>
+          <h3 class="ff10-aud-headline">Love the card. Understand the purchase.</h3>
+          <div class="ff10-aud-question"><span>The decision</span><p>“Is this the right card, and does the asking price make sense?”</p></div>
           <div class="ff10-aud-problem"><span>The problem</span><p>You want the card, but you do not want enthusiasm to hide weak evidence.</p></div>
+          <figure class="ff10-aud-figure" aria-hidden="true"><div class="ff10-step-visual ff10-sv-identity ff10-aud-visual"><img src="assets/images/ff10-silver.webp" width="640" height="896" alt="" loading="lazy" decoding="async"><span class="ff10-lock ff10-lock-tl"></span><span class="ff10-lock ff10-lock-tr"></span><span class="ff10-lock ff10-lock-bl"></span><span class="ff10-lock ff10-lock-br"></span></div><figcaption>Illustrative · fictional card</figcaption></figure>
         </div>
         <div class="ff10-aud-frame">
           <p class="ff10-aud-frame-label">The FlipForge framework <em>Decision signals for collectors</em></p>
           <ol class="ff10-aud-signals">
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="identity"><span class="ff10-step-n">1</span><div><strong>Lock the exact card <em class="ff10-aud-key">Key signal</em></strong><p>Year, set, number, parallel and grade are checked before any price is compared.</p></div></li>
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count <em class="ff10-aud-key">Key signal</em></strong><p>You see which prices are reported sales of this exact card, and which are asking prices or a different card.</p></div></li>
-            <li class="ff10-aud-signal" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy</strong><p>Supported value from qualifying sales shows whether the asking price is ahead of the evidence.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="identity"><span class="ff10-step-n">1</span><div><strong>Lock the exact card <em class="ff10-aud-key">Key signal</em></strong><p>Year, set, number, parallel and grade are checked, so a similar-looking parallel is never mistaken for yours.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count <em class="ff10-aud-key">Key signal</em></strong><p>You see which prices are reported sales of this exact card, at this grade, and which are asking prices or a different card.</p></div></li>
+            <li class="ff10-aud-signal" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy</strong><p>A supported value from qualifying sales shows whether the asking price is ahead of the evidence.</p></div></li>
             <li class="ff10-aud-signal" data-stage="decision"><span class="ff10-step-n">4</span><div><strong>Get the decision, and the why</strong><p>WATCH when the price runs ahead of the evidence. VERIFY when the card or its comparisons are unresolved.</p></div></li>
           </ol>
-          <div class="ff10-aud-why"><span>Why it matters</span><p>You may never sell it. You still want to know it is the right card at a price the evidence supports.</p></div>
+          <div class="ff10-aud-why"><span>How FlipForge helps</span><p>You may never sell it. You still deserve to know it is the right card at a price the evidence supports.</p></div>
+          <div class="ff10-aud-actions"><a class="ff10-btn ff10-btn-gold" href="beta-application.html?goal=collector#apply-heading" data-aud-cta="collector">Apply as a collector</a><a class="ff10-btn ff10-btn-line" href="#demo" data-aud-demo="collector">Try the decision challenge</a></div>
         </div>
       </article>
       <article class="ff10-aud-panel" role="tabpanel" id="ff10-aud-panel-dealer" aria-labelledby="ff10-aud-tab-dealer" tabindex="0" data-aud-panel="dealer">
         <div class="ff10-aud-lead">
           <p class="ff10-aud-eyebrow">Dealers · Buy consistently</p>
-          <h3 class="ff10-aud-headline">Make inventory decisions you can explain.</h3>
-          <div class="ff10-aud-question"><span>The decision</span><p>“Should this card come into inventory at this price, and could I explain the call later?”</p></div>
+          <h3 class="ff10-aud-headline">Make every inventory decision count.</h3>
+          <div class="ff10-aud-question"><span>The decision</span><p>“Can this purchase be justified consistently and reviewed later?”</p></div>
           <div class="ff10-aud-problem"><span>The problem</span><p>Inventory decisions compound quickly when a weak comp or identity mismatch slips through.</p></div>
+          <figure class="ff10-aud-figure" aria-hidden="true"><div class="ff10-step-visual ff10-sv-verdict ff10-aud-visual"><span>BUY</span><span>WATCH</span><span>VERIFY</span><span class="ff10-on">PASS</span></div><figcaption>Illustrative · fictional card</figcaption></figure>
         </div>
         <div class="ff10-aud-frame">
           <p class="ff10-aud-frame-label">The FlipForge framework <em>Decision signals for dealers</em></p>
           <ol class="ff10-aud-signals">
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="identity"><span class="ff10-step-n">1</span><div><strong>Lock the exact card <em class="ff10-aud-key">Key signal</em></strong><p>Every buy is checked against the exact card, so a mismatched parallel does not enter inventory at the wrong cost.</p></div></li>
+            <li class="ff10-aud-signal" data-stage="identity"><span class="ff10-step-n">1</span><div><strong>Lock the exact card</strong><p>Every card is checked against its exact identity, so a mismatched parallel does not enter inventory at the wrong cost.</p></div></li>
             <li class="ff10-aud-signal" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count</strong><p>The same evidence rules on every card, with a reason for every price set aside.</p></div></li>
-            <li class="ff10-aud-signal" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy</strong><p>Max Buy at your own fees and margin. A break-even price for each card you hold.</p></div></li>
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="decision"><span class="ff10-step-n">4</span><div><strong>Get the decision, and the why <em class="ff10-aud-key">Key signal</em></strong><p>Each saved decision keeps its evidence and reasoning, so it can be traced later.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy <em class="ff10-aud-key">Key signal</em></strong><p>Pricing discipline: Max Buy at your own fees and margin, and a break-even price for each card you hold.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="decision"><span class="ff10-step-n">4</span><div><strong>Get the decision, and the why <em class="ff10-aud-key">Key signal</em></strong><p>Each saved decision keeps its evidence and reasoning, so it can be traced and reviewed later.</p></div></li>
           </ol>
-          <div class="ff10-aud-why"><span>Why it matters</span><p>When you buy many cards, consistency matters. The same rules on every card make each purchase traceable. Dealer-specific workflows are not offered yet.</p></div>
+          <div class="ff10-aud-why"><span>How FlipForge helps</span><p>When you buy many cards, consistency matters. The same rules on every card make each purchase explainable. You decide and you buy; dealer-specific workflows are not offered yet.</p></div>
+          <div class="ff10-aud-actions"><a class="ff10-btn ff10-btn-gold" href="beta-application.html?goal=dealer#apply-heading" data-aud-cta="dealer">Apply as a dealer</a><a class="ff10-btn ff10-btn-line" href="#demo" data-aud-demo="dealer">Try the decision challenge</a></div>
         </div>
       </article>
       <article class="ff10-aud-panel" role="tabpanel" id="ff10-aud-panel-grading" aria-labelledby="ff10-aud-tab-grading" tabindex="0" data-aud-panel="grading">
         <div class="ff10-aud-lead">
-          <p class="ff10-aud-eyebrow">Grading-focused buyers · Pay for the grade</p>
-          <h3 class="ff10-aud-headline">Use grade context without losing the full decision.</h3>
-          <div class="ff10-aud-question"><span>The decision</span><p>“Do sales of this card, at this grader and this grade, support the premium I am paying?”</p></div>
+          <p class="ff10-aud-eyebrow">Grading-focused buyers · Look past the label</p>
+          <h3 class="ff10-aud-headline">Look beyond the label.</h3>
+          <div class="ff10-aud-question"><span>The decision</span><p>“Does the potential grade premium justify the purchase and associated risk?”</p></div>
           <div class="ff10-aud-problem"><span>The problem</span><p>Population and grade spread matter, but they do not answer the whole purchase decision.</p></div>
+          <figure class="ff10-aud-figure" aria-hidden="true"><div class="ff10-step-visual ff10-sv-identity ff10-aud-visual"><img src="assets/images/ff10-silver.webp" width="640" height="896" alt="" loading="lazy" decoding="async"><span class="ff10-lock ff10-lock-tl"></span><span class="ff10-lock ff10-lock-tr"></span><span class="ff10-lock ff10-lock-bl"></span><span class="ff10-lock ff10-lock-br"></span></div><figcaption>Illustrative · fictional card</figcaption></figure>
         </div>
         <div class="ff10-aud-frame">
           <p class="ff10-aud-frame-label">The FlipForge framework <em>Decision signals for grading-focused buyers</em></p>
           <ol class="ff10-aud-signals">
             <li class="ff10-aud-signal ff10-aud-focus" data-stage="identity"><span class="ff10-step-n">1</span><div><strong>Lock the exact card <em class="ff10-aud-key">Key signal</em></strong><p>Grader and grade are part of the card’s identity. A different grade is a different card.</p></div></li>
-            <li class="ff10-aud-signal ff10-aud-focus" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count <em class="ff10-aud-key">Key signal</em></strong><p>Sales that name a different grader or grade, or that are marked raw, are set aside.</p></div></li>
-            <li class="ff10-aud-signal" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy</strong><p>Max Buy for the slab, built from sales at that grader and grade.</p></div></li>
-            <li class="ff10-aud-signal" data-stage="decision"><span class="ff10-step-n">4</span><div><strong>Get the decision, and the why</strong><p>VERIFY when the grader or grade cannot be confirmed.</p></div></li>
+            <li class="ff10-aud-signal ff10-aud-focus" data-stage="evidence"><span class="ff10-step-n">2</span><div><strong>Keep the prices that count <em class="ff10-aud-key">Key signal</em></strong><p>Grade-specific evidence: sales that name a different grader or grade, or that are marked raw, are set aside, so a price difference between grades is shown only where each grade has its own sales.</p></div></li>
+            <li class="ff10-aud-signal" data-stage="maxbuy"><span class="ff10-step-n">3</span><div><strong>Know your Max Buy</strong><p>Grading costs and possible outcomes are part of the economics, so a premium is tested against what it costs to reach it.</p></div></li>
+            <li class="ff10-aud-signal" data-stage="decision"><span class="ff10-step-n">4</span><div><strong>Get the decision, and the why</strong><p>Grading uncertainty stays visible. VERIFY when the grader or grade cannot be confirmed.</p></div></li>
           </ol>
-          <div class="ff10-aud-why"><span>Why it matters</span><p>A grade premium is real only when sales at that exact grade support it. FlipForge does not predict the grade a raw card will receive.</p></div>
+          <div class="ff10-aud-why"><span>How FlipForge helps</span><p>A grade premium is real only when sales at that exact grade support it. FlipForge does not predict the grade a raw card will receive or guarantee a grading profit.</p></div>
+          <div class="ff10-aud-actions"><a class="ff10-btn ff10-btn-gold" href="beta-application.html?goal=grading#apply-heading" data-aud-cta="grading">Apply as a grading buyer</a><a class="ff10-btn ff10-btn-line" href="#demo" data-aud-demo="grading">Try the decision challenge</a></div>
         </div>
       </article>
     </div>
-    <p class="ff10-aud-note">How one FlipForge framework applies to different goals. FlipForge is decision support: it does not guarantee profit, investment returns or a grade.</p>
+    <div class="ff10-aud-close">
+      <p class="ff10-aud-closing">Different strategies. Different priorities. One standard for making an informed decision.</p>
+      <p class="ff10-aud-sign">Before you buy. Know Why.</p>
+    </div>
+    <p class="ff10-aud-note">Illustrative descriptions of how one FlipForge framework applies to different goals. FlipForge is decision support: it does not guarantee profit, investment returns or a grade, and it never buys or sells on your behalf.</p>
   </div>
 </section>
 <!-- ff-audiences:end -->
@@ -351,8 +366,71 @@
 <section class="ff10-demo ff10-light" id="demo" aria-labelledby="ff10-demo-title" data-ffdemo>
   <div class="ff10-wrap">
     <div class="ff10-demo-head">
-      <h2 id="ff10-demo-title" class="ff10-display ff10-display-md">Move the price. Watch the decision.</h2>
-      <p>Same card, same evidence. Only the asking price changes. Drag the handle or use your arrow keys.</p>
+      <h2 id="ff10-demo-title" class="ff10-display ff10-display-md">Would you buy this card?</h2>
+      <p>A fictional listing with an attractive price and an even better-looking comp. Make your call, then see what the evidence says.</p>
+    </div>
+
+    <!-- Decision Challenge: the same fictional card, prices and Max Buy as the rest of this page. -->
+    <div class="ff10-chal" data-ff-challenge>
+      <article class="ff10-chal-listing" aria-labelledby="ff10-chal-card">
+        <figure class="ff10-chal-slab"><img src="assets/images/ff10-hero.webp" srcset="assets/images/ff10-hero.webp 640w, assets/images/ff10-hero@2x.webp 1280w" sizes="(max-width: 760px) 30vw, 150px" width="640" height="1059" loading="lazy" decoding="async" alt="The fictional graded card from the top of this page: 2019 Meridian #48 J. Carver, Silver numbered to 99, Grade 9."></figure>
+        <div class="ff10-chal-listing-copy">
+          <p class="ff10-q-label">Fictional listing</p>
+          <h3 id="ff10-chal-card">2019 Meridian #48 J. Carver<span>Silver /99 · Grade 9</span></h3>
+          <dl class="ff10-chal-terms">
+            <div><dt>Asking price</dt><dd>$425</dd></div>
+            <div><dt>Listed comp</dt><dd>Sold for $780</dd></div>
+          </dl>
+          <p class="ff10-chal-hook">On the surface: $355 under the comp.</p>
+        </div>
+      </article>
+
+      <div class="ff10-chal-console" aria-live="polite">
+        <div class="ff10-chal-step ff10-chal-ask" data-chal-step="ask">
+          <p class="ff10-q-label">Your call</p>
+          <p class="ff10-chal-question">Would you buy it?</p>
+          <div class="ff10-chal-choices" role="group" aria-label="Your call">
+            <button type="button" data-chal-choice="buy">Buy it</button>
+            <button type="button" data-chal-choice="investigate">Investigate first</button>
+            <button type="button" data-chal-choice="pass">Pass</button>
+          </div>
+        </div>
+
+        <div class="ff10-chal-step" data-chal-step="investigate">
+          <p class="ff10-q-label">The investigation</p>
+          <ol class="ff10-chal-findings">
+            <li data-chal-finding><span class="ff10-chal-n">1</span><div><strong>The $780 comp was a Grade 10.</strong><p>This card is a Grade 9. A different grade is a different card, so that sale is set aside.</p></div><em class="ff10-chal-tag">Different grade</em></li>
+            <li data-chal-finding><span class="ff10-chal-n">2</span><div><strong>Two of the prices were never sales.</strong><p>$460 and $425 are active listings: asking prices, not evidence. Another sale is 16 months old, and a $140 sale is the base card, not the Silver /99.</p></div><em class="ff10-chal-tag">Not evidence</em></li>
+            <li data-chal-finding><span class="ff10-chal-n">3</span><div><strong>Only 3 of 8 prices count.</strong><p>Three reported sales of this exact card support a resale of about $500. With three sales, the market is thin.</p></div><em class="ff10-chal-tag">Thin evidence</em></li>
+            <li data-chal-finding><span class="ff10-chal-n">4</span><div><strong>Costs change the math.</strong><p>$500 resale − $60 fees − $15 shipping − your $65 margin leaves a Max Buy of $360.</p></div><em class="ff10-chal-tag ff10-chal-tag-gold">Max Buy $360</em></li>
+          </ol>
+          <div class="ff10-chal-nav"><button type="button" class="ff10-btn ff10-btn-gold" data-chal-next>Next finding</button><span data-chal-progress></span></div>
+        </div>
+
+        <div class="ff10-chal-step" data-chal-step="decision">
+          <p class="ff10-q-label">The FlipForge decision</p>
+          <div class="ff10-chal-decision">
+            <strong class="ff10-verdict" data-verdict-state="PASS">PASS</strong>
+            <p>The asking price is $65 above Max Buy, on thin evidence. Your margin isn’t there.</p>
+          </div>
+          <dl class="ff10-chal-terms ff10-chal-terms-row">
+            <div><dt>Looked like</dt><dd>$355 under</dd></div>
+            <div><dt>Actually</dt><dd>$65 over Max Buy</dd></div>
+            <div><dt>Prices that count</dt><dd>3 of 8</dd></div>
+          </dl>
+        </div>
+
+        <div class="ff10-chal-step" data-chal-step="reveal">
+          <p class="ff10-chal-reveal" data-chal-reveal>The listing looked $355 under its comp. Once the evidence was checked, it was $65 over what keeps your margin.</p>
+          <div class="ff10-chal-nav"><a class="ff10-btn ff10-btn-gold" href="#what-would-change" data-chal-change>What would change this decision?</a><button type="button" class="ff10-text-btn" data-chal-restart>Start again</button></div>
+        </div>
+      </div>
+      <p class="ff10-disclosure ff10-chal-note">Fictional card and illustrative numbers. NO REAL SALE DATA. Not a live evaluation.</p>
+    </div>
+
+    <div class="ff10-demo-head ff10-demo-sub" id="what-would-change">
+      <h3 class="ff10-demo-subtitle">Move the price. Watch the decision.</h3>
+      <p>What would change this decision? Same card, same evidence. Only the asking price changes. Drag the handle or use your arrow keys.</p>
     </div>
 
     <div class="ff10-meter">
@@ -435,6 +513,7 @@
 <script src="assets/js/phase3-activation-events-v1.js" defer></script>
 <script src="assets/js/homepage-v10.js" defer></script>
 <script src="assets/js/homepage-audiences-v1.js" defer></script>
+<script src="assets/js/homepage-challenge-v1.js" defer></script>
 <script src="assets/js/updates-signup.js" defer></script>
 <script src="assets/js/section-navigation.js" defer></script>
 </body>

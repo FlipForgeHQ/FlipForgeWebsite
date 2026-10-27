@@ -18,7 +18,8 @@ check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html))
 // every number of three or more digits the homepage shows (text and readable attributes) must be an approved public
 // figure, and no internal finding label (a letter plus digits such as an audit defect ID) may appear. A new number
 // on the homepage needs a deliberate addition to this list.
-const PUBLIC_HOMEPAGE_NUMBERS=new Set(['024','140','240','360','425','460','490','500','505','512','520','610','630','780','1200','2019','2026']);
+// 355: the Decision Challenge's illustrative "$355 under the comp" ($780 − $425) for the same fictional card.
+const PUBLIC_HOMEPAGE_NUMBERS=new Set(['024','140','240','355','360','425','460','490','500','505','512','520','610','630','780','1200','2019','2026']);
 const readable=(src=>{const body=src.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi,' ');
   const attrs=[...body.matchAll(/\s(?:content|alt|title|aria-label|placeholder|value)="([^"]*)"/gi)].map(m=>m[1]).join(' ');
   return (body.replace(/<[^>]+>/g,' ')+' '+attrs).replace(/&[a-z#0-9]+;/gi,' ').replace(/#[0-9a-f]{3,8}\b/gi,' ');})(html);

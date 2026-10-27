@@ -29,6 +29,13 @@ on:
       - "marketing/content/audience-messaging.json"
       - "scripts/build-homepage-audiences.mjs"
       - "scripts/validate-homepage-audiences-v1.mjs"
+      - "assets/css/homepage-challenge-v1.css"
+      - "assets/js/homepage-challenge-v1.js"
+      - "assets/js/homepage-v10.js"
+      - "assets/js/conversion-events.js"
+      - "assets/js/beta-application.js"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "scripts/validate-homepage-challenge-v1.mjs"
       - ".github/workflows/homepage-focus.yml"
   push:
     branches:
@@ -60,6 +67,13 @@ on:
       - "marketing/content/audience-messaging.json"
       - "scripts/build-homepage-audiences.mjs"
       - "scripts/validate-homepage-audiences-v1.mjs"
+      - "assets/css/homepage-challenge-v1.css"
+      - "assets/js/homepage-challenge-v1.js"
+      - "assets/js/homepage-v10.js"
+      - "assets/js/conversion-events.js"
+      - "assets/js/beta-application.js"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "scripts/validate-homepage-challenge-v1.mjs"
       - ".github/workflows/homepage-focus.yml"
 
 permissions:
@@ -82,6 +96,8 @@ jobs:
           node --check assets/js/homepage-v1.js
           node --check assets/js/site.js
           node --check assets/js/homepage-audiences-v1.js
+          node --check assets/js/homepage-challenge-v1.js
+          node --check assets/js/beta-application.js
       - name: Validate focused marketing contract
         run: |
           node scripts/validate-homepage-focus.mjs
@@ -91,3 +107,4 @@ jobs:
           node scripts/validate-product-identity-simulator.mjs
           node scripts/build-homepage-audiences.mjs --check
           node scripts/validate-homepage-audiences-v1.mjs
+          node scripts/validate-homepage-challenge-v1.mjs

@@ -28,15 +28,25 @@
     }
   }
 
+  const track = (event, placement) => document.dispatchEvent(new CustomEvent('ff:conversion', {detail: {event, placement}}));
+
   tabs.forEach((tab, i) => {
-    tab.addEventListener('click', () => select(i, false));
+    tab.addEventListener('click', () => {
+      select(i, false);
+      track('audience_selected', `audience-${tab.dataset.audTab}`);
+    });
     tab.addEventListener('keydown', event => {
       const last = tabs.length - 1;
       const next = {ArrowRight: i === last ? 0 : i + 1, ArrowLeft: i === 0 ? last : i - 1, Home: 0, End: last}[event.key];
       if (next === undefined) return;
       event.preventDefault();
       select(next, true);
+      track('audience_selected', `audience-${tabs[next].dataset.audTab}`);
     });
+  });
+
+  root.querySelectorAll('[data-aud-cta]').forEach(link => {
+    link.addEventListener('click', () => track('beta_cta_clicked', `audience-${link.dataset.audCta}`));
   });
 
   root.classList.add('ff10-aud-ready');

@@ -67,7 +67,29 @@
 .ff10-aud-why span{color:var(--g)}
 .ff10-aud-why p{margin-top:10px!important;font-size:17px;font-weight:600;line-height:1.5;color:var(--w)}
 
-.ff10-aud-note{margin-top:clamp(36px,4vw,56px)!important;font-size:13px;line-height:1.55;color:var(--s);max-width:60em}
+.ff10-aud-note{margin-top:24px!important;font-size:13px;line-height:1.55;color:var(--s);max-width:60em}
+
+/* ---------- Illustration (the existing "How it works" artwork, reused) ---------- */
+.ff10-aud-figure{margin:clamp(28px,3vw,40px) 0 0}
+.ff10-aud-figure figcaption{margin-top:10px;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--s)}
+.ff10-aud-visual{aspect-ratio:16/9;max-width:520px}
+.ff10-aud-visual.ff10-sv-identity img{width:27%}
+.ff10-aud-visual.ff10-sv-identity .ff10-lock{width:20px;height:20px}
+.ff10-aud-visual.ff10-sv-identity .ff10-lock-tl{left:33%;top:12%}.ff10-aud-visual.ff10-sv-identity .ff10-lock-tr{right:33%;top:12%;left:auto}
+.ff10-aud-visual.ff10-sv-identity .ff10-lock-bl{left:33%;bottom:12%;top:auto}.ff10-aud-visual.ff10-sv-identity .ff10-lock-br{right:33%;bottom:12%;left:auto;top:auto}
+.ff10-aud-visual.ff10-sv-evidence{gap:12px;padding:0 30%}
+.ff10-aud-visual.ff10-sv-evidence b{margin-top:6px;font-size:clamp(18px,1.6vw,24px)}
+.ff10-aud-visual.ff10-sv-max{gap:10px;padding:0 9%}
+.ff10-aud-visual.ff10-sv-max .ff10-wf i{height:12px}
+.ff10-aud-visual.ff10-sv-verdict{flex-direction:row;flex-wrap:wrap;gap:10px 18px}
+.ff10-aud-visual.ff10-sv-verdict span{font-size:clamp(20px,2vw,30px)}
+
+/* ---------- Next action and closing ---------- */
+.ff10-aud-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.ff10-aud-close{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:16px 48px;
+  margin-top:clamp(56px,6vw,96px);padding-top:32px;border-top:2px solid rgba(255,255,255,.22)}
+.ff10-aud-closing{max-width:22em;font-size:clamp(24px,2.5vw,38px);font-weight:700;letter-spacing:-.03em;line-height:1.15;color:var(--w)}
+.ff10-aud-sign{font-size:clamp(18px,1.6vw,22px);font-weight:700;letter-spacing:-.01em;color:var(--g)}
 
 /* ---------- Responsive ---------- */
 @media(max-width:1100px){
@@ -85,6 +107,8 @@
   .ff10-aud-tab strong{font-size:16px;white-space:nowrap}
   .ff10-aud-tab[aria-selected="true"]{background:var(--g);border-color:var(--g);color:var(--k)}
   .ff10-aud-signal{column-gap:14px}
+  .ff10-aud-visual{max-width:none}
+  .ff10-aud-actions .ff10-btn{flex:1 1 100%}
 }
 @media(prefers-reduced-motion:reduce){
   .ff10-aud-tab::after{transition:none}
