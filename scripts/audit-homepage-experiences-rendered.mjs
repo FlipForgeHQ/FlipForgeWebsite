@@ -1,4 +1,4 @@
-// Rendered regression for the homepage audience selector, Decision Challenge and Beta pre-selection.
+// Rendered regression for the homepage audience selector, Decision Challenge, "Inside the app" screens and Beta pre-selection.
 // Serves from FLIPFORGE_PUBLIC_AUDIT_URL (default http://127.0.0.1:4173). Experience counts are intercepted, never sent.
 import { chromium } from 'playwright';
 
@@ -56,12 +56,40 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
   check(`${name}: the existing price demo still decides (BUY at $335)`, await page.locator('[data-ffdemo] [data-verdict]').innerText() === 'BUY'
     && (await page.locator('[data-ask-value]').innerText()).includes('335'));
 
+  // Inside the app: real screens, one at a time
+  check(`${name}: one app screen shown at a time`, await page.locator('[data-app-panel]:visible').count() === 1
+    && await page.locator('[data-app-panel="discover"]').isVisible());
+  await page.locator('[data-app-tab="evaluate"]').scrollIntoViewIfNeeded();
+  await page.locator('[data-app-tab="evaluate"]').click();
+  const shot = page.locator('[data-app-panel="evaluate"] .ff10-app-window img');
+  await shot.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => { const i = document.querySelector('[data-app-panel="evaluate"] .ff10-app-window img'); return i && i.complete && i.naturalWidth > 0; }, null, {timeout: 10000}).catch(() => {});
+  const evalShot = await shot.evaluate(i => ({w: i.naturalWidth, src: i.currentSrc}));
+  check(`${name}: choosing Evaluate shows the real decision screen at the right size`, await page.locator('[data-app-panel="evaluate"]').isVisible()
+    && !(await page.locator('[data-app-panel="discover"]').isVisible())
+    && evalShot.w > 0 && (viewport.width <= 760 ? evalShot.src.endsWith('ff-app-evaluate-m.webp') : evalShot.src.endsWith('ff-app-evaluate.webp')));
+  await page.locator('[data-app-tab="evaluate"]').focus();
+  await page.keyboard.press('End');
+  check(`${name}: keyboard End selects the Decision Receipt and moves focus`,
+    await page.evaluate(() => document.activeElement.dataset.appTab) === 'receipt'
+    && await page.locator('[data-app-panel="receipt"]').isVisible());
+  await page.keyboard.press('ArrowRight');
+  check(`${name}: app screen arrows wrap around`, await page.locator('[data-app-tab="discover"]').getAttribute('aria-selected') === 'true');
+  await page.locator('[data-app-tab="receipt"]').click();
+  const win = page.locator('[data-app-panel="receipt"] .ff10-app-window');
+  await win.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => { const i = document.querySelector('[data-app-panel="receipt"] .ff10-app-window img'); return i && i.complete && i.naturalWidth > 0; }, null, {timeout: 10000}).catch(() => {});
+  const box = await win.evaluate(w => ({scrollable: w.scrollHeight > w.clientHeight + 40, height: w.clientHeight, width: w.getBoundingClientRect().width}));
+  check(`${name}: the Decision Receipt scrolls inside its window and fits the screen`, box.scrollable && box.height <= viewport.height && box.width <= viewport.width);
+  check(`${name}: the "Real FlipForge app · fictional card" label is visible`, (await page.locator('.ff10-app-badge').innerText()).toLowerCase().includes('fictional card'));
+
   check(`${name}: no horizontal page scroll`, !(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)));
   check(`${name}: no script errors`, errors.length === 0);
   await page.waitForTimeout(300);
   const sent = events.map(e => `${e.event}:${e.placement}`);
   check(`${name}: experience counts sent with allowlisted names only`,
-    ['audience_selected:audience-grading', 'challenge_answered:challenge-investigate', 'challenge_completed:challenge-investigate', 'demo_interacted:demo']
+    ['audience_selected:audience-grading', 'challenge_answered:challenge-investigate', 'challenge_completed:challenge-investigate', 'demo_interacted:demo',
+      'app_screen_viewed:app-evaluate', 'app_screen_viewed:app-receipt']
       .every(e => sent.includes(e)) && events.every(e => Object.keys(e).sort().join() === 'event,page,placement'));
   await context.close();
 }
@@ -73,6 +101,8 @@ check('no-script: all five audiences shown, selector hidden', await plain.locato
   && !(await plain.locator('.ff10-aud-tabs').isVisible()));
 check('no-script: the full investigation is shown, calls hidden', await plain.locator('[data-chal-finding]:visible').count() === 4
   && !(await plain.locator('.ff10-chal-choices').isVisible()));
+check('no-script: all three app screens shown, selector hidden', await plain.locator('[data-app-panel]:visible').count() === 3
+  && !(await plain.locator('.ff10-app-tabs').isVisible()));
 await plain.close();
 
 // Beta application: pre-selection from an audience, existing pathway intact.
@@ -90,4 +120,4 @@ if (failures.length) {
   console.error(`FAIL: ${failures.length} rendered homepage experience check(s):\n- ${failures.join('\n- ')}`);
   process.exit(1);
 }
-console.log(`PASS: ${passed} rendered homepage experience checks (audience selector, Decision Challenge, Beta pre-selection) at three viewports.`);
+console.log(`PASS: ${passed} rendered homepage experience checks (audience selector, Decision Challenge, Inside the app, Beta pre-selection) at three viewports.`);
