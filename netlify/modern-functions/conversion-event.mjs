@@ -49,6 +49,7 @@ const PAGE_NAMES = new Set([
 const PLACEMENTS = new Set([
   "hero",
   "sample-spotlight",
+  "evidence",
   "sample-page",
   "navigation",
   "footer",
