@@ -53,7 +53,18 @@ async function open(viewport, v3) {
   });
   const page = await context.newPage();
   await page.goto(v3 ? `${baseUrl}/?dashboard=v3#/dashboard` : `${baseUrl}/#/dashboard`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector(v3 ? '[data-decision-dashboard-v3][data-ffv3-state="ready"]' : "[data-commercial-dashboard-v2] .ff-kpi-card", { timeout: 15000 });
+  // The Beta-first dashboard intentionally conceals secondary metrics until the
+  // customer chooses Show full dashboard. Verify the real disclosure interaction
+  // before checking original V2 cards, rather than bypassing the visibility audit.
+  if (!v3) {
+    await page.waitForSelector('[data-commercial-dashboard-v2] .ff-kpi-card', { state: "attached", timeout: 15000 });
+    const expand = page.locator("[data-ffguided-more]");
+    await expand.waitFor({ state: "visible", timeout: 15000 });
+    await expand.click();
+    await page.waitForSelector('[data-commercial-dashboard-v2] .ff-kpi-card', { timeout: 15000 });
+  } else {
+    await page.waitForSelector('[data-decision-dashboard-v3][data-ffv3-state="ready"]', { timeout: 15000 });
+  }
   await page.waitForSelector(".ff-guide-launcher", { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(600);
   return { context, page };
@@ -262,7 +273,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
     const unobstructed = selector => {
       const node = document.querySelector(selector);
       if (!node) return "missing";
-      node.scrollIntoView({ block: "center" });
+      // The app uses smooth scrolling; measure after an instant scroll, not mid-animation.
+      node.scrollIntoView({ block: "center", behavior: "instant" });
       const box = node.getBoundingClientRect();
       if (!box.width || !box.height) return "hidden";
       const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);

@@ -8,6 +8,26 @@
   const ONBOARDING_VALUE = "complete";
   const FEEDBACK_ENDPOINT = "/api/beta/feedback";
   let firstRunNavigationHandled = false;
+  // A feedback draft handed over by another screen (for example "Request evidence for
+  // this card" in Discover). Held only in memory for this page session, applied to the
+  // form when the guide renders, and cleared once the guide has rendered with it.
+  let pendingFeedbackDraft = null;
+  // The card reference of an evidence request: only confirmed card-identity fields, held in
+  // memory while the tester reviews them, cleared on send, on removal, or on leaving the guide.
+  let activeCardReference = null;
+  const CARD_REFERENCE_SOURCE = "DISCOVER_EXACT_SEARCH";
+  const CARD_REFERENCE_TEXT_FIELDS = Object.freeze([
+    ["identity", "Card", 200],
+    ["year", "Year", 7],
+    ["player", "Player", 80],
+    ["set", "Set", 120],
+    ["cardNumber", "Card number", 24],
+    ["parallel", "Parallel or variation", 80]
+  ]);
+  const CARD_REFERENCE_GRADERS = Object.freeze(["PSA", "BGS", "SGC", "CGC", "CSG", "TAG", "BCCG", "RAW"]);
+  const CARD_REFERENCE_GRADES = Object.freeze(["10", "9.5", "9", "8.5", "8", "7.5", "7", "6.5", "6", "5.5", "5", "4.5", "4", "3.5", "3", "2.5", "2", "1.5", "1", "AUTHENTIC"]);
+  const CARD_REFERENCE_UNSAFE = [/[a-z][a-z0-9+.-]*:\/\//i, /\bwww\./i, /\b[a-z0-9-]+\.(?:com|net|org|io|co|us|uk|ca|de|ly|app|shop|store|me|gg)\b/i, /@/, /\d{9,}/, /[<>{}\\`]/, /[$€£¥]/];
+  const FEEDBACK_DRAFT_CATEGORIES = new Set(["workflow", "decision-explanation", "evidence", "psa-guidance", "accessibility", "bug"]);
 
   function productionHost() {
     return PRODUCTION_HOST.test(String(window.location.hostname || ""));
@@ -125,6 +145,84 @@
     if (copy) copy.textContent = "Invitation only · Controlled customer intelligence · No billing or transaction authority";
   }
 
+  function cleanCardValue(value, max) {
+    return String(value ?? "").normalize("NFKC").replace(/[\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+  }
+
+  // Accepts only the card-identity fields; anything else a caller passes is dropped here and
+  // refused by the server.
+  function normalizeCardReference(input) {
+    if (!input || typeof input !== "object") return null;
+    const fields = {};
+    for (const [name, , max] of CARD_REFERENCE_TEXT_FIELDS) fields[name] = cleanCardValue(input[name], max);
+    fields.cardNumber = fields.cardNumber.replace(/^#/, "");
+    const grader = cleanCardValue(input.grader, 8).toUpperCase();
+    const grade = cleanCardValue(input.grade, 9).toUpperCase();
+    fields.grader = CARD_REFERENCE_GRADERS.includes(grader) ? grader : "";
+    fields.grade = fields.grader && fields.grader !== "RAW" && CARD_REFERENCE_GRADES.includes(grade) ? grade : "";
+    if (fields.identity.length < 6) return null;
+    return { prefill: Object.freeze({ ...fields }), current: { ...fields } };
+  }
+
+  function cardFieldStatus(name) {
+    const prefill = activeCardReference?.prefill?.[name] || "";
+    const current = activeCardReference?.current?.[name] || "";
+    if (!current) return ["missing", name === "identity" ? "Required" : "Not in your search · add it if you know it"];
+    if (current !== prefill) return ["edited", "Edited by you"];
+    return ["search", "From your Discover search"];
+  }
+
+  function cardStatusChip(name) {
+    const [tone, text] = cardFieldStatus(name);
+    return `<small class="private-beta-card-chip" data-card-chip="${name}" data-tone="${tone}">${escapeHtml(text)}</small>`;
+  }
+
+  function cardReferenceMarkup() {
+    if (!activeCardReference) return "";
+    const current = activeCardReference.current;
+    const textInputs = CARD_REFERENCE_TEXT_FIELDS.map(([name, label, max]) => `<label class="private-beta-card-field${name === "identity" ? " private-beta-card-field-wide" : ""}"><span>${escapeHtml(label)}</span>${cardStatusChip(name)}<input name="card-${name}" data-card-field="${name}" maxlength="${max}" autocomplete="off" spellcheck="false" value="${escapeHtml(current[name])}"${name === "identity" ? ' aria-required="true"' : ""}></label>`).join("");
+    const graderOptions = [["", "Not stated"], ...CARD_REFERENCE_GRADERS.map(value => [value, value === "RAW" ? "Raw (ungraded)" : value])]
+      .map(([value, label]) => `<option value="${value}"${current.grader === value ? " selected" : ""}>${escapeHtml(label)}</option>`).join("");
+    const gradeOptions = [["", "Not stated"], ...CARD_REFERENCE_GRADES.map(value => [value, value === "AUTHENTIC" ? "Authentic" : value])]
+      .map(([value, label]) => `<option value="${value}"${current.grade === value ? " selected" : ""}>${escapeHtml(label)}</option>`).join("");
+    return `<fieldset class="private-beta-card-reference" data-card-reference>
+        <legend>Card for this evidence request</legend>
+        <p class="private-beta-card-intro">Check these details before you send. Fix anything that's wrong and add what's missing if you know it. Only the card fields below are sent: no listing link, seller, price, or sale details.</p>
+        <div class="private-beta-card-grid">
+          ${textInputs}
+          <label class="private-beta-card-field"><span>Grader</span>${cardStatusChip("grader")}<select name="card-grader" data-card-field="grader">${graderOptions}</select></label>
+          <label class="private-beta-card-field"><span>Grade</span>${cardStatusChip("grade")}<select name="card-grade" data-card-field="grade">${gradeOptions}</select></label>
+        </div>
+        <button class="private-beta-card-remove" type="button" data-card-reference-remove>Don't include card details</button>
+      </fieldset>`;
+  }
+
+  function syncCardReferenceFromForm() {
+    if (!activeCardReference) return;
+    document.querySelectorAll("[data-card-reference] [data-card-field]").forEach(input => {
+      const name = input.dataset.cardField;
+      const field = CARD_REFERENCE_TEXT_FIELDS.find(([key]) => key === name);
+      activeCardReference.current[name] = input.tagName === "SELECT"
+        ? String(input.value || "")
+        : cleanCardValue(input.value, field ? field[2] : 80);
+    });
+  }
+
+  // Mirrors the server rules so the tester sees a specific message before sending.
+  function cardReferenceProblem(reference) {
+    const labelFor = name => (CARD_REFERENCE_TEXT_FIELDS.find(([key]) => key === name) || [name, name])[1];
+    if (reference.identity.length < 6 || !/[A-Za-z]/.test(reference.identity)) return ["identity", "Enter the card (year, set, player and card number) before sending."];
+    for (const [name] of CARD_REFERENCE_TEXT_FIELDS) {
+      if (reference[name] && CARD_REFERENCE_UNSAFE.some(pattern => pattern.test(reference[name]))) {
+        return [name, `${labelFor(name)} can only hold card details. Remove links, email addresses, long ID numbers, or prices.`];
+      }
+    }
+    if (reference.year && !/^(?:18|19|20)\d{2}(?:-\d{2})?$/.test(reference.year)) return ["year", "Enter the year as 2023 or a season as 2025-26."];
+    if (reference.cardNumber && !/^[A-Za-z0-9][A-Za-z0-9.\-/]{0,23}$/.test(reference.cardNumber.replace(/^#/, ""))) return ["cardNumber", "Enter the card number as printed, for example 1, US50 or BCP-12."];
+    if (reference.grade && (!reference.grader || reference.grader === "RAW")) return ["grade", "Choose the grader for this grade, or clear the grade for a raw card."];
+    return null;
+  }
+
   function feedbackForm(session) {
     const signedIn = session.authenticated && session.membershipActive;
     return `<form class="private-beta-feedback-form" data-private-beta-feedback>
@@ -169,6 +267,7 @@
           </select>
         </label>
       </div>
+      ${cardReferenceMarkup()}
       <label>What happened?
         <textarea name="summary" maxlength="2000" required placeholder="Describe the workflow, wording, or behavior that helped or blocked you."></textarea>
       </label>
@@ -176,7 +275,7 @@
         <textarea name="expected" maxlength="1200" placeholder="Optional: describe what a clearer or better outcome would look like."></textarea>
       </label>
       <label class="private-beta-consent"><input type="checkbox" name="contactAllowed" value="yes"><span>FlipForge may include my invited account email with this feedback and follow up about it.</span></label>
-      <p class="private-beta-feedback-note">For an outcome review, choose Day 7, 14, or 30 and an outcome signal. Do not paste passwords, access tokens, provider keys, tenant IDs, card listing URLs, card identities, or other sensitive data. This form records tester feedback—not a new evaluation or accuracy claim.</p>
+      <p class="private-beta-feedback-note">For an outcome review, choose Day 7, 14, or 30 and an outcome signal. Do not paste passwords, access tokens, provider keys, tenant IDs, card listing URLs, seller details, or other sensitive data. Send card identities only in the reviewed card fields of an evidence request. This form records tester feedback—not a new evaluation or accuracy claim.</p>
       <div class="page-actions"><button class="button button-primary" type="submit" ${signedIn ? "" : "disabled"}>Send beta feedback</button></div>
       <p class="private-beta-message" data-private-beta-message role="status" aria-live="polite">${signedIn ? "" : "Sign in with an active invitation before sending feedback."}</p>
     </form>`;
@@ -190,26 +289,94 @@
     const displayName = session.fullName || "FlipForge tester";
 
     return `<div class="page private-beta-page private-beta-v2" data-private-beta-readiness>
-      <header class="private-beta-v2-header">
-        <div class="private-beta-v2-heading">
-          <span class="eyebrow">Private Beta Guide · First Session</span>
-          <h1>Welcome to FlipForge.</h1>
-          <p>Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust.</p>
+      <header class="private-beta-v3-hero" aria-labelledby="private-beta-welcome">
+        <div class="private-beta-v3-hero-copy">
+          <span class="eyebrow">PRIVATE BETA · CARD DECISION INTELLIGENCE™</span>
+          <h1 id="private-beta-welcome">Welcome to FlipForge.</h1>
+          <p class="private-beta-v3-intro">FlipForge goes beyond a card's price. It checks the exact identity, examines the evidence, considers costs and uncertainty, and explains what the decision means.</p>
+          <p class="private-beta-v3-intro-sub">Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust.</p>
+          <div class="private-beta-v3-actions">
+            <a class="button button-primary" href="#/discover" data-private-beta-start>Evaluate my first card</a>
+            <a class="private-beta-v3-manual" href="#/evaluate">Enter a listing manually</a>
+          </div>
+          <p class="private-beta-v3-slogan">Before you buy. Know Why.</p>
         </div>
-        <div class="private-beta-v2-header-actions">
-          <a class="button button-primary" href="#/discover" data-private-beta-start>Start with Discover</a>
-          <a class="button button-secondary" href="#/evaluate">Enter a listing manually</a>
+        <div class="private-beta-v3-brief" aria-label="What FlipForge helps you understand">
+          <div><span>01</span><strong>The exact card</strong><p>Know which version and grade you're evaluating.</p></div>
+          <div><span>02</span><strong>The evidence</strong><p>See what supports the result—and what does not.</p></div>
+          <div><span>03</span><strong>The decision</strong><p>Understand the reasoning and what to check next.</p></div>
         </div>
       </header>
 
-      <section class="private-beta-v2-status" aria-label="Private beta readiness">
+      <section class="private-beta-v3-next" aria-label="Optional first-session information">
+        <details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide" data-private-beta-first-card>
+          <summary><span><strong>Want a little help with your first card?</strong><small>Optional four-step walkthrough: find, evaluate, understand, report.</small></span><b aria-hidden="true">＋</b></summary>
+          <div class="private-beta-v3-expander-body">
+            <p class="eyebrow">Private Beta Guide · First Session</p>
+            <h2 class="private-beta-v3-guide-title">Evaluate one card from start to finish.</h2>
+            <p class="private-beta-v3-guide-hint">Do not try to learn every FlipForge feature today. Use one card you genuinely understand, follow the evidence, read the decision, and open the Decision Receipt. Start with Discover, or enter a listing manually.</p>
+            <h3 class="private-beta-v3-guide-subtitle">Tester walkthrough</h3>
+            <div class="panel-body private-beta-v2-journey">
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">1</span>
+            <div><span>FIND</span><strong>Search one exact card</strong><p>Use Discover and choose the exact identity. Discovery score ranks returned active listings only; it is not BUY/WATCH/VERIFY/PASS and searches are not saved.</p></div>
+            <a class="button button-secondary" href="#/discover">Open Discover</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">2</span>
+            <div><span>EVALUATE</span><strong>Submit one listing to Smart Opportunity</strong><p>Choose a Discover result or enter the listing manually. The authoritative backend—not the browser—creates and saves the recommendation.</p></div>
+            <a class="button button-secondary" href="#/evaluate">Manual option</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">3</span>
+            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read Decision → Value → Risk → Why → Evidence. Then Challenge the Decision Traceback and open the Decision Receipt to see what the result preserves.</p></div>
+            <a class="button button-secondary" href="#/opportunities">Saved Decisions</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">4</span>
+            <div><span>REPORT</span><strong>Send focused feedback</strong><p>Tell us what was immediately clear, what made you hesitate, and what information you expected but could not find.</p></div>
+            <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button>
+          </article>
+        </div>
+          </div>
+        </details>
+      </section>
+
+      <section class="private-beta-v3-reference" aria-labelledby="private-beta-v3-reference-title">
+        <div class="private-beta-v3-reference-intro">
+          <span class="eyebrow">EXPLORE WHEN YOU'RE READY</span>
+          <h2 id="private-beta-v3-reference-title">More about your workspace.</h2>
+          <p>All the details are here when you need them. You can start with one card without reading them first. <a class="panel-link" href="#/decision-intelligence">How Card Decision Intelligence works →</a></p>
+        </div>
+        <div class="private-beta-v3-reference-links">
+          <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-boundary>
+            <summary><span><strong>What FlipForge does—and doesn't do</strong><small>Decision authority, evidence limits, and no transaction execution.</small></span><b aria-hidden="true">＋</b></summary>
+            <div class="private-beta-v3-expander-body"><aside class="private-beta-v2-boundary">
+        <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
+        <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
+      </aside></div>
+          </details>
+          <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-account-details>
+            <summary><span><strong>Your access and guide settings</strong><small>Access: ${escapeHtml(accessValue)} · Evaluation system: ${escapeHtml(bridgeValue)}</small></span><b aria-hidden="true">＋</b></summary>
+            <div class="private-beta-v3-expander-body">
+              <section class="private-beta-v2-status" aria-label="Private beta readiness">
         ${statusCard("Your access", accessValue, accessDetail, accessTone)}
         ${statusCard("Evaluation system", bridgeValue, bridgeDetail, bridgeTone, "data-private-beta-bridge")}
         ${statusCard("Saved decisions", "SQLite source of truth", "Your evaluations and tracked decisions stay tenant-owned and server-backed.", "ok")}
         ${statusCard("Customer access", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
       </section>
-
-      <section class="private-beta-record-system" aria-labelledby="private-beta-record-title" data-private-beta-record-system>
+              <div class="private-beta-v2-guide-state">
+          <span>First-run guide</span>
+          <strong>${introComplete ? "Completed" : "Ready"}</strong>
+          <small>This only controls whether this introduction opens automatically. It does not change your account or saved decisions.</small>
+          <button class="button button-secondary" type="button" ${introComplete ? "data-private-beta-reset" : "data-private-beta-complete"}>${introComplete ? "Show this guide next time" : "Don't show this guide automatically again"}</button>
+        </div>
+            </div>
+          </details>
+          <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-record-details>
+            <summary><span><strong>How your decision is saved</strong><small>Identity, evidence, Decision Receipt and outcome history—all connected.</small></span><b aria-hidden="true">＋</b></summary>
+            <div class="private-beta-v3-expander-body">
+              <section class="private-beta-record-system" aria-labelledby="private-beta-record-title" data-private-beta-record-system>
         <header class="private-beta-record-head">
           <div>
             <span class="eyebrow">YOUR FLIPFORGE RECORD</span>
@@ -257,62 +424,9 @@
           <span>Saved Decisions</span><b>→</b><span>Decision Receipt</span><b>→</b><span>Outcome Intelligence</span><b>→</b><span>Decision Dossier</span>
         </footer>
       </section>
-
-      <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
-        <div class="private-beta-v2-mission-copy">
-          <span class="private-beta-v2-number">01</span>
-          <div>
-            <span class="eyebrow">START HERE</span>
-            <h2 id="private-beta-mission-title">Evaluate one card from start to finish.</h2>
-            <p>Do not try to learn every FlipForge feature today. Use one card you genuinely understand, follow the evidence, read the decision, and open the Decision Receipt.</p>
-            <div class="private-beta-v2-mission-actions">
-              <a class="button button-primary" href="#/discover" data-private-beta-start>Find my first card</a>
-              <a class="button button-secondary" href="#/decision-intelligence">How Card Decision Intelligence works</a>
             </div>
-          </div>
-        </div>
-        <div class="private-beta-v2-guide-state">
-          <span>First-run guide</span>
-          <strong>${introComplete ? "Completed" : "Ready"}</strong>
-          <small>This only controls whether this introduction opens automatically. It does not change your account or saved decisions.</small>
-          <button class="button button-secondary" type="button" data-private-beta-${introComplete ? "reset" : "complete"}>${introComplete ? "Show this guide next time" : "Don't show this guide automatically again"}</button>
-        </div>
-      </section>
-
-      <section class="panel private-beta-v2-walkthrough">
-        <header class="panel-header">
-          <div>
-            <span class="eyebrow">YOUR FIRST DECISION</span>
-            <h2>Tester walkthrough</h2>
-            <p>Four stages. One card. Follow them in order.</p>
-          </div>
-        </header>
-        <div class="panel-body private-beta-v2-journey">
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">1</span>
-            <div><span>FIND</span><strong>Search one exact card</strong><p>Use Discover and choose the exact identity. Discovery score ranks returned active listings only; it is not BUY/WATCH/VERIFY/PASS and searches are not saved.</p></div>
-            <a class="button button-secondary" href="#/discover">Open Discover</a>
-          </article>
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">2</span>
-            <div><span>EVALUATE</span><strong>Submit one listing to Smart Opportunity</strong><p>Choose a Discover result or enter the listing manually. The authoritative backend—not the browser—creates and saves the recommendation.</p></div>
-            <a class="button button-secondary" href="#/evaluate">Manual option</a>
-          </article>
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">3</span>
-            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read Decision → Value → Risk → Why → Evidence. Then Challenge the Decision Traceback and open the Decision Receipt to see what the result preserves.</p></div>
-            <a class="button button-secondary" href="#/opportunities">Saved Decisions</a>
-          </article>
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">4</span>
-            <div><span>REPORT</span><strong>Send focused feedback</strong><p>Tell us what was immediately clear, what made you hesitate, and what information you expected but could not find.</p></div>
-            <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button>
-          </article>
-        </div>
-      </section>
-
-      <section class="private-beta-v2-secondary" aria-label="Secondary beta information">
-        <details class="private-beta-v2-details">
+          </details>
+          <details class="private-beta-v2-details">
           <summary><span><strong>What is available now</strong><small>Open this when you want to explore beyond your first decision.</small></span><b aria-hidden="true">＋</b></summary>
           <div class="private-beta-v2-details-body private-beta-limit-list">
             <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Discover → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Provider-backed active-listing search, tenant-scoped reads/writes, and comparison use the approved same-origin customer gateway when enabled.</small></span></div>
@@ -323,8 +437,7 @@
             <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Create a Decision Dossier</strong><small>Export one complete saved decision with governed evidence, PSA context, lifecycle history, and integrity manifest.</small></span></div>
           </div>
         </details>
-
-        <details class="private-beta-v2-details">
+          <details class="private-beta-v2-details">
           <summary><span><strong>Known beta limits</strong><small>What FlipForge intentionally does not pretend to do.</small></span><b aria-hidden="true">＋</b></summary>
           <div class="private-beta-v2-details-body private-beta-limit-list">
             <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Connected-source scope</strong><small>Discover ranks listings returned by currently connected approved sources. It does not claim complete-market coverage.</small></span></div>
@@ -334,20 +447,23 @@
             <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>No billing or transactions</strong><small>No paid limits, checkout, payment, purchase, listing, sale, or marketplace action is active.</small></span></div>
           </div>
         </details>
+        </div>
       </section>
 
-      <aside class="private-beta-v2-boundary">
-        <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
-        <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
-      </aside>
+      <details class="private-beta-v2-details private-beta-v2-feedback private-beta-v3-feedback" id="beta-feedback"${pendingFeedbackDraft ? " open" : ""}>
+        <summary><span><span class="eyebrow">AFTER YOU TRY ONE CARD</span><strong>Beta feedback</strong><small>Tell us where the experience was clear, confusing, incomplete, or unexpectedly useful.</small></span><b aria-hidden="true">＋</b></summary>
+        <div class="private-beta-v3-feedback-body">${feedbackForm(session)}</div>
+      </details>
 
-      <section class="panel private-beta-v2-feedback" id="beta-feedback">
-        <header class="panel-header">
-          <div><span class="eyebrow">AFTER YOU TRY ONE CARD</span><h2>Beta feedback</h2><p>Tell us where the experience was clear, confusing, incomplete, or unexpectedly useful.</p></div>
-        </header>
-        <div class="panel-body">${feedbackForm(session)}</div>
-      </section>
     </div>`;
+  }
+
+  function scrollToFeedback() {
+    const section = document.querySelector("#beta-feedback");
+    if (!section) return;
+    section.open = true;
+    document.querySelector("#beta-feedback")?.scrollIntoView({ behavior: "instant", block: "start" });
+    document.querySelector("[data-private-beta-feedback] [name='summary']")?.focus({ preventScroll: true });
   }
 
   function setMessage(text, tone = "neutral") {
@@ -373,6 +489,28 @@
     }
   }
 
+  function applyPendingFeedbackDraft() {
+    const draft = pendingFeedbackDraft;
+    const form = document.querySelector("[data-private-beta-feedback]");
+    if (!draft || !form) return false;
+    if (draft.category && form.elements.category) form.elements.category.value = draft.category;
+    if (draft.summary && form.elements.summary) form.elements.summary.value = draft.summary;
+    if (draft.expected && form.elements.expected) form.elements.expected.value = draft.expected;
+    return true;
+  }
+
+  function requestFeedback(draft = {}) {
+    const category = FEEDBACK_DRAFT_CATEGORIES.has(String(draft.category || "")) ? String(draft.category) : "workflow";
+    pendingFeedbackDraft = Object.freeze({
+      category,
+      summary: String(draft.summary || "").slice(0, 2000),
+      expected: String(draft.expected || "").slice(0, 1200)
+    });
+    activeCardReference = category === "evidence" ? normalizeCardReference(draft.cardReference) : null;
+    if (onBetaRoute()) render();
+    else window.location.hash = `#/${ROUTE}`;
+  }
+
   function bind(session) {
     document.querySelector("[data-private-beta-complete]")?.addEventListener("click", () => {
       completePreference();
@@ -387,7 +525,28 @@
     document.querySelector("[data-private-beta-start]")?.addEventListener("click", completePreference);
 
     document.querySelector("[data-private-beta-feedback-link]")?.addEventListener("click", () => {
-      document.querySelector("#beta-feedback")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollToFeedback();
+    });
+
+    document.querySelectorAll("[data-card-reference] [data-card-field]").forEach(input => {
+      const update = () => {
+        syncCardReferenceFromForm();
+        const name = input.dataset.cardField;
+        const chip = document.querySelector(`[data-card-chip="${name}"]`);
+        if (!chip) return;
+        const [tone, text] = cardFieldStatus(name);
+        chip.dataset.tone = tone;
+        chip.textContent = text;
+      };
+      input.addEventListener("input", update);
+      input.addEventListener("change", update);
+    });
+
+    document.querySelector("[data-card-reference-remove]")?.addEventListener("click", () => {
+      activeCardReference = null;
+      document.querySelector("[data-card-reference]")?.remove();
+      setMessage("Card details removed. This will be sent as general evidence feedback.");
+      document.querySelector("[data-private-beta-feedback] [name='summary']")?.focus();
     });
 
     document.querySelector("[data-private-beta-feedback]")?.addEventListener("submit", async event => {
@@ -421,8 +580,32 @@
       });
       payload.route = routeName();
 
+      // An evidence request carries only the card fields the tester has just reviewed.
+      syncCardReferenceFromForm();
+      const cardReference = activeCardReference ? { ...activeCardReference.current } : null;
+      if (cardReference) {
+        if (payload.category !== "evidence") {
+          setMessage("A card evidence request uses the Evidence feedback type. Choose Evidence, or remove the card details.", "error");
+          form.elements.category?.focus();
+          return;
+        }
+        const problem = cardReferenceProblem(cardReference);
+        if (problem) {
+          setMessage(problem[1], "error");
+          form.querySelector(`[data-card-field="${problem[0]}"]`)?.focus();
+          return;
+        }
+        const prefill = activeCardReference.prefill;
+        payload.requestType = "CARD_EVIDENCE";
+        payload.cardReference = {
+          ...cardReference,
+          source: CARD_REFERENCE_SOURCE,
+          edited: Object.keys(cardReference).some(name => cardReference[name] !== prefill[name])
+        };
+      }
+
       button.disabled = true;
-      setMessage("Sending beta feedback…");
+      setMessage(cardReference ? "Sending evidence request…" : "Sending beta feedback…");
       try {
         const response = await fetch(FEEDBACK_ENDPOINT, {
           method: "POST",
@@ -430,11 +613,25 @@
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify(payload)
         });
-        if (!response.ok) throw new Error("Feedback endpoint rejected the submission.");
+        if (!response.ok) {
+          const body = await response.json().catch(() => null);
+          const fields = Array.isArray(body?.fields) ? body.fields : [];
+          const error = new Error("Feedback endpoint rejected the submission.");
+          error.cardReferenceRejected = fields.some(code => /^CARD_(?:REFERENCE|EVIDENCE)_/.test(String(code)));
+          throw error;
+        }
         form.reset();
-        setMessage("Feedback received. Thank you for testing the reasoning—not just the result.", "ok");
-      } catch (_) {
-        setMessage("Feedback could not be sent. Your evaluation data was not affected; try again later.", "error");
+        if (cardReference) {
+          activeCardReference = null;
+          form.querySelector("[data-card-reference]")?.remove();
+          setMessage("Evidence request received. The FlipForge team reviews each request. It doesn't change any saved decision.", "ok");
+        } else {
+          setMessage("Feedback received. Thank you for testing the reasoning—not just the result.", "ok");
+        }
+      } catch (error) {
+        setMessage(error?.cardReferenceRejected
+          ? "The card details weren't accepted. Check them for links, email addresses or ID numbers, then send again."
+          : "Feedback could not be sent. Your evaluation data was not affected; try again later.", "error");
       } finally {
         button.disabled = false;
       }
@@ -454,13 +651,24 @@
     main.innerHTML = pageMarkup(session, null);
     bind(session);
     main.focus({ preventScroll: true });
-    window.scrollTo({ top: 0, behavior: "instant" });
+    if (applyPendingFeedbackDraft()) scrollToFeedback();
+    else window.scrollTo({ top: 0, behavior: "instant" });
 
     const health = await loadHealth();
     if (!onBetaRoute()) return true;
     const latestSession = identitySnapshot();
+    syncCardReferenceFromForm();
+    const summaryField = document.querySelector("[data-private-beta-feedback] [name='summary']");
+    const typedSummary = summaryField ? summaryField.value : "";
     main.innerHTML = pageMarkup(latestSession, health);
     bind(latestSession);
+    if (applyPendingFeedbackDraft()) {
+      // Keep anything the tester already typed while the status check was loading.
+      const field = document.querySelector("[data-private-beta-feedback] [name='summary']");
+      if (field && typedSummary) field.value = typedSummary;
+      scrollToFeedback();
+      pendingFeedbackDraft = null;
+    }
     return true;
   }
 
@@ -485,10 +693,17 @@
   window.FlipForgePrivateBeta = Object.freeze({
     isEligible: eligibleHost,
     render,
+    requestFeedback,
     preferenceComplete
   });
 
-  window.addEventListener("hashchange", () => window.requestAnimationFrame(render));
+  window.addEventListener("hashchange", () => {
+    if (!onBetaRoute()) {
+      activeCardReference = null;
+      pendingFeedbackDraft = null;
+    }
+    window.requestAnimationFrame(render);
+  });
   window.addEventListener("flipforge:identity-change", () => {
     window.requestAnimationFrame(() => {
       syncShell();

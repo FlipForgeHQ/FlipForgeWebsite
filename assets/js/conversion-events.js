@@ -112,6 +112,14 @@
     }
   };
   normalizeMarketingShell();
+  // On Netlify previews, never direct returning testers to a preview-origin login.
+  if(/(?:^|\.)netlify\.app$/i.test(location.hostname)){
+    const productionBetaSignIn='https://goflipforge.com/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
+    document.querySelectorAll('a[href*="production-auth.html"]').forEach(link=>{
+      link.href=productionBetaSignIn;
+      link.title='Sign in on the live FlipForge website';
+    });
+  }
   enforceReadabilityFloor();
 
   const endpoint="/api/conversion-event";
@@ -154,12 +162,21 @@
     fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body,credentials:"same-origin",cache:"no-store",redirect:"error",keepalive:true}).catch(()=>{});
   };
 
+  // Homepage experiences report counts only (which audience, which call, whether finished): no personal data.
+  const experienceEvents=new Set(["audience_selected","challenge_answered","challenge_completed","demo_interacted","app_screen_viewed","hero_jump_clicked","section_viewed","beta_cta_clicked"]);
+  const experiencePlacement=/^(audience-(flipper|investor|collector|dealer|grading)|challenge(-(buy|investigate|pass))?|demo|app-(discover|evaluate|receipt)|hero-(challenge|app)|inside-app)$/;
+  document.addEventListener("ff:conversion",event=>{
+    const detail=event.detail||{};
+    if(!experienceEvents.has(detail.event)||!experiencePlacement.test(String(detail.placement||"")))return;
+    emit(detail.event,detail.placement,detail.event==="demo_interacted");
+  });
+
   const placementFor=link=>{
     if(link.closest(".site-header,.decision-header,.mobile-nav"))return"navigation";
     if(link.closest(".footer"))return"footer";
     if(link.closest(".ff-dossier-spotlight"))return"sample-spotlight";
     if(link.closest(".ff-evidence"))return"evidence";
-    if(link.closest(".page-hero,.hero,.ffh,.decision-hero,.ff-dic-hero"))return"hero";
+    if(link.closest(".page-hero,.hero,.ffh,.ff10-hero,.decision-hero,.ff-dic-hero"))return"hero";
     return"page";
   };
 

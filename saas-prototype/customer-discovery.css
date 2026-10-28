@@ -60,6 +60,38 @@
 .customer-discovery-search-help strong {
   color: var(--text);
 }
+.customer-discovery-search-help[data-ff-entry-guide] {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(240, 202, 88, .28);
+  border-radius: 10px;
+  background: rgba(240, 202, 88, .05);
+}
+
+.ff-entry-guide-title {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.ff-entry-guide-list {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.ff-entry-guide-list li::marker {
+  color: rgba(240, 202, 88, .9);
+}
+
+.customer-discovery-search-help[data-ff-entry-guide] small {
+  display: block;
+  color: var(--text-soft);
+}
 
 .customer-discovery-identity-assist {
   scroll-margin-top: 96px;
@@ -369,3 +401,32 @@
    Keep browser scroll anchoring from dragging the viewport as those cards settle. */
 .customer-discovery-page{overflow-anchor:none}
 .customer-discovery-results{overflow-anchor:none}
+
+/* No sold-price evidence yet: explain the beta boundary and offer a request. */
+#main-content .customer-discovery-candidate .customer-discovery-metrics .customer-discovery-evidence-request,
+.customer-discovery-metrics .customer-discovery-evidence-request {
+  justify-self: start;
+  width: auto;
+  min-height: 0;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+#main-content .customer-discovery-candidate .customer-discovery-metrics .customer-discovery-evidence-request:focus-visible,
+.customer-discovery-metrics .customer-discovery-evidence-request:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 2px;
+}

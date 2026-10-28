@@ -181,7 +181,9 @@
     const decision = String(detail?.recommendation || "UNKNOWN").toUpperCase();
     const accepted = Math.max(0, safeNumber(evidence?.acceptedExactCompletedSales));
     const changeSummary = String(detail?.changeSummary || "").trim();
-    if (changeSummary) return changeSummary;
+    // changeSummary is sometimes a status code (e.g. "NO PRICE CHANGE", "NO_PRICE_CHANGE") describing what changed since the
+    // last evaluation. A code is never shown to customers here: the plain guidance for the saved decision is used instead.
+    if (changeSummary && !/^[A-Z0-9]+(?:[ _][A-Z0-9]+)*$/.test(changeSummary)) return changeSummary;
     if (decision === "VERIFY" && accepted === 0) {
       return "A completed sale for the exact card, grade and parallel that passes current FlipForge evidence checks.";
     }

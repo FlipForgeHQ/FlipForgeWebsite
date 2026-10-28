@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { getIdentityConfig, getUser } from "@netlify/identity";
 import legacyGateway from "../functions/flipforge-api.js";
+import requestSigning from "../functions/request-signing.js";
 
 const legacyHandler = legacyGateway && legacyGateway.handler;
 const TENANT_ROLE_PREFIX = "flipforge-tenant--";
@@ -16,6 +17,47 @@ const SESSION_RENEWAL_STEP_TIMEOUT_MS = 2000;
 const SESSION_RENEWAL_MARGIN_SECONDS = 60;
 const NF_JWT_COOKIE = "nf_jwt";
 const NF_REFRESH_COOKIE = "nf_refresh";
+const UPSTREAM_ENV_HEADER = "X-FlipForge-Upstream-Env";
+
+// Non-secret marker of which backend environment this deploy's gateway is configured for, so a deploy preview can
+// be checked from outside without credentials. It is derived only from configuration and never contains the
+// backend URL or token:
+//   none       - the bridge is disabled or the backend URL/token is not configured (no upstream is reachable)
+//   staging    - FLIPFORGE_API_UPSTREAM_ENVIRONMENT=staging
+//   production - FLIPFORGE_API_UPSTREAM_ENVIRONMENT=production
+//   unlabeled  - an upstream is configured but not labelled
+// A label that contradicts the deploy context (a non-production deploy labelled production, or production labelled
+// staging) fails closed: no upstream call is made.
+export function upstreamEnvironment(env = process.env, { requireBridge = true } = {}) {
+  const bridge = String(env.FLIPFORGE_API_BRIDGE_ENABLED || "").toLowerCase() === "true";
+  const configured = Boolean(String(env.FLIPFORGE_API_BASE_URL || "").trim() && String(env.FLIPFORGE_API_SERVICE_TOKEN || "").trim());
+  if (!configured || (requireBridge && !bridge)) return "none";
+  const label = String(env.FLIPFORGE_API_UPSTREAM_ENVIRONMENT || "").trim().toLowerCase();
+  return label === "staging" || label === "production" ? label : "unlabeled";
+}
+
+function deployContext(context) {
+  const value = context?.deploy?.context ?? globalThis.Netlify?.context?.deploy?.context;
+  return value === undefined || value === null || value === "" ? null : String(value).toLowerCase();
+}
+
+function upstreamEnvironmentMismatch(upstream, context) {
+  const deploy = deployContext(context);
+  if (deploy === null) return false;
+  if (deploy !== "production" && upstream === "production") return true;
+  return deploy === "production" && upstream === "staging";
+}
+
+function withUpstreamEnvironment(response, upstream) {
+  response.headers.set(UPSTREAM_ENV_HEADER, upstream);
+  return response;
+}
+
+function upstreamMismatchResponse(request, upstream) {
+  const response = identityFailureResponse(request, "UPSTREAM_ENVIRONMENT_MISMATCH",
+    "The FlipForge service is not available on this deploy.");
+  return withUpstreamEnvironment(response, upstream);
+}
 
 if (typeof legacyHandler !== "function") {
   throw new Error("FlipForge authoritative gateway core is unavailable.");
@@ -104,11 +146,12 @@ function legacyContext(user) {
     : { clientContext: {} };
 }
 
-function normalizeHealth(result, event) {
+function normalizeHealth(result, event, upstream) {
   if (event.httpMethod !== "GET" || event.path !== "/api/v1/health" || result?.statusCode !== 200) return result;
   try {
     const payload = JSON.parse(result.body || "{}");
     if (payload?.data) {
+      payload.data.upstreamEnvironment = upstream;
       payload.data.membershipSource = "netlify-identity-signed-roles";
       payload.data.authenticationTransport = "secure-same-origin-cookie";
       payload.data.membershipRolePattern = "flipforge-active + flipforge-tenant--<tenantId>";
@@ -317,12 +360,18 @@ async function runtimeIdentity(request) {
   }
 
   try {
-    const response = await fetch(`${baseUrl}/api/v1/health`, {
+    const signing = requestSigning.signingConfig();
+    if (!signing.ok) throw new Error("REQUEST_SIGNING_MISCONFIGURED");
+    const healthUrl = `${baseUrl}/api/v1/health`;
+    const response = await fetch(healthUrl, {
       method: "GET",
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${serviceToken}`,
-        "X-Correlation-Id": correlationId
+        "X-Correlation-Id": correlationId,
+        ...(signing.enabled
+          ? requestSigning.signingHeaders({ secret: signing.secret, method: "GET", url: healthUrl, tenantId: "", idempotencyKey: "", body: "" })
+          : {})
       },
       redirect: "error",
       cache: "no-store",
@@ -364,11 +413,17 @@ async function runtimeIdentity(request) {
 
 export default async function flipForgeApi(request, context) {
   const requestUrl = new URL(request.url);
-  if (requestUrl.pathname === RUNTIME_IDENTITY_PATH) return runtimeIdentity(request);
+  if (requestUrl.pathname === RUNTIME_IDENTITY_PATH) {
+    const probeUpstream = upstreamEnvironment(process.env, { requireBridge: false });
+    if (upstreamEnvironmentMismatch(probeUpstream, context)) return upstreamMismatchResponse(request, probeUpstream);
+    return withUpstreamEnvironment(await runtimeIdentity(request), probeUpstream);
+  }
 
+  const upstream = upstreamEnvironment();
   const effectiveRequest = gatewayRequest(request);
   const event = await legacyEvent(effectiveRequest);
   const publicHealth = event.httpMethod === "GET" && event.path === "/api/v1/health";
+  if (!publicHealth && upstreamEnvironmentMismatch(upstream, context)) return upstreamMismatchResponse(request, upstream);
 
   // Current Netlify Identity stores the signed session in secure nf_jwt /
   // nf_refresh cookies. getUser() verifies that session inside the modern
@@ -380,18 +435,18 @@ export default async function flipForgeApi(request, context) {
       user = await identityUser(request, context);
     } catch (error) {
       const timedOut = error?.code === "IDENTITY_LOOKUP_TIMEOUT";
-      return identityFailureResponse(
+      return withUpstreamEnvironment(identityFailureResponse(
         request,
         timedOut ? "IDENTITY_SERVICE_TIMEOUT" : "IDENTITY_SERVICE_UNAVAILABLE",
         timedOut
           ? "FlipForge sign-in verification did not respond in time. Please retry the request."
           : "FlipForge sign-in verification is temporarily unavailable."
-      );
+      ), upstream);
     }
   }
 
   const result = await legacyHandler(event, legacyContext(user));
-  return modernResponse(normalizeHealth(result, event));
+  return withUpstreamEnvironment(modernResponse(normalizeHealth(result, event, upstream)), upstream);
 }
 
 export const config = {

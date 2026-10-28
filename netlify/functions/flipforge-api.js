@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const disclosureFilter = require("./provider-disclosure-filter");
+const requestSigning = require("./request-signing");
 
 const CONTRACT_VERSION = "1.0";
 const DEFAULT_TIMEOUT_MS = 20000;
@@ -28,6 +29,14 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/lifecycle$/ },
   { method: "GET", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
   { method: "PUT", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
+  { method: "GET", pattern: /^\/api\/v1\/reported-sales$/ },
+  { method: "GET", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+$/ },
+  { method: "POST", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+$/ },
+  { method: "PUT", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+\/rs_[0-9a-f-]{36}$/ },
+  { method: "GET", pattern: /^\/api\/v1\/sell-watch$/ },
+  { method: "GET", pattern: /^\/api\/v1\/sell-watch\/[A-Za-z0-9][A-Za-z0-9._:-]*$/ },
+  { method: "PUT", pattern: /^\/api\/v1\/sell-watch\/costs\/(?:MARKETPLACE|AUCTION_HOUSE|CONSIGNMENT|DEALER_DIRECT|PRIVATE_SALE|OTHER)$/ },
+  { method: "POST", pattern: /^\/api\/v1\/sell-watch\/[A-Za-z0-9][A-Za-z0-9._:-]*\/estimate$/ },
   { method: "GET", pattern: /^\/api\/v1\/account$/ },
   { method: "GET", pattern: /^\/api\/v1\/entitlements$/ },
   { method: "POST", pattern: /^\/api\/v1\/discover$/ },
@@ -149,6 +158,38 @@ function upstreamRejectionEnvelope(status, payload, correlationId) {
     return errorEnvelope(
       "LIFECYCLE_VERSION_CONFLICT",
       "The saved lifecycle record changed. Refresh before submitting another update.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "REPORTED_SALE_VERSION_CONFLICT") {
+    return errorEnvelope(
+      "REPORTED_SALE_VERSION_CONFLICT",
+      "This sale changed. Refresh before submitting another update.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "REPORTED_SALE_ID_REUSED") {
+    return errorEnvelope(
+      "REPORTED_SALE_ID_REUSED",
+      "This sale form was already submitted with different details. Reopen Mark as Sold to try again.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "SELL_WATCH_COSTS_VERSION_CONFLICT") {
+    return errorEnvelope(
+      "SELL_WATCH_COSTS_VERSION_CONFLICT",
+      "Your saved selling costs changed. Refresh before saving again.",
+      correlationId
+    );
+  }
+
+  if (status === 409 && upstreamCode === "SELL_WATCH_CARD_NOT_OWNED") {
+    return errorEnvelope(
+      "SELL_WATCH_CARD_NOT_OWNED",
+      "Sell Watch works on cards you own. Mark this card as owned first.",
       correlationId
     );
   }
@@ -544,6 +585,17 @@ exports.handler = async function handler(event, context) {
     );
   }
 
+  // Optional gateway request signing. Unset secret: unchanged unsigned behaviour. Weak secret: fail closed.
+  const signing = requestSigning.signingConfig();
+  if (!signing.ok) {
+    return jsonResponse(
+      event,
+      503,
+      errorEnvelope("UPSTREAM_NOT_CONFIGURED", "The authoritative FlipForge service is not configured.", correlationId),
+      correlationId
+    );
+  }
+
   const idempotency = requestIdempotency(event, method, path);
   if (!idempotency.ok) {
     return jsonResponse(
@@ -596,11 +648,26 @@ exports.handler = async function handler(event, context) {
       [TENANT_HEADER]: tenant.tenantId,
       ...(idempotency.value ? { [IDEMPOTENCY_HEADER]: idempotency.value } : {})
     };
+    // Headers are built only from server-side values above; client X-FlipForge-* headers are never forwarded.
+    const sendsBody = method === "POST" || method === "PUT";
+    let upstreamBody = sendsBody ? body : undefined;
+    if (signing.enabled) {
+      // Sign the exact bytes that are sent.
+      upstreamBody = sendsBody ? requestSigning.bodyBytes(body) : undefined;
+      Object.assign(upstreamHeaders, requestSigning.signingHeaders({
+        secret: signing.secret,
+        method,
+        url: upstreamUrl,
+        tenantId: tenant.tenantId,
+        idempotencyKey: idempotency.value,
+        body: upstreamBody
+      }));
+    }
 
     const upstreamResponse = await fetch(upstreamUrl, {
       method,
       headers: upstreamHeaders,
-      body: method === "POST" || method === "PUT" ? body : undefined,
+      body: upstreamBody,
       signal: controller.signal,
       redirect: "error"
     });

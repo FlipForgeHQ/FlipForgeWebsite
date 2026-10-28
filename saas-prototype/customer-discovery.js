@@ -83,6 +83,17 @@
     return error;
   }
 
+  // Customer words for listing codes returned by the server. Unknown codes fall back to sentence case, never raw codes.
+  const AVAILABILITY_WORDS = Object.freeze({ AVAILABLE: "Available", ENDED: "Listing ended", SOLD: "Sold", UNAVAILABLE: "Not available", UNKNOWN: "Not confirmed" });
+  const FRESHNESS_WORDS = Object.freeze({ CURRENT: "Recently checked", FRESH: "Recently checked", STALE: "May be out of date", UNKNOWN: "Not recently checked" });
+  const FORMAT_WORDS = Object.freeze({ FIXED_PRICE: "Fixed price", AUCTION: "Auction", BEST_OFFER: "Best offer", AUCTION_WITH_BUY_NOW: "Auction with buy-now price" });
+  function listingWords(map, value) {
+    const raw = String(value || "UNKNOWN").trim().toUpperCase().replace(/[\s-]+/g, "_");
+    if (Object.prototype.hasOwnProperty.call(map, raw)) return map[raw];
+    const words = raw.toLowerCase().split("_").filter(Boolean).join(" ");
+    return words ? words.charAt(0).toUpperCase() + words.slice(1) : map.UNKNOWN || "Not confirmed";
+  }
+
   function moneyFromCents(value) {
     return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 })
       .format((Number(value) || 0) / 100);
@@ -98,6 +109,54 @@
     const cents = (BigInt(whole) * 100n) + BigInt((fraction + "00").slice(0, 2));
     if (cents > BigInt(MAX_COST_CENTS)) throw makeError("DISCOVER_TARGET_INVALID", "Target max buy is outside the allowed range.", 400);
     return Number(cents);
+  }
+
+  // The beta feedback form only exists on the invited Private Beta app. Customer and
+  // owner surfaces keep the plain wording without a request control.
+  function evidenceRequestAvailable() {
+    try {
+      return Boolean(window.FlipForgePrivateBeta?.isEligible?.() && window.FlipForgePrivateBeta?.requestFeedback);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // A card evidence request carries only the card identity this exact-match search was run
+  // with (and the year, card number and grade written in it). It never carries the listing
+  // link, seller, price, sale records or provider data. The tester reviews and can correct
+  // every field on the feedback form before anything is sent.
+  function cardReferenceFor(item) {
+    if (!item || String(item.matchQuality || "") !== "EXACT_MATCH") return null;
+    const identity = normalizeIdentityQuery(item.cardIdentityQuery || state.data?.query || "").slice(0, 200);
+    if (identity.length < 6) return null;
+    const year = identity.match(/\b((?:18|19|20)\d{2})(?:\s*-\s*(\d{2}))?\b/);
+    const number = identity.match(/#\s*([A-Za-z0-9][A-Za-z0-9.\-/]{0,23})/);
+    const declared = declaredGradeContext(identity);
+    const raw = !declared.grader && /\b(?:raw|ungraded)\b/i.test(identity);
+    return {
+      identity,
+      year: year ? (year[2] ? `${year[1]}-${year[2]}` : year[1]) : "",
+      player: "",
+      set: "",
+      cardNumber: number ? number[1].replace(/[.-]+$/, "") : "",
+      parallel: "",
+      grader: declared.grader || (raw ? "RAW" : ""),
+      grade: declared.grade || ""
+    };
+  }
+
+  function requestEvidence(index) {
+    if (!evidenceRequestAvailable()) return;
+    const items = Array.isArray(state.data?.items) ? state.data.items : [];
+    const cardReference = cardReferenceFor(items[index]);
+    window.FlipForgePrivateBeta.requestFeedback({
+      category: "evidence",
+      summary: cardReference
+        ? "Please add sold-price evidence for the card below so FlipForge can show a value for it."
+        : "I found a card in Discover that has no sold-price evidence yet, and I'd like FlipForge to add some so it can show a value.",
+      expected: "A value for the card, backed by sold-price evidence.",
+      cardReference
+    });
   }
 
   function validHttpUrl(value) {
@@ -745,7 +804,7 @@
 
   function searchPanel() {
     const busy = state.loading || state.identityAssist.busy;
-    return `<section class="panel customer-discovery-search"><header class="panel-header"><div><h2>Search connected active listings</h2><p>Enter the card you want FlipForge to evaluate. If you are unsure of the exact identity, use Find exact card.</p></div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form"><label><span>Card</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="2018 Topps Chrome Shohei Ohtani #150 PSA 9" autocomplete="off"></label><label><span>Target max buy</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label><label><span>Results</span><select name="limit">${[10,25,50].map(value => `<option value="${value}"${String(value) === state.draft.limit ? " selected" : ""}>${value}</option>`).join("")}</select></label><div class="customer-discovery-search-actions"><button class="button button-primary" type="submit" ${busy ? "disabled" : ""}>${state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : "Search active listings"}</button><button class="button button-secondary" type="button" data-discovery-find-exact ${busy ? "disabled" : ""}>Find exact card</button></div></form><details class="customer-discovery-search-help"><summary>How card entry works</summary><small>Examples: <strong>#150</strong>, <strong>No. 150</strong>, and <strong>No 150</strong> are treated as the same card-number notation. FlipForge never silently chooses among multiple identities.</small></details></div></section>`;
+    return `<section class="panel customer-discovery-search"><header class="panel-header"><div><h2>Search connected active listings</h2><p>Enter the card you want FlipForge to evaluate. If you are unsure of the exact identity, use Find exact card.</p></div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form"><label><span>Card</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="2018 Topps Chrome Shohei Ohtani #150 PSA 9" autocomplete="off"></label><label><span>Target max buy</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label><label><span>Results</span><select name="limit">${[10,25,50].map(value => `<option value="${value}"${String(value) === state.draft.limit ? " selected" : ""}>${value}</option>`).join("")}</select></label><div class="customer-discovery-search-actions"><button class="button button-primary" type="submit" ${busy ? "disabled" : ""}>${state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : "Search active listings"}</button><button class="button button-secondary" type="button" data-discovery-find-exact ${busy ? "disabled" : ""}>Find exact card</button></div></form><div class="customer-discovery-search-help" data-ff-entry-guide aria-label="What to type in the card box"><p class="ff-entry-guide-title">What to type</p><ul class="ff-entry-guide-list"><li><strong>Year · set · player · card #</strong>, then parallel, grader and grade when you know them.</li><li><strong>Two-year seasons:</strong> basketball and hockey sets often span two years, like 2025-26. Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.</li><li><strong>Card numbers:</strong> #150, No. 150 and No 150 are all read as card number 150.</li></ul><small>FlipForge never silently picks between two possible cards.</small></div></div></section>`;
   }
 
   function identityCandidate(row, index) {
@@ -808,7 +867,7 @@
         ? `Seller feedback ${new Intl.NumberFormat("en-US").format(sellerFeedback)}`
         : "",
       item.condition ? `Condition ${item.condition}` : "",
-      item.listingFormat ? `Format ${String(item.listingFormat).replaceAll("_", " ")}` : ""
+      item.listingFormat ? `Format: ${listingWords(FORMAT_WORDS, item.listingFormat)}` : ""
     ].filter(Boolean).join(" · ");
     const factors = item.rankingFactors && typeof item.rankingFactors === "object"
       ? Object.entries(item.rankingFactors)
@@ -822,11 +881,31 @@
     const eyebrow = identityReview
       ? `Excluded provider result · ${escapeHtml(item.providerDisplayName || item.marketplace || "Authorized source")}`
       : `Rank ${escapeHtml(item.rank || index + 1)} · ${escapeHtml(item.providerDisplayName || item.marketplace || "Authorized source")}`;
+    // Zero matched sales is the normal beta state, not an error. Say plainly why there is
+    // no value instead of the bare "Evidence required", and offer the one action a tester
+    // has: ask the FlipForge team for evidence through the existing beta feedback form.
+    // Without enough sold evidence there is nothing to position the ask against. Two different
+    // states, worded differently: no qualified sale at all, or some qualified sales that are
+    // still below the minimum FlipForge needs before it shows a value.
+    const soldSaleCount = Math.max(0, Number.parseInt(evidence.trustedExactCompletedSaleCount, 10) || 0);
+    const saleWord = count => `${count} qualified ${count === 1 ? "sale" : "sales"}`;
+    const rawPricePosition = String(item.pricePosition || "").trim();
+    const pricePositionText = !evidence.supported && (!rawPricePosition || /^evidence required\.?$/i.test(rawPricePosition))
+      ? (soldSaleCount > 0 ? "Not available until there are enough qualified sales" : "Not available until there is sold-price evidence")
+      : rawPricePosition || "Evidence required";
+    const requestControl = !identityReview && evidenceRequestAvailable()
+      ? `<button class="customer-discovery-evidence-request" type="button" data-discovery-request-evidence="${index}">Request evidence for this card</button>`
+      : "";
+    const soldContextMetric = evidence.supported
+      ? `<div><span>Matched exact sold context</span><strong>${escapeHtml(soldSaleCount)} ${soldSaleCount === 1 ? "sale" : "sales"}</strong><small>${moneyFromCents(evidence.trustedEvidenceValueCents)} median context</small></div>`
+      : soldSaleCount > 0
+        ? `<div class="customer-discovery-no-sold-data" data-sold-evidence-state="below-threshold"><span>Sold-price evidence</span><strong>${escapeHtml(saleWord(soldSaleCount))} · not enough yet</strong><small>${escapeHtml(saleWord(soldSaleCount))} of this exact card passed FlipForge's evidence checks. That's below the minimum it needs, so no value is shown.</small>${requestControl}</div>`
+        : `<div class="customer-discovery-no-sold-data" data-sold-evidence-state="none"><span>Sold-price evidence</span><strong>No qualified sales yet</strong><small>No sale of this exact card has passed FlipForge's evidence checks. The beta isn't using outside sold-price data yet, so FlipForge won't guess a value from asking prices.</small>${requestControl}</div>`;
     const blockReason = item.evaluationBlockReason || "Exact listing identity is required before evaluation.";
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div><div><span>Matched exact sold context</span><strong>${escapeHtml(evidence.trustedExactCompletedSaleCount ?? 0)} sales</strong><small>${evidence.supported ? moneyFromCents(evidence.trustedEvidenceValueCents) + " median context" : "Evidence required"}</small></div><div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(item.pricePosition || "Evidence required")}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div>${soldContextMetric}<div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(listingWords(AVAILABILITY_WORDS, item.listingAvailability))}</strong><small>${escapeHtml(listingWords(FRESHNESS_WORDS, item.listingFreshness))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(pricePositionText)}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
   }
 
   function resultsPanel() {
@@ -1012,6 +1091,12 @@
         if (Number.isInteger(index) && index >= 0 && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) {
           resolveIdentity(index, selectionOwnerQuery);
         }
+      });
+    });
+    state.main?.querySelectorAll?.("[data-discovery-request-evidence]").forEach(button => {
+      button.addEventListener("click", () => {
+        const index = Number.parseInt(button.dataset.discoveryRequestEvidence || "-1", 10);
+        if (Number.isInteger(index) && index >= 0) requestEvidence(index);
       });
     });
     state.main?.querySelectorAll?.("[data-discovery-evaluate]").forEach(button => {

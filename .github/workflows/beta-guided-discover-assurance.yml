@@ -1,0 +1,44 @@
+name: Beta Guided Discover Assurance
+
+on:
+  pull_request:
+    paths:
+      - 'saas-prototype/beta-guided-discover-v1.js'
+      - 'saas-prototype/beta-guided-discover-v1.css'
+      - 'saas-prototype/index.html'
+      - 'scripts/validate-beta-guided-discover-v1.mjs'
+      - 'scripts/audit-beta-guided-discover-rendered.mjs'
+      - '.github/workflows/beta-guided-discover-assurance.yml'
+      - "scripts/ci/install-playwright-chromium.sh"
+  push:
+    branches: [main]
+    paths:
+      - 'saas-prototype/beta-guided-discover-v1.js'
+      - 'saas-prototype/beta-guided-discover-v1.css'
+      - 'saas-prototype/index.html'
+      - 'scripts/validate-beta-guided-discover-v1.mjs'
+      - 'scripts/audit-beta-guided-discover-rendered.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  guided-ux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Parse the guarded, source-truth compatible customer UI
+        run: |
+          node --check saas-prototype/beta-guided-discover-v1.js
+          node --check scripts/validate-beta-guided-discover-v1.mjs
+          node --check scripts/audit-beta-guided-discover-rendered.mjs
+      - name: Validate exact-card composition and no provider/storage access
+        run: node scripts/validate-beta-guided-discover-v1.mjs
+      - name: Install Chromium for isolated UI rehearsal
+        run: bash scripts/ci/install-playwright-chromium.sh
+      - name: Rehearse desktop and mobile controls without customer credentials
+        run: node scripts/audit-beta-guided-discover-rendered.mjs

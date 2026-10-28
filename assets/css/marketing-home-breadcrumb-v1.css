@@ -1,0 +1,30 @@
+/* Clear route to Home without changing the approved shared navigation or page typography. */
+body.ff-marketing-page-v3 .page-hero,
+body.ff-v5-decision-page .ff-dic-hero{position:relative}
+body.ff-marketing-page-v3 .page-hero>.ff-back-home,
+body.ff-v5-decision-page .ff-dic-hero>.ff-back-home{
+  position:absolute;top:19px;left:clamp(22px,3.1vw,44px);z-index:3;
+  display:inline-flex;align-items:center;gap:11px;
+  font-family:Geist,Inter,Arial,sans-serif;font-size:12px;
+  font-weight:750;letter-spacing:.01em;color:#a9b5be;
+  white-space:nowrap;line-height:1.4;
+}
+body.ff-v5-decision-page .ff-dic-hero>.ff-back-home{left:max(22px,calc((100% - 1080px)/2))}
+.ff-back-home a{
+  display:inline-flex;align-items:center;gap:5px;
+  color:#f1d38b;text-decoration:none;
+  border:1px solid rgba(222,187,109,.38);
+  border-radius:7px;padding:6px 10px;
+  background:rgba(18,25,30,.75);
+  transition:background .15s ease,color .15s ease;
+}
+.ff-back-home a:hover{color:#fff;background:rgba(169,120,38,.21)}
+.ff-back-home a:focus-visible{outline:2px solid #f1d38b;outline-offset:3px}
+.ff-back-home>span[aria-hidden]{opacity:.45}
+@media(max-width:760px){
+  body.ff-marketing-page-v3 .page-hero>.ff-back-home{top:12px;left:19px}
+  body.ff-v5-decision-page .ff-dic-hero>.ff-back-home{top:19px;left:14px}
+  .ff-back-home{font-size:11px!important}
+  .ff-back-home a{padding:5px 8px}
+}
+@media(prefers-reduced-motion:reduce){.ff-back-home a{transition:none}}

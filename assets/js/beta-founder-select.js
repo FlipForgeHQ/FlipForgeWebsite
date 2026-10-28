@@ -2,7 +2,9 @@
   "use strict";
   const ENDPOINT="/api/beta/founder-select";
   const OPERATOR_ENDPOINT="/api/beta/operator";
-  const DEFAULT_COHORT="wave-1-sep-2026";
+  // Each tester's beta group is their own start date (start-YYYY-MM-DD), chosen per person; default today.
+  const todayLocal=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+  const startCohort=date=>/^\d{4}-\d{2}-\d{2}$/.test(String(date||""))?`start-${date}`:"";
 
   function esc(value){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;")}
   function workspace(){return document.querySelector("[data-operator-workspace]")}
@@ -35,11 +37,11 @@
     panel.className="ff-founder-select-panel";
     panel.dataset.founderSelectPanel="";
     panel.innerHTML=`
-      <header><div><span class="ff-operator-kicker">Direct invitation</span><h2>Invite a tester</h2><p>For someone you already chose. Enter their details once; FlipForge creates the beta record and sends the invitation. They still must accept the Private Beta Terms before access activates.</p></div><span class="ff-founder-select-badge">Wave 1</span></header>
+      <header><div><span class="ff-operator-kicker">Direct invitation</span><h2>Invite a tester</h2><p>For someone you already chose. Enter their details once; FlipForge creates the beta record and sends the invitation. They still must accept the Private Beta Terms before access activates.</p></div><span class="ff-founder-select-badge">Start date per tester</span></header>
       <form class="ff-founder-select-form" data-founder-select-form>
         <label>Name<input name="fullName" maxlength="120" autocomplete="off" required placeholder="Tester name"></label>
         <label>Email<input name="email" type="email" maxlength="254" autocomplete="off" required placeholder="name@example.com"></label>
-        <label>Beta test group<input name="cohort" maxlength="48" value="${esc(DEFAULT_COHORT)}" required></label>
+        <label>Beta start date<input name="startDate" type="date" value="${esc(todayLocal())}" required></label>
         <button type="submit">Send private beta invite</button>
         <p class="ff-founder-select-status" data-founder-select-status role="status" aria-live="polite"></p>
       </form>`;
@@ -55,7 +57,7 @@
       status.dataset.error="false";
       status.textContent="Preparing invitation…";
       try{
-        const created=await postJson(ENDPOINT,{fullName:data.get("fullName"),email:data.get("email"),cohort:data.get("cohort")});
+        const created=await postJson(ENDPOINT,{fullName:data.get("fullName"),email:data.get("email"),cohort:startCohort(data.get("startDate"))});
         if(!created.response.ok)throw new Error(created.payload.reason||"FOUNDER_SELECTED_CREATE_FAILED");
         const application=created.payload.application;
         if(!application?.id||!Number.isFinite(Number(application.version)))throw new Error("FOUNDER_SELECTED_CREATE_FAILED");
@@ -66,7 +68,9 @@
           status.dataset.error="true";
           const reason=String(invited.payload?.reason||"");
           const seats=Number.isInteger(invited.payload?.seatLimit)?` (${invited.payload.seatsUsed} of ${invited.payload.seatLimit} seats used)`:"";
-          status.textContent=reason==="BETA_FULL"
+          status.textContent=reason==="OPERATOR_ACCOUNT_HAS_ACCESS"
+            ?"This email is an operator account. It already has full Private Beta access and does not need an invitation or the Beta Terms step. No invitation was sent and its access is unchanged."
+            :reason==="BETA_FULL"
             ?`Beta full${seats}. No invitation was sent and no seat was reserved. The tester was saved as approved; remove an invited tester to free a seat, then send the invitation from Applications.`
             :reason==="BETA_ADMISSION_UNAVAILABLE"
               ?"The Private Beta seat could not be reserved, so no invitation was sent. The tester was saved as approved; retry from Applications in a moment."
@@ -77,7 +81,7 @@
 
         status.textContent="Invitation sent. The tester must accept the Private Beta Terms before beta access activates.";
         form.reset();
-        form.elements.cohort.value=DEFAULT_COHORT;
+        form.elements.startDate.value=todayLocal();
         refreshButton()?.click();
       }catch(error){
         const code=String(error?.message||"FOUNDER_SELECTED_CREATE_FAILED");
@@ -85,7 +89,7 @@
           TESTER_ALREADY_EXISTS:"That email already has a beta record. Find the tester in Applications and send or retry the invitation there.",
           EMAIL_INVALID:"Enter a valid email address.",
           NAME_REQUIRED:"Enter the tester's name.",
-          COHORT_REQUIRED:"Enter a valid beta test group.",
+          COHORT_REQUIRED:"Choose the tester's beta start date.",
           OPERATOR_ROLE_REQUIRED:"Your signed-in account does not have the FlipForge operator role.",
           AUTHENTICATION_REQUIRED:"Your operator session is no longer authenticated. Sign in again, then retry.",
           ORIGIN_NOT_ALLOWED:"FlipForge blocked the request because this page is not running from the active same-origin operator deployment. Reopen the production operator page.",

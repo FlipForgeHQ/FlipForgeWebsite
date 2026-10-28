@@ -37,7 +37,18 @@ on:
       - "scripts/audit-public-typography-rendered.mjs"
       - "scripts/audit-public-responsive-rendered.mjs"
       - "scripts/audit-public-readability-rendered.mjs"
+      - "scripts/audit-homepage-experiences-rendered.mjs"
+      - "assets/js/homepage-audiences-v1.js"
+      - "assets/js/homepage-challenge-v1.js"
+      - "assets/css/homepage-audiences-v1.css"
+      - "assets/css/homepage-challenge-v1.css"
+      - "assets/css/homepage-app-showcase-v1.css"
+      - "assets/js/homepage-app-showcase-v1.js"
+      - "assets/css/homepage-hero-positioning-v1.css"
+      - "assets/css/homepage-section-rhythm-v1.css"
+      - "assets/js/homepage-engagement-v1.js"
       - ".github/workflows/sitewide-ux.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches:
       - main
@@ -76,7 +87,18 @@ on:
       - "scripts/audit-public-typography-rendered.mjs"
       - "scripts/audit-public-responsive-rendered.mjs"
       - "scripts/audit-public-readability-rendered.mjs"
+      - "scripts/audit-homepage-experiences-rendered.mjs"
+      - "assets/js/homepage-audiences-v1.js"
+      - "assets/js/homepage-challenge-v1.js"
+      - "assets/css/homepage-audiences-v1.css"
+      - "assets/css/homepage-challenge-v1.css"
+      - "assets/css/homepage-app-showcase-v1.css"
+      - "assets/js/homepage-app-showcase-v1.js"
+      - "assets/css/homepage-hero-positioning-v1.css"
+      - "assets/css/homepage-section-rhythm-v1.css"
+      - "assets/js/homepage-engagement-v1.js"
       - ".github/workflows/sitewide-ux.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
 
 permissions:
   contents: read
@@ -102,9 +124,7 @@ jobs:
       - name: Validate static sitewide UX contracts
         run: npm run validate:sitewide-ux
       - name: Install Chromium for rendered typography audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start local public site
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/flipforge-sitewide-ux.log 2>&1 &
@@ -120,5 +140,7 @@ jobs:
         run: node scripts/audit-public-responsive-rendered.mjs
       - name: Validate public text readability and contrast
         run: node scripts/audit-public-readability-rendered.mjs
+      - name: Rendered homepage experiences (audience selector, Decision Challenge, Beta pre-selection)
+        run: node scripts/audit-homepage-experiences-rendered.mjs
       - name: Audit Phase 3 DOM mutation stability for 10 seconds
         run: node scripts/audit-phase3-mutation-stability-ci.mjs

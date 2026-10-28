@@ -183,3 +183,15 @@
   .ff-directory-guide{grid-template-columns:1fr}
   .ff-directory-guide p{grid-column:auto}
 }
+/* Tester access badges: large, filled and plain-language so each tester's access is obvious at a glance. */
+.ff-access-badge{display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:100%;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:800;line-height:1.2;white-space:nowrap;border:1px solid transparent}
+.ff-access-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.ff-access-badge.has-access{background:rgba(110,214,160,.16);border-color:rgba(110,214,160,.55);color:#8ee0b8}
+.ff-access-badge.invited,.ff-access-badge.approved{background:rgba(212,175,55,.16);border-color:rgba(212,175,55,.6);color:#f0d27a}
+.ff-access-badge.review,.ff-access-badge.waitlisted{background:rgba(240,180,90,.12);border-color:rgba(240,180,90,.5);color:#f3c27a}
+.ff-access-badge.declined,.ff-access-badge.removed{background:rgba(240,140,150,.1);border-color:rgba(240,140,150,.45);color:#ffb4bb}
+.ff-access-badge.other{background:rgba(255,255,255,.06);border-color:#4a4d53;color:#d7dbe0}
+.ff-access-status{display:block;margin-top:5px;color:var(--op-muted);font-size:11px;letter-spacing:.03em}
+
+.ff-card-reference{border:1px solid rgba(212,175,55,.45);border-radius:10px;background:rgba(212,175,55,.05);padding:14px;margin:0 0 14px}.ff-card-reference h4{margin:0 0 6px;color:var(--op-gold);font-size:11px;text-transform:uppercase;letter-spacing:.12em}.ff-card-identity{margin:0 0 12px;font-size:16px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}.ff-card-reference .ff-detail-grid{margin-bottom:0}.ff-card-reference .ff-feedback-boundary{margin-bottom:0}.ff-card-missing{color:var(--op-muted);font-style:normal;font-weight:600}
+.ff-funnel-subhead{margin:0;padding:16px 22px 0;border-top:1px solid var(--op-line);color:var(--op-gold);font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}[data-homepage-funnel-grid]{grid-template-columns:repeat(4,1fr);row-gap:18px}[data-homepage-funnel-grid] .ff-funnel-step:nth-child(4n){border-right:0}@media(max-width:700px){[data-homepage-funnel-grid]{grid-template-columns:repeat(2,1fr)}}

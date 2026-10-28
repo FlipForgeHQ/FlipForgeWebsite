@@ -3,18 +3,10 @@ name: Independent Audit — Sections C-L
 on:
   pull_request:
     branches: [main]
+  # Every push to main: the website release gate (scripts/ci/release-website.mjs) requires the C-L gate on the exact
+  # commit being released, so it must exist on every main commit, not only on commits touching the paths above.
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/independent-audit-sections-c-l.yml"
-      - ".github/workflows/pre-beta-security-assurance.yml"
-      - "package.json"
-      - "package-lock.json"
-      - "scripts/**"
-      - "saas-prototype/**"
-      - "netlify/**"
-      - "*.html"
-      - "netlify.toml"
 
 permissions:
   contents: read
@@ -61,9 +53,7 @@ jobs:
       - run: npm run build:identity
       - run: npm run validate:customer-discovery
       - name: Install Playwright Chromium for destructive browser audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path SaaS audit server
         shell: bash
         run: |
@@ -96,9 +86,7 @@ jobs:
       - run: npm run validate:price-intelligence
       - run: npm run validate:card-intelligence-result-priority
       - name: Install Playwright Chromium for cross-surface audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path SaaS audit server
         shell: bash
         run: |
@@ -123,7 +111,7 @@ jobs:
       - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with: { node-version: 24, cache: npm }
       - run: npm ci
-      - run: npm run validate:cardsight-evidence-visibility
+      - run: npm run validate:provider-evidence-visibility
       - run: npm run validate:customer-management
       - run: node saas-prototype/validate-decision-intelligence.mjs
       - name: PSA authority boundary remains explicit
@@ -149,9 +137,7 @@ jobs:
       - run: npm run validate:customer-lifecycle
       - run: npm run validate:customer-export
       - name: Install Playwright Chromium for lifecycle attack audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path SaaS audit server
         shell: bash
         run: |
@@ -176,9 +162,7 @@ jobs:
       - run: npm run build:identity
       - run: node saas-prototype/validate-decision-intelligence.mjs
       - name: Install Playwright Chromium for Forge Heat visual audit
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
       - name: Start production-path SaaS audit server
         shell: bash
         run: |

@@ -1,0 +1,70 @@
+name: Customer Reported Sales
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/customer-reported-sales.js"
+      - "saas-prototype/customer-reported-sales.css"
+      - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer.html"
+      - "netlify/functions/flipforge-api.js"
+      - "scripts/audit-customer-reported-sales-ci.mjs"
+      - "scripts/fixtures/customer-reported-sales/**"
+      - ".github/workflows/customer-reported-sales.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  reported-sales:
+    name: Mark as Sold panel and gateway routes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-reported-sales-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-reported-sales-server.log
+          exit 1
+
+      - name: Mark as Sold audit (recorded backend fixtures)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: node scripts/audit-customer-reported-sales-ci.mjs
+
+      - name: Lifecycle and gateway regressions
+        run: |
+          node scripts/validate-saas-customer-lifecycle.mjs
+          node scripts/validate-saas-gateway-tenant-membership.mjs
+          node scripts/validate-gateway-provider-disclosure.mjs
+          node scripts/validate-production-prototype-isolation.mjs

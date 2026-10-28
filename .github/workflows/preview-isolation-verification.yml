@@ -1,0 +1,72 @@
+name: Preview Isolation Verification (manual)
+
+# Manual check that a deployed preview cannot reach production administration or production data, and that
+# production administration still requires authentication. Sends only credential-free requests and prints only
+# check names, status codes and the non-secret upstream-environment marker.
+on:
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: "Deploy preview origin, e.g. https://deploy-preview-123--goflipforge.netlify.app"
+        required: true
+        type: string
+      production_url:
+        description: "Production origin"
+        required: false
+        default: "https://goflipforge.com"
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: read
+
+concurrency:
+  group: preview-isolation-verification
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Preview cannot reach production administration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Local logic (function modules, no network)
+        run: node scripts/verify-preview-isolation.mjs --local
+      # A preview blocked by the Netlify firewall is accepted (preview checks reported as skipped) only when Netlify
+      # reports that deploy preview as ready. The status is looked up only for goflipforge deploy-preview URLs, so a
+      # mistyped site, an unbuilt preview or a failed deploy cannot borrow another preview's status and fails.
+      - name: Netlify deploy status for the preview
+        id: deploy
+        env:
+          PREVIEW_URL: ${{ inputs.preview_url }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          number=$(printf '%s' "$PREVIEW_URL" | sed -n 's#^https://deploy-preview-\([0-9]\{1,6\}\)--goflipforge\.netlify\.app/\{0,1\}$#\1#p')
+          status=""
+          if [ -n "$number" ]; then
+            sha=$(gh api "repos/$REPOSITORY/pulls/$number" --jq .head.sha 2>/dev/null || true)
+            if [ -n "$sha" ]; then
+              status=$(gh api "repos/$REPOSITORY/commits/$sha/status" --jq '[.statuses[] | select(.context | test("deploy-preview")) | .state] | first // "missing"' 2>/dev/null || true)
+            fi
+            status=${status:-missing}
+          fi
+          echo "Netlify deploy-preview status: ${status:-not a deploy-preview URL}"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+      - name: Deployed preview and production (no credentials)
+        env:
+          PREVIEW_URL: ${{ inputs.preview_url }}
+          PRODUCTION_URL: ${{ inputs.production_url }}
+          PREVIEW_DEPLOY_STATUS: ${{ steps.deploy.outputs.status }}
+        run: node scripts/verify-preview-isolation.mjs --remote

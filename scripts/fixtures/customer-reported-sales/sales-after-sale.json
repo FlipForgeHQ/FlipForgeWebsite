@@ -1,0 +1,208 @@
+{
+ "data": {
+  "configured": true,
+  "policyVersion": "customer-reported-sales-v1",
+  "sourceOfTruth": "SQLite",
+  "transactionAuthority": false,
+  "kind": "reported-sales-opportunity",
+  "count": 1,
+  "tenantScoped": true,
+  "dataUseEnabled": false,
+  "label": "USER_REPORTED",
+  "repositoryVersion": "v1.0.0",
+  "lifecycle": {
+   "acquisitionCostCents": 121500,
+   "outcomeStatus": "SOLD",
+   "acquiredAt": "2026-09-13T00:00:00Z",
+   "trackingStatus": "SOLD",
+   "version": 2
+  },
+  "opportunityId": "opp-ohtani-psa10",
+  "form": {
+   "consentVersion": "aggregate-research-consent-v1",
+   "saleFormats": [
+    "AUCTION",
+    "BEST_OFFER",
+    "FIXED_PRICE",
+    "OTHER",
+    "PRIVATE"
+   ],
+   "venues": [
+    "ALT",
+    "CARD_SHOW",
+    "COMC",
+    "EBAY",
+    "FACEBOOK_MARKETPLACE",
+    "FANATICS_COLLECT",
+    "GOLDIN",
+    "HERITAGE",
+    "LOCAL_SHOP",
+    "MERCARI",
+    "MYSLABS",
+    "OTHER",
+    "PRIVATE_SALE",
+    "PWCC",
+    "WHATNOT"
+   ],
+   "createStatuses": [
+    "COMPLETED",
+    "PENDING"
+   ],
+   "buyerDetailsCollected": false,
+   "consentText": "Allow FlipForge to use this sale, without my name or account details, in anonymized, aggregated market research and comparisons. Optional; I can change this at any time.",
+   "evidenceTypes": [
+    "INVOICE_NUMBER",
+    "NONE",
+    "ORDER_NUMBER",
+    "RECEIPT_NUMBER"
+   ]
+  },
+  "items": [
+   {
+    "cardIdentity": "2018 Topps Chrome #150 Shohei Ohtani PSA 10",
+    "reportId": "rs_165df0d4-5261-490d-9c59-c67b32f95a4d",
+    "verificationStatus": "USER_REPORTED",
+    "reviewFlags": [],
+    "transactionReference": {
+     "lastFour": "4680",
+     "provided": true,
+     "type": "ORDER_NUMBER"
+    },
+    "lifecycleSync": "LIFECYCLE_SOLD",
+    "source": "CUSTOMER_REPORTED",
+    "label": "USER_REPORTED",
+    "profitLoss": {
+     "taxesIncluded": false,
+     "realizedProfitCents": 20250,
+     "refundCents": 0,
+     "grossCents": 165000,
+     "acquisitionCostCents": 121500,
+     "netProceedsCents": 141750,
+     "realizedReturnPercent": 16.67,
+     "knownFeesCents": 23250,
+     "status": "REALIZED",
+     "feesComplete": true
+    },
+    "history": [
+     {
+      "actor": "CUSTOMER",
+      "eventId": 1,
+      "recordVersion": 1,
+      "before": null,
+      "recordedAt": "2026-10-24T23:46:46.892731069Z",
+      "eventType": "REPORTED",
+      "after": {
+       "venue": "EBAY",
+       "marketplaceFeeCents": 21450,
+       "refundCents": 0,
+       "reviewFlags": [],
+       "verificationStatus": "USER_REPORTED",
+       "saleStatus": "COMPLETED",
+       "saleDate": "2026-10-20",
+       "paymentFeeCents": 0,
+       "shippingCostCents": 1800,
+       "salePriceCents": 165000,
+       "evidenceType": "ORDER_NUMBER",
+       "reviewStatus": "PENDING_VERIFICATION",
+       "researchConsent": false,
+       "otherFeeCents": 0
+      }
+     }
+    ],
+    "consent": {
+     "recordedAt": null,
+     "aggregateResearch": false,
+     "version": null
+    },
+    "version": 1,
+    "createdAt": "2026-10-24T23:46:46.892731069Z",
+    "opportunityId": "opp-ohtani-psa10",
+    "sale": {
+     "venue": "EBAY",
+     "fees": {
+      "marketplaceFeeCents": 21450,
+      "shippingCostCents": 1800,
+      "paymentFeeCents": 0,
+      "otherFeeCents": 0
+     },
+     "refundCents": 0,
+     "salePriceCents": 165000,
+     "currency": "USD",
+     "saleFormat": "AUCTION",
+     "saleDate": "2026-10-20",
+     "saleStatus": "COMPLETED"
+    },
+    "identityStatus": "EXACT_IDENTITY_LINKED",
+    "dataUse": {
+     "MODEL_LEARNING": {
+      "eligible": false,
+      "blockers": [
+       "CUSTOMER_SALE_DATA_USE_NOT_ENABLED_IN_PHASE_1",
+       "INDEPENDENT_VERIFICATION_REQUIRED",
+       "CUSTOMER_CONSENT_REQUIRED"
+      ]
+     },
+     "AGGREGATE_RESEARCH": {
+      "eligible": false,
+      "blockers": [
+       "CUSTOMER_SALE_DATA_USE_NOT_ENABLED_IN_PHASE_1",
+       "INDEPENDENT_VERIFICATION_REQUIRED",
+       "CUSTOMER_CONSENT_REQUIRED"
+      ]
+     },
+     "enabledInThisPhase": false,
+     "MARKET_COMPARISON": {
+      "eligible": false,
+      "blockers": [
+       "CUSTOMER_SALE_DATA_USE_NOT_ENABLED_IN_PHASE_1",
+       "INDEPENDENT_VERIFICATION_REQUIRED",
+       "CUSTOMER_CONSENT_REQUIRED"
+      ]
+     }
+    },
+    "reviewStatus": "PENDING_VERIFICATION",
+    "decisionLink": {
+     "latestDecisionAtReport": {
+      "requestId": "req-ohtani-1",
+      "recommendation": "BUY"
+     },
+     "savedDecisionsChanged": false,
+     "originalDecision": {
+      "requestId": "req-ohtani-1",
+      "recommendation": "BUY",
+      "evaluatedAt": "2026-09-12T15:00:00Z"
+     }
+    },
+    "referenceValue": {
+     "usedFor": "QUESTIONABLE_PRICE_CHECK_ONLY",
+     "cents": 167500,
+     "basis": "SAVED_DECISION_SUPPORTED_VALUE"
+    },
+    "updatedAt": "2026-10-24T23:46:46.892731069Z"
+   }
+  ]
+ },
+ "meta": {
+  "engineVersion": "customer-reported-sales+v1.0.0",
+  "evidenceFreshness": "CUSTOMER_WORKFLOW_FACTS",
+  "runtimeBuildCommitVerified": false,
+  "providerEvidenceMode": "PROVIDER_SALES_OFF",
+  "runtimeBuildIdentityVersion": "v1.0",
+  "contractVersion": "1.0",
+  "evidenceStorageGuard": "NOT_INSTALLED",
+  "authority": "Smart Opportunity",
+  "generatedAt": "2026-10-24T23:46:47.049135027Z",
+  "runtimeBuildCommit": "unknown",
+  "correlationId": "6a8eaadb-eb51-474d-ba17-027b1526b3fd",
+  "gradingAuthority": "Existing PSA intelligence",
+  "limitations": [
+   "Reported sales are the customer's own records, labelled USER_REPORTED. Submitting a sale never makes it verified.",
+   "Reported sales are not used in market comparisons, pricing, outcome research or model learning in this phase.",
+   "Realized profit uses the customer's recorded acquisition cost and the fees the customer entered; taxes are not included.",
+   "Buyer details are not collected. A transaction reference is kept only as a fingerprint and its last four characters.",
+   "Recording a sale never rescores, reranks or changes a saved FlipForge decision, and authorizes no transaction."
+  ]
+ },
+ "reportedSaleId": "rs_165df0d4-5261-490d-9c59-c67b32f95a4d",
+ "replayed": false
+}

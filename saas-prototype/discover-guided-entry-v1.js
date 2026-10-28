@@ -217,7 +217,7 @@
     scheduled = true;
     requestAnimationFrame(() => { scheduled = false; mount(); });
   }
-  window.FlipForgeGuidedEntryV1 = Object.freeze({ compose, parseNumbering });
+  window.FlipForgeSerialEntryV1 = Object.freeze({ compose, parseNumbering });
   const main = document.querySelector(ROOT);
   if (main) new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
   if (typeof document.addEventListener === "function") {

@@ -1,77 +1,65 @@
+// Homepage Focus v10: cinematic, product-led rebuild (supersedes v7 film + demo).
 import fs from 'node:fs';
-
-const read=path=>fs.readFileSync(path,'utf8');
-const index=read('index.html');
-const css=read('assets/css/homepage-v5.css');
-const js=read('assets/js/homepage-v5.js');
-const siteJs=read('assets/js/site.js');
-const sw=read('sw.js');
-const failures=[];
-const check=(label,condition)=>{if(!condition)failures.push(label);};
-const has=(text,needle)=>text.includes(needle);
-
-check('001 locked CDI identity remains visible',has(index,'CARD DECISION INTELLIGENCE™'));
-check('002 approved hero headline is present',has(index,'Stop guessing.')&&has(index,'Start deciding with <em>evidence.</em>'));
-check('003 hero explains the decision',has(index,'then explains the decision.'));
-check('004 locked slogan remains present',has(index,'Before you buy. Know Why.'));
-check('005 approved horizontal logo is used',has(index,'assets/brand/flipforge-logo-horizontal.svg'));
-check('006 v5 stylesheet is first-paint dependency',has(index,'assets/css/homepage-v5.css'));
-check('007 v5 behavior is loaded',has(index,'assets/js/homepage-v5.js'));
-check('008 shared mobile navigation behavior is loaded',has(index,'assets/js/site.js'));
-check('009 Decision Visual System is the hero proof',has(index,'class="ffdv ffdv--hero"')&&has(index,'assets/css/ff-decision-visual-v1.css'));
-check('010 illustrative label is visible',has(index,'<span class="ffdv-label">Illustrative product view</span>'));
-check('011 illustrative ask is visible',has(index,'<dt>Ask</dt><dd>$420</dd>'));
-check('012 supported value is visible',has(index,'<dt>Supported value</dt><dd>$455</dd>'));
-check('013 Max Buy boundary is visible',has(index,'<dt>Max Buy</dt><dd>$398</dd>'));
-check('014 single hero decision is WATCH',has(index,'<span class="ffdv-verdict">WATCH</span>'));
-check('015 evidence qualification states are visible',has(index,'<dt>Accepted</dt><dd>6</dd>')&&has(index,'<dt>Review</dt><dd>2</dd>')&&has(index,'<dt>Excluded</dt><dd>4</dd>'));
-check('016 exclusion reasons remain concrete',has(index,'Wrong grade ×2')&&has(index,'Wrong parallel')&&has(index,'Identity mismatch'));
-check('017 exact identity is confirmed',has(index,'Exact identity · match confirmed'));
-check('018 next action and change condition are explicit',has(index,'Monitor price and evidence')&&has(index,'What would change it'));
-check('019 product film follows the hero',index.indexOf('id="film"')>index.indexOf('class="ffh"'));
-check('020 Decision Forge remains the interactive deep-dive after the 30-second film',has(index,'data-decision-forge')&&has(index,'THE DECISION FORGE · INTERACTIVE WALKTHROUGH')&&index.indexOf('id="decision-forge"')>index.indexOf('id="film"'));
-check('021 Decision Forge exposes five stages',(index.match(/data-forge-step/g)||[]).length===5);
-check('022 Decision Forge preserves inspectable reason trail',has(index,'data-forge-why-button')&&has(index,'Inspect the reason trail'));
-check('023 concise WHY FLIPFORGE bridge exists',has(index,'id="why"')&&has(index,'WHY FLIPFORGE'));
-check('024 concise bridge keeps exact-card point',has(index,'Know the exact card.')&&has(index,'Identity before price.'));
-check('025 concise bridge keeps evidence point',has(index,'Trust qualified evidence.')&&has(index,'Bad comps do not get a vote.'));
-check('026 concise bridge keeps Decision Receipt point',has(index,'Keep the reason.')&&has(index,'Decision Receipt preserves the why.'));
-check('027 retired Card Value Intelligence wording is absent',!/card value intelligence/i.test(index));
-check('028 formal CARD VALUE INTELLIGENCE identity is absent',!has(index,'CARD VALUE INTELLIGENCE'));
-check('029 30-second product film is present and wired',has(index,'30-SECOND PRODUCT FILM')&&has(index,'data-film')&&has(index,'id="film"'));
-check('030 redundant homepage simulator is absent',!has(index,'id="sim"')&&!has(index,'data-case="parallel"'));
-check('031 redundant WHAT JUST HAPPENED section is absent',!has(index,'WHAT JUST HAPPENED?'));
-check('032 redundant WHAT IS FLIPFORGE section is absent',!has(index,'WHAT IS FLIPFORGE?'));
-check('033 standalone receipt feature is absent',!has(index,'ff-approved-feature'));
-check('034 full Decision Proof block moved off homepage',!has(index,'id="decision-proof"'));
-check('035 concise Decision Proof line remains visible',has(index,'<strong>100 frozen decisions</strong>'));
-check('036 Decision Proof remains one click away',has(index,'href="decision-proof.html">See the proof →'));
-check('037 deeper education is routed off homepage',has(index,'Want the deeper explanation?')&&has(index,'href="product.html">Product</a>')&&has(index,'href="learn.html">Evidence Lab</a>'));
-check('038 beta CTA remains primary',has(index,'href="beta-application.html">Request Beta Access</a>'));
-check('039 returning tester beta sign-in is present',has(index,'data-ff-marketing-sign-in>Beta Sign In</a>'));
-check('040 accessible mobile menu markup remains',has(index,'class="menu-toggle"')&&has(index,'aria-controls="mobile-navigation"')&&has(index,'class="mobile-nav" id="mobile-navigation"'));
-check('041 shared mobile JS handles Escape',has(siteJs,"e.key==='Escape'"));
-check('042 shared mobile JS traps Tab',has(siteJs,"e.key==='Tab'&&menu.classList.contains('open')"));
-check('043 shared mobile JS closes on resize',has(siteJs,"window.addEventListener('resize'"));
-check('044 hero has mobile composition',has(read('assets/css/ff-decision-visual-v1.css'),'@media (max-width: 640px)')&&has(read('assets/css/homepage-hero-v6.css'),'@media (max-width: 640px)'));
-check('045 v5 CSS honors reduced motion',has(css,'@media(prefers-reduced-motion:reduce)'));
-check('046 reveal motion is progressive enhancement',has(js,'IntersectionObserver'));
-check('047 homepage reveal runtime never forces page scroll',!has(js,'scrollIntoView'));
-check('048 homepage runtime uses no browser storage',['localStorage','sessionStorage','indexedDB'].every(x=>!has(js,x)));
-check('049 deprecated slogan stays absent',!has(index,'Signal. Confidence. Advantage.'));
-check('050 forbidden former hero visual stays absent',!has(index,'flipforge-approved-decision-visual.webp'));
-check('051 old Deal Check runtime is not loaded',!has(index,'assets/js/homepage-deal-or-decoy-v1.js'));
-check('052 v5 shell is cached',has(sw,"'/assets/css/homepage-v5.css'")&&has(sw,"'/assets/js/homepage-v5.js'"));
-check('053 service worker version moved forward',has(sw,"const CACHE='flipforge-shell-v22'"));
-check('054 controlled-beta boundary is explicit',has(index,'Controlled Private Beta.'));
-check('055 transaction/profit boundary is explicit',has(index,'FlipForge does not guarantee profit or authorize transactions.'));
-check('056 Launch Plans remains discoverable without crowding hero nav',has(index,'href="pricing.html">Launch Plans</a>'));
-check('057 Decision Intelligence remains discoverable',has(index,'href="decision-intelligence.html">Decision Intelligence</a>'));
-check('058 no legacy Card Intelligence descriptor returns',!has(index,'FlipForge — Card Intelligence')&&!has(index,'FlipForge Card Intelligence'));
-
-if(failures.length){
-  console.error('Homepage Focus v5 validation failed:');
-  failures.forEach(f=>console.error(`- FAIL | ${f}`));
-  process.exit(1);
-}
-console.log(`PASS: Homepage Focus v5 validated (${58-failures.length} checks).`);
+const read=p=>fs.readFileSync(p,'utf8');
+const html=read('index.html'),css=read('assets/css/homepage-v10.css'),js=read('assets/js/homepage-v10.js');
+const sw=read('sw.js'),site=read('assets/js/site.js');
+const out=[];
+const check=(label,ok)=>out.push({label,ok});
+const has=(s,t)=>s.includes(t);
+const at=t=>html.indexOf(t);
+check('one homepage headline',(html.match(/<h1\b/g)||[]).length===1);
+check('official logo and descriptor',has(html,'assets/brand/flipforge-logo-horizontal.svg')&&has(html,'CARD DECISION INTELLIGENCE'));
+// Founder decision 2026-10-20: "Price is not proof." is the headline; the locked slogan sits directly beneath it.
+// Founder decision 2026-10-27: the category leads, the benefit follows the headline, the locked slogan stays unchanged.
+check('category, positioning headline, benefit, then the locked slogan',/<p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™<\/sup><\/span><\/p>\s*<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-benefit"><span>Find opportunities\.<\/span> <span>Test the evidence\.<\/span> <span>Avoid expensive mistakes\.<\/span><\/p>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(html)&&has(html,'Before you buy. Know Why.'));
+check('price question vs FlipForge question',['id="price-vs-proof"','“It sold for $500.”','“What does the evidence support, and what should I pay?”','Genuine sale prices are important evidence.','Decision intelligence decides what to do with it.'].every(t=>has(html,t)));
+check('five things a price tool cannot easily copy',(m=>m&&(m[0].match(/<li>/g)||[]).length===5&&['decision-proof.html','#evidence','#identity','#demo'].every(t=>m[0].includes('href="'+t+'"')))(html.match(/<div class="ff10-moat">[\s\S]*?<\/ol>/)));
+check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html));
+// Internal audit details stay off the public page. Rather than list the internal figures here (this file is public),
+// every number of three or more digits the homepage shows (text and readable attributes) must be an approved public
+// figure, and no internal finding label (a letter plus digits such as an audit defect ID) may appear. A new number
+// on the homepage needs a deliberate addition to this list.
+// 355: the Decision Challenge's illustrative "$355 under the comp" ($780 − $425) for the same fictional card.
+// 100: the 0-100 scale of the confidence and risk scores on the "Inside the app" screens ("15/100 confidence").
+const PUBLIC_HOMEPAGE_NUMBERS=new Set(['024','100','140','240','355','360','425','460','490','500','505','512','520','610','630','780','1200','2019','2026']);
+const readable=(src=>{const body=src.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi,' ');
+  const attrs=[...body.matchAll(/\s(?:content|alt|title|aria-label|placeholder|value)="([^"]*)"/gi)].map(m=>m[1]).join(' ');
+  return (body.replace(/<[^>]+>/g,' ')+' '+attrs).replace(/&[a-z#0-9]+;/gi,' ').replace(/#[0-9a-f]{3,8}\b/gi,' ');})(html);
+const unapprovedNumbers=[...new Set(readable.match(/\b\d{3,}\b/g)||[])].filter(n=>!PUBLIC_HOMEPAGE_NUMBERS.has(n));
+check('internal audit details stay off the public page (only approved public figures; no internal finding labels)',
+  unapprovedNumbers.length===0&&!/\b[A-Z]\d{1,3}\b/.test(readable.replace(/\b(?:H[1-6]|T(?:7|14|30)|Q[1-4])\b/g,'')));
+if(unapprovedNumbers.length)console.log('  unapproved homepage numbers:',unapprovedNumbers.join(', '));
+check('primary supporting statement',has(html,'A price tells you what someone asked or paid. FlipForge shows what it actually proves, and what you should pay.'));
+check('link previews carry the positioning',has(html,'<meta property="og:title" content="Price is not proof. | FlipForge™">')&&has(html,'name="twitter:card" content="summary_large_image"')&&has(html,'assets/images/flipforge-share-price-is-not-proof.jpg'));
+check('product shown in the hero',has(html,'class="ff10-panel"')&&has(html,'Max Buy')&&has(html,'Price gap')&&has(html,'data-ff10-sync="verdict"'));
+check('hero interaction routes: the Decision Challenge and Inside FlipForge, with beta access one tap away',has(html,'href="#demo" data-ff-hero-jump="challenge">Try the Decision Challenge')&&has(html,'href="#inside-the-app" data-ff-hero-jump="app">See Inside FlipForge')&&has(html,'id="demo"')&&has(html,'data-ffdemo')&&has(html,'id="inside-the-app"')&&/class="ff10-hero-note">[^<]*<a href="beta-application.html" data-ff-hero-apply>Request Beta Access<\/a>/.test(html));
+check('slider label and hint',has(html,'<label for="ff10-ask">Asking price</label>')&&has(html,'Drag the handle or use your arrow keys.'));
+check('max buy emphasis',has(html,'Max Buy $360')&&has(html,'<strong>$360</strong>'));
+check('price-gap visual',has(html,'data-price-gap')&&has(html,'data-max-marker'));
+check('decision output',has(html,'data-verdict')&&has(html,'data-decision-explanation'));
+check('profit ROI math',has(html,'data-profit')&&has(html,'data-roi'));
+check('evidence uncertainty guard',has(html,'data-uncertainty')&&has(js,"verdict = 'VERIFY'"));
+check('transparent reasoning',has(html,'How Max Buy is calculated')&&['Supported resale','Selling fees, 12%','Shipping and supplies','Your target margin'].every(t=>has(html,t)));
+check('reset control',has(html,'data-reset')&&has(js,"reset.addEventListener('click'"));
+check('input listener',has(js,"input.addEventListener('input', render)"));
+check('fixed threshold',has(js,'const MODEL = {resale: 500, fees: 60, shipping: 15, margin: 65};')&&has(js,'const gap = ask - MAX_BUY;'));
+check('no live API/storage',!/(fetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB)/.test(js));
+check('mock data disclosure',has(html,'NO REAL SALE DATA')&&has(html,'NO GUARANTEED RETURN'));
+check('strong CTA',has(html,'href="beta-application.html">Request Beta Access')&&(html.match(/href="beta-application\.html">Request Beta Access/g)||[]).length>=3);
+check('paired login join desktop',has(html,'class="ffdemo-nav-actions"')&&has(html,'class="ffdemo-sign-in"'));
+check('paired login join mobile',has(html,'class="ffdemo-mobile-actions"'));
+check('production beta sign-in',has(html,'/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start'));
+check('proof methodology preserved',has(html,'<strong>Frozen decisions</strong>')&&has(html,'href="decision-proof.html">How proof works'));
+check('marketable decision assets visible',['Max Buy','Price gap','Profit at this price','BUY','WATCH','VERIFY','PASS','Not every price counts.','One wrong parallel can ruin the entire comp.'].every(t=>has(html,t)));
+check('one unmistakable interactive demo',(html.match(/data-ffdemo\b/g)||[]).length===1&&!has(html,'data-film')&&!has(html,'data-decision-forge')&&!has(html,'data-ff9-film'));
+check('responsive CSS',has(css,'@media(max-width:760px)')&&has(css,'@media(min-width:761px) and (max-width:1100px)'));
+check('reduced motion CSS',has(css,'@media(prefers-reduced-motion:reduce)')&&has(js,"matchMedia('(prefers-reduced-motion: reduce)')"));
+check('keyboard/focus states',has(html,'aria-describedby="ff10-range-help"')&&has(html,'aria-pressed="false"')&&has(css,':focus-visible'));
+check('navigation mobile Escape key',has(site,"e.key==='Escape'"));
+check('new service worker cache',has(sw,"const CACHE='flipforge-shell-v26'")&&has(sw,"'/assets/js/homepage-v10.js'"));
+check('no old duplicate interaction loaded',!has(html,'homepage-decision-forge-v1.js')&&!has(html,'homepage-v5.js')&&!has(html,'homepage-interactive-decision-v7.js'));
+check('no public sales provider exposure',!has(html,'CardSight'));
+check('official transactions boundary',has(html,'FlipForge does not guarantee profit or authorize transactions.'));
+const failed=out.filter(x=>!x.ok);
+if(failed.length){failed.forEach(x=>console.error('FAIL: '+x.label));process.exit(1)}
+console.log('PASS: '+out.length+' Homepage Focus v10 checks.');

@@ -21,6 +21,7 @@ import {
   transitionApplication,
   transitionFeedback,
 } from "./lib/beta-operations-core.mjs";
+import { productionOnly } from "./lib/production-deploy-guard.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 import { BetaAdmissionError, admissionOperatorId, createAdmissionClient } from "./lib/beta-admission-client.mjs";
 
@@ -102,6 +103,20 @@ async function listIdentityUsers(identityAdmin) {
 
 function identityEmail(user) {
   return String(user?.email || "").trim().toLowerCase();
+}
+
+// An operator or admin account already has full access. It is never invited as a tester: an invitation would
+// put it behind the Beta Terms step (terms-pending) and move it to a new tenant, hiding its saved decisions.
+function isOperatorIdentity(user) {
+  return operatorRoles(user).includes("flipforge-operator") || String(user?.role || "") === "admin";
+}
+
+async function refuseOperatorInvite(application, identityAdmin) {
+  const email = identityEmail(application?.applicant);
+  if (!email) return;
+  const users = await listIdentityUsers(identityAdmin);
+  const existing = users.find(candidate => identityEmail(candidate) === email);
+  if (existing && isOperatorIdentity(existing)) throw new Error("OPERATOR_ACCOUNT_HAS_ACCESS");
 }
 
 function activatedIdentity(user) {
@@ -539,6 +554,7 @@ function publicError(error) {
     "IDENTITY_ACCOUNT_OWNED_BY_OTHER_BETA_RECORD",
     "CANNOT_DELETE_CURRENT_OPERATOR",
     "CANNOT_DELETE_OPERATOR_ACCOUNT",
+    "OPERATOR_ACCOUNT_HAS_ACCESS",
     "DELETE_CONFIRMATION_MISMATCH",
     "APPLICATION_EMAIL_MISSING",
     "APPLICATION_NOT_INVITABLE",
@@ -649,6 +665,8 @@ export function createBetaOperatorHandler({
       } else if (action === "invite" || action === "resend-invite") {
         const invitationNow = now();
         const resettingInvitation = action === "resend-invite";
+        // Before any seat, role or email change: operator accounts are never invited as testers.
+        await refuseOperatorInvite(current, identityAdmin);
         const reserved = reserveInvitation(current, invitationNow, resettingInvitation);
         let reservationEtag = currentEntry.etag;
         if (reserved !== current) {
@@ -729,7 +747,7 @@ export function createBetaOperatorHandler({
   };
 }
 
-export default createBetaOperatorHandler();
+export default productionOnly(createBetaOperatorHandler());
 
 // Netlify's current project tier permits two code-based rate-limit rules.
 // Operator access remains authenticated, operator-role gated, same-origin for writes,

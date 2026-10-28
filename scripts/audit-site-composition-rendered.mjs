@@ -165,27 +165,67 @@ try{
   const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
   const page=await context.newPage();
   await page.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded'});
-  const forge=page.locator('[data-decision-forge]');
-  const forgeSteps=page.locator('[data-forge-step]');
-  if(await forge.count() && await forgeSteps.count()===5){
-    await forgeSteps.nth(2).click();
-    await page.waitForFunction(()=>document.querySelector('[data-decision-forge]')?.dataset.step==='2',null,{timeout:3000})
-      .catch(()=>failures.push('homepage interaction: Decision Forge qualify stage did not render'));
-    const qualifyStatus=(await page.locator('[data-forge-status]').textContent().catch(()=>''))||'';
-    if(!/5 rejected/i.test(qualifyStatus)||!/2 qualified/i.test(qualifyStatus))failures.push('homepage interaction: Decision Forge qualification evidence summary missing');
-
-    await forgeSteps.nth(4).click();
-    await page.waitForFunction(()=>document.querySelector('[data-decision-forge]')?.dataset.step==='4',null,{timeout:3000})
-      .catch(()=>failures.push('homepage interaction: Decision Forge reveal stage did not render'));
-    const whyButton=page.locator('[data-forge-why-button]');
-    if(await whyButton.count()){
-      await whyButton.click();
-      const expanded=await whyButton.getAttribute('aria-expanded');
-      const open=await page.locator('[data-forge-why]').evaluate(el=>el.classList.contains('is-open')).catch(()=>false);
-      if(expanded!=='true'||!open)failures.push('homepage interaction: Decision Forge reason trail did not open');
-    }else failures.push('homepage interaction: Decision Forge reason-trail control missing');
-  }else failures.push('homepage interaction: Decision Forge stage controls missing');
+  // v10: the hero is one orchestrated lock-on (corner brackets, identity, decision panel). With reduced
+  // motion it must render in its final state immediately, with the illustrative $425 PASS scenario.
+  const heroState=await page.evaluate(()=>{
+    const hero=document.querySelector('[data-ff10-hero]');
+    return {locked:hero?.classList.contains('ff10-locked'),
+            verdict:hero?.querySelector('[data-ff10-sync="verdict"]')?.textContent?.trim(),
+            ask:hero?.querySelector('[data-ff10-sync="ask"]')?.textContent?.trim(),
+            panelOpacity:hero?getComputedStyle(hero.querySelector('.ff10-panel')).opacity:null};
+  });
+  if(!heroState.locked)failures.push('homepage hero: reduced motion must show the final locked state immediately '+JSON.stringify(heroState));
+  if(heroState.verdict!=='PASS'||heroState.ask!=='$425')failures.push('homepage hero: illustrative scenario must open at $425 PASS '+JSON.stringify(heroState));
+  if(heroState.panelOpacity!=='1')failures.push('homepage hero: decision panel must be visible with reduced motion '+JSON.stringify(heroState));
+  const demo=page.locator('[data-ffdemo]');
+  const slider=page.locator('[data-asking]');
+  if(await demo.count() && await slider.count()){
+    await slider.evaluate(el=>{el.value='310';el.dispatchEvent(new Event('input',{bubbles:true}));});
+    if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='BUY')failures.push('homepage: a $310 asking price must yield illustrative BUY');
+    if((await page.locator('[data-ff10-hero] [data-ff10-sync="verdict"]').textContent())?.trim()!=='BUY')failures.push('homepage: hero decision panel must mirror the demo');
+    if((await page.locator('[data-price-gap]').textContent())?.trim()!=='−$50')failures.push('homepage: $310 must be $50 below $360 Max Buy');
+    await slider.evaluate(el=>{el.value='395';el.dispatchEvent(new Event('input',{bubbles:true}));});
+    if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='PASS')failures.push('homepage: $395 exceeds illustrative Max Buy by more than $20');
+    await page.locator('[data-uncertainty]').click();
+    if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='VERIFY')failures.push('homepage: unresolved evidence must force VERIFY');
+    await page.locator('[data-reset]').click();
+    if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='PASS'||(await page.locator('[data-ask-value]').textContent())?.trim()!=='$425')failures.push('homepage: reset restores the illustrative $425 PASS');
+    await page.locator('.ff10-math summary').click();
+    if(!await page.locator('.ff10-math').evaluate(el=>el.open))failures.push('homepage: Max Buy calculation must be expandable');
+    const navStatus=await page.evaluate(()=>{
+      const nav=document.querySelector('.site-header nav.desktop-nav');
+      const sign=nav?.querySelector('a[data-ff-marketing-sign-in]');
+      const beta=nav?.querySelector('a.nav-cta[href*="beta-application"]');
+      const a=sign?.getBoundingClientRect(), b=beta?.getBoundingClientRect();
+      return {
+        adjacent:Boolean(sign&&beta&&sign.nextElementSibling===beta),
+        gap:a&&b?Number((b.left-a.right).toFixed(1)):null,
+        labels:[sign?.textContent?.trim(),beta?.textContent?.trim()],
+        header:document.querySelector('.site-header')?.outerHTML?.slice(0,950)
+      };
+    });
+    if(!navStatus.adjacent||navStatus.gap==null||navStatus.gap<0||navStatus.gap>24){
+      failures.push('homepage desktop: Sign In and Beta Access must be adjacent and close '+JSON.stringify(navStatus));
+    }
+  }else failures.push('homepage: interactive Max Buy demo or slider missing');
   await context.close();
+
+
+  // In normal motion the hero lock-on plays once when visible and settles on the decision panel.
+  const cinematicContext=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
+  const cinematicPage=await cinematicContext.newPage();
+  await cinematicPage.goto(BASE+'/index.html',{waitUntil:'domcontentloaded'});
+  await cinematicPage.waitForFunction(()=>document.querySelector('[data-ff10-hero]')?.classList.contains('ff10-locked'),null,{timeout:3500})
+    .catch(()=>failures.push('homepage cinematic: hero lock-on must start automatically when visible'));
+  await cinematicPage.waitForTimeout(2600);
+  const settled=await cinematicPage.evaluate(()=>{
+    const hero=document.querySelector('[data-ff10-hero]');
+    const panel=hero?.querySelector('.ff10-panel');
+    return {armed:hero?.classList.contains('ff10-armed'),opacity:panel?getComputedStyle(panel).opacity:null,
+            verdict:hero?.querySelector('[data-ff10-sync="verdict"]')?.textContent?.trim()};
+  });
+  if(!settled.armed||settled.opacity!=='1'||settled.verdict!=='PASS')failures.push('homepage cinematic: lock-on must settle on the visible $425 PASS panel '+JSON.stringify(settled));
+  await cinematicContext.close();
 
   const mobile=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   const mobilePage=await mobile.newPage();

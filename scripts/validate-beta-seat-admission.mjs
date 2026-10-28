@@ -317,6 +317,46 @@ check("B18 operation logs contain no tester emails", logs.every(line => !/@examp
   check("C04 the customer gateway refuses the operator admission route", operatorRoute.status === 404 && !upstreamUrls.some(url => url.includes("/operator/")));
 }
 
+// ---------- E. Operator (founder) accounts are never invited as testers ----------
+{
+  backend.cap = 50;
+  const founderEmail = "founder-operator@example.com";
+  identityUsers.push({ id: "identity-founder-operator", email: founderEmail, confirmedAt: now().toISOString(),
+    roles: ["flipforge-tenant--beta-001", "flipforge-active", "flipforge-operator"],
+    appMetadata: { provider: "email", roles: ["flipforge-tenant--beta-001", "flipforge-active", "flipforge-operator"] },
+    userMetadata: { full_name: "Founder" } });
+  const id = crypto.randomUUID();
+  const application = { id, version: 1, schemaVersion: 1, status: "APPROVED", cohort: "start-2026-10-24", selectionSource: "FOUNDER_SELECTED",
+    submittedAt: now().toISOString(), updatedAt: now().toISOString(), termsAcceptance: null,
+    applicant: { fullName: "Founder", email: founderEmail, betaTermsAccepted: false },
+    history: [{ type: "FOUNDER_SELECTED", at: now().toISOString(), actor: "operator" }] };
+  await store.setJSON(applicationKey(id), application);
+  const seatsBefore = backend.seats.size;
+  const emailsBefore = emailsSent.length;
+  const timelineBefore = backend.timeline.length;
+  for (const action of ["invite", "resend-invite"]) {
+    const refused = await post({ action, applicationId: id, expectedVersion: 1 });
+    const payload = await refused.json();
+    check(`E01 ${action} of an operator account is refused with OPERATOR_ACCOUNT_HAS_ACCESS`,
+      refused.status === 409 && payload.reason === "OPERATOR_ACCOUNT_HAS_ACCESS");
+  }
+  const founder = identityUsers.find(user => user.email === founderEmail);
+  check("E02 the operator account keeps its roles: never terms-pending, still active, same tenant",
+    founder.roles.includes("flipforge-active") && founder.roles.includes("flipforge-operator")
+      && founder.roles.includes("flipforge-tenant--beta-001") && !founder.roles.includes("flipforge-terms-pending")
+      && founder.roles.filter(role => role.startsWith("flipforge-tenant--")).length === 1);
+  check("E03 nothing was sent, reserved or written for the operator account",
+    emailsSent.length === emailsBefore && backend.seats.size === seatsBefore
+      && !backend.timeline.slice(timelineBefore).some(entry => entry.startsWith("identity:update") || entry.startsWith("seat:") || entry.startsWith("email:"))
+      && (await store.get(applicationKey(id))).version === 1);
+  const probeSource = read("scripts/lib/flipforge-production-auth-probe.mjs");
+  check("E04 the sign-in page never shows the Beta Terms box to an operator account",
+    probeSource.includes("if (!termsPanel || isOperatorAccount(currentUser)) return;")
+      && probeSource.includes("response.status === 403 && !isOperatorAccount(currentUser) && rolesOf(currentUser).includes(TERMS_PENDING_ROLE)"));
+  check("E05 Owner Hub and Invite form explain the refusal", read("assets/js/beta-operator.js").includes("OPERATOR_ACCOUNT_HAS_ACCESS:")
+    && read("assets/js/beta-founder-select.js").includes('reason==="OPERATOR_ACCOUNT_HAS_ACCESS"'));
+}
+
 // ---------- D. Source boundaries ----------
 const gatewaySource = read("netlify/functions/flipforge-api.js");
 const probe = read("scripts/lib/flipforge-production-auth-probe.mjs");

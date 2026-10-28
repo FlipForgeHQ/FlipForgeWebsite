@@ -28,6 +28,8 @@ on:
       - "docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md"
       - "docs/SAAS_PRIVATE_BETA_READINESS.md"
       - "scripts/validate-saas-private-beta-readiness.mjs"
+      - "scripts/validate-beta-card-evidence-request.mjs"
+      - "saas-prototype/customer-discovery.js"
       - "package.json"
       - "package-lock.json"
       - "netlify.toml"
@@ -61,6 +63,8 @@ on:
       - "docs/PRIVATE_BETA_OPERATOR_WORKFLOW.md"
       - "docs/SAAS_PRIVATE_BETA_READINESS.md"
       - "scripts/validate-saas-private-beta-readiness.mjs"
+      - "scripts/validate-beta-card-evidence-request.mjs"
+      - "saas-prototype/customer-discovery.js"
       - "package.json"
       - "package-lock.json"
       - "netlify.toml"
@@ -90,4 +94,4 @@ jobs:
           node --check netlify/modern-functions/lib/beta-admission-client.mjs
           node --check netlify/modern-functions/beta-retention.mjs
       - name: Validate beta operator workflow
-        run: npm run build:identity && npm run validate:identity && npm run validate:beta-operator && npm run validate:private-beta
+        run: npm run build:identity && npm run validate:identity && npm run validate:beta-operator && npm run validate:private-beta && node scripts/validate-beta-card-evidence-request.mjs

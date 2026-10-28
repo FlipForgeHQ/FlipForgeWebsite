@@ -24,6 +24,35 @@ on:
       - "scripts/validate-homepage-progression.mjs"
       - "scripts/validate-decision-proof-public-v1.mjs"
       - "scripts/validate-product-identity-simulator.mjs"
+      - "assets/css/homepage-audiences-v1.css"
+      - "assets/js/homepage-audiences-v1.js"
+      - "marketing/content/audience-messaging.json"
+      - "scripts/build-homepage-audiences.mjs"
+      - "scripts/validate-homepage-audiences-v1.mjs"
+      - "assets/css/homepage-challenge-v1.css"
+      - "assets/js/homepage-challenge-v1.js"
+      - "assets/js/homepage-v10.js"
+      - "assets/js/conversion-events.js"
+      - "assets/js/beta-application.js"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "scripts/validate-homepage-challenge-v1.mjs"
+      - "assets/css/homepage-app-showcase-v1.css"
+      - "assets/js/homepage-app-showcase-v1.js"
+      - "assets/images/ff-app-*.webp"
+      - "scripts/validate-homepage-app-showcase-v1.mjs"
+      - "assets/css/homepage-hero-positioning-v1.css"
+      - "assets/css/homepage-section-rhythm-v1.css"
+      - "assets/js/homepage-engagement-v1.js"
+      - "saas-prototype/customer-cdi-signal-stack-v1.js"
+      - "saas-prototype/customer-cdi-signal-stack-v1.css"
+      - "saas-prototype/decision-intelligence-ux-v2.js"
+      - "saas-prototype/customer-discovery.js"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "assets/js/beta-operator.js"
+      - "operator-beta.html"
+      - "scripts/validate-website-polish-v1.mjs"
+      - "scripts/validate-homepage-engagement-short-viewport.mjs"
+      - "scripts/validate-conversion-event-contract.mjs"
       - ".github/workflows/homepage-focus.yml"
   push:
     branches:
@@ -50,6 +79,35 @@ on:
       - "scripts/validate-homepage-progression.mjs"
       - "scripts/validate-decision-proof-public-v1.mjs"
       - "scripts/validate-product-identity-simulator.mjs"
+      - "assets/css/homepage-audiences-v1.css"
+      - "assets/js/homepage-audiences-v1.js"
+      - "marketing/content/audience-messaging.json"
+      - "scripts/build-homepage-audiences.mjs"
+      - "scripts/validate-homepage-audiences-v1.mjs"
+      - "assets/css/homepage-challenge-v1.css"
+      - "assets/js/homepage-challenge-v1.js"
+      - "assets/js/homepage-v10.js"
+      - "assets/js/conversion-events.js"
+      - "assets/js/beta-application.js"
+      - "netlify/modern-functions/conversion-event.mjs"
+      - "scripts/validate-homepage-challenge-v1.mjs"
+      - "assets/css/homepage-app-showcase-v1.css"
+      - "assets/js/homepage-app-showcase-v1.js"
+      - "assets/images/ff-app-*.webp"
+      - "scripts/validate-homepage-app-showcase-v1.mjs"
+      - "assets/css/homepage-hero-positioning-v1.css"
+      - "assets/css/homepage-section-rhythm-v1.css"
+      - "assets/js/homepage-engagement-v1.js"
+      - "saas-prototype/customer-cdi-signal-stack-v1.js"
+      - "saas-prototype/customer-cdi-signal-stack-v1.css"
+      - "saas-prototype/decision-intelligence-ux-v2.js"
+      - "saas-prototype/customer-discovery.js"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "assets/js/beta-operator.js"
+      - "operator-beta.html"
+      - "scripts/validate-website-polish-v1.mjs"
+      - "scripts/validate-homepage-engagement-short-viewport.mjs"
+      - "scripts/validate-conversion-event-contract.mjs"
       - ".github/workflows/homepage-focus.yml"
 
 permissions:
@@ -71,6 +129,11 @@ jobs:
           node --check assets/js/marketing-v3.js
           node --check assets/js/homepage-v1.js
           node --check assets/js/site.js
+          node --check assets/js/homepage-audiences-v1.js
+          node --check assets/js/homepage-challenge-v1.js
+          node --check assets/js/homepage-app-showcase-v1.js
+          node --check assets/js/homepage-engagement-v1.js
+          node --check assets/js/beta-application.js
       - name: Validate focused marketing contract
         run: |
           node scripts/validate-homepage-focus.mjs
@@ -78,3 +141,10 @@ jobs:
           node scripts/validate-homepage-progression.mjs
           node scripts/validate-decision-proof-public-v1.mjs
           node scripts/validate-product-identity-simulator.mjs
+          node scripts/build-homepage-audiences.mjs --check
+          node scripts/validate-homepage-audiences-v1.mjs
+          node scripts/validate-homepage-challenge-v1.mjs
+          node scripts/validate-homepage-app-showcase-v1.mjs
+          node scripts/validate-website-polish-v1.mjs
+          node scripts/validate-conversion-event-contract.mjs
+          node scripts/validate-homepage-engagement-short-viewport.mjs

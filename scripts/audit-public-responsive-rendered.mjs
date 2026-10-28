@@ -119,43 +119,67 @@ async function auditPage(page, label, path, viewport) {
   if (pageErrors.length) failures.push(`${viewport.name} ${label}: browser errors: ${pageErrors.slice(0, 3).join(' | ')}`);
 }
 
-async function auditForgeMobile(page, viewport) {
+async function auditDecisionMobile(page, viewport) {
   await goto(page, '/');
-  const steps = page.locator('[data-forge-step]');
-  if (await steps.count() < 5) {
-    failures.push(`${viewport.name} Home: Decision Forge stage controls missing`);
+  const panel=page.locator('[data-ffdemo]');
+  const slider=page.locator('[data-asking]');
+  if(await panel.count()!==1 || await slider.count()!==1){
+    failures.push(`${viewport.name} Home: signature Max Buy demo or slider missing`);
     return;
   }
 
-  const checks = [
-    { index: 2, overlay: '.ff-df-evidence-verdicts', scene: '.ff-df-scene-evidence img', label: 'evidence verdicts' },
-    { index: 3, overlay: '.ff-df-economics', scene: '.ff-df-scene-evidence img', label: 'economics panel' },
-    { index: 4, overlay: '.ff-df-reveal-card', scene: '.ff-df-scene-receipt img', label: 'decision reveal' }
-  ];
+  const geometry=await page.evaluate(()=>{
+    const rect=sel=>{
+      const el=document.querySelector(sel);
+      if(!el)return null;
+      const b=el.getBoundingClientRect();
+      return {left:b.left,right:b.right,width:b.width};
+    };
+    return {
+      panel:rect('[data-ffdemo] .ff10-wrap'),
+      ask:rect('.ff10-meter-top'),
+      slider:rect('[data-asking]'),
+      metrics:rect('.ff10-readout'),
+      decision:rect('.ff10-read-verdict'),
+      heroPanel:rect('.ff10-panel'),
+      viewport:innerWidth
+    };
+  });
+  for(const [label,box] of Object.entries(geometry)){
+    if(label==='viewport')continue;
+    if(!box||box.left< -1||box.right>geometry.viewport+1||box.width<180)
+      failures.push(`${viewport.name} Home: ${label} is clipped or too narrow in Max Buy demo ${JSON.stringify(box)}`);
+  }
 
-  for (const check of checks) {
-    await steps.nth(check.index).click();
-    await page.waitForTimeout(120);
-    const state = await page.evaluate(({ overlay, scene }) => {
-      const rect = selector => {
-        const el = document.querySelector(selector);
-        if (!el) return null;
-        const b = el.getBoundingClientRect();
-        return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, width: b.width, height: b.height };
+  await slider.evaluate(el=>{el.value='310';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  const output=panel.locator('.ff10-verdict[data-verdict]');
+  if((await output.textContent())?.trim()!=='BUY')failures.push(`${viewport.name} Home: $310 scenario must show BUY`);
+  if((await panel.locator('[data-price-gap]').textContent())?.trim()!=='−$50')failures.push(`${viewport.name} Home: $310 scenario must show $50 below Max Buy`);
+  await slider.evaluate(el=>{el.value='395';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  if((await output.textContent())?.trim()!=='PASS')failures.push(`${viewport.name} Home: $395 scenario must show PASS`);
+  await panel.locator('[data-uncertainty]').click();
+  if((await output.textContent())?.trim()!=='VERIFY')failures.push(`${viewport.name} Home: unresolved evidence must force VERIFY`);
+  await panel.locator('[data-reset]').click();
+  if((await output.textContent())?.trim()!=='PASS')failures.push(`${viewport.name} Home: reset should restore the $425 PASS scenario`);
+  await panel.locator('.ff10-math summary').click();
+  if(!await panel.locator('.ff10-math').evaluate(el=>el.open))
+    failures.push(`${viewport.name} Home: the Max Buy calculation does not expand`);
+  if(viewport.width<=1120){
+    await page.locator('.menu-toggle').click();
+    const nav=await page.evaluate(()=>{
+      const links=[...document.querySelectorAll('.mobile-nav a')];
+      const sign=links.find(el=>el.hasAttribute('data-ff-marketing-sign-in'));
+      const join=links.find(el=>el.getAttribute('href')?.includes('beta-application'));
+      const a=sign?.getBoundingClientRect(),b=join?.getBoundingClientRect();
+      return {
+        present:Boolean(sign&&join),
+        labels:[sign?.textContent?.trim(),join?.textContent?.trim()],
+        gap:a&&b?Number((b.top-a.bottom).toFixed(1)):null,
+        aligned:a&&b?Math.abs(a.left-b.left)<=3:null
       };
-      return { overlay: rect(overlay), image: rect(scene), viewport: rect('.ff-df-viewport') };
-    }, check);
-
-    if (!state.overlay || !state.image || !state.viewport) {
-      failures.push(`${viewport.name} Home: missing geometry for ${check.label}`);
-      continue;
-    }
-    if (state.overlay.left < state.viewport.left - 1 || state.overlay.right > state.viewport.right + 1) {
-      failures.push(`${viewport.name} Home: ${check.label} leaves Decision Forge viewport`);
-    }
-    if (state.overlay.top < state.image.bottom + 8) {
-      failures.push(`${viewport.name} Home: ${check.label} overlaps the mobile showcase image (${round(state.overlay.top)} < ${round(state.image.bottom + 8)})`);
-    }
+    });
+    if(!nav.present||nav.gap==null||nav.gap<0||nav.gap>20||!nav.aligned)
+      failures.push(`${viewport.name} Home: mobile Sign In and Beta Access must be prominent and next to each other (${JSON.stringify(nav)})`);
   }
 }
 
@@ -210,7 +234,7 @@ try {
     const page = await context.newPage();
 
     for (const [label, path] of pages) await auditPage(page, label, path, viewport);
-    if (viewport.width <= 1120) await auditForgeMobile(page, viewport);
+    await auditDecisionMobile(page, viewport);
 
     console.log(`PASS candidate: ${viewport.name} rendered across ${pages.length} public pages`);
     await context.close();
@@ -230,4 +254,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: public pages are viewport-contained at seven breakpoints; major graphics are vector, unbroken, and on-canvas; collapsed-nav Decision Forge panels do not cover their showcase art; showcase SVG text has no collisions.');
+console.log('PASS: public pages are viewport-contained at seven breakpoints; major graphics are vector, unbroken, and on-canvas; interactive Max Buy controls and results remain visible and usable across all breakpoints; showcase SVG text has no collisions.');

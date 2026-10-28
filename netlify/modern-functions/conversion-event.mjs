@@ -5,6 +5,9 @@ const MAX_BODY_BYTES = 2048;
 
 const EVENT_NAMES = new Set([
   "sample_dossier_viewed",
+  "sample_dossier_clicked",
+  "evidence_lab_clicked",
+  "decision_intelligence_clicked",
   "beta_cta_clicked",
   "beta_form_started",
   "beta_application_received",
@@ -17,6 +20,13 @@ const EVENT_NAMES = new Set([
   "decision_explanation_viewed",
   "decision_saved",
   "tracking_viewed",
+  "audience_selected",
+  "challenge_answered",
+  "challenge_completed",
+  "demo_interacted",
+  "app_screen_viewed",
+  "hero_jump_clicked",
+  "section_viewed",
 ]);
 
 const PAGE_NAMES = new Set([
@@ -27,6 +37,9 @@ const PAGE_NAMES = new Set([
   "beta-onboarding",
   "beta-app",
   "product",
+  "decision-intelligence",
+  "evidence-lab",
+  "launch-plans",
   "pricing",
   "learn",
   "faq",
@@ -38,6 +51,7 @@ const PAGE_NAMES = new Set([
 const PLACEMENTS = new Set([
   "hero",
   "sample-spotlight",
+  "evidence",
   "sample-page",
   "navigation",
   "footer",
@@ -46,6 +60,22 @@ const PLACEMENTS = new Set([
   "onboarding",
   "workflow",
   "page",
+  "audience-flipper",
+  "audience-investor",
+  "audience-collector",
+  "audience-dealer",
+  "audience-grading",
+  "challenge",
+  "challenge-buy",
+  "challenge-investigate",
+  "challenge-pass",
+  "demo",
+  "app-discover",
+  "app-evaluate",
+  "app-receipt",
+  "hero-challenge",
+  "hero-app",
+  "inside-app",
   "unknown",
 ]);
 

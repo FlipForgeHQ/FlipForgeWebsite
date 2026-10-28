@@ -10,7 +10,7 @@
 <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
 <link rel="stylesheet" href="assets/css/brand-v2.css">
-<link rel="stylesheet" href="assets/css/beta-operator-v1.css?v=20260922-directory-2">
+<link rel="stylesheet" href="assets/css/beta-operator-v1.css?v=20261022-card-evidence">
 </head>
 <body class="ff-operator-page">
 <a class="skip-link" href="#main">Skip to operations workspace</a>
@@ -46,6 +46,8 @@
     <section class="ff-operator-panel" aria-labelledby="funnel-heading">
       <header><div><span class="ff-operator-kicker">Last 30 days</span><h2 id="funnel-heading">Acquisition funnel</h2></div><p>Directional interactions—not unique visitors or accuracy claims.</p></header>
       <div class="ff-funnel-grid" data-funnel-grid></div>
+      <h3 class="ff-funnel-subhead">Homepage engagement</h3>
+      <div class="ff-funnel-grid" data-homepage-funnel-grid></div>
     </section>
 
     <section class="ff-operator-panel ff-application-panel" aria-labelledby="applications-heading">
@@ -73,9 +75,18 @@
       <header><div><span class="ff-operator-kicker">Wave 1 comprehension</span><h2 id="cdi-learning-heading">Decision Intelligence scorecard</h2></div><p>Structured tester understanding signals from the real decision screen.</p></header>
       <div class="ff-feedback-metrics" aria-label="Decision Intelligence learning summary">
         <article><span>Responses</span><strong data-cdi-learning-metric="responses">0</strong></article>
+        <article><span>Understood the decision</span><strong data-cdi-learning-metric="decision-clear-pct">No responses yet</strong></article>
+        <article><span>Understood why</span><strong data-cdi-learning-metric="reason-clear-pct">No responses yet</strong></article>
+        <article><span>Found the information relevant</span><strong data-cdi-learning-metric="relevant-pct">No responses yet</strong></article>
+        <article><span>Understood their next step</span><strong data-cdi-learning-metric="next-clear-pct">No responses yet</strong></article>
+        <article><span>Most common missing information</span><strong data-cdi-learning-metric="top-gap">No gaps reported yet</strong></article>
         <article><span>Decision clear</span><strong data-cdi-learning-metric="decision-clear">0</strong></article>
         <article><span>Decision partly clear</span><strong data-cdi-learning-metric="decision-partly">0</strong></article>
         <article><span>Next step clear</span><strong data-cdi-learning-metric="next-clear">0</strong></article>
+        <article><span>Relevance answered</span><strong data-cdi-learning-metric="relevant-answered">0</strong></article>
+        <article><span>Information relevant</span><strong data-cdi-learning-metric="relevant-yes">0</strong></article>
+        <article><span>Partly relevant</span><strong data-cdi-learning-metric="relevant-partly">0</strong></article>
+        <article><span>Not relevant</span><strong data-cdi-learning-metric="relevant-no">0</strong></article>
         <article><span>Evidence increased confidence</span><strong data-cdi-learning-metric="evidence-up">0</strong></article>
         <article><span>Evidence decreased confidence</span><strong data-cdi-learning-metric="evidence-down">0</strong></article>
         <article><span>Most useful CDI layer</span><strong data-cdi-learning-metric="top-layer">No signal yet</strong></article>
@@ -106,7 +117,7 @@
 </main>
 
 <script src="/assets/js/flipforge-identity.js"></script>
-<script src="assets/js/beta-operator.js?v=20261006-beta-seat-1" defer></script>
+<script src="assets/js/beta-operator.js?v=20261022-card-evidence" defer></script>
 <script src="assets/js/beta-founder-select.js?v=20261006-beta-seat-1" defer></script>
 <script src="assets/js/beta-cdi-scorecard-operator-v1.js?v=20260911-1" defer></script>
 </body>

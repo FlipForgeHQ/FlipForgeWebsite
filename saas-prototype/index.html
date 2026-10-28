@@ -10,6 +10,11 @@
     // Private Beta workspace: a live customer view on every host. It loads no prototype sample data.
     window.FlipForgePrivateBetaEntry = true;
     if (/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""))) {
+      // The beta loads its files by relative path, which only resolve under /app/beta/. Move the exact slashless
+      // entry to the canonical address before the page renders; /app/beta/ never matches, so this cannot loop.
+      if (window.location.pathname === "/app/beta") {
+        window.location.replace("/app/beta/" + window.location.search + window.location.hash);
+      }
       document.documentElement.classList.add("ff-private-beta-access-pending");
     }
   </script>
@@ -37,12 +42,14 @@
   <link rel="stylesheet" href="customer-lifecycle.css">
   <link rel="stylesheet" href="collection-intelligence-alerts-v1.css">
   <link rel="stylesheet" href="customer-lifecycle-validation.css">
+  <link rel="stylesheet" href="customer-reported-sales.css">
+  <link rel="stylesheet" href="customer-sell-watch.css">
   <link rel="stylesheet" href="customer-export.css">
   <link rel="stylesheet" href="customer-discovery.css">
   <link rel="stylesheet" href="customer-forge-heat.css">
   <link rel="stylesheet" href="customer-market-view.css">
   <link rel="stylesheet" href="consumer-pro-navigation.css">
-  <link rel="stylesheet" href="cardsight-evidence-visibility.css">
+  <link rel="stylesheet" href="provider-evidence-visibility.css">
   <link rel="stylesheet" href="price-intelligence.css">
   <link rel="stylesheet" href="customer-entitlements.css">
   <link rel="stylesheet" href="private-beta.css">
@@ -62,6 +69,7 @@
   <link rel="stylesheet" href="customer-readability.css">
   <link rel="stylesheet" href="sidebar-nav-description-layout-fix-v1.css">
   <link rel="stylesheet" href="guided-mode-compact-v1.css">
+  <link rel="stylesheet" href="guided-mode-light-v2.css">
   <link rel="stylesheet" href="forge-heat-control-room-v2.css">
   <link rel="stylesheet" href="mobile-shell-v4.css">
   <link rel="stylesheet" href="customer-only-shell-v1.css">
@@ -70,6 +78,7 @@
   <link rel="stylesheet" href="customer-shell-brand-v1.css">
   <link rel="stylesheet" href="customer-focused-v3-v1.css">
   <link rel="stylesheet" href="customer-trust-display-v1.css">
+  <link rel="stylesheet" href="beta-guided-discover-v1.css">
 </head>
 <body data-ff-surface="customer">
   <!-- Retained non-production validation boundary: NON-PRODUCTION PROTOTYPE · Mock responses only · No purchase authority · Billing is not connected · Private beta · Invitation only · Not active. Production customer language and billing state are replaced by authenticated server-owned runtime data. -->
@@ -184,7 +193,7 @@
   <script src="identity-login-redirect.js"></script>
   <script src="production-identity-login-redirect.js"></script>
   <script src="customer-trust-display-v1.js"></script>
-  <script src="cardsight-evidence-visibility.js"></script>
+  <script src="provider-evidence-visibility.js"></script>
   <script src="price-intelligence.js"></script>
   <script src="staging-browser.js"></script>
   <script src="staging-evaluation.js"></script>
@@ -198,6 +207,8 @@
   <script src="collection-intelligence-alerts-v1.js"></script>
   <script src="customer-lifecycle-validation.js"></script>
   <script src="customer-lifecycle-display.js"></script>
+  <script src="customer-reported-sales.js"></script>
+  <script src="customer-sell-watch.js"></script>
   <script src="customer-management.js"></script>
   <script src="customer-portfolio.js"></script>
   <script src="customer-export.js"></script>
@@ -228,7 +239,6 @@
   <script src="tracking-customer-ux-v1.js?v=20260829-2" data-ff-tracking-customer-ux></script>
   <script src="tracking-navigation-reload-v1.js?v=20260829-2"></script>
   <script src="tracking-context-v1.js"></script>
-  <script src="forge-heat-control-room-v2.js"></script>
   <script src="beta-qa-customer-polish-v1.js"></script>
   <script src="evidence-final-polish-v1.js"></script>
   <script src="decision-intelligence-final-polish-v1.js"></script>
@@ -238,5 +248,6 @@
   <script src="customer-only-shell-v1.js"></script>
   <script src="beta-session-v1.js"></script>
   <script src="phase3-first-decision-activation-v1.js"></script>
+  <script src="beta-guided-discover-v1.js"></script>
 </body>
 </html>

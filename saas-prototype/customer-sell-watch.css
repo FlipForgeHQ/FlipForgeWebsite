@@ -1,0 +1,98 @@
+.ff-sell-watch .panel-body {
+  display: grid;
+  gap: 14px;
+}
+
+.ff-sell-watch-channel select {
+  max-width: 320px;
+}
+
+.ff-sell-watch-saved {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-raised, #15181d);
+}
+
+.ff-sell-watch-saved p {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.ff-sell-watch-result {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-raised, #15181d);
+}
+
+.ff-sell-watch-result p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.ff-sell-watch-breakdown {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.ff-sell-watch-breakdown div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.ff-sell-watch-breakdown dt {
+  color: var(--text-soft);
+}
+
+.ff-sell-watch-breakdown dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ff-sell-watch-breakdown div:nth-last-child(2) {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
+}
+
+.ff-sell-watch-breakdown div:nth-last-child(2) dt {
+  color: inherit;
+}
+
+.ff-sell-watch-note {
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.ff-sell-watch .value-positive {
+  color: #8fd6a4;
+}
+
+.ff-sell-watch .value-negative {
+  color: #f19a8a;
+}
+
+.ff-sell-watch-break-even {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ff-sell-watch-break-even span {
+  color: var(--text-soft, #9fa5b0);
+}

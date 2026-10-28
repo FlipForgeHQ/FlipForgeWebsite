@@ -98,7 +98,7 @@
     const reasonParagraphs = [...summary.querySelectorAll(".ff-decision-summary-main > p")]
       .filter((node) => !node.classList.contains("ff-decision-next"));
     const why = text(reasonParagraphs[0]) || "FlipForge preserved the server-owned decision.";
-    const change = text(summary.querySelector(".ff-decision-next")) || "Material new evidence or price/risk changes require a fresh evaluation.";
+    const change = text(summary.querySelector(".ff-decision-next")).replace(/^what you should do next:\s*/i, "") || "Material new evidence or price/risk changes require a fresh evaluation.";
     const accepted = numericFromPage(root, ACCEPTED_SALES_LABELS);
     const excluded = numericFromPage(root, ["Visible but ineligible", "Excluded from authority"]);
     // customer-decision-clarity-v1.js renames "Current ask" to "Listing price" and "Risk" to "Decision risk";
@@ -125,6 +125,7 @@
       confidence,
       risk,
       exactIdentity: exactIdentityState(root, record),
+      economics: economicsOf(root),
       observed,
       evidenceHref: `#/evidence/${id}`,
       trackingHref: `#/tracking/${id}`,
@@ -153,6 +154,7 @@
       confidence: labeledValue(verdict, ".ff-di-v2-verdict-metrics > div", "Confidence"),
       risk: labeledValue(verdict, ".ff-di-v2-verdict-metrics > div", "Risk"),
       exactIdentity: labeledValue(command, ".ff-di-v2-gate", "Exact identity"),
+      economics: economicsOf(command),
       observed: labeledValue(command, ".ff-di-v2-receipt-grid > div", "Observed"),
       evidenceHref: command.querySelector(".ff-di-v2-evidence-link")?.getAttribute("href") || "#/evidence",
       trackingHref: "#/tracking",
@@ -166,11 +168,70 @@
     return { trusted, excluded };
   }
 
+  // Buyer-facing interpretation of the SAVED server verdict. This layer explains
+  // consequences; it does not calculate a new price, recommendation or confidence.
+  const CARD_IMPACT_COPY = Object.freeze({
+    BUY: ["Evidence supports considering this purchase", "For the evaluated card and asking price, FlipForge's saved decision supports BUY within the recorded risks and limits. The recommendation is not a guarantee or permission to transact."],
+    WATCH: ["Not enough advantage to act yet", "The saved decision did not establish a strong enough buying opportunity at the evaluated conditions. Monitor the price, qualified evidence and risk before requesting a new evaluation."],
+    VERIFY: ["Resolve the uncertainty before acting", "FlipForge could not establish enough certainty for this exact card at the evaluated conditions. Check the identity and the qualifying evidence before deciding whether to buy."],
+    PASS: ["This deal does not meet the decision standard", "The saved evidence, economics and risk did not justify buying this card at the evaluated conditions. That is a judgment about this specific deal, not a prediction of the card's future value."],
+    UNKNOWN: ["A supported verdict is not available", "The saved record does not provide a current supported BUY, WATCH, VERIFY or PASS interpretation. Review the original server decision and its evidence."],
+  });
+  // Non-transactional next steps for each saved verdict. Wording only; nothing here is a calculation.
+  const NEXT_STEP_COPY = Object.freeze({
+    BUY: "Check the listing, the card's condition and the total cost yourself, then decide whether to proceed. FlipForge does not bid or buy for you.",
+    WATCH: "Keep the card on your watch list. Come back if the price changes or new exact sales appear, and ask for a fresh evaluation then.",
+    VERIFY: "Confirm the exact card (year, set, number, parallel, grade) and look for qualifying sales before relying on this result.",
+    PASS: "You can move on from this listing at the evaluated price. If the price or costs change materially, request a fresh evaluation.",
+    UNKNOWN: "Open the original saved decision and its evidence before acting on this card.",
+  });
+  const ECONOMICS_LABELS = Object.freeze([
+    ["Max buy", ["Max buy", "Max Buy", "Maximum buy"]],
+    ["Estimated costs", ["Estimated costs", "Costs", "Total costs", "Fees and shipping"]],
+    ["Breakeven", ["Breakeven", "Break-even", "Break-even price", "Breakeven price"]],
+    ["Potential profit", ["Potential profit", "Estimated profit", "Net profit"]],
+  ]);
+  // Reads a value the saved decision page already shows. Never computes or infers one.
+  function shownValue(root, labels) {
+    if (!root) return "";
+    const wanted = labels.map((label) => label.toLowerCase());
+    for (const node of root.querySelectorAll("span,dt,label,small,h3,th")) {
+      if (!wanted.includes(text(node).toLowerCase().replace(/:$/, ""))) continue;
+      const sibling = node.nextElementSibling;
+      if (sibling && /^(STRONG|DD|TD|B)$/.test(sibling.tagName) && text(sibling)) return text(sibling);
+      const inner = node.parentElement?.querySelector(":scope > strong");
+      if (inner && inner !== node && text(inner)) return text(inner);
+    }
+    return "";
+  }
+  function economicsOf(root) {
+    const out = {};
+    for (const [key, labels] of ECONOMICS_LABELS) out[key] = shownValue(root, labels);
+    return out;
+  }
+  function hasEconomics(model) {
+    return Object.values(model.economics || {}).some(Boolean);
+  }
+  function economicsRows(model) {
+    return ECONOMICS_LABELS
+      .filter(([key]) => model.economics?.[key])
+      .map(([key]) => `<div><dt>${escapeHtml(key)}</dt><dd>${escapeHtml(model.economics[key])}</dd></div>`)
+      .join("");
+  }
+  function nextReviewCopy(change) {
+    const value = String(change || "").trim();
+    // Raw internal status codes are not meaningful actions and must never
+    // silently become a purported reason for changing this card's value.
+    if (value && !/^[A-Z0-9]+(?:[ _][A-Z0-9]+)*$/.test(value) && value.length <= 450) return value;
+    return "New exact evidence, changes to the listing price or costs, or a resolved identity/risk question require a new evaluation. The saved original decision stays unchanged.";
+  }
+
   function render(model) {
     const evidence = evidenceSummary(model);
+    const impact = CARD_IMPACT_COPY[model.decision] || CARD_IMPACT_COPY.UNKNOWN;
     const signature = JSON.stringify([
       model.decision, model.identity, model.why, model.change, model.accepted, model.excluded,
-      model.ask, model.supportedValue, model.confidence, model.risk, model.exactIdentity,
+      model.ask, model.supportedValue, model.economics, model.confidence, model.risk, model.exactIdentity,
       model.observed, model.evidenceHref, model.trackingHref, model.receiptMode
     ]);
 
@@ -204,6 +265,41 @@
         <article data-tone="evidence"><span>Evidence</span><strong>${escapeHtml(evidence.trusted)}</strong><small>${escapeHtml(evidence.excluded)}</small></article>
         <article data-tone="risk"><span>Risk + uncertainty</span><strong>${escapeHtml(model.risk)}</strong><small>Confidence ${escapeHtml(model.confidence)}</small></article>
       </div>
+
+      <section class="ff-dce-impact" aria-labelledby="ff-dce-impact-title">
+        <div class="ff-dce-impact-lead">
+          <span>WHAT THIS DECISION MEANS FOR THIS CARD</span>
+          <h4 id="ff-dce-impact-title">${escapeHtml(model.decision)} · ${escapeHtml(impact[0])}</h4>
+          <p>${escapeHtml(impact[1])}</p>
+        </div>
+        <details class="ff-dce-more" open>
+          <summary><strong>Why FlipForge decided this</strong><small>The evidence and factors behind the saved verdict</small></summary>
+          <p>${escapeHtml(model.why)}</p>
+          <p class="ff-dce-note">Card: ${escapeHtml(model.identity)} · Identity status: ${escapeHtml(model.exactIdentity)}</p>
+        </details>
+        <details class="ff-dce-more">
+          <summary><strong>What it means financially</strong><small>Only values the saved decision actually shows</small></summary>
+          <dl class="ff-dce-impact-grid">
+            <div><dt>Evaluated asking price</dt><dd>${escapeHtml(model.ask)}</dd></div>
+            <div><dt>Supported value</dt><dd>${escapeHtml(model.supportedValue)}</dd></div>
+            ${economicsRows(model)}
+          </dl>
+          <p class="ff-dce-note">${hasEconomics(model) ? "Figures are shown exactly as the saved server decision recorded them." : "The saved decision does not show a Max Buy, costs, breakeven or potential profit for this card. FlipForge does not estimate them in the browser."}</p>
+        </details>
+        <details class="ff-dce-more">
+          <summary><strong>How reliable this information is</strong><small>Evidence counted, excluded, and uncertainty</small></summary>
+          <dl class="ff-dce-impact-grid">
+            <div><dt>Evidence that counted</dt><dd>${escapeHtml(evidence.trusted)}</dd></div>
+            <div><dt>Excluded or unqualified</dt><dd>${escapeHtml(evidence.excluded)}</dd></div>
+            <div><dt>Decision risk</dt><dd>${escapeHtml(model.risk)}</dd></div>
+            <div><dt>Confidence</dt><dd>${escapeHtml(model.confidence)}</dd></div>
+          </dl>
+          <p class="ff-dce-note">Confidence and risk scores describe the evidence behind this decision. They are not probabilities of a future outcome.</p>
+        </details>
+        <div class="ff-dce-impact-next"><strong>What to do next</strong><p>${escapeHtml(NEXT_STEP_COPY[model.decision] || NEXT_STEP_COPY.UNKNOWN)}</p></div>
+        <div class="ff-dce-impact-next"><strong>What could change the conclusion</strong><p>${escapeHtml(nextReviewCopy(model.change))}</p></div>
+        <p class="ff-dce-impact-disclosure">Decision support only. Not investment advice. No transaction authority. The original saved decision is not rescored in this report. The full Decision Receipt and traceback are below.</p>
+      </section>
 
       <details class="ff-dce-layers">
         <summary><span><strong>View the 7 evidence layers</strong><small>Identity → Evidence → Economics → Risk → Decision → Traceback → Outcome</small></span><span aria-hidden="true">＋</span></summary>

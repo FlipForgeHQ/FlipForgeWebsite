@@ -58,12 +58,21 @@ const requiredFiles = [
   'assets/images/flipforge-homepage-dashboard.svg',
   'assets/images/flipforge-grading-scenario.svg',
   'assets/images/flipforge-traceback-guidance.svg',
+  'assets/images/ff10-hero.webp',
+  'assets/images/ff10-hero@2x.webp',
+  'assets/images/ff10-silver.webp',
+  'assets/images/ff10-silver@2x.webp',
+  'assets/images/ff10-base.webp',
+  'assets/images/ff10-base@2x.webp',
+  'assets/css/homepage-v10.css',
+  'assets/js/homepage-v10.js',
   'site.webmanifest',
   'index.html',
 ];
 
 for (const file of requiredFiles) requireFile(file);
 validateWebP('assets/images/flipforge-homepage-hero.webp');
+for (const render of ['ff10-hero','ff10-hero@2x','ff10-silver','ff10-silver@2x','ff10-base','ff10-base@2x']) validateWebP(`assets/images/${render}.webp`);
 
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const homepageFailures = [];
@@ -71,16 +80,25 @@ const homepageFailures = [];
 if (!index.includes('assets/brand/flipforge-logo-horizontal.svg')) homepageFailures.push('approved horizontal logo lockup');
 if (!index.includes(OFFICIAL_SLOGAN)) homepageFailures.push('locked slogan');
 if (!index.includes(CURRENT_DESCRIPTOR_DISPLAY)) homepageFailures.push('Card Decision Intelligence descriptor');
-if (!index.includes('Stop guessing.') || !index.includes('Start deciding with <em>evidence.</em>')) homepageFailures.push('approved v6 hero headline');
-if (!index.includes('then explains the decision.')) homepageFailures.push('hero decision explanation');
-if (!index.includes('assets/css/homepage-v5.css')) homepageFailures.push('homepage v5 stylesheet');
-if (!index.includes('assets/js/homepage-v5.js')) homepageFailures.push('homepage v5 behavior');
-if (!index.includes('class="ffdv ffdv--hero"')) homepageFailures.push('Decision Visual System hero');
-if (!index.includes('id="decision-forge"') || !index.includes('data-decision-forge')) homepageFailures.push('interactive Decision Forge');
-if (!index.includes('id="film"') || !index.includes('data-film')) homepageFailures.push('30-second product film anchor and experience');
-if (!index.includes('<dt>Supported value</dt><dd>$455</dd>') || !index.includes('<dt>Max Buy</dt><dd>$398</dd>')) homepageFailures.push('supported-value proof');
-if (!index.includes('id="why"') || !index.includes('WHY FLIPFORGE')) homepageFailures.push('concise homepage differentiation section');
-if (!index.includes('href="decision-proof.html">See the proof →')) homepageFailures.push('Decision Proof link');
+// Founder decisions 2026-10-20 and 2026-10-27: the hero reads, in this exact order and with nothing in between,
+// the category "Card Decision Intelligence™", the headline "Price is not proof.", the benefit
+// "Find opportunities. Test the evidence. Avoid expensive mistakes." and the locked slogan "Before you buy. Know Why.".
+if (!/<p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™<\/sup><\/span><\/p>\s*<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-benefit"><span>Find opportunities\.<\/span> <span>Test the evidence\.<\/span> <span>Avoid expensive mistakes\.<\/span><\/p>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(index)) homepageFailures.push('approved hero hierarchy: category, positioning headline, benefit, then the locked slogan');
+// Exactly one hero headline, one category line and one slogan line, so the hierarchy cannot be duplicated or reordered elsewhere.
+if ((index.match(/class="ff10-hero-category"/g) || []).length !== 1 || (index.match(/id="ff10-hero-title"/g) || []).length !== 1
+  || (index.match(/class="ff10-hero-brand"/g) || []).length !== 1 || (index.match(/class="ff10-hero-benefit"/g) || []).length !== 1) homepageFailures.push('single approved hero hierarchy');
+if (!index.includes('data-ff10-hero') || !index.includes('class="ff10-panel"')) homepageFailures.push('single orchestrated hero with the decision panel');
+if (!index.includes('data-ffdemo') || !index.includes('Max Buy')) homepageFailures.push('illustrative interactive Max Buy comparison');
+if (!index.includes('assets/css/homepage-v10.css')) homepageFailures.push('interactive landing stylesheet');
+if (!index.includes('assets/js/homepage-v10.js')) homepageFailures.push('interactive landing runtime');
+if (!index.includes('assets/images/ff10-hero.webp') || !index.includes('class="ff10-slab"')) homepageFailures.push('cinematic hero and product visuals');
+if (!index.includes('Invented for illustration; not a real card, player, set or grading company.')) homepageFailures.push('hero card imagery is disclosed as invented and rights-clean');
+if (!index.includes('NO REAL SALE DATA') || !index.includes('NO GUARANTEED RETURN') || !index.includes('<span class="ff10-chip">Illustrative</span>')) homepageFailures.push('demo disclosure');
+if (!index.includes('Price gap') || !index.includes('data-price-gap')) homepageFailures.push('price threshold distinction');
+if (!index.includes('class="ffdemo-nav-actions"') || !index.includes('class="ffdemo-mobile-actions"')) homepageFailures.push('paired beta and login actions');
+if (!index.includes('data-reset') || !index.includes('data-uncertainty')) homepageFailures.push('demo test and reset affordances');
+if (index.includes('data-decision-forge') || index.includes('data-film')) homepageFailures.push('retired duplicate homepage demos');
+if (!index.includes('href="decision-proof.html">How proof works')) homepageFailures.push('Decision Proof link');
 if (!index.includes('Controlled Private Beta.')) homepageFailures.push('private beta boundary');
 if (!index.includes('FlipForge does not guarantee profit or authorize transactions.')) homepageFailures.push('transaction/profit boundary');
 if (retiredSloganVariant(index)) homepageFailures.push('retired slogan variant removed');

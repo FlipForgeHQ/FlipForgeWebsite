@@ -1,0 +1,77 @@
+name: Customer Sell Watch
+
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/customer-sell-watch.js"
+      - "saas-prototype/customer-sell-watch.css"
+      - "saas-prototype/customer-reported-sales.js"
+      - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/customer-lifecycle-display.js"
+      - "saas-prototype/tracking-navigation-reload-v1.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer.html"
+      - "netlify/functions/flipforge-api.js"
+      - "scripts/audit-customer-sell-watch-ci.mjs"
+      - "scripts/fixtures/customer-sell-watch/**"
+      - "scripts/fixtures/customer-reported-sales/**"
+      - ".github/workflows/customer-sell-watch.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  sell-watch:
+    name: Sell Watch panel and gateway routes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-sell-watch-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-sell-watch-server.log
+          exit 1
+
+      - name: Sell Watch audit (recorded backend fixtures)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: node scripts/audit-customer-sell-watch-ci.mjs
+
+      - name: Lifecycle, gateway and Mark as Sold regressions
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: |
+          node scripts/validate-saas-customer-lifecycle.mjs
+          node scripts/validate-saas-gateway-tenant-membership.mjs
+          node scripts/validate-gateway-provider-disclosure.mjs
+          node scripts/validate-production-prototype-isolation.mjs
+          node scripts/audit-customer-reported-sales-ci.mjs

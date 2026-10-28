@@ -15,6 +15,7 @@ on:
       - "scripts/audit-customer-typography-ci.mjs"
       - "scripts/check-saas-layout-report.mjs"
       - ".github/workflows/saas-full-site-visual-qa.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   push:
     branches:
       - main
@@ -31,6 +32,7 @@ on:
       - "scripts/audit-customer-typography-ci.mjs"
       - "scripts/check-saas-layout-report.mjs"
       - ".github/workflows/saas-full-site-visual-qa.yml"
+      - "scripts/ci/install-playwright-chromium.sh"
   workflow_dispatch:
 
 permissions:
@@ -58,9 +60,7 @@ jobs:
         run: npm run build:identity
 
       - name: Install Playwright for browser QA
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
 
       - name: Start local SaaS preview at production app path
         run: |

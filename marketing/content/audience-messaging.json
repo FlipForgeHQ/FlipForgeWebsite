@@ -1,10 +1,166 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "homepage": {
+    "title": "Different goals. Same need for proof.",
+    "lede": "Everyone approaches cards differently. FlipForge gives them a disciplined way to understand their decisions.",
+    "order": [
+      "flipper",
+      "investor",
+      "collector",
+      "dealer",
+      "grading"
+    ],
+    "framework": [
+      {
+        "key": "identity",
+        "name": "Lock the exact card"
+      },
+      {
+        "key": "evidence",
+        "name": "Keep the prices that count"
+      },
+      {
+        "key": "maxbuy",
+        "name": "Know your Max Buy"
+      },
+      {
+        "key": "decision",
+        "name": "Get the decision, and the why"
+      }
+    ],
+    "disclosure": "Illustrative descriptions of how one FlipForge framework applies to different goals. FlipForge is decision support: it does not guarantee profit, investment returns or a grade, and it never buys or sells on your behalf.",
+    "closing": "Different strategies. Different priorities. One standard for making an informed decision."
+  },
   "audiences": [
-    {"key":"collector","name":"Collectors","pain":"You want the card, but you do not want enthusiasm to hide weak evidence.","value":"FlipForge separates the exact-card facts from the story and shows what still needs verification.","cta":"Inspect the decision before you buy."},
-    {"key":"investor","name":"Investors","pain":"A chart can show what happened without telling you whether today’s opportunity is defensible.","value":"FlipForge connects identity, evidence, economics, risk, and outcome tracking into one decision record.","cta":"See the reasoning, not just the trend."},
-    {"key":"flipper","name":"Flippers","pain":"An apparent spread disappears fast when comps are wrong, liquidity is weak, or costs are ignored.","value":"FlipForge pressure-tests the spread before you commit capital.","cta":"Test the margin before you chase it."},
-    {"key":"dealer","name":"Dealers","pain":"Inventory decisions compound quickly when a weak comp or identity mismatch slips through.","value":"FlipForge creates a repeatable decision process your inventory review can trace later.","cta":"Make inventory decisions you can explain."},
-    {"key":"grading","name":"Grading users","pain":"Population and grade spread matter, but they do not answer the whole purchase decision.","value":"FlipForge keeps grading intelligence in context with evidence, economics, and uncertainty.","cta":"Use grade context without losing the full decision."}
+    {
+      "key": "collector",
+      "name": "Collectors",
+      "pain": "You want the card, but you do not want enthusiasm to hide weak evidence.",
+      "value": "FlipForge separates the exact-card facts from the story and shows what still needs verification.",
+      "cta": "Inspect the decision before you buy.",
+      "homepage": {
+        "label": "Collectors",
+        "goal": "Own the right card",
+        "headline": "Love the card. Understand the purchase.",
+        "question": "Is this the right card, and does the asking price make sense?",
+        "focus": [
+          "identity",
+          "evidence"
+        ],
+        "visual": "identity",
+        "signals": {
+          "identity": "Year, set, number, parallel and grade are checked, so a similar-looking parallel is never mistaken for yours.",
+          "evidence": "You see which prices are reported sales of this exact card, at this grade, and which are asking prices or a different card.",
+          "maxbuy": "A supported value from qualifying sales shows whether the asking price is ahead of the evidence.",
+          "decision": "WATCH when the price runs ahead of the evidence. VERIFY when the card or its comparisons are unresolved."
+        },
+        "why": "You may never sell it. You still deserve to know it is the right card at a price the evidence supports.",
+        "cta": "Apply as a collector"
+      }
+    },
+    {
+      "key": "investor",
+      "name": "Investors",
+      "pain": "A chart can show what happened without telling you whether today’s opportunity is defensible.",
+      "value": "FlipForge connects identity, evidence, economics, risk, and outcome tracking into one decision record.",
+      "cta": "See the reasoning, not just the trend.",
+      "homepage": {
+        "label": "Investors",
+        "goal": "Commit with evidence",
+        "headline": "Understand what supports the opportunity.",
+        "question": "Does the available evidence justify committing capital?",
+        "focus": [
+          "evidence",
+          "decision"
+        ],
+        "visual": "evidence",
+        "signals": {
+          "identity": "The exact card is locked, so every later review looks at the same card.",
+          "evidence": "Evidence quality first: which sales qualify, how many there are, and how thin the market is.",
+          "maxbuy": "A supported value built only from qualified sales, and Max Buy at your own costs.",
+          "decision": "Risk and uncertainty stay visible. Saved decisions are frozen and can be reviewed at Days 7, 14 and 30."
+        },
+        "why": "Committing capital starts with what the evidence supports today and a record of why you acted. FlipForge does not forecast appreciation or returns.",
+        "cta": "Apply as an investor"
+      }
+    },
+    {
+      "key": "flipper",
+      "name": "Flippers",
+      "pain": "An apparent spread disappears fast when comps are wrong, liquidity is weak, or costs are ignored.",
+      "value": "FlipForge pressure-tests the spread before you commit capital.",
+      "cta": "Test the margin before you chase it.",
+      "homepage": {
+        "label": "Flippers",
+        "goal": "Protect the margin",
+        "headline": "Find the margin before the mistake.",
+        "question": "Is this actually a profitable opportunity after the costs and uncertainty?",
+        "focus": [
+          "maxbuy",
+          "evidence"
+        ],
+        "visual": "maxbuy",
+        "signals": {
+          "identity": "Exact parallel and grade, so the spread is measured against the card you would actually resell.",
+          "evidence": "Only qualified sales count. Asking prices and stale sales are set aside, and a thin market is flagged as liquidity risk.",
+          "maxbuy": "Max Buy after your selling fees, shipping and target margin, and the cushion between it and the asking price. A break-even price for cards you own.",
+          "decision": "PASS when the margin is not there. WATCH when the cushion is thin."
+        },
+        "why": "A spread only exists after costs, and only while buyers are still there. FlipForge shows both before you commit capital.",
+        "cta": "Apply as a flipper"
+      }
+    },
+    {
+      "key": "dealer",
+      "name": "Dealers",
+      "pain": "Inventory decisions compound quickly when a weak comp or identity mismatch slips through.",
+      "value": "FlipForge creates a repeatable decision process your inventory review can trace later.",
+      "cta": "Make inventory decisions you can explain.",
+      "homepage": {
+        "label": "Dealers",
+        "goal": "Buy consistently",
+        "headline": "Make every inventory decision count.",
+        "question": "Can this purchase be justified consistently and reviewed later?",
+        "focus": [
+          "maxbuy",
+          "decision"
+        ],
+        "visual": "verdict",
+        "signals": {
+          "identity": "Every card is checked against its exact identity, so a mismatched parallel does not enter inventory at the wrong cost.",
+          "evidence": "The same evidence rules on every card, with a reason for every price set aside.",
+          "maxbuy": "Pricing discipline: Max Buy at your own fees and margin, and a break-even price for each card you hold.",
+          "decision": "Each saved decision keeps its evidence and reasoning, so it can be traced and reviewed later."
+        },
+        "why": "When you buy many cards, consistency matters. The same rules on every card make each purchase explainable. You decide and you buy; dealer-specific workflows are not offered yet.",
+        "cta": "Apply as a dealer"
+      }
+    },
+    {
+      "key": "grading",
+      "name": "Grading users",
+      "pain": "Population and grade spread matter, but they do not answer the whole purchase decision.",
+      "value": "FlipForge keeps grading intelligence in context with evidence, economics, and uncertainty.",
+      "cta": "Use grade context without losing the full decision.",
+      "homepage": {
+        "label": "Grading-focused buyers",
+        "goal": "Look past the label",
+        "headline": "Look beyond the label.",
+        "question": "Does the potential grade premium justify the purchase and associated risk?",
+        "focus": [
+          "identity",
+          "evidence"
+        ],
+        "visual": "identity",
+        "signals": {
+          "identity": "Grader and grade are part of the card’s identity. A different grade is a different card.",
+          "evidence": "Grade-specific evidence: sales that name a different grader or grade, or that are marked raw, are set aside, so a price difference between grades is shown only where each grade has its own sales.",
+          "maxbuy": "Grading costs and possible outcomes are part of the economics, so a premium is tested against what it costs to reach it.",
+          "decision": "Grading uncertainty stays visible. VERIFY when the grader or grade cannot be confirmed."
+        },
+        "why": "A grade premium is real only when sales at that exact grade support it. FlipForge does not predict the grade a raw card will receive or guarantee a grading profit.",
+        "cta": "Apply as a grading buyer"
+      }
+    }
   ]
 }

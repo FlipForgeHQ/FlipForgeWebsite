@@ -27,6 +27,7 @@ on:
       - "scripts/validate-saas-customer-entitlements.mjs"
       - "scripts/validate-saas-private-beta-operations-boundary.mjs"
       - "scripts/validate-saas-private-beta-readiness.mjs"
+      - "scripts/validate-private-beta-first-session-v3.mjs"
       - "netlify/modern-functions/ebay-privacy.js"
       - "netlify.toml"
       - "package.json"
@@ -77,6 +78,8 @@ jobs:
           node --check saas-prototype/customer-portfolio.js
           node --check saas-prototype/customer-entitlements.js
           node --check saas-prototype/private-beta.js
+          node --check scripts/validate-private-beta-first-session-v3.mjs
+          node scripts/validate-private-beta-first-session-v3.mjs
           node --check saas-prototype/customer-grading-economics.js
           node --check saas-prototype/staging-route-hook.js
           node --check saas-prototype/serve.mjs
@@ -162,18 +165,9 @@ jobs:
           console.log(`Verified App Preview and Card Decision Intelligence across ${htmlFiles.length} website pages.`);
           NODE
           node scripts/validate-netlify-rule-budget.mjs
-          grep -q '^/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302
-          ! grep -q '^/api/ebay/privacy ' _redirects
-          ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
- _redirects
-          grep -q '^/app/beta/\* /saas-prototype/:splat 200
-          ! grep -q '^/api/ebay/privacy ' _redirects
-          ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
- _redirects
-          grep -q '^/app/\* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302
-          ! grep -q '^/api/ebay/privacy ' _redirects
-          ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
- _redirects
+          grep -q '^/app /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302$' _redirects
+          grep -q '^/app/beta/\* /saas-prototype/:splat 200$' _redirects
+          grep -q '^/app/\* /production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start 302$' _redirects
           ! grep -q '^/app/customer' _redirects
           ! grep -q '^/api/ebay/privacy ' _redirects
           ! grep -q '^/app /saas-prototype/index.html 200$' _redirects
