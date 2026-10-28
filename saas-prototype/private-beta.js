@@ -289,18 +289,30 @@
     const displayName = session.fullName || "FlipForge tester";
 
     return `<div class="page private-beta-page private-beta-v2" data-private-beta-readiness>
-      <header class="private-beta-v2-header">
-        <div class="private-beta-v2-heading">
-          <span class="eyebrow">Private Beta Guide · First Session</span>
-          <h1>Welcome to FlipForge.</h1>
-          <p>Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust.</p>
+      <header class="private-beta-v3-hero" aria-labelledby="private-beta-welcome">
+        <div class="private-beta-v3-hero-copy">
+          <span class="eyebrow">PRIVATE BETA · CARD DECISION INTELLIGENCE™</span>
+          <h1 id="private-beta-welcome">Welcome to FlipForge.</h1>
+          <p class="private-beta-v3-intro">FlipForge goes beyond a card's price. It checks the exact identity, examines the evidence, considers costs and uncertainty, and explains what the decision means.</p>
+          <p class="private-beta-v3-intro-sub">Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust.</p>
+          <div class="private-beta-v3-actions">
+            <a class="button button-primary" href="#/discover" data-private-beta-start>Evaluate my first card</a>
+            <a class="private-beta-v3-manual" href="#/evaluate">Enter a listing manually</a>
+          </div>
+          <p class="private-beta-v3-slogan">Before you buy. Know Why.</p>
         </div>
-        <div class="private-beta-v2-header-actions">
-          <a class="button button-primary" href="#/discover" data-private-beta-start>Start with Discover</a>
-          <a class="button button-secondary" href="#/evaluate">Enter a listing manually</a>
+        <div class="private-beta-v3-brief" aria-label="What FlipForge helps you understand">
+          <div><span>01</span><strong>The exact card</strong><p>Know which version and grade you're evaluating.</p></div>
+          <div><span>02</span><strong>The evidence</strong><p>See what supports the result—and what does not.</p></div>
+          <div><span>03</span><strong>The decision</strong><p>Understand the reasoning and what to check next.</p></div>
         </div>
       </header>
 
+      <section class="private-beta-v3-next" aria-label="Optional first-session information">
+              <details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide" data-private-beta-first-card>
+        <summary><span><strong>Want a little help with your first card?</strong><small>Optional four-step walkthrough: find, evaluate, understand, report.</small></span><b aria-hidden="true">＋</b></summary>
+        <div class="private-beta-v3-expander-body">
+          <p class="private-beta-v3-guide-hint">Start with Discover, or enter a listing manually. This guide is here if you need it.</p>
       <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
         <div class="private-beta-v2-mission-copy">
           <span class="private-beta-v2-number">01</span>
@@ -316,6 +328,7 @@
         </div>
 
       </section>
+
 
       <section class="panel private-beta-v2-walkthrough">
         <header class="panel-header">
@@ -349,10 +362,11 @@
         </div>
       </section>
 
-      <aside class="private-beta-v2-boundary">
-        <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
-        <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
-      </aside>
+
+        </div>
+      </details>
+
+      </section>
 
       <section class="private-beta-v3-reference" aria-labelledby="private-beta-v3-reference-title">
         <div class="private-beta-v3-reference-intro">
@@ -361,6 +375,16 @@
           <p>All the details are here when you need them. You can start with one card without reading them first.</p>
         </div>
         <div class="private-beta-v3-reference-links">
+      <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-boundary>
+        <summary><span><strong>What FlipForge does—and doesn't do</strong><small>Decision authority, evidence limits, and no transaction execution.</small></span><b aria-hidden="true">＋</b></summary>
+        <div class="private-beta-v3-expander-body">      <aside class="private-beta-v2-boundary">
+        <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
+        <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
+      </aside>
+
+</div>
+      </details>
+
           <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-account-details>
             <summary><span><strong>Your access and guide settings</strong><small>Access: ${escapeHtml(accessValue)} · Evaluation system: ${escapeHtml(bridgeValue)}</small></span><b aria-hidden="true">＋</b></summary>
             <div class="private-beta-v3-expander-body">
