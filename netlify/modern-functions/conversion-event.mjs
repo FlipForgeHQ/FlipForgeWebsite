@@ -5,6 +5,9 @@ const MAX_BODY_BYTES = 2048;
 
 const EVENT_NAMES = new Set([
   "sample_dossier_viewed",
+  "sample_dossier_clicked",
+  "evidence_lab_clicked",
+  "decision_intelligence_clicked",
   "beta_cta_clicked",
   "beta_form_started",
   "beta_application_received",
@@ -34,6 +37,9 @@ const PAGE_NAMES = new Set([
   "beta-onboarding",
   "beta-app",
   "product",
+  "decision-intelligence",
+  "evidence-lab",
+  "launch-plans",
   "pricing",
   "learn",
   "faq",
@@ -45,6 +51,7 @@ const PAGE_NAMES = new Set([
 const PLACEMENTS = new Set([
   "hero",
   "sample-spotlight",
+  "evidence",
   "sample-page",
   "navigation",
   "footer",

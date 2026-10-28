@@ -50,6 +50,7 @@ on:
       - "assets/js/beta-operator.js"
       - "operator-beta.html"
       - "scripts/validate-website-polish-v1.mjs"
+      - "scripts/validate-conversion-event-contract.mjs"
       - ".github/workflows/homepage-focus.yml"
   push:
     branches:
@@ -102,6 +103,7 @@ on:
       - "assets/js/beta-operator.js"
       - "operator-beta.html"
       - "scripts/validate-website-polish-v1.mjs"
+      - "scripts/validate-conversion-event-contract.mjs"
       - ".github/workflows/homepage-focus.yml"
 
 permissions:
@@ -140,3 +142,4 @@ jobs:
           node scripts/validate-homepage-challenge-v1.mjs
           node scripts/validate-homepage-app-showcase-v1.mjs
           node scripts/validate-website-polish-v1.mjs
+          node scripts/validate-conversion-event-contract.mjs
