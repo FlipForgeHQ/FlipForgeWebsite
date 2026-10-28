@@ -80,8 +80,13 @@ const homepageFailures = [];
 if (!index.includes('assets/brand/flipforge-logo-horizontal.svg')) homepageFailures.push('approved horizontal logo lockup');
 if (!index.includes(OFFICIAL_SLOGAN)) homepageFailures.push('locked slogan');
 if (!index.includes(CURRENT_DESCRIPTOR_DISPLAY)) homepageFailures.push('Card Decision Intelligence descriptor');
-// Founder decision 2026-10-20: "Price is not proof." leads; the locked slogan sits directly beneath the headline.
-if (!/<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(index)) homepageFailures.push('locked slogan directly beneath the positioning headline');
+// Founder decisions 2026-10-20 and 2026-10-27: the hero reads, in this exact order and with nothing in between,
+// the category "Card Decision Intelligence™", the headline "Price is not proof.", the benefit
+// "Find opportunities. Test the evidence. Avoid expensive mistakes." and the locked slogan "Before you buy. Know Why.".
+if (!/<p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™<\/sup><\/span><\/p>\s*<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-benefit"><span>Find opportunities\.<\/span> <span>Test the evidence\.<\/span> <span>Avoid expensive mistakes\.<\/span><\/p>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(index)) homepageFailures.push('approved hero hierarchy: category, positioning headline, benefit, then the locked slogan');
+// Exactly one hero headline, one category line and one slogan line, so the hierarchy cannot be duplicated or reordered elsewhere.
+if ((index.match(/class="ff10-hero-category"/g) || []).length !== 1 || (index.match(/id="ff10-hero-title"/g) || []).length !== 1
+  || (index.match(/class="ff10-hero-brand"/g) || []).length !== 1 || (index.match(/class="ff10-hero-benefit"/g) || []).length !== 1) homepageFailures.push('single approved hero hierarchy');
 if (!index.includes('data-ff10-hero') || !index.includes('class="ff10-panel"')) homepageFailures.push('single orchestrated hero with the decision panel');
 if (!index.includes('data-ffdemo') || !index.includes('Max Buy')) homepageFailures.push('illustrative interactive Max Buy comparison');
 if (!index.includes('assets/css/homepage-v10.css')) homepageFailures.push('interactive landing stylesheet');
