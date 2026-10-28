@@ -23,7 +23,9 @@ check('all original guide steps remain', ['Search one exact card','Submit one li
   'Open Card Intelligence','Send focused feedback','Challenge the Decision Traceback'].every(x=>page.includes(x)));
 check('status and guide preference preserved under expandable access section',
   page.includes('data-private-beta-account-details>') && position('data-private-beta-account-details') < position('private-beta-v2-status')
-  && page.includes('data-private-beta-complete') && page.includes('data-private-beta-reset'));
+  && page.includes('data-private-beta-${introComplete ? "reset" : "complete"}')
+  && js.includes('document.querySelector("[data-private-beta-complete]")')
+  && js.includes('document.querySelector("[data-private-beta-reset]")'));
 check('complete structured decision diagram preserved under optional explainer',
   page.includes('data-private-beta-record-details>') && page.includes('data-private-beta-record-system')
   && position('data-private-beta-record-details') < position('data-private-beta-record-system')
