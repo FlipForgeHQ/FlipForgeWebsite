@@ -99,6 +99,10 @@
 
   function resetHorizontalScroll() {
     const scrollingElement = document.scrollingElement || document.documentElement;
+    // Nothing to correct unless the page has actually moved sideways. Re-pinning the current vertical position on
+    // every resize (which phones fire repeatedly while the address bar collapses) interrupted normal scrolling.
+    const sideways = window.scrollX || scrollingElement?.scrollLeft || document.documentElement.scrollLeft || document.body.scrollLeft;
+    if (!sideways) return;
     const top = scrollingElement?.scrollTop ?? window.scrollY ?? 0;
     resetScroll(top);
   }
