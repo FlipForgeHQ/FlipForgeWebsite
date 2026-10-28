@@ -50,6 +50,7 @@ on:
       - "assets/js/beta-operator.js"
       - "operator-beta.html"
       - "scripts/validate-website-polish-v1.mjs"
+      - "scripts/validate-homepage-engagement-short-viewport.mjs"
       - "scripts/validate-conversion-event-contract.mjs"
       - ".github/workflows/homepage-focus.yml"
   push:
@@ -103,6 +104,7 @@ on:
       - "assets/js/beta-operator.js"
       - "operator-beta.html"
       - "scripts/validate-website-polish-v1.mjs"
+      - "scripts/validate-homepage-engagement-short-viewport.mjs"
       - "scripts/validate-conversion-event-contract.mjs"
       - ".github/workflows/homepage-focus.yml"
 
@@ -143,3 +145,4 @@ jobs:
           node scripts/validate-homepage-app-showcase-v1.mjs
           node scripts/validate-website-polish-v1.mjs
           node scripts/validate-conversion-event-contract.mjs
+          node scripts/validate-homepage-engagement-short-viewport.mjs
