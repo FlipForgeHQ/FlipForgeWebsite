@@ -21,7 +21,7 @@ The plan includes 1,000 credits a month, and the previous period used 4,255. Of 
 
 - **Netlify builds production from a `release` branch** instead of `main`. Merges to `main` no longer start a paid build. Pull requests still get free deploy previews.
 - **The Release Website workflow** (`.github/workflows/release-website.yml`) moves `release` forward to the latest tested `main`:
-  - automatically on weekdays at 22:17 UTC (6:17 PM EDT), only if `main` has changed;
+  - ~~automatically on weekdays at 22:17 UTC (6:17 PM EDT), only if `main` has changed~~ — **paused 2026-10-27: manual releases only, after explicit founder approval.** GitHub started this repository's scheduled jobs 3–9 hours late (Release Website ran at 01:28 UTC for the Oct 26 22:17 slot; the daily 06:17 UTC chaos audit runs 10:38–14:06 UTC) and skipped the Oct 24 and Oct 27 release slots entirely;
   - on demand, when someone runs the workflow (kind `manual` or `emergency`, with a required reason).
 - **Safety rules, enforced by `scripts/ci/release-website.mjs`:**
   - only commits already on `main` can be released;

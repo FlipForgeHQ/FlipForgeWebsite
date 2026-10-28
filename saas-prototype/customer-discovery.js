@@ -83,6 +83,17 @@
     return error;
   }
 
+  // Customer words for listing codes returned by the server. Unknown codes fall back to sentence case, never raw codes.
+  const AVAILABILITY_WORDS = Object.freeze({ AVAILABLE: "Available", ENDED: "Listing ended", SOLD: "Sold", UNAVAILABLE: "Not available", UNKNOWN: "Not confirmed" });
+  const FRESHNESS_WORDS = Object.freeze({ CURRENT: "Recently checked", FRESH: "Recently checked", STALE: "May be out of date", UNKNOWN: "Not recently checked" });
+  const FORMAT_WORDS = Object.freeze({ FIXED_PRICE: "Fixed price", AUCTION: "Auction", BEST_OFFER: "Best offer", AUCTION_WITH_BUY_NOW: "Auction with buy-now price" });
+  function listingWords(map, value) {
+    const raw = String(value || "UNKNOWN").trim().toUpperCase().replace(/[\s-]+/g, "_");
+    if (Object.prototype.hasOwnProperty.call(map, raw)) return map[raw];
+    const words = raw.toLowerCase().split("_").filter(Boolean).join(" ");
+    return words ? words.charAt(0).toUpperCase() + words.slice(1) : map.UNKNOWN || "Not confirmed";
+  }
+
   function moneyFromCents(value) {
     return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 })
       .format((Number(value) || 0) / 100);
@@ -856,7 +867,7 @@
         ? `Seller feedback ${new Intl.NumberFormat("en-US").format(sellerFeedback)}`
         : "",
       item.condition ? `Condition ${item.condition}` : "",
-      item.listingFormat ? `Format ${String(item.listingFormat).replaceAll("_", " ")}` : ""
+      item.listingFormat ? `Format: ${listingWords(FORMAT_WORDS, item.listingFormat)}` : ""
     ].filter(Boolean).join(" · ");
     const factors = item.rankingFactors && typeof item.rankingFactors === "object"
       ? Object.entries(item.rankingFactors)
@@ -894,7 +905,7 @@
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div>${soldContextMetric}<div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(String(item.listingAvailability || "UNKNOWN").replaceAll("_", " "))}</strong><small>${escapeHtml(String(item.listingFreshness || "UNKNOWN").replaceAll("_", " "))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(pricePositionText)}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div>${soldContextMetric}<div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(listingWords(AVAILABILITY_WORDS, item.listingAvailability))}</strong><small>${escapeHtml(listingWords(FRESHNESS_WORDS, item.listingFreshness))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(pricePositionText)}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
   }
 
   function resultsPanel() {

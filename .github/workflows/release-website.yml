@@ -7,9 +7,12 @@ name: Release Website
 # Inert until the founder enables it: every run exits without changes unless the repository variable
 # WEBSITE_RELEASE_BATCHING is "enabled".
 on:
-  schedule:
-    # Weekdays 22:17 UTC (6:17 PM EDT / 5:17 PM EST). GitHub may start scheduled runs late.
-    - cron: '17 22 * * 1-5'
+  # Manual releases only (founder decision 2026-10-27). GitHub's scheduler started this repository's timed jobs 3 to 9
+  # hours late and skipped the Oct 24 and Oct 27 releases, so a timed release could ship hours after the founder
+  # expected or ship merged work nobody had approved for release. Production now changes only when someone starts this
+  # workflow by hand after explicit founder approval. To restore a timed release, add back:
+  #   schedule:
+  #     - cron: '17 22 * * 1-5'
   workflow_dispatch:
     inputs:
       kind:

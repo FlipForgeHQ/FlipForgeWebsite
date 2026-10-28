@@ -25,6 +25,8 @@ const EVENT_NAMES = new Set([
   "challenge_completed",
   "demo_interacted",
   "app_screen_viewed",
+  "hero_jump_clicked",
+  "section_viewed",
 ]);
 
 const PAGE_NAMES = new Set([
@@ -71,6 +73,9 @@ const PLACEMENTS = new Set([
   "app-discover",
   "app-evaluate",
   "app-receipt",
+  "hero-challenge",
+  "hero-app",
+  "inside-app",
   "unknown",
 ]);
 

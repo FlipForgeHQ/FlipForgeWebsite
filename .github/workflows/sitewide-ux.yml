@@ -44,6 +44,8 @@ on:
       - "assets/css/homepage-challenge-v1.css"
       - "assets/css/homepage-app-showcase-v1.css"
       - "assets/js/homepage-app-showcase-v1.js"
+      - "assets/css/homepage-hero-positioning-v1.css"
+      - "assets/js/homepage-engagement-v1.js"
       - ".github/workflows/sitewide-ux.yml"
       - "scripts/ci/install-playwright-chromium.sh"
   push:
@@ -91,6 +93,8 @@ on:
       - "assets/css/homepage-challenge-v1.css"
       - "assets/css/homepage-app-showcase-v1.css"
       - "assets/js/homepage-app-showcase-v1.js"
+      - "assets/css/homepage-hero-positioning-v1.css"
+      - "assets/js/homepage-engagement-v1.js"
       - ".github/workflows/sitewide-ux.yml"
       - "scripts/ci/install-playwright-chromium.sh"
 

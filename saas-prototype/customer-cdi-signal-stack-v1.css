@@ -226,6 +226,12 @@
   opacity:1;
   transform:scale(1);
 }
+/* The marker states the check's real outcome: only a passed check is green. */
+.ff-cdi-signal-state[data-outcome="review"]{background:rgba(241,185,76,.14);color:#f1b94c;box-shadow:inset 0 0 0 1px rgba(241,185,76,.5)}
+.ff-cdi-signal-state[data-outcome="missing"]{background:rgba(255,255,255,.06);color:rgba(255,255,255,.62);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.ff-cdi-signal-state[data-outcome="context"]{background:rgba(255,255,255,.06);color:rgba(255,255,255,.78);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);font-style:italic;font-family:Georgia,serif}
+.ff-cdi-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ff-cdi-signal-state{position:relative}
 .ff-cdi-visual{
   position:relative;
   display:grid;

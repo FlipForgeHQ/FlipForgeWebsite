@@ -264,12 +264,36 @@
     return uncertaintyVisual(signal);
   }
 
+  // What each check's marker says. Display only: it reads the values already shown on the row and never changes the
+  // decision. A green tick appears only when the check actually succeeded; an unresolved or missing check never gets one.
+  const OUTCOMES = Object.freeze({
+    passed: { mark: "\u2713", label: "Check passed" },
+    review: { mark: "!", label: "Needs review" },
+    missing: { mark: "\u2013", label: "Not available yet" },
+    context: { mark: "i", label: "Shown for context, not a pass or fail" }
+  });
+
+  function signalOutcome(signal) {
+    if (signal.key === "exact") return signal.verified ? "passed" : "review";
+    if (signal.key === "sales") {
+      if (!Number.isFinite(signal.accepted)) return "missing";
+      return signal.accepted > 0 ? "passed" : "review";
+    }
+    if (signal.key === "price") {
+      const supported = Number(signal.supported);
+      return Number.isFinite(supported) && supported > 0 ? "passed" : "review";
+    }
+    return Number.isFinite(signal.confidence) && Number.isFinite(signal.risk) ? "context" : "missing";
+  }
+
   function signalMarkup(signal, index) {
-    return '<article class="ff-cdi-signal" data-ff-cdi-signal="' + escapeHtml(signal.key) + '" data-step="' + String(index + 1) + '">' +
+    const outcome = signalOutcome(signal);
+    return '<article class="ff-cdi-signal" data-ff-cdi-signal="' + escapeHtml(signal.key) + '" data-outcome="' + outcome + '" data-step="' + String(index + 1) + '">' +
       '<div class="ff-cdi-signal-index">0' + String(index + 1) + '</div>' +
       signalVisual(signal) +
       '<div class="ff-cdi-signal-copy"><span>' + escapeHtml(signal.label) + '</span><strong>' + escapeHtml(signal.value) + '</strong><small>' + escapeHtml(signal.caption) + '</small></div>' +
-      '<span class="ff-cdi-signal-state" aria-hidden="true">✓</span>' +
+      '<span class="ff-cdi-signal-state" data-outcome="' + outcome + '" title="' + OUTCOMES[outcome].label + '">' +
+        '<span aria-hidden="true">' + OUTCOMES[outcome].mark + '</span><span class="ff-cdi-sr">' + OUTCOMES[outcome].label + '</span></span>' +
       '</article>';
   }
 
@@ -372,7 +396,12 @@
 
     const finish = () => {
       rows.forEach(row => row.classList.add("is-complete"));
-      if (caption) caption.textContent = "Four checks complete. Open the evidence or Decision Receipt for the deeper trail.";
+      if (caption) {
+        const open = rows.filter(row => row.dataset.outcome === "review" || row.dataset.outcome === "missing").length;
+        caption.textContent = open
+          ? "Four checks complete. " + (open === 1 ? "1 needs" : open + " need") + " review before you rely on this decision. Open the evidence or Decision Receipt for the deeper trail."
+          : "Four checks complete. Open the evidence or Decision Receipt for the deeper trail.";
+      }
       if (after) after.hidden = false;
       state.running.delete(stack);
     };

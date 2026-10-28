@@ -393,11 +393,14 @@ export async function listRecordEntries(store, prefix) {
 export function funnelSummary(events, applications, now = new Date()) {
   const start = now.getTime() - 30 * 24 * 60 * 60 * 1000;
   const counts = Object.create(null);
+  const byPlacement = Object.create(null);
   for (const event of events) {
     const at = Date.parse(event?.occurredAt || "");
     if (!Number.isFinite(at) || at < start) continue;
     const name = String(event?.event || "");
     counts[name] = (counts[name] || 0) + 1;
+    const key = name + ":" + String(event?.placement || "");
+    byPlacement[key] = (byPlacement[key] || 0) + 1;
   }
   const submitted = applications.filter(item => Date.parse(item?.submittedAt || "") >= start).length;
   return {
@@ -409,6 +412,18 @@ export function funnelSummary(events, applications, now = new Date()) {
       applicationsSubmitted: submitted,
       onboardingGuideViewed: counts.onboarding_guide_viewed || 0,
       workspaceClicked: counts.onboarding_workspace_clicked || 0,
+    },
+    // Homepage persuasion: does a visitor reach, try and finish the Decision Challenge, look inside the app, and ask
+    // for access? Directional interaction counts from the allowlisted homepage events, not unique visitors.
+    homepage: {
+      challengeReached: byPlacement["section_viewed:challenge"] || 0,
+      challengeTried: counts.challenge_answered || 0,
+      challengeFinished: counts.challenge_completed || 0,
+      insideAppReached: byPlacement["section_viewed:inside-app"] || 0,
+      appScreensOpened: counts.app_screen_viewed || 0,
+      heroShortcutsUsed: counts.hero_jump_clicked || 0,
+      audienceSelected: counts.audience_selected || 0,
+      betaCtaClicked: counts.beta_cta_clicked || 0,
     },
     countingBoundary: "DIRECTIONAL_INTERACTIONS_NOT_UNIQUE_VISITORS",
   };

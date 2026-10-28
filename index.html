@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="assets/css/homepage-audiences-v1.css">
 <link rel="stylesheet" href="assets/css/homepage-challenge-v1.css">
 <link rel="stylesheet" href="assets/css/homepage-app-showcase-v1.css">
+<link rel="stylesheet" href="assets/css/homepage-hero-positioning-v1.css">
 <link rel="stylesheet" href="assets/css/updates-signup-v1.css">
 </head>
 <body class="ff10">
@@ -43,14 +44,16 @@
 <section class="ff10-hero" aria-labelledby="ff10-hero-title" data-ff10-hero>
   <div class="ff10-wrap ff10-hero-grid">
     <div class="ff10-hero-copy">
+      <p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™</sup></span></p>
       <h1 id="ff10-hero-title" class="ff10-display ff10-hero-title"><span>Price is</span> <span>not proof.</span></h1>
+      <p class="ff10-hero-benefit"><span>Find opportunities.</span> <span>Test the evidence.</span> <span>Avoid expensive mistakes.</span></p>
       <p class="ff10-hero-brand"><span>Before</span> <span>you buy.</span> <span>Know Why.</span></p>
       <p class="ff10-lede">A price tells you what someone asked or paid. FlipForge shows what it actually proves, and what you should pay.</p>
       <div class="ff10-actions">
-        <a class="ff10-btn ff10-btn-gold" href="beta-application.html">Request Beta Access</a>
-        <a class="ff10-btn ff10-btn-line" href="#demo">Try the price demo</a>
+        <a class="ff10-btn ff10-btn-gold" href="#demo" data-ff-hero-jump="challenge">Try the Decision Challenge</a>
+        <a class="ff10-btn ff10-btn-line" href="#inside-the-app" data-ff-hero-jump="app">See Inside FlipForge</a>
       </div>
-      <p class="ff10-hero-note">Controlled Private Beta. Invited collectors only.</p>
+      <p class="ff10-hero-note">Controlled Private Beta. Invited collectors only. <a href="beta-application.html" data-ff-hero-apply>Request Beta Access</a></p>
       <div class="ff10-verdict-key"><p>Every card ends in one of four decisions, with the reason attached.</p><ul aria-label="FlipForge decisions"><li>BUY</li><li>WATCH</li><li>VERIFY</li><li>PASS</li></ul></div>
     </div>
 
@@ -510,8 +513,8 @@
         <figure class="ff10-app-shot">
           <div class="ff10-app-window" tabindex="0" role="region" aria-label="Discover screen. Scroll to see all of it.">
             <picture>
-              <source media="(max-width:760px)" srcset="assets/images/ff-app-discover-m.webp" width="692" height="2466">
-              <img src="assets/images/ff-app-discover.webp" width="1400" height="1074" loading="lazy" decoding="async"
+              <source media="(max-width:760px)" srcset="assets/images/ff-app-discover-m.webp" width="692" height="1934">
+              <img src="assets/images/ff-app-discover.webp" width="1400" height="849" loading="lazy" decoding="async"
                 alt="FlipForge Discover result for a fictional 2019 Meridian Series #48 J. Carver Silver /99 listing: all-in ask $425, no qualified sales yet, confidence 15 out of 100, risk 90 out of 100, and an Evaluate with Smart Opportunity button.">
             </picture>
           </div>
@@ -533,9 +536,9 @@
         <figure class="ff10-app-shot">
           <div class="ff10-app-window" tabindex="0" role="region" aria-label="Evaluate screen. Scroll to see all of it.">
             <picture>
-              <source media="(max-width:760px)" srcset="assets/images/ff-app-evaluate-m.webp" width="692" height="2898">
-              <img src="assets/images/ff-app-evaluate.webp" width="1400" height="1341" loading="lazy" decoding="async"
-                alt="FlipForge decision screen: Verify before acting. There is not enough matching evidence yet to make this purchase confidently. Four checks: exact card, matched sales, price check with supported value unavailable, and uncertainty at 15 out of 100 confidence and 90 out of 100 risk.">
+              <source media="(max-width:760px)" srcset="assets/images/ff-app-evaluate-m.webp" width="692" height="2489">
+              <img src="assets/images/ff-app-evaluate.webp" width="1400" height="1224" loading="lazy" decoding="async"
+                alt="FlipForge decision screen: Verify before acting. There is not enough matching evidence yet to make this purchase confidently. Four checks: exact card, matched sales, price check with supported value unavailable, and uncertainty at 15 out of 100 confidence and 90 out of 100 risk. Three checks are marked as needing review; uncertainty is shown for context.">
             </picture>
           </div>
           <figcaption>Evaluate · decision from the real engine</figcaption>
@@ -555,7 +558,7 @@
         </div>
         <figure class="ff10-app-shot ff10-app-shot-receipt">
           <div class="ff10-app-window" tabindex="0" role="region" aria-label="Decision Receipt. Scroll to read all of it.">
-            <img src="assets/images/ff-app-receipt.webp" width="620" height="4494" loading="lazy" decoding="async"
+            <img src="assets/images/ff-app-receipt.webp" width="620" height="3365" loading="lazy" decoding="async"
               alt="FlipForge Decision Receipt for the fictional card: decision VERIFY; identity review required; 0 sales at decision; $425 ask with supported value withheld; 90 out of 100 risk and 15 out of 100 confidence; traceback to the Smart Opportunity engine version.">
           </div>
           <figcaption>Decision Receipt · scroll to read</figcaption>
@@ -605,6 +608,7 @@
 <script src="assets/js/homepage-audiences-v1.js" defer></script>
 <script src="assets/js/homepage-challenge-v1.js" defer></script>
 <script src="assets/js/homepage-app-showcase-v1.js" defer></script>
+<script src="assets/js/homepage-engagement-v1.js" defer></script>
 <script src="assets/js/updates-signup.js" defer></script>
 <script src="assets/js/section-navigation.js" defer></script>
 </body>
