@@ -71,4 +71,33 @@ assert.ok(shell.includes('["discover", "Discover"]') &&
   shell.includes('href="#/discover">Discover a card') &&
   beta.includes('setText(pageHeading.querySelector("h1"), "Discover a Card")'),
   "Dashboard and Discover naming agree");
+
+// Identity-safety: impossible or contradictory numbering fails closed however it was entered and whichever selector is set.
+for (const numbered of ["unknown","yes","no"]) {
+  for (const bad of ["26/25","0/25","1/0","/0","01/25 and 02/50","/25 /50","1/25 2/25"]) {
+    const sel = numbered === "yes" ? {numbered,denominator:"25",serial:""} : {numbered,denominator:"",serial:""};
+    const result = compose(card+" "+bad,sel);
+    assert.ok(result.error,"must fail closed ("+numbered+"): "+bad);
+    assert.equal(result.query,undefined,"no query is produced for: "+bad);
+  }
+}
+assert.match(compose(card+" 26/25",{numbered:"unknown"}).error,/not possible/);
+assert.match(compose(card+" 26/25",{numbered:"yes",denominator:"25",serial:""}).error,/not possible/);
+assert.match(compose(card+" 26/25",{numbered:"no"}).error,/not possible/);
+assert.match(compose(card+" 26/25",{numbered:"unknown"}).error,/26\/25/);
+assert.match(compose(card+" 1/25 2/25",{numbered:"unknown"}).error,/more than one individual serial/);
+assert.match(compose(card+" /25 /50",{numbered:"unknown"}).error,/more than one print run/);
+// Legitimate searches are preserved.
+assert.equal(compose("2018 Topps Chrome Shohei Ohtani #150 PSA 9 /25",{numbered:"unknown"}).query,"2018 Topps Chrome Shohei Ohtani #150 PSA 9 /25");
+assert.equal(compose("2018 Topps Chrome Shohei Ohtani #150 PSA 9 /25",{numbered:"unknown"}).needsVerification,true);
+assert.equal(compose(card+" 01/25",{numbered:"unknown"}).needsVerification,true);
+assert.equal(compose(card+" 1/1",{numbered:"unknown"}).needsVerification,true);
+assert.equal(compose(card+" 1/1",{numbered:"yes",denominator:"1",serial:"1"}).query,card+" 1/1");
+assert.equal(compose("2018/19 Upper Deck #100",{numbered:"unknown"}).needsVerification,false);
+assert.equal(compose("2018/19 Upper Deck #100",{numbered:"no"}).query,"2018/19 Upper Deck #100");
+assert.equal(compose("2018/19 Upper Deck #100",{numbered:"yes",denominator:"25",serial:""}).query,"2018/19 Upper Deck #100 /25");
+assert.equal(compose("2019/20 Upper Deck #100 PSA 9",{numbered:"unknown"}).needsVerification,false);
+assert.equal(compose(card+" 25/25",{numbered:"unknown"}).needsVerification,true);
+assert.ok(!compose(card+" 01/25",{numbered:"no"}).query,"No + numbered text is still refused");
+assert.ok(src.includes("refuseWithoutSection"),"Invalid numbering is refused even when the refinement box is not mounted");
 console.log("PASS: search-first serial-number refinement and governed identity handoff");

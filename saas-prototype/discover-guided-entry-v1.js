@@ -48,6 +48,28 @@
     return null;
   }
 
+  // Every slash-numbering expression in the text, valid or not. parseNumbering only returns the first valid one, so an
+  // impossible serial such as 26/25 or 0/25 would otherwise be ignored and slip through as ordinary words.
+  function scanNumbering(query) {
+    const text = String(query || "");
+    const valid = [], invalid = [];
+    const full = /(^|[\s(])(\d{1,5})\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    let match;
+    while ((match = full.exec(text)) !== null) {
+      if (/^(?:19|20)\d{2}$/.test(match[2]) && match[3].length === 2) continue; // season, e.g. 2018/19
+      const serial = Number(match[2]), denominator = Number(match[3]);
+      if (serial > 0 && denominator > 0 && serial <= denominator) valid.push({ serial, denominator });
+      else invalid.push(match[0].trim());
+    }
+    const suffix = /(^|[\s(])\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    while ((match = suffix.exec(text)) !== null) {
+      const denominator = Number(match[2]);
+      if (denominator > 0) valid.push({ serial: 0, denominator });
+      else invalid.push(match[0].trim());
+    }
+    return { valid, invalid };
+  }
+
   function compose(query, selection = draft) {
     const source = String(query || "").trim().replace(/\s+/g, " ");
     if (!source) return { error: "Enter the card you want to find first." };
@@ -57,6 +79,16 @@
     const serialText = String(selection.serial || "").trim();
     const existing = parseNumbering(source);
     if (!["unknown", "yes", "no"].includes(numbered)) return { error:"Choose whether the card is numbered." };
+    // Fail closed on impossible or contradictory numbering however it was entered and whatever the selector says.
+    const scan = scanNumbering(source);
+    if (scan.invalid.length) {
+      return { error: "The serial number \u201c" + scan.invalid[0] + "\u201d is not possible: the individual number cannot be zero or exceed the print run. Check what is printed on the card." };
+    }
+    if (new Set(scan.valid.map(entry => entry.denominator)).size > 1) {
+      return { error: "The search names more than one print run. Keep only the one printed on the card." };
+    }
+    const ordinals = new Set(scan.valid.filter(entry => entry.serial).map(entry => entry.serial));
+    if (ordinals.size > 1) return { error: "The search names more than one individual serial number. Keep only the one printed on the card." };
     if (numbered === "no" && existing) {
       return { error: "Your search already contains serial numbering. Choose Numbered or correct your search." };
     }
@@ -164,11 +196,33 @@
     updateFields(section);
   }
 
+  // The refinement box is removed once results are showing, but the search box stays editable. Impossible numbering typed
+  // there is still refused; legitimate searches are left to the existing flow untouched.
+  function refuseWithoutSection(event, form) {
+    const input = form.querySelector(QUERY);
+    const result = compose(input ? input.value : "", { numbered: "unknown", denominator: "", serial: "" });
+    if (!result.error) return false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    let note = form.querySelector("[data-ff-serial-error]");
+    if (!note) {
+      note = document.createElement("p");
+      note.className = "ff-serial-error";
+      note.setAttribute("role", "alert");
+      note.setAttribute("aria-live", "polite");
+      note.dataset.ffSerialError = "";
+      (input.closest("label") || input).insertAdjacentElement("afterend", note);
+    }
+    note.textContent = result.error;
+    note.hidden = false;
+    return true;
+  }
+
   function onSubmit(event) {
     if (!betaDiscover() || !event.target?.matches?.(FORM)) return;
     const form = event.target;
     const section = form.querySelector("[data-ff-serial-refinement]");
-    if (!section) return;
+    if (!section) { refuseWithoutSection(event, form); return; }
     const result = prepare(form,section);
     if (result.error) { event.preventDefault(); event.stopImmediatePropagation(); return; }
     const verify = result.needsVerification ? form.querySelector("[data-discovery-find-exact]") : null;
@@ -193,7 +247,7 @@
     if (target) {
       const form = target.closest("[data-customer-discovery-form]");
       const section = form?.querySelector("[data-ff-serial-refinement]");
-      if (!section) return;
+      if (!section) { if (form) refuseWithoutSection(event, form); return; }
       const result = prepare(form,section);
       if (result.error) { event.preventDefault(); event.stopImmediatePropagation(); return; }
       searchHandedOff = true;
@@ -217,7 +271,7 @@
     scheduled = true;
     requestAnimationFrame(() => { scheduled = false; mount(); });
   }
-  window.FlipForgeSerialEntryV1 = Object.freeze({ compose, parseNumbering });
+  window.FlipForgeSerialEntryV1 = Object.freeze({ compose, parseNumbering, scanNumbering });
   const main = document.querySelector(ROOT);
   if (main) new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
   if (typeof document.addEventListener === "function") {

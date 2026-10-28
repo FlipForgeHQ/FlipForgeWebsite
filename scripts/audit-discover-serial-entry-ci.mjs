@@ -60,6 +60,48 @@ for (const width of [390,1440]) {
     await error.waitFor({state:"visible",timeout:4000});
     assert.match(await error.textContent(),/cannot exceed/i);
     assert.equal(await fresh.locator('input[name="exactCardQuery"]').inputValue(),"2018 Topps Chrome Shohei Ohtani #150");
+    // Impossible serials typed straight into the main search fail closed with every selector value (not only the serial field).
+    for (const selector of ["unknown","no","yes"]) {
+      for (const bad of ["26/25","0/25","1/0"]) {
+        await page.goto(base+"/#/dashboard",{waitUntil:"domcontentloaded"});
+        await page.waitForTimeout(1200);
+        await page.goto(base+"/#/discover",{waitUntil:"domcontentloaded"});
+        const f = page.locator("#main-content [data-customer-discovery-form]");
+        await f.waitFor({state:"visible",timeout:9000});
+        await f.locator("[data-ff-serial-status]").waitFor({state:"visible",timeout:9000});
+        await f.locator("[data-ff-serial-status]").selectOption(selector);
+        if (selector === "yes") await f.locator("[data-ff-serial-denominator]").fill("25");
+        const typed = "2018 Topps Chrome Shohei Ohtani #150 PSA 9 "+bad;
+        await f.locator('input[name="exactCardQuery"]').fill(typed);
+        await page.evaluate(() => { window.__verifyClicks = 0; window.__submitted = 0;
+          document.querySelector("[data-customer-discovery-form] [data-discovery-find-exact]")?.addEventListener("click",()=>window.__verifyClicks++);
+          document.querySelector("[data-customer-discovery-form]")?.addEventListener("submit",()=>window.__submitted++); });
+        await f.locator('button[type="submit"]').click();
+        const err = f.locator("[data-ff-serial-error]");
+        await err.waitFor({state:"visible",timeout:4000});
+        assert.match(await err.textContent(),/not possible|exceed/i,selector+" / "+bad+": message shown");
+        assert.equal(await f.locator('input[name="exactCardQuery"]').inputValue(),typed,selector+" / "+bad+": search is not rewritten");
+        assert.equal(await page.evaluate(()=>window.__verifyClicks),0,selector+" / "+bad+": verification must not run on an impossible serial");
+        await f.locator('input[name="exactCardQuery"]').press("Enter");
+        assert.equal(await err.isVisible(),true,selector+" / "+bad+": Enter is refused as well");
+      }
+    }
+    // Legitimate numbering still reaches the exact-card check, and a season is not read as a serial.
+    for (const [text,expectVerify] of [["2018 Topps Chrome Shohei Ohtani #150 PSA 9 /25",true],["2018 Topps Chrome Shohei Ohtani #150 01/25",true],["2018 Topps Chrome Shohei Ohtani #150 1/1",true],["2018/19 Upper Deck Young Guns #201",false]]) {
+      await page.goto(base+"/#/dashboard",{waitUntil:"domcontentloaded"});
+      await page.waitForTimeout(1200);
+      await page.goto(base+"/#/discover",{waitUntil:"domcontentloaded"});
+      const f = page.locator("#main-content [data-customer-discovery-form]");
+      await f.waitFor({state:"visible",timeout:9000});
+      await f.locator("[data-ff-serial-status]").waitFor({state:"visible",timeout:9000});
+      await f.locator('input[name="exactCardQuery"]').fill(text);
+      await page.evaluate(() => { window.__verifyClicks = 0;
+        document.querySelector("[data-customer-discovery-form] [data-discovery-find-exact]")?.addEventListener("click",()=>window.__verifyClicks++); });
+      await f.locator('button[type="submit"]').click();
+      await page.waitForTimeout(700);
+      assert.equal(await page.evaluate(()=>window.__verifyClicks) > 0,expectVerify,"legitimate search handling for: "+text);
+      assert.equal(await page.locator("[data-ff-serial-error]:visible").count(),0,"no false rejection for: "+text);
+    }
     console.log("PASS | "+width+"px: search-first, opt-in guide, /25 selection, 01/25, invalid serial hold");
   } catch(error) {
     failures.push(width+"px: "+error.message);
