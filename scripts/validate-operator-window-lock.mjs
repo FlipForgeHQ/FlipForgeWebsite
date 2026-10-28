@@ -242,5 +242,7 @@ check("P11 the tester directory comes first, then feedback, the invite form, and
 check("P12 jump links at the top reach every section", ["#applications-heading", "#feedback-heading", "#invite-heading", "#numbers-heading"].every(href => at(`href="${href}"`) > 0 && at(`href="${href}"`) < at('id="applications-heading"'))
   && read("assets/js/beta-founder-select.js").includes('id="invite-heading"') && read("assets/js/beta-founder-select.js").includes("[data-founder-select-anchor]"));
 
+check("P13 the sign-in card really hides once the workspace is open", read("assets/css/beta-operator-v1.css").includes(".ff-operator-access[hidden],[data-operator-workspace][hidden]{display:none!important}"));
+
 if (failures.length) { for (const failure of failures) console.log(`FAIL ${failure}`); console.log(`Operator window lock validation: ${passed}/${passed + failures.length}`); process.exit(1); }
 console.log(`Operator window lock validation passed: ${passed}/${passed}`);

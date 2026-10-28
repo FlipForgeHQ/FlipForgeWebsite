@@ -214,3 +214,6 @@
 .ff-review-save-status[data-state="error"]{color:var(--op-bad)}
 .ff-review-status-label{margin-top:8px;padding-top:12px;border-top:1px dashed var(--op-line);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--op-muted)}
 .ff-review-status-label small{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none}
+/* The sign-in card's display:flex overrode the hidden attribute, so "Sign in as Operator" stayed on screen above the
+ * workspace after signing in. Hidden means hidden. */
+.ff-operator-access[hidden],[data-operator-workspace][hidden]{display:none!important}
