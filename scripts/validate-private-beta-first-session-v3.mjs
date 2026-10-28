@@ -29,7 +29,7 @@ check('complete structured decision diagram preserved under optional explainer',
   && position('data-private-beta-record-details') < position('data-private-beta-record-system')
   && ['IDENTITY RECORD','EVIDENCE RECORD','DECISION RECEIPT','OUTCOME HISTORY'].every(x=>page.includes(x)));
 check('full capability and known limitations remain accessible',
-  ['What is available now','Known beta limits','no transaction execution','AUTHORITY BOUNDARY'].every(x=>page.includes(x)));
+  ['What is available now','Known beta limits','transaction execution is active','AUTHORITY BOUNDARY'].every(x=>page.includes(x)));
 check('feedback is after introduction and optionally expanded',
   position('private-beta-v3-feedback')>position('private-beta-v3-reference') && page.includes('<details class="private-beta-v2-details private-beta-v2-feedback') &&
   page.includes('pendingFeedbackDraft ? " open" : ""'));
