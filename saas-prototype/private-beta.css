@@ -872,3 +872,5 @@
   .private-beta-v3-feedback-body{padding:12px}
 }
 @media(prefers-reduced-motion:reduce){.private-beta-v3-hero *{scroll-behavior:auto!important;transition:none!important}}
+.private-beta-v3-guide-title{margin:0 0 6px;font-size:1.05rem}
+.private-beta-v3-guide-subtitle{margin:18px 0 8px;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-secondary)}

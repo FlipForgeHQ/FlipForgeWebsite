@@ -39,8 +39,10 @@
         <div class="ff-beta-cdi-intro"><span>CARD DECISION INTELLIGENCE™</span><p>Help us learn whether the report explains what this decision means for your card—not whether you agree with it.</p></div>
         <div class="ff-beta-cdi-grid">
           ${select("decisionUnderstood", "Did you understand what this decision means for your card?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
+          ${select("reasonUnderstood", "Did you understand why FlipForge made that recommendation?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
           ${select("nextStepClear", "Did you know what to do next?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
           ${select("informationRelevant", "Was the information relevant to this card decision?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
+          ${select("missingInfo", "Was any information you needed missing?", [["NOTHING", "No, nothing was missing"], ["IDENTITY", "Card identity"], ["PRICE_VALUE", "Price, value or costs"], ["EVIDENCE", "Sales evidence"], ["RISK", "Risk or uncertainty"], ["NEXT_STEP", "What to do next"], ["OTHER", "Something else"]])}
           ${select("evidenceImpact", "What did the evidence do to your confidence?", [["INCREASED", "Increased it"], ["NO_CHANGE", "No change"], ["DECREASED", "Decreased it"], ["NOT_VIEWED", "I did not view the evidence"]])}
           ${select("mostUsefulLayer", "What helped most?", [["IDENTITY", "Exact card identity"], ["EVIDENCE", "Counted vs. excluded evidence"], ["ECONOMICS", "Price and supported value"], ["RISK_UNCERTAINTY", "Risk and uncertainty"], ["DECISION", "Why FlipForge made the call"], ["RECEIPT", "Decision Receipt / traceback"], ["OUTCOME", "Tracking what happens next"], ["NONE", "Nothing yet"]])}
         </div>
@@ -81,10 +83,12 @@
       const decisionUnderstood = String(data.get("decisionUnderstood") || "");
       const nextStepClear = String(data.get("nextStepClear") || "");
       const informationRelevant = String(data.get("informationRelevant") || "");
+      const reasonUnderstood = String(data.get("reasonUnderstood") || "");
+      const missingInfo = String(data.get("missingInfo") || "");
       const evidenceImpact = String(data.get("evidenceImpact") || "");
       const mostUsefulLayer = String(data.get("mostUsefulLayer") || "");
-      if (!decisionUnderstood || !nextStepClear || !informationRelevant || !evidenceImpact || !mostUsefulLayer) {
-        message.textContent = "Answer all five quick questions before sending.";
+      if (!decisionUnderstood || !nextStepClear || !informationRelevant || !reasonUnderstood || !missingInfo || !evidenceImpact || !mostUsefulLayer) {
+        message.textContent = "Answer all seven quick questions before sending.";
         message.dataset.tone = "error";
         return;
       }
@@ -97,6 +101,8 @@
         decisionUnderstood,
         nextStepClear,
         informationRelevant,
+        reasonUnderstood,
+        missingInfo,
         evidenceImpact,
         mostUsefulLayer,
       };

@@ -309,36 +309,14 @@
       </header>
 
       <section class="private-beta-v3-next" aria-label="Optional first-session information">
-              <details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide" data-private-beta-first-card>
-        <summary><span><strong>Want a little help with your first card?</strong><small>Optional four-step walkthrough: find, evaluate, understand, report.</small></span><b aria-hidden="true">＋</b></summary>
-        <div class="private-beta-v3-expander-body">
-          <p class="eyebrow">Private Beta Guide · First Session</p>\n          <p class="private-beta-v3-guide-hint">Start with Discover, or enter a listing manually. This guide is here if you need it.</p>
-      <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
-        <div class="private-beta-v2-mission-copy">
-          <span class="private-beta-v2-number">01</span>
-          <div>
-            <span class="eyebrow">START HERE</span>
-            <h2 id="private-beta-mission-title">Evaluate one card from start to finish.</h2>
-            <p>Do not try to learn every FlipForge feature today. Use one card you genuinely understand, follow the evidence, read the decision, and open the Decision Receipt.</p>
-            <div class="private-beta-v2-mission-actions">
-              <a class="button button-primary" href="#/discover" data-private-beta-start>Find my first card</a>
-              <a class="button button-secondary" href="#/decision-intelligence">How Card Decision Intelligence works</a>
-            </div>
-          </div>
-        </div>
-
-      </section>
-
-
-      <section class="panel private-beta-v2-walkthrough">
-        <header class="panel-header">
-          <div>
-            <span class="eyebrow">YOUR FIRST DECISION</span>
-            <h2>Tester walkthrough</h2>
-            <p>Four stages. One card. Follow them in order.</p>
-          </div>
-        </header>
-        <div class="panel-body private-beta-v2-journey">
+        <details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide" data-private-beta-first-card>
+          <summary><span><strong>Want a little help with your first card?</strong><small>Optional four-step walkthrough: find, evaluate, understand, report.</small></span><b aria-hidden="true">＋</b></summary>
+          <div class="private-beta-v3-expander-body">
+            <p class="eyebrow">Private Beta Guide · First Session</p>
+            <h2 class="private-beta-v3-guide-title">Evaluate one card from start to finish.</h2>
+            <p class="private-beta-v3-guide-hint">Do not try to learn every FlipForge feature today. Use one card you genuinely understand, follow the evidence, read the decision, and open the Decision Receipt. Start with Discover, or enter a listing manually.</p>
+            <h3 class="private-beta-v3-guide-subtitle">Tester walkthrough</h3>
+            <div class="panel-body private-beta-v2-journey">
           <article class="private-beta-v2-stage">
             <span class="private-beta-v2-stage-number">1</span>
             <div><span>FIND</span><strong>Search one exact card</strong><p>Use Discover and choose the exact identity. Discovery score ranks returned active listings only; it is not BUY/WATCH/VERIFY/PASS and searches are not saved.</p></div>
@@ -360,54 +338,45 @@
             <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button>
           </article>
         </div>
-      </section>
-
-
-        </div>
-      </details>
-
+          </div>
+        </details>
       </section>
 
       <section class="private-beta-v3-reference" aria-labelledby="private-beta-v3-reference-title">
         <div class="private-beta-v3-reference-intro">
           <span class="eyebrow">EXPLORE WHEN YOU'RE READY</span>
           <h2 id="private-beta-v3-reference-title">More about your workspace.</h2>
-          <p>All the details are here when you need them. You can start with one card without reading them first.</p>
+          <p>All the details are here when you need them. You can start with one card without reading them first. <a class="panel-link" href="#/decision-intelligence">How Card Decision Intelligence works →</a></p>
         </div>
         <div class="private-beta-v3-reference-links">
-      <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-boundary>
-        <summary><span><strong>What FlipForge does—and doesn't do</strong><small>Decision authority, evidence limits, and no transaction execution.</small></span><b aria-hidden="true">＋</b></summary>
-        <div class="private-beta-v3-expander-body">      <aside class="private-beta-v2-boundary">
+          <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-boundary>
+            <summary><span><strong>What FlipForge does—and doesn't do</strong><small>Decision authority, evidence limits, and no transaction execution.</small></span><b aria-hidden="true">＋</b></summary>
+            <div class="private-beta-v3-expander-body"><aside class="private-beta-v2-boundary">
         <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
         <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
-      </aside>
-
-</div>
-      </details>
-
+      </aside></div>
+          </details>
           <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-account-details>
             <summary><span><strong>Your access and guide settings</strong><small>Access: ${escapeHtml(accessValue)} · Evaluation system: ${escapeHtml(bridgeValue)}</small></span><b aria-hidden="true">＋</b></summary>
             <div class="private-beta-v3-expander-body">
-      <section class="private-beta-v2-status" aria-label="Private beta readiness">
+              <section class="private-beta-v2-status" aria-label="Private beta readiness">
         ${statusCard("Your access", accessValue, accessDetail, accessTone)}
         ${statusCard("Evaluation system", bridgeValue, bridgeDetail, bridgeTone, "data-private-beta-bridge")}
         ${statusCard("Saved decisions", "SQLite source of truth", "Your evaluations and tracked decisions stay tenant-owned and server-backed.", "ok")}
         ${statusCard("Customer access", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
       </section>
-
-
-        <div class="private-beta-v2-guide-state">
+              <div class="private-beta-v2-guide-state">
           <span>First-run guide</span>
           <strong>${introComplete ? "Completed" : "Ready"}</strong>
           <small>This only controls whether this introduction opens automatically. It does not change your account or saved decisions.</small>
-          <button class="button button-secondary" type="button" data-private-beta-${introComplete ? "reset" : "complete"}>${introComplete ? "Show this guide next time" : "Don't show this guide automatically again"}</button>
+          <button class="button button-secondary" type="button" ${introComplete ? "data-private-beta-reset" : "data-private-beta-complete"}>${introComplete ? "Show this guide next time" : "Don't show this guide automatically again"}</button>
         </div>
             </div>
           </details>
           <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-record-details>
             <summary><span><strong>How your decision is saved</strong><small>Identity, evidence, Decision Receipt and outcome history—all connected.</small></span><b aria-hidden="true">＋</b></summary>
             <div class="private-beta-v3-expander-body">
-      <section class="private-beta-record-system" aria-labelledby="private-beta-record-title" data-private-beta-record-system>
+              <section class="private-beta-record-system" aria-labelledby="private-beta-record-title" data-private-beta-record-system>
         <header class="private-beta-record-head">
           <div>
             <span class="eyebrow">YOUR FLIPFORGE RECORD</span>
@@ -455,12 +424,9 @@
           <span>Saved Decisions</span><b>→</b><span>Decision Receipt</span><b>→</b><span>Outcome Intelligence</span><b>→</b><span>Decision Dossier</span>
         </footer>
       </section>
-
-
             </div>
           </details>
-      <section class="private-beta-v2-secondary" aria-label="Secondary beta information">
-        <details class="private-beta-v2-details">
+          <details class="private-beta-v2-details">
           <summary><span><strong>What is available now</strong><small>Open this when you want to explore beyond your first decision.</small></span><b aria-hidden="true">＋</b></summary>
           <div class="private-beta-v2-details-body private-beta-limit-list">
             <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Discover → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Provider-backed active-listing search, tenant-scoped reads/writes, and comparison use the approved same-origin customer gateway when enabled.</small></span></div>
@@ -471,8 +437,7 @@
             <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Create a Decision Dossier</strong><small>Export one complete saved decision with governed evidence, PSA context, lifecycle history, and integrity manifest.</small></span></div>
           </div>
         </details>
-
-        <details class="private-beta-v2-details">
+          <details class="private-beta-v2-details">
           <summary><span><strong>Known beta limits</strong><small>What FlipForge intentionally does not pretend to do.</small></span><b aria-hidden="true">＋</b></summary>
           <div class="private-beta-v2-details-body private-beta-limit-list">
             <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>Connected-source scope</strong><small>Discover ranks listings returned by currently connected approved sources. It does not claim complete-market coverage.</small></span></div>
@@ -482,9 +447,6 @@
             <div class="private-beta-limit"><span class="check-mark warn">!</span><span><strong>No billing or transactions</strong><small>No paid limits, checkout, payment, purchase, listing, sale, or marketplace action is active.</small></span></div>
           </div>
         </details>
-      </section>
-
-
         </div>
       </section>
 
