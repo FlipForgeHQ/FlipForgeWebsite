@@ -92,5 +92,16 @@ check('M04 hero beta-access clicks are attributed to the hero', tracker.includes
 check('D01 fictional-data disclosures and compliance wording remain', ['Real FlipForge app · fictional card and illustrative data', 'No real sales, sellers or customer records are shown',
   'NO REAL SALE DATA', 'FlipForge is decision support'].every(t => page.includes(t)));
 
+// ---------- Section rhythm (founder request 2026-10-28) ----------
+const rhythm = read('assets/css/homepage-section-rhythm-v1.css');
+check('R01 where two dark sections meet they share one padding (How it works -> Who it is for, Inside FlipForge -> final, hero -> difference)',
+  rhythm.includes('.ff10-steps:has(+ .ff10-aud){padding-bottom:calc(var(--pad) / 2)}') && rhythm.includes('.ff10-steps + .ff10-aud{padding-top:calc(var(--pad) / 2)}')
+  && rhythm.includes('.ff10-app:has(+ .ff10-final){padding-bottom:calc(var(--pad) / 2)}') && rhythm.includes('.ff10-app + .ff10-final{padding-top:calc(var(--pad) / 2)}')
+  && rhythm.includes('.ff10-hero:has(+ .ff10-diff)') && !/#[0-9a-fA-F]{3,8}\b/.test(rhythm)
+  && (page.match(/homepage-section-rhythm-v1\.css/g) || []).length === 1 && page.indexOf('homepage-section-rhythm-v1.css') > page.indexOf('homepage-hero-positioning-v1.css'));
+check('R02 the dark sections still sit next to each other in that order', /class="ff10-steps"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-aud"/.test(page)
+  && /class="ff10-app"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-final"/.test(page)
+  && /class="ff10-hero"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-diff"/.test(page));
+
 if (failures.length) { for (const f of failures) console.log(`FAIL: ${f}`); process.exit(1); }
 console.log(`PASS: ${passed} website polish checks (positioning, interaction, credibility, measurement, disclosures).`);

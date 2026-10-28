@@ -1,0 +1,19 @@
+/* FlipForge homepage section rhythm (v1), founder request 2026-10-28: less empty black between sections.
+ * Where two dark sections meet, each used to keep its full section padding, so a visitor scrolled through two
+ * paddings of plain black (about 330px on desktop, 200px on a phone) with nothing on screen. Where dark meets dark,
+ * the two sections now share one padding. Light sections, the section lines, content and design are unchanged. */
+
+/* How it works -> Who it's for (both dark) */
+.ff10-steps:has(+ .ff10-aud){padding-bottom:calc(var(--pad) / 2)}
+.ff10-steps + .ff10-aud{padding-top:calc(var(--pad) / 2)}
+
+/* Inside FlipForge -> final call to action (both dark) */
+.ff10-app:has(+ .ff10-final){padding-bottom:calc(var(--pad) / 2)}
+.ff10-app + .ff10-final{padding-top:calc(var(--pad) / 2)}
+
+/* Hero -> The FlipForge difference (both dark): the hero's own bottom spacing is halved on wide screens, where it
+ * stacked with the decision key's bottom margin. */
+@media(min-width:1101px){
+  .ff10-hero:has(+ .ff10-diff){padding-bottom:clamp(24px,2.5vw,48px)}
+  .ff10-hero:has(+ .ff10-diff) .ff10-verdict-key,.ff10-hero:has(+ .ff10-diff) .ff10-stage{margin-bottom:clamp(36px,4vw,72px)}
+}
