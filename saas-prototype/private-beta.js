@@ -312,7 +312,7 @@
               <details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide" data-private-beta-first-card>
         <summary><span><strong>Want a little help with your first card?</strong><small>Optional four-step walkthrough: find, evaluate, understand, report.</small></span><b aria-hidden="true">＋</b></summary>
         <div class="private-beta-v3-expander-body">
-          <p class="private-beta-v3-guide-hint">Start with Discover, or enter a listing manually. This guide is here if you need it.</p>
+          <p class="eyebrow">Private Beta Guide · First Session</p>\n          <p class="private-beta-v3-guide-hint">Start with Discover, or enter a listing manually. This guide is here if you need it.</p>
       <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
         <div class="private-beta-v2-mission-copy">
           <span class="private-beta-v2-number">01</span>
