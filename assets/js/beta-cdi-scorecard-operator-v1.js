@@ -31,6 +31,10 @@
       decisionYes: 0,
       decisionPartly: 0,
       nextYes: 0,
+      relevantYes: 0,
+      relevantPartly: 0,
+      relevantNo: 0,
+      relevantAnswered: 0,
       evidenceUp: 0,
       evidenceDown: 0,
       layers: Object.fromEntries(Object.keys(LABELS).map(key => [key, 0])),
@@ -46,6 +50,12 @@
       if (learning.decisionUnderstood === "YES") result.decisionYes += 1;
       if (learning.decisionUnderstood === "PARTLY") result.decisionPartly += 1;
       if (learning.nextStepClear === "YES") result.nextYes += 1;
+      if (["YES", "PARTLY", "NO"].includes(learning.informationRelevant)) {
+        result.relevantAnswered += 1;
+        if (learning.informationRelevant === "YES") result.relevantYes += 1;
+        if (learning.informationRelevant === "PARTLY") result.relevantPartly += 1;
+        if (learning.informationRelevant === "NO") result.relevantNo += 1;
+      }
       if (learning.evidenceImpact === "INCREASED") result.evidenceUp += 1;
       if (learning.evidenceImpact === "DECREASED") result.evidenceDown += 1;
       if (Object.hasOwn(result.layers, learning.mostUsefulLayer)) result.layers[learning.mostUsefulLayer] += 1;
@@ -62,6 +72,10 @@
     metric("decision-clear", summary.decisionYes);
     metric("decision-partly", summary.decisionPartly);
     metric("next-clear", summary.nextYes);
+    metric("relevant-answered", summary.relevantAnswered);
+    metric("relevant-yes", summary.relevantYes);
+    metric("relevant-partly", summary.relevantPartly);
+    metric("relevant-no", summary.relevantNo);
     metric("evidence-up", summary.evidenceUp);
     metric("evidence-down", summary.evidenceDown);
     const topLayer = document.querySelector('[data-cdi-learning-metric="top-layer"]');

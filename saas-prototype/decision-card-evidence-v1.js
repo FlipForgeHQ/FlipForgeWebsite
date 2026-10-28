@@ -166,8 +166,26 @@
     return { trusted, excluded };
   }
 
+  // Buyer-facing interpretation of the SAVED server verdict. This layer explains
+  // consequences; it does not calculate a new price, recommendation or confidence.
+  const CARD_IMPACT_COPY = Object.freeze({
+    BUY: ["Evidence supports considering this purchase", "For the evaluated card and asking price, FlipForge's saved decision supports BUY within the recorded risks and limits. The recommendation is not a guarantee or permission to transact."],
+    WATCH: ["Not enough advantage to act yet", "The saved decision did not establish a strong enough buying opportunity at the evaluated conditions. Monitor the price, qualified evidence and risk before requesting a new evaluation."],
+    VERIFY: ["Resolve the uncertainty before acting", "FlipForge could not establish enough certainty for this exact card at the evaluated conditions. Check the identity and the qualifying evidence before deciding whether to buy."],
+    PASS: ["This deal does not meet the decision standard", "The saved evidence, economics and risk did not justify buying this card at the evaluated conditions. That is a judgment about this specific deal, not a prediction of the card's future value."],
+    UNKNOWN: ["A supported verdict is not available", "The saved record does not provide a current supported BUY, WATCH, VERIFY or PASS interpretation. Review the original server decision and its evidence."],
+  });
+  function nextReviewCopy(change) {
+    const value = String(change || "").trim();
+    // Raw internal status codes are not meaningful actions and must never
+    // silently become a purported reason for changing this card's value.
+    if (value && !/^[A-Z0-9]+(?:[ _][A-Z0-9]+)*$/.test(value) && value.length <= 450) return value;
+    return "New exact evidence, changes to the listing price or costs, or a resolved identity/risk question require a new evaluation. The saved original decision stays unchanged.";
+  }
+
   function render(model) {
     const evidence = evidenceSummary(model);
+    const impact = CARD_IMPACT_COPY[model.decision] || CARD_IMPACT_COPY.UNKNOWN;
     const signature = JSON.stringify([
       model.decision, model.identity, model.why, model.change, model.accepted, model.excluded,
       model.ask, model.supportedValue, model.confidence, model.risk, model.exactIdentity,
@@ -204,6 +222,23 @@
         <article data-tone="evidence"><span>Evidence</span><strong>${escapeHtml(evidence.trusted)}</strong><small>${escapeHtml(evidence.excluded)}</small></article>
         <article data-tone="risk"><span>Risk + uncertainty</span><strong>${escapeHtml(model.risk)}</strong><small>Confidence ${escapeHtml(model.confidence)}</small></article>
       </div>
+
+      <section class="ff-dce-impact" aria-labelledby="ff-dce-impact-title">
+        <div class="ff-dce-impact-lead">
+          <span>WHAT THIS DECISION MEANS FOR THIS CARD</span>
+          <h4 id="ff-dce-impact-title">${escapeHtml(model.decision)} · ${escapeHtml(impact[0])}</h4>
+          <p>${escapeHtml(impact[1])}</p>
+          <p class="ff-dce-impact-reason"><strong>Why this card received that result:</strong> ${escapeHtml(model.why)}</p>
+        </div>
+        <dl class="ff-dce-impact-grid">
+          <div><dt>Card being evaluated</dt><dd>${escapeHtml(model.identity)}</dd><small>Identity status: ${escapeHtml(model.exactIdentity)}</small></div>
+          <div><dt>Price context</dt><dd>Evaluated ask: ${escapeHtml(model.ask)}</dd><small>Supported value: ${escapeHtml(model.supportedValue)}. No value is inferred when unavailable.</small></div>
+          <div><dt>Evidence that counted</dt><dd>${escapeHtml(evidence.trusted)}</dd><small>Excluded or unqualified: ${escapeHtml(evidence.excluded)}</small></div>
+          <div><dt>Risk and uncertainty</dt><dd>Decision risk: ${escapeHtml(model.risk)}</dd><small>Confidence: ${escapeHtml(model.confidence)}. Scores are not future-outcome probabilities.</small></div>
+        </dl>
+        <div class="ff-dce-impact-next"><strong>What to review next</strong><p>${escapeHtml(nextReviewCopy(model.change))}</p></div>
+        <p class="ff-dce-impact-disclosure">Decision support only. Not investment advice. No transaction authority. The original saved decision is not rescored in this report.</p>
+      </section>
 
       <details class="ff-dce-layers">
         <summary><span><strong>View the 7 evidence layers</strong><small>Identity → Evidence → Economics → Risk → Decision → Traceback → Outcome</small></span><span aria-hidden="true">＋</span></summary>

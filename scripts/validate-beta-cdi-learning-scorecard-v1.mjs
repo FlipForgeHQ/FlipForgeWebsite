@@ -14,6 +14,8 @@ const checks = [
   ["feedback intake validates CDI learning signals", feedbackSource.includes("validateCdiLearning") && feedbackSource.includes("learning: learningValidation.signals")],
   ["customer check runs on saved decision detail", customerSource.includes('parts[0] !== "opportunities"') && customerSource.includes("data-ff-decision-card-evidence")],
   ["customer check captures four governed fields", ["decisionUnderstood", "nextStepClear", "evidenceImpact", "mostUsefulLayer"].every(value => customerSource.includes(value))],
+  ["saved-decision check asks about relevance and what information was missing", customerSource.includes("informationRelevant") && customerSource.includes("Was the information relevant") && customerSource.includes("What information was missing")],
+  ["operator displays relevance counts and distinguishes them from accuracy", operatorHtml.includes('data-cdi-learning-metric="relevant-yes"') && operatorHtml.includes('data-cdi-learning-metric="relevant-no"') && operatorSource.includes("relevantAnswered") && operatorHtml.includes("They are not accuracy")],
   ["customer check stores no card identity or listing URL", !/cardIdentity|listingUrl|externalListingId/i.test(customerSource)],
   ["customer check posts only to beta feedback endpoint", customerSource.includes('ENDPOINT = "/api/beta/feedback"') && !/\/api\/v1\/opportunities|\/api\/v1\/evidence/i.test(customerSource)],
   ["customer check preserves authority boundary", customerSource.includes("does not change the saved decision") && customerSource.includes("evidence authority")],
@@ -43,9 +45,30 @@ const valid = validateCdiLearning({
   nextStepClear: "PARTLY",
   evidenceImpact: "INCREASED",
   mostUsefulLayer: "EVIDENCE",
+  informationRelevant: "PARTLY",
 });
 assert.equal(valid.ok, true);
+assert.equal(valid.signals.informationRelevant, "PARTLY");
 assert.equal(valid.signals.decisionUnderstood, "YES");
+
+const legacyFour = validateCdiLearning({
+  decisionUnderstood: "YES",
+  nextStepClear: "NO",
+  evidenceImpact: "NOT_VIEWED",
+  mostUsefulLayer: "NONE"
+});
+assert.equal(legacyFour.ok, true);
+assert.equal(legacyFour.signals.informationRelevant, "");
+
+const invalidRelevance = validateCdiLearning({
+  decisionUnderstood: "YES",
+  nextStepClear: "YES",
+  evidenceImpact: "INCREASED",
+  mostUsefulLayer: "DECISION",
+  informationRelevant: "VERY",
+});
+assert.equal(invalidRelevance.ok, false);
+assert.ok(invalidRelevance.errors.includes("CDI_INFORMATION_RELEVANCE_INVALID"));
 
 const invalid = validateCdiLearning({
   decisionUnderstood: "MAYBE",
@@ -66,6 +89,9 @@ assert.equal(summary.decisionUnderstood.YES, 1);
 assert.equal(summary.decisionUnderstood.PARTLY, 1);
 assert.equal(summary.nextStepClear.YES, 1);
 assert.equal(summary.evidenceImpact.INCREASED, 1);
+assert.equal(summary.relevanceResponses, 1);
+assert.equal(summary.informationRelevant.PARTLY, 1);
+assert.equal(summary.informationRelevant.YES, 0);
 assert.equal(summary.countingBoundary, "TESTER_COMPREHENSION_NOT_PRODUCT_ACCURACY");
 
 if (failed) process.exitCode = 1;
