@@ -103,5 +103,8 @@ check('R02 the dark sections still sit next to each other in that order', /class
   && /class="ff10-app"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-final"/.test(page)
   && /class="ff10-hero"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-diff"/.test(page));
 
+check('R03 desktop: hero sits close to The FlipForge difference, and the benefit line stays clear of the decision panel',
+  rhythm.includes('.ff10-hero + .ff10-diff{padding-top:clamp(48px,4.4vw,72px)}') && heroCss.includes('@media(min-width:1101px){.ff10 .ff10-hero-benefit{max-width:23em}}'));
+
 if (failures.length) { for (const f of failures) console.log(`FAIL: ${f}`); process.exit(1); }
 console.log(`PASS: ${passed} website polish checks (positioning, interaction, credibility, measurement, disclosures).`);
