@@ -47,7 +47,7 @@
 /* ======================================================================
    1. HERO
    ====================================================================== */
-.ff10-hero{position:relative;overflow:hidden;padding:clamp(40px,5vw,72px) 0 clamp(72px,8vw,120px);
+.ff10-hero{position:relative;overflow:hidden;padding:clamp(40px,5vw,72px) 0 clamp(64px,5vw,88px);
   background:
     radial-gradient(60% 70% at 82% 46%,rgba(212,175,55,.16),rgba(212,175,55,0) 62%),
     var(--k)}
@@ -61,7 +61,7 @@
 .ff10-hero .ff10-lede{grid-column:1;grid-row:3;margin-top:clamp(22px,2.4vw,34px)}
 .ff10-hero .ff10-actions{grid-column:1;grid-row:4;margin-top:32px}
 .ff10-hero-note{grid-column:1;grid-row:5;margin-top:20px!important;font-size:14px;color:var(--s)}
-.ff10-verdict-key{grid-column:1;grid-row:6;align-self:end;margin-bottom:clamp(60px,8vw,140px);padding-top:22px;border-top:1px solid var(--line-d);max-width:520px}
+.ff10-verdict-key{grid-column:1;grid-row:6;align-self:end;padding-top:22px;border-top:1px solid var(--line-d);max-width:520px}
 .ff10-verdict-key p{font-size:14px;color:var(--s)}
 .ff10-verdict-key ul{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;padding:0;list-style:none}
 .ff10-verdict-key li{padding:7px 12px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.22);font-weight:900;font-size:15px;letter-spacing:-.01em;color:rgba(255,255,255,.75)}
@@ -70,7 +70,7 @@
 .ff10-verdict-key li:nth-child(3){border-color:var(--s);color:var(--w)}
 .ff10-verdict-key li:nth-child(4){background:var(--w);border-color:var(--w);color:var(--k)}
 
-.ff10-stage{grid-column:2;grid-row:1/-1;position:relative;z-index:2;margin-bottom:clamp(60px,8vw,140px)}
+.ff10-stage{grid-column:2;grid-row:1/-1;position:relative;z-index:2}
 .ff10-glow{position:absolute;left:50%;top:44%;width:150%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
   background:radial-gradient(closest-side,rgba(212,175,55,.30),rgba(212,175,55,.08) 55%,rgba(212,175,55,0));pointer-events:none}
 .ff10-slab{position:relative;margin:0;width:100%}
@@ -423,9 +423,19 @@
 /* ======================================================================
    THE FLIPFORGE DIFFERENCE: founder-approved poster (invented card, no performance figures).
    ====================================================================== */
-.ff10-diff{padding:clamp(56px,7vw,112px) 0;border-top:1px solid var(--line-d);
+/* The Difference poster dissolves into the black page: feathered edges over a soft glow taken from the poster itself. */
+.ff10-diff{padding:clamp(48px,4vw,72px) 0 clamp(56px,7vw,112px);overflow:hidden;
   background:radial-gradient(60% 50% at 50% 40%,rgba(212,175,55,.12),rgba(212,175,55,0) 70%),var(--k)}
-.ff10-diff-poster{margin:0 auto;width:min(680px,100%)}
-.ff10-diff-poster img{display:block;width:100%;height:auto;border-radius:16px;
-  box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 1px rgba(212,175,55,.28)}
-@media (max-width:560px){.ff10-diff-poster img{border-radius:10px}}
+.ff10-diff-poster{position:relative;isolation:isolate;margin:0 auto;width:min(680px,100%)}
+.ff10-diff-poster::before{--halo-x:clamp(36px,7vw,100px);--halo-y:40px;content:"";position:absolute;z-index:-1;pointer-events:none;
+  inset:calc(-1*var(--halo-y)) calc(-1*var(--halo-x));
+  background:url(../images/flipforge-difference-v1.webp) center/cover no-repeat;filter:blur(36px) saturate(1.2);opacity:.9;
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 var(--halo-x),#000 calc(100% - var(--halo-x)),transparent),linear-gradient(to bottom,transparent,#000 var(--halo-y),#000 calc(100% - var(--halo-y)),transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent,#000 var(--halo-x),#000 calc(100% - var(--halo-x)),transparent),linear-gradient(to bottom,transparent,#000 var(--halo-y),#000 calc(100% - var(--halo-y)),transparent);
+  mask-composite:intersect}
+.ff10-diff-poster img{display:block;width:100%;height:auto;
+  -webkit-mask-image:linear-gradient(to right,transparent,rgba(0,0,0,.55) 2.5%,#000 6%,#000 95.5%,transparent),linear-gradient(to bottom,transparent,rgba(0,0,0,.6) 1.6%,#000 3.5%,#000 98.6%,transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent,rgba(0,0,0,.55) 2.5%,#000 6%,#000 95.5%,transparent),linear-gradient(to bottom,transparent,rgba(0,0,0,.6) 1.6%,#000 3.5%,#000 98.6%,transparent);
+  mask-composite:intersect}
