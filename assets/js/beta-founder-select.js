@@ -37,7 +37,7 @@
     panel.className="ff-founder-select-panel";
     panel.dataset.founderSelectPanel="";
     panel.innerHTML=`
-      <header><div><span class="ff-operator-kicker">Direct invitation</span><h2>Invite a tester</h2><p>For someone you already chose. Enter their details once; FlipForge creates the beta record and sends the invitation. They still must accept the Private Beta Terms before access activates.</p></div><span class="ff-founder-select-badge">Start date per tester</span></header>
+      <header><div><span class="ff-operator-kicker">Direct invitation</span><h2 id="invite-heading">Invite a tester</h2><p>For someone you already chose. Enter their details once; FlipForge creates the beta record and sends the invitation. They still must accept the Private Beta Terms before access activates.</p></div><span class="ff-founder-select-badge">Start date per tester</span></header>
       <form class="ff-founder-select-form" data-founder-select-form>
         <label>Name<input name="fullName" maxlength="120" autocomplete="off" required placeholder="Tester name"></label>
         <label>Email<input name="email" type="email" maxlength="254" autocomplete="off" required placeholder="name@example.com"></label>
@@ -45,7 +45,8 @@
         <button type="submit">Send private beta invite</button>
         <p class="ff-founder-select-status" data-founder-select-status role="status" aria-live="polite"></p>
       </form>`;
-    titlebar.insertAdjacentElement("afterend",panel);
+    // The tester directory comes first on the page (founder request 2026-10-28); the invite form sits below it.
+    (root.querySelector("[data-founder-select-anchor]")||titlebar).insertAdjacentElement("afterend",panel);
 
     panel.querySelector("[data-founder-select-form]").addEventListener("submit",async event=>{
       event.preventDefault();

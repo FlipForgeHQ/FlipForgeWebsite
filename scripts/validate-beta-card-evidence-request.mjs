@@ -6,6 +6,9 @@ import { createBetaFeedbackHandler } from "../netlify/modern-functions/beta-feed
 import { createBetaOperatorHandler } from "../netlify/modern-functions/beta-operator.mjs";
 import { privilegedFunctionAllowed } from "../netlify/modern-functions/lib/production-deploy-guard.mjs";
 import { feedbackSummary, validateCardReference } from "../netlify/modern-functions/lib/beta-operations-core.mjs";
+// These checks exercise operator actions; the per-window password unlock has its own validator
+// (scripts/validate-operator-window-lock.mjs), so here every window counts as unlocked.
+const UNLOCKED_WINDOW = { check: async () => ({ ok: true }) };
 
 class MemoryStore {
   constructor() { this.records = new Map(); this.etags = new Map(); this.sequence = 0; }
@@ -213,6 +216,7 @@ try {
   await check("a tester cannot attach another tenant's identity to a request", async () => rejected({ ...base, requestType: "CARD_EVIDENCE", cardReference: { ...card, tenantId: "tenant-a" } }, "CARD_REFERENCE_FIELD_NOT_ALLOWED", intakeB));
 
   const operatorDeps = {
+    operatorWindow: UNLOCKED_WINDOW,
     applicationStore: new MemoryStore(),
     eventStore: new MemoryStore(),
     feedbackStore: store,

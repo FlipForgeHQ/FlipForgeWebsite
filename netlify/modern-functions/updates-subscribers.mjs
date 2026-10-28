@@ -1,5 +1,6 @@
 // Operator-only export of the "stay in touch" list (CSV), and removal for unsubscribe requests.
 import { getUser } from "@netlify/identity";
+import { createOperatorWindowGate } from "./lib/operator-window.mjs";
 import { isOperator, normalizeEmail } from "./lib/beta-operations-core.mjs";
 import { UPDATES_STORE_NAME, csvCell, updatesKey } from "./lib/updates-core.mjs";
 import { productionOnly } from "./lib/production-deploy-guard.mjs";
@@ -22,11 +23,14 @@ async function allSubscribers(store) {
   return records.sort((a, b) => String(a.subscribedAt).localeCompare(String(b.subscribedAt)));
 }
 
-export function createUpdatesSubscribersHandler({ store, getUserFn = getUser, now = () => new Date() } = {}) {
+export function createUpdatesSubscribersHandler({ store, getUserFn = getUser, operatorWindow = createOperatorWindowGate(), now = () => new Date() } = {}) {
   return async function updatesSubscribers(request) {
     const user = await getUserFn();
     if (!user) return reply(401, { authorized: false, reason: "AUTHENTICATION_REQUIRED" });
     if (!isOperator(user)) return reply(403, { authorized: false, reason: "OPERATOR_ROLE_REQUIRED" });
+    // This browser window must have been unlocked with the operator's password (lib/operator-window.mjs).
+    const unlocked = await operatorWindow.check(request, user);
+    if (!unlocked.ok) return reply(401, { authorized: false, reason: unlocked.reason });
 
     const targetStore = store || betaRuntimeStore(UPDATES_STORE_NAME, request);
 

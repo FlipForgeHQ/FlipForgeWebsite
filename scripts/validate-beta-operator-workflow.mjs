@@ -4,6 +4,9 @@ import { createBetaApplicationsHandler } from "../netlify/modern-functions/beta-
 import { createBetaFeedbackHandler } from "../netlify/modern-functions/beta-feedback.mjs";
 import { createBetaOperatorHandler } from "../netlify/modern-functions/beta-operator.mjs";
 import { createConversionEventHandler } from "../netlify/modern-functions/conversion-event.mjs";
+// These checks exercise operator actions; the per-window password unlock has its own validator
+// (scripts/validate-operator-window-lock.mjs), so here every window counts as unlocked.
+const UNLOCKED_WINDOW = { check: async () => ({ ok: true }) };
 
 class MemoryStore {
   constructor() { this.records = new Map(); this.etags = new Map(); this.sequence = 0; }
@@ -233,11 +236,11 @@ const operatorRequest = body => new Request("https://goflipforge.com/api/beta/op
   headers: { origin: "https://goflipforge.com", ...(body ? { "content-type": "application/json" } : {}) },
   body: body ? JSON.stringify(body) : undefined,
 });
-const anonymous = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => null, identityAdmin, inviteIdentity, admissionClient, now: () => fixedNow });
+const anonymous = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => null, identityAdmin, inviteIdentity, admissionClient, operatorWindow: UNLOCKED_WINDOW, now: () => fixedNow });
 assert.equal((await anonymous(operatorRequest())).status, 401);
-const customer = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => ({ id: "customer", roles: ["flipforge-active"] }), identityAdmin, inviteIdentity, admissionClient, now: () => fixedNow });
+const customer = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => ({ id: "customer", roles: ["flipforge-active"] }), identityAdmin, inviteIdentity, admissionClient, operatorWindow: UNLOCKED_WINDOW, now: () => fixedNow });
 assert.equal((await customer(operatorRequest())).status, 403);
-const operator = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => operatorUser, identityAdmin, inviteIdentity, admissionClient, now: () => fixedNow });
+const operator = createBetaOperatorHandler({ applicationStore, eventStore, feedbackStore, getUserFn: async () => operatorUser, identityAdmin, inviteIdentity, admissionClient, operatorWindow: UNLOCKED_WINDOW, now: () => fixedNow });
 let response = await operator(operatorRequest());
 assert.equal(response.status, 200);
 let dashboard = await response.json();

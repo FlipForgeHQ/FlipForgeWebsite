@@ -4,6 +4,9 @@ import fs from "node:fs";
 import { createUpdatesSignupHandler, config as signupConfig, RATE_LIMIT, RATE_WINDOW_MS, RATE_RETENTION_DAYS } from "../netlify/modern-functions/updates-signup.mjs";
 import { createUpdatesSubscribersHandler, config as exportConfig } from "../netlify/modern-functions/updates-subscribers.mjs";
 import { UPDATES_CONSENT_TEXT, csvCell } from "../netlify/modern-functions/lib/updates-core.mjs";
+// These checks exercise operator actions; the per-window password unlock has its own validator
+// (scripts/validate-operator-window-lock.mjs), so here every window counts as unlocked.
+const UNLOCKED_WINDOW = { check: async () => ({ ok: true }) };
 
 class MemoryStore {
   constructor() { this.records = new Map(); }
@@ -90,7 +93,7 @@ check("signup endpoint uses no platform rate-limit rule (plan allows two, reserv
 await store.setJSON("email/" + "f".repeat(64) + ".json", { email: "=cmd()@example.com", subscribedAt: "2026-10-22T00:00:00.000Z", source: "home", consentVersion: "2026-10-20" });
 const operator = { id: "op", appMetadata: { roles: ["flipforge-operator"] } };
 const tester = { id: "t", appMetadata: { roles: ["flipforge-active"] } };
-const exportAs = user => createUpdatesSubscribersHandler({ store, getUserFn: async () => user, now: () => new Date("2026-10-23T00:00:00Z") });
+const exportAs = user => createUpdatesSubscribersHandler({ store, getUserFn: async () => user, operatorWindow: UNLOCKED_WINDOW, now: () => new Date("2026-10-23T00:00:00Z") });
 r = await exportAs(null)(new Request(`${ORIGIN}/api/updates/subscribers`));
 check("export requires sign-in", r.status === 401);
 r = await exportAs(tester)(new Request(`${ORIGIN}/api/updates/subscribers`));

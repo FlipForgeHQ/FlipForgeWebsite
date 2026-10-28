@@ -8,6 +8,9 @@ import { fileURLToPath } from "node:url";
 import { createBetaOperatorHandler } from "../netlify/modern-functions/beta-operator.mjs";
 import { ADMISSION_ROUTE, BetaAdmissionError, createAdmissionClient } from "../netlify/modern-functions/lib/beta-admission-client.mjs";
 import { applicationKey } from "../netlify/modern-functions/lib/beta-operations-core.mjs";
+// These checks exercise operator actions; the per-window password unlock has its own validator
+// (scripts/validate-operator-window-lock.mjs), so here every window counts as unlocked.
+const UNLOCKED_WINDOW = { check: async () => ({ ok: true }) };
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
@@ -145,7 +148,7 @@ const inviteIdentity = async (email, fullName) => {
 const operatorUser = { id: "4b7c3f0e-operator", email: "owner@example.com", roles: ["flipforge-operator"] };
 const admissionClient = createAdmissionClient({ env: { FLIPFORGE_API_BASE_URL: "https://backend.invalid", FLIPFORGE_API_SERVICE_TOKEN: SERVICE_TOKEN }, fetchFn: backendFetch });
 const operator = createBetaOperatorHandler({ applicationStore: store, eventStore: new MemoryStore(), feedbackStore: new MemoryStore(),
-  getUserFn: async () => operatorUser, identityAdmin, inviteIdentity, admissionClient, now });
+  getUserFn: async () => operatorUser, identityAdmin, inviteIdentity, admissionClient, operatorWindow: UNLOCKED_WINDOW, now });
 const post = body => operator(new Request("https://goflipforge.com/api/beta/operator", {
   method: "POST", headers: { origin: "https://goflipforge.com", "content-type": "application/json" }, body: JSON.stringify(body) }));
 
@@ -265,7 +268,7 @@ check("B15 permanent test-user delete releases the seat before deleting Identity
     && backend.timeline.indexOf(`seat:revoke:${tenantOf(bravo)}`) < backend.timeline.findIndex(entry => entry.startsWith("identity:delete:")));
 
 const customer = createBetaOperatorHandler({ applicationStore: store, eventStore: new MemoryStore(), feedbackStore: new MemoryStore(),
-  getUserFn: async () => ({ id: "customer", roles: ["flipforge-active", "flipforge-tenant--beta-x"] }), identityAdmin, inviteIdentity, admissionClient, now });
+  getUserFn: async () => ({ id: "customer", roles: ["flipforge-active", "flipforge-tenant--beta-x"] }), identityAdmin, inviteIdentity, admissionClient, operatorWindow: UNLOCKED_WINDOW, now });
 backend.calls.length = 0;
 const customerResponse = await customer(new Request("https://goflipforge.com/api/beta/operator", {
   method: "POST", headers: { origin: "https://goflipforge.com", "content-type": "application/json" },

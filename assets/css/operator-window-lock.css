@@ -1,0 +1,23 @@
+/* Operator window lock: the "Confirm it's you" password prompt on the operator and owner pages.
+ * The backdrop is opaque so nothing behind it is readable while a window is locked. */
+.ff-window-locked, .ff-window-locked body{overflow:hidden}
+.ff-window-lock{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:16px;
+  background:#030303;color:#f6f6f4;font-family:inherit}
+.ff-window-lock-card{box-sizing:border-box;width:min(100%,440px);display:grid;gap:14px;padding:28px;
+  border:1px solid #292b30;border-radius:16px;background:#0a0b0d;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.ff-window-lock-kicker{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#d4af37}
+.ff-window-lock h2{margin:0;font-size:26px;line-height:1.15;color:#f6f6f4}
+.ff-window-lock p{margin:0;font-size:15px;line-height:1.5;color:#a5a8af}
+.ff-window-lock-account strong{color:#f6f6f4;word-break:break-all}
+.ff-window-lock label{display:grid;gap:6px;font-size:14px;font-weight:700;color:#f6f6f4}
+.ff-window-lock input[type="password"]{box-sizing:border-box;width:100%;min-height:46px;padding:10px 12px;border:1px solid #3a3d44;
+  border-radius:10px;background:#101216;color:#f6f6f4;font:inherit;font-size:16px}
+.ff-window-lock input[type="password"]:focus{outline:2px solid #d4af37;outline-offset:2px;border-color:#d4af37}
+.ff-window-lock-error{padding:10px 12px;border:1px solid rgba(240,140,150,.45);border-radius:10px;background:rgba(240,140,150,.08);color:#f08c96!important}
+.ff-window-lock-actions{display:flex;flex-wrap:wrap;gap:10px}
+.ff-window-lock-actions button{min-height:46px;padding:0 18px;border:1px solid #d4af37;border-radius:999px;background:#d4af37;color:#030303;
+  font:inherit;font-weight:800;cursor:pointer}
+.ff-window-lock-actions button.secondary{background:transparent;color:#f6f6f4;border-color:#3a3d44}
+.ff-window-lock-actions button:disabled{opacity:.6;cursor:progress}
+.ff-window-lock-actions button:focus-visible{outline:2px solid #f6f6f4;outline-offset:2px}
+@media(max-width:480px){.ff-window-lock-card{padding:22px}.ff-window-lock-actions button{flex:1 1 100%}}
