@@ -43,6 +43,24 @@
     document.body.appendChild(script);
   }
 
+  function loadGuidedEntry() {
+    if (!/^\/(?:app|saas-prototype)(?:\/|$)/i.test(String(window.location.pathname || ""))) return;
+    if (!document.querySelector('link[data-ff-guided-entry]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "discover-guided-entry-v1.css?v=20261020-8";
+      link.dataset.ffGuidedEntry = "";
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-ff-guided-entry]')) {
+      const script = document.createElement("script");
+      script.src = "discover-guided-entry-v1.js?v=20261020-8";
+      script.defer = true;
+      script.dataset.ffGuidedEntry = "";
+      document.body.appendChild(script);
+    }
+  }
+
   function keepSearchStationaryBelowHeading(heading, identity, search) {
     const searchFollowsHeading = Boolean(heading.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING);
     if (searchFollowsHeading) {
@@ -215,6 +233,7 @@
 
   loadIdentityAssistVerification();
   loadDiscoverControls();
+  loadGuidedEntry();
   const main = document.querySelector(MAIN);
   if (main) {
     observer = new MutationObserver(records => {

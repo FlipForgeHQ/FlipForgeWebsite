@@ -27,6 +27,11 @@
       && APP_PATH.test(String(window.location.pathname || ""));
   }
 
+  function privateBetaSurface() {
+    const path = String(window.location.pathname || "");
+    return APP_PATH.test(path) && !/^\/(?:app|owner)\/customer(?:\/|$)/i.test(path);
+  }
+
   function routeParts() {
     return String(window.location.hash || "#/dashboard")
       .replace(/^#\/?/, "")
@@ -604,8 +609,9 @@
     const session = syncSession();
     if (!session.authenticated || !session.membershipActive) return;
     if (!force && welcomeSeen()) return;
-    // Phones start minimized: the automatic first-visit welcome would cover the card box, so it waits until the
-    // customer taps "Guide me" (or asks for Getting Started). Desktop and tablet are unchanged.
+    // Private Beta now uses a visible, self-directed card workflow. Do not interrupt
+    // it with a welcome overlay until the tester explicitly requests Guided Mode.
+    if (!force && privateBetaSurface() && !state.userOpened) return;
     if (!force && phoneViewport() && state.minimized && !state.userOpened) return;
     if (document.getElementById(MODAL_ID)) return;
     const wrapper = document.createElement("div");
@@ -818,7 +824,7 @@
   function init() {
     if (!eligibleHost() || state.mounted) return;
     state.mounted = true;
-    if (phoneViewport() && !state.userOpened) state.minimized = true;
+    if ((phoneViewport() || privateBetaSurface()) && !state.userOpened) state.minimized = true;
     bindEvents();
     observeMain();
     syncSession();

@@ -199,7 +199,7 @@
 
     const labels = new Map([
       ["dashboard", "Home"],
-      ["discover", "Evaluate a Card"],
+      ["discover", "Discover"],
       ["opportunities", "Saved Decisions"],
       ["tracking", "Tracking"]
     ]);
@@ -252,8 +252,8 @@
       evaluate.removeAttribute("aria-hidden");
       if (evaluate.getAttribute("tabindex") === "-1") evaluate.removeAttribute("tabindex");
       evaluate.setAttribute("href", "#/discover");
-      evaluate.setAttribute("aria-label", "Evaluate a card");
-      const wanted = '<span aria-hidden="true">＋</span> Evaluate a card';
+      evaluate.setAttribute("aria-label", "Discover a card");
+      const wanted = '<span aria-hidden="true">＋</span> Discover a card';
       if (evaluate.innerHTML !== wanted) evaluate.innerHTML = wanted;
     }
 
@@ -347,12 +347,12 @@
     setText(heading.querySelector("h1"), "What card are you considering?");
     setText(
       heading.querySelector("p"),
-      "Enter one card. FlipForge will evaluate it, explain the decision, and help you track what happens next."
+      "Start with Discover. Confirm the exact card, choose the listing, then understand and track the decision."
     );
 
     const actions = heading.querySelector(".page-actions");
     if (actions) {
-      setHtml(actions, '<a class="button button-primary" href="#/discover">Evaluate a card</a>');
+      setHtml(actions, '<a class="button button-primary" href="#/discover">Discover a card</a>');
     }
 
     let loop = main.querySelector("[data-ff-beta-simple-loop]");
@@ -369,9 +369,10 @@
         <strong>One card. One decision. Clear reasons.</strong>
       </div>
       <div class="ff-beta-simple-steps" aria-label="FlipForge beta workflow">
-        <div><b>1</b><span><strong>Evaluate</strong><small>Enter one exact card you are considering.</small></span></div>
-        <div><b>2</b><span><strong>Understand</strong><small>FlipForge returns BUY, WATCH, VERIFY, or PASS and explains why.</small></span></div>
-        <div><b>3</b><span><strong>Track</strong><small>Save the decision and see what changes over time.</small></span></div>
+        <div><b>1</b><span><strong>Discover</strong><small>Identify the exact card and select the listing.</small></span></div>
+        <div><b>2</b><span><strong>Evaluate</strong><small>Review available evidence and risk.</small></span></div>
+        <div><b>3</b><span><strong>Understand</strong><small>Read the decision and reasons behind it.</small></span></div>
+        <div><b>4</b><span><strong>Track</strong><small>Return to saved decisions as evidence changes.</small></span></div>
       </div>
     `);
 

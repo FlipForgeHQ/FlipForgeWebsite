@@ -1,0 +1,43 @@
+/* Private Beta: one search is primary; serial-only refinement lives underneath it. */
+html.ff-guided-discover-active{scroll-behavior:auto!important}
+body .ff-serial-refinement{
+  margin:6px 0 14px;padding:11px 14px 12px;
+  background:rgba(208,170,71,.045);
+  border:1px solid rgba(212,175,55,.27);border-radius:12px;
+}
+.ff-serial-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.ff-serial-choice{display:flex!important;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px!important;font-weight:750!important;margin:0!important}
+.ff-serial-optional{font-size:12px;font-weight:500;color:var(--muted,#acb1ba)}
+.ff-serial-head select{
+  width:auto!important;min-width:190px;max-width:100%;min-height:38px!important;
+  padding:6px 10px!important;font:inherit;font-size:14px!important;
+  background:var(--surface,#121720);color:var(--text,#f3f4f6);
+  border:1px solid rgba(215,224,235,.33);border-radius:8px
+}
+.ff-serial-head select option{color:#f4f4f5;background:#15171c}
+.ff-serial-fields{display:grid;grid-template-columns:repeat(2,minmax(0,200px));gap:12px;margin-top:11px}
+.ff-serial-fields[hidden],.ff-serial-error[hidden]{display:none!important}
+.ff-serial-fields label{display:grid;gap:5px;margin:0;font-size:14px}
+.ff-serial-fields input{width:100%;min-width:0;min-height:40px;font-size:15px;padding:8px 10px}
+.ff-serial-hint{font-size:13px;line-height:1.4;color:var(--muted,#acb1ba);margin:6px 0 0;max-width:700px}
+.ff-serial-error{font-size:14px;color:#ffcccc;margin:8px 0 0;line-height:1.4}
+.ff-serial-head select:focus-visible,.ff-serial-fields input:focus-visible{
+  outline:2px solid var(--gold,#d4af37);outline-offset:3px
+}
+body[data-ff-surface="customer"] .primary-nav>a[data-route="discover"][data-ff-customer-core]{
+  border:1px solid rgba(212,175,55,.62);background:rgba(212,175,55,.09);font-weight:700
+}
+body[data-ff-surface="customer"] .ff-beta-simple-steps{grid-template-columns:repeat(4,minmax(0,1fr))}
+body[data-ff-surface="customer"] .ff-beta-simple-loop{padding:18px;margin-top:16px;gap:12px}
+body[data-ff-surface="customer"] .ff-beta-simple-steps>div{padding:10px}
+@media(max-width:1080px){
+  body[data-ff-surface="customer"] .ff-beta-simple-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  body .ff-serial-refinement{margin:4px 0 9px;padding:9px 11px}
+  .ff-serial-head select{width:100%!important}
+  .ff-serial-head{align-items:stretch;gap:7px}
+  .ff-serial-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body[data-ff-surface="customer"] .ff-beta-simple-steps{grid-template-columns:minmax(0,1fr)}
+  .ff-serial-hint{font-size:12px}
+}

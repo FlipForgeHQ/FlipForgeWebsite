@@ -125,7 +125,7 @@ async function midWordBreaks(page, word) {
 
 async function visibleEvaluateActions(page) {
   return page.evaluate(() => [...document.querySelectorAll(".topbar a, .topbar button, [data-ffv3-section='command-bar'] a, [data-ffv3-section='command-bar'] button")]
-    .filter(node => /evaluate a card/i.test(node.textContent || "") && node.getClientRects().length && getComputedStyle(node).visibility !== "hidden").length);
+    .filter(node => /(?:evaluate|discover) a card/i.test(node.textContent || "") && node.getClientRects().length && getComputedStyle(node).visibility !== "hidden").length);
 }
 
 const box = (page, selector) => page.locator(selector).first().boundingBox();

@@ -10,6 +10,7 @@ on:
       - "scripts/audit-mobile-navigation-ci.mjs"
       - "scripts/audit-mobile-guided-mode-ci.mjs"
       - "scripts/audit-discover-identity-assist-ci.mjs"
+      - "scripts/audit-discover-serial-entry-ci.mjs"
       - "scripts/audit-discover-results-first-ci.mjs"
       - "scripts/audit-customer-typography-ci.mjs"
       - "scripts/check-saas-layout-report.mjs"
@@ -26,6 +27,7 @@ on:
       - "scripts/audit-mobile-navigation-ci.mjs"
       - "scripts/audit-mobile-guided-mode-ci.mjs"
       - "scripts/audit-discover-identity-assist-ci.mjs"
+      - "scripts/audit-discover-serial-entry-ci.mjs"
       - "scripts/audit-discover-results-first-ci.mjs"
       - "scripts/audit-customer-typography-ci.mjs"
       - "scripts/check-saas-layout-report.mjs"
@@ -88,6 +90,9 @@ jobs:
 
       - name: Gate Discover imperfect-identity resolution
         run: node scripts/audit-discover-identity-assist-ci.mjs
+
+      - name: Gate serial-number card entry and identity confirmation
+        run: node scripts/audit-discover-serial-entry-ci.mjs
 
       - name: Gate results-first Evaluate flow
         run: node scripts/audit-discover-results-first-ci.mjs

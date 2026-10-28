@@ -197,6 +197,14 @@ async function heroVerdict(page, id, timeout = SLOW_MS + 6000) {
 }
 
 async function surfacesAfterLoad(page) {
+  // Private Beta Guided Mode now starts minimized after a full page load (it never auto-opens). The check below is that the
+  // guide, once the tester opens it, names the saved verdict, so open it when the load restarted the page.
+  const opened = await page.evaluate(() => {
+    if (document.querySelector("#ff-guided-mode-root .ff-guide-panel") || !window.FlipForgeGuidedMode?.open) return false;
+    window.FlipForgeGuidedMode.open();
+    return true;
+  });
+  if (opened) await page.waitForTimeout(900);
   return page.evaluate(() => {
     const guide = document.querySelector("#main-content [data-ff-p3-result-guide]");
     const pill = document.querySelector("#main-content [data-ff-decision-summary] .ff-decision-summary-pill");

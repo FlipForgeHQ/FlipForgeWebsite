@@ -157,7 +157,7 @@ async function drawerLauncherPlacement(page) {
 
 async function navigationIntact(page, mobile) {
   if (!mobile) {
-    return page.evaluate(() => ["Home", "Evaluate a Card", "Saved Decisions", "Tracking"].every(label =>
+    return page.evaluate(() => ["Home", "Discover", "Saved Decisions", "Tracking"].every(label =>
       [...document.querySelectorAll(".sidebar a")].some(link => link.textContent.trim().startsWith(label) && link.getClientRects().length)));
   }
   const menu = page.locator(".menu-button");
@@ -310,7 +310,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180
     await page.waitForTimeout(300);
     check(`${label}: tapping Guide me opens the full guide`, await page.locator(".ff-guide-panel").count() === 1);
   } else {
-    check(`${label}: Guided Mode opens by default on desktop and tablet (unchanged)`, guide.panel, JSON.stringify(guide));
+    check(`${label}: Guided Mode stays minimized unless requested on desktop and tablet`, !guide.panel && guide.launcher, JSON.stringify(guide));
   }
   await context.close();
 }

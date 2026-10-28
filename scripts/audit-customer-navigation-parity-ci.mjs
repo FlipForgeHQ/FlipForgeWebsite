@@ -224,7 +224,7 @@ try {
     for (const route of fullOnlyNav) {
       if (state.topLevelVisible.includes(route) || state.coreVisible.includes(route)) fail(`${viewport.name}: full-customer route leaked into private beta navigation: ${route}`, state);
     }
-    if (semanticLabel(state.labels.discover) !== "Evaluate a Card") {
+    if (!/^Discover(?: a Card)?$/i.test(semanticLabel(state.labels.discover))) {
       fail(`${viewport.name}: private beta Discover route no longer presents as the simplified Evaluate action`, state);
     }
 
