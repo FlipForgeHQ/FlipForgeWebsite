@@ -34,16 +34,17 @@
 
   function markup() {
     return `<details class="ff-beta-cdi-check" data-ff-beta-cdi-check>
-      <summary><span><strong>30-second beta check</strong><small>Was this decision clear and useful?</small></span><span aria-hidden="true">＋</span></summary>
+      <summary><span><strong>Quick decision check</strong><small>Was this explanation clear and relevant to your card?</small></span><span aria-hidden="true">＋</span></summary>
       <form data-ff-beta-cdi-form>
-        <div class="ff-beta-cdi-intro"><span>CARD DECISION INTELLIGENCE™</span><p>Help us measure comprehension—not whether you agree with the decision.</p></div>
+        <div class="ff-beta-cdi-intro"><span>CARD DECISION INTELLIGENCE™</span><p>Help us learn whether the report explains what this decision means for your card—not whether you agree with it.</p></div>
         <div class="ff-beta-cdi-grid">
-          ${select("decisionUnderstood", "Did you understand the decision?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
+          ${select("decisionUnderstood", "Did you understand what this decision means for your card?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
           ${select("nextStepClear", "Did you know what to do next?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
+          ${select("informationRelevant", "Was the information relevant to this card decision?", [["YES", "Yes"], ["PARTLY", "Partly"], ["NO", "No"]])}
           ${select("evidenceImpact", "What did the evidence do to your confidence?", [["INCREASED", "Increased it"], ["NO_CHANGE", "No change"], ["DECREASED", "Decreased it"], ["NOT_VIEWED", "I did not view the evidence"]])}
           ${select("mostUsefulLayer", "What helped most?", [["IDENTITY", "Exact card identity"], ["EVIDENCE", "Counted vs. excluded evidence"], ["ECONOMICS", "Price and supported value"], ["RISK_UNCERTAINTY", "Risk and uncertainty"], ["DECISION", "Why FlipForge made the call"], ["RECEIPT", "Decision Receipt / traceback"], ["OUTCOME", "Tracking what happens next"], ["NONE", "Nothing yet"]])}
         </div>
-        <label class="ff-beta-cdi-note"><span>Anything confusing? <small>Optional</small></span><textarea name="note" maxlength="600" placeholder="Tell us where you hesitated or what you expected to see."></textarea></label>
+        <label class="ff-beta-cdi-note"><span>What information was missing, irrelevant, or confusing? <small>Optional</small></span><textarea name="note" maxlength="600" placeholder="Tell us what you needed to understand this card decision better."></textarea></label>
         <div class="ff-beta-cdi-actions"><button class="button button-secondary" type="submit">Send beta check</button><p data-ff-beta-cdi-message role="status" aria-live="polite"></p></div>
         <p class="ff-beta-cdi-boundary">This feedback does not change the saved decision, evidence authority, supported value, grading guidance, or transaction authority. Do not enter card identities, listing URLs, passwords, tokens, or other sensitive data.</p>
       </form>
@@ -79,10 +80,11 @@
       const data = new FormData(form);
       const decisionUnderstood = String(data.get("decisionUnderstood") || "");
       const nextStepClear = String(data.get("nextStepClear") || "");
+      const informationRelevant = String(data.get("informationRelevant") || "");
       const evidenceImpact = String(data.get("evidenceImpact") || "");
       const mostUsefulLayer = String(data.get("mostUsefulLayer") || "");
-      if (!decisionUnderstood || !nextStepClear || !evidenceImpact || !mostUsefulLayer) {
-        message.textContent = "Answer all four quick questions before sending.";
+      if (!decisionUnderstood || !nextStepClear || !informationRelevant || !evidenceImpact || !mostUsefulLayer) {
+        message.textContent = "Answer all five quick questions before sending.";
         message.dataset.tone = "error";
         return;
       }
@@ -94,6 +96,7 @@
         summary: note || "Card Decision Intelligence comprehension check completed.",
         decisionUnderstood,
         nextStepClear,
+        informationRelevant,
         evidenceImpact,
         mostUsefulLayer,
       };
@@ -111,7 +114,7 @@
         });
         if (!response.ok) throw new Error("feedback rejected");
         form.reset();
-        message.textContent = "Thank you. This helps us measure whether the decision is understandable.";
+        message.textContent = "Thank you. This helps us understand whether the decision was clear, relevant, and actionable.";
         message.dataset.tone = "ok";
       } catch (_) {
         message.textContent = "The beta check could not be saved. Your decision was not affected.";
