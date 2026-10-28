@@ -119,7 +119,7 @@
 @media(prefers-reduced-motion:reduce){.ff10-design *, .ff10-design *:before,.ff10-design *:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
 /* Production beta sign-in: keep host verification, credentials and terms flows untouched. */
-body.ff10-auth{display:grid;min-height:100dvh;place-items:center;padding:32px 18px;background:radial-gradient(ellipse 55% 65% at 78% 14%,rgba(189,135,40,.17),transparent 68%),radial-gradient(ellipse 44% 55% at 5% 90%,rgba(65,78,83,.2),transparent 72%),#030608;color:#f6f5f1}
+body.ff10-auth{display:grid;min-height:100vh;min-height:100svh;place-items:center;padding:32px 18px;background:radial-gradient(ellipse 55% 65% at 78% 14%,rgba(189,135,40,.17),transparent 68%),radial-gradient(ellipse 44% 55% at 5% 90%,rgba(65,78,83,.2),transparent 72%),#030608;color:#f6f5f1}
 .ff10-auth main{position:relative;overflow:hidden;width:100%;max-width:640px;padding:clamp(27px,4.2vw,48px);border:1px solid rgba(229,190,104,.53);border-top:3px solid #e6c578;border-radius:16px;background:radial-gradient(ellipse at 96% 0,rgba(193,145,50,.14),transparent 65%),linear-gradient(160deg,#131d22,#070c10 83%);box-shadow:0 34px 106px rgba(0,0,0,.6)}
 .ff10-auth main::before{position:absolute;content:"";width:310px;height:310px;border-radius:50%;border:1px solid rgba(239,204,123,.15);right:-170px;top:-170px;box-shadow:0 0 0 48px rgba(231,189,96,.023);pointer-events:none}
 .ff10-auth .ff10-auth-home{position:relative;z-index:2;display:inline-flex;align-items:center;min-height:32px;padding:6px 10px;border-radius:7px;border:1px solid rgba(223,184,96,.35);color:#e7c984;font-size:12px;font-weight:800;text-decoration:none;margin-bottom:25px}
@@ -139,4 +139,9 @@ body.ff10-auth{display:grid;min-height:100dvh;place-items:center;padding:32px 18
 .ff10-auth .preview-sign-in{border-color:rgba(219,185,111,.6);background:rgba(211,160,60,.075)}
 .ff10-auth .preview-sign-in[hidden],.ff10-auth form[hidden],.ff10-auth .terms[hidden]{display:none!important}
 .ff10-auth .terms{border-color:rgba(214,175,96,.48);background:rgba(214,175,96,.04)}
+/* Mobile sign-in scroll stability: on phones the address bar collapses while scrolling. A dynamic-viewport minimum height
+   (dvh) and vertical centring re-laid the whole card out on every collapse, and the very wide, heavily blurred shadow
+   was repainted on every scroll frame. Use the fixed small-viewport height, start the card at the top, and use a light
+   shadow so scrolling up and down never moves or flickers the sign-in card. */
+@media(max-width:640px){body.ff10-auth{place-items:start center;padding:20px 14px}.ff10-auth main{box-shadow:0 12px 30px rgba(0,0,0,.45)}.ff10-auth main::before{display:none}.ff10-auth .status{min-height:3.4em}}
 @media(max-width:480px){body.ff10-auth{padding:13px}.ff10-auth main{padding:24px 20px}.ff10-auth .ff10-auth-home{font-size:11px;margin-bottom:18px}}
