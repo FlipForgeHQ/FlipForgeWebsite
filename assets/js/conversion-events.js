@@ -163,8 +163,8 @@
   };
 
   // Homepage experiences report counts only (which audience, which call, whether finished): no personal data.
-  const experienceEvents=new Set(["audience_selected","challenge_answered","challenge_completed","demo_interacted","app_screen_viewed","beta_cta_clicked"]);
-  const experiencePlacement=/^(audience-(flipper|investor|collector|dealer|grading)|challenge(-(buy|investigate|pass))?|demo|app-(discover|evaluate|receipt))$/;
+  const experienceEvents=new Set(["audience_selected","challenge_answered","challenge_completed","demo_interacted","app_screen_viewed","hero_jump_clicked","section_viewed","beta_cta_clicked"]);
+  const experiencePlacement=/^(audience-(flipper|investor|collector|dealer|grading)|challenge(-(buy|investigate|pass))?|demo|app-(discover|evaluate|receipt)|hero-(challenge|app)|inside-app)$/;
   document.addEventListener("ff:conversion",event=>{
     const detail=event.detail||{};
     if(!experienceEvents.has(detail.event)||!experiencePlacement.test(String(detail.placement||"")))return;
@@ -176,7 +176,7 @@
     if(link.closest(".footer"))return"footer";
     if(link.closest(".ff-dossier-spotlight"))return"sample-spotlight";
     if(link.closest(".ff-evidence"))return"evidence";
-    if(link.closest(".page-hero,.hero,.ffh,.decision-hero,.ff-dic-hero"))return"hero";
+    if(link.closest(".page-hero,.hero,.ffh,.ff10-hero,.decision-hero,.ff-dic-hero"))return"hero";
     return"page";
   };
 

@@ -17,6 +17,24 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
   await page.route('**/api/conversion-event', route => { events.push(JSON.parse(route.request().postData() || '{}')); route.fulfill({status: 202, body: '{}'}); });
   await page.goto(`${base}/index.html`, {waitUntil: 'networkidle'});
 
+  // Hero: the category, the benefit and the two shortcuts sit in the first screen and reach their sections.
+  const heroInfo = await page.evaluate(() => { const q = s => { const e = document.querySelector(s); const b = e && e.getBoundingClientRect(); return b ? Math.round(b.bottom) : 99999; };
+    return { category: document.querySelector('.ff10-hero-category')?.textContent.trim(), benefit: document.querySelector('.ff10-hero-benefit')?.textContent.replace(/\s+/g, ' ').trim(),
+      challengeBottom: q('[data-ff-hero-jump="challenge"]'), appBottom: q('[data-ff-hero-jump="app"]'), vh: innerHeight }; });
+  check(`${name}: hero leads with Card Decision Intelligence™ and the benefit line`, heroInfo.category === 'Card Decision Intelligence™'
+    && heroInfo.benefit === 'Find opportunities. Test the evidence. Avoid expensive mistakes.');
+  check(`${name}: both hero shortcuts are on the first screen`, heroInfo.challengeBottom <= heroInfo.vh && heroInfo.appBottom <= heroInfo.vh);
+  await page.locator('[data-ff-hero-jump="challenge"]').click();
+  await page.waitForTimeout(1200);
+  const chalTop = await page.locator('#demo').evaluate(e => Math.round(e.getBoundingClientRect().top));
+  check(`${name}: "Try the Decision Challenge" lands on the challenge below the header`, chalTop >= 0 && chalTop < 160);
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, 0); });
+  await page.locator('[data-ff-hero-jump="app"]').click();
+  await page.waitForTimeout(1200);
+  const appTop = await page.locator('#inside-the-app').evaluate(e => Math.round(e.getBoundingClientRect().top));
+  check(`${name}: "See Inside FlipForge" lands on the app screens below the header`, appTop >= 0 && appTop < 160);
+  await page.evaluate(() => scrollTo(0, 0));
+
   // Audience selector
   check(`${name}: one audience panel shown at a time`, await page.locator('[data-aud-panel]:visible').count() === 1);
   await page.locator('[data-aud-tab="grading"]').scrollIntoViewIfNeeded();
@@ -89,7 +107,8 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
   const sent = events.map(e => `${e.event}:${e.placement}`);
   check(`${name}: experience counts sent with allowlisted names only`,
     ['audience_selected:audience-grading', 'challenge_answered:challenge-investigate', 'challenge_completed:challenge-investigate', 'demo_interacted:demo',
-      'app_screen_viewed:app-evaluate', 'app_screen_viewed:app-receipt']
+      'app_screen_viewed:app-evaluate', 'app_screen_viewed:app-receipt', 'hero_jump_clicked:hero-challenge', 'hero_jump_clicked:hero-app',
+      'section_viewed:challenge', 'section_viewed:inside-app']
       .every(e => sent.includes(e)) && events.every(e => Object.keys(e).sort().join() === 'event,page,placement'));
   await context.close();
 }
@@ -120,4 +139,4 @@ if (failures.length) {
   console.error(`FAIL: ${failures.length} rendered homepage experience check(s):\n- ${failures.join('\n- ')}`);
   process.exit(1);
 }
-console.log(`PASS: ${passed} rendered homepage experience checks (audience selector, Decision Challenge, Inside the app, Beta pre-selection) at three viewports.`);
+console.log(`PASS: ${passed} rendered homepage experience checks (hero shortcuts, audience selector, Decision Challenge, Inside the app, Beta pre-selection) at three viewports.`);

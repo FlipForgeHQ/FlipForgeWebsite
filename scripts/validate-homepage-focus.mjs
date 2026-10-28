@@ -10,7 +10,8 @@ const at=t=>html.indexOf(t);
 check('one homepage headline',(html.match(/<h1\b/g)||[]).length===1);
 check('official logo and descriptor',has(html,'assets/brand/flipforge-logo-horizontal.svg')&&has(html,'CARD DECISION INTELLIGENCE'));
 // Founder decision 2026-10-20: "Price is not proof." is the headline; the locked slogan sits directly beneath it.
-check('positioning headline with the locked slogan directly beneath',/<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(html)&&has(html,'Before you buy. Know Why.'));
+// Founder decision 2026-10-27: the category leads, the benefit follows the headline, the locked slogan stays unchanged.
+check('category, positioning headline, benefit, then the locked slogan',/<p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™<\/sup><\/span><\/p>\s*<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-benefit"><span>Find opportunities\.<\/span> <span>Test the evidence\.<\/span> <span>Avoid expensive mistakes\.<\/span><\/p>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(html)&&has(html,'Before you buy. Know Why.'));
 check('price question vs FlipForge question',['id="price-vs-proof"','“It sold for $500.”','“What does the evidence support, and what should I pay?”','Genuine sale prices are important evidence.','Decision intelligence decides what to do with it.'].every(t=>has(html,t)));
 check('five things a price tool cannot easily copy',(m=>m&&(m[0].match(/<li>/g)||[]).length===5&&['decision-proof.html','#evidence','#identity','#demo'].every(t=>m[0].includes('href="'+t+'"')))(html.match(/<div class="ff10-moat">[\s\S]*?<\/ol>/)));
 check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html));
@@ -31,7 +32,7 @@ if(unapprovedNumbers.length)console.log('  unapproved homepage numbers:',unappro
 check('primary supporting statement',has(html,'A price tells you what someone asked or paid. FlipForge shows what it actually proves, and what you should pay.'));
 check('link previews carry the positioning',has(html,'<meta property="og:title" content="Price is not proof. | FlipForge™">')&&has(html,'name="twitter:card" content="summary_large_image"')&&has(html,'assets/images/flipforge-share-price-is-not-proof.jpg'));
 check('product shown in the hero',has(html,'class="ff10-panel"')&&has(html,'Max Buy')&&has(html,'Price gap')&&has(html,'data-ff10-sync="verdict"'));
-check('hero interaction route',has(html,'href="#demo">Try the price demo')&&has(html,'id="demo"')&&has(html,'data-ffdemo'));
+check('hero interaction routes: the Decision Challenge and Inside FlipForge, with beta access one tap away',has(html,'href="#demo" data-ff-hero-jump="challenge">Try the Decision Challenge')&&has(html,'href="#inside-the-app" data-ff-hero-jump="app">See Inside FlipForge')&&has(html,'id="demo"')&&has(html,'data-ffdemo')&&has(html,'id="inside-the-app"')&&/class="ff10-hero-note">[^<]*<a href="beta-application.html" data-ff-hero-apply>Request Beta Access<\/a>/.test(html));
 check('slider label and hint',has(html,'<label for="ff10-ask">Asking price</label>')&&has(html,'Drag the handle or use your arrow keys.'));
 check('max buy emphasis',has(html,'Max Buy $360')&&has(html,'<strong>$360</strong>'));
 check('price-gap visual',has(html,'data-price-gap')&&has(html,'data-max-marker'));

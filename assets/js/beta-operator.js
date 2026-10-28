@@ -43,7 +43,17 @@
     ["Applications",c.applicationsSubmitted,pct(c.applicationsSubmitted,c.betaFormStarted)],
     ["Guide viewed",c.onboardingGuideViewed,pct(c.onboardingGuideViewed,c.applicationsSubmitted)],
     ["Workspace intent",c.workspaceClicked,pct(c.workspaceClicked,c.onboardingGuideViewed)]
-  ];document.querySelector("[data-funnel-grid]").innerHTML=steps.map(([name,count,note])=>`<article class="ff-funnel-step"><span>${esc(name)}</span><strong>${esc(count||0)}</strong><small>${esc(note)}</small></article>`).join("")}
+  ];document.querySelector("[data-funnel-grid]").innerHTML=steps.map(([name,count,note])=>`<article class="ff-funnel-step"><span>${esc(name)}</span><strong>${esc(count||0)}</strong><small>${esc(note)}</small></article>`).join("");
+    const h=state.funnel?.homepage||{};const home=[
+    ["Challenge reached",h.challengeReached,"Decision Challenge on screen"],
+    ["Challenge tried",h.challengeTried,pct(h.challengeTried,h.challengeReached)],
+    ["Challenge finished",h.challengeFinished,pct(h.challengeFinished,h.challengeTried)],
+    ["Inside FlipForge reached",h.insideAppReached,"App screens on screen"],
+    ["App screens opened",h.appScreensOpened,"Tab views, not visitors"],
+    ["Hero shortcuts used",h.heroShortcutsUsed,"Challenge or app link at the top"],
+    ["Audience chosen",h.audienceSelected,"Audience selector choices"],
+    ["Beta access clicked",h.betaCtaClicked,"Every Request Beta Access link"]
+  ];const homeGrid=document.querySelector("[data-homepage-funnel-grid]");if(homeGrid)homeGrid.innerHTML=home.map(([name,count,note])=>`<article class="ff-funnel-step"><span>${esc(name)}</span><strong>${esc(count||0)}</strong><small>${esc(note)}</small></article>`).join("")}
   function filtered(){const query=state.search.toLowerCase();return state.applications.filter(item=>{const activeMatch=state.view==="ALL"||(state.view==="REMOVED"?item.status==="REMOVED":item.status!=="REMOVED");const statusMatch=state.filter==="ALL"||item.status===state.filter;const haystack=`${item.applicant?.fullName||""} ${item.applicant?.email||""} ${item.cohort||""} ${item.applicant?.testingFocus||""}`.toLowerCase();return activeMatch&&statusMatch&&(!query||haystack.includes(query))})}
   function syncDirectorySelection(){const items=filtered();if(!state.selectedId||!items.some(item=>item.id===state.selectedId))state.selectedId=items[0]?.id||""}
   // Plain-language access for each tester, shown as a clear badge in the directory (founder feedback 2026-10-21).
