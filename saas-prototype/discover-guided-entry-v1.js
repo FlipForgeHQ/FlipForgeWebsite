@@ -224,7 +224,18 @@
     document.addEventListener("submit",onSubmit,true);
     document.addEventListener("click",onClick,true);
   }
-  window.addEventListener("hashchange",schedule);
+  // A quick Discover -> other page -> Discover trip can finish before the route poll sees the other page, which would
+  // leave a stale hand-off and draft behind. Any change of page starts the next Discover visit fresh.
+  let lastRouteName = String(window.location.hash || "").replace(/^#\/?/,"").split(/[/?]/)[0];
+  window.addEventListener("hashchange",() => {
+    const name = String(window.location.hash || "").replace(/^#\/?/,"").split(/[/?]/)[0];
+    if (name !== lastRouteName) {
+      lastRouteName = name;
+      searchHandedOff = false;
+      draft.numbered = "unknown"; draft.denominator = ""; draft.serial = "";
+    }
+    schedule();
+  });
   window.addEventListener("pageshow",schedule);
   schedule();
 })();

@@ -45,6 +45,9 @@ for (const width of [390,1440]) {
     assert.equal((await page.evaluate(()=>window.__serialObserved)).endsWith("01/25"),true);
     // Return to a fresh search so an invalid serial cannot reach the provider.
     await page.goto(base+"/#/dashboard",{waitUntil:"domcontentloaded"});
+    // Let the Dashboard finish rendering; the app router can otherwise paint it over a Discover visit started mid-render.
+    await page.locator("#main-content").first().waitFor({state:"visible",timeout:9000});
+    await page.waitForTimeout(1500);
     await page.goto(base+"/#/discover",{waitUntil:"domcontentloaded"});
     const fresh = page.locator("#main-content [data-customer-discovery-form]");
     await fresh.waitFor({state:"visible",timeout:9000});
