@@ -353,6 +353,37 @@ export function transitionApplication(application, { targetStatus, cohort, note,
   };
 }
 
+// Save changes (founder request 2026-10-28): store the internal review note and the beta start date on their own,
+// without moving the application to another status. Removed records stay read-only.
+export function saveApplicationReview(application, { cohort, note, now = new Date() }) {
+  if (application.status === "REMOVED") throw new Error("APPLICATION_ALREADY_REMOVED");
+  const normalizedCohort = normalizeCohort(cohort || "");
+  const at = now.toISOString();
+  return {
+    ...application,
+    version: Number(application.version || 0) + 1,
+    cohort: normalizedCohort || application.cohort || null,
+    reviewNote: normalizeReviewNote(note),
+    updatedAt: at,
+    history: [
+      ...(Array.isArray(application.history) ? application.history : []),
+      { type: "REVIEW_SAVED", at, actor: "operator" },
+    ],
+  };
+}
+
+// Save note on tester feedback, without changing its review status.
+export function saveFeedbackNote(record, { note, now = new Date() }) {
+  const at = now.toISOString();
+  return {
+    ...record,
+    version: Number(record.version || 0) + 1,
+    reviewNote: normalizeReviewNote(note),
+    updatedAt: at,
+    history: [...(record.history || []), { type: "FEEDBACK_NOTE_SAVED", at, actor: "operator" }],
+  };
+}
+
 export function operatorRoles(user) {
   const metadata = user?.appMetadata || user?.app_metadata || {};
   return [...new Set([

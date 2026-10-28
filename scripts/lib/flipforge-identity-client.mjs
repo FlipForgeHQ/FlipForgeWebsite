@@ -308,6 +308,7 @@ window.FlipForgeIdentity = Object.freeze({
     return identitySnapshot();
   },
   signOut: async () => {
+    await window.FlipForgeOperatorWindow?.lock?.();
     await logout();
     setAuthenticatedUser(null);
     return identitySnapshot();
@@ -612,8 +613,15 @@ function renderPreview(element) {
     state.error = "";
     state.message = "";
     render();
+    // Operator and owner pages: the password just typed also unlocks this one window (operator-window-lock.js), so
+    // the operator signs in once. Operator data requests wait until that unlock has finished.
+    const windowLock = operatorMode ? window.FlipForgeOperatorWindow : null;
+    const releaseWindowHold = windowLock?.hold?.();
     try {
-      setAuthenticatedUser(await login(email, password), { renderIfChanged: false });
+      const signedIn = await login(email, password);
+      if (windowLock) await windowLock.unlock(password).catch(() => false);
+      releaseWindowHold?.();
+      setAuthenticatedUser(signedIn, { renderIfChanged: false });
       state.message = operatorMode
         ? "Signed in. Checking the signed operator role."
         : "Signed in. Refresh Staging Data to load the authenticated tenant view.";
@@ -621,6 +629,7 @@ function renderPreview(element) {
     } catch (error) {
       state.error = friendlyAuthError(error, "Sign in failed.", AUTH_FLOWS.SIGN_IN);
     } finally {
+      releaseWindowHold?.();
       state.busy = false;
       render();
     }
@@ -631,6 +640,7 @@ function renderPreview(element) {
     state.error = "";
     render();
     try {
+      await window.FlipForgeOperatorWindow?.lock?.();
       await logout();
       setAuthenticatedUser(null, { renderIfChanged: false });
       state.message = "";

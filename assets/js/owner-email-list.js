@@ -3,7 +3,42 @@
 (() => {
   "use strict";
 
+  // The CSV is downloaded with fetch so the request carries this window's operator unlock (operator-window-lock.js);
+  // a plain link cannot send it.
+  function initExport() {
+    const link = document.querySelector("[data-ff-owner-export]");
+    if (!link) return;
+    const label = link.textContent;
+    link.addEventListener("click", async event => {
+      event.preventDefault();
+      if (link.dataset.busy === "true") return;
+      link.dataset.busy = "true";
+      link.textContent = "Preparing download…";
+      try {
+        const response = await fetch(link.getAttribute("href"), { credentials: "same-origin", cache: "no-store", redirect: "error" });
+        if (!response.ok) throw new Error(String(response.status));
+        const disposition = response.headers.get("content-disposition") || "";
+        const name = (disposition.match(/filename="?([^";]+)"?/) || [])[1] || "flipforge-email-list.csv";
+        const url = URL.createObjectURL(await response.blob());
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = name;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        link.textContent = label;
+      } catch (_) {
+        link.textContent = "Download failed. Try again.";
+        setTimeout(() => { link.textContent = label; }, 4000);
+      } finally {
+        link.dataset.busy = "false";
+      }
+    });
+  }
+
   function init() {
+    initExport();
     const form = document.querySelector("[data-ff-owner-unsubscribe]");
     if (!form) return;
     const status = form.querySelector("[data-ff-owner-unsubscribe-status]");

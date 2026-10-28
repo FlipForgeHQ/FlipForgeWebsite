@@ -16,6 +16,8 @@ import {
   listRecords,
   normalizeCohort,
   operatorRoles,
+  saveApplicationReview,
+  saveFeedbackNote,
   statusSummary,
   tenantIdFor,
   transitionApplication,
@@ -24,6 +26,7 @@ import {
 import { productionOnly } from "./lib/production-deploy-guard.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 import { BetaAdmissionError, admissionOperatorId, createAdmissionClient } from "./lib/beta-admission-client.mjs";
+import { createOperatorWindowGate, handleOperatorWindowRequest } from "./lib/operator-window.mjs";
 
 const TERMS_PENDING_ROLE = "flipforge-terms-pending";
 
@@ -546,6 +549,7 @@ function publicError(error) {
     "INVALID_FEEDBACK_ID",
     "FEEDBACK_NOT_FOUND",
     "APPLICATION_NOT_APPROVED",
+    "APPLICATION_ALREADY_REMOVED",
     "COHORT_REQUIRED",
     "IDENTITY_ACCOUNT_CONFLICT",
     "IDENTITY_ALREADY_ACTIVATED",
@@ -576,12 +580,18 @@ export function createBetaOperatorHandler({
   identityAdmin = admin,
   inviteIdentity = rawIdentityInvite,
   admissionClient = createAdmissionClient(),
+  operatorWindow = createOperatorWindowGate(),
   now = () => new Date(),
 } = {}) {
   return async function betaOperator(request) {
     const user = await getUserFn();
     if (!user) return reply(401, { authorized: false, reason: "AUTHENTICATION_REQUIRED" });
     if (!isOperator(user)) return reply(403, { authorized: false, reason: "OPERATOR_ROLE_REQUIRED" });
+    // Each browser window or tab must be unlocked with the operator's password (see lib/operator-window.mjs).
+    const windowRequest = await handleOperatorWindowRequest(request, user, operatorWindow, reply);
+    if (windowRequest) return windowRequest;
+    const unlocked = await operatorWindow.check(request, user);
+    if (!unlocked.ok) return reply(401, { authorized: false, reason: unlocked.reason });
 
     const applications = applicationStore || betaRuntimeStore(APPLICATION_STORE_NAME, request);
     const events = eventStore || betaRuntimeStore(CONVERSION_STORE_NAME, request);
@@ -607,6 +617,23 @@ export function createBetaOperatorHandler({
     try {
       const action = String(input?.action || "");
       if (action === "sync") return reply(200, await dashboard(applications, events, feedbackRecords, identityAdmin, now(), true));
+      if (action === "feedback-save-note") {
+        const key = feedbackKey(input?.feedbackId);
+        const currentEntry = await feedbackRecords.getWithMetadata(key, { type: "json" });
+        const current = currentEntry?.data;
+        if (!current) throw new Error("FEEDBACK_NOT_FOUND");
+        if (Number(input?.expectedVersion) !== Number(current.version)) throw new Error("VERSION_CONFLICT");
+        const updatedFeedback = saveFeedbackNote(current, { note: input?.note, now: now() });
+        await conditionalFeedbackWrite(feedbackRecords, key, updatedFeedback, currentEntry.etag);
+        console.log(JSON.stringify({
+          type: "flipforge_beta_operator_operation",
+          operation: "FEEDBACK_NOTE_SAVED",
+          feedbackId: updatedFeedback.id,
+          status: updatedFeedback.status,
+          occurredAt: updatedFeedback.updatedAt,
+        }));
+        return reply(200, { authorized: true, feedback: updatedFeedback });
+      }
       if (action === "feedback-transition") {
         const key = feedbackKey(input?.feedbackId);
         const currentEntry = await feedbackRecords.getWithMetadata(key, { type: "json" });
@@ -653,7 +680,11 @@ export function createBetaOperatorHandler({
         }));
         return reply(200, { authorized: true, deleted: true, ...deleted });
       }
-      if (action === "transition") {
+      if (action === "save-review") {
+        if (current.invitationAttempt?.id) throw new Error("INVITATION_IN_PROGRESS");
+        updated = saveApplicationReview(current, { cohort: input?.cohort, note: input?.note, now: now() });
+        await conditionalApplicationWrite(applications, key, updated, currentEntry.etag);
+      } else if (action === "transition") {
         if (current.invitationAttempt?.id) throw new Error("INVITATION_IN_PROGRESS");
         updated = transitionApplication(current, {
           targetStatus: String(input?.targetStatus || ""),
@@ -730,7 +761,9 @@ export function createBetaOperatorHandler({
             ? "INVITATION_PROCESSED"
             : action === "remove"
               ? "ONBOARDING_REMOVED"
-              : "APPLICATION_TRANSITIONED",
+              : action === "save-review"
+                ? "REVIEW_SAVED"
+                : "APPLICATION_TRANSITIONED",
         applicationId: updated.id,
         status: updated.status,
         occurredAt: updated.updatedAt,

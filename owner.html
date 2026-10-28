@@ -10,6 +10,7 @@
 <link rel="icon" href="/assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/css/brand-v2.css">
 <link rel="stylesheet" href="/assets/css/owner-hub.css?v=20260929-1">
+<link rel="stylesheet" href="/assets/css/operator-window-lock.css?v=20261028-window-lock">
 </head>
 <body class="ff-owner-hub">
 <a class="ff-owner-skip" href="#owner-main">Skip to owner workspace</a>
@@ -105,7 +106,7 @@
           <li>Consent wording and version kept per address</li>
           <li>Unsubscribe requests: remove the address</li>
         </ul>
-        <a class="ff-owner-action" href="/api/updates/subscribers" download>Download Email List (CSV)</a>
+        <a class="ff-owner-action" href="/api/updates/subscribers" download data-ff-owner-export>Download Email List (CSV)</a>
         <form class="ff-owner-unsubscribe" data-ff-owner-unsubscribe>
           <label for="ff-owner-unsubscribe-email">Remove an address (unsubscribe request)</label>
           <div><input id="ff-owner-unsubscribe-email" type="email" name="email" required maxlength="254" autocomplete="off" placeholder="name@example.com"><button type="submit">Remove</button></div>
@@ -137,7 +138,8 @@
 </main>
 
 <script src="/assets/js/flipforge-identity.js"></script>
+<script src="/assets/js/operator-window-lock.js?v=20261028-window-lock"></script>
 <script src="/assets/js/owner-hub.js?v=20260929-1" defer></script>
-<script src="/assets/js/owner-email-list.js" defer></script>
+<script src="/assets/js/owner-email-list.js?v=20261028-window-lock" defer></script>
 </body>
 </html>

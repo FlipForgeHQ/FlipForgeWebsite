@@ -1,4 +1,5 @@
 import { getUser } from "@netlify/identity";
+import { createOperatorWindowGate } from "./lib/operator-window.mjs";
 import {
   APPLICATION_STORE_NAME,
   MAX_OPERATOR_BYTES,
@@ -51,11 +52,14 @@ function clean(value, maxLength) {
     .slice(0, maxLength);
 }
 
-export function createFounderSelectedHandler({ store, getUserFn = getUser, now = () => new Date() } = {}) {
+export function createFounderSelectedHandler({ store, getUserFn = getUser, operatorWindow = createOperatorWindowGate(), now = () => new Date() } = {}) {
   return async function founderSelected(request) {
     const user = await getUserFn();
     if (!user) return reply(401, { authorized: false, reason: "AUTHENTICATION_REQUIRED" });
     if (!isOperator(user)) return reply(403, { authorized: false, reason: "OPERATOR_ROLE_REQUIRED" });
+    // This browser window must have been unlocked with the operator's password (lib/operator-window.mjs).
+    const unlocked = await operatorWindow.check(request, user);
+    if (!unlocked.ok) return reply(401, { authorized: false, reason: unlocked.reason });
     if (request.method !== "POST") return reply(405, { authorized: true, reason: "METHOD_NOT_ALLOWED" });
     if (!sameOrigin(request)) return reply(403, { authorized: false, reason: "ORIGIN_NOT_ALLOWED" });
 

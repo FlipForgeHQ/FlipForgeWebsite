@@ -10,7 +10,8 @@
 <link rel="icon" href="assets/brand/flipforge-app-icon-dark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
 <link rel="stylesheet" href="assets/css/brand-v2.css">
-<link rel="stylesheet" href="assets/css/beta-operator-v1.css?v=20261022-card-evidence">
+<link rel="stylesheet" href="assets/css/beta-operator-v1.css?v=20261028-window-lock">
+<link rel="stylesheet" href="/assets/css/operator-window-lock.css?v=20261028-window-lock">
 </head>
 <body class="ff-operator-page">
 <a class="skip-link" href="#main">Skip to operations workspace</a>
@@ -31,24 +32,14 @@
       <button type="button" class="ff-operator-button secondary" data-operator-refresh>Refresh &amp; Sync</button>
     </section>
 
+    <nav class="ff-operator-jump" aria-label="Jump to a section">
+      <a href="#applications-heading">Tester directory</a>
+      <a href="#feedback-heading">Tester feedback</a>
+      <a href="#invite-heading">Invite a tester</a>
+      <a href="#numbers-heading">Numbers</a>
+    </nav>
+
     <div class="ff-operator-alert" data-operator-alert role="status" hidden></div>
-
-    <section class="ff-operator-metrics" aria-label="Applicant status summary">
-      <article><span>Total applications</span><strong data-metric="total">0</strong></article>
-      <article><span>Needs review</span><strong data-metric="review">0</strong></article>
-      <article><span>Approved</span><strong data-metric="approved">0</strong></article>
-      <article><span>Invitations sent</span><strong data-metric="invited">0</strong></article>
-      <article><span>Activated</span><strong data-metric="activated">0</strong></article>
-      <article><span>Waitlisted</span><strong data-metric="waitlisted">0</strong></article>
-      <article><span>Removed</span><strong data-metric="removed">0</strong></article>
-    </section>
-
-    <section class="ff-operator-panel" aria-labelledby="funnel-heading">
-      <header><div><span class="ff-operator-kicker">Last 30 days</span><h2 id="funnel-heading">Acquisition funnel</h2></div><p>Directional interactions—not unique visitors or accuracy claims.</p></header>
-      <div class="ff-funnel-grid" data-funnel-grid></div>
-      <h3 class="ff-funnel-subhead">Homepage engagement</h3>
-      <div class="ff-funnel-grid" data-homepage-funnel-grid></div>
-    </section>
 
     <section class="ff-operator-panel ff-application-panel" aria-labelledby="applications-heading">
       <header class="ff-directory-header">
@@ -71,21 +62,6 @@
       <aside class="ff-application-detail ff-directory-detail" data-application-detail><div class="ff-operator-empty"><strong>Select a tester</strong><p>Profile, access path, review controls, dates, and immutable state history will appear here.</p></div></aside>
     </section>
 
-    <section class="ff-operator-panel" aria-labelledby="cdi-learning-heading" data-cdi-learning-scorecard>
-      <header><div><span class="ff-operator-kicker">Wave 1 comprehension</span><h2 id="cdi-learning-heading">Decision Intelligence scorecard</h2></div><p>Structured tester understanding signals from the real decision screen.</p></header>
-      <div class="ff-feedback-metrics" aria-label="Decision Intelligence learning summary">
-        <article><span>Responses</span><strong data-cdi-learning-metric="responses">0</strong></article>
-        <article><span>Decision clear</span><strong data-cdi-learning-metric="decision-clear">0</strong></article>
-        <article><span>Decision partly clear</span><strong data-cdi-learning-metric="decision-partly">0</strong></article>
-        <article><span>Next step clear</span><strong data-cdi-learning-metric="next-clear">0</strong></article>
-        <article><span>Evidence increased confidence</span><strong data-cdi-learning-metric="evidence-up">0</strong></article>
-        <article><span>Evidence decreased confidence</span><strong data-cdi-learning-metric="evidence-down">0</strong></article>
-        <article><span>Most useful CDI layer</span><strong data-cdi-learning-metric="top-layer">No signal yet</strong></article>
-      </div>
-      <p class="ff-feedback-boundary" data-cdi-learning-status role="status" aria-live="polite">No structured comprehension checks have been submitted yet.</p>
-      <p class="ff-feedback-boundary">These are tester-reported comprehension signals. They are not accuracy, investment performance, a recommendation recalculation, or evidence authority.</p>
-    </section>
-
     <section class="ff-operator-panel ff-feedback-panel" aria-labelledby="feedback-heading">
       <header><div><span class="ff-operator-kicker">Tester learning loop</span><h2 id="feedback-heading">Feedback and outcome checkpoints</h2></div><p>Tester-reported signals—not product accuracy, market performance, or a recommendation recalculation.</p></header>
       <div class="ff-feedback-metrics" aria-label="Feedback summary">
@@ -103,13 +79,51 @@
       </div>
     </section>
 
+    <div data-founder-select-anchor></div>
+
+    <section class="ff-operator-numbers" aria-labelledby="numbers-heading">
+      <h2 class="ff-operator-section-title" id="numbers-heading">Numbers</h2>
+    <section class="ff-operator-metrics" aria-label="Applicant status summary">
+        <article><span>Total applications</span><strong data-metric="total">0</strong></article>
+        <article><span>Needs review</span><strong data-metric="review">0</strong></article>
+        <article><span>Approved</span><strong data-metric="approved">0</strong></article>
+        <article><span>Invitations sent</span><strong data-metric="invited">0</strong></article>
+        <article><span>Activated</span><strong data-metric="activated">0</strong></article>
+        <article><span>Waitlisted</span><strong data-metric="waitlisted">0</strong></article>
+        <article><span>Removed</span><strong data-metric="removed">0</strong></article>
+      </section>
+
+      <section class="ff-operator-panel" aria-labelledby="funnel-heading">
+        <header><div><span class="ff-operator-kicker">Last 30 days</span><h2 id="funnel-heading">Acquisition funnel</h2></div><p>Directional interactions—not unique visitors or accuracy claims.</p></header>
+        <div class="ff-funnel-grid" data-funnel-grid></div>
+        <h3 class="ff-funnel-subhead">Homepage engagement</h3>
+        <div class="ff-funnel-grid" data-homepage-funnel-grid></div>
+      </section>
+
+      <section class="ff-operator-panel" aria-labelledby="cdi-learning-heading" data-cdi-learning-scorecard>
+        <header><div><span class="ff-operator-kicker">Wave 1 comprehension</span><h2 id="cdi-learning-heading">Decision Intelligence scorecard</h2></div><p>Structured tester understanding signals from the real decision screen.</p></header>
+        <div class="ff-feedback-metrics" aria-label="Decision Intelligence learning summary">
+          <article><span>Responses</span><strong data-cdi-learning-metric="responses">0</strong></article>
+          <article><span>Decision clear</span><strong data-cdi-learning-metric="decision-clear">0</strong></article>
+          <article><span>Decision partly clear</span><strong data-cdi-learning-metric="decision-partly">0</strong></article>
+          <article><span>Next step clear</span><strong data-cdi-learning-metric="next-clear">0</strong></article>
+          <article><span>Evidence increased confidence</span><strong data-cdi-learning-metric="evidence-up">0</strong></article>
+          <article><span>Evidence decreased confidence</span><strong data-cdi-learning-metric="evidence-down">0</strong></article>
+          <article><span>Most useful CDI layer</span><strong data-cdi-learning-metric="top-layer">No signal yet</strong></article>
+        </div>
+        <p class="ff-feedback-boundary" data-cdi-learning-status role="status" aria-live="polite">No structured comprehension checks have been submitted yet.</p>
+        <p class="ff-feedback-boundary">These are tester-reported comprehension signals. They are not accuracy, investment performance, a recommendation recalculation, or evidence authority.</p>
+      </section>
+    </section>
+
     <section class="ff-operator-boundary"><strong>Authority boundary</strong><p>Direct invitations skip selection review, not security controls. The tester still must accept the Private Beta Terms before active beta access is granted. No billing or transaction authority is granted.</p></section>
   </div>
 </main>
 
 <script src="/assets/js/flipforge-identity.js"></script>
-<script src="assets/js/beta-operator.js?v=20261022-card-evidence" defer></script>
-<script src="assets/js/beta-founder-select.js?v=20261006-beta-seat-1" defer></script>
+<script src="/assets/js/operator-window-lock.js?v=20261028-window-lock"></script>
+<script src="assets/js/beta-operator.js?v=20261028-window-lock" defer></script>
+<script src="assets/js/beta-founder-select.js?v=20261028-window-lock" defer></script>
 <script src="assets/js/beta-cdi-scorecard-operator-v1.js?v=20260911-1" defer></script>
 </body>
 </html>
