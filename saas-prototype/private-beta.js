@@ -301,6 +301,69 @@
         </div>
       </header>
 
+      <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
+        <div class="private-beta-v2-mission-copy">
+          <span class="private-beta-v2-number">01</span>
+          <div>
+            <span class="eyebrow">START HERE</span>
+            <h2 id="private-beta-mission-title">Evaluate one card from start to finish.</h2>
+            <p>Do not try to learn every FlipForge feature today. Use one card you genuinely understand, follow the evidence, read the decision, and open the Decision Receipt.</p>
+            <div class="private-beta-v2-mission-actions">
+              <a class="button button-primary" href="#/discover" data-private-beta-start>Find my first card</a>
+              <a class="button button-secondary" href="#/decision-intelligence">How Card Decision Intelligence works</a>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="panel private-beta-v2-walkthrough">
+        <header class="panel-header">
+          <div>
+            <span class="eyebrow">YOUR FIRST DECISION</span>
+            <h2>Tester walkthrough</h2>
+            <p>Four stages. One card. Follow them in order.</p>
+          </div>
+        </header>
+        <div class="panel-body private-beta-v2-journey">
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">1</span>
+            <div><span>FIND</span><strong>Search one exact card</strong><p>Use Discover and choose the exact identity. Discovery score ranks returned active listings only; it is not BUY/WATCH/VERIFY/PASS and searches are not saved.</p></div>
+            <a class="button button-secondary" href="#/discover">Open Discover</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">2</span>
+            <div><span>EVALUATE</span><strong>Submit one listing to Smart Opportunity</strong><p>Choose a Discover result or enter the listing manually. The authoritative backend—not the browser—creates and saves the recommendation.</p></div>
+            <a class="button button-secondary" href="#/evaluate">Manual option</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">3</span>
+            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read Decision → Value → Risk → Why → Evidence. Then Challenge the Decision Traceback and open the Decision Receipt to see what the result preserves.</p></div>
+            <a class="button button-secondary" href="#/opportunities">Saved Decisions</a>
+          </article>
+          <article class="private-beta-v2-stage">
+            <span class="private-beta-v2-stage-number">4</span>
+            <div><span>REPORT</span><strong>Send focused feedback</strong><p>Tell us what was immediately clear, what made you hesitate, and what information you expected but could not find.</p></div>
+            <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button>
+          </article>
+        </div>
+      </section>
+
+      <aside class="private-beta-v2-boundary">
+        <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
+        <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
+      </aside>
+
+      <section class="private-beta-v3-reference" aria-labelledby="private-beta-v3-reference-title">
+        <div class="private-beta-v3-reference-intro">
+          <span class="eyebrow">EXPLORE WHEN YOU'RE READY</span>
+          <h2 id="private-beta-v3-reference-title">More about your workspace.</h2>
+          <p>All the details are here when you need them. You can start with one card without reading them first.</p>
+        </div>
+        <div class="private-beta-v3-reference-links">
+          <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-account-details>
+            <summary><span><strong>Your access and guide settings</strong><small>Access: ${escapeHtml(accessValue)} · Evaluation system: ${escapeHtml(bridgeValue)}</small></span><b aria-hidden="true">＋</b></summary>
+            <div class="private-beta-v3-expander-body">
       <section class="private-beta-v2-status" aria-label="Private beta readiness">
         ${statusCard("Your access", accessValue, accessDetail, accessTone)}
         ${statusCard("Evaluation system", bridgeValue, bridgeDetail, bridgeTone, "data-private-beta-bridge")}
@@ -308,6 +371,18 @@
         ${statusCard("Customer access", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
       </section>
 
+
+        <div class="private-beta-v2-guide-state">
+          <span>First-run guide</span>
+          <strong>${introComplete ? "Completed" : "Ready"}</strong>
+          <small>This only controls whether this introduction opens automatically. It does not change your account or saved decisions.</small>
+          <button class="button button-secondary" type="button" data-private-beta-${introComplete ? "reset" : "complete"}>${introComplete ? "Show this guide next time" : "Don't show this guide automatically again"}</button>
+        </div>
+            </div>
+          </details>
+          <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-record-details>
+            <summary><span><strong>How your decision is saved</strong><small>Identity, evidence, Decision Receipt and outcome history—all connected.</small></span><b aria-hidden="true">＋</b></summary>
+            <div class="private-beta-v3-expander-body">
       <section class="private-beta-record-system" aria-labelledby="private-beta-record-title" data-private-beta-record-system>
         <header class="private-beta-record-head">
           <div>
@@ -357,59 +432,9 @@
         </footer>
       </section>
 
-      <section class="private-beta-v2-mission" aria-labelledby="private-beta-mission-title">
-        <div class="private-beta-v2-mission-copy">
-          <span class="private-beta-v2-number">01</span>
-          <div>
-            <span class="eyebrow">START HERE</span>
-            <h2 id="private-beta-mission-title">Evaluate one card from start to finish.</h2>
-            <p>Do not try to learn every FlipForge feature today. Use one card you genuinely understand, follow the evidence, read the decision, and open the Decision Receipt.</p>
-            <div class="private-beta-v2-mission-actions">
-              <a class="button button-primary" href="#/discover" data-private-beta-start>Find my first card</a>
-              <a class="button button-secondary" href="#/decision-intelligence">How Card Decision Intelligence works</a>
+
             </div>
-          </div>
-        </div>
-        <div class="private-beta-v2-guide-state">
-          <span>First-run guide</span>
-          <strong>${introComplete ? "Completed" : "Ready"}</strong>
-          <small>This only controls whether this introduction opens automatically. It does not change your account or saved decisions.</small>
-          <button class="button button-secondary" type="button" data-private-beta-${introComplete ? "reset" : "complete"}>${introComplete ? "Show this guide next time" : "Don't show this guide automatically again"}</button>
-        </div>
-      </section>
-
-      <section class="panel private-beta-v2-walkthrough">
-        <header class="panel-header">
-          <div>
-            <span class="eyebrow">YOUR FIRST DECISION</span>
-            <h2>Tester walkthrough</h2>
-            <p>Four stages. One card. Follow them in order.</p>
-          </div>
-        </header>
-        <div class="panel-body private-beta-v2-journey">
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">1</span>
-            <div><span>FIND</span><strong>Search one exact card</strong><p>Use Discover and choose the exact identity. Discovery score ranks returned active listings only; it is not BUY/WATCH/VERIFY/PASS and searches are not saved.</p></div>
-            <a class="button button-secondary" href="#/discover">Open Discover</a>
-          </article>
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">2</span>
-            <div><span>EVALUATE</span><strong>Submit one listing to Smart Opportunity</strong><p>Choose a Discover result or enter the listing manually. The authoritative backend—not the browser—creates and saves the recommendation.</p></div>
-            <a class="button button-secondary" href="#/evaluate">Manual option</a>
-          </article>
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">3</span>
-            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read Decision → Value → Risk → Why → Evidence. Then Challenge the Decision Traceback and open the Decision Receipt to see what the result preserves.</p></div>
-            <a class="button button-secondary" href="#/opportunities">Saved Decisions</a>
-          </article>
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">4</span>
-            <div><span>REPORT</span><strong>Send focused feedback</strong><p>Tell us what was immediately clear, what made you hesitate, and what information you expected but could not find.</p></div>
-            <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button>
-          </article>
-        </div>
-      </section>
-
+          </details>
       <section class="private-beta-v2-secondary" aria-label="Secondary beta information">
         <details class="private-beta-v2-details">
           <summary><span><strong>What is available now</strong><small>Open this when you want to explore beyond your first decision.</small></span><b aria-hidden="true">＋</b></summary>
@@ -435,24 +460,23 @@
         </details>
       </section>
 
-      <aside class="private-beta-v2-boundary">
-        <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
-        <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
-      </aside>
 
-      <section class="panel private-beta-v2-feedback" id="beta-feedback">
-        <header class="panel-header">
-          <div><span class="eyebrow">AFTER YOU TRY ONE CARD</span><h2>Beta feedback</h2><p>Tell us where the experience was clear, confusing, incomplete, or unexpectedly useful.</p></div>
-        </header>
-        <div class="panel-body">${feedbackForm(session)}</div>
+        </div>
       </section>
+
+      <details class="private-beta-v2-details private-beta-v2-feedback private-beta-v3-feedback" id="beta-feedback"${pendingFeedbackDraft ? " open" : ""}>
+        <summary><span><span class="eyebrow">AFTER YOU TRY ONE CARD</span><strong>Beta feedback</strong><small>Tell us where the experience was clear, confusing, incomplete, or unexpectedly useful.</small></span><b aria-hidden="true">＋</b></summary>
+        <div class="private-beta-v3-feedback-body">${feedbackForm(session)}</div>
+      </details>
+
     </div>`;
   }
 
   function scrollToFeedback() {
     const section = document.querySelector("#beta-feedback");
     if (!section) return;
-    section.scrollIntoView({ behavior: "instant", block: "start" });
+    section.open = true;
+    document.querySelector("#beta-feedback")?.scrollIntoView({ behavior: "instant", block: "start" });
     document.querySelector("[data-private-beta-feedback] [name='summary']")?.focus({ preventScroll: true });
   }
 
@@ -515,7 +539,7 @@
     document.querySelector("[data-private-beta-start]")?.addEventListener("click", completePreference);
 
     document.querySelector("[data-private-beta-feedback-link]")?.addEventListener("click", () => {
-      document.querySelector("#beta-feedback")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollToFeedback();
     });
 
     document.querySelectorAll("[data-card-reference] [data-card-field]").forEach(input => {
