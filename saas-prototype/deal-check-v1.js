@@ -481,6 +481,7 @@
   }
 
   function historyMarkup(model) {
+    if (!model.timeline.length && model.snapshotCount !== null && model.snapshotCount > 1) return `<p class="ffdc-muted">This card has ${model.snapshotCount} saved receipts, but their history could not be loaded right now. Each receipt stays frozen as evaluated.</p>`;
     if (!model.timeline.length) return `<p class="ffdc-muted">No earlier saved evaluations of this card. Re-evaluating later adds a new receipt beside this one; this receipt never changes.</p>`;
     return `<ol class="ffdc-history">${model.timeline.slice().reverse().slice(0, 8).map(entry => `<li>
         <span class="ffdc-chip" data-verdict="${escapeHtml((entry.decision || "none").toLowerCase())}">${escapeHtml(entry.decision || "—")}</span>

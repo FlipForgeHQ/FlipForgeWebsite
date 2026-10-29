@@ -116,6 +116,13 @@ for (const id of [IDS.buy, IDS.watch, IDS.pass]) {
   check("history markup never shows Max Buy $0.00", !/Max Buy \$0\.00/.test(api.dealCheckMarkup(m)));
 }
 
+// 4c2. History that failed to load is not described as "no earlier evaluations".
+{
+  const m = model(IDS.watch);
+  const html = api.dealCheckMarkup(m);
+  check("history unavailable with several receipts: says it could not be loaded", m.snapshotCount > 1 && /could not be loaded/.test(html) && !/No earlier saved evaluations/.test(html));
+}
+
 // 4d. Capped wording follows the gate status.
 {
   const base = model(IDS.pass);
