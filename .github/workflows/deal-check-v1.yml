@@ -1,4 +1,4 @@
-name: Deal Check Phase 1 Assurance
+name: Deal Check and Decision Monitor Assurance
 
 # Narrow paths on purpose (GitHub Actions minutes): only the Deal Check files, the two app shells that load them and
 # the saved-decision renderer they sit under.
@@ -10,6 +10,13 @@ on:
       - "saas-prototype/index.html"
       - "saas-prototype/customer.html"
       - "saas-prototype/customer-opportunities.js"
+      - "saas-prototype/decision-monitor-v1.js"
+      - "saas-prototype/decision-monitor-v1.css"
+      - "saas-prototype/customer-portfolio.js"
+      - "saas-prototype/customer-lifecycle.js"
+      - "scripts/validate-decision-monitor-v1.mjs"
+      - "scripts/audit-decision-monitor-ci.mjs"
+      - "scripts/fixtures/decision-monitor/**"
       - "scripts/validate-deal-check-v1.mjs"
       - "scripts/audit-deal-check-ci.mjs"
       - "scripts/fixtures/deal-check/**"
@@ -25,7 +32,7 @@ concurrency:
 
 jobs:
   deal-check:
-    name: Deal Check, Scenario Lab and Receipt Pro (unit contract + Playwright desktop/phone audit)
+    name: Deal Check, Scenario Lab, Receipt Pro, Decision Monitor and Collection Intelligence (unit + Playwright)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
@@ -46,6 +53,9 @@ jobs:
 
       - name: Deal Check unit and static contract
         run: node scripts/validate-deal-check-v1.mjs
+
+      - name: Decision Change Monitor and Collection Intelligence unit contract
+        run: node scripts/validate-decision-monitor-v1.mjs
 
       - name: Source-truth terminology
         run: npm run validate:source-truth-terminology
@@ -70,6 +80,12 @@ jobs:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
           FLIPFORGE_DEAL_CHECK_SCREENSHOT_DIR: artifacts/deal-check
         run: node scripts/audit-deal-check-ci.mjs
+
+      - name: Decision Change Monitor + Collection Intelligence Playwright audit (desktop + phone)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          FLIPFORGE_MONITOR_SCREENSHOT_DIR: artifacts/deal-check/monitor
+        run: node scripts/audit-decision-monitor-ci.mjs
 
       - name: Upload owner-review screenshots
         if: always()

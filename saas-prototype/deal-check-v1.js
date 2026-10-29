@@ -212,6 +212,7 @@
       excludedReasons,
       saleDetailsWithheld: evidence.saleDetailsWithheld === true,
       freshness: text(evidence.freshnessStatus).toUpperCase(),
+      latestSaleDate: text(evidence.latestSaleDate),
       mappingState: text(opportunity.mappingState).toUpperCase(),
       confidence: governedAvailable && int(governed.confidence) !== null ? int(governed.confidence) : int(opportunity.confidence),
       risk: governedAvailable && int(governed.risk) !== null ? int(governed.risk) : int(opportunity.risk),
