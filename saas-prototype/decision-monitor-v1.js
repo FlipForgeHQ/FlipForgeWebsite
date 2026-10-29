@@ -390,7 +390,7 @@
           <span>${r.linked ? `${chip(r.verdict)} Max Buy ${escapeHtml(money(r.maxBuyCents, "not set"))}` : "No saved decision linked"} · Paid ${escapeHtml(money(r.costCents, "not entered"))}${r.paidVsMaxBuyCents !== null ? ` <em data-over="${r.paidVsMaxBuyCents > 0}">${escapeHtml(r.paidVsMaxBuyCents > 0 ? `${money(r.paidVsMaxBuyCents)} over Max Buy` : `${money(-r.paidVsMaxBuyCents)} under Max Buy`)}</em>` : ""}${r.exit ? ` · Exit difficulty: ${escapeHtml(r.exit.label)}` : ""}</span>
           ${r.review.length ? `<ul>${r.review.slice(0, 3).map(s => `<li>${escapeHtml(s.title)}</li>`).join("")}</ul>` : `<small>${escapeHtml(r.nextStep)}</small>`}
         </div>
-        <div class="ffci-links">${SAFE_ID.test(r.id) ? `<a href="#/opportunities/${encodeURIComponent(r.id)}">Decision receipt</a><a href="#/tracking/${encodeURIComponent(r.id)}">Monitor</a>` : ""}</div>
+        <div class="ffci-links">${SAFE_ID.test(r.id) ? `${r.linked ? `<a href="#/opportunities/${encodeURIComponent(r.id)}">Decision receipt</a>` : ""}<a href="#/tracking/${encodeURIComponent(r.id)}">Monitor</a>` : ""}</div>
       </li>`;
     return `<section class="ffci" ${COLLECTION_ATTR} data-ffci-version="${VERSION}" aria-labelledby="ffci-title">
       <header class="ffdm-head"><div><span class="ffdm-kicker">Collection Intelligence™</span><h2 id="ffci-title">${attention.length ? `${plural(attention.length, "card")} to review next` : "Nothing to review from saved data"}</h2>

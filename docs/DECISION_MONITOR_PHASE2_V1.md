@@ -54,7 +54,7 @@ is saved, so without a re-evaluation the monitor says "Asking price not re-check
 
 ## Backend follow-ups (FlipForge2)
 
-1. Server-side "decision needs review" alerts for an ask crossing Max Buy, stale decisions and evidence-count drift. Today `/alerts` fires only when the decision itself changed.
+1. Server-side review alerts: draft FlipForge2 #935 now covers a Max Buy crossing at re-evaluation, 30-day re-checks, pending VERIFY and legacy decisions (integrated below). Evidence-count drift is still website-only.
 2. Portfolio items could carry the governed decision summary, so the page doesn't need the `/opportunities` list.
 3. Re-checking a saved listing's price, once an authorized listing source and budget are approved.
 

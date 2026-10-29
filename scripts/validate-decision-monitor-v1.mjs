@@ -119,7 +119,8 @@ check("no saved decision: unavailable, no signals", M.monitor(null, null, null, 
   check("aged cost basis uses decision age ≥ 30 days (unlinked card has no decision age)", view.agedCount === 3 && view.rows.find(r => r.id === UNLINKED_ID).ageDays === null, String(view.agedCount));
   const html = M.collectionMarkup(view);
   check("collection markup shows no market value claim", !/market value of|worth \$|current value \$/i.test(html) && /No current market value is shown/.test(html));
-  check("collection links each card to its Decision receipt and Monitor", (html.match(/href="#\/opportunities\//g) || []).length >= view.rows.length);
+  check("collection links each linked card to its Decision receipt", (html.match(/href="#\/opportunities\//g) || []).length >= view.rows.filter(r => r.linked).length);
+  check("unlinked card has no Decision receipt link", !html.includes(`href="#/opportunities/${UNLINKED_ID}"`));
   check("collection markup never shows Max Buy $0.00", !/Max Buy \$0\.00/.test(html));
 }
 
