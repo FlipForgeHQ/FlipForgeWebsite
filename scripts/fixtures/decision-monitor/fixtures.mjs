@@ -104,3 +104,51 @@ export function portfolio() {
     liquidationEstimate: false, appraisal: false, transactionAuthority: false,
     items: owned.map(r => ({ ...r, referenceValue: { ...paused }, referencePerformance: { ...perf } })), writeContract: "/api/v1/lifecycle/{opportunityId}" };
 }
+
+// Test-only transcription of FlipForge2 SaaSDecisionReviewSignalService.signalsFor (v1.0.0) so the fixture's
+// /alerts payload has the exact backend shape. The browser never computes these.
+const ACTIVE = new Set(["WATCHING", "REVIEW", "OWNED"]);
+function backendSignals(record, entries, nowMs) {
+  const out = [];
+  if (!record || !ACTIVE.has(record.trackingStatus) || !entries.length) return out;
+  const latest = entries[entries.length - 1];
+  const base = kind => ({ signalId: `sig-${kind}-${record.opportunityId}`.padEnd(64, "0").slice(0, 64), opportunityId: record.opportunityId, kind, severity: "REVIEW",
+    requestId: latest.requestId, evaluatedAt: latest.evaluatedAt, decision: latest.decision, trackingStatus: record.trackingStatus, inAppOnly: true,
+    immutableSource: true, historicalRescoring: false, automaticReevaluationPerformed: false, recommendationAuthorityChanged: false,
+    providerCallPerformed: false, transactionAuthority: false });
+  const legacy = latest.evidenceProvenanceStatus === "LEGACY_PROVIDER_DERIVED";
+  const maxBuy = latest.profitabilityAvailable && !legacy ? latest.maximumBuyPriceCents : null;
+  const ask = entries.length > 1 ? (latest.changes || []).find(c => c.code === "ASK_CHANGED") : null;
+  if (ask && maxBuy > 0) {
+    const into = ask.before > maxBuy && ask.after <= maxBuy;
+    const out2 = ask.before <= maxBuy && ask.after > maxBuy;
+    if (into || out2) out.push({ ...base("MAX_BUY_CROSSED"), direction: into ? "INTO_BUYING_LIMIT" : "ABOVE_BUYING_LIMIT", previousAllInAskCents: ask.before,
+      allInAskCents: ask.after, maximumBuyPriceCents: maxBuy, explanation: into ? "A re-evaluation recorded an all-in ask at or below the saved Max Buy." : "A re-evaluation recorded an all-in ask above the saved Max Buy." });
+  }
+  const age = Math.floor((nowMs - Date.parse(latest.evaluatedAt)) / 86_400_000);
+  if (age >= 30) out.push({ ...base("DECISION_RECHECK_DUE"), ageDays: age, recheckAfterDays: 30, explanation: `The latest saved decision is ${age} days old. Re-check the price and evidence before relying on it.` });
+  if (legacy) out.push({ ...base("LEGACY_DECISION"), explanation: "This decision was saved before current evidence rules. Re-evaluate under current rules before relying on it." });
+  else if (latest.decision === "VERIFY") out.push({ ...base("VERIFICATION_PENDING"), explanation: "The latest saved decision is VERIFY. Verification is still required before it can commit." });
+  return out;
+}
+
+/** /api/v1/alerts data. mode: "available" (backend with review signals) | "unsupported" (older backend). */
+export function alertsData(mode = "available", nowMs = NOW) {
+  const recs = lifecycleRecords();
+  const tl = timelines();
+  const D = details();
+  // Cards without a saved multi-entry timeline still have their one governed snapshot as a single entry.
+  const entriesFor = id => tl[id] || (D[id] ? [{ requestId: `qa-${id}`, evaluatedAt: D[id].opportunity.governedDecision.evaluatedAt,
+    decision: D[id].opportunity.governedDecision.recommendation, allInAskCents: D[id].opportunity.governedDecision.allInAskCents,
+    maximumBuyPriceCents: D[id].opportunity.governedDecision.maximumBuyPriceCents, profitabilityAvailable: D[id].opportunity.supportedValueStatus === "ESTABLISHED",
+    evidenceProvenanceStatus: D[id].opportunity.evidenceProvenanceStatus === "LEGACY_DERIVED" ? "LEGACY_PROVIDER_DERIVED" : "CURRENT_EVIDENCE_RULES", changes: [] }] : []);
+  const base = { kind: "alerts", configured: true, readOnly: false, status: "IN_APP_REVIEW_AND_DECISION_CHANGE_ALERTS_AVAILABLE", notificationDeliveryConfigured: false,
+    acknowledgementConfigured: false, dueCount: 0, reviewRuleCount: 0, decisionChangeCount: 0, collectionSignalCount: 0, collectionSignals: [],
+    dailyIntelligence: { kind: "daily-intelligence", status: "NO_MATERIAL_CHANGE", materialChangeCount: 0 }, totalAttentionCount: 0, count: 0, items: [],
+    transactionAuthority: false };
+  if (mode === "unsupported") return base;
+  const active = Object.values(recs).filter(r => ACTIVE.has(r.trackingStatus));
+  const signals = active.flatMap(r => backendSignals(r, entriesFor(r.opportunityId), nowMs));
+  return { ...base, decisionReviewSignalVersion: "v1.0.0", decisionReviewSignalCount: signals.length, decisionReviewSignalsConsidered: active.length,
+    decisionReviewSignalsUnavailable: 0, decisionReviewSignals: signals };
+}

@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import vm from "node:vm";
 import { details } from "./fixtures/deal-check/fixtures.mjs";
-import { IDS, NOW, UNLINKED_ID, timelines, lifecycleRecords, lifecycleDetail, opportunitiesList, portfolio } from "./fixtures/decision-monitor/fixtures.mjs";
+import { IDS, NOW, UNLINKED_ID, timelines, lifecycleRecords, lifecycleDetail, opportunitiesList, portfolio, alertsData } from "./fixtures/decision-monitor/fixtures.mjs";
 
 const read = f => fs.readFileSync(f, "utf8");
 const passes = [];
@@ -123,6 +123,62 @@ check("no saved decision: unavailable, no signals", M.monitor(null, null, null, 
   check("collection markup never shows Max Buy $0.00", !/Max Buy \$0\.00/.test(html));
 }
 
+// Integration with backend Decision Review Signals (FlipForge2 #935 contract on /api/v1/alerts).
+{
+  const integrated = (id, feed, lifecycle = lifecycleRecords()[id]) => {
+    const detail = lifecycleDetail(id);
+    const timeline = M.timelineOf(detail);
+    const model = M.dealModelOf(D[id].opportunity, timeline);
+    return M.integrate(M.monitor(model, timeline, lifecycle, NOW), feed, { id, lifecycle, model });
+  };
+  const available = M.reviewSignalFeed(alertsData("available"));
+  check("feed: backend contract recognised", available.status === "available" && available.signals.length > 0);
+  check("feed: older backend without review signals → unsupported", M.reviewSignalFeed(alertsData("unsupported")).status === "unsupported");
+  check("feed: failed request → unavailable", M.reviewSignalFeed(null, true).status === "unavailable");
+
+  const buy = integrated(IDS.buy, available);
+  const buyKeys = buy.signals.map(x => x.key);
+  check("BUY: server MAX_BUY_CROSSED shown once, from the backend", buyKeys.filter(k => k === "srv-MAX_BUY_CROSSED").length === 1 && buy.signals.find(x => x.key === "srv-MAX_BUY_CROSSED").source === "FlipForge review signal");
+  check("BUY: no separate ask-change note when the backend crossing states it", !buy.signals.some(x => x.key === "price"));
+  const noCross = JSON.parse(JSON.stringify(alertsData("available")));
+  noCross.decisionReviewSignals = noCross.decisionReviewSignals.filter(x => x.kind !== "MAX_BUY_CROSSED");
+  check("ask change without a backend crossing stays information only", integrated(IDS.buy, M.reviewSignalFeed(noCross)).signals.find(x => x.key === "price")?.level === "info");
+  check("BUY: server re-check replaces the website 30-day prompt (no duplicate)", buyKeys.includes("srv-DECISION_RECHECK_DUE") && !buy.signals.some(x => x.key === "age" && x.level === "review"));
+  check("BUY: website-only explanations kept", buyKeys.includes("decision") && buyKeys.includes("evidence-reeval") && buyKeys.includes("paid"));
+  check("BUY: verdict unchanged by integration", buy.verdict === "BUY");
+
+  const verify = integrated(IDS.verify, available);
+  check("VERIFY: pending verification comes from the backend, once", verify.signals.filter(x => x.key === "srv-VERIFICATION_PENDING").length === 1 && !verify.signals.some(x => x.key === "verify"));
+
+  const down = integrated(IDS.verify, M.reviewSignalFeed(null, true));
+  check("backend unavailable: says so, invents nothing", down.reviewSignalStatus === "unavailable" && down.signals.some(x => x.key === "review-signals-status" && /temporarily unavailable/.test(x.title))
+    && !down.signals.some(x => ["verify", "legacy", "srv-VERIFICATION_PENDING"].includes(x.key)) && !down.signals.some(x => x.key === "age" && x.level === "review"));
+  const old = integrated(IDS.watch, M.reviewSignalFeed(alertsData("unsupported")));
+  check("older backend: review signals not available yet", old.reviewSignalStatus === "unsupported" && old.signals.some(x => /not available yet/.test(x.title)));
+  const untracked = integrated(IDS.buy, available, { opportunityId: IDS.buy, trackingStatus: "WATCHING", version: 0 });
+  check("untracked card: asks to track, shows no server prompts", untracked.reviewSignalStatus === "untracked" && !untracked.signals.some(x => x.key.startsWith("srv-")));
+
+  // Contradictions: a server signal that disagrees with the saved decision is dropped and the drop is stated.
+  const bad = JSON.parse(JSON.stringify(alertsData("available")));
+  bad.decisionReviewSignals.push({ ...bad.decisionReviewSignals.find(x => x.kind === "VERIFICATION_PENDING"), opportunityId: IDS.buy, decision: "VERIFY" });
+  const contra = integrated(IDS.buy, M.reviewSignalFeed(bad));
+  check("contradiction: VERIFY signal for a BUY decision is not shown", !contra.signals.some(x => x.key === "srv-VERIFICATION_PENDING") && contra.signals.some(x => x.key === "review-signals-mismatch"));
+  const authority = JSON.parse(JSON.stringify(alertsData("available")));
+  authority.decisionReviewSignals.forEach(x => { if (x.opportunityId === IDS.watch) x.transactionAuthority = true; });
+  check("signal claiming authority is rejected", !integrated(IDS.watch, M.reviewSignalFeed(authority)).signals.some(x => x.key.startsWith("srv-")));
+  const dup = JSON.parse(JSON.stringify(alertsData("available")));
+  dup.decisionReviewSignals.push(...dup.decisionReviewSignals.filter(x => x.opportunityId === IDS.watch));
+  check("duplicate backend signals collapse to one", integrated(IDS.watch, M.reviewSignalFeed(dup)).signals.filter(x => x.key === "srv-DECISION_RECHECK_DUE").length === 1);
+  check("other cards' signals are not shown", !integrated(IDS.pass, available).signals.some(x => x.key === "srv-MAX_BUY_CROSSED"));
+
+  const view = M.collection(portfolio(), opportunitiesList().items, NOW, available);
+  check("collection: need-another-look counts backend prompts", view.reviewSignalStatus === "available" && view.reverifyCount === 3, String(view.reverifyCount));
+  check("collection: harder exits from saved exact-sale counts", view.hardExitCount === 1, String(view.hardExitCount));
+  check("collection: unlinked card has no exit estimate", view.rows.find(r => r.id === UNLINKED_ID).exit === null);
+  const downView = M.collection(portfolio(), opportunitiesList().items, NOW, M.reviewSignalFeed(null, true));
+  check("collection: backend down → need-another-look shown as unavailable", /Review signals unavailable right now/.test(M.collectionMarkup(downView)));
+}
+
 // Markup safety and copy.
 {
   const all = [IDS.buy, IDS.watch, IDS.verify, IDS.legacy].map(id => M.monitorMarkup(id, cardResult(id), { compact: id === IDS.buy, trackingHref: "#/tracking/x" })).join("\n")
@@ -134,7 +190,7 @@ check("no saved decision: unavailable, no signals", M.monitor(null, null, null, 
   check("no instruction language", !/\byou should (buy|sell)\b|\bsell now\b|\bbuy now\b|\bact now\b/i.test(all));
   check("escapes server text", M.monitorMarkup("x", { available: true, signals: [{ key: "k", level: "review", title: "<img src=x>", detail: "d", source: "s" }], scope: [], verdict: "BUY" }).includes("&lt;img"));
   check("GET only, allow-listed routes", !/method:\s*"(POST|PUT|PATCH|DELETE)"/.test(SOURCE)
-    && (SOURCE.match(/["`]\/api\/v1\/[a-z-]+/g) || []).every(p => ["/api/v1/opportunities", "/api/v1/lifecycle", "/api/v1/portfolio"].includes(p.slice(1))), (SOURCE.match(/["`]\/api\/v1\/[a-z-]+/g) || []).join(","));
+    && (SOURCE.match(/["`]\/api\/v1\/[a-z-]+/g) || []).every(p => ["/api/v1/opportunities", "/api/v1/lifecycle", "/api/v1/portfolio", "/api/v1/alerts"].includes(p.slice(1))), (SOURCE.match(/["`]\/api\/v1\/[a-z-]+/g) || []).join(","));
   check("no browser storage", !/localStorage|sessionStorage|indexedDB/.test(SOURCE));
   check("no browser sorting", !/\.sort\(|\.toSorted\(/.test(SOURCE));
   check("activation reuses the Deal Check rule + own kill switch", /deal\.enabledFor\(window\.location/.test(SOURCE) && /FlipForgeDecisionMonitorDisabled === true/.test(SOURCE));

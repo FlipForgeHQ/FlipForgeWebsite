@@ -14,6 +14,7 @@
  *   GET /api/v1/lifecycle/{id}      immutable Decision Timeline (re-evaluation changes[]) + the lifecycle record
  *   GET /api/v1/opportunities       governed decision for every saved card (Portfolio)
  *   GET /api/v1/portfolio           owned cards and customer-entered cost basis (Portfolio)
+ *   GET /api/v1/alerts              backend Decision Review Signals (data.decisionReviewSignals, FlipForge2 v1)
  *
  * What is monitored (functional):
  *   - changes recorded by a re-evaluation (timeline changes[]: ASK_CHANGED, DECISION_CHANGED, RISK_CHANGED, ...), shown
@@ -202,17 +203,111 @@
     return { available: true, signals, reviewCount, scope: NOT_MONITORED, ageDays, verdict: model.verdict, evaluatedAt, reEvaluations: Math.max(0, entries.length - 1) };
   }
 
+  /*
+   * Backend Decision Review Signals (FlipForge2 SaaSDecisionReviewSignalService v1, on GET /api/v1/alerts as
+   * data.decisionReviewSignals) are authoritative for four prompts. When the backend provides them, the website's own
+   * versions of those prompts are dropped (no duplicates); when it does not, the prompts are withheld and the panel
+   * says review signals are unavailable instead of inventing them. Website-only explanations supported by saved data
+   * (ask changes as information, evidence-count drift, 14-day check, identity, risk/confidence, paid vs Max Buy) stay.
+   */
+  const SERVER_KINDS = Object.freeze({
+    MAX_BUY_CROSSED: "Asking price crossed the saved Max Buy",
+    DECISION_RECHECK_DUE: "Decision is due for a re-check",
+    VERIFICATION_PENDING: "Still needs verification",
+    LEGACY_DECISION: "Saved before current evidence rules"
+  });
+  const ACTIVE_TRACKING = Object.freeze(["WATCHING", "REVIEW", "OWNED"]);
+
+  /** Normalise the /alerts response into { status, signals[] } for the review-signal contract. */
+  function reviewSignalFeed(alertsData, failed = false) {
+    if (failed || !alertsData || typeof alertsData !== "object") return { status: "unavailable", signals: [], considered: null };
+    if (typeof alertsData.decisionReviewSignalVersion !== "string" || !Array.isArray(alertsData.decisionReviewSignals)) {
+      return { status: "unsupported", signals: [], considered: null };
+    }
+    return {
+      status: "available",
+      version: alertsData.decisionReviewSignalVersion,
+      considered: int(alertsData.decisionReviewSignalsConsidered),
+      unavailableCount: int(alertsData.decisionReviewSignalsUnavailable) || 0,
+      signals: alertsData.decisionReviewSignals.filter(sig => sig && typeof sig === "object")
+    };
+  }
+
+  function isTracked(lifecycle) {
+    return Boolean(lifecycle && int(lifecycle.version) > 0 && ACTIVE_TRACKING.includes(text(lifecycle.trackingStatus).toUpperCase()));
+  }
+
+  function serverSignalEntry(sig) {
+    const kind = text(sig.kind).toUpperCase();
+    let detail = text(sig.explanation) || SERVER_KINDS[kind];
+    if (kind === "MAX_BUY_CROSSED") {
+      const before = int(sig.previousAllInAskCents);
+      const after = int(sig.allInAskCents);
+      const maxBuy = int(sig.maximumBuyPriceCents);
+      if (before !== null && after !== null && maxBuy !== null) {
+        detail = `All-in ask ${money(before)} → ${money(after)} at the re-evaluation on ${dateOnly(sig.evaluatedAt) || "a later date"}; saved Max Buy ${money(maxBuy)}. ${after <= maxBuy ? "Now inside the buying limit." : "Now above the buying limit."}`;
+      }
+    }
+    if (kind === "DECISION_RECHECK_DUE" && int(sig.ageDays) !== null) {
+      return { key: `srv-${kind}`, level: "review", title: `Decision is ${int(sig.ageDays)} days old`, detail: `Saved ${dateOnly(sig.evaluatedAt) || "earlier"}. Re-check the price and evidence before relying on it.`, source: "FlipForge review signal" };
+    }
+    return { key: `srv-${kind}`, level: "review", title: SERVER_KINDS[kind], detail, source: "FlipForge review signal" };
+  }
+
+  /**
+   * Merge backend review signals into one card's monitor result. Pure. Never changes the verdict; drops a server signal
+   * that contradicts the saved decision (and says so) rather than showing two conflicting states.
+   */
+  function integrate(result, feed, { id = "", lifecycle = null, model = null } = {}) {
+    if (!result || !result.available) return result;
+    const tracked = isTracked(lifecycle);
+    const local = result.signals
+      .filter(sig => !["verify", "legacy"].includes(sig.key))
+      .filter(sig => !(sig.key === "age" && sig.level === "review"))
+      .map(sig => (sig.key === "price" && sig.level === "review" ? { ...sig, level: "info" } : sig));
+    const merged = [];
+    let status = feed ? feed.status : "unavailable";
+    if (status === "available" && !tracked) status = "untracked";
+    if (status === "available") {
+      const seen = new Set();
+      let contradicted = 0;
+      for (const sig of feed.signals) {
+        const kind = text(sig.kind).toUpperCase();
+        if (text(sig.opportunityId) !== id || !SERVER_KINDS[kind] || seen.has(kind)) continue;
+        if (sig.transactionAuthority !== false || sig.historicalRescoring !== false || sig.recommendationAuthorityChanged === true) { contradicted += 1; continue; }
+        const signalDecision = text(sig.decision).toUpperCase();
+        if (model && model.verdict && signalDecision && signalDecision !== model.verdict) { contradicted += 1; continue; }
+        if (kind === "VERIFICATION_PENDING" && model && model.verdict && model.verdict !== "VERIFY") { contradicted += 1; continue; }
+        seen.add(kind);
+        merged.push(serverSignalEntry(sig));
+      }
+      if (contradicted) merged.push({ key: "review-signals-mismatch", level: "info", title: "A review signal was not shown", detail: `${plural(contradicted, "review signal")} did not match this saved decision, so ${contradicted === 1 ? "it was" : "they were"} left out rather than showing conflicting states.`, source: "FlipForge review signal" });
+    } else if (status === "untracked") {
+      merged.push({ key: "review-signals-status", level: "info", title: "Not tracked yet", detail: "Track this card to get review signals: asking price vs. Max Buy at re-evaluation, 30-day re-check and pending verification.", source: "Review signals" });
+    } else if (status === "unsupported") {
+      merged.push({ key: "review-signals-status", level: "info", title: "Review signals not available yet", detail: "This FlipForge server does not provide review signals yet, so the price-vs-Max-Buy, 30-day re-check and verification prompts are not shown.", source: "Review signals" });
+    } else {
+      merged.push({ key: "review-signals-status", level: "info", title: "Review signals temporarily unavailable", detail: "FlipForge could not load its review signals just now, so those prompts are not shown. Your saved decision is unchanged.", source: "Review signals" });
+    }
+    // The backend's Max Buy crossing already states the ask change; do not repeat it as a separate note.
+    const localShown = merged.some(sig => sig.key === "srv-MAX_BUY_CROSSED") ? local.filter(sig => sig.key !== "price") : local;
+    const signals = [...merged.filter(sig => sig.level === "review"), ...localShown, ...merged.filter(sig => sig.level !== "review")];
+    return { ...result, signals, reviewCount: signals.filter(sig => sig.level === "review").length, reviewSignalStatus: status };
+  }
+
   /** Collection Intelligence for Portfolio. Pure; keeps the server's card order. */
-  function collection(portfolioData, opportunityItems, nowMs = Date.now()) {
+  function collection(portfolioData, opportunityItems, nowMs = Date.now(), feed = null) {
     const items = Array.isArray(portfolioData?.items) ? portfolioData.items.filter(i => i && typeof i === "object") : [];
     const byId = new Map((Array.isArray(opportunityItems) ? opportunityItems : []).filter(i => i && SAFE_ID.test(String(i.id || ""))).map(i => [String(i.id), i]));
     const rows = items.map(item => {
       const id = text(item.opportunityId);
       const opportunity = byId.get(id) || null;
       const model = opportunity ? dealModelOf(opportunity, null) : null;
-      const result = monitor(model, null, item, nowMs);
+      const result = integrate(monitor(model, null, item, nowMs), feed, { id, lifecycle: { ...item, version: int(item.version) ?? 1 }, model });
+      const deal = typeof window !== "undefined" ? window.FlipForgeDealCheck : null;
+      const exit = model && deal && typeof deal.exitDifficulty === "function" ? deal.exitDifficulty(model) : null;
       const cost = int(item.acquisitionCostCents);
-      const review = result.signals.filter(s => s.level === "review" && s.key !== "price-unmonitored");
+      const review = result.signals ? result.signals.filter(s => s.level === "review" && s.key !== "price-unmonitored") : [];
       if (!model) review.push({ key: "unlinked", level: "review", title: "No saved decision linked to this card", detail: "Evaluate the card so its holding sits next to a decision receipt.", source: "Your record" });
       return {
         id,
@@ -225,6 +320,8 @@
         paidVsMaxBuyCents: cost !== null && model && model.maxBuyCents !== null ? cost - model.maxBuyCents : null,
         ageDays: result.ageDays,
         acquiredAt: text(item.acquiredAt),
+        exit,
+        reverify: result.signals ? result.signals.some(s => ["srv-VERIFICATION_PENDING", "srv-LEGACY_DECISION", "srv-DECISION_RECHECK_DUE"].includes(s.key)) : false,
         review,
         nextStep: review.length ? review[0].title : model ? "No review needed from saved data" : "Open the card to link its saved decision"
       };
@@ -241,6 +338,9 @@
       agedCount: costed.filter(r => r.ageDays !== null && r.ageDays >= RECHECK_DAYS).length,
       overMaxBuyCount: rows.filter(r => r.paidVsMaxBuyCents !== null && r.paidVsMaxBuyCents > 0).length,
       unlinkedCount: rows.filter(r => !r.linked).length,
+      reverifyCount: rows.filter(r => r.reverify).length,
+      hardExitCount: rows.filter(r => r.exit && r.exit.established && (r.exit.level === "higher" || r.exit.level === "high")).length,
+      reviewSignalStatus: feed ? feed.status : "unavailable",
       attention: rows.filter(r => r.review.length > 0),
       rows
     };
@@ -287,7 +387,7 @@
     const attention = view.attention;
     const row = r => `<li data-ffci-card="${escapeHtml(r.id)}">
         <div class="ffci-card"><strong>${escapeHtml(r.title)}</strong>
-          <span>${r.linked ? `${chip(r.verdict)} Max Buy ${escapeHtml(money(r.maxBuyCents, "not set"))}` : "No saved decision linked"} · Paid ${escapeHtml(money(r.costCents, "not entered"))}${r.paidVsMaxBuyCents !== null ? ` <em data-over="${r.paidVsMaxBuyCents > 0}">${escapeHtml(r.paidVsMaxBuyCents > 0 ? `${money(r.paidVsMaxBuyCents)} over Max Buy` : `${money(-r.paidVsMaxBuyCents)} under Max Buy`)}</em>` : ""}</span>
+          <span>${r.linked ? `${chip(r.verdict)} Max Buy ${escapeHtml(money(r.maxBuyCents, "not set"))}` : "No saved decision linked"} · Paid ${escapeHtml(money(r.costCents, "not entered"))}${r.paidVsMaxBuyCents !== null ? ` <em data-over="${r.paidVsMaxBuyCents > 0}">${escapeHtml(r.paidVsMaxBuyCents > 0 ? `${money(r.paidVsMaxBuyCents)} over Max Buy` : `${money(-r.paidVsMaxBuyCents)} under Max Buy`)}</em>` : ""}${r.exit ? ` · Exit difficulty: ${escapeHtml(r.exit.label)}` : ""}</span>
           ${r.review.length ? `<ul>${r.review.slice(0, 3).map(s => `<li>${escapeHtml(s.title)}</li>`).join("")}</ul>` : `<small>${escapeHtml(r.nextStep)}</small>`}
         </div>
         <div class="ffci-links">${SAFE_ID.test(r.id) ? `<a href="#/opportunities/${encodeURIComponent(r.id)}">Decision receipt</a><a href="#/tracking/${encodeURIComponent(r.id)}">Monitor</a>` : ""}</div>
@@ -300,6 +400,8 @@
         <div data-tone="${view.unsupportedCostCents > 0 ? "warn" : ""}"><span>Without supported value</span><strong>${escapeHtml(money(view.unsupportedCostCents))}</strong><small>${plural(view.unsupportedCount, "card")} with no evidence-supported value</small></div>
         <div data-tone="${view.agedCostCents > 0 ? "warn" : ""}"><span>On decisions 30+ days old</span><strong>${escapeHtml(money(view.agedCostCents))}</strong><small>${plural(view.agedCount, "card")} to re-check</small></div>
         <div><span>Paid above Max Buy</span><strong>${escapeHtml(String(view.overMaxBuyCount))}</strong><small>Compared with the Max Buy at decision</small></div>
+        <div data-tone="${view.reverifyCount > 0 ? "warn" : ""}" data-ffci-reverify><span>Need another look</span><strong>${view.reviewSignalStatus === "available" ? escapeHtml(String(view.reverifyCount)) : "—"}</strong><small>${view.reviewSignalStatus === "available" ? "Re-check due, verification pending or old rules" : "Review signals unavailable right now"}</small></div>
+        <div data-tone="${view.hardExitCount > 0 ? "warn" : ""}" data-ffci-exits><span>Harder exits</span><strong>${escapeHtml(String(view.hardExitCount))}</strong><small>Few exact sales behind the decision</small></div>
       </div>
       ${attention.length ? `<ol class="ffci-list" data-ffci-attention>${attention.map(row).join("")}</ol>` : ""}
       <details class="ffdm-more" data-ffci-all><summary>All owned cards and their saved decisions</summary><ol class="ffci-list">${view.rows.map(row).join("")}</ol></details>
@@ -347,7 +449,7 @@
     const serial = ++state.serial;
     state.loading = key;
     const encoded = encodeURIComponent(id);
-    const [detail, lifecycle] = await Promise.allSettled([getJson(`/api/v1/opportunities/${encoded}`), getJson(`/api/v1/lifecycle/${encoded}`)]);
+    const [detail, lifecycle, alerts] = await Promise.allSettled([getJson(`/api/v1/opportunities/${encoded}`), getJson(`/api/v1/lifecycle/${encoded}`), getJson("/api/v1/alerts")]);
     if (serial !== state.serial) return;
     state.loading = "";
     state.key = key;
@@ -355,18 +457,21 @@
     const lifeData = lifecycle.status === "fulfilled" ? lifecycle.value : null;
     const timeline = timelineOf(lifeData);
     const record = lifeData && lifeData.lifecycle && typeof lifeData.lifecycle === "object" ? lifeData.lifecycle : null;
-    state.result = { id, data: monitor(opportunity ? dealModelOf(opportunity, timeline) : null, timeline, record) };
+    const model = opportunity ? dealModelOf(opportunity, timeline) : null;
+    const feed = reviewSignalFeed(alerts.status === "fulfilled" ? alerts.value : null, alerts.status !== "fulfilled");
+    state.result = { id, data: integrate(monitor(model, timeline, record), feed, { id, lifecycle: record, model }) };
   }
 
   async function loadCollection(key) {
     const serial = ++state.serial;
     state.loading = key;
-    const [portfolio, opportunities] = await Promise.allSettled([getJson("/api/v1/portfolio"), getJson("/api/v1/opportunities")]);
+    const [portfolio, opportunities, alerts] = await Promise.allSettled([getJson("/api/v1/portfolio"), getJson("/api/v1/opportunities"), getJson("/api/v1/alerts")]);
     if (serial !== state.serial) return;
     state.loading = "";
     state.key = key;
     state.collection = portfolio.status === "fulfilled" && portfolio.value?.kind === "portfolio"
-      ? collection(portfolio.value, opportunities.status === "fulfilled" ? opportunities.value?.items : [])
+      ? collection(portfolio.value, opportunities.status === "fulfilled" ? opportunities.value?.items : [], Date.now(),
+        reviewSignalFeed(alerts.status === "fulfilled" ? alerts.value : null, alerts.status !== "fulfilled"))
       : null;
   }
 
@@ -429,7 +534,7 @@
     schedule();
   }
 
-  const api = Object.freeze({ version: VERSION, monitor, collection, monitorMarkup, collectionMarkup, timelineOf, dealModelOf, notMonitored: NOT_MONITORED });
+  const api = Object.freeze({ version: VERSION, monitor, integrate, reviewSignalFeed, collection, monitorMarkup, collectionMarkup, timelineOf, dealModelOf, notMonitored: NOT_MONITORED });
   if (typeof window !== "undefined") {
     window.FlipForgeDecisionMonitor = api;
     if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {

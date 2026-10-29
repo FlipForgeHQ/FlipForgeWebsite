@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import { chromium } from "playwright";
 import { details, envelope } from "./fixtures/deal-check/fixtures.mjs";
-import { IDS, NOW, lifecycleDetail, lifecycleList, opportunitiesList, portfolio, lifecycleRecords } from "./fixtures/decision-monitor/fixtures.mjs";
+import { IDS, NOW, lifecycleDetail, lifecycleList, opportunitiesList, portfolio, lifecycleRecords, alertsData } from "./fixtures/decision-monitor/fixtures.mjs";
 
 const crash = e => { console.log(`::error title=decision-monitor crash::${String(e?.message || e).split("\n")[0].slice(0, 400)}`); process.exit(1); };
 process.on("unhandledRejection", crash);
@@ -20,7 +20,7 @@ const D = details();
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined });
 const VIEWPORTS = { desktop: { width: 1440, height: 1000 }, phone: { width: 390, height: 844 } };
 
-async function open(viewport, hash, { disabled = false } = {}) {
+async function open(viewport, hash, { disabled = false, alerts = "available" } = {}) {
   const context = await browser.newContext({ viewport });
   const requests = [];
   await context.addInitScript(flag => {
@@ -43,6 +43,7 @@ async function open(viewport, hash, { disabled = false } = {}) {
     if (p === "/api/v1/lifecycle") return json(200, envelope(cid, lifecycleList()));
     if (p.startsWith("/api/v1/lifecycle/")) return json(200, envelope(cid, lifecycleDetail(id)));
     if (p === "/api/v1/portfolio") return json(200, envelope(cid, portfolio()));
+    if (p === "/api/v1/alerts") return alerts === "fail" ? json(503, { error: { code: "UPSTREAM_UNAVAILABLE", correlationId: cid } }) : json(200, envelope(cid, alertsData(alerts, NOW)));
     if (p.startsWith("/api/v1/evidence/")) return json(200, envelope(cid, { kind: "evidence", opportunityId: id, acceptedExactCompletedSales: 0, visibleButAuthorityIneligible: 0, acceptedSales: [], excludedSales: [], transactionAuthority: false }));
     if (p.startsWith("/api/v1/psa-advisor/")) return json(200, envelope(cid, { kind: "psa-advisor", opportunityId: id, recalculated: false, available: false }));
     return json(404, { error: { code: "RESOURCE_NOT_FOUND", message: p, correlationId: cid } });
@@ -94,9 +95,11 @@ for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
     if (f) {
       check(`${label}: above the Decision Timeline`, f.beforeTimeline === true);
       check(`${label}: decision change WATCH → BUY from the timeline`, /Decision changed: WATCH → BUY/.test(f.text));
-      check(`${label}: ask change placed against saved Max Buy`, /\$680\.00 → \$599\.95/.test(f.text) && /inside the Max Buy/.test(f.text));
+      check(`${label}: ask change placed against saved Max Buy`, /\$680\.00 → \$599\.95/.test(f.text) && /saved Max Buy \$\d/.test(f.text) && /inside the buying limit/.test(f.text));
       check(`${label}: paid vs Max Buy from customer record`, /You paid \$\d[\d,]*\.\d\d under the Max Buy/.test(f.text));
       check(`${label}: decision age with fixed clock`, /33 days old/.test(f.text));
+      check(`${label}: Max Buy crossing comes from the backend review signal`, /Asking price crossed the saved Max Buy/.test(f.text) && /FlipForge review signal/i.test(f.text));
+      check(`${label}: no duplicate 30-day prompt`, (f.text.match(/33 days old/g) || []).length === 1, String((f.text.match(/33 days old/g) || []).length));
     }
     await page.locator("[data-ff-decision-monitor]").screenshot({ path: `${shots}/${vp}-tracking-buy.png` }).catch(() => {});
     await context.close();
@@ -154,11 +157,40 @@ for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
       const order = await page.locator("[data-ffci-all] .ffci-list > li").evaluateAll(els => els.map(e => e.getAttribute("data-ffci-card")));
       check(`${label}: all cards in server order`, JSON.stringify(order) === JSON.stringify(portfolio().items.map(i => i.opportunityId)), order.join(","));
       check(`${label}: unlinked card says so`, /No saved decision linked/.test(f.text));
+      check(`${label}: need-another-look from backend signals`, /Need another look\s*3/.test(f.text), f.text.slice(0, 400));
+      check(`${label}: harder exits counted`, /Harder exits\s*1/.test(f.text));
+      check(`${label}: exit difficulty per card`, /Exit difficulty: (Lower|Moderate|Higher|High)/.test(f.text));
       check(`${label}: existing portfolio sections still present`, await page.locator(".customer-portfolio-page .customer-portfolio-metrics").count() === 1);
     }
     await page.locator("[data-ff-collection-intelligence]").screenshot({ path: `${shots}/${vp}-portfolio-collection.png` }).catch(() => {});
     await context.close();
   }
+}
+
+// Backend review signals unavailable / older backend: stated, nothing invented.
+for (const [mode, phrase] of [["fail", /Review signals temporarily unavailable/], ["unsupported", /Review signals not available yet/]]) {
+  const { context, page, requests, errors } = await open(VIEWPORTS.desktop, `#/tracking/${encodeURIComponent(IDS.verify)}`, { alerts: mode });
+  await page.waitForSelector("[data-ff-decision-monitor]", { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(600);
+  const f = await facts(page, "[data-ff-decision-monitor]");
+  check(`alerts ${mode}: monitor still renders`, f && f.count === 1);
+  if (f) {
+    check(`alerts ${mode}: says review signals are unavailable`, phrase.test(f.text), f.text.slice(0, 200));
+    check(`alerts ${mode}: no verification or re-check prompt invented`, !/Still needs verification/.test(f.text) && !/due for a re-check/.test(f.text) && !/33 days old/.test(f.text));
+    check(`alerts ${mode}: saved verdict still shown`, /VERIFY/.test(f.text));
+    check(`alerts ${mode}: no page errors`, errors.length === 0, errors.join("|"));
+  }
+  await context.close();
+}
+
+// Portfolio with backend unavailable.
+{
+  const { context, page } = await open(VIEWPORTS.desktop, "#/portfolio", { alerts: "fail" });
+  await page.waitForSelector("[data-ff-collection-intelligence]", { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(600);
+  const t = await page.evaluate(() => document.querySelector("[data-ff-collection-intelligence]")?.textContent.replace(/\s+/g, " ") || "");
+  check("portfolio alerts fail: need-another-look marked unavailable", /Review signals unavailable right now/.test(t), t.slice(0, 200));
+  await context.close();
 }
 
 // Kill switch: nothing rendered, Tracking unchanged.

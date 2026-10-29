@@ -57,3 +57,56 @@ is saved, so without a re-evaluation the monitor says "Asking price not re-check
 1. Server-side "decision needs review" alerts for an ask crossing Max Buy, stale decisions and evidence-count drift. Today `/alerts` fires only when the decision itself changed.
 2. Portfolio items could carry the governed decision summary, so the page doesn't need the `/opportunities` list.
 3. Re-checking a saved listing's price, once an authorized listing source and budget are approved.
+
+## Integration v1.1: unified decision summary and backend review signals
+
+### Deal Check decision summary
+The summary sits under Asking / Max Buy / Difference and shows three things.
+
+- **Potential profit.** The saved base-case net profit, with the cautious and downside cases, labelled "modeled after costs at the saved price, not guaranteed". It reads "Not calculated" when there is no supported value.
+- **Exit difficulty.** It uses the engine's liquidity bands (`ProfitabilityGuardrailService.liquidityForAcceptedEvidence`) on the saved exact-sale count, and the engine's slippage reserve for that band:
+  - 5+ exact sales: Lower
+  - 3–4: Moderate
+  - 1–2: Higher
+  - 0: High
+
+  It is cross-checked against the liquidity saved on the matching timeline entry. A mismatch, a legacy result, or a missing count shows "Not established". The opportunity-level `liquidity` field, which can default to 50, is never used.
+- **Evidence & risk.** Whether the decision meets the engine's published BUY bar: at least 3 exact sales, confidence 75+, risk 55 or less. If not, it lists what is missing. This is not a new score.
+
+### Backend Decision Review Signals (FlipForge2 #935)
+- **Source.** `GET /api/v1/alerts`, field `data.decisionReviewSignals` with `decisionReviewSignalVersion`.
+- **Which prompts the backend owns.** The four kinds below come only from the backend:
+  - `MAX_BUY_CROSSED`
+  - `DECISION_RECHECK_DUE`
+  - `VERIFICATION_PENDING`
+  - `LEGACY_DECISION`
+
+  The website's own versions of those four (VERIFY, legacy, the 30-day age prompt, and the ask crossing) are dropped, so nothing is shown twice. When the backend reports a crossing, the separate ask-change note is not shown either.
+- **Kept from the website.** These stay because saved data supports them:
+  - decision changes
+  - ask changes when there was no crossing (information only)
+  - exact-sale count drift
+  - the 14-day check
+  - identity, risk and confidence changes
+  - what you paid vs. Max Buy
+- **States.**
+  - Backend failed: "Review signals temporarily unavailable".
+  - Older backend without the field: "Review signals not available yet".
+  - Card not tracked (lifecycle version 0): "Not tracked yet".
+
+  In every one of these states the four backend prompts are withheld and nothing is invented.
+- **Contradictions.** A signal for another card, a duplicate, one claiming authority, or one whose decision disagrees with the saved verdict is dropped. The panel then says a signal was left out.
+
+### Portfolio additions
+- "Need another look" counts backend prompts. It shows "—" when signals are unavailable.
+- "Harder exits" counts cards rated Higher or High.
+- Each card shows its exit difficulty.
+
+### What comes from where
+| Data | Source |
+| --- | --- |
+| Verdict, Max Buy, profit/ROI, supported value, exact-sale count, confidence, risk | Backend: frozen governed snapshot (`/opportunities`) |
+| Re-evaluation changes, saved liquidity | Backend: immutable Decision Timeline (`/lifecycle/{id}`) |
+| Max Buy crossing, 30-day re-check, VERIFY pending, legacy | Backend: Decision Review Signals (`/alerts`, #935) |
+| Cost basis, tracking status | Backend: customer lifecycle record (`/portfolio`, `/lifecycle`) |
+| Exit difficulty label, evidence-bar check, break-even, Max Buy reasoning, 14-day check, count drift, paid vs. Max Buy | Website presentation, from the saved values above using the engine's published rules |

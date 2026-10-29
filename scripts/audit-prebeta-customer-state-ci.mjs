@@ -2,6 +2,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
 
+if (process.env.GITHUB_ACTIONS) {
+  const annotate = error => { console.log(`::error title=customer-state crash::${String(error?.stack || error).replace(/[\r\n]+/g, " | ").slice(0, 900)}`); process.exit(1); };
+  process.on("uncaughtException", annotate);
+  process.on("unhandledRejection", annotate);
+}
+
 const baseUrl = process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app";
 const email = "prebeta-state-audit@flipforge.test";
 const reportDir = path.resolve("qa-artifacts/prebeta-customer-state");
@@ -299,6 +305,8 @@ async function runScenario(name, fn) {
     scenarios.push({ name, status: "FAIL", durationMs: Date.now() - started, message });
     failures.push(`${name}: ${message}`);
     console.log(`FAIL | ${name} | ${message}`);
+    // Surface the failing scenario as a CI annotation: job logs are not always readable, annotations are.
+    if (process.env.GITHUB_ACTIONS) console.log(`::error title=customer-state: ${name.replace(/[\r\n:,]/g, " ").slice(0, 120)}::${message.replace(/[\r\n]+/g, " ").slice(0, 500)}`);
   }
 }
 

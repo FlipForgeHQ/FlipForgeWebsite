@@ -232,7 +232,14 @@
         whatChanged: Array.isArray(entry.whatChanged) ? entry.whatChanged.map(text).filter(Boolean)
           : Array.isArray(entry.changes) ? entry.changes.map(change => text(change && change.description)).filter(Boolean) : []
       })),
-      policyVersion: latestEntry ? text(latestEntry.profitabilityPolicyVersion) : ""
+      policyVersion: latestEntry ? text(latestEntry.profitabilityPolicyVersion) : "",
+      // Liquidity the engine used for THIS decision's Max Buy (profitability snapshot on the matching timeline entry).
+      // The opportunity-level liquidity is never used: it can be a display default (50), not a governed assessment.
+      savedLiquidity: (() => {
+        const at = text(governed.evaluatedAt);
+        const match = at ? timelineEntries.find(entry => text(entry.evaluatedAt) === at) : null;
+        return match && match.profitabilityAvailable !== false ? int(match.liquidity) : null;
+      })()
     };
   }
 
@@ -323,6 +330,52 @@
       targetLimitCents: targetLimits.length ? Math.min(...targetLimits) : null,
       cases
     };
+  }
+
+  /**
+   * Exit Difficulty from the engine's governed liquidity rule (ProfitabilityGuardrailService.liquidityForAcceptedEvidence:
+   * ≥5 exact sales → 75, ≥3 → 65, ≥1 → 55, else 35) and the slippage reserve the engine applies for that band. It is a
+   * count-of-exact-sales measure, not buyer demand or time to sell, and is never favourable by default:
+   *  - no saved exact-sale count, or a legacy result → "Not established";
+   *  - a saved liquidity that disagrees with the engine's band for the saved count → "Not established" (contradiction);
+   *  - the opportunity-level liquidity field (may default to 50) is ignored.
+   */
+  const LIQUIDITY_BANDS = Object.freeze([
+    { min: 5, liquidity: 75, level: "lower", label: "Lower", slippageBps: 150 },
+    { min: 3, liquidity: 65, level: "moderate", label: "Moderate", slippageBps: 150 },
+    { min: 1, liquidity: 55, level: "higher", label: "Higher", slippageBps: 300 },
+    { min: 0, liquidity: 35, level: "high", label: "High", slippageBps: 500 }
+  ]);
+  function exitDifficulty(model) {
+    const none = reason => ({ established: false, level: "unknown", label: "Not established", detail: reason, source: "" });
+    if (!model || model.legacy) return none("This result was saved before current evidence rules.");
+    if (model.exactSales === null || model.exactSales < 0) return none("The saved decision did not record how many exact sales it used.");
+    const band = LIQUIDITY_BANDS.find(entry => model.exactSales >= entry.min);
+    if (model.savedLiquidity !== null && model.savedLiquidity !== undefined && model.savedLiquidity !== band.liquidity) {
+      return none("The saved liquidity and the saved exact-sale count disagree, so no exit estimate is shown.");
+    }
+    const basis = `${model.exactSales} exact completed sale${model.exactSales === 1 ? "" : "s"} accepted at decision`;
+    return {
+      established: true,
+      level: band.level,
+      label: band.label,
+      liquidity: band.liquidity,
+      slippageBps: band.slippageBps,
+      detail: `${basis}; FlipForge reserves ${(band.slippageBps / 100).toFixed(band.slippageBps % 100 ? 2 : 0)}% for price slippage when selling. Based on sales count only, not buyer demand or time to sell.`,
+      source: model.savedLiquidity !== null && model.savedLiquidity !== undefined ? "Saved profitability assessment" : "Engine rule on the saved exact-sale count"
+    };
+  }
+
+  /** Evidence & risk against the engine's published BUY bar (≥3 exact sales, confidence ≥75, risk ≤55). Not a score. */
+  function evidenceStrength(model) {
+    if (!model || model.legacy) return { met: false, label: "Not current", detail: "Saved before current evidence rules." };
+    const misses = [];
+    if (model.exactSales === null || model.exactSales < 3) misses.push(model.exactSales ? `only ${model.exactSales} exact sale${model.exactSales === 1 ? "" : "s"}` : "no exact sales");
+    if (model.confidence === null || model.confidence < 75) misses.push(model.confidence === null ? "confidence not recorded" : `confidence ${model.confidence}/100`);
+    if (model.risk === null || model.risk > 55) misses.push(model.risk === null ? "risk not recorded" : `risk ${model.risk}/100`);
+    return misses.length
+      ? { met: false, label: "Below the evidence bar", detail: `${misses.join(" · ").replace(/^./, c => c.toUpperCase())}. A BUY needs at least 3 exact sales, confidence 75+ and risk 55 or less.` }
+      : { met: true, label: "Meets the evidence bar", detail: `${model.exactSales} exact sales · confidence ${model.confidence}/100 · risk ${model.risk}/100.` };
   }
 
   /** One-line verdict framing from saved facts only. */
@@ -592,6 +645,21 @@
         : "Uses the saved net proceeds for each case, so only your purchase cost changes."} The saved verdict, evidence and Max Buy are unchanged; a simulation never produces BUY, WATCH, VERIFY or PASS.</p>`;
   }
 
+  function summaryMarkup(model) {
+    const exit = exitDifficulty(model);
+    const evidence = evidenceStrength(model);
+    const base = model.net.expected;
+    const range = [["Cautious", model.net.conservative], ["Downside", model.net.stress]].filter(([, cents]) => cents !== null).map(([label, cents]) => `${label} ${signedMoney(cents)}`).join(" · ");
+    const profit = base === null
+      ? figure("Potential profit", NOT_CALCULATED, model.supportedCents === null ? "No supported value to model from" : "Not recorded for this decision")
+      : figure("Potential profit", signedMoney(base), `${range ? `${range} · ` : ""}modeled after costs at the saved price, not guaranteed`, base < 0 ? "over" : "");
+    return `<div class="ffdc-figures ffdc-summary" data-ffdc-summary aria-label="Decision summary">
+        ${profit}
+        <div class="ffdc-figure" data-ffdc-exit="${escapeHtml(exit.level)}"><span>Exit difficulty</span><strong>${escapeHtml(exit.label)}</strong><small>${escapeHtml(exit.detail)}</small></div>
+        <div class="ffdc-figure" data-ffdc-evidence="${evidence.met}"><span>Evidence &amp; risk</span><strong>${escapeHtml(evidence.label)}</strong><small>${escapeHtml(evidence.detail)}</small></div>
+      </div>`;
+  }
+
   function dealCheckMarkup(model) {
     const verdict = model.verdict || "NONE";
     const tone = verdict.toLowerCase();
@@ -611,6 +679,7 @@
         ${figure("Max Buy", money(model.maxBuyCents, model.supportedCents === null ? "Not set" : NOT_CALCULATED), "Evidence-supported buying limit", "gold")}
         ${figure("Difference", diff, headroom === null ? "" : "Asking vs. Max Buy", headroom === null ? "" : headroom >= 0 ? "inside" : "over")}
       </div>
+      ${summaryMarkup(model)}
       ${ladder(model)}
       <div class="ffdc-grid">
         <article class="ffdc-checks" aria-label="Decision checks">
@@ -807,7 +876,7 @@
     schedule();
   }
 
-  const api = Object.freeze({ version: VERSION, enabledFor, policy: POLICY, featureTiers: FEATURE_TIERS, featureAvailable, dealModel, maxBuyReasoning, scenario, headline, checks, changeConditions, risks, dealCheckMarkup: model => dealCheckMarkup(model), labOutputMarkup });
+  const api = Object.freeze({ version: VERSION, enabledFor, exitDifficulty, evidenceStrength, policy: POLICY, featureTiers: FEATURE_TIERS, featureAvailable, dealModel, maxBuyReasoning, scenario, headline, checks, changeConditions, risks, dealCheckMarkup: model => dealCheckMarkup(model), labOutputMarkup });
   if (typeof window !== "undefined") {
     window.FlipForgeDealCheck = api;
     if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {

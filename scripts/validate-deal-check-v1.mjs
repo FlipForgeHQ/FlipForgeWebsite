@@ -140,6 +140,31 @@ for (const id of [IDS.buy, IDS.watch, IDS.pass]) {
   check("no snapshot ask: no headroom or 'all-in' claim", m.headroomCents === null && !/all-in price is/.test(api.headline(m)));
 }
 
+// 4f. Exit Difficulty: engine liquidity bands from the saved exact-sale count; never favourable by default.
+{
+  const ex = m => api.exitDifficulty(m);
+  const watch = model(IDS.watch);
+  check("62 exact sales → Lower (engine band 75)", ex(watch).label === "Lower" && ex(watch).liquidity === 75);
+  check("2 exact sales → Higher (engine band 55)", ex(model(IDS.verifyThin)).label === "Higher");
+  check("no exact sales → High, not favourable", ex(model(IDS.verify)).label === "High");
+  check("legacy → Not established", ex(model(IDS.legacy)).established === false);
+  const d = JSON.parse(JSON.stringify(D[IDS.buy]));
+  d.opportunity.liquidity = 50; d.opportunity.governedDecision.exactTrustedCompCount = null; d.opportunity.evidenceCount = null;
+  check("item liquidity default 50 with no saved count → Not established", ex(api.dealModel(d, null)).established === false);
+  const d2 = JSON.parse(JSON.stringify(D[IDS.verify]));
+  d2.opportunity.liquidity = 50;
+  check("item liquidity 50 never makes an exit easier", ex(api.dealModel(d2, null)).label === "High");
+  const t = { kind: "decision-timeline", entries: [{ evaluatedAt: D[IDS.buy].opportunity.governedDecision.evaluatedAt, liquidity: 65, profitabilityAvailable: true }] };
+  check("saved liquidity that contradicts the saved count → Not established", ex(api.dealModel(D[IDS.buy], t)).established === false);
+  const t2 = { kind: "decision-timeline", entries: [{ evaluatedAt: D[IDS.buy].opportunity.governedDecision.evaluatedAt, liquidity: 75, profitabilityAvailable: true }] };
+  check("matching saved liquidity → established from the saved assessment", ex(api.dealModel(D[IDS.buy], t2)).source === "Saved profitability assessment");
+  const html = api.dealCheckMarkup(model(IDS.watch));
+  check("summary shows potential profit, exit difficulty and evidence together", /data-ffdc-summary/.test(html) && /Potential profit/.test(html) && /Exit difficulty/.test(html) && /Evidence &amp; risk/.test(html));
+  check("potential profit is labelled as modeled, not guaranteed", /modeled after costs at the saved price, not guaranteed/.test(html));
+  check("VERIFY summary: profit not calculated, no $0", /Potential profit<\/span><strong>Not calculated/.test(api.dealCheckMarkup(model(IDS.verify))));
+  check("evidence bar uses the engine thresholds", api.evidenceStrength(model(IDS.buy)).met === true && api.evidenceStrength(model(IDS.watch)).met === false);
+}
+
 // 6. Scenario Lab: hypothetical only.
 {
   const m = model(IDS.watch);
