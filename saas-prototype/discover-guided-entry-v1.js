@@ -196,7 +196,20 @@
     updateFields(section);
   }
 
-  // The refinement box is removed once results are showing, but the search box stays editable. Impossible numbering typed
+  // Once a search is handed to the existing results flow the refinement box must not change height: removing it moved
+  // everything below it while the page was scrolling to the results, which made the phone view jump and settle several
+  // times. It stays in place and its fields are disabled, so the numbering that was verified cannot be edited mid-flow.
+  function lockSection(section) {
+    if (!section) return;
+    section.dataset.ffSerialLocked = "";
+    section.querySelectorAll("select,input").forEach(control => { control.disabled = true; });
+  }
+  function dropLockedSection(form) {
+    const old = form?.querySelector?.("[data-ff-serial-refinement][data-ff-serial-locked]");
+    if (old) old.remove();
+  }
+
+  // The refinement box may be absent once results are showing, but the search box stays editable. Impossible numbering typed
   // there is still refused; legitimate searches are left to the existing flow untouched.
   function refuseWithoutSection(event, form) {
     const input = form.querySelector(QUERY);
@@ -233,7 +246,8 @@
       return;
     }
     searchHandedOff = true;
-    section.remove();
+    // An ordinary search has nothing for this helper to do, so it must not touch the page while results load.
+    if (result.needsVerification) lockSection(section);
     if (result.needsVerification) {
       // Printed numbering must go through server-owned candidate selection first.
       event.preventDefault();
@@ -251,9 +265,10 @@
       const result = prepare(form,section);
       if (result.error) { event.preventDefault(); event.stopImmediatePropagation(); return; }
       searchHandedOff = true;
-      section.remove();
+      if (result.needsVerification) lockSection(section);
     }
     if (event.target?.closest?.("[data-ff-new-card]")) {
+      dropLockedSection(document.querySelector(FORM));
       searchHandedOff = false;
       draft.numbered = "unknown"; draft.denominator = ""; draft.serial = "";
       schedule();
@@ -285,6 +300,7 @@
     const name = String(window.location.hash || "").replace(/^#\/?/,"").split(/[/?]/)[0];
     if (name !== lastRouteName) {
       lastRouteName = name;
+      dropLockedSection(document.querySelector(FORM));
       searchHandedOff = false;
       draft.numbered = "unknown"; draft.denominator = ""; draft.serial = "";
     }

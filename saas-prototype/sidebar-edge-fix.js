@@ -19,7 +19,7 @@
     ];
 
     for (const node of nodes) {
-      if (node && "scrollLeft" in node) node.scrollLeft = 0;
+      if (node && "scrollLeft" in node && node.scrollLeft !== 0) node.scrollLeft = 0;
     }
 
     if (sidebar) {
@@ -34,7 +34,10 @@
       }
     }
 
-    window.scrollTo({ left: 0, top, behavior: "instant" });
+    // Only correct a real sideways offset. Re-issuing the current vertical position on every resize cancelled the
+    // browser's own scrolling on phones, where resize fires repeatedly as the address bar collapses, so the page
+    // felt like it was fighting the finger ("fidgety") when scrolling up or down.
+    if (window.scrollX !== 0) window.scrollTo({ left: 0, top, behavior: "instant" });
   }
 
   function resetAfterLayout() {
