@@ -1,0 +1,81 @@
+name: Deal Check Phase 1 Assurance
+
+# Narrow paths on purpose (GitHub Actions minutes): only the Deal Check files, the two app shells that load them and
+# the saved-decision renderer they sit under.
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/deal-check-v1.js"
+      - "saas-prototype/deal-check-v1.css"
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer.html"
+      - "saas-prototype/customer-opportunities.js"
+      - "scripts/validate-deal-check-v1.mjs"
+      - "scripts/audit-deal-check-ci.mjs"
+      - "scripts/fixtures/deal-check/**"
+      - ".github/workflows/deal-check-v1.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deal-check-v1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deal-check:
+    name: Deal Check, Scenario Lab and Receipt Pro (unit contract + Playwright desktop/phone audit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Deal Check unit and static contract
+        run: node scripts/validate-deal-check-v1.mjs
+
+      - name: Source-truth terminology
+        run: npm run validate:source-truth-terminology
+
+      - name: Install Playwright Chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-deal-check-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-deal-check-server.log
+          exit 1
+
+      - name: Deal Check Playwright audit (desktop + phone)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          FLIPFORGE_DEAL_CHECK_SCREENSHOT_DIR: artifacts/deal-check
+        run: node scripts/audit-deal-check-ci.mjs
+
+      - name: Upload owner-review screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: deal-check-phase1-screenshots
+          path: artifacts/deal-check
+          if-no-files-found: warn
+          retention-days: 14
