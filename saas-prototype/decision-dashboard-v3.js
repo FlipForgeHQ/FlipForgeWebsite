@@ -258,6 +258,11 @@
       supportedValueBasis: valueIntelligence ? text(valueIntelligence.basis) : "",
       supportedValueExplanation: valueIntelligence ? text(valueIntelligence.explanation) : "",
       priceTransitions: priceIntelligence && Array.isArray(priceIntelligence.transitions) ? priceIntelligence.transitions : [],
+      // Read-only rules disclosure (server-owned): a saved decision made under earlier rules is never re-scored, and the
+      // price check always uses today's rules, so the two are labelled when they can differ.
+      earlierRules: governedAvailable && governed.decisionRules && governed.decisionRules.decidedUnderEarlierRules === true,
+      rulesDisclosure: governedAvailable && governed.decisionRules ? text(governed.decisionRules.disclosure) : "",
+      priceRulesDisclosure: priceIntelligence && priceIntelligence.rulesBasis === "CURRENT_RULES" ? text(priceIntelligence.rulesDisclosure) : "",
       // ⑧ Lifecycle facts, exactly as served (no history is reconstructed).
       snapshotCount: governedAvailable ? numberOrNull(governed.snapshotCount) : null,
       snapshotVersion: governedAvailable ? text(governed.snapshotVersion) : "",
@@ -396,7 +401,8 @@
       : '<span class="ffv3-tag" data-tag="source">Saved evidence unavailable</span>';
     return `<section class="ffv3-dossier-verdict" data-ffv3-section="verdict">
       <p class="ffv3-verdict-word" data-verdict="${escapeHtml(model.verdict.toLowerCase())}">${escapeHtml(model.verdict)}</p>
-      <div class="ffv3-verdict-line">${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail" data-ffv3-guardrail>Profit protection applied</span>' : ""}${sourceTag}</div>
+      <div class="ffv3-verdict-line">${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail" data-ffv3-guardrail>Profit protection applied</span>' : ""}${sourceTag}${model.earlierRules ? '<span class="ffv3-tag" data-tag="earlier-rules" data-ffv3-earlier-rules>Decided under earlier rules</span>' : ""}</div>
+      ${model.earlierRules && model.rulesDisclosure ? `<p class="ffv3-note" data-ffv3-rules-disclosure>${escapeHtml(model.rulesDisclosure)}</p>` : ""}
       <h2 class="ffv3-dossier-title">${escapeHtml(model.title)}</h2>
       ${priceSummaryMarkup(model)}
       ${model.identity && model.identity === model.title ? "" : `<p class="ffv3-identity">${escapeHtml(model.identity ? `Exact identity: ${model.identity}` : "Exact identity not reported")}</p>`}
@@ -508,7 +514,7 @@
       : "";
     const transitions = detailState === "ready" ? model.priceTransitions.map(transitionMarkup).filter(Boolean) : [];
     const boundary = transitions.length
-      ? `<div class="ffv3-boundary" data-ffv3-price-check><span class="ffv3-tag" data-tag="readonly">Read-only price check</span><ul class="ffv3-list">${transitions.join("")}</ul></div>`
+      ? `<div class="ffv3-boundary" data-ffv3-price-check><span class="ffv3-tag" data-tag="readonly">Read-only price check</span>${model.priceRulesDisclosure ? `<p class="ffv3-note" data-ffv3-price-rules>${escapeHtml(model.earlierRules ? `${model.priceRulesDisclosure} The saved decision above was made under earlier rules and is not changed.` : model.priceRulesDisclosure)}</p>` : ""}<ul class="ffv3-list">${transitions.join("")}</ul></div>`
       : "";
     const empty = !governed && !boundary ? '<p class="ffv3-note">The engine did not report a condition that would change this decision.</p>' : "";
     return `<section class="ffv3-change" data-ffv3-section="change"><header class="ffv3-section-head"><h3>What would change the decision</h3></header>${governed}${boundary}${empty}</section>`;
