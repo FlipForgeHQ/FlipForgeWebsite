@@ -30,6 +30,8 @@ const checks = [
   ["historical decision is not silently rewritten", js.includes("FlipForge does not rewrite the saved record") && js.includes("Historical snapshot only")],
   ["traceback is visibly marked historical when not reproducible", js.includes("Saved Decision Traceback") && js.includes("SAVED ${snapshot.savedRecommendation}")],
   ["current decision-support boundary is updated", js.includes("Current reproducible decision: ${snapshot.currentRecommendation}") && js.includes("current decision-support state")],
+  ["a saved decision under earlier rules is explained, not attributed to evidence", js.includes("snapshot.savedUnderEarlierRules") && js.includes("decidedUnderEarlierRules === true") && js.includes("data-earlier-rules-note") && js.includes("was decided under earlier rules and is kept as it was made")],
+  ["the analysis states it uses today's rules", js.includes('raw.rulesBasis === "CURRENT_RULES"') && js.includes("This price analysis uses today's rules.")],
   ["panel has an accessibility label", js.includes('aria-label="Counterfactual price intelligence"')],
   ["responsive price grid exists", css.includes("@media (max-width: 760px)") && css.includes("grid-template-columns: 1fr")]
 ];
