@@ -273,6 +273,25 @@ function runChecks() {
   const verifyDetailedHtml = api.markupForView(api.viewFromSnapshot(snapshot, items[1].id, "ready", { [items[1].id]: verifyDetail }));
   check("S16c no raw server enum codes in rendered decision text", [detailedHtml, verifyDetailedHtml, passHtml].every(markup => !/\b[A-Z]{2,}(?:_[A-Z0-9]+)+\b/.test(visibleText(markup))));
   check("S16d unknown enums fall back to neutral sentence case", api.humanize("PARTIAL_CONTEXT") === "Partial context");
+  // Saved decision made under earlier rules beside a current-rule price check: labelled, never re-scored.
+  const earlierItem = item("EBAY-QA-EARLIER-004", {}, {
+    decisionRules: { savedPolicyVersion: "profitability-margin-of-safety-v1.1", currentPolicyVersion: "profitability-margin-of-safety-v1.2-expected-loss",
+      decidedUnderEarlierRules: true, decidedAt: "2026-10-06T23:54:50Z", savedDecisionRescored: false, label: "Decided under earlier rules",
+      disclosure: "Decided on Oct 6, 2026 under earlier rules. This saved decision, its Max Buy and its receipt are kept exactly as they were made. Today's rules can give a different result at the same price; any analysis under today's rules is shown separately." }
+  });
+  const earlierDetail = detailData(earlierItem);
+  earlierDetail.priceIntelligence = { ...earlierDetail.priceIntelligence, rulesBasis: "CURRENT_RULES",
+    rulesDisclosure: "This price analysis uses today's rules, which give PASS at the saved price. The saved decision (WATCH) is kept as it was made; it may have been decided under earlier rules or earlier evidence.",
+    transitions: [{ allInAskCents: 60800, recommendation: "WATCH" }] };
+  const earlierSnapshot = snapshotFor([...items, earlierItem]);
+  const earlierHtml = api.markupForView(api.viewFromSnapshot(earlierSnapshot, earlierItem.id, "ready", { [earlierItem.id]: earlierDetail }));
+  check("S20 a saved decision under earlier rules is labelled with its original date, verdict unchanged",
+    /data-ffv3-earlier-rules[^>]*>Decided under earlier rules/.test(earlierHtml) && earlierHtml.includes("Decided on Oct 6, 2026 under earlier rules")
+      && /data-ffv3-section="verdict"[\s\S]*?data-verdict="watch"/.test(earlierHtml));
+  check("S21 the current-rule price check says it uses today's rules and that the saved decision is not changed",
+    /data-ffv3-price-rules[^>]*>[^<]*today(?:'|&#0?39;)s rules[^<]*The saved decision above was made under earlier rules and is not changed\./.test(earlierHtml));
+  check("S22 a decision under today's rules carries no earlier-rules label",
+    !detailedHtml.includes("data-ffv3-earlier-rules") && !detailedHtml.includes("data-ffv3-rules-disclosure"));
   check("S16e V3 Evaluate action is marked for shell de-duplication", /data-ffv3-evaluate/.test(html) && /function reconcileEvaluateAction/.test(source));
 
   const failed = api.markupForView(api.viewFromSnapshot(snapshot, items[0].id, "failed", {}));
