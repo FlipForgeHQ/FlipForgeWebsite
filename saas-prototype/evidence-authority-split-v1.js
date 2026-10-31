@@ -64,7 +64,11 @@
 
   function dateOnly(value) {
     const text = String(value || "").trim();
-    return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : (text || "Unavailable");
+    if (!/^\d{4}-\d{2}-\d{2}/.test(text)) return text || "Unavailable";
+    // Readable date ("Oct 8, 2026"), the same wording as Tracking. Formatted here so it never depends on load order.
+    const [year, month, day] = text.slice(0, 10).split("-").map(Number);
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return month >= 1 && month <= 12 && day >= 1 && day <= 31 ? `${MONTHS[month - 1]} ${day}, ${year}` : text.slice(0, 10);
   }
 
   function reasonText(item, status) {
@@ -245,7 +249,39 @@
     const listedNotCounted = NOT_COUNTED_ORDER.some(status => groups[status].length);
     excludedSection.innerHTML = `<header class="panel-header"><div><h2>What FlipForge did not count — and why</h2><p>${excludedCount > 0 ? `${excludedCount} linked row${excludedCount === 1 ? " is" : "s are"} visible for transparency but not counted now${summary ? ` (${escapeHtml(summary)})` : ""}. Only rows marked Excluded were checked and failed a rule.` : trustedCount > 0 ? "No linked row was set aside." : "No linked rows to review."}</p></div></header><div class="panel-body">${providerWithCounted ? "" : providerMarkup}${listedNotCounted || !providerMarkup || providerWithCounted ? notCountedMarkup(groups, trustedCount) : ""}</div>`;
 
+    syncDecisionTimeSupport(page, data, trustedCount);
     page.dataset.ffEvidenceAuthoritySplit = "true";
+  }
+
+  // Review 2026-10-31: sale records are no longer kept, so today's count is 0 even for a decision that was made on
+  // exact sales. The page must then not say "No sales support this decision yet" next to a saved BUY. When the saved
+  // decision recorded its count (decisionTime.salesCountAtDecision > 0), the heading and THE PROOF say that the sales
+  // supported the decision when it was made, and that they are not listed or re-counted now. Legacy results keep their
+  // own wording; an unrecorded count changes nothing. Wording only; idempotent across re-renders.
+  function syncDecisionTimeSupport(page, data, trustedCount) {
+    const decision = data?.decisionTime;
+    if (!decision || decision.available === false || trustedCount > 0) return;
+    const display = window.FlipForgeTrustDisplay;
+    if (page.querySelector("[data-ff-legacy-result]") || (display?.isLegacy && (display.isLegacy(data) || display.isLegacy(decision)))) return;
+    const raw = decision.salesCountAtDecision;
+    const recorded = !(raw === null || raw === undefined || typeof raw === "boolean" || String(raw).trim() === "");
+    const count = recorded ? Number(raw) : null;
+    const recordsKept = data?.providerEvidenceSummary?.storedSaleRecordsKept !== false;
+    const set = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
+    const proof = page.querySelector("[data-ff-evidence-proof]");
+    if (recorded && Number.isInteger(count) && count > 0) {
+      const sales = `${count} exact completed sale${count === 1 ? "" : "s"}`;
+      set(page.querySelector(".page-heading h1"), "Evidence behind this saved decision");
+      set(proof?.querySelector(".ff-evidence-proof-copy h2"), `${sales} supported this decision when it was made.`);
+      set(proof?.querySelector(".ff-evidence-proof-copy > p"), "Those sales aren't listed or re-counted here: sale records from our restricted data provider aren't kept, and no independent completed sales are counted for this card today. A new evaluation uses only FlipForge's authorized independent completed-sale evidence, which may have no sales of this exact card.");
+      if (proof) proof.dataset.ffSalesAtDecision = String(count);
+    } else if (!recorded && !recordsKept) {
+      // The count was never recorded and the records are gone: say exactly that, never "no sales support this".
+      set(page.querySelector(".page-heading h1"), "Evidence behind this saved decision");
+      set(proof?.querySelector(".ff-evidence-proof-copy h2"), "This saved decision did not record how many exact sales it used.");
+      set(proof?.querySelector(".ff-evidence-proof-copy > p"), "Sale records from our restricted data provider aren't kept, so they can't be re-counted here, and no independent completed sales are counted for this card today. A new evaluation uses only FlipForge's authorized independent completed-sale evidence, which may have no sales of this exact card.");
+      if (proof) proof.dataset.ffSalesAtDecision = "unknown";
+    }
   }
 
   async function fetchEvidence(id) {

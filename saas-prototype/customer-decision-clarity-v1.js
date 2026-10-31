@@ -85,7 +85,7 @@
       ask: values[0] ? text(values[0]) : "Unavailable",
       supported: values[1] ? text(values[1]) : "Unavailable"
     };
-    setText(labels[0], "Listing price");
+    setText(labels[0], "Ask when evaluated"); // the saved evaluation's ask, not a re-checked listing
     setText(labels[1], "Supported value");
     const gap = summary.querySelector(":scope > small");
     if (gap && /saved value gap/i.test(gap.textContent || "")) {

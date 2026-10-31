@@ -50,7 +50,7 @@
   const COLLECTION_ATTR = "data-ff-collection-intelligence";
   const NOT_MONITORED = Object.freeze([
     "Live asking prices — FlipForge does not re-check listings after a decision is saved.",
-    "New completed sales — FlipForge does not fetch sales after a decision is saved; a re-evaluation uses the latest it can find.",
+    "New completed sales — FlipForge does not fetch sales after a decision is saved; a re-evaluation uses only FlipForge's authorized independent completed-sale evidence, which may have no sales of this card.",
     "Market movement — not tracked for saved decisions."
   ]);
 
@@ -132,7 +132,7 @@
       if (maxBuy !== null && after !== null) {
         const crossedDown = before !== null && before > maxBuy && after <= maxBuy;
         const crossedUp = before !== null && before <= maxBuy && after > maxBuy;
-        detail += after <= maxBuy ? ` Now ${money(maxBuy - after)} inside the Max Buy of ${money(maxBuy)}.` : ` Now ${money(after - maxBuy)} above the Max Buy of ${money(maxBuy)}.`;
+        detail += after < maxBuy ? ` Now ${money(maxBuy - after)} inside the Max Buy of ${money(maxBuy)}.` : after === maxBuy ? ` Now right at the Max Buy of ${money(maxBuy)}.` : ` Now ${money(after - maxBuy)} above the Max Buy of ${money(maxBuy)}.`;
         if (crossedDown || crossedUp) level = "review";
       }
       add("price", level, "Asking price changed", detail, "Re-evaluation", "changed");

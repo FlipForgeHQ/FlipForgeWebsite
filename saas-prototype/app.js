@@ -531,7 +531,7 @@
 
   function renderRouteNotAvailable() {
     window.clearTimeout(unownedRouteTimer);
-    main.innerHTML = `<div class="page" data-ff-route-unavailable data-ff-route-not-found><header class="page-heading"><div><h1>Page not available</h1><p>This address does not match a FlipForge page.</p></div></header><a class="button button-primary" href="#/dashboard">Home</a></div>`;
+    main.innerHTML = `<div class="page" data-ff-route-unavailable data-ff-route-not-found><header class="page-heading"><div><h1>Page not available</h1><p>This address does not match a FlipForge page.</p></div></header><a class="button button-primary" href="#/dashboard">Home</a> <a class="button button-secondary" href="#/opportunities">Saved decisions</a></div>`;
   }
 
   function stillPending(hash) {

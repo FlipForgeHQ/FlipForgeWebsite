@@ -259,7 +259,7 @@
     const gapPercent = row.supportedAvailable && row.supported > 0 ? gap / row.supported * 100 : 0;
     return `
       <div class="ff-di-value-bars" aria-label="Ask and supported value visualization">
-        <div class="ff-di-bar-row"><span>Current ask</span><div class="ff-di-track"><span style="--ff-width:${pct(row.ask, max)}%;--ff-color:var(--ff-ui-blue)"></span></div><strong>${money(row.ask)}</strong></div>
+        <div class="ff-di-bar-row"><span>Ask when evaluated</span><div class="ff-di-track"><span style="--ff-width:${pct(row.ask, max)}%;--ff-color:var(--ff-ui-blue)"></span></div><strong>${money(row.ask)}</strong></div>
         <div class="ff-di-bar-row"><span>Supported value</span><div class="ff-di-track"><span style="--ff-width:${row.supportedAvailable ? pct(row.supported, max) : 0}%;--ff-color:var(--ff-ui-green)"></span></div><strong>${moneyOrUnavailable(row.supported, row.supportedAvailable)}</strong></div>
       </div>
       <div class="ff-di-gap"><span>Saved value gap · before outside costs</span><strong>${row.supportedAvailable ? `${gap >= 0 ? "+" : ""}${money(gap)} · ${gapPercent.toFixed(1)}%` : "Withheld · exact evidence required"}</strong></div>`;
