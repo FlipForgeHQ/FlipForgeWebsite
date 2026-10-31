@@ -84,14 +84,14 @@
     if (trust()?.isLegacy && trust().isLegacy(item)) return `<span>Not currently supported</span>`;
     const receipt = savedReceipt(item);
     const cents = Number(receipt?.supportedValueCents);
-    if (receipt && Number.isFinite(cents) && cents > 0) return `<span>${escapeHtml(moneyFromCents(cents))}</span><small>at decision</small>`;
+    if (receipt && Number.isFinite(cents) && cents > 0) return `<span>${escapeHtml(moneyFromCents(cents))}</span><small class="ff-at-decision" style="display:block">at decision</small>`;
     return `<span>${escapeHtml(supportedValueText(item))}</span>`;
   }
   function listEvidenceCell(item) {
     if (trust()?.isLegacy && trust().isLegacy(item)) return `<span>Withheld</span>`;
     const receipt = savedReceipt(item);
     const count = Number(receipt?.exactTrustedCompCount);
-    if (receipt && Number.isFinite(count) && count >= 0) return `<span>${count} exact sale${count === 1 ? "" : "s"}</span><small>at decision</small>`;
+    if (receipt && Number.isFinite(count) && count >= 0) return `<span>${count} exact sale${count === 1 ? "" : "s"}</span><small class="ff-at-decision" style="display:block">at decision</small>`;
     return `<span>${safeNumber(item.evidence?.acceptedSales)}</span>`;
   }
   function validValueIntelligence(value) {
