@@ -185,6 +185,28 @@ for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
   await context.close();
 }
 
+// Host re-render (a lifecycle save or Refresh replaces the page): the monitor reloads its data exactly once, then settles.
+{
+  const id = cards.crossesMaxBuy;
+  const { context, page, requests, errors } = await open(VIEWPORTS.desktop, `#/tracking/${encodeURIComponent(id)}`);
+  await page.waitForSelector(`[data-ff-decision-monitor="${id}"]`, { timeout: 20000 }).catch(() => {});
+  await page.waitForTimeout(1500);
+  const alertsBefore = requests.filter(r => r === "GET /api/v1/alerts").length;
+  await page.evaluate(sel => {
+    document.querySelector(sel)?.remove();
+    const t = document.querySelector(".customer-lifecycle-page .customer-decision-timeline-panel");
+    if (t) t.replaceWith(t.cloneNode(true));
+  }, `[data-ff-decision-monitor="${id}"]`);
+  await page.waitForSelector(`[data-ff-decision-monitor="${id}"]`, { timeout: 20000 }).catch(() => {});
+  await page.waitForTimeout(3000);
+  const alertsAfter = requests.filter(r => r === "GET /api/v1/alerts").length;
+  const panels = await page.evaluate(sel => document.querySelectorAll(sel).length, `[data-ff-decision-monitor="${id}"]`);
+  check("re-render: monitor shown again after the host page re-renders", panels === 1, String(panels));
+  check("re-render: data reloaded exactly once (no stale cache, no reload loop)", alertsAfter === alertsBefore + 1, `${alertsBefore}→${alertsAfter}`);
+  check("re-render: no page errors", errors.length === 0, errors.join(" | ").slice(0, 200));
+  await context.close();
+}
+
 // Deal Check on the saved-decision page (#/opportunities/{id}), same server responses, both viewports.
 for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
   for (const [key, id] of Object.entries(cards)) {

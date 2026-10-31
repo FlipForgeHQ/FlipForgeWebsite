@@ -244,11 +244,14 @@
     if (typeof alertsData.decisionReviewSignalVersion !== "string" || !Array.isArray(alertsData.decisionReviewSignals)) {
       return { status: "unsupported", signals: [], considered: null };
     }
+    const unavailableCount = int(alertsData.decisionReviewSignalsUnavailable) || 0;
     return {
-      status: "available",
+      // "partial": the backend says some tracked decisions could not be assessed, so the returned signals are real but
+      // the absence of a signal is not evidence that nothing needs review.
+      status: unavailableCount > 0 ? "partial" : "available",
       version: alertsData.decisionReviewSignalVersion,
       considered: int(alertsData.decisionReviewSignalsConsidered),
-      unavailableCount: int(alertsData.decisionReviewSignalsUnavailable) || 0,
+      unavailableCount,
       signals: alertsData.decisionReviewSignals.filter(sig => sig && typeof sig === "object")
     };
   }
@@ -287,8 +290,8 @@
       .map(sig => (sig.key === "price" && sig.level === "review" ? { ...sig, level: "info" } : sig));
     const merged = [];
     let status = feed ? feed.status : "unavailable";
-    if (status === "available" && !tracked) status = "untracked";
-    if (status === "available") {
+    if ((status === "available" || status === "partial") && !tracked) status = "untracked";
+    if (status === "available" || status === "partial") {
       const seen = new Set();
       let contradicted = 0;
       for (const sig of feed.signals) {
@@ -305,6 +308,7 @@
       if (earlierFromServer && !result.signals.some(sig => sig.key === "earlier-rules")) {
         merged.push({ key: "earlier-rules", level: "info", title: "Decided under earlier rules", detail: "This saved decision and its Max Buy are kept exactly as they were made. Today's rules can give a different result at the same price.", source: "FlipForge review signal", category: "historical" });
       }
+      if (status === "partial") merged.push({ key: "review-signals-status", level: "info", title: "Review signals incomplete", detail: "FlipForge could not check every tracked decision just now, so a review prompt for this card may be missing. Your saved decision is unchanged.", source: "Review signals", category: "not-rechecked" });
       if (contradicted) merged.push({ key: "review-signals-mismatch", level: "info", title: "A review signal was not shown", detail: `${plural(contradicted, "review signal")} did not match this saved decision, so ${contradicted === 1 ? "it was" : "they were"} left out rather than showing conflicting states.`, source: "FlipForge review signal", category: "not-rechecked" });
     } else if (status === "untracked") {
       merged.push({ key: "review-signals-status", level: "info", title: "Not tracked yet", detail: "Track this card to get review signals: asking price vs. Max Buy at re-evaluation, 30-day re-check and pending verification.", source: "Review signals", category: "not-rechecked" });
@@ -322,6 +326,8 @@
   /** Collection Intelligence for Portfolio. Pure; keeps the server's card order. */
   function collection(portfolioData, opportunityItems, nowMs = Date.now(), feed = null) {
     const items = Array.isArray(portfolioData?.items) ? portfolioData.items.filter(i => i && typeof i === "object") : [];
+    // null (or anything that is not a list) means the saved decisions could not be read: say so, never infer "unlinked".
+    const decisionsAvailable = Array.isArray(opportunityItems);
     const byId = new Map((Array.isArray(opportunityItems) ? opportunityItems : []).filter(i => i && SAFE_ID.test(String(i.id || ""))).map(i => [String(i.id), i]));
     const rows = items.map(item => {
       const id = text(item.opportunityId);
@@ -332,7 +338,7 @@
       const exit = model && deal && typeof deal.exitDifficulty === "function" ? deal.exitDifficulty(model) : null;
       const cost = int(item.acquisitionCostCents);
       const review = result.signals ? result.signals.filter(s => s.level === "review" && s.key !== "price-unmonitored") : [];
-      if (!model) review.push({ key: "unlinked", level: "review", title: "No saved decision linked to this card", detail: "Evaluate the card so its holding sits next to a decision receipt.", source: "Your record" });
+      if (!model && decisionsAvailable) review.push({ key: "unlinked", level: "review", title: "No saved decision linked to this card", detail: "Evaluate the card so its holding sits next to a decision receipt.", source: "Your record" });
       return {
         id,
         title: text(opportunity?.title) || text(opportunity?.cardIdentity) || id,
@@ -347,13 +353,18 @@
         exit,
         reverify: result.signals ? result.signals.some(s => ["srv-VERIFICATION_PENDING", "srv-LEGACY_DECISION", "srv-DECISION_RECHECK_DUE"].includes(s.key)) : false,
         review,
-        nextStep: review.length ? review[0].title : model ? "No review needed from saved data" : "Open the card to link its saved decision"
+        decisionUnavailable: !decisionsAvailable,
+        nextStep: review.length ? review[0].title : !decisionsAvailable ? "Saved decision could not be loaded right now" : model ? "No review needed from saved data" : "Open the card to link its saved decision"
       };
     });
     const sum = list => list.reduce((total, row) => total + (row.costCents || 0), 0);
     const costed = rows.filter(r => r.costCents !== null);
+    const signalStatus = feed ? feed.status : "unavailable";
     return {
       available: items.length > 0,
+      decisionsAvailable,
+      // Counts that come from saved decisions or review signals are only stated when that data was read completely.
+      complete: decisionsAvailable && ["available", "untracked"].includes(signalStatus),
       count: rows.length,
       totalCostBasisCents: int(portfolioData?.totalCostBasisCents) ?? sum(costed),
       unsupportedCostCents: sum(costed.filter(r => !r.supportedEstablished)),
@@ -361,10 +372,10 @@
       agedCostCents: sum(costed.filter(r => r.ageDays !== null && r.ageDays >= RECHECK_DAYS)),
       agedCount: costed.filter(r => r.ageDays !== null && r.ageDays >= RECHECK_DAYS).length,
       overMaxBuyCount: rows.filter(r => r.paidVsMaxBuyCents !== null && r.paidVsMaxBuyCents > 0).length,
-      unlinkedCount: rows.filter(r => !r.linked).length,
+      unlinkedCount: decisionsAvailable ? rows.filter(r => !r.linked).length : 0,
       reverifyCount: rows.filter(r => r.reverify).length,
       hardExitCount: rows.filter(r => r.exit && r.exit.established && (r.exit.level === "higher" || r.exit.level === "high")).length,
-      reviewSignalStatus: feed ? feed.status : "unavailable",
+      reviewSignalStatus: signalStatus,
       attention: rows.filter(r => r.review.length > 0),
       rows
     };
@@ -407,9 +418,10 @@
     const groups = grouped(result.signals);
     const review = groups.attention;
     const recordedChanges = result.signals.filter(s => s.category === "changed").length;
+    const incomplete = ["partial", "unavailable"].includes(result.reviewSignalStatus);
     const headline = review.length
-      ? `${plural(review.length, "thing")} to review since this decision`
-      : "Nothing needs review from FlipForge's saved data";
+      ? `${plural(review.length, "thing")} to review since this decision${incomplete ? " (review signals incomplete)" : ""}`
+      : incomplete ? "Review signals incomplete: nothing else found to review" : "Nothing needs review from FlipForge's saved data";
     const sinceText = result.evaluatedAt ? `Saved ${dateOnly(result.evaluatedAt)}${result.ageDays !== null ? ` · ${plural(result.ageDays, "day")} ago` : ""} · ${result.reEvaluations ? plural(result.reEvaluations, "re-evaluation") : "not re-evaluated since"}` : "";
     const item = s => `<li data-level="${s.level}" data-ffdm-signal="${escapeHtml(s.key)}" data-ffdm-category="${escapeHtml(s.category || "historical")}"><span class="ffdm-dot" aria-hidden="true"></span><div><strong>${escapeHtml(s.title)}</strong><p>${escapeHtml(s.detail)}</p><small>${escapeHtml(s.level === "review" ? `${categoryLabel(s.category)} · ${s.source}` : s.source)}</small></div></li>`;
     const changedEmpty = result.reEvaluations
@@ -442,21 +454,21 @@
     const attention = view.attention;
     const row = r => `<li data-ffci-card="${escapeHtml(r.id)}">
         <div class="ffci-card"><strong>${escapeHtml(r.title)}</strong>
-          <span>${r.linked ? `${chip(r.verdict)} Max Buy ${escapeHtml(money(r.maxBuyCents, "not set"))}` : "No saved decision linked"} · Paid ${escapeHtml(money(r.costCents, "not entered"))}${r.paidVsMaxBuyCents !== null ? ` <em data-over="${r.paidVsMaxBuyCents > 0}">${escapeHtml(r.paidVsMaxBuyCents > 0 ? `${money(r.paidVsMaxBuyCents)} over Max Buy` : `${money(-r.paidVsMaxBuyCents)} under Max Buy`)}</em>` : ""}${r.exit ? ` · Exit difficulty: ${escapeHtml(r.exit.label)}` : ""}</span>
+          <span>${r.linked ? `${chip(r.verdict)} Max Buy ${escapeHtml(money(r.maxBuyCents, "not set"))}` : r.decisionUnavailable ? "Saved decision unavailable right now" : "No saved decision linked"} · Paid ${escapeHtml(money(r.costCents, "not entered"))}${r.paidVsMaxBuyCents !== null ? ` <em data-over="${r.paidVsMaxBuyCents > 0}">${escapeHtml(r.paidVsMaxBuyCents > 0 ? `${money(r.paidVsMaxBuyCents)} over Max Buy` : `${money(-r.paidVsMaxBuyCents)} under Max Buy`)}</em>` : ""}${r.exit ? ` · Exit difficulty: ${escapeHtml(r.exit.label)}` : ""}</span>
           ${r.review.length ? `<ul>${r.review.slice(0, 3).map(s => `<li>${escapeHtml(s.title)}</li>`).join("")}</ul>` : `<small>${escapeHtml(r.nextStep)}</small>`}
         </div>
         <div class="ffci-links">${SAFE_ID.test(r.id) ? `${r.linked ? `<a href="#/opportunities/${encodeURIComponent(r.id)}">Decision receipt</a>` : ""}<a href="#/tracking/${encodeURIComponent(r.id)}">Monitor</a>` : ""}</div>
       </li>`;
     return `<section class="ffci" ${COLLECTION_ATTR} data-ffci-version="${VERSION}" aria-labelledby="ffci-title">
-      <header class="ffdm-head"><div><span class="ffdm-kicker">Collection Intelligence™</span><h2 id="ffci-title">${attention.length ? `${plural(attention.length, "card")} to review next` : "Nothing to review from saved data"}</h2>
-        <p class="ffdm-muted">Each owned card next to the decision you saved for it. Cards keep their usual order.${view.unlinkedCount ? ` ${plural(view.unlinkedCount, "owned card")} ${view.unlinkedCount === 1 ? "has" : "have"} no linked saved decision.` : ""}</p></div></header>
+      <header class="ffdm-head"><div><span class="ffdm-kicker">Collection Intelligence™</span><h2 id="ffci-title">${!view.decisionsAvailable ? "Saved decisions could not be loaded" : attention.length ? `${plural(attention.length, "card")} to review next` : view.complete ? "Nothing to review from saved data" : "Review signals incomplete: nothing else found to review"}</h2>
+        <p class="ffdm-muted">Each owned card next to the decision you saved for it. Cards keep their usual order.${!view.decisionsAvailable ? " FlipForge could not load your saved decisions just now, so figures that depend on them are not shown rather than guessed." : ""}${view.unlinkedCount ? ` ${plural(view.unlinkedCount, "owned card")} ${view.unlinkedCount === 1 ? "has" : "have"} no linked saved decision.` : ""}</p></div></header>
       <div class="ffci-exposure" data-ffci-exposure>
         <div><span>Cost basis</span><strong>${escapeHtml(money(view.totalCostBasisCents))}</strong><small>${plural(view.count, "owned card")} · what you entered</small></div>
-        <div data-tone="${view.unsupportedCostCents > 0 ? "warn" : ""}"><span>Without supported value</span><strong>${escapeHtml(money(view.unsupportedCostCents))}</strong><small>${plural(view.unsupportedCount, "card")} with no evidence-supported value</small></div>
-        <div data-tone="${view.agedCostCents > 0 ? "warn" : ""}"><span>On decisions 30+ days old</span><strong>${escapeHtml(money(view.agedCostCents))}</strong><small>${plural(view.agedCount, "card")} to re-check</small></div>
-        <div><span>Paid above Max Buy</span><strong>${escapeHtml(String(view.overMaxBuyCount))}</strong><small>Compared with the Max Buy at decision</small></div>
-        <div data-tone="${view.reverifyCount > 0 ? "warn" : ""}" data-ffci-reverify><span>Need another look</span><strong>${view.reviewSignalStatus === "available" ? escapeHtml(String(view.reverifyCount)) : "—"}</strong><small>${view.reviewSignalStatus === "available" ? "Re-check due, verification pending, or evidence FlipForge no longer accepts" : "Review signals unavailable right now"}</small></div>
-        <div data-tone="${view.hardExitCount > 0 ? "warn" : ""}" data-ffci-exits><span>Harder exits</span><strong>${escapeHtml(String(view.hardExitCount))}</strong><small>Few exact sales behind the decision</small></div>
+        <div data-tone="${view.unsupportedCostCents > 0 ? "warn" : ""}"><span>Without supported value</span><strong>${view.decisionsAvailable ? escapeHtml(money(view.unsupportedCostCents)) : "—"}</strong><small>${plural(view.unsupportedCount, "card")} with no evidence-supported value</small></div>
+        <div data-tone="${view.agedCostCents > 0 ? "warn" : ""}"><span>On decisions 30+ days old</span><strong>${view.decisionsAvailable ? escapeHtml(money(view.agedCostCents)) : "—"}</strong><small>${plural(view.agedCount, "card")} to re-check</small></div>
+        <div><span>Paid above Max Buy</span><strong>${view.decisionsAvailable ? escapeHtml(String(view.overMaxBuyCount)) : "—"}</strong><small>Compared with the Max Buy at decision</small></div>
+        <div data-tone="${view.reverifyCount > 0 ? "warn" : ""}" data-ffci-reverify><span>Need another look</span><strong>${view.reviewSignalStatus === "available" && view.decisionsAvailable ? escapeHtml(String(view.reverifyCount)) : "—"}</strong><small>${view.reviewSignalStatus === "available" && view.decisionsAvailable ? "Re-check due, verification pending, or evidence FlipForge no longer accepts" : view.reviewSignalStatus === "partial" ? "Some tracked decisions could not be checked right now" : "Review signals unavailable right now"}</small></div>
+        <div data-tone="${view.hardExitCount > 0 ? "warn" : ""}" data-ffci-exits><span>Harder exits</span><strong>${view.decisionsAvailable ? escapeHtml(String(view.hardExitCount)) : "—"}</strong><small>Few exact sales behind the decision</small></div>
       </div>
       ${attention.length ? `<ol class="ffci-list" data-ffci-attention>${attention.map(row).join("")}</ol>` : ""}
       <details class="ffdm-more" data-ffci-all><summary>All owned cards and their saved decisions</summary><ol class="ffci-list">${view.rows.map(row).join("")}</ol></details>
@@ -468,7 +480,9 @@
    * Runtime
    * ------------------------------------------------------------------ */
 
-  const state = { key: "", loading: "", result: null, collection: null, serial: 0, scheduled: false };
+  // renderedAnchor: the host element the panel was last inserted next to. When the host page re-renders (a lifecycle
+  // save, Portfolio Refresh) that element is replaced, so the cached result is dropped and reloaded once.
+  const state = { key: "", loading: "", result: null, collection: null, serial: 0, scheduled: false, renderedAnchor: null };
 
   function enabled() {
     if (typeof window === "undefined" || window.FlipForgeDecisionMonitorDisabled === true) return false;
@@ -525,7 +539,7 @@
     state.loading = "";
     state.key = key;
     state.collection = portfolio.status === "fulfilled" && portfolio.value?.kind === "portfolio"
-      ? collection(portfolio.value, opportunities.status === "fulfilled" ? opportunities.value?.items : [], Date.now(),
+      ? collection(portfolio.value, opportunities.status === "fulfilled" && Array.isArray(opportunities.value?.items) ? opportunities.value.items : null, Date.now(),
         reviewSignalFeed(alerts.status === "fulfilled" ? alerts.value : null, alerts.status !== "fulfilled"))
       : null;
   }
@@ -551,7 +565,17 @@
     const stale = main ? [...main.querySelectorAll(`[${PANEL_ATTR}], [${COLLECTION_ATTR}]`)] : [];
     if (!enabled() || !main || !name) { stale.forEach(node => node.remove()); return; }
     stale.filter(node => (node.hasAttribute(PANEL_ATTR) ? `${name}:${node.getAttribute(PANEL_ATTR)}` : "portfolio:") !== key).forEach(node => node.remove());
+    const anchor = name === "portfolio" ? main.querySelector(".customer-portfolio-page .customer-portfolio-metrics")
+      : name === "tracking" ? main.querySelector(".customer-lifecycle-page .customer-decision-timeline-panel")
+        : main.querySelector("[data-ff-deal-check]");
+    const panelShown = Boolean(main.querySelector(name === "portfolio" ? `[${COLLECTION_ATTR}]` : `[${PANEL_ATTR}]`));
+    if (state.key === key && state.loading !== key && anchor && !panelShown && state.renderedAnchor
+        && state.renderedAnchor !== anchor && !state.renderedAnchor.isConnected) {
+      state.key = "";
+      state.renderedAnchor = null;
+    }
     if (state.key !== key && state.loading !== key) {
+      state.renderedAnchor = null;
       (name === "portfolio" ? loadCollection(key) : loadCard(key, id)).then(schedule, schedule);
       return;
     }
@@ -559,18 +583,14 @@
 
     if (name === "portfolio") {
       if (!state.collection || main.querySelector(`[${COLLECTION_ATTR}]`)) return;
-      const metrics = main.querySelector(".customer-portfolio-page .customer-portfolio-metrics");
-      if (metrics) insertAfter(metrics, collectionMarkup(state.collection));
+      if (anchor) { insertAfter(anchor, collectionMarkup(state.collection)); state.renderedAnchor = anchor; }
       return;
     }
     if (!state.result || state.result.id !== id || main.querySelector(`[${PANEL_ATTR}]`)) return;
-    if (name === "tracking") {
-      const timeline = main.querySelector(".customer-lifecycle-page .customer-decision-timeline-panel");
-      if (timeline) insertBefore(timeline, monitorMarkup(id, state.result.data));
-    } else {
-      const deal = main.querySelector(`[data-ff-deal-check]`);
-      if (deal) insertAfter(deal, monitorMarkup(id, state.result.data, { compact: true, trackingHref: `#/tracking/${encodeURIComponent(id)}` }));
-    }
+    if (!anchor) return;
+    if (name === "tracking") insertBefore(anchor, monitorMarkup(id, state.result.data));
+    else insertAfter(anchor, monitorMarkup(id, state.result.data, { compact: true, trackingHref: `#/tracking/${encodeURIComponent(id)}` }));
+    state.renderedAnchor = anchor;
   }
 
   function schedule() {

@@ -279,6 +279,50 @@ check("no saved decision: unavailable, no signals", M.monitor(null, null, null, 
   check("no font-size below 14px", sizes.length > 0 && sizes.every(s => s >= 14), sizes.filter(s => s < 14).join(","));
 }
 
+// Review findings (#592, 2026-10-31): missing data is never presented as a fact; host re-renders refresh the panel.
+{
+  const integrated = (id, feed, lifecycle = lifecycleRecords()[id]) => {
+    const detail = lifecycleDetail(id);
+    const timeline = M.timelineOf(detail);
+    const model = M.dealModelOf(D[id].opportunity, timeline);
+    return M.integrate(M.monitor(model, timeline, lifecycle, NOW), feed, { id, lifecycle, model });
+  };
+  // 1. Incomplete backend coverage (decisionReviewSignalsUnavailable > 0).
+  const partialData = JSON.parse(JSON.stringify(alertsData("available")));
+  partialData.decisionReviewSignalsUnavailable = 2;
+  const partial = M.reviewSignalFeed(partialData);
+  check("findings: unavailable assessments make the feed partial", partial.status === "partial" && partial.unavailableCount === 2);
+  const partialBuy = integrated(IDS.buy, partial);
+  check("findings: partial feed still shows the signals the backend returned", partialBuy.signals.some(x => x.key === "srv-MAX_BUY_CROSSED"));
+  check("findings: partial feed says review signals are incomplete", partialBuy.signals.some(x => x.key === "review-signals-status" && /incomplete/i.test(x.title)));
+  const emptyPartial = JSON.parse(JSON.stringify(partialData));
+  emptyPartial.decisionReviewSignals = [];
+  const quiet = integrated(IDS.watch, M.reviewSignalFeed(emptyPartial));
+  const quietHtml = M.monitorMarkup(IDS.watch, quiet);
+  check("findings: partial feed with no signals never claims nothing needs review", !/Nothing needs review/.test(quietHtml) && /incomplete/i.test(quietHtml));
+  const downHtml = M.monitorMarkup(IDS.verify, integrated(IDS.verify, M.reviewSignalFeed(null, true)));
+  check("findings: unavailable feed never claims nothing needs review", !/Nothing needs review/.test(downHtml));
+  const partialView = M.collection(portfolio(), opportunitiesList().items, NOW, M.reviewSignalFeed(emptyPartial));
+  const partialCollectionHtml = M.collectionMarkup(partialView);
+  check("findings: Portfolio 'Need another look' is not a count when coverage is partial", /data-ffci-reverify><span>Need another look<\/span><strong>—<\/strong>/.test(partialCollectionHtml) && /could not be checked/.test(partialCollectionHtml));
+  check("findings: Portfolio never says 'Nothing to review' when coverage is partial", !/Nothing to review from saved data/.test(partialCollectionHtml));
+
+  // 2. Portfolio read succeeds but the saved-decision list fails.
+  const failedView = M.collection(portfolio(), null, NOW, M.reviewSignalFeed(alertsData("available")));
+  check("findings: failed decision read is not 'unlinked'", failedView.decisionsAvailable === false && failedView.unlinkedCount === 0
+    && failedView.rows.every(r => !r.review.some(x => x.key === "unlinked")) && failedView.attention.length === 0);
+  const failedHtml = M.collectionMarkup(failedView);
+  check("findings: failed decision read is stated, not guessed", /Saved decisions could not be loaded/.test(failedHtml) && /Saved decision unavailable right now/.test(failedHtml)
+    && !/No saved decision linked/.test(failedHtml) && !/to evaluate|Evaluate the card/.test(failedHtml));
+  check("findings: decision-dependent figures are blank, not $0.00 or 0", /Without supported value<\/span><strong>—/.test(failedHtml) && /On decisions 30\+ days old<\/span><strong>—/.test(failedHtml)
+    && /Paid above Max Buy<\/span><strong>—/.test(failedHtml) && /Harder exits<\/span><strong>—/.test(failedHtml));
+  check("findings: an empty decision list still means unlinked (the read succeeded)", M.collection(portfolio(), [], NOW).unlinkedCount > 0);
+
+  // 3. Cached panel is refreshed after the host page re-renders (lifecycle save, Portfolio Refresh).
+  check("findings: re-render detection keyed on the replaced host element", /renderedAnchor !== anchor && !state\.renderedAnchor\.isConnected/.test(SOURCE)
+    && /state\.renderedAnchor = anchor/.test(SOURCE) && /state\.key = "";/.test(SOURCE));
+}
+
 // Shell wiring: monitor loads after Deal Check in both shells.
 for (const shell of ["saas-prototype/index.html", "saas-prototype/customer.html"]) {
   const html = read(shell);
