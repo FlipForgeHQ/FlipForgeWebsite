@@ -115,6 +115,10 @@ const panel = (page, selector) => page.evaluate(sel => {
 const SAFE_COPY = text => !/real[- ]time|live monitoring|we watch|monitoring the market|continuously|market (moved|rose|fell)/i.test(text)
   && !/card[\s_-]*sight/i.test(text) && !/Max Buy \$0\.00/.test(text);
 
+// Missing and stale evidence: since the provider containment the backend keeps no sale records (LIVE_PRICING_ONLY) and
+// the provider catalog mapping is never CONFIRMED, so neither may surface as a change, a zero count or a card-match warning.
+const FALSE_EVIDENCE = text => /Fewer saved sales|saved sales count now|Card match not confirmed/i.test(text);
+
 const CASES = [
   { key: "crossesMaxBuy", label: "ask crosses Max Buy", expect: f => [
       ["attention lists the Max Buy crossing", f.groups.attention?.signals.includes("srv-MAX_BUY_CROSSED")],
@@ -148,6 +152,7 @@ for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
       check(`${label}: states FlipForge does not watch prices between re-evaluations`, /does not watch prices between re-evaluations/.test(f.text));
       check(`${label}: no live-monitoring claim, provider name or $0.00 Max Buy`, SAFE_COPY(f.text));
       check(`${label}: saved decision shown as unchanged`, /Saved decision · unchanged/.test(f.text));
+      check(`${label}: no false evidence change (saved sales are not kept since containment)`, !FALSE_EVIDENCE(f.text), f.text.slice(0, 160));
       check(`${label}: no horizontal overflow`, f.overflow <= 1, String(f.overflow));
       for (const [name, ok] of c.expect(f)) check(`${label}: ${name}`, Boolean(ok));
       const node = await page.$(`[data-ff-decision-monitor="${id}"]`);
@@ -178,6 +183,44 @@ for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
   check(`${vp}/portfolio: no page errors`, errors.length === 0, errors.join(" | ").slice(0, 200));
   check(`${vp}/portfolio: GET only`, requests.every(r => r.startsWith("GET ")), requests.join(","));
   await context.close();
+}
+
+// Deal Check on the saved-decision page (#/opportunities/{id}), same server responses, both viewports.
+for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
+  for (const [key, id] of Object.entries(cards)) {
+    const label = `${vp}/deal-check/${key}`;
+    const g = governed(id);
+    const live = /LIVE_PRICING_ONLY/i.test(JSON.stringify(response(`/api/v1/opportunities/${id}`)?.body?.data?.opportunity?.evidence?.priceStatus || ""));
+    const { context, page, requests, errors } = await open(viewport, `#/opportunities/${encodeURIComponent(id)}`);
+    await page.waitForSelector(`[data-ff-deal-check="${id}"]`, { timeout: 20000 }).catch(() => {});
+    const d = await page.evaluate(sel => {
+      const node = document.querySelector(sel);
+      if (!node) return null;
+      const row = k => { const li = node.querySelector(`[data-ffdc-check="${k}"]`); return li ? { status: li.getAttribute("data-status"), text: li.textContent.replace(/\s+/g, " ") } : null; };
+      const receipt = node.querySelector("[data-ffdc-receipt]");
+      return { count: document.querySelectorAll(sel).length, text: node.textContent.replace(/\s+/g, " "), identity: row("identity"),
+        receipt: receipt ? receipt.textContent.replace(/\s+/g, " ") : "",
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    }, `[data-ff-deal-check="${id}"]`);
+    check(`${label}: Deal Check renders once`, d && d.count === 1);
+    if (d) {
+      check(`${label}: shows the saved verdict (${g.recommendation})`, Boolean(g.recommendation) && d.text.includes(g.recommendation));
+      if (Number.isFinite(g.maximumBuyPriceCents) && g.maximumBuyPriceCents > 0) {
+        check(`${label}: shows the saved Max Buy exactly`, d.text.includes(usd(g.maximumBuyPriceCents)), usd(g.maximumBuyPriceCents));
+      }
+      check(`${label}: no false evidence statement`, !FALSE_EVIDENCE(d.text));
+      check(`${label}: no live-monitoring claim, provider name or $0.00 Max Buy`, SAFE_COPY(d.text));
+      if (live) check(`${label}: saved-sales count is not shown as a number (LIVE_PRICING_ONLY)`, !/Sales saved for this card now\s*\d/.test(d.receipt), d.receipt.slice(0, 120));
+      if (g.recommendation === "VERIFY") check(`${label}: VERIFY is not shown as exact-card checks passed`, !(d.identity && /Exact-card checks passed/.test(d.identity.text)));
+      else check(`${label}: governed non-VERIFY shows exact-card checks passed`, Boolean(d.identity) && d.identity.status === "pass" && /Exact-card checks passed/.test(d.identity.text), d.identity ? d.identity.text : "no identity row");
+      check(`${label}: no horizontal overflow`, d.overflow <= 1, String(d.overflow));
+      const node = await page.$(`[data-ff-deal-check="${id}"]`);
+      if (node && key === "crossesMaxBuy") await node.screenshot({ path: `${shots}/${vp}-dealcheck-${key}.png` });
+    }
+    check(`${label}: no page errors`, errors.length === 0, errors.join(" | ").slice(0, 200));
+    check(`${label}: GET only, no evaluation or provider route`, requests.every(r => r.startsWith("GET ")) && !requests.some(r => /evaluations|discover|card-intelligence/.test(r)), requests.join(","));
+    await context.close();
+  }
 }
 
 check("backend saw only GET requests, the service token and the QA tenant", upstreamProblems.length === 0, upstreamProblems.slice(0, 5).join(" | "));
