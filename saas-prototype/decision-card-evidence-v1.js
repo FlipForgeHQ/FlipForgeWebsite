@@ -91,8 +91,9 @@
     if (!root || !summary || !hero) return null;
 
     // The hero status is the saved verdict; the summary pill is derived from it and never consulted first.
-    const decision = ["BUY", "WATCH", "VERIFY", "PASS"].find(value => value === text(hero.querySelector(".staging-status")).toUpperCase())
-      || "UNKNOWN";
+    // A legacy result's hero reads "SAVED BUY" (customer-trust-display-v1.js); the verdict is the last word either way.
+    const heroStatus = text(hero.querySelector(".staging-status")).toUpperCase().replace(/^SAVED\s+/, "");
+    const decision = ["BUY", "WATCH", "VERIFY", "PASS"].find(value => value === heroStatus) || "UNKNOWN";
     const identity = text(hero.querySelector(".customer-hero-title h2")) || "Saved card";
     const identityDetail = text(hero.querySelector(".customer-hero-copy > p"));
     const reasonParagraphs = [...summary.querySelectorAll(".ff-decision-summary-main > p")]
@@ -125,6 +126,7 @@
       confidence,
       risk,
       exactIdentity: exactIdentityState(root, record),
+      legacy: Boolean(hero.querySelector("[data-ff-legacy-result]") || root.querySelector(".customer-intelligence-hero [data-ff-legacy-result]")),
       economics: economicsOf(root),
       observed,
       evidenceHref: `#/evidence/${id}`,
@@ -154,6 +156,7 @@
       confidence: labeledValue(verdict, ".ff-di-v2-verdict-metrics > div", "Confidence"),
       risk: labeledValue(verdict, ".ff-di-v2-verdict-metrics > div", "Risk"),
       exactIdentity: labeledValue(command, ".ff-di-v2-gate", "Exact identity"),
+      legacy: Boolean(command.querySelector("[data-ff-legacy-result]") || root.querySelector("[data-ff-legacy-result]")),
       economics: economicsOf(command),
       observed: labeledValue(command, ".ff-di-v2-receipt-grid > div", "Observed"),
       evidenceHref: command.querySelector(".ff-di-v2-evidence-link")?.getAttribute("href") || "#/evidence",
@@ -177,6 +180,15 @@
     PASS: ["This deal does not meet the decision standard", "The saved evidence, economics and risk did not justify buying this card at the evaluated conditions. That is a judgment about this specific deal, not a prediction of the card's future value."],
     UNKNOWN: ["A supported verdict is not available", "The saved record does not provide a current supported BUY, WATCH, VERIFY or PASS interpretation. Review the original server decision and its evidence."],
   });
+  // A legacy result (saved before current evidence rules; its evidence is withheld) keeps its saved verdict visible as
+  // historical and never gets current-support wording such as "Evidence supports considering this purchase".
+  function legacyImpact(decision) {
+    return [
+      "Saved before current evidence rules · not currently supported",
+      "This is the recommendation saved on its date, before FlipForge's current evidence rules. The evidence behind it is withheld, so it does not support acting now. It is kept exactly as it was made and is not rescored."
+    ];
+  }
+  const LEGACY_NEXT_STEP = "Evaluate the card again for a result under current evidence rules before relying on it. FlipForge does not bid or buy for you.";
   // Non-transactional next steps for each saved verdict. Wording only; nothing here is a calculation.
   const NEXT_STEP_COPY = Object.freeze({
     BUY: "Check the listing, the card's condition and the total cost yourself, then decide whether to proceed. FlipForge does not bid or buy for you.",
@@ -228,11 +240,18 @@
 
   function render(model) {
     const evidence = evidenceSummary(model);
-    const impact = CARD_IMPACT_COPY[model.decision] || CARD_IMPACT_COPY.UNKNOWN;
+    const impact = model.legacy ? legacyImpact(model.decision) : (CARD_IMPACT_COPY[model.decision] || CARD_IMPACT_COPY.UNKNOWN);
+    const nextStep = model.legacy ? LEGACY_NEXT_STEP : (NEXT_STEP_COPY[model.decision] || NEXT_STEP_COPY.UNKNOWN);
+    const confidenceLabel = model.legacy ? "Confidence at the time" : "Confidence";
+    // The original evidence of a legacy result is withheld; a bare 0 would read as "no evidence was used".
+    if (model.legacy && (evidence.trusted === "0" || evidence.trusted === 0 || evidence.trusted === "Qualified evidence")) {
+      evidence.trusted = "Withheld";
+      evidence.excluded = "Original evidence withheld";
+    }
     const signature = JSON.stringify([
       model.decision, model.identity, model.why, model.change, model.accepted, model.excluded,
       model.ask, model.supportedValue, model.economics, model.confidence, model.risk, model.exactIdentity,
-      model.observed, model.evidenceHref, model.trackingHref, model.receiptMode
+      model.observed, model.evidenceHref, model.trackingHref, model.receiptMode, model.legacy === true
     ]);
 
     let panel = model.root.querySelector("[data-ff-decision-card-evidence]");
@@ -263,7 +282,7 @@
       <div class="ff-dce-summary" aria-label="Decision Card evidence summary">
         <article data-tone="identity"><span>Exact card</span><strong>${escapeHtml(model.exactIdentity)}</strong><small>${escapeHtml(model.identity)}</small></article>
         <article data-tone="evidence"><span>Evidence</span><strong>${escapeHtml(evidence.trusted)}</strong><small>${escapeHtml(evidence.excluded)}</small></article>
-        <article data-tone="risk"><span>Risk + uncertainty</span><strong>${escapeHtml(model.risk)}</strong><small>Confidence ${escapeHtml(model.confidence)}</small></article>
+        <article data-tone="risk"><span>Risk + uncertainty</span><strong>${escapeHtml(model.risk)}</strong><small>${escapeHtml(confidenceLabel)} ${escapeHtml(model.confidence)}</small></article>
       </div>
 
       <section class="ff-dce-impact" aria-labelledby="ff-dce-impact-title">
@@ -292,11 +311,11 @@
             <div><dt>Evidence that counted</dt><dd>${escapeHtml(evidence.trusted)}</dd></div>
             <div><dt>Excluded or unqualified</dt><dd>${escapeHtml(evidence.excluded)}</dd></div>
             <div><dt>Decision risk</dt><dd>${escapeHtml(model.risk)}</dd></div>
-            <div><dt>Confidence</dt><dd>${escapeHtml(model.confidence)}</dd></div>
+            <div><dt>${escapeHtml(confidenceLabel)}</dt><dd>${escapeHtml(model.confidence)}</dd></div>
           </dl>
           <p class="ff-dce-note">Confidence and risk scores describe the evidence behind this decision. They are not probabilities of a future outcome.</p>
         </details>
-        <div class="ff-dce-impact-next"><strong>What to do next</strong><p>${escapeHtml(NEXT_STEP_COPY[model.decision] || NEXT_STEP_COPY.UNKNOWN)}</p></div>
+        <div class="ff-dce-impact-next"><strong>What to do next</strong><p>${escapeHtml(nextStep)}</p></div>
         <div class="ff-dce-impact-next"><strong>What could change the conclusion</strong><p>${escapeHtml(nextReviewCopy(model.change))}</p></div>
         <p class="ff-dce-impact-disclosure">Decision support only. Not investment advice. No transaction authority. The original saved decision is not rescored in this report. The full Decision Receipt and traceback are below.</p>
       </section>
