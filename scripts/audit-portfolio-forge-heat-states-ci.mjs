@@ -49,7 +49,10 @@ function portfolio() {
 }
 const opportunities = { kind: "opportunities", items: [
   { id: "opp-ohtani-psa10", title: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", cardIdentity: "2018 Topps Chrome #150 Shohei Ohtani PSA 10" },
-  { id: "opp-lebron-psa9", title: "2003 Topps Chrome LeBron James #111 PSA 9", cardIdentity: "2003 Topps Chrome #111 LeBron James PSA 9" }] };
+  { id: "opp-lebron-psa9", title: "2003 Topps Chrome LeBron James #111 PSA 9", cardIdentity: "2003 Topps Chrome #111 LeBron James PSA 9" },
+  // Combined Portfolio (#606 + #608): the sold card's saved decision, Max Buy $1,300.00 at decision (paid $1,215.00).
+  { id: "opp-sold-1", title: "2019 Prizm Zion Williamson #248 PSA 10", cardIdentity: "2019 Prizm Zion Williamson #248 PSA 10", recommendation: "BUY",
+    governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: 130000, supportedValueStatus: "ESTABLISHED" } }] };
 const sellWatch = { kind: "sell-watch", configured: true, tenantScoped: true, authority: "POSITION_REVIEW_PROMPT_ONLY",
   transactionAuthority: false, acquisitionDecisionAffected: false, marketComparisonDisplayed: false,
   marketComparisonStatus: "NO_LICENSED_SOURCE_ACTIVE", count: 2, costBasisAvailableCount: 2,
@@ -63,7 +66,7 @@ const sales = { kind: "reported-sales", label: "USER_REPORTED", dataUseEnabled: 
   realizedWithCompleteFeesCount: 1, realizedProfitWithCompleteFeesCents: 20250, needsReviewCount: 0,
   items: [{ reportId: "rs_audit", opportunityId: "opp-sold-1", cardIdentity: "2019 Prizm Zion Williamson #248 PSA 10", reviewStatus: "PENDING_VERIFICATION",
     sale: { salePriceCents: 165000, saleDate: "2026-10-20" },
-    profitLoss: { status: "REALIZED", netProceedsCents: 141750, realizedProfitCents: 20250, realizedReturnPercent: 16.67, feesComplete: true } }] };
+    profitLoss: { status: "REALIZED", netProceedsCents: 141750, acquisitionCostCents: 121500, realizedProfitCents: 20250, realizedReturnPercent: 16.67, feesComplete: true } }] };
 
 // Reasons copied verbatim from FlipForge2 SaaSForgeHeatService.score() and the legacy marker it adds.
 const R = {
@@ -165,6 +168,9 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   check("P10 break-even price per card from the server", /Break-even price/i.test(t) && /\$1,458\.00/.test(t) && /\$576\.00/.test(t), t.slice(0, 200));
   check("P11 Sold cards: realized profit, sale and what was kept, labelled user reported", /Sold cards/.test(t) && /\+\$202\.50/.test(t)
     && /\$1,650\.00/.test(t) && /\$1,417\.50/.test(t) && /User reported/i.test(t));
+  check("P14 Sold cards: saved decision next to the sale, paid vs Max Buy at decision", /Max Buy \$1,300\.00 at decision/.test(t) && /You paid \$85\.00 under it/.test(t), t.slice(t.indexOf("Sold cards"), t.indexOf("Sold cards") + 400));
+  check("P15 Sold cards: buying discipline from the server's realized profit, no accuracy claim", /Buying discipline/.test(t) && /Paid at or under Max Buy\s*\+\$202\.50\s*1 sale/i.test(t)
+    && /not a measure of FlipForge's accuracy and not a prediction/.test(t));
   check("P12 no page errors", errors.length === 0, errors.join(" | "));
   await page.locator(".customer-portfolio-page").screenshot({ path: process.env.STATES_SHOT_DIR ? `${process.env.STATES_SHOT_DIR}/portfolio-sold.png` : "/dev/null" }).catch(() => {});
   await context.close();

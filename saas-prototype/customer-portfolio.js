@@ -349,23 +349,38 @@
 
   // The saved decision behind an owned card, as it was evaluated: its verdict and its Max Buy at decision, compared with
   // what the customer entered as paid. Display only: both numbers are saved values; nothing is re-evaluated.
-  function decisionCell(item, opportunities) {
-    const saved = opportunities.get(String(item.opportunityId));
-    if (!saved) return `<td data-portfolio-decision><span>Not available</span><small>The saved decision could not be loaded.</small></td>`;
+  // The saved decision behind a card, compared with what the customer entered as paid. Display only: the verdict and
+  // the Max Buy are saved values; nothing is re-evaluated. A Max Buy of 0 is what the engine records when no
+  // evidence-supported value was established, so it is "no Max Buy", never "$0.00". Used for owned and sold cards.
+  function decisionFacts(opportunityId, paidCents, opportunities) {
+    const saved = opportunities.get(String(opportunityId));
+    // The saved decisions were read but this card is not among them: it has no linked decision (not a loading failure).
+    if (!saved) return { group: validOpportunities(state.opportunities) ? "unlinked" : "unavailable", chip: "" };
     const verdict = String(saved.governedDecision?.recommendation || saved.recommendation || "").toUpperCase().replace(/^SAVED\s+/, "");
     const chip = /^(BUY|WATCH|VERIFY|PASS)$/.test(verdict) ? `<span class="staging-status staging-status-${verdict === "BUY" ? "buy" : verdict === "PASS" ? "danger" : "warn"}">${escapeHtml(verdict)}</span>` : "";
-    if (isLegacy(saved)) {
-      return `<td data-portfolio-decision>${chip}<small>Saved before current evidence rules · not currently supported</small></td>`;
-    }
+    if (isLegacy(saved)) return { group: "legacy", chip };
     const governed = saved.governedDecision && saved.governedDecision.available === true ? saved.governedDecision : null;
-    const maxBuy = governed ? knownCents(governed.maximumBuyPriceCents) : null;
-    const paid = knownCents(item.acquisitionCostCents);
-    if (maxBuy === null) return `<td data-portfolio-decision>${chip}<small>No Max Buy was set at decision</small></td>`;
-    const versus = paid === null ? ""
+    const recorded = governed ? knownCents(governed.maximumBuyPriceCents) : null;
+    const established = String(governed?.supportedValueStatus || "ESTABLISHED").toUpperCase() === "ESTABLISHED";
+    const maxBuy = recorded !== null && recorded > 0 && established ? recorded : null;
+    if (maxBuy === null) return { group: "no-max-buy", chip };
+    const paid = knownCents(paidCents);
+    return { group: paid === null ? "paid-unknown" : paid <= maxBuy ? "within" : "over", chip, maxBuy, paid };
+  }
+  function decisionMarkup(facts) {
+    if (facts.group === "unavailable") return `<span>Not available</span><small>The saved decision could not be loaded.</small>`;
+    if (facts.group === "unlinked") return `<span>No saved decision</span><small>No saved decision is linked to this card.</small>`;
+    if (facts.group === "legacy") return `${facts.chip}<small>Saved before current evidence rules · not currently supported</small>`;
+    if (facts.group === "no-max-buy") return `${facts.chip}<small>No Max Buy was set at decision</small>`;
+    const { maxBuy, paid } = facts;
+    const versus = paid === null || paid === undefined ? ""
       : paid < maxBuy ? `You paid ${moneyCents(maxBuy - paid)} under it`
       : paid === maxBuy ? "You paid exactly the Max Buy"
       : `You paid ${moneyCents(paid - maxBuy)} over it`;
-    return `<td data-portfolio-decision>${chip}<small>Max Buy ${escapeHtml(moneyCents(maxBuy))} at decision</small>${versus ? `<small data-portfolio-versus="${paid <= maxBuy ? "within" : "over"}">${escapeHtml(versus)}</small>` : ""}</td>`;
+    return `${facts.chip}<small>Max Buy ${escapeHtml(moneyCents(maxBuy))} at decision</small>${versus ? `<small data-portfolio-versus="${paid <= maxBuy ? "within" : "over"}">${escapeHtml(versus)}</small>` : ""}`;
+  }
+  function decisionCell(item, opportunities) {
+    return `<td data-portfolio-decision>${decisionMarkup(decisionFacts(item.opportunityId, item.acquisitionCostCents, opportunities))}</td>`;
   }
 
   // Break-even prices come from the server (Sell Watch): the lowest price that keeps what was paid after the
@@ -393,17 +408,35 @@
     if (!items.length) return "";
     const total = Number.isSafeInteger(sales.realizedProfitWithCompleteFeesCents) ? sales.realizedProfitWithCompleteFeesCents : null;
     const counted = Number.isSafeInteger(sales.realizedWithCompleteFeesCount) ? sales.realizedWithCompleteFeesCount : 0;
+    // Portfolio Intelligence (2026-10-31, combines #608 into this section): each sale next to the decision saved for the
+    // card, and realized profit grouped by what was paid against the Max Buy at decision. Profit is the server's figure
+    // (after the fees the customer entered); nothing is estimated here.
+    const discipline = { within: [0, 0], over: [0, 0], other: [0, 0] };
     const rows = items.map(item => {
       const sale = item.sale || {};
       const pl = item.profitLoss || {};
+      const facts = decisionFacts(item.opportunityId, pl.acquisitionCostCents, opportunities);
+      if (Number.isSafeInteger(pl.realizedProfitCents) && !["unavailable", "unlinked"].includes(facts.group)) {
+        const bucket = discipline[facts.group === "within" ? "within" : facts.group === "over" ? "over" : "other"];
+        bucket[0] += 1; bucket[1] += pl.realizedProfitCents;
+      }
       const saved = opportunities.get(String(item.opportunityId)) || {};
       const title = saved.title || item.cardIdentity || saved.cardIdentity || item.opportunityId;
       const profit = Number.isSafeInteger(pl.realizedProfitCents)
         ? `<strong class="${pl.realizedProfitCents >= 0 ? "value-positive" : "value-negative"}">${escapeHtml(signedMoneyCents(pl.realizedProfitCents))}</strong>${pl.realizedReturnPercent === null || pl.realizedReturnPercent === undefined ? "" : `<small>${escapeHtml(signedPercent(pl.realizedReturnPercent))}</small>`}`
         : `<strong>Not available</strong>`;
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>User reported</small></td><td><strong>${escapeHtml(moneyCents(sale.salePriceCents))}</strong><small>${escapeHtml(readableDate(sale.saleDate) || sale.saleDate || "")}</small></td><td><strong>${escapeHtml(moneyCents(pl.netProceedsCents))}</strong><small>${pl.feesComplete ? "After the fees you entered" : "Some fees not entered"}</small></td><td>${profit}</td><td><span>${escapeHtml(SALE_STATUS[pl.status] || String(pl.status || "").replaceAll("_", " ").toLowerCase())}</span></td></tr>`;
+      return `<tr><td><strong>${escapeHtml(title)}</strong><small>User reported</small></td><td data-portfolio-decision>${decisionMarkup(facts)}</td><td><strong>${escapeHtml(moneyCents(sale.salePriceCents))}</strong><small>${escapeHtml(readableDate(sale.saleDate) || sale.saleDate || "")}</small></td><td><strong>${escapeHtml(moneyCents(pl.netProceedsCents))}</strong><small>${pl.feesComplete ? "After the fees you entered" : "Some fees not entered"}</small></td><td>${profit}</td><td><span>${escapeHtml(SALE_STATUS[pl.status] || String(pl.status || "").replaceAll("_", " ").toLowerCase())}</span></td></tr>`;
     }).join("");
-    return `<section class="panel customer-portfolio-realized" data-portfolio-realized><header class="panel-header"><div><h2>Sold cards</h2><p>Sales you recorded with Mark as Sold. Profit is what you kept after the fees you entered, minus what you paid.</p></div>${badge("User reported", "neutral")}</header><div class="panel-body"><div class="customer-portfolio-key-grid"><div><span>Realized profit</span><strong>${total === null ? "Unavailable" : escapeHtml(signedMoneyCents(total))}</strong><small>${escapeHtml(counted)} sale${counted === 1 ? "" : "s"} with all fees entered</small></div><div><span>Sales recorded</span><strong>${escapeHtml(items.length)}</strong></div></div></div><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>Sold for</th><th>You kept</th><th>Profit or loss</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+    return `<section class="panel customer-portfolio-realized" data-portfolio-realized><header class="panel-header"><div><h2>Sold cards</h2><p>Sales you recorded with Mark as Sold. Profit is what you kept after the fees you entered, minus what you paid.</p></div>${badge("User reported", "neutral")}</header><div class="panel-body"><div class="customer-portfolio-key-grid"><div><span>Realized profit</span><strong>${total === null ? "Unavailable" : escapeHtml(signedMoneyCents(total))}</strong><small>${escapeHtml(counted)} sale${counted === 1 ? "" : "s"} with all fees entered</small></div><div><span>Sales recorded</span><strong>${escapeHtml(items.length)}</strong></div></div>${disciplineMarkup(discipline)}</div><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>Saved decision</th><th>Sold for</th><th>You kept</th><th>Profit or loss</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  }
+
+  // Buying discipline: realized profit grouped by what was paid against the Max Buy saved with each decision. Counts only
+  // sales with a realized profit; a card with no Max Buy (none set, legacy) is counted separately. Not an accuracy claim.
+  function disciplineMarkup(discipline) {
+    const counted = discipline.within[0] + discipline.over[0] + discipline.other[0];
+    if (!counted) return "";
+    const cell = (label, [count, cents], note) => `<div data-portfolio-discipline="${escapeHtml(note)}"><span>${escapeHtml(label)}</span><strong>${count ? escapeHtml(signedMoneyCents(cents)) : "—"}</strong><small>${escapeHtml(`${count} sale${count === 1 ? "" : "s"}`)}</small></div>`;
+    return `<div class="customer-portfolio-discipline" data-portfolio-discipline-block><h3>Buying discipline</h3><p>Realized profit grouped by what you paid against the Max Buy saved with each decision. Small numbers; not a measure of FlipForge's accuracy and not a prediction.</p><div class="customer-portfolio-key-grid">${cell("Paid at or under Max Buy", discipline.within, "within")}${cell("Paid over Max Buy", discipline.over, "over")}${cell("No Max Buy at decision", discipline.other, "other")}</div></div>`;
   }
 
   function priceLink(item) {
