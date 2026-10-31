@@ -296,6 +296,114 @@
     return records.get(id) || null;
   }
 
+  // ---- Customer wording for saved-decision history (2026-10-31) ------------------------------------------------
+  // The decision timeline sends structured changes {code, before, after, description}. Customers see plain language:
+  // money in dollars (the API sends cents), verdicts and profit checks in words, and no internal workflow states.
+  // Nothing here computes a value; it only re-words what the saved snapshots recorded.
+
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  /** "2026-10-31T13:55:33.866Z" -> "Oct 31, 2026, 1:55 PM UTC" (or the date only). Non-ISO text is returned as is. */
+  function readableDateTime(value, { dateOnly = false } = {}) {
+    const raw = typeof value === "string" ? value.trim() : "";
+    const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::[\d.]+)?(Z|[+-]\d{2}:?\d{2})?)?$/.exec(raw);
+    if (!m) return raw;
+    const month = Number(m[2]);
+    if (month < 1 || month > 12) return raw;
+    const date = `${MONTHS[month - 1]} ${Number(m[3])}, ${m[1]}`;
+    if (dateOnly || m[4] === undefined) return date;
+    // Times are shown in UTC exactly as recorded, so the wording never depends on the viewer's clock.
+    let utc = new Date(raw);
+    if (Number.isNaN(utc.getTime())) return date;
+    const h = utc.getUTCHours(), min = utc.getUTCMinutes();
+    const utcDate = `${MONTHS[utc.getUTCMonth()]} ${utc.getUTCDate()}, ${utc.getUTCFullYear()}`;
+    return `${utcDate}, ${((h + 11) % 12) + 1}:${String(min).padStart(2, "0")} ${h < 12 ? "AM" : "PM"} UTC`;
+  }
+
+  function centsText(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "";
+    const abs = Math.abs(Math.round(n)) / 100;
+    return `${n < 0 ? "−" : ""}$${abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  const GATE_WORDS = Object.freeze({
+    BUY_ELIGIBLE: "meets the buying standard",
+    MARGIN_OF_SAFETY_NOT_MET: "below the safety margin",
+    NEGATIVE_NET_ECONOMICS: "loses money at this price",
+    EXPECTED_LOSS: "loses money at this price",
+    CONSERVATIVE_LOSS: "could lose money at this price",
+    INSUFFICIENT_EVIDENCE: "not enough evidence to judge",
+    NOT_EVALUATED: "not checked",
+    UNAVAILABLE: "not available"
+  });
+  const QUALITY_WORDS = Object.freeze({ STRONG: "strong", MODERATE: "moderate", LIMITED: "limited", WEAK: "weak", BLOCKED: "blocked", REVIEW: "needs review" });
+  function words(code) {
+    const value = String(code ?? "").trim();
+    if (!value) return "not recorded";
+    return /^[A-Z][A-Z0-9_]+$/.test(value) ? value.toLowerCase().replace(/_/g, " ") : value;
+  }
+  const MONEY_CHANGES = Object.freeze({
+    ASK_CHANGED: "All-in ask",
+    SUPPORTED_VALUE_CHANGED: "Supported value",
+    MAXIMUM_BUY_PRICE_CHANGED: "Max Buy",
+    EXPECTED_NET_PROFIT_CHANGED: "Expected profit at this price",
+    CONSERVATIVE_NET_PROFIT_CHANGED: "Conservative profit at this price",
+    STRESS_NET_PROFIT_CHANGED: "Stress-case profit at this price"
+  });
+  const COUNT_CHANGES = Object.freeze({
+    ACCEPTED_EVIDENCE_CHANGED: "Accepted exact sales",
+    REJECTED_EVIDENCE_CHANGED: "Sales not counted",
+    REVIEW_EVIDENCE_CHANGED: "Sales held for review"
+  });
+  const SCORE_CHANGES = Object.freeze({ CONFIDENCE_CHANGED: "Confidence", RISK_CHANGED: "Risk", LIQUIDITY_CHANGED: "Liquidity" });
+  // Internal states a customer never needs: the verdict line already says what changed for them.
+  const HIDDEN_CHANGES = new Set(["WORKFLOW_STATUS_CHANGED", "RECOMMENDATION_AUTHORITY_CHANGED", "GRADING_AUTHORITY_CHANGED"]);
+
+  function changeLine(change) {
+    if (!change || typeof change !== "object") return "";
+    const code = String(change.code || "").toUpperCase();
+    const { before, after } = change;
+    if (HIDDEN_CHANGES.has(code)) return "";
+    if (code === "DECISION_CHANGED") return `Decision changed from ${words(before)} to ${words(after)}.`.replace(/from (\w+) to (\w+)/, (_, a, b) => `from ${a.toUpperCase()} to ${b.toUpperCase()}`);
+    if (MONEY_CHANGES[code]) {
+      const from = centsText(before), to = centsText(after);
+      return from && to ? `${MONEY_CHANGES[code]} changed from ${from} to ${to}.` : `${MONEY_CHANGES[code]} changed.`;
+    }
+    if (COUNT_CHANGES[code]) return `${COUNT_CHANGES[code]} changed from ${Number(before) || 0} to ${Number(after) || 0}.`;
+    if (SCORE_CHANGES[code]) return `${SCORE_CHANGES[code]} changed from ${Number(before) || 0} to ${Number(after) || 0}.`;
+    if (code === "PROFITABILITY_GATE_CHANGED") {
+      return `Profit check changed from "${GATE_WORDS[before] || words(before)}" to "${GATE_WORDS[after] || words(after)}".`;
+    }
+    if (code === "PROFITABILITY_POLICY_CHANGED") return "FlipForge's profit rules were updated between these evaluations.";
+    if (code === "EVIDENCE_QUALITY_CHANGED") return `Evidence quality changed from ${QUALITY_WORDS[before] || words(before)} to ${QUALITY_WORDS[after] || words(after)}.`;
+    if (code === "IDENTITY_ELIGIBILITY_CHANGED") return after === true || after === "true" ? "The exact card match was confirmed." : "The exact card match was no longer confirmed.";
+    // Anything new: the server's own sentence, with internal codes put into words.
+    const description = typeof change.description === "string" ? change.description.trim() : "";
+    return description ? description.replace(/\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g, token => words(token)) : "";
+  }
+
+  /** Customer lines for one timeline entry: structured changes when present, else the server's sentences cleaned up. */
+  function customerChangeLines(entry) {
+    const structured = Array.isArray(entry?.changes) ? entry.changes : [];
+    if (structured.length) return structured.map(changeLine).filter(Boolean);
+    const sentences = Array.isArray(entry?.whatChanged) ? entry.whatChanged : [];
+    return sentences.map(line => changeLine({ description: String(line || "") }))
+      .filter(line => line && !/^workflow status changed/i.test(line));
+  }
+
+  /**
+   * Customer wording for a failed request. Internal codes (RESOURCE_NOT_FOUND, …) are never the headline; the code is
+   * kept only as a small reference a customer can quote to support.
+   */
+  function customerErrorText(error, subject = "this") {
+    const code = String(error?.code || "").toUpperCase();
+    const status = Number(error?.status);
+    if (code === "RESOURCE_NOT_FOUND" || status === 404) return { title: `Nothing saved for ${subject} yet.`, detail: "Nothing was filled in or estimated in its place.", reference: "" };
+    if (status === 401) return { title: "Sign in again to see this.", detail: "Your session ended.", reference: code };
+    if (status === 403) return { title: "Your account doesn't have access to this.", detail: "Ask your FlipForge workspace owner for access.", reference: code };
+    const message = typeof error?.message === "string" && error.message.trim() && !/^[A-Z][A-Z0-9_]+$/.test(error.message.trim()) ? error.message.trim() : "";
+    return { title: `Couldn't load ${subject} right now.`, detail: message || "Try again in a moment. Nothing was filled in or estimated in its place.", reference: code };
+  }
+
   window.FlipForgeTrustDisplay = Object.freeze({
     LEGACY_BADGE,
     LEGACY_HISTORICAL,
@@ -323,6 +431,10 @@
     evidenceTable,
     remember,
     recordFor,
-    activeCardId
+    activeCardId,
+    readableDateTime,
+    centsText,
+    customerChangeLines,
+    customerErrorText
   });
 })();

@@ -352,8 +352,8 @@
       const detail = article.querySelector("p");
       if (detail) {
         detail.textContent = String(detail.textContent || "")
-          .replace(/Outcome\s+/i, "Result: ")
-          .replace(/\s+·\s+Version\s+/i, " · Update ");
+          .replace(/^Outcome\s+/, "Result: ")
+          .replace(/\s+·\s+(?:Record\s+)?version\s+/i, " · Update ");
       }
     });
   }

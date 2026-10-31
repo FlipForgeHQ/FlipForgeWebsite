@@ -72,7 +72,8 @@
     const raw = mode === "decision-intelligence"
       ? text(root.querySelector(".ff-di-v2-decision"))
       : text(root.querySelector(".customer-intelligence-hero .staging-status"));
-    const decision = raw.toUpperCase();
+    // The saved-decision hero chip reads "Saved BUY"; the verdict is the word after "Saved".
+    const decision = raw.toUpperCase().replace(/^SAVED\s+/, "").trim();
     return Object.prototype.hasOwnProperty.call(VERDICTS, decision) ? decision : "UNKNOWN";
   }
 
