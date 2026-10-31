@@ -1,0 +1,132 @@
+# Decision Change Monitor™ + Collection Intelligence™ — Phase 2 slice (DEV)
+
+Status: draft PR, DEV only. Same activation as Deal Check: on for preview hosts and localhost, off on goflipforge.com
+unless `?dealcheck=1`. Kill switch: `window.FlipForgeDecisionMonitorDisabled = true`.
+
+Files: `saas-prototype/decision-monitor-v1.js`, `saas-prototype/decision-monitor-v1.css`, loaded after Deal Check by
+`index.html` and `customer.html`. Governed fields are read through `FlipForgeDealCheck.dealModel`, so both features read
+the frozen snapshot the same way. One additive field, `latestSaleDate`, was added to that model.
+
+## Where it shows
+
+| Surface | Placement | Data (read-only GETs) |
+| --- | --- | --- |
+| Tracked card `#/tracking/{id}` | Above the Decision Timeline | `/opportunities/{id}`, `/lifecycle/{id}` |
+| Saved decision `#/opportunities/{id}` | Under Deal Check, linking to Tracking | same |
+| Portfolio `#/portfolio` | After the summary tiles | `/portfolio`, `/opportunities` |
+
+## Monitored now (functional, governed data only)
+
+- **Decision changed** at a re-evaluation, from the timeline's `DECISION_CHANGED`.
+- **Asking price changed** at a re-evaluation (`ASK_CHANGED`), placed against the saved Max Buy. It is a review item when the price crosses Max Buy.
+- **Exact sales saved now vs. at the decision.** More sales is a review item. Fewer sales, which is expected under provider containment, is shown for information and the decision is unchanged.
+- **Evidence changes at re-evaluation:** accepted-evidence counts and evidence quality.
+- **Time since the decision:** the 14-day reasoning check, and a re-check at 30 days. These match the existing T14/T30 checkpoints. It also flags a newest saved sale more than 30 days old, or a stale freshness status from the server.
+- **Identity:** card match not confirmed, exact-identity eligibility lost, or sales excluded for identity reasons.
+- **Uncertainty:** risk rose or confidence fell at a re-evaluation.
+- **Renewed verification:** VERIFY decisions, and decisions saved before the current evidence rules (legacy).
+- **What you paid vs. the Max Buy at the decision** (customer-entered cost).
+- **Portfolio:**
+  - cost basis
+  - cost basis without an evidence-supported value
+  - cost basis on decisions 30 or more days old
+  - cards paid above Max Buy
+  - cards with no linked decision
+  - cards to review next, in server order
+  - links to each card's Decision Receipt and Monitor
+
+## Not monitored (awaiting licensed data; said on screen)
+
+Live asking prices, new completed sales and market movement. FlipForge does not re-check a listing after a decision
+is saved, so without a re-evaluation the monitor says "Asking price not re-checked". It does not infer a change.
+
+## Boundaries
+
+- Never computes or changes a verdict, Max Buy, value or profit. Never rescores or edits a snapshot or receipt.
+- No browser sorting. No provider call, evaluation, write or browser storage.
+- Review prompts only, with no buy or sell instruction. No current market value is shown in Portfolio.
+
+## Tests
+
+- `node scripts/validate-decision-monitor-v1.mjs`: unit and static checks, including order preservation, no mutation, copy safety, the 14px floor and shell wiring.
+- `node scripts/audit-decision-monitor-ci.mjs`: Playwright with a fixed clock at 1440 and 390 px, covering tracking (re-evaluated and single snapshot), the saved decision page, Portfolio, the kill switch and card switching.
+- Both run in `.github/workflows/deal-check-v1.yml`.
+
+## Backend follow-ups (FlipForge2)
+
+1. Server-side review alerts: draft FlipForge2 #935 now covers a Max Buy crossing at re-evaluation, 30-day re-checks, pending VERIFY and legacy decisions (integrated below). Evidence-count drift is still website-only.
+2. Portfolio items could carry the governed decision summary, so the page doesn't need the `/opportunities` list.
+3. Re-checking a saved listing's price, once an authorized listing source and budget are approved.
+
+## Integration v1.1: unified decision summary and backend review signals
+
+### Deal Check decision summary
+The summary sits under Asking / Max Buy / Difference and shows three things.
+
+- **Potential profit.** The saved base-case net profit, with the cautious and downside cases, labelled "modeled after costs at the saved price, not guaranteed". It reads "Not calculated" when there is no supported value.
+- **Exit difficulty.** It uses the engine's liquidity bands (`ProfitabilityGuardrailService.liquidityForAcceptedEvidence`) on the saved exact-sale count, and the engine's slippage reserve for that band:
+  - 5+ exact sales: Lower
+  - 3–4: Moderate
+  - 1–2: Higher
+  - 0: High
+
+  It is cross-checked against the liquidity saved on the matching timeline entry. A mismatch, a legacy result, or a missing count shows "Not established". The opportunity-level `liquidity` field, which can default to 50, is never used.
+- **Evidence & risk.** Whether the decision meets the engine's published BUY bar: at least 3 exact sales, confidence 75+, risk 55 or less. If not, it lists what is missing. This is not a new score.
+
+### Backend Decision Review Signals (FlipForge2 #935)
+- **Source.** `GET /api/v1/alerts`, field `data.decisionReviewSignals` with `decisionReviewSignalVersion`.
+- **Which prompts the backend owns.** The four kinds below come only from the backend:
+  - `MAX_BUY_CROSSED`
+  - `DECISION_RECHECK_DUE`
+  - `VERIFICATION_PENDING`
+  - `LEGACY_DECISION`
+
+  The website's own versions of those four (VERIFY, legacy, the 30-day age prompt, and the ask crossing) are dropped, so nothing is shown twice. When the backend reports a crossing, the separate ask-change note is not shown either.
+- **Kept from the website.** These stay because saved data supports them:
+  - decision changes
+  - ask changes when there was no crossing (information only)
+  - exact-sale count drift
+  - the 14-day check
+  - identity, risk and confidence changes
+  - what you paid vs. Max Buy
+- **States.**
+  - Backend failed: "Review signals temporarily unavailable".
+  - Older backend without the field: "Review signals not available yet".
+  - Card not tracked (lifecycle version 0): "Not tracked yet".
+
+  In every one of these states the four backend prompts are withheld and nothing is invented.
+- **Contradictions.** A signal for another card, a duplicate, one claiming authority, or one whose decision disagrees with the saved verdict is dropped. The panel then says a signal was left out.
+
+### Portfolio additions
+- "Need another look" counts backend prompts. It shows "—" when signals are unavailable.
+- "Harder exits" counts cards rated Higher or High.
+- Each card shows its exit difficulty.
+
+### What comes from where
+| Data | Source |
+| --- | --- |
+| Verdict, Max Buy, profit/ROI, supported value, exact-sale count, confidence, risk | Backend: frozen governed snapshot (`/opportunities`) |
+| Re-evaluation changes, saved liquidity | Backend: immutable Decision Timeline (`/lifecycle/{id}`) |
+| Max Buy crossing, 30-day re-check, VERIFY pending, legacy | Backend: Decision Review Signals (`/alerts`, #935) |
+| Cost basis, tracking status | Backend: customer lifecycle record (`/portfolio`, `/lifecycle`) |
+| Exit difficulty label, evidence-bar check, break-even, Max Buy reasoning, 14-day check, count drift, paid vs. Max Buy | Website presentation, from the saved values above using the engine's published rules |
+
+
+## v1.1 (2026-10-30): four explicit groups, rules context
+
+- **Groups.** The tracked-card and saved-decision panels group every statement under four headings:
+  - **Needs your attention:** every review-level item, each labelled Changed or As saved.
+  - **What changed since you saved it:** only changes recorded by a re-evaluation, or a change in saved evidence
+    counts. When nothing was recorded, it says why: the card was not re-evaluated, or the re-evaluation recorded no
+    change.
+  - **As saved (historical):** decision age, verification status, card match as saved, what you paid against Max Buy,
+    and the earlier-rules disclosure.
+  - **Not re-checked since the decision:** always visible. It covers live asking prices, new completed sales and
+    market movement, plus "FlipForge does not watch prices between re-evaluations."
+- **Earlier rules.** "Decided under earlier rules" comes from the server's `governedDecision.decisionRules` (FlipForge2
+  #950) or the review-signal flag `decidedUnderEarlierRules` (FlipForge2 #935 v1.1). It is shown once, as a historical
+  note, never as a review item. The verdict, Max Buy and receipt are unchanged.
+- **Legacy wording.** The legacy-evidence prompt now reads "Relied on sale evidence FlipForge no longer accepts",
+  matching the backend, so it can't be confused with the earlier-rules label.
+- **Tests:** unit 86/86, rendered audit 117/117 (desktop and phone), Deal Check 100/100, source-truth terminology
+  83/83.
