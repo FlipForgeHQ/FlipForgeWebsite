@@ -1,0 +1,106 @@
+/* FlipForge Decision Change Monitor™ + Collection Intelligence™ v1 — presentation only.
+   Black / champagne gold / silver; semantic colour only for real review state. No text below 14px. Geist Sans. */
+.ffdm, .ffci {
+  --ffdm-black: #07080a;
+  --ffdm-surface: #0b0d10;
+  --ffdm-rule: #2a2e33;
+  --ffdm-rule-soft: rgba(136, 143, 152, .22);
+  --ffdm-white: #ffffff;
+  --ffdm-text: #e9eaec;
+  --ffdm-silver: #a9b0b8;
+  --ffdm-silver-dim: #888f98;
+  --ffdm-gold: #d4af37;
+  --ffdm-gold-soft: rgba(212, 175, 55, .12);
+  --ffdm-gold-line: rgba(212, 175, 55, .5);
+  --ffdm-buy: #48c98c;
+  --ffdm-watch: #e3b341;
+  --ffdm-verify: #e98a2f;
+  --ffdm-pass: #ee6a75;
+  font-family: Geist, "Geist Sans", "Helvetica Neue", Arial, sans-serif;
+  color: var(--ffdm-text);
+  background: linear-gradient(180deg, #0d0f12 0%, var(--ffdm-black) 100%);
+  border: 1px solid var(--ffdm-rule);
+  border-left: 3px solid var(--ffdm-gold);
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin: 18px 0;
+  display: grid;
+  gap: 16px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.ffdm *, .ffci * { box-sizing: border-box; }
+.ffdm h2, .ffci h2, .ffdm p, .ffci p, .ffdm ul, .ffci ul, .ffci ol { margin: 0; }
+.ffdm-kicker { display: block; font-size: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ffdm-gold); }
+.ffdm-head { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: flex-start; }
+.ffdm-head h2 { font-size: 22px; line-height: 1.25; font-weight: 700; color: var(--ffdm-white); margin-top: 4px; }
+.ffdm-muted { font-size: 14px; color: var(--ffdm-silver-dim); }
+.ffdm-state { display: grid; justify-items: end; gap: 4px; }
+.ffdm-state small { font-size: 14px; color: var(--ffdm-silver-dim); }
+.ffdm-chip {
+  display: inline-block; font-size: 14px; font-weight: 800; letter-spacing: .06em; border: 1px solid currentColor; border-radius: 4px;
+  padding: 1px 7px; color: var(--ffdm-silver); vertical-align: baseline;
+}
+.ffdm-chip[data-verdict="buy"] { color: var(--ffdm-buy); }
+.ffdm-chip[data-verdict="watch"] { color: var(--ffdm-watch); }
+.ffdm-chip[data-verdict="verify"] { color: var(--ffdm-verify); }
+.ffdm-chip[data-verdict="pass"] { color: var(--ffdm-pass); }
+.ffdm-signals { list-style: none; padding: 0; display: grid; gap: 10px; }
+.ffdm-signals > li {
+  display: grid; grid-template-columns: 12px 1fr; gap: 12px; padding: 12px 14px; border: 1px solid var(--ffdm-rule-soft); border-radius: 8px;
+  background: var(--ffdm-surface);
+}
+.ffdm-signals > li[data-level="review"] { border-color: var(--ffdm-gold-line); background: linear-gradient(90deg, var(--ffdm-gold-soft), transparent 70%); }
+.ffdm-signals strong { display: block; font-size: 16px; color: var(--ffdm-white); }
+.ffdm-signals p { font-size: 15px; color: var(--ffdm-silver); }
+.ffdm-signals small { font-size: 14px; color: var(--ffdm-silver-dim); text-transform: uppercase; letter-spacing: .08em; }
+.ffdm-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 7px; background: var(--ffdm-silver-dim); }
+li[data-level="review"] > .ffdm-dot { background: var(--ffdm-gold); box-shadow: 0 0 0 3px var(--ffdm-gold-soft); }
+li[data-level="ok"] > .ffdm-dot { background: var(--ffdm-buy); }
+.ffdm-more, .ffdm-scope { border-top: 1px solid var(--ffdm-rule-soft); padding-top: 10px; }
+.ffdm-more > summary, .ffdm-scope > summary { cursor: pointer; font-size: 15px; font-weight: 600; color: var(--ffdm-silver); }
+.ffdm-more[open] > summary, .ffdm-scope[open] > summary { margin-bottom: 10px; }
+.ffdm-scope ul { padding-left: 18px; display: grid; gap: 6px; font-size: 15px; color: var(--ffdm-text); }
+.ffdm-scope li::marker { color: var(--ffdm-gold); }
+.ffdm-scope p { font-size: 14px; color: var(--ffdm-silver-dim); margin-top: 8px; }
+.ffdm-foot { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; border-top: 1px solid var(--ffdm-rule-soft); padding-top: 12px; }
+.ffdm-foot small { font-size: 14px; color: var(--ffdm-silver-dim); flex: 1 1 260px; }
+.ffdm-link, .ffci-links a { color: var(--ffdm-gold); font-weight: 600; font-size: 15px; text-decoration: none; }
+.ffdm-link:hover, .ffdm-link:focus-visible, .ffci-links a:hover, .ffci-links a:focus-visible { text-decoration: underline; }
+
+/* Collection Intelligence */
+.ffci-exposure { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.ffci-exposure > div { border: 1px solid var(--ffdm-rule); border-radius: 10px; background: var(--ffdm-surface); padding: 12px 14px; display: grid; gap: 2px; }
+.ffci-exposure span { font-size: 14px; font-weight: 600; color: var(--ffdm-silver-dim); text-transform: uppercase; letter-spacing: .08em; }
+.ffci-exposure strong { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ffdm-white); }
+.ffci-exposure small { font-size: 14px; color: var(--ffdm-silver-dim); }
+.ffci-exposure > div[data-tone="warn"] { border-color: var(--ffdm-gold-line); }
+.ffci-exposure > div[data-tone="warn"] strong { color: var(--ffdm-gold); }
+.ffci-list { list-style: none; padding: 0; display: grid; gap: 8px; }
+.ffci-list > li {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; padding: 12px 14px;
+  border: 1px solid var(--ffdm-rule-soft); border-radius: 8px; background: var(--ffdm-surface);
+}
+.ffci-card { display: grid; gap: 4px; min-width: 0; }
+.ffci-card > strong { font-size: 16px; color: var(--ffdm-white); }
+.ffci-card > span { font-size: 15px; color: var(--ffdm-silver); font-variant-numeric: tabular-nums; }
+.ffci-card em { font-style: normal; font-weight: 600; color: var(--ffdm-buy); }
+.ffci-card em[data-over="true"] { color: var(--ffdm-pass); }
+.ffci-card ul { padding-left: 18px; font-size: 15px; color: var(--ffdm-text); }
+.ffci-card ul li::marker { color: var(--ffdm-gold); }
+.ffci-card small { font-size: 14px; color: var(--ffdm-silver-dim); }
+.ffci-links { display: grid; gap: 4px; justify-items: end; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .ffdm, .ffci { padding: 18px 16px; }
+  .ffdm-head h2 { font-size: 20px; }
+  .ffdm-state { justify-items: start; }
+  .ffci-list > li { grid-template-columns: minmax(0, 1fr); }
+  .ffci-links { justify-items: start; grid-auto-flow: column; gap: 16px; }
+}
+
+/* v1.1: four plain-language groups (needs attention · changed · as saved · not re-checked). */
+.ffdm-group { display: grid; gap: 8px; border-top: 1px solid var(--ffdm-rule-soft); padding-top: 12px; }
+.ffdm-group > h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ffdm-silver); }
+.ffdm-group[data-ffdm-group="attention"] > h3 { color: var(--ffdm-white); }
+.ffdm-scope-list { padding-left: 18px; display: grid; gap: 6px; font-size: 15px; color: var(--ffdm-text); }

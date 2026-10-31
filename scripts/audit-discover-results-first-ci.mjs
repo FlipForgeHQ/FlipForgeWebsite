@@ -150,14 +150,20 @@ for (const [name,width,height] of [["desktop",1440,1000],["tablet",900,900],["mo
     await page.goto(`${baseUrl}/#/discover`, { waitUntil: "domcontentloaded", timeout: 12000 });
     const form = page.locator("#main-content [data-customer-discovery-form]");
     await form.waitFor({ state: "visible", timeout: 8000 });
+    await form.locator('input[name="exactCardQuery"]').fill(query);
+    await form.locator('select[name="limit"]').selectOption("50");
+    // Start measuring from what a person sees when they tap Search: the button already on screen and the page still.
+    // Without this, Playwright scrolls the button into view itself, and with the site's smooth scrolling (styles.css)
+    // that animation was counted as part of the result handoff. Since #589 removed the resize handlers that used to
+    // cut that animation short, the harness-made animation failed this gate on every build, including production.
+    await form.locator('button[type="submit"]').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(800);
     await page.evaluate(() => {
       window.__ffScrollEvents = [];
       window.addEventListener("scroll", () => {
         window.__ffScrollEvents.push({ y: Math.round(window.scrollY), t: performance.now() });
       }, { passive: true });
     });
-    await form.locator('input[name="exactCardQuery"]').fill(query);
-    await form.locator('select[name="limit"]').selectOption("50");
     await form.locator('button[type="submit"]').click();
 
     const results = page.locator("#ff-discovery-results");

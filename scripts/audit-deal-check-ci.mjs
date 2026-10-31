@@ -96,6 +96,8 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
     check(`${label}: placed under the decision hero, before the deeper evidence sections`, facts.afterHero);
     check(`${label}: verdict equals the governed verdict`, facts.verdict === g.recommendation, facts.verdict);
     check(`${label}: Decision Receipt Pro section present`, facts.receipt);
+    check(`${label}: decision summary shows profit, exit difficulty and evidence`, /Potential profit/i.test(facts.text) && /Exit difficulty/i.test(facts.text) && /Evidence & risk/i.test(facts.text));
+    check(`${label}: exit difficulty never favourable without saved evidence`, !(name === "verify" || name === "legacy") || !/Exit difficulty\s*(Lower|Moderate)/i.test(facts.text));
     check(`${label}: no text below 14px`, facts.small.length === 0, facts.small.slice(0, 4).join(" | "));
     check(`${label}: no horizontal page overflow`, facts.overflowX <= 1 && facts.sectionOverflow <= 1, `${facts.overflowX}/${facts.sectionOverflow}`);
     check(`${label}: no $0.00 shown for missing values`, !/(Max Buy|Break-even buy price|Supported value)\s*\$0\.00/.test(facts.text));

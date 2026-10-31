@@ -243,3 +243,9 @@
   html[data-ffdc-printing="true"] .ffdc-lab, html[data-ffdc-printing="true"] [data-ffdc-print] { display: none !important; }
   html[data-ffdc-printing="true"] .ffdc-more:not([open]) .ffdc-more-body { display: grid !important; }
 }
+
+/* Decision summary: potential profit, exit difficulty, evidence & risk (presentation only). */
+.ffdc-summary .ffdc-figure > strong { font-size: 20px; }
+.ffdc-summary [data-ffdc-exit="higher"] > strong, .ffdc-summary [data-ffdc-exit="high"] > strong { color: var(--ffdc-watch); }
+.ffdc-summary [data-ffdc-exit="unknown"] > strong, .ffdc-summary [data-ffdc-evidence="false"] > strong { color: var(--ffdc-silver); }
+.ffdc-summary [data-ffdc-evidence="true"] > strong { color: var(--ffdc-buy); }
