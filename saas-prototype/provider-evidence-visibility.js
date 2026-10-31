@@ -85,12 +85,20 @@
     if (!SAFE_ID.test(opportunityId) || !data || typeof data !== "object") return null;
     // New API: provider rows are never listed; providerEvidenceSummary carries their counts.
     const providerSummary = data.providerEvidenceSummary && typeof data.providerEvidenceSummary === "object" ? data.providerEvidenceSummary : null;
+    // Since the provider containment the API states whether provider sale records are kept, whether the provider is
+    // used at all, and whether the saved decision relied on evidence FlipForge no longer accepts. Use those facts
+    // instead of showing a bare 0 or promising a provider check that will not happen.
+    // legacyNotice is set by the backend only when the saved decision used evidence that is now withheld.
+    const legacy = Boolean(cleanText(data.legacyNotice || "", 400));
     if (providerSummary) {
       return {
         opportunityId,
         acceptedExactCompletedSales: safeInteger(data.acceptedExactCompletedSales),
         providerRows: safeInteger(providerSummary.storedRowsLinked),
-        acceptedProviderRows: safeInteger(providerSummary.storedRowsAdmittedNow)
+        acceptedProviderRows: safeInteger(providerSummary.storedRowsAdmittedNow),
+        providerRecordsKept: providerSummary.storedSaleRecordsKept !== false,
+        providerOff: String(providerSummary.evidenceMode || "").toUpperCase() === "PROVIDER_SALES_OFF",
+        legacy
       };
     }
     const rows = Array.isArray(data.linkedEvidence) ? data.linkedEvidence : [];
@@ -99,7 +107,10 @@
       opportunityId,
       acceptedExactCompletedSales: safeInteger(data.acceptedExactCompletedSales),
       providerRows: providerRows.length,
-      acceptedProviderRows: providerRows.filter(row => row?.authorityEligible === true).length
+      acceptedProviderRows: providerRows.filter(row => row?.authorityEligible === true).length,
+      providerRecordsKept: true,
+      providerOff: false,
+      legacy
     };
   }
 
@@ -157,8 +168,21 @@
     return "neutral";
   }
 
-  function statusExplanation(summary) {
-    if (!summary) return "Current evidence is shown below. A fresh evaluation will also show whether historical pricing from our data provider was checked and how many rows qualified.";
+  function savedExplanation(evidence) {
+    const parts = [];
+    if (evidence?.legacy) {
+      parts.push("This saved decision relied on sale evidence FlipForge no longer accepts. Those sales are not shown, and the saved decision is kept exactly as it was made.");
+    }
+    if (evidence?.providerOff) {
+      parts.push("Sale records from our data provider are not kept, and new evaluations do not use that provider right now. A fresh evaluation uses only FlipForge's independent completed-sale evidence.");
+    } else if (!evidence?.legacy) {
+      parts.push("Current evidence is shown below. A fresh evaluation will also show whether historical pricing from our data provider was checked and how many rows qualified.");
+    }
+    return parts.join(" ");
+  }
+
+  function statusExplanation(summary, evidence = null) {
+    if (!summary) return savedExplanation(evidence);
     const completedScope = summary.fixedPriceRowsCanSupportValue
       ? "historical completed-sale records, including auction and fixed-price sales"
       : "historical auction records";
@@ -189,7 +213,10 @@
       summary?.fixedPriceRowsCanSupportValue === true ? 1 : 0,
       evidence?.providerRows ?? "x",
       evidence?.acceptedProviderRows ?? "x",
-      evidence?.acceptedExactCompletedSales ?? "x"
+      evidence?.acceptedExactCompletedSales ?? "x",
+      evidence?.providerRecordsKept === false ? 0 : 1,
+      evidence?.providerOff === true ? 1 : 0,
+      evidence?.legacy === true ? 1 : 0
     ].join("|");
   }
 
@@ -200,7 +227,7 @@
 
     const status = summary?.status || "CURRENT_EVIDENCE";
     const tone = statusTone(status);
-    const currentAccepted = evidence ? evidence.acceptedProviderRows : "—";
+    const currentAccepted = !evidence ? "—" : evidence.providerRecordsKept === false ? "Not kept" : evidence.acceptedProviderRows;
     const totalAccepted = evidence ? evidence.acceptedExactCompletedSales : "—";
     const metrics = summary
       ? [
@@ -228,7 +255,7 @@
         <div>
           <span class="eyebrow">Historical sold evidence</span>
           <h2>Reported sale evidence</h2>
-          <p>${escapeHtml(statusExplanation(summary))}</p>
+          <p>${escapeHtml(statusExplanation(summary, evidence))}</p>
         </div>
         <span class="staging-status staging-status-${escapeHtml(tone)}">${escapeHtml(status.replaceAll("_", " "))}</span>
       </header>
