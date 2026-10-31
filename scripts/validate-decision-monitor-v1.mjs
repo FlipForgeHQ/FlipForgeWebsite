@@ -184,7 +184,7 @@ check("no saved decision: unavailable, no signals", M.monitor(null, null, null, 
 {
   const all = [IDS.buy, IDS.watch, IDS.verify, IDS.legacy].map(id => M.monitorMarkup(id, cardResult(id), { compact: id === IDS.buy, trackingHref: "#/tracking/x" })).join("\n")
     + M.collectionMarkup(M.collection(portfolio(), opportunitiesList().items, NOW));
-  check("states what is not monitored yet", /What FlipForge is not monitoring yet/.test(all) && /Live asking prices/.test(all));
+  check("states what is not re-checked", /Not re-checked since the decision/.test(all) && /Live asking prices/.test(all) && /does not watch prices between re-evaluations/.test(all));
   check("no live/real-time monitoring claims", !/real[- ]time|live monitoring|we watch|monitoring the market|continuously/i.test(all));
   check("no provider name", !/card[\s_-]*sight/i.test(SOURCE + all));
   check("no 'verified/confirmed/trusted sales' wording", !/\b(verified|trusted)\s+(exact\s+)?(completed\s+)?sales?\b/i.test(all) && !/\bconfirmed\s+sales?\b/i.test(all));
@@ -195,6 +195,63 @@ check("no saved decision: unavailable, no signals", M.monitor(null, null, null, 
   check("no browser storage", !/localStorage|sessionStorage|indexedDB/.test(SOURCE));
   check("no browser sorting", !/\.sort\(|\.toSorted\(/.test(SOURCE));
   check("activation reuses the Deal Check rule + own kill switch", /deal\.enabledFor\(window\.location/.test(SOURCE) && /FlipForgeDecisionMonitorDisabled === true/.test(SOURCE));
+}
+
+// v1.1: four explicit groups — needs attention / what changed / as saved (historical) / not re-checked.
+{
+  const CATS = ["changed", "historical", "not-rechecked"];
+  const results = [IDS.buy, IDS.watch, IDS.verify, IDS.legacy].map(cardResult);
+  check("v1.1: every monitor signal has a category", results.every(r => r.signals.every(x => CATS.includes(x.category))),
+    results.flatMap(r => r.signals.filter(x => !CATS.includes(x.category)).map(x => x.key)).join(","));
+  const buyHtml = M.monitorMarkup(IDS.buy, cardResult(IDS.buy));
+  check("v1.1: BUY shows attention, changed, historical and not-re-checked groups in that order",
+    ["attention", "changed", "historical", "not-rechecked"].map(g => buyHtml.indexOf(`data-ffdm-group="${g}"`)).every((v, i, a) => v > 0 && (i === 0 || v > a[i - 1])));
+  check("v1.1: a recorded decision change needing review is labelled as a change", /data-ffdm-signal="decision" data-ffdm-category="changed"/.test(buyHtml) && /Changed · Re-evaluation/.test(buyHtml));
+  const watch = cardResult(IDS.watch);
+  const watchHtml = M.monitorMarkup(IDS.watch, watch);
+  check("v1.1: never re-evaluated → 'changed' says nothing was recorded and why",
+    /data-ffdm-empty="changed"/.test(watchHtml) && /has not been re-evaluated since the decision/.test(watchHtml) && /not re-evaluated since/.test(watchHtml));
+  check("v1.1: 'asking price not re-checked' sits in the not-re-checked group",
+    watch.signals.find(x => x.key === "price-unmonitored")?.category === "not-rechecked"
+    && watchHtml.indexOf('data-ffdm-signal="price-unmonitored"') > watchHtml.indexOf('data-ffdm-group="not-rechecked"'));
+  check("v1.1: what is not monitored is always visible (not collapsed)", /<ul class="ffdm-scope-list" data-ffdm-scope>/.test(watchHtml) && !/<details[^>]*data-ffdm-scope/.test(watchHtml));
+
+  // Earlier-rules disclosure (FlipForge2 #950 governed decisionRules; #935 v1.1 signal field).
+  const disclosure = "Decided on Oct 1, 2026 under earlier rules. This saved decision, its Max Buy and its receipt are kept exactly as they were made.";
+  const earlierOpp = JSON.parse(JSON.stringify(D[IDS.buy].opportunity));
+  earlierOpp.governedDecision.decisionRules = { decidedUnderEarlierRules: true, savedPolicyVersion: "profitability-margin-of-safety-v1.1", disclosure, savedDecisionRescored: false };
+  const earlierModel = M.dealModelOf(earlierOpp, null);
+  const earlier = M.monitor(earlierModel, null, null, NOW);
+  const er = earlier.signals.find(x => x.key === "earlier-rules");
+  check("v1.1: decision under earlier rules → historical note with the server's disclosure, not a review item",
+    er && er.category === "historical" && er.level === "info" && er.detail === disclosure && earlierModel.maxBuyCents === M.dealModelOf(D[IDS.buy].opportunity, null).maxBuyCents);
+  check("v1.1: today's-rules decision has no earlier-rules note", !cardResult(IDS.buy).signals.some(x => x.key === "earlier-rules"));
+  const flagged = JSON.parse(JSON.stringify(alertsData("available")));
+  flagged.decisionReviewSignals.forEach(x => { if (x.opportunityId === IDS.buy) x.decidedUnderEarlierRules = true; });
+  const viaServer = (() => {
+    const detail = lifecycleDetail(IDS.buy); const timeline = M.timelineOf(detail);
+    const model = M.dealModelOf(D[IDS.buy].opportunity, timeline);
+    return M.integrate(M.monitor(model, timeline, lifecycleRecords()[IDS.buy], NOW), M.reviewSignalFeed(flagged), { id: IDS.buy, lifecycle: lifecycleRecords()[IDS.buy], model });
+  })();
+  check("v1.1: server flag adds the earlier-rules note once when the saved model lacks it",
+    viaServer.signals.filter(x => x.key === "earlier-rules").length === 1 && viaServer.signals.find(x => x.key === "earlier-rules").category === "historical");
+  const both = M.integrate(earlier, M.reviewSignalFeed(flagged), { id: IDS.buy, lifecycle: lifecycleRecords()[IDS.buy], model: earlierModel });
+  check("v1.1: model and server both say earlier rules → still one note", both.signals.filter(x => x.key === "earlier-rules").length === 1);
+  check("v1.1: verdict and Max Buy unchanged by the rules note", both.verdict === earlier.verdict && viaServer.verdict === "BUY");
+
+  const legacy = cardResult(IDS.legacy).signals.find(x => x.key === "legacy");
+  check("v1.1: legacy wording describes evidence no longer accepted, never 'earlier rules'",
+    /sale evidence FlipForge no longer accepts/.test(legacy.title) && !/earlier rules|current evidence rules/i.test(legacy.title + legacy.detail));
+  const serverLegacy = M.integrate(cardResult(IDS.legacy), { status: "available", signals: [{ opportunityId: IDS.legacy, kind: "LEGACY_DECISION", decision: cardResult(IDS.legacy).verdict, transactionAuthority: false, historicalRescoring: false }] },
+    { id: IDS.legacy, lifecycle: { opportunityId: IDS.legacy, trackingStatus: "WATCHING", version: 1 }, model: M.dealModelOf(D[IDS.legacy].opportunity, null) });
+  const sl = serverLegacy.signals.find(x => x.key === "srv-LEGACY_DECISION");
+  check("v1.1: server legacy signal uses the same wording and is historical", sl && /no longer accepts/.test(sl.title) && sl.category === "historical");
+  const buyIntegrated = viaServer.signals.find(x => x.key === "srv-MAX_BUY_CROSSED");
+  check("v1.1: Max Buy crossing is a recorded change; re-check due is historical",
+    buyIntegrated?.category === "changed" && viaServer.signals.find(x => x.key === "srv-DECISION_RECHECK_DUE")?.category === "historical");
+  const statusOnly = M.integrate(cardResult(IDS.verify), M.reviewSignalFeed(null, true), { id: IDS.verify, lifecycle: lifecycleRecords()[IDS.verify], model: M.dealModelOf(D[IDS.verify].opportunity, null) });
+  check("v1.1: review-signal outage is listed under not re-checked", statusOnly.signals.find(x => x.key === "review-signals-status")?.category === "not-rechecked");
+  check("v1.1: Portfolio tile no longer says 'old rules'", !/old rules/.test(M.collectionMarkup(M.collection(portfolio(), opportunitiesList().items, NOW, M.reviewSignalFeed(alertsData("available"))))));
 }
 
 // CSS floor.

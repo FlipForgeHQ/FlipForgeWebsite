@@ -195,6 +195,10 @@
       immutable: governed.immutable === true,
       legacy,
       legacyNotice: text(opportunity.legacyNotice),
+      // Server-owned rules disclosure (FlipForge2 #950): a decision made under earlier profitability rules is kept
+      // exactly as made; never re-scored here.
+      earlierRules: governedAvailable && governed.decisionRules && governed.decisionRules.decidedUnderEarlierRules === true,
+      rulesDisclosure: governedAvailable && governed.decisionRules ? text(governed.decisionRules.disclosure) : "",
       askCents,
       askFromSnapshot,
       supportedCents,

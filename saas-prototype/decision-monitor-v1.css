@@ -98,3 +98,9 @@ li[data-level="ok"] > .ffdm-dot { background: var(--ffdm-buy); }
   .ffci-list > li { grid-template-columns: minmax(0, 1fr); }
   .ffci-links { justify-items: start; grid-auto-flow: column; gap: 16px; }
 }
+
+/* v1.1: four plain-language groups (needs attention · changed · as saved · not re-checked). */
+.ffdm-group { display: grid; gap: 8px; border-top: 1px solid var(--ffdm-rule-soft); padding-top: 12px; }
+.ffdm-group > h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ffdm-silver); }
+.ffdm-group[data-ffdm-group="attention"] > h3 { color: var(--ffdm-white); }
+.ffdm-scope-list { padding-left: 18px; display: grid; gap: 6px; font-size: 15px; color: var(--ffdm-text); }

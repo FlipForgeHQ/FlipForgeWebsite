@@ -22,8 +22,8 @@
  *   - the saved exact-sale count now vs. the count behind the decision;
  *   - time since the decision (T14 reasoning check, T30 re-check), and saved evidence older than 30 days;
  *   - card-match and identity-eligibility problems; VERIFY and legacy decisions that need renewed verification.
- * What is NOT monitored (awaiting licensed data; stated on screen): live asking prices, new completed sales, market
- *   movement. FlipForge does not re-check listings after a decision is saved; nothing here claims it does.
+ * What is NOT monitored (stated on screen): live asking prices, new completed sales, market movement. FlipForge does not
+ *   re-check listings or fetch sales after a decision is saved; nothing here claims it does.
  *
  * Authority boundary: no verdict, Max Buy, value or profit is computed. Decisions and receipts are never rescored or
  * modified; the monitor only reads them. Signals are review prompts, never instructions to buy or sell. Cards keep the
@@ -37,7 +37,7 @@
   "use strict";
   if (typeof window !== "undefined" && window.FlipForgeDecisionMonitor) return;
 
-  const VERSION = "decision-monitor-v1.0.0";
+  const VERSION = "decision-monitor-v1.1.0";
   const CONTRACT_VERSION = "1.0";
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
@@ -50,8 +50,8 @@
   const COLLECTION_ATTR = "data-ff-collection-intelligence";
   const NOT_MONITORED = Object.freeze([
     "Live asking prices — FlipForge does not re-check listings after a decision is saved.",
-    "New completed sales — waiting for a licensed sales source.",
-    "Market movement — not shown until licensed data supports it."
+    "New completed sales — FlipForge does not fetch sales after a decision is saved; a re-evaluation uses the latest it can find.",
+    "Market movement — not tracked for saved decisions."
   ]);
 
   function escapeHtml(value) {
@@ -94,11 +94,16 @@
 
   /**
    * Signals for one saved decision. Pure: reads the governed model, the immutable timeline and the lifecycle record.
-   * Each signal: { key, level: "review" | "info" | "ok", title, detail, source }.
+   * Each signal: { key, level: "review" | "info" | "ok", title, detail, source, category }.
+   * category (what kind of statement it is; shown as separate groups so nothing reads as live monitoring):
+   *   "changed"        something recorded as different since the decision (a re-evaluation, or saved evidence counts);
+   *   "historical"     a fact about the decision as it was saved (date, rules, verification, what you paid);
+   *   "not-rechecked"  what FlipForge has not looked at again since the decision.
+   * "Needs attention" is not a category: it is every signal with level "review", whatever its category.
    */
   function monitor(model, timeline, lifecycle, nowMs = Date.now()) {
     const signals = [];
-    const add = (key, level, title, detail, source) => signals.push({ key, level, title, detail, source });
+    const add = (key, level, title, detail, source, category) => signals.push({ key, level, title, detail, source, category });
     if (!model) return { available: false, signals, scope: NOT_MONITORED, ageDays: null, verdict: "" };
 
     const entries = timeline && Array.isArray(timeline.entries) ? timeline.entries.filter(e => e && typeof e === "object") : [];
@@ -113,7 +118,7 @@
     if (decisionChange && entries.length > 1) {
       const before = text(String(decisionChange.before ?? "")).toUpperCase() || text(entries[entries.length - 2]?.decision);
       add("decision", "review", `Decision changed: ${before || "earlier"} → ${model.verdict || text(latest.decision)}`,
-        `Recorded when this card was re-evaluated on ${dateOnly(latest.evaluatedAt) || "a later date"}. The earlier receipt is kept unchanged.`, "Re-evaluation");
+        `Recorded when this card was re-evaluated on ${dateOnly(latest.evaluatedAt) || "a later date"}. The earlier receipt is kept unchanged.`, "Re-evaluation", "changed");
     }
 
     // 2. Asking price vs saved Max Buy (only a re-evaluation can observe a new price).
@@ -130,10 +135,10 @@
         detail += after <= maxBuy ? ` Now ${money(maxBuy - after)} inside the Max Buy of ${money(maxBuy)}.` : ` Now ${money(after - maxBuy)} above the Max Buy of ${money(maxBuy)}.`;
         if (crossedDown || crossedUp) level = "review";
       }
-      add("price", level, "Asking price changed", detail, "Re-evaluation");
+      add("price", level, "Asking price changed", detail, "Re-evaluation", "changed");
     } else {
       add("price-unmonitored", "info", "Asking price not re-checked",
-        `The last price FlipForge saw was ${money(model.askCents, "not recorded")}${evaluatedAt ? ` on ${dateOnly(evaluatedAt)}` : ""}. FlipForge does not watch live listings, so re-evaluate to check the current price.`, "Saved decision");
+        `The last price FlipForge saw was ${money(model.askCents, "not recorded")}${evaluatedAt ? ` on ${dateOnly(evaluatedAt)}` : ""}. FlipForge does not watch live listings, so re-evaluate to check the current price.`, "Saved decision", "not-rechecked");
     }
 
     // 3. Evidence count behind the decision vs saved now.
@@ -144,59 +149,66 @@
         more
           ? `The decision used ${plural(model.exactSales, "exact sale")}; ${model.currentSavedSales} are saved now. A re-evaluation would use them; this decision is not rescored.`
           : `The decision used ${plural(model.exactSales, "exact sale")}; ${model.currentSavedSales} count under current evidence rules. The decision itself is unchanged.`,
-        "Saved evidence");
+        "Saved evidence", "changed");
     }
     const evidenceChange = change("ACCEPTED_EVIDENCE_CHANGED");
     if (evidenceChange && entries.length > 1) {
       add("evidence-reeval", "info", "Accepted evidence changed at re-evaluation",
-        text(evidenceChange.description) || `Accepted exact sales ${text(String(evidenceChange.before ?? "—"))} → ${text(String(evidenceChange.after ?? "—"))}.`, "Re-evaluation");
+        text(evidenceChange.description) || `Accepted exact sales ${text(String(evidenceChange.before ?? "—"))} → ${text(String(evidenceChange.after ?? "—"))}.`, "Re-evaluation", "changed");
     }
 
     // 4. Freshness: time since the decision, and the age of the newest saved sale when the server provides it.
     if (ageDays !== null) {
-      if (ageDays >= RECHECK_DAYS) add("age", "review", `Decision is ${ageDays} days old`, `Saved ${dateOnly(evaluatedAt)}. Re-check the price and evidence before relying on it.`, "Time since decision");
-      else if (ageDays >= REASONING_CHECK_DAYS) add("age", "info", `Decision is ${ageDays} days old`, "The 14-day reasoning check is due: does the original reason still hold?", "Time since decision");
+      if (ageDays >= RECHECK_DAYS) add("age", "review", `Decision is ${ageDays} days old`, `Saved ${dateOnly(evaluatedAt)}. Re-check the price and evidence before relying on it.`, "Time since decision", "historical");
+      else if (ageDays >= REASONING_CHECK_DAYS) add("age", "info", `Decision is ${ageDays} days old`, "The 14-day reasoning check is due: does the original reason still hold?", "Time since decision", "historical");
     }
     const latestSaleAge = daysSince(model.latestSaleDate, nowMs);
     if (latestSaleAge !== null && latestSaleAge > EVIDENCE_STALE_DAYS) {
-      add("evidence-age", "review", "Newest saved sale is over 30 days old", `Newest exact sale: ${dateOnly(model.latestSaleDate)} (${latestSaleAge} days). Prices may have moved since.`, "Saved evidence");
+      add("evidence-age", "review", "Newest saved sale is over 30 days old", `Newest exact sale: ${dateOnly(model.latestSaleDate)} (${latestSaleAge} days). Prices may have moved since.`, "Saved evidence", "historical");
     } else if (/STALE/.test(model.freshness || "")) {
-      add("evidence-age", "review", "Saved evidence is stale", "The server marks this card's saved evidence as stale.", "Saved evidence");
+      add("evidence-age", "review", "Saved evidence is stale", "The server marks this card's saved evidence as stale.", "Saved evidence", "historical");
     }
 
     // 5. Identity.
     const identityChange = change("IDENTITY_ELIGIBILITY_CHANGED");
     if (identityChange && entries.length > 1 && String(identityChange.after) === "false") {
-      add("identity", "review", "Exact-card identity no longer confirmed", "At the latest re-evaluation the card did not pass the exact-identity check.", "Re-evaluation");
+      add("identity", "review", "Exact-card identity no longer confirmed", "At the latest re-evaluation the card did not pass the exact-identity check.", "Re-evaluation", "changed");
     } else if (!model.legacy && model.mappingState && model.mappingState !== "CONFIRMED") {
-      add("identity", "review", "Card match not confirmed", "Confirm the exact set, number, parallel and grade before relying on this decision.", "Saved decision");
+      add("identity", "review", "Card match not confirmed", "Confirm the exact set, number, parallel and grade before relying on this decision.", "Saved decision", "historical");
     }
     if (model.excludedReasons.some(reason => /identity|wrong card|conflict/i.test(reason))) {
-      add("identity-conflict", "info", "Some sales were excluded for identity reasons", `Not counted because: ${model.excludedReasons.join(", ")}.`, "Saved evidence");
+      add("identity-conflict", "info", "Some sales were excluded for identity reasons", `Not counted because: ${model.excludedReasons.join(", ")}.`, "Saved evidence", "historical");
     }
 
     // 6. Uncertainty movement at re-evaluation.
     const risk = change("RISK_CHANGED");
     const confidence = change("CONFIDENCE_CHANGED");
     if (risk && entries.length > 1 && int(risk.after) !== null && int(risk.before) !== null && int(risk.after) > int(risk.before)) {
-      add("risk", "review", `Risk rose ${int(risk.before)} → ${int(risk.after)}`, "Recorded at the latest re-evaluation.", "Re-evaluation");
+      add("risk", "review", `Risk rose ${int(risk.before)} → ${int(risk.after)}`, "Recorded at the latest re-evaluation.", "Re-evaluation", "changed");
     }
     if (confidence && entries.length > 1 && int(confidence.after) !== null && int(confidence.before) !== null && int(confidence.after) < int(confidence.before)) {
-      add("confidence", "review", `Confidence fell ${int(confidence.before)} → ${int(confidence.after)}`, "Recorded at the latest re-evaluation.", "Re-evaluation");
+      add("confidence", "review", `Confidence fell ${int(confidence.before)} → ${int(confidence.after)}`, "Recorded at the latest re-evaluation.", "Re-evaluation", "changed");
     }
     const quality = change("EVIDENCE_QUALITY_CHANGED");
-    if (quality && entries.length > 1) add("quality", "info", "Evidence quality changed", text(quality.description) || `${text(String(quality.before ?? ""))} → ${text(String(quality.after ?? ""))}`, "Re-evaluation");
+    if (quality && entries.length > 1) add("quality", "info", "Evidence quality changed", text(quality.description) || `${text(String(quality.before ?? ""))} → ${text(String(quality.after ?? ""))}`, "Re-evaluation", "changed");
 
     // 7. Renewed verification.
-    if (model.legacy) add("legacy", "review", "Saved before current evidence rules", "Re-evaluate under current rules before relying on this decision.", "Saved decision");
-    else if (model.verdict === "VERIFY") add("verify", "review", "Still needs verification", model.missingRequirement && !/^none\b/i.test(model.missingRequirement) ? `FlipForge needs ${model.missingRequirement}.` : "Verification is still required before this decision can commit.", "Saved decision");
+    if (model.legacy) add("legacy", "review", "Relied on sale evidence FlipForge no longer accepts", "Re-evaluate the card before relying on this decision.", "Saved decision", "historical");
+    else if (model.verdict === "VERIFY") add("verify", "review", "Still needs verification", model.missingRequirement && !/^none\b/i.test(model.missingRequirement) ? `FlipForge needs ${model.missingRequirement}.` : "Verification is still required before this decision can commit.", "Saved decision", "historical");
 
     // 8. What you paid vs the Max Buy at decision (owned cards).
     const cost = lifecycle ? int(lifecycle.acquisitionCostCents) : null;
     if (cost !== null && model.maxBuyCents !== null) {
       const over = cost - model.maxBuyCents;
       add("paid", over > 0 ? "info" : "ok", over > 0 ? `You paid ${money(over)} above the Max Buy at decision` : `You paid ${money(-over)} under the Max Buy at decision`,
-        `Paid ${money(cost)} (entered by you) · Max Buy ${money(model.maxBuyCents)} on ${dateOnly(evaluatedAt) || "the decision date"}.`, "Your record");
+        `Paid ${money(cost)} (entered by you) · Max Buy ${money(model.maxBuyCents)} on ${dateOnly(evaluatedAt) || "the decision date"}.`, "Your record", "historical");
+    }
+
+    // 9. Rules the decision was made under (server-owned disclosure, #950). Context only: never re-scored.
+    if (model.earlierRules) {
+      add("earlier-rules", "info", "Decided under earlier rules",
+        model.rulesDisclosure || "This saved decision, its Max Buy and its receipt are kept exactly as they were made. Today's rules can give a different result at the same price.",
+        "Saved decision", "historical");
     }
 
     const reviewCount = signals.filter(s => s.level === "review").length;
@@ -214,7 +226,13 @@
     MAX_BUY_CROSSED: "Asking price crossed the saved Max Buy",
     DECISION_RECHECK_DUE: "Decision is due for a re-check",
     VERIFICATION_PENDING: "Still needs verification",
-    LEGACY_DECISION: "Saved before current evidence rules"
+    LEGACY_DECISION: "Relied on sale evidence FlipForge no longer accepts"
+  });
+  const SERVER_CATEGORY = Object.freeze({
+    MAX_BUY_CROSSED: "changed",
+    DECISION_RECHECK_DUE: "historical",
+    VERIFICATION_PENDING: "historical",
+    LEGACY_DECISION: "historical"
   });
   const ACTIVE_TRACKING = Object.freeze(["WATCHING", "REVIEW", "OWNED"]);
 
@@ -249,9 +267,9 @@
       }
     }
     if (kind === "DECISION_RECHECK_DUE" && int(sig.ageDays) !== null) {
-      return { key: `srv-${kind}`, level: "review", title: `Decision is ${int(sig.ageDays)} days old`, detail: `Saved ${dateOnly(sig.evaluatedAt) || "earlier"}. Re-check the price and evidence before relying on it.`, source: "FlipForge review signal" };
+      return { key: `srv-${kind}`, level: "review", title: `Decision is ${int(sig.ageDays)} days old`, detail: `Saved ${dateOnly(sig.evaluatedAt) || "earlier"}. Re-check the price and evidence before relying on it.`, source: "FlipForge review signal", category: SERVER_CATEGORY[kind] };
     }
-    return { key: `srv-${kind}`, level: "review", title: SERVER_KINDS[kind], detail, source: "FlipForge review signal" };
+    return { key: `srv-${kind}`, level: "review", title: SERVER_KINDS[kind], detail, source: "FlipForge review signal", category: SERVER_CATEGORY[kind] };
   }
 
   /**
@@ -281,13 +299,17 @@
         seen.add(kind);
         merged.push(serverSignalEntry(sig));
       }
-      if (contradicted) merged.push({ key: "review-signals-mismatch", level: "info", title: "A review signal was not shown", detail: `${plural(contradicted, "review signal")} did not match this saved decision, so ${contradicted === 1 ? "it was" : "they were"} left out rather than showing conflicting states.`, source: "FlipForge review signal" });
+      const earlierFromServer = feed.signals.some(sig => text(sig.opportunityId) === id && sig.decidedUnderEarlierRules === true);
+      if (earlierFromServer && !result.signals.some(sig => sig.key === "earlier-rules")) {
+        merged.push({ key: "earlier-rules", level: "info", title: "Decided under earlier rules", detail: "This saved decision and its Max Buy are kept exactly as they were made. Today's rules can give a different result at the same price.", source: "FlipForge review signal", category: "historical" });
+      }
+      if (contradicted) merged.push({ key: "review-signals-mismatch", level: "info", title: "A review signal was not shown", detail: `${plural(contradicted, "review signal")} did not match this saved decision, so ${contradicted === 1 ? "it was" : "they were"} left out rather than showing conflicting states.`, source: "FlipForge review signal", category: "not-rechecked" });
     } else if (status === "untracked") {
-      merged.push({ key: "review-signals-status", level: "info", title: "Not tracked yet", detail: "Track this card to get review signals: asking price vs. Max Buy at re-evaluation, 30-day re-check and pending verification.", source: "Review signals" });
+      merged.push({ key: "review-signals-status", level: "info", title: "Not tracked yet", detail: "Track this card to get review signals: asking price vs. Max Buy at re-evaluation, 30-day re-check and pending verification.", source: "Review signals", category: "not-rechecked" });
     } else if (status === "unsupported") {
-      merged.push({ key: "review-signals-status", level: "info", title: "Review signals not available yet", detail: "This FlipForge server does not provide review signals yet, so the price-vs-Max-Buy, 30-day re-check and verification prompts are not shown.", source: "Review signals" });
+      merged.push({ key: "review-signals-status", level: "info", title: "Review signals not available yet", detail: "This FlipForge server does not provide review signals yet, so the price-vs-Max-Buy, 30-day re-check and verification prompts are not shown.", source: "Review signals", category: "not-rechecked" });
     } else {
-      merged.push({ key: "review-signals-status", level: "info", title: "Review signals temporarily unavailable", detail: "FlipForge could not load its review signals just now, so those prompts are not shown. Your saved decision is unchanged.", source: "Review signals" });
+      merged.push({ key: "review-signals-status", level: "info", title: "Review signals temporarily unavailable", detail: "FlipForge could not load its review signals just now, so those prompts are not shown. Your saved decision is unchanged.", source: "Review signals", category: "not-rechecked" });
     }
     // The backend's Max Buy crossing already states the ask change; do not repeat it as a separate note.
     const localShown = merged.some(sig => sig.key === "srv-MAX_BUY_CROSSED") ? local.filter(sig => sig.key !== "price") : local;
@@ -355,25 +377,56 @@
     return `<span class="ffdm-chip" data-verdict="${escapeHtml((v || "none").toLowerCase())}">${escapeHtml(v || "—")}</span>`;
   }
 
+  // The four questions the panel answers, in this order. "Needs attention" is every review-level signal; the other
+  // groups hold the remaining signals by category, so a reader can always tell a recorded change from a saved fact and
+  // from something FlipForge has simply not looked at again.
+  const GROUPS = Object.freeze([
+    { key: "attention", title: "Needs your attention", empty: "" },
+    { key: "changed", title: "What changed since you saved it", empty: "" },
+    { key: "historical", title: "As saved (historical)", empty: "" },
+    { key: "not-rechecked", title: "Not re-checked since the decision", empty: "" }
+  ]);
+  function grouped(signals) {
+    const out = { attention: [], changed: [], historical: [], "not-rechecked": [] };
+    for (const signal of signals) {
+      if (signal.level === "review") out.attention.push(signal);
+      else out[out[signal.category] ? signal.category : "historical"].push(signal);
+    }
+    return out;
+  }
+  function categoryLabel(category) {
+    return category === "changed" ? "Changed" : category === "not-rechecked" ? "Not re-checked" : "As saved";
+  }
+
   function monitorMarkup(id, result, { compact = false, trackingHref = "" } = {}) {
     if (!result.available) {
       return `<section class="ffdm" ${PANEL_ATTR}="${escapeHtml(id)}" data-state="unavailable"><header class="ffdm-head"><div><span class="ffdm-kicker">Decision Change Monitor™</span><h2>Monitoring unavailable</h2></div></header><p class="ffdm-muted">The saved decision for this card could not be read, so nothing is shown rather than guessed.</p></section>`;
     }
-    const review = result.signals.filter(s => s.level === "review");
-    const others = result.signals.filter(s => s.level !== "review");
+    const groups = grouped(result.signals);
+    const review = groups.attention;
+    const recordedChanges = result.signals.filter(s => s.category === "changed").length;
     const headline = review.length
       ? `${plural(review.length, "thing")} to review since this decision`
-      : "No change found in FlipForge's saved data";
-    const sinceText = result.evaluatedAt ? `Saved ${dateOnly(result.evaluatedAt)}${result.ageDays !== null ? ` · ${plural(result.ageDays, "day")} ago` : ""}${result.reEvaluations ? ` · ${plural(result.reEvaluations, "re-evaluation")}` : ""}` : "";
-    const list = signals => `<ul class="ffdm-signals">${signals.map(s => `<li data-level="${s.level}" data-ffdm-signal="${escapeHtml(s.key)}"><span class="ffdm-dot" aria-hidden="true"></span><div><strong>${escapeHtml(s.title)}</strong><p>${escapeHtml(s.detail)}</p><small>${escapeHtml(s.source)}</small></div></li>`).join("")}</ul>`;
+      : "Nothing needs review from FlipForge's saved data";
+    const sinceText = result.evaluatedAt ? `Saved ${dateOnly(result.evaluatedAt)}${result.ageDays !== null ? ` · ${plural(result.ageDays, "day")} ago` : ""} · ${result.reEvaluations ? plural(result.reEvaluations, "re-evaluation") : "not re-evaluated since"}` : "";
+    const item = s => `<li data-level="${s.level}" data-ffdm-signal="${escapeHtml(s.key)}" data-ffdm-category="${escapeHtml(s.category || "historical")}"><span class="ffdm-dot" aria-hidden="true"></span><div><strong>${escapeHtml(s.title)}</strong><p>${escapeHtml(s.detail)}</p><small>${escapeHtml(s.level === "review" ? `${categoryLabel(s.category)} · ${s.source}` : s.source)}</small></div></li>`;
+    const changedEmpty = result.reEvaluations
+      ? "No change was recorded at the latest re-evaluation, and saved evidence counts are unchanged."
+      : "Nothing recorded: this card has not been re-evaluated since the decision, and saved evidence counts are unchanged.";
+    const section = (group, body) => `<section class="ffdm-group" data-ffdm-group="${group.key}"><h3>${escapeHtml(group.title)}</h3>${body}</section>`;
+    const list = signals => `<ul class="ffdm-signals">${signals.map(item).join("")}</ul>`;
+    const parts = [];
+    if (review.length) parts.push(section(GROUPS[0], list(review)));
+    parts.push(section(GROUPS[1], groups.changed.length ? list(groups.changed) : `<p class="ffdm-muted" data-ffdm-empty="changed">${escapeHtml(recordedChanges ? "Recorded changes are listed under Needs your attention." : changedEmpty)}</p>`));
+    const historical = groups.historical.length ? list(groups.historical) : "";
+    if (historical) parts.push(compact && review.length ? `<details class="ffdm-more" data-ffdm-group="historical"><summary>${escapeHtml(GROUPS[2].title)} · ${plural(groups.historical.length, "note")}</summary>${historical}</details>` : section(GROUPS[2], historical));
+    parts.push(section(GROUPS[3], `${groups["not-rechecked"].length ? list(groups["not-rechecked"]) : ""}<ul class="ffdm-scope-list" data-ffdm-scope>${result.scope.map(entry => `<li>${escapeHtml(entry)}</li>`).join("")}</ul><p class="ffdm-muted">FlipForge does not watch prices between re-evaluations. Everything above comes from your saved decision, saved evidence counts, re-evaluations you ran, and time. Decisions and receipts are never rescored.</p>`));
     return `<section class="ffdm" ${PANEL_ATTR}="${escapeHtml(id)}" data-ffdm-version="${VERSION}" data-review="${review.length}" aria-labelledby="ffdm-title-${escapeHtml(id)}">
       <header class="ffdm-head">
         <div><span class="ffdm-kicker">Decision Change Monitor™</span><h2 id="ffdm-title-${escapeHtml(id)}">${escapeHtml(headline)}</h2>${sinceText ? `<p class="ffdm-muted">${escapeHtml(sinceText)}</p>` : ""}</div>
         <div class="ffdm-state">${chip(result.verdict)}<small>Saved decision · unchanged</small></div>
       </header>
-      ${review.length ? list(review) : ""}
-      ${others.length ? (compact && review.length ? `<details class="ffdm-more"><summary>${plural(others.length, "other note")}</summary>${list(others)}</details>` : list(others)) : ""}
-      <details class="ffdm-scope" data-ffdm-scope><summary>What FlipForge is not monitoring yet</summary><ul>${result.scope.map(entry => `<li>${escapeHtml(entry)}</li>`).join("")}</ul><p>Signals come only from saved decisions, saved evidence counts, re-evaluations and time. Decisions and receipts are never rescored.</p></details>
+      ${parts.join("\n      ")}
       <footer class="ffdm-foot">
         <a class="ffdm-link" href="#/discover">Re-evaluate this card →</a>
         ${trackingHref ? `<a class="ffdm-link" href="${trackingHref}">Track and set a review date →</a>` : ""}
@@ -400,7 +453,7 @@
         <div data-tone="${view.unsupportedCostCents > 0 ? "warn" : ""}"><span>Without supported value</span><strong>${escapeHtml(money(view.unsupportedCostCents))}</strong><small>${plural(view.unsupportedCount, "card")} with no evidence-supported value</small></div>
         <div data-tone="${view.agedCostCents > 0 ? "warn" : ""}"><span>On decisions 30+ days old</span><strong>${escapeHtml(money(view.agedCostCents))}</strong><small>${plural(view.agedCount, "card")} to re-check</small></div>
         <div><span>Paid above Max Buy</span><strong>${escapeHtml(String(view.overMaxBuyCount))}</strong><small>Compared with the Max Buy at decision</small></div>
-        <div data-tone="${view.reverifyCount > 0 ? "warn" : ""}" data-ffci-reverify><span>Need another look</span><strong>${view.reviewSignalStatus === "available" ? escapeHtml(String(view.reverifyCount)) : "—"}</strong><small>${view.reviewSignalStatus === "available" ? "Re-check due, verification pending or old rules" : "Review signals unavailable right now"}</small></div>
+        <div data-tone="${view.reverifyCount > 0 ? "warn" : ""}" data-ffci-reverify><span>Need another look</span><strong>${view.reviewSignalStatus === "available" ? escapeHtml(String(view.reverifyCount)) : "—"}</strong><small>${view.reviewSignalStatus === "available" ? "Re-check due, verification pending, or evidence FlipForge no longer accepts" : "Review signals unavailable right now"}</small></div>
         <div data-tone="${view.hardExitCount > 0 ? "warn" : ""}" data-ffci-exits><span>Harder exits</span><strong>${escapeHtml(String(view.hardExitCount))}</strong><small>Few exact sales behind the decision</small></div>
       </div>
       ${attention.length ? `<ol class="ffci-list" data-ffci-attention>${attention.map(row).join("")}</ol>` : ""}

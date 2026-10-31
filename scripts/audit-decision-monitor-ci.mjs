@@ -78,7 +78,7 @@ const common = (label, f, requests, errors) => {
   check(`${label}: no horizontal overflow`, f.overflow <= 1, String(f.overflow));
   check(`${label}: no page errors`, errors.length === 0, errors.join(" | ").slice(0, 200));
   check(`${label}: GET only, no evaluation or provider route`, requests.every(r => r.startsWith("GET ")) && !requests.some(r => /evaluations|discover|card-intelligence/.test(r)), requests.join(","));
-  check(`${label}: states what is not monitored`, /not monitoring yet/i.test(f.text));
+  check(`${label}: states what is not re-checked`, /Not re-checked since the decision/i.test(f.text) && /does not watch prices between re-evaluations/i.test(f.text));
   check(`${label}: no live-monitoring claim`, !/real[- ]time|live monitoring|continuously/i.test(f.text));
   check(`${label}: no $0.00 for missing values`, !/(Max Buy|Paid) \$0\.00/.test(f.text));
 };

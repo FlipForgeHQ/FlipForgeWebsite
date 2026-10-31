@@ -110,3 +110,23 @@ The summary sits under Asking / Max Buy / Difference and shows three things.
 | Max Buy crossing, 30-day re-check, VERIFY pending, legacy | Backend: Decision Review Signals (`/alerts`, #935) |
 | Cost basis, tracking status | Backend: customer lifecycle record (`/portfolio`, `/lifecycle`) |
 | Exit difficulty label, evidence-bar check, break-even, Max Buy reasoning, 14-day check, count drift, paid vs. Max Buy | Website presentation, from the saved values above using the engine's published rules |
+
+
+## v1.1 (2026-10-30): four explicit groups, rules context
+
+- **Groups.** The tracked-card and saved-decision panels group every statement under four headings:
+  - **Needs your attention:** every review-level item, each labelled Changed or As saved.
+  - **What changed since you saved it:** only changes recorded by a re-evaluation, or a change in saved evidence
+    counts. When nothing was recorded, it says why: the card was not re-evaluated, or the re-evaluation recorded no
+    change.
+  - **As saved (historical):** decision age, verification status, card match as saved, what you paid against Max Buy,
+    and the earlier-rules disclosure.
+  - **Not re-checked since the decision:** always visible. It covers live asking prices, new completed sales and
+    market movement, plus "FlipForge does not watch prices between re-evaluations."
+- **Earlier rules.** "Decided under earlier rules" comes from the server's `governedDecision.decisionRules` (FlipForge2
+  #950) or the review-signal flag `decidedUnderEarlierRules` (FlipForge2 #935 v1.1). It is shown once, as a historical
+  note, never as a review item. The verdict, Max Buy and receipt are unchanged.
+- **Legacy wording.** The legacy-evidence prompt now reads "Relied on sale evidence FlipForge no longer accepts",
+  matching the backend, so it can't be confused with the earlier-rules label.
+- **Tests:** unit 86/86, rendered audit 117/117 (desktop and phone), Deal Check 100/100, source-truth terminology
+  83/83.
