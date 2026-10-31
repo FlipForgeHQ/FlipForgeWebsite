@@ -1,0 +1,28 @@
+/*
+ * Mobile table layout v1 (2026-10-31).
+ * customer-layout-system-v2.css fits every element in #main-content to the screen on phones
+ * ("#main-content *{min-width:0;max-width:100%!important}") and lets panel text break anywhere. A data table cannot fit
+ * six or seven columns into ~340px, so headings broke one letter per line ("D E C I S I O N"). On phones, tables now keep
+ * a readable width and scroll sideways inside their .table-wrap (which already has overflow-x:auto); words never break
+ * mid-word. Desktop is unaffected (rules apply only below 761px).
+ */
+@media (max-width: 760px) {
+  #main-content .table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  #main-content .table-wrap > table {
+    width: auto !important;
+    min-width: 100% !important;
+    max-width: none !important;
+  }
+  #main-content .table-wrap th,
+  #main-content .table-wrap td {
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    max-width: none !important;
+  }
+  #main-content .table-wrap th { white-space: nowrap !important; }
+  #main-content .table-wrap td:first-child { min-width: 9rem !important; }
+}
