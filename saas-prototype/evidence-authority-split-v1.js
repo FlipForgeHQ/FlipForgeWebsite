@@ -273,13 +273,13 @@
       const sales = `${count} exact completed sale${count === 1 ? "" : "s"}`;
       set(page.querySelector(".page-heading h1"), "Evidence behind this saved decision");
       set(proof?.querySelector(".ff-evidence-proof-copy h2"), `${sales} supported this decision when it was made.`);
-      set(proof?.querySelector(".ff-evidence-proof-copy > p"), "Sale records aren't kept, so those sales aren't listed or re-counted here, and today no exact completed sales are counted for this card. A fresh evaluation checks current sales.");
+      set(proof?.querySelector(".ff-evidence-proof-copy > p"), "Those sales aren't listed or re-counted here: sale records from our restricted data provider aren't kept, and no independent completed sales are counted for this card today. A new evaluation uses only FlipForge's authorized independent completed-sale evidence, which may have no sales of this exact card.");
       if (proof) proof.dataset.ffSalesAtDecision = String(count);
     } else if (!recorded && !recordsKept) {
       // The count was never recorded and the records are gone: say exactly that, never "no sales support this".
       set(page.querySelector(".page-heading h1"), "Evidence behind this saved decision");
       set(proof?.querySelector(".ff-evidence-proof-copy h2"), "This saved decision did not record how many exact sales it used.");
-      set(proof?.querySelector(".ff-evidence-proof-copy > p"), "Sale records aren't kept, so they can't be re-counted here, and today no exact completed sales are counted for this card. A fresh evaluation checks current sales.");
+      set(proof?.querySelector(".ff-evidence-proof-copy > p"), "Sale records from our restricted data provider aren't kept, so they can't be re-counted here, and no independent completed sales are counted for this card today. A new evaluation uses only FlipForge's authorized independent completed-sale evidence, which may have no sales of this exact card.");
       if (proof) proof.dataset.ffSalesAtDecision = "unknown";
     }
   }

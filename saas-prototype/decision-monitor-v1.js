@@ -50,7 +50,7 @@
   const COLLECTION_ATTR = "data-ff-collection-intelligence";
   const NOT_MONITORED = Object.freeze([
     "Live asking prices — FlipForge does not re-check listings after a decision is saved.",
-    "New completed sales — FlipForge does not fetch sales after a decision is saved; a re-evaluation uses the latest it can find.",
+    "New completed sales — FlipForge does not fetch sales after a decision is saved; a re-evaluation uses only FlipForge's authorized independent completed-sale evidence, which may have no sales of this card.",
     "Market movement — not tracked for saved decisions."
   ]);
 

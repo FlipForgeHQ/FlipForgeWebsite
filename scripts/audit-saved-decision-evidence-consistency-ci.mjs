@@ -14,6 +14,11 @@
 //   E5  Raw codes on the card page: "Workflow: UNKNOWN", "4 · decision" (lower-cased label), PSA "NOT_AVAILABLE", and a
 //       missing PSA population shown as 0.
 //   E6  The saved list's ask column is labelled "Ask when evaluated", not "Ask" (a saved ask is not a live price).
+//   E7  Tracking timeline: a snapshot with no supported value reads "Not established", never "$0.00".
+//   E8  Evidence availability is stated accurately (founder instruction 2026-10-31): no wording implies a new evaluation
+//       always finds current completed sales ("checked when you evaluate it", "A fresh evaluation checks current sales"),
+//       and retention wording names the restricted data provider's records, never "Sale records aren't kept" for all
+//       evidence (FlipForge's authorized independent evidence is a separate, kept source).
 //
 // The production host is mapped to the local server (saas-prototype/serve.mjs, port 4173 or FLIPFORGE_SDT_AUDIT_PORT).
 import { chromium } from "playwright";
@@ -185,6 +190,7 @@ const rowText = (page, id) => page.evaluate(card => {
 }, id);
 const ISO = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 const PROVIDER = /CardSight|CARDSIGHT/;
+const OVERCLAIM = /checked when you evaluate it|checks current sales|uses the latest it can find|uses only FlipForge's independent completed-sale evidence\./i;
 const sectionText = (page, selector) => page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent.replace(/\s+/g, " ").trim()).join(" | "), selector);
 const keyValue = (page, label) => page.evaluate(l => {
   for (const div of document.querySelectorAll("#main-content .staging-key-grid > div, #main-content .provider-evidence-metric")) {
@@ -215,6 +221,8 @@ try {
       check(`E5 ${label} card: no "Workflow:" line, no UNKNOWN, decision step capitalised`, !/Workflow:|\bUNKNOWN\b/.test(text) && /4 · Decision/.test(traceback) && !/4 · decision/.test(traceback), traceback.slice(-160));
       check(`E5 ${label} card: PSA status in words and missing populations Unavailable`,
         await keyValue(s.page, "Guidance status") === "Not available" && await keyValue(s.page, "PSA 10 population") === "Unavailable" && await keyValue(s.page, "PSA 9 population") === "Unavailable" && !/NOT_AVAILABLE/.test(text));
+      check(`E8 ${label} card: no promise that a new evaluation finds current sales; retention names the restricted provider`,
+        !OVERCLAIM.test(text) && !/Sale records aren't kept/i.test(text) && /sale records from our restricted data provider aren't kept/i.test(text), (text.match(OVERCLAIM) || text.match(/Sale records aren't kept.{0,40}/i) || [""])[0]);
       check(`${label} card: no page errors, no sideways scroll`, s.errors.length === 0 && await s.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), s.errors.join(" | "));
       await s.context.close();
     }
@@ -240,17 +248,22 @@ try {
     // E3: Evidence page.
     {
       const s = await open(BETA, "evidence/qa-sd-known", { device });
+      await s.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
       const text = await all(s.page);
       check(`E3 ${label} evidence page: saved BUY on 8 sales is not headed "No sales support this decision yet"`,
         /Evidence behind this saved decision/.test(text) && /8 exact completed sales supported this decision when it was made\./.test(text)
         && !/No sales support this decision yet|No exact completed sales support this card yet/.test(text));
+      check(`E8 ${label} evidence page: accurate evidence availability wording`,
+        !OVERCLAIM.test(text) && !/Sale records aren't kept/i.test(text) && /may have no sales of this exact card/.test(text), (text.match(OVERCLAIM) || [""])[0]);
       check(`E3 ${label} evidence page: decision date readable`, /Decision saved\s*Oct 8, 2026/.test(text) && !/2026-10-08/.test(text));
       await s.context.close();
       const u = await open(BETA, "evidence/qa-sd-unknown", { device });
+      await u.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
       const utext = await all(u.page);
       check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext));
       await u.context.close();
       const l = await open(BETA, "evidence/qa-sd-legacy", { device });
+      await l.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
       const ltext = await all(l.page);
       check(`E3 ${label} evidence page: legacy result keeps its own wording`, !/supported this decision when it was made/.test(ltext) && !PROVIDER.test(ltext));
       await l.context.close();

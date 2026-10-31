@@ -186,7 +186,7 @@
       ? `<ul class="ff-provider-evidence-reasons">${summary.reasons.map(([reason, count]) => `<li><strong>${escapeHtml(count)}</strong> ${escapeHtml(reason)}</li>`).join("")}</ul>`
       : "";
     const live = summary.liveAvailable
-      ? `<p>${escapeHtml(summary.liveQualifiedSales)} current reported sale${summary.liveQualifiedSales === 1 ? "" : "s"} from our data provider ${summary.liveQualifiedSales === 1 ? "was" : "were"} checked for this card${summary.liveExpiresAt ? ` (kept until ${escapeHtml(summary.liveExpiresAt.slice(0, 10))})` : ""}. Past sale records are not kept.</p>`
+      ? `<p>${escapeHtml(summary.liveQualifiedSales)} current reported sale${summary.liveQualifiedSales === 1 ? "" : "s"} from our data provider ${summary.liveQualifiedSales === 1 ? "was" : "were"} checked for this card${summary.liveExpiresAt ? ` (kept until ${escapeHtml(summary.liveExpiresAt.slice(0, 10))})` : ""}. Past sale records from our data provider are not kept.</p>`
       : "";
     return `<div class="ff-provider-evidence-summary" data-ff-provider-evidence-summary role="note">`
       + `<strong>${escapeHtml(summary.label)}: ${escapeHtml(summary.admitted)} counted now · ${escapeHtml(summary.notCounted)} not counted</strong>`
@@ -222,10 +222,22 @@
     return { source, type: type && type !== source ? type : "" };
   }
 
+  // Evidence availability, stated accurately (founder instruction 2026-10-31). Our data provider stays suspended and its
+  // sale records are not kept; FlipForge's authorized independent completed-sale evidence is a separate source that is
+  // kept, but it may hold no sales of a given card. No wording may imply a new evaluation always finds current sales.
+  const EVIDENCE_WORDING = Object.freeze({
+    providerNotKept: "Sale records from our restricted data provider aren't kept",
+    newEvaluation: "A new evaluation uses only FlipForge's authorized independent completed-sale evidence, which may have no sales of this exact card."
+  });
+  // The server's LIVE_PRICING_ONLY label ("Current sales of this exact card are checked when you evaluate it; past sale
+  // records are not kept.") reads as if every evaluation finds current sales. It is replaced with the accurate wording.
+  const LIVE_PRICING_ONLY_LABEL = `No price shown. ${EVIDENCE_WORDING.providerNotKept}. ${EVIDENCE_WORDING.newEvaluation}`;
   function priceStatusLabel(...candidates) {
     for (const candidate of candidates) {
-      const label = candidate && typeof candidate === "object" ? candidate.priceStatusLabel : null;
-      if (typeof label === "string" && label.trim()) return customerText(label.trim());
+      if (!candidate || typeof candidate !== "object") continue;
+      const label = typeof candidate.priceStatusLabel === "string" ? candidate.priceStatusLabel.trim() : "";
+      if (String(candidate.priceStatus || "").toUpperCase() === "LIVE_PRICING_ONLY" || /checked when you evaluate it/i.test(label)) return LIVE_PRICING_ONLY_LABEL;
+      if (label) return customerText(label);
     }
     return "";
   }
@@ -440,6 +452,7 @@
     remember,
     recordFor,
     activeCardId,
+    EVIDENCE_WORDING,
     readableDateTime,
     centsText,
     countText,

@@ -174,7 +174,7 @@
       parts.push("This saved decision relied on sale evidence FlipForge no longer accepts. Those sales are not shown, and the saved decision is kept exactly as it was made.");
     }
     if (evidence?.providerOff) {
-      parts.push("Sale records from our data provider are not kept, and new evaluations do not use that provider right now. A fresh evaluation uses only FlipForge's independent completed-sale evidence.");
+      parts.push("Sale records from our data provider are not kept, and new evaluations do not use that provider right now. A new evaluation uses only FlipForge's authorized independent completed-sale evidence, which may have no sales of this exact card.");
     } else if (!evidence?.legacy) {
       parts.push("Current evidence is shown below. A fresh evaluation will also show whether historical pricing from our data provider was checked and how many rows qualified.");
     }
