@@ -268,8 +268,34 @@
     return "neutral";
   }
 
+  // Plain-language history (2026-10-31): structured change codes become customer sentences, ISO times become dates.
+  function changeLinesFor(entry) {
+    const trust = window.FlipForgeTrustDisplay;
+    return trust?.customerChangeLines ? trust.customerChangeLines(entry) : safeArray(entry?.whatChanged);
+  }
+  function whenText(value, fallback) {
+    const trust = window.FlipForgeTrustDisplay;
+    const text = trust?.readableDateTime ? trust.readableDateTime(value) : String(value || "");
+    return text || fallback;
+  }
+  const HISTORY_EVENTS = Object.freeze({ CREATED: "Saved", UPDATED: "Updated", EXTERNAL_UPDATE: "Updated elsewhere", ARCHIVED: "Archived", RESTORED: "Restored" });
+  const TRACKING_WORDS = Object.freeze({ WATCHING: "Watching", REVIEW: "Needs review", OWNED: "Owned", SOLD: "Sold", PASSED: "Passed", ARCHIVED: "Archived" });
+  const OUTCOME_WORDS = Object.freeze({ NONE: "No outcome recorded", ACQUIRED: "Bought", SOLD: "Sold", PASSED: "Passed" });
+  function plainCode(map, value, fallback) {
+    const code = String(value || "").toUpperCase();
+    if (!code) return fallback;
+    return map[code] || code.charAt(0) + code.slice(1).toLowerCase().replace(/_/g, " ");
+  }
+
+  // A saved snapshot with no evidence-supported value records 0 (or nothing): that is "not established", never "$0.00",
+  // which reads as "worth nothing" (review 2026-10-31; seen on a production VERIFY).
+  function establishedValue(cents) {
+    const number = cents === null || cents === undefined || cents === "" ? NaN : Number(cents);
+    return Number.isFinite(number) && number > 0 ? moneyFromCents(number) : "Not established";
+  }
+
   function timelineEntryMarkup(entry, index) {
-    const changes = safeArray(entry?.whatChanged);
+    const changes = changeLinesFor(entry);
     const wouldChange = safeArray(entry?.whatWouldChange);
     const changeMarkup = changes.length
       ? `<div class="customer-decision-timeline-changes"><strong>What changed</strong><ul>${changes.map(change => `<li>${escapeHtml(change)}</li>`).join("")}</ul></div>`
@@ -277,7 +303,7 @@
     const wouldChangeMarkup = wouldChange.length
       ? `<details class="customer-decision-timeline-conditions"><summary>What would change this decision?</summary><ul>${wouldChange.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>`
       : "";
-    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(entry?.evaluatedAt || "Time unavailable")}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : moneyFromCents(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(entry?.evidenceQuality || "Unavailable")}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
+    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(whenText(entry?.evaluatedAt, "Time unavailable"))}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : establishedValue(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(plainCode({ REVIEW: "Needs review" }, entry?.evidenceQuality, "Unavailable"))}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
   }
 
   function decisionTimelineMarkup() {
@@ -294,7 +320,7 @@
   function historyMarkup() {
     const history = safeArray(state.detail?.data?.history);
     if (!history.length) return `<div class="staging-empty"><strong>No lifecycle history yet.</strong><p>The first saved change will create an append-only event.</p></div>`;
-    return `<div class="customer-lifecycle-history">${history.map(event => `<article><span>${escapeHtml(event.recordedAt || "Time unavailable")}</span><strong>${escapeHtml(event.eventType || "UPDATED")} · ${escapeHtml(event.trackingStatus || "UNKNOWN")}</strong><p>Outcome ${escapeHtml(event.outcomeStatus || "NONE")} · Version ${safeNumber(event.recordVersion)}</p></article>`).join("")}</div>`;
+    return `<div class="customer-lifecycle-history">${history.map(event => `<article data-history-event="${escapeHtml(event.eventType || "UPDATED")}"><span>${escapeHtml(whenText(event.recordedAt, "Time unavailable"))}</span><strong>${escapeHtml(plainCode(HISTORY_EVENTS, event.eventType, "Updated"))} · ${escapeHtml(plainCode(TRACKING_WORDS, event.trackingStatus, "Status not recorded"))}</strong><p>${escapeHtml(plainCode(OUTCOME_WORDS, event.outcomeStatus, "No outcome recorded"))} · Record version ${safeNumber(event.recordVersion)}</p></article>`).join("")}</div>`;
   }
 
   function lifecycleForm(lifecycle) {

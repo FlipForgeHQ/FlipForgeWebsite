@@ -96,7 +96,7 @@ try {
   check("one row is Not used", state.notUsedRows === 1 && !/excluded/i.test(state.notUsedText));
   check("summary separates excluded, held and not used", state.sectionCopy.includes("1 excluded") && state.sectionCopy.includes("2 held for review") && state.sectionCopy.includes("1 not used"));
   check("counted sales are labelled provider-reported, not verified", state.trustedCopy.includes("not been independently confirmed") && !/verified/i.test(state.trustedCopy));
-  check("saved decision panel shows the decision as saved", state.decision.includes("The saved decision") && state.decision.includes("BUY") && state.decision.includes("$1,675") && state.decision.includes("$1,215") && state.decision.includes("227") && state.decision.includes("2026-10-09"));
+  check("saved decision panel shows the decision as saved", state.decision.includes("The saved decision") && state.decision.includes("BUY") && state.decision.includes("$1,675") && state.decision.includes("$1,215") && state.decision.includes("227") && state.decision.includes("Oct 9, 2026") && !state.decision.includes("2026-10-09"));
   await page.close();
 
   // 2. An older server without per-row status: nothing is called excluded.

@@ -92,6 +92,11 @@
       && Array.isArray(reconciliation.checkpoints);
   }
 
+  function readableDate(value) {
+    const trust = window.FlipForgeTrustDisplay;
+    return trust?.readableDateTime ? trust.readableDateTime(String(value || ""), { dateOnly: true }) : String(value || "");
+  }
+
   function checkpointLabel(state) {
     switch (String(state || "")) {
       case "MEASURABLE": return "Observed";
@@ -106,7 +111,7 @@
     const horizon = Number(checkpoint?.horizonDays);
     const state = String(checkpoint?.measurementState || "MISSING_OBSERVATION");
     const available = checkpoint?.available === true;
-    const observedAt = checkpoint?.observedAt ? escapeHtml(checkpoint.observedAt) : "Not observed yet";
+    const observedAt = checkpoint?.observedAt ? escapeHtml(readableDate(checkpoint.observedAt)) : "Not observed yet";
     const observedValue = available ? moneyFromCents(checkpoint?.observedSupportedValueCents) : "Unavailable";
     const movement = state === "MEASURABLE" && Number.isFinite(Number(checkpoint?.supportedValueChangePercent))
       ? `${escapeHtml(checkpoint.supportedValueChangePercent)}%`
@@ -153,7 +158,7 @@
     const byHorizon = new Map(checkpoints.map(item => [Number(item?.horizonDays), item]));
     const required = [7, 14, 30].map(horizon => byHorizon.get(horizon) || { horizonDays: horizon, measurementState: "MISSING_OBSERVATION", available: false });
     const observed = Number(reconciliation.observedCheckpointCount || 0);
-    return `<section class="panel customer-outcome-panel" data-ff-outcome-intelligence><header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>T7 · T14 · T30</h2><p>What the governed evidence showed after the saved decision.</p></div><span class="staging-status staging-status-ok">${escapeHtml(observed)}/3 observed</span></header><div class="panel-body"><div class="customer-outcome-boundary"><strong>Observation, not a new recommendation.</strong><span>These checkpoints compare stored observations with the immutable T0 baseline. They do not rescore history, declare a decision right or wrong, backfill missing values, or authorize a transaction.</span></div><div class="customer-outcome-baseline"><span><small>T0 decision</small><strong>${escapeHtml(reconciliation.t0Decision || "Unavailable")}</strong></span><span><small>T0 date</small><strong>${escapeHtml(reconciliation.t0EvaluatedAt || "Unavailable")}</strong></span><span><small>T0 Supported Value</small><strong>${moneyFromCents(reconciliation.t0SupportedValueCents)}</strong></span></div><div class="customer-outcome-checkpoints">${required.map(checkpointMarkup).join("")}</div></div></section>`;
+    return `<section class="panel customer-outcome-panel" data-ff-outcome-intelligence><header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>T7 · T14 · T30</h2><p>What the governed evidence showed after the saved decision.</p></div><span class="staging-status staging-status-ok">${escapeHtml(observed)}/3 observed</span></header><div class="panel-body"><div class="customer-outcome-boundary"><strong>Observation, not a new recommendation.</strong><span>These checkpoints compare stored observations with the immutable T0 baseline. They do not rescore history, declare a decision right or wrong, backfill missing values, or authorize a transaction.</span></div><div class="customer-outcome-baseline"><span><small>T0 decision</small><strong>${escapeHtml(reconciliation.t0Decision || "Unavailable")}</strong></span><span><small>T0 date</small><strong>${escapeHtml(reconciliation.t0EvaluatedAt ? readableDate(reconciliation.t0EvaluatedAt) : "Unavailable")}</strong></span><span><small>T0 Supported Value</small><strong>${moneyFromCents(reconciliation.t0SupportedValueCents)}</strong></span></div>${observed === 0 ? `<p class="customer-outcome-waiting customer-outcome-open" data-ff-outcome-open>Each checkpoint needs completed sales of this exact card recorded after the decision. None has been recorded yet, so the checkpoints stay open. They are never filled in later from estimates.</p>` : ""}<div class="customer-outcome-checkpoints">${required.map(checkpointMarkup).join("")}</div></div></section>`;
   }
 
   function renderOutcomeIntelligence(root = document) {

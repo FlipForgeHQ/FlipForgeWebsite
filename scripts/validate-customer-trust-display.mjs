@@ -78,7 +78,7 @@ check("no customer page builds a score by deleting every non-digit from page tex
 check("card detail reads decision risk from the saved record", clarity.includes("window.FlipForgeTrustDisplay.riskValue(record)"));
 check("card detail never calls the decision risk \"final\"", !/final saved decision risk/i.test(clarity));
 check("evaluation result reads only a whole N/100 risk score", firstValue.includes("\\s*\\/\\s*100\\s*$"));
-check("evidence passport accepts the renamed labels and reads the saved record", passport.includes('["Listing price", "Current ask"]') && passport.includes('["Decision risk", "Risk"]') && passport.includes("scoreFromRecord(record"));
+check("evidence passport accepts the renamed labels and reads the saved record", passport.includes('["Ask when evaluated", "Listing price", "Current ask"]') && passport.includes('["Decision risk", "Risk"]') && passport.includes("scoreFromRecord(record"));
 for (const shell of ["saas-prototype/index.html", "saas-prototype/customer.html"]) {
   const html = read(shell);
   check(`${shell} loads the shared helper before the renderers`, html.includes('src="customer-trust-display-v1.js"')

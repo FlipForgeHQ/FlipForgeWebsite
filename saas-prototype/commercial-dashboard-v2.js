@@ -226,7 +226,8 @@
     const ask = numberOrNull(item.ask);
     const supported = numberOrNull(item.supportedValue);
     const gap = ask !== null && supported !== null ? supported - ask : null;
-    const exactSales = numberOrNull(item.evidence && item.evidence.acceptedSales);
+    const sales = decisionSales(item);
+    const exactSales = sales.count;
     const id = String(item.id || "");
     const detailHref = SAFE_ID.test(id) ? `#/opportunities/${encodeURIComponent(id)}` : "#/opportunities";
 
@@ -242,7 +243,7 @@
               <div><span>Ask</span><strong>${escapeHtml(money(ask))}</strong></div>
               <div><span>Supported value</span><strong>${escapeHtml(supportedValueText(supported))}</strong></div>
               <div><span>Value gap</span><strong class="${gap !== null && gap > 0 ? "ff-positive" : ""}">${gap === null ? "—" : escapeHtml(money(gap))}</strong></div>
-              <div><span>Exact accepted sales</span><strong>${exactSales === null ? "—" : escapeHtml(integer(exactSales))}</strong></div>
+              <div><span>${sales.atDecision ? "Exact sales at decision" : "Exact accepted sales"}</span><strong>${sales.withheld ? "Withheld" : exactSales === null ? "Unavailable" : escapeHtml(integer(exactSales))}</strong></div>
             </div>
             <div class="ff-dashboard-actions"><a class="button button-primary" href="${detailHref}">View full analysis</a><a class="button button-secondary" href="#/tracking">Open watchlist</a></div>
           </div>
@@ -283,14 +284,32 @@
     </section>`;
   }
 
+  // Exact sales behind a saved decision (2026-10-31). Sale records are no longer kept, so today's accepted-sale
+  // count is 0 even for a decision made on 8 exact sales; the saved receipt's own count is shown, labelled
+  // "at decision". Legacy results and records without a governed receipt keep the current count.
+  function decisionSales(item) {
+    const governed = item && item.governedDecision;
+    const trust = window.FlipForgeTrustDisplay;
+    const legacy = trust && typeof trust.isLegacy === "function" && trust.isLegacy(item);
+    // A legacy result's evidence is withheld: no count is shown, not even today's 0.
+    if (legacy) return { count: null, atDecision: false, withheld: true };
+    // A saved decision with no recorded count shows "Unavailable"; today's count is never used in its place.
+    if (governed && governed.available === true) {
+      const count = numberOrNull(governed.exactTrustedCompCount);
+      return { count: count !== null && count >= 0 ? count : null, atDecision: true };
+    }
+    return { count: numberOrNull(item && item.evidence && item.evidence.acceptedSales), atDecision: false };
+  }
+
   function recentDecisions(items) {
     if (!items.length) return `<div class="ff-v2-panel-body ff-commercial-empty"><strong>No recent decisions.</strong><p>Saved Smart Opportunity records will appear here after evaluation.</p></div>`;
     const rows = items.slice(0, 6).map(item => {
       const id = String(item.id || "");
       const href = SAFE_ID.test(id) ? `#/opportunities/${encodeURIComponent(id)}` : "#/opportunities";
       const title = item.title || item.cardIdentity || id || "Saved decision";
-      const exactSales = numberOrNull(item.evidence && item.evidence.acceptedSales);
-      return `<tr><td><a href="${href}">${escapeHtml(title)}</a><br><small>${escapeHtml(item.cardIdentity || item.platform || "Saved record")}</small></td><td>${recommendationPill(item.recommendation)}</td><td>${escapeHtml(money(item.ask))}</td><td>${escapeHtml(supportedValueText(item.supportedValue))}</td><td>${numberOrNull(item.confidence) === null ? "—" : `${Math.round(Number(item.confidence))}`}</td><td>${exactSales === null ? "—" : escapeHtml(integer(exactSales))}</td><td>${escapeHtml(item.mappingState || "UNKNOWN")}</td></tr>`;
+      const sales = decisionSales(item);
+      const exactSales = sales.count;
+      return `<tr><td><a href="${href}">${escapeHtml(title)}</a><br><small>${escapeHtml(item.cardIdentity || item.platform || "Saved record")}</small></td><td>${recommendationPill(item.recommendation)}</td><td>${escapeHtml(money(item.ask))}</td><td>${escapeHtml(supportedValueText(item.supportedValue))}</td><td>${numberOrNull(item.confidence) === null ? "—" : `${Math.round(Number(item.confidence))}`}</td><td>${sales.withheld ? "Withheld" : exactSales === null ? "Unavailable" : escapeHtml(integer(exactSales))}${sales.atDecision ? "<small> at decision</small>" : ""}</td><td>${escapeHtml(item.mappingState || "UNKNOWN")}</td></tr>`;
     }).join("");
     return `<div class="ff-v2-table-wrap"><table class="ff-v2-table"><thead><tr><th>Card</th><th>Decision</th><th>Ask</th><th>Supported</th><th>Confidence</th><th>Exact sales</th><th>Mapping</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }

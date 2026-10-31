@@ -211,10 +211,10 @@
     const header = `<header class="panel-header"><div><h2>Sales</h2><p>Record what you actually sold this card for. Saved to your account as user reported.</p></div>`
       + (state.formOpen ? "" : `<button class="button button-primary" type="button" data-reported-sale-open>Mark as Sold</button>`) + `</header>`;
     const body = state.error
-      ? `<div class="staging-error" role="alert"><strong>${escapeHtml(state.error.code || "SALES_UNAVAILABLE")}</strong><p>${escapeHtml(state.error.message || "Sales are unavailable.")}</p></div>`
+      ? (() => { const said = window.FlipForgeTrustDisplay?.customerErrorText ? window.FlipForgeTrustDisplay.customerErrorText(state.error, "reported sales on this card") : { title: state.error.code || "SALES_UNAVAILABLE", detail: state.error.message || "", reference: "" }; return `<div class="staging-error" role="alert" data-error-code="${escapeHtml(state.error.code || "")}"><strong>${escapeHtml(said.title)}</strong><p>${escapeHtml(said.detail)}</p>${said.reference ? `<small>Reference: ${escapeHtml(said.reference)}</small>` : ""}</div>`; })()
       : "";
     const notice = state.notice ? `<div class="customer-lifecycle-notice" role="status">${escapeHtml(state.notice)}</div>` : "";
-    const list = items.length ? items.map(reportMarkup).join("") : (state.data ? `<p class="ff-reported-sales-empty">No sale recorded for this card yet.</p>` : `<div class="staging-loading" role="status">Loading sales…</div>`);
+    const list = items.length ? items.map(reportMarkup).join("") : state.error ? "" : (state.data ? `<p class="ff-reported-sales-empty">No sale recorded for this card yet.</p>` : `<div class="staging-loading" role="status">Loading sales…</div>`);
     return `${header}<div class="panel-body">${notice}${body}${state.formOpen ? formMarkup() : ""}${list}</div>`;
   }
 

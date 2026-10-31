@@ -171,7 +171,7 @@
     const header = `<header class="panel-header"><div><h2>Sell Watch</h2><p>See what you would keep at a price you choose, after your own selling costs.</p></div></header>`;
     const notice = state.notice ? `<div class="customer-lifecycle-notice" role="status">${escapeHtml(state.notice)}</div>` : "";
     const error = state.error
-      ? `<div class="staging-error" role="alert"><strong>${escapeHtml(state.error.code || "SELL_WATCH_UNAVAILABLE")}</strong><p>${escapeHtml(state.error.message || "Sell Watch is unavailable.")}</p></div>`
+      ? (() => { const said = window.FlipForgeTrustDisplay?.customerErrorText ? window.FlipForgeTrustDisplay.customerErrorText(state.error, "Sell Watch on this card") : { title: state.error.code || "SELL_WATCH_UNAVAILABLE", detail: state.error.message || "", reference: "" }; return `<div class="staging-error" role="alert" data-error-code="${escapeHtml(state.error.code || "")}"><strong>${escapeHtml(said.title)}</strong><p>${escapeHtml(said.detail)}</p>${said.reference ? `<small>Reference: ${escapeHtml(said.reference)}</small>` : ""}</div>`; })()
       : "";
     if (!state.card) return `${header}<div class="panel-body">${error || `<div class="staging-loading" role="status">Loading Sell Watch…</div>`}</div>`;
     const profile = profileFor(state.channel);

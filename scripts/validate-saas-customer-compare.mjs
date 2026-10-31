@@ -66,7 +66,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["040 different identities are not treated as comps", adapter.includes("Different exact-card identities") && adapter.includes("not as interchangeable comp evidence")],
   ["041 Compare and Card Intelligence link both directions", adapter.includes('href="#/opportunities/${encodeURIComponent(id)}"') && readAdapter.includes('compare.href = `#/compare?left=${encodeURIComponent(currentId)}`')],
   ["042 no save-comparison claim exists", !/Save comparison|comparison saved|persist comparison/i.test(adapter)],
-  ["043 table displays saved authority factors", ["Saved decision", "Current ask", "Supported value", "Confidence", "Liquidity", "Risk", "Rank", "Accepted completed sales", "Mapping state", "Workflow"].every(value => adapter.includes(value))],
+  ["043 table displays saved authority factors", ["Saved decision", "Ask when evaluated", "Supported value", "Confidence", "Liquidity", "Risk", "Rank", "Accepted completed sales", "Mapping state", "Workflow"].every(value => adapter.includes(value))],
   ["044 table does not declare a winner", adapter.includes("No new recommendation") && adapter.includes("No browser-side score or winner is created")],
   ["045 customer transaction authority remains absent", adapter.includes("Transaction authority") && adapter.includes(">None<")],
   ["046 gateway already allowlists Compare", gateway.includes('pattern: /^\\/api\\/v1\\/compare$/')],

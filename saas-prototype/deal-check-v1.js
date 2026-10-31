@@ -240,7 +240,10 @@
         supportedValueCents: int(entry.supportedValueCents),
         maximumBuyPriceCents: entry.profitabilityAvailable === false || !(int(entry.supportedValueCents) > 0) ? null : int(entry.maximumBuyPriceCents),
         acceptedEvidenceCount: int(entry.acceptedEvidenceCount),
-        whatChanged: Array.isArray(entry.whatChanged) ? entry.whatChanged.map(text).filter(Boolean)
+        // Plain-language lines from the structured change codes (money in dollars, no internal workflow states).
+        whatChanged: window.FlipForgeTrustDisplay && typeof window.FlipForgeTrustDisplay.customerChangeLines === "function"
+          ? window.FlipForgeTrustDisplay.customerChangeLines(entry).map(text).filter(Boolean)
+          : Array.isArray(entry.whatChanged) ? entry.whatChanged.map(text).filter(Boolean)
           : Array.isArray(entry.changes) ? entry.changes.map(change => text(change && change.description)).filter(Boolean) : []
       })),
       policyVersion: latestEntry ? text(latestEntry.profitabilityPolicyVersion) : "",
@@ -381,7 +384,7 @@
   function evidenceStrength(model) {
     if (!model || model.legacy) return { met: false, label: "Not current", detail: "Saved before current evidence rules." };
     const misses = [];
-    if (model.exactSales === null || model.exactSales < 3) misses.push(model.exactSales ? `only ${model.exactSales} exact sale${model.exactSales === 1 ? "" : "s"}` : "no exact sales");
+    if (model.exactSales === null || model.exactSales < 3) misses.push(model.exactSales === null ? "exact-sale count not recorded" : model.exactSales ? `only ${model.exactSales} exact sale${model.exactSales === 1 ? "" : "s"}` : "no exact sales");
     if (model.confidence === null || model.confidence < 75) misses.push(model.confidence === null ? "confidence not recorded" : `confidence ${model.confidence}/100`);
     if (model.risk === null || model.risk > 55) misses.push(model.risk === null ? "risk not recorded" : `risk ${model.risk}/100`);
     return misses.length
@@ -393,7 +396,9 @@
   function headline(model) {
     const over = model.headroomCents !== null && model.headroomCents < 0 ? money(-model.headroomCents) : "";
     switch (model.verdict) {
-      case "BUY": return model.headroomCents !== null ? `The all-in price is ${money(model.headroomCents)} inside the evidence-supported buying limit.` : "The saved evidence and price support this BUY.";
+      case "BUY": return model.headroomCents !== null
+        ? (model.headroomCents > 0 ? `The all-in price is ${money(model.headroomCents)} inside the evidence-supported buying limit.` : "The all-in price is right at the evidence-supported buying limit.")
+        : "The saved evidence and price support this BUY.";
       case "WATCH":
         if (over) return `The all-in price is ${over} above the evidence-supported buying limit.`;
         if (model.profitabilityCappedBuy && model.gateStatus === "MARGIN_OF_SAFETY_NOT_MET") return "Profit protection held this back: too little cushion if prices drop.";
@@ -688,7 +693,7 @@
         </div>
       </header>
       <div class="ffdc-figures" data-ffdc-figures>
-        ${figure("Asking (all-in)", money(model.askCents), model.askFromSnapshot ? "As evaluated, incl. shipping and tax" : "Listing price")}
+        ${figure("Asking (all-in)", money(model.askCents), model.askFromSnapshot ? "As evaluated, incl. shipping and tax" : "Listing price when evaluated")}
         ${figure("Max Buy", money(model.maxBuyCents, model.supportedCents === null ? "Not set" : NOT_CALCULATED), "Evidence-supported buying limit", "gold")}
         ${figure("Difference", diff, headroom === null ? "" : "Asking vs. Max Buy", headroom === null ? "" : headroom >= 0 ? "inside" : "over")}
       </div>
