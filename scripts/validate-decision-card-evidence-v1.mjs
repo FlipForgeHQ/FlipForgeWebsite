@@ -27,6 +27,17 @@ try {
   check(`001 Decision Card evidence JavaScript parses (${error.message})`, false);
 }
 
+// Legacy results and saved chips (2026-10-31, founder report on a legacy BUY):
+// a legacy result never gets current-support copy, its withheld evidence is not shown as 0, and "Saved BUY" chips are read.
+const clarity = read("saas-prototype/customer-decision-clarity-v1.js");
+check("L01 legacy result detected from the server's legacy badge", js.includes('querySelector("[data-ff-legacy-result]")'));
+check("L02 legacy result gets historical copy, not 'Evidence supports considering this purchase'", /model\.legacy \? legacyImpact\(model\.decision\)/.test(js) && js.includes("Saved before current evidence rules · not currently supported"));
+check("L03 legacy evidence tile says withheld, not 0", js.includes('evidence.trusted = "Withheld"'));
+check("L04 legacy confidence is labelled as at the time", js.includes('"Confidence at the time"'));
+check("L05 decision card reads 'Saved BUY' hero chips", /replace\(\/\^SAVED\\s\+\/, ""\)/.test(js));
+check("L06 decision clarity reads 'Saved BUY' chips (no false 'has not returned a customer-facing decision')", /replace\(\/\^SAVED\\s\+\/, ""\)/.test(clarity));
+check("L07 saved date is shown as a date, not a raw ISO timestamp", clarity.includes("function readableDate(") && clarity.includes("readableDate(raw)"));
+
 try {
   new Function(loader);
   check("002 Decision Intelligence polish loader parses", true);
