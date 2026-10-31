@@ -384,7 +384,7 @@
   function evidenceStrength(model) {
     if (!model || model.legacy) return { met: false, label: "Not current", detail: "Saved before current evidence rules." };
     const misses = [];
-    if (model.exactSales === null || model.exactSales < 3) misses.push(model.exactSales ? `only ${model.exactSales} exact sale${model.exactSales === 1 ? "" : "s"}` : "no exact sales");
+    if (model.exactSales === null || model.exactSales < 3) misses.push(model.exactSales === null ? "exact-sale count not recorded" : model.exactSales ? `only ${model.exactSales} exact sale${model.exactSales === 1 ? "" : "s"}` : "no exact sales");
     if (model.confidence === null || model.confidence < 75) misses.push(model.confidence === null ? "confidence not recorded" : `confidence ${model.confidence}/100`);
     if (model.risk === null || model.risk > 55) misses.push(model.risk === null ? "risk not recorded" : `risk ${model.risk}/100`);
     return misses.length
@@ -693,7 +693,7 @@
         </div>
       </header>
       <div class="ffdc-figures" data-ffdc-figures>
-        ${figure("Asking (all-in)", money(model.askCents), model.askFromSnapshot ? "As evaluated, incl. shipping and tax" : "Listing price")}
+        ${figure("Asking (all-in)", money(model.askCents), model.askFromSnapshot ? "As evaluated, incl. shipping and tax" : "Listing price when evaluated")}
         ${figure("Max Buy", money(model.maxBuyCents, model.supportedCents === null ? "Not set" : NOT_CALCULATED), "Evidence-supported buying limit", "gold")}
         ${figure("Difference", diff, headroom === null ? "" : "Asking vs. Max Buy", headroom === null ? "" : headroom >= 0 ? "inside" : "over")}
       </div>

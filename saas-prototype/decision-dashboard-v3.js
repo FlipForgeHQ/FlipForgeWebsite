@@ -243,6 +243,7 @@
       stressRoiBp: numberOrNull(governed.stressRoiBasisPoints),
       // Evidence counts. The governed snapshot count is the evidence behind THIS decision;
       // evidence.acceptedSales is the current saved completed-sale evidence and can differ.
+      governedAvailable,
       decisionEvidenceCount: governedAvailable ? numberOrNull(governed.exactTrustedCompCount) : null,
       currentSavedSales: numberOrNull(evidence.acceptedSales),
       excludedCount: numberOrNull(evidence.excludedSales ?? evidence.excludedCount),
@@ -296,7 +297,9 @@
     if (model.supportedStatus === "NOT_ESTABLISHED") {
       unknowns.push({ key: "supported", tag: "Supported value not established", text: model.supportedStatusReason ? `${labelFor(SUPPORTED_REASON_LABELS, model.supportedStatusReason)}.` : "The server did not establish a supported value for this card." });
     }
-    const evidenceCount = model.decisionEvidenceCount !== null ? model.decisionEvidenceCount : model.currentSavedSales;
+    // When a saved decision exists but did not record its count, the count is unknown: today's saved sales are not
+    // substituted (with sale records not kept they read 0, which would wrongly claim "no accepted exact sales").
+    const evidenceCount = model.decisionEvidenceCount !== null ? model.decisionEvidenceCount : (model.governedAvailable ? null : model.currentSavedSales);
     if (evidenceCount === 0) {
       unknowns.push({ key: "sales", tag: "No accepted exact sales", text: "No completed sale was accepted as exact evidence for this card." });
     }

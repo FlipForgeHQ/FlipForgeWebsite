@@ -102,10 +102,10 @@
     const change = text(summary.querySelector(".ff-decision-next")).replace(/^what you should do next:\s*/i, "") || "Material new evidence or price/risk changes require a fresh evaluation.";
     const accepted = numericFromPage(root, ACCEPTED_SALES_LABELS);
     const excluded = numericFromPage(root, ["Visible but ineligible", "Excluded from authority"]);
-    // customer-decision-clarity-v1.js renames "Current ask" to "Listing price" and "Risk" to "Decision risk";
+    // customer-decision-clarity-v1.js renames the ask label to "Ask when evaluated" (formerly "Listing price") and "Risk" to "Decision risk";
     // both labels are accepted, and the saved record is read first.
     const record = window.FlipForgeTrustDisplay?.recordFor(hero) || null;
-    const ask = summaryValue(root, ["Listing price", "Current ask"]);
+    const ask = summaryValue(root, ["Ask when evaluated", "Listing price", "Current ask"]);
     const supportedValue = summaryValue(root, "Supported value");
     const confidence = scoreFromRecord(record, "confidence") || metricValue(root, "Confidence");
     const risk = scoreFromRecord(record, "risk") || metricValue(root, ["Decision risk", "Risk"]);

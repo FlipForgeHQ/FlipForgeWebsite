@@ -12,6 +12,8 @@ on:
       - 'scripts/audit-live-view-integrity-ci.mjs'
       - 'scripts/audit-beta-no-sample-content-ci.mjs'
       - 'scripts/audit-customer-trust-display-ci.mjs'
+      - 'scripts/audit-saved-decisions-tracking-ci.mjs'
+      - 'scripts/validate-saved-decision-wording-v1.mjs'
       - 'saas-prototype/**'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
@@ -59,6 +61,8 @@ on:
       - 'scripts/audit-live-view-integrity-ci.mjs'
       - 'scripts/audit-beta-no-sample-content-ci.mjs'
       - 'scripts/audit-customer-trust-display-ci.mjs'
+      - 'scripts/audit-saved-decisions-tracking-ci.mjs'
+      - 'scripts/validate-saved-decision-wording-v1.mjs'
       - 'saas-prototype/decision-intelligence-v1.js'
       - 'saas-prototype/customer.html'
       - 'saas-prototype/customer-only-shell-v1.js'
@@ -154,6 +158,10 @@ jobs:
         run: node scripts/audit-beta-no-sample-content-ci.mjs
       - name: Audit customer trust display (saved risk and confidence, legacy results, no provider name or verified sales, active card)
         run: node scripts/audit-customer-trust-display-ci.mjs
+      - name: Validate saved-decision wording helpers (missing numbers never become 0 or $0.00)
+        run: node scripts/validate-saved-decision-wording-v1.mjs
+      - name: Audit Saved Decisions and Tracking (unknown counts stay Unavailable, values at decision, ask when evaluated, legacy restricted, plain history)
+        run: node scripts/audit-saved-decisions-tracking-ci.mjs
       - name: Audit customer and beta navigation separation
         run: node scripts/audit-customer-navigation-parity-ci.mjs
       - name: Audit visual parity across full customer routes

@@ -319,7 +319,15 @@
     return `${utcDate}, ${((h + 11) % 12) + 1}:${String(min).padStart(2, "0")} ${h < 12 ? "AM" : "PM"} UTC`;
   }
 
+  /** A recorded count as text; a missing value reads "unavailable" and is never shown as 0. */
+  function countText(value) {
+    if (value === null || value === undefined || typeof value === "boolean") return "unavailable";
+    if (typeof value === "string" && value.trim() === "") return "unavailable";
+    const n = Number(value);
+    return Number.isFinite(n) ? String(Math.round(n)) : "unavailable";
+  }
   function centsText(value) {
+    if (value === null || value === undefined || value === "" || typeof value === "boolean") return "";
     const n = Number(value);
     if (!Number.isFinite(n)) return "";
     const abs = Math.abs(Math.round(n)) / 100;
@@ -368,8 +376,8 @@
       const from = centsText(before), to = centsText(after);
       return from && to ? `${MONEY_CHANGES[code]} changed from ${from} to ${to}.` : `${MONEY_CHANGES[code]} changed.`;
     }
-    if (COUNT_CHANGES[code]) return `${COUNT_CHANGES[code]} changed from ${Number(before) || 0} to ${Number(after) || 0}.`;
-    if (SCORE_CHANGES[code]) return `${SCORE_CHANGES[code]} changed from ${Number(before) || 0} to ${Number(after) || 0}.`;
+    if (COUNT_CHANGES[code]) return `${COUNT_CHANGES[code]} changed from ${countText(before)} to ${countText(after)}.`;
+    if (SCORE_CHANGES[code]) return `${SCORE_CHANGES[code]} changed from ${countText(before)} to ${countText(after)}.`;
     if (code === "PROFITABILITY_GATE_CHANGED") {
       return `Profit check changed from "${GATE_WORDS[before] || words(before)}" to "${GATE_WORDS[after] || words(after)}".`;
     }
@@ -434,6 +442,7 @@
     activeCardId,
     readableDateTime,
     centsText,
+    countText,
     customerChangeLines,
     customerErrorText
   });

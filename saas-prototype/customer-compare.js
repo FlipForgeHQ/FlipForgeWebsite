@@ -225,7 +225,7 @@
     const [left, right] = items;
     const rows = [
       ["Saved decision", badge(left.recommendation || "UNKNOWN", String(left.recommendation || "unknown").toLowerCase()), badge(right.recommendation || "UNKNOWN", String(right.recommendation || "unknown").toLowerCase())],
-      ["Current ask", money(left.ask), money(right.ask)],
+      ["Ask when evaluated", money(left.ask), money(right.ask)],
       ["Supported value", escapeHtml(supportedText(left)), escapeHtml(supportedText(right))],
       ["Saved discount", discountText(left), discountText(right)],
       ["Confidence", escapeHtml(scoreText(left.confidence)), escapeHtml(scoreText(right.confidence))],

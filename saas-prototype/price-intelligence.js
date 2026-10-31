@@ -249,7 +249,7 @@
       : [];
     const metrics = [
       ...decisionMetrics,
-      metric("Current ask", money(snapshot.currentAllInAskCents)),
+      metric("Ask when evaluated", money(snapshot.currentAllInAskCents)), // saved request ask; FlipForge does not re-check listings
       metric("WATCH at or below", snapshot.watchAtOrBelowCents === null ? "Not reached" : money(snapshot.watchAtOrBelowCents), "WATCH"),
       metric("BUY at or below", snapshot.buyAtOrBelowCents === null ? "Not reached" : money(snapshot.buyAtOrBelowCents), "BUY")
     ].join("");
