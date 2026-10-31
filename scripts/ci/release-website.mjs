@@ -3,7 +3,11 @@
 //
 // Guarantees:
 // - only commits already on main are released (the target must be an ancestor of, or equal to, origin/main);
-// - fast-forward only: release must be an ancestor of the target. History is never rewritten, nothing is force-pushed;
+// - release only moves forward. History is never rewritten and nothing is force-pushed. Normally release fast-forwards
+//   to the target. When release holds commits main does not have (a backport made straight onto release), the script
+//   reconciles instead: it proves release currently serves exactly the files of a commit on main, then pushes one
+//   merge commit (parents: release, target) whose tree is exactly the target's tree. Any real release-only change is
+//   refused: land it on main first;
 // - the four required checks must have succeeded on the target commit;
 // - nothing happens when release already equals the target (no Netlify build, no credits).
 //
@@ -60,6 +64,30 @@ export async function requiredCheckStates(sha, { repository, token, fetchImpl = 
   return states;
 }
 
+/**
+ * release is not an ancestor of the target: commits were made straight onto release (a backport such as #594 / #597,
+ * or this script's own earlier reconciling commits). Moving release forward is safe only if release currently serves
+ * exactly the files of a commit on main (the target or one of its first-parent ancestors): then nothing exists on
+ * release that main lacks, and the release ships exactly the target's files. Anything else is refused.
+ */
+export const RECONCILE_HISTORY_DEPTH = 500;
+export function reconcilePlan(release, target, run = tryGit) {
+  const targetTree = run("rev-parse", `${target}^{tree}`).out;
+  const releaseTree = run("rev-parse", `${release}^{tree}`).out;
+  const releaseOnly = run("log", "--format=%h %s", `${target}..${release}`, "--max-count=50").out.split("\n").filter(Boolean);
+  if (!targetTree || !releaseTree) return { refusal: "Cannot read the release or target tree." };
+  if (releaseTree === targetTree) return { sameContent: true, targetTree, releaseOnly };
+  const history = run("log", "--first-parent", `--max-count=${RECONCILE_HISTORY_DEPTH}`, "--format=%H %T", target).out
+    .split("\n").filter(Boolean).map(line => line.split(" "));
+  const match = history.find(([, tree]) => tree === releaseTree);
+  if (!match) {
+    return { refusal: `release (${release.slice(0, 12)}) serves files that match no commit on main `
+      + `(release-only commits: ${releaseOnly.join("; ") || "none listed"}). Releasing would drop or ship changes main does not have. `
+      + "Land those changes on main first, then release." };
+  }
+  return { targetTree, releaseOnly, servedMainCommit: match[0] };
+}
+
 async function main() {
   const repository = process.env.GITHUB_REPOSITORY;
   const token = process.env.GITHUB_TOKEN;
@@ -80,6 +108,7 @@ async function main() {
   }
 
   const remoteRelease = tryGit("ls-remote", "--heads", "origin", "release").out.split(/\s+/)[0] || "";
+  let reconcile = null;
   if (remoteRelease) {
     git("fetch", "--quiet", "origin", "+refs/heads/release:refs/remotes/origin/release");
     if (remoteRelease === target) {
@@ -89,9 +118,21 @@ async function main() {
       output("sha", target);
       return;
     }
-    if (!tryGit("merge-base", "--is-ancestor", remoteRelease, target).ok) {
+    if (tryGit("merge-base", "--is-ancestor", target, remoteRelease).ok) {
       fail(`release (${remoteRelease.slice(0, 12)}) is not an ancestor of ${target.slice(0, 12)}. `
         + "Releases only move forward; use the rollback procedure instead of rewinding release.");
+    }
+    if (!tryGit("merge-base", "--is-ancestor", remoteRelease, target).ok) {
+      reconcile = reconcilePlan(remoteRelease, target);
+      if (reconcile.refusal) fail(reconcile.refusal);
+      if (reconcile.sameContent) {
+        console.log(`Nothing to release: release (${remoteRelease.slice(0, 12)}) already serves exactly the files of ${target.slice(0, 12)}.`);
+        summary(["### Nothing to release", "", `\`release\` already serves exactly the files of \`${target.slice(0, 12)}\`. No Netlify build was started.`]);
+        output("released", "false");
+        output("sha", remoteRelease);
+        output("content_sha", target);
+        return;
+      }
     }
   }
 
@@ -108,23 +149,44 @@ async function main() {
   const batched = remoteRelease ? merges.length : 1;
   console.log(`Releasing ${target.slice(0, 12)} (${kind}) with ${batched} merge(s) since the last release.`);
 
+  if (reconcile) {
+    console.log(`release has ${reconcile.releaseOnly.length} commit(s) that main does not have; release serves exactly the files of main `
+      + `${reconcile.servedMainCommit.slice(0, 12)}, so they add nothing main lacks:`);
+    for (const line of reconcile.releaseOnly) console.log(`  ${line}`);
+  }
+
   if (dryRun) {
-    summary(["### Dry run: release not pushed", "", `Would release \`${target.slice(0, 12)}\` (${kind}).`]);
+    summary(["### Dry run: release not pushed", "",
+      `Would release \`${target.slice(0, 12)}\` (${kind})${reconcile ? " with a reconciling merge commit (tree identical to the target)" : ""}.`]);
     output("released", "false");
     output("sha", target);
+    output("content_sha", target);
     return;
+  }
+
+  let pushSha = target;
+  if (reconcile) {
+    const message = `Release ${target.slice(0, 12)} (reconcile release with main)\n\n`
+      + `Tree is exactly ${target.slice(0, 12)}'s tree. These release-only commits add nothing main lacks:\n`
+      + reconcile.releaseOnly.map(line => `- ${line}`).join("\n");
+    pushSha = git("commit-tree", reconcile.targetTree, "-p", remoteRelease, "-p", target, "-m", message);
+    if (git("rev-parse", `${pushSha}^{tree}`) !== reconcile.targetTree) fail("Reconciling commit does not carry the target tree.");
   }
 
   const pushVia = (process.env.RELEASE_PUSH_CREDENTIAL || "workflow token (Option A)").trim();
   console.log(`Pushing with: ${pushVia}`);
-  // Fast-forward push. No --force: the remote refuses anything that would rewrite release.
-  git("push", "origin", `${target}:refs/heads/release`);
+  // Fast-forward push (to the target, or to the reconciling commit whose first parent is release). No --force: the
+  // remote refuses anything that would rewrite release.
+  git("push", "origin", `${pushSha}:refs/heads/release`);
   output("released", "true");
-  output("sha", target);
+  output("sha", pushSha);
+  output("content_sha", target);
   summary([
     `### Website release: \`${target.slice(0, 12)}\` (${kind})`,
     "",
     reason ? `Reason: ${reason}` : "Scheduled daily release.",
+    ...(reconcile ? ["", `Reconciled: release had ${reconcile.releaseOnly.length} commit(s) not on main that add nothing main lacks. `
+      + `Pushed merge commit \`${pushSha.slice(0, 12)}\` whose files are exactly \`${target.slice(0, 12)}\`.`] : []),
     "",
     `Pushed with: ${pushVia}.`,
     "",

@@ -91,6 +91,58 @@ sh(work, "push", "--quiet", "origin", "feature");
 r = release({ RELEASE_KIND: "emergency", RELEASE_REASON: "test", RELEASE_REF: unmerged });
 check(r.status === 1 && /is not on main/.test(r.out) && releaseHead() === c, "R11 an unmerged commit can never be released");
 
+// Divergence: a backport committed straight onto release (as #594 / #597 were). Main is the source of truth.
+sh(work, "checkout", "--quiet", "main");
+sh(work, "reset", "--quiet", "--hard", c);
+const d = commit("d");
+sh(work, "push", "--quiet", "origin", "HEAD:main");
+// Backport d onto release as a separate commit with identical content (what a squash-merged PR into release produces).
+sh(work, "checkout", "--quiet", "-B", "backport", c);
+sh(work, "checkout", "--quiet", d, "--", "site.txt");
+sh(work, "commit", "--quiet", "-m", "backport d onto release");
+const backport = sh(work, "rev-parse", "HEAD");
+sh(work, "push", "--quiet", "origin", `${backport}:refs/heads/release`);
+r = release();
+check(r.status === 0 && /Nothing to release/.test(r.out) && releaseHead() === backport,
+  "R24 release already serving main's exact files (but off main) is nothing to release");
+
+sh(work, "checkout", "--quiet", "main");
+const e = commit("e");
+sh(work, "push", "--quiet", "origin", "HEAD:main");
+r = release();
+const reconciled = releaseHead();
+const parents = sh(work, "fetch", "--quiet", "origin", "release") === "" ? sh(work, "log", "-1", "--format=%P", "FETCH_HEAD").split(" ") : [];
+check(r.status === 0 && /released=true/.test(r.outputs) && reconciled !== e
+  && parents[0] === backport && parents[1] === e
+  && sh(work, "rev-parse", `${reconciled}^{tree}`) === sh(work, "rev-parse", `${e}^{tree}`)
+  && r.outputs.includes(`sha=${reconciled}`) && r.outputs.includes(`content_sha=${e}`),
+  "R25 a no-op backport on release is reconciled: one merge commit (parents release, main) with exactly main's files");
+
+const f = commit("f");
+sh(work, "push", "--quiet", "origin", "HEAD:main");
+r = release();
+const afterReconcile = releaseHead();
+const afterParents = sh(work, "log", "-1", "--format=%P", afterReconcile).split(" ");
+check(r.status === 0 && /released=true/.test(r.outputs) && sh(work, "rev-parse", `${afterReconcile}^{tree}`) === sh(work, "rev-parse", `${f}^{tree}`)
+  && afterParents[0] === reconciled && afterParents[1] === f,
+  "R26 later releases keep working: each moves release forward with exactly main's files (parents: previous release, main)");
+
+// A real change that exists only on release is never shipped or lost silently: refused until it lands on main.
+sh(work, "checkout", "--quiet", "-B", "hotfix", afterReconcile);
+fs.writeFileSync(path.join(work, "hotfix-only.txt"), "only on release\n");
+sh(work, "add", "hotfix-only.txt");
+sh(work, "commit", "--quiet", "-m", "hotfix only on release");
+const hotfix = sh(work, "rev-parse", "HEAD");
+sh(work, "push", "--quiet", "origin", `${hotfix}:refs/heads/release`);
+sh(work, "checkout", "--quiet", "main");
+const g = commit("g");
+sh(work, "push", "--quiet", "origin", "HEAD:main");
+r = release();
+check(r.status === 1 && /match no commit on main/.test(r.out) && releaseHead() === hotfix,
+  "R27 a release-only change main lacks is refused (release unchanged): land it on main first");
+r = release({ RELEASE_DRY_RUN: "true", RELEASE_KIND: "manual", RELEASE_REASON: "dry run" });
+check(r.status === 1 && releaseHead() === hotfix, "R28 a dry run reports the same refusal");
+
 const source = fs.readFileSync(script, "utf8");
 const pushCalls = source.split("\n").filter(line => /git\("push"/.test(line));
 check(pushCalls.length === 1 && pushCalls.every(line => !/--force|"-f"|"\+/.test(line) && /:refs\/heads\/release`\)/.test(line)),
