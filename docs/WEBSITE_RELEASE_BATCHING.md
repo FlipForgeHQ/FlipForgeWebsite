@@ -26,10 +26,26 @@ The plan includes 1,000 credits a month, and the previous period used 4,255. Of 
 - **Safety rules, enforced by `scripts/ci/release-website.mjs`:**
   - only commits already on `main` can be released;
   - the four required checks (Pre-Beta Security gate, Independent Audit C-L gate, Validate core SaaS Beta Complete static gate, Validate workflow action references) must have succeeded on that commit. A failed re-run is never hidden by an older success;
-  - fast-forward only: `release` never moves backwards, and nothing is force-pushed or rewritten;
-  - when `release` already equals the target, nothing is pushed and no build starts.
+  - forward only: `release` never moves backwards, and nothing is force-pushed or rewritten;
+  - when `release` already equals the target, or already serves exactly the target's files, nothing is pushed and no
+    build starts.
+- **Commits made directly on `release`** (for example a backport PR merged into `release`, as #594 and #597 were on
+  2026-10-30) put `release` off `main`'s history. Main allows squash merges only, so main can never absorb them, and a
+  plain fast-forward is no longer possible. The workflow handles this without force-pushing or changing any branch rule:
+  - **Proof:** `release` must currently serve exactly the files of a commit on `main`. That is the target, or one of
+    its first-parent ancestors within the last 500 commits. If so, nothing on `release` is missing from `main`.
+  - **Reconcile:** it creates one merge commit whose parents are the current `release` head and the target, and whose
+    file tree is exactly the target's tree. It pushes that as an ordinary forward update. Netlify builds that commit, so
+    production serves exactly the target's files.
+  - **Refusal:** if `release` serves files that match no `main` commit (a real fix made only on `release`), the
+    release is refused and `release` is left unchanged. Land the fix on `main` first, then release.
+  - Once reconciled, later releases go out the same way automatically. The released commit's tree always equals the
+    target commit's tree. The workflow output `sha` is the pushed `release` commit (what Netlify reports), and
+    `content_sha` is the `main` commit whose files it serves.
+  - Prefer releasing through this workflow. A backport PR into `release` is still possible in an emergency, but it is
+    no longer needed to get past a divergence.
 - **After each release**, the workflow waits for Netlify and verifies that `goflipforge.com/deploy-meta.json` reports the released commit on the `release` branch.
-- **Tests:** `scripts/validate-website-release-batching.mjs` checks all of this in an offline Git sandbox (16 checks). It runs in the Live Production Parity Static Assurance workflow.
+- **Tests:** `scripts/validate-website-release-batching.mjs` checks all of this in an offline Git sandbox, including the divergence and refusal cases (28 checks). It runs in the Live Production Parity Static Assurance workflow.
 
 ## Current vs batched
 
