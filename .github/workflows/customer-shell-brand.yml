@@ -48,9 +48,24 @@ concurrency:
 
 jobs:
   customer-shell-brand:
-    name: Customer shell brand alignment (V2 default + V3 flagged)
+    # The same audits as before, split into four groups that run in parallel (about 24 minutes in one job before,
+    # about 7 per group). Each group starts its own server; no audit was removed. Group times are from the
+    # 2026-10-31 run.
+    name: Customer shell brand alignment (V2 default + V3 flagged) · ${{ matrix.label }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: g1
+            label: brand, discover (beta), card switch (beta)
+          - group: g2
+            label: discover (app), card switch (app), allowance (app)
+          - group: g3
+            label: guided mode, allowance (beta), settles (beta)
+          - group: g4
+            label: saved verdict while loading, settles (app)
 
     steps:
       - name: Checkout repository
@@ -83,33 +98,39 @@ jobs:
           exit 1
 
       - name: Customer shell brand Playwright audit
+        if: matrix.group == 'g1'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
           FLIPFORGE_SHELL_SCREENSHOT_DIR: artifacts/customer-shell
         run: node scripts/audit-customer-shell-brand-ci.mjs
 
       - name: Result guide explains the saved verdict only
+        if: matrix.group == 'g1'
         run: node scripts/audit-result-guide-verdict-ci.mjs
 
       # Full app shell, every script: no surface may name a verdict other than the saved one, including during
       # 10.5 s loads, failed requests and card switches (2026-10-13 BUY-on-WATCH regression).
       - name: Saved verdict while loading - Private Beta path (/app/beta)
+        if: matrix.group == 'g4'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-saved-verdict-loading-ci.mjs
 
       - name: Saved verdict while loading - customer app path (/app)
+        if: matrix.group == 'g4'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-saved-verdict-loading-ci.mjs
 
       # Route safety: no previously saved card may appear beneath a new card URL.
       - name: Card switching never shows another card - Private Beta path (/app/beta)
+        if: matrix.group == 'g1'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-card-switch-stale-response-ci.mjs
 
       - name: Card switching never shows another card - customer app path (/app)
+        if: matrix.group == 'g2'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-card-switch-stale-response-ci.mjs
@@ -117,11 +138,13 @@ jobs:
       # Shell stability: after load, every screen must stop changing (2026-10-18 mobile flicker: shell scripts
       # re-wrote watched nav attributes every frame, ~3,700-6,200 DOM changes per second).
       - name: Customer shell settles after load - Private Beta path (/app/beta)
+        if: matrix.group == 'g3'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-customer-shell-settles-ci.mjs
 
       - name: Customer shell settles after load - customer app path (/app)
+        if: matrix.group == 'g4'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-customer-shell-settles-ci.mjs
@@ -129,42 +152,49 @@ jobs:
       # Discover -> Evaluate: every server outcome reaches the saved decision or shows a visible, actionable error
       # beside the button, with no reload or route change (2026-10-14 evaluation-limit incident).
       - name: Discover evaluate outcomes - Private Beta path (/app/beta)
+        if: matrix.group == 'g1'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-discover-evaluate-outcomes-ci.mjs
 
       - name: Discover evaluate outcomes - customer app path (/app)
+        if: matrix.group == 'g2'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-discover-evaluate-outcomes-ci.mjs
 
       - name: Evaluate page allowance message - Private Beta path (/app/beta)
+        if: matrix.group == 'g3'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-evaluate-page-allowance-ci.mjs
 
       - name: Evaluate page allowance message - customer app path (/app; late-answer races reload the page here, checked on /app/beta)
+        if: matrix.group == 'g2'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-evaluate-page-allowance-ci.mjs
 
       - name: Guided Mode never covers primary controls - Private Beta path (/app/beta)
+        if: matrix.group == 'g3'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-guided-mode-clearance-ci.mjs
 
       - name: Guided Mode never covers primary controls - real full customer shell (/app/customer)
+        if: matrix.group == 'g3'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/customer
         run: node scripts/audit-guided-mode-clearance-ci.mjs
 
       - name: Guided Mode on Evaluate highlights the manual form's first field, never a hidden Bulk CSV control (/app/beta)
+        if: matrix.group == 'g1'
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/beta
         run: node scripts/audit-guided-mode-evaluation-target-ci.mjs
 
       - name: Upload owner-review screenshots
-        if: always()
+        if: always() && matrix.group == 'g1'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: customer-shell-brand-screenshots
