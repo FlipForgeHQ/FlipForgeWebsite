@@ -45,6 +45,13 @@ requireText(js, 'summary.transactionAuthority !== false', "transaction-authority
 requireText(js, 'including fixed-price completed sales', "completed fixed-price evidence disclosure is missing");
 requireText(js, 'Active listings and asking prices cannot support value', "active-ask exclusion disclosure is missing");
 requireText(js, 'Smart Opportunity remains the sole decision authority', "Smart Opportunity authority disclosure is missing");
+// Saved decisions after the provider containment (2026-10-31): never a bare 0 for records that are not kept, never a
+// promise that a fresh evaluation will check the provider while it is off, and legacy decisions say why sales are missing.
+requireText(js, 'providerSummary.storedSaleRecordsKept !== false', "the panel ignores whether provider sale records are kept");
+requireText(js, '"PROVIDER_SALES_OFF"', "the panel ignores that the provider is off");
+requireText(js, 'evidence.providerRecordsKept === false ? "Not kept"', "records that are not kept are shown as a count");
+requireText(js, 'relied on sale evidence FlipForge no longer accepts', "a legacy saved decision does not say why its sales are missing");
+requireText(js, 'new evaluations do not use that provider right now', "the panel promises a provider check while the provider is off");
 requireText(js, 'data-provider-evidence-signature', "stable render signature is missing");
 requireText(css, '.provider-evidence-grid', "responsive evidence metrics styling is missing");
 
