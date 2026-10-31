@@ -250,7 +250,7 @@ await settle();
 const p = pausedOff.main.innerHTML;
 check("053 paused values: one clear paused message instead of per-row Unavailable", p.includes("Card values are paused") && p.includes("data-portfolio-values-paused")
   && !p.includes("Unavailable") && !p.includes("Partial coverage") && !p.includes("Coverage-aware totals"));
-check("054 paused values: holdings and what was paid still shown", p.includes("Ohtani Chrome PSA 10") && p.includes("$525.00") && p.includes("2026-09-13") && p.includes("Total paid"));
+check("054 paused values: holdings and what was paid still shown", p.includes("Ohtani Chrome PSA 10") && p.includes("$525.00") && p.includes("Sep 13, 2026") && p.includes("Total paid"));
 check("055 paused values without Sell Watch: no Check a price", !p.includes("Check a price") && !p.includes("data-portfolio-sell-watch"));
 
 const pausedOn = runtime({ mutate: paused, watch: "on" });
@@ -337,6 +337,43 @@ stayed.gates.splice(0).forEach(release => release());
 await settle();
 check("072 while the customer stays on Portfolio, late Sell Watch and sales responses are still added",
   stayed.main.innerHTML.includes("data-portfolio-sell-watch") && stayed.main.innerHTML.includes("data-portfolio-realized"));
+
+// ---- Portfolio connected to Saved Decisions (2026-10-31) ----
+// Each owned card links to its tracked record and saved decision, shows the saved verdict and Max Buy at decision against
+// what was paid, never repeats the title as the identity line, and shows dates as "Sep 13, 2026". Legacy results show no
+// Max Buy; a card whose saved decision is missing says so; a missing Max Buy is never shown as $0.00.
+opportunities.items = [
+  { id: "opp-fresh", title: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", cardIdentity: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", recommendation: "BUY",
+    governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: 60000 } },
+  { id: "opp-over", title: "Doncic Prizm PSA 10", cardIdentity: "2018 Prizm Luka Doncic #280 PSA 10", recommendation: "Saved WATCH",
+    governedDecision: { available: true, recommendation: "WATCH", maximumBuyPriceCents: 50000 } },
+  { id: "opp-legacy", title: "Acuna Update PSA 10", cardIdentity: "2018 Topps Update Ronald Acuna Jr. #US250 PSA 10", recommendation: "BUY", currentlySupported: false,
+    supportedValueStatus: "LEGACY_NOT_CURRENTLY_SUPPORTED", governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: null } },
+  { id: "opp-nomax", title: "Wembanyama Prizm PSA 10", cardIdentity: "2023 Prizm Victor Wembanyama #136 PSA 10", recommendation: "VERIFY",
+    governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: null } }
+];
+const connected = runtime({ mutate: data => {
+  paused(data);
+  const base = data.items[0];
+  data.items = ["opp-fresh", "opp-over", "opp-legacy", "opp-nomax", "opp-missing"].map((id, i) => ({ ...base, opportunityId: id, acquisitionCostCents: [52500, 52500, 30000, 10000, 9000][i] }));
+  data.count = data.items.length;
+} });
+connected.window.FlipForgeCustomerPortfolio.render(connected.main);
+await settle();
+const c = connected.main.innerHTML;
+const row = id => (c.split("<tr>").find(r => r.includes(`#/tracking/${id}"`)) || "");
+check("073 owned card name links to its tracked record", c.includes('href="#/tracking/opp-fresh" data-portfolio-card-link'));
+check("074 owned card links to its saved decision", c.includes('href="#/opportunities/opp-fresh" data-portfolio-decision-link'));
+check("075 identity line is not a repeat of the title", row("opp-fresh").split("2018 Topps Chrome Shohei Ohtani #150 PSA 10").length === 2);
+check("076 identity line still shown when it adds information", row("opp-over").includes("<small>2018 Prizm Luka Doncic #280 PSA 10</small>"));
+check("077 bought date is readable", row("opp-fresh").includes("Sep 13, 2026") && !c.includes("2026-09-13"));
+check("078 saved verdict and Max Buy at decision shown", row("opp-fresh").includes(">BUY<") && row("opp-fresh").includes("Max Buy $600.00 at decision"));
+check("079 paid under the saved Max Buy", row("opp-fresh").includes("You paid $75.00 under it"));
+check("080 paid over the saved Max Buy, and a \"Saved WATCH\" label reads WATCH", row("opp-over").includes(">WATCH<") && row("opp-over").includes("You paid $25.00 over it"));
+check("081 legacy result: historical wording, no Max Buy or comparison", row("opp-legacy").includes("Saved before current evidence rules") && !row("opp-legacy").includes("Max Buy") && !row("opp-legacy").includes("You paid"));
+check("082 no Max Buy at decision: says so, never $0.00", row("opp-nomax").includes("No Max Buy was set at decision") && !row("opp-nomax").includes("$0.00"));
+check("083 saved decision missing: says it could not be loaded and offers no decision link", row("opp-missing").includes("The saved decision could not be loaded.") && !c.includes('href="#/opportunities/opp-missing"'));
+check("084 Saved decision column present", c.includes("<th>Saved decision</th>"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer Portfolio production validation");
