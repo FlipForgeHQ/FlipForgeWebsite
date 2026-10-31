@@ -50,6 +50,17 @@ check("W17 unmapped codes put into words", lines.includes("Thing changed from fo
 const legacyLines = T.customerChangeLines({ whatChanged: ["Decision changed from VERIFY to WATCH.", "Workflow status changed from A_B to C_D."] });
 check("W18 sentence-only history kept, workflow sentence dropped", legacyLines.length === 1 && legacyLines[0] === "Decision changed from VERIFY to WATCH.", JSON.stringify(legacyLines));
 
+// Review on #604: a structured entry without before/after keeps the server's sentence, and recorded sentences the
+// structured entries do not cover are kept (fixture from scripts/fixtures/deal-check/fixtures.mjs).
+const partial = T.customerChangeLines({ changes: [{ code: "ASK_CHANGED", description: "All-in ask fell from $680.00 to $599.95" }],
+  whatChanged: ["All-in ask fell from $680.00 to $599.95", "Decision changed from WATCH to BUY"] });
+check("W25 description-only structured change keeps the recorded amounts", partial.includes("All-in ask fell from $680.00 to $599.95."), JSON.stringify(partial));
+check("W26 uncovered recorded sentence is kept", partial.includes("Decision changed from WATCH to BUY."), JSON.stringify(partial));
+check("W27 the same change is never listed twice", partial.length === 2, JSON.stringify(partial));
+const mixed = T.customerChangeLines({ changes: [{ code: "DECISION_CHANGED", before: "WATCH", after: "BUY" }],
+  whatChanged: ["Decision changed from WATCH to BUY.", "Workflow status changed from A_B to C_D.", "Population context changed."] });
+check("W28 covered sentence dropped, workflow dropped, new detail kept", JSON.stringify(mixed) === JSON.stringify(["Decision changed from WATCH to BUY.", "Population context changed."]), JSON.stringify(mixed));
+
 // Dates.
 check("W19 ISO date-time to readable UTC", T.readableDateTime("2026-10-31T13:55:33.866282507Z") === "Oct 31, 2026, 1:55 PM UTC", T.readableDateTime("2026-10-31T13:55:33.866282507Z"));
 check("W20 date only", T.readableDateTime("2026-10-08T17:55:16Z", { dateOnly: true }) === "Oct 8, 2026");

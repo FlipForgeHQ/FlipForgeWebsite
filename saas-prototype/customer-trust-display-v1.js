@@ -378,11 +378,23 @@
   // Internal states a customer never needs: the verdict line already says what changed for them.
   const HIDDEN_CHANGES = new Set(["WORKFLOW_STATUS_CHANGED", "RECOMMENDATION_AUTHORITY_CHANGED", "GRADING_AUTHORITY_CHANGED"]);
 
+  // The server's own sentence, with internal codes put into words and a closing period.
+  function describedLine(text) {
+    const description = typeof text === "string" ? text.trim() : "";
+    if (!description) return "";
+    const cleaned = description.replace(/\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g, token => words(token));
+    return /[.!?]$/.test(cleaned) ? cleaned : `${cleaned}.`;
+  }
+
   function changeLine(change) {
     if (!change || typeof change !== "object") return "";
     const code = String(change.code || "").toUpperCase();
     const { before, after } = change;
     if (HIDDEN_CHANGES.has(code)) return "";
+    // A structured entry without its before/after values keeps the server's own sentence (review on #604): older saved
+    // timelines record "All-in ask fell from $680.00 to $599.95" as a description only.
+    const hasValues = Object.prototype.hasOwnProperty.call(change, "before") && Object.prototype.hasOwnProperty.call(change, "after");
+    if (!hasValues && typeof change.description === "string" && change.description.trim()) return describedLine(change.description);
     if (code === "DECISION_CHANGED") return `Decision changed from ${words(before)} to ${words(after)}.`.replace(/from (\w+) to (\w+)/, (_, a, b) => `from ${a.toUpperCase()} to ${b.toUpperCase()}`);
     if (MONEY_CHANGES[code]) {
       const from = centsText(before), to = centsText(after);
@@ -397,17 +409,38 @@
     if (code === "EVIDENCE_QUALITY_CHANGED") return `Evidence quality changed from ${QUALITY_WORDS[before] || words(before)} to ${QUALITY_WORDS[after] || words(after)}.`;
     if (code === "IDENTITY_ELIGIBILITY_CHANGED") return after === true || after === "true" ? "The exact card match was confirmed." : "The exact card match was no longer confirmed.";
     // Anything new: the server's own sentence, with internal codes put into words.
-    const description = typeof change.description === "string" ? change.description.trim() : "";
-    return description ? description.replace(/\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g, token => words(token)) : "";
+    return describedLine(change.description);
   }
 
-  /** Customer lines for one timeline entry: structured changes when present, else the server's sentences cleaned up. */
+  // Which recorded sentence a structured change already covers, so the same change is never listed twice.
+  const CHANGE_TOPICS = Object.freeze({
+    DECISION_CHANGED: /^decision changed/i, ASK_CHANGED: /\bask\b/i, SUPPORTED_VALUE_CHANGED: /supported value/i,
+    MAXIMUM_BUY_PRICE_CHANGED: /max(imum)?[ -]?buy/i, EXPECTED_NET_PROFIT_CHANGED: /expected (net )?profit/i,
+    CONSERVATIVE_NET_PROFIT_CHANGED: /conservative/i, STRESS_NET_PROFIT_CHANGED: /stress/i,
+    ACCEPTED_EVIDENCE_CHANGED: /accepted (evidence|exact sales)/i, REJECTED_EVIDENCE_CHANGED: /rejected evidence|not counted/i,
+    REVIEW_EVIDENCE_CHANGED: /review evidence|held for review/i, CONFIDENCE_CHANGED: /confidence/i, RISK_CHANGED: /\brisk\b/i,
+    LIQUIDITY_CHANGED: /liquidity/i, PROFITABILITY_GATE_CHANGED: /profit(ability)? (check|gate)/i,
+    PROFITABILITY_POLICY_CHANGED: /profit(ability)? (rules|policy)/i, EVIDENCE_QUALITY_CHANGED: /evidence quality/i,
+    IDENTITY_ELIGIBILITY_CHANGED: /identity|card match/i, WORKFLOW_STATUS_CHANGED: /workflow status/i
+  });
+  const sameLine = (a, b) => a.replace(/[.\s]+$/, "").toLowerCase() === b.replace(/[.\s]+$/, "").toLowerCase();
+
+  /**
+   * Customer lines for one timeline entry. Structured changes are used where they carry their values; any recorded
+   * sentence (whatChanged) they do not already cover is kept, so no saved history detail is lost.
+   */
   function customerChangeLines(entry) {
-    const structured = Array.isArray(entry?.changes) ? entry.changes : [];
-    if (structured.length) return structured.map(changeLine).filter(Boolean);
+    const structured = Array.isArray(entry?.changes) ? entry.changes.filter(change => change && typeof change === "object") : [];
+    const lines = structured.map(changeLine).filter(Boolean);
+    const covered = structured.map(change => CHANGE_TOPICS[String(change.code || "").toUpperCase()]).filter(Boolean);
     const sentences = Array.isArray(entry?.whatChanged) ? entry.whatChanged : [];
-    return sentences.map(line => changeLine({ description: String(line || "") }))
-      .filter(line => line && !/^workflow status changed/i.test(line));
+    for (const sentence of sentences) {
+      const line = describedLine(String(sentence || ""));
+      if (!line || /^workflow status changed/i.test(line)) continue;
+      if (covered.some(topic => topic.test(line)) || lines.some(existing => sameLine(existing, line))) continue;
+      lines.push(line);
+    }
+    return lines;
   }
 
   /**
