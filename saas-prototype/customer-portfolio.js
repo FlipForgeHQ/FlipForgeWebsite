@@ -253,6 +253,15 @@
     return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : "";
   }
 
+  // "2026-10-30" or an ISO time -> "Oct 30, 2026" (the recorded UTC calendar date; never shifted by the viewer's clock).
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function readableDate(value) {
+    const day = dateOnly(value);
+    if (!day) return "";
+    const [year, month, date] = day.split("-").map(Number);
+    return month >= 1 && month <= 12 ? `${MONTHS[month - 1]} ${date}, ${year}` : day;
+  }
+
   function validOpportunities(payload) {
     return payload?.data?.kind === "opportunities" && Array.isArray(payload?.data?.items);
   }
@@ -311,7 +320,52 @@
 
   function cardTitle(item, opportunities) {
     const saved = opportunities.get(String(item.opportunityId)) || {};
-    return { title: saved.title || saved.cardIdentity || item.opportunityId, identity: saved.cardIdentity || item.opportunityId };
+    const title = saved.title || saved.cardIdentity || item.opportunityId;
+    const identity = saved.cardIdentity || item.opportunityId;
+    // The identity line is shown only when it adds something (it is usually the same text as the title).
+    return { title, identity: String(identity).trim().toLowerCase() === String(title).trim().toLowerCase() ? "" : identity };
+  }
+
+  // Each owned card links back to its tracked record and to the saved decision it came from.
+  function cardCell(item, opportunities) {
+    const { title, identity } = cardTitle(item, opportunities);
+    const id = String(item.opportunityId || "");
+    const safe = SAFE_ID.test(id);
+    const name = safe ? `<a href="#/tracking/${encodeURIComponent(id)}" data-portfolio-card-link>${escapeHtml(title)}</a>` : escapeHtml(title);
+    const decisionLink = safe && opportunities.has(id) ? `<a class="customer-portfolio-decision-link" href="#/opportunities/${encodeURIComponent(id)}" data-portfolio-decision-link>View saved decision</a>` : "";
+    return `<td><strong>${name}</strong>${identity ? `<small>${escapeHtml(identity)}</small>` : ""}${decisionLink}</td>`;
+  }
+
+  function isLegacy(saved) {
+    const trust = window.FlipForgeTrustDisplay;
+    if (trust && typeof trust.isLegacy === "function") return trust.isLegacy(saved);
+    return saved?.currentlySupported === false || String(saved?.supportedValueStatus || "").toUpperCase() === "LEGACY_NOT_CURRENTLY_SUPPORTED";
+  }
+  function knownCents(value) {
+    if (value === null || value === undefined || value === "" || typeof value === "boolean") return null;
+    const number = Number(value);
+    return Number.isSafeInteger(number) ? number : null;
+  }
+
+  // The saved decision behind an owned card, as it was evaluated: its verdict and its Max Buy at decision, compared with
+  // what the customer entered as paid. Display only: both numbers are saved values; nothing is re-evaluated.
+  function decisionCell(item, opportunities) {
+    const saved = opportunities.get(String(item.opportunityId));
+    if (!saved) return `<td data-portfolio-decision><span>Not available</span><small>The saved decision could not be loaded.</small></td>`;
+    const verdict = String(saved.governedDecision?.recommendation || saved.recommendation || "").toUpperCase().replace(/^SAVED\s+/, "");
+    const chip = /^(BUY|WATCH|VERIFY|PASS)$/.test(verdict) ? `<span class="staging-status staging-status-${verdict === "BUY" ? "buy" : verdict === "PASS" ? "danger" : "warn"}">${escapeHtml(verdict)}</span>` : "";
+    if (isLegacy(saved)) {
+      return `<td data-portfolio-decision>${chip}<small>Saved before current evidence rules · not currently supported</small></td>`;
+    }
+    const governed = saved.governedDecision && saved.governedDecision.available === true ? saved.governedDecision : null;
+    const maxBuy = governed ? knownCents(governed.maximumBuyPriceCents) : null;
+    const paid = knownCents(item.acquisitionCostCents);
+    if (maxBuy === null) return `<td data-portfolio-decision>${chip}<small>No Max Buy was set at decision</small></td>`;
+    const versus = paid === null ? ""
+      : paid < maxBuy ? `You paid ${moneyCents(maxBuy - paid)} under it`
+      : paid === maxBuy ? "You paid exactly the Max Buy"
+      : `You paid ${moneyCents(paid - maxBuy)} over it`;
+    return `<td data-portfolio-decision>${chip}<small>Max Buy ${escapeHtml(moneyCents(maxBuy))} at decision</small>${versus ? `<small data-portfolio-versus="${paid <= maxBuy ? "within" : "over"}">${escapeHtml(versus)}</small>` : ""}</td>`;
   }
 
   // Break-even prices come from the server (Sell Watch): the lowest price that keeps what was paid after the
@@ -347,7 +401,7 @@
       const profit = Number.isSafeInteger(pl.realizedProfitCents)
         ? `<strong class="${pl.realizedProfitCents >= 0 ? "value-positive" : "value-negative"}">${escapeHtml(signedMoneyCents(pl.realizedProfitCents))}</strong>${pl.realizedReturnPercent === null || pl.realizedReturnPercent === undefined ? "" : `<small>${escapeHtml(signedPercent(pl.realizedReturnPercent))}</small>`}`
         : `<strong>Not available</strong>`;
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>User reported</small></td><td><strong>${escapeHtml(moneyCents(sale.salePriceCents))}</strong><small>${escapeHtml(sale.saleDate || "")}</small></td><td><strong>${escapeHtml(moneyCents(pl.netProceedsCents))}</strong><small>${pl.feesComplete ? "After the fees you entered" : "Some fees not entered"}</small></td><td>${profit}</td><td><span>${escapeHtml(SALE_STATUS[pl.status] || String(pl.status || "").replaceAll("_", " ").toLowerCase())}</span></td></tr>`;
+      return `<tr><td><strong>${escapeHtml(title)}</strong><small>User reported</small></td><td><strong>${escapeHtml(moneyCents(sale.salePriceCents))}</strong><small>${escapeHtml(readableDate(sale.saleDate) || sale.saleDate || "")}</small></td><td><strong>${escapeHtml(moneyCents(pl.netProceedsCents))}</strong><small>${pl.feesComplete ? "After the fees you entered" : "Some fees not entered"}</small></td><td>${profit}</td><td><span>${escapeHtml(SALE_STATUS[pl.status] || String(pl.status || "").replaceAll("_", " ").toLowerCase())}</span></td></tr>`;
     }).join("");
     return `<section class="panel customer-portfolio-realized" data-portfolio-realized><header class="panel-header"><div><h2>Sold cards</h2><p>Sales you recorded with Mark as Sold. Profit is what you kept after the fees you entered, minus what you paid.</p></div>${badge("User reported", "neutral")}</header><div class="panel-body"><div class="customer-portfolio-key-grid"><div><span>Realized profit</span><strong>${total === null ? "Unavailable" : escapeHtml(signedMoneyCents(total))}</strong><small>${escapeHtml(counted)} sale${counted === 1 ? "" : "s"} with all fees entered</small></div><div><span>Sales recorded</span><strong>${escapeHtml(items.length)}</strong></div></div></div><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>Sold for</th><th>You kept</th><th>Profit or loss</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
   }
@@ -363,9 +417,8 @@
 
   function pausedRows(data, watch) {
     const opportunities = opportunityMap();
-    return `<section class="panel"><header class="panel-header"><div><h2>Owned cards</h2><p>What you entered when you marked each card as owned.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Bought</th>${watch ? "<th>Break-even price</th><th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
-      const { title, identity } = cardTitle(item, opportunities);
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(identity)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td><span>${escapeHtml(dateOnly(item.acquiredAt) || "Not entered")}</span></td>${watch ? `<td>${breakEvenCell(item, watch)}</td><td>${priceLink(item)}</td>` : ""}</tr>`;
+    return `<section class="panel"><header class="panel-header"><div><h2>Owned cards</h2><p>What you entered when you marked each card as owned.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Bought</th><th>Saved decision</th>${watch ? "<th>Break-even price</th><th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
+      return `<tr>${cardCell(item, opportunities)}<td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td><span>${escapeHtml(readableDate(item.acquiredAt) || "Not entered")}</span></td>${decisionCell(item, opportunities)}${watch ? `<td>${breakEvenCell(item, watch)}</td><td>${priceLink(item)}</td>` : ""}</tr>`;
     }).join("")}</tbody></table></div></section>`;
   }
 
@@ -382,7 +435,7 @@
     if (!data.items.length) {
       return `<section class="panel"><div class="panel-body staging-empty"><strong>No owned holdings yet.</strong><p>Mark a tenant-owned tracked opportunity as acquired before it appears in Portfolio.</p><a class="button button-primary" href="#/tracking">Open Tracking</a></div></section>`;
     }
-    return `<section class="panel"><header class="panel-header"><div><h2>Owned holdings</h2><p>Reference values are shown only when exact completed-sale coverage and freshness gates pass.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Evidence reference</th><th>Reference vs. what you paid</th><th>Evidence gate</th>${sellWatchData() ? "<th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
+    return `<section class="panel"><header class="panel-header"><div><h2>Owned holdings</h2><p>Reference values are shown only when exact completed-sale coverage and freshness gates pass.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Saved decision</th><th>Evidence reference</th><th>Reference vs. what you paid</th><th>Evidence gate</th>${sellWatchData() ? "<th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
       const saved = opportunities.get(String(item.opportunityId)) || {};
       const reference = item.referenceValue || {};
       const performance = item.referencePerformance || {};
@@ -395,8 +448,8 @@
         : `<strong>Unavailable</strong><small>${escapeHtml(reference.available ? "What you paid is needed" : "Needs an evidence reference")}</small>`;
       const gate = reference.available
         ? `${reference.acceptedExactCompletedSales} accepted exact sales · newest ${reference.latestSaleAgeDays} day${reference.latestSaleAgeDays === 1 ? "" : "s"} old`
-        : `${reference.acceptedExactCompletedSales || 0} accepted exact sales · ${referenceStatus(reference)}`;
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(saved.cardIdentity || item.opportunityId)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td>${referenceCell}</td><td>${performanceCell}</td><td><span>${escapeHtml(gate)}</span><small>Active asks excluded</small></td>${sellWatchData() ? `<td>${breakEvenCell(item, sellWatchData())}${priceLink(item)}</td>` : ""}</tr>`;
+        : `${Number.isSafeInteger(reference.acceptedExactCompletedSales) ? `${reference.acceptedExactCompletedSales} accepted exact sales` : "Accepted exact sales unavailable"} · ${referenceStatus(reference)}`;
+      return `<tr>${cardCell(item, opportunities)}<td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td>${decisionCell(item, opportunities)}<td>${referenceCell}</td><td>${performanceCell}</td><td><span>${escapeHtml(gate)}</span><small>Active asks excluded</small></td>${sellWatchData() ? `<td>${breakEvenCell(item, sellWatchData())}${priceLink(item)}</td>` : ""}</tr>`;
     }).join("")}</tbody></table></div></section>`;
   }
 
