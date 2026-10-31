@@ -413,8 +413,8 @@
     const sinceText = result.evaluatedAt ? `Saved ${dateOnly(result.evaluatedAt)}${result.ageDays !== null ? ` · ${plural(result.ageDays, "day")} ago` : ""} · ${result.reEvaluations ? plural(result.reEvaluations, "re-evaluation") : "not re-evaluated since"}` : "";
     const item = s => `<li data-level="${s.level}" data-ffdm-signal="${escapeHtml(s.key)}" data-ffdm-category="${escapeHtml(s.category || "historical")}"><span class="ffdm-dot" aria-hidden="true"></span><div><strong>${escapeHtml(s.title)}</strong><p>${escapeHtml(s.detail)}</p><small>${escapeHtml(s.level === "review" ? `${categoryLabel(s.category)} · ${s.source}` : s.source)}</small></div></li>`;
     const changedEmpty = result.reEvaluations
-      ? "No change was recorded at the latest re-evaluation, and saved evidence counts are unchanged."
-      : "Nothing recorded: this card has not been re-evaluated since the decision, and saved evidence counts are unchanged.";
+      ? "No change was recorded at the latest re-evaluation."
+      : "Nothing recorded: this card has not been re-evaluated since the decision.";
     const section = (group, body) => `<section class="ffdm-group" data-ffdm-group="${group.key}"><h3>${escapeHtml(group.title)}</h3>${body}</section>`;
     const list = signals => `<ul class="ffdm-signals">${signals.map(item).join("")}</ul>`;
     const parts = [];
