@@ -219,6 +219,17 @@
     return `${row.differenceFromAskCents >= 0 ? "+" : "−"}${moneyCents(Math.abs(row.differenceFromAskCents))} vs ask <small>${escapeHtml(row.channelName)}</small>`;
   }
 
+  // Forge Heat ranks saved evaluations (FlipForge2 SaaSForgeHeatService): every amount and count is as evaluated.
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function evaluatedText(item) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(item?.evaluatedAt || ""));
+    return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? `${MONTHS[Number(m[2]) - 1]} ${Number(m[3])}, ${m[1]}` : "";
+  }
+  function salesText(item) {
+    const n = item?.acceptedExactSales;
+    return Number.isSafeInteger(n) && n >= 0 ? `${n} exact sale${n === 1 ? "" : "s"}` : "Unavailable";
+  }
+
   function controlRoom(items) {
     const rows = safeArray(items);
     const lead = rows[0];
@@ -227,20 +238,20 @@
     const id = item => SAFE_ID.test(String(item.opportunityId || "")) ? item.opportunityId : "";
     return `<section class="ff-heat-control-room" data-ff-heat-control-room-source="data" aria-label="Forge Heat ranked opportunity intelligence">
       <div class="ff-heat-console-head">
-        <div><span class="eyebrow">LIVE RANKING · GOVERNED SAVED EVALUATIONS</span><h2>🔥 Forge Heat — ${escapeHtml(rows.length > 5 ? "Top Opportunities" : `Top ${rows.length}`)}</h2></div>
-        <span class="ff-heat-live-dot">LIVE</span>
+        <div><span class="eyebrow">RANKED FROM YOUR SAVED EVALUATIONS</span><h2>🔥 Forge Heat — ${escapeHtml(rows.length > 5 ? "Top Opportunities" : `Top ${rows.length}`)}</h2></div>
+        <span class="ff-heat-live-dot" data-forge-heat-scope="saved">SAVED</span>
       </div>
       <div class="ff-heat-console-grid">
         <div class="ff-heat-table-wrap">
           <table class="ff-heat-table">
-            <thead><tr><th>Rank</th><th>Card</th><th>Heat</th><th>Ask</th><th>Supported</th><th>Value Gap</th>${withCosts ? "<th>After your costs</th>" : ""}<th>Confidence</th><th>Evidence</th><th>Risk</th></tr></thead>
+            <thead><tr><th>Rank</th><th>Card</th><th>Heat</th><th>Ask when evaluated</th><th>Supported at decision</th><th>Value Gap</th>${withCosts ? "<th>After your costs</th>" : ""}<th>Confidence</th><th>Evidence</th><th>Risk</th></tr></thead>
             <tbody>${rows.map(item => `<tr>
               <td class="ff-heat-rank-cell">#${escapeHtml(item.rank)}</td>
-              <td><strong>${escapeHtml(item.cardIdentity)}</strong><small>${escapeHtml(item.recommendation)}</small></td>
+              <td><strong>${id(item) ? `<a href="#/opportunities/${escapeHtml(id(item))}" data-forge-heat-card-link>${escapeHtml(item.cardIdentity)}</a>` : escapeHtml(item.cardIdentity)}</strong><small>${escapeHtml(item.recommendation)}${evaluatedText(item) ? ` · evaluated ${escapeHtml(evaluatedText(item))}` : ""}</small></td>
               <td><span class="ff-heat-score-pill" data-tone="${heatTone(item.heat)}">🔥 ${escapeHtml(item.heat)}</span></td>
               <td>${moneyCents(item.allInAskCents)}</td><td>${moneyCents(item.supportedValueCents)}</td><td class="ff-heat-positive">${escapeHtml(gap(item))}</td>
               ${withCosts ? `<td>${firstAfterCosts(item)}</td>` : ""}
-              <td>${escapeHtml(confidenceText(item))}</td><td>${escapeHtml(item.acceptedExactSales)} sales</td><td>${escapeHtml(item.risk)}/100</td>
+              <td>${escapeHtml(confidenceText(item))}</td><td>${escapeHtml(salesText(item))}</td><td>${escapeHtml(item.risk)}/100</td>
             </tr>`).join("")}</tbody>
           </table>
         </div>
@@ -259,7 +270,7 @@
         <article class="ff-heat-deep-dive">
           <span class="eyebrow">DEEP DIVE TRACEBACK · #${escapeHtml(lead.rank)}</span>
           <h3>${escapeHtml(lead.cardIdentity)}</h3>
-          <div class="ff-heat-deep-metrics"><div><span>Value gap</span><strong>${escapeHtml(gap(lead))}</strong></div><div><span>Confidence</span><strong>${escapeHtml(confidenceText(lead))}</strong></div><div><span>Risk</span><strong>${escapeHtml(lead.risk)}/100</strong></div><div><span>Evidence</span><strong>${escapeHtml(lead.acceptedExactSales)} sales</strong></div></div>
+          <div class="ff-heat-deep-metrics"><div><span>Value gap</span><strong>${escapeHtml(gap(lead))}</strong></div><div><span>Confidence</span><strong>${escapeHtml(confidenceText(lead))}</strong></div><div><span>Risk</span><strong>${escapeHtml(lead.risk)}/100</strong></div><div><span>Evidence at decision</span><strong>${escapeHtml(salesText(lead))}</strong></div></div>${evaluatedText(lead) ? `<p class="ff-heat-evaluated" data-forge-heat-evaluated>Evaluated ${escapeHtml(evaluatedText(lead))}. Forge Heat ranks saved evaluations; it does not re-check listings or prices.</p>` : ""}
           ${afterCostsBlock(lead)}
           ${id(lead) ? `<a class="button button-secondary" href="#/opportunities/${escapeHtml(id(lead))}">Open Smart Opportunity decision →</a>` : ""}
         </article>
@@ -499,7 +510,7 @@
     const signIn = error?.status === 401
       ? `<a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fforge-heat" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fforge-heat"}">Sign in securely</a>`
       : `<button class="button button-primary" type="button" data-forge-heat-retry>Retry</button>`;
-    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">PRO INTELLIGENCE</span><h1>Forge Heat™</h1></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "FORGE_HEAT_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "Forge Heat intelligence is unavailable.")}</p><small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
+    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">PRO INTELLIGENCE</span><h1>Forge Heat™</h1></div></header><section class="panel staging-error" role="alert"><div class="panel-body">${(() => { const said = window.FlipForgeTrustDisplay?.customerErrorText ? window.FlipForgeTrustDisplay.customerErrorText(error, "Forge Heat") : { title: "Forge Heat is unavailable.", detail: "", reference: error?.code || "" }; return `<strong data-error-code="${escapeHtml(error?.code || "")}">${escapeHtml(said.title)}</strong><p>${escapeHtml(said.detail)}</p>${said.reference ? `<small>Reference: ${escapeHtml(said.reference)}</small>` : ""}`; })()}<small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
   }
 
   function wire(generation = state.generation) {

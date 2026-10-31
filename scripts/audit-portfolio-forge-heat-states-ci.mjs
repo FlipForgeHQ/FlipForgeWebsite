@@ -337,6 +337,32 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   await context.close();
 }
 
+// ---- Forge Heat ranks saved evaluations (2026-10-31): it must not call itself live, and every amount is as evaluated.
+{
+  const { context, page, errors } = await session("#/forge-heat", { heatData: heat({ considered: 9, unscored: mixed, ranked: true }) });
+  await page.waitForSelector(".forge-heat-shell .ff-heat-control-room", { timeout: 30000 });
+  const t = await text(page, ".ff-heat-control-room");
+  check("H1 ranking is labelled as saved evaluations, never live", !/\bLIVE\b/i.test(t) && /RANKED FROM YOUR SAVED EVALUATIONS/i.test(t) && /\bSAVED\b/.test(t), t.slice(0, 200));
+  const headers = await page.evaluate(() => [...document.querySelectorAll(".ff-heat-table thead th")].map(th => th.innerText.trim()));
+  check("H2 ask and supported value labelled as evaluated", headers.some(h => /^Ask when evaluated$/i.test(h)) && headers.some(h => /^Supported at decision$/i.test(h)) && !headers.some(h => /^Ask$/i.test(h)), headers.join(" | "));
+  check("H3 each ranked card shows when it was evaluated", /BUY · evaluated Oct 20, 2026/.test(t) && /Evaluated Oct 20, 2026\./.test(t));
+  check("H4 each ranked card links to its saved decision", await page.locator('.ff-heat-table a[data-forge-heat-card-link][href="#/opportunities/opp-heat-1"]').count() === 1);
+  check("H5 evidence reads as exact sales", /6 exact sales/.test(t) && !/\b6 sales\b/.test(t));
+  check("H6 no page errors", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
+{
+  const data = heat({ considered: 9, unscored: mixed, ranked: true });
+  data.top5[0].acceptedExactSales = null;
+  const { context, page } = await session("#/forge-heat", { heatData: data });
+  await page.waitForSelector(".forge-heat-shell [role=alert]", { timeout: 30000 }).catch(() => {});
+  const t = await text(page, ".forge-heat-shell");
+  check("H7 a ranked card without a recorded sales count is refused, not shown with 0 or null",
+    await page.locator(".ff-heat-control-room, .ff-heat-table").count() === 0 && !/\bnull\b|\b0 exact sales\b/.test(t) && await page.locator(".forge-heat-shell [role=alert]").count() === 1, t.slice(0, 240));
+  check("H8 the refusal is in plain words, the code only as a reference", !/^\s*[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\s*$/.test(await text(page, ".forge-heat-shell [role=alert] strong")), await text(page, ".forge-heat-shell [role=alert]"));
+  await context.close();
+}
+
 await browser.close();
 console.log(`Portfolio and Forge Heat states audit: ${passes.length} passed, ${failures.length} failed.`);
 for (const failure of failures) console.log(`FAIL ${failure}\n::error title=states-audit::${failure}`);
