@@ -32,7 +32,8 @@
 
   function decisionLabel(root) {
     const chip = root.querySelector(".customer-intelligence-hero .customer-hero-title .staging-status");
-    const value = text(chip).toUpperCase();
+    // Saved decisions show the chip as "Saved BUY"; the verdict is the last word either way.
+    const value = text(chip).toUpperCase().replace(/^SAVED\s+/, "");
     return Object.prototype.hasOwnProperty.call(DECISION_COPY, value) ? value : "UNKNOWN";
   }
 
@@ -141,6 +142,15 @@
     hero.insertAdjacentElement("afterend", panel);
   }
 
+  // "2026-10-08T17:55:16.566881179Z" -> "Oct 8, 2026" (UTC date). Anything that is not an ISO timestamp is kept as is.
+  function readableDate(value) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})T[\d:.]+(?:Z|[+-]\d{2}:?\d{2})?$/.exec(String(value || "").trim());
+    if (!match) return value;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = Number(match[2]);
+    return month >= 1 && month <= 12 ? `${months[month - 1]} ${Number(match[3])}, ${match[1]}` : value;
+  }
+
   function simplifySavedState(root) {
     const tracked = root.querySelector(".customer-tracked-state");
     if (!tracked) return;
@@ -149,7 +159,8 @@
     setText(strong, "Decision saved");
     if (small && !/^Saved to your account/.test(text(small))) {
       const original = text(small);
-      const marker = original.includes("·") ? original.split("·").slice(-1)[0].trim() : original;
+      const raw = original.includes("·") ? original.split("·").slice(-1)[0].trim() : original;
+      const marker = readableDate(raw);
       setText(small, marker ? `Saved to your account · ${marker}` : "Saved to your account");
     }
   }
