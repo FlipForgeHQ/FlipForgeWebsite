@@ -48,6 +48,7 @@
   const EVIDENCE_STALE_DAYS = 30;
   const PANEL_ATTR = "data-ff-decision-monitor";
   const COLLECTION_ATTR = "data-ff-collection-intelligence";
+  const REALIZED_ATTR = "data-ff-portfolio-intelligence";
   const NOT_MONITORED = Object.freeze([
     "Live asking prices — FlipForge does not re-check listings after a decision is saved.",
     "New completed sales — FlipForge does not fetch sales after a decision is saved; a re-evaluation uses the latest it can find.",
@@ -381,6 +382,67 @@
     };
   }
 
+  /**
+   * Portfolio Intelligence™ v1 (DEV, 2026-10-31): realized results for the cards you recorded as SOLD, read from your own
+   * Tracking records (the cost and sale amount you entered), each next to the decision you saved for that card. Pure.
+   * Nothing is estimated: no market value, no fees or taxes you did not enter, no recommendation, no accuracy claim.
+   * Buying discipline groups sold cards by what you paid against the Max Buy at decision (a saved value, never
+   * recalculated); a card without a Max Buy, or whose decision could not be read, is counted separately.
+   */
+  function realized(lifecycleItems, opportunityItems) {
+    const records = Array.isArray(lifecycleItems)
+      ? lifecycleItems.filter(i => i && typeof i === "object" && text(i.trackingStatus).toUpperCase() === "SOLD" && SAFE_ID.test(text(i.opportunityId)))
+      : [];
+    const decisionsAvailable = Array.isArray(opportunityItems);
+    const byId = new Map((decisionsAvailable ? opportunityItems : []).filter(i => i && SAFE_ID.test(String(i.id || ""))).map(i => [String(i.id), i]));
+    const rows = records.map(item => {
+      const id = text(item.opportunityId);
+      const opportunity = byId.get(id) || null;
+      const model = opportunity ? dealModelOf(opportunity, null) : null;
+      const cost = int(item.acquisitionCostCents);
+      const proceeds = int(item.dispositionProceedsCents);
+      const result = cost !== null && proceeds !== null ? proceeds - cost : null;
+      const acquired = Date.parse(text(item.acquiredAt));
+      const disposed = Date.parse(text(item.disposedAt));
+      const heldDays = Number.isFinite(acquired) && Number.isFinite(disposed) && disposed >= acquired ? Math.floor((disposed - acquired) / DAY_MS) : null;
+      const maxBuyCents = model && model.governedAvailable ? model.maxBuyCents : null;
+      const versusMaxBuy = cost !== null && maxBuyCents !== null && maxBuyCents > 0 ? cost - maxBuyCents : null;
+      return {
+        id,
+        title: text(opportunity?.title) || text(opportunity?.cardIdentity) || id,
+        verdict: model ? model.verdict : "",
+        linked: Boolean(model && model.governedAvailable),
+        costCents: cost,
+        proceedsCents: proceeds,
+        resultCents: result,
+        returnBps: result !== null && cost > 0 ? Math.round((result * 10000) / cost) : null,
+        heldDays,
+        disposedAt: text(item.disposedAt),
+        maxBuyCents,
+        versusMaxBuyCents: versusMaxBuy,
+        discipline: !decisionsAvailable ? "unknown" : versusMaxBuy === null ? "no-max-buy" : versusMaxBuy <= 0 ? "within" : "above"
+      };
+    });
+    const complete = rows.filter(r => r.resultCents !== null);
+    const total = (list, key) => list.reduce((sum, row) => sum + (row[key] || 0), 0);
+    const group = key => { const list = complete.filter(r => r.discipline === key); return { count: list.length, resultCents: list.length ? total(list, "resultCents") : null }; };
+    return {
+      available: rows.length > 0,
+      decisionsAvailable,
+      count: rows.length,
+      completeCount: complete.length,
+      incompleteCount: rows.length - complete.length,
+      costCents: complete.length ? total(complete, "costCents") : null,
+      proceedsCents: complete.length ? total(complete, "proceedsCents") : null,
+      resultCents: complete.length ? total(complete, "resultCents") : null,
+      gains: complete.filter(r => r.resultCents > 0).length,
+      losses: complete.filter(r => r.resultCents < 0).length,
+      evens: complete.filter(r => r.resultCents === 0).length,
+      discipline: { within: group("within"), above: group("above"), noMaxBuy: group("no-max-buy"), unknown: group("unknown") },
+      rows
+    };
+  }
+
   /* ------------------------------------------------------------------ *
    * Rendering
    * ------------------------------------------------------------------ */
@@ -476,13 +538,56 @@
     </section>`;
   }
 
+  function signedMoney(cents, fallback = "—") {
+    if (cents === null || cents === undefined || !Number.isFinite(Number(cents))) return fallback;
+    return Number(cents) > 0 ? `+${money(cents)}` : money(cents);
+  }
+  function percent(bps) {
+    if (bps === null || !Number.isFinite(bps)) return "";
+    const value = bps / 100;
+    return `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(1)}%`;
+  }
+
+  function realizedMarkup(view) {
+    if (!view || !view.available) return "";
+    const d = view.discipline;
+    const disciplineRow = (label, entry, note) => `<div data-ffpi-discipline="${escapeHtml(label)}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(plural(entry.count, "card"))}</strong><small>${entry.count ? `Result ${escapeHtml(signedMoney(entry.resultCents))}` : escapeHtml(note)}</small></div>`;
+    const row = r => `<li data-ffpi-card="${escapeHtml(r.id)}">
+        <div class="ffci-card"><strong>${escapeHtml(r.title)}</strong>
+          <span>${r.linked ? `${chip(r.verdict)} Max Buy at decision ${escapeHtml(money(r.maxBuyCents, "not set"))}` : view.decisionsAvailable ? "No saved decision linked" : "Saved decision unavailable right now"} · Paid ${escapeHtml(money(r.costCents, "not entered"))} · Sold for ${escapeHtml(money(r.proceedsCents, "not entered"))}</span>
+          <small>${r.resultCents !== null ? `Result ${escapeHtml(signedMoney(r.resultCents))}${r.returnBps !== null ? ` (${escapeHtml(percent(r.returnBps))})` : ""}` : "Result not shown: enter both what you paid and what you sold it for"}${r.heldDays !== null ? ` · held ${escapeHtml(plural(r.heldDays, "day"))}` : ""}${r.disposedAt && dateOnly(r.disposedAt) ? ` · sold ${escapeHtml(dateOnly(r.disposedAt))}` : ""}</small>
+        </div>
+        <div class="ffci-links">${r.linked ? `<a href="#/opportunities/${encodeURIComponent(r.id)}">Decision receipt</a>` : ""}<a href="#/tracking/${encodeURIComponent(r.id)}">Tracking</a></div>
+      </li>`;
+    const headline = view.completeCount
+      ? `Realized result ${signedMoney(view.resultCents)} on ${plural(view.completeCount, "sold card")}`
+      : `${plural(view.count, "sold card")} recorded · result not available yet`;
+    return `<section class="ffci ffpi" ${REALIZED_ATTR} data-ffpi-version="${VERSION}" aria-labelledby="ffpi-title">
+      <header class="ffdm-head"><div><span class="ffdm-kicker">Portfolio Intelligence™ · Realized results</span><h2 id="ffpi-title">${escapeHtml(headline)}</h2>
+        <p class="ffdm-muted">From the cards you marked Sold in Tracking, using what you entered for the purchase and the sale.${view.incompleteCount ? ` ${plural(view.incompleteCount, "sold card")} ${view.incompleteCount === 1 ? "is" : "are"} left out of the totals until both amounts are entered.` : ""}</p></div></header>
+      <div class="ffci-exposure" data-ffpi-totals>
+        <div><span>Sold for</span><strong>${escapeHtml(money(view.proceedsCents, "—"))}</strong><small>What you entered</small></div>
+        <div><span>Paid</span><strong>${escapeHtml(money(view.costCents, "—"))}</strong><small>Cost of the same cards</small></div>
+        <div data-tone="${view.resultCents !== null && view.resultCents < 0 ? "warn" : ""}"><span>Realized result</span><strong>${escapeHtml(signedMoney(view.resultCents))}</strong><small>Sold for minus paid</small></div>
+        <div><span>Gains · losses</span><strong>${escapeHtml(`${view.gains} · ${view.losses}`)}</strong><small>${view.evens ? `${plural(view.evens, "card")} broke even` : "Cards with both amounts entered"}</small></div>
+      </div>
+      <div class="ffci-exposure" data-ffpi-discipline-block>
+        ${view.decisionsAvailable
+          ? `${disciplineRow("At or under Max Buy", d.within, "None")}${disciplineRow("Above Max Buy", d.above, "None")}${disciplineRow("No Max Buy at decision", d.noMaxBuy, "None")}`
+          : `<div><span>Buying discipline</span><strong>—</strong><small>Your saved decisions could not be loaded right now, so nothing is compared.</small></div>`}
+      </div>
+      <details class="ffdm-more" data-ffpi-all ${view.count <= 5 ? "open" : ""}><summary>${escapeHtml(plural(view.count, "sold card"))}</summary><ol class="ffci-list">${view.rows.map(row).join("")}</ol></details>
+      <p class="ffdm-muted">Fees, shipping and taxes count only if you included them in the amounts you entered. This is not an accounting or tax statement, not a measure of FlipForge's accuracy, and not a prediction. Max Buy is the value saved with each decision; it is never recalculated.</p>
+    </section>`;
+  }
+
   /* ------------------------------------------------------------------ *
    * Runtime
    * ------------------------------------------------------------------ */
 
   // renderedAnchor: the host element the panel was last inserted next to. When the host page re-renders (a lifecycle
   // save, Portfolio Refresh) that element is replaced, so the cached result is dropped and reloaded once.
-  const state = { key: "", loading: "", result: null, collection: null, serial: 0, scheduled: false, renderedAnchor: null };
+  const state = { key: "", loading: "", result: null, collection: null, realized: null, serial: 0, scheduled: false, renderedAnchor: null };
 
   function enabled() {
     if (typeof window === "undefined" || window.FlipForgeDecisionMonitorDisabled === true) return false;
@@ -534,13 +639,18 @@
   async function loadCollection(key) {
     const serial = ++state.serial;
     state.loading = key;
-    const [portfolio, opportunities, alerts] = await Promise.allSettled([getJson("/api/v1/portfolio"), getJson("/api/v1/opportunities"), getJson("/api/v1/alerts")]);
+    const [portfolio, opportunities, alerts, lifecycle] = await Promise.allSettled([getJson("/api/v1/portfolio"), getJson("/api/v1/opportunities"), getJson("/api/v1/alerts"), getJson("/api/v1/lifecycle")]);
     if (serial !== state.serial) return;
     state.loading = "";
     state.key = key;
+    const decisionItems = opportunities.status === "fulfilled" && Array.isArray(opportunities.value?.items) ? opportunities.value.items : null;
     state.collection = portfolio.status === "fulfilled" && portfolio.value?.kind === "portfolio"
-      ? collection(portfolio.value, opportunities.status === "fulfilled" && Array.isArray(opportunities.value?.items) ? opportunities.value.items : null, Date.now(),
+      ? collection(portfolio.value, decisionItems, Date.now(),
         reviewSignalFeed(alerts.status === "fulfilled" ? alerts.value : null, alerts.status !== "fulfilled"))
+      : null;
+    // Realized results need the Tracking records; if they cannot be read, the panel is not shown rather than guessed.
+    state.realized = lifecycle.status === "fulfilled" && lifecycle.value?.kind === "lifecycle" && Array.isArray(lifecycle.value.items)
+      ? realized(lifecycle.value.items, decisionItems)
       : null;
   }
 
@@ -562,13 +672,13 @@
     const main = document.querySelector("#main-content");
     const { name, id } = route();
     const key = name ? `${name}:${id}` : "";
-    const stale = main ? [...main.querySelectorAll(`[${PANEL_ATTR}], [${COLLECTION_ATTR}]`)] : [];
+    const stale = main ? [...main.querySelectorAll(`[${PANEL_ATTR}], [${COLLECTION_ATTR}], [${REALIZED_ATTR}]`)] : [];
     if (!enabled() || !main || !name) { stale.forEach(node => node.remove()); return; }
     stale.filter(node => (node.hasAttribute(PANEL_ATTR) ? `${name}:${node.getAttribute(PANEL_ATTR)}` : "portfolio:") !== key).forEach(node => node.remove());
     const anchor = name === "portfolio" ? main.querySelector(".customer-portfolio-page .customer-portfolio-metrics")
       : name === "tracking" ? main.querySelector(".customer-lifecycle-page .customer-decision-timeline-panel")
         : main.querySelector("[data-ff-deal-check]");
-    const panelShown = Boolean(main.querySelector(name === "portfolio" ? `[${COLLECTION_ATTR}]` : `[${PANEL_ATTR}]`));
+    const panelShown = Boolean(main.querySelector(name === "portfolio" ? `[${COLLECTION_ATTR}], [${REALIZED_ATTR}]` : `[${PANEL_ATTR}]`));
     if (state.key === key && state.loading !== key && anchor && !panelShown && state.renderedAnchor
         && state.renderedAnchor !== anchor && !state.renderedAnchor.isConnected) {
       state.key = "";
@@ -582,8 +692,13 @@
     if (state.loading === key) return;
 
     if (name === "portfolio") {
-      if (!state.collection || main.querySelector(`[${COLLECTION_ATTR}]`)) return;
-      if (anchor) { insertAfter(anchor, collectionMarkup(state.collection)); state.renderedAnchor = anchor; }
+      if (!anchor) return;
+      if (state.collection && !main.querySelector(`[${COLLECTION_ATTR}]`)) { insertAfter(anchor, collectionMarkup(state.collection)); state.renderedAnchor = anchor; }
+      if (state.realized && !main.querySelector(`[${REALIZED_ATTR}]`)) {
+        const after = main.querySelector(`[${COLLECTION_ATTR}]`) || anchor;
+        insertAfter(after, realizedMarkup(state.realized));
+        state.renderedAnchor = anchor;
+      }
       return;
     }
     if (!state.result || state.result.id !== id || main.querySelector(`[${PANEL_ATTR}]`)) return;
@@ -609,7 +724,7 @@
     schedule();
   }
 
-  const api = Object.freeze({ version: VERSION, monitor, integrate, reviewSignalFeed, collection, monitorMarkup, collectionMarkup, timelineOf, dealModelOf, notMonitored: NOT_MONITORED });
+  const api = Object.freeze({ version: VERSION, monitor, integrate, reviewSignalFeed, collection, realized, monitorMarkup, collectionMarkup, realizedMarkup, timelineOf, dealModelOf, notMonitored: NOT_MONITORED });
   if (typeof window !== "undefined") {
     window.FlipForgeDecisionMonitor = api;
     if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {

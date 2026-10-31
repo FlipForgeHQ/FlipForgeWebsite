@@ -323,6 +323,44 @@ check("no saved decision: unavailable, no signals", M.monitor(null, null, null, 
     && /state\.renderedAnchor = anchor/.test(SOURCE) && /state\.key = "";/.test(SOURCE));
 }
 
+// Portfolio Intelligence™ v1: realized results for SOLD cards from the customer's own Tracking records.
+{
+  const sold = (id, cost, proceeds, acquiredAt, disposedAt) => ({ opportunityId: id, trackingStatus: "SOLD", outcomeStatus: "SOLD", reviewAt: null,
+    acquisitionCostCents: cost, acquiredAt, dispositionProceedsCents: proceeds, disposedAt, alertEnabled: false, version: 3,
+    createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-11-20T00:00:00Z" });
+  const items = [
+    sold(IDS.buy, 61000, 70000, "2026-10-28T00:00:00Z", "2026-11-27T00:00:00Z"),   // paid under the $640.68 Max Buy
+    sold(IDS.watch, 72000, 65000, "2026-10-29T00:00:00Z", "2026-11-19T00:00:00Z"), // paid above the $608.79 Max Buy
+    sold(IDS.verify, 40000, 40000, "2026-10-28T00:00:00Z", null),                    // no Max Buy at decision (VERIFY)
+    sold(UNLINKED_ID, 15000, null, "2026-09-01T00:00:00Z", null),                    // sale amount not entered
+    { ...sold(IDS.pass, 30000, 99999, null, null), trackingStatus: "OWNED" }          // not sold: ignored
+  ];
+  const view = M.realized(items, opportunitiesList().items);
+  check("PI: only SOLD records count; incomplete ones are left out of totals", view.available && view.count === 4 && view.completeCount === 3 && view.incompleteCount === 1, JSON.stringify([view.count, view.completeCount]));
+  check("PI: totals are sums of what the customer entered", view.costCents === 173000 && view.proceedsCents === 175000 && view.resultCents === 2000, JSON.stringify([view.costCents, view.proceedsCents, view.resultCents]));
+  check("PI: gains, losses and break-evens", view.gains === 1 && view.losses === 1 && view.evens === 1);
+  const buy = view.rows.find(r => r.id === IDS.buy);
+  check("PI: per-card result, return and holding period", buy.resultCents === 9000 && buy.returnBps === 1475 && buy.heldDays === 30, JSON.stringify([buy.resultCents, buy.returnBps, buy.heldDays]));
+  check("PI: buying discipline against the saved Max Buy (never recalculated)", view.discipline.within.count === 1 && view.discipline.within.resultCents === 9000
+    && view.discipline.above.count === 1 && view.discipline.above.resultCents === -7000 && view.discipline.noMaxBuy.count === 1 && view.discipline.noMaxBuy.resultCents === 0
+    && buy.maxBuyCents === D[IDS.buy].opportunity.governedDecision.maximumBuyPriceCents, JSON.stringify(view.discipline));
+  const unlinked = view.rows.find(r => r.id === UNLINKED_ID);
+  check("PI: a missing sale amount gives no result (never $0.00 or a loss of the full cost)", unlinked.resultCents === null && unlinked.returnBps === null);
+  const html = M.realizedMarkup(view);
+  check("PI: markup states the totals and the incomplete card", /Realized result \+\$20\.00 on 3 sold cards/.test(html) && /1 sold card is left out of the totals/.test(html) && /Result not shown: enter both/.test(html), html.match(/<h2[^>]*>[^<]*/)?.[0]);
+  check("PI: losses are shown with a minus sign", /−\$70\.00/.test(html));
+  check("PI: wording makes no market-value, accuracy or prediction claim", /not a measure of FlipForge's accuracy, and not a prediction/.test(html) && /Fees, shipping and taxes count only if you included them/.test(html)
+    && !/market value|current value|worth|appraised|you will|guarantee/i.test(html.replace(/not a measure of FlipForge's accuracy, and not a prediction/, "")));
+  const noDecisions = M.realized(items, null);
+  check("PI: decisions unreadable: no discipline comparison, said plainly", noDecisions.discipline.within.count === 0 && noDecisions.discipline.unknown.count === 3
+    && /could not be loaded right now, so nothing is compared/.test(M.realizedMarkup(noDecisions)));
+  check("PI: no sold cards: no panel", M.realized([items[4]], opportunitiesList().items).available === false && M.realizedMarkup(M.realized([], [])) === "");
+  check("PI: reads Tracking records with a GET only; no write, provider call or evaluation", /getJson\("\/api\/v1\/lifecycle"\)/.test(SOURCE)
+    && !/method: "(?:POST|PUT|DELETE)"/.test(SOURCE) && !/\/api\/v1\/evaluations|card-intelligence/.test(SOURCE));
+  const realizedFn = SOURCE.slice(SOURCE.indexOf("function realized("), SOURCE.indexOf("/* ------------------------------------------------------------------ *\n   * Rendering"));
+  check("PI: realized() is pure (no fetch, storage or DOM)", realizedFn.length > 100 && !/fetch\(|localStorage|sessionStorage|document\./.test(realizedFn));
+}
+
 // Shell wiring: monitor loads after Deal Check in both shells.
 for (const shell of ["saas-prototype/index.html", "saas-prototype/customer.html"]) {
   const html = read(shell);

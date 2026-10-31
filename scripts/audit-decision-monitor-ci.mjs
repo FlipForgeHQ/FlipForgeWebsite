@@ -40,7 +40,7 @@ async function open(viewport, hash, { disabled = false, alerts = "available" } =
     if (p === "/api/v1/health") return json(200, envelope(cid, { status: "configured", bridgeEnabled: true }));
     if (p === "/api/v1/opportunities") return json(200, envelope(cid, opportunitiesList()));
     if (p.startsWith("/api/v1/opportunities/")) return D[id] ? json(200, envelope(cid, D[id])) : json(404, { error: { code: "NOT_FOUND", correlationId: cid } });
-    if (p === "/api/v1/lifecycle") return json(200, envelope(cid, lifecycleList()));
+    if (p === "/api/v1/lifecycle") return json(200, envelope(cid, lifecycleListWithSold()));
     if (p.startsWith("/api/v1/lifecycle/")) return json(200, envelope(cid, lifecycleDetail(id)));
     if (p === "/api/v1/portfolio") return json(200, envelope(cid, portfolio()));
     if (p === "/api/v1/alerts") return alerts === "fail" ? json(503, { error: { code: "UPSTREAM_UNAVAILABLE", correlationId: cid } }) : json(200, envelope(cid, alertsData(alerts, NOW)));
@@ -54,6 +54,17 @@ async function open(viewport, hash, { disabled = false, alerts = "available" } =
   page.on("pageerror", e => errors.push(String(e.message || e)));
   await page.goto(`${baseUrl}/${hash}`, { waitUntil: "load" });
   return { context, page, requests, errors };
+}
+
+// Portfolio Intelligence v1: two cards the customer recorded as SOLD (Tracking list only; Portfolio stays OWNED-only).
+function lifecycleListWithSold() {
+  const list = lifecycleList();
+  const sold = (id, cost, proceeds, acquiredAt, disposedAt) => ({ opportunityId: id, trackingStatus: "SOLD", outcomeStatus: "SOLD", reviewAt: null,
+    acquisitionCostCents: cost, acquiredAt, dispositionProceedsCents: proceeds, disposedAt, alertEnabled: false, version: 3,
+    createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-11-20T00:00:00Z" });
+  const items = [...list.items.map(i => i.opportunityId === IDS.pass ? sold(IDS.pass, 25000, 31000, "2026-10-20T00:00:00Z", "2026-11-19T00:00:00Z") : i),
+    sold("EBAY-QA-MONITOR-SOLD-10", 9000, null, "2026-10-01T00:00:00Z", null)];
+  return { ...list, items, count: items.length };
 }
 
 const facts = (page, selector) => page.evaluate(sel => {
@@ -163,6 +174,20 @@ for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
       check(`${label}: existing portfolio sections still present`, await page.locator(".customer-portfolio-page .customer-portfolio-metrics").count() === 1);
     }
     await page.locator("[data-ff-collection-intelligence]").screenshot({ path: `${shots}/${vp}-portfolio-collection.png` }).catch(() => {});
+    // Portfolio Intelligence v1: realized results from SOLD Tracking records, after Collection Intelligence.
+    await page.waitForSelector("[data-ff-portfolio-intelligence]", { timeout: 15000 }).catch(() => {});
+    const pi = await facts(page, "[data-ff-portfolio-intelligence]");
+    check(`${label}: realized results panel renders once`, pi && pi.count === 1);
+    if (pi) {
+      const placed = await page.evaluate(() => { const ci = document.querySelector("[data-ff-collection-intelligence]"); const pi = document.querySelector("[data-ff-portfolio-intelligence]"); return Boolean(ci && pi && (ci.compareDocumentPosition(pi) & Node.DOCUMENT_POSITION_FOLLOWING)); });
+      check(`${label}: realized results placed after Collection Intelligence`, placed);
+      check(`${label}: realized result from entered amounts only (+$60.00 on 1 sold card)`, /Realized result \+\$60\.00 on 1 sold card/.test(pi.text), pi.text.slice(0, 200));
+      check(`${label}: incomplete sold card left out, never $0.00`, /1 sold card is left out of the totals/.test(pi.text) && /Result not shown: enter both/.test(pi.text));
+      check(`${label}: discipline uses the saved Max Buy`, /At or under Max Buy\s*1 card/.test(pi.text) || /Above Max Buy\s*1 card/.test(pi.text) || /No Max Buy at decision\s*1 card/.test(pi.text), pi.text.slice(0, 400));
+      check(`${label}: realized panel: no small text, no overflow`, pi.small.length === 0 && pi.overflow <= 1, `${pi.small.slice(0, 3).join(" | ")} / ${pi.overflow}`);
+      check(`${label}: realized panel: no accuracy, value or prediction claim`, /not a measure of FlipForge's accuracy, and not a prediction/.test(pi.text) && !/market value|worth|guarantee/i.test(pi.text));
+    }
+    await page.locator("[data-ff-portfolio-intelligence]").screenshot({ path: `${shots}/${vp}-portfolio-realized.png` }).catch(() => {});
     await context.close();
   }
 }
