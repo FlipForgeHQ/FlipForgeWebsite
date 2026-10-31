@@ -107,6 +107,7 @@
 .ffv3-verdict[data-verdict="pass"] { color: var(--ffv3-pass); }
 .ffv3-tag { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--ffv3-line); color: var(--ffv3-silver); font-size: 12px; font-weight: 600; }
 .ffv3-tag[data-tag="guardrail"] { color: var(--ffv3-watch); border-color: var(--ffv3-watch); }
+.ffv3-tag[data-tag="earlier-rules"] { color: var(--ffv3-silver); border-color: var(--ffv3-silver); }
 .ffv3-tag[data-tag="modeled"], .ffv3-tag[data-tag="readonly"] { color: var(--ffv3-gold); border-color: var(--ffv3-deep-gold); }
 
 /* Dossier */

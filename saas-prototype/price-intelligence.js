@@ -98,7 +98,13 @@
       watchAtOrBelowCents,
       buyAtOrBelowCents,
       transitions,
-      thresholdCount: safeInteger(raw.thresholdCount) ?? transitions.length
+      thresholdCount: safeInteger(raw.thresholdCount) ?? transitions.length,
+      // Server-owned, read-only: this analysis uses today's rules; the saved decision may predate them.
+      currentRules: raw.rulesBasis === "CURRENT_RULES",
+      rulesDisclosure: cleanText(raw.rulesDisclosure, 400),
+      savedUnderEarlierRules: opportunity?.governedDecision?.decisionRules?.decidedUnderEarlierRules === true
+        || opportunity?.decidedUnderEarlierRules === true,
+      savedDecisionDisclosure: cleanText(opportunity?.governedDecision?.decisionRules?.disclosure, 400)
     };
   }
 
@@ -175,6 +181,9 @@
   }
 
   function statusCopy(snapshot) {
+    if (historicalMismatch(snapshot) && snapshot.savedUnderEarlierRules) {
+      return `The saved ${snapshot.savedRecommendation} was decided under earlier rules and is kept as it was made. Under today's rules this price gives ${snapshot.currentRecommendation}.`;
+    }
     if (historicalMismatch(snapshot)) {
       return `The saved ${snapshot.savedRecommendation} is historical and is not reproducible from the current governed evidence. Current reproducible decision: ${snapshot.currentRecommendation}.`;
     }
@@ -245,14 +254,19 @@
       metric("BUY at or below", snapshot.buyAtOrBelowCents === null ? "Not reached" : money(snapshot.buyAtOrBelowCents), "BUY")
     ].join("");
 
-    const reconciliation = mismatch
+    const reconciliation = mismatch && snapshot.savedUnderEarlierRules
+      ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note data-earlier-rules-note><strong>Decided under earlier rules:</strong> ${escapeHtml(snapshot.savedDecisionDisclosure || `The saved ${snapshot.savedRecommendation} was decided under earlier rules and is kept as it was made.`)} Under today's rules this price gives ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
+      : mismatch
       ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note><strong>Decision reconciliation:</strong> The saved ${escapeHtml(snapshot.savedRecommendation)} remains in history, but current governed evidence reproduces ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
+      : snapshot.currentRules
+      ? `<div class="boundary-note price-intelligence-rules" data-current-rules-note>This price analysis uses today's rules.</div>`
       : "";
 
     const signature = [
       snapshot.currentRecommendation,
       snapshot.savedRecommendation || "x",
       snapshot.savedRecommendationReproduced ? "saved-ok" : "saved-mismatch",
+      snapshot.savedUnderEarlierRules ? "earlier-rules" : "same-rules",
       snapshot.currentEvidenceReconciled ? "evidence-reconciled" : "evidence-unchanged",
       snapshot.currentAllInAskCents,
       snapshot.watchAtOrBelowCents ?? "x",
