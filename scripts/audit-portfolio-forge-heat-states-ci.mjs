@@ -148,7 +148,7 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   const t = await text(page, ".customer-portfolio-page");
   check("P1 one plain paused message", /Card values are paused/.test(t) && /moving to licensed sales data/.test(t), t.slice(0, 300));
   check("P2 no per-row Unavailable and no partial-coverage warning", !/Unavailable/.test(t) && !/Partial coverage/i.test(t) && !/Coverage-aware totals/i.test(t));
-  check("P3 cards, what was paid and totals still shown", /Shohei Ohtani/.test(t) && /\$1,215\.00/.test(t) && /\$480\.00/.test(t) && /\$1,695\.00/.test(t) && /2026-09-13/.test(t));
+  check("P3 cards, what was paid and totals still shown", /Shohei Ohtani/.test(t) && /\$1,215\.00/.test(t) && /\$480\.00/.test(t) && /\$1,695\.00/.test(t) && /Sep 13, 2026/.test(t));
   check("P4 Sell Watch section lists the saved channels", /Selling costs saved for: Marketplace, Auction house/.test(t));
   const links = await page.locator('.customer-portfolio-page a[href^="#/tracking/"]:not([data-ff-collection-intelligence] a)').evaluateAll(as => as.map(a => a.getAttribute("href")));
   check("P5 each card links to Check a price on its tracked card", links.includes("#/tracking/opp-ohtani-psa10") && links.includes("#/tracking/opp-lebron-psa9"), links.join(","));
@@ -183,7 +183,7 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   await page.waitForTimeout(800);
   const t = await text(page, ".customer-portfolio-page");
   check("P8 Sell Watch off: no Sell Watch section, column or link", !/Sell Watch/.test(t) && !/Check a price/.test(t)
-    && await page.locator('.customer-portfolio-page a[href^="#/tracking/"]:not([data-ff-collection-intelligence] a)').count() === 0);
+    && await page.locator('.customer-portfolio-page a[href^="#/tracking/"]:not([data-ff-collection-intelligence] a):not([data-portfolio-card-link])').count() === 0);
   await context.close();
 }
 // 3. Portfolio on a phone.
