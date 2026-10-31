@@ -287,6 +287,13 @@
     return map[code] || code.charAt(0) + code.slice(1).toLowerCase().replace(/_/g, " ");
   }
 
+  // A saved snapshot with no evidence-supported value records 0 (or nothing): that is "not established", never "$0.00",
+  // which reads as "worth nothing" (review 2026-10-31; seen on a production VERIFY).
+  function establishedValue(cents) {
+    const number = cents === null || cents === undefined || cents === "" ? NaN : Number(cents);
+    return Number.isFinite(number) && number > 0 ? moneyFromCents(number) : "Not established";
+  }
+
   function timelineEntryMarkup(entry, index) {
     const changes = changeLinesFor(entry);
     const wouldChange = safeArray(entry?.whatWouldChange);
@@ -296,7 +303,7 @@
     const wouldChangeMarkup = wouldChange.length
       ? `<details class="customer-decision-timeline-conditions"><summary>What would change this decision?</summary><ul>${wouldChange.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>`
       : "";
-    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(whenText(entry?.evaluatedAt, "Time unavailable"))}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : moneyFromCents(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(plainCode({ REVIEW: "Needs review" }, entry?.evidenceQuality, "Unavailable"))}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
+    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(whenText(entry?.evaluatedAt, "Time unavailable"))}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : establishedValue(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(plainCode({ REVIEW: "Needs review" }, entry?.evidenceQuality, "Unavailable"))}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
   }
 
   function decisionTimelineMarkup() {

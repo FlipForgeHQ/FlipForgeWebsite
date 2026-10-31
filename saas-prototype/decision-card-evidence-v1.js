@@ -100,7 +100,12 @@
       .filter((node) => !node.classList.contains("ff-decision-next"));
     const why = text(reasonParagraphs[0]) || "FlipForge preserved the server-owned decision.";
     const change = text(summary.querySelector(".ff-decision-next")).replace(/^what you should do next:\s*/i, "") || "Material new evidence or price/risk changes require a fresh evaluation.";
-    const accepted = numericFromPage(root, ACCEPTED_SALES_LABELS);
+    // Sale records are no longer kept: the card page then shows the saved receipt's own count "at decision"
+    // (customer-opportunities.js). The passport says the same, never today's 0 next to a saved BUY.
+    const atDecision = root.querySelector("[data-sales-at-decision]")?.getAttribute("data-sales-at-decision");
+    const accepted = atDecision === undefined || atDecision === null
+      ? numericFromPage(root, ACCEPTED_SALES_LABELS)
+      : /^\d+$/.test(atDecision) ? `${atDecision} at decision` : "Not recorded";
     const excluded = numericFromPage(root, ["Visible but ineligible", "Excluded from authority"]);
     // customer-decision-clarity-v1.js renames the ask label to "Ask when evaluated" (formerly "Listing price") and "Risk" to "Decision risk";
     // both labels are accepted, and the saved record is read first.
@@ -303,7 +308,7 @@
             <div><dt>Supported value</dt><dd>${escapeHtml(model.supportedValue)}</dd></div>
             ${economicsRows(model)}
           </dl>
-          <p class="ff-dce-note">${hasEconomics(model) ? "Figures are shown exactly as the saved server decision recorded them." : "The saved decision does not show a Max Buy, costs, breakeven or potential profit for this card. FlipForge does not estimate them in the browser."}</p>
+          <p class="ff-dce-note">${hasEconomics(model) ? "Figures are shown exactly as the saved server decision recorded them." : model.legacy ? "This result was saved before current evidence rules. Any figures it recorded are shown above as historical only; they are not current support, and FlipForge does not estimate new ones in the browser." : "The saved decision does not show a Max Buy, costs, breakeven or potential profit for this card. FlipForge does not estimate them in the browser."}</p>
         </details>
         <details class="ff-dce-more">
           <summary><strong>How reliable this information is</strong><small>Evidence counted, excluded, and uncertainty</small></summary>

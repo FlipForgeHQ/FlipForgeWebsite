@@ -142,9 +142,12 @@
     [/\bSQLite saved\b/gi, "saved to your account"],
     [/\bSQLite\b/g, "your account"],
     [/\bprovider-backed\b/gi, "connected-source"],
+    [/\bProvider context\b/g, "Marketplace context"],
     [/\bprovider context\b/gi, "marketplace context"],
     [/\bgoverned evidence\b/gi, "qualified evidence"],
     [/\bauthority-ineligible\b/gi, "not eligible"],
+    // Keep a capital where the phrase starts a label ("4 · Authority output" -> "4 · Decision", not "4 · decision").
+    [/\bAuthority output\b/g, "Decision"],
     [/\bauthority output\b/gi, "decision"],
     [/\bsole decision authority\b/gi, "decision engine"],
     [/\bsole BUY\/WATCH\/VERIFY\/PASS authority\b/gi, "BUY/WATCH/VERIFY/PASS decision engine"],

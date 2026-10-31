@@ -229,6 +229,13 @@
     const tone = statusTone(status);
     const currentAccepted = !evidence ? "—" : evidence.providerRecordsKept === false ? "Not kept" : evidence.acceptedProviderRows;
     const totalAccepted = evidence ? evidence.acceptedExactCompletedSales : "—";
+    // Sale records not kept (review 2026-10-31): the card page shows the saved receipt's count "at decision"
+    // (customer-opportunities.js, [data-sales-at-decision]). Today's 0 is then not shown as "all saved" sales next to a
+    // saved BUY; the count the decision was made on is shown instead ("Unavailable" when it was never recorded).
+    const atDecisionAttr = evidence?.providerRecordsKept === false ? document.querySelector("#main-content [data-sales-at-decision]")?.getAttribute("data-sales-at-decision") : null;
+    const totalMetric = atDecisionAttr === null || atDecisionAttr === undefined
+      ? metric("All saved exact accepted sales", totalAccepted)
+      : metric("Exact sales at decision", /^\d+$/.test(atDecisionAttr) ? atDecisionAttr : "Unavailable");
     const metrics = summary
       ? [
           metric("Returned", summary.returnedRows),
@@ -238,14 +245,14 @@
           metric("Review required", summary.reviewRows),
           metric("Rejected", summary.rejectedRows),
           metric("Saved accepted sales from our data provider", currentAccepted),
-          metric("All saved exact accepted sales", totalAccepted)
+          totalMetric
         ].join("")
       : [
           metric("Saved accepted sales from our data provider", currentAccepted),
-          metric("All saved exact accepted sales", totalAccepted)
+          totalMetric
         ].join("");
 
-    const signature = panelSignature(summary, evidence);
+    const signature = `${panelSignature(summary, evidence)}|${atDecisionAttr ?? ""}`;
     const providerMessage = summary?.message ? `<p class="provider-evidence-provider-message">${escapeHtml(summary.message)}</p>` : "";
     const boundary = summary?.fixedPriceRowsCanSupportValue === true
       ? "Historical completed sales, including fixed-price completed sales, may support value only after FlipForge exact-evidence checks. Active listings and asking prices cannot support value."
