@@ -47,7 +47,7 @@ const sig = (r, key) => r.signals.find(s => s.key === key);
 {
   const r = cardResult(IDS.watch);
   check("WATCH: price not re-checked is stated, not invented", sig(r, "price-unmonitored")?.level === "info" && /does not watch live listings/.test(sig(r, "price-unmonitored").detail));
-  check("WATCH: card match not confirmed → review", sig(r, "identity")?.level === "review");
+  check("WATCH: provider catalog mapping alone never raises a card-match warning", !keys(r).includes("identity"));
   check("WATCH: no decision-change or ask-change without a re-evaluation", !keys(r).includes("decision") && !keys(r).includes("price"));
 }
 
@@ -252,6 +252,25 @@ check("no saved decision: unavailable, no signals", M.monitor(null, null, null, 
   const statusOnly = M.integrate(cardResult(IDS.verify), M.reviewSignalFeed(null, true), { id: IDS.verify, lifecycle: lifecycleRecords()[IDS.verify], model: M.dealModelOf(D[IDS.verify].opportunity, null) });
   check("v1.1: review-signal outage is listed under not re-checked", statusOnly.signals.find(x => x.key === "review-signals-status")?.category === "not-rechecked");
   check("v1.1: Portfolio tile no longer says 'old rules'", !/old rules/.test(M.collectionMarkup(M.collection(portfolio(), opportunitiesList().items, NOW, M.reviewSignalFeed(alertsData("available"))))));
+}
+
+// v1.1.1: no false changes from the containment-era data shape; identity from FlipForge's own governed checks only.
+{
+  const live = JSON.parse(JSON.stringify(D[IDS.buy].opportunity));
+  live.evidence = { ...live.evidence, acceptedSales: 0, priceStatus: "LIVE_PRICING_ONLY" };
+  const model = M.dealModelOf(live, null);
+  const r = M.monitor(model, null, null, NOW);
+  check("v1.1.1: live-only pricing (no sale records kept) → saved-sales count not applicable, no 'fewer sales' change",
+    model.currentSavedSales === null && !keys(r).includes("evidence-count"));
+  const flagged = JSON.parse(JSON.stringify(D[IDS.watch].opportunity));
+  flagged.governedDecision.verificationChecklist = { items: [{ code: "LISTING_NOT_CONFIRMED", category: "IDENTITY", issue: "FlipForge couldn't confirm that this listing is this exact card." }] };
+  const fr = M.monitor(M.dealModelOf(flagged, null), null, null, NOW);
+  check("v1.1.1: a governed identity issue on a non-VERIFY decision → 'Card match needs checking' with the server's reason",
+    sig(fr, "identity")?.title === "Card match needs checking" && /couldn't confirm/.test(sig(fr, "identity").detail));
+  const unmapped = JSON.parse(JSON.stringify(D[IDS.buy].opportunity));
+  unmapped.mappingState = "NOT_CONFIRMED";
+  check("v1.1.1: provider mapping NOT_CONFIRMED on a governed BUY raises nothing",
+    !keys(M.monitor(M.dealModelOf(unmapped, null), null, null, NOW)).includes("identity"));
 }
 
 // CSS floor.

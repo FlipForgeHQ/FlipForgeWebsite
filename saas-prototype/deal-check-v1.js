@@ -211,7 +211,14 @@
       roi,
       netExit,
       exactSales: governedAvailable ? int(governed.exactTrustedCompCount) : int(opportunity.evidenceCount),
-      currentSavedSales: int(evidence.acceptedSales),
+      // After containment the server keeps no sale records ("LIVE_PRICING_ONLY": sales are checked live at evaluation
+      // and not stored), so a saved-sales count is not applicable rather than zero.
+      currentSavedSales: /LIVE_PRICING_ONLY/i.test(text(evidence.priceStatus)) ? null : int(evidence.acceptedSales),
+      // FlipForge's own exact-card concerns for the saved decision (governed checklist, category IDENTITY). The
+      // provider catalog mapping state is not used for warnings: with the provider suspended it is never confirmed.
+      identityIssues: (governedAvailable && governed.verificationChecklist && Array.isArray(governed.verificationChecklist.items)
+        ? governed.verificationChecklist.items : []).filter(item => item && text(item.category).toUpperCase() === "IDENTITY")
+        .map(item => text(item.issue) || text(item.line)).filter(Boolean).slice(0, 3),
       excludedCount,
       excludedReasons,
       saleDetailsWithheld: evidence.saleDetailsWithheld === true,
@@ -403,8 +410,10 @@
     const rows = [];
     // 1. Identity
     if (model.legacy) rows.push({ key: "identity", label: "Exact card", status: "warn", value: "Legacy result", note: model.legacyNotice || "Saved before current evidence rules." });
+    else if (model.identityIssues.length) rows.push({ key: "identity", label: "Exact card", status: "warn", value: "Card match needs checking", note: model.identityIssues[0] });
     else if (model.mappingState === "CONFIRMED") rows.push({ key: "identity", label: "Exact card", status: "pass", value: "Card match confirmed", note: "The saved identity is matched to one exact card before evidence counts." });
-    else rows.push({ key: "identity", label: "Exact card", status: "warn", value: "Match not confirmed", note: "Confirm the exact set, number, parallel and grade before relying on the price." });
+    else if (model.governedAvailable && model.verdict && model.verdict !== "VERIFY") rows.push({ key: "identity", label: "Exact card", status: "pass", value: "Exact-card checks passed", note: "FlipForge's exact-card checks passed when this decision was saved." });
+    else rows.push({ key: "identity", label: "Exact card", status: "warn", value: "See the verification checklist", note: "Confirm the exact set, number, parallel and grade before relying on the price." });
     // 2. Evidence
     const sales = model.exactSales;
     const excluded = model.excludedCount !== null && model.excludedCount > 0 ? ` · ${model.excludedCount} not counted` : "";
@@ -446,7 +455,7 @@
       add(`FlipForge's saved price analysis reaches BUY on evidence only at or below ${money(buyAt)}.`, "price-analysis");
     }
     model.whatWouldChange.forEach(entry => add(entry, "receipt"));
-    if (model.mappingState && model.mappingState !== "CONFIRMED" && !model.legacy) add("Confirming the exact card match.", "receipt");
+    if (model.identityIssues.length && !model.legacy) add("Confirming the exact card match.", "receipt");
     return out.slice(0, 5);
   }
 
@@ -465,7 +474,7 @@
     if (model.excludedCount !== null && model.excludedCount > 0) out.push(`${model.excludedCount} sale${model.excludedCount === 1 ? " was" : "s were"} not counted (wrong card, grade or parallel, duplicates, outliers or held for review).`);
     if (/STALE/.test(model.freshness)) out.push("Evidence is stale — prices may have moved since these sales.");
     if (model.net.stress !== null && model.net.stress < 0) out.push(`Downside case loses ${money(-model.net.stress)} at the saved price.`);
-    if (model.mappingState && model.mappingState !== "CONFIRMED") out.push("Card match not confirmed.");
+    if (model.identityIssues.length) out.push(`Card match needs checking: ${model.identityIssues[0]}`);
     out.push("Selling costs are FlipForge policy reserves, not your marketplace's exact fees.");
     return out;
   }

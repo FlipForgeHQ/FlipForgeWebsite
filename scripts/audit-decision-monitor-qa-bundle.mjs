@@ -7,9 +7,17 @@
 // shell (only the correlation id is echoed per request, as the gateway does) and checks the four monitor sections on
 // desktop and phone, saving screenshots.
 //
+// The browser's /api/v1 requests go through the REAL website gateway code (netlify/functions/flipforge-api.js: contract
+// checks and the provider-disclosure filter), in its non-production preview-tenant mode for the QA tenant. The gateway
+// forwards to a local playback server that returns the staging backend's recorded envelopes and checks that every
+// request arrives with the service token and the QA tenant only.
+//
 // Usage: FLIPFORGE_QA_BUNDLE=path/to/bundle.json FLIPFORGE_LAYOUT_AUDIT_URL=http://127.0.0.1:4173/app \
 //        node scripts/audit-decision-monitor-qa-bundle.mjs
 import fs from "node:fs";
+import http from "node:http";
+import crypto from "node:crypto";
+import { createRequire } from "node:module";
 import { chromium } from "playwright";
 
 const bundlePath = process.env.FLIPFORGE_QA_BUNDLE;
@@ -28,6 +36,39 @@ const response = path => bundle.responses[path] || null;
 const governed = id => response(`/api/v1/opportunities/${id}`)?.body?.data?.opportunity?.governedDecision || {};
 const usd = cents => `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+// Local playback of the backend: only GET, only the QA tenant, only the service token issued below.
+const QA_TENANT = "ff-qa-decision-monitor-v1";
+const SERVICE_TOKEN = `qa-local-${crypto.randomBytes(12).toString("hex")}`;
+const upstreamProblems = [];
+const upstream = http.createServer((req, res) => {
+  const path = new URL(req.url, "http://local").pathname;
+  if (req.method !== "GET") upstreamProblems.push(`method ${req.method} ${path}`);
+  if (req.headers["x-flipforge-tenant-id"] !== QA_TENANT) upstreamProblems.push(`tenant ${req.headers["x-flipforge-tenant-id"]} ${path}`);
+  if (req.headers.authorization !== `Bearer ${SERVICE_TOKEN}`) upstreamProblems.push(`token ${path}`);
+  const recorded = response(path);
+  const cid = req.headers["x-correlation-id"] || "qa-bundle";
+  res.setHeader("content-type", "application/json; charset=utf-8");
+  if (!recorded) {
+    res.statusCode = 404;
+    return res.end(JSON.stringify({ meta: { contractVersion: "1.0", correlationId: cid }, error: { code: "RESOURCE_NOT_FOUND", correlationId: cid } }));
+  }
+  const body = JSON.parse(JSON.stringify(recorded.body));
+  if (body.meta) body.meta.correlationId = cid;
+  if (body.error) body.error.correlationId = cid;
+  res.statusCode = recorded.status;
+  res.end(JSON.stringify(body));
+});
+await new Promise(resolve => upstream.listen(0, "127.0.0.1", resolve));
+Object.assign(process.env, {
+  CONTEXT: "deploy-preview",
+  FLIPFORGE_API_ALLOW_UNAUTHENTICATED_PREVIEW: "true",
+  FLIPFORGE_API_PREVIEW_TENANT_ID: QA_TENANT,
+  FLIPFORGE_API_BRIDGE_ENABLED: "true",
+  FLIPFORGE_API_BASE_URL: `http://127.0.0.1:${upstream.address().port}`,
+  FLIPFORGE_API_SERVICE_TOKEN: SERVICE_TOKEN
+});
+const gateway = createRequire(import.meta.url)("../netlify/functions/flipforge-api.js").handler;
+
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined });
 const VIEWPORTS = { desktop: { width: 1440, height: 1000 }, phone: { width: 390, height: 844 } };
 
@@ -42,21 +83,14 @@ async function open(viewport, hash) {
   await context.route("**/assets/js/flipforge-production-signin.js", r => r.fulfill({ status: 200, contentType: "text/javascript", body: "(() => {})();" }));
   await context.route("**/api/v1/**", async route => {
     const req = route.request();
-    const path = new URL(req.url()).pathname;
-    requests.push(`${req.method()} ${path}`);
-    const cid = req.headers()["x-correlation-id"] || "qa-bundle";
-    const recorded = response(path);
-    if (!recorded) {
-      if (path.startsWith("/api/v1/psa-advisor/")) {
-        return route.fulfill({ status: 200, contentType: "application/json; charset=utf-8",
-          body: JSON.stringify({ meta: { contractVersion: "1.0", correlationId: cid }, data: { kind: "psa-advisor", available: false, recalculated: false } }) });
-      }
-      return route.fulfill({ status: 404, contentType: "application/json; charset=utf-8", body: JSON.stringify({ error: { code: "RESOURCE_NOT_FOUND", correlationId: cid } }) });
-    }
-    const body = JSON.parse(JSON.stringify(recorded.body));
-    if (body.meta) body.meta.correlationId = cid;
-    if (body.error) body.error.correlationId = cid;
-    return route.fulfill({ status: recorded.status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
+    const url = new URL(req.url());
+    requests.push(`${req.method()} ${url.pathname}`);
+    const headers = Object.fromEntries(Object.entries(req.headers()).map(([k, v]) => [k.toLowerCase(), v]));
+    const result = await gateway({
+      httpMethod: req.method(), path: url.pathname, rawUrl: req.url(), headers,
+      queryStringParameters: Object.fromEntries(url.searchParams.entries()), body: req.postData() || null, isBase64Encoded: false
+    }, {});
+    return route.fulfill({ status: result.statusCode, headers: result.headers || {}, body: result.body || "" });
   });
   const page = await context.newPage();
   await page.clock.setFixedTime(now);
@@ -132,7 +166,8 @@ for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
     return node ? { text: node.textContent.replace(/\s+/g, " "), cards: [...node.querySelectorAll("[data-ffci-attention] [data-ffci-card], [data-ffci-all] [data-ffci-card]")].map(n => n.getAttribute("data-ffci-card")),
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth } : null;
   });
-  check(`${vp}/portfolio: Collection Intelligence renders`, Boolean(p));
+  const mainText = p ? "" : await page.evaluate(() => (document.querySelector("#main-content") || document.body).innerText.replace(/\s+/g, " ").slice(0, 300));
+  check(`${vp}/portfolio: Collection Intelligence renders`, Boolean(p), mainText + " | " + requests.join(","));
   if (p) {
     check(`${vp}/portfolio: lists exactly the two owned QA cards`, new Set(p.cards).size === 2 && p.cards.includes(cards.earlierRules) && p.cards.includes(cards.notReEvaluated), p.cards.join(","));
     check(`${vp}/portfolio: no market value claim, provider name or $0.00 Max Buy`, SAFE_COPY(p.text) && /No current market value is shown/.test(p.text));
@@ -145,7 +180,9 @@ for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
   await context.close();
 }
 
+check("backend saw only GET requests, the service token and the QA tenant", upstreamProblems.length === 0, upstreamProblems.slice(0, 5).join(" | "));
 await browser.close();
+upstream.close();
 console.log("DecisionMonitorQaBundleAudit");
 console.log(`bundle generatedAt=${bundle.generatedAt} policy=${bundle.profitabilityPolicy} reviewSignals=${bundle.reviewSignalVersion}`);
 console.log(`PASSED: ${passes.length}`);

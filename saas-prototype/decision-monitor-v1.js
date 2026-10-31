@@ -37,7 +37,7 @@
   "use strict";
   if (typeof window !== "undefined" && window.FlipForgeDecisionMonitor) return;
 
-  const VERSION = "decision-monitor-v1.1.0";
+  const VERSION = "decision-monitor-v1.1.1";
   const CONTRACT_VERSION = "1.0";
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
@@ -173,8 +173,10 @@
     const identityChange = change("IDENTITY_ELIGIBILITY_CHANGED");
     if (identityChange && entries.length > 1 && String(identityChange.after) === "false") {
       add("identity", "review", "Exact-card identity no longer confirmed", "At the latest re-evaluation the card did not pass the exact-identity check.", "Re-evaluation", "changed");
-    } else if (!model.legacy && model.mappingState && model.mappingState !== "CONFIRMED") {
-      add("identity", "review", "Card match not confirmed", "Confirm the exact set, number, parallel and grade before relying on this decision.", "Saved decision", "historical");
+    } else if (!model.legacy && model.identityIssues && model.identityIssues.length && model.verdict !== "VERIFY") {
+      // FlipForge's own exact-card concern recorded with the decision (governed checklist). A VERIFY already carries
+      // its pending-verification prompt; the provider catalog mapping state is never used here.
+      add("identity", "review", "Card match needs checking", model.identityIssues[0], "Saved decision", "historical");
     }
     if (model.excludedReasons.some(reason => /identity|wrong card|conflict/i.test(reason))) {
       add("identity-conflict", "info", "Some sales were excluded for identity reasons", `Not counted because: ${model.excludedReasons.join(", ")}.`, "Saved evidence", "historical");

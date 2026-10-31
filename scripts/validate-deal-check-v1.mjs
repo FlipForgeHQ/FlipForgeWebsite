@@ -247,6 +247,20 @@ for (const shell of ["saas-prototype/index.html", "saas-prototype/customer.html"
   check(`${shell} loads deal-check-v1.js after the saved-decision renderer`, html.includes('src="deal-check-v1.js"') && html.indexOf('src="deal-check-v1.js"') > html.indexOf('src="customer-opportunities.js"'));
 }
 
+// Containment-era data shape: no false 'card match' or saved-sales claims (v1.1.1).
+{
+  const base = JSON.parse(JSON.stringify(D[Object.keys(D)[0]]));
+  base.opportunity.mappingState = "NOT_CONFIRMED";
+  base.opportunity.evidence = { ...(base.opportunity.evidence || {}), acceptedSales: 0, priceStatus: "LIVE_PRICING_ONLY" };
+  const model = api.dealModel(base, null);
+  check("containment: live-only pricing → saved-sales count not applicable (shown as —), not 0", model.currentSavedSales === null);
+  check("containment: provider mapping NOT_CONFIRMED alone adds no 'Card match' risk or requirement",
+    !api.risks(model).some(x => /Card match/.test(x)) && !api.changeConditions(model).some(x => /card match/i.test(typeof x === "string" ? x : JSON.stringify(x))));
+  const row = api.checks(model).find(r => r.key === "identity");
+  check("containment: a governed non-VERIFY decision shows 'Exact-card checks passed' (not 'Match not confirmed')",
+    model.verdict === "VERIFY" || (row && row.status === "pass" && /Exact-card checks passed|Card match confirmed/.test(row.value)), JSON.stringify(row));
+}
+
 console.log("DealCheckV1Validation");
 console.log(`PASSED: ${passes.length}`);
 console.log(`FAILED: ${failures.length}`);
