@@ -386,6 +386,13 @@ const zero = runtime({ mutate: data => { paused(data); data.items = [{ ...data.i
 zero.window.FlipForgeCustomerPortfolio.render(zero.main);
 await settle();
 check("085 a recorded Max Buy of 0 reads \"No Max Buy was set at decision\", never $0.00", zero.main.innerHTML.includes("No Max Buy was set at decision") && !zero.main.innerHTML.includes("Max Buy $0.00"));
+opportunities.items.push({ id: "opp-unestablished", title: "Unestablished VERIFY", cardIdentity: "Unestablished VERIFY", recommendation: "VERIFY",
+  governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: 45000, supportedValueStatus: "NOT_ESTABLISHED", supportedValueCents: 0 } });
+const unestablished = runtime({ mutate: data => { paused(data); data.items = [{ ...data.items[0], opportunityId: "opp-unestablished", acquisitionCostCents: 70000 }]; data.count = 1; } });
+unestablished.window.FlipForgeCustomerPortfolio.render(unestablished.main);
+await settle();
+check("086 a decision that did not establish a supported value shows no Max Buy, even if one was recorded (review on #606)",
+  unestablished.main.innerHTML.includes("No Max Buy was set at decision") && !unestablished.main.innerHTML.includes("Max Buy $450.00") && !unestablished.main.innerHTML.includes("You paid"));
 sales.items[0].profitLoss.acquisitionCostCents = 121500;  // paid $1,215.00 against the $600.00 Max Buy saved for opp-fresh
 sales.items.push({ reportId: "rs_3", opportunityId: "opp-over", cardIdentity: "2018 Prizm Luka Doncic #280 PSA 10", reviewStatus: "PENDING_VERIFICATION",
   sale: { salePriceCents: 48000, saleDate: "2026-10-25" },

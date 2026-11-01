@@ -361,7 +361,11 @@
     if (isLegacy(saved)) return { group: "legacy", chip };
     const governed = saved.governedDecision && saved.governedDecision.available === true ? saved.governedDecision : null;
     const recorded = governed ? knownCents(governed.maximumBuyPriceCents) : null;
-    const established = String(governed?.supportedValueStatus || "ESTABLISHED").toUpperCase() === "ESTABLISHED";
+    // Max Buy is a buying limit only when the saved decision established a supported value (the engine records Max Buy 0
+    // otherwise; review on #606). A record that states NOT_ESTABLISHED, or a zero supported value, never shows one.
+    const status = String(governed?.supportedValueStatus || "").toUpperCase();
+    const supportedCents = knownCents(governed?.supportedValueCents);
+    const established = status ? status === "ESTABLISHED" && (supportedCents === null || supportedCents > 0) : (supportedCents === null || supportedCents > 0);
     const maxBuy = recorded !== null && recorded > 0 && established ? recorded : null;
     if (maxBuy === null) return { group: "no-max-buy", chip };
     const paid = knownCents(paidCents);
