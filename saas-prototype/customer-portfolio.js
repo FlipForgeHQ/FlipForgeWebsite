@@ -358,7 +358,11 @@
       return `<td data-portfolio-decision>${chip}<small>Saved before current evidence rules · not currently supported</small></td>`;
     }
     const governed = saved.governedDecision && saved.governedDecision.available === true ? saved.governedDecision : null;
-    const maxBuy = governed ? knownCents(governed.maximumBuyPriceCents) : null;
+    // Max Buy is a real buying limit only when the saved decision established a supported value: the engine records
+    // Max Buy 0 otherwise (review on #606). Same eligibility as the card page and Deal Check.
+    const established = governed && String(governed.supportedValueStatus || "").toUpperCase() === "ESTABLISHED" && (knownCents(governed.supportedValueCents) || 0) > 0;
+    const recordedMax = established ? knownCents(governed.maximumBuyPriceCents) : null;
+    const maxBuy = recordedMax !== null && recordedMax > 0 ? recordedMax : null;
     const paid = knownCents(item.acquisitionCostCents);
     if (maxBuy === null) return `<td data-portfolio-decision>${chip}<small>No Max Buy was set at decision</small></td>`;
     const versus = paid === null ? ""

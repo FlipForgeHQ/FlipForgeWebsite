@@ -344,18 +344,20 @@ check("072 while the customer stays on Portfolio, late Sell Watch and sales resp
 // Max Buy; a card whose saved decision is missing says so; a missing Max Buy is never shown as $0.00.
 opportunities.items = [
   { id: "opp-fresh", title: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", cardIdentity: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", recommendation: "BUY",
-    governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: 60000 } },
+    governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: 60000, supportedValueStatus: "ESTABLISHED", supportedValueCents: 75000 } },
   { id: "opp-over", title: "Doncic Prizm PSA 10", cardIdentity: "2018 Prizm Luka Doncic #280 PSA 10", recommendation: "Saved WATCH",
-    governedDecision: { available: true, recommendation: "WATCH", maximumBuyPriceCents: 50000 } },
+    governedDecision: { available: true, recommendation: "WATCH", maximumBuyPriceCents: 50000, supportedValueStatus: "ESTABLISHED", supportedValueCents: 60000 } },
   { id: "opp-legacy", title: "Acuna Update PSA 10", cardIdentity: "2018 Topps Update Ronald Acuna Jr. #US250 PSA 10", recommendation: "BUY", currentlySupported: false,
     supportedValueStatus: "LEGACY_NOT_CURRENTLY_SUPPORTED", governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: null } },
   { id: "opp-nomax", title: "Wembanyama Prizm PSA 10", cardIdentity: "2023 Prizm Victor Wembanyama #136 PSA 10", recommendation: "VERIFY",
-    governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: null } }
+    governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: null } },
+  { id: "opp-zero", title: "Kershaw Topps PSA 9", cardIdentity: "2008 Topps Update Clayton Kershaw #UH210 PSA 9", recommendation: "VERIFY",
+    governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: 0, supportedValueStatus: "NOT_ESTABLISHED", supportedValueCents: 0 } }
 ];
 const connected = runtime({ mutate: data => {
   paused(data);
   const base = data.items[0];
-  data.items = ["opp-fresh", "opp-over", "opp-legacy", "opp-nomax", "opp-missing"].map((id, i) => ({ ...base, opportunityId: id, acquisitionCostCents: [52500, 52500, 30000, 10000, 9000][i] }));
+  data.items = ["opp-fresh", "opp-over", "opp-legacy", "opp-nomax", "opp-missing", "opp-zero"].map((id, i) => ({ ...base, opportunityId: id, acquisitionCostCents: [52500, 52500, 30000, 10000, 9000, 70000][i] }));
   data.count = data.items.length;
 } });
 connected.window.FlipForgeCustomerPortfolio.render(connected.main);
@@ -374,6 +376,7 @@ check("081 legacy result: historical wording, no Max Buy or comparison", row("op
 check("082 no Max Buy at decision: says so, never $0.00", row("opp-nomax").includes("No Max Buy was set at decision") && !row("opp-nomax").includes("$0.00"));
 check("083 saved decision missing: says it could not be loaded and offers no decision link", row("opp-missing").includes("The saved decision could not be loaded.") && !c.includes('href="#/opportunities/opp-missing"'));
 check("084 Saved decision column present", c.includes("<th>Saved decision</th>"));
+check("085 no established supported value: the recorded Max Buy 0 is not a buying limit (review on #606)", row("opp-zero").includes("No Max Buy was set at decision") && !row("opp-zero").includes("$0.00") && !row("opp-zero").includes("You paid"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer Portfolio production validation");
