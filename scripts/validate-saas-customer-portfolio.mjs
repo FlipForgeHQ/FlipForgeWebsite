@@ -250,7 +250,7 @@ await settle();
 const p = pausedOff.main.innerHTML;
 check("053 paused values: one clear paused message instead of per-row Unavailable", p.includes("Card values are paused") && p.includes("data-portfolio-values-paused")
   && !p.includes("Unavailable") && !p.includes("Partial coverage") && !p.includes("Coverage-aware totals"));
-check("054 paused values: holdings and what was paid still shown", p.includes("Ohtani Chrome PSA 10") && p.includes("$525.00") && p.includes("2026-09-13") && p.includes("Total paid"));
+check("054 paused values: holdings and what was paid still shown", p.includes("Ohtani Chrome PSA 10") && p.includes("$525.00") && p.includes("Sep 13, 2026") && p.includes("Total paid"));
 check("055 paused values without Sell Watch: no Check a price", !p.includes("Check a price") && !p.includes("data-portfolio-sell-watch"));
 
 const pausedOn = runtime({ mutate: paused, watch: "on" });
@@ -337,6 +337,83 @@ stayed.gates.splice(0).forEach(release => release());
 await settle();
 check("072 while the customer stays on Portfolio, late Sell Watch and sales responses are still added",
   stayed.main.innerHTML.includes("data-portfolio-sell-watch") && stayed.main.innerHTML.includes("data-portfolio-realized"));
+
+// ---- Portfolio connected to Saved Decisions (2026-10-31) ----
+// Each owned card links to its tracked record and saved decision, shows the saved verdict and Max Buy at decision against
+// what was paid, never repeats the title as the identity line, and shows dates as "Sep 13, 2026". Legacy results show no
+// Max Buy; a card whose saved decision is missing says so; a missing Max Buy is never shown as $0.00.
+opportunities.items = [
+  { id: "opp-fresh", title: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", cardIdentity: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", recommendation: "BUY",
+    governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: 60000 } },
+  { id: "opp-over", title: "Doncic Prizm PSA 10", cardIdentity: "2018 Prizm Luka Doncic #280 PSA 10", recommendation: "Saved WATCH",
+    governedDecision: { available: true, recommendation: "WATCH", maximumBuyPriceCents: 50000 } },
+  { id: "opp-legacy", title: "Acuna Update PSA 10", cardIdentity: "2018 Topps Update Ronald Acuna Jr. #US250 PSA 10", recommendation: "BUY", currentlySupported: false,
+    supportedValueStatus: "LEGACY_NOT_CURRENTLY_SUPPORTED", governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: null } },
+  { id: "opp-nomax", title: "Wembanyama Prizm PSA 10", cardIdentity: "2023 Prizm Victor Wembanyama #136 PSA 10", recommendation: "VERIFY",
+    governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: null } }
+];
+const connected = runtime({ mutate: data => {
+  paused(data);
+  const base = data.items[0];
+  data.items = ["opp-fresh", "opp-over", "opp-legacy", "opp-nomax", "opp-missing"].map((id, i) => ({ ...base, opportunityId: id, acquisitionCostCents: [52500, 52500, 30000, 10000, 9000][i] }));
+  data.count = data.items.length;
+} });
+connected.window.FlipForgeCustomerPortfolio.render(connected.main);
+await settle();
+const c = connected.main.innerHTML;
+const row = id => (c.split("<tr>").find(r => r.includes(`#/tracking/${id}"`)) || "");
+check("073 owned card name links to its tracked record", c.includes('href="#/tracking/opp-fresh" data-portfolio-card-link'));
+check("074 owned card links to its saved decision", c.includes('href="#/opportunities/opp-fresh" data-portfolio-decision-link'));
+check("075 identity line is not a repeat of the title", row("opp-fresh").split("2018 Topps Chrome Shohei Ohtani #150 PSA 10").length === 2);
+check("076 identity line still shown when it adds information", row("opp-over").includes("<small>2018 Prizm Luka Doncic #280 PSA 10</small>"));
+check("077 bought date is readable", row("opp-fresh").includes("Sep 13, 2026") && !c.includes("2026-09-13"));
+check("078 saved verdict and Max Buy at decision shown", row("opp-fresh").includes(">BUY<") && row("opp-fresh").includes("Max Buy $600.00 at decision"));
+check("079 paid under the saved Max Buy", row("opp-fresh").includes("You paid $75.00 under it"));
+check("080 paid over the saved Max Buy, and a \"Saved WATCH\" label reads WATCH", row("opp-over").includes(">WATCH<") && row("opp-over").includes("You paid $25.00 over it"));
+check("081 legacy result: historical wording, no Max Buy or comparison", row("opp-legacy").includes("Saved before current evidence rules") && !row("opp-legacy").includes("Max Buy") && !row("opp-legacy").includes("You paid"));
+check("082 no Max Buy at decision: says so, never $0.00", row("opp-nomax").includes("No Max Buy was set at decision") && !row("opp-nomax").includes("$0.00"));
+// Combined branch: the decisions list was read, so a card missing from it has no linked decision (not a load failure).
+check("083 card with no saved decision says so and offers no decision link", row("opp-missing").includes("No saved decision is linked to this card.") && !row("opp-missing").includes("could not be loaded") && !c.includes('href="#/opportunities/opp-missing"'));
+check("084 Saved decision column present", c.includes("<th>Saved decision</th>"));
+
+// ---- Combined Portfolio (#606 + #608, 2026-10-31) ----
+// A Max Buy of 0 is what the engine records when no evidence-supported value was established: "no Max Buy", never $0.00.
+// Sold cards show the saved decision next to each sale, and realized profit (the server's figure, after entered fees) is
+// grouped by what was paid against the Max Buy at decision. A single realized source: Mark as Sold.
+opportunities.items.push({ id: "opp-zero", title: "Zero Max Buy VERIFY", cardIdentity: "Zero Max Buy VERIFY", recommendation: "VERIFY",
+  governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: 0, supportedValueStatus: "NOT_ESTABLISHED" } });
+const zero = runtime({ mutate: data => { paused(data); data.items = [{ ...data.items[0], opportunityId: "opp-zero", acquisitionCostCents: 10000 }]; data.count = 1; } });
+zero.window.FlipForgeCustomerPortfolio.render(zero.main);
+await settle();
+check("085 a recorded Max Buy of 0 reads \"No Max Buy was set at decision\", never $0.00", zero.main.innerHTML.includes("No Max Buy was set at decision") && !zero.main.innerHTML.includes("Max Buy $0.00"));
+opportunities.items.push({ id: "opp-unestablished", title: "Unestablished VERIFY", cardIdentity: "Unestablished VERIFY", recommendation: "VERIFY",
+  governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: 45000, supportedValueStatus: "NOT_ESTABLISHED", supportedValueCents: 0 } });
+const unestablished = runtime({ mutate: data => { paused(data); data.items = [{ ...data.items[0], opportunityId: "opp-unestablished", acquisitionCostCents: 70000 }]; data.count = 1; } });
+unestablished.window.FlipForgeCustomerPortfolio.render(unestablished.main);
+await settle();
+check("086 a decision that did not establish a supported value shows no Max Buy, even if one was recorded (review on #606)",
+  unestablished.main.innerHTML.includes("No Max Buy was set at decision") && !unestablished.main.innerHTML.includes("Max Buy $450.00") && !unestablished.main.innerHTML.includes("You paid"));
+sales.items[0].profitLoss.acquisitionCostCents = 121500;  // paid $1,215.00 against the $600.00 Max Buy saved for opp-fresh
+sales.items.push({ reportId: "rs_3", opportunityId: "opp-over", cardIdentity: "2018 Prizm Luka Doncic #280 PSA 10", reviewStatus: "PENDING_VERIFICATION",
+  sale: { salePriceCents: 48000, saleDate: "2026-10-25" },
+  profitLoss: { status: "REALIZED", netProceedsCents: 42000, acquisitionCostCents: 45000, realizedProfitCents: -3000, realizedReturnPercent: -6.67, feesComplete: true } });
+sales.items.push({ reportId: "rs_4", opportunityId: "opp-nomax", cardIdentity: "2023 Prizm Victor Wembanyama #136 PSA 10", reviewStatus: "PENDING_VERIFICATION",
+  sale: { salePriceCents: 30000, saleDate: "2026-10-26" },
+  profitLoss: { status: "REALIZED", netProceedsCents: 27000, acquisitionCostCents: 20000, realizedProfitCents: 7000, realizedReturnPercent: 35, feesComplete: true } });
+const combined = runtime({ mutate: paused, watch: "on", sold: "on" });
+combined.window.FlipForgeCustomerPortfolio.render(combined.main);
+await settle();
+const sold = (combined.main.innerHTML.split("data-portfolio-realized")[1] || "");
+const soldRow = id => (sold.split("<tr>").find(r => r.includes(id === "opp-over" ? "Doncic" : id === "opp-nomax" ? "Wembanyama" : "Ohtani")) || "");
+check("086 Sold cards: a Saved decision column next to each sale", sold.includes("<th>Saved decision</th>") && soldRow("opp-fresh").includes("Max Buy $600.00 at decision"));
+check("087 Sold cards: paid over the saved Max Buy is stated with the amount", soldRow("opp-fresh").includes("You paid $615.00 over it"));
+check("088 Sold cards: paid under the saved Max Buy", soldRow("opp-over").includes("You paid $50.00 under it"));
+check("089 Buying discipline groups the server's realized profit by paid vs Max Buy at decision", sold.includes("data-portfolio-discipline-block")
+  && /Paid at or under Max Buy<\/span><strong>[−-]\$30\.00<\/strong><small>1 sale<\/small>/.test(sold)
+  && /Paid over Max Buy<\/span><strong>\+\$202\.50<\/strong><small>1 sale<\/small>/.test(sold)
+  && /No Max Buy at decision<\/span><strong>\+\$70\.00<\/strong><small>1 sale<\/small>/.test(sold), (sold.match(/Buying discipline[\s\S]{0,600}/) || [""])[0].replace(/<[^>]+>/g, " ").slice(0, 300));
+check("090 Buying discipline makes no accuracy or prediction claim", /not a measure of FlipForge's accuracy and not a prediction/.test(sold));
+check("091 one realized source: no second realized-results panel on Portfolio", !combined.main.innerHTML.includes("data-ff-portfolio-intelligence"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer Portfolio production validation");

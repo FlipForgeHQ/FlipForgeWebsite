@@ -185,3 +185,14 @@
   display: grid;
   gap: 10px;
 }
+
+/* Owned card links back to its tracked record and saved decision (2026-10-31). */
+.customer-portfolio-table td a[data-portfolio-card-link] { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.customer-portfolio-table .customer-portfolio-decision-link { display: block; width: fit-content; margin-top: 6px; font-size: 0.82rem; color: var(--gold, #d4a72c); }
+.customer-portfolio-table td[data-portfolio-decision] .staging-status { display: inline-block; margin-bottom: 4px; }
+.customer-portfolio-table small[data-portfolio-versus="over"] { color: var(--orange, #f6a916); }
+
+/* Sold cards: buying discipline against the saved Max Buy (Portfolio Intelligence, 2026-10-31). */
+.customer-portfolio-discipline { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.customer-portfolio-discipline h3 { margin: 0 0 4px; font-size: 1rem; }
+.customer-portfolio-discipline p { margin: 0 0 12px; color: var(--muted, #a9a9a9); font-size: 0.9rem; }

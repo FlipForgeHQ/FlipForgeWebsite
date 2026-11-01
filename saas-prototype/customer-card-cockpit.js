@@ -135,8 +135,16 @@
   function notSurfacedPanel() {
     return `<section class="forge-heat-card" data-forge-cockpit data-forge-cockpit-state="not-surfaced"><div class="forge-heat-card-head"><div class="forge-heat-rank" aria-hidden="true">•</div><div class="forge-heat-identity"><span class="forge-heat-kicker">PRO INTELLIGENCE</span><h3>Not currently surfaced</h3><p>This saved decision is not in the current server-returned Top 5, Hidden Gems, or Highest Edge set. The browser does not infer a Heat score.</p></div></div><div class="forge-heat-card-foot"><span>Current V1 scope is your saved evaluated universe, not continuous market-wide scanning.</span><a class="button button-secondary" href="#/forge-heat">Review Forge Heat →</a></div></section>`;
   }
+  // Customer wording: the server's internal message (e.g. "The requested saved resource was not found.") is not shown.
+  function heatErrorText(error) {
+    const status = Number(error?.status);
+    if (status === 401) return "Sign in again to see Forge Heat for this card.";
+    if (status === 403) return "Your plan does not include Forge Heat.";
+    if (status === 404 || String(error?.code || "").toUpperCase() === "RESOURCE_NOT_FOUND") return "Forge Heat isn't available for this card right now.";
+    return "Forge Heat couldn't be loaded right now. Try again in a moment.";
+  }
   function errorPanel(error) {
-    return `<section class="forge-heat-card" data-forge-cockpit data-forge-cockpit-state="error"><div class="forge-heat-card-head"><div class="forge-heat-rank" aria-hidden="true">!</div><div class="forge-heat-identity"><span class="forge-heat-kicker">PRO INTELLIGENCE</span><h3>Forge Heat unavailable</h3><p>${escapeHtml(error?.message || "The server-owned Heat projection could not be loaded.")}</p></div></div><div class="forge-heat-card-foot"><span>No fallback or browser-generated Heat score was substituted.</span><a class="button button-secondary" href="#/forge-heat">Open Forge Heat →</a></div></section>`;
+    return `<section class="forge-heat-card" data-forge-cockpit data-forge-cockpit-state="error"><div class="forge-heat-card-head"><div class="forge-heat-rank" aria-hidden="true">!</div><div class="forge-heat-identity"><span class="forge-heat-kicker">PRO INTELLIGENCE</span><h3>Forge Heat unavailable</h3><p>${escapeHtml(heatErrorText(error))}</p></div></div><div class="forge-heat-card-foot"><span>No fallback or browser-generated Heat score was substituted.</span><a class="button button-secondary" href="#/forge-heat">Open Forge Heat →</a></div></section>`;
   }
 
   function panelModel(opportunityId) {
