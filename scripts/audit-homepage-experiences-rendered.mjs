@@ -38,7 +38,8 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
   // Hero buyer-strategy entry points: each must open the matching, existing panel.
   check(`${name}: five audience links are present in the hero and both menus link to the selector`,
     await page.locator('.ff10-persona-links [data-ff-audience-target]').count() === 5
-    && await page.locator('[data-ff-audience-navigation]').count() === 2);
+    && await page.locator('header .desktop-nav [data-ff-audience-navigation]').count() >= 1
+    && await page.locator('.mobile-nav [data-ff-audience-navigation]').count() >= 1);
   const personaKeys = ['flipper', 'investor', 'collector', 'dealer', 'grading'];
   for (const key of personaKeys) {
     await page.locator(`[data-ff-audience-target="${key}"]`).click();
