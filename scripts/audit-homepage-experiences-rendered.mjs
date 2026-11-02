@@ -35,6 +35,22 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
   check(`${name}: "See Inside FlipForge" lands on the app screens below the header`, appTop >= 0 && appTop < 160);
   await page.evaluate(() => scrollTo(0, 0));
 
+  // Hero buyer-strategy entry points: each must open the matching, existing panel.
+  check(`${name}: five audience links are present in the hero and both menus link to the selector`,
+    await page.locator('.ff10-persona-links [data-ff-audience-target]').count() === 5
+    && await page.locator('[data-ff-audience-navigation]').count() === 2);
+  const personaKeys = ['flipper', 'investor', 'collector', 'dealer', 'grading'];
+  for (const key of personaKeys) {
+    await page.locator(`[data-ff-audience-target="${key}"]`).click();
+    check(`${name}: hero link selects the ${key} panel`,
+      await page.locator(`[data-aud-tab="${key}"]`).getAttribute('aria-selected') === 'true'
+      && await page.locator(`[data-aud-panel="${key}"]`).isVisible());
+  }
+  await page.waitForTimeout(900);
+  const audienceTop = await page.locator('#who-its-for').evaluate(e => Math.round(e.getBoundingClientRect().top));
+  check(`${name}: hero audience links land at the section without hidden content`,
+    audienceTop >= 0 && audienceTop < 180);
+
   // Audience selector
   check(`${name}: one audience panel shown at a time`, await page.locator('[data-aud-panel]:visible').count() === 1);
   await page.locator('[data-aud-tab="grading"]').scrollIntoViewIfNeeded();
@@ -116,6 +132,8 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
 // Without script: every audience and every challenge stage is readable.
 const plain = await browser.newPage({viewport: {width: 1440, height: 1000}, javaScriptEnabled: false});
 await plain.goto(`${base}/index.html`);
+check('no-script: hero strategy links still use native section anchors',
+  await plain.locator('.ff10-persona-links a[href="#who-its-for"]').count() === 5);
 check('no-script: all five audiences shown, selector hidden', await plain.locator('[data-aud-panel]:visible').count() === 5
   && !(await plain.locator('.ff10-aud-tabs').isVisible()));
 check('no-script: the full investigation is shown, calls hidden', await plain.locator('[data-chal-finding]:visible').count() === 4
