@@ -110,3 +110,11 @@ jobs:
           LIVE_PARITY_MAX_ATTEMPTS: "40"
           LIVE_PARITY_RETRY_MS: "20000"
         run: node scripts/verify-live-production-parity.mjs
+
+      # A correct deployment SHA is not enough: the actual public HTML must contain
+      # the audience selector, challenge and real app experience visitors need.
+      - name: Verify public homepage serves the customer experiences
+        if: steps.release.outputs.released == 'true'
+        env:
+          EXPECTED_COMMIT_REF: ${{ steps.release.outputs.sha }}
+        run: node scripts/verify-live-homepage-experiences.mjs
