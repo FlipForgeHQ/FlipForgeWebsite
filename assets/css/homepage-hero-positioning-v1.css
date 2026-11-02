@@ -44,7 +44,7 @@
   .ff10-hero-note a{display:inline-block;margin:6px 0 0}
 }
 
-/* Issue #610: first-screen path to the five existing buyer experiences.
+/* Issue 610: first-screen path to the five existing buyer experiences.
  * Small, editorial links inside the existing hero action row; no new feature, claims or palette. */
 .ff10 .ff10-persona-nav{flex:1 1 100%;width:100%;max-width:720px;margin-top:clamp(10px,1.5vw,22px);
   padding-top:clamp(14px,1.5vw,20px);border-top:1px solid var(--line-d)}
