@@ -242,6 +242,7 @@ try {
     const text = await mainText(page);
     check(`M6 ${shell}: banner explains the prices are from last time and the saved decision is kept`, /Re-evaluating your saved decision/.test(text)
       && /Update the price to what the listing asks now/.test(text) && /earlier decision and its receipt stay exactly as they were/.test(text), text.slice(0, 400).replace(/\s+/g, " "));
+    check(`M6 ${shell}: bulk upload is not offered while re-evaluating one saved decision`, await page.locator("#main-content [data-bulk-evaluation]").count() === 0);
     check(`M6 ${shell}: opening the prefilled form writes nothing`, writes.length === 0, writes.join(" | "));
     await shot(page, `reevaluate-${shell}`);
     check(`M6 ${shell}: no page errors`, errors.length === 0, errors.join(" | "));
