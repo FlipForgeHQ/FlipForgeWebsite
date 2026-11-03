@@ -107,7 +107,19 @@ process.on("unhandledRejection", error => {
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
 const json = (route, status, body) => route.fulfill({ status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
 
-async function session(hash, { viewport = { width: 1440, height: 1000 }, watch = "on", heatData = null, sold = "off" } = {}) {
+const alertsFixture = { kind: "alerts", configured: true, acknowledgementConfigured: true, notificationDeliveryConfigured: false,
+  items: [{ alertId: "a".repeat(64), opportunityId: "opp-heat-1", kind: "REVIEW_DUE", due: true, reviewAt: "2026-10-30T00:00:00Z",
+    title: "Your scheduled review is due", customerExplanation: "Not an owned card.", needsAttention: true, reviewed: false }],
+  decisionReviewSignals: [
+    { alertId: "b".repeat(64), opportunityId: "opp-ohtani-psa10", kind: "DECISION_RECHECK_DUE", decision: "BUY", ageDays: 50,
+      title: "Decision is 50 days old", customerExplanation: "The latest saved decision is 50 days old. Re-check the price and evidence before relying on it.",
+      needsAttention: true, reviewed: false },
+    { alertId: "c".repeat(64), opportunityId: "opp-lebron-psa9", kind: "VERIFICATION_PENDING", decision: "VERIFY",
+      title: "Verification still needed", customerExplanation: "Already reviewed.", needsAttention: false, reviewed: true, reviewedAt: "2026-11-01T00:00:00Z" },
+    { opportunityId: "opp-lebron-psa9", kind: "LEGACY_DECISION", decision: "WATCH" }
+  ] };
+
+async function session(hash, { viewport = { width: 1440, height: 1000 }, watch = "on", heatData = null, sold = "off", alerts = "off" } = {}) {
   const context = await browser.newContext({ viewport });
   const page = await context.newPage();
   const errors = [];
@@ -134,6 +146,7 @@ async function session(hash, { viewport = { width: 1440, height: 1000 }, watch =
       if (watch === "off") return json(route, 404, { error: { code: "UPSTREAM_REJECTED", message: "Off in this audit.", correlationId } });
       return json(route, 200, { meta: meta(correlationId), data: sellWatch });
     }
+    if (url.pathname === "/api/v1/alerts" && alerts === "on") return json(route, 200, { meta: meta(correlationId), data: alertsFixture });
     if (url.pathname === "/api/v1/reported-sales" && sold === "on") return json(route, 200, { meta: meta(correlationId), data: sales });
     if (url.pathname === "/api/v1/forge-heat" && heatData) return json(route, 200, { meta: meta(correlationId), data: heatData });
     return json(route, 404, { error: { code: "RESOURCE_NOT_FOUND", message: "Not in this fixture.", correlationId } });
@@ -182,6 +195,22 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   await context.close();
 }
 
+// 1c. Owned cards that need a look: only owned, unreviewed alerts; older-backend items get a plain title.
+{
+  const { context, page, errors } = await session("#/portfolio", { alerts: "on" });
+  await page.waitForSelector("[data-portfolio-attention]", { timeout: 30000 });
+  const t = await text(page, ".customer-portfolio-attention");
+  const cards = await page.locator("[data-portfolio-attention-card]").evaluateAll(li => li.map(el => el.getAttribute("data-portfolio-attention-card")));
+  check("P16 attention lists only owned cards with open alerts", cards.length === 2 && cards.includes("opp-ohtani-psa10") && cards.includes("opp-lebron-psa9") && !cards.includes("opp-heat-1"), cards.join(","));
+  check("P17 attention reads in plain words, with the server's explanation", /Decision is 50 days old/.test(t) && /Re-check the price and evidence/.test(t)
+    && /Based on evidence FlipForge no longer accepts/.test(t) && !/[A-Z]+_[A-Z_]+/.test(t), t.slice(0, 300));
+  check("P18 a reviewed alert is not shown", !/Already reviewed/.test(t) && !/Verification still needed/.test(t));
+  check("P19 each item links to the decision and to Alerts", await page.locator('[data-portfolio-attention-card="opp-ohtani-psa10"] a[href="#/opportunities/opp-ohtani-psa10"]').count() === 1
+    && await page.locator('[data-portfolio-attention-card="opp-ohtani-psa10"] a[href="#/alerts"]').count() === 1);
+  check("P20 no page errors", errors.length === 0, errors.join(" | "));
+  await page.locator(".customer-portfolio-page").screenshot({ path: process.env.STATES_SHOT_DIR ? `${process.env.STATES_SHOT_DIR}/portfolio-attention.png` : "/dev/null" }).catch(() => {});
+  await context.close();
+}
 // 2. Portfolio, Sell Watch off.
 {
   const { context, page } = await session("#/portfolio", { watch: "off" });

@@ -7,7 +7,7 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
-  const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities", "/api/v1/sell-watch", "/api/v1/reported-sales"]);
+  const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities", "/api/v1/sell-watch", "/api/v1/reported-sales", "/api/v1/alerts"]);
   // Reference values from earlier reported-sale history are no longer used. When every holding reports this status,
   // card values are paused as a whole, not missing card by card.
   const PAUSED_STATUS = "PROVIDER_STORED_HISTORY_NOT_RETAINED";
@@ -21,6 +21,7 @@
     opportunities: null,
     sellWatch: null,
     sales: null,
+    alerts: null,
     error: null,
     generation: 0
   };
@@ -523,6 +524,71 @@
     return `<div class="customer-portfolio-grid"><section class="panel"><header class="panel-header"><div><h2>Coverage-aware totals</h2><p>FlipForge never extrapolates uncovered holdings.</p></div>${badge(coverageLabel, coverageTone)}</header><div class="panel-body customer-portfolio-key-grid"><div><span>Whole-portfolio reference</span><strong>${escapeHtml(totalReference)}</strong></div><div><span>Whole-portfolio reference delta</span><strong>${escapeHtml(totalDelta)}</strong></div><div><span>Covered reference subtotal</span><strong>${escapeHtml(moneyCents(data.coveredReferenceValueCents))}</strong></div><div><span>Covered cost basis</span><strong>${escapeHtml(moneyCents(data.coveredCostBasisCents))}</strong></div><div><span>Covered reference delta</span><strong>${escapeHtml(signedMoneyCents(data.coveredReferenceDeltaCents))}</strong></div><div><span>Method</span><strong>Accepted exact completed-sale average</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>What this number is not</h2><p>The evidence reference is intentionally narrower than a generic market-price claim.</p></div></header><div class="panel-body customer-portfolio-boundaries"><div><span>✓</span><p><strong>Completed sales only</strong><small>At least 3 accepted exact sales; newest sale must be 30 days old or less.</small></p></div><div><span>×</span><p><strong>No active asks</strong><small>Current listings and fixed-price asks do not become completed-sale evidence.</small></p></div><div><span>×</span><p><strong>Not an appraisal or what you would receive</strong><small>The reference is an average of completed sales. It does not subtract selling fees, taxes or shipping.${sellWatchData() ? " To see what you would keep after your own selling costs, use Check a price on a card." : ""}</small></p></div></div></section></div>`;
   }
 
+  // ---------------------------------------------------------------------------------------------------------------
+  // Owned cards that need a look (Saved Decisions & Tracking → Portfolio). The same alerts as the Alerts page, filtered
+  // to cards you own. Display only: nothing here changes a decision, a value or a holding.
+  const ATTENTION_TITLES = Object.freeze({
+    REVIEW_DUE: "Your scheduled review is due",
+    DECISION_CHANGED: "Decision changed at a re-evaluation",
+    MAX_BUY_CROSSED: "Ask moved across your Max Buy",
+    DECISION_RECHECK_DUE: "Decision needs a fresh look",
+    VERIFICATION_PENDING: "Verification still needed",
+    LEGACY_DECISION: "Based on evidence FlipForge no longer accepts"
+  });
+
+  function validAlerts(payload) {
+    return payload?.data?.kind === "alerts" && payload?.data?.configured === true && Array.isArray(payload?.data?.items);
+  }
+
+  function ownedAttention(data) {
+    const alerts = state.alerts?.data;
+    if (!alerts) return [];
+    const owned = new Set(safeArray(data?.items).map(item => String(item.opportunityId || "")));
+    return safeArray(alerts.items).concat(safeArray(alerts.decisionReviewSignals))
+      .filter(item => item && owned.has(String(item.opportunityId || "")))
+      .filter(item => item.reviewed !== true && (typeof item.needsAttention === "boolean"
+        ? item.needsAttention
+        : String(item.kind || "").toUpperCase() !== "REVIEW_DUE" || item.due === true));
+  }
+
+  function attentionTitle(item) {
+    const title = String(item?.title || "").trim();
+    if (title) return title;
+    const kind = String(item?.kind || "").toUpperCase();
+    if (kind === "DECISION_CHANGED" && item?.previousDecision && item?.currentDecision) {
+      return `Decision changed from ${item.previousDecision} to ${item.currentDecision}`;
+    }
+    return ATTENTION_TITLES[kind] || "Needs a look";
+  }
+
+  function attentionPanel(data) {
+    if (!state.alerts) return "";
+    const items = ownedAttention(data);
+    const opportunities = opportunityMap();
+    if (!items.length) {
+      return `<section class="panel customer-portfolio-attention" data-portfolio-attention="none"><div class="panel-body"><strong>No owned card needs a look right now.</strong><small>Alerts for cards you own appear here and on the Alerts page.</small></div></section>`;
+    }
+    return `<section class="panel customer-portfolio-attention" data-portfolio-attention="${items.length}"><header class="panel-header"><div><h2>Owned cards that need a look</h2><p>From your saved decisions and reminders. Nothing here changes what you paid or a saved decision.</p></div>${badge(`${items.length} open`, "warn")}</header><div class="panel-body"><ul class="customer-portfolio-attention-list">${items.map(item => {
+      const id = String(item.opportunityId);
+      const saved = opportunities.get(id) || {};
+      const name = saved.title || saved.cardIdentity || id;
+      return `<li data-portfolio-attention-card="${escapeHtml(id)}"><div><span>${escapeHtml(name)}</span><strong>${escapeHtml(attentionTitle(item))}</strong>${item.customerExplanation ? `<small>${escapeHtml(item.customerExplanation)}</small>` : ""}</div><div class="customer-portfolio-attention-actions"><a class="button button-secondary" href="#/opportunities/${encodeURIComponent(id)}">Open decision</a><a class="button button-secondary" href="#/alerts">Review in Alerts</a></div></li>`;
+    }).join("")}</ul></div></section>`;
+  }
+
+  async function loadAlerts(generation) {
+    try {
+      const alerts = await request("/api/v1/alerts");
+      if (generation !== state.generation) return;
+      state.alerts = validAlerts(alerts) ? alerts : null;
+    } catch (_) {
+      // Alerts unavailable: Portfolio shows no attention section; nothing else changes.
+      if (generation !== state.generation) return;
+      state.alerts = null;
+    }
+    if (state.alerts && !state.loading && !state.error) renderCurrent();
+  }
+
   function pageMarkup() {
     const actions = `<a class="button button-secondary" href="#/tracking">Tracking</a><a class="button button-secondary" href="#/evidence">Evidence</a><button class="button button-secondary" type="button" data-customer-portfolio-refresh>Refresh</button>`;
     if (state.loading) return `<div class="page customer-portfolio-page">${pageHeading(actions)}${loadingPanel()}</div>`;
@@ -534,9 +600,9 @@
     const sales = salesData();
     const realized = sales ? realizedPanel(sales) : "";
     if (valuesPaused(data)) {
-      return `<div class="page customer-portfolio-page" data-portfolio-state="paused">${pageHeading(actions)}${pausedSummary(data)}${pausedPanel(watch)}${watch ? sellWatchPanel(watch) : ""}${pausedRows(data, watch)}${realized}</div>`;
+      return `<div class="page customer-portfolio-page" data-portfolio-state="paused">${pageHeading(actions)}${pausedSummary(data)}${data.count > 0 ? attentionPanel(data) : ""}${pausedPanel(watch)}${watch ? sellWatchPanel(watch) : ""}${pausedRows(data, watch)}${realized}</div>`;
     }
-    return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${coveragePanel(data)}${watch && data.count > 0 ? sellWatchPanel(watch) : ""}${portfolioRows(data)}${realized}</div>`;
+    return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${data.count > 0 ? attentionPanel(data) : ""}${coveragePanel(data)}${watch && data.count > 0 ? sellWatchPanel(watch) : ""}${portfolioRows(data)}${realized}</div>`;
   }
 
   // The route hook renders every page into the same element and does not tell Portfolio when the customer leaves,
@@ -593,6 +659,7 @@
     state.opportunities = null;
     state.sellWatch = null;
     state.sales = null;
+    state.alerts = null;
     renderCurrent({ mount });
     try {
       state.health = await request("/api/v1/health");
@@ -610,7 +677,10 @@
       if (generation !== state.generation) return;
       state.portfolio = portfolio;
       state.opportunities = opportunities;
-      if (Number(portfolio.data.count) > 0) loadSellWatch(generation);
+      if (Number(portfolio.data.count) > 0) {
+        loadSellWatch(generation);
+        loadAlerts(generation);
+      }
       loadSales(generation);
     } catch (error) {
       if (generation !== state.generation) return;
