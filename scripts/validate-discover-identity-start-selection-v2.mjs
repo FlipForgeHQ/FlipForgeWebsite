@@ -3,24 +3,26 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
-const entry = read("saas-prototype/discover-card-entry-emphasis-v1.js");
+// Discover's reading order is rendered by its owner; the emphasis layer that rearranged it was removed (Nov 3 2026).
+const entryRetired = !fs.existsSync(path.join(root, "saas-prototype/discover-card-entry-emphasis-v1.js"));
 const verify = read("saas-prototype/identity-assist-verification-v1.js");
 const discovery = read("saas-prototype/customer-discovery.js");
 const guide = read("saas-prototype/guided-mode-v1.js");
+const markup = discovery.slice(discovery.indexOf("function renderCurrentMarkup()"), discovery.indexOf("function focusDiscoverResults()"));
 // Discover's labels, result clarity and helper loading moved into the owner and the page markup (Nov 3 2026).
 const pages = ["saas-prototype/index.html", "saas-prototype/customer.html"].map(read);
 const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
 [
-  ["001 Discover promotes the live card-entry panel", entry.includes("function promoteSearchPanel(main)") && entry.includes('page?.querySelector(":scope > .customer-discovery-search")')],
+  ["001 Discover renders the card-entry panel as the primary task", markup.includes("customer-discovery-page ff-discover-above-fold") && entryRetired],
   ["002 Find exact card remains a top-level form action", discovery.includes('exact: "Find exact card"') && discovery.includes('data-discovery-find-exact aria-label="${escapeHtml(labels.exactAria)}"')],
   ["003 Search active listings remains a top-level form action", discovery.includes('submit: "Search active listings"') && discovery.includes('<button class="button button-primary" type="submit" aria-label="${escapeHtml(labels.submitAria)}"')],
-  ["004 card entry is placed directly under the page heading unless identity confirmation is active", entry.includes("keepSearchStationaryBelowHeading(heading, identity, search)") && entry.includes('top.insertAdjacentElement("beforebegin", heading)') && !entry.includes('insertAdjacentElement("afterend", search)')],
-  ["005 Guided Mode education follows the card entry", entry.includes("const coach = page.querySelector") && entry.includes("for (const node of [coach, workflow, decisionKey, boundary])")],
-  ["006 workflow education follows the card entry", entry.includes('page.querySelector(":scope > [data-ff-workflow-strip]")')],
-  ["007 decision terminology cannot precede the card entry", entry.includes('page.querySelector(":scope > [data-ff-decision-key]")') && entry.includes("let anchor = !identity && results ? results : search")],
-  ["008 buried identity action is named consistently", !discovery.includes("Help me identify it") && !entry.includes("Help me identify it") && discovery.includes('exact: "Find exact card"')],
+  ["004 card entry is placed directly under the page heading unless identity confirmation is active", markup.includes("${heading}${identityAssistPanel()}${identityRecovery()}${searchPanel()}")],
+  ["005 Guided Mode adds no coach into the Discover page", !guide.includes("data-ff-discover-coach") && !guide.includes("updateDiscoverCoach")],
+  ["006 workflow education follows the card entry and results", markup.indexOf("${searchPanel()}") < markup.indexOf("${workflowStripMarkup()}") && markup.indexOf("${resultsPanel()}") < markup.indexOf("${workflowStripMarkup()}")],
+  ["007 decision terminology cannot precede the card entry", !discovery.includes("data-ff-decision-key") && markup.indexOf("${searchPanel()}") < markup.indexOf("Decision framework:</strong> Discover ranks")],
+  ["008 buried identity action is named consistently", !discovery.includes("Help me identify it") && discovery.includes('exact: "Find exact card"')],
   ["009 review rows gain an explicit verification action", verify.includes("data-ff-verify-review-match") && verify.includes("Select &amp; verify")],
   ["010 only visible card-number rows receive review selection", verify.includes("rowHasCardNumber(row)") && verify.includes("if (!rowHasCardNumber(row)) return")],
   ["011 review selection uses existing server-owned resolve route", verify.includes('RESOLVE_PATH = "/api/v1/card-intelligence/resolve"')],
@@ -40,7 +42,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["025 marketplace search begins only after successful verification", verify.indexOf("input.value = canonical") < verify.indexOf("form.requestSubmit?.()")],
   ["026 failed verification stays in identity workflow", verify.includes('button.textContent = "Select & verify"') && verify.includes("setRowStatus(row, error?.message")],
   ["027 identity selection adds no persistent browser storage", !/localStorage|sessionStorage|indexedDB|document\.cookie/.test(verify)],
-  ["028 Discover presentation adds no new recommendation authority", !/\b(?:BUY|WATCH|PASS)\b/.test(entry)],
+  ["028 Discover has no separate presentation layer that could add recommendation wording", entryRetired],
   ["029 only the primary selectable row is labeled exact match", verify.includes("const primarySelectableRow = selectableRows[0] || null") && verify.includes('useButton.textContent = isPrimary ? "Use exact match" : "Select & verify"')],
   ["030 alternate selectable rows use secondary styling", verify.includes('useButton.classList.toggle("button-primary", isPrimary)') && verify.includes('useButton.classList.toggle("button-secondary", !isPrimary)')],
   ["031 displayed composite is labeled Factor score", discovery.includes("<small>Factor score</small>") && !discovery.includes("<small>Discovery score</small>")],
@@ -48,27 +50,27 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["033 lower complete all-in ask is explained before factor-score tie break", discovery.includes("lower complete all-in ask") && discovery.includes("factor score as a tie-breaker")],
   ["034 excluded identity-review evaluate button is removed", discovery.includes("${identityReview ? '<span class=\"staging-status staging-status-verify\" data-ff-evaluation-unavailable>")],
   ["035 excluded row shows non-actionable evaluation status", discovery.includes("Not eligible for evaluation")],
-  ["036 redundant pre-search chooser is removed", !entry.includes("How do you want to start?") && !entry.includes("data-ff-discover-start-find")],
-  ["037 primary entry is reasserted after rerenders without self-observation", entry.includes("observer = new MutationObserver") && entry.includes("decorateWithoutSelfObservation") && entry.includes("promoteSearchPanel(main)")],
+  ["036 redundant pre-search chooser is removed", !discovery.includes("How do you want to start?") && !discovery.includes("data-ff-discover-start-find")],
+  ["037 primary entry order comes from every owner render (no rearranging observer)", entryRetired && markup.includes("${searchPanel()}")],
   ["038 identity helper uses an explicit cache-busting version", pages.every(page => page.includes("identity-assist-verification-v1.js?v=20260930-5"))],
   ["039 identity verification script is loaded with the cache-busting version", pages.every(page => page.includes('<script src="identity-assist-verification-v1.js?v=20260930-5"></script>'))],
   ["040 identity verification stylesheet is loaded with the cache-busting version", pages.every(page => page.includes('href="identity-assist-verification-v1.css?v=20260930-5"'))],
-  ["041 no script injects the identity helper (the pages list it once)", !entry.includes("createElement") && pages.every(page => page.split("identity-assist-verification-v1.js").length === 2)],
+  ["041 no script injects the identity helper (the pages list it once)", pages.every(page => page.split("identity-assist-verification-v1.js").length === 2)],
   ["042 identity assist owns each asynchronous search by request serial", discovery.includes("requestSerial: 0") && discovery.includes("requestSerial !== state.identityAssist.requestSerial")],
   ["043 changed card input invalidates current identity-assist ownership", discovery.includes('identityInput?.addEventListener("input"') && discovery.includes("state.identityAssist.requestSerial += 1")],
   ["044 identity selection is bound to the query that rendered it", discovery.includes("const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.query)") && discovery.includes("resolveIdentity(index, selectionOwnerQuery)")],
   ["045 stale selection fails closed against current assist draft and visible query", discovery.includes("ownedQuery !== currentQuery") && discovery.includes("ownedQuery !== draftQuery") && discovery.includes("ownedQuery !== visibleQuery")],
-  ["046 Discover entry text is rendered once by the owner (no rewrite layer)", !entry.includes("textContent =") && discovery.includes("<label><span>Card</span>")],
-  ["047 Discover entry observer disconnects during owned writes", entry.includes("observer.disconnect()") && entry.includes("decorateWithoutSelfObservation") && entry.includes("observeMain()")],
-  ["048 Guided Mode follows canonical search-first ordering", guide.includes('search.insertAdjacentElement("afterend", coach)') && !guide.includes('coach.insertAdjacentElement("afterend", search)')],
-  ["049 required identity confirmation is promoted above card search", entry.includes('page.classList.toggle("ff-discover-identity-required", Boolean(identity))') && entry.includes('search.insertAdjacentElement("beforebegin", identity)')],
+  ["046 Discover entry text is rendered once by the owner (no rewrite layer)", entryRetired && discovery.includes("<label><span>Card</span>")],
+  ["047 Discover has no entry decorator observing its own writes", entryRetired],
+  ["048 Guided Mode does not reorder the Discover page", !guide.includes("insertAdjacentElement(\"afterend\", coach)") && !guide.includes('coach.insertAdjacentElement("afterend", search)')],
+  ["049 required identity confirmation is rendered above card search", markup.includes('const identityRequired = state.identityAssist.active ? " ff-discover-identity-required" : ""') && markup.indexOf("${identityAssistPanel()}") < markup.indexOf("${searchPanel()}")],
   ["050 identity panel owns a direct change-card escape hatch", discovery.includes("data-discovery-change-identity-entry") && discovery.includes("changeIdentityEntryButton?.addEventListener")],
   ["051 identity panel is automatically surfaced when required", discovery.includes("function focusIdentityCheck()") && discovery.includes('panel.scrollIntoView({ behavior: "smooth", block: "start" })')],
   ["051a nearby identity variants are visible without an extra expansion step", verify.includes("VISIBLE_REVIEW_WITH_EXACT = 2") && verify.includes("hasSelectable ? VISIBLE_REVIEW_WITH_EXACT : COLLAPSED_REVIEW_COUNT")],
   ["051b identity review uses explicit card-number data instead of fragile display parsing", discovery.includes("data-ff-card-number") && verify.includes("dataset?.ffCardNumber")],
   ["052 completed search surfaces actionable results without animated scroll chasing", discovery.includes("function focusDiscoverResults()") && discovery.includes('root.style.scrollBehavior = "auto"') && discovery.includes('results.scrollIntoView({ behavior: "auto", block: "start", inline: "nearest" })') && !discovery.includes('results.scrollIntoView({ behavior: "smooth", block: "start" })')],
-  ["053 result cards are promoted immediately after the search task", entry.includes('const results = page.querySelector(":scope > .customer-discovery-results")') && entry.includes('resultAnchor.insertAdjacentElement("afterend", results)')],
-  ["054 provider diagnostics no longer precede completed results", discovery.includes('state.data ? `${resultsPanel()}${provider}`')]
+  ["053 result cards follow the search task and its outcome", markup.includes("${searchPanel()}${errorPanel()}${searchErrorRecovery()}${notice}${state.data ? `${resultsPanel()}")],
+  ["054 provider diagnostics no longer precede completed results", discovery.includes('state.data ? `${resultsPanel()}${emptyResultsRecovery()}${provider}`')]
 
 ].forEach(([name, condition]) => check(name, condition));
 

@@ -3,6 +3,10 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const html=fs.readFileSync('saas-prototype/index.html','utf8');
 const js=fs.readFileSync('saas-prototype/beta-guided-discover-v1.js','utf8');
+// The Discover guided builder is rendered by the Discover owner since Nov 3 2026; this file keeps the Dashboard panel.
+const discovery=fs.readFileSync('saas-prototype/customer-discovery.js','utf8');
+const builder=discovery.slice(discovery.indexOf('function guidedBuilderMarkup()'),discovery.indexOf('function serialEntryAvailable()'));
+const helpers=discovery.slice(discovery.indexOf('Private Beta card-entry helpers'),discovery.indexOf('  function validHttpUrl(value) {'));
 const css=fs.readFileSync('saas-prototype/beta-guided-discover-v1.css','utf8');
 assert.match(html,/href="beta-guided-discover-v1.css"/);
 assert.match(html,/src="beta-guided-discover-v1.js"/);
@@ -11,12 +15,16 @@ assert.match(css,/data-ffguided-focus="simple"/);
 assert.match(css,/primary-nav a\[data-route="discover"\]/);
 for(const banned of ['fetch(', 'localStorage', 'sessionStorage','indexedDB','selectionToken','window.open(', 'confirm(']){
  assert.ok(!js.includes(banned), 'guided entry cannot call providers, persist customer data or claim selection: '+banned);
+ assert.ok(!helpers.includes(banned), 'guided entry cannot call providers, persist customer data or claim selection: '+banned);
 }
+assert.ok(builder.includes('if (!betaSurface()) return "";') && discovery.includes('<form data-customer-discovery-form class="customer-discovery-form">${guidedBuilderMarkup()}'),'guided builder is offered on the Private Beta only, at the top of the search form');
 let init=null;
 const context={window:{addEventListener(){}},document:{readyState:'loading',addEventListener(name,cb){if(name==='DOMContentLoaded')init=cb;}},location:{pathname:'/app/',hash:'#/discover'},Date,MutationObserver:class{},requestAnimationFrame(){}};
 vm.createContext(context);vm.runInContext(js,context);
 assert.equal(typeof init,'function');
-const compose=context.window.FlipForgeGuidedEntryV1.compose;
+const ownerContext={window:{location:{pathname:'/app/beta/',hash:'#/discover',hostname:'goflipforge.com'}},Date,Intl,BigInt};
+vm.createContext(ownerContext);vm.runInContext(discovery,ownerContext);
+const compose=ownerContext.window.FlipForgeCustomerDiscovery.guidedEntry.compose;
 assert.equal(typeof compose,'function');
 const valid={year:'2018',maker:'Topps',other:'',set:'Chrome',player:'Shohei Ohtani',number:'No. 150',parallel:'',grader:'PSA',grade:'9'};
 assert.equal(compose(valid).query,'2018 Topps Chrome Shohei Ohtani #150 PSA 9');
@@ -25,5 +33,5 @@ assert.equal(compose({...valid,year:'2025-26',maker:'Panini',set:'Prizm',player:
 for(const overrides of [{year:''},{year:'198A'},{year:'2025-27'},{year:'1700'},{maker:''},{set:''},{player:''},{number:'?'},{grader:'PSA',grade:''},{grader:'',grade:'9'}]){
  assert.ok(compose({...valid,...overrides}).error,'invalid composition must fail without guessing: '+JSON.stringify(overrides));
 }
-assert.ok(!js.includes('type="submit" data-ffguided-build'),'guided builder must not auto-search or evaluate');
+assert.ok(!builder.includes('type="submit" data-ffguided-build') && builder.includes('<button type="button" class="button button-primary" data-ffguided-build>'),'guided builder must not auto-search or evaluate');
 console.log('PASS: customer Beta guided form connects to the existing source-truth search, composes exact-card text deterministically, fails closed on omissions, and does not call providers.');

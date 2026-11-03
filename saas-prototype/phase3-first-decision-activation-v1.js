@@ -173,74 +173,6 @@
     }
   }
 
-  function evaluateStage(root) {
-    if (root.querySelector(".customer-discovery-identity-assist")) return "identity-review";
-    const evaluating = [...root.querySelectorAll("[data-discovery-evaluate]")].some(button => /Evaluating/i.test(String(button.textContent || "")));
-    if (evaluating) return "handoff";
-    if (root.querySelector(".customer-discovery-results")) return "evidence";
-    return "identity";
-  }
-
-  function enhanceEvaluate() {
-    if (routeName() !== "discover") return;
-    const root = document.querySelector(MAIN);
-    const form = root?.querySelector("[data-customer-discovery-form]");
-    const panel = form?.closest(".customer-discovery-search");
-    if (!root || !form || !panel) return;
-
-    if (!panel.classList.contains("ff-p3-evaluate-card")) panel.classList.add("ff-p3-evaluate-card");
-    if (panel.getAttribute(ENHANCED_ATTRIBUTE) !== "evaluate") {
-      panel.setAttribute(ENHANCED_ATTRIBUTE, "evaluate");
-    }
-    let shell = root.querySelector("[data-ff-p3-evaluate-shell]");
-    if (!shell) {
-      shell = document.createElement("section");
-      shell.className = "ff-p3-evaluate-shell ff-p3-enter";
-      shell.dataset.ffP3EvaluateShell = "";
-      shell.dataset.flipforgePhase3Owned = "evaluate-shell";
-      shell.innerHTML = `
-        <div class="ff-p3-evaluate-intro" data-ff-p3-evaluate-intro data-stage="identity">
-          <div class="ff-p3-evaluate-copy">
-            <small>CARD DECISION INTELLIGENCE™ · LIVE EVALUATE FLOW</small>
-            <h2 data-ff-p3-evaluate-title>Verify the card first.</h2>
-            <p data-ff-p3-evaluate-copy>Enter the exact card you are considering. FlipForge will not let uncertain identity silently become counted price evidence.</p>
-          </div>
-          <div class="ff-p3-evaluate-rail" aria-label="Evaluation progress">
-            <div class="ff-p3-evaluate-step" data-p3-step="identity"><b>01</b><strong>Exact card</strong><small>Confirm what it is.</small></div>
-            <div class="ff-p3-evaluate-step" data-p3-step="evidence"><b>02</b><strong>Matched sales</strong><small>Keep what belongs.</small></div>
-            <div class="ff-p3-evaluate-step" data-p3-step="decision"><b>03</b><strong>Price + uncertainty</strong><small>Test the deal.</small></div>
-            <div class="ff-p3-evaluate-step" data-p3-step="receipt"><b>04</b><strong>Decision + receipt</strong><small>See the call and why.</small></div>
-          </div>
-        </div>`;
-      // Keep the Phase 3 intelligence rail outside the Discover panel's
-      // shared enhancement zone. Several existing customer-polish observers own
-      // descendants of .customer-discovery-search; nesting Phase 3 there lets
-      // independent runtimes rewrite the same nodes and can create cross-observer
-      // oscillation even when Phase 3 itself is idempotent.
-      panel.insertAdjacentElement("beforebegin", shell);
-      emit("phase3_evaluate_flow_viewed", "discover");
-    }
-
-    const intro = shell.querySelector("[data-ff-p3-evaluate-intro]");
-    const title = shell.querySelector("[data-ff-p3-evaluate-title]");
-    const copy = shell.querySelector("[data-ff-p3-evaluate-copy]");
-    const stage = evaluateStage(root);
-    if (intro.dataset.stage !== stage) intro.dataset.stage = stage;
-    shell.classList.toggle("ff-p3-evaluate-shell--compact", stage === "identity-review");
-    shell.classList.toggle("ff-p3-evaluate-shell--results-ready", stage === "evidence" || stage === "handoff");
-    shell.setAttribute("aria-hidden", stage === "evidence" || stage === "handoff" ? "true" : "false");
-
-    const messages = {
-      identity: ["Confirm the exact card first.", "Enter the card you are considering. FlipForge checks the year, set, number, variant, and grade before price gets a vote."],
-      "identity-review": ["Choose the exact card.", "FlipForge found more than one plausible match. Pick the correct card before sales can influence the decision."],
-      evidence: ["Now check matched sales.", "You can see the candidates, but only exact completed sales that pass the evidence checks can support the price case."],
-      handoff: ["Now test the deal.", "FlipForge is comparing the price, measuring uncertainty, and building the BUY, WATCH, VERIFY, or PASS decision."]
-    };
-    const current = messages[stage] || messages.identity;
-    if (title.textContent !== current[0]) title.textContent = current[0];
-    if (copy.textContent !== current[1]) copy.textContent = current[1];
-  }
-
   // The saved, server-returned verdict only: the Card Intelligence hero status, which is rendered from the saved
   // record and removed while a card loads (the same source decision-authority-consistency-v1.js uses). Never page
   // text, legends, the injected decision summary or placeholders: during loading those can name a verdict the saved
@@ -339,9 +271,6 @@
       if (target.closest("[data-ff-p3-first-evaluate]")) emit("phase3_first_evaluate_clicked", "dashboard");
       const returning = target.closest("[data-ff-p3-return]");
       if (returning) emit("phase3_returning_action_clicked", returning.getAttribute("data-ff-p3-return") || "unknown");
-      if (target.closest("[data-discovery-find-exact]")) emit("phase3_identity_resolution_started", "discover");
-      if (target.closest("[data-discovery-use-identity]")) emit("phase3_identity_selected", "discover");
-      if (target.closest("[data-discovery-evaluate]")) emit("phase3_governed_evaluation_started", "discover_candidate");
       if (target.closest("[data-ff-p3-open-evidence]")) emit("phase3_evidence_opened", "result_education");
       if (target.closest("[data-ff-p3-another-card]")) emit("phase3_evaluate_another_clicked", "result_education");
 
@@ -354,15 +283,6 @@
       }
     }, true);
 
-    document.addEventListener("submit", event => {
-      const form = event.target instanceof Element ? event.target.closest("[data-customer-discovery-form]") : null;
-      if (form) emit("phase3_card_search_submitted", "discover");
-    }, true);
-
-    document.addEventListener("input", event => {
-      const input = event.target instanceof Element ? event.target.closest('[data-customer-discovery-form] input[name="exactCardQuery"]') : null;
-      if (input && String(input.value || "").trim().length >= 3) emit("phase3_card_identity_engaged", "discover");
-    }, true);
   }
 
   function nodeIsPhase3Owned(node) {
@@ -373,7 +293,6 @@
   function routeRelevantSelector() {
     const route = routeName();
     if (route === "dashboard") return "[data-commercial-dashboard-v2],.ff-commercial-dashboard,.ff-kpi-card,.ff-kpi-value";
-    if (route === "discover") return "[data-customer-discovery-form],.customer-discovery-search,.customer-discovery-identity-assist,.customer-discovery-results,[data-discovery-evaluate]";
     if (route === "opportunities" && routeParts().length > 1) return "[data-ff-decision-summary],.customer-intelligence-hero,[data-ff-open-decision-receipt]";
     return "";
   }
@@ -408,7 +327,7 @@
     if (observer) observer.disconnect();
     try {
       enhanceDashboard();
-      enhanceEvaluate();
+      // Discover has no Phase 3 layer: its step guidance is the owner's workflow strip (customer-discovery.js).
       enhanceResult();
       syncReceiptButton();
     } finally {

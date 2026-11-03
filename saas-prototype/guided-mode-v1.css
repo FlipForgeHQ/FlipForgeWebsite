@@ -191,14 +191,6 @@
   outline:none;
 }
 
-/* When the user chooses New card, old search output gets out of the way. */
-.ff-start-new-card .customer-discovery-results,
-.ff-start-new-card .customer-discovery-notice,
-.ff-start-new-card .customer-discovery-identity-assist,
-.ff-start-new-card .ff-discover-results-label,
-.ff-start-new-card .panel:has(.customer-discovery-provider){display:none!important}
-.ff-start-new-card .customer-discovery-search{margin-top:0!important}
-
 .ff-guide-modal-backdrop{
   position:fixed;
   inset:0;

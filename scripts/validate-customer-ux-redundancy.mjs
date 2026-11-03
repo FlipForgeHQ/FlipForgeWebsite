@@ -6,8 +6,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
 const css = read("saas-prototype/discover-card-entry-emphasis-v1.css");
-const entry = read("saas-prototype/discover-card-entry-emphasis-v1.js");
-const focus = read("saas-prototype/guided-discover-focus-fix-v1.js");
+// Discover's card-entry order, focus cue and identity help are rendered by its owner (customer-discovery.js); the
+// emphasis and focus-fix layers were removed (Nov 3 2026).
+const retiredDiscoverLayers = ["saas-prototype/discover-card-entry-emphasis-v1.js", "saas-prototype/guided-discover-focus-fix-v1.js"];
+const evaluation = read("saas-prototype/staging-evaluation.js");
 const guide = read("saas-prototype/guided-mode-v1.js");
 const discovery = read("saas-prototype/customer-discovery.js");
 const standard = read("docs/CUSTOMER_APP_AUDIT_STANDARD.md");
@@ -44,7 +46,7 @@ const forbiddenVisiblePrompts = [
 for (const phrase of forbiddenVisiblePrompts) {
   check(
     `duplicate entry prompt removed: ${phrase}`,
-    !css.includes(phrase) && !entry.includes(phrase) && !focus.includes(phrase) && !guide.includes(phrase)
+    !css.includes(phrase) && !discovery.includes(phrase) && !guide.includes(phrase)
   );
 }
 
@@ -69,22 +71,23 @@ check(
   css.includes('.customer-discovery-form input[name="exactCardQuery"]:focus')
     && css.includes('border-color:#f0ca58!important;')
 );
+check("Retired Discover presentation layers are gone", retiredDiscoverLayers.every(file => !fs.existsSync(path.join(root, file))));
 check(
-  "Guided focus does not inject another instruction banner",
-  !focus.includes("HINT_ID")
-    && !focus.includes("hint.innerHTML")
-    && !focus.includes("ff-discover-direct-form")
+  "Card-box focus cue does not inject another instruction banner",
+  !discovery.includes("HINT_ID")
+    && !discovery.includes("hint.innerHTML")
+    && !discovery.includes("ff-discover-direct-form")
 );
 check(
-  "Guided focus highlights only the actual input",
-  focus.includes(".ff-discover-direct-input")
-    && focus.includes('input.classList.add("ff-discover-direct-input")')
+  "Card-box focus cue highlights only the actual input",
+  discovery.includes('input.classList?.add?.("ff-discover-direct-input")')
+    && read("saas-prototype/customer-discovery.css").includes(".ff-discover-direct-input")
 );
 check(
-  "Guided Mode provides secondary identity help instead of repeating primary entry instructions",
-  guide.includes("IDENTITY HELP")
-    && guide.includes("Not sure which card version you have?")
-    && guide.includes("Find exact card")
+  "Identity help is said once, by the owner, not repeated by Guided Mode",
+  discovery.includes("Not sure which version of the card you have? Check card identity first.")
+    && !guide.includes("IDENTITY HELP")
+    && !guide.includes("data-ff-discover-coach")
     && !guide.includes("<span>START HERE</span><h2>Enter one exact card.</h2>")
 );
 
@@ -103,20 +106,23 @@ check("Card-entry guide is visible without expanding", searchPanel.includes('<di
 check("Card-entry guide explains two-year seasons without promising identical results", searchPanel.includes("Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.") && !/Both find the same card|all mean the same card/.test(searchPanel));
 check(
   "Decorator preserves concise Card label after rerenders",
-  searchPanel.includes("<label><span>Card</span>") && !entry.includes("textContent =")
+  searchPanel.includes("<label><span>Card</span>") && retiredDiscoverLayers.every(file => !fs.existsSync(path.join(root, file)))
 );
 check(
   "Format guidance is concise and non-duplicative",
-  (searchPanel.match(/Year · Set · Player · Card # · Grade \(when known\)\./g) || []).length === 1 && !entry.includes("ff-card-entry-helper")
+  (searchPanel.match(/Year · Set · Player · Card # · Grade \(when known\)\./g) || []).length === 1
 );
 
 // Evaluate
-check("Evaluate has no second three-step strip implementation", !firstValue.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow"));
+check("Evaluate has no second three-step strip implementation", !firstValue.includes("installEvaluateFlow") && !evaluation.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow"));
 check("Evaluate does not show the decision glossary before a decision exists", !firstValue.includes('["dashboard", "discover", "tracking", "forge-heat", "evaluate"]'));
-check("Evaluate panel uses a distinct Card and listing details heading", firstValue.includes('Card and listing details'));
-check("Evaluate removes the duplicate panel intro and status badge", firstValue.includes('panel.querySelector(".panel-header p")?.remove()') && firstValue.includes('panel.querySelector(".panel-header .staging-status")?.remove()'));
-check("Evaluate removes technical idempotency prose from the customer form", firstValue.includes('form.querySelector(".staging-form-note")?.remove()'));
-check("Evaluate keeps one governed trust disclosure", firstValue.includes("How FlipForge protects this decision"));
+// Evaluate renders its customer form with its final copy (staging-evaluation.js customerEvaluationForm).
+const customerForm = evaluation.slice(evaluation.indexOf("function customerEvaluationForm()"), evaluation.indexOf("function valueIntelligencePanel("));
+check("Evaluate panel uses a distinct Card and listing details heading", customerForm.includes('<header class="panel-header"><div><h2>Card and listing details</h2></div></header>'));
+const customerFormHeader = customerForm.slice(0, customerForm.indexOf("</header>"));
+check("Evaluate has no duplicate panel intro or status badge", customerFormHeader.length > 0 && !customerFormHeader.includes("<p>") && !customerFormHeader.includes("staging-status"));
+check("Evaluate shows no technical idempotency prose on the customer form", customerForm.length > 0 && !customerForm.includes("staging-form-note") && !/idempotency/i.test(customerForm));
+check("Evaluate keeps one governed trust disclosure", (evaluation.match(/How FlipForge protects this decision/g) || []).length === 1 && !firstValue.includes("How FlipForge protects this decision"));
 
 // Decision Intelligence / Saved Decision
 check("CDI explanation CTA does not repeat START HERE", !cdi.includes("<span>START HERE</span><strong>Show me why"));

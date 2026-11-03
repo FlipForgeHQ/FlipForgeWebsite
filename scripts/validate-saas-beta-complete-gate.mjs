@@ -10,9 +10,9 @@ const plan = read("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md");
 const liveQa = read("docs/SAAS_BETA_COMPLETE_LIVE_QA.md");
 const index = read("saas-prototype/index.html");
 const discovery = read("saas-prototype/customer-discovery.js");
-const discoverEmphasis = read("saas-prototype/discover-card-entry-emphasis-v1.js");
+// Discover's reading order and result controls are rendered by its owner (customer-discovery.js) since Nov 3 2026.
+const discoverMarkup = discovery.slice(discovery.indexOf("function renderCurrentMarkup()"), discovery.indexOf("function focusDiscoverResults()"));
 const identityAssistVerification = read("saas-prototype/identity-assist-verification-v1.js");
-const discoverControls = read("saas-prototype/customer-discovery-controls-v2.js");
 const evaluation = read("saas-prototype/staging-evaluation.js");
 const opportunities = read("saas-prototype/customer-opportunities.js");
 const explainability = read("saas-prototype/customer-explainability.js");
@@ -85,7 +85,8 @@ check("044 browser core adapters do not trust tenant/user headers", coreAdapters
 check("045 browser core adapters expose no service token", coreAdapters.every(source => !/FLIPFORGE_API_SERVICE_TOKEN|Authorization:\s*[`"']Bearer/i.test(source)));
 check("046 gateway injects tenant identity server-side", gateway.includes("[TENANT_HEADER]: tenant.tenantId"));
 check("047 gateway rejects browser identity headers", gateway.includes("CLIENT_IDENTITY_HEADER_FORBIDDEN"));
-check("048 no core customer adapter adds execution controls", coreAdapters.every(source => !/Place bid|Buy now|Pay now|Accept offer|Create listing/i.test(source)));
+// A disclaimer that FlipForge does "not place bids" (the Evaluate acknowledgement) is not an execution control.
+check("048 no core customer adapter adds execution controls", coreAdapters.every(source => !/(?<!not )(?:Place bid|Buy now|Pay now|Accept offer|Create listing)/i.test(source)));
 check("049 production account contains no checkout request", !/billing\/paddle\/checkout|CHECKOUT_PATH|data-customer-checkout-plan/i.test(account));
 check("050 core workflow stays independent of Paddle activation", ![discovery, evaluation, opportunities, compare, lifecycle, management, portfolio, exportAdapter, account].some(source => /PADDLE_LIVE|CUSTOMER_PORTAL_ENABLED|Paddle\.Checkout/.test(source)));
 
@@ -101,13 +102,13 @@ check("058 explainability validator exists", exists("scripts/validate-saas-custo
 check("059 production account validator exists", exists("scripts/validate-saas-production-account.mjs"));
 check("060 live QA protects secret handling", ["service tokens", "provider credentials", "raw JWTs", "tenant IDs"].every(value => liveQa.includes(value)));
 
-check("061 Discover exact-card action is unmistakable", discovery.includes('submit: "Search active listings"') && discovery.includes('exact: "Find exact card"') && discoverEmphasis.includes("function promoteSearchPanel(main)") && discoverEmphasis.includes("keepSearchStationaryBelowHeading(heading, identity, search)"));
+check("061 Discover exact-card action is unmistakable", discovery.includes('submit: "Search active listings"') && discovery.includes('exact: "Find exact card"') && discoverMarkup.includes("${heading}${identityAssistPanel()}${identityRecovery()}${searchPanel()}"));
 // The search panel must never be moved: moving a focused input drops keyboard focus and loses typed text.
-check("061b Discover search panel is never moved while the customer may be typing", !discoverEmphasis.includes('insertAdjacentElement("afterend", search)') && !/identity\.insertAdjacentElement\("afterend", search\)/.test(discoverEmphasis) && discoverEmphasis.includes('top.insertAdjacentElement("beforebegin", heading)'));
+check("061b Discover search panel is never moved while the customer may be typing", !exists("saas-prototype/discover-card-entry-emphasis-v1.js") && !/insertAdjacentElement\("(?:afterend|beforebegin)", search\)/.test(discovery));
 check("062 Discover exact candidate is primary", identityAssistVerification.includes("const primarySelectableRow = selectableRows[0] || null") && identityAssistVerification.includes('useButton.textContent = isPrimary ? "Use exact match" : "Select & verify"') && identityAssistVerification.includes('useButton.classList.toggle("button-primary", isPrimary)'));
 check("063 Discover variants use progressive disclosure", identityAssistVerification.includes("COLLAPSED_REVIEW_COUNT = 4") && identityAssistVerification.includes("ff-identity-hidden") && identityAssistVerification.includes("Show ${hiddenCount}"));
 check("064 Discover entered grade is consolidated", identityAssistVerification.includes("Grade filter from your search") && identityAssistVerification.includes("cleanInheritedGrade"));
-check("065 Discover result controls wait for live results", discoverControls.includes("if (!hasLiveResults || !previous)") && discoverControls.includes("removeResultControls(actions)"));
+check("065 Discover result controls wait for live results", discovery.includes("return Boolean(state.data && !state.error && !state.identityAssist.active && state.lastSearch);") && discovery.includes("if (!resultControlsAvailable() || draftDiffersFromLastSearch()) return \"\";"));
 check("066 Discover evaluation requires exact listing identity", discovery.includes('String(item.matchQuality || "") !== "EXACT_MATCH"') && discovery.includes("evaluationBlockReason"));
 check("067 non-exact provider results are separated from exact ranking", discovery.includes("excluded provider result") && discovery.includes("identity not confirmed") && discovery.includes("cannot be evaluated as the searched card"));
 check("068 Discover exposes ranking context and explanation", discovery.includes("Ranking context:") && discovery.includes("Why this result is ranked here") && discovery.includes("rankingExplanation"));
