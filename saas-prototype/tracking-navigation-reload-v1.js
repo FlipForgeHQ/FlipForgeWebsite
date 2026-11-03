@@ -27,7 +27,8 @@
     }
 
     if (url.origin !== window.location.origin) return false;
-    return /^\/api\/v1\/(?:health|opportunities|lifecycle(?:\/[^/?#]+)?|portfolio|alerts)$/.test(url.pathname);
+    // Alert review / seen writes get the same timeout as the reads, so a stalled save cannot hang the page.
+    return /^\/api\/v1\/(?:health|opportunities|lifecycle(?:\/[^/?#]+)?|portfolio|alerts(?:\/reviewed\/[0-9a-f]{64}|\/last-seen)?)$/.test(url.pathname);
   }
 
   window.fetch = function flipForgeLifecycleFetch(input, init = {}) {

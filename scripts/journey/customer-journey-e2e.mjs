@@ -274,6 +274,11 @@ try {
       `tracking/${encodeURIComponent(saved.strong.id)}`, "alerts", "portfolio", "forge-heat", "account"];
     const rows = await measureRoutes(page, APP, routes);
     printRows(process.env.JOURNEY_STABILITY_LABEL || "journey", rows);
+    // A settled screen must stop rewriting itself: no DOM changes and no API requests while nobody touches it.
+    for (const row of rows) {
+      check(`RS ${row.route}: settles with no idle redraws or requests`, !row.error && row.idle.records <= 5 && row.idle.fetches === 0,
+        row.error || `${row.idle.records} mutations, ${row.idle.fetches} requests in 6s idle`);
+    }
     page.off("response", onResponse);
     const packed = zlib.gzipSync(Buffer.from(JSON.stringify({ tenant: email, saved, captured }))).toString("base64");
     console.log(`API-CAPTURE-BEGIN ${packed.length}`);

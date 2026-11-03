@@ -173,7 +173,8 @@
 
   // What the customer would keep at the supported value after their own saved selling costs (from Sell Watch). The
   // server computes every figure; rows that are not exactly as expected are not shown.
-  const AFTER_COST_CHANNELS = ["MARKETPLACE", "AUCTION_HOUSE", "CONSIGNMENT", "DEALER", "PRIVATE_SALE", "OTHER"];
+  // Same channel names as the server and Sell Watch (DEALER_DIRECT, not DEALER, which silently dropped dealer rows).
+  const AFTER_COST_CHANNELS = ["MARKETPLACE", "AUCTION_HOUSE", "CONSIGNMENT", "DEALER_DIRECT", "PRIVATE_SALE", "OTHER"];
   function afterCostRows(item) {
     if (!Array.isArray(item?.afterYourCosts)) return [];
     return item.afterYourCosts.filter(row => row && typeof row === "object"

@@ -34,7 +34,8 @@
   function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
   function safeArray(value) { return Array.isArray(value) ? value : []; }
   function safeNumber(value) { const parsed = Number(value); return Number.isFinite(parsed) ? parsed : 0; }
-  function money(value) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(safeNumber(value)); }
+  // Saved decision figures are shown exactly (cents included), the same as Max Buy; rounding hid real amounts.
+  function money(value) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safeNumber(value)); }
   function moneyFromCents(value) { return money(safeNumber(value) / 100); }
   function correlationId() { return window.crypto && typeof window.crypto.randomUUID === "function" ? window.crypto.randomUUID() : `customer-opportunities-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
   function normalizeCardDisplay(value) {
