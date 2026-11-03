@@ -162,6 +162,7 @@ function runtime({ hostname = "deploy-preview-39--goflipforge.netlify.app", path
     if (unauthorized) return response({ error: { code: "AUTHENTICATION_REQUIRED", message: "Authentication required." } }, 401);
     if (url === "/api/v1/portfolio") return response(envelope(correlationId, payload));
     if (url === "/api/v1/opportunities") return response(envelope(correlationId, opportunities));
+    if (url === "/api/v1/alerts") return response({ error: { code: "UPSTREAM_REJECTED", message: "Not in this fixture." } }, 404);
     if (url === "/api/v1/reported-sales") {
       if (sold === "gated") return new Promise(resolve => gates.push(() => resolve(response(envelope(correlationId, JSON.parse(JSON.stringify(sales)))))));
       if (sold === "off") return response({ error: { code: "UPSTREAM_REJECTED", message: "Route not enabled." } }, 404);
@@ -193,7 +194,7 @@ const preview = runtime();
 check("033 preview app is eligible", preview.window.FlipForgeCustomerPortfolio.isEligible());
 check("034 preview Portfolio render activates", preview.window.FlipForgeCustomerPortfolio.render(preview.main) === true);
 await settle();
-check("035 preview flow reads health Portfolio opportunities, then Sell Watch and recorded sales", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/portfolio,/api/v1/opportunities,/api/v1/sell-watch,/api/v1/reported-sales");
+check("035 preview flow reads health Portfolio opportunities, then Sell Watch, owned-card alerts and recorded sales", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/portfolio,/api/v1/opportunities,/api/v1/sell-watch,/api/v1/alerts,/api/v1/reported-sales");
 check("036 evidence reference value renders", preview.main.innerHTML.includes("$700.00"));
 check("037 customer cost basis renders", preview.main.innerHTML.includes("$525.00"));
 check("038 server reference delta renders", preview.main.innerHTML.includes("+$175.00") && preview.main.innerHTML.includes("+33.33%"));
