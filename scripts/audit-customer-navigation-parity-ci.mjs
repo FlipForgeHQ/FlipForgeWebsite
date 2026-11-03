@@ -23,10 +23,9 @@ const fullTopLevel = [
   "market-view"
 ];
 const fullAdvanced = ["compare", "psa-advisor", "export"];
-const betaTopLevel = ["dashboard", "discover", "opportunities", "tracking"];
+const betaTopLevel = ["dashboard", "discover", "evaluate", "opportunities", "tracking", "alerts", "portfolio", "forge-heat"];
 const fullOnlyNav = [
-  "evaluate", "decision-intelligence", "why-this-decision", "evidence",
-  "portfolio", "alerts", "forge-heat", "market-view"
+  "decision-intelligence", "why-this-decision", "evidence", "market-view"
 ];
 
 const proof = {
@@ -218,7 +217,7 @@ try {
     if (state.chip !== "PRIVATE BETA") fail(`${viewport.name}: private beta shell lost PRIVATE BETA identity`, state);
     if (state.parity) fail(`${viewport.name}: full-customer parity controller leaked into private beta`, state);
     if (state.whyRuntime || state.whyFocused) fail(`${viewport.name}: focused Why presentation leaked into private beta`, state);
-    if (!same(state.topLevelVisible, expectedBetaVisible)) fail(`${viewport.name}: private beta navigation expanded or lost its simplified core`, state);
+    if (!same(state.topLevelVisible, expectedBetaVisible)) fail(`${viewport.name}: private beta navigation differs from its approved eight-route manifest`, state);
     if (!state.advancedHidden) fail(`${viewport.name}: Advanced analysis leaked into private beta`, state);
     if (mobile && semanticLabel(state.labels.account) !== "Account") fail("mobile: private beta Account navigation is missing or changed", state);
     for (const route of fullOnlyNav) {
