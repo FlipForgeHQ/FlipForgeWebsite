@@ -3,6 +3,7 @@ import fs from "node:fs";
 const index = fs.readFileSync("saas-prototype/index.html", "utf8");
 const ux = fs.readFileSync("saas-prototype/consumer-ux-refinement.js", "utf8");
 const polish = fs.readFileSync("saas-prototype/customer-professional-polish.js", "utf8");
+const navShell = fs.readFileSync("saas-prototype/customer-only-shell-v1.js", "utf8");
 const css = fs.readFileSync("saas-prototype/consumer-ux-refinement.css", "utf8");
 
 const checks = [];
@@ -46,8 +47,9 @@ expect(ux.includes('"How this works:"'), "customer authority boundary uses custo
 expect(ux.includes('"We couldn\'t complete that request."'), "raw internal alert codes receive a customer-safe heading");
 expect(ux.includes('"This intelligence view is temporarily unavailable. Try again."'), "technical diagnostics have a customer-safe error fallback");
 expect(heatRenderer.includes("Ranks saved evaluations · Decision support only"), "Forge Heat scope is concise and customer-safe");
-expect(polish.includes('setText(state, "BETA")'), "Forge Heat navigation is labeled as beta rather than a paid entitlement");
-expect(polish.includes('nav.removeAttribute("aria-disabled")'), "Forge Heat interactive navigation remains enabled");
+expect(navShell.includes('setText(state, "BETA")'), "Forge Heat navigation is labeled as beta rather than a paid entitlement");
+expect(navShell.includes('nav.removeAttribute("aria-disabled")'), "Forge Heat interactive navigation remains enabled");
+expect(!polish.includes("function prepareForgeHeatNavigation") && !polish.includes("function installNavigationIcons"), "navigation writers no longer live in the polish layer");
 const navOwner = fs.readFileSync(new URL("../saas-prototype/customer-only-shell-v1.js", import.meta.url), "utf8");
 expect(/beta: Object\.freeze\(\{\s*routes: \[[^\]]*"alerts"/.test(navOwner), "Alerts navigation remains visible on the beta (navigation owner manifest)");
 expect(ux.includes("function setText"), "DOM copy writes are idempotent");
