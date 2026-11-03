@@ -6,53 +6,6 @@
       || /^\/(?:app|owner)\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
   }
 
-  function loadRouteOwnershipAssets() {
-    // Full customer loads this guard synchronously at the end of customer.html,
-    // after every route renderer and compatibility layer. Private beta keeps the
-    // dynamic loader because its intentionally smaller shell has different order.
-    if (fullCustomerMode()) return;
-    if (document.querySelector('script[data-ff-customer-route-ownership]')) return;
-    const script = document.createElement("script");
-    script.src = "customer-route-ownership-v1.js?v=20260915-2";
-    script.async = false;
-    script.dataset.ffCustomerRouteOwnership = "v1";
-    document.head.appendChild(script);
-  }
-
-  function loadDecisionClarityAssets() {
-    if (!document.querySelector('link[data-ff-decision-clarity]')) {
-      const stylesheet = document.createElement("link");
-      stylesheet.rel = "stylesheet";
-      stylesheet.href = "customer-decision-clarity-v1.css";
-      stylesheet.dataset.ffDecisionClarity = "style";
-      document.head.appendChild(stylesheet);
-    }
-    if (!document.querySelector('script[data-ff-decision-clarity]')) {
-      const script = document.createElement("script");
-      script.src = "customer-decision-clarity-v1.js";
-      script.async = false;
-      script.dataset.ffDecisionClarity = "script";
-      document.head.appendChild(script);
-    }
-  }
-
-  function loadFirstValueAssets() {
-    if (!document.querySelector('link[data-ff-first-value]')) {
-      const stylesheet = document.createElement("link");
-      stylesheet.rel = "stylesheet";
-      stylesheet.href = "customer-first-value-v1.css";
-      stylesheet.dataset.ffFirstValue = "style";
-      document.head.appendChild(stylesheet);
-    }
-    if (!document.querySelector('script[data-ff-first-value]')) {
-      const script = document.createElement("script");
-      script.src = "customer-first-value-v1.js";
-      script.async = false;
-      script.dataset.ffFirstValue = "script";
-      document.head.appendChild(script);
-    }
-  }
-
   function isPlainLeftClick(event) {
     return event.button === 0
       && !event.metaKey
@@ -161,14 +114,8 @@
     observer.observe(main, { childList: true, subtree: true });
   }
 
-  // Customer route ownership prevents a late async completion from an old page
-  // from reclaiming the workspace after the customer has already navigated away.
-  loadRouteOwnershipAssets();
-
-  // Customer clarity layers are presentation-only and are loaded through this
-  // production-safe shell utility rather than through the prototype visual loader.
-  loadDecisionClarityAssets();
-  loadFirstValueAssets();
+  // customer-route-ownership-v1.js, customer-decision-clarity-v1.* and customer-first-value-v1.* are listed in the
+  // page markup (index.html / customer.html); this file loads no other script or stylesheet.
 
   // Reloads and resizes preserve the user's vertical reading position while still
   // protecting the shell from accidental horizontal restoration.
