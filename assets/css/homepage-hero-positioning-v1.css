@@ -158,7 +158,9 @@
     min-height:76px;gap:5px;padding:10px 8px;
   }
   .ff10 .ff10-persona-links a:last-child{min-height:64px}
-  .ff10 .ff10-persona-glyph{display:none}
+  /* Keep the original signal drawings on phones, without stealing text width. */
+  .ff10 .ff10-persona-glyph{display:block;position:absolute;right:9px;top:8px;width:21px;height:21px;opacity:.64}
+  .ff10 .ff10-persona-arrow{align-self:end;margin-top:18px}
   .ff10 .ff10-persona-index{font-size:10px}
   .ff10 .ff10-persona-copy strong{font-size:14px}
   .ff10 .ff10-persona-copy small{font-size:11px;line-height:1.35;margin-top:4px}
