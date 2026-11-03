@@ -8,9 +8,13 @@
 // Usage: JOURNEY_BASE=http://goflipforge.com:4190 JOURNEY_SHOTS=dir node scripts/journey/customer-journey-e2e.mjs
 import { chromium } from "playwright";
 import fs from "node:fs";
+import zlib from "node:zlib";
+import { installMeter, measureRoutes, printRows } from "./render-stability.mjs";
 
 const BASE = (process.env.JOURNEY_BASE || "http://goflipforge.com:4190").replace(/\/$/, "");
-const APP = `${BASE}/app/customer/`;
+// The real customer app for invited testers is /app/beta. JOURNEY_APP_PATH=/app/customer/ runs the owner preview page.
+const APP = `${BASE}${process.env.JOURNEY_APP_PATH || "/app/beta/"}`;
+console.log(`JOURNEY APP ${APP}`);
 const SHOTS = process.env.JOURNEY_SHOTS || "";
 const email = "journey-tenant-a@journey.flipforge.test";
 const CARDS = {
@@ -49,6 +53,7 @@ async function session(tenant, viewport = { width: 1440, height: 1000 }, extra =
   await context.route(/\/assets\/js\/flipforge-identity\.js/, r => r.fulfill({ status: 200, contentType: "text/javascript",
     body: `window.FlipForgeIdentity=Object.freeze({getUser:()=>({email:"${who}"}),getSnapshot:()=>({authenticated:true,email:"${who}",fullName:"Journey Tester",membershipActive:true,membershipConfigured:true}),signOut:async()=>{},refresh:async()=>({authenticated:true,membershipActive:true,email:"${who}"}),noteServerMembership:()=>({authenticated:true,membershipActive:true}),getAccessToken:async()=>"journey"});` }));
   await context.route(/\/assets\/js\/flipforge-production-signin\.js/, r => r.fulfill({ status: 200, contentType: "text/javascript", body: "(() => {})();" }));
+  await installMeter(context);
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", e => errors.push(e.message.slice(0, 200)));
@@ -252,6 +257,30 @@ try {
     await shot(page, "09-forge-heat");
   });
   check("X1 no page errors in the whole journey", errors.length === 0, errors.join(" | "));
+
+  // ---------------- Render stability (idle redraws) and API capture ----------------
+  await step("Render stability", async () => {
+    const captured = [];
+    const onResponse = async response => {
+      const url = new URL(response.url());
+      if (!url.pathname.startsWith("/api/v1/")) return;
+      try {
+        captured.push({ method: response.request().method(), path: url.pathname + url.search, status: response.status(),
+          contentType: response.headers()["content-type"] || "", body: await response.text() });
+      } catch (_) {}
+    };
+    page.on("response", onResponse);
+    const routes = ["dashboard", "discover", "evaluate", "opportunities", `opportunities/${encodeURIComponent(saved.strong.id)}`, "tracking",
+      `tracking/${encodeURIComponent(saved.strong.id)}`, "alerts", "portfolio", "forge-heat", "account"];
+    const rows = await measureRoutes(page, APP, routes);
+    printRows(process.env.JOURNEY_STABILITY_LABEL || "journey", rows);
+    page.off("response", onResponse);
+    const packed = zlib.gzipSync(Buffer.from(JSON.stringify({ tenant: email, saved, captured }))).toString("base64");
+    console.log(`API-CAPTURE-BEGIN ${packed.length}`);
+    for (let i = 0; i < packed.length; i += 4000) console.log(`API-CAPTURE ${packed.slice(i, i + 4000)}`);
+    console.log("API-CAPTURE-END");
+    if (SHOTS) fs.writeFileSync(`${SHOTS}/render-stability.json`, JSON.stringify(rows, null, 2));
+  });
 
   // ---------------- Failed backend request ----------------
   await step("Failure", async () => {
