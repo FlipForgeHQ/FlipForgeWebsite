@@ -63,6 +63,19 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
       await page.locator(`[data-aud-tab="${key}"]`).getAttribute('aria-selected') === 'true'
       && await page.locator(`[data-aud-panel="${key}"]`).isVisible());
   }
+  // Premium strategy console: original vector detail, keyboard focus and an updated decision focus.
+  check(`${name}: five original decision graphics and five strategy descriptions`,
+    await page.locator('.ff10-persona-glyph svg').count() === 5
+    && await page.locator('[data-ff-persona-summary]').count() === 5);
+  await page.locator('[data-ff-audience-target="flipper"]').focus();
+  check(`${name}: keyboard focus updates the Flippers decision focus`,
+    (await page.locator('[data-ff-persona-preview]').innerText()).includes('buying costs')
+    && await page.locator('[data-ff-audience-target="flipper"]').getAttribute('data-ff-persona-emphasis') === 'true');
+  await page.locator('[data-ff-audience-target="grading"]').focus();
+  check(`${name}: keyboard focus updates the Grading decision focus`,
+    (await page.locator('[data-ff-persona-preview]').innerText()).includes('grading costs')
+    && await page.locator('[data-ff-audience-target="grading"]').getAttribute('data-ff-persona-emphasis') === 'true');
+  await page.locator('[data-ff-audience-target="grading"]').click();
   await page.waitForTimeout(900);
   const audienceTop = await page.locator('#who-its-for').evaluate(e => Math.round(e.getBoundingClientRect().top));
   check(`${name}: hero audience links land at the section without hidden content`,

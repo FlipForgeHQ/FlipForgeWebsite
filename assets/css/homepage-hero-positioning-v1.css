@@ -44,26 +44,135 @@
   .ff10-hero-note a{display:inline-block;margin:6px 0 0}
 }
 
-/* Issue 610: first-screen path to the five existing buyer experiences.
- * Small, editorial links inside the existing hero action row; no new feature, claims or palette. */
-.ff10 .ff10-persona-nav{flex:1 1 100%;width:100%;max-width:720px;margin-top:clamp(10px,1.5vw,22px);
-  padding-top:clamp(14px,1.5vw,20px);border-top:1px solid var(--line-d)}
-.ff10 .ff10-persona-title{margin:0 0 12px;font-size:13px;font-weight:700;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--s)}
-.ff10 .ff10-persona-links{display:flex;flex-wrap:wrap;gap:8px}
-.ff10 .ff10-persona-links a{display:inline-flex;align-items:center;justify-content:center;
-  padding:8px 14px;min-height:38px;border:1px solid var(--line-d);border-radius:6px;
-  color:var(--w);font-size:14px;font-weight:700;text-decoration:none;line-height:1.2;
-  background:rgba(255,255,255,.035);transition:border-color .18s,background-color .18s}
-.ff10 .ff10-persona-links a:hover,.ff10 .ff10-persona-links a:focus-visible{
-  border-color:var(--g);background:rgba(212,175,55,.12)}
+/* Premium strategy lens: five ways into the same evidence-first product.
+ * Restrained editorial typography, abstract decision glyphs, and a live detail line.
+ * No external fonts, assets, calls, or unapproved palette entries. */
+.ff10 .ff10-persona-nav{
+  --persona-stroke:rgba(255,255,255,.13);
+  position:relative;isolation:isolate;overflow:hidden;
+  flex:1 1 100%;width:100%;max-width:720px;
+  margin-top:clamp(10px,1.6vw,22px);
+  padding:clamp(18px,2.2vw,28px);
+  border:1px solid rgba(212,175,55,.25);border-radius:14px;
+  background:linear-gradient(135deg,rgba(255,255,255,.065),rgba(255,255,255,.018) 56%,rgba(212,175,55,.045));
+  box-shadow:0 24px 65px rgba(0,0,0,.26);
+}
+.ff10 .ff10-persona-nav::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,var(--g),rgba(212,175,55,.35) 50%,transparent 95%);
+}
+.ff10 .ff10-persona-nav::after{
+  content:"";position:absolute;right:-100px;top:-140px;width:360px;height:360px;z-index:-1;
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(212,175,55,.085),transparent 68%);
+}
+.ff10 .ff10-persona-heading{position:relative;max-width:100%;margin-bottom:clamp(17px,2vw,22px)}
+.ff10 .ff10-persona-kicker{
+  display:flex;align-items:center;gap:9px;margin:0 0 9px;
+  font-size:11px;font-weight:750;letter-spacing:.19em;line-height:1.3;
+  color:var(--g);
+}
+.ff10 .ff10-persona-signal{display:inline-block;flex:none;width:7px;height:7px;
+  border-radius:50%;background:var(--g);box-shadow:0 0 0 4px rgba(212,175,55,.1)}
+.ff10 .ff10-persona-count{margin-left:auto;color:var(--s);font-weight:600;letter-spacing:.13em}
+.ff10 .ff10-persona-title{
+  margin:0;font-size:clamp(21px,2.25vw,29px);line-height:1.18;
+  letter-spacing:-.035em;font-weight:750;color:var(--w);text-wrap:balance;
+}
+.ff10 .ff10-persona-intro{
+  margin:8px 0 0;font-size:clamp(13px,1.05vw,15px);
+  line-height:1.5;color:rgba(255,255,255,.68);
+}
+.ff10 .ff10-persona-links{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;position:relative;
+}
+.ff10 .ff10-persona-links a{
+  display:grid;grid-template-columns:22px minmax(0,1fr) 37px 14px;
+  align-items:center;gap:9px;position:relative;overflow:hidden;
+  min-height:82px;padding:13px 12px 13px 14px;
+  border:1px solid var(--persona-stroke);border-radius:8px;
+  text-align:left;text-decoration:none;color:var(--w);
+  background:rgba(0,0,0,.32);
+  transition:transform .22s ease,background-color .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+.ff10 .ff10-persona-links a:last-child{grid-column:span 2}
+.ff10 .ff10-persona-links a::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--g);transform:scaleY(0);transform-origin:center;
+  transition:transform .3s ease;
+}
+.ff10 .ff10-persona-links a::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:linear-gradient(105deg,transparent 22%,rgba(212,175,55,.045) 80%);
+  transition:opacity .22s ease;
+}
+.ff10 .ff10-persona-links a:hover,
+.ff10 .ff10-persona-links a:focus-visible,
+.ff10 .ff10-persona-links a[data-ff-persona-emphasis="true"]{
+  border-color:rgba(212,175,55,.56);background:rgba(212,175,55,.075);
+  box-shadow:inset 0 0 0 1px rgba(212,175,55,.07);
+}
+.ff10 .ff10-persona-links a:hover,.ff10 .ff10-persona-links a:focus-visible{transform:translateY(-2px)}
+.ff10 .ff10-persona-links a:hover::before,
+.ff10 .ff10-persona-links a:focus-visible::before,
+.ff10 .ff10-persona-links a[data-ff-persona-emphasis="true"]::before{transform:scaleY(1)}
+.ff10 .ff10-persona-links a:hover::after,.ff10 .ff10-persona-links a:focus-visible::after{opacity:1}
+.ff10 .ff10-persona-index{align-self:start;margin-top:4px;font-size:11px;font-weight:700;
+  line-height:1.2;letter-spacing:.08em;color:var(--g);font-variant-numeric:tabular-nums}
+.ff10 .ff10-persona-copy{display:block;min-width:0;position:relative;z-index:1}
+.ff10 .ff10-persona-copy strong{display:block;font-size:clamp(15px,1.3vw,19px);font-weight:750;
+  line-height:1.2;letter-spacing:-.025em;color:var(--w)}
+.ff10 .ff10-persona-copy small{display:block;margin-top:6px;font-size:12px;line-height:1.3;
+  letter-spacing:.015em;color:rgba(255,255,255,.6)}
+.ff10 .ff10-persona-glyph{width:37px;height:37px;color:rgba(212,175,55,.84)}
+.ff10 .ff10-persona-glyph svg{display:block;width:100%;height:100%;
+  transition:transform .32s ease,color .22s ease}
+.ff10 .ff10-persona-links a:hover svg,.ff10 .ff10-persona-links a:focus-visible svg{
+  transform:scale(1.09);color:var(--g);
+}
+.ff10 .ff10-persona-arrow{justify-self:end;align-self:start;line-height:1;
+  font-size:17px;color:rgba(255,255,255,.52);
+  transition:color .22s ease,transform .22s ease}
+.ff10 .ff10-persona-links a:hover .ff10-persona-arrow,
+.ff10 .ff10-persona-links a:focus-visible .ff10-persona-arrow{
+  color:var(--g);transform:translate(2px,-2px);
+}
+.ff10 .ff10-persona-feedback{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px;
+  align-items:center;margin-top:18px;padding-top:14px;
+  border-top:1px solid var(--persona-stroke);
+}
+.ff10 .ff10-persona-feedback-label{font-size:10px;font-weight:750;letter-spacing:.13em;color:var(--g);white-space:nowrap}
+.ff10 .ff10-persona-feedback p{margin:0;min-height:1.4em;color:rgba(255,255,255,.73);
+  font-size:13px;line-height:1.45}
 .ff10 .desktop-nav [data-ff-audience-navigation]{white-space:nowrap}
 .ff10 #who-its-for,.ff10 #demo,.ff10 #inside-the-app{scroll-margin-top:88px}
 @media(max-width:760px){
-  .ff10 .ff10-persona-nav{margin-top:8px;padding-top:14px}
+  .ff10 .ff10-persona-nav{margin-top:10px;padding:16px 13px 14px}
+  .ff10 .ff10-persona-heading{margin-bottom:15px}
+  .ff10 .ff10-persona-title{font-size:22px}
   .ff10 .ff10-persona-links{gap:7px}
-  .ff10 .ff10-persona-links a{min-height:40px;padding:9px 12px;font-size:13px}
+  .ff10 .ff10-persona-links a{
+    grid-template-columns:19px minmax(0,1fr) 12px;
+    min-height:76px;gap:5px;padding:10px 8px;
+  }
+  .ff10 .ff10-persona-links a:last-child{min-height:64px}
+  /* Keep the original signal drawings on phones, without stealing text width. */
+  .ff10 .ff10-persona-glyph{display:block;position:absolute;right:9px;top:8px;width:21px;height:21px;opacity:.64}
+  .ff10 .ff10-persona-arrow{align-self:end;margin-top:18px}
+  .ff10 .ff10-persona-index{font-size:10px}
+  .ff10 .ff10-persona-copy strong{font-size:14px}
+  .ff10 .ff10-persona-copy small{font-size:11px;line-height:1.35;margin-top:4px}
+  .ff10 .ff10-persona-arrow{font-size:14px}
+  .ff10 .ff10-persona-feedback{grid-template-columns:1fr;gap:5px;margin-top:13px;padding-top:12px}
+  .ff10 .ff10-persona-feedback p{font-size:12px}
+}
+@media(max-width:360px){
+  .ff10 .ff10-persona-links a{grid-template-columns:15px minmax(0,1fr) 10px;padding:9px 6px;gap:4px}
+  .ff10 .ff10-persona-copy strong{font-size:13px}
 }
 @media(prefers-reduced-motion:reduce){
-  .ff10 .ff10-persona-links a{transition:none}
+  .ff10 .ff10-persona-links a,.ff10 .ff10-persona-links a::before,.ff10 .ff10-persona-links a::after,
+  .ff10 .ff10-persona-glyph svg,.ff10 .ff10-persona-arrow{transition:none;transform:none!important}
 }
