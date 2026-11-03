@@ -12,7 +12,8 @@ const managementCss = read("saas-prototype/customer-management.css");
 
 const checks = [
   ["saved-decision explain controls are converted to native anchors", consistency.includes("function replaceWithEvidenceLink") && consistency.includes('document.createElement("a")')],
-  ["main Show me why controls are rewritten", consistency.includes('main.querySelectorAll("[data-ff-show-why]")')],
+  // The saved decision page renders its explain action as the native Evidence link itself (customer-opportunities.js).
+  ["main Show me why controls are native Evidence links", read("saas-prototype/customer-opportunities.js").includes('<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Understand this decision →</a>') && !consistency.includes('main.querySelectorAll("[data-ff-show-why]")')],
   ["Guided Mode explain controls are rewritten", consistency.includes('document.getElementById("ff-guided-mode-root")') && consistency.includes('guide?.querySelectorAll("[data-guide-action]")')],
   ["native links target exact saved Evidence route", consistency.includes('return id ? `#/evidence/${encodeURIComponent(id)}` : ""')],
   ["authoritative decision is read only from the saved Card Intelligence hero", consistency.includes('main?.querySelector(".customer-intelligence-hero")') && consistency.includes('hero.querySelectorAll(".staging-status,[data-recommendation]")')],

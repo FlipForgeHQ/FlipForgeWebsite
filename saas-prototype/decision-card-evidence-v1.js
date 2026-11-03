@@ -2,7 +2,6 @@
   "use strict";
 
   if (window.FlipForgeDecisionCardEvidenceV1) return;
-  window.FlipForgeDecisionCardEvidenceV1 = true;
 
   const routeParts = () => String(window.location.hash || "#/dashboard")
     .replace(/^#\/?/, "")
@@ -20,9 +19,8 @@
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
-  // Headings are read, never shown. Pages rendered by an earlier build (cached script, older backend) still carry the
+  // Headings are read, never shown (Decision Intelligence page). Pages rendered by an earlier build (cached script, older backend) still carry the
   // legacy headings, so each lookup accepts the current label and the label it replaced.
-  const ACCEPTED_SALES_LABELS = ["Accepted exact sales", "Matched sales", "Trusted sales"];
   const ACCEPTED_GATE_LABELS = ["Matched exact sales", "Trusted completed sales"];
 
   function labeledValue(root, selector, wantedLabel) {
@@ -30,114 +28,6 @@
     const rows = [...root.querySelectorAll(selector)];
     const match = rows.find((row) => wanted.includes(text(row.querySelector("span"))));
     return match ? text(match.querySelector("strong")) : "Unavailable";
-  }
-
-  function metricValue(root, wantedLabel) {
-    return labeledValue(root, ".customer-intelligence-metrics article", wantedLabel);
-  }
-
-  function summaryValue(root, wantedLabel) {
-    const wanted = Array.isArray(wantedLabel) ? wantedLabel : [wantedLabel];
-    const summary = root.querySelector(".customer-value-summary");
-    if (!summary) return "Unavailable";
-    const nodes = [...summary.children];
-    for (let index = 0; index < nodes.length; index += 1) {
-      if (!wanted.includes(text(nodes[index]))) continue;
-      const next = nodes[index + 1];
-      if (next?.tagName === "STRONG") return text(next);
-    }
-    return "Unavailable";
-  }
-
-  function numericFromPage(root, labels) {
-    const candidates = [...root.querySelectorAll("article,section,div")];
-    for (const candidate of candidates) {
-      const span = text(candidate.querySelector(":scope > span"));
-      if (!labels.includes(span)) continue;
-      const strong = text(candidate.querySelector(":scope > strong"));
-      if (/^\d+$/.test(strong)) return strong;
-    }
-    const pageText = text(root);
-    for (const label of labels) {
-      const match = pageText.match(new RegExp(`${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*(\\d+)`, "i"));
-      if (match) return match[1];
-    }
-    return "Unavailable";
-  }
-
-  // Identity state of the saved card. The card is matched to the exact catalog entry; it is never described as
-  // "verified" (that word is reserved and never applied to identity or to reported sales).
-  function exactIdentityState(root, record) {
-    if (record) return String(record.mappingState || "").toUpperCase() === "CONFIRMED" ? "Exact match" : "Needs review";
-    const page = text(root);
-    if (/catalog link pending|identity needs verification|mapping\s*(?:not confirmed|NOT_CONFIRMED)/i.test(page)) return "Needs review";
-    if (/catalog linked|mapping\s*(?:state\s*)?CONFIRMED|exact identity[^.]{0,30}(?:verified|confirmed)/i.test(page)) return "Exact match";
-    return "Review exact identity";
-  }
-
-  // Risk and confidence come from the saved record the page loaded (governedDecision.risk first), never from text.
-  function scoreFromRecord(record, kind) {
-    const display = window.FlipForgeTrustDisplay;
-    if (!display || !record) return null;
-    return display.scoreText(kind === "risk" ? display.riskValue(record) : display.confidenceValue(record));
-  }
-
-  function opportunityModel() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts.length < 2) return null;
-    const root = document.querySelector("#main-content");
-    const summary = root?.querySelector("[data-ff-decision-summary]");
-    const hero = root?.querySelector(".customer-intelligence-hero");
-    if (!root || !summary || !hero) return null;
-
-    // The hero status is the saved verdict; the summary pill is derived from it and never consulted first.
-    // A legacy result's hero reads "SAVED BUY" (customer-trust-display-v1.js); the verdict is the last word either way.
-    const heroStatus = text(hero.querySelector(".staging-status")).toUpperCase().replace(/^SAVED\s+/, "");
-    const decision = ["BUY", "WATCH", "VERIFY", "PASS"].find(value => value === heroStatus) || "UNKNOWN";
-    const identity = text(hero.querySelector(".customer-hero-title h2")) || "Saved card";
-    const identityDetail = text(hero.querySelector(".customer-hero-copy > p"));
-    const reasonParagraphs = [...summary.querySelectorAll(".ff-decision-summary-main > p")]
-      .filter((node) => !node.classList.contains("ff-decision-next"));
-    const why = text(reasonParagraphs[0]) || "FlipForge preserved the server-owned decision.";
-    const change = text(summary.querySelector(".ff-decision-next")).replace(/^what you should do next:\s*/i, "") || "Material new evidence or price/risk changes require a fresh evaluation.";
-    // Sale records are no longer kept: the card page then shows the saved receipt's own count "at decision"
-    // (customer-opportunities.js). The passport says the same, never today's 0 next to a saved BUY.
-    const atDecision = root.querySelector("[data-sales-at-decision]")?.getAttribute("data-sales-at-decision");
-    const accepted = atDecision === undefined || atDecision === null
-      ? numericFromPage(root, ACCEPTED_SALES_LABELS)
-      : /^\d+$/.test(atDecision) ? `${atDecision} at decision` : "Not recorded";
-    const excluded = numericFromPage(root, ["Visible but ineligible", "Excluded from authority"]);
-    // customer-decision-clarity-v1.js renames the ask label to "Ask when evaluated" (formerly "Listing price") and "Risk" to "Decision risk";
-    // both labels are accepted, and the saved record is read first.
-    const record = window.FlipForgeTrustDisplay?.recordFor(hero) || null;
-    const ask = summaryValue(root, ["Ask when evaluated", "Listing price", "Current ask"]);
-    const supportedValue = summaryValue(root, "Supported value");
-    const confidence = scoreFromRecord(record, "confidence") || metricValue(root, "Confidence");
-    const risk = scoreFromRecord(record, "risk") || metricValue(root, ["Decision risk", "Risk"]);
-    const observed = text(hero.querySelector(".customer-tracked-state small")) || "Saved server observation";
-    const id = encodeURIComponent(parts[1]);
-
-    return {
-      root,
-      anchor: summary,
-      decision,
-      identity: identityDetail && identityDetail !== identity ? `${identity} · ${identityDetail}` : identity,
-      why,
-      change,
-      accepted,
-      excluded,
-      ask,
-      supportedValue,
-      confidence,
-      risk,
-      exactIdentity: exactIdentityState(root, record),
-      legacy: Boolean(hero.querySelector("[data-ff-legacy-result]") || root.querySelector(".customer-intelligence-hero [data-ff-legacy-result]")),
-      economics: economicsOf(root),
-      observed,
-      evidenceHref: `#/evidence/${id}`,
-      trackingHref: `#/tracking/${id}`,
-      receiptMode: "reference"
-    };
   }
 
   function decisionIntelligenceModel() {
@@ -243,7 +133,8 @@
     return "New exact evidence, changes to the listing price or costs, or a resolved identity/risk question require a new evaluation. The saved original decision stays unchanged.";
   }
 
-  function render(model) {
+  // The passport's inner HTML for a model of the saved verdict. Wording only; nothing here is a calculation.
+  function innerMarkup(model) {
     const evidence = evidenceSummary(model);
     const impact = model.legacy ? legacyImpact(model.decision) : (CARD_IMPACT_COPY[model.decision] || CARD_IMPACT_COPY.UNKNOWN);
     const nextStep = model.legacy ? LEGACY_NEXT_STEP : (NEXT_STEP_COPY[model.decision] || NEXT_STEP_COPY.UNKNOWN);
@@ -253,28 +144,11 @@
       evidence.trusted = "Withheld";
       evidence.excluded = "Original evidence withheld";
     }
-    const signature = JSON.stringify([
-      model.decision, model.identity, model.why, model.change, model.accepted, model.excluded,
-      model.ask, model.supportedValue, model.economics, model.confidence, model.risk, model.exactIdentity,
-      model.observed, model.evidenceHref, model.trackingHref, model.receiptMode, model.legacy === true
-    ]);
-
-    let panel = model.root.querySelector("[data-ff-decision-card-evidence]");
-    if (!panel) {
-      panel = document.createElement("section");
-      panel.className = "ff-decision-card-evidence ff-dce-passport-motion";
-      panel.dataset.ffDecisionCardEvidence = "v1";
-      model.anchor.insertAdjacentElement("afterend", panel);
-    }
-    if (panel.dataset.ffDecisionCardSignature === signature) return;
-    panel.dataset.ffDecisionCardSignature = signature;
-    panel.classList.add("ff-dce-passport-motion");
-
     const receiptAction = model.receiptMode === "attached"
       ? '<button type="button" data-ff-open-decision-receipt>Open Decision Receipt</button>'
       : '<span class="ff-dce-boundary">Receipt authority remains server-owned; this beta card does not reconstruct it in the browser.</span>';
 
-    panel.innerHTML = `
+    return `
       <header class="ff-dce-head">
         <div>
           <span class="ff-dce-kicker">CARD DECISION INTELLIGENCE™</span>
@@ -328,21 +202,44 @@
       <details class="ff-dce-layers">
         <summary><span><strong>View the 7 evidence layers</strong><small>Identity → Evidence → Economics → Risk → Decision → Traceback → Outcome</small></span><span aria-hidden="true">＋</span></summary>
         <ol>
-          <li data-cdi-layer="identity"><span class="ff-dce-number">01</span><div><strong>Identity Intelligence</strong><p>${escapeHtml(model.identity)}</p><small>Exact identity: ${escapeHtml(model.exactIdentity)}</small></div></li>
-          <li data-cdi-layer="evidence"><span class="ff-dce-number">02</span><div><strong>Evidence Intelligence</strong><p>${escapeHtml(evidence.trusted)} · ${escapeHtml(evidence.excluded)}</p><small>Only authority-eligible exact completed-sale evidence can support value.</small><a href="${escapeHtml(model.evidenceHref)}">Open full evidence trail →</a></div></li>
-          <li data-cdi-layer="economics"><span class="ff-dce-number">03</span><div><strong>Economic Intelligence</strong><p>${escapeHtml(model.ask)} ask · ${escapeHtml(model.supportedValue)} supported value</p><small>This surface presents server-owned economics and does not infer profit or recompute value.</small></div></li>
-          <li data-cdi-layer="risk"><span class="ff-dce-number">04</span><div><strong>Risk + Uncertainty Intelligence</strong><p>${escapeHtml(model.risk)} · confidence ${escapeHtml(model.confidence)}</p><small>Unresolved evidence remains visible instead of being converted into false certainty.</small></div></li>
-          <li data-cdi-layer="decision"><span class="ff-dce-number">05</span><div><strong>Decision Intelligence</strong><p>${escapeHtml(model.decision)} — ${escapeHtml(model.why)}</p><small>${escapeHtml(model.change)}</small></div></li>
-          <li data-cdi-layer="traceback"><span class="ff-dce-number">06</span><div><strong>Traceback Intelligence</strong><p>${escapeHtml(model.observed)}</p><small>The receipt preserves what the governed system knew and returned.</small>${receiptAction}</div></li>
-          <li data-cdi-layer="outcome"><span class="ff-dce-number">07</span><div><strong>Outcome Intelligence</strong><p>Track what happened after the decision.</p><small>Use the governed Tracking workflow for 7 / 14 / 30 outcome review.</small><a href="${escapeHtml(model.trackingHref)}">Continue to Tracking →</a></div></li>
+          <li data-cdi-layer="identity" style="--ff-dce-i:0"><span class="ff-dce-number">01</span><div><strong>Identity Intelligence</strong><p>${escapeHtml(model.identity)}</p><small>Exact identity: ${escapeHtml(model.exactIdentity)}</small></div></li>
+          <li data-cdi-layer="evidence" style="--ff-dce-i:1"><span class="ff-dce-number">02</span><div><strong>Evidence Intelligence</strong><p>${escapeHtml(evidence.trusted)} · ${escapeHtml(evidence.excluded)}</p><small>Only eligible exact completed-sale evidence can support value.</small><a href="${escapeHtml(model.evidenceHref)}">Open full evidence trail →</a></div></li>
+          <li data-cdi-layer="economics" style="--ff-dce-i:2"><span class="ff-dce-number">03</span><div><strong>Economic Intelligence</strong><p>${escapeHtml(model.ask)} ask · ${escapeHtml(model.supportedValue)} supported value</p><small>This surface presents server-owned economics and does not infer profit or recompute value.</small></div></li>
+          <li data-cdi-layer="risk" style="--ff-dce-i:3"><span class="ff-dce-number">04</span><div><strong>Risk + Uncertainty Intelligence</strong><p>${escapeHtml(model.risk)} · confidence ${escapeHtml(model.confidence)}</p><small>Unresolved evidence remains visible instead of being converted into false certainty.</small></div></li>
+          <li data-cdi-layer="decision" style="--ff-dce-i:4"><span class="ff-dce-number">05</span><div><strong>Decision Intelligence</strong><p>${escapeHtml(model.decision)} — ${escapeHtml(model.why)}</p><small>${escapeHtml(model.change)}</small></div></li>
+          <li data-cdi-layer="traceback" style="--ff-dce-i:5"><span class="ff-dce-number">06</span><div><strong>Traceback Intelligence</strong><p>${escapeHtml(model.observed)}</p><small>The receipt preserves what the governed system knew and returned.</small>${receiptAction}</div></li>
+          <li data-cdi-layer="outcome" style="--ff-dce-i:6"><span class="ff-dce-number">07</span><div><strong>Outcome Intelligence</strong><p>Track what happened after the decision.</p><small>Use the governed Tracking workflow for 7 / 14 / 30 outcome review.</small><a href="${escapeHtml(model.trackingHref)}">Continue to Tracking →</a></div></li>
         </ol>
       </details>`;
+  }
 
-    [...panel.querySelectorAll(".ff-dce-layers li")].forEach((item,index)=>item.style.setProperty("--ff-dce-i",String(index)));
+  // A renderer that owns its page (customer-opportunities.js, saved decision) places the whole section itself.
+  function markup(model) {
+    return `<section class="ff-decision-card-evidence ff-dce-passport-motion" data-ff-decision-card-evidence="v1">${innerMarkup(model)}</section>`;
+  }
+
+  // Decision Intelligence page: the passport follows that page's verdict block.
+  function render(model) {
+    const signature = JSON.stringify([
+      model.decision, model.identity, model.why, model.change, model.accepted, model.excluded,
+      model.ask, model.supportedValue, model.economics, model.confidence, model.risk, model.exactIdentity,
+      model.observed, model.evidenceHref, model.trackingHref, model.receiptMode, model.legacy === true
+    ]);
+    let panel = model.root.querySelector("[data-ff-decision-card-evidence]");
+    if (!panel) {
+      panel = document.createElement("section");
+      panel.className = "ff-decision-card-evidence ff-dce-passport-motion";
+      panel.dataset.ffDecisionCardEvidence = "v1";
+      model.anchor.insertAdjacentElement("afterend", panel);
+    }
+    if (panel.dataset.ffDecisionCardSignature === signature) return;
+    panel.dataset.ffDecisionCardSignature = signature;
+    panel.classList.add("ff-dce-passport-motion");
+    panel.innerHTML = innerMarkup(model);
   }
 
   function enhance() {
-    const model = opportunityModel() || decisionIntelligenceModel();
+    const model = decisionIntelligenceModel();
     if (model) render(model);
   }
 
@@ -367,6 +264,7 @@
     });
   };
 
+  window.FlipForgeDecisionCardEvidenceV1 = Object.freeze({ markup, economicsLabels: ECONOMICS_LABELS });
   window.addEventListener("hashchange", schedule);
   document.addEventListener("DOMContentLoaded", schedule, { once: true });
   new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true, characterData: true });

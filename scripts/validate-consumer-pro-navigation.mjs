@@ -33,7 +33,8 @@ check("Discover precedes Forge Heat", nav.indexOf('data-route="discover"') < nav
 const betaNav = (betaHtml.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0];
 check("Private Beta navigation lists exactly the founder's beta menu", [...betaNav.matchAll(/data-route="([^"]+)"/g)].map(match => match[1]).join(",") === "dashboard,discover,opportunities,tracking,alerts,portfolio,forge-heat,account");
 check("Compare capability remains mounted", html.includes('src="customer-compare.js"'));
-check("Evidence/PSA capability remains mounted", html.includes('src="customer-explainability.js"') && html.includes('src="customer-opportunities-bridge.js"'));
+// Saved-decision explanations (metric help, supported-value note) are rendered by customer-opportunities.js.
+check("Evidence/PSA capability remains mounted", html.includes('src="customer-opportunities.js"') && html.includes('src="customer-opportunities-bridge.js"') && html.includes('href="customer-explainability.css"'));
 check("Audit export capability remains mounted", html.includes('src="customer-export.js"'));
 check("Primary nav describes core workflow", betaNav.includes('aria-label="Core FlipForge workflow"') && nav.includes('aria-label="FlipForge customer navigation"'));
 check("Advanced navigation stylesheet mounted", html.includes('href="consumer-pro-navigation.css"'));

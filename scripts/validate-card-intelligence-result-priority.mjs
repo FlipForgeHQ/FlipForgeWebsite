@@ -5,7 +5,10 @@ const saveFlow = fs.readFileSync(new URL("../saas-prototype/customer-save-flow-v
 const saveFlowCss = fs.readFileSync(new URL("../saas-prototype/customer-save-flow-v1.css", import.meta.url), "utf8");
 const flowCss = fs.readFileSync(new URL("../saas-prototype/beta-customer-flow-v2.css", import.meta.url), "utf8");
 const betaFlow = fs.readFileSync(new URL("../saas-prototype/beta-customer-flow-v2.js", import.meta.url), "utf8");
-const clarity = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.js", import.meta.url), "utf8");
+// The saved decision page's clarity (meaning, risk, metrics disclosure, section names) is rendered by its owner,
+// customer-opportunities.js; customer-decision-clarity-v1.js was retired (consolidation, Nov 3 2026).
+const clarity = opportunities;
+const clarityRetired = !fs.existsSync(new URL("../saas-prototype/customer-decision-clarity-v1.js", import.meta.url));
 const clarityCss = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.css", import.meta.url), "utf8");
 const firstValue = fs.readFileSync(new URL("../saas-prototype/customer-first-value-v1.js", import.meta.url), "utf8");
 const firstValueCss = fs.readFileSync(new URL("../saas-prototype/customer-first-value-v1.css", import.meta.url), "utf8");
@@ -27,27 +30,29 @@ const checks = [
   ["detail paints only the requested card that is still in the address bar", opportunities.includes("routeCardId() === state.selectedId")],
   ["detail fast path loads decision evidence and PSA", ["/api/v1/opportunities/${encoded}", "/api/v1/evidence/${encoded}", "/api/v1/psa-advisor/${encoded}"].every(value => opportunities.includes(value))],
   ["detail header keeps only core actions", opportunities.includes("Saved decisions") && opportunities.includes(">Track</a>") && !opportunities.includes("PSA guidance</a><a class=\"button button-secondary\" href=\"#/tracking")],
-  ["save confirmation waits for the Card Intelligence hero", saveFlow.includes('const hero = main.querySelector(".customer-intelligence-hero")') && saveFlow.includes("if (!hero)" )],
-  ["save confirmation is placed after the result hero", saveFlow.includes('hero.insertAdjacentElement("afterend", bar)')],
-  ["decision summary anchors after the result hero before the heading or strip", /const anchor = main\.querySelector\("\[data-ff-saved-decision-bar\]"\) \|\| main\.querySelector\("\.customer-intelligence-hero"\) \|\| main\.querySelector\("\[data-ff-workflow-strip\]"\) \|\| main\.querySelector\("\.page-heading"\);/.test(betaFlow)],
-  ["an early-created summary and its evidence blocks are moved back below the result hero", betaFlow.includes("function keepResultFirst(main)") && betaFlow.includes("keepResultFirst(main);") && betaFlow.includes("[data-ff-decision-card-evidence],[data-ff-beta-cdi-check]") && betaFlow.includes("anchor.after(...group)")],
+  // The owner renders the saved decision page in order: heading, workflow strip, result hero, saved confirmation, the
+  // four checks, then the evidence passport and quick check. Nothing is inserted or moved afterwards.
+  ["save confirmation is rendered by the owner after the result hero", opportunities.includes("${hero}${savedDecisionBar(item)}") && !opportunities.includes("${savedDecisionBar(item)}${hero}") && !saveFlow.includes("ff-saved-decision-bar")],
+  ["saved decision page renders the result first, then the reasons", opportunities.includes('${pageHeading(DETAIL_HEADING, actions)}${workflowStripMarkup("understand")}${hero}${savedDecisionBar(item)}${stack}${passport}${betaDecisionCheck()}')],
+  ["no second coaching summary is built for the saved decision", !betaFlow.includes("data-ff-decision-summary") && !betaFlow.includes("keepResultFirst") && !betaFlow.includes("enhanceSaveConfirmation")],
   ["saved-decision message keeps full row width above actions", saveFlowCss.includes(".ff-saved-decision-bar{") && saveFlowCss.includes("grid-template-columns:minmax(0,1fr)")],
   ["saved-decision actions use a bounded three-column desktop grid", saveFlowCss.includes("grid-template-columns:repeat(3,minmax(0,1fr))") && saveFlowCss.includes("white-space:normal")],
   ["saved-decision actions stack before narrow desktop copy can collapse", saveFlowCss.includes("@media(max-width:820px)") && saveFlowCss.includes(".ff-saved-decision-actions{grid-template-columns:1fr}")],
-  ["duplicate coaching summary is hidden on Card Intelligence detail", flowCss.includes(".customer-intelligence-page .ff-decision-summary") && flowCss.includes("display:none!important")],
+  // Not built, so not hidden: no CSS hides a summary or the deeper evidence sections (guided first run included).
+  ["no CSS hides a coaching summary or deeper evidence on the saved decision", !flowCss.includes("ff-decision-summary") && !flowCss.includes("ff-progressive-advanced") && !betaFlow.includes("ff-progressive-advanced")],
   // Both app pages list these files directly; no script loads another (consolidation, Nov 3 2026).
-  ["decision clarity is listed by both app pages", listedInEveryPage("customer-decision-clarity-v1.js") && listedInEveryPage("customer-decision-clarity-v1.css") && !scrollReset.includes("document.createElement")],
+  ["decision clarity is rendered by the owner; its styles are listed by both app pages", clarityRetired && appPages.every(page => !page.includes('src="customer-decision-clarity-v1.js"')) && listedInEveryPage("customer-decision-clarity-v1.css") && !scrollReset.includes("document.createElement")],
   ["first-value clarity is listed by both app pages", listedInEveryPage("customer-first-value-v1.js") && listedInEveryPage("customer-first-value-v1.css") && !scrollReset.includes("document.createElement")],
   ["prototype visual loader remains production-isolated", prototypeLoader.includes("if (production) return;") && !prototypeLoader.includes("customer-decision-clarity") && !prototypeLoader.includes("customer-first-value")],
-  ["decision clarity is presentation only", !clarity.includes("fetch(") && !clarity.includes("XMLHttpRequest") && clarity.includes("No hidden re-scoring")],
+  ["decision clarity wording stays presentation only", clarity.includes("No hidden re-scoring") && !clarity.includes("XMLHttpRequest")],
   ["first-value layer is presentation only", !firstValue.includes("fetch(") && !firstValue.includes("XMLHttpRequest") && !firstValue.includes("/api/")],
   ["decision clarity defines plain-language BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => clarity.includes(value))],
   ["first-value layer uses the same BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => firstValue.includes(value))],
-  ["decision clarity follows decision value risk why evidence hierarchy", ["Why FlipForge says", "Supported value", "Risk", "View evidence", "Decision details"].every(value => clarity.includes(value))],
+  ["decision clarity follows decision value risk why evidence hierarchy", ["ff-decision-meaning", "Supported value", "Decision risk", "data-ff-cdi-stack-host", "Decision details", "Full evidence &amp; saved decision detail"].every(value => clarity.includes(value))],
   ["raw Card Intelligence metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, market factors and rank")],
   // The saved decision risk is distinguished from the market risk factor, without calling it "final" (2026-10-19).
-  ["saved decision risk is distinguished from the market risk factor", ["Decision risk", "Market risk factor", "saved decision risk"].every(value => clarity.includes(value)) && !clarity.includes("final saved decision risk")],
-  ["decision risk is read from the saved record, never scraped from page text", clarity.includes("window.FlipForgeTrustDisplay.riskValue(record)") && !clarity.includes('replace(/[^0-9.]/g, "")')],
+  ["saved decision risk is labelled as the saved decision risk", ["Decision risk", "saved decision risk"].every(value => clarity.includes(value)) && !clarity.includes("final saved decision risk")],
+  ["decision risk is read from the saved record, never scraped from page text", clarity.includes("trust().riskValue(item)") && !clarity.includes('replace(/[^0-9.]/g, "")')],
   ["Evaluate is reduced to card cost decision first-value flow", ["Card &amp; listing", "All-in cost", "Confirm &amp; evaluate", "Get FlipForge decision"].every(value => evaluation.includes(value)) && !firstValue.includes("installEvaluateFlow") && !evaluation.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow")],
   ["Evaluate result leads with decision supported value cost risk why and next action", ["Your FlipForge decision", "Supported value", "All-in cost", "Risk", "Why", "What to do next"].every(value => evaluation.includes(value))],
   ["Evaluate raw result detail is progressively disclosed", evaluation.includes("data-ff-evaluate-result-details") && evaluation.includes("Raw scores, workflow status, requirements and authority notes")],

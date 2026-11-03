@@ -297,8 +297,9 @@
     holder.innerHTML = built.markup;
     const panel = holder.firstElementChild;
     if (!panel) return;
+    // Placed after the decision and its "saved" confirmation (the bar follows the hero when the page shows one).
     if (existing) existing.replaceWith(panel);
-    else hero.insertAdjacentElement("afterend", panel);
+    else (document.querySelector("#main-content [data-ff-saved-decision-bar]") || hero).insertAdjacentElement("afterend", panel);
   }
 
   function queueRender() {

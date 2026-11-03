@@ -15,7 +15,8 @@ const discovery = read("saas-prototype/customer-discovery.js");
 const standard = read("docs/CUSTOMER_APP_AUDIT_STANDARD.md");
 const firstValue = read("saas-prototype/customer-first-value-v1.js");
 const firstValueCss = read("saas-prototype/customer-first-value-v1.css");
-const decisionClarity = read("saas-prototype/customer-decision-clarity-v1.js");
+// The saved decision page is rendered by its owner (customer-decision-clarity-v1.js retired, Nov 3 2026).
+const savedOwner = read("saas-prototype/customer-opportunities.js");
 const cdi = read("saas-prototype/customer-cdi-signal-stack-v1.js");
 const whyView = read("saas-prototype/customer-why-decision-view-v1.js");
 const lifecycle = read("saas-prototype/customer-lifecycle.js");
@@ -127,13 +128,13 @@ check("Evaluate keeps one governed trust disclosure", (evaluation.match(/How Fli
 // Decision Intelligence / Saved Decision
 check("CDI explanation CTA does not repeat START HERE", !cdi.includes("<span>START HERE</span><strong>Show me why"));
 check("CDI explanation uses one concise reason-trail caption", cdi.includes("Four checks behind this decision."));
-check("Saved Decision never renders both legacy Why and CDI Why owners", decisionClarity.includes('const interactiveWhy = root.querySelector("[data-ff-cdi-stack], [data-ff-cdi-stack-host]")') && decisionClarity.includes('root.querySelector("[data-ff-decision-why]")?.remove()'));
+check("Saved Decision renders one Why owner (the four checks), never a second Why panel", savedOwner.includes("<div data-ff-cdi-stack-host>") && !savedOwner.includes("data-ff-decision-why") && !fs.existsSync(path.join(root, "saas-prototype/customer-decision-clarity-v1.js")));
 check("Why This Decision suppresses duplicate full Decision Intelligence chrome", whyView.includes(".ff-di-controls") && whyView.includes(".ff-di-grid") && whyView.includes("display: none !important"));
 check("Why This Decision routes deeper evidence separately", whyView.includes("Open Evidence Review"));
 
 // Evidence / Outcomes / Saved list
 check("Evidence education is one progressive disclosure, not three coaching cards", cdi.includes('const guide = document.createElement("details")') && cdi.includes("How FlipForge filters evidence") && !cdi.includes("01 · TRUSTED"));
-check("Saved Decisions list does not add a redundant reopen-instruction strip", cdi.includes('document.querySelector("#main-content [data-ff-cdi-returning]")') && cdi.includes("root?.remove()"));
+check("Saved Decisions list does not add a redundant reopen-instruction strip", !savedOwner.includes("data-ff-cdi-returning") && !cdi.includes("data-ff-cdi-returning"));
 check("Outcome Intelligence keeps checkpoints without a duplicate mini-hero", lifecycle.includes("ff-cdi-outcome-flow") && !cdi.includes("data-ff-cdi-outcome-guide") && !lifecycle.includes("<header><span>OUTCOME INTELLIGENCE</span>"));
 // Founder decision (2026-11-03): the Tracking "Decision boundary" note stays visible; "How alerts work" stays a disclosure.
 check("Lifecycle authority notes stay visible to customers", lifecycle.includes('<div class="boundary-note" data-ff-disclosure="decision-boundary"><strong>Decision boundary:</strong>') && lifecycle.includes('<details class="boundary-note ff-trust-note"><summary>How alerts work</summary>'));
