@@ -70,32 +70,6 @@
     if (hero.nextElementSibling !== bar) hero.insertAdjacentElement("afterend", bar);
   }
 
-  function decorateDiscover() {
-    const parts = routeParts();
-    const main = document.querySelector("#main-content");
-    if (parts[0] !== "discover" || !main) return;
-    const page = main.querySelector(".customer-discovery-page");
-    const search = page?.querySelector(".customer-discovery-search");
-    if (!page || !search) return;
-
-    const submit = search.querySelector("[data-customer-discovery-form] button[type='submit']");
-    if (submit && !submit.disabled && /^Search connected sources$/i.test(String(submit.textContent || "").trim())) {
-      submit.textContent = "Search active listings";
-    }
-
-    let note = page.querySelector("[data-ff-discover-persistence-note]");
-    if (!note) {
-      note = document.createElement("div");
-      note.className = "ff-discover-persistence-note";
-      note.dataset.ffDiscoverPersistenceNote = "";
-      search.insertAdjacentElement("afterend", note);
-    }
-    if (note.dataset.ffDiscoverPersistenceReady !== "true") {
-      note.innerHTML = `<span aria-hidden="true">✓</span><div><strong>Searches are temporary; evaluated decisions are saved.</strong> Use <strong>Discover a card</strong> anytime to clear the current Discover workspace and start fresh. Cards you already evaluated stay saved.</div>`;
-      note.dataset.ffDiscoverPersistenceReady = "true";
-    }
-  }
-
   function cleanKnownLimitations() {
     const main = document.querySelector("#main-content");
     if (!main) return;
@@ -138,7 +112,7 @@
   function decorate() {
     if (!eligibleHost()) return;
     decorateSavedDecision();
-    decorateDiscover();
+    // Discover renders its own "searches are temporary" note (customer-discovery.js).
     cleanKnownLimitations();
     observeGuide();
     clarifyGuidedProgress();

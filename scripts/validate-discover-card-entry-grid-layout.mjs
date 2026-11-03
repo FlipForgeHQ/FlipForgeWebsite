@@ -1,9 +1,11 @@
 import fs from "node:fs";
 
-const focusPath = "saas-prototype/guided-discover-focus-fix-v1.js";
+// The card-box focus cue is the Discover owner's (customer-discovery.js) since Nov 3 2026; it only adds a class to the
+// input and inserts no hint into the form grid. The guided builder and serial details span the full grid row.
 const emphasisPath = "saas-prototype/discover-card-entry-emphasis-v1.css";
-const focus = fs.readFileSync(focusPath, "utf8");
 const emphasis = fs.readFileSync(emphasisPath, "utf8");
+const discovery = fs.readFileSync("saas-prototype/customer-discovery.js", "utf8");
+const guidedCss = fs.readFileSync("saas-prototype/beta-guided-discover-v1.css", "utf8");
 
 function requireText(text, expected, message) {
   if (!text.includes(expected)) throw new Error(message);
@@ -13,16 +15,9 @@ function rejectText(text, forbidden, message) {
   if (text.includes(forbidden)) throw new Error(message);
 }
 
-requireText(
-  focus,
-  '(form || label || input).insertAdjacentElement("beforebegin", hint);',
-  "Discover direct hint must be inserted before the form so it cannot consume a form grid column."
-);
-rejectText(
-  focus,
-  '(label || input).insertAdjacentElement("beforebegin", hint);',
-  "Discover direct hint must not be inserted as a child of the form grid."
-);
+rejectText(discovery, 'insertAdjacentElement("beforebegin", hint)', "Discover must not insert a hint into the form grid.");
+if (fs.existsSync("saas-prototype/guided-discover-focus-fix-v1.js")) throw new Error("The focus-fix layer must stay removed.");
+requireText(guidedCss, ".ffguided-entry{grid-column:1/-1", "The guided builder must span the full form row.");
 requireText(
   emphasis,
   '.customer-discovery-form > label:has(input[name="exactCardQuery"]){',

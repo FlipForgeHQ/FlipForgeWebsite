@@ -4,7 +4,6 @@ const layout = fs.readFileSync('saas-prototype/guided-mode-layout-fix-v1.css', '
 const guide = fs.readFileSync('saas-prototype/guided-mode-v1.js', 'utf8');
 const guideCss = fs.readFileSync('saas-prototype/guided-mode-v1.css', 'utf8');
 const compactGuideCss = fs.readFileSync('saas-prototype/guided-mode-compact-v1.css', 'utf8');
-const focusFix = fs.readFileSync('saas-prototype/guided-discover-focus-fix-v1.js', 'utf8');
 const discover = fs.readFileSync('saas-prototype/customer-discovery.js', 'utf8');
 const failures = [];
 
@@ -29,28 +28,24 @@ requireText('Guide highlight no longer draws an intrusive outline', guideCss, 'o
 requireText('Guide highlight label overlay is disabled', guideCss, '.ff-guide-highlight::after{display:none!important}');
 requireText('Mobile Guided Mode keeps progress out of the active task', compactGuideCss, '.ff-guide-progress{display:none!important}');
 requireText('Mobile Guided Mode keeps route navigation reachable', compactGuideCss, '.ff-guide-route-nav{position:sticky!important');
-requireText('runtime guard removes legacy modal node', focusFix, 'document.getElementById(LEGACY_WELCOME_ID)?.remove()');
-requireText('runtime guard removes modal body lock', focusFix, 'classList.remove("ff-guide-modal-open")');
-requireText('runtime guard watches late modal recreation', focusFix, 'new MutationObserver(() => neutralizeLegacyWelcome())');
-requireText('authenticated identity changes re-enforce search first', focusFix, 'flipforge:identity-change');
-requireText('full customer route is recognized before route-driven focus', focusFix, 'FULL_CUSTOMER_PATH');
-requireText('Discover routes still surface the exact-card entry', focusFix, 'function showRouteCue()');
-requireText('full customer route cue preserves governed scroll origin', focusFix, 'showExactCardEntry({ clear: false, scroll: !fullCustomerMode() })');
-requireText('Discover hash changes still surface the route cue', focusFix, 'window.setTimeout(() => showRouteCue(), 120)');
-requireText('explicit card-focus actions still scroll to the input', focusFix, 'showExactCardEntry({ clear: false, scroll: true })');
-requireText('automatic route cue is marked passive', focusFix, 'pendingPassiveSerial = engagementSerial;');
-requireText('submitted searches supersede a pending route cue', focusFix, 'if (event.target?.closest?.(FORM_SELECTOR)) engagementSerial += 1;');
-requireText('typed queries supersede a pending route cue', focusFix, 'if (event.isTrusted && event.target?.matches?.(INPUT_SELECTOR)) engagementSerial += 1;');
-requireText('superseded route cue never scrolls toward the input', focusFix, 'if (passiveCueSuperseded(passiveSince)) return;\n      input.classList.add("ff-discover-direct-input");');
-requireText('route cue stands down once results are on screen', focusFix, 'return Boolean(document.querySelector("#ff-discovery-results"));');
-requireText('route cue runs only before engagement on the current Discover visit', focusFix, 'if (engagementSerial !== routeEntrySerial) return Promise.resolve();');
-requireText('arriving on Discover starts a new engagement window', focusFix, 'routeEntrySerial = engagementSerial;');
-{
-  const guideSrc = fs.readFileSync('saas-prototype/guided-mode-v1.js', 'utf8');
-  requireText('coach follows results once exact results are on screen', guideSrc, 'if (results.nextElementSibling !== coach) results.insertAdjacentElement("afterend", coach);');
-  requireText('coach never re-inserts above results in results-first mode', guideSrc, 'const resultsFirst = Boolean(results) && !hasAssist;');
-}
-requireText('explicit new-card actions still scroll to a cleared input', focusFix, 'showExactCardEntry({ clear: true, scroll: true })');
+// The Discover card-box cue (arrival, "Focus card entry", "+ Start a new card") is the Discover owner's
+// (customer-discovery.js) since Nov 3 2026; guided-discover-focus-fix-v1.js and the Guided Mode welcome modal it
+// removed on sight are gone.
+requireText('Guided Mode creates no welcome modal', guide.includes('ff-guide-modal-backdrop') || guide.includes('function showWelcome') ? '' : 'none', 'none');
+requireText('Guided Mode adds no coach into the Discover page', guide.includes('data-ff-discover-coach') ? '' : 'none', 'none');
+requireText('Guided Mode hands card-box focus to the Discover owner', guide, 'discovery?.focusCardEntry?.()');
+requireText('Guided Mode hands new cards to the Discover owner', guide, 'if (clear) discovery?.startNewCard?.();');
+requireText('full customer route is recognized before route-driven focus', discover, 'function fullCustomerMode()');
+requireText('Discover arrivals still surface the exact-card entry', discover, 'function arrivalCue()');
+requireText('full customer route cue preserves governed scroll origin', discover, 'focusCardEntry({ scroll: !fullCustomerMode(), passiveSerial: serial })');
+requireText('explicit card-focus actions still scroll to the input', discover, 'if (target.closest("[data-ff-focus-card]")) focusCardEntry();');
+requireText('automatic route cue is marked passive', discover, 'const serial = state.engagement;');
+requireText('submitted searches supersede a pending route cue', discover, 'event.preventDefault();\n      state.engagement += 1;');
+requireText('typed queries supersede a pending route cue', discover, 'if (event.isTrusted) state.engagement += 1;');
+requireText('superseded route cue never takes focus', discover, 'if (passiveSerial !== null && passiveSerial !== state.engagement) return;');
+requireText('route cue stands down once results are on screen', discover, 'if (!discoverOwnsSurface() || state.engagement !== serial || state.data) return;');
+requireText('arriving on Discover starts a new engagement window', discover, 'state.arrivalPending = true;');
+requireText('explicit new-card actions clear the workspace and focus the input', discover, 'renderCurrent();\n    focusCardEntry();');
 requireText('Discover still owns the exact-card search form', discover, 'data-customer-discovery-form');
 requireText('Discover still exposes the card identity input', discover, 'name="exactCardQuery"');
 

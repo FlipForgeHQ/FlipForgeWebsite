@@ -42,19 +42,6 @@
     return Object.prototype.hasOwnProperty.call(DECISION_COPY, normalized) ? normalized : "";
   }
 
-  // Display only. The result grid shows the saved risk as "N/100"; read exactly that number. Removing every non-digit
-  // turned "35/100" into 35100, which was clamped and shown as "High — 100/100". Anything else is "Unavailable".
-  function riskLabel(raw) {
-    const match = String(raw || "").match(/^\s*(\d+(?:\.\d+)?)\s*\/\s*100\s*$/);
-    const score = match ? Number(match[1]) : NaN;
-    if (!Number.isFinite(score)) return { label: "Unavailable", score: "" };
-    const bounded = Math.max(0, Math.min(100, score));
-    return {
-      label: bounded >= 70 ? "High" : bounded >= 35 ? "Moderate" : "Low",
-      score: `${score}/100`
-    };
-  }
-
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
   }
@@ -95,179 +82,6 @@
       chip.title = DECISION_COPY[decision];
       chip.setAttribute("aria-label", `${decision}. ${DECISION_COPY[decision]}`);
     });
-  }
-
-  function replaceBoundaryWithTrustNote(root) {
-    const boundary = root.querySelector(".customer-evaluation-page > .boundary-note");
-    if (!boundary || boundary.dataset.ffTrustConverted === "true") return;
-    const details = document.createElement("details");
-    details.className = "ff-trust-note";
-    details.dataset.ffTrustConverted = "true";
-    details.innerHTML = `<summary>How FlipForge protects this decision</summary><p>Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. The browser submits facts only; it cannot accept evidence, silently verify uncertain identity, predict a grade, or authorize a transaction.</p>`;
-    boundary.replaceWith(details);
-  }
-
-  function renameField(form, name, label, hint = "") {
-    const input = form.querySelector(`[name="${name}"]`);
-    const wrapper = input?.closest("label");
-    if (!wrapper) return;
-    const title = wrapper.querySelector(":scope > span");
-    if (title) {
-      const required = input.required ? " *" : "";
-      setText(title, `${label}${required}`);
-    }
-    if (hint) {
-      let small = wrapper.querySelector(":scope > small");
-      if (!small) {
-        small = document.createElement("small");
-        wrapper.appendChild(small);
-      }
-      setText(small, hint);
-    }
-  }
-
-  function groupOptionalEvaluateFields(form) {
-    if (form.querySelector("[data-ff-evaluate-optional]")) return;
-    const names = ["seller", "listingFormat", "endsAt"];
-    const fields = names.map(name => form.querySelector(`[name="${name}"]`)?.closest("label")).filter(Boolean);
-    if (!fields.length) return;
-    const stepThree = [...form.querySelectorAll(".customer-intake-step")][2];
-    if (!stepThree) return;
-    const details = document.createElement("details");
-    details.className = "ff-evaluate-optional";
-    details.setAttribute("data-ff-evaluate-optional", "");
-    details.innerHTML = `<summary>Optional listing details</summary><div class="staging-form-grid"></div>`;
-    const grid = details.querySelector(".staging-form-grid");
-    fields.forEach(field => grid.appendChild(field));
-    stepThree.insertAdjacentElement("beforebegin", details);
-  }
-
-  function polishEvaluateForm(root) {
-    const page = root.querySelector(".customer-evaluation-page");
-    if (!page) return;
-    const heading = page.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Before you buy");
-      setText(heading.querySelector("h1"), "Evaluate a Card");
-      setText(heading.querySelector("p"), "Confirm the exact card, enter the real cost, and let FlipForge return the saved decision.");
-    }
-
-    replaceBoundaryWithTrustNote(root);
-
-    const panel = page.querySelector(".staging-evaluation-panel");
-    if (panel) {
-      setText(panel.querySelector(".panel-header h2"), "Card and listing details");
-      panel.querySelector(".panel-header p")?.remove();
-      panel.querySelector(".panel-header .staging-status")?.remove();
-    }
-
-    const form = page.querySelector("[data-staging-evaluation-form]");
-    if (!form) return;
-    const steps = [...form.querySelectorAll(".customer-intake-step")];
-    const stepCopy = [
-      ["Card & listing", "Use the exact listing and the card identity you actually mean."],
-      ["All-in cost", "Include the costs that affect what you would really pay."],
-      ["Confirm & evaluate", "FlipForge returns the saved decision from the governed engine."]
-    ];
-    steps.forEach((step, index) => {
-      if (!stepCopy[index]) return;
-      setText(step.querySelector("strong"), stepCopy[index][0]);
-      setText(step.querySelector("small"), stepCopy[index][1]);
-    });
-
-    renameField(form, "externalListingId", "Listing ID", "Use the marketplace listing number or other stable listing identifier.");
-    renameField(form, "cardIdentity", "Exact card", "Include year, set, player, card number, parallel, and grade/condition when known.");
-    renameField(form, "listingUrl", "Listing link");
-    renameField(form, "itemPrice", "Price");
-    renameField(form, "buyerPremium", "Buyer premium");
-    renameField(form, "endsAt", "Listing end");
-    groupOptionalEvaluateFields(form);
-
-    const boundaryCheck = form.querySelector(".staging-boundary-check span");
-    if (boundaryCheck) {
-      setText(boundaryCheck, "I understand FlipForge provides decision support. It does not place bids or purchases, predict grades, or silently verify uncertain identity or evidence for me.");
-    }
-    form.querySelector(".staging-form-note")?.remove();
-
-    const submit = form.querySelector('button[type="submit"]');
-    if (submit && !/evaluating/i.test(text(submit))) setText(submit, "Get FlipForge decision");
-  }
-
-  function gridValue(panel, label) {
-    const target = String(label || "").toLowerCase();
-    const row = [...panel.querySelectorAll(".staging-key-grid > div")]
-      .find(item => text(item.querySelector("span")).toLowerCase() === target);
-    return row ? text(row.querySelector("strong")) : "Unavailable";
-  }
-
-  function resultCopy(panel, prefix) {
-    const target = String(prefix || "").toLowerCase();
-    const row = [...panel.querySelectorAll(".staging-result-copy p")]
-      .find(item => text(item.querySelector("strong")).toLowerCase().startsWith(target));
-    if (!row) return "";
-    const clone = row.cloneNode(true);
-    clone.querySelector("strong")?.remove();
-    return text(clone);
-  }
-
-  function collapseEvaluationDetail(panel) {
-    if (panel.querySelector("[data-ff-evaluate-result-details]")) return;
-    const body = panel.querySelector(".panel-body");
-    if (!body) return;
-    const actions = body.querySelector(".staging-form-actions");
-    const detailNodes = [
-      body.querySelector(":scope > .staging-key-grid"),
-      body.querySelector(":scope > .staging-value-intelligence"),
-      body.querySelector(":scope > .staging-result-copy"),
-      body.querySelector(":scope > .boundary-note")
-    ].filter(Boolean);
-    if (!detailNodes.length) return;
-    const details = document.createElement("details");
-    details.className = "ff-evaluate-result-details";
-    details.setAttribute("data-ff-evaluate-result-details", "");
-    details.innerHTML = `<summary><span><strong>More decision detail</strong><small>Raw scores, workflow status, requirements and authority notes</small></span><span aria-hidden="true">+</span></summary><div class="ff-evaluate-result-details-body"></div>`;
-    const target = details.querySelector(".ff-evaluate-result-details-body");
-    detailNodes.forEach(node => target.appendChild(node));
-    if (actions) actions.insertAdjacentElement("beforebegin", details);
-    else body.appendChild(details);
-  }
-
-  function polishEvaluateResult(root) {
-    const panel = root.querySelector(".customer-evaluation-page .staging-evaluation-result");
-    if (!panel || panel.querySelector("[data-ff-evaluate-result-summary]")) return;
-    const decision = exactDecision(text(panel.querySelector(".panel-header .staging-status")));
-    if (!decision) return;
-    const supported = gridValue(panel, "Supported value");
-    const allIn = gridValue(panel, "All-in acquisition");
-    const risk = riskLabel(gridValue(panel, "Risk"));
-    const reason = resultCopy(panel, "Reason") || "Open Card Intelligence to inspect the saved reason trail.";
-    const missing = resultCopy(panel, "Missing requirement");
-    const next = resultCopy(panel, "Next action") || "Open Card Intelligence and review the evidence before acting.";
-
-    // A server semantic replay keeps its "Already evaluated" header: no new evaluation ran.
-    if (!panel.hasAttribute("data-ff-semantic-replay-result")) {
-      setText(panel.querySelector(".panel-header h2"), "Your FlipForge decision");
-      setText(panel.querySelector(".panel-header p"), "Read the answer first. Open Card Intelligence when you want the evidence behind it.");
-    }
-
-    const summary = document.createElement("div");
-    summary.className = "ff-evaluate-result-summary";
-    summary.setAttribute("data-ff-evaluate-result-summary", "");
-    const missingMarkup = missing && !/^none returned\.?$/i.test(missing)
-      ? `<div class="ff-evaluate-caution"><span>Still needed</span><strong>${escapeHtml(missing)}</strong></div>`
-      : "";
-    summary.innerHTML = `<div class="ff-evaluate-answer"><span>Decision</span><strong>${escapeHtml(decision)}</strong><p>${escapeHtml(DECISION_COPY[decision])}</p></div>
-      <div class="ff-evaluate-result-facts">
-        <div><span>Supported value</span><strong>${escapeHtml(supported)}</strong></div>
-        <div><span>All-in cost</span><strong>${escapeHtml(allIn)}</strong></div>
-        <div><span>Risk</span><strong>${escapeHtml(risk.label)}</strong><small>${escapeHtml(risk.score ? `${risk.score} saved score` : "Saved score unavailable")}</small></div>
-      </div>
-      <div class="ff-evaluate-why"><span>Why</span><strong>${escapeHtml(reason)}</strong></div>
-      ${missingMarkup}
-      <div class="ff-evaluate-next"><span>What to do next</span><strong>${escapeHtml(next)}</strong></div>`;
-    const body = panel.querySelector(".panel-body");
-    if (body) body.insertAdjacentElement("afterbegin", summary);
-    collapseEvaluationDetail(panel);
   }
 
   function polishBetaStart(root) {
@@ -349,13 +163,10 @@
     if (!root) return;
     state.applying = true;
     try {
-      // Tracking and Alerts label their own decision chips (customer-lifecycle.js).
-      if (!["tracking", "alerts"].includes(routeName())) annotateDecisionChips(root);
+      // Tracking and Alerts label their own decision chips (customer-lifecycle.js); Evaluate renders its final copy,
+      // result summary and decision-chip meaning itself (staging-evaluation.js).
+      if (!["tracking", "alerts", "evaluate"].includes(routeName())) annotateDecisionChips(root);
       installDecisionKey(root);
-      if (routeName() === "evaluate") {
-        polishEvaluateForm(root);
-        polishEvaluateResult(root);
-      }
       if (routeName() === "beta-start") polishBetaStart(root);
     } finally {
       state.applying = false;

@@ -45,16 +45,15 @@ check("014a zero-decision Home receives explicit simplified state", home.include
 check("014b zero-decision Home hides empty analytics", css.includes(".ff-commercial-dashboard.ff-p3-zero-dashboard .ff-kpi-grid") && css.includes(".ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-main-grid") && css.includes("display:none!important"));
 check("014c first-session Home explains why advanced tools come later", home.includes("Saved-decision analytics, Outcome Intelligence, Portfolio, and other tools become useful after you have real decisions to work with."));
 check("014d first-session Home teaches the same four customer checks", ["Confirm the exact card","Check matched sales","Compare price + uncertainty","Read the decision + receipt"].every(item => home.includes(item)));
-check("014e evaluate rail uses customer language rather than internal layer names", ["Exact card","Matched sales","Price + uncertainty","Decision + receipt"].every(item => js.includes(item)));
 check("014f legacy result education yields to the integrated CDI Signal Stack", js.includes('root.querySelector("[data-ff-cdi-stack-host]")') && js.includes("existingGuide.remove()"));
 
-check("015 real connected Discover form is the animated evaluate entry", js.includes('[data-customer-discovery-form]') && js.includes('routeName() !== "discover"'));
-check("016 evaluate flow visibly stages identity", js.includes('data-stage="identity"') && js.includes("identity-review"));
-check("017 evaluate flow visibly stages evidence", js.includes('data-p3-step="evidence"') && js.includes('return "evidence"'));
-check("018 governed evaluation starts only from native candidate control", js.includes("[data-discovery-evaluate]") && js.includes("phase3_governed_evaluation_started"));
 
 // The saved verdict comes from the Card Intelligence hero (rendered from the saved record) only - never the injected
 // summary pill, which once scraped "BUY" from a legend while a saved WATCH loaded (2026-10-13).
+// Discover has no Phase 3 layer since Nov 3 2026: its step guidance is the owner's workflow strip and its telemetry is
+// beta-session-v1.js (evaluation_started). The phase3_* Discover events were never accepted by /api/conversion-event.
+check("015 Phase 3 adds nothing to the Discover page", !js.includes("enhanceEvaluate") && !js.includes("ff-p3-evaluate-shell") && !js.includes("data-ff-p3-evaluate") && !css.includes(".ff-p3-evaluate"));
+check("018 Phase 3 sends no Discover events", !js.includes("phase3_governed_evaluation_started") && !js.includes("phase3_card_search_submitted") && !js.includes("phase3_identity_selected"));
 check("019 saved result education reads the saved decision from the hero only", js.includes("function decisionFrom(root)")
   && js.includes('root.querySelector(".customer-intelligence-hero")') && !js.includes(".ff-decision-summary-pill"));
 check("020 saved result education does not assign recommendation authority", !/recommendation\s*=|authorityEligible\s*=\s*true/i.test(js));
@@ -67,15 +66,12 @@ check("025 public measurement uses no browser persistence", !/localStorage|sessi
 check("026 app conversion writes only to approved conversion endpoint", js.includes('"/api/conversion-event"') && !/\/api\/v1\/(?:evaluations|opportunities|evidence)[^"']*["']\s*,\s*\{\s*method\s*:\s*"POST"/i.test(js));
 check("027 landing-to-evaluate funnel event exists", publicEvents.includes("phase3_landing_to_evaluate"));
 check("028 app tracks first evaluate click", home.includes("phase3_first_evaluate_clicked") && home.includes('"/api/conversion-event"') && !/localStorage|sessionStorage|indexedDB/i.test(home));
-check("029 app tracks search submission", js.includes("phase3_card_search_submitted"));
-check("030 app tracks identity selection", js.includes("phase3_identity_selected"));
 check("031 app tracks evaluation completion", js.includes("phase3_evaluation_completed"));
 check("032 app tracks evidence inspection", js.includes("phase3_evidence_opened"));
 check("033 app tracks Decision Receipt opening", js.includes("phase3_decision_receipt_opened"));
 
 check("034 premium activation visual exists", css.includes(".ff-p3-activation"));
 check("035 returning user visual exists", css.includes(".ff-p3-returning"));
-check("036 animated evaluate visual exists", css.includes(".ff-p3-evaluate-intro"));
 check("037 first-result education visual exists", css.includes(".ff-p3-result-guide"));
 check("038 mobile responsiveness exists", css.includes("@media(max-width:680px)"));
 check("039 reduced motion fallback exists", css.includes("@media(prefers-reduced-motion:reduce)"));
@@ -85,10 +81,6 @@ check("042 enhanced surfaces use a stable dedicated marker", js.includes("data-f
 check("043 observer callback filters irrelevant or self-owned mutations", js.includes("function mutationMatters(record)") && js.includes("nodeIsPhase3Owned(record.target)") && js.includes("records.some(mutationMatters)"));
 check("044 Phase 3 disconnects observer around its own synchronous DOM writes", js.includes("observer.disconnect()") && js.includes("applyWithoutSelfObservation") && js.includes("observeMain()"));
 check("045 observer no longer unconditionally schedules every mutation", !js.includes("new MutationObserver(schedule)") && js.includes("new MutationObserver(onObservedMutations)"));
-check("046 Phase 3 evaluate rail is isolated from the shared Discover enhancement subtree", js.includes('panel.insertAdjacentElement("beforebegin", shell)') && !js.includes("panel.prepend(shell)"));
-check("047 Discover enhancement marker is written only when its stable value changes", js.includes('panel.getAttribute(ENHANCED_ATTRIBUTE) !== "evaluate"') && js.includes('panel.setAttribute(ENHANCED_ATTRIBUTE, "evaluate")'));
-check("048 Evaluate education collapses when results are actionable", js.includes('ff-p3-evaluate-shell--results-ready') && css.includes('.ff-p3-evaluate-shell--results-ready{display:none!important}'));
-check("049 Evaluate progress no longer draws a vertical gold line", css.includes('.ff-p3-evaluate-intro::after{display:none!important;content:none!important}'));
 
 
 console.log("PASSED: " + passed);

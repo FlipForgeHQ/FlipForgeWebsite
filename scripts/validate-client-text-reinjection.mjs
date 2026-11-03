@@ -44,11 +44,13 @@ function escapeHelperWorks(source, label) {
 }
 
 const targets = [
+  // The Evaluate result summary is rendered by its owner from the server response (Nov 3 2026); every server value
+  // in it is still escaped.
   {
-    file: "saas-prototype/customer-first-value-v1.js",
-    blocks: [["const missingMarkup =", "summary.innerHTML", "evaluate summary missing-requirement markup"],
-      ["summary.innerHTML =", "const body = panel.querySelector", "evaluate summary markup"]],
-    allowed: new Set(["missingMarkup"])
+    file: "saas-prototype/staging-evaluation.js",
+    blocks: [["const caution =", "const summary = known", "evaluate summary missing-requirement markup"],
+      ["const summary = known", "const detail =", "evaluate summary markup"]],
+    allowed: new Set(["caution"])
   },
   {
     file: "saas-prototype/commercial-app-polish-v2.js",

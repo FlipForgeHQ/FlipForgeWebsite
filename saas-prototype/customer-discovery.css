@@ -436,3 +436,13 @@
   display: block;
   margin-top: 6px;
 }
+
+/* Card box focus cue when the customer arrives on Discover or asks for the card box (customer-discovery.js). */
+.ff-discover-direct-input{
+  border-color:#e0b63e!important;
+  box-shadow:0 0 0 3px rgba(226,181,65,.14)!important;
+}
+
+/* Identity check: per-row verification progress for "Select & verify" (customer-discovery.js). */
+.ff-identity-choice-status{display:block;margin-top:8px;color:#c9d0da}
+.ff-identity-choice-status[data-state="error"]{color:#f0a3a3}

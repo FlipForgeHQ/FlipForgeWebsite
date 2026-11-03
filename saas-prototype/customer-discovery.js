@@ -43,8 +43,21 @@
       typedQuery: "",
       requestSerial: 0,
       results: [],
-      message: ""
-    }
+      message: "",
+      // The identity query whose folded variants the customer expanded.
+      expandedQuery: ""
+    },
+    // The last search that returned results: "Refresh results" runs it again.
+    lastSearch: null,
+    // Bumped by every search start and by "New card": a search answer applies only if it is still the latest.
+    discoverSerial: 0,
+    // Private Beta guided card builder and serial-number details (see the card-entry helpers below).
+    guided: { values: { year: "", maker: "", other: "", set: "", player: "", number: "", parallel: "", grader: "", grade: "" }, open: null, message: "" },
+    serial: { numbered: "unknown", denominator: "", serial: "", handedOff: false, error: "" },
+    // Route entry: the card box gets a focus cue when the customer arrives on Discover (unless they already typed).
+    arrivalPending: true,
+    pendingFocus: false,
+    engagement: 0
   };
 
   // The Private Beta page (index.html) and the customer app (customer.html) show the same Discover with different
@@ -184,6 +197,264 @@
       expected: "A value for the card, backed by sold-price evidence.",
       cardReference
     });
+  }
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // Private Beta card-entry helpers. Query helpers only: they never correct an identity, call a provider, or save
+  // evidence. The guided builder writes an exact-card description into the card box; serial numbering typed or chosen
+  // here is checked (impossible or contradictory numbering is refused) and a numbered card always goes through the
+  // server-owned identity check before any listing search.
+
+  // Calendar years plus two-year seasons (basketball/hockey sets are printed as 2025-26), newest first.
+  const GUIDED_YEARS = (() => { const top = new Date().getFullYear() + 1, out = []; for (let y = top; y >= 1880; y -= 1) { if (y < top && y >= 1950) out.push(y + "-" + String((y + 1) % 100).padStart(2, "0")); out.push(String(y)); } return out; })();
+  const GUIDED_MAKERS = ["Topps", "Bowman", "Panini", "Upper Deck", "Donruss", "Fleer", "Score", "Leaf", "O-Pee-Chee", "Other"];
+  const GUIDED_GRADERS = ["PSA", "BGS", "SGC", "CGC", "CSG", "TAG", "BCCG"];
+  const GUIDED_GRADES = ["10", "9.5", "9", "8.5", "8", "7.5", "7", "6.5", "6", "5.5", "5", "4.5", "4", "3.5", "3", "2.5", "2", "1.5", "1"];
+  const SERIAL_NUMBER = /^\d{1,5}$/;
+
+  function guidedNorm(value) {
+    return String(value || "").trim().replace(/\s+/g, " ");
+  }
+
+  function composeGuided(d) {
+    const year = guidedNorm(d.year), maker = guidedNorm(d.maker === "Other" ? d.other : d.maker), set = guidedNorm(d.set),
+      player = guidedNorm(d.player), number = guidedNorm(d.number).replace(/^(?:#|No\.?\s*)/i, ""), parallel = guidedNorm(d.parallel),
+      grader = guidedNorm(d.grader), grade = guidedNorm(d.grade);
+    const season = year.match(/^(\d{4})-(\d{2})$/); const startYear = season ? +season[1] : +year;
+    if (!/^\d{4}(?:-\d{2})?$/.test(year) || startYear < 1880 || startYear > new Date().getFullYear() + 1 || (season && (startYear + 1) % 100 !== +season[2])) return { error: "Choose a release year." };
+    if (!maker || !set || !player) return { error: "Manufacturer, set/product and player are needed to distinguish cards." };
+    if (!/^[A-Za-z0-9][A-Za-z0-9.-]{0,35}$/.test(number)) return { error: "Enter the exact card number (for example, 150 or PC-19)." };
+    if ((grader && !grade) || (!grader && grade)) return { error: "Choose both grading company and numeric grade, or leave both unspecified." };
+    const query = [year, maker, set, player, "#" + number, parallel, grader ? grader + " " + grade : ""].filter(Boolean).join(" ");
+    return query.length > 500 ? { error: "Shorten the card description." } : { query };
+  }
+
+  function parseNumbering(query) {
+    const text = String(query || "");
+    // 01/25, /25, numbered to 25. Do not mistake the grade in "PSA 9 /25" for serial #9.
+    // Require the ordinal and slash to be adjacent; exclude 2018/19 season forms.
+    const full = /(^|[\s(])(\d{1,5})\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    let match;
+    while ((match = full.exec(text)) !== null) {
+      const serial = Number(match[2]), denominator = Number(match[3]);
+      if (/^(?:19|20)\d{2}$/.test(match[2]) && match[3].length === 2) continue;
+      if (serial > 0 && denominator > 0 && serial <= denominator) {
+        const prefix = match[1];
+        return { denominator: String(denominator), serial: String(serial), start: match.index + prefix.length, end: match.index + match[0].length, token: match[0].slice(prefix.length) };
+      }
+    }
+    const suffix = /(^|[\s(])\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    while ((match = suffix.exec(text)) !== null) {
+      if (Number(match[2]) > 0) {
+        const prefix = match[1];
+        return { denominator: String(Number(match[2])), serial: "", start: match.index + prefix.length, end: match.index + match[0].length, token: match[0].slice(prefix.length) };
+      }
+    }
+    const words = /\bnumbered\s+to\s+(\d{1,5})\b/i.exec(text);
+    if (words && Number(words[1]) > 0) return { denominator: String(Number(words[1])), serial: "", start: words.index, end: words.index + words[0].length, token: words[0] };
+    return null;
+  }
+
+  // Every slash-numbering expression in the text, valid or not, so an impossible serial such as 26/25 or 0/25 is
+  // refused instead of slipping through as ordinary words.
+  function scanNumbering(query) {
+    const text = String(query || "");
+    const valid = [], invalid = [];
+    const full = /(^|[\s(])(\d{1,5})\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    let match;
+    while ((match = full.exec(text)) !== null) {
+      if (/^(?:19|20)\d{2}$/.test(match[2]) && match[3].length === 2) continue; // season, e.g. 2018/19
+      const serial = Number(match[2]), denominator = Number(match[3]);
+      if (serial > 0 && denominator > 0 && serial <= denominator) valid.push({ serial, denominator });
+      else invalid.push(match[0].trim());
+    }
+    const suffix = /(^|[\s(])\/\s*(\d{1,5})(?=$|[\s)\],.;])/g;
+    while ((match = suffix.exec(text)) !== null) {
+      const denominator = Number(match[2]);
+      if (denominator > 0) valid.push({ serial: 0, denominator });
+      else invalid.push(match[0].trim());
+    }
+    return { valid, invalid };
+  }
+
+  function composeSerial(query, selection = { numbered: "unknown", denominator: "", serial: "" }) {
+    const source = String(query || "").trim().replace(/\s+/g, " ");
+    if (!source) return { error: "Enter the card you want to find first." };
+    if (source.length > 500) return { error: "The search is too long. Shorten it before searching." };
+    const numbered = selection.numbered || "unknown";
+    const denominatorText = String(selection.denominator || "").trim();
+    const serialText = String(selection.serial || "").trim();
+    const existing = parseNumbering(source);
+    if (!["unknown", "yes", "no"].includes(numbered)) return { error: "Choose whether the card is numbered." };
+    // Fail closed on impossible or contradictory numbering however it was entered and whatever the selector says.
+    const scan = scanNumbering(source);
+    if (scan.invalid.length) {
+      return { error: "The serial number “" + scan.invalid[0] + "” is not possible: the individual number cannot be zero or exceed the print run. Check what is printed on the card." };
+    }
+    if (new Set(scan.valid.map(entry => entry.denominator)).size > 1) {
+      return { error: "The search names more than one print run. Keep only the one printed on the card." };
+    }
+    const ordinals = new Set(scan.valid.filter(entry => entry.serial).map(entry => entry.serial));
+    if (ordinals.size > 1) return { error: "The search names more than one individual serial number. Keep only the one printed on the card." };
+    if (numbered === "no" && existing) {
+      return { error: "Your search already contains serial numbering. Choose Numbered or correct your search." };
+    }
+    if (numbered !== "yes") return { query: source, needsVerification: Boolean(existing) };
+    if (denominatorText && (!SERIAL_NUMBER.test(denominatorText) || Number(denominatorText) === 0)) {
+      return { error: "Enter the print run as a positive whole number, such as 25 or 50." };
+    }
+    if (serialText && (!SERIAL_NUMBER.test(serialText) || Number(serialText) === 0)) {
+      return { error: "The card's individual serial must be a positive whole number." };
+    }
+    const denominator = denominatorText ? Number(denominatorText) : Number(existing?.denominator || 0);
+    const serial = serialText ? Number(serialText) : Number(existing?.serial || 0);
+    if (!denominator) return { error: "Enter the print run shown after the slash, such as 25 in 01/25." };
+    if (serial && serial > denominator) return { error: "The individual serial cannot exceed the print run." };
+    if (existing && Number(existing.denominator) !== denominator) {
+      return { error: "The print run you selected conflicts with the one in the search. Correct the mismatch before continuing." };
+    }
+    if (existing?.serial && serialText && Number(existing.serial) !== serial) {
+      return { error: "The individual serial conflicts with the number in the search. Confirm what is printed on the card." };
+    }
+    let composed = source;
+    if (!existing) composed += " " + (serialText ? serialText + "/" : "/") + denominator;
+    else if (serialText && !existing.serial) {
+      composed = source.slice(0, existing.start) + serialText + "/" + denominator + source.slice(existing.end);
+    }
+    if (composed.length > 500) return { error: "The complete card search exceeds 500 characters. Shorten the description." };
+    return { query: composed, needsVerification: true, denominator: String(denominator), serial: serialText || existing?.serial || "" };
+  }
+
+  function guidedOptions(items, current) {
+    return items.map(value => `<option value="${escapeHtml(value)}"${value === current ? " selected" : ""}>${escapeHtml(value)}</option>`).join("");
+  }
+
+  // Beta: the guided card builder at the top of the search form. Open by default above 960px wide.
+  function guidedBuilderMarkup() {
+    if (!betaSurface()) return "";
+    const values = state.guided.values;
+    const open = state.guided.open === null
+      ? !(typeof window.matchMedia === "function" && window.matchMedia("(max-width:960px)").matches)
+      : state.guided.open;
+    const field = (label, key, placeholder, max = 110) => `<label>${label}<input data-ffguided-field="${key}" value="${escapeHtml(values[key])}" maxlength="${max}" placeholder="${escapeHtml(placeholder)}" autocomplete="off"></label>`;
+    const picker = (label, key, items, empty) => `<label>${label}<select data-ffguided-field="${key}"><option value="">${escapeHtml(empty)}</option>${guidedOptions(items, values[key])}</select></label>`;
+    return `<details class="ffguided-entry" data-ffguided${open ? " open" : ""}><summary><span>GUIDED SEARCH</span><strong>Choose the card details</strong><small>Or type directly in the search below.</small></summary><fieldset class="ffguided-fields"><legend>Build an exact-card description</legend><p>These help you write the card description. They don’t confirm the exact card: after filling, search listings, or use <b>Check card identity</b> if you’re unsure of the version.</p><div class="ffguided-grid">${picker("Year or season", "year", GUIDED_YEARS, "Select year")}${picker("Manufacturer", "maker", GUIDED_MAKERS, "Select manufacturer")}<label class="ffguided-other"${values.maker === "Other" ? "" : " hidden"}>Other manufacturer<input data-ffguided-field="other" maxlength="70" value="${escapeHtml(values.other)}" placeholder="As printed on card"></label>${field("Set / product", "set", "e.g. Chrome, Prizm, Series 1")}${field("Player / subject", "player", "e.g. Shohei Ohtani")}${field("Card number", "number", "e.g. 150 or PC-19", 36)}${field("Parallel / variation (optional)", "parallel", "e.g. Silver")}${picker("Grading company", "grader", GUIDED_GRADERS, "Unspecified / raw")}${picker("Grade", "grade", GUIDED_GRADES, "Not specified")}</div><div class="ffguided-actions"><button type="button" class="button button-primary" data-ffguided-build>Fill card description ↓</button><small role="status" aria-live="polite" data-ffguided-message>${escapeHtml(state.guided.message || "Anything not listed here can still be typed in the search below.")}</small></div></fieldset></details>`;
+  }
+
+  // Beta: optional serial-number details beside the card box, offered until a search is handed to the results flow.
+  function serialEntryAvailable() {
+    return betaSurface() && !state.serial.handedOff && !state.data && !state.identityAssist.active;
+  }
+
+  function serialHint() {
+    return state.serial.numbered === "yes"
+      ? "Use 25 for /25, or 50 for /50. The individual serial (such as 01) is optional. This is a matching detail, not a price multiplier."
+      : "Search first. FlipForge will ask you to confirm the exact parallel and print run when needed.";
+  }
+
+  function serialEntryMarkup() {
+    if (!serialEntryAvailable()) {
+      return state.serial.error ? `<p class="ff-serial-error" role="alert" aria-live="polite" data-ff-serial-error>${escapeHtml(state.serial.error)}</p>` : "";
+    }
+    const serial = state.serial;
+    const option = (value, label) => `<option value="${value}"${serial.numbered === value ? " selected" : ""}>${label}</option>`;
+    return `<section class="ff-serial-refinement" data-ff-serial-refinement aria-label="Optional serial-number details"><div class="ff-serial-head"><label class="ff-serial-choice" for="ff-serial-status">Serial-numbered card? <span class="ff-serial-optional">Optional</span></label><select id="ff-serial-status" data-ff-serial-status aria-label="Is this card serial numbered?">${option("unknown", "Not sure")}${option("no", "No")}${option("yes", "Yes — e.g. /25, /50, 1/1")}</select></div><div class="ff-serial-fields" data-ff-serial-fields${serial.numbered === "yes" ? "" : " hidden"}><label><span>Print run (out of)</span><input data-ff-serial-denominator inputmode="numeric" type="text" maxlength="5" placeholder="25" value="${escapeHtml(serial.denominator)}"></label><label><span>Serial # (optional)</span><input data-ff-serial-ordinal inputmode="numeric" type="text" maxlength="5" placeholder="01" value="${escapeHtml(serial.serial)}"></label></div><p class="ff-serial-hint" data-ff-serial-hint>${escapeHtml(serialHint())}</p><p class="ff-serial-error" role="alert" aria-live="polite" data-ff-serial-error${serial.error ? "" : " hidden"}>${escapeHtml(serial.error)}</p></section>`;
+  }
+
+  function resetSerialEntry() {
+    state.serial = { numbered: "unknown", denominator: "", serial: "", handedOff: false, error: "" };
+  }
+
+  function showSerialError(message) {
+    state.serial.error = message || "";
+    const node = state.main?.querySelector?.("[data-ff-serial-error]");
+    if (node && state.serial.error) {
+      node.textContent = state.serial.error;
+      node.hidden = false;
+      return;
+    }
+    renderCurrent();
+  }
+
+  // Beta: check the numbering in the card box (and the optional serial details) before a search or identity check.
+  // Returns false when the search must not start. A numbered card is routed through the identity check.
+  function prepareBetaSearch(form, viaIdentityCheck) {
+    if (!betaSurface()) return { proceed: true, identityCheck: viaIdentityCheck };
+    const input = form?.querySelector?.('input[name="exactCardQuery"]');
+    if (!input) return { proceed: false };
+    const sectionShown = Boolean(form.querySelector("[data-ff-serial-refinement]"));
+    const result = composeSerial(input.value, sectionShown ? state.serial : undefined);
+    if (result.error) {
+      showSerialError(result.error);
+      return { proceed: false };
+    }
+    state.serial.error = "";
+    if (sectionShown && input.value !== result.query) {
+      input.value = result.query;
+      // Invalidates any stale identity selection (the request guard and this owner both listen for input).
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    if (!sectionShown) return { proceed: true, identityCheck: viaIdentityCheck };
+    state.serial.handedOff = true;
+    return { proceed: true, identityCheck: viaIdentityCheck || result.needsVerification === true };
+  }
+
+  function bindBetaEntry(form) {
+    const details = form?.querySelector?.("[data-ffguided]");
+    if (details) {
+      const remember = event => {
+        const field = event.target.closest?.("[data-ffguided-field]");
+        if (!field) return;
+        state.guided.values[field.dataset.ffguidedField] = field.value;
+        if (field.dataset.ffguidedField === "maker") {
+          const other = details.querySelector(".ffguided-other");
+          if (other) other.hidden = field.value !== "Other";
+        }
+      };
+      details.addEventListener("input", remember);
+      details.addEventListener("change", remember);
+      details.addEventListener("toggle", () => { state.guided.open = details.open; });
+      details.querySelector("[data-ffguided-build]")?.addEventListener("click", () => {
+        const result = composeGuided(state.guided.values);
+        const status = details.querySelector("[data-ffguided-message]");
+        const query = form.querySelector('input[name="exactCardQuery"]');
+        if (result.error) {
+          state.guided.message = result.error;
+          if (status) status.textContent = result.error;
+          return;
+        }
+        if (!query) return;
+        query.value = result.query;
+        query.dispatchEvent(new Event("input", { bubbles: true }));
+        state.guided.message = "Description filled below. Check it, then search listings.";
+        if (status) status.textContent = state.guided.message;
+        details.open = false;
+        try { query.focus({ preventScroll: true }); } catch (_) { query.focus(); }
+      });
+    }
+    const section = form?.querySelector?.("[data-ff-serial-refinement]");
+    if (!section) return;
+    const select = section.querySelector("[data-ff-serial-status]");
+    const denominator = section.querySelector("[data-ff-serial-denominator]");
+    const ordinal = section.querySelector("[data-ff-serial-ordinal]");
+    const clearError = () => {
+      state.serial.error = "";
+      const node = section.querySelector("[data-ff-serial-error]");
+      if (node) { node.textContent = ""; node.hidden = true; }
+    };
+    select?.addEventListener("change", () => {
+      state.serial.numbered = select.value;
+      if (state.serial.numbered !== "yes") { state.serial.denominator = ""; state.serial.serial = ""; }
+      if (denominator) denominator.value = state.serial.denominator;
+      if (ordinal) ordinal.value = state.serial.serial;
+      const fields = section.querySelector("[data-ff-serial-fields]");
+      if (fields) fields.hidden = state.serial.numbered !== "yes";
+      const hint = section.querySelector("[data-ff-serial-hint]");
+      if (hint) hint.textContent = serialHint();
+      clearError();
+    });
+    denominator?.addEventListener("input", () => { state.serial.denominator = denominator.value; clearError(); });
+    ordinal?.addEventListener("input", () => { state.serial.serial = ordinal.value; clearError(); });
   }
 
   function validHttpUrl(value) {
@@ -410,14 +681,19 @@
     state.notice = "";
     state.data = null;
     state.loading = true;
+    const searchSerial = state.discoverSerial + 1;
+    state.discoverSerial = searchSerial;
     renderCurrent();
     try {
       const result = await request(DISCOVER_PATH, {
         method: "POST",
         body: { exactCardQuery: draft.exactCardQuery, limit: draft.limit, targetMaxBuyCents: draft.targetMaxBuyCents }
       });
+      // "New card" was chosen while this search was running: its answer no longer belongs on the page.
+      if (searchSerial !== state.discoverSerial) return;
       if (!validateDiscover(result.payload, result.correlationId)) throw makeError("DISCOVER_CONTRACT_INVALID", "The provider-backed Discover response failed the FlipForge authority, evidence, or tenant contract.");
       state.data = result.payload.data;
+      state.lastSearch = { exactCardQuery: draft.exactCardQuery, targetMaxBuy: String(draft.targetMaxBuy || ""), limit: String(draft.limit) };
       const returnedItems = Array.isArray(state.data.items) ? state.data.items : [];
       const exactCandidateCount = Number.isInteger(state.data.exactCandidateCount)
         ? state.data.exactCandidateCount
@@ -436,11 +712,13 @@
         state.draft = { exactCardQuery: "", targetMaxBuy: "", limit: String(draft.limit) };
       }
     } catch (error) {
-      state.error = error;
+      if (searchSerial === state.discoverSerial) state.error = error;
     } finally {
-      state.loading = false;
-      renderCurrent();
-      focusDiscoverResults();
+      if (searchSerial === state.discoverSerial) {
+        state.loading = false;
+        renderCurrent();
+        focusDiscoverResults();
+      }
     }
   }
 
@@ -491,6 +769,12 @@
   }
 
   async function search(form) {
+    const entry = prepareBetaSearch(form, false);
+    if (!entry.proceed) return;
+    if (entry.identityCheck) {
+      await findExactCard(form);
+      return;
+    }
     state.error = null;
     state.notice = "";
     state.evaluationError = null;
@@ -558,7 +842,7 @@
     renderCurrent();
 
     try {
-      const data = await cardIntelligenceRequest(CARD_INTELLIGENCE_RESOLVE_PATH, { selectionToken: token });
+      const data = gradeLockedResolution(await cardIntelligenceRequest(CARD_INTELLIGENCE_RESOLVE_PATH, { selectionToken: token }), ownedQuery);
       const cardIdentity = String(data.cardIdentity || "").trim().replace(/\s+/g, " ");
       if (data.readyForEvaluation !== true || !cardIdentity || cardIdentity.length > 500 || !hasExplicitCardNumber(cardIdentity)) {
         throw makeError("CARD_INTELLIGENCE_SELECTION_NOT_READY", data.message || "The selected card still needs exact identity verification.", 400);
@@ -843,31 +1127,158 @@
     const identityHint = beta
       ? '<p data-ff-beta-identity-hint class="ff-beta-identity-hint">Not sure which version of the card you have? Check card identity first. Otherwise, search listings.</p>'
       : "";
-    return `<section class="panel customer-discovery-search"><header class="panel-header"><div>${heading}</div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form"><label><span>Card</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="Example: 2018 Topps Chrome Shohei Ohtani #150 PSA 9" aria-label="Card" autocomplete="off"><small class="ff-card-entry-helper">Year · Set · Player · Card # · Grade (when known).</small></label><label><span>${beta ? "Max price (optional)" : "Target max buy"}</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label>${limitControl}<div class="customer-discovery-search-actions"><button class="button button-primary" type="submit" aria-label="${escapeHtml(labels.submitAria)}" title="${escapeHtml(labels.submitTitle)}" ${busy ? "disabled" : ""}>${state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : labels.submit}</button><button class="button button-secondary" type="button" data-discovery-find-exact aria-label="${escapeHtml(labels.exactAria)}" title="${escapeHtml(labels.exactTitle)}" ${busy ? "disabled" : ""}>${labels.exact}</button></div>${identityHint}</form><div class="customer-discovery-search-help" data-ff-entry-guide aria-label="What to type in the card box"><p class="ff-entry-guide-title">What to type</p><ul class="ff-entry-guide-list"><li><strong>Year · set · player · card #</strong>, then parallel, grader and grade when you know them.</li><li><strong>Two-year seasons:</strong> basketball and hockey sets often span two years, like 2025-26. Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.</li><li><strong>Card numbers:</strong> #150, No. 150 and No 150 are all read as card number 150.</li></ul><small>FlipForge never silently picks between two possible cards.</small></div></div></section>`;
+    const controls = resultControlsMarkup();
+    return `<section class="panel customer-discovery-search"><header class="panel-header"><div>${heading}</div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form">${guidedBuilderMarkup()}<label><span>Card</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="Example: 2018 Topps Chrome Shohei Ohtani #150 PSA 9" aria-label="Card" autocomplete="off"><small class="ff-card-entry-helper">Year · Set · Player · Card # · Grade (when known).</small></label>${serialEntryMarkup()}<label><span>${beta ? "Max price (optional)" : "Target max buy"}</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label>${limitControl}<div class="customer-discovery-search-actions"><button class="button button-primary" type="submit" aria-label="${escapeHtml(labels.submitAria)}" title="${escapeHtml(labels.submitTitle)}" ${busy ? "disabled" : ""}>${state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : labels.submit}</button><button class="button button-secondary" type="button" data-discovery-find-exact aria-label="${escapeHtml(labels.exactAria)}" title="${escapeHtml(labels.exactTitle)}" ${busy ? "disabled" : ""}>${labels.exact}</button>${controls}</div>${identityHint}</form><div class="customer-discovery-search-help" data-ff-entry-guide aria-label="What to type in the card box"><p class="ff-entry-guide-title">What to type</p><ul class="ff-entry-guide-list"><li><strong>Year · set · player · card #</strong>, then parallel, grader and grade when you know them.</li><li><strong>Two-year seasons:</strong> basketball and hockey sets often span two years, like 2025-26. Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.</li><li><strong>Card numbers:</strong> #150, No. 150 and No 150 are all read as card number 150.</li></ul><small>FlipForge never silently picks between two possible cards.</small></div></div></section>`;
   }
 
-  function identityCandidate(row, index) {
-    const declaredGrade = declaredGradeContext(state.identityAssist.query);
-    const grader = row.grader || declaredGrade.grader;
-    const grade = row.grade || declaredGrade.grade;
-    const gradeLabel = grader && grade ? `${grader} ${grade}${row.grader || row.grade ? "" : " (entered)"}` : "";
-    const detail = [
-      row.year,
-      row.manufacturer,
-      row.releaseName,
-      row.setName,
-      row.cardNumber ? `#${row.cardNumber}` : "",
-      row.parallelName,
-      gradeLabel
-    ].filter(Boolean).join(" · ");
-    const selectable = row?.exactCardCandidate === true && SAFE_SELECTION_TOKEN.test(String(row.selectionToken || ""));
-    return `<article class="customer-discovery-identity-option"${row.cardNumber ? ` data-ff-card-number="${escapeHtml(row.cardNumber)}"` : ""}><div><strong>${escapeHtml(row.name || "Card identity candidate")}</strong><small>${escapeHtml(detail || row.type || "Catalog candidate")}</small></div>${selectable ? `<button class="button button-primary" type="button" data-discovery-use-identity="${index}" ${state.identityAssist.busy ? "disabled" : ""}>Use this card</button>` : `<span class="staging-status staging-status-verify">Review only</span>`}</article>`;
+  // Identity check rows. The first selectable row is the highlighted exact match; other selectable rows and review-only
+  // catalog rows that show a card number get "Select & verify" (the server must still confirm one exact identity).
+  // Review rows beyond the first few are folded behind "Show N other possible variants".
+  const COLLAPSED_REVIEW_COUNT = 4;
+  const VISIBLE_REVIEW_WITH_EXACT = 2;
+
+  function identitySelectable(row) {
+    return row?.exactCardCandidate === true && SAFE_SELECTION_TOKEN.test(String(row.selectionToken || ""));
+  }
+
+  function identityDetail(row) {
+    // The searched grade is shown once, in the grade note above the rows, not repeated as "(entered)" on every row.
+    const gradeLabel = row.grader && row.grade ? `${row.grader} ${row.grade}` : "";
+    return [row.year, row.manufacturer, row.releaseName, row.setName, row.cardNumber ? `#${row.cardNumber}` : "", row.parallelName, gradeLabel]
+      .filter(Boolean).join(" · ");
+  }
+
+  function identityModel() {
+    const rows = Array.isArray(state.identityAssist.results) ? state.identityAssist.results : [];
+    const primaryIndex = rows.findIndex(identitySelectable);
+    const hasSelectable = primaryIndex >= 0;
+    const expanded = Boolean(state.identityAssist.expandedQuery) && state.identityAssist.expandedQuery === normalizeIdentityQuery(state.identityAssist.query);
+    const visibleLimit = hasSelectable ? VISIBLE_REVIEW_WITH_EXACT : COLLAPSED_REVIEW_COUNT;
+    let reviewCount = 0;
+    const items = rows.map((row, index) => {
+      if (identitySelectable(row)) return { row, index, kind: index === primaryIndex ? "primary" : "secondary" };
+      const reviewIndex = reviewCount;
+      reviewCount += 1;
+      const verifiable = Boolean(String(row?.cardNumber || "").trim()) && /^[A-Za-z0-9][A-Za-z0-9.-]*$/.test(String(row.cardNumber).trim());
+      return { row, index, kind: "review", verifiable, hidden: verifiable && reviewIndex >= visibleLimit && !expanded };
+    });
+    const hiddenCount = Math.max(0, reviewCount - Math.min(reviewCount, visibleLimit));
+    return { items, hasSelectable, reviewCount, hiddenCount, expanded };
+  }
+
+  function identityCandidate(item) {
+    const { row, index, kind } = item;
+    const name = `<div><strong>${escapeHtml(row.name || "Card identity candidate")}</strong><small>${escapeHtml(identityDetail(row) || row.type || "Catalog candidate")}</small></div>`;
+    const cardNumber = row.cardNumber ? ` data-ff-card-number="${escapeHtml(row.cardNumber)}"` : "";
+    const busy = state.identityAssist.busy ? " disabled" : "";
+    if (kind === "primary" || kind === "secondary") {
+      const primary = kind === "primary";
+      return `<article class="customer-discovery-identity-option ff-identity-selectable ${primary ? "ff-identity-primary" : "ff-identity-secondary"}"${cardNumber}>${name}<button class="button ${primary ? "button-primary" : "button-secondary"}" type="button" data-discovery-use-identity="${index}"${busy}>${primary ? "Use exact match" : "Select &amp; verify"}</button></article>`;
+    }
+    const action = item.verifiable
+      ? `<div class="ff-identity-review-actions"><span class="ff-identity-review-label">Catalog card · final verification required</span><button class="button button-secondary" type="button" data-ff-verify-review-match="${index}"${busy}>Select &amp; verify</button></div>`
+      : '<span class="staging-status staging-status-verify">Review only</span>';
+    return `<article class="customer-discovery-identity-option ff-identity-review-match ff-identity-secondary${item.hidden ? " ff-identity-hidden" : ""}"${cardNumber}>${name}${action}</article>`;
+  }
+
+  function identityMessageMarkup(model) {
+    const message = state.identityAssist.message;
+    if (!message) return "";
+    if (!state.identityAssist.busy && model.hasSelectable) {
+      return '<div class="customer-discovery-identity-message ff-identity-assist-explained ff-identity-exact-found" role="status"><strong>Exact card match found.</strong><span>FlipForge will not choose one for you. Use the highlighted exact match if it is the card you mean. Nearby variants are shown below with a separate <b>Select &amp; verify</b> action so you do not have to hunt for them.</span></div>';
+    }
+    if (!state.identityAssist.busy && model.reviewCount > 0) {
+      return '<div class="customer-discovery-identity-message ff-identity-assist-explained" role="status"><strong>Choose the card you mean.</strong><span>FlipForge will not choose one for you. Select <b>Select &amp; verify</b> on the correct visible card. The server must confirm one exact canonical identity before marketplace search can run.</span></div>';
+    }
+    return `<div class="customer-discovery-identity-message" role="status">${escapeHtml(message)}</div>`;
+  }
+
+  function identityGradeNote() {
+    const declared = declaredGradeContext(state.identityAssist.query);
+    if (!declared.grader || !state.identityAssist.message) return "";
+    return `<div class="ff-identity-grade-note" data-ff-identity-grade-note><span>Grade filter from your search</span><strong>${escapeHtml(`${declared.grader} ${declared.grade}`)}</strong><small>Shown once here because the catalog matches below identify the card, not a verified slab.</small></div>`;
+  }
+
+  function identityToggle(model) {
+    if (model.hiddenCount < 1) return "";
+    const label = model.expanded
+      ? "Hide other variants"
+      : model.hasSelectable
+        ? `Show ${model.hiddenCount} other possible variant${model.hiddenCount === 1 ? "" : "s"}`
+        : `Show ${model.hiddenCount} more possible match${model.hiddenCount === 1 ? "" : "es"}`;
+    return `<button type="button" class="button button-secondary ff-identity-alternates-toggle" data-ff-toggle-identity-alternates aria-expanded="${model.expanded}">${label}</button>`;
   }
 
   function identityAssistPanel() {
     if (!state.identityAssist.active) return "";
-    const rows = Array.isArray(state.identityAssist.results) ? state.identityAssist.results : [];
-    return `<section class="panel customer-discovery-identity-assist" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${state.identityAssist.message ? `<div class="customer-discovery-identity-message" role="status">${escapeHtml(state.identityAssist.message)}</div>` : ""}<div class="customer-discovery-identity-query"><span>Card entered</span><strong>${escapeHtml(state.identityAssist.query || state.draft.exactCardQuery || "Current card")}</strong></div>${rows.length ? `<div class="customer-discovery-identity-options">${rows.map(identityCandidate).join("")}</div>` : ""}<div class="customer-discovery-identity-actions"><button class="button button-secondary" type="button" data-discovery-change-identity-entry>Change card entry</button></div><div class="boundary-note"><strong>How identity is confirmed:</strong> FlipForge never selects the first result for you, never shows internal catalog IDs, and does not search listings until you choose the exact card yourself.</div></div></section>`;
+    const model = identityModel();
+    return `<section class="panel customer-discovery-identity-assist${model.hasSelectable ? " ff-identity-has-selectable" : ""}" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${identityMessageMarkup(model)}${identityGradeNote()}<div class="customer-discovery-identity-query"><span>Card entered</span><strong>${escapeHtml(state.identityAssist.query || state.draft.exactCardQuery || "Current card")}</strong></div>${model.items.length ? `<div class="customer-discovery-identity-options">${model.items.map(identityCandidate).join("")}</div>` : ""}${identityToggle(model)}<div class="customer-discovery-identity-actions"><button class="button button-secondary" type="button" data-discovery-change-identity-entry>Change card entry</button></div><div class="boundary-note"><strong>How identity is confirmed:</strong> FlipForge never selects the first result for you, never shows internal catalog IDs, and does not search listings until you choose the exact card yourself.</div></div></section>`;
+  }
+
+  // Grade filter lock: a resolved identity must keep the grade the customer searched with. A conflicting grade stops
+  // before marketplace search; a canonical identity without a grade gets the confirmed server grade appended.
+  function gradeLockedResolution(data, searchedQuery) {
+    const expected = declaredGradeContext(searchedQuery);
+    if (!expected.grader || !data || typeof data !== "object") return data;
+    const expectedLabel = `${expected.grader} ${expected.grade}`;
+    const server = declaredGradeContext(`${String(data.grader || "")} ${String(data.grade || "")}`);
+    const canonical = String(data.cardIdentity || "").trim().replace(/\s+/g, " ");
+    const canonicalGrade = declaredGradeContext(canonical);
+    const serverLabel = server.grader ? `${server.grader} ${server.grade}` : "";
+    const canonicalLabel = canonicalGrade.grader ? `${canonicalGrade.grader} ${canonicalGrade.grade}` : "";
+    if (serverLabel !== expectedLabel || (canonicalLabel && canonicalLabel !== expectedLabel)) {
+      return { ...data, readyForEvaluation: false, message: `The resolved card did not preserve the ${expectedLabel} grade filter. FlipForge stopped before marketplace search.` };
+    }
+    if (canonical && !canonicalLabel) return { ...data, cardIdentity: `${canonical} ${serverLabel}`.replace(/\s+/g, " ").trim() };
+    return data;
+  }
+
+  // "Select & verify" on a review-only catalog row: the server checks the visible card against its exact identity
+  // record; only a confirmed canonical identity (with a card number) is searched.
+  async function verifyReviewMatch(button, index) {
+    const row = state.identityAssist.results[Number(index)];
+    const article = button.closest(".customer-discovery-identity-option");
+    const form = state.main?.querySelector?.("[data-customer-discovery-form]");
+    const input = form?.querySelector?.('input[name="exactCardQuery"]');
+    const originalQuery = normalizeIdentityQuery(state.identityAssist.query || input?.value || "");
+    const candidateName = String(row?.name || "").trim();
+    if (!row || !article || !form || !input || !originalQuery || !candidateName) return;
+    const declared = declaredGradeContext(originalQuery);
+    const detail = identityDetail(row);
+    const gradeLabel = declared.grader ? `${declared.grader} ${declared.grade}` : "";
+    const candidateDetail = !gradeLabel || new RegExp(`\\b${gradeLabel.replace(" ", "\\s*")}\\b`, "i").test(detail)
+      ? detail
+      : detail ? `${detail} · ${gradeLabel} (entered)` : `${gradeLabel} (entered)`;
+    const status = message => {
+      let node = article.querySelector("[data-ff-identity-choice-status]");
+      if (!node) {
+        node = document.createElement("small");
+        node.className = "ff-identity-choice-status";
+        node.dataset.ffIdentityChoiceStatus = "";
+        article.appendChild(node);
+      }
+      node.textContent = message.text;
+      node.dataset.state = message.error ? "error" : "info";
+    };
+    button.disabled = true;
+    button.textContent = "Verifying…";
+    status({ text: "Checking this catalog card against the server-owned exact identity record…" });
+    try {
+      const data = gradeLockedResolution(await cardIntelligenceRequest(CARD_INTELLIGENCE_RESOLVE_PATH, { query: originalQuery, candidateName, candidateDetail }), originalQuery);
+      const canonical = String(data.cardIdentity || "").trim().replace(/\s+/g, " ");
+      if (data.readyForEvaluation !== true || !canonical || !/#\s*[A-Za-z0-9][A-Za-z0-9.-]*/.test(canonical)) {
+        throw makeError("CARD_INTELLIGENCE_SELECTION_NOT_READY", data.message || "That card is still ambiguous. Add more identity detail and try again.", 400);
+      }
+      status({ text: "Exact card confirmed. Searching active listings…" });
+      input.value = canonical;
+      // The request guard and this owner both react to the new card text (stale selections are invalidated).
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      later(() => { if (discoverOwnsSurface()) search(form); }, 120);
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = "Select & verify";
+      status({ text: error?.message || "This card could not be verified yet.", error: true });
+    }
   }
 
   function providerPanel() {
@@ -965,6 +1376,164 @@
     return `<section class="customer-discovery-results" id="ff-discovery-results" tabindex="-1" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Open “Why this result is ranked here” to review the server-owned ranking factors when available.</span><small data-ff-ranking-order-note class="ff-ranking-order-note">Rank is not sorted by factor score alone. After eligibility, evidence support, confidence/risk, availability and freshness, FlipForge prefers the lower complete all-in ask before using factor score as a tie-breaker.</small></div>${exactResults}${identityReviewResults}</section>`;
   }
 
+  // "Refresh results" / "New search" follow a search that returned results, until the customer types a different card.
+  function resultControlsAvailable() {
+    return Boolean(state.data && !state.error && !state.identityAssist.active && state.lastSearch);
+  }
+
+  function draftDiffersFromLastSearch() {
+    const current = normalizeIdentityQuery(state.draft.exactCardQuery);
+    return Boolean(current && state.lastSearch && current !== normalizeIdentityQuery(state.lastSearch.exactCardQuery));
+  }
+
+  function resultControlsMarkup() {
+    if (!resultControlsAvailable() || draftDiffersFromLastSearch()) return "";
+    const disabled = state.loading || state.identityAssist.busy ? " disabled" : "";
+    return `<button class="button button-secondary ff-discover-result-control" type="button" data-discovery-refresh-v2${disabled}>Refresh results</button><button class="button button-secondary ff-discover-result-control" type="button" data-discovery-clear-v2${disabled}>New search</button>`;
+  }
+
+  // Typing a different card removes the two controls (they would act on the previous search); they return when the
+  // box matches the last search again.
+  function syncResultControls(form) {
+    const actions = form?.querySelector?.(".customer-discovery-search-actions");
+    if (!actions) return;
+    const markup = resultControlsMarkup();
+    const shown = Boolean(actions.querySelector("[data-discovery-refresh-v2]"));
+    if (shown === Boolean(markup)) return;
+    actions.querySelectorAll("[data-discovery-refresh-v2],[data-discovery-clear-v2]").forEach(button => button.remove());
+    if (!markup) return;
+    actions.insertAdjacentHTML("beforeend", markup);
+    bindResultControls(actions);
+  }
+
+  function bindResultControls(root) {
+    root?.querySelector?.("[data-discovery-refresh-v2]")?.addEventListener("click", refreshResults);
+    root?.querySelector?.("[data-discovery-clear-v2]")?.addEventListener("click", startNewCard);
+  }
+
+  function refreshResults() {
+    const form = state.main?.querySelector?.("[data-customer-discovery-form]");
+    const previous = state.lastSearch;
+    if (!form || !previous || state.loading || state.identityAssist.busy || state.evaluatingIndex >= 0) return;
+    const set = (name, value) => { const control = form.elements?.namedItem?.(name); if (control) control.value = value; };
+    set("exactCardQuery", previous.exactCardQuery);
+    set("targetMaxBuy", previous.targetMaxBuy);
+    set("limit", previous.limit);
+    search(form);
+  }
+
+  function workflowStripMarkup() {
+    if (!betaSurface()) return "";
+    let completed = new Set();
+    try { completed = new Set(window.FlipForgeGuidedMode?.getProgress?.()?.completed || []); } catch (_) { completed = new Set(); }
+    const steps = [["discover", "Evaluate", "#/discover"], ["understand", "Decision", "#/opportunities"], ["track", "Track", "#/tracking"]];
+    return `<nav class="ff-workflow-strip" data-ff-workflow-strip aria-label="Your FlipForge card workflow">${steps.map(([key, label, href], index) => {
+      const done = completed.has(key);
+      return `<a class="ff-workflow-step" href="${href}" data-done="${done}"${key === "discover" ? ' aria-current="step"' : ""}><span class="ff-workflow-step-number">${done ? "\u2713" : index + 1}</span><span>${label}</span></a>`;
+    }).join("")}</nav>`;
+  }
+
+  // Private Beta: the next step after a search failure, an identity check with nothing to choose, or no listings.
+  function recoveryMarkup(key, title, copy, actions) {
+    if (!betaSurface()) return "";
+    return `<section class="ff-recovery-coach" data-ff-recovery="${key}"><div><span>I'm still with you</span><h3>${title}</h3><p>${copy}</p></div><div class="ff-recovery-actions">${actions}</div></section>`;
+  }
+
+  function searchErrorRecovery() {
+    if (!state.error) return "";
+    return recoveryMarkup("discover-error", "The search didn't finish. Nothing was saved.", "Go back to the card box, confirm the exact identity, and try again. If the card number or parallel is uncertain, use Check card identity first.", '<button class="button button-primary" type="button" data-ff-focus-card>Show me the card box</button><button class="button button-secondary" type="button" data-ff-find-exact>Check card identity</button>');
+  }
+
+  function identityRecovery() {
+    const assist = state.identityAssist;
+    if (!assist.active || assist.busy || (Array.isArray(assist.results) && assist.results.length) || !/No selectable/i.test(assist.message || "")) return "";
+    return recoveryMarkup("identity-missing", "FlipForge needs a little more card detail.", "Add the year, set, player, and card number first. Add the parallel, insert, grader, and grade when you know them. Then try Check card identity again.", '<button class="button button-primary" type="button" data-ff-focus-card>Take me back to the card box</button>');
+  }
+
+  function emptyResultsRecovery() {
+    if (!state.data || (Array.isArray(state.data.items) && state.data.items.length)) return "";
+    return recoveryMarkup("discover-empty", "No matching active listing came back yet.", "That does not mean the card is bad. Tighten the identity with the exact card number, parallel or grade, or use Check card identity before searching again.", '<button class="button button-primary" type="button" data-ff-focus-card>Refine this card</button><button class="button button-secondary" type="button" data-ff-find-exact>Check card identity</button>');
+  }
+
+  function persistenceNote() {
+    return '<div class="ff-discover-persistence-note" data-ff-discover-persistence-note data-ff-discover-persistence-ready="true"><span aria-hidden="true">\u2713</span><div><strong>Searches are temporary; evaluated decisions are saved.</strong> Use <strong>Discover a card</strong> anytime to clear the current Discover workspace and start fresh. Cards you already evaluated stay saved.</div></div>';
+  }
+
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true || /^\/(?:app|owner)\/customer\/?$/i.test(String(window.location.pathname || ""));
+  }
+
+  // Clear the Discover workspace for another card. Saved decisions are untouched.
+  function resetWorkspace() {
+    state.discoverSerial += 1;
+    state.loading = false;
+    state.identityAssist.requestSerial += 1;
+    state.identityAssist.active = false;
+    state.identityAssist.busy = false;
+    state.identityAssist.query = "";
+    state.identityAssist.typedQuery = "";
+    state.identityAssist.results = [];
+    state.identityAssist.message = "";
+    state.data = null;
+    state.error = null;
+    state.notice = "";
+    state.evaluationError = null;
+    state.lastSearch = null;
+    state.draft = { exactCardQuery: "", targetMaxBuy: "", limit: state.draft.limit || "25" };
+    state.guided.message = "";
+    resetSerialEntry();
+  }
+
+  // "+ Start a new card", "New card", "New search": an empty card box, ready for typing.
+  function startNewCard() {
+    resetWorkspace();
+    if (!discoverOwnsSurface()) {
+      state.pendingFocus = true;
+      if (currentRouteName() !== "discover") window.location.hash = "#/discover";
+      return;
+    }
+    renderCurrent();
+    focusCardEntry();
+  }
+
+  // Bring the card box into view with a short highlight and focus it. A passive cue (on arrival) never takes focus once
+  // the customer has typed or searched.
+  function focusCardEntry({ scroll = true, passiveSerial = null } = {}) {
+    if (!discoverOwnsSurface()) {
+      state.pendingFocus = true;
+      if (currentRouteName() !== "discover") window.location.hash = "#/discover";
+      return;
+    }
+    const input = state.main?.querySelector?.('[data-customer-discovery-form] input[name="exactCardQuery"]');
+    if (!input) return;
+    input.classList?.add?.("ff-discover-direct-input");
+    if (scroll) { try { input.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) { input.scrollIntoView(); } }
+    later(() => {
+      if (!input.isConnected || !discoverOwnsSurface()) return;
+      if (passiveSerial !== null && passiveSerial !== state.engagement) return;
+      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+      input.select?.();
+    }, 300);
+    later(() => input.classList.remove("ff-discover-direct-input"), 12000);
+  }
+
+  function later(callback, delay) {
+    if (typeof window.setTimeout === "function") window.setTimeout(callback, delay);
+  }
+
+  function arrivalCue() {
+    if (state.data || state.identityAssist.active) return;
+    const serial = state.engagement;
+    later(() => {
+      if (!discoverOwnsSurface() || state.engagement !== serial || state.data) return;
+      focusCardEntry({ scroll: !fullCustomerMode(), passiveSerial: serial });
+    }, 180);
+  }
+
+  function currentRouteName() {
+    return String(window.location.hash || "").replace(/^#\/?/, "").split(/[/?]/)[0];
+  }
+
   const DRAFT_FIELDS = ["exactCardQuery", "targetMaxBuy", "limit"];
 
   // Re-renders (health completion, route re-application, guided-mode cues) rebuild the
@@ -1035,7 +1604,11 @@
       ? '<header class="page-heading"><div><span class="eyebrow">Discover</span><h1>Discover a Card</h1><p>Find and confirm your exact card first. Then select a listing for FlipForge to evaluate.</p></div></header>'
       : '<header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Search approved active-listing sources, compare all-in asks against existing matched evidence context, then explicitly evaluate the listing you want FlipForge to judge.</p></div><div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved opportunities</a><a class="button button-secondary" href="#/evaluate">Manual evaluate</a></div></header>';
     const provider = beta ? "" : providerPanel();
-    state.main.innerHTML = `<div class="page customer-discovery-page">${heading}<div class="boundary-note"><strong>Decision framework:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${errorPanel()}${state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}${identityAssistPanel()}${searchPanel()}${state.data ? `${resultsPanel()}${provider}` : `${provider}${resultsPanel()}`}</div>`;
+    // Reading order: the identity check (when one is needed) directly under the heading, then the card search, the
+    // outcome of the search, the results, and the workflow and boundary notes below them.
+    const identityRequired = state.identityAssist.active ? " ff-discover-identity-required" : "";
+    const notice = state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : "";
+    state.main.innerHTML = `<div class="page customer-discovery-page ff-discover-above-fold${identityRequired}">${heading}${identityAssistPanel()}${identityRecovery()}${searchPanel()}${errorPanel()}${searchErrorRecovery()}${notice}${state.data ? `${resultsPanel()}${emptyResultsRecovery()}${provider}` : `${provider}${resultsPanel()}`}${workflowStripMarkup()}<div class="boundary-note"><strong>Decision framework:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${persistenceNote()}</div>`;
     bindActions();
   }
 
@@ -1090,13 +1663,21 @@
     const form = state.main?.querySelector?.("[data-customer-discovery-form]");
     form?.addEventListener("submit", event => {
       event.preventDefault();
+      state.engagement += 1;
       if (!state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) search(form);
     });
+    bindBetaEntry(form);
     const identityInput = form?.querySelector?.('input[name="exactCardQuery"]');
-    identityInput?.addEventListener("input", () => {
+    identityInput?.addEventListener("input", event => {
+      if (event.isTrusted) state.engagement += 1;
       const visibleQuery = normalizeIdentityQuery(identityInput.value);
       state.identityAssist.typedQuery = visibleQuery;
       state.draft.exactCardQuery = visibleQuery;
+      if (state.serial.error && !form.querySelector("[data-ff-serial-refinement]")) {
+        state.serial.error = "";
+        form.querySelector("[data-ff-serial-error]")?.remove();
+      }
+      syncResultControls(form);
       if (state.identityAssist.active && visibleQuery !== normalizeIdentityQuery(state.identityAssist.query)) {
         state.identityAssist.requestSerial += 1;
         state.identityAssist.active = false;
@@ -1124,10 +1705,15 @@
       }, 180);
     });
 
-    const findExactButton = state.main?.querySelector?.("[data-discovery-find-exact]");
-    findExactButton?.addEventListener("click", () => {
-      if (form && !state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) findExactCard(form);
-    });
+    const checkIdentity = () => {
+      if (!form || state.loading || state.identityAssist.busy || state.evaluatingIndex >= 0) return;
+      const entry = prepareBetaSearch(form, true);
+      if (entry.proceed) findExactCard(form);
+    };
+    state.main?.querySelector?.("[data-discovery-find-exact]")?.addEventListener("click", checkIdentity);
+    // The recovery notes' "Check card identity" runs the same identity check as the button in the search form.
+    state.main?.querySelectorAll?.("[data-ff-find-exact]").forEach(button => button.addEventListener("click", checkIdentity));
+    bindResultControls(state.main);
     const selectionOwnerQuery = normalizeIdentityQuery(state.identityAssist.query);
     state.main?.querySelectorAll?.("[data-discovery-use-identity]").forEach(button => {
       button.addEventListener("click", () => {
@@ -1136,6 +1722,16 @@
           resolveIdentity(index, selectionOwnerQuery);
         }
       });
+    });
+    state.main?.querySelectorAll?.("[data-ff-verify-review-match]").forEach(button => {
+      button.addEventListener("click", () => {
+        if (!state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) verifyReviewMatch(button, button.dataset.ffVerifyReviewMatch);
+      });
+    });
+    state.main?.querySelector?.("[data-ff-toggle-identity-alternates]")?.addEventListener("click", () => {
+      const query = normalizeIdentityQuery(state.identityAssist.query);
+      state.identityAssist.expandedQuery = state.identityAssist.expandedQuery === query ? "" : query;
+      renderCurrent();
     });
     state.main?.querySelectorAll?.("[data-discovery-request-evidence]").forEach(button => {
       button.addEventListener("click", () => {
@@ -1154,6 +1750,7 @@
   async function render(main) {
     state.main = main;
     state.evaluatingIndex = -1;
+    try { document.documentElement.classList.toggle("ff-guided-discover-active", betaSurface()); } catch (_) {}
     revalidateLimit();
     const renderSerial = state.renderSerial + 1;
     state.renderSerial = renderSerial;
@@ -1182,8 +1779,44 @@
 
     if (renderSerial !== state.renderSerial || state.main !== main) return false;
     renderCurrent();
+    if (state.pendingFocus) {
+      state.pendingFocus = false;
+      focusCardEntry();
+    } else if (state.arrivalPending) {
+      arrivalCue();
+    }
+    state.arrivalPending = false;
     return true;
   }
 
-  window.FlipForgeCustomerDiscovery = Object.freeze({ isEligible: eligibleHost, render });
+  // Leaving Discover starts the next visit fresh: serial details reset and the card box gets its arrival cue.
+  if (typeof window.addEventListener === "function") window.addEventListener("hashchange", () => {
+    if (currentRouteName() === "discover") return;
+    state.arrivalPending = true;
+    resetSerialEntry();
+    try { document.documentElement.classList.remove("ff-guided-discover-active"); } catch (_) {}
+  });
+
+  // "+ Start a new card" / "New card" (saved decisions, Evaluate, the top bar, the guide) and "Focus card entry" are
+  // Discover actions wherever they appear.
+  if (typeof document !== "undefined" && typeof document.addEventListener === "function") document.addEventListener("click", event => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target || !eligibleHost()) return;
+    if (target.closest("[data-ff-global-new-card],[data-ff-new-card]")) {
+      startNewCard();
+      return;
+    }
+    if (target.closest("[data-ff-focus-card]")) focusCardEntry();
+  });
+
+  window.FlipForgeCustomerDiscovery = Object.freeze({
+    isEligible: eligibleHost,
+    render,
+    startNewCard,
+    focusCardEntry: () => focusCardEntry(),
+    // Pure card-entry helpers (no DOM, no network), exposed for the validators.
+    serialEntry: Object.freeze({ compose: composeSerial, parseNumbering, scanNumbering }),
+    guidedEntry: Object.freeze({ compose: composeGuided }),
+    gradeLockedResolution
+  });
 })();

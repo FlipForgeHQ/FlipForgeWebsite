@@ -77,7 +77,9 @@ const scrapers = prototypeFiles.filter(file => /replace\(\/\[\^0-9\.\]\/g, ""\)/
 check("no customer page builds a score by deleting every non-digit from page text", scrapers.length === 0, scrapers.join(", "));
 check("card detail reads decision risk from the saved record", clarity.includes("window.FlipForgeTrustDisplay.riskValue(record)"));
 check("card detail never calls the decision risk \"final\"", !/final saved decision risk/i.test(clarity));
-check("evaluation result reads only a whole N/100 risk score", firstValue.includes("\\s*\\/\\s*100\\s*$"));
+// Evaluate renders its result from the server response (staging-evaluation.js): risk is the saved number, never
+// parsed back from page text; a value that is not a number is "Unavailable".
+check("evaluation result reads the saved risk score, not page text", read("saas-prototype/staging-evaluation.js").includes("const risk = riskLabel(decision.risk);") && read("saas-prototype/staging-evaluation.js").includes('if (value === null || value === undefined || value === "" || !Number.isFinite(Number(value))) return { label: "Unavailable", score: "" };'));
 check("evidence passport accepts the renamed labels and reads the saved record", passport.includes('["Ask when evaluated", "Listing price", "Current ask"]') && passport.includes('["Decision risk", "Risk"]') && passport.includes("scoreFromRecord(record"));
 for (const shell of ["saas-prototype/index.html", "saas-prototype/customer.html"]) {
   const html = read(shell);
