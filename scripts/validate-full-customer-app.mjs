@@ -76,7 +76,7 @@ const orderedRouteTokens = [
   '"dashboard"', '"discover"', '"evaluate"', '"decision-intelligence"', '"why-this-decision"', '"evidence"',
   '"opportunities"', '"tracking"', '"portfolio"', '"alerts"', '"forge-heat"', '"market-view"'
 ];
-const orderedRouteAnchor = shell.indexOf("const orderedRoutes = [");
+const orderedRouteAnchor = shell.indexOf("routes: [", shell.indexOf("full: Object.freeze({"));
 const orderedRouteEnd = shell.indexOf("];", orderedRouteAnchor);
 const orderedRouteBlock = orderedRouteAnchor >= 0 && orderedRouteEnd > orderedRouteAnchor
   ? shell.slice(orderedRouteAnchor, orderedRouteEnd)

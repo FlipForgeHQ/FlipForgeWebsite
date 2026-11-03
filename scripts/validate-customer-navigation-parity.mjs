@@ -85,9 +85,9 @@ for (const token of forbiddenAuthorityTokens) {
   check(!whyView.includes(token), `Why presentation creates no authority: ${token}`);
 }
 
-check(betaShell.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);'), "legacy shell helper keeps its intentionally simplified four-route core");
-check(betaShell.includes('"decision-intelligence", "why-this-decision", "market-view", "forge-heat", "evaluate", "portfolio", "alerts"'), "legacy shell helper explicitly hides full-customer Why and management routes from its own navigation");
-check(betaShell.includes('"compare", "psa-advisor", "evidence", "sell", "export"'), "legacy shell helper still hides advanced/evidence navigation while preserving internal route availability");
+check(betaShell.includes('routes: ["dashboard", "discover", "evaluate", "opportunities", "tracking", "alerts", "portfolio", "forge-heat"]'), "beta navigation manifest lists exactly the beta customer routes (Discover, Evaluate, Saved Decisions, Tracking, Alerts, Portfolio, Forge Heat)");
+check(betaShell.includes("else hideElement(link);") && !/beta: Object\.freeze\(\{\s*routes: \[[^\]]*"(?:why-this-decision|market-view|decision-intelligence)"/.test(betaShell), "beta navigation hides every route outside its manifest, including Why This Decision, Market View and standalone Decision Intelligence");
+check(/beta: Object\.freeze\(\{[\s\S]*?advanced: false/.test(betaShell) && betaShell.includes("hideElement(advanced);"), "beta navigation hides the advanced/evidence group (Compare, PSA Advisor, Evidence, Export) while the routes stay available by URL");
 check(betaShell.includes('"why-this-decision", "evidence"') || (betaShell.includes('"why-this-decision"') && betaShell.includes('"evidence"')), "legacy shell hide contract covers both promoted explanation surfaces");
 check(!betaShell.includes("customer-navigation-parity-v1"), "legacy shell helper has no dependency on the full-customer parity controller");
 check(!betaShell.includes("customer-why-decision-view-v1"), "legacy shell helper has no dependency on focused Why presentation");

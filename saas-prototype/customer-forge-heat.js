@@ -494,7 +494,7 @@
         <h1>Forge Heat™</h1>
         <p class="forge-heat-lead">Evidence-backed opportunity intelligence. FlipForge does not just find the gap—it tests whether the opportunity deserves to be trusted.</p>
       </div>
-      <div class="forge-heat-boundary"><strong>Current scope</strong><span>Your saved, completed evaluation universe</span><small>Ranks saved evaluations · Decision support only · Not market-wide · No browser-side scoring · No transaction authority</small></div>
+      <div class="forge-heat-boundary"><strong>Current scope</strong><span>Your saved, completed evaluation universe</span><small>Ranks saved evaluations · Decision support only · Not market-wide yet · No browser-side scoring · No transaction authority</small></div>
       ${data && data.locked === false ? `<div class="forge-heat-summary">
         <div><span>Evaluations considered</span><strong>${escapeHtml(summary.latestEvaluationsConsidered ?? 0)}</strong></div>
         <div><span>Eligible for scoring</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
