@@ -95,7 +95,7 @@
   }
 
   function sanitizeDiagnostics(root) {
-    root.querySelectorAll('.card-intelligence-error, .forge-heat-error, [role="alert"]').forEach(node => {
+    root.querySelectorAll('.card-intelligence-error, [role="alert"]').forEach(node => {
       if (diagnosticPattern.test(node.textContent || "")) {
         setText(node, "This intelligence view is temporarily unavailable. Try again.");
       }
@@ -103,10 +103,12 @@
   }
 
   function markCustomerStates(root) {
-    root.querySelectorAll(".forge-heat-empty, .staging-empty").forEach(node => node.classList.add("consumer-state", "consumer-state-empty"));
-    root.querySelectorAll(".staging-loading").forEach(node => node.classList.add("consumer-state", "consumer-state-loading"));
-    root.querySelectorAll(".card-intelligence-message").forEach(node => node.classList.add("consumer-state"));
-    root.querySelectorAll('.card-intelligence-error, .forge-heat-error, .staging-error[role="alert"]').forEach(node => node.classList.add("consumer-state", "consumer-state-error"));
+    // Owners that already render these classes (Saved Decisions, Portfolio, Forge Heat) are left untouched.
+    const mark = (node, ...classes) => { if (!classes.every(name => node.classList.contains(name))) node.classList.add(...classes); };
+    root.querySelectorAll(".staging-empty").forEach(node => mark(node, "consumer-state", "consumer-state-empty"));
+    root.querySelectorAll(".staging-loading").forEach(node => mark(node, "consumer-state", "consumer-state-loading"));
+    root.querySelectorAll(".card-intelligence-message").forEach(node => mark(node, "consumer-state"));
+    root.querySelectorAll('.card-intelligence-error, .staging-error[role="alert"]').forEach(node => mark(node, "consumer-state", "consumer-state-error"));
 
     root.querySelectorAll(".staging-status").forEach(node => {
       const raw = node.textContent.trim().toUpperCase();
