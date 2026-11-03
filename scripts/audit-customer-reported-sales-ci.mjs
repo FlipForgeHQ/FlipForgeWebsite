@@ -44,7 +44,7 @@ check("G6 panel has no buyer fields", !/name="buyer|buyerName|buyerEmail|shippin
 check("G7 panel uses no browser dialogs", !/window\.(prompt|alert|confirm)\s*\(/.test(panelSource));
 for (const shell of ["index.html", "customer.html"]) {
   const html = fs.readFileSync(path.join(root, "saas-prototype", shell), "utf8");
-  check(`G8 ${shell} loads the panel after the lifecycle display`, html.indexOf("customer-reported-sales.js") > html.indexOf("customer-lifecycle-display.js")
+  check(`G8 ${shell} loads the panel after the Tracking owner`, html.indexOf("customer-reported-sales.js") > html.indexOf("customer-lifecycle.js")
     && html.includes('<link rel="stylesheet" href="customer-reported-sales.css">'));
 }
 

@@ -67,11 +67,12 @@ check("029 explainability says supported value is not guaranteed", explainabilit
 check("030 explainability says PSA guidance is not a grade prediction", explainability.includes("does not predict a grade"));
 
 check("031 lifecycle supports expected customer states", ["WATCHING", "REVIEW", "OWNED", "SOLD", "PASSED", "ARCHIVED"].every(state => lifecycle.includes(state)));
-check("032 lifecycle requires acquisition facts for ownership", lifecycle.includes("OWNED requires acquisition facts"));
-check("033 lifecycle requires disposition facts for sold state", lifecycle.includes("SOLD requires acquisition and disposition facts"));
-check("034 lifecycle keeps append-only history visible", lifecycle.includes("append-only") && lifecycle.includes("Lifecycle history"));
+// Tracking asks for purchase facts once a card is owned and sale facts once it is sold (the server enforces both).
+check("032 lifecycle requires acquisition facts for ownership", lifecycle.includes('status === "OWNED" || status === "SOLD"') && lifecycle.includes('name="acquisitionCost"') && lifecycle.includes("Add purchase details only when you own the card"));
+check("033 lifecycle requires disposition facts for sold state", lifecycle.includes('return status === "SOLD"') && lifecycle.includes('name="dispositionProceeds"') && lifecycle.includes("sale details only after it is sold"));
+check("034 lifecycle keeps saved history visible", lifecycle.includes("Tracking history") && lifecycle.includes("customer-lifecycle-history"));
 check("035 alerts disclose external delivery boundary", lifecycle.includes("notificationDeliveryConfigured") && lifecycle.includes("Email / push"));
-check("036 portfolio refuses invented current value", lifecycle.includes("does not invent current value") || lifecycle.includes("Current value") && lifecycle.includes("Not calculated"));
+check("036 portfolio refuses invented current value", portfolio.includes('data.currentValueType !== "EVIDENCE_SUPPORTED_REFERENCE_NOT_APPRAISAL"') && portfolio.includes("No browser-invented value or performance was substituted."));
 check("037 compare does not invent a winner", compare.includes("No browser-side score or winner is created") && compare.includes("does not rerank, rescore, or select a winner"));
 check("038 customer management retains evidence/PSA/sell boundaries", ["evidence", "psa-advisor", "sell"].every(route => management.includes(route)));
 check("039 Decision Dossier requires complete export", exportAdapter.includes("complete: true") && exportAdapter.includes("partialExport: false"));

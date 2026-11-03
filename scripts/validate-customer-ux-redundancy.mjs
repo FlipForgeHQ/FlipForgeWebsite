@@ -129,8 +129,9 @@ check("Why This Decision routes deeper evidence separately", whyView.includes("O
 // Evidence / Outcomes / Saved list
 check("Evidence education is one progressive disclosure, not three coaching cards", cdi.includes('const guide = document.createElement("details")') && cdi.includes("How FlipForge filters evidence") && !cdi.includes("01 · TRUSTED"));
 check("Saved Decisions list does not add a redundant reopen-instruction strip", cdi.includes('document.querySelector("#main-content [data-ff-cdi-returning]")') && cdi.includes("root?.remove()"));
-check("Outcome Intelligence keeps checkpoints without a duplicate mini-hero", cdi.includes("ff-cdi-outcome-flow") && !cdi.includes("<header><span>OUTCOME INTELLIGENCE</span>"));
-check("Lifecycle authority notes are progressive disclosures", lifecycle.includes('<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary>'));
+check("Outcome Intelligence keeps checkpoints without a duplicate mini-hero", lifecycle.includes("ff-cdi-outcome-flow") && !cdi.includes("data-ff-cdi-outcome-guide") && !lifecycle.includes("<header><span>OUTCOME INTELLIGENCE</span>"));
+// Founder decision (2026-11-03): the Tracking "Decision boundary" note stays visible; "How alerts work" stays a disclosure.
+check("Lifecycle authority notes stay visible to customers", lifecycle.includes('<div class="boundary-note" data-ff-disclosure="decision-boundary"><strong>Decision boundary:</strong>') && lifecycle.includes('<details class="boundary-note ff-trust-note"><summary>How alerts work</summary>'));
 check("Evidence and management authority notes are progressive disclosures", management.includes('<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary>'));
 
 // Portfolio / Compare / PSA / Market / Heat

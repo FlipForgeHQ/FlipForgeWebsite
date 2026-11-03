@@ -59,7 +59,9 @@ check("026 price visual consumes returned ask/support rather than fake time seri
 check("027 evidence visual distinguishes accepted and excluded rows", js.includes("signal.accepted") && js.includes("signal.excluded") && css.includes(".ff-cdi-visual-sales .is-kept") && css.includes(".ff-cdi-visual-sales .is-out"));
 check("028 uncertainty visual uses returned confidence and risk", js.includes("signal.confidence") && js.includes("signal.risk") && css.includes("--confidence") && css.includes("--risk"));
 check("029 mobile keeps signal visuals visible", css.includes("@media (max-width:480px)") && css.includes(".ff-cdi-visual{display:grid") && !css.includes(".ff-cdi-visual{display:none"));
-check("030 Outcome Intelligence receives T0 T7 T14 T30 continuity", js.includes("data-ff-cdi-outcome-guide") && ["T0","T7","T14","T30"].every(item => js.includes(item)));
+// The T0 → T30 guide is rendered by the Tracking owner (customer-lifecycle.js), not inserted by this layer.
+const lifecycleOwner = fs.readFileSync("saas-prototype/customer-lifecycle.js", "utf8");
+check("030 Outcome Intelligence receives T0 T7 T14 T30 continuity", lifecycleOwner.includes("data-ff-cdi-outcome-guide") && ["<b>T0</b>","<b>T7</b>","<b>T14</b>","<b>T30</b>"].every(item => lifecycleOwner.includes(item)) && !js.includes("data-ff-cdi-outcome-guide"));
 check("031 returning Home language points back to saved reasoning", js.includes("Open a card to see the verdict and replay its four checks.") && js.includes("See what changed after the original T0 decision."));
 check("032 reasoning stack stays collapsed until the customer asks for it", js.includes('data-ff-cdi-reasoning hidden') && css.includes(".ff-cdi-reasoning[hidden]{display:none!important}"));
 check("033 Decision Receipt handoff uses existing receipt and a presentation-only arrival cue", js.includes("ff-cdi-receipt-arrival") && css.includes("@keyframes ff-cdi-receipt-arrival") && js.includes("[data-ff-decision-receipt]"));
