@@ -1141,10 +1141,25 @@
     return row?.exactCardCandidate === true && SAFE_SELECTION_TOKEN.test(String(row.selectionToken || ""));
   }
 
+  // Collectors name a card by its product ("2018 · Topps Chrome · #150"), not by the provider's corporate manufacturer
+  // ("2018 · Topps · Topps Chrome · #150"). With a release name the manufacturer is left out; without one, the
+  // manufacturer is shown in its canonical form (card-brand-display.js keeps the shared alias table). Lines that do
+  // not start with a year are shown as the provider sent them.
+  function identityBrand(row) {
+    const manufacturer = String(row?.manufacturer || "").trim();
+    if (!manufacturer || !/^\d{4}(?:-\d{2})?$/.test(String(row?.year || "").trim())) return manufacturer;
+    if (String(row.releaseName || "").trim()) return "";
+    try {
+      return window.FlipForgeCardBrandDisplay?.normalizeManufacturer?.(manufacturer, row.releaseName || "", row.setName || "") || manufacturer;
+    } catch (_) {
+      return manufacturer;
+    }
+  }
+
   function identityDetail(row) {
     // The searched grade is shown once, in the grade note above the rows, not repeated as "(entered)" on every row.
     const gradeLabel = row.grader && row.grade ? `${row.grader} ${row.grade}` : "";
-    return [row.year, row.manufacturer, row.releaseName, row.setName, row.cardNumber ? `#${row.cardNumber}` : "", row.parallelName, gradeLabel]
+    return [row.year, identityBrand(row), row.releaseName, row.setName, row.cardNumber ? `#${row.cardNumber}` : "", row.parallelName, gradeLabel]
       .filter(Boolean).join(" · ");
   }
 
@@ -1355,7 +1370,28 @@
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Factor score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div>${soldContextMetric}<div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(listingWords(AVAILABILITY_WORDS, item.listingAvailability))}</strong><small>${escapeHtml(listingWords(FRESHNESS_WORDS, item.listingFreshness))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(pricePositionText)}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a>${identityReview ? '<span class="staging-status staging-status-verify" data-ff-evaluation-unavailable>Not eligible for evaluation</span>' : `<button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button>`}</div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
+    const source = sourceListing(item);
+    const listingLink = source
+      ? `<a class="button button-secondary ff-source-listing-button" href="${escapeHtml(item.listingUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(`View this card on ${source.marketplace}; opens the original marketplace listing in a new tab`)}" title="${escapeHtml(`Open the original listing on ${source.marketplace}`)}">${escapeHtml(`View on ${source.marketplace} ↗`)}</a>`
+      : `<a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Factor score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div>${soldContextMetric}<div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(listingWords(AVAILABILITY_WORDS, item.listingAvailability))}</strong><small>${escapeHtml(listingWords(FRESHNESS_WORDS, item.listingFreshness))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(pricePositionText)}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}${source ? sourceStripMarkup(source) : ""}<div class="customer-discovery-actions">${listingLink}${identityReview ? '<span class="staging-status staging-status-verify" data-ff-evaluation-unavailable>Not eligible for evaluation</span>' : `<button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button>`}</div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
+  }
+
+  // Private Beta: each result names the marketplace it came from and links to the original listing there.
+  function sourceListing(item) {
+    if (!betaSurface() || !validHttpUrl(item?.listingUrl)) return null;
+    let parsed;
+    try { parsed = new URL(String(item.listingUrl)); } catch (_) { return null; }
+    if (parsed.origin === window.location.origin) return null;
+    const provider = String(item.providerDisplayName || item.marketplace || "Authorized source").trim();
+    const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+    const fromHost = /(^|\.)ebay\./.test(host) ? "eBay" : /(^|\.)comc\./.test(host) ? "COMC" : /(^|\.)myslabs\./.test(host) ? "MySlabs"
+      : /(^|\.)goldin\./.test(host) ? "Goldin" : /(^|\.)ha\.com$/.test(host) || /heritage/.test(host) ? "Heritage" : /fanatics/.test(host) ? "Fanatics Collect" : host || "marketplace";
+    return { marketplace: provider && provider.length <= 60 ? provider : fromHost, hostname: parsed.hostname.replace(/^www\./i, "") };
+  }
+
+  function sourceStripMarkup(source) {
+    return `<div class="ff-source-listing-strip"><span class="ff-source-listing-icon" aria-hidden="true">↗</span><span class="ff-source-listing-copy"><small>Original marketplace listing</small><strong>${escapeHtml(source.marketplace)}</strong><span>${escapeHtml(source.hostname)} · Direct source link</span></span><span class="ff-source-listing-verified">SOURCE</span></div>`;
   }
 
   function resultsPanel() {

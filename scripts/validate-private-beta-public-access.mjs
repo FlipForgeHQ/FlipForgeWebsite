@@ -36,7 +36,8 @@ const customer = read("saas-prototype/customer.html");
 const siteJs = read("assets/js/site.js");
 const buildAssets = read("scripts/build-assets.js");
 const customerShell = read("saas-prototype/customer-only-shell-v1.js");
-const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
+// commercial-app-polish-v2.js was removed (Nov 3 2026); nothing may come back that rewrites the identity chip.
+const commercialPolish = fs.existsSync(new URL("../saas-prototype/commercial-app-polish-v2.js", import.meta.url)) ? read("saas-prototype/commercial-app-polish-v2.js") : "";
 const cockpitPolish = read("saas-prototype/cockpit-final-ux.js");
 const betaGuide = read("saas-prototype/private-beta.js");
 const betaTermsGate = read("assets/js/beta-invite-terms-gate.js");
