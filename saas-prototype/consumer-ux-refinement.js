@@ -124,6 +124,11 @@
   }
 
   function apply() {
+    // Tracking and Alerts (customer-lifecycle.js) render their final copy and state classes themselves.
+    if (main.querySelector(":scope > .customer-lifecycle-page")) {
+      document.documentElement.classList.add("consumer-ux-ready");
+      return;
+    }
     replaceLeafCopy(main);
     refineBoundaryNotes(main);
     refineCardIdentity(main);

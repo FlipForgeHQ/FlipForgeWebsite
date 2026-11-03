@@ -13,10 +13,6 @@
     return /^#\/evidence\/[^/?#]+/.test(String(window.location.hash || ""));
   }
 
-  function trackingDetailRoute() {
-    return /^#\/tracking\/[^/?#]+/.test(String(window.location.hash || ""));
-  }
-
   function routeId(route) {
     const match = String(window.location.hash || "").match(new RegExp(`^#/${route}/([^/?#]+)`));
     if (!match) return "";
@@ -424,18 +420,6 @@
     }
   }
 
-  function ensureTrackingOwnership(main) {
-    if (!main || !trackingDetailRoute()) return;
-    const id = routeId("tracking");
-    if (!id || main.querySelector(".customer-lifecycle-page")) return;
-    const adapter = window.FlipForgeCustomerLifecycle;
-    if (!adapter
-        || typeof adapter.isEligible !== "function"
-        || !adapter.isEligible()
-        || typeof adapter.render !== "function") return;
-    adapter.render(main, "tracking", id);
-  }
-
   function normalizeLockedTagline(root) {
     if (!root) return;
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -496,9 +480,6 @@
       syncGuidedEvidence();
       return;
     }
-    if (trackingDetailRoute()) {
-      ensureTrackingOwnership(main);
-    }
   }
 
   function queue() {
@@ -506,15 +487,6 @@
     queued = true;
     window.requestAnimationFrame(sync);
   }
-
-  document.addEventListener("click", event => {
-    const link = event.target.closest?.("[data-ff-evidence-understood]");
-    if (!link) return;
-    window.setTimeout(() => {
-      const main = document.querySelector(MAIN);
-      ensureTrackingOwnership(main);
-    }, 75);
-  }, true);
 
   window.addEventListener("hashchange", () => window.setTimeout(queue, 40));
   window.addEventListener("pageshow", queue);

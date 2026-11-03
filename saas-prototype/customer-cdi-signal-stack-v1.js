@@ -451,33 +451,6 @@
     root?.remove();
   }
 
-  function outcomeGuide() {
-    const parts = routeParts();
-    if (parts[0] !== "tracking") return;
-    const root = document.querySelector("#main-content .page, #main-content .customer-lifecycle-page");
-    const heading = root?.querySelector(".page-heading");
-    if (!root || !heading) return;
-
-    // The Tracking subtitle belongs to tracking-navigation-reload-v1.js (single presentation owner, PR #210).
-    // Rewriting it here alternated with that owner every animation frame (mobile flicker), so it is left alone.
-
-    if (root.querySelector("[data-ff-cdi-outcome-guide]")) return;
-    const guide = document.createElement("section");
-    guide.className = "ff-cdi-outcome-guide";
-    guide.dataset.ffCdiOutcomeGuide = "";
-    guide.innerHTML =
-      '<div class="ff-cdi-outcome-flow" aria-label="Outcome Intelligence checkpoints">' +
-        '<article data-state="baseline"><b>T0</b><strong>Original decision</strong><small>Lock the call and its reason trail.</small></article>' +
-        '<i aria-hidden="true">→</i>' +
-        '<article><b>T7</b><strong>First review</strong><small>See what changed one week later.</small></article>' +
-        '<i aria-hidden="true">→</i>' +
-        '<article><b>T14</b><strong>Reasoning check</strong><small>Ask whether the original reasoning still holds.</small></article>' +
-        '<i aria-hidden="true">→</i>' +
-        '<article><b>T30</b><strong>Outcome context</strong><small>Record what the later evidence showed.</small></article>' +
-      '</div>';
-    heading.insertAdjacentElement("afterend", guide);
-  }
-
   function homeContinuity() {
     const parts = routeParts();
     if (parts[0] !== "dashboard") return;
@@ -510,7 +483,6 @@
     }
     evidenceGuide();
     returningSavedGuide();
-    outcomeGuide();
     homeContinuity();
   }
 

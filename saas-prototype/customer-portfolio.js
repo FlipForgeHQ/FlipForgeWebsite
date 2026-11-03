@@ -126,14 +126,27 @@
   async function request(path) {
     if (!PATHS.has(path)) throw new Error("The requested Portfolio API path is not allowlisted.");
     const requestCorrelationId = correlationId();
-    const response = await fetch(path, {
-      method: "GET",
-      headers: { Accept: "application/json", "X-Correlation-Id": requestCorrelationId },
-      credentials: "same-origin",
-      cache: "no-store",
-      redirect: "error"
-    });
-    const payload = await parseResponse(response);
+    // A hanging request stops after 10 s instead of leaving Portfolio frozen (formerly a global fetch wrapper).
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = controller ? window.setTimeout(() => controller.abort(), 10000) : 0;
+    let response;
+    let payload;
+    try {
+      response = await fetch(path, {
+        method: "GET",
+        headers: { Accept: "application/json", "X-Correlation-Id": requestCorrelationId },
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "error",
+        ...(controller ? { signal: controller.signal } : {})
+      });
+      payload = await parseResponse(response);
+    } catch (error) {
+      if (error?.name !== "AbortError") throw error;
+      throw Object.assign(new Error("Portfolio took too long to load. Try again."), { code: "PORTFOLIO_TIMEOUT", status: 504 });
+    } finally {
+      if (timer) window.clearTimeout(timer);
+    }
     if (!response.ok) {
       const upstream = payload?.error || {};
       throw Object.assign(new Error(upstream.message || `Portfolio request failed with status ${response.status}.`), {

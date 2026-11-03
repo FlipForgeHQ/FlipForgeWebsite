@@ -16,7 +16,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["002 production host is explicit", adapter.includes("PRODUCTION_HOST") && adapter.includes("goflipforge")],
   ["003 preview host remains explicit", adapter.includes("PREVIEW_HOST") && adapter.includes("deploy-preview")],
   ["004 app path is constrained", adapter.includes("APP_PATH") && adapter.includes("saas-prototype")],
-  ["005 lifecycle owns tracking portfolio alerts", ["tracking", "portfolio", "alerts"].every(route => adapter.includes(`"${route}"`))],
+  ["005 lifecycle owns Tracking and Alerts only (Portfolio is customer-portfolio.js)", adapter.includes('const ROUTES = new Set(["tracking", "alerts"])') && !adapter.includes("portfolioView") && !adapter.includes('"/api/v1/portfolio"')],
   ["006 route hook prefers lifecycle adapter", hook.includes("FlipForgeCustomerLifecycle") && hook.indexOf("lifecycleAdapter") < hook.indexOf("managementAdapter.render")],
   ["007 lifecycle list path fixed", adapter.includes('"/api/v1/lifecycle"')],
   ["008 lifecycle detail path identifier constrained", adapter.includes('/^\\/api\\/v1\\/lifecycle\\/([^/?#]+)$/') && adapter.includes("SAFE_ID")],
@@ -43,7 +43,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["029 outcome statuses explicit", ["NONE", "ACQUIRED", "SOLD", "PASSED"].every(value => adapter.includes(value))],
   ["030 acquisition and disposition facts customer-entered", ["acquisitionCostCents", "acquiredAt", "dispositionProceedsCents", "disposedAt"].every(value => adapter.includes(value))],
   ["031 reminder requires review time", adapter.includes("A review time is required")],
-  ["032 append-only lifecycle history displayed", adapter.includes("Lifecycle history") && adapter.includes("append-only")],
+  ["032 saved tracking history displayed newest first", adapter.includes("Tracking history") && adapter.includes("customer-lifecycle-history") && adapter.includes("Your saved changes for this card, newest first.")],
   ["033 governed Decision Timeline displayed", adapter.includes("Decision Timeline") && adapter.includes("What FlipForge believed") && adapter.includes("What changed")],
   ["034 timeline renders supplied entries without rescoring", adapter.includes("timeline.entries.map(timelineEntryMarkup)") && adapter.includes("Snapshots are immutable")],
   ["035 missing timeline is never reconstructed", adapter.includes("will not reconstruct or guess missing historical decisions")],
@@ -128,22 +128,24 @@ const decisionTimeline = {
   ]
 };
 
-function runtime({ hostname = "deploy-preview-36--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", timeline = decisionTimeline } = {}) {
+function runtime({ hostname = "deploy-preview-36--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", timeline = decisionTimeline, hang = false, status = "" } = {}) {
   const calls = [];
   let uuid = 0;
-  const window = { location: { hostname, pathname, hash: "#/tracking/opp-1" }, crypto: { randomUUID: () => `lifecycle-${++uuid}` } };
+  const lifecycleRecord = status ? { ...lifecycle, trackingStatus: status } : lifecycle;
+  const window = { location: { hostname, pathname, hash: "#/tracking/opp-1" }, crypto: { randomUUID: () => `lifecycle-${++uuid}` }, setTimeout: callback => setTimeout(callback, 5), clearTimeout };
   const fetch = async (url, options) => {
     calls.push({ url, options });
+    if (hang) return new Promise((_, reject) => options.signal.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" }))));
     const correlationId = options.headers["X-Correlation-Id"];
     if (url === "/api/v1/health") return response({ meta: { contractVersion: "1.0", correlationId }, data: { status: healthStatus } });
     if (url === "/api/v1/opportunities") return response(envelope(correlationId, { kind: "opportunities", items: [opportunity] }));
-    if (url === "/api/v1/lifecycle") return response(envelope(correlationId, { kind: "lifecycle", sourceOfTruth: "SQLite", items: [lifecycle] }));
-    if (url === "/api/v1/lifecycle/opp-1" && options.method === "GET") return response(envelope(correlationId, { kind: "lifecycle-detail", opportunityId: "opp-1", lifecycle, history: [], decisionTimeline: timeline }));
+    if (url === "/api/v1/lifecycle") return response(envelope(correlationId, { kind: "lifecycle", sourceOfTruth: "SQLite", items: [lifecycleRecord] }));
+    if (url === "/api/v1/lifecycle/opp-1" && options.method === "GET") return response(envelope(correlationId, { kind: "lifecycle-detail", opportunityId: "opp-1", lifecycle: lifecycleRecord, history: [], decisionTimeline: timeline }));
     if (url === "/api/v1/portfolio") return response(envelope(correlationId, { kind: "portfolio", configured: true, items: [] }));
     if (url === "/api/v1/alerts") return response(envelope(correlationId, { kind: "alerts", configured: true, items: [], notificationDeliveryConfigured: false }));
     throw new Error(`Unexpected request: ${url}`);
   };
-  const context = vm.createContext({ window, fetch, Response, Intl, Math, Date, Object, Array, String, Number, Boolean, RegExp, Promise, Set, Error, console, setTimeout, clearTimeout, encodeURIComponent, decodeURIComponent, FormData });
+  const context = vm.createContext({ window, fetch, AbortController, Response, Intl, Math, Date, Object, Array, String, Number, Boolean, RegExp, Promise, Set, Error, console, setTimeout, clearTimeout, encodeURIComponent, decodeURIComponent, FormData });
   vm.runInContext(adapter, context, { filename: "customer-lifecycle.js" });
   return { window, calls, main: { innerHTML: "", querySelector() { return null; }, querySelectorAll() { return []; } } };
 }
@@ -155,7 +157,7 @@ check("045 preview app eligible", preview.window.FlipForgeCustomerLifecycle.isEl
 check("046 preview tracking render activates", preview.window.FlipForgeCustomerLifecycle.render(preview.main, "tracking", "opp-1") === true);
 await settle();
 check("047 tracking reads health opportunities lifecycle detail", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/opportunities,/api/v1/lifecycle,/api/v1/lifecycle/opp-1");
-check("048 tracking renders saved workflow state", preview.main.innerHTML.includes("WATCHING") && preview.main.innerHTML.includes("Lifecycle history"));
+check("048 tracking renders saved workflow state", preview.main.innerHTML.includes("WATCHING") && preview.main.innerHTML.includes("Tracking history"));
 check("049 tracking renders governed timeline", preview.main.innerHTML.includes("Decision Timeline") && preview.main.innerHTML.includes("T0 · Original saved decision") && preview.main.innerHTML.includes("Decision changed from VERIFY to WATCH."));
 check("050 timeline preserves supplied governed decisions", preview.main.innerHTML.includes("VERIFY") && preview.main.innerHTML.includes("WATCH") && preview.main.innerHTML.includes("Supported Value"));
 check("051 timeline states immutable no-rescore boundary", preview.main.innerHTML.includes("Snapshots are immutable") && preview.main.innerHTML.includes("does not rescore"));
@@ -179,8 +181,8 @@ await settle();
 check("058 invalid timeline fails closed inside timeline panel without disabling Tracking",
   invalidTimeline.main.innerHTML.includes("Decision history unavailable")
     && invalidTimeline.main.innerHTML.includes("data-lifecycle-form")
-    && invalidTimeline.main.innerHTML.includes("Lifecycle history")
-    && !invalidTimeline.main.innerHTML.includes("Lifecycle unavailable"));
+    && invalidTimeline.main.innerHTML.includes("Tracking history")
+    && !invalidTimeline.main.innerHTML.includes("Tracking unavailable"));
 
 const marketing = runtime({ hostname: "goflipforge.com", pathname: "/" });
 check("059 public marketing path ineligible", marketing.window.FlipForgeCustomerLifecycle.isEligible() === false);
@@ -189,7 +191,28 @@ const disabled = runtime({ healthStatus: "disabled" });
 disabled.window.FlipForgeCustomerLifecycle.render(disabled.main, "tracking", "opp-1");
 await settle();
 check("060 disabled gateway stops after health", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
-check("061 disabled gateway renders safe offline state", /safely offline/i.test(disabled.main.innerHTML));
+check("061 disabled gateway renders safe offline state", /page is offline/i.test(disabled.main.innerHTML) && /nothing was loaded or changed/i.test(disabled.main.innerHTML));
+
+check("062 Portfolio is not rendered by the lifecycle adapter", preview.window.FlipForgeCustomerLifecycle.render(preview.main, "portfolio") === false);
+
+// A request that never answers is stopped by the adapter's own timeout (no global fetch wrapper), fails closed and
+// offers a retry. The 10 s timer is shortened here through window.setTimeout.
+const hung = runtime({ hang: true });
+hung.window.FlipForgeCustomerLifecycle.render(hung.main, "tracking", "opp-1");
+await settle();
+check("063 hung read stops with a customer timeout and a retry", hung.main.innerHTML.includes("taking too long") && hung.main.innerHTML.includes("data-lifecycle-retry") && !hung.main.innerHTML.includes("LIFECYCLE_TIMEOUT") && hung.calls[0].options.signal);
+
+const conditional = runtime({ status: "OWNED" });
+conditional.window.FlipForgeCustomerLifecycle.render(conditional.main, "tracking", "opp-1");
+await settle();
+const ownedForm = conditional.main.innerHTML;
+check("064 Owned shows purchase fields only; outcome follows status", /<label data-lifecycle-purchase><span>Purchase cost/.test(ownedForm) && /<label data-lifecycle-sale hidden><span>Sale proceeds/.test(ownedForm) && /<label data-lifecycle-outcome hidden aria-hidden="true">/.test(ownedForm) && /<option value="ACQUIRED" selected>/.test(ownedForm));
+check("065 Tracking keeps the Decision boundary visible and renders final labels", ownedForm.includes("<strong>Decision boundary:</strong>") && ownedForm.includes("Save tracking") && ownedForm.includes("Remind me in FlipForge") && !/tenant|SQLite|same-origin/i.test(ownedForm.replace(/<[^>]+>/g, " ")));
+check("066 Audit export is not offered on the private-beta surface", !ownedForm.includes("Audit export"));
+const full = runtime({ pathname: "/app/customer/" , hostname: "goflipforge.com" });
+full.window.FlipForgeCustomerLifecycle.render(full.main, "tracking", "opp-1");
+await settle();
+check("067 Audit export stays in the full customer app", full.main.innerHTML.includes("Audit export"));
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer lifecycle production validation");
