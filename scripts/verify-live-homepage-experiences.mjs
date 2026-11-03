@@ -1,0 +1,41 @@
+// Post-release proof that the PUBLIC homepage actually serves the three approved experiences.
+// Manifest/commit parity alone cannot detect an old or rewritten index.html.
+const target = String(process.env.FLIPFORGE_PUBLIC_SITE_URL || 'https://goflipforge.com/').trim();
+const url = new URL(target);
+if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Expected an HTTP(S) site URL.');
+url.pathname = '/';
+url.searchParams.set('homepage-check', String(process.env.EXPECTED_COMMIT_REF || 'release').slice(0, 12));
+
+const response = await fetch(url, {
+  headers: {accept: 'text/html', 'cache-control': 'no-cache'},
+  cache: 'no-store',
+  redirect: 'follow',
+  signal: AbortSignal.timeout(20000)
+});
+if (!response.ok) throw new Error(`Public homepage returned HTTP ${response.status}`);
+if (!String(response.headers.get('content-type') || '').toLowerCase().includes('html'))
+  throw new Error('Public homepage did not return HTML.');
+const html = await response.text();
+const failures = [];
+const check = (description, condition) => { if (!condition) failures.push(description); };
+
+check('Hero identifies five collector strategies',
+  ['flipper', 'investor', 'collector', 'dealer', 'grading'].every(key =>
+    html.includes(`href="#who-its-for" data-ff-audience-target="${key}"`)));
+check('Desktop and mobile navigation include Who It’s For',
+  (html.match(/data-ff-audience-navigation/g) || []).length === 2);
+check('Audience section is actually served',
+  html.includes('id="who-its-for"') && html.includes('Different goals.') && html.includes('Same need for proof.'));
+check('Decision Challenge is actually served',
+  html.includes('id="demo"') && html.includes('Would you buy this card?'));
+check('Real app showcase is actually served',
+  html.includes('id="inside-the-app"') && html.includes('The reasoning, on screen.'));
+check('Audience, challenge and showcase runtime assets are actually referenced',
+  ['assets/js/homepage-audiences-v1.js', 'assets/js/homepage-challenge-v1.js',
+   'assets/js/homepage-app-showcase-v1.js', 'assets/css/homepage-audiences-v1.css',
+   'assets/css/homepage-challenge-v1.css', 'assets/css/homepage-app-showcase-v1.css']
+    .every(asset => html.includes(asset)));
+
+if (failures.length) throw new Error(`Public homepage smoke test failed: ${failures.join('; ')}`);
+console.log('PASS: public homepage serves five hero strategy links, both menus, Decision Challenge and real app showcase.');
+console.log('Verified publicly served HTML, not merely the repository or deploy manifest.');

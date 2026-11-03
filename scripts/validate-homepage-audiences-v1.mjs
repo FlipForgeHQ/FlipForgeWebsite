@@ -6,6 +6,7 @@ import { expected, current } from './build-homepage-audiences.mjs';
 const page = fs.readFileSync('index.html', 'utf8');
 const css = fs.readFileSync('assets/css/homepage-audiences-v1.css', 'utf8');
 const js = fs.readFileSync('assets/js/homepage-audiences-v1.js', 'utf8');
+const heroCss = fs.readFileSync('assets/css/homepage-hero-positioning-v1.css', 'utf8');
 const data = JSON.parse(fs.readFileSync('marketing/content/audience-messaging.json', 'utf8'));
 let passed = 0;
 const failures = [];
@@ -42,6 +43,20 @@ check('A13 each audience has an illustration from the existing artwork and a nex
   && !/<img(?![^>]*ff10-silver\.webp)[^>]*>/.test(block) && (block.match(/Illustrative · fictional card/g) || []).length === 5
   && (block.match(/data-aud-cta=/g) || []).length === 5 && (block.match(/href="#demo"/g) || []).length === 5);
 check('A14 closing message', text.includes('Different strategies. Different priorities. One standard for making an informed decision.'));
+check('A15 visitors can find all five audience choices directly in the hero',
+  order.every(key => page.includes(`href="#who-its-for" data-ff-audience-target="${key}"`))
+  && (page.match(/data-ff-audience-target="/g) || []).length === 5
+  && page.indexOf('class="ff10-persona-nav"') < page.indexOf('id="who-its-for"')
+  && page.includes('How do you approach cards?'));
+check('A16 Who It’s For is linked from desktop and mobile navigation',
+  (page.match(/href="#who-its-for" data-ff-audience-navigation/g) || []).length === 2);
+check('A17 hero links select the matching existing panel without rewriting its source content',
+  js.includes("document.querySelectorAll('[data-ff-audience-target]')")
+  && js.includes("tab.dataset.audTab === link.dataset.ffAudienceTarget")
+  && js.includes("select(index, false)")
+  && heroCss.includes('.ff10 .ff10-persona-links a')
+  && heroCss.includes('scroll-margin-top:88px'));
+
 check('A08 accessible tabs', (block.match(/role="tab"/g) || []).length === 5 && (block.match(/role="tabpanel"/g) || []).length === 5
   && block.includes('role="tablist"') && (block.match(/aria-selected="true"/g) || []).length === 1
   && order.every(k => block.includes(`aria-controls="ff10-aud-panel-${k}"`) && block.includes(`aria-labelledby="ff10-aud-tab-${k}"`)));
