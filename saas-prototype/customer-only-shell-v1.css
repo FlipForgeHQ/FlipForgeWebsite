@@ -53,6 +53,11 @@ body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav {
   min-height: 50px;
   white-space: normal;
 }
+/* Preserve the actual HTML hidden state at desktop widths; this must win over the account link display rule. */
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav[hidden] {
+  display: none !important;
+}
+
 body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav > span:first-child {
   width: 28px;
   text-align: center;
