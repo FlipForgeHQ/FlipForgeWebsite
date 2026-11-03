@@ -100,7 +100,7 @@
   body.ff-full-customer-app #main-content .ff-v2-table tbody td::before {
     content: attr(data-ff-mobile-label);
     color: #8d98a4;
-    font-size: .68rem !important;
+    font-size: .875rem !important;
     font-weight: 800 !important;
     letter-spacing: .055em !important;
     line-height: 1.2 !important;
@@ -132,7 +132,7 @@
     display: block !important;
     margin-top: 5px !important;
     color: #9ba6b2 !important;
-    font-size: .82rem !important;
+    font-size: .875rem !important;
     line-height: 1.4 !important;
     white-space: normal !important;
     overflow-wrap: anywhere !important;
@@ -148,7 +148,7 @@
     max-width: 100% !important;
     min-height: 30px !important;
     padding: 4px 10px !important;
-    font-size: .78rem !important;
+    font-size: .875rem !important;
   }
 
   body.ff-full-customer-app #main-content .ff-v2-table tbody td:nth-child(3),
@@ -163,7 +163,7 @@
 
   body.ff-full-customer-app #main-content .ff-v2-table tbody td:nth-child(n+5) {
     color: #c7ced5 !important;
-    font-size: .84rem !important;
+    font-size: .875rem !important;
   }
 
   body.ff-full-customer-app .ff-guide-launcher {
@@ -231,7 +231,7 @@
   body.ff-full-customer-app #main-content .customer-evaluation-page > .boundary-note {
     margin: 0 0 2px !important;
     padding: 10px 11px !important;
-    font-size: .76rem !important;
+    font-size: .875rem !important;
     line-height: 1.42 !important;
   }
 
@@ -296,7 +296,7 @@
 
   body.ff-full-customer-app #main-content .customer-discovery-search-help {
     margin-top: 8px !important;
-    font-size: .74rem !important;
+    font-size: .875rem !important;
     line-height: 1.4 !important;
   }
 
@@ -316,7 +316,7 @@
 
   body.ff-full-customer-app #main-content .customer-discovery-candidate .panel-header p {
     margin-top: 4px !important;
-    font-size: .78rem !important;
+    font-size: .875rem !important;
   }
 
   body.ff-full-customer-app #main-content .customer-discovery-score {
@@ -349,14 +349,14 @@
   body.ff-full-customer-app #main-content .customer-discovery-candidate .customer-discovery-copy {
     gap: 5px !important;
     margin-top: 10px !important;
-    font-size: .79rem !important;
+    font-size: .875rem !important;
     line-height: 1.45 !important;
   }
 
   body.ff-full-customer-app #main-content .customer-discovery-ranking-details {
     margin-top: 9px !important;
     padding: 9px 10px !important;
-    font-size: .78rem !important;
+    font-size: .875rem !important;
   }
 
   body.ff-full-customer-app #main-content .customer-discovery-ranking-details summary,
@@ -389,7 +389,7 @@
   body.ff-full-customer-app #main-content .customer-discovery-candidate .boundary-note {
     margin: 10px 0 0 !important;
     padding: 9px 10px !important;
-    font-size: .74rem !important;
+    font-size: .875rem !important;
     line-height: 1.4 !important;
   }
 
@@ -432,7 +432,7 @@
   body.ff-full-customer-app #main-content .customer-intake-step > span {
     width: 28px !important;
     height: 28px !important;
-    font-size: .78rem !important;
+    font-size: .875rem !important;
   }
 
   body.ff-full-customer-app #main-content .customer-intake-step strong {
@@ -442,7 +442,7 @@
 
   body.ff-full-customer-app #main-content .customer-intake-step small {
     margin-top: 2px !important;
-    font-size: .76rem !important;
+    font-size: .875rem !important;
     line-height: 1.35 !important;
   }
 
@@ -456,19 +456,19 @@
   }
 
   body.ff-full-customer-app #main-content .staging-field > span {
-    font-size: .72rem !important;
+    font-size: .875rem !important;
     letter-spacing: .025em !important;
   }
 
   body.ff-full-customer-app #main-content .staging-field small {
-    font-size: .74rem !important;
+    font-size: .875rem !important;
     line-height: 1.35 !important;
   }
 
   body.ff-full-customer-app #main-content .staging-boundary-check {
     gap: 10px !important;
     padding: 11px !important;
-    font-size: .79rem !important;
+    font-size: .875rem !important;
     line-height: 1.4 !important;
   }
 
@@ -493,7 +493,7 @@
   }
 
   body.ff-full-customer-app #main-content .staging-form-note {
-    font-size: .72rem !important;
+    font-size: .875rem !important;
     line-height: 1.38 !important;
   }
 
@@ -550,7 +550,7 @@
 
   body.ff-full-customer-app #main-content .ff-di-control label {
     margin-bottom: 5px !important;
-    font-size: .67rem !important;
+    font-size: .875rem !important;
   }
 
   body.ff-full-customer-app #main-content .ff-di-v2-command {
@@ -568,7 +568,7 @@
     min-height: 34px !important;
     align-items: center !important;
     padding: 6px 11px !important;
-    font-size: .82rem !important;
+    font-size: .875rem !important;
     font-weight: 850 !important;
   }
 
@@ -580,7 +580,7 @@
 
   body.ff-full-customer-app #main-content .ff-di-v2-verdict p {
     margin-top: 8px !important;
-    font-size: .84rem !important;
+    font-size: .875rem !important;
     line-height: 1.45 !important;
   }
 
@@ -647,7 +647,7 @@
 
   body.ff-full-customer-app #main-content .ff-di-v2-change p {
     margin-top: 8px !important;
-    font-size: .8rem !important;
+    font-size: .875rem !important;
     line-height: 1.42 !important;
   }
 

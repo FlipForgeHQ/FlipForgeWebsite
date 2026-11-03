@@ -62,7 +62,7 @@ textarea,
   }
   .ff-commercial-shell .brand-subtitle{
     margin-top:5px!important;
-    font-size:10px!important;
+    font-size:14px!important;
     line-height:1.2!important;
     letter-spacing:.065em!important;
     white-space:normal!important;
@@ -74,7 +74,7 @@ textarea,
     max-width:none!important;
     margin:9px 0 0 45px!important;
     padding:4px 8px!important;
-    font-size:10px!important;
+    font-size:14px!important;
     line-height:1.1!important;
     white-space:nowrap!important;
   }
@@ -140,7 +140,7 @@ textarea,
     grid-column:3!important;
     grid-row:1!important;
     margin:0 0 0 6px!important;
-    font-size:9px!important;
+    font-size:14px!important;
     line-height:1!important;
   }
 
@@ -148,7 +148,7 @@ textarea,
   .ff-commercial-shell .ff-advanced-nav > summary{
     min-height:44px!important;
     padding:0 12px!important;
-    font-size:13px!important;
+    font-size:14px!important;
     line-height:1.2!important;
   }
   .ff-commercial-shell .ff-advanced-nav-links{

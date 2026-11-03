@@ -74,7 +74,7 @@
   #main-content .metric-grid,#main-content .customer-management-metrics,#main-content .customer-portfolio-metrics,#main-content .customer-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
   #main-content .metric-card{min-height:88px!important;padding:11px!important}
   #main-content .metric-value{font-size:20px!important}
-  #main-content table{font-size:.86rem!important}
+  #main-content table{font-size:.875rem!important}
   #main-content th,#main-content td{padding:8px!important}
   .ff-di-grid>*{grid-column:1/-1!important}
 }

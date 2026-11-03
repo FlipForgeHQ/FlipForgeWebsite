@@ -25,7 +25,7 @@
   mask-image:linear-gradient(to bottom,#000,transparent 82%);
 }
 .ff-p3-activation-grid{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:28px;align-items:center}
-.ff-p3-kicker{display:block;color:var(--ff-p3-gold-soft);font-size:.72rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
+.ff-p3-kicker{display:block;color:var(--ff-p3-gold-soft);font-size:.875rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
 .ff-p3-activation h2{margin:8px 0 10px;font-size:clamp(2rem,4.5vw,4rem);line-height:.96;letter-spacing:-.05em}
 .ff-p3-activation p{max-width:650px;margin:0;color:#b0bac6;line-height:1.65}
 .ff-p3-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
@@ -37,10 +37,10 @@
 }
 .ff-p3-first-step b{
   width:36px;height:36px;display:grid;place-items:center;border-radius:50%;
-  border:1px solid rgba(212,175,55,.38);color:var(--ff-p3-gold);font-size:.75rem
+  border:1px solid rgba(212,175,55,.38);color:var(--ff-p3-gold);font-size:.875rem
 }
 .ff-p3-first-step strong{display:block;font-size:.88rem}
-.ff-p3-first-step small{display:block;margin-top:3px;color:#85919f;font-size:.75rem;line-height:1.4}
+.ff-p3-first-step small{display:block;margin-top:3px;color:#85919f;font-size:.875rem;line-height:1.4}
 
 /* Returning customer dashboard */
 .ff-p3-returning{
@@ -49,14 +49,14 @@
 }
 .ff-p3-returning-head{display:flex;justify-content:space-between;gap:18px;align-items:end;margin-bottom:14px}
 .ff-p3-returning-head h2{margin:4px 0 0;font-size:1.45rem}
-.ff-p3-returning-head p{margin:0;color:#929daa;font-size:.82rem}
+.ff-p3-returning-head p{margin:0;color:#929daa;font-size:.875rem}
 .ff-p3-returning-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .ff-p3-returning-card{
   min-height:110px;padding:15px;border:1px solid var(--ff-p3-line);border-radius:14px;
   background:#07101a;text-decoration:none;color:#fff;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease
 }
 .ff-p3-returning-card:hover{transform:translateY(-3px);border-color:rgba(212,175,55,.34);box-shadow:0 14px 30px rgba(0,0,0,.2)}
-.ff-p3-returning-card span{display:block;color:var(--ff-p3-gold);font-size:.62rem;font-weight:900;letter-spacing:.12em}
+.ff-p3-returning-card span{display:block;color:var(--ff-p3-gold);font-size:.875rem;font-weight:900;letter-spacing:.12em}
 .ff-p3-returning-card strong{display:block;margin-top:9px;font-size:.95rem}
 .ff-p3-returning-card small{display:block;margin-top:6px;color:#8e99a6;line-height:1.4}
 
@@ -69,16 +69,16 @@
 }
 .ff-p3-evaluate-intro::after{display:none!important;content:none!important}
 .ff-p3-evaluate-copy{position:relative;z-index:2}
-.ff-p3-evaluate-copy small{color:var(--ff-p3-gold-soft);font-size:.64rem;font-weight:900;letter-spacing:.12em}
+.ff-p3-evaluate-copy small{color:var(--ff-p3-gold-soft);font-size:.875rem;font-weight:900;letter-spacing:.12em}
 .ff-p3-evaluate-copy h2{margin:4px 0 3px;font-size:clamp(1.15rem,2vw,1.5rem);letter-spacing:-.025em}
-.ff-p3-evaluate-copy p{margin:0;color:#a7b1bd;font-size:.78rem;line-height:1.4}
+.ff-p3-evaluate-copy p{margin:0;color:#a7b1bd;font-size:.875rem;line-height:1.4}
 .ff-p3-evaluate-rail{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
 .ff-p3-evaluate-step{
   display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:7px;min-height:44px;
   padding:7px 9px;border:1px solid var(--ff-p3-line);border-radius:10px;background:rgba(3,8,14,.78)
 }
-.ff-p3-evaluate-step b{display:block;color:#83909d;font-size:.58rem;letter-spacing:.1em}
-.ff-p3-evaluate-step strong{display:block;margin:0;font-size:.72rem}
+.ff-p3-evaluate-step b{display:block;color:#83909d;font-size:.875rem;letter-spacing:.1em}
+.ff-p3-evaluate-step strong{display:block;margin:0;font-size:.875rem}
 .ff-p3-evaluate-step small{display:none}
 .ff-p3-evaluate-shell--compact .ff-p3-evaluate-copy p{display:none}
 .ff-p3-evaluate-shell--compact .ff-p3-evaluate-rail{margin-top:7px}
@@ -108,16 +108,16 @@
 .ff-p3-result-guide-head{padding-left:10px;display:flex;justify-content:space-between;gap:18px;align-items:start}
 .ff-p3-result-guide-head h2{margin:6px 0 6px;font-size:1.55rem}
 .ff-p3-result-guide-head p{margin:0;color:#96a1ae;line-height:1.55}
-.ff-p3-result-pill{padding:9px 12px;border-radius:999px;background:var(--ff-p3-gold);color:#04070a;font-size:.72rem;font-weight:950;letter-spacing:.08em}
+.ff-p3-result-pill{padding:9px 12px;border-radius:999px;background:var(--ff-p3-gold);color:#04070a;font-size:.875rem;font-weight:950;letter-spacing:.08em}
 .ff-p3-result-guide[data-decision="BUY"] .ff-p3-result-pill{background:var(--ff-p3-green)}
 .ff-p3-result-guide[data-decision="PASS"] .ff-p3-result-pill{background:var(--ff-p3-red)}
 .ff-p3-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:17px}
 .ff-p3-result-grid article{padding:14px;border:1px solid var(--ff-p3-line);border-radius:13px;background:rgba(255,255,255,.017)}
-.ff-p3-result-grid span{display:block;color:var(--ff-p3-gold);font-size:.61rem;font-weight:900;letter-spacing:.11em}
+.ff-p3-result-grid span{display:block;color:var(--ff-p3-gold);font-size:.875rem;font-weight:900;letter-spacing:.11em}
 .ff-p3-result-grid strong{display:block;margin-top:8px;font-size:.89rem}
-.ff-p3-result-grid p{margin:6px 0 0;color:#8995a2;font-size:.76rem;line-height:1.45}
+.ff-p3-result-grid p{margin:6px 0 0;color:#8995a2;font-size:.875rem;line-height:1.45}
 .ff-p3-decision-key{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
-.ff-p3-decision-key span{padding:7px 9px;border:1px solid var(--ff-p3-line);border-radius:999px;color:#8d99a6;font-size:.68rem}
+.ff-p3-decision-key span{padding:7px 9px;border:1px solid var(--ff-p3-line);border-radius:999px;color:#8d99a6;font-size:.875rem}
 .ff-p3-decision-key span[data-active="true"]{border-color:rgba(212,175,55,.46);color:#fff;background:rgba(212,175,55,.07)}
 .ff-p3-result-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
 
@@ -184,7 +184,7 @@
   display:inline-block;
   margin-top:15px;
   color:var(--ff-p3-gold-soft);
-  font-size:.8rem;
+  font-size:.875rem;
   font-weight:800;
   text-decoration:none;
 }
@@ -208,13 +208,13 @@
 }
 .ff-p3-home-zero-footer span{
   color:#fff;
-  font-size:.8rem;
+  font-size:.875rem;
   font-weight:850;
 }
 .ff-p3-home-zero-footer small{
   max-width:650px;
   color:#8793a0;
-  font-size:.74rem;
+  font-size:.875rem;
   line-height:1.45;
   text-align:right;
 }

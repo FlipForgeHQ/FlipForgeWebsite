@@ -23,7 +23,6 @@ const dashboardV3StylesheetTag = '<link rel="stylesheet" href="decision-dashboar
 const dashboardV3ScriptTag = '<script src="decision-dashboard-v3.js"></script>';
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
 const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
-const typographyFloorScriptTag = '<script src="customer-typography-floor-v1.js"></script>';
 const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability.css">';
 
 fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
@@ -121,15 +120,6 @@ function injectCommercialAppPolish(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
-function injectTypographyFloor(htmlPath) {
-  if (!fs.existsSync(htmlPath)) throw new Error(`Typography floor target missing: ${path.relative(root, htmlPath)}`);
-  let html = fs.readFileSync(htmlPath, "utf8");
-  if (html.includes('customer-typography-floor-v1.js')) return;
-  if (!html.includes("</body>")) throw new Error(`Typography floor body marker missing in ${path.relative(root, htmlPath)}`);
-  html = html.replace("</body>", `  ${typographyFloorScriptTag}\n</body>`);
-  fs.writeFileSync(htmlPath, html, "utf8");
-}
-
 function enforceProductionAppBoundary(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Production app boundary target missing: ${path.relative(root, htmlPath)}`);
   const current = fs.readFileSync(htmlPath, "utf8");
@@ -153,7 +143,8 @@ injectDashboardV3(appIndex);
 injectCommercialDashboard(appIndex);
 injectCommercialAppPolish(appIndex);
 // The Private Beta navigation is final in saas-prototype/index.html at every width: no mobile navigation script is added.
-injectTypographyFloor(appIndex);
+// The 14px customer typography floor is CSS (saas-prototype/customer-typography.css, linked by both app pages);
+// no typography script is injected.
 enforceProductionAppBoundary(appIndex);
 
 const identityBytes = fs.statSync(identityOutput).size;
@@ -167,6 +158,4 @@ console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`
 console.log("Injected FlipForge Dashboard V3 (flagged) assets before commercial dashboard v2.");
 console.log("Injected FlipForge commercial dashboard v2 assets before customer readability.");
 console.log("Injected FlipForge commercial app polish v2 assets before customer readability.");
-console.log("Injected FlipForge mobile navigation stabilizer after route presentation scripts.");
-console.log("Injected FlipForge computed customer typography floor after route presentation scripts.");
 console.log(`Applied FlipForge production/preview app boundary for CONTEXT=${process.env.CONTEXT || "local"}.`);

@@ -50,7 +50,7 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .ff-sell-watch-breakdown dt {
@@ -76,7 +76,7 @@
 
 .ff-sell-watch-note {
   color: var(--text-soft);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .ff-sell-watch .value-positive {

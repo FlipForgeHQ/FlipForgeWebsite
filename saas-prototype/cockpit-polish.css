@@ -21,13 +21,13 @@
 
 .dashboard-cockpit-primary.cockpit-polished .cockpit-section-heading p {
   max-width: 760px;
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
 .dashboard-cockpit-primary.cockpit-polished .cockpit-stage-chip {
   padding: 6px 9px;
-  font-size: 8px !important;
+  font-size: 14px !important;
 }
 
 .cockpit-kpi-strip {
@@ -62,7 +62,7 @@
 
 .cockpit-kpi-card > div > span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: .025em;
   text-transform: uppercase;
@@ -78,7 +78,7 @@
   margin-top: 6px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 14px;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -137,17 +137,17 @@
 }
 
 .dashboard-cockpit-primary.cockpit-polished .cockpit-module-card strong {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .dashboard-cockpit-primary.cockpit-polished .cockpit-module-card small {
   margin-top: 3px;
-  font-size: 9px;
+  font-size: 14px;
 }
 
 .dashboard-cockpit-primary.cockpit-polished .cockpit-module-card em {
   margin-top: 5px;
-  font-size: 8px;
+  font-size: 14px;
 }
 
 .dashboard-cockpit-primary.cockpit-polished .cockpit-grid {
