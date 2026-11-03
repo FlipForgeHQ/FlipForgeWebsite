@@ -35,6 +35,9 @@
 
   let currentMain = null;
   let currentSurface = "staging";
+  // Saved Decisions & Tracking M1: "Re-evaluate this listing" opens #/evaluate/{savedDecisionId} prefilled with the
+  // listing facts this account entered last time (GET /api/v1/reevaluation-draft/{id}). Reading it creates nothing.
+  let reevaluation = null;
 
   function customerSurface() {
     return currentSurface === "customer";
@@ -556,7 +559,7 @@
       ? "Give FlipForge the listing facts and complete acquisition cost. The existing backend returns, saves, and tracks the governed decision."
       : "Submit one authenticated, tenant-scoped manual opportunity to the authoritative FlipForge evaluation endpoint.";
     const action = customerSurface() ? "Tracked opportunities" : "Staging data";
-    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${errorPanel(state.error)}${evaluationForm()}${resultPanel()}</div>`;
+    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${reevaluationBanner()}${errorPanel(state.error)}${evaluationForm()}${resultPanel()}</div>`;
     bindActions();
   }
 
@@ -580,10 +583,118 @@
     renderCurrent();
   }
 
+  function requestedReevaluationId() {
+    const parts = String(window.location.hash || "").replace(/^#\/?/, "").split("/");
+    if (parts[0] !== "evaluate" || !parts[1]) return "";
+    let id = "";
+    try {
+      id = decodeURIComponent(parts[1]);
+    } catch (_) {
+      return "";
+    }
+    return SAFE_OPPORTUNITY_ID.test(id) ? id : "";
+  }
+
+  function centsToInput(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 ? (number / 100).toFixed(2) : "";
+  }
+
+  function validDraftEnvelope(payload, expectedCorrelationId, opportunityId) {
+    const meta = payload && payload.meta;
+    const data = payload && payload.data;
+    return Boolean(meta && data)
+      && meta.contractVersion === CONTRACT_VERSION
+      && meta.authority === "Smart Opportunity"
+      && meta.correlationId === expectedCorrelationId
+      && data.kind === "reevaluation-draft"
+      && String(data.opportunityId || "") === opportunityId
+      && data.readOnly === true
+      && data.evaluationCreated === false;
+  }
+
+  async function loadReevaluation(opportunityId) {
+    const requestCorrelationId = correlationId();
+    try {
+      const response = await fetch(`/api/v1/reevaluation-draft/${encodeURIComponent(opportunityId)}`, {
+        method: "GET",
+        headers: { Accept: "application/json", "X-Correlation-Id": requestCorrelationId },
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "error"
+      });
+      const payload = await parseResponse(response);
+      if (!reevaluation || reevaluation.opportunityId !== opportunityId) return;
+      if (!response.ok || !validDraftEnvelope(payload, requestCorrelationId, opportunityId)) throw new Error("unavailable");
+      const data = payload.data;
+      if (data.available !== true) {
+        reevaluation = { opportunityId, status: "unavailable", explanation: String(data.explanation || "") };
+      } else {
+        const fields = data.fields || {};
+        state.draft = {
+          ...defaultDraft(),
+          externalListingId: String(fields.externalListingId || ""),
+          marketplace: MARKETPLACES.includes(String(fields.marketplace || "")) ? String(fields.marketplace) : "OTHER",
+          cardIdentity: String(fields.cardIdentity || ""),
+          listingUrl: String(fields.listingUrl || ""),
+          seller: String(fields.seller || ""),
+          itemPrice: centsToInput(fields.itemPriceCents),
+          shipping: centsToInput(fields.shippingCents),
+          buyerPremium: centsToInput(fields.buyerPremiumCents),
+          tax: centsToInput(fields.taxCents),
+          listingFormat: String(fields.listingFormat || ""),
+          endsAt: String(fields.endsAt || ""),
+          acknowledgeBoundary: false
+        };
+        state.idempotencyKey = "";
+        state.payloadFingerprint = "";
+        reevaluation = {
+          opportunityId,
+          status: "ready",
+          previousEvaluatedAt: String(data.previousEvaluatedAt || ""),
+          previousAllInAskCents: fields.allInAskCents
+        };
+      }
+    } catch (_) {
+      if (!reevaluation || reevaluation.opportunityId !== opportunityId) return;
+      reevaluation = { opportunityId, status: "unavailable", explanation: "" };
+    }
+    if (currentSurface === "customer" && requestedReevaluationId() === opportunityId) renderCurrent();
+  }
+
+  function reevaluationBanner() {
+    if (!customerSurface() || !reevaluation) return "";
+    const back = `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(reevaluation.opportunityId)}">Back to the saved decision</a>`;
+    if (reevaluation.status === "loading") {
+      return `<section class="panel ff-reevaluation-banner" data-reevaluation-state="loading" role="status"><div class="panel-body"><strong>Loading the listing details you entered last time…</strong></div></section>`;
+    }
+    if (reevaluation.status === "unavailable") {
+      return `<section class="panel ff-reevaluation-banner" data-reevaluation-state="unavailable" role="status"><div class="panel-body"><strong>Re-evaluating a saved decision</strong><p>${escapeHtml(reevaluation.explanation || "FlipForge could not load the listing details you entered last time. Enter the listing below; your saved decision is unchanged.")}</p>${back}</div></section>`;
+    }
+    const when = reevaluation.previousEvaluatedAt && !Number.isNaN(Date.parse(reevaluation.previousEvaluatedAt))
+      ? new Date(reevaluation.previousEvaluatedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+      : "";
+    return `<section class="panel ff-reevaluation-banner" data-reevaluation-state="ready" role="status"><div class="panel-body"><strong>Re-evaluating your saved decision</strong><p>These are the details you entered${when ? ` on ${escapeHtml(when)}` : " last time"}${reevaluation.previousAllInAskCents != null ? ` (all-in ask ${escapeHtml(moneyFromCents(reevaluation.previousAllInAskCents))})` : ""}. Update the price to what the listing asks now. An unchanged listing, card and price returns your existing decision without using an evaluation.</p><p>Your earlier decision and its receipt stay exactly as they were; a new evaluation is added to the card's history.</p>${back}</div></section>`;
+  }
+
   function renderCustomer(main) {
     currentSurface = "customer";
     currentMain = main;
     if (!customerEligibleHost()) return false;
+    const requested = requestedReevaluationId();
+    if (requested && (!reevaluation || reevaluation.opportunityId !== requested)) {
+      state.submitting = false;
+      state.result = null;
+      state.error = null;
+      state.draft = defaultDraft();
+      reevaluation = { opportunityId: requested, status: "loading" };
+      loadReevaluation(requested);
+    } else if (!requested && reevaluation) {
+      reevaluation = null;
+      state.result = null;
+      state.error = null;
+      state.draft = defaultDraft();
+    }
     renderCurrent();
     return true;
   }
