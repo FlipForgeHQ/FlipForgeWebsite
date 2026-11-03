@@ -161,7 +161,7 @@ function fixture(f) {
 // ---------- session ----------
 const browser = await chromium.launch({ executablePath, args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"] });
 const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
-async function open(route, f = BASE, { active = "", storageThrows = false, wait = 4500, expandAll = true, host = "goflipforge.com", device = null } = {}) {
+async function open(route, f = BASE, { active = "", storageThrows = false, wait = 4500, expandAll = true, host = "goflipforge.com", device = null, app = APP } = {}) {
   const context = await browser.newContext(device || { viewport: { width: 1440, height: 900 } });
   await context.addInitScript(() => { try { localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete"); } catch (_) {} });
   if (active) await context.addInitScript(id => { try { sessionStorage.setItem("flipforge.trackingContext.v1", id); } catch (_) {} }, active);
@@ -177,7 +177,7 @@ async function open(route, f = BASE, { active = "", storageThrows = false, wait 
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", e => { if (!/QA: (?:session )?storage unavailable/.test(e.message)) errors.push(e.message.slice(0, 160)); });
-  await page.goto(`${APP.replace("goflipforge.com", host)}#/${route}`, { waitUntil: "load" });
+  await page.goto(`${app.replace("goflipforge.com", host)}#/${route}`, { waitUntil: "load" });
   await page.waitForTimeout(wait);
   if (expandAll) {
     await page.evaluate(() => document.querySelectorAll("#main-content details").forEach(d => { d.open = true; }));
@@ -371,9 +371,14 @@ try {
       if (route === "opportunities/qa-trust-a") {
         check("T8 card detail (new shape, legacy): saved values shown only as \"at the time (legacy)\"", /Saved value at the time \(legacy\): \$1,675/.test(s.text) && /Max Buy at the time \(legacy\): \$1,400/.test(s.text));
         check("T8 card detail (new shape, legacy): supported value reads Unavailable / not currently supported", /SUPPORTED VALUE\s+Unavailable/i.test(s.text) && /Not currently supported/.test(s.text));
+        // /app/beta does not offer the Price Intelligence panel on a saved decision (it is not rendered there), so no
+        // threshold can be shown; the full customer app renders it, and there it must say no thresholds for a legacy result.
+        check("T8 card detail (new shape, legacy, beta): no Price Intelligence panel or price threshold is rendered", await s.page.locator("[data-price-intelligence-panel]").count() === 0 && !/WATCH threshold|BUY threshold/i.test(s.text));
+        const full = await open(route, legacy, { app: APP.replace("/app/beta/", "/app/customer/") });
         // The Price Intelligence panel may sit in a collapsed advanced section, so its DOM text is read directly.
-        const priceText = await s.page.evaluate(() => document.querySelector("[data-price-intelligence-panel]")?.textContent || "");
+        const priceText = await full.page.evaluate(() => document.querySelector("[data-price-intelligence-panel]")?.textContent || "");
         check("T8 card detail (new shape, legacy): Price Intelligence says no thresholds for a legacy result", /Price thresholds are not shown for a result saved before current evidence rules/.test(priceText) && !/SAFETY_CONTRACT|did not satisfy/.test(priceText), priceText.replace(/\s+/g, " ").slice(0, 200));
+        await full.context.close();
         check("T8 card detail (new shape, legacy): no current-support copy", !/Buy looks supported|supports this purchase at the evaluated price|found enough support for a BUY/.test(s.text));
       }
       if (route === "compare") {
