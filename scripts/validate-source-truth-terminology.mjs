@@ -150,8 +150,13 @@ for (const rel of ["faq.html", "data-use.html"]) {
   check(`${rel} carries the approved provider disclosure`, providerDisclosure.every(re => re.test(read(rel))));
 }
 const NAMED_SERVICE_CLAIM = /eBay auction closing prices|eBay sold data|Goldin|130point|Card Ladder|CardSight/i;
+// Provider's 2026-10-26 written permission allows this exact credit on Data Use only.
+// The customer app and all other marketing pages remain provider-neutral.
+const APPROVED_DATA_SOURCE_CREDIT = "<p>Historical FlipForge research used observations supplied by <a href=\"https://cardsight.ai/\" rel=\"noopener noreferrer\">CardSight AI</a>. FlipForge independently applies its own card-matching, evidence rules, calculations, and decision logic. The data source does not determine or endorse FlipForge decisions. Provider-backed completed-sale evidence remains suspended in the Private Beta.</p>";
+check("Data Use includes precisely the approved historical source credit", read("data-use.html").includes(APPROVED_DATA_SOURCE_CREDIT));
 for (const rel of fs.readdirSync(".").filter(name => name.endsWith(".html"))) {
-  check(`${rel} does not name data services or claim eBay sold-data access`, !NAMED_SERVICE_CLAIM.test(read(rel)));
+  const scoped = rel === "data-use.html" ? read(rel).replace(APPROVED_DATA_SOURCE_CREDIT, "") : read(rel);
+  check(`${rel} has no unapproved named data service`, !NAMED_SERVICE_CLAIM.test(scoped));
 }
 check("Decision Intelligence states the payment limitation", disclosure.test(read("saas-prototype/decision-intelligence-ux-v2.js")));
 check("evidence details state the payment limitation", disclosure.test(read("saas-prototype/evidence-authority-split-v1.js")));
@@ -267,7 +272,7 @@ for (const rel of files) {
     }
     for (const pair of introducedTrustWords(source)) replacementViolations.push(`${rel}: ${pair}`);
   } else if (ext === ".html") {
-    for (const text of htmlCustomerText(source)) {
+    for (const text of htmlCustomerText(rel === "data-use.html" ? source.replace(APPROVED_DATA_SOURCE_CREDIT, "") : source)) {
       const provider = providerNameIn(text);
       if (provider) providerViolations.push(`${rel} names "${provider}"`);
     }

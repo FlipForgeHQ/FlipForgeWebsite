@@ -24,6 +24,14 @@ check('dedicated page title exists',page.includes('<title>Decision Proof | FlipF
 check('dedicated page canonical exists',page.includes('https://goflipforge.com/decision-proof.html'));
 check('dedicated page states Proof100 results are withdrawn for re-audit',page.includes('Proof100 results are withdrawn while we re-audit them.')&&page.includes('Status: October 20, 2026'))
 check('withdrawn Proof100 figures are not published',!/17\/17|42 measurable|58 unresolved|Economically justified holds|Snapshot: September 18, 2026/.test(page));
+check('published historical inventory stays decision-only',includesAll(page,[
+  'HISTORICAL DECISION INVENTORY · OCTOBER 23, 2026',
+  '10 PASS · 15 VERIFY',
+  '1 BUY · 15 WATCH · 71 VERIFY · 13 PASS',
+  '0 independently eligible outcomes',
+  'None qualifies as independently verified learning evidence under current standards',
+  'They do not measure accuracy, financial returns'
+]));
 check('dedicated page has T0/T7/T14/T30 method',includesAll(page,[
   '<strong>T0</strong>',
   '<strong>T7</strong>',

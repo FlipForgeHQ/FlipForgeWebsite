@@ -34,8 +34,15 @@ const served = [
   ...fs.readdirSync(".").filter(name => /\.(html|js|json|webmanifest|xml|txt)$/.test(name) && !/^(package|package-lock)\.json$/.test(name))
 ].filter(rel => !/\.(png|jpe?g|webp|gif|mp4|woff2?)$/.test(rel));
 const PROVIDER_NAME = /card[\s_-]*sight/i;
-const named = served.filter(rel => PROVIDER_NAME.test(rel) || PROVIDER_NAME.test(read(rel)));
-check(`served files never name the data provider (${served.length} scanned)`, named.length === 0);
+// Provider permission from 2026-10-26 allows ONLY this historical credit on Data Use.
+// All other served files, including the customer app, must remain provider-neutral.
+const APPROVED_SOURCE_CREDIT = "<p>Historical FlipForge research used observations supplied by <a href=\"https://cardsight.ai/\" rel=\"noopener noreferrer\">CardSight AI</a>. FlipForge independently applies its own card-matching, evidence rules, calculations, and decision logic. The data source does not determine or endorse FlipForge decisions. Provider-backed completed-sale evidence remains suspended in the Private Beta.</p>";
+check("approved Data Use historical source credit exists", read("data-use.html").includes(APPROVED_SOURCE_CREDIT));
+const named = served.filter(rel => {
+  const source = rel === "data-use.html" ? read(rel).replace(APPROVED_SOURCE_CREDIT, "") : read(rel);
+  return PROVIDER_NAME.test(rel) || PROVIDER_NAME.test(source);
+});
+check(`served files name no unapproved provider (${served.length} scanned)`, named.length === 0);
 if (named.length) console.log(`  named in: ${named.join(", ")}`);
 
 console.log(`validate-internal-publish-guard: ${total - failures.length}/${total} passed`);
