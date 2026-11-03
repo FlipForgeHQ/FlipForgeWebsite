@@ -12,7 +12,6 @@ const index = read("saas-prototype/index.html");
 const discovery = read("saas-prototype/customer-discovery.js");
 // Discover's reading order and result controls are rendered by its owner (customer-discovery.js) since Nov 3 2026.
 const discoverMarkup = discovery.slice(discovery.indexOf("function renderCurrentMarkup()"), discovery.indexOf("function focusDiscoverResults()"));
-const identityAssistVerification = read("saas-prototype/identity-assist-verification-v1.js");
 const evaluation = read("saas-prototype/staging-evaluation.js");
 const opportunities = read("saas-prototype/customer-opportunities.js");
 const explainability = read("saas-prototype/customer-explainability.js");
@@ -105,9 +104,10 @@ check("060 live QA protects secret handling", ["service tokens", "provider crede
 check("061 Discover exact-card action is unmistakable", discovery.includes('submit: "Search active listings"') && discovery.includes('exact: "Find exact card"') && discoverMarkup.includes("${heading}${identityAssistPanel()}${identityRecovery()}${searchPanel()}"));
 // The search panel must never be moved: moving a focused input drops keyboard focus and loses typed text.
 check("061b Discover search panel is never moved while the customer may be typing", !exists("saas-prototype/discover-card-entry-emphasis-v1.js") && !/insertAdjacentElement\("(?:afterend|beforebegin)", search\)/.test(discovery));
-check("062 Discover exact candidate is primary", identityAssistVerification.includes("const primarySelectableRow = selectableRows[0] || null") && identityAssistVerification.includes('useButton.textContent = isPrimary ? "Use exact match" : "Select & verify"') && identityAssistVerification.includes('useButton.classList.toggle("button-primary", isPrimary)'));
-check("063 Discover variants use progressive disclosure", identityAssistVerification.includes("COLLAPSED_REVIEW_COUNT = 4") && identityAssistVerification.includes("ff-identity-hidden") && identityAssistVerification.includes("Show ${hiddenCount}"));
-check("064 Discover entered grade is consolidated", identityAssistVerification.includes("Grade filter from your search") && identityAssistVerification.includes("cleanInheritedGrade"));
+// The identity check is rendered by the Discover owner (customer-discovery.js) since Nov 3 2026.
+check("062 Discover exact candidate is primary", discovery.includes("const primaryIndex = rows.findIndex(identitySelectable);") && discovery.includes('${primary ? "Use exact match" : "Select &amp; verify"}') && discovery.includes('${primary ? "button-primary" : "button-secondary"}'));
+check("063 Discover variants use progressive disclosure", discovery.includes("const COLLAPSED_REVIEW_COUNT = 4;") && discovery.includes("ff-identity-hidden") && discovery.includes("Show ${model.hiddenCount}"));
+check("064 Discover entered grade is consolidated", discovery.includes("Grade filter from your search") && discovery.includes("The searched grade is shown once, in the grade note above the rows"));
 check("065 Discover result controls wait for live results", discovery.includes("return Boolean(state.data && !state.error && !state.identityAssist.active && state.lastSearch);") && discovery.includes("if (!resultControlsAvailable() || draftDiffersFromLastSearch()) return \"\";"));
 check("066 Discover evaluation requires exact listing identity", discovery.includes('String(item.matchQuality || "") !== "EXACT_MATCH"') && discovery.includes("evaluationBlockReason"));
 check("067 non-exact provider results are separated from exact ranking", discovery.includes("excluded provider result") && discovery.includes("identity not confirmed") && discovery.includes("cannot be evaluated as the searched card"));

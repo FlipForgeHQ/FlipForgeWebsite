@@ -43,7 +43,9 @@
       typedQuery: "",
       requestSerial: 0,
       results: [],
-      message: ""
+      message: "",
+      // The identity query whose folded variants the customer expanded.
+      expandedQuery: ""
     },
     // The last search that returned results: "Refresh results" runs it again.
     lastSearch: null,
@@ -840,7 +842,7 @@
     renderCurrent();
 
     try {
-      const data = await cardIntelligenceRequest(CARD_INTELLIGENCE_RESOLVE_PATH, { selectionToken: token });
+      const data = gradeLockedResolution(await cardIntelligenceRequest(CARD_INTELLIGENCE_RESOLVE_PATH, { selectionToken: token }), ownedQuery);
       const cardIdentity = String(data.cardIdentity || "").trim().replace(/\s+/g, " ");
       if (data.readyForEvaluation !== true || !cardIdentity || cardIdentity.length > 500 || !hasExplicitCardNumber(cardIdentity)) {
         throw makeError("CARD_INTELLIGENCE_SELECTION_NOT_READY", data.message || "The selected card still needs exact identity verification.", 400);
@@ -1129,28 +1131,154 @@
     return `<section class="panel customer-discovery-search"><header class="panel-header"><div>${heading}</div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form">${guidedBuilderMarkup()}<label><span>Card</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="Example: 2018 Topps Chrome Shohei Ohtani #150 PSA 9" aria-label="Card" autocomplete="off"><small class="ff-card-entry-helper">Year · Set · Player · Card # · Grade (when known).</small></label>${serialEntryMarkup()}<label><span>${beta ? "Max price (optional)" : "Target max buy"}</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label>${limitControl}<div class="customer-discovery-search-actions"><button class="button button-primary" type="submit" aria-label="${escapeHtml(labels.submitAria)}" title="${escapeHtml(labels.submitTitle)}" ${busy ? "disabled" : ""}>${state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : labels.submit}</button><button class="button button-secondary" type="button" data-discovery-find-exact aria-label="${escapeHtml(labels.exactAria)}" title="${escapeHtml(labels.exactTitle)}" ${busy ? "disabled" : ""}>${labels.exact}</button>${controls}</div>${identityHint}</form><div class="customer-discovery-search-help" data-ff-entry-guide aria-label="What to type in the card box"><p class="ff-entry-guide-title">What to type</p><ul class="ff-entry-guide-list"><li><strong>Year · set · player · card #</strong>, then parallel, grader and grade when you know them.</li><li><strong>Two-year seasons:</strong> basketball and hockey sets often span two years, like 2025-26. Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.</li><li><strong>Card numbers:</strong> #150, No. 150 and No 150 are all read as card number 150.</li></ul><small>FlipForge never silently picks between two possible cards.</small></div></div></section>`;
   }
 
-  function identityCandidate(row, index) {
-    const declaredGrade = declaredGradeContext(state.identityAssist.query);
-    const grader = row.grader || declaredGrade.grader;
-    const grade = row.grade || declaredGrade.grade;
-    const gradeLabel = grader && grade ? `${grader} ${grade}${row.grader || row.grade ? "" : " (entered)"}` : "";
-    const detail = [
-      row.year,
-      row.manufacturer,
-      row.releaseName,
-      row.setName,
-      row.cardNumber ? `#${row.cardNumber}` : "",
-      row.parallelName,
-      gradeLabel
-    ].filter(Boolean).join(" · ");
-    const selectable = row?.exactCardCandidate === true && SAFE_SELECTION_TOKEN.test(String(row.selectionToken || ""));
-    return `<article class="customer-discovery-identity-option"${row.cardNumber ? ` data-ff-card-number="${escapeHtml(row.cardNumber)}"` : ""}><div><strong>${escapeHtml(row.name || "Card identity candidate")}</strong><small>${escapeHtml(detail || row.type || "Catalog candidate")}</small></div>${selectable ? `<button class="button button-primary" type="button" data-discovery-use-identity="${index}" ${state.identityAssist.busy ? "disabled" : ""}>Use this card</button>` : `<span class="staging-status staging-status-verify">Review only</span>`}</article>`;
+  // Identity check rows. The first selectable row is the highlighted exact match; other selectable rows and review-only
+  // catalog rows that show a card number get "Select & verify" (the server must still confirm one exact identity).
+  // Review rows beyond the first few are folded behind "Show N other possible variants".
+  const COLLAPSED_REVIEW_COUNT = 4;
+  const VISIBLE_REVIEW_WITH_EXACT = 2;
+
+  function identitySelectable(row) {
+    return row?.exactCardCandidate === true && SAFE_SELECTION_TOKEN.test(String(row.selectionToken || ""));
+  }
+
+  function identityDetail(row) {
+    // The searched grade is shown once, in the grade note above the rows, not repeated as "(entered)" on every row.
+    const gradeLabel = row.grader && row.grade ? `${row.grader} ${row.grade}` : "";
+    return [row.year, row.manufacturer, row.releaseName, row.setName, row.cardNumber ? `#${row.cardNumber}` : "", row.parallelName, gradeLabel]
+      .filter(Boolean).join(" · ");
+  }
+
+  function identityModel() {
+    const rows = Array.isArray(state.identityAssist.results) ? state.identityAssist.results : [];
+    const primaryIndex = rows.findIndex(identitySelectable);
+    const hasSelectable = primaryIndex >= 0;
+    const expanded = Boolean(state.identityAssist.expandedQuery) && state.identityAssist.expandedQuery === normalizeIdentityQuery(state.identityAssist.query);
+    const visibleLimit = hasSelectable ? VISIBLE_REVIEW_WITH_EXACT : COLLAPSED_REVIEW_COUNT;
+    let reviewCount = 0;
+    const items = rows.map((row, index) => {
+      if (identitySelectable(row)) return { row, index, kind: index === primaryIndex ? "primary" : "secondary" };
+      const reviewIndex = reviewCount;
+      reviewCount += 1;
+      const verifiable = Boolean(String(row?.cardNumber || "").trim()) && /^[A-Za-z0-9][A-Za-z0-9.-]*$/.test(String(row.cardNumber).trim());
+      return { row, index, kind: "review", verifiable, hidden: verifiable && reviewIndex >= visibleLimit && !expanded };
+    });
+    const hiddenCount = Math.max(0, reviewCount - Math.min(reviewCount, visibleLimit));
+    return { items, hasSelectable, reviewCount, hiddenCount, expanded };
+  }
+
+  function identityCandidate(item) {
+    const { row, index, kind } = item;
+    const name = `<div><strong>${escapeHtml(row.name || "Card identity candidate")}</strong><small>${escapeHtml(identityDetail(row) || row.type || "Catalog candidate")}</small></div>`;
+    const cardNumber = row.cardNumber ? ` data-ff-card-number="${escapeHtml(row.cardNumber)}"` : "";
+    const busy = state.identityAssist.busy ? " disabled" : "";
+    if (kind === "primary" || kind === "secondary") {
+      const primary = kind === "primary";
+      return `<article class="customer-discovery-identity-option ff-identity-selectable ${primary ? "ff-identity-primary" : "ff-identity-secondary"}"${cardNumber}>${name}<button class="button ${primary ? "button-primary" : "button-secondary"}" type="button" data-discovery-use-identity="${index}"${busy}>${primary ? "Use exact match" : "Select &amp; verify"}</button></article>`;
+    }
+    const action = item.verifiable
+      ? `<div class="ff-identity-review-actions"><span class="ff-identity-review-label">Catalog card · final verification required</span><button class="button button-secondary" type="button" data-ff-verify-review-match="${index}"${busy}>Select &amp; verify</button></div>`
+      : '<span class="staging-status staging-status-verify">Review only</span>';
+    return `<article class="customer-discovery-identity-option ff-identity-review-match ff-identity-secondary${item.hidden ? " ff-identity-hidden" : ""}"${cardNumber}>${name}${action}</article>`;
+  }
+
+  function identityMessageMarkup(model) {
+    const message = state.identityAssist.message;
+    if (!message) return "";
+    if (!state.identityAssist.busy && model.hasSelectable) {
+      return '<div class="customer-discovery-identity-message ff-identity-assist-explained ff-identity-exact-found" role="status"><strong>Exact card match found.</strong><span>FlipForge will not choose one for you. Use the highlighted exact match if it is the card you mean. Nearby variants are shown below with a separate <b>Select &amp; verify</b> action so you do not have to hunt for them.</span></div>';
+    }
+    if (!state.identityAssist.busy && model.reviewCount > 0) {
+      return '<div class="customer-discovery-identity-message ff-identity-assist-explained" role="status"><strong>Choose the card you mean.</strong><span>FlipForge will not choose one for you. Select <b>Select &amp; verify</b> on the correct visible card. The server must confirm one exact canonical identity before marketplace search can run.</span></div>';
+    }
+    return `<div class="customer-discovery-identity-message" role="status">${escapeHtml(message)}</div>`;
+  }
+
+  function identityGradeNote() {
+    const declared = declaredGradeContext(state.identityAssist.query);
+    if (!declared.grader || !state.identityAssist.message) return "";
+    return `<div class="ff-identity-grade-note" data-ff-identity-grade-note><span>Grade filter from your search</span><strong>${escapeHtml(`${declared.grader} ${declared.grade}`)}</strong><small>Shown once here because the catalog matches below identify the card, not a verified slab.</small></div>`;
+  }
+
+  function identityToggle(model) {
+    if (model.hiddenCount < 1) return "";
+    const label = model.expanded
+      ? "Hide other variants"
+      : model.hasSelectable
+        ? `Show ${model.hiddenCount} other possible variant${model.hiddenCount === 1 ? "" : "s"}`
+        : `Show ${model.hiddenCount} more possible match${model.hiddenCount === 1 ? "" : "es"}`;
+    return `<button type="button" class="button button-secondary ff-identity-alternates-toggle" data-ff-toggle-identity-alternates aria-expanded="${model.expanded}">${label}</button>`;
   }
 
   function identityAssistPanel() {
     if (!state.identityAssist.active) return "";
-    const rows = Array.isArray(state.identityAssist.results) ? state.identityAssist.results : [];
-    return `<section class="panel customer-discovery-identity-assist" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${state.identityAssist.message ? `<div class="customer-discovery-identity-message" role="status">${escapeHtml(state.identityAssist.message)}</div>` : ""}<div class="customer-discovery-identity-query"><span>Card entered</span><strong>${escapeHtml(state.identityAssist.query || state.draft.exactCardQuery || "Current card")}</strong></div>${rows.length ? `<div class="customer-discovery-identity-options">${rows.map(identityCandidate).join("")}</div>` : ""}<div class="customer-discovery-identity-actions"><button class="button button-secondary" type="button" data-discovery-change-identity-entry>Change card entry</button></div><div class="boundary-note"><strong>How identity is confirmed:</strong> FlipForge never selects the first result for you, never shows internal catalog IDs, and does not search listings until you choose the exact card yourself.</div></div></section>`;
+    const model = identityModel();
+    return `<section class="panel customer-discovery-identity-assist${model.hasSelectable ? " ff-identity-has-selectable" : ""}" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${identityMessageMarkup(model)}${identityGradeNote()}<div class="customer-discovery-identity-query"><span>Card entered</span><strong>${escapeHtml(state.identityAssist.query || state.draft.exactCardQuery || "Current card")}</strong></div>${model.items.length ? `<div class="customer-discovery-identity-options">${model.items.map(identityCandidate).join("")}</div>` : ""}${identityToggle(model)}<div class="customer-discovery-identity-actions"><button class="button button-secondary" type="button" data-discovery-change-identity-entry>Change card entry</button></div><div class="boundary-note"><strong>How identity is confirmed:</strong> FlipForge never selects the first result for you, never shows internal catalog IDs, and does not search listings until you choose the exact card yourself.</div></div></section>`;
+  }
+
+  // Grade filter lock: a resolved identity must keep the grade the customer searched with. A conflicting grade stops
+  // before marketplace search; a canonical identity without a grade gets the confirmed server grade appended.
+  function gradeLockedResolution(data, searchedQuery) {
+    const expected = declaredGradeContext(searchedQuery);
+    if (!expected.grader || !data || typeof data !== "object") return data;
+    const expectedLabel = `${expected.grader} ${expected.grade}`;
+    const server = declaredGradeContext(`${String(data.grader || "")} ${String(data.grade || "")}`);
+    const canonical = String(data.cardIdentity || "").trim().replace(/\s+/g, " ");
+    const canonicalGrade = declaredGradeContext(canonical);
+    const serverLabel = server.grader ? `${server.grader} ${server.grade}` : "";
+    const canonicalLabel = canonicalGrade.grader ? `${canonicalGrade.grader} ${canonicalGrade.grade}` : "";
+    if (serverLabel !== expectedLabel || (canonicalLabel && canonicalLabel !== expectedLabel)) {
+      return { ...data, readyForEvaluation: false, message: `The resolved card did not preserve the ${expectedLabel} grade filter. FlipForge stopped before marketplace search.` };
+    }
+    if (canonical && !canonicalLabel) return { ...data, cardIdentity: `${canonical} ${serverLabel}`.replace(/\s+/g, " ").trim() };
+    return data;
+  }
+
+  // "Select & verify" on a review-only catalog row: the server checks the visible card against its exact identity
+  // record; only a confirmed canonical identity (with a card number) is searched.
+  async function verifyReviewMatch(button, index) {
+    const row = state.identityAssist.results[Number(index)];
+    const article = button.closest(".customer-discovery-identity-option");
+    const form = state.main?.querySelector?.("[data-customer-discovery-form]");
+    const input = form?.querySelector?.('input[name="exactCardQuery"]');
+    const originalQuery = normalizeIdentityQuery(state.identityAssist.query || input?.value || "");
+    const candidateName = String(row?.name || "").trim();
+    if (!row || !article || !form || !input || !originalQuery || !candidateName) return;
+    const declared = declaredGradeContext(originalQuery);
+    const detail = identityDetail(row);
+    const gradeLabel = declared.grader ? `${declared.grader} ${declared.grade}` : "";
+    const candidateDetail = !gradeLabel || new RegExp(`\\b${gradeLabel.replace(" ", "\\s*")}\\b`, "i").test(detail)
+      ? detail
+      : detail ? `${detail} · ${gradeLabel} (entered)` : `${gradeLabel} (entered)`;
+    const status = message => {
+      let node = article.querySelector("[data-ff-identity-choice-status]");
+      if (!node) {
+        node = document.createElement("small");
+        node.className = "ff-identity-choice-status";
+        node.dataset.ffIdentityChoiceStatus = "";
+        article.appendChild(node);
+      }
+      node.textContent = message.text;
+      node.dataset.state = message.error ? "error" : "info";
+    };
+    button.disabled = true;
+    button.textContent = "Verifying…";
+    status({ text: "Checking this catalog card against the server-owned exact identity record…" });
+    try {
+      const data = gradeLockedResolution(await cardIntelligenceRequest(CARD_INTELLIGENCE_RESOLVE_PATH, { query: originalQuery, candidateName, candidateDetail }), originalQuery);
+      const canonical = String(data.cardIdentity || "").trim().replace(/\s+/g, " ");
+      if (data.readyForEvaluation !== true || !canonical || !/#\s*[A-Za-z0-9][A-Za-z0-9.-]*/.test(canonical)) {
+        throw makeError("CARD_INTELLIGENCE_SELECTION_NOT_READY", data.message || "That card is still ambiguous. Add more identity detail and try again.", 400);
+      }
+      status({ text: "Exact card confirmed. Searching active listings…" });
+      input.value = canonical;
+      // The request guard and this owner both react to the new card text (stale selections are invalidated).
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      later(() => { if (discoverOwnsSurface()) search(form); }, 120);
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = "Select & verify";
+      status({ text: error?.message || "This card could not be verified yet.", error: true });
+    }
   }
 
   function providerPanel() {
@@ -1595,6 +1723,16 @@
         }
       });
     });
+    state.main?.querySelectorAll?.("[data-ff-verify-review-match]").forEach(button => {
+      button.addEventListener("click", () => {
+        if (!state.loading && !state.identityAssist.busy && state.evaluatingIndex < 0) verifyReviewMatch(button, button.dataset.ffVerifyReviewMatch);
+      });
+    });
+    state.main?.querySelector?.("[data-ff-toggle-identity-alternates]")?.addEventListener("click", () => {
+      const query = normalizeIdentityQuery(state.identityAssist.query);
+      state.identityAssist.expandedQuery = state.identityAssist.expandedQuery === query ? "" : query;
+      renderCurrent();
+    });
     state.main?.querySelectorAll?.("[data-discovery-request-evidence]").forEach(button => {
       button.addEventListener("click", () => {
         const index = Number.parseInt(button.dataset.discoveryRequestEvidence || "-1", 10);
@@ -1678,6 +1816,7 @@
     focusCardEntry: () => focusCardEntry(),
     // Pure card-entry helpers (no DOM, no network), exposed for the validators.
     serialEntry: Object.freeze({ compose: composeSerial, parseNumbering, scanNumbering }),
-    guidedEntry: Object.freeze({ compose: composeGuided })
+    guidedEntry: Object.freeze({ compose: composeGuided }),
+    gradeLockedResolution
   });
 })();
