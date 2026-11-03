@@ -56,6 +56,19 @@ check('A17 hero links select the matching existing panel without rewriting its s
   && js.includes("select(index, false)")
   && heroCss.includes('.ff10 .ff10-persona-links a')
   && heroCss.includes('scroll-margin-top:88px'));
+check('A18 premium strategy lenses use five original inline graphics, not generic button chips',
+  page.includes('data-ff-persona-console') && (page.match(/class="ff10-persona-glyph"/g) || []).length === 5
+  && (page.match(/class="ff10-persona-index"/g) || []).length === 5
+  && (page.match(/data-ff-persona-summary="/g) || []).length === 5
+  && page.includes('THE STRATEGY LENS')
+  && heroCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))')
+  && heroCss.includes('.ff10 .ff10-persona-links a:hover')
+  && heroCss.includes('@media(max-width:760px)'));
+check('A19 the decision focus responds to mouse and keyboard, and respects reduced motion',
+  page.includes('data-ff-persona-preview') && page.includes('aria-live="polite"')
+  && js.includes("link.addEventListener('mouseenter'") && js.includes("link.addEventListener('focus'")
+  && js.includes('personaPreview.textContent')
+  && heroCss.includes('@media(prefers-reduced-motion:reduce)'));
 
 check('A08 accessible tabs', (block.match(/role="tab"/g) || []).length === 5 && (block.match(/role="tabpanel"/g) || []).length === 5
   && block.includes('role="tablist"') && (block.match(/aria-selected="true"/g) || []).length === 1
