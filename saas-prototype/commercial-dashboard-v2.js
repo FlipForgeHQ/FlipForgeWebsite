@@ -23,7 +23,11 @@
   // final labels and copy, the duplicate-identity rule and the Private Beta supported-value rule. No other script
   // rewrites, relabels, hides or inserts into this page.
   function betaSurface() {
-    return !document.documentElement.classList.contains("ff-full-customer-app");
+    try {
+      return !document.documentElement.classList.contains("ff-full-customer-app");
+    } catch (_) {
+      return false;
+    }
   }
 
   // "%150" in a stored title is the card number "#150".
@@ -264,13 +268,14 @@
         : String(error && error.message || "The dashboard could not load authoritative customer data."));
     // Internal diagnostics (invalid JSON, size limits, raw status lines) are never shown to a customer.
     if (DIAGNOSTIC_MESSAGE.test(message)) {
-      return `<div class="ff-commercial-error" role="alert">This intelligence view is temporarily unavailable. Try again.</div>`;
+      return `<div class="ff-commercial-error" role="alert" data-ff-error-code="${escapeHtml(code)}">This intelligence view is temporarily unavailable. Try again.</div>`;
     }
     const signIn = status === 401
       ? `<a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fdashboard" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fdashboard"}">Sign in securely</a>`
       : "";
     const heading = TECHNICAL_CODE.test(code) ? "We couldn't complete that request." : code;
-    return `<div class="ff-commercial-error" role="alert"><strong>${escapeHtml(heading)}</strong><p>${escapeHtml(message)}</p>${signIn}</div>`;
+    // The service code stays on the element for support; the customer reads plain words.
+    return `<div class="ff-commercial-error" role="alert" data-ff-error-code="${escapeHtml(code)}"><strong>${escapeHtml(heading)}</strong><p>${escapeHtml(message)}</p>${signIn}</div>`;
   }
 
   function emptySpotlight() {
@@ -583,7 +588,7 @@
   // backend does not carry the G1 governed-decision contract.
   window.FlipForgeDashboardV2Reload = () => loadDashboard(true);
 
-  if (main) {
+  if (main && typeof main.addEventListener === "function") {
     main.addEventListener("click", event => {
       const target = event.target instanceof Element ? event.target : null;
       if (!target || routeName() !== "dashboard") return;

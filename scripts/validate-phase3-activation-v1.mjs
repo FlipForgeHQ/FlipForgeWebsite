@@ -32,17 +32,19 @@ check("005 full customer shell loads Phase 3 stylesheet", customer.includes('hre
 check("006 full customer shell loads Phase 3 runtime", customer.includes('src="phase3-first-decision-activation-v1.js"'));
 check("007 public landing loads activation measurement", publicIndex.includes('assets/js/phase3-activation-events-v1.js'));
 
-check("008 first-use onboarding derives from authoritative dashboard count", js.includes("trackedCount(dashboard)") && js.includes("if (tracked <= 0)") && js.includes("if (!first) firstUseActivation(dashboard)"));
-check("009 first-use onboarding has one exact-card activation CTA", js.includes('data-ff-p3-first-evaluate') && js.includes('href="#/discover"'));
-check("010 returning home is server-state dependent", js.includes("returningHome(dashboard, tracked)") && js.includes("tracked > 0"));
-check("011 returning home exposes saved decisions", js.includes('href="#/opportunities"'));
-check("012 returning home exposes Outcome Intelligence", js.includes('href="#/tracking"'));
-check("013 returning home exposes Forge Heat", js.includes('href="#/forge-heat"'));
-check("014 returning home exposes Portfolio", js.includes('href="#/portfolio"'));
-check("014a zero-decision Home receives explicit simplified state", js.includes('dashboard.classList.add("ff-p3-zero-dashboard")') && js.includes("Evaluate your first card."));
+// The Home first-use / returning panels are rendered by the Dashboard owner from the authoritative count.
+const home = read("saas-prototype/commercial-dashboard-v2.js");
+check("008 first-use onboarding derives from authoritative dashboard count", home.includes("const firstUse = tracked <= 0;") && home.includes("firstUse ? firstUsePanel() : returningPanel(tracked)") && !js.includes("function firstUseActivation"));
+check("009 first-use onboarding has one exact-card activation CTA", home.includes('data-ff-p3-first-evaluate') && home.includes('href="#/discover"'));
+check("010 returning home is server-state dependent", home.includes("function returningPanel(tracked)") && home.includes("${tracked} saved decision"));
+check("011 returning home exposes saved decisions", home.includes('href="#/opportunities" data-ff-p3-return="saved"'));
+check("012 returning home exposes Outcome Intelligence", home.includes('href="#/tracking" data-ff-p3-return="outcomes"'));
+check("013 returning home exposes Forge Heat", home.includes('href="#/forge-heat" data-ff-p3-return="heat"'));
+check("014 returning home exposes Portfolio", home.includes('href="#/portfolio" data-ff-p3-return="portfolio"'));
+check("014a zero-decision Home receives explicit simplified state", home.includes('firstUse ? "ff-p3-zero-dashboard" : "ff-p3-returning-dashboard"') && home.includes("Evaluate your first card."));
 check("014b zero-decision Home hides empty analytics", css.includes(".ff-commercial-dashboard.ff-p3-zero-dashboard .ff-kpi-grid") && css.includes(".ff-commercial-dashboard.ff-p3-zero-dashboard .ff-dashboard-main-grid") && css.includes("display:none!important"));
-check("014c first-session Home explains why advanced tools come later", js.includes("Saved-decision analytics, Outcome Intelligence, Portfolio, and other tools become useful after you have real decisions to work with."));
-check("014d first-session Home teaches the same four customer checks", ["Confirm the exact card","Check matched sales","Compare price + uncertainty","Read the decision + receipt"].every(item => js.includes(item)));
+check("014c first-session Home explains why advanced tools come later", home.includes("Saved-decision analytics, Outcome Intelligence, Portfolio, and other tools become useful after you have real decisions to work with."));
+check("014d first-session Home teaches the same four customer checks", ["Confirm the exact card","Check matched sales","Compare price + uncertainty","Read the decision + receipt"].every(item => home.includes(item)));
 check("014e evaluate rail uses customer language rather than internal layer names", ["Exact card","Matched sales","Price + uncertainty","Decision + receipt"].every(item => js.includes(item)));
 check("014f legacy result education yields to the integrated CDI Signal Stack", js.includes('root.querySelector("[data-ff-cdi-stack-host]")') && js.includes("existingGuide.remove()"));
 
@@ -64,7 +66,7 @@ check("024 app runtime uses no browser persistence", !/localStorage|sessionStora
 check("025 public measurement uses no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(publicEvents));
 check("026 app conversion writes only to approved conversion endpoint", js.includes('"/api/conversion-event"') && !/\/api\/v1\/(?:evaluations|opportunities|evidence)[^"']*["']\s*,\s*\{\s*method\s*:\s*"POST"/i.test(js));
 check("027 landing-to-evaluate funnel event exists", publicEvents.includes("phase3_landing_to_evaluate"));
-check("028 app tracks first evaluate click", js.includes("phase3_first_evaluate_clicked"));
+check("028 app tracks first evaluate click", home.includes("phase3_first_evaluate_clicked") && home.includes('"/api/conversion-event"') && !/localStorage|sessionStorage|indexedDB/i.test(home));
 check("029 app tracks search submission", js.includes("phase3_card_search_submitted"));
 check("030 app tracks identity selection", js.includes("phase3_identity_selected"));
 check("031 app tracks evaluation completion", js.includes("phase3_evaluation_completed"));

@@ -62,7 +62,9 @@ check("029 mobile keeps signal visuals visible", css.includes("@media (max-width
 // The T0 → T30 guide is rendered by the Tracking owner (customer-lifecycle.js), not inserted by this layer.
 const lifecycleOwner = fs.readFileSync("saas-prototype/customer-lifecycle.js", "utf8");
 check("030 Outcome Intelligence receives T0 T7 T14 T30 continuity", lifecycleOwner.includes("data-ff-cdi-outcome-guide") && ["<b>T0</b>","<b>T7</b>","<b>T14</b>","<b>T30</b>"].every(item => lifecycleOwner.includes(item)) && !js.includes("data-ff-cdi-outcome-guide"));
-check("031 returning Home language points back to saved reasoning", js.includes("Open a card to see the verdict and replay its four checks.") && js.includes("See what changed after the original T0 decision."));
+// The returning Home panel is rendered by the Dashboard owner (commercial-dashboard-v2.js) with this wording.
+const dashboardOwner = read("saas-prototype/commercial-dashboard-v2.js");
+check("031 returning Home language points back to saved reasoning", dashboardOwner.includes("Open a card to see the verdict and replay its four checks.") && dashboardOwner.includes("See what changed after the original T0 decision.") && !js.includes("function homeContinuity"));
 check("032 reasoning stack stays collapsed until the customer asks for it", js.includes('data-ff-cdi-reasoning hidden') && css.includes(".ff-cdi-reasoning[hidden]{display:none!important}"));
 check("033 Decision Receipt handoff uses existing receipt and a presentation-only arrival cue", js.includes("ff-cdi-receipt-arrival") && css.includes("@keyframes ff-cdi-receipt-arrival") && js.includes("[data-ff-decision-receipt]"));
 
