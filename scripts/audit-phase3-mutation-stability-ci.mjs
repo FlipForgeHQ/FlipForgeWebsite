@@ -91,7 +91,8 @@ try {
 
   await page.goto(`${baseUrl}#/discover`, { waitUntil: "domcontentloaded", timeout: 15_000 });
   await page.locator("#main-content [data-customer-discovery-form]").waitFor({ state: "visible", timeout: 8_000 });
-  await page.locator("[data-ff-p3-evaluate-shell]").waitFor({ state: "visible", timeout: 8_000 });
+  // Phase 3 adds nothing to Discover since Nov 3 2026 (its step guidance is the Discover owner's workflow strip): the
+  // page must carry no Phase 3 node, and an outside mutation must not start a Phase 3 apply cycle there.
 
   // Let route initialization, the 120ms/700ms defensive refreshes, and other
   // app boot work settle before measuring observer stability.
@@ -134,7 +135,8 @@ try {
   });
 
   if (!baseline) failures.push("Phase 3 diagnostics API was unavailable");
-  if (baseline?.shellCount !== 1) failures.push(`initial Phase 3 evaluate shell count was ${baseline?.shellCount}, expected 1`);
+  if (baseline?.shellCount !== 0) failures.push(`initial Phase 3 evaluate shell count was ${baseline?.shellCount}, expected 0`);
+  if (baseline?.ownedCount !== 0) failures.push(`Phase 3 owns ${baseline?.ownedCount} node(s) on Discover, expected 0`);
 
   // One deliberate outside mutation should cause exactly one relevant Phase 3
   // observer cycle. Its own enhancement writes must not feed back into itself.
@@ -176,8 +178,8 @@ try {
     const relevantDelta = first.diagnostics.relevantObserverCallbacks - baseline.diagnostics.relevantObserverCallbacks;
     const applyDelta = first.diagnostics.applyRuns - baseline.diagnostics.applyRuns;
     if (observerDelta !== 1) failures.push(`deliberate external mutation produced ${observerDelta} observer callbacks by T+1s, expected 1`);
-    if (relevantDelta !== 1) failures.push(`deliberate external mutation produced ${relevantDelta} relevant callbacks by T+1s, expected 1`);
-    if (applyDelta !== 1) failures.push(`deliberate external mutation produced ${applyDelta} Phase 3 apply runs by T+1s, expected 1`);
+    if (relevantDelta !== 0) failures.push(`deliberate external mutation produced ${relevantDelta} relevant callbacks on Discover by T+1s, expected 0`);
+    if (applyDelta !== 0) failures.push(`deliberate external mutation produced ${applyDelta} Phase 3 apply runs on Discover by T+1s, expected 0`);
 
     if (last.diagnostics.observerCallbacks !== first.diagnostics.observerCallbacks) {
       failures.push(`observer callbacks continued after T+1s: ${first.diagnostics.observerCallbacks} -> ${last.diagnostics.observerCallbacks}`);
@@ -192,7 +194,7 @@ try {
 
   if (last?.external?.ownedAdds !== 0) failures.push(`Phase 3 inserted ${last.external.ownedAdds} owned node(s) after the stable baseline`);
   if (last?.external?.ownedRemoves !== 0) failures.push(`Phase 3 removed ${last.external.ownedRemoves} owned node(s) after the stable baseline`);
-  if (last?.shellCount !== 1) failures.push(`final evaluate shell count was ${last?.shellCount}, expected exactly 1`);
+  if (last?.shellCount !== 0) failures.push(`final evaluate shell count was ${last?.shellCount}, expected 0`);
   if (baseline && last?.ownedCount !== baseline.ownedCount) failures.push(`Phase 3 owned node count drifted from ${baseline.ownedCount} to ${last?.ownedCount}`);
 
   await page.evaluate(() => window.__ffP3ExternalObserver?.disconnect?.());
@@ -205,5 +207,5 @@ console.log("FlipForge Phase 3 mutation stability audit");
 console.log(`Audit window: 10 seconds after one deliberate external DOM mutation`);
 console.log(`Failures: ${failures.length}`);
 failures.forEach(failure => console.log(`FAIL | ${failure}`));
-if (!failures.length) console.log("PASS | one external mutation produced one observer/apply cycle, with zero repeat Phase 3 insertion or self-triggered churn for the remaining audit window");
+if (!failures.length) console.log("PASS | Phase 3 adds nothing to Discover; one external mutation produced one observer callback and no Phase 3 apply cycle, insertion or self-triggered churn for the audit window");
 if (failures.length) process.exit(1);
