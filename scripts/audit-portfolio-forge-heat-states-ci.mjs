@@ -273,7 +273,7 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   // Herbert: ask $300.00, supported $360.00. Marketplace 13.25% + 2.9% + $0.30 on $360.00 = $58.44 of costs.
   const rows = [
     { channel: "MARKETPLACE", channelName: "Marketplace", atPriceCents: 36000, yourCostsCents: 5844, keepCents: 30156, differenceFromAskCents: 156, costsVersion: 2 },
-    { channel: "DEALER", channelName: "Dealer", atPriceCents: 36000, yourCostsCents: 9000, keepCents: 27000, differenceFromAskCents: -3000, costsVersion: 1 },
+    { channel: "DEALER_DIRECT", channelName: "Dealer", atPriceCents: 36000, yourCostsCents: 9000, keepCents: 27000, differenceFromAskCents: -3000, costsVersion: 1 },
     // Inconsistent figures (kept + costs is not the supported value): never shown.
     { channel: "OTHER", channelName: "Other", atPriceCents: 36000, yourCostsCents: 1, keepCents: 99999, differenceFromAskCents: 69999, costsVersion: 1 }
   ];
