@@ -143,7 +143,8 @@ try {
   let maxBuyText = "";
   await step("Re-evaluate", async () => {
     await go(page, `opportunities/${encodeURIComponent(saved.strong.id)}`, 3500);
-    maxBuyText = ((await text(page)).match(/Max Buy[^$\n]*\$([0-9,]+\.\d{2})/) || [])[1] || "";
+    maxBuyText = ((await text(page)).match(/Max Buy[\s\S]{0,80}?\$([0-9,]+\.\d{2})/) || [])[1] || "";
+    check("S4 the saved decision shows its Max Buy", Boolean(maxBuyText), (await text(page)).slice(0, 300));
     await page.locator("#main-content [data-card-reevaluate]").click();
     await page.waitForSelector("#main-content .ff-reevaluation-banner[data-reevaluation-state=\"ready\"]", { timeout: 15000 });
     const form = page.locator("#main-content [data-staging-evaluation-form]");
@@ -206,7 +207,8 @@ try {
     await form.waitFor({ state: "visible", timeout: 15000 });
     const paid = saved.strongAgain ? (Number(maxBuyText.replace(/,/g, "")) + 25).toFixed(2) : "475.00";
     await form.locator('[name="trackingStatus"]').selectOption("OWNED");
-    await form.locator('[name="outcomeStatus"]').selectOption("ACQUIRED");
+    // The outcome follows the tracking status in the customer app (the select is hidden); set it only if shown.
+    if (await form.locator('[name="outcomeStatus"]').isVisible()) await form.locator('[name="outcomeStatus"]').selectOption("ACQUIRED");
     await form.locator('[name="acquisitionCost"]').fill(paid);
     const d = new Date(Date.now() - 86_400_000);
     await form.locator('[name="acquiredAt"]').fill(d.toISOString().slice(0, 10));
