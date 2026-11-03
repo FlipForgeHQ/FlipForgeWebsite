@@ -31,6 +31,7 @@ export const PAGES = {
   'index.html': null,
   '404.html': null,
   'about.html': '/about.html',
+  'platform-status.html': null,
   'beta-application.html': null,
   'beta-onboarding.html': null,
   'beta-terms.html': null,
