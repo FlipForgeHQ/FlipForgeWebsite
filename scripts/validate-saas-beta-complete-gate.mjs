@@ -54,7 +54,7 @@ check("016 production account bridge loads before route hook", before('src="cust
 check("017 Discover remains explicit active-listing discovery", discovery.includes("activeListingOnly") && discovery.includes("completedSaleEvidence"));
 check("018 Discover keeps active asks separate from sold evidence", discovery.includes("This active listing is not a sold comp") && discovery.includes("activeListingsAreCompletedSaleEvidence"));
 check("019 Discover source URL comes from returned candidate", discovery.includes("listingUrl") && !discovery.includes("ebay.com/itm/${"));
-check("020 Discover score stays separate from recommendation", discovery.includes("Discovery score") && discovery.includes("not BUY/WATCH/VERIFY/PASS"));
+check("020 Discover score stays separate from recommendation", discovery.includes("<small>Factor score</small>") && discovery.includes("not BUY/WATCH/VERIFY/PASS"));
 check("021 Evaluate posts only to fixed evaluation endpoint", evaluation.includes('EVALUATION_PATH = "/api/v1/evaluations"'));
 check("022 Evaluate requires SQLite persistence and tenant ownership", evaluation.includes("data.persistedToSqlite === true") && evaluation.includes("data.tenantOwned === true"));
 check("023 Evaluate rejects transaction authority", evaluation.includes("data.transactionAuthorized === false"));
@@ -100,7 +100,7 @@ check("058 explainability validator exists", exists("scripts/validate-saas-custo
 check("059 production account validator exists", exists("scripts/validate-saas-production-account.mjs"));
 check("060 live QA protects secret handling", ["service tokens", "provider credentials", "raw JWTs", "tenant IDs"].every(value => liveQa.includes(value)));
 
-check("061 Discover exact-card action is unmistakable", discoverEmphasis.includes('searchButton.textContent = "Search active listings"') && discoverEmphasis.includes('identifyButton.textContent = "Find exact card"') && discoverEmphasis.includes("function promoteSearchPanel(main)") && discoverEmphasis.includes("keepSearchStationaryBelowHeading(heading, identity, search)"));
+check("061 Discover exact-card action is unmistakable", discovery.includes('submit: "Search active listings"') && discovery.includes('exact: "Find exact card"') && discoverEmphasis.includes("function promoteSearchPanel(main)") && discoverEmphasis.includes("keepSearchStationaryBelowHeading(heading, identity, search)"));
 // The search panel must never be moved: moving a focused input drops keyboard focus and loses typed text.
 check("061b Discover search panel is never moved while the customer may be typing", !discoverEmphasis.includes('insertAdjacentElement("afterend", search)') && !/identity\.insertAdjacentElement\("afterend", search\)/.test(discoverEmphasis) && discoverEmphasis.includes('top.insertAdjacentElement("beforebegin", heading)'));
 check("062 Discover exact candidate is primary", identityAssistVerification.includes("const primarySelectableRow = selectableRows[0] || null") && identityAssistVerification.includes('useButton.textContent = isPrimary ? "Use exact match" : "Select & verify"') && identityAssistVerification.includes('useButton.classList.toggle("button-primary", isPrimary)'));

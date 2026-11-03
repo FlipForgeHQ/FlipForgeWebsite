@@ -195,8 +195,9 @@ check(buildAssets.includes("Beta Sign In"), "generated public app links must be 
 check(siteJs.includes("Beta Sign In"), "runtime public sign-in must say Beta Sign In");
 check(siteJs.includes(BETA_AUTH), "runtime public sign-in must target beta-start auth");
 
-check(customerShell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell runtime must preserve CUSTOMER APP label");
-check(commercialPolish.includes('customer ? "CUSTOMER APP"'), "customer polish must preserve customer identity in the customer experience");
+// The chip is final in each page's markup; no runtime layer may relabel the customer app as the beta or a preview.
+check(!/prototype-chip"\)[^;]*(?:PRIVATE BETA|BETA PREVIEW)/.test(customerShell + commercialPolish), "customer shell runtime must preserve CUSTOMER APP label");
+check(!commercialPolish.includes('chip.textContent') && !customerShell.includes('chip.textContent'), "customer polish must preserve customer identity in the customer experience");
 check(cockpitPolish.includes('customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit must preserve customer identity");
 
 for (const page of publicPages) {

@@ -85,10 +85,16 @@ for (const token of forbiddenAuthorityTokens) {
   check(!whyView.includes(token), `Why presentation creates no authority: ${token}`);
 }
 
-check(betaShell.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);'), "legacy shell helper keeps its intentionally simplified four-route core");
-check(betaShell.includes('"decision-intelligence", "why-this-decision", "market-view", "forge-heat", "evaluate", "portfolio", "alerts"'), "legacy shell helper explicitly hides full-customer Why and management routes from its own navigation");
-check(betaShell.includes('"compare", "psa-advisor", "evidence", "sell", "export"'), "legacy shell helper still hides advanced/evidence navigation while preserving internal route availability");
-check(betaShell.includes('"why-this-decision", "evidence"') || (betaShell.includes('"why-this-decision"') && betaShell.includes('"evidence"')), "legacy shell hide contract covers both promoted explanation surfaces");
+// The beta menu is final in index.html (founder decision, Nov 3 2026); the legacy shell helper no longer edits navigation.
+{
+  const betaIndex = fs.readFileSync(new URL("../saas-prototype/index.html", import.meta.url), "utf8");
+  const betaNav = (betaIndex.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0];
+  const betaRoutes = [...betaNav.matchAll(/data-route="([^"]+)"/g)].map(match => match[1]).join(",");
+  check(betaRoutes === "dashboard,discover,opportunities,tracking,alerts,portfolio,forge-heat,account", "legacy shell helper keeps its intentionally simplified four-route core");
+  check(!/why-this-decision|decision-intelligence|market-view|data-route="evaluate"/.test(betaNav), "legacy shell helper explicitly hides full-customer Why and management routes from its own navigation");
+  check(!/data-route="(?:compare|psa-advisor|evidence|sell|export)"/.test(betaNav) && !betaNav.includes("ff-advanced-nav"), "legacy shell helper still hides advanced/evidence navigation while preserving internal route availability");
+  check(!betaShell.includes("primary-nav") && !betaShell.includes("hideElement"), "legacy shell hide contract covers both promoted explanation surfaces");
+}
 check(!betaShell.includes("customer-navigation-parity-v1"), "legacy shell helper has no dependency on the full-customer parity controller");
 check(!betaShell.includes("customer-why-decision-view-v1"), "legacy shell helper has no dependency on focused Why presentation");
 

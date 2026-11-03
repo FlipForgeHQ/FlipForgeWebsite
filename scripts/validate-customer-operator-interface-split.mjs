@@ -34,7 +34,8 @@ check("011 advanced customer analysis remains mounted", customer.includes('<deta
 check("012 customer app does not link to operator workspace", !customer.includes("operator-beta.html"));
 check("013 customer shell stylesheet is loaded", customer.includes('href="customer-only-shell-v1.css"'));
 check("014 customer shell runtime remains loaded", customer.includes('src="customer-only-shell-v1.js"'));
-check("015 legacy navigation helpers cannot turn beta into a second authoritative app", shellJs.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"])') && mobileNav.includes('const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"]'));
+// The beta menu is final in index.html; neither legacy helper edits the beta navigation (Nov 3 2026).
+check("015 legacy navigation helpers cannot turn beta into a second authoritative app", !shellJs.includes("primary-nav") && !read("saas-prototype/index.html").includes("mobile-navigation-stabilizer-v1.js") && !read("scripts/build-identity-client.mjs").includes("mobile-navigation-stabilizer-v1.js") && mobileNav.includes("FULL_CUSTOMER_ROUTES"));
 check("016 full customer CSS preserves advanced navigation", shellCss.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav"));
 check("017 operator workspace remains a separate page", operator.includes("Private operations") || operator.includes("Sign in as Operator"));
 check("018 operator role remains server-defined", betaCore.includes('OPERATOR_ROLE = "flipforge-operator"'));

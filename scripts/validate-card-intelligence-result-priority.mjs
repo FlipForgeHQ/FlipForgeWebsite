@@ -10,6 +10,8 @@ const clarityCss = fs.readFileSync(new URL("../saas-prototype/customer-decision-
 const firstValue = fs.readFileSync(new URL("../saas-prototype/customer-first-value-v1.js", import.meta.url), "utf8");
 const firstValueCss = fs.readFileSync(new URL("../saas-prototype/customer-first-value-v1.css", import.meta.url), "utf8");
 const scrollReset = fs.readFileSync(new URL("../saas-prototype/scroll-reset.js", import.meta.url), "utf8");
+const appPages = ["index.html", "customer.html"].map(name => fs.readFileSync(new URL(`../saas-prototype/${name}`, import.meta.url), "utf8"));
+const listedInEveryPage = file => appPages.every(page => page.includes(file.endsWith(".css") ? `href="${file}"` : `src="${file}"`));
 const prototypeLoader = fs.readFileSync(new URL("../saas-prototype/prototype-visual-loader.js", import.meta.url), "utf8");
 const product = fs.readFileSync(new URL("../product.html", import.meta.url), "utf8");
 const faq = fs.readFileSync(new URL("../faq.html", import.meta.url), "utf8");
@@ -31,8 +33,9 @@ const checks = [
   ["saved-decision actions use a bounded three-column desktop grid", saveFlowCss.includes("grid-template-columns:repeat(3,minmax(0,1fr))") && saveFlowCss.includes("white-space:normal")],
   ["saved-decision actions stack before narrow desktop copy can collapse", saveFlowCss.includes("@media(max-width:820px)") && saveFlowCss.includes(".ff-saved-decision-actions{grid-template-columns:1fr}")],
   ["duplicate coaching summary is hidden on Card Intelligence detail", flowCss.includes(".customer-intelligence-page .ff-decision-summary") && flowCss.includes("display:none!important")],
-  ["decision clarity is wired through a production-safe shell utility", scrollReset.includes("loadDecisionClarityAssets();") && scrollReset.includes("customer-decision-clarity-v1.js") && scrollReset.includes("customer-decision-clarity-v1.css")],
-  ["first-value clarity is wired through the same production-safe shell utility", scrollReset.includes("loadFirstValueAssets();") && scrollReset.includes("customer-first-value-v1.js") && scrollReset.includes("customer-first-value-v1.css")],
+  // Both app pages list these files directly; no script loads another (consolidation, Nov 3 2026).
+  ["decision clarity is listed by both app pages", listedInEveryPage("customer-decision-clarity-v1.js") && listedInEveryPage("customer-decision-clarity-v1.css") && !scrollReset.includes("customer-decision-clarity-v1")],
+  ["first-value clarity is listed by both app pages", listedInEveryPage("customer-first-value-v1.js") && listedInEveryPage("customer-first-value-v1.css") && !scrollReset.includes("customer-first-value-v1")],
   ["prototype visual loader remains production-isolated", prototypeLoader.includes("if (production) return;") && !prototypeLoader.includes("customer-decision-clarity") && !prototypeLoader.includes("customer-first-value")],
   ["decision clarity is presentation only", !clarity.includes("fetch(") && !clarity.includes("XMLHttpRequest") && clarity.includes("No browser-side scoring")],
   ["first-value layer is presentation only", !firstValue.includes("fetch(") && !firstValue.includes("XMLHttpRequest") && !firstValue.includes("/api/")],

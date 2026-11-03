@@ -60,9 +60,11 @@ check('Connect hub exposes Decision Intelligence', connect.includes('What is Dec
 check('public navigation receives Decision Intelligence link', conversion.includes("link.textContent='Decision Intelligence'") && conversion.includes("link.href='/decision-intelligence.html'"));
 check('Decision Intelligence click tracking is wired', conversion.includes('decision_intelligence_clicked'));
 check('private beta intentionally does not expose the public Decision Intelligence exhibit', !customerShell.includes('ffPublicDecisionIntelligence') && !customerShell.includes('Decision Intelligence exhibit'));
-check('private beta keeps Decision Intelligence inside the result workflow', customerShell.includes('"decision-intelligence"') && customerShell.includes('BETA_HIDDEN_NAV_ROUTES'));
-check('private Decision Intelligence route remains mounted for full-platform use', customerIndex.includes('href="#/decision-intelligence" data-route="decision-intelligence"'));
-check('private beta primary navigation excludes standalone Decision Intelligence at runtime', customerShell.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"])'));
+// The beta menu is final in index.html and does not list Decision Intelligence (founder decision, Nov 3 2026).
+const betaIndexForDi = fs.readFileSync('saas-prototype/index.html', 'utf8');
+check('private beta keeps Decision Intelligence inside the result workflow', !betaIndexForDi.includes('data-route="decision-intelligence"'));
+check('private Decision Intelligence route remains mounted for full-platform use', read('saas-prototype/customer.html').includes('href="#/decision-intelligence" data-route="decision-intelligence"'));
+check('private beta primary navigation excludes standalone Decision Intelligence at runtime', !customerShell.includes('primary-nav') && !betaIndexForDi.includes('#/decision-intelligence"'));
 
 const passed = checks.filter(item => item.passed).length;
 const failed = checks.filter(item => !item.passed);

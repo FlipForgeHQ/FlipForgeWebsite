@@ -99,9 +99,14 @@ const sourceRoutes = [
   "account"
 ];
 
+// Every route stays reachable from an app page's navigation. The Private Beta page (index.html) lists only the founder's
+// beta menu (Nov 3 2026); Evaluate, Market View, Decision Intelligence and the advanced tools are listed by customer.html.
+const customerIndex = read("saas-prototype/customer.html");
 for (const route of sourceRoutes) {
-  check(`navigation route ${route} remains represented in production source`, index.includes(`data-route="${route}"`) || index.includes(`href="#/${route}`));
+  check(`navigation route ${route} remains represented in production source`, [index, customerIndex].some(page => page.includes(`data-route="${route}"`) || page.includes(`href="#/${route}`)));
 }
+const betaNavRoutes = [...((index.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0]).matchAll(/data-route="([^"]+)"/g)].map(match => match[1]);
+check("Private Beta navigation lists exactly the founder's beta menu", betaNavRoutes.join(",") === "dashboard,discover,opportunities,tracking,alerts,portfolio,forge-heat,account");
 check("Exit Review is absent from customer production navigation", !index.includes('data-route="sell"'));
 
 const failures = results.filter(result => !result.passed);
