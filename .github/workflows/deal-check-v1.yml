@@ -77,13 +77,13 @@ jobs:
 
       - name: Deal Check Playwright audit (desktop + phone)
         env:
-          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/customer
           FLIPFORGE_DEAL_CHECK_SCREENSHOT_DIR: artifacts/deal-check
         run: node scripts/audit-deal-check-ci.mjs
 
       - name: Decision Change Monitor + Collection Intelligence Playwright audit (desktop + phone)
         env:
-          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/customer
           FLIPFORGE_MONITOR_SCREENSHOT_DIR: artifacts/deal-check/monitor
         run: node scripts/audit-decision-monitor-ci.mjs
 
