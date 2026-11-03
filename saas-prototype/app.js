@@ -634,7 +634,8 @@
 
   navCloseTargets.forEach(target => target.addEventListener("click", closeNavigation));
 
-  searchForm.addEventListener("submit", event => {
+  // The Private Beta shell has no global search (its markup omits the form); the full customer app keeps it.
+  searchForm?.addEventListener("submit", event => {
     event.preventDefault();
     const term = searchInput.value.trim().toLowerCase();
     // Live views never search the prototype's sample records.
@@ -655,12 +656,13 @@
     }
   });
 
-  document.querySelector(".date-button").addEventListener("click", () => {
+  document.querySelector(".date-button")?.addEventListener("click", () => {
     if (!prototypePagesDisabled()) showToast("Date filtering is display-only in the prototype.");
   });
 
   document.addEventListener("keydown", event => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if (!searchInput) return;
       event.preventDefault();
       searchInput.focus();
     }

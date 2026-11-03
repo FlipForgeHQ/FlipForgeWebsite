@@ -45,15 +45,6 @@
     if (node && node.innerHTML !== value) node.innerHTML = value;
   }
 
-  function setBrand() {
-    if (document.title !== "FlipForge | Card Decision Intelligence") document.title = "FlipForge | Card Decision Intelligence";
-    const description = document.querySelector('meta[name="description"]');
-    if (description && description.getAttribute("content") !== "FlipForge private-beta card decision intelligence platform.") {
-      description.setAttribute("content", "FlipForge private-beta card decision intelligence platform.");
-    }
-    setText(document.querySelector(".brand-subtitle"), "CARD DECISION INTELLIGENCE");
-  }
-
   function replaceLeafCopy(root) {
     root.querySelectorAll("span, small, p, strong, h1, h2, h3, button, a").forEach(node => {
       if (node.children.length !== 0) return;
@@ -133,7 +124,6 @@
   }
 
   function apply() {
-    setBrand();
     replaceLeafCopy(main);
     refineBoundaryNotes(main);
     refineCardIdentity(main);

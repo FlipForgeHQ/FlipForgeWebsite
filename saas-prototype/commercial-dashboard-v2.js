@@ -422,28 +422,7 @@
   function polishShell() {
     if (!appEligible()) return;
     document.body.classList.add("ff-commercial-shell");
-    const chip = document.querySelector(".prototype-chip");
-    if (chip) chip.textContent = productionHost() ? "PRIVATE BETA" : "BETA PREVIEW";
-    const planCard = document.querySelector(".plan-card");
-    if (planCard) {
-      const eyebrow = planCard.querySelector(".eyebrow");
-      const strong = planCard.querySelector("strong");
-      const small = planCard.querySelector("small");
-      if (eyebrow) eyebrow.textContent = "Tenant access";
-      if (strong) strong.textContent = "Plan & Usage";
-      if (small) small.textContent = "Plan state, evaluation usage, checkout availability, and billing access are server-owned.";
-    }
-    if (productionHost()) document.title = "FlipForge | Card Decision Intelligence";
-  }
-
-  function showDashboardBanner() {
-    if (routeName() !== "dashboard") return;
-    const banner = document.querySelector(".prototype-banner");
-    if (!banner) return;
-    const title = banner.querySelector("strong");
-    const copy = banner.querySelector("span");
-    if (title) title.textContent = "PRIVATE BETA INTELLIGENCE";
-    if (copy) copy.textContent = "Authenticated tenant-scoped decisions · SQLite saved · No transaction authority";
+    // Chip, plan card, banner and document title are final in the page markup; the dashboard does not rewrite them.
   }
 
   function apply() {
@@ -453,7 +432,6 @@
       generation += 1;
       return;
     }
-    showDashboardBanner();
     loadDashboard(false);
   }
 

@@ -4,9 +4,6 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
-  const CORE_ROUTES = new Set(["dashboard", "discover", "evaluate", "opportunities", "tracking", "beta-start"]);
-  const SUPPORTING_ROUTES = ["market-view", "forge-heat", "portfolio", "alerts"];
-  const ADVANCED_ROUTES = new Set(["market-view", "forge-heat", "portfolio", "alerts", "compare", "psa-advisor", "evidence", "sell", "export"]);
   const MAIN = "#main-content";
   let scheduled = false;
 
@@ -54,72 +51,6 @@
     document.documentElement.classList.toggle("ff-guided-incomplete", !progress.firstRunComplete);
     if (progress.firstRunComplete) document.documentElement.classList.remove("ff-show-advanced");
     return progress;
-  }
-
-  function setAnchorLabel(anchor, label) {
-    if (!anchor) return;
-    const textNode = [...anchor.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim());
-    if (textNode) {
-      if (textNode.nodeValue !== label) textNode.nodeValue = label;
-    } else {
-      anchor.append(document.createTextNode(label));
-    }
-  }
-
-  function simplifyNavigation() {
-    const nav = document.querySelector(".primary-nav");
-    if (!nav) return;
-    const progress = syncGuidedState();
-
-    nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
-      const core = CORE_ROUTES.has(String(link.dataset.route || ""));
-      if (core && !link.classList.contains("ff-core-nav")) link.classList.add("ff-core-nav");
-      if (!core && link.classList.contains("ff-core-nav")) link.classList.remove("ff-core-nav");
-    });
-
-    setAnchorLabel(nav.querySelector(':scope > a[data-route="opportunities"]'), "Saved Decisions");
-
-    const details = nav.querySelector(".ff-advanced-nav");
-    const links = details?.querySelector(".ff-advanced-nav-links");
-    const summary = details?.querySelector("summary");
-    if (!details || !links || !summary) return;
-
-    const summaryText = [...summary.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
-    if (summaryText && summaryText.nodeValue !== "Advanced Intelligence ") summaryText.nodeValue = "Advanced Intelligence ";
-
-    let hint = summary.querySelector(".ff-advanced-hint");
-    if (!hint) {
-      hint = document.createElement("span");
-      hint.className = "ff-advanced-hint";
-      summary.appendChild(hint);
-    }
-    setText(hint, progress.firstRunComplete ? "Optional" : "After your first card");
-
-    SUPPORTING_ROUTES.forEach(route => {
-      const original = nav.querySelector(`:scope > a[data-route="${route}"]`);
-      if (!original) return;
-      if (!original.classList.contains("ff-nav-relocated")) original.classList.add("ff-nav-relocated");
-      if (original.getAttribute("aria-hidden") !== "true") original.setAttribute("aria-hidden", "true");
-      if (original.tabIndex !== -1) original.tabIndex = -1;
-
-      let clone = links.querySelector(`[data-ff-support-route="${route}"]`);
-      if (!clone) {
-        clone = original.cloneNode(true);
-        clone.classList.remove("ff-nav-relocated", "active");
-        clone.removeAttribute("data-route");
-        clone.removeAttribute("aria-hidden");
-        clone.removeAttribute("tabindex");
-        clone.dataset.ffSupportRoute = route;
-        clone.classList.add("ff-support-clone");
-        links.prepend(clone);
-      }
-      const active = routeName() === route;
-      clone.classList.toggle("ff-support-active", active);
-      if (active) clone.setAttribute("aria-current", "page");
-      else clone.removeAttribute("aria-current");
-    });
-
-    if (ADVANCED_ROUTES.has(routeName()) && !details.open) details.open = true;
   }
 
   const TECHNICAL_EXACT = new Map([
@@ -187,8 +118,15 @@
     if (!main || !heading || !["discover", "evaluate", "opportunities", "tracking", "beta-start"].includes(route)) return;
 
     const progress = guidedProgress();
-    const current = route === "discover" ? "discover" : route === "evaluate" ? "evaluate" : route === "opportunities" ? "understand" : route === "tracking" ? "track" : "";
-    const steps = [
+    // The Private Beta presents three steps (Evaluate / Decision / Track); the customer app shows four. The strip is
+    // rendered with the surface's final labels and numbers (no CSS relabelling or hidden step).
+    const beta = window.FlipForgePrivateBetaEntry === true;
+    const current = route === "discover" ? "discover" : route === "evaluate" ? (beta ? "discover" : "evaluate") : route === "opportunities" ? "understand" : route === "tracking" ? "track" : "";
+    const steps = beta ? [
+      ["discover", "Evaluate", "#/discover"],
+      ["understand", "Decision", "#/opportunities"],
+      ["track", "Track", "#/tracking"]
+    ] : [
       ["discover", "Discover", "#/discover"],
       ["evaluate", "Evaluate", "#/evaluate"],
       ["understand", "Understand", "#/opportunities"],
@@ -343,22 +281,6 @@
     setHtml(actions, `<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Understand this decision →</a><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button class="button button-secondary" type="button" data-ff-new-card>+ Start another card</button>`);
   }
 
-  function ensurePrimaryNewCard() {
-    const global = document.querySelector("[data-ff-global-new-card]");
-    if (global && !global.classList.contains("ff-primary-new-card")) global.classList.add("ff-primary-new-card");
-
-    if (routeName() !== "dashboard") return;
-    const actions = document.querySelector(`${MAIN} .page-heading .page-actions`);
-    if (!actions || actions.querySelector("[data-ff-page-new-card]")) return;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "button button-primary ff-page-new-card";
-    button.dataset.ffPageNewCard = "";
-    button.dataset.ffNewCard = "";
-    button.textContent = "+ New card";
-    actions.prepend(button);
-  }
-
   function recoveryHtml(title, copy, actions) {
     return `<div><span>I'm still with you</span><h3>${title}</h3><p>${copy}</p></div><div class="ff-recovery-actions">${actions}</div>`;
   }
@@ -492,9 +414,7 @@
   function apply() {
     if (!eligibleHost()) return;
     syncGuidedState();
-    simplifyNavigation();
     workflowStrip();
-    ensurePrimaryNewCard();
     enhanceSaveConfirmation();
     decisionSummary();
     recoveryGuidance();
@@ -516,8 +436,6 @@
     bindEvents();
     const main = document.querySelector(MAIN);
     if (main) new MutationObserver(scheduleApply).observe(main, { childList: true, subtree: true });
-    const nav = document.querySelector(".primary-nav");
-    if (nav) new MutationObserver(scheduleApply).observe(nav, { childList: true, subtree: true });
     window.addEventListener("hashchange", () => {
       document.documentElement.classList.remove("ff-show-advanced");
       window.setTimeout(scheduleApply, 70);

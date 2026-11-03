@@ -93,84 +93,14 @@
     planCard.dataset.planUsageNavigationBound = "true";
   }
 
+  // The banner, sidebar chip, plan card, account captions and document title are final in each page's markup
+  // (index.html: Private Beta; customer.html: customer app). Only the platform-specific shortcut label remains here.
   function normalizeVisibleLanguage() {
-    const isProduction = production();
-    const customer = fullCustomerMode();
-    const banner = document.querySelector(".prototype-banner");
-    const chip = document.querySelector(".prototype-chip");
-
-    if (banner) {
-      if (customer) {
-        if (!banner.hidden) banner.hidden = true;
-        if (banner.getAttribute("aria-hidden") !== "true") banner.setAttribute("aria-hidden", "true");
-      } else {
-        if (banner.hidden) banner.hidden = false;
-        if (banner.hasAttribute("aria-hidden")) banner.removeAttribute("aria-hidden");
-        const title = banner.querySelector("strong");
-        const copy = banner.querySelector("span");
-        if (title && title.textContent !== "PRIVATE BETA") title.textContent = "PRIVATE BETA";
-        const desiredCopy = isProduction
-          ? "Card intelligence workspace · Evaluation only"
-          : "Card intelligence preview · Evaluation only";
-        if (copy && copy.textContent !== desiredCopy) copy.textContent = desiredCopy;
-      }
-    }
-
-    const desiredChip = customer ? "CUSTOMER APP" : "PRIVATE BETA";
-    if (chip && chip.textContent !== desiredChip) chip.textContent = desiredChip;
-
-    const guide = document.querySelector('.primary-nav [data-route="beta-start"]');
-    if (guide && !/Getting Started/.test(guide.textContent || "")) {
-      const icon = guide.querySelector("span[aria-hidden]");
-      const iconText = icon ? icon.outerHTML : '<span aria-hidden="true">✓</span>';
-      guide.innerHTML = `${iconText}Getting Started`;
-    }
-
-    document.querySelectorAll(".staging-only-nav").forEach(node => {
-      if (isProduction || customer) node.hidden = true;
-    });
-
-    const planCard = document.querySelector(".plan-card");
-    if (planCard) {
-      const eyebrow = planCard.querySelector(".eyebrow");
-      const strong = planCard.querySelector("strong");
-      const small = planCard.querySelector("small");
-      const desiredEyebrow = customer ? "Customer account" : "Private beta";
-      if (eyebrow && eyebrow.textContent !== desiredEyebrow) eyebrow.textContent = desiredEyebrow;
-      if (strong && strong.textContent !== "Plan & Usage") strong.textContent = "Plan & Usage";
-      if (small && customer) {
-        const desired = "Plan state and evaluation usage are loaded from your account.";
-        if (small.textContent !== desired) small.textContent = desired;
-      } else if (small && /billing|prototype|preview|server-owned|tenant/i.test(small.textContent || "")) {
-        const desired = "Usage updates automatically. Paid access is not active during private beta.";
-        if (small.textContent !== desired) small.textContent = desired;
-      }
-    }
-
-    const accountName = document.querySelector(".account-link strong");
-    if (accountName && /prototype|preview/i.test(accountName.textContent || "")) {
-      accountName.textContent = "FlipForge Account";
-    }
-
-    const profileName = document.querySelector(".profile-button .profile-copy strong");
-    if (profileName && /prototype|preview/i.test(profileName.textContent || "")) {
-      profileName.textContent = "Account";
-    }
-
-    const profileSmall = document.querySelector(".profile-button .profile-copy small");
-    const desiredProfileMode = customer ? "Customer" : "Plan & Usage";
-    if (profileSmall && profileSmall.textContent !== desiredProfileMode) profileSmall.textContent = desiredProfileMode;
-
     const shortcut = document.querySelector(".global-search kbd");
     if (shortcut) {
       const desired = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || "") ? "⌘ K" : "Ctrl K";
       if (shortcut.textContent !== desired) shortcut.textContent = desired;
     }
-
-    const wantedTitle = customer
-      ? "FlipForge | Customer App — Card Decision Intelligence"
-      : isProduction ? "FlipForge | Card Decision Intelligence" : "FlipForge Beta | Card Decision Intelligence";
-    if (document.title !== wantedTitle) document.title = wantedTitle;
   }
 
   function humanizeServerEnums() {
