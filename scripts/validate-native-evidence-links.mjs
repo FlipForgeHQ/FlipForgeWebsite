@@ -25,7 +25,9 @@ const checks = [
   ["candidate pool and audit history use progressive disclosure", consistency.includes("function makeDisclosure") && consistency.includes("Review candidate pool") && consistency.includes("View full audit trail")],
   ["Evidence is Guided Mode Understand step", consistency.includes('location.textContent = "Evidence · Step 3"') && consistency.includes("See what FlipForge counted—and what it refused to use.")],
   ["Evidence continues to exact Tracking record", consistency.includes('data-ff-evidence-understood') && consistency.includes('href="#/tracking/${encodeURIComponent(id)}"')],
-  ["Tracking route has explicit ownership repair", consistency.includes("function ensureTrackingOwnership(main)") && consistency.includes('adapter.render(main, "tracking", id)')],
+  // Evidence -> Tracking opens the exact record through the route (tracking-context-v1.js owns the click); the
+  // Tracking owner's generation guard keeps a stale page from repainting, so no second renderer is needed here.
+  ["Evidence continue opens the exact Tracking record without a second renderer", !consistency.includes("ensureTrackingOwnership") && read("saas-prototype/tracking-context-v1.js").includes('closest?.("[data-ff-evidence-understood]")') && read("saas-prototype/tracking-context-v1.js").includes('adapter.render(main, "tracking", id)')],
   ["locked tagline casing is normalized", consistency.includes('"Before you buy. Know why."') && consistency.includes('"Know Why."')],
   ["Evidence v2 has dedicated responsive visual hierarchy", managementCss.includes("Evidence Experience v2") && managementCss.includes(".ff-evidence-proof-hero") && managementCss.includes(".ff-evidence-funnel") && managementCss.includes(".ff-evidence-next-step")],
   ["Evidence proof and next-step layout collapse on smaller screens", managementCss.includes("@media (max-width: 760px)") && managementCss.includes(".ff-evidence-funnel") && managementCss.includes(".ff-evidence-next-step")],
