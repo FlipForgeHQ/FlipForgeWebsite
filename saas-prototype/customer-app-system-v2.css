@@ -324,7 +324,15 @@ body.ff-full-customer-app .ff-customer-home-action {
     grid-template-columns: 1fr !important;
   }
 
-  body.ff-full-customer-app .topbar-actions .profile-copy {
+  body.ff-full-customer-app .topbar-actions .profile-button:not([data-ff-global-signout]) .profile-copy {
+    display: none !important;
+  }
+
+  body.ff-full-customer-app .topbar-actions [data-ff-global-signout] .profile-copy {
+    display: block !important;
+  }
+
+  body.ff-full-customer-app .topbar-actions [data-ff-global-signout] .profile-copy small {
     display: none !important;
   }
 }
