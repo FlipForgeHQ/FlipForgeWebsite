@@ -17,105 +17,10 @@
     return FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
   }
 
-  function installApprovedBrandMark() {
-    const mark = document.querySelector(".brand-mark");
-    if (!mark || mark.classList.contains("ff-approved-brand-mark")) return;
-    mark.classList.add("ff-approved-brand-mark");
-    mark.innerHTML = '<img src="/assets/brand/flipforge-mark.svg" alt="" aria-hidden="true">';
-
-    const name = document.querySelector(".brand-name");
-    // FLIP white / FORGE gold, as in the official horizontal lockup; the ™ comes from final-brand-lock.css.
-    if (name && !name.querySelector(".brand-forge")) name.innerHTML = 'FLIP<span class="brand-forge">FORGE</span>';
-    const subtitle = document.querySelector(".brand-subtitle");
-    if (subtitle) subtitle.textContent = "CARD DECISION INTELLIGENCE";
-  }
-
-  function normalizeCardDisplay(value) {
-    return String(value ?? "")
-      .replace(/(^|\s)%(\d{1,4})(?=\s|$)/g, "$1#$2")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function numericText(value) {
-    const cleaned = String(value ?? "").replace(/[^0-9.-]/g, "");
-    if (!cleaned) return null;
-    const parsed = Number(cleaned);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  function metricNode(container, label) {
-    const target = String(label || "").trim().toLocaleLowerCase("en-US");
-    return [...(container?.querySelectorAll(":scope > div") || [])].find(node => {
-      const text = String(node.querySelector("span")?.textContent || "").trim().toLocaleLowerCase("en-US");
-      return text === target;
-    }) || null;
-  }
-
-  function normalizeCommercialDashboard(root = document) {
-    const dashboard = root.querySelector?.("[data-commercial-dashboard-v2]");
-    if (!dashboard || dashboard.dataset.ffPresentationNormalized === "true") return;
-
-    const identityBlock = dashboard.querySelector(".ff-decision-identity");
-    if (identityBlock) {
-      const title = identityBlock.querySelector("h2");
-      const identity = identityBlock.querySelector(":scope > p");
-      const normalizedTitle = normalizeCardDisplay(title?.textContent);
-      const normalizedIdentity = normalizeCardDisplay(identity?.textContent);
-
-      if (title && normalizedTitle && title.textContent !== normalizedTitle) title.textContent = normalizedTitle;
-      if (identity && normalizedIdentity && identity.textContent !== normalizedIdentity) identity.textContent = normalizedIdentity;
-      if (identity && normalizedIdentity && normalizedTitle
-          && normalizedIdentity.toLocaleLowerCase("en-US") === normalizedTitle.toLocaleLowerCase("en-US")) {
-        identity.hidden = true;
-        identity.setAttribute("aria-hidden", "true");
-      }
-
-      const stats = identityBlock.querySelector(".ff-decision-stats");
-      const supportedMetric = metricNode(stats, "Supported value");
-      const gapMetric = metricNode(stats, "Value gap");
-      const salesMetric = metricNode(stats, "Exact accepted sales");
-      const acceptedSales = numericText(salesMetric?.querySelector("strong")?.textContent);
-      const supportedAmount = numericText(supportedMetric?.querySelector("strong")?.textContent);
-      const supportedAvailable = acceptedSales !== null && acceptedSales > 0
-        && supportedAmount !== null && supportedAmount > 0;
-
-      if (!supportedAvailable) {
-        const supportedValue = supportedMetric?.querySelector("strong");
-        const gapValue = gapMetric?.querySelector("strong");
-        if (supportedValue && supportedValue.textContent !== "Unavailable") supportedValue.textContent = "Unavailable";
-        if (gapValue && gapValue.textContent !== "Unavailable") {
-          gapValue.textContent = "Unavailable";
-          gapValue.classList.remove("ff-positive");
-        }
-      }
-    }
-
-    dashboard.querySelectorAll(".ff-v2-table tbody tr").forEach(row => {
-      const cells = row.querySelectorAll(":scope > td");
-      if (cells.length < 7) return;
-
-      const title = cells[0].querySelector("a");
-      const identity = cells[0].querySelector("small");
-      const normalizedTitle = normalizeCardDisplay(title?.textContent);
-      const normalizedIdentity = normalizeCardDisplay(identity?.textContent);
-      if (title && normalizedTitle && title.textContent !== normalizedTitle) title.textContent = normalizedTitle;
-      if (identity && normalizedIdentity && identity.textContent !== normalizedIdentity) identity.textContent = normalizedIdentity;
-      if (identity && normalizedIdentity && normalizedTitle
-          && normalizedIdentity.toLocaleLowerCase("en-US") === normalizedTitle.toLocaleLowerCase("en-US")) {
-        identity.hidden = true;
-        identity.setAttribute("aria-hidden", "true");
-      }
-
-      const acceptedSales = numericText(cells[5].textContent);
-      const supportedAmount = numericText(cells[3].textContent);
-      const supportedAvailable = acceptedSales !== null && acceptedSales > 0
-        && supportedAmount !== null && supportedAmount > 0;
-      if (!supportedAvailable && cells[3].textContent !== "Unavailable") cells[3].textContent = "Unavailable";
-    });
-
-    dashboard.dataset.ffPresentationNormalized = "true";
-  }
+  // The approved brand mark, the commercial shell class and the Dashboard's final presentation (supported-value
+  // rule, duplicate identity, card-number display) are in the page markup and the Dashboard owner
+  // (commercial-dashboard-v2.js). What remains here is the Discover source-listing link, which belongs to the
+  // Discover owner and is left for that consolidation.
 
   // Values read back from rendered text are decoded; escape them again before building markup.
   function escapeHtml(value) {
@@ -199,21 +104,15 @@
 
     const observer = new MutationObserver(() => {
       enhanceDiscoverySourceLinks(main);
-      normalizeCommercialDashboard(main);
     });
     observer.observe(main, { childList: true, subtree: true });
     enhanceDiscoverySourceLinks(main);
-    normalizeCommercialDashboard(main);
   }
 
   function syncEnvironmentLanguage() {
     if (!eligible()) return;
-    document.body.classList.add("ff-commercial-shell");
-    // Banner, chip, account captions, plan card and document title are final in the page markup; not rewritten here.
-    installApprovedBrandMark();
     installDiscoveryObserver();
     enhanceDiscoverySourceLinks(document);
-    normalizeCommercialDashboard(document);
   }
 
   document.addEventListener("DOMContentLoaded", syncEnvironmentLanguage, { once: true });

@@ -40,6 +40,44 @@
       .replaceAll("Beta Complete", "launch readiness");
   }
 
+  // Server enum values (PRIVATE_BETA_ACTIVE, INVITATION_DEFAULT, NOT_INCLUDED, ...) are shown in words.
+  const ENUM_LABELS = Object.freeze({
+    PRIVATE_BETA_ACTIVE: "Private Beta Active",
+    INVITATION_DEFAULT: "Beta Invitation",
+    UNLIMITED_SUBJECT_TO_REASONABLE_USE: "Unlimited (reasonable use)",
+    NOT_INCLUDED: "Not included",
+    BASIC: "Basic",
+    ADVANCED: "Advanced",
+    CONFIRMED: "Confirmed",
+    UNKNOWN: "Unknown"
+  });
+
+  function prettyEnum(value) {
+    const raw = String(value ?? "").trim();
+    if (!raw) return raw;
+    if (ENUM_LABELS[raw]) return ENUM_LABELS[raw];
+    if (!/^[A-Z][A-Z0-9_]+$/.test(raw) || !raw.includes("_")) return raw;
+    return raw.toLowerCase().split("_").filter(Boolean).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+  }
+
+  const STATUS_COPY = Object.freeze({ READY: "Ready", MISSING: "Needs evidence", INVALID: "Needs review", STALE: "Needs refresh", UNAVAILABLE: "Unavailable" });
+  const DIAGNOSTIC_MESSAGE = /(invalid json|authority contract|authority boundary|browser safety limit|request failed with status|response exceeded)/i;
+  const TECHNICAL_CODE = /^[A-Z][A-Z0-9_:-]{4,}$/;
+
+  // Customer wording for messages from the gateway or the request helper.
+  function customerMessage(value) {
+    return String(value ?? "")
+      .replaceAll("authority contract", "service validation")
+      .replaceAll("tenant-scoped", "account-specific")
+      .replaceAll("tenant-owned", "saved")
+      .replaceAll("browser-invented", "placeholder");
+  }
+
+  // The Private Beta plan is a lifetime allowance, not a monthly one; its usage card says so.
+  function privateBetaPlan(current) {
+    return isEligible() && /^private beta$/i.test(String(currentAccessLabel(current)).trim());
+  }
+
   function currentAccessLabel(current) {
     return customerFacingText(current?.name || current?.code || "Unavailable");
   }
@@ -137,7 +175,10 @@
   }
 
   function badge(label, tone = "neutral") {
-    return `<span class="staging-status staging-status-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
+    const raw = String(label ?? "").trim().toUpperCase();
+    const copy = STATUS_COPY[raw];
+    const state = copy ? ` data-ff-state="${escapeHtml(raw.toLowerCase())}"` : "";
+    return `<span class="staging-status staging-status-${escapeHtml(tone)}"${state}>${escapeHtml(copy || label)}</span>`;
   }
 
   function numberOrUnlimited(value, fallback = "Unavailable") {
@@ -167,18 +208,18 @@
     if (value === true) display = "Included";
     if (value === false) display = "Not included";
     if (value === null || value === undefined) display = "Reasonable-use limit";
-    return `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(display)}</strong></li>`;
+    return `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(prettyEnum(display))}</strong></li>`;
   }
 
   function planCards(plans) {
     const safePlans = Array.isArray(plans) ? plans : [];
     if (!safePlans.length) {
       const detail = fullCustomerMode() ? "Current access remains unchanged." : "Private-beta access remains unchanged.";
-      return `<div class="staging-empty"><strong>Commercial plan details are unavailable.</strong><p>${detail}</p></div>`;
+      return `<div class="staging-empty consumer-state consumer-state-empty"><strong>Commercial plan details are unavailable.</strong><p>${detail}</p></div>`;
     }
-    const planEyebrow = fullCustomerMode() ? "Plan" : "Planned launch plan";
+    const planEyebrow = "Plan";
     const planBadge = fullCustomerMode() ? "Informational" : "Planned";
-    const checkoutLabel = fullCustomerMode() ? "Checkout not available yet" : "Checkout deferred until Beta Complete";
+    const checkoutLabel = fullCustomerMode() ? "Checkout not available yet" : "Checkout unavailable in private beta";
     return `<div class="customer-entitlement-plans">${safePlans.map(plan => `<article class="panel customer-entitlement-plan"><div class="panel-body"><div class="customer-entitlement-plan-head"><div><span class="eyebrow">${planEyebrow}</span><h3>${escapeHtml(plan.name || plan.code || "Plan")}</h3></div>${badge(planBadge, "neutral")}</div><ul>${planFeature("Monthly evaluations", plan.monthlyEvaluationLimit)}${planFeature("Tracked cards", plan.trackedCardLimitLabel || plan.trackedCardLimit)}${planFeature("Full evidence", plan.fullEvidenceReview)}${planFeature("Decision traceback", plan.decisionTraceback)}${planFeature("PSA intelligence", plan.psaIntelligence)}${planFeature("CSV exports", plan.csvExports)}${planFeature("Batch evaluation", plan.batchEvaluation)}</ul><div class="customer-checkout-action"><button class="button button-secondary" type="button" disabled>${checkoutLabel}</button></div></div></article>`).join("")}</div>`;
   }
 
@@ -200,22 +241,29 @@
     if (track) track.style.width = `${percent(admissionUsage, usage.monthlyEvaluationLimit)}%`;
     if (small) small.textContent = fullCustomerMode()
       ? "Plan state and usage are verified by the server. Paid checkout is not active yet."
-      : "Plan state and usage are server-owned. Paid checkout is deferred until Core Platform Beta Complete.";
+      : "Plan and usage update automatically. Paid access is not active during private beta.";
   }
 
   function loadingView() {
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Loading your tenant-scoped access and evaluation usage…</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><div class="staging-loading" role="status">Loading account state…</div></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Loading your account-specific access and evaluation usage…</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><div class="staging-loading consumer-state consumer-state-loading" role="status">Loading account state…</div></div>`;
   }
 
   function offlineView() {
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Access and usage stay server-owned.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><section class="panel"><div class="panel-body staging-empty"><strong>This account workspace is safely offline.</strong><p>The production customer gateway is not configured, so no tenant plan request was attempted and no sample subscription was substituted.</p></div></section></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Access and usage update automatically.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><section class="panel"><div class="panel-body staging-empty consumer-state consumer-state-empty"><strong>This account workspace is safely offline.</strong><p>The production customer gateway is not configured, so no tenant plan request was attempted and no sample subscription was substituted.</p></div></section></div>`;
   }
 
   function errorView(error) {
     const signIn = error?.status === 401
       ? `<a class="button button-primary" href="/production-auth.html?return=${encodeURIComponent(accountReturnPath())}">Sign in securely</a>`
       : "";
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Account state could not be loaded.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "ACCOUNT_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "The account workspace is unavailable.")}</p><small>No sample subscription or browser-invented allowance was shown.</small>${signIn}</div></section></div>`;
+    const head = `<header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>Account state could not be loaded.</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header>`;
+    const code = String(error?.code || "ACCOUNT_UNAVAILABLE");
+    const message = customerMessage(error?.message || "The account workspace is unavailable.");
+    // Internal diagnostics (invalid JSON, size limits, raw status lines) are never shown to a customer.
+    if (DIAGNOSTIC_MESSAGE.test(message)) {
+      return `<div class="page customer-entitlements-page">${head}<section class="panel staging-error consumer-state consumer-state-error" role="alert">This intelligence view is temporarily unavailable. Try again.</section></div>`;
+    }
+    return `<div class="page customer-entitlements-page">${head}<section class="panel staging-error consumer-state consumer-state-error" role="alert"><div class="panel-body"><strong>${escapeHtml(TECHNICAL_CODE.test(code) ? "We couldn't complete that request." : code)}</strong><p>${escapeHtml(message)}</p><small>No sample subscription or placeholder allowance was shown.</small>${signIn}</div></section></div>`;
   }
 
   function mainView(payload) {
@@ -231,25 +279,31 @@
       : current.code === "PRIVATE_BETA"
         ? badge(fullCustomerMode() ? "Early access" : "Private beta", "ok")
         : badge(customerFacingText(current.accessState || "Access state"), "warn");
-    const headingCopy = fullCustomerMode()
-      ? "Review your access, evaluation usage, and available plan details."
-      : "Review server-owned access, evaluation usage, and the planned commercial tiers for this tenant.";
+    const betaPlan = privateBetaPlan(current);
+    const headingCopy = betaPlan
+      ? "Review your server-owned Private Beta access and evaluation allowance."
+      : "Review your access, evaluation usage, and available plan details.";
     const boundaryCopy = fullCustomerMode()
       ? "Paid checkout, plan changes, and customer portal controls are not available yet. Account information is view-only."
-      : "Paid checkout, plan changes, and customer portal controls are intentionally deferred until Core Platform Beta Complete. This production account screen is read-only.";
-    const plansTitle = fullCustomerMode() ? "Plans" : "Planned commercial plans";
+      : "Paid checkout, plan changes, and customer portal controls are intentionally deferred until Core Platform Beta Complete. Account information is view-only during private beta.";
+    const plansTitle = "Plans";
     const plansCopy = fullCustomerMode()
       ? "Plan details are informational until billing is enabled."
-      : "These tiers remain informational during the core-platform completion sprint.";
-    const billingBadge = fullCustomerMode() ? "Billing not active" : "Billing deferred";
+      : "Plan details are informational during private beta.";
+    const billingBadge = fullCustomerMode() ? "Billing not active" : "Not active";
     const safetyTitle = fullCustomerMode()
       ? "Payments are not available yet."
-      : "Production payment controls are intentionally absent.";
+      : "Payments are not available in private beta.";
     const safetyCopy = fullCustomerMode()
       ? "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing will open after launch readiness review."
-      : "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Billing launch resumes only after the core customer product reaches Beta Complete.";
+      : "This screen cannot start checkout, collect payment credentials, change a subscription, accept evidence, recalculate PSA guidance, or authorize a transaction. Paid access will open only after launch review is complete.";
+    const usageCopy = betaPlan
+      ? { eyebrow: "Private Beta allowance", period: "completed during beta", allowance: "Lifetime allowance", remaining: "Remaining in beta",
+        note: "Your real-evaluation allowance is enforced by FlipForge on the server and is tied to your approved account. Clearing cookies, changing browsers, or changing devices does not reset it. Failed evaluations release their reservation; completed replays do not consume another evaluation." }
+      : { eyebrow: "Evaluation usage", period: "completed this month", allowance: "Allowance", remaining: "Remaining",
+        note: "Usage is returned by the authoritative service. The browser cannot increase an allowance or create an entitlement." };
 
-    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>${headingCopy}</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-refresh>Refresh</button><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><div class="boundary-note"><strong>Launch boundary:</strong> ${boundaryCopy}</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(currentAccessLabel(current))}</h2></div>${accessBadge}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(customerFacingText(current.accessState || "Unavailable"))}</dd></div><div><dt>Source</dt><dd>${escapeHtml(customerFacingText(current.entitlementSource || "Unavailable"))}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Production checkout</dt><dd>${fullCustomerMode() ? "Not available yet" : "Deferred by core-platform launch gate"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">Evaluation usage</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>completed this month</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>Allowance</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>Remaining</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>Usage is returned by the authoritative service. The browser cannot increase an allowance or create an entitlement.</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>${plansTitle}</h2><p>${plansCopy}</p></div>${badge(billingBadge, "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>${safetyTitle}</strong><p>${safetyCopy}</p></div></section></div>`;
+    return `<div class="page customer-entitlements-page"><header class="page-heading"><div><span class="eyebrow">Account</span><h1>Plan &amp; Usage</h1><p>${headingCopy}</p></div><div class="page-actions"><button class="button button-secondary" type="button" data-production-account-refresh>Refresh</button><button class="button button-secondary" type="button" data-production-account-signout>Sign out</button></div></header><div class="boundary-note"><strong>Launch boundary:</strong> ${boundaryCopy}</div><section class="customer-entitlement-summary"><article class="panel customer-entitlement-current"><div class="panel-body"><div class="customer-entitlement-current-head"><div><span class="eyebrow">Current access</span><h2>${escapeHtml(currentAccessLabel(current))}</h2></div>${accessBadge}</div><dl><div><dt>Access state</dt><dd>${escapeHtml(prettyEnum(customerFacingText(current.accessState || "Unavailable")))}</dd></div><div><dt>Source</dt><dd>${escapeHtml(prettyEnum(customerFacingText(current.entitlementSource || "Unavailable")))}</dd></div><div><dt>Paid plan</dt><dd>${current.paidPlanActive === true ? "Verified active" : "No"}</dd></div><div><dt>Production checkout</dt><dd>${fullCustomerMode() ? "Not available yet" : "Not available in private beta"}</dd></div></dl></div></article><article class="panel customer-entitlement-usage"><div class="panel-body"><span class="eyebrow">${usageCopy.eyebrow}</span><div class="customer-entitlement-usage-number"><strong>${escapeHtml(usage.completedEvaluations ?? 0)}</strong><span>${usageCopy.period}</span></div><div class="customer-entitlement-meter"><div><span>In progress reserved</span><strong>${escapeHtml(reservations)}</strong></div><div><span>Admission usage</span><strong>${escapeHtml(admissionUsage)}</strong></div><div><span>${usageCopy.allowance}</span><strong>${escapeHtml(numberOrUnlimited(limit))}</strong></div><div class="usage-track" aria-label="Monthly evaluation admission usage"><span style="width:${progress}%"></span></div><div><span>${usageCopy.remaining}</span><strong>${escapeHtml(numberOrUnlimited(usage.remainingEvaluations))}</strong></div></div><small>${usageCopy.note}</small></div></article></section><section class="panel"><header class="panel-header"><div><h2>${plansTitle}</h2><p>${plansCopy}</p></div>${badge(billingBadge, "neutral")}</header><div class="panel-body">${planCards(data.plannedCommercialPlans)}</div></section><section class="panel"><div class="panel-body customer-entitlement-safety"><strong>${safetyTitle}</strong><p>${safetyCopy}</p></div></section></div>`;
   }
 
   async function signOut() {

@@ -480,7 +480,35 @@
       if (link.dataset.route === route) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
+    // The customer app's "Advanced analysis" group is open while one of its pages is current.
+    const advanced = document.querySelector(".primary-nav .ff-advanced-nav");
+    if (advanced) {
+      const inside = [...advanced.querySelectorAll("[data-route]")].some(link => link.dataset.route === route);
+      if (advanced.open !== inside) advanced.open = inside;
+    }
   }
+
+  // The sidebar Plan & Usage card opens the Account page (its role, tabindex and label are in the page markup).
+  const planCard = document.querySelector("[data-ff-plan-card-link]");
+  if (planCard) {
+    const openAccount = () => {
+      if (window.location.hash === "#/account") window.dispatchEvent(new HashChangeEvent("hashchange"));
+      else window.location.hash = "#/account";
+    };
+    planCard.addEventListener("click", event => {
+      if (event.target.closest("a, button, input, select, textarea")) return;
+      openAccount();
+    });
+    planCard.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openAccount();
+    });
+  }
+
+  // The search shortcut hint names the key the customer's platform uses.
+  const shortcutHint = document.querySelector(".global-search kbd");
+  if (shortcutHint && /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || "")) shortcutHint.textContent = "⌘ K";
 
   function closeNavigation() {
     shell.dataset.navOpen = "false";
