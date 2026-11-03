@@ -1,6 +1,16 @@
 (() => {
   "use strict";
 
+  // Write each section's markup only when it changed since this script last wrote it. Comparing with the live
+  // innerHTML is not enough: later layers decorate the section (empty-state classes, CTAs), so an unconditional
+  // rewrite here re-created it every frame and every page observer re-ran.
+  const written = new WeakMap();
+  function writeOnce(node, html) {
+    if (!node || written.get(node) === html) return;
+    node.innerHTML = html;
+    written.set(node, html);
+  }
+
   const CONTRACT_VERSION = "1.0";
   const cache = new Map();
   const inflight = new Map();
@@ -223,7 +233,7 @@
     const providerMarkup = window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.providerSummaryMarkup(data) : "";
     // The provider summary sits with the counted rows when some of its rows count now, otherwise with the rows not counted.
     const providerWithCounted = Boolean(providerMarkup) && providerAdmitted > 0;
-    if (trustedBody) trustedBody.innerHTML = `${providerWithCounted ? providerMarkup : ""}${trusted.length || !providerWithCounted ? trustedTable(trusted) : ""}`;
+    if (trustedBody) writeOnce(trustedBody, `${providerWithCounted ? providerMarkup : ""}${trusted.length || !providerWithCounted ? trustedTable(trusted) : ""}`);
     trustedSection.dataset.ffTrustedOnly = "true";
 
     let decisionSection = page.querySelector("[data-ff-decision-time-section]");
@@ -231,8 +241,10 @@
     if (decisionHtml) {
       if (!decisionSection) {
         trustedSection.insertAdjacentHTML("beforebegin", decisionHtml);
-      } else {
+      } else if (written.get(decisionSection) !== decisionHtml) {
         decisionSection.outerHTML = decisionHtml;
+        const replaced = page.querySelector("[data-ff-decision-time-section]");
+        if (replaced) written.set(replaced, decisionHtml);
       }
     }
 
@@ -247,7 +259,7 @@
       .map(status => `${groups[status].length} ${STATUS[status].label.toLowerCase()}`).join(" · ");
     // Rows from our data provider appear only as counts and reasons, never as an empty sale table.
     const listedNotCounted = NOT_COUNTED_ORDER.some(status => groups[status].length);
-    excludedSection.innerHTML = `<header class="panel-header"><div><h2>What FlipForge did not count — and why</h2><p>${excludedCount > 0 ? `${excludedCount} linked row${excludedCount === 1 ? " is" : "s are"} visible for transparency but not counted now${summary ? ` (${escapeHtml(summary)})` : ""}. Only rows marked Excluded were checked and failed a rule.` : trustedCount > 0 ? "No linked row was set aside." : "No linked rows to review."}</p></div></header><div class="panel-body">${providerWithCounted ? "" : providerMarkup}${listedNotCounted || !providerMarkup || providerWithCounted ? notCountedMarkup(groups, trustedCount) : ""}</div>`;
+    writeOnce(excludedSection, `<header class="panel-header"><div><h2>What FlipForge did not count — and why</h2><p>${excludedCount > 0 ? `${excludedCount} linked row${excludedCount === 1 ? " is" : "s are"} visible for transparency but not counted now${summary ? ` (${escapeHtml(summary)})` : ""}. Only rows marked Excluded were checked and failed a rule.` : trustedCount > 0 ? "No linked row was set aside." : "No linked rows to review."}</p></div></header><div class="panel-body">${providerWithCounted ? "" : providerMarkup}${listedNotCounted || !providerMarkup || providerWithCounted ? notCountedMarkup(groups, trustedCount) : ""}</div>`);
 
     syncDecisionTimeSupport(page, data, trustedCount);
     page.dataset.ffEvidenceAuthoritySplit = "true";

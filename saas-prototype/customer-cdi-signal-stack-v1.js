@@ -168,7 +168,10 @@
     if (!hero) return null;
 
     const identity = text(hero.querySelector(".customer-hero-title h2")) || "Saved card";
-    const exact = traceValue(root, "1 ·") || "Review saved identity";
+    // When the identity line is not on the page this tile must not claim a failed identity check: it shows that the
+    // value is not available here (the saved decision itself already reflects the server's identity gate).
+    const exactFound = traceValue(root, "1 ·");
+    const exact = exactFound || "See the decision trail";
     const sales = traceValue(root, "2 ·") || "Review saved sales";
     const price = savedPrice(root);
     const confidence = labeledStrong(root, ".customer-intelligence-metrics article", "Confidence") || "Unavailable";
@@ -187,7 +190,7 @@
           label: "Exact card",
           value: exact,
           caption: "Confirm the saved card identity before relying on any comparison.",
-          verified: !/review|unknown|unverified|conflict/i.test(exact)
+          verified: exactFound ? !/review|unknown|unverified|conflict/i.test(exact) : null
         },
         {
           key: "sales",
@@ -218,8 +221,8 @@
   }
 
   function exactVisual(signal) {
-    const mark = signal.verified ? "✓" : "?";
-    const tone = signal.verified ? "good" : "review";
+    const mark = signal.verified === null ? "–" : (signal.verified ? "✓" : "?");
+    const tone = signal.verified === null ? "neutral" : (signal.verified ? "good" : "review");
     return '<span class="ff-cdi-visual ff-cdi-visual-exact" data-tone="' + tone + '" aria-hidden="true">' +
       '<i>' + mark + '</i><i>' + mark + '</i><i>' + mark + '</i></span>';
   }
@@ -275,7 +278,7 @@
   });
 
   function signalOutcome(signal) {
-    if (signal.key === "exact") return signal.verified ? "passed" : "review";
+    if (signal.key === "exact") return signal.verified === null ? "missing" : (signal.verified ? "passed" : "review");
     if (signal.key === "sales") {
       if (!Number.isFinite(signal.accepted)) return "missing";
       return signal.accepted > 0 ? "passed" : "review";

@@ -3,15 +3,47 @@
 
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
-  const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"]);
-  const BETA_HIDDEN_NAV_ROUTES = new Set([
-    "decision-intelligence", "why-this-decision", "market-view", "forge-heat", "evaluate", "portfolio", "alerts",
-    "beta-start", "compare", "psa-advisor", "evidence", "sell", "export", "staging", "staging-evaluate"
-  ]);
-  const FULL_CUSTOMER_ROUTES = new Set([
-    "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
-    "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
-  ]);
+  // One navigation manifest per surface. This script is the only owner of which customer routes appear in the
+  // sidebar; other layers must not hide, unhide, clone or reorder navigation links.
+  const NAV_MANIFEST = Object.freeze({
+    beta: Object.freeze({
+      routes: ["dashboard", "discover", "evaluate", "opportunities", "tracking", "alerts", "portfolio", "forge-heat"],
+      labels: new Map([
+        ["dashboard", "Home"], ["discover", "Discover"], ["evaluate", "Evaluate a Card"],
+        ["opportunities", "Saved Decisions"], ["tracking", "Tracking"], ["alerts", "Alerts"],
+        ["portfolio", "Portfolio"], ["forge-heat", "Forge Heat"]
+      ]),
+      advanced: false
+    }),
+    full: Object.freeze({
+      routes: ["dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
+        "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"],
+      labels: new Map([
+        ["dashboard", "Home"], ["discover", "Discover"], ["evaluate", "Evaluate a Card"],
+        ["decision-intelligence", "Decision Intelligence"], ["why-this-decision", "Why This Decision"],
+        ["evidence", "Evidence Review"], ["opportunities", "Saved Decisions"], ["tracking", "Outcome Intelligence"],
+        ["portfolio", "Portfolio"], ["alerts", "Alerts"], ["forge-heat", "Forge Heat"], ["market-view", "Market View"]
+      ]),
+      advanced: true
+    })
+  });
+  const ICONS = {
+    dashboard: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
+    discover: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>',
+    evaluate: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 21 12 12 21 3 12Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>',
+    opportunities: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17 10 12l3 3 6-8"/><path d="M15 7h4v4"/></svg>',
+    "forge-heat": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17c3-7 5-2 7-8 2 5 4 2 7-3"/><path d="M5 20h14"/></svg>',
+    tracking: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>',
+    portfolio: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="13" rx="2"/><path d="M9 6V4h6v2M4 11h16"/></svg>',
+    alerts: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17h10l-1.5-2V10a3.5 3.5 0 0 0-7 0v5Z"/><path d="M10 20h4"/></svg>',
+    "beta-start": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg>',
+    compare: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>',
+    "psa-advisor": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19V5h12v14Z"/><path d="M9 9h6M9 13h6"/></svg>',
+    evidence: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m9 12 2 2 4-5"/></svg>',
+    sell: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h9a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h9"/><path d="M12 4v16"/></svg>',
+    export: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>'
+  };
+
   const MAIN = "#main-content";
   let scheduled = false;
 
@@ -123,103 +155,135 @@
     setText(chip, "PRIVATE BETA");
   }
 
-  function fullCustomerNavigation(nav) {
-    const labels = new Map([
-      ["dashboard", "Home"],
-      ["discover", "Discover"],
-      ["evaluate", "Evaluate a Card"],
-      ["decision-intelligence", "Decision Intelligence"],
-      ["why-this-decision", "Why This Decision"],
-      ["evidence", "Evidence Review"],
-      ["opportunities", "Saved Decisions"],
-      ["tracking", "Outcome Intelligence"],
-      ["portfolio", "Portfolio"],
-      ["alerts", "Alerts"],
-      ["forge-heat", "Forge Heat"],
-      ["market-view", "Market View"]
-    ]);
+  function surfaceNavigation(nav) {
+    const surface = fullCustomerMode() ? "full" : "beta";
+    const manifest = NAV_MANIFEST[surface];
+    const visible = new Set(manifest.routes);
 
-    nav.querySelectorAll("a[data-route]").forEach(link => {
+    nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
+      // The mobile Account link has separate breakpoint ownership; never toggle it
+      // from the route manifest on every mutation observer pass.
+      if (link.classList.contains("ff-mobile-account-nav")) return;
       const route = String(link.dataset.route || "");
-      if (FULL_CUSTOMER_ROUTES.has(route)) {
-        showCoreLink(link, labels.get(route));
-        return;
-      }
-      if (["beta-start", "staging", "staging-evaluate"].includes(route)) hideElement(link);
+      if (visible.has(route)) showCoreLink(link, manifest.labels.get(route));
+      else hideElement(link);
     });
 
     const advanced = nav.querySelector(".ff-advanced-nav");
     if (advanced) {
-      showElement(advanced);
-      if (advanced.hasAttribute("data-ff-customer-hide")) advanced.removeAttribute("data-ff-customer-hide");
-      if (advanced.open) advanced.open = false;
-      advanced.querySelectorAll("a[data-route]").forEach(link => {
-        if (String(link.dataset.route || "") === "sell") {
-          hideElement(link);
-          return;
-        }
-        showElement(link);
-      });
+      if (manifest.advanced) {
+        showElement(advanced);
+        if (advanced.hasAttribute("data-ff-customer-hide")) advanced.removeAttribute("data-ff-customer-hide");
+        advanced.querySelectorAll("a[data-route]").forEach(link => {
+          if (String(link.dataset.route || "") === "sell") hideElement(link);
+          else showElement(link);
+        });
+      } else {
+        if (advanced.open) advanced.open = false;
+        hideElement(advanced);
+      }
     }
 
-    const orderedRoutes = [
-      "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
-      "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
-    ];
-    const currentRoutes = [...nav.children]
-      .filter(node => node.matches?.("a[data-route]"))
-      .map(node => String(node.dataset.route || ""))
-      .filter(route => FULL_CUSTOMER_ROUTES.has(route));
-    const orderMatches = currentRoutes.length === orderedRoutes.length
-      && orderedRoutes.every((route, index) => currentRoutes[index] === route);
-
-    // Do not detach and reinsert customer navigation on every MutationObserver pass.
-    // Reordering is allowed only when the actual top-level route order is wrong.
-    if (!orderMatches) {
+    const current = [...nav.children]
+      .filter(node => node.matches?.("a[data-route]") && visible.has(String(node.dataset.route || "")))
+      .map(node => String(node.dataset.route || ""));
+    // Do not detach and reinsert links on every observer pass; reorder only when the order is actually wrong.
+    if (current.join("|") !== manifest.routes.join("|")) {
       const insertionPoint = advanced || nav.querySelector(".staging-only-nav") || null;
-      orderedRoutes.forEach(route => {
-        const link = nav.querySelector(`:scope > a[data-route="${route}"]`)
-          || nav.querySelector(`a[data-route="${route}"]`);
+      manifest.routes.forEach(route => {
+        const link = nav.querySelector(`:scope > a[data-route="${route}"]`);
         if (link) nav.insertBefore(link, insertionPoint);
       });
     }
 
-    delete nav.dataset.ffBetaSimpleNavigation;
-    nav.dataset.ffFullCustomerNavigation = "true";
+    if (nav.dataset.ffNavSurface !== surface) nav.dataset.ffNavSurface = surface;
+  }
+
+  function consolidateAccountNavigation() {
+    document.querySelector(".sidebar-footer .account-link")?.remove();
+    const profile = document.querySelector(".profile-button .profile-copy");
+    if (!profile) return;
+    setText(profile.querySelector("strong"), "Account");
+    if (!fullCustomerMode()) setText(profile.querySelector("small"), "Plan & Usage");
+  }
+
+  function installNavigationIcons() {
+    document.querySelectorAll(".primary-nav [data-route]").forEach(link => {
+      const route = link.getAttribute("data-route") || "";
+      const icon = link.querySelector("span:first-child");
+      if (!icon || !ICONS[route] || icon.dataset.ffIcon === route) return;
+      icon.classList.add("ff-nav-icon");
+      icon.innerHTML = ICONS[route];
+      icon.dataset.ffIcon = route;
+    });
+  }
+
+  function restoreInteractiveNavigation() {
+    const nav = document.querySelector(".primary-nav");
+    if (!nav) return;
+
+    nav.querySelectorAll(".ff-nav-group-label").forEach(node => node.remove());
+
+    // Link visibility and order are owned by customer-only-shell-v1.js (route manifest). Unhiding Alerts and moving
+    // Forge Heat here fought the shell's own writes on every observer pass.
+
+    nav.querySelector('[data-route="beta-start"]')?.classList.add("ff-secondary-nav-link");
+  }
+
+  function prepareForgeHeatNavigation() {
+    const nav = document.querySelector('[data-route="forge-heat"]');
+    if (!nav) return;
+
+    nav.querySelector(".forge-nav-pro")?.remove();
+    let state = nav.querySelector(".forge-nav-state");
+    if (!state) {
+      state = document.createElement("span");
+      state.className = "forge-nav-state";
+      nav.appendChild(state);
+    }
+
+    setText(state, "BETA");
+    nav.removeAttribute("aria-disabled");
+    nav.setAttribute("aria-label", "Forge Heat beta intelligence");
+    nav.setAttribute("title", "Forge Heat — beta intelligence");
+  }
+
+  // A prior build-injected mobile script used a competing four-route manifest.
+  // Keep only its unique Account shortcut here; the shell owns all beta routes.
+  function syncBetaMobileAccount(nav) {
+    if (fullCustomerMode()) return; // /app/customer retains its separate existing mobile behavior.
+    const mobile = window.matchMedia?.("(max-width: 760px)").matches === true;
+    let account = nav.querySelector(":scope > a.ff-mobile-account-nav");
+    if (!mobile) {
+      if (account) hideElement(account);
+      return;
+    }
+    if (!account) {
+      account = document.createElement("a");
+      account.href = "#/account";
+      account.dataset.route = "account";
+      account.className = "ff-mobile-account-nav";
+      account.setAttribute("aria-label", "Open account");
+      account.innerHTML = '<span aria-hidden="true">●</span>Account';
+      nav.appendChild(account);
+    }
+    showElement(account);
+    if (routeName() === "account") {
+      if (account.getAttribute("aria-current") !== "page") account.setAttribute("aria-current", "page");
+    } else if (account.hasAttribute("aria-current")) {
+      account.removeAttribute("aria-current");
+    }
   }
 
   function simplifyNavigation() {
     const nav = document.querySelector(".primary-nav");
-    if (!nav) return;
-
-    if (fullCustomerMode()) {
-      fullCustomerNavigation(nav);
-      return;
+    if (nav) {
+      surfaceNavigation(nav);
+      restoreInteractiveNavigation();
+      installNavigationIcons();
+      prepareForgeHeatNavigation();
+      syncBetaMobileAccount(nav);
     }
-
-    const labels = new Map([
-      ["dashboard", "Home"],
-      ["discover", "Discover"],
-      ["opportunities", "Saved Decisions"],
-      ["tracking", "Tracking"]
-    ]);
-
-    nav.querySelectorAll("a[data-route]").forEach(link => {
-      const route = String(link.dataset.route || "");
-      if (CORE_ROUTES.has(route)) {
-        showCoreLink(link, labels.get(route));
-        return;
-      }
-      if (route !== "account") hideElement(link);
-    });
-
-    const advanced = nav.querySelector(".ff-advanced-nav");
-    if (advanced) {
-      advanced.open = false;
-      hideElement(advanced);
-    }
-
-    nav.dataset.ffBetaSimpleNavigation = "true";
   }
 
   function simplifyTopbar() {
@@ -442,6 +506,7 @@
     if (!eligible()) return;
     markCustomerSurface();
     simplifyNavigation();
+    consolidateAccountNavigation();
     simplifyTopbar();
     customerHome();
     renameSavedDecisions();
@@ -472,6 +537,7 @@
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);
     window.addEventListener("flipforge:identity-change", schedule);
+    window.addEventListener("resize", schedule);
     window.setTimeout(schedule, 120);
     window.setTimeout(schedule, 600);
     schedule();

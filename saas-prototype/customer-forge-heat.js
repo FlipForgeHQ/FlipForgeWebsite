@@ -15,6 +15,7 @@
     payload: null,
     error: null,
     tab: "top5",
+    maxBuyRanking: false,
     generation: 0
   };
 
@@ -172,7 +173,8 @@
 
   // What the customer would keep at the supported value after their own saved selling costs (from Sell Watch). The
   // server computes every figure; rows that are not exactly as expected are not shown.
-  const AFTER_COST_CHANNELS = ["MARKETPLACE", "AUCTION_HOUSE", "CONSIGNMENT", "DEALER", "PRIVATE_SALE", "OTHER"];
+  // Same channel names as the server and Sell Watch (DEALER_DIRECT, not DEALER, which silently dropped dealer rows).
+  const AFTER_COST_CHANNELS = ["MARKETPLACE", "AUCTION_HOUSE", "CONSIGNMENT", "DEALER_DIRECT", "PRIVATE_SALE", "OTHER"];
   function afterCostRows(item) {
     if (!Array.isArray(item?.afterYourCosts)) return [];
     return item.afterYourCosts.filter(row => row && typeof row === "object"
@@ -219,28 +221,40 @@
     return `${row.differenceFromAskCents >= 0 ? "+" : "−"}${moneyCents(Math.abs(row.differenceFromAskCents))} vs ask <small>${escapeHtml(row.channelName)}</small>`;
   }
 
+  // Forge Heat ranks saved evaluations (FlipForge2 SaaSForgeHeatService): every amount and count is as evaluated.
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function evaluatedText(item) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(item?.evaluatedAt || ""));
+    return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? `${MONTHS[Number(m[2]) - 1]} ${Number(m[3])}, ${m[1]}` : "";
+  }
+  function salesText(item) {
+    const n = item?.acceptedExactSales;
+    return Number.isSafeInteger(n) && n >= 0 ? `${n} exact sale${n === 1 ? "" : "s"}` : "Unavailable";
+  }
+
   function controlRoom(items) {
     const rows = safeArray(items);
     const lead = rows[0];
     const withCosts = rows.some(item => afterCostRows(item).length);
+    const withMaxBuy = rows.some(hasMaxBuy);
     const gap = item => `${signedMoneyCents(item.supportedValueGapCents)} ${signedPercent(item.supportedValueGapPct)}`;
     const id = item => SAFE_ID.test(String(item.opportunityId || "")) ? item.opportunityId : "";
     return `<section class="ff-heat-control-room" data-ff-heat-control-room-source="data" aria-label="Forge Heat ranked opportunity intelligence">
       <div class="ff-heat-console-head">
-        <div><span class="eyebrow">LIVE RANKING · GOVERNED SAVED EVALUATIONS</span><h2>🔥 Forge Heat — ${escapeHtml(rows.length > 5 ? "Top Opportunities" : `Top ${rows.length}`)}</h2></div>
-        <span class="ff-heat-live-dot">LIVE</span>
+        <div><span class="eyebrow">RANKED FROM YOUR SAVED EVALUATIONS</span><h2>🔥 Forge Heat — ${escapeHtml(rows.length > 5 ? "Top Opportunities" : `Top ${rows.length}`)}</h2></div>
+        <span class="ff-heat-live-dot" data-forge-heat-scope="saved">SAVED</span>
       </div>
       <div class="ff-heat-console-grid">
         <div class="ff-heat-table-wrap">
           <table class="ff-heat-table">
-            <thead><tr><th>Rank</th><th>Card</th><th>Heat</th><th>Ask</th><th>Supported</th><th>Value Gap</th>${withCosts ? "<th>After your costs</th>" : ""}<th>Confidence</th><th>Evidence</th><th>Risk</th></tr></thead>
+            <thead><tr><th>Rank</th><th>Card</th><th>Heat</th><th>Ask when evaluated</th>${withMaxBuy ? "<th>Max Buy</th><th>Under Max Buy</th>" : ""}<th>Supported at decision</th><th>Value Gap</th>${withCosts ? "<th>After your costs</th>" : ""}<th>Confidence</th><th>Evidence</th><th>Risk</th></tr></thead>
             <tbody>${rows.map(item => `<tr>
               <td class="ff-heat-rank-cell">#${escapeHtml(item.rank)}</td>
-              <td><strong>${escapeHtml(item.cardIdentity)}</strong><small>${escapeHtml(item.recommendation)}</small></td>
+              <td><strong>${id(item) ? `<a href="#/opportunities/${escapeHtml(id(item))}" data-forge-heat-card-link>${escapeHtml(item.cardIdentity)}</a>` : escapeHtml(item.cardIdentity)}</strong><small>${escapeHtml(item.recommendation)}${evaluatedText(item) ? ` · evaluated ${escapeHtml(evaluatedText(item))}` : ""}</small></td>
               <td><span class="ff-heat-score-pill" data-tone="${heatTone(item.heat)}">🔥 ${escapeHtml(item.heat)}</span></td>
-              <td>${moneyCents(item.allInAskCents)}</td><td>${moneyCents(item.supportedValueCents)}</td><td class="ff-heat-positive">${escapeHtml(gap(item))}</td>
+              <td>${moneyCents(item.allInAskCents)}</td>${withMaxBuy ? `<td>${hasMaxBuy(item) ? moneyCents(item.maximumBuyPriceCents) : "—"}</td><td class="ff-heat-positive">${escapeHtml(headroomText(item))}</td>` : ""}<td>${moneyCents(item.supportedValueCents)}</td><td class="ff-heat-positive">${escapeHtml(gap(item))}</td>
               ${withCosts ? `<td>${firstAfterCosts(item)}</td>` : ""}
-              <td>${escapeHtml(confidenceText(item))}</td><td>${escapeHtml(item.acceptedExactSales)} sales</td><td>${escapeHtml(item.risk)}/100</td>
+              <td>${escapeHtml(confidenceText(item))}</td><td>${escapeHtml(salesText(item))}</td><td>${escapeHtml(item.risk)}/100</td>
             </tr>`).join("")}</tbody>
           </table>
         </div>
@@ -259,7 +273,7 @@
         <article class="ff-heat-deep-dive">
           <span class="eyebrow">DEEP DIVE TRACEBACK · #${escapeHtml(lead.rank)}</span>
           <h3>${escapeHtml(lead.cardIdentity)}</h3>
-          <div class="ff-heat-deep-metrics"><div><span>Value gap</span><strong>${escapeHtml(gap(lead))}</strong></div><div><span>Confidence</span><strong>${escapeHtml(confidenceText(lead))}</strong></div><div><span>Risk</span><strong>${escapeHtml(lead.risk)}/100</strong></div><div><span>Evidence</span><strong>${escapeHtml(lead.acceptedExactSales)} sales</strong></div></div>
+          <div class="ff-heat-deep-metrics">${hasMaxBuy(lead) ? `<div><span>Under saved Max Buy</span><strong>${escapeHtml(headroomText(lead))}</strong></div>` : ""}<div><span>Value gap</span><strong>${escapeHtml(gap(lead))}</strong></div><div><span>Confidence</span><strong>${escapeHtml(confidenceText(lead))}</strong></div><div><span>Risk</span><strong>${escapeHtml(lead.risk)}/100</strong></div><div><span>Evidence at decision</span><strong>${escapeHtml(salesText(lead))}</strong></div></div>${evaluatedText(lead) ? `<p class="ff-heat-evaluated" data-forge-heat-evaluated>Evaluated ${escapeHtml(evaluatedText(lead))}. Forge Heat ranks saved evaluations; it does not re-check listings or prices.</p>` : ""}
           ${afterCostsBlock(lead)}
           ${id(lead) ? `<a class="button button-secondary" href="#/opportunities/${escapeHtml(id(lead))}">Open Smart Opportunity decision →</a>` : ""}
         </article>
@@ -286,6 +300,9 @@
     ["confidence", "Confidence is below the minimum", reason => /Confidence is below/i.test(reason)],
     ["risk", "Risk is above the maximum", reason => /Risk exceeds/i.test(reason)],
     ["identity", "The exact card is not identified", reason => /identity is unavailable/i.test(reason)],
+    ["identityUnconfirmed", "The saved decision did not confirm the exact card", reason => /did not confirm the exact card/i.test(reason)],
+    ["maxBuy", "No Max Buy was saved with the decision", reason => /No Max Buy was saved/i.test(reason)],
+    ["aboveMaxBuy", "Priced above your saved Max Buy", reason => /above the saved Max Buy/i.test(reason)],
     ["age", "Evaluated more than 30 days ago", reason => /freshness window/i.test(reason)]
   ];
 
@@ -307,8 +324,39 @@
     LOW_CONFIDENCE: "confidence",
     HIGH_RISK: "risk",
     CARD_IDENTITY_MISSING: "identity",
-    OUTSIDE_FRESHNESS_WINDOW: "age"
+    OUTSIDE_FRESHNESS_WINDOW: "age",
+    EXACT_IDENTITY_NOT_CONFIRMED: "identityUnconfirmed",
+    MAX_BUY_UNAVAILABLE: "maxBuy",
+    ASK_ABOVE_MAX_BUY: "aboveMaxBuy"
   };
+
+  // Forge Heat v2 (FlipForge2 #968): ranked by headroom under the saved Max Buy. Older backends omit these fields.
+  function maxBuyRanking(data) {
+    return data?.rankingBasis === "MAX_BUY_HEADROOM" || data?.scope?.rankingBasis === "MAX_BUY_HEADROOM";
+  }
+
+  function hasMaxBuy(item) {
+    return Number.isSafeInteger(item?.maximumBuyPriceCents) && item.maximumBuyPriceCents > 0
+      && Number.isFinite(Number(item?.maxBuyHeadroomPct));
+  }
+
+  function headroomText(item) {
+    if (!hasMaxBuy(item)) return "—";
+    const cents = Number(item.maxBuyHeadroomCents);
+    return `${moneyCents(Number.isSafeInteger(cents) ? cents : 0)} (${Number(item.maxBuyHeadroomPct).toFixed(1)}%)`;
+  }
+
+  // Saved decisions that fail only on price, at most 10% above the saved Max Buy. Listed, never ranked or scored.
+  function nearLimitSection(data) {
+    const rows = safeArray(data?.nearBuyingLimit).filter(item => item && SAFE_ID.test(String(item.opportunityId || ""))
+      && (item.recommendation === "BUY" || item.recommendation === "WATCH") && item.ranked === false && item.heatAvailable === false
+      && Number.isSafeInteger(item.allInAskCents) && Number.isSafeInteger(item.maximumBuyPriceCents) && item.maximumBuyPriceCents > 0);
+    if (!rows.length) return "";
+    return `<section class="forge-heat-near-limit" data-forge-heat-near-limit>
+      <div><span class="forge-heat-section-label">Near your buying limit · not ranked</span><p>These saved decisions passed every check except price: the saved all-in ask was above the saved Max Buy by 10% or less. Forge Heat does not rank them. A lower price at a new evaluation could qualify them.</p></div>
+      <ul>${rows.map(item => `<li data-forge-heat-near-card="${escapeHtml(item.opportunityId)}"><div><strong>${escapeHtml(item.cardIdentity || "Saved card")}</strong><small>${escapeHtml(item.recommendation)} · ask ${moneyCents(item.allInAskCents)} · Max Buy ${moneyCents(item.maximumBuyPriceCents)} · ${moneyCents(Math.max(0, item.allInAskCents - item.maximumBuyPriceCents))} above (${escapeHtml(Number(item.aboveMaxBuyPct).toFixed(1))}%)</small></div><div class="forge-heat-near-actions"><a class="button button-secondary" href="#/opportunities/${encodeURIComponent(item.opportunityId)}">Open decision</a><a class="button button-secondary" href="#/evaluate/${encodeURIComponent(item.opportunityId)}">Re-evaluate</a></div></li>`).join("")}</ul>
+    </section>`;
+  }
 
   function serverReasonRows(data) {
     const total = Number(data?.summary?.unscored);
@@ -410,10 +458,10 @@
 
   function tabs() {
     const options = [
-      ["top5", "🔥 Top 5"],
-      ["hiddenGems", "💎 Hidden Gems"],
-      ["highestEdge", "↗ Highest Edge"],
-      ["heatingUp", "⚡ Heating Up"]
+      ["top5", "Top 5"],
+      ["hiddenGems", "Hidden Gems"],
+      ["highestEdge", "Highest Edge"],
+      ["heatingUp", "Heating Up"]
     ];
     return `<div class="forge-heat-tabs" role="tablist" aria-label="Forge Heat views">${options.map(([key, label]) =>
       `<button type="button" role="tab" data-heat-tab="${key}" aria-selected="${state.tab === key ? "true" : "false"}" class="${state.tab === key ? "is-active" : ""}">${label}</button>`
@@ -422,7 +470,9 @@
 
   function tabDescription(tab) {
     if (tab === "hiddenGems") return "High-confidence, lower-risk opportunities with deeper exact-sale support that simple discount sorting can overlook.";
-    if (tab === "highestEdge") return "Largest positive gap between the saved all-in ask and evidence-supported value among Heat-eligible decisions. This is not net profit or ROI.";
+    if (tab === "highestEdge") return state.maxBuyRanking
+      ? "Most room under the saved Max Buy among Heat-eligible decisions: how far the saved all-in ask sits below the price at which the decision still holds its margin of safety. This is not net profit or ROI."
+      : "Largest positive gap between the saved all-in ask and evidence-supported value among Heat-eligible decisions. This is not net profit or ROI.";
     if (tab === "heatingUp") return "Opportunity acceleration requires governed Heat history and is intentionally unavailable until those snapshots exist.";
     return "The strongest evidence-adjusted opportunities in your saved evaluated universe.";
   }
@@ -431,8 +481,8 @@
     return `<div class="forge-heat-shell">
       ${heading(data)}
       <section class="forge-heat-lock">
-        <span class="forge-heat-lock-mark" aria-hidden="true">PRO</span>
-        <div><span class="eyebrow">Premium intelligence</span><h2>Forge Heat is included with FlipForge Pro.</h2><p>${escapeHtml(data.upgradeMessage || "Upgrade to Pro to unlock evidence-adjusted opportunity ranking.")}</p><p>Your current plan: <strong>${escapeHtml(data.access?.currentPlan || "Unknown")}</strong></p><a class="button button-primary" href="#/account">View Plan &amp; Usage</a></div>
+        <span class="forge-heat-lock-mark" aria-hidden="true">BETA</span>
+        <div><span class="eyebrow">Beta access</span><h2>Forge Heat beta access is not enabled for this account.</h2><p>Forge Heat remains in beta while its ranking and history signals are validated.</p><p>Your current plan: <strong>${escapeHtml(data.access?.currentPlan || "Unknown")}</strong></p><a class="button button-primary" href="#/account">View Plan &amp; Usage</a></div>
       </section>
     </div>`;
   }
@@ -441,23 +491,24 @@
     const summary = data?.summary || {};
     return `<header class="forge-heat-hero">
       <div>
-        <div class="forge-heat-title-row"><span class="eyebrow">PRO INTELLIGENCE · ${escapeHtml(data?.heatVersion || HEAT_VERSION)}</span><span class="forge-heat-pro-chip">PRO</span></div>
+        <div class="forge-heat-title-row"><span class="eyebrow">Forge Heat beta · ${escapeHtml(data?.heatVersion || HEAT_VERSION)}</span></div>
         <h1>Forge Heat™</h1>
         <p class="forge-heat-lead">Evidence-backed opportunity intelligence. FlipForge does not just find the gap—it tests whether the opportunity deserves to be trusted.</p>
       </div>
-      <div class="forge-heat-boundary"><strong>Current scope</strong><span>Your saved, completed evaluation universe</span><small>Not market-wide yet · No browser-side scoring · No transaction authority</small></div>
+      <div class="forge-heat-boundary"><strong>Current scope</strong><span>Your saved, completed evaluation universe</span><small>Ranks saved evaluations · Decision support only · Not market-wide yet · No browser-side scoring · No transaction authority</small></div>
       ${data && data.locked === false ? `<div class="forge-heat-summary">
         <div><span>Evaluations considered</span><strong>${escapeHtml(summary.latestEvaluationsConsidered ?? 0)}</strong></div>
-        <div><span>Heat eligible</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
+        <div><span>Eligible for scoring</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
         <div><span>Surfaced</span><strong>${escapeHtml(summary.surfaced ?? 0)}</strong></div>
         ${Number(summary.legacyDerivedExcluded) > 0 ? `<div data-ff-legacy-excluded><span>Legacy results not scored</span><strong>${escapeHtml(summary.legacyDerivedExcluded)}</strong></div>` : ""}
-        <div><span>Engine</span><strong>V1</strong></div>
+        <div><span>Ranked by</span><strong>${maxBuyRanking(data) ? "Room under Max Buy" : "Value gap (V1)"}</strong></div>
       </div>` : ""}
     </header>`;
   }
 
   function page(data) {
     if (data.locked) return lockedView(data);
+    state.maxBuyRanking = maxBuyRanking(data);
     const selected = state.tab === "hiddenGems" ? data.hiddenGems
       : state.tab === "highestEdge" ? data.highestEdge
         : data.top5;
@@ -473,12 +524,14 @@
         <summary>How a card becomes Heat-eligible</summary>
         <div><span>Identity</span><strong>Completed evaluation snapshot</strong></div>
         <div><span>Evidence gate</span><strong>≥ 3 matched exact sales</strong></div>
+        ${maxBuyRanking(data) ? `<div><span>Price gate</span><strong>Ask at or under the saved Max Buy</strong></div><div><span>Card match</span><strong>Exact identity confirmed at decision</strong></div>` : ""}
         <div><span>Authority</span><strong>Smart Opportunity</strong></div>
         <div><span>Heat calculation</span><strong>Server-owned</strong></div>
       </details>
       ${ranked ? "" : tabs()}
       <div class="forge-heat-tab-copy"><strong>${escapeHtml(state.tab === "top5" ? "Top 5" : state.tab === "hiddenGems" ? "Hidden Gems" : state.tab === "highestEdge" ? "Highest Edge" : "Heating Up")}</strong><span>${escapeHtml(tabDescription(state.tab))}</span></div>
       ${content}
+      ${nearLimitSection(data)}
       ${costsNote(data)}
       <section class="forge-heat-roadmap-boundary"><strong>What V1 does not fake</strong><p>Momentum, price stability, governed scarcity, ${data?.componentAvailability?.netEconomics?.available === true ? "" : "configurable selling-cost economics, "}market-wide scanning, and historical Heat performance remain unavailable until their server-side inputs are implemented and validated.</p></section>
     </div>`;
@@ -492,14 +545,14 @@
   }
 
   function loading() {
-    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">PRO INTELLIGENCE</span><h1>Forge Heat™</h1><p class="forge-heat-lead">Loading server-owned opportunity intelligence…</p></div></header><div class="staging-loading" role="status">Challenging saved decisions against Forge Heat gates…</div></div>`;
+    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">Forge Heat beta</span><h1>Forge Heat™</h1><p class="forge-heat-lead">Loading server-owned opportunity intelligence…</p></div></header><div class="staging-loading" role="status">Challenging saved decisions against Forge Heat gates…</div></div>`;
   }
 
   function errorView(error) {
     const signIn = error?.status === 401
       ? `<a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fforge-heat" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fforge-heat"}">Sign in securely</a>`
       : `<button class="button button-primary" type="button" data-forge-heat-retry>Retry</button>`;
-    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">PRO INTELLIGENCE</span><h1>Forge Heat™</h1></div></header><section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "FORGE_HEAT_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "Forge Heat intelligence is unavailable.")}</p><small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
+    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">Forge Heat beta</span><h1>Forge Heat™</h1></div></header><section class="panel staging-error" role="alert"><div class="panel-body">${(() => { const said = window.FlipForgeTrustDisplay?.customerErrorText ? window.FlipForgeTrustDisplay.customerErrorText(error, "Forge Heat") : { title: "Forge Heat is unavailable.", detail: "", reference: error?.code || "" }; return `<strong data-error-code="${escapeHtml(error?.code || "")}">${escapeHtml(said.title)}</strong><p>${escapeHtml(said.detail)}</p>${said.reference ? `<small>Reference: ${escapeHtml(said.reference)}</small>` : ""}`; })()}<small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
   }
 
   function wire(generation = state.generation) {

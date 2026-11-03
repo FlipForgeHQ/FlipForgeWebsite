@@ -27,7 +27,8 @@
     }
 
     if (url.origin !== window.location.origin) return false;
-    return /^\/api\/v1\/(?:health|opportunities|lifecycle(?:\/[^/?#]+)?|portfolio|alerts)$/.test(url.pathname);
+    // Alert review / seen writes get the same timeout as the reads, so a stalled save cannot hang the page.
+    return /^\/api\/v1\/(?:health|opportunities|lifecycle(?:\/[^/?#]+)?|portfolio|alerts(?:\/reviewed\/[0-9a-f]{64}|\/last-seen)?)$/.test(url.pathname);
   }
 
   window.fetch = function flipForgeLifecycleFetch(input, init = {}) {
@@ -371,7 +372,9 @@
 
     const boundary = page.querySelector(".boundary-note");
     if (boundary) {
-      boundary.innerHTML = "<strong>Decision boundary:</strong> Tracking records what you decide to do with a saved card. It never changes the FlipForge BUY/WATCH/VERIFY/PASS decision or executes a transaction.";
+      // customer-lifecycle.js owns this <details> disclosure; only its sentence is set here. Replacing the whole
+      // element's markup every frame removed its summary and re-triggered every page observer.
+      setText(boundary.querySelector("p") || boundary, "Decision boundary: Tracking records what you decide to do with a saved card. It never changes the FlipForge BUY/WATCH/VERIFY/PASS decision or executes a transaction.");
     }
 
     const metrics = [...page.querySelectorAll(".customer-management-metrics article")];

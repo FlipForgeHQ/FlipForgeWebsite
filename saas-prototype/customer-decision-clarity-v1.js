@@ -229,7 +229,7 @@
     if (traceback) {
       if (traceback.id !== "ff-decision-details") traceback.id = "ff-decision-details";
       setText(traceback.querySelector(".panel-header h2"), "Decision details");
-      setText(traceback.querySelector(".panel-header p"), "How the saved decision was reached. No browser-side scoring.");
+      setText(traceback.querySelector(".panel-header p"), "How the saved decision was reached. No hidden re-scoring.");
     }
     if (evidence) {
       if (evidence.id !== "ff-evidence-chain") evidence.id = "ff-evidence-chain";

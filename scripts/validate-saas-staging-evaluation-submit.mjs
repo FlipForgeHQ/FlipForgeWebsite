@@ -362,6 +362,13 @@ function SAFE_TEST(value) {
   return /^[A-Za-z0-9._-]{8,100}$/.test(String(value || ""));
 }
 
+check("098 pending evaluation responses are owned by a submission generation",
+  files.adapter.includes("const submissionGeneration = ++state.submissionGeneration;")
+    && files.adapter.includes("if (submissionGeneration !== state.submissionGeneration) return;")
+    && files.adapter.includes("if (submissionGeneration === state.submissionGeneration) {"));
+check("099 reevaluation card switch and reset retire earlier submissions",
+  (files.adapter.match(/state.submissionGeneration \+= 1;/g) || []).length >= 3);
+
 const failures = results.filter(result => !result.passed);
 console.log("SaaSStagingEvaluationSubmitValidation");
 console.log(`PASSED: ${results.length - failures.length}`);

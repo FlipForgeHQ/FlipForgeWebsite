@@ -4,9 +4,6 @@
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
-  const CORE_ROUTES = new Set(["dashboard", "discover", "evaluate", "opportunities", "tracking", "beta-start"]);
-  const SUPPORTING_ROUTES = ["market-view", "forge-heat", "portfolio", "alerts"];
-  const ADVANCED_ROUTES = new Set(["market-view", "forge-heat", "portfolio", "alerts", "compare", "psa-advisor", "evidence", "sell", "export"]);
   const MAIN = "#main-content";
   let scheduled = false;
 
@@ -56,71 +53,8 @@
     return progress;
   }
 
-  function setAnchorLabel(anchor, label) {
-    if (!anchor) return;
-    const textNode = [...anchor.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim());
-    if (textNode) {
-      if (textNode.nodeValue !== label) textNode.nodeValue = label;
-    } else {
-      anchor.append(document.createTextNode(label));
-    }
-  }
-
-  function simplifyNavigation() {
-    const nav = document.querySelector(".primary-nav");
-    if (!nav) return;
-    const progress = syncGuidedState();
-
-    nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
-      const core = CORE_ROUTES.has(String(link.dataset.route || ""));
-      if (core && !link.classList.contains("ff-core-nav")) link.classList.add("ff-core-nav");
-      if (!core && link.classList.contains("ff-core-nav")) link.classList.remove("ff-core-nav");
-    });
-
-    setAnchorLabel(nav.querySelector(':scope > a[data-route="opportunities"]'), "Saved Decisions");
-
-    const details = nav.querySelector(".ff-advanced-nav");
-    const links = details?.querySelector(".ff-advanced-nav-links");
-    const summary = details?.querySelector("summary");
-    if (!details || !links || !summary) return;
-
-    const summaryText = [...summary.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
-    if (summaryText && summaryText.nodeValue !== "Advanced Intelligence ") summaryText.nodeValue = "Advanced Intelligence ";
-
-    let hint = summary.querySelector(".ff-advanced-hint");
-    if (!hint) {
-      hint = document.createElement("span");
-      hint.className = "ff-advanced-hint";
-      summary.appendChild(hint);
-    }
-    setText(hint, progress.firstRunComplete ? "Optional" : "After your first card");
-
-    SUPPORTING_ROUTES.forEach(route => {
-      const original = nav.querySelector(`:scope > a[data-route="${route}"]`);
-      if (!original) return;
-      if (!original.classList.contains("ff-nav-relocated")) original.classList.add("ff-nav-relocated");
-      if (original.getAttribute("aria-hidden") !== "true") original.setAttribute("aria-hidden", "true");
-      if (original.tabIndex !== -1) original.tabIndex = -1;
-
-      let clone = links.querySelector(`[data-ff-support-route="${route}"]`);
-      if (!clone) {
-        clone = original.cloneNode(true);
-        clone.classList.remove("ff-nav-relocated", "active");
-        clone.removeAttribute("data-route");
-        clone.removeAttribute("aria-hidden");
-        clone.removeAttribute("tabindex");
-        clone.dataset.ffSupportRoute = route;
-        clone.classList.add("ff-support-clone");
-        links.prepend(clone);
-      }
-      const active = routeName() === route;
-      clone.classList.toggle("ff-support-active", active);
-      if (active) clone.setAttribute("aria-current", "page");
-      else clone.removeAttribute("aria-current");
-    });
-
-    if (ADVANCED_ROUTES.has(routeName()) && !details.open) details.open = true;
-  }
+  // Navigation is owned by customer-only-shell-v1.js (one route manifest per surface). This layer no longer
+  // relocates, clones or hides sidebar links; it only keeps the guided first-run class in sync.
 
   const TECHNICAL_EXACT = new Map([
     ["NOT_CONFIRMED", "Not confirmed"],
@@ -492,7 +426,6 @@
   function apply() {
     if (!eligibleHost()) return;
     syncGuidedState();
-    simplifyNavigation();
     workflowStrip();
     ensurePrimaryNewCard();
     enhanceSaveConfirmation();
@@ -516,8 +449,6 @@
     bindEvents();
     const main = document.querySelector(MAIN);
     if (main) new MutationObserver(scheduleApply).observe(main, { childList: true, subtree: true });
-    const nav = document.querySelector(".primary-nav");
-    if (nav) new MutationObserver(scheduleApply).observe(nav, { childList: true, subtree: true });
     window.addEventListener("hashchange", () => {
       document.documentElement.classList.remove("ff-show-advanced");
       window.setTimeout(scheduleApply, 70);

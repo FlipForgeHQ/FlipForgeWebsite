@@ -16,8 +16,17 @@ body[data-ff-surface="customer"] .brand-tagline {
 body[data-ff-surface="customer"] .primary-nav {
   display: grid;
   gap: 8px;
+  /* Rows hug their links; without this the grid stretched each link to fill the sidebar height. */
+  align-content: start;
   overflow-x: hidden !important;
   overflow-y: visible !important;
+}
+
+/* customer-only-shell-v1.js is the only owner of which links are shown; a link it hides stays hidden even when an
+ * older stylesheet gives nav links an explicit display value. */
+body[data-ff-surface="customer"] .primary-nav > a[hidden],
+body[data-ff-surface="customer"] .primary-nav > details[hidden] {
+  display: none !important;
 }
 
 body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {
@@ -31,6 +40,27 @@ body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {
   padding: 10px 12px;
   white-space: normal;
   line-height: 1.2;
+}
+
+/* Mobile account shortcut is owned by the shell, not a second route manifest. */
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: 50px;
+  white-space: normal;
+}
+/* Preserve the actual HTML hidden state at desktop widths; this must win over the account link display rule. */
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav[hidden] {
+  display: none !important;
+}
+
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav > span:first-child {
+  width: 28px;
+  text-align: center;
 }
 
 body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] > span:first-child {

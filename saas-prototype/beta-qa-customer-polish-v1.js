@@ -265,5 +265,9 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule, { once: true });
   else schedule();
   window.addEventListener("hashchange", schedule);
-  new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  // This copy layer only writes inside #main-content, not the entire document.
+  const main = document.querySelector(MAIN_SELECTOR);
+  if (main && typeof MutationObserver === "function") {
+    new MutationObserver(schedule).observe(main, { childList: true, subtree: true, characterData: true });
+  }
 })();

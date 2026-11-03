@@ -185,10 +185,10 @@
       return `The saved ${snapshot.savedRecommendation} was decided under earlier rules and is kept as it was made. Under today's rules this price gives ${snapshot.currentRecommendation}.`;
     }
     if (historicalMismatch(snapshot)) {
-      return `The saved ${snapshot.savedRecommendation} is historical and is not reproducible from the current governed evidence. Current reproducible decision: ${snapshot.currentRecommendation}.`;
+      return `The saved ${snapshot.savedRecommendation} is historical and is not reproducible from the current qualified evidence. Current reproducible decision: ${snapshot.currentRecommendation}.`;
     }
     if (snapshot.currentRecommendation === "VERIFY" && snapshot.transitions.length === 0) {
-      return "Price alone cannot repair the missing identity or governed evidence required for this decision.";
+      return "Price alone cannot repair the missing identity or qualified evidence required for this decision.";
     }
     if (snapshot.buyAtOrBelowCents !== null) {
       return `The existing Smart Opportunity authority reaches BUY at or below ${money(snapshot.buyAtOrBelowCents)} using the same saved non-price context.`;
@@ -257,7 +257,7 @@
     const reconciliation = mismatch && snapshot.savedUnderEarlierRules
       ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note data-earlier-rules-note><strong>Decided under earlier rules:</strong> ${escapeHtml(snapshot.savedDecisionDisclosure || `The saved ${snapshot.savedRecommendation} was decided under earlier rules and is kept as it was made.`)} Under today's rules this price gives ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
       : mismatch
-      ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note><strong>Decision reconciliation:</strong> The saved ${escapeHtml(snapshot.savedRecommendation)} remains in history, but current governed evidence reproduces ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
+      ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note><strong>Decision reconciliation:</strong> The saved ${escapeHtml(snapshot.savedRecommendation)} remains in history, but current qualified evidence reproduces ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
       : snapshot.currentRules
       ? `<div class="boundary-note price-intelligence-rules" data-current-rules-note>This price analysis uses today's rules.</div>`
       : "";
@@ -327,16 +327,19 @@
         if (body) tracePanel.insertBefore(note, body);
       }
       if (note) {
-        note.textContent = `Historical snapshot only: ${snapshot.savedRecommendation} was saved previously. Current governed evidence now reproduces ${snapshot.currentRecommendation}; the saved record is not rewritten.`;
+        const noteText = `Historical snapshot only: ${snapshot.savedRecommendation} was saved previously. Current qualified evidence now reproduces ${snapshot.currentRecommendation}; the saved record is not rewritten.`;
+        if (note.textContent !== noteText) note.textContent = noteText;
       }
     }
 
     const boundary = document.querySelector(".customer-decision-boundary");
     if (boundary) {
       const heading = boundary.querySelector("h2");
-      if (heading) heading.textContent = `Current reproducible decision: ${snapshot.currentRecommendation}`;
+      const headingText = `Current reproducible decision: ${snapshot.currentRecommendation}`;
+      if (heading && heading.textContent !== headingText) heading.textContent = headingText;
       const paragraph = boundary.querySelector("p");
-      if (paragraph) paragraph.textContent = `The saved ${snapshot.savedRecommendation} remains historical context. Current governed evidence does not reproduce it, so ${snapshot.currentRecommendation} is the current decision-support state.`;
+      const paragraphText = `The saved ${snapshot.savedRecommendation} remains historical context. Current qualified evidence does not reproduce it, so ${snapshot.currentRecommendation} is the current decision-support state.`;
+      if (paragraph && paragraph.textContent !== paragraphText) paragraph.textContent = paragraphText;
     }
   }
 

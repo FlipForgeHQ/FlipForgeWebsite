@@ -252,7 +252,9 @@
       version: alertsData.decisionReviewSignalVersion,
       considered: int(alertsData.decisionReviewSignalsConsidered),
       unavailableCount,
-      signals: alertsData.decisionReviewSignals.filter(sig => sig && typeof sig === "object")
+      // A signal the customer marked reviewed on Alerts (FlipForge2 #967) is not counted again here, so this panel and
+      // Portfolio's "Owned cards that need a look" never disagree about what is still open.
+      signals: alertsData.decisionReviewSignals.filter(sig => sig && typeof sig === "object" && sig.reviewed !== true)
     };
   }
 

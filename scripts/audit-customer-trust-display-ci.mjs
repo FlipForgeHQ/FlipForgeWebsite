@@ -225,7 +225,7 @@ try {
     check("T1 card detail: no 100/100 risk and no \"final\" risk wording anywhere", !/100\/100/.test(s.text) && !/final saved decision risk/i.test(s.text));
     const passport = await passportRisk(s.page);
     check("T1 evidence passport: RISK + UNCERTAINTY shows 35/100 with confidence 83/100", passport?.value === "35/100" && passport?.small === "Confidence 83/100", JSON.stringify(passport));
-    check("T1 evidence passport: economics layer reads the listing price ($1,215 ask)", /\$1,215 ask/.test(s.text));
+    check("T1 evidence passport: economics layer reads the exact listing price ($1,215.00 ask)", /\$1,215\.00 ask/.test(s.text));
     check("T1 card detail: decision-risk metric shows 35/100", await metricValue(s.page, "Decision risk") === "35/100", String(await metricValue(s.page, "Decision risk")));
     check("T1 card detail: no page errors", s.errors.length === 0, s.errors.join(" | "));
     await s.context.close();
