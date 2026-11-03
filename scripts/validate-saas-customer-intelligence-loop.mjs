@@ -161,11 +161,11 @@ function evaluationRuntime() {
 const evaluation = evaluationRuntime();
 check("038 customer evaluation entrypoint exists", typeof evaluation.window.FlipForgeStagingEvaluationAdapter.renderCustomer === "function");
 evaluation.window.FlipForgeStagingEvaluationAdapter.renderCustomer(evaluation.main);
-check("039 customer intake renders guided steps", evaluation.main.innerHTML.includes("Evaluate and track a card") && evaluation.main.innerHTML.includes("Complete acquisition cost"));
+check("039 customer intake renders guided steps", evaluation.main.innerHTML.includes("Card and listing details") && evaluation.main.innerHTML.includes("All-in cost") && evaluation.main.innerHTML.includes("Confirm &amp; evaluate"));
 evaluation.form.submit();
 await settle();
 check("040 customer evaluation posts once through same-origin gateway", evaluation.calls.length === 1 && evaluation.calls[0].url === "/api/v1/evaluations" && evaluation.calls[0].options.credentials === "same-origin");
-check("041 result is saved and tracked", evaluation.main.innerHTML.includes("Authoritative decision saved") && evaluation.main.innerHTML.includes("persisted to SQLite") && evaluation.main.innerHTML.includes("granted tenant ownership"));
+check("041 result is saved and tracked", evaluation.main.innerHTML.includes("Your FlipForge decision") && evaluation.main.innerHTML.includes("This decision was saved to your account") && evaluation.main.innerHTML.includes("<span>Saved to your account</span><strong>Yes</strong>"));
 check("042 result opens the real customer detail route", evaluation.main.innerHTML.includes("#/opportunities/EBAY-customer-card-001") && evaluation.main.innerHTML.includes("Open Card Intelligence"));
 check("043 result displays backend all-in acquisition", evaluation.main.innerHTML.includes("All-in acquisition") && evaluation.main.innerHTML.includes("$575.77"));
 

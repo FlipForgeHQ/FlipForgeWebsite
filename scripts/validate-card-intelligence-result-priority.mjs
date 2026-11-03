@@ -9,6 +9,8 @@ const clarity = fs.readFileSync(new URL("../saas-prototype/customer-decision-cla
 const clarityCss = fs.readFileSync(new URL("../saas-prototype/customer-decision-clarity-v1.css", import.meta.url), "utf8");
 const firstValue = fs.readFileSync(new URL("../saas-prototype/customer-first-value-v1.js", import.meta.url), "utf8");
 const firstValueCss = fs.readFileSync(new URL("../saas-prototype/customer-first-value-v1.css", import.meta.url), "utf8");
+// Evaluate renders its customer form and result with their final copy (staging-evaluation.js, Nov 3 2026).
+const evaluation = fs.readFileSync(new URL("../saas-prototype/staging-evaluation.js", import.meta.url), "utf8");
 const scrollReset = fs.readFileSync(new URL("../saas-prototype/scroll-reset.js", import.meta.url), "utf8");
 const appPages = ["index.html", "customer.html"].map(name => fs.readFileSync(new URL(`../saas-prototype/${name}`, import.meta.url), "utf8"));
 const listedInEveryPage = file => appPages.every(page => page.includes(file.endsWith(".css") ? `href="${file}"` : `src="${file}"`));
@@ -46,9 +48,9 @@ const checks = [
   // The saved decision risk is distinguished from the market risk factor, without calling it "final" (2026-10-19).
   ["saved decision risk is distinguished from the market risk factor", ["Decision risk", "Market risk factor", "saved decision risk"].every(value => clarity.includes(value)) && !clarity.includes("final saved decision risk")],
   ["decision risk is read from the saved record, never scraped from page text", clarity.includes("window.FlipForgeTrustDisplay.riskValue(record)") && !clarity.includes('replace(/[^0-9.]/g, "")')],
-  ["Evaluate is reduced to card cost decision first-value flow", ["Card & listing", "All-in cost", "Confirm & evaluate", "Get FlipForge decision"].every(value => firstValue.includes(value)) && !firstValue.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow")],
-  ["Evaluate result leads with decision supported value cost risk why and next action", ["Your FlipForge decision", "Supported value", "All-in cost", "Risk", "Why", "What to do next"].every(value => firstValue.includes(value))],
-  ["Evaluate raw result detail is progressively disclosed", firstValue.includes("data-ff-evaluate-result-details") && firstValue.includes("Raw scores, workflow status, requirements and authority notes")],
+  ["Evaluate is reduced to card cost decision first-value flow", ["Card &amp; listing", "All-in cost", "Confirm &amp; evaluate", "Get FlipForge decision"].every(value => evaluation.includes(value)) && !firstValue.includes("installEvaluateFlow") && !evaluation.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow")],
+  ["Evaluate result leads with decision supported value cost risk why and next action", ["Your FlipForge decision", "Supported value", "All-in cost", "Risk", "Why", "What to do next"].every(value => evaluation.includes(value))],
+  ["Evaluate raw result detail is progressively disclosed", evaluation.includes("data-ff-evaluate-result-details") && evaluation.includes("Raw scores, workflow status, requirements and authority notes")],
   ["Getting Started reduces first use to one four-step decision loop", ["Find the exact card", "Confirm the listing and real cost", "Read Decision → Value → Risk → Why", "Open the evidence"].every(value => firstValue.includes(value))],
   ["advanced beta tools move behind progressive disclosure", firstValue.includes("Explore advanced tools after your first decision") && firstValue.includes("data-ff-advanced-journey")],
   ["beta comprehension check asks the three required questions", ["What does FlipForge recommend?", "Why did it reach that decision?", "What would you do next?"].every(value => firstValue.includes(value))],
