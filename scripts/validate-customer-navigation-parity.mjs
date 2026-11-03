@@ -4,7 +4,9 @@ const read = path => fs.readFileSync(path, "utf8");
 const customer = read("saas-prototype/customer.html");
 const parity = read("saas-prototype/customer-navigation-parity-v1.js");
 const whyView = read("saas-prototype/customer-why-decision-view-v1.js");
-const betaShell = read("saas-prototype/customer-only-shell-v1.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const betaShell = ""; // the legacy shell helper is deleted (asserted below)
 const betaDocument = read("saas-prototype/index.html");
 
 let passed = 0;
@@ -97,6 +99,7 @@ for (const token of forbiddenAuthorityTokens) {
 }
 check(!betaShell.includes("customer-navigation-parity-v1"), "legacy shell helper has no dependency on the full-customer parity controller");
 check(!betaShell.includes("customer-why-decision-view-v1"), "legacy shell helper has no dependency on focused Why presentation");
+check(!fs.existsSync(new URL("../saas-prototype/customer-only-shell-v1.js", import.meta.url)), "legacy customer-only shell helper is retired; no script rewrites Home or the beta guide");
 
 check(!topLevelBlock.includes('data-route="beta-start"') && !advancedBlock.includes('data-route="beta-start"'), "Private Beta onboarding stays out of customer primary and advanced navigation");
 check(customer.includes('href="private-beta.css"'), "full customer loads Private Beta Guide styles for in-shell onboarding");

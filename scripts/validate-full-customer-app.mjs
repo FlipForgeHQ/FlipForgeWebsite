@@ -17,7 +17,9 @@ const activeRedirects = redirects
   .map(line => line.trim())
   .filter(line => line && !line.startsWith("#"));
 const customer = read("saas-prototype/customer.html");
-const shell = read("saas-prototype/customer-only-shell-v1.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const shell = read("saas-prototype/customer-lifecycle.js"); // Outcome Intelligence owner
 const navigationParity = read("saas-prototype/customer-navigation-parity-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
 const visualSystem = read("saas-prototype/customer-app-system-v2.css");
@@ -70,14 +72,14 @@ check(customer.includes('id="global-search-form"'), "customer document includes 
 check(customer.includes('class="icon-button notification-button"'), "customer document includes alerts access");
 check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
 
-check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/(?:app|owner)\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
+check(customer.includes('window.FlipForgeFullCustomerEntry=true') && customer.includes('class="ff-full-customer-app"'), "customer document still marks the full customer route");
 // The customer menu and chip are final in customer.html (Nov 3 2026); no shell script reorders or relabels them.
 const customerNav = (customer.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0];
 const customerNavRoutes = [...customerNav.matchAll(/data-route="([^"]+)"/g)].map(match => match[1]);
 check(customerNavRoutes.includes("why-this-decision") && customerNavRoutes.includes("evidence"), "canonical customer shell includes Why This Decision and Evidence Review in the full route set");
 check(customerNavRoutes.slice(0, 12).join(",") === "dashboard,discover,evaluate,decision-intelligence,why-this-decision,evidence,opportunities,tracking,portfolio,alerts,forge-heat,market-view", "canonical customer shell preserves CDI lifecycle ordering");
 check(customer.includes('<span class="prototype-chip">CUSTOMER APP</span>') && !shell.includes("prototype-chip"), "DEV customer shell reinforces customer identity");
-check(shell.includes("T7, T14, and T30"), "customer home explains governed outcome checkpoints");
+check(["T0", "T7", "T14", "T30"].every(checkpoint => shell.includes(`<b>${checkpoint}</b>`)), "customer app explains governed outcome checkpoints (Tracking owner)");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session renderer still stands down on full customer route");
 check(navigationParity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "navigation parity controller cannot run outside /app/customer");
 check(navigationParity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"])'), "advanced customer navigation contains only supported routes");

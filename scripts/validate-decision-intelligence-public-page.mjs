@@ -10,7 +10,9 @@ const exhibitCss = read('assets/css/decision-intelligence-consumer-v2.css');
 const product = read('product.html');
 const connect = read('connect/index.html');
 const conversion = read('assets/js/conversion-events.js');
-const customerShell = read('saas-prototype/customer-only-shell-v1.js');
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const customerShell = read('saas-prototype/index.html').match(/<nav class="primary-nav"[\s\S]*?<\/nav>/)?.[0] || '';
 const customerIndex = read('saas-prototype/index.html');
 const sitemap = read('sitemap.xml');
 
@@ -64,7 +66,7 @@ check('private beta intentionally does not expose the public Decision Intelligen
 const betaIndexForDi = fs.readFileSync('saas-prototype/index.html', 'utf8');
 check('private beta keeps Decision Intelligence inside the result workflow', !betaIndexForDi.includes('data-route="decision-intelligence"'));
 check('private Decision Intelligence route remains mounted for full-platform use', read('saas-prototype/customer.html').includes('href="#/decision-intelligence" data-route="decision-intelligence"'));
-check('private beta primary navigation excludes standalone Decision Intelligence at runtime', !customerShell.includes('primary-nav') && !betaIndexForDi.includes('#/decision-intelligence"'));
+check('private beta primary navigation excludes standalone Decision Intelligence at runtime', !customerShell.includes('data-route="decision-intelligence"') && !betaIndexForDi.includes('#/decision-intelligence"'));
 
 const passed = checks.filter(item => item.passed).length;
 const failed = checks.filter(item => !item.passed);

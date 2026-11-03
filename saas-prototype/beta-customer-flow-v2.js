@@ -115,14 +115,15 @@
     const main = document.querySelector(MAIN);
     const heading = main?.querySelector(".page-heading");
     const route = routeName();
-    // Discover and Evaluate render this strip themselves (customer-discovery.js, staging-evaluation.js).
-    if (!main || !heading || !["opportunities", "tracking", "beta-start"].includes(route)) return;
+    // Discover, Evaluate, the Saved Decisions list (customer-opportunities.js) and Tracking (customer-lifecycle.js)
+    // render this strip themselves. Only the saved decision detail page is left here, for the "decision" owner.
+    if (!main || !heading || route !== "opportunities" || routeParts().length < 2) return;
 
     const progress = guidedProgress();
     // The Private Beta presents three steps (Evaluate / Decision / Track); the customer app shows four. The strip is
     // rendered with the surface's final labels and numbers (no CSS relabelling or hidden step).
     const beta = window.FlipForgePrivateBetaEntry === true;
-    const current = route === "opportunities" ? "understand" : route === "tracking" ? "track" : "";
+    const current = "understand";
     const steps = beta ? [
       ["discover", "Evaluate", "#/discover"],
       ["understand", "Decision", "#/opportunities"],
@@ -282,49 +283,8 @@
     setHtml(actions, `<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Understand this decision →</a><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button class="button button-secondary" type="button" data-ff-new-card>+ Start another card</button>`);
   }
 
-  function recoveryHtml(title, copy, actions) {
-    return `<div><span>I'm still with you</span><h3>${title}</h3><p>${copy}</p></div><div class="ff-recovery-actions">${actions}</div>`;
-  }
-
-  function setRecovery(key, anchor, html) {
-    const main = document.querySelector(MAIN);
-    if (!main || !anchor) return;
-    let coach = main.querySelector("[data-ff-recovery]");
-    if (!coach) {
-      coach = document.createElement("section");
-      coach.className = "ff-recovery-coach";
-      coach.dataset.ffRecovery = key;
-      anchor.insertAdjacentElement("afterend", coach);
-    } else if (coach.dataset.ffRecovery !== key) {
-      coach.dataset.ffRecovery = key;
-      anchor.insertAdjacentElement("afterend", coach);
-    }
-    setHtml(coach, html);
-  }
-
-  function clearRecovery() {
-    document.querySelector(`${MAIN} [data-ff-recovery]`)?.remove();
-  }
-
-  function recoveryGuidance() {
-    const main = document.querySelector(MAIN);
-    if (!main) return;
-    // Discover and Evaluate render their own recovery guidance (customer-discovery.js, staging-evaluation.js).
-    if (["discover", "evaluate"].includes(routeName())) return;
-    clearRecovery();
-  }
-
-  function betaMission() {
-    const main = document.querySelector(MAIN);
-    if (!main || routeName() !== "beta-start" || main.querySelector("[data-ff-beta-mission]")) return;
-    const anchor = main.querySelector("[data-ff-workflow-strip]") || main.querySelector(".page-heading");
-    if (!anchor) return;
-    const mission = document.createElement("section");
-    mission.className = "ff-beta-mission";
-    mission.dataset.ffBetaMission = "";
-    mission.innerHTML = `<span class="eyebrow">Your private-beta mission</span><h2>Evaluate one real card using only what FlipForge tells you.</h2><p>If you ever stop and wonder what to click, what a result means, or how to continue, that is a product issue—not something you are expected to figure out on your own.</p><div class="ff-beta-mission-checks"><span>Enter one exact card</span><span>Choose the correct listing</span><span>Understand the decision</span><span>Track it or start another</span></div>`;
-    anchor.insertAdjacentElement("afterend", mission);
-  }
+  // Recovery guidance is rendered by Discover and Evaluate themselves; the Private Beta start page (private-beta.js)
+  // renders its own first-session copy, so the "beta mission" insert (which needed a .page-heading there) is gone.
 
   function showWhy() {
     document.documentElement.classList.add("ff-show-advanced");
@@ -369,8 +329,6 @@
     workflowStrip();
     enhanceSaveConfirmation();
     decisionSummary();
-    recoveryGuidance();
-    betaMission();
     refineCustomerLanguage();
   }
 

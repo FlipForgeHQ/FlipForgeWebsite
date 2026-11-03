@@ -240,9 +240,22 @@
     alerts: ["Saved Decisions & Tracking", "Alerts", "What changed on cards you track, what needs a look, and what to do next."]
   });
 
+  // Private Beta three-step workflow strip, under the page heading (formerly inserted by beta-customer-flow-v2.js).
+  // Completed steps come from guided mode's saved progress; nothing here changes a decision.
+  function workflowStripMarkup(current) {
+    if (!betaSurface()) return "";
+    let completed = new Set();
+    try { completed = new Set(window.FlipForgeGuidedMode?.getProgress?.()?.completed || []); } catch (_) { completed = new Set(); }
+    const steps = [["discover", "Evaluate", "#/discover"], ["understand", "Decision", "#/opportunities"], ["track", "Track", "#/tracking"]];
+    return `<nav class="ff-workflow-strip" data-ff-workflow-strip aria-label="Your FlipForge card workflow">${steps.map(([key, label, href], index) => {
+      const done = completed.has(key);
+      return `<a class="ff-workflow-step" href="${href}" data-done="${done}"${key === current ? ' aria-current="step"' : ""}><span class="ff-workflow-step-number">${done ? "\u2713" : index + 1}</span><span>${label}</span></a>`;
+    }).join("")}</nav>`;
+  }
+
   function routeHeading(actions = "", title = "") {
     const [eyebrow, defaultTitle, description] = HEADINGS[state.route] || HEADINGS.tracking;
-    return pageHeading(eyebrow, title || defaultTitle, description, actions);
+    return pageHeading(eyebrow, title || defaultTitle, description, actions) + (state.route === "tracking" ? workflowStripMarkup("track") : "");
   }
 
   // Decision chips carry the plain-language meaning of the saved decision for hover and screen readers.
