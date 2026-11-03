@@ -83,7 +83,8 @@ function walk(dir, out) {
 // Legacy headings that compatibility lookups READ from pages rendered by an earlier build. They are never shown:
 // each may appear only on a `*_LABELS = [...]` lookup-constant line in the named file.
 export const LEGACY_LOOKUP_LABELS = {
-  "saas-prototype/decision-card-evidence-v1.js": ["Trusted sales", "Trusted completed sales"],
+  // "Trusted sales" was read only by the saved-decision page scraper, retired Nov 3 2026 (the owner passes the record).
+  "saas-prototype/decision-card-evidence-v1.js": ["Trusted completed sales"],
   "saas-prototype/customer-cdi-signal-stack-v1.js": ["Trusted completed sales"],
 };
 const LOOKUP_CONSTANT_LINE = /^\s*const [A-Z_]+_LABELS = \[.*\];\s*$/;

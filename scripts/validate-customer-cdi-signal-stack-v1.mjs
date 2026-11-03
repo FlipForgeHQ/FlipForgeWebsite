@@ -8,6 +8,8 @@ const customer = read("saas-prototype/customer.html");
 const index = read("saas-prototype/index.html");
 const js = read("saas-prototype/customer-cdi-signal-stack-v1.js");
 const css = read("saas-prototype/customer-cdi-signal-stack-v1.css");
+// The saved decision page composes this stack's markup itself (customer-opportunities.js, consolidation Nov 3 2026).
+const owner = read("saas-prototype/customer-opportunities.js");
 
 let passed = 0;
 const failures = [];
@@ -44,12 +46,12 @@ check("011 presentation layer performs no network activity", !/fetch\s*\(|XMLHtt
 check("012 presentation layer introduces no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(js));
 check("013 presentation layer does not assign recommendation authority", !/recommendation\s*=|authorityEligible\s*=\s*true|supportedValue\s*=/i.test(js));
 check("014 real Decision Intelligence route is covered", js.includes('parts[0] === "decision-intelligence"'));
-check("015 saved Decision detail route is covered", js.includes('parts[0] === "opportunities" && parts[1]'));
-check("016 returning Saved Decisions route is covered", js.includes('parts[0] !== "opportunities" || parts[1]'));
+check("015 saved Decision detail renders the stack from its owner", js.includes("markup: stackMarkup") && owner.includes("stackModule.markup(decision, {") && owner.includes("<div data-ff-cdi-stack-host>") && !js.includes('parts[0] === "opportunities"'));
+check("016 returning Saved Decisions list adds no reopen strip", !owner.includes("data-ff-cdi-returning") && !js.includes("data-ff-cdi-returning"));
 check("017 Evidence detail gets one progressive plain-language orientation", js.includes("How FlipForge filters evidence") && js.includes("what FlipForge could use, what it excluded") && js.includes('document.createElement("details")') && !js.includes("01 · TRUSTED"));
-check("018 full evidence stays on native route", js.includes("#/evidence/") && js.includes("Open full evidence"));
+check("018 full evidence stays on native route", js.includes("Open full evidence") && owner.includes("evidenceHref: `#/evidence/${id}`"));
 check("019 existing Decision Receipt is opened rather than rebuilt", js.includes("[data-ff-decision-receipt]") && !js.includes("SERVER-OWNED RECORD"));
-check("020 deeper detail uses progressive disclosure", js.includes("Full evidence & Decision Receipt") && js.includes("Full evidence & saved decision detail"));
+check("020 deeper detail uses progressive disclosure", js.includes("Full evidence & Decision Receipt") && owner.includes("<strong>Full evidence &amp; saved decision detail</strong>"));
 check("021 tablet/mobile rules exist", css.includes("@media (max-width:760px)") && css.includes("@media (max-width:480px)"));
 check("022 reduced-motion CSS exists", css.includes("@media (prefers-reduced-motion:reduce)"));
 check("023 primary meaning stays white with gold accent", css.includes("color:#fff") && (css.includes("color:#d4af37") || css.includes("color:#f0ca58")));

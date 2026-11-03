@@ -114,7 +114,7 @@
     observer.observe(main, { childList: true, subtree: true });
   }
 
-  // customer-route-ownership-v1.js, customer-decision-clarity-v1.* and customer-first-value-v1.* are listed in the
+  // customer-route-ownership-v1.js and customer-first-value-v1.* are listed in the
   // page markup (index.html / customer.html); this file loads no other script or stylesheet.
 
   // Reloads and resizes preserve the user's vertical reading position while still

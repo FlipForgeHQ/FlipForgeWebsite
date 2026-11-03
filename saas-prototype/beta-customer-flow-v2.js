@@ -49,7 +49,6 @@
   function syncGuidedState() {
     const progress = guidedProgress();
     document.documentElement.classList.toggle("ff-guided-incomplete", !progress.firstRunComplete);
-    if (progress.firstRunComplete) document.documentElement.classList.remove("ff-show-advanced");
     return progress;
   }
 
@@ -115,13 +114,14 @@
     const main = document.querySelector(MAIN);
     const heading = main?.querySelector(".page-heading");
     const route = routeName();
-    if (!main || !heading || !["discover", "evaluate", "opportunities", "tracking", "beta-start"].includes(route)) return;
+    // Saved Decisions and the saved decision page render their own strip (customer-opportunities.js).
+    if (!main || !heading || !["discover", "evaluate", "tracking", "beta-start"].includes(route)) return;
 
     const progress = guidedProgress();
     // The Private Beta presents three steps (Evaluate / Decision / Track); the customer app shows four. The strip is
     // rendered with the surface's final labels and numbers (no CSS relabelling or hidden step).
     const beta = window.FlipForgePrivateBetaEntry === true;
-    const current = route === "discover" ? "discover" : route === "evaluate" ? (beta ? "discover" : "evaluate") : route === "opportunities" ? "understand" : route === "tracking" ? "track" : "";
+    const current = route === "discover" ? "discover" : route === "evaluate" ? (beta ? "discover" : "evaluate") : route === "tracking" ? "track" : "";
     const steps = beta ? [
       ["discover", "Evaluate", "#/discover"],
       ["understand", "Decision", "#/opportunities"],
@@ -152,133 +152,6 @@
     }).join("");
     strip.innerHTML = html;
     strip.dataset.ffWorkflowSignature = signature;
-  }
-
-  // The saved, server-returned verdict only: the Card Intelligence hero status, rendered from the saved record and
-  // absent while a card loads. Never page text: legends and explainers name every verdict, so scraping them showed
-  // BUY on a saved WATCH card while it loaded. Unknown means the summary stays hidden, not a guessed verdict.
-  function recommendation() {
-    const hero = document.querySelector(MAIN)?.querySelector(".customer-intelligence-hero");
-    if (!hero) return "";
-    for (const node of hero.querySelectorAll(".staging-status,[data-recommendation]")) {
-      const text = String(node.textContent || "").trim().toUpperCase();
-      if (["BUY", "WATCH", "VERIFY", "PASS"].includes(text)) return text;
-    }
-    return "";
-  }
-
-  function decisionCopy(rec, text) {
-    // A legacy result (saved before current evidence rules) keeps its saved recommendation as historical and never
-    // gets current-support copy. Marked by customer-trust-display-v1.js from the server's evidenceProvenanceStatus.
-    if (document.querySelector("#main-content [data-ff-legacy-result]")) return {
-      title: "Saved before current evidence rules.",
-      reason: `Saved recommendation: ${rec}. It is not presented as currently supported.`,
-      next: "Evaluate the card again for a result under current evidence rules."
-    };
-    if (rec === "VERIFY") {
-      const identity = /identity needs verification|mapping\s*(?:not confirmed|NOT_CONFIRMED)|no confirmed .*context/i.test(text);
-      const evidence = /no accepted exact completed sales|0 accepted|no exact sales|evidence-supported value is unavailable/i.test(text);
-      let reason = "FlipForge does not yet have enough matching evidence for a stronger decision.";
-      if (identity && evidence) reason = "The exact card identity still needs confirmation, and there is not enough exact completed-sale evidence yet.";
-      else if (identity) reason = "The exact card identity still needs confirmation before FlipForge can support a stronger decision.";
-      else if (evidence) reason = "There is not enough exact completed-sale evidence yet to support a value or stronger decision.";
-      return { title: "This card needs verification before you act.", reason, next: "Review what is missing, then decide whether to verify the identity or wait for stronger sold evidence." };
-    }
-    if (rec === "WATCH") return { title: "This card is worth watching—not chasing.", reason: "The current price or evidence does not support moving further yet.", next: "Add it to Tracking and watch for a better price or stronger evidence." };
-    if (rec === "PASS") return { title: "The current setup does not support this opportunity.", reason: "Price, evidence, risk, or a combination of those factors keeps this card below FlipForge's decision threshold.", next: "Read why, then move on or start another card." };
-    if (rec === "BUY") return { title: "The evaluated price clears the current decision checks.", reason: "FlipForge found enough support for a BUY decision at the evaluated price.", next: "Review the exact evidence and risk before taking any action outside FlipForge." };
-    return { title: "Start with the decision—not the advanced details.", reason: "Read the plain-English result first, then open deeper intelligence only when you need it.", next: "Understand why the decision was reached before moving on." };
-  }
-
-  function markProgressiveAdvanced() {
-    const main = document.querySelector(MAIN);
-    if (!main || routeName() !== "opportunities" || routeParts().length < 2) return;
-    const patterns = /Forge Heat|Price Intelligence|Historical sold evidence|How to read this decision|Evidence Chain|Evidence readiness|Saved PSA guidance/i;
-    main.querySelectorAll("h2,h3").forEach(heading => {
-      if (!patterns.test(String(heading.textContent || ""))) return;
-      const section = heading.closest("section,article,.panel,.customer-intelligence-section");
-      if (section && !section.classList.contains("ff-progressive-advanced")) section.classList.add("ff-progressive-advanced");
-    });
-  }
-
-  // Presentation-only ordering guard: the saved decision (Card Intelligence hero) must be the first
-  // thing under the page heading. The decision summary and the blocks anchored to it (evidence passport,
-  // beta check) are injected asynchronously; if they were created before the hero existed they would
-  // otherwise sit above it and push the decision below the fold. No data, scoring or authority is touched.
-  function keepResultFirst(main) {
-    const hero = main?.querySelector(".customer-intelligence-hero");
-    const summary = main?.querySelector("[data-ff-decision-summary]");
-    if (!hero || !summary || summary.parentElement !== hero.parentElement) return;
-    if (hero.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING) return;
-    const group = [summary];
-    let next = summary.nextElementSibling;
-    while (next && next !== hero && next.matches("[data-ff-decision-card-evidence],[data-ff-beta-cdi-check]")) {
-      group.push(next);
-      next = next.nextElementSibling;
-    }
-    let anchor = hero;
-    const bar = hero.nextElementSibling;
-    if (bar && bar.matches("[data-ff-saved-decision-bar]")) anchor = bar;
-    anchor.after(...group);
-  }
-
-  function decisionSummary() {
-    const main = document.querySelector(MAIN);
-    const parts = routeParts();
-    if (!main || parts[0] !== "opportunities" || parts.length < 2) return;
-
-    markProgressiveAdvanced();
-    const rec = recommendation();
-    const copy = decisionCopy(rec, String(main.textContent || ""));
-    let summary = main.querySelector("[data-ff-decision-summary]");
-    if (!summary) {
-      summary = document.createElement("section");
-      summary.className = "ff-decision-summary";
-      summary.dataset.ffDecisionSummary = "";
-      // The Card Intelligence hero is the result. Everything injected for this route must follow it,
-      // so prefer the hero over the heading/strip when the save bar has not been created yet.
-      const anchor = main.querySelector("[data-ff-saved-decision-bar]") || main.querySelector(".customer-intelligence-hero") || main.querySelector("[data-ff-workflow-strip]") || main.querySelector(".page-heading");
-      anchor?.insertAdjacentElement("afterend", summary);
-    }
-    keepResultFirst(main);
-
-    const id = encodeURIComponent(parts[1]);
-    const advancedHidden = document.documentElement.classList.contains("ff-guided-incomplete") && !document.documentElement.classList.contains("ff-show-advanced");
-    const html = `<div class="ff-decision-summary-main"><div class="ff-decision-summary-kicker"><span class="ff-decision-summary-pill">${rec || "DECISION"}</span><span>Start here</span></div><h2>${copy.title}</h2><p>${copy.reason}</p><p class="ff-decision-next"><strong>What you should do next:</strong> ${copy.next}</p></div><div class="ff-decision-summary-actions"><a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Show me why →</a><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button type="button" class="button button-secondary" data-ff-new-card>+ Start another card</button><button type="button" class="button button-secondary ff-advanced-toggle" data-ff-toggle-advanced>${advancedHidden ? "Show advanced intelligence" : "Hide advanced intelligence"}</button></div>`;
-    setHtml(summary, html);
-    summary.hidden = !rec;
-  }
-
-  function enhanceSaveConfirmation() {
-    const main = document.querySelector(MAIN);
-    const parts = routeParts();
-    const bar = main?.querySelector("[data-ff-saved-decision-bar]");
-    if (!bar || parts[0] !== "opportunities" || parts.length < 2) return;
-
-    let justSaved = false;
-    try { justSaved = window.sessionStorage.getItem("flipforge.pendingEvaluationSave") === "1"; } catch (_) { justSaved = false; }
-    if (justSaved) {
-      try { window.sessionStorage.removeItem("flipforge.pendingEvaluationSave"); } catch (_) { /* session only */ }
-    }
-
-    // Server semantic replay (set by customer-discovery.js): the saved decision was returned and no
-    // evaluation ran, so never call it a new evaluation.
-    let alreadyEvaluated = false;
-    try {
-      const marker = window.FlipForgeSemanticReplay?.current?.()
-        || JSON.parse(window.sessionStorage.getItem("flipforge.semanticReplayNotice") || "null");
-      alreadyEvaluated = Boolean(marker && marker.id === decodeURIComponent(parts[1]) && Date.now() - marker.at <= 30000);
-    } catch (_) { alreadyEvaluated = false; }
-    if (alreadyEvaluated) justSaved = false;
-
-    if (!bar.classList.contains("ff-save-confirmed")) bar.classList.add("ff-save-confirmed");
-    bar.classList.toggle("ff-just-saved", justSaved);
-    setText(bar.querySelector(".ff-saved-decision-copy strong"), alreadyEvaluated ? "Already evaluated — saved decision" : justSaved ? "Evaluation complete & saved" : "Evaluation saved");
-    setText(bar.querySelector(".ff-saved-decision-copy small"), "This decision is saved to your account. Starting another card will not remove it.");
-
-    const actions = bar.querySelector(".ff-saved-decision-actions");
-    const id = encodeURIComponent(parts[1]);
-    setHtml(actions, `<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Understand this decision →</a><a class="button button-secondary" href="#/tracking/${id}">Track this card</a><button class="button button-secondary" type="button" data-ff-new-card>+ Start another card</button>`);
   }
 
   function recoveryHtml(title, copy, actions) {
@@ -358,26 +231,6 @@
     anchor.insertAdjacentElement("afterend", mission);
   }
 
-  function showWhy() {
-    document.documentElement.classList.add("ff-show-advanced");
-    const main = document.querySelector(MAIN);
-    const headings = [...(main?.querySelectorAll("h2,h3") || [])];
-    const targetHeading = headings.find(node => /Decision Traceback|Why FlipForge says this|How to read this decision/i.test(String(node.textContent || "")));
-    const target = targetHeading?.closest("section,article,.panel,.customer-intelligence-section") || targetHeading;
-    if (!target) return;
-    target.classList.remove("ff-progressive-advanced");
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-    target.classList.add("ff-guide-highlight");
-    target.dataset.guideLabel = "Why FlipForge reached this decision";
-    window.setTimeout(() => target.classList.remove("ff-guide-highlight"), 8000);
-    scheduleApply();
-  }
-
-  function toggleAdvanced() {
-    document.documentElement.classList.toggle("ff-show-advanced");
-    scheduleApply();
-  }
-
   function handleFindExact() {
     const button = document.querySelector(`${MAIN} [data-discovery-find-exact]`);
     if (button) {
@@ -394,16 +247,6 @@
       if (event.target.closest("[data-discovery-evaluate]")) {
         try { window.sessionStorage.setItem("flipforge.pendingEvaluationSave", "1"); } catch (_) { /* session only */ }
       }
-      if (event.target.closest("[data-ff-show-why]")) {
-        event.preventDefault();
-        showWhy();
-        return;
-      }
-      if (event.target.closest("[data-ff-toggle-advanced]")) {
-        event.preventDefault();
-        toggleAdvanced();
-        return;
-      }
       if (event.target.closest("[data-ff-find-exact]")) {
         event.preventDefault();
         handleFindExact();
@@ -415,8 +258,6 @@
     if (!eligibleHost()) return;
     syncGuidedState();
     workflowStrip();
-    enhanceSaveConfirmation();
-    decisionSummary();
     recoveryGuidance();
     betaMission();
     refineCustomerLanguage();
@@ -436,16 +277,13 @@
     bindEvents();
     const main = document.querySelector(MAIN);
     if (main) new MutationObserver(scheduleApply).observe(main, { childList: true, subtree: true });
-    window.addEventListener("hashchange", () => {
-      document.documentElement.classList.remove("ff-show-advanced");
-      window.setTimeout(scheduleApply, 70);
-    });
+    window.addEventListener("hashchange", () => window.setTimeout(scheduleApply, 70));
     window.addEventListener("pageshow", scheduleApply);
     window.addEventListener("load", scheduleApply);
     window.addEventListener("flipforge:identity-change", scheduleApply);
     scheduleApply();
   }
 
-  window.FlipForgeBetaCustomerFlow = Object.freeze({ refresh: scheduleApply, showWhy, toggleAdvanced });
+  window.FlipForgeBetaCustomerFlow = Object.freeze({ refresh: scheduleApply });
   init();
 })();
