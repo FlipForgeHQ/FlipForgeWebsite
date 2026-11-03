@@ -9,6 +9,7 @@
   const READ_PATHS = new Set(["/api/v1/health", "/api/v1/entitlements"]);
 
   const state = {
+    generation: 0,
     main: null,
     loading: false,
     health: null,
@@ -345,8 +346,13 @@
     if (signOutButton) signOutButton.addEventListener("click", signOut);
   }
 
+  function accountRoute() {
+    return (String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard") === "account";
+  }
+
   function renderState() {
-    if (!state.main) return;
+    // A response that arrives after the customer left Account must not paint over the page they are on now.
+    if (!state.main || !accountRoute()) return;
     if (state.loading) {
       state.main.innerHTML = loadingView();
       attachActions();
@@ -369,24 +375,33 @@
 
   async function load() {
     if (!state.main || state.loading) return;
+    const generation = state.generation;
     state.loading = true;
     state.error = null;
     renderState();
     try {
-      state.health = await request("/api/v1/health");
-      state.entitlements = state.health?.data?.status === "configured"
+      const health = await request("/api/v1/health");
+      const entitlements = health?.data?.status === "configured"
         ? await request("/api/v1/entitlements")
         : null;
+      if (generation !== state.generation) return;
+      state.health = health;
+      state.entitlements = entitlements;
     } catch (error) {
+      if (generation !== state.generation) return;
       state.error = error;
     } finally {
-      state.loading = false;
-      renderState();
+      // Only the newest Account visit renders; an older request that settles late is dropped.
+      if (generation === state.generation) {
+        state.loading = false;
+        renderState();
+      }
     }
   }
 
   function render(main) {
     if (!isEligible()) return false;
+    state.generation += 1;
     state.main = main;
     state.loading = false;
     state.health = null;
