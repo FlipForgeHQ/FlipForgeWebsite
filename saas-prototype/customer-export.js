@@ -150,7 +150,7 @@
     const ids = opportunityItems().map(item => String(item.id));
     if (state.requestedId) {
       if (!SAFE_ID.test(state.requestedId) || !ids.includes(state.requestedId)) {
-        throw Object.assign(new Error("The requested saved record was not returned for this tenant."), { code: "RESOURCE_NOT_FOUND", status: 404 });
+        throw Object.assign(new Error("The requested saved decision is not in this account."), { code: "RESOURCE_NOT_FOUND", status: 404 });
       }
       return state.requestedId;
     }
@@ -329,6 +329,16 @@
     return `<span class="staging-status staging-status-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
   }
 
+  // A saved decision that is not in the signed-in account: the gateway answers 404 RESOURCE_NOT_FOUND, or the id is not
+  // in this account's list. Plain customer wording only; what the account can open is decided by the server as before.
+  function notInAccount(error) {
+    return String(error?.code || "") === "RESOURCE_NOT_FOUND";
+  }
+
+  function notInAccountPanel() {
+    return `<section class="panel ff-not-in-account" role="status" data-ff-not-in-account><div class="panel-body staging-empty"><strong>This decision isn’t in your account</strong><p>It may belong to a different account, or the link may be out of date. Open Saved Decisions to see your own decisions.</p><div class="ff-not-in-account-actions"><a class="button button-primary" href="#/opportunities">Open Saved Decisions</a></div></div></section>`;
+  }
+
   function errorPanel() {
     if (!state.error) return "";
     const signIn = state.error.status === 401
@@ -372,6 +382,9 @@
     }
     if (state.health?.data?.status !== "configured" && !state.error) {
       return `<div class="page customer-export-page"><header class="page-heading"><div><span class="eyebrow">Audit-safe customer export</span><h1>Decision Dossier</h1><p>Prepared for a controlled tenant-scoped private-beta session.</p></div></header><section class="panel"><div class="panel-body staging-empty"><strong>Decision export is safely offline.</strong><p>The customer gateway is disabled, so no tenant data was read and no sample dossier was created.</p></div></section></div>`;
+    }
+    if (state.error && notInAccount(state.error)) {
+      return `<div class="page customer-export-page"><header class="page-heading"><div><span class="eyebrow">Decision Dossier</span><h1>Decision not available</h1><p>Only decisions saved in your account can be exported.</p></div></header>${notInAccountPanel()}</div>`;
     }
     if (state.error) {
       return `<div class="page customer-export-page"><header class="page-heading"><div><span class="eyebrow">Audit-safe customer export</span><h1>Decision Dossier unavailable</h1><p>The complete source contract failed, so no export controls are available.</p></div></header>${errorPanel()}</div>`;
