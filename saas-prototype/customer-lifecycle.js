@@ -455,9 +455,10 @@
     const newCount = attention.filter(item => item.newSinceLastVisit === true).length;
     const seenButton = reviewState && since ? `<button class="button button-secondary" type="button" data-alerts-seen ${state.reviewing === "seen" ? "disabled" : ""}>${state.reviewing === "seen" ? "Saving…" : "Mark all as seen"}</button>` : "";
     const actions = `${seenButton}<a class="button button-secondary" href="#/tracking">Manage tracking</a><button class="button button-secondary" type="button" data-lifecycle-refresh>Refresh</button>`;
+    const delivery = `Alerts are shown here in the app; Email / push delivery is ${data.notificationDeliveryConfigured ? "connected" : "not connected"}.`;
     const sinceLine = since
-      ? `<p class="ff-alerts-since" data-since-basis="${escapeHtml(since.basis || "")}">${escapeHtml(since.explanation || "")}${since.lastSeenAt ? ` Last marked seen ${escapeHtml(whenText(since.lastSeenAt, ""))}.` : ""}</p>`
-      : "";
+      ? `<p class="ff-alerts-since" data-since-basis="${escapeHtml(since.basis || "")}">${escapeHtml(since.explanation || "")}${since.lastSeenAt ? ` Last marked seen ${escapeHtml(whenText(since.lastSeenAt, ""))}.` : ""} ${escapeHtml(delivery)}</p>`
+      : `<p class="ff-alerts-since">${escapeHtml(delivery)}</p>`;
     const summary = `<section class="customer-management-metrics ff-alerts-summary"><article><span>New since your last visit</span><strong>${since ? newCount : "—"}</strong></article><article><span>Needs your review</span><strong>${attention.length}</strong></article><article><span>Scheduled reminders</span><strong>${scheduled.length}</strong></article><article><span>Reviewed</span><strong>${reviewState ? reviewed.length : "—"}</strong></article></section>`;
     const attentionPanel = `<section class="panel ff-alerts-panel" data-alerts-attention><header class="panel-header"><div><h2>Needs your review</h2><p>Newest first. Each item says what FlipForge recorded and what to do next.</p></div>${badge(attention.length ? `${attention.length} open` : "All clear", attention.length ? "warn" : "ok")}</header><div class="panel-body">${attention.length
       ? `<div class="ff-alert-list">${attention.map(item => alertCardMarkup(item, data, "attention")).join("")}</div>`
