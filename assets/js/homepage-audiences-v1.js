@@ -45,10 +45,25 @@
     });
   });
 
-  // The five prominent hero choices open their matching existing audience panel.
+  // The hero's visual strategy console updates the decision focus on hover or keyboard focus.
+  // Its links still use ordinary anchors, and only click opens the matching existing panel.
+  const consoleRoot = document.querySelector('[data-ff-persona-console]');
+  const personaPreview = consoleRoot && consoleRoot.querySelector('[data-ff-persona-preview]');
+  const personaLinks = consoleRoot ? Array.from(consoleRoot.querySelectorAll('[data-ff-audience-target]')) : [];
+  function spotlight(link) {
+    if (!personaPreview || !link) return;
+    personaPreview.textContent = link.dataset.ffPersonaSummary || '';
+    personaLinks.forEach(item => item.dataset.ffPersonaEmphasis = item === link ? 'true' : 'false');
+  }
+  personaLinks.forEach(link => {
+    link.addEventListener('mouseenter', () => spotlight(link));
+    link.addEventListener('focus', () => spotlight(link));
+  });
+
   // The native #who-its-for anchor still works without JavaScript.
   document.querySelectorAll('[data-ff-audience-target]').forEach(link => {
     link.addEventListener('click', () => {
+      spotlight(link);
       const index = tabs.findIndex(tab => tab.dataset.audTab === link.dataset.ffAudienceTarget);
       if (index < 0) return;
       select(index, false);
