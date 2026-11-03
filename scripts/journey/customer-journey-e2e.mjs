@@ -15,7 +15,7 @@ const SHOTS = process.env.JOURNEY_SHOTS || "";
 const email = "journey-tenant-a@journey.flipforge.test";
 const CARDS = {
   strong: { identity: "2019 Topps Chrome Pete Alonso #204 PSA 10", listing: "journey-alonso-ui-001", price: "300.00" },
-  second: { identity: "2018 Topps Chrome Juan Soto #155 PSA 10", listing: "journey-soto-ui-001", price: "380.00" },
+  second: { identity: "2018 Topps Chrome Juan Soto #155 PSA 10", listing: "journey-soto-ui-001", price: "300.00" },
   thin: { identity: "2021 Bowman Chrome Jasson Dominguez #BCP-90 PSA 10", listing: "journey-dominguez-ui-001", price: "200.00" }
 };
 const passes = [];
