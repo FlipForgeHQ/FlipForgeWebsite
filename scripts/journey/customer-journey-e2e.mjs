@@ -222,8 +222,13 @@ try {
     check("P2 Portfolio shows the owned card and what was paid", t.includes("Pete Alonso") && t.includes(`$${Number(paid).toLocaleString("en-US", { minimumFractionDigits: 2 })}`), t.slice(0, 400));
     check("P3 Portfolio shows the saved verdict and Max Buy at decision, and that the price paid was over it",
       /Max Buy \$[0-9,]+\.\d{2} at decision/.test(t) && /over it/i.test(t), t.slice(0, 600));
-    check("P4 owned cards that need a look list its open alerts, linking to the decision and Alerts",
-      await page.locator(`[data-portfolio-attention-card="${saved.strong.id}"] a[href="#/alerts"]`).count() === 1);
+    const attention = await page.evaluate(id => [...document.querySelectorAll(`[data-portfolio-attention-card="${id}"]`)].map(li => li.innerText.replace(/\s+/g, " ")), saved.strong.id);
+    check("P4 owned cards that need a look list its open alerts (reminder due, decision changed), each linking to the decision and Alerts",
+      attention.length >= 2 && attention.some(t => /Your scheduled review is due/.test(t)) && attention.some(t => /Decision changed from BUY to/.test(t))
+        && await page.locator(`[data-portfolio-attention-card="${saved.strong.id}"] a[href="#/alerts"]`).count() === attention.length
+        && await page.locator(`[data-portfolio-attention-card="${saved.strong.id}"] a[href="#/opportunities/${encodeURIComponent(saved.strong.id)}"]`).count() === attention.length,
+      attention.join(" | "));
+    check("P4a the alert already marked reviewed is not repeated on Portfolio", !attention.some(t => /Ask moved above your Max Buy/.test(t)), attention.join(" | "));
     check("P5 no raw codes on Portfolio", !RAW.test(t));
     await shot(page, "08-portfolio");
   });
