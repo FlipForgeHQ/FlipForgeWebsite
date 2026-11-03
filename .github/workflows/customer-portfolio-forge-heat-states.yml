@@ -12,6 +12,7 @@ on:
       - "saas-prototype/index.html"
       - "saas-prototype/customer.html"
       - "scripts/audit-portfolio-forge-heat-states-ci.mjs"
+      - "scripts/audit-forge-heat-v2-ci.mjs"
       - "scripts/validate-saas-customer-portfolio.mjs"
       - ".github/workflows/customer-portfolio-forge-heat-states.yml"
   workflow_dispatch:
@@ -63,6 +64,11 @@ jobs:
         env:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-portfolio-forge-heat-states-ci.mjs
+
+      - name: Forge Heat v2 display (Max Buy headroom, near the buying limit, plain reasons, v1 fallback)
+        env:
+          FLIPFORGE_HEAT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: node scripts/audit-forge-heat-v2-ci.mjs
 
       - name: Portfolio and Forge Heat regressions
         env:

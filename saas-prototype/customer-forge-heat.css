@@ -13,3 +13,13 @@
   .ff-heat-table th { white-space: nowrap; }
   .ff-heat-table td:nth-child(2) { min-width: 11rem; }
 }
+/* Forge Heat v2: near the buying limit (listed, never ranked). */
+.forge-heat-near-limit{display:grid;gap:10px;width:100%;margin:4px 0 8px;padding:16px 18px;border:1px dashed rgba(216,180,93,.35);border-radius:14px;background:rgba(0,0,0,.16)}
+.forge-heat-near-limit p{margin:4px 0 0;color:var(--muted,#9fa5b0);font-size:.86rem;line-height:1.5}
+.forge-heat-near-limit ul{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.forge-heat-near-limit li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(255,255,255,.05)}
+.forge-heat-near-limit li:first-child{border-top:0}
+.forge-heat-near-limit li strong{display:block;color:var(--text,#e9e6dd);font-size:.92rem}
+.forge-heat-near-limit li small{display:block;margin-top:3px;color:var(--muted,#9fa5b0);font-size:.8rem;font-variant-numeric:tabular-nums}
+.forge-heat-near-actions{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:680px){.forge-heat-near-actions,.forge-heat-near-actions .button{width:100%}}
