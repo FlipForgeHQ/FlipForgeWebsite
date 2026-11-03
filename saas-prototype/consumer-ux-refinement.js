@@ -88,20 +88,6 @@
     );
   }
 
-  function refineForgeHeat(root) {
-    const shell = root.querySelector(".forge-heat-shell");
-    if (!shell) return;
-
-    const isDevelopment = shell.classList.contains("forge-heat-development");
-    setText(shell.querySelector(".forge-heat-title-row .eyebrow"), isDevelopment ? "In development" : "Forge Heat");
-    setText(shell.querySelector(".forge-heat-boundary small"), isDevelopment
-      ? "Not available in private beta"
-      : "Ranks saved evaluations · Decision support only");
-    shell.querySelectorAll(".forge-heat-card-foot > span").forEach(node => {
-      setText(node, "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved recommendation.");
-    });
-  }
-
   function refineErrorPanels(root) {
     root.querySelectorAll('.staging-error[role="alert"] .panel-body > strong').forEach(node => {
       const current = node.textContent.trim();
@@ -109,11 +95,15 @@
     });
   }
 
+  // Replace only the technical sentence itself. Rewriting the whole alert deleted its Retry / Sign in controls
+  // and its error reference.
   function sanitizeDiagnostics(root) {
     root.querySelectorAll('.card-intelligence-error, .forge-heat-error, [role="alert"]').forEach(node => {
-      if (diagnosticPattern.test(node.textContent || "")) {
-        setText(node, "This intelligence view is temporarily unavailable. Try again.");
-      }
+      const leaves = [...node.querySelectorAll("p, small, span, strong")].filter(leaf => !leaf.querySelector("a, button, input, select, textarea"));
+      const targets = leaves.length ? leaves : (node.querySelector("a, button, input, select, textarea") ? [] : [node]);
+      targets.forEach(leaf => {
+        if (diagnosticPattern.test(leaf.textContent || "")) setText(leaf, "This intelligence view is temporarily unavailable. Try again.");
+      });
     });
   }
 
@@ -137,7 +127,6 @@
     replaceLeafCopy(main);
     refineBoundaryNotes(main);
     refineCardIdentity(main);
-    refineForgeHeat(main);
     refineErrorPanels(main);
     sanitizeDiagnostics(main);
     markCustomerStates(main);

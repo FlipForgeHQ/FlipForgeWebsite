@@ -106,7 +106,6 @@
       setText(pageHeading.querySelector(".eyebrow"), "Discover");
       setText(pageHeading.querySelector("h1"), "Discover a Card");
       setText(pageHeading.querySelector("p"), "Find and confirm your exact card first. Then select a listing for FlipForge to evaluate.");
-      hideNode(pageHeading.querySelector(".page-actions"));
     }
 
     const heading = panel.querySelector("h2");
@@ -158,73 +157,11 @@
     // customer-discovery.js for both the Private Beta and customer apps; the beta no longer rewrites it.
 
     hideTechnicalSectionByHeading(/^Connected source status$/i);
-    main.querySelectorAll(".customer-discovery-identity-assist .boundary-note").forEach(hideNode);
-    main.querySelectorAll(".boundary-note").forEach(hideNode);
   }
 
-  function simplifyDecision() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts.length < 2) return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Your result");
-      setText(heading.querySelector("h1"), "Your Decision");
-      setText(heading.querySelector("p"), "Start with the decision and the reason. Open the evidence only when you want the deeper proof.");
-      const legacyActions = heading.querySelector(".page-actions");
-      hideNode(legacyActions);
-      const legacyTrack = legacyActions?.querySelector("a[href^='#/tracking/']");
-      if (legacyTrack) legacyTrack.setAttribute("href", "#/tracking");
-    }
-
-    hideTechnicalSectionByHeading(/^(Forge Heat|Price Intelligence|Historical sold evidence|How to read this decision|Decision details|Evidence details|PSA context|Evidence)$/i);
-    hideTechnicalSectionByHeading(/^What changes (?:this|the) decision\??$/i);
-    main.querySelectorAll(".boundary-note").forEach(hideNode);
-
-    const moreDetail = [...main.querySelectorAll("button,a,summary")].find(node => /More decision detail/i.test(String(node.textContent || "")));
-    if (moreDetail) hideNode(moreDetail.closest("section,article,.panel,details") || moreDetail);
-  }
-
-  function simplifySavedDecisions() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts.length !== 1) return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Saved cards");
-      setText(heading.querySelector("h1"), "Saved Decisions");
-      setText(heading.querySelector("p"), "Reopen a card to review the decision or continue tracking it.");
-      hideNode(heading.querySelector(".page-actions"));
-    }
-
-    main.querySelectorAll(".metric-grid,.dashboard-grid,.customer-management-metrics,.boundary-note").forEach(hideNode);
-    main.querySelectorAll("section,article,.panel").forEach(section => {
-      const text = String(section.textContent || "").replace(/\s+/g, " ").trim();
-      if (/MODEL/i.test(text) && /TRANSACTION ACTIONS/i.test(text) && /CUSTOMER CONTROLS/i.test(text)) hideNode(section);
-    });
-  }
-
-  function simplifyTracking() {
-    if (routeName() !== "tracking") return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Decision follow-up");
-      setText(heading.querySelector("h1"), "Tracking");
-      setText(heading.querySelector("p"), "Choose what happens next with this saved card: keep watching, set a review date, record ownership, or close it out.");
-      hideNode(heading.querySelector(".page-actions"));
-    }
-
-    main.querySelectorAll(".customer-management-metrics,.boundary-note").forEach(hideNode);
-    const save = main.querySelector('[data-lifecycle-form] button[type="submit"]');
-    if (save && !save.disabled && !/Saving/i.test(String(save.textContent || ""))) setText(save, "Save update");
-  }
+  // Saved Decision, Decision Receipt, Saved Decisions and Tracking are rendered by their own route owners
+  // (customer-opportunities / customer-lifecycle). This layer no longer hides their action buttons, Decision
+  // Boundary disclosures, summary tiles or evidence sections, and no longer rewrites their headings.
 
   function syncMilestones() {
     const parts = routeParts();
@@ -240,9 +177,6 @@
     if (!eligible()) return;
     document.documentElement.classList.add("ff-beta-session-v1");
     simplifyDiscover();
-    simplifyDecision();
-    simplifySavedDecisions();
-    simplifyTracking();
     syncMilestones();
   }
 
@@ -276,8 +210,6 @@
     if (!eligible()) return;
     const main = document.querySelector("#main-content");
     if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
-    const nav = document.querySelector(".primary-nav");
-    if (nav) new MutationObserver(schedule).observe(nav, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "tabindex", "class"] });
     window.addEventListener("hashchange", () => window.setTimeout(schedule, 50));
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);

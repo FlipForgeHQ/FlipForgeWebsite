@@ -63,13 +63,6 @@
     ["Forge Heat V1", "Forge Heat"]
   ];
 
-  const HEAT_TAB_LABELS = {
-    top5: "Top 5",
-    hiddenGems: "Hidden Gems",
-    highestEdge: "Highest Edge",
-    heatingUp: "Heating Up"
-  };
-
   let discoverRenderPending = false;
 
   function routeName() {
@@ -123,17 +116,8 @@
 
     nav.querySelectorAll(".ff-nav-group-label").forEach(node => node.remove());
 
-    // Never un-hide a link the beta shell deliberately hid (aria-hidden="true"): on the Private Beta shell the original
-    // Alerts link is relocated into Advanced Intelligence, and un-hiding it here fought customer-only-shell-v1.js
-    // every animation frame (mobile flicker).
-    const alerts = nav.querySelector('[data-route="alerts"]');
-    if (alerts && alerts.hidden && alerts.getAttribute("aria-hidden") !== "true") alerts.hidden = false;
-
-    const heat = nav.querySelector('[data-route="forge-heat"]');
-    const opportunities = nav.querySelector('[data-route="opportunities"]');
-    if (!fullCustomerApp() && heat && opportunities && heat.previousElementSibling !== opportunities) {
-      opportunities.insertAdjacentElement("afterend", heat);
-    }
+    // Link visibility and order are owned by customer-only-shell-v1.js (route manifest). Unhiding Alerts and moving
+    // Forge Heat here fought the shell's own writes on every observer pass.
 
     nav.querySelector('[data-route="beta-start"]')?.classList.add("ff-secondary-nav-link");
   }
@@ -210,53 +194,8 @@
     });
   }
 
-  function polishForgeHeatInteractive(root = document) {
-    const shell = root.querySelector(".forge-heat-shell");
-    if (!shell) return;
-
-    shell.classList.add("ff-forge-heat-interactive-beta");
-
-    const eyebrow = shell.querySelector(".forge-heat-title-row .eyebrow");
-    if (eyebrow) setText(eyebrow, "Beta intelligence · In development");
-
-    shell.querySelector(".forge-heat-pro-chip")?.remove();
-
-    const boundarySmall = shell.querySelector(".forge-heat-boundary small");
-    if (boundarySmall) setText(boundarySmall, "Saved-evaluation beta · Decision support only");
-
-    shell.querySelectorAll("[data-heat-tab]").forEach(button => {
-      const key = button.getAttribute("data-heat-tab");
-      if (key && HEAT_TAB_LABELS[key]) setText(button, HEAT_TAB_LABELS[key]);
-    });
-
-    shell.querySelectorAll(".forge-heat-summary > div").forEach(metric => {
-      const label = metric.querySelector("span");
-      const text = label?.textContent?.trim();
-      if (text === "Heat eligible") setText(label, "Eligible for scoring");
-      if (text === "Surfaced") setText(label, "60+ surfaced");
-    });
-
-    const lock = shell.querySelector(".forge-heat-lock");
-    if (lock) {
-      setText(lock.querySelector(".forge-heat-lock-mark"), "BETA");
-      setText(lock.querySelector(".eyebrow"), "Beta access");
-      const h2 = lock.querySelector("h2");
-      if (h2 && /included with FlipForge Pro|upgrade/i.test(h2.textContent || "")) {
-        setText(h2, "Forge Heat beta access is not enabled for this account.");
-      }
-      lock.querySelectorAll("p").forEach(p => {
-        if (/upgrade to Pro/i.test(p.textContent || "")) {
-          setText(p, "Forge Heat remains in beta while its ranking and history signals are validated.");
-        }
-      });
-    }
-
-    shell.querySelectorAll(".forge-heat-card-foot > span").forEach(node => {
-      setText(node, "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved recommendation.");
-    });
-
-    polishTrademark(shell);
-  }
+  // Forge Heat wording (eyebrow, scope line, tabs, summary labels, beta access view) is owned by customer-forge-heat.js.
+  // Rewriting it here fought consumer-ux-refinement.js every animation frame (the Forge Heat redraw loop).
 
   function improveEmptyStates(root = document) {
     const ctas = {
@@ -269,12 +208,7 @@
 
     const route = routeName();
     root.querySelectorAll(".staging-empty, .consumer-state-empty, .forge-heat-empty").forEach(state => {
-      // A Forge Heat page with no evaluations at all keeps its own "evaluate a card" copy: the threshold wording
-      // below only fits evaluations that were scored and did not qualify.
-      if (/No qualifying opportunities yet/i.test(state.textContent || "") && state.getAttribute("data-forge-heat-empty") !== "none-evaluated") {
-        setText(state.querySelector("strong"), "No opportunity reaches the Forge Heat surface threshold yet.");
-        setText(state.querySelector("p"), "Forge Heat scores eligible decisions first, then surfaces only those with a score of 60 or higher.");
-      }
+      // Forge Heat empty states keep the renderer's own per-tab wording (it ranks by room under Max Buy).
       if (state.querySelector("a, button") || !ctas[route]) return;
       const [label, href] = ctas[route];
       const link = document.createElement("a");
@@ -313,7 +247,6 @@
     customerCopy(document.body);
     polishDashboard();
     improveEmptyStates(document);
-    polishForgeHeatInteractive(document);
     polishTrademark(document);
     document.documentElement.classList.add("ff-product-polish-ready");
     scheduleCustomerDiscover();

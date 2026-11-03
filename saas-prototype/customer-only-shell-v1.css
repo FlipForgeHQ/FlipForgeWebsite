@@ -16,8 +16,17 @@ body[data-ff-surface="customer"] .brand-tagline {
 body[data-ff-surface="customer"] .primary-nav {
   display: grid;
   gap: 8px;
+  /* Rows hug their links; without this the grid stretched each link to fill the sidebar height. */
+  align-content: start;
   overflow-x: hidden !important;
   overflow-y: visible !important;
+}
+
+/* customer-only-shell-v1.js is the only owner of which links are shown; a link it hides stays hidden even when an
+ * older stylesheet gives nav links an explicit display value. */
+body[data-ff-surface="customer"] .primary-nav > a[hidden],
+body[data-ff-surface="customer"] .primary-nav > details[hidden] {
+  display: none !important;
 }
 
 body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {

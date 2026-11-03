@@ -371,7 +371,9 @@
 
     const boundary = page.querySelector(".boundary-note");
     if (boundary) {
-      boundary.innerHTML = "<strong>Decision boundary:</strong> Tracking records what you decide to do with a saved card. It never changes the FlipForge BUY/WATCH/VERIFY/PASS decision or executes a transaction.";
+      // customer-lifecycle.js owns this <details> disclosure; only its sentence is set here. Replacing the whole
+      // element's markup every frame removed its summary and re-triggered every page observer.
+      setText(boundary.querySelector("p") || boundary, "Decision boundary: Tracking records what you decide to do with a saved card. It never changes the FlipForge BUY/WATCH/VERIFY/PASS decision or executes a transaction.");
     }
 
     const metrics = [...page.querySelectorAll(".customer-management-metrics article")];

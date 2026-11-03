@@ -457,10 +457,10 @@
 
   function tabs() {
     const options = [
-      ["top5", "🔥 Top 5"],
-      ["hiddenGems", "💎 Hidden Gems"],
-      ["highestEdge", "↗ Highest Edge"],
-      ["heatingUp", "⚡ Heating Up"]
+      ["top5", "Top 5"],
+      ["hiddenGems", "Hidden Gems"],
+      ["highestEdge", "Highest Edge"],
+      ["heatingUp", "Heating Up"]
     ];
     return `<div class="forge-heat-tabs" role="tablist" aria-label="Forge Heat views">${options.map(([key, label]) =>
       `<button type="button" role="tab" data-heat-tab="${key}" aria-selected="${state.tab === key ? "true" : "false"}" class="${state.tab === key ? "is-active" : ""}">${label}</button>`
@@ -480,8 +480,8 @@
     return `<div class="forge-heat-shell">
       ${heading(data)}
       <section class="forge-heat-lock">
-        <span class="forge-heat-lock-mark" aria-hidden="true">PRO</span>
-        <div><span class="eyebrow">Premium intelligence</span><h2>Forge Heat is included with FlipForge Pro.</h2><p>${escapeHtml(data.upgradeMessage || "Upgrade to Pro to unlock evidence-adjusted opportunity ranking.")}</p><p>Your current plan: <strong>${escapeHtml(data.access?.currentPlan || "Unknown")}</strong></p><a class="button button-primary" href="#/account">View Plan &amp; Usage</a></div>
+        <span class="forge-heat-lock-mark" aria-hidden="true">BETA</span>
+        <div><span class="eyebrow">Beta access</span><h2>Forge Heat beta access is not enabled for this account.</h2><p>Forge Heat remains in beta while its ranking and history signals are validated.</p><p>Your current plan: <strong>${escapeHtml(data.access?.currentPlan || "Unknown")}</strong></p><a class="button button-primary" href="#/account">View Plan &amp; Usage</a></div>
       </section>
     </div>`;
   }
@@ -490,14 +490,14 @@
     const summary = data?.summary || {};
     return `<header class="forge-heat-hero">
       <div>
-        <div class="forge-heat-title-row"><span class="eyebrow">PRO INTELLIGENCE · ${escapeHtml(data?.heatVersion || HEAT_VERSION)}</span><span class="forge-heat-pro-chip">PRO</span></div>
+        <div class="forge-heat-title-row"><span class="eyebrow">Forge Heat beta · ${escapeHtml(data?.heatVersion || HEAT_VERSION)}</span></div>
         <h1>Forge Heat™</h1>
         <p class="forge-heat-lead">Evidence-backed opportunity intelligence. FlipForge does not just find the gap—it tests whether the opportunity deserves to be trusted.</p>
       </div>
-      <div class="forge-heat-boundary"><strong>Current scope</strong><span>Your saved, completed evaluation universe</span><small>Not market-wide yet · No browser-side scoring · No transaction authority</small></div>
+      <div class="forge-heat-boundary"><strong>Current scope</strong><span>Your saved, completed evaluation universe</span><small>Ranks saved evaluations · Decision support only · Not market-wide · No browser-side scoring · No transaction authority</small></div>
       ${data && data.locked === false ? `<div class="forge-heat-summary">
         <div><span>Evaluations considered</span><strong>${escapeHtml(summary.latestEvaluationsConsidered ?? 0)}</strong></div>
-        <div><span>Heat eligible</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
+        <div><span>Eligible for scoring</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
         <div><span>Surfaced</span><strong>${escapeHtml(summary.surfaced ?? 0)}</strong></div>
         ${Number(summary.legacyDerivedExcluded) > 0 ? `<div data-ff-legacy-excluded><span>Legacy results not scored</span><strong>${escapeHtml(summary.legacyDerivedExcluded)}</strong></div>` : ""}
         <div><span>Ranked by</span><strong>${maxBuyRanking(data) ? "Room under Max Buy" : "Value gap (V1)"}</strong></div>
@@ -544,14 +544,14 @@
   }
 
   function loading() {
-    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">PRO INTELLIGENCE</span><h1>Forge Heat™</h1><p class="forge-heat-lead">Loading server-owned opportunity intelligence…</p></div></header><div class="staging-loading" role="status">Challenging saved decisions against Forge Heat gates…</div></div>`;
+    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">Forge Heat beta</span><h1>Forge Heat™</h1><p class="forge-heat-lead">Loading server-owned opportunity intelligence…</p></div></header><div class="staging-loading" role="status">Challenging saved decisions against Forge Heat gates…</div></div>`;
   }
 
   function errorView(error) {
     const signIn = error?.status === 401
       ? `<a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fforge-heat" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fforge-heat"}">Sign in securely</a>`
       : `<button class="button button-primary" type="button" data-forge-heat-retry>Retry</button>`;
-    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">PRO INTELLIGENCE</span><h1>Forge Heat™</h1></div></header><section class="panel staging-error" role="alert"><div class="panel-body">${(() => { const said = window.FlipForgeTrustDisplay?.customerErrorText ? window.FlipForgeTrustDisplay.customerErrorText(error, "Forge Heat") : { title: "Forge Heat is unavailable.", detail: "", reference: error?.code || "" }; return `<strong data-error-code="${escapeHtml(error?.code || "")}">${escapeHtml(said.title)}</strong><p>${escapeHtml(said.detail)}</p>${said.reference ? `<small>Reference: ${escapeHtml(said.reference)}</small>` : ""}`; })()}<small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
+    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">Forge Heat beta</span><h1>Forge Heat™</h1></div></header><section class="panel staging-error" role="alert"><div class="panel-body">${(() => { const said = window.FlipForgeTrustDisplay?.customerErrorText ? window.FlipForgeTrustDisplay.customerErrorText(error, "Forge Heat") : { title: "Forge Heat is unavailable.", detail: "", reference: error?.code || "" }; return `<strong data-error-code="${escapeHtml(error?.code || "")}">${escapeHtml(said.title)}</strong><p>${escapeHtml(said.detail)}</p>${said.reference ? `<small>Reference: ${escapeHtml(said.reference)}</small>` : ""}`; })()}<small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
   }
 
   function wire(generation = state.generation) {
