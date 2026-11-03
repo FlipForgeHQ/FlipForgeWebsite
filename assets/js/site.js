@@ -29,7 +29,9 @@
   if(toggle&&menu&&backdrop){
     toggle.addEventListener('click',()=>toggle.getAttribute('aria-expanded')==='true'?closeMenu():openMenu());
     backdrop.addEventListener('click',closeMenu);
-    menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
+    // Delegated: menu links are rebuilt after load (conversion-events.js), so per-link listeners would be lost and a
+    // same-page link such as "Who It’s For" would leave the menu open over the section it opened.
+    menu.addEventListener('click',e=>{if(e.target instanceof Element&&e.target.closest('a'))closeMenu();});
     document.addEventListener('keydown',e=>{
       if(e.key==='Escape')closeMenu();
       if(e.key==='Tab'&&menu.classList.contains('open')){
