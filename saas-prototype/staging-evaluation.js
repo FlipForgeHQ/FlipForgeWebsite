@@ -26,6 +26,7 @@
 
   const state = {
     submitting: false,
+    submissionGeneration: 0,
     result: null,
     error: null,
     idempotencyKey: "",
@@ -340,20 +341,26 @@
       state.idempotencyKey = newIdempotencyKey();
       state.payloadFingerprint = fingerprint;
     }
+    const submissionGeneration = ++state.submissionGeneration;
     state.submitting = true;
     renderCurrent();
     try {
-      state.result = await submitEvaluation(payload, state.idempotencyKey);
+      const result = await submitEvaluation(payload, state.idempotencyKey);
+      // A request for card A cannot attach its verdict or saved link to card B.
+      if (submissionGeneration !== state.submissionGeneration) return;
+      state.result = result;
     } catch (error) {
+      if (submissionGeneration !== state.submissionGeneration) return;
       state.error = error;
       if (allowanceError(error)) describeAllowance(error);
     } finally {
-      state.submitting = false;
-      // The customer may have left while the request was in flight; the outcome is kept in state and shown when
-      // they come back to Evaluate.
-      if (evaluationOwnsSurface()) {
-        renderCurrent();
-        if (state.error) revealError();
+      // Retired requests must not clear a newer card's pending-submit state.
+      if (submissionGeneration === state.submissionGeneration) {
+        state.submitting = false;
+        if (evaluationOwnsSurface()) {
+          renderCurrent();
+          if (state.error) revealError();
+        }
       }
     }
   }
@@ -683,13 +690,21 @@
     if (!customerEligibleHost()) return false;
     const requested = requestedReevaluationId();
     if (requested && (!reevaluation || reevaluation.opportunityId !== requested)) {
+      // Retire an outstanding request before the new card form is mounted.
+      state.submissionGeneration += 1;
       state.submitting = false;
+      state.idempotencyKey = "";
+      state.payloadFingerprint = "";
       state.result = null;
       state.error = null;
       state.draft = defaultDraft();
       reevaluation = { opportunityId: requested, status: "loading" };
       loadReevaluation(requested);
     } else if (!requested && reevaluation) {
+      state.submissionGeneration += 1;
+      state.submitting = false;
+      state.idempotencyKey = "";
+      state.payloadFingerprint = "";
       reevaluation = null;
       state.result = null;
       state.error = null;
@@ -700,6 +715,7 @@
   }
 
   function reset() {
+    state.submissionGeneration += 1;
     state.submitting = false;
     state.result = null;
     state.error = null;

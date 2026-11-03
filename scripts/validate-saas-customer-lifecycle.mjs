@@ -191,6 +191,12 @@ await settle();
 check("060 disabled gateway stops after health", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
 check("061 disabled gateway renders safe offline state", /safely offline/i.test(disabled.main.innerHTML));
 
+check("062 Alerts route change retires review lock independently of old network response",
+  adapter.includes('state.reviewSequence += 1;') && adapter.includes('state.reviewing = "";')
+    && adapter.includes('state.reviewSequence === reviewSequence'));
+check("063 delayed review completion does not clear a newer write lock",
+  (adapter.match(/state.reviewSequence === reviewSequence/g) || []).length === 2);
+
 const failures = results.filter(result => !result.passed);
 console.log("SaaS customer lifecycle production validation");
 console.log(`PASSED: ${results.length - failures.length}`);

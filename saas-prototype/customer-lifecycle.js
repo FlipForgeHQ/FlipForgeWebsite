@@ -33,6 +33,7 @@
     error: null,
     notice: "",
     reviewing: "",
+    reviewSequence: 0,
     generation: 0
   };
 
@@ -481,6 +482,7 @@
     if (!SAFE_ALERT_ID.test(alertId) || state.reviewing) return;
     const generation = state.generation;
     const route = state.route;
+    const reviewSequence = ++state.reviewSequence;
     state.reviewing = alertId;
     state.notice = "";
     renderCurrent(generation, route);
@@ -494,9 +496,11 @@
       if (!activeGeneration(generation, route)) return;
       state.notice = `Could not save the review: ${error?.message || "please try again."}`;
     } finally {
-      if (activeGeneration(generation, route)) {
+      // Release only the lock owned by this request. An old route's late response
+      // must not clear a newer review write or leave Alerts permanently disabled.
+      if (state.reviewSequence === reviewSequence) {
         state.reviewing = "";
-        renderCurrent(generation, route);
+        if (activeGeneration(generation, route)) renderCurrent(generation, route);
       }
     }
   }
@@ -506,6 +510,7 @@
     const generation = state.generation;
     const route = state.route;
     const seenThrough = String(state.feature?.data?.generatedAt || new Date().toISOString());
+    const reviewSequence = ++state.reviewSequence;
     state.reviewing = "seen";
     state.notice = "";
     renderCurrent(generation, route);
@@ -519,9 +524,11 @@
       if (!activeGeneration(generation, route)) return;
       state.notice = `Could not save: ${error?.message || "please try again."}`;
     } finally {
-      if (activeGeneration(generation, route)) {
+      // Release only the lock owned by this request. An old route's late response
+      // must not clear a newer review write or leave Alerts permanently disabled.
+      if (state.reviewSequence === reviewSequence) {
         state.reviewing = "";
-        renderCurrent(generation, route);
+        if (activeGeneration(generation, route)) renderCurrent(generation, route);
       }
     }
   }
@@ -735,6 +742,10 @@
     state.main = main;
     state.route = String(route);
     state.generation += 1;
+    // Route transitions retire pending UI write locks, not the server request.
+    // Old requests may finish, but their generation cannot mutate the new view.
+    state.reviewSequence += 1;
+    state.reviewing = "";
     try {
       state.requestedId = decodeURIComponent(String(id || ""));
     } catch (_) {
