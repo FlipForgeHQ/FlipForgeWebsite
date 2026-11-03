@@ -132,7 +132,7 @@ async function audit(browser, name, width, height) {
         "WHITE HOT",
         "93/100",
         "21/100",
-        "24 sales",
+        "24 exact sales",
         "Supported",
         "Value Gap",
         "DEEP DIVE TRACEBACK",

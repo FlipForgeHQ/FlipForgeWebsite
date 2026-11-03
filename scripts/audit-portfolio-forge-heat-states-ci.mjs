@@ -49,7 +49,10 @@ function portfolio() {
 }
 const opportunities = { kind: "opportunities", items: [
   { id: "opp-ohtani-psa10", title: "2018 Topps Chrome Shohei Ohtani #150 PSA 10", cardIdentity: "2018 Topps Chrome #150 Shohei Ohtani PSA 10" },
-  { id: "opp-lebron-psa9", title: "2003 Topps Chrome LeBron James #111 PSA 9", cardIdentity: "2003 Topps Chrome #111 LeBron James PSA 9" }] };
+  { id: "opp-lebron-psa9", title: "2003 Topps Chrome LeBron James #111 PSA 9", cardIdentity: "2003 Topps Chrome #111 LeBron James PSA 9" },
+  // Combined Portfolio (#606 + #608): the sold card's saved decision, Max Buy $1,300.00 at decision (paid $1,215.00).
+  { id: "opp-sold-1", title: "2019 Prizm Zion Williamson #248 PSA 10", cardIdentity: "2019 Prizm Zion Williamson #248 PSA 10", recommendation: "BUY",
+    governedDecision: { available: true, recommendation: "BUY", maximumBuyPriceCents: 130000, supportedValueStatus: "ESTABLISHED" } }] };
 const sellWatch = { kind: "sell-watch", configured: true, tenantScoped: true, authority: "POSITION_REVIEW_PROMPT_ONLY",
   transactionAuthority: false, acquisitionDecisionAffected: false, marketComparisonDisplayed: false,
   marketComparisonStatus: "NO_LICENSED_SOURCE_ACTIVE", count: 2, costBasisAvailableCount: 2,
@@ -63,7 +66,7 @@ const sales = { kind: "reported-sales", label: "USER_REPORTED", dataUseEnabled: 
   realizedWithCompleteFeesCount: 1, realizedProfitWithCompleteFeesCents: 20250, needsReviewCount: 0,
   items: [{ reportId: "rs_audit", opportunityId: "opp-sold-1", cardIdentity: "2019 Prizm Zion Williamson #248 PSA 10", reviewStatus: "PENDING_VERIFICATION",
     sale: { salePriceCents: 165000, saleDate: "2026-10-20" },
-    profitLoss: { status: "REALIZED", netProceedsCents: 141750, realizedProfitCents: 20250, realizedReturnPercent: 16.67, feesComplete: true } }] };
+    profitLoss: { status: "REALIZED", netProceedsCents: 141750, acquisitionCostCents: 121500, realizedProfitCents: 20250, realizedReturnPercent: 16.67, feesComplete: true } }] };
 
 // Reasons copied verbatim from FlipForge2 SaaSForgeHeatService.score() and the legacy marker it adds.
 const R = {
@@ -104,7 +107,19 @@ process.on("unhandledRejection", error => {
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE } : {}) });
 const json = (route, status, body) => route.fulfill({ status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
 
-async function session(hash, { viewport = { width: 1440, height: 1000 }, watch = "on", heatData = null, sold = "off" } = {}) {
+const alertsFixture = { kind: "alerts", configured: true, acknowledgementConfigured: true, notificationDeliveryConfigured: false,
+  items: [{ alertId: "a".repeat(64), opportunityId: "opp-heat-1", kind: "REVIEW_DUE", due: true, reviewAt: "2026-10-30T00:00:00Z",
+    title: "Your scheduled review is due", customerExplanation: "Not an owned card.", needsAttention: true, reviewed: false }],
+  decisionReviewSignals: [
+    { alertId: "b".repeat(64), opportunityId: "opp-ohtani-psa10", kind: "DECISION_RECHECK_DUE", decision: "BUY", ageDays: 50,
+      title: "Decision is 50 days old", customerExplanation: "The latest saved decision is 50 days old. Re-check the price and evidence before relying on it.",
+      needsAttention: true, reviewed: false },
+    { alertId: "c".repeat(64), opportunityId: "opp-lebron-psa9", kind: "VERIFICATION_PENDING", decision: "VERIFY",
+      title: "Verification still needed", customerExplanation: "Already reviewed.", needsAttention: false, reviewed: true, reviewedAt: "2026-11-01T00:00:00Z" },
+    { opportunityId: "opp-lebron-psa9", kind: "LEGACY_DECISION", decision: "WATCH" }
+  ] };
+
+async function session(hash, { viewport = { width: 1440, height: 1000 }, watch = "on", heatData = null, sold = "off", alerts = "off" } = {}) {
   const context = await browser.newContext({ viewport });
   const page = await context.newPage();
   const errors = [];
@@ -131,6 +146,7 @@ async function session(hash, { viewport = { width: 1440, height: 1000 }, watch =
       if (watch === "off") return json(route, 404, { error: { code: "UPSTREAM_REJECTED", message: "Off in this audit.", correlationId } });
       return json(route, 200, { meta: meta(correlationId), data: sellWatch });
     }
+    if (url.pathname === "/api/v1/alerts" && alerts === "on") return json(route, 200, { meta: meta(correlationId), data: alertsFixture });
     if (url.pathname === "/api/v1/reported-sales" && sold === "on") return json(route, 200, { meta: meta(correlationId), data: sales });
     if (url.pathname === "/api/v1/forge-heat" && heatData) return json(route, 200, { meta: meta(correlationId), data: heatData });
     return json(route, 404, { error: { code: "RESOURCE_NOT_FOUND", message: "Not in this fixture.", correlationId } });
@@ -148,7 +164,7 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   const t = await text(page, ".customer-portfolio-page");
   check("P1 one plain paused message", /Card values are paused/.test(t) && /moving to licensed sales data/.test(t), t.slice(0, 300));
   check("P2 no per-row Unavailable and no partial-coverage warning", !/Unavailable/.test(t) && !/Partial coverage/i.test(t) && !/Coverage-aware totals/i.test(t));
-  check("P3 cards, what was paid and totals still shown", /Shohei Ohtani/.test(t) && /\$1,215\.00/.test(t) && /\$480\.00/.test(t) && /\$1,695\.00/.test(t) && /2026-09-13/.test(t));
+  check("P3 cards, what was paid and totals still shown", /Shohei Ohtani/.test(t) && /\$1,215\.00/.test(t) && /\$480\.00/.test(t) && /\$1,695\.00/.test(t) && /Sep 13, 2026/.test(t));
   check("P4 Sell Watch section lists the saved channels", /Selling costs saved for: Marketplace, Auction house/.test(t));
   const links = await page.locator('.customer-portfolio-page a[href^="#/tracking/"]:not([data-ff-collection-intelligence] a)').evaluateAll(as => as.map(a => a.getAttribute("href")));
   check("P5 each card links to Check a price on its tracked card", links.includes("#/tracking/opp-ohtani-psa10") && links.includes("#/tracking/opp-lebron-psa9"), links.join(","));
@@ -165,6 +181,9 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   check("P10 break-even price per card from the server", /Break-even price/i.test(t) && /\$1,458\.00/.test(t) && /\$576\.00/.test(t), t.slice(0, 200));
   check("P11 Sold cards: realized profit, sale and what was kept, labelled user reported", /Sold cards/.test(t) && /\+\$202\.50/.test(t)
     && /\$1,650\.00/.test(t) && /\$1,417\.50/.test(t) && /User reported/i.test(t));
+  check("P14 Sold cards: saved decision next to the sale, paid vs Max Buy at decision", /Max Buy \$1,300\.00 at decision/.test(t) && /You paid \$85\.00 under it/.test(t), t.slice(t.indexOf("Sold cards"), t.indexOf("Sold cards") + 400));
+  check("P15 Sold cards: buying discipline from the server's realized profit, no accuracy claim", /Buying discipline/.test(t) && /Paid at or under Max Buy\s*\+\$202\.50\s*1 sale/i.test(t)
+    && /not a measure of FlipForge's accuracy and not a prediction/.test(t));
   check("P12 no page errors", errors.length === 0, errors.join(" | "));
   await page.locator(".customer-portfolio-page").screenshot({ path: process.env.STATES_SHOT_DIR ? `${process.env.STATES_SHOT_DIR}/portfolio-sold.png` : "/dev/null" }).catch(() => {});
   await context.close();
@@ -176,6 +195,22 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   await context.close();
 }
 
+// 1c. Owned cards that need a look: only owned, unreviewed alerts; older-backend items get a plain title.
+{
+  const { context, page, errors } = await session("#/portfolio", { alerts: "on" });
+  await page.waitForSelector("[data-portfolio-attention]", { timeout: 30000 });
+  const t = await text(page, ".customer-portfolio-attention");
+  const cards = await page.locator("[data-portfolio-attention-card]").evaluateAll(li => li.map(el => el.getAttribute("data-portfolio-attention-card")));
+  check("P16 attention lists only owned cards with open alerts", cards.length === 2 && cards.includes("opp-ohtani-psa10") && cards.includes("opp-lebron-psa9") && !cards.includes("opp-heat-1"), cards.join(","));
+  check("P17 attention reads in plain words, with the server's explanation", /Decision is 50 days old/.test(t) && /Re-check the price and evidence/.test(t)
+    && /Based on evidence FlipForge no longer accepts/.test(t) && !/[A-Z]+_[A-Z_]+/.test(t), t.slice(0, 300));
+  check("P18 a reviewed alert is not shown", !/Already reviewed/.test(t) && !/Verification still needed/.test(t));
+  check("P19 each item links to the decision and to Alerts", await page.locator('[data-portfolio-attention-card="opp-ohtani-psa10"] a[href="#/opportunities/opp-ohtani-psa10"]').count() === 1
+    && await page.locator('[data-portfolio-attention-card="opp-ohtani-psa10"] a[href="#/alerts"]').count() === 1);
+  check("P20 no page errors", errors.length === 0, errors.join(" | "));
+  await page.locator(".customer-portfolio-page").screenshot({ path: process.env.STATES_SHOT_DIR ? `${process.env.STATES_SHOT_DIR}/portfolio-attention.png` : "/dev/null" }).catch(() => {});
+  await context.close();
+}
 // 2. Portfolio, Sell Watch off.
 {
   const { context, page } = await session("#/portfolio", { watch: "off" });
@@ -183,7 +218,7 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   await page.waitForTimeout(800);
   const t = await text(page, ".customer-portfolio-page");
   check("P8 Sell Watch off: no Sell Watch section, column or link", !/Sell Watch/.test(t) && !/Check a price/.test(t)
-    && await page.locator('.customer-portfolio-page a[href^="#/tracking/"]:not([data-ff-collection-intelligence] a)').count() === 0);
+    && await page.locator('.customer-portfolio-page a[href^="#/tracking/"]:not([data-ff-collection-intelligence] a):not([data-portfolio-card-link])').count() === 0);
   await context.close();
 }
 // 3. Portfolio on a phone.
@@ -334,6 +369,32 @@ const text = async (page, selector) => (await page.locator(selector).first().inn
   const { context, page } = await session("#/forge-heat", { viewport: { width: 390, height: 844 }, heatData: heat({ considered: 9, unscored: mixed }) });
   await page.waitForSelector("[data-forge-heat-why]", { timeout: 30000 });
   check("F7 no horizontal overflow on a phone", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await context.close();
+}
+
+// ---- Forge Heat ranks saved evaluations (2026-10-31): it must not call itself live, and every amount is as evaluated.
+{
+  const { context, page, errors } = await session("#/forge-heat", { heatData: heat({ considered: 9, unscored: mixed, ranked: true }) });
+  await page.waitForSelector(".forge-heat-shell .ff-heat-control-room", { timeout: 30000 });
+  const t = await text(page, ".ff-heat-control-room");
+  check("H1 ranking is labelled as saved evaluations, never live", !/\bLIVE\b/i.test(t) && /RANKED FROM YOUR SAVED EVALUATIONS/i.test(t) && /\bSAVED\b/.test(t), t.slice(0, 200));
+  const headers = await page.evaluate(() => [...document.querySelectorAll(".ff-heat-table thead th")].map(th => th.innerText.trim()));
+  check("H2 ask and supported value labelled as evaluated", headers.some(h => /^Ask when evaluated$/i.test(h)) && headers.some(h => /^Supported at decision$/i.test(h)) && !headers.some(h => /^Ask$/i.test(h)), headers.join(" | "));
+  check("H3 each ranked card shows when it was evaluated", /BUY · evaluated Oct 20, 2026/.test(t) && /Evaluated Oct 20, 2026\./.test(t));
+  check("H4 each ranked card links to its saved decision", await page.locator('.ff-heat-table a[data-forge-heat-card-link][href="#/opportunities/opp-heat-1"]').count() === 1);
+  check("H5 evidence reads as exact sales", /6 exact sales/.test(t) && !/\b6 sales\b/.test(t));
+  check("H6 no page errors", errors.length === 0, errors.join(" | "));
+  await context.close();
+}
+{
+  const data = heat({ considered: 9, unscored: mixed, ranked: true });
+  data.top5[0].acceptedExactSales = null;
+  const { context, page } = await session("#/forge-heat", { heatData: data });
+  await page.waitForSelector(".forge-heat-shell [role=alert]", { timeout: 30000 }).catch(() => {});
+  const t = await text(page, ".forge-heat-shell");
+  check("H7 a ranked card without a recorded sales count is refused, not shown with 0 or null",
+    await page.locator(".ff-heat-control-room, .ff-heat-table").count() === 0 && !/\bnull\b|\b0 exact sales\b/.test(t) && await page.locator(".forge-heat-shell [role=alert]").count() === 1, t.slice(0, 240));
+  check("H8 the refusal is in plain words, the code only as a reference", !/^\s*[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\s*$/.test(await text(page, ".forge-heat-shell [role=alert] strong")), await text(page, ".forge-heat-shell [role=alert]"));
   await context.close();
 }
 
