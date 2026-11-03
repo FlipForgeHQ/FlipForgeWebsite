@@ -17,7 +17,7 @@ check('large financial proof readout',has(html,'class="ff10-readout"')&&has(css,
 check('four actually visual steps',['ff10-sv-identity','ff10-sv-evidence','ff10-sv-max','ff10-sv-verdict'].every(v=>has(html,v)));
 check('exact-card identity comparison',has(html,'ff10-compare-match')&&has(html,'ff10-compare-miss')&&has(html,'ff10-base.webp'));
 check('evidence intelligence ledger',(html.match(/class="ff10-ledger-row ff10-ok"/g)||[]).length===3&&has(html,'Asking price, not a sale')&&has(html,'Wrong parallel'));
-check('sign-in beside invite on desktop and mobile',has(html,'class="ffdemo-nav-actions"')&&has(html,'class="ffdemo-mobile-actions"'));
+check('Request Beta Access in the header and Beta Sign In in the menu at every width',has(html,'class="site-header-actions"')&&has(html,'class="site-menu-sign-in"'));
 check('private beta CTA',has(html,'href="beta-application.html">Request Beta Access')&&has(html,'Controlled Private Beta.'));
 check('functional price slider and reset',has(html,'data-asking')&&has(html,'data-reset')&&has(js,"input.addEventListener('input', render)"));
 check('fixed maxbuy threshold',has(js,'const MAX_BUY = MODEL.resale - MODEL.fees - MODEL.shipping - MODEL.margin; // 360'));

@@ -34,6 +34,7 @@ const appGate = read("saas-prototype/private-beta-access-gate.js");
 const beta = read("saas-prototype/index.html");
 const customer = read("saas-prototype/customer.html");
 const siteJs = read("assets/js/site.js");
+const siteHeader = read("scripts/site-header.mjs");
 const buildAssets = read("scripts/build-assets.js");
 const customerShell = read("saas-prototype/customer-only-shell-v1.js");
 const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
@@ -192,8 +193,8 @@ check(appGate.includes('document.documentElement.classList.remove("ff-private-be
 check(buildAssets.includes("const BETA_SIGNIN_URL"), "build generator must own a Private Beta sign-in URL");
 check(!buildAssets.includes("const CUSTOMER_APP_URL"), "build generator must not inject a public customer app URL");
 check(buildAssets.includes("Beta Sign In"), "generated public app links must be Beta Sign In");
-check(siteJs.includes("Beta Sign In"), "runtime public sign-in must say Beta Sign In");
-check(siteJs.includes(BETA_AUTH), "runtime public sign-in must target beta-start auth");
+check(siteHeader.includes(">Beta Sign In</a>"), "the public header menu sign-in must say Beta Sign In");
+check(siteHeader.includes(BETA_AUTH), "the public header menu sign-in must target beta-start auth");
 
 check(customerShell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell runtime must preserve CUSTOMER APP label");
 check(commercialPolish.includes('customer ? "CUSTOMER APP"'), "customer polish must preserve customer identity in the customer experience");

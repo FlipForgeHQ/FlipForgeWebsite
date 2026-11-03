@@ -46,12 +46,12 @@ for (const viewport of viewports) {
     if (consoleErrors.length) failures.push(`${viewport.name} ${route}: console/page errors: ${consoleErrors.join(' || ')}`);
 
     const toggle=page.locator('.menu-toggle');
-    if (viewport.name==='mobile' && await toggle.count()) {
+    if (await toggle.count()) {
       await toggle.click();
       await page.waitForTimeout(350);
       const navState=await page.evaluate(()=>{
         const toggle=document.querySelector('.menu-toggle');
-        const menu=document.querySelector('.mobile-nav');
+        const menu=document.querySelector('.site-menu,.mobile-nav');
         if(!toggle||!menu)return null;
         const style=getComputedStyle(menu);
         const rect=menu.getBoundingClientRect();
@@ -68,11 +68,7 @@ for (const viewport of viewports) {
         };
       });
       observations.push({viewport:viewport.name,route,navState});
-      if (!navState || navState.expanded!=='true' || !navState.classOpen || navState.visibleLinkCount<1) failures.push(`mobile ${route}: mobile navigation did not open accessibly ${JSON.stringify(navState)}`);
-    }
-    if (viewport.name==='desktop') {
-      const desktopLinks=await page.locator('.desktop-nav a:visible, .decision-nav-links a:visible, header.site-header a:visible, header.decision-header a:visible').count();
-      if (desktopLinks<1) failures.push(`desktop ${route}: desktop navigation unavailable`);
+      if (!navState || navState.expanded!=='true' || !navState.classOpen || navState.visibleLinkCount<1) failures.push(`${viewport.name} ${route}: the menu did not open accessibly ${JSON.stringify(navState)}`);
     }
     await page.close();
   }
