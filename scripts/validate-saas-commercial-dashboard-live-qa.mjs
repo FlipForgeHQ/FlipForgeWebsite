@@ -10,7 +10,8 @@ const files = {
   guard: read("saas-prototype/production-dashboard-guard.js"),
   legacyApp: read("saas-prototype/app.js"),
   dashboard: read("saas-prototype/commercial-dashboard-v2.js"),
-  polish: read("saas-prototype/commercial-app-polish-v2.js"),
+  // commercial-app-polish-v2.js was removed (Nov 3 2026); only its stylesheet is still injected.
+  polish: fs.existsSync(new URL("../saas-prototype/commercial-app-polish-v2.js", import.meta.url)) ? read("saas-prototype/commercial-app-polish-v2.js") : "",
   build: read("scripts/build-identity-client.mjs"),
   audit: read("scripts/audit-saas-layout-ci.mjs"),
   workflow: read(".github/workflows/saas-full-site-visual-qa.yml")

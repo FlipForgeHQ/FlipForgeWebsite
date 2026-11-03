@@ -22,7 +22,6 @@ const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"><
 const dashboardV3StylesheetTag = '<link rel="stylesheet" href="decision-dashboard-v3.css">';
 const dashboardV3ScriptTag = '<script src="decision-dashboard-v3.js"></script>';
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
-const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
 const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability.css">';
 
 fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
@@ -109,14 +108,12 @@ function injectDashboardV3(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
+// The commercial app polish stylesheet only: the Discover source-listing link it used to add with a script is rendered
+// by the Discover owner (customer-discovery.js) since Nov 3 2026.
 function injectCommercialAppPolish(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Commercial app polish target missing: ${path.relative(root, htmlPath)}`);
   let html = fs.readFileSync(htmlPath, "utf8");
   html = injectStylesheetBeforeReadability(html, commercialAppPolishStylesheetTag, "Commercial app polish", htmlPath);
-  if (!html.includes('commercial-app-polish-v2.js')) {
-    if (!html.includes("</body>")) throw new Error(`Commercial app polish body marker missing in ${path.relative(root, htmlPath)}`);
-    html = html.replace("</body>", `  ${commercialAppPolishScriptTag}\n</body>`);
-  }
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 

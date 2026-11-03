@@ -1,8 +1,9 @@
 (() => {
   "use strict";
 
+  // Discover's identity rows render the compact brand themselves (customer-discovery.js identityBrand, which uses
+  // normalizeManufacturer below); this observer only compacts the Card Intelligence panel and opted-in details.
   const DETAIL_SELECTORS = [
-    ".customer-discovery-identity-option small",
     ".card-intelligence-result small",
     "[data-card-brand-detail]"
   ];

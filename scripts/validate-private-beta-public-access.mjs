@@ -38,7 +38,8 @@ const buildAssets = read("scripts/build-assets.js");
 // customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
 // Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
 const customerShell = read("saas-prototype/customer.html");
-const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
+// commercial-app-polish-v2.js was removed (Nov 3 2026); nothing may come back that rewrites the identity chip.
+const commercialPolish = fs.existsSync(new URL("../saas-prototype/commercial-app-polish-v2.js", import.meta.url)) ? read("saas-prototype/commercial-app-polish-v2.js") : "";
 const cockpitPolish = read("saas-prototype/cockpit-final-ux.js");
 const betaGuide = read("saas-prototype/private-beta.js");
 const betaTermsGate = read("assets/js/beta-invite-terms-gate.js");

@@ -52,9 +52,12 @@ const targets = [
       ["const summary = known", "const detail =", "evaluate summary markup"]],
     allowed: new Set(["caution"])
   },
+  // The Discover source-listing link and strip are rendered by the Discover owner (Nov 3 2026; the
+  // commercial-app-polish-v2.js layer that built them from page text was removed).
   {
-    file: "saas-prototype/commercial-app-polish-v2.js",
-    blocks: [["strip.innerHTML =", "actions.before(strip)", "discovery source strip markup"]],
+    file: "saas-prototype/customer-discovery.js",
+    blocks: [["function sourceStripMarkup(source) {", "function resultsPanel() {", "discovery source strip markup"],
+      ["const listingLink = source", "return `<article class=\"panel customer-discovery-candidate", "discovery source listing link markup"]],
     allowed: new Set()
   }
 ];
