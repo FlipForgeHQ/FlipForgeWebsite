@@ -21,42 +21,8 @@
       }catch{return '';}
     };
     const linksFor=(container,path)=>container?[...container.querySelectorAll('a[href]')].filter(link=>normalizedPath(link)===path):[];
-    const currentPath=normalizedPath(location.pathname);
 
-    const canonicalPrimaryNav=[
-      {path:'/product',href:'/product.html',label:'Product'},
-      {path:'/decision-intelligence',href:'/decision-intelligence.html',label:'Decision Intelligence'},
-      {path:'/learn',href:'/learn.html',label:'Evidence Lab'},
-      {path:'/pricing',href:'/pricing.html',label:'Launch Plans'},
-      {path:'/about',href:'/about.html',label:'About'},
-      {path:'/production-auth',href:'/production-auth.html',label:'Sign In',signIn:true},
-      {path:'/beta-application',href:'/beta-application.html',label:'Request Beta Access',cta:true}
-    ];
-    // Homepage: the "Who It’s For" link to the audience selector (#610) sits after Product. The canonical rebuild
-    // below replaces the menu markup, so the link must be part of the list or it disappears at runtime.
-    const homePrimaryNav=canonicalPrimaryNav.filter(item=>item.path!=='/pricing');
-    homePrimaryNav.splice(1,0,{path:'#who-its-for',href:'#who-its-for',label:'Who It’s For',audience:true});
-
-    const renderPrimaryNav=container=>{
-      if(!container)return;
-      const isDecisionHeader=container.classList.contains('decision-nav-links');
-      const isMobile=container.classList.contains('mobile-nav');
-      const fragment=document.createDocumentFragment();
-      const items=currentPath==='/'?homePrimaryNav:canonicalPrimaryNav;
-      items.forEach(item=>{
-        const link=document.createElement('a');
-        link.href=item.href;
-        link.textContent=item.label;
-        if(item.signIn)link.dataset.ffMarketingSignIn='true';
-        if(item.audience)link.setAttribute('data-ff-audience-navigation','');
-        if(item.cta&&!isMobile)link.classList.add(isDecisionHeader?'decision-nav-cta':'nav-cta');
-        if(currentPath===item.path)link.setAttribute('aria-current','page');
-        fragment.append(link);
-      });
-      container.replaceChildren(fragment);
-    };
-
-    document.querySelectorAll('.desktop-nav,.decision-nav-links,.mobile-nav').forEach(renderPrimaryNav);
+    // The header and its menu are written into each page by scripts/site-header.mjs and are not rebuilt here.
 
     const addEvidenceLink=container=>{
       if(!container)return;
@@ -176,7 +142,7 @@
   });
 
   const placementFor=link=>{
-    if(link.closest(".site-header,.decision-header,.mobile-nav"))return"navigation";
+    if(link.closest(".site-header,.decision-header,.site-menu"))return"navigation";
     if(link.closest(".footer"))return"footer";
     if(link.closest(".ff-dossier-spotlight"))return"sample-spotlight";
     if(link.closest(".ff-evidence"))return"evidence";

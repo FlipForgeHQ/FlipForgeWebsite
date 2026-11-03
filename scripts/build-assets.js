@@ -81,31 +81,7 @@ if (fs.existsSync(indexPath)) {
   }
 }
 
-function ensureDesktopAppLink(html) {
-  if (html.includes('data-app-preview="desktop"')) return html;
-
-  return html.replace(
-    /(<nav\b[^>]*class="[^"]*\bdesktop-nav\b[^"]*"[^>]*>)([\s\S]*?)(<\/nav>)/i,
-    (match, open, inner, close) => {
-      const link = `<a data-app-preview="desktop" href="${BETA_SIGNIN_URL}">Beta Sign In</a>`;
-      const cta = /(<a\b[^>]*class="[^"]*\bnav-cta\b[^"]*"[^>]*>)/i;
-      const updatedInner = cta.test(inner)
-        ? inner.replace(cta, `${link}$1`)
-        : `${inner}${link}`;
-      return `${open}${updatedInner}${close}`;
-    },
-  );
-}
-
-function ensureMobileAppLink(html) {
-  if (html.includes('data-app-preview="mobile"')) return html;
-
-  return html.replace(
-    /(<nav\b[^>]*id="mobile-navigation"[^>]*>)([\s\S]*?)(<\/nav>)/i,
-    (match, open, inner, close) =>
-      `${open}${inner}<a data-app-preview="mobile" href="${BETA_SIGNIN_URL}">Beta Sign In</a>${close}`,
-  );
-}
+// The header and its menu come only from scripts/site-header.mjs; the build does not inject header links.
 
 function ensureFooterAppLink(html) {
   if (html.includes('data-app-preview="footer"')) return html;
@@ -231,8 +207,6 @@ for (const htmlPath of htmlFiles) {
   updated = ensureApprovedBrandLockups(updated);
   updated = ensurePerfectedBrandStylesheet(updated);
   updated = ensurePerfectedBrandFavicon(updated);
-  updated = ensureDesktopAppLink(updated);
-  updated = ensureMobileAppLink(updated);
   updated = ensureFooterAppLink(updated);
   updated = ensureConversionEventLayer(updated);
 
@@ -269,9 +243,9 @@ for (const htmlPath of htmlFiles) {
     if (!html.includes('assets/css/homepage-v10.css')) failures.push('interactive demo stylesheet');
     if (!html.includes('assets/js/homepage-v10.js')) failures.push('interactive demo runtime');
     if (!html.includes('Max Buy') || !html.includes('Price gap') || !html.includes('data-price-gap')) failures.push('asking price versus Max Buy distinction');
-    if (!html.includes('class="ffdemo-nav-actions"') || !html.includes('class="ffdemo-mobile-actions"')) failures.push('paired sign-in and Private Beta access');
+    if (!html.includes('class="site-menu-sign-in"') || !html.includes('class="nav-cta"')) failures.push('Beta Sign In in the menu and Request Beta Access in the header');
     if (!html.includes('class="ff10-proof"') || !html.includes('href="decision-proof.html">How proof works')) failures.push('preserve public proof methodology entry');
-    if (!html.includes('assets/js/site.js')) failures.push('shared mobile navigation behavior');
+    if (!html.includes('assets/js/site.js')) failures.push('shared menu behavior');
     if (html.includes('data-film') || html.includes('data-decision-forge')) failures.push('homepage should have only one signature demonstration');
   }
 

@@ -57,7 +57,6 @@
   background:rgba(255,255,255,.035);transition:border-color .18s,background-color .18s}
 .ff10 .ff10-persona-links a:hover,.ff10 .ff10-persona-links a:focus-visible{
   border-color:var(--g);background:rgba(212,175,55,.12)}
-.ff10 .desktop-nav [data-ff-audience-navigation]{white-space:nowrap}
 .ff10 #who-its-for,.ff10 #demo,.ff10 #inside-the-app{scroll-margin-top:88px}
 @media(max-width:760px){
   .ff10 .ff10-persona-nav{margin-top:8px;padding-top:14px}

@@ -7,6 +7,10 @@
   const MAX_BUY = MODEL.resale - MODEL.fees - MODEL.shipping - MODEL.margin; // 360
   const dollars = n => (n < 0 ? '−' : '') + '$' + Math.abs(Math.round(n)).toLocaleString('en-US');
   const signed = n => (n > 0 ? '+' : n < 0 ? '−' : '') + '$' + Math.abs(Math.round(n)).toLocaleString('en-US');
+  // At break-even there is no profit and no return to show, so say so instead of printing $0 and 0.0%.
+  const breakEven = r => Math.round(r.profit) === 0;
+  const percent = r => (r.roi < 0 ? '−' : '') + Math.abs(r.roi).toFixed(1) + '%';
+  const profitText = r => breakEven(r) ? 'Break-even' : dollars(r.profit);
 
   function decide(ask, unresolved) {
     const gap = ask - MAX_BUY;
@@ -59,8 +63,10 @@
       q('[data-ask-value]').textContent = dollars(ask);
       q('[data-price-gap]').textContent = signed(r.gap);
       q('[data-price-gap-explain]').textContent = r.gap > 0 ? 'Above Max Buy' : r.gap < 0 ? 'Below Max Buy' : 'At Max Buy';
-      q('[data-profit]').textContent = dollars(r.profit);
-      q('[data-roi]').textContent = (r.roi < 0 ? '−' : '') + Math.abs(r.roi).toFixed(1) + '%';
+      q('[data-profit]').textContent = profitText(r);
+      q('[data-roi]').textContent = breakEven(r)
+        ? `Nothing left after ${dollars(MODEL.fees)} fees and ${dollars(MODEL.shipping)} shipping`
+        : `${percent(r)} return on the asking price`;
       const verdict = q('[data-verdict]');
       verdict.textContent = r.verdict;
       verdict.dataset.verdictState = r.verdict;
@@ -75,8 +81,8 @@
       // The hero decision panel shows the same scenario.
       sync('ask', dollars(ask));
       sync('gap', signed(r.gap));
-      sync('profit', dollars(r.profit));
-      sync('roi', (r.roi < 0 ? '−' : '') + Math.abs(r.roi).toFixed(1) + '% ROI');
+      sync('profit', profitText(r));
+      sync('roi', breakEven(r) ? 'after costs' : `${percent(r)} ROI`);
       sync('verdict', r.verdict);
       sync('reason', r.reason);
       document.querySelectorAll('[data-ff10-sync="verdict"]').forEach(el => { el.dataset.verdict = r.verdict; });
