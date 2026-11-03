@@ -16,7 +16,6 @@
     ["Saved opportunity authority", "Card intelligence"],
     ["Opportunity detail", "Card intelligence"],
     ["Tenant-owned saved intelligence", "Saved intelligence"],
-    ["Completed evaluation snapshot", "Saved evaluated card"],
     ["Engine", "Model"],
     ["SQLite saved", "Saved"],
     ["Tracked in SQLite", "Tracked"],
@@ -88,20 +87,6 @@
     );
   }
 
-  function refineForgeHeat(root) {
-    const shell = root.querySelector(".forge-heat-shell");
-    if (!shell) return;
-
-    const isDevelopment = shell.classList.contains("forge-heat-development");
-    setText(shell.querySelector(".forge-heat-title-row .eyebrow"), isDevelopment ? "In development" : "Forge Heat");
-    setText(shell.querySelector(".forge-heat-boundary small"), isDevelopment
-      ? "Not available in private beta"
-      : "Ranks saved evaluations · Decision support only");
-    shell.querySelectorAll(".forge-heat-card-foot > span").forEach(node => {
-      setText(node, "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved recommendation.");
-    });
-  }
-
   function refineErrorPanels(root) {
     root.querySelectorAll('.staging-error[role="alert"] .panel-body > strong').forEach(node => {
       const current = node.textContent.trim();
@@ -137,7 +122,6 @@
     replaceLeafCopy(main);
     refineBoundaryNotes(main);
     refineCardIdentity(main);
-    refineForgeHeat(main);
     refineErrorPanels(main);
     sanitizeDiagnostics(main);
     markCustomerStates(main);
