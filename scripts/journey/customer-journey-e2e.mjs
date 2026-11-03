@@ -143,7 +143,8 @@ try {
   let maxBuyText = "";
   await step("Re-evaluate", async () => {
     await go(page, `opportunities/${encodeURIComponent(saved.strong.id)}`, 3500);
-    maxBuyText = ((await text(page)).match(/Max Buy[\s\S]{0,80}?\$([0-9,]+\.\d{2})/) || [])[1] || "";
+    const maxBuyCell = await page.locator("#main-content [data-max-buy-at-decision]").first().innerText().catch(() => "");
+    maxBuyText = (maxBuyCell.match(/\$([0-9,]+\.\d{2})/) || [])[1] || "";
     check("S4 the saved decision shows its Max Buy", Boolean(maxBuyText), (await text(page)).slice(0, 300));
     await page.locator("#main-content [data-card-reevaluate]").click();
     await page.waitForSelector("#main-content .ff-reevaluation-banner[data-reevaluation-state=\"ready\"]", { timeout: 15000 });
@@ -205,14 +206,14 @@ try {
     await go(page, `tracking/${encodeURIComponent(saved.strong.id)}`, 3500);
     const form = page.locator("#main-content [data-lifecycle-form]");
     await form.waitFor({ state: "visible", timeout: 15000 });
-    const paid = saved.strongAgain ? (Number(maxBuyText.replace(/,/g, "")) + 25).toFixed(2) : "475.00";
+    const paid = (Number(maxBuyText.replace(/,/g, "")) > 0 ? Number(maxBuyText.replace(/,/g, "")) + 25 : 475).toFixed(2);
     await form.locator('[name="trackingStatus"]').selectOption("OWNED");
     // The outcome follows the tracking status in the customer app (the select is hidden); set it only if shown.
     if (await form.locator('[name="outcomeStatus"]').isVisible()) await form.locator('[name="outcomeStatus"]').selectOption("ACQUIRED");
     await form.locator('[name="acquisitionCost"]').fill(paid);
     const d = new Date(Date.now() - 86_400_000);
     await form.locator('[name="acquiredAt"]').fill(d.toISOString().slice(0, 10));
-    await form.locator('[name="alertEnabled"]').uncheck();
+    // The review reminder stays on: owning a card does not silence its alerts.
     await form.locator('button[type="submit"]').click();
     await page.waitForTimeout(3000);
     check("P1 marking the card owned with what was paid is saved", /saved to your account/i.test(await text(page)), (await text(page)).slice(0, 200));
