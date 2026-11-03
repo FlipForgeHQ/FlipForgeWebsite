@@ -34,7 +34,7 @@ check("011 advanced customer analysis remains mounted", customer.includes('<deta
 check("012 customer app does not link to operator workspace", !customer.includes("operator-beta.html"));
 check("013 customer shell stylesheet is loaded", customer.includes('href="customer-only-shell-v1.css"'));
 check("014 customer shell runtime remains loaded", customer.includes('src="customer-only-shell-v1.js"'));
-check("015 legacy navigation helpers cannot turn beta into a second authoritative app", shellJs.includes('const CORE_ROUTES = new Set(["dashboard", "discover", "opportunities", "tracking"])') && mobileNav.includes('const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"]'));
+check("015 navigation has one owner: the shell's route manifest; the mobile helper keeps no route list of its own", shellJs.includes("const NAV_MANIFEST = Object.freeze({") && !mobileNav.includes("PRIMARY_ROUTES") && !mobileNav.includes("FULL_CUSTOMER_ROUTES") && !/setHidden\(link, true\)/.test(mobileNav));
 check("016 full customer CSS preserves advanced navigation", shellCss.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav"));
 check("017 operator workspace remains a separate page", operator.includes("Private operations") || operator.includes("Sign in as Operator"));
 check("018 operator role remains server-defined", betaCore.includes('OPERATOR_ROLE = "flipforge-operator"'));

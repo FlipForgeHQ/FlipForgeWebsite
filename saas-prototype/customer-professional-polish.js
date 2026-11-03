@@ -147,6 +147,7 @@
   }
 
   function scheduleCustomerDiscover() {
+    if (window.__ffStagingRouteHookOwnsDiscover === true) return;
     if (routeName() !== "discover" || discoverRenderPending) return;
     const main = document.querySelector("#main-content");
     const discovery = window.FlipForgeCustomerDiscovery;

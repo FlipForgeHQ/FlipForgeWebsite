@@ -95,7 +95,7 @@ check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session 
 check(navigationParity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "navigation parity controller cannot run outside /app/customer");
 check(navigationParity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"])'), "advanced customer navigation contains only supported routes");
 check(navigationParity.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])') && navigationParity.includes("guardUnsupportedCustomerRoute"), "unsupported Exit Review fails closed");
-check(mobileNav.includes('"decision-intelligence", "why-this-decision", "evidence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set");
+check(!mobileNav.includes("FULL_CUSTOMER_ROUTES") && shell.includes('"opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set (one manifest for every width)");
 check(!customer.includes('data-route="sell"'), "customer document removes unsupported Exit Review");
 check(mobileNav.includes('parts[0] === "decision-intelligence" && parts[1] === "why"') && mobileNav.includes('return "why-this-decision"'), "mobile active navigation distinguishes Why This Decision from Decision Intelligence");
 check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish preserves DEV customer identity");
