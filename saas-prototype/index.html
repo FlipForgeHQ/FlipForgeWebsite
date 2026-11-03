@@ -9,10 +9,8 @@
   <script>
     // Private Beta workspace: a live customer view on every host. It loads no prototype sample data.
     window.FlipForgePrivateBetaEntry = true;
-    // Not part of the private beta release: Decision Monitor stays hidden, and Deal Check stays off exactly as it is on
-    // goflipforge.com, on every host, so preview acceptance tests the same customer app production serves.
+    // Not part of the private beta release: Decision Monitor stays hidden on every host (previews included).
     window.FlipForgeDecisionMonitorDisabled = true;
-    window.FlipForgeDealCheckDisabled = true;
     if (/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""))) {
       // The beta loads its files by relative path, which only resolve under /app/beta/. Move the exact slashless
       // entry to the canonical address before the page renders; /app/beta/ never matches, so this cannot loop.
@@ -70,6 +68,9 @@
   <link rel="stylesheet" href="decision-intelligence-ux-v2.css">
   <link rel="stylesheet" href="customer-cdi-signal-stack-v1.css">
   <link rel="stylesheet" href="guided-mode-layout-fix-v1.css">
+  <link rel="stylesheet" href="decision-dashboard-v3.css">
+  <link rel="stylesheet" href="commercial-dashboard-v2.css">
+  <link rel="stylesheet" href="commercial-app-polish-v2.css">
   <link rel="stylesheet" href="customer-readability.css">
   <link rel="stylesheet" href="sidebar-nav-description-layout-fix-v1.css">
   <link rel="stylesheet" href="guided-mode-compact-v1.css">
@@ -203,6 +204,7 @@
   <script src="customer-trust-display-v1.js"></script>
   <script src="provider-evidence-visibility.js"></script>
   <script src="price-intelligence.js"></script>
+  <script src="/assets/js/flipforge-production-signin.js"></script>
   <script src="staging-browser.js"></script>
   <script src="staging-evaluation.js"></script>
   <script src="bulk-evaluation.js"></script>
@@ -220,6 +222,7 @@
   <script src="customer-management.js"></script>
   <script src="customer-portfolio.js"></script>
   <script src="customer-export.js"></script>
+  <script src="customer-discovery-request-guard.js"></script>
   <script src="customer-discovery.js"></script>
   <script src="semantic-replay-notice-v1.js"></script>
   <script src="customer-forge-heat.js"></script>
@@ -227,6 +230,7 @@
   <script src="customer-entitlements.js"></script>
   <script src="customer-account.js"></script>
   <script src="customer-account-bridge.js"></script>
+  <script src="production-customer-entitlements.js"></script>
   <script src="customer-billing-portal.js"></script>
   <script src="customer-card-intelligence.js"></script>
   <script src="card-brand-display.js"></script>
@@ -259,5 +263,10 @@
   <script src="beta-guided-discover-v1.js"></script>
   <script src="deal-check-v1.js"></script>
   <script src="decision-monitor-v1.js"></script>
+  <script src="decision-dashboard-v3.js"></script>
+  <script src="commercial-dashboard-v2.js"></script>
+  <script src="commercial-app-polish-v2.js"></script>
+  <script src="mobile-navigation-stabilizer-v1.js"></script>
+  <script src="customer-typography-floor-v1.js"></script>
 </body>
 </html>

@@ -20,7 +20,7 @@ const D = details();
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined });
 const VIEWPORTS = { desktop: { width: 1440, height: 1000 }, phone: { width: 390, height: 844 } };
 
-async function open(viewport, hash, { disabled = false, alerts = "available" } = {}) {
+async function open(viewport, hash, { disabled = false, alerts = "available", base = baseUrl } = {}) {
   const context = await browser.newContext({ viewport });
   const requests = [];
   await context.addInitScript(flag => {
@@ -52,7 +52,7 @@ async function open(viewport, hash, { disabled = false, alerts = "available" } =
   await page.clock.setFixedTime(new Date(NOW));
   const errors = [];
   page.on("pageerror", e => errors.push(String(e.message || e)));
-  await page.goto(`${baseUrl}/${hash}`, { waitUntil: "load" });
+  await page.goto(`${base}/${hash}`, { waitUntil: "load" });
   return { context, page, requests, errors };
 }
 
@@ -211,6 +211,18 @@ for (const [mode, phrase] of [["fail", /Review signals temporarily unavailable/]
   const ids = await page.locator("[data-ff-decision-monitor]").evaluateAll(els => els.map(e => e.getAttribute("data-ff-decision-monitor")));
   check("switching tracked cards shows only the new card's monitor", ids.length === 1 && ids[0] === IDS.watch, ids.join(","));
   await context.close();
+}
+
+// The private beta (/app/beta) keeps Decision Monitor hidden on every host, previews included.
+{
+  const betaBase = `${new URL(baseUrl).origin}/app/beta`;
+  for (const hash of [`#/tracking/${encodeURIComponent(IDS.buy)}`, `#/opportunities/${encodeURIComponent(IDS.buy)}`, "#/portfolio"]) {
+    const { context, page } = await open(VIEWPORTS.desktop || Object.values(VIEWPORTS)[0], hash, { base: betaBase });
+    await page.waitForTimeout(3500);
+    const shown = await page.evaluate(() => document.querySelectorAll("[data-ff-decision-monitor], [data-ff-collection-intelligence]").length);
+    check(`beta ${hash.split("/")[1]}: Decision Monitor stays hidden on the private beta`, shown === 0, String(shown));
+    await context.close();
+  }
 }
 
 await browser.close();

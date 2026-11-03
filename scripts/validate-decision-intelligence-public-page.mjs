@@ -62,7 +62,7 @@ check('Decision Intelligence click tracking is wired', conversion.includes('deci
 check('private beta intentionally does not expose the public Decision Intelligence exhibit', !customerShell.includes('ffPublicDecisionIntelligence') && !customerShell.includes('Decision Intelligence exhibit'));
 check('private beta keeps Decision Intelligence inside the result workflow', customerShell.includes('"decision-intelligence"') && customerShell.includes('const NAV_MANIFEST = Object.freeze({'));
 check('private Decision Intelligence route remains mounted for full-platform use', customerIndex.includes('href="#/decision-intelligence" data-route="decision-intelligence"'));
-check('private beta primary navigation excludes standalone Decision Intelligence at runtime', !/beta: Object\.freeze\(\{\s*routes: \[[^\]]*"decision-intelligence"/.test(customerShell) && customerShell.includes("else hideElement(link);"));
+check('private beta primary navigation excludes standalone Decision Intelligence at runtime', !/beta: Object\.freeze\(\{\s*routes: \[[^\]]*"decision-intelligence"/.test(customerShell) && customerShell.includes("else if (route !== \"account\") hideElement(link);"));
 
 const passed = checks.filter(item => item.passed).length;
 const failed = checks.filter(item => !item.passed);

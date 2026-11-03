@@ -86,7 +86,7 @@ for (const token of forbiddenAuthorityTokens) {
 }
 
 check(betaShell.includes('routes: ["dashboard", "discover", "evaluate", "opportunities", "tracking", "alerts", "portfolio", "forge-heat"]'), "beta navigation manifest lists exactly the beta customer routes (Discover, Evaluate, Saved Decisions, Tracking, Alerts, Portfolio, Forge Heat)");
-check(betaShell.includes("else hideElement(link);") && !/beta: Object\.freeze\(\{\s*routes: \[[^\]]*"(?:why-this-decision|market-view|decision-intelligence)"/.test(betaShell), "beta navigation hides every route outside its manifest, including Why This Decision, Market View and standalone Decision Intelligence");
+check(betaShell.includes("else if (route !== \"account\") hideElement(link);") && !/beta: Object\.freeze\(\{\s*routes: \[[^\]]*"(?:why-this-decision|market-view|decision-intelligence)"/.test(betaShell), "beta navigation hides every route outside its manifest, including Why This Decision, Market View and standalone Decision Intelligence");
 check(/beta: Object\.freeze\(\{[\s\S]*?advanced: false/.test(betaShell) && betaShell.includes("hideElement(advanced);"), "beta navigation hides the advanced/evidence group (Compare, PSA Advisor, Evidence, Export) while the routes stay available by URL");
 check(betaShell.includes('"why-this-decision", "evidence"') || (betaShell.includes('"why-this-decision"') && betaShell.includes('"evidence"')), "legacy shell hide contract covers both promoted explanation surfaces");
 check(!betaShell.includes("customer-navigation-parity-v1"), "legacy shell helper has no dependency on the full-customer parity controller");

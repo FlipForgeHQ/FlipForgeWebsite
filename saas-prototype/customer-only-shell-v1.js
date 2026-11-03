@@ -146,7 +146,7 @@
     nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
       const route = String(link.dataset.route || "");
       if (visible.has(route)) showCoreLink(link, manifest.labels.get(route));
-      else hideElement(link);
+      else if (route !== "account") hideElement(link); // Account (phone menu) stays available on every surface.
     });
 
     const advanced = nav.querySelector(".ff-advanced-nav");

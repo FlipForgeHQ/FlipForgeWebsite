@@ -83,7 +83,8 @@ jobs:
 
       - name: Decision Change Monitor + Collection Intelligence Playwright audit (desktop + phone)
         env:
-          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+          # Decision Monitor is reviewed on the owner customer preview; the audit also proves it stays hidden on /app/beta.
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app/customer
           FLIPFORGE_MONITOR_SCREENSHOT_DIR: artifacts/deal-check/monitor
         run: node scripts/audit-decision-monitor-ci.mjs
 

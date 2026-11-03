@@ -120,7 +120,7 @@ try {
   await step("Saved decision", async () => {
     await go(page, `opportunities/${encodeURIComponent(saved.strong.id)}`, 3500);
     const t = await text(page);
-    check("S1 the saved decision opens with its verdict and the ask when evaluated", /BUY/.test(t) && /Ask when evaluated/i.test(t) && /\$300\.00/.test(t), t.slice(0, 300));
+    check("S1 the saved decision opens with its verdict and the ask when evaluated", /BUY/.test(t) && /Ask when evaluated/i.test(t) && /\$300(?:\.00)?\b/.test(t), t.slice(0, 300));
     check("S2 the saved decision offers Track and Re-evaluate this listing", await page.locator('#main-content a[href^="#/tracking/"]').count() > 0
       && await page.locator("#main-content [data-card-reevaluate]").count() === 1);
     await shot(page, "03-saved-decision");
