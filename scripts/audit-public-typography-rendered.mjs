@@ -29,7 +29,8 @@ const sectionPages = [
 ];
 
 const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Sign In', 'Request Beta Access'];
-const homeCanonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'About', 'Sign In', 'Request Beta Access'];
+// The homepage adds "Who It’s For" (audience selector, #610) after Product; every other page keeps the canonical menu.
+const homeCanonicalNav = ['Product', 'Who It’s For', 'Decision Intelligence', 'Evidence Lab', 'About', 'Sign In', 'Request Beta Access'];
 const failures = [];
 const nearlyEqual = (a, b, tolerance = 0.75) => Math.abs(a - b) <= tolerance;
 const px = value => Number.parseFloat(value || 'NaN');
