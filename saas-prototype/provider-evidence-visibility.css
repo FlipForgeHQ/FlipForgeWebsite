@@ -25,7 +25,7 @@
   display: block;
   margin-bottom: 0.3rem;
   color: var(--muted, #8b8f98);
-  font-size: 0.78rem;
+  font-size: .875rem;
 }
 
 .provider-evidence-metric strong {

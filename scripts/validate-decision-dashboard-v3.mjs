@@ -187,7 +187,7 @@ function runChecks() {
   const v2 = read("saas-prototype/commercial-dashboard-v2.js");
   const guard = read("saas-prototype/production-dashboard-guard.js");
   const build = read("scripts/build-identity-client.mjs");
-  const ownership = read("saas-prototype/customer-route-ownership-v1.js");
+  const pages = read("saas-prototype/index.html") + read("saas-prototype/customer.html") + read("scripts/inject-discovery-request-guard.mjs");
   const guided = read("saas-prototype/guided-mode-v1.js");
 
   check("S01 renderer does not claim the route outside the customer app", window.FlipForgeDashboardRenderer === undefined);
@@ -459,7 +459,8 @@ function runChecks() {
   check("V02 V2 remains the default renderer (not deleted)", /data-commercial-dashboard-v2/.test(v2) && /queueMicrotask\(apply\)/.test(v2));
   check("V03 production guard recognizes V3 root", guard.includes('main.querySelector("[data-decision-dashboard-v3]")'));
   check("V04 build injects V3 before V2", /injectDashboardV3\(appIndex\);\s*\ninjectCommercialDashboard\(appIndex\);/.test(build));
-  check("V05 route ownership accepts V3 dashboard root", ownership.includes('dashboard: ".customer-dashboard-page, [data-decision-dashboard-v3]"'));
+  // The route-ownership repair layer is retired: owners drop late responses themselves, so no script re-renders V3.
+  check("V05 no route-ownership repair layer can replace the V3 dashboard root", !pages.includes("customer-route-ownership-v1.js"));
   check("V07 guided mode suppresses only the launcher, only while V3 renders the Dashboard (renderer claim + kill switch + V3 root)",
     /function dashboardV3Active\(\)\s*\{[^}]*routeName\(\) === "dashboard"[^}]*window\.FlipForgeDashboardRenderer === "v3"[^}]*!window\.FlipForgeDashboardV3Disabled[^}]*#main-content \[data-decision-dashboard-v3\]/.test(guided)
     && /markup = dashboardV3Active\(\) \? "" : '<button type="button" class="ff-guide-launcher" data-guide-open>Guide me<\/button>';/.test(guided)

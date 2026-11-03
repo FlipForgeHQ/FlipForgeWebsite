@@ -3,7 +3,7 @@
 .brand-tagline {
   margin-top: 6px;
   color: rgba(216, 220, 219, .68);
-  font-size: 7.5px;
+  font-size: 14px;
   font-weight: 520;
   letter-spacing: .045em;
   line-height: 1.25;
@@ -16,30 +16,30 @@
 
 .prototype-banner {
   min-height: 29px;
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: .08em;
 }
 
 .prototype-banner strong {
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: .12em;
 }
 
 .prototype-banner span {
-  font-size: 10px;
+  font-size: 14px;
   opacity: .82;
 }
 
 .prototype-chip {
   padding: 5px 8px;
-  font-size: 8px;
+  font-size: 14px;
   letter-spacing: .1em;
 }
 
 .primary-nav a {
   min-height: 40px;
   gap: 10px;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: .005em;
 }
 
@@ -80,7 +80,7 @@
   background: rgba(139, 146, 143, .06);
   border: 1px solid rgba(139, 146, 143, .18);
   border-radius: 3px;
-  font-size: 7px !important;
+  font-size: 14px !important;
   font-weight: 650;
   letter-spacing: .08em;
   line-height: 1.25;
@@ -92,14 +92,14 @@
 }
 
 .ff-advanced-nav > summary {
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: .025em;
 }
 
 #main-content .page-heading .eyebrow,
 #main-content .forge-heat-title-row .eyebrow,
 #main-content .panel .eyebrow {
-  font-size: .66rem;
+  font-size: .875rem;
   font-weight: 650;
   letter-spacing: .12em;
 }
@@ -116,7 +116,7 @@
   position: relative;
   top: -.34em;
   margin-left: .08em;
-  font-size: .32em;
+  font-size: max(14px, .32em);
   font-weight: 500;
   letter-spacing: 0;
   line-height: 0;
@@ -150,7 +150,7 @@
 
 #main-content .panel-header p {
   max-width: 720px;
-  font-size: .82rem;
+  font-size: .875rem;
   line-height: 1.45;
 }
 
@@ -158,7 +158,7 @@
 
 #main-content .metric-card { min-height: 112px; }
 #main-content .metric-top > span:first-child {
-  font-size: .7rem;
+  font-size: .875rem;
   font-weight: 620;
   letter-spacing: .045em;
   text-transform: none;
@@ -175,7 +175,7 @@
 
 .boundary-note {
   padding: 12px 14px;
-  font-size: .8rem;
+  font-size: .875rem;
   line-height: 1.5;
   background: rgba(212, 175, 55, .025);
   border-color: rgba(212, 175, 55, .18);
@@ -205,7 +205,7 @@
   background: rgba(212, 175, 55, .045);
   border: 1px solid rgba(212, 175, 55, .24);
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .08em;
 }
@@ -215,7 +215,7 @@
 }
 
 .plan-card .eyebrow {
-  font-size: 8px;
+  font-size: 14px;
   letter-spacing: .1em;
 }
 
@@ -225,7 +225,7 @@
 
 @media (max-width: 640px) {
   .brand-tagline { white-space: normal; }
-  .forge-nav-state { font-size: 6px !important; }
+  .forge-nav-state { font-size: 14px !important; }
   #main-content .page-heading h1,
   #main-content .forge-heat-hero h1 { font-size: 1.8rem; }
 }

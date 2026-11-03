@@ -56,7 +56,7 @@
 .market-view-health-grid span,
 .market-view-coverage-card span {
   color: var(--text-muted, #a9a9a9);
-  font-size: .72rem;
+  font-size: .875rem;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
@@ -139,7 +139,7 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 7px;
-  font-size: .82rem;
+  font-size: .875rem;
 }
 
 .market-view-bar-label span {
@@ -240,7 +240,7 @@
 .market-view-value-identity span,
 .market-view-value-numbers span {
   color: var(--text-muted, #999);
-  font-size: .82rem;
+  font-size: .875rem;
 }
 
 .market-view-value-numbers {

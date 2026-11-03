@@ -14,7 +14,7 @@
 .ff-saved-decision-copy{display:grid;grid-template-columns:auto minmax(0,1fr);gap:11px;align-items:center;min-width:0}
 .ff-saved-decision-check{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:rgba(87,196,132,.12);border:1px solid rgba(87,196,132,.38);color:#9be3ba;font-weight:900}
 .ff-saved-decision-copy strong{display:block;font-size:.92rem}
-.ff-saved-decision-copy small{display:block;margin-top:3px;color:#aeb7c2;font-size:.75rem;line-height:1.45}
+.ff-saved-decision-copy small{display:block;margin-top:3px;color:#aeb7c2;font-size:.875rem;line-height:1.45}
 .ff-saved-decision-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
 .ff-saved-decision-actions .button{justify-content:center;min-width:0;text-align:center;white-space:normal}
 
@@ -28,7 +28,7 @@
   border-radius:8px;
   background:rgba(255,255,255,.018);
   color:#9fa9b5;
-  font-size:.75rem;
+  font-size:.875rem;
   line-height:1.48;
 }
 .ff-discover-persistence-note strong{color:#eceff2}

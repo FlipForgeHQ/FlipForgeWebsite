@@ -16,7 +16,7 @@
   border-radius: 10px;
   background: rgba(67, 174, 116, .1);
   color: #bde9cf;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .customer-lifecycle-form {
@@ -34,7 +34,7 @@
   display: grid;
   gap: 7px;
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -106,7 +106,7 @@
 .customer-lifecycle-history p {
   display: block;
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -114,7 +114,7 @@
   display: block;
   margin: 3px 0;
   color: var(--text);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .customer-lifecycle-alerts {
@@ -141,13 +141,13 @@
 .customer-lifecycle-alerts h3 {
   margin: 4px 0;
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .customer-lifecycle-alerts p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .customer-lifecycle-alerts article > div:last-child {
@@ -277,7 +277,7 @@
 
 .customer-decision-timeline-signals small {
   color: var(--text-soft);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .customer-decision-timeline-signals strong {
@@ -371,7 +371,7 @@
 .customer-outcome-baseline small,
 .customer-outcome-checkpoint-grid small {
   color: var(--text-soft);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .customer-outcome-baseline strong,
@@ -488,7 +488,7 @@
 .ff-alerts-since {
   margin: 0;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .ff-alert-list {
@@ -531,7 +531,7 @@
 .ff-alert-card p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -551,14 +551,14 @@
   margin: 0;
   padding-left: 18px;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .ff-alert-changes strong {
   display: block;
   margin-bottom: 4px;
   color: var(--text);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .ff-alert-rules {
@@ -575,7 +575,7 @@
 
 .ff-alert-card footer small {
   color: var(--text-soft);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .ff-alert-actions {
@@ -619,7 +619,7 @@
 .ff-reevaluation-banner p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .ff-reevaluation-banner .button {

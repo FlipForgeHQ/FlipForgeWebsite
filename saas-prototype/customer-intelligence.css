@@ -32,7 +32,7 @@
 .customer-value-summary > span,
 .customer-trace-step > div > span {
   color: var(--text-secondary);
-  font-size: 0.72rem;
+  font-size: .875rem;
   font-weight: 800;
   letter-spacing: 0.045em;
   text-transform: uppercase;

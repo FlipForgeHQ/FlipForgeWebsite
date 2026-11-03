@@ -51,7 +51,7 @@ body.ff-commercial-shell {
 .ff-commercial-shell .brand-subtitle {
   color: var(--ff-v2-gold);
   letter-spacing: .08em;
-  font-size: .62rem;
+  font-size: .875rem;
   font-weight: 750;
 }
 
@@ -96,7 +96,7 @@ body.ff-commercial-shell {
   display: block;
   margin-top: 2px;
   color: #7f8a96;
-  font-size: .66rem;
+  font-size: .875rem;
   font-weight: 520;
   letter-spacing: .01em;
   line-height: 1.2;
@@ -217,7 +217,7 @@ body.ff-commercial-shell {
   border-radius: 8px;
   color: var(--ff-v2-muted);
   background: rgba(255,255,255,.016);
-  font-size: .76rem;
+  font-size: .875rem;
 }
 
 .ff-kpi-grid {
@@ -253,7 +253,7 @@ body.ff-commercial-shell {
 
 .ff-kpi-label {
   color: #c2c8cf;
-  font-size: .73rem;
+  font-size: .875rem;
   font-weight: 650;
 }
 
@@ -270,7 +270,7 @@ body.ff-commercial-shell {
   display: block;
   margin-top: 4px;
   color: var(--ff-v2-muted);
-  font-size: .69rem;
+  font-size: .875rem;
   line-height: 1.35;
 }
 
@@ -319,7 +319,7 @@ body.ff-commercial-shell {
 .ff-v2-panel-head p {
   margin-top: 4px;
   color: var(--ff-v2-muted);
-  font-size: .72rem;
+  font-size: .875rem;
   line-height: 1.4;
 }
 
@@ -341,7 +341,7 @@ body.ff-commercial-shell {
 
 .ff-decision-kicker {
   color: var(--ff-v2-gold);
-  font-size: .67rem;
+  font-size: .875rem;
   font-weight: 780;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -368,7 +368,7 @@ body.ff-commercial-shell {
   padding: 0 9px;
   border: 1px solid var(--ff-v2-border);
   border-radius: 999px;
-  font-size: .68rem;
+  font-size: .875rem;
   font-weight: 820;
   letter-spacing: .04em;
 }
@@ -424,7 +424,7 @@ body.ff-commercial-shell {
 .ff-confidence-ring-copy span {
   margin-top: 5px;
   color: var(--ff-v2-green);
-  font-size: .65rem;
+  font-size: .875rem;
 }
 
 .ff-factor-list {
@@ -437,13 +437,13 @@ body.ff-commercial-shell {
   grid-template-columns: 92px minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
-  font-size: .7rem;
+  font-size: .875rem;
 }
 
 .ff-factor-row > span:first-child { color: var(--ff-v2-muted); }
 .ff-factor-track { height: 5px; overflow: hidden; border-radius: 999px; background: #1c2730; }
 .ff-factor-track > span { display:block; height:100%; border-radius:inherit; background: linear-gradient(90deg,#b98c1e,#e2bf58); }
-.ff-factor-row strong { font-size: .68rem; }
+.ff-factor-row strong { font-size: .875rem; }
 
 .ff-decision-stats {
   display: grid;
@@ -462,7 +462,7 @@ body.ff-commercial-shell {
 .ff-decision-stats span {
   display:block;
   color: var(--ff-v2-muted);
-  font-size:.64rem;
+  font-size:.875rem;
 }
 .ff-decision-stats strong { display:block; margin-top:4px; font-size:.89rem; }
 .ff-positive { color: var(--ff-v2-green) !important; }
@@ -517,13 +517,13 @@ body.ff-commercial-shell {
   text-align:center;
 }
 .ff-donut-copy strong { font-size:1.45rem; }
-.ff-donut-copy span { color:var(--ff-v2-muted); font-size:.62rem; }
+.ff-donut-copy span { color:var(--ff-v2-muted); font-size:.875rem; }
 
 .ff-distribution-list { display:grid; gap:8px; }
-.ff-distribution-row { display:grid; grid-template-columns:10px 1fr auto; gap:8px; align-items:center; font-size:.69rem; }
+.ff-distribution-row { display:grid; grid-template-columns:10px 1fr auto; gap:8px; align-items:center; font-size:.875rem; }
 .ff-distribution-row i { width:8px; height:8px; border-radius:2px; }
 .ff-distribution-row span { color:#c5cbd1; }
-.ff-distribution-row strong { font-size:.68rem; }
+.ff-distribution-row strong { font-size:.875rem; }
 
 .ff-market-placeholder {
   min-height: 180px;
@@ -532,15 +532,15 @@ body.ff-commercial-shell {
   gap: 8px;
 }
 .ff-market-placeholder strong { font-size:1.45rem; }
-.ff-market-placeholder p { max-width:520px; margin:0; color:var(--ff-v2-muted); line-height:1.5; font-size:.76rem; }
+.ff-market-placeholder p { max-width:520px; margin:0; color:var(--ff-v2-muted); line-height:1.5; font-size:.875rem; }
 .ff-market-baseline { position:relative; height:48px; margin-top:8px; border-bottom:1px solid #33404b; }
-.ff-market-baseline::after { content:"Authoritative market index not configured"; position:absolute; left:0; bottom:9px; color:#6f7a85; font-size:.64rem; }
+.ff-market-baseline::after { content:"Authoritative market index not configured"; position:absolute; left:0; bottom:9px; color:#6f7a85; font-size:.875rem; }
 
 .ff-v2-table-wrap { overflow:auto; }
 .ff-v2-table { width:100%; border-collapse:collapse; min-width:720px; }
 .ff-v2-table th,
-.ff-v2-table td { padding:10px 11px; border-bottom:1px solid var(--ff-v2-border-soft); text-align:left; white-space:nowrap; font-size:.7rem; }
-.ff-v2-table th { color:#8d98a4; font-size:.61rem; letter-spacing:.04em; text-transform:uppercase; }
+.ff-v2-table td { padding:10px 11px; border-bottom:1px solid var(--ff-v2-border-soft); text-align:left; white-space:nowrap; font-size:.875rem; }
+.ff-v2-table th { color:#8d98a4; font-size:.875rem; letter-spacing:.04em; text-transform:uppercase; }
 .ff-v2-table td:first-child { max-width:280px; white-space:normal; }
 .ff-v2-table tr:last-child td { border-bottom:0; }
 .ff-v2-table a { color:#e8ebee; font-weight:700; text-decoration:none; }
@@ -549,8 +549,8 @@ body.ff-commercial-shell {
 .ff-attention-list { display:grid; gap:8px; }
 .ff-attention-item { display:grid; grid-template-columns:32px minmax(0,1fr); gap:10px; align-items:center; padding:10px; border:1px solid var(--ff-v2-border-soft); border-radius:8px; background:rgba(255,255,255,.012); }
 .ff-attention-icon { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:rgba(216,174,59,.10); color:var(--ff-v2-gold); font-weight:850; }
-.ff-attention-item strong { display:block; font-size:.74rem; }
-.ff-attention-item small { display:block; margin-top:2px; color:var(--ff-v2-muted); font-size:.66rem; line-height:1.35; }
+.ff-attention-item strong { display:block; font-size:.875rem; }
+.ff-attention-item small { display:block; margin-top:2px; color:var(--ff-v2-muted); font-size:.875rem; line-height:1.35; }
 
 .ff-dashboard-boundary {
   margin-top: 14px;
@@ -559,7 +559,7 @@ body.ff-commercial-shell {
   border-radius: 8px;
   background: rgba(216,174,59,.035);
   color: #98a3ad;
-  font-size: .68rem;
+  font-size: .875rem;
   line-height: 1.45;
 }
 .ff-dashboard-boundary strong { color:#d9dde1; }

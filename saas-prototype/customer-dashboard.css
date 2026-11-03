@@ -33,7 +33,7 @@
 .customer-dashboard-opportunity-metrics span,
 .customer-dashboard-contract span {
   color: var(--text-secondary);
-  font-size: 0.72rem;
+  font-size: .875rem;
   font-weight: 820;
   letter-spacing: 0.05em;
   text-transform: uppercase;

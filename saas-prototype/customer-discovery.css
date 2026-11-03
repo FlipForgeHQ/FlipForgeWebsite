@@ -18,7 +18,7 @@
 
 .customer-discovery-form label > span {
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .07em;
   text-transform: uppercase;
@@ -71,7 +71,7 @@
 .ff-entry-guide-title {
   margin: 0 0 6px;
   color: var(--text);
-  font-size: .78rem;
+  font-size: .875rem;
   font-weight: 800;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -113,14 +113,14 @@
 }
 .customer-discovery-identity-query span {
   color:var(--text-soft);
-  font-size:10px;
+  font-size:14px;
   font-weight:800;
   letter-spacing:.06em;
   text-transform:uppercase;
 }
 .customer-discovery-identity-query strong {
   color:var(--text);
-  font-size:13px;
+  font-size:14px;
   line-height:1.4;
   overflow-wrap:anywhere;
 }
@@ -138,7 +138,7 @@
   border-radius: 9px;
   background: rgba(213, 173, 83, .06);
   color: var(--text-soft);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -213,7 +213,7 @@
 }
 
 .customer-discovery-metrics span {
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -232,12 +232,12 @@
 
 .customer-discovery-summary strong {
   color: var(--text);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .customer-discovery-summary span {
   color: var(--text-soft);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .customer-discovery-candidate .panel-header {
@@ -259,7 +259,7 @@
 .customer-discovery-score small {
   margin-top: 5px;
   color: var(--text-soft);
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: .06em;
   text-transform: uppercase;
 }
@@ -269,7 +269,7 @@
   gap: 8px;
   margin-top: 14px;
   color: var(--text-soft);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -299,7 +299,7 @@
 .customer-discovery-ranking-details {
   margin-top: 12px;
   color: var(--text-soft);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -323,7 +323,7 @@
 .customer-discovery-identity-review > p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -338,7 +338,7 @@
   border-radius: 10px;
   background: rgba(67, 174, 116, .1);
   color: #bde9cf;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 @media (max-width: 1100px) {
@@ -417,7 +417,7 @@
   background: none;
   color: var(--blue);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: .875rem;
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;

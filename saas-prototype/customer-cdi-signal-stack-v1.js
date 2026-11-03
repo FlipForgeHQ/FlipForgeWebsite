@@ -451,27 +451,6 @@
     root?.remove();
   }
 
-  function homeContinuity() {
-    const parts = routeParts();
-    if (parts[0] !== "dashboard") return;
-    const root = document.querySelector("#main-content .ff-commercial-dashboard");
-    const returning = root?.querySelector("[data-ff-p3-returning]");
-    if (!root || !returning) return;
-
-    const saved = returning.querySelector('[data-ff-p3-return="saved"] small');
-    const outcomes = returning.querySelector('[data-ff-p3-return="outcomes"] small');
-    const heat = returning.querySelector('[data-ff-p3-return="heat"] small');
-    const portfolio = returning.querySelector('[data-ff-p3-return="portfolio"] small');
-
-    // Write only when the text differs: assigning textContent replaces the node even for identical text, which
-    // re-triggered this script's own MutationObserver every frame.
-    const put = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
-    put(saved, "Open a card to see the verdict and replay its four checks.");
-    put(outcomes, "See what changed after the original T0 decision.");
-    put(heat, "Rank eligible saved opportunities after evidence qualifies them.");
-    put(portfolio, "See owned cards and purchase context without invented market value.");
-  }
-
   function apply() {
     const parts = routeParts();
     if (parts[0] === "decision-intelligence") {
@@ -483,7 +462,6 @@
     }
     evidenceGuide();
     returningSavedGuide();
-    homeContinuity();
   }
 
   function queue() {

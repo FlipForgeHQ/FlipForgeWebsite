@@ -56,7 +56,7 @@
 
   body.ff-full-customer-app .brand-subtitle {
     max-width: 185px !important;
-    font-size: .64rem !important;
+    font-size: .875rem !important;
     line-height: 1.18 !important;
     white-space: normal !important;
   }
@@ -65,7 +65,7 @@
     margin-top: 9px !important;
     min-height: 24px !important;
     padding: 4px 8px !important;
-    font-size: .64rem !important;
+    font-size: .875rem !important;
   }
 
   body.ff-full-customer-app .primary-nav {
@@ -115,7 +115,7 @@
     position: static !important;
     margin: 0 !important;
     justify-self: end !important;
-    font-size: .58rem !important;
+    font-size: .875rem !important;
   }
 
   body.ff-full-customer-app .ff-advanced-nav > summary {

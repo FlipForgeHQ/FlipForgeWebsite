@@ -34,7 +34,7 @@
 .ff-decision-key > summary {
   padding: 11px 14px;
   color: var(--text-secondary);
-  font-size: .86rem;
+  font-size: .875rem;
 }
 
 .ff-decision-key-grid {
@@ -60,7 +60,7 @@
 
 .ff-decision-key-grid span {
   color: var(--text-secondary);
-  font-size: .84rem;
+  font-size: .875rem;
   line-height: 1.45;
 }
 
@@ -110,7 +110,7 @@
 .ff-evaluate-caution > span,
 .ff-evaluate-next > span {
   color: var(--text-secondary);
-  font-size: .72rem;
+  font-size: .875rem;
   font-weight: 800;
   letter-spacing: .05em;
   text-transform: uppercase;

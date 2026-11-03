@@ -4,7 +4,7 @@ import fs from "node:fs";
 // founder's beta menu (Nov 3 2026), checked at the end of this file.
 const html = fs.readFileSync("saas-prototype/customer.html", "utf8");
 const betaHtml = fs.readFileSync("saas-prototype/index.html", "utf8");
-const shellCompletion = fs.readFileSync("saas-prototype/core-platform-completion-v1.js", "utf8");
+const shellCompletion = fs.readFileSync("saas-prototype/app.js", "utf8"); // shell owner (router) since core-platform-completion-v1.js was retired
 const polish = fs.readFileSync("saas-prototype/customer-professional-polish.js", "utf8");
 const navMatch = html.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/);
 if (!navMatch) throw new Error("Primary customer navigation is missing.");
@@ -42,8 +42,8 @@ check(
   shellCompletion.includes('advanced.querySelectorAll("[data-route]")') &&
     shellCompletion.includes('.some(link => link.dataset.route === route)')
 );
-check("Advanced analysis state follows the active route", shellCompletion.includes("function syncAdvancedAnalysisState()") && shellCompletion.includes("advanced.open = activeInside"));
-check("Advanced route state is synchronized during the platform completion apply cycle", shellCompletion.includes("syncAdvancedAnalysisState();") && shellCompletion.includes('window.addEventListener("hashchange"'));
+check("Advanced analysis state follows the active route", shellCompletion.includes("function setActiveNavigation()") && shellCompletion.includes("advanced.open = inside"));
+check("Advanced route state is synchronized on every route change", /function renderRoute\(\) \{[\s\S]*?setActiveNavigation\(\);/.test(shellCompletion) && shellCompletion.includes('window.addEventListener("hashchange", renderRoute)'));
 
 if (failed) throw new Error(`Consumer Pro navigation validation failed: ${failed}`);
 console.log("Consumer navigation keeps the core journey visible, expert tools available under Advanced Analysis, and the active expert route synchronized without turning Forge Heat into a paid-only navigation state.");

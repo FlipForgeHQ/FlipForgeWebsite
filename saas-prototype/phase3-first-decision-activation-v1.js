@@ -51,127 +51,8 @@
     } catch (_) {}
   }
 
-  function trackedCount(root) {
-    // Only a rendered authoritative snapshot carries the Tracked Decisions count.
-    // Loading and error states have no count; treating "no count" as 0 showed the
-    // first-use "Evaluate your first card" panel to returning customers whose data
-    // was still loading or failed to load.
-    if (root.querySelector(".ff-commercial-loading, .ff-commercial-error")) return null;
-    const cards = [...root.querySelectorAll(".ff-kpi-card")];
-    const card = cards.find(node => /Tracked Decisions/i.test(String(node.textContent || "")));
-    if (!card) return null;
-    const value = String(card.querySelector(".ff-kpi-value")?.textContent || "").replace(/[^0-9.-]/g, "");
-    if (!value) return null;
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  function firstUseActivation(root) {
-    if (root.querySelector("[data-ff-p3-activation]")) return;
-    const head = root.querySelector(".ff-dashboard-head");
-    if (!head) return;
-    const section = document.createElement("section");
-    section.className = "ff-p3-activation ff-p3-home-zero ff-p3-enter";
-    section.dataset.ffP3Activation = "";
-    section.dataset.flipforgePhase3Owned = "first-use";
-    section.innerHTML = `
-      <div class="ff-p3-home-zero-grid">
-        <div class="ff-p3-home-zero-copy">
-          <span class="ff-p3-kicker">START HERE · YOUR FIRST DECISION</span>
-          <h2>Evaluate your first card.</h2>
-          <p>Start with one real card. FlipForge confirms the exact card, checks matched sales, compares the price, measures uncertainty, and then explains the decision.</p>
-          <div class="ff-p3-actions">
-            <a class="button button-primary" href="#/discover" data-ff-p3-first-evaluate>Find a card to evaluate</a>
-            <a class="button button-secondary" href="#/evaluate">Enter a listing manually</a>
-          </div>
-          <a class="ff-p3-home-learn" href="#/decision-intelligence">New to FlipForge? See the four checks →</a>
-        </div>
-        <div class="ff-p3-home-path" aria-label="Your first FlipForge decision">
-          <div class="ff-p3-first-step"><b>01</b><span><strong>Confirm the exact card</strong><small>Make sure the year, set, number, variant, and grade match.</small></span></div>
-          <div class="ff-p3-first-step"><b>02</b><span><strong>Check matched sales</strong><small>Keep the comparisons that belong and leave the bad ones out.</small></span></div>
-          <div class="ff-p3-first-step"><b>03</b><span><strong>Compare price + uncertainty</strong><small>See whether the ask is supported and how sure the evidence really is.</small></span></div>
-          <div class="ff-p3-first-step"><b>04</b><span><strong>Read the decision + receipt</strong><small>BUY, WATCH, VERIFY, or PASS—with the reason trail preserved.</small></span></div>
-        </div>
-      </div>
-      <div class="ff-p3-home-zero-footer">
-        <span>Nothing else is required for your first session.</span>
-        <small>Saved-decision analytics, Outcome Intelligence, Portfolio, and other tools become useful after you have real decisions to work with.</small>
-      </div>`;
-    head.insertAdjacentElement("afterend", section);
-    root.setAttribute(ENHANCED_ATTRIBUTE, "dashboard:first-use");
-    emit("phase3_first_use_shown", "dashboard_zero_saved");
-  }
-
-  function returningHome(root, tracked) {
-    if (root.querySelector("[data-ff-p3-returning]")) return;
-    const head = root.querySelector(".ff-dashboard-head");
-    if (!head) return;
-    const section = document.createElement("section");
-    section.className = "ff-p3-returning ff-p3-enter";
-    section.dataset.ffP3Returning = "";
-    section.dataset.flipforgePhase3Owned = "returning-home";
-    section.innerHTML = `
-      <div class="ff-p3-returning-head">
-        <div><span class="ff-p3-kicker">CONTINUE YOUR INTELLIGENCE</span><h2>Your decisions are now the starting point.</h2></div>
-        <p>${tracked} saved decision${tracked === 1 ? "" : "s"} in your account.</p>
-      </div>
-      <div class="ff-p3-returning-grid">
-        <a class="ff-p3-returning-card" href="#/opportunities" data-ff-p3-return="saved"><span>01</span><strong>Saved Decisions</strong><small>Reopen the exact cards you already evaluated.</small></a>
-        <a class="ff-p3-returning-card" href="#/tracking" data-ff-p3-return="outcomes"><span>02</span><strong>Outcome Intelligence</strong><small>Follow immutable T0 through T7, T14, and T30.</small></a>
-        <a class="ff-p3-returning-card" href="#/forge-heat" data-ff-p3-return="heat"><span>03</span><strong>Forge Heat</strong><small>Investigate evidence-qualified discovery signals.</small></a>
-        <a class="ff-p3-returning-card" href="#/portfolio" data-ff-p3-return="portfolio"><span>04</span><strong>Portfolio</strong><small>See your saved cards in a broader decision context.</small></a>
-      </div>`;
-    head.insertAdjacentElement("afterend", section);
-    root.setAttribute(ENHANCED_ATTRIBUTE, "dashboard:returning");
-    emit("phase3_returning_home_shown", "dashboard_saved");
-  }
-
-  function enhanceDashboard() {
-    if (routeName() !== "dashboard") return;
-    const root = document.querySelector(MAIN);
-    if (!root) return;
-    const dashboard = root.querySelector("[data-commercial-dashboard-v2]") || root.querySelector(".ff-commercial-dashboard");
-    if (!dashboard) return;
-    const headingNode = dashboard.querySelector(".ff-dashboard-head h1");
-    if (headingNode && headingNode.textContent !== "Home") headingNode.textContent = "Home";
-    const tracked = trackedCount(dashboard);
-    if (tracked === null) {
-      // No authoritative count yet (loading/error): show neither first-use nor returning panels.
-      dashboard.querySelector("[data-ff-p3-activation]")?.remove();
-      dashboard.querySelector("[data-ff-p3-returning]")?.remove();
-      dashboard.classList.remove("ff-p3-zero-dashboard", "ff-p3-returning-dashboard");
-      return;
-    }
-
-    const head = dashboard.querySelector(".ff-dashboard-head");
-    const title = head?.querySelector("h1");
-    const intro = head?.querySelector("p");
-    if (title && title.textContent !== "Home") title.textContent = "Home";
-
-    const primary = dashboard.querySelector(".ff-dashboard-head-actions .button-primary");
-    const first = dashboard.querySelector("[data-ff-p3-activation]");
-    const returning = dashboard.querySelector("[data-ff-p3-returning]");
-
-    if (tracked <= 0) {
-      dashboard.classList.add("ff-p3-zero-dashboard");
-      dashboard.classList.remove("ff-p3-returning-dashboard");
-      if (intro) intro.textContent = "Start with one real card. FlipForge will guide you from exact identity to evidence, decision, and Decision Receipt.";
-      if (primary && (primary.getAttribute("href") !== "#/discover" || primary.textContent !== "Evaluate first card")) {
-        primary.setAttribute("href", "#/discover");
-        primary.textContent = "Evaluate first card";
-      }
-      if (returning) returning.remove();
-      if (!first) firstUseActivation(dashboard);
-    }
-
-    if (tracked > 0) {
-      dashboard.classList.remove("ff-p3-zero-dashboard");
-      dashboard.classList.add("ff-p3-returning-dashboard");
-      if (intro) intro.textContent = "Continue from your saved decisions, review what changed, and investigate the next card when you are ready.";
-      if (first) first.remove();
-      if (!returning) returningHome(dashboard, tracked);
-    }
-  }
+  // The Dashboard ("Home") first-use and returning panels, their telemetry and the Home heading are rendered by the
+  // Dashboard owner (commercial-dashboard-v2.js). This file keeps only its Discover and evaluation-result paths.
 
   function evaluateStage(root) {
     if (root.querySelector(".customer-discovery-identity-assist")) return "identity-review";
@@ -336,9 +217,6 @@
       const target = event.target instanceof Element ? event.target : null;
       if (!target) return;
 
-      if (target.closest("[data-ff-p3-first-evaluate]")) emit("phase3_first_evaluate_clicked", "dashboard");
-      const returning = target.closest("[data-ff-p3-return]");
-      if (returning) emit("phase3_returning_action_clicked", returning.getAttribute("data-ff-p3-return") || "unknown");
       if (target.closest("[data-discovery-find-exact]")) emit("phase3_identity_resolution_started", "discover");
       if (target.closest("[data-discovery-use-identity]")) emit("phase3_identity_selected", "discover");
       if (target.closest("[data-discovery-evaluate]")) emit("phase3_governed_evaluation_started", "discover_candidate");
@@ -372,7 +250,6 @@
 
   function routeRelevantSelector() {
     const route = routeName();
-    if (route === "dashboard") return "[data-commercial-dashboard-v2],.ff-commercial-dashboard,.ff-kpi-card,.ff-kpi-value";
     if (route === "discover") return "[data-customer-discovery-form],.customer-discovery-search,.customer-discovery-identity-assist,.customer-discovery-results,[data-discovery-evaluate]";
     if (route === "opportunities" && routeParts().length > 1) return "[data-ff-decision-summary],.customer-intelligence-hero,[data-ff-open-decision-receipt]";
     return "";
@@ -407,7 +284,6 @@
     diagnostics.applyRuns += 1;
     if (observer) observer.disconnect();
     try {
-      enhanceDashboard();
       enhanceEvaluate();
       enhanceResult();
       syncReceiptButton();
