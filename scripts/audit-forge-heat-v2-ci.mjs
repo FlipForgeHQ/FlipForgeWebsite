@@ -89,6 +89,7 @@ try {
       await page.locator('[data-forge-heat-near-card="opp-near-1"] a[href="#/opportunities/opp-near-1"]').count() === 1
         && await page.locator('[data-forge-heat-near-card="opp-near-1"] a[href="#/evaluate/opp-near-1"]').count() === 1);
     check(`H2 ${label}: smuggled VERIFY or ranked items never appear`, !/Smuggled/.test(text));
+    if (process.env.FLIPFORGE_HEAT_V2_SHOTS) await page.screenshot({ path: `${process.env.FLIPFORGE_HEAT_V2_SHOTS}/forge-heat-v2-${label}.png`, fullPage: true }).catch(() => {});
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     check(`H5 ${label}: no horizontal page overflow`, overflow <= 4, String(overflow));
     check(`H5 ${label}: no page errors`, errors.length === 0, errors.join(" | "));
