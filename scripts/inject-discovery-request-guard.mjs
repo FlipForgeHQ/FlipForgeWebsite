@@ -4,7 +4,6 @@ const indexUrl = new URL("../saas-prototype/index.html", import.meta.url);
 const customerUrl = new URL("../saas-prototype/customer.html", import.meta.url);
 const betaFlowUrl = new URL("../saas-prototype/beta-customer-flow-v2.js", import.meta.url);
 const stagingRouteUrl = new URL("../saas-prototype/staging-route-hook.js", import.meta.url);
-const professionalPolishUrl = new URL("../saas-prototype/customer-professional-polish.js", import.meta.url);
 const routeOwnershipUrl = new URL("../saas-prototype/customer-route-ownership-v1.js", import.meta.url);
 const marker = '  <script src="customer-discovery.js"></script>';
 const guard = '  <script src="customer-discovery-request-guard.js"></script>';
@@ -41,17 +40,6 @@ if (!stagingRoute.includes(routeOwnerMarker)) {
   }
   stagingRoute = stagingRoute.replace(routeOwnerAnchor, `${routeOwnerAnchor}\n\n${routeOwnerMarker}`);
   fs.writeFileSync(stagingRouteUrl, stagingRoute, "utf8");
-}
-
-let professionalPolish = fs.readFileSync(professionalPolishUrl, "utf8");
-const professionalDiscoverAnchor = '  function scheduleCustomerDiscover() {\n    if (routeName() !== "discover" || discoverRenderPending) return;';
-const professionalDiscoverSingleOwner = '  function scheduleCustomerDiscover() {\n    if (window.__ffStagingRouteHookOwnsDiscover === true) return;\n    if (routeName() !== "discover" || discoverRenderPending) return;';
-if (!professionalPolish.includes(professionalDiscoverSingleOwner)) {
-  if (!professionalPolish.includes(professionalDiscoverAnchor)) {
-    throw new Error("Customer polish Discover fallback target was not found.");
-  }
-  professionalPolish = professionalPolish.replace(professionalDiscoverAnchor, professionalDiscoverSingleOwner);
-  fs.writeFileSync(professionalPolishUrl, professionalPolish, "utf8");
 }
 
 let routeOwnership = fs.readFileSync(routeOwnershipUrl, "utf8");

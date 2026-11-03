@@ -154,10 +154,10 @@ const realRequiredCustomerRuntimePresent = index.includes('<script src="producti
   && index.includes('<script src="staging-route-hook.js"></script>')
   && index.includes('<script src="customer-opportunities.js"></script>')
   && index.includes('<script src="customer-opportunities-bridge.js"></script>');
+// Preview builds keep the staging adapter; the beta navigation no longer lists staging links on any host (Nov 3 2026).
 const realPreviewDiagnosticsPresent = index.includes('<script src="staging-browser.js"></script>')
   && index.includes('href="staging-browser.css"')
-  && index.includes('data-route="staging"')
-  && index.includes('data-route="staging-evaluate"');
+  && !index.includes('data-route="staging"');
 
 check("041 real built app matches current deployment context", productionBuild
   ? realStagingTokensAbsent && realRequiredCustomerRuntimePresent

@@ -71,25 +71,12 @@ check(customer.includes('class="icon-button notification-button"'), "customer do
 check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
 
 check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/(?:app|owner)\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
-check(shell.includes('"why-this-decision", "evidence"'), "canonical customer shell includes Why This Decision and Evidence Review in the full route set");
-const orderedRouteTokens = [
-  '"dashboard"', '"discover"', '"evaluate"', '"decision-intelligence"', '"why-this-decision"', '"evidence"',
-  '"opportunities"', '"tracking"', '"portfolio"', '"alerts"', '"forge-heat"', '"market-view"'
-];
-const orderedRouteAnchor = shell.indexOf("const orderedRoutes = [");
-const orderedRouteEnd = shell.indexOf("];", orderedRouteAnchor);
-const orderedRouteBlock = orderedRouteAnchor >= 0 && orderedRouteEnd > orderedRouteAnchor
-  ? shell.slice(orderedRouteAnchor, orderedRouteEnd)
-  : "";
-let previousRoutePosition = -1;
-const lifecycleOrderValid = orderedRouteTokens.every(token => {
-  const position = orderedRouteBlock.indexOf(token, previousRoutePosition + 1);
-  if (position < 0) return false;
-  previousRoutePosition = position;
-  return true;
-});
-check(lifecycleOrderValid, "canonical customer shell preserves CDI lifecycle ordering");
-check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "DEV customer shell reinforces customer identity");
+// The customer menu and chip are final in customer.html (Nov 3 2026); no shell script reorders or relabels them.
+const customerNav = (customer.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0];
+const customerNavRoutes = [...customerNav.matchAll(/data-route="([^"]+)"/g)].map(match => match[1]);
+check(customerNavRoutes.includes("why-this-decision") && customerNavRoutes.includes("evidence"), "canonical customer shell includes Why This Decision and Evidence Review in the full route set");
+check(customerNavRoutes.slice(0, 12).join(",") === "dashboard,discover,evaluate,decision-intelligence,why-this-decision,evidence,opportunities,tracking,portfolio,alerts,forge-heat,market-view", "canonical customer shell preserves CDI lifecycle ordering");
+check(customer.includes('<span class="prototype-chip">CUSTOMER APP</span>') && !shell.includes("prototype-chip"), "DEV customer shell reinforces customer identity");
 check(shell.includes("T7, T14, and T30"), "customer home explains governed outcome checkpoints");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session renderer still stands down on full customer route");
 check(navigationParity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "navigation parity controller cannot run outside /app/customer");
@@ -98,7 +85,7 @@ check(navigationParity.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["s
 check(mobileNav.includes('"decision-intelligence", "why-this-decision", "evidence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set");
 check(!customer.includes('data-route="sell"'), "customer document removes unsupported Exit Review");
 check(mobileNav.includes('parts[0] === "decision-intelligence" && parts[1] === "why"') && mobileNav.includes('return "why-this-decision"'), "mobile active navigation distinguishes Why This Decision from Decision Intelligence");
-check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish preserves DEV customer identity");
+check(!commercialPolish.includes("chip.textContent"), "commercial polish preserves DEV customer identity");
 check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit preserves DEV customer identity");
 
 check(loginRedirect.includes('a[href^="/production-auth.html"]'), "customer login interceptor covers feature-level auth links");

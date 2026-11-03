@@ -22,7 +22,8 @@ const checks = [
   ["customer check posts only to beta feedback endpoint", customerSource.includes('ENDPOINT = "/api/beta/feedback"') && !/\/api\/v1\/opportunities|\/api\/v1\/evidence/i.test(customerSource)],
   ["customer check preserves authority boundary", customerSource.includes("does not change the saved decision") && customerSource.includes("evidence authority")],
   ["customer check is active-tester gated", customerSource.includes("membershipActive") && customerSource.includes("Active invited testers")],
-  ["learning assets load from existing DI polish layer", loaderSource.includes("ensureBetaCdiLearningAssets") && loaderSource.includes("beta-cdi-learning-v1.js") && loaderSource.includes("beta-cdi-learning-v1.css")],
+  // Listed by the Private Beta page (no script loads another, Nov 3 2026).
+  ["learning assets load from existing DI polish layer", read("saas-prototype/index.html").includes('<script src="beta-cdi-learning-v1.js"></script>') && read("saas-prototype/index.html").includes('href="beta-cdi-learning-v1.css"') && !read("saas-prototype/customer.html").includes("beta-cdi-learning-v1") && !loaderSource.includes("beta-cdi-learning-v1")],
   ["operator scorecard is role-gated through existing operator endpoint", operatorSource.includes('ENDPOINT = "/api/beta/operator"') && operatorSource.includes("operatorActive")],
   ["operator scorecard is read only", operatorSource.includes('method: "GET"') && !/method\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(operatorSource)],
   ["operator scorecard keeps no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(operatorSource)],

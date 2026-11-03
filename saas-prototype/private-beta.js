@@ -80,14 +80,11 @@
   function syncShell(session = identitySnapshot()) {
     if (!eligibleHost()) return;
     const displayName = session.fullName || (session.authenticated ? "Invited tester" : "Private beta");
-    const access = session.membershipActive ? "Active tester" : session.authenticated ? "Access pending" : "Sign in required";
     document.querySelectorAll(".account-link .avatar, .profile-button .avatar").forEach(element => {
       element.textContent = initials(displayName);
     });
-    const accountCopy = document.querySelector(".account-link span:nth-child(2)");
-    if (accountCopy) accountCopy.innerHTML = `<strong>${escapeHtml(displayName)}</strong><small>${escapeHtml(access)}</small>`;
-    const profileCopy = document.querySelector(".profile-button .profile-copy");
-    if (profileCopy) profileCopy.innerHTML = `<strong>${escapeHtml(displayName)}</strong><small>${escapeHtml(access)}</small>`;
+    // The account captions ("Account" / "Plan & Usage") are final in the page markup; only the initials follow the
+    // signed-in identity.
   }
 
   function preferenceComplete() {
@@ -134,15 +131,6 @@
       return ["Available", "The tenant-scoped customer intelligence path is enabled for this private-beta session.", "ok"];
     }
     return ["Safely offline", "The preview bridge is disabled between controlled beta sessions.", "warn"];
-  }
-
-  function showBanner() {
-    const banner = document.querySelector(".prototype-banner");
-    if (!banner) return;
-    const title = banner.querySelector("strong");
-    const copy = banner.querySelector("span");
-    if (title) title.textContent = "PRIVATE BETA GUIDE";
-    if (copy) copy.textContent = "Invitation only · Controlled customer intelligence · No billing or transaction authority";
   }
 
   function cleanCardValue(value, max) {
@@ -647,7 +635,6 @@
     if (!main) return false;
     const session = identitySnapshot();
     syncShell(session);
-    showBanner();
     main.innerHTML = pageMarkup(session, null);
     bind(session);
     main.focus({ preventScroll: true });

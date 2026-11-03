@@ -96,19 +96,18 @@ const searchPanel = searchPanelStart >= 0 && searchPanelEnd > searchPanelStart
 
 check("Discover has one canonical Card label", (searchPanel.match(/<span>Card<\/span>/g) || []).length === 1);
 check("Discover has one exact-card entry input", (searchPanel.match(/name="exactCardQuery"/g) || []).length === 1);
-check("Discover primary action is Search active listings", searchPanel.includes('"Search active listings"'));
-check("Find exact card remains visibly secondary", searchPanel.includes('class="button button-secondary"') && searchPanel.includes(">Find exact card</button>"));
+check("Discover primary action is Search active listings", discovery.includes('submit: "Search active listings"') && searchPanel.includes("labels.submit}</button>"));
+check("Find exact card remains visibly secondary", searchPanel.includes('class="button button-secondary" type="button" data-discovery-find-exact') && discovery.includes('exact: "Find exact card"'));
 // Founder direction 2026-10-20: the card-entry guide is open by default (no expand step) in both apps.
 check("Card-entry guide is visible without expanding", searchPanel.includes('<div class="customer-discovery-search-help" data-ff-entry-guide') && !searchPanel.includes("<details class=\"customer-discovery-search-help\""));
 check("Card-entry guide explains two-year seasons without promising identical results", searchPanel.includes("Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.") && !/Both find the same card|all mean the same card/.test(searchPanel));
 check(
   "Decorator preserves concise Card label after rerenders",
-  entry.includes('labelText.textContent !== "Card"')
-    && entry.includes('labelText.textContent = "Card";')
+  searchPanel.includes("<label><span>Card</span>") && !entry.includes("textContent =")
 );
 check(
   "Format guidance is concise and non-duplicative",
-  entry.includes("Year · Set · Player · Card # · Grade (when known).")
+  (searchPanel.match(/Year · Set · Player · Card # · Grade \(when known\)\./g) || []).length === 1 && !entry.includes("ff-card-entry-helper")
 );
 
 // Evaluate

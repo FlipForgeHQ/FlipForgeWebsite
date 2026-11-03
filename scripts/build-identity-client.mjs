@@ -23,7 +23,6 @@ const dashboardV3StylesheetTag = '<link rel="stylesheet" href="decision-dashboar
 const dashboardV3ScriptTag = '<script src="decision-dashboard-v3.js"></script>';
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
 const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
-const mobileNavigationStabilizerScriptTag = '<script src="mobile-navigation-stabilizer-v1.js"></script>';
 const typographyFloorScriptTag = '<script src="customer-typography-floor-v1.js"></script>';
 const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability.css">';
 
@@ -122,15 +121,6 @@ function injectCommercialAppPolish(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
-function injectMobileNavigationStabilizer(htmlPath) {
-  if (!fs.existsSync(htmlPath)) throw new Error(`Mobile navigation target missing: ${path.relative(root, htmlPath)}`);
-  let html = fs.readFileSync(htmlPath, "utf8");
-  if (html.includes('mobile-navigation-stabilizer-v1.js')) return;
-  if (!html.includes("</body>")) throw new Error(`Mobile navigation body marker missing in ${path.relative(root, htmlPath)}`);
-  html = html.replace("</body>", `  ${mobileNavigationStabilizerScriptTag}\n</body>`);
-  fs.writeFileSync(htmlPath, html, "utf8");
-}
-
 function injectTypographyFloor(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Typography floor target missing: ${path.relative(root, htmlPath)}`);
   let html = fs.readFileSync(htmlPath, "utf8");
@@ -162,7 +152,7 @@ injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-port
 injectDashboardV3(appIndex);
 injectCommercialDashboard(appIndex);
 injectCommercialAppPolish(appIndex);
-injectMobileNavigationStabilizer(appIndex);
+// The Private Beta navigation is final in saas-prototype/index.html at every width: no mobile navigation script is added.
 injectTypographyFloor(appIndex);
 enforceProductionAppBoundary(appIndex);
 

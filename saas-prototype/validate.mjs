@@ -53,11 +53,14 @@ check("005 primary navigation has an accessible target", files.index.includes('i
 check("006 mobile menu controls primary navigation", files.index.includes('aria-controls="primary-navigation"'));
 check("007 skip link targets main content", files.index.includes('href="#main-content"'));
 check("008 main content is focusable", files.index.includes('id="main-content" tabindex="-1"'));
-check("009 search has a programmatic label", files.index.includes('for="global-search"'));
+// The Private Beta page has no global search (Nov 3 2026); wherever the search form exists it must be labelled.
+check("009 search has a programmatic label", !files.index.includes('id="global-search"') || files.index.includes('for="global-search"'));
 check("010 toast region is polite", files.index.includes('class="toast-region" aria-live="polite"'));
 
+// Each route is listed by an app page's navigation: the beta lists the founder's menu; customer.html lists the rest.
+const customerPage = read("saas-prototype/customer.html");
 for (const route of routes) {
-  check(`route navigation exists: ${route}`, files.index.includes(`data-route="${route}"`));
+  check(`route navigation exists: ${route}`, files.index.includes(`data-route="${route}"`) || customerPage.includes(`data-route="${route}"`));
 }
 
 check("022 dashboard renderer exists", files.app.includes("function renderDashboard()"));

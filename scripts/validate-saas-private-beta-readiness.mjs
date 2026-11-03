@@ -25,7 +25,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["005 private beta documentation exists", exists("docs/SAAS_PRIVATE_BETA_READINESS.md")],
   ["006 app loads private beta stylesheet", index.includes('href="private-beta.css"')],
   ["007 app loads private beta adapter last", index.includes('src="private-beta.js"') && index.lastIndexOf('src="private-beta.js"') > index.lastIndexOf('src="account-lifecycle.js"')],
-  ["008 Beta Guide is present in primary navigation", index.includes('href="#/beta-start" data-route="beta-start"')],
+  // Founder decision (Nov 3 2026): the guide is reached from sign-in and Home, not listed in the beta navigation.
+  ["008 Beta Guide route stays available outside the primary navigation", beta.includes('"beta-start"') && !index.includes('data-route="beta-start"')],
   ["009 sidebar identifies invitation-only private beta", index.includes("Private beta") && index.includes("Invitation only")],
   ["010 fake prototype usage allowance was removed", !index.includes("12 / 50") && index.includes("Usage meter") && index.includes("Not active")],
   ["011 feedback uses the signed same-origin server endpoint", beta.includes('const FEEDBACK_ENDPOINT = "/api/beta/feedback"')],
@@ -176,7 +177,8 @@ await new Promise(resolve => setTimeout(resolve, 20));
 check("066 Beta Guide renders for eligible preview", betaRoute.main.innerHTML.includes("Private Beta Guide") && betaRoute.main.innerHTML.includes("Tester walkthrough"));
 check("067 active session renders active tester state", betaRoute.main.innerHTML.includes("Active tester"));
 check("068 configured health renders available evaluation system", betaRoute.main.innerHTML.includes("Evaluation system") && betaRoute.main.innerHTML.includes("Available"));
-check("069 Beta Guide banner replaces prototype wording", betaRoute.bannerTitle.textContent === "PRIVATE BETA GUIDE" && betaRoute.bannerCopy.textContent.includes("Invitation only"));
+// The beta banner is final in index.html ("PRIVATE BETA"); the guide no longer rewrites it.
+check("069 Beta Guide banner replaces prototype wording", /<div class="prototype-banner" role="status">\s*<strong>PRIVATE BETA<\/strong>/.test(index) && betaRoute.bannerTitle.textContent === "NON-PRODUCTION PROTOTYPE");
 check("070 rendered guide contains no invited account email", !betaRoute.main.innerHTML.includes("tester@example.com"));
 check("071 rendered guide offers provider-backed Discover", betaRoute.main.innerHTML.includes("Start with Discover") && betaRoute.main.innerHTML.includes("Search one exact card"));
 check("072 rendered guide discloses connected-source scope", betaRoute.main.innerHTML.includes("Connected-source scope"));

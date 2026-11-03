@@ -21,7 +21,8 @@ const css = read("saas-prototype/customer-forge-heat.css");
 check("Forge Heat stylesheet mounted", html.includes('href="customer-forge-heat.css"'));
 check("Forge Heat script mounted", html.includes('src="customer-forge-heat.js"'));
 check("Forge Heat customer navigation mounted", html.includes('data-route="forge-heat"'));
-check("Forge Heat navigation is marked Pro", html.includes("forge-nav-pro"));
+// Forge Heat is labelled BETA in the markup (it was a Pro chip rewritten to BETA at runtime before Nov 3 2026).
+check("Forge Heat navigation is marked Pro", html.includes('Forge Heat <span class="forge-nav-state">BETA</span>') && !html.includes("forge-nav-pro"));
 check("Route hook loads Forge Heat adapter", routes.includes("FlipForgeCustomerForgeHeat"));
 check("Route hook renders Forge Heat customer route", routes.includes('route === "forge-heat"'));
 check("Customer gateway allowlists Forge Heat GET", gateway.includes('/^\\/api\\/v1\\/forge-heat$/'));

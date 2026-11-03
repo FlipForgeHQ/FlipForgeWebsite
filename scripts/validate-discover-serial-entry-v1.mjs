@@ -10,7 +10,8 @@ const src = read("saas-prototype/discover-guided-entry-v1.js");
 const css = read("saas-prototype/discover-guided-entry-v1.css");
 const loader = read("saas-prototype/discover-card-entry-emphasis-v1.js");
 const shell = read("saas-prototype/customer-only-shell-v1.js");
-const beta = read("saas-prototype/beta-session-v1.js");
+const appIndex = read("saas-prototype/index.html");
+const discovery = read("saas-prototype/customer-discovery.js");
 const guide = read("saas-prototype/guided-mode-v1.js");
 const window = { location:{pathname:"/app/beta/",hash:"#/dashboard"},addEventListener(){} };
 const document = {querySelector(){return null;},documentElement:{classList:{toggle(){}}}};
@@ -62,14 +63,14 @@ assert.ok(!/\/api\/v1\/evaluations|\/api\/v1\/discover|\/api\/v1\/card-intellige
 assert.ok(!/localStorage|sessionStorage|indexedDB/.test(src),"No user entry is persisted by helper");
 assert.ok(css.includes(".ff-serial-refinement")&&css.includes('a[data-route="discover"]'),
   "Compact styling and Discover prominence");
-assert.ok(loader.includes("loadGuidedEntry()")&&loader.includes("discover-guided-entry-v1.js"),
-  "Discover integration kept");
+assert.ok(appIndex.includes('<script src="discover-guided-entry-v1.js?v=20261020-8"></script>')&&appIndex.includes('href="discover-guided-entry-v1.css?v=20261020-8"')&&!loader.includes("discover-guided-entry-v1"),
+  "Discover integration kept (listed by the Private Beta page; no script loads it)");
 assert.ok(guide.includes('phoneViewport() || privateBetaSurface()') &&
   guide.includes('!force && privateBetaSurface() && !state.userOpened'),
   "Private Beta popup remains optional");
-assert.ok(shell.includes('["discover", "Discover"]') &&
+assert.ok(/data-route="discover"[^>]*>(?:<span[^>]*>.*?<\/span>)+Discover<\/a>/.test(appIndex) &&
   shell.includes('href="#/discover">Discover a card') &&
-  beta.includes('setText(pageHeading.querySelector("h1"), "Discover a Card")'),
+  discovery.includes("<h1>Discover a Card</h1>"),
   "Dashboard and Discover naming agree");
 
 // Identity-safety: impossible or contradictory numbering fails closed however it was entered and whichever selector is set.

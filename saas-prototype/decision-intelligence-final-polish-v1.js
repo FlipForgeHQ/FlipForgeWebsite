@@ -29,39 +29,6 @@
     }
   }
 
-  function ensureDecisionCardEvidenceAssets() {
-    if (!document.querySelector('link[data-ff-decision-card-evidence]')) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "decision-card-evidence-v1.css";
-      link.dataset.ffDecisionCardEvidence = "style";
-      document.head.appendChild(link);
-    }
-    if (!window.FlipForgeDecisionCardEvidenceV1 && !document.querySelector('script[data-ff-decision-card-evidence]')) {
-      const script = document.createElement("script");
-      script.src = "decision-card-evidence-v1.js";
-      script.dataset.ffDecisionCardEvidence = "runtime";
-      document.body.appendChild(script);
-    }
-  }
-
-  function ensureBetaCdiLearningAssets() {
-    if (fullCustomerMode()) return;
-    if (!document.querySelector('link[data-ff-beta-cdi-learning]')) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "beta-cdi-learning-v1.css";
-      link.dataset.ffBetaCdiLearning = "style";
-      document.head.appendChild(link);
-    }
-    if (!window.FlipForgeBetaCdiLearningV1 && !document.querySelector('script[data-ff-beta-cdi-learning]')) {
-      const script = document.createElement("script");
-      script.src = "beta-cdi-learning-v1.js";
-      script.dataset.ffBetaCdiLearning = "runtime";
-      document.body.appendChild(script);
-    }
-  }
-
   function disambiguate(select) {
     if (!select || select.dataset.ffDiLabels === "true") return;
     const options = [...select.options];
@@ -121,8 +88,6 @@
     scheduled = false;
     const route = routeName();
     if (route === "decision-intelligence") normalizeDecisionIntelligenceSourceMarker();
-    ensureDecisionCardEvidenceAssets();
-    ensureBetaCdiLearningAssets();
     if (route === "decision-intelligence") polishDecisionIntelligence();
     if (route === "compare") polishCompare();
   }

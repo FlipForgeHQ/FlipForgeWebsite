@@ -46,9 +46,11 @@ try {
 }
 
 check("003 existing polish runtime is loaded by app shell", index.includes('src="decision-intelligence-final-polish-v1.js"'));
-check("004 loader mounts Decision Card stylesheet", loader.includes('link.href = "decision-card-evidence-v1.css"') && loader.includes("data-ff-decision-card-evidence"));
-check("005 loader mounts Decision Card runtime", loader.includes('script.src = "decision-card-evidence-v1.js"') && loader.includes("FlipForgeDecisionCardEvidenceV1"));
-check("006 loader runs through existing apply lifecycle", loader.includes("ensureDecisionCardEvidenceAssets();"));
+// Both app pages list the Decision Card files; no script loads them (Nov 3 2026).
+const customerPage = read("saas-prototype/customer.html");
+check("004 loader mounts Decision Card stylesheet", [index, customerPage].every(page => page.includes('href="decision-card-evidence-v1.css"')));
+check("005 loader mounts Decision Card runtime", [index, customerPage].every(page => page.includes('<script src="decision-card-evidence-v1.js"></script>')));
+check("006 loader runs through existing apply lifecycle", !loader.includes("decision-card-evidence-v1"));
 check("007 beta result route is first-class", js.includes('parts[0] !== "opportunities"') && js.includes('[data-ff-decision-summary]'));
 check("008 standalone Decision Intelligence remains supported", js.includes('routeName() !== "decision-intelligence"') && js.includes('[data-ff-di-v2-command]'));
 

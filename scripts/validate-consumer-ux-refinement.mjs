@@ -19,7 +19,7 @@ expect(index.includes('href="consumer-ux-refinement.css"'), "consumer UX stylesh
 expect(index.includes('src="consumer-ux-refinement.js"'), "consumer UX script is mounted");
 expect(index.includes('src="customer-professional-polish.js"'), "professional polish script is mounted");
 
-expect(ux.includes('"CARD DECISION INTELLIGENCE"'), "runtime brand normalization uses Card Decision Intelligence");
+expect(!ux.includes(".brand-subtitle") && index.includes('<span class="brand-subtitle">CARD DECISION INTELLIGENCE</span>'), "runtime brand normalization uses Card Decision Intelligence");
 expect(ux.includes('"Identity intelligence"'), "identity heading uses current customer-facing intelligence language");
 expect(polish.includes('"Beta intelligence · In development"'), "Forge Heat hero uses current beta intelligence language");
 expect(
@@ -48,9 +48,10 @@ expect(
     ux.includes('"Ranks saved evaluations · Decision support only"'),
   "Forge Heat scope is concise and customer-safe"
 );
-expect(polish.includes('setText(state, "BETA")'), "Forge Heat navigation is labeled as beta rather than a paid entitlement");
-expect(polish.includes('nav.removeAttribute("aria-disabled")'), "Forge Heat interactive navigation remains enabled");
-expect(polish.includes('const alerts = nav.querySelector(\'[data-route="alerts"]\')'), "Alerts navigation remains restored");
+// Navigation is final in the page markup (Nov 3 2026).
+expect(index.includes('Forge Heat <span class="forge-nav-state">BETA</span>'), "Forge Heat navigation is labeled as beta rather than a paid entitlement");
+expect(!/data-route="forge-heat"[^>]*aria-disabled/.test(index), "Forge Heat interactive navigation remains enabled");
+expect(/<a href="#\/alerts" data-route="alerts"(?![^>]*hidden)/.test(index), "Alerts navigation remains restored");
 expect(ux.includes("function setText"), "DOM copy writes are idempotent");
 expect(ux.includes("let scheduled = false"), "mutation-driven refinement is requestAnimationFrame throttled");
 expect(!ux.includes("fetch(") && !polish.includes("fetch("), "presentation layers do not make API calls");

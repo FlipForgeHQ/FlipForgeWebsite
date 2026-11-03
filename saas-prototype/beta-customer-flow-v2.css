@@ -10,16 +10,13 @@
   --ff-flow-warn:#f1c96a;
 }
 
-/* The customer sees one core path. Supporting tools live under Advanced Intelligence. */
+/* Navigation links are rendered final in each page's markup. */
 .primary-nav > a.ff-core-nav{
   position:relative;
   font-weight:800;
 }
 .primary-nav > a.ff-core-nav[data-route="discover"]{
   border-color:rgba(216,180,71,.34);
-}
-.primary-nav > a.ff-nav-relocated{
-  display:none!important;
 }
 .ff-advanced-nav{
   margin-top:8px;
@@ -37,22 +34,6 @@
   cursor:pointer;
 }
 .ff-advanced-nav > summary::marker{color:var(--ff-flow-gold)}
-.ff-advanced-hint{
-  color:#6f7b88;
-  font-size:8px;
-  font-weight:800;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-}
-.ff-advanced-nav[open] .ff-advanced-hint{display:none}
-.ff-advanced-nav-links a.ff-support-clone{
-  opacity:.82;
-}
-.ff-advanced-nav-links a.ff-support-clone.ff-support-active{
-  opacity:1;
-  color:var(--ff-flow-gold-strong);
-  background:rgba(216,180,71,.07);
-}
 
 /* New Card is the unmistakable primary action. */
 .ff-global-new-card.ff-primary-new-card,

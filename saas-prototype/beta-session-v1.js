@@ -91,77 +91,6 @@
     });
   }
 
-  function simplifyDiscover() {
-    if (routeName() !== "discover") return;
-    const main = document.querySelector("#main-content");
-    const form = main?.querySelector("[data-customer-discovery-form]");
-    const panel = form?.closest(".customer-discovery-search");
-    if (!form || !panel) return;
-    if (panel.dataset.ffDiscoverCopyOwner !== "beta-session") {
-      panel.dataset.ffDiscoverCopyOwner = "beta-session";
-    }
-
-    const pageHeading = main.querySelector(".page-heading");
-    if (pageHeading) {
-      setText(pageHeading.querySelector(".eyebrow"), "Discover");
-      setText(pageHeading.querySelector("h1"), "Discover a Card");
-      setText(pageHeading.querySelector("p"), "Find and confirm your exact card first. Then select a listing for FlipForge to evaluate.");
-      hideNode(pageHeading.querySelector(".page-actions"));
-    }
-
-    const heading = panel.querySelector("h2");
-    const intro = panel.querySelector(".panel-header p");
-    if (heading && heading.textContent !== "Find listings for your card") heading.textContent = "Find listings for your card";
-    const introCopy = "Use guided selections or the exact-card search field. Confirm the card version before you choose a listing.";
-    if (intro && intro.textContent !== introCopy) intro.textContent = introCopy;
-
-    const cardLabel = form.querySelector('input[name="exactCardQuery"]')?.closest("label");
-    const priceLabel = form.querySelector('input[name="targetMaxBuy"]')?.closest("label");
-    const resultsSelect = form.querySelector('select[name="limit"]');
-    const resultsLabel = resultsSelect?.closest("label");
-    if (cardLabel?.querySelector("span") && cardLabel.querySelector("span").textContent !== "Card") cardLabel.querySelector("span").textContent = "Card";
-    if (priceLabel?.querySelector("span") && priceLabel.querySelector("span").textContent !== "Max price (optional)") priceLabel.querySelector("span").textContent = "Max price (optional)";
-    if (resultsLabel) {
-      resultsLabel.dataset.ffBetaHiddenControl = "true";
-      resultsLabel.setAttribute("aria-hidden", "true");
-    }
-    if (resultsSelect) {
-      resultsSelect.tabIndex = -1;
-      resultsSelect.setAttribute("aria-hidden", "true");
-    }
-
-    const submit = form.querySelector('button[type="submit"]');
-    // One primary action: listings; no identity is silently declared confirmed.
-    if (submit && !submit.disabled && !/Searching|Resolving/i.test(String(submit.textContent || "")) && submit.textContent !== "Search listings") {
-      submit.textContent = "Search listings";
-    }
-    if (submit) {
-      submit.setAttribute("aria-label", "Search active listings for the card entered");
-      submit.title = "Find listings currently for sale. You'll choose one before FlipForge evaluates it.";
-    }
-    const exact = form.querySelector("[data-discovery-find-exact]");
-    if (exact && !exact.disabled && exact.textContent !== "Check card identity") exact.textContent = "Check card identity";
-    if (exact) {
-      exact.setAttribute("aria-label", "Check card identity before searching listings");
-      exact.title = "Use this if you are unsure of the parallel, variation, or card number. No listing search or evaluation starts yet.";
-    }
-    const actions = form.querySelector(".customer-discovery-search-actions");
-    if (actions && !form.querySelector("[data-ff-beta-identity-hint]")) {
-      const hint = document.createElement("p");
-      hint.dataset.ffBetaIdentityHint = "";
-      hint.className = "ff-beta-identity-hint";
-      hint.textContent = "Not sure which version of the card you have? Check card identity first. Otherwise, search listings.";
-      actions.insertAdjacentElement("afterend", hint);
-    }
-
-    // The card-entry guide (what to type, two-year seasons, card-number notation) now renders open in
-    // customer-discovery.js for both the Private Beta and customer apps; the beta no longer rewrites it.
-
-    hideTechnicalSectionByHeading(/^Connected source status$/i);
-    main.querySelectorAll(".customer-discovery-identity-assist .boundary-note").forEach(hideNode);
-    main.querySelectorAll(".boundary-note").forEach(hideNode);
-  }
-
   function simplifyDecision() {
     const parts = routeParts();
     if (parts[0] !== "opportunities" || parts.length < 2) return;
@@ -238,8 +167,7 @@
 
   function apply() {
     if (!eligible()) return;
-    document.documentElement.classList.add("ff-beta-session-v1");
-    simplifyDiscover();
+    // Discover renders its beta wording itself (customer-discovery.js); the ff-beta-session-v1 class is in index.html.
     simplifyDecision();
     simplifySavedDecisions();
     simplifyTracking();
@@ -276,8 +204,6 @@
     if (!eligible()) return;
     const main = document.querySelector("#main-content");
     if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
-    const nav = document.querySelector(".primary-nav");
-    if (nav) new MutationObserver(schedule).observe(nav, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "tabindex", "class"] });
     window.addEventListener("hashchange", () => window.setTimeout(schedule, 50));
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);

@@ -25,7 +25,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["002 deploy previews replace the mock Evaluate route", files.routeHook.includes('route === "evaluate"') && files.routeHook.includes("evaluationAdapter.renderCustomer(main)")],
   ["003 customer Opportunity routes use the dedicated customer adapter", files.routeHook.includes('route === "opportunities"') && files.routeHook.includes("renderOpportunityRoute(id)") && files.routeHook.includes("FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities")],
   ["004 production Opportunity routing does not depend on the staging adapter", files.opportunityBridge.includes("window.FlipForgeCustomerOpportunitiesBridge = customerBridge") && !files.opportunityBridge.includes("if (!stagingAdapter || !customerAdapter) return") && !files.routeHook.includes("adapter.renderCustomer(main, id)")],
-  ["005 customer route uses a distinct private beta banner", files.routeHook.includes("PRIVATE BETA INTELLIGENCE")],
+  // The beta banner is final in index.html; customer routes keep it and never write internal wording into it.
+  ["005 customer route uses a distinct private beta banner", files.routeHook.includes("const showCustomerIntelligenceBanner = restoreBanner;") && !files.routeHook.includes("SQLite saved")],
   ["006 customer list promises no mock fallback", files.readAdapter.includes("never substitutes mock records")],
   ["007 tracked state is tied to SQLite", files.readAdapter.includes("Tracked in SQLite") && files.readAdapter.includes("SQLite saved")],
   ["008 Card Intelligence has a Decision Traceback", files.readAdapter.includes("Card Intelligence") && files.readAdapter.includes("Decision Traceback")],
