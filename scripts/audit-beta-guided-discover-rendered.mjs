@@ -37,12 +37,13 @@ try{
  assert.equal(await v3.locator('.primary-nav a[data-route="discover"]').getAttribute('href'),'#/discover','Discover remains directly accessible in the primary navigation');
  await v3.close();
 
- const form='<div class="customer-discovery-page"><form data-customer-discovery-form>'+
- '<label>Card<input name="exactCardQuery" type="search" required></label>'+
- '<button type="button" data-discovery-find-exact>Find exact card</button>'+
- '<button type="submit">Search active listings</button></form></div>';
- const discover=await scene(form);
- await discover.evaluate(()=>{location.hash='#/discover';});
+ // The guided builder is rendered by the Discover owner on the Private Beta (customer-discovery.js, Nov 3 2026).
+ const discover=await scene('');
+ await discover.route('**/api/v1/health',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({meta:{contractVersion:'1.0',correlationId:route.request().headers()['x-correlation-id']},data:{status:'configured'}})}));
+ await discover.evaluate(()=>{window.FlipForgePrivateBetaEntry=true;location.hash='#/discover';});
+ await discover.addScriptTag({path:'saas-prototype/customer-discovery.js'});
+ const renderOwner=()=>discover.evaluate(()=>window.FlipForgeCustomerDiscovery.render(document.querySelector('#main-content')));
+ assert.equal(await renderOwner(),true,'Discover owner renders on the Private Beta');
  await discover.locator('[data-ffguided]').waitFor();
  const guided=discover.locator('[data-ffguided]');
  if(!await guided.evaluate(node=>node.open))await guided.locator('summary').click();
@@ -60,7 +61,7 @@ try{
  assert.equal(await discover.locator('[data-discovery-find-exact]').count(),1);
  assert.equal(await discover.locator('[data-ffguided]').evaluate(e=>e.open),false);
  // A new application render must create one new guided entry, never duplicate it.
- await discover.evaluate(html=>{document.querySelector('#main-content').innerHTML=html;},form);
+ await renderOwner();
  await discover.locator('[data-ffguided]').waitFor();
  assert.equal(await discover.locator('[data-ffguided]').count(),1);
  assert.equal(errors.length,0,'no browser exceptions: '+errors.join(', '));
