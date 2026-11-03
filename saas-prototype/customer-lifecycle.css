@@ -40,6 +40,11 @@
   text-transform: uppercase;
 }
 
+/* Fields the chosen status does not use (customer-lifecycle.js sets [hidden]). */
+.customer-lifecycle-fields label[hidden] {
+  display: none;
+}
+
 .customer-lifecycle-fields input,
 .customer-lifecycle-fields select {
   width: 100%;
