@@ -1,23 +1,6 @@
 (() => {
   "use strict";
 
-  const ICONS = {
-    dashboard: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
-    discover: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>',
-    evaluate: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 21 12 12 21 3 12Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>',
-    opportunities: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17 10 12l3 3 6-8"/><path d="M15 7h4v4"/></svg>',
-    "forge-heat": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17c3-7 5-2 7-8 2 5 4 2 7-3"/><path d="M5 20h14"/></svg>',
-    tracking: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>',
-    portfolio: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="13" rx="2"/><path d="M9 6V4h6v2M4 11h16"/></svg>',
-    alerts: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17h10l-1.5-2V10a3.5 3.5 0 0 0-7 0v5Z"/><path d="M10 20h4"/></svg>',
-    "beta-start": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg>',
-    compare: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>',
-    "psa-advisor": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19V5h12v14Z"/><path d="M9 9h6M9 13h6"/></svg>',
-    evidence: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m9 12 2 2 4-5"/></svg>',
-    sell: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h9a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h9"/><path d="M12 4v16"/></svg>',
-    export: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>'
-  };
-
   const COPY_REPLACEMENTS = [
     ["PRIVATE BETA INTELLIGENCE", "PRIVATE BETA"],
     ["BETA INTELLIGENCE", "PRIVATE BETA"],
@@ -75,13 +58,6 @@
     if (node && node.textContent !== value) node.textContent = value;
   }
 
-  // In the full customer app (/app/customer, /owner/customer) customer-only-shell-v1.js owns navigation order and
-  // core-platform-completion-v1.js owns the account caption ("Customer"). Overriding either here alternated with
-  // those owners every animation frame, so this script defers to them there.
-  function fullCustomerApp() {
-    return /^\/(?:app|owner)\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
-  }
-
   function addBrandTagline() {
     const copy = document.querySelector(".brand-copy");
     if (!copy || copy.querySelector(".brand-tagline")) return;
@@ -89,55 +65,6 @@
     tagline.className = "brand-tagline";
     tagline.textContent = "Before you buy. Know Why.";
     copy.appendChild(tagline);
-  }
-
-  function consolidateAccountNavigation() {
-    document.querySelector(".sidebar-footer .account-link")?.remove();
-    const profile = document.querySelector(".profile-button .profile-copy");
-    if (!profile) return;
-    setText(profile.querySelector("strong"), "Account");
-    if (!fullCustomerApp()) setText(profile.querySelector("small"), "Plan & Usage");
-  }
-
-  function installNavigationIcons() {
-    document.querySelectorAll(".primary-nav [data-route]").forEach(link => {
-      const route = link.getAttribute("data-route") || "";
-      const icon = link.querySelector("span:first-child");
-      if (!icon || !ICONS[route] || icon.dataset.ffIcon === route) return;
-      icon.classList.add("ff-nav-icon");
-      icon.innerHTML = ICONS[route];
-      icon.dataset.ffIcon = route;
-    });
-  }
-
-  function restoreInteractiveNavigation() {
-    const nav = document.querySelector(".primary-nav");
-    if (!nav) return;
-
-    nav.querySelectorAll(".ff-nav-group-label").forEach(node => node.remove());
-
-    // Link visibility and order are owned by customer-only-shell-v1.js (route manifest). Unhiding Alerts and moving
-    // Forge Heat here fought the shell's own writes on every observer pass.
-
-    nav.querySelector('[data-route="beta-start"]')?.classList.add("ff-secondary-nav-link");
-  }
-
-  function prepareForgeHeatNavigation() {
-    const nav = document.querySelector('[data-route="forge-heat"]');
-    if (!nav) return;
-
-    nav.querySelector(".forge-nav-pro")?.remove();
-    let state = nav.querySelector(".forge-nav-state");
-    if (!state) {
-      state = document.createElement("span");
-      state.className = "forge-nav-state";
-      nav.appendChild(state);
-    }
-
-    setText(state, "BETA");
-    nav.removeAttribute("aria-disabled");
-    nav.setAttribute("aria-label", "Forge Heat beta intelligence");
-    nav.setAttribute("title", "Forge Heat — beta intelligence");
   }
 
   function customerCopy(root = document) {
@@ -240,10 +167,6 @@
 
   function apply() {
     addBrandTagline();
-    consolidateAccountNavigation();
-    restoreInteractiveNavigation();
-    installNavigationIcons();
-    prepareForgeHeatNavigation();
     customerCopy(document.body);
     polishDashboard();
     improveEmptyStates(document);

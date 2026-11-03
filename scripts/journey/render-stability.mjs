@@ -48,20 +48,44 @@ const diff = (a, b) => {
     attributes: b.attributes - a.attributes, text: b.text - a.text, fetches: b.fetches - a.fetches, fetchPaths: paths };
 };
 
+// Measure idle CPU too: duplicate-write guards can hide work without stopping scripts.
+async function readCpu(cdp) {
+  if (!cdp) return null;
+  try {
+    const { metrics } = await cdp.send("Performance.getMetrics");
+    const values = Object.fromEntries(metrics.map(({ name, value }) => [name, value]));
+    return { task: values.TaskDuration ?? null, script: values.ScriptDuration ?? null,
+      layout: values.LayoutDuration ?? null, style: values.RecalcStyleDuration ?? null };
+  } catch (_) { return null; }
+}
+const cpuDelta = (a, b) => {
+  if (!a || !b) return null;
+  const ms = k => Number.isFinite(a[k]) && Number.isFinite(b[k])
+    ? Math.round((b[k] - a[k]) * 100000) / 100 : null;
+  return { taskMs: ms("task"), scriptMs: ms("script"), layoutMs: ms("layout"), styleMs: ms("style") };
+};
+
 // Loads each route fresh, lets it settle, then counts what still changes while nobody touches the page.
 export async function measureRoutes(page, appUrl, routes, { settleMs = 4000, idleMs = 6000 } = {}) {
   const rows = [];
+  let cdp = null;
+  try { cdp = await page.context().newCDPSession(page); await cdp.send("Performance.enable"); }
+  catch (_) { cdp = null; }
   for (const route of routes) {
     await page.goto(`${appUrl}#/${route}`, { waitUntil: "load" });
     const loaded = await snapshot(page);
+    const loadedCpu = await readCpu(cdp);
     await page.waitForTimeout(settleMs);
     const settled = await snapshot(page);
+    const settledCpu = await readCpu(cdp);
     await page.waitForTimeout(idleMs);
     const idle = await snapshot(page);
+    const idleCpu = await readCpu(cdp);
     if (!loaded || !settled || !idle) { rows.push({ route, error: "meter not installed" }); continue; }
     const quietFor = Math.round(idle.now - idle.lastMutationAt);
-    rows.push({ route: route.split("/")[0], settle: diff(loaded, settled), idle: diff(settled, idle), quietForMs: quietFor });
+    rows.push({ route: route.split("/")[0], settle: diff(loaded, settled), idle: diff(settled, idle), quietForMs: quietFor, cpu: { settle: cpuDelta(loadedCpu, settledCpu), idle: cpuDelta(settledCpu, idleCpu) } });
   }
+  if (cdp) await cdp.detach().catch(() => {});
   return rows;
 }
 
@@ -70,7 +94,7 @@ export function printRows(label, rows) {
   for (const row of rows) {
     if (row.error) { console.log(`  ${row.route}: ${row.error}`); continue; }
     const s = row.settle, i = row.idle;
-    console.log(`  ${row.route.padEnd(14)} settle: ${String(s.records).padStart(6)} records ${String(s.added + s.removed).padStart(6)} nodes ${String(s.fetches).padStart(3)} fetches | idle 6s: ${String(i.records).padStart(6)} records ${String(i.added + i.removed).padStart(6)} nodes ${String(i.attributes).padStart(5)} attr ${String(i.text).padStart(5)} text ${String(i.fetches).padStart(3)} fetches ${JSON.stringify(i.fetchPaths)} | quiet ${row.quietForMs}ms`);
+    console.log(`  ${row.route.padEnd(14)} settle: ${String(s.records).padStart(6)} records ${String(s.added + s.removed).padStart(6)} nodes ${String(s.fetches).padStart(3)} fetches | idle 6s: ${String(i.records).padStart(6)} records ${String(i.added + i.removed).padStart(6)} nodes ${String(i.attributes).padStart(5)} attr ${String(i.text).padStart(5)} text ${String(i.fetches).padStart(3)} fetches ${JSON.stringify(i.fetchPaths)} | idle CPU ${JSON.stringify(row.cpu?.idle ?? null)} | quiet ${row.quietForMs}ms`);
   }
   console.log(`RENDER-STABILITY-JSON ${label} ${JSON.stringify(rows)}`);
 }
