@@ -65,9 +65,8 @@
 
   function decisionKeyAllowed(root) {
     const route = routeName();
-    if (["dashboard", "tracking", "forge-heat"].includes(route)) return true;
-    if (route === "opportunities" && !root.querySelector(".customer-intelligence-hero")) return true;
-    return false;
+    // The Saved Decisions list renders its own decision key (customer-opportunities.js).
+    return ["dashboard", "tracking"].includes(route);
   }
 
   function installDecisionKey(root) {
@@ -90,7 +89,8 @@
   function annotateDecisionChips(root) {
     root.querySelectorAll(".staging-status, .status-pill").forEach(chip => {
       const decision = exactDecision(text(chip));
-      if (!decision) return;
+      // Chips rendered with their meaning already (Saved Decisions) are left as they are.
+      if (!decision || chip.dataset.ffDecision === decision) return;
       chip.dataset.ffDecision = decision;
       chip.title = DECISION_COPY[decision];
       chip.setAttribute("aria-label", `${decision}. ${DECISION_COPY[decision]}`);

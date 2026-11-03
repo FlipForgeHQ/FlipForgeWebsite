@@ -112,17 +112,15 @@ html.ff-beta-session-v1 #main-content .ff-discover-persistence-note strong {
   font-size: 14px !important;
 }
 
-/* First-session screens should lead with the decision, not platform architecture. */
-html.ff-beta-session-v1 #main-content .ff-progressive-advanced {
-  display: none !important;
-}
-
-html.ff-beta-session-v1 #main-content .boundary-note,
+/* Saved Decisions (list and saved decision) and Portfolio render their beta view themselves: their page actions and
+ * disclosure notes stay visible, and whatever is not offered on beta is not rendered (customer-opportunities.js,
+ * customer-portfolio.js and the saved-decision panels). These two rules no longer reach those pages. */
+html.ff-beta-session-v1 #main-content .boundary-note:not(.customer-saved-decisions-page .boundary-note):not(.customer-portfolio-page .boundary-note),
 html.ff-beta-session-v1 #main-content .customer-management-metrics {
   display: none !important;
 }
 
-html.ff-beta-session-v1 #main-content .page-heading .page-actions {
+html.ff-beta-session-v1 #main-content .page-heading .page-actions:not(.customer-saved-decisions-page .page-actions):not(.customer-portfolio-page .page-actions) {
   display: none !important;
 }
 

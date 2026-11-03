@@ -162,52 +162,6 @@
     main.querySelectorAll(".boundary-note").forEach(hideNode);
   }
 
-  function simplifyDecision() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts.length < 2) return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Your result");
-      setText(heading.querySelector("h1"), "Your Decision");
-      setText(heading.querySelector("p"), "Start with the decision and the reason. Open the evidence only when you want the deeper proof.");
-      const legacyActions = heading.querySelector(".page-actions");
-      hideNode(legacyActions);
-      const legacyTrack = legacyActions?.querySelector("a[href^='#/tracking/']");
-      if (legacyTrack) legacyTrack.setAttribute("href", "#/tracking");
-    }
-
-    hideTechnicalSectionByHeading(/^(Forge Heat|Price Intelligence|Historical sold evidence|How to read this decision|Decision details|Evidence details|PSA context|Evidence)$/i);
-    hideTechnicalSectionByHeading(/^What changes (?:this|the) decision\??$/i);
-    main.querySelectorAll(".boundary-note").forEach(hideNode);
-
-    const moreDetail = [...main.querySelectorAll("button,a,summary")].find(node => /More decision detail/i.test(String(node.textContent || "")));
-    if (moreDetail) hideNode(moreDetail.closest("section,article,.panel,details") || moreDetail);
-  }
-
-  function simplifySavedDecisions() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts.length !== 1) return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Saved cards");
-      setText(heading.querySelector("h1"), "Saved Decisions");
-      setText(heading.querySelector("p"), "Reopen a card to review the decision or continue tracking it.");
-      hideNode(heading.querySelector(".page-actions"));
-    }
-
-    main.querySelectorAll(".metric-grid,.dashboard-grid,.customer-management-metrics,.boundary-note").forEach(hideNode);
-    main.querySelectorAll("section,article,.panel").forEach(section => {
-      const text = String(section.textContent || "").replace(/\s+/g, " ").trim();
-      if (/MODEL/i.test(text) && /TRANSACTION ACTIONS/i.test(text) && /CUSTOMER CONTROLS/i.test(text)) hideNode(section);
-    });
-  }
-
   function simplifyTracking() {
     if (routeName() !== "tracking") return;
     const main = document.querySelector("#main-content");
@@ -240,8 +194,6 @@
     if (!eligible()) return;
     document.documentElement.classList.add("ff-beta-session-v1");
     simplifyDiscover();
-    simplifyDecision();
-    simplifySavedDecisions();
     simplifyTracking();
     syncMilestones();
   }

@@ -394,16 +394,6 @@
     main.querySelector("[data-ff-customer-only-note]")?.remove();
   }
 
-  function renameSavedDecisions() {
-    if (routeName() !== "opportunities") return;
-    const main = document.querySelector(MAIN);
-    const parts = routeParts();
-    if (!main) return;
-    const heading = main.querySelector(".page-heading h1");
-    if (!heading) return;
-    setText(heading, parts.length > 1 ? "Saved Decision" : "Saved Decisions");
-  }
-
   function simplifyBetaGuide() {
     if (fullCustomerMode()) return;
     const main = document.querySelector(MAIN);
@@ -444,7 +434,6 @@
     simplifyNavigation();
     simplifyTopbar();
     customerHome();
-    renameSavedDecisions();
     simplifyBetaGuide();
   }
 

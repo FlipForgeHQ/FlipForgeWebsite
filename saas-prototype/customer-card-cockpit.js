@@ -17,6 +17,10 @@
     return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host)) && APP_PATH.test(path);
   }
 
+  // /app/beta (index.html; customer.html marks <html> with ff-full-customer-app) does not offer this panel on the
+  // saved decision: it is not requested or rendered there.
+  function offeredOnPage() { return document.documentElement.classList.contains("ff-full-customer-app"); }
+
   function routeOpportunityId() {
     const parts = String(window.location.hash || "").replace(/^#\/?/, "").split(/[/?]/).filter(Boolean);
     if (parts[0] !== "opportunities" || parts.length < 2) return "";
@@ -161,7 +165,7 @@
   }
 
   function mount() {
-    if (!eligibleHost()) return;
+    if (!eligibleHost() || !offeredOnPage()) return;
     const main = document.querySelector("#main-content");
     const opportunityId = routeOpportunityId();
     if (!main || !opportunityId) return;
@@ -178,7 +182,7 @@
   }
 
   async function ensureHeatForRoute() {
-    if (!eligibleHost()) return;
+    if (!eligibleHost() || !offeredOnPage()) return;
     const opportunityId = routeOpportunityId();
     if (!opportunityId) {
       state.routeId = ""; state.payload = null; state.error = null; state.loading = false;
