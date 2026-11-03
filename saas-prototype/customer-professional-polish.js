@@ -261,10 +261,8 @@
   function improveEmptyStates(root = document) {
     const ctas = {
       opportunities: ["Discover a card", "#/discover"],
-      tracking: ["Discover a card to track", "#/discover"],
       evidence: ["Evaluate a card", "#/evaluate"],
-      portfolio: ["Discover a card", "#/discover"],
-      alerts: ["Review tracking", "#/tracking"]
+      portfolio: ["Discover a card", "#/discover"]
     };
 
     const route = routeName();

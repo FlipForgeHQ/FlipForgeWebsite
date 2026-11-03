@@ -65,7 +65,8 @@
 
   function decisionKeyAllowed(root) {
     const route = routeName();
-    if (["dashboard", "tracking", "forge-heat"].includes(route)) return true;
+    // Tracking renders its own decision key (customer-lifecycle.js).
+    if (["dashboard", "forge-heat"].includes(route)) return true;
     if (route === "opportunities" && !root.querySelector(".customer-intelligence-hero")) return true;
     return false;
   }
@@ -349,7 +350,8 @@
     if (!root) return;
     state.applying = true;
     try {
-      annotateDecisionChips(root);
+      // Tracking and Alerts label their own decision chips (customer-lifecycle.js).
+      if (!["tracking", "alerts"].includes(routeName())) annotateDecisionChips(root);
       installDecisionKey(root);
       if (routeName() === "evaluate") {
         polishEvaluateForm(root);

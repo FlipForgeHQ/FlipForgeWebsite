@@ -117,12 +117,14 @@ html.ff-beta-session-v1 #main-content .ff-progressive-advanced {
   display: none !important;
 }
 
-html.ff-beta-session-v1 #main-content .boundary-note,
-html.ff-beta-session-v1 #main-content .customer-management-metrics {
+/* Tracking and Alerts (customer-lifecycle.js) decide for themselves what the beta surface shows: their page actions,
+ * disclosures and summary counts are rendered only when they are offered. */
+html.ff-beta-session-v1 #main-content > :not(.customer-lifecycle-page) .boundary-note,
+html.ff-beta-session-v1 #main-content > :not(.customer-lifecycle-page) .customer-management-metrics {
   display: none !important;
 }
 
-html.ff-beta-session-v1 #main-content .page-heading .page-actions {
+html.ff-beta-session-v1 #main-content > :not(.customer-lifecycle-page) .page-heading .page-actions {
   display: none !important;
 }
 

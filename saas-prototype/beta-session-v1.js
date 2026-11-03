@@ -208,24 +208,6 @@
     });
   }
 
-  function simplifyTracking() {
-    if (routeName() !== "tracking") return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Decision follow-up");
-      setText(heading.querySelector("h1"), "Tracking");
-      setText(heading.querySelector("p"), "Choose what happens next with this saved card: keep watching, set a review date, record ownership, or close it out.");
-      hideNode(heading.querySelector(".page-actions"));
-    }
-
-    main.querySelectorAll(".customer-management-metrics,.boundary-note").forEach(hideNode);
-    const save = main.querySelector('[data-lifecycle-form] button[type="submit"]');
-    if (save && !save.disabled && !/Saving/i.test(String(save.textContent || ""))) setText(save, "Save update");
-  }
-
   function syncMilestones() {
     const parts = routeParts();
     if (parts[0] === "opportunities" && parts.length > 1 && pendingEvaluation()) {
@@ -242,7 +224,6 @@
     simplifyDiscover();
     simplifyDecision();
     simplifySavedDecisions();
-    simplifyTracking();
     syncMilestones();
   }
 
