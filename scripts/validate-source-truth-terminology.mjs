@@ -156,9 +156,10 @@ for (const rel of fs.readdirSync(".").filter(name => name.endsWith(".html"))) {
 check("Decision Intelligence states the payment limitation", disclosure.test(read("saas-prototype/decision-intelligence-ux-v2.js")));
 check("evidence details state the payment limitation", disclosure.test(read("saas-prototype/evidence-authority-split-v1.js")));
 check("evaluation evidence panel states the payment limitation", disclosure.test(read("saas-prototype/staging-browser.js")));
-check("Collection alerts state the payment limitation", disclosure.test(read("saas-prototype/collection-intelligence-alerts-v1.js")));
-check("Collection alerts never show the stored VERIFIED state as a claim",
-  read("saas-prototype/collection-intelligence-alerts-v1.js").includes('replace(/\\bVERIFIED\\b/g, "Strong (reported sales)")'));
+// The beta-only "Daily Intelligence" collection-alerts panel was a duplicate alerts surface and is removed
+// (founder decision 2026-11-03); Alerts is the one alerts surface.
+check("The duplicate Daily Intelligence alerts surface is not loaded", !fs.existsSync("saas-prototype/collection-intelligence-alerts-v1.js")
+  && ["index.html", "customer.html"].every(page => !read(`saas-prototype/${page}`).includes("collection-intelligence-alerts-v1")));
 
 // 4. The data provider is never named to customers, and no customer-readable string (including runtime text
 //    replacement tables) calls reported sales or saved evidence verified, confirmed or trusted.
