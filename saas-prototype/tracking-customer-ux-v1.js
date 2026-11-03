@@ -144,6 +144,8 @@
   function polishAlerts() {
     const page = document.querySelector(`${MAIN} .customer-lifecycle-page`);
     if (!page) return;
+    // Saved Decisions & Tracking M1: the Alerts page writes its own customer copy; rewriting it would hide review state.
+    if (page.classList.contains("ff-alerts-page")) return;
 
     const heading = page.querySelector(".page-heading");
     setText(heading?.querySelector(".eyebrow"), "Review reminders");

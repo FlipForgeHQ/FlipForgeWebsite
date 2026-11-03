@@ -349,6 +349,8 @@
     if (!eligibleHost() || !isEvaluateRoute()) return;
     const page = document.querySelector(".customer-evaluation-page");
     if (!page || page.querySelector("[data-bulk-evaluation]")) return;
+    // Re-evaluating one saved decision (#/evaluate/{id}): bulk upload is a different task, so it is not offered here.
+    if (page.querySelector(".ff-reevaluation-banner")) return;
     const panel = document.createElement("section");
     panel.className = "panel bulk-evaluation-panel";
     panel.setAttribute("data-bulk-evaluation", "");

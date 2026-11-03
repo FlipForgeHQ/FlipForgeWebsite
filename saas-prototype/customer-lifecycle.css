@@ -474,3 +474,149 @@
     transition: none !important;
   }
 }
+
+/* Alerts (Saved Decisions & Tracking M1): one plain-language list. Brand tokens only. */
+.ff-alerts-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ff-alerts-since {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.ff-alert-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ff-alert-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised, #15181d);
+}
+
+.ff-alert-card[data-new="true"] {
+  border-color: var(--gold-strong);
+  box-shadow: inset 3px 0 0 var(--gold-strong);
+}
+
+.ff-alert-card[data-alert-mode="reviewed"] {
+  opacity: .78;
+}
+
+.ff-alert-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.ff-alert-card h3 {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.ff-alert-card p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ff-alert-card .ff-alert-next {
+  color: var(--text);
+}
+
+.ff-alert-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.ff-alert-facts,
+.ff-alert-changes ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.ff-alert-changes strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.ff-alert-rules {
+  font-style: italic;
+}
+
+.ff-alert-card footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.ff-alert-card footer small {
+  color: var(--text-soft);
+  font-size: 11px;
+}
+
+.ff-alert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ff-alerts-reviewed > summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  color: var(--text);
+  font-weight: 700;
+}
+
+@media (max-width: 680px) {
+  .ff-alert-card header {
+    flex-direction: column;
+  }
+
+  .ff-alert-badges {
+    justify-content: flex-start;
+  }
+
+  .ff-alert-actions,
+  .ff-alert-actions .button {
+    width: 100%;
+  }
+}
+
+.ff-reevaluation-banner {
+  border-color: var(--gold-strong);
+  box-shadow: inset 3px 0 0 var(--gold-strong);
+}
+
+.ff-reevaluation-banner .panel-body {
+  display: grid;
+  gap: 8px;
+}
+
+.ff-reevaluation-banner p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.ff-reevaluation-banner .button {
+  justify-self: start;
+}
