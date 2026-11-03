@@ -430,3 +430,9 @@
   outline-offset: 3px;
   border-radius: 2px;
 }
+
+/* Ranking-order note under the results summary (rendered by customer-discovery.js). */
+.customer-discovery-summary .ff-ranking-order-note {
+  display: block;
+  margin-top: 6px;
+}

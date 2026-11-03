@@ -47,6 +47,33 @@
     }
   };
 
+  // The Private Beta page (index.html) and the customer app (customer.html) show the same Discover with different
+  // wording and fewer controls on the beta. This renderer produces each surface's final copy directly; no other script
+  // relabels or hides Discover controls.
+  function betaSurface() {
+    return window.FlipForgePrivateBetaEntry === true;
+  }
+
+  function searchLabels() {
+    return betaSurface()
+      ? {
+        submit: "Search listings",
+        submitAria: "Search active listings for the card entered",
+        submitTitle: "Find listings currently for sale. You'll choose one before FlipForge evaluates it.",
+        exact: "Check card identity",
+        exactAria: "Check card identity before searching listings",
+        exactTitle: "Use this if you are unsure of the parallel, variation, or card number. No listing search or evaluation starts yet."
+      }
+      : {
+        submit: "Search active listings",
+        submitAria: "Search active listings for this card",
+        submitTitle: "Use this when you already know the exact card identity.",
+        exact: "Find exact card",
+        exactAria: "Find and confirm the exact card",
+        exactTitle: "Use this when you are unsure which base, parallel, variation, or card number is correct."
+      };
+  }
+
   function eligibleHost() {
     const host = String(window.location.hostname || "");
     return (PRODUCTION_HOST.test(host) || PREVIEW_HOST.test(host))
@@ -796,7 +823,7 @@
       submit.disabled = busy;
       // Only replace a busy label; leave any idle label the page already shows.
       if (busy || /Searching…|Resolving…/.test(submit.textContent || "")) {
-        submit.textContent = state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : "Search active listings";
+        submit.textContent = state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : searchLabels().submit;
       }
     }
     if (findExact) findExact.disabled = busy;
@@ -804,7 +831,19 @@
 
   function searchPanel() {
     const busy = state.loading || state.identityAssist.busy;
-    return `<section class="panel customer-discovery-search"><header class="panel-header"><div><h2>Search connected active listings</h2><p>Enter the card you want FlipForge to evaluate. If you are unsure of the exact identity, use Find exact card.</p></div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form"><label><span>Card</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="2018 Topps Chrome Shohei Ohtani #150 PSA 9" autocomplete="off"></label><label><span>Target max buy</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label><label><span>Results</span><select name="limit">${[10,25,50].map(value => `<option value="${value}"${String(value) === state.draft.limit ? " selected" : ""}>${value}</option>`).join("")}</select></label><div class="customer-discovery-search-actions"><button class="button button-primary" type="submit" ${busy ? "disabled" : ""}>${state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : "Search active listings"}</button><button class="button button-secondary" type="button" data-discovery-find-exact ${busy ? "disabled" : ""}>Find exact card</button></div></form><div class="customer-discovery-search-help" data-ff-entry-guide aria-label="What to type in the card box"><p class="ff-entry-guide-title">What to type</p><ul class="ff-entry-guide-list"><li><strong>Year · set · player · card #</strong>, then parallel, grader and grade when you know them.</li><li><strong>Two-year seasons:</strong> basketball and hockey sets often span two years, like 2025-26. Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.</li><li><strong>Card numbers:</strong> #150, No. 150 and No 150 are all read as card number 150.</li></ul><small>FlipForge never silently picks between two possible cards.</small></div></div></section>`;
+    const beta = betaSurface();
+    const labels = searchLabels();
+    const heading = beta
+      ? "<h2>Find listings for your card</h2><p>Use guided selections or the exact-card search field. Confirm the card version before you choose a listing.</p>"
+      : "<h2>Search connected active listings</h2><p>Enter the card you want FlipForge to evaluate. If you are unsure of the exact identity, use Find exact card.</p>";
+    // The beta searches the default 25 results and offers no result-count choice.
+    const limitControl = beta
+      ? `<input type="hidden" name="limit" value="${escapeHtml(state.draft.limit || "25")}">`
+      : `<label><span>Results</span><select name="limit">${[10,25,50].map(value => `<option value="${value}"${String(value) === state.draft.limit ? " selected" : ""}>${value}</option>`).join("")}</select></label>`;
+    const identityHint = beta
+      ? '<p data-ff-beta-identity-hint class="ff-beta-identity-hint">Not sure which version of the card you have? Check card identity first. Otherwise, search listings.</p>'
+      : "";
+    return `<section class="panel customer-discovery-search"><header class="panel-header"><div>${heading}</div></header><div class="panel-body"><form data-customer-discovery-form class="customer-discovery-form"><label><span>Card</span><input name="exactCardQuery" type="search" maxlength="500" required value="${escapeHtml(state.draft.exactCardQuery)}" placeholder="Example: 2018 Topps Chrome Shohei Ohtani #150 PSA 9" aria-label="Card" autocomplete="off"><small class="ff-card-entry-helper">Year · Set · Player · Card # · Grade (when known).</small></label><label><span>${beta ? "Max price (optional)" : "Target max buy"}</span><input name="targetMaxBuy" type="text" inputmode="decimal" value="${escapeHtml(state.draft.targetMaxBuy)}" placeholder="Optional, e.g. 525.00" autocomplete="off"></label>${limitControl}<div class="customer-discovery-search-actions"><button class="button button-primary" type="submit" aria-label="${escapeHtml(labels.submitAria)}" title="${escapeHtml(labels.submitTitle)}" ${busy ? "disabled" : ""}>${state.loading ? "Searching…" : state.identityAssist.busy ? "Resolving…" : labels.submit}</button><button class="button button-secondary" type="button" data-discovery-find-exact aria-label="${escapeHtml(labels.exactAria)}" title="${escapeHtml(labels.exactTitle)}" ${busy ? "disabled" : ""}>${labels.exact}</button></div>${identityHint}</form><div class="customer-discovery-search-help" data-ff-entry-guide aria-label="What to type in the card box"><p class="ff-entry-guide-title">What to type</p><ul class="ff-entry-guide-list"><li><strong>Year · set · player · card #</strong>, then parallel, grader and grade when you know them.</li><li><strong>Two-year seasons:</strong> basketball and hockey sets often span two years, like 2025-26. Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.</li><li><strong>Card numbers:</strong> #150, No. 150 and No 150 are all read as card number 150.</li></ul><small>FlipForge never silently picks between two possible cards.</small></div></div></section>`;
   }
 
   function identityCandidate(row, index) {
@@ -828,7 +867,7 @@
   function identityAssistPanel() {
     if (!state.identityAssist.active) return "";
     const rows = Array.isArray(state.identityAssist.results) ? state.identityAssist.results : [];
-    return `<section class="panel customer-discovery-identity-assist" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${state.identityAssist.message ? `<div class="customer-discovery-identity-message" role="status">${escapeHtml(state.identityAssist.message)}</div>` : ""}<div class="customer-discovery-identity-query"><span>Card entered</span><strong>${escapeHtml(state.identityAssist.query || state.draft.exactCardQuery || "Current card")}</strong></div>${rows.length ? `<div class="customer-discovery-identity-options">${rows.map(identityCandidate).join("")}</div>` : ""}<div class="customer-discovery-identity-actions"><button class="button button-secondary" type="button" data-discovery-change-identity-entry>Change card entry</button></div><div class="boundary-note"><strong>Fail-closed identity boundary:</strong> FlipForge does not auto-select the first result, expose provider IDs, or run marketplace discovery until you explicitly choose a server-authorized exact candidate.</div></div></section>`;
+    return `<section class="panel customer-discovery-identity-assist" id="ff-discovery-identity-check" aria-label="Confirm exact card identity" tabindex="-1"><header class="panel-header"><div><span class="eyebrow">IDENTITY CHECK · REQUIRED BEFORE CONTINUING</span><h2>Confirm your exact card.</h2><p>Select the exact card you mean before FlipForge searches listings or creates a decision. If none is correct, change the card entry instead of guessing.</p></div></header><div class="panel-body">${state.identityAssist.message ? `<div class="customer-discovery-identity-message" role="status">${escapeHtml(state.identityAssist.message)}</div>` : ""}<div class="customer-discovery-identity-query"><span>Card entered</span><strong>${escapeHtml(state.identityAssist.query || state.draft.exactCardQuery || "Current card")}</strong></div>${rows.length ? `<div class="customer-discovery-identity-options">${rows.map(identityCandidate).join("")}</div>` : ""}<div class="customer-discovery-identity-actions"><button class="button button-secondary" type="button" data-discovery-change-identity-entry>Change card entry</button></div><div class="boundary-note"><strong>How identity is confirmed:</strong> FlipForge never selects the first result for you, never shows internal catalog IDs, and does not search listings until you choose the exact card yourself.</div></div></section>`;
   }
 
   function providerPanel() {
@@ -905,7 +944,7 @@
     const boundary = identityReview
       ? `<div class="boundary-note"><strong>Not an exact candidate:</strong> ${escapeHtml(blockReason)} It is separated from the ranked exact matches and cannot be sent to Smart Opportunity.</div>`
       : `<div class="boundary-note"><strong>Discovery only:</strong> This active listing is not a sold comp and this score is not BUY/WATCH/VERIFY/PASS. Evaluation is a separate explicit request.</div>`;
-    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Discovery score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div>${soldContextMetric}<div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(listingWords(AVAILABILITY_WORDS, item.listingAvailability))}</strong><small>${escapeHtml(listingWords(FRESHNESS_WORDS, item.listingFreshness))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(pricePositionText)}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a><button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button></div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
+    return `<article class="panel customer-discovery-candidate${identityReview ? " customer-discovery-candidate-review" : ""}"><header class="panel-header"><div><span class="eyebrow">${eyebrow}</span><h2>${escapeHtml(item.title || item.cardIdentityQuery || "Active listing")}</h2><p>${escapeHtml(label)}</p></div><span class="customer-discovery-score"><strong>${escapeHtml(item.discoveryScore ?? 0)}</strong><small>Factor score</small></span></header><div class="panel-body"><div class="customer-discovery-metrics"><div><span>All-in ask</span><strong>${moneyFromCents(item.allInAskCents)}</strong><small>${item.allInCostComplete ? "Complete returned cost" : "Cost review required"}</small></div>${soldContextMetric}<div><span>Confidence context</span><strong>${escapeHtml(evidence.calibratedConfidence ?? 0)}/100</strong><small>Risk ${escapeHtml(evidence.risk ?? 0)}/100</small></div><div><span>Listing state</span><strong>${escapeHtml(listingWords(AVAILABILITY_WORDS, item.listingAvailability))}</strong><small>${escapeHtml(listingWords(FRESHNESS_WORDS, item.listingFreshness))}</small></div></div><div class="customer-discovery-copy"><p><strong>Price position:</strong> ${escapeHtml(pricePositionText)}</p>${rankingContext ? `<p><strong>Ranking context:</strong> ${escapeHtml(rankingContext)}</p>` : ""}<p><strong>Next action:</strong> ${escapeHtml(item.nextAction || "Verify the listing before evaluation.")}</p></div>${rankingDetails}<div class="customer-discovery-actions"><a class="button button-secondary" href="${escapeHtml(validHttpUrl(item.listingUrl) ? item.listingUrl : "#")}" target="_blank" rel="noopener noreferrer">Open listing</a>${identityReview ? '<span class="staging-status staging-status-verify" data-ff-evaluation-unavailable>Not eligible for evaluation</span>' : `<button class="button button-primary" type="button" data-discovery-evaluate="${index}" ${evaluateDisabled ? "disabled" : ""}>${state.evaluatingIndex === index ? "Evaluating…" : "Evaluate with Smart Opportunity"}</button>`}</div>${state.evaluationError && state.evaluationError.index === index ? evaluationErrorMarkup(state.evaluationError.error) : state.evaluationLimitReached ? allowanceNoteMarkup() : ""}${boundary}</div></article>`;
   }
 
   function resultsPanel() {
@@ -923,7 +962,7 @@
       ? `<details class="customer-discovery-identity-review"><summary>${identityReview.length} excluded provider result${identityReview.length === 1 ? "" : "s"} — identity not confirmed</summary><p>These results are visible for transparency, but they are not ranked with exact matches and cannot be evaluated as the searched card.</p>${identityReview.map(({ item, index }) => candidateCard(item, index, true)).join("")}</details>`
       : "";
     const exactLabel = `${exact.length} exact active candidate${exact.length === 1 ? "" : "s"}`;
-    return `<section class="customer-discovery-results" id="ff-discovery-results" tabindex="-1" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Open “Why this result is ranked here” to review the server-owned ranking factors when available.</span></div>${exactResults}${identityReviewResults}</section>`;
+    return `<section class="customer-discovery-results" id="ff-discovery-results" tabindex="-1" aria-label="Active discovery candidates"><div class="customer-discovery-summary"><strong>${escapeHtml(exactLabel)}</strong><span>Best candidate means best across currently connected sources—not the entire market. Open “Why this result is ranked here” to review the server-owned ranking factors when available.</span><small data-ff-ranking-order-note class="ff-ranking-order-note">Rank is not sorted by factor score alone. After eligibility, evidence support, confidence/risk, availability and freshness, FlipForge prefers the lower complete all-in ask before using factor score as a tie-breaker.</small></div>${exactResults}${identityReviewResults}</section>`;
   }
 
   const DRAFT_FIELDS = ["exactCardQuery", "targetMaxBuy", "limit"];
@@ -988,10 +1027,15 @@
 
   function renderCurrentMarkup() {
     if (state.health && state.health.status !== "configured") {
-      state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Find active listings across approved connected sources without treating asking prices as completed-sale evidence.</p></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Discover does not save or recommend a listing.</div><section class="panel"><div class="panel-body staging-empty"><strong>Discover is safely offline.</strong><p>The private-beta API bridge is disabled, so no provider search was attempted and no sample results were substituted.</p></div></section></div>`;
+      state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Find active listings across approved connected sources without treating asking prices as completed-sale evidence.</p></div></header><div class="boundary-note"><strong>Decision framework:</strong> Smart Opportunity provides the BUY/WATCH/VERIFY/PASS decision. Discover does not save or recommend a listing.</div><section class="panel"><div class="panel-body staging-empty"><strong>Discover is safely offline.</strong><p>The private-beta API bridge is disabled, so no provider search was attempted and no sample results were substituted.</p></div></section></div>`;
       return;
     }
-    state.main.innerHTML = `<div class="page customer-discovery-page"><header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Search approved active-listing sources, compare all-in asks against existing matched evidence context, then explicitly evaluate the listing you want FlipForge to judge.</p></div><div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved opportunities</a><a class="button button-secondary" href="#/evaluate">Manual evaluate</a></div></header><div class="boundary-note"><strong>Authority boundary:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${errorPanel()}${state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}${identityAssistPanel()}${searchPanel()}${state.data ? `${resultsPanel()}${providerPanel()}` : `${providerPanel()}${resultsPanel()}`}</div>`;
+    const beta = betaSurface();
+    const heading = beta
+      ? '<header class="page-heading"><div><span class="eyebrow">Discover</span><h1>Discover a Card</h1><p>Find and confirm your exact card first. Then select a listing for FlipForge to evaluate.</p></div></header>'
+      : '<header class="page-heading"><div><span class="eyebrow">Provider-backed market discovery</span><h1>Discover</h1><p>Search approved active-listing sources, compare all-in asks against existing matched evidence context, then explicitly evaluate the listing you want FlipForge to judge.</p></div><div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved opportunities</a><a class="button button-secondary" href="#/evaluate">Manual evaluate</a></div></header>';
+    const provider = beta ? "" : providerPanel();
+    state.main.innerHTML = `<div class="page customer-discovery-page">${heading}<div class="boundary-note"><strong>Decision framework:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${errorPanel()}${state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}${identityAssistPanel()}${searchPanel()}${state.data ? `${resultsPanel()}${provider}` : `${provider}${resultsPanel()}`}</div>`;
     bindActions();
   }
 
