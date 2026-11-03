@@ -142,29 +142,6 @@
     hero.insertAdjacentElement("afterend", panel);
   }
 
-  // "2026-10-08T17:55:16.566881179Z" -> "Oct 8, 2026" (UTC date). Anything that is not an ISO timestamp is kept as is.
-  function readableDate(value) {
-    const match = /^(\d{4})-(\d{2})-(\d{2})T[\d:.]+(?:Z|[+-]\d{2}:?\d{2})?$/.exec(String(value || "").trim());
-    if (!match) return value;
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const month = Number(match[2]);
-    return month >= 1 && month <= 12 ? `${months[month - 1]} ${Number(match[3])}, ${match[1]}` : value;
-  }
-
-  function simplifySavedState(root) {
-    const tracked = root.querySelector(".customer-tracked-state");
-    if (!tracked) return;
-    const strong = tracked.querySelector("strong");
-    const small = tracked.querySelector("small");
-    setText(strong, "Decision saved");
-    if (small && !/^Saved to your account/.test(text(small))) {
-      const original = text(small);
-      const raw = original.includes("·") ? original.split("·").slice(-1)[0].trim() : original;
-      const marker = readableDate(raw);
-      setText(small, marker ? `Saved to your account · ${marker}` : "Saved to your account");
-    }
-  }
-
   function promoteDecisionMeaning(root, decision, risk) {
     const copy = root.querySelector(".customer-intelligence-hero .customer-hero-copy");
     if (!copy) return;
@@ -229,7 +206,9 @@
     if (traceback) {
       if (traceback.id !== "ff-decision-details") traceback.id = "ff-decision-details";
       setText(traceback.querySelector(".panel-header h2"), "Decision details");
-      setText(traceback.querySelector(".panel-header p"), "How the saved decision was reached. No browser-side scoring.");
+      // Final wording: "browser-side" and "No local scoring" are rewritten by the copy layers, which alternated with
+      // this line on every frame (customer-professional-polish.js, beta-customer-flow-v2.js).
+      setText(traceback.querySelector(".panel-header p"), "How the saved decision was reached. No hidden re-scoring.");
     }
     if (evidence) {
       if (evidence.id !== "ff-evidence-chain") evidence.id = "ff-evidence-chain";
@@ -251,27 +230,12 @@
     });
   }
 
-  function simplifyList(root) {
-    if (root.querySelector(".customer-intelligence-hero")) return;
-    const heading = root.querySelector(".page-heading");
-    if (heading && /Opportunities/i.test(text(heading.querySelector("h1")))) {
-      setText(heading.querySelector("p"), "Saved decisions, value context, and evidence — all in one place.");
-    }
-    const list = root.querySelector(".customer-intelligence-list");
-    if (list) {
-      setText(list.querySelector(".panel-header h2"), "Saved decisions");
-      setText(list.querySelector(".panel-header p"), "Open a card to see the decision, value, risk, why, and evidence.");
-      setText(list.querySelector(".panel-header .staging-status"), "Saved");
-    }
-  }
-
   function apply() {
     if (state.applying) return;
     state.applying = true;
     try {
       const root = document.querySelector("#main-content .customer-intelligence-page");
       if (!root) return;
-      simplifyList(root);
       const hero = root.querySelector(".customer-intelligence-hero");
       if (!hero) return;
 
@@ -281,9 +245,7 @@
       clarifyRiskSemantics(root);
 
       if (hero.dataset.ffDecisionClarity !== "v1") hero.dataset.ffDecisionClarity = "v1";
-      setText(root.querySelector(".page-heading p"), "Decision, value, risk, why, and evidence — with deeper detail when you need it.");
 
-      simplifySavedState(root);
       promoteDecisionMeaning(root, decision, risk);
       const interactiveWhy = root.querySelector("[data-ff-cdi-stack], [data-ff-cdi-stack-host]");
       if (interactiveWhy) root.querySelector("[data-ff-decision-why]")?.remove();

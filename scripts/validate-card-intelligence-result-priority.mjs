@@ -37,7 +37,7 @@ const checks = [
   ["decision clarity is listed by both app pages", listedInEveryPage("customer-decision-clarity-v1.js") && listedInEveryPage("customer-decision-clarity-v1.css") && !scrollReset.includes("document.createElement")],
   ["first-value clarity is listed by both app pages", listedInEveryPage("customer-first-value-v1.js") && listedInEveryPage("customer-first-value-v1.css") && !scrollReset.includes("document.createElement")],
   ["prototype visual loader remains production-isolated", prototypeLoader.includes("if (production) return;") && !prototypeLoader.includes("customer-decision-clarity") && !prototypeLoader.includes("customer-first-value")],
-  ["decision clarity is presentation only", !clarity.includes("fetch(") && !clarity.includes("XMLHttpRequest") && clarity.includes("No browser-side scoring")],
+  ["decision clarity is presentation only", !clarity.includes("fetch(") && !clarity.includes("XMLHttpRequest") && clarity.includes("No hidden re-scoring")],
   ["first-value layer is presentation only", !firstValue.includes("fetch(") && !firstValue.includes("XMLHttpRequest") && !firstValue.includes("/api/")],
   ["decision clarity defines plain-language BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => clarity.includes(value))],
   ["first-value layer uses the same BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => firstValue.includes(value))],

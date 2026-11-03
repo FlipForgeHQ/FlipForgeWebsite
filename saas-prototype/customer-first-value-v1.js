@@ -65,10 +65,8 @@
 
   function decisionKeyAllowed(root) {
     const route = routeName();
-    // Tracking renders its own decision key (customer-lifecycle.js).
-    if (["dashboard", "forge-heat"].includes(route)) return true;
-    if (route === "opportunities" && !root.querySelector(".customer-intelligence-hero")) return true;
-    return false;
+    // Tracking, the Saved Decisions list and Forge Heat render their own decision key (their owners).
+    return route === "dashboard";
   }
 
   function installDecisionKey(root) {
@@ -91,7 +89,8 @@
   function annotateDecisionChips(root) {
     root.querySelectorAll(".staging-status, .status-pill").forEach(chip => {
       const decision = exactDecision(text(chip));
-      if (!decision) return;
+      // Chips rendered with their meaning already (Saved Decisions) are left as they are.
+      if (!decision || chip.dataset.ffDecision === decision) return;
       chip.dataset.ffDecision = decision;
       chip.title = DECISION_COPY[decision];
       chip.setAttribute("aria-label", `${decision}. ${DECISION_COPY[decision]}`);

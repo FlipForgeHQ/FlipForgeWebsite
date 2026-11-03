@@ -1,12 +1,7 @@
-/* FlipForge Beta Session v1
- * Presentation-only first-session simplification.
- * No decision, evidence, valuation, grading, persistence, provider,
- * transaction, or server authority is implemented here.
+/* FlipForge Beta Session v1: beta layout and type sizes only. It hides nothing; each screen's owner renders exactly what
+ * the beta surface offers. No decision, evidence, valuation, grading, persistence, provider, transaction, or server
+ * authority is implemented here.
  */
-
-html.ff-beta-session-v1 [data-ff-beta-session-hidden="true"] {
-  display: none !important;
-}
 
 /* The release-wide customer typography gate requires every visible label and helper
  * to render at 14px or larger. Keep the simplified beta flow readable on all widths. */

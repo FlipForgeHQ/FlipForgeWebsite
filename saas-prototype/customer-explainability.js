@@ -58,6 +58,8 @@
 
   function addDecisionExplainer() {
     if (!main.querySelector(".customer-intelligence-hero")) return;
+    // /app/beta does not offer this explainer on the saved decision (customer.html marks <html> ff-full-customer-app).
+    if (!document.documentElement.classList.contains("ff-full-customer-app") && /^#\/?opportunities\/[^/?#]+/.test(String(window.location.hash || ""))) return;
     if (main.querySelector("[data-intelligence-explainer]")) return;
     const grid = main.querySelector(".customer-intelligence-grid");
     if (!grid || !grid.parentNode) return;

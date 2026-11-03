@@ -36,7 +36,9 @@ check("L03 legacy evidence tile says withheld, not 0", js.includes('evidence.tru
 check("L04 legacy confidence is labelled as at the time", js.includes('"Confidence at the time"'));
 check("L05 decision card reads 'Saved BUY' hero chips", /replace\(\/\^SAVED\\s\+\/, ""\)/.test(js));
 check("L06 decision clarity reads 'Saved BUY' chips (no false 'has not returned a customer-facing decision')", /replace\(\/\^SAVED\\s\+\/, ""\)/.test(clarity));
-check("L07 saved date is shown as a date, not a raw ISO timestamp", clarity.includes("function readableDate(") && clarity.includes("readableDate(raw)"));
+// The saved date is rendered by the saved-decision owner (customer-opportunities.js) since 2026-11-03.
+const savedDecisionOwner = fs.readFileSync(new URL("../saas-prototype/customer-opportunities.js", import.meta.url), "utf8");
+check("L07 saved date is shown as a date, not a raw ISO timestamp", savedDecisionOwner.includes("function readableDate(") && savedDecisionOwner.includes("readableDate(item.observedAt)") && !savedDecisionOwner.includes("Tenant-owned saved record ·"));
 
 try {
   new Function(loader);
