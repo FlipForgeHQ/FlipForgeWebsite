@@ -9,7 +9,9 @@ const read = name => fs.readFileSync(path.join(root, name), "utf8");
 // The serial-number helper is part of the Discover owner (customer-discovery.js) since Nov 3 2026; the separate
 // discover-guided-entry-v1.js layer that inserted it into the form and intercepted submits was removed.
 const css = read("saas-prototype/discover-guided-entry-v1.css");
-const shell = read("saas-prototype/customer-only-shell-v1.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const shell = read("saas-prototype/index.html"); // the Private Beta top bar carries the "Discover a card" action
 const appIndex = read("saas-prototype/index.html");
 const discovery = read("saas-prototype/customer-discovery.js");
 const src = discovery;
@@ -71,7 +73,7 @@ assert.ok(guide.includes('phoneViewport() || privateBetaSurface()') &&
   !guide.includes("ff-guide-modal-backdrop") && !guide.includes("function showWelcome"),
   "Private Beta guide starts minimized and shows no popup");
 assert.ok(/data-route="discover"[^>]*>(?:<span[^>]*>.*?<\/span>)+Discover<\/a>/.test(appIndex) &&
-  shell.includes('href="#/discover">Discover a card') &&
+  shell.includes('href="#/discover" aria-label="Discover a card"') &&
   discovery.includes("<h1>Discover a Card</h1>"),
   "Dashboard and Discover naming agree");
 

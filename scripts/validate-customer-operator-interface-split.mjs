@@ -3,7 +3,9 @@ import fs from "node:fs";
 const read = path => fs.readFileSync(path, "utf8");
 const index = read("saas-prototype/index.html");
 const customer = read("saas-prototype/customer.html");
-const shellJs = read("saas-prototype/customer-only-shell-v1.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const shellJs = ""; // the legacy shell helper is deleted (asserted by check 014)
 const shellCss = read("saas-prototype/customer-only-shell-v1.css");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
 const operator = read("operator-beta.html");
@@ -26,14 +28,14 @@ check("003 customer code surface remains distinctly CUSTOMER APP", customer.incl
 check("004 definitive customer entry hosts the Private Beta Guide runtime", customer.includes('href="private-beta.css"') && customer.includes('src="private-beta.js"'));
 check("005 dedicated customer entry excludes legacy beta session runtime", !customer.includes('src="beta-session-v1.js"'));
 check("006 dedicated customer entry excludes legacy separate beta flow runtime", !customer.includes('src="beta-customer-flow-v2.js"'));
-check("007 Private Beta Guide is an onboarding route inside the customer shell", privateBeta.includes('const ROUTE = "beta-start"') && shellJs.includes('"beta-start"'));
+check("007 Private Beta Guide is an onboarding route inside the customer shell", privateBeta.includes('const ROUTE = "beta-start"') && customer.includes('src="private-beta.js"'));
 check("008 customer entry exposes Decision Intelligence", customer.includes('data-route="decision-intelligence"'));
 check("009 customer entry exposes Outcome Intelligence", customer.includes('data-route="tracking"') && customer.includes('Outcome Intelligence'));
 check("010 customer entry exposes Discover and Evaluate separately", customer.includes('data-route="discover"') && customer.includes('data-route="evaluate"'));
 check("011 advanced customer analysis remains mounted", customer.includes('<details class="ff-advanced-nav">'));
 check("012 customer app does not link to operator workspace", !customer.includes("operator-beta.html"));
 check("013 customer shell stylesheet is loaded", customer.includes('href="customer-only-shell-v1.css"'));
-check("014 customer shell runtime remains loaded", customer.includes('src="customer-only-shell-v1.js"'));
+check("014 no shell script rewrites the customer pages", !customer.includes('src="customer-only-shell-v1.js"') && !read("saas-prototype/index.html").includes('src="customer-only-shell-v1.js"'));
 // The beta menu is final in index.html; neither legacy helper edits the beta navigation (Nov 3 2026).
 check("015 legacy navigation helpers cannot turn beta into a second authoritative app", !shellJs.includes("primary-nav") && !read("saas-prototype/index.html").includes("mobile-navigation-stabilizer-v1.js") && !read("scripts/build-identity-client.mjs").includes("mobile-navigation-stabilizer-v1.js") && mobileNav.includes("FULL_CUSTOMER_ROUTES"));
 check("016 full customer CSS preserves advanced navigation", shellCss.includes("body.ff-full-customer-app .primary-nav > .ff-advanced-nav"));

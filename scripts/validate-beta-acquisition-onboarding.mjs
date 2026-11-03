@@ -61,7 +61,7 @@ const checks = [
   ["beta session milestone names are allowlisted server-side", sessionEvents.every(value => server.includes(`\"${value}\"`))],
   ["beta session runtime emits every approved milestone", sessionEvents.every(value => betaSession.includes(`emit(\"${value}\")`))],
   ["beta session telemetry payload contains only event page and placement", betaSession.includes("const body = JSON.stringify({ event, page: PAGE, placement: PLACEMENT });")],
-  ["beta session presentation files are loaded last", appIndex.includes('href="beta-session-v1.css"') && /customer-only-shell-v1\.js[\s\S]*beta-session-v1\.js[\s\S]*<\/body>/.test(appIndex)],
+  ["beta session presentation files are loaded last", appIndex.includes('href="beta-session-v1.css"') && /customer-cdi-signal-stack-v1\.js[\s\S]*beta-session-v1\.js[\s\S]*<\/body>/.test(appIndex)],
   ["beta session hides technical provider status and result-count control", betaSession.includes("Connected source status") && betaSession.includes("ffBetaHiddenControl") && betaSessionCss.includes("ff-beta-hidden-control")],
   ["beta primary action is explicit about searching listings", betaSession.includes('submit.textContent = "Search listings"') && betaSession.includes('Search active listings for the card entered') && !betaSession.includes('submit.textContent = "Find this card"')],
   ["identity assistant is labeled as optional identity verification", betaSession.includes('exact.textContent = "Check card identity"') && betaSession.includes('exact.setAttribute("aria-label", "Check card identity before searching listings")') && betaSession.includes("Not sure which version of the card you have?")],
