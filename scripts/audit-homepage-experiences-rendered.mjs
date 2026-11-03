@@ -75,6 +75,7 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
   check(`${name}: keyboard focus updates the Grading decision focus`,
     (await page.locator('[data-ff-persona-preview]').innerText()).includes('grading costs')
     && await page.locator('[data-ff-audience-target="grading"]').getAttribute('data-ff-persona-emphasis') === 'true');
+  await page.locator('[data-ff-audience-target="grading"]').click();
   await page.waitForTimeout(900);
   const audienceTop = await page.locator('#who-its-for').evaluate(e => Math.round(e.getBoundingClientRect().top));
   check(`${name}: hero audience links land at the section without hidden content`,
