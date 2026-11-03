@@ -72,7 +72,7 @@ check("032 lifecycle requires acquisition facts for ownership", lifecycle.includ
 check("033 lifecycle requires disposition facts for sold state", lifecycle.includes('return status === "SOLD"') && lifecycle.includes('name="dispositionProceeds"') && lifecycle.includes("sale details only after it is sold"));
 check("034 lifecycle keeps saved history visible", lifecycle.includes("Tracking history") && lifecycle.includes("customer-lifecycle-history"));
 check("035 alerts disclose external delivery boundary", lifecycle.includes("notificationDeliveryConfigured") && lifecycle.includes("Email / push"));
-check("036 portfolio refuses invented current value", portfolio.includes('data.currentValueType !== "EVIDENCE_SUPPORTED_REFERENCE_NOT_APPRAISAL"') && portfolio.includes("No browser-invented value or performance was substituted."));
+check("036 portfolio refuses invented current value", portfolio.includes('data.currentValueType !== "EVIDENCE_SUPPORTED_REFERENCE_NOT_APPRAISAL"') && portfolio.includes("No placeholder value or performance was substituted."));
 check("037 compare does not invent a winner", compare.includes("No browser-side score or winner is created") && compare.includes("does not rerank, rescore, or select a winner"));
 check("038 customer management retains evidence/PSA/sell boundaries", ["evidence", "psa-advisor", "sell"].every(route => management.includes(route)));
 check("039 Decision Dossier requires complete export", exportAdapter.includes("complete: true") && exportAdapter.includes("partialExport: false"));
