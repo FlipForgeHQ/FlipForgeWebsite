@@ -38,6 +38,15 @@ The actual `saas-prototype/index.html` entry loads **74 JavaScript files and 63 
 - New staging backup must contain and restore the two alert review/visit tables. Prior backup passed but predated the staging RC.
 - The pre-change #615 suite had failing CI; a preview being built does not indicate acceptance.
 
+
+## Root cause confirmed by the production-build browser audit
+
+On Nov 3 the `Customer Shell Brand Assurance` / `audit-customer-shell-settles-ci.mjs` check found **6,840 DOM mutations in a 3-second idle window** on phone across beta routes; desktop routes settled with zero mutations. Repeated attributes on the same navigation anchor: `hidden`, `aria-hidden`, `tabindex`, `data-ff-customer-core`.
+
+The source HTML inventory did **not** include the actual build-injected `mobile-navigation-stabilizer-v1.js`. `scripts/build-identity-client.mjs` added it at build time. That script had its own four-route beta manifest and competed with the shell's approved broader menu. This is the concrete mobile redraw source.
+
+Fix: retire the injection into **beta** at the build source (not via CSS hiding or JS override); retain the unique mobile Account link in `customer-only-shell-v1.js`, using the existing shell-owned menu and a single small CSS rule. `/app/customer` keeps its pre-existing explicit mobile stabilizer script. The source HTML inventory remains 74/63; the **built** beta no longer adds the competing stabilizer. Measure the same 3s–6s quiet interval and verify 0/stable before declaring fixed. Production is still NO-GO.
+
 ## Required measurements
 
 Run `scripts/journey/render-stability.mjs` against **original RC `3d88d3eb`**, **pre-consolidation `dcfae390`**, and this commit on matching Chromium, hardware, account data and routes. Each route needs an initial settle window and a six-second idle window. Compare mutation records, nodes, API requests, idle JavaScript milliseconds and main-thread milliseconds. Repeat desktop 1440px, tablet 820px and phone 390px.

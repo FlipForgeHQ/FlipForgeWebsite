@@ -42,6 +42,22 @@ body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {
   line-height: 1.2;
 }
 
+/* Mobile account shortcut is owned by the shell, not a second route manifest. */
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: 50px;
+  white-space: normal;
+}
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav > span:first-child {
+  width: 28px;
+  text-align: center;
+}
+
 body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] > span:first-child {
   position: static !important;
   width: 28px;

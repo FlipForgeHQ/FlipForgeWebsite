@@ -161,6 +161,9 @@
     const visible = new Set(manifest.routes);
 
     nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
+      // The mobile Account link has separate breakpoint ownership; never toggle it
+      // from the route manifest on every mutation observer pass.
+      if (link.classList.contains("ff-mobile-account-nav")) return;
       const route = String(link.dataset.route || "");
       if (visible.has(route)) showCoreLink(link, manifest.labels.get(route));
       else hideElement(link);
@@ -245,6 +248,33 @@
     nav.setAttribute("title", "Forge Heat — beta intelligence");
   }
 
+  // A prior build-injected mobile script used a competing four-route manifest.
+  // Keep only its unique Account shortcut here; the shell owns all beta routes.
+  function syncBetaMobileAccount(nav) {
+    if (fullCustomerMode()) return; // /app/customer retains its separate existing mobile behavior.
+    const mobile = window.matchMedia?.("(max-width: 760px)").matches === true;
+    let account = nav.querySelector(":scope > a.ff-mobile-account-nav");
+    if (!mobile) {
+      if (account) hideElement(account);
+      return;
+    }
+    if (!account) {
+      account = document.createElement("a");
+      account.href = "#/account";
+      account.dataset.route = "account";
+      account.className = "ff-mobile-account-nav";
+      account.setAttribute("aria-label", "Open account");
+      account.innerHTML = '<span aria-hidden="true">●</span>Account';
+      nav.appendChild(account);
+    }
+    showElement(account);
+    if (routeName() === "account") {
+      if (account.getAttribute("aria-current") !== "page") account.setAttribute("aria-current", "page");
+    } else if (account.hasAttribute("aria-current")) {
+      account.removeAttribute("aria-current");
+    }
+  }
+
   function simplifyNavigation() {
     const nav = document.querySelector(".primary-nav");
     if (nav) {
@@ -252,6 +282,7 @@
       restoreInteractiveNavigation();
       installNavigationIcons();
       prepareForgeHeatNavigation();
+      syncBetaMobileAccount(nav);
     }
   }
 
@@ -506,6 +537,7 @@
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);
     window.addEventListener("flipforge:identity-change", schedule);
+    window.addEventListener("resize", schedule);
     window.setTimeout(schedule, 120);
     window.setTimeout(schedule, 600);
     schedule();
