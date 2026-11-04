@@ -205,6 +205,20 @@
         && typeof window.FlipForgeCustomerManagement.handles === "function"
         && window.FlipForgeCustomerManagement.handles(route)
         && window.FlipForgeCustomerManagement.isEligible()) return;
+    // A route with an eligible authoritative owner is that owner's alone (staging-route-hook.js dispatches it). These
+    // prototype pages render only where no owner is eligible; otherwise a late animation-frame paint could replace the
+    // owner's page (seen on CI for #/account after the retired route-ownership guard was removed).
+    const eligible = owner => {
+      try { return Boolean(owner && typeof owner.isEligible === "function" && owner.isEligible()); } catch (_) { return false; }
+    };
+    const lifecycle = window.FlipForgeCustomerLifecycle;
+    const owners = {
+      account: eligible(window.FlipForgeCustomerEntitlements),
+      portfolio: eligible(window.FlipForgeCustomerPortfolio),
+      alerts: eligible(lifecycle) && typeof lifecycle.handles === "function" && lifecycle.handles("alerts"),
+      discover: eligible(window.FlipForgeCustomerDiscovery)
+    };
+    if (owners[route]) return;
 
     switch (route) {
       case "discover": renderDiscoverFull(); break;
