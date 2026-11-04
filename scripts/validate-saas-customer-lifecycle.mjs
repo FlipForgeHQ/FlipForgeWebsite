@@ -128,7 +128,7 @@ const decisionTimeline = {
   ]
 };
 
-function runtime({ hostname = "deploy-preview-36--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", timeline = decisionTimeline } = {}) {
+function runtime({ hostname = "deploy-preview-36--goflipforge.netlify.app", pathname = "/saas-prototype/", healthStatus = "configured", timeline = decisionTimeline, foreignDetail = false } = {}) {
   const calls = [];
   let uuid = 0;
   const window = { location: { hostname, pathname, hash: "#/tracking/opp-1" }, crypto: { randomUUID: () => `lifecycle-${++uuid}` } };
@@ -139,6 +139,8 @@ function runtime({ hostname = "deploy-preview-36--goflipforge.netlify.app", path
     if (url === "/api/v1/opportunities") return response(envelope(correlationId, { kind: "opportunities", items: [opportunity] }));
     if (url === "/api/v1/lifecycle") return response(envelope(correlationId, { kind: "lifecycle", sourceOfTruth: "SQLite", items: [lifecycle] }));
     if (url === "/api/v1/lifecycle/opp-1" && options.method === "GET") return response(envelope(correlationId, { kind: "lifecycle-detail", opportunityId: "opp-1", lifecycle, history: [], decisionTimeline: timeline }));
+    // A record outside this tenant's lifecycle list. Even if a server ever answered it, the page must not show it.
+    if (url === "/api/v1/lifecycle/opp-foreign" && options.method === "GET" && foreignDetail) return response(envelope(correlationId, { kind: "lifecycle-detail", opportunityId: "opp-foreign", lifecycle: { ...lifecycle, opportunityId: "opp-foreign", cardIdentity: "FOREIGN TENANT CARD" }, history: [], decisionTimeline: timeline }));
     if (url === "/api/v1/portfolio") return response(envelope(correlationId, { kind: "portfolio", configured: true, items: [] }));
     if (url === "/api/v1/alerts") return response(envelope(correlationId, { kind: "alerts", configured: true, items: [], notificationDeliveryConfigured: false }));
     throw new Error(`Unexpected request: ${url}`);
@@ -154,7 +156,9 @@ const preview = runtime();
 check("045 preview app eligible", preview.window.FlipForgeCustomerLifecycle.isEligible());
 check("046 preview tracking render activates", preview.window.FlipForgeCustomerLifecycle.render(preview.main, "tracking", "opp-1") === true);
 await settle();
-check("047 tracking reads health opportunities lifecycle detail", preview.calls.map(call => call.url).join(",") === "/api/v1/health,/api/v1/opportunities,/api/v1/lifecycle,/api/v1/lifecycle/opp-1");
+// Health first; then the card's history is requested together with the two lists (two round trips, not three).
+check("047 tracking reads health, then opportunities, lifecycle and the requested card's detail, each once", preview.calls[0]?.url === "/api/v1/health"
+  && preview.calls.map(call => call.url).slice(1).sort().join(",") === "/api/v1/lifecycle,/api/v1/lifecycle/opp-1,/api/v1/opportunities");
 check("048 tracking renders saved workflow state", preview.main.innerHTML.includes("WATCHING") && preview.main.innerHTML.includes("Lifecycle history"));
 check("049 tracking renders governed timeline", preview.main.innerHTML.includes("Decision Timeline") && preview.main.innerHTML.includes("T0 · Original saved decision") && preview.main.innerHTML.includes("Decision changed from VERIFY to WATCH."));
 check("050 timeline preserves supplied governed decisions", preview.main.innerHTML.includes("VERIFY") && preview.main.innerHTML.includes("WATCH") && preview.main.innerHTML.includes("Supported Value"));
@@ -198,6 +202,15 @@ check("063 delayed review completion does not clear a newer write lock",
   (adapter.match(/state.reviewSequence === reviewSequence/g) || []).length === 2);
 
 const failures = results.filter(result => !result.passed);
+// The card history is requested early, but shown only for a record in this tenant's own lifecycle list.
+for (const foreignDetail of [false, true]) {
+  const foreign = runtime({ foreignDetail });
+  foreign.window.FlipForgeCustomerLifecycle.render(foreign.main, "tracking", "opp-foreign");
+  await settle();
+  check(`047b a card outside the tenant's lifecycle list is refused, not shown (server ${foreignDetail ? "answers" : "refuses"})`,
+    !foreign.main.innerHTML.includes("FOREIGN TENANT CARD") && !foreign.main.innerHTML.includes("Decision Timeline") && /not returned for this tenant|could not|unavailable|not found/i.test(foreign.main.innerHTML));
+}
+
 console.log("SaaS customer lifecycle production validation");
 console.log(`PASSED: ${results.length - failures.length}`);
 console.log(`FAILED: ${failures.length}`);

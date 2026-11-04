@@ -581,6 +581,13 @@
       state.health = health;
       if (state.health?.data?.status !== "configured") return;
       if (route === "tracking") {
+        // A card's Tracking page (#/tracking/<id>) asks for that card's history together with the lists, so the
+        // Decision Timeline arrives in two round trips instead of three. The record is still used only if the tenant's
+        // own lifecycle list returns it (chooseId below); the server enforces tenant ownership of the request itself.
+        const requested = SAFE_ID.test(state.requestedId) ? state.requestedId : "";
+        const requestedDetail = requested
+          ? request(`/api/v1/lifecycle/${encodeURIComponent(requested)}`).then(value => ({ value }), error => ({ error }))
+          : null;
         const [opportunities, lifecycle] = await Promise.all([
           request("/api/v1/opportunities"),
           request("/api/v1/lifecycle")
@@ -596,7 +603,14 @@
         }
         state.selectedId = chooseId();
         if (state.selectedId) {
-          const detail = await request(`/api/v1/lifecycle/${encodeURIComponent(state.selectedId)}`);
+          let detail;
+          if (requestedDetail && state.selectedId === requested) {
+            const settled = await requestedDetail;
+            if (settled.error) throw settled.error;
+            detail = settled.value;
+          } else {
+            detail = await request(`/api/v1/lifecycle/${encodeURIComponent(state.selectedId)}`);
+          }
           if (!activeGeneration(generation, route)) return;
           state.detail = detail;
           if (state.detail?.data?.kind !== "lifecycle-detail" || String(state.detail?.data?.opportunityId || "") !== state.selectedId || !Array.isArray(state.detail?.data?.history)) {

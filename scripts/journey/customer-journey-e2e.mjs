@@ -170,8 +170,16 @@ try {
 
   // ---------------- What changed ----------------
   await step("What changed", async () => {
-    await go(page, `tracking/${encodeURIComponent(saved.strong.id)}`, 4000);
+    // Wait for the card's history (not a fixed pause), and record how long it took to appear after re-evaluation.
+    const started = Date.now();
+    await go(page, `tracking/${encodeURIComponent(saved.strong.id)}`, 0);
+    const appeared = await page.waitForFunction(() => /Saved decision 2/.test(document.querySelector("#main-content .customer-decision-timeline-panel")?.innerText || ""),
+      null, { timeout: 15000 }).then(() => true, () => false);
+    const elapsed = Date.now() - started;
+    notes.push(`Decision Timeline with the re-evaluation appeared in ${elapsed} ms`);
     const timeline = await page.evaluate(() => document.querySelector("#main-content .customer-decision-timeline-panel")?.innerText || "");
+    if (!appeared) notes.push(`Tracking page after 15 s: ${(await text(page)).slice(0, 400)}`);
+    check("W0 the card's Decision Timeline appears within 15 seconds of re-evaluating", appeared, `${elapsed} ms`);
     check("W1 history shows the original decision first, unchanged, and the re-evaluation", /T0 · Original saved decision/.test(timeline)
       && /Saved decision 2/.test(timeline) && /\$300\.00/.test(timeline), timeline.slice(0, 400));
     check("W2 what changed is in plain words, no ISO timestamps", /What changed/.test(timeline) && /ask/i.test(timeline) && !ISO.test(timeline));
