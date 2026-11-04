@@ -211,6 +211,15 @@ for (const foreignDetail of [false, true]) {
     !foreign.main.innerHTML.includes("FOREIGN TENANT CARD") && !foreign.main.innerHTML.includes("Decision Timeline") && /not returned for this tenant|could not|unavailable|not found/i.test(foreign.main.innerHTML));
 }
 
+// Audit export is offered in the full customer app only; the private beta (/app/beta) does not render it.
+for (const [pathname, offered] of [["/app/beta/", false], ["/app/customer/", true]]) {
+  const surface = runtime({ pathname });
+  surface.window.FlipForgeCustomerLifecycle.render(surface.main, "tracking", "opp-1");
+  await settle();
+  check(`047c Tracking ${offered ? "offers" : "does not offer"} Audit export on ${pathname}`, surface.main.innerHTML.includes("Decision Timeline")
+    && surface.main.innerHTML.includes(">Audit export</a>") === offered);
+}
+
 console.log("SaaS customer lifecycle production validation");
 console.log(`PASSED: ${results.length - failures.length}`);
 console.log(`FAILED: ${failures.length}`);

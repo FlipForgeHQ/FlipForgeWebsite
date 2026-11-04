@@ -7,6 +7,13 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+  // The full customer app is /app/customer (and the owner preview /owner/customer). Every other app path is the
+  // private-beta surface (/app/beta), which does not offer Audit export (the same as production before this release,
+  // where beta-session-v1.css hid the link; the owner now simply does not render it there).
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
+  function betaSurface() {
+    return !FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
+  }
   const SAFE_ALERT_ID = /^[a-f0-9]{64}$/;
   const ALERTS_SEEN_PATH = "/api/v1/alerts/last-seen";
   const ROUTES = new Set(["tracking", "portfolio", "alerts"]);
@@ -347,7 +354,7 @@
     const items = lifecycleItems();
     const due = items.filter(item => item.alertEnabled && item.reviewAt && new Date(item.reviewAt).getTime() <= Date.now()).length;
     const owned = items.filter(item => item.trackingStatus === "OWNED").length;
-    const actions = `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(state.selectedId || "")}">Card Intelligence</a>${state.selectedId ? `<a class="button button-secondary" href="#/evaluate/${encodeURIComponent(state.selectedId)}" data-lifecycle-reevaluate>Re-evaluate this listing</a>` : ""}<a class="button button-secondary" href="#/export/${encodeURIComponent(state.selectedId || "")}">Audit export</a><button class="button button-secondary" type="button" data-lifecycle-refresh>Refresh</button>`;
+    const actions = `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(state.selectedId || "")}">Card Intelligence</a>${state.selectedId ? `<a class="button button-secondary" href="#/evaluate/${encodeURIComponent(state.selectedId)}" data-lifecycle-reevaluate>Re-evaluate this listing</a>` : ""}${betaSurface() ? "" : `<a class="button button-secondary" href="#/export/${encodeURIComponent(state.selectedId || "")}">Audit export</a>`}<button class="button button-secondary" type="button" data-lifecycle-refresh>Refresh</button>`;
     if (!items.length) {
       return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Tracking", "Manage review timing and outcomes for tenant-owned saved decisions.", actions)}${boundary("Tracking state records customer workflow facts only. It cannot change Smart Opportunity, PSA guidance, or evidence eligibility.")}<section class="panel"><div class="panel-body staging-empty"><strong>No saved opportunity is available.</strong><p>Evaluate a card first; the authoritative result will create the tenant-owned tracking boundary.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></section></div>`;
     }
