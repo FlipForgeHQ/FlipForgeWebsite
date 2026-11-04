@@ -231,7 +231,10 @@ check("045 public marketing path is ineligible", marketing.window.FlipForgeCusto
 const disabled = runtime({ healthStatus: "disabled" });
 disabled.window.FlipForgeCustomerPortfolio.render(disabled.main);
 await settle();
-check("046 disabled gateway stops after health", disabled.calls.length === 1);
+// The service check and Portfolio's data are requested together (one round trip). The client check is not a security
+// boundary (the server authorizes every request); nothing from an unconfigured service is shown and nothing else follows.
+check("046 disabled gateway shows nothing from the data and makes no further requests", disabled.calls[0]?.url === "/api/v1/health"
+  && disabled.calls.length <= 3 && !/portfolio-holding|data-portfolio-attention-card/.test(disabled.main.innerHTML));
 check("047 disabled gateway renders no sample value", /safely offline/i.test(disabled.main.innerHTML) && !disabled.main.innerHTML.includes("$700.00"));
 
 const contaminated = runtime({ mutate: value => { value.items[0].referenceValue.activeListingsUsed = true; } });

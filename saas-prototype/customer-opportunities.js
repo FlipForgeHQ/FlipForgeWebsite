@@ -555,12 +555,20 @@
 
   async function loadList(serial, route) {
     state.selectedId = "";
-    const health = await request("/api/v1/health");
+    // The service check and the list are requested together (one round trip, not two); the list is used only if the
+    // service is configured. The server authorizes every request on its own.
+    const settle = promise => promise.then(value => ({ value }), error => ({ error }));
+    const healthRequest = settle(request("/api/v1/health"));
+    const listRequest = settle(Promise.all([request("/api/v1/dashboard"), request("/api/v1/opportunities")]));
+    const health = await healthRequest;
     if (serial !== loadSerial || routeKey() !== route) throw STALE;
-    state.health = health;
+    if (health.error) throw health.error;
+    state.health = health.value;
     if (state.health?.data?.status !== "configured") return;
-    const [dashboard, opportunities] = await Promise.all([request("/api/v1/dashboard"), request("/api/v1/opportunities")]);
+    const list = await listRequest;
     if (serial !== loadSerial || routeKey() !== route) throw STALE;
+    if (list.error) throw list.error;
+    const [dashboard, opportunities] = list.value;
     [state.dashboard, state.opportunities] = [dashboard, opportunities];
     if (state.opportunities?.data?.kind !== "opportunities" || !Array.isArray(state.opportunities?.data?.items)) {
       throw Object.assign(new Error("The saved opportunity list failed the customer contract."), { code: "OPPORTUNITIES_LIST_INVALID" });

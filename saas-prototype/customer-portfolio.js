@@ -681,13 +681,19 @@
     state.sales = null;
     state.alerts = null;
     renderCurrent({ mount });
+    // The service check and Portfolio's data are requested together (one round trip, not two); the data is used only
+    // if the service is configured. The server authorizes every request on its own.
+    const settle = promise => promise.then(value => ({ value }), error => ({ error }));
+    const healthRequest = settle(request("/api/v1/health"));
+    const dataRequest = settle(Promise.all([request("/api/v1/portfolio"), request("/api/v1/opportunities")]));
     try {
-      state.health = await request("/api/v1/health");
+      const health = await healthRequest;
+      if (health.error) throw health.error;
+      state.health = health.value;
       if (state.health?.data?.status !== "configured") return;
-      const [portfolio, opportunities] = await Promise.all([
-        request("/api/v1/portfolio"),
-        request("/api/v1/opportunities")
-      ]);
+      const data = await dataRequest;
+      if (data.error) throw data.error;
+      const [portfolio, opportunities] = data.value;
       if (!validPortfolio(portfolio)) {
         throw Object.assign(new Error("The Portfolio response failed the evidence-reference contract."), { code: "PORTFOLIO_REFERENCE_CONTRACT_INVALID" });
       }
