@@ -8,13 +8,13 @@
   border-bottom: 1px solid rgba(216,174,59,.18);
   background: #070b10;
   color: #9aa5af;
-  font-size: .64rem;
+  font-size: .875rem;
   letter-spacing: .02em;
 }
 
 .ff-core-platform-completion .prototype-banner strong {
   color: #e5bf55;
-  font-size: .62rem;
+  font-size: .875rem;
   letter-spacing: .11em;
 }
 
@@ -27,7 +27,7 @@
   display: block;
   margin: 15px 12px 5px;
   color: #66727e;
-  font-size: .55rem;
+  font-size: .875rem;
   font-weight: 850;
   letter-spacing: .14em;
   line-height: 1;
@@ -46,7 +46,7 @@
   border: 1px solid transparent;
   border-radius: 7px;
   color: #aab3bd;
-  font-size: .76rem;
+  font-size: .875rem;
   font-weight: 650;
 }
 
@@ -57,7 +57,7 @@
   width: 22px;
   min-width: 22px;
   color: #7d8995;
-  font-size: .72rem;
+  font-size: .875rem;
 }
 
 .ff-core-platform-completion .primary-nav a:hover,
@@ -126,7 +126,7 @@
 .ff-core-platform-completion .global-search kbd {
   min-width: 42px;
   color: #7f8b96;
-  font-size: .58rem;
+  font-size: .875rem;
   text-align: center;
 }
 

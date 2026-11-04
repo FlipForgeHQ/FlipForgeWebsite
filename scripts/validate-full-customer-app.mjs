@@ -17,13 +17,16 @@ const activeRedirects = redirects
   .map(line => line.trim())
   .filter(line => line && !line.startsWith("#"));
 const customer = read("saas-prototype/customer.html");
-const shell = read("saas-prototype/customer-only-shell-v1.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const shell = read("saas-prototype/customer-lifecycle.js"); // Outcome Intelligence owner
 const navigationParity = read("saas-prototype/customer-navigation-parity-v1.js");
 const css = read("saas-prototype/customer-only-shell-v1.css");
 const visualSystem = read("saas-prototype/customer-app-system-v2.css");
 const betaSession = read("saas-prototype/beta-session-v1.js");
 const mobileNav = read("saas-prototype/mobile-navigation-stabilizer-v1.js");
-const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
+// commercial-app-polish-v2.js was removed (Nov 3 2026); nothing may come back that rewrites the identity chip.
+const commercialPolish = fs.existsSync(new URL("../saas-prototype/commercial-app-polish-v2.js", import.meta.url)) ? read("saas-prototype/commercial-app-polish-v2.js") : "";
 const cockpitFinalUx = read("saas-prototype/cockpit-final-ux.js");
 const productionDashboardGuard = read("saas-prototype/production-dashboard-guard.js");
 const loginRedirect = read("saas-prototype/production-identity-login-redirect.js");
@@ -70,35 +73,23 @@ check(customer.includes('id="global-search-form"'), "customer document includes 
 check(customer.includes('class="icon-button notification-button"'), "customer document includes alerts access");
 check(customer.indexOf('src="production-dashboard-guard.js"') < customer.indexOf('src="app.js"'), "authoritative auth observer loads before customer app runtime");
 
-check(shell.includes('const FULL_CUSTOMER_PATH = /^\\/(?:app|owner)\\/customer(?:\\/|$)/i;'), "customer shell still recognizes full customer route");
-check(shell.includes('"why-this-decision", "evidence"'), "canonical customer shell includes Why This Decision and Evidence Review in the full route set");
-const orderedRouteTokens = [
-  '"dashboard"', '"discover"', '"evaluate"', '"decision-intelligence"', '"why-this-decision"', '"evidence"',
-  '"opportunities"', '"tracking"', '"portfolio"', '"alerts"', '"forge-heat"', '"market-view"'
-];
-const orderedRouteAnchor = shell.indexOf("const orderedRoutes = [");
-const orderedRouteEnd = shell.indexOf("];", orderedRouteAnchor);
-const orderedRouteBlock = orderedRouteAnchor >= 0 && orderedRouteEnd > orderedRouteAnchor
-  ? shell.slice(orderedRouteAnchor, orderedRouteEnd)
-  : "";
-let previousRoutePosition = -1;
-const lifecycleOrderValid = orderedRouteTokens.every(token => {
-  const position = orderedRouteBlock.indexOf(token, previousRoutePosition + 1);
-  if (position < 0) return false;
-  previousRoutePosition = position;
-  return true;
-});
-check(lifecycleOrderValid, "canonical customer shell preserves CDI lifecycle ordering");
-check(shell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "DEV customer shell reinforces customer identity");
-check(shell.includes("T7, T14, and T30"), "customer home explains governed outcome checkpoints");
+check(customer.includes('window.FlipForgeFullCustomerEntry=true') && customer.includes('class="ff-full-customer-app"'), "customer document still marks the full customer route");
+// The customer menu and chip are final in customer.html (Nov 3 2026); no shell script reorders or relabels them.
+const customerNav = (customer.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0];
+const customerNavRoutes = [...customerNav.matchAll(/data-route="([^"]+)"/g)].map(match => match[1]);
+check(customerNavRoutes.includes("why-this-decision") && customerNavRoutes.includes("evidence"), "canonical customer shell includes Why This Decision and Evidence Review in the full route set");
+check(customerNavRoutes.slice(0, 12).join(",") === "dashboard,discover,evaluate,decision-intelligence,why-this-decision,evidence,opportunities,tracking,portfolio,alerts,forge-heat,market-view", "canonical customer shell preserves CDI lifecycle ordering");
+check(customer.includes('<span class="prototype-chip">CUSTOMER APP</span>') && !shell.includes("prototype-chip"), "DEV customer shell reinforces customer identity");
+check(["T0", "T7", "T14", "T30"].every(checkpoint => shell.includes(`<b>${checkpoint}</b>`)), "customer app explains governed outcome checkpoints (Tracking owner)");
 check(betaSession.includes("&& !FULL_CUSTOMER_PATH.test(path);"), "beta session renderer still stands down on full customer route");
 check(navigationParity.includes('if (!FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) return;'), "navigation parity controller cannot run outside /app/customer");
 check(navigationParity.includes('const ADVANCED_ROUTES = new Set(["compare", "psa-advisor", "export"])'), "advanced customer navigation contains only supported routes");
 check(navigationParity.includes('const UNSUPPORTED_CUSTOMER_ROUTES = new Set(["sell"])') && navigationParity.includes("guardUnsupportedCustomerRoute"), "unsupported Exit Review fails closed");
-check(mobileNav.includes('"decision-intelligence", "why-this-decision", "evidence"') && mobileNav.includes('"portfolio", "alerts", "forge-heat", "market-view"'), "mobile full customer navigation retains the complete CDI route set");
+// One menu for every width: the customer.html markup (checked above); the mobile helper keeps no route list of its own.
+check(!mobileNav.includes("FULL_CUSTOMER_ROUTES") && !mobileNav.includes("PRIMARY_ROUTES") && customerNavRoutes.slice(0, 12).join(",") === "dashboard,discover,evaluate,decision-intelligence,why-this-decision,evidence,opportunities,tracking,portfolio,alerts,forge-heat,market-view", "mobile full customer navigation retains the complete CDI route set (one menu for every width)");
 check(!customer.includes('data-route="sell"'), "customer document removes unsupported Exit Review");
 check(mobileNav.includes('parts[0] === "decision-intelligence" && parts[1] === "why"') && mobileNav.includes('return "why-this-decision"'), "mobile active navigation distinguishes Why This Decision from Decision Intelligence");
-check(commercialPolish.includes('chip.textContent = customer ? "CUSTOMER APP" : production() ? "PRIVATE BETA" : "BETA PREVIEW"'), "commercial polish preserves DEV customer identity");
+check(!commercialPolish.includes("chip.textContent"), "commercial polish preserves DEV customer identity");
 check(cockpitFinalUx.includes('prototypeChip.textContent = customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit preserves DEV customer identity");
 
 check(loginRedirect.includes('a[href^="/production-auth.html"]'), "customer login interceptor covers feature-level auth links");

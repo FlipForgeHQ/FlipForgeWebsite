@@ -239,9 +239,27 @@
     bind(node);
   }
 
+
+  // The Tracking owner asks for this card's panel data as soon as it knows the card (in parallel with its own requests),
+  // so the panel does not wait for the page to render before it starts loading. Used once, for the same card, within 10 s.
+  let prefetched = null;
+  function prefetch(id) {
+    const card = String(id || "");
+    if (!eligibleHost() || state.featureOff || !SAFE_ID.test(card)) return;
+    if (prefetched && prefetched.id === card && Date.now() - prefetched.at < 10000) return;
+    const promise = request(`/api/v1/reported-sales/${encodeURIComponent(card)}`);
+    promise.catch(() => {});
+    prefetched = { id: card, at: Date.now(), promise };
+  }
+  function takePrefetched(card) {
+    const hit = prefetched && prefetched.id === card && Date.now() - prefetched.at < 10000 ? prefetched.promise : null;
+    prefetched = null;
+    return hit;
+  }
+
   async function load(generation) {
     try {
-      const payload = await request(`/api/v1/reported-sales/${encodeURIComponent(state.opportunityId)}`);
+      const payload = await (takePrefetched(state.opportunityId) || request(`/api/v1/reported-sales/${encodeURIComponent(state.opportunityId)}`));
       if (generation !== state.generation) return;
       state.data = payload;
       state.error = null;
@@ -429,11 +447,9 @@
     window.requestAnimationFrame(() => { scheduled = false; mount(); });
   }
 
-  if (typeof MutationObserver === "function" && document.body) {
-    new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
-  }
+  // No page-wide observer: the Tracking owner (customer-lifecycle.js) calls mount() after every render.
   window.addEventListener("hashchange", schedule);
   schedule();
 
-  window.FlipForgeReportedSales = Object.freeze({ isEligible: eligibleHost, mount, requestCount: () => state.requests });
+  window.FlipForgeReportedSales = Object.freeze({ isEligible: eligibleHost, mount, prefetch, requestCount: () => state.requests });
 })();

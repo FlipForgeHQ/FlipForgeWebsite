@@ -173,9 +173,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1200, height: 800
   check(`B01 ${label} Geist Sans on the V3 root`, /Geist Sans/.test(brand.font || "") && brand.geistLoaded, brand.font);
   check(`B02 ${label} black-first surface and white primary text`, brand.background === "rgb(7, 8, 10)" && brand.color === "rgb(255, 255, 255)", `${brand.background} ${brand.color}`);
   check(`B03 ${label} verdict Black 52/54, card title Bold 26 (treatment C), page heading Bold+`, brand.verdict === "52px/54px/900" && brand.title === "26px/700" && Number(brand.heading) >= 700, `${brand.verdict} ${brand.title} ${brand.heading}`);
-  // V3 CSS declares kickers at 11px; the existing customer typography floor (14px minimum,
-  // customer-typography-floor-v1.js) may raise them in the app shell. Both are accepted here.
-  check(`B04 ${label} section kickers Semibold uppercase silver (11px declared, shell floor <= 14px)`, /^(?:11|14)px\/600\/rgb\(136, 143, 152\)\/uppercase$/.test(brand.kicker || ""), brand.kicker);
+  // Kickers are declared at the 14px customer typography floor (decision-dashboard-v3.css; customer-typography.css).
+  check(`B04 ${label} section kickers Semibold uppercase silver (14px customer floor)`, /^14px\/600\/rgb\(136, 143, 152\)\/uppercase$/.test(brand.kicker || ""), brand.kicker);
   check(`B05 ${label} no raw server enum codes`, !RAW_ENUM.test(await page.locator("[data-decision-dashboard-v3]").innerText()));
   check(`B06 ${label} 'Not established' never breaks mid-word`, (await midWordBreaks(page, "established")) === 0);
   check(`B07 ${label} exactly one visible Evaluate action in the header area`, (await visibleEvaluateActions(page)) === 1, String(await visibleEvaluateActions(page)));

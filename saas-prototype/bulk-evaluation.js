@@ -296,7 +296,7 @@
       error.status = response.status;
       throw error;
     }
-    if (!validEnvelope(body, requestCorrelationId, requestId)) throw new Error("Evaluation response failed the FlipForge authority and tenant-ownership contract.");
+    if (!validEnvelope(body, requestCorrelationId, requestId)) throw new Error("The evaluation response failed FlipForge's validation checks.");
     return body;
   }
 
@@ -325,7 +325,7 @@
     if (!panel) return;
     panel.innerHTML = `
       <header class="panel-header">
-        <div><h2>Bulk Evaluate</h2><p>Upload up to ${MAX_ROWS} listings. Each row is sent through the same tenant-scoped Smart Opportunity evaluation used above.</p></div>
+        <div><h2>Bulk Evaluate</h2><p>Upload up to ${MAX_ROWS} listings. Each row is sent through the same account-specific Smart Opportunity evaluation used above.</p></div>
         <span class="bulk-count">${state.rows.length ? `${state.rows.length}/${MAX_ROWS}` : `0/${MAX_ROWS}`}</span>
       </header>
       <div class="panel-body bulk-body">
@@ -345,16 +345,12 @@
     bindPanel(panel);
   }
 
+  // The Evaluate owner (staging-evaluation.js) renders the empty [data-bulk-evaluation] container where Bulk Evaluate
+  // is offered (not while re-evaluating one saved decision) and calls mount(); this sub-panel fills only that container.
   function mount() {
     if (!eligibleHost() || !isEvaluateRoute()) return;
-    const page = document.querySelector(".customer-evaluation-page");
-    if (!page || page.querySelector("[data-bulk-evaluation]")) return;
-    const panel = document.createElement("section");
-    panel.className = "panel bulk-evaluation-panel";
-    panel.setAttribute("data-bulk-evaluation", "");
-    const boundary = page.querySelector(".boundary-note");
-    if (boundary && boundary.nextSibling) boundary.parentNode.insertBefore(panel, boundary.nextSibling);
-    else page.appendChild(panel);
+    const panel = document.querySelector(".customer-evaluation-page [data-bulk-evaluation]");
+    if (!panel || panel.childElementCount) return;
     ensureStyles();
     renderPanel();
   }
@@ -459,7 +455,7 @@
         row.confidence = Number.isFinite(Number(decision.confidence)) ? `${Number(decision.confidence)}/100` : "—";
         row.risk = Number.isFinite(Number(decision.risk)) ? `${Number(decision.risk)}/100` : "—";
         row.opportunityId = String(data.opportunityId || "");
-        row.message = `${decision.exactTrustedCompCount ?? 0} accepted exact comp${Number(decision.exactTrustedCompCount) === 1 ? "" : "s"} · saved to SQLite`;
+        row.message = `${decision.exactTrustedCompCount ?? 0} accepted exact comp${Number(decision.exactTrustedCompCount) === 1 ? "" : "s"} · saved to your account`;
       } catch (error) {
         row.status = "ERROR";
         row.message = `${error.code ? `${error.code}: ` : ""}${error.message || "Evaluation failed."}`;
@@ -489,9 +485,7 @@
     });
   }
 
-  const observer = new MutationObserver(() => mount());
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-  window.addEventListener("hashchange", () => setTimeout(mount, 0));
+  window.FlipForgeBulkEvaluation = Object.freeze({ mount });
   window.addEventListener("DOMContentLoaded", mount);
   setTimeout(mount, 0);
 })();

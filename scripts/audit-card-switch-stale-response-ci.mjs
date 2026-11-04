@@ -201,7 +201,8 @@ async function onScreen(page) {
 async function waitCard(page, id, timeout = 15_000) {
   await page.waitForFunction(title => document.querySelector("#main-content .customer-intelligence-hero h2")?.textContent.trim() === title, cards[id].title, { timeout });
 }
-const money = value => `$${Number(value).toLocaleString("en-US")}`;
+// Saved asking prices retain cents; never round silently in the acceptance check.
+const money = value => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value));
 const isCard = (shown, id) => Boolean(shown) && shown.title === cards[id].title && shown.verdict === cards[id].recommendation && shown.ask === money(cards[id].ask);
 
 try {

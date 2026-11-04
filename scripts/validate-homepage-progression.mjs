@@ -206,17 +206,22 @@ requireAll('Phase 4 receipt interaction behavior',phase2Js,[
 requireAll('homepage marketing navigation',homepage,['>Product</a>','>Decision Intelligence</a>','>Evidence Lab</a>','>About</a>','>Request Beta Access</a>']);
 for(const page of [product,learn,beta,pricing])requireAll('marketing navigation',page,['>Evidence Lab</a>','>Launch Plans</a>','>About</a>','>Request Beta Access</a>']);
 
-for(const core of ['dashboard','discover','evaluate','opportunities','tracking','portfolio'])requireText('app core workflow',app,`data-route="${core}"`);
-requireText('app advanced analysis',app,'<details class="ff-advanced-nav">');
-for(const advanced of ['compare','psa-advisor','evidence','export'])requireText('app advanced routes',app,`data-route="${advanced}"`);
+// Private Beta navigation (founder decision, Nov 3 2026): exactly these destinations, in this order, in the markup.
+// Evaluate, Compare, PSA Advisor, Evidence, Export and Market View stay in the customer app (customer.html).
+const betaNavRoutes=[...(app.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/)||[''])[0].matchAll(/data-route="([^"]+)"/g)].map(match=>match[1]);
+if(betaNavRoutes.join(',')!=='dashboard,discover,evaluate,opportunities,tracking,alerts,portfolio,forge-heat,account')failures.push(`app beta navigation: unexpected routes ${betaNavRoutes.join(',')}`);
+const customerApp=read('saas-prototype/customer.html');
+for(const core of ['dashboard','discover','evaluate','opportunities','tracking','portfolio'])requireText('customer app core workflow',customerApp,`data-route="${core}"`);
+requireText('customer app advanced analysis',customerApp,'<details class="ff-advanced-nav">');
+for(const advanced of ['compare','psa-advisor','evidence','export'])requireText('customer app advanced routes',customerApp,`data-route="${advanced}"`);
 if(productionBuild){
   forbidText('production staging route',app,'data-route="staging"');
   forbidText('production staging evaluate route',app,'data-route="staging-evaluate"');
   forbidText('production staging read adapter',app,'src="staging-browser.js"');
   forbidText('production staging stylesheet',app,'href="staging-browser.css"');
 }else{
-  requireText('staging hidden',app,'data-route="staging" class="staging-only-nav" hidden');
-  requireText('staging evaluate hidden',app,'data-route="staging-evaluate" class="staging-only-nav" hidden');
+  // Staging diagnostics are not offered in the Private Beta navigation on any host.
+  forbidText('beta staging route',app,'data-route="staging"');
 }
 
 requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v26'","'/decision-proof.html'","'/assets/css/homepage-v10.css'","'/assets/js/homepage-v10.js'","'/assets/js/site.js'"]);

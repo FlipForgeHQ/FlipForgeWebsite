@@ -84,7 +84,7 @@ textarea {
   top: -.45em;
   margin-left: .18em;
   color: var(--ff-gold);
-  font-size: .42em;
+  font-size: max(14px, .42em);
   font-weight: 600;
   letter-spacing: 0;
 }
@@ -92,7 +92,7 @@ textarea {
 .brand-subtitle {
   margin-top: 7px;
   color: var(--ff-gold);
-  font-size: 8px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: .19em;
   line-height: 1.25;
@@ -123,7 +123,7 @@ textarea {
 
 @media (max-width: 1180px) {
   .brand-name { font-size: 18px; }
-  .brand-subtitle { font-size: 7px; }
+  .brand-subtitle { font-size: 14px; }
 }
 
 @media (max-width: 640px) {

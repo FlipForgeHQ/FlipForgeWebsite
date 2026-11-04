@@ -200,8 +200,11 @@ const P = "[data-sell-watch-panel]";
   const wording = (await text(page, P)).replace(/Sell Watch/g, "");
   check("B11 the panel gives no instruction or claim", !INSTRUCTION.test(wording), (wording.match(INSTRUCTION) || [""])[0]);
   // The lifecycle form re-renders the page after a save (for example a new purchase cost): the panel reloads its card
-  // facts and must not keep showing a comparison computed from the old ones.
-  await page.evaluate(sel => document.querySelector(sel)?.remove(), P);
+  // facts and must not keep showing a comparison computed from the old ones. The Tracking owner (customer-lifecycle.js)
+  // mounts the panel after each of its renders, so trigger a real Tracking re-render and wait for the new panel.
+  const oldPanel = await page.$(P);
+  await page.evaluate(() => window.FlipForgeCustomerLifecycle.refresh());
+  await page.waitForFunction(node => !node.isConnected, oldPanel, { timeout: 20000 });
   await page.waitForSelector(`${P}:not([hidden]) [data-sell-watch-price-form]`, { timeout: 20000 });
   check("B17 reloading the card's facts drops the earlier estimate", await page.locator(`${P} [data-sell-watch-result]`).count() === 0);
   check("B12 no page errors or browser dialogs", errors.length === 0, errors.join(" | "));

@@ -6,6 +6,7 @@ on:
       - "saas-prototype/customer-billing-portal.js"
       - "saas-prototype/customer-entitlements.js"
       - "saas-prototype/index.html"
+      - "saas-prototype/customer.html"
       - "scripts/validate-saas-paddle-customer-portal.mjs"
       - "package.json"
       - "netlify.toml"
@@ -37,6 +38,7 @@ jobs:
           set -euo pipefail
           portal=saas-prototype/customer-billing-portal.js
           index=saas-prototype/index.html
+          customer=saas-prototype/customer.html
 
           grep -q 'sandbox-customer-portal.paddle.com' "$portal"
           grep -q 'customer-portal.paddle.com' "$portal"
@@ -45,6 +47,8 @@ jobs:
           grep -q 'portalLinksCachedByFlipForge !== false' "$portal"
           grep -q 'billingChangesAppliedByFlipForge !== false' "$portal"
           grep -q 'customerPlanChangeAllowed !== false' "$portal"
-          grep -q 'src="customer-billing-portal.js"' "$index"
+          # Billing portal access is offered in the full customer app; the Private Beta page has no billing (founder decision).
+          grep -q 'src="customer-billing-portal.js"' "$customer"
+          ! grep -q 'src="customer-billing-portal.js"' "$index"
 
           ! grep -Eiq 'FLIPFORGE_PADDLE_(API_KEY|WEBHOOK_SECRET|CUSTOMER_PORTAL_URL)|X-FlipForge-(Tenant|User)-Id|cardNumber|cvv|bankAccount|paymentToken' "$portal"

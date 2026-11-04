@@ -51,7 +51,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["038 evaluation cannot verify evidence or identity", adapter.includes("data.requestCanVerifyEvidence === false") && adapter.includes("data.requestCanVerifyIdentity === false")],
   ["039 evaluation cannot recalculate PSA", adapter.includes("data.psaRecalculated === false")],
   ["040 evaluation cannot authorize transaction", adapter.includes("data.transactionAuthorized === false")],
-  ["041 UI labels Discovery score not decision", adapter.includes("Discovery score") && adapter.includes("this score is not BUY/WATCH/VERIFY/PASS")],
+  ["041 UI labels Discovery score not decision", adapter.includes("<small>Factor score</small>") && adapter.includes("this score is not BUY/WATCH/VERIFY/PASS")],
   ["042 UI labels active listing not sold comp", adapter.includes("This active listing is not a sold comp")],
   ["043 no automated purchase controls", !/Place bid|Buy now|Checkout|Pay now|Accept offer|Create listing/.test(adapter)],
   ["044 gateway allowlists Discover POST", gateway.includes('{ method: "POST", pattern: /^\\/api\\/v1\\/discover$/ }')],

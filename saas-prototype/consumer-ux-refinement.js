@@ -16,7 +16,6 @@
     ["Saved opportunity authority", "Card intelligence"],
     ["Opportunity detail", "Card intelligence"],
     ["Tenant-owned saved intelligence", "Saved intelligence"],
-    ["Completed evaluation snapshot", "Saved evaluated card"],
     ["Engine", "Model"],
     ["SQLite saved", "Saved"],
     ["Tracked in SQLite", "Tracked"],
@@ -43,15 +42,6 @@
 
   function setHtml(node, value) {
     if (node && node.innerHTML !== value) node.innerHTML = value;
-  }
-
-  function setBrand() {
-    if (document.title !== "FlipForge | Card Decision Intelligence") document.title = "FlipForge | Card Decision Intelligence";
-    const description = document.querySelector('meta[name="description"]');
-    if (description && description.getAttribute("content") !== "FlipForge private-beta card decision intelligence platform.") {
-      description.setAttribute("content", "FlipForge private-beta card decision intelligence platform.");
-    }
-    setText(document.querySelector(".brand-subtitle"), "CARD DECISION INTELLIGENCE");
   }
 
   function replaceLeafCopy(root) {
@@ -88,20 +78,6 @@
     );
   }
 
-  function refineForgeHeat(root) {
-    const shell = root.querySelector(".forge-heat-shell");
-    if (!shell) return;
-
-    const isDevelopment = shell.classList.contains("forge-heat-development");
-    setText(shell.querySelector(".forge-heat-title-row .eyebrow"), isDevelopment ? "In development" : "Forge Heat");
-    setText(shell.querySelector(".forge-heat-boundary small"), isDevelopment
-      ? "Not available in private beta"
-      : "Ranks saved evaluations · Decision support only");
-    shell.querySelectorAll(".forge-heat-card-foot > span").forEach(node => {
-      setText(node, "Forge Heat prioritizes the opportunity. Smart Opportunity remains the saved recommendation.");
-    });
-  }
-
   function refineErrorPanels(root) {
     root.querySelectorAll('.staging-error[role="alert"] .panel-body > strong').forEach(node => {
       const current = node.textContent.trim();
@@ -109,19 +85,25 @@
     });
   }
 
+  // Replace only the technical sentence itself. Rewriting the whole alert deleted its Retry / Sign in controls
+  // and its error reference.
   function sanitizeDiagnostics(root) {
-    root.querySelectorAll('.card-intelligence-error, .forge-heat-error, [role="alert"]').forEach(node => {
-      if (diagnosticPattern.test(node.textContent || "")) {
-        setText(node, "This intelligence view is temporarily unavailable. Try again.");
-      }
+    root.querySelectorAll('.card-intelligence-error, [role="alert"]').forEach(node => {
+      const leaves = [...node.querySelectorAll("p, small, span, strong")].filter(leaf => !leaf.querySelector("a, button, input, select, textarea"));
+      const targets = leaves.length ? leaves : (node.querySelector("a, button, input, select, textarea") ? [] : [node]);
+      targets.forEach(leaf => {
+        if (diagnosticPattern.test(leaf.textContent || "")) setText(leaf, "This intelligence view is temporarily unavailable. Try again.");
+      });
     });
   }
 
   function markCustomerStates(root) {
-    root.querySelectorAll(".forge-heat-empty, .staging-empty").forEach(node => node.classList.add("consumer-state", "consumer-state-empty"));
-    root.querySelectorAll(".staging-loading").forEach(node => node.classList.add("consumer-state", "consumer-state-loading"));
-    root.querySelectorAll(".card-intelligence-message").forEach(node => node.classList.add("consumer-state"));
-    root.querySelectorAll('.card-intelligence-error, .forge-heat-error, .staging-error[role="alert"]').forEach(node => node.classList.add("consumer-state", "consumer-state-error"));
+    // Owners that already render these classes (Saved Decisions, Portfolio, Forge Heat) are left untouched.
+    const mark = (node, ...classes) => { if (!classes.every(name => node.classList.contains(name))) node.classList.add(...classes); };
+    root.querySelectorAll(".staging-empty").forEach(node => mark(node, "consumer-state", "consumer-state-empty"));
+    root.querySelectorAll(".staging-loading").forEach(node => mark(node, "consumer-state", "consumer-state-loading"));
+    root.querySelectorAll(".card-intelligence-message").forEach(node => mark(node, "consumer-state"));
+    root.querySelectorAll('.card-intelligence-error, .staging-error[role="alert"]').forEach(node => mark(node, "consumer-state", "consumer-state-error"));
 
     root.querySelectorAll(".staging-status").forEach(node => {
       const raw = node.textContent.trim().toUpperCase();
@@ -133,11 +115,14 @@
   }
 
   function apply() {
-    setBrand();
+    // Tracking and Alerts (customer-lifecycle.js) render their final copy and state classes themselves.
+    if (main.querySelector(":scope > .customer-lifecycle-page")) {
+      document.documentElement.classList.add("consumer-ux-ready");
+      return;
+    }
     replaceLeafCopy(main);
     refineBoundaryNotes(main);
     refineCardIdentity(main);
-    refineForgeHeat(main);
     refineErrorPanels(main);
     sanitizeDiagnostics(main);
     markCustomerStates(main);

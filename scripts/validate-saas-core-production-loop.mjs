@@ -50,8 +50,10 @@ check("023 Card Intelligence fixed list routes are read-only", ["/api/v1/health"
 check("024 Card Intelligence detail families are allowlisted", opportunities.includes("(opportunities|evidence|psa-advisor)"));
 check("025 Card Intelligence validates Smart Opportunity authority", opportunities.includes('meta.authority === "Smart Opportunity"'));
 check("026 Card Intelligence validates PSA authority", opportunities.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
-check("027 Card Intelligence shows Decision Traceback without conflating provider mapping and exact identity", opportunities.includes("Decision Traceback") && opportunities.includes("1 · Provider catalog link") && opportunities.includes("2 · Evidence") && opportunities.includes("4 · Authority output") && !opportunities.includes('mappingConfirmed ? "Exact identity confirmed" : "Identity needs verification"'));
-check("028 Card Intelligence shows Evidence Chain", opportunities.includes("Evidence Chain") && opportunities.includes("acceptedExactCompletedSales"));
+// Customer names since the consolidation (Nov 3 2026): "Decision details" (the traceback), "4 · Decision" and
+// "Evidence" (the evidence chain), rendered by the owner instead of being renamed afterwards.
+check("027 Card Intelligence shows Decision Traceback without conflating provider mapping and exact identity", opportunities.includes("<h2>Decision details</h2>") && opportunities.includes("1 · Provider catalog link") && opportunities.includes("2 · Evidence") && opportunities.includes("4 · Decision") && !opportunities.includes('mappingConfirmed ? "Exact identity confirmed" : "Identity needs verification"'));
+check("028 Card Intelligence shows Evidence Chain", opportunities.includes('id="ff-evidence-chain"') && opportunities.includes("<h2>Evidence</h2>") && opportunities.includes("acceptedExactCompletedSales"));
 check("029 Card Intelligence keeps core next actions while advanced workflow remains routed", opportunities.includes("#/opportunities") && opportunities.includes("#/tracking/") && routeHook.includes('route === "compare"') && routeHook.includes("compareAdapter.render") && routeHook.includes("lifecycleAdapter.handles") && routeHook.includes("exportAdapter.handles"));
 check("030 Card Intelligence explicitly has no execution authority", opportunities.includes("No bid, checkout, payment, evidence acceptance, or grade prediction is authorized"));
 

@@ -83,14 +83,19 @@ try {
     await page.close();
   }
 
+  // Saved decision page (Nov 3 2026): the passport is composed by the page's owner (customer-opportunities.js) from the
+  // saved record, so no heading is read there. Whatever headings an older page carries, the layer must not insert or
+  // scrape anything on it, and the passport it is given shows the record's count with the current customer label.
   for (const [variant, metricLabel] of [["current", "Matched sales"], ["original", "Accepted exact sales"], ["legacy", "Trusted sales"]]) {
     const { page, errors } = await render(browser, "http://flipforge.test/app/beta/#/opportunities/EBAY-QA-1",
       savedDecisionPage(metricLabel), [cardScript]);
-    const accepted = await page.evaluate(() => {
-      const panel = document.querySelector("[data-ff-decision-card-evidence]");
-      return panel ? JSON.parse(panel.dataset.ffDecisionCardSignature || "[]")[4] ?? null : null;
+    const state = await page.evaluate(() => {
+      const inserted = Boolean(document.querySelector("[data-ff-decision-card-evidence]"));
+      const markup = window.FlipForgeDecisionCardEvidenceV1?.markup?.({ decision: "WATCH", identity: "2018 Topps Chrome Shohei Ohtani #150 PSA 9", why: "Saved reason.", change: "Next step.", accepted: "7 at decision", excluded: "Unavailable", ask: "$640", supportedValue: "$813", confidence: "82/100", risk: "35/100", exactIdentity: "Needs review", legacy: false, economics: {}, observed: "Saved to your account", evidenceHref: "#/evidence/EBAY-QA-1", trackingHref: "#/tracking/EBAY-QA-1", receiptMode: "reference" }) || "";
+      return { inserted, shows: markup.includes("<strong>7 at decision</strong>"), trusted: /Trusted|Trustworthy/.test(markup) };
     });
-    check(`Saved decision (${variant} metric "${metricLabel}"): Decision Card reads the accepted count`, accepted === "7", JSON.stringify(accepted));
+    check(`Saved decision (${variant} metric "${metricLabel}"): page is left to its owner and the passport shows the record's count`,
+      !state.inserted && state.shows && !state.trusted, JSON.stringify(state));
     check(`Saved decision (${variant} metric): no page errors`, errors.length === 0, errors.join(" | "));
     await page.close();
   }

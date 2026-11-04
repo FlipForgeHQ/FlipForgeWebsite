@@ -19,9 +19,12 @@ expect(index.includes('href="consumer-ux-refinement.css"'), "consumer UX stylesh
 expect(index.includes('src="consumer-ux-refinement.js"'), "consumer UX script is mounted");
 expect(index.includes('src="customer-professional-polish.js"'), "professional polish script is mounted");
 
-expect(ux.includes('"CARD DECISION INTELLIGENCE"'), "runtime brand normalization uses Card Decision Intelligence");
+expect(!ux.includes(".brand-subtitle") && index.includes('<span class="brand-subtitle">CARD DECISION INTELLIGENCE</span>'), "runtime brand normalization uses Card Decision Intelligence");
 expect(ux.includes('"Identity intelligence"'), "identity heading uses current customer-facing intelligence language");
-expect(polish.includes('"Beta intelligence · In development"'), "Forge Heat hero uses current beta intelligence language");
+// Forge Heat renders its own final heading and scope (customer-forge-heat.js) since 2026-11-03; no layer rewrites them.
+const forgeHeat = fs.readFileSync(new URL("../saas-prototype/customer-forge-heat.js", import.meta.url), "utf8");
+expect(forgeHeat.includes('const EYEBROW = "Beta intelligence";') && !forgeHeat.includes("PRO INTELLIGENCE"), "Forge Heat hero uses current beta intelligence language");
+expect(!polish.includes(".forge-heat-title-row .eyebrow") && !ux.includes(".forge-heat-title-row .eyebrow") && !ux.includes(".forge-heat-boundary small"), "no copy layer rewrites the Forge Heat eyebrow or scope line (they alternated every frame)");
 expect(
   ux.includes('["Tenant-owned saved intelligence", "Saved intelligence"]') ||
     polish.includes('["Tenant-owned saved intelligence", "Saved intelligence"]'),
@@ -44,13 +47,13 @@ expect(ux.includes('"How this works:"'), "customer authority boundary uses custo
 expect(ux.includes('"We couldn\'t complete that request."'), "raw internal alert codes receive a customer-safe heading");
 expect(ux.includes('"This intelligence view is temporarily unavailable. Try again."'), "technical diagnostics have a customer-safe error fallback");
 expect(
-  polish.includes('"Saved-evaluation beta · Decision support only"') ||
-    ux.includes('"Ranks saved evaluations · Decision support only"'),
+  forgeHeat.includes("<small>Ranks saved evaluations · Not market-wide yet · Decision support only</small>") && !forgeHeat.includes("No browser-side scoring"),
   "Forge Heat scope is concise and customer-safe"
 );
-expect(polish.includes('setText(state, "BETA")'), "Forge Heat navigation is labeled as beta rather than a paid entitlement");
-expect(polish.includes('nav.removeAttribute("aria-disabled")'), "Forge Heat interactive navigation remains enabled");
-expect(polish.includes('const alerts = nav.querySelector(\'[data-route="alerts"]\')'), "Alerts navigation remains restored");
+// Navigation is final in the page markup (Nov 3 2026).
+expect(index.includes('Forge Heat <span class="forge-nav-state">BETA</span>'), "Forge Heat navigation is labeled as beta rather than a paid entitlement");
+expect(!/data-route="forge-heat"[^>]*aria-disabled/.test(index), "Forge Heat interactive navigation remains enabled");
+expect(/<a href="#\/alerts" data-route="alerts"(?![^>]*hidden)/.test(index), "Alerts navigation remains restored");
 expect(ux.includes("function setText"), "DOM copy writes are idempotent");
 expect(ux.includes("let scheduled = false"), "mutation-driven refinement is requestAnimationFrame throttled");
 expect(!ux.includes("fetch(") && !polish.includes("fetch("), "presentation layers do not make API calls");

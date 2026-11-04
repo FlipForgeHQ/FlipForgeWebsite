@@ -140,11 +140,14 @@ async function auditOpenDrawerLayout(page) {
   if (snapshot.guideDisplay !== "missing" && snapshot.guideDisplay !== "none") {
     failures.push(`Guided Mode floats above an open drawer (${snapshot.guideDisplay})`);
   }
-  if (snapshot.advancedDisplay !== "none") {
+  // The Private Beta page no longer carries the advanced tools menu at all ("missing"); where it exists it must be hidden.
+  if (snapshot.advancedDisplay !== "none" && snapshot.advancedDisplay !== "missing") {
     failures.push(`advanced tool navigation is exposed in beta (${snapshot.advancedDisplay})`);
   }
 
-  const expectedRoutes = ["dashboard", "discover", "opportunities", "tracking", "account"];
+  // One canonical beta manifest: all approved customer routes remain available on phones.
+  // The retired build-injected mobile stabilizer expected only four routes and caused a redraw loop.
+  const expectedRoutes = ["dashboard", "discover", "evaluate", "opportunities", "tracking", "alerts", "portfolio", "forge-heat", "account"];
   if (JSON.stringify(snapshot.routes) !== JSON.stringify(expectedRoutes)) {
     failures.push(`visible mobile routes were ${snapshot.routes.join(", ")}; expected ${expectedRoutes.join(", ")}`);
   }

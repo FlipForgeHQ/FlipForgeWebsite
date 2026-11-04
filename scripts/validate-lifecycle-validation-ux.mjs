@@ -3,7 +3,8 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const scriptPath = "saas-prototype/customer-lifecycle-validation.js";
-const displayPath = "saas-prototype/customer-lifecycle-display.js";
+// Outcome Intelligence and card-name display are rendered by the Tracking owner itself.
+const displayPath = "saas-prototype/customer-lifecycle.js";
 const indexPath = "saas-prototype/index.html";
 const source = fs.readFileSync(scriptPath, "utf8");
 const displaySource = fs.readFileSync(displayPath, "utf8");
@@ -115,41 +116,11 @@ assert.doesNotMatch(source, /set Outcome to ACQUIRED/i);
 assert.doesNotMatch(source, /set Outcome to SOLD/i);
 assert.doesNotMatch(source, /set Outcome to PASSED/i);
 
-const displayDocument = {
-  querySelector() { return null; },
-  getElementById() { return null; },
-  addEventListener() {}
-};
-const displayWindow = {
-  location: { origin: "https://goflipforge.com" },
-  fetch: async () => ({ ok: false }),
-  requestAnimationFrame(callback) { callback(); }
-};
-vm.runInNewContext(displaySource, {
-  document: displayDocument,
-  window: displayWindow,
-  MutationObserver: undefined,
-  String,
-  Number,
-  Boolean,
-  Array,
-  Object,
-  Map,
-  URL,
-  Intl,
-  Promise,
-  console
-});
-assert.ok(displayWindow.FlipForgeLifecycleDisplay, "lifecycle display normalizer should be available");
-assert.equal(
-  displayWindow.FlipForgeLifecycleDisplay.normalizeCardDisplay("2018 Topps Chrome Shohei Ohtani %150 PSA 10"),
-  "2018 Topps Chrome Shohei Ohtani #150 PSA 10"
-);
-assert.equal(
-  displayWindow.FlipForgeLifecycleDisplay.normalizeCardDisplay("2018 Topps Chrome Shohei Ohtani #150 PSA 10"),
-  "2018 Topps Chrome Shohei Ohtani #150 PSA 10"
-);
-assert.equal(typeof displayWindow.FlipForgeLifecycleDisplay.renderOutcomeIntelligence, "function");
+// Card names show the card-number sign ("#150"), never a stray "%150".
+assert.match(displaySource, /function cardDisplay\(value\)/);
+assert.match(displaySource, /\.replace\(\/\(\^\|\\s\)%\(\\d\{1,4\}\)\(\?=\\s\|\$\)\/g, "\$1#\$2"\)/);
+assert.match(displaySource, /return cardDisplay\(opportunity\?\.title/);
+assert.match(displaySource, /function outcomePanelMarkup\(\)/);
 
 assert.match(displaySource, /decisionChangeIntelligence/);
 assert.match(displaySource, /outcomeReconciliation/);
@@ -165,11 +136,13 @@ assert.doesNotMatch(displaySource, /decisionAlignment/);
 assert.doesNotMatch(displaySource, /decisionOutcome/);
 assert.doesNotMatch(displaySource, /observedSupportedValueCents\s*[-+*/]/);
 assert.doesNotMatch(displaySource, /supportedValueChangePercent\s*[-+*/]/);
-assert.match(displaySource, /response\.clone\(\)\.json\(\)/);
-assert.equal((displaySource.match(/nativeFetch\(input, init\)/g) || []).length, 1, "Outcome presentation must reuse the existing lifecycle request rather than issue another API request");
+// Outcome presentation reads the lifecycle detail already loaded for Tracking; no extra request and no fetch wrapper.
+assert.match(displaySource, /state\.detail\?\.data\?\.decisionChangeIntelligence/);
+assert.doesNotMatch(displaySource, /window\.fetch\s*=/);
+assert.equal((displaySource.match(/await fetch\(/g) || []).length, 1, "the lifecycle adapter issues requests from one request() function");
 
 assert.match(index, /customer-lifecycle-validation\.css/);
 assert.match(index, /customer-lifecycle\.js[\s\S]*customer-lifecycle-validation\.js/);
-assert.match(index, /customer-lifecycle-validation\.js[\s\S]*customer-lifecycle-display\.js/);
+assert.doesNotMatch(index, /customer-lifecycle-display\.js/);
 
 console.log("Lifecycle validation UX PASS");

@@ -216,13 +216,8 @@ async function auditPage(page) {
   return page.evaluate(async minimum => {
     document.querySelectorAll("details").forEach(detail => { detail.open = true; });
 
-    // Programmatically opening collapsed details exposes text in the same JS
-    // turn. Give the real production typography floor the animation frames it
-    // receives after a customer toggle before measuring the newly visible text.
-    if (window.FlipForgeCustomerTypographyFloor
-        && typeof window.FlipForgeCustomerTypographyFloor.rescan === "function") {
-      window.FlipForgeCustomerTypographyFloor.rescan();
-    }
+    // The 14px floor is CSS (customer-typography.css and every customer stylesheet's own sizes); no script
+    // measures or rewrites sizes, so newly opened details are measured exactly as a customer sees them.
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     const excluded = [

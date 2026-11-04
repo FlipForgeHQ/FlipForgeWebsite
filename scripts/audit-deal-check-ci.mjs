@@ -10,7 +10,8 @@ const reportCrash = error => { console.log(`::error title=deal-check crash::${St
 process.on("unhandledRejection", reportCrash);
 process.on("uncaughtException", reportCrash);
 
-const baseUrl = (process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app").replace(/\/$/, "");
+// Actual /app/beta intentionally disables Deal Check on every host; exercise this read-only component on the separate non-beta customer surface.
+const baseUrl = (process.env.FLIPFORGE_LAYOUT_AUDIT_URL || "http://127.0.0.1:4173/app/customer").replace(/\/$/, "");
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined;
 const screenshotDir = process.env.FLIPFORGE_DEAL_CHECK_SCREENSHOT_DIR || "artifacts/deal-check";
 fs.mkdirSync(screenshotDir, { recursive: true });

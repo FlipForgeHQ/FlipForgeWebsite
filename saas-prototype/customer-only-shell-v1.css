@@ -16,8 +16,17 @@ body[data-ff-surface="customer"] .brand-tagline {
 body[data-ff-surface="customer"] .primary-nav {
   display: grid;
   gap: 8px;
+  /* Rows hug their links; without this the grid stretched each link to fill the sidebar height. */
+  align-content: start;
   overflow-x: hidden !important;
   overflow-y: visible !important;
+}
+
+/* customer-only-shell-v1.js is the only owner of which links are shown; a link it hides stays hidden even when an
+ * older stylesheet gives nav links an explicit display value. */
+body[data-ff-surface="customer"] .primary-nav > a[hidden],
+body[data-ff-surface="customer"] .primary-nav > details[hidden] {
+  display: none !important;
 }
 
 body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {
@@ -31,6 +40,35 @@ body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] {
   padding: 10px 12px;
   white-space: normal;
   line-height: 1.2;
+}
+
+/* Mobile account shortcut is owned by the shell, not a second route manifest. */
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: 50px;
+  white-space: normal;
+}
+/* Preserve the actual HTML hidden state at desktop widths; this must win over the account link display rule. */
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav[hidden] {
+  display: none !important;
+}
+/* Private Beta: the sidebar Account shortcut is a phone-layout link (index.html always contains it). Outside the phone
+ * layout the topbar Account button is the account entry, so the shortcut is not shown there. The full customer app
+ * keeps its own mobile helper (mobile-navigation-stabilizer-v1.js). */
+@media (min-width: 761px) {
+  html:not(.ff-full-customer-app) body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav {
+    display: none !important;
+  }
+}
+
+body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav > span:first-child {
+  width: 28px;
+  text-align: center;
 }
 
 body[data-ff-surface="customer"] .primary-nav > a[data-ff-customer-core] > span:first-child {
@@ -73,7 +111,7 @@ body[data-ff-surface="customer"] .ff-beta-simple-loop-copy {
 
 body[data-ff-surface="customer"] .ff-beta-simple-loop-copy > span {
   color: var(--gold, #d4af37);
-  font-size: .78rem;
+  font-size: .875rem;
   font-weight: 800;
   letter-spacing: .1em;
 }

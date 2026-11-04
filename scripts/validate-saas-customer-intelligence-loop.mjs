@@ -25,7 +25,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["002 deploy previews replace the mock Evaluate route", files.routeHook.includes('route === "evaluate"') && files.routeHook.includes("evaluationAdapter.renderCustomer(main)")],
   ["003 customer Opportunity routes use the dedicated customer adapter", files.routeHook.includes('route === "opportunities"') && files.routeHook.includes("renderOpportunityRoute(id)") && files.routeHook.includes("FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities")],
   ["004 production Opportunity routing does not depend on the staging adapter", files.opportunityBridge.includes("window.FlipForgeCustomerOpportunitiesBridge = customerBridge") && !files.opportunityBridge.includes("if (!stagingAdapter || !customerAdapter) return") && !files.routeHook.includes("adapter.renderCustomer(main, id)")],
-  ["005 customer route uses a distinct private beta banner", files.routeHook.includes("PRIVATE BETA INTELLIGENCE")],
+  // The beta banner is final in index.html; customer routes keep it and never write internal wording into it.
+  ["005 customer route uses a distinct private beta banner", files.routeHook.includes("const showCustomerIntelligenceBanner = restoreBanner;") && !files.routeHook.includes("SQLite saved")],
   ["006 customer list promises no mock fallback", files.readAdapter.includes("never substitutes mock records")],
   ["007 tracked state is tied to SQLite", files.readAdapter.includes("Tracked in SQLite") && files.readAdapter.includes("SQLite saved")],
   ["008 Card Intelligence has a Decision Traceback", files.readAdapter.includes("Card Intelligence") && files.readAdapter.includes("Decision Traceback")],
@@ -160,11 +161,11 @@ function evaluationRuntime() {
 const evaluation = evaluationRuntime();
 check("038 customer evaluation entrypoint exists", typeof evaluation.window.FlipForgeStagingEvaluationAdapter.renderCustomer === "function");
 evaluation.window.FlipForgeStagingEvaluationAdapter.renderCustomer(evaluation.main);
-check("039 customer intake renders guided steps", evaluation.main.innerHTML.includes("Evaluate and track a card") && evaluation.main.innerHTML.includes("Complete acquisition cost"));
+check("039 customer intake renders guided steps", evaluation.main.innerHTML.includes("Card and listing details") && evaluation.main.innerHTML.includes("All-in cost") && evaluation.main.innerHTML.includes("Confirm &amp; evaluate"));
 evaluation.form.submit();
 await settle();
 check("040 customer evaluation posts once through same-origin gateway", evaluation.calls.length === 1 && evaluation.calls[0].url === "/api/v1/evaluations" && evaluation.calls[0].options.credentials === "same-origin");
-check("041 result is saved and tracked", evaluation.main.innerHTML.includes("Authoritative decision saved") && evaluation.main.innerHTML.includes("persisted to SQLite") && evaluation.main.innerHTML.includes("granted tenant ownership"));
+check("041 result is saved and tracked", evaluation.main.innerHTML.includes("Your FlipForge decision") && evaluation.main.innerHTML.includes("This decision was saved to your account") && evaluation.main.innerHTML.includes("<span>Saved to your account</span><strong>Yes</strong>"));
 check("042 result opens the real customer detail route", evaluation.main.innerHTML.includes("#/opportunities/EBAY-customer-card-001") && evaluation.main.innerHTML.includes("Open Card Intelligence"));
 check("043 result displays backend all-in acquisition", evaluation.main.innerHTML.includes("All-in acquisition") && evaluation.main.innerHTML.includes("$575.77"));
 

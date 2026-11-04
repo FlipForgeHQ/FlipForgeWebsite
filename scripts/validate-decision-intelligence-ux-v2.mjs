@@ -3,7 +3,9 @@ import path from "node:path";
 
 const root = process.cwd();
 const read = rel => fs.readFileSync(path.join(root, rel), "utf8");
-const index = read("saas-prototype/index.html");
+// Decision Intelligence navigation is offered by the customer app page (customer.html); the Private Beta page does not
+// list it (founder decision, Nov 3 2026).
+const index = read("saas-prototype/customer.html");
 const js = read("saas-prototype/decision-intelligence-ux-v2.js");
 const css = read("saas-prototype/decision-intelligence-ux-v2.css");
 

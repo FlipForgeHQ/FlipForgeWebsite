@@ -4,7 +4,6 @@
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
   const SAFE_DECISION = /^(BUY|WATCH|VERIFY|PASS)$/;
   const snapshots = new Map();
-  const originalFetch = window.fetch.bind(window);
   let renderQueued = false;
 
   function safeInteger(value) {
@@ -133,14 +132,22 @@
     if (!SAFE_ID.test(requestedId)) return;
 
     const payload = await response.clone().json();
-    const data = payload?.data;
+    const normalized = snapshotFromDetail(payload?.data);
+    if (!normalized) return;
+    snapshots.set(requestedId, normalized);
+    snapshots.set(normalized.opportunityId, normalized);
+    queueRender();
+  }
+
+  // The opportunity-detail response (data.opportunity + data.priceIntelligence) as one read-only snapshot.
+  function snapshotFromDetail(data) {
     const opportunity = data?.opportunity;
     const raw = data?.priceIntelligence;
     // A legacy result (saved before current evidence rules) gets no price scenario: the API returns
     // {available: false, status: "LEGACY_NOT_CURRENTLY_SUPPORTED"} and nothing is calculated here.
     const legacyUnavailable = raw && typeof raw === "object" && raw.available === false
       && String(raw.status || "").toUpperCase() === "LEGACY_NOT_CURRENTLY_SUPPORTED";
-    const normalized = (legacyUnavailable ? unavailableSnapshot(opportunity, "LEGACY_NOT_CURRENTLY_SUPPORTED") : null)
+    return (legacyUnavailable ? unavailableSnapshot(opportunity, "LEGACY_NOT_CURRENTLY_SUPPORTED") : null)
       || normalizePriceIntelligence(opportunity, raw)
       || unavailableSnapshot(
         opportunity,
@@ -148,18 +155,7 @@
           ? "SAFETY_CONTRACT_NOT_SATISFIED"
           : "BACKEND_PRICE_INTELLIGENCE_NOT_RETURNED"
       );
-    if (!normalized) return;
-    snapshots.set(requestedId, normalized);
-    snapshots.set(normalized.opportunityId, normalized);
-    queueRender();
   }
-
-  window.fetch = function flipForgePriceIntelligenceFetch(input, init) {
-    return originalFetch(input, init).then(response => {
-      inspectResponse(input, init, response).catch(() => {});
-      return response;
-    });
-  };
 
   function routeOpportunityId() {
     const match = String(window.location.hash || "").match(/^#\/opportunities\/([^/?#]+)/);
@@ -185,10 +181,10 @@
       return `The saved ${snapshot.savedRecommendation} was decided under earlier rules and is kept as it was made. Under today's rules this price gives ${snapshot.currentRecommendation}.`;
     }
     if (historicalMismatch(snapshot)) {
-      return `The saved ${snapshot.savedRecommendation} is historical and is not reproducible from the current governed evidence. Current reproducible decision: ${snapshot.currentRecommendation}.`;
+      return `The saved ${snapshot.savedRecommendation} is historical and is not reproducible from the current qualified evidence. Current reproducible decision: ${snapshot.currentRecommendation}.`;
     }
     if (snapshot.currentRecommendation === "VERIFY" && snapshot.transitions.length === 0) {
-      return "Price alone cannot repair the missing identity or governed evidence required for this decision.";
+      return "Price alone cannot repair the missing identity or qualified evidence required for this decision.";
     }
     if (snapshot.buyAtOrBelowCents !== null) {
       return `The existing Smart Opportunity authority reaches BUY at or below ${money(snapshot.buyAtOrBelowCents)} using the same saved non-price context.`;
@@ -257,7 +253,7 @@
     const reconciliation = mismatch && snapshot.savedUnderEarlierRules
       ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note data-earlier-rules-note><strong>Decided under earlier rules:</strong> ${escapeHtml(snapshot.savedDecisionDisclosure || `The saved ${snapshot.savedRecommendation} was decided under earlier rules and is kept as it was made.`)} Under today's rules this price gives ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
       : mismatch
-      ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note><strong>Decision reconciliation:</strong> The saved ${escapeHtml(snapshot.savedRecommendation)} remains in history, but current governed evidence reproduces ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
+      ? `<div class="boundary-note price-intelligence-reconciliation" data-history-reconciliation-note><strong>Decision reconciliation:</strong> The saved ${escapeHtml(snapshot.savedRecommendation)} remains in history, but current qualified evidence reproduces ${escapeHtml(snapshot.currentRecommendation)}. FlipForge does not rewrite the saved record.</div>`
       : snapshot.currentRules
       ? `<div class="boundary-note price-intelligence-rules" data-current-rules-note>This price analysis uses today's rules.</div>`
       : "";
@@ -295,50 +291,26 @@
     };
   }
 
-  function reconcileHistoricalDisplay(snapshot) {
-    if (!historicalMismatch(snapshot)) return;
-
-    const summary = `Saved historical decision ${snapshot.savedRecommendation}. Current reproducible decision ${snapshot.currentRecommendation}.`;
-    const heroBadge = document.querySelector(".customer-intelligence-hero .customer-hero-title .staging-status");
-    if (heroBadge) {
-      heroBadge.textContent = `SAVED ${snapshot.savedRecommendation}`;
-      heroBadge.setAttribute("aria-label", summary);
-      heroBadge.setAttribute("title", summary);
-    }
-
-    const tracePanel = Array.from(document.querySelectorAll("#main-content section.panel")).find(section => {
-      const heading = section.querySelector(".panel-header h2");
-      return heading && /Decision Traceback$/.test(String(heading.textContent || "").trim());
+  // Saved-vs-current wording for the saved decision page. The saved decision owner (customer-opportunities.js) renders
+  // it into its own hero badge, traceback and decision boundary from the detail response it already loaded; this file
+  // never writes into the owner's markup. Null unless the server explicitly reports a preserved, non-reproducible
+  // saved decision (historicalMismatch).
+  function savedDecisionReconciliation(data) {
+    const snapshot = snapshotFromDetail(data);
+    if (!historicalMismatch(snapshot)) return null;
+    return Object.freeze({
+      savedRecommendation: snapshot.savedRecommendation,
+      currentRecommendation: snapshot.currentRecommendation,
+      summary: `Saved historical decision ${snapshot.savedRecommendation}. Current reproducible decision ${snapshot.currentRecommendation}.`,
+      heroBadge: `SAVED ${snapshot.savedRecommendation}`,
+      tracebackHeading: "Saved Decision Traceback",
+      tracebackNote: `Historical snapshot only: ${snapshot.savedRecommendation} was saved previously. Current qualified evidence now reproduces ${snapshot.currentRecommendation}; the saved record is not rewritten.`,
+      boundaryHeading: `Current reproducible decision: ${snapshot.currentRecommendation}`,
+      boundaryText: `The saved ${snapshot.savedRecommendation} remains historical context. Current qualified evidence does not reproduce it, so ${snapshot.currentRecommendation} is the current decision-support state.`
     });
-    if (tracePanel) {
-      const heading = tracePanel.querySelector(".panel-header h2");
-      if (heading) heading.textContent = "Saved Decision Traceback";
-      const traceBadge = tracePanel.querySelector(".panel-header .staging-status");
-      if (traceBadge) {
-        traceBadge.textContent = `SAVED ${snapshot.savedRecommendation}`;
-        traceBadge.setAttribute("aria-label", summary);
-      }
-      let note = tracePanel.querySelector("[data-history-reconciliation-note]");
-      if (!note) {
-        note = document.createElement("div");
-        note.className = "boundary-note";
-        note.dataset.historyReconciliationNote = "true";
-        const body = tracePanel.querySelector(".panel-body");
-        if (body) tracePanel.insertBefore(note, body);
-      }
-      if (note) {
-        note.textContent = `Historical snapshot only: ${snapshot.savedRecommendation} was saved previously. Current governed evidence now reproduces ${snapshot.currentRecommendation}; the saved record is not rewritten.`;
-      }
-    }
-
-    const boundary = document.querySelector(".customer-decision-boundary");
-    if (boundary) {
-      const heading = boundary.querySelector("h2");
-      if (heading) heading.textContent = `Current reproducible decision: ${snapshot.currentRecommendation}`;
-      const paragraph = boundary.querySelector("p");
-      if (paragraph) paragraph.textContent = `The saved ${snapshot.savedRecommendation} remains historical context. Current governed evidence does not reproduce it, so ${snapshot.currentRecommendation} is the current decision-support state.`;
-    }
   }
+
+  window.FlipForgePriceIntelligence = Object.freeze({ savedDecisionReconciliation });
 
   function render() {
     renderQueued = false;
@@ -354,10 +326,7 @@
     const hero = document.querySelector("#main-content .customer-intelligence-hero");
     if (!hero) return;
     const built = buildPanel(snapshot);
-    if (existing?.dataset.priceIntelligenceSignature === built.signature) {
-      reconcileHistoricalDisplay(snapshot);
-      return;
-    }
+    if (existing?.dataset.priceIntelligenceSignature === built.signature) return;
 
     const holder = document.createElement("div");
     holder.innerHTML = built.markup;
@@ -368,7 +337,6 @@
     if (existing) existing.replaceWith(panel);
     else if (providerPanel) providerPanel.insertAdjacentElement("beforebegin", panel);
     else hero.insertAdjacentElement("afterend", panel);
-    reconcileHistoricalDisplay(snapshot);
   }
 
   function queueRender() {
@@ -376,6 +344,18 @@
     renderQueued = true;
     window.setTimeout(render, 0);
   }
+
+  // /app/beta does not offer the Price Intelligence panel (customer.html marks <html> ff-full-customer-app in its markup):
+  // there this file only provides savedDecisionReconciliation() to the owner, with no fetch wrapper and no observer.
+  if (!document.documentElement.classList.contains("ff-full-customer-app")) return;
+
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = function flipForgePriceIntelligenceFetch(input, init) {
+    return originalFetch(input, init).then(response => {
+      inspectResponse(input, init, response).catch(() => {});
+      return response;
+    });
+  };
 
   window.addEventListener("hashchange", queueRender);
   window.addEventListener("DOMContentLoaded", queueRender, { once: true });

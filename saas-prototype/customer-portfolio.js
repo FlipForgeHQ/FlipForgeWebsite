@@ -7,7 +7,7 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
-  const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities", "/api/v1/sell-watch", "/api/v1/reported-sales"]);
+  const PATHS = new Set(["/api/v1/health", "/api/v1/portfolio", "/api/v1/opportunities", "/api/v1/sell-watch", "/api/v1/reported-sales", "/api/v1/alerts"]);
   // Reference values from earlier reported-sale history are no longer used. When every holding reports this status,
   // card values are paused as a whole, not missing card by card.
   const PAUSED_STATUS = "PROVIDER_STORED_HISTORY_NOT_RETAINED";
@@ -21,6 +21,7 @@
     opportunities: null,
     sellWatch: null,
     sales: null,
+    alerts: null,
     error: null,
     generation: 0
   };
@@ -125,14 +126,27 @@
   async function request(path) {
     if (!PATHS.has(path)) throw new Error("The requested Portfolio API path is not allowlisted.");
     const requestCorrelationId = correlationId();
-    const response = await fetch(path, {
-      method: "GET",
-      headers: { Accept: "application/json", "X-Correlation-Id": requestCorrelationId },
-      credentials: "same-origin",
-      cache: "no-store",
-      redirect: "error"
-    });
-    const payload = await parseResponse(response);
+    // A hanging request stops after 10 s instead of leaving Portfolio frozen (formerly a global fetch wrapper).
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = controller ? window.setTimeout(() => controller.abort(), 10000) : 0;
+    let response;
+    let payload;
+    try {
+      response = await fetch(path, {
+        method: "GET",
+        headers: { Accept: "application/json", "X-Correlation-Id": requestCorrelationId },
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "error",
+        ...(controller ? { signal: controller.signal } : {})
+      });
+      payload = await parseResponse(response);
+    } catch (error) {
+      if (error?.name !== "AbortError") throw error;
+      throw Object.assign(new Error("Portfolio took too long to load. Try again."), { code: "PORTFOLIO_TIMEOUT", status: 504 });
+    } finally {
+      if (timer) window.clearTimeout(timer);
+    }
     if (!response.ok) {
       const upstream = payload?.error || {};
       throw Object.assign(new Error(upstream.message || `Portfolio request failed with status ${response.status}.`), {
@@ -253,6 +267,15 @@
     return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : "";
   }
 
+  // "2026-10-30" or an ISO time -> "Oct 30, 2026" (the recorded UTC calendar date; never shifted by the viewer's clock).
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function readableDate(value) {
+    const day = dateOnly(value);
+    if (!day) return "";
+    const [year, month, date] = day.split("-").map(Number);
+    return month >= 1 && month <= 12 ? `${MONTHS[month - 1]} ${date}, ${year}` : day;
+  }
+
   function validOpportunities(payload) {
     return payload?.data?.kind === "opportunities" && Array.isArray(payload?.data?.items);
   }
@@ -278,19 +301,24 @@
     return `<header class="page-heading"><div><span class="eyebrow">Your cards</span><h1>Portfolio</h1><p>The cards you own and what you paid. Where FlipForge has at least 3 recent, exactly matched completed sales, it also shows an evidence reference.</p></div>${actions ? `<div class="page-actions">${actions}</div>` : ""}</header>`;
   }
 
+  // customer.html (the full customer app) marks <html> with ff-full-customer-app; /app/beta (index.html) does not.
+  function fullCustomerPage() {
+    try { return document.documentElement.classList.contains("ff-full-customer-app"); } catch (_) { return false; }
+  }
+
   function loadingPanel() {
-    return `<div class="staging-loading customer-portfolio-loading" role="status">Loading tenant-owned Portfolio context…</div>`;
+    return `<div class="staging-loading customer-portfolio-loading consumer-state consumer-state-loading" role="status">Loading saved Portfolio context…</div>`;
   }
 
   function errorPanel(error) {
     const signIn = error?.status === 401
       ? `<div class="customer-portfolio-actions"><a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fportfolio" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fportfolio"}">Sign in securely</a></div>`
       : "";
-    return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "PORTFOLIO_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "Portfolio context is unavailable.")}</p><small>No browser-invented value or performance was substituted.</small>${signIn}</div></section>`;
+    return `<section class="panel staging-error consumer-state consumer-state-error" role="alert"><div class="panel-body"><strong data-error-code="${escapeHtml(error?.code || "PORTFOLIO_UNAVAILABLE")}">We couldn't complete that request.</strong><p>${escapeHtml(error?.message || "Portfolio context is unavailable.")}</p><small>No placeholder value or performance was substituted.</small>${signIn}</div></section>`;
   }
 
   function offlinePanel() {
-    return `<section class="panel"><div class="panel-body staging-empty"><strong>This private-beta Portfolio is safely offline.</strong><p>The customer gateway is disabled, so no tenant request was attempted and no sample holding or value was substituted.</p></div></section>`;
+    return `<section class="panel"><div class="panel-body staging-empty consumer-state consumer-state-empty"><strong>This private-beta Portfolio is safely offline.</strong><p>The customer gateway is disabled, so no account request was attempted and no sample holding or value was substituted.</p><a class="button button-secondary ff-empty-cta" href="#/discover">Discover a card</a></div></section>`;
   }
 
   function referenceStatus(reference) {
@@ -311,7 +339,71 @@
 
   function cardTitle(item, opportunities) {
     const saved = opportunities.get(String(item.opportunityId)) || {};
-    return { title: saved.title || saved.cardIdentity || item.opportunityId, identity: saved.cardIdentity || item.opportunityId };
+    const title = saved.title || saved.cardIdentity || item.opportunityId;
+    const identity = saved.cardIdentity || item.opportunityId;
+    // The identity line is shown only when it adds something (it is usually the same text as the title).
+    return { title, identity: String(identity).trim().toLowerCase() === String(title).trim().toLowerCase() ? "" : identity };
+  }
+
+  // Each owned card links back to its tracked record and to the saved decision it came from.
+  function cardCell(item, opportunities) {
+    const { title, identity } = cardTitle(item, opportunities);
+    const id = String(item.opportunityId || "");
+    const safe = SAFE_ID.test(id);
+    const name = safe ? `<a href="#/tracking/${encodeURIComponent(id)}" data-portfolio-card-link>${escapeHtml(title)}</a>` : escapeHtml(title);
+    const decisionLink = safe && opportunities.has(id) ? `<a class="customer-portfolio-decision-link" href="#/opportunities/${encodeURIComponent(id)}" data-portfolio-decision-link>View saved decision</a>` : "";
+    return `<td><strong>${name}</strong>${identity ? `<small>${escapeHtml(identity)}</small>` : ""}${decisionLink}</td>`;
+  }
+
+  function isLegacy(saved) {
+    const trust = window.FlipForgeTrustDisplay;
+    if (trust && typeof trust.isLegacy === "function") return trust.isLegacy(saved);
+    return saved?.currentlySupported === false || String(saved?.supportedValueStatus || "").toUpperCase() === "LEGACY_NOT_CURRENTLY_SUPPORTED";
+  }
+  function knownCents(value) {
+    if (value === null || value === undefined || value === "" || typeof value === "boolean") return null;
+    const number = Number(value);
+    return Number.isSafeInteger(number) ? number : null;
+  }
+
+  // The saved decision behind an owned card, as it was evaluated: its verdict and its Max Buy at decision, compared with
+  // what the customer entered as paid. Display only: both numbers are saved values; nothing is re-evaluated.
+  // The saved decision behind a card, compared with what the customer entered as paid. Display only: the verdict and
+  // the Max Buy are saved values; nothing is re-evaluated. A Max Buy of 0 is what the engine records when no
+  // evidence-supported value was established, so it is "no Max Buy", never "$0.00". Used for owned and sold cards.
+  function decisionFacts(opportunityId, paidCents, opportunities) {
+    const saved = opportunities.get(String(opportunityId));
+    // The saved decisions were read but this card is not among them: it has no linked decision (not a loading failure).
+    if (!saved) return { group: validOpportunities(state.opportunities) ? "unlinked" : "unavailable", chip: "" };
+    const verdict = String(saved.governedDecision?.recommendation || saved.recommendation || "").toUpperCase().replace(/^SAVED\s+/, "");
+    const chip = /^(BUY|WATCH|VERIFY|PASS)$/.test(verdict) ? `<span class="staging-status staging-status-${verdict === "BUY" ? "buy" : verdict === "PASS" ? "danger" : "warn"}">${escapeHtml(verdict)}</span>` : "";
+    if (isLegacy(saved)) return { group: "legacy", chip };
+    const governed = saved.governedDecision && saved.governedDecision.available === true ? saved.governedDecision : null;
+    const recorded = governed ? knownCents(governed.maximumBuyPriceCents) : null;
+    // Max Buy is a buying limit only when the saved decision established a supported value (the engine records Max Buy 0
+    // otherwise; review on #606). A record that states NOT_ESTABLISHED, or a zero supported value, never shows one.
+    const status = String(governed?.supportedValueStatus || "").toUpperCase();
+    const supportedCents = knownCents(governed?.supportedValueCents);
+    const established = status ? status === "ESTABLISHED" && (supportedCents === null || supportedCents > 0) : (supportedCents === null || supportedCents > 0);
+    const maxBuy = recorded !== null && recorded > 0 && established ? recorded : null;
+    if (maxBuy === null) return { group: "no-max-buy", chip };
+    const paid = knownCents(paidCents);
+    return { group: paid === null ? "paid-unknown" : paid <= maxBuy ? "within" : "over", chip, maxBuy, paid };
+  }
+  function decisionMarkup(facts) {
+    if (facts.group === "unavailable") return `<span>Not available</span><small>The saved decision could not be loaded.</small>`;
+    if (facts.group === "unlinked") return `<span>No saved decision</span><small>No saved decision is linked to this card.</small>`;
+    if (facts.group === "legacy") return `${facts.chip}<small>Saved before current evidence rules · not currently supported</small>`;
+    if (facts.group === "no-max-buy") return `${facts.chip}<small>No Max Buy was set at decision</small>`;
+    const { maxBuy, paid } = facts;
+    const versus = paid === null || paid === undefined ? ""
+      : paid < maxBuy ? `You paid ${moneyCents(maxBuy - paid)} under it`
+      : paid === maxBuy ? "You paid exactly the Max Buy"
+      : `You paid ${moneyCents(paid - maxBuy)} over it`;
+    return `${facts.chip}<small>Max Buy ${escapeHtml(moneyCents(maxBuy))} at decision</small>${versus ? `<small data-portfolio-versus="${paid <= maxBuy ? "within" : "over"}">${escapeHtml(versus)}</small>` : ""}`;
+  }
+  function decisionCell(item, opportunities) {
+    return `<td data-portfolio-decision>${decisionMarkup(decisionFacts(item.opportunityId, item.acquisitionCostCents, opportunities))}</td>`;
   }
 
   // Break-even prices come from the server (Sell Watch): the lowest price that keeps what was paid after the
@@ -339,17 +431,35 @@
     if (!items.length) return "";
     const total = Number.isSafeInteger(sales.realizedProfitWithCompleteFeesCents) ? sales.realizedProfitWithCompleteFeesCents : null;
     const counted = Number.isSafeInteger(sales.realizedWithCompleteFeesCount) ? sales.realizedWithCompleteFeesCount : 0;
+    // Portfolio Intelligence (2026-10-31, combines #608 into this section): each sale next to the decision saved for the
+    // card, and realized profit grouped by what was paid against the Max Buy at decision. Profit is the server's figure
+    // (after the fees the customer entered); nothing is estimated here.
+    const discipline = { within: [0, 0], over: [0, 0], other: [0, 0] };
     const rows = items.map(item => {
       const sale = item.sale || {};
       const pl = item.profitLoss || {};
+      const facts = decisionFacts(item.opportunityId, pl.acquisitionCostCents, opportunities);
+      if (Number.isSafeInteger(pl.realizedProfitCents) && !["unavailable", "unlinked"].includes(facts.group)) {
+        const bucket = discipline[facts.group === "within" ? "within" : facts.group === "over" ? "over" : "other"];
+        bucket[0] += 1; bucket[1] += pl.realizedProfitCents;
+      }
       const saved = opportunities.get(String(item.opportunityId)) || {};
       const title = saved.title || item.cardIdentity || saved.cardIdentity || item.opportunityId;
       const profit = Number.isSafeInteger(pl.realizedProfitCents)
         ? `<strong class="${pl.realizedProfitCents >= 0 ? "value-positive" : "value-negative"}">${escapeHtml(signedMoneyCents(pl.realizedProfitCents))}</strong>${pl.realizedReturnPercent === null || pl.realizedReturnPercent === undefined ? "" : `<small>${escapeHtml(signedPercent(pl.realizedReturnPercent))}</small>`}`
         : `<strong>Not available</strong>`;
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>User reported</small></td><td><strong>${escapeHtml(moneyCents(sale.salePriceCents))}</strong><small>${escapeHtml(sale.saleDate || "")}</small></td><td><strong>${escapeHtml(moneyCents(pl.netProceedsCents))}</strong><small>${pl.feesComplete ? "After the fees you entered" : "Some fees not entered"}</small></td><td>${profit}</td><td><span>${escapeHtml(SALE_STATUS[pl.status] || String(pl.status || "").replaceAll("_", " ").toLowerCase())}</span></td></tr>`;
+      return `<tr><td><strong>${escapeHtml(title)}</strong><small>User reported</small></td><td data-portfolio-decision>${decisionMarkup(facts)}</td><td><strong>${escapeHtml(moneyCents(sale.salePriceCents))}</strong><small>${escapeHtml(readableDate(sale.saleDate) || sale.saleDate || "")}</small></td><td><strong>${escapeHtml(moneyCents(pl.netProceedsCents))}</strong><small>${pl.feesComplete ? "After the fees you entered" : "Some fees not entered"}</small></td><td>${profit}</td><td><span>${escapeHtml(SALE_STATUS[pl.status] || String(pl.status || "").replaceAll("_", " ").toLowerCase())}</span></td></tr>`;
     }).join("");
-    return `<section class="panel customer-portfolio-realized" data-portfolio-realized><header class="panel-header"><div><h2>Sold cards</h2><p>Sales you recorded with Mark as Sold. Profit is what you kept after the fees you entered, minus what you paid.</p></div>${badge("User reported", "neutral")}</header><div class="panel-body"><div class="customer-portfolio-key-grid"><div><span>Realized profit</span><strong>${total === null ? "Unavailable" : escapeHtml(signedMoneyCents(total))}</strong><small>${escapeHtml(counted)} sale${counted === 1 ? "" : "s"} with all fees entered</small></div><div><span>Sales recorded</span><strong>${escapeHtml(items.length)}</strong></div></div></div><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>Sold for</th><th>You kept</th><th>Profit or loss</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+    return `<section class="panel customer-portfolio-realized" data-portfolio-realized><header class="panel-header"><div><h2>Sold cards</h2><p>Sales you recorded with Mark as Sold. Profit is what you kept after the fees you entered, minus what you paid.</p></div>${badge("User reported", "neutral")}</header><div class="panel-body"><div class="customer-portfolio-key-grid"><div><span>Realized profit</span><strong>${total === null ? "Unavailable" : escapeHtml(signedMoneyCents(total))}</strong><small>${escapeHtml(counted)} sale${counted === 1 ? "" : "s"} with all fees entered</small></div><div><span>Sales recorded</span><strong>${escapeHtml(items.length)}</strong></div></div>${disciplineMarkup(discipline)}</div><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>Saved decision</th><th>Sold for</th><th>You kept</th><th>Profit or loss</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  }
+
+  // Buying discipline: realized profit grouped by what was paid against the Max Buy saved with each decision. Counts only
+  // sales with a realized profit; a card with no Max Buy (none set, legacy) is counted separately. Not an accuracy claim.
+  function disciplineMarkup(discipline) {
+    const counted = discipline.within[0] + discipline.over[0] + discipline.other[0];
+    if (!counted) return "";
+    const cell = (label, [count, cents], note) => `<div data-portfolio-discipline="${escapeHtml(note)}"><span>${escapeHtml(label)}</span><strong>${count ? escapeHtml(signedMoneyCents(cents)) : "—"}</strong><small>${escapeHtml(`${count} sale${count === 1 ? "" : "s"}`)}</small></div>`;
+    return `<div class="customer-portfolio-discipline" data-portfolio-discipline-block><h3>Buying discipline</h3><p>Realized profit grouped by what you paid against the Max Buy saved with each decision. Small numbers; not a measure of FlipForge's accuracy and not a prediction.</p><div class="customer-portfolio-key-grid">${cell("Paid at or under Max Buy", discipline.within, "within")}${cell("Paid over Max Buy", discipline.over, "over")}${cell("No Max Buy at decision", discipline.other, "other")}</div></div>`;
   }
 
   function priceLink(item) {
@@ -363,9 +473,8 @@
 
   function pausedRows(data, watch) {
     const opportunities = opportunityMap();
-    return `<section class="panel"><header class="panel-header"><div><h2>Owned cards</h2><p>What you entered when you marked each card as owned.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Bought</th>${watch ? "<th>Break-even price</th><th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
-      const { title, identity } = cardTitle(item, opportunities);
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(identity)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td><span>${escapeHtml(dateOnly(item.acquiredAt) || "Not entered")}</span></td>${watch ? `<td>${breakEvenCell(item, watch)}</td><td>${priceLink(item)}</td>` : ""}</tr>`;
+    return `<section class="panel"><header class="panel-header"><div><h2>Owned cards</h2><p>What you entered when you marked each card as owned.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Bought</th><th>Saved decision</th>${watch ? "<th>Break-even price</th><th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
+      return `<tr>${cardCell(item, opportunities)}<td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td><span>${escapeHtml(readableDate(item.acquiredAt) || "Not entered")}</span></td>${decisionCell(item, opportunities)}${watch ? `<td>${breakEvenCell(item, watch)}</td><td>${priceLink(item)}</td>` : ""}</tr>`;
     }).join("")}</tbody></table></div></section>`;
   }
 
@@ -380,9 +489,9 @@
   function portfolioRows(data) {
     const opportunities = opportunityMap();
     if (!data.items.length) {
-      return `<section class="panel"><div class="panel-body staging-empty"><strong>No owned holdings yet.</strong><p>Mark a tenant-owned tracked opportunity as acquired before it appears in Portfolio.</p><a class="button button-primary" href="#/tracking">Open Tracking</a></div></section>`;
+      return `<section class="panel"><div class="panel-body staging-empty consumer-state consumer-state-empty"><strong>No owned holdings yet.</strong><p>Mark a saved tracked opportunity as acquired before it appears in Portfolio.</p><a class="button button-primary" href="#/tracking">Open Tracking</a></div></section>`;
     }
-    return `<section class="panel"><header class="panel-header"><div><h2>Owned holdings</h2><p>Reference values are shown only when exact completed-sale coverage and freshness gates pass.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Evidence reference</th><th>Reference vs. what you paid</th><th>Evidence gate</th>${sellWatchData() ? "<th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
+    return `<section class="panel"><header class="panel-header"><div><h2>Owned holdings</h2><p>Reference values are shown only when exact completed-sale coverage and freshness gates pass.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Saved decision</th><th>Evidence reference</th><th>Reference vs. what you paid</th><th>Evidence gate</th>${sellWatchData() ? "<th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
       const saved = opportunities.get(String(item.opportunityId)) || {};
       const reference = item.referenceValue || {};
       const performance = item.referencePerformance || {};
@@ -395,8 +504,8 @@
         : `<strong>Unavailable</strong><small>${escapeHtml(reference.available ? "What you paid is needed" : "Needs an evidence reference")}</small>`;
       const gate = reference.available
         ? `${reference.acceptedExactCompletedSales} accepted exact sales · newest ${reference.latestSaleAgeDays} day${reference.latestSaleAgeDays === 1 ? "" : "s"} old`
-        : `${reference.acceptedExactCompletedSales || 0} accepted exact sales · ${referenceStatus(reference)}`;
-      return `<tr><td><strong>${escapeHtml(title)}</strong><small>${escapeHtml(saved.cardIdentity || item.opportunityId)}</small></td><td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td><td>${referenceCell}</td><td>${performanceCell}</td><td><span>${escapeHtml(gate)}</span><small>Active asks excluded</small></td>${sellWatchData() ? `<td>${breakEvenCell(item, sellWatchData())}${priceLink(item)}</td>` : ""}</tr>`;
+        : `${Number.isSafeInteger(reference.acceptedExactCompletedSales) ? `${reference.acceptedExactCompletedSales} accepted exact sales` : "Accepted exact sales unavailable"} · ${referenceStatus(reference)}`;
+      return `<tr>${cardCell(item, opportunities)}<td><strong>${escapeHtml(moneyCents(item.acquisitionCostCents))}</strong><small>Entered by you</small></td>${decisionCell(item, opportunities)}<td>${referenceCell}</td><td>${performanceCell}</td><td><span>${escapeHtml(gate)}</span><small>Active asks excluded</small></td>${sellWatchData() ? `<td>${breakEvenCell(item, sellWatchData())}${priceLink(item)}</td>` : ""}</tr>`;
     }).join("")}</tbody></table></div></section>`;
   }
 
@@ -433,8 +542,75 @@
     return `<div class="customer-portfolio-grid"><section class="panel"><header class="panel-header"><div><h2>Coverage-aware totals</h2><p>FlipForge never extrapolates uncovered holdings.</p></div>${badge(coverageLabel, coverageTone)}</header><div class="panel-body customer-portfolio-key-grid"><div><span>Whole-portfolio reference</span><strong>${escapeHtml(totalReference)}</strong></div><div><span>Whole-portfolio reference delta</span><strong>${escapeHtml(totalDelta)}</strong></div><div><span>Covered reference subtotal</span><strong>${escapeHtml(moneyCents(data.coveredReferenceValueCents))}</strong></div><div><span>Covered cost basis</span><strong>${escapeHtml(moneyCents(data.coveredCostBasisCents))}</strong></div><div><span>Covered reference delta</span><strong>${escapeHtml(signedMoneyCents(data.coveredReferenceDeltaCents))}</strong></div><div><span>Method</span><strong>Accepted exact completed-sale average</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>What this number is not</h2><p>The evidence reference is intentionally narrower than a generic market-price claim.</p></div></header><div class="panel-body customer-portfolio-boundaries"><div><span>✓</span><p><strong>Completed sales only</strong><small>At least 3 accepted exact sales; newest sale must be 30 days old or less.</small></p></div><div><span>×</span><p><strong>No active asks</strong><small>Current listings and fixed-price asks do not become completed-sale evidence.</small></p></div><div><span>×</span><p><strong>Not an appraisal or what you would receive</strong><small>The reference is an average of completed sales. It does not subtract selling fees, taxes or shipping.${sellWatchData() ? " To see what you would keep after your own selling costs, use Check a price on a card." : ""}</small></p></div></div></section></div>`;
   }
 
+  // ---------------------------------------------------------------------------------------------------------------
+  // Owned cards that need a look (Saved Decisions & Tracking → Portfolio). The same alerts as the Alerts page, filtered
+  // to cards you own. Display only: nothing here changes a decision, a value or a holding.
+  const ATTENTION_TITLES = Object.freeze({
+    REVIEW_DUE: "Your scheduled review is due",
+    DECISION_CHANGED: "Decision changed at a re-evaluation",
+    MAX_BUY_CROSSED: "Ask moved across your Max Buy",
+    DECISION_RECHECK_DUE: "Decision needs a fresh look",
+    VERIFICATION_PENDING: "Verification still needed",
+    LEGACY_DECISION: "Based on evidence FlipForge no longer accepts"
+  });
+
+  function validAlerts(payload) {
+    return payload?.data?.kind === "alerts" && payload?.data?.configured === true && Array.isArray(payload?.data?.items);
+  }
+
+  function ownedAttention(data) {
+    const alerts = state.alerts?.data;
+    if (!alerts) return [];
+    const owned = new Set(safeArray(data?.items).map(item => String(item.opportunityId || "")));
+    return safeArray(alerts.items).concat(safeArray(alerts.decisionReviewSignals))
+      .filter(item => item && owned.has(String(item.opportunityId || "")))
+      .filter(item => item.reviewed !== true && (typeof item.needsAttention === "boolean"
+        ? item.needsAttention
+        : String(item.kind || "").toUpperCase() !== "REVIEW_DUE" || item.due === true));
+  }
+
+  function attentionTitle(item) {
+    const title = String(item?.title || "").trim();
+    if (title) return title;
+    const kind = String(item?.kind || "").toUpperCase();
+    if (kind === "DECISION_CHANGED" && item?.previousDecision && item?.currentDecision) {
+      return `Decision changed from ${item.previousDecision} to ${item.currentDecision}`;
+    }
+    return ATTENTION_TITLES[kind] || "Needs a look";
+  }
+
+  function attentionPanel(data) {
+    if (!state.alerts) return "";
+    const items = ownedAttention(data);
+    const opportunities = opportunityMap();
+    if (!items.length) {
+      return `<section class="panel customer-portfolio-attention" data-portfolio-attention="none"><div class="panel-body"><strong>No owned card needs a look right now.</strong><small>Alerts for cards you own appear here and on the Alerts page.</small></div></section>`;
+    }
+    return `<section class="panel customer-portfolio-attention" data-portfolio-attention="${items.length}"><header class="panel-header"><div><h2>Owned cards that need a look</h2><p>From your saved decisions and reminders. Nothing here changes what you paid or a saved decision.</p></div>${badge(`${items.length} open`, "warn")}</header><div class="panel-body"><ul class="customer-portfolio-attention-list">${items.map(item => {
+      const id = String(item.opportunityId);
+      const saved = opportunities.get(id) || {};
+      const name = saved.title || saved.cardIdentity || id;
+      return `<li data-portfolio-attention-card="${escapeHtml(id)}"><div><span>${escapeHtml(name)}</span><strong>${escapeHtml(attentionTitle(item))}</strong>${item.customerExplanation ? `<small>${escapeHtml(item.customerExplanation)}</small>` : ""}</div><div class="customer-portfolio-attention-actions"><a class="button button-secondary" href="#/opportunities/${encodeURIComponent(id)}">Open decision</a><a class="button button-secondary" href="#/alerts">Review in Alerts</a></div></li>`;
+    }).join("")}</ul></div></section>`;
+  }
+
+  async function loadAlerts(generation) {
+    try {
+      const alerts = await request("/api/v1/alerts");
+      if (generation !== state.generation) return;
+      state.alerts = validAlerts(alerts) ? alerts : null;
+    } catch (_) {
+      // Alerts unavailable: Portfolio shows no attention section; nothing else changes.
+      if (generation !== state.generation) return;
+      state.alerts = null;
+    }
+    if (state.alerts && !state.loading && !state.error) renderCurrent();
+  }
+
   function pageMarkup() {
-    const actions = `<a class="button button-secondary" href="#/tracking">Tracking</a><a class="button button-secondary" href="#/evidence">Evidence</a><button class="button button-secondary" type="button" data-customer-portfolio-refresh>Refresh</button>`;
+    // /app/beta does not offer the Evidence destination in its navigation, so the link is not rendered there.
+    const evidence = fullCustomerPage() ? `<a class="button button-secondary" href="#/evidence">Evidence</a>` : "";
+    const actions = `<a class="button button-secondary" href="#/tracking">Tracking</a>${evidence}<button class="button button-secondary" type="button" data-customer-portfolio-refresh>Refresh</button>`;
     if (state.loading) return `<div class="page customer-portfolio-page">${pageHeading(actions)}${loadingPanel()}</div>`;
     if (state.error) return `<div class="page customer-portfolio-page">${pageHeading(actions)}${errorPanel(state.error)}</div>`;
     if (state.health?.data?.status !== "configured") return `<div class="page customer-portfolio-page">${pageHeading(actions)}${offlinePanel()}</div>`;
@@ -444,9 +620,9 @@
     const sales = salesData();
     const realized = sales ? realizedPanel(sales) : "";
     if (valuesPaused(data)) {
-      return `<div class="page customer-portfolio-page" data-portfolio-state="paused">${pageHeading(actions)}${pausedSummary(data)}${pausedPanel(watch)}${watch ? sellWatchPanel(watch) : ""}${pausedRows(data, watch)}${realized}</div>`;
+      return `<div class="page customer-portfolio-page" data-portfolio-state="paused">${pageHeading(actions)}${pausedSummary(data)}${data.count > 0 ? attentionPanel(data) : ""}${pausedPanel(watch)}${watch ? sellWatchPanel(watch) : ""}${pausedRows(data, watch)}${realized}</div>`;
     }
-    return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${coveragePanel(data)}${watch && data.count > 0 ? sellWatchPanel(watch) : ""}${portfolioRows(data)}${realized}</div>`;
+    return `<div class="page customer-portfolio-page">${pageHeading(actions)}${boundary("Evidence-supported reference value is explanatory market context, not a new Smart Opportunity recommendation, appraisal, guaranteed sale value, or transaction instruction.")}${summary(data)}${data.count > 0 ? attentionPanel(data) : ""}${coveragePanel(data)}${watch && data.count > 0 ? sellWatchPanel(watch) : ""}${portfolioRows(data)}${realized}</div>`;
   }
 
   // The route hook renders every page into the same element and does not tell Portfolio when the customer leaves,
@@ -503,14 +679,21 @@
     state.opportunities = null;
     state.sellWatch = null;
     state.sales = null;
+    state.alerts = null;
     renderCurrent({ mount });
+    // The service check and Portfolio's data are requested together (one round trip, not two); the data is used only
+    // if the service is configured. The server authorizes every request on its own.
+    const settle = promise => promise.then(value => ({ value }), error => ({ error }));
+    const healthRequest = settle(request("/api/v1/health"));
+    const dataRequest = settle(Promise.all([request("/api/v1/portfolio"), request("/api/v1/opportunities")]));
     try {
-      state.health = await request("/api/v1/health");
+      const health = await healthRequest;
+      if (health.error) throw health.error;
+      state.health = health.value;
       if (state.health?.data?.status !== "configured") return;
-      const [portfolio, opportunities] = await Promise.all([
-        request("/api/v1/portfolio"),
-        request("/api/v1/opportunities")
-      ]);
+      const data = await dataRequest;
+      if (data.error) throw data.error;
+      const [portfolio, opportunities] = data.value;
       if (!validPortfolio(portfolio)) {
         throw Object.assign(new Error("The Portfolio response failed the evidence-reference contract."), { code: "PORTFOLIO_REFERENCE_CONTRACT_INVALID" });
       }
@@ -520,7 +703,10 @@
       if (generation !== state.generation) return;
       state.portfolio = portfolio;
       state.opportunities = opportunities;
-      if (Number(portfolio.data.count) > 0) loadSellWatch(generation);
+      if (Number(portfolio.data.count) > 0) {
+        loadSellWatch(generation);
+        loadAlerts(generation);
+      }
       loadSales(generation);
     } catch (error) {
       if (generation !== state.generation) return;

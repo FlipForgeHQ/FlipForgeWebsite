@@ -31,10 +31,6 @@
     return routeParts()[0] || "dashboard";
   }
 
-  function setText(node, value) {
-    if (node && node.textContent !== value) node.textContent = value;
-  }
-
   function sent(event) {
     try { return window.sessionStorage.getItem(`${SENT_PREFIX}${event}`) === "1"; }
     catch (_) { return false; }
@@ -75,157 +71,6 @@
     catch (_) { return false; }
   }
 
-  function hideNode(node) {
-    if (!node) return;
-    node.dataset.ffBetaSessionHidden = "true";
-    node.setAttribute("aria-hidden", "true");
-  }
-
-  function hideTechnicalSectionByHeading(pattern) {
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-    [...main.querySelectorAll("h2,h3")].forEach(heading => {
-      if (!pattern.test(String(heading.textContent || "").trim())) return;
-      const section = heading.closest("section,article,.panel,.customer-intelligence-section");
-      if (section) hideNode(section);
-    });
-  }
-
-  function simplifyDiscover() {
-    if (routeName() !== "discover") return;
-    const main = document.querySelector("#main-content");
-    const form = main?.querySelector("[data-customer-discovery-form]");
-    const panel = form?.closest(".customer-discovery-search");
-    if (!form || !panel) return;
-    if (panel.dataset.ffDiscoverCopyOwner !== "beta-session") {
-      panel.dataset.ffDiscoverCopyOwner = "beta-session";
-    }
-
-    const pageHeading = main.querySelector(".page-heading");
-    if (pageHeading) {
-      setText(pageHeading.querySelector(".eyebrow"), "Discover");
-      setText(pageHeading.querySelector("h1"), "Discover a Card");
-      setText(pageHeading.querySelector("p"), "Find and confirm your exact card first. Then select a listing for FlipForge to evaluate.");
-      hideNode(pageHeading.querySelector(".page-actions"));
-    }
-
-    const heading = panel.querySelector("h2");
-    const intro = panel.querySelector(".panel-header p");
-    if (heading && heading.textContent !== "Find listings for your card") heading.textContent = "Find listings for your card";
-    const introCopy = "Use guided selections or the exact-card search field. Confirm the card version before you choose a listing.";
-    if (intro && intro.textContent !== introCopy) intro.textContent = introCopy;
-
-    const cardLabel = form.querySelector('input[name="exactCardQuery"]')?.closest("label");
-    const priceLabel = form.querySelector('input[name="targetMaxBuy"]')?.closest("label");
-    const resultsSelect = form.querySelector('select[name="limit"]');
-    const resultsLabel = resultsSelect?.closest("label");
-    if (cardLabel?.querySelector("span") && cardLabel.querySelector("span").textContent !== "Card") cardLabel.querySelector("span").textContent = "Card";
-    if (priceLabel?.querySelector("span") && priceLabel.querySelector("span").textContent !== "Max price (optional)") priceLabel.querySelector("span").textContent = "Max price (optional)";
-    if (resultsLabel) {
-      resultsLabel.dataset.ffBetaHiddenControl = "true";
-      resultsLabel.setAttribute("aria-hidden", "true");
-    }
-    if (resultsSelect) {
-      resultsSelect.tabIndex = -1;
-      resultsSelect.setAttribute("aria-hidden", "true");
-    }
-
-    const submit = form.querySelector('button[type="submit"]');
-    // One primary action: listings; no identity is silently declared confirmed.
-    if (submit && !submit.disabled && !/Searching|Resolving/i.test(String(submit.textContent || "")) && submit.textContent !== "Search listings") {
-      submit.textContent = "Search listings";
-    }
-    if (submit) {
-      submit.setAttribute("aria-label", "Search active listings for the card entered");
-      submit.title = "Find listings currently for sale. You'll choose one before FlipForge evaluates it.";
-    }
-    const exact = form.querySelector("[data-discovery-find-exact]");
-    if (exact && !exact.disabled && exact.textContent !== "Check card identity") exact.textContent = "Check card identity";
-    if (exact) {
-      exact.setAttribute("aria-label", "Check card identity before searching listings");
-      exact.title = "Use this if you are unsure of the parallel, variation, or card number. No listing search or evaluation starts yet.";
-    }
-    const actions = form.querySelector(".customer-discovery-search-actions");
-    if (actions && !form.querySelector("[data-ff-beta-identity-hint]")) {
-      const hint = document.createElement("p");
-      hint.dataset.ffBetaIdentityHint = "";
-      hint.className = "ff-beta-identity-hint";
-      hint.textContent = "Not sure which version of the card you have? Check card identity first. Otherwise, search listings.";
-      actions.insertAdjacentElement("afterend", hint);
-    }
-
-    // The card-entry guide (what to type, two-year seasons, card-number notation) now renders open in
-    // customer-discovery.js for both the Private Beta and customer apps; the beta no longer rewrites it.
-
-    hideTechnicalSectionByHeading(/^Connected source status$/i);
-    main.querySelectorAll(".customer-discovery-identity-assist .boundary-note").forEach(hideNode);
-    main.querySelectorAll(".boundary-note").forEach(hideNode);
-  }
-
-  function simplifyDecision() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts.length < 2) return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Your result");
-      setText(heading.querySelector("h1"), "Your Decision");
-      setText(heading.querySelector("p"), "Start with the decision and the reason. Open the evidence only when you want the deeper proof.");
-      const legacyActions = heading.querySelector(".page-actions");
-      hideNode(legacyActions);
-      const legacyTrack = legacyActions?.querySelector("a[href^='#/tracking/']");
-      if (legacyTrack) legacyTrack.setAttribute("href", "#/tracking");
-    }
-
-    hideTechnicalSectionByHeading(/^(Forge Heat|Price Intelligence|Historical sold evidence|How to read this decision|Decision details|Evidence details|PSA context|Evidence)$/i);
-    hideTechnicalSectionByHeading(/^What changes (?:this|the) decision\??$/i);
-    main.querySelectorAll(".boundary-note").forEach(hideNode);
-
-    const moreDetail = [...main.querySelectorAll("button,a,summary")].find(node => /More decision detail/i.test(String(node.textContent || "")));
-    if (moreDetail) hideNode(moreDetail.closest("section,article,.panel,details") || moreDetail);
-  }
-
-  function simplifySavedDecisions() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts.length !== 1) return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Saved cards");
-      setText(heading.querySelector("h1"), "Saved Decisions");
-      setText(heading.querySelector("p"), "Reopen a card to review the decision or continue tracking it.");
-      hideNode(heading.querySelector(".page-actions"));
-    }
-
-    main.querySelectorAll(".metric-grid,.dashboard-grid,.customer-management-metrics,.boundary-note").forEach(hideNode);
-    main.querySelectorAll("section,article,.panel").forEach(section => {
-      const text = String(section.textContent || "").replace(/\s+/g, " ").trim();
-      if (/MODEL/i.test(text) && /TRANSACTION ACTIONS/i.test(text) && /CUSTOMER CONTROLS/i.test(text)) hideNode(section);
-    });
-  }
-
-  function simplifyTracking() {
-    if (routeName() !== "tracking") return;
-    const main = document.querySelector("#main-content");
-    if (!main) return;
-
-    const heading = main.querySelector(".page-heading");
-    if (heading) {
-      setText(heading.querySelector(".eyebrow"), "Decision follow-up");
-      setText(heading.querySelector("h1"), "Tracking");
-      setText(heading.querySelector("p"), "Choose what happens next with this saved card: keep watching, set a review date, record ownership, or close it out.");
-      hideNode(heading.querySelector(".page-actions"));
-    }
-
-    main.querySelectorAll(".customer-management-metrics,.boundary-note").forEach(hideNode);
-    const save = main.querySelector('[data-lifecycle-form] button[type="submit"]');
-    if (save && !save.disabled && !/Saving/i.test(String(save.textContent || ""))) setText(save, "Save update");
-  }
-
   function syncMilestones() {
     const parts = routeParts();
     if (parts[0] === "opportunities" && parts.length > 1 && pendingEvaluation()) {
@@ -236,13 +81,9 @@
     if (parts[0] === "tracking") emit("tracking_viewed");
   }
 
+  // Beta telemetry only. Every screen renders its own beta view (owners); this file no longer changes the page.
   function apply() {
     if (!eligible()) return;
-    document.documentElement.classList.add("ff-beta-session-v1");
-    simplifyDiscover();
-    simplifyDecision();
-    simplifySavedDecisions();
-    simplifyTracking();
     syncMilestones();
   }
 
@@ -274,10 +115,6 @@
 
   function init() {
     if (!eligible()) return;
-    const main = document.querySelector("#main-content");
-    if (main) new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
-    const nav = document.querySelector(".primary-nav");
-    if (nav) new MutationObserver(schedule).observe(nav, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "tabindex", "class"] });
     window.addEventListener("hashchange", () => window.setTimeout(schedule, 50));
     window.addEventListener("pageshow", schedule);
     window.addEventListener("load", schedule);

@@ -22,9 +22,10 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
 check("001 evaluation stylesheet is loaded", files.index.includes('href="staging-evaluation.css"'));
 check("002 evaluation adapter is loaded", files.index.includes('src="staging-evaluation.js"'));
 check("003 evaluation adapter loads before route hook", files.index.indexOf('src="staging-evaluation.js"') < files.index.indexOf('src="staging-route-hook.js"'));
-check("004 evaluation navigation is hidden by default", /data-route="staging-evaluate"[^>]*hidden/.test(files.index));
-check("005 evaluation navigation uses staging-only class", /data-route="staging-evaluate"[^>]*staging-only-nav/.test(files.index));
-check("006 evaluation route is separate from mock evaluate route", files.index.includes('href="#/evaluate" data-route="evaluate"') && files.index.includes('href="#/staging-evaluate"'));
+// Staging evaluation is reached by address on previews only; no app page lists it (Nov 3 2026).
+check("004 evaluation navigation is hidden by default", !files.index.includes('data-route="staging-evaluate"'));
+check("005 evaluation navigation uses staging-only class", !files.index.includes("staging-only-nav"));
+check("006 evaluation route is separate from mock evaluate route", files.hook.includes('route !== "staging-evaluate"') && files.hook.includes('if (route === "evaluate"'));
 check("007 adapter restricts execution to deploy previews and localhost", files.adapter.includes("deploy-preview-") && files.adapter.includes("localhost") && files.adapter.includes("127\\.0\\.0\\.1"));
 check("008 production hostname is not allowlisted", !files.adapter.includes("www.goflipforge.com") && !files.adapter.includes("goflipforge.com|"));
 check("009 adapter posts only to fixed same-origin evaluation path", files.adapter.includes('const EVALUATION_PATH = "/api/v1/evaluations"') && files.adapter.includes("fetch(EVALUATION_PATH"));
@@ -361,6 +362,13 @@ check("097 production host performs no request", foreignCalls.length === 0);
 function SAFE_TEST(value) {
   return /^[A-Za-z0-9._-]{8,100}$/.test(String(value || ""));
 }
+
+check("098 pending evaluation responses are owned by a submission generation",
+  files.adapter.includes("const submissionGeneration = ++state.submissionGeneration;")
+    && files.adapter.includes("if (submissionGeneration !== state.submissionGeneration) return;")
+    && files.adapter.includes("if (submissionGeneration === state.submissionGeneration) {"));
+check("099 reevaluation card switch and reset retire earlier submissions",
+  (files.adapter.match(/state.submissionGeneration \+= 1;/g) || []).length >= 3);
 
 const failures = results.filter(result => !result.passed);
 console.log("SaaSStagingEvaluationSubmitValidation");

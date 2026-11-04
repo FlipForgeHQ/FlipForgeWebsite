@@ -2,12 +2,7 @@
   "use strict";
 
   const MOBILE_QUERY = "(max-width: 760px)";
-  const PRIMARY_ROUTES = ["dashboard", "discover", "opportunities", "tracking"];
   const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
-  const FULL_CUSTOMER_ROUTES = [
-    "dashboard", "discover", "evaluate", "decision-intelligence", "why-this-decision", "evidence",
-    "opportunities", "tracking", "portfolio", "alerts", "forge-heat", "market-view"
-  ];
 
   function fullCustomerMode() {
     return FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""));
@@ -101,27 +96,9 @@
     if (!nav) return;
 
     ensureStyle();
-    const routes = fullCustomerMode() ? FULL_CUSTOMER_ROUTES : PRIMARY_ROUTES;
-    routes.forEach(route => restoreLink(nav.querySelector(`[data-route="${route}"]`)));
-
-    nav.querySelectorAll(":scope > a[data-route]").forEach(link => {
-      const route = String(link.dataset.route || "");
-      if (!routes.includes(route) && route !== "account") {
-        setHidden(link, true);
-        if (link.getAttribute("tabindex") !== "-1") link.tabIndex = -1;
-        if (link.hasAttribute("data-ff-customer-core")) link.removeAttribute("data-ff-customer-core");
-      }
-    });
-
-    const advanced = nav.querySelector(".ff-advanced-nav");
-    if (advanced) {
-      if (fullCustomerMode()) {
-        setHidden(advanced, false);
-      } else {
-        if (advanced.open) advanced.open = false;
-        setHidden(advanced, true);
-      }
-    }
+    // Which links are visible is decided by the page markup (customer.html lists the full customer menu for every
+    // width). This helper, loaded by the full customer app only, adds the phone Account link and keeps the active
+    // link in sync; it keeps no route list of its own (it used to hide links on phones from an old four-route list).
 
     const account = ensureAccountLink(nav);
     restoreLink(account);

@@ -24,7 +24,7 @@
 
 .ff-commercial-shell .page-heading .eyebrow {
   color: var(--ff-v2-gold);
-  font-size: .7rem;
+  font-size: .875rem;
   font-weight: 800;
   letter-spacing: .15em;
   text-transform: uppercase;
@@ -87,7 +87,7 @@
 .ff-commercial-shell .panel-header p {
   margin: 4px 0 0;
   color: var(--ff-v2-muted);
-  font-size: .75rem;
+  font-size: .875rem;
   line-height: 1.45;
 }
 
@@ -107,7 +107,7 @@
   border-radius: 8px;
   color: #a8b2bd;
   background: rgba(216,174,59,.035);
-  font-size: .72rem;
+  font-size: .875rem;
   line-height: 1.5;
 }
 
@@ -126,7 +126,7 @@
 .ff-commercial-shell table {
   width: 100%;
   border-collapse: collapse;
-  font-size: .78rem;
+  font-size: .875rem;
 }
 
 .ff-commercial-shell th {
@@ -134,7 +134,7 @@
   color: #9ea9b4;
   background: rgba(255,255,255,.012);
   border-bottom: 1px solid var(--ff-v2-border);
-  font-size: .66rem;
+  font-size: .875rem;
   font-weight: 760;
   letter-spacing: .06em;
   text-align: left;
@@ -183,7 +183,7 @@
 }
 
 .ff-commercial-shell .global-search input {
-  font-size: .84rem;
+  font-size: .875rem;
 }
 
 .ff-commercial-shell .topbar {
@@ -228,7 +228,7 @@
 .ff-commercial-shell .brand-subtitle {
   margin-top: 5px;
   color: var(--ff-v2-gold);
-  font-size: .52rem;
+  font-size: .875rem;
   font-weight: 760;
   letter-spacing: .13em;
 }
@@ -237,7 +237,7 @@
   margin: 10px 0 0 54px;
   width: max-content;
   padding: 4px 7px;
-  font-size: .56rem;
+  font-size: .875rem;
 }
 
 .ff-commercial-shell .sidebar-footer {
@@ -334,7 +334,7 @@
 
 .ff-commercial-shell .ff-source-listing-copy small {
   color: #8f9aa6;
-  font-size: .62rem;
+  font-size: .875rem;
   font-weight: 760;
   letter-spacing: .07em;
   text-transform: uppercase;
@@ -342,13 +342,13 @@
 
 .ff-commercial-shell .ff-source-listing-copy strong {
   color: #f3f5f6;
-  font-size: .86rem;
+  font-size: .875rem;
 }
 
 .ff-commercial-shell .ff-source-listing-copy span {
   overflow: hidden;
   color: #9ca7b2;
-  font-size: .7rem;
+  font-size: .875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -359,7 +359,7 @@
   border-radius: 999px;
   color: #77db8f;
   background: rgba(66,204,104,.06);
-  font-size: .58rem;
+  font-size: .875rem;
   font-weight: 850;
   letter-spacing: .08em;
 }

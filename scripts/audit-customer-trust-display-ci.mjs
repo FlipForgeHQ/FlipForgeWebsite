@@ -65,6 +65,14 @@ function opportunity(id, f) {
     governedDecision: { available: true, recommendation: "BUY", risk: f.governedRisk, confidence: f.governedConfidence, reason: "BUY: saved reason.", evaluatedAt: "2026-10-06T23:54:44Z" },
     evidence: { acceptedSales: 1, marketplaces: ["CARDSIGHT_EBAY"], priceStatusLabel: "Reported sale prices, matched to the exact card" }
   };
+  // Exact-card identity basis as FlipForge2#970 publishes it (governedDecision.exactIdentityBasis / exactIdentityConfirmed).
+  // undefined = an older backend that does not send it.
+  if (f.recommendation) Object.assign(item, { recommendation: f.recommendation }) && Object.assign(item.governedDecision, { recommendation: f.recommendation });
+  if (f.mappingState) item.mappingState = f.mappingState;
+  if (f.identityBasis !== undefined) Object.assign(item.governedDecision, {
+    exactIdentityBasis: f.identityBasis,
+    exactIdentityConfirmed: f.identityBasis === "CONFIRMED" ? true : f.identityBasis === "NOT_CONFIRMED" ? false : null
+  });
   if (f.shape === "new") return newShape(item, f);
   if (f.provenance !== undefined) item.evidenceProvenanceStatus = f.provenance;
   if (f.legacy) Object.assign(item, { evidenceProvenanceStatus: LEGACY_STATUS, legacyNotice: LEGACY_NOTICE });
@@ -161,7 +169,24 @@ function fixture(f) {
 // ---------- session ----------
 const browser = await chromium.launch({ executablePath, args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"] });
 const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
-async function open(route, f = BASE, { active = "", storageThrows = false, wait = 4500, expandAll = true, host = "goflipforge.com", device = null } = {}) {
+// The Evidence page is finished when the evidence request made by the page has completed and the main content has then
+// stopped changing for 500 ms. This replaces a fixed delay, which read the page too early on a slow runner. A page that
+// keeps redrawing never becomes quiet, so this wait also fails on a redraw loop instead of hiding it.
+async function evidenceReady(page, evidenceResponse) {
+  await evidenceResponse;
+  await page.waitForFunction(() => {
+    const root = document.querySelector("#main-content");
+    if (!root) return false;
+    if (!window.__ffEvidenceQuiet) {
+      window.__ffEvidenceQuiet = { at: performance.now() };
+      new MutationObserver(() => { window.__ffEvidenceQuiet.at = performance.now(); })
+        .observe(root, { childList: true, subtree: true, characterData: true, attributes: true });
+    }
+    return performance.now() - window.__ffEvidenceQuiet.at >= 500;
+  }, null, { timeout: 20000, polling: 100 });
+}
+
+async function open(route, f = BASE, { active = "", storageThrows = false, wait = 4500, expandAll = true, host = "goflipforge.com", device = null, app = APP } = {}) {
   const context = await browser.newContext(device || { viewport: { width: 1440, height: 900 } });
   await context.addInitScript(() => { try { localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete"); } catch (_) {} });
   if (active) await context.addInitScript(id => { try { sessionStorage.setItem("flipforge.trackingContext.v1", id); } catch (_) {} }, active);
@@ -177,8 +202,12 @@ async function open(route, f = BASE, { active = "", storageThrows = false, wait 
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", e => { if (!/QA: (?:session )?storage unavailable/.test(e.message)) errors.push(e.message.slice(0, 160)); });
-  await page.goto(`${APP.replace("goflipforge.com", host)}#/${route}`, { waitUntil: "load" });
-  await page.waitForTimeout(wait);
+  const evidenceResponse = route.startsWith("evidence/")
+    ? page.waitForResponse(response => /\/api\/v1\/evidence\//.test(response.url()), { timeout: 20000 })
+    : null;
+  await page.goto(`${app.replace("goflipforge.com", host)}#/${route}`, { waitUntil: "load" });
+  if (evidenceResponse) await evidenceReady(page, evidenceResponse);
+  else await page.waitForTimeout(wait);
   if (expandAll) {
     await page.evaluate(() => document.querySelectorAll("#main-content details").forEach(d => { d.open = true; }));
     await page.waitForTimeout(400);
@@ -225,7 +254,7 @@ try {
     check("T1 card detail: no 100/100 risk and no \"final\" risk wording anywhere", !/100\/100/.test(s.text) && !/final saved decision risk/i.test(s.text));
     const passport = await passportRisk(s.page);
     check("T1 evidence passport: RISK + UNCERTAINTY shows 35/100 with confidence 83/100", passport?.value === "35/100" && passport?.small === "Confidence 83/100", JSON.stringify(passport));
-    check("T1 evidence passport: economics layer reads the listing price ($1,215 ask)", /\$1,215 ask/.test(s.text));
+    check("T1 evidence passport: economics layer reads the exact listing price ($1,215.00 ask)", /\$1,215\.00 ask/.test(s.text));
     check("T1 card detail: decision-risk metric shows 35/100", await metricValue(s.page, "Decision risk") === "35/100", String(await metricValue(s.page, "Decision risk")));
     check("T1 card detail: no page errors", s.errors.length === 0, s.errors.join(" | "));
     await s.context.close();
@@ -335,14 +364,21 @@ try {
       check(`T7 ${name}: unavailable session storage never breaks the page (first card used, no errors)`, blockedValue.includes(expected.replace("qa-trust-b", "qa-trust-a")) && blocked.errors.length === 0, `${blockedValue} ${blocked.errors.join(" | ")}`);
       await blocked.context.close();
     }
-    const s = await open("opportunities/qa-trust-b", BASE, { expandAll: false });
+    // The advanced tools menu (PSA Advisor, Evidence, Audit Export) belongs to the full customer app; the Private Beta
+    // menu is the founder-approved eight routes and has no advanced menu at all.
+    const beta = await open("opportunities/qa-trust-b", BASE, { expandAll: false });
+    check("T7 Private Beta has no advanced tools menu", await beta.page.locator(".ff-advanced-nav").count() === 0);
+    await beta.context.close();
+    const s = await open("opportunities/qa-trust-b", BASE, { expandAll: false, app: APP.replace("/app/beta/", "/app/customer/") });
     const links = await s.page.evaluate(() => Object.fromEntries([...document.querySelectorAll(".ff-advanced-nav a[data-route]")].map(a => [a.dataset.route, a.getAttribute("href")])));
     check("T7 Advanced nav on a card: PSA Advisor, Evidence and Audit Export links include the card's id",
-      links["psa-advisor"] === "#/psa-advisor/qa-trust-b" && links.evidence === "#/evidence/qa-trust-b" && links.export === "#/export/qa-trust-b", JSON.stringify(links));
+      // (In the full customer app Evidence Review is a primary menu entry, not an advanced tool; when the advanced menu
+      // carries an Evidence link it must follow the card too.)
+      links["psa-advisor"] === "#/psa-advisor/qa-trust-b" && (links.evidence === undefined || links.evidence === "#/evidence/qa-trust-b") && links.export === "#/export/qa-trust-b", JSON.stringify(links));
     await s.page.evaluate(() => { location.hash = "#/dashboard"; });
     await s.page.waitForTimeout(1200);
     const generic = await s.page.evaluate(() => Object.fromEntries([...document.querySelectorAll(".ff-advanced-nav a[data-route]")].map(a => [a.dataset.route, a.getAttribute("href")])));
-    check("T7 Advanced nav off a card: links return to their generic routes", generic["psa-advisor"] === "#/psa-advisor" && generic.evidence === "#/evidence" && generic.export === "#/export", JSON.stringify(generic));
+    check("T7 Advanced nav off a card: links return to their generic routes", generic["psa-advisor"] === "#/psa-advisor" && (generic.evidence === undefined || generic.evidence === "#/evidence") && generic.export === "#/export", JSON.stringify(generic));
     await s.context.close();
   }
   // T8: new API shape (FlipForge2#885) - current items carry CURRENT_EVIDENCE_RULES; legacy items carry
@@ -371,9 +407,14 @@ try {
       if (route === "opportunities/qa-trust-a") {
         check("T8 card detail (new shape, legacy): saved values shown only as \"at the time (legacy)\"", /Saved value at the time \(legacy\): \$1,675/.test(s.text) && /Max Buy at the time \(legacy\): \$1,400/.test(s.text));
         check("T8 card detail (new shape, legacy): supported value reads Unavailable / not currently supported", /SUPPORTED VALUE\s+Unavailable/i.test(s.text) && /Not currently supported/.test(s.text));
+        // /app/beta does not offer the Price Intelligence panel on a saved decision (it is not rendered there), so no
+        // threshold can be shown; the full customer app renders it, and there it must say no thresholds for a legacy result.
+        check("T8 card detail (new shape, legacy, beta): no Price Intelligence panel or price threshold is rendered", await s.page.locator("[data-price-intelligence-panel]").count() === 0 && !/WATCH threshold|BUY threshold/i.test(s.text));
+        const full = await open(route, legacy, { app: APP.replace("/app/beta/", "/app/customer/") });
         // The Price Intelligence panel may sit in a collapsed advanced section, so its DOM text is read directly.
-        const priceText = await s.page.evaluate(() => document.querySelector("[data-price-intelligence-panel]")?.textContent || "");
+        const priceText = await full.page.evaluate(() => document.querySelector("[data-price-intelligence-panel]")?.textContent || "");
         check("T8 card detail (new shape, legacy): Price Intelligence says no thresholds for a legacy result", /Price thresholds are not shown for a result saved before current evidence rules/.test(priceText) && !/SAFETY_CONTRACT|did not satisfy/.test(priceText), priceText.replace(/\s+/g, " ").slice(0, 200));
+        await full.context.close();
         check("T8 card detail (new shape, legacy): no current-support copy", !/Buy looks supported|supports this purchase at the evaluated price|found enough support for a BUY/.test(s.text));
       }
       if (route === "compare") {
@@ -411,6 +452,46 @@ try {
       await none.context.close();
     }
   }
+  // T11: the saved decision shows the exact-card identity check the decision recorded (FlipForge2#970), never the
+  // provider catalog link (mappingState). A saved BUY whose check is not on record as confirmed carries a disclosure;
+  // the saved decision itself is shown unchanged.
+  {
+    const identityLine = text => (text.match(/Identity status: ([^\n·]+)/) || [])[1]?.trim() || "";
+    const noticeOf = page => page.evaluate(() => { const n = document.querySelector("#main-content [data-ff-identity-basis]"); return n ? { basis: n.dataset.ffIdentityBasis, text: n.innerText } : null; });
+    const historic = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", identityBasis: "NOT_RECORDED", mappingState: "CONFIRMED" });
+    const historicNotice = await noticeOf(historic.page);
+    check("T11 historical BUY (NOT_RECORDED): identity reads \"Not recorded (earlier rules)\", even with a confirmed catalog link", identityLine(historic.text) === "Not recorded (earlier rules)" && !/Exact match|Confirmed when saved/.test(identityLine(historic.text)), identityLine(historic.text));
+    check("T11 historical BUY (NOT_RECORDED): disclosure says verification was not recorded under earlier rules and must be done before acting",
+      historicNotice?.basis === "NOT_RECORDED" && /Identity verification was not recorded for this BUY/.test(historicNotice.text) && /saved under earlier rules/.test(historicNotice.text) && /Verify the exact card/.test(historicNotice.text) && /before acting/.test(historicNotice.text), JSON.stringify(historicNotice));
+    check("T11 historical BUY (NOT_RECORDED): the saved BUY is still shown as saved", /\bBUY\b/.test(historic.text) && /kept exactly as they were/.test(historicNotice?.text || ""));
+    check("T11 historical BUY (NOT_RECORDED): no page errors", historic.errors.length === 0, historic.errors.join(" | "));
+    await historic.context.close();
+
+    const confirmed = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", identityBasis: "CONFIRMED", mappingState: "NOT_CONFIRMED" });
+    check("T11 confirmed BUY: identity reads \"Confirmed when saved\" although the catalog link is not confirmed", identityLine(confirmed.text) === "Confirmed when saved", identityLine(confirmed.text));
+    check("T11 confirmed BUY: no identity disclosure", !(await noticeOf(confirmed.page)));
+    await confirmed.context.close();
+
+    const notConfirmed = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", identityBasis: "NOT_CONFIRMED", mappingState: "CONFIRMED" });
+    const notConfirmedNotice = await noticeOf(notConfirmed.page);
+    check("T11 BUY (NOT_CONFIRMED): identity reads \"Not confirmed when saved\" and a verify-before-acting disclosure is shown", identityLine(notConfirmed.text) === "Not confirmed when saved" && notConfirmedNotice?.basis === "NOT_CONFIRMED" && /Verify the exact card before acting/.test(notConfirmedNotice.text), `${identityLine(notConfirmed.text)} ${JSON.stringify(notConfirmedNotice)}`);
+    await notConfirmed.context.close();
+
+    const verify = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "VERIFY", identityBasis: "NOT_RECORDED", mappingState: "CONFIRMED" });
+    check("T11 VERIFY (NOT_RECORDED): identity reads \"Not recorded (earlier rules)\"; no BUY disclosure", identityLine(verify.text) === "Not recorded (earlier rules)" && !(await noticeOf(verify.page)), identityLine(verify.text));
+    await verify.context.close();
+
+    const older = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", mappingState: "CONFIRMED" });
+    const olderNotice = await noticeOf(older.page);
+    check("T11 BUY from a backend without the identity record: identity reads \"Unavailable\" (never the catalog link) and verify-before-acting is shown", identityLine(older.text) === "Unavailable" && olderNotice?.basis === "UNAVAILABLE", `${identityLine(older.text)} ${JSON.stringify(olderNotice)}`);
+    await older.context.close();
+
+    const phone = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", identityBasis: "NOT_RECORDED" }, { device: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } });
+    const overflow = await phone.page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    check("T11 historical BUY disclosure at phone width: shown, no horizontal page overflow", Boolean(await noticeOf(phone.page)) && overflow <= 1, `${overflow}px`);
+    await phone.context.close();
+  }
+
   // T10: legacy notices and provider-neutral wording at phone width (FlipForge2#885 shape).
   {
     const legacy = { ...BASE, shape: "new", legacy: true };

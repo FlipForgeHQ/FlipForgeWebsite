@@ -234,10 +234,28 @@
     return true;
   }
 
+
+  // The Tracking owner asks for this card's panel data as soon as it knows the card (in parallel with its own requests),
+  // so the panel does not wait for the page to render before it starts loading. Used once, for the same card, within 10 s.
+  let prefetched = null;
+  function prefetch(id) {
+    const card = String(id || "");
+    if (!eligibleHost() || state.featureOff || !SAFE_ID.test(card)) return;
+    if (prefetched && prefetched.id === card && Date.now() - prefetched.at < 10000) return;
+    const promise = request(`/api/v1/sell-watch/${encodeURIComponent(card)}`);
+    promise.catch(() => {});
+    prefetched = { id: card, at: Date.now(), promise };
+  }
+  function takePrefetched(card) {
+    const hit = prefetched && prefetched.id === card && Date.now() - prefetched.at < 10000 ? prefetched.promise : null;
+    prefetched = null;
+    return hit;
+  }
+
   async function load(generation) {
     const card = state.opportunityId;
     try {
-      const payload = await request(`/api/v1/sell-watch/${encodeURIComponent(card)}`);
+      const payload = await (takePrefetched(card) || request(`/api/v1/sell-watch/${encodeURIComponent(card)}`));
       if (generation !== state.generation) return;
       if (!apply(payload)) {
         // Not an owned card: Sell Watch is for cards you own. Keep an empty, hidden placeholder so the page watcher
@@ -407,11 +425,9 @@
     window.requestAnimationFrame(() => { scheduled = false; mount(); });
   }
 
-  if (typeof MutationObserver === "function" && document.body) {
-    new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
-  }
+  // No page-wide observer: the Tracking owner (customer-lifecycle.js) calls mount() after every render.
   window.addEventListener("hashchange", schedule);
   schedule();
 
-  window.FlipForgeSellWatch = Object.freeze({ isEligible: eligibleHost, mount, requestCount: () => state.requests });
+  window.FlipForgeSellWatch = Object.freeze({ isEligible: eligibleHost, mount, prefetch, requestCount: () => state.requests });
 })();

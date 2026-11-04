@@ -25,7 +25,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["005 private beta documentation exists", exists("docs/SAAS_PRIVATE_BETA_READINESS.md")],
   ["006 app loads private beta stylesheet", index.includes('href="private-beta.css"')],
   ["007 app loads private beta adapter last", index.includes('src="private-beta.js"') && index.lastIndexOf('src="private-beta.js"') > index.lastIndexOf('src="account-lifecycle.js"')],
-  ["008 Beta Guide is present in primary navigation", index.includes('href="#/beta-start" data-route="beta-start"')],
+  // Founder decision (Nov 3 2026): the guide is reached from sign-in and Home, not listed in the beta navigation.
+  ["008 Beta Guide route stays available outside the primary navigation", beta.includes('"beta-start"') && !index.includes('data-route="beta-start"')],
   ["009 sidebar identifies invitation-only private beta", index.includes("Private beta") && index.includes("Invitation only")],
   ["010 fake prototype usage allowance was removed", !index.includes("12 / 50") && index.includes("Usage meter") && index.includes("Not active")],
   ["011 feedback uses the signed same-origin server endpoint", beta.includes('const FEEDBACK_ENDPOINT = "/api/beta/feedback"')],
@@ -49,8 +50,8 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["029 available bridge requires configured and enabled", beta.includes('health.data?.status === "configured" && health.data?.bridgeEnabled')],
   ["030 production private-beta access remains invitation-only", beta.includes('statusCard("Customer access"') && beta.includes("Live private beta") && beta.includes("invited testers with active membership")],
   ["031 Smart Opportunity remains sole authority", beta.includes("Smart Opportunity remains the sole recommendation authority")],
-  ["032 existing PSA authority remains explicit", beta.includes("Existing PSA intelligence remains the sole grading-guidance authority")],
-  ["033 SQLite remains source of truth", beta.includes("SQLite remains the source of truth")],
+  ["032 PSA authority remains explicit in customer words", beta.includes("Smart Opportunity remains the sole recommendation authority, PSA Advisor provides grading guidance")],
+  ["033 the account (server record) remains the source of truth", beta.includes("your account remains the source of truth")],
   ["034 public signup remains unavailable", beta.includes("no public signup") && !beta.includes("signup(")],
   ["035 billing remains unavailable", beta.includes("No billing") && beta.includes("No paid limits")],
   ["036 transaction execution remains unavailable", beta.includes("checkout, payment, purchase, listing, sale")],
@@ -66,7 +67,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["039e onboarding keeps feedback after the first-decision journey", beta.indexOf("private-beta-v2-feedback") > beta.indexOf("private-beta-v2-walkthrough")],
   ["039f onboarding visualizes one persistent structured decision record", beta.includes("data-private-beta-record-system") && beta.includes("One evaluation becomes a structured decision record.")],
   ["039g record system exposes identity evidence receipt and outcome history", ["IDENTITY RECORD", "EVIDENCE RECORD", "DECISION RECEIPT", "OUTCOME HISTORY"].every(value => beta.includes(value))],
-  ["039h record system keeps server and browser authority boundary explicit", beta.includes("server-backed SQLite") && beta.includes("browser does not become the authority")],
+  ["039h record system keeps server and browser authority boundary explicit", beta.includes("server-backed") && beta.includes("the browser does not become the authority")],
   ["039i record system is visibly database-like and responsive", css.includes(".private-beta-record-stack") && css.includes(".private-beta-record-map") && css.includes("@media(max-width:700px)")],
   ["040 feedback is restricted to active invited testers", beta.includes("!session.authenticated || !session.membershipActive")],
   ["041 feedback summary is required and bounded", beta.includes('maxlength="2000"') && beta.includes("summary.length > 2000")],
@@ -176,7 +177,8 @@ await new Promise(resolve => setTimeout(resolve, 20));
 check("066 Beta Guide renders for eligible preview", betaRoute.main.innerHTML.includes("Private Beta Guide") && betaRoute.main.innerHTML.includes("Tester walkthrough"));
 check("067 active session renders active tester state", betaRoute.main.innerHTML.includes("Active tester"));
 check("068 configured health renders available evaluation system", betaRoute.main.innerHTML.includes("Evaluation system") && betaRoute.main.innerHTML.includes("Available"));
-check("069 Beta Guide banner replaces prototype wording", betaRoute.bannerTitle.textContent === "PRIVATE BETA GUIDE" && betaRoute.bannerCopy.textContent.includes("Invitation only"));
+// The beta banner is final in index.html ("PRIVATE BETA"); the guide no longer rewrites it.
+check("069 Beta Guide banner replaces prototype wording", /<div class="prototype-banner" role="status">\s*<strong>PRIVATE BETA<\/strong>/.test(index) && betaRoute.bannerTitle.textContent === "NON-PRODUCTION PROTOTYPE");
 check("070 rendered guide contains no invited account email", !betaRoute.main.innerHTML.includes("tester@example.com"));
 check("071 rendered guide offers provider-backed Discover", betaRoute.main.innerHTML.includes("Start with Discover") && betaRoute.main.innerHTML.includes("Search one exact card"));
 check("072 rendered guide discloses connected-source scope", betaRoute.main.innerHTML.includes("Connected-source scope"));
