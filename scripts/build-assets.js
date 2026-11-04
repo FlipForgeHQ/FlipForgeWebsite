@@ -83,23 +83,8 @@ if (fs.existsSync(indexPath)) {
 
 // The header and its menu come only from scripts/site-header.mjs; the build does not inject header links.
 
-function ensureFooterAppLink(html) {
-  if (html.includes('data-app-preview="footer"')) return html;
-
-  const link = `<a data-app-preview="footer" href="${BETA_SIGNIN_URL}">Beta Sign In</a>`;
-  const exploreGroup = /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>\s*<strong>Explore<\/strong>)([\s\S]*?)(<\/div>)/i;
-  const withExploreLink = html.replace(
-    exploreGroup,
-    (match, open, inner, close) => `${open}${inner}${link}${close}`,
-  );
-
-  if (withExploreLink !== html) return withExploreLink;
-
-  return html.replace(
-    /(<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>)([\s\S]*?)(<\/div>)/i,
-    (match, open, inner, close) => `${open}${inner}${link}${close}`,
-  );
-}
+// The footer, including its Beta Sign In link and the Follow FlipForge column, is written in each page's source
+// (the social column by scripts/site-header.mjs); the build does not inject footer links.
 
 function ensurePerfectedBrandStylesheet(html) {
   if (html.includes('assets/css/brand-v2.css')) return html;
@@ -207,7 +192,6 @@ for (const htmlPath of htmlFiles) {
   updated = ensureApprovedBrandLockups(updated);
   updated = ensurePerfectedBrandStylesheet(updated);
   updated = ensurePerfectedBrandFavicon(updated);
-  updated = ensureFooterAppLink(updated);
   updated = ensureConversionEventLayer(updated);
 
   if (updated !== original) {

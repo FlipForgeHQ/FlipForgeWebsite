@@ -1,4 +1,4 @@
-/* FlipForge public shell contract v1 — the one stylesheet for the public header and its menu.
+/* FlipForge public shell contract v1 — the one stylesheet for the public header, its menu and the footer social column.
  * The header markup is written into every public page by scripts/site-header.mjs. This file is the only place that
  * styles it: logo on the left; Request Beta Access and a labeled Menu button on the right, at every width.
  * Page-specific CSS may own content composition, but it must not style the header or the menu.
@@ -307,3 +307,13 @@ html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-
   html body .site-menu,html body .backdrop,html body .site-header .menu-toggle-icon::before,html body .site-header .menu-toggle-icon::after{transition:none}
 }
 @media print{html body .site-menu,html body .backdrop{display:none!important}}
+
+/* Footer: the "Follow FlipForge" column, written into every public page footer by scripts/site-header.mjs (SOCIAL). */
+html body .footer .footer-inner{grid-template-columns:1.2fr 1fr 1fr 1fr}
+html body .footer-social a{overflow-wrap:anywhere}
+html body .footer-social .footer-handle{display:block;color:#929dad;font-size:12px;letter-spacing:.01em}
+html body .footer-social [data-ff-connect-entry]{color:var(--ff-shell-gold)}
+html body .ff-proof-footer .footer-social{display:grid;gap:6px;font-size:13px}
+html body .ff-proof-footer .footer-social strong{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+@media(max-width:1000px){html body .footer .footer-inner{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){html body .footer .footer-inner{grid-template-columns:1fr}}
