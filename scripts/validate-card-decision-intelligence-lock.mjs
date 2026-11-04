@@ -64,7 +64,6 @@ const currentSurfaces = [
   ['assets/js/marketing-v3.js', DISPLAY_DESCRIPTOR],
   ['assets/js/homepage-hero-film-v1.js', PROSE_DESCRIPTOR],
   ['saas-prototype/consumer-ux-refinement.js', DISPLAY_DESCRIPTOR],
-  ['saas-prototype/commercial-app-polish-v2.js', DISPLAY_DESCRIPTOR],
   ['identity-emails/invitation.html', PROSE_DESCRIPTOR],
   ['assets/interactive/flipforge-know-why.html', DISPLAY_DESCRIPTOR],
   ['assets/images/flipforge-homepage-dashboard.svg', DISPLAY_DESCRIPTOR],

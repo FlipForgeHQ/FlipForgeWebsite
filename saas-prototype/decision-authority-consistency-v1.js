@@ -13,10 +13,6 @@
     return /^#\/evidence\/[^/?#]+/.test(String(window.location.hash || ""));
   }
 
-  function trackingDetailRoute() {
-    return /^#\/tracking\/[^/?#]+/.test(String(window.location.hash || ""));
-  }
-
   function routeId(route) {
     const match = String(window.location.hash || "").match(new RegExp(`^#/${route}/([^/?#]+)`));
     if (!match) return "";
@@ -47,11 +43,11 @@
     node.replaceWith(link);
   }
 
-  function syncEvidenceLinks(main) {
+  // Guided Mode's explain buttons on the saved decision page become links to its evidence. (The page's own
+  // "Understand this decision" is rendered as that link by customer-opportunities.js.)
+  function syncEvidenceLinks() {
     const href = evidenceHref();
-    if (!href || !main) return;
-
-    main.querySelectorAll("[data-ff-show-why]").forEach(node => replaceWithEvidenceLink(node, href));
+    if (!href) return;
 
     const guide = document.getElementById("ff-guided-mode-root");
     guide?.querySelectorAll("[data-guide-action]").forEach(node => {
@@ -114,42 +110,6 @@
         whyNode.append(strong, document.createTextNode(` ${model.why}`));
       }
     }
-  }
-
-  function copyFor(decision, pageText) {
-    // A legacy result (saved before current evidence rules) keeps its saved recommendation as historical and never
-    // gets current-support copy. Marked by customer-trust-display-v1.js from the server's evidenceProvenanceStatus.
-    if (document.querySelector("#main-content [data-ff-legacy-result]")) return {
-      title: "Saved before current evidence rules.",
-      reason: `Saved recommendation: ${decision}. It is not presented as currently supported.`,
-      next: "Evaluate the card again for a result under current evidence rules."
-    };
-    if (decision === "BUY") return {
-      title: "The evaluated price clears the current decision checks.",
-      reason: "FlipForge found enough support for a BUY decision at the evaluated price.",
-      next: "Review the exact evidence and risk before taking any action outside FlipForge."
-    };
-    if (decision === "WATCH") return {
-      title: "This card is worth watching—not chasing.",
-      reason: "The current price or evidence does not support moving further yet.",
-      next: "Add it to Tracking and watch for a better price or stronger evidence."
-    };
-    if (decision === "PASS") return {
-      title: "The current setup does not support this opportunity.",
-      reason: "Price, evidence, risk, or a combination of those factors keeps this card below FlipForge's decision threshold.",
-      next: "Read why, then move on or start another card."
-    };
-    const identity = /identity needs verification|mapping\s*(?:not confirmed|NOT_CONFIRMED)|provider UUID mapping remains unconfirmed/i.test(pageText);
-    const evidence = /no accepted exact completed sales|0 accepted|no exact sales|evidence-supported value is unavailable/i.test(pageText);
-    let reason = "FlipForge does not yet have enough matching evidence for a stronger decision.";
-    if (identity && evidence) reason = "The exact card identity still needs confirmation, and there is not enough exact completed-sale evidence yet.";
-    else if (identity) reason = "The exact card identity still needs confirmation before FlipForge can support a stronger decision.";
-    else if (evidence) reason = "There is not enough exact completed-sale evidence yet to support a value or stronger decision.";
-    return {
-      title: "This card needs verification before you act.",
-      reason,
-      next: "Review what is missing, then decide whether to verify the identity or wait for stronger sold evidence."
-    };
   }
 
   function metricValue(main, label) {
@@ -424,18 +384,6 @@
     }
   }
 
-  function ensureTrackingOwnership(main) {
-    if (!main || !trackingDetailRoute()) return;
-    const id = routeId("tracking");
-    if (!id || main.querySelector(".customer-lifecycle-page")) return;
-    const adapter = window.FlipForgeCustomerLifecycle;
-    if (!adapter
-        || typeof adapter.isEligible !== "function"
-        || !adapter.isEligible()
-        || typeof adapter.render !== "function") return;
-    adapter.render(main, "tracking", id);
-  }
-
   function normalizeLockedTagline(root) {
     if (!root) return;
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -449,34 +397,8 @@
   }
 
   function syncOpportunity(main) {
-    syncEvidenceLinks(main);
-
-    const decision = authoritativeDecision(main);
-    if (!decision) return;
-
-    syncGuidedDecision(decision);
-
-    const summary = main.querySelector("[data-ff-decision-summary]");
-    if (!summary) return;
-
-    const pill = summary.querySelector(".ff-decision-summary-pill");
-    const title = summary.querySelector(".ff-decision-summary-main h2");
-    const reason = summary.querySelector(".ff-decision-summary-main > p:not(.ff-decision-next)");
-    const next = summary.querySelector(".ff-decision-next");
-    const copy = copyFor(decision, String(main.textContent || ""));
-
-    if (pill && pill.textContent !== decision) pill.textContent = decision;
-    if (title && title.textContent !== copy.title) title.textContent = copy.title;
-    if (reason && reason.textContent !== copy.reason) reason.textContent = copy.reason;
-    if (next) {
-      const expected = `What you should do next: ${copy.next}`;
-      if (String(next.textContent || "").trim() !== expected) {
-        next.innerHTML = "";
-        const strong = document.createElement("strong");
-        strong.textContent = "What you should do next:";
-        next.append(strong, document.createTextNode(` ${copy.next}`));
-      }
-    }
+    syncEvidenceLinks();
+    syncGuidedDecision(authoritativeDecision(main));
   }
 
   function sync() {
@@ -496,9 +418,6 @@
       syncGuidedEvidence();
       return;
     }
-    if (trackingDetailRoute()) {
-      ensureTrackingOwnership(main);
-    }
   }
 
   function queue() {
@@ -506,15 +425,6 @@
     queued = true;
     window.requestAnimationFrame(sync);
   }
-
-  document.addEventListener("click", event => {
-    const link = event.target.closest?.("[data-ff-evidence-understood]");
-    if (!link) return;
-    window.setTimeout(() => {
-      const main = document.querySelector(MAIN);
-      ensureTrackingOwnership(main);
-    }, 75);
-  }, true);
 
   window.addEventListener("hashchange", () => window.setTimeout(queue, 40));
   window.addEventListener("pageshow", queue);

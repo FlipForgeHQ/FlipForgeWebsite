@@ -63,9 +63,11 @@ check("Evaluate uses the shared customer renderer", hook.includes('route === "ev
 check("Saved Decisions / Card Intelligence uses the production opportunity bridge", hook.includes("FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities") && hook.includes('route === "opportunities" && renderOpportunityRoute(id)'));
 check("Opportunity detail renderer validates exact requested ids", opportunities.includes("state.requestedId") && opportunities.includes("/api/v1/opportunities/${encoded}") && opportunities.includes("SAFE_ID"));
 check("Opportunity bridge does not require staging diagnostics in production", opportunitiesBridge.includes("const stagingAdapter = window.FlipForgeStagingReadAdapter") && opportunitiesBridge.includes("const customerAdapter = window.FlipForgeCustomerOpportunities") && !opportunitiesBridge.includes("if (!stagingAdapter || !customerAdapter) return"));
-check("Understand decision CTA is present in the customer beta flow", betaFlow.includes("data-ff-show-why") && betaFlow.includes("Understand this decision →"));
-check("All saved-decision explain actions deterministically open the exact Evidence Center", saveFlow.includes("function openDecisionEvidence()") && saveFlow.includes("function isGuidedExplainAction(button)") && saveFlow.includes('[data-ff-show-why]') && saveFlow.includes('[data-guide-action]') && saveFlow.includes("Show me what is missing") && saveFlow.includes("I understand this decision") && saveFlow.includes("event.stopImmediatePropagation()") && saveFlow.includes('window.location.hash = `#/evidence/${encodeURIComponent(id)}`'));
-check("Tracking route is owned by lifecycle adapter", lifecycle.includes('const ROUTES = new Set(["tracking", "portfolio", "alerts"])') && hook.includes("lifecycleAdapter.handles(route)"));
+// The saved decision page's owner renders the explain action as the exact Evidence link (consolidation, Nov 3 2026).
+const savedDecisionOwner = fs.readFileSync(new URL("../saas-prototype/customer-opportunities.js", import.meta.url), "utf8");
+check("Understand decision CTA is present in the customer beta flow", savedDecisionOwner.includes("data-ff-show-why") && savedDecisionOwner.includes("Understand this decision →"));
+check("All saved-decision explain actions deterministically open the exact Evidence Center", savedDecisionOwner.includes('data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}"') && saveFlow.includes("function openDecisionEvidence()") && saveFlow.includes("function isGuidedExplainAction(button)") && saveFlow.includes('[data-guide-action]') && saveFlow.includes("Show me what is missing") && saveFlow.includes("I understand this decision") && saveFlow.includes("event.stopImmediatePropagation()") && saveFlow.includes('window.location.hash = `#/evidence/${encodeURIComponent(id)}`'));
+check("Tracking route is owned by lifecycle adapter", lifecycle.includes('const ROUTES = new Set(["tracking", "alerts"])') && hook.includes("lifecycleAdapter.handles(route)"));
 check("Tracking lifecycle reads/writes stay server-owned", lifecycle.includes('"/api/v1/lifecycle"') && lifecycle.includes('/api/v1/lifecycle/${') && lifecycle.includes('credentials: "same-origin"'));
 check("Portfolio has a dedicated customer adapter before generic lifecycle handling", hook.includes('route === "portfolio"') && hook.indexOf('route === "portfolio"') < hook.indexOf("lifecycleAdapter.handles(route)"));
 check("Alerts has a server-owned lifecycle path", lifecycle.includes('"alerts"') && lifecycle.includes('"/api/v1/alerts"'));
@@ -99,9 +101,14 @@ const sourceRoutes = [
   "account"
 ];
 
+// Every route stays reachable from an app page's navigation. The Private Beta page (index.html) lists only the founder's
+// beta menu (Nov 3 2026); Evaluate, Market View, Decision Intelligence and the advanced tools are listed by customer.html.
+const customerIndex = read("saas-prototype/customer.html");
 for (const route of sourceRoutes) {
-  check(`navigation route ${route} remains represented in production source`, index.includes(`data-route="${route}"`) || index.includes(`href="#/${route}`));
+  check(`navigation route ${route} remains represented in production source`, [index, customerIndex].some(page => page.includes(`data-route="${route}"`) || page.includes(`href="#/${route}`)));
 }
+const betaNavRoutes = [...((index.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0]).matchAll(/data-route="([^"]+)"/g)].map(match => match[1]);
+check("Private Beta navigation lists exactly the founder's beta menu", betaNavRoutes.join(",") === "dashboard,discover,opportunities,tracking,alerts,portfolio,forge-heat,account");
 check("Exit Review is absent from customer production navigation", !index.includes('data-route="sell"'));
 
 const failures = results.filter(result => !result.passed);

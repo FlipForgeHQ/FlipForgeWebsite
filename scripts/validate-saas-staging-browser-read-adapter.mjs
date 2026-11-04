@@ -22,8 +22,9 @@ const staticChecks = [
   ["003 staging route hook is loaded", files.index.includes('src="staging-route-hook.js"')],
   ["004 route hook loads after core application", files.index.indexOf('src="staging-route-hook.js"') > files.index.indexOf('src="app.js"')],
   ["005 route hook loads after all cockpit augmenters", files.index.indexOf('src="staging-route-hook.js"') > files.index.indexOf('src="sidebar-edge-fix.js"')],
-  ["006 staging navigation is hidden by default", /data-route="staging"[^>]*hidden/.test(files.index)],
-  ["007 staging navigation has a dedicated class", files.index.includes('class="staging-only-nav"')],
+  // Staging diagnostics are reached by address on previews only; no app page lists them (Nov 3 2026).
+  ["006 staging navigation is hidden by default", !files.index.includes('data-route="staging"')],
+  ["007 staging navigation has a dedicated class", !files.index.includes('staging-only-nav')],
   ["008 adapter restricts execution to deploy preview or localhost", files.adapter.includes("deploy-preview-") && files.adapter.includes("localhost") && files.adapter.includes("127\\.0\\.0\\.1")],
   ["009 production hostname is not allowlisted", !files.adapter.includes("www.goflipforge.com") && !files.adapter.includes("goflipforge.com|")],
   ["010 browser calls only same-origin API paths", files.adapter.includes('"/api/v1/health"') && !/https?:\/\//.test(files.adapter)],

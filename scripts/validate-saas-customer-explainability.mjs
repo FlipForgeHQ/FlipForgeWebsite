@@ -6,7 +6,15 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
 const index = read("saas-prototype/index.html");
-const js = read("saas-prototype/customer-explainability.js");
+// The saved decision page's explanations are rendered by its owner (customer-explainability.js retired, Nov 3 2026).
+// "js" is the owner's explanation code: the metric help, the supported-value note and the explainer panel.
+const ownerSource = read("saas-prototype/customer-opportunities.js");
+const between = (start, end) => { const from = ownerSource.indexOf(start); const to = ownerSource.indexOf(end, from); return from >= 0 && to > from ? ownerSource.slice(from, to) : ""; };
+const js = [
+  between("  const METRIC_HELP = Object.freeze({", "  // The saved, server-returned verdict"),
+  between('<div class="customer-supported-value-note" data-supported-value-note="true">', "</div></div></div></section>`;"),
+  between("  // Full customer app: how to read each part of the decision", "  function tracebackStep(")
+].join("\n");
 const css = read("saas-prototype/customer-explainability.css");
 const opportunities = read("saas-prototype/customer-opportunities.js");
 const gateway = read("netlify/functions/flipforge-api.js");
@@ -15,15 +23,15 @@ const results = [];
 const check = (name, condition) => results.push({ name, passed: Boolean(condition) });
 
 check("001 explainability stylesheet loads", index.includes('href="customer-explainability.css"'));
-check("002 explainability script loads", index.includes('src="customer-explainability.js"'));
-check("003 customer opportunities loads before explainability", index.indexOf('src="customer-opportunities.js"') < index.indexOf('src="customer-explainability.js"'));
-check("004 explainability loads before route hook", index.indexOf('src="customer-explainability.js"') < index.indexOf('src="staging-route-hook.js"'));
-check("005 explainability targets main content only", js.includes('document.querySelector("#main-content")'));
-check("006 explainability requires customer intelligence page", js.includes('main.querySelector(".customer-intelligence-page")'));
-check("007 detail explainer requires customer intelligence hero", js.includes('main.querySelector(".customer-intelligence-hero")'));
-check("008 mutation observer handles async route rendering", js.includes("new MutationObserver") && js.includes("childList: true") && js.includes("subtree: true"));
-check("009 hash changes are handled", js.includes('window.addEventListener("hashchange"'));
-check("010 enhancements are idempotent", js.includes('data-intelligence-explainer') && js.includes('dataset.intelligenceHelp === "true"') && js.includes('data-supported-value-note'));
+check("002 explanations are rendered by the saved decision owner, with no separate script", !index.includes("customer-explainability.js") && !fs.existsSync(path.join(root, "saas-prototype/customer-explainability.js")) && js.length > 0);
+check("003 metric help is rendered with each metric", opportunities.includes('<small class="customer-metric-help">${help}</small>') && ["Confidence", "Liquidity", "Decision risk", "Rank"].every(label => opportunities.includes(`["${label}", `)));
+check("004 supported value note is rendered in the value summary", opportunities.includes('<div class="customer-supported-value-note" data-supported-value-note="true">'));
+check("005 explainer panel is offered in the full customer app only, before the deeper detail", opportunities.includes('${metrics}${betaSurface() ? "" : decisionExplainer()}<details class="ff-cdi-deep'));
+check("006 explanations require the saved decision record", opportunities.includes("function detailView()") && opportunities.includes("decisionExplainer()"));
+check("007 explanations are part of the saved decision render, not added afterwards", !/MutationObserver/.test(opportunities));
+check("008 no page watcher is introduced", !/MutationObserver/.test(js));
+check("009 route changes re-render through the router", !/addEventListener\("hashchange"/.test(js));
+check("010 explainer has its own marker", js.includes("data-intelligence-explainer") && js.includes("data-supported-value-note"));
 check("011 supported value avoids guarantee language", js.includes("not a guaranteed sale price"));
 check("012 supported value avoids purchase instruction", js.includes("not a guaranteed sale price or an instruction to buy"));
 check("013 confidence is explicitly not certainty", js.includes("It is not certainty"));

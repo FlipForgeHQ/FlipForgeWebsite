@@ -22,8 +22,6 @@ const commercialDashboardScriptTag = '<script src="commercial-dashboard-v2.js"><
 const dashboardV3StylesheetTag = '<link rel="stylesheet" href="decision-dashboard-v3.css">';
 const dashboardV3ScriptTag = '<script src="decision-dashboard-v3.js"></script>';
 const commercialAppPolishStylesheetTag = '<link rel="stylesheet" href="commercial-app-polish-v2.css">';
-const commercialAppPolishScriptTag = '<script src="commercial-app-polish-v2.js"></script>';
-const typographyFloorScriptTag = '<script src="customer-typography-floor-v1.js"></script>';
 const readabilityStylesheetTag = '<link rel="stylesheet" href="customer-readability.css">';
 
 fs.mkdirSync(path.dirname(identityOutput), { recursive: true });
@@ -110,23 +108,12 @@ function injectDashboardV3(htmlPath) {
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
+// The commercial app polish stylesheet only: the Discover source-listing link it used to add with a script is rendered
+// by the Discover owner (customer-discovery.js) since Nov 3 2026.
 function injectCommercialAppPolish(htmlPath) {
   if (!fs.existsSync(htmlPath)) throw new Error(`Commercial app polish target missing: ${path.relative(root, htmlPath)}`);
   let html = fs.readFileSync(htmlPath, "utf8");
   html = injectStylesheetBeforeReadability(html, commercialAppPolishStylesheetTag, "Commercial app polish", htmlPath);
-  if (!html.includes('commercial-app-polish-v2.js')) {
-    if (!html.includes("</body>")) throw new Error(`Commercial app polish body marker missing in ${path.relative(root, htmlPath)}`);
-    html = html.replace("</body>", `  ${commercialAppPolishScriptTag}\n</body>`);
-  }
-  fs.writeFileSync(htmlPath, html, "utf8");
-}
-
-function injectTypographyFloor(htmlPath) {
-  if (!fs.existsSync(htmlPath)) throw new Error(`Typography floor target missing: ${path.relative(root, htmlPath)}`);
-  let html = fs.readFileSync(htmlPath, "utf8");
-  if (html.includes('customer-typography-floor-v1.js')) return;
-  if (!html.includes("</body>")) throw new Error(`Typography floor body marker missing in ${path.relative(root, htmlPath)}`);
-  html = html.replace("</body>", `  ${typographyFloorScriptTag}\n</body>`);
   fs.writeFileSync(htmlPath, html, "utf8");
 }
 
@@ -152,7 +139,9 @@ injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-port
 injectDashboardV3(appIndex);
 injectCommercialDashboard(appIndex);
 injectCommercialAppPolish(appIndex);
-injectTypographyFloor(appIndex);
+// The Private Beta navigation is final in saas-prototype/index.html at every width: no mobile navigation script is added.
+// The 14px customer typography floor is CSS (saas-prototype/customer-typography.css, linked by both app pages);
+// no typography script is injected.
 enforceProductionAppBoundary(appIndex);
 
 const identityBytes = fs.statSync(identityOutput).size;
@@ -166,5 +155,4 @@ console.log(`Built FlipForge isolated staging auth probe (${probeBytes} bytes).`
 console.log("Injected FlipForge Dashboard V3 (flagged) assets before commercial dashboard v2.");
 console.log("Injected FlipForge commercial dashboard v2 assets before customer readability.");
 console.log("Injected FlipForge commercial app polish v2 assets before customer readability.");
-console.log("Injected FlipForge computed customer typography floor after route presentation scripts.");
 console.log(`Applied FlipForge production/preview app boundary for CONTEXT=${process.env.CONTEXT || "local"}.`);

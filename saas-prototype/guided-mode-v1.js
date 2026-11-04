@@ -5,7 +5,6 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const ROOT_ID = "ff-guided-mode-root";
-  const MODAL_ID = "ff-guided-mode-welcome";
   const VERSION = "v3";
 
   const state = {
@@ -15,8 +14,6 @@
     minimized: false,
     userOpened: false,
     mounted: false,
-    startingNewCard: false,
-    pendingNewCard: false,
     observerTimer: 0,
     highlight: null
   };
@@ -193,43 +190,15 @@
     return true;
   }
 
-  function discoverInput() {
-    return document.querySelector('#main-content [data-customer-discovery-form] input[name="exactCardQuery"]');
+  // Discover owns its card box: clearing it for a new card, focusing it and its focus cue are customer-discovery.js.
+  function focusDiscoverInput(clear = false) {
+    const discovery = window.FlipForgeCustomerDiscovery;
+    if (clear) discovery?.startNewCard?.();
+    else discovery?.focusCardEntry?.();
   }
 
-  function focusDiscoverInput(clear = false, attempt = 0) {
-    if (window.FlipForgeDiscoverFocusFix) {
-      if (clear) window.FlipForgeDiscoverFocusFix.startNew?.();
-      else window.FlipForgeDiscoverFocusFix.show?.();
-      return;
-    }
-    const input = discoverInput();
-    if (!input) {
-      if (attempt < 15) window.setTimeout(() => focusDiscoverInput(clear, attempt + 1), 100);
-      return;
-    }
-    if (clear) {
-      input.value = "";
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      const target = input.form?.querySelector('[name="targetMaxBuy"]');
-      if (target) target.value = "";
-    }
-    const panel = input.closest(".customer-discovery-search") || input.form || input;
-    highlightNode(panel, clear ? "Enter your new card here" : "Enter the card here");
-    input.classList.add("ff-guide-input-focus");
-    try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-  }
-
-  function startNewCard(clear = true) {
-    state.startingNewCard = true;
-    state.pendingNewCard = routeName() !== "discover";
-    if (routeName() !== "discover") {
-      window.location.hash = "#/discover";
-      renderPanel();
-      return;
-    }
-    updateDiscoverCoach();
-    focusDiscoverInput(clear);
+  function startNewCard() {
+    focusDiscoverInput(true);
     renderPanel();
   }
 
@@ -242,53 +211,6 @@
     button.dataset.ffGlobalNewCard = "";
     button.innerHTML = '<span aria-hidden="true">＋</span> New card';
     actions.prepend(button);
-  }
-
-  function updateDiscoverCoach() {
-    if (routeName() !== "discover") return;
-    const main = document.querySelector("#main-content");
-    const page = main?.querySelector(".customer-discovery-page");
-    const search = page?.querySelector(".customer-discovery-search");
-    if (!page || !search) return;
-
-    const hasCandidates = discoverHasCandidates();
-    const hasAssist = discoverHasIdentityAssist();
-    let mode = "entry";
-    if (!state.startingNewCard && hasCandidates) mode = "results";
-    else if (!state.startingNewCard && hasAssist) mode = "identity";
-
-    // Results-first: once exact results are on screen they sit directly under the
-    // search (and its notice). The coach then follows the results, matching
-    // discover-card-entry-emphasis-v1 promoteSearchPanel. Placing it above the
-    // results after the handoff pushed them down and broke the results-first jump.
-    const results = page.querySelector(":scope > .customer-discovery-results");
-    const resultsFirst = Boolean(results) && !hasAssist;
-
-    let coach = page.querySelector("[data-ff-discover-coach]");
-    if (!coach) {
-      coach = document.createElement("section");
-      coach.className = "ff-discover-coach";
-      coach.dataset.ffDiscoverCoach = "";
-      if (resultsFirst) results.insertAdjacentElement("afterend", coach);
-      else search.insertAdjacentElement("afterend", coach);
-    }
-
-    if (coach.dataset.mode !== mode) {
-      coach.dataset.mode = mode;
-      if (mode === "results") {
-        coach.innerHTML = '<div><span>DISCOVER · SEARCH RESULTS</span><h2>These are marketplace results from your last search.</h2><p>Review the exact listing you mean, or start another card when you are finished.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-primary" data-ff-new-card>+ Start a new card</button><button type="button" class="button button-secondary" data-ff-previous-results>Keep reviewing these results</button></div>';
-      } else if (mode === "identity") {
-        coach.innerHTML = '<div><span>IDENTITY CHECK</span><h2>FlipForge found possible card matches.</h2><p>Choose <strong>Use this card</strong> when available. If a visible match is still review-only, choose <strong>Verify this match</strong> so FlipForge can retry with the exact details shown.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-secondary" data-ff-focus-card>Change what I entered</button></div>';
-      } else {
-        const assistLabel = document.documentElement.classList.contains("ff-beta-session-v1") ? "Check card identity" : "Find exact card";
-        coach.innerHTML = `<div><span>IDENTITY HELP</span><h2>Not sure which card version you have?</h2><p>Use <strong>${assistLabel}</strong> before searching listings if the set, parallel, variation, or card number is uncertain.</p></div><div class="ff-discover-coach-actions"><button type="button" class="button button-secondary" data-ff-focus-card>Focus card entry</button></div>`;
-      }
-    }
-
-    if (resultsFirst) {
-      if (results.nextElementSibling !== coach) results.insertAdjacentElement("afterend", coach);
-    } else if (search.nextElementSibling !== coach) search.insertAdjacentElement("afterend", coach);
-    page.classList.toggle("ff-start-new-card", state.startingNewCard);
   }
 
   function genericTarget(route, phase = "") {
@@ -330,13 +252,6 @@
     };
 
     if (route === "discover") {
-      if (state.startingNewCard) return {
-        location: "Discover · Step 1",
-        title: "Enter your card in the highlighted box.",
-        copy: "Type the exact card, then choose Search connected sources.",
-        why: "Every decision starts with the correct card identity.",
-        action: { type: "focus-discover", label: "Take me to the card box" }
-      };
       if (discoverHasIdentityAssist()) return {
         location: "Discover · Identity check",
         title: "Now confirm which card you mean.",
@@ -601,44 +516,12 @@
     if (node.innerHTML !== markup) node.innerHTML = markup;
   }
 
-  function welcomeSeen() {
-    return read("welcome", "") === "seen";
-  }
-
-  function showWelcome(force = false) {
-    const session = syncSession();
-    if (!session.authenticated || !session.membershipActive) return;
-    if (!force && welcomeSeen()) return;
-    // Private Beta now uses a visible, self-directed card workflow. Do not interrupt
-    // it with a welcome overlay until the tester explicitly requests Guided Mode.
-    if (!force && privateBetaSurface() && !state.userOpened) return;
-    if (!force && phoneViewport() && state.minimized && !state.userOpened) return;
-    if (document.getElementById(MODAL_ID)) return;
-    const wrapper = document.createElement("div");
-    wrapper.id = MODAL_ID;
-    wrapper.className = "ff-guide-modal-backdrop";
-    wrapper.innerHTML = '<section class="ff-guide-modal" role="dialog" aria-modal="true" aria-labelledby="ff-guide-welcome-title"><div class="ff-guide-modal-main"><span class="ff-guide-kicker">Welcome to FlipForge Private Beta</span><h1 id="ff-guide-welcome-title">I’ll walk you through your first card.</h1><p class="ff-guide-intro">You do not need to learn every screen. Start with one exact card and I’ll tell you what to look at, why it matters, and what to do next.</p><div class="ff-guide-modal-steps"><article class="ff-guide-modal-step"><span>01 · Discover</span><strong>Enter the card.</strong><p>I’ll take you directly to the card box.</p></article><article class="ff-guide-modal-step"><span>02 · Evaluate</span><strong>Choose the exact listing.</strong><p>Review the identity, then create the saved decision.</p></article><article class="ff-guide-modal-step"><span>03 · Understand & Track</span><strong>Know why—then preserve it.</strong><p>Read the reason first, then track it over time.</p></article></div><div class="ff-guide-modal-actions"><button type="button" class="ff-guide-action" data-guide-welcome-start>Start my first card →</button><button type="button" class="ff-guide-action secondary" data-guide-welcome-tour>Show me Getting Started</button></div></div></section>';
-    document.body.appendChild(wrapper);
-    document.body.classList.add("ff-guide-modal-open");
-    wrapper.querySelector("[data-guide-welcome-start]")?.focus();
-  }
-
-  function closeWelcome(markSeen = true) {
-    document.getElementById(MODAL_ID)?.remove();
-    document.body.classList.remove("ff-guide-modal-open");
-    if (markSeen) write("welcome", "seen");
-    renderPanel();
-  }
-
   function resetGuide() {
     ["welcome", "steps", "enabled"].forEach(remove);
     state.enabled = true;
     state.minimized = false;
-    state.startingNewCard = false;
-    state.pendingNewCard = false;
     clearHighlight();
     renderPanel();
-    showWelcome(true);
   }
 
   function handleGuideAction(button) {
@@ -653,7 +536,7 @@
       return;
     }
     if (type === "new-card") {
-      startNewCard(true);
+      startNewCard();
       return;
     }
     if (type === "focus-discover") {
@@ -690,7 +573,6 @@
     const elapsed = now - state.observerFirstPending;
     state.observerTimer = window.setTimeout(() => {
       state.observerTimer = null;
-      updateDiscoverCoach();
       injectGlobalNewCardButton();
       renderPanel();
     }, Math.max(0, Math.min(REFRESH_DEBOUNCE_MS, REFRESH_MAX_WAIT_MS - elapsed)));
@@ -698,22 +580,7 @@
 
   function bindEvents() {
     document.addEventListener("click", event => {
-      if (event.target.closest("[data-ff-global-new-card],[data-ff-new-card]")) {
-        startNewCard(true);
-        return;
-      }
-      if (event.target.closest("[data-ff-focus-card]")) {
-        focusDiscoverInput(false);
-        return;
-      }
-      if (event.target.closest("[data-ff-previous-results]")) {
-        state.startingNewCard = false;
-        updateDiscoverCoach();
-        const first = document.querySelector("#main-content .customer-discovery-candidate");
-        if (first) highlightNode(first, "Marketplace result");
-        renderPanel();
-        return;
-      }
+      // "+ Start a new card", "New card" and "Focus card entry" are Discover actions (customer-discovery.js).
       if (event.target.closest("[data-guide-open]")) {
         state.enabled = true;
         state.minimized = false;
@@ -746,16 +613,6 @@
         handleGuideAction(action);
         return;
       }
-      if (event.target.closest("[data-guide-welcome-start]")) {
-        closeWelcome(true);
-        startNewCard(true);
-        return;
-      }
-      if (event.target.closest("[data-guide-welcome-tour]")) {
-        closeWelcome(true);
-        window.location.hash = "#/beta-start";
-        return;
-      }
       if (event.target.closest("[data-discovery-evaluate]")) markStep("discover");
       if (event.target.closest('[href^="#/tracking"]')) markStep("understand");
     }, true);
@@ -763,8 +620,6 @@
     document.addEventListener("submit", event => {
       if (event.target.matches("[data-customer-discovery-form]")) {
         markStep("discover");
-        state.startingNewCard = false;
-        state.pendingNewCard = false;
         renderPanel();
       }
       if (event.target.matches("[data-staging-evaluation-form]")) markStep("evaluate");
@@ -774,20 +629,12 @@
       clearHighlight();
       if (routeName() === "opportunities" && routeParts().length > 1) markStep("evaluate");
       if (routeName() === "tracking") markStep("track");
-      window.setTimeout(() => {
-        updateDiscoverCoach();
-        renderPanel();
-        if (state.pendingNewCard && routeName() === "discover") {
-          state.pendingNewCard = false;
-          window.setTimeout(() => focusDiscoverInput(true), 120);
-        }
-      }, 100);
+      window.setTimeout(renderPanel, 100);
     });
 
     window.addEventListener("flipforge:identity-change", () => {
       syncSession();
       renderPanel();
-      window.setTimeout(() => showWelcome(false), 120);
     });
   }
 
@@ -829,7 +676,6 @@
     observeMain();
     syncSession();
     injectGlobalNewCardButton();
-    updateDiscoverCoach();
     renderPanel();
 
     let attempts = 0;
@@ -839,7 +685,6 @@
       renderPanel();
       if (session.authenticated && session.membershipActive) {
         window.clearInterval(timer);
-        window.setTimeout(() => showWelcome(false), 180);
       } else if (attempts > 50) {
         window.clearInterval(timer);
       }
@@ -849,8 +694,7 @@
   window.FlipForgeGuidedMode = Object.freeze({
     open: () => { state.enabled = true; state.minimized = false; state.userOpened = true; write("enabled", "on"); renderPanel(); },
     restart: resetGuide,
-    showWelcome: () => showWelcome(true),
-    startNewCard: () => startNewCard(true),
+    startNewCard: () => startNewCard(),
     getProgress: () => ({ completed: [...stepState()], firstRunComplete: firstRunComplete() })
   });
 

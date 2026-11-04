@@ -14,7 +14,7 @@
   display: grid;
   gap: 8px;
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -93,7 +93,7 @@
 
 .customer-export-manifest span {
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
@@ -114,7 +114,7 @@
   border-radius: 8px;
   padding: 10px;
   background: rgba(0, 0, 0, .22);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -137,7 +137,7 @@
   border-radius: 10px;
   background: rgba(67, 174, 116, .1);
   color: #bde9cf;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 @media (max-width: 900px) {

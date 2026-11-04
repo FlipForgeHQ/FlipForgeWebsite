@@ -44,9 +44,8 @@ export function assertProductionAppBoundary(sourceHtml, transformedHtml) {
   if (!source.includes('<script src="staging-browser.js"></script>')) {
     throw new Error("Source app no longer carries the preview staging adapter contract expected by the production boundary transform.");
   }
-  if (!source.includes('data-route="staging"') || !source.includes('data-route="staging-evaluate"')) {
-    throw new Error("Source app no longer carries the preview staging navigation contract expected by the production boundary transform.");
-  }
+  // The Private Beta navigation no longer lists the staging diagnostics on any host (founder decision, Nov 3 2026);
+  // the production output must still carry none of the staging tokens above.
 
   return true;
 }

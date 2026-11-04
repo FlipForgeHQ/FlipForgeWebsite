@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 const html = fs.readFileSync('saas-prototype/index.html', 'utf8');
 const js = fs.readFileSync('saas-prototype/decision-intelligence-v1.js', 'utf8');
-const completion = fs.readFileSync('saas-prototype/core-platform-completion-v1.js', 'utf8');
+const completion = fs.readFileSync('saas-prototype/decision-intelligence-v1.js', 'utf8'); // the owner renders its slow-context notice since core-platform-completion-v1.js was retired
 const css = fs.readFileSync('saas-prototype/customer-ui-system-v1.css', 'utf8');
 const serverCss = fs.readFileSync('saas-prototype/decision-intelligence-server-v1.css', 'utf8');
 
@@ -44,9 +44,9 @@ const checks = [
   ['comparison remains non-ranking', js.includes('does not rerank, rescore, select a winner, or change either recommendation')],
   ['missing supported value is withheld', js.includes('Withheld · exact evidence required')],
   ['missing population stays missing', js.includes('No saved exact-card PSA population snapshot is attached to this opportunity')],
-  ['evidence loading state has a bounded customer-facing timeout', completion.includes('DECISION_CONTEXT_TIMEOUT_MS = 8000') && completion.includes('Evidence details are taking longer than expected.')],
+  ['evidence loading state has a bounded customer-facing timeout', completion.includes('}, 8000);') && completion.includes('Evidence details are taking longer than expected.')],
   ['PSA loading state has a bounded customer-facing timeout', completion.includes('PSA population context is taking longer than expected.')],
-  ['timed-out context can be retried without adding authority', completion.includes('data-ff-di-retry') && completion.includes('window.dispatchEvent(new Event("pageshow"))')],
+  ['timed-out context can be retried without adding authority', completion.includes('data-ff-di-retry') && completion.includes('void loadSelectedContext();')],
   ['timeout messaging preserves fail-closed evidence boundary', completion.includes('no substitute evidence is being used') && completion.includes('will not borrow or estimate population for another card')]
 ];
 

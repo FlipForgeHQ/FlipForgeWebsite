@@ -6,17 +6,22 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = name => fs.readFileSync(path.join(root, name), "utf8");
-const src = read("saas-prototype/discover-guided-entry-v1.js");
+// The serial-number helper is part of the Discover owner (customer-discovery.js) since Nov 3 2026; the separate
+// discover-guided-entry-v1.js layer that inserted it into the form and intercepted submits was removed.
 const css = read("saas-prototype/discover-guided-entry-v1.css");
-const loader = read("saas-prototype/discover-card-entry-emphasis-v1.js");
-const shell = read("saas-prototype/customer-only-shell-v1.js");
-const beta = read("saas-prototype/beta-session-v1.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const shell = read("saas-prototype/index.html"); // the Private Beta top bar carries the "Discover a card" action
+const appIndex = read("saas-prototype/index.html");
+const discovery = read("saas-prototype/customer-discovery.js");
+const src = discovery;
+const helpers = discovery.slice(discovery.indexOf("Private Beta card-entry helpers"), discovery.indexOf("  function validHttpUrl(value) {"));
 const guide = read("saas-prototype/guided-mode-v1.js");
 const window = { location:{pathname:"/app/beta/",hash:"#/dashboard"},addEventListener(){} };
 const document = {querySelector(){return null;},documentElement:{classList:{toggle(){}}}};
 const sandbox = { window,document,requestAnimationFrame(cb){cb()},MutationObserver:class{observe(){}},console,Date,RegExp };
-vm.runInNewContext(src,sandbox,{filename:"discover-guided-entry-v1.js"});
-const {compose,parseNumbering} = window.FlipForgeSerialEntryV1 || {};
+vm.runInNewContext(src,sandbox,{filename:"customer-discovery.js"});
+const {compose,parseNumbering} = window.FlipForgeCustomerDiscovery?.serialEntry || {};
 assert.equal(typeof compose,"function");
 assert.equal(typeof parseNumbering,"function");
 const card = "2018 Topps Chrome Shohei Ohtani #150 PSA 9";
@@ -49,27 +54,27 @@ assert.equal(parseNumbering("1/25").denominator,"25");
 assert.equal(parseNumbering("/50").denominator,"50");
 assert.ok(src.includes("data-ff-serial-refinement") && src.includes("data-ff-serial-status") &&
   src.includes("data-ff-serial-denominator") && src.includes("data-ff-serial-ordinal"),"Serial controls mount beside search");
-assert.ok(src.includes('input.closest("label")?.insertAdjacentElement("afterend",section)'),
-  "Search input remains the primary entry surface");
+assert.ok(src.includes('</small></label>${serialEntryMarkup()}'),
+  "Search input remains the primary entry surface (serial details follow the card box)");
 assert.ok(!src.includes("BRANDS =") && !src.includes("Choose your card details"),
   "Eight-field builder has been removed");
-assert.ok(src.includes("verify.click()") && src.includes('event.stopImmediatePropagation()'),
+assert.ok(src.includes("identityCheck: viaIdentityCheck || result.needsVerification === true") && src.includes("if (!entry.proceed) return;") && src.includes("if (entry.identityCheck) {"),
   "Numbered search invokes existing identity gate and blocks unsafe submit");
-assert.ok(src.includes('input.dispatchEvent(new Event("input",{bubbles:true}))'),
+assert.ok(src.includes('input.dispatchEvent(new Event("input", { bubbles: true }))'),
   "New composed query invalidates stale identity selection");
-assert.ok(!/\/api\/v1\/evaluations|\/api\/v1\/discover|\/api\/v1\/card-intelligence\/resolve/.test(src),
+assert.ok(helpers.length > 1000 && !/fetch\(|\/api\/v1\//.test(helpers),
   "No new data, pricing, evaluation, or resolver authority");
-assert.ok(!/localStorage|sessionStorage|indexedDB/.test(src),"No user entry is persisted by helper");
+assert.ok(!/localStorage|sessionStorage|indexedDB/.test(helpers),"No user entry is persisted by helper");
 assert.ok(css.includes(".ff-serial-refinement")&&css.includes('a[data-route="discover"]'),
   "Compact styling and Discover prominence");
-assert.ok(loader.includes("loadGuidedEntry()")&&loader.includes("discover-guided-entry-v1.js"),
-  "Discover integration kept");
+assert.ok(!appIndex.includes("discover-guided-entry-v1.js")&&appIndex.includes('href="discover-guided-entry-v1.css?v=20261020-8"')&&!fs.existsSync(path.join(root,"saas-prototype/discover-guided-entry-v1.js")),
+  "Discover integration kept (styles listed by the Private Beta page; the owner renders the controls)");
 assert.ok(guide.includes('phoneViewport() || privateBetaSurface()') &&
-  guide.includes('!force && privateBetaSurface() && !state.userOpened'),
-  "Private Beta popup remains optional");
-assert.ok(shell.includes('["discover", "Discover"]') &&
-  shell.includes('href="#/discover">Discover a card') &&
-  beta.includes('setText(pageHeading.querySelector("h1"), "Discover a Card")'),
+  !guide.includes("ff-guide-modal-backdrop") && !guide.includes("function showWelcome"),
+  "Private Beta guide starts minimized and shows no popup");
+assert.ok(/data-route="discover"[^>]*>(?:<span[^>]*>.*?<\/span>)+Discover<\/a>/.test(appIndex) &&
+  shell.includes('href="#/discover" aria-label="Discover a card"') &&
+  discovery.includes("<h1>Discover a Card</h1>"),
   "Dashboard and Discover naming agree");
 
 // Identity-safety: impossible or contradictory numbering fails closed however it was entered and whichever selector is set.
@@ -99,5 +104,5 @@ assert.equal(compose("2018/19 Upper Deck #100",{numbered:"yes",denominator:"25",
 assert.equal(compose("2019/20 Upper Deck #100 PSA 9",{numbered:"unknown"}).needsVerification,false);
 assert.equal(compose(card+" 25/25",{numbered:"unknown"}).needsVerification,true);
 assert.ok(!compose(card+" 01/25",{numbered:"no"}).query,"No + numbered text is still refused");
-assert.ok(src.includes("refuseWithoutSection"),"Invalid numbering is refused even when the refinement box is not mounted");
+assert.ok(src.includes("composeSerial(input.value, sectionShown ? state.serial : undefined)"),"Invalid numbering is refused even when the refinement box is not mounted");
 console.log("PASS: search-first serial-number refinement and governed identity handoff");

@@ -15,8 +15,10 @@ function check(name, condition) {
   console.log(`PASS | ${name}`);
 }
 
-check("Market View navigation exists", index.includes('href="#/market-view" data-route="market-view"'));
-check("Market View is placed after Dashboard", index.indexOf('data-route="dashboard"') < index.indexOf('data-route="market-view"') && index.indexOf('data-route="market-view"') < index.indexOf('data-route="discover"'));
+// Market View is offered in the customer app's navigation; the Private Beta page does not offer it (founder decision, Nov 3 2026).
+const customerIndex = fs.readFileSync("saas-prototype/customer.html", "utf8");
+check("Market View navigation exists", customerIndex.includes('href="#/market-view" data-route="market-view"'));
+check("Market View is not offered in the Private Beta navigation", !index.includes('data-route="market-view"'));
 check("Market View stylesheet loads", index.includes('href="customer-market-view.css"'));
 check("Market View adapter loads before route hook", index.indexOf('src="customer-market-view.js"') > 0 && index.indexOf('src="customer-market-view.js"') < index.indexOf('src="staging-route-hook.js"'));
 check("Market View route delegates to customer adapter", routeHook.includes('route === "market-view"') && routeHook.includes("marketViewAdapter.render(main)"));

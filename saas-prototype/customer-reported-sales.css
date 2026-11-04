@@ -20,14 +20,14 @@
 
 .ff-reported-sale small {
   color: var(--text-soft);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .ff-reported-sale-flags {
   margin: 0;
   padding-left: 18px;
   color: #f1d38a;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .ff-reported-sale-actions {
@@ -41,7 +41,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .ff-reported-sale-refund input {
@@ -62,5 +62,5 @@
 .ff-reported-sales-empty {
   margin: 0;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 14px;
 }

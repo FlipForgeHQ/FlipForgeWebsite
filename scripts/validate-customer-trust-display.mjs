@@ -69,16 +69,19 @@ sandbox.window.sessionStorage.getItem = () => { throw new Error("blocked"); };
 check("unavailable session storage never throws", T.activeCardId(["qa-a"]) === "");
 
 // Display rules built on the helper
-const clarity = read("saas-prototype/customer-decision-clarity-v1.js");
+// The saved decision page (risk chip, metrics, evidence passport model) is rendered by its owner (consolidation, Nov 3 2026).
+const clarity = read("saas-prototype/customer-opportunities.js");
 const firstValue = read("saas-prototype/customer-first-value-v1.js");
 const passport = read("saas-prototype/decision-card-evidence-v1.js");
 const prototypeFiles = fs.readdirSync(path.join(root, "saas-prototype")).filter(file => file.endsWith(".js"));
 const scrapers = prototypeFiles.filter(file => /replace\(\/\[\^0-9\.\]\/g, ""\)/.test(read(`saas-prototype/${file}`)));
 check("no customer page builds a score by deleting every non-digit from page text", scrapers.length === 0, scrapers.join(", "));
-check("card detail reads decision risk from the saved record", clarity.includes("window.FlipForgeTrustDisplay.riskValue(record)"));
+check("card detail reads decision risk from the saved record", clarity.includes("const score = trust() ? trust().riskValue(item) : item?.risk;"));
 check("card detail never calls the decision risk \"final\"", !/final saved decision risk/i.test(clarity));
-check("evaluation result reads only a whole N/100 risk score", firstValue.includes("\\s*\\/\\s*100\\s*$"));
-check("evidence passport accepts the renamed labels and reads the saved record", passport.includes('["Ask when evaluated", "Listing price", "Current ask"]') && passport.includes('["Decision risk", "Risk"]') && passport.includes("scoreFromRecord(record"));
+// Evaluate renders its result from the server response (staging-evaluation.js): risk is the saved number, never
+// parsed back from page text; a value that is not a number is "Unavailable".
+check("evaluation result reads the saved risk score, not page text", read("saas-prototype/staging-evaluation.js").includes("const risk = riskLabel(decision.risk);") && read("saas-prototype/staging-evaluation.js").includes('if (value === null || value === undefined || value === "" || !Number.isFinite(Number(value))) return { label: "Unavailable", score: "" };'));
+check("evidence passport is given the saved record's values, never page text", clarity.includes("confidence: trust() ? trust().scoreText(trust().confidenceValue(item))") && clarity.includes("risk: trust() ? trust().scoreText(trust().riskValue(item))") && !passport.includes(".customer-value-summary") && !passport.includes(".customer-intelligence-hero"));
 for (const shell of ["saas-prototype/index.html", "saas-prototype/customer.html"]) {
   const html = read(shell);
   check(`${shell} loads the shared helper before the renderers`, html.includes('src="customer-trust-display-v1.js"')

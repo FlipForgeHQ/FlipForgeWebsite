@@ -356,6 +356,13 @@
 
     const hero = document.querySelector("#main-content .customer-intelligence-hero");
     if (!hero) return;
+    // /app/beta does not offer the Price Intelligence panel (customer.html marks <html> ff-full-customer-app). The
+    // saved-vs-current reconciliation of the decision itself still applies there.
+    if (!document.documentElement.classList.contains("ff-full-customer-app")) {
+      existing?.remove();
+      reconcileHistoricalDisplay(snapshot);
+      return;
+    }
     const built = buildPanel(snapshot);
     if (existing?.dataset.priceIntelligenceSignature === built.signature) {
       reconcileHistoricalDisplay(snapshot);

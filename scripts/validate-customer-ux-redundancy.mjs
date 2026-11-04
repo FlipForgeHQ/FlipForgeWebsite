@@ -6,14 +6,17 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
 const css = read("saas-prototype/discover-card-entry-emphasis-v1.css");
-const entry = read("saas-prototype/discover-card-entry-emphasis-v1.js");
-const focus = read("saas-prototype/guided-discover-focus-fix-v1.js");
+// Discover's card-entry order, focus cue and identity help are rendered by its owner (customer-discovery.js); the
+// emphasis and focus-fix layers were removed (Nov 3 2026).
+const retiredDiscoverLayers = ["saas-prototype/discover-card-entry-emphasis-v1.js", "saas-prototype/guided-discover-focus-fix-v1.js"];
+const evaluation = read("saas-prototype/staging-evaluation.js");
 const guide = read("saas-prototype/guided-mode-v1.js");
 const discovery = read("saas-prototype/customer-discovery.js");
 const standard = read("docs/CUSTOMER_APP_AUDIT_STANDARD.md");
 const firstValue = read("saas-prototype/customer-first-value-v1.js");
 const firstValueCss = read("saas-prototype/customer-first-value-v1.css");
-const decisionClarity = read("saas-prototype/customer-decision-clarity-v1.js");
+// The saved decision page is rendered by its owner (customer-decision-clarity-v1.js retired, Nov 3 2026).
+const savedOwner = read("saas-prototype/customer-opportunities.js");
 const cdi = read("saas-prototype/customer-cdi-signal-stack-v1.js");
 const whyView = read("saas-prototype/customer-why-decision-view-v1.js");
 const lifecycle = read("saas-prototype/customer-lifecycle.js");
@@ -44,7 +47,7 @@ const forbiddenVisiblePrompts = [
 for (const phrase of forbiddenVisiblePrompts) {
   check(
     `duplicate entry prompt removed: ${phrase}`,
-    !css.includes(phrase) && !entry.includes(phrase) && !focus.includes(phrase) && !guide.includes(phrase)
+    !css.includes(phrase) && !discovery.includes(phrase) && !guide.includes(phrase)
   );
 }
 
@@ -69,22 +72,23 @@ check(
   css.includes('.customer-discovery-form input[name="exactCardQuery"]:focus')
     && css.includes('border-color:#f0ca58!important;')
 );
+check("Retired Discover presentation layers are gone", retiredDiscoverLayers.every(file => !fs.existsSync(path.join(root, file))));
 check(
-  "Guided focus does not inject another instruction banner",
-  !focus.includes("HINT_ID")
-    && !focus.includes("hint.innerHTML")
-    && !focus.includes("ff-discover-direct-form")
+  "Card-box focus cue does not inject another instruction banner",
+  !discovery.includes("HINT_ID")
+    && !discovery.includes("hint.innerHTML")
+    && !discovery.includes("ff-discover-direct-form")
 );
 check(
-  "Guided focus highlights only the actual input",
-  focus.includes(".ff-discover-direct-input")
-    && focus.includes('input.classList.add("ff-discover-direct-input")')
+  "Card-box focus cue highlights only the actual input",
+  discovery.includes('input.classList?.add?.("ff-discover-direct-input")')
+    && read("saas-prototype/customer-discovery.css").includes(".ff-discover-direct-input")
 );
 check(
-  "Guided Mode provides secondary identity help instead of repeating primary entry instructions",
-  guide.includes("IDENTITY HELP")
-    && guide.includes("Not sure which card version you have?")
-    && guide.includes("Find exact card")
+  "Identity help is said once, by the owner, not repeated by Guided Mode",
+  discovery.includes("Not sure which version of the card you have? Check card identity first.")
+    && !guide.includes("IDENTITY HELP")
+    && !guide.includes("data-ff-discover-coach")
     && !guide.includes("<span>START HERE</span><h2>Enter one exact card.</h2>")
 );
 
@@ -96,41 +100,44 @@ const searchPanel = searchPanelStart >= 0 && searchPanelEnd > searchPanelStart
 
 check("Discover has one canonical Card label", (searchPanel.match(/<span>Card<\/span>/g) || []).length === 1);
 check("Discover has one exact-card entry input", (searchPanel.match(/name="exactCardQuery"/g) || []).length === 1);
-check("Discover primary action is Search active listings", searchPanel.includes('"Search active listings"'));
-check("Find exact card remains visibly secondary", searchPanel.includes('class="button button-secondary"') && searchPanel.includes(">Find exact card</button>"));
+check("Discover primary action is Search active listings", discovery.includes('submit: "Search active listings"') && searchPanel.includes("labels.submit}</button>"));
+check("Find exact card remains visibly secondary", searchPanel.includes('class="button button-secondary" type="button" data-discovery-find-exact') && discovery.includes('exact: "Find exact card"'));
 // Founder direction 2026-10-20: the card-entry guide is open by default (no expand step) in both apps.
 check("Card-entry guide is visible without expanding", searchPanel.includes('<div class="customer-discovery-search-help" data-ff-entry-guide') && !searchPanel.includes("<details class=\"customer-discovery-search-help\""));
 check("Card-entry guide explains two-year seasons without promising identical results", searchPanel.includes("Type the season as printed (2025-26). If results look off, try the first year (2025) and check the year on the card.") && !/Both find the same card|all mean the same card/.test(searchPanel));
 check(
   "Decorator preserves concise Card label after rerenders",
-  entry.includes('labelText.textContent !== "Card"')
-    && entry.includes('labelText.textContent = "Card";')
+  searchPanel.includes("<label><span>Card</span>") && retiredDiscoverLayers.every(file => !fs.existsSync(path.join(root, file)))
 );
 check(
   "Format guidance is concise and non-duplicative",
-  entry.includes("Year · Set · Player · Card # · Grade (when known).")
+  (searchPanel.match(/Year · Set · Player · Card # · Grade \(when known\)\./g) || []).length === 1
 );
 
 // Evaluate
-check("Evaluate has no second three-step strip implementation", !firstValue.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow"));
+check("Evaluate has no second three-step strip implementation", !firstValue.includes("installEvaluateFlow") && !evaluation.includes("installEvaluateFlow") && !firstValueCss.includes(".ff-evaluate-flow"));
 check("Evaluate does not show the decision glossary before a decision exists", !firstValue.includes('["dashboard", "discover", "tracking", "forge-heat", "evaluate"]'));
-check("Evaluate panel uses a distinct Card and listing details heading", firstValue.includes('Card and listing details'));
-check("Evaluate removes the duplicate panel intro and status badge", firstValue.includes('panel.querySelector(".panel-header p")?.remove()') && firstValue.includes('panel.querySelector(".panel-header .staging-status")?.remove()'));
-check("Evaluate removes technical idempotency prose from the customer form", firstValue.includes('form.querySelector(".staging-form-note")?.remove()'));
-check("Evaluate keeps one governed trust disclosure", firstValue.includes("How FlipForge protects this decision"));
+// Evaluate renders its customer form with its final copy (staging-evaluation.js customerEvaluationForm).
+const customerForm = evaluation.slice(evaluation.indexOf("function customerEvaluationForm()"), evaluation.indexOf("function valueIntelligencePanel("));
+check("Evaluate panel uses a distinct Card and listing details heading", customerForm.includes('<header class="panel-header"><div><h2>Card and listing details</h2></div></header>'));
+const customerFormHeader = customerForm.slice(0, customerForm.indexOf("</header>"));
+check("Evaluate has no duplicate panel intro or status badge", customerFormHeader.length > 0 && !customerFormHeader.includes("<p>") && !customerFormHeader.includes("staging-status"));
+check("Evaluate shows no technical idempotency prose on the customer form", customerForm.length > 0 && !customerForm.includes("staging-form-note") && !/idempotency/i.test(customerForm));
+check("Evaluate keeps one governed trust disclosure", (evaluation.match(/How FlipForge protects this decision/g) || []).length === 1 && !firstValue.includes("How FlipForge protects this decision"));
 
 // Decision Intelligence / Saved Decision
 check("CDI explanation CTA does not repeat START HERE", !cdi.includes("<span>START HERE</span><strong>Show me why"));
 check("CDI explanation uses one concise reason-trail caption", cdi.includes("Four checks behind this decision."));
-check("Saved Decision never renders both legacy Why and CDI Why owners", decisionClarity.includes('const interactiveWhy = root.querySelector("[data-ff-cdi-stack], [data-ff-cdi-stack-host]")') && decisionClarity.includes('root.querySelector("[data-ff-decision-why]")?.remove()'));
+check("Saved Decision renders one Why owner (the four checks), never a second Why panel", savedOwner.includes("<div data-ff-cdi-stack-host>") && !savedOwner.includes("data-ff-decision-why") && !fs.existsSync(path.join(root, "saas-prototype/customer-decision-clarity-v1.js")));
 check("Why This Decision suppresses duplicate full Decision Intelligence chrome", whyView.includes(".ff-di-controls") && whyView.includes(".ff-di-grid") && whyView.includes("display: none !important"));
 check("Why This Decision routes deeper evidence separately", whyView.includes("Open Evidence Review"));
 
 // Evidence / Outcomes / Saved list
 check("Evidence education is one progressive disclosure, not three coaching cards", cdi.includes('const guide = document.createElement("details")') && cdi.includes("How FlipForge filters evidence") && !cdi.includes("01 · TRUSTED"));
-check("Saved Decisions list does not add a redundant reopen-instruction strip", cdi.includes('document.querySelector("#main-content [data-ff-cdi-returning]")') && cdi.includes("root?.remove()"));
-check("Outcome Intelligence keeps checkpoints without a duplicate mini-hero", cdi.includes("ff-cdi-outcome-flow") && !cdi.includes("<header><span>OUTCOME INTELLIGENCE</span>"));
-check("Lifecycle authority notes are progressive disclosures", lifecycle.includes('<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary>'));
+check("Saved Decisions list does not add a redundant reopen-instruction strip", !savedOwner.includes("data-ff-cdi-returning") && !cdi.includes("data-ff-cdi-returning"));
+check("Outcome Intelligence keeps checkpoints without a duplicate mini-hero", lifecycle.includes("ff-cdi-outcome-flow") && !cdi.includes("data-ff-cdi-outcome-guide") && !lifecycle.includes("<header><span>OUTCOME INTELLIGENCE</span>"));
+// Founder decision (2026-11-03): the Tracking "Decision boundary" note stays visible; "How alerts work" stays a disclosure.
+check("Lifecycle authority notes stay visible to customers", lifecycle.includes('<div class="boundary-note" data-ff-disclosure="decision-boundary"><strong>Decision boundary:</strong>') && lifecycle.includes('<details class="boundary-note ff-trust-note"><summary>How alerts work</summary>'));
 check("Evidence and management authority notes are progressive disclosures", management.includes('<details class="boundary-note ff-trust-note"><summary>How this stays governed</summary>'));
 
 // Portfolio / Compare / PSA / Market / Heat

@@ -82,7 +82,7 @@
   color: #121922;
   background: linear-gradient(180deg, #f5f6f5, #cfd3d2);
   border-radius: 5px 5px 2px 2px;
-  font-size: 7px;
+  font-size: 14px;
   font-weight: 850;
   letter-spacing: .035em;
   text-transform: uppercase;
@@ -90,7 +90,7 @@
 
 .vi-slab-label strong {
   color: #9a171d;
-  font-size: 8px;
+  font-size: 14px;
 }
 
 .vi-card-face {
@@ -166,7 +166,7 @@
 
 .vi-kicker {
   color: var(--gold);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 850;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -178,7 +178,7 @@
   background: rgba(255, 255, 255, .035);
   border: 1px solid rgba(137, 146, 143, .25);
   border-radius: 999px;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 750;
 }
 
@@ -193,7 +193,7 @@
 .vi-card-meta {
   margin: 0 0 17px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .vi-decision-row {
@@ -213,7 +213,7 @@
   border: 1px solid #66efaa;
   border-radius: 8px;
   box-shadow: 0 0 26px rgba(39, 209, 127, .15);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 950;
   letter-spacing: .08em;
 }
@@ -243,12 +243,12 @@
 
 .vi-decision-copy strong {
   margin-bottom: 3px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .vi-decision-copy span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.4;
 }
 
@@ -276,7 +276,7 @@
 .vi-value-block span {
   margin-bottom: 6px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 750;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -290,7 +290,7 @@
 .vi-value-block small {
   margin-top: 6px;
   color: var(--text-soft);
-  font-size: 9px;
+  font-size: 14px;
 }
 
 .vi-value-block.is-positive strong,
@@ -305,7 +305,7 @@
   padding-top: 13px;
   color: var(--muted);
   border-top: 1px solid rgba(137, 146, 143, .16);
-  font-size: 9px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -329,7 +329,7 @@
   border: 1px solid var(--gold-strong);
   border-radius: 7px;
   text-decoration: none;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 850;
 }
 
@@ -356,7 +356,7 @@
 .vi-scoreboard-header p {
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -441,7 +441,7 @@
 .vi-gauge-copy span {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 750;
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -455,12 +455,12 @@
 .vi-gauge-explanation strong {
   margin-bottom: 7px;
   color: var(--green);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .vi-gauge-explanation span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -484,11 +484,11 @@
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 7px;
-  font-size: 9px;
+  font-size: 14px;
 }
 
 .vi-factor-top span { color: var(--muted); }
-.vi-factor-top strong { font-size: 10px; }
+.vi-factor-top strong { font-size: 14px; }
 
 .vi-factor-track {
   height: 5px;
@@ -536,7 +536,7 @@
 .vi-insight-header p {
   margin: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -549,7 +549,7 @@
   background: rgba(226, 189, 66, .08);
   border: 1px solid rgba(226, 189, 66, .2);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .vi-mini-chart {
@@ -594,12 +594,12 @@
   gap: 10px;
   margin-top: 9px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 14px;
 }
 
 .vi-chart-summary strong {
   color: var(--text);
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .vi-evidence-bars {
@@ -618,7 +618,7 @@
 
 .vi-evidence-row > span:first-child {
   color: var(--text-soft);
-  font-size: 9px;
+  font-size: 14px;
 }
 
 .vi-evidence-track {
@@ -639,7 +639,7 @@
 .vi-evidence-row strong {
   min-width: 46px;
   text-align: right;
-  font-size: 9px;
+  font-size: 14px;
 }
 
 .vi-evidence-note {
@@ -649,7 +649,7 @@
   padding-top: 12px;
   color: var(--muted);
   border-top: 1px solid rgba(137, 146, 143, .15);
-  font-size: 9px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -677,7 +677,7 @@
 .vi-grade-column strong {
   align-self: start;
   margin-bottom: 5px;
-  font-size: 9px;
+  font-size: 14px;
 }
 
 .vi-grade-bar {
@@ -697,7 +697,7 @@
   place-items: center;
   padding-top: 7px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 14px;
   line-height: 1.2;
 }
 
@@ -712,7 +712,7 @@
   background: rgba(226, 189, 66, .045);
   border: 1px solid rgba(226, 189, 66, .2);
   border-radius: 10px;
-  font-size: 9px;
+  font-size: 14px;
   line-height: 1.45;
 }
 

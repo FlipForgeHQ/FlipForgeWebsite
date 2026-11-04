@@ -8,6 +8,10 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
+  // The page heading as customers see it (formerly rewritten after render by customer-professional-polish.js and
+  // consumer-ux-refinement.js, which alternated with each other on every frame).
+  const EYEBROW = "Beta intelligence";
+  const TITLE = 'Forge Heat<sup class="ff-trademark">™</sup>';
 
   const state = {
     main: null,
@@ -259,7 +263,7 @@
           </table>
         </div>
         <aside class="ff-heat-band-panel">
-          <span class="eyebrow">HEAT SCORE</span><strong>Evidence-adjusted rank</strong><small>0–100 presentation of backend-returned Forge Heat.</small>
+          <span class="eyebrow">HEAT SCORE</span><strong>Evidence-adjusted rank</strong><small>0–100 Forge Heat score from your saved evaluations.</small>
           <div class="ff-heat-bands">
             <div><b>90–100</b><span>WHITE HOT 🔥🔥🔥</span></div>
             <div><b>80–89</b><span>HOT 🔥🔥</span></div>
@@ -438,14 +442,12 @@
 
   function emptyState(tab, data) {
     const considered = Number(data?.summary?.latestEvaluationsConsidered);
+    // No evaluations at all: say how to start. Evaluations that were scored and did not qualify: say why (threshold).
+    const title = considered === 0 ? "No qualifying opportunities yet." : "No opportunity reaches the Forge Heat surface threshold yet.";
     const copy = considered === 0
       ? "Forge Heat ranks the cards you evaluate. Evaluate a card to start."
-      : tab === "hiddenGems"
-      ? "No current saved evaluation satisfies the Hidden Gem evidence, confidence, risk, and Heat thresholds."
-      : tab === "highestEdge"
-        ? "No saved BUY/WATCH evaluation currently has enough evidence and positive supported-value gap to surface."
-        : "No saved evaluation currently clears the Forge Heat V1 gates.";
-    return `<section class="forge-heat-empty"${considered === 0 ? ' data-forge-heat-empty="none-evaluated"' : ""}><strong>No qualifying opportunities yet.</strong><p>${escapeHtml(copy)}</p>${considered === 0 ? "" : reasonSummary(data)}<a class="button button-primary" href="#/discover">Discover cards</a></section>`;
+      : "Forge Heat scores eligible decisions first, then surfaces only those with a score of 60 or higher.";
+    return `<section class="forge-heat-empty consumer-state consumer-state-empty"${considered === 0 ? ' data-forge-heat-empty="none-evaluated"' : ""}><strong>${escapeHtml(title)}</strong><p>${escapeHtml(copy)}</p>${considered === 0 ? "" : reasonSummary(data)}<a class="button button-primary" href="#/discover">Discover cards</a></section>`;
   }
 
   function historyBuilding(data) {
@@ -482,7 +484,7 @@
       ${heading(data)}
       <section class="forge-heat-lock">
         <span class="forge-heat-lock-mark" aria-hidden="true">BETA</span>
-        <div><span class="eyebrow">Beta access</span><h2>Forge Heat beta access is not enabled for this account.</h2><p>Forge Heat remains in beta while its ranking and history signals are validated.</p><p>Your current plan: <strong>${escapeHtml(data.access?.currentPlan || "Unknown")}</strong></p><a class="button button-primary" href="#/account">View Plan &amp; Usage</a></div>
+        <div><span class="eyebrow">Beta access</span><h2>Forge Heat beta access is not enabled for this account.</h2><p>${escapeHtml(data.upgradeMessage && !/upgrade to Pro/i.test(data.upgradeMessage) ? data.upgradeMessage : "Forge Heat remains in beta while its ranking and history signals are validated.")}</p><p>Your current plan: <strong>${escapeHtml(data.access?.currentPlan || "Unknown")}</strong></p><a class="button button-primary" href="#/account">View Plan &amp; Usage</a></div>
       </section>
     </div>`;
   }
@@ -491,15 +493,15 @@
     const summary = data?.summary || {};
     return `<header class="forge-heat-hero">
       <div>
-        <div class="forge-heat-title-row"><span class="eyebrow">Forge Heat beta · ${escapeHtml(data?.heatVersion || HEAT_VERSION)}</span></div>
-        <h1>Forge Heat™</h1>
+        <div class="forge-heat-title-row"><span class="eyebrow">${EYEBROW}</span></div>
+        <h1>${TITLE}</h1>
         <p class="forge-heat-lead">Evidence-backed opportunity intelligence. FlipForge does not just find the gap—it tests whether the opportunity deserves to be trusted.</p>
       </div>
-      <div class="forge-heat-boundary"><strong>Current scope</strong><span>Your saved, completed evaluation universe</span><small>Ranks saved evaluations · Decision support only · Not market-wide yet · No browser-side scoring · No transaction authority</small></div>
+      <div class="forge-heat-boundary"><strong>Current scope</strong><span>Your saved, completed evaluation universe</span><small>Ranks saved evaluations · Not market-wide yet · Decision support only</small></div>
       ${data && data.locked === false ? `<div class="forge-heat-summary">
         <div><span>Evaluations considered</span><strong>${escapeHtml(summary.latestEvaluationsConsidered ?? 0)}</strong></div>
         <div><span>Eligible for scoring</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
-        <div><span>Surfaced</span><strong>${escapeHtml(summary.surfaced ?? 0)}</strong></div>
+        <div><span>60+ surfaced</span><strong>${escapeHtml(summary.surfaced ?? 0)}</strong></div>
         ${Number(summary.legacyDerivedExcluded) > 0 ? `<div data-ff-legacy-excluded><span>Legacy results not scored</span><strong>${escapeHtml(summary.legacyDerivedExcluded)}</strong></div>` : ""}
         <div><span>Ranked by</span><strong>${maxBuyRanking(data) ? "Room under Max Buy" : "Value gap (V1)"}</strong></div>
       </div>` : ""}
@@ -522,11 +524,11 @@
       ${ranked ? `${controlRoom(selected)}${tabs()}` : ""}
       <details class="forge-heat-intelligence-bar ff-trust-note">
         <summary>How a card becomes Heat-eligible</summary>
-        <div><span>Identity</span><strong>Completed evaluation snapshot</strong></div>
+        <div><span>Identity</span><strong>Saved evaluated card</strong></div>
         <div><span>Evidence gate</span><strong>≥ 3 matched exact sales</strong></div>
         ${maxBuyRanking(data) ? `<div><span>Price gate</span><strong>Ask at or under the saved Max Buy</strong></div><div><span>Card match</span><strong>Exact identity confirmed at decision</strong></div>` : ""}
         <div><span>Authority</span><strong>Smart Opportunity</strong></div>
-        <div><span>Heat calculation</span><strong>Server-owned</strong></div>
+        <div><span>Heat calculation</span><strong>Calculated by FlipForge, not in your browser</strong></div>
       </details>
       ${ranked ? "" : tabs()}
       <div class="forge-heat-tab-copy"><strong>${escapeHtml(state.tab === "top5" ? "Top 5" : state.tab === "hiddenGems" ? "Hidden Gems" : state.tab === "highestEdge" ? "Highest Edge" : "Heating Up")}</strong><span>${escapeHtml(tabDescription(state.tab))}</span></div>
@@ -545,14 +547,14 @@
   }
 
   function loading() {
-    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">Forge Heat beta</span><h1>Forge Heat™</h1><p class="forge-heat-lead">Loading server-owned opportunity intelligence…</p></div></header><div class="staging-loading" role="status">Challenging saved decisions against Forge Heat gates…</div></div>`;
+    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">${EYEBROW}</span><h1>${TITLE}</h1><p class="forge-heat-lead">Loading your Forge Heat ranking…</p></div></header><div class="staging-loading consumer-state consumer-state-loading" role="status">Challenging saved decisions against Forge Heat gates…</div></div>`;
   }
 
   function errorView(error) {
     const signIn = error?.status === 401
       ? `<a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fforge-heat" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fforge-heat"}">Sign in securely</a>`
       : `<button class="button button-primary" type="button" data-forge-heat-retry>Retry</button>`;
-    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">Forge Heat beta</span><h1>Forge Heat™</h1></div></header><section class="panel staging-error" role="alert"><div class="panel-body">${(() => { const said = window.FlipForgeTrustDisplay?.customerErrorText ? window.FlipForgeTrustDisplay.customerErrorText(error, "Forge Heat") : { title: "Forge Heat is unavailable.", detail: "", reference: error?.code || "" }; return `<strong data-error-code="${escapeHtml(error?.code || "")}">${escapeHtml(said.title)}</strong><p>${escapeHtml(said.detail)}</p>${said.reference ? `<small>Reference: ${escapeHtml(said.reference)}</small>` : ""}`; })()}<small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
+    return `<div class="forge-heat-shell"><header class="forge-heat-hero"><div><span class="eyebrow">${EYEBROW}</span><h1>${TITLE}</h1></div></header><section class="panel staging-error consumer-state consumer-state-error" role="alert"><div class="panel-body">${(() => { const said = window.FlipForgeTrustDisplay?.customerErrorText ? window.FlipForgeTrustDisplay.customerErrorText(error, "Forge Heat") : { title: "Forge Heat is unavailable.", detail: "", reference: error?.code || "" }; return `<strong data-error-code="${escapeHtml(error?.code || "")}">${escapeHtml(said.title)}</strong><p>${escapeHtml(said.detail)}</p>${said.reference ? `<small>Reference: ${escapeHtml(said.reference)}</small>` : ""}`; })()}<small>No Heat score was calculated in the browser or substituted from mock data.</small><div class="page-actions">${signIn}</div></div></section></div>`;
   }
 
   function wire(generation = state.generation) {

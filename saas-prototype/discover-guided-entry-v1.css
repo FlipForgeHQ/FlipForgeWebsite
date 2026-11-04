@@ -7,7 +7,7 @@ body .ff-serial-refinement{
 }
 .ff-serial-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
 .ff-serial-choice{display:flex!important;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px!important;font-weight:750!important;margin:0!important}
-.ff-serial-optional{font-size:12px;font-weight:500;color:var(--muted,#acb1ba)}
+.ff-serial-optional{font-size:14px;font-weight:500;color:var(--muted,#acb1ba)}
 .ff-serial-head select{
   width:auto!important;min-width:190px;max-width:100%;min-height:38px!important;
   padding:6px 10px!important;font:inherit;font-size:14px!important;
@@ -19,7 +19,7 @@ body .ff-serial-refinement{
 .ff-serial-fields[hidden],.ff-serial-error[hidden]{display:none!important}
 .ff-serial-fields label{display:grid;gap:5px;margin:0;font-size:14px}
 .ff-serial-fields input{width:100%;min-width:0;min-height:40px;font-size:15px;padding:8px 10px}
-.ff-serial-hint{font-size:13px;line-height:1.4;color:var(--muted,#acb1ba);margin:6px 0 0;max-width:700px}
+.ff-serial-hint{font-size:14px;line-height:1.4;color:var(--muted,#acb1ba);margin:6px 0 0;max-width:700px}
 .ff-serial-error{font-size:14px;color:#ffcccc;margin:8px 0 0;line-height:1.4}
 .ff-serial-head select:focus-visible,.ff-serial-fields input:focus-visible{
   outline:2px solid var(--gold,#d4af37);outline-offset:3px
@@ -39,5 +39,5 @@ body[data-ff-surface="customer"] .ff-beta-simple-steps>div{padding:10px}
   .ff-serial-head{align-items:stretch;gap:7px}
   .ff-serial-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
   body[data-ff-surface="customer"] .ff-beta-simple-steps{grid-template-columns:minmax(0,1fr)}
-  .ff-serial-hint{font-size:12px}
+  .ff-serial-hint{font-size:14px}
 }

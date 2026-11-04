@@ -1,8 +1,6 @@
 (() => {
   "use strict";
 
-  window.__ffStagingRouteHookOwnsDiscover = true;
-
   const adapter = window.FlipForgeStagingReadAdapter;
   const opportunityAdapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;
@@ -101,22 +99,19 @@
     if (bannerCopy) bannerCopy.textContent = "Tenant-scoped Smart Opportunity submission only · No evidence verification · No transaction authority";
   }
 
-  function showCustomerIntelligenceBanner() {
-    if (bannerTitle) bannerTitle.textContent = "PRIVATE BETA INTELLIGENCE";
-    if (bannerCopy) bannerCopy.textContent = "Authenticated tenant-scoped decisions · SQLite saved · No transaction authority";
-  }
-
-  function showDiscoveryBanner() {
-    if (bannerTitle) bannerTitle.textContent = "PRIVATE BETA DISCOVERY";
-    if (bannerCopy) bannerCopy.textContent = "Authorized active listings · Evidence-aware context · Explicit Smart Opportunity evaluation required";
-  }
+  // Customer routes keep the page's own banner (index.html: "PRIVATE BETA · Card intelligence workspace · Evaluation
+  // only"; customer.html has none). Only the non-production staging routes relabel it, and leaving them restores it.
+  const showCustomerIntelligenceBanner = restoreBanner;
+  const showDiscoveryBanner = restoreBanner;
 
   function focusMain() {
     if (main && typeof main.focus === "function") main.focus({ preventScroll: true });
     if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "instant" });
   }
 
+  // Bulk Evaluate is offered in the customer app only; the Private Beta page does not offer it.
   function addBulkEvaluateAction() {
+    if (window.FlipForgePrivateBetaEntry === true) return;
     const actions = main && typeof main.querySelector === "function" ? main.querySelector(".page-actions") : null;
     if (!actions || actions.querySelector("[data-bulk-evaluate-link]")) return;
     const link = document.createElement("a");
