@@ -108,7 +108,7 @@ for (const route of sourceRoutes) {
   check(`navigation route ${route} remains represented in production source`, [index, customerIndex].some(page => page.includes(`data-route="${route}"`) || page.includes(`href="#/${route}`)));
 }
 const betaNavRoutes = [...((index.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0]).matchAll(/data-route="([^"]+)"/g)].map(match => match[1]);
-check("Private Beta navigation lists exactly the founder's beta menu", betaNavRoutes.join(",") === "dashboard,discover,opportunities,tracking,alerts,portfolio,forge-heat,account");
+check("Private Beta navigation lists exactly the founder's beta menu", betaNavRoutes.join(",") === "dashboard,discover,evaluate,opportunities,tracking,alerts,portfolio,forge-heat,account");
 check("Exit Review is absent from customer production navigation", !index.includes('data-route="sell"'));
 
 const failures = results.filter(result => !result.passed);

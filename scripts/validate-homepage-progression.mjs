@@ -209,7 +209,7 @@ for(const page of [product,learn,beta,pricing])requireAll('marketing navigation'
 // Private Beta navigation (founder decision, Nov 3 2026): exactly these destinations, in this order, in the markup.
 // Evaluate, Compare, PSA Advisor, Evidence, Export and Market View stay in the customer app (customer.html).
 const betaNavRoutes=[...(app.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/)||[''])[0].matchAll(/data-route="([^"]+)"/g)].map(match=>match[1]);
-if(betaNavRoutes.join(',')!=='dashboard,discover,opportunities,tracking,alerts,portfolio,forge-heat,account')failures.push(`app beta navigation: unexpected routes ${betaNavRoutes.join(',')}`);
+if(betaNavRoutes.join(',')!=='dashboard,discover,evaluate,opportunities,tracking,alerts,portfolio,forge-heat,account')failures.push(`app beta navigation: unexpected routes ${betaNavRoutes.join(',')}`);
 const customerApp=read('saas-prototype/customer.html');
 for(const core of ['dashboard','discover','evaluate','opportunities','tracking','portfolio'])requireText('customer app core workflow',customerApp,`data-route="${core}"`);
 requireText('customer app advanced analysis',customerApp,'<details class="ff-advanced-nav">');

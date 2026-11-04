@@ -14,7 +14,8 @@ const discovery = read("saas-prototype/customer-discovery.js");
 const discoverMarkup = discovery.slice(discovery.indexOf("function renderCurrentMarkup()"), discovery.indexOf("function focusDiscoverResults()"));
 const evaluation = read("saas-prototype/staging-evaluation.js");
 const opportunities = read("saas-prototype/customer-opportunities.js");
-const explainability = read("saas-prototype/customer-explainability.js");
+// The saved decision explanations are rendered by their owner (customer-explainability.js retired, Nov 3 2026).
+const explainability = opportunities;
 const lifecycle = read("saas-prototype/customer-lifecycle.js");
 const compare = read("saas-prototype/customer-compare.js");
 const management = read("saas-prototype/customer-management.js");
@@ -46,7 +47,7 @@ check("010 live QA keeps billing out of scope", liveQa.includes("Paid checkout a
 check("011 Discover customer adapter loads before route hook", before('src="customer-discovery.js"', 'src="staging-route-hook.js"'));
 check("012 Evaluate adapter loads before route hook", before('src="staging-evaluation.js"', 'src="staging-route-hook.js"'));
 check("013 Card Intelligence adapter and bridge load before route hook", before('src="customer-opportunities.js"', 'src="customer-opportunities-bridge.js"') && before('src="customer-opportunities-bridge.js"', 'src="staging-route-hook.js"'));
-check("014 explainability layer loads before route hook", before('src="customer-explainability.js"', 'src="staging-route-hook.js"'));
+check("014 explanations are rendered by the saved decision owner, which loads before the route hook", !fs.existsSync(path.join(root, "saas-prototype/customer-explainability.js")) && !index.includes('src="customer-explainability.js"') && before('src="customer-opportunities.js"', 'src="staging-route-hook.js"'));
 check("015 lifecycle adapter loads before route hook", before('src="customer-lifecycle.js"', 'src="staging-route-hook.js"'));
 check("016 production account bridge loads before route hook", before('src="customer-account-bridge.js"', 'src="staging-route-hook.js"'));
 
@@ -59,8 +60,9 @@ check("022 Evaluate requires SQLite persistence and tenant ownership", evaluatio
 check("023 Evaluate rejects transaction authority", evaluation.includes("data.transactionAuthorized === false"));
 check("024 Card Intelligence validates Smart Opportunity authority", opportunities.includes('meta.authority === "Smart Opportunity"'));
 check("025 Card Intelligence validates existing PSA authority", opportunities.includes('meta.gradingAuthority === "Existing PSA intelligence"'));
-check("026 Card Intelligence exposes Decision Traceback", opportunities.includes("Decision Traceback") && opportunities.includes("4 · Authority output"));
-check("027 Card Intelligence exposes Evidence Chain", opportunities.includes("Evidence Chain") && opportunities.includes("acceptedExactCompletedSales"));
+// The saved decision owner renders the traceback and evidence chain under their final customer names (Nov 3 2026).
+check("026 Card Intelligence exposes Decision Traceback", opportunities.includes('id="ff-decision-details"') && opportunities.includes("<h2>Decision details</h2>") && opportunities.includes('"4 · Decision"'));
+check("027 Card Intelligence exposes Evidence Chain", opportunities.includes('id="ff-evidence-chain"') && opportunities.includes("Exact completed-sale evidence that can support the saved decision, plus excluded rows.") && opportunities.includes("acceptedExactCompletedSales"));
 check("028 explainability says confidence is not certainty", explainability.includes("It is not certainty"));
 check("029 explainability says supported value is not guaranteed", explainability.includes("not a guaranteed sale price"));
 check("030 explainability says PSA guidance is not a grade prediction", explainability.includes("does not predict a grade"));
@@ -75,7 +77,7 @@ check("036 portfolio refuses invented current value", portfolio.includes('data.c
 check("037 compare does not invent a winner", compare.includes("No browser-side score or winner is created") && compare.includes("does not rerank, rescore, or select a winner"));
 check("038 customer management retains evidence/PSA/sell boundaries", ["evidence", "psa-advisor", "sell"].every(route => management.includes(route)));
 check("039 Decision Dossier requires complete export", exportAdapter.includes("complete: true") && exportAdapter.includes("partialExport: false"));
-check("040 production Plan & Usage is read-only", account.includes("readOnly") && account.includes("Production payment controls are intentionally absent"));
+check("040 production Plan & Usage is read-only", account.includes("readOnly") && account.includes("Payments are not available in private beta.") && account.includes("Account information is view-only"));
 
 check("041 all core adapters use same-origin credentials", coreAdapters.every(source => source.includes('credentials: "same-origin"')));
 check("042 all networked core adapters disable cache", coreAdapters.every(source => source.includes('cache: "no-store"')));
