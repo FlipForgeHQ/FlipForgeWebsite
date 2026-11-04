@@ -5,7 +5,8 @@
   const EVALUATION_PATH = "/api/v1/evaluations";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const SAFE_REQUEST_ID = /^[A-Za-z0-9._-]{8,100}$/;
-  const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/;
+  // Same character set as the server and Discover: eBay Browse item IDs look like v1|123456789012|0.
+  const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:|-]{0,179}$/;
   const SAFE_OPPORTUNITY_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const ALLOWED_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
@@ -201,9 +202,9 @@
     const externalListingId = cleanText(draft.externalListingId, "External listing ID", 180, true);
     const marketplace = cleanText(draft.marketplace, "Marketplace", 80, true).toUpperCase();
     if (!MARKETPLACES.includes(marketplace)) throw validationError("EVALUATION_MARKETPLACE_INVALID", "Marketplace is not supported.");
-    if (!SAFE_EXTERNAL_ID.test(externalListingId)) throw validationError("EVALUATION_LISTING_ID_INVALID", "External listing ID must use only letters, numbers, periods, underscores, colons, or hyphens.");
-    const opportunityId = `${marketplace}-${externalListingId}`;
-    if (!SAFE_OPPORTUNITY_ID.test(opportunityId)) throw validationError("EVALUATION_LISTING_ID_INVALID", "Marketplace and external listing ID do not produce a safe saved opportunity ID.");
+    if (!SAFE_EXTERNAL_ID.test(externalListingId)) throw validationError("EVALUATION_LISTING_ID_INVALID", "External listing ID must use only letters, numbers, periods, underscores, colons, pipes, or hyphens.");
+    // The server owns the saved opportunity ID: it uses MARKETPLACE-id when that is route-safe and otherwise derives
+    // MARKETPLACE-ext-<sha256> (SaaSTenantAuthoritativeEvaluationService). The browser does not pre-derive it.
 
     const cardIdentity = cleanText(draft.cardIdentity, "Card identity", 500, true);
     const listingUrl = cleanText(draft.listingUrl, "Listing URL", 2048, true);
