@@ -174,6 +174,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     let next;
     try { next = applyFooterSocial(file, apply(file, html)); } catch (error) { problems.push(error.message); continue; }
     if ((next.match(/ff:site-social —/g) || []).length !== 1) problems.push(`${file}: expected one Follow FlipForge footer column`);
+    for (const label of next.match(/<a [^>]*data-app-preview="footer"[^>]*>[^<]*<\/a>/g) || []) {
+      if (!/>Beta Sign In<\/a>$/.test(label)) problems.push(`${file}: the footer sign-in link must read "Beta Sign In", as in the menu`);
+    }
     if (next === html) continue;
     if (write) fs.writeFileSync(full, next);
     else problems.push(`${file}: header differs from scripts/site-header.mjs (run: node scripts/site-header.mjs --write)`);
@@ -191,7 +194,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   }
   // No other file may build, inject or relabel the header menu or the footer links.
   const forbidden = [
-    ['assets/js/conversion-events.js', /renderPrimaryNav|canonicalPrimaryNav|homePrimaryNav/],
+    ['assets/js/conversion-events.js', /renderPrimaryNav|canonicalPrimaryNav|homePrimaryNav|normalizeMarketingShell|Private Beta App/],
     ['assets/js/site.js', /ensureReturningBetaSignIn|querySelectorAll\('\.desktop-nav'\)/],
     ['scripts/build-assets.js', /ensureDesktopAppLink|ensureMobileAppLink|ensureFooterAppLink/]
   ];

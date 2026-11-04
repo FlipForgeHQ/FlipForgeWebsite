@@ -9,79 +9,8 @@
   };
   enforceReadabilityFloor();
 
-  const normalizeMarketingShell=()=>{
-    const normalizedPath=value=>{
-      try{
-        const href=value instanceof Element?(value.getAttribute('href')||''):String(value||'');
-        const path=new URL(href,location.href).pathname
-          .replace(/\/index\.html$/,'/')
-          .replace(/\.html$/,'')
-          .replace(/\/+$/,'');
-        return path||'/';
-      }catch{return '';}
-    };
-    const linksFor=(container,path)=>container?[...container.querySelectorAll('a[href]')].filter(link=>normalizedPath(link)===path):[];
-
-    // The header and its menu are written into each page by scripts/site-header.mjs and are not rebuilt here.
-
-    const addEvidenceLink=container=>{
-      if(!container)return;
-      const existing=linksFor(container,'/learn');
-      if(existing.length){
-        existing.slice(1).forEach(link=>link.remove());
-        existing[0].textContent='Evidence Lab';
-        return;
-      }
-      const link=document.createElement('a');
-      link.href='/learn.html';
-      link.textContent='Evidence Lab';
-      const about=linksFor(container,'/about')[0];
-      if(about)container.insertBefore(link,about);
-      else container.append(link);
-    };
-
-    const addDecisionIntelligenceLink=container=>{
-      if(!container)return;
-      const existing=linksFor(container,'/decision-intelligence');
-      if(existing.length){
-        existing.slice(1).forEach(link=>link.remove());
-        existing[0].textContent='Decision Intelligence';
-        return;
-      }
-      const link=document.createElement('a');
-      link.href='/decision-intelligence.html';
-      link.textContent='Decision Intelligence';
-      const product=linksFor(container,'/product')[0];
-      if(product)product.insertAdjacentElement('afterend',link);
-      else container.prepend(link);
-    };
-
-    document.querySelectorAll('.footer-links').forEach(group=>{
-      if(linksFor(group,'/product').length){
-        addDecisionIntelligenceLink(group);
-        addEvidenceLink(group);
-      }
-    });
-
-    document.querySelectorAll('[data-app-preview]').forEach(link=>{
-      link.textContent='Private Beta App';
-      link.setAttribute('aria-label','Open Private Beta App');
-    });
-
-    document.querySelectorAll('.footer p strong').forEach(label=>{
-      const text=label.textContent.trim().replace(/™/g,'');
-      if(text==='Card Intelligence'||text==='Card Decision Intelligence')label.textContent='Card Decision Intelligence™';
-    });
-    document.querySelectorAll('img.brand-lockup,.decision-brand img').forEach(image=>{
-      image.alt='FlipForge — Card Decision Intelligence — Before you buy. Know Why.';
-    });
-
-    const copyright=document.querySelector('.copyright');
-    if(copyright&&copyright.textContent.includes('Planned pricing and beta capabilities')){
-      copyright.textContent=copyright.textContent.replace('Planned pricing and beta capabilities','Launch plans and beta capabilities');
-    }
-  };
-  normalizeMarketingShell();
+  // The header, menu and footer (links, labels, Beta Sign In, brand descriptor, copyright) are written in each page's
+  // source; scripts/site-header.mjs owns the header, menu and Follow FlipForge column. Nothing here rewrites them.
   // On Netlify previews, never direct returning testers to a preview-origin login.
   if(/(?:^|\.)netlify\.app$/i.test(location.hostname)){
     const productionBetaSignIn='https://goflipforge.com/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
