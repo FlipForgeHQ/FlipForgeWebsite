@@ -501,7 +501,7 @@
       ${data && data.locked === false ? `<div class="forge-heat-summary">
         <div><span>Evaluations considered</span><strong>${escapeHtml(summary.latestEvaluationsConsidered ?? 0)}</strong></div>
         <div><span>Eligible for scoring</span><strong>${escapeHtml(summary.heatEligible ?? 0)}</strong></div>
-        <div><span>60+ surfaced</span><strong>${escapeHtml(summary.surfaced ?? 0)}</strong></div>
+        <div><span>Heat 60 or higher</span><strong>${escapeHtml(summary.surfaced ?? 0)}</strong></div>
         ${Number(summary.legacyDerivedExcluded) > 0 ? `<div data-ff-legacy-excluded><span>Legacy results not scored</span><strong>${escapeHtml(summary.legacyDerivedExcluded)}</strong></div>` : ""}
         <div><span>Ranked by</span><strong>${maxBuyRanking(data) ? "Room under Max Buy" : "Value gap (V1)"}</strong></div>
       </div>` : ""}
