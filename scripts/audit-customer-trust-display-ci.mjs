@@ -161,6 +161,23 @@ function fixture(f) {
 // ---------- session ----------
 const browser = await chromium.launch({ executablePath, args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"] });
 const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
+// The Evidence page is finished when the evidence request made by the page has completed and the main content has then
+// stopped changing for 500 ms. This replaces a fixed delay, which read the page too early on a slow runner. A page that
+// keeps redrawing never becomes quiet, so this wait also fails on a redraw loop instead of hiding it.
+async function evidenceReady(page, evidenceResponse) {
+  await evidenceResponse;
+  await page.waitForFunction(() => {
+    const root = document.querySelector("#main-content");
+    if (!root) return false;
+    if (!window.__ffEvidenceQuiet) {
+      window.__ffEvidenceQuiet = { at: performance.now() };
+      new MutationObserver(() => { window.__ffEvidenceQuiet.at = performance.now(); })
+        .observe(root, { childList: true, subtree: true, characterData: true, attributes: true });
+    }
+    return performance.now() - window.__ffEvidenceQuiet.at >= 500;
+  }, null, { timeout: 20000, polling: 100 });
+}
+
 async function open(route, f = BASE, { active = "", storageThrows = false, wait = 4500, expandAll = true, host = "goflipforge.com", device = null, app = APP } = {}) {
   const context = await browser.newContext(device || { viewport: { width: 1440, height: 900 } });
   await context.addInitScript(() => { try { localStorage.setItem("flipforge.privateBeta.onboarding.v1", "complete"); } catch (_) {} });
@@ -177,8 +194,12 @@ async function open(route, f = BASE, { active = "", storageThrows = false, wait 
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", e => { if (!/QA: (?:session )?storage unavailable/.test(e.message)) errors.push(e.message.slice(0, 160)); });
+  const evidenceResponse = route.startsWith("evidence/")
+    ? page.waitForResponse(response => /\/api\/v1\/evidence\//.test(response.url()), { timeout: 20000 })
+    : null;
   await page.goto(`${app.replace("goflipforge.com", host)}#/${route}`, { waitUntil: "load" });
-  await page.waitForTimeout(wait);
+  if (evidenceResponse) await evidenceReady(page, evidenceResponse);
+  else await page.waitForTimeout(wait);
   if (expandAll) {
     await page.evaluate(() => document.querySelectorAll("#main-content details").forEach(d => { d.open = true; }));
     await page.waitForTimeout(400);
