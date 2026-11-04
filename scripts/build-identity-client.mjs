@@ -134,7 +134,8 @@ injectBefore(path.join(root, "index.html"), "</body>");
 const appIndex = path.join(root, "saas-prototype", "index.html");
 injectBefore(appIndex, '<script src="staging-browser.js"></script>');
 injectProductionSignInBefore(appIndex, '<script src="staging-browser.js"></script>');
-injectProductionEntitlementsBefore(appIndex, '<script src="customer-billing-portal.js"></script>');
+// Billing, the card cockpit, Decision Intelligence UX v2, Deal Check and Decision Monitor are not part of the beta page.
+injectProductionEntitlementsBefore(appIndex, '<script src="customer-card-intelligence.js"></script>');
 
 injectDashboardV3(appIndex);
 injectCommercialDashboard(appIndex);

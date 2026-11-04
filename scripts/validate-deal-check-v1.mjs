@@ -241,7 +241,10 @@ for (const id of [IDS.buy, IDS.watch, IDS.pass]) {
 }
 
 // 11. Shell wiring.
-for (const shell of ["saas-prototype/index.html", "saas-prototype/customer.html"]) {
+// Deal Check and the Decision Monitor are not part of the private beta: the beta page (index.html) does not load them at
+// all (Nov 4 2026), which is stricter than the kill switches. The full customer app keeps them behind those switches.
+if (/deal-check-v1|decision-monitor-v1/.test(fs.readFileSync("saas-prototype/index.html", "utf8").replace(/FlipForge(?:DealCheck|DecisionMonitor)Disabled/g, ""))) throw new Error("the beta page must not load Deal Check or the Decision Monitor");
+for (const shell of ["saas-prototype/customer.html"]) {
   const html = read(shell);
   check(`${shell} loads deal-check-v1.css`, html.includes('href="deal-check-v1.css"'));
   check(`${shell} loads deal-check-v1.js after the saved-decision renderer`, html.includes('src="deal-check-v1.js"') && html.indexOf('src="deal-check-v1.js"') > html.indexOf('src="customer-opportunities.js"'));

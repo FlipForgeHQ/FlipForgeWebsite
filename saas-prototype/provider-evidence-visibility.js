@@ -269,7 +269,7 @@
       <div class="panel-body">
         <div class="provider-evidence-grid">${metrics}</div>
         ${providerMessage}
-        <p class="provider-evidence-boundary"><strong>Evidence boundary:</strong> ${escapeHtml(boundary)} Our data provider never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the sole decision authority.</p>
+        <p class="provider-evidence-boundary"><strong>Evidence boundary:</strong> ${escapeHtml(boundary)} Our data provider never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the decision engine.</p>
       </div>
     </section>`;
     return { signature, markup };

@@ -194,7 +194,11 @@ check("059 public marketing path ineligible", marketing.window.FlipForgeCustomer
 const disabled = runtime({ healthStatus: "disabled" });
 disabled.window.FlipForgeCustomerLifecycle.render(disabled.main, "tracking", "opp-1");
 await settle();
-check("060 disabled gateway stops after health", disabled.calls.length === 1 && disabled.calls[0].url === "/api/v1/health");
+// The service check is requested first and together with the screen's data (one round trip). The client check is not a
+// security boundary (the server authorizes every request); what must hold is that nothing from an unconfigured service
+// is shown and no further request (the card's detail aside) follows.
+check("060 disabled gateway shows the offline state and uses none of the data", disabled.calls[0]?.url === "/api/v1/health"
+  && disabled.calls.length <= 4 && !disabled.main.innerHTML.includes("WATCHING") && !disabled.main.innerHTML.includes("Decision Timeline"));
 check("061 disabled gateway renders safe offline state", /page is offline/i.test(disabled.main.innerHTML) && /nothing was loaded or changed/i.test(disabled.main.innerHTML));
 
 check("062 Portfolio is not rendered by the lifecycle adapter", preview.window.FlipForgeCustomerLifecycle.render(preview.main, "portfolio") === false);

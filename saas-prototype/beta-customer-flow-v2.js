@@ -109,10 +109,13 @@
     }, true);
   }
 
+  // The private beta (/app/beta) screens render their final customer wording themselves (owners, private-beta.js and the
+  // provider-evidence notice), so this app-wide text rewrite runs only in the full customer app (/app/customer).
+  const FULL_CUSTOMER_PATH = /^\/(?:app|owner)\/customer(?:\/|$)/i;
   function apply() {
     if (!eligibleHost()) return;
     syncGuidedState();
-    refineCustomerLanguage();
+    if (FULL_CUSTOMER_PATH.test(String(window.location.pathname || ""))) refineCustomerLanguage();
   }
 
   function scheduleApply() {

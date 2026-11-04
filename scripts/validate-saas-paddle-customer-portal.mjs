@@ -6,7 +6,10 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 const portalSource = read("saas-prototype/customer-billing-portal.js");
-const index = read("saas-prototype/index.html");
+// Since Nov 4 2026 the private beta page (index.html) does not load the billing portal (the beta does not offer it); the full
+// customer app (customer.html) does, and the load-order checks below run there.
+const index = read("saas-prototype/customer.html");
+if (read("saas-prototype/index.html").includes("customer-billing-portal.js")) throw new Error("the beta page must not load the billing portal");
 const entitlements = read("saas-prototype/customer-entitlements.js");
 
 const results = [];

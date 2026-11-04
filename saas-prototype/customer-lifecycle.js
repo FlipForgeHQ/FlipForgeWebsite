@@ -791,24 +791,32 @@
     state.notice = "";
     resetData();
     renderCurrent(generation, route);
+    // The service check and this screen's data are requested together, so the screen needs one round trip instead of
+    // two. The data is used only if the service check says the service is configured; the server authorizes every
+    // request on its own. A card's Tracking page (#/tracking/<id>) also asks for that card's history at the same time;
+    // that record is used only if the tenant's own lifecycle list returns it (chooseId below).
+    const settle = promise => promise.then(value => ({ value }), error => ({ error }));
+    const healthRequest = settle(request("/api/v1/health"));
+    const requested = route === "tracking" && SAFE_ID.test(state.requestedId) ? state.requestedId : "";
+    const requestedDetail = requested ? settle(request(`/api/v1/lifecycle/${encodeURIComponent(requested)}`)) : null;
+    if (requested) {
+      // The card's Sales and Sell Watch panels start loading now, not after this page has rendered.
+      try { window.FlipForgeReportedSales?.prefetch?.(requested); window.FlipForgeSellWatch?.prefetch?.(requested); } catch (_) {}
+    }
+    const listsRequest = route === "tracking"
+      ? settle(Promise.all([request("/api/v1/opportunities"), request("/api/v1/lifecycle")]))
+      : settle(Promise.all([request(`/api/v1/${route}`), request("/api/v1/opportunities")]));
     try {
-      const health = await request("/api/v1/health");
+      const health = await healthRequest;
       if (!activeGeneration(generation, route)) return;
-      state.health = health;
+      if (health.error) throw health.error;
+      state.health = health.value;
       if (state.health?.data?.status !== "configured") return;
+      const lists = await listsRequest;
+      if (!activeGeneration(generation, route)) return;
+      if (lists.error) throw lists.error;
       if (route === "tracking") {
-        // A card's Tracking page (#/tracking/<id>) asks for that card's history together with the lists, so the
-        // Decision Timeline arrives in two round trips instead of three. The record is still used only if the tenant's
-        // own lifecycle list returns it (chooseId below); the server enforces tenant ownership of the request itself.
-        const requested = SAFE_ID.test(state.requestedId) ? state.requestedId : "";
-        const requestedDetail = requested
-          ? request(`/api/v1/lifecycle/${encodeURIComponent(requested)}`).then(value => ({ value }), error => ({ error }))
-          : null;
-        const [opportunities, lifecycle] = await Promise.all([
-          request("/api/v1/opportunities"),
-          request("/api/v1/lifecycle")
-        ]);
-        if (!activeGeneration(generation, route)) return;
+        const [opportunities, lifecycle] = lists.value;
         state.opportunities = opportunities;
         state.lifecycle = lifecycle;
         if (state.opportunities?.data?.kind !== "opportunities" || !Array.isArray(state.opportunities?.data?.items)) {
@@ -835,11 +843,7 @@
         }
         return;
       }
-      const [feature, opportunities] = await Promise.all([
-        request(`/api/v1/${route}`),
-        request("/api/v1/opportunities")
-      ]);
-      if (!activeGeneration(generation, route)) return;
+      const [feature, opportunities] = lists.value;
       state.feature = feature;
       state.opportunities = opportunities;
       if (state.feature?.data?.kind !== route || state.feature?.data?.configured !== true || !Array.isArray(state.feature?.data?.items)) {
@@ -972,6 +976,10 @@
     if (!state.main || !activeGeneration(generation, route)) return;
     state.main.innerHTML = pageMarkup();
     bindActions(generation, route);
+    if (route === "tracking") {
+      // Tracking's sub-panels (Sales, then Sell Watch below it) are mounted by this owner after each render.
+      try { window.FlipForgeReportedSales?.mount?.(); window.FlipForgeSellWatch?.mount?.(); } catch (_) {}
+    }
   }
 
   function render(main, route, id = "") {
