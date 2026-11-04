@@ -335,14 +335,21 @@ try {
       check(`T7 ${name}: unavailable session storage never breaks the page (first card used, no errors)`, blockedValue.includes(expected.replace("qa-trust-b", "qa-trust-a")) && blocked.errors.length === 0, `${blockedValue} ${blocked.errors.join(" | ")}`);
       await blocked.context.close();
     }
-    const s = await open("opportunities/qa-trust-b", BASE, { expandAll: false });
+    // The advanced tools menu (PSA Advisor, Evidence, Audit Export) belongs to the full customer app; the Private Beta
+    // menu is the founder-approved eight routes and has no advanced menu at all.
+    const beta = await open("opportunities/qa-trust-b", BASE, { expandAll: false });
+    check("T7 Private Beta has no advanced tools menu", await beta.page.locator(".ff-advanced-nav").count() === 0);
+    await beta.context.close();
+    const s = await open("opportunities/qa-trust-b", BASE, { expandAll: false, app: APP.replace("/app/beta/", "/app/customer/") });
     const links = await s.page.evaluate(() => Object.fromEntries([...document.querySelectorAll(".ff-advanced-nav a[data-route]")].map(a => [a.dataset.route, a.getAttribute("href")])));
     check("T7 Advanced nav on a card: PSA Advisor, Evidence and Audit Export links include the card's id",
-      links["psa-advisor"] === "#/psa-advisor/qa-trust-b" && links.evidence === "#/evidence/qa-trust-b" && links.export === "#/export/qa-trust-b", JSON.stringify(links));
+      // (In the full customer app Evidence Review is a primary menu entry, not an advanced tool; when the advanced menu
+      // carries an Evidence link it must follow the card too.)
+      links["psa-advisor"] === "#/psa-advisor/qa-trust-b" && (links.evidence === undefined || links.evidence === "#/evidence/qa-trust-b") && links.export === "#/export/qa-trust-b", JSON.stringify(links));
     await s.page.evaluate(() => { location.hash = "#/dashboard"; });
     await s.page.waitForTimeout(1200);
     const generic = await s.page.evaluate(() => Object.fromEntries([...document.querySelectorAll(".ff-advanced-nav a[data-route]")].map(a => [a.dataset.route, a.getAttribute("href")])));
-    check("T7 Advanced nav off a card: links return to their generic routes", generic["psa-advisor"] === "#/psa-advisor" && generic.evidence === "#/evidence" && generic.export === "#/export", JSON.stringify(generic));
+    check("T7 Advanced nav off a card: links return to their generic routes", generic["psa-advisor"] === "#/psa-advisor" && (generic.evidence === undefined || generic.evidence === "#/evidence") && generic.export === "#/export", JSON.stringify(generic));
     await s.context.close();
   }
   // T8: new API shape (FlipForge2#885) - current items carry CURRENT_EVIDENCE_RULES; legacy items carry
