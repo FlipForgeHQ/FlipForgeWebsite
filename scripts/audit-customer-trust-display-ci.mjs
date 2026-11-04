@@ -65,6 +65,14 @@ function opportunity(id, f) {
     governedDecision: { available: true, recommendation: "BUY", risk: f.governedRisk, confidence: f.governedConfidence, reason: "BUY: saved reason.", evaluatedAt: "2026-10-06T23:54:44Z" },
     evidence: { acceptedSales: 1, marketplaces: ["CARDSIGHT_EBAY"], priceStatusLabel: "Reported sale prices, matched to the exact card" }
   };
+  // Exact-card identity basis as FlipForge2#970 publishes it (governedDecision.exactIdentityBasis / exactIdentityConfirmed).
+  // undefined = an older backend that does not send it.
+  if (f.recommendation) Object.assign(item, { recommendation: f.recommendation }) && Object.assign(item.governedDecision, { recommendation: f.recommendation });
+  if (f.mappingState) item.mappingState = f.mappingState;
+  if (f.identityBasis !== undefined) Object.assign(item.governedDecision, {
+    exactIdentityBasis: f.identityBasis,
+    exactIdentityConfirmed: f.identityBasis === "CONFIRMED" ? true : f.identityBasis === "NOT_CONFIRMED" ? false : null
+  });
   if (f.shape === "new") return newShape(item, f);
   if (f.provenance !== undefined) item.evidenceProvenanceStatus = f.provenance;
   if (f.legacy) Object.assign(item, { evidenceProvenanceStatus: LEGACY_STATUS, legacyNotice: LEGACY_NOTICE });
@@ -444,6 +452,46 @@ try {
       await none.context.close();
     }
   }
+  // T11: the saved decision shows the exact-card identity check the decision recorded (FlipForge2#970), never the
+  // provider catalog link (mappingState). A saved BUY whose check is not on record as confirmed carries a disclosure;
+  // the saved decision itself is shown unchanged.
+  {
+    const identityLine = text => (text.match(/Identity status: ([^\n·]+)/) || [])[1]?.trim() || "";
+    const noticeOf = page => page.evaluate(() => { const n = document.querySelector("#main-content [data-ff-identity-basis]"); return n ? { basis: n.dataset.ffIdentityBasis, text: n.innerText } : null; });
+    const historic = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", identityBasis: "NOT_RECORDED", mappingState: "CONFIRMED" });
+    const historicNotice = await noticeOf(historic.page);
+    check("T11 historical BUY (NOT_RECORDED): identity reads \"Not recorded (earlier rules)\", even with a confirmed catalog link", identityLine(historic.text) === "Not recorded (earlier rules)" && !/Exact match|Confirmed when saved/.test(identityLine(historic.text)), identityLine(historic.text));
+    check("T11 historical BUY (NOT_RECORDED): disclosure says verification was not recorded under earlier rules and must be done before acting",
+      historicNotice?.basis === "NOT_RECORDED" && /Identity verification was not recorded for this BUY/.test(historicNotice.text) && /saved under earlier rules/.test(historicNotice.text) && /Verify the exact card/.test(historicNotice.text) && /before acting/.test(historicNotice.text), JSON.stringify(historicNotice));
+    check("T11 historical BUY (NOT_RECORDED): the saved BUY is still shown as saved", /\bBUY\b/.test(historic.text) && /kept exactly as they were/.test(historicNotice?.text || ""));
+    check("T11 historical BUY (NOT_RECORDED): no page errors", historic.errors.length === 0, historic.errors.join(" | "));
+    await historic.context.close();
+
+    const confirmed = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", identityBasis: "CONFIRMED", mappingState: "NOT_CONFIRMED" });
+    check("T11 confirmed BUY: identity reads \"Confirmed when saved\" although the catalog link is not confirmed", identityLine(confirmed.text) === "Confirmed when saved", identityLine(confirmed.text));
+    check("T11 confirmed BUY: no identity disclosure", !(await noticeOf(confirmed.page)));
+    await confirmed.context.close();
+
+    const notConfirmed = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", identityBasis: "NOT_CONFIRMED", mappingState: "CONFIRMED" });
+    const notConfirmedNotice = await noticeOf(notConfirmed.page);
+    check("T11 BUY (NOT_CONFIRMED): identity reads \"Not confirmed when saved\" and a verify-before-acting disclosure is shown", identityLine(notConfirmed.text) === "Not confirmed when saved" && notConfirmedNotice?.basis === "NOT_CONFIRMED" && /Verify the exact card before acting/.test(notConfirmedNotice.text), `${identityLine(notConfirmed.text)} ${JSON.stringify(notConfirmedNotice)}`);
+    await notConfirmed.context.close();
+
+    const verify = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "VERIFY", identityBasis: "NOT_RECORDED", mappingState: "CONFIRMED" });
+    check("T11 VERIFY (NOT_RECORDED): identity reads \"Not recorded (earlier rules)\"; no BUY disclosure", identityLine(verify.text) === "Not recorded (earlier rules)" && !(await noticeOf(verify.page)), identityLine(verify.text));
+    await verify.context.close();
+
+    const older = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", mappingState: "CONFIRMED" });
+    const olderNotice = await noticeOf(older.page);
+    check("T11 BUY from a backend without the identity record: identity reads \"Unavailable\" (never the catalog link) and verify-before-acting is shown", identityLine(older.text) === "Unavailable" && olderNotice?.basis === "UNAVAILABLE", `${identityLine(older.text)} ${JSON.stringify(olderNotice)}`);
+    await older.context.close();
+
+    const phone = await open("opportunities/qa-trust-a", { ...BASE, recommendation: "BUY", identityBasis: "NOT_RECORDED" }, { device: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } });
+    const overflow = await phone.page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    check("T11 historical BUY disclosure at phone width: shown, no horizontal page overflow", Boolean(await noticeOf(phone.page)) && overflow <= 1, `${overflow}px`);
+    await phone.context.close();
+  }
+
   // T10: legacy notices and provider-neutral wording at phone width (FlipForge2#885 shape).
   {
     const legacy = { ...BASE, shape: "new", legacy: true };

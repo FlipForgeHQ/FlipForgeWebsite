@@ -212,6 +212,33 @@
   // A saved decision the server reports as preserved but not reproducible today (price-intelligence.js
   // savedDecisionReconciliation, from this page's own detail response): the hero badge names the saved verdict, with
   // the saved-vs-current summary as its label.
+  // Exact-card identity as the saved decision recorded it (FlipForge2 governedDecision.exactIdentityBasis, read from the
+  // immutable receipt). CONFIRMED / NOT_CONFIRMED / NOT_RECORDED (saved under earlier rules, before the check was
+  // recorded). Anything else is "unavailable": the provider catalog link is never used in its place.
+  const IDENTITY_BASES = Object.freeze(["CONFIRMED", "NOT_CONFIRMED", "NOT_RECORDED"]);
+  function savedIdentityBasis(item) {
+    const governed = item?.governedDecision;
+    const basis = String(governed?.exactIdentityBasis || "").toUpperCase();
+    if (IDENTITY_BASES.includes(basis)) return basis;
+    if (governed?.exactIdentityConfirmed === true) return "CONFIRMED";
+    if (governed?.exactIdentityConfirmed === false) return "NOT_CONFIRMED";
+    return null;
+  }
+  function identityBasisLabel(basis) {
+    return ({ CONFIRMED: "Confirmed when saved", NOT_CONFIRMED: "Not confirmed when saved", NOT_RECORDED: "Not recorded (earlier rules)" })[basis] || "Unavailable";
+  }
+  // A saved BUY whose exact-card check is not on record as confirmed says so before anything else on the page. The
+  // decision and its receipt are shown exactly as saved; nothing is re-evaluated.
+  function identityBasisNotice(item, basis) {
+    if (String(item?.recommendation || "").toUpperCase() !== "BUY" || basis === "CONFIRMED") return "";
+    const [title, text] = basis === "NOT_RECORDED"
+      ? ["Identity verification was not recorded for this BUY.", "This decision was saved under earlier rules, before FlipForge recorded its exact-card identity check. The saved decision and its receipt are kept exactly as they were. Verify the exact card (year, set, card number, parallel and grade) before acting, or re-evaluate the listing to apply today's identity check."]
+      : basis === "NOT_CONFIRMED"
+        ? ["The exact card was not confirmed for this BUY.", "This saved decision did not record a confirmed exact-card match. The saved decision and its receipt are kept exactly as they were. Verify the exact card before acting, or re-evaluate the listing."]
+        : ["The exact-card identity check for this BUY can't be shown right now.", "The saved decision and its receipt are unchanged. Verify the exact card before acting."];
+    return `<section class="panel staging-warning ff-identity-basis-notice" data-ff-identity-basis="${escapeHtml(basis || "UNAVAILABLE")}" role="note"><div class="panel-body"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div></section>`;
+  }
+
   function heroDecisionBadge(item, reconciliation) {
     const label = item.recommendation || "UNKNOWN";
     const tone = String(item.recommendation || "unknown").toLowerCase();
@@ -438,6 +465,9 @@
     const population = value => { const count = knownCount(value); return count === null ? "Unavailable" : String(count); };
     const ask = safeNumber(item.ask), supported = safeNumber(item.supportedValue), supportedAvailable = supportedValueAvailable(item, acceptedSales), gap = supportedAvailable ? supported - ask : 0, gapPercent = supportedAvailable && ask > 0 ? (gap / ask) * 100 : 0;
     const catalogLinked = mappingConfirmed(item), evidenceReady = acceptedSales > 0, psaAvailable = psa.guidanceStatus === "SAVED_GUIDANCE_AVAILABLE";
+    // The exact-card identity check this decision recorded (governedDecision.exactIdentityBasis); never the provider
+    // catalog link (mappingState), which is a separate thing.
+    const identityBasis = savedIdentityBasis(item);
     const catalogLinkDetail = catalogLinked
       ? "The catalog link from our data provider is in place. The exact marketplace listing identity check remains a separate server-side check."
       : "The catalog link from our data provider is still pending. This is separate from the exact marketplace listing identity check.";
@@ -474,7 +504,9 @@
     const maxBuyText = maxBuyCents !== null && maxBuyCents > 0 ? (trust()?.centsText ? trust().centsText(maxBuyCents) : moneyFromCents(maxBuyCents)) : "";
     const copy = decisionNextCopy(decision, isLegacy, { atDecision, evidenceReady, serverText: [item.statusMessage, item.authorityBoundary, item.changeSummary].join(" ") });
     const id = encodeURIComponent(item.id);
-    const hero = `<section class="panel customer-intelligence-hero" data-ff-card-id="${escapeHtml(String(item.id || ""))}"><div class="panel-body"><div class="customer-hero-copy"><span class="eyebrow">${escapeHtml(item.platform || "Saved marketplace record")}</span><div class="customer-hero-title">${heroDecisionBadge(item, reconciliation)}<h2>${escapeHtml(title)}</h2></div><p class="ff-decision-meaning">${escapeHtml(meaning)}</p><div class="ff-risk-summary"><span>Decision risk</span><strong>${escapeHtml(risk.label)}</strong>${risk.score ? `<small>${escapeHtml(risk.score)} saved decision risk</small>` : ""}</div>${display.identity ? `<p>${escapeHtml(display.identity)}</p>` : ""}${legacy}<div class="customer-tracked-state"><span class="check-mark ok">✓</span><span><strong>Decision saved</strong><small>${escapeHtml(savedText)}</small></span></div></div><div class="customer-value-summary"><span>Ask when evaluated</span><strong>${askText}</strong><span>Supported value</span>${supportedMarkup}${maxBuyMarkup}${trust() ? trust().legacySavedValuesMarkup(item) : ""}<div class="customer-supported-value-note" data-supported-value-note="true"><strong>How to read supported value</strong><span>This is the value supported by accepted evidence in the saved evaluation. It is not a guaranteed sale price or an instruction to buy.</span></div></div></div></section>`;
+    const heroSection = `<section class="panel customer-intelligence-hero" data-ff-card-id="${escapeHtml(String(item.id || ""))}"><div class="panel-body"><div class="customer-hero-copy"><span class="eyebrow">${escapeHtml(item.platform || "Saved marketplace record")}</span><div class="customer-hero-title">${heroDecisionBadge(item, reconciliation)}<h2>${escapeHtml(title)}</h2></div><p class="ff-decision-meaning">${escapeHtml(meaning)}</p><div class="ff-risk-summary"><span>Decision risk</span><strong>${escapeHtml(risk.label)}</strong>${risk.score ? `<small>${escapeHtml(risk.score)} saved decision risk</small>` : ""}</div>${display.identity ? `<p>${escapeHtml(display.identity)}</p>` : ""}${legacy}<div class="customer-tracked-state"><span class="check-mark ok">✓</span><span><strong>Decision saved</strong><small>${escapeHtml(savedText)}</small></span></div></div><div class="customer-value-summary"><span>Ask when evaluated</span><strong>${askText}</strong><span>Supported value</span>${supportedMarkup}${maxBuyMarkup}${trust() ? trust().legacySavedValuesMarkup(item) : ""}<div class="customer-supported-value-note" data-supported-value-note="true"><strong>How to read supported value</strong><span>This is the value supported by accepted evidence in the saved evaluation. It is not a guaranteed sale price or an instruction to buy.</span></div></div></div></section>`;
+    // A BUY whose exact-card check is not on record as confirmed carries its disclosure directly under the result.
+    const hero = heroSection + identityBasisNotice(item, identityBasis);
     // The four checks behind the verdict (customer-cdi-signal-stack-v1.js markup). This page has no identity-check
     // result of its own for the Exact card tile, so the tile does not claim a failed check: it reads "See the decision
     // trail" and is marked "Not available yet" (the saved decision already reflects the server's identity gate).
@@ -501,7 +533,7 @@
       supportedValue: supportedText,
       confidence: trust() ? trust().scoreText(trust().confidenceValue(item)) : confidenceText,
       risk: trust() ? trust().scoreText(trust().riskValue(item)) : riskText,
-      exactIdentity: catalogLinked ? "Exact match" : "Needs review",
+      exactIdentity: identityBasisLabel(identityBasis),
       legacy: isLegacy,
       economics: { "Max buy": maxBuyText, "Estimated costs": "", "Breakeven": "", "Potential profit": "" },
       observed: savedText,

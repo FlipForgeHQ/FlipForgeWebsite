@@ -151,6 +151,17 @@ try {
     const maxBuyCell = await page.locator("#main-content [data-max-buy-at-decision]").first().innerText().catch(() => "");
     maxBuyText = (maxBuyCell.match(/\$([0-9,]+\.\d{2})/) || [])[1] || "";
     check("S4 the saved decision shows its Max Buy", Boolean(maxBuyText), (await text(page)).slice(0, 300));
+    // Identity is the exact-card check the decision recorded (FlipForge2#970 governedDecision.exactIdentityBasis), not the
+    // provider catalog link: a new BUY recorded it as confirmed, so it reads "Confirmed when saved" with no disclosure.
+    const identityLine = value => (value.match(/Identity status: ([^\n·]+)/) || [])[1]?.trim() || "";
+    const strongText = await text(page);
+    check("S5 the saved BUY shows the identity check it recorded (Confirmed when saved), not the catalog link", identityLine(strongText) === "Confirmed when saved"
+      && await page.locator("#main-content [data-ff-identity-basis]").count() === 0, identityLine(strongText) || strongText.slice(0, 200));
+    await go(page, `opportunities/${encodeURIComponent(saved.thin.id)}`, 3500);
+    const thinText = await text(page);
+    check("S6 the VERIFY decision shows its recorded identity check and no BUY identity disclosure", ["Confirmed when saved", "Not confirmed when saved", "Not recorded (earlier rules)"].includes(identityLine(thinText))
+      && await page.locator("#main-content [data-ff-identity-basis]").count() === 0, identityLine(thinText) || thinText.slice(0, 200));
+    await go(page, `opportunities/${encodeURIComponent(saved.strong.id)}`, 3500);
     await page.locator("#main-content [data-card-reevaluate]").click();
     await page.waitForSelector("#main-content .ff-reevaluation-banner[data-reevaluation-state=\"ready\"]", { timeout: 15000 });
     const form = page.locator("#main-content [data-staging-evaluation-form]");
