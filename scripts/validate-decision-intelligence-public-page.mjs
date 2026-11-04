@@ -57,7 +57,11 @@ check('Product page stays compact', sectionCount(product) <= 6);
 check('Product uses current Card Decision Intelligence branding', product.includes('CARD DECISION INTELLIGENCE') && product.includes('Card Decision Intelligence'));
 check('Decision Intelligence page is included in sitemap', sitemap.includes('https://goflipforge.com/decision-intelligence.html'));
 check('Connect hub exposes Decision Intelligence', connect.includes('What is Decision Intelligence?') && connect.includes('/decision-intelligence.html'));
-check('public navigation receives Decision Intelligence link', conversion.includes("link.textContent='Decision Intelligence'") && conversion.includes("link.href='/decision-intelligence.html'"));
+// Since Nov 4 2026 the link is in each page's source (menu: scripts/site-header.mjs; footer: page markup), not added at runtime.
+const footerExploreGroups = fs.readdirSync(new URL('..', import.meta.url)).filter(name => name.endsWith('.html'))
+  .flatMap(name => fs.readFileSync(new URL(`../${name}`, import.meta.url), 'utf8').match(/<div class="footer-links"><strong>Explore<\/strong>[\s\S]*?<\/div>/g) || []);
+check('public navigation receives Decision Intelligence link', read('scripts/site-header.mjs').includes("href: '/decision-intelligence.html'")
+  && footerExploreGroups.length > 0 && footerExploreGroups.filter(group => /product\.html/.test(group)).every(group => /decision-intelligence\.html"[^>]*>Decision Intelligence<\/a>/.test(group)));
 check('Decision Intelligence click tracking is wired', conversion.includes('decision_intelligence_clicked'));
 check('private beta intentionally does not expose the public Decision Intelligence exhibit', !customerShell.includes('ffPublicDecisionIntelligence') && !customerShell.includes('Decision Intelligence exhibit'));
 check('private beta keeps Decision Intelligence inside the result workflow', customerShell.includes('"decision-intelligence"') && customerShell.includes('const NAV_MANIFEST = Object.freeze({'));
