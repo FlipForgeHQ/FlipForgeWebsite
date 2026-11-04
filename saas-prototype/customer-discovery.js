@@ -1644,7 +1644,13 @@
     // outcome of the search, the results, and the workflow and boundary notes below them.
     const identityRequired = state.identityAssist.active ? " ff-discover-identity-required" : "";
     const notice = state.notice ? `<div class="customer-discovery-notice" role="status">${escapeHtml(state.notice)}</div>` : "";
-    state.main.innerHTML = `<div class="page customer-discovery-page ff-discover-above-fold${identityRequired}">${heading}${identityAssistPanel()}${identityRecovery()}${searchPanel()}${errorPanel()}${searchErrorRecovery()}${notice}${state.data ? `${resultsPanel()}${emptyResultsRecovery()}${provider}` : `${provider}${resultsPanel()}`}${workflowStripMarkup()}<div class="boundary-note"><strong>Decision framework:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${persistenceNote()}</div>`;
+    // Where the search stands, on the page root (both surfaces): "results" once a search response is shown (with its
+    // candidate count), otherwise searching / identity / error / ready. The beta has no provider status panel, so this
+    // is the one marker of a settled search on both pages.
+    const settled = state.data && !state.error && !state.loading && !state.identityAssist.active;
+    const searchState = state.loading ? "searching" : state.identityAssist.active ? "identity" : state.error ? "error" : settled ? "results" : "ready";
+    const resultCount = settled ? ` data-ff-discover-count="${Array.isArray(state.data.items) ? state.data.items.length : 0}"` : "";
+    state.main.innerHTML = `<div class="page customer-discovery-page ff-discover-above-fold${identityRequired}" data-ff-discover-state="${searchState}"${resultCount}>${heading}${identityAssistPanel()}${identityRecovery()}${searchPanel()}${errorPanel()}${searchErrorRecovery()}${notice}${state.data ? `${resultsPanel()}${emptyResultsRecovery()}${provider}` : `${provider}${resultsPanel()}`}${workflowStripMarkup()}<div class="boundary-note"><strong>Decision framework:</strong> Discover ranks active candidates only. It does not create BUY/WATCH/VERIFY/PASS, accept evidence, persist a search, or authorize a transaction.</div>${persistenceNote()}</div>`;
     bindActions();
   }
 
