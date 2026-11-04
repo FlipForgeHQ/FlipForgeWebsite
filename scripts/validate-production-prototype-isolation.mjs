@@ -65,7 +65,8 @@ check("001 prototype visual loader is wired", index.includes('src="prototype-vis
 check("002 visual intelligence is not a direct script dependency", !index.includes('<script src="visual-intelligence.js"></script>'));
 check("003 cockpit expansion is not a direct script dependency", !index.includes('<script src="cockpit-expansion.js"></script>'));
 check("004 loader follows base route renderers", index.indexOf('src="prototype-visual-loader.js"') > index.indexOf('src="feature-pages.js"'));
-check("005 downstream cockpit observers remain after loader", index.indexOf('src="cockpit-layout-fix.js"') > index.indexOf('src="prototype-visual-loader.js"'));
+// The beta page no longer loads the cockpit layers (Nov 4 2026); the full customer app loads them after the loader.
+check("005 downstream cockpit observers remain after loader (full app); none on the beta page", read("saas-prototype/customer.html").indexOf('src="cockpit-layout-fix.js"') > read("saas-prototype/customer.html").indexOf('src="prototype-visual-loader.js"') && !index.includes('src="cockpit-layout-fix.js"'));
 check("006 loader JavaScript parses", syntaxValid);
 check("007 production hostname is explicitly allow-blocked", loader.includes('/^(?:www\\.)?goflipforge\\.com$/i'));
 check("008 production runtime is labeled server-owned", loader.includes('PRODUCTION_SERVER_OWNED'));
@@ -154,10 +155,10 @@ const realRequiredCustomerRuntimePresent = index.includes('<script src="producti
   && index.includes('<script src="staging-route-hook.js"></script>')
   && index.includes('<script src="customer-opportunities.js"></script>')
   && index.includes('<script src="customer-opportunities-bridge.js"></script>');
+// Preview builds keep the staging adapter; the beta navigation no longer lists staging links on any host (Nov 3 2026).
 const realPreviewDiagnosticsPresent = index.includes('<script src="staging-browser.js"></script>')
   && index.includes('href="staging-browser.css"')
-  && index.includes('data-route="staging"')
-  && index.includes('data-route="staging-evaluate"');
+  && !index.includes('data-route="staging"');
 
 check("041 real built app matches current deployment context", productionBuild
   ? realStagingTokensAbsent && realRequiredCustomerRuntimePresent

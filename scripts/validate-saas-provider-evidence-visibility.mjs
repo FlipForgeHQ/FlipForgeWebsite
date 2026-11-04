@@ -44,7 +44,9 @@ requireText(js, 'summary.automaticOutlierAcceptance !== false', "automatic outli
 requireText(js, 'summary.transactionAuthority !== false', "transaction-authority boundary is not enforced");
 requireText(js, 'including fixed-price completed sales', "completed fixed-price evidence disclosure is missing");
 requireText(js, 'Active listings and asking prices cannot support value', "active-ask exclusion disclosure is missing");
-requireText(js, 'Smart Opportunity remains the sole decision authority', "Smart Opportunity authority disclosure is missing");
+// The disclosure reads exactly as customers saw it before (an app-wide text rewrite used to change "the sole decision
+// authority" to "the decision engine" at runtime; the notice now says it itself and nothing rewrites it).
+requireText(js, 'Our data provider never supplies the BUY/WATCH/VERIFY/PASS recommendation; Smart Opportunity remains the decision engine.', "Smart Opportunity authority disclosure is missing");
 // Saved decisions after the provider containment (2026-10-31): never a bare 0 for records that are not kept, never a
 // promise that a fresh evaluation will check the provider while it is off, and legacy decisions say why sales are missing.
 requireText(js, 'providerSummary.storedSaleRecordsKept !== false', "the panel ignores whether provider sale records are kept");

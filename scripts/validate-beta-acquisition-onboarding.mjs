@@ -19,6 +19,10 @@ const server = read("netlify/modern-functions/conversion-event.mjs");
 const betaSession = read("saas-prototype/beta-session-v1.js");
 const betaSessionCss = read("saas-prototype/beta-session-v1.css");
 const appIndex = read("saas-prototype/index.html");
+// Discover is rendered by its owner with each surface's final wording and controls (Nov 3 2026 consolidation): the beta
+// guarantees below are asserted on customer-discovery.js; beta-session-v1.js must no longer relabel or hide Discover.
+const discovery = read("saas-prototype/customer-discovery.js");
+const discoverySearchPanel = (() => { const from = discovery.indexOf("  function searchPanel() {"); const to = discovery.indexOf("\n  }\n", from); return from >= 0 && to > from ? discovery.slice(from, to) : ""; })();
 const css = read("assets/css/beta-onboarding-v1.css");
 const docs = read("docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md");
 const build = read("scripts/build-assets.js");
@@ -61,12 +65,12 @@ const checks = [
   ["beta session milestone names are allowlisted server-side", sessionEvents.every(value => server.includes(`\"${value}\"`))],
   ["beta session runtime emits every approved milestone", sessionEvents.every(value => betaSession.includes(`emit(\"${value}\")`))],
   ["beta session telemetry payload contains only event page and placement", betaSession.includes("const body = JSON.stringify({ event, page: PAGE, placement: PLACEMENT });")],
-  ["beta session presentation files are loaded last", appIndex.includes('href="beta-session-v1.css"') && /customer-only-shell-v1\.js[\s\S]*beta-session-v1\.js[\s\S]*<\/body>/.test(appIndex)],
-  ["beta session hides technical provider status and result-count control", betaSession.includes("Connected source status") && betaSession.includes("ffBetaHiddenControl") && betaSessionCss.includes("ff-beta-hidden-control")],
-  ["beta primary action is explicit about searching listings", betaSession.includes('submit.textContent = "Search listings"') && betaSession.includes('Search active listings for the card entered') && !betaSession.includes('submit.textContent = "Find this card"')],
-  ["identity assistant is labeled as optional identity verification", betaSession.includes('exact.textContent = "Check card identity"') && betaSession.includes('exact.setAttribute("aria-label", "Check card identity before searching listings")') && betaSession.includes("Not sure which version of the card you have?")],
-  ["identity action is visually secondary and does not replace form submission", betaSessionCss.includes('.customer-discovery-search-actions [data-discovery-find-exact]') && betaSessionCss.includes('background: transparent !important') && betaSession.includes('form.querySelector(\'button[type="submit"]\')')],
-  ["beta form shows one persistent identity hint without duplicating it on rerender", betaSession.includes('!form.querySelector("[data-ff-beta-identity-hint]")') && betaSession.includes('actions.insertAdjacentElement("afterend", hint)')],
+  ["beta session presentation files are loaded last", appIndex.includes('href="beta-session-v1.css"') && /customer-cdi-signal-stack-v1\.js[\s\S]*beta-session-v1\.js[\s\S]*<\/body>/.test(appIndex)],
+  ["beta session hides technical provider status and result-count control", discovery.includes('const provider = beta ? "" : providerPanel();') && discovery.includes("<h2>Connected source status</h2>") && discoverySearchPanel.includes('? `<input type="hidden" name="limit" value=') && discoverySearchPanel.includes('<select name="limit">') && !betaSession.includes("Connected source status") && !betaSession.includes("ffBetaHiddenControl")],
+  ["beta primary action is explicit about searching listings", discovery.includes('submit: "Search listings"') && discovery.includes('submitAria: "Search active listings for the card entered"') && discoverySearchPanel.includes('type="submit" aria-label="${escapeHtml(labels.submitAria)}"') && !discovery.includes('"Find this card"') && !betaSession.includes("submit.textContent")],
+  ["identity assistant is labeled as optional identity verification", discovery.includes('exact: "Check card identity"') && discovery.includes('exactAria: "Check card identity before searching listings"') && discoverySearchPanel.includes("Not sure which version of the card you have?") && !betaSession.includes("exact.textContent")],
+  ["identity action is visually secondary and does not replace form submission", betaSessionCss.includes('.customer-discovery-search-actions [data-discovery-find-exact]') && betaSessionCss.includes('background: transparent !important') && discoverySearchPanel.includes('<button class="button button-secondary" type="button" data-discovery-find-exact') && discoverySearchPanel.includes('<button class="button button-primary" type="submit"')],
+  ["beta form shows one persistent identity hint without duplicating it on rerender", (discovery.match(/data-ff-beta-identity-hint/g) || []).length === 1 && discoverySearchPanel.includes("${identityHint}</form>") && !betaSession.includes("data-ff-beta-identity-hint") && !/insertAdjacentElement|appendChild|insertBefore/.test(discoverySearchPanel)],
 
   ["privacy policy discloses limited events", privacy.includes("Website measurement") && privacy.includes("does not set analytics cookies") && privacy.includes("create a visitor identifier")],
   ["operating contract defines funnel", docs.includes("Application completion proxy") && docs.includes("These are directional interaction counts, not unique visitors")],

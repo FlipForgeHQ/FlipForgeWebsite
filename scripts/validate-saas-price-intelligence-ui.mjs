@@ -3,6 +3,8 @@ import fs from "node:fs";
 const html = fs.readFileSync("saas-prototype/index.html", "utf8");
 const js = fs.readFileSync("saas-prototype/price-intelligence.js", "utf8");
 const css = fs.readFileSync("saas-prototype/price-intelligence.css", "utf8");
+const owner = fs.readFileSync("saas-prototype/customer-opportunities.js", "utf8");
+const betaGate = js.indexOf('if (!document.documentElement.classList.contains("ff-full-customer-app")) return;');
 
 const checks = [
   ["price intelligence stylesheet is loaded", html.includes('href="price-intelligence.css"')],
@@ -32,6 +34,9 @@ const checks = [
   ["current decision-support boundary is updated", js.includes("Current reproducible decision: ${snapshot.currentRecommendation}") && js.includes("current decision-support state")],
   ["a saved decision under earlier rules is explained, not attributed to evidence", js.includes("snapshot.savedUnderEarlierRules") && js.includes("decidedUnderEarlierRules === true") && js.includes("data-earlier-rules-note") && js.includes("was decided under earlier rules and is kept as it was made")],
   ["the analysis states it uses today's rules", js.includes('raw.rulesBasis === "CURRENT_RULES"') && js.includes("This price analysis uses today's rules.")],
+  ["the saved decision owner renders the saved-vs-current hero badge and decision boundary", owner.includes("window.FlipForgePriceIntelligence?.savedDecisionReconciliation?.(state.detail?.data)") && owner.includes("${heroDecisionBadge(item, reconciliation)}") && owner.includes("reconciliation.heroBadge") && owner.includes("reconciliation ? reconciliation.boundaryHeading") && owner.includes("reconciliation ? reconciliation.boundaryText")],
+  ["price intelligence never writes into the saved decision owner's markup", !js.includes("reconcileHistoricalDisplay") && !/customer-hero-title|customer-decision-boundary|\.textContent\s*=|setAttribute\(/.test(js)],
+  ["the Private Beta gets no fetch wrapper or page observer (no panel there)", betaGate > 0 && js.indexOf("window.fetch = ") > betaGate && js.indexOf("new MutationObserver") > betaGate && js.indexOf("window.FlipForgePriceIntelligence = ") < betaGate],
   ["panel has an accessibility label", js.includes('aria-label="Counterfactual price intelligence"')],
   ["responsive price grid exists", css.includes("@media (max-width: 760px)") && css.includes("grid-template-columns: 1fr")]
 ];

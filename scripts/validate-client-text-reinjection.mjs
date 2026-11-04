@@ -44,15 +44,20 @@ function escapeHelperWorks(source, label) {
 }
 
 const targets = [
+  // The Evaluate result summary is rendered by its owner from the server response (Nov 3 2026); every server value
+  // in it is still escaped.
   {
-    file: "saas-prototype/customer-first-value-v1.js",
-    blocks: [["const missingMarkup =", "summary.innerHTML", "evaluate summary missing-requirement markup"],
-      ["summary.innerHTML =", "const body = panel.querySelector", "evaluate summary markup"]],
-    allowed: new Set(["missingMarkup"])
+    file: "saas-prototype/staging-evaluation.js",
+    blocks: [["const caution =", "const summary = known", "evaluate summary missing-requirement markup"],
+      ["const summary = known", "const detail =", "evaluate summary markup"]],
+    allowed: new Set(["caution"])
   },
+  // The Discover source-listing link and strip are rendered by the Discover owner (Nov 3 2026; the
+  // commercial-app-polish-v2.js layer that built them from page text was removed).
   {
-    file: "saas-prototype/commercial-app-polish-v2.js",
-    blocks: [["strip.innerHTML =", "actions.before(strip)", "discovery source strip markup"]],
+    file: "saas-prototype/customer-discovery.js",
+    blocks: [["function sourceStripMarkup(source) {", "function resultsPanel() {", "discovery source strip markup"],
+      ["const listingLink = source", "return `<article class=\"panel customer-discovery-candidate", "discovery source listing link markup"]],
     allowed: new Set()
   }
 ];

@@ -53,11 +53,14 @@ check("005 primary navigation has an accessible target", files.index.includes('i
 check("006 mobile menu controls primary navigation", files.index.includes('aria-controls="primary-navigation"'));
 check("007 skip link targets main content", files.index.includes('href="#main-content"'));
 check("008 main content is focusable", files.index.includes('id="main-content" tabindex="-1"'));
-check("009 search has a programmatic label", files.index.includes('for="global-search"'));
+// The Private Beta page has no global search (Nov 3 2026); wherever the search form exists it must be labelled.
+check("009 search has a programmatic label", !files.index.includes('id="global-search"') || files.index.includes('for="global-search"'));
 check("010 toast region is polite", files.index.includes('class="toast-region" aria-live="polite"'));
 
+// Each route is listed by an app page's navigation: the beta lists the founder's menu; customer.html lists the rest.
+const customerPage = read("saas-prototype/customer.html");
 for (const route of routes) {
-  check(`route navigation exists: ${route}`, files.index.includes(`data-route="${route}"`));
+  check(`route navigation exists: ${route}`, files.index.includes(`data-route="${route}"`) || customerPage.includes(`data-route="${route}"`));
 }
 
 check("022 dashboard renderer exists", files.app.includes("function renderDashboard()"));
@@ -110,8 +113,12 @@ check("062 foundation blocks transaction authority", files.foundation.includes("
 check("063 foundation forbids unapproved deployment", files.foundation.includes("must not replace the public homepage or deploy without a separate explicit approval"));
 
 check("064 approved brand stylesheet loads after base styles", files.index.indexOf('href="brand.css"') > files.index.indexOf('href="styles.css"'));
-check("065 approved four-corner mark is present", ["brand-corner-tl", "brand-corner-tr", "brand-corner-bl", "brand-corner-br"].every(value => files.index.includes(value)));
-check("066 approved gold center is present", files.index.includes('class="brand-center"'));
+// The Private Beta shell carries the approved mark image in its markup (it used to be swapped in at runtime by
+// commercial-app-polish-v2.js); the full customer app keeps the four-corner CSS mark.
+const customerShell = read("saas-prototype/customer.html");
+check("065 approved brand mark is present", files.index.includes('class="brand-mark ff-approved-brand-mark"') && files.index.includes('src="/assets/brand/flipforge-mark.svg"')
+  && ["brand-corner-tl", "brand-corner-tr", "brand-corner-bl", "brand-corner-br"].every(value => customerShell.includes(value)));
+check("066 approved gold center is present", customerShell.includes('class="brand-center"'));
 check("067 Card Decision Intelligence is the visible identity line", files.index.includes('<span class="brand-subtitle">CARD DECISION INTELLIGENCE</span>'));
 check("068 deprecated Signal Confidence Advantage tagline is absent", !/SIGNAL\s*[.·-]\s*CONFIDENCE\s*[.·-]\s*ADVANTAGE/i.test(browserCode));
 check("069 Geist typography stack is declared", /font-family:\s*Geist,\s*"Geist Sans"/i.test(files.brand));

@@ -80,4 +80,5 @@ jobs:
           grep -Fq 'valueIntelligence.priceAdjustmentApplied === false' saas-prototype/staging-evaluation.js
           grep -Fq 'Not a supported value' saas-prototype/staging-evaluation.js
           grep -Fq 'route !== "staging-evaluate"' saas-prototype/staging-route-hook.js
-          grep -Eq 'data-route="staging-evaluate"[^>]*hidden' saas-prototype/index.html
+          # The Private Beta menu does not offer Staging Evaluate (it used to be a hidden link; now it is absent).
+          ! grep -q 'data-route="staging-evaluate"' saas-prototype/index.html

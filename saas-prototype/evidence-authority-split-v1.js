@@ -226,9 +226,12 @@
       const priceStatus = window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.priceStatusLabel(data) : "";
       const priceCopy = priceStatus ? `${priceStatus.replace(/\.$/, "")}.` : "Sale prices are reported by our data provider and have not been independently confirmed.";
       // With nothing counted, sale-price provenance and payment caveats describe sales that are not there.
-      trustedCopy.textContent = trustedCount > 0
+      const trustedText = trustedCount > 0
         ? `${trustedCount} exact completed sale${trustedCount === 1 ? " is" : "s are"} counted under today's evidence rules. ${priceCopy} FlipForge matches each sale to the exact card but does not confirm payment or settlement.`
         : "No exact completed sales are counted under today's evidence rules.";
+      // Written only when it differs: an unconditional write is a DOM change that this script's own page watcher
+      // answers with another render, which redrew the page on every frame.
+      if (trustedCopy.textContent !== trustedText) trustedCopy.textContent = trustedText;
     }
     const providerMarkup = window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.providerSummaryMarkup(data) : "";
     // The provider summary sits with the counted rows when some of its rows count now, otherwise with the rows not counted.

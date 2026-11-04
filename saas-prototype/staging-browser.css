@@ -44,7 +44,7 @@
   padding: 4px 10px;
   border: 1px solid var(--panel-border);
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: .875rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -92,7 +92,7 @@
 .staging-metrics span,
 .staging-key-grid span {
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: .875rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }

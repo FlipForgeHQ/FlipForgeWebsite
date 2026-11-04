@@ -51,7 +51,7 @@
 .private-beta-status-card span,
 .private-beta-step-copy > span {
   color: var(--text-secondary);
-  font-size: 0.72rem;
+  font-size: .875rem;
   font-weight: 850;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -196,7 +196,7 @@
   display: grid;
   gap: 6px;
   color: var(--text-primary);
-  font-size: 0.78rem;
+  font-size: .875rem;
   font-weight: 800;
 }
 
@@ -244,7 +244,7 @@
 .private-beta-feedback-note {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 0.76rem;
+  font-size: .875rem;
   line-height: 1.5;
 }
 
@@ -252,7 +252,7 @@
   min-height: 1.3em;
   margin: 0;
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: .875rem;
 }
 
 .private-beta-message[data-tone="ok"] {
@@ -383,7 +383,7 @@
   border-radius:50%;
   color:var(--gold);
   background:rgba(226,189,66,.07);
-  font-size:.75rem;
+  font-size:.875rem;
   font-weight:900;
   letter-spacing:.08em;
 }
@@ -412,7 +412,7 @@
 }
 .private-beta-v2-guide-state>span{
   color:var(--text-secondary);
-  font-size:.72rem;
+  font-size:.875rem;
   font-weight:850;
   letter-spacing:.06em;
   text-transform:uppercase;
@@ -441,7 +441,7 @@
 .private-beta-v2-stage>div>span{
   display:block;
   color:var(--gold);
-  font-size:.67rem;
+  font-size:.875rem;
   font-weight:900;
   letter-spacing:.12em;
 }
@@ -453,7 +453,7 @@
 .private-beta-v2-stage p{
   margin:7px 0 0;
   color:var(--text-secondary);
-  font-size:.8rem;
+  font-size:.875rem;
   line-height:1.5;
 }
 .private-beta-v2-stage .button{
@@ -485,7 +485,7 @@
 .private-beta-v2-details summary strong{font-size:.95rem}
 .private-beta-v2-details summary small{
   color:var(--text-secondary);
-  font-size:.76rem;
+  font-size:.875rem;
   line-height:1.4;
 }
 .private-beta-v2-details summary b{
@@ -513,7 +513,7 @@
 .private-beta-v2-boundary p{
   margin:0;
   color:var(--text-secondary);
-  font-size:.8rem;
+  font-size:.875rem;
   line-height:1.55;
 }
 .private-beta-v2-feedback{margin-top:2px}
@@ -591,7 +591,7 @@
   border-radius:999px;
   background:rgba(226,189,66,.06);
   color:var(--gold);
-  font-size:.66rem;
+  font-size:.875rem;
   font-weight:900;
   letter-spacing:.1em;
 }
@@ -618,14 +618,14 @@
 .private-beta-record-node>span,
 .private-beta-record-core>span{
   color:var(--gold);
-  font-size:.64rem;
+  font-size:.875rem;
   font-weight:900;
   letter-spacing:.11em;
 }
 .private-beta-record-node>strong{font-size:.96rem}
 .private-beta-record-node>small{
   color:var(--text-secondary);
-  font-size:.74rem;
+  font-size:.875rem;
   line-height:1.45;
 }
 .private-beta-record-core{
@@ -668,7 +668,7 @@
   max-width:260px;
   margin:0;
   color:var(--text-secondary);
-  font-size:.72rem;
+  font-size:.875rem;
   line-height:1.45;
 }
 .private-beta-record-fields{
@@ -683,7 +683,7 @@
   border:1px solid var(--panel-border);
   border-radius:999px;
   color:var(--text-secondary);
-  font-size:.61rem;
+  font-size:.875rem;
   font-weight:800;
 }
 .private-beta-record-footer{
@@ -695,7 +695,7 @@
   padding-top:13px;
   border-top:1px solid var(--panel-border);
   color:var(--text-secondary);
-  font-size:.7rem;
+  font-size:.875rem;
   font-weight:800;
   letter-spacing:.03em;
 }
@@ -729,14 +729,14 @@
 .private-beta-card-reference legend {
   padding: 0 6px;
   color: var(--text-primary);
-  font-size: 0.86rem;
+  font-size: .875rem;
   font-weight: 800;
 }
 
 .private-beta-card-intro {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 0.82rem;
+  font-size: .875rem;
   line-height: 1.5;
 }
 
@@ -758,7 +758,7 @@
   justify-self: start;
   border-radius: 999px;
   padding: 2px 8px;
-  font-size: 0.7rem;
+  font-size: .875rem;
   font-weight: 700;
   line-height: 1.4;
 }
@@ -785,7 +785,7 @@
   padding: 0;
   color: var(--text-secondary);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: .875rem;
   font-weight: 650;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -820,13 +820,13 @@
 .private-beta-v3-actions .button{min-height:48px;padding:13px 21px}
 .private-beta-v3-manual{font-size:.89rem;font-weight:650;color:var(--text-primary);text-decoration:underline;text-underline-offset:5px}
 .private-beta-v3-manual:hover,.private-beta-v3-manual:focus-visible{color:var(--gold)}
-.private-beta-v3-slogan{font-size:.87rem;font-weight:750;color:var(--gold);letter-spacing:.015em;margin:0}
+.private-beta-v3-slogan{font-size:.875rem;font-weight:750;color:var(--gold);letter-spacing:.015em;margin:0}
 .private-beta-v3-brief{display:grid;gap:0;min-width:0;border-left:1px solid var(--panel-border);padding-left:clamp(20px,2.6vw,34px)}
 .private-beta-v3-brief>div{padding:17px 0;border-bottom:1px solid var(--panel-border)}
 .private-beta-v3-brief>div:last-child{border-bottom:0}
-.private-beta-v3-brief span{font-size:.68rem;font-weight:850;letter-spacing:.11em;color:var(--gold)}
+.private-beta-v3-brief span{font-size:.875rem;font-weight:850;letter-spacing:.11em;color:var(--gold)}
 .private-beta-v3-brief strong{display:block;font-size:1.04rem;margin:6px 0}
-.private-beta-v3-brief p{font-size:.83rem;color:var(--text-secondary);margin:0;line-height:1.5}
+.private-beta-v3-brief p{font-size:.875rem;color:var(--text-secondary);margin:0;line-height:1.5}
 .private-beta-v3-next{min-width:0}
 .private-beta-v3-guide{background:rgba(255,255,255,.014)}
 .private-beta-v3-guide-hint{margin:0 0 16px;color:var(--text-secondary)}
@@ -846,7 +846,7 @@
 .private-beta-v3-feedback summary>span{min-width:0}
 .private-beta-v3-feedback-body{padding:18px;border-top:1px solid var(--panel-border)}
 .private-beta-v3-feedback{margin:0}
-.private-beta-v3-feedback summary .eyebrow{font-size:.64rem}
+.private-beta-v3-feedback summary .eyebrow{font-size:.875rem}
 .private-beta-v3-feedback summary strong{font-size:1rem}
 .private-beta-v3-feedback .private-beta-feedback-form{margin:0}
 .private-beta-v3-hero :focus-visible,
@@ -873,4 +873,4 @@
 }
 @media(prefers-reduced-motion:reduce){.private-beta-v3-hero *{scroll-behavior:auto!important;transition:none!important}}
 .private-beta-v3-guide-title{margin:0 0 6px;font-size:1.05rem}
-.private-beta-v3-guide-subtitle{margin:18px 0 8px;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-secondary)}
+.private-beta-v3-guide-subtitle{margin:18px 0 8px;font-size:.875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-secondary)}

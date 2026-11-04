@@ -46,7 +46,6 @@
     ["Forge Heat V1", "Forge Heat"]
   ];
 
-  let discoverRenderPending = false;
 
   function routeName() {
     return String(window.location.hash || "#/dashboard")
@@ -56,15 +55,6 @@
 
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
-  }
-
-  function addBrandTagline() {
-    const copy = document.querySelector(".brand-copy");
-    if (!copy || copy.querySelector(".brand-tagline")) return;
-    const tagline = document.createElement("span");
-    tagline.className = "brand-tagline";
-    tagline.textContent = "Before you buy. Know Why.";
-    copy.appendChild(tagline);
   }
 
   function customerCopy(root = document) {
@@ -121,22 +111,16 @@
     });
   }
 
-  // Forge Heat wording (eyebrow, scope line, tabs, summary labels, beta access view) is owned by customer-forge-heat.js.
-  // Rewriting it here fought consumer-ux-refinement.js every animation frame (the Forge Heat redraw loop).
-
   function improveEmptyStates(root = document) {
     const ctas = {
-      opportunities: ["Discover a card", "#/discover"],
-      tracking: ["Discover a card to track", "#/discover"],
-      evidence: ["Evaluate a card", "#/evaluate"],
-      portfolio: ["Discover a card", "#/discover"],
-      alerts: ["Review tracking", "#/tracking"]
+      // Saved Decisions, Portfolio, Tracking and Alerts render their own empty-state actions.
+      evidence: ["Evaluate a card", "#/evaluate"]
     };
 
     const route = routeName();
-    root.querySelectorAll(".staging-empty, .consumer-state-empty, .forge-heat-empty").forEach(state => {
-      // Forge Heat empty states keep the renderer's own per-tab wording (it ranks by room under Max Buy).
-      if (state.querySelector("a, button") || !ctas[route]) return;
+    // Forge Heat renders its own empty-state copy and action (customer-forge-heat.js).
+    root.querySelectorAll(".staging-empty, .consumer-state-empty").forEach(state => {
+      if (state.closest(".forge-heat-shell") || state.querySelector("a, button") || !ctas[route]) return;
       const [label, href] = ctas[route];
       const link = document.createElement("a");
       link.className = "button button-secondary ff-empty-cta";
@@ -146,34 +130,12 @@
     });
   }
 
-  function scheduleCustomerDiscover() {
-    if (window.__ffStagingRouteHookOwnsDiscover === true) return;
-    if (routeName() !== "discover" || discoverRenderPending) return;
-    const main = document.querySelector("#main-content");
-    const discovery = window.FlipForgeCustomerDiscovery;
-    if (!main || !discovery || typeof discovery.render !== "function" || typeof discovery.isEligible !== "function" || !discovery.isEligible()) return;
-    if (main.querySelector(".customer-discovery-page")) return;
-
-    discoverRenderPending = true;
-    requestAnimationFrame(async () => {
-      discoverRenderPending = false;
-      if (routeName() !== "discover" || main.querySelector(".customer-discovery-page")) return;
-      try {
-        await discovery.render(main);
-      } catch (_) {
-        // Discover itself renders fail-closed errors; never restore the mock feature page here.
-      }
-    });
-  }
-
   function apply() {
-    addBrandTagline();
     customerCopy(document.body);
     polishDashboard();
     improveEmptyStates(document);
     polishTrademark(document);
     document.documentElement.classList.add("ff-product-polish-ready");
-    scheduleCustomerDiscover();
   }
 
   let scheduled = false;

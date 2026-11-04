@@ -96,10 +96,9 @@
     if (!nav) return;
 
     ensureStyle();
-    // Which links are visible is decided by customer-only-shell-v1.js (one route manifest per surface, all widths).
-    // This layer only adds the phone Account link and keeps the active link in sync; it used to hide Alerts,
-    // Portfolio, Forge Heat and Evaluate on phones from its own copy of the old four-route list, fighting the shell
-    // every frame.
+    // Which links are visible is decided by the page markup (customer.html lists the full customer menu for every
+    // width). This helper, loaded by the full customer app only, adds the phone Account link and keeps the active
+    // link in sync; it keeps no route list of its own (it used to hide links on phones from an old four-route list).
 
     const account = ensureAccountLink(nav);
     restoreLink(account);

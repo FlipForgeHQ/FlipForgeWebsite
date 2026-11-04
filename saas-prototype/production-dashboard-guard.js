@@ -123,7 +123,7 @@
   }
 
   function rendererFailureMarkup() {
-    return `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>FlipForge could not start the authoritative customer Dashboard.</p></div></header><div class="ff-commercial-error" role="alert"><strong>DASHBOARD_RENDERER_UNAVAILABLE</strong><p>The authoritative Dashboard renderer failed to load. Reload the customer app and try again.</p></div></div>`;
+    return `<div class="page ff-commercial-dashboard" data-commercial-dashboard-v2><header class="ff-dashboard-head"><div><h1>Home</h1><p>FlipForge could not start the authoritative customer Dashboard.</p></div></header><div class="ff-commercial-error" role="alert"><strong>DASHBOARD_RENDERER_UNAVAILABLE</strong><p>The authoritative Dashboard renderer failed to load. Reload the customer app and try again.</p></div></div>`;
   }
 
   function ensureFullCustomerDashboardAssets() {
@@ -168,7 +168,7 @@
   }
 
   function guardedMarkup() {
-    return `<div class="page ff-commercial-dashboard" data-production-dashboard-guard><header class="ff-dashboard-head"><div><h1>Dashboard</h1><p>Loading tenant-owned FlipForge intelligence.</p></div></header><div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div></div>`;
+    return `<div class="page ff-commercial-dashboard" data-production-dashboard-guard><header class="ff-dashboard-head"><div><h1>Home</h1><p>Loading saved FlipForge intelligence.</p></div></header><div class="ff-commercial-loading" role="status">Loading authoritative dashboard data…</div></div>`;
   }
 
   function enforce() {

@@ -17,6 +17,12 @@
     checkoutError: null
   };
 
+  // /app/customer (customer.html) and /app/beta (index.html) show their own account wording.
+  function fullCustomerMode() {
+    return window.FlipForgeFullCustomerEntry === true
+      || /^\/(?:app|owner)\/customer(?:\/|$)/i.test(String(window.location.pathname || ""));
+  }
+
   function isEligible() {
     return PREVIEW_HOST.test(String(window.location.hostname || ""));
   }
@@ -274,17 +280,16 @@
     const row = card.querySelectorAll(".usage-row span");
     const track = card.querySelector(".usage-track span");
     const small = card.querySelector("small");
-    if (strong) strong.textContent = current.name || "Private Beta";
+    if (strong) strong.textContent = current.name || (fullCustomerMode() ? "Early Access" : "Private Beta");
     if (row[0]) row[0].textContent = "Evaluation allowance";
     if (row[1]) row[1].textContent = usage.monthlyEvaluationLimit == null
       ? String(usage.completedEvaluations ?? 0)
       : `${admissionUsage} / ${usage.monthlyEvaluationLimit}`;
     if (track) track.style.width = `${percent(admissionUsage, usage.monthlyEvaluationLimit)}%`;
-    if (small) small.textContent = data.checkoutAvailable === true
-      ? "Plan state, usage, and checkout availability are server-owned."
-      : data.billingProviderConnected === true
-        ? "Billing verification is connected; new customer checkout is not enabled."
-        : "Billing is not connected. Private-beta access is not a paid subscription.";
+    // Final sidebar wording per surface (was rewritten afterwards by core-platform-completion-v1.js, now retired).
+    if (small) small.textContent = fullCustomerMode()
+      ? "Plan state and evaluation usage are loaded from your account."
+      : "Usage updates automatically. Paid access is not active during private beta.";
   }
 
   function checkoutBoundaryCopy(data) {
@@ -309,7 +314,7 @@
     const activeLabel = current.paidPlanActive === true
       ? badge("Paid plan active", "ok")
       : current.code === "PRIVATE_BETA"
-        ? badge("Private beta", "ok")
+        ? badge(fullCustomerMode() ? "Early access" : "Private beta", "ok")
         : badge(current.accessState || "Not active", "warn");
     const limit = usage.monthlyEvaluationLimit;
     const progress = percent(admissionUsage, limit);

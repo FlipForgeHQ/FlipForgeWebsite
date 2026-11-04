@@ -24,7 +24,7 @@
   background:linear-gradient(135deg,#10131a,#050607);
   color:#fff;
   box-shadow:0 18px 54px rgba(0,0,0,.42);
-  font:800 12px/1 Inter,system-ui,sans-serif;
+  font:800 14px/1 Inter,system-ui,sans-serif;
   cursor:pointer;
 }
 .ff-guide-launcher::before{
@@ -64,7 +64,7 @@
   padding:15px 16px 13px;
   border-bottom:1px solid rgba(255,255,255,.08);
 }
-.ff-guide-kicker{display:block;color:var(--ff-guide-gold-strong);font-size:9px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+.ff-guide-kicker{display:block;color:var(--ff-guide-gold-strong);font-size:14px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
 .ff-guide-head strong{display:block;margin-top:4px;font-size:15px;letter-spacing:-.01em}
 .ff-guide-icon-button{
   flex:none;
@@ -79,16 +79,16 @@
 }
 .ff-guide-icon-button:hover,.ff-guide-icon-button:focus-visible{color:#fff;border-color:rgba(212,175,55,.45);outline:none}
 .ff-guide-body{padding:16px}
-.ff-guide-location{display:inline-flex;margin-bottom:8px;padding:5px 8px;border:1px solid rgba(255,255,255,.11);border-radius:999px;color:#b9c1cc;font-size:9px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
+.ff-guide-location{display:inline-flex;margin-bottom:8px;padding:5px 8px;border:1px solid rgba(255,255,255,.11);border-radius:999px;color:#b9c1cc;font-size:14px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
 .ff-guide-body h2{margin:0 0 7px;font-size:21px;line-height:1.15;letter-spacing:-.025em}
-.ff-guide-body>p{margin:0;color:var(--ff-guide-muted);font-size:12px;line-height:1.58}
+.ff-guide-body>p{margin:0;color:var(--ff-guide-muted);font-size:14px;line-height:1.58}
 .ff-guide-why{
   margin-top:13px;
   padding:11px 12px;
   border-left:2px solid rgba(212,175,55,.65);
   background:rgba(212,175,55,.045);
   color:#c9cfd6;
-  font-size:11px;
+  font-size:14px;
   line-height:1.5;
 }
 .ff-guide-why strong{color:#fff}
@@ -101,7 +101,7 @@
   border-radius:9px;
   background:linear-gradient(135deg,var(--ff-guide-gold-strong),var(--ff-guide-gold));
   color:#030812;
-  font:900 11px/1.2 Inter,system-ui,sans-serif;
+  font:900 14px/1.2 Inter,system-ui,sans-serif;
   text-align:center;
   cursor:pointer;
 }
@@ -110,14 +110,14 @@
 .ff-guide-action.secondary:hover,.ff-guide-action.secondary:focus-visible{border-color:rgba(212,175,55,.42);filter:none}
 
 .ff-guide-progress{padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
-.ff-guide-progress-top{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;color:#8993a0;font-size:9px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
+.ff-guide-progress-top{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;color:#8993a0;font-size:14px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
 .ff-guide-step-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .ff-guide-step-nav button{
   display:grid;gap:3px;justify-items:center;min-width:0;padding:7px 4px;border:1px solid rgba(255,255,255,.09);border-radius:8px;
   background:rgba(255,255,255,.02);color:#9fa8b4;cursor:pointer
 }
-.ff-guide-step-nav button span{display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:rgba(255,255,255,.06);font-size:9px;font-weight:900}
-.ff-guide-step-nav button strong{font-size:9px;line-height:1.1;white-space:nowrap}
+.ff-guide-step-nav button span{display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:rgba(255,255,255,.06);font-size:14px;font-weight:900}
+.ff-guide-step-nav button strong{font-size:14px;line-height:1.1;white-space:nowrap}
 .ff-guide-step-nav button[data-done="true"]{border-color:rgba(212,175,55,.28);color:#e0c66d}
 .ff-guide-step-nav button[data-current="true"]{border-color:rgba(240,202,88,.65);background:rgba(212,175,55,.08);color:#fff}
 .ff-guide-step-nav button:hover,.ff-guide-step-nav button:focus-visible{border-color:rgba(240,202,88,.65);outline:none;color:#fff}
@@ -127,8 +127,8 @@
 }
 .ff-guide-route-nav>span{display:block}
 .ff-guide-route-nav .ff-guide-action{min-height:38px;margin:0}
-.ff-guide-footer{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 16px;border-top:1px solid rgba(255,255,255,.06);color:#7f8a98;font-size:9px}
-.ff-guide-footer button{border:0;background:transparent;color:#aab4c1;padding:0;font:800 9px/1.2 Inter,system-ui,sans-serif;cursor:pointer}
+.ff-guide-footer{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 16px;border-top:1px solid rgba(255,255,255,.06);color:#7f8a98;font-size:14px}
+.ff-guide-footer button{border:0;background:transparent;color:#aab4c1;padding:0;font:800 14px/1.2 Inter,system-ui,sans-serif;cursor:pointer}
 .ff-guide-footer button:hover,.ff-guide-footer button:focus-visible{color:var(--ff-guide-gold-strong);outline:none}
 
 .ff-guide-highlight{
@@ -160,13 +160,13 @@
   display:block;
   margin-bottom:5px;
   color:var(--ff-guide-gold-strong);
-  font-size:9px;
+  font-size:14px;
   font-weight:900;
   letter-spacing:.12em;
   text-transform:uppercase;
 }
 .ff-discover-coach h2{margin:0;font-size:1.2rem;line-height:1.2;letter-spacing:-.015em}
-.ff-discover-coach p{max-width:760px;margin:6px 0 0;color:#aeb7c2;font-size:.82rem;line-height:1.5}
+.ff-discover-coach p{max-width:760px;margin:6px 0 0;color:#aeb7c2;font-size:.875rem;line-height:1.5}
 .ff-discover-coach-actions{display:flex;gap:8px;flex:none;flex-wrap:wrap;justify-content:flex-end}
 .ff-discover-results-label{
   display:grid;
@@ -177,7 +177,7 @@
   background:rgba(212,175,55,.035);
 }
 .ff-discover-results-label strong{font-size:.88rem}
-.ff-discover-results-label span{color:#9fa9b5;font-size:.76rem;line-height:1.45}
+.ff-discover-results-label span{color:#9fa9b5;font-size:.875rem;line-height:1.45}
 
 .ff-global-new-card{
   border-color:rgba(212,175,55,.42)!important;
@@ -190,14 +190,6 @@
   background:rgba(212,175,55,.095)!important;
   outline:none;
 }
-
-/* When the user chooses New card, old search output gets out of the way. */
-.ff-start-new-card .customer-discovery-results,
-.ff-start-new-card .customer-discovery-notice,
-.ff-start-new-card .customer-discovery-identity-assist,
-.ff-start-new-card .ff-discover-results-label,
-.ff-start-new-card .panel:has(.customer-discovery-provider){display:none!important}
-.ff-start-new-card .customer-discovery-search{margin-top:0!important}
 
 .ff-guide-modal-backdrop{
   position:fixed;
@@ -222,17 +214,17 @@
   font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 .ff-guide-modal-main{padding:30px 30px 24px}
-.ff-guide-modal .ff-guide-kicker{font-size:10px}
+.ff-guide-modal .ff-guide-kicker{font-size:14px}
 .ff-guide-modal h1{max-width:620px;margin:8px 0 10px;font-size:clamp(30px,5vw,48px);line-height:1.02;letter-spacing:-.045em}
 .ff-guide-modal .ff-guide-intro{max-width:650px;margin:0;color:#b7c0cb;font-size:14px;line-height:1.65}
 .ff-guide-modal-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:22px}
 .ff-guide-modal-step{padding:15px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.02)}
-.ff-guide-modal-step span{display:block;margin-bottom:6px;color:var(--ff-guide-gold-strong);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
-.ff-guide-modal-step strong{display:block;font-size:13px;line-height:1.35}
-.ff-guide-modal-step p{margin:6px 0 0;color:#98a3b0;font-size:10px;line-height:1.48}
+.ff-guide-modal-step span{display:block;margin-bottom:6px;color:var(--ff-guide-gold-strong);font-size:14px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.ff-guide-modal-step strong{display:block;font-size:14px;line-height:1.35}
+.ff-guide-modal-step p{margin:6px 0 0;color:#98a3b0;font-size:14px;line-height:1.48}
 .ff-guide-modal-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}
 .ff-guide-modal-actions .ff-guide-action{width:auto;min-width:190px;padding-left:18px;padding-right:18px}
-.ff-guide-modal-note{margin:13px 0 0;color:#788493;font-size:9px;line-height:1.45}
+.ff-guide-modal-note{margin:13px 0 0;color:#788493;font-size:14px;line-height:1.45}
 
 body.ff-guide-modal-open{overflow:hidden}
 

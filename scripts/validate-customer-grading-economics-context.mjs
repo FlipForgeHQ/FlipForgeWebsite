@@ -48,7 +48,8 @@ check('decision boundary remains scenario-only',
 check('customer adapter is cache-busted to the context revision',
   route.includes('customer-grading-economics.js?v=20260916-2'));
 check('PSA route still loads existing PSA adapter', route.includes('customer-psa-advisor.js?v=20260830-1'));
-check('customer route remains private-beta intelligence', route.includes('PRIVATE BETA INTELLIGENCE'));
+// The page banner is final in index.html; the route keeps it (no internal wording written into it).
+check('customer route remains private-beta intelligence', route.includes('const showCustomerIntelligenceBanner = restoreBanner;') && fs.readFileSync('saas-prototype/index.html', 'utf8').includes('<strong>PRIVATE BETA</strong>'));
 
 if (failed > 0) {
   console.error(`Customer grading economics context validation failed: ${failed} failed, ${passed} passed.`);

@@ -41,7 +41,7 @@ check('existing feedback endpoint, input fields, consent and privacy warning rem
     'name="contactAllowed"','name="summary"','name="expected"',
     'Do not paste passwords','This form records tester feedback'].every(x=>js.includes(x)));
 check('live tenant and saved decision rules are unchanged',
-  ['session.authenticated && session.membershipActive','tenant-owned and server-backed','browser does not become the authority'].every(x=>js.includes(x)));
+  ['session.authenticated && session.membershipActive','saved and server-backed','browser does not become the authority'].every(x=>js.includes(x)));
 check('premium responsive layout uses scoped v3 selectors and keyboard focus styles',
   css.includes('.private-beta-v3-hero') && css.includes('@media(max-width:700px)') &&
   css.includes('.private-beta-v3-reference :focus-visible') &&

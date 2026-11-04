@@ -57,6 +57,14 @@ body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav {
 body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav[hidden] {
   display: none !important;
 }
+/* Private Beta: the sidebar Account shortcut is a phone-layout link (index.html always contains it). Outside the phone
+ * layout the topbar Account button is the account entry, so the shortcut is not shown there. The full customer app
+ * keeps its own mobile helper (mobile-navigation-stabilizer-v1.js). */
+@media (min-width: 761px) {
+  html:not(.ff-full-customer-app) body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav {
+    display: none !important;
+  }
+}
 
 body[data-ff-surface="customer"] .primary-nav > a.ff-mobile-account-nav > span:first-child {
   width: 28px;
@@ -103,7 +111,7 @@ body[data-ff-surface="customer"] .ff-beta-simple-loop-copy {
 
 body[data-ff-surface="customer"] .ff-beta-simple-loop-copy > span {
   color: var(--gold, #d4af37);
-  font-size: .78rem;
+  font-size: .875rem;
   font-weight: 800;
   letter-spacing: .1em;
 }

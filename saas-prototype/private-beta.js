@@ -80,14 +80,11 @@
   function syncShell(session = identitySnapshot()) {
     if (!eligibleHost()) return;
     const displayName = session.fullName || (session.authenticated ? "Invited tester" : "Private beta");
-    const access = session.membershipActive ? "Active tester" : session.authenticated ? "Access pending" : "Sign in required";
     document.querySelectorAll(".account-link .avatar, .profile-button .avatar").forEach(element => {
       element.textContent = initials(displayName);
     });
-    const accountCopy = document.querySelector(".account-link span:nth-child(2)");
-    if (accountCopy) accountCopy.innerHTML = `<strong>${escapeHtml(displayName)}</strong><small>${escapeHtml(access)}</small>`;
-    const profileCopy = document.querySelector(".profile-button .profile-copy");
-    if (profileCopy) profileCopy.innerHTML = `<strong>${escapeHtml(displayName)}</strong><small>${escapeHtml(access)}</small>`;
+    // The account captions ("Account" / "Plan & Usage") are final in the page markup; only the initials follow the
+    // signed-in identity.
   }
 
   function preferenceComplete() {
@@ -131,18 +128,9 @@
     if (!health) return ["Checking", "Reading the same-origin gateway health contract.", "neutral"];
     if (health.error) return ["Unavailable", "No customer data request was attempted and no mock response was substituted.", "warn"];
     if (health.data?.status === "configured" && health.data?.bridgeEnabled) {
-      return ["Available", "The tenant-scoped customer intelligence path is enabled for this private-beta session.", "ok"];
+      return ["Available", "The account-specific customer intelligence path is enabled for this private-beta session.", "ok"];
     }
     return ["Safely offline", "The preview bridge is disabled between controlled beta sessions.", "warn"];
-  }
-
-  function showBanner() {
-    const banner = document.querySelector(".prototype-banner");
-    if (!banner) return;
-    const title = banner.querySelector("strong");
-    const copy = banner.querySelector("span");
-    if (title) title.textContent = "PRIVATE BETA GUIDE";
-    if (copy) copy.textContent = "Invitation only · Controlled customer intelligence · No billing or transaction authority";
   }
 
   function cleanCardValue(value, max) {
@@ -268,8 +256,8 @@
         </label>
       </div>
       ${cardReferenceMarkup()}
-      <label>What happened?
-        <textarea name="summary" maxlength="2000" required placeholder="Describe the workflow, wording, or behavior that helped or blocked you."></textarea>
+      <label>What decision did you see, why did FlipForge give it, and what would you do next?
+        <textarea name="summary" maxlength="2000" required placeholder="Example: VERIFY. The exact evidence was too thin, so I would confirm the parallel before buying."></textarea>
       </label>
       <label>What did you expect instead?
         <textarea name="expected" maxlength="1200" placeholder="Optional: describe what a clearer or better outcome would look like."></textarea>
@@ -353,7 +341,7 @@
             <summary><span><strong>What FlipForge does—and doesn't do</strong><small>Decision authority, evidence limits, and no transaction execution.</small></span><b aria-hidden="true">＋</b></summary>
             <div class="private-beta-v3-expander-body"><aside class="private-beta-v2-boundary">
         <div><span class="eyebrow">AUTHORITY BOUNDARY</span><strong>FlipForge explains a governed decision. It does not execute one.</strong></div>
-        <p>Smart Opportunity remains the sole recommendation authority, Existing PSA intelligence remains the sole grading-guidance authority, and SQLite remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
+        <p>Smart Opportunity remains the sole recommendation authority, PSA Advisor provides grading guidance, and your account remains the source of truth. Discover ranks active listings only; no public signup, billing, paid entitlement, provider administration, or transaction execution is active.</p>
       </aside></div>
           </details>
           <details class="private-beta-v2-details private-beta-v3-expander" data-private-beta-account-details>
@@ -362,7 +350,7 @@
               <section class="private-beta-v2-status" aria-label="Private beta readiness">
         ${statusCard("Your access", accessValue, accessDetail, accessTone)}
         ${statusCard("Evaluation system", bridgeValue, bridgeDetail, bridgeTone, "data-private-beta-bridge")}
-        ${statusCard("Saved decisions", "SQLite source of truth", "Your evaluations and tracked decisions stay tenant-owned and server-backed.", "ok")}
+        ${statusCard("Saved decisions", "Your account is the source of truth", "Your evaluations and tracked decisions stay saved and server-backed.", "ok")}
         ${statusCard("Customer access", liveProduction ? "Live private beta" : "Deploy preview", liveProduction ? "Available only to invited testers with active membership." : "Controlled preview used before production promotion.", liveProduction ? "ok" : "neutral")}
       </section>
               <div class="private-beta-v2-guide-state">
@@ -381,7 +369,7 @@
           <div>
             <span class="eyebrow">YOUR FLIPFORGE RECORD</span>
             <h2 id="private-beta-record-title">One evaluation becomes a structured decision record.</h2>
-            <p>FlipForge does not throw away the reasoning after it returns a verdict. The exact identity, qualified evidence, governed decision, receipt, and later outcome checkpoints stay connected as one tenant-owned server record.</p>
+            <p>FlipForge does not throw away the reasoning after it returns a verdict. The exact identity, qualified evidence, governed decision, receipt, and later outcome checkpoints stay connected as one saved server record.</p>
           </div>
           <span class="private-beta-record-badge">SERVER-BACKED · TRACEABLE</span>
         </header>
@@ -402,7 +390,7 @@
             <div class="private-beta-record-stack" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
             <span>STRUCTURED DECISION RECORD</span>
             <strong>One source of truth for the decision.</strong>
-            <p>Tenant-owned · server-backed SQLite · browser does not become the authority</p>
+            <p>Saved · server-backed · the browser does not become the authority</p>
             <div class="private-beta-record-fields" aria-label="Decision record layers">
               <small>Identity</small><small>Evidence</small><small>Economics</small><small>Risk</small><small>Decision</small>
             </div>
@@ -429,12 +417,12 @@
           <details class="private-beta-v2-details">
           <summary><span><strong>What is available now</strong><small>Open this when you want to explore beyond your first decision.</small></span><b aria-hidden="true">＋</b></summary>
           <div class="private-beta-v2-details-body private-beta-limit-list">
-            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Discover → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Provider-backed active-listing search, tenant-scoped reads/writes, and comparison use the approved same-origin customer gateway when enabled.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Discover → Evaluate → Intelligence → Traceback → Compare → Track</strong><small>Connected-source active-listing search, account-specific reads/writes, and comparison use the approved same-origin customer gateway when enabled.</small></span></div>
             <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence-aware discovery boundary</strong><small>Active listings never become sold evidence and Discovery score never becomes a recommendation.</small></span></div>
-            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence Center → PSA Advisor → Exit Review</strong><small>Saved evidence and PSA context remain server-owned; these tools do not add browser-side evidence acceptance, rescoring, grade prediction, or transaction authority.</small></span></div>
-            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tracking → Portfolio → Alerts</strong><small>Lifecycle state, cost basis, evidence-supported reference context, and in-app reminders use tenant-scoped saved records.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Evidence Center → PSA Advisor → Exit Review</strong><small>Saved evidence and PSA context remain server-owned; these tools do not add local evidence acceptance, rescoring, grade prediction, or transaction authority.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Tracking → Portfolio → Alerts</strong><small>Lifecycle state, cost basis, evidence-supported reference context, and in-app reminders use account-specific saved records.</small></span></div>
             <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Compare two saved decisions</strong><small>Compare returned factors side by side without asking the browser to choose a winner.</small><a class="panel-link" href="#/compare">Open Compare →</a></span></div>
-            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Create a Decision Dossier</strong><small>Export one complete saved decision with governed evidence, PSA context, lifecycle history, and integrity manifest.</small></span></div>
+            <div class="private-beta-limit"><span class="check-mark ok">✓</span><span><strong>Create a Decision Dossier</strong><small>Export one complete saved decision with qualified evidence, PSA context, lifecycle history, and integrity manifest.</small></span></div>
           </div>
         </details>
           <details class="private-beta-v2-details">
@@ -449,6 +437,8 @@
         </details>
         </div>
       </section>
+
+      <section class="panel ff-comprehension-check" data-ff-comprehension-check><header class="panel-header"><div><h2>The 10-second clarity check</h2><p>After Card Intelligence loads, answer these without studying the screen.</p></div></header><div class="panel-body"><ol><li><strong>What does FlipForge recommend?</strong></li><li><strong>Why did it reach that decision?</strong></li><li><strong>What would you do next?</strong></li></ol><p>If those answers are not obvious, tell us exactly where the screen made you work too hard.</p></div></section>
 
       <details class="private-beta-v2-details private-beta-v2-feedback private-beta-v3-feedback" id="beta-feedback"${pendingFeedbackDraft ? " open" : ""}>
         <summary><span><span class="eyebrow">AFTER YOU TRY ONE CARD</span><strong>Beta feedback</strong><small>Tell us where the experience was clear, confusing, incomplete, or unexpectedly useful.</small></span><b aria-hidden="true">＋</b></summary>
@@ -647,7 +637,6 @@
     if (!main) return false;
     const session = identitySnapshot();
     syncShell(session);
-    showBanner();
     main.innerHTML = pageMarkup(session, null);
     bind(session);
     main.focus({ preventScroll: true });

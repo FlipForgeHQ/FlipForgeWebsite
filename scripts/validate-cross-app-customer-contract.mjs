@@ -5,7 +5,9 @@ const contract = JSON.parse(read("contracts/customer-parity-v2.json"));
 const nav = read("saas-prototype/customer-navigation-parity-v1.js");
 const customerHtml = read("saas-prototype/customer.html");
 const decision = read("saas-prototype/decision-card-evidence-v1.js");
-const shell = read("saas-prototype/customer-only-shell-v1.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const shell = read("saas-prototype/customer-lifecycle.js"); // Outcome Intelligence owner renders the checkpoints
 const app = read("saas-prototype/app.js");
 
 let passed = 0;

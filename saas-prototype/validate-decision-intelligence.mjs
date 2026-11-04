@@ -1,8 +1,12 @@
 import fs from 'node:fs';
 
 const html = fs.readFileSync('saas-prototype/index.html', 'utf8');
+// The Decision Intelligence menu entry belongs to the full customer app (/app/customer). The Private Beta menu is the
+// founder-approved eight routes (Nov 3 2026) in markup; it no longer carries a link that a runtime layer had to hide.
+const customerHtml = fs.readFileSync('saas-prototype/customer.html', 'utf8');
+const betaNav = (html.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [''])[0];
 const js = fs.readFileSync('saas-prototype/decision-intelligence-v1.js', 'utf8');
-const completion = fs.readFileSync('saas-prototype/core-platform-completion-v1.js', 'utf8');
+const completion = fs.readFileSync('saas-prototype/decision-intelligence-v1.js', 'utf8'); // the owner renders its slow-context notice since core-platform-completion-v1.js was retired
 const css = fs.readFileSync('saas-prototype/customer-ui-system-v1.css', 'utf8');
 const serverCss = fs.readFileSync('saas-prototype/decision-intelligence-server-v1.css', 'utf8');
 
@@ -14,7 +18,8 @@ const requiredServerPaths = [
 ];
 
 const checks = [
-  ['Decision Intelligence nav route is customer-visible', html.includes('href="#/decision-intelligence"') && html.includes('data-route="decision-intelligence"')],
+  ['Decision Intelligence nav route is customer-visible', /<a href="#\/decision-intelligence" data-route="decision-intelligence"(?![^>]*\bhidden\b)[^>]*>/.test(customerHtml) && customerHtml.includes('decision-intelligence-v1.js')],
+  ['Private Beta menu does not list Decision Intelligence', betaNav.length > 0 && !betaNav.includes('data-route="decision-intelligence"')],
   ['customer UI system is loaded', html.includes('customer-ui-system-v1.css')],
   ['server-owned Decision Intelligence states are loaded', html.includes('decision-intelligence-server-v1.css')],
   ['Decision Intelligence runtime is loaded last', html.includes('decision-intelligence-v1.js')],
@@ -44,9 +49,9 @@ const checks = [
   ['comparison remains non-ranking', js.includes('does not rerank, rescore, select a winner, or change either recommendation')],
   ['missing supported value is withheld', js.includes('Withheld · exact evidence required')],
   ['missing population stays missing', js.includes('No saved exact-card PSA population snapshot is attached to this opportunity')],
-  ['evidence loading state has a bounded customer-facing timeout', completion.includes('DECISION_CONTEXT_TIMEOUT_MS = 8000') && completion.includes('Evidence details are taking longer than expected.')],
+  ['evidence loading state has a bounded customer-facing timeout', completion.includes('}, 8000);') && completion.includes('Evidence details are taking longer than expected.')],
   ['PSA loading state has a bounded customer-facing timeout', completion.includes('PSA population context is taking longer than expected.')],
-  ['timed-out context can be retried without adding authority', completion.includes('data-ff-di-retry') && completion.includes('window.dispatchEvent(new Event("pageshow"))')],
+  ['timed-out context can be retried without adding authority', completion.includes('data-ff-di-retry') && completion.includes('void loadSelectedContext();')],
   ['timeout messaging preserves fail-closed evidence boundary', completion.includes('no substitute evidence is being used') && completion.includes('will not borrow or estimate population for another card')]
 ];
 

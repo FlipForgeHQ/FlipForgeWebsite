@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "saas-prototype/customer-discovery.js"
+      - "saas-prototype/staging-evaluation.js"
       - "scripts/validate-ebay-browse-discover-evaluation-id.mjs"
       - ".github/workflows/ebay-browse-discover-evaluation-id.yml"
   push:
@@ -11,6 +12,7 @@ on:
       - main
     paths:
       - "saas-prototype/customer-discovery.js"
+      - "saas-prototype/staging-evaluation.js"
       - "scripts/validate-ebay-browse-discover-evaluation-id.mjs"
       - ".github/workflows/ebay-browse-discover-evaluation-id.yml"
 

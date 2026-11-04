@@ -1,6 +1,9 @@
 import fs from "node:fs";
 
-const index = fs.readFileSync("saas-prototype/index.html", "utf8");
+// Since Nov 4 2026 the private beta page (index.html) does not load the card cockpit (the beta does not offer it); the full
+// customer app (customer.html) does, and the load-order checks below run there.
+const index = fs.readFileSync("saas-prototype/customer.html", "utf8");
+if (fs.readFileSync("saas-prototype/index.html", "utf8").includes("customer-card-cockpit.js")) throw new Error("the beta page must not load the card cockpit");
 const cockpit = fs.readFileSync("saas-prototype/customer-card-cockpit.js", "utf8");
 const heat = fs.readFileSync("saas-prototype/customer-forge-heat.js", "utf8");
 

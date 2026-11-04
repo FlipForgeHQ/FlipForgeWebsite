@@ -9,7 +9,7 @@
   border-radius: 999px;
   color: var(--ff-ui-muted);
   background: rgba(255,255,255,.02);
-  font-size: .61rem;
+  font-size: .875rem;
   font-weight: 800;
   letter-spacing: .09em;
   text-transform: uppercase;
@@ -67,7 +67,7 @@
 .ff-di-error > strong {
   width: fit-content;
   color: var(--ff-ui-red);
-  font-size: .7rem;
+  font-size: .875rem;
   letter-spacing: .08em;
 }
 
@@ -95,7 +95,7 @@
 .ff-di-pop-context span {
   margin-top: 7px;
   color: var(--ff-ui-blue);
-  font-size: .74rem;
+  font-size: .875rem;
 }
 
 .ff-di-pop-context small {

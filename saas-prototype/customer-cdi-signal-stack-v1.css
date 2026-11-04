@@ -21,7 +21,7 @@
   display:block;
   margin-bottom:7px;
   color:#f0ca58;
-  font-size:.69rem;
+  font-size:.875rem;
   font-weight:900;
   letter-spacing:.1em;
 }
@@ -52,7 +52,7 @@
   border-radius:999px;
   background:rgba(255,255,255,.025);
   color:rgba(255,255,255,.63);
-  font-size:.7rem;
+  font-size:.875rem;
   font-weight:750;
 }
 .ff-cdi-meta span:first-child{
@@ -69,7 +69,7 @@
   display:block;
   margin-bottom:5px;
   color:rgba(255,255,255,.5);
-  font-size:.69rem;
+  font-size:.875rem;
   font-weight:850;
   letter-spacing:.08em;
   text-transform:uppercase;
@@ -109,7 +109,7 @@
   border-radius:7px;
   background:#d4af37;
   color:#07090c;
-  font-size:.66rem;
+  font-size:.875rem;
   font-weight:900;
   letter-spacing:.08em;
 }
@@ -122,7 +122,7 @@
   display:block;
   margin-top:7px;
   color:rgba(255,255,255,.58);
-  font-size:.76rem;
+  font-size:.875rem;
 }
 .ff-cdi-reasoning[hidden]{display:none!important}
 .ff-cdi-reasoning{
@@ -136,7 +136,7 @@
   border-left:3px solid #d4af37;
   background:rgba(212,175,55,.055);
   color:rgba(255,255,255,.74);
-  font-size:.86rem;
+  font-size:.875rem;
   line-height:1.45;
 }
 .ff-cdi-signals{
@@ -182,7 +182,7 @@
 }
 .ff-cdi-signal-index{
   color:rgba(255,255,255,.44);
-  font-size:.68rem;
+  font-size:.875rem;
   font-weight:900;
   letter-spacing:.08em;
 }
@@ -193,7 +193,7 @@
 }
 .ff-cdi-signal-copy span{
   color:#f0ca58;
-  font-size:.68rem;
+  font-size:.875rem;
   font-weight:900;
   letter-spacing:.07em;
   text-transform:uppercase;
@@ -205,7 +205,7 @@
 }
 .ff-cdi-signal-copy small{
   color:rgba(255,255,255,.66);
-  font-size:.79rem;
+  font-size:.875rem;
   line-height:1.43;
 }
 .ff-cdi-signal-state{
@@ -216,7 +216,7 @@
   border-radius:50%;
   background:rgba(89,215,150,.11);
   color:#59d796;
-  font-size:.7rem;
+  font-size:.875rem;
   font-weight:900;
   opacity:0;
   transform:scale(.7);
@@ -253,7 +253,7 @@
   border-radius:5px;
   background:rgba(89,215,150,.08);
   color:#59d796;
-  font-size:.68rem;
+  font-size:.875rem;
   font-style:normal;
   font-weight:900;
   transition:transform .22s ease,opacity .22s ease;
@@ -320,7 +320,7 @@
 .ff-cdi-visual-price.is-unavailable b{
   display:block;
   color:rgba(255,255,255,.5);
-  font-size:.8rem;
+  font-size:.875rem;
 }
 .ff-cdi-signal.is-live .ff-cdi-visual-price i{animation:ff-cdi-bar-rise .52s ease both}
 .ff-cdi-visual-uncertainty{
@@ -382,7 +382,7 @@
   background:rgba(255,255,255,.025);
   color:#fff;
   font:inherit;
-  font-size:.76rem;
+  font-size:.875rem;
   font-weight:850;
   cursor:pointer;
 }
@@ -412,8 +412,8 @@
 }
 .ff-cdi-deep>summary::-webkit-details-marker{display:none}
 .ff-cdi-deep>summary span{display:grid;gap:3px}
-.ff-cdi-deep>summary strong{color:#fff;font-size:.86rem}
-.ff-cdi-deep>summary small{color:rgba(255,255,255,.58);font-size:.75rem}
+.ff-cdi-deep>summary strong{color:#fff;font-size:.875rem}
+.ff-cdi-deep>summary small{color:rgba(255,255,255,.58);font-size:.875rem}
 .ff-cdi-deep>summary b{color:#f0ca58;font-size:1rem;font-weight:500}
 .ff-cdi-deep[open]>summary{border-bottom:1px solid rgba(255,255,255,.07)}
 .ff-cdi-deep[open]>summary b{transform:rotate(45deg)}
@@ -453,7 +453,7 @@
   border:1px solid rgba(212,175,55,.20);
   border-radius:11px;
   background:rgba(212,175,55,.035);
-  font-size:.84rem;
+  font-size:.875rem;
 }
 .ff-cdi-returning strong{color:#fff}
 .ff-cdi-returning span{color:rgba(255,255,255,.64)}
@@ -476,7 +476,7 @@
 .ff-cdi-outcome-guide header p{
   margin:5px 0 0;
   color:rgba(255,255,255,.66);
-  font-size:.82rem;
+  font-size:.875rem;
   line-height:1.5;
 }
 .ff-cdi-outcome-flow{
@@ -500,20 +500,20 @@
 .ff-cdi-outcome-flow article b{
   display:block;
   color:#f0ca58;
-  font-size:.71rem;
+  font-size:.875rem;
   letter-spacing:.08em;
 }
 .ff-cdi-outcome-flow article strong{
   display:block;
   margin-top:5px;
   color:#fff;
-  font-size:.83rem;
+  font-size:.875rem;
 }
 .ff-cdi-outcome-flow article small{
   display:block;
   margin-top:4px;
   color:rgba(255,255,255,.58);
-  font-size:.72rem;
+  font-size:.875rem;
   line-height:1.4;
 }
 .ff-cdi-outcome-flow>i{
@@ -585,7 +585,7 @@
   .ff-cdi-visual-exact i{
     width:16px;
     height:16px;
-    font-size:.58rem;
+    font-size:.875rem;
   }
   .ff-cdi-visual-sales{display:flex;max-width:48px}
   .ff-cdi-visual-sales i{width:8px;height:8px}

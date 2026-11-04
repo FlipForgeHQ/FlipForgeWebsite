@@ -10,7 +10,9 @@ const account = read("saas-prototype/customer-account.js");
 const bridge = read("saas-prototype/customer-account-bridge.js");
 const preview = read("saas-prototype/customer-entitlements.js");
 const routeHook = read("saas-prototype/staging-route-hook.js");
-const completion = read("saas-prototype/core-platform-completion-v1.js");
+// core-platform-completion-v1.js was retired: the plan card's link behavior is in the page markup + app.js, the enum
+// labels in the Account and Dashboard owners.
+const completion = read("saas-prototype/app.js") + read("saas-prototype/index.html") + read("saas-prototype/customer-account.js") + read("saas-prototype/commercial-dashboard-v2.js");
 const gateway = read("netlify/functions/flipforge-api.js");
 const plan = read("docs/SAAS_CORE_PLATFORM_COMPLETION_PLAN.md");
 
@@ -42,10 +44,10 @@ check("021 production account exposes no browser tenant/user headers", !/X-FlipF
 check("022 production account exposes no service token", !/FLIPFORGE_API_SERVICE_TOKEN|Authorization\s*:/i.test(account));
 check("023 production account has no Paddle API or checkout path", !/PADDLE|billing\/paddle\/checkout|CHECKOUT_PATH/i.test(account));
 check("024 production account has no checkout action attribute", !/data-customer-checkout-plan|window\.location\.assign/i.test(account));
-check("025 production account visibly defers checkout", account.includes("Checkout deferred until Beta Complete") && account.includes("Paid checkout, plan changes, and customer portal controls are intentionally deferred"));
-check("026 production account says payment controls are absent", account.includes("Production payment controls are intentionally absent"));
+check("025 production account visibly defers checkout", account.includes("Checkout unavailable in private beta") && account.includes("Paid checkout, plan changes, and customer portal controls are intentionally deferred"));
+check("026 production account says payment controls are absent", account.includes("Payments are not available in private beta."));
 check("027 production account keeps server-owned usage", account.includes("Usage is returned by the authoritative service"));
-check("028 production sidebar states billing deferral", account.includes("Paid checkout is deferred until Core Platform Beta Complete"));
+check("028 production sidebar states billing deferral", account.includes("Paid access is not active during private beta."));
 check("029 bridge prefers production adapter when eligible", bridge.includes("if (productionAdapter.isEligible()) return productionAdapter.render(main)"));
 check("030 bridge retains preview adapter", bridge.includes("previewAdapter.render(main)") && bridge.includes("previewAdapter.isEligible"));
 check("031 preview adapter still retains checkout code", preview.includes('const CHECKOUT_PATH = "/api/v1/billing/paddle/checkout"'));
@@ -55,10 +57,10 @@ check("034 core plan still defers Paddle until Beta Complete", plan.includes("Pa
 check("035 production account introduces no transaction controls", !/Place bid|Buy now|Pay now|Accept offer|Create listing|Upgrade now/i.test(account));
 check("036 sidebar reports usage rather than mislabeling completed count as allowance", account.includes('row[0].textContent = "Evaluation usage"') && account.includes('`${admissionUsage} used · Unlimited beta`'));
 check("037 Plan & Usage card is pointer navigable", completion.includes('planCard.addEventListener("click"') && completion.includes('window.location.hash = "#/account"'));
-check("038 Plan & Usage card is keyboard navigable", completion.includes('event.key !== "Enter" && event.key !== " "') && completion.includes('planCard.setAttribute("role", "link")'));
+check("038 Plan & Usage card is keyboard navigable", completion.includes('event.key !== "Enter" && event.key !== " "') && completion.includes('class="plan-card ff-plan-card-link" role="link" tabindex="0"'));
 check("039 private beta raw access enums are customer-readable", completion.includes('PRIVATE_BETA_ACTIVE: "Private Beta Active"') && completion.includes('INVITATION_DEFAULT: "Beta Invitation"'));
 check("040 planned entitlement enum labels are customer-readable", completion.includes('UNLIMITED_SUBJECT_TO_REASONABLE_USE: "Unlimited (reasonable use)"') && completion.includes('NOT_INCLUDED: "Not included"'));
-check("041 provider-mapped evidence metric is named accurately", completion.includes('label.textContent = "Provider-mapped evidence"'));
+check("041 provider-mapped evidence metric is named accurately", completion.includes('kpiCard("Provider-mapped evidence"'));
 check("042 production account exposes a direct sign out control", account.includes("data-production-account-signout") && account.includes(">Sign out</button>"));
 check("043 production account signs out through the shared Identity client", account.includes("window.FlipForgeIdentity") && account.includes("await api.signOut()"));
 check("044 production account returns to secure auth after sign out", account.includes("window.location.replace(authUrl)") && account.includes("/production-auth.html?return="));

@@ -4,7 +4,9 @@ import { validateCdiLearning, summarizeCdiLearning } from "../netlify/modern-fun
 
 const read = path => fs.readFileSync(path, "utf8");
 const feedbackSource = read("netlify/modern-functions/beta-feedback.mjs");
-const customerSource = read("saas-prototype/beta-cdi-learning-v1.js");
+// The quick decision check is rendered by the saved decision page's owner (customer-opportunities.js, Nov 3 2026).
+const ownerSource = read("saas-prototype/customer-opportunities.js");
+const customerSource = ownerSource.slice(ownerSource.indexOf("// Private beta comprehension check"), ownerSource.indexOf("// Full customer app: how to read"));
 const customerCss = read("saas-prototype/beta-cdi-learning-v1.css");
 const loaderSource = read("saas-prototype/decision-intelligence-final-polish-v1.js");
 const operatorHtml = read("operator-beta.html");
@@ -12,7 +14,7 @@ const operatorSource = read("assets/js/beta-cdi-scorecard-operator-v1.js");
 
 const checks = [
   ["feedback intake validates CDI learning signals", feedbackSource.includes("validateCdiLearning") && feedbackSource.includes("learning: learningValidation.signals")],
-  ["customer check runs on saved decision detail", customerSource.includes('parts[0] !== "opportunities"') && customerSource.includes("data-ff-decision-card-evidence")],
+  ["customer check runs on saved decision detail (private beta only)", customerSource.length > 0 && ownerSource.includes("${passport}${betaDecisionCheck()}") && customerSource.includes('if (!betaSurface()) return "";')],
   ["customer check captures four governed fields", ["decisionUnderstood", "nextStepClear", "evidenceImpact", "mostUsefulLayer"].every(value => customerSource.includes(value))],
   ["saved-decision check asks about relevance and what information was missing", customerSource.includes("informationRelevant") && customerSource.includes("Was the information relevant") && customerSource.includes("What information was missing")],
   ["operator displays relevance counts and distinguishes them from accuracy", operatorHtml.includes('data-cdi-learning-metric="relevant-yes"') && operatorHtml.includes('data-cdi-learning-metric="relevant-no"') && operatorSource.includes("relevantAnswered") && operatorHtml.includes("They are not accuracy")],
@@ -22,7 +24,8 @@ const checks = [
   ["customer check posts only to beta feedback endpoint", customerSource.includes('ENDPOINT = "/api/beta/feedback"') && !/\/api\/v1\/opportunities|\/api\/v1\/evidence/i.test(customerSource)],
   ["customer check preserves authority boundary", customerSource.includes("does not change the saved decision") && customerSource.includes("evidence authority")],
   ["customer check is active-tester gated", customerSource.includes("membershipActive") && customerSource.includes("Active invited testers")],
-  ["learning assets load from existing DI polish layer", loaderSource.includes("ensureBetaCdiLearningAssets") && loaderSource.includes("beta-cdi-learning-v1.js") && loaderSource.includes("beta-cdi-learning-v1.css")],
+  // Listed by the Private Beta page (no script loads another, Nov 3 2026).
+  ["learning styles are listed by the Private Beta page; no separate check script", read("saas-prototype/index.html").includes('href="beta-cdi-learning-v1.css"') && !read("saas-prototype/index.html").includes("beta-cdi-learning-v1.js") && !read("saas-prototype/customer.html").includes("beta-cdi-learning-v1") && !loaderSource.includes("beta-cdi-learning-v1") && !fs.existsSync("saas-prototype/beta-cdi-learning-v1.js")],
   ["operator scorecard is role-gated through existing operator endpoint", operatorSource.includes('ENDPOINT = "/api/beta/operator"') && operatorSource.includes("operatorActive")],
   ["operator scorecard is read only", operatorSource.includes('method: "GET"') && !/method\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(operatorSource)],
   ["operator scorecard keeps no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(operatorSource)],

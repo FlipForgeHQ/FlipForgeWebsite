@@ -232,7 +232,7 @@
     const items = safeArray(payload?.data?.items)
       .filter(item => SAFE_ID.test(String(item?.id || "")));
     if (!items.length) {
-      return `<div class="staging-empty"><strong>No saved decisions yet.</strong><p>Evaluate one exact card to create the first tenant-owned saved decision.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div>`;
+      return `<div class="staging-empty"><strong>No saved decisions yet.</strong><p>Evaluate one exact card to create your first saved decision.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div>`;
     }
 
     return `<div class="table-wrap"><table><thead><tr><th>Saved card</th><th>Decision</th><th>Ask</th><th>Supported</th><th>Confidence</th><th>Evidence</th></tr></thead><tbody>${items.map(item => {
@@ -250,9 +250,9 @@
 
   function recoveredListMarkup(payload) {
     const meta = payload?.meta || {};
-    return `<div class="page customer-intelligence-page" data-saved-intelligence-recovery>
+    return `<div class="page customer-intelligence-page customer-saved-decisions-page" data-saved-intelligence-recovery>
       <header class="page-heading">
-        <div><span class="eyebrow">Saved intelligence</span><h1>Saved Decisions</h1><p>Your tenant-owned saved decisions are available. Dashboard summary context can finish loading separately.</p></div>
+        <div><span class="eyebrow">Saved intelligence</span><h1>Saved Decisions</h1><p>Your saved decisions are available. Dashboard summary context can finish loading separately.</p></div>
         <div class="page-actions"><button class="button button-secondary" type="button" data-saved-intelligence-retry>Refresh full intelligence</button><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div>
       </header>
       <details class="boundary-note ff-trust-note"><summary>Recovery details</summary><p>FlipForge loaded the authoritative saved-decision list directly instead of blocking on optional dashboard preflight data. No mock record or browser-generated recommendation was substituted.</p></details>
@@ -289,7 +289,7 @@
   function renderListRecoveryError(main, error, serial) {
     if (serial !== recoverySerial || !opportunitiesListRoute()) return;
     if (main.querySelector?.(".customer-intelligence-list")) return;
-    main.innerHTML = `<div class="page customer-intelligence-page" data-saved-intelligence-recovery-error>
+    main.innerHTML = `<div class="page customer-intelligence-page customer-saved-decisions-page" data-saved-intelligence-recovery-error>
       <header class="page-heading"><div><span class="eyebrow">Saved intelligence</span><h1>Saved Decisions</h1><p>The saved-decision list did not finish loading in the expected time.</p></div><div class="page-actions"><button class="button button-primary" type="button" data-saved-intelligence-retry>Retry now</button></div></header>
       <section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "SAVED_INTELLIGENCE_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "Your saved decisions are temporarily unavailable.")}</p><small>No mock decision or browser-generated recommendation was substituted.</small></div></section>
     </div>`;
@@ -323,7 +323,7 @@
     trust()?.remember(item);
     const riskScore = trust() ? trust().riskValue(item) : item.risk;
 
-    main.innerHTML = `<div class="page customer-intelligence-page" data-card-intelligence-recovery>
+    main.innerHTML = `<div class="page customer-intelligence-page customer-saved-decisions-page" data-card-intelligence-recovery>
       <header class="page-heading">
         <div><span class="eyebrow">Saved intelligence</span><h1>Card Intelligence</h1><p>Your saved decision is available. Deeper Evidence and PSA context can finish loading separately.</p></div>
         <div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved decisions</a><a class="button button-secondary" href="#/tracking/${encodeURIComponent(item.id)}">Track</a><button class="button button-secondary" type="button" data-card-intelligence-retry>Refresh full intelligence</button></div>
@@ -341,7 +341,7 @@
 
   function renderRecoveryError(main, id, error, serial) {
     if (!stillLoading(main, id, serial)) return;
-    main.innerHTML = `<div class="page customer-intelligence-page" data-card-intelligence-recovery-error>
+    main.innerHTML = `<div class="page customer-intelligence-page customer-saved-decisions-page" data-card-intelligence-recovery-error>
       <header class="page-heading"><div><span class="eyebrow">Saved intelligence</span><h1>Card Intelligence</h1><p>The saved decision did not finish loading in the expected time.</p></div><div class="page-actions"><a class="button button-secondary" href="#/opportunities">Saved decisions</a><button class="button button-primary" type="button" data-card-intelligence-retry>Retry now</button></div></header>
       <section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "CARD_INTELLIGENCE_TIMEOUT")}</strong><p>${escapeHtml(error?.message || "The saved decision is temporarily unavailable.")}</p><small>No mock decision or browser-generated recommendation was substituted.</small></div></section>
     </div>`;

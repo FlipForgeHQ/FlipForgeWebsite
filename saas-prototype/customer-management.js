@@ -340,8 +340,21 @@
     });
   }
 
+  // Only the newest load for the route the customer is on paints #main-content; a response that settles after they
+  // navigated elsewhere (or after a newer load started) is dropped.
+  let generation = 0;
+  const STALE = Symbol("stale customer-management response");
+
+  function currentRoute() {
+    return String(window.location.hash || "#/dashboard").replace(/^#\/?/, "").split(/[/?]/)[0] || "dashboard";
+  }
+
+  function assertFresh(loadGeneration) {
+    if (loadGeneration !== generation || currentRoute() !== state.route) throw STALE;
+  }
+
   function renderCurrent() {
-    if (!state.main) return;
+    if (!state.main || currentRoute() !== state.route) return;
     state.main.innerHTML = pageMarkup();
     bindActions();
   }
@@ -378,8 +391,10 @@
     return rememberedActiveId(ids) || ids[0] || "";
   }
 
-  async function loadSelectedWorkspace() {
-    state.opportunities = await request("/api/v1/opportunities");
+  async function loadSelectedWorkspace(loadGeneration) {
+    const opportunities = await request("/api/v1/opportunities");
+    assertFresh(loadGeneration);
+    state.opportunities = opportunities;
     if (state.opportunities?.data?.kind !== "opportunities" || !Array.isArray(state.opportunities?.data?.items)) {
       throw Object.assign(new Error("The tracked-card list failed the customer management contract."), {
         code: "CUSTOMER_LIST_INVALID"
@@ -389,14 +404,18 @@
     if (!state.selectedId) return;
     const encoded = encodeURIComponent(state.selectedId);
     if (state.route === "evidence") {
-      state.evidence = await request(`/api/v1/evidence/${encoded}`);
+      const evidence = await request(`/api/v1/evidence/${encoded}`);
+      assertFresh(loadGeneration);
+      state.evidence = evidence;
       if (state.evidence?.data?.kind !== "evidence" || String(state.evidence?.data?.opportunityId || "") !== state.selectedId) {
         throw Object.assign(new Error("The Evidence response did not match the selected tracked card."), { code: "EVIDENCE_CONTRACT_INVALID" });
       }
       return;
     }
     if (state.route === "psa-advisor") {
-      state.psa = await request(`/api/v1/psa-advisor/${encoded}`);
+      const psa = await request(`/api/v1/psa-advisor/${encoded}`);
+      assertFresh(loadGeneration);
+      state.psa = psa;
       if (state.psa?.data?.kind !== "psa-advisor" || String(state.psa?.data?.opportunityId || "") !== state.selectedId || state.psa?.data?.recalculated !== false) {
         throw Object.assign(new Error("The PSA response did not match the selected saved guidance contract."), { code: "PSA_CONTRACT_INVALID" });
       }
@@ -406,6 +425,7 @@
       request(`/api/v1/opportunities/${encoded}`),
       request(`/api/v1/evidence/${encoded}`)
     ]);
+    assertFresh(loadGeneration);
     if (results[0].status === "fulfilled") state.detail = results[0].value;
     else state.partialErrors.push(results[0].reason);
     if (results[1].status === "fulfilled") state.evidence = results[1].value;
@@ -416,25 +436,33 @@
   }
 
   async function load() {
+    const loadGeneration = ++generation;
     state.loading = true;
     resetData();
     renderCurrent();
     try {
-      state.health = await request("/api/v1/health");
+      const health = await request("/api/v1/health");
+      assertFresh(loadGeneration);
+      state.health = health;
       if (state.health?.data?.status !== "configured") return;
       if (state.route === "portfolio" || state.route === "alerts") {
-        state.feature = await request(`/api/v1/${state.route}`);
+        const feature = await request(`/api/v1/${state.route}`);
+        assertFresh(loadGeneration);
+        state.feature = feature;
         if (state.feature?.data?.kind !== state.route || typeof state.feature?.data?.configured !== "boolean" || !Array.isArray(state.feature?.data?.items)) {
           throw Object.assign(new Error("The feature status response failed the customer contract."), { code: "FEATURE_STATUS_INVALID" });
         }
         return;
       }
-      await loadSelectedWorkspace();
+      await loadSelectedWorkspace(loadGeneration);
     } catch (error) {
+      if (error === STALE) return;
       state.error = error;
     } finally {
-      state.loading = false;
-      renderCurrent();
+      if (loadGeneration === generation) {
+        state.loading = false;
+        renderCurrent();
+      }
     }
   }
 

@@ -5,11 +5,11 @@
 .topbar-actions .date-button{text-decoration:none}
 .ff-guide-panel{width:min(340px,calc(100vw - 28px))}
 .ff-guide-head{padding:12px 14px 10px}
-.ff-guide-kicker,.ff-guide-location,.ff-guide-progress-top,.ff-guide-footer,.ff-guide-footer button,.ff-guide-modal-note{font-size:11px!important;line-height:1.35!important}
-.ff-guide-head strong{font-size:13px!important;line-height:1.3!important}
+.ff-guide-kicker,.ff-guide-location,.ff-guide-progress-top,.ff-guide-footer,.ff-guide-footer button,.ff-guide-modal-note{font-size:14px!important;line-height:1.35!important}
+.ff-guide-head strong{font-size:14px!important;line-height:1.3!important}
 .ff-guide-body{padding:13px 14px}
 .ff-guide-body h2{margin-bottom:6px;font-size:17px!important;line-height:1.18!important}
-.ff-guide-body>p,.ff-guide-why,.ff-guide-action{font-size:13px!important;line-height:1.42!important}
+.ff-guide-body>p,.ff-guide-why,.ff-guide-action{font-size:14px!important;line-height:1.42!important}
 .ff-guide-why{margin-top:10px;padding:9px 10px}
 .ff-guide-actions{gap:7px;margin-top:11px}
 .ff-guide-action{min-height:40px;padding:8px 10px}
@@ -25,22 +25,22 @@
 @media(max-width:760px){
   .ff-guide-panel{left:8px!important;right:8px!important;bottom:8px!important;top:auto!important;width:auto!important;max-width:none!important;max-height:30vh!important;border-radius:13px!important;overflow:auto!important;box-shadow:0 12px 36px rgba(0,0,0,.5)!important}
   .ff-guide-head{position:sticky!important;top:0!important;z-index:2!important;padding:7px 10px 6px!important}
-  .ff-guide-kicker{font-size:8px!important;letter-spacing:.1em!important}
-  .ff-guide-head strong{font-size:11px!important;line-height:1.2!important}
+  .ff-guide-kicker{font-size:14px!important;letter-spacing:.1em!important}
+  .ff-guide-head strong{font-size:14px!important;line-height:1.2!important}
   .ff-guide-icon-button{width:30px!important;height:30px!important}
   .ff-guide-body{padding:7px 10px 8px!important}
-  .ff-guide-location{font-size:8px!important}
+  .ff-guide-location{font-size:14px!important}
   .ff-guide-body h2{margin:3px 0 4px!important;font-size:14px!important;line-height:1.18!important}
-  .ff-guide-body>p{margin:0!important;font-size:11px!important;line-height:1.32!important}
+  .ff-guide-body>p{margin:0!important;font-size:14px!important;line-height:1.32!important}
   .ff-guide-why{display:none!important}
   .ff-guide-actions{margin-top:7px!important;display:grid!important;grid-template-columns:1fr!important;gap:5px!important}
-  .ff-guide-action{min-height:36px!important;padding:6px 8px!important;font-size:11px!important;line-height:1.25!important}
+  .ff-guide-action{min-height:36px!important;padding:6px 8px!important;font-size:14px!important;line-height:1.25!important}
   .ff-guide-actions .ff-guide-action.secondary~.ff-guide-action.secondary{display:none!important}
   .ff-guide-progress{display:none!important}
   .ff-guide-route-nav{position:sticky!important;bottom:0!important;z-index:3!important;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)!important;gap:5px!important;padding:6px 10px!important;background:rgba(4,7,13,.98)!important}
-  .ff-guide-route-nav .ff-guide-action{min-height:34px!important;padding:5px 7px!important;font-size:10px!important}
-  .ff-guide-footer{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;padding:5px 10px 6px!important;font-size:8px!important}
+  .ff-guide-route-nav .ff-guide-action{min-height:34px!important;padding:5px 7px!important;font-size:14px!important}
+  .ff-guide-footer{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;padding:5px 10px 6px!important;font-size:14px!important}
   .ff-guide-footer span{display:none!important}
-  .ff-guide-footer button{font-size:9px!important;line-height:1.2!important}
-  .ff-guide-launcher{right:10px!important;bottom:10px!important;min-height:38px!important;padding:8px 12px!important;font-size:11px!important}
+  .ff-guide-footer button{font-size:14px!important;line-height:1.2!important}
+  .ff-guide-launcher{right:10px!important;bottom:10px!important;min-height:38px!important;padding:8px 12px!important;font-size:14px!important}
 }

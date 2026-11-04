@@ -363,7 +363,9 @@ async function submitSearchForm() {
 
 async function waitForDiscoverSettled(message = "Discover UI did not settle after the response") {
   await poll(async () => {
-    const providerReady = await page.locator("#main-content .customer-discovery-provider").count() === 1;
+    // The Discover owner marks a shown search response on its page root on both surfaces (the Private Beta has no
+    // provider status panel; the full customer app also shows it).
+    const providerReady = await page.locator('#main-content .customer-discovery-page[data-ff-discover-state="results"]').count() === 1;
     const buttonReady = await searchButton().count() === 1 && !(await searchButton().isDisabled());
     return providerReady && buttonReady;
   }, message, 7000);
@@ -580,7 +582,7 @@ try {
     await resetDiscover();
     const emptyQuery = "2020 Test Player #404 PSA 9";
     await directSearch(emptyQuery);
-    await poll(() => page.locator("#main-content .customer-discovery-provider").count().then(count => count === 1), "No-results provider state did not render");
+    await poll(() => page.locator('#main-content .customer-discovery-page[data-ff-discover-state="results"][data-ff-discover-count="0"]').count().then(count => count === 1), "No-results provider state did not render");
     const body = await directSearch(identities.ohtani9.canonical);
     expect(body.exactCardQuery === identities.ohtani9.canonical, "New search after no-results reused stale identity");
   });
@@ -717,18 +719,21 @@ try {
     await resetDiscover();
     await fillQuery(identities.ohtani10.canonical);
     await form().locator('input[name="targetMaxBuy"]').fill("123.45");
-    await form().locator('select[name="limit"]').selectOption("10");
+    // The Private Beta searches the default 25 results and offers no result-count choice; the full app has the select.
+    const limitChoice = await form().locator('select[name="limit"]').count() === 1;
+    if (limitChoice) await form().locator('select[name="limit"]').selectOption("10");
+    else expect(await form().locator('input[type="hidden"][name="limit"]').inputValue() === "25", "Beta result count is not the fixed default of 25");
     let before = calls.discover.length;
     await submitSearchForm();
     await poll(() => calls.discover.length > before, "Configured target/limit search did not run");
     await waitForDiscoverSettled("Configured target/limit search did not settle");
     let body = calls.discover.at(-1);
     expect(body.targetMaxBuyCents === 12345, `Target max buy was ${body.targetMaxBuyCents}, expected 12345`);
-    expect(body.limit === 10, `Result limit was ${body.limit}, expected 10`);
+    expect(body.limit === (limitChoice ? 10 : 25), `Result limit was ${body.limit}, expected ${limitChoice ? 10 : 25}`);
 
     await fillQuery(identities.ohtani9.canonical);
     await form().locator('input[name="targetMaxBuy"]').fill("");
-    await form().locator('select[name="limit"]').selectOption("25");
+    if (limitChoice) await form().locator('select[name="limit"]').selectOption("25");
     before = calls.discover.length;
     await submitSearchForm();
     await poll(() => calls.discover.length > before, "Second target/limit search did not run");

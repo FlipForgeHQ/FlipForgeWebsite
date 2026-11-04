@@ -68,11 +68,8 @@
     return Math.max(min, Math.min(max, n));
   }
 
-  function decisionValue(root, mode) {
-    const raw = mode === "decision-intelligence"
-      ? text(root.querySelector(".ff-di-v2-decision"))
-      : text(root.querySelector(".customer-intelligence-hero .staging-status"));
-    // The saved-decision hero chip reads "Saved BUY"; the verdict is the word after "Saved".
+  function decisionValue(root) {
+    const raw = text(root.querySelector(".ff-di-v2-decision"));
     const decision = raw.toUpperCase().replace(/^SAVED\s+/, "").trim();
     return Object.prototype.hasOwnProperty.call(VERDICTS, decision) ? decision : "UNKNOWN";
   }
@@ -85,24 +82,6 @@
     const row = [...scope.querySelectorAll(selector)]
       .find(node => targets.includes(text(node.querySelector("span")).toLowerCase()));
     return row ? text(row.querySelector("strong")) : "";
-  }
-
-  function traceValue(root, prefix) {
-    const row = [...root.querySelectorAll(".customer-trace-step")]
-      .find(node => text(node.querySelector("span")).toLowerCase().startsWith(prefix.toLowerCase()));
-    return row ? text(row.querySelector("strong")) : "";
-  }
-
-  function savedPrice(root) {
-    const values = [...root.querySelectorAll(".customer-value-summary > strong")].map(text);
-    const ask = values[0] || "Unavailable";
-    const supported = values[1] || "Unavailable";
-    return {
-      ask,
-      supported,
-      value: supported,
-      detail: "Ask " + ask + " · Supported " + supported
-    };
   }
 
   function decisionIntelligenceSignals(root) {
@@ -156,63 +135,6 @@
           label: "Uncertainty",
           value: confidence + " confidence · " + risk + " risk",
           caption: "Keep uncertainty visible instead of turning thin evidence into false precision.",
-          confidence: clamp(numberFromText(confidence)),
-          risk: clamp(numberFromText(risk))
-        }
-      ]
-    };
-  }
-
-  function savedDecisionSignals(root) {
-    const hero = root.querySelector(".customer-intelligence-hero");
-    if (!hero) return null;
-
-    const identity = text(hero.querySelector(".customer-hero-title h2")) || "Saved card";
-    // When the identity line is not on the page this tile must not claim a failed identity check: it shows that the
-    // value is not available here (the saved decision itself already reflects the server's identity gate).
-    const exactFound = traceValue(root, "1 ·");
-    const exact = exactFound || "See the decision trail";
-    const sales = traceValue(root, "2 ·") || "Review saved sales";
-    const price = savedPrice(root);
-    const confidence = labeledStrong(root, ".customer-intelligence-metrics article", "Confidence") || "Unavailable";
-    const risk = labeledStrong(root, ".customer-intelligence-metrics article", "Decision risk")
-      || labeledStrong(root, ".customer-intelligence-metrics article", "Risk")
-      || "Unavailable";
-
-    return {
-      command: root,
-      identity,
-      reason: text(root.querySelector(".ff-decision-meaning")),
-      evidenceHref: "#/evidence/" + encodeURIComponent(routeParts()[1] || ""),
-      signals: [
-        {
-          key: "exact",
-          label: "Exact card",
-          value: exact,
-          caption: "Confirm the saved card identity before relying on any comparison.",
-          verified: exactFound ? !/review|unknown|unverified|conflict/i.test(exact) : null
-        },
-        {
-          key: "sales",
-          label: "Matched sales",
-          value: sales,
-          caption: "See how many exact completed sales were allowed to support the decision.",
-          accepted: numberFromText(sales),
-          excluded: null
-        },
-        {
-          key: "price",
-          label: "Price check",
-          value: price.value,
-          caption: price.detail,
-          ask: moneyFromText(price.ask),
-          supported: moneyFromText(price.supported)
-        },
-        {
-          key: "uncertainty",
-          label: "Uncertainty",
-          value: confidence + " confidence · " + risk + " risk",
-          caption: "Use the saved confidence and risk together, not as a guarantee.",
           confidence: clamp(numberFromText(confidence)),
           risk: clamp(numberFromText(risk))
         }
@@ -336,44 +258,31 @@
     '</section>';
   }
 
-  function ensureDeepDisclosure(root, mode) {
-    if (mode === "decision-intelligence") {
-      const command = root.querySelector("[data-ff-di-v2-command]");
-      const grid = command?.querySelector(":scope > .ff-di-v2-intelligence-grid");
-      if (!command || !grid || grid.closest("[data-ff-cdi-deep]")) return;
-      const details = document.createElement("details");
-      details.className = "ff-cdi-deep";
-      details.dataset.ffCdiDeep = "";
-      details.innerHTML = '<summary><span><strong>Full evidence & Decision Receipt</strong><small>Open deeper detail only when you need it.</small></span><b aria-hidden="true">＋</b></summary>';
-      grid.insertAdjacentElement("beforebegin", details);
-      details.appendChild(grid);
-      return;
-    }
-
-    const grid = root.querySelector(":scope > .customer-intelligence-grid");
-    if (!grid || grid.closest("[data-ff-cdi-deep]")) return;
+  // Decision Intelligence page only. The saved decision page (customer-opportunities.js) renders its own
+  // deeper-detail disclosure.
+  function ensureDeepDisclosure(root) {
+    const command = root.querySelector("[data-ff-di-v2-command]");
+    const grid = command?.querySelector(":scope > .ff-di-v2-intelligence-grid");
+    if (!command || !grid || grid.closest("[data-ff-cdi-deep]")) return;
     const details = document.createElement("details");
-    details.className = "ff-cdi-deep ff-cdi-deep-saved";
+    details.className = "ff-cdi-deep";
     details.dataset.ffCdiDeep = "";
-    details.innerHTML = '<summary><span><strong>Full evidence & saved decision detail</strong><small>Traceback, evidence rows, PSA context, and deeper factors.</small></span><b aria-hidden="true">＋</b></summary>';
+    details.innerHTML = '<summary><span><strong>Full evidence & Decision Receipt</strong><small>Open deeper detail only when you need it.</small></span><b aria-hidden="true">＋</b></summary>';
     grid.insertAdjacentElement("beforebegin", details);
     details.appendChild(grid);
   }
 
-  function mountDecisionStack(root, mode) {
-    const model = mode === "decision-intelligence"
-      ? decisionIntelligenceSignals(root)
-      : savedDecisionSignals(root);
+  // Decision Intelligence page. The saved decision page renders the same stack itself from its record (markup below).
+  function mountDecisionStack(root) {
+    const model = decisionIntelligenceSignals(root);
     if (!model) return;
 
-    const decision = decisionValue(root, mode);
-    model.legacy = Boolean((mode === "decision-intelligence" ? model.command : root).querySelector("[data-ff-legacy-result]"));
+    const decision = decisionValue(root);
+    model.legacy = Boolean(model.command.querySelector("[data-ff-legacy-result]"));
     const signature = JSON.stringify([decision, model.legacy, model.identity, model.reason, model.evidenceHref, model.signals]);
     let stack = root.querySelector(":scope > [data-ff-cdi-stack-host]");
     if (!stack) {
-      const anchor = mode === "decision-intelligence"
-        ? root.querySelector(".ff-di-controls")
-        : root.querySelector(".customer-intelligence-hero");
+      const anchor = root.querySelector(".ff-di-controls");
       if (!anchor) return;
       stack = document.createElement("div");
       stack.dataset.ffCdiStackHost = "";
@@ -384,7 +293,7 @@
       stack.innerHTML = stackMarkup(decision, model);
     }
     root.dataset.ffCdiSignalStack = "v2";
-    ensureDeepDisclosure(root, mode);
+    ensureDeepDisclosure(root);
   }
 
   function revealStack(stack, instant) {
@@ -447,74 +356,13 @@
     heading.insertAdjacentElement("afterend", guide);
   }
 
-  function returningSavedGuide() {
-    const parts = routeParts();
-    if (parts[0] !== "opportunities" || parts[1]) return;
-    const root = document.querySelector("#main-content [data-ff-cdi-returning]");
-    root?.remove();
-  }
-
-  function outcomeGuide() {
-    const parts = routeParts();
-    if (parts[0] !== "tracking") return;
-    const root = document.querySelector("#main-content .page, #main-content .customer-lifecycle-page");
-    const heading = root?.querySelector(".page-heading");
-    if (!root || !heading) return;
-
-    // The Tracking subtitle belongs to tracking-navigation-reload-v1.js (single presentation owner, PR #210).
-    // Rewriting it here alternated with that owner every animation frame (mobile flicker), so it is left alone.
-
-    if (root.querySelector("[data-ff-cdi-outcome-guide]")) return;
-    const guide = document.createElement("section");
-    guide.className = "ff-cdi-outcome-guide";
-    guide.dataset.ffCdiOutcomeGuide = "";
-    guide.innerHTML =
-      '<div class="ff-cdi-outcome-flow" aria-label="Outcome Intelligence checkpoints">' +
-        '<article data-state="baseline"><b>T0</b><strong>Original decision</strong><small>Lock the call and its reason trail.</small></article>' +
-        '<i aria-hidden="true">→</i>' +
-        '<article><b>T7</b><strong>First review</strong><small>See what changed one week later.</small></article>' +
-        '<i aria-hidden="true">→</i>' +
-        '<article><b>T14</b><strong>Reasoning check</strong><small>Ask whether the original reasoning still holds.</small></article>' +
-        '<i aria-hidden="true">→</i>' +
-        '<article><b>T30</b><strong>Outcome context</strong><small>Record what the later evidence showed.</small></article>' +
-      '</div>';
-    heading.insertAdjacentElement("afterend", guide);
-  }
-
-  function homeContinuity() {
-    const parts = routeParts();
-    if (parts[0] !== "dashboard") return;
-    const root = document.querySelector("#main-content .ff-commercial-dashboard");
-    const returning = root?.querySelector("[data-ff-p3-returning]");
-    if (!root || !returning) return;
-
-    const saved = returning.querySelector('[data-ff-p3-return="saved"] small');
-    const outcomes = returning.querySelector('[data-ff-p3-return="outcomes"] small');
-    const heat = returning.querySelector('[data-ff-p3-return="heat"] small');
-    const portfolio = returning.querySelector('[data-ff-p3-return="portfolio"] small');
-
-    // Write only when the text differs: assigning textContent replaces the node even for identical text, which
-    // re-triggered this script's own MutationObserver every frame.
-    const put = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
-    put(saved, "Open a card to see the verdict and replay its four checks.");
-    put(outcomes, "See what changed after the original T0 decision.");
-    put(heat, "Rank eligible saved opportunities after evidence qualifies them.");
-    put(portfolio, "See owned cards and purchase context without invented market value.");
-  }
-
   function apply() {
     const parts = routeParts();
     if (parts[0] === "decision-intelligence") {
       const root = document.querySelector("#main-content .ff-di-page");
-      if (root) mountDecisionStack(root, "decision-intelligence");
-    } else if (parts[0] === "opportunities" && parts[1]) {
-      const root = document.querySelector("#main-content .customer-intelligence-page");
-      if (root) mountDecisionStack(root, "saved-decision");
+      if (root) mountDecisionStack(root);
     }
     evidenceGuide();
-    returningSavedGuide();
-    outcomeGuide();
-    homeContinuity();
   }
 
   function queue() {
@@ -564,6 +412,7 @@
   window.addEventListener("pageshow", queue);
   window.addEventListener("load", queue, { once: true });
 
-  window.FlipForgeCustomerCdiSignalStackV1 = Object.freeze({ apply: queue });
+  // markup(decision, model): the stack's HTML for a renderer that owns its page (customer-opportunities.js).
+  window.FlipForgeCustomerCdiSignalStackV1 = Object.freeze({ apply: queue, markup: stackMarkup });
   queue();
 })();

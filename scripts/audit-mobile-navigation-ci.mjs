@@ -140,7 +140,8 @@ async function auditOpenDrawerLayout(page) {
   if (snapshot.guideDisplay !== "missing" && snapshot.guideDisplay !== "none") {
     failures.push(`Guided Mode floats above an open drawer (${snapshot.guideDisplay})`);
   }
-  if (snapshot.advancedDisplay !== "none") {
+  // The Private Beta page no longer carries the advanced tools menu at all ("missing"); where it exists it must be hidden.
+  if (snapshot.advancedDisplay !== "none" && snapshot.advancedDisplay !== "missing") {
     failures.push(`advanced tool navigation is exposed in beta (${snapshot.advancedDisplay})`);
   }
 
