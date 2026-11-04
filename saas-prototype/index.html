@@ -9,6 +9,10 @@
   <script>
     // Private Beta workspace: a live customer view on every host. It loads no prototype sample data.
     window.FlipForgePrivateBetaEntry = true;
+    // Not part of the private beta release: Decision Monitor stays hidden, and Deal Check stays off exactly as it is on
+    // goflipforge.com, on every host, so preview acceptance tests the same customer app production serves.
+    window.FlipForgeDecisionMonitorDisabled = true;
+    window.FlipForgeDealCheckDisabled = true;
     if (/^(?:www\.)?goflipforge\.com$/i.test(String(window.location.hostname || ""))) {
       // The beta loads its files by relative path, which only resolve under /app/beta/. Move the exact slashless
       // entry to the canonical address before the page renders; /app/beta/ never matches, so this cannot loop.
@@ -181,6 +185,7 @@
 
   <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
+  <script src="dom-idempotent-writes-v1.js"></script>
   <script src="/assets/js/flipforge-identity.js"></script>
   <script src="private-beta-access-gate.js"></script>
   <script src="production-dashboard-guard.js"></script>

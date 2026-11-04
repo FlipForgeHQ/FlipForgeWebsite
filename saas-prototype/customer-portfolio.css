@@ -185,3 +185,26 @@
   display: grid;
   gap: 10px;
 }
+
+/* Owned card links back to its tracked record and saved decision (2026-10-31). */
+.customer-portfolio-table td a[data-portfolio-card-link] { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.customer-portfolio-table .customer-portfolio-decision-link { display: block; width: fit-content; margin-top: 6px; font-size: 0.82rem; color: var(--gold, #d4a72c); }
+.customer-portfolio-table td[data-portfolio-decision] .staging-status { display: inline-block; margin-bottom: 4px; }
+.customer-portfolio-table small[data-portfolio-versus="over"] { color: var(--orange, #f6a916); }
+
+/* Sold cards: buying discipline against the saved Max Buy (Portfolio Intelligence, 2026-10-31). */
+.customer-portfolio-discipline { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.customer-portfolio-discipline h3 { margin: 0 0 4px; font-size: 1rem; }
+.customer-portfolio-discipline p { margin: 0 0 12px; color: var(--muted, #a9a9a9); font-size: 0.9rem; }
+
+/* Owned cards that need a look (Saved Decisions & Tracking → Portfolio). */
+.customer-portfolio-attention .panel-body > strong { display: block; color: var(--text); }
+.customer-portfolio-attention .panel-body > small { display: block; margin-top: 4px; color: var(--text-soft); }
+.customer-portfolio-attention-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.customer-portfolio-attention-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+.customer-portfolio-attention-list li:first-child { border-top: 0; }
+.customer-portfolio-attention-list li span { display: block; color: var(--gold-strong); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.customer-portfolio-attention-list li strong { display: block; margin-top: 3px; color: var(--text); }
+.customer-portfolio-attention-list li small { display: block; margin-top: 3px; color: var(--text-soft); line-height: 1.45; }
+.customer-portfolio-attention-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 680px) { .customer-portfolio-attention-actions, .customer-portfolio-attention-actions .button { width: 100%; } }

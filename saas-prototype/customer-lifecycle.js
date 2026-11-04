@@ -7,6 +7,8 @@
   const PREVIEW_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
   const APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i;
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+  const SAFE_ALERT_ID = /^[a-f0-9]{64}$/;
+  const ALERTS_SEEN_PATH = "/api/v1/alerts/last-seen";
   const ROUTES = new Set(["tracking", "portfolio", "alerts"]);
   const FIXED_PATHS = new Set([
     "/api/v1/health",
@@ -30,6 +32,8 @@
     feature: null,
     error: null,
     notice: "",
+    reviewing: "",
+    reviewSequence: 0,
     generation: 0
   };
 
@@ -98,7 +102,9 @@
 
   function allowedPath(path) {
     const value = String(path || "");
-    if (FIXED_PATHS.has(value)) return value;
+    if (FIXED_PATHS.has(value) || value === ALERTS_SEEN_PATH) return value;
+    const reviewed = value.match(/^\/api\/v1\/alerts\/reviewed\/([a-f0-9]{64})$/);
+    if (reviewed) return value;
     const match = value.match(/^\/api\/v1\/lifecycle\/([^/?#]+)$/);
     if (!match) throw new Error("The requested lifecycle API path is not allowlisted.");
     let decoded;
@@ -109,6 +115,11 @@
     }
     if (!SAFE_ID.test(decoded)) throw new Error("The requested lifecycle identifier is invalid.");
     return value;
+  }
+
+  // Saved Decisions & Tracking M1: the only non-lifecycle writes are the customer's own alert review facts.
+  function alertWritePath(path) {
+    return path === ALERTS_SEEN_PATH || /^\/api\/v1\/alerts\/reviewed\/[a-f0-9]{64}$/.test(path);
   }
 
   function validEnvelope(payload, expectedCorrelationId) {
@@ -160,7 +171,7 @@
     const safePath = allowedPath(path);
     const method = String(options.method || "GET").toUpperCase();
     if (method !== "GET" && method !== "PUT") throw new Error("The lifecycle browser allows GET and PUT only.");
-    if (method === "PUT" && !/^\/api\/v1\/lifecycle\//.test(safePath)) {
+    if (method === "PUT" && !/^\/api\/v1\/lifecycle\//.test(safePath) && !alertWritePath(safePath)) {
       throw new Error("Lifecycle writes require one tenant-owned saved opportunity.");
     }
     const requestCorrelationId = correlationId();
@@ -336,7 +347,7 @@
     const items = lifecycleItems();
     const due = items.filter(item => item.alertEnabled && item.reviewAt && new Date(item.reviewAt).getTime() <= Date.now()).length;
     const owned = items.filter(item => item.trackingStatus === "OWNED").length;
-    const actions = `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(state.selectedId || "")}">Card Intelligence</a><a class="button button-secondary" href="#/export/${encodeURIComponent(state.selectedId || "")}">Audit export</a><button class="button button-secondary" type="button" data-lifecycle-refresh>Refresh</button>`;
+    const actions = `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(state.selectedId || "")}">Card Intelligence</a>${state.selectedId ? `<a class="button button-secondary" href="#/evaluate/${encodeURIComponent(state.selectedId)}" data-lifecycle-reevaluate>Re-evaluate this listing</a>` : ""}<a class="button button-secondary" href="#/export/${encodeURIComponent(state.selectedId || "")}">Audit export</a><button class="button button-secondary" type="button" data-lifecycle-refresh>Refresh</button>`;
     if (!items.length) {
       return `<div class="page customer-lifecycle-page">${pageHeading("Customer lifecycle", "Tracking", "Manage review timing and outcomes for tenant-owned saved decisions.", actions)}${boundary("Tracking state records customer workflow facts only. It cannot change Smart Opportunity, PSA guidance, or evidence eligibility.")}<section class="panel"><div class="panel-body staging-empty"><strong>No saved opportunity is available.</strong><p>Evaluate a card first; the authoritative result will create the tenant-owned tracking boundary.</p><a class="button button-primary" href="#/evaluate">Evaluate a card</a></div></section></div>`;
     }
@@ -352,10 +363,174 @@
     return `<div class="page customer-lifecycle-page">${pageHeading("Customer cost basis", "Portfolio", "Review current holdings created from explicit customer acquisition facts.", `<a class="button button-secondary" href="#/tracking">Manage tracking</a><button class="button button-secondary" type="button" data-lifecycle-refresh>Refresh</button>`)}${boundary("Portfolio shows recorded acquisition cost only. It does not invent current value, performance, profit, liquidation value, fees, taxes, or a sell recommendation.")}<section class="customer-management-metrics"><article><span>Current holdings</span><strong>${safeNumber(data.count)}</strong></article><article><span>Total cost basis</span><strong>${moneyFromCents(data.totalCostBasisCents)}</strong></article><article><span>Current value</span><strong>${data.currentValueConfigured ? "Connected" : "Not calculated"}</strong></article><article><span>Transactions</span><strong>${data.transactionAuthority ? "Enabled" : "Disabled"}</strong></article></section><section class="panel"><header class="panel-header"><div><h2>Tenant-owned holdings</h2><p>Only lifecycle records in OWNED state are included.</p></div>${badge(data.configured ? "SQLite connected" : "Unavailable", data.configured ? "ok" : "warn")}</header><div class="panel-body">${items.length ? `<div class="table-wrap"><table><thead><tr><th>Card</th><th>Cost basis</th><th>Acquired</th><th>Status</th><th></th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHtml(titleFor(item.opportunityId))}</strong><small>${escapeHtml(item.opportunityId)}</small></td><td>${moneyFromCents(item.acquisitionCostCents)}</td><td>${escapeHtml(dateOnly(item.acquiredAt) || "Not recorded")}</td><td>${badge(item.trackingStatus || "OWNED", "buy")}</td><td><a class="button button-secondary" href="#/tracking/${encodeURIComponent(item.opportunityId)}">Manage</a></td></tr>`).join("")}</tbody></table></div>` : `<div class="staging-empty"><strong>No current holdings.</strong><p>Mark a tenant-owned saved opportunity as OWNED with acquisition facts to add it here.</p><a class="button button-primary" href="#/tracking">Open tracking</a></div>`}</div></section><section class="panel"><div class="panel-body staging-empty"><strong>No supported-value total or performance chart was created.</strong><p>Those require a separate governed current-value snapshot contract; cost basis alone cannot establish gain or loss.</p></div></section></div>`;
   }
 
+  // ---------------------------------------------------------------------------------------------------------------
+  // Alerts (Saved Decisions & Tracking M1): one plain-language list of what needs a look, why, and what to do next.
+  // Every word comes from the saved decision or the backend's alert text; the browser never re-scores or decides.
+  const ALERT_TITLES = Object.freeze({
+    REVIEW_DUE: "Your scheduled review is due",
+    DECISION_CHANGED: "Decision changed at a re-evaluation",
+    MAX_BUY_CROSSED: "Ask moved across your Max Buy",
+    DECISION_RECHECK_DUE: "Decision needs a fresh look",
+    VERIFICATION_PENDING: "Verification still needed",
+    LEGACY_DECISION: "Based on evidence FlipForge no longer accepts"
+  });
+  const REEVALUATE_KINDS = new Set(["REVIEW_DUE", "DECISION_CHANGED", "MAX_BUY_CROSSED", "DECISION_RECHECK_DUE", "LEGACY_DECISION"]);
+
+  function alertKind(item) {
+    return String(item?.kind || "").toUpperCase();
+  }
+
+  function alertTitle(item) {
+    const title = String(item?.title || "").trim();
+    if (title) return title;
+    const kind = alertKind(item);
+    if (kind === "DECISION_CHANGED" && item?.previousDecision && item?.currentDecision) {
+      return `Decision changed from ${item.previousDecision} to ${item.currentDecision}`;
+    }
+    return ALERT_TITLES[kind] || "Needs a look";
+  }
+
+  function alertDecision(item) {
+    return String(item?.currentDecision || item?.decision || "").toUpperCase();
+  }
+
+  function alertNeedsAttention(item) {
+    if (typeof item?.needsAttention === "boolean") return item.needsAttention;
+    return alertKind(item) === "REVIEW_DUE" ? item?.due === true : true;
+  }
+
+  function alertsList(data) {
+    const items = safeArray(data.items).concat(safeArray(data.decisionReviewSignals));
+    return items.filter(item => item && typeof item === "object" && SAFE_ID.test(String(item.opportunityId || "")));
+  }
+
+  function observedTime(item) {
+    const time = Date.parse(String(item?.observedAt || item?.changedAt || item?.evaluatedAt || item?.reviewAt || ""));
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function alertFacts(item) {
+    const facts = [];
+    const kind = alertKind(item);
+    if (kind === "MAX_BUY_CROSSED") {
+      facts.push(`All-in ask ${moneyFromCents(item.previousAllInAskCents)} → ${moneyFromCents(item.allInAskCents)} · saved Max Buy ${moneyFromCents(item.maximumBuyPriceCents)}`);
+    }
+    if (kind === "DECISION_RECHECK_DUE" && Number.isFinite(Number(item.ageDays))) {
+      facts.push(`Decided ${whenText(item.evaluatedAt, "earlier")} · ${Number(item.ageDays)} days ago`);
+    }
+    if (kind === "REVIEW_DUE" && item.reviewAt) facts.push(`Reminder set for ${whenText(item.reviewAt, "a date you chose")}`);
+    return facts;
+  }
+
+  function alertCardMarkup(item, data, mode) {
+    const kind = alertKind(item);
+    const id = String(item.opportunityId);
+    const alertId = String(item.alertId || "");
+    const decision = alertDecision(item);
+    const changes = kind === "DECISION_CHANGED" ? changeLinesFor(item) : [];
+    const facts = alertFacts(item);
+    const canReview = data.acknowledgementConfigured === true && SAFE_ALERT_ID.test(alertId) && mode === "attention";
+    const reviewing = state.reviewing === alertId;
+    const recorded = item.observedAt ? whenText(item.observedAt, "") : "";
+    const reviewedLine = mode === "reviewed" && item.reviewedAt ? `<small>Reviewed ${escapeHtml(whenText(item.reviewedAt, ""))}</small>` : "";
+    const badges = `${item.newSinceLastVisit === true ? badge("New", "buy") : ""}${decision ? badge(decision, decisionTone(decision)) : ""}`;
+    const rules = item.decidedUnderEarlierRules === true ? `<p class="ff-alert-rules">${escapeHtml(item.rulesNote || "Decided under earlier rules. The saved decision and its Max Buy are kept exactly as they were made.")}</p>` : "";
+    const actions = [
+      `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(id)}">Open decision</a>`,
+      REEVALUATE_KINDS.has(kind) && mode !== "reviewed" ? `<a class="button button-secondary" href="#/evaluate/${encodeURIComponent(id)}" data-alert-reevaluate>Re-evaluate</a>` : "",
+      `<a class="button button-secondary" href="#/tracking/${encodeURIComponent(id)}">History</a>`,
+      canReview ? `<button class="button button-primary" type="button" data-alert-review="${escapeHtml(alertId)}" ${reviewing ? "disabled" : ""}>${reviewing ? "Saving…" : "Mark as reviewed"}</button>` : ""
+    ].join("");
+    return `<article class="ff-alert-card" data-alert-kind="${escapeHtml(kind)}" data-alert-mode="${escapeHtml(mode)}" data-new="${item.newSinceLastVisit === true}"><header><div><span class="eyebrow">${escapeHtml(titleFor(id))}</span><h3>${escapeHtml(alertTitle(item))}</h3></div><div class="ff-alert-badges">${badges}</div></header>${item.customerExplanation ? `<p>${escapeHtml(item.customerExplanation)}</p>` : ""}${facts.length ? `<ul class="ff-alert-facts">${facts.map(fact => `<li>${escapeHtml(fact)}</li>`).join("")}</ul>` : ""}${changes.length ? `<div class="ff-alert-changes"><strong>What changed</strong><ul>${changes.map(change => `<li>${escapeHtml(change)}</li>`).join("")}</ul></div>` : ""}${rules}${item.nextStep && mode !== "reviewed" ? `<p class="ff-alert-next"><strong>Next step:</strong> ${escapeHtml(item.nextStep)}</p>` : ""}<footer><small>${recorded ? `Recorded ${escapeHtml(recorded)}` : ""}</small>${reviewedLine}<div class="ff-alert-actions">${actions}</div></footer></article>`;
+  }
+
   function alertsView() {
     const data = state.feature?.data || {};
-    const items = safeArray(data.items);
-    return `<div class="page customer-lifecycle-page">${pageHeading("In-app review queue", "Alerts", "Review persisted customer reminder rules without pretending notification delivery exists.", `<a class="button button-secondary" href="#/tracking">Manage rules</a><button class="button button-secondary" type="button" data-lifecycle-refresh>Refresh</button>`)}${boundary("Alerts observe saved review timing only. They do not calculate or change recommendations, evidence, grades, values, or transactions.")}<section class="customer-management-metrics"><article><span>Enabled rules</span><strong>${safeNumber(data.count)}</strong></article><article><span>Reviews due</span><strong>${safeNumber(data.dueCount)}</strong></article><article><span>In-app queue</span><strong>${data.configured ? "Connected" : "Unavailable"}</strong></article><article><span>Email / push</span><strong>${data.notificationDeliveryConfigured ? "Connected" : "Not connected"}</strong></article></section><div class="customer-lifecycle-grid"><section class="panel"><header class="panel-header"><div><h2>Review reminders</h2><p>Rules are stored in authoritative tenant-scoped SQLite.</p></div>${badge(data.status || "STATUS_UNAVAILABLE", data.configured ? "ok" : "warn")}</header><div class="panel-body">${items.length ? `<div class="customer-lifecycle-alerts">${items.map(item => `<article data-due="${item.due === true}"><div><span class="eyebrow">${escapeHtml(item.kind || "REVIEW_DUE")}</span><h3>${escapeHtml(titleFor(item.opportunityId))}</h3><p>Review at ${escapeHtml(item.reviewAt || "Not scheduled")}</p></div><div>${badge(item.due ? "Due" : "Scheduled", item.due ? "warn" : "ok")}<a class="button button-secondary" href="#/tracking/${encodeURIComponent(item.opportunityId)}">Manage</a></div></article>`).join("")}</div>` : `<div class="staging-empty"><strong>No review reminder is enabled.</strong><p>Choose a tracked card, set a review time, and enable its in-app reminder.</p><a class="button button-primary" href="#/tracking">Create from tracking</a></div>`}</div></section><section class="panel"><header class="panel-header"><div><h2>Delivery boundary</h2><p>Saved rules are real; external notification delivery is not.</p></div></header><div class="panel-body customer-management-checklist"><div data-state="ready"><span>✓</span><span><strong>SQLite rule persistence</strong><small>Tenant owned and version protected.</small></span></div><div data-state="attention"><span>!</span><span><strong>Email, SMS, and push</strong><small>No delivery provider or customer contact channel is connected.</small></span></div><div data-state="ready"><span>✓</span><span><strong>Zero transaction authority</strong><small>Rules cannot buy, sell, list, bid, or pay.</small></span></div></div></section></div></div>`;
+    const all = alertsList(data);
+    const reviewState = data.acknowledgementConfigured === true;
+    const attention = all.filter(item => item.reviewed !== true && alertNeedsAttention(item))
+      .sort((a, b) => (b.newSinceLastVisit === true) - (a.newSinceLastVisit === true) || observedTime(b) - observedTime(a));
+    const scheduled = all.filter(item => alertKind(item) === "REVIEW_DUE" && item.due !== true && item.reviewed !== true);
+    const reviewed = all.filter(item => item.reviewed === true).sort((a, b) => Date.parse(b.reviewedAt || 0) - Date.parse(a.reviewedAt || 0));
+    const since = data.sinceLastVisit || null;
+    const newCount = attention.filter(item => item.newSinceLastVisit === true).length;
+    const seenButton = reviewState && since ? `<button class="button button-secondary" type="button" data-alerts-seen ${state.reviewing === "seen" ? "disabled" : ""}>${state.reviewing === "seen" ? "Saving…" : "Mark all as seen"}</button>` : "";
+    const actions = `${seenButton}<a class="button button-secondary" href="#/tracking">Manage tracking</a><button class="button button-secondary" type="button" data-lifecycle-refresh>Refresh</button>`;
+    const delivery = `Alerts are shown here in the app; Email / push delivery is ${data.notificationDeliveryConfigured ? "connected" : "not connected"}.`;
+    const sinceLine = since
+      ? `<p class="ff-alerts-since" data-since-basis="${escapeHtml(since.basis || "")}">${escapeHtml(since.explanation || "")}${since.lastSeenAt ? ` Last marked seen ${escapeHtml(whenText(since.lastSeenAt, ""))}.` : ""} ${escapeHtml(delivery)}</p>`
+      : `<p class="ff-alerts-since">${escapeHtml(delivery)}</p>`;
+    const summary = `<section class="customer-management-metrics ff-alerts-summary"><article><span>New since your last visit</span><strong>${since ? newCount : "—"}</strong></article><article><span>Needs your review</span><strong>${attention.length}</strong></article><article><span>Scheduled reminders</span><strong>${scheduled.length}</strong></article><article><span>Reviewed</span><strong>${reviewState ? reviewed.length : "—"}</strong></article></section>`;
+    const attentionPanel = `<section class="panel ff-alerts-panel" data-alerts-attention><header class="panel-header"><div><h2>Needs your review</h2><p>Newest first. Each item says what FlipForge recorded and what to do next.</p></div>${badge(attention.length ? `${attention.length} open` : "All clear", attention.length ? "warn" : "ok")}</header><div class="panel-body">${attention.length
+      ? `<div class="ff-alert-list">${attention.map(item => alertCardMarkup(item, data, "attention")).join("")}</div>`
+      : `<div class="staging-empty"><strong>Nothing needs your review.</strong><p>FlipForge does not re-check listings on its own. Alerts appear when you re-evaluate a card, when a saved decision passes 30 days, when verification is still pending, or when a reminder you set comes due.</p><a class="button button-primary" href="#/tracking">Open tracking</a></div>`}</div></section>`;
+    const scheduledPanel = scheduled.length
+      ? `<section class="panel"><header class="panel-header"><div><h2>Scheduled reminders</h2><p>Reminders you set that are not due yet.</p></div></header><div class="panel-body"><div class="ff-alert-list">${scheduled.map(item => alertCardMarkup(item, data, "scheduled")).join("")}</div></div></section>`
+      : "";
+    const reviewedPanel = reviewed.length
+      ? `<details class="panel ff-alerts-reviewed"><summary>Reviewed (${reviewed.length})</summary><div class="panel-body"><div class="ff-alert-list">${reviewed.map(item => alertCardMarkup(item, data, "reviewed")).join("")}</div></div></details>`
+      : "";
+    const boundaryPanel = `<details class="boundary-note ff-trust-note"><summary>How alerts work</summary><p>Alerts come from your saved decisions, re-evaluations you ran, reminders you set and time. They never change a decision, its receipt or its Max Buy, and FlipForge does not watch live listings between re-evaluations.</p><p>Marking an alert reviewed or marking all as seen is saved to your account only. Email / push: ${data.notificationDeliveryConfigured ? "Connected" : "Not connected"}; alerts are shown in the app.</p></details>`;
+    return `<div class="page customer-lifecycle-page ff-alerts-page">${pageHeading("Saved Decisions & Tracking", "Alerts", "What changed on cards you track, what needs a look, and what to do next.", actions)}${state.notice ? `<div class="customer-lifecycle-notice" role="status">${escapeHtml(state.notice)}</div>` : ""}${sinceLine}${summary}<div class="customer-lifecycle-grid ff-alerts-grid">${attentionPanel}${scheduledPanel}${reviewedPanel}</div>${boundaryPanel}</div>`;
+  }
+
+  function validAlertsPayload(payload) {
+    return payload?.data?.kind === "alerts" && payload?.data?.configured === true && Array.isArray(payload?.data?.items);
+  }
+
+  async function markReviewed(alertId) {
+    if (!SAFE_ALERT_ID.test(alertId) || state.reviewing) return;
+    const generation = state.generation;
+    const route = state.route;
+    const reviewSequence = ++state.reviewSequence;
+    state.reviewing = alertId;
+    state.notice = "";
+    renderCurrent(generation, route);
+    try {
+      const payload = await request(`/api/v1/alerts/reviewed/${alertId}`, { method: "PUT", body: {} });
+      if (!activeGeneration(generation, route)) return;
+      if (!validAlertsPayload(payload)) throw Object.assign(new Error("The alerts response failed the customer contract."), { code: "LIFECYCLE_PROJECTION_INVALID" });
+      state.feature = payload;
+      state.notice = "Marked as reviewed. It stays in Reviewed below.";
+    } catch (error) {
+      if (!activeGeneration(generation, route)) return;
+      state.notice = `Could not save the review: ${error?.message || "please try again."}`;
+    } finally {
+      // Release only the lock owned by this request. An old route's late response
+      // must not clear a newer review write or leave Alerts permanently disabled.
+      if (state.reviewSequence === reviewSequence) {
+        state.reviewing = "";
+        if (activeGeneration(generation, route)) renderCurrent(generation, route);
+      }
+    }
+  }
+
+  async function markAllSeen() {
+    if (state.reviewing) return;
+    const generation = state.generation;
+    const route = state.route;
+    const seenThrough = String(state.feature?.data?.generatedAt || new Date().toISOString());
+    const reviewSequence = ++state.reviewSequence;
+    state.reviewing = "seen";
+    state.notice = "";
+    renderCurrent(generation, route);
+    try {
+      const payload = await request(ALERTS_SEEN_PATH, { method: "PUT", body: { seenThrough } });
+      if (!activeGeneration(generation, route)) return;
+      if (!validAlertsPayload(payload)) throw Object.assign(new Error("The alerts response failed the customer contract."), { code: "LIFECYCLE_PROJECTION_INVALID" });
+      state.feature = payload;
+      state.notice = "Marked as seen. Items stay open until you mark them reviewed.";
+    } catch (error) {
+      if (!activeGeneration(generation, route)) return;
+      state.notice = `Could not save: ${error?.message || "please try again."}`;
+    } finally {
+      // Release only the lock owned by this request. An old route's late response
+      // must not clear a newer review write or leave Alerts permanently disabled.
+      if (state.reviewSequence === reviewSequence) {
+        state.reviewing = "";
+        if (activeGeneration(generation, route)) renderCurrent(generation, route);
+      }
+    }
   }
 
   function pageMarkup() {
@@ -540,6 +715,16 @@
         window.location.hash = nextHash;
       }
     });
+    if (typeof state.main.querySelectorAll === "function") {
+      state.main.querySelectorAll("[data-alert-review]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (activeGeneration(generation, route)) markReviewed(String(button.getAttribute("data-alert-review") || ""));
+        });
+      });
+    }
+    state.main.querySelector("[data-alerts-seen]")?.addEventListener("click", () => {
+      if (activeGeneration(generation, route)) markAllSeen();
+    });
     state.main.querySelector("[data-lifecycle-form]")?.addEventListener("submit", event => {
       event.preventDefault();
       if (activeGeneration(generation, route)) save(event.currentTarget);
@@ -557,6 +742,10 @@
     state.main = main;
     state.route = String(route);
     state.generation += 1;
+    // Route transitions retire pending UI write locks, not the server request.
+    // Old requests may finish, but their generation cannot mutate the new view.
+    state.reviewSequence += 1;
+    state.reviewing = "";
     try {
       state.requestedId = decodeURIComponent(String(id || ""));
     } catch (_) {

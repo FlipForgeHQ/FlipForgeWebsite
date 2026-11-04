@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  window.__ffStagingRouteHookOwnsDiscover = true;
+
   const adapter = window.FlipForgeStagingReadAdapter;
   const opportunityAdapter = window.FlipForgeCustomerOpportunitiesBridge || window.FlipForgeCustomerOpportunities;
   const evaluationAdapter = window.FlipForgeStagingEvaluationAdapter;

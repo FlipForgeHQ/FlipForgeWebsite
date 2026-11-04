@@ -585,7 +585,9 @@ try {
   await runScenario("Evidence Center stays read-only and exact-record scoped", async () => {
     await openRoute("evidence/qa-a");
     await waitEvidenceReady("qa-a");
-    const boundary = await page.locator("#main-content .boundary-note").first().innerText();
+    // The read-only note is a collapsed disclosure that is visible on the beta, so read its full text, not only
+    // the rendered summary line.
+    const boundary = await page.locator("#main-content .boundary-note").first().textContent();
     expect(
       /Evidence is read-only|server-governed/i.test(boundary)
         && /active listing|active asks|browser-side evidence authority|cannot change/i.test(boundary),

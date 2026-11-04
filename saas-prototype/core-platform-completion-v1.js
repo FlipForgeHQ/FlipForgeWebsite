@@ -52,15 +52,6 @@
       .join(" ");
   }
 
-  function syncAdvancedAnalysisState() {
-    const advanced = document.querySelector(".primary-nav .ff-advanced-nav");
-    if (!advanced) return;
-    const route = routeName();
-    const activeInside = [...advanced.querySelectorAll("[data-route]")]
-      .some(link => link.dataset.route === route);
-    advanced.open = activeInside;
-  }
-
   function enablePlanUsageNavigation() {
     const planCard = document.querySelector(".plan-card");
     if (!planCard) return;
@@ -266,7 +257,6 @@
   function apply() {
     if (!eligible()) return;
     document.body.classList.add("ff-core-platform-completion");
-    syncAdvancedAnalysisState();
     normalizeDynamicCustomerContent();
     armDecisionIntelligenceGuard();
     installCompletionObserver();

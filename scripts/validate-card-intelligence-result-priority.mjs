@@ -34,7 +34,7 @@ const checks = [
   ["decision clarity is wired through a production-safe shell utility", scrollReset.includes("loadDecisionClarityAssets();") && scrollReset.includes("customer-decision-clarity-v1.js") && scrollReset.includes("customer-decision-clarity-v1.css")],
   ["first-value clarity is wired through the same production-safe shell utility", scrollReset.includes("loadFirstValueAssets();") && scrollReset.includes("customer-first-value-v1.js") && scrollReset.includes("customer-first-value-v1.css")],
   ["prototype visual loader remains production-isolated", prototypeLoader.includes("if (production) return;") && !prototypeLoader.includes("customer-decision-clarity") && !prototypeLoader.includes("customer-first-value")],
-  ["decision clarity is presentation only", !clarity.includes("fetch(") && !clarity.includes("XMLHttpRequest") && clarity.includes("No browser-side scoring")],
+  ["decision clarity is presentation only", !clarity.includes("fetch(") && !clarity.includes("XMLHttpRequest") && (clarity.includes("No hidden re-scoring") || clarity.includes("No browser-side scoring"))],
   ["first-value layer is presentation only", !firstValue.includes("fetch(") && !firstValue.includes("XMLHttpRequest") && !firstValue.includes("/api/")],
   ["decision clarity defines plain-language BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => clarity.includes(value))],
   ["first-value layer uses the same BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => firstValue.includes(value))],
