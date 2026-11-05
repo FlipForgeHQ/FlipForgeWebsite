@@ -97,6 +97,10 @@ check("LEGACY_PROVIDER_DERIVED is legacy", T.isLegacy({ evidenceProvenanceStatus
 check("currentlySupported:false or LEGACY_NOT_CURRENTLY_SUPPORTED without a status is legacy", T.isLegacy({ currentlySupported: false }) && T.isLegacy({ supportedValueStatus: "LEGACY_NOT_CURRENTLY_SUPPORTED" }));
 const newLegacy = { evidenceProvenanceStatus: "LEGACY_PROVIDER_DERIVED", supportedValue: null, legacySavedValues: { supportedValue: 1675 }, governedDecision: { legacySavedValues: { maximumBuyPriceCents: 140000 } } };
 check("legacy saved values are labelled as at the time (legacy)", T.legacySavedValuesText(newLegacy) === "Saved value at the time (legacy): $1,675 · Max Buy at the time (legacy): $1,400", T.legacySavedValuesText(newLegacy));
+check("legacy VERIFY: saved value shown, Max Buy at the time withheld", T.legacySavedValuesText({ ...newLegacy, recommendation: "VERIFY" }) === "Saved value at the time (legacy): $1,675", T.legacySavedValuesText({ ...newLegacy, recommendation: "VERIFY" }));
+check("legacy VERIFY timeline entry (decision field): Max Buy at the time withheld", !/Max Buy/.test(T.legacySavedValuesText({ ...newLegacy, decision: "verify" })));
+check("legacy PASS keeps its Max Buy at the time", /Max Buy at the time \(legacy\): \$1,400/.test(T.legacySavedValuesText({ ...newLegacy, recommendation: "PASS" })));
+check("legacy VERIFY record itself is not modified", newLegacy.governedDecision.legacySavedValues.maximumBuyPriceCents === 140000);
 check("decisionTime.legacySavedValues is read", T.legacySavedValues({ decisionTime: { legacySavedValues: { supportedValue: 900 } } }).supported === 900);
 check("a null value is Unavailable, never $0", T.moneyOrUnavailable(null) === "Unavailable" && T.moneyOrUnavailable(1215) === "$1,215");
 const providerEvidence = { providerEvidenceSummary: { label: "Reported completed sale (data provider)", storedRowsLinked: 39, storedRowsAdmittedNow: 9, storedRowReasons: { PROVIDER_STORED_HISTORY_NOT_RETAINED: 30 }, liveAvailable: false, liveQualifiedSales: 0, liveExpiresAt: null } };
