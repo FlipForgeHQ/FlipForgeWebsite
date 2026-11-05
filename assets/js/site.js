@@ -1,16 +1,17 @@
 (()=>{
+  // The site menu (written into each page by scripts/site-header.mjs): one labeled Menu button at every width.
   const toggle=document.querySelector('.menu-toggle');
-  const menu=document.querySelector('.mobile-nav');
+  const menu=document.querySelector('.site-menu');
   const backdrop=document.querySelector('.backdrop');
+  const label=toggle?toggle.querySelector('.menu-toggle-label'):null;
   let lastFocus=null;
   const focusable=()=>menu?[...menu.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])')]:[];
   const closeMenu=()=>{
-    if(!toggle||!menu||!backdrop)return;
+    if(!toggle||!menu||!backdrop||!menu.classList.contains('open'))return;
     toggle.setAttribute('aria-expanded','false');
-    toggle.setAttribute('aria-label','Open navigation menu');
+    if(label)label.textContent='Menu';
     menu.classList.remove('open');
     backdrop.classList.remove('open');
-    backdrop.setAttribute('aria-hidden','true');
     document.body.classList.remove('menu-open');
     if(lastFocus)lastFocus.focus();
   };
@@ -18,10 +19,9 @@
     if(!toggle||!menu||!backdrop)return;
     lastFocus=document.activeElement;
     toggle.setAttribute('aria-expanded','true');
-    toggle.setAttribute('aria-label','Close navigation menu');
+    if(label)label.textContent='Close';
     menu.classList.add('open');
     backdrop.classList.add('open');
-    backdrop.setAttribute('aria-hidden','false');
     document.body.classList.add('menu-open');
     const items=focusable();
     if(items.length)items[0].focus();
@@ -29,48 +29,19 @@
   if(toggle&&menu&&backdrop){
     toggle.addEventListener('click',()=>toggle.getAttribute('aria-expanded')==='true'?closeMenu():openMenu());
     backdrop.addEventListener('click',closeMenu);
-    // Delegated: menu links are rebuilt after load (conversion-events.js), so per-link listeners would be lost and a
-    // same-page link such as "Who It’s For" would leave the menu open over the section it opened.
+    // A same-page link such as "Who It’s For" must not leave the menu open over the section it opened.
     menu.addEventListener('click',e=>{if(e.target instanceof Element&&e.target.closest('a'))closeMenu();});
     document.addEventListener('keydown',e=>{
       if(e.key==='Escape')closeMenu();
       if(e.key==='Tab'&&menu.classList.contains('open')){
-        const items=focusable();
-        if(!items.length)return;
+        const items=[toggle,...focusable()];
         const first=items[0],last=items[items.length-1];
         if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
         else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
       }
     });
-    window.addEventListener('resize',()=>{if(innerWidth>1000)closeMenu();});
   }
 
-  const ensureReturningBetaSignIn=()=>{
-    document.querySelectorAll('.desktop-nav').forEach(nav=>{
-      if(nav.querySelector('[data-ff-marketing-sign-in]'))return;
-      const link=document.createElement('a');
-      link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
-      link.dataset.ffMarketingSignIn='true';
-      link.textContent='Beta Sign In';
-      const cta=nav.querySelector('.nav-cta');
-      if(cta)nav.insertBefore(link,cta); else nav.appendChild(link);
-    });
-    document.querySelectorAll('.mobile-nav').forEach(nav=>{
-      if(nav.querySelector('[data-ff-marketing-sign-in]'))return;
-      const link=document.createElement('a');
-      link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
-      link.dataset.ffMarketingSignIn='true';
-      link.textContent='Beta Sign In';
-      const request=[...nav.querySelectorAll('a')].find(a=>/request (?:beta )?access/i.test(a.textContent||''));
-      if(request)nav.insertBefore(link,request); else nav.appendChild(link);
-    });
-  };
-  document.querySelectorAll('[data-ff-marketing-sign-in]').forEach(link=>{
-    link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
-    link.textContent='Beta Sign In';
-    link.setAttribute('aria-label','Private Beta Sign In');
-  });
-  ensureReturningBetaSignIn();
   const isWebsiteDeployPreview=/(?:^|\.)netlify\.app$/i.test(location.hostname);
   const productionBetaSignIn='https://goflipforge.com/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start';
   const routePreviewBetaSignIn=()=>{

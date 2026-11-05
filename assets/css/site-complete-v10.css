@@ -4,7 +4,7 @@
 .ff10-design{--ff10-black:#030608;--ff10-panel:#0b1115;--ff10-gold:#e8c982;--ff10-deep:#a87c31;--ff10-mist:#bcc6cc;--ff10-rule:rgba(221,185,112,.25);background:radial-gradient(ellipse 42% 18% at 79% -4%,rgba(176,126,44,.14),transparent 72%),linear-gradient(180deg,#05090b 0%,#030506 45%,#050a0d 100%);color:#f6f6f4}
 .ff10-design main{isolation:isolate}
 .ff10-design a:focus-visible,.ff10-design button:focus-visible,.ff10-design input:focus-visible,.ff10-design textarea:focus-visible,.ff10-design select:focus-visible{outline:2px solid #f5d890;outline-offset:3px}
-.ff10-design .site-header{border-bottom:1px solid rgba(219,181,95,.2);background:rgba(3,6,9,.96);backdrop-filter:blur(18px)}
+
 .ff10-design .footer{background:linear-gradient(160deg,#10171b,#020406);border-top:1px solid rgba(220,183,101,.28)}
 .ff10-design .footer .brand-lockup{filter:drop-shadow(0 0 11px rgba(204,161,68,.09))}
 .ff10-design .footer-links a:hover{color:var(--ff10-gold)}
