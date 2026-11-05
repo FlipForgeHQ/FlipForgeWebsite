@@ -39,8 +39,13 @@ const INVALID_LANDING = '/?utm_source=Instagram&utm_medium=social%20ads&utm_camp
 const QUERY = '2018 Topps Chrome Shohei Ohtani #150 PSA 9';
 const CARD_ID = 'EBAY-QA-OHTANI-150';
 const LISTING_URL = 'https://www.ebay.com/itm/900000000001';
+// A second saved decision: VERIFY with a Max Buy recorded on its receipt. Since #622 no VERIFY shows a buying limit; its
+// values are synthetic and must never reach telemetry.
+const VERIFY_ID = 'EBAY-QA-HERBERT-325';
+const VERIFY_TITLE = '2020 Panini Prizm Justin Herbert #325 PSA 10';
 // Everything a privacy scan must never find in a stored event or in the founder report.
 const FORBIDDEN = [/ohtani/i, /topps/i, /#150/, /PSA 9/i, /ebay\.com/i, /900000000001/, /QA-OHTANI/i, /75995/, /759\.95/, /85000/, /\b850\b/,
+  /herbert/i, /prizm/i, /#325/, /QA-HERBERT/i, /PSA 10/i, /64000/, /\b640\b/, /70000/, /\b700\b/, /max\s*-?\s*buy/i, /maximumBuy/i, /buying limit/i, /supportedValue/i,
   /\b(buy|watch|verify|pass)\b/i, /@example\.test/i, /Attribution Test/i, /Not a real applicant/i];
 const envelope = (cid, data) => ({ meta: { contractVersion: '1.0', engineVersion: 'in-app-events-audit', authority: 'Smart Opportunity',
   gradingAuthority: 'Existing PSA intelligence', correlationId: cid, generatedAt: '2026-11-05T17:00:00Z', evidenceFreshness: 'QA_FIXTURE',
@@ -72,8 +77,12 @@ const opportunity = () => ({ id: CARD_ID, title: QUERY, cardIdentity: QUERY, rec
     supportedValueCents: 85000, supportedValueStatus: 'ESTABLISHED', maximumBuyPriceCents: 70000, allInAskCents: 75995, exactTrustedCompCount: 3,
     snapshotCount: 1, immutable: true, transactionAuthority: false } });
 
+const verifyOpportunity = () => ({ ...opportunity(), id: VERIFY_ID, title: VERIFY_TITLE, cardIdentity: VERIFY_TITLE, recommendation: 'VERIFY', ask: 610, supportedValue: 640,
+  supportedValueCents: 64000, mappingState: 'NOT_CONFIRMED', governedDecision: { ...opportunity().governedDecision, recommendation: 'VERIFY', reason: 'VERIFY: synthetic saved reason.',
+    supportedValueCents: 64000, maximumBuyPriceCents: 64000, allInAskCents: 61000 } });
+
 function api(pathname, method, saved, cid, unmocked, idempotencyKey) {
-  const items = saved.value ? [opportunity()] : [];
+  const items = saved.value ? [opportunity(), verifyOpportunity()] : [];
   if (pathname === '/api/v1/evaluations' && method === 'POST') { saved.value = true; return [200, envelope(cid, evaluation(idempotencyKey))]; }
   if (pathname === '/api/v1/discover') return [200, envelope(cid, discover())];
   if (method !== 'GET') return [405, { error: { code: 'QA_READ_ONLY', message: 'No other writes.', correlationId: cid } }];
@@ -82,9 +91,10 @@ function api(pathname, method, saved, cid, unmocked, idempotencyKey) {
     current: { code: 'PRIVATE_BETA', accessState: 'PRIVATE_BETA_ACTIVE', evaluationAllowanceScope: 'PRIVATE_BETA_LIFETIME', effectiveEvaluationLimit: 50 },
     plan: { code: 'PRIVATE_BETA' }, usage: { evaluationAllowanceScope: 'PRIVATE_BETA_LIFETIME', completedEvaluations: items.length, inProgressReservations: 0,
       admissionUsage: items.length, evaluationAllowanceLimit: 50, remainingEvaluations: 50 - items.length, evaluationAllowedNow: true } })];
-  if (pathname === '/api/v1/dashboard') return [200, envelope(cid, { kind: 'dashboard', readOnly: true, source: 'SQLite saved governed records',
+  // governedDecisionReadModelVersion: the G1 read-model marker Dashboard V3 requires before it keeps the Home route.
+  if (pathname === '/api/v1/dashboard') return [200, envelope(cid, { kind: 'dashboard', readOnly: true, source: 'SQLite saved governed records', governedDecisionReadModelVersion: 'governed-decision-read-v1',
     metrics: { trackedOpportunities: items.length, evidenceReady: items.length, populationContextAvailable: 0, needsVerification: 0 }, opportunities: items, items })];
-  if (pathname === '/api/v1/opportunities') return [200, envelope(cid, { kind: 'opportunities', items, count: items.length, sourceOfTruth: 'SQLite', transactionAuthority: false })];
+  if (pathname === '/api/v1/opportunities') return [200, envelope(cid, { kind: 'opportunities', items, count: items.length, sourceOfTruth: 'SQLite', transactionAuthority: false, governedDecisionReadModelVersion: 'governed-decision-read-v1' })];
   if (pathname === '/api/v1/lifecycle') return [200, envelope(cid, { kind: 'lifecycle', sourceOfTruth: 'SQLite', items: [], transactionAuthority: false })];
   if (saved.value && pathname === `/api/v1/opportunities/${CARD_ID}`) return [200, envelope(cid, { kind: 'opportunity-detail', opportunity: opportunity(), sourceOfTruth: 'SQLite', transactionAuthority: false })];
   if (saved.value && pathname === `/api/v1/evidence/${CARD_ID}`) return [200, envelope(cid, { kind: 'evidence', readOnly: true, opportunityId: CARD_ID, cardIdentity: QUERY,
@@ -344,6 +354,27 @@ async function run(sourceRoot, label) {
     }
     await context.close();
   }
+  // 3b. Dashboard V3 (flag-only in production: ?dashboard=v3), new tab: V3 claims Home, so no Home event is sent;
+  //     the side navigation to Portfolio is still counted.
+  {
+    const v3Start = sent.length;
+    const { context, page } = await open(`${app}?dashboard=v3#/dashboard`);
+    ui.dashboardV3 = await seen(page, '#main-content [data-decision-dashboard-v3][data-ffv3-state="ready"], #main-content [data-decision-dashboard-v3]:not([data-ffv3-state="loading"])', 15000);
+    await settle();
+    ui.dashboardV3Kept = await page.evaluate(() => Boolean(document.querySelector('#main-content [data-decision-dashboard-v3]')) && !document.querySelector('#main-content [data-commercial-dashboard-v2]'));
+    ui.v3PortfolioLinkVisible = await page.locator('a[data-route="portfolio"]').first().isVisible().catch(() => false);
+    ui.v3HomeEvents = sent.slice(v3Start).map(item => item.payload.event);
+    const clickedAt = Date.now();
+    await nav(page, 'portfolio');
+    ui.v3HashAfterNav = await page.evaluate(() => location.hash);
+    for (let i = 0; i < 150 && !sent.slice(v3Start).some(item => item.payload.event === 'portfolio_viewed'); i++) await new Promise(done => setTimeout(done, 100));
+    ui.v3PortfolioLatencyMs = Date.now() - clickedAt;
+    const pingStart = Date.now();
+    await page.evaluate(() => 1);
+    ui.v3PageRoundTripMs = Date.now() - pingStart;
+    ui.v3AfterPortfolio = sent.slice(v3Start).map(item => item.payload.event);
+    await context.close();
+  }
   await settle();
   const appSent = sent.slice(publicSent);
 
@@ -433,7 +464,7 @@ const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const EXPECTED = {
   home_first_use_viewed: 1, home_evaluate_clicked: 1, evaluation_started: 1, evaluation_completed: 1, decision_saved: 1,
   home_returning_viewed: 1, home_shortcut_clicked: 4, decision_checks_viewed: 1, decision_explanation_viewed: 1,
-  decision_receipt_opened: 1, evidence_viewed: 1, tracking_viewed: 2, portfolio_viewed: 2, alerts_viewed: 1, forge_heat_viewed: 2,
+  decision_receipt_opened: 1, evidence_viewed: 1, tracking_viewed: 2, portfolio_viewed: 3, alerts_viewed: 1, forge_heat_viewed: 2,
 };
 const LABELS = {
   home_first_use_viewed: 'First use: Home with no saved decisions', home_evaluate_clicked: 'Home: Evaluate a card clicked',
@@ -487,6 +518,8 @@ const countOf = name => inApp.filter(record => record.event === name).length;
 check('UI: every customer step was reached with real clicks (first-use Home, Discover, Evaluate, saved decision with Signal Stack, Receipt, Evidence, returning Home + 4 shortcuts)',
   ['firstUseHome', 'discover', 'savedDecision', 'signalStack', 'receiptControl', 'understand', 'evidence', 'returningHome'].every(key => result.ui[key] === true)
   && same(result.ui.homeShortcuts, ['saved', 'outcomes', 'heat', 'portfolio']) && result.ui.routesVisited === '#/forge-heat', JSON.stringify(result.ui));
+check('Dashboard V3 (flag): V3 renders, sends no Home event, and Portfolio opened from its tab is still counted',
+  result.ui.dashboardV3 === true && result.ui.dashboardV3Kept === true && same(result.ui.v3HomeEvents, []) && same(result.ui.v3AfterPortfolio, ['portfolio_viewed']), JSON.stringify([result.ui.dashboardV3, result.ui.v3HomeEvents, result.ui.v3AfterPortfolio]));
 check('every request from the customer actions is accepted (202)', result.appSent.length > 0 && result.appSent.every(item => item.status === 202),
   result.appSent.filter(item => item.status !== 202).map(item => `${item.status} ${item.payload.event}`).join(', '));
 check('every public request on the campaign journeys is accepted (202)', result.sent.slice(0, result.publicSent).every(item => item.status === 202));
@@ -523,7 +556,7 @@ check('every in-app event is sent as exactly { event, page: "beta-app", placemen
 const scanTargets = [['stored event records', JSON.stringify(stored)], ['function log lines', result.logs.join('\n')], ['in-app request bodies', result.appSent.map(item => item.raw).join('\n')],
   ['founder report (rendered)', result.founder.text || '']];
 const hits = scanTargets.flatMap(([where, text]) => FORBIDDEN.filter(pattern => pattern.test(text)).map(pattern => `${where}: ${pattern}`));
-check('privacy scan: 0 hits for synthetic card name, listing URL/id, prices, verdict words, emails, names or free text in stored events, logs, request bodies and the founder report',
+check('privacy scan: 0 hits for synthetic card names, listing URL/ids, prices, Max Buy words and values, verdict words, emails, names or free text in stored events, logs, request bodies and the founder report',
   hits.length === 0 && result.founder.text, hits.join('; '));
 check('stored event records hold only type, schemaVersion, event, page, placement, campaign and time', stored.every(record => same(Object.keys(record), ['type', 'schemaVersion', 'event', 'page', 'placement', 'campaign', 'occurredAt'])));
 check('forbidden extra fields on a valid event are never stored (accepted, stripped)', result.probes.extraFields.status === 202);
