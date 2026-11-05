@@ -323,3 +323,19 @@ html body .ff-proof-footer .footer-social{display:grid;gap:6px;font-size:13px}
 html body .ff-proof-footer .footer-social strong{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 @media(max-width:1000px){html body .footer .footer-inner{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){html body .footer .footer-inner{grid-template-columns:1fr}}
+
+/* Footer notice ("not financial or investment advice"), written into every public footer by scripts/site-header.mjs. */
+html body .footer-notice{
+  flex:1 0 100%;
+  width:100%;
+  max-width:var(--ff-public-content-max);
+  margin:22px auto 0;
+  padding:0;
+  color:#a3abb7;
+  font-size:14px;
+  font-weight:500;
+  line-height:1.5;
+  letter-spacing:0;
+}
+html body .footer .footer-notice{width:min(var(--ff-public-content-max),calc(100% - 44px))}
+html body .ff-connect-footer .footer-notice{margin:6px 0 0;text-align:center}
