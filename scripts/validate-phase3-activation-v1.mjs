@@ -6,7 +6,6 @@ const customer = read("saas-prototype/customer.html");
 const js = read("saas-prototype/phase3-first-decision-activation-v1.js");
 const css = read("saas-prototype/phase3-first-decision-activation-v1.css");
 const publicIndex = read("index.html");
-const publicEvents = read("assets/js/phase3-activation-events-v1.js");
 
 let passed = 0;
 const failures = [];
@@ -23,14 +22,15 @@ const check = (label, condition) => {
 try { new Function(js); check("001 Phase 3 app JavaScript parses", true); }
 catch (error) { check("001 Phase 3 app JavaScript parses: " + error.message, false); }
 
-try { new Function(publicEvents); check("002 Phase 3 public measurement JavaScript parses", true); }
-catch (error) { check("002 Phase 3 public measurement JavaScript parses: " + error.message, false); }
+// The public Phase 3 sender duplicated beta_cta_clicked under names /api/conversion-event never allowed (400).
+// Public funnel measurement is assets/js/conversion-events.js only (scripts/validate-conversion-event-contract.mjs).
+check("002 retired public Phase 3 sender stays removed", !fs.existsSync("assets/js/phase3-activation-events-v1.js"));
 
 check("003 app shell loads Phase 3 stylesheet", index.includes('href="phase3-first-decision-activation-v1.css"'));
 check("004 app shell loads Phase 3 runtime", index.includes('src="phase3-first-decision-activation-v1.js"'));
 check("005 full customer shell loads Phase 3 stylesheet", customer.includes('href="phase3-first-decision-activation-v1.css"'));
 check("006 full customer shell loads Phase 3 runtime", customer.includes('src="phase3-first-decision-activation-v1.js"'));
-check("007 public landing loads activation measurement", publicIndex.includes('assets/js/phase3-activation-events-v1.js'));
+check("007 public landing does not load the retired Phase 3 sender", !publicIndex.includes('phase3-activation-events-v1.js'));
 
 // The Home first-use / returning panels are rendered by the Dashboard owner from the authoritative count.
 const home = read("saas-prototype/commercial-dashboard-v2.js");
@@ -62,9 +62,7 @@ check("022 Decision Receipt proxy opens existing governed receipt", js.includes(
 check("023 result education explicitly distinguishes decision from transaction authority", js.includes("not a prediction or transaction authorization"));
 
 check("024 app runtime uses no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(js));
-check("025 public measurement uses no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(publicEvents));
 check("026 app conversion writes only to approved conversion endpoint", js.includes('"/api/conversion-event"') && !/\/api\/v1\/(?:evaluations|opportunities|evidence)[^"']*["']\s*,\s*\{\s*method\s*:\s*"POST"/i.test(js));
-check("027 landing-to-evaluate funnel event exists", publicEvents.includes("phase3_landing_to_evaluate"));
 check("028 app tracks first evaluate click", home.includes("phase3_first_evaluate_clicked") && home.includes('"/api/conversion-event"') && !/localStorage|sessionStorage|indexedDB/i.test(home));
 check("031 app tracks evaluation completion", js.includes("phase3_evaluation_completed"));
 check("032 app tracks evidence inspection", js.includes("phase3_evidence_opened"));

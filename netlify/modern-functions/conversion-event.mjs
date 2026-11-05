@@ -1,4 +1,4 @@
-import { CONVERSION_STORE_NAME } from "./lib/beta-operations-core.mjs";
+import { CONVERSION_STORE_NAME, validateCampaign } from "./lib/beta-operations-core.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 
 const MAX_BODY_BYTES = 2048;
@@ -138,12 +138,15 @@ export function createConversionEventHandler({ store, now = () => new Date() } =
     event,
     page,
     placement,
+    campaign: validateCampaign(input),
     occurredAt: now().toISOString(),
   };
 
-  // Deliberately log only allowlisted funnel dimensions. Do not add IP address,
-  // user agent, referrer, query string, email, account, card, listing, price, or
-  // recommendation data. Beta-session measurement records milestones only.
+  // Deliberately log only allowlisted funnel dimensions and the strictly validated
+  // campaign slugs (known utm_source, lowercase slugs; anything else is dropped).
+  // Do not add IP address, user agent, referrer, raw query string, email, account,
+  // card, listing, price, or recommendation data. Beta-session measurement records
+  // milestones only.
   console.log(JSON.stringify(record));
   try {
     const targetStore = store || betaRuntimeStore(CONVERSION_STORE_NAME, request);

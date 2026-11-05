@@ -135,7 +135,20 @@ export async function emailIndexKey(email) {
   return `email/${hex}.json`;
 }
 
-export function createApplication(applicant, now = new Date()) {
+// First-touch campaign attribution: utm_source / utm_medium / utm_campaign / utm_content from the landing URL.
+// Strict on purpose: a known source plus short lowercase slugs, or nothing. Any other value is dropped (never
+// stored or logged), so a campaign field cannot carry an email address, URL, visitor identifier or free text.
+export const CAMPAIGN_SOURCES = Object.freeze(["instagram", "tiktok", "facebook", "youtube", "outreach", "reddit", "email"]);
+const CAMPAIGN_VALUE = /^[a-z0-9_-]{1,40}$/;
+
+export function validateCampaign(input) {
+  const slug = key => (typeof input?.[key] === "string" && CAMPAIGN_VALUE.test(input[key]) ? input[key] : null);
+  const source = slug("utm_source");
+  if (!CAMPAIGN_SOURCES.includes(source)) return null;
+  return { source, medium: slug("utm_medium"), campaign: slug("utm_campaign"), content: slug("utm_content") };
+}
+
+export function createApplication(applicant, now = new Date(), campaign = null) {
   const id = crypto.randomUUID();
   const at = now.toISOString();
   return {
@@ -146,6 +159,7 @@ export function createApplication(applicant, now = new Date()) {
     submittedAt: at,
     updatedAt: at,
     applicant,
+    campaign,
     cohort: null,
     reviewNote: "",
     tenantId: null,

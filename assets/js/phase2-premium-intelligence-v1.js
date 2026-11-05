@@ -6,17 +6,8 @@
   const body=document.body;
   if(!body)return;
   body.classList.add('ff-phase2-public','ff-phase2-ready');
-
-  const emit=(event,placement='phase2')=>{
-    const payload=JSON.stringify({event,page:path,placement});
-    try{
-      if(navigator.sendBeacon){
-        const ok=navigator.sendBeacon('/api/conversion-event',new Blob([payload],{type:'application/json'}));
-        if(ok)return;
-      }
-      fetch('/api/conversion-event',{method:'POST',headers:{'Content-Type':'application/json'},body:payload,credentials:'same-origin',cache:'no-store',keepalive:true}).catch(()=>{});
-    }catch(_){}
-  };
+  // Presentation only. Funnel measurement belongs to assets/js/conversion-events.js, whose events the server
+  // allowlists; this file's own names (and raw page paths) were always rejected with 400 EVENT_NOT_ALLOWED.
 
   const reveal=[...document.querySelectorAll('main>section,.section,.ff-dic-heading,.ff-dic-system,.ff-lab-card,.callout')];
   reveal.forEach((el,i)=>{
@@ -64,7 +55,6 @@
       left.textContent=f[3];
       right.textContent=f[4];
       result.textContent=f[5];
-      emit('evidence_failure_selected',f[0]);
     };
     menu.forEach((b,i)=>b.addEventListener('click',()=>select(i)));
     select(0);
@@ -123,7 +113,6 @@
       if(!reduceMotion&&typeof panel.animate==='function'){
         panel.animate([{opacity:.58,transform:'translateY(5px)'},{opacity:1,transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.8,.2,1)'});
       }
-      emit('decision_receipt_layer_selected',layer[0]);
     };
     tabs.forEach((tab,i)=>{
       tab.addEventListener('click',()=>select(i));
@@ -140,12 +129,8 @@
       });
     });
     select(0);
-    section.querySelector('[data-ff-p2-receipt-cta]')?.addEventListener('click',()=>emit('decision_receipt_cta_clicked','product_receipt'));
-    section.querySelector('[data-ff-p2-evaluate-cta]')?.addEventListener('click',()=>emit('evaluate_cta_clicked','product_receipt'));
   }
 
   buildEvidenceTheater();
   buildProductReceipt();
-
-  document.querySelectorAll('a[href*="beta-application"]').forEach(a=>a.addEventListener('click',()=>emit('phase2_beta_cta_clicked','public_rollout')));
 })();

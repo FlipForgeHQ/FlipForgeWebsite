@@ -59,7 +59,9 @@ const checks = [
   ["onboarding route is indexed", sitemap.includes("https://goflipforge.com/beta-onboarding.html")],
   ["conversion layer is build-enforced", build.includes("ensureConversionEventLayer") && build.includes("privacy-conscious conversion event layer")],
   ["conversion client uses same-origin endpoint", client.includes('endpoint="/api/conversion-event"') && client.includes('credentials:"same-origin"')],
-  ["marketing conversion client uses no persistent visitor state", !/cookie|localStorage|sessionStorage|indexedDB/i.test(client)],
+  ["marketing conversion client uses no persistent visitor state", !/cookie|localStorage|indexedDB/i.test(client)],
+  // Campaign attribution (first-touch utm_* slugs) is the only tab-scoped value; it is not a visitor identifier.
+  ["marketing conversion client keeps only campaign slugs in this tab's session", (client.match(/sessionStorage/g) || []).length === 2 && client.includes('const CAMPAIGN_KEY="flipforge.campaign.v1"') && client.includes("sessionStorage.setItem(CAMPAIGN_KEY,")],
   ["conversion service has strict allowlists", server.includes("EVENT_NAMES") && server.includes("PAGE_NAMES") && server.includes("PLACEMENTS")],
   ["conversion service excludes sensitive dimensions", ["user agent", "referrer", "query string", "email", "account", "card", "listing", "price", "recommendation"].every(value => server.includes(value))],
   ["beta session milestone names are allowlisted server-side", sessionEvents.every(value => server.includes(`\"${value}\"`))],
@@ -111,7 +113,8 @@ console.log = originalLog;
 assert.equal(accepted.status, 202);
 assert.equal(logs.length, 1);
 const logged = JSON.parse(logs[0]);
-assert.deepEqual(Object.keys(logged).sort(), ["event", "occurredAt", "page", "placement", "schemaVersion", "type"].sort());
+assert.deepEqual(Object.keys(logged).sort(), ["campaign", "event", "occurredAt", "page", "placement", "schemaVersion", "type"].sort());
+assert.equal(logged.campaign, null, "No validated utm_* values means no campaign attribution");
 assert.equal(logged.event, "beta_cta_clicked");
 assert.ok(!logs[0].includes("must-not-log"));
 
