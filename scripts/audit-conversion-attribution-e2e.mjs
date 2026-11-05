@@ -1,7 +1,8 @@
-// Real-browser end-to-end test: campaign link -> hero "Request Beta Access" -> submitted beta application.
-// Serves the static site locally and answers /api/conversion-event and /api/beta/applications with this
-// checkout's own Netlify handler modules, backed by in-memory stores. Nothing reaches production, Netlify
-// Blobs, Identity or a mailbox: every non-local request is aborted and counted.
+// Real-browser end-to-end test: campaign link -> hero "Request Beta Access" -> submitted beta application ->
+// operator record. Serves the static site locally and answers /api/conversion-event, /api/beta/applications and
+// /api/beta/operator with this checkout's own Netlify handler modules, backed by in-memory stores; the operator
+// is a stubbed user with the operator role (no real Identity). Nothing reaches production, Netlify Blobs,
+// Identity or a mailbox: every non-local request is aborted and counted.
 //
 //   node scripts/audit-conversion-attribution-e2e.mjs                    # this checkout must pass
 //   node scripts/audit-conversion-attribution-e2e.mjs --baseline <dir>   # also prove <dir> (e.g. origin/main) fails
@@ -30,6 +31,8 @@ function memoryStore() {
       return { modified: true, etag: key };
     },
     async getWithMetadata(key) { return data.has(key) ? { data: structuredClone(data.get(key)), etag: key } : null; },
+    async get(key) { return data.has(key) ? structuredClone(data.get(key)) : null; },
+    async *list({ prefix = '' } = {}) { yield { blobs: [...data.keys()].filter(key => key.startsWith(prefix)).map(key => ({ key })) }; },
     async delete(key) { data.delete(key); },
   };
 }
@@ -46,11 +49,21 @@ console.log = (...args) => {
 async function journey(root, label) {
   const conversion = await import(pathToFileURL(join(root, 'netlify/modern-functions/conversion-event.mjs')));
   const applications = await import(pathToFileURL(join(root, 'netlify/modern-functions/beta-applications.mjs')));
+  const operator = await import(pathToFileURL(join(root, 'netlify/modern-functions/beta-operator.mjs')));
   const eventStore = memoryStore();
   const applicationStore = memoryStore();
   const api = {
     '/api/conversion-event': conversion.createConversionEventHandler({ store: eventStore }),
     '/api/beta/applications': applications.createBetaApplicationsHandler({ store: applicationStore }),
+    // Stubbed operator: a user with the flipforge-operator role. Identity admin and admission are never reached
+    // by a dashboard read (no invited records), and are stubbed to fail closed if they were.
+    '/api/beta/operator': operator.createBetaOperatorHandler({
+      applicationStore, eventStore, feedbackStore: memoryStore(),
+      getUserFn: async () => ({ id: 'operator-test', email: 'operator-test@example.test', app_metadata: { roles: ['flipforge-operator'] } }),
+      identityAdmin: { listUsers: async () => [] },
+      inviteIdentity: async () => { throw new Error('IDENTITY_NOT_AVAILABLE_IN_TEST'); },
+      admissionClient: {},
+    }),
   };
   const sent = [];
   const otherApi = [];
@@ -68,7 +81,8 @@ async function journey(root, label) {
       const body = Buffer.concat(chunks);
       if (url.pathname.startsWith('/api/')) {
         const handler = api[url.pathname];
-        if (!handler) { otherApi.push(url.pathname); res.writeHead(404).end(); return; }
+        // The operator page's founder-select panel is not part of this path; it gets a 404 and is not counted.
+        if (!handler) { if (url.pathname !== '/api/beta/founder-select') otherApi.push(url.pathname); res.writeHead(404).end(); return; }
         const headers = Object.fromEntries(Object.entries(req.headers).filter(([key]) => !['connection', 'keep-alive', 'transfer-encoding'].includes(key)));
         const response = await handler(new Request(`http://${req.headers.host}${req.url}`, { method: req.method, headers, body: body.length ? body : undefined }));
         const text = await response.text();
@@ -78,6 +92,10 @@ async function journey(root, label) {
           sent.push({ payload, status: response.status, reply: text });
         }
         res.writeHead(response.status, Object.fromEntries(response.headers)).end(text);
+        return;
+      }
+      if (url.pathname === '/assets/js/flipforge-identity.js') {
+        res.writeHead(200, { 'Content-Type': 'text/javascript' }).end('window.FlipForgeIdentity=Object.freeze({getUser:()=>({email:"operator-test@example.test"}),getSnapshot:()=>({authenticated:true,email:"operator-test@example.test",operatorActive:true}),open:()=>{}});');
         return;
       }
       if (url.pathname === '/app' || url.pathname.startsWith('/app/')) {
@@ -176,12 +194,29 @@ async function journey(root, label) {
     body: JSON.stringify({ event: 'beta_cta_clicked', page: 'home', placement: 'hero', utm_source: 'instagram', utm_medium: 'Social Ads', utm_campaign: 'https://x.test', utm_content: 'w02v01' }) })).json();
   await settle();
 
+  // 5. Operator record: the operator workspace lists each applicant and shows its Campaign (or none).
+  const operatorPage = await newPage();
+  await operatorPage.goto(base + '/operator-beta.html', { waitUntil: 'networkidle' });
+  await operatorPage.waitForSelector('[data-application-id]', { timeout: 15000 }).catch(() => {});
+  const operatorView = {};
+  for (const email of ['attribution-test@example.test', 'attribution-test+invalid@example.test', 'attribution-test+forged@example.test']) {
+    const row = operatorPage.locator('[data-application-id]', { hasText: email }).first();
+    if (!await row.count()) { operatorView[email] = { listed: false }; continue; }
+    await row.click();
+    await operatorPage.waitForTimeout(300);
+    operatorView[email] = await operatorPage.evaluate(target => {
+      const heading = document.querySelector('.ff-detail-heading p')?.textContent || '';
+      const cell = [...document.querySelectorAll('.ff-detail-grid > div')].find(node => node.querySelector('span')?.textContent.trim() === 'Campaign');
+      return { listed: true, detailFor: heading.includes(target), campaign: cell ? cell.querySelector('strong')?.textContent.trim() : null };
+    }, email);
+  }
+
   await browser.close();
   await new Promise(done => server.close(done));
   const records = [...applicationStore.data.entries()].filter(([key]) => key.startsWith('application/')).map(([, value]) => value);
   const byEmail = email => records.find(record => record.applicant?.email === email);
   return {
-    label, root, sent, pathEvents, invalidSent, hiddenFields, external, otherApi, forged, forgedEvent,
+    label, root, sent, pathEvents, invalidSent, hiddenFields, external, otherApi, forged, forgedEvent, operatorView,
     storedEvents: [...eventStore.data.values()],
     eventLog: logLines.filter(line => line.type === 'flipforge_conversion_event'),
     application: byEmail('attribution-test@example.test'),
@@ -200,6 +235,7 @@ const summarize = result => {
   for (const item of result.sent) print(`    ${item.status} ${item.payload.event} page=${item.payload.page} placement=${item.payload.placement}${item.payload.utm_source ? ' utm=' + [item.payload.utm_source, item.payload.utm_medium, item.payload.utm_campaign, item.payload.utm_content].join('/') : ''}`);
   print(`  stored application campaign: ${JSON.stringify(result.application?.campaign)}`);
   print(`  invalid-utm application campaign: ${JSON.stringify(result.invalidApplication?.campaign)}; forged application campaign: ${JSON.stringify(result.forgedApplication?.campaign)}`);
+  for (const [email, view] of Object.entries(result.operatorView)) print(`  operator record ${email}: ${view.listed ? `listed, Campaign = ${view.campaign === null ? '(no Campaign field)' : JSON.stringify(view.campaign)}` : 'not listed'}`);
   print(`  non-local requests aborted: ${result.external.length} (${[...new Set(result.external.map(url => new URL(url).host))].join(', ') || 'none'}); unknown /api calls: ${result.otherApi.length}`);
   return { ok, rejected };
 };
@@ -216,6 +252,7 @@ if (baselineIndex > 0) {
   check('baseline: the same path produces 400 EVENT_NOT_ALLOWED responses', rejected.length > 0 && rejected.every(item => item.reply.includes('EVENT_NOT_ALLOWED')));
   check('baseline: the campaign path itself is hit by a 400', baseline.sent.slice(0, baseline.pathEvents).some(item => item.status === 400));
   check('baseline: no campaign attribution reaches the application record', baseline.application && !baseline.application.campaign);
+  check('baseline: the operator record shows no campaign for the campaign-link applicant', baseline.operatorView['attribution-test@example.test']?.listed && baseline.operatorView['attribution-test@example.test'].campaign === null);
 }
 
 const result = await journey(process.cwd(), 'this checkout');
@@ -240,6 +277,11 @@ check('invalid landing utm values never reach the application record', result.in
 check('forged unknown utm_source is dropped by the application function', result.forged === 202 && result.forgedApplication?.campaign === null);
 check('forged malformed utm slugs are dropped by the event function', result.forgedEvent?.accepted === true
   && same(result.storedEvents.at(-1)?.campaign, { source: 'instagram', medium: null, campaign: null, content: 'w02v01' }));
+const op = result.operatorView;
+check('operator workspace lists the campaign-link applicant and its record shows Campaign instagram · social · wysbi26 · w02v01',
+  op['attribution-test@example.test']?.listed && op['attribution-test@example.test'].detailFor && op['attribution-test@example.test'].campaign === 'instagram · social · wysbi26 · w02v01');
+check('operator records for the invalid-tag and forged-tag applicants show no campaign',
+  ['attribution-test+invalid@example.test', 'attribution-test+forged@example.test'].every(email => op[email]?.listed && op[email].detailFor && op[email].campaign === 'Not attributed'));
 check('nothing was sent to a FlipForge or Netlify host (all non-local requests aborted)', !result.external.some(url => /goflipforge|netlify/i.test(url)) && result.otherApi.length === 0);
 
 print(`PASSED: ${passed}`);
