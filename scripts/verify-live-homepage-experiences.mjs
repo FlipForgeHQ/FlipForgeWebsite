@@ -40,5 +40,5 @@ check('Audience, challenge and showcase runtime assets are actually referenced',
     .every(asset => html.includes(asset)));
 
 if (failures.length) throw new Error(`Public homepage smoke test failed: ${failures.join('; ')}`);
-console.log('PASS: public homepage serves five hero strategy links, the site menu, Decision Challenge and real app showcase.');
+console.log('PASS: public homepage serves the five collector strategies in Who It’s For, the site menu, Decision Challenge and real app showcase.');
 console.log('Verified publicly served HTML, not merely the repository or deploy manifest.');

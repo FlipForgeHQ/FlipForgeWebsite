@@ -58,9 +58,6 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
       && await page.locator(`[data-aud-panel="${key}"]`).isVisible());
   }
   await page.waitForTimeout(900);
-  const audienceTop = await page.locator('#who-its-for').evaluate(e => Math.round(e.getBoundingClientRect().top));
-  check(`${name}: hero audience links land at the section without hidden content`,
-    audienceTop >= 0 && audienceTop < 180);
 
   // Audience selector
   check(`${name}: one audience panel shown at a time`, await page.locator('[data-aud-panel]:visible').count() === 1);
