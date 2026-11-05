@@ -337,5 +337,6 @@ html body .footer-notice{
   line-height:1.5;
   letter-spacing:0;
 }
-html body .footer .footer-notice{width:min(var(--ff-public-content-max),calc(100% - 44px))}
+/* Same box as the copyright line below it, so the two left edges align. */
+html body .footer .footer-notice{width:min(var(--ff-public-content-max),100%);padding:0 22px;margin:22px auto 8px}
 html body .ff-connect-footer .footer-notice{margin:6px 0 0;text-align:center}
