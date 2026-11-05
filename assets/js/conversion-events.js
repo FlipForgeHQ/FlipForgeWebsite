@@ -1,13 +1,7 @@
 (()=>{
   const pathname=location.pathname.replace(/\/+$/,"")||"/";
 
-  const enforceReadabilityFloor=()=>{
-    document.querySelectorAll('main p, main li, main label, main button, main input, main select').forEach(el=>{
-      const size=parseFloat(getComputedStyle(el).fontSize)||0;
-      if(size>0&&size<12)el.style.fontSize='12px';
-    });
-  };
-  enforceReadabilityFloor();
+  // Text size is owned by assets/css/public-typography-contract-v1.css (readable-size floor); no runtime patch.
 
   // The header, menu and footer (links, labels, Beta Sign In, brand descriptor, copyright) are written in each page's
   // source; scripts/site-header.mjs owns the header, menu and Follow FlipForge column. Nothing here rewrites them.
@@ -19,7 +13,6 @@
       link.title='Sign in on the live FlipForge website';
     });
   }
-  enforceReadabilityFloor();
 
   const endpoint="/api/conversion-event";
   const sent=new Set();
@@ -135,7 +128,6 @@
     });
   }
 
-  window.addEventListener('resize',enforceReadabilityFloor,{passive:true});
 
   if(page==="sample-dossier")emit("sample_dossier_viewed","sample-page",true);
   if(page==="application-received")emit("beta_application_received","post-submit",true);

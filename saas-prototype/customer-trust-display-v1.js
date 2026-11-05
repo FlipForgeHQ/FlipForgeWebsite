@@ -103,11 +103,22 @@
     return { supported, maxBuy };
   }
 
+  // The verdict the record was saved with, from whichever field the surface carries.
+  function savedVerdict(record) {
+    if (!record || typeof record !== "object") return "";
+    const value = [record.recommendation, record.decision, record.governedDecision?.recommendation, record.decisionTime?.recommendation]
+      .find(candidate => typeof candidate === "string" && candidate.trim());
+    return value ? value.trim().toUpperCase() : "";
+  }
+
+  // A VERIFY decision sets no buying limit, so a Max Buy recorded with an old VERIFY is not shown, not even as
+  // legacy. The stored record is unchanged; only the display withholds it.
   function legacySavedValuesText(record) {
     const saved = legacySavedValues(record);
+    const showMaxBuy = saved.maxBuy !== null && savedVerdict(record) !== "VERIFY";
     return [
       saved.supported !== null ? `Saved value at the time (legacy): ${money(saved.supported)}` : "",
-      saved.maxBuy !== null ? `Max Buy at the time (legacy): ${money(saved.maxBuy)}` : ""
+      showMaxBuy ? `Max Buy at the time (legacy): ${money(saved.maxBuy)}` : ""
     ].filter(Boolean).join(" · ");
   }
 

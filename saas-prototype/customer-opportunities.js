@@ -456,7 +456,10 @@
     // Max Buy from the saved receipt: shown only with an established supported value (the engine writes Max Buy 0 when
     // no value is established) and never for a legacy result. Exact cents, as recorded.
     const maxBuyReceipt = savedReceipt(item);
-    const maxBuyCents = maxBuyReceipt && String(maxBuyReceipt.supportedValueStatus || "").toUpperCase() === "ESTABLISHED" && (knownCount(maxBuyReceipt.supportedValueCents) || 0) > 0 ? knownCount(maxBuyReceipt.maximumBuyPriceCents) : null;
+    // A VERIFY decision never shows a buying limit: its evidence has not cleared, so a Max Buy (which can rest on a
+    // single sale) must not read as what to pay.
+    const maxBuyVerdict = String(maxBuyReceipt?.recommendation || item?.recommendation || "").toUpperCase().replace(/^SAVED\s+/, "");
+    const maxBuyCents = maxBuyReceipt && maxBuyVerdict !== "VERIFY" && String(maxBuyReceipt.supportedValueStatus || "").toUpperCase() === "ESTABLISHED" && (knownCount(maxBuyReceipt.supportedValueCents) || 0) > 0 ? knownCount(maxBuyReceipt.maximumBuyPriceCents) : null;
     const maxBuyMarkup = maxBuyCents !== null && maxBuyCents > 0
       ? `<span>Max Buy</span><strong data-max-buy-at-decision>${escapeHtml(trust()?.centsText ? trust().centsText(maxBuyCents) : moneyFromCents(maxBuyCents))}</strong><small>At decision · the most you could pay, all-in, and keep FlipForge's profit protection. Not re-checked here.</small>`
       : "";

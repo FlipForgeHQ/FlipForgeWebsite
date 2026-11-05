@@ -134,7 +134,7 @@
   .ff-dic-demo-heading h2{font-size:38px}
   .ff-dic-demo{border-radius:20px}
   .ff-dic-demo-top{padding:15px;grid-template-columns:1fr auto;gap:10px}
-  .ff-dic-card-label strong{font-size:13px}
+  .ff-dic-card-label strong{font-size:13px;white-space:normal;overflow:visible;text-overflow:clip}
   .ff-dic-card-label span{font-size:10px}
   .ff-dic-listing strong{font-size:25px}
   .ff-dic-demo-main{padding:12px;gap:10px}

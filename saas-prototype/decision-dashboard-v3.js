@@ -234,7 +234,9 @@
       // Saved before current evidence rules (server marker); the value is not presented as currently supported.
       legacy: legacyRecord(source),
       legacyNotice: text(source.legacyNotice),
-      maxBuyCents: numberOrNull(governed.maximumBuyPriceCents),
+      // A buying limit only for a non-VERIFY decision with an established value (the engine records 0 otherwise).
+      maxBuyCents: verdictOf(source.recommendation) === "VERIFY" || supportedCents === null || !(supportedCents > 0)
+        || !(numberOrNull(governed.maximumBuyPriceCents) > 0) ? null : numberOrNull(governed.maximumBuyPriceCents),
       expectedNetCents: numberOrNull(governed.expectedNetProfitCents),
       conservativeNetCents: numberOrNull(governed.conservativeNetProfitCents),
       stressNetCents: numberOrNull(governed.stressNetProfitCents),
