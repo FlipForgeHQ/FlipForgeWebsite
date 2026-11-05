@@ -78,20 +78,23 @@ html body .site-header .nav-cta{
   justify-content:center;
   height:44px;
   padding:0 20px;
-  border:1px solid rgba(212,175,55,.58);
+  border:1px solid #d4af37;
   border-radius:10px;
-  background:linear-gradient(180deg,#efb441 0%,#d89a2a 100%);
+  background:#d4af37;
   color:#080b10;
-  box-shadow:0 10px 28px rgba(212,175,55,.14);
+  box-shadow:none;
   font-size:14px;
   font-weight:800;
   line-height:1;
   letter-spacing:0;
   white-space:nowrap;
   text-decoration:none;
-  transition:transform .16s ease,box-shadow .16s ease;
+  transition:background-color .16s ease,border-color .16s ease;
 }
-html body .site-header .nav-cta:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(212,175,55,.24)}
+/* Brand Sheet v2.1 gold, flat: no gradient, glow or lift. Hover brightens slightly. */
+html body .site-header .nav-cta:hover,
+html body .site-header .nav-cta:focus-visible{background:#e0bf4f;border-color:#e0bf4f}
+html body .site-header .nav-cta:focus-visible{outline:2px solid #f5f7fa;outline-offset:3px}
 html body .site-header .menu-toggle{
   display:inline-flex;
   align-items:center;
@@ -210,12 +213,15 @@ html body .site-menu-cta{
   justify-content:center;
   min-height:50px;
   border-radius:10px;
-  background:linear-gradient(180deg,#efb441 0%,#d89a2a 100%);
+  background:#d4af37;
   color:#080b10;
   font-size:15px;
   font-weight:800;
   text-decoration:none;
+  transition:background-color .16s ease;
 }
+html body .site-menu-cta:hover,
+html body .site-menu-cta:focus-visible{background:#e0bf4f}
 html body .backdrop{
   position:fixed;
   z-index:110;
@@ -317,3 +323,20 @@ html body .ff-proof-footer .footer-social{display:grid;gap:6px;font-size:13px}
 html body .ff-proof-footer .footer-social strong{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 @media(max-width:1000px){html body .footer .footer-inner{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){html body .footer .footer-inner{grid-template-columns:1fr}}
+
+/* Footer notice ("not financial or investment advice"), written into every public footer by scripts/site-header.mjs. */
+html body .footer-notice{
+  flex:1 0 100%;
+  width:100%;
+  max-width:var(--ff-public-content-max);
+  margin:22px auto 0;
+  padding:0;
+  color:#a3abb7;
+  font-size:14px;
+  font-weight:500;
+  line-height:1.5;
+  letter-spacing:0;
+}
+/* Same box as the copyright line below it, so the two left edges align. */
+html body .footer .footer-notice{width:min(var(--ff-public-content-max),100%);padding:0 22px;margin:22px auto 8px}
+html body .ff-connect-footer .footer-notice{margin:6px 0 0;text-align:center}
