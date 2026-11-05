@@ -375,7 +375,7 @@ check("078 saved verdict and Max Buy at decision shown", row("opp-fresh").includ
 check("079 paid under the saved Max Buy", row("opp-fresh").includes("You paid $75.00 under it"));
 check("080 paid over the saved Max Buy, and a \"Saved WATCH\" label reads WATCH", row("opp-over").includes(">WATCH<") && row("opp-over").includes("You paid $25.00 over it"));
 check("081 legacy result: historical wording, no Max Buy or comparison", row("opp-legacy").includes("Saved before current evidence rules") && !row("opp-legacy").includes("Max Buy") && !row("opp-legacy").includes("You paid"));
-check("082 no Max Buy at decision: says so, never $0.00", row("opp-nomax").includes("No Max Buy was set at decision") && !row("opp-nomax").includes("$0.00"));
+check("082 a VERIFY decision sets no buying limit: says so, never $0.00", row("opp-nomax").includes("No buying limit until the evidence clears") && !row("opp-nomax").includes("$0.00"));
 // Combined branch: the decisions list was read, so a card missing from it has no linked decision (not a load failure).
 check("083 card with no saved decision says so and offers no decision link", row("opp-missing").includes("No saved decision is linked to this card.") && !row("opp-missing").includes("could not be loaded") && !c.includes('href="#/opportunities/opp-missing"'));
 check("084 Saved decision column present", c.includes("<th>Saved decision</th>"));
@@ -389,14 +389,22 @@ opportunities.items.push({ id: "opp-zero", title: "Zero Max Buy VERIFY", cardIde
 const zero = runtime({ mutate: data => { paused(data); data.items = [{ ...data.items[0], opportunityId: "opp-zero", acquisitionCostCents: 10000 }]; data.count = 1; } });
 zero.window.FlipForgeCustomerPortfolio.render(zero.main);
 await settle();
-check("085 a recorded Max Buy of 0 reads \"No Max Buy was set at decision\", never $0.00", zero.main.innerHTML.includes("No Max Buy was set at decision") && !zero.main.innerHTML.includes("Max Buy $0.00"));
+check("085 a recorded Max Buy of 0 reads \"No Max Buy was set at decision\", never $0.00", zero.main.innerHTML.includes("No buying limit until the evidence clears") && !zero.main.innerHTML.includes("Max Buy $0.00"));
 opportunities.items.push({ id: "opp-unestablished", title: "Unestablished VERIFY", cardIdentity: "Unestablished VERIFY", recommendation: "VERIFY",
   governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: 45000, supportedValueStatus: "NOT_ESTABLISHED", supportedValueCents: 0 } });
 const unestablished = runtime({ mutate: data => { paused(data); data.items = [{ ...data.items[0], opportunityId: "opp-unestablished", acquisitionCostCents: 70000 }]; data.count = 1; } });
 unestablished.window.FlipForgeCustomerPortfolio.render(unestablished.main);
 await settle();
 check("086 a decision that did not establish a supported value shows no Max Buy, even if one was recorded (review on #606)",
-  unestablished.main.innerHTML.includes("No Max Buy was set at decision") && !unestablished.main.innerHTML.includes("Max Buy $450.00") && !unestablished.main.innerHTML.includes("You paid"));
+  unestablished.main.innerHTML.includes("No buying limit until the evidence clears") && !unestablished.main.innerHTML.includes("Max Buy $450.00") && !unestablished.main.innerHTML.includes("You paid"));
+// A VERIFY decision never shows a buying limit, even with an established value and a recorded Max Buy (e.g. one sale).
+opportunities.items.push({ id: "opp-verify-established", title: "One-sale VERIFY", cardIdentity: "One-sale VERIFY", recommendation: "VERIFY",
+  governedDecision: { available: true, recommendation: "VERIFY", maximumBuyPriceCents: 28685, supportedValueStatus: "ESTABLISHED", supportedValueCents: 47999 } });
+const verifyEstablished = runtime({ mutate: data => { paused(data); data.items = [{ ...data.items[0], opportunityId: "opp-verify-established", acquisitionCostCents: 20000 }]; data.count = 1; } });
+verifyEstablished.window.FlipForgeCustomerPortfolio.render(verifyEstablished.main);
+await settle();
+check("086a a VERIFY decision with an established value shows no Max Buy and no paid-versus-limit comparison",
+  verifyEstablished.main.innerHTML.includes("No buying limit until the evidence clears") && !verifyEstablished.main.innerHTML.includes("Max Buy $286.85") && !verifyEstablished.main.innerHTML.includes("You paid"));
 sales.items[0].profitLoss.acquisitionCostCents = 121500;  // paid $1,215.00 against the $600.00 Max Buy saved for opp-fresh
 sales.items.push({ reportId: "rs_3", opportunityId: "opp-over", cardIdentity: "2018 Prizm Luka Doncic #280 PSA 10", reviewStatus: "PENDING_VERIFICATION",
   sale: { salePriceCents: 48000, saleDate: "2026-10-25" },

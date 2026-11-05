@@ -139,16 +139,10 @@
     if(window.location.pathname==='/index.html')window.history.replaceState(null,'',`/${window.location.search}${window.location.hash}`);
   };
 
-  const enforceReadabilityFloor=()=>{
-    document.querySelectorAll('main p, main li, main label, main button, main input, main select').forEach(el=>{
-      const size=parseFloat(getComputedStyle(el).fontSize)||0;
-      if(size>0&&size<12)el.style.fontSize='12px';
-    });
-  };
+  // Text size is owned by assets/css/public-typography-contract-v1.css (readable-size floor); no runtime patch.
 
   syncHomepageNavigation();
   syncHomepagePositioning();
-  enforceReadabilityFloor();
 
   const toggle=document.querySelector('.menu-toggle');
   const menu=document.querySelector('.mobile-nav');
@@ -191,5 +185,5 @@
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
   });
-  window.addEventListener('resize',()=>{enforceReadabilityFloor();if(window.innerWidth>1120)closeMenu();},{passive:true});
+  window.addEventListener('resize',()=>{if(window.innerWidth>1120)closeMenu();},{passive:true});
 })();

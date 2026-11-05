@@ -161,6 +161,9 @@ try {
     const thinText = await text(page);
     check("S6 the VERIFY decision shows its recorded identity check and no BUY identity disclosure", ["Confirmed when saved", "Not confirmed when saved", "Not recorded (earlier rules)"].includes(identityLine(thinText))
       && await page.locator("#main-content [data-ff-identity-basis]").count() === 0, identityLine(thinText) || thinText.slice(0, 200));
+    // A VERIFY decision sets no buying limit: the saved-decision page shows no Max Buy, whatever the receipt recorded.
+    check("S6a the VERIFY decision shows no Max Buy", await page.locator("#main-content [data-max-buy-at-decision]").count() === 0
+      && !/Max Buy \$[0-9]/.test(thinText), thinText.slice(0, 300));
     await go(page, `opportunities/${encodeURIComponent(saved.strong.id)}`, 3500);
     await page.locator("#main-content [data-card-reevaluate]").click();
     await page.waitForSelector("#main-content .ff-reevaluation-banner[data-reevaluation-state=\"ready\"]", { timeout: 15000 });

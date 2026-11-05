@@ -93,6 +93,10 @@
 
 /* ---------- Responsive ---------- */
 @media(max-width:1100px){
+  /* Readable 14px tab labels: lighter tracking so they fit their columns. */
+  .ff10-aud-tab,.ff10-aud-tab>*{min-width:0}
+  .ff10-aud-tab small{letter-spacing:.05em;overflow-wrap:anywhere}
+
   .ff10-aud-head{grid-template-columns:1fr}
   .ff10-aud-panel{grid-template-columns:1fr}
 }

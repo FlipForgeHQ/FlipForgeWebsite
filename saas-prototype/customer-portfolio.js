@@ -378,6 +378,8 @@
     const verdict = String(saved.governedDecision?.recommendation || saved.recommendation || "").toUpperCase().replace(/^SAVED\s+/, "");
     const chip = /^(BUY|WATCH|VERIFY|PASS)$/.test(verdict) ? `<span class="staging-status staging-status-${verdict === "BUY" ? "buy" : verdict === "PASS" ? "danger" : "warn"}">${escapeHtml(verdict)}</span>` : "";
     if (isLegacy(saved)) return { group: "legacy", chip };
+    // A VERIFY decision sets no buying limit: its evidence has not cleared, so no Max Buy is shown or compared.
+    if (verdict === "VERIFY") return { group: "verify-no-max-buy", chip };
     const governed = saved.governedDecision && saved.governedDecision.available === true ? saved.governedDecision : null;
     const recorded = governed ? knownCents(governed.maximumBuyPriceCents) : null;
     // Max Buy is a buying limit only when the saved decision established a supported value (the engine records Max Buy 0
@@ -395,6 +397,7 @@
     if (facts.group === "unlinked") return `<span>No saved decision</span><small>No saved decision is linked to this card.</small>`;
     if (facts.group === "legacy") return `${facts.chip}<small>Saved before current evidence rules · not currently supported</small>`;
     if (facts.group === "no-max-buy") return `${facts.chip}<small>No Max Buy was set at decision</small>`;
+    if (facts.group === "verify-no-max-buy") return `${facts.chip}<small>No buying limit until the evidence clears</small>`;
     const { maxBuy, paid } = facts;
     const versus = paid === null || paid === undefined ? ""
       : paid < maxBuy ? `You paid ${moneyCents(maxBuy - paid)} under it`

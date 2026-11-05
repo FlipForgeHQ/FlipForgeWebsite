@@ -63,7 +63,7 @@
  .ff-di-check-index-top{align-items:start}
  .ff-di-check-index-top h2{font-size:20px!important}
  .ff-di-check-index-top h2 strong{font-size:38px}
- .ff-di-index-label{font-size:7px;white-space:nowrap}
+ .ff-di-index-label{font-size:7px;white-space:normal;flex:1 1 auto;min-width:0;max-width:52%}
  .ff-di-check-families{gap:6px}
  .ff-di-check-family{min-height:0;padding:9px 7px 8px}
  .ff-di-check-family-head{gap:6px;align-items:flex-start;min-height:39px}
