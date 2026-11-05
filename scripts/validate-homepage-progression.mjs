@@ -38,14 +38,18 @@ requireAll('homepage premium performance layout',homepage,[
  'data-ff10-hero',
  'class="ff10-slab"',
  'class="ff10-panel"',
+ 'id="difference"',
  'id="demo"',
- 'id="how-it-works"',
- 'id="identity"',
- 'id="evidence"',
- 'class="ff10-question ff10-light"',
+ 'id="inside-the-app"',
+ 'id="who-its-for"',
  'class="ff10-final"',
  'assets/css/homepage-v10.css'
 ]);
+// Founder decision Nov 5 2026: six sections, each story told once. The static card walkthroughs, the price-vs-proof
+// section and the hero collector row were duplicates of the Challenge, Inside the App and Who It's For.
+for(const removed of ['id="price-vs-proof"','id="evidence"','id="identity"','id="how-it-works"','ff10-persona-nav']){
+  if(homepage.includes(removed))failures.push(`homepage six-section layout: duplicate section returned (${removed})`);
+}
 requireAll('homepage illustration and decision honesty',homepage,[
  'data-ffdemo',
  'Max Buy',
@@ -55,7 +59,7 @@ requireAll('homepage illustration and decision honesty',homepage,[
  'data-reset',
  'NO REAL SALE DATA',
  'NO GUARANTEED RETURN',
- 'Illustrative prices for a fictional card.',
+ 'Fictional card and illustrative numbers.',
  'Invented for illustration; not a real card, player, set or grading company.',
  'Controlled Private Beta.',
  'FlipForge does not guarantee profit or authorize transactions.'

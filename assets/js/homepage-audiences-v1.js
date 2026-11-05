@@ -45,17 +45,6 @@
     });
   });
 
-  // The five prominent hero choices open their matching existing audience panel.
-  // The native #who-its-for anchor still works without JavaScript.
-  document.querySelectorAll('[data-ff-audience-target]').forEach(link => {
-    link.addEventListener('click', () => {
-      const index = tabs.findIndex(tab => tab.dataset.audTab === link.dataset.ffAudienceTarget);
-      if (index < 0) return;
-      select(index, false);
-      track('audience_selected', `audience-${tabs[index].dataset.audTab}`);
-    });
-  });
-
   root.querySelectorAll('[data-aud-cta]').forEach(link => {
     link.addEventListener('click', () => track('beta_cta_clicked', `audience-${link.dataset.audCta}`));
   });

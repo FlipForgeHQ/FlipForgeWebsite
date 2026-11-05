@@ -3,13 +3,11 @@
  * paddings of plain black (about 330px on desktop, 200px on a phone) with nothing on screen. Where dark meets dark,
  * the two sections now share one padding. Light sections, the section lines, content and design are unchanged. */
 
-/* How it works -> Who it's for (both dark) */
-.ff10-steps:has(+ .ff10-aud){padding-bottom:calc(var(--pad) / 2)}
-.ff10-steps + .ff10-aud{padding-top:calc(var(--pad) / 2)}
-
-/* Inside FlipForge -> final call to action (both dark) */
-.ff10-app:has(+ .ff10-final){padding-bottom:calc(var(--pad) / 2)}
-.ff10-app + .ff10-final{padding-top:calc(var(--pad) / 2)}
+/* Inside FlipForge -> Who it's for -> final call to action (all dark; six-section order, founder Nov 5 2026) */
+.ff10-app:has(+ .ff10-aud){padding-bottom:calc(var(--pad) / 2)}
+.ff10-app + .ff10-aud{padding-top:calc(var(--pad) / 2)}
+.ff10-aud:has(+ .ff10-final){padding-bottom:calc(var(--pad) / 2)}
+.ff10-aud + .ff10-final{padding-top:calc(var(--pad) / 2)}
 
 /* Hero -> The FlipForge difference (both dark): the hero's own bottom spacing is halved on wide screens, where it
  * stacked with the decision key's bottom margin. */
