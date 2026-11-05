@@ -27,6 +27,17 @@ const EVENT_NAMES = new Set([
   "app_screen_viewed",
   "hero_jump_clicked",
   "section_viewed",
+  // Signed-in app (Private Beta workspace and full customer app) activation milestones. The app sends these with the
+  // fixed page "beta-app" and one of the fixed in-app placements below.
+  "phase3_first_use_shown",
+  "phase3_returning_home_shown",
+  "phase3_first_evaluate_clicked",
+  "phase3_returning_action_clicked",
+  "phase3_first_result_education_viewed",
+  "phase3_evaluation_completed",
+  "phase3_evidence_opened",
+  "phase3_evaluate_another_clicked",
+  "phase3_decision_receipt_opened",
 ]);
 
 const PAGE_NAMES = new Set([
@@ -76,6 +87,16 @@ const PLACEMENTS = new Set([
   "hero-challenge",
   "hero-app",
   "inside-app",
+  // Signed-in app placements (commercial-dashboard-v2.js, phase3-first-decision-activation-v1.js).
+  "dashboard",
+  "dashboard_zero_saved",
+  "dashboard_saved",
+  "returning_saved",
+  "returning_outcomes",
+  "returning_heat",
+  "returning_portfolio",
+  "result_education",
+  "saved_decision_detail",
   "unknown",
 ]);
 

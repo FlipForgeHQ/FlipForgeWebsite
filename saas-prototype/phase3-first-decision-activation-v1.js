@@ -7,6 +7,9 @@
   const MAIN = "#main-content";
   const OWNED_SELECTOR = "[data-flipforge-phase3-owned]";
   const ENHANCED_ATTRIBUTE = "data-flipforge-phase3-enhanced";
+  // /api/conversion-event accepts allowlisted names only. Every event from this file is sent with this fixed page name
+  // and a fixed placement: never the raw path, URL, hash route, query string, card, id, verdict or any user data.
+  const EVENT_PAGE = "beta-app";
   const emitted = new Set();
   const diagnostics = { observerCallbacks: 0, relevantObserverCallbacks: 0, applyRuns: 0 };
   let scheduled = false;
@@ -30,11 +33,11 @@
     return routeParts()[0] || "dashboard";
   }
 
-  function emit(event, placement = "phase3") {
+  function emit(event, placement) {
     const key = `${event}:${placement}`;
     if (emitted.has(key)) return;
     emitted.add(key);
-    const body = JSON.stringify({ event, page: String(window.location.pathname || ""), route: routeName(), placement });
+    const body = JSON.stringify({ event, page: EVENT_PAGE, placement });
     try {
       if (navigator.sendBeacon) {
         const ok = navigator.sendBeacon("/api/conversion-event", new Blob([body], { type: "application/json" }));
@@ -131,7 +134,8 @@
     const anchor = summary || hero;
     anchor.insertAdjacentElement("afterend", guide);
     anchor.setAttribute(ENHANCED_ATTRIBUTE, "result");
-    emit("phase3_first_result_education_viewed", decision.toLowerCase());
+    // The saved verdict is not sent: the event records only that the education layer was shown.
+    emit("phase3_first_result_education_viewed", "result_education");
     emit("phase3_evaluation_completed", "saved_decision_detail");
   }
 

@@ -17,6 +17,10 @@
   let generation = 0;
   let lastSnapshot = null;
   const emitted = new Set();
+  // /api/conversion-event accepts allowlisted names only. Home events are sent with this fixed page name and a fixed
+  // placement: never the raw path, URL, hash route, query string, card, id or any user data.
+  const EVENT_PAGE = "beta-app";
+  const RETURNING_PLACEMENTS = Object.freeze({ saved: "returning_saved", outcomes: "returning_outcomes", heat: "returning_heat", portfolio: "returning_portfolio" });
 
   // This file is the single owner of the Dashboard ("Home") route. Everything a customer sees on it is rendered
   // here in its final form: the Home heading and first-use / returning panels, the Private Beta "Start here" panel,
@@ -68,7 +72,7 @@
     const key = `${event}:${placement}`;
     if (emitted.has(key)) return;
     emitted.add(key);
-    const body = JSON.stringify({ event, page: String(window.location.pathname || ""), route: "dashboard", placement });
+    const body = JSON.stringify({ event, page: EVENT_PAGE, placement });
     try {
       if (navigator.sendBeacon && navigator.sendBeacon("/api/conversion-event", new Blob([body], { type: "application/json" }))) return;
       fetch("/api/conversion-event", { method: "POST", headers: { "Content-Type": "application/json" }, body, credentials: "same-origin", cache: "no-store", keepalive: true }).catch(() => {});
@@ -594,7 +598,7 @@
       if (!target || routeName() !== "dashboard") return;
       if (target.closest("[data-ff-p3-first-evaluate]")) emit("phase3_first_evaluate_clicked", "dashboard");
       const returning = target.closest("[data-ff-p3-return]");
-      if (returning) emit("phase3_returning_action_clicked", returning.getAttribute("data-ff-p3-return") || "unknown");
+      if (returning) emit("phase3_returning_action_clicked", RETURNING_PLACEMENTS[returning.getAttribute("data-ff-p3-return")] || "unknown");
     }, true);
   }
 

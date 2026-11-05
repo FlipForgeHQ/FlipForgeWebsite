@@ -68,6 +68,50 @@ for (const retired of ['phase3_landing_to_evaluate', 'phase3_public_beta_cta_cli
   passed++;
 }
 
+// Signed-in app activation events (Nov 2026). All nine were rejected with 400 EVENT_NOT_ALLOWED: the names and
+// placements were not allowlisted and the app sent its raw window.location.pathname as the page. Each app sender now
+// sends a fixed page name and fixed placements, and the server allowlists exactly those - nothing pattern-based.
+const IN_APP = {
+  'saas-prototype/commercial-dashboard-v2.js': ['phase3_first_use_shown', 'phase3_returning_home_shown', 'phase3_first_evaluate_clicked', 'phase3_returning_action_clicked'],
+  'saas-prototype/phase3-first-decision-activation-v1.js': ['phase3_first_result_education_viewed', 'phase3_evaluation_completed', 'phase3_evidence_opened',
+    'phase3_evaluate_another_clicked', 'phase3_decision_receipt_opened'],
+};
+const IN_APP_PLACEMENTS = ['dashboard', 'dashboard_zero_saved', 'dashboard_saved', 'returning_saved', 'returning_outcomes', 'returning_heat',
+  'returning_portfolio', 'result_education', 'saved_decision_detail'];
+for (const [file, expected] of Object.entries(IN_APP)) {
+  const source = readFileSync(file, 'utf8');
+  const sentEvents = [...source.matchAll(/\bemit\(\s*["']([a-z0-9_]+)["']/g)].map(m => m[1]);
+  assert.deepEqual([...new Set(sentEvents)].sort(), [...expected].sort(), 'In-app events sent by ' + file + ' changed: ' + sentEvents);
+  for (const event of expected) { assert.ok(events.has(event), 'In-app event rejected by server: ' + event); passed++; }
+  // Every literal placement passed to emit() is allowlisted; the returning destinations go through a fixed table.
+  for (const [, placement] of source.matchAll(/\bemit\(\s*["'][a-z0-9_]+["']\s*,\s*["']([^"']+)["']/g)) {
+    assert.ok(IN_APP_PLACEMENTS.includes(placement) && placements.has(placement), 'In-app placement rejected by server: ' + placement + ' in ' + file);
+    passed++;
+  }
+  assert.ok(!/\bemit\(\s*["'][a-z0-9_]+["']\s*,\s*(?![\s"'])(?!RETURNING_PLACEMENTS\[)/.test(source), 'In-app emit() placements must be literals or the fixed table: ' + file);
+  assert.ok(source.includes('const EVENT_PAGE = "beta-app";') && source.includes('JSON.stringify({ event, page: EVENT_PAGE, placement })'),
+    'In-app events must send only event, the fixed page "beta-app" and a placement: ' + file);
+  assert.ok(!/JSON\.stringify\(\{[^}]*(?:pathname|location|route|href|search|hash)[^}]*\}\)/.test(source), 'In-app events must not send a raw path, URL or route: ' + file);
+  passed += 3;
+}
+const dashboardSource = readFileSync('saas-prototype/commercial-dashboard-v2.js', 'utf8');
+assert.ok(dashboardSource.includes('RETURNING_PLACEMENTS = Object.freeze({ saved: "returning_saved", outcomes: "returning_outcomes", heat: "returning_heat", portfolio: "returning_portfolio" })')
+  && dashboardSource.includes('RETURNING_PLACEMENTS[returning.getAttribute("data-ff-p3-return")] || "unknown"'), 'Returning-home destinations map through a fixed placement table');
+assert.ok(pages.has('beta-app'), 'Server must accept the fixed in-app page name');
+for (const placement of IN_APP_PLACEMENTS) assert.ok(placements.has(placement), 'In-app placement missing from server allowlist: ' + placement);
+// The saved verdict is recommendation data and is never a placement; the old app paths are never a page.
+for (const unsafe of ['buy', 'watch', 'verify', 'pass', '/app/beta/', '/app/customer/', '/saas-prototype/']) {
+  assert.ok(!placements.has(unsafe) && !pages.has(unsafe), 'Verdict or raw path must not be allowlisted: ' + unsafe);
+  passed++;
+}
+// Discover events Phase 3 no longer sends stay outside the allowlist.
+for (const retired of ['phase3_governed_evaluation_started', 'phase3_card_search_submitted', 'phase3_identity_selected']) {
+  assert.ok(!events.has(retired), 'Retired Discover event must not be allowlisted: ' + retired);
+  passed++;
+}
+assert.ok(![...events, ...pages, ...placements].some(value => /[*?\\^$]/.test(value)), 'Allowlists hold exact strings only');
+passed += 3;
+
 // Campaign attribution: first-touch utm_* in sessionStorage only, strict server re-validation, nothing else.
 assert.ok(client.includes('sessionStorage.setItem(CAMPAIGN_KEY') && !/localStorage|document\.cookie|indexedDB/.test(client),
   'Campaign attribution must use this tab\'s sessionStorage only');

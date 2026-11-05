@@ -17,6 +17,9 @@ on:
       - "scripts/validate-beta-acquisition-onboarding.mjs"
       - "scripts/validate-conversion-event-contract.mjs"
       - "scripts/audit-conversion-attribution-e2e.mjs"
+      - "scripts/audit-in-app-events-e2e.mjs"
+      - "saas-prototype/commercial-dashboard-v2.js"
+      - "saas-prototype/phase3-first-decision-activation-v1.js"
       - "assets/js/beta-operator.js"
       - "netlify/modern-functions/beta-operator.mjs"
       - "docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md"
@@ -42,6 +45,9 @@ on:
       - "scripts/validate-beta-acquisition-onboarding.mjs"
       - "scripts/validate-conversion-event-contract.mjs"
       - "scripts/audit-conversion-attribution-e2e.mjs"
+      - "scripts/audit-in-app-events-e2e.mjs"
+      - "saas-prototype/commercial-dashboard-v2.js"
+      - "saas-prototype/phase3-first-decision-activation-v1.js"
       - "assets/js/beta-operator.js"
       - "netlify/modern-functions/beta-operator.mjs"
       - "docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md"
@@ -73,3 +79,5 @@ jobs:
         run: bash scripts/ci/install-playwright-chromium.sh
       - name: Campaign link to submitted beta application (local functions, real browser)
         run: node scripts/audit-conversion-attribution-e2e.mjs
+      - name: Signed-in app activation events accepted (local function, real browser)
+        run: node scripts/audit-in-app-events-e2e.mjs

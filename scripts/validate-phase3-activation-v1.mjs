@@ -68,6 +68,21 @@ check("031 app tracks evaluation completion", js.includes("phase3_evaluation_com
 check("032 app tracks evidence inspection", js.includes("phase3_evidence_opened"));
 check("033 app tracks Decision Receipt opening", js.includes("phase3_decision_receipt_opened"));
 
+// /api/conversion-event rejected every in-app event with 400 EVENT_NOT_ALLOWED until Nov 2026: the names were not
+// allowlisted and the page was the raw window.location.pathname. Fixed page, fixed placements, allowlisted names.
+const backend = read("netlify/modern-functions/conversion-event.mjs");
+const allow = name => new Set([...(backend.match(new RegExp("const " + name + " = new Set\\(\\[([\\s\\S]*?)\\]\\)"))?.[1] || "").matchAll(/"([^"]+)"/g)].map(m => m[1]));
+const serverEvents = allow("EVENT_NAMES");
+const serverPlacements = allow("PLACEMENTS");
+const NINE = ["phase3_first_use_shown", "phase3_returning_home_shown", "phase3_first_evaluate_clicked", "phase3_returning_action_clicked",
+  "phase3_first_result_education_viewed", "phase3_evaluation_completed", "phase3_evidence_opened", "phase3_evaluate_another_clicked", "phase3_decision_receipt_opened"];
+check("046 the server allowlists all nine in-app activation events", NINE.every(name => serverEvents.has(name)) && allow("PAGE_NAMES").has("beta-app"));
+check("047 app events send the fixed page beta-app, never the raw path or route", [js, home].every(source => source.includes('const EVENT_PAGE = "beta-app";')
+  && source.includes("JSON.stringify({ event, page: EVENT_PAGE, placement })") && !/page:\s*String\(window\.location/.test(source) && !/route:\s*(?:routeName\(\)|"dashboard")/.test(source)));
+check("048 result education does not send the saved verdict", js.includes('emit("phase3_first_result_education_viewed", "result_education")') && !js.includes("decision.toLowerCase()"));
+check("049 every in-app placement is allowlisted", ["dashboard_zero_saved", "dashboard_saved", "dashboard", "returning_saved", "returning_outcomes", "returning_heat",
+  "returning_portfolio", "result_education", "saved_decision_detail"].every(value => serverPlacements.has(value)) && !["buy", "watch", "verify", "pass"].some(value => serverPlacements.has(value)));
+
 check("034 premium activation visual exists", css.includes(".ff-p3-activation"));
 check("035 returning user visual exists", css.includes(".ff-p3-returning"));
 check("037 first-result education visual exists", css.includes(".ff-p3-result-guide"));
