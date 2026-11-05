@@ -83,7 +83,8 @@ function walk(dir, out) {
 // Legacy headings that compatibility lookups READ from pages rendered by an earlier build. They are never shown:
 // each may appear only on a `*_LABELS = [...]` lookup-constant line in the named file.
 export const LEGACY_LOOKUP_LABELS = {
-  "saas-prototype/decision-card-evidence-v1.js": ["Trusted sales", "Trusted completed sales"],
+  // "Trusted sales" was read only by the saved-decision page scraper, retired Nov 3 2026 (the owner passes the record).
+  "saas-prototype/decision-card-evidence-v1.js": ["Trusted completed sales"],
   "saas-prototype/customer-cdi-signal-stack-v1.js": ["Trusted completed sales"],
 };
 const LOOKUP_CONSTANT_LINE = /^\s*const [A-Z_]+_LABELS = \[.*\];\s*$/;
@@ -156,9 +157,10 @@ for (const rel of fs.readdirSync(".").filter(name => name.endsWith(".html"))) {
 check("Decision Intelligence states the payment limitation", disclosure.test(read("saas-prototype/decision-intelligence-ux-v2.js")));
 check("evidence details state the payment limitation", disclosure.test(read("saas-prototype/evidence-authority-split-v1.js")));
 check("evaluation evidence panel states the payment limitation", disclosure.test(read("saas-prototype/staging-browser.js")));
-check("Collection alerts state the payment limitation", disclosure.test(read("saas-prototype/collection-intelligence-alerts-v1.js")));
-check("Collection alerts never show the stored VERIFIED state as a claim",
-  read("saas-prototype/collection-intelligence-alerts-v1.js").includes('replace(/\\bVERIFIED\\b/g, "Strong (reported sales)")'));
+// The beta-only "Daily Intelligence" collection-alerts panel was a duplicate alerts surface and is removed
+// (founder decision 2026-11-03); Alerts is the one alerts surface.
+check("The duplicate Daily Intelligence alerts surface is not loaded", !fs.existsSync("saas-prototype/collection-intelligence-alerts-v1.js")
+  && ["index.html", "customer.html"].every(page => !read(`saas-prototype/${page}`).includes("collection-intelligence-alerts-v1")));
 
 // 4. The data provider is never named to customers, and no customer-readable string (including runtime text
 //    replacement tables) calls reported sales or saved evidence verified, confirmed or trusted.

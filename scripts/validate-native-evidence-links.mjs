@@ -12,7 +12,8 @@ const managementCss = read("saas-prototype/customer-management.css");
 
 const checks = [
   ["saved-decision explain controls are converted to native anchors", consistency.includes("function replaceWithEvidenceLink") && consistency.includes('document.createElement("a")')],
-  ["main Show me why controls are rewritten", consistency.includes('main.querySelectorAll("[data-ff-show-why]")')],
+  // The saved decision page renders its explain action as the native Evidence link itself (customer-opportunities.js).
+  ["main Show me why controls are native Evidence links", read("saas-prototype/customer-opportunities.js").includes('<a class="button button-primary" data-ff-show-why data-ff-native-evidence-link="" href="#/evidence/${id}">Understand this decision →</a>') && !consistency.includes('main.querySelectorAll("[data-ff-show-why]")')],
   ["Guided Mode explain controls are rewritten", consistency.includes('document.getElementById("ff-guided-mode-root")') && consistency.includes('guide?.querySelectorAll("[data-guide-action]")')],
   ["native links target exact saved Evidence route", consistency.includes('return id ? `#/evidence/${encodeURIComponent(id)}` : ""')],
   ["authoritative decision is read only from the saved Card Intelligence hero", consistency.includes('main?.querySelector(".customer-intelligence-hero")') && consistency.includes('hero.querySelectorAll(".staging-status,[data-recommendation]")')],
@@ -25,7 +26,9 @@ const checks = [
   ["candidate pool and audit history use progressive disclosure", consistency.includes("function makeDisclosure") && consistency.includes("Review candidate pool") && consistency.includes("View full audit trail")],
   ["Evidence is Guided Mode Understand step", consistency.includes('location.textContent = "Evidence · Step 3"') && consistency.includes("See what FlipForge counted—and what it refused to use.")],
   ["Evidence continues to exact Tracking record", consistency.includes('data-ff-evidence-understood') && consistency.includes('href="#/tracking/${encodeURIComponent(id)}"')],
-  ["Tracking route has explicit ownership repair", consistency.includes("function ensureTrackingOwnership(main)") && consistency.includes('adapter.render(main, "tracking", id)')],
+  // Evidence -> Tracking opens the exact record through the route (tracking-context-v1.js owns the click); the
+  // Tracking owner's generation guard keeps a stale page from repainting, so no second renderer is needed here.
+  ["Evidence continue opens the exact Tracking record without a second renderer", !consistency.includes("ensureTrackingOwnership") && read("saas-prototype/tracking-context-v1.js").includes('closest?.("[data-ff-evidence-understood]")') && read("saas-prototype/tracking-context-v1.js").includes('adapter.render(main, "tracking", id)')],
   ["locked tagline casing is normalized", consistency.includes('"Before you buy. Know why."') && consistency.includes('"Know Why."')],
   ["Evidence v2 has dedicated responsive visual hierarchy", managementCss.includes("Evidence Experience v2") && managementCss.includes(".ff-evidence-proof-hero") && managementCss.includes(".ff-evidence-funnel") && managementCss.includes(".ff-evidence-next-step")],
   ["Evidence proof and next-step layout collapse on smaller screens", managementCss.includes("@media (max-width: 760px)") && managementCss.includes(".ff-evidence-funnel") && managementCss.includes(".ff-evidence-next-step")],

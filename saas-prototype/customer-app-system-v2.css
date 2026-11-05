@@ -43,7 +43,7 @@ body.ff-full-customer-app .brand-name {
 
 body.ff-full-customer-app .brand-subtitle {
   margin-top: 3px !important;
-  font-size: .68rem !important;
+  font-size: .875rem !important;
   line-height: 1.2 !important;
   letter-spacing: .08em !important;
 }
@@ -52,7 +52,7 @@ body.ff-full-customer-app .prototype-chip {
   min-height: 24px !important;
   padding: 4px 7px !important;
   border-radius: 999px !important;
-  font-size: .66rem !important;
+  font-size: .875rem !important;
   font-weight: 800 !important;
   line-height: 1 !important;
 }
@@ -87,7 +87,7 @@ body.ff-full-customer-app .ff-advanced-nav > summary {
   min-height: 40px !important;
   padding: 8px 10px !important;
   border-radius: 9px !important;
-  font-size: .8rem !important;
+  font-size: .875rem !important;
   line-height: 1.2 !important;
 }
 
@@ -183,7 +183,7 @@ body.ff-full-customer-app #main-content .page-heading > div:first-child {
 body.ff-full-customer-app #main-content .page-heading .eyebrow,
 body.ff-full-customer-app #main-content .eyebrow {
   margin: 0 0 6px !important;
-  font-size: .74rem !important;
+  font-size: .875rem !important;
   font-weight: 800 !important;
   line-height: 1.2 !important;
   letter-spacing: .09em !important;

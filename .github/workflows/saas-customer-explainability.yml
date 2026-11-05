@@ -5,7 +5,6 @@ on:
     paths:
       - "saas-prototype/index.html"
       - "saas-prototype/customer-opportunities.js"
-      - "saas-prototype/customer-explainability.js"
       - "saas-prototype/customer-explainability.css"
       - "scripts/validate-saas-customer-explainability.mjs"
       - ".github/workflows/saas-customer-explainability.yml"
@@ -15,7 +14,6 @@ on:
     paths:
       - "saas-prototype/index.html"
       - "saas-prototype/customer-opportunities.js"
-      - "saas-prototype/customer-explainability.js"
       - "saas-prototype/customer-explainability.css"
       - "scripts/validate-saas-customer-explainability.mjs"
       - ".github/workflows/saas-customer-explainability.yml"
@@ -34,7 +32,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Parse explainability browser JavaScript
-        run: node --check saas-prototype/customer-explainability.js
+      - name: Parse the saved decision owner that renders the explanations
+        run: node --check saas-prototype/customer-opportunities.js
       - name: Validate customer intelligence explainability
         run: node scripts/validate-saas-customer-explainability.mjs

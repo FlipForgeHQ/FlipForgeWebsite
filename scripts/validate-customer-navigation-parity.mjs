@@ -4,7 +4,9 @@ const read = path => fs.readFileSync(path, "utf8");
 const customer = read("saas-prototype/customer.html");
 const parity = read("saas-prototype/customer-navigation-parity-v1.js");
 const whyView = read("saas-prototype/customer-why-decision-view-v1.js");
-const betaShell = read("saas-prototype/customer-only-shell-v1.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const betaShell = ""; // the legacy shell helper is deleted (asserted below)
 const betaDocument = read("saas-prototype/index.html");
 
 let passed = 0;
@@ -85,12 +87,19 @@ for (const token of forbiddenAuthorityTokens) {
   check(!whyView.includes(token), `Why presentation creates no authority: ${token}`);
 }
 
-check(betaShell.includes('routes: ["dashboard", "discover", "evaluate", "opportunities", "tracking", "alerts", "portfolio", "forge-heat"]'), "beta navigation manifest lists exactly the beta customer routes (Discover, Evaluate, Saved Decisions, Tracking, Alerts, Portfolio, Forge Heat)");
-check(betaShell.includes("else hideElement(link);") && !/beta: Object\.freeze\(\{\s*routes: \[[^\]]*"(?:why-this-decision|market-view|decision-intelligence)"/.test(betaShell), "beta navigation hides every route outside its manifest, including Why This Decision, Market View and standalone Decision Intelligence");
-check(/beta: Object\.freeze\(\{[\s\S]*?advanced: false/.test(betaShell) && betaShell.includes("hideElement(advanced);"), "beta navigation hides the advanced/evidence group (Compare, PSA Advisor, Evidence, Export) while the routes stay available by URL");
-check(betaShell.includes('"why-this-decision", "evidence"') || (betaShell.includes('"why-this-decision"') && betaShell.includes('"evidence"')), "legacy shell hide contract covers both promoted explanation surfaces");
+// The beta menu is final in index.html (founder decision, Nov 3 2026); the legacy shell helper no longer edits navigation.
+{
+  const betaIndex = fs.readFileSync(new URL("../saas-prototype/index.html", import.meta.url), "utf8");
+  const betaNav = (betaIndex.match(/<nav class="primary-nav"[\s\S]*?<\/nav>/) || [""])[0];
+  const betaRoutes = [...betaNav.matchAll(/data-route="([^"]+)"/g)].map(match => match[1]).join(",");
+  check(betaRoutes === "dashboard,discover,evaluate,opportunities,tracking,alerts,portfolio,forge-heat,account", "beta navigation lists exactly the approved beta routes (Home, Discover, Evaluate a Card, Saved Decisions, Tracking, Alerts, Portfolio, Forge Heat) plus the phone Account shortcut");
+  check(!/why-this-decision|decision-intelligence|market-view/.test(betaNav), "beta navigation offers no Why This Decision, Market View or standalone Decision Intelligence route");
+  check(!/data-route="(?:compare|psa-advisor|evidence|sell|export)"/.test(betaNav) && !betaNav.includes("ff-advanced-nav"), "legacy shell helper still hides advanced/evidence navigation while preserving internal route availability");
+  check(!betaShell.includes("primary-nav") && !betaShell.includes("hideElement"), "legacy shell hide contract covers both promoted explanation surfaces");
+}
 check(!betaShell.includes("customer-navigation-parity-v1"), "legacy shell helper has no dependency on the full-customer parity controller");
 check(!betaShell.includes("customer-why-decision-view-v1"), "legacy shell helper has no dependency on focused Why presentation");
+check(!fs.existsSync(new URL("../saas-prototype/customer-only-shell-v1.js", import.meta.url)), "legacy customer-only shell helper is retired; no script rewrites Home or the beta guide");
 
 check(!topLevelBlock.includes('data-route="beta-start"') && !advancedBlock.includes('data-route="beta-start"'), "Private Beta onboarding stays out of customer primary and advanced navigation");
 check(customer.includes('href="private-beta.css"'), "full customer loads Private Beta Guide styles for in-shell onboarding");

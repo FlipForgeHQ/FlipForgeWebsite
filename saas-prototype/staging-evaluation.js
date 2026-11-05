@@ -5,7 +5,8 @@
   const EVALUATION_PATH = "/api/v1/evaluations";
   const MAX_RESPONSE_CHARACTERS = 1_000_000;
   const SAFE_REQUEST_ID = /^[A-Za-z0-9._-]{8,100}$/;
-  const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/;
+  // Same character set as the server and Discover: eBay Browse item IDs look like v1|123456789012|0.
+  const SAFE_EXTERNAL_ID = /^[A-Za-z0-9][A-Za-z0-9._:|-]{0,179}$/;
   const SAFE_OPPORTUNITY_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
   const PRODUCTION_HOST = /^(?:www\.)?goflipforge\.com$/i;
   const ALLOWED_HOST = /^(?:deploy-preview-\d+--goflipforge\.netlify\.app|localhost|127\.0\.0\.1)$/i;
@@ -95,6 +96,39 @@
     return `${Number(value)}/100`;
   }
 
+  // Plain meaning of each saved verdict, shown on the customer result (same sentences as the decision key elsewhere).
+  const DECISION_COPY = Object.freeze({
+    BUY: "The saved evidence supports this purchase at the evaluated price, within the stated risks and limits.",
+    WATCH: "There may be an opportunity here, but the price or evidence is not strong enough yet.",
+    VERIFY: "There is not enough matching evidence yet to make this purchase confidently.",
+    PASS: "The current evidence does not justify this purchase at the evaluated price."
+  });
+
+  function betaSurface() {
+    return window.FlipForgePrivateBetaEntry === true;
+  }
+
+  // Private Beta: the three-step card workflow under the page heading (Evaluate is step 1, as on Discover). Steps the
+  // tester already completed (guided-mode progress) carry a check mark.
+  function workflowStripMarkup() {
+    if (!betaSurface()) return "";
+    let completed = new Set();
+    try { completed = new Set(window.FlipForgeGuidedMode?.getProgress?.()?.completed || []); } catch (_) { completed = new Set(); }
+    const steps = [["discover", "Evaluate", "#/discover"], ["understand", "Decision", "#/opportunities"], ["track", "Track", "#/tracking"]];
+    return `<nav class="ff-workflow-strip" data-ff-workflow-strip aria-label="Your FlipForge card workflow">${steps.map(([key, label, href], index) => {
+      const done = completed.has(key);
+      return `<a class="ff-workflow-step" href="${href}" data-done="${done}"${key === "discover" ? ' aria-current="step"' : ""}><span class="ff-workflow-step-number">${done ? "\u2713" : index + 1}</span><span>${label}</span></a>`;
+    }).join("")}</nav>`;
+  }
+
+  // Display only: the saved risk score as a word plus the score; anything that is not a number is "Unavailable".
+  function riskLabel(value) {
+    if (value === null || value === undefined || value === "" || !Number.isFinite(Number(value))) return { label: "Unavailable", score: "" };
+    const score = Number(value);
+    const bounded = Math.max(0, Math.min(100, score));
+    return { label: bounded >= 70 ? "High" : bounded >= 35 ? "Moderate" : "Low", score: `${score}/100` };
+  }
+
   function safeNumber(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : 0;
@@ -168,9 +202,9 @@
     const externalListingId = cleanText(draft.externalListingId, "External listing ID", 180, true);
     const marketplace = cleanText(draft.marketplace, "Marketplace", 80, true).toUpperCase();
     if (!MARKETPLACES.includes(marketplace)) throw validationError("EVALUATION_MARKETPLACE_INVALID", "Marketplace is not supported.");
-    if (!SAFE_EXTERNAL_ID.test(externalListingId)) throw validationError("EVALUATION_LISTING_ID_INVALID", "External listing ID must use only letters, numbers, periods, underscores, colons, or hyphens.");
-    const opportunityId = `${marketplace}-${externalListingId}`;
-    if (!SAFE_OPPORTUNITY_ID.test(opportunityId)) throw validationError("EVALUATION_LISTING_ID_INVALID", "Marketplace and external listing ID do not produce a safe saved opportunity ID.");
+    if (!SAFE_EXTERNAL_ID.test(externalListingId)) throw validationError("EVALUATION_LISTING_ID_INVALID", "External listing ID must use only letters, numbers, periods, underscores, colons, pipes, or hyphens.");
+    // The server owns the saved opportunity ID: it uses MARKETPLACE-id when that is route-safe and otherwise derives
+    // MARKETPLACE-ext-<sha256> (SaaSTenantAuthoritativeEvaluationService). The browser does not pre-derive it.
 
     const cardIdentity = cleanText(draft.cardIdentity, "Card identity", 500, true);
     const listingUrl = cleanText(draft.listingUrl, "Listing URL", 2048, true);
@@ -503,6 +537,7 @@
   }
 
   function evaluationForm() {
+    if (customerSurface()) return customerEvaluationForm();
     const marketplaceOptions = MARKETPLACES.map(value => `<option value="${value}"${state.draft.marketplace === value ? " selected" : ""}>${value.replaceAll("_", " ")}</option>`).join("");
     const heading = customerSurface() ? "Evaluate and track a card" : "Submit a staging evaluation";
     const description = customerSurface()
@@ -513,7 +548,15 @@
     const boundaryCopy = customerSurface()
       ? "I understand FlipForge provides decision support. This request does not verify evidence or identity, predict a grade, authorize a bid or purchase, or call a marketplace provider."
       : "I understand this is staging decision support. It does not verify evidence or identity, predict a grade, authorize a bid or purchase, or call a marketplace provider.";
-    return `<section class="panel staging-evaluation-panel"><header class="panel-header"><div><h2>${heading}</h2><p>${description}</p></div><span class="staging-status staging-status-verify">Write boundary</span></header><form class="panel-body staging-evaluation-form" data-staging-evaluation-form novalidate><div class="customer-intake-step"><span>1</span><div><strong>Listing and exact card identity</strong><small>Describe the specific card and the listing you are considering.</small></div></div><div class="staging-form-grid">${field("externalListingId", "External listing ID", { required: true, maxLength: 180, placeholder: "e.g. 123456789012" })}<label class="staging-field"><span>Marketplace *</span><select name="marketplace" required>${marketplaceOptions}</select><small>Used to form the tenant-owned saved opportunity ID.</small></label><label class="staging-field staging-field-wide"><span>Exact card identity *</span><textarea name="cardIdentity" required maxlength="500" rows="3" placeholder="Year, set, player, card number, parallel, grade/condition">${escapeHtml(state.draft.cardIdentity)}</textarea><small>Identity remains NEEDS_VERIFICATION; this request cannot verify it.</small></label>${field("listingUrl", "Listing URL", { required: true, type: "url", maxLength: 2048, placeholder: "https://..." })}${field("seller", "Seller", { maxLength: 300, placeholder: "Optional" })}</div><div class="customer-intake-step"><span>2</span><div><strong>Complete acquisition cost</strong><small>Include every known cost so the authoritative service receives the real all-in ask.</small></div></div><div class="staging-form-grid">${field("itemPrice", "Item price", { required: true, inputMode: "decimal", placeholder: "0.00" })}${field("shipping", "Shipping", { inputMode: "decimal", placeholder: "0.00" })}${field("buyerPremium", "Buyer premium", { inputMode: "decimal", placeholder: "0.00" })}${field("tax", "Tax", { inputMode: "decimal", placeholder: "0.00" })}${field("listingFormat", "Listing format", { maxLength: 100, placeholder: "Fixed price, auction, offer..." })}${field("endsAt", "Ends at", { maxLength: 100, placeholder: "Optional ISO timestamp" })}</div><div class="customer-intake-step"><span>3</span><div><strong>Confirm the authority boundary</strong><small>The browser submits facts; it never chooses the recommendation.</small></div></div><label class="staging-boundary-check"><input type="checkbox" name="acknowledgeBoundary" value="yes"${state.draft.acknowledgeBoundary ? " checked" : ""}><span>${boundaryCopy}</span></label><div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${listLabel}</a><button class="button button-primary" type="submit"${state.submitting ? " disabled" : ""}>${state.submitting ? "Evaluating…" : submitLabel}</button></div><small class="staging-form-note">An idempotency key is generated and held only in memory. Retrying an unchanged form reuses that key; changing the payload generates a new key.</small></form></section>`;
+    return `<section class="panel staging-evaluation-panel"><header class="panel-header"><div><h2>${heading}</h2><p>${description}</p></div><span class="staging-status staging-status-verify">Write boundary</span></header><form class="panel-body staging-evaluation-form" data-staging-evaluation-form novalidate><div class="customer-intake-step"><span>1</span><div><strong>Listing and exact card identity</strong><small>Describe the specific card and the listing you are considering.</small></div></div><div class="staging-form-grid">${field("externalListingId", "External listing ID", { required: true, maxLength: 180, placeholder: "e.g. 123456789012" })}<label class="staging-field"><span>Marketplace *</span><select name="marketplace" required>${marketplaceOptions}</select><small>Used to form the saved opportunity ID.</small></label><label class="staging-field staging-field-wide"><span>Exact card identity *</span><textarea name="cardIdentity" required maxlength="500" rows="3" placeholder="Year, set, player, card number, parallel, grade/condition">${escapeHtml(state.draft.cardIdentity)}</textarea><small>Identity remains NEEDS_VERIFICATION; this request cannot verify it.</small></label>${field("listingUrl", "Listing URL", { required: true, type: "url", maxLength: 2048, placeholder: "https://..." })}${field("seller", "Seller", { maxLength: 300, placeholder: "Optional" })}</div><div class="customer-intake-step"><span>2</span><div><strong>Complete acquisition cost</strong><small>Include every known cost so the authoritative service receives the real all-in ask.</small></div></div><div class="staging-form-grid">${field("itemPrice", "Item price", { required: true, inputMode: "decimal", placeholder: "0.00" })}${field("shipping", "Shipping", { inputMode: "decimal", placeholder: "0.00" })}${field("buyerPremium", "Buyer premium", { inputMode: "decimal", placeholder: "0.00" })}${field("tax", "Tax", { inputMode: "decimal", placeholder: "0.00" })}${field("listingFormat", "Listing format", { maxLength: 100, placeholder: "Fixed price, auction, offer..." })}${field("endsAt", "Ends at", { maxLength: 100, placeholder: "Optional ISO timestamp" })}</div><div class="customer-intake-step"><span>3</span><div><strong>Confirm the authority boundary</strong><small>The browser submits facts; it never chooses the recommendation.</small></div></div><label class="staging-boundary-check"><input type="checkbox" name="acknowledgeBoundary" value="yes"${state.draft.acknowledgeBoundary ? " checked" : ""}><span>${boundaryCopy}</span></label><div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${listLabel}</a><button class="button button-primary" type="submit"${state.submitting ? " disabled" : ""}>${state.submitting ? "Evaluating…" : submitLabel}</button></div><small class="staging-form-note">An idempotency key is generated and held only in memory. Retrying an unchanged form reuses that key; changing the payload generates a new key.</small></form></section>`;
+  }
+
+  // The customer Evaluate form (Private Beta and customer app), with its final labels: one listing-and-card step, one
+  // all-in cost step, optional listing details folded away, then the decision-support acknowledgement.
+  function customerEvaluationForm() {
+    const marketplaceOptions = MARKETPLACES.map(value => `<option value="${value}"${state.draft.marketplace === value ? " selected" : ""}>${value.replaceAll("_", " ")}</option>`).join("");
+    const step = (number, title, copy) => `<div class="customer-intake-step"><span>${number}</span><div><strong>${title}</strong><small>${copy}</small></div></div>`;
+    return `<section class="panel staging-evaluation-panel"><header class="panel-header"><div><h2>Card and listing details</h2></div></header><form class="panel-body staging-evaluation-form" data-staging-evaluation-form novalidate>${step(1, "Card &amp; listing", "Use the exact listing and the card identity you actually mean.")}<div class="staging-form-grid">${field("externalListingId", "Listing ID", { required: true, maxLength: 180, placeholder: "e.g. 123456789012", hint: "Use the marketplace listing number or other stable listing identifier." })}<label class="staging-field"><span>Marketplace *</span><select name="marketplace" required>${marketplaceOptions}</select><small>Used to form the saved opportunity ID.</small></label><label class="staging-field staging-field-wide"><span>Exact card *</span><textarea name="cardIdentity" required maxlength="500" rows="3" placeholder="Year, set, player, card number, parallel, grade/condition">${escapeHtml(state.draft.cardIdentity)}</textarea><small>Include year, set, player, card number, parallel, and grade/condition when known.</small></label>${field("listingUrl", "Listing link", { required: true, type: "url", maxLength: 2048, placeholder: "https://..." })}</div>${step(2, "All-in cost", "Include the costs that affect what you would really pay.")}<div class="staging-form-grid">${field("itemPrice", "Price", { required: true, inputMode: "decimal", placeholder: "0.00" })}${field("shipping", "Shipping", { inputMode: "decimal", placeholder: "0.00" })}${field("buyerPremium", "Buyer premium", { inputMode: "decimal", placeholder: "0.00" })}${field("tax", "Tax", { inputMode: "decimal", placeholder: "0.00" })}</div><details class="ff-evaluate-optional" data-ff-evaluate-optional><summary>Optional listing details</summary><div class="staging-form-grid">${field("seller", "Seller", { maxLength: 300, placeholder: "Optional" })}${field("listingFormat", "Listing format", { maxLength: 100, placeholder: "Fixed price, auction, offer..." })}${field("endsAt", "Listing end", { maxLength: 100, placeholder: "Optional ISO timestamp" })}</div></details>${step(3, "Confirm &amp; evaluate", "FlipForge returns the saved decision from the governed engine.")}<label class="staging-boundary-check"><input type="checkbox" name="acknowledgeBoundary" value="yes"${state.draft.acknowledgeBoundary ? " checked" : ""}><span>I understand FlipForge provides decision support. It does not place bids or purchases, predict grades, or silently verify uncertain identity or evidence for me.</span></label><div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">View tracked cards</a><button class="button button-primary" type="submit"${state.submitting ? " disabled" : ""}>${state.submitting ? "Evaluating…" : "Get FlipForge decision"}</button></div></form></section>`;
   }
 
   function valueIntelligencePanel(data) {
@@ -527,6 +570,7 @@
   function resultPanel() {
     const data = state.result && state.result.data;
     if (!data) return "";
+    if (customerSurface()) return customerResultPanel(data);
     const decision = data.decision || {};
     const values = [
       ["Decision", decision.recommendation || "UNKNOWN"],
@@ -558,16 +602,74 @@
     return `<section class="panel staging-evaluation-result" aria-live="polite"${alreadyEvaluated ? " data-ff-semantic-replay-result" : ""}><header class="panel-header"><div><h2>${resultTitle}</h2><p>${resultDescription}</p></div><span class="staging-status staging-status-${escapeHtml(String(decision.recommendation || "unknown").toLowerCase())}">${escapeHtml(decision.recommendation || "UNKNOWN")}</span></header><div class="panel-body"><div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>${valueIntelligencePanel(data)}<div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(decision.reason || "No reason returned.")}</p><p><strong>Missing requirement:</strong> ${escapeHtml(decision.missingRequirement || "None returned.")}</p><p><strong>Next action:</strong> ${escapeHtml(decision.nextAction || "No next action returned.")}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This response persisted to SQLite and granted tenant ownership. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>${canOpen ? `<div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">${returnLabel}</a><a class="button button-primary" href="${savedDetailRoute(opportunityId)}">${openLabel}</a></div>` : ""}</div></section>`;
   }
 
+  // The customer result: the answer first (decision, value, cost, risk, why, next step), the raw detail folded into
+  // "More decision detail". The decision chip carries its plain meaning for assistive technology.
+  function customerResultPanel(data) {
+    const decision = data.decision || {};
+    const recommendation = String(decision.recommendation || "").toUpperCase();
+    const known = Object.prototype.hasOwnProperty.call(DECISION_COPY, recommendation);
+    const opportunityId = String(data.opportunityId || "");
+    const canOpen = SAFE_OPPORTUNITY_ID.test(opportunityId);
+    const alreadyEvaluated = data.semanticReplay === true;
+    const title = alreadyEvaluated ? "Already evaluated — open saved decision" : known ? "Your FlipForge decision" : "Authoritative decision saved";
+    const description = alreadyEvaluated
+      ? "You already evaluated this exact listing, card and price. This is your saved decision; no evaluation was used."
+      : known ? "Read the answer first. Open Card Intelligence when you want the evidence behind it." : "The result is now saved to your account with its evidence and PSA context available in Card Intelligence.";
+    const values = [
+      ["Decision", decision.recommendation || "UNKNOWN"],
+      ["Supported value", moneyFromCents(decision.supportedValueCents)],
+      ["Matched exact comps", safeNumber(decision.exactTrustedCompCount)],
+      ["Confidence", scoreOrUnavailable(decision.confidence)],
+      ["Risk", scoreOrUnavailable(decision.risk)],
+      ["Workflow status", decision.workflowStatus || "UNKNOWN"],
+      ["All-in acquisition", moneyFromCents(data.normalizedRequest?.allInAskCents)],
+      ["Saved to your account", data.tenantOwned === true ? "Yes" : "No"],
+      ["Quota enforced", data.quotaEnforced === true ? "Yes" : "Server contract pending"],
+      ["Idempotent replay", alreadyEvaluated ? "Yes — already evaluated" : data.idempotentReplay === true ? "Yes" : "No"]
+    ];
+    const reason = String(decision.reason || "").trim() || "No reason returned.";
+    const missing = String(decision.missingRequirement || "").trim() || "None returned.";
+    const next = String(decision.nextAction || "").trim() || "No next action returned.";
+    const risk = riskLabel(decision.risk);
+    const chipMeaning = known ? ` data-ff-decision="${recommendation}" title="${escapeHtml(DECISION_COPY[recommendation])}" aria-label="${escapeHtml(`${recommendation}. ${DECISION_COPY[recommendation]}`)}"` : "";
+    const caution = /^none returned\.?$/i.test(missing) ? "" : `<div class="ff-evaluate-caution"><span>Still needed</span><strong>${escapeHtml(missing)}</strong></div>`;
+    const summary = known
+      ? `<div class="ff-evaluate-result-summary" data-ff-evaluate-result-summary><div class="ff-evaluate-answer"><span>Decision</span><strong>${escapeHtml(recommendation)}</strong><p>${escapeHtml(DECISION_COPY[recommendation])}</p></div><div class="ff-evaluate-result-facts"><div><span>Supported value</span><strong>${escapeHtml(moneyFromCents(decision.supportedValueCents))}</strong></div><div><span>All-in cost</span><strong>${escapeHtml(moneyFromCents(data.normalizedRequest?.allInAskCents))}</strong></div><div><span>Risk</span><strong>${escapeHtml(risk.label)}</strong><small>${escapeHtml(risk.score ? `${risk.score} saved score` : "Saved score unavailable")}</small></div></div><div class="ff-evaluate-why"><span>Why</span><strong>${escapeHtml(reason)}</strong></div>${caution}<div class="ff-evaluate-next"><span>What to do next</span><strong>${escapeHtml(next)}</strong></div></div>`
+      : "";
+    const detail = `<div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>${valueIntelligencePanel(data)}<div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(reason)}</p><p><strong>Missing requirement:</strong> ${escapeHtml(missing)}</p><p><strong>Next action:</strong> ${escapeHtml(next)}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This decision was saved to your account. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>`;
+    const body = known
+      ? `${summary}<details class="ff-evaluate-result-details" data-ff-evaluate-result-details><summary><span><strong>More decision detail</strong><small>Raw scores, workflow status, requirements and authority notes</small></span><span aria-hidden="true">+</span></summary><div class="ff-evaluate-result-details-body">${detail}</div></details>`
+      : detail;
+    const actions = canOpen ? `<div class="staging-form-actions"><a class="button button-secondary" href="${savedListRoute()}">Tracked cards</a><a class="button button-primary" href="${savedDetailRoute(opportunityId)}">${alreadyEvaluated ? "Open saved decision" : "Open Card Intelligence"}</a></div>` : "";
+    return `<section class="panel staging-evaluation-result" aria-live="polite"${alreadyEvaluated ? " data-ff-semantic-replay-result" : ""}><header class="panel-header"><div><h2>${title}</h2><p>${description}</p></div><span class="staging-status staging-status-${escapeHtml(String(decision.recommendation || "unknown").toLowerCase())}"${chipMeaning}>${escapeHtml(decision.recommendation || "UNKNOWN")}</span></header><div class="panel-body">${body}${actions}</div></section>`;
+  }
+
+  // Private Beta: after a failed evaluation (not the allowance alert, which states its own next steps), the next step.
+  function recoveryMarkup() {
+    if (!customerSurface() || !betaSurface() || !state.error || allowanceError(state.error)) return "";
+    return `<section class="ff-recovery-coach" data-ff-recovery="evaluate-error"><div><span>I'm still with you</span><h3>The evaluation didn't complete here.</h3><p>If it finished on FlipForge's side, it is in your saved decisions. Review the card identity and listing facts, then try again. If you are unsure about the card, return to Discover instead of guessing.</p></div><div class="ff-recovery-actions"><a class="button button-primary" href="#/discover">Return to Discover</a><button class="button button-secondary" type="button" data-ff-new-card>Start a different card</button></div></section>`;
+  }
+
   function renderCurrent() {
     if (!currentMain) return;
-    const eyebrow = customerSurface() ? "Guided customer intake" : "Controlled deploy-preview write integration";
+    const eyebrow = customerSurface() ? "Before you buy" : "Controlled deploy-preview write integration";
     const title = customerSurface() ? "Evaluate a Card" : "Staging Evaluation";
     const description = customerSurface()
-      ? "Give FlipForge the listing facts and complete acquisition cost. The existing backend returns, saves, and tracks the governed decision."
+      ? "Confirm the exact card, enter the real cost, and let FlipForge return the saved decision."
       : "Submit one authenticated, tenant-scoped manual opportunity to the authoritative FlipForge evaluation endpoint.";
     const action = customerSurface() ? "Tracked opportunities" : "Staging data";
-    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div><div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div></header><div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>${reevaluationBanner()}${errorPanel(state.error)}${evaluationForm()}${resultPanel()}</div>`;
+    // The Private Beta page offers no page-level shortcut here (Saved Decisions is in its navigation).
+    const pageActions = window.FlipForgePrivateBetaEntry === true
+      ? ""
+      : `<div class="page-actions"><a class="button button-secondary" href="${savedListRoute()}">${action}</a></div>`;
+    const boundary = customerSurface()
+      ? `<details class="ff-trust-note" data-ff-trust-converted="true"><summary>How FlipForge protects this decision</summary><p>Smart Opportunity provides the BUY/WATCH/VERIFY/PASS decision. Existing PSA intelligence remains the grading-guidance authority. The browser submits facts only; it cannot accept evidence, silently verify uncertain identity, predict a grade, or authorize a transaction.</p></details>`
+      : `<div class="boundary-note"><strong>Write boundary:</strong> Smart Opportunity remains the sole BUY/WATCH/VERIFY/PASS authority. Existing PSA intelligence remains the grading-guidance authority. This screen cannot accept evidence, verify identity, predict a grade, or authorize any transaction.</div>`;
+    // Bulk Evaluate (bulk-evaluation.js) fills its own container; it is not offered while re-evaluating one saved decision.
+    const bulk = customerSurface() && !reevaluation ? '<section class="panel bulk-evaluation-panel" data-bulk-evaluation></section>' : "";
+    currentMain.innerHTML = `<div class="page staging-page staging-evaluation-page customer-evaluation-page"><header class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${description}</p></div>${pageActions}</header>${customerSurface() ? workflowStripMarkup() : ""}${boundary}${bulk}${reevaluationBanner()}${errorPanel(state.error)}${recoveryMarkup()}${evaluationForm()}${resultPanel()}</div>`;
     bindActions();
+    if (bulk) window.FlipForgeBulkEvaluation?.mount?.();
   }
 
   function bindActions() {

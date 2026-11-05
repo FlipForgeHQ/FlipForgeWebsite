@@ -126,14 +126,27 @@
   async function request(path) {
     if (!PATHS.has(path)) throw new Error("The requested Portfolio API path is not allowlisted.");
     const requestCorrelationId = correlationId();
-    const response = await fetch(path, {
-      method: "GET",
-      headers: { Accept: "application/json", "X-Correlation-Id": requestCorrelationId },
-      credentials: "same-origin",
-      cache: "no-store",
-      redirect: "error"
-    });
-    const payload = await parseResponse(response);
+    // A hanging request stops after 10 s instead of leaving Portfolio frozen (formerly a global fetch wrapper).
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = controller ? window.setTimeout(() => controller.abort(), 10000) : 0;
+    let response;
+    let payload;
+    try {
+      response = await fetch(path, {
+        method: "GET",
+        headers: { Accept: "application/json", "X-Correlation-Id": requestCorrelationId },
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "error",
+        ...(controller ? { signal: controller.signal } : {})
+      });
+      payload = await parseResponse(response);
+    } catch (error) {
+      if (error?.name !== "AbortError") throw error;
+      throw Object.assign(new Error("Portfolio took too long to load. Try again."), { code: "PORTFOLIO_TIMEOUT", status: 504 });
+    } finally {
+      if (timer) window.clearTimeout(timer);
+    }
     if (!response.ok) {
       const upstream = payload?.error || {};
       throw Object.assign(new Error(upstream.message || `Portfolio request failed with status ${response.status}.`), {
@@ -288,19 +301,24 @@
     return `<header class="page-heading"><div><span class="eyebrow">Your cards</span><h1>Portfolio</h1><p>The cards you own and what you paid. Where FlipForge has at least 3 recent, exactly matched completed sales, it also shows an evidence reference.</p></div>${actions ? `<div class="page-actions">${actions}</div>` : ""}</header>`;
   }
 
+  // customer.html (the full customer app) marks <html> with ff-full-customer-app; /app/beta (index.html) does not.
+  function fullCustomerPage() {
+    try { return document.documentElement.classList.contains("ff-full-customer-app"); } catch (_) { return false; }
+  }
+
   function loadingPanel() {
-    return `<div class="staging-loading customer-portfolio-loading" role="status">Loading tenant-owned Portfolio context…</div>`;
+    return `<div class="staging-loading customer-portfolio-loading consumer-state consumer-state-loading" role="status">Loading saved Portfolio context…</div>`;
   }
 
   function errorPanel(error) {
     const signIn = error?.status === 401
       ? `<div class="customer-portfolio-actions"><a class="button button-primary" href="${productionHost() ? "/production-auth.html?return=%2Fapp%2F%23%2Fportfolio" : "/staging-auth.html?returnTo=%2Fsaas-prototype%2F%23%2Fportfolio"}">Sign in securely</a></div>`
       : "";
-    return `<section class="panel staging-error" role="alert"><div class="panel-body"><strong>${escapeHtml(error?.code || "PORTFOLIO_UNAVAILABLE")}</strong><p>${escapeHtml(error?.message || "Portfolio context is unavailable.")}</p><small>No browser-invented value or performance was substituted.</small>${signIn}</div></section>`;
+    return `<section class="panel staging-error consumer-state consumer-state-error" role="alert"><div class="panel-body"><strong data-error-code="${escapeHtml(error?.code || "PORTFOLIO_UNAVAILABLE")}">We couldn't complete that request.</strong><p>${escapeHtml(error?.message || "Portfolio context is unavailable.")}</p><small>No placeholder value or performance was substituted.</small>${signIn}</div></section>`;
   }
 
   function offlinePanel() {
-    return `<section class="panel"><div class="panel-body staging-empty"><strong>This private-beta Portfolio is safely offline.</strong><p>The customer gateway is disabled, so no tenant request was attempted and no sample holding or value was substituted.</p></div></section>`;
+    return `<section class="panel"><div class="panel-body staging-empty consumer-state consumer-state-empty"><strong>This private-beta Portfolio is safely offline.</strong><p>The customer gateway is disabled, so no account request was attempted and no sample holding or value was substituted.</p><a class="button button-secondary ff-empty-cta" href="#/discover">Discover a card</a></div></section>`;
   }
 
   function referenceStatus(reference) {
@@ -471,7 +489,7 @@
   function portfolioRows(data) {
     const opportunities = opportunityMap();
     if (!data.items.length) {
-      return `<section class="panel"><div class="panel-body staging-empty"><strong>No owned holdings yet.</strong><p>Mark a tenant-owned tracked opportunity as acquired before it appears in Portfolio.</p><a class="button button-primary" href="#/tracking">Open Tracking</a></div></section>`;
+      return `<section class="panel"><div class="panel-body staging-empty consumer-state consumer-state-empty"><strong>No owned holdings yet.</strong><p>Mark a saved tracked opportunity as acquired before it appears in Portfolio.</p><a class="button button-primary" href="#/tracking">Open Tracking</a></div></section>`;
     }
     return `<section class="panel"><header class="panel-header"><div><h2>Owned holdings</h2><p>Reference values are shown only when exact completed-sale coverage and freshness gates pass.</p></div></header><div class="table-wrap"><table class="customer-portfolio-table"><thead><tr><th>Card</th><th>What you paid</th><th>Saved decision</th><th>Evidence reference</th><th>Reference vs. what you paid</th><th>Evidence gate</th>${sellWatchData() ? "<th>Sell Watch</th>" : ""}</tr></thead><tbody>${data.items.map(item => {
       const saved = opportunities.get(String(item.opportunityId)) || {};
@@ -590,7 +608,9 @@
   }
 
   function pageMarkup() {
-    const actions = `<a class="button button-secondary" href="#/tracking">Tracking</a><a class="button button-secondary" href="#/evidence">Evidence</a><button class="button button-secondary" type="button" data-customer-portfolio-refresh>Refresh</button>`;
+    // /app/beta does not offer the Evidence destination in its navigation, so the link is not rendered there.
+    const evidence = fullCustomerPage() ? `<a class="button button-secondary" href="#/evidence">Evidence</a>` : "";
+    const actions = `<a class="button button-secondary" href="#/tracking">Tracking</a>${evidence}<button class="button button-secondary" type="button" data-customer-portfolio-refresh>Refresh</button>`;
     if (state.loading) return `<div class="page customer-portfolio-page">${pageHeading(actions)}${loadingPanel()}</div>`;
     if (state.error) return `<div class="page customer-portfolio-page">${pageHeading(actions)}${errorPanel(state.error)}</div>`;
     if (state.health?.data?.status !== "configured") return `<div class="page customer-portfolio-page">${pageHeading(actions)}${offlinePanel()}</div>`;
@@ -661,13 +681,19 @@
     state.sales = null;
     state.alerts = null;
     renderCurrent({ mount });
+    // The service check and Portfolio's data are requested together (one round trip, not two); the data is used only
+    // if the service is configured. The server authorizes every request on its own.
+    const settle = promise => promise.then(value => ({ value }), error => ({ error }));
+    const healthRequest = settle(request("/api/v1/health"));
+    const dataRequest = settle(Promise.all([request("/api/v1/portfolio"), request("/api/v1/opportunities")]));
     try {
-      state.health = await request("/api/v1/health");
+      const health = await healthRequest;
+      if (health.error) throw health.error;
+      state.health = health.value;
       if (state.health?.data?.status !== "configured") return;
-      const [portfolio, opportunities] = await Promise.all([
-        request("/api/v1/portfolio"),
-        request("/api/v1/opportunities")
-      ]);
+      const data = await dataRequest;
+      if (data.error) throw data.error;
+      const [portfolio, opportunities] = data.value;
       if (!validPortfolio(portfolio)) {
         throw Object.assign(new Error("The Portfolio response failed the evidence-reference contract."), { code: "PORTFOLIO_REFERENCE_CONTRACT_INVALID" });
       }

@@ -58,7 +58,7 @@
     border-radius:11px!important;
     box-shadow:none!important;
   }
-  .global-search>span{font-size:13px!important}
+  .global-search>span{font-size:14px!important}
   .global-search input{
     width:100%!important;
     min-width:0!important;
@@ -108,11 +108,11 @@
   .brand{grid-template-columns:38px minmax(0,1fr)!important;gap:8px!important}
   .brand-mark{width:38px!important;height:38px!important}
   .brand-name{font-size:16px!important}
-  .brand-subtitle{font-size:10px!important}
+  .brand-subtitle{font-size:14px!important}
   .prototype-chip{margin:9px 0 0 46px!important;max-width:calc(100% - 46px)!important}
 
   .primary-nav{gap:2px!important;padding:10px!important}
-  .primary-nav a{min-height:44px!important;padding:8px 10px!important;font-size:13px!important;border-radius:9px!important}
+  .primary-nav a{min-height:44px!important;padding:8px 10px!important;font-size:14px!important;border-radius:9px!important}
   .ff-advanced-nav summary{min-height:44px!important}
 
   .sidebar-footer{padding:10px!important}

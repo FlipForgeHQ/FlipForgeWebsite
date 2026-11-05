@@ -22,7 +22,7 @@
 
 .customer-management-selector > span {
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -66,7 +66,7 @@
 .customer-management-key-grid span,
 .customer-exit-values span {
   color: var(--text-soft);
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 750;
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -123,14 +123,14 @@
 .customer-management-timeline article span,
 .customer-management-timeline article p {
   color: var(--text-soft);
-  font-size: 9px;
+  font-size: 14px;
 }
 
 .customer-management-timeline article strong {
   display: block;
   margin: 3px 0 5px;
   color: var(--text);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .customer-management-timeline article p {
@@ -157,7 +157,7 @@
 
 .customer-management-key-grid strong {
   color: var(--text);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -179,12 +179,12 @@
 
 .customer-management-flag span {
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .customer-management-flag strong {
   color: var(--text);
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .customer-management-flag[data-tone="attention"] strong {
@@ -214,7 +214,7 @@
 .customer-exit-hero p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .customer-exit-values {
@@ -274,13 +274,13 @@
 
 .customer-management-checklist strong {
   color: var(--text);
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .customer-management-checklist small {
   margin-top: 4px;
   color: var(--text-soft);
-  font-size: 9px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -298,7 +298,7 @@
 .customer-exit-boundary p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -323,14 +323,14 @@
 .customer-management-status-hero p {
   margin: 0;
   color: var(--text-soft);
-  font: 700 10px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font: 700 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .customer-management-limitations {
   margin: 0;
   padding-left: 18px;
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -356,7 +356,7 @@
 
 .customer-management-page[data-ff-evidence-experience="v2"] .page-heading p {
   max-width: 880px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -367,7 +367,7 @@
   border: 1px solid var(--border-soft);
   border-left: 2px solid rgba(246,197,80,.5);
   border-radius: 10px;
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -398,7 +398,7 @@
 
 .ff-evidence-kicker {
   color: var(--gold-strong);
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: .14em;
 }
@@ -416,7 +416,7 @@
 .ff-evidence-next-step p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.7;
 }
 
@@ -436,12 +436,12 @@
 
 .ff-evidence-principle strong {
   color: var(--text);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .ff-evidence-principle span {
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -476,7 +476,7 @@
 
 .ff-evidence-funnel article span {
   color: var(--text-soft);
-  font-size: 8px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -490,7 +490,7 @@
 
 .ff-evidence-funnel article small {
   color: var(--text-soft);
-  font-size: 8px;
+  font-size: 14px;
   line-height: 1.4;
 }
 
@@ -520,7 +520,7 @@
 .ff-evidence-metric-copy {
   margin-top: 2px;
   color: var(--text-soft);
-  font-size: 8px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -552,7 +552,7 @@
   border: 1px solid var(--border-soft);
   border-radius: 9px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
   list-style-position: inside;
 }

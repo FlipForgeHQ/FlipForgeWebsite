@@ -3,7 +3,8 @@ name: Beta Guided Discover Assurance
 on:
   pull_request:
     paths:
-      - 'saas-prototype/beta-guided-discover-v1.js'
+      - 'saas-prototype/customer-discovery.js'
+      - 'saas-prototype/commercial-dashboard-v2.js'
       - 'saas-prototype/beta-guided-discover-v1.css'
       - 'saas-prototype/index.html'
       - 'scripts/validate-beta-guided-discover-v1.mjs'
@@ -13,7 +14,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'saas-prototype/beta-guided-discover-v1.js'
+      - 'saas-prototype/customer-discovery.js'
+      - 'saas-prototype/commercial-dashboard-v2.js'
       - 'saas-prototype/beta-guided-discover-v1.css'
       - 'saas-prototype/index.html'
       - 'scripts/validate-beta-guided-discover-v1.mjs'
@@ -33,7 +35,8 @@ jobs:
           node-version: '24'
       - name: Parse the guarded, source-truth compatible customer UI
         run: |
-          node --check saas-prototype/beta-guided-discover-v1.js
+          node --check saas-prototype/customer-discovery.js
+          node --check saas-prototype/commercial-dashboard-v2.js
           node --check scripts/validate-beta-guided-discover-v1.mjs
           node --check scripts/audit-beta-guided-discover-rendered.mjs
       - name: Validate exact-card composition and no provider/storage access

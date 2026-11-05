@@ -36,8 +36,11 @@ const customer = read("saas-prototype/customer.html");
 const siteJs = read("assets/js/site.js");
 const siteHeader = read("scripts/site-header.mjs");
 const buildAssets = read("scripts/build-assets.js");
-const customerShell = read("saas-prototype/customer-only-shell-v1.js");
-const commercialPolish = read("saas-prototype/commercial-app-polish-v2.js");
+// customer-only-shell-v1.js was retired (Nov 3 2026): on the live pages its Home rewrite found no .page-heading on the
+// Dashboard and its Private Beta Guide rewrite found no .private-beta-step, so it changed nothing. Checks read the owners.
+const customerShell = read("saas-prototype/customer.html");
+// commercial-app-polish-v2.js was removed (Nov 3 2026); nothing may come back that rewrites the identity chip.
+const commercialPolish = fs.existsSync(new URL("../saas-prototype/commercial-app-polish-v2.js", import.meta.url)) ? read("saas-prototype/commercial-app-polish-v2.js") : "";
 const cockpitPolish = read("saas-prototype/cockpit-final-ux.js");
 const betaGuide = read("saas-prototype/private-beta.js");
 const betaTermsGate = read("assets/js/beta-invite-terms-gate.js");
@@ -196,8 +199,9 @@ check(buildAssets.includes("Beta Sign In"), "generated public app links must be 
 check(siteHeader.includes(">Beta Sign In</a>"), "the public header menu sign-in must say Beta Sign In");
 check(siteHeader.includes(BETA_AUTH), "the public header menu sign-in must target beta-start auth");
 
-check(customerShell.includes('setText(document.querySelector(".prototype-chip"), "CUSTOMER APP")'), "customer shell runtime must preserve CUSTOMER APP label");
-check(commercialPolish.includes('customer ? "CUSTOMER APP"'), "customer polish must preserve customer identity in the customer experience");
+// The chip is final in each page's markup; no runtime layer may relabel the customer app as the beta or a preview.
+check(!/prototype-chip"\)[^;]*(?:PRIVATE BETA|BETA PREVIEW)/.test(customerShell + commercialPolish), "customer shell runtime must preserve CUSTOMER APP label");
+check(!commercialPolish.includes('chip.textContent') && !fs.existsSync(new URL("../saas-prototype/customer-only-shell-v1.js", import.meta.url)), "customer polish must preserve customer identity in the customer experience");
 check(cockpitPolish.includes('customer ? "CUSTOMER APP" : "SAAS PREVIEW"'), "legacy cockpit must preserve customer identity");
 
 for (const page of publicPages) {

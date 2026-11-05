@@ -69,7 +69,9 @@ jobs:
           grep -q 'src="staging-route-hook.js"' saas-prototype/index.html
           grep -q 'src="customer-opportunities.js"' saas-prototype/index.html
           grep -q 'src="customer-opportunities-bridge.js"' saas-prototype/index.html
-          grep -q 'src="customer-only-shell-v1.js"' saas-prototype/index.html
+          # The beta menu is final markup (customer-only-shell-v1.js retired): the approved eight routes are present.
+          for route in dashboard discover evaluate opportunities tracking alerts portfolio forge-heat; do grep -q "data-route=\"$route\" class=\"ff-core-nav\"" saas-prototype/index.html; done
+          ! grep -q 'src="customer-only-shell-v1.js"' saas-prototype/index.html
 
       - name: Assert production deployment manifest matches build
         run: node -e 'const m=require("./deploy-meta.json"); if(m.context!=="production"||m.production!==true||m.commitRef!==process.env.COMMIT_REF||m.appBoundary!=="PRODUCTION_SERVER_OWNED_FAIL_CLOSED"||m.transactionAuthority!==false) process.exit(1)'
@@ -105,8 +107,10 @@ jobs:
         run: |
           grep -q 'src="staging-browser.js"' saas-prototype/index.html
           grep -Eq 'href="staging-browser.css"|data-ff-css-bundle-sources="([^"]* )?staging-browser\.css( |")' saas-prototype/index.html
-          grep -q 'data-route="staging"' saas-prototype/index.html
-          grep -q 'data-route="staging-evaluate"' saas-prototype/index.html
+          # Staging diagnostics stay reachable by route on previews; the Private Beta menu does not list them.
+          grep -q 'route === "staging"' saas-prototype/staging-route-hook.js
+          grep -q '"staging", "staging-evaluate"' saas-prototype/app.js
+          ! grep -q 'data-route="staging"' saas-prototype/index.html
 
       - name: Assert customer runtime remains available in preview
         run: |
@@ -114,4 +118,6 @@ jobs:
           grep -q 'src="staging-route-hook.js"' saas-prototype/index.html
           grep -q 'src="customer-opportunities.js"' saas-prototype/index.html
           grep -q 'src="customer-opportunities-bridge.js"' saas-prototype/index.html
-          grep -q 'src="customer-only-shell-v1.js"' saas-prototype/index.html
+          # The beta menu is final markup (customer-only-shell-v1.js retired): the approved eight routes are present.
+          for route in dashboard discover evaluate opportunities tracking alerts portfolio forge-heat; do grep -q "data-route=\"$route\" class=\"ff-core-nav\"" saas-prototype/index.html; done
+          ! grep -q 'src="customer-only-shell-v1.js"' saas-prototype/index.html

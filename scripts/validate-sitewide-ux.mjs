@@ -235,7 +235,8 @@ const publicCopy=[homepage,product,evidence,plans,about,beta].join('\n');
 requireText('locked slogan',publicCopy,'Before you buy. Know Why.');
 for(const unsafe of ['guaranteed profit','automatic purchase']) if(publicCopy.toLowerCase().includes(unsafe.toLowerCase()))failures.push(`public safety: forbidden ${JSON.stringify(unsafe)}`);
 if(publicCopy.includes('CARD VALUE INTELLIGENCE'))failures.push('public safety: forbidden formal CARD VALUE INTELLIGENCE identity');
-requireText('app transaction boundary',appIndex,'No transaction authority');
+// The beta banner is final in index.html: "Card intelligence workspace · Evaluation only" (Nov 3 2026).
+requireText('app transaction boundary',appIndex,'Card intelligence workspace · Evaluation only');
 
 if(failures.length){console.error('Sitewide UX system validation failed:');failures.forEach(failure=>console.error(`- ${failure}`));process.exit(1);}
 console.log('PASS: FlipForge authoritative public typography, rendered cross-page browser QA, Home navigation, live first-viewport Deal Check, deeper marketing pages, and customer-app UX ownership validated.');

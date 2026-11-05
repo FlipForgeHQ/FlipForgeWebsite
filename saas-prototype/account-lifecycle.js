@@ -53,6 +53,10 @@
 
   function render() {
     if (!eligibleHost() || !accountRoute()) return;
+    // #/account belongs to the router's Account owner (customer-entitlements.js on previews, customer-account.js on
+    // production, via customer-account-bridge.js). This page used to render as a second owner on its own hashchange and
+    // raced it: whichever painted last won. It renders only where no Account owner is eligible.
+    if (window.FlipForgeCustomerEntitlements?.isEligible?.() === true) return;
     const main = document.querySelector("#main-content");
     if (!main) return;
 

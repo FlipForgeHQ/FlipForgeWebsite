@@ -5,7 +5,10 @@ import { fileURLToPath } from "node:url";
 const root = path.dirname(fileURLToPath(import.meta.url));
 const read = name => fs.readFileSync(path.join(root, name), "utf8");
 
-const index = read("index.html");
+// Since Nov 4 2026 the private beta page (index.html) does not load the cockpit layers (the beta does not offer it); the full
+// customer app (customer.html) does, and the load-order checks below run there.
+const index = read("customer.html");
+if (/cockpit-(layout-fix|polish|final-ux)\.js/.test(read("index.html"))) throw new Error("the beta page must not load the cockpit layers");
 const loader = read("prototype-visual-loader.js");
 const script = read("cockpit-expansion.js");
 const styles = read("cockpit-expansion.css");

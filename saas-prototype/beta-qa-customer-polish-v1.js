@@ -233,16 +233,6 @@
     if (exactIdentity) setText(exactIdentity, "Catalog mapping");
   }
 
-  function polishPortfolio(main) {
-    if (routeName() !== "portfolio") return;
-    replaceText(main, "REFERENCE_VALUE_UNAVAILABLE", "Reference unavailable");
-  }
-
-  function polishCardIntelligence(main) {
-    if (routeName() !== "opportunities") return;
-    replaceText(main, "Catalog link pending", "Provider catalog reference unavailable");
-  }
-
   function apply() {
     scheduled = false;
     const main = document.querySelector(MAIN_SELECTOR);
@@ -252,8 +242,6 @@
     polishEvidence(main);
     polishDecisionIntelligence(main);
     polishExitReview(main);
-    polishPortfolio(main);
-    polishCardIntelligence(main);
   }
 
   function schedule() {

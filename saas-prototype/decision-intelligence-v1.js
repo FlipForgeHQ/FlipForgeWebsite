@@ -31,6 +31,7 @@
     meta: null,
     loading: false,
     contextLoading: false,
+    contextSlow: false,
     error: null,
     requestSerial: 0
   };
@@ -281,7 +282,9 @@
 
   function evidenceVisual(row) {
     if (state.contextLoading && state.source === "server") {
-      return `<div class="ff-di-empty">Loading server-owned evidence readiness…</div>`;
+      return state.contextSlow
+        ? `<div class="ff-di-empty"><strong>Evidence details are taking longer than expected.</strong><p>The saved decision remains unchanged and no substitute evidence is being used.</p><button class="button button-secondary" type="button" data-ff-di-retry>Retry evidence</button></div>`
+        : `<div class="ff-di-empty">Loading server-owned evidence readiness…</div>`;
     }
 
     const serverEvidence = state.source === "server" ? state.evidence?.data : null;
@@ -335,7 +338,11 @@
   }
 
   function serverPopulationVisual() {
-    if (state.contextLoading) return `<div class="ff-di-empty">Loading saved PSA population context…</div>`;
+    if (state.contextLoading) {
+      return state.contextSlow
+        ? `<div class="ff-di-empty"><strong>PSA population context is taking longer than expected.</strong><p>FlipForge will not borrow or estimate population for another card.</p><button class="button button-secondary" type="button" data-ff-di-retry>Retry PSA context</button></div>`
+        : `<div class="ff-di-empty">Loading saved PSA population context…</div>`;
+    }
     const psa = state.psa?.data;
     const population = psa?.populationContext;
     if (!population || population.available !== true) {
@@ -488,6 +495,12 @@
       } else if (link.hasAttribute("aria-current")) link.removeAttribute("aria-current");
     });
 
+    main.querySelectorAll("[data-ff-di-retry]").forEach(button => button.addEventListener("click", () => {
+      button.disabled = true;
+      button.textContent = "Retrying…";
+      void loadSelectedContext();
+    }));
+
     const primarySelector = document.querySelector("#ff-di-primary");
     const compareSelector = document.querySelector("#ff-di-compare");
     primarySelector?.addEventListener("change", () => {
@@ -519,6 +532,13 @@
 
     const serial = ++state.requestSerial;
     state.contextLoading = true;
+    state.contextSlow = false;
+    // After 8 seconds the evidence and PSA slots say the request is slow and offer a retry; nothing is substituted.
+    window.setTimeout(() => {
+      if (serial !== state.requestSerial || !state.contextLoading || route() !== "decision-intelligence") return;
+      state.contextSlow = true;
+      render();
+    }, 8000);
     state.detail = null;
     state.evidence = null;
     state.psa = null;
@@ -553,6 +573,7 @@
     } finally {
       if (serial === state.requestSerial) {
         state.contextLoading = false;
+        state.contextSlow = false;
         render();
       }
     }

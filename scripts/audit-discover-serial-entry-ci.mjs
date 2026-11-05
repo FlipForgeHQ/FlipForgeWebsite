@@ -8,6 +8,9 @@ for (const width of [390,1440]) {
   const context = await browser.newContext({viewport:{width,height:900}});
   const page = await context.newPage();
   page.on("pageerror",err=>failures.push(width+" browser error: "+err.message));
+  // Exact-card (identity) checks requested by Discover. A numbered card must go through one before any listing search.
+  let identityChecks = 0;
+  page.on("request",request=>{ if (request.method()==="POST" && request.url().includes("/api/v1/card-intelligence/search")) identityChecks += 1; });
   try {
     await page.addInitScript(() => localStorage.setItem("flipforge.privateBeta.onboarding.v1","complete"));
     await page.route("**/assets/js/flipforge-identity.js",route => route.fulfill({
@@ -73,6 +76,7 @@ for (const width of [390,1440]) {
         if (selector === "yes") await f.locator("[data-ff-serial-denominator]").fill("25");
         const typed = "2018 Topps Chrome Shohei Ohtani #150 PSA 9 "+bad;
         await f.locator('input[name="exactCardQuery"]').fill(typed);
+        identityChecks = 0;
         await page.evaluate(() => { window.__verifyClicks = 0; window.__submitted = 0;
           document.querySelector("[data-customer-discovery-form] [data-discovery-find-exact]")?.addEventListener("click",()=>window.__verifyClicks++);
           document.querySelector("[data-customer-discovery-form]")?.addEventListener("submit",()=>window.__submitted++); });
@@ -82,6 +86,7 @@ for (const width of [390,1440]) {
         assert.match(await err.textContent(),/not possible|exceed/i,selector+" / "+bad+": message shown");
         assert.equal(await f.locator('input[name="exactCardQuery"]').inputValue(),typed,selector+" / "+bad+": search is not rewritten");
         assert.equal(await page.evaluate(()=>window.__verifyClicks),0,selector+" / "+bad+": verification must not run on an impossible serial");
+        assert.equal(identityChecks,0,selector+" / "+bad+": no identity check is requested for an impossible serial");
         await f.locator('input[name="exactCardQuery"]').press("Enter");
         assert.equal(await err.isVisible(),true,selector+" / "+bad+": Enter is refused as well");
       }
@@ -95,11 +100,10 @@ for (const width of [390,1440]) {
       await f.waitFor({state:"visible",timeout:9000});
       await f.locator("[data-ff-serial-status]").waitFor({state:"visible",timeout:9000});
       await f.locator('input[name="exactCardQuery"]').fill(text);
-      await page.evaluate(() => { window.__verifyClicks = 0;
-        document.querySelector("[data-customer-discovery-form] [data-discovery-find-exact]")?.addEventListener("click",()=>window.__verifyClicks++); });
+      identityChecks = 0;
       await f.locator('button[type="submit"]').click();
       await page.waitForTimeout(700);
-      assert.equal(await page.evaluate(()=>window.__verifyClicks) > 0,expectVerify,"legitimate search handling for: "+text);
+      assert.equal(identityChecks > 0,expectVerify,"legitimate search handling for: "+text);
       assert.equal(await page.locator("[data-ff-serial-error]:visible").count(),0,"no false rejection for: "+text);
     }
     console.log("PASS | "+width+"px: search-first, opt-in guide, /25 selection, 01/25, invalid serial hold");

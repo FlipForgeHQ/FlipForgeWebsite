@@ -1,0 +1,72 @@
+/* FlipForge customer typography floor (both app pages, every screen).
+ * Customer-visible text is never smaller than 14px. Every customer stylesheet declares its sizes at or above
+ * 14px (smaller relative sizes are written max(14px, …)); this file covers the browser's own defaults and the
+ * sidebar containment that used to be injected at runtime by customer-typography-floor-v1.js. CSS only: nothing
+ * measures or rewrites the page. Guarded by scripts/audit-customer-typography-ci.mjs.
+ * Loaded last on purpose (after every other app stylesheet). */
+
+/* Browser defaults that render below 14px (form controls 13.33px, small/sub/sup "smaller", h5/h6, monospace). */
+:where(input, select, textarea, button) { font-size: 14px; }
+:where(small, sub, sup, h5, h6, code, kbd, samp, tt, pre) { font-size: max(14px, .833em); }
+
+/* Keep horizontal containment on the actual scrolling navigation surface. */
+.sidebar,
+.primary-nav {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.primary-nav {
+  overflow-y: auto !important;
+}
+
+/* Advanced groups themselves should not create a second scroll container. */
+.ff-advanced-nav,
+.ff-advanced-nav-links {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
+  overflow: visible !important;
+}
+
+.ff-advanced-nav-links a {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-inline: 0 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+.ff-advanced-nav > summary {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+.ff-advanced-hint {
+  justify-self: start !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Lifecycle history is ordinary customer reading text, not microcopy. */
+.customer-lifecycle-history span,
+.customer-lifecycle-history p,
+.customer-lifecycle-history strong,
+.customer-lifecycle-history time {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}

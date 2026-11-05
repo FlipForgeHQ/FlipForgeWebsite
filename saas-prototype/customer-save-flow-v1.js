@@ -41,61 +41,6 @@
     return /^(?:Show me why|Show me what is missing|I understand this decision)/i.test(label);
   }
 
-  function decorateSavedDecision() {
-    const id = opportunityId();
-    const main = document.querySelector("#main-content");
-    if (!id || !main) {
-      main?.querySelector?.("[data-ff-saved-decision-bar]")?.remove();
-      return;
-    }
-
-    const hero = main.querySelector(".customer-intelligence-hero");
-    let bar = main.querySelector("[data-ff-saved-decision-bar]");
-
-    // Do not stack save guidance above a loading state. The authoritative
-    // decision should be the first meaningful result the customer sees.
-    if (!hero) {
-      bar?.remove();
-      return;
-    }
-
-    if (!bar) {
-      bar = document.createElement("section");
-      bar.className = "ff-saved-decision-bar";
-      bar.dataset.ffSavedDecisionBar = "";
-      bar.setAttribute("role", "status");
-      bar.innerHTML = `<div class="ff-saved-decision-copy"><span class="ff-saved-decision-check" aria-hidden="true">✓</span><div><strong>Saved automatically</strong><small>This evaluated decision is already in Saved Intelligence. Starting another card clears only the Discover workspace; this decision stays saved.</small></div></div><div class="ff-saved-decision-actions"><a class="button button-secondary" href="#/tracking/${encodeURIComponent(id)}">Track this card</a><button class="button button-primary" type="button" data-ff-new-card>+ Start another card</button><a class="button button-secondary" href="#/opportunities">View saved decisions</a></div>`;
-    }
-
-    if (hero.nextElementSibling !== bar) hero.insertAdjacentElement("afterend", bar);
-  }
-
-  function decorateDiscover() {
-    const parts = routeParts();
-    const main = document.querySelector("#main-content");
-    if (parts[0] !== "discover" || !main) return;
-    const page = main.querySelector(".customer-discovery-page");
-    const search = page?.querySelector(".customer-discovery-search");
-    if (!page || !search) return;
-
-    const submit = search.querySelector("[data-customer-discovery-form] button[type='submit']");
-    if (submit && !submit.disabled && /^Search connected sources$/i.test(String(submit.textContent || "").trim())) {
-      submit.textContent = "Search active listings";
-    }
-
-    let note = page.querySelector("[data-ff-discover-persistence-note]");
-    if (!note) {
-      note = document.createElement("div");
-      note.className = "ff-discover-persistence-note";
-      note.dataset.ffDiscoverPersistenceNote = "";
-      search.insertAdjacentElement("afterend", note);
-    }
-    if (note.dataset.ffDiscoverPersistenceReady !== "true") {
-      note.innerHTML = `<span aria-hidden="true">✓</span><div><strong>Searches are temporary; evaluated decisions are saved.</strong> Use <strong>Discover a card</strong> anytime to clear the current Discover workspace and start fresh. Cards you already evaluated stay saved.</div>`;
-      note.dataset.ffDiscoverPersistenceReady = "true";
-    }
-  }
-
   function cleanKnownLimitations() {
     const main = document.querySelector("#main-content");
     if (!main) return;
@@ -135,19 +80,30 @@
     clarifyGuidedProgress();
   }
 
+  // One-time "just evaluated" flag (set when Evaluate is pressed in Discover). The saved decision page reads it once,
+  // when it renders the saved confirmation (customer-opportunities.js).
+  function consumeJustEvaluated() {
+    try {
+      const pending = window.sessionStorage.getItem("flipforge.pendingEvaluationSave") === "1";
+      if (pending) window.sessionStorage.removeItem("flipforge.pendingEvaluationSave");
+      return pending;
+    } catch (_) { return false; }
+  }
+  window.FlipForgeSaveFlow = Object.freeze({ consumeJustEvaluated });
+
   function decorate() {
     if (!eligibleHost()) return;
-    decorateSavedDecision();
-    decorateDiscover();
+    // Discover renders its own "searches are temporary" note (customer-discovery.js).
     cleanKnownLimitations();
     observeGuide();
     clarifyGuidedProgress();
   }
 
+  // The saved decision page's "Understand this decision" is a plain link to the evidence (customer-opportunities.js
+  // renders the saved bar). Guided Mode's explain buttons on that page go to the same evidence.
   document.addEventListener("click", event => {
-    const direct = event.target.closest("[data-ff-show-why]");
     const guided = event.target.closest("[data-guide-action]");
-    if (!direct && !isGuidedExplainAction(guided)) return;
+    if (!isGuidedExplainAction(guided)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     openDecisionEvidence();

@@ -5,7 +5,10 @@ import { fileURLToPath } from "node:url";
 const root = path.dirname(fileURLToPath(import.meta.url));
 const read = name => fs.readFileSync(path.join(root, name), "utf8");
 
-const index = read("index.html");
+// Since Nov 4 2026 the private beta page (index.html) does not load the cockpit layers (the beta does not offer it); the full
+// customer app (customer.html) does, and the load-order checks below run there.
+const index = read("customer.html");
+if (/cockpit-(layout-fix|polish|final-ux)\.js/.test(read("index.html"))) throw new Error("the beta page must not load the cockpit layers");
 const script = read("cockpit-final-ux.js");
 const styles = read("cockpit-final-ux.css");
 const results = [];
@@ -27,7 +30,7 @@ check("013 grading lanes show value delta from raw", script.includes("cockpit-gr
 check("014 full expected value is not falsely claimed", script.includes("No full expected value is claimed because lower-grade outcomes are not modeled"));
 check("015 grading predictor wording is softened", script.includes("Grading value scenarios") && script.includes("Net value by saved PSA outcome lane"));
 check("016 repeated staging copy is reduced", script.includes('"Owner preview"') && script.includes('"5 currently displayed"') && script.includes('"Demand / liquidity index"'));
-check("017 top non-production banner remains", index.includes("NON-PRODUCTION PROTOTYPE"));
+check("017 top non-production banner remains (beta page)", read("index.html").includes("NON-PRODUCTION PROTOTYPE"));
 check("018 no recommendation authority is added", !/ForgeScore|new recommendation engine/i.test(script));
 check("019 no network calls exist", !/\bfetch\s*\(|XMLHttpRequest|\bWebSocket\b/.test(script));
 check("020 no browser persistence exists", !/localStorage|sessionStorage|indexedDB/.test(script));
