@@ -28,9 +28,11 @@ const sectionPages = [
   ['About', '/about.html', '.section-head h2']
 ];
 
-const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Sign In', 'Request Beta Access'];
+// One header on every page (scripts/site-header.mjs): logo, Request Beta Access and a labeled Menu button at every width.
+// The menu lists the sections, then Beta Sign In under "Existing beta users", then Request Beta Access.
+const canonicalNav = ['Product', 'Decision Intelligence', 'Evidence Lab', 'Launch Plans', 'About', 'Beta Sign In', 'Request Beta Access'];
 // The homepage adds "Who It’s For" (audience selector, #610) after Product; every other page keeps the canonical menu.
-const homeCanonicalNav = ['Product', 'Who It’s For', 'Decision Intelligence', 'Evidence Lab', 'About', 'Sign In', 'Request Beta Access'];
+const homeCanonicalNav = ['Product', 'Who It’s For', 'Decision Intelligence', 'Evidence Lab', 'About', 'Beta Sign In', 'Request Beta Access'];
 const failures = [];
 const nearlyEqual = (a, b, tolerance = 0.75) => Math.abs(a - b) <= tolerance;
 const px = value => Number.parseFloat(value || 'NaN');
@@ -67,19 +69,22 @@ async function publicShellState(page, path, introSelector, headingSelector, mobi
     };
     const header = document.querySelector('.decision-header,.site-header');
     const brand = document.querySelector('.decision-header .decision-brand,.site-header .brand');
-    const desktopNav = document.querySelector('.decision-nav-links,.desktop-nav');
-    const toggle = document.querySelector('.menu-toggle');
-    const cta = desktopNav?.querySelector('a[href*="beta-application"]');
-    const visibleLinks = desktopNav ? [...desktopNav.querySelectorAll('a[href]')].filter(link => {
-      const style = getComputedStyle(link);
-      const box = link.getBoundingClientRect();
+    const desktopNav = document.querySelector('.site-header-actions');
+    const toggle = document.querySelector('.site-header .menu-toggle');
+    const cta = document.querySelector('.site-header .nav-cta');
+    const menu = document.querySelector('.site-menu');
+    const visibleLinks = [cta, toggle].filter(Boolean).filter(element => {
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
       return style.display !== 'none' && style.visibility !== 'hidden' && box.width > 0 && box.height > 0;
-    }) : [];
-    const clipped = visibleLinks.filter(link => {
-      const box = link.getBoundingClientRect();
+    });
+    const clipped = visibleLinks.filter(element => {
+      const box = element.getBoundingClientRect();
       return box.left < -0.5 || box.right > innerWidth + 0.5;
-    }).map(link => link.textContent.trim());
-    const labels = visibleLinks.map(link => link.textContent.trim());
+    }).map(element => element.textContent.trim());
+    const labels = menu ? [...menu.querySelectorAll('a[href]')].map(link => link.textContent.trim()) : [];
+    const inlineNav = document.querySelectorAll('.desktop-nav,.decision-nav-links,.mobile-nav').length;
+    const toggleLabel = toggle?.querySelector('.menu-toggle-label')?.textContent.trim() || '';
     const intro = introSelector ? document.querySelector(introSelector) : null;
     const heading = headingSelector ? document.querySelector(headingSelector) : null;
     const navFont = visibleLinks[0] ? Number.parseFloat(getComputedStyle(visibleLinks[0]).fontSize) : Number.parseFloat(getComputedStyle(desktopNav || document.body).fontSize);
@@ -94,7 +99,9 @@ async function publicShellState(page, path, introSelector, headingSelector, mobi
       navFont,
       labels,
       clipped,
-      navVisible: visibleLinks.length > 0,
+      navVisible: visibleLinks.length === 2,
+      inlineNav,
+      toggleLabel,
       expectedLabels: canonicalNav,
       mobile
     };
@@ -173,30 +180,24 @@ try {
     compareRect(viewport.name, 'Home header', homeShell.header, shellBaseline.header, ['height']);
     compareRect(viewport.name, 'Home brand', homeShell.brand, shellBaseline.brand, ['left', 'top', 'width', 'height']);
 
-    if (!mobile) {
-      if (JSON.stringify(homeShell.labels) !== JSON.stringify(homeCanonicalNav)) failures.push(`${viewport.name} Home: nav labels/order ${JSON.stringify(homeShell.labels)} do not match homepage canonical ${JSON.stringify(homeCanonicalNav)}`);
-      if (homeShell.clipped.length) failures.push(`${viewport.name} Home: clipped navigation ${homeShell.clipped.join(', ')}`);
-      if (!nearlyEqual(homeShell.navFont, 13, 0.15)) failures.push(`${viewport.name} Home: nav font ${homeShell.navFont}px instead of 13px`);
-      compareRect(viewport.name, 'Home CTA', homeShell.cta, shellBaseline.cta, ['top', 'width', 'height']);
-    } else {
-      compareRect(viewport.name, 'Home toggle', homeShell.toggle, shellBaseline.toggle, ['left', 'top', 'width', 'height']);
-    }
+    // Same header at every width: Request Beta Access and the Menu button are visible, unclipped and identical on every page.
+    const headerChecks = (label, state, expected) => {
+      if (JSON.stringify(state.labels) !== JSON.stringify(expected)) failures.push(`${viewport.name} ${label}: menu labels/order ${JSON.stringify(state.labels)} do not match ${JSON.stringify(expected)}`);
+      if (!state.navVisible) failures.push(`${viewport.name} ${label}: Request Beta Access and the Menu button must both be visible`);
+      if (state.clipped.length) failures.push(`${viewport.name} ${label}: clipped header actions ${state.clipped.join(', ')}`);
+      if (state.inlineNav) failures.push(`${viewport.name} ${label}: an inline navigation row is still present`);
+      if (state.toggleLabel !== 'Menu') failures.push(`${viewport.name} ${label}: the menu button is labeled ${JSON.stringify(state.toggleLabel)} instead of "Menu"`);
+      compareRect(viewport.name, `${label} CTA`, state.cta, shellBaseline.cta, ['left', 'top', 'width', 'height']);
+      compareRect(viewport.name, `${label} toggle`, state.toggle, shellBaseline.toggle, ['left', 'top', 'width', 'height']);
+    };
+    headerChecks('Home', homeShell, homeCanonicalNav);
 
     for (const [label, state] of shellStates) {
       compareRect(viewport.name, `${label} header`, state.header, shellBaseline.header, ['height']);
       compareRect(viewport.name, `${label} brand`, state.brand, shellBaseline.brand, ['left', 'top', 'width', 'height']);
       compareRect(viewport.name, `${label} intro`, state.intro, shellBaseline.intro, ['left', 'top', 'width']);
       compareRect(viewport.name, `${label} heading`, state.heading, shellBaseline.heading, ['left', 'top'], 2);
-
-      if (!mobile) {
-        if (JSON.stringify(state.labels) !== JSON.stringify(canonicalNav)) failures.push(`${viewport.name} ${label}: nav labels/order ${JSON.stringify(state.labels)} do not match canonical ${JSON.stringify(canonicalNav)}`);
-        if (state.clipped.length) failures.push(`${viewport.name} ${label}: clipped navigation ${state.clipped.join(', ')}`);
-        if (!nearlyEqual(state.navFont, 13, 0.15)) failures.push(`${viewport.name} ${label}: nav font ${state.navFont}px instead of 13px`);
-        compareRect(viewport.name, `${label} CTA`, state.cta, shellBaseline.cta, ['top', 'width', 'height']);
-      } else {
-        if (state.navVisible) failures.push(`${viewport.name} ${label}: desktop navigation should be collapsed`);
-        compareRect(viewport.name, `${label} toggle`, state.toggle, shellBaseline.toggle, ['left', 'top', 'width', 'height']);
-      }
+      headerChecks(label, state, canonicalNav);
     }
 
     console.log(`${viewport.name}: internal titles ${pageTitles.map(([label, size]) => `${label}=${size}px`).join(', ')}`);
@@ -216,4 +217,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: every public top-navigation destination shares one FlipForge shell: header height, logo geometry, navigation order/baseline, CTA geometry, intro position, typography scale, responsive collapse, and viewport containment are consistent.');
+console.log('PASS: every public top-navigation destination shares one FlipForge shell: header height, logo geometry, Request Beta Access and Menu geometry, menu order, intro position, typography scale, and viewport containment are consistent.');

@@ -13,7 +13,7 @@
   background:radial-gradient(circle at 50% 0%,rgba(212,175,55,.10),transparent 30%),var(--dic-bg);
   color:var(--dic-text);
 }
-.ff-dic-page .site-header{background:rgba(3,7,13,.9);backdrop-filter:blur(18px)}
+
 .ff-dic-page main{overflow:hidden}
 
 .ff-dic-hero{padding:clamp(92px,9vw,122px) 22px 42px}

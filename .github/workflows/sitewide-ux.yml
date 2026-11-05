@@ -25,6 +25,11 @@ on:
       - "assets/images/ff-graphics-*.svg"
       - "assets/js/award-winning-v1.js"
       - "assets/js/conversion-events.js"
+      - "assets/js/site.js"
+      - "scripts/site-header.mjs"
+      - "decision-proof.html"
+      - "sample-decision-dossier.html"
+      - "price-is-not-proof.html"
       - "saas-prototype/index.html"
       - "saas-prototype/phase3-first-decision-activation-v1.js"
       - "saas-prototype/phase3-first-decision-activation-v1.css"
@@ -75,6 +80,11 @@ on:
       - "assets/images/ff-graphics-*.svg"
       - "assets/js/award-winning-v1.js"
       - "assets/js/conversion-events.js"
+      - "assets/js/site.js"
+      - "scripts/site-header.mjs"
+      - "decision-proof.html"
+      - "sample-decision-dossier.html"
+      - "price-is-not-proof.html"
       - "saas-prototype/index.html"
       - "saas-prototype/phase3-first-decision-activation-v1.js"
       - "saas-prototype/phase3-first-decision-activation-v1.css"
@@ -119,8 +129,11 @@ jobs:
         run: |
           node --check assets/js/award-winning-v1.js
           node --check assets/js/conversion-events.js
+          node --check assets/js/site.js
       - name: Validate Decision Intelligence public contract
         run: node scripts/validate-decision-intelligence-public-page.mjs
+      - name: One header source on every public page
+        run: node scripts/site-header.mjs
       - name: Validate static sitewide UX contracts
         run: npm run validate:sitewide-ux
       - name: Install Chromium for rendered typography audit

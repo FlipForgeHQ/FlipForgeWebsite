@@ -8,7 +8,7 @@ body.ff-support-v3{
   --ff-deep-gold:#b8860b;
   background:radial-gradient(circle at 82% 0,rgba(212,175,55,.055),transparent 24%),linear-gradient(180deg,#030405,#000 70%,#020202);
 }
-body.ff-support-v3 .site-header{background:rgba(0,0,0,.95);border-bottom-color:rgba(255,255,255,.1)}
+
 body.ff-support-v3 .brand .tagline{color:var(--ff-gold);letter-spacing:.2em}
 body.ff-support-v3 .page-hero{max-width:1180px;margin:24px auto 0;padding:74px 40px 50px;border:1px solid rgba(212,175,55,.16);border-radius:22px;background:linear-gradient(135deg,rgba(255,255,255,.014),rgba(212,175,55,.026),transparent 75%)}
 body.ff-support-v3 .page-hero .kicker{color:var(--ff-gold)}

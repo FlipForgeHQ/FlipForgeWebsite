@@ -164,23 +164,32 @@ async function auditDecisionMobile(page, viewport) {
   await panel.locator('.ff10-math summary').click();
   if(!await panel.locator('.ff10-math').evaluate(el=>el.open))
     failures.push(`${viewport.name} Home: the Max Buy calculation does not expand`);
-  if(viewport.width<=1120){
-    await page.locator('.menu-toggle').click();
-    const nav=await page.evaluate(()=>{
-      const links=[...document.querySelectorAll('.mobile-nav a')];
-      const sign=links.find(el=>el.hasAttribute('data-ff-marketing-sign-in'));
-      const join=links.find(el=>el.getAttribute('href')?.includes('beta-application'));
-      const a=sign?.getBoundingClientRect(),b=join?.getBoundingClientRect();
-      return {
-        present:Boolean(sign&&join),
-        labels:[sign?.textContent?.trim(),join?.textContent?.trim()],
-        gap:a&&b?Number((b.top-a.bottom).toFixed(1)):null,
-        aligned:a&&b?Math.abs(a.left-b.left)<=3:null
-      };
-    });
-    if(!nav.present||nav.gap==null||nav.gap<0||nav.gap>20||!nav.aligned)
-      failures.push(`${viewport.name} Home: mobile Sign In and Beta Access must be prominent and next to each other (${JSON.stringify(nav)})`);
-  }
+  // The labeled Menu opens at every width; Beta Sign In sits under "Existing beta users", next to Request Beta Access.
+  await page.locator('.site-header .menu-toggle').click();
+  await page.waitForTimeout(250);
+  const nav=await page.evaluate(()=>{
+    const menu=document.querySelector('.site-menu');
+    const toggle=document.querySelector('.site-header .menu-toggle');
+    const sign=menu?.querySelector('a[data-ff-marketing-sign-in]');
+    const join=menu?.querySelector('.site-menu-cta');
+    const heading=sign?.closest('.site-menu-group')?.querySelector('.site-menu-heading')?.textContent?.trim();
+    const m=menu?.getBoundingClientRect(),a=sign?.getBoundingClientRect(),b=join?.getBoundingClientRect();
+    return {
+      open:Boolean(menu?.classList.contains('open'))&&getComputedStyle(menu).visibility==='visible',
+      expanded:toggle?.getAttribute('aria-expanded'),
+      toggleLabel:toggle?.querySelector('.menu-toggle-label')?.textContent?.trim(),
+      heading,
+      labels:[sign?.textContent?.trim(),join?.textContent?.trim()],
+      gap:a&&b?Number((b.top-a.bottom).toFixed(1)):null,
+      inside:m?m.left>=0&&m.right<=innerWidth+0.5&&m.bottom<=innerHeight+0.5:false
+    };
+  });
+  if(!nav.open||nav.expanded!=='true'||nav.toggleLabel!=='Close'||nav.heading!=='Existing beta users'||nav.labels[0]!=='Beta Sign In'
+    ||nav.labels[1]!=='Request Beta Access'||nav.gap==null||nav.gap<0||nav.gap>32||!nav.inside)
+    failures.push(`${viewport.name} Home: the menu must open with Beta Sign In under Existing beta users next to Request Beta Access, inside the viewport (${JSON.stringify(nav)})`);
+  await page.keyboard.press('Escape');
+  const closed=await page.evaluate(()=>{const t=document.querySelector('.site-header .menu-toggle');return t?.getAttribute('aria-expanded')==='false'&&t.querySelector('.menu-toggle-label')?.textContent?.trim()==='Menu'&&!document.querySelector('.site-menu')?.classList.contains('open');});
+  if(!closed)failures.push(`${viewport.name} Home: Escape must close the menu and restore the Menu label`);
 }
 
 async function auditSvgText(page, path) {
