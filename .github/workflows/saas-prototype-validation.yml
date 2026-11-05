@@ -146,8 +146,8 @@ jobs:
             if (hasHeader && (html.includes('FlipForge — Card Intelligence') || html.includes('FlipForge Card Intelligence'))) {
               failures.push(`${name}: retired Card Intelligence brand descriptor remains`);
             }
-            if (hasHeader && !html.includes('data-app-preview="desktop"')) {
-              failures.push(`${name}: desktop App Preview link is missing`);
+            if (hasHeader && !html.includes('class="site-menu-sign-in"')) {
+              failures.push(`${name}: Beta Sign In is missing from the site menu (scripts/site-header.mjs)`);
             }
             if (hasMobileNavigation && !html.includes('data-app-preview="mobile"')) {
               failures.push(`${name}: mobile App Preview link is missing`);
