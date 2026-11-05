@@ -30,7 +30,8 @@ html body.ff-support-v3 main#main .ff-beta-expectations p,
 html body.ff-support-v3 main#main .ff-lab-card p,
 html body.ff-support-v3 main#main .ff-lab-case p,
 html body.ff-dic-page main#main .lead,
-html body.ff-dic-page main#main .ff-dic-simple-head p,
+/* The Decision Intelligence benefits section is a light panel with its own dark text; keep it out of the dark-surface rule. */
+html body.ff-dic-page main#main .ff-dic-simple-head:not(.ff-di-benefits-intro) p,
 html body.ff-dic-page main#main .ff-dic-story-copy,
 html body.ff-dic-page main#main .ff-dic-final p{
   color:var(--ff-read-secondary)!important;

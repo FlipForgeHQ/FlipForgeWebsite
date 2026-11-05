@@ -14,7 +14,7 @@
 .ff10-design main>.page-hero h1{position:relative;z-index:1;text-wrap:balance}
 .ff10-design main>.page-hero .kicker{color:var(--ff10-gold)}
 .ff10-design main>.page-hero .lead{position:relative;z-index:1;color:#d4dbe0}
-.ff10-design .btn.primary{background:linear-gradient(105deg,#eecf80,#c59a3a);color:#081014;border:1px solid #dfbd66;box-shadow:0 11px 28px rgba(166,112,27,.18)}
+.ff10-design .btn.primary{background:#d4af37;color:#080b10;border:1px solid #d4af37;box-shadow:none}.ff10-design .btn.primary:hover,.ff10-design .page-hero .btn.primary:hover,.ff10-design .btn.primary:focus-visible{background:#e0bf4f;border-color:#e0bf4f;transform:none}
 .ff10-design .btn:not(.primary):hover{border-color:#caa85f;color:#fff}
 .ff10-design .page-hero .btn:hover,.ff10-design .ff10-feature-link:hover{transform:translateY(-1px)}
 .ff10-design .ff10-breadcrumb{position:absolute!important;top:17px;left:clamp(20px,3.2vw,44px);z-index:9!important;display:inline-flex;align-items:center;gap:8px;font-size:11px;line-height:1.5;color:#acb6b8;font-weight:800;letter-spacing:.02em}

@@ -508,13 +508,14 @@
 
 .ff-proof-button-primary{
   color:#090b0e;
-  border:1px solid var(--ff-proof-gold-bright);
-  background:linear-gradient(180deg,var(--ff-proof-gold-bright),var(--ff-proof-gold));
-  box-shadow:0 12px 32px rgba(215,181,109,.17);
+  border:1px solid #d4af37;
+  background:#d4af37;
+  box-shadow:none;
 }
 
 .ff-proof-button-primary:hover{
-  box-shadow:0 16px 38px rgba(215,181,109,.24);
+  background:#e0bf4f;
+  border-color:#e0bf4f;
 }
 
 .ff-proof-button-secondary{
