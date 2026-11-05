@@ -1,11 +1,6 @@
 /* FlipForge premium customer-first restructure — desire first, proof second, depth on demand. */
 :root{--ff-aw-gold:#d8b64a;--ff-aw-ink:#05070b;--ff-aw-panel:#0a0e15;--ff-aw-line:rgba(255,255,255,.09);--ff-aw-muted:#9aa2ad;--ff-aw-max:1180px}
 
-/* Marketing navigation: fewer choices, stronger conversion focus. */
-.ff-marketing-page-v3 .site-header .nav,.ff-home-focused .site-header .nav{max-width:var(--ff-aw-max)}
-.ff-marketing-page-v3 .desktop-nav a[href="faq.html"],.ff-marketing-page-v3 .desktop-nav a[data-app-preview],.ff-home-focused .desktop-nav a[href="faq.html"],.ff-home-focused .desktop-nav a[data-app-preview],.ff-home-focused .desktop-nav a[href="#try-flipforge"]{display:none!important}
-.ff-marketing-page-v3 .mobile-nav a[href="faq.html"],.ff-marketing-page-v3 .mobile-nav a[data-app-preview],.ff-home-focused .mobile-nav a[href="faq.html"],.ff-home-focused .mobile-nav a[data-app-preview],.ff-home-focused .mobile-nav a[href="#try-flipforge"]{display:none!important}
-
 /* Premium page rhythm */
 .ff-aw-page{overflow-x:hidden}
 .ff-aw-page .page-hero{max-width:var(--ff-aw-max);padding-top:84px;padding-bottom:54px}

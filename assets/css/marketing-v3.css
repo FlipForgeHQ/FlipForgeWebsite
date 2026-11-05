@@ -11,7 +11,7 @@ body.ff-marketing-v3{
     radial-gradient(circle at 12% 0%,rgba(255,255,255,.035),transparent 24%),
     linear-gradient(180deg,#020304 0%,#000 62%,#030303 100%);
 }
-body.ff-marketing-v3 .site-header{background:rgba(0,0,0,.94);border-bottom-color:rgba(255,255,255,.1)}
+
 body.ff-marketing-v3 .brand .tagline{color:var(--ff-gold);letter-spacing:.2em}
 body.ff-marketing-v3 .hero.ff-hero-v3{position:relative;min-height:730px;grid-template-columns:.92fr 1.08fr;gap:56px;padding-top:76px;padding-bottom:62px}
 body.ff-marketing-v3 .hero.ff-hero-v3:before{content:"";position:absolute;inset:28px 0 24px;z-index:-1;border:1px solid rgba(212,175,55,.13);border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.015),rgba(212,175,55,.02) 48%,transparent 72%)}

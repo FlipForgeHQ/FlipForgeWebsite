@@ -13,7 +13,7 @@
   font-feature-settings:"ss01";
 }
 .ff10 *,.ff10 *::before,.ff10 *::after{box-sizing:border-box}
-.ff10 .site-header{background:rgba(0,0,0,.88);border-bottom-color:var(--line-d)}
+
 .ff10 main{min-height:0}
 .ff10 h1 span,.ff10 h2 span{color:inherit}
 .ff10 :focus-visible{outline:3px solid var(--g);outline-offset:4px}

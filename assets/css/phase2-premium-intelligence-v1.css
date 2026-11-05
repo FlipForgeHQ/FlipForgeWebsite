@@ -189,10 +189,10 @@ body.ff-phase2-ready main{overflow:clip}
 /* Public rollout: motion polish without changing page meaning */
 .ff-phase2-public .section,
 .ff-phase2-public main>section{scroll-margin-top:94px}
-.ff-phase2-public .btn,.ff-phase2-public .nav-cta{
+.ff-phase2-public .btn{
   transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease
 }
-.ff-phase2-public .btn:hover,.ff-phase2-public .nav-cta:hover{transform:translateY(-2px)}
+.ff-phase2-public .btn:hover{transform:translateY(-2px)}
 .ff-phase2-public .card,.ff-phase2-public article{
   transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease
 }
@@ -224,7 +224,7 @@ body.ff-phase2-ready main{overflow:clip}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  .ff-phase2-reveal,.ff-phase2-stagger>*,.ff-phase2-cdi-step,.ff-phase2-cdi-aperture,.ff-phase2-public .btn,.ff-phase2-public .nav-cta,.ff-phase2-public .card,.ff-phase2-public article{opacity:1!important;transform:none!important;transition:none!important;animation:none!important}
+  .ff-phase2-reveal,.ff-phase2-stagger>*,.ff-phase2-cdi-step,.ff-phase2-cdi-aperture,.ff-phase2-public .btn,.ff-phase2-public .card,.ff-phase2-public article{opacity:1!important;transform:none!important;transition:none!important;animation:none!important}
   .ff-phase2-evidence-stage::before{display:none}
 }
 

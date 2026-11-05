@@ -48,8 +48,8 @@ check('A15 visitors can find all five audience choices directly in the hero',
   && (page.match(/data-ff-audience-target="/g) || []).length === 5
   && page.indexOf('class="ff10-persona-nav"') < page.indexOf('id="who-its-for"')
   && page.includes('How do you approach cards?'));
-check('A16 Who It’s For is linked from desktop and mobile navigation',
-  (page.match(/href="#who-its-for" data-ff-audience-navigation/g) || []).length === 2);
+check('A16 Who It’s For is linked once from the site menu (the one header, written by scripts/site-header.mjs)',
+  (page.match(/href="#who-its-for" data-ff-audience-navigation/g) || []).length === 1 && page.includes('class="site-menu-links"'));
 check('A17 hero links select the matching existing panel without rewriting its source content',
   js.includes("document.querySelectorAll('[data-ff-audience-target]')")
   && js.includes("tab.dataset.audTab === link.dataset.ffAudienceTarget")

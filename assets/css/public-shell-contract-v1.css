@@ -1,19 +1,20 @@
-/* FlipForge public shell contract v1 — authoritative header/nav/first-content geometry.
- * Every public top-navigation destination shares this shell. Page-specific CSS may
- * own content composition, but it must not move or resize the public chrome.
+/* FlipForge public shell contract v1 — the one stylesheet for the public header, its menu and the footer social column.
+ * The header markup is written into every public page by scripts/site-header.mjs. This file is the only place that
+ * styles it: logo on the left; Request Beta Access and a labeled Menu button on the right, at every width.
+ * Page-specific CSS may own content composition, but it must not style the header or the menu.
  */
 :root{
   --ff-public-shell-max:1880px;
   --ff-public-header-height:90px;
   --ff-public-logo-width:300px;
-  --ff-public-logo-height:70px;
-  --ff-public-nav-gap:clamp(14px,1vw,24px);
+  --ff-public-logo-height:72px;
   --ff-public-content-max:1180px;
+  --ff-shell-gold:#f0ca58;
+  --ff-shell-line:rgba(255,255,255,.12);
 }
 
-/* One exact header geometry everywhere. */
-html body .site-header,
-html body .decision-header{
+/* Header */
+html body .site-header{
   position:sticky!important;
   top:0!important;
   z-index:100!important;
@@ -25,99 +26,214 @@ html body .decision-header{
   border-bottom:1px solid rgba(255,255,255,.10)!important;
   backdrop-filter:blur(16px)!important;
 }
-html body .site-header .nav,
-html body .decision-header .decision-nav{
+html body.menu-open{overflow:hidden}
+html body.menu-open .site-header{z-index:130!important}
+html body .site-header .nav{
   width:min(var(--ff-public-shell-max),calc(100% - 48px))!important;
   max-width:none!important;
-  height:var(--ff-public-header-height)!important;
-  min-height:var(--ff-public-header-height)!important;
-  max-height:var(--ff-public-header-height)!important;
+  height:100%!important;
+  min-height:0!important;
   margin:0 auto!important;
   padding:0!important;
   display:flex!important;
   align-items:center!important;
   justify-content:space-between!important;
-  gap:24px!important;
+  gap:16px!important;
 }
 
-/* The logo itself is Home; the logo box is identical on every route. */
-html body .site-header .brand,
-html body .decision-header .decision-brand{
+/* The logo itself is Home; the logo box is identical on every page. */
+html body .site-header .brand{
   display:flex!important;
   align-items:center!important;
-  justify-content:flex-start!important;
-  flex:0 0 var(--ff-public-logo-width)!important;
+  flex:0 1 var(--ff-public-logo-width)!important;
   width:var(--ff-public-logo-width)!important;
-  min-width:var(--ff-public-logo-width)!important;
-  max-width:var(--ff-public-logo-width)!important;
+  min-width:0!important;
   height:var(--ff-public-logo-height)!important;
-  min-height:var(--ff-public-logo-height)!important;
-  max-height:var(--ff-public-logo-height)!important;
   padding:0!important;
   margin:0!important;
   line-height:0!important;
   text-decoration:none!important;
 }
 html body .site-header .brand::after{content:none!important;display:none!important}
-html body .site-header .brand .brand-lockup,
-html body .decision-header .decision-brand img{
+html body .site-header .brand .brand-lockup{
   display:block!important;
-  width:var(--ff-public-logo-width)!important;
+  width:100%!important;
   max-width:var(--ff-public-logo-width)!important;
-  height:var(--ff-public-logo-height)!important;
+  height:auto!important;
   max-height:var(--ff-public-logo-height)!important;
   object-fit:contain!important;
   object-position:left center!important;
-  flex:0 0 auto!important;
 }
 
-/* Same navigation order, baseline, sizing and hit area everywhere. */
-html body .site-header .desktop-nav,
-html body .decision-header .decision-nav-links{
-  display:flex!important;
-  flex:1 1 auto!important;
-  min-width:0!important;
-  align-items:center!important;
-  justify-content:flex-end!important;
-  gap:var(--ff-public-nav-gap)!important;
-  white-space:nowrap!important;
+/* Right side: the prominent action, then Menu. */
+html body .site-header .site-header-actions{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  gap:12px;
 }
-html body .site-header .desktop-nav a,
-html body .decision-header .decision-nav-links a{
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  min-height:44px!important;
-  height:44px!important;
-  padding:0!important;
-  border:0!important;
-  border-radius:0!important;
-  background:transparent!important;
-  color:#e7eaee!important;
-  font-size:13px!important;
-  font-weight:700!important;
-  line-height:1.2!important;
-  letter-spacing:0!important;
-  text-decoration:none!important;
-  white-space:nowrap!important;
+html body .site-header .nav-cta{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:44px;
+  padding:0 20px;
+  border:1px solid #d4af37;
+  border-radius:10px;
+  background:#d4af37;
+  color:#080b10;
+  box-shadow:none;
+  font-size:14px;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:0;
+  white-space:nowrap;
+  text-decoration:none;
+  transition:background-color .16s ease,border-color .16s ease;
 }
-html body .site-header .desktop-nav a:hover,
-html body .site-header .desktop-nav a:focus-visible,
-html body .site-header .desktop-nav a[aria-current="page"],
-html body .decision-header .decision-nav-links a:hover,
-html body .decision-header .decision-nav-links a:focus-visible,
-html body .decision-header .decision-nav-links a[aria-current="page"]{color:#f0ca58!important}
-html body .site-header .desktop-nav .nav-cta,
-html body .decision-header .decision-nav-links .decision-nav-cta{
-  min-height:44px!important;
-  height:44px!important;
-  padding:0 17px!important;
-  border:1px solid rgba(212,175,55,.58)!important;
-  border-radius:10px!important;
-  background:linear-gradient(180deg,#efb441 0%,#d89a2a 100%)!important;
-  color:#080b10!important;
-  box-shadow:0 10px 28px rgba(212,175,55,.12)!important;
+/* Brand Sheet v2.1 gold, flat: no gradient, glow or lift. Hover brightens slightly. */
+html body .site-header .nav-cta:hover,
+html body .site-header .nav-cta:focus-visible{background:#e0bf4f;border-color:#e0bf4f}
+html body .site-header .nav-cta:focus-visible{outline:2px solid #f5f7fa;outline-offset:3px}
+html body .site-header .menu-toggle{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-width:108px;
+  height:44px;
+  margin:0;
+  padding:0 14px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  color:#eef1f5;
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:border-color .16s ease,color .16s ease,background .16s ease;
 }
+html body .site-header .menu-toggle:hover,
+html body .site-header .menu-toggle[aria-expanded="true"]{border-color:rgba(212,175,55,.6);color:var(--ff-shell-gold);background:rgba(212,175,55,.06)}
+html body .site-header .menu-toggle-icon{position:relative;display:block;width:18px;height:10px}
+html body .site-header .menu-toggle-icon::before,
+html body .site-header .menu-toggle-icon::after{
+  content:"";
+  position:absolute;
+  left:0;
+  width:18px;
+  height:2px;
+  border-radius:2px;
+  background:currentColor;
+  transition:transform .2s ease,top .2s ease,width .2s ease;
+}
+html body .site-header .menu-toggle-icon::before{top:0}
+html body .site-header .menu-toggle-icon::after{top:8px;width:12px}
+html body .site-header .menu-toggle[aria-expanded="true"] .menu-toggle-icon::before{top:4px;transform:rotate(45deg)}
+html body .site-header .menu-toggle[aria-expanded="true"] .menu-toggle-icon::after{top:4px;width:18px;transform:rotate(-45deg)}
+
+/* The menu: a panel under the header, right-aligned with the Menu button. */
+html body .site-menu{
+  position:fixed;
+  z-index:125;
+  top:calc(var(--ff-public-header-height) + 10px);
+  right:max(24px,calc((100vw - var(--ff-public-shell-max)) / 2));
+  width:min(400px,calc(100vw - 28px));
+  max-height:calc(100dvh - var(--ff-public-header-height) - 24px);
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+  padding:26px 24px 24px;
+  border:1px solid rgba(212,175,55,.22);
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(14,18,24,.99),rgba(5,8,12,.99));
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateY(-8px);
+  transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s;
+}
+html body .site-menu.open{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s}
+html body .site-menu-heading{
+  margin:0 0 8px;
+  color:#d4af37;
+  font-size:11px;
+  font-weight:800;
+  line-height:1.2;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+html body .site-menu-links{margin:0;padding:0;list-style:none}
+html body .site-menu-links li{border-bottom:1px solid var(--ff-shell-line)}
+html body .site-menu-links li:last-child{border-bottom:0}
+html body .site-menu-links a{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  min-height:52px;
+  padding:0 4px;
+  color:#f5f7fa;
+  font-size:19px;
+  font-weight:700;
+  letter-spacing:-.01em;
+  text-decoration:none;
+  transition:color .16s ease,padding .16s ease;
+}
+html body .site-menu-links a::after{content:"→";color:rgba(255,255,255,.28);font-size:16px;transition:color .16s ease,transform .16s ease}
+html body .site-menu-links a:hover,
+html body .site-menu-links a:focus-visible,
+html body .site-menu-links a[aria-current="page"]{color:var(--ff-shell-gold)}
+html body .site-menu-links a:hover::after,
+html body .site-menu-links a:focus-visible::after{color:var(--ff-shell-gold);transform:translateX(3px)}
+html body .site-menu-returning{padding-top:18px;border-top:1px solid rgba(212,175,55,.22)}
+html body .site-menu-sign-in{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  min-height:48px;
+  padding:0 16px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;
+  color:#eef1f5;
+  font-size:15px;
+  font-weight:700;
+  text-decoration:none;
+}
+html body .site-menu-sign-in::after{content:"→";color:rgba(255,255,255,.4)}
+html body .site-menu-sign-in:hover,
+html body .site-menu-sign-in:focus-visible{border-color:rgba(212,175,55,.6);color:var(--ff-shell-gold)}
+html body .site-menu-cta{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:50px;
+  border-radius:10px;
+  background:#d4af37;
+  color:#080b10;
+  font-size:15px;
+  font-weight:800;
+  text-decoration:none;
+  transition:background-color .16s ease;
+}
+html body .site-menu-cta:hover,
+html body .site-menu-cta:focus-visible{background:#e0bf4f}
+html body .backdrop{
+  position:fixed;
+  z-index:110;
+  inset:0;
+  display:block;
+  background:rgba(0,0,0,.58);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .18s ease,visibility 0s linear .18s;
+}
+html body .backdrop.open{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
 
 /* Every top-nav destination uses one intro composition. */
 html body.ff-marketing-page-v3 main#main>.page-hero,
@@ -155,101 +271,27 @@ html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-
 }
 html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child .ff-dic-hero-actions{justify-content:flex-start!important}
 
-/* One mobile navigation pattern everywhere. */
-html body .menu-toggle{
-  flex:0 0 44px!important;
-  width:44px!important;
-  min-width:44px!important;
-  max-width:44px!important;
-  height:44px!important;
-  min-height:44px!important;
-  max-height:44px!important;
-  margin:0!important;
-}
-html body .mobile-nav{
-  position:fixed!important;
-  z-index:120!important;
-  top:calc(var(--ff-public-header-height) + 10px)!important;
-  right:14px!important;
-  width:min(360px,calc(100vw - 28px))!important;
-  height:auto!important;
-  max-height:calc(100dvh - var(--ff-public-header-height) - 24px)!important;
-  overflow:auto!important;
-  padding:10px!important;
-  border:1px solid rgba(255,255,255,.13)!important;
-  border-radius:14px!important;
-  background:rgba(5,10,17,.985)!important;
-  box-shadow:0 24px 60px rgba(0,0,0,.5)!important;
-  display:flex!important;
-  flex-direction:column!important;
-  transform:translateY(-10px) scale(.98)!important;
-  opacity:0!important;
-  visibility:hidden!important;
-  pointer-events:none!important;
-  transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s!important;
-}
-html body .mobile-nav.open{
-  transform:none!important;
-  opacity:1!important;
-  visibility:visible!important;
-  pointer-events:auto!important;
-  transition-delay:0s!important;
-}
-html body .mobile-nav a{
-  display:flex!important;
-  align-items:center!important;
-  min-height:46px!important;
-  padding:0 14px!important;
-  border:0!important;
-  border-radius:9px!important;
-  color:#eef1f5!important;
-  font-size:15px!important;
-  font-weight:700!important;
-  text-decoration:none!important;
-}
-html body .mobile-nav a:hover,
-html body .mobile-nav a:focus-visible,
-html body .mobile-nav a[aria-current="page"]{
-  background:rgba(212,175,55,.09)!important;
-  color:#f0ca58!important;
-}
-html body .backdrop{
-  position:fixed!important;
-  z-index:110!important;
-  inset:0!important;
-  background:rgba(0,0,0,.58)!important;
-  opacity:0!important;
-  visibility:hidden!important;
-  pointer-events:none!important;
-  display:block!important;
-}
-html body .backdrop.open{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
 
 @media(max-width:1120px){
   :root{
     --ff-public-header-height:76px;
     --ff-public-logo-width:250px;
-    --ff-public-logo-height:58px;
+    --ff-public-logo-height:60px;
   }
-  html body .site-header .desktop-nav,
-  html body .decision-header .decision-nav-links{display:none!important}
-  html body .menu-toggle{display:block!important}
-  html body .site-header .nav,
-  html body .decision-header .decision-nav{width:calc(100% - 32px)!important;gap:16px!important}
-}
-@media(min-width:1121px){
-  html body .menu-toggle{display:none!important}
-  html body .mobile-nav,
-  html body .backdrop{display:none!important}
+  html body .site-header .nav{width:calc(100% - 32px)!important}
 }
 @media(max-width:700px){
   :root{
-    --ff-public-header-height:72px;
-    --ff-public-logo-width:220px;
-    --ff-public-logo-height:52px;
+    --ff-public-header-height:68px;
+    --ff-public-logo-width:170px;
+    --ff-public-logo-height:42px;
   }
-  html body .site-header .nav,
-  html body .decision-header .decision-nav{width:calc(100% - 28px)!important}
+  html body .site-header .nav{width:calc(100% - 24px)!important;gap:8px!important}
+  html body .site-header .site-header-actions{gap:8px}
+  html body .site-header .nav-cta{height:42px;padding:0 12px;font-size:12.5px}
+  /* On a phone the label sits under the icon so the logo keeps its size. */
+  html body .site-header .menu-toggle{flex-direction:column;gap:5px;min-width:54px;height:46px;padding:0 6px;font-size:9.5px;letter-spacing:.12em}
+  html body .site-menu{right:12px;width:calc(100vw - 24px)}
   html body.ff-marketing-page-v3 main#main>.page-hero,
   html body.ff-support-v3 main#main>.page-hero,
   html body.ff-aw-page main#main>.page-hero{
@@ -262,12 +304,39 @@ html body .backdrop.open{opacity:1!important;visibility:visible!important;pointe
     margin-bottom:24px!important;
     padding:40px 22px 38px!important;
   }
-  html body .mobile-nav{top:82px!important}
 }
-@media(max-width:390px){
-  :root{
-    --ff-public-logo-width:196px;
-    --ff-public-logo-height:46px;
-  }
+@media(max-width:400px){
+  :root{--ff-public-logo-width:156px;--ff-public-logo-height:38px}
+  html body .site-header .nav-cta{padding:0 10px;font-size:12px}
 }
-@media(prefers-reduced-motion:reduce){html body .mobile-nav{transition:none!important}}
+@media(prefers-reduced-motion:reduce){
+  html body .site-menu,html body .backdrop,html body .site-header .menu-toggle-icon::before,html body .site-header .menu-toggle-icon::after{transition:none}
+}
+@media print{html body .site-menu,html body .backdrop{display:none!important}}
+
+/* Footer: the "Follow FlipForge" column, written into every public page footer by scripts/site-header.mjs (SOCIAL). */
+html body .footer .footer-inner{grid-template-columns:1.2fr 1fr 1fr 1fr}
+html body .footer-social a{overflow-wrap:anywhere}
+html body .footer-social .footer-handle{display:block;color:#929dad;font-size:12px;letter-spacing:.01em}
+html body .footer-social [data-ff-connect-entry]{color:var(--ff-shell-gold)}
+html body .ff-proof-footer .footer-social{display:grid;gap:6px;font-size:13px}
+html body .ff-proof-footer .footer-social strong{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+@media(max-width:1000px){html body .footer .footer-inner{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){html body .footer .footer-inner{grid-template-columns:1fr}}
+
+/* Footer notice ("not financial or investment advice"), written into every public footer by scripts/site-header.mjs. */
+html body .footer-notice{
+  flex:1 0 100%;
+  width:100%;
+  max-width:var(--ff-public-content-max);
+  margin:22px auto 0;
+  padding:0;
+  color:#a3abb7;
+  font-size:14px;
+  font-weight:500;
+  line-height:1.5;
+  letter-spacing:0;
+}
+/* Same box as the copyright line below it, so the two left edges align. */
+html body .footer .footer-notice{width:min(var(--ff-public-content-max),100%);padding:0 22px;margin:22px auto 8px}
+html body .ff-connect-footer .footer-notice{margin:6px 0 0;text-align:center}
