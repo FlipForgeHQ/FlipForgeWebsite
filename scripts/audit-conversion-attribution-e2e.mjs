@@ -156,6 +156,22 @@ async function journey(root, label) {
   await settle();
   const pathEvents = sent.length;
 
+  // 1b. Same campaign link in a fresh tab, then internal navigation through the generated site header (#617): open
+  //     Menu -> Product -> header "Request Beta Access" -> application. The first-touch campaign must survive the hop.
+  const navStart = sent.length;
+  const navPage = await newPage();
+  await navPage.goto(base + LANDING, { waitUntil: 'networkidle' });
+  await settle();
+  await navPage.click('.site-header .menu-toggle');
+  await Promise.all([navPage.waitForURL('**/product.html'), navPage.click('#site-menu a[href="/product.html"]')]);
+  await navPage.waitForLoadState('networkidle');
+  await Promise.all([navPage.waitForURL('**/beta-application.html'), navPage.click('.site-header .nav-cta')]);
+  await navPage.waitForLoadState('networkidle');
+  const navHiddenFields = await navPage.$$eval('[data-beta-application-form] input[type="hidden"]', inputs => Object.fromEntries(inputs.map(i => [i.name, i.value])));
+  await apply(navPage, 'attribution-test+menu@example.test');
+  await settle();
+  const navSent = sent.slice(navStart);
+
   // 2. The other public screens whose scripts sent rejected names: Product receipt + Evidence Lab theater.
   await page.goto(base + '/product.html', { waitUntil: 'networkidle' });
   await page.locator('[data-ff-p3-receipt-layer]').nth(2).click().catch(() => {});
@@ -199,7 +215,7 @@ async function journey(root, label) {
   await operatorPage.goto(base + '/operator-beta.html', { waitUntil: 'networkidle' });
   await operatorPage.waitForSelector('[data-application-id]', { timeout: 15000 }).catch(() => {});
   const operatorView = {};
-  for (const email of ['attribution-test@example.test', 'attribution-test+invalid@example.test', 'attribution-test+forged@example.test']) {
+  for (const email of ['attribution-test@example.test', 'attribution-test+menu@example.test', 'attribution-test+invalid@example.test', 'attribution-test+forged@example.test']) {
     const row = operatorPage.locator('[data-application-id]', { hasText: email }).first();
     if (!await row.count()) { operatorView[email] = { listed: false }; continue; }
     await row.click();
@@ -216,7 +232,8 @@ async function journey(root, label) {
   const records = [...applicationStore.data.entries()].filter(([key]) => key.startsWith('application/')).map(([, value]) => value);
   const byEmail = email => records.find(record => record.applicant?.email === email);
   return {
-    label, root, sent, pathEvents, invalidSent, hiddenFields, external, otherApi, forged, forgedEvent, operatorView,
+    label, root, sent, pathEvents, invalidSent, hiddenFields, navSent, navHiddenFields, external, otherApi, forged, forgedEvent, operatorView,
+    navApplication: byEmail('attribution-test+menu@example.test'),
     storedEvents: [...eventStore.data.values()],
     eventLog: logLines.filter(line => line.type === 'flipforge_conversion_event'),
     application: byEmail('attribution-test@example.test'),
@@ -277,7 +294,15 @@ check('invalid landing utm values never reach the application record', result.in
 check('forged unknown utm_source is dropped by the application function', result.forged === 202 && result.forgedApplication?.campaign === null);
 check('forged malformed utm slugs are dropped by the event function', result.forgedEvent?.accepted === true
   && same(result.storedEvents.at(-1)?.campaign, { source: 'instagram', medium: null, campaign: null, content: 'w02v01' }));
+check('menu journey: landing -> Menu -> Product -> header CTA sends navigation beta_cta_clicked with the landing campaign',
+  result.navSent.some(item => item.payload.event === 'beta_cta_clicked' && item.payload.placement === 'navigation' && item.payload.page === 'product')
+  && result.navSent.length > 0 && result.navSent.every(item => item.status === 202 && item.payload.utm_source === 'instagram' && item.payload.utm_campaign === 'wysbi26'));
+check('menu journey: the application form and stored application carry the campaign after internal navigation',
+  same(result.navHiddenFields, { utm_source: 'instagram', utm_medium: 'social', utm_campaign: 'wysbi26', utm_content: 'w02v01' })
+  && result.navApplication?.status === 'SUBMITTED' && same(result.navApplication?.campaign, CAMPAIGN));
 const op = result.operatorView;
+check('operator record for the menu-journey applicant shows its campaign',
+  op['attribution-test+menu@example.test']?.listed && op['attribution-test+menu@example.test'].detailFor && op['attribution-test+menu@example.test'].campaign === 'instagram · social · wysbi26 · w02v01');
 check('operator workspace lists the campaign-link applicant and its record shows Campaign instagram · social · wysbi26 · w02v01',
   op['attribution-test@example.test']?.listed && op['attribution-test@example.test'].detailFor && op['attribution-test@example.test'].campaign === 'instagram · social · wysbi26 · w02v01');
 check('operator records for the invalid-tag and forged-tag applicants show no campaign',
