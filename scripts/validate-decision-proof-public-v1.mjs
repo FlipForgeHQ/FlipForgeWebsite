@@ -42,9 +42,10 @@ check('dedicated page keeps beta CTA',page.includes('href="beta-application.html
 check('FlipForge premium brand tokens are present',includesAll(css,[
   '--ff-proof-black:#05070a',
   '--ff-proof-gold:#d7b56d',
-  '--ff-proof-gold-bright:#f0d79c',
-  'background:linear-gradient(180deg,var(--ff-proof-gold-bright),var(--ff-proof-gold))'
+  '--ff-proof-gold-bright:#f0d79c'
 ]));
+// Primary CTA uses the flat Brand Sheet gold shared with the site header (founder-approved Nov 5 2026): no gradient.
+check('primary CTA is the flat brand gold used site-wide',css.includes('background:#d4af37')&&!/ff-proof-button-primary\{[^}]*linear-gradient/.test(css));
 check('generic blue-green analytics tokens are retired',!css.includes('--ff-proof-blue')&&!css.includes('--ff-proof-green'));
 check('premium proof page hero is present',page.includes('Proof, not hindsight.<strong>Freeze the decision before the outcome is known.</strong>'));
 check('CSS is responsive',css.includes('@media(max-width:680px)')&&css.includes('@media(max-width:980px)'));
