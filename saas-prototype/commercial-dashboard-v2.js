@@ -16,11 +16,6 @@
   const main = document.querySelector("#main-content");
   let generation = 0;
   let lastSnapshot = null;
-  const emitted = new Set();
-  // /api/conversion-event accepts allowlisted names only. Home events are sent with this fixed page name and a fixed
-  // placement: never the raw path, URL, hash route, query string, card, id or any user data.
-  const EVENT_PAGE = "beta-app";
-  const RETURNING_PLACEMENTS = Object.freeze({ saved: "returning_saved", outcomes: "returning_outcomes", heat: "returning_heat", portfolio: "returning_portfolio" });
 
   // This file is the single owner of the Dashboard ("Home") route. Everything a customer sees on it is rendered
   // here in its final form: the Home heading and first-use / returning panels, the Private Beta "Start here" panel,
@@ -67,17 +62,6 @@
 
   const DIAGNOSTIC_MESSAGE = /(invalid json|authority contract|authority boundary|browser safety limit|request failed with status|response exceeded)/i;
   const TECHNICAL_CODE = /^[A-Z][A-Z0-9_:-]{4,}$/;
-
-  function emit(event, placement) {
-    const key = `${event}:${placement}`;
-    if (emitted.has(key)) return;
-    emitted.add(key);
-    const body = JSON.stringify({ event, page: EVENT_PAGE, placement });
-    try {
-      if (navigator.sendBeacon && navigator.sendBeacon("/api/conversion-event", new Blob([body], { type: "application/json" }))) return;
-      fetch("/api/conversion-event", { method: "POST", headers: { "Content-Type": "application/json" }, body, credentials: "same-origin", cache: "no-store", keepalive: true }).catch(() => {});
-    } catch (_) {}
-  }
 
   function appEligible() {
     const host = String(window.location.hostname || "");
@@ -530,8 +514,9 @@
     const refresh = main.querySelector("[data-commercial-dashboard-refresh]");
     if (refresh) refresh.addEventListener("click", () => loadDashboard(true));
     bindGuidedHome();
-    if (firstUse) emit("phase3_first_use_shown", "dashboard_zero_saved");
-    else emit("phase3_returning_home_shown", "dashboard_saved");
+    // In-app measurement is beta-session-v1.js (the Private Beta workspace only; never the owner preview). It is told
+    // only which panel this render showed.
+    window.FlipForgeBetaSessionV1?.homeShown?.(firstUse ? "first-use" : "returning");
   }
 
   function renderLoading() {
@@ -591,16 +576,6 @@
   // Dashboard V3 (Slice 2, behind the flag) hands the route back here when the
   // backend does not carry the G1 governed-decision contract.
   window.FlipForgeDashboardV2Reload = () => loadDashboard(true);
-
-  if (main && typeof main.addEventListener === "function") {
-    main.addEventListener("click", event => {
-      const target = event.target instanceof Element ? event.target : null;
-      if (!target || routeName() !== "dashboard") return;
-      if (target.closest("[data-ff-p3-first-evaluate]")) emit("phase3_first_evaluate_clicked", "dashboard");
-      const returning = target.closest("[data-ff-p3-return]");
-      if (returning) emit("phase3_returning_action_clicked", RETURNING_PLACEMENTS[returning.getAttribute("data-ff-p3-return")] || "unknown");
-    }, true);
-  }
 
   window.addEventListener("hashchange", () => queueMicrotask(apply));
   window.addEventListener("flipforge:identity-change", () => {

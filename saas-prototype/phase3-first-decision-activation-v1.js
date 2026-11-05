@@ -7,10 +7,6 @@
   const MAIN = "#main-content";
   const OWNED_SELECTOR = "[data-flipforge-phase3-owned]";
   const ENHANCED_ATTRIBUTE = "data-flipforge-phase3-enhanced";
-  // /api/conversion-event accepts allowlisted names only. Every event from this file is sent with this fixed page name
-  // and a fixed placement: never the raw path, URL, hash route, query string, card, id, verdict or any user data.
-  const EVENT_PAGE = "beta-app";
-  const emitted = new Set();
   const diagnostics = { observerCallbacks: 0, relevantObserverCallbacks: 0, applyRuns: 0 };
   let scheduled = false;
   let observer = null;
@@ -33,26 +29,8 @@
     return routeParts()[0] || "dashboard";
   }
 
-  function emit(event, placement) {
-    const key = `${event}:${placement}`;
-    if (emitted.has(key)) return;
-    emitted.add(key);
-    const body = JSON.stringify({ event, page: EVENT_PAGE, placement });
-    try {
-      if (navigator.sendBeacon) {
-        const ok = navigator.sendBeacon("/api/conversion-event", new Blob([body], { type: "application/json" }));
-        if (ok) return;
-      }
-      fetch("/api/conversion-event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        credentials: "same-origin",
-        cache: "no-store",
-        keepalive: true
-      }).catch(() => {});
-    } catch (_) {}
-  }
+  // No telemetry here. Its result education yields to the CDI Signal Stack on every saved decision, so events sent from
+  // it could not fire; in-app measurement is beta-session-v1.js only (scripts/validate-phase3-activation-v1.mjs).
 
   // The Dashboard ("Home") first-use and returning panels, their telemetry and the Home heading are rendered by the
   // Dashboard owner (commercial-dashboard-v2.js). This file keeps only its Discover and evaluation-result paths.
@@ -134,9 +112,6 @@
     const anchor = summary || hero;
     anchor.insertAdjacentElement("afterend", guide);
     anchor.setAttribute(ENHANCED_ATTRIBUTE, "result");
-    // The saved verdict is not sent: the event records only that the education layer was shown.
-    emit("phase3_first_result_education_viewed", "result_education");
-    emit("phase3_evaluation_completed", "saved_decision_detail");
   }
 
   function syncReceiptButton() {
@@ -153,15 +128,9 @@
       const target = event.target instanceof Element ? event.target : null;
       if (!target) return;
 
-      if (target.closest("[data-ff-p3-open-evidence]")) emit("phase3_evidence_opened", "result_education");
-      if (target.closest("[data-ff-p3-another-card]")) emit("phase3_evaluate_another_clicked", "result_education");
-
       if (target.closest("[data-ff-p3-open-receipt]")) {
         const native = document.querySelector(MAIN)?.querySelector("[data-ff-open-decision-receipt]");
-        if (native) {
-          emit("phase3_decision_receipt_opened", "result_education");
-          native.click();
-        }
+        if (native) native.click();
       }
     }, true);
 

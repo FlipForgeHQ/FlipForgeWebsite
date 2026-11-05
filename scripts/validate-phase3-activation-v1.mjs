@@ -62,26 +62,29 @@ check("022 Decision Receipt proxy opens existing governed receipt", js.includes(
 check("023 result education explicitly distinguishes decision from transaction authority", js.includes("not a prediction or transaction authorization"));
 
 check("024 app runtime uses no browser persistence", !/localStorage|sessionStorage|indexedDB/i.test(js));
-check("026 app conversion writes only to approved conversion endpoint", js.includes('"/api/conversion-event"') && !/\/api\/v1\/(?:evaluations|opportunities|evidence)[^"']*["']\s*,\s*\{\s*method\s*:\s*"POST"/i.test(js));
-check("028 app tracks first evaluate click", home.includes("phase3_first_evaluate_clicked") && home.includes('"/api/conversion-event"') && !/localStorage|sessionStorage|indexedDB/i.test(home));
-check("031 app tracks evaluation completion", js.includes("phase3_evaluation_completed"));
-check("032 app tracks evidence inspection", js.includes("phase3_evidence_opened"));
-check("033 app tracks Decision Receipt opening", js.includes("phase3_decision_receipt_opened"));
-
-// /api/conversion-event rejected every in-app event with 400 EVENT_NOT_ALLOWED until Nov 2026: the names were not
-// allowlisted and the page was the raw window.location.pathname. Fixed page, fixed placements, allowlisted names.
+// In-app measurement is beta-session-v1.js only (Nov 2026). This layer's result education yields to the CDI Signal Stack
+// on every saved decision, so its events could never fire; the Home owner reports which panel it rendered and posts
+// nothing itself. /api/conversion-event had rejected all of their phase3_* names (400 EVENT_NOT_ALLOWED, raw paths).
+const session = read("saas-prototype/beta-session-v1.js");
 const backend = read("netlify/modern-functions/conversion-event.mjs");
 const allow = name => new Set([...(backend.match(new RegExp("const " + name + " = new Set\\(\\[([\\s\\S]*?)\\]\\)"))?.[1] || "").matchAll(/"([^"]+)"/g)].map(m => m[1]));
 const serverEvents = allow("EVENT_NAMES");
 const serverPlacements = allow("PLACEMENTS");
-const NINE = ["phase3_first_use_shown", "phase3_returning_home_shown", "phase3_first_evaluate_clicked", "phase3_returning_action_clicked",
-  "phase3_first_result_education_viewed", "phase3_evaluation_completed", "phase3_evidence_opened", "phase3_evaluate_another_clicked", "phase3_decision_receipt_opened"];
-check("046 the server allowlists all nine in-app activation events", NINE.every(name => serverEvents.has(name)) && allow("PAGE_NAMES").has("beta-app"));
-check("047 app events send the fixed page beta-app, never the raw path or route", [js, home].every(source => source.includes('const EVENT_PAGE = "beta-app";')
-  && source.includes("JSON.stringify({ event, page: EVENT_PAGE, placement })") && !/page:\s*String\(window\.location/.test(source) && !/route:\s*(?:routeName\(\)|"dashboard")/.test(source)));
-check("048 result education does not send the saved verdict", js.includes('emit("phase3_first_result_education_viewed", "result_education")') && !js.includes("decision.toLowerCase()"));
-check("049 every in-app placement is allowlisted", ["dashboard_zero_saved", "dashboard_saved", "dashboard", "returning_saved", "returning_outcomes", "returning_heat",
-  "returning_portfolio", "result_education", "saved_decision_detail"].every(value => serverPlacements.has(value)) && !["buy", "watch", "verify", "pass"].some(value => serverPlacements.has(value)));
+check("026 Phase 3 layer sends no telemetry and writes nothing", !js.includes("/api/conversion-event") && !js.includes("function emit(") && !/\/api\/v1\/(?:evaluations|opportunities|evidence)[^"']*["']\s*,\s*\{\s*method\s*:\s*"POST"/i.test(js));
+check("028 Home first use, returning use, Evaluate and shortcuts are measured by beta-session-v1.js", home.includes('window.FlipForgeBetaSessionV1?.homeShown?.(firstUse ? "first-use" : "returning");')
+  && !home.includes("/api/conversion-event") && ["home_first_use_viewed", "home_returning_viewed", "home_evaluate_clicked", "home_shortcut_clicked"].every(name => session.includes(`"${name}"`) && serverEvents.has(name))
+  && session.includes(".ffguided-home-cta, [data-ff-p3-first-evaluate]") && !/localStorage|sessionStorage|indexedDB/i.test(home));
+check("031 evaluation start, completion and save are measured (beta-session-v1.js)", ["evaluation_started", "evaluation_completed", "decision_saved"].every(name => session.includes(`"${name}"`) && serverEvents.has(name)));
+check("032 evidence inspection is measured as a screen view", session.includes('evidence: "evidence_viewed"') && serverEvents.has("evidence_viewed"));
+check("033 Decision Receipt opening is measured on the Signal Stack and passport controls", session.includes('"[data-ff-cdi-receipt], [data-ff-open-decision-receipt]"') && serverEvents.has("decision_receipt_opened"));
+check("046 none of the retired phase3_* app names is allowlisted", ![...serverEvents].some(name => name.startsWith("phase3_")));
+check("047 in-app events send the fixed page beta-app, never the raw path or route", session.includes('const PAGE = "beta-app";') && session.includes("JSON.stringify({ event, page: PAGE, placement })")
+  && !/page:\s*String\(window\.location/.test(session + home + js) && allow("PAGE_NAMES").has("beta-app"));
+const emitCalls = [...session.matchAll(/\bemit\(([^;\n]*?)\);?$/gm)].map(m => m[1].trim());
+check("048 no saved verdict or page data is sent: every emit() takes a literal name or a fixed-table entry", !js.includes("decision.toLowerCase()") && emitCalls.length >= 8
+  && emitCalls.every(args => /^(?:"[a-z_]+"|ROUTE_VIEWS\[parts\[0\]\])(?:,\s*SHORTCUT_PLACEMENTS(?:\.[a-z]+|\[returning\.getAttribute\("data-ff-p3-return"\)\]))?$/.test(args) || args.startsWith("event, placement")));
+check("049 every in-app placement is fixed and allowlisted; no verdict placement exists", ["workflow", "shortcut_saved", "shortcut_outcomes", "shortcut_heat", "shortcut_portfolio"].every(value => serverPlacements.has(value))
+  && !["buy", "watch", "verify", "pass"].some(value => serverPlacements.has(value)));
 
 check("034 premium activation visual exists", css.includes(".ff-p3-activation"));
 check("035 returning user visual exists", css.includes(".ff-p3-returning"));
