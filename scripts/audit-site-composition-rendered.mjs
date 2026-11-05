@@ -76,7 +76,7 @@ async function inspect(page,route,viewport){
     const duplicateIds=Object.entries(idCounts).filter(([,count])=>count>1);
 
     const navDuplicates=[];
-    document.querySelectorAll('.decision-nav-links,.desktop-nav,.mobile-nav,nav[aria-label="Primary navigation"],nav[aria-label="Primary"]').forEach((nav,index)=>{
+    document.querySelectorAll('.decision-nav-links,.site-menu,.mobile-nav,nav[aria-label="Primary navigation"],nav[aria-label="Primary"]').forEach((nav,index)=>{
       const counts={};
       nav.querySelectorAll('a[href]').forEach(anchor=>{
         const route=routeOf(anchor);
@@ -86,7 +86,7 @@ async function inspect(page,route,viewport){
     });
 
     const clipped=[];
-    const critical='header a, header button, .decision-brand, .decision-nav-links, .site-header .brand, .desktop-nav, main h1, .page-hero, .decision-hero-copy, .ff-deal-demo';
+    const critical='header a, header button, .decision-brand, .decision-nav-links, .site-header .brand, .site-header-actions, main h1, .page-hero, .decision-hero-copy, .ff-deal-demo';
     document.querySelectorAll(critical).forEach(el=>{
       if(!isVisible(el))return;
       const rect=el.getBoundingClientRect();
@@ -110,9 +110,9 @@ async function inspect(page,route,viewport){
     const duplicateStyles=[...document.querySelectorAll('link[rel="stylesheet"][href]')].map(link=>new URL(link.href,location.href).pathname).filter((value,index,array)=>array.indexOf(value)!==index);
     const duplicateScripts=[...document.querySelectorAll('script[src]')].map(script=>new URL(script.src,location.href).pathname).filter((value,index,array)=>array.indexOf(value)!==index);
 
-    const primaryDesktop=document.querySelector('.decision-nav-links,.desktop-nav');
+    const primaryDesktop=document.querySelector('.decision-nav-links,.site-menu');
     const cdiCount=primaryDesktop?[...primaryDesktop.querySelectorAll('a[href]')].filter(anchor=>['/decision-intelligence.html','/decision-intelligence'].includes(routeOf(anchor))).length:0;
-    const mobileNav=document.querySelector('.mobile-nav');
+    const mobileNav=document.querySelector('.site-menu,.mobile-nav');
     const closedMobileVisibility=mobileNav&&!mobileNav.classList.contains('open')?getComputedStyle(mobileNav).visibility:null;
 
     return {
@@ -134,8 +134,8 @@ async function inspect(page,route,viewport){
   if(dom.duplicateScripts.length)staticFailures.push(`duplicate runtime scripts ${JSON.stringify(dom.duplicateScripts)}`);
   if(!dom.title)staticFailures.push('blank document title');
   if(route!=='/404.html'&&dom.mainText<20)staticFailures.push(`main content unexpectedly sparse (${dom.mainText} chars)`);
-  if(route==='/index.html'&&dom.cdiCount!==1)staticFailures.push(`homepage desktop Decision Intelligence route count is ${dom.cdiCount}, expected 1`);
-  if(route==='/index.html'&&viewport.width<=1120&&dom.closedMobileVisibility!=='hidden')staticFailures.push(`closed mobile nav visibility is ${dom.closedMobileVisibility}, expected hidden`);
+  if(route==='/index.html'&&dom.cdiCount!==1)staticFailures.push(`homepage menu Decision Intelligence route count is ${dom.cdiCount}, expected 1`);
+  if(route==='/index.html'&&dom.closedMobileVisibility!=='hidden')staticFailures.push(`closed site menu visibility is ${dom.closedMobileVisibility}, expected hidden`);
   if(pageErrors.length)staticFailures.push(`uncaught page errors ${JSON.stringify(pageErrors.slice(0,5))}`);
   if(failedAssets.length)staticFailures.push(`failed critical assets ${JSON.stringify(failedAssets.slice(0,8))}`);
 
@@ -192,20 +192,22 @@ try{
     if((await page.locator('[data-ffdemo] .ff10-verdict[data-verdict]').textContent())?.trim()!=='PASS'||(await page.locator('[data-ask-value]').textContent())?.trim()!=='$425')failures.push('homepage: reset restores the illustrative $425 PASS');
     await page.locator('.ff10-math summary').click();
     if(!await page.locator('.ff10-math').evaluate(el=>el.open))failures.push('homepage: Max Buy calculation must be expandable');
+    // Desktop: Request Beta Access and the labeled Menu sit side by side; Beta Sign In is in the menu, not the header.
     const navStatus=await page.evaluate(()=>{
-      const nav=document.querySelector('.site-header nav.desktop-nav');
-      const sign=nav?.querySelector('a[data-ff-marketing-sign-in]');
-      const beta=nav?.querySelector('a.nav-cta[href*="beta-application"]');
-      const a=sign?.getBoundingClientRect(), b=beta?.getBoundingClientRect();
+      const actions=document.querySelector('.site-header .site-header-actions');
+      const beta=actions?.querySelector('a.nav-cta[href*="beta-application"]');
+      const toggle=actions?.querySelector('.menu-toggle');
+      const a=beta?.getBoundingClientRect(), b=toggle?.getBoundingClientRect();
       return {
-        adjacent:Boolean(sign&&beta&&sign.nextElementSibling===beta),
+        adjacent:Boolean(beta&&toggle&&beta.nextElementSibling===toggle),
         gap:a&&b?Number((b.left-a.right).toFixed(1)):null,
-        labels:[sign?.textContent?.trim(),beta?.textContent?.trim()],
-        header:document.querySelector('.site-header')?.outerHTML?.slice(0,950)
+        labels:[beta?.textContent?.trim(),toggle?.textContent?.trim()],
+        signInInHeader:Boolean(document.querySelector('.site-header [data-ff-marketing-sign-in]')),
+        signInInMenu:Boolean(document.querySelector('.site-menu .site-menu-returning [data-ff-marketing-sign-in]'))
       };
     });
-    if(!navStatus.adjacent||navStatus.gap==null||navStatus.gap<0||navStatus.gap>24){
-      failures.push('homepage desktop: Sign In and Beta Access must be adjacent and close '+JSON.stringify(navStatus));
+    if(!navStatus.adjacent||navStatus.gap==null||navStatus.gap<0||navStatus.gap>24||navStatus.signInInHeader||!navStatus.signInInMenu){
+      failures.push('homepage desktop: Request Beta Access and Menu must be adjacent, with Beta Sign In only in the menu '+JSON.stringify(navStatus));
     }
   }else failures.push('homepage: interactive Max Buy demo or slider missing');
   await context.close();
@@ -233,10 +235,10 @@ try{
   const toggle=mobilePage.locator('.menu-toggle');
   if(await toggle.count()){
     await toggle.click();
-    const open=await mobilePage.locator('.mobile-nav').evaluate(el=>getComputedStyle(el).visibility==='visible'&&el.classList.contains('open')).catch(()=>false);
+    const open=await mobilePage.locator('.site-menu').evaluate(el=>getComputedStyle(el).visibility==='visible'&&el.classList.contains('open')).catch(()=>false);
     if(!open)failures.push('homepage mobile nav: menu did not become visible');
     await mobilePage.keyboard.press('Escape');
-    const closed=await mobilePage.locator('.mobile-nav').evaluate(el=>getComputedStyle(el).visibility==='hidden'&&!el.classList.contains('open')).catch(()=>false);
+    const closed=await mobilePage.locator('.site-menu').evaluate(el=>getComputedStyle(el).visibility==='hidden'&&!el.classList.contains('open')).catch(()=>false);
     if(!closed)failures.push('homepage mobile nav: menu did not close cleanly with Escape');
   }else failures.push('homepage mobile nav: toggle missing');
   await mobile.close();

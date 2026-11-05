@@ -133,8 +133,9 @@ check("075 Netlify exposes the app root", files.redirects.includes("/app /saas-p
 check("076 Netlify exposes the trailing-slash app root", files.redirects.includes("/app/ /saas-prototype/index.html 200"));
 check("077 Netlify rewrites app assets to the isolated prototype", files.redirects.includes("/app/* /saas-prototype/:splat 200"));
 check("078 website build replaces the deprecated tagline with the current descriptor", files.websiteBuild.includes("'Signal. Confidence. Advantage.'") && files.websiteBuild.includes("'Card Decision Intelligence'"));
-check("079 website build adds desktop and mobile App Preview links", files.websiteBuild.includes('data-app-preview=\"desktop\"') && files.websiteBuild.includes('data-app-preview=\"mobile\"'));
-check("080 website build adds a footer App Preview link", files.websiteBuild.includes('data-app-preview=\"footer\"'));
+check("079 Beta Sign In comes from the one header source (scripts/site-header.mjs); the website build does not inject header links", read("scripts/site-header.mjs").includes("data-ff-marketing-sign-in") && !files.websiteBuild.includes("ensureDesktopAppLink") && !files.websiteBuild.includes("ensureMobileAppLink"));
+// Since Nov 4 2026 the footer Beta Sign In link is written in page source; the build no longer injects footer links.
+check("080 every public page footer with an Explore column carries the Beta Sign In link in source; the build injects none", !files.websiteBuild.includes("ensureFooterAppLink") && fs.readdirSync(new URL("..", import.meta.url)).filter(name => name.endsWith(".html")).every(name => { const html = fs.readFileSync(new URL(`../${name}`, import.meta.url), "utf8"); return !/<div\b[^>]*class="[^"]*\bfooter-links\b[^"]*"[^>]*>\s*<strong>Explore<\/strong>/i.test(html) || html.includes('data-app-preview="footer"'); }));
 check("081 sidebar remains sticky during long dashboard pages", /\.sidebar\s*,\s*\.topbar\s*\{[\s\S]*?position:\s*sticky/.test(files.shell) && /\.sidebar\s*\{[\s\S]*?align-self:\s*start/.test(files.shell));
 check("082 sidebar navigation retains its own vertical scroll area", files.shell.includes(".primary-nav") && files.shell.includes("flex: 1 1 auto") && files.shell.includes("min-height: 0"));
 

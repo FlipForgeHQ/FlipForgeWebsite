@@ -36,21 +36,15 @@ for (const [name, viewport] of [['phone-390', {width: 390, height: 844}], ['tabl
   await page.evaluate(() => scrollTo(0, 0));
 
   // Hero buyer-strategy entry points: each must open the matching, existing panel.
-  check(`${name}: five audience links are present in the hero and both menus link to the selector`,
+  check(`${name}: five audience links are present in the hero and the site menu links to the selector`,
     await page.locator('.ff10-persona-links [data-ff-audience-target]').count() === 5
-    && await page.locator('header .desktop-nav [data-ff-audience-navigation]').count() >= 1
-    && await page.locator('.mobile-nav [data-ff-audience-navigation]').count() >= 1);
-  // The menu's "Who It’s For" link must survive the runtime menu rebuild and actually reach the selector.
-  const desktopAudience = page.locator('header .desktop-nav [data-ff-audience-navigation]').first();
-  if (await desktopAudience.isVisible()) {
-    await desktopAudience.click();
-  } else {
-    await page.locator('.menu-toggle').click();
-    await page.locator('.mobile-nav [data-ff-audience-navigation]').first().click();
-    await page.waitForTimeout(300);
-    check(`${name}: the mobile menu closes after choosing "Who It’s For"`,
-      await page.locator('.menu-toggle').getAttribute('aria-expanded') !== 'true');
-  }
+    && await page.locator('.site-menu [data-ff-audience-navigation]').count() === 1);
+  // The menu's "Who It’s For" link (one header, scripts/site-header.mjs) must reach the selector and close the menu.
+  await page.locator('.site-header .menu-toggle').click();
+  await page.locator('.site-menu [data-ff-audience-navigation]').click();
+  await page.waitForTimeout(300);
+  check(`${name}: the menu closes after choosing "Who It’s For"`,
+    await page.locator('.site-header .menu-toggle').getAttribute('aria-expanded') !== 'true');
   await page.waitForTimeout(1200);
   const menuTop = await page.locator('#who-its-for').evaluate(e => Math.round(e.getBoundingClientRect().top));
   check(`${name}: the menu's "Who It’s For" link lands on the audience selector`, menuTop >= 0 && menuTop < 180);

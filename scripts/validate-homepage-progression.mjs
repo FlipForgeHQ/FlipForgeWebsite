@@ -61,8 +61,8 @@ requireAll('homepage illustration and decision honesty',homepage,[
  'FlipForge does not guarantee profit or authorize transactions.'
 ]);
 requireAll('homepage conversion and proof continuity',homepage,[
- 'class="ffdemo-nav-actions"',
- 'class="ffdemo-mobile-actions"',
+ 'class="site-header-actions"',
+ 'class="site-menu-sign-in"',
  'href="beta-application.html">Request Beta Access',
  '<strong>Frozen decisions</strong>',
  'href="decision-proof.html">How proof works',

@@ -95,7 +95,7 @@ if (!index.includes('assets/images/ff10-hero.webp') || !index.includes('class="f
 if (!index.includes('Invented for illustration; not a real card, player, set or grading company.')) homepageFailures.push('hero card imagery is disclosed as invented and rights-clean');
 if (!index.includes('NO REAL SALE DATA') || !index.includes('NO GUARANTEED RETURN') || !index.includes('<span class="ff10-chip">Illustrative</span>')) homepageFailures.push('demo disclosure');
 if (!index.includes('Price gap') || !index.includes('data-price-gap')) homepageFailures.push('price threshold distinction');
-if (!index.includes('class="ffdemo-nav-actions"') || !index.includes('class="ffdemo-mobile-actions"')) homepageFailures.push('paired beta and login actions');
+if (!index.includes('class="site-header-actions"') || !index.includes('class="site-menu-sign-in"')) homepageFailures.push('Request Beta Access in the header and Beta Sign In in the menu');
 if (!index.includes('data-reset') || !index.includes('data-uncertainty')) homepageFailures.push('demo test and reset affordances');
 if (index.includes('data-decision-forge') || index.includes('data-film')) homepageFailures.push('retired duplicate homepage demos');
 if (!index.includes('href="decision-proof.html">How proof works')) homepageFailures.push('Decision Proof link');
