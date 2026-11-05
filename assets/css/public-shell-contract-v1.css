@@ -279,6 +279,8 @@ html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-
     --ff-public-logo-height:60px;
   }
   html body .site-header .nav{width:calc(100% - 32px)!important}
+  /* Readable Menu label on tablets and phones (14px floor). */
+  html body .site-header .menu-toggle{font-size:14px;letter-spacing:.08em}
 }
 @media(max-width:700px){
   :root{
@@ -288,9 +290,10 @@ html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-
   }
   html body .site-header .nav{width:calc(100% - 24px)!important;gap:8px!important}
   html body .site-header .site-header-actions{gap:8px}
-  html body .site-header .nav-cta{height:42px;padding:0 12px;font-size:12.5px}
+  /* Phone: same wording, readable 14px; the button wraps to two lines so the logo keeps its size. */
+  html body .site-header .nav-cta{height:auto;min-height:44px;max-width:118px;padding:5px 12px;font-size:14px;line-height:1.15;white-space:normal;text-align:center}
   /* On a phone the label sits under the icon so the logo keeps its size. */
-  html body .site-header .menu-toggle{flex-direction:column;gap:5px;min-width:54px;height:46px;padding:0 6px;font-size:9.5px;letter-spacing:.12em}
+  html body .site-header .menu-toggle{flex-direction:column;gap:5px;min-width:60px;height:46px;padding:0 6px;font-size:14px;letter-spacing:.04em}
   html body .site-menu{right:12px;width:calc(100vw - 24px)}
   html body.ff-marketing-page-v3 main#main>.page-hero,
   html body.ff-support-v3 main#main>.page-hero,
@@ -307,7 +310,7 @@ html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-
 }
 @media(max-width:400px){
   :root{--ff-public-logo-width:156px;--ff-public-logo-height:38px}
-  html body .site-header .nav-cta{padding:0 10px;font-size:12px}
+  html body .site-header .nav-cta{max-width:108px;padding:5px 10px}
 }
 @media(prefers-reduced-motion:reduce){
   html body .site-menu,html body .backdrop,html body .site-header .menu-toggle-icon::before,html body .site-header .menu-toggle-icon::after{transition:none}
