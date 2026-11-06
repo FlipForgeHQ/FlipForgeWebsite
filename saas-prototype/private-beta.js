@@ -282,9 +282,9 @@
           <span class="eyebrow">PRIVATE BETA · CARD DECISION INTELLIGENCE™</span>
           <h1 id="private-beta-welcome">Welcome to FlipForge.</h1>
           <p class="private-beta-v3-intro">FlipForge goes beyond a card's price. It checks the exact identity, examines the evidence, considers costs and uncertainty, and explains what the decision means.</p>
-          <p class="private-beta-v3-intro-sub">Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust.</p>
+          <p class="private-beta-v3-intro-sub">Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust. Start with Discover → Evaluate → Intelligence, then Track and Manage.</p>
           <div class="private-beta-v3-actions">
-            <a class="button button-primary" href="#/discover" data-private-beta-start>Find and evaluate a card</a>
+            <a class="button button-primary" href="#/discover" data-private-beta-start>Evaluate my first card</a>
             <a class="private-beta-v3-manual" href="#/evaluate">Enter a listing manually</a>
             <a class="private-beta-v3-manual ff-ux-returning-action" href="#/opportunities">Open an existing saved decision</a>
           </div>
@@ -297,13 +297,13 @@
         </div>
       </header>
 
-      <section class="private-beta-v3-next" aria-label="Optional first-session information">
+      <section class="private-beta-v3-next" aria-label="Visible five-step first-session walkthrough">
         <details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide" data-private-beta-first-card open>
           <summary><span><strong>Your five-step card walkthrough — open by default</strong><small>Follow Find → Evaluate → Understand → Track → Manage. Select this row to collapse or reopen the guide.</small></span><span class="ff-ux-disclosure-indicator" aria-hidden="true"></span></summary>
           <div class="private-beta-v3-expander-body">
             <p class="eyebrow">Private Beta Guide · First Session</p>
             <h2 class="private-beta-v3-guide-title">Evaluate one card from start to finish.</h2>
-            <p class="private-beta-v3-guide-hint">Start with one card. Your saved result explains the verdict and provides direct links to evidence and Tracking. The Decision Receipt is available only when the original server record supports it; older decisions clearly say when it is unavailable.</p>
+            <p class="private-beta-v3-guide-hint">Do not try to learn every FlipForge feature today. Start with one card. Your saved result explains the verdict and provides direct links to evidence and Tracking. The Decision Receipt is available only when the original server record supports it; older decisions clearly say when it is unavailable.</p>
             <h3 class="private-beta-v3-guide-subtitle">Tester walkthrough</h3>
             <div class="panel-body private-beta-v2-journey">
           <article class="private-beta-v2-stage">
@@ -318,7 +318,7 @@
           </article>
           <article class="private-beta-v2-stage">
             <span class="private-beta-v2-stage-number">3</span>
-            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read the verdict, risk and reason shown immediately. Use the clearly labeled actions to see Evidence or the Decision Receipt if that saved record provides one.</p></div>
+            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read the verdict, risk and reason shown immediately. Challenge the Decision Traceback using the visible checks, then use the clearly labeled actions to see Evidence or the Decision Receipt if that saved record provides one.</p></div>
             <a class="button button-secondary" href="#/opportunities">Saved Decisions</a>
           </article>
           <article class="private-beta-v2-stage">
@@ -332,7 +332,7 @@
             <a class="button button-secondary" href="#/portfolio">Open Portfolio</a>
           </article>
         </div>
-            <p class="ff-ux-first-session-feedback">When you are finished, use the feedback section below to tell us anything that was confusing.</p>
+            <p class="ff-ux-first-session-feedback"><strong>Send focused feedback:</strong> tell us what was confusing after trying the five steps. <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button></p>
           </div>
         </details>
       </section>
