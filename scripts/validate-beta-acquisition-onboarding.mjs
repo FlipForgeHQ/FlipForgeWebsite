@@ -59,12 +59,17 @@ const checks = [
   ["onboarding route is indexed", sitemap.includes("https://goflipforge.com/beta-onboarding.html")],
   ["conversion layer is build-enforced", build.includes("ensureConversionEventLayer") && build.includes("privacy-conscious conversion event layer")],
   ["conversion client uses same-origin endpoint", client.includes('endpoint="/api/conversion-event"') && client.includes('credentials:"same-origin"')],
-  ["marketing conversion client uses no persistent visitor state", !/cookie|localStorage|sessionStorage|indexedDB/i.test(client)],
+  ["marketing conversion client uses no persistent visitor state", !/cookie|localStorage|indexedDB/i.test(client)],
+  // Campaign attribution (first-touch utm_* slugs) is the only tab-scoped value; it is not a visitor identifier.
+  ["marketing conversion client keeps only campaign slugs in this tab's session", (client.match(/sessionStorage/g) || []).length === 2 && client.includes('const CAMPAIGN_KEY="flipforge.campaign.v1"') && client.includes("sessionStorage.setItem(CAMPAIGN_KEY,")],
   ["conversion service has strict allowlists", server.includes("EVENT_NAMES") && server.includes("PAGE_NAMES") && server.includes("PLACEMENTS")],
   ["conversion service excludes sensitive dimensions", ["user agent", "referrer", "query string", "email", "account", "card", "listing", "price", "recommendation"].every(value => server.includes(value))],
   ["beta session milestone names are allowlisted server-side", sessionEvents.every(value => server.includes(`\"${value}\"`))],
-  ["beta session runtime emits every approved milestone", sessionEvents.every(value => betaSession.includes(`emit(\"${value}\")`))],
-  ["beta session telemetry payload contains only event page and placement", betaSession.includes("const body = JSON.stringify({ event, page: PAGE, placement: PLACEMENT });")],
+  // Screen views (tracking_viewed and the other route views) are emitted from the fixed ROUTE_VIEWS table.
+  ["beta session runtime emits every approved milestone", sessionEvents.every(value => betaSession.includes(`emit(\"${value}\")`) || new RegExp(`ROUTE_VIEWS = Object\\.freeze\\(\\{[^}]*: "${value}"`).test(betaSession))
+    && betaSession.includes("emit(ROUTE_VIEWS[parts[0]])")],
+  ["beta session telemetry payload contains only event page and placement", betaSession.includes("const body = JSON.stringify({ event, page: PAGE, placement });")
+    && betaSession.includes("if (!EVENTS.has(event) || !PLACEMENTS.has(placement)) return;") && betaSession.includes('const PAGE = "beta-app";')],
   ["beta session presentation files are loaded last", appIndex.includes('href="beta-session-v1.css"') && /customer-cdi-signal-stack-v1\.js[\s\S]*beta-session-v1\.js[\s\S]*<\/body>/.test(appIndex)],
   ["beta session hides technical provider status and result-count control", discovery.includes('const provider = beta ? "" : providerPanel();') && discovery.includes("<h2>Connected source status</h2>") && discoverySearchPanel.includes('? `<input type="hidden" name="limit" value=') && discoverySearchPanel.includes('<select name="limit">') && !betaSession.includes("Connected source status") && !betaSession.includes("ffBetaHiddenControl")],
   ["beta primary action is explicit about searching listings", discovery.includes('submit: "Search listings"') && discovery.includes('submitAria: "Search active listings for the card entered"') && discoverySearchPanel.includes('type="submit" aria-label="${escapeHtml(labels.submitAria)}"') && !discovery.includes('"Find this card"') && !betaSession.includes("submit.textContent")],
@@ -111,7 +116,8 @@ console.log = originalLog;
 assert.equal(accepted.status, 202);
 assert.equal(logs.length, 1);
 const logged = JSON.parse(logs[0]);
-assert.deepEqual(Object.keys(logged).sort(), ["event", "occurredAt", "page", "placement", "schemaVersion", "type"].sort());
+assert.deepEqual(Object.keys(logged).sort(), ["campaign", "event", "occurredAt", "page", "placement", "schemaVersion", "type"].sort());
+assert.equal(logged.campaign, null, "No validated utm_* values means no campaign attribution");
 assert.equal(logged.event, "beta_cta_clicked");
 assert.ok(!logs[0].includes("must-not-log"));
 

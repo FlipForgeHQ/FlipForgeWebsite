@@ -5,6 +5,7 @@ import {
   createApplication,
   emailIndexKey,
   validateApplication,
+  validateCampaign,
 } from "./lib/beta-operations-core.mjs";
 import { betaRuntimeStore } from "./lib/beta-runtime-store.mjs";
 
@@ -89,7 +90,7 @@ export function createBetaApplicationsHandler({ store, now = () => new Date() } 
 
     const targetStore = store || betaRuntimeStore(APPLICATION_STORE_NAME, request);
     const indexKey = await emailIndexKey(validation.applicant.email);
-    const application = createApplication(validation.applicant, now());
+    const application = createApplication(validation.applicant, now(), validateCampaign(input));
     const claim = await targetStore.setJSON(
       indexKey,
       { applicationId: application.id, submittedAt: application.submittedAt },

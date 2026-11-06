@@ -10,6 +10,7 @@ import {
   emailIndexKey,
   feedbackKey,
   feedbackSummary,
+  founderReport,
   funnelSummary,
   isOperator,
   listRecordEntries,
@@ -354,6 +355,7 @@ async function dashboard(applicationStore, eventStore, feedbackStore, identityAd
     feedback,
     feedbackSummary: feedbackSummary(feedback),
     funnel: funnelSummary(retainedEvents, activeApplications, now),
+    founderReport: founderReport(retainedEvents, applications, now),
     invitationAuthority: "NETLIFY_IDENTITY_SERVER_OPERATOR",
   };
 }
