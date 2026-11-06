@@ -12,6 +12,7 @@ const PRODUCTION_APP_PATH = /^\/(?:app|saas-prototype|owner\/customer)(?:\/|$)/i
 const ROOT_ID = "flipforge-production-identity-root";
 const STYLE_ID = "flipforge-production-identity-style";
 const ACCOUNT_SIGN_OUT_ATTRIBUTE = "data-ff-production-account-signout";
+const ACCOUNT_PAGE_SIGN_OUT_ATTRIBUTE = "data-production-account-signout";
 
 const state = {
   user: null,
@@ -150,6 +151,12 @@ function syncAccountSignOut() {
   }
 
   const actions = document.querySelector("#main-content .customer-entitlements-page .page-heading .page-actions");
+  // The Account page's owner (customer-account.js) renders its own Sign out in every state. When it is present this
+  // fallback stands down, so the page never shows two Sign out buttons.
+  if (actions?.querySelector(`[${ACCOUNT_PAGE_SIGN_OUT_ATTRIBUTE}]`)) {
+    existing?.remove();
+    return;
+  }
   if (!actions || existing) return;
 
   const button = document.createElement("button");
