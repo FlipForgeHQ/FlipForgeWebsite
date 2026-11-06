@@ -30,7 +30,7 @@ check('reset and reasoning',has(html,'data-reset')&&has(html,'How Max Buy is cal
 check('mobile usability',has(css,'@media(max-width:760px)')&&has(css,'.ff10-panel{position:relative'));
 check('reduced motion',has(css,'@media(prefers-reduced-motion:reduce)'));
 check('official logo',has(html,'flipforge-logo-horizontal.svg'));
-check('paired header actions',has(html,'class="ffdemo-nav-actions"'));
+check('header action and menu sign-in',has(html,'class="site-header-actions"')&&has(html,'class="site-menu-sign-in"'));
 check('no trading affordance',!/checkout|buy now|place bid|add to cart/i.test(html));
 check('no network data',!/(fetch\s*\(|XMLHttpRequest)/.test(js));
 check('only one major sales experience',!has(html,'data-film')&&!has(html,'data-decision-forge'));

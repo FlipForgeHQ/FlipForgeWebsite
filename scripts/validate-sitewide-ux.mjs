@@ -155,8 +155,8 @@ requireText('homepage illustrative label',homepage,'<span class="ff10-chip">Illu
 requireText('homepage controlled beta',homepage,'Controlled Private Beta.');
 requireText('homepage profit boundary',homepage,'FlipForge does not guarantee profit or authorize transactions.');
 requireText('homepage returning tester sign in',homepage,'href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" data-ff-marketing-sign-in>Beta Sign In</a>');
-requireText('homepage paired login and beta actions',homepage,'class="ffdemo-nav-actions"');
-requireText('homepage mobile paired actions',homepage,'class="ffdemo-mobile-actions"');
+requireText('homepage Request Beta Access in the header',homepage,'class="nav-cta" href="/beta-application.html">Request Beta Access</a>');
+requireText('homepage Beta Sign In under Existing beta users',homepage,'<p class="site-menu-heading" id="site-menu-beta-users">Existing beta users</p>');
 const homeDemoCss=read('assets/css/homepage-v10.css');
 const homeDemoJs=read('assets/js/homepage-v10.js');
 requireText('homepage responsive demo',homeDemoCss,'@media(max-width:760px)');
@@ -175,10 +175,11 @@ requireText('beta step transition',awardJs,'setStep(1)');
 requireText('homepage returning tester sign in',homepage,'href="/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start" data-ff-marketing-sign-in>Beta Sign In</a>');
 requireText('beta application returning tester sign in',beta,'data-ff-returning-beta-sign-in');
 requireText('beta application avoids duplicate applications',beta,'do not submit another application');
-requireText('shared marketing sign in uses production auth',siteJs,"link.href='/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start'");
-requireText('shared marketing sign in covers desktop navigation',siteJs,"document.querySelectorAll('.desktop-nav')");
-requireText('shared marketing sign in covers mobile navigation',siteJs,"document.querySelectorAll('.mobile-nav')");
-requireText('shared marketing sign in avoids duplicates',siteJs,"if(nav.querySelector('[data-ff-marketing-sign-in]'))return");
+// The header and menu come from one source (scripts/site-header.mjs); no script rebuilds or relabels them.
+requireText('one header source: sign in uses production auth',read('scripts/site-header.mjs'),"BETA_SIGN_IN_HREF = '/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start'");
+forbidText('no runtime sign-in injection',siteJs,'ensureReturningBetaSignIn');
+forbidText('no runtime menu rebuild',read('assets/js/conversion-events.js'),'renderPrimaryNav');
+requireText('shared menu behavior',siteJs,"document.querySelector('.site-menu')");
 requireText('shared navigation routes deploy previews to production sign-in',siteJs,'routePreviewBetaSignIn();');
 const conversionJs=read('assets/js/conversion-events.js');
 requireText('normalized preview sign-in points to live production',conversionJs,'Sign in on the live FlipForge website');

@@ -10,7 +10,7 @@ body.ff-marketing-page-v3{
     radial-gradient(circle at 78% 2%,rgba(212,175,55,.07),transparent 25%),
     linear-gradient(180deg,#030405,#000 72%,#030303);
 }
-body.ff-marketing-page-v3 .site-header{background:rgba(0,0,0,.94);border-bottom-color:rgba(255,255,255,.1)}
+
 body.ff-marketing-page-v3 .brand .tagline{color:var(--ff-gold);letter-spacing:.2em}
 body.ff-marketing-page-v3 .page-hero{position:relative;overflow:hidden;max-width:1180px;margin:28px auto 0;padding:86px 44px 62px;border:1px solid rgba(212,175,55,.17);border-radius:24px;background:linear-gradient(130deg,rgba(255,255,255,.018),rgba(212,175,55,.035) 55%,transparent)}
 body.ff-marketing-page-v3 .page-hero:after{content:"";position:absolute;right:-150px;top:-190px;width:460px;height:460px;border:1px solid rgba(212,175,55,.15);border-radius:50%;box-shadow:0 0 0 70px rgba(212,175,55,.022),0 0 0 140px rgba(212,175,55,.01)}

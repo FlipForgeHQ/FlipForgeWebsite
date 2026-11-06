@@ -212,7 +212,8 @@ a{color:inherit}
   letter-spacing:.08em;
   text-transform:uppercase;
 }
-.ff-connect-social-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+/* One column per channel listed in scripts/site-header.mjs (SOCIAL), so the row is always full. */
+.ff-connect-social-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:10px}
 .ff-social-link{
   min-width:0;
   display:grid;
@@ -326,7 +327,7 @@ a{color:inherit}
   .ff-connect-action{min-height:88px;padding:16px}
   .ff-connect-action-copy strong{font-size:17px}
   .ff-connect-action-copy em{font-size:12px}
-  .ff-connect-social-grid{grid-template-columns:1fr}
+  .ff-connect-social-grid{grid-auto-flow:row;grid-template-columns:1fr}
   .ff-social-link{min-height:64px}
   .ff-connect-contact{grid-template-columns:1fr;align-items:start;gap:16px;padding:18px}
   .ff-connect-contact>a{width:100%;justify-content:space-between;white-space:normal;overflow-wrap:anywhere}

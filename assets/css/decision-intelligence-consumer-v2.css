@@ -13,7 +13,7 @@
   background:radial-gradient(circle at 50% 0%,rgba(212,175,55,.10),transparent 30%),var(--dic-bg);
   color:var(--dic-text);
 }
-.ff-dic-page .site-header{background:rgba(3,7,13,.9);backdrop-filter:blur(18px)}
+
 .ff-dic-page main{overflow:hidden}
 
 .ff-dic-hero{padding:clamp(92px,9vw,122px) 22px 42px}
@@ -134,7 +134,7 @@
   .ff-dic-demo-heading h2{font-size:38px}
   .ff-dic-demo{border-radius:20px}
   .ff-dic-demo-top{padding:15px;grid-template-columns:1fr auto;gap:10px}
-  .ff-dic-card-label strong{font-size:13px}
+  .ff-dic-card-label strong{font-size:13px;white-space:normal;overflow:visible;text-overflow:clip}
   .ff-dic-card-label span{font-size:10px}
   .ff-dic-listing strong{font-size:25px}
   .ff-dic-demo-main{padding:12px;gap:10px}
