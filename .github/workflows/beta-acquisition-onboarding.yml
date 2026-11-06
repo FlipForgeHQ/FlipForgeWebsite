@@ -17,6 +17,14 @@ on:
       - "scripts/validate-beta-acquisition-onboarding.mjs"
       - "scripts/validate-conversion-event-contract.mjs"
       - "scripts/audit-conversion-attribution-e2e.mjs"
+      - "scripts/audit-in-app-events-e2e.mjs"
+      - "saas-prototype/commercial-dashboard-v2.js"
+      - "saas-prototype/phase3-first-decision-activation-v1.js"
+      - "saas-prototype/beta-session-v1.js"
+      - "operator-beta.html"
+      - "assets/css/beta-operator-v1.css"
+      - "scripts/validate-beta-operator-workflow.mjs"
+      - "scripts/validate-phase3-activation-v1.mjs"
       - "assets/js/beta-operator.js"
       - "netlify/modern-functions/beta-operator.mjs"
       - "docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md"
@@ -42,6 +50,14 @@ on:
       - "scripts/validate-beta-acquisition-onboarding.mjs"
       - "scripts/validate-conversion-event-contract.mjs"
       - "scripts/audit-conversion-attribution-e2e.mjs"
+      - "scripts/audit-in-app-events-e2e.mjs"
+      - "saas-prototype/commercial-dashboard-v2.js"
+      - "saas-prototype/phase3-first-decision-activation-v1.js"
+      - "saas-prototype/beta-session-v1.js"
+      - "operator-beta.html"
+      - "assets/css/beta-operator-v1.css"
+      - "scripts/validate-beta-operator-workflow.mjs"
+      - "scripts/validate-phase3-activation-v1.mjs"
       - "assets/js/beta-operator.js"
       - "netlify/modern-functions/beta-operator.mjs"
       - "docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md"
@@ -73,3 +89,7 @@ jobs:
         run: bash scripts/ci/install-playwright-chromium.sh
       - name: Campaign link to submitted beta application (local functions, real browser)
         run: node scripts/audit-conversion-attribution-e2e.mjs
+      - name: Validate Phase 3 activation (no in-app sender outside beta-session-v1.js)
+        run: node scripts/validate-phase3-activation-v1.mjs
+      - name: Beta workspace use counted in the founder report (production build, local functions, real browser)
+        run: node scripts/audit-in-app-events-e2e.mjs
