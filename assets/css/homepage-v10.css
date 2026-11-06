@@ -200,7 +200,7 @@
 /* ======================================================================
    3. STEPS (dark)
    ====================================================================== */
-.ff10-steps{padding:var(--pad) 0}
+
 .ff10-step-list{margin:clamp(48px,6vw,88px) 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(16px,2vw,28px)}
 .ff10-step h3{display:flex;align-items:baseline;gap:12px;margin:26px 0 10px;font-size:clamp(20px,1.7vw,24px);font-weight:700;letter-spacing:-.02em;line-height:1.2;color:var(--w)}
 .ff10-step-n{flex:none;display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1px solid var(--g);color:var(--g);font-size:14px;font-weight:700;letter-spacing:0}
@@ -235,9 +235,7 @@
 /* ======================================================================
    4. IDENTITY (light)
    ====================================================================== */
-.ff10-identity{padding:var(--pad) 0;overflow:hidden}
-.ff10-identity-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(32px,6vw,96px);align-items:center}
-.ff10-identity-copy p{margin-top:28px;font-size:18px;line-height:1.6;color:var(--s-ink);max-width:30em}
+
 .ff10-compare{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3vw,44px);align-items:start}
 .ff10-compare-card{margin:0}
 .ff10-compare-card img{display:block;width:100%;height:auto;border-radius:14px;box-shadow:0 50px 70px -36px rgba(0,0,0,.55),0 16px 30px -18px rgba(0,0,0,.3)}
@@ -254,25 +252,7 @@
 /* ======================================================================
    5. EVIDENCE (dark)
    ====================================================================== */
-.ff10-evidence{padding:var(--pad) 0 clamp(64px,7vw,104px)}
-.ff10-evidence-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(32px,6vw,96px);align-items:start}
-.ff10-evidence-copy p{margin-top:28px;font-size:18px;line-height:1.6;color:rgba(255,255,255,.78);max-width:30em}
-.ff10-evidence-sum{display:flex;gap:clamp(28px,4vw,56px);margin-top:44px}
-.ff10-evidence-sum strong{display:block;font-size:clamp(56px,6vw,92px);font-weight:800;letter-spacing:-.05em;line-height:.9;color:var(--g);font-variant-numeric:tabular-nums}
-.ff10-evidence-sum strong span{color:var(--s);font-weight:600}
-.ff10-evidence-sum small{display:block;margin-top:10px;font-size:15px;color:var(--s)}
-.ff10-ledger{border-top:1px solid var(--line-d)}
-.ff10-ledger-row{display:grid;grid-template-columns:90px minmax(0,1fr) minmax(0,auto);gap:16px;align-items:baseline;padding:16px 0;border-bottom:1px solid var(--line-d);color:var(--s)}
-.ff10-ledger-row b{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-decoration:line-through;text-decoration-color:rgba(139,143,152,.7);text-decoration-thickness:2px}
-.ff10-ledger-row span{font-size:15px}
-.ff10-ledger-row em{font-style:normal;font-size:14px;text-align:right}
-.ff10-ledger-row.ff10-ok{color:var(--w)}
-.ff10-ledger-row.ff10-ok b{text-decoration:none}
-.ff10-ledger-row.ff10-ok em{color:var(--g);font-weight:700}
-.ff10-ledger-head{padding:10px 0;font-size:13px;font-weight:600;color:var(--s)}
-.ff10-ledger-head span{font-size:13px}
-.ff10-ledger-head span:last-child{text-align:right}
-.ff10-ledger-note{margin-top:14px!important;font-size:13px;color:var(--s)}
+
 .ff10-proof{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 32px;margin-top:clamp(64px,7vw,104px);padding-top:28px;border-top:1px solid var(--line-d)}
 .ff10-proof p{font-size:17px;color:var(--s);max-width:52em}
 .ff10-proof strong{color:var(--w);margin-right:6px}
@@ -301,9 +281,7 @@
 /* ======================================================================
    2. THE POSITIONING: the price question vs the FlipForge question
    ====================================================================== */
-.ff10-question{padding:var(--pad) 0}
-.ff10-question-head{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px 64px;align-items:end}
-.ff10-question-head .ff10-lede{max-width:26em}
+
 .ff10-versus{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(16px,2vw,28px);margin-top:clamp(48px,6vw,88px);align-items:stretch}
 .ff10-q{border-radius:16px;padding:clamp(26px,3vw,44px);display:flex;flex-direction:column;gap:clamp(18px,2vw,28px)}
 .ff10-q-price{border:1px solid var(--line-l);background:var(--w)}
@@ -338,7 +316,6 @@
 .ff10-moat span{font-size:15px;line-height:1.45;color:var(--s-ink)}
 .ff10-moat a:hover strong,.ff10-moat a:focus-visible strong{text-decoration:underline;text-decoration-color:var(--g);text-decoration-thickness:2px;text-underline-offset:4px}
 @media(max-width:1100px){
-  .ff10-question-head{grid-template-columns:1fr}
   .ff10-versus{grid-template-columns:1fr}
   .ff10-moat ol{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:32px}
 }
@@ -398,7 +375,7 @@
   .ff10-armed.ff10-locked .ff10-panel{transform:translateX(-50%)}
   .ff10-hero-note{margin-top:16px}
   .ff10-verdict-key{display:none}
-  .ff10-demo-head,.ff10-identity-grid,.ff10-evidence-grid{grid-template-columns:1fr}
+  .ff10-demo-head{grid-template-columns:1fr}
   .ff10-meter-top{flex-direction:column;align-items:flex-start;gap:6px}
   .ff10-readout{grid-template-columns:1fr 1fr}
   .ff10-read-verdict,.ff10-read:nth-child(3){grid-column:1/-1;border-left:0!important;padding-left:0!important}
@@ -406,13 +383,10 @@
   .ff10-step-list{grid-template-columns:1fr;row-gap:44px}
   .ff10-step-visual{aspect-ratio:5/4}
   .ff10-sv-identity img{width:40%}
-  .ff10-ledger-row{grid-template-columns:72px minmax(0,1fr);row-gap:2px}
   .ff10-compare-card figcaption{grid-template-columns:1fr}
   .ff10-tag{grid-column:1;grid-row:auto;justify-self:start;margin-top:10px}
   .ff10-range{margin-top:40px}
   .ff10-panel{top:auto}
-  .ff10-ledger-row em{grid-column:2;text-align:left}
-  .ff10-ledger-head span:last-child{display:none}
   .ff10-final-row .ff10-actions{width:100%}
 }
 @media(prefers-reduced-motion:reduce){
