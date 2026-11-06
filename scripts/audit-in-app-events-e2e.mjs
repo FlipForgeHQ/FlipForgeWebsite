@@ -291,6 +291,17 @@ async function run(sourceRoot, label) {
       primary_use_case: 'Attribution test application. Not a real applicant.', tester_fit: 'Attribution test application. Not a real applicant.',
       testing_focus: 'Discover and search', beta_updates_consent: 'yes', beta_terms_accepted: 'yes',
       utm_source: 'myspace', utm_medium: 'social', utm_campaign: 'wysbi26' }) })).status;
+  // 1d. Two valid campaigns that differ only in which optional tag is present (medium=social vs campaign=social):
+  //     the founder report must keep them as two rows, one application each.
+  const positional = [];
+  for (const [suffix, tags] of [['pos-medium', { utm_medium: 'social' }], ['pos-campaign', { utm_campaign: 'social' }]]) {
+    positional.push((await fetch(`http://127.0.0.1:${port}/api/beta/applications`, { method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+      body: new URLSearchParams({ name: 'Attribution Test', email: `attribution-test+${suffix}@example.test`, collector_type: 'Collector',
+        experience: '1–3 years', monthly_card_volume: '1–5', hosted_web_beta_access: 'Occasionally',
+        primary_use_case: 'Attribution test application. Not a real applicant.', tester_fit: 'Attribution test application. Not a real applicant.',
+        testing_focus: 'Discover and search', beta_updates_consent: 'yes', beta_terms_accepted: 'yes', utm_source: 'instagram', ...tags }) })).status);
+  }
   await settle();
   const publicSent = sent.length;
 
@@ -449,7 +460,7 @@ async function run(sourceRoot, label) {
   await new Promise(done => server.close(done));
   rmSync(root, { recursive: true, force: true });
   return { label, sourceRoot, sent, publicSent, appSent, stackSent, external, otherApi: [...otherApi], unmocked: [...unmocked], errors, ui, founder,
-    instrumented, bare, probes, forgedApplication, storedAtReport,
+    instrumented, bare, probes, forgedApplication, positional, storedAtReport,
     storedEvents: [...eventStore.data.values()], applications: [...applicationStore.data.entries()].filter(([key]) => key.startsWith('application/')).map(([, value]) => value),
     logs: logLines.slice() };
 }
@@ -537,18 +548,24 @@ const unattributedRow = result.founder.campaigns?.find(row => row[0] === 'Not at
 check('founder report campaign table: instagram · social · wysbi26 · w02v01 has 1 application (all time and 30 days) and its Request Beta Access click',
   campaignRow && campaignRow[1] === '1' && campaignRow[2] === '1' && Number(campaignRow[3]) === stored.filter(record => record.event === 'beta_cta_clicked' && same(record.campaign, CAMPAIGN)).length && Number(campaignRow[3]) >= 1, JSON.stringify(campaignRow));
 check('founder report campaign table: the invalid-tag and forged applications are "Not attributed" (2)', result.forgedApplication === 202 && unattributedRow && unattributedRow[1] === '2', JSON.stringify(unattributedRow));
-check('stored applications: campaign kept for the tagged link, dropped for invalid and forged tags',
-  same(result.applications.filter(item => item.campaign).map(item => item.campaign), [CAMPAIGN]) && result.applications.length === 3);
+const mediumRow = result.founder.campaigns?.find(row => row[0] === 'instagram · social · — · —');
+const campaignOnlyRow = result.founder.campaigns?.find(row => row[0] === 'instagram · — · social · —');
+check('founder report campaign table: campaigns differing only in tag position stay separate rows (instagram · social · — · — and instagram · — · social · —, 1 application each)',
+  same(result.positional, [202, 202]) && mediumRow && mediumRow[1] === '1' && mediumRow[2] === '1' && campaignOnlyRow && campaignOnlyRow[1] === '1' && campaignOnlyRow[2] === '1',
+  JSON.stringify(result.founder.campaigns));
+check('stored applications: campaign kept for the tagged links, dropped for invalid and forged tags',
+  same(result.applications.filter(item => item.campaign).map(item => item.campaign).filter(c => same(c, CAMPAIGN)), [CAMPAIGN])
+  && result.applications.filter(item => item.campaign).length === 3 && result.applications.length === 5);
 const adoption = Object.fromEntries(result.founder.adoption || []);
-check('founder report adoption: 3 applications, 0 approved/invited/activated (no invitations in this test)', adoption.Applications === 3 && adoption['Approved or later'] === 0
+check('founder report adoption: 5 applications, 0 approved/invited/activated (no invitations in this test)', adoption.Applications === 5 && adoption['Approved or later'] === 0
   && adoption['Invitation sent'] === 0 && adoption['Activated (accepted invite and signed in)'] === 0, JSON.stringify(adoption));
 const workspace = Object.fromEntries(result.founder.workspace || []);
 check('founder report adoption: workspace first use 1, evaluations started 1, completed 1, saved 1, returning 1', same(workspace, {
   'First use: Home with no saved decisions': 1, 'Evaluation started': 1, 'Evaluation completed': 1, 'Decision saved': 1, 'Returning use: Home with saved decisions': 1 }), JSON.stringify(workspace));
 const engagement = Object.fromEntries(result.founder.engagement || []);
 const totalInApp = Object.values(EXPECTED).reduce((sum, value) => sum + value, 0);
-check(`founder report engagement: ${totalInApp} workspace events in 7 and in 30 days, 3 applications in 7 and 30 days`, engagement['Workspace events, 7 days'] === totalInApp
-  && engagement['Workspace events, 30 days'] === totalInApp && engagement['Applications, 7 days'] === 3 && engagement['Applications, 30 days'] === 3, JSON.stringify(engagement));
+check(`founder report engagement: ${totalInApp} workspace events in 7 and in 30 days, 5 applications in 7 and 30 days`, engagement['Workspace events, 7 days'] === totalInApp
+  && engagement['Workspace events, 30 days'] === totalInApp && engagement['Applications, 7 days'] === 5 && engagement['Applications, 30 days'] === 5, JSON.stringify(engagement));
 check('founder report time is shown in Eastern Time', /\bET\b/.test(result.founder.asOf || ''), result.founder.asOf);
 check('every in-app event is sent as exactly { event, page: "beta-app", placement } with a fixed placement',
   result.appSent.every(item => same(Object.keys(item.payload).sort(), ['event', 'page', 'placement']) && item.payload.page === 'beta-app'

@@ -56,17 +56,21 @@
   ];const homeGrid=document.querySelector("[data-homepage-funnel-grid]");if(homeGrid)homeGrid.innerHTML=home.map(([name,count,note])=>`<article class="ff-funnel-step"><span>${esc(name)}</span><strong>${esc(count||0)}</strong><small>${esc(note)}</small></article>`).join("")}
   // Founder report: aggregate counts from /api/beta/operator (founderReport). Nothing per person is shown here.
   const easternTime=value=>{const date=new Date(value);return Number.isFinite(date.getTime())?`${date.toLocaleString("en-US",{timeZone:"America/New_York",dateStyle:"medium",timeStyle:"short"})} ET`:"Unavailable"};
-  const campaignName=row=>row.unattributed?"Not attributed":[row.source,row.medium,row.campaign,row.content].filter(Boolean).join(" · ");
+  // Rows are keyed by all four positions (source, medium, campaign, content) so two campaigns that differ only in which
+  // optional tag is present never share a row; a missing tag is shown as "—" so the labels stay distinct too.
+  const campaignKey=row=>row.unattributed?"unattributed":JSON.stringify([row.source||"",row.medium||"",row.campaign||"",row.content||""]);
+  const campaignName=row=>row.unattributed?"Not attributed":[row.source,row.medium,row.campaign,row.content].every(Boolean)
+    ?[row.source,row.medium,row.campaign,row.content].join(" · "):[row.source,row.medium,row.campaign,row.content].map(value=>value||"—").join(" · ");
   const tableRows=(head,rows)=>`<thead><tr>${head.map(cell=>`<th scope="col">${esc(cell)}</th>`).join("")}</tr></thead><tbody>${rows.map(cells=>`<tr>${cells.map((cell,index)=>index?`<td>${esc(cell)}</td>`:`<th scope="row">${esc(cell)}</th>`).join("")}</tr>`).join("")}</tbody>`;
   const steps=items=>items.map(item=>`<article class="ff-funnel-step"><span>${esc(item.label)}</span><strong>${esc(item.value||0)}</strong>${item.note?`<small>${esc(item.note)}</small>`:""}</article>`).join("");
   function renderFounderReport(){const panel=document.querySelector("[data-founder-report]");if(!panel)return;const r=state.report;
     if(!r){panel.querySelector("[data-founder-report-asof]").textContent="Founder report unavailable from this deploy.";return}
     panel.querySelector("[data-founder-report-asof]").textContent=`Counts as of ${easternTime(r.generatedAt)}. Aggregates only: no names, emails, cards, prices or verdicts.`;
-    const clicks=new Map((r.campaigns?.betaCtaClicks||[]).map(row=>[campaignName(row),row]));
-    const names=[...new Set([...(r.campaigns?.applications||[]),...(r.campaigns?.betaCtaClicks||[])].map(campaignName))];
-    const apps=new Map((r.campaigns?.applications||[]).map(row=>[campaignName(row),row]));
+    const clicks=new Map((r.campaigns?.betaCtaClicks||[]).map(row=>[campaignKey(row),row]));
+    const apps=new Map((r.campaigns?.applications||[]).map(row=>[campaignKey(row),row]));
+    const rows=new Map([...(r.campaigns?.applications||[]),...(r.campaigns?.betaCtaClicks||[])].map(row=>[campaignKey(row),row]));
     panel.querySelector("[data-founder-campaigns]").innerHTML=tableRows(["Campaign (source · medium · campaign · content)","Applications, all time","Applications, 30 days","Request Beta Access clicks, 30 days"],
-      names.map(name=>[name,apps.get(name)?.allTime||0,apps.get(name)?.last30Days||0,clicks.get(name)?.last30Days||0]));
+      [...rows].map(([key,row])=>[campaignName(row),apps.get(key)?.allTime||0,apps.get(key)?.last30Days||0,clicks.get(key)?.last30Days||0]));
     panel.querySelector("[data-founder-adoption]").innerHTML=steps((r.adoption?.people||[]).map((item,index,all)=>({...item,note:index?pct(item.value,all[index-1].value):"People, all time"})));
     panel.querySelector("[data-founder-workspace]").innerHTML=steps((r.adoption?.workspaceTabs30Days||[]).map(item=>({...item,note:"Browser tabs, 30 days"})));
     const e=r.engagement||{};panel.querySelector("[data-founder-engagement]").innerHTML=steps([
