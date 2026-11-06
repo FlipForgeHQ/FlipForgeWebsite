@@ -51,7 +51,7 @@ check("016 returning Saved Decisions list adds no reopen strip", !owner.includes
 check("017 Evidence detail gets one progressive plain-language orientation", js.includes("How FlipForge filters evidence") && js.includes("what FlipForge could use, what it excluded") && js.includes('document.createElement("details")') && !js.includes("01 · TRUSTED"));
 check("018 full evidence stays on native route", js.includes("Open full evidence") && owner.includes("evidenceHref: `#/evidence/${id}`"));
 check("019 existing Decision Receipt is opened rather than rebuilt", js.includes("[data-ff-decision-receipt]") && !js.includes("SERVER-OWNED RECORD"));
-check("020 deeper detail uses progressive disclosure", js.includes("Full evidence & Decision Receipt") && owner.includes("<strong>Full evidence &amp; saved decision detail</strong>"));
+check("020 deeper detail is one explicit disclosure with visible primary actions", js.includes("Full evidence & Decision Receipt") && owner.includes("<strong>View advanced evidence and saved details</strong>") && owner.includes("data-ff-ux-open-details") && owner.includes("data-ff-ux-open-receipt"));
 check("021 tablet/mobile rules exist", css.includes("@media (max-width:760px)") && css.includes("@media (max-width:480px)"));
 check("022 reduced-motion CSS exists", css.includes("@media (prefers-reduced-motion:reduce)"));
 check("023 primary meaning stays white with gold accent", css.includes("color:#fff") && (css.includes("color:#d4af37") || css.includes("color:#f0ca58")));
