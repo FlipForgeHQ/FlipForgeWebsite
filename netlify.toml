@@ -134,6 +134,8 @@
   for = "/owner/customer"
   [headers.values]
     Cache-Control = "no-store, max-age=0, must-revalidate"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-2i1dvjIMnHL5Pjs/0p0N3cRd50GEIZIZa+cIHbMMtiQ=' 'sha256-l/7ygCrkk9m+bcI0DCFcILu8hPGMWtCV7WWwXSBT72Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
@@ -145,6 +147,8 @@
   for = "/owner/customer/"
   [headers.values]
     Cache-Control = "no-store, max-age=0, must-revalidate"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-2i1dvjIMnHL5Pjs/0p0N3cRd50GEIZIZa+cIHbMMtiQ=' 'sha256-l/7ygCrkk9m+bcI0DCFcILu8hPGMWtCV7WWwXSBT72Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
@@ -156,12 +160,50 @@
   for = "/owner/customer/*"
   [headers.values]
     Cache-Control = "no-store, max-age=0, must-revalidate"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-2i1dvjIMnHL5Pjs/0p0N3cRd50GEIZIZa+cIHbMMtiQ=' 'sha256-l/7ygCrkk9m+bcI0DCFcILu8hPGMWtCV7WWwXSBT72Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     X-Robots-Tag = "noindex, nofollow, noarchive, nosnippet"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Authenticated app shells and sign-in pages. These pages handle signed-in sessions whose tokens are readable by
+# script (Netlify Identity design), so they carry an enforcing Content-Security-Policy: scripts only from this origin
+# plus the hashed inline bootstrap of each app shell, no plugins, no framing, no foreign form targets, and API calls
+# only to this origin. Inline style attributes remain allowed because app templates use them. Header rules match the
+# requested path, so /app/beta/* is covered here in addition to the /saas-prototype/* files it rewrites to.
+# scripts/validate-app-route-csp.mjs keeps the inline-script hashes in sync with the built HTML.
+[[headers]]
+  for = "/app/beta"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-2i1dvjIMnHL5Pjs/0p0N3cRd50GEIZIZa+cIHbMMtiQ=' 'sha256-l/7ygCrkk9m+bcI0DCFcILu8hPGMWtCV7WWwXSBT72Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+[[headers]]
+  for = "/app/beta/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-2i1dvjIMnHL5Pjs/0p0N3cRd50GEIZIZa+cIHbMMtiQ=' 'sha256-l/7ygCrkk9m+bcI0DCFcILu8hPGMWtCV7WWwXSBT72Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+[[headers]]
+  for = "/saas-prototype/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-2i1dvjIMnHL5Pjs/0p0N3cRd50GEIZIZa+cIHbMMtiQ=' 'sha256-l/7ygCrkk9m+bcI0DCFcILu8hPGMWtCV7WWwXSBT72Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+[[headers]]
+  for = "/production-auth.html"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+[[headers]]
+  for = "/staging-auth.html"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; manifest-src 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
 
 # FlipForge remains a static website. Netlify builds the current Identity client and
 # the fail-closed Paddle Live browser configuration, validates authentication,
