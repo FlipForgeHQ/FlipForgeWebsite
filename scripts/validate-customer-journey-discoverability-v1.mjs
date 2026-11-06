@@ -39,7 +39,7 @@ check("Five stages have explicit real routes", ["#/discover", "#/evaluate", "#/o
 check("Private Beta makes returning saved decisions obvious", beta.includes('Open an existing saved decision'));
 check("No promise that old receipts always exist", beta.includes("older decisions clearly say when it is unavailable"));
 check("Full customer navigation uses same Tracking name as Beta", customerShell.includes('data-route="tracking"') && customerShell.includes("</svg></span>Tracking</a>") && betaShell.includes("</svg></span>Tracking</a>"));
-check("Extra full-app tools have an explicitly named disclosure", customerShell.includes("More decision tools"));
+check("Extra full-app analysis tools stay in a labeled disclosure", customerShell.includes("Advanced analysis") && customerShell.includes("ff-advanced-nav"));
 check("Interactive tiles provide min-height, hover, focus, and mobile layout", css.includes("min-height:102px") && css.includes("focus-visible") && css.includes("@media(max-width:720px)") && css.includes("grid-template-columns:1fr"));
 check("No client-side decision engine or provider fetching introduced", !css.includes("script") && !beta.includes("data-ff-ux-open-receipt"));
 console.log("Customer discoverability validation: " + passed + " checks passed.");
