@@ -48,7 +48,7 @@ const checks = [
   ["first-value layer is presentation only", !firstValue.includes("fetch(") && !firstValue.includes("XMLHttpRequest") && !firstValue.includes("/api/")],
   ["decision clarity defines plain-language BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => clarity.includes(value))],
   ["first-value layer uses the same BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => firstValue.includes(value))],
-  ["decision clarity follows decision value risk why evidence hierarchy", ["ff-decision-meaning", "Supported value", "Decision risk", "data-ff-cdi-stack-host", "Decision details", "Full evidence &amp; saved decision detail"].every(value => clarity.includes(value))],
+  ["decision clarity follows decision value risk why evidence hierarchy", ["ff-decision-meaning", "Supported value", "Decision risk", "data-ff-cdi-stack-host", "Decision details", "View advanced evidence and saved details", "What would you like to do?"].every(value => clarity.includes(value))],
   ["raw Card Intelligence metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, market factors and rank")],
   // The saved decision risk is distinguished from the market risk factor, without calling it "final" (2026-10-19).
   ["saved decision risk is labelled as the saved decision risk", ["Decision risk", "saved decision risk"].every(value => clarity.includes(value)) && !clarity.includes("final saved decision risk")],
