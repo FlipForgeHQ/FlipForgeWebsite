@@ -18,7 +18,7 @@
 .ffg-section{
   position:relative;
   overflow:hidden;
-  padding:84px 0;
+  padding:var(--ff-space-section) 0;
   border-top:1px solid rgba(255,255,255,.055);
   border-bottom:1px solid rgba(255,255,255,.055);
   background:
@@ -37,7 +37,7 @@
   mask-image:radial-gradient(circle at 55% 50%,#000 0,transparent 72%);
 }
 .ffg-wrap{position:relative;z-index:1;width:min(1180px,calc(100% - 40px));margin:0 auto}
-.ffg-heading{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(280px,.65fr);gap:48px;align-items:end;margin-bottom:32px}
+.ffg-heading{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(280px,.65fr);gap:48px;align-items:end;margin-bottom:var(--ff-space-block)}
 .ffg-kicker{margin:0 0 10px;color:var(--ffg-gold);font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
 .ffg-heading h2{margin:0;max-width:820px;color:#fff;font-size:clamp(34px,5vw,64px);line-height:.98;letter-spacing:-.055em}
 .ffg-heading p{margin:0;color:var(--ffg-copy);font-size:15px;line-height:1.65}
@@ -312,7 +312,7 @@
   .ffg-depth-stack{width:90%}
 }
 @media(max-width:700px){
-  .ffg-section{padding:62px 0}.ffg-wrap{width:min(100% - 28px,1180px)}
+  .ffg-wrap{width:min(100% - 28px,1180px)}
   .ffg-heading h2{font-size:38px}.ffg-scene{border-radius:15px}
   .ffg-workflow-scene{min-height:970px}
   .ffg-workflow-scene .ffg-slab{top:260px}
@@ -345,7 +345,7 @@
 .ff-approved-graphic{
   position:relative;
   overflow:hidden;
-  margin:30px auto 0;
+  margin:0 auto;
   border:1px solid rgba(212,175,55,.24);
   border-radius:18px;
   background:#030507;
@@ -367,10 +367,9 @@
 }
 .ff-approved-wide,.ff-approved-receipt,.ff-approved-storyboard{width:min(100%,980px)}
 .ff-approved-storyboard img{max-width:none}
-.ff-approved-feature .ffg-heading{margin-bottom:24px}
 .value-intelligence .ff-approved-evidence{margin-top:34px;margin-bottom:34px}
 @media(max-width:700px){
-  .ff-approved-graphic{margin-top:22px;border-radius:12px}
+  .ff-approved-graphic{border-radius:12px}
   .ff-approved-graphic figcaption{font-size:14px}
   .ff-approved-wide,.ff-approved-receipt,.ff-approved-storyboard{width:100%}
 }
@@ -408,3 +407,63 @@
 @media(prefers-reduced-motion:reduce){
   .is-ready .ff-approved-graphic img{animation:none!important}
 }
+
+
+/* === REAL APP EXHIBIT (2026-11-06) ===
+   Screens captured from the FlipForge private beta app with a fictional card and illustrative data. Shown in a
+   restrained app window with a visible "Sample data" label; never presented as live market data. */
+.ff-app-proof{margin:0 auto;width:min(100%,980px)}
+.ff-app-proof-bar{display:flex;align-items:center;gap:14px;padding:10px 14px;border:1px solid var(--ff-hairline,rgba(255,255,255,.09));border-bottom:0;border-radius:var(--ff-panel-radius,16px) var(--ff-panel-radius,16px) 0 0;background:linear-gradient(180deg,#0f1418,#0a0e11);color:#aeb6bf;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.ff-app-proof-bar b{margin-left:auto;flex:none;white-space:nowrap;padding:3px 9px;border:1px solid var(--ff-hairline-gold,rgba(217,191,127,.28));border-radius:999px;color:var(--ff-champagne,#d9bf7f);font-size:11px;font-weight:800;letter-spacing:.1em}
+.ff-app-proof-dots{display:inline-flex;gap:6px}
+.ff-app-proof-dots i{width:8px;height:8px;border-radius:50%;background:rgba(169,176,184,.35)}
+.ff-app-proof-window{position:relative;max-height:min(560px,70vh);overflow:auto;overscroll-behavior:contain;border:1px solid var(--ff-hairline,rgba(255,255,255,.09));border-top:1px solid var(--ff-hairline-gold,rgba(217,191,127,.28));border-radius:0 0 var(--ff-panel-radius,16px) var(--ff-panel-radius,16px);background:#05080b;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.ff-app-proof-window:focus-visible{outline:2px solid var(--ff-champagne-strong,#d4af37);outline-offset:4px}
+.ff-app-proof-window img{display:block;width:100%;max-width:none;height:auto}
+.ff-app-proof figcaption{margin:12px 0 0;color:#aeb7c1;font-size:14px;line-height:1.55}
+.ff-app-proof figcaption strong{color:#e9edf1;font-weight:700}
+.ff-app-proof-receipt{width:min(100%,440px)}
+@media(max-width:760px){.ff-app-proof-window{max-height:min(520px,72vh)}.ff-app-proof-bar{font-size:11px;letter-spacing:.06em}.ff-app-proof-bar>span:not(.ff-app-proof-dots){overflow:hidden;white-space:nowrap;text-overflow:ellipsis}}
+
+/* === CAPABILITY LEDGER (2026-11-06) ===
+   What FlipForge does today versus what is being tested or planned. Status labels mirror the FAQ, the Launch Plans
+   page and the beta app's own "What is available now" list. */
+.ff-sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.ff-capability-legend{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px}
+.ff-cap-status{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border:1px solid var(--ff-hairline-gold,rgba(217,191,127,.28));border-radius:999px;color:var(--ff-champagne,#d9bf7f);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.ff-cap-status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.ff-cap-status.is-testing{border-color:rgba(169,176,184,.4);color:#c6ccd3}
+.ff-cap-status.is-testing::before{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
+.ff-cap-status.is-planned{border-style:dashed;border-color:rgba(169,176,184,.35);color:#a9b0b8}
+.ff-cap-status.is-planned::before{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor;opacity:.7}
+.ff-capability-ledger{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--ff-hairline,rgba(255,255,255,.09));border-top-color:var(--ff-hairline-gold,rgba(217,191,127,.28));border-radius:var(--ff-panel-radius,16px);background:linear-gradient(180deg,#0b1014,#06090c);overflow:hidden;font-size:15px;line-height:1.55}
+.ff-capability-ledger thead th{padding:12px 18px;border-bottom:1px solid var(--ff-hairline,rgba(255,255,255,.09));color:#aeb6bf;font-size:12px;font-weight:800;letter-spacing:.12em;text-align:left;text-transform:uppercase}
+.ff-capability-ledger tbody th,.ff-capability-ledger tbody td{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;vertical-align:top}
+.ff-capability-ledger tbody tr:last-child th,.ff-capability-ledger tbody tr:last-child td{border-bottom:0}
+.ff-capability-ledger tbody th{width:28%;color:#f3f5f7;font-size:16px;font-weight:750;letter-spacing:-.01em}
+.ff-capability-ledger tbody td:nth-child(2){width:1%;white-space:nowrap}
+.ff-capability-ledger tbody td:last-child{color:#c3cad1}
+.ff-capability-ledger tbody tr:hover th,.ff-capability-ledger tbody tr:hover td{background:rgba(255,255,255,.015)}
+.ff-capability-ledger a{color:var(--ff-champagne,#d9bf7f)}
+.ff-capability-note{margin:14px 0 0;color:#aeb6bf;font-size:14px;line-height:1.55}
+@media(max-width:760px){
+  .ff-capability-ledger,.ff-capability-ledger tbody,.ff-capability-ledger tr,.ff-capability-ledger th,.ff-capability-ledger td{display:block;width:auto!important}
+  .ff-capability-ledger thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .ff-capability-ledger tbody tr{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .ff-capability-ledger tbody tr:last-child{border-bottom:0}
+  .ff-capability-ledger tbody th,.ff-capability-ledger tbody td{padding:0;border:0}
+  .ff-capability-ledger tbody td:nth-child(2){margin:8px 0}
+  .ff-capability-ledger tbody td:last-child{font-size:15px}
+}
+
+/* Launch Plans: the standard every planned level keeps, beside a real Decision Receipt. */
+.ff-depth-proof{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,440px);gap:clamp(20px,3vw,44px);align-items:start}
+.ff-depth-standard{margin:0;padding:0;list-style:none;border:1px solid var(--ff-hairline,rgba(255,255,255,.09));border-top-color:var(--ff-hairline-gold,rgba(217,191,127,.28));border-radius:var(--ff-panel-radius,16px);background:linear-gradient(180deg,#0b1014,#06090c)}
+.ff-depth-standard li{display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:12px;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+.ff-depth-standard li:last-child{border-bottom:0}
+.ff-depth-standard span{grid-row:1/span 2;color:var(--ff-champagne,#d9bf7f);font-size:13px;font-weight:800;letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.ff-depth-standard strong{color:#f3f5f7;font-size:17px;letter-spacing:-.01em}
+.ff-depth-standard p{margin:4px 0 0;color:#c3cad1;font-size:15px;line-height:1.55}
+.ff-depth-proof .ff-app-proof{margin:0}
+.ff-depth-proof .ff-app-proof-window{max-height:min(470px,70vh)}
+@media(max-width:900px){.ff-depth-proof{grid-template-columns:1fr}.ff-depth-proof .ff-app-proof{width:min(100%,440px);margin:0 auto}}
