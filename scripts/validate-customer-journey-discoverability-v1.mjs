@@ -41,5 +41,9 @@ check("No promise that old receipts always exist", beta.includes("older decision
 check("Full customer navigation uses same Tracking name as Beta", customerShell.includes('data-route="tracking"') && customerShell.includes("</svg></span>Tracking</a>") && betaShell.includes("</svg></span>Tracking</a>"));
 check("Extra full-app analysis tools stay in a labeled disclosure", customerShell.includes("Advanced analysis") && customerShell.includes("ff-advanced-nav"));
 check("Interactive tiles provide min-height, hover, focus, and mobile layout", css.includes("min-height:102px") && css.includes("focus-visible") && css.includes("@media(max-width:720px)") && css.includes("grid-template-columns:1fr"));
+check("Sidebar guidance is readable at the 14px customer typography floor", /\.primary-nav \.ff-ux-nav-guidance\{[^}]*font-size:14px/.test(css));
+check("Sidebar guidance uses neutral text, not blue-tinted shell copy", /\.primary-nav \.ff-ux-nav-guidance\{[^}]*color:#dedede/.test(css) && !css.includes("color:#d9dce1"));
+check("New customer experience CSS introduces no explicit microcopy under 14px",
+  ![...css.matchAll(/font-size:\s*([0-9.]+)(px|rem)/g)].some(([, num, unit]) => Number(num) * (unit === "rem" ? 16 : 1) < 14));
 check("No client-side decision engine or provider fetching introduced", !css.includes("script") && !beta.includes("data-ff-ux-open-receipt"));
 console.log("Customer discoverability validation: " + passed + " checks passed.");
