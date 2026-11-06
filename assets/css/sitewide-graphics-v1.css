@@ -412,7 +412,7 @@
 /* === REAL APP EXHIBIT (2026-11-06) ===
    Screens captured from the FlipForge private beta app with a fictional card and illustrative data. Shown in a
    restrained app window with a visible "Sample data" label; never presented as live market data. */
-.ff-app-proof{margin:0 auto;width:min(100%,980px)}
+.ff-app-proof{margin:0 auto;width:min(100%,980px);min-width:0}
 .ff-app-proof-bar{display:flex;align-items:center;gap:14px;padding:10px 14px;border:1px solid var(--ff-hairline,rgba(255,255,255,.09));border-bottom:0;border-radius:var(--ff-panel-radius,16px) var(--ff-panel-radius,16px) 0 0;background:linear-gradient(180deg,#0f1418,#0a0e11);color:#aeb6bf;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .ff-app-proof-bar b{margin-left:auto;flex:none;white-space:nowrap;padding:3px 9px;border:1px solid var(--ff-hairline-gold,rgba(217,191,127,.28));border-radius:999px;color:var(--ff-champagne,#d9bf7f);font-size:11px;font-weight:800;letter-spacing:.1em}
 .ff-app-proof-dots{display:inline-flex;gap:6px}
@@ -423,7 +423,7 @@
 .ff-app-proof figcaption{margin:12px 0 0;color:#aeb7c1;font-size:14px;line-height:1.55}
 .ff-app-proof figcaption strong{color:#e9edf1;font-weight:700}
 .ff-app-proof-receipt{width:min(100%,440px)}
-@media(max-width:760px){.ff-app-proof-window{max-height:min(520px,72vh)}.ff-app-proof-bar{font-size:11px;letter-spacing:.06em}.ff-app-proof-bar>span:not(.ff-app-proof-dots){overflow:hidden;white-space:nowrap;text-overflow:ellipsis}}
+@media(max-width:760px){.ff-app-proof-window{max-height:min(520px,72vh)}.ff-app-proof-bar{font-size:11px;letter-spacing:.06em}.ff-app-proof-bar>span:not(.ff-app-proof-dots){min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}}
 
 /* === CAPABILITY LEDGER (2026-11-06) ===
    What FlipForge does today versus what is being tested or planned. Status labels mirror the FAQ, the Launch Plans
@@ -464,6 +464,7 @@
 .ff-depth-standard span{grid-row:1/span 2;color:var(--ff-champagne,#d9bf7f);font-size:13px;font-weight:800;letter-spacing:.08em;font-variant-numeric:tabular-nums}
 .ff-depth-standard strong{color:#f3f5f7;font-size:17px;letter-spacing:-.01em}
 .ff-depth-standard p{margin:4px 0 0;color:#c3cad1;font-size:15px;line-height:1.55}
+.ff-depth-proof>*{min-width:0}
 .ff-depth-proof .ff-app-proof{margin:0}
 .ff-depth-proof .ff-app-proof-window{max-height:min(470px,70vh)}
 @media(max-width:900px){.ff-depth-proof{grid-template-columns:1fr}.ff-depth-proof .ff-app-proof{width:min(100%,440px);margin:0 auto}}
