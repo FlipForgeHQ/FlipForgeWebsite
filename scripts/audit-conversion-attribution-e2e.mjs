@@ -15,6 +15,7 @@ import { chromium } from 'playwright';
 const CAMPAIGN = { source: 'instagram', medium: 'social', campaign: 'wysbi26', content: 'w02v01' };
 const LANDING = '/?utm_source=instagram&utm_medium=social&utm_campaign=wysbi26&utm_content=w02v01';
 const INVALID_LANDING = '/?utm_source=Instagram&utm_medium=social%20ads&utm_campaign=person%40example.test&utm_content=w02v01';
+const UNKNOWN_SOURCE_LANDING = '/?utm_source=myspace&utm_medium=social&utm_campaign=wysbi26';
 const RETIRED = ['phase3_landing_to_evaluate', 'phase3_public_beta_cta_clicked', 'decision_receipt_layer_selected',
   'decision_receipt_cta_clicked', 'evaluate_cta_clicked', 'phase2_beta_cta_clicked', 'evidence_failure_selected'];
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript',
@@ -196,6 +197,17 @@ async function journey(root, label) {
   await settle();
   const invalidSent = sent.slice(before);
 
+  // 3b. Unknown but slug-shaped first source, then a valid campaign link in the same tab: the valid campaign wins.
+  const unknownBefore = sent.length;
+  const unknownPage = await newPage();
+  await unknownPage.goto(base + UNKNOWN_SOURCE_LANDING, { waitUntil: 'networkidle' });
+  const unknownStored = await unknownPage.evaluate(() => sessionStorage.getItem('flipforge.campaign.v1'));
+  await unknownPage.goto(base + LANDING, { waitUntil: 'networkidle' });
+  await Promise.all([unknownPage.waitForURL('**/beta-application.html'), unknownPage.click('[data-ff-hero-apply]')]);
+  await unknownPage.waitForLoadState('networkidle');
+  await settle();
+  const unknownThenValidSent = sent.slice(unknownBefore);
+
   // 4. A client that bypasses the page: forged campaign values must be dropped by the server.
   const forged = await (await fetch(base + '/api/beta/applications', {
     method: 'POST',
@@ -232,7 +244,7 @@ async function journey(root, label) {
   const records = [...applicationStore.data.entries()].filter(([key]) => key.startsWith('application/')).map(([, value]) => value);
   const byEmail = email => records.find(record => record.applicant?.email === email);
   return {
-    label, root, sent, pathEvents, invalidSent, hiddenFields, navSent, navHiddenFields, external, otherApi, forged, forgedEvent, operatorView,
+    label, root, sent, pathEvents, invalidSent, unknownStored, unknownThenValidSent, hiddenFields, navSent, navHiddenFields, external, otherApi, forged, forgedEvent, operatorView,
     navApplication: byEmail('attribution-test+menu@example.test'),
     storedEvents: [...eventStore.data.values()],
     eventLog: logLines.filter(line => line.type === 'flipforge_conversion_event'),
@@ -291,6 +303,9 @@ check('the application form carries the campaign as hidden fields', same(result.
 check('the stored beta application keeps the campaign fields', result.application?.status === 'SUBMITTED' && same(result.application?.campaign, CAMPAIGN));
 check('invalid landing utm values are dropped before sending', result.invalidSent.length > 0 && result.invalidSent.every(item => !Object.keys(item.payload).some(key => key.startsWith('utm_'))));
 check('invalid landing utm values never reach the application record', result.invalidApplication?.status === 'SUBMITTED' && result.invalidApplication.campaign === null);
+check('an unknown first utm_source is not stored, and a valid campaign link opened next in the same tab is attributed',
+  result.unknownStored === null && result.unknownThenValidSent.some(item => item.payload.event === 'beta_cta_clicked' && item.payload.placement === 'hero')
+  && result.unknownThenValidSent.every(item => item.status === 202 && item.payload.utm_source === 'instagram' && item.payload.utm_campaign === 'wysbi26'));
 check('forged unknown utm_source is dropped by the application function', result.forged === 202 && result.forgedApplication?.campaign === null);
 check('forged malformed utm slugs are dropped by the event function', result.forgedEvent?.accepted === true
   && same(result.storedEvents.at(-1)?.campaign, { source: 'instagram', medium: null, campaign: null, content: 'w02v01' }));

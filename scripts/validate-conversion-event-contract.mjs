@@ -125,6 +125,12 @@ assert.ok(backend.includes('campaign: validateCampaign(input)'), 'Conversion rec
 assert.ok(readFileSync('netlify/modern-functions/beta-applications.mjs', 'utf8').includes('createApplication(validation.applicant, now(), validateCampaign(input))'),
   'Application records keep only server-validated campaign slugs');
 assert.deepEqual([...CAMPAIGN_SOURCES], ['instagram', 'tiktok', 'facebook', 'youtube', 'outreach', 'reddit', 'email']);
+const clientSources = client.match(/const CAMPAIGN_SOURCES=\[([^\]]*)\]/);
+assert.ok(clientSources, 'The client keeps its own list of known campaign sources');
+assert.deepEqual(JSON.parse('[' + clientSources[1] + ']'), [...CAMPAIGN_SOURCES],
+  'The client accepts exactly the server\'s known campaign sources (an unsupported first source cannot lock out a valid campaign)');
+assert.ok(client.includes('return CAMPAIGN_SOURCES.includes(clean.utm_source)?clean:{};'), 'The client drops unknown sources before storing first touch');
+passed += 3;
 assert.deepEqual(validateCampaign({ utm_source: 'instagram', utm_medium: 'social', utm_campaign: 'wysbi26', utm_content: 'w02v01' }),
   { source: 'instagram', medium: 'social', campaign: 'wysbi26', content: 'w02v01' });
 assert.deepEqual(validateCampaign({ utm_source: 'reddit', utm_medium: 'Social Ads', utm_campaign: 'a@b.test', utm_content: 'x'.repeat(41) }),

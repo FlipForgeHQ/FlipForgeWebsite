@@ -47,10 +47,13 @@
   // only; the server re-validates (known sources only) and drops anything else. Nothing else is stored; no visitor identifier.
   const CAMPAIGN_KEY="flipforge.campaign.v1";
   const CAMPAIGN_FIELDS=["utm_source","utm_medium","utm_campaign","utm_content"];
+  // Same known sources as the server (CAMPAIGN_SOURCES in netlify/modern-functions/lib/beta-operations-core.mjs), so an
+  // unsupported first source can never lock out a valid campaign link opened later in the same tab.
+  const CAMPAIGN_SOURCES=["instagram","tiktok","facebook","youtube","outreach","reddit","email"];
   const campaignOnly=source=>{
     const clean={};
     CAMPAIGN_FIELDS.forEach(key=>{const value=source&&source[key];if(typeof value==="string"&&/^[a-z0-9_-]{1,40}$/.test(value))clean[key]=value;});
-    return clean.utm_source?clean:{};
+    return CAMPAIGN_SOURCES.includes(clean.utm_source)?clean:{};
   };
   const campaign=(()=>{
     try{const stored=campaignOnly(JSON.parse(sessionStorage.getItem(CAMPAIGN_KEY)||"null"));if(stored.utm_source)return stored;}catch{}
