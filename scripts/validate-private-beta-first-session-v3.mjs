@@ -17,9 +17,8 @@ check('intro explains exact identity, evidence, costs and uncertainty without a 
 check('single obvious first action routes to Discover',page.includes('href="#/discover" data-private-beta-start>Evaluate my first card'));
 check('manual entry remains accessible',page.includes('href="#/evaluate">Enter a listing manually'));
 check('locked slogan is unchanged',page.includes('Before you buy. Know Why.'));
-check('the five-step walkthrough is expanded by default for first-time users', page.includes('<details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide"') &&
-  page.includes('data-private-beta-first-card open') &&
-  ['FIND','EVALUATE','UNDERSTAND','TRACK','MANAGE'].every(step => page.includes('<span>' + step + '</span>')));
+check('optional four-stage guide is collapsed', page.includes('<details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide"') &&
+  page.includes('data-private-beta-first-card>') && !page.includes('data-private-beta-first-card open'));
 check('all original guide steps remain', ['Search one exact card','Submit one listing to Smart Opportunity',
   'Open Card Intelligence','Send focused feedback','Challenge the Decision Traceback'].every(x=>page.includes(x)));
 check('status and guide preference preserved under expandable access section',
