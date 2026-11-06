@@ -282,11 +282,10 @@
           <span class="eyebrow">PRIVATE BETA · CARD DECISION INTELLIGENCE™</span>
           <h1 id="private-beta-welcome">Welcome to FlipForge.</h1>
           <p class="private-beta-v3-intro">FlipForge goes beyond a card's price. It checks the exact identity, examines the evidence, considers costs and uncertainty, and explains what the decision means.</p>
-          <p class="private-beta-v3-intro-sub">Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust. Start with Discover → Evaluate → Intelligence, then Track and Manage.</p>
+          <p class="private-beta-v3-intro-sub">Your first session has one job: evaluate one real card and decide whether the reasoning is clear enough to trust.</p>
           <div class="private-beta-v3-actions">
             <a class="button button-primary" href="#/discover" data-private-beta-start>Evaluate my first card</a>
             <a class="private-beta-v3-manual" href="#/evaluate">Enter a listing manually</a>
-            <a class="private-beta-v3-manual ff-ux-returning-action" href="#/opportunities">Open an existing saved decision</a>
           </div>
           <p class="private-beta-v3-slogan">Before you buy. Know Why.</p>
         </div>
@@ -297,13 +296,13 @@
         </div>
       </header>
 
-      <section class="private-beta-v3-next" aria-label="Visible five-step first-session walkthrough">
-        <details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide" data-private-beta-first-card open>
-          <summary><span><strong>Your five-step card walkthrough — open by default</strong><small>Follow Find → Evaluate → Understand → Track → Manage. Select this row to collapse or reopen the guide.</small></span><span class="ff-ux-disclosure-indicator" aria-hidden="true"></span></summary>
+      <section class="private-beta-v3-next" aria-label="Optional first-session information">
+        <details class="private-beta-v2-details private-beta-v3-expander private-beta-v3-guide" data-private-beta-first-card>
+          <summary><span><strong>Want a little help with your first card?</strong><small>Optional four-step walkthrough: find, evaluate, understand, report.</small></span><b aria-hidden="true">＋</b></summary>
           <div class="private-beta-v3-expander-body">
             <p class="eyebrow">Private Beta Guide · First Session</p>
             <h2 class="private-beta-v3-guide-title">Evaluate one card from start to finish.</h2>
-            <p class="private-beta-v3-guide-hint">Do not try to learn every FlipForge feature today. Start with one card. Your saved result explains the verdict and provides direct links to evidence and Tracking. The Decision Receipt is available only when the original server record supports it; older decisions clearly say when it is unavailable.</p>
+            <p class="private-beta-v3-guide-hint">Do not try to learn every FlipForge feature today. Use one card you genuinely understand, follow the evidence, read the decision, and open the Decision Receipt. Start with Discover, or enter a listing manually.</p>
             <h3 class="private-beta-v3-guide-subtitle">Tester walkthrough</h3>
             <div class="panel-body private-beta-v2-journey">
           <article class="private-beta-v2-stage">
@@ -318,21 +317,15 @@
           </article>
           <article class="private-beta-v2-stage">
             <span class="private-beta-v2-stage-number">3</span>
-            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read the verdict, risk and reason shown immediately. Challenge the Decision Traceback using the visible checks, then use the clearly labeled actions to see Evidence or the Decision Receipt if that saved record provides one.</p></div>
+            <div><span>UNDERSTAND</span><strong>Open Card Intelligence</strong><p>Read Decision → Value → Risk → Why → Evidence. Then Challenge the Decision Traceback and open the Decision Receipt to see what the result preserves.</p></div>
             <a class="button button-secondary" href="#/opportunities">Saved Decisions</a>
           </article>
           <article class="private-beta-v2-stage">
             <span class="private-beta-v2-stage-number">4</span>
-            <div><span>TRACK</span><strong>Track the saved card</strong><p>Review the saved decision history without spending another evaluation or buying anything.</p></div>
-            <a class="button button-secondary" href="#/tracking">Open Tracking</a>
-          </article>
-          <article class="private-beta-v2-stage">
-            <span class="private-beta-v2-stage-number">5</span>
-            <div><span>MANAGE</span><strong>Review your collection</strong><p>Use Portfolio to see cards you own; Alerts and Forge Heat are optional tools for later.</p></div>
-            <a class="button button-secondary" href="#/portfolio">Open Portfolio</a>
+            <div><span>REPORT</span><strong>Send focused feedback</strong><p>Tell us what was immediately clear, what made you hesitate, and what information you expected but could not find.</p></div>
+            <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button>
           </article>
         </div>
-            <p class="ff-ux-first-session-feedback"><strong>Send focused feedback:</strong> tell us what was confusing after trying the five steps. <button class="button button-secondary" type="button" data-private-beta-feedback-link>Give feedback</button></p>
           </div>
         </details>
       </section>
