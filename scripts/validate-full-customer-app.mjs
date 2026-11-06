@@ -65,7 +65,7 @@ check(!customer.includes('href="beta-customer-flow-v2.css"'), "customer document
 check(customer.includes('data-route="decision-intelligence"') && customer.includes('Decision Intelligence'), "customer navigation exposes Decision Intelligence");
 check(customer.includes('href="#/decision-intelligence/why" data-route="why-this-decision"') && customer.includes('Why This Decision'), "customer navigation exposes Why This Decision as a Decision Intelligence subview");
 check(customer.includes('href="#/evidence" data-route="evidence"') && customer.includes('Evidence Review'), "customer navigation promotes Evidence Review");
-check(customer.includes('data-route="tracking"') && customer.includes('Outcome Intelligence'), "customer navigation exposes Outcome Intelligence");
+check(customer.includes('href="#/tracking" data-route="tracking"') && customer.includes('</svg></span>Tracking</a>'), "customer navigation visibly labels the existing outcome-history route Tracking");
 check(customer.includes('data-route="discover"') && customer.includes('data-route="evaluate"'), "customer navigation separates Discover and Evaluate");
 check(customer.includes('data-route="forge-heat"') && customer.includes('data-route="market-view"'), "customer navigation exposes Forge Heat and Market View");
 check(customer.includes('src="customer-navigation-parity-v1.js"'), "customer document loads full-customer navigation parity controller");
