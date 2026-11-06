@@ -146,7 +146,7 @@
     }
     const receiptAction = model.receiptMode === "attached"
       ? '<button type="button" data-ff-open-decision-receipt>Open Decision Receipt</button>'
-      : '<span class="ff-dce-boundary">Receipt authority remains server-owned; this beta card does not reconstruct it in the browser.</span>';
+      : '<span class="ff-dce-boundary">A separate full receipt is not attached to this evidence view. FlipForge does not reconstruct it in the browser. Check the receipt status beside your saved decision.</span>';
 
     return `
       <header class="ff-dce-head">
@@ -196,11 +196,11 @@
         </details>
         <div class="ff-dce-impact-next"><strong>What to do next</strong><p>${escapeHtml(nextStep)}</p></div>
         <div class="ff-dce-impact-next"><strong>What could change the conclusion</strong><p>${escapeHtml(nextReviewCopy(model.change))}</p></div>
-        <p class="ff-dce-impact-disclosure">Decision support only. Not investment advice. No transaction authority. The original saved decision is not rescored in this report. The full Decision Receipt and traceback are below.</p>
+        <p class="ff-dce-impact-disclosure">Decision support only. Not investment advice. No transaction authority. The saved decision is not rescored. ${model.receiptMode === "attached" ? "The full Decision Receipt and traceback are below." : "The evidence layers and saved decision detail are below. If the original Decision Receipt is unavailable, its status is explained above."}</p>
       </section>
 
       <details class="ff-dce-layers">
-        <summary><span><strong>View the 7 evidence layers</strong><small>Identity → Evidence → Economics → Risk → Decision → Traceback → Outcome</small></span><span aria-hidden="true">＋</span></summary>
+        <summary><span><strong>Explore all 7 evidence layers</strong><small>Select to expand or collapse: Identity → Evidence → Economics → Risk → Decision → Traceback → Outcome</small></span><span class="ff-ux-disclosure-indicator" aria-hidden="true"></span></summary>
         <ol>
           <li data-cdi-layer="identity" style="--ff-dce-i:0"><span class="ff-dce-number">01</span><div><strong>Identity Intelligence</strong><p>${escapeHtml(model.identity)}</p><small>Exact identity: ${escapeHtml(model.exactIdentity)}</small></div></li>
           <li data-cdi-layer="evidence" style="--ff-dce-i:1"><span class="ff-dce-number">02</span><div><strong>Evidence Intelligence</strong><p>${escapeHtml(evidence.trusted)} · ${escapeHtml(evidence.excluded)}</p><small>Only eligible exact completed-sale evidence can support value.</small><a href="${escapeHtml(model.evidenceHref)}">Open full evidence trail →</a></div></li>
