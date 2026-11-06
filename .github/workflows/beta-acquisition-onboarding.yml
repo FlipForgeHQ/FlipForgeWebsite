@@ -10,7 +10,15 @@ on:
       - "assets/js/conversion-events.js"
       - "assets/css/beta-onboarding-v1.css"
       - "netlify/modern-functions/conversion-event.mjs"
+      - "netlify/modern-functions/beta-applications.mjs"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "assets/js/phase2-premium-intelligence-v1.js"
+      - "index.html"
       - "scripts/validate-beta-acquisition-onboarding.mjs"
+      - "scripts/validate-conversion-event-contract.mjs"
+      - "scripts/audit-conversion-attribution-e2e.mjs"
+      - "assets/js/beta-operator.js"
+      - "netlify/modern-functions/beta-operator.mjs"
       - "docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md"
       - "package.json"
       - "package-lock.json"
@@ -27,7 +35,15 @@ on:
       - "assets/js/conversion-events.js"
       - "assets/css/beta-onboarding-v1.css"
       - "netlify/modern-functions/conversion-event.mjs"
+      - "netlify/modern-functions/beta-applications.mjs"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - "assets/js/phase2-premium-intelligence-v1.js"
+      - "index.html"
       - "scripts/validate-beta-acquisition-onboarding.mjs"
+      - "scripts/validate-conversion-event-contract.mjs"
+      - "scripts/audit-conversion-attribution-e2e.mjs"
+      - "assets/js/beta-operator.js"
+      - "netlify/modern-functions/beta-operator.mjs"
       - "docs/PRIVATE_BETA_ACQUISITION_AND_ONBOARDING.md"
       - "package.json"
       - "package-lock.json"
@@ -39,7 +55,7 @@ permissions:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -51,3 +67,9 @@ jobs:
         run: node --check assets/js/conversion-events.js
       - name: Validate beta acquisition and onboarding
         run: node scripts/validate-beta-acquisition-onboarding.mjs
+      - name: Validate conversion event and campaign contract
+        run: node scripts/validate-conversion-event-contract.mjs
+      - name: Install Playwright Chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
+      - name: Campaign link to submitted beta application (local functions, real browser)
+        run: node scripts/audit-conversion-attribution-e2e.mjs
