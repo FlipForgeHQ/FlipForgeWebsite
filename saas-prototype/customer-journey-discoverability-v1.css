@@ -1,4 +1,6 @@
 /* Customer-journey discoverability. Presentational only; no decision or evidence calculations. */
+.primary-nav .ff-ux-nav-guidance{margin:5px 8px 15px;padding:12px;border-left:3px solid #d4af37;border-radius:6px;background:rgba(212,175,55,.075);color:#d9dce1;font-size:.83rem;line-height:1.6}
+.primary-nav .ff-ux-nav-guidance strong{color:#f3df9b;font-weight:750}
 .ff-ux-primary-actions{margin:18px 0 20px;padding:20px;border:1px solid rgba(212,175,55,.4);border-radius:18px;background:linear-gradient(135deg,rgba(212,175,55,.095),rgba(11,18,27,.98));color:#f7f5ec}
 .ff-ux-primary-actions header{margin:0 0 15px}
 .ff-ux-primary-actions header h2{margin:5px 0 7px;font-size:clamp(1.3rem,2vw,1.8rem);line-height:1.2;color:#fff}
