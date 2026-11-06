@@ -63,7 +63,7 @@ const check = (name, condition) => results.push({ name, passed: Boolean(conditio
   ["039a feedback shortcut preserves the SPA route", beta.includes("data-private-beta-feedback-link") && beta.includes('querySelector("#beta-feedback")?.scrollIntoView') && !beta.includes('href="#beta-feedback"')],
   ["039b onboarding has a single first-session mission", beta.includes("Evaluate one card from start to finish.") && beta.includes("Do not try to learn every FlipForge feature today.")],
   ["039c onboarding collapses secondary capability detail", beta.includes('class="private-beta-v2-details"') && beta.includes("What is available now") && beta.includes("Known beta limits")],
-  ["039d onboarding presents four ordered first-decision stages", ["FIND", "EVALUATE", "UNDERSTAND", "REPORT"].every(value => beta.includes(`<span>${value}</span>`))],
+  ["039d onboarding presents five ordered first-decision stages", ["FIND", "EVALUATE", "UNDERSTAND", "TRACK", "MANAGE"].every(value => beta.includes(`<span>${value}</span>`)) && beta.includes("data-private-beta-first-card open")],
   ["039e onboarding keeps feedback after the first-decision journey", beta.indexOf("private-beta-v2-feedback") > beta.indexOf("private-beta-v2-walkthrough")],
   ["039f onboarding visualizes one persistent structured decision record", beta.includes("data-private-beta-record-system") && beta.includes("One evaluation becomes a structured decision record.")],
   ["039g record system exposes identity evidence receipt and outcome history", ["IDENTITY RECORD", "EVIDENCE RECORD", "DECISION RECEIPT", "OUTCOME HISTORY"].every(value => beta.includes(value))],

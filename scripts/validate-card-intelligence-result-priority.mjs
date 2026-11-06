@@ -33,7 +33,7 @@ const checks = [
   // The owner renders the saved decision page in order: heading, workflow strip, result hero, saved confirmation, the
   // four checks, then the evidence passport and quick check. Nothing is inserted or moved afterwards.
   ["save confirmation is rendered by the owner after the result hero", opportunities.includes("${hero}${savedDecisionBar(item)}") && !opportunities.includes("${savedDecisionBar(item)}${hero}") && !saveFlow.includes("ff-saved-decision-bar")],
-  ["saved decision page renders the result first, then the reasons", opportunities.includes('${pageHeading(DETAIL_HEADING, actions)}${workflowStripMarkup("understand")}${hero}${savedDecisionBar(item)}${stack}${passport}${betaDecisionCheck()}')],
+  ["saved decision page renders the result first, then the reasons", opportunities.includes('${pageHeading(DETAIL_HEADING, actions)}${workflowStripMarkup("understand")}${hero}${savedDecisionBar(item)}${primaryActions}${receiptPanel}${stack}${passport}${betaDecisionCheck()}')],
   ["no second coaching summary is built for the saved decision", !betaFlow.includes("data-ff-decision-summary") && !betaFlow.includes("keepResultFirst") && !betaFlow.includes("enhanceSaveConfirmation")],
   ["saved-decision message keeps full row width above actions", saveFlowCss.includes(".ff-saved-decision-bar{") && saveFlowCss.includes("grid-template-columns:minmax(0,1fr)")],
   ["saved-decision actions use a bounded three-column desktop grid", saveFlowCss.includes("grid-template-columns:repeat(3,minmax(0,1fr))") && saveFlowCss.includes("white-space:normal")],
@@ -48,7 +48,7 @@ const checks = [
   ["first-value layer is presentation only", !firstValue.includes("fetch(") && !firstValue.includes("XMLHttpRequest") && !firstValue.includes("/api/")],
   ["decision clarity defines plain-language BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => clarity.includes(value))],
   ["first-value layer uses the same BUY WATCH VERIFY PASS meanings", ["BUY:", "WATCH:", "VERIFY:", "PASS:"].every(value => firstValue.includes(value))],
-  ["decision clarity follows decision value risk why evidence hierarchy", ["ff-decision-meaning", "Supported value", "Decision risk", "data-ff-cdi-stack-host", "Decision details", "Full evidence &amp; saved decision detail"].every(value => clarity.includes(value))],
+  ["decision clarity follows decision value risk why evidence hierarchy", ["ff-decision-meaning", "Supported value", "Decision risk", "data-ff-cdi-stack-host", "Decision details", "View advanced evidence and saved details", "What would you like to do?"].every(value => clarity.includes(value))],
   ["raw Card Intelligence metrics are progressively disclosed", clarity.includes("More decision detail") && clarity.includes("Confidence, liquidity, market factors and rank")],
   // The saved decision risk is distinguished from the market risk factor, without calling it "final" (2026-10-19).
   ["saved decision risk is labelled as the saved decision risk", ["Decision risk", "saved decision risk"].every(value => clarity.includes(value)) && !clarity.includes("final saved decision risk")],
