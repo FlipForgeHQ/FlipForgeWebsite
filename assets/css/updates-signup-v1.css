@@ -2,7 +2,7 @@
  * Locked palette only: black, white, silver #8B8F98, gold #D4AF37, deep gold #B8860B. */
 .ff-updates{--fu-ink:#fff;--fu-muted:rgba(255,255,255,.72);--fu-line:rgba(255,255,255,.22);--fu-field:rgba(255,255,255,.06);--fu-accent:#D4AF37;
   display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px 48px;align-items:start;
-  margin-top:clamp(40px,5vw,64px);padding:clamp(22px,2.6vw,32px);border:1px solid var(--fu-line);border-radius:14px;color:var(--fu-ink);text-align:left}
+  margin-top:var(--ff-space-block);padding:clamp(22px,2.6vw,32px);border:1px solid var(--fu-line);border-radius:14px;color:var(--fu-ink);text-align:left}
 .ff10-light .ff-updates{--fu-ink:#000;--fu-muted:#5E626B;--fu-line:rgba(0,0,0,.14);--fu-field:#fff;--fu-accent:#B8860B}
 .ff-updates h3{margin:0 0 6px;font-size:clamp(20px,1.8vw,24px);font-weight:800;letter-spacing:-.02em;line-height:1.15;color:var(--fu-ink)}
 .ff-updates-copy p{margin:0;font-size:16px;line-height:1.5;color:var(--fu-muted)}
