@@ -220,6 +220,8 @@
       recommendationSource: text(source.recommendationSource),
       governedAvailable,
       reason: text(governed.reason),
+      passReason: window.FlipForgeTrustDisplay && typeof window.FlipForgeTrustDisplay.passReasonText === "function"
+        ? window.FlipForgeTrustDisplay.passReasonText(source) : null,
       nextAction: text(governed.nextAction),
       missingRequirement: text(governed.missingRequirement),
       profitabilityCappedBuy: governed.profitabilityCappedBuy === true,
@@ -445,7 +447,8 @@
 
   /* ④ Why FlipForge reached the decision */
   function whyMarkup(model, detailState) {
-    const reason = model.reason || "A saved decision explanation was not provided.";
+    const reason = [model.verdict === "PASS" ? model.passReason : null, model.reason].filter(Boolean).join(" ")
+      || "A saved decision explanation was not provided.";
     const longReason = reason.length > REASON_CLAMP_CHARACTERS;
     const modeledValues = [model.expectedNetCents, model.conservativeNetCents, model.stressNetCents, model.expectedRoiBp, model.conservativeRoiBp, model.stressRoiBp];
     const modeledAvailable = modeledValues.some(value => value !== null);

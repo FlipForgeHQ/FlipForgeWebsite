@@ -468,7 +468,40 @@
     return { title: `Couldn't load ${subject} right now.`, detail: message || "Try again in a moment. Nothing was filled in or estimated in its place.", reference: code };
   }
 
+  // PASS reason (backend decision-interpretation-v1, decisionReasonCode / decisionReasonCategory). A PASS that is not an
+  // economic loss says why. null = keep the surface's current wording: an economic loss, a decision saved without a
+  // reason code (older decisions keep their wording and "Decided under earlier rules" handling), or a legacy decision.
+  const PASS_REASON_TEXT = Object.freeze({
+    UNACCEPTABLE_RISK: "Risk too high: the risk on this listing is above FlipForge's limit for WATCH or BUY, even where the price could cover the cost.",
+    INSUFFICIENT_LIQUIDITY: "Not enough recent sales activity: too few recent completed sales show how readily this exact card resells.",
+    IDENTITY_NOT_CONFIRMED: "Identity not confirmed: the listing is not confirmed as this exact card, so FlipForge does not recommend it.",
+    EVIDENCE_LIMITED_SAVED_AS_PASS: "Saved as PASS under earlier rules: the price covered the cost, but there were too few completed sales of this exact card. Under current rules this would be VERIFY."
+  });
+  function decisionReasonCode(record) {
+    if (!record || typeof record !== "object") return "";
+    const sources = [record, record.governedDecision, record.decision, record.decisionReceipt, record.receipt,
+      record.latestReceipt, record.decisionTime];
+    for (const source of sources) {
+      if (!source || typeof source !== "object") continue;
+      const interpretation = source.decisionInterpretation && typeof source.decisionInterpretation === "object" ? source.decisionInterpretation : null;
+      if (interpretation && interpretation.legacyDecision === true) return "";
+      const code = typeof source.decisionReasonCode === "string" && source.decisionReasonCode.trim() ? source.decisionReasonCode
+        : interpretation && typeof interpretation.reasonCode === "string" ? interpretation.reasonCode : "";
+      if (code.trim()) return code.trim().toUpperCase();
+    }
+    return "";
+  }
+  function passReasonText(record) {
+    if (!record || typeof record !== "object" || isLegacy(record)) return null;
+    const verdict = savedVerdict(record).replace(/^SAVED\s+/, "");
+    if (verdict && verdict !== "PASS") return null;
+    return PASS_REASON_TEXT[decisionReasonCode(record)] || null;
+  }
+
   window.FlipForgeTrustDisplay = Object.freeze({
+    PASS_REASON_TEXT,
+    decisionReasonCode,
+    passReasonText,
     LEGACY_BADGE,
     LEGACY_HISTORICAL,
     LEGACY_SUPPORT_STATUS,

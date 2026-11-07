@@ -487,9 +487,10 @@
     const savedAt = readableDate(item.observedAt);
     const savedText = savedAt ? `Saved to your account · ${savedAt}` : "Saved to your account";
     const decision = savedVerdict(item);
+    const passReason = decision === "PASS" && trust()?.passReasonText?.(item);
     const meaning = isLegacy
       ? `Saved recommendation: ${decision}. ${trust()?.LEGACY_HISTORICAL || "It is not presented as currently supported."}`
-      : (DECISION_COPY[decision] || UNKNOWN_DECISION_COPY);
+      : passReason || (DECISION_COPY[decision] || UNKNOWN_DECISION_COPY);
     const risk = decisionRisk(item);
     // Supported value as this page shows it (also read by the signal stack and the evidence passport below).
     const receipt = !supportedAvailable ? savedReceipt(item) : null;
@@ -506,6 +507,7 @@
     const riskText = scoreText(riskScore(item));
     const maxBuyText = maxBuyCents !== null && maxBuyCents > 0 ? (trust()?.centsText ? trust().centsText(maxBuyCents) : moneyFromCents(maxBuyCents)) : "";
     const copy = decisionNextCopy(decision, isLegacy, { atDecision, evidenceReady, serverText: [item.statusMessage, item.authorityBoundary, item.changeSummary].join(" ") });
+    if (passReason && !isLegacy) copy.reason = passReason;
     const id = encodeURIComponent(item.id);
     const heroSection = `<section class="panel customer-intelligence-hero" data-ff-card-id="${escapeHtml(String(item.id || ""))}"><div class="panel-body"><div class="customer-hero-copy"><span class="eyebrow">${escapeHtml(item.platform || "Saved marketplace record")}</span><div class="customer-hero-title">${heroDecisionBadge(item, reconciliation)}<h2>${escapeHtml(title)}</h2></div><p class="ff-decision-meaning">${escapeHtml(meaning)}</p><div class="ff-risk-summary"><span>Decision risk</span><strong>${escapeHtml(risk.label)}</strong>${risk.score ? `<small>${escapeHtml(risk.score)} saved decision risk</small>` : ""}</div>${display.identity ? `<p>${escapeHtml(display.identity)}</p>` : ""}${legacy}<div class="customer-tracked-state"><span class="check-mark ok">✓</span><span><strong>Decision saved</strong><small>${escapeHtml(savedText)}</small></span></div></div><div class="customer-value-summary"><span>Ask when evaluated</span><strong>${askText}</strong><span>Supported value</span>${supportedMarkup}${maxBuyMarkup}${trust() ? trust().legacySavedValuesMarkup(item) : ""}<div class="customer-supported-value-note" data-supported-value-note="true"><strong>How to read supported value</strong><span>This is the value supported by accepted evidence in the saved evaluation. It is not a guaranteed sale price or an instruction to buy.</span></div></div></div></section>`;
     // A BUY whose exact-card check is not on record as confirmed carries its disclosure directly under the result.
