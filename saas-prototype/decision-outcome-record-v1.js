@@ -14,6 +14,7 @@
   const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
   const ROUTE = /^#\/opportunities\/([^/?#]+)$/;
   const PANEL = "data-decision-outcome-panel";
+  const BOUND = "data-decision-outcome-opportunity"; // the card this panel instance belongs to
   const ACTION_LABELS = Object.freeze({ BOUGHT: "I bought it", PASSED: "I passed", SOLD: "I sold it" });
   const PLATFORMS = Object.freeze({ "": "Not specified", EBAY: "eBay", GOLDIN: "Goldin", FANATICS_COLLECT: "Fanatics Collect",
     HERITAGE: "Heritage", PWCC: "PWCC", MYSLABS: "MySlabs", ALT: "Alt", WHATNOT: "Whatnot", COMC: "COMC", MERCARI: "Mercari",
@@ -27,6 +28,34 @@
     ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(cents) / 100) : "";
   const uuid = () => (window.crypto?.randomUUID ? window.crypto.randomUUID() : `outcome-${Date.now()}-${Math.random().toString(16).slice(2)}`);
   const eligibleHost = () => (PRODUCTION_HOST.test(location.hostname) || PREVIEW_HOST.test(location.hostname)) && APP_PATH.test(location.pathname);
+
+  // The card is always read from the current route, never from state left over from an earlier card.
+  function routeOpportunityId() {
+    const match = String(location.hash || "").match(ROUTE);
+    if (!match) return "";
+    let id = "";
+    try { id = decodeURIComponent(match[1]); } catch (_) { return ""; }
+    return SAFE_ID.test(id) ? id : "";
+  }
+
+  // The route-owned saved-decision view for this card inside #main-content (re-rendered on every route change),
+  // never the persistent workspace shell.
+  function savedDecisionView(id) {
+    const view = document.getElementById("main-content")?.querySelector(".customer-saved-decisions-page");
+    if (!view || !view.querySelector("[data-card-reevaluate]")) return null;
+    return view.querySelector("[data-ff-card-id]")?.getAttribute("data-ff-card-id") === id ? view : null;
+  }
+
+  function resetFor(id) {
+    state.opportunityId = id; state.records = null; state.error = ""; state.notice = ""; state.busy = false;
+  }
+
+  // Drops any panel that is not for the card on screen, or not inside the route-owned view.
+  function removeStalePanels(id) {
+    document.querySelectorAll(`[${PANEL}]`).forEach(panel => {
+      if (!id || panel.getAttribute(BOUND) !== id || !panel.closest("#main-content .customer-saved-decisions-page")) panel.remove();
+    });
+  }
 
   async function request(opportunityId, method = "GET", body = undefined) {
     if (!SAFE_ID.test(opportunityId)) throw new Error("The card identifier is invalid.");
@@ -88,7 +117,11 @@
   }
 
   async function save(form, latest) {
-    const card = state.opportunityId;
+    const card = routeOpportunityId();
+    if (!card || form.closest(`[${PANEL}]`)?.getAttribute(BOUND) !== card || card !== state.opportunityId) {
+      removeStalePanels(card);
+      return;
+    }
     const action = form.outcomeAction.value;
     const body = { clientReportId: uuid(), action };
     if (action !== "PASSED") {
@@ -117,22 +150,23 @@
 
   async function mount() {
     if (!eligibleHost() || state.featureOff) return false;
-    const match = String(location.hash || "").match(ROUTE);
-    if (!match) return true;
-    const id = decodeURIComponent(match[1]);
-    if (!SAFE_ID.test(id) || document.querySelector(`[${PANEL}]`)) return true;
-    const anchor = document.querySelector("[data-card-reevaluate]")?.closest("section, article");
-    // Placed after the saved-decision view, never inside the CDI Signal Stack.
+    const id = routeOpportunityId();
+    removeStalePanels(id);
+    if (!id) { if (state.opportunityId) resetFor(""); return true; }
+    if (document.querySelector(`[${PANEL}]`)) return true;
+    const anchor = savedDecisionView(id);
+    // Placed at the end of the route-owned saved-decision view, never inside the CDI Signal Stack.
     if (!anchor || anchor.closest("[data-ff-cdi-signal]")) return false;
-    if (id !== state.opportunityId) { state.records = null; state.error = ""; state.notice = ""; state.busy = false; }
-    state.opportunityId = id;
-    anchor.insertAdjacentHTML("afterend", `<section class="panel ff-decision-outcome" ${PANEL}></section>`);
+    const reuse = id === state.opportunityId && Array.isArray(state.records);
+    if (!reuse) resetFor(id);
+    anchor.insertAdjacentHTML("beforeend", `<section class="panel ff-decision-outcome" ${PANEL} ${BOUND}="${escapeHtml(id)}"></section>`);
     paint();
+    if (reuse) return true;
     try {
       const data = await request(id);
       if (id === state.opportunityId) { state.records = data.records || []; paint(); }
     } catch (error) {
-      if (error.status === 404) { state.featureOff = true; document.querySelector(`[${PANEL}]`)?.remove(); }
+      if (error.status === 404) { state.featureOff = true; document.querySelectorAll(`[${PANEL}]`).forEach(panel => panel.remove()); }
       else if (id === state.opportunityId) { state.error = "Couldn't load your reports right now."; paint(); }
     }
     return true;
@@ -147,7 +181,8 @@
     };
     tick();
   }
-  window.addEventListener("hashchange", schedule);
+  // A route or card change drops the previous card's panel at once, before the next view renders.
+  window.addEventListener("hashchange", () => { removeStalePanels(""); resetFor(""); schedule(); });
   schedule();
 
   window.FlipForgeDecisionOutcomes = Object.freeze({ mount, isEligible: eligibleHost, ACTION_LABELS });

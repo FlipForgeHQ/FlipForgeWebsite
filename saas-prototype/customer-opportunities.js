@@ -587,7 +587,13 @@
     return `<div class="page customer-intelligence-page customer-saved-decisions-page">${pageHeading(DETAIL_HEADING, actions)}${workflowStripMarkup("understand")}${hero}${savedDecisionBar(item)}${primaryActions}${receiptPanel}${stack}${passport}${betaDecisionCheck()}${valueIntelligencePanel(item)}${metrics}${betaSurface() ? "" : decisionExplainer()}<details class="ff-cdi-deep ff-cdi-deep-saved" data-ff-cdi-deep><summary><span><strong>View advanced evidence and saved details</strong><small>Select to expand or collapse the four checks, evidence rows, and PSA context.</small></span><span class="ff-ux-disclosure-indicator" aria-hidden="true"></span></summary>${grid}</details>${partial}</div>`;
   }
 
-  function renderCurrent() { if (!state.main) return; state.main.innerHTML = state.selectedId ? detailView() : listView(); bindActions(); }
+  function renderCurrent() {
+    if (!state.main) return;
+    state.main.innerHTML = state.selectedId ? detailView() : listView();
+    bindActions();
+    // "Record what you did" (decision-outcome-record-v1.js) re-attaches to this freshly rendered view.
+    window.FlipForgeDecisionOutcomes?.mount?.();
+  }
   function bindActions() {
     if (!state.main) return;
     state.main.querySelectorAll?.("[data-customer-opportunity]").forEach(row => {
