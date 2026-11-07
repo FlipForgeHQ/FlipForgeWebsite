@@ -4,6 +4,7 @@ import { createBetaApplicationsHandler } from "../netlify/modern-functions/beta-
 import { createBetaFeedbackHandler } from "../netlify/modern-functions/beta-feedback.mjs";
 import { createBetaOperatorHandler } from "../netlify/modern-functions/beta-operator.mjs";
 import { createConversionEventHandler } from "../netlify/modern-functions/conversion-event.mjs";
+import { founderReport } from "../netlify/modern-functions/lib/beta-operations-core.mjs";
 
 class MemoryStore {
   constructor() { this.records = new Map(); this.etags = new Map(); this.sequence = 0; }
@@ -106,6 +107,10 @@ const checks = [
   ["privacy discloses event retention", privacy.includes("no more than 90 days")],
   ["operator page receives no-store security headers", netlify.includes('for = "/operator-beta.html"') && netlify.includes('Cache-Control = "no-store"')],
   ["operator contract documents setup", docs.includes("flipforge-operator") && docs.includes("sign out and back in")],
+  ["founder report is served only inside the operator-gated dashboard", operatorSource.includes("founderReport: founderReport(retainedEvents, applications, now)")
+    && !/founderReport/.test(eventSource) && operatorHtml.includes("data-founder-report") && operatorClient.includes("function renderFounderReport()")],
+  ["founder report renders counts only, in Eastern Time", operatorClient.includes('timeZone:"America/New_York"') && operatorClient.includes("Aggregates only: no names, emails, cards, prices or verdicts.")
+    && !/(?:\.email|applicant|\.name\b|fullName)/.test(operatorClient.slice(operatorClient.indexOf("function renderFounderReport()"), operatorClient.indexOf("function filtered()")))],
   ["operator contract preserves authority", docs.includes("grants no billing, bid, purchase, sale, grading, evidence-acceptance, or transaction authority")],
 ];
 
@@ -326,8 +331,35 @@ assert.equal(dashboard.applications.length, 0);
 assert.equal((await intake(appRequest(validApplication))).status, 202);
 assert.equal((await applicationStore.list({ prefix: "application/" })).blobs.length, 1);
 
+// Founder report: aggregate counts only, from applications and allowlisted event records. Applicant identity, free
+// text and anything outside the campaign slugs never appear in it.
+{
+  const now = new Date("2026-11-05T21:00:00.000Z");
+  const campaign = { source: "instagram", medium: "social", campaign: "wysbi26", content: "w02v01" };
+  const report = founderReport([
+    { event: "beta_cta_clicked", page: "home", placement: "hero", campaign, occurredAt: "2026-11-05T20:00:00.000Z" },
+    { event: "portfolio_viewed", page: "beta-app", placement: "workflow", campaign: null, occurredAt: "2026-11-01T20:00:00.000Z" },
+    { event: "portfolio_viewed", page: "beta-app", placement: "workflow", campaign: null, occurredAt: "2026-10-20T20:00:00.000Z" },
+    { event: "home_shortcut_clicked", page: "beta-app", placement: "shortcut_heat", campaign: null, occurredAt: "2026-11-05T20:00:00.000Z" },
+    { event: "portfolio_viewed", page: "beta-app", placement: "workflow", campaign: null, occurredAt: "2026-07-01T20:00:00.000Z" },
+  ], [
+    { status: "ACTIVATED", submittedAt: "2026-11-04T00:00:00.000Z", campaign, applicant: { name: "Report Person", email: "report-person@example.com" } },
+    { status: "INVITE_SENT", submittedAt: "2026-09-01T00:00:00.000Z", campaign: null, applicant: { name: "Second Person", email: "second@example.com" }, review: { notes: "private note" } },
+    { status: "REMOVED", submittedAt: "2026-11-04T00:00:00.000Z", campaign, applicant: { name: "Removed Person", email: "removed@example.com" } },
+  ], now);
+  const text = JSON.stringify(report);
+  assert.ok(!/example\.com|Person|private note/.test(text), "Founder report must not carry applicant identity or notes");
+  assert.deepEqual(report.campaigns.applications, [
+    { source: "instagram", medium: "social", campaign: "wysbi26", content: "w02v01", allTime: 1, last30Days: 1 },
+    { source: null, medium: null, campaign: null, content: null, allTime: 1, last30Days: 0, unattributed: true }]);
+  assert.deepEqual(report.adoption.people.map(item => item.value), [2, 2, 2, 1]);
+  const portfolio = report.featureUsage.find(item => item.event === "portfolio_viewed");
+  assert.deepEqual([portfolio.last7Days, portfolio.last30Days], [1, 2], "7/30-day windows; records past 90 days are ignored");
+  assert.deepEqual(report.homeShortcuts.find(item => item.placement === "shortcut_heat"), { placement: "shortcut_heat", label: "Forge Heat", last7Days: 1, last30Days: 1 });
+}
+
 console.log = originalLog;
 assert.ok(operationLogs.every(line => !line.includes("tester@example.com") && !line.includes("Test Applicant") && !line.includes("never-log@example.com") && !line.includes("feedback@example.com") && !line.includes("original VERIFY")));
 
 if (failed) process.exit(1);
-console.log(`Beta operator workflow validation passed: ${checks.length + 53} checks.`);
+console.log(`Beta operator workflow validation passed: ${checks.length + 58} checks.`);

@@ -443,6 +443,93 @@ export function funnelSummary(events, applications, now = new Date()) {
   };
 }
 
+// Private Beta workspace use, as beta-session-v1.js sends it (page "beta-app"). Each is counted at most once per
+// browser tab, so a count is "tabs in which this happened", never people.
+export const IN_APP_ACTIVITIES = Object.freeze([
+  ["home_first_use_viewed", "First use: Home with no saved decisions"],
+  ["home_evaluate_clicked", "Home: Evaluate a card clicked"],
+  ["evaluation_started", "Evaluation started"],
+  ["evaluation_completed", "Evaluation completed"],
+  ["decision_saved", "Decision saved"],
+  ["home_returning_viewed", "Returning use: Home with saved decisions"],
+  ["home_shortcut_clicked", "Home shortcut opened"],
+  ["decision_checks_viewed", "Decision checks viewed (See why)"],
+  ["decision_explanation_viewed", "Understand this decision opened"],
+  ["decision_receipt_opened", "Decision Receipt opened"],
+  ["evidence_viewed", "Evidence viewed"],
+  ["tracking_viewed", "Tracking viewed"],
+  ["portfolio_viewed", "Portfolio viewed"],
+  ["alerts_viewed", "Alerts viewed"],
+  ["forge_heat_viewed", "Forge Heat viewed"],
+]);
+const HOME_SHORTCUTS = Object.freeze([["shortcut_saved", "Saved Decisions"], ["shortcut_outcomes", "Outcome Intelligence"],
+  ["shortcut_heat", "Forge Heat"], ["shortcut_portfolio", "Portfolio"]]);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// The founder report: aggregate counts only. No applicant name, email, account, card, listing, price, verdict or free
+// text is read into it; campaign values are the already server-validated lowercase slugs from known sources.
+export function founderReport(events, applications, now = new Date()) {
+  const nowMs = now.getTime();
+  const within = (value, days) => {
+    const at = Date.parse(value || "");
+    return Number.isFinite(at) && at >= nowMs - days * DAY_MS && at <= nowMs;
+  };
+  const campaignKey = campaign => (campaign && CAMPAIGN_SOURCES.includes(campaign.source)
+    ? [campaign.source, campaign.medium, campaign.campaign, campaign.content].map(value => (typeof value === "string" && CAMPAIGN_VALUE.test(value) ? value : "")).join("|")
+    : "");
+  const tally = (rows, keyOf) => {
+    const counts = new Map();
+    for (const row of rows) { const key = keyOf(row); counts.set(key, (counts.get(key) || 0) + 1); }
+    return counts;
+  };
+  const campaignRows = (allRows, recentRows, label) => {
+    const all = tally(allRows, row => campaignKey(row.campaign));
+    const recent = tally(recentRows, row => campaignKey(row.campaign));
+    return [...all.keys()].filter(Boolean).sort().map(key => {
+      const [source, medium, campaign, content] = key.split("|");
+      return { source, medium: medium || null, campaign: campaign || null, content: content || null, [label]: all.get(key), last30Days: recent.get(key) || 0 };
+    }).concat([{ source: null, medium: null, campaign: null, content: null, [label]: all.get("") || 0, last30Days: recent.get("") || 0, unattributed: true }]);
+  };
+
+  const active = applications.filter(item => item?.status !== "REMOVED");
+  const recentApplications = active.filter(item => within(item.submittedAt, 30));
+  const retained = events.filter(event => within(event?.occurredAt, 90));
+  const ctaEvents = retained.filter(event => event?.event === "beta_cta_clicked");
+  const inApp = retained.filter(event => event?.page === "beta-app");
+  const count = (rows, name, days, placement) => rows.filter(event => event.event === name && within(event.occurredAt, days)
+    && (placement === undefined || event.placement === placement)).length;
+  const reached = statuses => active.filter(item => statuses.includes(item.status)).length;
+
+  return {
+    generatedAt: now.toISOString(),
+    countingBoundary: "AGGREGATE_COUNTS_ONLY",
+    campaigns: {
+      applications: campaignRows(active, recentApplications, "allTime"),
+      betaCtaClicks: campaignRows(ctaEvents, ctaEvents.filter(event => within(event.occurredAt, 30)), "last90Days"),
+    },
+    adoption: {
+      people: [
+        ["Applications", active.length],
+        ["Approved or later", reached(["APPROVED", "INVITE_SENT", "ACTIVATED"])],
+        ["Invitation sent", reached(["INVITE_SENT", "ACTIVATED"])],
+        ["Activated (accepted invite and signed in)", reached(["ACTIVATED"])],
+      ].map(([label, value]) => ({ label, value })),
+      workspaceTabs30Days: ["home_first_use_viewed", "evaluation_started", "evaluation_completed", "decision_saved", "home_returning_viewed"]
+        .map(name => ({ event: name, label: IN_APP_ACTIVITIES.find(([key]) => key === name)[1], value: count(inApp, name, 30) })),
+    },
+    engagement: {
+      inAppEvents7Days: inApp.filter(event => within(event.occurredAt, 7)).length,
+      inAppEvents30Days: inApp.filter(event => within(event.occurredAt, 30)).length,
+      applications7Days: active.filter(item => within(item.submittedAt, 7)).length,
+      applications30Days: recentApplications.length,
+    },
+    featureUsage: IN_APP_ACTIVITIES.map(([event, label]) => ({ event, label, last7Days: count(inApp, event, 7), last30Days: count(inApp, event, 30) })),
+    homeShortcuts: HOME_SHORTCUTS.map(([placement, label]) => ({ placement, label,
+      last7Days: count(inApp, "home_shortcut_clicked", 7, placement), last30Days: count(inApp, "home_shortcut_clicked", 30, placement) })),
+    notInThisView: "Per-account adoption steps (accounts that evaluated, tracked, marked owned, entered costs or reported a sale) are counted by the backend's read-only BETA_ADOPTION_AGGREGATE report, which is written to the backend service log only.",
+  };
+}
+
 export function statusSummary(applications) {
   const byStatus = Object.fromEntries(APPLICATION_STATUSES.map(status => [status, 0]));
   for (const item of applications) {

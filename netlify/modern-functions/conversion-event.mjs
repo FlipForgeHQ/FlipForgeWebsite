@@ -27,6 +27,18 @@ const EVENT_NAMES = new Set([
   "app_screen_viewed",
   "hero_jump_clicked",
   "section_viewed",
+  // Private Beta workspace (/app/beta) use, sent only by saas-prototype/beta-session-v1.js with the fixed page
+  // "beta-app" and the placement "workflow" (or a shortcut_* placement below). Counted once per browser tab.
+  "home_first_use_viewed",
+  "home_returning_viewed",
+  "home_evaluate_clicked",
+  "home_shortcut_clicked",
+  "decision_checks_viewed",
+  "decision_receipt_opened",
+  "evidence_viewed",
+  "portfolio_viewed",
+  "alerts_viewed",
+  "forge_heat_viewed",
 ]);
 
 const PAGE_NAMES = new Set([
@@ -76,6 +88,11 @@ const PLACEMENTS = new Set([
   "hero-challenge",
   "hero-app",
   "inside-app",
+  // Home shortcuts (beta-session-v1.js, home_shortcut_clicked).
+  "shortcut_saved",
+  "shortcut_outcomes",
+  "shortcut_heat",
+  "shortcut_portfolio",
   "unknown",
 ]);
 

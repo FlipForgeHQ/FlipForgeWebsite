@@ -65,8 +65,11 @@ const checks = [
   ["conversion service has strict allowlists", server.includes("EVENT_NAMES") && server.includes("PAGE_NAMES") && server.includes("PLACEMENTS")],
   ["conversion service excludes sensitive dimensions", ["user agent", "referrer", "query string", "email", "account", "card", "listing", "price", "recommendation"].every(value => server.includes(value))],
   ["beta session milestone names are allowlisted server-side", sessionEvents.every(value => server.includes(`\"${value}\"`))],
-  ["beta session runtime emits every approved milestone", sessionEvents.every(value => betaSession.includes(`emit(\"${value}\")`))],
-  ["beta session telemetry payload contains only event page and placement", betaSession.includes("const body = JSON.stringify({ event, page: PAGE, placement: PLACEMENT });")],
+  // Screen views (tracking_viewed and the other route views) are emitted from the fixed ROUTE_VIEWS table.
+  ["beta session runtime emits every approved milestone", sessionEvents.every(value => betaSession.includes(`emit(\"${value}\")`) || new RegExp(`ROUTE_VIEWS = Object\\.freeze\\(\\{[^}]*: "${value}"`).test(betaSession))
+    && betaSession.includes("emit(ROUTE_VIEWS[parts[0]])")],
+  ["beta session telemetry payload contains only event page and placement", betaSession.includes("const body = JSON.stringify({ event, page: PAGE, placement });")
+    && betaSession.includes("if (!EVENTS.has(event) || !PLACEMENTS.has(placement)) return;") && betaSession.includes('const PAGE = "beta-app";')],
   ["beta session presentation files are loaded last", appIndex.includes('href="beta-session-v1.css"') && /customer-cdi-signal-stack-v1\.js[\s\S]*beta-session-v1\.js[\s\S]*<\/body>/.test(appIndex)],
   ["beta session hides technical provider status and result-count control", discovery.includes('const provider = beta ? "" : providerPanel();') && discovery.includes("<h2>Connected source status</h2>") && discoverySearchPanel.includes('? `<input type="hidden" name="limit" value=') && discoverySearchPanel.includes('<select name="limit">') && !betaSession.includes("Connected source status") && !betaSession.includes("ffBetaHiddenControl")],
   ["beta primary action is explicit about searching listings", discovery.includes('submit: "Search listings"') && discovery.includes('submitAria: "Search active listings for the card entered"') && discoverySearchPanel.includes('type="submit" aria-label="${escapeHtml(labels.submitAria)}"') && !discovery.includes('"Find this card"') && !betaSession.includes("submit.textContent")],
