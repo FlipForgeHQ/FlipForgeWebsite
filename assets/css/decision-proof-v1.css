@@ -549,7 +549,7 @@
 }
 
 .ff-proof-page-main{
-  padding-bottom:92px;
+  padding-bottom:var(--ff-space-page-end);
   background:
     radial-gradient(circle at 80% 6%,rgba(215,181,109,.08),transparent 23%),
     linear-gradient(180deg,#05070a 0%,#090d12 100%);
@@ -558,7 +558,7 @@
 .ff-proof-page-hero{
   position:relative;
   overflow:hidden;
-  padding:92px 24px 70px;
+  padding:var(--ff-space-hero-pad-top) 24px var(--ff-space-hero-pad-bottom);
   color:var(--ff-proof-white);
   background:
     radial-gradient(circle at 82% 10%,rgba(215,181,109,.13),transparent 28%),
@@ -623,7 +623,7 @@
 }
 
 .ff-proof-page-section{
-  padding:64px 24px 0;
+  padding:var(--ff-space-block-lg) 24px 0;
 }
 
 .ff-proof-page-section h2{
@@ -738,7 +738,7 @@
 }
 
 .ff-proof-page-cta{
-  margin-top:58px;
+  margin-top:var(--ff-space-block-lg);
   padding:32px;
   display:flex;
   justify-content:space-between;
@@ -854,8 +854,8 @@
   .ff-proof-actions{display:grid;grid-template-columns:1fr}
   .ff-proof-button{width:100%}
   .ff-proof-progress-labels{font-size:.77rem}
-  .ff-proof-page-hero{padding:70px 16px 50px}
-  .ff-proof-page-section{padding:48px 16px 0}
+  .ff-proof-page-hero{padding-left:16px;padding-right:16px}
+  .ff-proof-page-section{padding-left:16px;padding-right:16px}
   .ff-proof-method-row{grid-template-columns:1fr;gap:6px}
   .ff-proof-page-cta{align-items:flex-start;flex-direction:column;padding:24px}
   .ff-proof-footer-inner{align-items:flex-start;flex-direction:column}

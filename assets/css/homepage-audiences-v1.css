@@ -12,7 +12,7 @@
 .ff10-aud-head .ff10-lede{max-width:24em}
 
 /* ---------- Selector ---------- */
-.ff10-aud-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin-top:clamp(48px,6vw,88px);border-bottom:1px solid var(--line-d)}
+.ff10-aud-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin-top:var(--gap-lg);border-bottom:1px solid var(--line-d)}
 .ff10-aud-tab{position:relative;display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:baseline;text-align:left;
   padding:22px 18px 24px 0;border:0;background:none;color:var(--s);font:inherit;cursor:pointer;transition:color .2s}
 .ff10-aud-tab::after{content:"";position:absolute;left:0;right:18px;bottom:-1px;height:3px;background:var(--g);
@@ -31,7 +31,7 @@
 .ff10-aud:not(.ff10-aud-ready) .ff10-aud-panel+.ff10-aud-panel{margin-top:72px;padding-top:72px;border-top:1px solid var(--line-d)}
 
 /* ---------- Panel ---------- */
-.ff10-aud-panels{margin-top:clamp(40px,5vw,72px)}
+.ff10-aud-panels{margin-top:var(--ff-space-block)}
 .ff10-aud-panel{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:clamp(32px,5vw,88px);align-items:start}
 .ff10-aud-panel[hidden]{display:none}
 .ff10-aud-ready .ff10-aud-panel.ff10-aud-enter .ff10-aud-lead,.ff10-aud-ready .ff10-aud-panel.ff10-aud-enter .ff10-aud-frame{animation:ff10-aud-in .5s cubic-bezier(.2,.7,.2,1) both}
@@ -87,7 +87,7 @@
 /* ---------- Next action and closing ---------- */
 .ff10-aud-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
 .ff10-aud-close{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:16px 48px;
-  margin-top:clamp(56px,6vw,96px);padding-top:32px;border-top:2px solid rgba(255,255,255,.22)}
+  margin-top:var(--gap-lg);padding-top:32px;border-top:2px solid rgba(255,255,255,.22)}
 .ff10-aud-closing{max-width:22em;font-size:clamp(24px,2.5vw,38px);font-weight:700;letter-spacing:-.03em;line-height:1.15;color:var(--w)}
 .ff10-aud-sign{font-size:clamp(18px,1.6vw,22px);font-weight:700;letter-spacing:-.01em;color:var(--g)}
 

@@ -6,8 +6,9 @@
 
 :root{
   --ff-site-max:1180px;
-  --ff-site-section-y:54px;
-  --ff-site-section-y-mobile:36px;
+  /* Section rhythm comes from the public spacing scale in public-shell-contract-v1.css (2026-11-06). */
+  --ff-site-section-y:var(--ff-space-section);
+  --ff-site-section-y-mobile:var(--ff-space-section);
   --ff-site-card-pad:21px;
   --ff-site-copy:#b9c0ca;
 }
@@ -48,7 +49,8 @@ body.ff-support-v3 .btn{
 }
 
 body.ff-marketing-page-v3 .section,
-body.ff-support-v3 .section{
+body.ff-support-v3 .section,
+body.ff-support-v3 .ff-lab-section{
   padding-top:var(--ff-site-section-y)!important;
   padding-bottom:var(--ff-site-section-y)!important;
 }
@@ -173,11 +175,7 @@ body.ff-marketing-v3 .ff-validation-footer{
 }
 
 /* ---------- Product + About ---------- */
-body.ff-marketing-page-v3 .page-hero{
-  margin-top:18px!important;
-  padding:48px 36px 38px!important;
-}
-
+/* Page-intro margin and padding are owned by public-shell-contract-v1.css (one intro composition). */
 body.ff-marketing-page-v3 .page-hero h1{
   max-width:820px!important;
   margin-bottom:15px!important;
@@ -209,7 +207,7 @@ body.ff-support-v3 .ff-aw-question h3{
 }
 
 body.ff-marketing-page-v3 .ff-product-section{
-  padding:52px 22px!important;
+  padding:var(--ff-site-section-y) 22px!important;
 }
 
 body.ff-marketing-page-v3 .ff-product-section .ff-product-grid{
@@ -239,11 +237,6 @@ body.ff-marketing-page-v3 .ff-mission-card{
 }
 
 /* ---------- Evidence Lab / Launch Plans / Beta / FAQ ---------- */
-body.ff-support-v3 .page-hero{
-  margin-top:16px!important;
-  padding:44px 34px 34px!important;
-}
-
 body.ff-support-v3 .page-hero h1{
   max-width:820px!important;
   margin-bottom:14px!important;
@@ -318,8 +311,8 @@ body.ff-support-v3 .faq-item button{
 
 /* ---------- Shared CTA ---------- */
 .ff-aw-customer-cta{
-  margin-top:12px!important;
-  margin-bottom:54px!important;
+  margin-top:var(--ff-space-stack)!important;
+  margin-bottom:var(--ff-space-page-end)!important;
   padding:28px!important;
 }
 
@@ -384,12 +377,6 @@ body.ff-support-v3 .faq-item button{
   body.ff-support-v3 .ff-lab-section{
     padding-top:var(--ff-site-section-y-mobile)!important;
     padding-bottom:var(--ff-site-section-y-mobile)!important;
-  }
-
-  body.ff-marketing-page-v3 .page-hero,
-  body.ff-support-v3 .page-hero{
-    margin:10px 10px 0!important;
-    padding:34px 19px 29px!important;
   }
 
   body.ff-marketing-page-v3 .page-hero h1,
