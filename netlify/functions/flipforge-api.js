@@ -32,6 +32,8 @@ const ROUTES = [
   { method: "GET", pattern: /^\/api\/v1\/lifecycle$/ },
   { method: "GET", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
   { method: "PUT", pattern: /^\/api\/v1\/lifecycle\/[A-Za-z0-9._:-]+$/ },
+  { method: "GET", pattern: /^\/api\/v1\/decision-outcomes\/[A-Za-z0-9._:-]+$/ },
+  { method: "POST", pattern: /^\/api\/v1\/decision-outcomes\/[A-Za-z0-9._:-]+$/ },
   { method: "GET", pattern: /^\/api\/v1\/reported-sales$/ },
   { method: "GET", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+$/ },
   { method: "POST", pattern: /^\/api\/v1\/reported-sales\/[A-Za-z0-9._:-]+$/ },

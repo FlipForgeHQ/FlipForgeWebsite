@@ -10,6 +10,8 @@ on:
       - "saas-prototype/customer.html"
       - "netlify/functions/flipforge-api.js"
       - "scripts/audit-customer-reported-sales-ci.mjs"
+      - "saas-prototype/decision-outcome-record-v1.js"
+      - "scripts/validate-decision-outcome-record-v1.mjs"
       - "scripts/fixtures/customer-reported-sales/**"
       - ".github/workflows/customer-reported-sales.yml"
   workflow_dispatch:
@@ -65,6 +67,7 @@ jobs:
       - name: Lifecycle and gateway regressions
         run: |
           node scripts/validate-saas-customer-lifecycle.mjs
+          node scripts/validate-decision-outcome-record-v1.mjs
           node scripts/validate-saas-gateway-tenant-membership.mjs
           node scripts/validate-gateway-provider-disclosure.mjs
           node scripts/validate-production-prototype-isolation.mjs
