@@ -15,7 +15,7 @@ This was a **discoverability failure and misleading availability statement**, no
 3. **Visible Saved Decision links** in each saved-card table row; clickable row behavior is preserved but not the sole navigation cue. Keyboard actions on a nested link no longer re-trigger the row.
 4. **Evidence passport language corrected**: no unconditional promise of an attached full Decision Receipt. The seven-layer explainer and advanced details have clear Expand/Collapse affordances and large click targets.
 5. **Private Beta onboarding shown by default**: five actionable stages Find → Evaluate → Understand → Track → Manage, with real workspace links. Returning testers can go straight to Saved Decisions.
-6. **Customer App navigation clarified**: Tracking matches the Private Beta label, the established primary Decision Intelligence / Why / Evidence routes remain accessible, and advanced Compare / PSA / Export tools retain their labeled disclosure.
+6. **Customer App navigation clarified**: the full Customer App keeps its required Outcome Intelligence label on the tracking route (the Private Beta shell keeps Tracking), the plain-language guidance names only labels visible in each shell, the established primary Decision Intelligence / Why / Evidence routes remain accessible, and advanced Compare / PSA / Export tools retain their labeled disclosure.
 7. **Shared UX stylesheet** handles keyboard focus, hover states, disclosure affordances, 44px+ interactive areas, mobile stacking, and reduced-motion behavior. It is loaded by both authorized customer shells only.
 8. **Regression coverage**: 27 targeted code-level assertions wired into the existing sitewide UX validation. Two existing priority tests updated to verify the new action-first design. No API, provider, decision-engine or tenancy rules changed.
 
@@ -52,7 +52,7 @@ Record completion and hesitation points, button discoverability, misunderstandin
 - Newer saved decision: primary action tiles and opened server-record receipt.
 - Earlier-rules saved decision: conspicuous receipt-unavailable status.
 - Expanded advanced evidence with changed Expand/Collapse label, desktop and phone.
-- Full Customer App sidebar demonstrating aligned Tracking name and clearly distinguished advanced tools.
+- Full Customer App sidebar showing the Outcome Intelligence route label and clearly distinguished advanced tools.
 
 ## Release boundary
 

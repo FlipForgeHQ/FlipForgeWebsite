@@ -38,7 +38,9 @@ check("First-session five-step guide is visible by default", beta.includes("data
 check("Five stages have explicit real routes", ["#/discover", "#/evaluate", "#/opportunities", "#/tracking", "#/portfolio"].every(href => beta.includes('href="' + href + '"')) && beta.includes('private-beta-v2-stage-number">5'));
 check("Private Beta makes returning saved decisions obvious", beta.includes('Open an existing saved decision'));
 check("No promise that old receipts always exist", beta.includes("older decisions clearly say when it is unavailable"));
-check("Full customer navigation uses same Tracking name as Beta", customerShell.includes('data-route="tracking"') && customerShell.includes("</svg></span>Tracking</a>") && betaShell.includes("</svg></span>Tracking</a>"));
+check("Full customer navigation keeps the required Outcome Intelligence label on the tracking route", customerShell.includes('data-route="tracking"') && customerShell.includes("</svg></span>Outcome Intelligence</a>") && betaShell.includes("</svg></span>Tracking</a>"));
+check("Navigation guidance names only labels visible in that shell", customerShell.includes("Then use <strong>Outcome Intelligence</strong> or <strong>Portfolio</strong>.") && betaShell.includes("Then use <strong>Tracking</strong> or <strong>Portfolio</strong>."));
+check("Discoverability styles use the locked shell palette and the 14px text floor", !/#(d9dce1|d6d7db|ced2d8|d0d4da|d8dbe0|bfc7d2|cfd3d9|ccd1d8|12171f|15191f)/i.test(css) && !/gradient/.test(css) && [...css.matchAll(/font-size:\s*([\d.]+)rem/g)].every(m => Number(m[1]) >= 0.875));
 check("Extra full-app analysis tools stay in a labeled disclosure", customerShell.includes("Advanced analysis") && customerShell.includes("ff-advanced-nav"));
 check("Interactive tiles provide min-height, hover, focus, and mobile layout", css.includes("min-height:102px") && css.includes("focus-visible") && css.includes("@media(max-width:720px)") && css.includes("grid-template-columns:1fr"));
 check("No client-side decision engine or provider fetching introduced", !css.includes("script") && !beta.includes("data-ff-ux-open-receipt"));
