@@ -473,9 +473,9 @@
   // reason code (older decisions keep their wording and "Decided under earlier rules" handling), or a legacy decision.
   const PASS_REASON_TEXT = Object.freeze({
     UNACCEPTABLE_RISK: "Risk too high: the risk on this listing is above FlipForge's limit for WATCH or BUY, even where the price could cover the cost.",
-    INSUFFICIENT_LIQUIDITY: "Not enough recent sales activity: too few confirmed sales show how readily this exact card resells.",
+    INSUFFICIENT_LIQUIDITY: "Not enough recent sales activity: too few recent completed sales show how readily this exact card resells.",
     IDENTITY_NOT_CONFIRMED: "Identity not confirmed: the listing is not confirmed as this exact card, so FlipForge does not recommend it.",
-    EVIDENCE_LIMITED_SAVED_AS_PASS: "Saved as PASS under earlier rules: the price covered the cost, but there were too few confirmed sales. Under current rules this would be VERIFY."
+    EVIDENCE_LIMITED_SAVED_AS_PASS: "Saved as PASS under earlier rules: the price covered the cost, but there were too few completed sales of this exact card. Under current rules this would be VERIFY."
   });
   function decisionReasonCode(record) {
     if (!record || typeof record !== "object") return "";
