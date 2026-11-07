@@ -119,6 +119,33 @@ check("evidence visibility reads the neutral provider code and the provider summ
 const price = read("saas-prototype/price-intelligence.js");
 check("price intelligence shows a legacy result as not currently supported (no safety-contract error)", price.includes('"LEGACY_NOT_CURRENTLY_SUPPORTED"') && price.includes("Price thresholds are not shown for a result saved before current evidence rules"));
 
+// PASS reason (backend decision-interpretation-v1): a PASS that is not an economic loss says why; older or legacy
+// decisions keep their current wording (null here).
+const pass = (code, extra = {}) => ({ recommendation: "PASS", evidenceProvenanceStatus: "CURRENT", governedDecision: { available: true, recommendation: "PASS", decisionReasonCode: code }, ...extra });
+check("PASS reason: unacceptable risk reads 'risk too high'", /^Risk too high/.test(T.passReasonText(pass("UNACCEPTABLE_RISK")) || ""));
+check("PASS reason: insufficient liquidity reads 'not enough recent sales activity'", /^Not enough recent sales activity/.test(T.passReasonText(pass("INSUFFICIENT_LIQUIDITY")) || ""));
+check("PASS reason: identity not confirmed is named", /^Identity not confirmed/.test(T.passReasonText(pass("IDENTITY_NOT_CONFIRMED")) || ""));
+check("PASS reason: economic loss keeps the surface's current wording (null)", T.passReasonText(pass("ECONOMIC_LOSS_AT_PRICE")) === null);
+check("PASS reason: a saved decision without a code keeps the current wording (null)", T.passReasonText({ recommendation: "PASS", governedDecision: { recommendation: "PASS" } }) === null);
+check("PASS reason: a legacy decision keeps its legacy handling (null)", T.passReasonText(pass("UNACCEPTABLE_RISK", { evidenceProvenanceStatus: "LEGACY_CARDSIGHT_DERIVED" })) === null
+  && T.passReasonText({ recommendation: "PASS", governedDecision: { recommendation: "PASS", decisionInterpretation: { reasonCode: "UNACCEPTABLE_RISK", legacyDecision: true } } }) === null);
+check("PASS reason: read from the read-time interpretation when no top-level code", /^Risk too high/.test(T.passReasonText({ recommendation: "PASS", governedDecision: { recommendation: "PASS", decisionInterpretation: { reasonCode: "UNACCEPTABLE_RISK" } } }) || ""));
+check("PASS reason: never applied to another verdict", T.passReasonText({ recommendation: "VERIFY", governedDecision: { recommendation: "VERIFY", decisionReasonCode: "UNACCEPTABLE_RISK" } }) === null);
+check("PASS reason: an older evidence-limited PASS is labelled as decided under earlier rules", /earlier rules/.test(T.passReasonText(pass("EVIDENCE_LIMITED_SAVED_AS_PASS")) || ""));
+const wiring = {
+  "deal-check-v1.js": ["passReasonText(opportunity)", "model.passReason ? model.passReason"],
+  "decision-dashboard-v3.js": ["passReasonText(source)", 'model.verdict === "PASS" ? model.passReason'],
+  "customer-opportunities.js": ['decision === "PASS" && trust()?.passReasonText?.(item)', "copy.reason = passReason"],
+  "customer-lifecycle.js": ["badge(decision, decisionTone(decision), item)"],
+  "customer-portfolio.js": ["passReasonText(saved)", "data-pass-reason"]
+};
+for (const [file, needles] of Object.entries(wiring)) {
+  const source = read(`saas-prototype/${file}`);
+  check(`PASS reason wired in ${file}`, needles.every(n => source.includes(n)));
+}
+check("VERIFY still shows no Max Buy (opportunities and portfolio guards unchanged)",
+  read("saas-prototype/customer-opportunities.js").includes('maxBuyVerdict !== "VERIFY"') && read("saas-prototype/customer-portfolio.js").includes('verdict === "VERIFY") return { group: "verify-no-max-buy"'));
+
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
 console.log(`validate-customer-trust-display: ${checks.length - failed.length}/${checks.length} passed`);

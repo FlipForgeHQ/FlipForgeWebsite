@@ -384,6 +384,9 @@
 
     const receiptButton = event.target.closest?.("[data-ff-cdi-receipt]");
     if (!receiptButton) return;
+    // The saved-decision "Open Decision Receipt" action (customer-opportunities.js) opens its own receipt panel; it
+    // keeps data-ff-cdi-receipt only for the decision_receipt_opened event and must not be redirected here.
+    if (receiptButton.hasAttribute("data-ff-ux-open-receipt")) return;
     const root = receiptButton.closest(".ff-di-page, .customer-intelligence-page");
     const deep = root?.querySelector("[data-ff-cdi-deep]");
     if (deep) deep.open = true;

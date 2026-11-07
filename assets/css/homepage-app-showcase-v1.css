@@ -14,7 +14,7 @@
   font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g)}
 
 /* ---------- Selector ---------- */
-.ff10-app-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:clamp(48px,6vw,88px);border-bottom:1px solid var(--line-d)}
+.ff10-app-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:var(--gap-lg);border-bottom:1px solid var(--line-d)}
 .ff10-app-tab{position:relative;display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:baseline;text-align:left;
   padding:22px 18px 24px 0;border:0;background:none;color:var(--s);font:inherit;cursor:pointer;transition:color .2s}
 .ff10-app-tab::after{content:"";position:absolute;left:0;right:18px;bottom:-1px;height:3px;background:var(--g);
@@ -32,7 +32,7 @@
 .ff10-app:not(.ff10-app-ready) .ff10-app-panel+.ff10-app-panel{margin-top:72px;padding-top:72px;border-top:1px solid var(--line-d)}
 
 /* ---------- Panel ---------- */
-.ff10-app-panels{margin-top:clamp(40px,5vw,72px)}
+.ff10-app-panels{margin-top:var(--ff-space-block)}
 .ff10-app-panel{display:grid;grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr);gap:clamp(32px,5vw,80px);align-items:start}
 .ff10-app-panel[hidden]{display:none}
 .ff10-app-ready .ff10-app-panel.ff10-app-enter .ff10-app-lead,.ff10-app-ready .ff10-app-panel.ff10-app-enter .ff10-app-shot{animation:ff10-app-in .5s cubic-bezier(.2,.7,.2,1) both}
@@ -58,7 +58,7 @@
 .ff10-app-shot figcaption{margin-top:12px;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--s)}
 .ff10-app-shot-receipt figcaption{text-align:center}
 
-.ff10-app-note{margin-top:clamp(40px,5vw,64px)!important;padding-top:24px;border-top:1px solid var(--line-d);font-size:13px;line-height:1.6;color:var(--s);max-width:62em}
+.ff10-app-note{margin-top:var(--ff-space-block)!important;padding-top:24px;border-top:1px solid var(--line-d);font-size:13px;line-height:1.6;color:var(--s);max-width:62em}
 
 /* ---------- Responsive ---------- */
 @media(max-width:1100px){

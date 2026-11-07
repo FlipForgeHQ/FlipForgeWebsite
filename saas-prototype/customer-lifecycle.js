@@ -267,9 +267,10 @@
     PASS: "The current evidence does not justify this purchase at the evaluated price."
   });
 
-  function badge(label, tone = "neutral") {
+  function badge(label, tone = "neutral", record = null) {
     const decision = String(label || "").trim().toUpperCase();
-    const meaning = Object.prototype.hasOwnProperty.call(DECISION_COPY, decision) && String(label).trim() === decision ? DECISION_COPY[decision] : "";
+    const reason = decision === "PASS" && record && window.FlipForgeTrustDisplay?.passReasonText ? window.FlipForgeTrustDisplay.passReasonText(record) : null;
+    const meaning = Object.prototype.hasOwnProperty.call(DECISION_COPY, decision) && String(label).trim() === decision ? (reason || DECISION_COPY[decision]) : "";
     const decisionAttributes = meaning ? ` data-ff-decision="${decision}" title="${escapeHtml(meaning)}" aria-label="${escapeHtml(`${decision}. ${meaning}`)}"` : "";
     return `<span class="staging-status staging-status-${escapeHtml(tone)}"${decisionAttributes}>${escapeHtml(label)}</span>`;
   }
@@ -653,7 +654,7 @@
     const reviewing = state.reviewing === alertId;
     const recorded = item.observedAt ? whenText(item.observedAt, "") : "";
     const reviewedLine = mode === "reviewed" && item.reviewedAt ? `<small>Reviewed ${escapeHtml(whenText(item.reviewedAt, ""))}</small>` : "";
-    const badges = `${item.newSinceLastVisit === true ? badge("New", "buy") : ""}${decision ? badge(decision, decisionTone(decision)) : ""}`;
+    const badges = `${item.newSinceLastVisit === true ? badge("New", "buy") : ""}${decision ? badge(decision, decisionTone(decision), item) : ""}`;
     const rules = item.decidedUnderEarlierRules === true ? `<p class="ff-alert-rules">${escapeHtml(item.rulesNote || "Decided under earlier rules. The saved decision and its Max Buy are kept exactly as they were made.")}</p>` : "";
     const actions = [
       `<a class="button button-secondary" href="#/opportunities/${encodeURIComponent(id)}">Open decision</a>`,

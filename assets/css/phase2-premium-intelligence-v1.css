@@ -35,22 +35,6 @@ body.ff-phase2-ready main{overflow:clip}
 .ff-phase2-public .ff-dic-heading{
   position:relative;
 }
-.ff-phase2-public .page-hero::after,
-.ff-phase2-public .ff-dic-heading::after{
-  content:"";
-  display:block;
-  width:min(260px,42vw);
-  height:2px;
-  margin:22px auto 0;
-  background:linear-gradient(90deg,transparent,var(--ff-p2-gold),transparent);
-  transform:scaleX(.2);
-  opacity:.35;
-  transition:transform 1s cubic-bezier(.2,.8,.2,1),opacity 1s ease;
-}
-.ff-phase2-public.ff-phase2-ready .page-hero.is-visible::after,
-.ff-phase2-public.ff-phase2-ready .ff-dic-heading.is-visible::after{
-  transform:scaleX(1);opacity:1;
-}
 
 /* Decision Intelligence: 13-layer scroll theater */
 .ff-phase2-cdi-theater{
@@ -125,7 +109,7 @@ body.ff-phase2-ready main{overflow:clip}
 
 /* Evidence Lab: interactive failure theater */
 .ff-phase2-evidence-theater{
-  width:min(1180px,calc(100% - 36px));margin:28px auto 72px;padding:26px;border:1px solid rgba(212,175,55,.22);border-radius:26px;
+  width:min(1180px,calc(100% - 36px));margin:var(--ff-space-stack) auto var(--ff-space-section);padding:26px;border:1px solid rgba(212,175,55,.22);border-radius:var(--ff-panel-radius);
   background:linear-gradient(155deg,#07101a,#03070d 72%);box-shadow:0 30px 90px rgba(0,0,0,.32)
 }
 .ff-phase2-evidence-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.7fr);gap:22px;align-items:end}
@@ -354,26 +338,6 @@ body.ff-phase2-ready main{overflow:clip}
 }
 
 /* === V5 PUBLIC PAGE COMPOSITION REFINEMENT === */
-body.ff-v5-product-page .page-hero{
-  position:relative;
-  overflow:hidden;
-  max-width:none;
-  padding-top:96px;
-  padding-bottom:88px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:
-    radial-gradient(circle at 78% 24%,rgba(212,175,55,.09),transparent 27%),
-    linear-gradient(180deg,rgba(255,255,255,.012),transparent);
-}
-body.ff-v5-product-page .page-hero:before{
-  content:"";
-  position:absolute;
-  left:max(24px,calc((100vw - 1180px)/2));
-  top:64px;
-  width:74px;
-  height:1px;
-  background:linear-gradient(90deg,#D4AF37,transparent);
-}
 body.ff-v5-product-page .page-hero h1{
   max-width:930px;
   letter-spacing:-.045em;
@@ -399,7 +363,6 @@ body.ff-v5-product-page .ff-aw-proof-strip{
 }
 body.ff-v5-product-page .ff-aw-proof-strip article{
   position:relative;
-  min-height:220px;
   border:0;
   border-right:1px solid rgba(255,255,255,.07);
   border-radius:0;
@@ -432,21 +395,6 @@ body.ff-v5-product-page .case-card{
 body.ff-v5-product-page .identity-option.active{
   border-color:rgba(212,175,55,.46);
   box-shadow:inset 0 -2px 0 #D4AF37;
-}
-body.ff-v5-product-page .ff-aw-customer-cta{
-  position:relative;
-  overflow:hidden;
-  border-color:rgba(212,175,55,.26);
-  background:
-    radial-gradient(circle at 85% 50%,rgba(212,175,55,.09),transparent 28%),
-    linear-gradient(120deg,#080d13,#05080c);
-  box-shadow:0 28px 80px rgba(0,0,0,.24);
-}
-body.ff-v5-product-page .ff-aw-customer-cta:before{
-  content:"";
-  position:absolute;
-  left:0;top:0;bottom:0;width:3px;
-  background:linear-gradient(180deg,transparent,#D4AF37,transparent);
 }
 
 /* Decision Intelligence: premium editorial hierarchy, less dashboard-like density. */
@@ -547,7 +495,6 @@ body.ff-v5-decision-page .ff-dic-inline-final{
   body.ff-v5-decision-page .ff-dic-category article{border-bottom:1px solid rgba(255,255,255,.07)}
 }
 @media(max-width:620px){
-  body.ff-v5-product-page .page-hero{padding-top:68px;padding-bottom:60px}
   body.ff-v5-product-page .ff-v5-brand-promise{font-size:12px}
   body.ff-v5-decision-page .ff-dic-category{grid-template-columns:1fr}
   body.ff-v5-decision-page .ff-dic-category article{border-right:0}
@@ -556,30 +503,6 @@ body.ff-v5-decision-page .ff-dic-inline-final{
 /* === V5 SUPPORTING PUBLIC PAGES ===
    Keep the cinematic homepage hierarchy while reducing card-grid fatigue and
    source-matching the canonical shell to minimize first-load navigation shift. */
-body.ff-v5-evidence-page .page-hero,
-body.ff-v5-pricing-page .page-hero,
-body.ff-v5-about-page .page-hero{
-  position:relative;
-  overflow:hidden;
-  max-width:none;
-  padding-top:92px;
-  padding-bottom:80px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:
-    radial-gradient(circle at 78% 20%,rgba(212,175,55,.075),transparent 28%),
-    linear-gradient(180deg,#04070a,#05080c);
-}
-body.ff-v5-evidence-page .page-hero:before,
-body.ff-v5-pricing-page .page-hero:before,
-body.ff-v5-about-page .page-hero:before{
-  content:"";
-  position:absolute;
-  left:max(24px,calc((100vw - 1180px)/2));
-  top:60px;
-  width:76px;
-  height:1px;
-  background:linear-gradient(90deg,#D4AF37,transparent);
-}
 body.ff-v5-evidence-page .page-hero h1,
 body.ff-v5-pricing-page .page-hero h1,
 body.ff-v5-about-page .page-hero h1{
@@ -716,12 +639,6 @@ body.ff-v5-pricing-page details.legal-card{
   border-radius:16px;
   background:#070b10;
 }
-body.ff-v5-pricing-page .ff-aw-customer-cta{
-  border-color:rgba(212,175,55,.24);
-  background:
-    radial-gradient(circle at 82% 45%,rgba(212,175,55,.08),transparent 28%),
-    #070b10;
-}
 
 /* About — make the origin story feel editorial rather than dashboard-like. */
 body.ff-v5-about-page .ff-aw-proof-strip{
@@ -732,7 +649,6 @@ body.ff-v5-about-page .ff-aw-proof-strip{
   background:transparent;
 }
 body.ff-v5-about-page .ff-aw-proof-strip article{
-  min-height:205px;
   border:0;
   border-right:1px solid rgba(255,255,255,.07);
   border-radius:0;
@@ -759,20 +675,6 @@ body.ff-v5-about-page .ff-aw-question:hover{
   background:rgba(212,175,55,.025);
   transform:translateY(-2px);
 }
-body.ff-v5-about-page .ff-aw-customer-cta{
-  position:relative;
-  overflow:hidden;
-  border-color:rgba(212,175,55,.24);
-  background:
-    radial-gradient(circle at 82% 40%,rgba(212,175,55,.08),transparent 30%),
-    #070b10;
-}
-body.ff-v5-about-page .ff-aw-customer-cta:before{
-  content:"";
-  position:absolute;
-  left:0;top:0;bottom:0;width:3px;
-  background:linear-gradient(180deg,transparent,#D4AF37,transparent);
-}
 
 @media(max-width:900px){
   body.ff-v5-evidence-page .ff-lab-proof{grid-template-columns:1fr}
@@ -784,36 +686,11 @@ body.ff-v5-about-page .ff-aw-customer-cta:before{
   body.ff-v5-about-page .ff-aw-proof-strip article{border-right:0;border-bottom:1px solid rgba(255,255,255,.07)}
 }
 @media(max-width:620px){
-  body.ff-v5-evidence-page .page-hero,
-  body.ff-v5-pricing-page .page-hero,
-  body.ff-v5-about-page .page-hero{padding-top:66px;padding-bottom:58px}
   body.ff-v5-evidence-page .ff-lab-grid,
   body.ff-v5-about-page .ff-aw-question-grid{grid-template-columns:1fr}
 }
 
 /* === V5 FAQ + PRIVATE BETA === */
-body.ff-v5-faq-page .page-hero,
-body.ff-v5-beta-page .page-hero{
-  position:relative;
-  overflow:hidden;
-  max-width:none;
-  padding-top:92px;
-  padding-bottom:78px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:
-    radial-gradient(circle at 78% 20%,rgba(212,175,55,.075),transparent 28%),
-    linear-gradient(180deg,#04070a,#05080c);
-}
-body.ff-v5-faq-page .page-hero:before,
-body.ff-v5-beta-page .page-hero:before{
-  content:"";
-  position:absolute;
-  left:max(24px,calc((100vw - 1180px)/2));
-  top:60px;
-  width:76px;
-  height:1px;
-  background:linear-gradient(90deg,#D4AF37,transparent);
-}
 body.ff-v5-faq-page .page-hero h1,
 body.ff-v5-beta-page .page-hero h1{
   max-width:980px;
@@ -883,7 +760,6 @@ body.ff-v5-beta-page .ff-aw-proof-strip{
   background:transparent;
 }
 body.ff-v5-beta-page .ff-aw-proof-strip article{
-  min-height:205px;
   border:0;
   border-right:1px solid rgba(255,255,255,.07);
   border-radius:0;
@@ -945,8 +821,4 @@ body.ff-v5-beta-page .ff-beta-expectations article{
   body.ff-v5-beta-page .ff-aw-proof-strip{display:grid;grid-template-columns:1fr}
   body.ff-v5-beta-page .ff-aw-proof-strip article{border-right:0;border-bottom:1px solid rgba(255,255,255,.07)}
   body.ff-v5-beta-page .case-card{position:static}
-}
-@media(max-width:620px){
-  body.ff-v5-faq-page .page-hero,
-  body.ff-v5-beta-page .page-hero{padding-top:66px;padding-bottom:58px}
 }

@@ -11,6 +11,29 @@
   --ff-public-content-max:1180px;
   --ff-shell-gold:#f0ca58;
   --ff-shell-line:rgba(255,255,255,.12);
+
+  /* Public spacing scale (2026-11-06 sitewide refinement). The one source for vertical rhythm on every public page:
+   * section, panel and page CSS consume these tokens instead of fixed pixel values, so two neighbouring blocks can
+   * never stack two private paddings plus a margin. Values scale with the viewport and stop at the desktop size. */
+  --ff-space-section:clamp(28px,2.8vw,40px);      /* top/bottom padding of a standard section */
+  --ff-space-section-lg:clamp(56px,7vw,104px);    /* editorial homepage sections with display type */
+  --ff-space-block-lg:clamp(32px,3.9vw,56px);     /* section heading -> its main content, large editorial blocks */
+  --ff-space-block:clamp(24px,2.8vw,40px);        /* heading -> content, between sub-blocks */
+  --ff-space-stack:clamp(12px,1.4vw,20px);        /* between adjacent panels of one composition */
+  --ff-space-hero-top:clamp(12px,1.4vw,20px);     /* header -> first page panel */
+  --ff-space-hero-pad-top:clamp(52px,4.4vw,64px); /* inside the page intro panel; clears the Home breadcrumb */
+  --ff-space-hero-pad-bottom:clamp(30px,3.2vw,44px);
+  --ff-space-page-end:clamp(32px,3.9vw,56px);     /* last block -> footer */
+
+  /* Public graphics palette: black, white, champagne gold and silver, restrained. */
+  --ff-ink:#030507;
+  --ff-ink-raised:#0a0e12;
+  --ff-champagne:#d9bf7f;
+  --ff-champagne-strong:#d4af37;
+  --ff-silver:#a9b0b8;
+  --ff-hairline:rgba(255,255,255,.09);
+  --ff-hairline-gold:rgba(217,191,127,.28);
+  --ff-panel-radius:16px;
 }
 
 /* Header */
@@ -241,10 +264,10 @@ html body.ff-support-v3 main#main>.page-hero,
 html body.ff-aw-page main#main>.page-hero{
   width:min(var(--ff-public-content-max),calc(100% - 44px))!important;
   max-width:var(--ff-public-content-max)!important;
-  margin:28px auto 0!important;
-  padding:64px 44px 54px!important;
+  margin:var(--ff-space-hero-top) auto 0!important;
+  padding:var(--ff-space-hero-pad-top) 44px var(--ff-space-hero-pad-bottom)!important;
 }
-html body.ff-dic-page main#main>.ff-dic-hero{padding:28px 22px 42px!important}
+html body.ff-dic-page main#main>.ff-dic-hero{padding:var(--ff-space-hero-top) 22px var(--ff-space-section)!important}
 html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap{
   width:min(var(--ff-public-content-max),100%)!important;
   max-width:var(--ff-public-content-max)!important;
@@ -254,12 +277,70 @@ html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-
   overflow:hidden!important;
   width:100%!important;
   max-width:none!important;
-  margin:0 0 34px!important;
-  padding:64px 44px 54px!important;
-  border:1px solid rgba(212,175,55,.17)!important;
-  border-radius:24px!important;
-  background:linear-gradient(130deg,rgba(255,255,255,.018),rgba(212,175,55,.035) 55%,transparent)!important;
+  margin:0 0 var(--ff-space-stack)!important;
+  padding:var(--ff-space-hero-pad-top) 44px var(--ff-space-hero-pad-bottom)!important;
   text-align:left!important;
+}
+
+/* One intro panel finish on every public page (2026-11-06): ink panel, silver hairline, a champagne rule along the
+ * top edge and a faint ledger grid fading in from the right. No glows, discs or arcs behind the headline. This block
+ * is the only owner of the intro panel's frame and decoration; page layers style only what sits inside it. */
+html body main#main>.page-hero,
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border:1px solid var(--ff-hairline)!important;
+  border-radius:var(--ff-panel-radius)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.022),rgba(255,255,255,0) 62%),linear-gradient(115deg,#0b1014 0%,#06090c 58%,#090b0c 100%)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 24px 60px rgba(0,0,0,.28)!important;
+}
+html body main#main>.page-hero::before,
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child::before{
+  content:""!important;
+  position:absolute!important;
+  z-index:0!important;
+  inset:0 0 auto 0!important;
+  width:auto!important;
+  height:1px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  transform:none!important;
+  background:linear-gradient(90deg,var(--ff-champagne-strong) 0,rgba(217,191,127,.55) 22%,rgba(217,191,127,0) 64%)!important;
+  pointer-events:none;
+}
+html body main#main>.page-hero::after,
+html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child::after{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  z-index:-1!important;
+  inset:0 0 0 auto!important;
+  top:0!important;
+  right:0!important;
+  left:auto!important;
+  width:46%!important;
+  height:auto!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  transform:none!important;
+  transition:none!important;
+  background:
+    linear-gradient(rgba(169,176,184,.07) 1px,transparent 1px) 0 0/100% 32px,
+    linear-gradient(90deg,rgba(169,176,184,.05) 1px,transparent 1px) 0 0/64px 100%!important;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 70%);
+  mask-image:linear-gradient(90deg,transparent,#000 70%);
+  pointer-events:none;
+}
+@media(max-width:760px){
+  html body main#main>.page-hero::after,
+  html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child::after{width:38%!important;opacity:.7!important}
 }
 html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child h1{
   max-width:880px!important;
@@ -299,13 +380,13 @@ html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-
   html body.ff-support-v3 main#main>.page-hero,
   html body.ff-aw-page main#main>.page-hero{
     width:calc(100% - 24px)!important;
-    margin:16px auto 0!important;
-    padding:40px 22px 38px!important;
+    padding-left:22px!important;
+    padding-right:22px!important;
   }
-  html body.ff-dic-page main#main>.ff-dic-hero{padding:16px 12px 30px!important}
+  html body.ff-dic-page main#main>.ff-dic-hero{padding-left:12px!important;padding-right:12px!important}
   html body.ff-dic-page main#main>.ff-dic-hero>.ff-dic-wrap>.ff-dic-heading:first-child{
-    margin-bottom:24px!important;
-    padding:40px 22px 38px!important;
+    padding-left:22px!important;
+    padding-right:22px!important;
   }
 }
 @media(max-width:400px){
