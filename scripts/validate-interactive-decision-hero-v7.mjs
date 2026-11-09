@@ -11,9 +11,9 @@ check('one semantic H1',(html.match(/<h1\b/g)||[]).length===1);
 check('approved slogan headline',has(html,'<h1 id="ff10-hero-title"')&&has(html,'<span>Know Why.</span>'));
 check('one orchestrated hero moment',has(js,"hero.classList.add('ff10-armed')")&&has(js,'io.disconnect()')&&has(css,'.ff10-armed.ff10-locked'));
 // Founder decision Nov 5 2026: six sections, each story told once (hero, Difference, Challenge, Inside the App, Who It's For, final).
-check('hero first, Difference second, interactive demo kept',at('ff10-hero')<at('id="difference"')&&at('id="difference"')<at('data-ffdemo')&&at('data-ffdemo')<at('class="ff10-final"'));
+check('hero first, interactive demo second, no Difference poster',!has(html,'id="difference"')&&at('ff10-hero')<at('data-ffdemo')&&at('data-ffdemo')<at('class="ff10-final"'));
 check('large card imagery and real decision UI',has(html,'class="ff10-slab"')&&has(html,'ff10-hero@2x.webp')&&has(css,'.ff10-panel{'));
-check('light dark page rhythm',(o=>o.every(c=>has(html,'class="'+c+'"'))&&o.every((c,i)=>i===0||at('class="'+o[i-1]+'"')<at('class="'+c+'"')))(['ff10-hero','ff10-diff','ff10-demo ff10-light','ff10-app','ff10-aud','ff10-final']));
+check('light dark page rhythm',(o=>o.every(c=>has(html,'class="'+c+'"'))&&o.every((c,i)=>i===0||at('class="'+o[i-1]+'"')<at('class="'+c+'"')))(['ff10-hero','ff10-demo ff10-light','ff10-app','ff10-aud','ff10-final']));
 check('large financial proof readout',has(html,'class="ff10-readout"')&&has(css,'.ff10-read strong{font-size:clamp(40px'));
 check('four actually visual steps',['ff10-sv-identity','ff10-sv-evidence','ff10-sv-max','ff10-sv-verdict'].every(v=>has(html,v)));
 // The wrong-parallel and wrong-grade points are made once, inside the Decision Challenge findings.

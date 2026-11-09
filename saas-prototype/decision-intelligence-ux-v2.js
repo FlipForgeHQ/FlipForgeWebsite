@@ -20,6 +20,11 @@
     requestSerial: 0
   };
 
+  // Display only: a manufacturer repeated in a legacy saved title is shown once (card-brand-display.js); the record is unchanged.
+  function displayCardTitle(value) {
+    const collapse = window.FlipForgeCardBrandDisplay?.collapseRepeatedManufacturer;
+    return typeof collapse === "function" ? collapse(value) : value;
+  }
   function escapeHtml(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -352,7 +357,7 @@
         <div class="ff-di-v2-verdict-main">
           <span class="ff-di-v2-kicker">${window.FlipForgeTrustDisplay?.isLegacy(detail) ? "SAVED DECISION (HISTORICAL)" : "CURRENT DECISION"}</span>
           <strong class="ff-di-v2-decision">${escapeHtml(decision)}</strong>
-          <h2>${escapeHtml(detail.cardIdentity || "Saved opportunity")}</h2>
+          <h2>${escapeHtml(displayCardTitle(detail.cardIdentity || "Saved opportunity"))}</h2>
           ${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(detail) : ""}
           <p>${escapeHtml(whyStoppedCopy(detail, evidence))}</p>
         </div>

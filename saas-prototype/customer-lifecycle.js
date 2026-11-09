@@ -322,11 +322,16 @@
   }
 
   // Card names are shown with the card-number sign ("#150"); some saved titles carry "%150".
+  // Display only: a manufacturer repeated in a legacy saved title is shown once (card-brand-display.js); the record is unchanged.
+  function collapseRepeatedManufacturer(value) {
+    const collapse = window.FlipForgeCardBrandDisplay?.collapseRepeatedManufacturer;
+    return typeof collapse === "function" ? collapse(value) : value;
+  }
   function cardDisplay(value) {
-    return String(value ?? "")
+    return collapseRepeatedManufacturer(String(value ?? "")
       .replace(/(^|\s)%(\d{1,4})(?=\s|$)/g, "$1#$2")
       .replace(/\s+/g, " ")
-      .trim();
+      .trim());
   }
 
   function titleFor(id) {

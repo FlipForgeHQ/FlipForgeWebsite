@@ -36,7 +36,6 @@ const viewports = [
 const showcaseSvgs = [
   '/assets/images/ff-graphics-identity-lock-v2.svg',
   '/assets/images/ff-graphics-evidence-filter-v2.svg',
-  '/assets/images/ff-graphics-decision-receipt-v2.svg',
   '/assets/images/ff-graphics-storyboard-v2.svg'
 ];
 
@@ -87,7 +86,7 @@ async function auditPage(page, label, path, viewport) {
 
     const brokenImages = [...document.images].filter(img => img.complete && img.naturalWidth === 0).map(img => img.getAttribute('src') || '');
 
-    const approvedRaster = [...document.querySelectorAll('.ff-approved-graphic img')].filter(visible).map(img => img.getAttribute('src') || '').filter(src => !src.endsWith('.svg'));
+    const approvedRaster = [...document.querySelectorAll('.ff-approved-graphic:not([data-ff-product-screenshot]) img')].filter(visible).map(img => img.getAttribute('src') || '').filter(src => !src.endsWith('.svg'));
 
     const forge = document.querySelector('.ff-df-viewport');
     return {

@@ -72,6 +72,25 @@
     return canonical;
   }
 
+  // Display only (founder-approved fix, Nov 9 2026). Some legacy saved titles repeat the manufacturer, for example
+  // "2018 Topps Topps Chrome Shohei Ohtani #150 PSA 9". When a known manufacturer name is immediately repeated, the
+  // displayed title shows it once ("2018 Topps Chrome ..."). Only known manufacturer names are collapsed, only when the
+  // same name appears twice in a row (any letter case), and the stored record, API payload and receipt are never changed.
+  const REPEATABLE_MANUFACTURERS = [...new Set(CANONICAL_MANUFACTURERS.values())]
+    .sort((a, b) => b.length - a.length)
+    .map(name => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"));
+  const REPEATED_MANUFACTURER = new RegExp(`(^|[\\s(])(${REPEATABLE_MANUFACTURERS.join("|")})\\s+(\\2)(?=$|[\\s),.;:/#])`, "i");
+
+  function collapseRepeatedManufacturer(value) {
+    let text = String(value ?? "");
+    for (let guard = 0; guard < 8; guard += 1) {
+      const next = text.replace(REPEATED_MANUFACTURER, (match, lead, first, second) => `${lead}${second}`);
+      if (next === text) break;
+      text = next;
+    }
+    return text;
+  }
+
   function normalizeDetailText(value) {
     const source = String(value ?? "");
     if (!source.includes(" · ")) return source;
@@ -128,6 +147,7 @@
   window.FlipForgeCardBrandDisplay = Object.freeze({
     canonicalManufacturer,
     normalizeManufacturer,
+    collapseRepeatedManufacturer,
     normalizeDetailText,
     normalizeRoot
   });
