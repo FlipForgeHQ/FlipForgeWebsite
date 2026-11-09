@@ -21,8 +21,8 @@ const readable = `${text} ${alts}`;
 check('A01 one "Inside the app" section, after the Decision Challenge and before the final call to action',
   (page.match(/data-ff-app\b/g) || []).length === 1 && page.indexOf('id="demo"') < start
   && start < page.indexOf('<!-- 7. Final call to action'));
-check('A02 existing sections untouched and in order (hero, difference, question, evidence, identity, steps, audiences, demo, final)',
-  ['ff10-hero', 'id="difference"', 'id="price-vs-proof"', 'id="evidence"', 'id="identity"', 'id="how-it-works"', 'id="who-its-for"', 'id="demo"', 'id="inside-the-app"', 'ff10-final"']
+check('A02 sections in the approved six-section order (hero, difference, demo, inside the app, audiences, final)',
+  ['ff10-hero', 'id="difference"', 'id="demo"', 'id="inside-the-app"', 'id="who-its-for"', 'ff10-final"']
     .map(k => page.indexOf(k)).every((v, i, a) => v > 0 && (i === 0 || v > a[i - 1])));
 check('A03 three screens in order: Discover, Evaluate, Decision Receipt',
   ['discover', 'evaluate', 'receipt'].map(k => sec.indexOf(`data-app-panel="${k}"`)).every((v, i, a) => v > 0 && (i === 0 || v > a[i - 1]))

@@ -94,13 +94,13 @@ check('D01 fictional-data disclosures and compliance wording remain', ['Real Fli
 
 // ---------- Section rhythm (founder request 2026-10-28) ----------
 const rhythm = read('assets/css/homepage-section-rhythm-v1.css');
-check('R01 where two dark sections meet they share one padding (How it works -> Who it is for, Inside FlipForge -> final, hero -> difference)',
-  rhythm.includes('.ff10-steps:has(+ .ff10-aud){padding-bottom:calc(var(--pad) / 2)}') && rhythm.includes('.ff10-steps + .ff10-aud{padding-top:calc(var(--pad) / 2)}')
-  && rhythm.includes('.ff10-app:has(+ .ff10-final){padding-bottom:calc(var(--pad) / 2)}') && rhythm.includes('.ff10-app + .ff10-final{padding-top:calc(var(--pad) / 2)}')
+check('R01 where two dark sections meet they share one padding (Inside FlipForge -> Who it is for -> final, hero -> difference)',
+  rhythm.includes('.ff10-app:has(+ .ff10-aud){padding-bottom:calc(var(--pad) / 2)}') && rhythm.includes('.ff10-app + .ff10-aud{padding-top:calc(var(--pad) / 2)}')
+  && rhythm.includes('.ff10-aud:has(+ .ff10-final){padding-bottom:calc(var(--pad) / 2)}') && rhythm.includes('.ff10-aud + .ff10-final{padding-top:calc(var(--pad) / 2)}')
   && rhythm.includes('.ff10-hero:has(+ .ff10-diff)') && !/#[0-9a-fA-F]{3,8}\b/.test(rhythm)
   && (page.match(/homepage-section-rhythm-v1\.css/g) || []).length === 1 && page.indexOf('homepage-section-rhythm-v1.css') > page.indexOf('homepage-hero-positioning-v1.css'));
-check('R02 the dark sections still sit next to each other in that order', /class="ff10-steps"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-aud"/.test(page)
-  && /class="ff10-app"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-final"/.test(page)
+check('R02 the dark sections still sit next to each other in that order', /class="ff10-app"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-aud"/.test(page)
+  && /class="ff10-aud"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-final"/.test(page)
   && /class="ff10-hero"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-diff"/.test(page));
 
 check('R03 desktop: hero sits close to The FlipForge difference, and the benefit line stays clear of the decision panel',
