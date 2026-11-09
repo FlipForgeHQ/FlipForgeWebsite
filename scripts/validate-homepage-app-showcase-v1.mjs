@@ -21,8 +21,10 @@ const readable = `${text} ${alts}`;
 check('A01 one "Inside the app" section, after the Decision Challenge and before the final call to action',
   (page.match(/data-ff-app\b/g) || []).length === 1 && page.indexOf('id="demo"') < start
   && start < page.indexOf('<!-- 7. Final call to action'));
-check('A02 sections in the approved six-section order (hero, difference, demo, inside the app, audiences, final)',
-  ['ff10-hero', 'id="difference"', 'id="demo"', 'id="inside-the-app"', 'id="who-its-for"', 'ff10-final"']
+// Founder decision Nov 9 2026: the Difference poster (illustrative "Realized Return" figure) is removed; five sections remain.
+check('A02 sections in the approved order (hero, demo, inside the app, audiences, final); no Difference poster',
+  !page.includes('id="difference"') && !page.includes('flipforge-difference') &&
+  ['ff10-hero', 'id="demo"', 'id="inside-the-app"', 'id="who-its-for"', 'ff10-final"']
     .map(k => page.indexOf(k)).every((v, i, a) => v > 0 && (i === 0 || v > a[i - 1])));
 check('A03 three screens in order: Discover, Evaluate, Decision Receipt',
   ['discover', 'evaluate', 'receipt'].map(k => sec.indexOf(`data-app-panel="${k}"`)).every((v, i, a) => v > 0 && (i === 0 || v > a[i - 1]))

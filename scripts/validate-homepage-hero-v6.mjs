@@ -10,8 +10,9 @@ const at=t=>html.indexOf(t);
 check('exactly one H1',(html.match(/<h1\b/g)||[]).length===1);
 check('single decision demo',(html.match(/data-ffdemo\b/g)||[]).length===1&&!has(html,'data-decision-forge'));
 // Founder decision 2026-10-20: the page is led by "Price is not proof". Founder decision Nov 5 2026: six sections, each
-// story told once: hero, Difference poster, Decision Challenge, Inside the App, Who It's For, final call to action.
-check('positioning-led section order',(o=>o.every(t=>at(t)>=0)&&o.every((t,i)=>i===0||at(o[i-1])<at(t)))(['data-ff10-hero','id="difference"','data-ffdemo','id="inside-the-app"','id="who-its-for"','class="ff10-final"']));
+// story told once: hero, Decision Challenge, Inside the App, Who It's For, final call to action (Difference poster removed
+// Nov 9 2026: it showed an illustrative "Realized Return" figure).
+check('positioning-led section order',(o=>o.every(t=>at(t)>=0)&&o.every((t,i)=>i===0||at(o[i-1])<at(t)))(['data-ff10-hero','data-ffdemo','id="inside-the-app"','id="who-its-for"','class="ff10-final"']));
 check('premium official palette',has(css,'#D4AF37')&&has(css,'#B8860B')&&has(css,'#8B8F98'));
 check('Geist typography',has(css,'Geist'));
 check('no retired slab art or stock photography',!has(html,'ff-fictional-slab-v1.svg')&&!has(html,'images.unsplash.com'));

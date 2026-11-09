@@ -1,0 +1,116 @@
+{
+  "audit": "FlipForge Pre-Beta Destructive Saved-Decision Lifecycle Audit",
+  "generatedAt": "2026-11-09T18:56:22.067Z",
+  "baseUrl": "http://127.0.0.1:4173/app",
+  "passed": true,
+  "scenarioCount": 13,
+  "passedCount": 13,
+  "failedCount": 0,
+  "scenarios": [
+    {
+      "name": "saved decision opens exact Card Intelligence record without cross-record substitution",
+      "status": "PASS",
+      "durationMs": 480
+    },
+    {
+      "name": "Card Intelligence to Tracking preserves the exact opportunity id",
+      "status": "PASS",
+      "durationMs": 952
+    },
+    {
+      "name": "tracking selector switches records without leaking prior lifecycle state",
+      "status": "PASS",
+      "durationMs": 861
+    },
+    {
+      "name": "incomplete OWNED transition fails closed and does not change server state",
+      "status": "PASS",
+      "durationMs": 1469
+    },
+    {
+      "name": "valid OWNED save uses current version and appends exactly one history event",
+      "status": "PASS",
+      "durationMs": 1078
+    },
+    {
+      "name": "double submit while lifecycle save is in flight creates one write",
+      "status": "PASS",
+      "durationMs": 713
+    },
+    {
+      "name": "stale lifecycle version conflict cannot overwrite newer server state",
+      "status": "PASS",
+      "durationMs": 1392
+    },
+    {
+      "name": "navigation away during slow save cannot repaint stale Tracking over Card Intelligence",
+      "status": "PASS",
+      "durationMs": 1916
+    },
+    {
+      "name": "revisiting Tracking reloads the latest persisted lifecycle state",
+      "status": "PASS",
+      "durationMs": 367
+    },
+    {
+      "name": "Decision Dossier reads the latest lifecycle snapshot and prepares a complete digest",
+      "status": "PASS",
+      "durationMs": 460
+    },
+    {
+      "name": "prepared export is discarded and rebuilt after lifecycle changes",
+      "status": "PASS",
+      "durationMs": 2306
+    },
+    {
+      "name": "export record switch cannot mix source identities",
+      "status": "PASS",
+      "durationMs": 400
+    },
+    {
+      "name": "browser lifecycle and export traffic never supplies tenant identity or authority",
+      "status": "PASS",
+      "durationMs": 1
+    }
+  ],
+  "requestSummary": {
+    "apiCalls": 81,
+    "opportunityDetailCalls": 5,
+    "lifecycleWrites": 5,
+    "evidenceCalls": 5,
+    "psaCalls": 5
+  },
+  "finalLifecycle": {
+    "qa-opportunity-1": {
+      "snapshot": {
+        "opportunityId": "qa-opportunity-1",
+        "trackingStatus": "PASSED",
+        "outcomeStatus": "PASSED",
+        "reviewAt": null,
+        "alertEnabled": false,
+        "acquisitionCostCents": 80000,
+        "acquiredAt": "2026-08-31T12:00:00.000Z",
+        "dispositionProceedsCents": null,
+        "disposedAt": null,
+        "version": 6
+      },
+      "historyCount": 6
+    },
+    "qa-opportunity-2": {
+      "snapshot": {
+        "opportunityId": "qa-opportunity-2",
+        "trackingStatus": "REVIEW",
+        "outcomeStatus": "NONE",
+        "reviewAt": "2026-09-02T15:00:00.000Z",
+        "alertEnabled": true,
+        "acquisitionCostCents": null,
+        "acquiredAt": null,
+        "dispositionProceedsCents": null,
+        "disposedAt": null,
+        "version": 4
+      },
+      "historyCount": 1
+    }
+  },
+  "failures": []
+}

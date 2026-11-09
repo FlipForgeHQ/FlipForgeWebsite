@@ -1,0 +1,89 @@
+{
+  "audit": "FlipForge Pre-Beta Destructive Customer-State Audit",
+  "generatedAt": "2026-11-09T18:56:47.101Z",
+  "baseUrl": "http://127.0.0.1:4173/app",
+  "passed": true,
+  "scenarioCount": 14,
+  "passedCount": 14,
+  "failedCount": 0,
+  "scenarios": [
+    {
+      "name": "baseline imperfect identity resolves before marketplace search",
+      "status": "PASS",
+      "durationMs": 1746
+    },
+    {
+      "name": "PSA 10 to PSA 9 re-arms without + New card",
+      "status": "PASS",
+      "durationMs": 2954
+    },
+    {
+      "name": "player change replaces previous card state",
+      "status": "PASS",
+      "durationMs": 1014
+    },
+    {
+      "name": "Refresh results repeats the completed search exactly",
+      "status": "PASS",
+      "durationMs": 640
+    },
+    {
+      "name": "no-results state does not trap the next search",
+      "status": "PASS",
+      "durationMs": 943
+    },
+    {
+      "name": "removing a grade does not inherit the old grade",
+      "status": "PASS",
+      "durationMs": 899
+    },
+    {
+      "name": "changing identity while assist is open invalidates the old selection",
+      "status": "PASS",
+      "durationMs": 1383
+    },
+    {
+      "name": "changing identity while the lookup is still in flight re-arms Find exact card and ignores the stale response",
+      "status": "PASS",
+      "durationMs": 1516
+    },
+    {
+      "name": "transient provider failure can be corrected and retried",
+      "status": "PASS",
+      "durationMs": 760
+    },
+    {
+      "name": "explicit evaluation handoff does not poison Discover on return",
+      "status": "PASS",
+      "durationMs": 1678
+    },
+    {
+      "name": "double submit collapses to one in-flight search",
+      "status": "PASS",
+      "durationMs": 1185
+    },
+    {
+      "name": "target max buy and result limit do not leak between searches",
+      "status": "PASS",
+      "durationMs": 958
+    },
+    {
+      "name": "card-number change replaces the previous identity",
+      "status": "PASS",
+      "durationMs": 905
+    },
+    {
+      "name": "browser requests never supply tenant identity or transaction authority",
+      "status": "PASS",
+      "durationMs": 0
+    }
+  ],
+  "requestSummary": {
+    "identitySearchCalls": 7,
+    "identityResolveCalls": 5,
+    "discoverCalls": 22,
+    "evaluationCalls": 1,
+    "apiCalls": 50
+  },
+  "failures": []
+}

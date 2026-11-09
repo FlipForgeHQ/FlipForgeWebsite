@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-27T13:53:02.255Z",
-  "baseUrl": "http://127.0.0.1:4188",
+  "generatedAt": "2026-11-09T19:03:29.361Z",
+  "baseUrl": "http://127.0.0.1:4173",
   "routes": [
     "/index.html",
     "/404.html",
@@ -57,7 +57,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6011
+        "mainText": 5464
       }
     },
     {
@@ -78,7 +78,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6011
+        "mainText": 5464
       }
     },
     {
@@ -99,7 +99,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6172
+        "mainText": 5690
       }
     },
     {
@@ -120,7 +120,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6172
+        "mainText": 5690
       }
     },
     {
@@ -141,7 +141,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6219
+        "mainText": 5737
       }
     },
     {
@@ -162,7 +162,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6219
+        "mainText": 5737
       }
     },
     {
@@ -183,7 +183,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6219
+        "mainText": 5737
       }
     },
     {
@@ -204,7 +204,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6219
+        "mainText": 5737
       }
     },
     {
@@ -225,7 +225,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Price is not proof. | FlipForge™ — Before you buy. Know Why.",
-        "mainText": 6219
+        "mainText": 5737
       }
     },
     {
@@ -372,7 +372,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Private Beta Access | FlipForge Card Decision Intelligence",
-        "mainText": 3867
+        "mainText": 5682
       }
     },
     {
@@ -393,7 +393,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Private Beta Access | FlipForge Card Decision Intelligence",
-        "mainText": 3872
+        "mainText": 5687
       }
     },
     {
@@ -414,7 +414,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Private Beta Access | FlipForge Card Decision Intelligence",
-        "mainText": 3872
+        "mainText": 5687
       }
     },
     {
@@ -813,7 +813,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Decision Intelligence | FlipForge",
-        "mainText": 4226
+        "mainText": 4230
       }
     },
     {
@@ -834,7 +834,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Decision Intelligence | FlipForge",
-        "mainText": 4393
+        "mainText": 4397
       }
     },
     {
@@ -855,7 +855,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Decision Intelligence | FlipForge",
-        "mainText": 4393
+        "mainText": 4397
       }
     },
     {
@@ -1183,9 +1183,7 @@
       "route": "/operator-beta.html",
       "viewport": "mobile-390",
       "width": 390,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 390,
         "clientWidth": 390,
@@ -1199,16 +1197,14 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Beta Operations | FlipForge Card Decision Intelligence",
-        "mainText": 192
+        "mainText": 210
       }
     },
     {
       "route": "/operator-beta.html",
       "viewport": "tablet-1024",
       "width": 1024,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1024,
         "clientWidth": 1024,
@@ -1222,16 +1218,14 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Beta Operations | FlipForge Card Decision Intelligence",
-        "mainText": 192
+        "mainText": 210
       }
     },
     {
       "route": "/operator-beta.html",
       "viewport": "desktop-1440",
       "width": 1440,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1440,
         "clientWidth": 1440,
@@ -1245,16 +1239,14 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Beta Operations | FlipForge Card Decision Intelligence",
-        "mainText": 192
+        "mainText": 210
       }
     },
     {
       "route": "/owner.html",
       "viewport": "mobile-390",
       "width": 390,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 390,
         "clientWidth": 390,
@@ -1275,9 +1267,7 @@
       "route": "/owner.html",
       "viewport": "tablet-1024",
       "width": 1024,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1024,
         "clientWidth": 1024,
@@ -1298,9 +1288,7 @@
       "route": "/owner.html",
       "viewport": "desktop-1440",
       "width": 1440,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1440,
         "clientWidth": 1440,
@@ -1461,7 +1449,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Product | FlipForge Card Decision Intelligence",
-        "mainText": 2851
+        "mainText": 3111
       }
     },
     {
@@ -1482,7 +1470,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Product | FlipForge Card Decision Intelligence",
-        "mainText": 2851
+        "mainText": 3111
       }
     },
     {
@@ -1503,7 +1491,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Product | FlipForge Card Decision Intelligence",
-        "mainText": 2851
+        "mainText": 3111
       }
     },
     {
@@ -1587,7 +1575,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Launch Plans | FlipForge Card Decision Intelligence",
-        "mainText": 3718
+        "mainText": 4249
       }
     },
     {
@@ -1608,7 +1596,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Launch Plans | FlipForge Card Decision Intelligence",
-        "mainText": 3720
+        "mainText": 4251
       }
     },
     {
@@ -1629,7 +1617,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Launch Plans | FlipForge Card Decision Intelligence",
-        "mainText": 3720
+        "mainText": 4251
       }
     },
     {
@@ -1650,7 +1638,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Privacy Policy | FlipForge Card Decision Intelligence",
-        "mainText": 6530
+        "mainText": 7802
       }
     },
     {
@@ -1671,7 +1659,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Privacy Policy | FlipForge Card Decision Intelligence",
-        "mainText": 6530
+        "mainText": 7802
       }
     },
     {
@@ -1692,7 +1680,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Privacy Policy | FlipForge Card Decision Intelligence",
-        "mainText": 6530
+        "mainText": 7802
       }
     },
     {
@@ -1713,7 +1701,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Product | FlipForge Card Decision Intelligence",
-        "mainText": 2851
+        "mainText": 3111
       }
     },
     {
@@ -1734,7 +1722,7 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Product | FlipForge Card Decision Intelligence",
-        "mainText": 2851
+        "mainText": 3111
       }
     },
     {
@@ -1755,16 +1743,14 @@
         "cdiCount": 1,
         "closedMobileVisibility": "hidden",
         "title": "Product | FlipForge Card Decision Intelligence",
-        "mainText": 2851
+        "mainText": 3111
       }
     },
     {
       "route": "/production-auth.html",
       "viewport": "mobile-390",
       "width": 390,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 390,
         "clientWidth": 390,
@@ -1778,16 +1764,14 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Private Beta Sign In | FlipForge",
-        "mainText": 537
+        "mainText": 714
       }
     },
     {
       "route": "/production-auth.html",
       "viewport": "tablet-1024",
       "width": 1024,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1024,
         "clientWidth": 1024,
@@ -1801,16 +1785,14 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Private Beta Sign In | FlipForge",
-        "mainText": 537
+        "mainText": 714
       }
     },
     {
       "route": "/production-auth.html",
       "viewport": "desktop-1440",
       "width": 1440,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1440,
         "clientWidth": 1440,
@@ -1824,7 +1806,7 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Private Beta Sign In | FlipForge",
-        "mainText": 537
+        "mainText": 714
       }
     },
     {
@@ -1957,9 +1939,7 @@
       "route": "/staging-auth.html",
       "viewport": "mobile-390",
       "width": 390,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 390,
         "clientWidth": 390,
@@ -1973,16 +1953,14 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "FlipForge Account Access",
-        "mainText": 584
+        "mainText": 576
       }
     },
     {
       "route": "/staging-auth.html",
       "viewport": "tablet-1024",
       "width": 1024,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1024,
         "clientWidth": 1024,
@@ -1996,16 +1974,14 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "FlipForge Account Access",
-        "mainText": 584
+        "mainText": 576
       }
     },
     {
       "route": "/staging-auth.html",
       "viewport": "desktop-1440",
       "width": 1440,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1440,
         "clientWidth": 1440,
@@ -2019,7 +1995,7 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "FlipForge Account Access",
-        "mainText": 584
+        "mainText": 576
       }
     },
     {
@@ -2229,7 +2205,7 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Connect with FlipForge | Card Decision Intelligence",
-        "mainText": 910
+        "mainText": 952
       }
     },
     {
@@ -2250,7 +2226,7 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Connect with FlipForge | Card Decision Intelligence",
-        "mainText": 910
+        "mainText": 952
       }
     },
     {
@@ -2271,7 +2247,7 @@
         "cdiCount": 0,
         "closedMobileVisibility": null,
         "title": "Connect with FlipForge | Card Decision Intelligence",
-        "mainText": 910
+        "mainText": 952
       }
     },
     {
@@ -2279,8 +2255,7 @@
       "viewport": "mobile-390",
       "width": 390,
       "failures": [
-        "main content unexpectedly sparse (8 chars)",
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+        "main content unexpectedly sparse (8 chars)"
       ],
       "metrics": {
         "scrollWidth": 390,
@@ -2294,7 +2269,7 @@
         "duplicateScripts": [],
         "cdiCount": 0,
         "closedMobileVisibility": null,
-        "title": "FlipForge | Card Decision Intelligence",
+        "title": "FlipForge | Private Beta — Card Decision Intelligence",
         "mainText": 8
       }
     },
@@ -2303,8 +2278,7 @@
       "viewport": "tablet-1024",
       "width": 1024,
       "failures": [
-        "main content unexpectedly sparse (8 chars)",
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+        "main content unexpectedly sparse (8 chars)"
       ],
       "metrics": {
         "scrollWidth": 1024,
@@ -2318,7 +2292,7 @@
         "duplicateScripts": [],
         "cdiCount": 0,
         "closedMobileVisibility": null,
-        "title": "FlipForge | Card Decision Intelligence",
+        "title": "FlipForge | Private Beta — Card Decision Intelligence",
         "mainText": 8
       }
     },
@@ -2327,8 +2301,7 @@
       "viewport": "desktop-1440",
       "width": 1440,
       "failures": [
-        "main content unexpectedly sparse (8 chars)",
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+        "main content unexpectedly sparse (8 chars)"
       ],
       "metrics": {
         "scrollWidth": 1440,
@@ -2342,7 +2315,7 @@
         "duplicateScripts": [],
         "cdiCount": 0,
         "closedMobileVisibility": null,
-        "title": "FlipForge | Card Decision Intelligence",
+        "title": "FlipForge | Private Beta — Card Decision Intelligence",
         "mainText": 8
       }
     },
@@ -2350,9 +2323,7 @@
       "route": "/saas-prototype/customer.html",
       "viewport": "mobile-390",
       "width": 390,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 390,
         "clientWidth": 390,
@@ -2373,9 +2344,7 @@
       "route": "/saas-prototype/customer.html",
       "viewport": "tablet-1024",
       "width": 1024,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1024,
         "clientWidth": 1024,
@@ -2396,9 +2365,7 @@
       "route": "/saas-prototype/customer.html",
       "viewport": "desktop-1440",
       "width": 1440,
-      "failures": [
-        "failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
-      ],
+      "failures": [],
       "metrics": {
         "scrollWidth": 1440,
         "clientWidth": 1440,
@@ -2420,26 +2387,8 @@
     "/font-options.html @ mobile-390: failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]",
     "/font-options.html @ tablet-1024: failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]",
     "/font-options.html @ desktop-1440: failed critical assets [\"stylesheet https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800;900&display=swap net::ERR_TUNNEL_CONNECTION_FAILED\"]",
-    "/operator-beta.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/operator-beta.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/operator-beta.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/owner.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/owner.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/owner.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/production-auth.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]",
-    "/production-auth.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]",
-    "/production-auth.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-production-auth-probe.js net::ERR_ABORTED\"]",
-    "/staging-auth.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]",
-    "/staging-auth.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]",
-    "/staging-auth.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-staging-auth-probe.js net::ERR_ABORTED\"]",
     "/saas-prototype/index.html @ mobile-390: main content unexpectedly sparse (8 chars)",
-    "/saas-prototype/index.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
     "/saas-prototype/index.html @ tablet-1024: main content unexpectedly sparse (8 chars)",
-    "/saas-prototype/index.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/saas-prototype/index.html @ desktop-1440: main content unexpectedly sparse (8 chars)",
-    "/saas-prototype/index.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/saas-prototype/customer.html @ mobile-390: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/saas-prototype/customer.html @ tablet-1024: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]",
-    "/saas-prototype/customer.html @ desktop-1440: failed critical assets [\"script HTTP 404 http://127.0.0.1:4188/assets/js/flipforge-identity.js\",\"script http://127.0.0.1:4188/assets/js/flipforge-identity.js net::ERR_ABORTED\"]"
+    "/saas-prototype/index.html @ desktop-1440: main content unexpectedly sparse (8 chars)"
   ]
 }

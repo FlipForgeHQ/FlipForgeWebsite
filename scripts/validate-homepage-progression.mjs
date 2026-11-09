@@ -38,7 +38,6 @@ requireAll('homepage premium performance layout',homepage,[
  'data-ff10-hero',
  'class="ff10-slab"',
  'class="ff10-panel"',
- 'id="difference"',
  'id="demo"',
  'id="inside-the-app"',
  'id="who-its-for"',
@@ -47,8 +46,9 @@ requireAll('homepage premium performance layout',homepage,[
 ]);
 // Founder decision Nov 5 2026: six sections, each story told once. The static card walkthroughs, the price-vs-proof
 // section and the hero collector row were duplicates of the Challenge, Inside the App and Who It's For.
-for(const removed of ['id="price-vs-proof"','id="evidence"','id="identity"','id="how-it-works"','ff10-persona-nav']){
-  if(homepage.includes(removed))failures.push(`homepage six-section layout: duplicate section returned (${removed})`);
+// Founder decision Nov 9 2026: the Difference poster (illustrative "Realized Return" figure) is removed and must not return.
+for(const removed of ['id="difference"','flipforge-difference','Realized Return','id="price-vs-proof"','id="evidence"','id="identity"','id="how-it-works"','ff10-persona-nav']){
+  if(homepage.includes(removed))failures.push(`homepage layout: removed section returned (${removed})`);
 }
 requireAll('homepage illustration and decision honesty',homepage,[
  'data-ffdemo',
@@ -226,7 +226,7 @@ if(productionBuild){
   forbidText('beta staging route',app,'data-route="staging"');
 }
 
-requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v26'","'/decision-proof.html'","'/assets/css/homepage-v10.css'","'/assets/js/homepage-v10.js'","'/assets/js/site.js'"]);
+requireAll('PWA shell',sw,["const CACHE='flipforge-shell-v27'","'/decision-proof.html'","'/assets/css/homepage-v10.css'","'/assets/js/homepage-v10.js'","'/assets/js/site.js'"]);
 const publicCopy=`${homepage}\n${proofPage}\n${product}\n${learn}\n${beta}\n${pricing}`;
 for(const unsafe of ['accuracy rate','guaranteed profit','automatic purchase','transactionAuthority=true'])forbidText('public safety',publicCopy,unsafe);
 if(publicCopy.includes('CARD VALUE INTELLIGENCE'))failures.push('public safety: forbidden formal CARD VALUE INTELLIGENCE identity');

@@ -94,17 +94,18 @@ check('D01 fictional-data disclosures and compliance wording remain', ['Real Fli
 
 // ---------- Section rhythm (founder request 2026-10-28) ----------
 const rhythm = read('assets/css/homepage-section-rhythm-v1.css');
-check('R01 where two dark sections meet they share one padding (Inside FlipForge -> Who it is for -> final, hero -> difference)',
+check('R01 where two dark sections meet they share one padding (Inside FlipForge -> Who it is for -> final)',
   rhythm.includes('.ff10-app:has(+ .ff10-aud){padding-bottom:calc(var(--pad) / 2)}') && rhythm.includes('.ff10-app + .ff10-aud{padding-top:calc(var(--pad) / 2)}')
   && rhythm.includes('.ff10-aud:has(+ .ff10-final){padding-bottom:calc(var(--pad) / 2)}') && rhythm.includes('.ff10-aud + .ff10-final{padding-top:calc(var(--pad) / 2)}')
-  && rhythm.includes('.ff10-hero:has(+ .ff10-diff)') && !/#[0-9a-fA-F]{3,8}\b/.test(rhythm)
+  && !rhythm.includes('ff10-diff') && !/#[0-9a-fA-F]{3,8}\b/.test(rhythm)
   && (page.match(/homepage-section-rhythm-v1\.css/g) || []).length === 1 && page.indexOf('homepage-section-rhythm-v1.css') > page.indexOf('homepage-hero-positioning-v1.css'));
 check('R02 the dark sections still sit next to each other in that order', /class="ff10-app"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-aud"/.test(page)
   && /class="ff10-aud"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-final"/.test(page)
-  && /class="ff10-hero"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-diff"/.test(page));
+  // Founder decision Nov 9 2026: the Difference poster is removed, so the hero leads straight into the Decision Challenge.
+  && /class="ff10-hero"[\s\S]*?<\/section>\s*(?:<!--[\s\S]*?-->\s*)*<section class="ff10-demo ff10-light"/.test(page) && !page.includes('class="ff10-diff"'));
 
-check('R03 desktop: hero sits close to The FlipForge difference, and the benefit line stays clear of the decision panel',
-  rhythm.includes('.ff10-hero + .ff10-diff{padding-top:clamp(48px,4.4vw,72px)}') && heroCss.includes('@media(min-width:1101px){.ff10 .ff10-hero-benefit{max-width:23em}}'));
+check('R03 desktop: the benefit line stays clear of the decision panel',
+  heroCss.includes('@media(min-width:1101px){.ff10 .ff10-hero-benefit{max-width:23em}}'));
 
 if (failures.length) { for (const f of failures) console.log(`FAIL: ${f}`); process.exit(1); }
 console.log(`PASS: ${passed} website polish checks (positioning, interaction, credibility, measurement, disclosures).`);
