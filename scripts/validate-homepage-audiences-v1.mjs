@@ -27,10 +27,9 @@ check('A05 every audience states the decision, the problem, the signals and how 
   (block.match(/<span>The decision<\/span>/g) || []).length === 5 && (block.match(/<span>The problem<\/span>/g) || []).length === 5
   && (block.match(/<span>How FlipForge helps<\/span>/g) || []).length === 5);
 const stages = data.homepage.framework.map(stage => stage.name);
-check('A06 one framework: the same four stages, in order, for every audience, matching How it works',
+check('A06 one framework: the same four stages, in order, for every audience',
   JSON.stringify(stages) === JSON.stringify(['Lock the exact card', 'Keep the prices that count', 'Know your Max Buy', 'Get the decision, and the why'])
-  && stages.every(name => (block.match(new RegExp(`<strong>${name.replace(/[.,]/g, '\\$&')}`, 'g')) || []).length === 5)
-  && stages.every(name => page.includes(`</span> ${name}</h3>`)));
+  && stages.every(name => (block.match(new RegExp(`<strong>${name.replace(/[.,]/g, '\\$&')}`, 'g')) || []).length === 5));
 check('A07 existing audience messaging reused: each problem comes from the shared source',
   data.audiences.every(a => block.includes(a.pain)));
 check('A12 brief headlines and questions', ['Find the margin before the mistake.', 'Understand what supports the opportunity.',
@@ -43,27 +42,21 @@ check('A13 each audience has an illustration from the existing artwork and a nex
   && !/<img(?![^>]*ff10-silver\.webp)[^>]*>/.test(block) && (block.match(/Illustrative · fictional card/g) || []).length === 5
   && (block.match(/data-aud-cta=/g) || []).length === 5 && (block.match(/href="#demo"/g) || []).length === 5);
 check('A14 closing message', text.includes('Different strategies. Different priorities. One standard for making an informed decision.'));
-check('A15 visitors can find all five audience choices directly in the hero',
-  order.every(key => page.includes(`href="#who-its-for" data-ff-audience-target="${key}"`))
-  && (page.match(/data-ff-audience-target="/g) || []).length === 5
-  && page.indexOf('class="ff10-persona-nav"') < page.indexOf('id="who-its-for"')
-  && page.includes('How do you approach cards?'));
+// Founder decision Nov 5 2026: the hero no longer repeats the five collector types; Who It's For is the one place for them.
+check('A15 the five collector types appear once, in Who It\u2019s For, not repeated in the hero',
+  !page.includes('data-ff-audience-target="') && !page.includes('class="ff10-persona-nav"') && !page.includes('How do you approach cards?')
+  && order.every(key => block.includes(`aria-controls="ff10-aud-panel-${key}"`)));
 check('A16 Who It’s For is linked once from the site menu (the one header, written by scripts/site-header.mjs)',
   (page.match(/href="#who-its-for" data-ff-audience-navigation/g) || []).length === 1 && page.includes('class="site-menu-links"'));
-check('A17 hero links select the matching existing panel without rewriting its source content',
-  js.includes("document.querySelectorAll('[data-ff-audience-target]')")
-  && js.includes("tab.dataset.audTab === link.dataset.ffAudienceTarget")
-  && js.includes("select(index, false)")
-  && heroCss.includes('.ff10 .ff10-persona-links a')
-  && heroCss.includes('scroll-margin-top:88px'));
+check('A17 anchors to Who It\u2019s For clear the header', heroCss.includes('scroll-margin-top:88px'));
 
 check('A08 accessible tabs', (block.match(/role="tab"/g) || []).length === 5 && (block.match(/role="tabpanel"/g) || []).length === 5
   && block.includes('role="tablist"') && (block.match(/aria-selected="true"/g) || []).length === 1
   && order.every(k => block.includes(`aria-controls="ff10-aud-panel-${k}"`) && block.includes(`aria-labelledby="ff10-aud-tab-${k}"`)));
 check('A09 keyboard support and no-script fallback', js.includes("ArrowRight") && js.includes("ArrowLeft") && js.includes('Home')
   && js.includes('End') && css.includes('.ff10-aud:not(.ff10-aud-ready) .ff10-aud-tabs{display:none}') && !block.includes(' hidden'));
-check('A10 placed after How it works and before the price demo, once',
-  page.indexOf('id="how-it-works"') < page.indexOf('id="who-its-for"') && page.indexOf('id="who-its-for"') < page.indexOf('id="demo"')
+check('A10 placed after Inside the App and before the final call to action, once',
+  page.indexOf('id="inside-the-app"') < page.indexOf('id="who-its-for"') && page.indexOf('id="who-its-for"') < page.indexOf('class="ff10-final"')
   && (page.match(/id="who-its-for"/g) || []).length === 1);
 check('A11 stylesheet and script loaded', page.includes('assets/css/homepage-audiences-v1.css') && page.includes('assets/js/homepage-audiences-v1.js" defer'));
 

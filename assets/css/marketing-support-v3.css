@@ -10,7 +10,7 @@ body.ff-support-v3{
 }
 
 body.ff-support-v3 .brand .tagline{color:var(--ff-gold);letter-spacing:.2em}
-body.ff-support-v3 .page-hero{max-width:1180px;margin:24px auto 0;padding:74px 40px 50px;border:1px solid rgba(212,175,55,.16);border-radius:22px;background:linear-gradient(135deg,rgba(255,255,255,.014),rgba(212,175,55,.026),transparent 75%)}
+/* Intro panel frame, spacing and decoration: public-shell-contract-v1.css. */
 body.ff-support-v3 .page-hero .kicker{color:var(--ff-gold)}
 body.ff-support-v3 .page-hero h1{max-width:880px;font-size:clamp(42px,5.2vw,68px);letter-spacing:-.045em}
 body.ff-support-v3 .page-hero .lead{max-width:860px;color:#c9ccd1}
@@ -49,7 +49,7 @@ body.ff-support-v3 .form-card,body.ff-support-v3 .case-card{border-radius:15px;b
 .ff-lab-directory{max-width:1180px;margin:20px auto 0;padding:0 22px;display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .ff-lab-directory a{padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:10px;background:#050607;color:#c4c7cc;font-size:10px;font-weight:900;letter-spacing:.06em;text-align:center;text-transform:uppercase}
 .ff-lab-directory a:hover{border-color:rgba(212,175,55,.48);color:var(--ff-gold)}
-.ff-lab-section{max-width:1180px;margin:auto;padding:66px 22px}
+.ff-lab-section{max-width:1180px;margin:auto;padding:var(--ff-space-section) 22px}
 .ff-lab-section .section-head{margin-bottom:22px}
 .ff-lab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .ff-lab-card{display:flex;flex-direction:column;min-height:255px;padding:23px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:linear-gradient(180deg,#080a0c,#020202)}
@@ -72,4 +72,4 @@ body.ff-support-v3 .form-card,body.ff-support-v3 .case-card{border-radius:15px;b
 body.ff-support-v3 .callout{border-radius:15px;background:linear-gradient(130deg,rgba(212,175,55,.1),#020202)}
 
 @media(max-width:1000px){.ff-pricing-boundaries,.ff-lab-grid,.ff-lab-proof{grid-template-columns:repeat(2,1fr)}.ff-beta-layout{grid-template-columns:1fr}.ff-lab-directory{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){body.ff-support-v3 .page-hero{margin:14px 12px 0;padding:54px 22px 40px}.ff-pricing-boundaries,.ff-lab-grid,.ff-lab-proof,.ff-lab-directory{grid-template-columns:1fr}.ff-lab-case{grid-template-columns:1fr}.ff-lab-case .ff-case-arrow{transform:rotate(90deg);min-height:30px}.ff-lab-section{padding:52px 19px}.ff-beta-notice-inner{grid-template-columns:1fr}.ff-beta-notice-mark{display:none}}
+@media(max-width:700px){.ff-pricing-boundaries,.ff-lab-grid,.ff-lab-proof,.ff-lab-directory{grid-template-columns:1fr}.ff-lab-case{grid-template-columns:1fr}.ff-lab-case .ff-case-arrow{transform:rotate(90deg);min-height:30px}.ff-lab-section{padding-left:19px;padding-right:19px}.ff-beta-notice-inner{grid-template-columns:1fr}.ff-beta-notice-mark{display:none}}

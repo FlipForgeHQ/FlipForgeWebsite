@@ -10,6 +10,11 @@ on:
       - "saas-prototype/customer.html"
       - "netlify/functions/flipforge-api.js"
       - "scripts/audit-customer-reported-sales-ci.mjs"
+      - "saas-prototype/decision-outcome-record-v1.js"
+      - "scripts/validate-decision-outcome-record-v1.mjs"
+      - "scripts/audit-decision-outcome-record-ci.mjs"
+      - "saas-prototype/customer-opportunities.js"
+      - "saas-prototype/customer-cdi-signal-stack-v1.js"
       - "scripts/fixtures/customer-reported-sales/**"
       - ".github/workflows/customer-reported-sales.yml"
   workflow_dispatch:
@@ -62,9 +67,15 @@ jobs:
           FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
         run: node scripts/audit-customer-reported-sales-ci.mjs
 
+      - name: Record what you did and receipt action (card switch, mocked /api/v1)
+        env:
+          FLIPFORGE_LAYOUT_AUDIT_URL: http://127.0.0.1:4173/app
+        run: node scripts/audit-decision-outcome-record-ci.mjs
+
       - name: Lifecycle and gateway regressions
         run: |
           node scripts/validate-saas-customer-lifecycle.mjs
+          node scripts/validate-decision-outcome-record-v1.mjs
           node scripts/validate-saas-gateway-tenant-membership.mjs
           node scripts/validate-gateway-provider-disclosure.mjs
           node scripts/validate-production-prototype-isolation.mjs

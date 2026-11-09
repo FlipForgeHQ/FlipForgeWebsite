@@ -268,8 +268,6 @@ html body.ff-dic-page main#main .ff-dic-big{
   html:root .ff-why-box strong,
   html:root .ff-workflow-line span,
   html:root .ff10 .ff10-hero-category,
-  html:root .ff10 .ff10-persona-links a,
-  html:root .ff10 .ff10-persona-title,
   html:root .ff10-app-badge,
   html:root .ff10-app-eyebrow,
   html:root .ff10-app-note,
@@ -300,8 +298,6 @@ html body.ff-dic-page main#main .ff-dic-big{
   html:root .ff10-feature-link,
   html:root .ff10-fine,
   html:root .ff10-id-tags li,
-  html:root .ff10-ledger-head span,
-  html:root .ff10-ledger-note,
   html:root .ff10-moat h3,
   html:root .ff10-panel-note,
   html:root .ff10-panel-rows dd small,
@@ -341,6 +337,11 @@ html body.ff-dic-page main#main .ff-dic-big{
   html:root body.ff-support-v3 main#main .ff-roadmap-note,
   html:root body.ff-v5-decision-page .ff-dic-hero > .ff-back-home,
   html:root body.ff-v5-product-page .ff-v5-brand-promise,
+  html:root .ff-app-proof-bar,
+  html:root .ff-app-proof-bar b,
+  html:root .ff-cap-status,
+  html:root .ff-capability-ledger thead th,
+  html:root .ff-depth-standard span,
   html:root form label{
     font-size:14px!important;
   }

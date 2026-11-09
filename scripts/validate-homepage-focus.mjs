@@ -12,8 +12,10 @@ check('official logo and descriptor',has(html,'assets/brand/flipforge-logo-horiz
 // Founder decision 2026-10-20: "Price is not proof." is the headline; the locked slogan sits directly beneath it.
 // Founder decision 2026-10-27: the category leads, the benefit follows the headline, the locked slogan stays unchanged.
 check('category, positioning headline, benefit, then the locked slogan',/<p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™<\/sup><\/span><\/p>\s*<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-benefit"><span>Find opportunities\.<\/span> <span>Test the evidence\.<\/span> <span>Avoid expensive mistakes\.<\/span><\/p>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(html)&&has(html,'Before you buy. Know Why.'));
-check('price question vs FlipForge question',['id="price-vs-proof"','“It sold for $500.”','“What does the evidence support, and what should I pay?”','Genuine sale prices are important evidence.','Decision intelligence decides what to do with it.'].every(t=>has(html,t)));
-check('five things a price tool cannot easily copy',(m=>m&&(m[0].match(/<li>/g)||[]).length===5&&['decision-proof.html','#evidence','#identity','#demo'].every(t=>m[0].includes('href="'+t+'"')))(html.match(/<div class="ff10-moat">[\s\S]*?<\/ol>/)));
+// Founder decision Nov 5 2026: the price-vs-proof point is made once, by the hero and the Difference poster; the
+// separate price-vs-proof section was a duplicate and is gone.
+check('price-is-not-proof positioning stated once',has(html,'id="difference"')&&has(html,'data-ff10-hero')&&!has(html,'id="price-vs-proof"'));
+check('Decision Proof reachable once from the homepage',(html.match(/href="decision-proof\.html"/g)||[]).length===1&&has(html,'<strong>Frozen decisions</strong>'));
 check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html));
 // Internal audit details stay off the public page. Rather than list the internal figures here (this file is public),
 // every number of three or more digits the homepage shows (text and readable attributes) must be an approved public
@@ -50,7 +52,7 @@ check('Request Beta Access in the header, Beta Sign In in the menu under Existin
 check('one labeled Menu button',(html.match(/class="menu-toggle"/g)||[]).length===1&&has(html,'<span class="menu-toggle-label">Menu</span>'));
 check('production beta sign-in',has(html,'/production-auth.html?return=%2Fapp%2Fbeta%2F%23%2Fbeta-start'));
 check('proof methodology preserved',has(html,'<strong>Frozen decisions</strong>')&&has(html,'href="decision-proof.html">How proof works'));
-check('marketable decision assets visible',['Max Buy','Price gap','Profit at this price','BUY','WATCH','VERIFY','PASS','Not every price counts.','One wrong parallel can ruin the entire comp.'].every(t=>has(html,t)));
+check('marketable decision assets visible',['Max Buy','Price gap','Profit at this price','BUY','WATCH','VERIFY','PASS'].every(t=>has(html,t)));
 check('one unmistakable interactive demo',(html.match(/data-ffdemo\b/g)||[]).length===1&&!has(html,'data-film')&&!has(html,'data-decision-forge')&&!has(html,'data-ff9-film'));
 check('responsive CSS',has(css,'@media(max-width:760px)')&&has(css,'@media(min-width:761px) and (max-width:1100px)'));
 check('reduced motion CSS',has(css,'@media(prefers-reduced-motion:reduce)')&&has(js,"matchMedia('(prefers-reduced-motion: reduce)')"));
