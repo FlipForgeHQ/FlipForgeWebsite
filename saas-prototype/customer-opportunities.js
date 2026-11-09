@@ -39,11 +39,16 @@
   function moneyExact(value) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safeNumber(value)); }
   function moneyFromCents(value) { return money(safeNumber(value) / 100); }
   function correlationId() { return window.crypto && typeof window.crypto.randomUUID === "function" ? window.crypto.randomUUID() : `customer-opportunities-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
+  // Display only: a manufacturer repeated in a legacy saved title is shown once (card-brand-display.js); the record is unchanged.
+  function collapseRepeatedManufacturer(value) {
+    const collapse = window.FlipForgeCardBrandDisplay?.collapseRepeatedManufacturer;
+    return typeof collapse === "function" ? collapse(value) : value;
+  }
   function normalizeCardDisplay(value) {
-    return String(value ?? "")
+    return collapseRepeatedManufacturer(String(value ?? "")
       .replace(/(^|\s)%(\d{1,4})(?=\s|$)/g, "$1#$2")
       .replace(/\s+/g, " ")
-      .trim();
+      .trim());
   }
   function cardDisplay(item) {
     const title = normalizeCardDisplay(item?.title);

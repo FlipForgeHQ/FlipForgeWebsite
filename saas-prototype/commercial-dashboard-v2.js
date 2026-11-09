@@ -30,11 +30,16 @@
   }
 
   // "%150" in a stored title is the card number "#150".
+  // Display only: a manufacturer repeated in a legacy saved title is shown once (card-brand-display.js); the record is unchanged.
+  function collapseRepeatedManufacturer(value) {
+    const collapse = window.FlipForgeCardBrandDisplay?.collapseRepeatedManufacturer;
+    return typeof collapse === "function" ? collapse(value) : value;
+  }
   function normalizeCardDisplay(value) {
-    return String(value ?? "")
+    return collapseRepeatedManufacturer(String(value ?? "")
       .replace(/(^|\s)%(\d{1,4})(?=\s|$)/g, "$1#$2")
       .replace(/\s+/g, " ")
-      .trim();
+      .trim());
   }
 
   function sameIdentity(left, right) {

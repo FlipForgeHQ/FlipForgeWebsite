@@ -43,6 +43,11 @@
     return String(node?.textContent || "").replace(/\s+/g, " ").trim();
   }
 
+  // Display only: a manufacturer repeated in a legacy saved title is shown once (card-brand-display.js); the record is unchanged.
+  function displayCardTitle(value) {
+    const collapse = window.FlipForgeCardBrandDisplay?.collapseRepeatedManufacturer;
+    return typeof collapse === "function" ? collapse(value) : value;
+  }
   function escapeHtml(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -238,7 +243,7 @@
           '<p>' + escapeHtml(reason) + '</p>' +
           '<div class="ff-cdi-meta"><span>' + escapeHtml(decision) + '</span><span>Decision engine · Smart Opportunity</span></div>' +
         '</div>' +
-        '<div class="ff-cdi-card-id"><span>Card under review</span><strong>' + escapeHtml(model.identity) + '</strong></div>' +
+        '<div class="ff-cdi-card-id"><span>Card under review</span><strong>' + escapeHtml(displayCardTitle(model.identity)) + '</strong></div>' +
       '</header>' +
       '<div class="ff-cdi-start">' +
         '<button class="ff-cdi-start-button" type="button" data-ff-cdi-start><strong>See why FlipForge said ' + escapeHtml(decision) + '</strong></button>' +

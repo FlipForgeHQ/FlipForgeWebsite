@@ -14,7 +14,8 @@ check('official logo and descriptor',has(html,'assets/brand/flipforge-logo-horiz
 check('category, positioning headline, benefit, then the locked slogan',/<p class="ff10-hero-category"><span>Card Decision Intelligence<sup>™<\/sup><\/span><\/p>\s*<h1 id="ff10-hero-title"[^>]*><span>Price is<\/span> <span>not proof\.<\/span><\/h1>\s*<p class="ff10-hero-benefit"><span>Find opportunities\.<\/span> <span>Test the evidence\.<\/span> <span>Avoid expensive mistakes\.<\/span><\/p>\s*<p class="ff10-hero-brand"><span>Before<\/span> <span>you buy\.<\/span> <span>Know Why\.<\/span><\/p>/.test(html)&&has(html,'Before you buy. Know Why.'));
 // Founder decision Nov 5 2026: the price-vs-proof point is made once, by the hero and the Difference poster; the
 // separate price-vs-proof section was a duplicate and is gone.
-check('price-is-not-proof positioning stated once',has(html,'id="difference"')&&has(html,'data-ff10-hero')&&!has(html,'id="price-vs-proof"'));
+// Founder decision Nov 9 2026: the Difference poster is removed (it showed an illustrative "Realized Return" figure); the hero states it.
+check('price-is-not-proof positioning stated once',!has(html,'id="difference"')&&!has(html,'flipforge-difference')&&has(html,'data-ff10-hero')&&!has(html,'id="price-vs-proof"'));
 check('Decision Proof reachable once from the homepage',(html.match(/href="decision-proof\.html"/g)||[]).length===1&&has(html,'<strong>Frozen decisions</strong>'));
 check('no unsupported confirmed-sale label claim',!/confirmed sale/i.test(html));
 // Internal audit details stay off the public page. Rather than list the internal figures here (this file is public),
@@ -58,7 +59,7 @@ check('responsive CSS',has(css,'@media(max-width:760px)')&&has(css,'@media(min-w
 check('reduced motion CSS',has(css,'@media(prefers-reduced-motion:reduce)')&&has(js,"matchMedia('(prefers-reduced-motion: reduce)')"));
 check('keyboard/focus states',has(html,'aria-describedby="ff10-range-help"')&&has(html,'aria-pressed="false"')&&has(css,':focus-visible'));
 check('navigation mobile Escape key',has(site,"e.key==='Escape'"));
-check('new service worker cache',has(sw,"const CACHE='flipforge-shell-v26'")&&has(sw,"'/assets/js/homepage-v10.js'"));
+check('new service worker cache',has(sw,"const CACHE='flipforge-shell-v27'")&&has(sw,"'/assets/js/homepage-v10.js'"));
 check('no old duplicate interaction loaded',!has(html,'homepage-decision-forge-v1.js')&&!has(html,'homepage-v5.js')&&!has(html,'homepage-interactive-decision-v7.js'));
 check('no public sales provider exposure',!has(html,'CardSight'));
 check('official transactions boundary',has(html,'FlipForge does not guarantee profit or authorize transactions.'));

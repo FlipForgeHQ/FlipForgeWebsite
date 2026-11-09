@@ -63,6 +63,26 @@ check('017 non-card prose is never rewritten',
 check('018 year-leading detail requirement prevents unrelated delimiter text rewrites',
   display.normalizeDetailText('Provider · Topps Company · Status') === 'Provider · Topps Company · Status');
 
+// Founder-approved display fix (Nov 9 2026): a manufacturer immediately repeated in a legacy saved title is shown once.
+// Display only; stored titles are never changed.
+const collapse = display.collapseRepeatedManufacturer;
+check('019 repeated Topps collapses: "Topps Topps Chrome" -> "Topps Chrome"', collapse('Topps Topps Chrome') === 'Topps Chrome');
+check('020 repeated Panini collapses: "Panini Panini Prizm" -> "Panini Prizm"', collapse('Panini Panini Prizm') === 'Panini Prizm');
+check('021 "Topps Chrome" is unchanged', collapse('Topps Chrome') === 'Topps Chrome');
+check('022 "Bowman Chrome" is unchanged', collapse('Bowman Chrome') === 'Bowman Chrome');
+check('023 a title without a repeat is unchanged',
+  collapse('2005-06 Upper Deck Duncan Keith #230 Young Guns PSA 10') === '2005-06 Upper Deck Duncan Keith #230 Young Guns PSA 10');
+check('024 the Aug 21 legacy saved title reads naturally',
+  collapse('2018 Topps Topps Chrome Shohei Ohtani #150 PSA 9') === '2018 Topps Chrome Shohei Ohtani #150 PSA 9');
+check('025 the repeat is matched in any letter case', collapse('2018 topps TOPPS Chrome') === '2018 TOPPS Chrome');
+check('026 a two-word manufacturer repeat collapses', collapse('1991 Upper Deck Upper Deck #1 PSA 8') === '1991 Upper Deck #1 PSA 8');
+check('027 a word that only starts with a manufacturer name is unchanged', collapse('Topps Toppsville Promo') === 'Topps Toppsville Promo');
+check('028 a repeated non-manufacturer word is unchanged', collapse('2020 Prizm Prizm Silver #1') === '2020 Prizm Prizm Silver #1');
+check('029 empty and missing values stay empty', collapse('') === '' && collapse(null) === '' && collapse(undefined) === '');
+const stored = { title: '2018 Topps Topps Chrome Shohei Ohtani #150 PSA 9' };
+collapse(stored.title);
+check('030 the stored value is never modified', stored.title === '2018 Topps Topps Chrome Shohei Ohtani #150 PSA 9');
+
 const failures = checks.filter(check => !check.passed);
 console.log('Card identity display compaction validation');
 console.log(`PASSED: ${checks.length - failures.length}`);
