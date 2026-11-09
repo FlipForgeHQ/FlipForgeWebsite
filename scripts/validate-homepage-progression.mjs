@@ -125,11 +125,10 @@ for(const amount of ['$14.99','$29.99','$149','$299'])forbidText('Launch Plans u
 
 requireAll('Phase 2 premium public rollout',phase2Js,[
   'buildEvidenceTheater()',
-  'buildProductReceipt()',
-  'evidence_failure_selected',
-  'decision_receipt_cta_clicked',
-  'phase2_beta_cta_clicked'
+  'buildProductReceipt()'
 ]);
+// Its own event names were never allowlisted (400 EVENT_NOT_ALLOWED); public measurement is conversion-events.js.
+forbidText('Phase 2 premium public rollout sends no conversion events',phase2Js,'/api/conversion-event');
 requireAll('Phase 2 premium visual system',phase2Css,[
   '.ff-phase2-cdi-theater',
   '.ff-phase2-evidence-theater',
@@ -191,8 +190,7 @@ requireAll('Phase 3 public Decision Receipt anatomy',phase2Js,[
   'assets/brand/flipforge-logo-horizontal.svg',
   'data-ff-p3-receipt-layer',
   'WHAT IT PRESERVES',
-  'WHAT IT DOES NOT DO',
-  'decision_receipt_layer_selected'
+  'WHAT IT DOES NOT DO'
 ]);
 requireAll('Phase 4 public Decision Receipt polish',phase2Css,[
   '.ff-phase3-product-receipt-layout',

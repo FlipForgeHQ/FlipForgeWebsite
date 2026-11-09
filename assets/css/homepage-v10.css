@@ -7,7 +7,9 @@
   --s-ink:#5E626B;                 /* silver darkened for small text on white (AA) */
   --line-d:rgba(255,255,255,.14); --line-l:rgba(0,0,0,.12);
   --wrap:1360px; --gut:clamp(20px,4vw,48px);
-  --pad:clamp(96px,11vw,176px);
+  /* Section rhythm: the public spacing scale (public-shell-contract-v1.css, 2026-11-06). */
+  --pad:var(--ff-space-section-lg);
+  --gap-lg:var(--ff-space-block-lg);
   margin:0; background:var(--k); color:var(--w);
   font-family:Geist,"Geist Sans",Arial,sans-serif; line-height:1.55;
   font-feature-settings:"ss01";
@@ -47,7 +49,7 @@
 /* ======================================================================
    1. HERO
    ====================================================================== */
-.ff10-hero{position:relative;overflow:hidden;padding:clamp(40px,5vw,72px) 0 clamp(72px,8vw,120px);
+.ff10-hero{position:relative;overflow:hidden;padding:clamp(40px,5vw,72px) 0 var(--gap-lg);
   background:
     radial-gradient(60% 70% at 82% 46%,rgba(212,175,55,.16),rgba(212,175,55,0) 62%),
     var(--k)}
@@ -61,7 +63,7 @@
 .ff10-hero .ff10-lede{grid-column:1;grid-row:3;margin-top:clamp(22px,2.4vw,34px)}
 .ff10-hero .ff10-actions{grid-column:1;grid-row:4;margin-top:32px}
 .ff10-hero-note{grid-column:1;grid-row:5;margin-top:20px!important;font-size:14px;color:var(--s)}
-.ff10-verdict-key{grid-column:1;grid-row:6;align-self:end;margin-bottom:clamp(60px,8vw,140px);padding-top:22px;border-top:1px solid var(--line-d);max-width:520px}
+.ff10-verdict-key{grid-column:1;grid-row:6;align-self:end;margin-bottom:var(--gap-lg);padding-top:22px;border-top:1px solid var(--line-d);max-width:520px}
 .ff10-verdict-key p{font-size:14px;color:var(--s)}
 .ff10-verdict-key ul{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;padding:0;list-style:none}
 .ff10-verdict-key li{padding:7px 12px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.22);font-weight:900;font-size:15px;letter-spacing:-.01em;color:rgba(255,255,255,.75)}
@@ -70,7 +72,7 @@
 .ff10-verdict-key li:nth-child(3){border-color:var(--s);color:var(--w)}
 .ff10-verdict-key li:nth-child(4){background:var(--w);border-color:var(--w);color:var(--k)}
 
-.ff10-stage{grid-column:2;grid-row:1/-1;position:relative;z-index:2;margin-bottom:clamp(60px,8vw,140px)}
+.ff10-stage{grid-column:2;grid-row:1/-1;position:relative;z-index:2;margin-bottom:var(--gap-lg)}
 .ff10-glow{position:absolute;left:50%;top:44%;width:150%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
   background:radial-gradient(closest-side,rgba(212,175,55,.30),rgba(212,175,55,.08) 55%,rgba(212,175,55,0));pointer-events:none}
 .ff10-slab{position:relative;margin:0;width:100%}
@@ -147,7 +149,7 @@
 .ff10-demo-head{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:clamp(24px,5vw,80px);align-items:end}
 .ff10-demo-head p{font-size:18px;line-height:1.55;color:var(--s-ink);max-width:28em}
 
-.ff10-meter{margin-top:clamp(56px,7vw,96px)}
+.ff10-meter{margin-top:var(--gap-lg)}
 .ff10-meter-top{display:flex;justify-content:space-between;align-items:baseline;gap:20px}
 .ff10 .ff10-meter-top label{position:static;padding:0;background:none;border-radius:0;font-size:16px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--k)}
 .ff10-meter-top output{font-size:clamp(56px,7vw,112px);font-weight:800;letter-spacing:-.05em;line-height:.9;font-variant-numeric:tabular-nums}
@@ -167,7 +169,7 @@
 .ff10-range input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 6px rgba(0,0,0,.25)}
 .ff10-range-scale{display:flex;justify-content:space-between;font-size:14px;color:var(--s-ink);font-variant-numeric:tabular-nums}
 
-.ff10-readout{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:clamp(48px,6vw,80px);border-top:2px solid var(--k)}
+.ff10-readout{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:var(--gap-lg);border-top:2px solid var(--k)}
 .ff10-read{padding:22px clamp(14px,2vw,28px) 0 0;display:flex;flex-direction:column;gap:6px}
 .ff10-read+.ff10-read{padding-left:clamp(14px,2vw,28px);border-left:1px solid var(--line-l)}
 .ff10-read span{font-size:15px;font-weight:600}
@@ -201,7 +203,7 @@
    3. STEPS (dark)
    ====================================================================== */
 
-.ff10-step-list{margin:clamp(48px,6vw,88px) 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(16px,2vw,28px)}
+.ff10-step-list{margin:var(--gap-lg) 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(16px,2vw,28px)}
 .ff10-step h3{display:flex;align-items:baseline;gap:12px;margin:26px 0 10px;font-size:clamp(20px,1.7vw,24px);font-weight:700;letter-spacing:-.02em;line-height:1.2;color:var(--w)}
 .ff10-step-n{flex:none;display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1px solid var(--g);color:var(--g);font-size:14px;font-weight:700;letter-spacing:0}
 .ff10-step p{font-size:16px;line-height:1.55;color:var(--s)}
@@ -253,7 +255,7 @@
    5. EVIDENCE (dark)
    ====================================================================== */
 
-.ff10-proof{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 32px;margin-top:clamp(64px,7vw,104px);padding-top:28px;border-top:1px solid var(--line-d)}
+.ff10-proof{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 32px;margin-top:var(--gap-lg);padding-top:28px;border-top:1px solid var(--line-d)}
 .ff10-proof p{font-size:17px;color:var(--s);max-width:52em}
 .ff10-proof strong{color:var(--w);margin-right:6px}
 .ff10-proof a{font-weight:700;color:var(--g);text-decoration:underline;text-underline-offset:5px}
@@ -261,13 +263,13 @@
 /* ======================================================================
    6. FINAL (light)
    ====================================================================== */
-.ff10-final{padding:var(--pad) 0 clamp(72px,8vw,120px)}
+.ff10-final{padding:var(--pad) 0 var(--ff-space-page-end)}
 .ff10-final .ff10-display{font-size:clamp(48px,8.4vw,136px);max-width:11em}
-.ff10-final-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px 48px;margin-top:clamp(40px,5vw,72px);padding-top:32px;border-top:2px solid rgba(255,255,255,.22)}
+.ff10-final-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px 48px;margin-top:var(--ff-space-block);padding-top:32px;border-top:2px solid rgba(255,255,255,.22)}
 .ff10-final-row p{font-size:18px;line-height:1.55;color:rgba(255,255,255,.78);max-width:30em}
 .ff10-fine{margin-top:28px!important;font-size:13px;color:var(--s-ink)}
 .ff10-final .ff10-fine{color:var(--s)}
-.ff10-signature{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:clamp(56px,7vw,96px)}
+.ff10-signature{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:var(--gap-lg)}
 .ff10-signature img{display:block}
 .ff10-signature span:first-of-type{font-weight:700;font-size:15px;letter-spacing:.32em;color:var(--w)}
 .ff10-signature span:last-of-type{font-weight:600;font-size:12px;letter-spacing:.34em;color:var(--g)}
@@ -282,7 +284,7 @@
    2. THE POSITIONING: the price question vs the FlipForge question
    ====================================================================== */
 
-.ff10-versus{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(16px,2vw,28px);margin-top:clamp(48px,6vw,88px);align-items:stretch}
+.ff10-versus{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(16px,2vw,28px);margin-top:var(--gap-lg);align-items:stretch}
 .ff10-q{border-radius:16px;padding:clamp(26px,3vw,44px);display:flex;flex-direction:column;gap:clamp(18px,2vw,28px)}
 .ff10-q-price{border:1px solid var(--line-l);background:var(--w)}
 .ff10-q-ff{background:var(--k);color:var(--w);box-shadow:0 30px 70px rgba(0,0,0,.22);position:relative;overflow:hidden}
@@ -300,13 +302,13 @@
 .ff10-q-tells ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px}
 .ff10-q-tells li{display:flex;gap:10px;align-items:baseline;font-size:17px;font-weight:600;line-height:1.35}
 .ff10-q-tells li::before{content:"";flex:none;width:12px;height:7px;border-left:2px solid var(--g);border-bottom:2px solid var(--g);transform:rotate(-45deg) translateY(-3px)}
-.ff10-promise{margin-top:clamp(48px,6vw,88px)!important;max-width:24em;font-weight:700;letter-spacing:-.03em;line-height:1.12;font-size:clamp(28px,3.2vw,52px);color:var(--s)}
+.ff10-promise{margin-top:var(--gap-lg)!important;max-width:24em;font-weight:700;letter-spacing:-.03em;line-height:1.12;font-size:clamp(28px,3.2vw,52px);color:var(--s)}
 .ff10-promise span{color:var(--s-ink)}
 .ff10-promise strong{color:var(--k);font-weight:800}
 .ff10-readmore{margin-top:20px!important;font-size:17px;font-weight:700}
 .ff10-readmore a{color:var(--k);text-decoration:underline;text-decoration-color:var(--g);text-decoration-thickness:2px;text-underline-offset:5px}
 .ff10-readmore a:hover{text-decoration-color:var(--k)}
-.ff10-moat{margin-top:clamp(48px,6vw,88px);padding-top:28px;border-top:2px solid var(--k)}
+.ff10-moat{margin-top:var(--gap-lg);padding-top:28px;border-top:2px solid var(--k)}
 .ff10-moat h3{margin:0;font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--s-ink)}
 .ff10-moat ol{list-style:none;margin:24px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;counter-reset:moat}
 .ff10-moat li{counter-increment:moat}
@@ -397,7 +399,7 @@
 /* ======================================================================
    THE FLIPFORGE DIFFERENCE: founder-approved poster (invented card, no performance figures).
    ====================================================================== */
-.ff10-diff{padding:clamp(56px,7vw,112px) 0;border-top:1px solid var(--line-d);
+.ff10-diff{padding:var(--pad) 0;border-top:1px solid var(--line-d);
   background:radial-gradient(60% 50% at 50% 40%,rgba(212,175,55,.12),rgba(212,175,55,0) 70%),var(--k)}
 .ff10-diff-poster{margin:0 auto;width:min(680px,100%)}
 .ff10-diff-poster img{display:block;width:100%;height:auto;border-radius:16px;

@@ -9,8 +9,7 @@
 .ff10-design .footer .brand-lockup{filter:drop-shadow(0 0 11px rgba(204,161,68,.09))}
 .ff10-design .footer-links a:hover{color:var(--ff10-gold)}
 /* Sitewide hero — maintain shared heading metrics for all existing typography contracts. */
-.ff10-design main>.page-hero{position:relative;isolation:isolate;overflow:hidden;border:1px solid rgba(217,177,90,.31);border-top:2px solid rgba(240,210,137,.66);border-radius:18px;background:linear-gradient(115deg,rgba(10,16,19,.96),rgba(5,9,12,.95) 54%,rgba(53,39,21,.24)),repeating-linear-gradient(90deg,transparent 0 74px,rgba(214,168,78,.035) 75px,transparent 76px);box-shadow:0 26px 70px rgba(0,0,0,.24)}
-.ff10-design main>.page-hero:before{content:"";position:absolute;z-index:-1;right:-12%;top:-30%;width:58%;height:145%;border:1px solid rgba(228,193,105,.22);border-radius:50%;background:radial-gradient(ellipse at center,rgba(211,152,55,.10),rgba(200,153,67,.025) 40%,transparent 72%);box-shadow:0 0 0 45px rgba(229,187,104,.018),0 0 0 90px rgba(229,187,104,.009);pointer-events:none}
+/* Intro panel frame and decoration: public-shell-contract-v1.css (one finish on every public page). */
 .ff10-design main>.page-hero h1{position:relative;z-index:1;text-wrap:balance}
 .ff10-design main>.page-hero .kicker{color:var(--ff10-gold)}
 .ff10-design main>.page-hero .lead{position:relative;z-index:1;color:#d4dbe0}
@@ -22,8 +21,8 @@
 .ff10-breadcrumb a:hover{color:#fff;background:rgba(195,151,58,.21)}
 .ff10-breadcrumb>span[aria-hidden]{color:#68777d}
 /* Distinctive full-bleed editorial feature on each core page. */
-.ff10-design .ff10-feature{position:relative;isolation:isolate;max-width:1180px;min-height:375px;margin:22px auto 65px;border:1px solid rgba(234,205,137,.49);border-radius:18px;background:linear-gradient(122deg,#111a1e,#060a0d 55%,#111511);display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(22px,3vw,53px);align-items:center;padding:clamp(24px,4vw,47px);overflow:hidden;box-shadow:0 31px 95px rgba(0,0,0,.45)}
-.ff10-design .ff10-feature::before{content:"";position:absolute;pointer-events:none;inset:0;z-index:-1;background:radial-gradient(ellipse 60% 80% at 94% 3%,rgba(226,161,52,.16),transparent 76%),repeating-linear-gradient(125deg,transparent 0 76px,rgba(255,255,255,.013) 77px,transparent 78px)}
+.ff10-design .ff10-feature{position:relative;isolation:isolate;max-width:1180px;min-height:0;margin:var(--ff-space-stack) auto;border:1px solid var(--ff-hairline);border-radius:var(--ff-panel-radius);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0) 60%),linear-gradient(122deg,#0c1115,#06090c 60%,#0a0b0b);display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(22px,3vw,53px);align-items:center;padding:clamp(24px,3.4vw,44px);overflow:hidden;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 24px 60px rgba(0,0,0,.3)}
+.ff10-design .ff10-feature::before{content:"";position:absolute;pointer-events:none;inset:0 0 auto 0;height:1px;z-index:0;background:linear-gradient(90deg,var(--ff-champagne-strong),rgba(217,191,127,.45) 24%,rgba(217,191,127,0) 66%)}
 .ff10-design .ff10-feature-story{position:relative;z-index:2}
 .ff10-design .ff10-feature-kicker{display:inline-block;color:#e9c880;font-size:10px;font-weight:900;letter-spacing:.16em;line-height:1.5}
 .ff10-design .ff10-feature-story h2{font-size:clamp(34px,3.5vw,50px);color:#fff;line-height:1.05;letter-spacing:-.05em;margin:15px 0 16px;font-weight:930}
@@ -31,7 +30,7 @@
 .ff10-design .ff10-feature-story p{color:#bfcad0;font-size:16px;line-height:1.6;margin:0;max-width:41ch}
 .ff10-feature-link{display:inline-flex;align-items:center;gap:15px;margin-top:23px;padding:11px 0;border-bottom:1px solid #c6a464;color:#efd18b;text-decoration:none;font-size:11px;font-weight:900;letter-spacing:.09em}
 .ff10-feature-link span{font-size:17px;line-height:1}
-.ff10-graphic{min-height:286px;display:flex;flex-direction:column;justify-content:center;border:1px solid rgba(230,188,102,.32);border-top:2px solid #d6b46a;border-radius:13px;background:linear-gradient(150deg,rgba(23,35,42,.9),rgba(3,7,10,.97));padding:23px;box-shadow:0 23px 58px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.065);min-width:0}
+.ff10-graphic{min-height:0;display:flex;flex-direction:column;justify-content:center;border:1px solid rgba(255,255,255,.11);border-top:1px solid var(--ff-hairline-gold);border-radius:12px;background:linear-gradient(160deg,#10161a,#05080b);padding:23px;box-shadow:0 18px 44px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.05);min-width:0}
 .ff10-trust-graphic{gap:10px}
 .ff10-trust-graphic>div{display:grid;grid-template-columns:130px minmax(0,1fr) 44px;gap:10px;align-items:center;border-bottom:1px solid rgba(255,255,255,.11);padding:9px 2px}
 .ff10-trust-graphic>div:last-child{border:0}
@@ -68,7 +67,6 @@
 .ff10-faq-graphic span{color:#dfbc70;font-size:10px;font-weight:900;letter-spacing:.07em}
 .ff10-faq-graphic strong{color:#f5f6f5;font-size:clamp(11px,1vw,14px);font-weight:800}
 .ff10-faq-graphic b{color:#e3bb63;font-size:19px}
-.ff10-design .ffg-section.ff-approved-feature{margin-top:48px}
 .ff10-design .ffg-section .ffg-wrap{max-width:1180px}
 .ff10-design .ff-approved-graphic{border-color:rgba(218,177,92,.34);border-radius:16px;box-shadow:0 18px 58px rgba(0,0,0,.27)}
 .ff10-design .ffg-heading .ffg-kicker{color:#e4c27c}
@@ -77,7 +75,7 @@
 .ff10-design .ff-aw-proof-strip article{background:linear-gradient(160deg,#121a1d,#06090c)}
 .ff10-design .ff-aw-question,.ff10-design .ff-lab-card,.ff10-design .ff-aw-plan,.ff10-design .ff-step-card,.ff10-design .ff-prepare-grid article,.ff10-design .ff-session-grid article,.ff10-design .ff-boundary-grid article{border-color:rgba(220,182,95,.23);background:linear-gradient(153deg,#10181c,#070b0e 85%);box-shadow:0 17px 45px rgba(0,0,0,.16)}
 .ff10-design .ff-aw-question:hover,.ff10-design .ff-lab-card:hover,.ff10-design .ff-aw-plan:hover{border-color:rgba(233,197,113,.6)}
-.ff10-design .ff-aw-customer-cta,.ff10-design .callout,.ff10-design .ff-onboarding-cta{border-color:rgba(226,186,103,.46);background:radial-gradient(ellipse 60% 130% at 87% 3%,rgba(204,161,72,.11),transparent 72%),linear-gradient(150deg,#151e21,#030608)}
+.ff10-design .callout,.ff10-design .ff-onboarding-cta{border-color:var(--ff-hairline);border-top-color:var(--ff-hairline-gold);border-radius:var(--ff-panel-radius);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0) 60%),linear-gradient(120deg,#0c1115,#06090c 62%,#0a0b0b)}
 .ff10-design .ff-lab-directory a{border:1px solid rgba(221,181,102,.29);background:#10181b;border-radius:7px;color:#e1e6e7;font-size:11px;min-height:42px;display:flex;align-items:center;justify-content:center}
 .ff10-design .ff-lab-directory a:hover{border-color:#e6c47f;background:#1b2427}
 .ff10-design .ff-lab-section .ff-lab-case{background:linear-gradient(145deg,#182226,#06090b)}
@@ -92,12 +90,14 @@
 .ff10-design .form-card input,.ff10-design .form-card textarea,.ff10-design .form-card select{border:1px solid #53616a;background:#080d10;color:#f9f8f5;border-radius:8px}
 .ff10-design .form-card input:focus,.ff10-design .form-card textarea:focus,.ff10-design .form-card select:focus{border-color:#e1bd73}
 .ff10-design .ff-onboarding-status{border-color:rgba(234,197,116,.52);background:radial-gradient(ellipse at 80% 5%,rgba(207,164,68,.15),transparent 70%),linear-gradient(160deg,#161f23,#080d10)}
-.ff10-design .ff-next-steps{padding-top:48px}
+.ff10-design .ff-next-steps{padding-top:var(--ff-space-section)}
 .ff10-design .ff-next-steps .ff-step-card>span{background:rgba(217,178,82,.08)}
 /* Trusted information gets a document-grade treatment, without editing legal content. */
-.ff10-legal main>.page-hero,.ff10-missing main>.page-hero{max-width:1180px;margin:25px auto 0;padding:92px 38px 48px}
+.ff10-legal main>.page-hero,.ff10-missing main>.page-hero{max-width:1180px;margin:var(--ff-space-hero-top) auto 0;padding:var(--ff-space-hero-pad-top) 38px var(--ff-space-hero-pad-bottom)}
 .ff10-legal .section,.ff10-missing .section{max-width:1180px}
-.ff10-legal .legal-card{max-width:1050px;margin:0 auto;background:linear-gradient(155deg,#121a1e,#060a0d);border:1px solid rgba(216,182,101,.3);box-shadow:0 21px 62px rgba(0,0,0,.3);padding:clamp(23px,4vw,48px);border-radius:17px}
+/* Document panels share the public ink finish (navy-tinted base panels from site.css retired on public pages). */
+.ff10-design .legal-card{background:linear-gradient(180deg,#0c1115,#06090c);border:1px solid var(--ff-hairline);border-top-color:var(--ff-hairline-gold);border-radius:var(--ff-panel-radius)}
+.ff10-legal .legal-card{max-width:1050px;margin:0 auto;background:linear-gradient(180deg,#0c1115,#06090c);border:1px solid var(--ff-hairline);border-top-color:var(--ff-hairline-gold);box-shadow:0 18px 48px rgba(0,0,0,.26);padding:clamp(22px,3.4vw,44px);border-radius:var(--ff-panel-radius)}
 .ff10-legal .legal-card h2{scroll-margin-top:92px;padding-top:20px;margin-top:17px;border-top:1px solid rgba(223,183,95,.18);color:#f1d38b}
 .ff10-legal .legal-card h2:first-child{border:0;padding-top:0}
 .ff10-legal .legal-card p,.ff10-legal .legal-card li{color:#cbd3d6;line-height:1.83}
@@ -111,10 +111,10 @@
 .ff10-proof .ff-proof-page-section{border-color:rgba(224,180,86,.2)}
 .ff10-disclosure main,.ff10-status main,.ff10-connect main{background:radial-gradient(ellipse 45% 20% at 81% 8%,rgba(205,161,60,.12),transparent),linear-gradient(180deg,#070c10,#030709)}
 .ff10-disclosure .card,.ff10-status .card{border-color:rgba(226,187,94,.28)}
-.ff10-missing main>.page-hero{min-height:450px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.ff10-missing main>.page-hero{min-height:clamp(300px,30vw,420px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 /* Layout resilience. No mobile horizontal overflow. */
-@media(max-width:1100px){.ff10-design .ff10-feature{grid-template-columns:1fr;gap:21px;margin:20px 18px 53px;min-height:0}.ff10-graphic{min-height:240px}.ff10-design .ff10-feature-story p{max-width:67ch}.ff10-design .ff10-feature-story h2{max-width:17ch}}
-@media(max-width:760px){.ff10-design main>.page-hero{margin:12px 13px 0;border-radius:13px;padding-left:22px;padding-right:22px}.ff10-design .ff10-breadcrumb{top:11px;left:20px;font-size:10px}.ff10-design .ff10-feature{margin:13px 13px 45px;padding:23px 17px;border-radius:13px}.ff10-design .ff10-feature-story h2{font-size:clamp(33px,7vw,46px)}.ff10-design .ff10-feature-story p{font-size:14px}.ff10-graphic{padding:17px;min-height:240px}.ff10-trust-graphic>div{grid-template-columns:80px minmax(0,1fr) 19px;gap:7px}.ff10-trust-graphic span,.ff10-faq-graphic span{font-size:8px}.ff10-trust-graphic strong,.ff10-faq-graphic strong{font-size:11px}.ff10-faq-graphic>div{grid-template-columns:100px minmax(0,1fr) 17px}.ff10-design .ff-lab-directory a{font-size:11px}.ff10-legal main>.page-hero,.ff10-missing main>.page-hero{padding-top:75px}.ff10-legal .legal-card{padding:20px}}
+@media(max-width:1100px){.ff10-design .ff10-feature{grid-template-columns:1fr;gap:21px;margin:var(--ff-space-stack) 18px;min-height:0}.ff10-graphic{min-height:0}.ff10-design .ff10-feature-story p{max-width:67ch}.ff10-design .ff10-feature-story h2{max-width:17ch}}
+@media(max-width:760px){.ff10-design main>.page-hero{margin:var(--ff-space-hero-top) 13px 0;padding-left:22px;padding-right:22px}.ff10-design .ff10-breadcrumb{top:11px;left:20px;font-size:10px}.ff10-design .ff10-feature{margin:var(--ff-space-stack) 13px;padding:23px 17px;border-radius:13px}.ff10-design .ff10-feature-story h2{font-size:clamp(33px,7vw,46px)}.ff10-design .ff10-feature-story p{font-size:14px}.ff10-graphic{padding:17px;min-height:0}.ff10-trust-graphic>div{grid-template-columns:80px minmax(0,1fr) 19px;gap:7px}.ff10-trust-graphic span,.ff10-faq-graphic span{font-size:8px}.ff10-trust-graphic strong,.ff10-faq-graphic strong{font-size:11px}.ff10-faq-graphic>div{grid-template-columns:100px minmax(0,1fr) 17px}.ff10-design .ff-lab-directory a{font-size:11px}.ff10-legal main>.page-hero,.ff10-missing main>.page-hero{padding-top:75px}.ff10-legal .legal-card{padding:20px}}
 @media(max-width:400px){.ff10-evidence-row span{font-size:9px}.ff10-evidence-row b{flex-basis:71px;font-size:9px}.ff10-plans-future b{font-size:9px}.ff10-beta-step{grid-template-columns:42px 1fr;gap:11px}.ff10-beta-step>span{width:36px;height:36px}.ff10-beta-step strong{font-size:12px}.ff10-beta-step small{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.ff10-design *, .ff10-design *:before,.ff10-design *:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 

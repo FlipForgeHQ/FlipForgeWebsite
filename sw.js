@@ -39,7 +39,6 @@ const SHELL=[
   '/assets/js/homepage-cinematic-film-v9.js',
   '/assets/css/homepage-reference-v8.css',
   '/assets/css/homepage-cinematic-film-v9.css',
-        '/assets/js/phase3-activation-events-v1.js',
   '/assets/js/homepage-v1.js',
   '/assets/js/homepage-deal-or-decoy-v1.js',
   '/assets/js/homepage-contender-v1.js',

@@ -376,7 +376,8 @@
     // The saved decisions were read but this card is not among them: it has no linked decision (not a loading failure).
     if (!saved) return { group: validOpportunities(state.opportunities) ? "unlinked" : "unavailable", chip: "" };
     const verdict = String(saved.governedDecision?.recommendation || saved.recommendation || "").toUpperCase().replace(/^SAVED\s+/, "");
-    const chip = /^(BUY|WATCH|VERIFY|PASS)$/.test(verdict) ? `<span class="staging-status staging-status-${verdict === "BUY" ? "buy" : verdict === "PASS" ? "danger" : "warn"}">${escapeHtml(verdict)}</span>` : "";
+    const passReason = verdict === "PASS" && window.FlipForgeTrustDisplay?.passReasonText ? window.FlipForgeTrustDisplay.passReasonText(saved) : null;
+    const chip = /^(BUY|WATCH|VERIFY|PASS)$/.test(verdict) ? `<span class="staging-status staging-status-${verdict === "BUY" ? "buy" : verdict === "PASS" ? "danger" : "warn"}"${passReason ? ` title="${escapeHtml(passReason)}" data-pass-reason` : ""}>${escapeHtml(verdict)}</span>${passReason ? `<small data-pass-reason-text>${escapeHtml(passReason)}</small>` : ""}` : "";
     if (isLegacy(saved)) return { group: "legacy", chip };
     // A VERIFY decision sets no buying limit: its evidence has not cleared, so no Max Buy is shown or compared.
     if (verdict === "VERIFY") return { group: "verify-no-max-buy", chip };

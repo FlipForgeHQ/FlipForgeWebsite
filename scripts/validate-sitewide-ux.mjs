@@ -85,7 +85,9 @@ const notFound=read('404.html');
 
 for(const [label,text] of [['product/about marketing',marketingPages],['support marketing',marketingSupport]]) requireText(label,text,'@import url("marketing-density-v1.css")');
 requireText('marketing density purpose',density,'definitive marketing density system');
-requireText('mobile density',density,'--ff-site-section-y-mobile:36px');
+// 2026-11-06 sitewide refinement: section rhythm moved onto the shared public spacing scale (36px -> 28px on phones).
+requireText('mobile density',density,'--ff-site-section-y-mobile:var(--ff-space-section)');
+requireText('public spacing scale',read('assets/css/public-shell-contract-v1.css'),'--ff-space-section:clamp(28px,2.8vw,40px)');
 
 /* Public brand/typography contract: one semantic scale owns the public site.
  * Rendered browser QA is mandatory so cascade regressions cannot hide behind

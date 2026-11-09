@@ -3,17 +3,21 @@
 
 /* Premium page rhythm */
 .ff-aw-page{overflow-x:hidden}
-.ff-aw-page .page-hero{max-width:var(--ff-aw-max);padding-top:84px;padding-bottom:54px}
+.ff-aw-page .page-hero{max-width:var(--ff-aw-max)}
 .ff-aw-page .page-hero h1{max-width:880px;font-size:clamp(46px,6vw,82px);line-height:.96;letter-spacing:-.055em}
 .ff-aw-page .page-hero .lead{max-width:760px;font-size:clamp(18px,2vw,23px);line-height:1.5;color:#b8bec8}
 .ff-aw-page .kicker{color:var(--ff-aw-gold);letter-spacing:.14em}
-.ff-aw-page .section{max-width:var(--ff-aw-max);padding-top:74px;padding-bottom:74px}
+.ff-aw-page .section{max-width:var(--ff-aw-max)} /* vertical rhythm: --ff-site-section-y (marketing-density-v1.css) */
 .ff-aw-page .section-head h2{max-width:760px;font-size:clamp(32px,4vw,52px);line-height:1.03;letter-spacing:-.04em}
 .ff-aw-page .section-copy{max-width:560px;color:#9da4ae}
 
 .ff-aw-proof-strip{max-width:var(--ff-aw-max);margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--ff-aw-line);border-radius:20px;overflow:hidden;background:var(--ff-aw-line)}
 .ff-aw-proof-strip article{padding:24px;background:#070a10}
 .ff-aw-proof-strip span{display:block;color:#AEB7C1;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+/* The four decisions read as one row of verdict chips. */
+.ff-aw-proof-strip .note{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;line-height:1}
+.ff-aw-proof-strip .note span{display:inline-flex;align-items:center;padding:6px 9px;border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#e9edf1;font-size:12px;letter-spacing:.06em}
+.ff-aw-proof-strip .note span:first-child{border-color:var(--ff-champagne-strong,#d4af37);color:var(--ff-champagne,#d9bf7f)}
 .ff-aw-proof-strip strong{display:block;margin-top:10px;color:#fff;font-size:20px;line-height:1.25}
 .ff-aw-proof-strip p{margin:8px 0 0;color:#939ba6;font-size:13px;line-height:1.55}
 
@@ -24,7 +28,8 @@
 .ff-aw-question h3{margin:32px 0 0;color:#fff;font-size:25px;line-height:1.16;letter-spacing:-.025em}
 .ff-aw-question p{margin:10px 0 0;color:#9ba2ad;line-height:1.65}
 
-.ff-aw-customer-cta{max-width:var(--ff-aw-max);margin:18px auto 72px;padding:34px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:center;border:1px solid rgba(216,182,74,.25);border-radius:22px;background:radial-gradient(circle at 90% 10%,rgba(216,182,74,.12),transparent 32%),linear-gradient(145deg,#0b0f17,#05070b)}
+/* One closing call-to-action panel sitewide (2026-11-06): the same ink panel, hairline and champagne top rule as the page intro. Spacing: marketing-density-v1.css tokens. */
+.ff-aw-customer-cta{position:relative;overflow:hidden;max-width:var(--ff-aw-max);margin:0 auto;padding:34px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:center;border:1px solid var(--ff-hairline,rgba(255,255,255,.09));border-top-color:var(--ff-hairline-gold,rgba(217,191,127,.28));border-radius:var(--ff-panel-radius,16px);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0) 60%),linear-gradient(120deg,#0c1115,#06090c 62%,#0a0b0b);box-shadow:0 24px 60px rgba(0,0,0,.26)}
 .ff-aw-customer-cta h2{margin:0;color:#fff;font-size:clamp(28px,3.4vw,44px);line-height:1.06;letter-spacing:-.035em}
 .ff-aw-customer-cta p{max-width:680px;margin:10px 0 0;color:#a4abb5;line-height:1.6}
 
@@ -80,7 +85,6 @@
 .ff-aw-plan li{padding-top:10px;border-top:1px solid var(--ff-aw-line);color:#d5d9df;font-size:13px}
 
 @media(max-width:900px){
-  .ff-aw-page .page-hero{padding-top:56px;padding-bottom:38px}
   .ff-aw-proof-strip,.ff-aw-question-grid,.ff-aw-plans{grid-template-columns:1fr}
   .ff-aw-customer-cta{grid-template-columns:1fr;margin-left:18px;margin-right:18px;padding:26px}
   .ff-aw-busted-head{grid-template-columns:1fr;gap:12px}
@@ -88,9 +92,8 @@
   .ff-home-focused.ff-aw-home .ff-problem-grid{grid-template-columns:1fr!important}
 }
 @media(max-width:520px){
-  .ff-aw-page .page-hero{padding:44px 18px 30px}
   .ff-aw-page .page-hero h1{font-size:clamp(42px,12vw,56px)}
-  .ff-aw-page .section{padding:52px 18px}
+  .ff-aw-page .section{padding-left:18px;padding-right:18px}
   .ff-aw-busted{padding:0 18px;margin-top:36px}
   .ff-aw-busted-shell{padding:20px}
   .ff-aw-beta-progress{grid-template-columns:1fr}

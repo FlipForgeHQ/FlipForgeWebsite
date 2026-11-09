@@ -337,6 +337,11 @@ html body.ff-dic-page main#main .ff-dic-big{
   html:root body.ff-support-v3 main#main .ff-roadmap-note,
   html:root body.ff-v5-decision-page .ff-dic-hero > .ff-back-home,
   html:root body.ff-v5-product-page .ff-v5-brand-promise,
+  html:root .ff-app-proof-bar,
+  html:root .ff-app-proof-bar b,
+  html:root .ff-cap-status,
+  html:root .ff-capability-ledger thead th,
+  html:root .ff-depth-standard span,
   html:root form label{
     font-size:14px!important;
   }

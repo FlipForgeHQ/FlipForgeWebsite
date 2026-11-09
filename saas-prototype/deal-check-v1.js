@@ -181,6 +181,9 @@
       id: text(opportunity.id),
       title: text(opportunity.title) || text(opportunity.cardIdentity) || "Saved FlipForge decision",
       verdict: verdictOf(governedAvailable ? governed.recommendation : opportunity.recommendation),
+      // Why a PASS is a PASS when it is not an economic loss (null keeps the economics wording).
+      passReason: window.FlipForgeTrustDisplay && typeof window.FlipForgeTrustDisplay.passReasonText === "function"
+        ? window.FlipForgeTrustDisplay.passReasonText(opportunity) : null,
       baseVerdict: verdictOf(governed.baseRecommendation || opportunity.baseRecommendation),
       profitabilityCappedBuy: governed.profitabilityCappedBuy === true,
       gateStatus: text(governed.profitabilityGateStatus).toUpperCase(),
@@ -406,7 +409,7 @@
       case "VERIFY": return model.maxBuyCents !== null
         ? "Verify before you rely on this price. The buying limit is for reference until the evidence clears."
         : "Verify before you rely on any price. FlipForge will not set a buying limit yet.";
-      case "PASS": return over ? `The economics do not work: ${over} above the buying limit.` : "The economics do not work at this price.";
+      case "PASS": return model.passReason ? model.passReason : over ? `The economics do not work: ${over} above the buying limit.` : "The economics do not work at this price.";
       default: return "No customer-facing decision was returned for this card.";
     }
   }

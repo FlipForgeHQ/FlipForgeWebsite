@@ -42,11 +42,32 @@
   };
   const page=pages[pathname]||"legal";
 
+  // First-touch campaign attribution: utm_source / utm_medium / utm_campaign / utm_content from the landing URL,
+  // kept only in this tab's session storage and sent with funnel events and the beta application. Lowercase slugs
+  // only; the server re-validates (known sources only) and drops anything else. Nothing else is stored; no visitor identifier.
+  const CAMPAIGN_KEY="flipforge.campaign.v1";
+  const CAMPAIGN_FIELDS=["utm_source","utm_medium","utm_campaign","utm_content"];
+  // Same known sources as the server (CAMPAIGN_SOURCES in netlify/modern-functions/lib/beta-operations-core.mjs), so an
+  // unsupported first source can never lock out a valid campaign link opened later in the same tab.
+  const CAMPAIGN_SOURCES=["instagram","tiktok","facebook","youtube","outreach","reddit","email"];
+  const campaignOnly=source=>{
+    const clean={};
+    CAMPAIGN_FIELDS.forEach(key=>{const value=source&&source[key];if(typeof value==="string"&&/^[a-z0-9_-]{1,40}$/.test(value))clean[key]=value;});
+    return CAMPAIGN_SOURCES.includes(clean.utm_source)?clean:{};
+  };
+  const campaign=(()=>{
+    try{const stored=campaignOnly(JSON.parse(sessionStorage.getItem(CAMPAIGN_KEY)||"null"));if(stored.utm_source)return stored;}catch{}
+    const params=new URLSearchParams(location.search);
+    const landing=campaignOnly(Object.fromEntries(CAMPAIGN_FIELDS.map(key=>[key,params.get(key)])));
+    if(landing.utm_source){try{sessionStorage.setItem(CAMPAIGN_KEY,JSON.stringify(landing));}catch{}}
+    return landing;
+  })();
+
   const emit=(event,placement="unknown",once=false)=>{
     const key=`${event}:${page}:${placement}`;
     if(once&&sent.has(key))return;
     if(once)sent.add(key);
-    const body=JSON.stringify({event,page,placement});
+    const body=JSON.stringify({event,page,placement,...campaign});
     if(navigator.sendBeacon){
       const accepted=navigator.sendBeacon(endpoint,new Blob([body],{type:"application/json"}));
       if(accepted)return;
@@ -99,6 +120,15 @@
     const started=()=>emit("beta_form_started","form",true);
     application.addEventListener("input",started,{once:true});
     application.addEventListener("change",started,{once:true});
+    // The founder sees which campaign post produced an application: the same validated slugs go with the submission.
+    Object.entries(campaign).forEach(([name,value])=>{
+      if(application.querySelector(`input[name="${name}"]`))return;
+      const field=document.createElement("input");
+      field.type="hidden";
+      field.name=name;
+      field.value=value;
+      application.append(field);
+    });
   }
 
 
