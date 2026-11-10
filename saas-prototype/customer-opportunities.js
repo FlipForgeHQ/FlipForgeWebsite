@@ -597,6 +597,7 @@
     state.main.innerHTML = state.selectedId ? detailView() : listView();
     bindActions();
     // "Record what you did" (decision-outcome-record-v1.js) re-attaches to this freshly rendered view.
+    window.FlipForgeOutcomeTimeline?.mount?.();
     window.FlipForgeDecisionOutcomes?.mount?.();
   }
   function bindActions() {
