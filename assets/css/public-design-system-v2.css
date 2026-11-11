@@ -1,0 +1,84 @@
+/* FlipForge public design system v2 (2026-11-11 premium spacing and consistency pass).
+ * Loaded on every public page through brand-v2.css, after the three public contracts. It does not add new
+ * components or content. It makes the existing ones share one set of rules:
+ *   1. one content column (1180px) with one gutter, so headings, panels, tables and callouts line up;
+ *   2. vertical rhythm from the shared spacing tokens, without nested section + card paddings stacking up;
+ *   3. one button family (sentence case, 15px, 8px corners, flat gold hover like the header button);
+ *   4. three corner radii: panels 16px, cards 12px, controls 8px.
+ * Scope: public pages only (Home, the marketing and support templates, legal, proof, dossier, connect). The signed-in
+ * app does not load brand-v2.css and is unaffected. Tokens live in public-shell-contract-v1.css. */
+
+/* ---------- 1. One content column ---------- */
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main :is(.section,.ff-lab-section,.ff-product-section,.ff-beta-notice,.ff-lab-directory,.ff-next-steps,.ff-onboarding-section){
+  max-width:calc(var(--ff-container) + 2 * var(--ff-gutter))!important;
+  padding-left:var(--ff-gutter)!important;
+  padding-right:var(--ff-gutter)!important;
+}
+/* About and Proof kept a private 1120px column. */
+html body.ff-about-editorial{--ab-max:calc(var(--ff-container) + 48px)}
+html body.ff-proof-page main .ff-proof-page-wrap{width:min(var(--ff-container),100%)!important}
+/* FAQ: the questions sit in the page column; answers keep a readable measure. */
+html body.ff-support-v3 main :is(.faq-list,.ff-faq-intro){max-width:none!important;margin-left:0!important;margin-right:0!important}
+html body.ff-support-v3 main .faq-item .faq-answer{max-width:78ch}
+/* Legal pages: the document card fills the column (it used to sit 65px inside it); the text keeps a readable measure. */
+html body:is(.ff10-legal,.ff10-disclosure) main .legal-card{max-width:none!important;padding:clamp(22px,3vw,40px)!important}
+html body:is(.ff10-legal,.ff10-disclosure) main .legal-card>*{max-width:76ch}
+
+@media(max-width:700px){
+  :root{--ff-gutter:18px}
+  html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main .ffg-wrap{width:calc(100% - 2 * var(--ff-gutter))!important}
+}
+
+/* ---------- 2. Vertical rhythm ---------- */
+/* A section that follows another section of the same background shares one gap instead of two full paddings. */
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-support-v3) main .section+.section,
+html body.ff-support-v3 main .ff-lab-section+.ff-lab-section{padding-top:calc(var(--ff-space-section) / 2)!important}
+/* Homepage: where two dark sections meet they share one section padding (homepage-section-rhythm-v1.css). With the
+ * tighter scale that shared gap gets a floor, so a phone or tablet still shows at least 48px around the divider. */
+html body.ff10 .ff10-app:has(+ .ff10-aud),html body.ff10 .ff10-aud:has(+ .ff10-final){padding-bottom:max(calc(var(--pad) / 2),24px)}
+html body.ff10 .ff10-app+.ff10-aud,html body.ff10 .ff10-aud+.ff10-final{padding-top:max(calc(var(--pad) / 2),24px)}
+/* A panel that opens its section does not add its own top margin on top of the section padding. */
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-support-v3) main .section>.callout:first-child{margin-top:0!important}
+/* After a graphic-led chapter (which closes with its own divider line) the next section opens with a shorter gap. */
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-support-v3) main .ffg-section+.section{padding-top:calc(var(--ff-space-section) * .75)!important}
+/* Legal pages: hero -> document and document -> footer were three stacked paddings (about 100-125px). */
+html body:is(.ff10-legal,.ff10-disclosure) main .section{padding-top:var(--ff-space-stack)!important;padding-bottom:var(--ff-space-page-end)!important}
+/* Proof page: each chapter opened with a 56px gap under a 44px hero pad. */
+html body.ff-proof-page main .ff-proof-page-section{padding-top:var(--ff-space-section)!important}
+html body.ff-proof-page main .ff-proof-page-hero{padding-bottom:var(--ff-space-section)!important}
+
+/* ---------- 3. One button family ---------- */
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main .btn{
+  min-height:48px!important;
+  padding:0 22px!important;
+  border-radius:var(--ff-radius-control)!important;
+  font-size:15px!important;
+  font-weight:700!important;
+  line-height:1.2!important;
+  letter-spacing:-.005em!important;
+  text-transform:none!important;
+  box-shadow:none!important;
+  transform:none!important;
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease!important;
+}
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main .btn:not(.primary){border-color:rgba(255,255,255,.22)!important}
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main .btn.primary:is(:hover,:focus-visible){background:#e0bf4f!important;border-color:#e0bf4f!important;color:#080b10!important}
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main .btn:not(.primary):is(:hover,:focus-visible){border-color:#d4af37!important;color:#fff!important}
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main .btn:focus-visible{outline:2px solid #f5f7fa!important;outline-offset:3px!important}
+/* Homepage buttons keep their larger 56px size; same corners as every other button. */
+html body.ff10 .ff10-btn{border-radius:var(--ff-radius-control)}
+
+/* ---------- 4. Three corner radii ---------- */
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main :is(
+  .callout,.case-card,.form-card,.identity-layout,.compare-wrap,.ff-aw-proof-strip,.ff-aw-plan,
+  .ff-dic-demo,.ff-di-benefits,.ff-dic-story,.ff-di-check-index,.ff-approved-graphic,
+  .ff-proof-method,.ff-proof-page-cta,.ff-dossier-report,.ff-dossier-cta,.ff-report-facts,
+  .ff-phase2-evidence-stage,.ff-updates,.ff-onboarding-cta,.ff-aw-beta-form-intro){
+  border-radius:var(--ff-radius-panel)!important;
+}
+html body:is(.ff10-design,.ff-marketing-page-v3,.ff-marketing-v3,.ff-support-v3) main :is(
+  .faq-item,.identity-console,.ff-step-card,.ff-output-state,.ff-di-close-choice,.ff-phase2-evidence-card,
+  .ff-proof-definition,.ff-dossier-principle,.legal-card .card,.ff10-legal .card){
+  border-radius:var(--ff-radius-card)!important;
+}
+html body.ff10 #stay-in-touch.ff-updates{border-radius:var(--ff-radius-panel)}

@@ -14,16 +14,26 @@
 
   /* Public spacing scale (2026-11-06 sitewide refinement). The one source for vertical rhythm on every public page:
    * section, panel and page CSS consume these tokens instead of fixed pixel values, so two neighbouring blocks can
-   * never stack two private paddings plus a margin. Values scale with the viewport and stop at the desktop size. */
+   * never stack two private paddings plus a margin. Values scale with the viewport and stop at the desktop size.
+   * 2026-11-11 premium spacing pass: a section transition (content -> background change -> content) now reads as
+   * about 96-104px on desktop, 60px on a tablet and 56px on a phone, instead of up to 200px on the homepage. */
   --ff-space-section:clamp(28px,2.8vw,40px);      /* top/bottom padding of a standard section */
-  --ff-space-section-lg:clamp(56px,7vw,104px);    /* editorial homepage sections with display type */
-  --ff-space-block-lg:clamp(32px,3.9vw,56px);     /* section heading -> its main content, large editorial blocks */
-  --ff-space-block:clamp(24px,2.8vw,40px);        /* heading -> content, between sub-blocks */
+  --ff-space-section-lg:clamp(28px,3.6vw,52px);   /* editorial homepage sections with display type (was up to 104px) */
+  --ff-space-block-lg:clamp(28px,3.1vw,44px);     /* section heading -> its main content, large editorial blocks */
+  --ff-space-block:clamp(20px,2.4vw,32px);        /* heading -> content, between sub-blocks */
   --ff-space-stack:clamp(12px,1.4vw,20px);        /* between adjacent panels of one composition */
   --ff-space-hero-top:clamp(12px,1.4vw,20px);     /* header -> first page panel */
   --ff-space-hero-pad-top:clamp(52px,4.4vw,64px); /* inside the page intro panel; clears the Home breadcrumb */
   --ff-space-hero-pad-bottom:clamp(30px,3.2vw,44px);
-  --ff-space-page-end:clamp(32px,3.9vw,56px);     /* last block -> footer */
+  --ff-space-page-end:clamp(32px,3.4vw,48px);     /* last block -> footer */
+
+  /* One content column for every internal public page (2026-11-11). Headings, panels, tables and callouts share the
+   * same left and right edge; only media figures and reading columns are deliberately narrower inside it. */
+  --ff-container:1180px;
+  --ff-gutter:22px;
+  --ff-radius-panel:16px;   /* page intro, feature and closing panels, section-sized frames */
+  --ff-radius-card:12px;    /* cards, rows and tiles inside a panel */
+  --ff-radius-control:8px;  /* buttons, inputs, chips that act like buttons */
 
   /* Public graphics palette: black, white, champagne gold and silver, restrained. */
   --ff-ink:#030507;
@@ -102,7 +112,7 @@ html body .site-header .nav-cta{
   height:44px;
   padding:0 20px;
   border:1px solid #d4af37;
-  border-radius:10px;
+  border-radius:var(--ff-radius-control);
   background:#d4af37;
   color:#080b10;
   box-shadow:none;
@@ -128,7 +138,7 @@ html body .site-header .menu-toggle{
   margin:0;
   padding:0 14px;
   border:1px solid rgba(255,255,255,.2);
-  border-radius:10px;
+  border-radius:var(--ff-radius-control);
   background:rgba(255,255,255,.03);
   color:#eef1f5;
   font-size:12px;
