@@ -11,6 +11,7 @@
   --ff-type-home-display:clamp(42px,4vw,54px);
   --ff-type-page-title:clamp(36px,3.6vw,48px);
   --ff-type-section-title:clamp(28px,2.6vw,36px);
+  --ff-type-feature-title:clamp(30px,3vw,42px); /* chapter opener: between page title and section title (2026-11-11) */
   --ff-type-subsection-title:clamp(22px,2vw,28px);
   --ff-type-card-title:18px;
   --ff-type-lead:16px;
@@ -80,6 +81,48 @@ html body.ff-dic-page main#main .ff-dic-inline-final h2{
   letter-spacing:-.025em!important;
 }
 
+/* One heading hierarchy on every internal page (2026-11-11 premium pass).
+ * Page title > chapter opener > section title. Chapter openers (the large graphic-led section introductions and the
+ * intro companion panel) used to render at 50-64px, larger than the 48px page title above them. */
+html body.ff-marketing-page-v3 main#main .ffg-heading h2,
+html body.ff-marketing-v3 main#main .ffg-heading h2,
+html body.ff10-design main#main .ffg-heading h2,
+html body main#main .ff10-feature .ff10-feature-story h2,
+html body main#main .ff-phase2-evidence-head h2,
+html body.ff-dic-page main#main .ff-di-close-grid h2{
+  font-size:var(--ff-type-feature-title)!important;
+  line-height:1.02!important;
+  letter-spacing:-.04em!important;
+  font-weight:750!important;
+}
+/* Pages outside the marketing template used their own, larger titles (legal 64px, proof 86px, dossier 76px,
+ * article 84px). Same role, same size. */
+html body.ff10-legal main#main .page-hero h1,
+html body.ff10-missing main#main .page-hero h1,
+html body.ff10-disclosure main#main .page-hero h1,
+html body.ff10-status main#main .page-hero h1,
+html body.ff-proof-page main#main .ff-proof-page-hero h1,
+html body.ff-dossier-page main#main .ff-dossier-hero h1,
+html body.ff10-article main#main .ff-article h1{
+  font-size:var(--ff-type-page-title)!important;
+  line-height:1.04!important;
+  letter-spacing:-.04em!important;
+}
+html body.ff-support-v3 main#main .callout h2,
+html body.ff-marketing-page-v3 main#main .callout h2,
+html body.ff-support-v3 main#main .case-card h2,
+html body.ff-onboarding-page main#main .ff-next-steps-head h2,
+html body.ff-onboarding-page main#main .ff-onboarding-section-head h2,
+html body.ff-onboarding-page main#main .ff-onboarding-cta h2,
+html body.ff-dossier-page main#main .ff-dossier-cta h2,
+html body.ff-dossier-page main#main .ff-report-head h2,
+html body.ff-proof-page main#main .ff-proof-page-section h2,
+html body.ff-proof-page main#main .ff-proof-page-cta h2{
+  font-size:var(--ff-type-section-title)!important;
+  line-height:1.08!important;
+  letter-spacing:-.03em!important;
+}
+
 /* Secondary panel titles */
 html body.ff-marketing-page-v3 main#main .ff-founder-card h2,
 html body.ff-marketing-page-v3 main#main .ff-mission-card h2{
@@ -132,6 +175,7 @@ html body.ff-dic-page main#main .ff-dic-big{
     --ff-type-home-display:clamp(36px,9.5vw,44px);
     --ff-type-page-title:clamp(32px,8.8vw,40px);
     --ff-type-section-title:clamp(24px,7vw,30px);
+    --ff-type-feature-title:clamp(26px,7.6vw,32px);
     --ff-type-subsection-title:clamp(20px,6vw,24px);
     --ff-type-lead:16px;
     --ff-type-body:15px;
