@@ -482,7 +482,7 @@
       case "MEASURABLE": return "Observed";
       case "OBSERVATION_NOT_MEASURABLE": return "Observed · limited measurement";
       case "VALUE_NOT_MEASURABLE": return "Observed · value unavailable";
-      case "MISSING_OBSERVATION": return "Waiting for observation";
+      case "MISSING_OBSERVATION": return "Not recorded";
       default: return "Unavailable";
     }
   }
@@ -500,12 +500,17 @@
       ? `${Number(checkpoint.acceptedEvidenceDelta) > 0 ? "+" : ""}${escapeHtml(checkpoint.acceptedEvidenceDelta)}`
       : "Unavailable";
     const missingCopy = measurementState === "MISSING_OBSERVATION"
-      ? `<p class="customer-outcome-waiting">FlipForge has not captured a governed T${horizon} observation. Later values are not backfilled into this checkpoint.</p>`
+      ? `<p class="customer-outcome-waiting">No governed T${horizon} observation was recorded. Later values are not backfilled into this checkpoint.</p>`
       : "";
     return `<article class="customer-outcome-checkpoint" data-state="${escapeHtml(measurementState)}"><div class="customer-outcome-checkpoint-head"><span class="eyebrow">T${escapeHtml(horizon)}</span><strong>${escapeHtml(checkpointLabel(measurementState))}</strong></div><div class="customer-outcome-checkpoint-grid"><span><small>Observed at</small><strong>${observedAt}</strong></span><span><small>Observed Supported Value</small><strong>${observedValue}</strong></span><span><small>Value movement</small><strong>${movement}</strong></span><span><small>Accepted evidence change</small><strong>${evidenceDelta}</strong></span></div>${missingCopy}</article>`;
   }
 
   function outcomePanelMarkup() {
+    // The shared Day 7 / 14 / 30 timeline (decision-outcome-timeline-v1.js), from this same lifecycle detail; the
+    // block below is kept only for a service that does not return it yet.
+    const sharedTimeline = window.FlipForgeOutcomeTimeline;
+    const timeline = state.detail?.data?.outcomeTimeline;
+    if (sharedTimeline?.valid?.(timeline, state.selectedId)) return sharedTimeline.markup(timeline);
     const value = state.detail?.data?.decisionChangeIntelligence;
     if (!validDecisionChangeIntelligence(value, state.selectedId) || value?.available !== true) {
       return `<section class="panel customer-outcome-panel" data-ff-outcome-intelligence><header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>T7 · T14 · T30</h2><p>Governed observations after the saved decision.</p></div>${badge("Unavailable", "neutral")}</header><div class="panel-body staging-empty consumer-state consumer-state-empty"><strong>Outcome checkpoints are not available yet.</strong><p>FlipForge will not infer or backfill missing observations from later values. Tracking remains available independently.</p></div></section>`;
@@ -515,7 +520,7 @@
     const byHorizon = new Map(checkpoints.map(item => [Number(item?.horizonDays), item]));
     const required = [7, 14, 30].map(horizon => byHorizon.get(horizon) || { horizonDays: horizon, measurementState: "MISSING_OBSERVATION", available: false });
     const observed = Number(reconciliation.observedCheckpointCount || 0);
-    return `<section class="panel customer-outcome-panel" data-ff-outcome-intelligence><header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>T7 · T14 · T30</h2><p>What the qualified evidence showed after the saved decision.</p></div>${badge(`${observed}/3 observed`, "ok")}</header><div class="panel-body"><div class="customer-outcome-boundary"><strong>Observation, not a new recommendation.</strong><span>These checkpoints compare stored observations with the immutable T0 baseline. They do not rescore history, declare a decision right or wrong, backfill missing values, or authorize a transaction.</span></div><div class="customer-outcome-baseline"><span><small>T0 decision</small><strong>${escapeHtml(reconciliation.t0Decision || "Unavailable")}</strong></span><span><small>T0 date</small><strong>${escapeHtml(reconciliation.t0EvaluatedAt ? readableDate(reconciliation.t0EvaluatedAt) : "Unavailable")}</strong></span><span><small>T0 Supported Value</small><strong>${observedMoney(reconciliation.t0SupportedValueCents)}</strong></span></div>${observed === 0 ? `<p class="customer-outcome-waiting customer-outcome-open" data-ff-outcome-open>Each checkpoint needs completed sales of this exact card recorded after the decision. None has been recorded yet, so the checkpoints stay open. They are never filled in later from estimates.</p>` : ""}<div class="customer-outcome-checkpoints">${required.map(checkpointMarkup).join("")}</div></div></section>`;
+    return `<section class="panel customer-outcome-panel" data-ff-outcome-intelligence><header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>T7 · T14 · T30</h2><p>What the qualified evidence showed after the saved decision.</p></div>${badge(`${observed}/3 observed`, "ok")}</header><div class="panel-body"><div class="customer-outcome-boundary"><strong>Observation, not a new recommendation.</strong><span>These checkpoints compare stored observations with the immutable T0 baseline. They do not rescore history, declare a decision right or wrong, backfill missing values, or authorize a transaction.</span></div><div class="customer-outcome-baseline"><span><small>T0 decision</small><strong>${escapeHtml(reconciliation.t0Decision || "Unavailable")}</strong></span><span><small>T0 date</small><strong>${escapeHtml(reconciliation.t0EvaluatedAt ? readableDate(reconciliation.t0EvaluatedAt) : "Unavailable")}</strong></span><span><small>T0 Supported Value</small><strong>${observedMoney(reconciliation.t0SupportedValueCents)}</strong></span></div>${observed === 0 ? `<p class="customer-outcome-waiting customer-outcome-open" data-ff-outcome-open>Each checkpoint needs completed sales of this exact card recorded after the decision. None has been recorded for these checkpoints, and they are never filled in later from estimates.</p>` : ""}<div class="customer-outcome-checkpoints">${required.map(checkpointMarkup).join("")}</div></div></section>`;
   }
 
   // The outcome follows the tracking status; the customer chooses the status only.

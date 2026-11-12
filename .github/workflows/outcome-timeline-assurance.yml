@@ -1,0 +1,79 @@
+name: Outcome Timeline Assurance
+
+# Day 7 / 14 / 30 Outcome Checkpoint Timeline on Saved Decisions and Tracking (decision-outcome-timeline-v1.js),
+# paired with FlipForge2 outcome-checkpoint-timeline-v1. Synthetic fixtures only; no write is ever sent.
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/decision-outcome-timeline-v1.js"
+      - "saas-prototype/customer-lifecycle.js"
+      - "saas-prototype/customer-lifecycle.css"
+      - "saas-prototype/customer-opportunities.js"
+      - "saas-prototype/index.html"
+      - "saas-prototype/customer.html"
+      - "scripts/audit-outcome-timeline-ci.mjs"
+      - ".github/workflows/outcome-timeline-assurance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  timeline:
+    name: One D7/D14/D30 timeline on Saved Decisions and Tracking (1440 / 834 / 390)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-outcome-timeline-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-outcome-timeline-server.log
+          exit 1
+
+      - name: Outcome timeline audit (every state, both pages, three widths)
+        env:
+          FF_OTL_SHOTS: output/outcome-timeline
+        run: node scripts/audit-outcome-timeline-ci.mjs
+
+      - name: Lifecycle and outcome regressions
+        run: |
+          node scripts/validate-lifecycle-validation-ux.mjs
+          node scripts/validate-saas-customer-lifecycle.mjs
+          node scripts/validate-source-truth-terminology.mjs
+          node scripts/validate-customer-trust-display.mjs
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: outcome-timeline-screenshots
+          path: output/outcome-timeline
+          retention-days: 14

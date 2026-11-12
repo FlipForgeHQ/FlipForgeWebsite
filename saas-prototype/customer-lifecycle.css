@@ -424,6 +424,114 @@
   line-height: 1.55;
 }
 
+/* Outcome Checkpoint Timeline v1 (decision-outcome-timeline-v1.js): shared by Saved Decisions and Tracking. */
+.ff-otl .panel-body > section + section {
+  margin-top: 18px;
+}
+
+.ff-otl-question h3 {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.ff-otl-answer {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.ff-otl-why {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ff-otl .customer-outcome-baseline em,
+.ff-otl .customer-outcome-checkpoint-grid em {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-soft);
+  font-size: 14px;
+  font-style: normal;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.ff-otl-state {
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.ff-otl-checkpoint[data-state="PRICE_OBSERVED"] { border-color: rgba(67, 174, 116, .45); }
+.ff-otl-state[data-ff-otl-state="PRICE_OBSERVED"] { border-color: rgba(67, 174, 116, .55); color: #7fd3a3; }
+.ff-otl-checkpoint[data-state="CUSTOMER_REPORTED_UNVERIFIED"] { border-color: rgba(207, 174, 84, .45); }
+.ff-otl-state[data-ff-otl-state="CUSTOMER_REPORTED_UNVERIFIED"] { border-color: rgba(207, 174, 84, .55); color: var(--gold-strong, #d9bd72); white-space: normal; }
+.ff-otl-state[data-ff-otl-state="WINDOW_CLOSED"],
+.ff-otl-state[data-ff-otl-state="NO_RELIABLE_EVIDENCE"],
+.ff-otl-state[data-ff-otl-state="NO_NEW_SALES"] { color: var(--text-soft); }
+
+.ff-otl-dates,
+.ff-otl-explanation,
+.ff-otl-conflict {
+  margin: 0 0 10px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ff-otl-conflict {
+  padding: 8px 10px;
+  border-left: 3px solid var(--gold-strong, #d9bd72);
+  background: rgba(207, 174, 84, .06);
+}
+
+.ff-otl-reports {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ff-otl-reports li {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(207, 174, 84, .45);
+  border-radius: 9px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ff-otl-reports b,
+.ff-otl-reconstruction b {
+  display: block;
+  color: var(--gold-strong, #d9bd72);
+  font-size: 14px;
+}
+
+.ff-otl-reconstruction {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(120, 160, 220, .5);
+  border-radius: 9px;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.ff-otl-reconstruction b { color: #9fbbe6; }
+
+.ff-otl-reconstruction p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 @media (max-width: 1050px) {
   .customer-lifecycle-grid {
     grid-template-columns: 1fr;
