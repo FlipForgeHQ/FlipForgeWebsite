@@ -154,6 +154,14 @@
         correlationId: upstream.correlationId || requestCorrelationId
       });
     }
+    // Phase 5: a decision whose values the server withheld (one or a few data-provider sales) has no value to rank by,
+    // so it is never ranked here, even if an older read path lists it; it stays in the server's unscored preview.
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    if (payload?.data && typeof payload.data === "object" && trustDisplay?.valuesWithheld) {
+      for (const key of ["top5", "hiddenGems", "highestEdge"]) {
+        if (Array.isArray(payload.data[key])) payload.data[key] = payload.data[key].filter(item => !trustDisplay.valuesWithheld(item));
+      }
+    }
     if (!validEnvelope(payload, requestCorrelationId) || !validData(payload.data)) {
       throw Object.assign(new Error("The Forge Heat response failed the FlipForge authority contract."), { code: "FORGE_HEAT_CONTRACT_INVALID" });
     }
@@ -533,10 +541,23 @@
       ${ranked ? "" : tabs()}
       <div class="forge-heat-tab-copy"><strong>${escapeHtml(state.tab === "top5" ? "Top 5" : state.tab === "hiddenGems" ? "Hidden Gems" : state.tab === "highestEdge" ? "Highest Edge" : "Heating Up")}</strong><span>${escapeHtml(tabDescription(state.tab))}</span></div>
       ${content}
+      ${withheldSection(data)}
       ${nearLimitSection(data)}
       ${costsNote(data)}
       <section class="forge-heat-roadmap-boundary"><strong>What V1 does not fake</strong><p>Momentum, price stability, governed scarcity, ${data?.componentAvailability?.netEconomics?.available === true ? "" : "configurable selling-cost economics, "}market-wide scanning, and historical Heat performance remain unavailable until their server-side inputs are implemented and validated.</p></section>
     </div>`;
+  }
+
+  // Phase 5: saved decisions whose values were withheld are listed by name with the server's label: no value, no rank,
+  // and Forge Heat never changes their saved verdict.
+  function withheldSection(data) {
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    if (!trustDisplay?.valuesWithheld) return "";
+    const rows = safeArray(data?.unscoredPreview).filter(item => item && typeof item === "object" && trustDisplay.valuesWithheld(item)
+      && SAFE_ID.test(String(item.opportunityId || "")) && typeof item.cardIdentity === "string" && item.cardIdentity.trim());
+    if (!rows.length) return "";
+    return `<section class="forge-heat-withheld" data-forge-heat-withheld><h2>Not ranked: value withheld</h2><p>These saved decisions rest on too few sales to show a value, so Forge Heat does not rank them. Their saved verdict stays exactly as FlipForge decided it; Forge Heat never overrides a decision.</p>
+      <ul>${rows.map(item => `<li data-forge-heat-withheld-card="${escapeHtml(item.opportunityId)}"><a href="#/opportunities/${encodeURIComponent(item.opportunityId)}"><strong>${escapeHtml(item.cardIdentity)}</strong></a><span>${escapeHtml(String(item.recommendation || "").toUpperCase())}</span><small data-ff-value-withheld>${escapeHtml(trustDisplay.withheldLabel(item))}</small></li>`).join("")}</ul></section>`;
   }
 
   // Sell Watch is on but no selling costs are saved yet: say how to see amounts after costs (the server's own words).

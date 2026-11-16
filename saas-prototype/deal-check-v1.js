@@ -84,18 +84,25 @@
     const parsed = Number(value);
     return Number.isFinite(parsed) ? Math.round(parsed) : null;
   }
+  // Phase 5: while a decision whose values the server withheld is rendered, every missing figure reads as the
+  // server's "Based on N sale(s): value withheld" label instead of "Not established" / "Not calculated".
+  let renderWithheld = "";
+  function withWithheld(model, render) {
+    renderWithheld = model && model.withheldLabel ? model.withheldLabel : "";
+    try { return render(); } finally { renderWithheld = ""; }
+  }
   function money(cents, fallback = NOT_ESTABLISHED) {
-    if (cents === null || cents === undefined || !Number.isFinite(Number(cents))) return fallback;
+    if (cents === null || cents === undefined || !Number.isFinite(Number(cents))) return renderWithheld || fallback;
     const value = Number(cents) / 100;
     const formatted = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(value));
     return value < 0 ? `−${formatted}` : formatted;
   }
   function signedMoney(cents, fallback = NOT_CALCULATED) {
-    if (cents === null || cents === undefined) return fallback;
+    if (cents === null || cents === undefined) return renderWithheld || fallback;
     return cents > 0 ? `+${money(cents)}` : money(cents);
   }
   function percentFromBp(bp, fallback = "—") {
-    if (bp === null || bp === undefined || !Number.isFinite(Number(bp))) return fallback;
+    if (bp === null || bp === undefined || !Number.isFinite(Number(bp))) return renderWithheld || fallback;
     const value = Number(bp) / 100;
     const formatted = `${Math.abs(value).toFixed(1)}%`;
     return value < 0 ? `−${formatted}` : formatted;
@@ -174,10 +181,14 @@
     const excludedReasons = (Array.isArray(evidence.notAdmittedReasons) ? evidence.notAdmittedReasons
       : Array.isArray(evidence.exclusionReasons) ? evidence.exclusionReasons : []).map(text).filter(Boolean).slice(0, 6);
 
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    const withheld = Boolean(trustDisplay && typeof trustDisplay.valuesWithheld === "function" && trustDisplay.valuesWithheld(opportunity, governed));
     return {
       version: VERSION,
       g1,
       governedAvailable,
+      withheld,
+      withheldLabel: withheld ? trustDisplay.withheldLabel(opportunity, governed) : "",
       id: text(opportunity.id),
       title: text(opportunity.title) || text(opportunity.cardIdentity) || "Saved FlipForge decision",
       verdict: verdictOf(governedAvailable ? governed.recommendation : opportunity.recommendation),
@@ -430,7 +441,7 @@
     else if (sales > 0) rows.push({ key: "evidence", label: "Evidence", status: "warn", value: `${sales} exact sale${sales === 1 ? "" : "s"} accepted${excluded}`, note: "A BUY needs at least 3 accepted exact sales." });
     else rows.push({ key: "evidence", label: "Evidence", status: "fail", value: `No exact sales accepted${excluded}`, note: "No supported value without exact completed-sale evidence." });
     // 3. Economics
-    if (model.maxBuyCents === null) rows.push({ key: "economics", label: "Economics", status: model.verdict === "VERIFY" ? "warn" : "neutral", value: "Max Buy not calculated", note: model.supportedCents === null ? "There is no supported value to calculate from." : "The saved decision did not record a buying limit." });
+    if (model.maxBuyCents === null) rows.push({ key: "economics", label: "Economics", status: model.verdict === "VERIFY" ? "warn" : "neutral", value: model.withheld ? model.withheldLabel : "Max Buy not calculated", note: model.withheld ? "No buying limit is shown: a figure from so few sales would disclose a sale's price." : model.supportedCents === null ? "There is no supported value to calculate from." : "The saved decision did not record a buying limit." });
     else if (model.headroomCents === null) rows.push({ key: "economics", label: "Economics", status: "neutral", value: `Max Buy ${money(model.maxBuyCents)}`, note: "The saved decision did not record its all-in price, so no comparison is made." });
     else if (model.verdict === "VERIFY") rows.push({ key: "economics", label: "Economics", status: "warn", value: `${money(Math.abs(model.headroomCents))} ${model.headroomCents >= 0 ? "under" : "over"} Max Buy`, note: "Reference only: the evidence requirements must clear before price decides anything." });
     else if (model.headroomCents >= 0) rows.push({ key: "economics", label: "Economics", status: "pass", value: `${money(model.headroomCents)} under Max Buy`, note: "The all-in price keeps the required profit and price-drop cushion." });
@@ -826,7 +837,7 @@
     const custom = form.querySelector("[data-ffdc-custom]");
     if (custom) custom.hidden = inputs.costMode !== "custom";
     state.labValues = [...form.elements].filter(el => el.name).map(el => [el.name, el.type === "radio" ? (el.checked ? el.value : null) : el.value]);
-    out.innerHTML = labOutputMarkup(state.model, scenario(state.model, inputs));
+    out.innerHTML = withWithheld(state.model, () => labOutputMarkup(state.model, scenario(state.model, inputs)));
   }
 
   function wireLab(section) {
@@ -872,7 +883,7 @@
     // Already on the page: never move it (other renderers also place panels near the hero; moving would ping-pong).
     if (current) return;
     const holder = document.createElement("div");
-    holder.innerHTML = dealCheckMarkup(state.model);
+    holder.innerHTML = withWithheld(state.model, () => dealCheckMarkup(state.model));
     const section = holder.firstElementChild;
     hero.insertAdjacentElement("afterend", section);
     wireLab(section);

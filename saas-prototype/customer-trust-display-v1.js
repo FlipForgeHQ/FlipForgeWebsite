@@ -498,7 +498,71 @@
     return PASS_REASON_TEXT[decisionReasonCode(record)] || null;
   }
 
+  // ---- Value-withheld safeguard (Phase 5 contract section 1; FlipForge2 single-provider-sale-v2) -------------------
+  // A decision whose value would let one data-provider sale (or two or three, with a provider sale among them) be
+  // recovered is served with every value figure null and a marker. Customer views then show the server's label in
+  // place of every value, Max Buy, profit or ROI, and never a figure (and never "$0"). Verdict, sales count,
+  // confidence, risk and the customer's own ask are unchanged.
+  const ONE_SALE_WITHHELD = "Based on 1 sale: value withheld";
+  const WITHHELD_CODES = Object.freeze(["SINGLE_PROVIDER_SALE_BASIS", "FEW_PROVIDER_SALES_BASIS", "SINGLE_SALE_BASIS"]);
+  const WITHHELD_STATUSES = Object.freeze(["WITHHELD_SINGLE_PROVIDER_SALE", "WITHHELD_FEW_PROVIDER_SALES"]);
+  const WITHHELD_BLOCKS = ["governedDecision", "decisionReceipt", "decisionContract", "decision", "originalDecision"];
+  function withheldMarker(record) {
+    if (!record || typeof record !== "object") return null;
+    const code = String(record.valuesWithheld || "").toUpperCase();
+    const status = String(record.supportedValueStatus || "").toUpperCase();
+    const stamp = record.singleProviderSaleProtection;
+    if (WITHHELD_CODES.includes(code) || WITHHELD_STATUSES.includes(status)
+      || (stamp && typeof stamp === "object" && WITHHELD_CODES.includes(String(stamp.valuesWithheld || "").toUpperCase()))) return record;
+    return null;
+  }
+  // The record (or the block inside it) that carries the marker, or null. A string is looked up among remembered records.
+  function withheldSource(record) {
+    const value = typeof record === "string" ? records.get(record) : record;
+    if (!value || typeof value !== "object") return null;
+    const own = withheldMarker(value);
+    if (own) return own;
+    for (const key of WITHHELD_BLOCKS) {
+      const found = withheldMarker(value[key]);
+      if (found) return found;
+    }
+    return null;
+  }
+  function valuesWithheld(...candidates) {
+    return candidates.some(candidate => Boolean(withheldSource(candidate)));
+  }
+  // The label to show: the server's, when it is one of the fixed "Based on N sale(s): value withheld" forms; otherwise
+  // the same form from the basis count; otherwise the one-sale label.
+  function withheldLabel(...candidates) {
+    for (const candidate of candidates) {
+      const source = withheldSource(candidate);
+      if (!source) continue;
+      const label = String(source.valuesWithheldLabel || "").trim();
+      if (/^Based on [1-3] sales? value withheld$/.test(label.replace(":", ""))) return label;
+      const basis = Number(source.withheldBasisSales ?? source.singleProviderSaleProtection?.basisSales);
+      if (Number.isInteger(basis) && basis >= 2 && basis <= 3) return `Based on ${basis} sales: value withheld`;
+      return ONE_SALE_WITHHELD;
+    }
+    return "";
+  }
+  function withheldNotice(...candidates) {
+    for (const candidate of candidates) {
+      const source = withheldSource(candidate);
+      if (source && typeof source.valuesWithheldNotice === "string" && source.valuesWithheldNotice.trim()) return customerText(source.valuesWithheldNotice.trim());
+    }
+    return "A value calculated from so few sales would disclose a sale's price, so Supported Value, Max Buy and modeled profit are not shown. The verdict, sales count, confidence, risk and your own ask are unchanged.";
+  }
+  function withheldMarkup(...candidates) {
+    const label = withheldLabel(...candidates) || ONE_SALE_WITHHELD;
+    return `<span class="ff-value-withheld" data-ff-value-withheld>${escapeHtml(label)}</span>`;
+  }
+
   window.FlipForgeTrustDisplay = Object.freeze({
+    ONE_SALE_WITHHELD,
+    valuesWithheld,
+    withheldLabel,
+    withheldNotice,
+    withheldMarkup,
     PASS_REASON_TEXT,
     decisionReasonCode,
     passReasonText,

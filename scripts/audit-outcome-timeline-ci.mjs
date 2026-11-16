@@ -250,7 +250,7 @@ try {
         check(`T4 ${id} ${device}: Saved Decisions shows the Day 7 / 14 / 30 timeline`, sStates.length === 3, sStates.join(" | "));
         check(`T1 ${id} ${device}: labels match the server states exactly`, sStates.join("|") === expected.checkpoints.map(c => LABELS[c.state]).join("|"), sStates.join(" | "));
         check(`T2 ${id} ${device}: Saved Decisions never reads "Waiting for observation"`, !WAITING.test(saved.text));
-        check(`T4 ${id} ${device}: the three questions are answered`, /1\. What FlipForge recommended/.test(sPanel) && /2\. What reliable evidence appeared/.test(sPanel)
+        check(`T4 ${id} ${device}: the three questions are answered`, /1\. What FlipForge originally concluded and why/.test(sPanel) && /2\. What changed at Day 7, Day 14 and Day 30/.test(sPanel)
           && /3\. What can be concluded/.test(sPanel) && sPanel.includes(expected.conclusion.statement));
         const order = await saved.page.evaluate(() => {
           const view = document.querySelector("#main-content .customer-saved-decisions-page");

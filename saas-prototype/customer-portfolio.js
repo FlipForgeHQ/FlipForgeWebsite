@@ -379,6 +379,9 @@
     const passReason = verdict === "PASS" && window.FlipForgeTrustDisplay?.passReasonText ? window.FlipForgeTrustDisplay.passReasonText(saved) : null;
     const chip = /^(BUY|WATCH|VERIFY|PASS)$/.test(verdict) ? `<span class="staging-status staging-status-${verdict === "BUY" ? "buy" : verdict === "PASS" ? "danger" : "warn"}"${passReason ? ` title="${escapeHtml(passReason)}" data-pass-reason` : ""}>${escapeHtml(verdict)}</span>${passReason ? `<small data-pass-reason-text>${escapeHtml(passReason)}</small>` : ""}` : "";
     if (isLegacy(saved)) return { group: "legacy", chip };
+    // Phase 5: the saved decision's values were withheld (one or a few data-provider sales): no buying limit, no figure.
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    if (trustDisplay?.valuesWithheld?.(saved)) return { group: "withheld", chip, label: trustDisplay.withheldLabel(saved) };
     // A VERIFY decision sets no buying limit: its evidence has not cleared, so no Max Buy is shown or compared.
     if (verdict === "VERIFY") return { group: "verify-no-max-buy", chip };
     const governed = saved.governedDecision && saved.governedDecision.available === true ? saved.governedDecision : null;
@@ -397,6 +400,7 @@
     if (facts.group === "unavailable") return `<span>Not available</span><small>The saved decision could not be loaded.</small>`;
     if (facts.group === "unlinked") return `<span>No saved decision</span><small>No saved decision is linked to this card.</small>`;
     if (facts.group === "legacy") return `${facts.chip}<small>Saved before current evidence rules · not currently supported</small>`;
+    if (facts.group === "withheld") return `${facts.chip}<small data-ff-value-withheld>${escapeHtml(facts.label)}</small><small>No buying limit is shown for this decision</small>`;
     if (facts.group === "no-max-buy") return `${facts.chip}<small>No Max Buy was set at decision</small>`;
     if (facts.group === "verify-no-max-buy") return `${facts.chip}<small>No buying limit until the evidence clears</small>`;
     const { maxBuy, paid } = facts;
@@ -500,10 +504,13 @@
       const reference = item.referenceValue || {};
       const performance = item.referencePerformance || {};
       const title = saved.title || saved.cardIdentity || item.opportunityId;
-      const referenceCell = reference.available
+      const trustDisplay = window.FlipForgeTrustDisplay;
+      const withheld = Boolean(trustDisplay?.valuesWithheld?.(item, reference, saved));
+      const withheldCell = withheld ? `<strong data-ff-value-withheld>${escapeHtml(trustDisplay.withheldLabel(item, reference, saved))}</strong>` : "";
+      const referenceCell = withheld ? `${withheldCell}<small>No figure is shown for this card</small>` : reference.available
         ? `<strong>${escapeHtml(moneyCents(reference.valueCents))}</strong><small>${escapeHtml(referenceStatus(reference))}</small>`
         : `<strong>Unavailable</strong><small>${escapeHtml(referenceStatus(reference))}</small>`;
-      const performanceCell = performance.available
+      const performanceCell = withheld ? `${withheldCell}<small>No comparison is shown for this card</small>` : performance.available
         ? `<strong>${escapeHtml(signedMoneyCents(performance.referenceDeltaCents))}</strong><small>${escapeHtml(signedPercent(performance.referenceDeltaPercent))} vs. cost basis</small>`
         : `<strong>Unavailable</strong><small>${escapeHtml(reference.available ? "What you paid is needed" : "Needs an evidence reference")}</small>`;
       const gate = reference.available

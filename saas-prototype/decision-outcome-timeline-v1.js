@@ -57,6 +57,45 @@
   const uuid = () => (window.crypto?.randomUUID ? window.crypto.randomUUID() : `timeline-${Date.now()}-${Math.random().toString(16).slice(2)}`);
   const eligibleHost = () => (PRODUCTION_HOST.test(location.hostname) || PREVIEW_HOST.test(location.hostname)) && APP_PATH.test(location.pathname);
 
+  // Phase 5 (outcome-checkpoint-timeline-v2, PHASE5_CUSTOMER_INTELLIGENCE_CONTRACT section 2): the three evidence
+  // streams are shown apart, each with its own fixed label. Stream A is direction only (no value, no percentage).
+  const STREAM_LABELS = Object.freeze({ A: "Derived market estimate", B: "Independently confirmed price", C: "Customer-Reported — Unverified" });
+  // "Supported market estimate" wording, fixed here: never a return, a profit or a gain.
+  const MOVEMENT_LABELS = Object.freeze({
+    INCREASED: "Supported market estimate increased",
+    DECREASED: "Supported market estimate decreased",
+    UNCHANGED: "Supported market estimate unchanged (within 5%)",
+    UNAVAILABLE: "Supported market estimate unavailable",
+    NOT_YET_AVAILABLE: "Not yet available"
+  });
+  const QUALITY_LABELS = Object.freeze({ STRONG: "Strong", HIGH: "Strong", MODERATE: "Moderate", MEDIUM: "Moderate", LIMITED: "Limited",
+    WEAK: "Weak", LOW: "Weak", REVIEW: "Needs review", NONE: "None" });
+  const VERIFICATION_REASONS = Object.freeze({
+    VERIFY_VERDICT: "The original decision was VERIFY: the card or its evidence still has to be confirmed.",
+    VALUES_WITHHELD_FEW_SALES: "The decision rests on too few sales to show a value.",
+    NO_INDEPENDENT_CONFIRMATION: "No checkpoint so far has an independently confirmed price.",
+    CUSTOMER_REPORT_CONFLICT: "Your own report differs from the independent market evidence.",
+    LEGACY_BASELINE: "The original decision was saved before current evidence rules."
+  });
+  const WITHHELD_CODES = ["SINGLE_PROVIDER_SALE_BASIS", "FEW_PROVIDER_SALES_BASIS"];
+
+  const v2 = timeline => /^outcome-checkpoint-timeline-v([2-9]|\d{2,})$/.test(String(timeline?.version || ""));
+  const score = value => finite(value) ? `${Math.round(Number(value))}/100` : "Not recorded";
+  const quality = value => {
+    const code = String(value || "").toUpperCase();
+    return QUALITY_LABELS[code] || (/^[A-Z][A-Z_]+$/.test(code) ? code.charAt(0) + code.slice(1).toLowerCase().replace(/_/g, " ") : "Not recorded");
+  };
+  function withheldLabel(...records) {
+    for (const r of records) {
+      if (!isObject(r) || !WITHHELD_CODES.includes(String(r.valuesWithheld || "").toUpperCase())) continue;
+      const label = text(r.valuesWithheldLabel).trim();
+      if (/^Based on [1-3] sales?: value withheld$/.test(label)) return label;
+      const basis = Number(r.withheldBasisSales);
+      return Number.isInteger(basis) && basis >= 2 && basis <= 3 ? `Based on ${basis} sales: value withheld` : "Based on 1 sale: value withheld";
+    }
+    return "";
+  }
+
   // The server object must keep every integrity promise, or nothing is shown.
   function valid(timeline, opportunityId) {
     if (!isObject(timeline) || timeline.kind !== "outcome-checkpoint-timeline") return false;
@@ -69,13 +108,30 @@
       || timeline.unverifiedObservationValuesShown !== false || timeline.syntheticPrices !== false
       || timeline.askingPricesUsedAsSales !== false || timeline.providerRequestMade !== false) return false;
     if (!isObject(timeline.originalDecision) || !isObject(timeline.conclusion)) return false;
+    // v2: a derived estimate is never a realized result and no individual sale price is ever served.
+    if (v2(timeline) && (timeline.derivedEstimateIsRealizedReturn !== false || timeline.individualSalePricesShown !== false)) return false;
+    // A withheld decision carries no baseline value.
+    if (withheldLabel(timeline, timeline.originalDecision) && finite(timeline.originalDecision.baselineSupportedValueCents)) return false;
     const horizons = timeline.checkpoints.map(c => Number(c?.horizonDays));
     if (horizons.length !== 3 || !HORIZONS.every((h, i) => horizons[i] === h)) return false;
     return timeline.checkpoints.every(c => isObject(c) && Object.prototype.hasOwnProperty.call(STATE_LABELS, c.state)
       && c.state !== "HISTORICAL_RECONSTRUCTION" && isObject(c.evidence) && isObject(c.comparisonToBaseline) && isObject(c.comparisonToPrior)
       && Array.isArray(c.customerReports) && c.customerReports.every(r => isObject(r) && r.verified === false && r.countedAsMarketPrice === false)
       && (c.state === "PRICE_OBSERVED" || !finite(c.evidence.observedValueCents))
-      && (c.state === "PRICE_OBSERVED" || c.comparisonToBaseline.comparable !== true));
+      && (c.state === "PRICE_OBSERVED" || c.comparisonToBaseline.comparable !== true)
+      && validStreams(c));
+  }
+
+  function validStreams(c) {
+    if (c.streams === undefined || c.streams === null) return true;
+    if (!isObject(c.streams)) return false;
+    const a = c.streams.derivedMarketEstimate, b = c.streams.independentlyConfirmed, r = c.streams.customerReported;
+    if (a !== undefined && (!isObject(a) || a.valueShown !== false || a.realizedReturn !== false
+      || (a.movement !== undefined && !Object.prototype.hasOwnProperty.call(MOVEMENT_LABELS, a.movement))
+      || finite(a.valueCents) || finite(a.changePercent))) return false;
+    if (b !== undefined && (!isObject(b) || (b.priceObserved === true) !== (c.state === "PRICE_OBSERVED"))) return false;
+    if (r !== undefined && (!isObject(r) || r.verified !== false || r.countedAsMarketPrice !== false)) return false;
+    return true;
   }
 
   function comparisonLine(label, comparison) {
@@ -100,27 +156,62 @@
       + `<span>${escapeHtml(text(recon.result))}${escapeHtml(value)}</span><p>${escapeHtml(text(recon.explanation))}</p></div>`;
   }
 
+  // Stream A: direction only. An older (v1) service sends no stream A, which reads "Not recorded" (never guessed).
+  function streamA(c) {
+    const a = isObject(c.streams?.derivedMarketEstimate) ? c.streams.derivedMarketEstimate : null;
+    const movement = a && Object.prototype.hasOwnProperty.call(MOVEMENT_LABELS, a.movement) ? a.movement : "";
+    const value = movement ? MOVEMENT_LABELS[movement] : "Not recorded";
+    const sales = a && finite(a.acceptedSalesAtCheckpoint) ? `${Number(a.acceptedSalesAtCheckpoint)} exact sale${Number(a.acceptedSalesAtCheckpoint) === 1 ? "" : "s"} at this checkpoint. ` : "";
+    return `<div class="ff-otl-stream" data-ff-otl-stream="A" data-ff-otl-movement="${escapeHtml(movement || "NOT_RECORDED")}"><dt><b>A</b> ${escapeHtml(STREAM_LABELS.A)}</dt>`
+      + `<dd><strong>${escapeHtml(value)}</strong><small>${escapeHtml(sales + (a ? text(a.explanation) : "This service version does not record a derived estimate for checkpoints."))}</small></dd></div>`;
+  }
+
+  function streamB(c) {
+    const b = isObject(c.streams?.independentlyConfirmed) ? c.streams.independentlyConfirmed : null;
+    const observed = c.state === "PRICE_OBSERVED" && finite(c.evidence.observedValueCents);
+    const sales = finite(b?.acceptedSalesAtCheckpoint ?? c.evidence.acceptedSalesAtCheckpoint) ? Number(b?.acceptedSalesAtCheckpoint ?? c.evidence.acceptedSalesAtCheckpoint) : null;
+    const value = observed ? money(c.evidence.observedValueCents) : "None recorded";
+    const detail = observed
+      ? `Supported value from ${sales === null ? "" : `${sales} `}independent exact-card completed sale${sales === 1 ? "" : "s"}. ${RELIABILITY_LABELS.INDEPENDENTLY_VERIFIED}.`
+      : RELIABILITY_LABELS[c.evidence.reliability] || RELIABILITY_LABELS.NONE;
+    const priorLabel = c.horizonDays === 7 ? "Change vs. earlier checkpoint" : `Change vs. ${finite(c.comparisonToPrior.comparedWithHorizonDays) ? `Day ${c.comparisonToPrior.comparedWithHorizonDays}` : "earlier checkpoint"}`;
+    return `<div class="ff-otl-stream" data-ff-otl-stream="B" data-ff-otl-price-observed="${observed}"><dt><b>B</b> ${escapeHtml(STREAM_LABELS.B)}</dt>`
+      + `<dd><strong>${escapeHtml(value)}</strong><small>${escapeHtml(detail)}</small><div class="customer-outcome-checkpoint-grid">`
+      + comparisonLine("Change vs. original decision", c.comparisonToBaseline) + comparisonLine(priorLabel, c.comparisonToPrior) + `</div></dd></div>`;
+  }
+
+  function streamC(c) {
+    const reports = c.customerReports;
+    return `<div class="ff-otl-stream" data-ff-otl-stream="C"><dt><b>C</b> ${escapeHtml(STREAM_LABELS.C)}</dt>`
+      + `<dd>${reports.length ? `<ul class="ff-otl-reports">${reports.map(reportLine).join("")}</ul>` : "<strong>None reported</strong><small>Nothing you reported falls in this checkpoint.</small>"}</dd></div>`;
+  }
+
   function checkpointMarkup(c) {
     const label = STATE_LABELS[c.state];
-    const price = c.state === "PRICE_OBSERVED" && finite(c.evidence.observedValueCents) ? money(c.evidence.observedValueCents) : "None";
-    const reliability = RELIABILITY_LABELS[c.evidence.reliability] || RELIABILITY_LABELS.NONE;
     const conflict = c.evidenceConflict?.present === true ? `<p class="ff-otl-conflict" data-ff-otl-conflict>${escapeHtml(text(c.evidenceConflict.explanation))}</p>` : "";
-    const reports = c.customerReports.length ? `<ul class="ff-otl-reports">${c.customerReports.map(reportLine).join("")}</ul>` : "";
     const windowWord = c.windowState === "CLOSED" ? "Window closed" : c.windowState === "OPEN" ? "Window open until" : "Window closes";
+    const changed = text(c.whatChanged).trim() ? `<p class="ff-otl-changed" data-ff-otl-what-changed><b>What changed:</b> ${escapeHtml(c.whatChanged)}</p>` : "";
+    const verify = c.verificationNeeded === true ? `<p class="ff-otl-verify" data-ff-otl-verification-needed>Additional verification needed</p>` : "";
     return `<article class="customer-outcome-checkpoint ff-otl-checkpoint" data-state="${escapeHtml(c.state)}" data-ff-otl-horizon="${escapeHtml(c.horizonDays)}">`
       + `<div class="customer-outcome-checkpoint-head"><span class="eyebrow">Day ${escapeHtml(c.horizonDays)}</span><strong class="ff-otl-state" data-ff-otl-state="${escapeHtml(c.state)}">${escapeHtml(label)}</strong></div>`
       + `<p class="ff-otl-dates">Due ${escapeHtml(text(c.dueOnText))} · ${escapeHtml(windowWord)} ${escapeHtml(text(c.windowClosesOnText))}</p>`
-      + `<p class="ff-otl-explanation">${escapeHtml(text(c.explanation))}</p>`
-      + `<div class="customer-outcome-checkpoint-grid"><span><small>Price at checkpoint</small><strong>${escapeHtml(price)}</strong></span>`
-      + `<span><small>Evidence</small><strong>${escapeHtml(reliability)}</strong></span>`
-      + comparisonLine("Change vs. original decision", c.comparisonToBaseline)
-      + comparisonLine(c.horizonDays === 7 ? "Change vs. earlier checkpoint" : `Change vs. ${finite(c.comparisonToPrior.comparedWithHorizonDays) ? `Day ${c.comparisonToPrior.comparedWithHorizonDays}` : "earlier checkpoint"}`, c.comparisonToPrior)
-      + `</div>${conflict}${reports}${reconstructionMarkup(c.historicalReconstruction)}</article>`;
+      + `<p class="ff-otl-explanation">${escapeHtml(text(c.explanation))}</p>${changed}`
+      + `<dl class="ff-otl-streams">${streamA(c)}${streamB(c)}${streamC(c)}</dl>`
+      + `${verify}${conflict}${reconstructionMarkup(c.historicalReconstruction)}</article>`;
   }
 
   function header(badge) {
     return `<header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>Day 7 · Day 14 · Day 30</h2>`
-      + `<p>What reliable evidence showed after your saved decision. Dates are Eastern Time.</p></div>${badge}</header>`;
+      + `<p>What FlipForge concluded, what evidence supported it and what changed at each checkpoint. Dates are Eastern Time.</p></div>${badge}</header>`;
+  }
+
+  function verificationMarkup(timeline) {
+    const v = timeline.verification;
+    if (!isObject(v) || typeof v.needed !== "boolean") return "";
+    if (!v.needed) return `<div class="ff-otl-verification" data-ff-otl-verification="not-needed"><strong>No additional verification needed</strong><span>${escapeHtml(text(v.explanation))}</span></div>`;
+    const reasons = Array.isArray(v.reasons) ? v.reasons.map(code => VERIFICATION_REASONS[code]).filter(Boolean) : [];
+    return `<div class="ff-otl-verification" data-ff-otl-verification="needed"><strong>Additional verification needed</strong><span>${escapeHtml(text(v.explanation))}</span>`
+      + (reasons.length ? `<ul>${reasons.map(r => `<li>${escapeHtml(r)}</li>`).join("")}</ul>` : "") + `</div>`;
   }
 
   function markup(timeline) {
@@ -132,28 +223,47 @@
         + `<p>FlipForge never estimates a missing checkpoint or fills one in later.</p></div></section>`;
     }
     const d = timeline.originalDecision;
+    const answers = isObject(timeline.answers) ? timeline.answers : {};
+    const support = isObject(d.evidenceSupport) ? d.evidenceSupport : {};
     const reliable = timeline.checkpoints.filter(c => c.state === "PRICE_OBSERVED").length;
     const why = Array.isArray(d.why) ? d.why.filter(line => typeof line === "string" && line.trim()).slice(0, 3) : [];
-    const baseline = d.baselineSupported === true && finite(d.baselineSupportedValueCents)
-      ? `<span><small>Supported value at decision</small><strong>${escapeHtml(money(d.baselineSupportedValueCents))}</strong></span>`
-      : `<span><small>Comparison baseline</small><strong>None</strong><em>${escapeHtml(text(d.baselineExplanation))}</em></span>`;
+    const withheld = withheldLabel(d, timeline);
+    const baseline = withheld
+      ? `<span data-ff-otl-baseline="withheld"><small>Supported value at decision</small><strong data-ff-value-withheld>${escapeHtml(withheld)}</strong><em>No buying limit or value is shown for this decision. ${escapeHtml(text(d.baselineExplanation) && !/value withheld/.test(d.baselineExplanation) ? d.baselineExplanation : "")}</em></span>`
+      : d.baselineSupported === true && finite(d.baselineSupportedValueCents)
+        ? `<span data-ff-otl-baseline="value"><small>Supported value at decision</small><strong>${escapeHtml(money(d.baselineSupportedValueCents))}</strong></span>`
+        : `<span data-ff-otl-baseline="none"><small>Comparison baseline</small><strong>None</strong><em>${escapeHtml(text(d.baselineExplanation))}</em></span>`;
     const receipt = d.receiptPresent === true
       ? `<span><small>Decision Receipt</small><strong>Preserved, unchanged</strong></span>`
       : `<span><small>Decision Receipt</small><strong>Saved before receipts</strong></span>`;
+    const salesCount = support.acceptedExactSales ?? d.evidenceCount;
+    const evidenceFacts = [
+      ["Exact completed sales", finite(salesCount) ? String(Number(salesCount)) : "Not recorded"],
+      ["Evidence quality", quality(support.evidenceQuality ?? d.evidenceQuality)],
+      ["Confidence", score(support.confidence ?? d.confidence)],
+      ["Risk", score(support.risk ?? d.risk)]
+    ];
+    if (finite(d.askCents)) evidenceFacts.push(["Your ask (all-in)", money(d.askCents)]);
     const outside = Array.isArray(timeline.customerReportsOutsideCheckpoints) && timeline.customerReportsOutsideCheckpoints.length
       ? `<ul class="ff-otl-reports">${timeline.customerReportsOutsideCheckpoints.filter(r => isObject(r) && r.verified === false).map(reportLine).join("")}</ul>` : "";
-    return `<section class="panel customer-outcome-panel ff-otl" ${PANEL} ${BOUND}="${id}">`
-      + header(`<span class="badge ${reliable ? "badge-ok" : "badge-neutral"}" data-ff-otl-badge>${reliable}/3 with a reliable price</span>`)
+    const evidenceAnswer = text(answers.whatEvidenceSupported).trim();
+    return `<section class="panel customer-outcome-panel ff-otl" ${PANEL} ${BOUND}="${id}"${withheld ? " data-ff-otl-withheld" : ""}>`
+      + header(`<span class="badge ${reliable ? "badge-ok" : "badge-neutral"}" data-ff-otl-badge>${reliable}/3 with an independently confirmed price</span>`)
       + `<div class="panel-body"><div class="customer-outcome-boundary"><strong>Tracking, not a new recommendation.</strong>`
-      + `<span>Each checkpoint shows only what was recorded. A missing price is never estimated or filled in later, your own reports are never treated as verified, and one card's result does not show whether FlipForge's decisions are accurate in general.</span></div>`
-      + `<section class="ff-otl-question" data-ff-otl-question="recommended"><h3>1. What FlipForge recommended</h3>`
+      + `<span>Each checkpoint shows only what was recorded, in three separate streams. A missing price is never estimated or filled in later, your own reports are never treated as verified, a movement in the supported market estimate is not money made or lost, and one card's result does not show whether FlipForge's decisions are accurate in general.</span></div>`
+      + `<section class="ff-otl-question" data-ff-otl-question="recommended"><h3>1. What FlipForge originally concluded and why</h3>`
       + `<p class="ff-otl-answer"><b>${escapeHtml(text(d.recommendation))}</b> on ${escapeHtml(text(d.decidedOnText))}. ${escapeHtml(text(d.reasonExplanation))}</p>`
       + (why.length ? `<ul class="ff-otl-why">${why.map(line => `<li>${escapeHtml(line)}</li>`).join("")}</ul>` : "")
+      + `<h4 class="ff-otl-subhead">Market evidence behind it</h4>${evidenceAnswer ? `<p class="ff-otl-answer" data-ff-otl-evidence-answer>${escapeHtml(evidenceAnswer)}</p>` : ""}`
+      + `<div class="customer-outcome-baseline ff-otl-evidence" data-ff-otl-evidence>${evidenceFacts.map(([k, v]) => `<span><small>${escapeHtml(k)}</small><strong>${escapeHtml(v)}</strong></span>`).join("")}</div>`
+      + `<p class="ff-otl-note">Counts, quality, confidence and risk only: individual sale prices are never shown.</p>`
       + `<div class="customer-outcome-baseline">${baseline}${receipt}<span><small>Later re-evaluations</small><strong>${escapeHtml(String(Number(d.laterReevaluationCount) || 0))}</strong></span></div></section>`
-      + `<section class="ff-otl-question" data-ff-otl-question="evidence"><h3>2. What reliable evidence appeared</h3>`
+      + `<section class="ff-otl-question" data-ff-otl-question="evidence"><h3>2. What changed at Day 7, Day 14 and Day 30</h3>`
+      + `<p class="ff-otl-legend"><b>A</b> ${escapeHtml(STREAM_LABELS.A)}: FlipForge's own estimate, direction only · <b>B</b> ${escapeHtml(STREAM_LABELS.B)}: independent exact-card completed sales · <b>C</b> ${escapeHtml(STREAM_LABELS.C)}: what you reported</p>`
       + `<div class="customer-outcome-checkpoints">${timeline.checkpoints.map(checkpointMarkup).join("")}</div>${outside}</section>`
       + `<section class="ff-otl-question" data-ff-otl-question="conclusion"><h3>3. What can be concluded</h3>`
-      + `<p class="ff-otl-answer" data-ff-otl-conclusion="${escapeHtml(text(timeline.conclusion.code))}">${escapeHtml(text(timeline.conclusion.statement))}</p></section>`
+      + `<p class="ff-otl-answer" data-ff-otl-conclusion="${escapeHtml(text(timeline.conclusion.code))}">${escapeHtml(text(timeline.conclusion.statement))}</p>`
+      + verificationMarkup(timeline) + `</section>`
       + `</div></section>`;
   }
 
@@ -246,5 +356,5 @@
   window.addEventListener("hashchange", () => { state.serial++; state.opportunityId = ""; state.detail = null; removeStalePanels(""); schedule(); });
   schedule();
 
-  window.FlipForgeOutcomeTimeline = Object.freeze({ valid, markup, mount, STATE_LABELS });
+  window.FlipForgeOutcomeTimeline = Object.freeze({ valid, markup, mount, STATE_LABELS, STREAM_LABELS, MOVEMENT_LABELS });
 })();

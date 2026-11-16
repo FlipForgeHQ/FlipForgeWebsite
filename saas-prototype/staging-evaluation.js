@@ -142,6 +142,15 @@
     }).format(safeNumber(value) / 100);
   }
 
+  // Supported value as the result shows it. A value the server withheld (Phase 5: one or a few data-provider sales) reads
+  // as its label; a missing value reads "Unavailable", never "$0.00".
+  function supportedValueDisplay(data, decision) {
+    const trust = window.FlipForgeTrustDisplay;
+    if (trust?.valuesWithheld?.(data, decision)) return trust.withheldLabel(data, decision);
+    const cents = Number(decision?.supportedValueCents);
+    return decision?.supportedValueCents !== null && decision?.supportedValueCents !== undefined && Number.isFinite(cents) && cents > 0 ? moneyFromCents(cents) : "Unavailable";
+  }
+
   function correlationId() {
     if (window.crypto && typeof window.crypto.randomUUID === "function") {
       return window.crypto.randomUUID();
@@ -574,7 +583,7 @@
     const decision = data.decision || {};
     const values = [
       ["Decision", decision.recommendation || "UNKNOWN"],
-      ["Supported value", moneyFromCents(decision.supportedValueCents)],
+      ["Supported value", supportedValueDisplay(data, decision)],
       ["Matched exact comps", safeNumber(decision.exactTrustedCompCount)],
       ["Confidence", scoreOrUnavailable(decision.confidence)],
       ["Risk", scoreOrUnavailable(decision.risk)],
@@ -617,7 +626,7 @@
       : known ? "Read the answer first. Open Card Intelligence when you want the evidence behind it." : "The result is now saved to your account with its evidence and PSA context available in Card Intelligence.";
     const values = [
       ["Decision", decision.recommendation || "UNKNOWN"],
-      ["Supported value", moneyFromCents(decision.supportedValueCents)],
+      ["Supported value", supportedValueDisplay(data, decision)],
       ["Matched exact comps", safeNumber(decision.exactTrustedCompCount)],
       ["Confidence", scoreOrUnavailable(decision.confidence)],
       ["Risk", scoreOrUnavailable(decision.risk)],
@@ -634,7 +643,7 @@
     const chipMeaning = known ? ` data-ff-decision="${recommendation}" title="${escapeHtml(DECISION_COPY[recommendation])}" aria-label="${escapeHtml(`${recommendation}. ${DECISION_COPY[recommendation]}`)}"` : "";
     const caution = /^none returned\.?$/i.test(missing) ? "" : `<div class="ff-evaluate-caution"><span>Still needed</span><strong>${escapeHtml(missing)}</strong></div>`;
     const summary = known
-      ? `<div class="ff-evaluate-result-summary" data-ff-evaluate-result-summary><div class="ff-evaluate-answer"><span>Decision</span><strong>${escapeHtml(recommendation)}</strong><p>${escapeHtml(DECISION_COPY[recommendation])}</p></div><div class="ff-evaluate-result-facts"><div><span>Supported value</span><strong>${escapeHtml(moneyFromCents(decision.supportedValueCents))}</strong></div><div><span>All-in cost</span><strong>${escapeHtml(moneyFromCents(data.normalizedRequest?.allInAskCents))}</strong></div><div><span>Risk</span><strong>${escapeHtml(risk.label)}</strong><small>${escapeHtml(risk.score ? `${risk.score} saved score` : "Saved score unavailable")}</small></div></div><div class="ff-evaluate-why"><span>Why</span><strong>${escapeHtml(reason)}</strong></div>${caution}<div class="ff-evaluate-next"><span>What to do next</span><strong>${escapeHtml(next)}</strong></div></div>`
+      ? `<div class="ff-evaluate-result-summary" data-ff-evaluate-result-summary><div class="ff-evaluate-answer"><span>Decision</span><strong>${escapeHtml(recommendation)}</strong><p>${escapeHtml(DECISION_COPY[recommendation])}</p></div><div class="ff-evaluate-result-facts"><div${window.FlipForgeTrustDisplay?.valuesWithheld?.(data, decision) ? " data-ff-value-withheld" : ""}><span>Supported value</span><strong>${escapeHtml(supportedValueDisplay(data, decision))}</strong>${window.FlipForgeTrustDisplay?.valuesWithheld?.(data, decision) ? `<small>${escapeHtml(window.FlipForgeTrustDisplay.withheldNotice(data, decision))}</small>` : ""}</div><div><span>All-in cost</span><strong>${escapeHtml(moneyFromCents(data.normalizedRequest?.allInAskCents))}</strong></div><div><span>Risk</span><strong>${escapeHtml(risk.label)}</strong><small>${escapeHtml(risk.score ? `${risk.score} saved score` : "Saved score unavailable")}</small></div></div><div class="ff-evaluate-why"><span>Why</span><strong>${escapeHtml(reason)}</strong></div>${caution}<div class="ff-evaluate-next"><span>What to do next</span><strong>${escapeHtml(next)}</strong></div></div>`
       : "";
     const detail = `<div class="staging-key-grid">${values.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>${valueIntelligencePanel(data)}<div class="staging-result-copy"><p><strong>Reason:</strong> ${escapeHtml(reason)}</p><p><strong>Missing requirement:</strong> ${escapeHtml(missing)}</p><p><strong>Next action:</strong> ${escapeHtml(next)}</p><p><strong>Saved opportunity ID:</strong> ${escapeHtml(opportunityId)}</p></div><div class="boundary-note"><strong>Authority result:</strong> This decision was saved to your account. It did not verify evidence or identity, recalculate PSA guidance, expose credentials, or authorize a transaction.</div>`;
     const body = known

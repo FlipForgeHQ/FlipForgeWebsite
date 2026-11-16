@@ -414,6 +414,16 @@
     return Number.isFinite(number) && number > 0 ? moneyFromCents(number) : "Not established";
   }
 
+  // Phase 5: a saved snapshot whose values the server withheld (its own marker, or the lifecycle detail's marker when
+  // the snapshot carries no value of its own) shows the server's label instead of "Not established".
+  function entryWithheld(entry) {
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    if (!trustDisplay?.valuesWithheld) return false;
+    if (trustDisplay.valuesWithheld(entry)) return true;
+    const cents = entry?.supportedValueCents;
+    return (cents === null || cents === undefined) && trustDisplay.valuesWithheld(state.detail?.data);
+  }
+
   function timelineEntryMarkup(entry, index) {
     const changes = changeLinesFor(entry);
     const wouldChange = safeArray(entry?.whatWouldChange);
@@ -423,7 +433,7 @@
     const wouldChangeMarkup = wouldChange.length
       ? `<details class="customer-decision-timeline-conditions"><summary>What would change this decision?</summary><ul>${wouldChange.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>`
       : "";
-    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(whenText(entry?.evaluatedAt, "Time unavailable"))}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : establishedValue(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(plainCode({ REVIEW: "Needs review" }, entry?.evidenceQuality, "Unavailable"))}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
+    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(whenText(entry?.evaluatedAt, "Time unavailable"))}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : entryWithheld(entry) ? `<span data-ff-value-withheld>${escapeHtml(window.FlipForgeTrustDisplay.withheldLabel(entry, state.detail?.data))}</span>` : establishedValue(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(plainCode({ REVIEW: "Needs review" }, entry?.evidenceQuality, "Unavailable"))}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
   }
 
   function decisionTimelineMarkup() {
@@ -643,7 +653,12 @@
   function alertFacts(item) {
     const facts = [];
     const kind = alertKind(item);
-    if (kind === "MAX_BUY_CROSSED") {
+    // Phase 5: an alert on a decision whose values were withheld names no value or buying limit, only the label.
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    if (trustDisplay?.valuesWithheld?.(item)) {
+      const label = trustDisplay.withheldLabel(item);
+      if (!String(item.customerExplanation || item.reason || "").includes(label)) facts.push(label);
+    } else if (kind === "MAX_BUY_CROSSED") {
       facts.push(`All-in ask ${moneyFromCents(item.previousAllInAskCents)} → ${moneyFromCents(item.allInAskCents)} · saved Max Buy ${moneyFromCents(item.maximumBuyPriceCents)}`);
     }
     if (kind === "DECISION_RECHECK_DUE" && Number.isFinite(Number(item.ageDays))) {

@@ -2,7 +2,7 @@
 // saas-prototype/serve.mjs; /api/v1/* runs the REAL gateway function (netlify/functions/flipforge-api.js) with its
 // allowlist, identity rules and disclosure filter, forwarding to the FlipForge2 DEV journey server.
 //
-// The signed Netlify Identity user is simulated from a test cookie (ff_journey_tenant=a|b). Nothing else is faked:
+// The signed Netlify Identity user is simulated from a test cookie (ff_journey_tenant=a|b|p5a|p5b). Nothing else is faked:
 // the browser cannot set tenant headers (the gateway refuses them) and every response passes the real filter.
 import http from "node:http";
 import { createRequire } from "node:module";
@@ -12,11 +12,13 @@ const gateway = require("../../netlify/functions/flipforge-api.js");
 
 const PORT = Number(process.env.JOURNEY_GATEWAY_PORT || 4190);
 const STATIC_ORIGIN = process.env.JOURNEY_STATIC_ORIGIN || "http://127.0.0.1:4173";
-const TENANTS = Object.freeze({ a: "journey-tenant-a", b: "journey-tenant-b" });
+// Phase 5 (FlipForge2 PHASE5_CUSTOMER_INTELLIGENCE_CONTRACT section 5): the journey server seeds two more accounts,
+// journey-phase5-alpha (primary) and journey-phase5-bravo (isolation).
+const TENANTS = Object.freeze({ a: "journey-tenant-a", b: "journey-tenant-b", p5a: "journey-phase5-alpha", p5b: "journey-phase5-bravo" });
 const log = [];
 
 function tenantFor(cookieHeader) {
-  const match = String(cookieHeader || "").match(/(?:^|;\s*)ff_journey_tenant=([ab])(?:;|$)/);
+  const match = String(cookieHeader || "").match(/(?:^|;\s*)ff_journey_tenant=(a|b|p5a|p5b)(?:;|$)/);
   return match ? TENANTS[match[1]] : null;
 }
 

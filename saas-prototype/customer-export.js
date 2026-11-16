@@ -284,7 +284,9 @@
       ["opportunity", "card_identity", item.cardIdentity || ""],
       ["opportunity", "recommendation", item.recommendation || ""],
       ["opportunity", "ask", item.ask ?? ""],
-      ["opportunity", "supported_value", item.supportedValue ?? ""],
+      // Phase 5: a withheld value is blank and its label is carried in value_status (as in the operator CSV).
+      ["opportunity", "supported_value", window.FlipForgeTrustDisplay?.valuesWithheld?.(item) ? "" : item.supportedValue ?? ""],
+      ["opportunity", "value_status", window.FlipForgeTrustDisplay?.valuesWithheld?.(item) ? window.FlipForgeTrustDisplay.withheldLabel(item) : ""],
       ["opportunity", "confidence", item.confidence ?? ""],
       ["opportunity", "liquidity", item.liquidity ?? ""],
       ["opportunity", "risk", item.risk ?? ""],
