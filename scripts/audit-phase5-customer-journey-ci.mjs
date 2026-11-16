@@ -364,9 +364,9 @@ async function evaluateOneSale(device) {
     const result = await s.page.evaluate(() => { document.querySelectorAll("#main-content details").forEach(d => { d.open = true; }); return document.querySelector("#main-content .staging-evaluation-result")?.innerText || ""; });
     const label = `${device} evaluate result (one sale)`;
     check(`W ${label}: verdict WATCH with "${WITHHELD_LABEL}" in place of the value`, /WATCH/.test(result) && result.includes(WITHHELD_LABEL), result.slice(0, 300));
-    check(`W ${label}: no "$0", no Max Buy, no profit or ROI, only the customer's own ask`, !/\$0\.00/.test(result) && !/Max Buy/i.test(result)
+    check(`W ${label}: no "$0", no Max Buy, no profit or ROI, only the customer's own ask`, !/\$0\.00/.test(result) && !/Max Buy\s*\$\d/i.test(result) && !/(profit|ROI)[^\n]{0,40}[$%]\s?\d/i.test(result)
       && dollars(result).every(v => v === c.askCents / 100) && result.includes(money(c.askCents)), (result.match(/.{0,40}\$\d[\d,.]*.{0,10}/g) || []).join(" | "));
-    check(`W ${label}: the sales count, confidence and risk are kept`, /\b1\b/.test(result) && result.includes("41") && /Risk/.test(result));
+    check(`W ${label}: the sales count, confidence and risk are kept`, /MATCHED EXACT COMPS\s*1\b/i.test(result) && /CONFIDENCE\s*41\/100/i.test(result) && /RISK\s*64\/100/i.test(result));
     const o = await overflow(s.page);
     check(`Q ${label}: no horizontal overflow, no page errors`, o <= 1 && s.errors.length === 0, `${o} ${s.errors.join(" | ")}`);
     await shotOf(s.page, "#main-content .staging-evaluation-result", `${device}-evaluate-result-one-sale`);

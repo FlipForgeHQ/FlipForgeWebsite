@@ -85,6 +85,10 @@
     const heading = anchor(main);
     if (!heading) return false;
     heading.insertAdjacentHTML("afterend", markup(current));
+    // On a narrow screen the strip is one scrollable row: bring the current step into view (a scroll, not a write).
+    const list = main.querySelector(`[${NAV}] ol`);
+    const here = list && list.querySelector('[aria-current="step"]');
+    if (list && here && list.scrollWidth > list.clientWidth) list.scrollLeft = Math.max(0, here.parentElement.offsetLeft - list.offsetLeft - 8);
     return focusPending(main);
   }
 

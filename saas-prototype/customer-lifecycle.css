@@ -908,3 +908,22 @@
   outline: 2px solid var(--gold-strong, #d9bd72);
   outline-offset: 2px;
 }
+
+@media (max-width: 900px) {
+  /* One scrollable row on tablets and phones, so the strip never pushes the verdict down. */
+  .ff-journey ol {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ff-journey li {
+    flex: 0 0 auto;
+  }
+
+  .ff-journey a {
+    white-space: nowrap;
+  }
+}
