@@ -598,4 +598,10 @@ console.log("Integrated customer journey (browser, real gateway, real DEV backen
 console.log(`PASSED: ${passes.length}`);
 console.log(`FAILED: ${failures.length}`);
 for (const failure of failures) console.error(`FAIL | ${failure}`);
+// CI logs are not always readable from the other repository: failures and the Phase 5 summary are also annotations.
+if (process.env.GITHUB_ACTIONS) {
+  const p5 = [passes.filter(x => /^P5-/.test(x)).length, failures.filter(x => /^(P5-|Phase 5)/.test(x)).length];
+  console.log(`::notice title=journey-phase5::Phase 5 section: ${p5[0]} passed, ${p5[1]} failed. ${notes.filter(n => n.startsWith("phase5")).join(" ").slice(0, 700)}`);
+  for (const failure of failures.slice(0, 40)) console.log(`::error title=journey::${failure.replace(/\r?\n/g, " ").slice(0, 900)}`);
+}
 if (failures.length) process.exitCode = 1;
