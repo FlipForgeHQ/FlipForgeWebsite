@@ -203,7 +203,10 @@
     const priceIntelligence = detail && detail.priceIntelligence && typeof detail.priceIntelligence === "object" ? detail.priceIntelligence : null;
 
     const supportedStatus = text(source.supportedValueStatus || governed.supportedValueStatus).toUpperCase();
-    const supportedCents = supportedStatus === "NOT_ESTABLISHED"
+    // Phase 5: values the server withheld (one or a few data-provider sales): no value, Max Buy, profit or ROI.
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    const withheld = Boolean(trustDisplay && typeof trustDisplay.valuesWithheld === "function" && trustDisplay.valuesWithheld(source));
+    const supportedCents = withheld || supportedStatus === "NOT_ESTABLISHED"
       ? null
       : numberOrNull(source.supportedValueCents ?? governed.supportedValueCents);
     // Ask: the governed all-in ask when the snapshot recorded it; otherwise the saved listing ask.
@@ -232,6 +235,8 @@
       askFromSnapshot,
       supportedCents,
       supportedStatus,
+      withheld,
+      withheldLabel: withheld ? trustDisplay.withheldLabel(source) : "",
       supportedStatusReason: text(source.supportedValueStatusReason),
       // Saved before current evidence rules (server marker); the value is not presented as currently supported.
       legacy: legacyRecord(source),
@@ -239,12 +244,12 @@
       // A buying limit only for a non-VERIFY decision with an established value (the engine records 0 otherwise).
       maxBuyCents: verdictOf(source.recommendation) === "VERIFY" || supportedCents === null || !(supportedCents > 0)
         || !(numberOrNull(governed.maximumBuyPriceCents) > 0) ? null : numberOrNull(governed.maximumBuyPriceCents),
-      expectedNetCents: numberOrNull(governed.expectedNetProfitCents),
-      conservativeNetCents: numberOrNull(governed.conservativeNetProfitCents),
-      stressNetCents: numberOrNull(governed.stressNetProfitCents),
-      expectedRoiBp: numberOrNull(governed.expectedRoiBasisPoints),
-      conservativeRoiBp: numberOrNull(governed.conservativeRoiBasisPoints),
-      stressRoiBp: numberOrNull(governed.stressRoiBasisPoints),
+      expectedNetCents: withheld ? null : numberOrNull(governed.expectedNetProfitCents),
+      conservativeNetCents: withheld ? null : numberOrNull(governed.conservativeNetProfitCents),
+      stressNetCents: withheld ? null : numberOrNull(governed.stressNetProfitCents),
+      expectedRoiBp: withheld ? null : numberOrNull(governed.expectedRoiBasisPoints),
+      conservativeRoiBp: withheld ? null : numberOrNull(governed.conservativeRoiBasisPoints),
+      stressRoiBp: withheld ? null : numberOrNull(governed.stressRoiBasisPoints),
       // Evidence counts. The governed snapshot count is the evidence behind THIS decision;
       // evidence.acceptedSales is the current saved completed-sale evidence and can differ.
       governedAvailable,
@@ -372,7 +377,7 @@
   }
 
   function ledgerRowMarkup(model, selected) {
-    const supported = model.supportedCents === null ? NOT_ESTABLISHED : moneyFromCents(model.supportedCents, NOT_ESTABLISHED);
+    const supported = model.withheld ? model.withheldLabel : model.supportedCents === null ? NOT_ESTABLISHED : moneyFromCents(model.supportedCents, NOT_ESTABLISHED);
     return `<li class="ffv3-row${selected ? " is-selected" : ""}" data-verdict="${escapeHtml(model.verdict.toLowerCase())}">
       <button type="button" class="ffv3-row-button" data-ffv3-select="${escapeHtml(model.id)}" aria-pressed="${selected ? "true" : "false"}">
         <span class="ffv3-row-head">${verdictBadge(model.verdict)}${model.profitabilityCappedBuy ? '<span class="ffv3-tag" data-tag="guardrail">Profit protection</span>' : ""}<span class="ffv3-row-title">${escapeHtml(model.title)}</span></span>
@@ -419,7 +424,7 @@
 
   /* ③ Decision Economics: buyer-led, display-only arithmetic from the saved ask and Max Buy. */
   function economicsMarkup(model) {
-    const supported = model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
+    const supported = model.withheld ? model.withheldLabel : model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
     const delta = model.askCents !== null && model.maxBuyCents !== null ? model.askCents - model.maxBuyCents : null;
     const deltaLabel = delta === null ? "Price versus Max Buy" : delta === 0 ? "At Max Buy" : delta > 0 ? "Over your Max Buy" : "Under your Max Buy";
     const deltaAmount = delta === null ? DASH : exactMoneyFromCents(Math.abs(delta));
@@ -609,7 +614,7 @@
   function breakEvenMarkup(model) {
     const breakEven = breakEvenBuyCents(model);
     const risk = model.risk === null ? NOT_ESTABLISHED : `${integerText(model.risk)}/100`;
-    const supported = model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
+    const supported = model.withheld ? model.withheldLabel : model.supportedCents === null ? NOT_ESTABLISHED : exactMoneyFromCents(model.supportedCents);
     const explain = breakEven === null ? "" : `<p class="ffv3-legend" data-ffv3-breakeven-explainer>Break-even Buy Price is the most you could pay and make $0 profit if the card sells at the base-case value, after FlipForge's estimated selling fees, shipping and reserves. It is not the price the card has to resell for. Pay more than this and the base case loses money.${model.maxBuyCents !== null ? ` Your Max Buy (${escapeHtml(exactMoneyFromCents(model.maxBuyCents))}) is lower because it also keeps a minimum profit and a cushion for a price drop.` : ""}</p>`;
     return `<dl class="ff-focus-facts" data-ffv3-breakeven>
         ${fact("Exact-sale value (before costs)", supported)}

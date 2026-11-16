@@ -281,6 +281,19 @@ async function listPages(device) {
     await shot(s.page, `${device}-saved-decisions`);
     await s.context.close();
   }
+  // Home dashboard (full view): withheld rows read their label, never a figure.
+  {
+    const s = await open("dashboard", device);
+    for (const b of await s.page.locator("#main-content button:has-text('Show full dashboard')").all()) await b.click().catch(() => {});
+    await s.page.waitForTimeout(1200);
+    const t = await common(s, `${device} home dashboard`, { axeScan: false });
+    for (const id of IDS.filter(x => CARDS[x].withheld)) {
+      const row = await s.page.evaluate(title => [...document.querySelectorAll("#main-content tr")].find(tr => tr.innerText.includes(title))?.innerText || "", CARDS[id].title);
+      check(`W ${device} home dashboard: ${id} reads "${LABEL_FOR(id)}" and no figure but its ask`, !row || (row.includes(LABEL_FOR(id)) && dollars(row).every(v => v === CARDS[id].askCents / 100)), row.replace(/\s+/g, " "));
+    }
+    check(`W ${device} home dashboard: the withheld label is shown`, t.includes(WITHHELD_LABEL));
+    await s.context.close();
+  }
   // Portfolio
   {
     const s = await open("portfolio", device);

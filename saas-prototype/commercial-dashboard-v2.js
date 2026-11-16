@@ -286,6 +286,7 @@
     const supported = supportedShown(item, sales) ? numberOrNull(item.supportedValue) : null;
     const gap = ask !== null && supported !== null ? supported - ask : null;
     const withheldValue = betaSurface() && supported === null;
+    const withheldLabel = window.FlipForgeTrustDisplay?.valuesWithheld?.(item) ? window.FlipForgeTrustDisplay.withheldLabel(item) : "";
     const id = String(item.id || "");
     const detailHref = SAFE_ID.test(id) ? `#/opportunities/${encodeURIComponent(id)}` : "#/opportunities";
 
@@ -299,8 +300,8 @@
             <p${sameIdentity(title, identity) ? ' hidden aria-hidden="true"' : ""}>${escapeHtml(identity)}</p>
             <div class="ff-decision-stats">
               <div><span>Ask</span><strong>${escapeHtml(money(ask))}</strong></div>
-              <div><span>Supported value</span><strong>${withheldValue ? "Unavailable" : escapeHtml(supportedValueText(supported))}</strong></div>
-              <div><span>Value gap</span><strong class="${gap !== null && gap > 0 ? "ff-positive" : ""}">${withheldValue ? "Unavailable" : gap === null ? "—" : escapeHtml(money(gap))}</strong></div>
+              <div><span>Supported value</span><strong${withheldLabel ? " data-ff-value-withheld" : ""}>${withheldLabel ? escapeHtml(withheldLabel) : withheldValue ? "Unavailable" : escapeHtml(supportedValueText(supported))}</strong></div>
+              <div><span>Value gap</span><strong class="${!withheldLabel && gap !== null && gap > 0 ? "ff-positive" : ""}"${withheldLabel ? " data-ff-value-withheld" : ""}>${withheldLabel ? escapeHtml(withheldLabel) : withheldValue ? "Unavailable" : gap === null ? "—" : escapeHtml(money(gap))}</strong></div>
               <div><span>${sales.atDecision ? "Exact sales at decision" : "Exact accepted sales"}</span><strong>${sales.withheld ? "Withheld" : exactSales === null ? "Unavailable" : escapeHtml(integer(exactSales))}</strong></div>
             </div>
             <div class="ff-dashboard-actions"><a class="button button-primary" href="${detailHref}">View full analysis</a><a class="button button-secondary" href="#/tracking">Open watchlist</a></div>
@@ -377,7 +378,9 @@
       const identity = normalizeCardDisplay(item.cardIdentity || item.platform || "Saved record");
       const sales = decisionSales(item);
       const exactSales = sales.count;
-      const supported = supportedShown(item, sales) ? supportedValueText(item.supportedValue) : "Unavailable";
+      // Phase 5: a value the server withheld reads as its label ("Based on 1 sale: value withheld").
+      const withheldLabel = window.FlipForgeTrustDisplay?.valuesWithheld?.(item) ? window.FlipForgeTrustDisplay.withheldLabel(item) : "";
+      const supported = withheldLabel || (supportedShown(item, sales) ? supportedValueText(item.supportedValue) : "Unavailable");
       // data-ff-mobile-label carries the column name for the stacked phone layout.
       const cell = (label, html) => `<td data-ff-mobile-label="${label}">${html}</td>`;
       return `<tr>${cell("Card", `<a href="${href}">${escapeHtml(title)}</a><br><small${sameIdentity(title, identity) ? ' hidden aria-hidden="true"' : ""}>${escapeHtml(identity)}</small>`)}${cell("Decision", recommendationPill(item.recommendation))}${cell("Ask", escapeHtml(money(item.ask)))}${cell("Supported", escapeHtml(supported))}${cell("Confidence", numberOrNull(item.confidence) === null ? "—" : `${Math.round(Number(item.confidence))}`)}${cell("Exact sales", `${sales.withheld ? "Withheld" : exactSales === null ? "Unavailable" : escapeHtml(integer(exactSales))}${sales.atDecision ? "<small> at decision</small>" : ""}`)}${cell("Mapping", escapeHtml(prettyEnum(item.mappingState || "UNKNOWN")))}</tr>`;
