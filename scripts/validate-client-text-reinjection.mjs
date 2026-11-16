@@ -50,7 +50,8 @@ const targets = [
     file: "saas-prototype/staging-evaluation.js",
     blocks: [["const caution =", "const summary = known", "evaluate summary missing-requirement markup"],
       ["const summary = known", "const detail =", "evaluate summary markup"]],
-    allowed: new Set(["caution"])
+    // supportedFact is built just above the summary from escaped parts only (Phase 5 value-withheld label).
+    allowed: new Set(["caution", "supportedFact"])
   },
   // The Discover source-listing link and strip are rendered by the Discover owner (Nov 3 2026; the
   // commercial-app-polish-v2.js layer that built them from page text was removed).

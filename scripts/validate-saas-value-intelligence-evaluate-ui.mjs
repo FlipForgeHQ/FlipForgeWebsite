@@ -20,7 +20,7 @@ check("006 Smart Opportunity remains recommendation authority", adapterSource.in
 check("007 response fails closed on recommendation authority", adapterSource.includes("valueIntelligence.recommendationAuthority === false"));
 check("008 response fails closed on price adjustment authority", adapterSource.includes("valueIntelligence.priceAdjustmentApplied === false"));
 check("009 browser does not calculate an analog estimate", !/referenceMidpointCents\s*=|referenceLowCents\s*=|referenceHighCents\s*=/.test(adapterSource));
-check("010 browser preserves server supported value field", adapterSource.includes('moneyFromCents(decision.supportedValueCents)'));
+check("010 browser preserves server supported value field", adapterSource.includes("decision?.supportedValueCents") && adapterSource.includes("supportedValueDisplay(data, decision)"));
 check("011 value context has dedicated responsive styling", cssSource.includes(".staging-value-intelligence") && cssSource.includes(".staging-value-intelligence-grid") && cssSource.includes("@media (max-width: 720px)"));
 
 function makeForm() {
@@ -196,7 +196,8 @@ runtime.form.submit();
 await new Promise(resolve => setTimeout(resolve, 35));
 
 check("012 analog response keeps VERIFY visible", runtime.main.innerHTML.includes(">VERIFY<"));
-check("013 supported value remains zero", runtime.main.innerHTML.includes("Supported value") && runtime.main.innerHTML.includes("$0.00"));
+// Phase 5: a recorded 0 (no evidence-supported value) reads "Not established", never "$0.00"; nothing is substituted.
+check("013 supported value of 0 reads Not established, never $0.00", runtime.main.innerHTML.includes("Supported value") && runtime.main.innerHTML.includes("Not established") && !runtime.main.innerHTML.includes("$0.00"));
 check("014 observed server range is visible", runtime.main.innerHTML.includes("$420.00 – $610.00"));
 check("015 server midpoint is visible", runtime.main.innerHTML.includes("$500.00"));
 check("016 server analog count is visible", runtime.main.innerHTML.includes("Analog completed sales") && runtime.main.innerHTML.includes(">3<"));
