@@ -448,5 +448,8 @@ try {
 console.log(`Phase 5 customer journey audit: ${passes.length} passed, ${failures.length} failed. Screenshots: ${SHOTS}`);
 for (const n of notes) console.log(`NOTE ${n}`);
 for (const f of failures) console.log(`FAIL ${f}`);
+// CI logs are not always readable: the first failures are also written as annotations.
+if (process.env.GITHUB_ACTIONS) for (const f of failures.slice(0, 40)) console.log(`::error title=phase5-journey::${f.replace(/\r?\n/g, " ").slice(0, 900)}`);
+if (process.env.GITHUB_ACTIONS) for (const n of notes.slice(0, 10)) console.log(`::notice title=phase5-journey::${n.replace(/\r?\n/g, " ").slice(0, 900)}`);
 if (process.env.FF_P5_VERBOSE) for (const p of passes) console.log(`PASS ${p}`);
 process.exit(failures.length ? 1 : 0);

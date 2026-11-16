@@ -759,7 +759,7 @@
   border: 1px solid rgba(207, 174, 84, .45);
   border-radius: 6px;
   color: var(--gold-strong, #d9bd72);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .ff-otl-streams {
@@ -860,7 +860,7 @@
 .ff-journey p {
   margin: 0 0 6px;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -888,7 +888,7 @@
   border: 1px solid var(--line, rgba(255, 255, 255, .12));
   border-radius: 999px;
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   text-decoration: none;
   overflow-wrap: anywhere;
 }

@@ -31,5 +31,5 @@
 .forge-heat-withheld li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.05);min-width:0}
 .forge-heat-withheld li:first-child{border-top:0}
 .forge-heat-withheld li a{min-width:0;overflow-wrap:anywhere}
-.forge-heat-withheld li span{font-weight:700;font-size:.8rem;letter-spacing:.04em}
+.forge-heat-withheld li span{font-weight:700;font-size:.875rem;letter-spacing:.04em}
 .forge-heat-withheld li small{color:var(--muted,#9fa5b0);font-size:.875rem}
