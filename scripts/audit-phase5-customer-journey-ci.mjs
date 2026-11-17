@@ -222,6 +222,12 @@ async function timelineChecks(page, id, label) {
   const movements = expected.checkpoints.map(x => x.streams.derivedMarketEstimate.movement);
   check(`T ${label}: stream A movement reads in "supported market estimate" wording`, streams.every((list, i) => list[0].movement === movements[i] && list[0].value === MOVEMENT_LABELS[movements[i]]),
     streams.map(l => `${l[0]?.movement}:${l[0]?.value}`).join(" | "));
+  // V1.0: a carried-forward direction reads "Latest derived estimate: Day N — …", labelled as not new; none elsewhere.
+  const carriedShown = await page.evaluate(() => [...document.querySelectorAll("#main-content [data-ff-outcome-timeline] .ff-otl-checkpoint")]
+    .map(cp => cp.querySelector("[data-ff-otl-carried-forward]")?.innerText.replace(/\s+/g, " ").trim() || ""));
+  const carriedExpected = expected.checkpoints.map(x => x.streams.derivedMarketEstimate.carriedForward?.text || "");
+  check(`T ${label}: carried-forward derived-estimate direction shown exactly where the server sent one, labelled not new`,
+    carriedShown.length === 3 && carriedShown.every((t, i) => carriedExpected[i] ? t.startsWith(carriedExpected[i]) && /Not a new estimate/.test(t) : t === ""), carriedShown.join(" | "));
   check(`T ${label}: no return / profit / gain wording in the timeline`, !FORBIDDEN_WORDS.test(tl), (tl.match(new RegExp(`.{0,40}(${FORBIDDEN_WORDS.source}).{0,20}`, "i")) || [""])[0]);
   check(`T ${label}: original conclusion, why, and evidence disclosures (count, quality, confidence, risk)`, /1\. What FlipForge originally concluded and why/.test(tl)
     && tl.includes(expected.originalDecision.reasonExplanation) && /Exact completed sales/.test(tl) && /Evidence quality/.test(tl) && /Confidence \d+\/100/.test(tl) && /Risk \d+\/100/.test(tl)
@@ -448,7 +454,7 @@ try {
   check("T every stream A movement direction is covered (increased, decreased, unchanged, unavailable, not yet available)",
     ["INCREASED", "DECREASED", "UNCHANGED", "UNAVAILABLE", "NOT_YET_AVAILABLE"].every(m => movements.has(m)), [...movements].join(","));
   const states = new Set(IDS.flatMap(id => CARDS[id].timeline(id).checkpoints.map(c => c.state)));
-  check("T every checkpoint state is covered", ["AWAITING_CHECKPOINT", "PRICE_OBSERVED", "NO_RELIABLE_EVIDENCE", "NO_NEW_SALES", "WINDOW_CLOSED", "CUSTOMER_REPORTED_UNVERIFIED"].every(x => states.has(x)), [...states].join(","));
+  check("T every checkpoint state is covered", ["AWAITING_CHECKPOINT", "PRICE_OBSERVED", "NO_RELIABLE_EVIDENCE", "NO_NEW_VERIFIED_EVIDENCE", "NO_NEW_SALES", "WINDOW_CLOSED", "CUSTOMER_REPORTED_UNVERIFIED"].every(x => states.has(x)), [...states].join(","));
 } finally {
   await browser.close();
 }

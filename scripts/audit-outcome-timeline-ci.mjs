@@ -13,6 +13,9 @@
 //       "Waiting for observation".
 //   T7  Desktop 1440, tablet 834 and phone 390: no horizontal overflow, no page errors, no provider name; screenshots.
 //   T8  Saved Decisions reads the timeline with one GET /api/v1/lifecycle/{id}; no write is sent.
+//   T9  V1.0: "No new verified evidence" reads with its label; a carried-forward derived-estimate direction reads
+//       "Latest derived estimate: Day 7 — Increased", labelled as not a new estimate, from fixed words only; a carry-
+//       forward from a later or same checkpoint is not shown; one that carries a value hides the timeline.
 //
 // Screenshots go to FF_OTL_SHOTS (default output/outcome-timeline). The production host is mapped to the local server
 // (saas-prototype/serve.mjs, port 4173 or FLIPFORGE_OTL_AUDIT_PORT). FF_OTL_MODE=before runs the same journeys
@@ -35,7 +38,7 @@ const check = (name, ok, detail = "") => (ok ? passes : failures).push(detail ? 
 
 // ---------- fixtures (synthetic, outcome-checkpoint-timeline-v1 shape) ----------
 const LABELS = { AWAITING_CHECKPOINT: "Awaiting Checkpoint", PRICE_OBSERVED: "Price Observed", NO_RELIABLE_EVIDENCE: "No Reliable Evidence",
-  NO_NEW_SALES: "No New Sales", WINDOW_CLOSED: "Window Closed", CUSTOMER_REPORTED_UNVERIFIED: "Customer-Reported — Unverified",
+  NO_NEW_VERIFIED_EVIDENCE: "No new verified evidence", NO_NEW_SALES: "No New Sales", WINDOW_CLOSED: "Window Closed", CUSTOMER_REPORTED_UNVERIFIED: "Customer-Reported — Unverified",
   HISTORICAL_RECONSTRUCTION: "Historical Reconstruction" };
 const none = (explanation = "No comparison: this checkpoint has no reliable price.") => ({ comparable: false, changeCents: null, changePercent: null, direction: null, explanation });
 const cmp = (cents, pct, dir, explanation, prior) => ({ comparable: true, changeCents: cents, changePercent: pct, direction: dir, explanation, ...(prior ? { comparedWithHorizonDays: prior } : {}) });
@@ -47,7 +50,8 @@ function cp(h, st, extra = {}) {
     state: st, stateLabel: LABELS[st], underlyingState: st, reasonCode: "SYNTHETIC",
     explanation: {
       WINDOW_CLOSED: `The Day ${h} window closed on ${DATES[h][1]} with no reliable pricing evidence recorded. It stays closed and is never filled in later from estimates.`,
-      NO_RELIABLE_EVIDENCE: "Fewer than 2 qualifying completed sales of this exact card were available, so no price is recorded.",
+      NO_RELIABLE_EVIDENCE: "A checkpoint was recorded, but its sources did not pass FlipForge's provenance checks (restricted or unconfirmed sources), so its value is not shown or used.",
+      NO_NEW_VERIFIED_EVIDENCE: "Fewer than 2 qualifying completed sales of this exact card were available, so no price is recorded.",
       NO_NEW_SALES: `No new completed sale of this exact card was found after the decision, so there is no new market price for Day ${h}.`,
       PRICE_OBSERVED: "Completed sales of this exact card, recorded after the decision by an independent source that passed FlipForge's provenance checks, put the supported value at this checkpoint. No source confirms that a buyer paid.",
       AWAITING_CHECKPOINT: `Day ${h} is due on ${DATES[h][0]}.`,
@@ -74,6 +78,13 @@ function timeline(id, verdict, checkpoints, conclusion, decision = {}) {
     summary: { priceObservedCheckpoints: checkpoints.filter(c => c.state === "PRICE_OBSERVED").length }, historicalReconstructionDisplay: "OFF_PENDING_COMPLIANCE_APPROVAL"
   };
 }
+// v2 shape (three streams); stream A is direction only and may carry an earlier checkpoint's direction forward.
+const v2 = t => Object.assign(t, { version: "outcome-checkpoint-timeline-v2", derivedEstimateIsRealizedReturn: false, individualSalePricesShown: false });
+const streams = (st, movement, explanation, carriedForward = null) => ({
+  derivedMarketEstimate: { stream: "A", label: "Derived market estimate", movement, explanation, derivedOnly: true, valueShown: false, realizedReturn: false,
+    basis: null, acceptedSalesAtCheckpoint: null, estimateRecorded: movement !== "UNAVAILABLE", carriedForward },
+  independentlyConfirmed: { stream: "B", label: "Independently confirmed transactions", priceObserved: st === "PRICE_OBSERVED", observedValueCents: null, acceptedSalesAtCheckpoint: null },
+  customerReported: { stream: "C", label: "Customer-Reported — Unverified", reportCount: 0, verified: false, countedAsMarketPrice: false, reports: [] } });
 const NO_EVIDENCE = { code: "NO_RELIABLE_EVIDENCE", canConclude: false, statement: "No reliable market evidence was recorded at Day 7, Day 14 or Day 30. FlipForge cannot say how this decision turned out, and it will not estimate an outcome." };
 const CARDS = {
   "otl-closed": { title: "2020 Prizm Justin Herbert #325 PSA 10", verdict: "BUY",
@@ -82,7 +93,7 @@ const CARDS = {
     timeline: id => timeline(id, "BUY", [
       cp(7, "PRICE_OBSERVED", { evidence: { observedValueCents: 11000, reliability: "INDEPENDENTLY_VERIFIED", acceptedSalesAtCheckpoint: 2 },
         comparisonToBaseline: cmp(1000, 10.0, "UP", "Supported value is 10.0% above the original decision's supported value.") }),
-      cp(14, "NO_RELIABLE_EVIDENCE"),
+      cp(14, "NO_NEW_VERIFIED_EVIDENCE"),
       cp(30, "PRICE_OBSERVED", { evidence: { observedValueCents: 9500, reliability: "INDEPENDENTLY_VERIFIED", acceptedSalesAtCheckpoint: 3 },
         comparisonToBaseline: cmp(-500, -5.0, "DOWN", "Supported value is 5.0% below the original decision's supported value."),
         comparisonToPrior: cmp(-1500, -13.6, "DOWN", "Supported value is 13.6% below Day 7.", 7) })
@@ -118,6 +129,20 @@ const CARDS = {
       cp(14, "WINDOW_CLOSED"), cp(30, "WINDOW_CLOSED")
     ], { code: "MOVEMENT_OBSERVED", canConclude: true, latestEvidenceHorizonDays: 7, direction: "STABLE",
       statement: "At Day 7, exact-card completed sales from an independent source put the supported value within 5% of the original decision's supported value. That is in line with the original BUY. This describes one card's market movement; it does not show whether FlipForge's decisions are accurate in general. Your own reports are shown, but they are unverified and are not used in this conclusion." }) },
+  "otl-carry": { title: "2019 Topps Chrome Pete Alonso #204 PSA 10", verdict: "WATCH",
+    timeline: id => v2(timeline(id, "WATCH", [
+      cp(7, "NO_RELIABLE_EVIDENCE", { streams: streams("NO_RELIABLE_EVIDENCE", "INCREASED", "FlipForge's derived market estimate at Day 7 is materially above the original decision's value. This is a derived estimate, not a realized outcome.") }),
+      cp(14, "NO_NEW_VERIFIED_EVIDENCE", { streams: streams("NO_NEW_VERIFIED_EVIDENCE", "UNAVAILABLE", "Too few qualifying sales to recalculate a market estimate.",
+        { fromHorizonDays: 7, fromLabel: "Day 7", movement: "INCREASED", text: "Latest derived estimate: Day 7 — Increased", newEstimate: false, valueShown: false,
+          explanation: "Carried forward from the Day 7 checkpoint. It is not a new estimate: no new derived market estimate was recorded for Day 14." }) }),
+      cp(30, "WINDOW_CLOSED", { streams: streams("WINDOW_CLOSED", "UNAVAILABLE", "No derived market estimate was recorded for Day 30.",
+        { fromHorizonDays: 30, movement: "DECREASED", newEstimate: false, valueShown: false }) })
+    ], NO_EVIDENCE)) },
+  "otl-invalid-carry": { title: "2017 Prizm Patrick Mahomes #269 PSA 10", verdict: "BUY",
+    timeline: id => v2(timeline(id, "BUY", [cp(7, "WINDOW_CLOSED"),
+      cp(14, "NO_NEW_VERIFIED_EVIDENCE", { streams: streams("NO_NEW_VERIFIED_EVIDENCE", "UNAVAILABLE", "Too few qualifying sales.",
+        { fromHorizonDays: 7, movement: "INCREASED", newEstimate: false, valueShown: false, valueCents: 12000 }) }),
+      cp(30, "WINDOW_CLOSED")], NO_EVIDENCE)) },
   "otl-invalid": { title: "2011 Topps Update Mike Trout #US175 PSA 9", verdict: "BUY",
     timeline: id => Object.assign(timeline(id, "BUY", [cp(7, "WINDOW_CLOSED"), cp(14, "WINDOW_CLOSED"), cp(30, "WINDOW_CLOSED")], NO_EVIDENCE), { customerReportsVerified: true }) }
 };
@@ -239,7 +264,7 @@ try {
     }
   } else {
     const seenLabels = new Set();
-    for (const id of IDS.filter(x => x !== "otl-invalid")) {
+    for (const id of IDS.filter(x => !x.startsWith("otl-invalid"))) {
       const expected = CARDS[id].timeline(id);
       let savedText = "";
       for (const device of Object.keys(DEVICES)) {
@@ -303,6 +328,26 @@ try {
       check("T1 a historical reconstruction reads Historical Reconstruction and says it is not live tracking",
         recon.includes("Historical Reconstruction") && /not live tracking/.test(recon) && /not counted/.test(recon), recon);
       await s.context.close();
+    }
+    // T9: V1.0 carry-forward line (fixed words; only from an earlier checkpoint) and its integrity rule.
+    {
+      const s = await open("opportunities/otl-carry", "desktop");
+      const lines = await s.page.evaluate(() => [...document.querySelectorAll("#main-content [data-ff-outcome-timeline] [data-ff-otl-carried-forward]")]
+        .map(e => ({ from: e.getAttribute("data-ff-otl-carried-forward"), horizon: e.closest("[data-ff-otl-horizon]")?.getAttribute("data-ff-otl-horizon"), text: e.innerText.replace(/\s+/g, " ").trim() })));
+      const d14 = lines.find(l => l.horizon === "14");
+      check("T9 Day 14 reads \"Latest derived estimate: Day 7 — Increased\" and says it is carried forward, not a new estimate",
+        Boolean(d14) && d14.from === "7" && d14.text.startsWith("Latest derived estimate: Day 7 — Increased")
+          && /Carried forward from the Day 7 checkpoint\. Not a new estimate/.test(d14.text), JSON.stringify(lines));
+      check("T9 a carry-forward from the same or a later checkpoint is never shown (Day 30 shows none)", lines.length === 1 && !lines.some(l => l.horizon === "30"), JSON.stringify(lines));
+      const d14State = await s.page.evaluate(() => document.querySelector('#main-content [data-ff-otl-horizon="14"] [data-ff-otl-state]')?.innerText.trim() || "");
+      check("T9 Day 14 with no new evidence reads \"No new verified evidence\"", d14State === "No new verified evidence", d14State);
+      const panel = await s.page.evaluate(() => document.querySelector('#main-content [data-ff-otl-horizon="14"] [data-ff-otl-stream="A"]')?.innerText.replace(/\s+/g, " ").trim() || "");
+      check("T9 no value or percentage appears with the carried-forward direction (Day 14 stream A)", panel.includes("Latest derived estimate") && !/\$\d/.test(panel) && !/\d%/.test(panel.replace(/within 5%/g, "")), (panel.match(/.{0,30}(\$\d|\d%).{0,30}/) || [""])[0]);
+      await shot(s.page, "after-saved-otl-carry-day14-desktop");
+      await s.context.close();
+      const forged = await open("opportunities/otl-invalid-carry", "desktop");
+      check("T9 a carry-forward that carries a value hides the whole timeline", await forged.page.locator("#main-content [data-ff-outcome-timeline]").count() === 0);
+      await forged.context.close();
     }
     // T6: a timeline that breaks an integrity promise is not shown; Tracking falls back without "Waiting for observation".
     {

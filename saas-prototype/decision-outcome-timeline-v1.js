@@ -25,6 +25,8 @@
     AWAITING_CHECKPOINT: "Awaiting Checkpoint",
     PRICE_OBSERVED: "Price Observed",
     NO_RELIABLE_EVIDENCE: "No Reliable Evidence",
+    // V1.0: a recorded checkpoint with no independently confirmed price and no new derived estimate.
+    NO_NEW_VERIFIED_EVIDENCE: "No new verified evidence",
     NO_NEW_SALES: "No New Sales",
     WINDOW_CLOSED: "Window Closed",
     CUSTOMER_REPORTED_UNVERIFIED: "Customer-Reported — Unverified",
@@ -68,6 +70,9 @@
     UNAVAILABLE: "Supported market estimate unavailable",
     NOT_YET_AVAILABLE: "Not yet available"
   });
+  // V1.0: a due checkpoint with no new derived estimate may carry the latest earlier direction, as already shown there.
+  // The words are fixed here; the server's text is not displayed, and no value or percentage is ever accepted.
+  const CARRIED_FORWARD_WORDS = Object.freeze({ INCREASED: "Increased", DECREASED: "Decreased", UNCHANGED: "Unchanged (within 5%)" });
   const QUALITY_LABELS = Object.freeze({ STRONG: "Strong", HIGH: "Strong", MODERATE: "Moderate", MEDIUM: "Moderate", LIMITED: "Limited",
     WEAK: "Weak", LOW: "Weak", REVIEW: "Needs review", NONE: "None" });
   const VERIFICATION_REASONS = Object.freeze({
@@ -129,6 +134,9 @@
     if (a !== undefined && (!isObject(a) || a.valueShown !== false || a.realizedReturn !== false
       || (a.movement !== undefined && !Object.prototype.hasOwnProperty.call(MOVEMENT_LABELS, a.movement))
       || finite(a.valueCents) || finite(a.changePercent))) return false;
+    const cf = a?.carriedForward;
+    if (cf !== undefined && cf !== null && (!isObject(cf) || cf.newEstimate !== false || cf.valueShown !== false
+      || finite(cf.valueCents) || finite(cf.changePercent))) return false;
     if (b !== undefined && (!isObject(b) || (b.priceObserved === true) !== (c.state === "PRICE_OBSERVED"))) return false;
     if (r !== undefined && (!isObject(r) || r.verified !== false || r.countedAsMarketPrice !== false)) return false;
     return true;
@@ -156,6 +164,17 @@
       + `<span>${escapeHtml(text(recon.result))}${escapeHtml(value)}</span><p>${escapeHtml(text(recon.explanation))}</p></div>`;
   }
 
+  // V1.0 carry-forward line: only an earlier checkpoint's shown direction, labelled as not a new estimate.
+  function carriedForwardLine(c, a) {
+    const cf = a?.carriedForward;
+    if (!isObject(cf) || cf.newEstimate !== false) return "";
+    const from = Number(cf.fromHorizonDays);
+    const word = CARRIED_FORWARD_WORDS[cf.movement];
+    if (!word || !HORIZONS.includes(from) || from >= Number(c.horizonDays)) return "";
+    return `<p class="ff-otl-carried" data-ff-otl-carried-forward="${escapeHtml(from)}"><b>Latest derived estimate: Day ${escapeHtml(from)} — ${escapeHtml(word)}</b>`
+      + `<small>Carried forward from the Day ${escapeHtml(from)} checkpoint. Not a new estimate: no new derived market estimate was recorded for Day ${escapeHtml(c.horizonDays)}.</small></p>`;
+  }
+
   // Stream A: direction only. An older (v1) service sends no stream A, which reads "Not recorded" (never guessed).
   function streamA(c) {
     const a = isObject(c.streams?.derivedMarketEstimate) ? c.streams.derivedMarketEstimate : null;
@@ -163,7 +182,7 @@
     const value = movement ? MOVEMENT_LABELS[movement] : "Not recorded";
     const sales = a && finite(a.acceptedSalesAtCheckpoint) ? `${Number(a.acceptedSalesAtCheckpoint)} exact sale${Number(a.acceptedSalesAtCheckpoint) === 1 ? "" : "s"} at this checkpoint. ` : "";
     return `<div class="ff-otl-stream" data-ff-otl-stream="A" data-ff-otl-movement="${escapeHtml(movement || "NOT_RECORDED")}"><dt><b>A</b> ${escapeHtml(STREAM_LABELS.A)}</dt>`
-      + `<dd><strong>${escapeHtml(value)}</strong><small>${escapeHtml(sales + (a ? text(a.explanation) : "This service version does not record a derived estimate for checkpoints."))}</small></dd></div>`;
+      + `<dd><strong>${escapeHtml(value)}</strong><small>${escapeHtml(sales + (a ? text(a.explanation) : "This service version does not record a derived estimate for checkpoints."))}</small>${carriedForwardLine(c, a)}</dd></div>`;
   }
 
   function streamB(c) {

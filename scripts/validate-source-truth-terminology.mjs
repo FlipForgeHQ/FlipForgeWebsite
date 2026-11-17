@@ -184,7 +184,8 @@ export function providerNameIn(fragment) {
 
 const TRUST_LABEL = /^(?:Verified|VERIFIED|Trusted|TRUSTED|TRUSTED NOW|Trusted now|Verified evidence|Server-verified)$/;
 const TRUST_WORDING = [
-  /\bverified\s+(?:evidence|exact\s+identity|exact\s+card)\b/i,
+  // V1.0 founder-specified checkpoint state "No new verified evidence" states an absence, so it is not a trust claim.
+  /(?<!\bno\s+new\s+)\bverified\s+(?:evidence|exact\s+identity|exact\s+card)\b/i,
   /\btrusted\s+now\b/i,
   /\bwhat\s+flipforge\s+trusted\b/i
 ];
@@ -246,6 +247,10 @@ for (const visible of ["CardSight sold evidence", "Saved CardSight accepted sale
 }
 for (const label of ["Verified", "Verified evidence", "TRUSTED NOW", "What FlipForge trusted", "Verified exact identity"]) {
   check(`trust label is caught: ${label}`, trustWordingIn(label) !== "");
+}
+check("the absence label \"No new verified evidence\" stays legal", trustWordingIn("No new verified evidence") === "");
+for (const label of ["New verified evidence", "verified evidence was found", "Day 14: verified evidence"]) {
+  check(`a positive verified-evidence claim is still caught: ${label}`, trustWordingIn(label) !== "");
 }
 check("replacement pair introducing \"Verified\" is caught", introducedTrustWords('const COPY_REPLACEMENTS = [\n  ["Server-owned", "Verified"]\n];').length === 1);
 check("replacement call introducing \"verified\" is caught", introducedTrustWords('x.replace(/server-owned/g, "verified");').length === 1);

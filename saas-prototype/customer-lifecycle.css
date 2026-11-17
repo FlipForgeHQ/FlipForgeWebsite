@@ -475,7 +475,12 @@
 .ff-otl-state[data-ff-otl-state="CUSTOMER_REPORTED_UNVERIFIED"] { border-color: rgba(207, 174, 84, .55); color: var(--gold-strong, #d9bd72); white-space: normal; }
 .ff-otl-state[data-ff-otl-state="WINDOW_CLOSED"],
 .ff-otl-state[data-ff-otl-state="NO_RELIABLE_EVIDENCE"],
+.ff-otl-state[data-ff-otl-state="NO_NEW_VERIFIED_EVIDENCE"],
 .ff-otl-state[data-ff-otl-state="NO_NEW_SALES"] { color: var(--text-soft); }
+
+.ff-otl-carried { margin: 8px 0 0; display: grid; gap: 2px; }
+.ff-otl-carried b { font-weight: 600; }
+.ff-otl-carried small { color: var(--text-soft); }
 
 .ff-otl-dates,
 .ff-otl-explanation,

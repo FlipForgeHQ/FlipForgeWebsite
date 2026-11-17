@@ -13,7 +13,7 @@ export const NOTICE = "Based on 1 sale: value withheld. A value calculated from 
 export const TENANT_EMAIL = "phase5-journey-a@flipforge.test";
 
 const STATE_LABELS = { AWAITING_CHECKPOINT: "Awaiting Checkpoint", PRICE_OBSERVED: "Price Observed", NO_RELIABLE_EVIDENCE: "No Reliable Evidence",
-  NO_NEW_SALES: "No New Sales", WINDOW_CLOSED: "Window Closed", CUSTOMER_REPORTED_UNVERIFIED: "Customer-Reported — Unverified",
+  NO_NEW_VERIFIED_EVIDENCE: "No new verified evidence", NO_NEW_SALES: "No New Sales", WINDOW_CLOSED: "Window Closed", CUSTOMER_REPORTED_UNVERIFIED: "Customer-Reported — Unverified",
   HISTORICAL_RECONSTRUCTION: "Historical Reconstruction" };
 export { STATE_LABELS };
 export const MOVEMENT_LABELS = { INCREASED: "Supported market estimate increased", DECREASED: "Supported market estimate decreased",
@@ -27,8 +27,14 @@ const none = (explanation = "No comparison: this checkpoint has no reliable pric
 const cmp = (cents, pct, dir, explanation, prior) => ({ comparable: true, changeCents: cents, changePercent: pct, direction: dir, explanation, ...(prior ? { comparedWithHorizonDays: prior } : {}) });
 
 // Stream A: direction only (contract 2.4): never a value or a percentage.
-const streamA = (movement, reasonCode, explanation, sales = null, basis = null) => ({ stream: "A", label: "Derived market estimate", movement,
-  movementLabel: SERVER_MOVEMENT_LABELS[movement], reasonCode, explanation, basis, acceptedSalesAtCheckpoint: sales, derivedOnly: true, valueShown: false, realizedReturn: false });
+const streamA = (movement, reasonCode, explanation, sales = null, basis = null, carriedForward = null) => ({ stream: "A", label: "Derived market estimate", movement,
+  movementLabel: SERVER_MOVEMENT_LABELS[movement], reasonCode, explanation, basis, acceptedSalesAtCheckpoint: sales, derivedOnly: true, valueShown: false, realizedReturn: false,
+  estimateRecorded: ["INCREASED", "DECREASED", "UNCHANGED"].includes(movement), carriedForward });
+// V1.0: the latest earlier shown direction, carried forward to a due checkpoint with no new estimate (never a value).
+const WORDS = { INCREASED: "Increased", DECREASED: "Decreased", UNCHANGED: "Unchanged (within 5%)" };
+const carried = (from, to, movement) => ({ fromHorizonDays: from, fromLabel: `Day ${from}`, movement, text: `Latest derived estimate: Day ${from} — ${WORDS[movement]}`,
+  explanation: `Carried forward from the Day ${from} checkpoint. It is not a new estimate: no new derived market estimate was recorded for Day ${to}.`, newEstimate: false, valueShown: false });
+export const D14_NOT_SWITCHED_ON = "Day 14 market-estimate collection is not switched on yet, so Day 14 shows only independently confirmed and customer-reported evidence.";
 
 function cp(h, st, extra = {}, a = null) {
   const priced = st === "PRICE_OBSERVED";
@@ -37,7 +43,8 @@ function cp(h, st, extra = {}, a = null) {
     state: st, stateLabel: STATE_LABELS[st], underlyingState: st, reasonCode: "SYNTHETIC",
     explanation: {
       WINDOW_CLOSED: `The Day ${h} window closed on ${DATES[h][1]} with no reliable pricing evidence recorded. It stays closed and is never filled in later from estimates.`,
-      NO_RELIABLE_EVIDENCE: "Fewer than 2 qualifying completed sales of this exact card were available, so no price is recorded.",
+      NO_RELIABLE_EVIDENCE: "A checkpoint was recorded, but its sources did not pass FlipForge's provenance checks (restricted or unconfirmed sources), so its value is not shown or used.",
+      NO_NEW_VERIFIED_EVIDENCE: "Fewer than 2 qualifying completed sales of this exact card were available, so no price is recorded.",
       NO_NEW_SALES: `No new completed sale of this exact card was found after the decision, so there is no new market price for Day ${h}.`,
       PRICE_OBSERVED: "Completed sales of this exact card, recorded after the decision by an independent source that passed FlipForge's provenance checks, put the supported value at this checkpoint.",
       AWAITING_CHECKPOINT: `Day ${h} is due on ${DATES[h][0]}.`,
@@ -133,7 +140,7 @@ export const CARDS = {
     title: "2019 Prizm Zion Williamson #248 PSA 10", verdict: "VERIFY", sales: 1, quality: "LIMITED", confidence: 38, risk: 70,
     supportedCents: null, maxBuyCents: null, askCents: 21000, withheld: true,
     timeline: id => timeline(id, "VERIFY", [cp(7, "WINDOW_CLOSED", { verificationNeeded: true }), cp(14, "WINDOW_CLOSED", { verificationNeeded: true },
-      streamA("UNAVAILABLE", "D14_PROVIDER_COLLECTION_NOT_PERMITTED", "Day 14 is not collected from the data provider.")), cp(30, "WINDOW_CLOSED", { verificationNeeded: true })], NO_EVIDENCE,
+      streamA("UNAVAILABLE", "D14_PROVIDER_COLLECTION_NOT_PERMITTED", D14_NOT_SWITCHED_ON)), cp(30, "WINDOW_CLOSED", { verificationNeeded: true })], NO_EVIDENCE,
     {}, NEEDS(["VERIFY_VERDICT", "VALUES_WITHHELD_FEW_SALES", "NO_INDEPENDENT_CONFIRMATION"], "The card and its evidence still need to be confirmed."))
   },
   "p5-few-mixed": {
@@ -151,14 +158,19 @@ export const CARDS = {
     title: "2011 Topps Update Mike Trout #US175 PSA 9", verdict: "VERIFY", sales: 1, quality: "LIMITED", confidence: 45, risk: 58,
     supportedCents: 30000, maxBuyCents: null, askCents: 29000, withheld: false,
     timeline: id => timeline(id, "VERIFY", [
-      cp(7, "NO_RELIABLE_EVIDENCE", { verificationNeeded: true }, streamA("UNAVAILABLE", "INSUFFICIENT_EVIDENCE", "Not enough new exact sales to estimate a direction.")),
+      cp(7, "NO_NEW_VERIFIED_EVIDENCE", { verificationNeeded: true }, streamA("UNAVAILABLE", "INSUFFICIENT_EVIDENCE", "Not enough new exact sales to estimate a direction.")),
       cp(14, "NO_NEW_SALES", { verificationNeeded: true }, streamA("UNAVAILABLE", "NO_NEW_SALES", "No new exact sales.")), cp(30, "WINDOW_CLOSED", { verificationNeeded: true })], NO_EVIDENCE,
     {}, NEEDS(["VERIFY_VERDICT", "NO_INDEPENDENT_CONFIRMATION"], "One independent sale supports this decision; a second exact-card sale is needed to confirm it."))
   },
   "p5-pass": {
     title: "2021 Prizm Ja Morant #10 PSA 10", verdict: "PASS", sales: 4, quality: "MODERATE", confidence: 74, risk: 72,
     supportedCents: 9000, maxBuyCents: null, askCents: 15000, withheld: false,
-    timeline: id => timeline(id, "PASS", [cp(7, "WINDOW_CLOSED"), cp(14, "WINDOW_CLOSED"), cp(30, "WINDOW_CLOSED")], NO_EVIDENCE)
+    // D7 derived estimate decreased (its sources did not pass provenance, so no stream-B price); D14 has no new estimate
+    // and carries the Day 7 direction forward, labelled as not new (V1.0).
+    timeline: id => timeline(id, "PASS", [
+      cp(7, "NO_RELIABLE_EVIDENCE", {}, streamA("DECREASED", "MATERIAL_DECREASE", "FlipForge's own estimate moved down by more than 5%.", 4, "DATA_PROVIDER_DERIVED")),
+      cp(14, "WINDOW_CLOSED", {}, streamA("UNAVAILABLE", "D14_PROVIDER_COLLECTION_NOT_PERMITTED", D14_NOT_SWITCHED_ON, null, null, carried(7, 14, "DECREASED"))),
+      cp(30, "WINDOW_CLOSED")], NO_EVIDENCE)
   }
 };
 export const IDS = Object.keys(CARDS);
