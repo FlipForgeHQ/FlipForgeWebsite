@@ -70,7 +70,7 @@ function allowedDollars(id) {
 
 const browser = await chromium.launch({ executablePath, args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"] });
 
-async function open(route, device, { waitFor = null, evaluateId = null } = {}) {
+async function open(route, device, { waitFor = null, evaluateId = null, emptyPortfolio = false } = {}) {
   const context = await browser.newContext(DEVICES[device]);
   await context.addInitScript(email => {
     try {
@@ -87,7 +87,7 @@ async function open(route, device, { waitFor = null, evaluateId = null } = {}) {
     body: `window.FlipForgeIdentity=Object.freeze({getUser:()=>({email:"${TENANT_EMAIL}"}),getSnapshot:()=>({authenticated:true,email:"${TENANT_EMAIL}",fullName:"Phase 5 Audit",membershipActive:true,membershipConfigured:true}),signOut:async()=>{},refresh:async()=>({authenticated:true,membershipActive:true,email:"${TENANT_EMAIL}"}),noteServerMembership:()=>({authenticated:true,membershipActive:true}),getAccessToken:async()=>"t"});` }));
   await context.route(/\/assets\/js\/flipforge-production-signin\.js/, r => r.fulfill({ status: 200, contentType: "text/javascript", body: "(() => {})();" }));
   const requests = [];
-  await context.route("**/api/v1/**", handler(requests, { evaluateId }));
+  await context.route("**/api/v1/**", handler(requests, { evaluateId, emptyPortfolio }));
   await installMeter(context);
   const page = await context.newPage();
   const errors = [];
@@ -304,6 +304,14 @@ async function listPages(device) {
       && /WATCH/.test(row) && row.includes(money(CARDS["p5-one-sale-watch"].paidCents)) && !/Max Buy \$/.test(row), row.replace(/\s+/g, " "));
     check(`W ${device} portfolio: a multi-sale BUY keeps its Max Buy at decision`, /Max Buy \$85\.00 at decision/.test(t));
     await shot(s.page, `${device}-portfolio`);
+    await s.context.close();
+  }
+  // Portfolio with no owned card: totals read an empty state, never "$0.00" (the real journey account owns none).
+  {
+    const s = await open("portfolio", device, { emptyPortfolio: true });
+    const t = await common(s, `${device} empty portfolio`, { axeScan: false });
+    check(`W ${device} empty portfolio: no owned card reads as an empty state, never "$0.00"`, !/\$0\.00/.test(t) && /No owned (cards recorded yet|holdings yet)/i.test(t), t.replace(/\s+/g, " ").slice(0, 400));
+    await shot(s.page, `${device}-portfolio-empty`);
     await s.context.close();
   }
   // Alerts

@@ -251,8 +251,8 @@ const pausedReference = { available: false, status: "PROVIDER_STORED_HISTORY_NOT
   maximumLatestSaleAgeDays: 30, latestSaleAgeDays: null, latestSaleDate: null, marketplaces: [], exactIdentityRequired: true, activeListingsUsed: false, providerCallPerformed: false, persistedAsValuation: false, appraisal: false, transactionAuthority: false };
 const pausedPerformance = { available: false, status: "REFERENCE_VALUE_UNAVAILABLE", method: "EVIDENCE_REFERENCE_MINUS_CUSTOMER_COST_BASIS", realized: false, feesIncluded: false, taxesIncluded: false, liquidationEstimate: false,
   appraisal: false, transactionAuthority: false, acquisitionCostCents: null, referenceValueCents: null, referenceDeltaCents: null, referenceDeltaPercent: null };
-export function portfolio() {
-  const owned = IDS.filter(id => CARDS[id].owned);
+export function portfolio(empty = false) {
+  const owned = empty ? [] : IDS.filter(id => CARDS[id].owned);
   return { kind: "portfolio", configured: true, readOnly: false, status: "CUSTOMER_COST_BASIS_AVAILABLE_REFERENCE_VALUE_UNAVAILABLE",
     currentValueConfigured: true, currentValueType: "EVIDENCE_SUPPORTED_REFERENCE_NOT_APPRAISAL", currentValueMethod: "AVERAGE_ACCEPTED_EXACT_COMPLETED_SALES",
     performanceConfigured: true, performanceType: "UNREALIZED_REFERENCE_COMPARISON", count: owned.length,
@@ -364,7 +364,8 @@ export function handler(requests, options = {}) {
       metrics: { trackedOpportunities: IDS.length, evidenceReady: 0, populationContextAvailable: 0, needsVerification: 2 }, opportunities: IDS.map(opportunity), items: IDS.map(opportunity) }));
     if (p === "/api/v1/lifecycle") return json(route, 200, envelope(cid, { kind: "lifecycle", sourceOfTruth: "SQLite", items: IDS.map(lifecycle), transactionAuthority: false }));
     if (p === "/api/v1/alerts") return json(route, 200, envelope(cid, alerts()));
-    if (p === "/api/v1/portfolio") return json(route, 200, envelope(cid, portfolio()));
+    // options.emptyPortfolio: an account that owns no card (count 0, every total 0), as the real journey server serves it.
+    if (p === "/api/v1/portfolio") return json(route, 200, envelope(cid, portfolio(Boolean(options.emptyPortfolio))));
     if (p === "/api/v1/forge-heat") return json(route, 200, envelope(cid, forgeHeat()));
     if (p === "/api/v1/market-view") return json(route, 200, envelope(cid, marketView()));
     if (p === "/api/v1/sell-watch" || p === "/api/v1/reported-sales" || p === "/api/v1/compare") return err(404, "ROUTE_NOT_FOUND", "Off.");

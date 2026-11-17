@@ -262,7 +262,7 @@ async function phase5Journey() {
   await a.context.close();
 
   // Another account cannot open journey-phase5-alpha's decisions. An id that only alpha has is 404 for bravo and renders
-  // a plain not-found state; an id both accounts have (contract section 5: p5-multi-sale) shows bravo's own decision
+  // a plain not-found state; an id both accounts have (contract section 5: the shared multi-sale id, EBAY-p5-* style) shows bravo's own decision
   // and nothing of alpha's (no alpha verdict or alpha checkpoint price).
   await step("Phase 5 isolation", async () => {
     const b = await session("p5b");
