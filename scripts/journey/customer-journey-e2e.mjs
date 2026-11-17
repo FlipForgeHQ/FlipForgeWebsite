@@ -3,7 +3,9 @@
 // engine over a temporary database seeded only with operator-entered exact completed sales; CardSight suspended).
 //
 //   Discover → Evaluate → Save → Track → Re-evaluate (prefilled) → What changed → Alerts (review, seen)
-//   → Own → Portfolio → Forge Heat → another account (isolation) → failed backend request → tablet and phone.
+//   → Own → Portfolio → Forge Heat → another account (isolation) → failed backend request → tablet and phone
+//   → Phase 5 (journey-phase5-alpha / -bravo): value withheld on every surface, the D7 / D14 / D30 timeline with
+//     streams A / B / C, the journey strip click-through, isolation (404), desktop / tablet / phone.
 //
 // Usage: JOURNEY_BASE=http://goflipforge.com:4190 JOURNEY_SHOTS=dir node scripts/journey/customer-journey-e2e.mjs
 import { chromium } from "playwright";
@@ -22,6 +24,8 @@ const CARDS = {
   second: { identity: "2018 Topps Chrome Juan Soto #155 PSA 10", listing: "journey-soto-ui-001", price: "300.00" },
   thin: { identity: "2021 Bowman Chrome Jasson Dominguez #BCP-90 PSA 10", listing: "journey-dominguez-ui-001", price: "200.00" }
 };
+const EMAILS = Object.freeze({ a: email, b: "journey-tenant-b@journey.flipforge.test",
+  p5a: "journey-phase5-alpha@journey.flipforge.test", p5b: "journey-phase5-bravo@journey.flipforge.test" });
 const passes = [];
 const failures = [];
 const notes = [];
@@ -33,7 +37,8 @@ const RAW = /\b(?:REVIEW_DUE|DECISION_CHANGED|MAX_BUY_CROSSED|DECISION_RECHECK_D
 const ISO = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
 
-const browser = await chromium.launch({ args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"] });
+const browser = await chromium.launch({ args: ["--host-resolver-rules=MAP goflipforge.com 127.0.0.1"],
+  ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } : {}) });
 
 async function session(tenant, viewport = { width: 1440, height: 1000 }, extra = {}) {
   const context = await browser.newContext({ viewport, ...extra });
@@ -48,8 +53,8 @@ async function session(tenant, viewport = { width: 1440, height: 1000 }, extra =
       localStorage.setItem(`flipforge.guidedMode.v3.${key}.welcome`, "seen");
       localStorage.setItem(`flipforge.guidedMode.v3.${key}.enabled`, "off");
     } catch (_) {}
-  }, { email: tenant === "a" ? email : "journey-tenant-b@journey.flipforge.test" });
-  const who = tenant === "a" ? email : "journey-tenant-b@journey.flipforge.test";
+  }, { email: EMAILS[tenant] || email });
+  const who = EMAILS[tenant] || email;
   await context.route(/\/assets\/js\/flipforge-identity\.js/, r => r.fulfill({ status: 200, contentType: "text/javascript",
     body: `window.FlipForgeIdentity=Object.freeze({getUser:()=>({email:"${who}"}),getSnapshot:()=>({authenticated:true,email:"${who}",fullName:"Journey Tester",membershipActive:true,membershipConfigured:true}),signOut:async()=>{},refresh:async()=>({authenticated:true,membershipActive:true,email:"${who}"}),noteServerMembership:()=>({authenticated:true,membershipActive:true}),getAccessToken:async()=>"journey"});` }));
   await context.route(/\/assets\/js\/flipforge-production-signin\.js/, r => r.fulfill({ status: 200, contentType: "text/javascript", body: "(() => {})();" }));
@@ -89,8 +94,237 @@ async function evaluateCard(page, card, price = card.price) {
   return { decision, id: decodeURIComponent(String(href || "").replace("#/opportunities/", "")) };
 }
 
+// ---------------- Phase 5 Customer Intelligence (FlipForge2 PHASE5_CUSTOMER_INTELLIGENCE_CONTRACT) ----------------
+// Runs against the scenarios the journey server seeds for journey-phase5-alpha (contract section 5): one-sale and
+// few-sales withheld, mixed live + independent, multi-sale, independent single sale, D7 / D14 / D30 timeline states and
+// movements; journey-phase5-bravo checks isolation. The seeded decisions are found from the account's own saved list
+// (by their markers), so the script does not depend on seeded ids. When the server seeds nothing for Phase 5 the
+// section is skipped with a note, unless JOURNEY_PHASE5_REQUIRED=1.
+const P5_LABEL = /^Based on [1-3] sales?: value withheld$/;
+const P5_MOVEMENT = { INCREASED: "Supported market estimate increased", DECREASED: "Supported market estimate decreased",
+  UNCHANGED: "Supported market estimate unchanged (within 5%)", UNAVAILABLE: "Supported market estimate unavailable", NOT_YET_AVAILABLE: "Not yet available" };
+const P5_FORBIDDEN = /\breturns?\b|\breturned\b|profit made|\bgains?\b|\bgained\b/i;
+const p5Dollars = value => [...String(value).matchAll(/\$\s?(\d[\d,]*(?:\.\d{2})?)/g)].map(m => Number(m[1].replace(/,/g, "")));
+const p5Withheld = record => Boolean(record) && /^(SINGLE_PROVIDER_SALE_BASIS|FEW_PROVIDER_SALES_BASIS)$/.test(String(record.valuesWithheld || record.governedDecision?.valuesWithheld || ""));
+const p5Label = record => {
+  const label = String(record?.valuesWithheldLabel || record?.governedDecision?.valuesWithheldLabel || "");
+  if (P5_LABEL.test(label)) return label;
+  const n = Number(record?.withheldBasisSales ?? record?.governedDecision?.withheldBasisSales);
+  return n >= 2 && n <= 3 ? `Based on ${n} sales: value withheld` : "Based on 1 sale: value withheld";
+};
+async function p5Get(page, path) {
+  return page.evaluate(async p => {
+    const response = await fetch(p, { headers: { Accept: "application/json", "X-Correlation-Id": `p5-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}` }, credentials: "same-origin", cache: "no-store" });
+    let body = null;
+    try { body = await response.json(); } catch (_) { body = null; }
+    return { status: response.status, body };
+  }, path);
+}
+
+async function phase5Journey() {
+  const required = process.env.JOURNEY_PHASE5_REQUIRED === "1";
+  const alphaPricesById = new Map(); // alpha's own checkpoint and baseline prices, to prove bravo never sees them
+  const pageTexts = [];
+  const a = await session("p5a");
+  let items = [];
+  await step("Phase 5 seed", async () => {
+    await go(a.page, "opportunities", 2500);
+    const list = await p5Get(a.page, "/api/v1/opportunities");
+    items = Array.isArray(list.body?.data?.items) ? list.body.data.items : [];
+    notes.push(`phase5: ${items.length} saved decisions for journey-phase5-alpha (${items.map(i => `${i.id}:${i.recommendation}${p5Withheld(i) ? ":withheld" : ""}`).join(", ")})`);
+  });
+  if (!items.length) {
+    check("P5-0 the journey server seeded the Phase 5 scenarios for journey-phase5-alpha", !required, "no saved decisions for the Phase 5 tenant");
+    await a.context.close();
+    return;
+  }
+  const withheld = items.filter(p5Withheld);
+  const open = items.filter(i => !p5Withheld(i));
+  check("P5-0 the seed includes a withheld decision and one whose values are shown", withheld.length > 0 && open.length > 0, `${withheld.length} withheld, ${open.length} shown`);
+  for (const verdict of ["BUY", "WATCH", "VERIFY", "PASS"]) {
+    if (!items.some(i => String(i.recommendation || "").toUpperCase() === verdict)) notes.push(`phase5: no seeded ${verdict} decision`);
+  }
+
+  // Saved decisions list: every withheld row reads its label, keeps its verdict, shows no figure but the ask.
+  await step("Phase 5 saved list", async () => {
+    await go(a.page, "opportunities", 3000);
+    for (const item of withheld) {
+      const row = await a.page.evaluate(id => [...document.querySelectorAll("#main-content tr, #main-content article, #main-content li")]
+        .find(n => n.querySelector(`a[href="#/opportunities/${CSS.escape(encodeURIComponent(id))}"], a[href="#/opportunities/${CSS.escape(id)}"]`))?.innerText || "", item.id);
+      check(`P5-L ${item.id}: the saved list reads "${p5Label(item)}" with its verdict`, row.includes(p5Label(item)) && row.toUpperCase().includes(String(item.recommendation).toUpperCase()), row.replace(/\s+/g, " ").slice(0, 200));
+    }
+  });
+
+  // Decision Receipt and Tracking timeline for every seeded decision.
+  for (const item of items) {
+    await step(`Phase 5 receipt ${item.id}`, async () => {
+      const id = encodeURIComponent(item.id);
+      const detail = await p5Get(a.page, `/api/v1/lifecycle/${id}`);
+      const timeline = detail.body?.data?.outcomeTimeline;
+      const prices = [];
+      if (Number.isFinite(timeline?.originalDecision?.baselineSupportedValueCents)) prices.push(timeline.originalDecision.baselineSupportedValueCents / 100);
+      for (const c of Array.isArray(timeline?.checkpoints) ? timeline.checkpoints : []) if (Number.isFinite(c.evidence?.observedValueCents)) prices.push(c.evidence.observedValueCents / 100);
+      alphaPricesById.set(String(item.id), prices);
+      await go(a.page, `opportunities/${id}`, 0);
+      await a.page.waitForSelector("#main-content [data-ff-journey]", { timeout: 15000 }).catch(() => {});
+      if (timeline?.available === true) await a.page.waitForSelector("#main-content [data-ff-outcome-timeline]", { timeout: 15000 }).catch(() => {});
+      await a.page.waitForTimeout(1000);
+      const t = await text(a.page);
+      pageTexts.push(t);
+      check(`P5-R ${item.id}: verdict and exact card identity shown`, t.toUpperCase().includes(String(item.recommendation).toUpperCase()) && t.includes(String(item.title || item.cardIdentity || "").slice(0, 24)));
+      if (p5Withheld(item)) {
+        const label = p5Label(item);
+        const cells = await a.page.evaluate(() => [...document.querySelectorAll("#main-content [data-ff-value-withheld]")].map(n => n.innerText.trim()));
+        check(`P5-W ${item.id}: "${label}" in place of every value`, t.includes(label) && cells.length > 0 && cells.every(c => P5_LABEL.test(c)), JSON.stringify(cells));
+        check(`P5-W ${item.id}: no Max Buy / buying limit, no profit or ROI figure, never $0`, await a.page.locator("#main-content [data-max-buy-at-decision]").count() === 0
+          && !/Max Buy\s*\$\d/i.test(t) && !/(profit|ROI)[^\n]{0,40}[$%]\s?\d/i.test(t) && !/\$0\.00/.test(t), (t.match(/.{0,40}(Max Buy|profit|ROI|\$0\.00).{0,30}/i) || [""])[0]);
+        const allowed = new Set([Number(item.ask)]);
+        if (Number.isFinite(Number(item.governedDecision?.allInAskCents))) allowed.add(Number(item.governedDecision.allInAskCents) / 100);
+        for (const c of Array.isArray(timeline?.checkpoints) ? timeline.checkpoints : []) {
+          if (c.state === "PRICE_OBSERVED" && Number.isFinite(c.evidence?.observedValueCents)) allowed.add(c.evidence.observedValueCents / 100);
+          for (const r of Array.isArray(c.customerReports) ? c.customerReports : []) if (Number.isFinite(r.reportedPriceCents)) allowed.add(r.reportedPriceCents / 100);
+          if (Number.isFinite(c.comparisonToBaseline?.changeCents)) allowed.add(Math.abs(c.comparisonToBaseline.changeCents) / 100);
+          if (Number.isFinite(c.comparisonToPrior?.changeCents)) allowed.add(Math.abs(c.comparisonToPrior.changeCents) / 100);
+        }
+        const shown = [...new Set(p5Dollars(t))];
+        check(`P5-W ${item.id}: no dollar figure but the customer's own amounts and independently confirmed prices`, shown.every(v => allowed.has(v)), `${shown.join(",")} allowed ${[...allowed].join(",")}`);
+      }
+      if (timeline?.available === true) {
+        const states = await a.page.evaluate(() => [...document.querySelectorAll("#main-content [data-ff-outcome-timeline] [data-ff-otl-state]")].map(e => e.getAttribute("data-ff-otl-state")));
+        check(`P5-T ${item.id}: the D7 / D14 / D30 timeline shows the server's three states`, states.join("|") === timeline.checkpoints.map(c => c.state).join("|"), states.join("|"));
+        const streams = await a.page.evaluate(() => [...document.querySelectorAll("#main-content [data-ff-outcome-timeline] .ff-otl-checkpoint")].map(cp =>
+          [...cp.querySelectorAll("[data-ff-otl-stream]")].map(s => ({ s: s.getAttribute("data-ff-otl-stream"), m: s.getAttribute("data-ff-otl-movement") || "", v: s.querySelector("dd > strong")?.innerText.trim() || "" }))));
+        check(`P5-T ${item.id}: streams A / B / C shown apart at every checkpoint`, streams.length === 3 && streams.every(l => l.map(x => x.s).join("") === "ABC"), JSON.stringify(streams[0]));
+        if (/-v([2-9]|\d{2,})$/.test(String(timeline.version || ""))) {
+          const expected = timeline.checkpoints.map(c => c.streams?.derivedMarketEstimate?.movement || "");
+          check(`P5-T ${item.id}: stream A movement in "supported market estimate" wording`, streams.every((l, i) => l[0].m === expected[i] && l[0].v === P5_MOVEMENT[expected[i]]),
+            streams.map(l => `${l[0]?.m}:${l[0]?.v}`).join(" | "));
+          const tl = await a.page.evaluate(() => document.querySelector("#main-content [data-ff-outcome-timeline]")?.innerText || "");
+          check(`P5-T ${item.id}: no return / profit / gain wording; verification stated`, !P5_FORBIDDEN.test(tl)
+            && (typeof timeline.verification?.needed !== "boolean" || /verification needed/i.test(tl)), (tl.match(/.{0,30}(returns?|gains?|profit made).{0,20}/i) || [""])[0]);
+        }
+      } else {
+        notes.push(`phase5: ${item.id} has no available outcome timeline (${timeline?.status || detail.status})`);
+      }
+      const journey = await a.page.evaluate(() => [...document.querySelectorAll("#main-content [data-ff-journey] li")].map(li => li.getAttribute("data-ff-journey-step")).join(","));
+      check(`P5-J ${item.id}: the journey strip is on the Decision Receipt`, journey === "discover,evaluate,save,receipt,track,review,portfolio,alerts,heat", journey);
+    });
+  }
+
+  // Click through the journey from a withheld decision: Track → Review → Portfolio → Alerts → Forge Heat → back.
+  await step("Phase 5 journey click-through", async () => {
+    const item = withheld[0] || open[0];
+    const id = encodeURIComponent(item.id);
+    await go(a.page, `opportunities/${id}`, 0);
+    await a.page.waitForSelector("#main-content [data-ff-journey]", { timeout: 15000 });
+    const click = async (step, hash, ready) => {
+      await a.page.locator(`#main-content [data-ff-journey] [data-ff-journey-step="${step}"] a`).click();
+      await a.page.waitForFunction(h => location.hash === h, hash, { timeout: 8000 }).catch(() => {});
+      if (ready) await a.page.waitForSelector(ready, { timeout: 15000 }).catch(() => {});
+      await a.page.waitForTimeout(1200);
+      return a.page.evaluate(() => location.hash);
+    };
+    check("P5-J Track opens the card's tracking timeline", await click("track", `#/tracking/${id}`, "#main-content [data-lifecycle-form]") === `#/tracking/${id}`);
+    await click("review", `#/tracking/${id}`, "#main-content [data-lifecycle-form]");
+    check("P5-J Review lands on the tracking form (record what you did)", await a.page.evaluate(() => Boolean(document.activeElement?.closest("[data-lifecycle-form]"))));
+    for (const [step, hash] of [["portfolio", "#/portfolio"], ["alerts", "#/alerts"], ["heat", "#/forge-heat"]]) {
+      check(`P5-J ${step} opens from the journey strip`, await click(step, hash, "#main-content [data-ff-journey]") === hash);
+      const t = await text(a.page);
+      pageTexts.push(t);
+      check(`P5-W ${step}: never "$0" and no Max Buy next to a withheld card`, !/\$0\.00/.test(t) && !withheld.some(w => {
+        const title = String(w.title || w.cardIdentity || "");
+        const at = title ? t.indexOf(title) : -1;
+        return at >= 0 && /Max Buy\s*\$\d/.test(t.slice(at, at + 400));
+      }), (t.match(/.{0,40}\$0\.00.{0,20}/) || [""])[0]);
+      if (step === "heat") {
+        const ranked = await a.page.evaluate(() => [...document.querySelectorAll("#main-content .ff-heat-table a[href^='#/opportunities/'], #main-content [data-ff-heat-control-room] a[href^='#/opportunities/']")]
+          .filter(x => !x.closest("[data-forge-heat-withheld], [data-ff-journey]")).map(x => decodeURIComponent(x.getAttribute("href").replace("#/opportunities/", ""))));
+        check("P5-W Forge Heat ranks no withheld decision and never overrides one", !ranked.some(r => withheld.some(w => w.id === r)) && !/Forge Heat (?:overrides|changes the verdict)/i.test(t), ranked.join(","));
+      }
+    }
+    check("P5-J back to the same Decision Receipt", await click("receipt", `#/opportunities/${id}`, "#main-content [data-ff-journey]") === `#/opportunities/${id}`);
+    check("P5-X no page errors in the Phase 5 journey", a.errors.length === 0, a.errors.join(" | "));
+    // Contract section 5: the withheld values of the seeded decisions never appear anywhere.
+    const sentinels = String(process.env.JOURNEY_PHASE5_WITHHELD_SENTINELS || "517.43,498.00").split(",").map(x => x.trim()).filter(Boolean);
+    const leaked = sentinels.filter(v => pageTexts.some(t => t.includes(v)));
+    check("P5-W no withheld seed value appears on any Phase 5 screen", leaked.length === 0, leaked.join(","));
+  });
+
+  // Settled screens on the Phase 5 routes.
+  await step("Phase 5 render stability", async () => {
+    const item = withheld[0] || open[0];
+    const id = encodeURIComponent(item.id);
+    const rows = await measureRoutes(a.page, APP, [`opportunities/${id}`, `tracking/${id}`, "portfolio", "alerts", "forge-heat", "market-view"], { settleMs: 4000, idleMs: 4000 });
+    printRows("phase5", rows);
+    for (const row of rows) check(`P5-RS ${row.route}: settles with no idle redraws or requests`, !row.error && row.idle.records <= 5 && row.idle.fetches === 0,
+      row.error || `${row.idle.records} mutations, ${row.idle.fetches} requests idle`);
+  });
+  await a.context.close();
+
+  // Another account cannot open journey-phase5-alpha's decisions. An id that only alpha has is 404 for bravo and renders
+  // a plain not-found state; an id both accounts have (contract section 5: the shared multi-sale id, EBAY-p5-* style) shows bravo's own decision
+  // and nothing of alpha's (no alpha verdict or alpha checkpoint price).
+  await step("Phase 5 isolation", async () => {
+    const b = await session("p5b");
+    await go(b.page, "opportunities", 2000);
+    const bravoList = await p5Get(b.page, "/api/v1/opportunities");
+    const bravo = new Map((Array.isArray(bravoList.body?.data?.items) ? bravoList.body.data.items : []).map(i => [String(i.id), i]));
+    const onlyAlpha = items.filter(i => !bravo.has(String(i.id)));
+    const shared = items.filter(i => bravo.has(String(i.id)));
+    check("P5-I at least one alpha-only decision to test isolation with", onlyAlpha.length > 0, `${onlyAlpha.length} alpha-only, ${shared.length} shared ids`);
+    for (const item of onlyAlpha.slice(0, 3)) {
+      const id = encodeURIComponent(item.id);
+      const api = await p5Get(b.page, `/api/v1/opportunities/${id}`);
+      check(`P5-I ${item.id}: another account gets 404 from the API`, api.status === 404, String(api.status));
+      const lifecycleApi = await p5Get(b.page, `/api/v1/lifecycle/${id}`);
+      check(`P5-I ${item.id}: another account gets 404 for its tracking timeline`, lifecycleApi.status === 404, String(lifecycleApi.status));
+      for (const route of [`opportunities/${id}`, `tracking/${id}`]) {
+        await go(b.page, route, 3500);
+        const t = await text(b.page);
+        check(`P5-I ${item.id} ${route.split("/")[0]}: renders a not-found state with nothing of the card`, !/value withheld/.test(t)
+          && await b.page.locator("#main-content [data-ff-outcome-timeline]").count() === 0
+          && /not found|couldn.t find|could not be found|isn.t in your account|no saved decision|not available|unavailable/i.test(t), t.replace(/\s+/g, " ").slice(0, 200));
+      }
+    }
+    for (const item of shared) {
+      const id = encodeURIComponent(item.id);
+      const own = bravo.get(String(item.id));
+      await go(b.page, `opportunities/${id}`, 4000);
+      const t = await text(b.page);
+      check(`P5-I ${item.id}: the shared id shows the other account's own decision (${own.recommendation})`, t.toUpperCase().includes(String(own.recommendation).toUpperCase()), t.slice(0, 200));
+      const alphaPrices = (alphaPricesById.get(String(item.id)) || []).filter(v => !p5Dollars(JSON.stringify(own)).includes(v));
+      check(`P5-I ${item.id}: none of the first account's checkpoint prices are shown`, !p5Dollars(t).some(v => alphaPrices.includes(v)), alphaPrices.join(","));
+    }
+    await shot(b.page, "p5-11-other-account");
+    check("P5-I no page errors for the other account", b.errors.length === 0, b.errors.join(" | "));
+    await b.context.close();
+  });
+
+  // Desktop, tablet and phone: the withheld receipt and its tracking page.
+  for (const [label, viewport, extra] of [["desktop", { width: 1440, height: 900 }, {}], ["tablet", { width: 834, height: 1112 }, { isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
+    ["phone", { width: 390, height: 844 }, { isMobile: true, hasTouch: true, deviceScaleFactor: 2 }]]) {
+    await step(`Phase 5 viewport ${label}`, async () => {
+      const s = await session("p5a", viewport, extra);
+      const item = withheld[0] || open[0];
+      const id = encodeURIComponent(item.id);
+      for (const hash of [`opportunities/${id}`, `tracking/${id}`, "portfolio", "forge-heat"]) {
+        await go(s.page, hash, 4000);
+        const o = await s.page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        check(`P5-V ${label} ${hash.split("/")[0]}: no horizontal overflow`, o <= 2, String(o));
+        await shot(s.page, `p5-${label}-${hash.split("/")[0]}`);
+      }
+      check(`P5-V ${label}: no page errors`, s.errors.length === 0, s.errors.join(" | "));
+      await s.context.close();
+    });
+  }
+}
+
 const saved = {};
+// JOURNEY_ONLY_PHASE5=1 runs only the Phase 5 section (local development against a Phase 5-only server).
+const ONLY_PHASE5 = process.env.JOURNEY_ONLY_PHASE5 === "1";
 try {
+  journey: {
+  if (ONLY_PHASE5) break journey;
   const { context, page, errors } = await session("a");
 
   // ---------------- Discover ----------------
@@ -353,6 +587,8 @@ try {
       await s.context.close();
     });
   }
+  }
+  await phase5Journey();
 } finally {
   await browser.close();
 }
@@ -362,4 +598,10 @@ console.log("Integrated customer journey (browser, real gateway, real DEV backen
 console.log(`PASSED: ${passes.length}`);
 console.log(`FAILED: ${failures.length}`);
 for (const failure of failures) console.error(`FAIL | ${failure}`);
+// CI logs are not always readable from the other repository: failures and the Phase 5 summary are also annotations.
+if (process.env.GITHUB_ACTIONS) {
+  const p5 = [passes.filter(x => /^P5-/.test(x)).length, failures.filter(x => /^(P5-|Phase 5)/.test(x)).length];
+  console.log(`::notice title=journey-phase5::Phase 5 section: ${p5[0]} passed, ${p5[1]} failed. ${notes.filter(n => n.startsWith("phase5")).join(" ").slice(0, 700)}`);
+  for (const failure of failures.slice(0, 40)) console.log(`::error title=journey::${failure.replace(/\r?\n/g, " ").slice(0, 900)}`);
+}
 if (failures.length) process.exitCode = 1;

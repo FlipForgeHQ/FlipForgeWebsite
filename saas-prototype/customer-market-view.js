@@ -190,6 +190,19 @@
         correlationId: upstream.correlationId || requestCorrelationId
       });
     }
+    // Phase 5: a saved decision whose values the server withheld has no value gap to show. It is taken out of the
+    // value list (kept by name, with the server's label, below it) rather than failing the whole view.
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    const valueContext = payload?.data?.valueContext;
+    if (valueContext && Array.isArray(valueContext.topPositiveGap) && trustDisplay?.valuesWithheld) {
+      const withheld = valueContext.topPositiveGap.filter(item => trustDisplay.valuesWithheld(item));
+      if (withheld.length) {
+        valueContext.topPositiveGap = valueContext.topPositiveGap.filter(item => !trustDisplay.valuesWithheld(item));
+        valueContext.withheldDecisions = withheld.filter(item => item && typeof item.cardIdentity === "string" && item.cardIdentity.trim())
+          .map(item => ({ opportunityId: SAFE_ID.test(String(item.opportunityId || "")) ? String(item.opportunityId) : "", cardIdentity: item.cardIdentity,
+            recommendation: String(item.savedRecommendation || item.recommendation || ""), label: trustDisplay.withheldLabel(item) }));
+      }
+    }
     if (!validEnvelope(payload, requestCorrelationId) || !validData(payload.data)) {
       throw new Error("Market View failed the FlipForge authority contract.");
     }
@@ -222,9 +235,15 @@
       const width = Math.max(0, Math.min(100, Number(count) * 100 / total));
       return `<div class="market-view-bar-row">
         <div class="market-view-bar-label"><span>${escapeHtml(label)}</span><strong>${escapeHtml(count)}</strong></div>
-        <div class="market-view-bar-track" aria-label="${escapeHtml(label)} ${percent(width)}"><span style="width:${width.toFixed(1)}%"></span></div>
+        <div class="market-view-bar-track" role="img" aria-label="${escapeHtml(label)} ${percent(width)}"><span style="width:${width.toFixed(1)}%"></span></div>
       </div>`;
     }).join("");
+  }
+
+  function withheldRows(data) {
+    const items = Array.isArray(data.valueContext?.withheldDecisions) ? data.valueContext.withheldDecisions : [];
+    if (!items.length) return "";
+    return `<div class="market-view-withheld" data-market-view-withheld><strong>Value withheld</strong><ul>${items.map(item => `<li>${item.opportunityId ? `<a href="#/opportunities/${escapeHtml(item.opportunityId)}">${escapeHtml(item.cardIdentity)}</a>` : escapeHtml(item.cardIdentity)} · ${escapeHtml(item.recommendation || "Saved decision")} · <span data-ff-value-withheld>${escapeHtml(item.label)}</span></li>`).join("")}</ul></div>`;
   }
 
   function valueRows(data) {
@@ -300,7 +319,7 @@
 
       <section class="market-view-panel market-view-value-panel">
         <header class="market-view-section-heading"><div><span class="eyebrow">SUPPORTED VALUE</span><h2>Which saved cards show room above the ask?</h2><p>Median supported gap: <strong>${signedPercent(value.medianPositiveGapPct)}</strong>. This is evidence context—not profit or ROI.</p></div><a href="#/opportunities">View opportunities →</a></header>
-        <div class="market-view-value-list">${valueRows(data)}</div>
+        <div class="market-view-value-list">${valueRows(data)}</div>${withheldRows(data)}
       </section>
 
       <section class="market-view-panel">

@@ -240,7 +240,8 @@
       const title = String(item.title || item.cardIdentity || id || "Saved card");
       const identity = String(item.cardIdentity || "");
       const acceptedSales = Math.max(0, safeNumber(item.evidence?.acceptedSales));
-      const supported = acceptedSales > 0 && safeNumber(item.supportedValue) > 0
+      const supported = window.FlipForgeTrustDisplay?.valuesWithheld?.(item) ? window.FlipForgeTrustDisplay.withheldLabel(item)
+        : acceptedSales > 0 && safeNumber(item.supportedValue) > 0
         ? money(item.supportedValue)
         : "Unavailable";
       const recommendation = String(item.recommendation || "UNKNOWN");
@@ -314,7 +315,8 @@
     const title = String(item.title || item.cardIdentity || item.id || "Saved card");
     const identity = String(item.cardIdentity || "");
     const acceptedSales = safeNumber(item.evidence?.acceptedSales);
-    const supported = acceptedSales > 0 && safeNumber(item.supportedValue) > 0
+    const supported = window.FlipForgeTrustDisplay?.valuesWithheld?.(item) ? window.FlipForgeTrustDisplay.withheldLabel(item)
+      : acceptedSales > 0 && safeNumber(item.supportedValue) > 0
       ? money(item.supportedValue)
       : "Unavailable";
     const mapping = String(item.mappingState || "").toUpperCase() === "CONFIRMED"

@@ -67,6 +67,17 @@
     }).format(value / 100);
   }
 
+  // A portfolio total is shown as money only when it sums something: with no owned card (or no covered holding) the
+  // server's 0 is not a value, so it reads as an empty state, never "$0.00". Non-zero customer-entered totals are unchanged.
+  function totalCents(value, contributing, empty = "—") {
+    if (!(Number(contributing) > 0) || !Number.isSafeInteger(value)) return empty;
+    return moneyCents(value);
+  }
+  function signedTotalCents(value, contributing, empty = "—") {
+    if (!(Number(contributing) > 0) || !Number.isSafeInteger(value)) return empty;
+    return signedMoneyCents(value);
+  }
+
   function signedMoneyCents(value) {
     if (!Number.isSafeInteger(value)) return "Unavailable";
     const absolute = moneyCents(Math.abs(value));
@@ -379,6 +390,9 @@
     const passReason = verdict === "PASS" && window.FlipForgeTrustDisplay?.passReasonText ? window.FlipForgeTrustDisplay.passReasonText(saved) : null;
     const chip = /^(BUY|WATCH|VERIFY|PASS)$/.test(verdict) ? `<span class="staging-status staging-status-${verdict === "BUY" ? "buy" : verdict === "PASS" ? "danger" : "warn"}"${passReason ? ` title="${escapeHtml(passReason)}" data-pass-reason` : ""}>${escapeHtml(verdict)}</span>${passReason ? `<small data-pass-reason-text>${escapeHtml(passReason)}</small>` : ""}` : "";
     if (isLegacy(saved)) return { group: "legacy", chip };
+    // Phase 5: the saved decision's values were withheld (one or a few data-provider sales): no buying limit, no figure.
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    if (trustDisplay?.valuesWithheld?.(saved)) return { group: "withheld", chip, label: trustDisplay.withheldLabel(saved) };
     // A VERIFY decision sets no buying limit: its evidence has not cleared, so no Max Buy is shown or compared.
     if (verdict === "VERIFY") return { group: "verify-no-max-buy", chip };
     const governed = saved.governedDecision && saved.governedDecision.available === true ? saved.governedDecision : null;
@@ -397,6 +411,7 @@
     if (facts.group === "unavailable") return `<span>Not available</span><small>The saved decision could not be loaded.</small>`;
     if (facts.group === "unlinked") return `<span>No saved decision</span><small>No saved decision is linked to this card.</small>`;
     if (facts.group === "legacy") return `${facts.chip}<small>Saved before current evidence rules · not currently supported</small>`;
+    if (facts.group === "withheld") return `${facts.chip}<small data-ff-value-withheld>${escapeHtml(facts.label)}</small><small>No buying limit is shown for this decision</small>`;
     if (facts.group === "no-max-buy") return `${facts.chip}<small>No Max Buy was set at decision</small>`;
     if (facts.group === "verify-no-max-buy") return `${facts.chip}<small>No buying limit until the evidence clears</small>`;
     const { maxBuy, paid } = facts;
@@ -500,10 +515,13 @@
       const reference = item.referenceValue || {};
       const performance = item.referencePerformance || {};
       const title = saved.title || saved.cardIdentity || item.opportunityId;
-      const referenceCell = reference.available
+      const trustDisplay = window.FlipForgeTrustDisplay;
+      const withheld = Boolean(trustDisplay?.valuesWithheld?.(item, reference, saved));
+      const withheldCell = withheld ? `<strong data-ff-value-withheld>${escapeHtml(trustDisplay.withheldLabel(item, reference, saved))}</strong>` : "";
+      const referenceCell = withheld ? `${withheldCell}<small>No figure is shown for this card</small>` : reference.available
         ? `<strong>${escapeHtml(moneyCents(reference.valueCents))}</strong><small>${escapeHtml(referenceStatus(reference))}</small>`
         : `<strong>Unavailable</strong><small>${escapeHtml(referenceStatus(reference))}</small>`;
-      const performanceCell = performance.available
+      const performanceCell = withheld ? `${withheldCell}<small>No comparison is shown for this card</small>` : performance.available
         ? `<strong>${escapeHtml(signedMoneyCents(performance.referenceDeltaCents))}</strong><small>${escapeHtml(signedPercent(performance.referenceDeltaPercent))} vs. cost basis</small>`
         : `<strong>Unavailable</strong><small>${escapeHtml(reference.available ? "What you paid is needed" : "Needs an evidence reference")}</small>`;
       const gate = reference.available
@@ -514,13 +532,13 @@
   }
 
   function pausedSummary(data) {
-    return `<section class="customer-portfolio-metrics"><article><span>Owned cards</span><strong>${escapeHtml(data.count)}</strong></article><article><span>Total paid</span><strong>${escapeHtml(moneyCents(data.totalCostBasisCents))}</strong></article><article><span>Card values</span><strong>Paused</strong></article></section>`;
+    return `<section class="customer-portfolio-metrics"><article><span>Owned cards</span><strong>${escapeHtml(data.count)}</strong></article><article><span>Total paid</span><strong>${escapeHtml(totalCents(data.totalCostBasisCents, data.count, "No owned cards recorded yet"))}</strong></article><article><span>Card values</span><strong>Paused</strong></article></section>`;
   }
 
   function summary(data) {
     const coveredReference = `${data.referenceValueAvailableCount}/${data.count}`;
     const coveredPerformance = `${data.performanceAvailableCount}/${data.count}`;
-    return `<section class="customer-portfolio-metrics"><article><span>Owned holdings</span><strong>${escapeHtml(data.count)}</strong></article><article><span>Total cost basis</span><strong>${escapeHtml(moneyCents(data.totalCostBasisCents))}</strong></article><article><span>Reference coverage</span><strong>${escapeHtml(coveredReference)}</strong></article><article><span>Performance coverage</span><strong>${escapeHtml(coveredPerformance)}</strong></article></section>`;
+    return `<section class="customer-portfolio-metrics"><article><span>Owned holdings</span><strong>${escapeHtml(data.count)}</strong></article><article><span>Total cost basis</span><strong>${escapeHtml(totalCents(data.totalCostBasisCents, data.count, "No owned cards recorded yet"))}</strong></article><article><span>Reference coverage</span><strong>${escapeHtml(coveredReference)}</strong></article><article><span>Performance coverage</span><strong>${escapeHtml(coveredPerformance)}</strong></article></section>`;
   }
 
   function coveragePanel(data) {
@@ -543,7 +561,7 @@
       : completePerformance
       ? signedMoneyCents(data.completePortfolioReferenceDeltaCents)
       : "Unavailable until every holding has reference + cost basis";
-    return `<div class="customer-portfolio-grid"><section class="panel"><header class="panel-header"><div><h2>Coverage-aware totals</h2><p>FlipForge never extrapolates uncovered holdings.</p></div>${badge(coverageLabel, coverageTone)}</header><div class="panel-body customer-portfolio-key-grid"><div><span>Whole-portfolio reference</span><strong>${escapeHtml(totalReference)}</strong></div><div><span>Whole-portfolio reference delta</span><strong>${escapeHtml(totalDelta)}</strong></div><div><span>Covered reference subtotal</span><strong>${escapeHtml(moneyCents(data.coveredReferenceValueCents))}</strong></div><div><span>Covered cost basis</span><strong>${escapeHtml(moneyCents(data.coveredCostBasisCents))}</strong></div><div><span>Covered reference delta</span><strong>${escapeHtml(signedMoneyCents(data.coveredReferenceDeltaCents))}</strong></div><div><span>Method</span><strong>Accepted exact completed-sale average</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>What this number is not</h2><p>The evidence reference is intentionally narrower than a generic market-price claim.</p></div></header><div class="panel-body customer-portfolio-boundaries"><div><span>✓</span><p><strong>Completed sales only</strong><small>At least 3 accepted exact sales; newest sale must be 30 days old or less.</small></p></div><div><span>×</span><p><strong>No active asks</strong><small>Current listings and fixed-price asks do not become completed-sale evidence.</small></p></div><div><span>×</span><p><strong>Not an appraisal or what you would receive</strong><small>The reference is an average of completed sales. It does not subtract selling fees, taxes or shipping.${sellWatchData() ? " To see what you would keep after your own selling costs, use Check a price on a card." : ""}</small></p></div></div></section></div>`;
+    return `<div class="customer-portfolio-grid"><section class="panel"><header class="panel-header"><div><h2>Coverage-aware totals</h2><p>FlipForge never extrapolates uncovered holdings.</p></div>${badge(coverageLabel, coverageTone)}</header><div class="panel-body customer-portfolio-key-grid"><div><span>Whole-portfolio reference</span><strong>${escapeHtml(totalReference)}</strong></div><div><span>Whole-portfolio reference delta</span><strong>${escapeHtml(totalDelta)}</strong></div><div><span>Covered reference subtotal</span><strong>${escapeHtml(totalCents(data.coveredReferenceValueCents, data.referenceValueAvailableCount))}</strong></div><div><span>Covered cost basis</span><strong>${escapeHtml(totalCents(data.coveredCostBasisCents, data.performanceAvailableCount))}</strong></div><div><span>Covered reference delta</span><strong>${escapeHtml(signedTotalCents(data.coveredReferenceDeltaCents, data.performanceAvailableCount))}</strong></div><div><span>Method</span><strong>Accepted exact completed-sale average</strong></div></div></section><section class="panel"><header class="panel-header"><div><h2>What this number is not</h2><p>The evidence reference is intentionally narrower than a generic market-price claim.</p></div></header><div class="panel-body customer-portfolio-boundaries"><div><span>✓</span><p><strong>Completed sales only</strong><small>At least 3 accepted exact sales; newest sale must be 30 days old or less.</small></p></div><div><span>×</span><p><strong>No active asks</strong><small>Current listings and fixed-price asks do not become completed-sale evidence.</small></p></div><div><span>×</span><p><strong>Not an appraisal or what you would receive</strong><small>The reference is an average of completed sales. It does not subtract selling fees, taxes or shipping.${sellWatchData() ? " To see what you would keep after your own selling costs, use Check a price on a card." : ""}</small></p></div></div></section></div>`;
   }
 
   // ---------------------------------------------------------------------------------------------------------------

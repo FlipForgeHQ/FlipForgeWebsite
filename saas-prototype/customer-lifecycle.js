@@ -414,6 +414,16 @@
     return Number.isFinite(number) && number > 0 ? moneyFromCents(number) : "Not established";
   }
 
+  // Phase 5: a saved snapshot whose values the server withheld (its own marker, or the lifecycle detail's marker when
+  // the snapshot carries no value of its own) shows the server's label instead of "Not established".
+  function entryWithheld(entry) {
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    if (!trustDisplay?.valuesWithheld) return false;
+    if (trustDisplay.valuesWithheld(entry)) return true;
+    const cents = entry?.supportedValueCents;
+    return (cents === null || cents === undefined) && trustDisplay.valuesWithheld(state.detail?.data);
+  }
+
   function timelineEntryMarkup(entry, index) {
     const changes = changeLinesFor(entry);
     const wouldChange = safeArray(entry?.whatWouldChange);
@@ -423,7 +433,7 @@
     const wouldChangeMarkup = wouldChange.length
       ? `<details class="customer-decision-timeline-conditions"><summary>What would change this decision?</summary><ul>${wouldChange.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></details>`
       : "";
-    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(whenText(entry?.evaluatedAt, "Time unavailable"))}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : establishedValue(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(plainCode({ REVIEW: "Needs review" }, entry?.evidenceQuality, "Unavailable"))}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
+    return `<article class="customer-decision-timeline-entry" data-changed="${entry?.changedFromPrevious === true}"><div class="customer-decision-timeline-entry-head"><div>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacyMarkup(entry, { compact: true }) : ""}<span>${escapeHtml(whenText(entry?.evaluatedAt, "Time unavailable"))}</span><strong>${index === 0 ? "T0 · Original saved decision" : `Saved decision ${index + 1}`}</strong></div>${badge(entry?.decision || "UNKNOWN", decisionTone(entry?.decision))}</div><div class="customer-decision-timeline-signals"><span><small>Ask</small><strong>${moneyFromCents(entry?.allInAskCents)}</strong></span><span><small>Supported Value</small><strong>${window.FlipForgeTrustDisplay?.isLegacy(entry) ? "Not currently supported" : entryWithheld(entry) ? `<span data-ff-value-withheld>${escapeHtml(window.FlipForgeTrustDisplay.withheldLabel(entry, state.detail?.data))}</span>` : establishedValue(entry?.supportedValueCents)}</strong>${window.FlipForgeTrustDisplay ? window.FlipForgeTrustDisplay.legacySavedValuesMarkup(entry) : ""}</span><span><small>Confidence</small><strong>${escapeHtml(timelineScore(entry?.confidence))}</strong></span><span><small>Risk</small><strong>${escapeHtml(timelineScore(entry?.risk))}</strong></span><span><small>Evidence</small><strong>${escapeHtml(plainCode({ REVIEW: "Needs review" }, entry?.evidenceQuality, "Unavailable"))}</strong></span></div>${changeMarkup}${wouldChangeMarkup}</article>`;
   }
 
   function decisionTimelineMarkup() {
@@ -482,7 +492,7 @@
       case "MEASURABLE": return "Observed";
       case "OBSERVATION_NOT_MEASURABLE": return "Observed · limited measurement";
       case "VALUE_NOT_MEASURABLE": return "Observed · value unavailable";
-      case "MISSING_OBSERVATION": return "Waiting for observation";
+      case "MISSING_OBSERVATION": return "Not recorded";
       default: return "Unavailable";
     }
   }
@@ -500,12 +510,17 @@
       ? `${Number(checkpoint.acceptedEvidenceDelta) > 0 ? "+" : ""}${escapeHtml(checkpoint.acceptedEvidenceDelta)}`
       : "Unavailable";
     const missingCopy = measurementState === "MISSING_OBSERVATION"
-      ? `<p class="customer-outcome-waiting">FlipForge has not captured a governed T${horizon} observation. Later values are not backfilled into this checkpoint.</p>`
+      ? `<p class="customer-outcome-waiting">No governed T${horizon} observation was recorded. Later values are not backfilled into this checkpoint.</p>`
       : "";
     return `<article class="customer-outcome-checkpoint" data-state="${escapeHtml(measurementState)}"><div class="customer-outcome-checkpoint-head"><span class="eyebrow">T${escapeHtml(horizon)}</span><strong>${escapeHtml(checkpointLabel(measurementState))}</strong></div><div class="customer-outcome-checkpoint-grid"><span><small>Observed at</small><strong>${observedAt}</strong></span><span><small>Observed Supported Value</small><strong>${observedValue}</strong></span><span><small>Value movement</small><strong>${movement}</strong></span><span><small>Accepted evidence change</small><strong>${evidenceDelta}</strong></span></div>${missingCopy}</article>`;
   }
 
   function outcomePanelMarkup() {
+    // The shared Day 7 / 14 / 30 timeline (decision-outcome-timeline-v1.js), from this same lifecycle detail; the
+    // block below is kept only for a service that does not return it yet.
+    const sharedTimeline = window.FlipForgeOutcomeTimeline;
+    const timeline = state.detail?.data?.outcomeTimeline;
+    if (sharedTimeline?.valid?.(timeline, state.selectedId)) return sharedTimeline.markup(timeline);
     const value = state.detail?.data?.decisionChangeIntelligence;
     if (!validDecisionChangeIntelligence(value, state.selectedId) || value?.available !== true) {
       return `<section class="panel customer-outcome-panel" data-ff-outcome-intelligence><header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>T7 · T14 · T30</h2><p>Governed observations after the saved decision.</p></div>${badge("Unavailable", "neutral")}</header><div class="panel-body staging-empty consumer-state consumer-state-empty"><strong>Outcome checkpoints are not available yet.</strong><p>FlipForge will not infer or backfill missing observations from later values. Tracking remains available independently.</p></div></section>`;
@@ -515,7 +530,7 @@
     const byHorizon = new Map(checkpoints.map(item => [Number(item?.horizonDays), item]));
     const required = [7, 14, 30].map(horizon => byHorizon.get(horizon) || { horizonDays: horizon, measurementState: "MISSING_OBSERVATION", available: false });
     const observed = Number(reconciliation.observedCheckpointCount || 0);
-    return `<section class="panel customer-outcome-panel" data-ff-outcome-intelligence><header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>T7 · T14 · T30</h2><p>What the qualified evidence showed after the saved decision.</p></div>${badge(`${observed}/3 observed`, "ok")}</header><div class="panel-body"><div class="customer-outcome-boundary"><strong>Observation, not a new recommendation.</strong><span>These checkpoints compare stored observations with the immutable T0 baseline. They do not rescore history, declare a decision right or wrong, backfill missing values, or authorize a transaction.</span></div><div class="customer-outcome-baseline"><span><small>T0 decision</small><strong>${escapeHtml(reconciliation.t0Decision || "Unavailable")}</strong></span><span><small>T0 date</small><strong>${escapeHtml(reconciliation.t0EvaluatedAt ? readableDate(reconciliation.t0EvaluatedAt) : "Unavailable")}</strong></span><span><small>T0 Supported Value</small><strong>${observedMoney(reconciliation.t0SupportedValueCents)}</strong></span></div>${observed === 0 ? `<p class="customer-outcome-waiting customer-outcome-open" data-ff-outcome-open>Each checkpoint needs completed sales of this exact card recorded after the decision. None has been recorded yet, so the checkpoints stay open. They are never filled in later from estimates.</p>` : ""}<div class="customer-outcome-checkpoints">${required.map(checkpointMarkup).join("")}</div></div></section>`;
+    return `<section class="panel customer-outcome-panel" data-ff-outcome-intelligence><header class="panel-header"><div><span class="eyebrow">Outcome Intelligence</span><h2>T7 · T14 · T30</h2><p>What the qualified evidence showed after the saved decision.</p></div>${badge(`${observed}/3 observed`, "ok")}</header><div class="panel-body"><div class="customer-outcome-boundary"><strong>Observation, not a new recommendation.</strong><span>These checkpoints compare stored observations with the immutable T0 baseline. They do not rescore history, declare a decision right or wrong, backfill missing values, or authorize a transaction.</span></div><div class="customer-outcome-baseline"><span><small>T0 decision</small><strong>${escapeHtml(reconciliation.t0Decision || "Unavailable")}</strong></span><span><small>T0 date</small><strong>${escapeHtml(reconciliation.t0EvaluatedAt ? readableDate(reconciliation.t0EvaluatedAt) : "Unavailable")}</strong></span><span><small>T0 Supported Value</small><strong>${observedMoney(reconciliation.t0SupportedValueCents)}</strong></span></div>${observed === 0 ? `<p class="customer-outcome-waiting customer-outcome-open" data-ff-outcome-open>Each checkpoint needs completed sales of this exact card recorded after the decision. None has been recorded for these checkpoints, and they are never filled in later from estimates.</p>` : ""}<div class="customer-outcome-checkpoints">${required.map(checkpointMarkup).join("")}</div></div></section>`;
   }
 
   // The outcome follows the tracking status; the customer chooses the status only.
@@ -638,7 +653,12 @@
   function alertFacts(item) {
     const facts = [];
     const kind = alertKind(item);
-    if (kind === "MAX_BUY_CROSSED") {
+    // Phase 5: an alert on a decision whose values were withheld names no value or buying limit, only the label.
+    const trustDisplay = window.FlipForgeTrustDisplay;
+    if (trustDisplay?.valuesWithheld?.(item)) {
+      const label = trustDisplay.withheldLabel(item);
+      if (!String(item.customerExplanation || item.reason || "").includes(label)) facts.push(label);
+    } else if (kind === "MAX_BUY_CROSSED") {
       facts.push(`All-in ask ${moneyFromCents(item.previousAllInAskCents)} → ${moneyFromCents(item.allInAskCents)} · saved Max Buy ${moneyFromCents(item.maximumBuyPriceCents)}`);
     }
     if (kind === "DECISION_RECHECK_DUE" && Number.isFinite(Number(item.ageDays))) {

@@ -23,3 +23,13 @@
 .forge-heat-near-limit li small{display:block;margin-top:3px;color:var(--muted,#9fa5b0);font-size:.875rem;font-variant-numeric:tabular-nums}
 .forge-heat-near-actions{display:flex;flex-wrap:wrap;gap:8px}
 @media (max-width:680px){.forge-heat-near-actions,.forge-heat-near-actions .button{width:100%}}
+/* Phase 5: saved decisions whose values were withheld (never ranked, verdict unchanged). */
+.forge-heat-withheld{display:grid;gap:10px;width:100%;margin:4px 0 8px;padding:16px 18px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(0,0,0,.16)}
+.forge-heat-withheld h2{margin:0;font-size:1rem}
+.forge-heat-withheld p{margin:0;color:var(--muted,#9fa5b0);font-size:.875rem;line-height:1.5}
+.forge-heat-withheld ul{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.forge-heat-withheld li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.05);min-width:0}
+.forge-heat-withheld li:first-child{border-top:0}
+.forge-heat-withheld li a{min-width:0;overflow-wrap:anywhere}
+.forge-heat-withheld li span{font-weight:700;font-size:.875rem;letter-spacing:.04em}
+.forge-heat-withheld li small{color:var(--muted,#9fa5b0);font-size:.875rem}

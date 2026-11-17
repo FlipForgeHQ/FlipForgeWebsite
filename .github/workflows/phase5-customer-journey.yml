@@ -1,0 +1,86 @@
+name: Phase 5 Customer Journey Assurance
+
+# Phase 5 Customer Intelligence (DEV): Discover → Evaluate → Save → Decision Receipt → Track → Review → Portfolio →
+# Alerts → Forge Heat, against a mocked API shaped like FlipForge2 docs/saas/PHASE5_CUSTOMER_INTELLIGENCE_CONTRACT.md:
+# value-withheld safeguard on every surface, the D7 / D14 / D30 timeline with streams A / B / C, account isolation,
+# axe, overflow, settling and a basic performance budget, at 1440 / 834 / 390. Synthetic fixtures only.
+on:
+  pull_request:
+    paths:
+      - "saas-prototype/**"
+      - "scripts/audit-phase5-customer-journey-ci.mjs"
+      - "scripts/audit-outcome-timeline-ci.mjs"
+      - "scripts/fixtures/phase5/**"
+      - "scripts/journey/**"
+      - ".github/workflows/phase5-customer-journey.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  journey:
+    name: Phase 5 customer journey (1440 / 834 / 390)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install website dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production Identity assets
+        run: npm run build:identity
+
+      - name: Install Playwright Chromium
+        run: bash scripts/ci/install-playwright-chromium.sh
+
+      - name: Install axe-core (kept outside the website's node_modules)
+        run: |
+          for attempt in 1 2 3; do
+            if timeout 120s npm install --prefix "$RUNNER_TEMP/axe" --no-save --no-package-lock --no-audit --no-fund axe-core@4.10.3; then exit 0; fi
+            sleep $((attempt * 5))
+          done
+          exit 1
+
+      - name: Start production-path app server
+        run: |
+          node saas-prototype/serve.mjs > /tmp/flipforge-phase5-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/app/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/flipforge-phase5-server.log
+          exit 1
+
+      - name: Phase 5 customer journey audit
+        env:
+          FF_P5_SHOTS: output/phase5
+          AXE_CORE_PATH: ${{ runner.temp }}/axe/node_modules/axe-core/axe.min.js
+        run: node scripts/audit-phase5-customer-journey-ci.mjs
+
+      - name: Outcome timeline audit (every v1 state, both pages, three widths)
+        env:
+          FF_OTL_SHOTS: output/outcome-timeline
+        run: node scripts/audit-outcome-timeline-ci.mjs
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: phase5-customer-journey-screenshots
+          path: output/phase5
+          retention-days: 14

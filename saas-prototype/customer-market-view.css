@@ -420,3 +420,7 @@
     text-align: left;
   }
 }
+/* Phase 5: saved decisions whose values were withheld (no value gap shown). */
+.market-view-withheld{display:grid;gap:6px;margin-top:12px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:12px;font-size:.875rem}
+.market-view-withheld ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.market-view-withheld li{overflow-wrap:anywhere}

@@ -424,6 +424,114 @@
   line-height: 1.55;
 }
 
+/* Outcome Checkpoint Timeline v1 (decision-outcome-timeline-v1.js): shared by Saved Decisions and Tracking. */
+.ff-otl .panel-body > section + section {
+  margin-top: 18px;
+}
+
+.ff-otl-question h3 {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.ff-otl-answer {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.ff-otl-why {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ff-otl .customer-outcome-baseline em,
+.ff-otl .customer-outcome-checkpoint-grid em {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-soft);
+  font-size: 14px;
+  font-style: normal;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.ff-otl-state {
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.ff-otl-checkpoint[data-state="PRICE_OBSERVED"] { border-color: rgba(67, 174, 116, .45); }
+.ff-otl-state[data-ff-otl-state="PRICE_OBSERVED"] { border-color: rgba(67, 174, 116, .55); color: #7fd3a3; }
+.ff-otl-checkpoint[data-state="CUSTOMER_REPORTED_UNVERIFIED"] { border-color: rgba(207, 174, 84, .45); }
+.ff-otl-state[data-ff-otl-state="CUSTOMER_REPORTED_UNVERIFIED"] { border-color: rgba(207, 174, 84, .55); color: var(--gold-strong, #d9bd72); white-space: normal; }
+.ff-otl-state[data-ff-otl-state="WINDOW_CLOSED"],
+.ff-otl-state[data-ff-otl-state="NO_RELIABLE_EVIDENCE"],
+.ff-otl-state[data-ff-otl-state="NO_NEW_SALES"] { color: var(--text-soft); }
+
+.ff-otl-dates,
+.ff-otl-explanation,
+.ff-otl-conflict {
+  margin: 0 0 10px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ff-otl-conflict {
+  padding: 8px 10px;
+  border-left: 3px solid var(--gold-strong, #d9bd72);
+  background: rgba(207, 174, 84, .06);
+}
+
+.ff-otl-reports {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ff-otl-reports li {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(207, 174, 84, .45);
+  border-radius: 9px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ff-otl-reports b,
+.ff-otl-reconstruction b {
+  display: block;
+  color: var(--gold-strong, #d9bd72);
+  font-size: 14px;
+}
+
+.ff-otl-reconstruction {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(120, 160, 220, .5);
+  border-radius: 9px;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.ff-otl-reconstruction b { color: #9fbbe6; }
+
+.ff-otl-reconstruction p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 @media (max-width: 1050px) {
   .customer-lifecycle-grid {
     grid-template-columns: 1fr;
@@ -624,4 +732,198 @@
 
 .ff-reevaluation-banner .button {
   justify-self: start;
+}
+
+/* Phase 5 (outcome-checkpoint-timeline-v2): three evidence streams per checkpoint, verification, withheld values. */
+.ff-otl-subhead {
+  margin: 14px 0 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ff-otl-note,
+.ff-otl-legend {
+  margin: 0 0 12px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ff-otl-legend b,
+.ff-otl-stream dt b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.6em;
+  margin-right: 4px;
+  border: 1px solid rgba(207, 174, 84, .45);
+  border-radius: 6px;
+  color: var(--gold-strong, #d9bd72);
+  font-size: 14px;
+}
+
+.ff-otl-streams {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.ff-otl-stream {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, .12);
+}
+
+.ff-otl-stream dt {
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.ff-otl-stream dd {
+  margin: 4px 0 0;
+  min-width: 0;
+}
+
+.ff-otl-stream dd > strong,
+.ff-otl-stream dd > small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.ff-otl-stream dd > strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.ff-otl-stream dd > small {
+  margin-top: 3px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ff-otl-stream .customer-outcome-checkpoint-grid {
+  margin-top: 8px;
+}
+
+.ff-otl-stream[data-ff-otl-movement="INCREASED"] dd > strong { color: #7fd3a3; }
+.ff-otl-stream[data-ff-otl-movement="DECREASED"] dd > strong { color: #e6a29b; }
+
+.ff-otl-changed,
+.ff-otl-verify {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ff-otl-verify,
+.ff-otl-verification[data-ff-otl-verification="needed"] strong {
+  color: var(--gold-strong, #d9bd72);
+  font-weight: 700;
+}
+
+.ff-otl-verification {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ff-otl-verification span,
+.ff-otl-verification li {
+  color: var(--text-soft);
+}
+
+.ff-otl-verification ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.ff-value-withheld,
+[data-ff-value-withheld] {
+  overflow-wrap: anywhere;
+}
+
+/* Phase 5 customer journey strip (customer-intelligence-journey-v1.js): Discover → … → Forge Heat. */
+.ff-journey {
+  margin: 0 0 16px;
+  min-width: 0;
+}
+
+.ff-journey p {
+  margin: 0 0 6px;
+  color: var(--text-soft);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.ff-journey ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ff-journey li {
+  min-width: 0;
+}
+
+.ff-journey a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--line, rgba(255, 255, 255, .12));
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 14px;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.ff-journey a span {
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.ff-journey li.is-current a {
+  border-color: rgba(207, 174, 84, .6);
+  color: var(--gold-strong, #d9bd72);
+  font-weight: 700;
+}
+
+.ff-journey a:focus-visible {
+  outline: 2px solid var(--gold-strong, #d9bd72);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  /* One scrollable row on tablets and phones, so the strip never pushes the verdict down. */
+  .ff-journey ol {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ff-journey li {
+    flex: 0 0 auto;
+  }
+
+  .ff-journey a {
+    white-space: nowrap;
+  }
 }
