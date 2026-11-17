@@ -1,0 +1,45 @@
+name: Phase 6 Instagram Beta Kit Assurance
+
+# Phase 6 scope item 7 (DEV, founder-run): the Instagram engagement-to-beta recruitment kit in docs/phase6/instagram-beta/.
+# Static checks only: the kit never posts, DMs, scrapes or calls an Instagram/Graph API; it builds only links the site's
+# own campaign validator accepts; it holds no personal data; and docs/ is never published. No deploy, no release branch.
+on:
+  pull_request:
+    paths:
+      - "docs/phase6/**"
+      - "scripts/validate-phase6-instagram-kit.mjs"
+      - "netlify/modern-functions/lib/beta-operations-core.mjs"
+      - ".github/workflows/phase6-instagram-beta-kit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  kit:
+    name: Phase 6 Instagram beta kit (offline, no API, never published)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Validate the kit (no install needed)
+        run: node scripts/validate-phase6-instagram-kit.mjs
+
+      - name: The strip step removes the kit from a simulated publish
+        run: |
+          tmp="$RUNNER_TEMP/publish"
+          mkdir -p "$tmp" && cp -r . "$tmp/site" && cd "$tmp/site"
+          FLIPFORGE_STRIP_INTERNAL=1 node scripts/strip-internal-from-publish.mjs
+          test ! -e docs/phase6/instagram-beta/link-builder-and-tracker.html
+          echo "kit absent from the simulated publish directory"
