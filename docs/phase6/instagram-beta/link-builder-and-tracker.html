@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'">
+<title>Beta Link Tracker</title>
+<style>
+:root{--bg:#f7f7f4;--fg:#101418;--muted:#5b6470;--line:#d9dde3;--accent:#8a6a1f;--bad:#9b2c2c;--panel:#ffffff}
+@media (prefers-color-scheme:dark){:root{--bg:#0a101c;--fg:#f7f7f4;--muted:#a6afbe;--line:#263244;--accent:#d7b56d;--bad:#f08a8a;--panel:#111a2b}}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:28px 0 8px}
+.k{color:var(--muted);font-size:13px}.bad{color:var(--bad)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0}
+label{display:block;font-size:13px;color:var(--muted);margin-top:8px}
+input,select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);max-width:100%}
+input[type=number]{width:90px}
+button{font:inherit;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--fg);cursor:pointer;margin:6px 6px 0 0}
+code{word-break:break-all}
+.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid var(--line);padding:4px 6px;text-align:left}
+</style>
+</head>
+<body>
+<main>
+<h1>Instagram beta link builder and tracker</h1>
+<p class="k">Founder only. Offline: this page makes no network request and never contacts Instagram. Data stays in this browser until you export it. Do not type handles, names, emails or comment text anywhere on this page.</p>
+
+<h2>1. Build a tagged beta link</h2>
+<div class="card">
+  <label for="campaign">Campaign tag (e.g. beta-wave-1)</label><input id="campaign" value="beta-wave-1">
+  <label for="content">Content tag for this post (e.g. reel-verify-explainer)</label><input id="content" value="reel-verify-explainer">
+  <label for="medium">Medium</label><select id="medium"><option>social</option><option>bio</option><option>story</option></select>
+  <div><button type="button" id="build">Build link</button><button type="button" id="copy">Copy link</button></div>
+  <p id="linkOut"><code></code></p><p id="linkErr" class="bad" role="alert"></p>
+</div>
+
+<h2>2. Per-post counts (copied by hand from Instagram's insights)</h2>
+<div class="card wrap"><table id="posts"><thead><tr><th>Content tag</th><th>Campaign</th><th>Format</th><th>Week</th><th>Reach</th><th>Likes</th><th>Comments</th><th>Saves</th><th>Shares</th><th>Profile visits</th><th>Link taps</th><th></th></tr></thead><tbody></tbody></table>
+<button type="button" id="addPost">Add post</button></div>
+
+<h2>3. Applications per link (copied from the operator console's campaign table)</h2>
+<div class="card wrap"><table id="apps"><thead><tr><th>Source</th><th>Medium</th><th>Campaign</th><th>Content</th><th>Applications, all time</th><th>Applications, 30 days</th><th>Beta clicks, 30 days</th><th></th></tr></thead><tbody></tbody></table>
+<button type="button" id="addApp">Add row</button></div>
+
+<h2>4. Save and export</h2>
+<div class="card">
+  <button type="button" id="save">Save in this browser</button>
+  <button type="button" id="export">Export JSON for the funnel</button>
+  <label for="import">Import a previous export</label><input id="import" type="file" accept="application/json">
+  <p id="status" class="k" role="status"></p>
+</div>
+<p class="k">Format ff-p6-instagram-tracker-v1. Run Phase6Tools funnel on the exported file. Every account action (posting, replying) is done by you in the Instagram app.</p>
+</main>
+<script>
+// BEGIN link-rules (kept identical to validateCampaign in netlify/modern-functions/lib/beta-operations-core.mjs; checked in CI)
+const BETA_URL = "https://goflipforge.com/beta-application.html";
+const CAMPAIGN_SOURCES = ["instagram", "tiktok", "facebook", "youtube", "outreach", "reddit", "email"];
+const CAMPAIGN_VALUE = /^[a-z0-9_-]{1,40}$/;
+function buildLink(campaign, content, medium) {
+  const parts = { utm_source: "instagram", utm_medium: medium, utm_campaign: campaign, utm_content: content };
+  for (const [key, value] of Object.entries(parts)) {
+    if (typeof value !== "string" || !CAMPAIGN_VALUE.test(value)) return { error: key + " must be 1-40 lowercase letters, digits, - or _" };
+  }
+  if (!CAMPAIGN_SOURCES.includes(parts.utm_source)) return { error: "unknown source" };
+  return { url: BETA_URL + "?" + new URLSearchParams(parts).toString() };
+}
+// END link-rules
+const KEY = "flipforge.p6.igtracker.v1";
+const FORMATS = ["reel", "carousel", "post", "story", "live"];
+const COUNTS = ["reach", "likes", "comments", "saves", "shares", "profileVisits", "linkTaps"];
+const $ = id => document.getElementById(id);
+const state = { posts: [], applications: [] };
+function cell(row, key, type, opts) {
+  const td = document.createElement("td");
+  let el;
+  if (opts) { el = document.createElement("select"); for (const o of opts) { const op = document.createElement("option"); op.value = o; op.textContent = o || "(not attributed)"; el.append(op); } }
+  else { el = document.createElement("input"); el.type = type; if (type === "number") el.min = "0"; }
+  el.value = row[key] == null ? "" : row[key];
+  el.setAttribute("aria-label", key);
+  el.addEventListener("change", () => { row[key] = type === "number" ? Math.max(0, Math.floor(Number(el.value) || 0)) : el.value.trim(); });
+  td.append(el); return td;
+}
+function render() {
+  const pb = $("posts").tBodies[0]; pb.textContent = "";
+  state.posts.forEach((p, i) => {
+    const tr = document.createElement("tr");
+    tr.append(cell(p, "content", "text"), cell(p, "campaign", "text"), cell(p, "format", "text", FORMATS), cell(p, "week", "week"));
+    for (const c of COUNTS) tr.append(cell(p, c, "number"));
+    const td = document.createElement("td"); const b = document.createElement("button"); b.type = "button"; b.textContent = "Remove";
+    b.onclick = () => { state.posts.splice(i, 1); render(); }; td.append(b); tr.append(td); pb.append(tr);
+  });
+  const ab = $("apps").tBodies[0]; ab.textContent = "";
+  state.applications.forEach((a, i) => {
+    const tr = document.createElement("tr");
+    tr.append(cell(a, "source", "text", ["instagram", ""]), cell(a, "medium", "text"), cell(a, "campaign", "text"), cell(a, "content", "text"),
+      cell(a, "allTime", "number"), cell(a, "last30Days", "number"), cell(a, "betaCtaClicks30Days", "number"));
+    const td = document.createElement("td"); const b = document.createElement("button"); b.type = "button"; b.textContent = "Remove";
+    b.onclick = () => { state.applications.splice(i, 1); render(); }; td.append(b); tr.append(td); ab.append(tr);
+  });
+}
+function exportable() {
+  const posts = state.posts.map(p => { const o = { content: p.content, campaign: p.campaign, medium: p.medium || "social", format: p.format || "post" };
+    if (p.week) o.week = p.week; for (const c of COUNTS) o[c] = Number(p[c]) || 0; return o; });
+  const applications = state.applications.map(a => { const o = { source: a.source ? a.source : null };
+    if (a.source) { o.medium = a.medium || null; o.campaign = a.campaign || null; o.content = a.content || null; }
+    o.allTime = Number(a.allTime) || 0; o.last30Days = Number(a.last30Days) || 0; if (a.betaCtaClicks30Days) o.betaCtaClicks30Days = Number(a.betaCtaClicks30Days) || 0; return o; });
+  return { format: "ff-p6-instagram-tracker-v1", posts, applications };
+}
+function check(data) {
+  const text = JSON.stringify(data);
+  if (/@[A-Za-z0-9_.]{2,}|https?:\/\/|www\./.test(text)) return "Remove any handle, email or link before exporting.";
+  for (const p of data.posts) if (!CAMPAIGN_VALUE.test(p.content || "") || !CAMPAIGN_VALUE.test(p.campaign || "")) return "Every post needs lowercase content and campaign tags.";
+  for (const a of data.applications) if (a.last30Days > a.allTime) return "30-day applications cannot exceed all-time applications.";
+  return "";
+}
+$("build").onclick = () => {
+  const r = buildLink($("campaign").value.trim(), $("content").value.trim(), $("medium").value);
+  $("linkErr").textContent = r.error || ""; $("linkOut").firstElementChild.textContent = r.url || "";
+};
+$("copy").onclick = () => { const t = $("linkOut").textContent; if (t && navigator.clipboard) navigator.clipboard.writeText(t).catch(() => {}); };
+$("addPost").onclick = () => { state.posts.push({ content: $("content").value.trim(), campaign: $("campaign").value.trim(), medium: "social", format: "reel" }); render(); };
+$("addApp").onclick = () => { state.applications.push({ source: "instagram", medium: "social", campaign: $("campaign").value.trim(), content: $("content").value.trim() }); render(); };
+$("save").onclick = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); $("status").textContent = "Saved in this browser."; } catch { $("status").textContent = "This browser would not save; export instead."; } };
+$("export").onclick = () => {
+  const data = exportable(); const problem = check(data);
+  if (problem) { $("status").textContent = problem; return; }
+  const a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+  a.download = "instagram-tracker-export.json"; a.click(); $("status").textContent = "Exported.";
+};
+$("import").onchange = e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { try { const d = JSON.parse(r.result); if (d.format !== "ff-p6-instagram-tracker-v1") throw new Error();
+    state.posts = Array.isArray(d.posts) ? d.posts : []; state.applications = (Array.isArray(d.applications) ? d.applications : []).map(a => ({ ...a, source: a.source || "" }));
+    render(); $("status").textContent = "Imported."; } catch { $("status").textContent = "That file is not a tracker export."; } };
+  r.readAsText(f);
+};
+try { const saved = JSON.parse(localStorage.getItem(KEY) || "null"); if (saved && Array.isArray(saved.posts)) { state.posts = saved.posts; state.applications = saved.applications || []; } } catch {}
+render();
+</script>
+</body>
+</html>
