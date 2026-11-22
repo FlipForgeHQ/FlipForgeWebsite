@@ -1,0 +1,73 @@
+name: PR Lifecycle Governance
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize, ready_for_review, converted_to_draft]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  required-fields:
+    name: required-fields
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Validate new PR purpose, status and next action (no checkout or credentials)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import datetime
+          import json
+          import os
+          import re
+          import sys
+
+          with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as file:
+              event = json.load(file)
+          pr = event.get("pull_request") or {}
+          created = datetime.datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
+          effective = datetime.datetime(2026, 10, 28, tzinfo=datetime.timezone.utc)
+          if created < effective:
+              print("PASS: existing PR grandfathered; no retroactive description failure.")
+              sys.exit(0)
+          if (pr.get("user") or {}).get("login") == "dependabot[bot]":
+              print("PASS: automated dependency-update PR exempt from narrative form only.")
+              sys.exit(0)
+
+          body = re.sub(r"<!--.*?-->", "", pr.get("body") or "", flags=re.S)
+          headings = list(re.finditer(r"(?m)^##[ \t]+([^\r\n]+)[ \t]*$", body))
+          sections = {}
+          for index, match in enumerate(headings):
+              end = headings[index + 1].start() if index + 1 < len(headings) else len(body)
+              sections[match.group(1).strip().lower()] = body[match.end():end].strip()
+
+          errors = []
+          purpose = sections.get("purpose", "")
+          if len(purpose) < 25 or re.match(r"(?i)^(todo|tbd|placeholder|describe|n/a|none)\b", purpose):
+              errors.append("Purpose: explain the problem, why now and the scope (25+ meaningful characters).")
+
+          state = sections.get("current status", "")
+          if not re.fullmatch(r"Status:[ \t]*(ACTIVE|BLOCKED|READY_FOR_REVIEW|PROTECTED_HOLD)[ \t]*", state):
+              errors.append("Current status: enter exactly 'Status: ACTIVE', 'Status: BLOCKED', 'Status: READY_FOR_REVIEW', or 'Status: PROTECTED_HOLD'.")
+
+          next_step = sections.get("next action", "")
+          owner = re.search(r"(?m)^Owner:[ \t]*(.+?)[ \t]*$", next_step)
+          action = re.search(r"(?m)^Action:[ \t]*(.+?)[ \t]*$", next_step)
+          def meaningful(value, minimum):
+              if not value or len(value.strip()) < minimum:
+                  return False
+              return not re.match(r"(?i)^(choose|todo|tbd|placeholder|none|n/a|later)\b", value.strip())
+          if not meaningful(owner.group(1) if owner else "", 2):
+              errors.append("Next action: set Owner to an actual person or accountable agent.")
+          if not meaningful(action.group(1) if action else "", 12):
+              errors.append("Next action: set Action to a concrete step (12+ characters).")
+
+          if errors:
+              for item in errors:
+                  print("ERROR:", item)
+              print("See docs/engineering/PR_LIFECYCLE_RULE.md in the PR or default branch.")
+              sys.exit(1)
+          print("PASS: purpose, current status and next action present.")
+          PY
