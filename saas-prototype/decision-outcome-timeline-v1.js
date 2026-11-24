@@ -95,6 +95,8 @@
     NO_NEW_VERIFIED_EVIDENCE: "Checked: too few qualifying sales to measure",
     PROVIDER_UNAVAILABLE: "Checked: no evidence source was available",
     IDENTITY_INELIGIBLE: "Not measurable: exact card not confirmed",
+    // FlipForge2 #1019: sales a licensed provider reported and FlipForge qualified, but nobody independently confirmed.
+    PROVIDER_REPORTED: "Reported by a licensed provider: not independently confirmed",
     COMPLETED_UNMEASURABLE: "Recorded, but not measurable"
   });
   const IDENTITY_LABELS = Object.freeze({ CONFIRMED: "Confirmed", NOT_CONFIRMED: "Not confirmed", NOT_RECORDED: "Not recorded" });

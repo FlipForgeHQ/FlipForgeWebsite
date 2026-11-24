@@ -54,6 +54,7 @@ const ACCOUNTABILITY_LABELS = {
   NO_NEW_VERIFIED_EVIDENCE: "Checked: too few qualifying sales to measure",
   PROVIDER_UNAVAILABLE: "Checked: no evidence source was available",
   IDENTITY_INELIGIBLE: "Not measurable: exact card not confirmed",
+  PROVIDER_REPORTED: "Reported by a licensed provider: not independently confirmed",
   COMPLETED_UNMEASURABLE: "Recorded, but not measurable"
 };
 const DEVICES = {
