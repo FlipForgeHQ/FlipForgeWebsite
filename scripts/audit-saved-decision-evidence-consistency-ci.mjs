@@ -260,7 +260,7 @@ try {
       const text = await all(s.page);
       check(`E3 ${label} evidence page: saved BUY on 8 sales is not headed "No sales support this decision yet"`,
         /Evidence behind this saved decision/.test(text) && /8 exact completed sales supported this decision when it was made\./.test(text)
-        && !/No sales support this decision yet|No exact completed sales support this card yet/.test(text));
+        && !/No sales support this decision yet|No exact completed sales support this card yet/.test(text), text.slice(0, 600));
       check(`E8 ${label} evidence page: accurate evidence availability wording`,
         !OVERCLAIM.test(text) && !/Sale records aren't kept/i.test(text) && /may have no sales of this exact card/.test(text), (text.match(OVERCLAIM) || [""])[0]);
       check(`E3 ${label} evidence page: decision date readable`, /Decision saved\s*Oct 8, 2026/.test(text) && !/2026-10-08/.test(text));
@@ -269,7 +269,7 @@ try {
       await u.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
       await savedDecisionWording(u.page, /did not record how many exact sales it used|No sales support this decision yet/);
       const utext = await all(u.page);
-      check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext));
+      check(`E3 ${label} evidence page: unrecorded count says so, never "No sales support"`, /did not record how many exact sales it used/.test(utext) && !/No sales support this decision yet/.test(utext), utext.slice(0, 600));
       await u.context.close();
       const l = await open(BETA, "evidence/qa-sd-legacy", { device });
       await l.page.waitForSelector('[data-ff-evidence-authority-split="true"]', { timeout: 20000 }).catch(() => {}); // a cold first load can exceed the fixed wait
